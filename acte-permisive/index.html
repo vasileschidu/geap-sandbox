@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acte permisive · Flow selector</title>
+  <link rel="stylesheet" href="../assets/fonts/Onest.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      align-items: center;
+      background: var(--color-background-base-secondary, #f5f5f5);
+      color: var(--color-text-base-default, #121212);
+      display: flex;
+      font-family: var(--font-family-primary-font, Onest, sans-serif);
+      margin: 0;
+      min-height: 100dvh;
+      padding: var(--spacing-32, 32px);
+    }
+
+    main {
+      background: var(--color-background-base-default, #fff);
+      border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+      border-radius: var(--border-radius-16, 16px);
+      box-shadow: 0 24px 80px rgba(18, 18, 18, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-16, 16px);
+      margin: 0 auto;
+      max-width: 760px;
+      padding: var(--spacing-32, 32px);
+      width: 100%;
+    }
+
+    p {
+      color: var(--color-text-base-secondary, #383838);
+      font-size: var(--font-size-fs-18, 18px);
+      line-height: var(--line-height-lh-26, 26px);
+      margin: 0;
+      max-width: 560px;
+    }
+
+    .eyebrow {
+      color: var(--color-text-brand-default, #0058d2);
+      font-size: var(--font-size-fs-14, 14px);
+      font-weight: var(--font-weight-fw-medium, 500);
+      line-height: var(--line-height-lh-20, 20px);
+    }
+
+    h1 {
+      font-size: var(--font-size-fs-40, 40px);
+      font-weight: var(--font-weight-fw-semibold, 600);
+      letter-spacing: -0.4px;
+      line-height: var(--line-height-lh-48, 48px);
+      margin: 0;
+    }
+
+    .flow-list {
+      display: grid;
+      gap: var(--spacing-12, 12px);
+      margin-top: var(--spacing-8, 8px);
+    }
+
+    a {
+      align-items: center;
+      background: var(--color-background-base-default, #fff);
+      border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+      border-radius: var(--border-radius-12, 12px);
+      color: var(--color-text-base-default, #121212);
+      display: grid;
+      gap: var(--spacing-4, 4px);
+      min-height: 76px;
+      padding: var(--spacing-16, 16px);
+      text-decoration: none;
+    }
+
+    a:hover {
+      background: var(--color-background-base-secondary, #f5f5f5);
+    }
+
+    a:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--color-border-brand-default, #0058d2);
+    }
+
+    strong {
+      font-size: var(--font-size-fs-18, 18px);
+      font-weight: var(--font-weight-fw-semibold, 600);
+      line-height: var(--line-height-lh-26, 26px);
+    }
+
+    span {
+      color: var(--color-text-base-secondary, #383838);
+      font-size: var(--font-size-fs-14, 14px);
+      line-height: var(--line-height-lh-20, 20px);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">GEAP 2.0 · Acte permisive</p>
+    <h1>Alege flow-ul pentru review</h1>
+    <p>Doar cele trei experiențe care trebuie împinse pe git sunt expuse aici.</p>
+    <div class="flow-list" aria-label="Flow-uri disponibile">
+      <a href="../e-permits-acte-permisive.html?flow=full">
+        <strong>Full flow 09</strong>
+        <span>Front office complet pentru serviciul 09.</span>
+      </a>
+      <a href="../e-permits-acte-permisive.html?flow=builder">
+        <strong>Form builder</strong>
+        <span>Builder-ul de formulare, izolat de restul demo-ului.</span>
+      </a>
+      <a href="../e-permits-acte-permisive.html?flow=back-office">
+        <strong>Back office &amp; profile</strong>
+        <span>Shell-ul intern cu dashboard/profil act permisiv.</span>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

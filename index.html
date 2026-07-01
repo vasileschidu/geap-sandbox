@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEAP 2.0 · Demo selector</title>
+  <link rel="stylesheet" href="assets/fonts/Onest.css">
+  <link rel="stylesheet" href="css/main.css">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      align-items: center;
+      background:
+        radial-gradient(circle at 16% 12%, rgba(0, 88, 210, 0.08), transparent 30%),
+        var(--color-background-base-secondary, #f5f5f5);
+      color: var(--color-text-base-default, #121212);
+      display: flex;
+      font-family: var(--font-family-primary-font, Onest, sans-serif);
+      margin: 0;
+      min-height: 100dvh;
+      padding: var(--spacing-32, 32px);
+    }
+
+    main {
+      background: var(--color-background-base-default, #fff);
+      border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+      border-radius: var(--border-radius-16, 16px);
+      box-shadow: 0 24px 80px rgba(18, 18, 18, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-16, 16px);
+      margin: 0 auto;
+      max-width: 760px;
+      padding: var(--spacing-32, 32px);
+      width: 100%;
+    }
+
+    .eyebrow {
+      color: var(--color-text-brand-default, #0058d2);
+      font-size: var(--font-size-fs-14, 14px);
+      font-weight: var(--font-weight-fw-medium, 500);
+      line-height: var(--line-height-lh-20, 20px);
+      margin: 0;
+    }
+
+    h1 {
+      color: var(--color-text-base-default, #121212);
+      font-size: var(--font-size-fs-40, 40px);
+      font-weight: var(--font-weight-fw-semibold, 600);
+      letter-spacing: -0.4px;
+      line-height: var(--line-height-lh-48, 48px);
+      margin: 0;
+    }
+
+    .lead {
+      color: var(--color-text-base-secondary, #383838);
+      font-size: var(--font-size-fs-18, 18px);
+      line-height: var(--line-height-lh-26, 26px);
+      margin: 0;
+      max-width: 560px;
+    }
+
+    .flow-list {
+      display: grid;
+      gap: var(--spacing-12, 12px);
+      margin-top: var(--spacing-8, 8px);
+    }
+
+    .flow-card {
+      align-items: center;
+      background: var(--color-background-base-default, #fff);
+      border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+      border-radius: var(--border-radius-12, 12px);
+      color: var(--color-text-base-default, #121212);
+      display: grid;
+      gap: var(--spacing-16, 16px);
+      grid-template-columns: 48px minmax(0, 1fr) 20px;
+      min-height: 84px;
+      padding: var(--spacing-16, 16px);
+      text-decoration: none;
+      transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+    }
+
+    .flow-card:hover {
+      background: var(--color-background-base-secondary, #f5f5f5);
+      border-color: var(--color-border-base-secondary, #b2b2b2);
+      transform: translateY(-1px);
+    }
+
+    .flow-card:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--color-border-brand-default, #0058d2);
+    }
+
+    .flow-card__icon {
+      align-items: center;
+      background: var(--color-background-brand-secondary, #e8f0fb);
+      border-radius: var(--border-radius-12, 12px);
+      color: var(--color-icon-brand-default, #0058d2);
+      display: inline-flex;
+      height: 48px;
+      justify-content: center;
+      width: 48px;
+    }
+
+    .flow-card__copy {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-4, 4px);
+      min-width: 0;
+    }
+
+    .flow-card__copy strong {
+      color: var(--color-text-base-default, #121212);
+      font-size: var(--font-size-fs-18, 18px);
+      font-weight: var(--font-weight-fw-semibold, 600);
+      line-height: var(--line-height-lh-26, 26px);
+    }
+
+    .flow-card__copy span {
+      color: var(--color-text-base-secondary, #383838);
+      font-size: var(--font-size-fs-14, 14px);
+      line-height: var(--line-height-lh-20, 20px);
+    }
+
+    .flow-card__arrow {
+      color: var(--color-icon-base-secondary, #757575);
+    }
+
+    @media (max-width: 640px) {
+      body {
+        align-items: stretch;
+        padding: var(--spacing-16, 16px);
+      }
+
+      main {
+        justify-content: center;
+        padding: var(--spacing-24, 24px);
+      }
+
+      h1 {
+        font-size: var(--font-size-fs-28, 28px);
+        letter-spacing: -0.28px;
+        line-height: var(--line-height-lh-36, 36px);
+      }
+
+      .flow-card {
+        grid-template-columns: 40px minmax(0, 1fr) 20px;
+        min-height: 76px;
+      }
+
+      .flow-card__icon {
+        height: 40px;
+        width: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">GEAP 2.0 · Demo-uri izolate</p>
+    <h1>Alege demo-ul pe care vrei să-l pornești</h1>
+    <p class="lead">Sunt expuse doar flow-urile pregătite pentru push: full flow, builder și back office/profile.</p>
+    <div class="flow-list" aria-label="Demo-uri disponibile">
+      <a class="flow-card" href="e-permits-acte-permisive.html?flow=full">
+        <span class="flow-card__icon" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-services"></use></svg>
+        </span>
+        <span class="flow-card__copy">
+          <strong>Full flow 09</strong>
+          <span>Front office complet pentru serviciul 09.</span>
+        </span>
+        <svg class="icon flow-card__arrow" width="20" height="20" aria-hidden="true">
+          <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+        </svg>
+      </a>
+      <a class="flow-card" href="e-permits-acte-permisive.html?flow=builder">
+        <span class="flow-card__icon" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-templates"></use></svg>
+        </span>
+        <span class="flow-card__copy">
+          <strong>Form builder</strong>
+          <span>Workspace-ul de configurare pentru formulare.</span>
+        </span>
+        <svg class="icon flow-card__arrow" width="20" height="20" aria-hidden="true">
+          <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+        </svg>
+      </a>
+      <a class="flow-card" href="e-permits-acte-permisive.html?flow=back-office">
+        <span class="flow-card__icon" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-stamp"></use></svg>
+        </span>
+        <span class="flow-card__copy">
+          <strong>Back office &amp; profile</strong>
+          <span>Shell-ul intern cu dashboard și profil act permisiv.</span>
+        </span>
+        <svg class="icon flow-card__arrow" width="20" height="20" aria-hidden="true">
+          <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+        </svg>
+      </a>
+    </div>
+  </main>
+</body>
+</html>
