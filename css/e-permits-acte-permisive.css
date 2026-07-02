@@ -2876,11 +2876,11 @@
 }
 
 .e-permits-fo-auth__role-item.is-authorization {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border: 0;
-  height: 78px;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  height: 70px;
   justify-content: center;
-  padding: var(--spacing-16, 16px);
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-16, 16px);
 }
 
 .e-permits-fo-auth__role-item--dashed {
@@ -2900,7 +2900,7 @@
 
 .e-permits-fo-auth__role-item.is-authorization:hover,
 .e-permits-fo-auth__role-item.is-authorization:focus-visible {
-  background: var(--color-background-base-secondary-hover, #ededed);
+  background: var(--color-background-base-secondary, #f5f5f5);
 }
 
 .e-permits-fo-auth__role-item.is-disabled:hover,

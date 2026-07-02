@@ -6,6 +6,7 @@
   <title>Acte permisive · Flow selector</title>
   <link rel="stylesheet" href="../assets/fonts/Onest.css">
   <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css">
   <style>
     *,
     *::before,
@@ -14,113 +15,115 @@
     }
 
     body {
-      align-items: center;
       background: var(--color-background-base-secondary, #f5f5f5);
       color: var(--color-text-base-default, #121212);
-      display: flex;
       font-family: var(--font-family-primary-font, Onest, sans-serif);
       margin: 0;
       min-height: 100dvh;
-      padding: var(--spacing-32, 32px);
     }
 
-    main {
-      background: var(--color-background-base-default, #fff);
-      border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-      border-radius: var(--border-radius-16, 16px);
-      box-shadow: 0 24px 80px rgba(18, 18, 18, 0.08);
-      display: flex;
-      flex-direction: column;
-      gap: var(--spacing-16, 16px);
-      margin: 0 auto;
-      max-width: 760px;
-      padding: var(--spacing-32, 32px);
-      width: 100%;
-    }
-
-    p {
-      color: var(--color-text-base-secondary, #383838);
-      font-size: var(--font-size-fs-18, 18px);
-      line-height: var(--line-height-lh-26, 26px);
-      margin: 0;
-      max-width: 560px;
-    }
-
-    .eyebrow {
-      color: var(--color-text-brand-default, #0058d2);
-      font-size: var(--font-size-fs-14, 14px);
-      font-weight: var(--font-weight-fw-medium, 500);
-      line-height: var(--line-height-lh-20, 20px);
-    }
-
-    h1 {
-      font-size: var(--font-size-fs-40, 40px);
-      font-weight: var(--font-weight-fw-semibold, 600);
-      letter-spacing: -0.4px;
-      line-height: var(--line-height-lh-48, 48px);
-      margin: 0;
-    }
-
-    .flow-list {
-      display: grid;
-      gap: var(--spacing-12, 12px);
-      margin-top: var(--spacing-8, 8px);
-    }
-
-    a {
+    .demo-start {
       align-items: center;
-      background: var(--color-background-base-default, #fff);
-      border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-      border-radius: var(--border-radius-12, 12px);
-      color: var(--color-text-base-default, #121212);
-      display: grid;
-      gap: var(--spacing-4, 4px);
-      min-height: 76px;
-      padding: var(--spacing-16, 16px);
+      display: flex;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: var(--spacing-24, 24px);
+    }
+
+    .demo-start .e-permits-fo-auth__card {
+      width: min(100%, 600px);
+    }
+
+    .demo-start .e-permits-fo-auth__role-item {
       text-decoration: none;
     }
 
-    a:hover {
-      background: var(--color-background-base-secondary, #f5f5f5);
+    .demo-start .e-permits-fo-auth__role-avatar {
+      flex-basis: 40px;
+      height: 40px;
+      width: 40px;
     }
 
-    a:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 2px #fff, 0 0 0 5px var(--color-border-brand-default, #0058d2);
+    .demo-start .e-permits-fo-auth__role-avatar .icon {
+      height: 20px;
+      width: 20px;
     }
 
-    strong {
-      font-size: var(--font-size-fs-18, 18px);
-      font-weight: var(--font-weight-fw-semibold, 600);
-      line-height: var(--line-height-lh-26, 26px);
-    }
+    @media (max-width: 640px) {
+      .demo-start {
+        align-items: stretch;
+        padding: var(--spacing-16, 16px);
+      }
 
-    span {
-      color: var(--color-text-base-secondary, #383838);
-      font-size: var(--font-size-fs-14, 14px);
-      line-height: var(--line-height-lh-20, 20px);
+      .demo-start .e-permits-fo-auth__card {
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
-  <main>
-    <p class="eyebrow">GEAP 2.0 · Acte permisive</p>
-    <h1>Alege flow-ul pentru review</h1>
-    <p>Doar cele trei experiențe care trebuie împinse pe git sunt expuse aici.</p>
-    <div class="flow-list" aria-label="Flow-uri disponibile">
-      <a href="../e-permits-acte-permisive.html?flow=full">
-        <strong>Full flow 09</strong>
-        <span>Front office complet pentru serviciul 09.</span>
-      </a>
-      <a href="../e-permits-acte-permisive.html?flow=builder">
-        <strong>Form builder</strong>
-        <span>Builder-ul de formulare, izolat de restul demo-ului.</span>
-      </a>
-      <a href="../e-permits-acte-permisive.html?flow=back-office">
-        <strong>Back office &amp; profile</strong>
-        <span>Shell-ul intern cu dashboard/profil act permisiv.</span>
-      </a>
-    </div>
+  <main class="demo-start">
+    <section class="e-permits-fo-auth__card e-permits-fo-auth__card--choice" aria-labelledby="demo-start-title">
+      <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
+        <div class="e-permits-fo-auth__choice-copy">
+          <h1 id="demo-start-title">Alege flow-ul pentru review</h1>
+          <p>Doar cele trei experiențe care trebuie împinse pe git sunt expuse aici.</p>
+        </div>
+
+        <div class="e-permits-fo-auth__role-list" aria-label="Flow-uri disponibile">
+          <a class="e-permits-fo-auth__role-item" href="../e-permits-acte-permisive.html?flow=full">
+            <span class="e-permits-fo-auth__role-row">
+              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="../assets/icons/sprite.svg#icon-services"></use></svg>
+              </span>
+              <span class="e-permits-fo-auth__role-text">
+                <span class="e-permits-fo-auth__role-heading">
+                  <span class="e-permits-fo-auth__role-name">Full flow 09</span>
+                </span>
+                <span class="e-permits-fo-auth__role-meta">Front office complet pentru serviciul 09</span>
+              </span>
+              <svg class="icon e-permits-fo-auth__role-arrow" aria-hidden="true">
+                <use href="../assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-fo-auth__role-item" href="../e-permits-acte-permisive.html?flow=builder">
+            <span class="e-permits-fo-auth__role-row">
+              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="../assets/icons/sprite.svg#icon-templates"></use></svg>
+              </span>
+              <span class="e-permits-fo-auth__role-text">
+                <span class="e-permits-fo-auth__role-heading">
+                  <span class="e-permits-fo-auth__role-name">Form builder</span>
+                </span>
+                <span class="e-permits-fo-auth__role-meta">Builder-ul de formulare, izolat de restul demo-ului</span>
+              </span>
+              <svg class="icon e-permits-fo-auth__role-arrow" aria-hidden="true">
+                <use href="../assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-fo-auth__role-item" href="../e-permits-acte-permisive.html?flow=back-office">
+            <span class="e-permits-fo-auth__role-row">
+              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="../assets/icons/sprite.svg#icon-stamp"></use></svg>
+              </span>
+              <span class="e-permits-fo-auth__role-text">
+                <span class="e-permits-fo-auth__role-heading">
+                  <span class="e-permits-fo-auth__role-name">Back office &amp; profile</span>
+                </span>
+                <span class="e-permits-fo-auth__role-meta">Shell-ul intern cu dashboard/profil act permisiv</span>
+              </span>
+              <svg class="icon e-permits-fo-auth__role-arrow" aria-hidden="true">
+                <use href="../assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
   </main>
 </body>
 </html>
