@@ -183,6 +183,306 @@
             "email": "anastasia.cojocaru@mnotify.gov.md",
             "emails": ["anastasia.cojocaru@mnotify.gov.md", "ion.popescu@mnotify.gov.md"]
           }
+        },
+        {
+          "id": "mpower-pj-nord-agro",
+          "type": "PJ",
+          "scenario": "mpower-pj",
+          "name": "Nord Agro Market SRL",
+          "idLabel": "IDNO",
+          "idValue": "1012600000003",
+          "avatarTone": "apricot",
+          "avatarIcon": "icon-suitcase-2",
+          "roleLabel": "Persoană juridică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Nord Agro Market SRL",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008824"
+          },
+          "selectable": true,
+          "requestData": {
+            "sectionTitle": "Date companie",
+            "fields": [
+              { "label": "IDNO", "value": "1012600000003", "span": 4 },
+              { "label": "Denumire", "value": "Nord Agro Market SRL", "span": 8 }
+            ]
+          },
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "office@nordagro.md"]
+          }
+        },
+        {
+          "id": "mpower-pf-moraru",
+          "type": "PF",
+          "scenario": "mpower-pf",
+          "name": "Moraru Cristina",
+          "idLabel": "IDNP",
+          "idValue": "2990000000004",
+          "initials": "MC",
+          "avatarTone": "apricot",
+          "roleLabel": "Persoană fizică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Moraru Cristina",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008825"
+          },
+          "selectable": true,
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "cristina.moraru@example.md"]
+          }
+        },
+        {
+          "id": "mpower-pj-lumina",
+          "type": "PJ",
+          "scenario": "mpower-pj",
+          "name": "Lumina Office SRL",
+          "idLabel": "IDNO",
+          "idValue": "1012600000005",
+          "avatarTone": "apricot",
+          "avatarIcon": "icon-suitcase-2",
+          "roleLabel": "Persoană juridică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Lumina Office SRL",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008826"
+          },
+          "selectable": true,
+          "requestData": {
+            "sectionTitle": "Date companie",
+            "fields": [
+              { "label": "IDNO", "value": "1012600000005", "span": 4 },
+              { "label": "Denumire", "value": "Lumina Office SRL", "span": 8 }
+            ]
+          },
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "office@lumina.md"]
+          }
+        },
+        {
+          "id": "mpower-pf-rusu",
+          "type": "PF",
+          "scenario": "mpower-pf",
+          "name": "Rusu Ion",
+          "idLabel": "IDNP",
+          "idValue": "2990000000006",
+          "initials": "IR",
+          "avatarTone": "apricot",
+          "roleLabel": "Persoană fizică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Rusu Ion",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008827"
+          },
+          "selectable": true,
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "ion.rusu@example.md"]
+          }
+        },
+        {
+          "id": "mpower-pj-atelier",
+          "type": "PJ",
+          "scenario": "mpower-pj",
+          "name": "Atelier Verde SRL",
+          "idLabel": "IDNO",
+          "idValue": "1012600000007",
+          "avatarTone": "apricot",
+          "avatarIcon": "icon-suitcase-2",
+          "roleLabel": "Persoană juridică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Atelier Verde SRL",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008828"
+          },
+          "selectable": true,
+          "requestData": {
+            "sectionTitle": "Date companie",
+            "fields": [
+              { "label": "IDNO", "value": "1012600000007", "span": 4 },
+              { "label": "Denumire", "value": "Atelier Verde SRL", "span": 8 }
+            ]
+          },
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "office@atelierverde.md"]
+          }
+        },
+        {
+          "id": "mpower-pf-munteanu",
+          "type": "PF",
+          "scenario": "mpower-pf",
+          "name": "Munteanu Victor",
+          "idLabel": "IDNP",
+          "idValue": "2990000000008",
+          "initials": "VM",
+          "avatarTone": "apricot",
+          "roleLabel": "Persoană fizică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Munteanu Victor",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008829"
+          },
+          "selectable": true,
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "victor.munteanu@example.md"]
+          }
+        },
+        {
+          "id": "mpower-pj-dacia",
+          "type": "PJ",
+          "scenario": "mpower-pj",
+          "name": "Dacia Market SRL",
+          "idLabel": "IDNO",
+          "idValue": "1012600000009",
+          "avatarTone": "apricot",
+          "avatarIcon": "icon-suitcase-2",
+          "roleLabel": "Persoană juridică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Dacia Market SRL",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008830"
+          },
+          "selectable": true,
+          "requestData": {
+            "sectionTitle": "Date companie",
+            "fields": [
+              { "label": "IDNO", "value": "1012600000009", "span": 4 },
+              { "label": "Denumire", "value": "Dacia Market SRL", "span": 8 }
+            ]
+          },
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "office@daciamarket.md"]
+          }
+        },
+        {
+          "id": "mpower-pf-cazacu",
+          "type": "PF",
+          "scenario": "mpower-pf",
+          "name": "Cazacu Daniela",
+          "idLabel": "IDNP",
+          "idValue": "2990000000010",
+          "initials": "DC",
+          "avatarTone": "apricot",
+          "roleLabel": "Persoană fizică",
+          "badge": { "label": "Împuternicire", "icon": "icon-identity" },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Cazacu Daniela",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008831"
+          },
+          "selectable": true,
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "daniela.cazacu@example.md"]
+          }
         }
       ],
       "proxyOption": {

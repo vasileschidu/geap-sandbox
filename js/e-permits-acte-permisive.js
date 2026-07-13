@@ -36,9 +36,10 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
+      if (flow === "full" && !["#choice", "#request", "#request-step-2", "#request-step-3", "#request-step-4"].includes(window.location.hash)) {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
       if (flow) return flow;
-      if (window.location.hash === "#builder") return "builder";
-      if (window.location.hash.startsWith("#request") || window.location.hash === "#choice") return "full";
       return "home";
     }
 
@@ -64,12 +65,42 @@
     const frontOfficeAvatarMenu = document.querySelector("[data-fo-avatar-menu]");
     const frontOfficeAvatarTrigger = document.querySelector("[data-fo-avatar-trigger]");
     const frontOfficeAvatarDropdown = document.querySelector("[data-fo-avatar-dropdown]");
+    const frontOfficeScriptSrc = document.querySelector("script[src*='e-permits-acte-permisive.js']")?.src || "";
     let frontOfficeSchema = null;
+    let frontOfficeSchemaLoadPromise = null;
     let frontOfficeSelectedSubject = null;
     let frontOfficeStep4Signed = false;
     let frontOfficeToastTimer = null;
     let frontOfficeSubjectLoadTimer = null;
     let frontOfficeSubjectLoadToken = 0;
+    let frontOfficeDraftCreated = false;
+    let frontOfficeDraftSavedAt = null;
+    let frontOfficeDraftInfoDismissed = false;
+    const dropdownMotionTimers = new WeakMap();
+
+    function setDropdownHidden(element, shouldHide) {
+      if (!element) return;
+      const existingTimer = dropdownMotionTimers.get(element);
+      if (existingTimer) {
+        window.clearTimeout(existingTimer);
+        dropdownMotionTimers.delete(element);
+      }
+
+      if (!shouldHide) {
+        element.classList.remove("is-closing");
+        element.hidden = false;
+        return;
+      }
+
+      if (element.hidden) return;
+      element.classList.add("is-closing");
+      const timer = window.setTimeout(() => {
+        element.hidden = true;
+        element.classList.remove("is-closing");
+        dropdownMotionTimers.delete(element);
+      }, 105);
+      dropdownMotionTimers.set(element, timer);
+    }
 
     function escapeFrontOfficeHtml(value) {
       return String(value ?? "")
@@ -117,16 +148,94 @@
       frontOfficeToastTimer = window.setTimeout(() => dismissFrontOfficeToast(toast), 4000);
     }
 
+    function frontOfficeTimeLabel(date = new Date()) {
+      return new Intl.DateTimeFormat("ro-MD", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(date);
+    }
+
+    function requestHeaderHtml({ id, title }) {
+      const draftStatus = frontOfficeDraftCreated ? `
+        <div class="e-permits-fo-draft-status" aria-label="Starea schiței">
+          <span class="e-permits-fo-draft-status__saved">
+            <svg class="icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Salvat ca schiță</span>
+          </span>
+          <span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span>
+          <time class="e-permits-fo-draft-status__time" datetime="${frontOfficeDraftSavedAt ? frontOfficeDraftSavedAt.toISOString() : ""}" data-fo-draft-time>
+            ${escapeFrontOfficeHtml(frontOfficeTimeLabel(frontOfficeDraftSavedAt || new Date()))}
+          </time>
+          <span class="e-permits-fo-draft-status__separator" aria-hidden="true"></span>
+          <a class="e-permits-fo-draft-status__link" href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a>
+        </div>
+      ` : "";
+      const draftInfo = frontOfficeDraftCreated && !frontOfficeDraftInfoDismissed ? `
+        <div class="e-permits-fo-draft-info" role="note" data-fo-draft-info>
+          <span class="e-permits-fo-draft-info__bone" aria-hidden="true"></span>
+          <span class="e-permits-fo-draft-info__icon" aria-hidden="true">
+            <svg class="icon" width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <p><strong>Cererea se salvează automat.</strong> Poți închide oricând și o reiei din <a href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a> în EVO cabinet.</p>
+          <button class="e-permits-fo-draft-info__close" type="button" aria-label="Închide mesajul" data-fo-draft-info-close>
+            <svg class="icon" width="16" height="16" aria-hidden="true">
+              <use href="assets/icons/sprite.svg#icon-cross-large"></use>
+            </svg>
+          </button>
+        </div>
+      ` : "";
+      return `
+        ${draftStatus}
+        <h1 id="${escapeFrontOfficeHtml(id)}" tabindex="-1">${escapeFrontOfficeHtml(title)}</h1>
+        ${draftInfo}
+      `;
+    }
+
+    function updateFrontOfficeRequestHeaders() {
+      document.querySelectorAll("[data-fo-step-panel]").forEach((panel) => {
+        const header = panel.querySelector(":scope > .e-permits-fo-form__header");
+        if (!header) return;
+        const step = Number(panel.dataset.foStepPanel) || 1;
+        const currentHeading = header.querySelector("h1");
+        const title = header.dataset.foTitle || currentHeading?.textContent?.trim() || (step === 1 ? "Date solicitant" : `Pasul ${step}`);
+        const id = header.dataset.foTitleId || currentHeading?.id || `fo-request-step-${step}-title`;
+        header.dataset.foTitle = title;
+        header.dataset.foTitleId = id;
+        header.innerHTML = requestHeaderHtml({ id, title });
+      });
+    }
+
+    function saveFrontOfficeDraft({ toast = false } = {}) {
+      frontOfficeDraftCreated = true;
+      frontOfficeDraftSavedAt = new Date();
+      updateFrontOfficeRequestHeaders();
+      if (toast) showFrontOfficeToast("Schița a fost salvată.");
+    }
+
     function frontOfficeFlowId() {
       const params = new URLSearchParams(window.location.search);
       return params.get("serviceFlow") || params.get("service-flow") || document.body.dataset.serviceFlow || "09-full-flow";
     }
 
+    function frontOfficeSchemaUrls() {
+      const urls = ["data/acte-permisive.json"];
+      if (frontOfficeScriptSrc) {
+        urls.unshift(new URL("../data/acte-permisive.json", frontOfficeScriptSrc).toString());
+      }
+      return [...new Set(urls)];
+    }
+
     function setFrontOfficeAvatarMenuOpen(isOpen) {
       if (!frontOfficeAvatarMenu || !frontOfficeAvatarTrigger || !frontOfficeAvatarDropdown) return;
       frontOfficeAvatarMenu.classList.toggle("is-open", isOpen);
-      frontOfficeAvatarDropdown.hidden = !isOpen;
+      setDropdownHidden(frontOfficeAvatarDropdown, !isOpen);
       frontOfficeAvatarTrigger.setAttribute("aria-expanded", String(isOpen));
+      if (isOpen) requestAnimationFrame(updateFrontOfficeAvatarMenuScrollState);
     }
 
     function toggleFrontOfficeAvatarMenu() {
@@ -134,10 +243,52 @@
       setFrontOfficeAvatarMenuOpen(!isOpen);
     }
 
+    function updateFrontOfficeAvatarMenuScrollState() {
+      if (!frontOfficeAvatarDropdown) return;
+      const content = frontOfficeAvatarDropdown.querySelector(".e-permits-fo-avatar-menu__content");
+      if (!content) return;
+      const hasScroll = content.scrollHeight > content.clientHeight + 1;
+      const isScrolled = content.scrollTop > 0;
+      frontOfficeAvatarDropdown.classList.toggle("has-scroll", hasScroll);
+      frontOfficeAvatarDropdown.classList.toggle("is-scrolled", isScrolled);
+    }
+
     function frontOfficeAllowedTypes(schema = frontOfficeSchema) {
       return Array.isArray(schema?.auth?.availableFor) && schema.auth.availableFor.length
         ? schema.auth.availableFor
         : ["PF", "PJ"];
+    }
+
+    function frontOfficeNotarialProxySubject(schema = frontOfficeSchema) {
+      const proxy = schema?.proxyOption;
+      if (!proxy) return null;
+      const allowed = frontOfficeAllowedTypes(schema);
+      const type = allowed.includes(proxy.type) ? proxy.type : allowed.includes("PJ") ? "PJ" : allowed[0];
+      if (!type || !proxy.visibleWhenAnyOf?.some((item) => allowed.includes(item))) return null;
+      return {
+        id: proxy.subjectId || "notarial-proxy",
+        type,
+        scenario: "notarial-proxy",
+        name: proxy.label || "Am procură notarială",
+        avatarTone: proxy.avatarTone || "neutral",
+        avatarIcon: proxy.icon || "icon-identity",
+        roleLabel: proxy.roleLabel || "Cu procură notarială",
+        representative: schema?.authenticatedUser || null,
+        requestData: proxy.requestData || {
+          sectionTitle: "Date organizație reprezentată",
+          fields: [],
+        },
+        contact: proxy.contact || schema?.authenticatedUser?.contact || null,
+        selectable: true,
+      };
+    }
+
+    function frontOfficeSelectableSubjects(schema = frontOfficeSchema) {
+      const allowed = frontOfficeAllowedTypes(schema);
+      return [
+        ...(schema?.subjects || []).filter((subject) => allowed.includes(subject.type)),
+        frontOfficeNotarialProxySubject(schema),
+      ].filter(Boolean);
     }
 
     function frontOfficeSubjectTypeMeta(type) {
@@ -235,27 +386,30 @@
       return idLabel && idValue ? `${idLabel} ${idValue}` : "";
     }
 
+    function subjectMetaHtml(subject, className = "e-permits-fo-auth__role-meta") {
+      const idLabel = subject?.idLabel || frontOfficeSubjectTypeMeta(subject?.type).idLabel || "";
+      const idValue = subject?.idValue || "";
+      if (!idLabel || !idValue) return "";
+      return `
+        <span class="${escapeFrontOfficeHtml(className)} e-permits-fo-subject-meta">
+          <span class="e-permits-fo-subject-meta__label">${escapeFrontOfficeHtml(idLabel)}</span>
+          <span class="e-permits-fo-subject-meta__code">${escapeFrontOfficeHtml(idValue)}</span>
+        </span>
+      `;
+    }
+
     function subjectTypeText(subject) {
       return subject?.roleLabel || frontOfficeSubjectTypeMeta(subject?.type).label || subject?.type || "";
     }
 
     function authorizationRoleMetaHtml(subject) {
-      const auth = subject?.authorization || {};
       const idLabel = subject?.idLabel || frontOfficeSubjectTypeMeta(subject?.type).idLabel || "";
-      const items = [
-        idLabel && subject?.idValue ? { label: idLabel, value: subject.idValue, mono: true } : null,
-        auth.validUntil ? { label: "Valabilă până la", value: auth.validUntil } : null,
-        auth.code ? { label: "Cod", value: auth.code, mono: true } : null,
-      ].filter(Boolean);
+      const idValue = subject?.idValue || "";
+      if (!idLabel || !idValue) return "";
       return `
-        <span class="e-permits-fo-auth__role-meta e-permits-fo-auth__role-meta--authorization">
-          ${items.map((item, index) => `
-            ${index ? `<span class="e-permits-fo-auth__role-meta-dot" aria-hidden="true"></span>` : ""}
-            <span class="e-permits-fo-auth__role-meta-item">
-              <span>${escapeFrontOfficeHtml(item.label)}</span>
-              <strong class="${item.mono ? "is-mono" : ""}">${escapeFrontOfficeHtml(item.value)}</strong>
-            </span>
-          `).join("")}
+        <span class="e-permits-fo-auth__role-meta e-permits-fo-auth__role-meta--authorization e-permits-fo-subject-meta">
+          <span class="e-permits-fo-subject-meta__label">${escapeFrontOfficeHtml(idLabel)}</span>
+          <span class="e-permits-fo-subject-meta__code">${escapeFrontOfficeHtml(idValue)}</span>
         </span>
       `;
     }
@@ -355,15 +509,13 @@
     function renderRoleButton(subject) {
       const selectable = subject.selectable !== false;
       const isAuthorization = Boolean(subject.authorization);
-      const status = isAuthorization && subject.authorization?.status ? `
-        <span class="e-permits-fo-auth__status-tag">${escapeFrontOfficeHtml(subject.authorization.status)}</span>
-      ` : "";
-      const badge = !isAuthorization && subject.badge ? `
+      const badgeData = isAuthorization ? (subject.badge || { label: "Împuternicire", icon: "icon-identity" }) : subject.badge;
+      const badge = badgeData ? `
         <span class="e-permits-fo-auth__warning-tag">
           <svg class="icon" width="16" height="16" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(subject.badge.icon || "icon-identity")}"></use>
+            <use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(badgeData.icon || "icon-identity")}"></use>
           </svg>
-          <span>${escapeFrontOfficeHtml(subject.badge.label || "Împuternicire")}</span>
+          <span>${escapeFrontOfficeHtml(badgeData.label || "Împuternicire")}</span>
         </span>
       ` : "";
       return `
@@ -371,13 +523,13 @@
           <span class="e-permits-fo-auth__role-row">
             ${subjectAvatarHtml(subject, "e-permits-fo-auth__role-avatar", { forceInitials: true })}
             <span class="e-permits-fo-auth__role-text">
-              ${badge || status ? `
+              ${badge ? `
                 <span class="e-permits-fo-auth__role-heading">
                   <span class="e-permits-fo-auth__role-name">${escapeFrontOfficeHtml(subject.name)}</span>
-                  ${status || badge}
+                  ${badge}
                 </span>
               ` : `<span class="e-permits-fo-auth__role-name">${escapeFrontOfficeHtml(subject.name)}</span>`}
-              ${isAuthorization ? authorizationRoleMetaHtml(subject) : `<span class="e-permits-fo-auth__role-meta">${escapeFrontOfficeHtml(subjectMetaText(subject))}</span>`}
+              ${isAuthorization ? authorizationRoleMetaHtml(subject) : subjectMetaHtml(subject)}
             </span>
             <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
@@ -387,20 +539,67 @@
       `;
     }
 
-    function renderRoleGroup(title, subjects) {
-      if (!subjects.length) return "";
+    function renderRoleCollapsePreview(subjects) {
+      const previewSubjects = subjects.slice(0, 4);
       return `
-        <section class="e-permits-fo-auth__role-group" aria-label="${escapeFrontOfficeHtml(title)}">
+        <span class="e-permits-fo-auth__role-collapse-preview" aria-hidden="true">
+          <span class="e-permits-fo-auth__role-collapse-stack">
+            ${previewSubjects.map((subject, index) => {
+              if (index === 3 && subjects.length > 4) {
+                return `<span class="e-permits-fo-auth__role-collapse-avatar e-permits-fo-auth__role-collapse-avatar--counter">+${escapeFrontOfficeHtml(subjects.length - 3)}</span>`;
+              }
+              return subjectInitialsAvatarHtml(subject, "e-permits-fo-auth__role-collapse-avatar");
+            }).join("")}
+          </span>
+          <span class="e-permits-fo-auth__role-collapse-arrow">
+            <svg class="icon" width="16" height="16">
+              <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+            </svg>
+          </span>
+        </span>
+      `;
+    }
+
+    function renderRoleGroup(title, subjects, options = {}) {
+      if (!subjects.length) return "";
+      const collapseAfter = Number(options.collapseAfter) || 0;
+      const shouldCollapse = collapseAfter > 0 && subjects.length > collapseAfter;
+      const visibleSubjects = shouldCollapse ? [] : subjects;
+      const hiddenSubjects = shouldCollapse ? subjects : [];
+      return `
+        <section class="e-permits-fo-auth__role-group${shouldCollapse ? " is-collapsible" : ""}" aria-label="${escapeFrontOfficeHtml(title)}" ${shouldCollapse ? "data-fo-role-collapse-group" : ""}>
           <h2 class="e-permits-fo-auth__role-group-title">${escapeFrontOfficeHtml(title)}</h2>
-          <div class="e-permits-fo-auth__role-group-list">
-            ${subjects.map(renderRoleButton).join("")}
-          </div>
+          ${visibleSubjects.length ? `
+            <div class="e-permits-fo-auth__role-group-list">
+              ${visibleSubjects.map(renderRoleButton).join("")}
+            </div>
+          ` : ""}
+          ${shouldCollapse ? `
+            <button class="e-permits-fo-auth__role-collapse-toggle" type="button" aria-expanded="false" data-fo-role-collapse-toggle>
+              <span class="e-permits-fo-auth__role-collapse-label" data-fo-role-collapse-label>Arată mai multe</span>
+              ${renderRoleCollapsePreview(hiddenSubjects)}
+            </button>
+            <div class="e-permits-fo-auth__role-collapse" data-fo-role-collapse-panel>
+              <div class="e-permits-fo-auth__role-group-list">
+                ${hiddenSubjects.map(renderRoleButton).join("")}
+              </div>
+            </div>
+          ` : ""}
         </section>
       `;
     }
 
+    function renderRoleCluster(subjects) {
+      if (!subjects.length) return "";
+      return `
+        <div class="e-permits-fo-auth__role-group-list">
+          ${subjects.map(renderRoleButton).join("")}
+        </div>
+      `;
+    }
+
     function renderRolesFromSchema(schema) {
-      const roleList = document.querySelector(".e-permits-fo-auth__role-list");
+      const roleList = frontOfficeChoiceScreen?.querySelector(".e-permits-fo-auth__role-list");
       const proxyButton = document.querySelector(".e-permits-fo-auth__role-item--dashed");
       const proxySeparator = document.querySelector(".e-permits-fo-auth__or-separator");
       if (!roleList) return;
@@ -409,14 +608,26 @@
       const directSubjects = subjects.filter((subject) => !subject.authorization);
       const proxySubjects = subjects.filter((subject) => subject.authorization);
       roleList.innerHTML = [
-        renderRoleGroup("Entitățile mele", directSubjects),
-        renderRoleGroup("Cu împuternicire", proxySubjects),
+        renderRoleCluster(directSubjects),
+        renderRoleGroup("Cu împuternicire MPower", proxySubjects, { collapseAfter: 3 }),
       ].join("");
 
       const proxy = schema?.proxyOption;
       const showProxy = Boolean(proxy?.visibleWhenAnyOf?.some((type) => allowed.includes(type)));
       if (proxyButton) {
         proxyButton.hidden = !showProxy;
+        const proxySubject = frontOfficeNotarialProxySubject(schema);
+        if (showProxy && proxySubject) {
+          proxyButton.setAttribute("data-fo-open-request", "");
+          proxyButton.dataset.foSubjectId = proxySubject.id;
+          proxyButton.disabled = false;
+          proxyButton.removeAttribute("aria-disabled");
+        } else {
+          proxyButton.removeAttribute("data-fo-open-request");
+          delete proxyButton.dataset.foSubjectId;
+          proxyButton.disabled = true;
+          proxyButton.setAttribute("aria-disabled", "true");
+        }
         const icon = proxyButton.querySelector(".e-permits-fo-auth__role-avatar use");
         const label = proxyButton.querySelector(".e-permits-fo-auth__role-name");
         const meta = proxyButton.querySelector(".e-permits-fo-auth__role-meta");
@@ -441,7 +652,7 @@
           ${subjectAvatarHtml(subject, "e-permits-fo-avatar-menu__role-avatar", { forceInitials: true })}
           <span class="${copyClass}">
             ${heading}
-            <span>${escapeFrontOfficeHtml(subjectMetaText(subject))}</span>
+            ${subjectMetaHtml(subject, "e-permits-fo-avatar-menu__role-meta")}
           </span>
           ${proxy ? "" : `
             <svg class="icon e-permits-fo-avatar-menu__role-check" width="20" height="20" aria-hidden="true">
@@ -533,6 +744,7 @@
           </span>
         `;
       }
+      requestAnimationFrame(updateFrontOfficeAvatarMenuScrollState);
     }
 
     function renderStepperFromSchema(schema) {
@@ -863,7 +1075,7 @@
         if (button.disabled && isOpen) return;
         selectEl.classList.toggle("is-open", isOpen);
         button.setAttribute("aria-expanded", String(isOpen));
-        list.hidden = !isOpen;
+        setDropdownHidden(list, !isOpen);
         if (isOpen) {
           const si = options.findIndex((o) => o.dataset.value === selectedValue);
           activeIndex = Math.max(0, si);
@@ -1087,11 +1299,7 @@
         return `
           <div class="${fieldClass(field)}">
             ${label}
-            <div class="e-permits-fo-phone is-filled">
-              <span class="e-permits-fo-phone__prefix"><span aria-hidden="true">${escapeFrontOfficeHtml(selected.flag)}</span><span>${escapeFrontOfficeHtml(selected.code)}</span></span>
-              <span class="e-permits-fo-phone__value" id="${escapeFrontOfficeHtml(id)}">${escapeFrontOfficeHtml(field.value || "")}</span>
-              <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>
-            </div>
+            ${readonlyPhoneHtml(field.value || "", { id, flag: selected.flag, code: selected.code })}
           </div>
         `;
       }
@@ -1116,13 +1324,19 @@
     function mnotifyInfoHtml() {
       return `
         <div class="e-permits-fo-mnotify-info">
-          <svg class="icon e-permits-fo-mnotify-info__icon" width="24" height="24" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-circle-info"></use>
-          </svg>
-          <p class="e-permits-fo-mnotify-info__text">Pentru modificări de contact, folosește MNotify.</p>
+          <div class="e-permits-fo-mnotify-info__frame">
+            <span class="e-permits-fo-mnotify-info__icon-wrap" aria-hidden="true">
+              <svg class="icon e-permits-fo-mnotify-info__icon" width="24" height="24">
+                <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
+              </svg>
+            </span>
+            <div class="e-permits-fo-mnotify-info__content">
+              <p class="e-permits-fo-mnotify-info__text">Datele de contact sunt preluate din MNotify.</p>
+            </div>
+          </div>
           <a class="e-permits-fo-mnotify-info__link" href="#">
-            <span>Modifică în MNotify</span>
-            <svg class="icon" width="20" height="20" aria-hidden="true">
+            <span>Modifică datele</span>
+            <svg class="icon" width="16" height="16" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-external-link"></use>
             </svg>
           </a>
@@ -1173,6 +1387,23 @@
       `;
     }
 
+    function readonlyPhoneHtml(value, { id = "", flag = "🇲🇩", code = "+373" } = {}) {
+      const rawValue = String(value || "").trim();
+      const displayValue = rawValue.startsWith("+") ? rawValue : [code, rawValue].filter(Boolean).join(" ");
+      return `
+        <div class="e-permits-fo-phone e-permits-fo-phone--readonly is-filled">
+          <span class="e-permits-fo-phone__value"${id ? ` id="${escapeFrontOfficeHtml(id)}"` : ""}>${escapeFrontOfficeHtml(displayValue)}</span>
+          <svg class="icon" width="20" height="20" aria-hidden="true">
+            <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
+          </svg>
+        </div>
+      `;
+    }
+
+    function verifiedPhoneHtml(value, { flag = "🇲🇩", code = "+373" } = {}) {
+      return readonlyPhoneHtml(value, { flag, code });
+    }
+
     function contactPersonHtml(field) {
       const phoneField = { id: "contact-phone-self", label: "Telefon", span: 6, value: "60 999 999", countryCodes: [{ flag: "🇲🇩", code: "+373" }] };
       return `
@@ -1182,8 +1413,7 @@
           <label class="e-permits-fo-radio"><input type="radio" name="fo-contact-person" value="other" ${field.default === "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Altă persoană</span></label>
         </fieldset>
         <div class="e-permits-fo-detail-card e-permits-fo-contact-card e-permits-fo-contact-card--self" data-fo-contact-self>
-          <div class="e-permits-fo-contact-card__grid">${phoneFieldHtml(phoneField, { readonly: true, tag: "MNotify" })}</div>
-          ${mnotifyInfoHtml()}
+          <div class="e-permits-fo-contact-card__grid">${phoneFieldHtml(phoneField, { readonly: true })}</div>
         </div>
         <div class="e-permits-fo-detail-card e-permits-fo-contact-card" data-fo-contact-other hidden>
           <div class="e-permits-fo-contact-card__grid">
@@ -1283,7 +1513,9 @@
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
             <button class="e-permits-fo-draft-button" type="button">
-              <img class="e-permits-fo-draft-button__icon" src="assets/icons/save-outline.svg" width="20" height="20" alt="" aria-hidden="true">
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
@@ -1294,6 +1526,7 @@
         </footer>
       `;
       initFrontOfficeDynamicControls(panel);
+      updateFrontOfficeRequestHeaders();
     }
 
     function renderFrontOfficeStep3FromSchema(schema) {
@@ -1423,7 +1656,9 @@
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
             <button class="e-permits-fo-draft-button" type="button">
-              <img class="e-permits-fo-draft-button__icon" src="assets/icons/save-outline.svg" width="20" height="20" alt="" aria-hidden="true">
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
@@ -1440,6 +1675,7 @@
       `;
 
       // file-drop and mdocs dropdowns removed — handled by modal
+      updateFrontOfficeRequestHeaders();
     }
 
     function initFrontOfficeDynamicControls(root = document) {
@@ -1568,6 +1804,19 @@
       `;
     }
 
+    function roleGroupTitleHtml(label) {
+      return `
+        <div class="e-permits-fo-form__role-title">
+          <h2>${escapeFrontOfficeHtml(label)}</h2>
+          <button class="e-permits-fo-role-info" type="button" aria-label="Detalii despre ${escapeFrontOfficeHtml(label.toLowerCase())}">
+            <svg class="icon" width="16" height="16" aria-hidden="true">
+              <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
+            </svg>
+          </button>
+        </div>
+      `;
+    }
+
     function representativeForSubject(subject) {
       if (!subject) return null;
       if (subject.representative) return subject.representative;
@@ -1582,6 +1831,7 @@
       if (!representative) {
         return `
           <div class="e-permits-fo-form__role-group">
+            ${roleGroupTitleHtml("Solicitant")}
             <div class="e-permits-fo-selected-role e-permits-fo-selected-role--changeable">
               ${selectedRoleHtml(subject, { changeable: true })}
             </div>
@@ -1590,13 +1840,13 @@
       }
       return `
         <div class="e-permits-fo-form__role-group">
-          <h2>Solicitant</h2>
+          ${roleGroupTitleHtml("Solicitant")}
           <div class="e-permits-fo-selected-role e-permits-fo-selected-role--changeable">
             ${selectedRoleHtml(subject, { changeable: true })}
           </div>
         </div>
         <div class="e-permits-fo-form__role-group">
-          <h2>Reprezentant</h2>
+          ${roleGroupTitleHtml("Reprezentant")}
           <div class="e-permits-fo-selected-role">
             ${selectedRoleHtml(representative)}
           </div>
@@ -1612,38 +1862,19 @@
       const hasEmailChoices = emails.length > 1;
       const phones = contactChoices(contact, "phone", userContact.phone || "60 999 999");
       const phone = phones[0] || "";
-      const hasPhoneChoices = phones.length > 1;
       const emailListId = "fo-representative-email-list";
-      const phoneListId = "fo-representative-phone-list";
       return `
         <h2 id="fo-representative-title">Date de contact</h2>
         <div class="e-permits-fo-form__section-body">
           <div class="e-permits-fo-field e-permits-fo-field--span-6">
-            <div class="e-permits-fo-field__label-row">
-              <label>Telefon</label>
-              <span class="e-permits-fo-field__tag">MNotify</span>
-            </div>
-            ${hasPhoneChoices ? contactChoiceSelectHtml({ id: "fo-representative-phone", listId: phoneListId, value: phone, choices: phones }) : `
-              <div class="e-permits-fo-phone is-filled">
-                <span class="e-permits-fo-phone__prefix">
-                  <span aria-hidden="true">🇲🇩</span>
-                  <span>+373</span>
-                </span>
-                <span class="e-permits-fo-phone__value">${escapeFrontOfficeHtml(phone)}</span>
-                <svg class="icon" width="24" height="24" aria-hidden="true">
-                  <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                </svg>
-              </div>
-            `}
+            <label>Telefon</label>
+            ${verifiedPhoneHtml(phone)}
           </div>
 
           <div class="e-permits-fo-field e-permits-fo-field--span-6">
-            <div class="e-permits-fo-field__label-row">
-              <label for="fo-representative-email">Email</label>
-              <span class="e-permits-fo-field__tag">MNotify</span>
-            </div>
+            <label for="fo-representative-email">Email</label>
             ${hasEmailChoices
-              ? `${contactChoiceSelectHtml({ id: "fo-representative-email", listId: emailListId, value: email, choices: emails })}<p class="e-permits-fo-field__hint">Mai multe adrese disponibile</p>`
+              ? contactChoiceSelectHtml({ id: "fo-representative-email", listId: emailListId, value: email, choices: emails })
               : verifiedValueHtml(email)}
           </div>
         </div>
@@ -1694,14 +1925,7 @@
       const dataSection = document.querySelector("#fo-company-title")?.closest(".e-permits-fo-form__section");
       const contactSection = document.querySelector("#fo-representative-title")?.closest(".e-permits-fo-form__section");
       if (dataSection) {
-        const fields = Array.isArray(requestData?.fields) ? requestData.fields : [];
-        dataSection.hidden = fields.length === 0;
-        dataSection.innerHTML = `
-          <h2 id="fo-company-title">${escapeFrontOfficeHtml(requestData?.sectionTitle || "Date solicitant")}</h2>
-          <div class="e-permits-fo-form__section-body is-loading" aria-live="polite" aria-busy="true">
-            ${(fields.length ? fields : [{ span: 4 }, { span: 8 }]).map((field) => subjectDataSkeletonFieldHtml(field.span)).join("")}
-          </div>
-        `;
+        dataSection.hidden = true;
       }
 
       if (contactSection) {
@@ -1721,7 +1945,7 @@
       const dataTitle = dataSection?.querySelector("h2");
       const dataBody = dataSection?.querySelector(".e-permits-fo-form__section-body");
       const requestData = subject.requestData;
-      if (dataSection) dataSection.hidden = !Array.isArray(requestData?.fields) || requestData.fields.length === 0;
+      if (dataSection) dataSection.hidden = true;
       if (dataTitle && requestData?.sectionTitle) dataTitle.textContent = requestData.sectionTitle;
       if (dataBody && Array.isArray(requestData?.fields)) {
         dataBody.setAttribute("aria-busy", "false");
@@ -1785,10 +2009,11 @@
     function selectFrontOfficeSubject(subjectId) {
       if (!frontOfficeSchema) return null;
       const allowed = frontOfficeAllowedTypes(frontOfficeSchema);
+      const subjects = frontOfficeSelectableSubjects(frontOfficeSchema);
       const subject =
-        frontOfficeSchema.subjects?.find((item) => item.id === subjectId && allowed.includes(item.type) && item.selectable !== false)
-        || frontOfficeSchema.subjects?.find((item) => item.id === frontOfficeSchema.defaultSubjectId && allowed.includes(item.type) && item.selectable !== false)
-        || frontOfficeSchema.subjects?.find((item) => allowed.includes(item.type) && item.selectable !== false)
+        subjects.find((item) => item.id === subjectId && allowed.includes(item.type) && item.selectable !== false)
+        || subjects.find((item) => item.id === frontOfficeSchema.defaultSubjectId && allowed.includes(item.type) && item.selectable !== false)
+        || subjects.find((item) => allowed.includes(item.type) && item.selectable !== false)
         || null;
       if (subject) syncRequestSubject(subject);
       return subject;
@@ -1804,18 +2029,31 @@
       renderFrontOfficeStep2FromSchema(schema);
       renderFrontOfficeStep3FromSchema(schema);
       selectFrontOfficeSubject(schema.defaultSubjectId);
+      updateFrontOfficeRequestHeaders();
     }
 
     async function loadFrontOfficeSchema() {
       try {
-        const response = await fetch("data/acte-permisive.json", { cache: "no-store" });
-        if (!response.ok) throw new Error("Front-office schema unavailable");
-        const data = await response.json();
+        let data = null;
+        let lastError = null;
+        for (const url of frontOfficeSchemaUrls()) {
+          try {
+            const response = await fetch(url, { cache: "no-store" });
+            if (!response.ok) throw new Error(`Front-office schema unavailable at ${url}`);
+            data = await response.json();
+            break;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        if (!data) throw lastError || new Error("Front-office schema unavailable");
         const flowId = frontOfficeFlowId();
         const schema = (data.frontOfficeFlows || []).find((flow) => flow.id === flowId) || data.frontOfficeFlows?.[0];
         if (schema) applyFrontOfficeSchema(schema);
+        return schema || null;
       } catch (error) {
         console.warn(error);
+        return null;
       }
     }
 
@@ -1843,7 +2081,7 @@
       if (screen === "request") {
         const activeStep = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
         updateFrontOfficeMobileProgress(activeStep);
-        window.scrollTo({ top: 0, behavior: "auto" });
+        scrollFrontOfficeStepToTop();
       }
 
       if (!focus) return;
@@ -1852,11 +2090,40 @@
       }
       if (screen === "request") {
         frontOfficeRequestScreen?.querySelector("[data-fo-step-panel]:not([hidden]) h1")?.focus?.({ preventScroll: true });
-        frontOfficeRequestScreen?.scrollIntoView({ block: "start" });
+        scrollFrontOfficeStepToTop();
       }
     }
 
-    function setFrontOfficeStep(step, { focus = true } = {}) {
+    function scrollFrontOfficeStepToTop({ behavior = "auto" } = {}) {
+      window.requestAnimationFrame(() => {
+        const scrollers = [
+          document.scrollingElement,
+          document.documentElement,
+          document.body,
+          frontOfficeMain,
+          frontOfficeRequestScreen,
+        ].filter(Boolean);
+
+        scrollers.forEach((node) => {
+          if (typeof node.scrollTo === "function") {
+            node.scrollTo({ top: 0, left: 0, behavior });
+            return;
+          }
+          node.scrollTop = 0;
+          node.scrollLeft = 0;
+        });
+
+        window.scrollTo({ top: 0, left: 0, behavior });
+      });
+    }
+
+    function setFrontOfficeStep(step, { focus = true, scroll = true } = {}) {
+      if (Number(step) >= 2 && !frontOfficeDraftCreated) {
+        saveFrontOfficeDraft();
+      } else {
+        updateFrontOfficeRequestHeaders();
+      }
+
       frontOfficeStepPanels.forEach((panel) => {
         panel.hidden = panel.dataset.foStepPanel !== String(step);
       });
@@ -1878,6 +2145,7 @@
       if (focus) {
         frontOfficeRequestScreen?.querySelector("[data-fo-step-panel]:not([hidden]) h1")?.focus?.({ preventScroll: true });
       }
+      if (scroll) scrollFrontOfficeStepToTop();
     }
 
     function showFrontOfficeChoice({ focus = true } = {}) {
@@ -1891,13 +2159,14 @@
       setFrontOfficeScreen("request", { focus });
     }
 
-    loadFrontOfficeSchema().then(() => {
+    frontOfficeSchemaLoadPromise = loadFrontOfficeSchema().then((schema) => {
       if (window.location.hash === "#request" || window.location.hash === "#request-step-2" || window.location.hash === "#request-step-3" || window.location.hash === "#request-step-4") {
         selectFrontOfficeSubject(frontOfficeSelectedSubject?.id || frontOfficeSchema?.defaultSubjectId);
         const hashStep = window.location.hash === "#request-step-4" ? 4 : window.location.hash === "#request-step-3" ? 3 : window.location.hash === "#request-step-2" ? 2 : 1;
         setFrontOfficeStep(hashStep, { focus: false });
         if (hashStep === 4) populateFrontOfficeStep4();
       }
+      return schema;
     });
 
     if (window.location.hash === "#choice") {
@@ -1941,10 +2210,27 @@
       showFrontOfficeChoice();
     });
 
-    document.addEventListener("click", (event) => {
+    document.addEventListener("click", async (event) => {
+      const roleCollapseToggle = event.target.closest("[data-fo-role-collapse-toggle]");
+      if (roleCollapseToggle) {
+        event.preventDefault();
+        const group = roleCollapseToggle.closest("[data-fo-role-collapse-group]");
+        const label = roleCollapseToggle.querySelector("[data-fo-role-collapse-label]");
+        const isExpanded = !group?.classList.contains("is-expanded");
+        group?.classList.toggle("is-expanded", isExpanded);
+        roleCollapseToggle.setAttribute("aria-expanded", String(isExpanded));
+        if (label) label.textContent = isExpanded ? "Arată mai puține" : "Arată mai multe";
+        return;
+      }
+
       const button = event.target.closest("[data-fo-open-request]");
       if (!button || button.disabled || button.getAttribute("aria-disabled") === "true") return;
-      selectFrontOfficeSubject(button.dataset.foSubjectId);
+      if (!frontOfficeSchema) {
+        frontOfficeSchemaLoadPromise ||= loadFrontOfficeSchema();
+        await frontOfficeSchemaLoadPromise;
+      }
+      const selected = selectFrontOfficeSubject(button.dataset.foSubjectId);
+      if (!selected) return;
       if (window.location.hash !== "#request") {
         history.replaceState(null, "", "#request");
       }
@@ -2303,7 +2589,8 @@
         contactName = user ? (user.contactName || user.name) : "—";
         const code = selfCard.querySelector("[data-fo-phone-code-value]")?.textContent?.trim() || "+373";
         const num = selfCard.querySelector(".e-permits-fo-phone__value")?.textContent?.trim() || "";
-        contactPhone = num ? `${code}${num.replace(/\s+/g, "")}` : (user?.phone || "—");
+        const normalizedNum = num.replace(/\s+/g, "");
+        contactPhone = normalizedNum ? (normalizedNum.startsWith("+") ? normalizedNum : `${code}${normalizedNum}`) : (user?.phone || "—");
       } else if (otherCard) {
         const fn = otherCard.querySelector("#contact-first-name")?.value?.trim() || "";
         const ln = otherCard.querySelector("#contact-last-name")?.value?.trim() || "";
@@ -2440,7 +2727,9 @@
         footer.innerHTML = `
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--confirmation">
             <button class="e-permits-fo-draft-button" type="button">
-              <img class="e-permits-fo-draft-button__icon" src="assets/icons/save-outline.svg" width="20" height="20" alt="" aria-hidden="true">
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
@@ -2475,6 +2764,10 @@
       toggleFrontOfficeAvatarMenu();
     });
 
+    frontOfficeAvatarDropdown
+      ?.querySelector(".e-permits-fo-avatar-menu__content")
+      ?.addEventListener("scroll", updateFrontOfficeAvatarMenuScrollState, { passive: true });
+
     frontOfficeAvatarDropdown?.addEventListener("click", (event) => {
       const proxyToggle = event.target.closest("[data-fo-avatar-proxy-toggle]");
       if (proxyToggle) {
@@ -2485,6 +2778,7 @@
         group?.classList.toggle("is-expanded", isExpanded);
         proxyToggle.setAttribute("aria-expanded", String(isExpanded));
         if (label) label.textContent = isExpanded ? "Arată mai puține" : "Arată mai multe";
+        requestAnimationFrame(updateFrontOfficeAvatarMenuScrollState);
         return;
       }
 
@@ -2544,7 +2838,15 @@
       const draftButton = event.target.closest(".e-permits-fo-draft-button");
       if (!draftButton) return;
       event.preventDefault();
-      showFrontOfficeToast("Schița a fost salvată.");
+      saveFrontOfficeDraft({ toast: true });
+    });
+
+    document.addEventListener("click", (event) => {
+      const closeButton = event.target.closest("[data-fo-draft-info-close]");
+      if (!closeButton) return;
+      event.preventDefault();
+      frontOfficeDraftInfoDismissed = true;
+      updateFrontOfficeRequestHeaders();
     });
 
     document.addEventListener("click", (event) => {
@@ -2570,10 +2872,12 @@
 
       const action = next?.dataset.foNext || prev?.dataset.foPrev;
       if (action === "step-1") {
+        saveFrontOfficeDraft();
         if (window.location.hash !== "#request-step-2") history.replaceState(null, "", "#request-step-2");
         showFrontOfficeRequest({ step: 2 });
       }
       if (action === "step-2" && next) {
+        saveFrontOfficeDraft();
         if (window.location.hash !== "#request-step-3") history.replaceState(null, "", "#request-step-3");
         showFrontOfficeRequest({ step: 3 });
       }
@@ -2582,6 +2886,7 @@
         showFrontOfficeRequest({ step: 1 });
       }
       if (action === "step-3" && next) {
+        saveFrontOfficeDraft();
         populateFrontOfficeStep4();
         if (window.location.hash !== "#request-step-4") history.replaceState(null, "", "#request-step-4");
         showFrontOfficeRequest({ step: 4 });
@@ -2593,6 +2898,9 @@
       if (action === "step-4" && prev) {
         if (window.location.hash !== "#request-step-3") history.replaceState(null, "", "#request-step-3");
         showFrontOfficeRequest({ step: 3 });
+      }
+      if (action === "step-4" && next) {
+        saveFrontOfficeDraft();
       }
     });
 
@@ -2642,7 +2950,7 @@
       function setOpen(isOpen) {
         phoneRoot.classList.toggle("is-code-open", isOpen);
         button.setAttribute("aria-expanded", String(isOpen));
-        list.hidden = !isOpen;
+        setDropdownHidden(list, !isOpen);
         if (isOpen) setActive(activeIndex);
       }
 
@@ -2787,7 +3095,7 @@
       }
 
       function setOpen(isOpen) {
-        list.hidden = !isOpen;
+        setDropdownHidden(list, !isOpen);
         input.setAttribute("aria-expanded", String(isOpen));
         searchRoot.classList.toggle("is-open", isOpen);
         if (isOpen) {
@@ -2937,7 +3245,7 @@
         if (button.disabled) isOpen = false;
         selectRoot.classList.toggle("is-open", isOpen);
         button.setAttribute("aria-expanded", String(isOpen));
-        list.hidden = !isOpen;
+        setDropdownHidden(list, !isOpen);
         if (isOpen) {
           setActive(activeIndex);
           requestAnimationFrame(syncFloating);
@@ -3076,7 +3384,7 @@
       });
 
       function positionMenu() {
-        menu.hidden = false;
+        setDropdownHidden(menu, false);
         caemRoot.classList.remove("is-open-up");
         const rootRect = caemRoot.getBoundingClientRect();
         const menuHeight = Math.min(menu.scrollHeight, 472);
@@ -3128,7 +3436,7 @@
           filterOptions();
           requestAnimationFrame(() => search.focus({ preventScroll: true }));
         } else {
-          menu.hidden = true;
+          setDropdownHidden(menu, true);
           caemRoot.classList.remove("is-open-up");
           search.value = "";
           if (empty) empty.hidden = true;
@@ -3372,7 +3680,7 @@
       function setOpen(isOpen, { focusSearch = true } = {}) {
         root.classList.toggle("is-open", isOpen);
         button.setAttribute("aria-expanded", String(isOpen));
-        menu.hidden = !isOpen;
+        setDropdownHidden(menu, !isOpen);
         if (isOpen) {
           filterOptions();
           if (focusSearch) requestAnimationFrame(() => search.focus({ preventScroll: true }));
@@ -3419,7 +3727,7 @@
             attachmentMeta.append(dot, source);
           }
           button.hidden = true;
-          menu.hidden = true;
+          setDropdownHidden(menu, true);
           attachment.hidden = false;
           removeButton?.focus({ preventScroll: true });
         } else {
@@ -3580,7 +3888,7 @@
       function setOpen(isOpen) {
         root.classList.toggle("is-open", isOpen);
         button.setAttribute("aria-expanded", String(isOpen));
-        menu.hidden = !isOpen;
+        setDropdownHidden(menu, !isOpen);
         if (isOpen) {
           filterOptions();
           requestAnimationFrame(() => search.focus({ preventScroll: true }));
@@ -3863,6 +4171,10 @@
     function initFormBuilder() {
       const builder = document.querySelector(".e-permits-builder");
       if (!builder) return;
+      const builderOverlay = builder.closest("#form-builder-modal");
+      if (builderOverlay && builderOverlay.parentElement !== document.body) {
+        document.body.appendChild(builderOverlay);
+      }
 
       const canvas = builder.querySelector("[data-builder-grid]");
       const dropzone = builder.querySelector("[data-builder-dropzone]");
@@ -4901,7 +5213,7 @@
           trigger.classList.remove("is-open");
           trigger.setAttribute("aria-expanded", "false");
         }
-        if (menu) menu.hidden = true;
+        setDropdownHidden(menu, true);
       }
 
       function toggleSourceDropdown() {
@@ -4912,7 +5224,7 @@
         const willOpen = menu.hidden;
         trigger.classList.toggle("is-open", willOpen);
         trigger.setAttribute("aria-expanded", String(willOpen));
-        menu.hidden = !willOpen;
+        setDropdownHidden(menu, !willOpen);
       }
 
       function renderClassifierSummary(classifier) {

@@ -6,56 +6,74 @@
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css">
-  <link rel="stylesheet" href="css/e-permits-shell.css">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=workplace-json">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=bo-specialist-workplace">
   <script src="js/search.js" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/e-permits-acte-permisive.js" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=bo-specialist-workplace" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
   <main class="e-permits-flow-home" data-flow-home>
-    <section class="e-permits-flow-home__panel" aria-labelledby="flow-home-title">
-      <p class="e-permits-flow-home__eyebrow">GEAP 2.0 · Acte permisive</p>
-      <h1 id="flow-home-title">Alege flow-ul pentru review</h1>
-      <p class="e-permits-flow-home__lead">Demo-ul este izolat în trei zone curate, pregătite pentru push și verificare separată.</p>
-      <div class="e-permits-flow-home__grid" aria-label="Flow-uri disponibile">
-        <a class="e-permits-flow-card" href="e-permits-acte-permisive.html?flow=full">
-          <span class="e-permits-flow-card__icon" aria-hidden="true">
-            <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-services"></use></svg>
-          </span>
-          <span class="e-permits-flow-card__copy">
-            <strong>Full flow 09</strong>
-            <span>Front office complet pentru serviciul 09.</span>
-          </span>
-          <svg class="icon e-permits-flow-card__arrow" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-          </svg>
-        </a>
-        <a class="e-permits-flow-card" href="e-permits-acte-permisive.html?flow=builder">
-          <span class="e-permits-flow-card__icon" aria-hidden="true">
-            <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-templates"></use></svg>
-          </span>
-          <span class="e-permits-flow-card__copy">
-            <strong>Form builder</strong>
-            <span>Workspace-ul de configurare pentru formulare.</span>
-          </span>
-          <svg class="icon e-permits-flow-card__arrow" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-          </svg>
-        </a>
-        <a class="e-permits-flow-card" href="e-permits-acte-permisive.html?flow=back-office">
-          <span class="e-permits-flow-card__icon" aria-hidden="true">
-            <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-stamp"></use></svg>
-          </span>
-          <span class="e-permits-flow-card__copy">
-            <strong>Back office &amp; profile</strong>
-            <span>Shell, dashboard și profilul actului permisiv.</span>
-          </span>
-          <svg class="icon e-permits-flow-card__arrow" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-          </svg>
-        </a>
+    <section class="e-permits-fo-auth__card e-permits-fo-auth__card--choice" aria-labelledby="flow-home-title">
+      <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
+        <div class="e-permits-fo-auth__choice-copy">
+          <h1 id="flow-home-title">Alege demo-ul pe care vrei să-l pornești</h1>
+          <p>Sunt expuse doar flow-urile pregătite pentru review: full flow, builder și back office/profile.</p>
+        </div>
+
+        <div class="e-permits-flow-home__demo-list" aria-label="Demo-uri disponibile">
+          <a class="e-permits-flow-home__demo-item" href="e-permits-acte-permisive.html?flow=full">
+            <span class="e-permits-flow-home__demo-row">
+              <span class="e-permits-flow-home__demo-avatar e-permits-flow-home__demo-avatar--icon e-permits-flow-home__demo-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-services"></use></svg>
+              </span>
+              <span class="e-permits-flow-home__demo-text">
+                <span class="e-permits-flow-home__demo-heading">
+                  <span class="e-permits-flow-home__demo-name">Full flow 09</span>
+                </span>
+                <span class="e-permits-flow-home__demo-meta">Începe cu login MPass și parcurge cererea completă</span>
+              </span>
+              <svg class="icon e-permits-flow-home__demo-arrow" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-flow-home__demo-item" href="e-permits-acte-permisive.html?flow=builder">
+            <span class="e-permits-flow-home__demo-row">
+              <span class="e-permits-flow-home__demo-avatar e-permits-flow-home__demo-avatar--icon e-permits-flow-home__demo-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-templates"></use></svg>
+              </span>
+              <span class="e-permits-flow-home__demo-text">
+                <span class="e-permits-flow-home__demo-heading">
+                  <span class="e-permits-flow-home__demo-name">Form builder</span>
+                </span>
+                <span class="e-permits-flow-home__demo-meta">Workspace-ul de configurare pentru formulare</span>
+              </span>
+              <svg class="icon e-permits-flow-home__demo-arrow" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-flow-home__demo-item" href="e-permits-acte-permisive.html?flow=back-office">
+            <span class="e-permits-flow-home__demo-row">
+              <span class="e-permits-flow-home__demo-avatar e-permits-flow-home__demo-avatar--icon e-permits-flow-home__demo-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-stamp"></use></svg>
+              </span>
+              <span class="e-permits-flow-home__demo-text">
+                <span class="e-permits-flow-home__demo-heading">
+                  <span class="e-permits-flow-home__demo-name">Back office &amp; profile</span>
+                </span>
+                <span class="e-permits-flow-home__demo-meta">Shell-ul intern cu dashboard și profil act permisiv</span>
+              </span>
+              <svg class="icon e-permits-flow-home__demo-arrow" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+        </div>
       </div>
     </section>
   </main>
@@ -157,7 +175,7 @@
                   </div>
                 </section>
                 <section class="e-permits-fo-avatar-menu__group" aria-labelledby="fo-avatar-menu-proxy">
-                  <h2 id="fo-avatar-menu-proxy">Cu împuternicire</h2>
+                  <h2 id="fo-avatar-menu-proxy">Cu împuternicire MPower</h2>
                   <button class="e-permits-fo-avatar-menu__proxy" type="button" role="menuitem" aria-expanded="false" data-fo-avatar-proxy-toggle>
                     <span data-fo-avatar-proxy-label>Arată mai multe</span>
                     <span class="e-permits-fo-avatar-menu__proxy-stack" aria-hidden="true">
@@ -320,60 +338,100 @@
           </div>
 
           <div class="e-permits-fo-auth__role-list" aria-label="Alege solicitantul">
-            <button class="e-permits-fo-auth__role-item" type="button">
-              <span class="e-permits-fo-auth__role-row">
-                <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--brand" aria-hidden="true">AC</span>
-                <span class="e-permits-fo-auth__role-text">
-                  <span class="e-permits-fo-auth__role-name">Anastasia Cojocaru</span>
-                  <span class="e-permits-fo-auth__role-meta">IDNP 2990000000001</span>
-                </span>
-                <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
-                  <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-                </svg>
-              </span>
-            </button>
-
-            <button class="e-permits-fo-auth__role-item" type="button">
-              <span class="e-permits-fo-auth__role-row">
-                <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">
-                  <svg class="icon" width="20" height="20">
-                    <use href="assets/icons/sprite.svg#icon-suitcase-2"></use>
-                  </svg>
-                </span>
-                <span class="e-permits-fo-auth__role-text">
-                  <span class="e-permits-fo-auth__role-heading">
-                    <span class="e-permits-fo-auth__role-name">«Vita-Plant» SRL</span>
-                    <span class="e-permits-fo-auth__warning-tag">
-                      <svg class="icon" width="16" height="16" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-identity"></use>
-                      </svg>
-                      <span>Împuternicire</span>
+            <div class="e-permits-fo-auth__role-group-list">
+              <button class="e-permits-fo-auth__role-item" type="button" data-fo-open-request data-fo-subject-id="user-anastasia">
+                <span class="e-permits-fo-auth__role-row">
+                  <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--brand" aria-hidden="true">AC</span>
+                  <span class="e-permits-fo-auth__role-text">
+                    <span class="e-permits-fo-auth__role-name">Anastasia Cojocaru</span>
+                    <span class="e-permits-fo-auth__role-meta e-permits-fo-subject-meta">
+                      <span class="e-permits-fo-subject-meta__label">IDNP</span>
+                      <span class="e-permits-fo-subject-meta__code">2990000000001</span>
                     </span>
                   </span>
-                  <span class="e-permits-fo-auth__role-meta">IDNO 1012600000001</span>
-                </span>
-                <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
-                  <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-                </svg>
-              </span>
-            </button>
-
-            <button class="e-permits-fo-auth__role-item" type="button" data-fo-open-request>
-              <span class="e-permits-fo-auth__role-row">
-                <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
-                  <svg class="icon" width="20" height="20">
-                    <use href="assets/icons/sprite.svg#icon-suitcase-2"></use>
+                  <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
+                    <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
                   </svg>
                 </span>
-                <span class="e-permits-fo-auth__role-text">
-                  <span class="e-permits-fo-auth__role-name">SRL Global Trader</span>
-                  <span class="e-permits-fo-auth__role-meta">IDNO 1012600000002</span>
+              </button>
+
+              <button class="e-permits-fo-auth__role-item" type="button" data-fo-open-request data-fo-subject-id="pj-global-trader">
+                <span class="e-permits-fo-auth__role-row">
+                  <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                    <svg class="icon" width="20" height="20">
+                      <use href="assets/icons/sprite.svg#icon-suitcase-2"></use>
+                    </svg>
+                  </span>
+                  <span class="e-permits-fo-auth__role-text">
+                    <span class="e-permits-fo-auth__role-name">SRL Global Trader</span>
+                    <span class="e-permits-fo-auth__role-meta e-permits-fo-subject-meta">
+                      <span class="e-permits-fo-subject-meta__label">IDNO</span>
+                      <span class="e-permits-fo-subject-meta__code">1012600000002</span>
+                    </span>
+                  </span>
+                  <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
+                    <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+                  </svg>
                 </span>
-                <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
-                  <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
-                </svg>
-              </span>
-            </button>
+              </button>
+            </div>
+
+            <section class="e-permits-fo-auth__role-group" aria-label="Cu împuternicire MPower">
+              <h2 class="e-permits-fo-auth__role-group-title">Cu împuternicire MPower</h2>
+              <div class="e-permits-fo-auth__role-group-list">
+                <button class="e-permits-fo-auth__role-item is-authorization" type="button" data-fo-open-request data-fo-subject-id="pj-vita-plant">
+                  <span class="e-permits-fo-auth__role-row">
+                    <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">
+                      <svg class="icon" width="20" height="20">
+                        <use href="assets/icons/sprite.svg#icon-suitcase-2"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-fo-auth__role-text">
+                      <span class="e-permits-fo-auth__role-heading">
+                        <span class="e-permits-fo-auth__role-name">«Vita-Plant» SRL</span>
+                        <span class="e-permits-fo-auth__warning-tag">
+                          <svg class="icon" width="16" height="16" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-identity"></use>
+                          </svg>
+                          <span>Împuternicire</span>
+                        </span>
+                      </span>
+                      <span class="e-permits-fo-auth__role-meta e-permits-fo-subject-meta">
+                        <span class="e-permits-fo-subject-meta__label">IDNO</span>
+                        <span class="e-permits-fo-subject-meta__code">1012600000001</span>
+                      </span>
+                    </span>
+                    <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+                    </svg>
+                  </span>
+                </button>
+
+                <button class="e-permits-fo-auth__role-item is-authorization" type="button" data-fo-open-request data-fo-subject-id="mpower-pf-vrabie">
+                  <span class="e-permits-fo-auth__role-row">
+                    <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">GV</span>
+                    <span class="e-permits-fo-auth__role-text">
+                      <span class="e-permits-fo-auth__role-heading">
+                        <span class="e-permits-fo-auth__role-name">Vrabie Gheorghe</span>
+                        <span class="e-permits-fo-auth__warning-tag">
+                          <svg class="icon" width="16" height="16" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-identity"></use>
+                          </svg>
+                          <span>Împuternicire</span>
+                        </span>
+                      </span>
+                      <span class="e-permits-fo-auth__role-meta e-permits-fo-subject-meta">
+                        <span class="e-permits-fo-subject-meta__label">IDNP</span>
+                        <span class="e-permits-fo-subject-meta__code">2990000000002</span>
+                      </span>
+                    </span>
+                    <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </section>
           </div>
 
           <div class="e-permits-fo-auth__or-separator" aria-hidden="true">
@@ -382,9 +440,9 @@
             <span></span>
           </div>
 
-          <button class="e-permits-fo-auth__role-item e-permits-fo-auth__role-item--dashed" type="button">
+          <button class="e-permits-fo-auth__role-item e-permits-fo-auth__role-item--dashed" type="button" data-fo-open-request data-fo-subject-id="notarial-proxy">
             <span class="e-permits-fo-auth__role-row">
-              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">
+              <span class="e-permits-fo-auth__role-avatar" aria-hidden="true">
                 <svg class="icon" width="20" height="20">
                   <use href="assets/icons/sprite.svg#icon-identity"></use>
                 </svg>
@@ -501,39 +559,71 @@
 
               <section class="e-permits-fo-form__roles" aria-label="Solicitant și reprezentant">
                 <div class="e-permits-fo-form__role-group">
-                  <h2>Depui ca</h2>
-                  <div class="e-permits-fo-selected-role">
-                    <span class="e-permits-fo-selected-role__avatar" aria-hidden="true">
-                      <svg class="icon" width="20" height="20">
-                        <use href="assets/icons/sprite.svg#icon-business"></use>
-                      </svg>
-                    </span>
-                    <span class="e-permits-fo-selected-role__copy">
-                      <strong>SRL Global Trader</strong>
-                      <span>IDNO 1012600000002</span>
-                    </span>
-                    <button class="e-permits-fo-selected-role__change" type="button" data-fo-back-choice>
+                  <div class="e-permits-fo-form__role-title">
+                    <h2>Solicitant</h2>
+                    <button class="e-permits-fo-role-info" type="button" aria-label="Detalii despre solicitant">
                       <svg class="icon" width="16" height="16" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-rotate-arrow"></use>
+                        <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
                       </svg>
-                      <span>Schimbă</span>
                     </button>
+                  </div>
+                  <div class="e-permits-fo-selected-role e-permits-fo-selected-role--changeable">
+                    <span class="e-permits-fo-selected-role__inner">
+                      <span class="e-permits-fo-selected-role__avatar" aria-hidden="true">
+                        <svg class="icon" width="20" height="20">
+                          <use href="assets/icons/sprite.svg#icon-business"></use>
+                        </svg>
+                      </span>
+                      <span class="e-permits-fo-selected-role__copy">
+                        <strong>SRL Global Trader</strong>
+                        <span class="e-permits-fo-selected-role__meta">
+                          <span class="e-permits-fo-selected-role__id">
+                            <span class="e-permits-fo-selected-role__id-label">IDNO</span>
+                            <span class="e-permits-fo-copy-value e-permits-fo-copy-value--static e-permits-fo-selected-role__copy-id">
+                              <span>1012600000002</span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
+                      <button class="e-permits-fo-selected-role__change" type="button" data-fo-back-choice>
+                        <svg class="icon" width="16" height="16" aria-hidden="true">
+                          <use href="assets/icons/sprite.svg#icon-rotate-arrow"></use>
+                        </svg>
+                        <span>Schimbă</span>
+                      </button>
+                    </span>
                   </div>
                 </div>
 
                 <div class="e-permits-fo-form__role-group">
-                  <h2>Reprezentant</h2>
+                  <div class="e-permits-fo-form__role-title">
+                    <h2>Reprezentant</h2>
+                    <button class="e-permits-fo-role-info" type="button" aria-label="Detalii despre reprezentant">
+                      <svg class="icon" width="16" height="16" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
+                      </svg>
+                    </button>
+                  </div>
                   <div class="e-permits-fo-selected-role">
-                    <span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials e-permits-fo-selected-role__avatar--brand" aria-hidden="true">AC</span>
-                    <span class="e-permits-fo-selected-role__copy">
-                      <strong>Anastasia Cojocaru</strong>
-                      <span>IDNP 2990000000001</span>
+                    <span class="e-permits-fo-selected-role__inner">
+                      <span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials e-permits-fo-selected-role__avatar--brand" aria-hidden="true">AC</span>
+                      <span class="e-permits-fo-selected-role__copy">
+                        <strong>Anastasia Cojocaru</strong>
+                        <span class="e-permits-fo-selected-role__meta">
+                          <span class="e-permits-fo-selected-role__id">
+                            <span class="e-permits-fo-selected-role__id-label">IDNP</span>
+                            <span class="e-permits-fo-copy-value e-permits-fo-copy-value--static e-permits-fo-selected-role__copy-id">
+                              <span>2990000000001</span>
+                            </span>
+                          </span>
+                        </span>
+                      </span>
                     </span>
                   </div>
                 </div>
               </section>
 
-              <section class="e-permits-fo-form__section" aria-labelledby="fo-company-title">
+              <section class="e-permits-fo-form__section" aria-labelledby="fo-company-title" hidden>
                 <h2 id="fo-company-title">Date companie</h2>
                 <div class="e-permits-fo-form__section-body">
                   <div class="e-permits-fo-field e-permits-fo-field--span-4">
@@ -559,32 +649,12 @@
               </section>
 
               <section class="e-permits-fo-form__section" aria-labelledby="fo-representative-title">
-                <h2 id="fo-representative-title">Date reprezentant</h2>
+                <h2 id="fo-representative-title">Date de contact</h2>
                 <div class="e-permits-fo-form__section-body">
-                  <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                    <label>IDNP</label>
-                    <div class="e-permits-fo-input is-filled is-readonly">
-                      <span class="e-permits-fo-input__value">2990000000001</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                    <label>Nume</label>
-                    <div class="e-permits-fo-input is-filled is-readonly">
-                      <span class="e-permits-fo-input__value">Anastasia</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                    <label>Prenume</label>
-                    <div class="e-permits-fo-input is-filled is-readonly">
-                      <span class="e-permits-fo-input__value">Cojocaru</span>
+                  <div class="e-permits-fo-field e-permits-fo-field--span-6">
+                    <label>Telefon</label>
+                    <div class="e-permits-fo-phone e-permits-fo-phone--readonly is-filled">
+                      <span class="e-permits-fo-phone__value">+373 60 999 999</span>
                       <svg class="icon" width="20" height="20" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
                       </svg>
@@ -592,27 +662,7 @@
                   </div>
 
                   <div class="e-permits-fo-field e-permits-fo-field--span-6">
-                    <div class="e-permits-fo-field__label-row">
-                      <label>Telefon</label>
-                      <span class="e-permits-fo-field__tag">MNotify</span>
-                    </div>
-                    <div class="e-permits-fo-phone is-filled">
-                      <span class="e-permits-fo-phone__prefix">
-                        <span aria-hidden="true">🇲🇩</span>
-                        <span>+373</span>
-                      </span>
-                      <span class="e-permits-fo-phone__value">60 999 999</span>
-                      <svg class="icon" width="24" height="24" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div class="e-permits-fo-field e-permits-fo-field--span-6">
-                    <div class="e-permits-fo-field__label-row">
-                      <label for="fo-representative-email">Email</label>
-                      <span class="e-permits-fo-field__tag">MNotify</span>
-                    </div>
+                    <label for="fo-representative-email">Email</label>
                     <div class="e-permits-fo-select" data-fo-select>
                       <button
                         id="fo-representative-email"
@@ -633,18 +683,26 @@
                         <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="anastasia.cojocaru@mnotify.gov.md" tabindex="-1">anastasia.cojocaru@mnotify.gov.md</li>
                       </ul>
                     </div>
-                    <p class="e-permits-fo-field__hint">Mai multe adrese disponibile</p>
                   </div>
                 </div>
 
-                <div class="e-permits-fo-notice" id="fo-request-description">
-                  <svg class="icon" width="24" height="24" aria-hidden="true">
-                    <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
-                  </svg>
-                  <span class="e-permits-fo-notice__content">
-                    <p>Pentru modificări de contact, folosește MNotify.</p>
-                    <a href="#">Modifică în MNotify</a>
-                  </span>
+                <div class="e-permits-fo-mnotify-info" id="fo-request-description">
+                  <div class="e-permits-fo-mnotify-info__frame">
+                    <span class="e-permits-fo-mnotify-info__icon-wrap" aria-hidden="true">
+                      <svg class="icon e-permits-fo-mnotify-info__icon" width="24" height="24">
+                        <use href="assets/icons/sprite.svg#icon-circle-info-filled"></use>
+                      </svg>
+                    </span>
+                    <div class="e-permits-fo-mnotify-info__content">
+                      <p class="e-permits-fo-mnotify-info__text">Datele de contact sunt preluate din MNotify.</p>
+                    </div>
+                  </div>
+                  <a class="e-permits-fo-mnotify-info__link" href="#">
+                    <span>Modifică datele</span>
+                    <svg class="icon" width="16" height="16" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg#icon-external-link"></use>
+                    </svg>
+                  </a>
                 </div>
               </section>
 
@@ -872,20 +930,13 @@
                   <div class="e-permits-fo-detail-card e-permits-fo-contact-card e-permits-fo-contact-card--self" data-fo-contact-self>
                     <div class="e-permits-fo-contact-card__grid">
                     <div class="e-permits-fo-field e-permits-fo-field--span-6">
-                      <div class="e-permits-fo-field__label-row">
-                        <label for="fo-contact-phone-self">Telefon</label>
-                        <span class="e-permits-fo-field__tag">MNotify</span>
-                      </div>
-                      <div class="e-permits-fo-phone is-filled">
-                        <span class="e-permits-fo-phone__prefix">
-                          <span aria-hidden="true">🇲🇩</span>
-                          <span>+373</span>
-                        </span>
-                        <span class="e-permits-fo-phone__value" id="fo-contact-phone-self">60 999 999</span>
-                        <svg class="icon" width="24" height="24" aria-hidden="true">
-                          <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                        </svg>
-                      </div>
+                      <label for="fo-contact-phone-self">Telefon</label>
+                        <div class="e-permits-fo-phone e-permits-fo-phone--readonly is-filled">
+                          <span class="e-permits-fo-phone__value" id="fo-contact-phone-self">+373 60 999 999</span>
+                          <svg class="icon" width="20" height="20" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
+                          </svg>
+                        </div>
                     </div>
                     </div>
                   </div>
@@ -1048,7 +1099,9 @@
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
                   <button class="e-permits-fo-draft-button" type="button">
-                    <img class="e-permits-fo-draft-button__icon" src="assets/icons/save-outline.svg" width="20" height="20" alt="" aria-hidden="true">
+                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                     <span>Salvează ca schiță</span>
                   </button>
                   <div class="e-permits-fo-form__actions-primary">
@@ -1176,7 +1229,9 @@
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
                   <button class="e-permits-fo-draft-button" type="button">
-                    <img class="e-permits-fo-draft-button__icon" src="assets/icons/save-outline.svg" width="20" height="20" alt="" aria-hidden="true">
+                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
                     <span>Salvează ca schiță</span>
                   </button>
                   <div class="e-permits-fo-form__actions-primary">
@@ -1324,16 +1379,16 @@
               aria-controls="shell-user-menu"
               data-user-trigger
             >
-              <span class="e-permits-shell__user-avatar" aria-hidden="true" data-initials="AC">
-                <img src="https://www.figma.com/api/mcp/asset/5289eca0-453a-4d09-8fbb-188f685d7282" alt="" onerror="this.hidden=true">
+              <span class="e-permits-shell__user-trigger-inner">
+                <span class="e-permits-shell__user-avatar" aria-hidden="true" data-initials="AC"></span>
+                <span class="e-permits-shell__user-copy">
+                  <span class="e-permits-shell__user-name">Anastasia Cojocaru</span>
+                  <span class="e-permits-shell__user-meta">ADM-L • Chișinău</span>
+                </span>
+                <svg class="icon e-permits-shell__user-chevron" aria-hidden="true" width="20" height="20">
+                  <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                </svg>
               </span>
-              <span class="e-permits-shell__user-copy">
-                <span class="e-permits-shell__user-name">Anastasia Cojocaru</span>
-                <span class="e-permits-shell__user-meta">ADM-L <span aria-hidden="true">•</span> Chișinău</span>
-              </span>
-              <svg class="icon e-permits-shell__user-chevron" aria-hidden="true" width="20" height="20">
-                <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
-              </svg>
             </button>
 
             <div
@@ -2281,7 +2336,102 @@
     <main class="e-permits-shell__workspace">
       <div class="e-permits-shell__body">
         <aside class="e-permits-shell__sidebar" aria-label="Navigare principală">
-          <nav class="e-permits-shell__nav" aria-label="E-Permits">
+          <div class="e-permits-shell__sidebar-header">
+            <a href="#" class="e-permits-shell__sidebar-brand" aria-label="e-Permis Back Office">
+              <span class="e-permits-shell__sidebar-logo" aria-hidden="true">
+                <img src="assets/logos/evo-logo.svg" alt="">
+              </span>
+              <span class="e-permits-shell__sidebar-copy">
+                <span class="e-permits-shell__sidebar-title">e-Permis</span>
+                <span class="e-permits-shell__sidebar-subtitle">Back Office</span>
+              </span>
+            </a>
+            <button
+              type="button"
+              class="e-permits-shell__sidebar-toggle"
+              data-shell-toggle
+              aria-pressed="false"
+              aria-label="Colapsează meniul"
+              data-tooltip-expanded="Collapse menu"
+              data-tooltip-collapsed="Expand menu"
+            >
+              <svg class="icon" width="20" height="20" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-sidebar"></use>
+              </svg>
+              <span class="e-permits-shell__collapse-tooltip" aria-hidden="true">Collapse menu</span>
+            </button>
+          </div>
+
+          <nav class="e-permits-shell__nav e-permits-shell__nav--specialist" aria-label="Locul de muncă specialist">
+            <div class="e-permits-shell__nav-group e-permits-shell__nav-group--workplace">
+              <p class="e-permits-shell__group-label">Locul de muncă</p>
+              <ul class="e-permits-shell__nav-list">
+                <li>
+                  <a href="#" class="e-permits-shell__nav-link is-active" data-nav-item data-workplace-view="mine" title="Dosarele mele" aria-current="page">
+                    <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                      <svg class="icon" width="20" height="20">
+                        <use href="assets/icons/sprite.svg#icon-document"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-shell__nav-text">Dosarele mele</span>
+                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="mine">33</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="unassigned" title="Dosare nedistribuite">
+                    <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                      <svg class="icon" width="20" height="20">
+                        <use href="assets/icons/sprite.svg#icon-page-text"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-shell__nav-text">Dosare nedistribuite</span>
+                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="unassigned">12</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="office" title="Dosare inițiate în oficiu">
+                    <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                      <svg class="icon" width="20" height="20">
+                        <use href="assets/icons/sprite.svg#icon-mark-all"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-shell__nav-text">Dosare inițiate în oficiu</span>
+                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="office">5</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="print" title="Dosare spre printare">
+                    <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                      <svg class="icon" width="20" height="20">
+                        <use href="assets/icons/sprite.svg#icon-download"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-shell__nav-text">Dosare spre printare</span>
+                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="print">8</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            <div class="e-permits-shell__nav-group e-permits-shell__nav-group--config">
+              <p class="e-permits-shell__group-label">Configurare</p>
+              <ul class="e-permits-shell__nav-list">
+                <li>
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-shell-view="permits-profile" title="Acte permisive">
+                    <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                      <svg class="icon" width="20" height="20">
+                        <use href="assets/icons/sprite.svg#icon-stamp"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-shell__nav-text">Acte permisive</span>
+                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">142</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+
+          <nav class="e-permits-shell__nav e-permits-shell__nav--legacy" aria-label="E-Permits">
             <div class="e-permits-shell__nav-group">
               <p class="e-permits-shell__group-label">Operațional</p>
               <ul class="e-permits-shell__nav-list">
@@ -2471,7 +2621,130 @@
 
           <div class="e-permits-shell__canvas">
             <div class="e-permits-shell__canvas-surface permits-page">
-              <div class="permits-page__content permits-profile">
+              <div class="e-permits-workplace" data-workplace>
+                <header class="e-permits-workplace__header">
+                  <div class="e-permits-workplace__title-row">
+                    <div>
+                      <p class="e-permits-workplace__eyebrow">Locul de muncă</p>
+                      <h1 class="e-permits-workplace__title" data-workplace-title>Dosarele mele</h1>
+                    </div>
+                    <button class="btn btn-secondary btn-rounded btn-sm e-permits-workplace__refresh" type="button">
+                      <svg class="icon small" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-rotate-arrow"></use>
+                      </svg>
+                      <span>Actualizează</span>
+                    </button>
+                  </div>
+
+                  <div class="e-permits-workplace__toolbar" aria-label="Filtrare dosare">
+                    <label class="search-input medium rectangular e-permits-workplace__search">
+                      <span class="icon-search" aria-hidden="true">
+                        <svg class="icon" width="20" height="20">
+                          <use href="assets/icons/sprite.svg#icon-search"></use>
+                        </svg>
+                      </span>
+                      <input class="input" type="search" data-workplace-search placeholder="Căutare rapidă după denumire, cod sau instituție">
+                    </label>
+                    <button class="btn btn-secondary btn-rounded btn-sm e-permits-workplace__advanced" type="button">
+                      <svg class="icon" width="16" height="16" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-filter"></use>
+                      </svg>
+                      <span>Filtrare avansată</span>
+                    </button>
+                    <div class="e-permits-workplace__table-tools" aria-label="Preferințe tabel">
+                      <span class="e-permits-workplace__field-count">48 câmpuri</span>
+                      <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
+                      <button class="e-permits-workplace__icon-action" type="button" aria-label="Configurează coloanele">
+                        <svg class="icon" width="16" height="16" aria-hidden="true">
+                          <use href="assets/icons/sprite.svg#icon-filter"></use>
+                        </svg>
+                      </button>
+                      <button class="e-permits-workplace__icon-action" type="button" aria-label="Exportă">
+                        <svg class="icon" width="16" height="16" aria-hidden="true">
+                          <use href="assets/icons/sprite.svg#icon-download"></use>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="e-permits-workplace__status-tabs" data-workplace-tabs role="tablist" aria-label="Status dosare">
+                    <button class="e-permits-workplace__status-tab e-permits-workplace__status-tab--danger" type="button" role="tab">
+                      <span class="e-permits-workplace__status-label"><span class="e-permits-workplace__status-dot" aria-hidden="true"></span>Prioritate critică</span>
+                      <span class="e-permits-workplace__status-count">7</span>
+                    </button>
+                    <button class="e-permits-workplace__status-tab" type="button" role="tab"><span class="e-permits-workplace__status-label">Suspendate</span><span class="e-permits-workplace__status-count">2</span></button>
+                    <button class="e-permits-workplace__status-tab" type="button" role="tab"><span class="e-permits-workplace__status-label">După suspendare</span><span class="e-permits-workplace__status-count">2</span></button>
+                    <button class="e-permits-workplace__status-tab" type="button" role="tab"><span class="e-permits-workplace__status-label">În avizare</span><span class="e-permits-workplace__status-count">2</span></button>
+                    <button class="e-permits-workplace__status-tab" type="button" role="tab"><span class="e-permits-workplace__status-label">Neavizate în termen</span><span class="e-permits-workplace__status-count">1</span></button>
+                    <button class="e-permits-workplace__status-tab" type="button" role="tab"><span class="e-permits-workplace__status-label">Neachitate în termen</span><span class="e-permits-workplace__status-count">3</span></button>
+                    <button class="e-permits-workplace__status-tab is-active" type="button" role="tab" aria-selected="true"><span class="e-permits-workplace__status-label">Toate</span><span class="e-permits-workplace__status-count" data-workplace-total>33</span></button>
+                  </div>
+                </header>
+
+                <div class="e-permits-workplace__table-wrap">
+                  <table class="e-permits-workplace__table">
+                    <thead>
+                      <tr data-workplace-head>
+                        <th scope="col"><span class="e-permits-workplace__checkbox" aria-hidden="true"></span></th>
+                        <th scope="col">Numărul dosarului</th>
+                        <th scope="col">Decizia</th>
+                        <th scope="col">Statut</th>
+                        <th scope="col">Alerte</th>
+                        <th scope="col">Tip dosar</th>
+                        <th scope="col">Nume solicitant</th>
+                        <th scope="col">Compania</th>
+                        <th scope="col">Data depunerii</th>
+                        <th scope="col">Termen de exam.</th>
+                        <th scope="col" aria-label="Acțiuni"></th>
+                      </tr>
+                    </thead>
+                    <tbody data-workplace-rows></tbody>
+                  </table>
+                </div>
+
+                <footer class="e-permits-workplace__footer">
+                  <div class="e-permits-workplace__pagination">
+                    <div class="e-permits-workplace__pagination-summary">
+                      <span data-workplace-range>Showing 1 to 16 of 33 results</span>
+                      <label class="e-permits-workplace__rows-control">
+                        <span>Rows per page:</span>
+                        <span class="e-permits-workplace__rows-select">
+                          <select data-workplace-page-size aria-label="Rows per page">
+                            <option value="16" selected>16</option>
+                            <option value="32">32</option>
+                            <option value="48">48</option>
+                            <option value="96">96</option>
+                          </select>
+                          <svg class="icon" width="20" height="20" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                          </svg>
+                        </span>
+                      </label>
+                    </div>
+                    <div class="e-permits-workplace__pagination-pages" aria-label="Pagination">
+                      <button class="e-permits-workplace__pagination-action" type="button" disabled>
+                        <svg class="icon" width="20" height="20" aria-hidden="true">
+                          <use href="assets/icons/sprite.svg#icon-chevron-left-small"></use>
+                        </svg>
+                        <span>Previous</span>
+                      </button>
+                      <span class="e-permits-workplace__pagination-list">
+                        <button class="e-permits-workplace__pagination-item is-active" type="button" aria-current="page">1</button>
+                        <button class="e-permits-workplace__pagination-item" type="button">2</button>
+                        <button class="e-permits-workplace__pagination-item" type="button">3</button>
+                      </span>
+                      <button class="e-permits-workplace__pagination-action" type="button">
+                        <span>Next</span>
+                        <svg class="icon" width="20" height="20" aria-hidden="true">
+                          <use href="assets/icons/sprite.svg#icon-chevron-right-small"></use>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </footer>
+              </div>
+
+              <div class="permits-page__content permits-profile" hidden>
                 <header class="permits-profile__hero">
                   <button class="btn btn-text-strict btn-sm permits-profile__back-button" type="button">
                     <svg class="icon small" aria-hidden="true">
@@ -2716,7 +2989,7 @@
     </main>
   </div>
 
-  <script src="js/e-permits-shell.js"></script>
+  <script src="js/e-permits-shell.js?v=workplace-json"></script>
 
   <!-- Document picker modal -->
   <div class="e-permits-fo-doc-modal-overlay" data-fo-doc-modal-overlay hidden aria-modal="true" role="dialog" aria-labelledby="fo-doc-modal-title">

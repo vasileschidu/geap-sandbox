@@ -1,0 +1,173 @@
+{
+  "today": "2026-07-09",
+  "seed": 11,
+  "fieldCount": 48,
+  "meSpecialistId": "sp1",
+  "mySubdiviziune": "CSP Chișinău",
+  "myAutoritate": "Agenția Națională pentru Sănătate Publică",
+  "statuses": {
+    "schita": { "label": "Schiță", "tone": "neutral" },
+    "depus": { "label": "Depus", "tone": "info" },
+    "inExaminare": { "label": "În examinare", "tone": "teal" },
+    "spreCoordonare": { "label": "Spre coordonare", "tone": "violet" },
+    "spreSemnare": { "label": "Spre semnare", "tone": "high" },
+    "semnat": { "label": "Semnat", "tone": "ok" },
+    "eliberat": { "label": "Eliberat", "tone": "ok" },
+    "respins": { "label": "Respins", "tone": "crit" },
+    "arhivat": { "label": "Arhivat", "tone": "neutral" }
+  },
+  "alerts": {
+    "suspendat": { "label": "Suspendat", "short": "SUSP", "tone": "neutral" },
+    "dupaSuspendare": { "label": "După suspendare", "short": "POST-S", "tone": "warn" },
+    "inAvizare": { "label": "În avizare", "short": "AVIZ", "tone": "teal" },
+    "neavizatTermen": { "label": "Neavizat în termen", "short": "AVIZ!", "tone": "crit" },
+    "neachitatTermen": { "label": "Neachitat în termen", "short": "PLATĂ!", "tone": "crit" }
+  },
+  "decisions": {
+    "none": { "label": "—", "tone": "none" },
+    "proiect": { "label": "Proiect", "tone": "neutral" },
+    "aprobare": { "label": "Aprobat", "tone": "ok" },
+    "respingere": { "label": "Respins", "tone": "crit" }
+  },
+  "plan": [
+    { "status": "schita", "count": 8, "alerts": [] },
+    { "status": "depus", "count": 22, "alerts": [] },
+    { "status": "inExaminare", "count": 48, "alerts": ["suspendat", "dupaSuspendare", "inAvizare", "neavizatTermen", "neachitatTermen"] },
+    { "status": "spreCoordonare", "count": 10, "alerts": [] },
+    { "status": "spreSemnare", "count": 8, "alerts": [] },
+    { "status": "semnat", "count": 22, "alerts": [] },
+    { "status": "eliberat", "count": 9, "alerts": [] },
+    { "status": "respins", "count": 4, "alerts": [] },
+    { "status": "arhivat", "count": 5, "alerts": [] }
+  ],
+  "tipDosar": ["Eliberare", "Prelungire", "Reperfectare", "Suspendare", "Duplicat", "Anulare"],
+  "postProcessTipuri": ["Suspendare", "Reluare", "Retragere", "Anulare", "Reperfectare"],
+  "modLivrare": ["Ghișeu", "Poștă", "MDelivery", "Electronic"],
+  "servicii": [
+    "Aviz sanitar privind atribuirea terenului pentru construcție",
+    "Autorizație sanitară de funcționare",
+    "Certificat de urbanism pentru proiectare",
+    "Autorizație de construire",
+    "Autorizație de desființare",
+    "Autorizație de mediu pentru folosința specială a apei",
+    "Autorizație de emisie a poluanților în atmosferă",
+    "Autorizație de gestionare a deșeurilor",
+    "Licență de transport rutier de persoane",
+    "Autorizație pentru activitatea de taxi",
+    "Autorizație de comerț cu produse alcoolice",
+    "Autorizație pentru activitate de alimentație publică",
+    "Autorizație sanitar-veterinară pentru exploatații zootehnice",
+    "Certificat de conformitate pentru produse alimentare",
+    "Permis de pescuit comercial"
+  ],
+  "serviceScope": [
+    "Autorizație sanitară de funcționare",
+    "Autorizație de comerț cu produse alcoolice"
+  ],
+  "subdiviziuni": ["CSP Chișinău", "CSP Bălți", "CSP Cahul", "CSP Comrat", "CSP Orhei", "Oficiul Central"],
+  "solicitanti": [
+    { "nume": "Ion Rusu", "companie": "SRL Agrotehnica" },
+    { "nume": "Maria Ceban", "companie": null },
+    { "nume": "Andrei Lupu", "companie": "SA Termoenergia" },
+    { "nume": "Elena Bivol", "companie": "ÎI Bivol Elena" },
+    { "nume": "Victor Grosu", "companie": "SRL Construct Plus" },
+    { "nume": "Natalia Cojocaru", "companie": "SRL Lactis" },
+    { "nume": "Sergiu Moraru", "companie": null },
+    { "nume": "Cristina Zaharia", "companie": "SRL MedFarm" },
+    { "nume": "Pavel Ursu", "companie": "SA Drumuri Chișinău" },
+    { "nume": "Ana Damian", "companie": "SRL Bio Agro" },
+    { "nume": "Mihai Postolachi", "companie": "SRL TransExpres" },
+    { "nume": "Daniela Rotaru", "companie": null },
+    { "nume": "Vladimir Chirtoacă", "companie": "SRL Vinaria Est" },
+    { "nume": "Olga Sîrbu", "companie": "ÎI Sîrbu Olga" },
+    { "nume": "Radu Bejan", "companie": "SRL EcoServ" },
+    { "nume": "Tatiana Munteanu", "companie": "SA Apă-Canal" },
+    { "nume": "Nicolae Guțu", "companie": null },
+    { "nume": "Irina Bulat", "companie": "SRL Panificația" }
+  ],
+  "specialisti": [
+    { "id": "sp1", "nume": "Elena Caragia", "initiale": "EC", "color": "#2E6B7A" },
+    { "id": "sp2", "nume": "Mihai Grosu", "initiale": "MG", "color": "#5B4A7A" },
+    { "id": "sp3", "nume": "Stela Bradu", "initiale": "SB", "color": "#8A6A1A" },
+    { "id": "sp4", "nume": "Andrei Lazăr", "initiale": "AL", "color": "#456B47" },
+    { "id": "sp5", "nume": "Tamara Bragagiu", "initiale": "TB", "color": "#AE2E1D" }
+  ],
+  "motiveOficiu": [
+    "Nerespectarea condițiilor de licențiere",
+    "Producere de sortimente interzise",
+    "Control planificat — neconformități depistate",
+    "Sesizare din partea Inspectoratului",
+    "Expirarea condițiilor de autorizare",
+    "Hotărâre judecătorească",
+    "Încetarea activității titularului",
+    "Reluare după înlăturarea neconformităților"
+  ],
+  "acteEmise": [
+    { "nr": "LIC-2024-000891", "denumire": "Licență pentru producerea alcoolului etilic", "titular": "Ion Rusu", "companie": "SRL Agrotehnica" },
+    { "nr": "LIC-2023-004417", "denumire": "Licență de transport rutier de persoane", "titular": "Mihai Postolachi", "companie": "SRL TransExpres" },
+    { "nr": "AUT-2024-001203", "denumire": "Autorizație sanitară de funcționare", "titular": "Natalia Cojocaru", "companie": "SRL Lactis" },
+    { "nr": "AUT-2025-000318", "denumire": "Autorizație de comerț cu produse alcoolice", "titular": "Vladimir Chirtoacă", "companie": "SRL Vinaria Est" },
+    { "nr": "AUT-2023-002890", "denumire": "Autorizație de gestionare a deșeurilor", "titular": "Radu Bejan", "companie": "SRL EcoServ" },
+    { "nr": "LIC-2024-003052", "denumire": "Licență pentru activitate farmaceutică", "titular": "Cristina Zaharia", "companie": "SRL MedFarm" },
+    { "nr": "AUT-2025-001744", "denumire": "Autorizație pentru activitate de alimentație publică", "titular": "Irina Bulat", "companie": "SRL Panificația" },
+    { "nr": "AUT-2024-000677", "denumire": "Autorizație sanitar-veterinară pentru exploatații zootehnice", "titular": "Ana Damian", "companie": "SRL Bio Agro" }
+  ],
+  "columns": {
+    "nrDosar": { "label": "Numărul dosarului", "width": 139, "sticky": true },
+    "sursa": { "label": "Sursa", "width": 74 },
+    "decizia": { "label": "Decizia", "width": 110 },
+    "status": { "label": "Statut", "width": 148 },
+    "alerte": { "label": "Alerte", "width": 190 },
+    "tipDosar": { "label": "Tip dosar", "width": 112 },
+    "solicitant": { "label": "Nume solicitant", "width": 152 },
+    "companie": { "label": "Compania", "width": 164 },
+    "specialist": { "label": "Specialist", "width": 162 },
+    "subdiviziune": { "label": "Subdiviziunea", "width": 150 },
+    "dataDepunerii": { "label": "Data depunerii", "width": 120, "sortable": true },
+    "termenExaminare": { "label": "Termen de exam.", "width": 132, "sortable": true },
+    "dataSemnarii": { "label": "Data semnării", "width": 120, "sortable": true },
+    "modLivrare": { "label": "Mod livrare", "width": 124 },
+    "actBaza": { "label": "Act permisiv de bază", "width": 300 },
+    "titular": { "label": "Titular", "width": 158 },
+    "motivOficiu": { "label": "Motivul inițierii", "width": 260 },
+    "dataInitierii": { "label": "Data inițierii", "width": 120, "sortable": true },
+    "initiatDe": { "label": "Inițiat de", "width": 162 }
+  },
+  "views": {
+    "mine": {
+      "title": "Dosarele mele",
+      "filter": "specialistMine",
+      "defaultTab": "toate",
+      "groupBy": "serviciu",
+      "columns": ["nrDosar", "decizia", "status", "alerte", "tipDosar", "solicitant", "companie", "dataDepunerii", "termenExaminare"],
+      "tabs": [
+        { "id": "cuAlerte", "label": "Prioritate critică", "filter": "hasAlerts", "tone": "crit", "displayCount": 7 },
+        { "divider": true },
+        { "id": "suspendat", "label": "Suspendate", "filter": "alert:suspendat", "displayCount": 2 },
+        { "id": "dupaSuspendare", "label": "După suspendare", "filter": "alert:dupaSuspendare", "displayCount": 2 },
+        { "id": "inAvizare", "label": "În avizare", "filter": "alert:inAvizare", "displayCount": 2 },
+        { "id": "neavizatTermen", "label": "Neavizate în termen", "filter": "alert:neavizatTermen", "displayCount": 1 },
+        { "id": "neachitatTermen", "label": "Neachitate în termen", "filter": "alert:neachitatTermen", "displayCount": 3 },
+        { "divider": true },
+        { "id": "toate", "label": "Toate", "filter": "all", "displayCount": 33 }
+      ]
+    },
+    "unassigned": {
+      "title": "Dosare nedistribuite",
+      "filter": "unassigned",
+      "groupBy": "serviciu",
+      "columns": ["nrDosar", "decizia", "status", "tipDosar", "solicitant", "companie", "dataDepunerii", "termenExaminare"]
+    },
+    "office": {
+      "title": "Dosare inițiate în oficiu",
+      "filter": "office",
+      "columns": ["nrDosar", "decizia", "status", "tipDosar", "actBaza", "titular", "motivOficiu", "initiatDe", "dataInitierii"]
+    },
+    "print": {
+      "title": "Dosare spre printare",
+      "filter": "print",
+      "groupBy": "serviciu",
+      "columns": ["nrDosar", "decizia", "status", "tipDosar", "solicitant", "companie", "modLivrare", "dataSemnarii"]
+    }
+  }
+}
