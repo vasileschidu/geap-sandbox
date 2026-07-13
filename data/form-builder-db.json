@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "activeFormId": "form-commerce-notification",
+  "forms": [
+    {
+      "id": "form-commerce-notification",
+      "serviceCode": "C01394",
+      "title": "Cerere de notificare în comerț",
+      "stepTitle": "Detalii cerere",
+      "stepIndex": 2,
+      "totalSteps": 6,
+      "version": "v1.4.2",
+      "status": "draft",
+      "updatedAt": "2026-06-09T00:00:00.000Z",
+      "fields": [
+        {
+          "id": "field-raion",
+          "type": "select",
+          "fieldId": "f_raion",
+          "label": "Raion",
+          "preview": "Selectează raion",
+          "span": 4,
+          "required": true,
+          "dataSource": {
+            "mode": "existing",
+            "classifierId": "reg_raioane",
+            "displayTemplate": [],
+            "parentPairs": []
+          }
+        },
+        {
+          "id": "field-institutia-emitenta",
+          "type": "select",
+          "fieldId": "f_dropdown",
+          "label": "Instituția emitentă",
+          "preview": "Alege instituția emitentă",
+          "span": 4,
+          "required": true,
+          "dataSource": null
+        }
+      ]
+    }
+  ]
+}

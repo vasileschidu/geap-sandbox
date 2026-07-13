@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acte permisive · Flow selector</title>
+  <link rel="stylesheet" href="../assets/fonts/Onest.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--color-background-base-secondary, #f5f5f5);
+      color: var(--color-text-base-default, #121212);
+      font-family: var(--font-family-primary-font, Onest, sans-serif);
+      margin: 0;
+      min-height: 100dvh;
+    }
+
+    .demo-start {
+      align-items: center;
+      display: flex;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: var(--spacing-24, 24px);
+    }
+
+    .demo-start .e-permits-fo-auth__card {
+      width: min(100%, 600px);
+    }
+
+    .demo-start .e-permits-fo-auth__role-item {
+      text-decoration: none;
+    }
+
+    .demo-start .e-permits-fo-auth__role-avatar {
+      flex-basis: 40px;
+      height: 40px;
+      width: 40px;
+    }
+
+    .demo-start .e-permits-fo-auth__role-avatar .icon {
+      height: 20px;
+      width: 20px;
+    }
+
+    @media (max-width: 640px) {
+      .demo-start {
+        align-items: stretch;
+        padding: var(--spacing-16, 16px);
+      }
+
+      .demo-start .e-permits-fo-auth__card {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="demo-start">
+    <section class="e-permits-fo-auth__card e-permits-fo-auth__card--choice" aria-labelledby="demo-start-title">
+      <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
+        <div class="e-permits-fo-auth__choice-copy">
+          <h1 id="demo-start-title">Alege flow-ul pentru review</h1>
+          <p>Doar cele trei experiențe care trebuie împinse pe git sunt expuse aici.</p>
+        </div>
+
+        <div class="e-permits-fo-auth__role-list" aria-label="Flow-uri disponibile">
+          <a class="e-permits-fo-auth__role-item" href="../e-permits-acte-permisive.html?flow=full">
+            <span class="e-permits-fo-auth__role-row">
+              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="../assets/icons/sprite.svg#icon-services"></use></svg>
+              </span>
+              <span class="e-permits-fo-auth__role-text">
+                <span class="e-permits-fo-auth__role-heading">
+                  <span class="e-permits-fo-auth__role-name">Full flow 09</span>
+                </span>
+                <span class="e-permits-fo-auth__role-meta">Front office complet pentru serviciul 09</span>
+              </span>
+              <svg class="icon e-permits-fo-auth__role-arrow" aria-hidden="true">
+                <use href="../assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-fo-auth__role-item" href="../e-permits-acte-permisive.html?flow=builder">
+            <span class="e-permits-fo-auth__role-row">
+              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="../assets/icons/sprite.svg#icon-templates"></use></svg>
+              </span>
+              <span class="e-permits-fo-auth__role-text">
+                <span class="e-permits-fo-auth__role-heading">
+                  <span class="e-permits-fo-auth__role-name">Form builder</span>
+                </span>
+                <span class="e-permits-fo-auth__role-meta">Builder-ul de formulare, izolat de restul demo-ului</span>
+              </span>
+              <svg class="icon e-permits-fo-auth__role-arrow" aria-hidden="true">
+                <use href="../assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-fo-auth__role-item" href="../e-permits-acte-permisive.html?flow=back-office">
+            <span class="e-permits-fo-auth__role-row">
+              <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="../assets/icons/sprite.svg#icon-stamp"></use></svg>
+              </span>
+              <span class="e-permits-fo-auth__role-text">
+                <span class="e-permits-fo-auth__role-heading">
+                  <span class="e-permits-fo-auth__role-name">Back office &amp; profile</span>
+                </span>
+                <span class="e-permits-fo-auth__role-meta">Shell-ul intern cu dashboard/profil act permisiv</span>
+              </span>
+              <svg class="icon e-permits-fo-auth__role-arrow" aria-hidden="true">
+                <use href="../assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

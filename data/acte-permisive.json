@@ -1,0 +1,418 @@
+{
+  "frontOfficeFlows": [
+    {
+      "id": "09-full-flow",
+      "family": "acte-permisive",
+      "service": {
+        "id": "acte-permisive-09",
+        "code": "09",
+        "slug": "autorizatia-sanitara-functionare",
+        "title": "09 Autorizația sanitară pentru funcționare",
+        "shortTitle": "Autorizația sanitară pentru funcționare",
+        "type": "Autorizație",
+        "category": "Autorizație",
+        "tag": "Autorizație",
+        "term": "15-30 zile lucrătoare",
+        "cost": "500 MDL"
+      },
+      "banner": {
+        "visible": true,
+        "tag": "Beta",
+        "text": "Acesta este un serviciu nou.",
+        "linkLabel": "Ajută-ne cu feedback",
+        "suffix": "pentru a-l îmbunătăți."
+      },
+      "auth": {
+        "required": true,
+        "method": "mpass",
+        "title": "Autentifică-te pentru a continua",
+        "descriptionTemplate": "Pentru acest serviciu este necesară autentificarea cu MPass.",
+        "availableFor": ["PF", "PJ"],
+        "provider": {
+          "id": "mpass",
+          "label": "Autentifică-te prin mpass",
+          "logo": "assets/logos/m-platforms/m-pass.svg"
+        }
+      },
+      "subjectTypes": {
+        "PF": {
+          "label": "Persoană fizică",
+          "icon": "icon-person",
+          "idLabel": "IDNP"
+        },
+        "PJ": {
+          "label": "Persoană juridică",
+          "icon": "icon-suitcase-2",
+          "idLabel": "IDNO"
+        }
+      },
+      "authenticatedUser": {
+        "id": "user-anastasia",
+        "type": "PF",
+        "name": "Anastasia Cojocaru",
+        "idLabel": "IDNP",
+        "idValue": "2990000000001",
+        "initials": "AC",
+        "avatarTone": "brand",
+        "contact": {
+          "phone": "60 999 999",
+          "email": "anastasia.cojocaru@mnotify.gov.md",
+          "emails": ["anastasia.cojocaru@mnotify.gov.md", "ion.popescu@mnotify.gov.md", "office@mnotify.gov.md"]
+        }
+      },
+      "defaultSubjectId": "pj-global-trader",
+      "subjects": [
+        {
+          "id": "pf-anastasia",
+          "type": "PF",
+          "scenario": "self-pf",
+          "name": "Anastasia Cojocaru",
+          "idLabel": "IDNP",
+          "idValue": "2990000000001",
+          "initials": "AC",
+          "avatarTone": "brand",
+          "roleLabel": "Persoană fizică",
+          "selectable": true,
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "ion.popescu@mnotify.gov.md", "office@mnotify.gov.md"]
+          }
+        },
+        {
+          "id": "pj-vita-plant",
+          "type": "PJ",
+          "scenario": "mpower-pj",
+          "name": "«Vita-Plant» SRL",
+          "idLabel": "IDNO",
+          "idValue": "1012600000001",
+          "avatarTone": "apricot",
+          "avatarIcon": "icon-suitcase-2",
+          "roleLabel": "Persoană juridică",
+          "badge": {
+            "label": "Împuternicire",
+            "icon": "icon-identity"
+          },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "«Vita-Plant» SRL",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008823"
+          },
+          "selectable": true,
+          "requestData": {
+            "sectionTitle": "Date companie",
+            "fields": [
+              { "label": "IDNO", "value": "1012600000001", "span": 4 },
+              { "label": "Denumire", "value": "«Vita-Plant» SRL", "span": 8 }
+            ]
+          },
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "office@vita-plant.md"]
+          }
+        },
+        {
+          "id": "pj-global-trader",
+          "type": "PJ",
+          "scenario": "self-pj",
+          "name": "SRL Global Trader",
+          "idLabel": "IDNO",
+          "idValue": "1012600000002",
+          "avatarTone": "brand",
+          "avatarIcon": "icon-suitcase-2",
+          "roleLabel": "Persoană juridică",
+          "selectable": true,
+          "requestData": {
+            "sectionTitle": "Date companie",
+            "fields": [
+              { "label": "IDNO", "value": "1012600000002", "span": 4 },
+              { "label": "Denumire", "value": "SRL Global Trader", "span": 8 }
+            ]
+          },
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "office@globaltrader.md"]
+          }
+        },
+        {
+          "id": "mpower-pf-vrabie",
+          "type": "PF",
+          "scenario": "mpower-pf",
+          "name": "Vrabie Gheorghe",
+          "idLabel": "IDNP",
+          "idValue": "2990000000002",
+          "initials": "GV",
+          "avatarTone": "apricot",
+          "roleLabel": "Persoană fizică",
+          "badge": {
+            "label": "Împuternicire",
+            "icon": "icon-identity"
+          },
+          "representative": {
+            "id": "user-anastasia",
+            "type": "PF",
+            "name": "Anastasia Cojocaru",
+            "idLabel": "IDNP",
+            "idValue": "2990000000001",
+            "initials": "AC",
+            "avatarTone": "brand"
+          },
+          "authorization": {
+            "title": "Împuternicire MPower aplicată",
+            "status": "Activă",
+            "grantedBy": "Vrabie Gheorghe",
+            "validUntil": "30.11.2026",
+            "code": "MP-2026-008822"
+          },
+          "selectable": true,
+          "contact": {
+            "phone": "60 999 999",
+            "email": "anastasia.cojocaru@mnotify.gov.md",
+            "emails": ["anastasia.cojocaru@mnotify.gov.md", "ion.popescu@mnotify.gov.md"]
+          }
+        }
+      ],
+      "proxyOption": {
+        "visibleWhenAnyOf": ["PJ"],
+        "label": "Am procură notarială",
+        "description": "Reprezint o organizație care nu apare în lista mea",
+        "icon": "icon-identity"
+      },
+      "steps": [
+        { "index": 1, "id": "applicant-data", "label": "Date solicitant" },
+        {
+          "index": 2,
+          "id": "service-details",
+          "label": "Detalii serviciu",
+          "title": "Detalii serviciu",
+          "sections": [
+            {
+              "id": "object-details",
+              "fields": [
+                {
+                  "id": "object-name",
+                  "type": "text",
+                  "label": "Denumirea obiectului",
+                  "required": true,
+                  "span": 12,
+                  "placeholder": "e.g. Cafeneau \"Luminița\" Buiucani SRL",
+                  "autocomplete": "organization",
+                  "hint": "Denumirea care va apărea pe autorizație. Ex: numele cafenelei, al magazinului sau al unității.",
+                  "maxLength": 150,
+                  "charCounter": true
+                }
+              ]
+            },
+            {
+              "id": "economic-address",
+              "title": "Adresa unității economice",
+              "fields": [
+                {
+                  "id": "cascade-address",
+                  "type": "cascade-address",
+                  "span": 12,
+                  "districts": [
+                    { "value": "Municipiul Chișinău", "localities": [
+                      { "value": "Chișinău", "sectors": ["Centru", "Buiucani", "Botanica", "Ciocana", "Rîșcani"], "streets": ["bd. Ștefan cel Mare și Sfânt", "str. Calea Ieșilor", "str. București", "str. Alexandru cel Bun", "bd. Dacia", "str. Albișoara", "str. Armenească"] },
+                      { "value": "Durlești", "streets": ["str. Voluntarilor", "str. Albișoara"] },
+                      { "value": "Cricova", "streets": ["str. Chișinăului", "str. Viei"] }
+                    ]},
+                    { "value": "Municipiul Bălți", "localities": [
+                      { "value": "Bălți", "streets": ["str. Independenței", "bd. Moscova", "str. Ștefan cel Mare"] }
+                    ]},
+                    { "value": "Raionul Ungheni", "localities": [
+                      { "value": "Ungheni", "streets": ["str. Independenței", "str. Națională", "str. Decebal"] },
+                      { "value": "Nisporeni", "streets": ["str. Trandafirilor", "str. Victoriei"] }
+                    ]},
+                    { "value": "Raionul Orhei", "localities": [
+                      { "value": "Orhei", "streets": ["str. Alecu Russo", "str. Vasile Lupu", "str. Mihai Eminescu"] }
+                    ]},
+                    { "value": "Raionul Cahul", "localities": [
+                      { "value": "Cahul", "streets": ["str. Mihai Eminescu", "str. Republicii", "bd. Independenței"] }
+                    ]}
+                  ],
+                  "phone": { "id": "unit-phone", "label": "Telefonul unității", "required": true, "span": 6, "placeholder": "60 000 000", "countryCodes": [{ "flag": "🇲🇩", "code": "+373" }, { "flag": "🇷🇴", "code": "+40" }, { "flag": "🇺🇦", "code": "+380" }] },
+                  "email": { "id": "unit-email", "label": "Email unității", "type": "email", "span": 6, "placeholder": "adresa@exemplu.md" }
+                }
+              ]
+            },
+            {
+              "id": "contact-person",
+              "title": "Persoana de contact",
+              "layout": "single",
+              "fields": [
+                { "id": "contact-person", "type": "contact-person", "default": "self" }
+              ]
+            },
+            {
+              "id": "activity",
+              "title": "Activitatea desfășurată",
+              "noBorder": true,
+              "layout": "single",
+              "fields": [
+                {
+                  "id": "activity",
+                  "type": "activity-list",
+                  "caemOptions": [
+                    { "code": "I 56.10", "label": "Restaurante", "subgenres": ["Restaurant clasic", "Pizzerie", "Bistrou", "Cafenea cu meniu cald", "Restaurant fastfood"] },
+                    { "code": "I 56.21", "label": "Activități de alimentație pentru evenimente", "subgenres": ["Catering evenimente", "Servire la locația clientului"] },
+                    { "code": "I 56.30", "label": "Baruri și alte activități de servire a băuturilor" },
+                    { "code": "P 85.20", "label": "Învățământ primar", "subgenres": ["Clase primare", "After-school"] }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "index": 3,
+          "id": "supporting-documents",
+          "label": "Documente însoțitoare",
+          "title": "Documente însoțitoare",
+          "documents": [
+            {
+              "id": "property-deed",
+              "label": "Copia actului de proprietate / contractului de locațiune",
+              "description": "Actul ce confirmă dreptul asupra imobilului unde se desfășoară activitatea.",
+              "required": true,
+              "inputType": "file-upload",
+              "accept": "JPG, PNG, PDF, XLS, ZIP, DOCX",
+              "maxSize": "60 MB"
+            },
+            {
+              "id": "floor-plan",
+              "label": "Schița spațiului / planul încăperilor",
+              "description": "Plan cu amplasarea încăperilor și destinația lor.",
+              "required": true,
+              "inputType": "file-upload",
+              "accept": "JPG, PNG, PDF, XLS, ZIP, DOCX",
+              "maxSize": "60 MB"
+            },
+            {
+              "id": "state-registry-extract",
+              "label": "Extras din Registrul de Stat al persoanelor juridice",
+              "description": "Confirmă înregistrarea companiei. Se caută automat în MDocs după IDNO.",
+              "required": true,
+              "inputType": "mdocs-search",
+              "placeholder": "Caută și încarcă din MDocs",
+              "mdocsSuggestions": [
+                { "title": "Extras Registru de Stat - \"Global Trader\" SRL", "meta": "Emis 12.03.2026 · ASP", "recommended": true },
+                { "title": "Extras Registru de Stat - \"Global Trader\" SRL - versiunea 2025", "meta": "Emis 12.03.2024 · ASP" }
+              ]
+            },
+            {
+              "id": "previous-sanitary-permit",
+              "label": "Avizul sanitar precedent",
+              "description": "Dacă unitatea a mai avut autorizație.",
+              "required": false,
+              "inputType": "mdocs-search",
+              "placeholder": "Caută și încarcă din MDocs",
+              "mdocsSuggestions": [
+                { "title": "Aviz sanitar precedent - \"Global Trader\" SRL", "meta": "Emis 18.05.2025 · ANSP" },
+                { "title": "Autorizație sanitară de funcționare - \"Global Trader\" SRL", "meta": "Emis 06.04.2024 · ANSP" }
+              ]
+            },
+            {
+              "id": "hygiene-certificates",
+              "label": "Certificate de instruire igienică ale personalului",
+              "description": "Opțional la depunere — poate fi solicitat ulterior.",
+              "required": false,
+              "inputType": "file-upload",
+              "accept": "JPG, PNG, PDF, XLS, ZIP, DOCX",
+              "maxSize": "60 MB"
+            }
+          ]
+        },
+        {
+          "index": 4,
+          "id": "review-sign",
+          "label": "Verificare și semnare",
+          "title": "Verificare și semnare",
+          "signing": {
+            "title": "Semnarea cererii",
+            "documentTitle": "Cererea care urmează să fie semnată",
+            "status": "Necesită semnătură",
+            "number": "C000000/2026",
+            "date": "01.01.2026",
+            "provider": "msign"
+          }
+        },
+        { "index": 5, "id": "payment", "label": "Plată" },
+        { "index": 6, "id": "finish", "label": "Finalizare" }
+      ],
+      "forms": {
+        "builderSeedFormId": "form-commerce-notification"
+      }
+    }
+  ],
+  "permits": [
+    {
+      "id": "23",
+      "code": "AP-10482",
+      "slug": "notificare-in-comert",
+      "title": "Notificare în comerț",
+      "description": "Notificarea privind inițierea, modificarea sau încetarea activității de comerț",
+      "institution": "Ministerul Economiei",
+      "status": "Publicat",
+      "updatedAt": "21.02.2026",
+      "lastSync": "22.04.2026, 14:00",
+      "sections": [
+        { "id": "passport", "label": "e-Pașaport", "count": null },
+        { "id": "forms", "label": "Formulare", "count": 18, "active": true },
+        { "id": "applicant-type", "label": "Tipul solicitantului", "count": 2 },
+        { "id": "supporting-documents", "label": "Documente însoțitoare", "count": 4 },
+        { "id": "fees", "label": "Taxe", "count": 2 },
+        { "id": "lex", "label": "Lex", "count": 1 },
+        { "id": "expertise", "label": "Expertiză", "count": 0 },
+        { "id": "passport-files", "label": "Fișiere de pașaport", "count": 1 },
+        { "id": "caem-activities", "label": "Activități CAEM", "count": 141 },
+        { "id": "licensing-activities", "label": "Activități de licențiere", "count": 6 },
+        {
+          "id": "conditions",
+          "label": "Lista de condiții",
+          "count": 4,
+          "children": [
+            { "id": "rework-reasons", "label": "Motive Reperfectare/Duplicat", "count": 2 },
+            { "id": "verification-list", "label": "Listă de verificare", "count": 0 },
+            { "id": "licensing-conditions", "label": "Condiții de licențiere", "count": 2 }
+          ]
+        },
+        { "id": "products", "label": "Lista de produse", "count": 0 },
+        { "id": "delivery-options", "label": "Opțiuni de livrare", "count": 1 }
+      ],
+      "forms": [
+        { "dossierType": "Amendment", "formName": "23.NotificationTradingActivity.Application", "templateName": "23.NotificationTradingActivityAmed.Application", "category": "Intrări", "tableName": "Formulare", "sort": 1, "printControl": "Default", "role": "Solicitant" },
+        { "dossierType": "Amendment", "formName": "23.NotificationTradingActivity.Certificate", "templateName": "23.NotificationTradingActivityAmed.Certificate", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 1, "printControl": "FormOnly", "role": "Specialist" },
+        { "dossierType": "Amendment", "formName": "23.RejectionLetter", "templateName": "23.RejectionLetterAmed", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 3, "printControl": "Default", "role": "Specialist" },
+        { "dossierType": "Cancellation", "formName": "23.RejectionLetter", "templateName": "23.Cancelation.Reject", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 3, "printControl": "Default", "role": "Specialist" },
+        { "dossierType": "Cancellation", "formName": "PermitCancelation.Application", "templateName": "23.Cancelation.Application", "category": "Intrări", "tableName": "Formulare", "sort": 1, "printControl": "Default", "role": "" },
+        { "dossierType": "Cancellation", "formName": "PermitCancelation.Decision", "templateName": "23.Cancelation.Approve", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 1, "printControl": "PrintOnly", "role": "Specialist" },
+        { "dossierType": "New Application", "formName": "23.NotificationTradingActivity.Application", "templateName": "23.NotificationTradingActivity.Application", "category": "Intrări", "tableName": "Formulare", "sort": 1, "printControl": "Default", "role": "Solicitant" },
+        { "dossierType": "New Application", "formName": "23.NotificationTradingActivity.Certificate", "templateName": "23.NotificationTradingActivity.Certificate", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 1, "printControl": "FormOnly", "role": "Specialist" },
+        { "dossierType": "New Application", "formName": "23.RejectionLetter", "templateName": "23.RejectionLetter", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 1, "printControl": "Default", "role": "Specialist" },
+        { "dossierType": "Suspension", "formName": "23.Suspension.Application", "templateName": "23.Suspension.Application", "category": "Intrări", "tableName": "Formulare", "sort": 1, "printControl": "Default", "role": "Solicitant" },
+        { "dossierType": "Suspension", "formName": "23.Suspension.RejectionLetter", "templateName": "23.Suspension.Reject", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 3, "printControl": "Default", "role": "Specialist" },
+        { "dossierType": "Suspension", "formName": "PermitSuspension.Decision", "templateName": "23.Suspension.Approve", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 1, "printControl": "PrintOnly", "role": "Specialist" },
+        { "dossierType": "Validity Retake", "formName": "23.NotificationTradingActivity.Certificate", "templateName": "23.ValidityRetake.Certificate", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 2, "printControl": "PrintOnly", "role": "Specialist" },
+        { "dossierType": "Validity Retake", "formName": "23.Suspension.RejectionLetter", "templateName": "23.ValidityRetake.Reject", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 3, "printControl": "Default", "role": "Specialist" },
+        { "dossierType": "Validity Retake", "formName": "23.ValidityRetake.Application", "templateName": "23.ValidityRetake.Application", "category": "Intrări", "tableName": "Formulare", "sort": 1, "printControl": "Default", "role": "" },
+        { "dossierType": "Withdrawal", "formName": "RejectionLetter", "templateName": "RejectionLetter", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 3, "printControl": "Default", "role": "Specialist" },
+        { "dossierType": "Withdrawal", "formName": "Withdrawal.Application", "templateName": "Withdrawal.Application", "category": "Intrări", "tableName": "Formulare", "sort": 1, "printControl": "Default", "role": "" },
+        { "dossierType": "Withdrawal", "formName": "Withdrawal.Certificate", "templateName": "Withdrawal.Certificate", "category": "Ieșiri", "tableName": "Rezoluții", "sort": 1, "printControl": "FormOnly", "role": "Specialist" }
+      ]
+    }
+  ]
+}
