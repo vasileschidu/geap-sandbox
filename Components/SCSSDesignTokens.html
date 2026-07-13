@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-    <meta charset="UTF-8" />
-    <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> -->
-    <title>SCSS Design Tokens</title>
-    <link rel="stylesheet" href="css/main.css" />
+  <meta charset="UTF-8" />
+  <title>Color Tokens</title>
+  <link rel="stylesheet" href="css/main.css" />
   <script src="js/include-header.js" defer></script>
   <script src="js/include-footer.js" defer></script>
   <script src="js/toggler.js" defer></script>
@@ -12,179 +11,723 @@
   <script src="js/mega-nav.js" defer></script>
   <script src="js/search.js" defer></script>
   <script src="js/dropdown.js" defer></script>
+  <style>
+    .token-doc {
+      width: 100%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    .token-doc__hero {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      max-width: 980px;
+    }
+
+    .token-doc__eyebrow {
+      margin: 0;
+      color: #667085;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .token-doc__title {
+      margin: 0;
+      color: #101828;
+      font-size: clamp(44px, 6vw, 64px);
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .token-doc__lead,
+    .token-doc__copy {
+      margin: 0;
+      color: #344054;
+      font-size: 18px;
+      line-height: 1.7;
+      max-width: 960px;
+    }
+
+    .token-doc__section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .token-doc__section-head {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(16, 24, 40, 0.08);
+    }
+
+    .token-doc__section-title {
+      margin: 0;
+      color: #101828;
+      font-size: 24px;
+      font-weight: 600;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
+
+    .token-doc__section-copy {
+      margin: 0;
+      color: #667085;
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 760px;
+    }
+
+    .token-doc__example {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 28px;
+      border-radius: 28px;
+      background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+      box-shadow:
+        inset 0 0 0 1px rgba(16, 24, 40, 0.06),
+        0 16px 40px rgba(16, 24, 40, 0.04);
+    }
+
+    .token-doc__example-copy {
+      margin: 0;
+      color: #344054;
+      font-size: 18px;
+      line-height: 1.7;
+      max-width: 960px;
+    }
+
+    .token-doc__example-visual {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 24px;
+      border-radius: 22px;
+      background: #ffffff;
+      box-shadow: inset 0 0 0 1px rgba(16, 24, 40, 0.06);
+      overflow-x: auto;
+    }
+
+    .token-doc__example-ramp {
+      display: grid;
+      grid-template-columns: repeat(12, 44px);
+      gap: 8px;
+      width: max-content;
+    }
+
+    .token-doc__example-labels {
+      display: grid;
+      grid-template-columns: repeat(12, 44px);
+      gap: 8px;
+      width: max-content;
+    }
+
+    .token-doc__example-step {
+      width: 44px;
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 160ms ease;
+    }
+
+    .token-doc__example-step:hover {
+      transform: translateY(-1px);
+    }
+
+    .token-doc__example-step:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(21, 114, 233, 0.18);
+    }
+
+    .token-doc__example-step-label {
+      color: #667085;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      text-align: center;
+    }
+
+    .token-doc__example-code {
+      margin: 0;
+      padding: 24px 28px;
+      border-radius: 22px;
+      background: #161b26;
+      color: #d0d5dd;
+      font-size: 15px;
+      line-height: 1.75;
+      overflow-x: auto;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 18px 40px rgba(16, 24, 40, 0.16);
+    }
+
+    .token-doc__example-code .token-code__line {
+      display: block;
+      white-space: pre;
+    }
+
+    .token-doc__example-code .token-code__tag,
+    .token-doc__example-code .token-code__symbol {
+      color: #f472b6;
+    }
+
+    .token-doc__example-code .token-code__property {
+      color: #f8fafc;
+    }
+
+    .token-doc__example-code .token-code__value {
+      color: #7dd3fc;
+    }
+
+    .token-doc__example-code .token-code__comment {
+      color: #98a2b3;
+    }
+
+    .token-doc__example-note {
+      margin: 0;
+      color: #475467;
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 960px;
+    }
+
+    .token-scale {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .token-scale__header,
+    .token-scale__row {
+      display: grid;
+      grid-template-columns: 120px repeat(12, 44px);
+      gap: 8px;
+      align-items: center;
+      width: max-content;
+    }
+
+    .token-scale__header {
+      padding-left: 0;
+    }
+
+    .token-scale__shade {
+      color: #101828;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 18px;
+      text-align: center;
+    }
+
+    .token-scale__shade--empty {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .token-scale__name {
+      color: #101828;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 22px;
+      white-space: nowrap;
+    }
+
+    .token-scale__single-group {
+      grid-column: 2 / -1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .token-scale__single-group .token-scale__swatch {
+      width: 44px;
+      flex: 0 0 44px;
+    }
+
+    .token-scale__single-token {
+      color: #667085;
+      font-size: 13px;
+      line-height: 18px;
+      white-space: nowrap;
+    }
+
+    .token-scale__swatch {
+      appearance: none;
+      width: 100%;
+      aspect-ratio: 1;
+      padding: 0;
+      border-radius: 12px;
+      border: 0;
+      background-clip: padding-box;
+      position: relative;
+      cursor: pointer;
+      transition: transform 160ms ease;
+    }
+
+    .token-scale__swatch[data-empty="true"] {
+      visibility: hidden;
+    }
+
+    .token-scale__swatch:hover {
+      transform: translateY(-1px);
+    }
+
+    .token-scale__swatch:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(21, 114, 233, 0.18);
+    }
+
+    .token-tooltip {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 40;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(17, 24, 39, 0.96);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: 0.01em;
+      box-shadow:
+        0 10px 24px rgba(16, 24, 40, 0.22),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, calc(-100% - 12px)) scale(0.96);
+      transform-origin: center bottom;
+      transition: opacity 140ms ease, transform 180ms ease;
+      white-space: nowrap;
+    }
+
+    .token-tooltip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      width: 12px;
+      height: 12px;
+      background: rgba(17, 24, 39, 0.96);
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      transform: translateX(-50%) rotate(45deg);
+    }
+
+    .token-tooltip.is-visible {
+      opacity: 1;
+      transform: translate(-50%, calc(-100% - 16px)) scale(1);
+    }
+
+    .token-alpha {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+      gap: 16px;
+    }
+
+    .token-alpha__card {
+      border: 1px solid rgba(16, 24, 40, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .token-alpha__preview {
+      height: 96px;
+      display: flex;
+      align-items: end;
+      justify-content: start;
+      padding: 12px;
+      background-image:
+        linear-gradient(45deg, rgba(16, 24, 40, 0.04) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(16, 24, 40, 0.04) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(16, 24, 40, 0.04) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(16, 24, 40, 0.04) 75%);
+      background-size: 16px 16px;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    }
+
+    .token-alpha__chip {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 16px;
+      border: 1px solid rgba(16, 24, 40, 0.08);
+    }
+
+    .token-alpha__meta {
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .token-alpha__name {
+      color: #101828;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 20px;
+    }
+
+    .token-alpha__token {
+      color: #667085;
+      font-size: 12px;
+      line-height: 16px;
+      word-break: break-word;
+    }
+
+    @media (max-width: 1200px) {
+      .token-scale__header,
+      .token-scale__row {
+        grid-template-columns: 112px repeat(12, 40px);
+        gap: 8px;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .token-doc {
+        gap: 36px;
+      }
+
+      .token-doc__lead,
+      .token-doc__copy {
+        font-size: 16px;
+      }
+
+      .token-scale {
+        overflow-x: auto;
+        padding-bottom: 8px;
+      }
+
+      .token-scale__header,
+      .token-scale__row {
+        min-width: max-content;
+      }
+    }
+  </style>
 </head>
 <body>
   <div id="site-header"></div>
-    <div class="container mt-56">
-        <div class="row">
-          <div class="col-sm-7">
-            <h1>Primitive Colors</h1>
-            <p class="text-gray-400">
-              These colors serve as the base for creating consistent design elements and are used to build other color schemes across the Design System.
-            </p>
-          </div>
-            <div class="col-xs-12"> 
-                <!--<script>
-                    document.body.onclick = () => {
-                        document.body.dataset.theme =
-                            document.body.dataset.theme === 'dark' ? 'light' : 'dark';
-                    };
-                </script>-->
-            <div class="bg-blue-sky-600 text-white-1000 border-3 border-solid border-gray-300 p-3 mt-4 d-none">
-                Blue Sky 600 Background + White Text + Gray Border
-            </div> 
-            <section class="color-palette">
-                <div class="mt-56 mb-32  border-bottom-1 border-bottom-solid border-gray-200">
-                  <h2 class="mb-6">Brand Colors</h2>
-                </div>
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-blue-sky-900 text-white">Blue 900</div>
-                  <div class="color bg-blue-sky-800 text-white">800</div>
-                  <div class="color bg-blue-sky-700 text-white">700</div>
-                  <div class="color bg-blue-sky-600 text-white" style="flex: 1;">Blue Sky 600</div>
-                  <div class="color bg-blue-sky-500 text-white">500</div>
-                  <div class="color bg-blue-sky-400 text-white">400</div>
-                  <div class="color bg-blue-sky-300 text-blue-sky-500">300</div>
-                  <div class="color bg-blue-sky-200 text-blue-sky-500">200</div>
-                  <div class="color bg-blue-sky-150 text-blue-sky-500">150</div>
-                  <div class="color bg-blue-sky-100 text-blue-sky-500">100</div>
-                </div>
 
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-lavender-900 text-white">900</div>
-                  <div class="color bg-lavender-800 text-white">800</div>
-                  <div class="color bg-lavender-700 text-white">700</div>
-                  <div class="color bg-lavender-600 text-white" style="flex: 1;">Lavender 600</div>
-                  <div class="color bg-lavender-500 text-white">500</div>
-                  <div class="color bg-lavender-400 text-white">400</div>
-                  <div class="color bg-lavender-300 text-lavender-500">300</div>
-                  <div class="color bg-lavender-200 text-lavender-500">200</div>
-                  <div class="color bg-lavender-100 text-lavender-500">100</div>
-                </div>
+  <section class="token-doc">
+    <header class="token-doc__hero">
+      <p class="token-doc__eyebrow">Core Concepts</p>
+      <h1 class="token-doc__title">Colors</h1>
+      <p class="token-doc__lead">Using and customizing the color palette in Moldova Design System projects.</p>
+      <p class="token-doc__copy">These primitives define the full visual temperature of the system, from brand expression and interface neutrals to state semantics and overlays. The layout below is designed for fast comparison, so teams can scan hue families horizontally and judge tonal consistency at a glance.</p>
+    </header>
 
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-purple-900 text-white">900</div>
-                  <div class="color bg-purple-800 text-white">800</div>
-                  <div class="color bg-purple-700 text-white">700</div>
-                  <div class="color bg-purple-600 text-white" style="flex: 1;">Purple 600</div>
-                  <div class="color bg-purple-500 text-white">500</div>
-                  <div class="color bg-purple-400 text-white">400</div>
-                  <div class="color bg-purple-300 text-purple-500">300</div>
-                  <div class="color bg-purple-200 text-purple-500">200</div>
-                  <div class="color bg-purple-100 text-purple-500">100</div>
-                </div>
+    <section class="token-doc__example" aria-labelledby="brand-color-example">
+      <p class="token-doc__example-copy">Our brand ramps follow the same progression principle across the system: lower steps are soft surface tints, middle steps carry interaction weight, and higher steps become the dense anchors used for emphasis, contrast, and inverse moments. The example below shows how Blue Sky tokens are applied in real component code.</p>
+      <div class="token-doc__example-visual">
+        <h2 id="brand-color-example" class="token-doc__section-title">Blue Sky brand ramp example</h2>
+        <div id="brand-ramp-example" class="token-doc__example-ramp" aria-label="Blue Sky brand ramp preview"></div>
+        <div id="brand-ramp-labels" class="token-doc__example-labels" aria-hidden="true"></div>
+      </div>
+      <pre class="token-doc__example-code"><code><span class="token-code__line"><span class="token-code__comment">/* Component usage with design-system tokens */</span></span><span class="token-code__line"><span class="token-code__tag">&lt;button</span> <span class="token-code__property">class</span><span class="token-code__symbol">=</span><span class="token-code__value">"brand-button"</span><span class="token-code__tag">&gt;</span>Continue<span class="token-code__tag">&lt;/button&gt;</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__tag">&lt;a</span> <span class="token-code__property">class</span><span class="token-code__symbol">=</span><span class="token-code__value">"brand-link"</span><span class="token-code__tag">&gt;</span>View details<span class="token-code__tag">&lt;/a&gt;</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__tag">&lt;p</span> <span class="token-code__property">class</span><span class="token-code__symbol">=</span><span class="token-code__value">"text-blue-sky-600"</span><span class="token-code__tag">&gt;</span>Approved application<span class="token-code__tag">&lt;/p&gt;</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__tag">.brand-button</span> <span class="token-code__symbol">{</span></span><span class="token-code__line">  <span class="token-code__property">background</span>: <span class="token-code__value">var(--blue-sky-600)</span>;</span><span class="token-code__line">  <span class="token-code__property">color</span>: <span class="token-code__value">var(--white)</span>;</span><span class="token-code__line">  <span class="token-code__property">border</span>: <span class="token-code__value">1px solid var(--blue-sky-600)</span>;</span><span class="token-code__line"><span class="token-code__symbol">}</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__tag">.brand-button:hover</span> <span class="token-code__symbol">{</span></span><span class="token-code__line">  <span class="token-code__property">background</span>: <span class="token-code__value">var(--blue-sky-700)</span>;</span><span class="token-code__line"><span class="token-code__symbol">}</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__tag">.brand-button:focus-visible</span> <span class="token-code__symbol">{</span></span><span class="token-code__line">  <span class="token-code__property">box-shadow</span>: <span class="token-code__value">0 0 0 4px var(--blue-sky-150)</span>;</span><span class="token-code__line"><span class="token-code__symbol">}</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__tag">.brand-link</span> <span class="token-code__symbol">{</span></span><span class="token-code__line">  <span class="token-code__property">color</span>: <span class="token-code__value">var(--blue-sky-600)</span>;</span><span class="token-code__line"><span class="token-code__symbol">}</span></span><span class="token-code__line"></span><span class="token-code__line"><span class="token-code__comment">/* Utility class generated by the system */</span></span><span class="token-code__line"><span class="token-code__tag">.text-blue-sky-600</span> <span class="token-code__symbol">{</span></span><span class="token-code__line">  <span class="token-code__property">color</span>: <span class="token-code__value">var(--blue-sky-600)</span> <span class="token-code__symbol">!important</span>;</span><span class="token-code__line"><span class="token-code__symbol">}</span></span></code></pre>
+      <p class="token-doc__example-note">Use the lighter end for focus rings and soft surfaces, keep `600` and `700` for primary interactive states, and reserve the deepest values for strong contrast or brand-heavy surfaces. The generated comparison shades on the larger atlas are preview aids, not first-class shipped tokens.</p>
+    </section>
 
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-magenta-900 text-white">900</div>
-                  <div class="color bg-magenta-800 text-white">800</div>
-                  <div class="color bg-magenta-700 text-white">700</div>
-                  <div class="color bg-magenta-600 text-white" style="flex: 1;">Magenta 600</div>
-                  <div class="color bg-magenta-500 text-white">500</div>
-                  <div class="color bg-magenta-400 text-white">400</div>
-                  <div class="color bg-magenta-300 text-magenta-500">300</div>
-                  <div class="color bg-magenta-200 text-magenta-500">200</div>
-                  <div class="color bg-magenta-100 text-magenta-500">100</div>
-                </div>
+    <section class="token-doc__section">
+      <div class="token-doc__section-head">
+        <h2 class="token-doc__section-title">Brand palettes</h2>
+        <p class="token-doc__section-copy">Core brand families used across product chrome, emphasis, calls to action, and thematic surfaces.</p>
+      </div>
+      <div id="brand-scale" class="token-scale" aria-label="Brand color scales"></div>
+    </section>
 
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-forest-green-900 text-white">900</div>
-                  <div class="color bg-forest-green-800 text-white">800</div>
-                  <div class="color bg-forest-green-700 text-white">700</div>
-                  <div class="color bg-forest-green-600 text-white" style="flex: 1;">Forest Green 600</div>
-                  <div class="color bg-forest-green-500 text-white">500</div>
-                  <div class="color bg-forest-green-400 text-white">400</div>
-                  <div class="color bg-forest-green-300 text-forest-green-500">300</div>
-                  <div class="color bg-forest-green-200 text-forest-green-500">200</div>
-                  <div class="color bg-forest-green-150 text-forest-green-500">150</div>
-                  <div class="color bg-forest-green-100 text-forest-green-500">100</div>
-                </div>
+    <section class="token-doc__section">
+      <div class="token-doc__section-head">
+        <h2 class="token-doc__section-title">Status palettes</h2>
+        <p class="token-doc__section-copy">Semantic ranges for success, warning, and danger states with brighter entry tones and denser decision colors.</p>
+      </div>
+      <div id="status-scale" class="token-scale" aria-label="Status color scales"></div>
+    </section>
 
-                <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-                  <h2 class="mb-6">Base Colors</h2>
-                </div>
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-gray-900 text-white">900</div>
-                  <div class="color bg-gray-800 text-white">800</div>
-                  <div class="color bg-gray-700 text-white">700</div>
-                  <div class="color bg-gray-600 text-white" style="flex: 1;">Gray 600</div>
-                  <div class="color bg-gray-500 text-white">500</div>
-                  <div class="color bg-gray-400 text-white">400</div>
-                  <div class="color bg-gray-300 text-gray-500">300</div>
-                  <div class="color bg-gray-250 text-gray-500">250</div>
-                  <div class="color bg-gray-200 text-gray-500">200</div>
-                  <div class="color bg-gray-100 text-gray-500">100</div>
-                </div>
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-black text-white">Black</div>
-                  <div class="color bg-white border text-black">White</div>
-                </div>
+    <section class="token-doc__section">
+      <div class="token-doc__section-head">
+        <h2 class="token-doc__section-title">Neutral palettes</h2>
+        <p class="token-doc__section-copy">Foundation neutrals for structure, content hierarchy, dividers, surfaces, and inverse contexts.</p>
+      </div>
+      <div id="neutral-scale" class="token-scale" aria-label="Neutral color scales"></div>
+    </section>
 
-                <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-                  <h2 class="mb-6">Alpha Colors</h2>
-                </div>
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-black-500-alpha text-white">black-500-alpha</div>
-                  <div class="color bg-black-400-alpha text-white">black-400-alpha</div>
-                  <div class="color bg-black-300-alpha text-gray-700">black-300-alpha</div>
-                  <div class="color bg-black-200-alpha text-gray-700">black-200-alpha</div>
-                  <div class="color bg-black-100-alpha text-gray-700">black-100-alpha</div>
-                </div>
-                <div class="color-row gap-16 mb-32 bg-gray-900 p-8 radius-8"> 
-                  <div class="color bg-white-500-alpha text-gray-700">white-500-alpha</div>
-                  <div class="color bg-white-400-alpha text-white">white-400-alpha</div>
-                  <div class="color bg-white-300-alpha text-white">white-300-alpha</div>
-                  <div class="color bg-white-200-alpha text-white">white-200-alpha</div>
-                  <div class="color bg-white-100-alpha text-white">white-100-alpha</div>
-                </div>
-                <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-                  <h2 class="mb-6">Status Colors</h2>
-                </div>
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-green-900 text-white">900</div>
-                  <div class="color bg-green-800 text-white">800</div>
-                  <div class="color bg-green-700 text-white">700</div>
-                  <div class="color bg-green-600 text-white" style="flex: 1">Green 600</div>
-                  <div class="color bg-green-500 text-white">500</div>
-                  <div class="color bg-green-400 text-white">400</div>
-                  <div class="color bg-green-300 text-forest-green-500">300</div>
-                  <div class="color bg-green-200 text-forest-green-500">200</div>
-                  <div class="color bg-green-100 text-forest-green-500">100</div>
-                  <div class="color bg-green-50 text-forest-green-500">50</div>
-                </div>
+    <section class="token-doc__section">
+      <div class="token-doc__section-head">
+        <h2 class="token-doc__section-title">Alpha overlays</h2>
+        <p class="token-doc__section-copy">Overlay and emphasis layers for transient states, focus atmospheres, inverse surfaces, and blended UI treatments.</p>
+      </div>
+      <div id="alpha-grid" class="token-alpha" aria-label="Alpha overlay tokens"></div>
+    </section>
+  </section>
 
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-apricot-900 text-white">900</div>
-                  <div class="color bg-apricot-800 text-white">800</div>
-                  <div class="color bg-apricot-700 text-white">700</div>
-                  <div class="color bg-apricot-600 text-white" style="flex: 1">Apricot 600</div>
-                  <div class="color bg-apricot-500 text-white">500</div>
-                  <div class="color bg-apricot-400 text-white">400</div>
-                  <div class="color bg-apricot-300 text-apricot-600">300</div>
-                  <div class="color bg-apricot-200 text-apricot-600">200</div>
-                  <div class="color bg-apricot-100 text-apricot-600">100</div>
-                  <div class="color bg-apricot-50 text-apricot-600">50</div>
-                </div>
-
-                <div class="color-row gap-16 mb-32">
-                  <div class="color bg-red-900 text-white">900</div>
-                  <div class="color bg-red-800 text-white">800</div>
-                  <div class="color bg-red-700 text-white">700</div>
-                  <div class="color bg-red-600 text-white" style="flex: 1">Red 600</div>
-                  <div class="color bg-red-500 text-white">500</div>
-                  <div class="color bg-red-400 text-white">400</div>
-                  <div class="color bg-red-300 text-red-600">300</div>
-                  <div class="color bg-red-200 text-red-600">200</div>
-                  <div class="color bg-red-100 text-red-600">100</div>
-                  <div class="color bg-red-50 text-red-600">50</div>
-                </div>
-              </section> 
-        </div>
-    </div>
   <div id="site-footer"></div>
+
+  <script>
+    const shadeColumns = ["50", "100", "150", "200", "300", "400", "500", "600", "700", "800", "900", "950"];
+
+    const brandFamilies = [
+      { name: "Blue Sky", prefix: "blue-sky", shades: ["100", "150", "200", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Lavender", prefix: "lavender", shades: ["100", "200", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Purple", prefix: "purple", shades: ["100", "200", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Magenta", prefix: "magenta", shades: ["100", "200", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Forest Green", prefix: "forest-green", shades: ["100", "150", "200", "300", "400", "500", "600", "700", "800", "900"] }
+    ];
+
+    const statusFamilies = [
+      { name: "Green", prefix: "green", shades: ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Apricot", prefix: "apricot", shades: ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Red", prefix: "red", shades: ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"] }
+    ];
+
+    const neutralFamilies = [
+      { name: "Gray", prefix: "gray", shades: ["100", "200", "250", "300", "400", "500", "600", "700", "800", "900"] },
+      { name: "Black", single: [{ token: "--black", label: "Black", value: "var(--black)" }] },
+      { name: "White", single: [{ token: "--white", label: "White", value: "var(--white)" }] }
+    ];
+
+    const alphaTokens = [
+      { name: "Black 100 Alpha", token: "--black-100-alpha", value: "var(--black-100-alpha)", dark: false },
+      { name: "Black 200 Alpha", token: "--black-200-alpha", value: "var(--black-200-alpha)", dark: false },
+      { name: "Black 300 Alpha", token: "--black-300-alpha", value: "var(--black-300-alpha)", dark: false },
+      { name: "Black 400 Alpha", token: "--black-400-alpha", value: "var(--black-400-alpha)", dark: true },
+      { name: "Black 500 Alpha", token: "--black-500-alpha", value: "var(--black-500-alpha)", dark: true },
+      { name: "White 100 Alpha", token: "--white-100-alpha", value: "var(--white-100-alpha)", dark: true, preview: "#1E1E1E" },
+      { name: "White 200 Alpha", token: "--white-200-alpha", value: "var(--white-200-alpha)", dark: true, preview: "#1E1E1E" },
+      { name: "White 300 Alpha", token: "--white-300-alpha", value: "var(--white-300-alpha)", dark: true, preview: "#1E1E1E" },
+      { name: "White 400 Alpha", token: "--white-400-alpha", value: "var(--white-400-alpha)", dark: true, preview: "#1E1E1E" },
+      { name: "White 500 Alpha", token: "--white-500-alpha", value: "var(--white-500-alpha)", dark: true, preview: "#1E1E1E" }
+    ];
+
+    const isDarkShade = (prefix, shade) => {
+      const numeric = Number(shade);
+      if (prefix === "gray") return numeric >= 500;
+      if (prefix === "blue-sky" || prefix === "forest-green") return numeric >= 500;
+      return numeric >= 600;
+    };
+
+    const getShadeBackground = (family, shade) => {
+      if (family.shades.includes(shade)) {
+        return `var(--${family.prefix}-${shade})`;
+      }
+
+      const numericShade = Number(shade);
+      const numericShades = family.shades.map(Number).sort((left, right) => left - right);
+      const lowerShade = [...numericShades].reverse().find((value) => value < numericShade);
+      const upperShade = numericShades.find((value) => value > numericShade);
+
+      let lowerStop = lowerShade ?? 0;
+      let upperStop = upperShade ?? 1000;
+      let lowerColor = lowerShade ? `var(--${family.prefix}-${lowerShade})` : "#ffffff";
+      let upperColor = upperShade ? `var(--${family.prefix}-${upperShade})` : "#000000";
+
+      if (lowerStop === upperStop) {
+        return lowerColor;
+      }
+
+      const ratio = (numericShade - lowerStop) / (upperStop - lowerStop);
+      const lowerWeight = Math.round((1 - ratio) * 100);
+
+      return `color-mix(in srgb, ${lowerColor} ${lowerWeight}%, ${upperColor})`;
+    };
+
+    const createScale = (targetId, families) => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      const header = `
+        <div class="token-scale__header">
+          <span class="token-scale__shade token-scale__shade--empty">Palette</span>
+          ${shadeColumns.map((shade) => `<span class="token-scale__shade">${shade}</span>`).join("")}
+        </div>
+      `;
+
+      const rows = families.map((family) => {
+        if (family.single) {
+          const singleItems = family.single.map((entry) => `
+            <button type="button" class="token-scale__swatch" style="background:${entry.value}" data-token="${entry.token}" aria-label="Copy ${entry.token}" ${family.name === "Black" ? 'data-dark="true"' : ""}></button>
+            <span class="token-scale__single-token">${entry.token}</span>
+          `).join("");
+
+          return `<div class="token-scale__row token-scale__row--single">
+            <span class="token-scale__name">${family.name}</span>
+            <div class="token-scale__single-group">${singleItems}</div>
+          </div>`;
+        }
+
+        const cells = shadeColumns.map((shade) => {
+          const token = `--${family.prefix}-${shade}`;
+          const tokenLabel = family.shades.includes(shade) ? token : `${token} (generated)`;
+          return `<button type="button" class="token-scale__swatch" style="background:${getShadeBackground(family, shade)}" data-token="${tokenLabel}" aria-label="Copy ${tokenLabel}" ${isDarkShade(family.prefix, shade) ? 'data-dark="true"' : ""}></button>`;
+        }).join("");
+
+        return `<div class="token-scale__row">
+          <span class="token-scale__name">${family.name}</span>
+          ${cells}
+        </div>`;
+      }).join("");
+
+      target.innerHTML = header + rows;
+    };
+
+    const createBrandExample = () => {
+      const ramp = document.getElementById("brand-ramp-example");
+      const labels = document.getElementById("brand-ramp-labels");
+      if (!ramp || !labels) return;
+
+      const family = brandFamilies.find((entry) => entry.prefix === "blue-sky");
+      if (!family) return;
+      const exampleShades = family.shades;
+
+      ramp.style.gridTemplateColumns = `repeat(${exampleShades.length}, 44px)`;
+      labels.style.gridTemplateColumns = `repeat(${exampleShades.length}, 44px)`;
+
+      ramp.innerHTML = exampleShades.map((shade) => {
+        const token = `--${family.prefix}-${shade}`;
+        return `<button type="button" class="token-doc__example-step" style="background:var(${token})" data-token="${token}" aria-label="Copy ${token}"></button>`;
+      }).join("");
+
+      labels.innerHTML = exampleShades.map((shade) => `<span class="token-doc__example-step-label">${shade}</span>`).join("");
+    };
+
+    const createAlphaGrid = () => {
+      const target = document.getElementById("alpha-grid");
+      if (!target) return;
+
+      target.innerHTML = alphaTokens.map((token) => `
+        <article class="token-alpha__card">
+          <div class="token-alpha__preview" style="background-color:${token.preview || "#ffffff"}">
+            <span class="token-alpha__chip" style="background:${token.value}; color:${token.dark ? "#ffffff" : "#101828"}">${token.name}</span>
+          </div>
+          <div class="token-alpha__meta">
+            <span class="token-alpha__name">${token.name}</span>
+            <span class="token-alpha__token">${token.token}</span>
+          </div>
+        </article>
+      `).join("");
+    };
+
+    createScale("brand-scale", brandFamilies);
+    createScale("status-scale", statusFamilies);
+    createScale("neutral-scale", neutralFamilies);
+    createAlphaGrid();
+    createBrandExample();
+
+    const tooltip = document.createElement("div");
+    tooltip.className = "token-tooltip";
+    tooltip.setAttribute("role", "status");
+    tooltip.setAttribute("aria-live", "polite");
+    document.body.appendChild(tooltip);
+
+    let activeSwatch = null;
+    let copiedTimeoutId = null;
+
+    const rgbStringToHex = (value) => {
+      const matches = value.match(/[\d.]+/g);
+      if (!matches || matches.length < 3) return value;
+
+      const [red, green, blue, alpha] = matches.map(Number);
+      const channelToHex = (channel) => Math.round(channel).toString(16).padStart(2, "0");
+      const hex = `#${channelToHex(red)}${channelToHex(green)}${channelToHex(blue)}`;
+
+      if (typeof alpha !== "number" || Number.isNaN(alpha) || alpha >= 1) return hex;
+      return `${hex}${channelToHex(alpha * 255)}`;
+    };
+
+    const getHexValue = (swatch) => rgbStringToHex(getComputedStyle(swatch).backgroundColor);
+
+    const positionTooltip = (swatch) => {
+      const rect = swatch.getBoundingClientRect();
+      tooltip.style.left = `${rect.left + (rect.width / 2)}px`;
+      tooltip.style.top = `${rect.top}px`;
+    };
+
+    const showTooltip = (swatch, label) => {
+      activeSwatch = swatch;
+      tooltip.textContent = label;
+      positionTooltip(swatch);
+      tooltip.classList.add("is-visible");
+    };
+
+    const hideTooltip = (swatch) => {
+      if (swatch && activeSwatch !== swatch) return;
+      activeSwatch = null;
+      tooltip.classList.remove("is-visible");
+    };
+
+    const writeToClipboard = async (text) => {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+      }
+
+      const helper = document.createElement("textarea");
+      helper.value = text;
+      helper.setAttribute("readonly", "");
+      helper.style.position = "absolute";
+      helper.style.left = "-9999px";
+      document.body.appendChild(helper);
+      helper.select();
+      document.execCommand("copy");
+      helper.remove();
+    };
+
+    document.querySelectorAll(".token-scale__swatch:not([data-empty='true']), .token-doc__example-step").forEach((swatch) => {
+      swatch.dataset.hex = getHexValue(swatch);
+
+      swatch.addEventListener("mouseenter", () => {
+        if (copiedTimeoutId) {
+          clearTimeout(copiedTimeoutId);
+          copiedTimeoutId = null;
+        }
+        showTooltip(swatch, swatch.dataset.hex);
+      });
+
+      swatch.addEventListener("mousemove", () => {
+        if (activeSwatch === swatch) positionTooltip(swatch);
+      });
+
+      swatch.addEventListener("mouseleave", () => {
+        hideTooltip(swatch);
+      });
+
+      swatch.addEventListener("focus", () => {
+        showTooltip(swatch, swatch.dataset.hex);
+      });
+
+      swatch.addEventListener("blur", () => {
+        hideTooltip(swatch);
+      });
+
+      swatch.addEventListener("click", async () => {
+        await writeToClipboard(swatch.dataset.hex);
+        showTooltip(swatch, "Copied to clipboard");
+
+        if (copiedTimeoutId) clearTimeout(copiedTimeoutId);
+        copiedTimeoutId = window.setTimeout(() => {
+          if (activeSwatch === swatch) {
+            showTooltip(swatch, swatch.dataset.hex);
+          }
+          copiedTimeoutId = null;
+        }, 1200);
+      });
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-

@@ -1,0 +1,2860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOD 2 — Form Builder · e-Governance Agency</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+
+<style>
+:root {
+  --bg: #F7F5F0;
+  --paper: #FCFBF7;
+  --surface: #FFFFFF;
+  --ink: #14110D;
+  --muted: #6E6A5F;
+  --muted-2: #A39E90;
+  --border: rgba(20, 17, 13, 0.08);
+  --border-2: rgba(20, 17, 13, 0.14);
+  --border-3: rgba(20, 17, 13, 0.22);
+  --accent: #C2410C;
+  --accent-soft: #FDF0E6;
+  --accent-ink: #7C2D12;
+  --preview: #0F766E;
+  --preview-soft: #E6F2F0;
+  --schema: #1E293B;
+  --danger: #B91C1C;
+  --danger-soft: #FEF0F0;
+  --success: #166534;
+  --warn: #92400E;
+  --warn-soft: #FDF4E3;
+
+  --logic: #6D28D9;
+  --logic-soft: #F3EEFD;
+  --logic-ink: #4C1D95;
+  --branch: #B45309;
+  --branch-soft: #FEF3DE;
+  --branch-ink: #78350F;
+  --dep: #0369A1;
+  --dep-soft: #E3F2F8;
+  --dep-ink: #075985;
+
+  --sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --serif: 'Fraunces', ui-serif, Georgia, serif;
+  --mono: 'Geist Mono', ui-monospace, monospace;
+
+  --r-sm: 5px;
+  --r-md: 8px;
+  --r-lg: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+button, input, textarea, select { font-family: inherit; color: inherit; }
+
+/* ═════ SHELL ═════ */
+.app { display: grid; grid-template-rows: 52px 1fr; height: 100vh; }
+
+.topbar {
+  display: grid;
+  grid-template-columns: 320px 1fr 320px;
+  align-items: center;
+  background: var(--paper);
+  border-bottom: 0.5px solid var(--border);
+  padding: 0 16px;
+  gap: 12px;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.brand {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+.brand-mark {
+  width: 22px; height: 22px;
+  background: var(--ink);
+  display: grid; place-items: center;
+  border-radius: 5px;
+  font-family: var(--sans);
+  color: var(--paper);
+  font-weight: 600;
+  font-size: 10px;
+}
+.brand-v {
+  font-family: var(--mono);
+  font-size: 10px; color: var(--muted);
+  margin-top: 4px;
+}
+
+.crumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--muted);
+  border-left: 0.5px solid var(--border-2);
+  padding-left: 12px; min-width: 0;
+}
+.crumb-active {
+  color: var(--ink); font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.mode-switch {
+  display: flex; justify-self: center;
+  background: var(--bg);
+  border: 0.5px solid var(--border-2);
+  border-radius: 7px;
+  padding: 2px;
+}
+.mode-btn {
+  background: transparent; border: none;
+  font-size: 12px; font-weight: 500;
+  padding: 5px 14px; border-radius: 5px;
+  cursor: pointer; color: var(--muted);
+  display: flex; align-items: center; gap: 6px;
+  transition: color 0.12s;
+}
+.mode-btn:hover { color: var(--ink); }
+.mode-btn.active.build { background: var(--ink); color: var(--paper); }
+.mode-btn.active.preview { background: var(--preview); color: white; }
+.mode-btn.active.schema { background: var(--schema); color: white; }
+
+.topbar-right {
+  display: flex; align-items: center; gap: 6px; justify-self: end;
+}
+.save-status {
+  font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 5px;
+  margin-right: 4px;
+}
+.save-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--success);
+}
+
+.btn {
+  background: var(--surface);
+  border: 0.5px solid var(--border-2);
+  padding: 5px 12px;
+  font-size: 12px; font-weight: 500;
+  border-radius: var(--r-sm);
+  cursor: pointer; color: var(--ink);
+  display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+  transition: all 0.12s;
+}
+.btn:hover { border-color: var(--border-3); }
+.btn.primary {
+  background: var(--ink); color: var(--paper); border-color: var(--ink);
+}
+.btn.primary:hover { background: #000; }
+.btn.ghost { background: transparent; border-color: transparent; }
+.btn.ghost:hover { background: var(--bg); }
+
+.avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, #C2410C, #7C2D12);
+  color: white; font-size: 10px; font-weight: 600;
+  display: grid; place-items: center;
+  margin-left: 4px;
+}
+
+.main {
+  display: grid;
+  grid-template-columns: 264px 1fr 336px;
+  height: calc(100vh - 52px);
+  overflow: hidden;
+}
+.main.mode-preview { grid-template-columns: 1fr; background: var(--preview-soft); }
+.main.mode-schema { grid-template-columns: 1fr; background: var(--schema); }
+
+/* ═════ LEFT: LIBRARY ═════ */
+.panel-left {
+  background: var(--paper);
+  border-right: 0.5px solid var(--border);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.panel-header {
+  padding: 14px 16px 10px;
+  border-bottom: 0.5px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--paper); z-index: 1;
+}
+.panel-title {
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted);
+}
+.lib-tabs {
+  display: flex;
+  margin-top: 10px; gap: 2px;
+  background: var(--bg);
+  border-radius: 6px; padding: 2px;
+}
+.lib-tab {
+  flex: 1; background: transparent; border: none;
+  padding: 5px 8px;
+  font-size: 11px; font-weight: 500;
+  border-radius: 4px; cursor: pointer;
+  color: var(--muted); transition: all 0.12s;
+}
+.lib-tab.active {
+  background: var(--surface); color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.lib-search { margin-top: 10px; position: relative; }
+.lib-search input {
+  width: 100%;
+  padding: 6px 10px 6px 28px;
+  font-size: 12px;
+  background: var(--bg);
+  border: 0.5px solid var(--border-2);
+  border-radius: 6px;
+  outline: none;
+}
+.lib-search svg {
+  position: absolute; left: 8px; top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.4; pointer-events: none;
+}
+
+.lib-content { padding: 10px 8px 20px; flex: 1; }
+.lib-section { margin-bottom: 12px; }
+.lib-section-label {
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted-2);
+  padding: 6px 8px 4px;
+}
+
+.lib-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: grab;
+  transition: background 0.1s;
+  user-select: none;
+}
+.lib-item:hover { background: var(--bg); }
+.lib-item:active { cursor: grabbing; }
+
+.lib-item-icon {
+  width: 26px; height: 26px;
+  border-radius: 5px;
+  background: var(--bg);
+  display: grid; place-items: center;
+  flex-shrink: 0;
+  border: 0.5px solid var(--border-2);
+}
+.lib-item-icon svg { width: 13px; height: 13px; stroke-width: 1.75; color: var(--ink); }
+.lib-item-body { flex: 1; min-width: 0; }
+.lib-item-name { font-size: 12px; font-weight: 500; }
+.lib-item-desc {
+  font-size: 10px; color: var(--muted); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.lib-item.pattern .lib-item-icon {
+  background: var(--accent-soft);
+  border-color: rgba(194, 65, 12, 0.18);
+}
+.lib-item.pattern .lib-item-icon svg { color: var(--accent); }
+.lib-item.branch-item .lib-item-icon {
+  background: var(--branch-soft);
+  border-color: rgba(180, 83, 9, 0.25);
+}
+.lib-item.branch-item .lib-item-icon svg { color: var(--branch); }
+
+.badge-int {
+  font-size: 9px; font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  padding: 1px 5px; border-radius: 3px;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+/* ═════ CENTER: CANVAS ═════ */
+.panel-center {
+  background: var(--bg);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  position: relative;
+}
+
+.canvas-toolbar {
+  background: var(--paper);
+  border-bottom: 0.5px solid var(--border);
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+
+.form-title-wrap {
+  display: flex; align-items: baseline; gap: 8px;
+  flex: 1; min-width: 0;
+}
+.form-title {
+  font-family: var(--serif);
+  font-size: 18px; font-weight: 500;
+  letter-spacing: -0.02em;
+  background: transparent; border: none; outline: none;
+  width: 100%; min-width: 0;
+}
+.form-slug {
+  font-family: var(--mono);
+  font-size: 10px; color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* Logic overview indicator */
+.logic-overview-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-2);
+  padding: 4px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.12s;
+}
+.logic-overview-btn:hover { border-color: var(--border-3); }
+.logic-overview-btn .chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+}
+.logic-overview-btn .chip.rules { background: var(--logic-soft); color: var(--logic); }
+.logic-overview-btn .chip.branches { background: var(--branch-soft); color: var(--branch); }
+.logic-overview-btn .chip.sources { background: var(--dep-soft); color: var(--dep); }
+.logic-overview-btn .chip svg { width: 9px; height: 9px; }
+
+/* Logic overview sheet */
+.logic-sheet {
+  position: absolute;
+  top: 50px; right: 20px;
+  width: 400px;
+  background: var(--paper);
+  border: 0.5px solid var(--border-2);
+  border-radius: var(--r-lg);
+  box-shadow: 0 20px 50px rgba(20, 17, 13, 0.15);
+  z-index: 100;
+  overflow: hidden;
+  animation: fadeDown 0.2s ease-out;
+}
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.logic-sheet-head {
+  padding: 14px 16px 10px;
+  border-bottom: 0.5px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.logic-sheet-title {
+  font-family: var(--serif);
+  font-size: 15px; font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.logic-sheet-close {
+  background: transparent; border: none;
+  cursor: pointer; color: var(--muted);
+  padding: 4px; border-radius: 4px;
+}
+.logic-sheet-close:hover { background: var(--bg); color: var(--ink); }
+.logic-sheet-body {
+  max-height: 480px;
+  overflow-y: auto;
+  padding: 8px 16px 16px;
+}
+.logic-sheet-group-title {
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted);
+  padding: 12px 0 6px;
+  display: flex; justify-content: space-between;
+}
+.logic-sheet-item {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.logic-sheet-item:hover { border-color: var(--border-3); }
+.logic-sheet-item-head {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 4px;
+}
+.logic-sheet-item-rule {
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.rule-kw { font-weight: 500; letter-spacing: 0.02em; }
+.rule-kw.logic { color: var(--logic); }
+.rule-kw.branch { color: var(--branch); }
+.rule-kw.dep { color: var(--dep); }
+.rule-ref {
+  background: var(--bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 0.5px solid var(--border-2);
+  font-weight: 500;
+}
+.rule-val { color: var(--success); }
+
+.toolbar-stat {
+  font-size: 11px; color: var(--muted);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 4px;
+}
+
+/* Steps rail */
+.steps-rail {
+  background: var(--paper);
+  border-bottom: 0.5px solid var(--border);
+  padding: 8px 20px;
+  display: flex; align-items: center; gap: 6px;
+  overflow-x: auto;
+}
+.step-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px 4px 6px;
+  background: var(--bg);
+  border: 0.5px solid var(--border-2);
+  border-radius: 99px;
+  font-size: 11px; color: var(--muted);
+  cursor: pointer; flex-shrink: 0;
+  transition: all 0.12s;
+}
+.step-pill:hover { border-color: var(--border-3); color: var(--ink); }
+.step-pill.active {
+  background: var(--ink); color: var(--paper);
+  border-color: var(--ink);
+}
+.step-num {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: grid; place-items: center;
+  font-size: 10px; font-weight: 500;
+  font-family: var(--mono);
+  color: var(--ink);
+  border: 0.5px solid var(--border-2);
+}
+.step-pill.active .step-num {
+  background: rgba(255,255,255,0.15);
+  color: var(--paper);
+  border-color: transparent;
+}
+.step-lock { font-size: 10px; opacity: 0.6; }
+
+.step-add {
+  width: 26px; height: 26px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 0.5px dashed var(--border-3);
+  background: transparent; color: var(--muted);
+  cursor: pointer; flex-shrink: 0;
+  margin-left: 4px;
+}
+.step-add:hover { border-color: var(--ink); color: var(--ink); }
+
+.canvas-scroll {
+  flex: 1; overflow-y: auto;
+  padding: 32px 20px 120px;
+}
+.canvas-doc { max-width: 680px; margin: 0 auto; }
+
+.step-header { margin-bottom: 20px; }
+.step-header-tag {
+  font-family: var(--mono);
+  font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.08em;
+}
+.step-header-title {
+  font-family: var(--serif);
+  font-size: 28px; font-weight: 500;
+  letter-spacing: -0.025em; line-height: 1.1;
+  margin-top: 4px;
+  background: transparent; border: none; outline: none;
+  width: 100%;
+}
+.step-header-desc {
+  font-size: 13px; color: var(--muted);
+  margin-top: 6px;
+  background: transparent; border: none; outline: none;
+  width: 100%; resize: none;
+  font-family: inherit;
+}
+.step-locked-ribbon {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 500;
+  background: var(--warn-soft); color: var(--warn);
+  padding: 3px 8px; border-radius: 4px;
+  margin-top: 8px;
+}
+
+/* Field block */
+.field-block {
+  background: var(--surface);
+  border: 0.5px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.field-block:hover { border-color: var(--border-2); }
+.field-block.selected {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+.field-block.locked {
+  background: var(--bg);
+  border-style: dashed;
+  opacity: 0.85;
+  cursor: not-allowed;
+}
+.field-block.pattern {
+  background: linear-gradient(180deg, var(--accent-soft) 0%, var(--surface) 80%);
+  border-color: rgba(194, 65, 12, 0.22);
+}
+
+/* HIGHLIGHTED — dependencies visualization */
+.field-block.highlight-trigger {
+  border-color: var(--logic);
+  box-shadow: 0 0 0 2px var(--logic-soft);
+}
+.field-block.highlight-trigger::before {
+  content: 'Triggers →';
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--logic);
+  background: var(--paper);
+  padding: 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+}
+.field-block.highlight-dependent {
+  border-color: var(--logic);
+}
+
+.fb-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 6px;
+}
+.fb-drag {
+  width: 10px;
+  display: flex; flex-direction: column; gap: 2px;
+  opacity: 0.25; cursor: grab;
+}
+.fb-drag span {
+  width: 2px; height: 2px;
+  background: var(--ink);
+  border-radius: 50%;
+  display: block;
+}
+.fb-type {
+  font-family: var(--mono);
+  font-size: 10px; color: var(--muted);
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 3px;
+  text-transform: lowercase;
+}
+.field-block.pattern .fb-type {
+  background: var(--accent); color: white;
+}
+.fb-id-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted-2);
+  padding: 1px 5px;
+  background: transparent;
+  border: 0.5px dashed var(--border-3);
+  border-radius: 3px;
+}
+
+.fb-logic-flags {
+  display: flex; gap: 4px;
+  margin-left: auto;
+}
+.fb-flag {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-family: var(--mono);
+  font-size: 9px; font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 3px;
+  cursor: default;
+}
+.fb-flag.rule { background: var(--logic-soft); color: var(--logic); }
+.fb-flag.branch { background: var(--branch-soft); color: var(--branch); }
+.fb-flag.dep { background: var(--dep-soft); color: var(--dep); }
+.fb-flag.int { background: var(--accent-soft); color: var(--accent-ink); }
+
+.fb-label {
+  font-size: 13px; font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.fb-help {
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 8px;
+}
+.fb-preview {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.fb-preview-input { color: var(--ink); background: var(--surface); }
+.fb-preview-options { display: flex; flex-direction: column; gap: 6px; }
+.fb-preview-options > div {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ink);
+}
+
+/* Field ribbons */
+.fb-ribbon {
+  margin-top: 8px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  display: flex; align-items: flex-start; gap: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.fb-ribbon.logic { background: var(--logic-soft); color: var(--logic-ink); }
+.fb-ribbon.branch { background: var(--branch-soft); color: var(--branch-ink); }
+.fb-ribbon.dep { background: var(--dep-soft); color: var(--dep-ink); }
+.fb-ribbon:hover { filter: brightness(0.98); }
+.fb-ribbon-icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  color: white; font-size: 9px; font-weight: 600;
+  font-family: var(--sans);
+  display: grid; place-items: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.fb-ribbon.logic .fb-ribbon-icon { background: var(--logic); }
+.fb-ribbon.branch .fb-ribbon-icon { background: var(--branch); }
+.fb-ribbon.dep .fb-ribbon-icon { background: var(--dep); }
+
+.fb-ribbon-body { flex: 1; }
+.fb-ribbon-edit {
+  font-size: 10px;
+  opacity: 0.55;
+  padding: 0 4px;
+  align-self: center;
+}
+.fb-ribbon:hover .fb-ribbon-edit { opacity: 1; }
+
+.fb-ribbon-ref {
+  background: white;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 0.5px solid currentColor;
+  font-weight: 500;
+}
+.fb-ribbon-val {
+  background: white;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 0.5px solid currentColor;
+}
+
+/* "Add logic" footer */
+.fb-footer {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 0.5px dashed var(--border-2);
+  display: flex; gap: 4px;
+  flex-wrap: wrap;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.field-block:hover .fb-footer,
+.field-block.selected .fb-footer { opacity: 1; }
+
+.fb-add-btn {
+  background: transparent;
+  border: 0.5px dashed var(--border-3);
+  padding: 3px 8px;
+  font-size: 10px;
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--mono);
+}
+.fb-add-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+.fb-add-btn .dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+}
+.fb-add-btn.rule .dot { background: var(--logic); }
+.fb-add-btn.dep .dot { background: var(--dep); }
+
+/* BRANCH CONTAINER */
+.branch-container {
+  background: var(--surface);
+  border: 1px dashed rgba(180, 83, 9, 0.4);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+.branch-container.selected {
+  border-style: solid;
+  border-color: var(--branch);
+  box-shadow: 0 0 0 2px var(--branch-soft);
+}
+.branch-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 0.5px dashed rgba(180, 83, 9, 0.25);
+}
+.branch-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 7px;
+  background: var(--branch);
+  color: white;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.branch-title {
+  font-size: 13px; font-weight: 500;
+}
+.branch-trigger {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  display: flex; align-items: center; gap: 4px;
+}
+.branch-trigger .ref {
+  background: var(--branch-soft);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--branch);
+  font-weight: 500;
+}
+.variant-tabs {
+  display: flex; gap: 2px;
+  margin-bottom: 10px;
+  padding: 2px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+.variant-tab {
+  flex: 1;
+  padding: 5px 10px;
+  font-size: 11px; font-weight: 500;
+  background: transparent; border: none;
+  border-radius: 4px;
+  cursor: pointer; color: var(--muted);
+  font-family: inherit;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.variant-tab.active {
+  background: var(--surface); color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.variant-when {
+  font-size: 10px;
+  color: var(--branch);
+  font-family: var(--mono);
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: var(--branch-soft);
+  border-radius: 4px;
+  display: flex; align-items: center; gap: 4px;
+}
+.variant-fields {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.mini-field {
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 11px;
+  display: flex; align-items: center; gap: 6px;
+}
+.mini-field .mini-type {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  background: white;
+  padding: 1px 5px;
+  border-radius: 2px;
+}
+.mini-field-id {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted-2);
+  margin-left: auto;
+}
+
+/* Add field zone */
+.add-field-zone {
+  margin-top: 12px;
+  padding: 12px;
+  border: 0.5px dashed var(--border-3);
+  border-radius: var(--r-md);
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.add-field-zone:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+/* Section divider */
+.fb-divider {
+  font-family: var(--serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  margin: 16px 0 6px;
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--border-2);
+  font-style: italic;
+}
+
+/* ═════ RIGHT: PROPERTIES ═════ */
+.panel-right {
+  background: var(--paper);
+  border-left: 0.5px solid var(--border);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+
+.pr-head {
+  padding: 14px 16px 0;
+  border-bottom: 0.5px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--paper); z-index: 1;
+}
+.pr-breadcrumb {
+  font-size: 10px; color: var(--muted);
+  margin-bottom: 3px;
+  font-family: var(--mono);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.pr-title {
+  font-family: var(--serif);
+  font-size: 17px; font-weight: 500;
+  letter-spacing: -0.015em;
+}
+.pr-subtitle {
+  font-size: 11px; color: var(--muted);
+  margin-top: 2px;
+}
+
+.pr-tabs {
+  display: flex;
+  margin-top: 12px;
+  gap: 2px;
+  position: relative;
+}
+.pr-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 8px 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  position: relative;
+  border-bottom: 2px solid transparent;
+  transition: color 0.12s;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+}
+.pr-tab:hover { color: var(--ink); }
+.pr-tab.active {
+  color: var(--ink);
+}
+.pr-tab.active.basic { border-bottom-color: var(--ink); }
+.pr-tab.active.logic-tab { border-bottom-color: var(--logic); color: var(--logic-ink); }
+.pr-tab.active.integrations { border-bottom-color: var(--accent); color: var(--accent-ink); }
+.pr-tab-count {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: var(--bg);
+  color: var(--muted);
+}
+.pr-tab.active .pr-tab-count {
+  background: currentColor;
+  color: white;
+}
+
+.pr-body {
+  padding: 14px 16px 20px;
+  flex: 1;
+}
+
+.pr-group { margin-bottom: 18px; }
+.pr-group-title {
+  font-size: 10px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--muted);
+  padding-bottom: 6px;
+  border-bottom: 0.5px solid var(--border);
+  margin-bottom: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.pr-group-add {
+  font-size: 10px; font-weight: 500;
+  color: var(--logic);
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--sans);
+}
+
+.pr-field { margin-bottom: 10px; }
+.pr-field label {
+  display: block;
+  font-size: 11px; font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.pr-input, .pr-select, .pr-textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 0.5px solid var(--border-2);
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 12px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.12s;
+}
+.pr-input:focus, .pr-select:focus, .pr-textarea:focus {
+  border-color: var(--accent);
+}
+.pr-textarea { resize: vertical; min-height: 48px; }
+
+.pr-row {
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 10px;
+  padding: 6px 0;
+}
+.pr-row-label { font-size: 12px; color: var(--ink); }
+.pr-row-desc { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.toggle {
+  width: 28px; height: 16px;
+  background: var(--border-3);
+  border-radius: 99px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  border: none; padding: 0;
+}
+.toggle::after {
+  content: ''; position: absolute;
+  top: 2px; left: 2px;
+  width: 12px; height: 12px;
+  background: white; border-radius: 50%;
+  transition: transform 0.15s;
+}
+.toggle.on { background: var(--ink); }
+.toggle.on::after { transform: translateX(12px); }
+
+.val-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.val-chip {
+  font-size: 10px;
+  padding: 2px 7px;
+  background: var(--bg);
+  border: 0.5px solid var(--border-2);
+  border-radius: 99px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+.val-chip.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+.pr-hint {
+  font-size: 10px; color: var(--muted);
+  margin-top: 4px; line-height: 1.4;
+}
+
+/* LOGIC TAB — Rule builder */
+.rule-builder-card {
+  background: var(--surface);
+  border: 0.5px solid var(--border-2);
+  border-radius: 7px;
+  padding: 12px;
+  margin-bottom: 8px;
+  position: relative;
+}
+.rule-builder-card.logic-type { border-left: 3px solid var(--logic); }
+.rule-builder-card.dep-type { border-left: 3px solid var(--dep); }
+
+.rbc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+}
+.rbc-del {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+}
+.rbc-del:hover { color: var(--danger); }
+
+.rule-sentence {
+  font-size: 12px;
+  line-height: 2;
+  color: var(--ink);
+  display: flex; flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.rs-select {
+  background: var(--paper);
+  border: 0.5px solid var(--border-2);
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  max-width: 160px;
+}
+.rs-select:focus { border-color: var(--logic); }
+.rs-select.action {
+  background: var(--logic);
+  color: white;
+  border-color: var(--logic);
+  font-weight: 500;
+}
+.rs-text {
+  background: var(--paper);
+  border: 0.5px solid var(--border-2);
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 4px;
+  font-family: inherit;
+  outline: none;
+  width: 100px;
+  min-width: 0;
+}
+
+.rbc-test-state {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border-radius: 4px;
+  font-size: 11px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.rbc-test-state .state-on {
+  font-family: var(--mono);
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--preview);
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+}
+.rbc-test-state .state-off {
+  font-family: var(--mono);
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 500;
+  border: 0.5px solid var(--border-2);
+}
+
+/* Empty logic state */
+.logic-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--bg);
+  border: 0.5px dashed var(--border-3);
+  border-radius: 7px;
+}
+.logic-empty-icon {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: grid; place-items: center;
+  margin: 0 auto 8px;
+  color: var(--logic);
+  border: 0.5px solid var(--border-2);
+}
+.logic-empty-title {
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.logic-empty-text {
+  font-size: 11px;
+  line-height: 1.4;
+  max-width: 220px;
+  margin: 0 auto;
+}
+.logic-empty-actions {
+  display: flex; gap: 6px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.logic-empty-btn {
+  background: var(--surface);
+  border: 0.5px solid var(--border-2);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 5px;
+  cursor: pointer;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.logic-empty-btn:hover { border-color: var(--border-3); }
+.logic-empty-btn .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+}
+.logic-empty-btn.rule .dot { background: var(--logic); }
+.logic-empty-btn.dep .dot { background: var(--dep); }
+
+/* Preview stage */
+.preview-stage {
+  height: 100%;
+  overflow-y: auto;
+  padding: 40px 20px 80px;
+}
+.preview-doc {
+  max-width: 640px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(20, 17, 13, 0.08);
+  overflow: hidden;
+}
+.preview-head {
+  padding: 28px 36px 20px;
+  border-bottom: 0.5px solid var(--border);
+}
+.preview-gov {
+  font-size: 11px;
+  color: var(--preview);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  display: flex; align-items: center; gap: 5px;
+}
+.preview-title {
+  font-family: var(--serif);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin-top: 10px;
+}
+.preview-subtitle {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+.preview-progress { margin-top: 18px; }
+.preview-progress-bar {
+  height: 3px;
+  background: var(--bg);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.preview-progress-fill {
+  height: 100%;
+  background: var(--preview);
+  border-radius: 99px;
+  transition: width 0.3s;
+}
+.preview-progress-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.preview-body { padding: 28px 36px 36px; }
+.preview-step-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin-bottom: 4px;
+}
+.preview-step-desc {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 20px;
+}
+.preview-field { margin-bottom: 16px; }
+.preview-label {
+  display: block;
+  font-size: 12px; font-weight: 500;
+  margin-bottom: 5px;
+}
+.preview-label .req { color: var(--danger); }
+
+.preview-input, .preview-select, .preview-textarea {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 13px;
+  border: 0.5px solid var(--border-2);
+  border-radius: 7px;
+  background: var(--surface);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.preview-input:focus, .preview-select:focus, .preview-textarea:focus {
+  border-color: var(--preview);
+  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+}
+.preview-select:disabled {
+  background: var(--bg);
+  color: var(--muted-2);
+  cursor: not-allowed;
+}
+
+.preview-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 0.5px solid var(--border-2);
+  border-radius: 7px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.preview-option.selected {
+  border-color: var(--preview);
+  background: var(--preview-soft);
+}
+.preview-radio {
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--border-3);
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+}
+.preview-option.selected .preview-radio { border-color: var(--preview); }
+.preview-option.selected .preview-radio::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: var(--preview);
+  border-radius: 50%;
+}
+.preview-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 0.5px solid var(--border);
+}
+.preview-btn {
+  background: var(--preview);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 7px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.preview-btn.outline {
+  background: transparent;
+  color: var(--ink);
+  border: 0.5px solid var(--border-2);
+}
+
+.preview-toolbar {
+  background: rgba(15, 118, 110, 0.04);
+  border-bottom: 0.5px solid rgba(15, 118, 110, 0.15);
+  padding: 10px 20px;
+  display: flex; align-items: center; gap: 12px;
+  justify-content: center;
+}
+.preview-tb-label {
+  font-size: 11px;
+  color: var(--preview);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-6px); max-height: 0; }
+  to { opacity: 1; transform: translateY(0); max-height: 500px; }
+}
+.cond-field-preview {
+  animation: slideIn 0.3s ease-out;
+  padding-left: 12px;
+  border-left: 2px solid var(--logic);
+  margin-bottom: 16px;
+  position: relative;
+}
+.cond-field-preview::before {
+  content: 'conditional';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--logic);
+  background: white;
+  padding: 0 4px;
+  transform: translateY(-50%);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.cond-branch-preview {
+  animation: slideIn 0.3s ease-out;
+  padding: 16px;
+  background: var(--branch-soft);
+  border: 0.5px solid rgba(180, 83, 9, 0.25);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+/* Schema */
+.schema-stage {
+  height: 100%;
+  overflow-y: auto;
+  background: #14110D;
+  color: #E6E3DC;
+  padding: 0;
+}
+.schema-toolbar {
+  background: rgba(0,0,0,0.3);
+  border-bottom: 0.5px solid rgba(255,255,255,0.08);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.schema-file {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+}
+.schema-body {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.schema-gutter {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: rgba(255,255,255,0.2);
+  text-align: right;
+  padding-right: 16px;
+  line-height: 1.7;
+  user-select: none;
+}
+.schema-code {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre;
+}
+.tok-key { color: #FDBA74; }
+.tok-str { color: #86EFAC; }
+.tok-num { color: #93C5FD; }
+.tok-bool { color: #C4B5FD; }
+.tok-brace { color: rgba(255,255,255,0.5); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-3);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .main { grid-template-columns: 240px 1fr 300px; }
+  .topbar { grid-template-columns: 240px 1fr 300px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const { useState, useMemo, useEffect } = React;
+const { createRoot } = ReactDOM;
+const h = React.createElement;
+
+/* ═════════ ICONS ═════════ */
+const Icon = ({ name, size = 16 }) => {
+  const paths = {
+    text: 'M4 6h16M4 12h10M4 18h16',
+    textarea: 'M3 5h18M3 10h18M3 15h12',
+    number: 'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18',
+    date: 'M3 8h18M6 4v4M18 4v4M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8',
+    select: 'M6 9l6 6 6-6',
+    radio: 'M12 2a10 10 0 100 20 10 10 0 000-20zM12 7a5 5 0 100 10 5 5 0 000-10z',
+    checkbox: 'M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM8 12l3 3 5-5',
+    upload: 'M12 3v14M5 10l7-7 7 7M3 21h18',
+    address: 'M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zM12 6a3 3 0 100 6 3 3 0 000-6z',
+    repeat: 'M3 4h18M3 12h18M3 20h12',
+    divider: 'M3 12h18',
+    branch: 'M6 3v4a2 2 0 002 2h2m6-6v4a2 2 0 01-2 2h-2m-4 0v12M16 9l3 3m-3 3l3-3m-3 0H8',
+    mpay: 'M3 8h18M3 8v10a2 2 0 002 2h14a2 2 0 002-2V8M3 8V6a2 2 0 012-2h14a2 2 0 012 2v2M7 14h4',
+    msign: 'M3 18c2-2 5-3 8-3s6 1 8 3M4 13l5-9 3 6 3-4 5 7',
+    identity: 'M12 2a5 5 0 100 10 5 5 0 000-10zM3 21v-1a7 7 0 0118 0v1',
+    appointment: 'M3 8h18M6 4v4M18 4v4M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8M9 14h2M14 14h2',
+    documents: 'M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zM14 3v5h5',
+    applicant: 'M12 2a5 5 0 100 10 5 5 0 000-10zM3 21v-1a7 7 0 0118 0v1M16 8l2 2 4-4',
+    search: 'M11 4a7 7 0 014.95 11.95L20 20M11 4a7 7 0 00-7 7 7 7 0 007 7 7 7 0 007-7',
+    plus: 'M12 5v14M5 12h14',
+    chevron: 'M9 18l6-6-6-6',
+    chevronL: 'M15 18l-9-6 9-6',
+    chevronD: 'M6 9l6 6 6-6',
+    lock: 'M6 10V7a6 6 0 0112 0v3M5 10h14v11H5z',
+    eye: 'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zM12 9a3 3 0 100 6 3 3 0 000-6z',
+    code: 'M8 6L2 12l6 6M16 6l6 6-6 6',
+    settings: 'M12 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3zM19 10l.5 1.5L21 12l-1.5.5L19 14l-.5-1.5L17 12l1.5-.5L19 10z',
+    logic: 'M3 12h4l3-8 4 16 3-8h4',
+    close: 'M6 6l12 12M18 6L6 18',
+    link: 'M10 14a5 5 0 017 0l3 3a5 5 0 01-7 7l-1-1m-5-5a5 5 0 01-7 0l-3-3a5 5 0 017-7l1 1',
+    data: 'M3 6a3 2 0 006 0v12a3 2 0 01-6 0V6zm15 0a3 2 0 006 0v12a3 2 0 01-6 0V6z',
+  };
+  return h('svg', {
+    width: size, height: size, viewBox: '0 0 24 24',
+    fill: 'none', stroke: 'currentColor',
+    strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round'
+  }, h('path', { d: paths[name] || paths.text }));
+};
+
+/* ═════════ FIELD LIBRARY ═════════ */
+const PRIMITIVES = [
+  { type: 'text', icon: 'text', name: 'Text', desc: 'Single line input' },
+  { type: 'textarea', icon: 'textarea', name: 'Long text', desc: 'Multi-line input' },
+  { type: 'number', icon: 'number', name: 'Number', desc: 'Integer or decimal' },
+  { type: 'date', icon: 'date', name: 'Date', desc: 'Date picker' },
+  { type: 'select', icon: 'select', name: 'Dropdown', desc: 'Single/multi select' },
+  { type: 'radio', icon: 'radio', name: 'Radio', desc: 'One of many' },
+  { type: 'checkbox', icon: 'checkbox', name: 'Checkbox', desc: 'Yes/No or multi' },
+  { type: 'upload', icon: 'upload', name: 'File upload', desc: 'Single file input' },
+  { type: 'address', icon: 'address', name: 'Address', desc: 'Cascading address' },
+  { type: 'repeatable', icon: 'repeat', name: 'Repeatable group', desc: 'Table of rows' },
+  { type: 'divider', icon: 'divider', name: 'Section divider', desc: 'Visual break' },
+];
+
+const LOGIC_BLOCKS = [
+  { type: 'branch', icon: 'branch', name: 'Branch container', desc: 'Multi-variant section' },
+];
+
+const PATTERNS = [
+  { type: 'mpay', icon: 'mpay', name: 'MPay', desc: 'Payment block', integrations: ['MPAY'] },
+  { type: 'msign', icon: 'msign', name: 'MSign', desc: 'Electronic signature', integrations: ['MSIGN'] },
+  { type: 'identity', icon: 'identity', name: 'Identity', desc: 'MConnect prefill', integrations: ['MCONNECT'] },
+  { type: 'appointment', icon: 'appointment', name: 'Appointment', desc: 'Booking slots', integrations: ['CAL'] },
+  { type: 'documents', icon: 'documents', name: 'Document upload', desc: 'Typed uploads', integrations: ['RSSP'] },
+  { type: 'applicant', icon: 'applicant', name: 'Applicant data', desc: 'Persoană fizică/juridică', integrations: ['MCONNECT'] },
+];
+
+/* ═════════ FORM SCHEMA WITH LOGIC ═════════ */
+const INITIAL_FORM = {
+  id: 'act-permisiv-23',
+  slug: 'notificare-comert',
+  title: '23 · Notificare în comerț',
+  description: 'Permissive act notification for commerce activity',
+  version: '2.1.0',
+  locale: 'ro',
+  roles: ['citizen', 'adm-l'],
+  steps: [
+    {
+      id: 's1',
+      title: 'Datele solicitantului',
+      description: 'Prefilled from MConnect. Review and confirm.',
+      locked: true,
+      lockReason: 'System-managed · MConnect',
+      fields: [
+        { id: 'f_applicant', type: 'applicant', label: 'Applicant identity', pattern: true, integrations: ['MCONNECT'] },
+      ]
+    },
+    {
+      id: 's2',
+      title: 'Act permisiv',
+      description: 'Specify the institution and activity type.',
+      fields: [
+        {
+          id: 'f_entity', type: 'radio', label: 'Tipul solicitantului', required: true,
+          options: ['Persoană fizică', 'Persoană juridică'],
+          branches: {
+            'Persoană fizică': { id: 'branch_fizica', fields: [
+              { id: 'f_idnp', type: 'text', label: 'IDNP', required: true, validation: ['numeric', 'exact:13'] },
+              { id: 'f_prenume', type: 'text', label: 'Prenume', required: true },
+              { id: 'f_nume', type: 'text', label: 'Nume', required: true },
+            ]},
+            'Persoană juridică': { id: 'branch_juridica', fields: [
+              { id: 'f_idno', type: 'text', label: 'IDNO', required: true, validation: ['numeric', 'exact:13'] },
+              { id: 'f_denumire', type: 'text', label: 'Denumirea companiei', required: true },
+              { id: 'f_forma', type: 'select', label: 'Forma juridică', required: true },
+              { id: 'f_reprezentant', type: 'text', label: 'Reprezentantul legal', required: true },
+            ]},
+          }
+        },
+        {
+          id: 'f_raion', type: 'select', label: 'Raionul instituției', required: true,
+          source: { type: 'RSSP.raions' }
+        },
+        {
+          id: 'f_institutie', type: 'select', label: 'Instituția emitentă', required: true,
+          source: { type: 'RSSP.institutions', filter: 'raion: {{f_raion}}' }
+        },
+        {
+          id: 'f_procura', type: 'radio', label: 'Prin procură', required: true,
+          options: ['Da', 'Nu']
+        },
+        {
+          id: 'f_procura_doc', type: 'upload', label: 'Documentul de procură', required: true,
+          help: 'PDF, max 10 MB',
+          rules: [{
+            id: 'r1', action: 'SHOW',
+            when: { field: 'f_procura', op: 'equals', value: 'Da' }
+          }]
+        },
+      ]
+    },
+    {
+      id: 's3',
+      title: 'Autorizații',
+      description: 'Regulatory authorization check.',
+      fields: [
+        { id: 'f_ansa', type: 'radio', label: 'Aveți autorizația ANSA?', required: true, options: ['Da', 'Nu'] },
+        {
+          id: 'f_ansa_apply', type: 'radio', label: 'Doriți să aplicați pentru ANSA?',
+          options: ['Da, în paralel', 'Nu, voi aplica separat'],
+          rules: [{
+            id: 'r2', action: 'SHOW',
+            when: { field: 'f_ansa', op: 'equals', value: 'Nu' }
+          }]
+        },
+      ]
+    },
+    {
+      id: 's4',
+      title: 'Documente',
+      description: 'Supporting documents.',
+      fields: [
+        { id: 'f_docs', type: 'documents', label: 'Required documents', pattern: true, integrations: ['RSSP'] }
+      ]
+    },
+    {
+      id: 's5', title: 'Plată', description: 'Fee via MPay.', locked: true,
+      lockReason: 'System-managed · MPay',
+      fields: [{ id: 'f_mpay', type: 'mpay', label: 'Taxa de stat', pattern: true, integrations: ['MPAY'] }]
+    },
+    {
+      id: 's6', title: 'Semnare', description: 'Sign via MSign.', locked: true,
+      lockReason: 'System-managed · MSign',
+      fields: [{ id: 'f_msign', type: 'msign', label: 'Document signing', pattern: true, integrations: ['MSIGN'] }]
+    },
+  ]
+};
+
+/* ═════════ HELPERS ═════════ */
+function getAllFields(form) {
+  const out = [];
+  form.steps.forEach(s => {
+    s.fields.forEach(f => {
+      out.push({ ...f, _step: s.title, _stepId: s.id });
+      if (f.branches) {
+        Object.entries(f.branches).forEach(([triggerValue, branch]) => {
+          branch.fields.forEach(bf => {
+            out.push({ ...bf, _step: s.title, _stepId: s.id, _branch: triggerValue, _branchId: branch.id });
+          });
+        });
+      }
+    });
+  });
+  return out;
+}
+
+function countLogic(form) {
+  let rules = 0, branches = 0, sources = 0;
+  getAllFields(form).forEach(f => {
+    if (f.rules) rules += f.rules.length;
+    if (f.branches) branches += 1;
+    if (f.source) sources += 1;
+  });
+  return { rules, branches, sources };
+}
+
+function findField(form, id) {
+  return getAllFields(form).find(f => f.id === id);
+}
+
+/* ═════════ APP ═════════ */
+function App() {
+  const [mode, setMode] = useState('build');
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [activeStep, setActiveStep] = useState(1);
+  const [selectedField, setSelectedField] = useState('f_procura_doc');
+  const [activeBranch, setActiveBranch] = useState({});
+  const [libTab, setLibTab] = useState('patterns');
+  const [prTab, setPrTab] = useState('basic');
+  const [logicSheetOpen, setLogicSheetOpen] = useState(false);
+  const [highlightedDep, setHighlightedDep] = useState(null);
+  const [saved] = useState(true);
+
+  const counts = useMemo(() => countLogic(form), [form]);
+  const field = selectedField ? findField(form, selectedField) : null;
+  const step = form.steps[activeStep];
+
+  return h('div', { className: 'app' },
+    h(TopBar, { mode, setMode, form, saved }),
+    h('div', { className: `main mode-${mode}` },
+      mode === 'build' && h(React.Fragment, null,
+        h(LeftPanel, { libTab, setLibTab }),
+        h(Canvas, {
+          form, activeStep, setActiveStep,
+          selectedField, setSelectedField,
+          activeBranch, setActiveBranch,
+          counts, logicSheetOpen, setLogicSheetOpen,
+          highlightedDep, setHighlightedDep,
+        }),
+        h(RightPanel, {
+          field, form, setForm,
+          prTab, setPrTab,
+          setHighlightedDep,
+        })
+      ),
+      mode === 'preview' && h(PreviewStage, { form }),
+      mode === 'schema' && h(SchemaStage, { form })
+    )
+  );
+}
+
+/* ═════════ TOP BAR ═════════ */
+function TopBar({ mode, setMode, form, saved }) {
+  return h('div', { className: 'topbar' },
+    h('div', { className: 'topbar-left' },
+      h('div', { className: 'brand' },
+        h('div', { className: 'brand-mark' }, 'FOD'),
+        'FOD 2',
+        h('span', { className: 'brand-v' }, 'v2.1')
+      ),
+      h('div', { className: 'crumb' },
+        'Forms',
+        h(Icon, { name: 'chevron', size: 11 }),
+        h('span', { className: 'crumb-active' }, form.title)
+      )
+    ),
+    h('div', { className: 'mode-switch' },
+      h('button', {
+        className: `mode-btn ${mode === 'build' ? 'active build' : ''}`,
+        onClick: () => setMode('build')
+      }, h(Icon, { name: 'settings', size: 12 }), 'Build'),
+      h('button', {
+        className: `mode-btn ${mode === 'preview' ? 'active preview' : ''}`,
+        onClick: () => setMode('preview')
+      }, h(Icon, { name: 'eye', size: 12 }), 'Preview'),
+      h('button', {
+        className: `mode-btn ${mode === 'schema' ? 'active schema' : ''}`,
+        onClick: () => setMode('schema')
+      }, h(Icon, { name: 'code', size: 12 }), 'Schema'),
+    ),
+    h('div', { className: 'topbar-right' },
+      h('div', { className: 'save-status' },
+        h('span', { className: 'save-status-dot' }),
+        saved ? 'All changes saved' : 'Saving…'
+      ),
+      h('button', { className: 'btn ghost' }, 'History'),
+      h('button', { className: 'btn primary' }, 'Publish'),
+      h('div', { className: 'avatar' }, 'VS')
+    )
+  );
+}
+
+/* ═════════ LEFT PANEL ═════════ */
+function LeftPanel({ libTab, setLibTab }) {
+  const [query, setQuery] = useState('');
+  const filt = list => list.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
+
+  return h('div', { className: 'panel-left' },
+    h('div', { className: 'panel-header' },
+      h('div', { className: 'panel-title' }, 'Field library'),
+      h('div', { className: 'lib-tabs' },
+        h('button', { className: `lib-tab ${libTab === 'primitives' ? 'active' : ''}`, onClick: () => setLibTab('primitives') }, 'Fields'),
+        h('button', { className: `lib-tab ${libTab === 'patterns' ? 'active' : ''}`, onClick: () => setLibTab('patterns') }, 'Patterns'),
+        h('button', { className: `lib-tab ${libTab === 'logic' ? 'active' : ''}`, onClick: () => setLibTab('logic') }, 'Logic'),
+      ),
+      h('div', { className: 'lib-search' },
+        h(Icon, { name: 'search', size: 13 }),
+        h('input', {
+          type: 'text', placeholder: 'Search…',
+          value: query, onChange: e => setQuery(e.target.value)
+        })
+      )
+    ),
+    h('div', { className: 'lib-content' },
+      libTab === 'primitives' && h('div', null,
+        h('div', { className: 'lib-section' },
+          h('div', { className: 'lib-section-label' }, 'Inputs'),
+          filt(PRIMITIVES).slice(0, 5).map(p => h(LibItem, { key: p.type, item: p }))
+        ),
+        h('div', { className: 'lib-section' },
+          h('div', { className: 'lib-section-label' }, 'Selection'),
+          filt(PRIMITIVES).slice(5, 8).map(p => h(LibItem, { key: p.type, item: p }))
+        ),
+        h('div', { className: 'lib-section' },
+          h('div', { className: 'lib-section-label' }, 'Advanced'),
+          filt(PRIMITIVES).slice(8).map(p => h(LibItem, { key: p.type, item: p }))
+        ),
+      ),
+      libTab === 'patterns' && h('div', null,
+        h('div', { className: 'lib-section' },
+          h('div', { className: 'lib-section-label' }, 'Gov integrations'),
+          filt(PATTERNS).slice(0, 4).map(p => h(LibItem, { key: p.type, item: p, pattern: true }))
+        ),
+        h('div', { className: 'lib-section' },
+          h('div', { className: 'lib-section-label' }, 'Document flows'),
+          filt(PATTERNS).slice(4).map(p => h(LibItem, { key: p.type, item: p, pattern: true }))
+        ),
+        h('div', { style: { margin: '16px 8px 0', padding: '12px', background: 'var(--accent-soft)', borderRadius: '8px', fontSize: '11px', color: 'var(--accent-ink)', lineHeight: 1.5 } },
+          h('div', { style: { fontWeight: 500, marginBottom: 4 } }, 'Pattern = smart block'),
+          'Drop-ready composite with integrations pre-wired.'
+        )
+      ),
+      libTab === 'logic' && h('div', null,
+        h('div', { className: 'lib-section' },
+          h('div', { className: 'lib-section-label' }, 'Control flow'),
+          filt(LOGIC_BLOCKS).map(p => h(LibItem, { key: p.type, item: p, branch: true }))
+        ),
+        h('div', { style: { margin: '16px 8px 0', padding: '12px', background: 'var(--logic-soft)', borderRadius: '8px', fontSize: '11px', color: 'var(--logic-ink)', lineHeight: 1.5 } },
+          h('div', { style: { fontWeight: 500, marginBottom: 6 } }, 'Three logic patterns:'),
+          h('div', { style: { marginBottom: 4 } },
+            h('strong', null, 'Field rules '),
+            '→ inline on each field · show/hide/require'
+          ),
+          h('div', { style: { marginBottom: 4 } },
+            h('strong', null, 'Branches '),
+            '→ drag from here · whole-section swap'
+          ),
+          h('div', null,
+            h('strong', null, 'Dependent sources '),
+            '→ in dropdown source config'
+          ),
+        )
+      )
+    )
+  );
+}
+
+function LibItem({ item, pattern, branch }) {
+  const cls = pattern ? 'pattern' : branch ? 'branch-item' : '';
+  return h('div', { className: `lib-item ${cls}` },
+    h('div', { className: 'lib-item-icon' }, h(Icon, { name: item.icon, size: 14 })),
+    h('div', { className: 'lib-item-body' },
+      h('div', { className: 'lib-item-name' }, item.name),
+      h('div', { className: 'lib-item-desc' }, item.desc)
+    ),
+    pattern && item.integrations && item.integrations.slice(0, 1).map(i =>
+      h('div', { className: 'badge-int', key: i }, i)
+    )
+  );
+}
+
+/* ═════════ CANVAS ═════════ */
+function Canvas({ form, activeStep, setActiveStep, selectedField, setSelectedField, activeBranch, setActiveBranch, counts, logicSheetOpen, setLogicSheetOpen, highlightedDep, setHighlightedDep }) {
+  const step = form.steps[activeStep];
+
+  return h('div', { className: 'panel-center' },
+    h('div', { className: 'canvas-toolbar' },
+      h('div', { className: 'form-title-wrap' },
+        h('input', { className: 'form-title', defaultValue: form.title }),
+        h('span', { className: 'form-slug' }, `/${form.slug}`)
+      ),
+      h('button', {
+        className: 'logic-overview-btn',
+        onClick: () => setLogicSheetOpen(!logicSheetOpen)
+      },
+        h(Icon, { name: 'logic', size: 12 }),
+        'Logic',
+        h('span', { className: 'chip rules' }, counts.rules, ' rules'),
+        h('span', { className: 'chip branches' }, counts.branches, ' branches'),
+        h('span', { className: 'chip sources' }, counts.sources, ' sources'),
+        h(Icon, { name: 'chevronD', size: 10 })
+      ),
+    ),
+
+    logicSheetOpen && h(LogicSheet, {
+      form, counts,
+      onClose: () => setLogicSheetOpen(false),
+      onNavigate: (stepIdx, fieldId) => {
+        setActiveStep(stepIdx);
+        setSelectedField(fieldId);
+        setLogicSheetOpen(false);
+      }
+    }),
+
+    h('div', { className: 'steps-rail' },
+      form.steps.map((s, i) =>
+        h('button', {
+          key: s.id,
+          className: `step-pill ${i === activeStep ? 'active' : ''}`,
+          onClick: () => { setActiveStep(i); setSelectedField(null); }
+        },
+          h('span', { className: 'step-num' }, i + 1),
+          s.title,
+          s.locked && h('span', { className: 'step-lock' }, h(Icon, { name: 'lock', size: 9 }))
+        )
+      ),
+      h('button', { className: 'step-add' }, h(Icon, { name: 'plus', size: 12 }))
+    ),
+
+    h('div', { className: 'canvas-scroll' },
+      h('div', { className: 'canvas-doc' },
+        h('div', { className: 'step-header' },
+          h('div', { className: 'step-header-tag' }, `Step ${activeStep + 1} of ${form.steps.length}`),
+          h('input', { className: 'step-header-title', defaultValue: step.title, disabled: step.locked }),
+          h('textarea', { className: 'step-header-desc', defaultValue: step.description, disabled: step.locked, rows: 1 }),
+          step.locked && h('div', { className: 'step-locked-ribbon' },
+            h(Icon, { name: 'lock', size: 10 }), step.lockReason
+          )
+        ),
+
+        step.fields.map(f => f.branches
+          ? h(BranchBlock, {
+              key: f.id, field: f,
+              selected: selectedField === f.id || !!(f.branches && Object.values(f.branches).some(b => b.fields.some(bf => bf.id === selectedField))),
+              onSelect: () => setSelectedField(f.id),
+              activeBranch, setActiveBranch,
+              selectedField, setSelectedField,
+              highlightedDep, setHighlightedDep,
+              form
+            })
+          : h(FieldBlock, {
+              key: f.id, field: f,
+              selected: selectedField === f.id,
+              onSelect: () => setSelectedField(f.id),
+              locked: step.locked,
+              form,
+              highlightedDep, setHighlightedDep,
+            })
+        ),
+
+        !step.locked && h('div', { className: 'add-field-zone' },
+          '+ Drop a field here, or pick from the library'
+        )
+      )
+    )
+  );
+}
+
+/* Logic Overview Sheet */
+function LogicSheet({ form, counts, onClose, onNavigate }) {
+  const rules = [];
+  const branches = [];
+  const sources = [];
+
+  form.steps.forEach((s, si) => {
+    s.fields.forEach(f => {
+      if (f.rules) f.rules.forEach(r => rules.push({ step: s.title, stepIdx: si, fieldId: f.id, fieldLabel: f.label, rule: r }));
+      if (f.branches) branches.push({ step: s.title, stepIdx: si, fieldId: f.id, fieldLabel: f.label, variants: Object.keys(f.branches) });
+      if (f.source) sources.push({ step: s.title, stepIdx: si, fieldId: f.id, fieldLabel: f.label, source: f.source });
+    });
+  });
+
+  return h('div', { className: 'logic-sheet' },
+    h('div', { className: 'logic-sheet-head' },
+      h('div', { className: 'logic-sheet-title' }, 'Logic overview'),
+      h('button', { className: 'logic-sheet-close', onClick: onClose },
+        h(Icon, { name: 'close', size: 14 })
+      )
+    ),
+    h('div', { className: 'logic-sheet-body' },
+      rules.length > 0 && h('div', null,
+        h('div', { className: 'logic-sheet-group-title' },
+          h('span', null, 'Field rules'),
+          h('span', { style: { color: 'var(--logic)', fontFamily: 'var(--mono)' } }, counts.rules)
+        ),
+        rules.map((r, i) =>
+          h('div', { key: i, className: 'logic-sheet-item', onClick: () => onNavigate(r.stepIdx, r.fieldId) },
+            h('div', { className: 'logic-sheet-item-head' },
+              h('span', null, r.step),
+              h('span', { style: { fontFamily: 'var(--mono)', color: 'var(--logic)' } }, r.fieldId)
+            ),
+            h('div', { className: 'logic-sheet-item-rule' },
+              h('span', { className: 'rule-kw logic' }, r.rule.action),
+              ' "', r.fieldLabel, '" when ',
+              h('span', { className: 'rule-ref' }, r.rule.when.field),
+              ' ', h('span', { className: 'rule-kw' }, r.rule.when.op), ' ',
+              h('span', { className: 'rule-val' }, `"${r.rule.when.value}"`)
+            )
+          )
+        )
+      ),
+      branches.length > 0 && h('div', null,
+        h('div', { className: 'logic-sheet-group-title' },
+          h('span', null, 'Branches'),
+          h('span', { style: { color: 'var(--branch)', fontFamily: 'var(--mono)' } }, counts.branches)
+        ),
+        branches.map((b, i) =>
+          h('div', { key: i, className: 'logic-sheet-item', onClick: () => onNavigate(b.stepIdx, b.fieldId) },
+            h('div', { className: 'logic-sheet-item-head' },
+              h('span', null, b.step),
+              h('span', { style: { fontFamily: 'var(--mono)', color: 'var(--branch)' } }, b.fieldId)
+            ),
+            h('div', { className: 'logic-sheet-item-rule' },
+              h('span', { className: 'rule-kw branch' }, 'SWITCH'),
+              ' "', b.fieldLabel, '" · ',
+              b.variants.length, ' variants: ',
+              b.variants.map(v => `"${v}"`).join(' / ')
+            )
+          )
+        )
+      ),
+      sources.length > 0 && h('div', null,
+        h('div', { className: 'logic-sheet-group-title' },
+          h('span', null, 'Dependent sources'),
+          h('span', { style: { color: 'var(--dep)', fontFamily: 'var(--mono)' } }, counts.sources)
+        ),
+        sources.map((s, i) =>
+          h('div', { key: i, className: 'logic-sheet-item', onClick: () => onNavigate(s.stepIdx, s.fieldId) },
+            h('div', { className: 'logic-sheet-item-head' },
+              h('span', null, s.step),
+              h('span', { style: { fontFamily: 'var(--mono)', color: 'var(--dep)' } }, s.fieldId)
+            ),
+            h('div', { className: 'logic-sheet-item-rule' },
+              h('span', { className: 'rule-kw dep' }, 'SOURCE'),
+              ' ', h('span', { className: 'rule-ref' }, s.source.type),
+              s.source.filter && [' · ', h('span', { className: 'rule-val', key: 'f' }, s.source.filter)]
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+/* Field Block */
+function FieldBlock({ field, selected, onSelect, locked, form, highlightedDep, setHighlightedDep }) {
+  if (field.type === 'divider') {
+    return h('div', { className: 'fb-divider', onClick: onSelect }, field.label);
+  }
+
+  const hasRule = field.rules && field.rules.length > 0;
+  const hasSource = !!field.source;
+  const hasIntegration = field.integrations && field.integrations.length > 0;
+
+  // Check if this field is a trigger for any visible rule (for highlighting)
+  const isTrigger = highlightedDep === field.id;
+  // Check if this field has a rule that references the highlighted field
+  const isDependent = field.rules && field.rules.some(r => r.when.field === highlightedDep);
+
+  return h('div', {
+    className: `field-block ${selected ? 'selected' : ''} ${locked ? 'locked' : ''} ${field.pattern ? 'pattern' : ''} ${isTrigger ? 'highlight-trigger' : ''} ${isDependent ? 'highlight-dependent' : ''}`,
+    onClick: onSelect
+  },
+    h('div', { className: 'fb-header' },
+      h('div', { className: 'fb-drag' },
+        h('span'), h('span'), h('span'), h('span'), h('span'), h('span')
+      ),
+      h('span', { className: 'fb-type' }, field.type),
+      h('span', { className: 'fb-id-pill' }, field.id),
+      h('div', { className: 'fb-logic-flags' },
+        hasRule && h('span', { className: 'fb-flag rule' },
+          h('span', { style: { width: 5, height: 5, borderRadius: 99, background: 'currentColor' } }),
+          field.rules.length, ' rule', field.rules.length > 1 ? 's' : ''
+        ),
+        hasSource && h('span', { className: 'fb-flag dep' },
+          h('span', { style: { width: 5, height: 5, borderRadius: 99, background: 'currentColor' } }),
+          'source'
+        ),
+        hasIntegration && h('span', { className: 'fb-flag int' },
+          field.integrations.join(' · ')
+        ),
+      )
+    ),
+    h('div', { className: 'fb-label' }, field.label, field.required && h('span', { style: { color: 'var(--danger)' } }, ' *')),
+    field.help && h('div', { className: 'fb-help' }, field.help),
+    h(FieldPreview, { field }),
+
+    hasRule && field.rules.map(rule => {
+      const triggerField = findField(form, rule.when.field);
+      return h('div', {
+        key: rule.id,
+        className: 'fb-ribbon logic',
+        onMouseEnter: () => setHighlightedDep(rule.when.field),
+        onMouseLeave: () => setHighlightedDep(null),
+      },
+        h('div', { className: 'fb-ribbon-icon' }, 'if'),
+        h('div', { className: 'fb-ribbon-body' },
+          h('span', { className: 'rule-kw' }, rule.action), ' when ',
+          h('span', { className: 'fb-ribbon-ref' }, rule.when.field),
+          ' ', rule.when.op, ' ',
+          h('span', { className: 'fb-ribbon-val' }, `"${rule.when.value}"`),
+          triggerField && h('div', {
+            style: { fontSize: 10, marginTop: 2, opacity: 0.7, fontFamily: 'var(--sans)' }
+          }, '↑ ', triggerField.label)
+        ),
+        h('span', { className: 'fb-ribbon-edit' }, 'edit')
+      );
+    }),
+
+    hasSource && h('div', { className: 'fb-ribbon dep' },
+      h('div', { className: 'fb-ribbon-icon' }, 'src'),
+      h('div', { className: 'fb-ribbon-body' },
+        h('span', { className: 'rule-kw' }, 'FROM'), ' ',
+        h('span', { className: 'fb-ribbon-ref' }, field.source.type),
+        field.source.filter && [' · ', h('span', { className: 'fb-ribbon-val', key: 'f' }, field.source.filter)]
+      ),
+      h('span', { className: 'fb-ribbon-edit' }, 'edit')
+    ),
+
+    !locked && h('div', { className: 'fb-footer' },
+      !hasRule && h('button', { className: 'fb-add-btn rule', onClick: e => e.stopPropagation() },
+        h('span', { className: 'dot' }), '+ Add rule'
+      ),
+      !hasSource && (field.type === 'select' || field.type === 'radio') && h('button', { className: 'fb-add-btn dep', onClick: e => e.stopPropagation() },
+        h('span', { className: 'dot' }), '+ Dynamic source'
+      )
+    )
+  );
+}
+
+/* Branch block */
+function BranchBlock({ field, selected, onSelect, activeBranch, setActiveBranch, selectedField, setSelectedField, highlightedDep, setHighlightedDep, form }) {
+  const variants = Object.keys(field.branches);
+  const activeVariant = activeBranch[field.id] || variants[0];
+  const variantBranch = field.branches[activeVariant];
+
+  return h('div', {
+    className: `branch-container ${selected ? 'selected' : ''}`,
+    onClick: onSelect
+  },
+    h('div', { className: 'branch-header' },
+      h('span', { className: 'branch-badge' }, 'Branch'),
+      h('span', { className: 'branch-title' }, field.label),
+      h('span', { className: 'branch-trigger' },
+        'trigger: ', h('span', { className: 'ref' }, field.id)
+      )
+    ),
+    h(FieldPreviewCompact, { field }),
+
+    h('div', { className: 'variant-tabs', style: { marginTop: 10 }, onClick: e => e.stopPropagation() },
+      variants.map(v =>
+        h('button', {
+          key: v,
+          className: `variant-tab ${activeVariant === v ? 'active' : ''}`,
+          onClick: e => { e.stopPropagation(); setActiveBranch({ ...activeBranch, [field.id]: v }); }
+        },
+          h('span', { style: { width: 5, height: 5, borderRadius: 99, background: activeVariant === v ? 'var(--branch)' : 'var(--muted-2)' } }),
+          v
+        )
+      ),
+      h('button', { className: 'variant-tab', style: { opacity: 0.4 }, onClick: e => e.stopPropagation() }, '+ Add')
+    ),
+    h('div', { className: 'variant-when' },
+      'When ',
+      h('span', { className: 'ref', style: { background: 'white', padding: '0 4px', borderRadius: 2, border: '0.5px solid currentColor' } }, field.id),
+      ' = "',
+      activeVariant,
+      '"'
+    ),
+    h('div', { className: 'variant-fields' },
+      variantBranch.fields.map(bf =>
+        h('div', {
+          key: bf.id,
+          className: 'mini-field',
+          style: {
+            cursor: 'pointer',
+            ...(selectedField === bf.id ? { background: 'var(--ink)', color: 'var(--paper)' } : {})
+          },
+          onClick: e => { e.stopPropagation(); setSelectedField(bf.id); }
+        },
+          h('span', { className: 'mini-type', style: selectedField === bf.id ? { background: 'rgba(255,255,255,0.2)', color: 'white' } : {} }, bf.type),
+          bf.label, bf.required && h('span', { style: { color: 'var(--danger)' } }, ' *'),
+          h('span', { className: 'mini-field-id', style: selectedField === bf.id ? { color: 'rgba(255,255,255,0.6)' } : {} }, bf.id)
+        )
+      )
+    )
+  );
+}
+
+function FieldPreviewCompact({ field }) {
+  if (field.type === 'radio') {
+    return h('div', { style: { display: 'flex', gap: 8, flexWrap: 'wrap', fontSize: 11, color: 'var(--muted)', marginTop: 2 } },
+      (field.options || []).map((o, i) =>
+        h('span', { key: i, style: { display: 'inline-flex', alignItems: 'center', gap: 4 } },
+          h('span', { style: { width: 10, height: 10, border: '1.5px solid var(--border-3)', borderRadius: 99, background: i === 0 ? 'var(--ink)' : 'white', boxShadow: i === 0 ? 'inset 0 0 0 2px white' : 'none' } }),
+          o
+        )
+      )
+    );
+  }
+  return h('div', { className: 'fb-preview' }, 'Preview');
+}
+
+function FieldPreview({ field }) {
+  switch (field.type) {
+    case 'text':
+    case 'number':
+      return h('div', { className: 'fb-preview fb-preview-input' }, 'Enter value…');
+    case 'textarea':
+      return h('div', { className: 'fb-preview fb-preview-input', style: { height: 50 } }, 'Long text…');
+    case 'date':
+      return h('div', { className: 'fb-preview fb-preview-input' }, 'dd / mm / yyyy');
+    case 'select':
+      return h('div', { className: 'fb-preview fb-preview-input' },
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
+          h('span', { style: { color: 'var(--muted)' } }, field.source ? 'Loading…' : 'Select…'),
+          h(Icon, { name: 'select', size: 12 })
+        )
+      );
+    case 'radio':
+      return h('div', { className: 'fb-preview fb-preview-options' },
+        (field.options || ['Option 1', 'Option 2']).map((o, i) =>
+          h('div', { key: i },
+            h('div', { style: { width: 12, height: 12, borderRadius: '50%', border: '1.5px solid var(--border-3)', position: 'relative' } },
+              i === 0 && h('div', { style: { position: 'absolute', inset: 2, background: 'var(--ink)', borderRadius: '50%' } })
+            ),
+            o
+          )
+        )
+      );
+    case 'checkbox':
+      return h('div', { className: 'fb-preview fb-preview-options' },
+        (field.options || ['Yes', 'No']).map((o, i) =>
+          h('div', { key: i },
+            h('div', { style: { width: 12, height: 12, borderRadius: 3, border: '1.5px solid var(--border-3)' } }),
+            o
+          )
+        )
+      );
+    case 'upload':
+      return h('div', { className: 'fb-preview' },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', color: 'var(--muted)' } },
+          h(Icon, { name: 'upload', size: 14 }), 'Drop file or browse'
+        )
+      );
+    case 'address':
+      return h('div', { className: 'fb-preview' },
+        h('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 6 } },
+          ['Raion', 'Localitate', 'Stradă'].map(l =>
+            h('div', { key: l, style: { fontSize: 10, color: 'var(--muted)' } },
+              l, h('div', { style: { marginTop: 2, height: 22, background: 'var(--surface)', border: '0.5px solid var(--border-2)', borderRadius: 4 } })
+            )
+          )
+        )
+      );
+    case 'repeatable':
+      return h('div', { className: 'fb-preview' },
+        h('div', { style: { color: 'var(--muted)', fontSize: 11 } },
+          'Repeatable group · ',
+          h('span', { style: { color: 'var(--accent)' } }, '+ Add row')
+        )
+      );
+    case 'mpay':
+      return h('div', { className: 'fb-preview', style: { background: 'white' } },
+        h('div', { style: { display: 'flex', justifyContent: 'space-between', fontSize: 11 } },
+          h('div', null,
+            h('div', { style: { color: 'var(--muted)', marginBottom: 2 } }, 'Fee · from RSSP'),
+            h('div', { style: { color: 'var(--ink)', fontWeight: 500, fontSize: 13 } }, '875,00 MDL')
+          ),
+          h('div', { style: { background: 'var(--accent)', color: 'white', padding: '5px 10px', borderRadius: 5, fontSize: 10, fontWeight: 500, alignSelf: 'center' } }, 'MPay')
+        )
+      );
+    case 'msign':
+      return h('div', { className: 'fb-preview', style: { background: 'white' } },
+        h('div', { style: { fontSize: 11, color: 'var(--muted)' } },
+          'Auto-generated PDF · ',
+          h('span', { style: { color: 'var(--accent)', fontWeight: 500 } }, 'Sign with MSign')
+        )
+      );
+    case 'applicant':
+    case 'identity':
+      return h('div', { className: 'fb-preview', style: { background: 'white' } },
+        h('div', { style: { fontSize: 11, lineHeight: 1.6, color: 'var(--muted)' } },
+          h('div', null, 'IDNP · Prenume · Nume · Data nașterii'),
+          h('div', null, 'Email · Telefon · Adresa'),
+          h('div', { style: { color: 'var(--accent)', marginTop: 4, fontWeight: 500 } }, '→ Prefilled from MConnect')
+        )
+      );
+    case 'documents':
+      return h('div', { className: 'fb-preview', style: { background: 'white' } },
+        h('div', { style: { fontSize: 11, color: 'var(--muted)' } }, 'Required document types')
+      );
+    default:
+      return h('div', { className: 'fb-preview' }, 'Preview');
+  }
+}
+
+/* ═════════ RIGHT PANEL ═════════ */
+function RightPanel({ field, form, setForm, prTab, setPrTab, setHighlightedDep }) {
+  if (!field) {
+    return h(FormSettingsPanel, { form });
+  }
+
+  const hasRules = field.rules && field.rules.length > 0;
+  const hasSource = !!field.source;
+  const hasBranches = !!field.branches;
+  const logicCount = (field.rules?.length || 0) + (hasSource ? 1 : 0) + (hasBranches ? 1 : 0);
+  const hasIntegrations = field.integrations && field.integrations.length > 0;
+
+  return h('div', { className: 'panel-right' },
+    h('div', { className: 'pr-head' },
+      h('div', { className: 'pr-breadcrumb' },
+        field._branch ? `Branch: ${field._branch}` : (field._step || 'Field'), ' · ', field.type
+      ),
+      h('div', { className: 'pr-title' }, field.label),
+      h('div', { className: 'pr-subtitle' },
+        h('span', { style: { fontFamily: 'var(--mono)' } }, field.id)
+      ),
+      h('div', { className: 'pr-tabs' },
+        h('button', {
+          className: `pr-tab basic ${prTab === 'basic' ? 'active' : ''}`,
+          onClick: () => setPrTab('basic')
+        }, 'Basic'),
+        h('button', {
+          className: `pr-tab logic-tab ${prTab === 'logic' ? 'active' : ''}`,
+          onClick: () => setPrTab('logic')
+        }, 'Logic',
+          logicCount > 0 && h('span', { className: 'pr-tab-count' }, logicCount)
+        ),
+        h('button', {
+          className: `pr-tab integrations ${prTab === 'integrations' ? 'active' : ''}`,
+          onClick: () => setPrTab('integrations')
+        }, 'Advanced',
+          hasIntegrations && h('span', { className: 'pr-tab-count' }, field.integrations.length)
+        ),
+      )
+    ),
+    h('div', { className: 'pr-body' },
+      prTab === 'basic' && h(BasicTab, { field }),
+      prTab === 'logic' && h(LogicTab, { field, form, setHighlightedDep }),
+      prTab === 'integrations' && h(IntegrationsTab, { field })
+    )
+  );
+}
+
+function BasicTab({ field }) {
+  return h(React.Fragment, null,
+    h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' }, 'Labels'),
+      h('div', { className: 'pr-field' },
+        h('label', null, 'Label'),
+        h('input', { className: 'pr-input', defaultValue: field.label })
+      ),
+      h('div', { className: 'pr-field' },
+        h('label', null, 'Help text'),
+        h('textarea', { className: 'pr-textarea', defaultValue: field.help || '', placeholder: 'Shown under the label' })
+      ),
+      h('div', { className: 'pr-field' },
+        h('label', null, 'Field key'),
+        h('input', { className: 'pr-input', defaultValue: field.id, style: { fontFamily: 'var(--mono)', fontSize: 11 } }),
+        h('div', { className: 'pr-hint' }, 'Used in schema & API. Rules reference this.')
+      )
+    ),
+    h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' }, 'Behavior'),
+      h('div', { className: 'pr-row' },
+        h('div', null,
+          h('div', { className: 'pr-row-label' }, 'Required'),
+          h('div', { className: 'pr-row-desc' }, 'Must be filled to proceed')
+        ),
+        h('button', { className: `toggle ${field.required ? 'on' : ''}` })
+      ),
+      h('div', { className: 'pr-row' },
+        h('div', null,
+          h('div', { className: 'pr-row-label' }, 'Read-only'),
+          h('div', { className: 'pr-row-desc' }, 'Shown but not editable')
+        ),
+        h('button', { className: 'toggle' })
+      ),
+      (field.type === 'text' || field.type === 'number') && h('div', { className: 'pr-field' },
+        h('label', null, 'Validation'),
+        h('div', { className: 'val-chips' },
+          ['required', 'numeric', 'email', 'phone', 'idnp', 'regex'].map(v =>
+            h('div', {
+              key: v,
+              className: `val-chip ${(field.validation || []).includes(v) || (v === 'required' && field.required) ? 'on' : ''}`
+            }, v)
+          )
+        )
+      ),
+      (field.type === 'radio' || field.type === 'select' || field.type === 'checkbox') && field.options && h('div', { className: 'pr-field' },
+        h('label', null, 'Options'),
+        field.options.map((o, i) =>
+          h('input', {
+            key: i,
+            className: 'pr-input',
+            defaultValue: o,
+            style: { marginBottom: 4 }
+          })
+        ),
+        h('button', { className: 'btn ghost', style: { fontSize: 11, padding: '4px 8px', marginTop: 4 } },
+          h(Icon, { name: 'plus', size: 10 }), 'Add option'
+        )
+      )
+    )
+  );
+}
+
+function LogicTab({ field, form, setHighlightedDep }) {
+  const hasRules = field.rules && field.rules.length > 0;
+  const hasSource = !!field.source;
+  const hasBranches = !!field.branches;
+
+  const allFields = getAllFields(form).filter(f => f.id !== field.id && f.type !== 'divider');
+
+  return h(React.Fragment, null,
+    /* FIELD RULES */
+    h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' },
+        h('span', null, 'Field rules'),
+        h('span', { className: 'pr-group-add' }, '+ Add rule')
+      ),
+      hasRules
+        ? field.rules.map(rule =>
+            h('div', { key: rule.id, className: 'rule-builder-card logic-type' },
+              h('div', { className: 'rbc-head' },
+                h('span', null, 'Rule ', rule.id),
+                h('button', { className: 'rbc-del' }, '×')
+              ),
+              h('div', { className: 'rule-sentence' },
+                h('select', { className: 'rs-select action', defaultValue: rule.action },
+                  h('option', null, 'SHOW'),
+                  h('option', null, 'HIDE'),
+                  h('option', null, 'REQUIRE'),
+                  h('option', null, 'OPTIONAL'),
+                  h('option', null, 'SKIP STEP')
+                ),
+                ' this field when ',
+                h('select', { className: 'rs-select', defaultValue: rule.when.field,
+                  onMouseEnter: () => setHighlightedDep(rule.when.field),
+                  onMouseLeave: () => setHighlightedDep(null)
+                },
+                  allFields.map(f => h('option', { key: f.id, value: f.id }, `${f.id} · ${f.label}`))
+                ),
+                h('select', { className: 'rs-select', defaultValue: rule.when.op },
+                  h('option', { value: 'equals' }, 'equals'),
+                  h('option', { value: 'not_equals' }, 'not equals'),
+                  h('option', { value: 'contains' }, 'contains'),
+                  h('option', { value: 'empty' }, 'is empty'),
+                  h('option', { value: 'gt' }, 'greater than'),
+                  h('option', { value: 'lt' }, 'less than')
+                ),
+                h('input', { className: 'rs-text', defaultValue: rule.when.value })
+              ),
+              h('div', { className: 'rbc-test-state' },
+                h('span', { style: { color: 'var(--muted)' } }, 'Current evaluation:'),
+                h('span', { className: 'state-on' }, '✓ visible')
+              )
+            )
+          )
+        : h('div', { className: 'logic-empty' },
+            h('div', { className: 'logic-empty-icon' },
+              h(Icon, { name: 'logic', size: 14 })
+            ),
+            h('div', { className: 'logic-empty-title' }, 'No rules yet'),
+            h('div', { className: 'logic-empty-text' },
+              'Show, hide, or require this field based on another field\'s value.'
+            ),
+            h('div', { className: 'logic-empty-actions' },
+              h('button', { className: 'logic-empty-btn rule' },
+                h('span', { className: 'dot' }), '+ Add rule'
+              )
+            )
+          )
+    ),
+
+    /* DEPENDENT SOURCE */
+    (field.type === 'select' || field.type === 'radio') && h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' },
+        h('span', null, 'Dependent source'),
+        !hasSource && h('span', { className: 'pr-group-add', style: { color: 'var(--dep)' } }, '+ Add source')
+      ),
+      hasSource
+        ? h('div', { className: 'rule-builder-card dep-type' },
+            h('div', { className: 'rbc-head' },
+              h('span', null, 'Data source'),
+              h('button', { className: 'rbc-del' }, '×')
+            ),
+            h('div', { className: 'pr-field' },
+              h('label', null, 'Source'),
+              h('select', { className: 'pr-select', defaultValue: field.source.type },
+                h('option', { value: 'static' }, 'Static list'),
+                h('option', { value: 'RSSP.institutions' }, 'RSSP → institutions'),
+                h('option', { value: 'RSSP.raions' }, 'RSSP → raions'),
+                h('option', { value: 'RSSP.localities' }, 'RSSP → localities'),
+                h('option', { value: 'RSSP.streets' }, 'RSSP → streets'),
+                h('option', { value: 'RSSP.caem' }, 'RSSP → CAEM codes'),
+                h('option', { value: 'MCONNECT.lookup' }, 'MConnect → lookup')
+              )
+            ),
+            field.source.filter !== undefined && h('div', { className: 'pr-field' },
+              h('label', null, 'Filter (template)'),
+              h('input', {
+                className: 'pr-input',
+                defaultValue: field.source.filter || '',
+                placeholder: 'raion: {{f_raion}}',
+                style: { fontFamily: 'var(--mono)', fontSize: 11 }
+              }),
+              h('div', { className: 'pr-hint' },
+                'Use ', h('code', { style: { fontFamily: 'var(--mono)', background: 'var(--bg)', padding: '0 3px', borderRadius: 2 } }, '{{field_id}}'),
+                ' to reference upstream field values. Options refetch when upstream changes.'
+              )
+            ),
+            h('div', { className: 'rbc-test-state' },
+              h('span', { style: { color: 'var(--muted)' } }, 'Status:'),
+              h('span', { className: 'state-on', style: { background: 'var(--dep)' } }, '● live')
+            )
+          )
+        : h('div', { className: 'logic-empty' },
+            h('div', { className: 'logic-empty-icon' },
+              h(Icon, { name: 'data', size: 14 })
+            ),
+            h('div', { className: 'logic-empty-title' }, 'Static options'),
+            h('div', { className: 'logic-empty-text' },
+              'Options are defined in Basic tab. Connect to a dynamic source to make options depend on other fields.'
+            ),
+            h('div', { className: 'logic-empty-actions' },
+              h('button', { className: 'logic-empty-btn dep' },
+                h('span', { className: 'dot' }), '+ Connect to registry'
+              )
+            )
+          )
+    ),
+
+    /* BRANCHES */
+    hasBranches && h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' },
+        h('span', null, 'Branches'),
+        h('span', { style: { color: 'var(--branch)', fontFamily: 'var(--mono)', fontSize: 10, textTransform: 'none', letterSpacing: 0 } },
+          Object.keys(field.branches).length, ' variants'
+        )
+      ),
+      h('div', { className: 'rule-builder-card', style: { borderLeft: '3px solid var(--branch)' } },
+        h('div', { className: 'rbc-head' }, 'Variants (click to edit in canvas)'),
+        Object.entries(field.branches).map(([trigger, branch]) =>
+          h('div', {
+            key: branch.id,
+            style: {
+              padding: '8px 10px',
+              background: 'var(--branch-soft)',
+              borderRadius: 5,
+              marginBottom: 4,
+              fontSize: 11
+            }
+          },
+            h('div', { style: { fontFamily: 'var(--mono)', color: 'var(--branch)', fontWeight: 500, marginBottom: 2 } },
+              'When = "', trigger, '"'
+            ),
+            h('div', { style: { color: 'var(--branch-ink)' } },
+              branch.fields.length, ' fields: ',
+              branch.fields.map(f => f.id).join(', ')
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+function IntegrationsTab({ field }) {
+  const hasIntegrations = field.integrations && field.integrations.length > 0;
+
+  return h(React.Fragment, null,
+    h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' }, 'Prefill'),
+      h('div', { className: 'pr-field' },
+        h('label', null, 'Prefill source'),
+        h('select', { className: 'pr-select' },
+          h('option', null, 'None'),
+          h('option', null, 'MConnect → by IDNP'),
+          h('option', null, 'URL parameter'),
+          h('option', null, 'Previous submission')
+        )
+      )
+    ),
+    h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' }, 'Role visibility'),
+      h('div', { className: 'pr-row' },
+        h('div', null, h('div', { className: 'pr-row-label' }, 'Citizen')),
+        h('button', { className: 'toggle on' })
+      ),
+      h('div', { className: 'pr-row' },
+        h('div', null, h('div', { className: 'pr-row-label' }, 'ADM-L back-office')),
+        h('button', { className: 'toggle on' })
+      ),
+      h('div', { className: 'pr-row' },
+        h('div', null, h('div', { className: 'pr-row-label' }, 'Super-admin')),
+        h('button', { className: 'toggle' })
+      ),
+      h('div', { className: 'pr-hint' }, 'Same schema, different renderers per role.')
+    ),
+    hasIntegrations && h('div', { className: 'pr-group' },
+      h('div', { className: 'pr-group-title' }, 'Integrations'),
+      field.integrations.map(i =>
+        h('div', {
+          key: i,
+          style: {
+            padding: '8px 10px',
+            background: 'var(--accent-soft)',
+            borderRadius: 5,
+            marginBottom: 4,
+            fontSize: 11,
+            color: 'var(--accent-ink)',
+            display: 'flex', alignItems: 'center', gap: 6,
+            fontFamily: 'var(--mono)',
+            fontWeight: 500,
+          }
+        },
+          h('span', { style: { width: 6, height: 6, borderRadius: 99, background: 'var(--accent)' } }),
+          i,
+          h('span', { style: { marginLeft: 'auto', fontSize: 10, color: 'var(--success)' } }, '● connected')
+        )
+      )
+    )
+  );
+}
+
+function FormSettingsPanel({ form }) {
+  return h('div', { className: 'panel-right' },
+    h('div', { className: 'pr-head' },
+      h('div', { className: 'pr-breadcrumb' }, 'Form settings'),
+      h('div', { className: 'pr-title' }, form.title),
+      h('div', { className: 'pr-subtitle' }, form.description)
+    ),
+    h('div', { className: 'pr-body' },
+      h('div', { className: 'pr-group' },
+        h('div', { className: 'pr-group-title' }, 'Meta'),
+        h('div', { className: 'pr-field' },
+          h('label', null, 'Slug'),
+          h('input', { className: 'pr-input', defaultValue: form.slug })
+        ),
+        h('div', { className: 'pr-field' },
+          h('label', null, 'Version'),
+          h('input', { className: 'pr-input', defaultValue: form.version, style: { fontFamily: 'var(--mono)' } })
+        )
+      ),
+      h('div', { className: 'pr-group' },
+        h('div', { className: 'pr-group-title' }, 'Localization'),
+        h('div', { className: 'val-chips' },
+          h('div', { className: 'val-chip on' }, 'ro'),
+          h('div', { className: 'val-chip' }, 'ru'),
+          h('div', { className: 'val-chip' }, 'en'),
+        )
+      ),
+      h('div', { className: 'pr-group' },
+        h('div', { className: 'pr-group-title' }, 'Submission'),
+        h('div', { className: 'pr-row' },
+          h('div', null,
+            h('div', { className: 'pr-row-label' }, 'Save draft'),
+            h('div', { className: 'pr-row-desc' }, 'Citizen can exit and return')
+          ),
+          h('button', { className: 'toggle on' })
+        ),
+        h('div', { className: 'pr-row' },
+          h('div', null,
+            h('div', { className: 'pr-row-label' }, 'Version-safe submissions'),
+            h('div', { className: 'pr-row-desc' }, 'Schema can evolve without breaking in-flight')
+          ),
+          h('button', { className: 'toggle on' })
+        )
+      ),
+      h('div', { className: 'pr-group' },
+        h('div', { className: 'pr-group-title' }, 'Select a field'),
+        h('div', { className: 'pr-hint' },
+          'Click any field in the canvas to edit its properties, logic, and integrations.'
+        )
+      )
+    )
+  );
+}
+
+/* ═════════ PREVIEW STAGE ═════════ */
+function PreviewStage({ form }) {
+  const [step, setStep] = useState(0);
+  const [values, setValues] = useState({});
+  const currentStep = form.steps[step];
+  const progress = ((step + 1) / form.steps.length) * 100;
+
+  const evalRule = (rule) => {
+    if (!rule) return true;
+    const val = values[rule.when.field];
+    switch (rule.when.op) {
+      case 'equals': return val === rule.when.value;
+      case 'not_equals': return val !== rule.when.value;
+      default: return true;
+    }
+  };
+
+  const visibleFields = currentStep.fields.filter(f => {
+    if (!f.rules) return true;
+    return f.rules.every(r => {
+      if (r.action === 'SHOW') return evalRule(r);
+      if (r.action === 'HIDE') return !evalRule(r);
+      return true;
+    });
+  });
+
+  return h('div', { style: { display: 'flex', flexDirection: 'column', height: '100%' } },
+    h('div', { className: 'preview-toolbar' },
+      h('span', { className: 'preview-tb-label' }, 'Live preview · Try the logic')
+    ),
+    h('div', { className: 'preview-stage' },
+      h('div', { className: 'preview-doc' },
+        h('div', { className: 'preview-head' },
+          h('div', { className: 'preview-gov' },
+            h('span', {
+              style: {
+                display: 'inline-block',
+                width: 14, height: 10,
+                background: 'linear-gradient(to bottom, #0052CC 33%, #FFD100 33% 66%, #CE1126 66%)',
+                borderRadius: 2,
+              }
+            }),
+            'EVO · Serviciul național'
+          ),
+          h('div', { className: 'preview-title' }, form.title),
+          h('div', { className: 'preview-progress' },
+            h('div', { className: 'preview-progress-bar' },
+              h('div', { className: 'preview-progress-fill', style: { width: `${progress}%` } })
+            ),
+            h('div', { className: 'preview-progress-label' },
+              h('span', null, `Pasul ${step + 1} din ${form.steps.length}`),
+              h('span', null, `${Math.round(progress)}%`)
+            )
+          )
+        ),
+        h('div', { className: 'preview-body' },
+          h('div', { className: 'preview-step-title' }, currentStep.title),
+          h('div', { className: 'preview-step-desc' }, currentStep.description),
+          visibleFields.map(f => h(PreviewField, {
+            key: f.id, field: f, values, setValues,
+            conditional: !!f.rules
+          })),
+          h('div', { className: 'preview-nav' },
+            h('button', { className: 'preview-btn outline', onClick: () => setStep(Math.max(0, step - 1)), disabled: step === 0 },
+              h(Icon, { name: 'chevronL', size: 12 }), 'Înapoi'
+            ),
+            h('button', { className: 'preview-btn', onClick: () => setStep(Math.min(form.steps.length - 1, step + 1)) },
+              step === form.steps.length - 1 ? 'Trimite' : 'Înainte',
+              h(Icon, { name: 'chevron', size: 12 })
+            )
+          )
+        )
+      )
+    )
+  );
+}
+
+function PreviewField({ field, values, setValues, conditional }) {
+  if (field.type === 'divider') {
+    return h('div', { style: { fontFamily: 'var(--serif)', fontSize: 14, fontStyle: 'italic', color: 'var(--muted)', margin: '18px 0 8px' } }, field.label);
+  }
+
+  const setValue = v => setValues({ ...values, [field.id]: v });
+
+  // Branch rendering
+  if (field.branches) {
+    const v = values[field.id];
+    const branch = v && field.branches[v];
+    return h('div', null,
+      h('div', { className: 'preview-field' },
+        h('label', { className: 'preview-label' }, field.label, field.required && h('span', { className: 'req' }, ' *')),
+        h('div', null,
+          field.options.map(opt =>
+            h('div', {
+              key: opt,
+              className: `preview-option ${values[field.id] === opt ? 'selected' : ''}`,
+              onClick: () => setValue(opt)
+            },
+              h('div', { className: 'preview-radio' }),
+              opt
+            )
+          )
+        )
+      ),
+      branch && h('div', { className: 'cond-branch-preview' },
+        h('div', { style: { fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--branch)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.08em' } },
+          '· Branch · ', values[field.id]
+        ),
+        branch.fields.map(bf => h(PreviewField, { key: bf.id, field: bf, values, setValues }))
+      )
+    );
+  }
+
+  const content = h('div', { className: conditional ? 'cond-field-preview' : '' },
+    h('div', { className: 'preview-field', style: conditional ? { marginBottom: 0 } : {} },
+      h('label', { className: 'preview-label' },
+        field.label, field.required && h('span', { className: 'req' }, ' *')
+      ),
+      (() => {
+        switch (field.type) {
+          case 'text':
+          case 'number':
+            return h('input', {
+              className: 'preview-input',
+              type: field.type === 'number' ? 'number' : 'text',
+              value: values[field.id] || '',
+              onChange: e => setValue(e.target.value)
+            });
+          case 'textarea':
+            return h('textarea', { className: 'preview-textarea', rows: 3 });
+          case 'date':
+            return h('input', { className: 'preview-input', type: 'date' });
+          case 'select':
+            return h('select', {
+              className: 'preview-select',
+              value: values[field.id] || '',
+              onChange: e => setValue(e.target.value)
+            },
+              h('option', { value: '' }, 'Selectează…'),
+              (field.options || []).map(o => h('option', { key: o, value: o }, o))
+            );
+          case 'radio':
+            return h('div', null,
+              (field.options || []).map(o =>
+                h('div', {
+                  key: o,
+                  className: `preview-option ${values[field.id] === o ? 'selected' : ''}`,
+                  onClick: () => setValue(o)
+                },
+                  h('div', { className: 'preview-radio' }),
+                  o
+                )
+              )
+            );
+          case 'upload':
+            return h('div', {
+              style: { padding: '18px', border: '0.5px dashed var(--border-3)', borderRadius: 8, textAlign: 'center', color: 'var(--muted)', fontSize: 12 }
+            }, 'Drop file here or click to browse');
+          default:
+            return h('input', { className: 'preview-input', placeholder: field.type });
+        }
+      })(),
+      field.help && h('div', { style: { fontSize: 10, color: 'var(--muted)', marginTop: 3 } }, field.help)
+    )
+  );
+
+  return content;
+}
+
+/* ═════════ SCHEMA ═════════ */
+function SchemaStage({ form }) {
+  const json = useMemo(() => JSON.stringify(form, null, 2), [form]);
+  const highlighted = useMemo(() => highlightJSON(json), [json]);
+  const lines = json.split('\n');
+
+  return h('div', { style: { display: 'flex', flexDirection: 'column', height: '100%' } },
+    h('div', { className: 'schema-toolbar' },
+      h('span', { className: 'schema-file' }, `forms/${form.slug}.json`)
+    ),
+    h('div', { className: 'schema-stage' },
+      h('div', { className: 'schema-body' },
+        h('div', { className: 'schema-gutter' },
+          lines.map((_, i) => h('div', { key: i }, i + 1))
+        ),
+        h('div', { className: 'schema-code', dangerouslySetInnerHTML: { __html: highlighted } })
+      )
+    )
+  );
+}
+
+function highlightJSON(json) {
+  return json
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, (match) => {
+      let cls = 'tok-num';
+      if (/^"/.test(match)) cls = /:$/.test(match) ? 'tok-key' : 'tok-str';
+      else if (/true|false/.test(match)) cls = 'tok-bool';
+      return `<span class="${cls}">${match}</span>`;
+    })
+    .replace(/([{}\[\],])/g, '<span class="tok-brace">$1</span>');
+}
+
+createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

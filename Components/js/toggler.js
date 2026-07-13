@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const togglers = document.querySelectorAll("[data-toggle]");
+  const slideDurationMs = 300;
 
   togglers.forEach(toggle => {
     const targetSelector = toggle.dataset.toggle;
@@ -14,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const exclusive = toggle.dataset.exclusive === "true";
 
     toggle.setAttribute("aria-expanded", "false");
+    if (animation === "slide" && target.classList.contains("hidden")) {
+      target.hidden = true;
+      target.style.overflow = "hidden";
+      target.style.maxHeight = "0px";
+    }
 
     toggle.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -29,23 +35,49 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      applyAnimation(target, animation);
-      const isHidden = target.classList.toggle("hidden");
-      toggle.classList.toggle("is-active", !isHidden);
-      toggle.setAttribute("aria-expanded", !isHidden);
+      const isHidden = target.classList.contains("hidden");
+      if (isHidden) {
+        openPanel(toggle, target, animation);
+      } else {
+        closePanel(toggle, target, animation);
+      }
     });
 
     if (closeMode === "outside") {
       document.addEventListener("click", (e) => {
         if (!target.contains(e.target) && !toggle.contains(e.target)) {
-          closePanel(toggle, target);
+          closePanel(toggle, target, animation);
         }
       });
     }
   });
 
-  function closePanel(toggle, target) {
-    target.classList.add("hidden");
+  function openPanel(toggle, target, animation) {
+    applyAnimation(target, animation);
+    target.hidden = false;
+    target.classList.remove("hidden");
+    if (animation === "slide") {
+      target.style.maxHeight = `${target.scrollHeight}px`;
+    }
+    toggle.classList.add("is-active");
+    toggle.setAttribute("aria-expanded", "true");
+  }
+
+  function closePanel(toggle, target, animation = "fade") {
+    applyAnimation(target, animation);
+    if (animation === "slide") {
+      target.style.maxHeight = `${target.scrollHeight}px`;
+      requestAnimationFrame(() => {
+        target.style.maxHeight = "0px";
+      });
+      window.setTimeout(() => {
+        target.hidden = true;
+        target.classList.add("hidden");
+      }, slideDurationMs);
+    } else {
+      target.hidden = true;
+      target.classList.add("hidden");
+    }
     toggle.classList.remove("is-active");
     toggle.setAttribute("aria-expanded", "false");
   }

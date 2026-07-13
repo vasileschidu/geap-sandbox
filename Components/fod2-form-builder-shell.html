@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FOD 2 — Form Builder Shell · eGA</title>
+
+<link rel="stylesheet" href="css/main.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-family-primary-font, Onest), ui-sans-serif, system-ui, sans-serif;
+  background: var(--color-background-base-secondary);
+  color: var(--color-text-base-default);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea, select { font-family: inherit; font-size: inherit; color: inherit; }
+
+/* ── Shell ── */
+.fob { display: grid; grid-template-rows: 52px 1fr; height: 100vh; }
+
+/* ── Top bar ── */
+.fob-topbar {
+  display: grid;
+  grid-template-columns: 280px 1fr 320px;
+  align-items: center;
+  background: var(--color-background-base-default);
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+  padding: 0 var(--spacing-16);
+  gap: var(--spacing-12);
+}
+.fob-topbar-left { display: flex; align-items: center; gap: var(--spacing-12); min-width: 0; }
+.fob-brand {
+  display: flex; align-items: center; gap: var(--spacing-8);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.02em;
+  color: var(--color-text-base-default);
+  white-space: nowrap;
+}
+.fob-brand-mark {
+  width: 24px; height: 24px;
+  background: var(--color-background-brand-default, #0A69D9);
+  display: grid; place-items: center;
+  border-radius: var(--border-radius-4, 4px);
+  color: #fff;
+  font-size: 9px;
+  font-weight: var(--font-weight-fw-bold, 700);
+  flex-shrink: 0;
+}
+.fob-crumb {
+  display: flex; align-items: center; gap: var(--spacing-6);
+  font-size: var(--font-size-fs-12, 12px);
+  color: var(--color-text-base-secondary);
+  border-left: var(--border-width-1) solid var(--color-border-base-default);
+  padding-left: var(--spacing-12); min-width: 0;
+}
+.fob-crumb-active {
+  color: var(--color-text-base-default);
+  font-weight: var(--font-weight-fw-medium, 500);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* Mode switch (center) */
+.fob-mode-switch {
+  display: flex; justify-self: center;
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-8, 8px);
+  padding: 2px;
+}
+.fob-mode-btn {
+  background: transparent; border: none;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  padding: 5px var(--spacing-14, 14px);
+  border-radius: var(--border-radius-6, 6px);
+  cursor: pointer;
+  color: var(--color-text-base-secondary);
+  display: flex; align-items: center; gap: var(--spacing-6);
+  transition: color 0.12s, background 0.12s;
+}
+.fob-mode-btn:hover { color: var(--color-text-base-default); }
+.fob-mode-btn.active-build { background: var(--color-text-base-default); color: var(--color-background-base-default); }
+.fob-mode-btn.active-preview { background: var(--color-background-success-default, #166534); color: #fff; }
+.fob-mode-btn.active-schema { background: #1E293B; color: #fff; }
+
+/* Top-right actions */
+.fob-topbar-right { display: flex; align-items: center; gap: var(--spacing-6); justify-self: end; }
+.fob-save-status {
+  font-size: var(--font-size-fs-11, 11px);
+  color: var(--color-text-base-secondary);
+  display: flex; align-items: center; gap: var(--spacing-5, 5px);
+  margin-right: var(--spacing-4);
+}
+.fob-save-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--color-background-success-default, #166534);
+}
+.fob-btn {
+  background: var(--color-background-base-default);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  padding: 5px var(--spacing-12);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  border-radius: var(--border-radius-4, 4px);
+  cursor: pointer;
+  color: var(--color-text-base-default);
+  display: inline-flex; align-items: center; gap: var(--spacing-5, 5px);
+  white-space: nowrap; transition: all 0.12s;
+}
+.fob-btn:hover { border-color: var(--color-border-base-tertiary); }
+.fob-btn.primary {
+  background: var(--color-background-brand-default, #0A69D9);
+  color: #fff; border-color: transparent;
+}
+.fob-btn.primary:hover { opacity: 0.9; }
+.fob-btn.ghost { background: transparent; border-color: transparent; }
+.fob-btn.ghost:hover { background: var(--color-background-base-secondary); }
+.fob-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-background-brand-default, #0A69D9);
+  color: #fff; font-size: 10px; font-weight: var(--font-weight-fw-semibold, 600);
+  display: grid; place-items: center;
+}
+
+/* ── Main 3-panel ── */
+.fob-main {
+  display: grid;
+  grid-template-columns: 264px 1fr 320px;
+  height: calc(100vh - 52px);
+  overflow: hidden;
+}
+.fob-main.mode-preview { grid-template-columns: 1fr; background: var(--color-background-base-secondary); }
+.fob-main.mode-schema  { grid-template-columns: 1fr; background: #1E293B; }
+
+/* ── Left panel ── */
+.fob-panel-left {
+  background: var(--color-background-base-default);
+  border-right: var(--border-width-1) solid var(--color-border-base-default);
+  overflow-y: auto; display: flex; flex-direction: column;
+}
+.fob-panel-hd {
+  padding: var(--spacing-14, 14px) var(--spacing-16) var(--spacing-10, 10px);
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+  position: sticky; top: 0;
+  background: var(--color-background-base-default); z-index: 1;
+}
+.fob-panel-title {
+  font-size: var(--font-size-fs-11, 11px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--color-text-base-secondary);
+}
+.fob-lib-tabs {
+  display: flex; margin-top: var(--spacing-10, 10px); gap: 2px;
+  background: var(--color-background-base-secondary);
+  border-radius: var(--border-radius-6, 6px); padding: 2px;
+}
+.fob-lib-tab {
+  flex: 1; background: transparent; border: none;
+  padding: 5px var(--spacing-8);
+  font-size: var(--font-size-fs-11, 11px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  border-radius: var(--border-radius-4, 4px);
+  cursor: pointer; color: var(--color-text-base-secondary);
+  transition: all 0.12s;
+}
+.fob-lib-tab.active {
+  background: var(--color-background-base-default);
+  color: var(--color-text-base-default);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+}
+.fob-lib-search {
+  margin-top: var(--spacing-10, 10px); position: relative;
+}
+.fob-lib-search input {
+  width: 100%; padding: 6px var(--spacing-10, 10px) 6px 28px;
+  font-size: var(--font-size-fs-12, 12px);
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px); outline: none;
+  color: var(--color-text-base-default);
+}
+.fob-lib-search input::placeholder { color: var(--color-text-base-tertiary); }
+.fob-lib-search svg {
+  position: absolute; left: 8px; top: 50%;
+  transform: translateY(-50%); opacity: 0.4; pointer-events: none;
+}
+.fob-lib-body { padding: var(--spacing-10, 10px) var(--spacing-8) var(--spacing-20); flex: 1; }
+.fob-lib-section { margin-bottom: var(--spacing-12); }
+.fob-lib-section-label {
+  font-size: 10px; font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--color-text-base-tertiary);
+  padding: 6px var(--spacing-8) 4px;
+}
+.fob-lib-item {
+  display: flex; align-items: center; gap: var(--spacing-10, 10px);
+  padding: var(--spacing-8) var(--spacing-10, 10px);
+  border-radius: var(--border-radius-6, 6px);
+  cursor: grab; transition: background 0.1s; user-select: none;
+}
+.fob-lib-item:hover { background: var(--color-background-base-secondary); }
+.fob-lib-item:active { cursor: grabbing; }
+.fob-lib-item-icon {
+  width: 28px; height: 28px; border-radius: var(--border-radius-6, 6px);
+  background: var(--color-background-base-secondary);
+  display: grid; place-items: center; flex-shrink: 0;
+  border: var(--border-width-1) solid var(--color-border-base-default);
+}
+.fob-lib-item-icon svg { width: 13px; height: 13px; stroke-width: 1.75; color: var(--color-icon-base-default); }
+.fob-lib-item.pattern .fob-lib-item-icon {
+  background: var(--color-background-brand-secondary, #EBF4FF);
+  border-color: var(--color-border-brand-default, #0A69D9);
+}
+.fob-lib-item.pattern .fob-lib-item-icon svg { color: var(--color-icon-brand-default, #0A69D9); }
+.fob-lib-item.branch-item .fob-lib-item-icon {
+  background: var(--color-background-warning-secondary, #FEF3CD);
+  border-color: var(--color-border-warning-default, #B45309);
+}
+.fob-lib-item.branch-item .fob-lib-item-icon svg { color: var(--color-icon-warning-default, #B45309); }
+.fob-lib-item-body { flex: 1; min-width: 0; }
+.fob-lib-item-name { font-size: var(--font-size-fs-12, 12px); font-weight: var(--font-weight-fw-medium, 500); }
+.fob-lib-item-desc {
+  font-size: 10px; color: var(--color-text-base-secondary); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fob-badge-int {
+  font-size: 9px; font-weight: var(--font-weight-fw-semibold, 600);
+  color: var(--color-text-brand-default, #0A69D9);
+  background: var(--color-background-brand-secondary, #EBF4FF);
+  padding: 1px 5px; border-radius: 3px; flex-shrink: 0;
+}
+.fob-tip {
+  margin: var(--spacing-16) var(--spacing-8) 0;
+  padding: var(--spacing-12);
+  border-radius: var(--border-radius-8, 8px);
+  font-size: var(--font-size-fs-11, 11px);
+  line-height: 1.5;
+}
+.fob-tip.brand { background: var(--color-background-brand-secondary, #EBF4FF); color: var(--color-text-brand-default, #0A69D9); }
+.fob-tip.logic { background: #F3EEFD; color: #4C1D95; }
+.fob-tip-title { font-weight: var(--font-weight-fw-semibold, 600); margin-bottom: 4px; }
+
+/* ── Center canvas ── */
+.fob-panel-center {
+  background: var(--color-background-base-secondary);
+  overflow: hidden; display: flex; flex-direction: column; position: relative;
+}
+.fob-canvas-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-10, 10px) var(--spacing-16);
+  background: var(--color-background-base-default);
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+  gap: var(--spacing-12); flex-shrink: 0;
+}
+.fob-form-title-wrap { display: flex; align-items: baseline; gap: var(--spacing-8); min-width: 0; }
+.fob-form-title {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  color: var(--color-text-base-default);
+  background: transparent; border: none; outline: none; padding: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;
+}
+.fob-form-title:focus { background: var(--color-background-base-secondary); border-radius: var(--border-radius-4, 4px); padding: 2px 6px; }
+.fob-form-slug { font-size: var(--font-size-fs-11, 11px); color: var(--color-text-base-tertiary); white-space: nowrap; }
+.fob-logic-btn {
+  display: flex; align-items: center; gap: var(--spacing-6);
+  background: transparent; border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-4, 4px);
+  padding: 4px var(--spacing-10, 10px);
+  font-size: var(--font-size-fs-11, 11px); font-weight: var(--font-weight-fw-medium, 500);
+  cursor: pointer; color: var(--color-text-base-secondary);
+  transition: all 0.12s; white-space: nowrap; flex-shrink: 0;
+}
+.fob-logic-btn:hover { background: var(--color-background-base-secondary); color: var(--color-text-base-default); }
+.fob-chip {
+  font-size: 10px; padding: 1px 5px; border-radius: 3px;
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+.fob-chip.rules { background: #F3EEFD; color: #4C1D95; }
+.fob-chip.branches { background: #FEF3CD; color: #B45309; }
+.fob-chip.sources { background: var(--color-background-brand-secondary, #EBF4FF); color: var(--color-text-brand-default, #0A69D9); }
+
+/* Steps rail */
+.fob-steps-rail {
+  display: flex; align-items: center; gap: var(--spacing-4);
+  padding: var(--spacing-10, 10px) var(--spacing-16);
+  overflow-x: auto; scrollbar-width: none; flex-shrink: 0;
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+  background: var(--color-background-base-default);
+}
+.fob-steps-rail::-webkit-scrollbar { display: none; }
+.fob-step-pill {
+  display: flex; align-items: center; gap: var(--spacing-6);
+  padding: var(--spacing-5, 5px) var(--spacing-10, 10px);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-fs-12, 12px); font-weight: var(--font-weight-fw-medium, 500);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  background: transparent; cursor: pointer;
+  color: var(--color-text-base-secondary); white-space: nowrap;
+  transition: all 0.12s;
+}
+.fob-step-pill:hover { background: var(--color-background-base-secondary); color: var(--color-text-base-default); }
+.fob-step-pill.active {
+  background: var(--color-background-brand-default, #0A69D9);
+  border-color: transparent; color: #fff;
+}
+.fob-step-num {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(255,255,255,0.25);
+  display: grid; place-items: center;
+  font-size: 9px; font-weight: var(--font-weight-fw-bold, 700);
+  flex-shrink: 0;
+}
+.fob-step-pill:not(.active) .fob-step-num {
+  background: var(--color-background-base-secondary);
+  color: var(--color-text-base-secondary);
+}
+.fob-step-lock { opacity: 0.6; margin-left: 2px; display: flex; align-items: center; }
+.fob-step-add {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: var(--border-width-1) dashed var(--color-border-base-default);
+  background: transparent; cursor: pointer; display: grid; place-items: center;
+  color: var(--color-text-base-tertiary); flex-shrink: 0;
+  transition: all 0.12s;
+}
+.fob-step-add:hover { border-color: var(--color-border-brand-default); color: var(--color-icon-brand-default); background: var(--color-background-brand-secondary, #EBF4FF); }
+
+/* Canvas scroll */
+.fob-canvas-scroll { flex: 1; overflow-y: auto; padding: var(--spacing-24); }
+.fob-canvas-doc { max-width: 680px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--spacing-8); }
+
+/* Step header */
+.fob-step-header {
+  background: var(--color-background-base-default);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-8, 8px);
+  padding: var(--spacing-20) var(--spacing-24); margin-bottom: var(--spacing-4);
+  display: flex; flex-direction: column; gap: var(--spacing-6);
+}
+.fob-step-tag {
+  font-size: 10px; font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--color-text-brand-default, #0A69D9);
+}
+.fob-step-title-input {
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  color: var(--color-text-base-default);
+  background: transparent; border: none; outline: none; padding: 0; width: 100%;
+}
+.fob-step-title-input:disabled { cursor: default; }
+.fob-step-title-input:focus { background: var(--color-background-base-secondary); border-radius: 4px; padding: 2px 6px; }
+.fob-step-desc-input {
+  font-size: var(--font-size-fs-14, 14px);
+  color: var(--color-text-base-secondary); line-height: 1.5;
+  background: transparent; border: none; outline: none;
+  padding: 0; width: 100%; resize: none;
+}
+.fob-step-desc-input:disabled { cursor: default; }
+.fob-step-lock-ribbon {
+  display: inline-flex; align-items: center; gap: var(--spacing-6);
+  font-size: var(--font-size-fs-11, 11px);
+  color: var(--color-text-base-secondary);
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-4, 4px);
+  padding: 3px var(--spacing-8); width: fit-content;
+}
+
+/* Field blocks */
+.fob-field-block {
+  background: var(--color-background-base-default);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-8, 8px);
+  cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.fob-field-block:hover { border-color: var(--color-border-base-tertiary); }
+.fob-field-block.selected {
+  border-color: var(--color-border-brand-default, #0A69D9);
+  box-shadow: 0 0 0 3px var(--color-background-brand-secondary, #EBF4FF);
+}
+.fob-field-inner { padding: var(--spacing-14, 14px) var(--spacing-16); }
+.fob-field-meta {
+  display: flex; align-items: center; gap: var(--spacing-6); margin-bottom: var(--spacing-6);
+}
+.fob-field-label {
+  font-size: var(--font-size-fs-12, 12px); font-weight: var(--font-weight-fw-semibold, 600);
+  color: var(--color-text-base-default); flex: 1; min-width: 0;
+}
+.fob-field-required { color: #B91C1C; font-weight: var(--font-weight-fw-bold, 700); }
+.fob-field-type-tag {
+  font-size: 9px; font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--color-text-base-tertiary);
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: 3px; padding: 1px 4px; flex-shrink: 0;
+}
+.fob-field-type-tag.pattern { background: var(--color-background-brand-secondary, #EBF4FF); color: var(--color-text-brand-default, #0A69D9); border-color: var(--color-border-brand-default); }
+.fob-field-int-tags { display: flex; gap: 3px; flex-wrap: wrap; }
+.fob-int-tag {
+  font-size: 9px; font-weight: var(--font-weight-fw-semibold, 600);
+  color: var(--color-text-brand-default, #0A69D9);
+  background: var(--color-background-brand-secondary, #EBF4FF);
+  border-radius: 3px; padding: 1px 5px;
+}
+.fob-field-preview {
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) dashed var(--color-border-base-default);
+  border-radius: var(--border-radius-4, 4px);
+  padding: var(--spacing-10, 10px) var(--spacing-12);
+  font-size: var(--font-size-fs-12, 12px);
+  color: var(--color-text-base-tertiary);
+  min-height: 36px; display: flex; align-items: center;
+}
+.fob-field-rules-strip {
+  border-top: var(--border-width-1) solid var(--color-border-base-default);
+  padding: 5px var(--spacing-16);
+  display: flex; gap: var(--spacing-6); align-items: center; flex-wrap: wrap;
+}
+.fob-rule-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; padding: 1px 6px;
+  border-radius: 3px; font-weight: var(--font-weight-fw-medium, 500);
+}
+.fob-rule-pill.show { background: #F3EEFD; color: #4C1D95; }
+.fob-rule-pill.hide { background: #FEF0F0; color: #B91C1C; }
+.fob-rule-pill.require { background: #FEF3CD; color: #B45309; }
+
+/* Highlighted dep */
+.fob-field-block.dep-highlight { border-color: var(--color-border-brand-default, #0A69D9); background: var(--color-background-brand-secondary, #EBF4FF); }
+
+/* Branch block */
+.fob-branch-block {
+  border: var(--border-width-1) solid #B45309;
+  border-radius: var(--border-radius-8, 8px);
+  background: var(--color-background-base-default);
+  overflow: hidden;
+}
+.fob-branch-block.selected { box-shadow: 0 0 0 3px #FEF3CD; }
+.fob-branch-head {
+  background: #FEF3CD;
+  padding: var(--spacing-8) var(--spacing-16);
+  display: flex; align-items: center; gap: var(--spacing-8);
+  cursor: pointer;
+}
+.fob-branch-head-label { font-size: var(--font-size-fs-12, 12px); font-weight: var(--font-weight-fw-semibold, 600); color: #78350F; flex: 1; }
+.fob-branch-tabs { display: flex; gap: 2px; padding: var(--spacing-8) var(--spacing-16); border-bottom: var(--border-width-1) solid var(--color-border-base-default); }
+.fob-branch-tab {
+  padding: 4px var(--spacing-10, 10px); border-radius: 3px;
+  font-size: var(--font-size-fs-11, 11px); font-weight: var(--font-weight-fw-medium, 500);
+  cursor: pointer; border: var(--border-width-1) solid transparent;
+  color: var(--color-text-base-secondary); background: transparent; transition: all 0.1s;
+}
+.fob-branch-tab.active { background: var(--color-background-base-default); border-color: var(--color-border-base-default); color: var(--color-text-base-default); box-shadow: 0 1px 2px rgba(0,0,0,0.06); }
+.fob-branch-fields { padding: var(--spacing-8); display: flex; flex-direction: column; gap: var(--spacing-6); }
+
+/* Add field zone */
+.fob-add-zone {
+  border: var(--border-width-1) dashed var(--color-border-base-default);
+  border-radius: var(--border-radius-8, 8px);
+  padding: var(--spacing-16); text-align: center;
+  color: var(--color-text-base-tertiary);
+  font-size: var(--font-size-fs-12, 12px);
+  cursor: pointer; transition: all 0.12s;
+}
+.fob-add-zone:hover { border-color: var(--color-border-brand-default); color: var(--color-text-brand-default); background: var(--color-background-brand-secondary, #EBF4FF); }
+
+/* Logic sheet overlay */
+.fob-logic-sheet {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
+  background: var(--color-background-base-default);
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+  max-height: 60%;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  display: flex; flex-direction: column;
+}
+.fob-logic-sheet-head {
+  display: flex; align-items: center;
+  padding: var(--spacing-12) var(--spacing-16);
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+  flex-shrink: 0;
+}
+.fob-logic-sheet-title { font-size: var(--font-size-fs-13, 13px); font-weight: var(--font-weight-fw-semibold, 600); flex: 1; }
+.fob-logic-sheet-close {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--color-icon-base-secondary); border-radius: var(--border-radius-4, 4px);
+  padding: 4px; transition: background 0.1s; display: flex; align-items: center;
+}
+.fob-logic-sheet-close:hover { background: var(--color-background-base-secondary); }
+.fob-logic-sheet-body { overflow-y: auto; padding: var(--spacing-12) var(--spacing-16); display: flex; flex-direction: column; gap: var(--spacing-16); }
+.fob-logic-group-title {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: var(--font-size-fs-11, 11px); font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--color-text-base-secondary); margin-bottom: var(--spacing-8);
+}
+.fob-logic-item {
+  padding: var(--spacing-10, 10px) var(--spacing-12);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px);
+  cursor: pointer; transition: background 0.1s; margin-bottom: var(--spacing-6);
+}
+.fob-logic-item:hover { background: var(--color-background-base-secondary); }
+.fob-logic-item-head { display: flex; gap: var(--spacing-8); font-size: var(--font-size-fs-11, 11px); color: var(--color-text-base-secondary); margin-bottom: 4px; }
+.fob-logic-item-rule { font-size: var(--font-size-fs-12, 12px); }
+.fob-rule-kw { font-weight: var(--font-weight-fw-semibold, 600); }
+.fob-rule-kw.logic { color: #7C3AED; }
+.fob-rule-kw.branch { color: #B45309; }
+.fob-rule-ref { font-family: ui-monospace, monospace; font-size: 11px; color: var(--color-text-brand-default, #0A69D9); }
+.fob-rule-val { font-family: ui-monospace, monospace; font-size: 11px; color: #166534; }
+
+/* ── Right panel (inspector) ── */
+.fob-panel-right {
+  background: var(--color-background-base-default);
+  border-left: var(--border-width-1) solid var(--color-border-base-default);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.fob-pr-tabs {
+  display: flex; flex-shrink: 0;
+  border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+}
+.fob-pr-tab {
+  flex: 1; padding: var(--spacing-10, 10px) var(--spacing-12); text-align: center;
+  font-size: var(--font-size-fs-11, 11px); font-weight: var(--font-weight-fw-medium, 500);
+  border-bottom: 2px solid transparent; cursor: pointer;
+  background: transparent; border-top: none; border-left: none; border-right: none;
+  color: var(--color-text-base-secondary); transition: all 0.12s;
+}
+.fob-pr-tab.active { color: var(--color-text-brand-default, #0A69D9); border-bottom-color: var(--color-border-brand-default, #0A69D9); }
+.fob-pr-body { flex: 1; overflow-y: auto; padding: var(--spacing-16); display: flex; flex-direction: column; gap: var(--spacing-16); }
+.fob-pr-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: var(--spacing-8);
+  color: var(--color-text-base-tertiary); text-align: center; font-size: var(--font-size-fs-12, 12px);
+}
+.fob-pr-section { display: flex; flex-direction: column; gap: var(--spacing-10, 10px); }
+.fob-pr-section-title {
+  font-size: 10px; font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--color-text-base-secondary);
+}
+.fob-pr-row { display: flex; flex-direction: column; gap: var(--spacing-4); }
+.fob-pr-label { font-size: var(--font-size-fs-12, 12px); font-weight: var(--font-weight-fw-medium, 500); color: var(--color-text-base-default); }
+.fob-pr-input {
+  width: 100%; padding: 6px var(--spacing-10, 10px);
+  font-size: var(--font-size-fs-12, 12px);
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-default); outline: none;
+  transition: border-color 0.12s;
+}
+.fob-pr-input:focus { border-color: var(--color-border-brand-default); box-shadow: 0 0 0 3px var(--color-background-brand-secondary, #EBF4FF); }
+.fob-pr-textarea { resize: vertical; min-height: 64px; }
+.fob-pr-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--spacing-8) var(--spacing-10, 10px);
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px);
+}
+.fob-pr-toggle-label { font-size: var(--font-size-fs-12, 12px); color: var(--color-text-base-default); }
+.fob-pr-toggle input[type=checkbox] { cursor: pointer; width: 14px; height: 14px; accent-color: var(--color-background-brand-default, #0A69D9); }
+.fob-pr-options { display: flex; flex-direction: column; gap: var(--spacing-4); }
+.fob-pr-option {
+  display: flex; align-items: center; gap: var(--spacing-6);
+  padding: 5px var(--spacing-8);
+  background: var(--color-background-base-secondary);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-4, 4px);
+  font-size: var(--font-size-fs-12, 12px);
+}
+.fob-pr-option span { flex: 1; }
+.fob-pr-option-del {
+  background: transparent; border: none; cursor: pointer;
+  color: var(--color-icon-base-tertiary); padding: 0 2px; font-size: 14px; line-height: 1;
+  transition: color 0.1s;
+}
+.fob-pr-option-del:hover { color: #B91C1C; }
+.fob-pr-add-opt {
+  background: transparent; border: var(--border-width-1) dashed var(--color-border-base-default);
+  border-radius: var(--border-radius-4, 4px);
+  padding: 5px var(--spacing-8);
+  font-size: var(--font-size-fs-12, 12px); cursor: pointer;
+  color: var(--color-text-base-secondary); text-align: left; width: 100%;
+  transition: all 0.1s;
+}
+.fob-pr-add-opt:hover { border-color: var(--color-border-brand-default); color: var(--color-text-brand-default); }
+.fob-pr-source-box {
+  padding: var(--spacing-10, 10px) var(--spacing-12);
+  background: var(--color-background-brand-secondary, #EBF4FF);
+  border: var(--border-width-1) solid var(--color-border-brand-default);
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-11, 11px);
+}
+.fob-pr-source-box strong { color: var(--color-text-brand-default, #0A69D9); }
+.fob-pr-rules { display: flex; flex-direction: column; gap: var(--spacing-6); }
+.fob-pr-rule {
+  padding: var(--spacing-10, 10px) var(--spacing-12);
+  background: #F3EEFD;
+  border: var(--border-width-1) solid #C4B5FD;
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-11, 11px); line-height: 1.5;
+}
+.fob-pr-rule-action { font-weight: var(--font-weight-fw-semibold, 600); color: #7C3AED; }
+.fob-pr-integration-list { display: flex; flex-direction: column; gap: var(--spacing-6); }
+.fob-pr-int-item {
+  display: flex; align-items: center; gap: var(--spacing-8);
+  padding: var(--spacing-8) var(--spacing-10, 10px);
+  background: var(--color-background-brand-secondary, #EBF4FF);
+  border: var(--border-width-1) solid var(--color-border-brand-default);
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-12, 12px); font-weight: var(--font-weight-fw-medium, 500);
+  color: var(--color-text-brand-default, #0A69D9);
+}
+
+/* ── Preview stage ── */
+.fob-preview-stage { height: 100%; overflow-y: auto; }
+.fob-preview-form { max-width: 620px; margin: 0 auto; padding: var(--spacing-32) var(--spacing-24); }
+.fob-preview-step-ind {
+  font-size: var(--font-size-fs-11, 11px); font-weight: var(--font-weight-fw-semibold, 600);
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--color-text-brand-default, #0A69D9); margin-bottom: var(--spacing-8);
+}
+.fob-preview-title {
+  font-size: var(--font-size-fs-24, 24px); font-weight: var(--font-weight-fw-semibold, 600);
+  color: var(--color-text-base-default); margin-bottom: var(--spacing-4);
+}
+.fob-preview-desc { font-size: var(--font-size-fs-14, 14px); color: var(--color-text-base-secondary); margin-bottom: var(--spacing-32); }
+.fob-preview-field { margin-bottom: var(--spacing-20); }
+.fob-preview-label { display: block; font-size: var(--font-size-fs-14, 14px); font-weight: var(--font-weight-fw-medium, 500); color: var(--color-text-base-default); margin-bottom: var(--spacing-6); }
+.fob-preview-input {
+  width: 100%; padding: var(--spacing-10, 10px) var(--spacing-12);
+  background: var(--color-background-base-default);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-14, 14px); color: var(--color-text-base-default); outline: none;
+}
+.fob-preview-input:focus { border-color: var(--color-border-brand-default); box-shadow: 0 0 0 3px var(--color-background-brand-secondary, #EBF4FF); }
+.fob-preview-select {
+  width: 100%; padding: var(--spacing-10, 10px) var(--spacing-12);
+  background: var(--color-background-base-default);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-14, 14px); color: var(--color-text-base-default); outline: none;
+}
+.fob-preview-textarea {
+  width: 100%; padding: var(--spacing-10, 10px) var(--spacing-12);
+  background: var(--color-background-base-default);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-14, 14px); color: var(--color-text-base-default); outline: none; resize: vertical;
+}
+.fob-preview-help { font-size: var(--font-size-fs-12, 12px); color: var(--color-text-base-secondary); margin-top: var(--spacing-4); }
+.fob-preview-option {
+  display: flex; align-items: center; gap: var(--spacing-10, 10px);
+  padding: var(--spacing-10, 10px) var(--spacing-12); margin-bottom: var(--spacing-6);
+  border: var(--border-width-1) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-6, 6px); cursor: pointer;
+  font-size: var(--font-size-fs-14, 14px); transition: all 0.1s;
+}
+.fob-preview-option:hover { border-color: var(--color-border-brand-default); background: var(--color-background-brand-secondary, #EBF4FF); }
+.fob-preview-option.selected { border-color: var(--color-border-brand-default); background: var(--color-background-brand-secondary, #EBF4FF); color: var(--color-text-brand-default, #0A69D9); }
+.fob-preview-radio {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: var(--border-width-2) solid var(--color-border-base-default);
+  flex-shrink: 0; transition: border-color 0.1s;
+}
+.fob-preview-option.selected .fob-preview-radio { border-color: var(--color-border-brand-default); background: var(--color-background-brand-default); }
+.fob-preview-nav { display: flex; gap: var(--spacing-12); margin-top: var(--spacing-32); }
+
+/* ── Schema stage ── */
+.fob-schema-stage { display: flex; flex-direction: column; height: 100%; }
+.fob-schema-toolbar {
+  background: rgba(0,0,0,0.3);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding: var(--spacing-10, 10px) var(--spacing-20);
+  display: flex; align-items: center; gap: var(--spacing-12); flex-shrink: 0;
+}
+.fob-schema-file { font-family: ui-monospace, monospace; font-size: 11px; color: rgba(255,255,255,0.5); }
+.fob-schema-body { flex: 1; overflow: auto; }
+.fob-schema-inner { display: grid; grid-template-columns: 44px 1fr; max-width: 1100px; margin: 0 auto; padding: var(--spacing-20); }
+.fob-schema-gutter { font-family: ui-monospace, monospace; font-size: 11px; color: rgba(255,255,255,0.2); text-align: right; padding-right: 16px; line-height: 1.7; user-select: none; }
+.fob-schema-code { font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; white-space: pre; }
+.fob-tok-key { color: #FDBA74; }
+.fob-tok-str { color: #86EFAC; }
+.fob-tok-num { color: #93C5FD; }
+.fob-tok-bool { color: #C4B5FD; }
+.fob-tok-brace { color: rgba(255,255,255,0.5); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-border-base-default); border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-base-tertiary); background-clip: padding-box; border: 2px solid transparent; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const { useState, useMemo, useEffect, useRef } = React;
+const { createRoot } = ReactDOM;
+const h = React.createElement;
+
+/* ── Icons ── */
+const Icon = ({ name, size = 16 }) => {
+  const P = {
+    text:        'M4 6h16M4 12h10M4 18h16',
+    textarea:    'M3 5h18M3 10h18M3 15h12',
+    number:      'M4 9h16M4 15h16M10 3L8 21M16 3l-2 18',
+    date:        'M3 8h18M6 4v4M18 4v4M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8',
+    select:      'M6 9l6 6 6-6',
+    radio:       'M12 2a10 10 0 100 20 10 10 0 000-20zM12 7a5 5 0 100 10 5 5 0 000-10z',
+    checkbox:    'M3 5a2 2 0 012-2h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM8 12l3 3 5-5',
+    upload:      'M12 3v14M5 10l7-7 7 7M3 21h18',
+    address:     'M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zM12 6a3 3 0 100 6 3 3 0 000-6z',
+    repeat:      'M3 4h18M3 12h18M3 20h12',
+    divider:     'M3 12h18',
+    branch:      'M6 3v4a2 2 0 002 2h2m6-6v4a2 2 0 01-2 2h-2m-4 0v12M16 9l3 3m-3 3l3-3m-3 0H8',
+    mpay:        'M3 8h18M3 8v10a2 2 0 002 2h14a2 2 0 002-2V8M3 8V6a2 2 0 012-2h14a2 2 0 012 2v2M7 14h4',
+    msign:       'M3 18c2-2 5-3 8-3s6 1 8 3M4 13l5-9 3 6 3-4 5 7',
+    identity:    'M12 2a5 5 0 100 10 5 5 0 000-10zM3 21v-1a7 7 0 0118 0v1',
+    appointment: 'M3 8h18M6 4v4M18 4v4M4 8v11a2 2 0 002 2h12a2 2 0 002-2V8M9 14h2M14 14h2',
+    documents:   'M7 3h7l5 5v11a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2zM14 3v5h5',
+    applicant:   'M12 2a5 5 0 100 10 5 5 0 000-10zM3 21v-1a7 7 0 0118 0v1M16 8l2 2 4-4',
+    search:      'M11 4a7 7 0 100 14 7 7 0 000-14zM20 20l-4-4',
+    plus:        'M12 5v14M5 12h14',
+    chevron:     'M9 18l6-6-6-6',
+    chevronD:    'M6 9l6 6 6-6',
+    lock:        'M6 10V7a6 6 0 0112 0v3M5 10h14v11H5z',
+    eye:         'M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12zM12 9a3 3 0 100 6 3 3 0 000-6z',
+    code:        'M8 6L2 12l6 6M16 6l6 6-6 6',
+    settings:    'M12 2l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z',
+    logic:       'M3 12h4l3-8 4 16 3-8h4',
+    close:       'M6 6l12 12M18 6L6 18',
+    trash:       'M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6',
+    info:        'M12 2a10 10 0 100 20 10 10 0 000-20zM12 8v4M12 16h.01',
+    link:        'M10 14a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1',
+  };
+  return h('svg', {
+    width: size, height: size, viewBox: '0 0 24 24',
+    fill: 'none', stroke: 'currentColor',
+    strokeWidth: 1.75, strokeLinecap: 'round', strokeLinejoin: 'round'
+  }, h('path', { d: P[name] || P.text }));
+};
+
+/* ── Field library data ── */
+const PRIMITIVES = [
+  { type: 'text',       icon: 'text',        name: 'Text',             desc: 'Single-line input' },
+  { type: 'textarea',   icon: 'textarea',     name: 'Long text',        desc: 'Multi-line input' },
+  { type: 'number',     icon: 'number',       name: 'Number',           desc: 'Integer or decimal' },
+  { type: 'date',       icon: 'date',         name: 'Date',             desc: 'Date picker' },
+  { type: 'select',     icon: 'select',       name: 'Dropdown',         desc: 'Single / multi select' },
+  { type: 'radio',      icon: 'radio',        name: 'Radio',            desc: 'One of many' },
+  { type: 'checkbox',   icon: 'checkbox',     name: 'Checkbox',         desc: 'Yes / No or multi' },
+  { type: 'upload',     icon: 'upload',       name: 'File upload',      desc: 'Single file input' },
+  { type: 'address',    icon: 'address',      name: 'Address',          desc: 'Cascading address' },
+  { type: 'repeatable', icon: 'repeat',       name: 'Repeatable group', desc: 'Table of rows' },
+  { type: 'divider',    icon: 'divider',      name: 'Section divider',  desc: 'Visual break' },
+];
+const PATTERNS = [
+  { type: 'mpay',        icon: 'mpay',        name: 'MPay',             desc: 'Payment block',          integrations: ['MPAY'] },
+  { type: 'msign',       icon: 'msign',       name: 'MSign',            desc: 'Electronic signature',   integrations: ['MSIGN'] },
+  { type: 'identity',    icon: 'identity',    name: 'Identity',         desc: 'MConnect prefill',       integrations: ['MCONNECT'] },
+  { type: 'appointment', icon: 'appointment', name: 'Appointment',      desc: 'Booking slots',          integrations: ['CAL'] },
+  { type: 'documents',   icon: 'documents',   name: 'Document upload',  desc: 'Typed uploads',          integrations: ['RSSP'] },
+  { type: 'applicant',   icon: 'applicant',   name: 'Applicant data',   desc: 'Persoană fizică/juridică', integrations: ['MCONNECT'] },
+];
+const LOGIC_BLOCKS = [
+  { type: 'branch', icon: 'branch', name: 'Branch container', desc: 'Multi-variant section' },
+];
+
+/* ── Initial form schema ── */
+const INITIAL_FORM = {
+  id: 'act-permisiv-23', slug: 'notificare-comert',
+  title: '23 · Notificare în comerț',
+  description: 'Permissive act notification for commerce activity',
+  version: '2.1.0', locale: 'ro', roles: ['citizen', 'adm-l'],
+  steps: [
+    {
+      id: 's1', title: 'Datele solicitantului',
+      description: 'Prefilled from MConnect. Review and confirm.',
+      locked: true, lockReason: 'System-managed · MConnect',
+      fields: [{ id: 'f_applicant', type: 'applicant', label: 'Applicant identity', pattern: true, integrations: ['MCONNECT'] }]
+    },
+    {
+      id: 's2', title: 'Act permisiv',
+      description: 'Specify the institution and activity type.',
+      fields: [
+        { id: 'f_entity', type: 'radio', label: 'Tipul solicitantului', required: true,
+          options: ['Persoană fizică', 'Persoană juridică'],
+          branches: {
+            'Persoană fizică':  { id: 'branch_fizica',   fields: [
+              { id: 'f_idnp',    type: 'text', label: 'IDNP', required: true, validation: ['numeric','exact:13'] },
+              { id: 'f_prenume', type: 'text', label: 'Prenume', required: true },
+              { id: 'f_nume',    type: 'text', label: 'Nume', required: true },
+            ]},
+            'Persoană juridică': { id: 'branch_juridica', fields: [
+              { id: 'f_idno',         type: 'text',   label: 'IDNO', required: true, validation: ['numeric','exact:13'] },
+              { id: 'f_denumire',     type: 'text',   label: 'Denumirea companiei', required: true },
+              { id: 'f_forma',        type: 'select', label: 'Forma juridică', required: true },
+              { id: 'f_reprezentant', type: 'text',   label: 'Reprezentantul legal', required: true },
+            ]},
+          }
+        },
+        { id: 'f_raion',      type: 'select', label: 'Raionul instituției',   required: true, source: { type: 'RSSP.raions' } },
+        { id: 'f_institutie', type: 'select', label: 'Instituția emitentă',   required: true, source: { type: 'RSSP.institutions', filter: 'raion: {{f_raion}}' } },
+        { id: 'f_procura',     type: 'radio',  label: 'Prin procură',         required: true, options: ['Da', 'Nu'] },
+        { id: 'f_procura_doc', type: 'upload', label: 'Documentul de procură', required: true, help: 'PDF, max 10 MB',
+          rules: [{ id: 'r1', action: 'SHOW', when: { field: 'f_procura', op: 'equals', value: 'Da' } }]
+        },
+      ]
+    },
+    { id: 's3', title: 'Autorizații', description: 'Regulatory authorization check.',
+      fields: [
+        { id: 'f_ansa',       type: 'radio', label: 'Aveți autorizația ANSA?', required: true, options: ['Da', 'Nu'] },
+        { id: 'f_ansa_apply', type: 'radio', label: 'Doriți să aplicați pentru ANSA?',
+          options: ['Da, în paralel', 'Nu, voi aplica separat'],
+          rules: [{ id: 'r2', action: 'SHOW', when: { field: 'f_ansa', op: 'equals', value: 'Nu' } }]
+        },
+      ]
+    },
+    { id: 's4', title: 'Documente', description: 'Supporting documents.',
+      fields: [{ id: 'f_docs', type: 'documents', label: 'Required documents', pattern: true, integrations: ['RSSP'] }]
+    },
+    { id: 's5', title: 'Plată',   description: 'Fee via MPay.',   locked: true, lockReason: 'System-managed · MPay',
+      fields: [{ id: 'f_mpay',  type: 'mpay',  label: 'Taxa de stat', pattern: true, integrations: ['MPAY'] }]
+    },
+    { id: 's6', title: 'Semnare', description: 'Sign via MSign.', locked: true, lockReason: 'System-managed · MSign',
+      fields: [{ id: 'f_msign', type: 'msign', label: 'Document signing', pattern: true, integrations: ['MSIGN'] }]
+    },
+  ]
+};
+
+/* ── Helpers ── */
+function getAllFields(form) {
+  const out = [];
+  form.steps.forEach(s => {
+    s.fields.forEach(f => {
+      out.push({ ...f, _step: s.title, _stepId: s.id });
+      if (f.branches) {
+        Object.entries(f.branches).forEach(([val, branch]) => {
+          branch.fields.forEach(bf => out.push({ ...bf, _step: s.title, _stepId: s.id, _branch: val, _branchId: branch.id }));
+        });
+      }
+    });
+  });
+  return out;
+}
+function countLogic(form) {
+  let rules = 0, branches = 0, sources = 0;
+  getAllFields(form).forEach(f => {
+    if (f.rules)    rules    += f.rules.length;
+    if (f.branches) branches += 1;
+    if (f.source)   sources  += 1;
+  });
+  return { rules, branches, sources };
+}
+function findField(form, id) { return getAllFields(form).find(f => f.id === id); }
+
+/* ── App ── */
+function App() {
+  const [mode, setMode]                     = useState('build');
+  const [form, setForm]                     = useState(INITIAL_FORM);
+  const [activeStep, setActiveStep]         = useState(1);
+  const [selectedField, setSelectedField]   = useState('f_procura_doc');
+  const [activeBranch, setActiveBranch]     = useState({});
+  const [libTab, setLibTab]                 = useState('patterns');
+  const [prTab, setPrTab]                   = useState('basic');
+  const [logicOpen, setLogicOpen]           = useState(false);
+  const [highlightedDep, setHighlightedDep] = useState(null);
+  const [saved] = useState(true);
+
+  const counts = useMemo(() => countLogic(form), [form]);
+  const field  = selectedField ? findField(form, selectedField) : null;
+
+  return h('div', { className: 'fob' },
+    h(TopBar, { mode, setMode, form, saved }),
+    h('div', { className: `fob-main mode-${mode}` },
+      mode === 'build' && h(React.Fragment, null,
+        h(LeftPanel, { libTab, setLibTab }),
+        h(Canvas, { form, activeStep, setActiveStep, selectedField, setSelectedField, activeBranch, setActiveBranch, counts, logicOpen, setLogicOpen, highlightedDep, setHighlightedDep }),
+        h(RightPanel, { field, form, setForm, prTab, setPrTab, setHighlightedDep })
+      ),
+      mode === 'preview' && h(PreviewStage, { form }),
+      mode === 'schema'  && h(SchemaStage, { form })
+    )
+  );
+}
+
+/* ── TopBar ── */
+function TopBar({ mode, setMode, form, saved }) {
+  return h('div', { className: 'fob-topbar' },
+    h('div', { className: 'fob-topbar-left' },
+      h('div', { className: 'fob-brand' },
+        h('div', { className: 'fob-brand-mark' }, 'FOD'),
+        'FOD 2',
+      ),
+      h('div', { className: 'fob-crumb' },
+        'Formulare',
+        h(Icon, { name: 'chevron', size: 11 }),
+        h('span', { className: 'fob-crumb-active' }, form.title)
+      )
+    ),
+    h('div', { className: 'fob-mode-switch' },
+      [
+        { key: 'build',   icon: 'settings', label: 'Construiește' },
+        { key: 'preview', icon: 'eye',      label: 'Previzualizare' },
+        { key: 'schema',  icon: 'code',     label: 'Schema' },
+      ].map(m => h('button', {
+        key: m.key,
+        className: `fob-mode-btn ${mode === m.key ? `active-${m.key}` : ''}`,
+        onClick: () => setMode(m.key)
+      }, h(Icon, { name: m.icon, size: 12 }), m.label))
+    ),
+    h('div', { className: 'fob-topbar-right' },
+      h('div', { className: 'fob-save-status' },
+        h('span', { className: 'fob-save-dot' }),
+        saved ? 'Salvat' : 'Se salvează…'
+      ),
+      h('button', { className: 'fob-btn ghost' }, 'Istoric'),
+      h('button', { className: 'fob-btn primary' }, 'Publică'),
+      h('div', { className: 'fob-avatar' }, 'VS')
+    )
+  );
+}
+
+/* ── LeftPanel ── */
+function LeftPanel({ libTab, setLibTab }) {
+  const [query, setQuery] = useState('');
+  const filt = list => list.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || p.desc.toLowerCase().includes(query.toLowerCase()));
+
+  return h('div', { className: 'fob-panel-left' },
+    h('div', { className: 'fob-panel-hd' },
+      h('div', { className: 'fob-panel-title' }, 'Bibliotecă câmpuri'),
+      h('div', { className: 'fob-lib-tabs' },
+        [['primitives','Câmpuri'],['patterns','Șabloane'],['logic','Logică']].map(([k,l]) =>
+          h('button', { key: k, className: `fob-lib-tab ${libTab===k?'active':''}`, onClick: () => setLibTab(k) }, l)
+        )
+      ),
+      h('div', { className: 'fob-lib-search' },
+        h(Icon, { name: 'search', size: 13 }),
+        h('input', { type: 'text', placeholder: 'Caută…', value: query, onChange: e => setQuery(e.target.value) })
+      )
+    ),
+    h('div', { className: 'fob-lib-body' },
+      libTab === 'primitives' && h('div', null,
+        h('div', { className: 'fob-lib-section' },
+          h('div', { className: 'fob-lib-section-label' }, 'Introducere date'),
+          filt(PRIMITIVES).slice(0, 5).map(p => h(LibItem, { key: p.type, item: p }))
+        ),
+        h('div', { className: 'fob-lib-section' },
+          h('div', { className: 'fob-lib-section-label' }, 'Selecție'),
+          filt(PRIMITIVES).slice(5, 8).map(p => h(LibItem, { key: p.type, item: p }))
+        ),
+        h('div', { className: 'fob-lib-section' },
+          h('div', { className: 'fob-lib-section-label' }, 'Avansate'),
+          filt(PRIMITIVES).slice(8).map(p => h(LibItem, { key: p.type, item: p }))
+        ),
+      ),
+      libTab === 'patterns' && h('div', null,
+        h('div', { className: 'fob-lib-section' },
+          h('div', { className: 'fob-lib-section-label' }, 'Integrări guvernamentale'),
+          filt(PATTERNS).slice(0, 4).map(p => h(LibItem, { key: p.type, item: p, pattern: true }))
+        ),
+        h('div', { className: 'fob-lib-section' },
+          h('div', { className: 'fob-lib-section-label' }, 'Fluxuri documente'),
+          filt(PATTERNS).slice(4).map(p => h(LibItem, { key: p.type, item: p, pattern: true }))
+        ),
+        h('div', { className: 'fob-tip brand' },
+          h('div', { className: 'fob-tip-title' }, 'Șablon = bloc inteligent'),
+          'Drop-ready cu integrări preconfigurate.'
+        )
+      ),
+      libTab === 'logic' && h('div', null,
+        h('div', { className: 'fob-lib-section' },
+          h('div', { className: 'fob-lib-section-label' }, 'Control flow'),
+          filt(LOGIC_BLOCKS).map(p => h(LibItem, { key: p.type, item: p, branch: true }))
+        ),
+        h('div', { className: 'fob-tip logic' },
+          h('div', { className: 'fob-tip-title' }, 'Trei tipare de logică:'),
+          h('div', { style:{marginBottom:4} }, h('strong',null,'Reguli câmp '),'→ show/hide/require'),
+          h('div', { style:{marginBottom:4} }, h('strong',null,'Ramuri '),'→ secțiuni alternative'),
+          h('div', null, h('strong',null,'Surse dependente '),'→ filtrare dinamică')
+        )
+      )
+    )
+  );
+}
+
+function LibItem({ item, pattern, branch }) {
+  const cls = pattern ? 'pattern' : branch ? 'branch-item' : '';
+  return h('div', { className: `fob-lib-item ${cls}` },
+    h('div', { className: 'fob-lib-item-icon' }, h(Icon, { name: item.icon, size: 14 })),
+    h('div', { className: 'fob-lib-item-body' },
+      h('div', { className: 'fob-lib-item-name' }, item.name),
+      h('div', { className: 'fob-lib-item-desc' }, item.desc)
+    ),
+    pattern && item.integrations && h('div', { className: 'fob-badge-int' }, item.integrations[0])
+  );
+}
+
+/* ── Canvas ── */
+function Canvas({ form, activeStep, setActiveStep, selectedField, setSelectedField, activeBranch, setActiveBranch, counts, logicOpen, setLogicOpen, highlightedDep, setHighlightedDep }) {
+  const step = form.steps[activeStep];
+  return h('div', { className: 'fob-panel-center' },
+    h('div', { className: 'fob-canvas-toolbar' },
+      h('div', { className: 'fob-form-title-wrap' },
+        h('input', { className: 'fob-form-title', defaultValue: form.title }),
+        h('span', { className: 'fob-form-slug' }, `/${form.slug}`)
+      ),
+      h('button', { className: 'fob-logic-btn', onClick: () => setLogicOpen(!logicOpen) },
+        h(Icon, { name: 'logic', size: 12 }), 'Logică',
+        h('span', { className: 'fob-chip rules' }, counts.rules, ' reguli'),
+        h('span', { className: 'fob-chip branches' }, counts.branches, ' ramuri'),
+        h('span', { className: 'fob-chip sources' }, counts.sources, ' surse'),
+        h(Icon, { name: 'chevronD', size: 10 })
+      )
+    ),
+    logicOpen && h(LogicSheet, {
+      form, counts,
+      onClose: () => setLogicOpen(false),
+      onNavigate: (si, fid) => { setActiveStep(si); setSelectedField(fid); setLogicOpen(false); }
+    }),
+    h('div', { className: 'fob-steps-rail' },
+      form.steps.map((s, i) =>
+        h('button', {
+          key: s.id,
+          className: `fob-step-pill ${i === activeStep ? 'active' : ''}`,
+          onClick: () => { setActiveStep(i); setSelectedField(null); }
+        },
+          h('span', { className: 'fob-step-num' }, i + 1),
+          s.title,
+          s.locked && h('span', { className: 'fob-step-lock' }, h(Icon, { name: 'lock', size: 9 }))
+        )
+      ),
+      h('button', { className: 'fob-step-add', title: 'Adaugă pas' }, h(Icon, { name: 'plus', size: 12 }))
+    ),
+    h('div', { className: 'fob-canvas-scroll' },
+      h('div', { className: 'fob-canvas-doc' },
+        h('div', { className: 'fob-step-header' },
+          h('div', { className: 'fob-step-tag' }, `Pasul ${activeStep + 1} din ${form.steps.length}`),
+          h('input', { className: 'fob-step-title-input', defaultValue: step.title, disabled: step.locked }),
+          h('textarea', { className: 'fob-step-desc-input', defaultValue: step.description, disabled: step.locked, rows: 1 }),
+          step.locked && h('div', { className: 'fob-step-lock-ribbon' }, h(Icon, { name: 'lock', size: 10 }), step.lockReason)
+        ),
+        step.fields.map(f => f.branches
+          ? h(BranchBlock, {
+              key: f.id, field: f,
+              selected: selectedField === f.id || Object.values(f.branches).some(b => b.fields.some(bf => bf.id === selectedField)),
+              onSelect: () => setSelectedField(f.id),
+              activeBranch, setActiveBranch,
+              selectedField, setSelectedField,
+              highlightedDep, form
+            })
+          : h(FieldBlock, {
+              key: f.id, field: f,
+              selected: selectedField === f.id,
+              onSelect: () => setSelectedField(f.id),
+              locked: step.locked, form,
+              highlightedDep, setHighlightedDep
+            })
+        ),
+        !step.locked && h('div', { className: 'fob-add-zone' }, '+ Trageți un câmp aici sau alegeți din bibliotecă')
+      )
+    )
+  );
+}
+
+/* ── LogicSheet ── */
+function LogicSheet({ form, counts, onClose, onNavigate }) {
+  const rules = [], branches = [], sources = [];
+  form.steps.forEach((s, si) => {
+    s.fields.forEach(f => {
+      if (f.rules)    f.rules.forEach(r => rules.push({ step: s.title, stepIdx: si, fieldId: f.id, fieldLabel: f.label, rule: r }));
+      if (f.branches) branches.push({ step: s.title, stepIdx: si, fieldId: f.id, fieldLabel: f.label, variants: Object.keys(f.branches) });
+      if (f.source)   sources.push({ step: s.title, stepIdx: si, fieldId: f.id, fieldLabel: f.label, source: f.source });
+    });
+  });
+
+  const Section = ({ title, count, color, items, renderItem }) => items.length === 0 ? null : h('div', null,
+    h('div', { className: 'fob-logic-group-title' },
+      h('span', null, title),
+      h('span', { style: { color, fontFamily: 'ui-monospace,monospace' } }, count)
+    ),
+    items.map((item, i) => renderItem(item, i))
+  );
+
+  return h('div', { className: 'fob-logic-sheet' },
+    h('div', { className: 'fob-logic-sheet-head' },
+      h('div', { className: 'fob-logic-sheet-title' }, 'Prezentare generală logică'),
+      h('button', { className: 'fob-logic-sheet-close', onClick: onClose }, h(Icon, { name: 'close', size: 14 }))
+    ),
+    h('div', { className: 'fob-logic-sheet-body' },
+      h(Section, {
+        title: 'Reguli câmp', count: counts.rules, color: '#7C3AED', items: rules,
+        renderItem: (r, i) => h('div', { key: i, className: 'fob-logic-item', onClick: () => onNavigate(r.stepIdx, r.fieldId) },
+          h('div', { className: 'fob-logic-item-head' },
+            h('span', null, r.step),
+            h('span', { style:{fontFamily:'ui-monospace,monospace',color:'#7C3AED'} }, r.fieldId)
+          ),
+          h('div', { className: 'fob-logic-item-rule' },
+            h('span', { className: 'fob-rule-kw logic' }, r.rule.action), ' "', r.fieldLabel, '" când ',
+            h('span', { className: 'fob-rule-ref' }, r.rule.when.field), ' ',
+            h('span', { className: 'fob-rule-kw' }, r.rule.when.op), ' ',
+            h('span', { className: 'fob-rule-val' }, `"${r.rule.when.value}"`)
+          )
+        )
+      }),
+      h(Section, {
+        title: 'Ramuri', count: counts.branches, color: '#B45309', items: branches,
+        renderItem: (b, i) => h('div', { key: i, className: 'fob-logic-item', onClick: () => onNavigate(b.stepIdx, b.fieldId) },
+          h('div', { className: 'fob-logic-item-head' },
+            h('span', null, b.step),
+            h('span', { style:{fontFamily:'ui-monospace,monospace',color:'#B45309'} }, b.fieldId)
+          ),
+          h('div', { className: 'fob-logic-item-rule' },
+            h('span', { className: 'fob-rule-kw branch' }, 'SWITCH'), ' "', b.fieldLabel, '" · ',
+            b.variants.length, ' variante: ', b.variants.map(v=>`"${v}"`).join(' / ')
+          )
+        )
+      }),
+      h(Section, {
+        title: 'Surse dependente', count: counts.sources, color: '#0A69D9', items: sources,
+        renderItem: (s, i) => h('div', { key: i, className: 'fob-logic-item', onClick: () => onNavigate(s.stepIdx, s.fieldId) },
+          h('div', { className: 'fob-logic-item-head' },
+            h('span', null, s.step),
+            h('span', { style:{fontFamily:'ui-monospace,monospace',color:'#0A69D9'} }, s.fieldId)
+          ),
+          h('div', { className: 'fob-logic-item-rule' },
+            h('span', { className: 'fob-rule-kw', style:{color:'#0A69D9'} }, 'SOURCE'), ' → ',
+            h('span', { style:{fontFamily:'ui-monospace,monospace'} }, s.source.type),
+            s.source.filter && h('span', { style:{color:'var(--color-text-base-secondary)'} }, ` (filter: ${s.source.filter})`)
+          )
+        )
+      })
+    )
+  );
+}
+
+/* ── FieldBlock ── */
+function FieldBlock({ field, selected, onSelect, locked, form, highlightedDep, setHighlightedDep }) {
+  const isDepHighlighted = highlightedDep === field.id;
+  const hasDep = field.rules && field.rules.some(r => r.when);
+  const cls = `fob-field-block${selected?' selected':''}${isDepHighlighted?' dep-highlight':''}`;
+
+  return h('div', { className: cls, onClick: onSelect },
+    h('div', { className: 'fob-field-inner' },
+      h('div', { className: 'fob-field-meta' },
+        h('span', { className: 'fob-field-label' },
+          field.label,
+          field.required && h('span', { className: 'fob-field-required' }, ' *')
+        ),
+        h('span', { className: `fob-field-type-tag${field.pattern?' pattern':''}` }, field.type),
+        field.integrations && h('div', { className: 'fob-field-int-tags' },
+          field.integrations.map(i => h('span', { key: i, className: 'fob-int-tag' }, i))
+        )
+      ),
+      h(FieldPreview, { field })
+    ),
+    field.rules && field.rules.length > 0 && h('div', { className: 'fob-field-rules-strip' },
+      field.rules.map((r, i) => h('span', {
+        key: i, className: `fob-rule-pill ${r.action.toLowerCase()}`,
+        onMouseEnter: () => setHighlightedDep && setHighlightedDep(r.when?.field),
+        onMouseLeave: () => setHighlightedDep && setHighlightedDep(null)
+      }, r.action, ': când ', r.when?.field, ' = "', r.when?.value, '"'))
+    )
+  );
+}
+
+function FieldPreview({ field }) {
+  const style = { className: 'fob-field-preview' };
+  if (field.pattern) return h('div', style, `[${field.type.toUpperCase()} — ${(field.integrations||[]).join(', ')}]`);
+  switch (field.type) {
+    case 'text':
+    case 'number': return h('div', style, 'Introduceți text…');
+    case 'textarea': return h('div', { ...style, style:{minHeight:60} }, 'Text lung…');
+    case 'date':   return h('div', style, 'ZZ/LL/AAAA');
+    case 'select': return h('div', style, 'Selectați o opțiune ▾');
+    case 'radio':  return h('div', { className: 'fob-field-preview', style:{flexDirection:'column',gap:4} },
+      (field.options||['Opțiunea 1','Opțiunea 2']).slice(0,2).map((o,i) =>
+        h('div', { key: i, style:{display:'flex',alignItems:'center',gap:6} },
+          h('span', { style:{width:12,height:12,borderRadius:'50%',border:'1.5px solid var(--color-border-base-default)',flexShrink:0} }),
+          o
+        )
+      )
+    );
+    case 'upload':  return h('div', style, '📎 Încărcați fișier…');
+    case 'divider': return h('hr', { style:{border:'none',borderTop:'1px dashed var(--color-border-base-default)',margin:0} });
+    default: return h('div', style, field.type);
+  }
+}
+
+/* ── BranchBlock ── */
+function BranchBlock({ field, selected, onSelect, activeBranch, setActiveBranch, selectedField, setSelectedField, highlightedDep, form }) {
+  const currentBranchKey = activeBranch[field.id] || Object.keys(field.branches || {})[0];
+  const currentBranch = field.branches?.[currentBranchKey];
+
+  return h('div', { className: `fob-branch-block${selected?' selected':''}` },
+    h('div', { className: 'fob-branch-head', onClick: onSelect },
+      h(Icon, { name: 'branch', size: 14 }),
+      h('div', { className: 'fob-branch-head-label' },
+        h('span', { style:{fontFamily:'ui-monospace,monospace',fontSize:11} }, field.id), ' → SWITCH pe "', field.label, '"'
+      ),
+      h('span', { className: 'fob-field-type-tag' }, 'branch')
+    ),
+    h('div', { className: 'fob-branch-tabs' },
+      Object.keys(field.branches || {}).map(k =>
+        h('button', {
+          key: k, type: 'button',
+          className: `fob-branch-tab${k === currentBranchKey ? ' active' : ''}`,
+          onClick: () => setActiveBranch(prev => ({ ...prev, [field.id]: k }))
+        }, k)
+      )
+    ),
+    currentBranch && h('div', { className: 'fob-branch-fields' },
+      currentBranch.fields.map(f =>
+        h(FieldBlock, {
+          key: f.id, field: f,
+          selected: selectedField === f.id,
+          onSelect: () => setSelectedField(f.id),
+          locked: false, form,
+          highlightedDep, setHighlightedDep: () => {}
+        })
+      ),
+      h('div', { className: 'fob-add-zone', style:{margin:'4px 4px 0'} }, '+ Câmp în ramură')
+    )
+  );
+}
+
+/* ── RightPanel ── */
+function RightPanel({ field, form, setForm, prTab, setPrTab, setHighlightedDep }) {
+  if (!field) return h('div', { className: 'fob-panel-right' },
+    h('div', { className: 'fob-pr-empty' },
+      h(Icon, { name: 'info', size: 24 }),
+      h('span', null, 'Selectați un câmp pentru a-l edita')
+    )
+  );
+
+  const updateField = (patch) => {
+    setForm(prev => {
+      const next = JSON.parse(JSON.stringify(prev));
+      getAllFields(next).forEach(f => { if (f.id === field.id) Object.assign(f, patch); });
+      return next;
+    });
+  };
+
+  const tabs = [
+    { key: 'basic',   label: 'General' },
+    { key: 'logic',   label: 'Logică' },
+    { key: 'advanced',label: 'Avansat' },
+  ];
+
+  return h('div', { className: 'fob-panel-right' },
+    h('div', { className: 'fob-pr-tabs' },
+      tabs.map(t => h('button', {
+        key: t.key, type: 'button',
+        className: `fob-pr-tab${prTab===t.key?' active':''}`,
+        onClick: () => setPrTab(t.key)
+      }, t.label))
+    ),
+    h('div', { className: 'fob-pr-body' },
+      prTab === 'basic'    && h(BasicTab,    { field, updateField }),
+      prTab === 'logic'    && h(LogicTab,    { field, form, updateField, setHighlightedDep }),
+      prTab === 'advanced' && h(AdvancedTab, { field, updateField })
+    )
+  );
+}
+
+function BasicTab({ field, updateField }) {
+  return h(React.Fragment, null,
+    h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, 'Etichetă & tip'),
+      h('div', { className: 'fob-pr-row' },
+        h('label', { className: 'fob-pr-label' }, 'Etichetă'),
+        h('input', { className: 'fob-pr-input', defaultValue: field.label, onBlur: e => updateField({ label: e.target.value }) })
+      ),
+      h('div', { className: 'fob-pr-row' },
+        h('label', { className: 'fob-pr-label' }, 'ID câmp'),
+        h('input', { className: 'fob-pr-input', value: field.id, readOnly: true, style:{opacity:0.6} })
+      ),
+      h('div', { className: 'fob-pr-toggle' },
+        h('span', { className: 'fob-pr-toggle-label' }, 'Câmp obligatoriu'),
+        h('input', { type: 'checkbox', checked: !!field.required, onChange: e => updateField({ required: e.target.checked }) })
+      )
+    ),
+    field.help !== undefined && h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, 'Text ajutor'),
+      h('div', { className: 'fob-pr-row' },
+        h('textarea', { className: 'fob-pr-input fob-pr-textarea', defaultValue: field.help || '', placeholder: 'Text auxiliar sub câmp…', onBlur: e => updateField({ help: e.target.value }) })
+      )
+    ),
+    (field.type === 'select' || field.type === 'radio' || field.type === 'checkbox') && h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, 'Opțiuni'),
+      field.source
+        ? h('div', { className: 'fob-pr-source-box' },
+            'Sursă dinamică: ', h('strong', null, field.source.type),
+            field.source.filter && h('div', { style:{marginTop:4,opacity:0.8} }, `Filtru: ${field.source.filter}`)
+          )
+        : h('div', { className: 'fob-pr-options' },
+            (field.options || []).map((opt, i) =>
+              h('div', { key: i, className: 'fob-pr-option' },
+                h('span', null, opt),
+                h('button', { type: 'button', className: 'fob-pr-option-del', onClick: () => {
+                  const opts = [...(field.options||[])]; opts.splice(i, 1); updateField({ options: opts });
+                }}, '×')
+              )
+            ),
+            h('button', { type: 'button', className: 'fob-pr-add-opt', onClick: () => {
+              const opts = [...(field.options||[]), `Opțiunea ${(field.options||[]).length + 1}`]; updateField({ options: opts });
+            }}, '+ Adaugă opțiune')
+          )
+    ),
+    field.integrations && h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, 'Integrări'),
+      h('div', { className: 'fob-pr-integration-list' },
+        field.integrations.map(i => h('div', { key: i, className: 'fob-pr-int-item' }, h(Icon, { name: 'link', size: 12 }), i))
+      )
+    )
+  );
+}
+
+function LogicTab({ field, form, updateField, setHighlightedDep }) {
+  const allFields = getAllFields(form).filter(f => f.id !== field.id);
+  const rules = field.rules || [];
+
+  return h(React.Fragment, null,
+    h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, `Reguli de afișare (${rules.length})`),
+      rules.length === 0
+        ? h('div', { style:{fontSize:12,color:'var(--color-text-base-tertiary)',padding:'8px 0'} }, 'Nicio regulă. Câmpul este întotdeauna vizibil.')
+        : h('div', { className: 'fob-pr-rules' },
+            rules.map((r, i) => h('div', { key: i, className: 'fob-pr-rule',
+              onMouseEnter: () => setHighlightedDep(r.when?.field),
+              onMouseLeave: () => setHighlightedDep(null)
+            },
+              h('span', { className: 'fob-pr-rule-action' }, r.action), ' câmpul ',
+              h('strong', null, `"${field.label}"`), ' când ',
+              h('code', { style:{background:'#EDE9FE',padding:'1px 4px',borderRadius:3,fontSize:11} }, r.when?.field),
+              ' ', h('em', null, r.when?.op), ' ',
+              h('code', { style:{background:'#D1FAE5',padding:'1px 4px',borderRadius:3,fontSize:11} }, `"${r.when?.value}"`)
+            ))
+          )
+    )
+  );
+}
+
+function AdvancedTab({ field, updateField }) {
+  return h(React.Fragment, null,
+    h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, 'Validare'),
+      field.validation
+        ? h('div', { style:{fontSize:12,color:'var(--color-text-base-secondary)'} }, field.validation.join(', '))
+        : h('div', { style:{fontSize:12,color:'var(--color-text-base-tertiary)'} }, 'Nicio validare personalizată.')
+    ),
+    h('div', { className: 'fob-pr-section' },
+      h('div', { className: 'fob-pr-section-title' }, 'Metadate'),
+      h('div', { className: 'fob-pr-row' },
+        h('label', { className: 'fob-pr-label' }, 'Pas'),
+        h('input', { className: 'fob-pr-input', value: field._step || '—', readOnly: true, style:{opacity:0.6} })
+      ),
+      field._branch && h('div', { className: 'fob-pr-row' },
+        h('label', { className: 'fob-pr-label' }, 'Ramură'),
+        h('input', { className: 'fob-pr-input', value: field._branch, readOnly: true, style:{opacity:0.6} })
+      )
+    )
+  );
+}
+
+/* ── PreviewStage ── */
+function PreviewStage({ form }) {
+  const [stepIdx, setStepIdx] = useState(0);
+  const [values, setValues]   = useState({});
+  const step = form.steps[stepIdx];
+  const setValue = (id, v) => setValues(p => ({ ...p, [id]: v }));
+
+  const shouldShow = (f) => {
+    if (!f.rules || f.rules.length === 0) return true;
+    return f.rules.every(r => {
+      if (r.action !== 'SHOW') return true;
+      const cond = r.when;
+      if (!cond) return true;
+      return values[cond.field] === cond.value;
+    });
+  };
+
+  return h('div', { className: 'fob-preview-stage' },
+    h('div', { className: 'fob-preview-form' },
+      h('div', { className: 'fob-preview-step-ind' }, `Pasul ${stepIdx + 1} din ${form.steps.length}`),
+      h('div', { className: 'fob-preview-title' }, step.title),
+      step.description && h('div', { className: 'fob-preview-desc' }, step.description),
+      step.fields.filter(shouldShow).map(f =>
+        h('div', { key: f.id, className: 'fob-preview-field' },
+          h('label', { className: 'fob-preview-label' },
+            f.label,
+            f.required && h('span', { style:{color:'#B91C1C'} }, ' *')
+          ),
+          h(PreviewControl, { field: f, values, setValue: (v) => setValue(f.id, v) }),
+          f.help && h('div', { className: 'fob-preview-help' }, f.help)
+        )
+      ),
+      h('div', { className: 'fob-preview-nav' },
+        stepIdx > 0 && h('button', { className: 'fob-btn', onClick: () => setStepIdx(i => i - 1) }, '← Înapoi'),
+        stepIdx < form.steps.length - 1
+          ? h('button', { className: 'fob-btn primary', onClick: () => setStepIdx(i => i + 1) }, 'Continuă →')
+          : h('button', { className: 'fob-btn primary' }, 'Trimite')
+      )
+    )
+  );
+}
+
+function PreviewControl({ field, values, setValue }) {
+  if (field.pattern) return h('div', {
+    style:{padding:'16px',border:'1px dashed var(--color-border-base-default)',borderRadius:8,textAlign:'center',color:'var(--color-text-base-tertiary)',fontSize:12}
+  }, `[${field.type.toUpperCase()} — ${(field.integrations||[]).join(', ')}]`);
+
+  switch (field.type) {
+    case 'text':
+    case 'number': return h('input', { className: 'fob-preview-input', type: field.type === 'number' ? 'number' : 'text', placeholder: field.label, value: values[field.id] || '', onChange: e => setValue(e.target.value) });
+    case 'textarea': return h('textarea', { className: 'fob-preview-textarea', rows: 3, placeholder: field.label });
+    case 'date':   return h('input', { className: 'fob-preview-input', type: 'date' });
+    case 'select': return h('select', { className: 'fob-preview-select', value: values[field.id] || '', onChange: e => setValue(e.target.value) },
+      h('option', { value: '' }, 'Selectează…'),
+      (field.options || []).map(o => h('option', { key: o, value: o }, o))
+    );
+    case 'radio':  return h('div', null,
+      (field.options || []).map(o => h('div', {
+        key: o,
+        className: `fob-preview-option${values[field.id] === o ? ' selected' : ''}`,
+        onClick: () => setValue(o)
+      }, h('div', { className: 'fob-preview-radio' }), o))
+    );
+    case 'upload': return h('div', {
+      style:{padding:'20px',border:'1px dashed var(--color-border-base-default)',borderRadius:8,textAlign:'center',color:'var(--color-text-base-tertiary)',fontSize:13}
+    }, 'Trageți fișierul sau faceți clic pentru a naviga');
+    default: return h('input', { className: 'fob-preview-input', placeholder: field.type });
+  }
+}
+
+/* ── SchemaStage ── */
+function SchemaStage({ form }) {
+  const json = useMemo(() => JSON.stringify(form, null, 2), [form]);
+  const highlighted = useMemo(() => highlightJSON(json), [json]);
+  const lines = json.split('\n');
+  return h('div', { className: 'fob-schema-stage' },
+    h('div', { className: 'fob-schema-toolbar' },
+      h('span', { className: 'fob-schema-file' }, `forms/${form.slug}.json`)
+    ),
+    h('div', { className: 'fob-schema-body' },
+      h('div', { className: 'fob-schema-inner' },
+        h('div', { className: 'fob-schema-gutter' }, lines.map((_, i) => h('div', { key: i }, i + 1))),
+        h('div', { className: 'fob-schema-code', dangerouslySetInnerHTML: { __html: highlighted } })
+      )
+    )
+  );
+}
+
+function highlightJSON(json) {
+  return json
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(\.\d+)?([eE][+-]?\d+)?)/g, m => {
+      let cls = 'fob-tok-num';
+      if (/^"/.test(m)) cls = /:$/.test(m) ? 'fob-tok-key' : 'fob-tok-str';
+      else if (/true|false/.test(m)) cls = 'fob-tok-bool';
+      return `<span class="${cls}">${m}</span>`;
+    })
+    .replace(/([{}\[\],])/g, '<span class="fob-tok-brace">$1</span>');
+}
+
+createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

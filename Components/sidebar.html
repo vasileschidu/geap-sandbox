@@ -4,366 +4,946 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sidebar Preview</title>
-  <script src="../Components/js/toggler.js" defer=""></script> 
+  <script src="../Components/js/toggler.js" defer=""></script>
   <script src="js/toggler.js" defer=""></script>
   <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/e-permits-shell.css" />
   <script src="js/modal.js" defer></script>
   <script src="js/mega-nav.js" defer></script>
   <script src="js/search.js" defer></script>
   <script src="js/dropdown.js" defer></script>
+  <script src="js/sidebar-controller.js" defer></script>
   <script src="js/include-header.js" defer></script>
   <script src="js/include-footer.js" defer></script>
+  <style>
+    .sidebar-docs-page {
+      background: var(--color-background-base-default);
+    }
+
+    .sidebar-docs {
+      padding-block: var(--spacing-32) var(--spacing-64);
+    }
+
+    .sidebar-docs__intro {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-16);
+      margin-bottom: var(--spacing-56);
+    }
+
+    .sidebar-docs__intro p {
+      color: var(--color-text-base-secondary);
+      margin: 0;
+      max-width: 760px;
+    }
+
+    .sidebar-docs__section {
+      margin-top: var(--spacing-56);
+    }
+
+    .sidebar-docs__section-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-16);
+      margin-bottom: var(--spacing-24);
+    }
+
+    .sidebar-docs__section-header h2 {
+      margin: 0;
+    }
+
+    .sidebar-docs__section-copy {
+      color: var(--color-text-base-secondary);
+      margin: 0;
+      max-width: 760px;
+    }
+
+    .sidebar-docs__layout-nav {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-20);
+      margin-bottom: var(--spacing-32);
+    }
+
+    .sidebar-docs__layout-nav-title {
+      margin: 0;
+      font-size: var(--font-size-fs-20, 20px);
+      font-weight: var(--font-weight-fw-medium, 500);
+      line-height: var(--line-height-lh-28, 28px);
+    }
+
+    .sidebar-docs__layout-nav-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0 var(--spacing-24);
+      border-left: var(--border-width-1) solid var(--color-border-base-default);
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-12);
+    }
+
+    .sidebar-docs__layout-nav-link {
+      color: var(--color-text-base-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: var(--spacing-12);
+      font-size: var(--font-size-fs-16, 16px);
+      font-weight: var(--font-weight-fw-regular, 400);
+      line-height: var(--line-height-lh-24, 24px);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .sidebar-docs__layout-nav-link:hover {
+      color: var(--color-text-base-default);
+      text-decoration: none;
+    }
+
+    .sidebar-docs__layout-nav-link.is-current {
+      color: var(--color-text-base-default);
+      font-weight: var(--font-weight-fw-medium, 500);
+      position: relative;
+    }
+
+    .sidebar-docs__layout-nav-link.is-current::before {
+      content: "";
+      position: absolute;
+      left: calc(var(--spacing-24) * -1 - var(--border-width-1));
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: var(--black);
+    }
+
+    .sidebar-docs__layout-grid {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-40);
+    }
+
+    .sidebar-docs__layout-block {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-20);
+      scroll-margin-top: 112px;
+    }
+
+    .sidebar-docs__layout-block h3 {
+      margin: 0;
+    }
+
+    .sidebar-docs__layout-block p {
+      color: var(--color-text-base-secondary);
+      margin: 0;
+      max-width: 760px;
+    }
+
+    .sidebar-docs__layout-card {
+      border: 0;
+      border-radius: 0;
+      overflow: hidden;
+      background: var(--white);
+      box-shadow: none;
+    }
+
+    .sidebar-docs__layout-card--integrated {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      min-height: 640px;
+    }
+
+    .sidebar-docs__layout-card--dashboard {
+      display: block;
+      min-height: 720px;
+    }
+
+    .sidebar-docs__layout-rail {
+      background: var(--white);
+      border-right: var(--border-width-1) solid var(--color-border-base-default);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-self: stretch;
+      padding: var(--spacing-32);
+      gap: var(--spacing-24);
+    }
+
+    .sidebar-docs__layout-rail .sidebar {
+      max-width: none;
+      width: 100%;
+      background: var(--white);
+    }
+
+    .sidebar-docs__layout-card--integrated .sidebar-docs__layout-rail {
+      border-right: 0;
+    }
+
+    .sidebar-docs__layout-card--dashboard > .sidebar {
+      border-right: var(--border-width-1) solid var(--color-border-base-default);
+      background: var(--white);
+      align-self: stretch;
+    }
+
+    .sidebar-docs__layout-rail-copy {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-8);
+    }
+
+    .sidebar-docs__layout-rail-copy h4,
+    .sidebar-docs__layout-content h4 {
+      margin: 0;
+      font-size: var(--font-size-fs-14, 14px);
+      font-weight: var(--font-weight-fw-medium, 500);
+      line-height: var(--line-height-lh-20, 20px);
+      color: var(--color-text-base-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .sidebar-docs__layout-rail-copy p {
+      margin: 0;
+      font-size: var(--font-size-fs-14, 14px);
+      line-height: var(--line-height-lh-20, 20px);
+      color: var(--color-text-base-secondary);
+    }
+
+    .sidebar-docs__layout-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-self: stretch;
+      gap: var(--spacing-24);
+      padding: var(--spacing-32) var(--spacing-40);
+      min-width: 0;
+      background: var(--white);
+    }
+
+    .sidebar-docs__layout-content-header {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-12);
+    }
+
+    .sidebar-docs__layout-content-title {
+      margin: 0;
+      font-size: var(--font-size-fs-32, 32px);
+      font-weight: var(--font-weight-fw-medium, 500);
+      line-height: 1.15;
+    }
+
+    .sidebar-docs__layout-divider {
+      width: 100%;
+      height: 1px;
+      background: var(--color-border-base-default);
+    }
+
+    .sidebar-docs__layout-placeholder {
+      flex: 1 1 auto;
+      min-height: 360px;
+      border-radius: var(--border-radius-12);
+      background: var(--white);
+      border: var(--border-width-1) dashed rgba(18, 18, 18, 0.08);
+    }
+
+    .sidebar-docs__shell-demo {
+      min-height: 620px;
+      background: var(--gray-100);
+      padding: var(--spacing-24);
+    }
+
+    .sidebar-docs__shell-demo .e-permits-shell {
+      background: var(--white);
+      border: 0;
+      border-radius: 0;
+      overflow: hidden;
+    }
+
+    .sidebar-docs__shell-demo .e-permits-shell__body {
+      min-height: 500px;
+      background: var(--white);
+    }
+
+    .sidebar-docs__shell-demo .e-permits-shell__content {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    .sidebar-docs__shell-demo .e-permits-shell__canvas {
+      min-height: 500px;
+      padding: 24px 28px;
+    }
+
+    .sidebar-docs__shell-demo .e-permits-shell__canvas-surface {
+      max-width: none;
+      min-height: 420px;
+      border-radius: 12px;
+      background: var(--gray-100);
+      border: 0;
+    }
+
+    .sidebar-docs__shell-demo .e-permits-shell__collapse-button {
+      display: none;
+    }
+
+    .sidebar-docs__demo-grid {
+      row-gap: var(--spacing-24);
+    }
+
+    .sidebar-docs__demo {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-16);
+      min-width: 0;
+    }
+
+    .sidebar-docs__label {
+      color: var(--color-text-base-secondary);
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: var(--font-size-fs-16, 16px);
+      font-style: normal;
+      font-weight: 500;
+      letter-spacing: -0.16px;
+      line-height: var(--line-height-lh-24, 24px);
+      margin: 0;
+    }
+
+    .sidebar-docs__surface {
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      padding: 0;
+    }
+
+    .sidebar-docs__surface--menu {
+      background: var(--color-background-base-default);
+      border: var(--border-width-1) solid var(--color-border-base-default);
+      border-radius: var(--border-radius-16);
+      padding: var(--spacing-0);
+      overflow: hidden;
+    }
+
+    .sidebar-docs__surface--dashboard {
+      border: var(--border-width-1) solid var(--color-border-base-default);
+      border-radius: var(--border-radius-16);
+      overflow: hidden;
+    }
+
+    .sidebar-docs__dashboard-frame {
+      display: flex;
+      min-height: 640px;
+      background: var(--color-background-base-default);
+    }
+
+    .sidebar-docs__dashboard-canvas {
+      flex: 1 1 auto;
+      min-width: 0;
+      background: var(--gray-100);
+    }
+
+    .sidebar-docs__surface .sidebar.border-0,
+    .sidebar-docs__surface .sidebar--item-preview {
+      border: 0;
+    }
+
+    .sidebar-docs__surface > .sidebar--item-preview {
+      max-width: 336px;
+      width: 336px;
+    }
+
+    .sidebar-docs__surface--compact {
+      min-height: 0;
+      background: var(--gray-100);
+      border: 0;
+      border-radius: 0;
+      padding: var(--spacing-16);
+    }
+
+    .sidebar-docs__item-grid {
+      display: grid;
+      gap: var(--spacing-32) var(--spacing-24);
+      grid-template-columns: repeat(auto-fit, minmax(336px, 336px));
+      margin-inline: 0;
+      justify-content: flex-start;
+    }
+
+    .sidebar-docs__item-grid > [class*="col-"] {
+      margin-bottom: 0;
+      max-width: none;
+      padding-inline: 0;
+      width: auto;
+    }
+
+    .sidebar-docs__variation-grid {
+      display: grid;
+      gap: var(--spacing-32) var(--spacing-24);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-inline: 0;
+    }
+
+    .sidebar-docs__variation-grid > [class*="col-"] {
+      margin-bottom: 0;
+      max-width: none;
+      padding-inline: 0;
+      width: auto;
+    }
+
+    .sidebar-docs__variation-grid .sidebar-docs__demo {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .sidebar-docs__variation-meta {
+      color: var(--color-text-base-secondary);
+      font-size: var(--text-body-md-font-size);
+      font-weight: var(--text-body-md-font-weight);
+      line-height: var(--text-body-md-line-height);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    @media screen and (max-width: 991px) {
+      .sidebar-docs__layout-card--integrated,
+      .sidebar-docs__layout-card--dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-docs__layout-rail {
+        border-right: 0;
+        border-bottom: var(--border-width-1) solid var(--color-border-base-default);
+      }
+
+      .sidebar-docs__item-grid {
+        grid-template-columns: minmax(0, 336px);
+      }
+
+      .sidebar-docs__variation-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar-docs__surface > .sidebar--item-preview {
+        max-width: 100%;
+        width: 100%;
+      }
+    }
+  </style>
 </head>
-<body>
+<body class="sidebar-docs-page">
   <div id="site-header"></div>
-  <div class="container">
+  <div class="container sidebar-docs">
     <div class="row">
-      <div class="col-sm-7">
-         <h1>Sidebar</h1>
-        <p class="text-gray-400">
+      <div class="col-12">
+        <div class="sidebar-docs__intro">
+        <h1>Sidebar</h1>
+        <p>
           The sidebar serves as a persistent vertical navigation area, allowing users to access primary sections or features of an application or website.
           It helps organize complex interfaces by grouping related content and providing quick access to key destinations, improving overall navigation efficiency and user orientation.
         </p>
+        </div>
       </div>
     </div>
 
-    <div class="row">
-      <div class="col-12"> 
-        <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-          <h2>Breakpoints</h2> 
-        </div>
-      </div>
-    </div> 
-    <div class="row mb-32">
+    <div class="row sidebar-docs__section" id="layouts">
       <div class="col-12">
-        <p>desktop</p>
-        <aside class="sidebar" aria-label="Primary navigation">
-          <nav class="sidebar__nav">
+        <div class="sidebar-docs__section-header">
+          <h2>Layouts</h2>
+          <p class="sidebar-docs__section-copy">
+            Use the sidebar as part of a full screen composition, not only as an isolated navigation list. We support two primary layout patterns: an integrated contained sidebar inside a bounded workspace, and a dashboard sidebar attached directly to the left edge of the application shell.
+          </p>
+        </div>
 
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">
-              <div class="sidebar__heading">
-                <h2 class="sidebar__title" id="sidebar-heading-1">
-                  Heading
-                </h2>
+        <div class="sidebar-docs__layout-nav" aria-label="Sidebar layout patterns">
+          <p class="sidebar-docs__layout-nav-title">Layout patterns</p>
+          <ul class="sidebar-docs__layout-nav-list">
+            <li><a class="sidebar-docs__layout-nav-link is-current" href="#sidebar-layout-contained">Integrated layout</a></li>
+            <li><a class="sidebar-docs__layout-nav-link" href="#sidebar-layout-dashboard">Dashboard layout</a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-docs__layout-grid">
+          <article class="sidebar-docs__layout-block" id="sidebar-layout-contained">
+            <h3>Integrated layout</h3>
+            <p>
+              Use the contained sidebar when the navigation belongs to a bounded module, settings workspace, or documentation area. The sidebar keeps rounded corners and lives inside the main content container rather than attaching to the viewport edge.
+            </p>
+
+            <div class="sidebar-docs__layout-card sidebar-docs__layout-card--integrated">
+              <div class="sidebar-docs__layout-rail">
+                <div class="sidebar-docs__layout-rail-copy">
+                  <h4>Contained Navigation</h4>
+                  <p>Rounded, in-container navigation for bounded workspaces and settings surfaces.</p>
+                </div>
+
+                <aside class="sidebar sidebar--contained" aria-label="Contained workspace navigation" data-sidebar>
+                  <nav class="sidebar__nav">
+                    <section class="sidebar__section" aria-labelledby="sidebar-layout-contained-main">
+                      <div class="sidebar__heading">
+                        <h2 class="sidebar__title" id="sidebar-layout-contained-main">Management</h2>
+                      </div>
+
+                      <ul class="sidebar__list">
+                        <li class="sidebar__item">
+                          <a href="#" class="sidebar__link sidebar__link--active" aria-current="page">
+                            <span class="sidebar__icon" aria-hidden="true">
+                              <svg class="icon medium" aria-hidden="true">
+                                <use href="assets/icons/sprite.svg#icon-document-filled"></use>
+                              </svg>
+                            </span>
+                            <span class="sidebar__label">Documente</span>
+                          </a>
+                        </li>
+                        <li class="sidebar__item">
+                          <a href="#" class="sidebar__link">
+                            <span class="sidebar__icon" aria-hidden="true">
+                              <svg class="icon medium" aria-hidden="true">
+                                <use href="assets/icons/sprite.svg#icon-wallet-filled"></use>
+                              </svg>
+                            </span>
+                            <span class="sidebar__label">Taxe și plăți</span>
+                          </a>
+                        </li>
+                        <li class="sidebar__item">
+                          <a href="#" class="sidebar__link">
+                            <span class="sidebar__icon" aria-hidden="true">
+                              <svg class="icon medium" aria-hidden="true">
+                                <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                              </svg>
+                            </span>
+                            <span class="sidebar__label">Utilizatori</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </section>
+
+                    <section class="sidebar__section" aria-labelledby="sidebar-layout-contained-reference">
+                      <div class="sidebar__heading">
+                        <h2 class="sidebar__title" id="sidebar-layout-contained-reference">Reference</h2>
+                      </div>
+
+                      <ul class="sidebar__list">
+                        <li class="sidebar__item">
+                          <a href="#" class="sidebar__link">
+                            <span class="sidebar__icon" aria-hidden="true">
+                              <svg class="icon medium" aria-hidden="true">
+                                <use href="assets/icons/sprite.svg#icon-business-filled"></use>
+                              </svg>
+                            </span>
+                            <span class="sidebar__label">Instituții</span>
+                          </a>
+                        </li>
+                        <li class="sidebar__item">
+                          <a href="#" class="sidebar__link">
+                            <span class="sidebar__icon" aria-hidden="true">
+                              <svg class="icon medium" aria-hidden="true">
+                                <use href="assets/icons/sprite.svg#icon-warning-filled"></use>
+                              </svg>
+                            </span>
+                            <span class="sidebar__label">Incidente</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </section>
+                  </nav>
+                </aside>
               </div>
-              
 
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link sidebar__link--active"
-                    aria-current="page"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-group-filled"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-              </ul>
-            </section>
-
-            <!-- =========================
-                Divider
-                ========================= -->
-           
-
-            <!-- =========================
-                Section 2
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-2">
-              <div class="sidebar__heading"> 
-                <hr class="separator separator--horizontal separator--thin separator--subtle"> 
-                <h2 class="sidebar__title" id="sidebar-heading-2">
-                  Heading
-                </h2>
+              <div class="sidebar-docs__layout-content">
+                <div class="sidebar-docs__layout-content-header">
+                  <h4>Workspace Surface</h4>
+                  <h3 class="sidebar-docs__layout-content-title">Documente</h3>
+                </div>
+                <div class="sidebar-docs__layout-divider"></div>
+                <div class="sidebar-docs__layout-placeholder" aria-hidden="true"></div>
               </div>
-              
+            </div>
+          </article>
 
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
+          <article class="sidebar-docs__layout-block" id="sidebar-layout-dashboard">
+            <h3>Dashboard layout</h3>
+            <p>
+              Use the dashboard sidebar for operational back-office screens and product shells. This version attaches visually to the left edge, carries section labels and numeric badges, and acts as persistent application navigation.
+            </p>
 
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-              </ul>
-            </section>
+            <div class="sidebar-docs__layout-card sidebar-docs__layout-card--dashboard">
+              <div class="sidebar-docs__shell-demo">
+                <div class="e-permits-shell">
+                  <header class="e-permits-shell__header">
+                    <div class="e-permits-shell__header-inner">
+                      <a href="#" class="e-permits-shell__brand" aria-label="e-Permis Back Office">
+                        <div class="e-permits-shell__brand-logo">
+                          <img src="assets/logos/evo-logo.svg" alt="">
+                        </div>
+                        <div class="e-permits-shell__brand-copy">
+                          <span class="e-permits-shell__brand-name">e-Permis</span>
+                          <span class="e-permits-shell__brand-subtitle">Back Office</span>
+                        </div>
+                      </a>
 
-          </nav>
-        </aside>
+                      <div class="e-permits-shell__header-actions">
+                        <div class="e-permits-shell__header-tools" aria-label="Acțiuni rapide">
+                          <button type="button" class="e-permits-shell__icon-button" aria-label="Ajutor">
+                            <svg class="icon" aria-hidden="true" width="24" height="24">
+                              <use href="assets/icons/sprite.svg#icon-bubble-question"></use>
+                            </svg>
+                          </button>
 
+                          <button type="button" class="e-permits-shell__icon-button e-permits-shell__icon-button--notification" aria-label="Notificări">
+                            <svg class="icon" aria-hidden="true" width="24" height="24">
+                              <use href="assets/icons/sprite.svg#icon-notification"></use>
+                            </svg>
+                            <span class="e-permits-shell__notification-dot" aria-hidden="true">1</span>
+                          </button>
+                        </div>
 
-      </div>
-    </div>   
-    
-    <div class="row">
-      <div class="col-12"> 
-        <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-          <h2>Types</h2> 
+                        <button type="button" class="e-permits-shell__user-trigger" aria-label="Meniu utilizator" aria-expanded="false">
+                          <span class="e-permits-shell__user-avatar" aria-hidden="true">
+                            <img src="https://www.figma.com/api/mcp/asset/e6ec0a78-6318-45c4-9f7f-c23aae85ad5b" alt="">
+                          </span>
+                          <span class="e-permits-shell__user-copy">
+                            <span class="e-permits-shell__user-name">Anastasia Cojocaru</span>
+                            <span class="e-permits-shell__user-meta">ADM-L <span aria-hidden="true">•</span> Chișinău</span>
+                          </span>
+                          <svg class="icon e-permits-shell__user-chevron" aria-hidden="true" width="20" height="20">
+                            <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </header>
+
+                  <main class="e-permits-shell__workspace">
+                    <div class="e-permits-shell__body">
+                      <aside class="e-permits-shell__sidebar" aria-label="Navigare principală">
+                        <nav class="e-permits-shell__nav" aria-label="E-Permits">
+                          <div class="e-permits-shell__nav-group">
+                            <p class="e-permits-shell__group-label">Operațional</p>
+                            <ul class="e-permits-shell__nav-list">
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link is-active" aria-current="page" title="Acasă">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-home-line-filled"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Acasă</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Cereri">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-document"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Cereri</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">47</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Incidente">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-bubble-alert"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Incidente</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">8</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Calendar">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-calendar"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Calendar</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Rapoarte">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-chart"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Rapoarte</span>
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+
+                          <div class="e-permits-shell__nav-group">
+                            <p class="e-permits-shell__group-label">Registre &amp; date</p>
+                            <ul class="e-permits-shell__nav-list">
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Solicitanți">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-group"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Solicitanți</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">185</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Solicitanți străini">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-globe"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Solicitanți străini</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">22</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Autorități">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-business"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Autorități</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">17</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Registre">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-attachment"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Registre</span>
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+
+                          <div class="e-permits-shell__nav-group">
+                            <p class="e-permits-shell__group-label">Configurare</p>
+                            <ul class="e-permits-shell__nav-list">
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Acte permisive">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-stamp"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Acte permisive</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">142</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Taxe">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-coins"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Taxe</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">24</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Documente">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <img src="assets/icons/document.svg" alt="">
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Documente</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">84</span>
+                                </a>
+                              </li>
+                              <li>
+                                <a href="#" class="e-permits-shell__nav-link" title="Legislație">
+                                  <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                    <svg class="icon" width="20" height="20">
+                                      <use href="assets/icons/sprite.svg#icon-judge-gavel"></use>
+                                    </svg>
+                                  </span>
+                                  <span class="e-permits-shell__nav-text">Legislație</span>
+                                  <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">44</span>
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </nav>
+                      </aside>
+
+                      <section class="e-permits-shell__content" aria-label="Conținut principal">
+                        <button
+                          type="button"
+                          class="e-permits-shell__collapse-button"
+                          data-shell-toggle
+                          aria-pressed="false"
+                          aria-label="Colapsează meniul"
+                          data-tooltip-expanded="Collapse menu"
+                          data-tooltip-collapsed="Expand menu"
+                        >
+                          <span class="e-permits-shell__collapse-glyph" aria-hidden="true">
+                            <svg class="e-permits-shell__collapse-shape" xmlns="http://www.w3.org/2000/svg" width="7" height="18" viewBox="0 0 7 18" fill="none">
+                              <path
+                                class="e-permits-shell__collapse-shape-path"
+                                d="M1 17L1 9L1 1"
+                                data-default-d="M1 17L1 9L1 1"
+                                data-collapse-d="M6 15L1 8L6 1"
+                                data-expand-d="M1 15L6 8L1 1"
+                                stroke="#B2B2B2"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                              />
+                            </svg>
+                          </span>
+                          <span class="e-permits-shell__collapse-tooltip" aria-hidden="true">Collapse menu</span>
+                        </button>
+                        <div class="e-permits-shell__canvas">
+                          <div class="e-permits-shell__canvas-surface"></div>
+                        </div>
+                      </section>
+                    </div>
+                  </main>
+                </div>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12 col-md-6">
-        <p>1st-level</p>
-        <aside class="sidebar" aria-label="Primary navigation">
-          <nav class="sidebar__nav">
 
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">
-              <div class="sidebar__heading">
-                <h2 class="sidebar__title" id="sidebar-heading-1">
-                  Heading
-                </h2>
-              </div>
-              
+    <div class="row sidebar-docs__section">
+      <div class="col-12">
+        <div class="sidebar-docs__section-header">
+          <h2>List Item States</h2>
+        </div>
+      </div>
+    </div>
 
+    <div class="row sidebar__states-grid sidebar-docs__item-grid">
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+        <p class="sidebar-docs__label">default</p>
+        <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+        <aside class="sidebar sidebar--item-preview" aria-label="Primary navigation">
+          <nav class="sidebar__nav pt-0">
+            <section class="sidebar__section" aria-labelledby="sidebar-state-heading-1">
               <ul class="sidebar__list">
                 <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link sidebar__link--active"
-                    aria-current="page"
-                  >
+                  <a href="#" class="sidebar__link" aria-current="page">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-group"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Primary Label</span>
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </nav>
+        </aside>
+        </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+        <p class="sidebar-docs__label">hover</p>
+        <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+        <aside class="sidebar sidebar--item-preview" aria-label="Primary navigation">
+          <nav class="sidebar__nav pt-0">
+            <section class="sidebar__section" aria-labelledby="sidebar-state-heading-2">
+              <ul class="sidebar__list">
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link sidebar__link--state-hover" aria-current="page">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-group"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Primary Label</span>
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </nav>
+        </aside>
+        </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+        <p class="sidebar-docs__label">active</p>
+        <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+        <aside class="sidebar sidebar--item-preview" aria-label="Primary navigation">
+          <nav class="sidebar__nav pt-0">
+            <section class="sidebar__section" aria-labelledby="sidebar-state-heading-3">
+              <ul class="sidebar__list">
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link sidebar__link--active" aria-current="page">
                     <span class="sidebar__icon" aria-hidden="true">
                       <svg class="icon medium" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-group-filled"></use>
                       </svg>
                     </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
                     <span class="sidebar__label">Primary Label</span>
                   </a>
                 </li>
               </ul>
             </section>
-
-            <!-- =========================
-                Divider
-                ========================= -->
-           
-
-            <!-- =========================
-                Section 2
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-2">
-              <div class="sidebar__heading"> 
-                <hr class="separator separator--horizontal separator--thin separator--subtle"> 
-                <h2 class="sidebar__title" id="sidebar-heading-2">
-                  Heading
-                </h2>
-              </div>
-              
-
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-              </ul>
-            </section>
-
           </nav>
         </aside>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row sidebar-docs__section">
+      <div class="col-12">
+        <div class="sidebar-docs__section-header">
+          <h2>List Item Variations</h2>
+        </div>
+      </div>
+    </div>
+
+    <div class="row sidebar-docs__variation-grid">
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">icon-none</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation icon none">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-1">
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__label">Primary Label</span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
       </div>
 
-      <div class="col-12 col-md-6">
-        <p>2nd-level</p>
-        <aside class="sidebar" aria-label="Primary navigation">
-          <nav class="sidebar__nav">
-
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">
-              <div class="sidebar__heading">
-                <h2 class="sidebar__title" id="sidebar-heading-1">
-                  Heading
-                </h2>
-              </div>
-              
-
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link"
-                    aria-current="page"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                     <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <button
-                      class="sidebar__link sidebar__link--toggle"
-                      data-toggle="#submenu-1"
-                      data-scope="sidebar"
-                      data-exclusive="true"
-                      data-animation="slide"
-                      aria-expanded="true"
-                    >
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                    <span class="sidebar__chevron" aria-hidden="true">
-                      <svg class="icon large" aria-hidden="true"> 
-                        <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use> 
-                      </svg>
-                    </span>
-                  </button>
-                  <ul id="sidebar-submenu-1" class="sidebar__submenu" role="group" aria-labelledby="sidebar-toggle-1">
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">leading-icon</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation leading icon">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-2">
+                  <ul class="sidebar__list">
                     <li class="sidebar__item">
-                      <a href="#" class="sidebar__link sidebar__link--active" aria-current="page">
+                      <a href="#" class="sidebar__link">
                         <span class="sidebar__icon" aria-hidden="true">
-                          <svg class="icon medium">
-                            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
-                          </svg>
-                        </span>
-                        <span class="sidebar__label">Primary Label</span>
-                      </a>
-                    </li>
-                    <li class="sidebar__item">
-                      <a href="#" class="sidebar__link" aria-current="page">
-                        <span class="sidebar__icon" aria-hidden="true">
-                          <svg class="icon medium">
-                            <use href="assets/icons/sprite.svg#icon-group"></use>
-                          </svg>
-                        </span>
-                        <span class="sidebar__label">Primary Label</span>
-                      </a>
-                    </li>
-                    <li class="sidebar__item">
-                      <a href="#" class="sidebar__link" aria-current="page">
-                        <span class="sidebar__icon" aria-hidden="true">
-                          <svg class="icon medium">
+                          <svg class="icon medium" aria-hidden="true">
                             <use href="assets/icons/sprite.svg#icon-group"></use>
                           </svg>
                         </span>
@@ -371,370 +951,674 @@
                       </a>
                     </li>
                   </ul>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-              </ul>
-            </section>
-
-            <!-- =========================
-                Divider
-                ========================= -->
-           
-
-            <!-- =========================
-                Section 2
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-2">
-              <div class="sidebar__heading"> 
-                <hr class="separator separator--horizontal separator--thin separator--subtle"> 
-                <h2 class="sidebar__title" id="sidebar-heading-2">
-                  Heading
-                </h2>
-              </div>
-              
-
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                <li class="sidebar__item">
-                  <a href="#" class="sidebar__link">
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-              </ul>
-            </section>
-
-          </nav>
-        </aside>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-12"> 
-        <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-          <h2>List Item States</h2> 
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">secondary-label</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation secondary label">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-3">
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Primary Label</span>
+                        <span class="sidebar-docs__variation-meta">Secondary Label</span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">dropdown</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation dropdown">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-4">
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <button class="sidebar__link sidebar__link--toggle" type="button" aria-expanded="false">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Primary Label</span>
+                        <span class="sidebar__chevron" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                          </svg>
+                        </span>
+                      </button>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">tag</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation tag">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-5">
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Primary Label</span>
+                        <span class="sidebar__meta">
+                          <span class="badge badge--outlined-neutral badge--lg">Label</span>
+                        </span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">numbered-badge</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation numbered badge">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-6">
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-group"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Primary Label</span>
+                        <span class="sidebar__meta">
+                          <span class="badge badge--solid-neutral badge--lg" aria-label="1 item">24</span>
+                        </span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">notification-badge</p>
+          <div class="sidebar-docs__surface sidebar-docs__surface--compact">
+            <aside class="sidebar sidebar--item-preview" aria-label="Sidebar item variation notification badge">
+              <nav class="sidebar__nav pt-0">
+                <section class="sidebar__section" aria-labelledby="sidebar-variation-heading-7">
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Primary Label</span>
+                        <span class="sidebar__meta">
+                          <span class="badge badge--solid-notification badge--lg" aria-label="1 notification">1</span>
+                        </span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12 col-md-3">
-        <p>default</p>
-        <aside class="sidebar  border-0" aria-label="Primary navigation">
-          <nav class="sidebar__nav pt-0">
 
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">              
+    <div class="row sidebar-docs__section">
+      <div class="col-12">
+        <div class="sidebar-docs__section-header">
+          <h2>Sidebar Variants</h2>
+          <p class="sidebar-docs__section-copy">
+            Use the contained sidebar for bounded workspaces and settings surfaces. Use the dashboard sidebar for operational shells where navigation attaches to the left edge and shares the exact application body structure.
+          </p>
+        </div>
+      </div>
+    </div>
 
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link"
-                    aria-current="page"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                     <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
+    <div class="row sidebar-docs__demo-grid">
+      <div class="col-12 col-xl-5">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">contained</p>
+          <div class="sidebar-docs__surface">
+            <aside class="sidebar sidebar--contained" aria-label="Primary navigation" data-sidebar>
+              <nav class="sidebar__nav">
+                <section class="sidebar__section" aria-labelledby="sidebar-variant-contained-main">
+                  <div class="sidebar__heading">
+                    <h2 class="sidebar__title" id="sidebar-variant-contained-main">Management</h2>
+                  </div>
 
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link sidebar__link--active" aria-current="page">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-document-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Documente</span>
+                      </a>
+                    </li>
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-wallet-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Taxe și plăți</span>
+                      </a>
+                    </li>
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Utilizatori</span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
 
-                
-              </ul>
-            </section> 
+                <section class="sidebar__section" aria-labelledby="sidebar-variant-contained-reference">
+                  <div class="sidebar__heading">
+                    <hr class="separator separator--horizontal separator--thin separator--subtle">
+                    <h2 class="sidebar__title" id="sidebar-variant-contained-reference">Reference</h2>
+                  </div>
 
-          </nav>
-        </aside>
+                  <ul class="sidebar__list">
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-business-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Instituții</span>
+                      </a>
+                    </li>
+                    <li class="sidebar__item">
+                      <a href="#" class="sidebar__link">
+                        <span class="sidebar__icon" aria-hidden="true">
+                          <svg class="icon medium" aria-hidden="true">
+                            <use href="assets/icons/sprite.svg#icon-warning-filled"></use>
+                          </svg>
+                        </span>
+                        <span class="sidebar__label">Incidente</span>
+                      </a>
+                    </li>
+                  </ul>
+                </section>
+              </nav>
+            </aside>
+          </div>
+        </div>
       </div>
 
-      <div class="col-12 col-md-3">
-        <p>hover</p>
-        <aside class="sidebar  border-0" aria-label="Primary navigation">
-          <nav class="sidebar__nav pt-0">
+      <div class="col-12">
+        <div class="sidebar-docs__demo">
+          <p class="sidebar-docs__label">dashboard</p>
+          <div class="sidebar-docs__layout-card sidebar-docs__layout-card--dashboard">
+            <div class="sidebar-docs__shell-demo">
+              <div class="e-permits-shell">
+                <header class="e-permits-shell__header">
+                  <div class="e-permits-shell__header-inner">
+                    <a href="#" class="e-permits-shell__brand" aria-label="e-Permis Back Office">
+                      <div class="e-permits-shell__brand-logo">
+                        <img src="assets/logos/evo-logo.svg" alt="">
+                      </div>
+                      <div class="e-permits-shell__brand-copy">
+                        <span class="e-permits-shell__brand-name">e-Permis</span>
+                        <span class="e-permits-shell__brand-subtitle">Back Office</span>
+                      </div>
+                    </a>
 
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">              
+                    <div class="e-permits-shell__header-actions">
+                      <div class="e-permits-shell__header-tools" aria-label="Acțiuni rapide">
+                        <button type="button" class="e-permits-shell__icon-button" aria-label="Ajutor">
+                          <svg class="icon" aria-hidden="true" width="24" height="24">
+                            <use href="assets/icons/sprite.svg#icon-bubble-question"></use>
+                          </svg>
+                        </button>
 
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link"
-                    aria-current="page"
-                    style="background-color: #F5F5F5;"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
+                        <button type="button" class="e-permits-shell__icon-button e-permits-shell__icon-button--notification" aria-label="Notificări">
+                          <svg class="icon" aria-hidden="true" width="24" height="24">
+                            <use href="assets/icons/sprite.svg#icon-notification"></use>
+                          </svg>
+                          <span class="e-permits-shell__notification-dot" aria-hidden="true">1</span>
+                        </button>
+                      </div>
 
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
+                      <button type="button" class="e-permits-shell__user-trigger" aria-label="Meniu utilizator" aria-expanded="false">
+                        <span class="e-permits-shell__user-avatar" aria-hidden="true">
+                          <img src="https://www.figma.com/api/mcp/asset/e6ec0a78-6318-45c4-9f7f-c23aae85ad5b" alt="">
+                        </span>
+                        <span class="e-permits-shell__user-copy">
+                          <span class="e-permits-shell__user-name">Anastasia Cojocaru</span>
+                          <span class="e-permits-shell__user-meta">ADM-L <span aria-hidden="true">•</span> Chișinău</span>
+                        </span>
+                        <svg class="icon e-permits-shell__user-chevron" aria-hidden="true" width="20" height="20">
+                          <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </header>
 
-                
-              </ul>
-            </section> 
+                <main class="e-permits-shell__workspace">
+                  <div class="e-permits-shell__body">
+                    <aside class="e-permits-shell__sidebar" aria-label="Navigare principală">
+                      <nav class="e-permits-shell__nav" aria-label="E-Permits">
+                        <div class="e-permits-shell__nav-group">
+                          <p class="e-permits-shell__group-label">Operațional</p>
+                          <ul class="e-permits-shell__nav-list">
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link is-active" aria-current="page" title="Acasă">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-home-line-filled"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Acasă</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Cereri">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-document"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Cereri</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">47</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Incidente">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-bubble-alert"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Incidente</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">8</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Calendar">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-calendar"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Calendar</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Rapoarte">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-chart"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Rapoarte</span>
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
 
-          </nav>
-        </aside>
+                        <div class="e-permits-shell__nav-group">
+                          <p class="e-permits-shell__group-label">Registre &amp; date</p>
+                          <ul class="e-permits-shell__nav-list">
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Solicitanți">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-group"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Solicitanți</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">185</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Solicitanți străini">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-globe"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Solicitanți străini</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">22</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Autorități">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-business"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Autorități</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">17</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Registre">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-attachment"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Registre</span>
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div class="e-permits-shell__nav-group">
+                          <p class="e-permits-shell__group-label">Configurare</p>
+                          <ul class="e-permits-shell__nav-list">
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Acte permisive">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-stamp"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Acte permisive</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">142</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Taxe">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-coins"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Taxe</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">24</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Documente">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <img src="assets/icons/document.svg" alt="">
+                                </span>
+                                <span class="e-permits-shell__nav-text">Documente</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">84</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a href="#" class="e-permits-shell__nav-link" title="Legislație">
+                                <span class="e-permits-shell__nav-icon" aria-hidden="true">
+                                  <svg class="icon" width="20" height="20">
+                                    <use href="assets/icons/sprite.svg#icon-judge-gavel"></use>
+                                  </svg>
+                                </span>
+                                <span class="e-permits-shell__nav-text">Legislație</span>
+                                <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">44</span>
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+                      </nav>
+                    </aside>
+
+                    <section class="e-permits-shell__content" aria-label="Conținut principal">
+                      <button
+                        type="button"
+                        class="e-permits-shell__collapse-button"
+                        data-shell-toggle
+                        aria-pressed="false"
+                        aria-label="Colapsează meniul"
+                        data-tooltip-expanded="Collapse menu"
+                        data-tooltip-collapsed="Expand menu"
+                      >
+                        <span class="e-permits-shell__collapse-glyph" aria-hidden="true">
+                          <svg class="e-permits-shell__collapse-shape" xmlns="http://www.w3.org/2000/svg" width="7" height="18" viewBox="0 0 7 18" fill="none">
+                            <path
+                              class="e-permits-shell__collapse-shape-path"
+                              d="M1 17L1 9L1 1"
+                              data-default-d="M1 17L1 9L1 1"
+                              data-collapse-d="M6 15L1 8L6 1"
+                              data-expand-d="M1 15L6 8L1 1"
+                              stroke="#B2B2B2"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            />
+                          </svg>
+                        </span>
+                        <span class="e-permits-shell__collapse-tooltip" aria-hidden="true">Collapse menu</span>
+                      </button>
+                      <div class="e-permits-shell__canvas">
+                        <div class="e-permits-shell__canvas-surface"></div>
+                      </div>
+                    </section>
+                  </div>
+                </main>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="col-12 col-md-3">
-        <p>focus</p>
-        <aside class="sidebar  border-0" aria-label="Primary navigation">
-          <nav class="sidebar__nav pt-0">
-
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">              
-
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link"
-                    aria-current="page"
-                    style="outline: 2px solid var(--blue-sky-600); outline-style: auto;"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                      <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-
-                
-              </ul>
-            </section> 
-
-          </nav>
-        </aside>
+    <div class="row sidebar-docs__section">
+      <div class="col-12">
+        <div class="sidebar-docs__section-header">
+          <h2>Patterns</h2>
+        </div>
       </div>
+    </div>
 
-      <div class="col-12 col-md-3">
-        <p>active</p>
-        <aside class="sidebar  border-0" aria-label="Primary navigation">
-          <nav class="sidebar__nav pt-0">
-
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">              
-
+    <div class="row sidebar-docs__demo-grid">
+      <div class="col-12 col-md-6">
+        <div class="sidebar-docs__demo">
+        <p class="sidebar-docs__label">1st-level</p>
+        <div class="sidebar-docs__surface">
+        <aside class="sidebar" aria-label="Primary navigation" data-sidebar>
+          <nav class="sidebar__nav">
+            <section class="sidebar__section" aria-labelledby="sidebar-types-first-heading">
               <ul class="sidebar__list">
                 <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link sidebar__link--active"
-                    aria-current="page"
-                  >
+                  <a href="#" class="sidebar__link" aria-current="page">
                     <span class="sidebar__icon" aria-hidden="true">
                       <svg class="icon medium" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-group-filled"></use>
                       </svg>
                     </span>
-
                     <span class="sidebar__label">Primary Label</span>
                   </a>
                 </li>
-
-                
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link" aria-current="page">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Primary Label</span>
+                  </a>
+                </li>
               </ul>
-            </section> 
-
+            </section>
           </nav>
         </aside>
+        </div>
+        </div>
       </div>
-    </div>
 
-    <div class="row">
-      <div class="col-12"> 
-        <div class="mt-56 mb-32 border-bottom-1 border-bottom-solid border-gray-200">
-          <h2>List Item Types</h2> 
+      <div class="col-12 col-md-6">
+        <div class="sidebar-docs__demo">
+        <p class="sidebar-docs__label">sectioned</p>
+        <div class="sidebar-docs__surface">
+        <aside class="sidebar" aria-label="Primary navigation" data-sidebar>
+          <nav class="sidebar__nav">
+            <section class="sidebar__section" aria-labelledby="sidebar-types-main-heading">
+              <div class="sidebar__heading">
+                <h2 class="sidebar__title" id="sidebar-types-main-heading">Management</h2>
+              </div>
+
+              <ul class="sidebar__list">
+                <li class="sidebar__item sidebar__item--has-children">
+                  <button
+                    id="sidebar-types-group-documents"
+                    class="sidebar__link sidebar__link--toggle"
+                    type="button"
+                    aria-expanded="true"
+                    aria-controls="sidebar-types-panel-documents"
+                  >
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-document-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Tipuri de acte permisive</span>
+                    <span class="sidebar__chevron" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                      </svg>
+                    </span>
+                  </button>
+                  <div
+                    id="sidebar-types-panel-documents"
+                    class="sidebar__panel"
+                    role="group"
+                    aria-labelledby="sidebar-types-group-documents"
+                  >
+                    <ul class="sidebar__submenu">
+                      <li class="sidebar__item">
+                        <a href="#" class="sidebar__link">
+                          <span class="sidebar__label">Lista Taxelor</span>
+                        </a>
+                      </li>
+                      <li class="sidebar__item">
+                        <a href="#" class="sidebar__link sidebar__link--active" aria-current="page">
+                          <span class="sidebar__label">Documente însoțitoare</span>
+                        </a>
+                      </li>
+                      <li class="sidebar__item">
+                        <a href="#" class="sidebar__link">
+                          <span class="sidebar__label">Legislație</span>
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </li>
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-business-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Autorizații centrale</span>
+                  </a>
+                </li>
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-group-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Utilizatori</span>
+                  </a>
+                </li>
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-warning-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Incidente</span>
+                  </a>
+                </li>
+              </ul>
+            </section>
+
+            <section class="sidebar__section" aria-labelledby="sidebar-types-reference-heading">
+              <div class="sidebar__heading">
+                <hr class="separator separator--horizontal separator--thin separator--subtle">
+                <h2 class="sidebar__title" id="sidebar-types-reference-heading">Reference</h2>
+              </div>
+
+              <ul class="sidebar__list">
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-wallet-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Lista Taxelor</span>
+                  </a>
+                </li>
+                <li class="sidebar__item">
+                  <a href="#" class="sidebar__link">
+                    <span class="sidebar__icon" aria-hidden="true">
+                      <svg class="icon medium">
+                        <use href="assets/icons/sprite.svg#icon-document-info-filled"></use>
+                      </svg>
+                    </span>
+                    <span class="sidebar__label">Legislație</span>
+                  </a>
+                </li>
+              </ul>
+            </section>
+          </nav>
+        </aside>
+        </div>
         </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12 col-md-3">
-        <p>1st-level</p>
-        <aside class="sidebar  border-0" aria-label="Primary navigation">
-          <nav class="sidebar__nav pt-0">
-
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">              
-
-              <ul class="sidebar__list">
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link"
-                    aria-current="page"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                     <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-                <li class="sidebar__item">
-                  <a
-                    href="#"
-                    class="sidebar__link"
-                    aria-current="page"
-                  >
-                    <span class="sidebar__icon" aria-hidden="true">
-                     <svg class="icon medium" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-people"></use>
-                      </svg>
-                    </span>
-
-                    <span class="sidebar__label">Primary Label</span>
-                  </a>
-                </li>
-                
-              </ul>
-            </section> 
-
-          </nav>
-        </aside>
-      </div>
-      <div class="col-12 col-md-3">
-        <p>2nd-level</p>
-        <aside class="sidebar  border-0" aria-label="Primary navigation">
-          <nav class="sidebar__nav pt-0">
-
-            <!-- =========================
-                Section 1
-                ========================= -->
-            <section class="sidebar__section" aria-labelledby="sidebar-heading-1">              
-
-              <ul class="sidebar__list">
-
-                <!-- =========================
-                    Parent item (toggle)
-                    ========================= -->
-                <li class="sidebar__item sidebar__item--has-children">
-
-  <button
-    class="sidebar__link sidebar__link--toggle"
-    data-toggle="#sidebar-submenu-1"
-    data-animation="slide"
-    data-exclusive="true"
-    data-close="none"
-    aria-expanded="false"
-    aria-controls="sidebar-submenu-1"
-    type="button"
-  >
-    <span class="sidebar__icon" aria-hidden="true">
-      <svg class="icon small">
-        <use href="assets/icons/sprite.svg#icon-people"></use>
-      </svg>
-    </span>
-
-    <span class="sidebar__label">Primary Label</span>
-
-    <span class="sidebar__chevron" aria-hidden="true">
-      <svg class="icon small">
-        <use href="assets/icons/sprite.svg#icon-chevron-down"></use>
-      </svg>
-    </span>
-  </button>
-
-  <ul
-    id="sidebar-submenu-1"
-    class="sidebar__submenu hidden"
-    role="group"
-    aria-labelledby="sidebar-toggle-1"
-  >
-    <li class="sidebar__item">
-      <a
-        href="#"
-        class="sidebar__link sidebar__link--active"
-        aria-current="page"
-      >
-        <span class="sidebar__icon" aria-hidden="true">
-          <svg class="icon small">
-            <use href="assets/icons/sprite.svg#icon-group-filled"></use>
-          </svg>
-        </span>
-        <span class="sidebar__label">Primary Label</span>
-      </a>
-    </li>
-  </ul>
-
-</li>
-
-              </ul>
-            </section> 
-
-          </nav>
-        </aside>
-      </div>
-    </div>
-        
   </div>
 
   <div id="site-footer"></div>
 </body>
 </html>
-
-
-
-

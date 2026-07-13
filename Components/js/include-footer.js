@@ -12,9 +12,12 @@
         const placeholder = document.getElementById(placeholderId);
         if (placeholder) placeholder.remove();
 
-        // Append footer at the end of <body> to avoid being clipped by any
-        // unclosed containers in page markup.
-        document.body.insertAdjacentHTML("beforeend", xhr.responseText);
+        const slot = document.querySelector(".docs-footer-slot");
+        if (slot) {
+          slot.innerHTML = xhr.responseText;
+        } else {
+          document.body.insertAdjacentHTML("beforeend", xhr.responseText);
+        }
       } else {
         console.error("Footer include failed:", xhr.status);
       }

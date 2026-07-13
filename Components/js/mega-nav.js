@@ -63,6 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleBtn = document.querySelector('.mainNav__toggle');
   const panel = document.querySelector('.mainNav__panel');
 
+  if (!toggleBtn || !panel) return;
+
   const openMenu = () => {
     panel.hidden = false;
     panel.classList.add('is-active');
@@ -348,5 +350,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
-
 
