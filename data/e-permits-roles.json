@@ -1,0 +1,189 @@
+{
+  "defaultAssignmentId": "ansp-specialist-chisinau",
+  "groups": [
+    {
+      "id": "ansp",
+      "label": "Agenția Națională pentru Sănătate Publică (ANSP)",
+      "assignments": [
+        {
+          "id": "ansp-specialist-chisinau",
+          "roleId": "specialist",
+          "roleLabel": "Specialist",
+          "instanceLabel": "CSP Chișinău",
+          "headerMeta": "Specialist • Chișinău",
+          "menuProfile": "specialist",
+          "iconAsset": "assets/icons/sidebar-folder-shared.svg"
+        },
+        {
+          "id": "ansp-specialist-balti",
+          "roleId": "specialist",
+          "roleLabel": "Specialist",
+          "instanceLabel": "CSP Bălți",
+          "headerMeta": "Specialist • Bălți",
+          "menuProfile": "specialist",
+          "iconAsset": "assets/icons/sidebar-folder-shared.svg"
+        },
+        {
+          "id": "ansp-supervisor-chisinau",
+          "roleId": "supervisor",
+          "roleLabel": "Supervizor",
+          "instanceLabel": "CSP Chișinău",
+          "headerMeta": "Supervizor • Chișinău",
+          "menuProfile": "specialist",
+          "icon": "people"
+        },
+        {
+          "id": "ansp-central-admin",
+          "roleId": "central-admin",
+          "roleLabel": "Administrator central",
+          "instanceLabel": "Administrația centrală ANSP",
+          "headerMeta": "Administrator central • ANSP",
+          "menuProfile": "central-admin",
+          "icon": "shield-user"
+        }
+      ]
+    },
+    {
+      "id": "anta",
+      "label": "Agenția Națională Transport Auto (ANTA)",
+      "assignments": [
+        {
+          "id": "anta-specialist-chisinau",
+          "roleId": "specialist",
+          "roleLabel": "Specialist",
+          "instanceLabel": "CSP Chișinău",
+          "headerMeta": "Specialist • Chișinău",
+          "menuProfile": "specialist",
+          "iconAsset": "assets/icons/sidebar-folder-shared.svg"
+        }
+      ]
+    }
+  ],
+  "menus": {
+    "specialist": {
+      "ariaLabel": "Locul de muncă specialist",
+      "defaultItemId": "my-cases",
+      "groups": [
+        {
+          "label": "Locul de muncă",
+          "items": [
+            {
+              "id": "my-cases",
+              "label": "Dosarele mele",
+              "icon": "document",
+              "workplaceView": "mine",
+              "badgeView": "mine",
+              "badge": 33
+            },
+            {
+              "id": "unassigned",
+              "label": "Dosare nedistribuite",
+              "icon": "page-text",
+              "workplaceView": "unassigned",
+              "badgeView": "unassigned",
+              "badge": 12
+            },
+            {
+              "id": "office",
+              "label": "Dosare inițiate în oficiu",
+              "icon": "mark-all",
+              "workplaceView": "office",
+              "badgeView": "office",
+              "badge": 5
+            },
+            {
+              "id": "print",
+              "label": "Dosare spre printare",
+              "icon": "download",
+              "workplaceView": "print",
+              "badgeView": "print",
+              "badge": 8
+            }
+          ]
+        },
+        {
+          "label": "Sarcini",
+          "items": [
+            {
+              "id": "my-tasks",
+              "label": "Sarcinile mele",
+              "iconAsset": "assets/icons/admin-folder-check.svg",
+              "shellView": "sarcini-registry",
+              "badge": 10
+            }
+          ]
+        },
+        {
+          "label": "Configurare",
+          "items": [
+            {
+              "id": "permits",
+              "label": "Acte permisive",
+              "icon": "stamp",
+              "shellView": "permits-profile",
+              "badge": 142
+            }
+          ]
+        }
+      ]
+    },
+    "central-admin": {
+      "ariaLabel": "Administrare centrală",
+      "defaultItemId": "users",
+      "groups": [
+        {
+          "label": "Locul de muncă",
+          "items": [
+            {
+              "id": "work-in-progress",
+              "label": "Dosarele în lucru",
+              "iconAsset": "assets/icons/admin-folder-open.svg",
+              "shellView": "role-placeholder"
+            },
+            {
+              "id": "cases-with-alerts",
+              "label": "Dosare cu alerte",
+              "iconAsset": "assets/icons/admin-warning.svg",
+              "shellView": "role-placeholder"
+            },
+            {
+              "id": "completed-cases",
+              "label": "Dosare finalizate",
+              "iconAsset": "assets/icons/admin-folder-check.svg",
+              "shellView": "role-placeholder"
+            }
+          ]
+        },
+        {
+          "label": "Administrare",
+          "items": [
+            {
+              "id": "users",
+              "label": "Utilizatori",
+              "iconAsset": "assets/icons/admin-users.svg",
+              "shellView": "users-registry"
+            },
+            {
+              "id": "roles",
+              "label": "Roluri",
+              "iconAsset": "assets/icons/admin-shield-check.svg",
+              "shellView": "roles-registry"
+            },
+            {
+              "id": "authorities",
+              "label": "Autorități",
+              "iconAsset": "assets/icons/admin-authority.svg",
+              "shellView": "role-placeholder"
+            },
+            {
+              "id": "subdivisions",
+              "label": "Subdiviziuni",
+              "iconAsset": "assets/icons/admin-subdivision.svg",
+              "shellView": "role-placeholder"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

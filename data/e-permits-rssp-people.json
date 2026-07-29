@@ -1,0 +1,94 @@
+{
+  "people": [
+    {
+      "idnp": "2005003318852",
+      "firstName": "Ion",
+      "lastName": "Cebotaru",
+      "birthDate": "1988-04-14",
+      "phone": "+373 60 999 999",
+      "email": "ion.cebotaru@mnotify.gov.md",
+      "additionalInfo": ""
+    },
+    {
+      "idnp": "2006014519273",
+      "firstName": "Maria",
+      "lastName": "Balan",
+      "birthDate": "1991-09-22",
+      "phone": "+373 68 245 730",
+      "email": "maria.balan@mnotify.gov.md",
+      "additionalInfo": "Preferă contactul prin e-mail."
+    },
+    {
+      "idnp": "2007025620384",
+      "firstName": "Victor",
+      "lastName": "Rusu",
+      "birthDate": "1985-02-03",
+      "phone": "+373 69 410 825",
+      "email": "victor.rusu@mnotify.gov.md",
+      "additionalInfo": ""
+    },
+    {
+      "idnp": "2008036731495",
+      "firstName": "Elena",
+      "lastName": "Ceban",
+      "birthDate": "1994-07-18",
+      "phone": "+373 67 358 914",
+      "email": "elena.ceban@mnotify.gov.md",
+      "additionalInfo": "Disponibilă în intervalul 09:00–17:00."
+    },
+    {
+      "idnp": "2009047842506",
+      "firstName": "Sergiu",
+      "lastName": "Moraru",
+      "birthDate": "1989-11-27",
+      "phone": "+373 60 725 438",
+      "email": "sergiu.moraru@mnotify.gov.md",
+      "additionalInfo": ""
+    },
+    {
+      "idnp": "2010058953617",
+      "firstName": "Natalia",
+      "lastName": "Rotaru",
+      "birthDate": "1993-05-09",
+      "phone": "+373 79 604 312",
+      "email": "natalia.rotaru@mnotify.gov.md",
+      "additionalInfo": ""
+    }
+  ],
+  "roles": [
+    { "id": "specialist", "label": "Specialist" },
+    { "id": "supervisor", "label": "Supervizor" },
+    { "id": "local-admin", "label": "Administrator local" },
+    { "id": "registry-operator", "label": "Operator registru" },
+    { "id": "auditor", "label": "Auditor" }
+  ],
+  "authorities": [
+    {
+      "id": "ansp",
+      "label": "Agenția Națională pentru Sănătate Publică",
+      "subdivisions": [
+        { "id": "ansp-central", "label": "Administrația centrală ANSP" },
+        { "id": "csp-chisinau", "label": "CSP Chișinău" },
+        { "id": "csp-balti", "label": "CSP Bălți" },
+        { "id": "csp-cahul", "label": "CSP Cahul" }
+      ]
+    },
+    {
+      "id": "anta",
+      "label": "Agenția Națională Transport Auto",
+      "subdivisions": [
+        { "id": "anta-central", "label": "Administrația centrală ANTA" },
+        { "id": "anta-nord", "label": "Direcția regională Nord" },
+        { "id": "anta-sud", "label": "Direcția regională Sud" }
+      ]
+    },
+    {
+      "id": "asp",
+      "label": "Agenția Servicii Publice",
+      "subdivisions": [
+        { "id": "asp-central", "label": "Aparatul central ASP" },
+        { "id": "asp-chisinau", "label": "Centrul multifuncțional Chișinău" }
+      ]
+    }
+  ]
+}

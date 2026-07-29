@@ -1,0 +1,703 @@
+{
+  "kind": "users",
+  "fieldCount": 48,
+  "totalRows": 56,
+  "columns": {
+    "numeComplet": {
+      "label": "Nume complet",
+      "width": 204,
+      "sticky": true
+    },
+    "idnp": {
+      "label": "IDNP",
+      "width": 132
+    },
+    "email": {
+      "label": "Adresa e-mail",
+      "width": 250
+    },
+    "status": {
+      "label": "Statut",
+      "width": 101
+    },
+    "roluri": {
+      "label": "Roluri",
+      "width": 245
+    },
+    "subdiviziune": {
+      "label": "Subdiviziuni",
+      "width": 134
+    },
+    "ultimaConectare": {
+      "label": "Ultima conectare",
+      "width": 153,
+      "sortable": true
+    },
+    "ultimaActualizare": {
+      "label": "Ultimei actualizări",
+      "width": 153,
+      "sortable": true
+    }
+  },
+  "views": {
+    "users": {
+      "title": "Utilizatori",
+      "columns": [
+        "numeComplet",
+        "idnp",
+        "email",
+        "status",
+        "roluri",
+        "subdiviziune",
+        "ultimaConectare",
+        "ultimaActualizare"
+      ],
+      "selectable": false,
+      "emptyMessage": "Nu sunt utilizatori pentru filtrul curent."
+    }
+  },
+  "profile": {
+    "tabs": [
+      {
+        "id": "general",
+        "label": "Date generale",
+        "icon": "page-text"
+      },
+      {
+        "id": "roles",
+        "label": "Combinații de roluri"
+      },
+      {
+        "id": "permissions",
+        "label": "Permisiuni",
+        "countKey": "permissionsCount"
+      },
+      {
+        "id": "delegations",
+        "label": "Delegări",
+        "countKey": "delegationsCount"
+      },
+      {
+        "id": "events",
+        "label": "Jurnal de evenimente"
+      }
+    ],
+    "sections": [
+      {
+        "id": "identification",
+        "title": "Date de identificare",
+        "fields": [
+          {
+            "key": "numeComplet",
+            "label": "Nume complet",
+            "type": "text",
+            "editable": false
+          },
+          {
+            "key": "idnp",
+            "label": "IDNP (Login)",
+            "type": "code",
+            "editable": false,
+            "copyable": true
+          },
+          {
+            "key": "autoritate",
+            "label": "Autoritatea",
+            "type": "authority",
+            "editable": true
+          },
+          {
+            "key": "functie",
+            "label": "Funcția",
+            "type": "text",
+            "editable": true
+          },
+          {
+            "key": "comentarii",
+            "label": "Comentarii",
+            "type": "textarea",
+            "editable": true,
+            "emptyValue": "--"
+          },
+          {
+            "key": "status",
+            "label": "Statut",
+            "type": "status",
+            "editable": false
+          }
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Date de contact",
+        "fields": [
+          {
+            "key": "email",
+            "label": "Adresa e-mail",
+            "type": "email",
+            "editable": false
+          },
+          {
+            "key": "telefon",
+            "label": "Telefon",
+            "type": "phone",
+            "editable": false
+          },
+          {
+            "key": "informatiiAditionale",
+            "label": "Informații adiționale",
+            "type": "textarea",
+            "editable": true,
+            "emptyValue": "--"
+          }
+        ]
+      }
+    ],
+    "authorities": [
+      {
+        "id": "ansp",
+        "label": "Agenția Națională pentru Sănătate Publică (ANSP)",
+        "shortLabel": "ANSP"
+      },
+      {
+        "id": "anta",
+        "label": "Agenția Națională Transport Auto (ANTA)",
+        "shortLabel": "ANTA"
+      },
+      {
+        "id": "asp",
+        "label": "Agenția Servicii Publice (ASP)",
+        "shortLabel": "ASP"
+      }
+    ],
+    "roleOptions": [
+      "Specialist",
+      "Specialist ghișeu",
+      "Supervizor",
+      "Expert",
+      "Asistent tehnic",
+      "Operator registru",
+      "Auditor",
+      "Administrator local",
+      "Director"
+    ],
+    "subdivisionsByAuthority": {
+      "ansp": [
+        "CSP Chișinău",
+        "CSP Bălți",
+        "CSP Cahul",
+        "CSP Comrat",
+        "CSP Orhei",
+        "Oficiul Central"
+      ],
+      "anta": [
+        "Direcția transport Chișinău",
+        "Direcția transport Nord",
+        "Direcția transport Sud"
+      ],
+      "asp": [
+        "Serviciul central ASP",
+        "Oficiul teritorial Chișinău"
+      ]
+    },
+    "permissionCatalog": {
+      "groups": [
+        {
+          "id": "dosare",
+          "label": "Dosare",
+          "permissions": [
+            {
+              "id": "d1",
+              "label": "Vizualizarea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d2",
+              "label": "Crearea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d3",
+              "label": "Editarea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d4",
+              "label": "Repartizarea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d5",
+              "label": "Examinarea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d6",
+              "label": "Suspendarea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d7",
+              "label": "Arhivarea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "d8",
+              "label": "Exportul dosarelor",
+              "role": "Specialist"
+            }
+          ]
+        },
+        {
+          "id": "plati",
+          "label": "Plăți",
+          "permissions": [
+            {
+              "id": "p1",
+              "label": "Vizualizarea conturilor de plată",
+              "role": "Specialist"
+            },
+            {
+              "id": "p2",
+              "label": "Generarea facturilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "p3",
+              "label": "Confirmarea plăților",
+              "role": "Specialist"
+            },
+            {
+              "id": "p4",
+              "label": "Restituirea plăților",
+              "role": "Specialist"
+            }
+          ]
+        },
+        {
+          "id": "avizare",
+          "label": "Avizare",
+          "permissions": [
+            {
+              "id": "av1",
+              "label": "Solicitarea avizelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "av2",
+              "label": "Examinarea avizelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "av3",
+              "label": "Emiterea avizelor",
+              "role": "Specialist"
+            }
+          ]
+        },
+        {
+          "id": "decizii",
+          "label": "Decizii",
+          "permissions": [
+            {
+              "id": "de1",
+              "label": "Elaborarea proiectelor de decizie",
+              "role": "Specialist"
+            },
+            {
+              "id": "de2",
+              "label": "Coordonarea deciziilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "de3",
+              "label": "Semnarea deciziilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "de4",
+              "label": "Anularea deciziilor",
+              "role": "Specialist"
+            }
+          ]
+        },
+        {
+          "id": "sarcini",
+          "label": "Sarcini",
+          "permissions": [
+            {
+              "id": "s1",
+              "label": "Vizualizarea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s2",
+              "label": "Crearea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s3",
+              "label": "Atribuirea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s4",
+              "label": "Aprobarea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s5",
+              "label": "Respingerea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s6",
+              "label": "Radierea actelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s7",
+              "label": "Redeschiderea dosarelor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s8",
+              "label": "Anularea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s9",
+              "label": "Prioritizarea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s10",
+              "label": "Comentarea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s11",
+              "label": "Delegarea sarcinilor",
+              "role": "Specialist"
+            },
+            {
+              "id": "s12",
+              "label": "Închiderea sarcinilor",
+              "role": "Specialist"
+            }
+          ]
+        },
+        {
+          "id": "administrare",
+          "label": "Administrare",
+          "permissions": [
+            {
+              "id": "adm1",
+              "label": "Vizualizarea utilizatorilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm2",
+              "label": "Crearea utilizatorilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm3",
+              "label": "Editarea utilizatorilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm4",
+              "label": "Inactivarea utilizatorilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm5",
+              "label": "Gestionarea rolurilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm6",
+              "label": "Atribuirea permisiunilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm7",
+              "label": "Gestionarea autorităților",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm8",
+              "label": "Gestionarea subdiviziunilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm9",
+              "label": "Configurarea serviciilor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm10",
+              "label": "Gestionarea formularelor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm11",
+              "label": "Gestionarea șabloanelor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm12",
+              "label": "Configurarea proceselor",
+              "role": "Administrator local"
+            },
+            {
+              "id": "adm13",
+              "label": "Gestionarea integrărilor",
+              "role": "Administrator local"
+            }
+          ]
+        },
+        {
+          "id": "audit",
+          "label": "Audit",
+          "permissions": [
+            {
+              "id": "au1",
+              "label": "Vizualizarea jurnalului de audit",
+              "role": "Auditor"
+            },
+            {
+              "id": "au2",
+              "label": "Exportul jurnalului de audit",
+              "role": "Auditor"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "users": [
+    {
+      "numeComplet": "Mihai Grosu",
+      "initiale": "MG",
+      "idnp": "2000002238471",
+      "email": "mihai.grosu@ansp.gov.md",
+      "telefon": "+373 61 167348",
+      "status": "Activ",
+      "roluri": [
+        "Specialist",
+        "Specialist ghișeu"
+      ],
+      "autoritateId": "ansp",
+      "autoritate": "Agenția Națională pentru Sănătate Publică (ANSP)",
+      "autoritateScurta": "ANSP",
+      "functie": "Specialist",
+      "comentarii": "",
+      "informatiiAditionale": "Persoană de contact în lipsă: Elena Caragia (secretariat). Nu răspund la telefon în zilele de audit.",
+      "subdiviziune": "CSP Chișinău",
+      "permissionsCount": 14,
+      "delegationsCount": 1,
+      "ultimaConectare": "2026-05-31",
+      "ultimaConectareRelativ": "acum 1 zi",
+      "ultimaActualizare": "2026-05-31",
+      "roleCombinations": [
+        {
+          "role": "Specialist",
+          "authorityShort": "ANSP",
+          "subdivision": "CSP Chișinău",
+          "permissionCount": 11
+        },
+        {
+          "role": "Specialist ghișeu",
+          "authorityShort": "ANSP",
+          "subdivision": "CSP Cahul",
+          "permissionCount": 11
+        }
+      ],
+      "grantedPermissions": [
+        "d1",
+        "d2",
+        "d3",
+        "d4",
+        "d5",
+        "d6",
+        "d7",
+        "d8",
+        "p1",
+        "p3",
+        "av1",
+        "de1",
+        "de2",
+        "de3",
+        "de4",
+        "s1",
+        "s2",
+        "s3",
+        "s4",
+        "s5",
+        "s6",
+        "s7",
+        "s8",
+        "s9",
+        "s10",
+        "s11",
+        "s12",
+        "au1",
+        "au2"
+      ]
+    },
+    {
+      "numeComplet": "Valeriu Mănăscrută",
+      "initiale": "VM",
+      "idnp": "2118421010044",
+      "email": "valeriu.manascruta@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "Specialist"
+      ],
+      "subdiviziune": "CSP Chișinău",
+      "ultimaConectare": "2026-04-30",
+      "ultimaConectareRelativ": "acum 1 zi",
+      "ultimaActualizare": "2026-04-30"
+    },
+    {
+      "numeComplet": "Andrei Munteanu",
+      "initiale": "AM",
+      "idnp": "2118421010045",
+      "email": "andrei.munteanu@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "Supervizor",
+        "Administrator local"
+      ],
+      "subdiviziune": "Direcția Chișinău",
+      "ultimaConectare": "2026-05-31",
+      "ultimaConectareRelativ": "acum 1 zi",
+      "ultimaActualizare": "2026-05-31"
+    },
+    {
+      "numeComplet": "Irina Rusu",
+      "initiale": "IR",
+      "idnp": "2118421010046",
+      "email": "irina.rusu@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "Supervizor",
+        "Specialist ghișeu",
+        "Operator registru",
+        "Auditor",
+        "Coordonator"
+      ],
+      "subdiviziune": "CSP Chișinău",
+      "ultimaConectare": "2026-05-31",
+      "ultimaConectareRelativ": "acum 1 zi",
+      "ultimaActualizare": "2026-05-31"
+    },
+    {
+      "numeComplet": "Sergiu Bălăceanu",
+      "initiale": "SB",
+      "idnp": "2118421010047",
+      "email": "sergiu.balaceanu@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "Manager",
+        "Operational Support"
+      ],
+      "subdiviziune": "CSP Chișinău",
+      "ultimaConectare": "2026-04-30",
+      "ultimaConectareRelativ": "acum 5 zile",
+      "ultimaActualizare": "2026-04-30"
+    },
+    {
+      "numeComplet": "Carmen Toma",
+      "initiale": "CT",
+      "idnp": "2118421010048",
+      "email": "carmen.toma@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "Lead Developer",
+        "Technical Team"
+      ],
+      "subdiviziune": "Direcția Chișinău",
+      "ultimaConectare": "2026-04-30",
+      "ultimaConectareRelativ": "acum 10 zile",
+      "ultimaActualizare": "2026-04-30"
+    },
+    {
+      "numeComplet": "Dumitru Gheorghe",
+      "initiale": "DG",
+      "idnp": "2118421010049",
+      "email": "dumitru.gheorghe@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "HR Specialist",
+        "Employee Relations"
+      ],
+      "subdiviziune": "Direcția Chișinău",
+      "ultimaConectare": "2026-04-30",
+      "ultimaConectareRelativ": "acum 1 oră",
+      "ultimaActualizare": "2026-04-30"
+    },
+    {
+      "numeComplet": "Laura Mihăescu",
+      "initiale": "LM",
+      "idnp": "2118421010050",
+      "email": "laura.mihaescu@ansp.gov.md",
+      "status": "Activ",
+      "roluri": [
+        "Marketing Director",
+        "Comunicare"
+      ],
+      "subdiviziune": "Direcția Chișinău",
+      "ultimaConectare": "2026-04-30",
+      "ultimaConectareRelativ": "acum 1 oră",
+      "ultimaActualizare": "2026-04-30"
+    }
+  ],
+  "generator": {
+    "firstNames": [
+      "Ana",
+      "Mihai",
+      "Elena",
+      "Victor",
+      "Natalia",
+      "Pavel",
+      "Cristina"
+    ],
+    "lastNames": [
+      "Ceban",
+      "Lupu",
+      "Bivol",
+      "Grosu",
+      "Cojocaru",
+      "Moraru",
+      "Rotaru"
+    ],
+    "roles": [
+      [
+        "Specialist"
+      ],
+      [
+        "Specialist ghișeu"
+      ],
+      [
+        "Supervizor",
+        "Specialist"
+      ],
+      [
+        "Administrator local"
+      ],
+      [
+        "Operator registru",
+        "Auditor"
+      ]
+    ],
+    "subdivisions": [
+      "CSP Chișinău",
+      "Direcția Chișinău",
+      "CSP Bălți",
+      "CSP Cahul"
+    ]
+  }
+}

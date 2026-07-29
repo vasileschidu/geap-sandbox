@@ -65,6 +65,7 @@
     const frontOfficeAvatarMenu = document.querySelector("[data-fo-avatar-menu]");
     const frontOfficeAvatarTrigger = document.querySelector("[data-fo-avatar-trigger]");
     const frontOfficeAvatarDropdown = document.querySelector("[data-fo-avatar-dropdown]");
+    const frontOfficeInstanceSwitchModal = document.querySelector("[data-fo-instance-switch-modal]");
     const frontOfficeScriptSrc = document.querySelector("script[src*='e-permits-acte-permisive.js']")?.src || "";
     let frontOfficeSchema = null;
     let frontOfficeSchemaLoadPromise = null;
@@ -76,6 +77,7 @@
     let frontOfficeDraftCreated = false;
     let frontOfficeDraftSavedAt = null;
     let frontOfficeDraftInfoDismissed = false;
+    let frontOfficeInstanceSwitchReturnFocus = null;
     const dropdownMotionTimers = new WeakMap();
 
     function setDropdownHidden(element, shouldHide) {
@@ -241,6 +243,52 @@
     function toggleFrontOfficeAvatarMenu() {
       const isOpen = frontOfficeAvatarMenu?.classList.contains("is-open");
       setFrontOfficeAvatarMenuOpen(!isOpen);
+    }
+
+    function resetFrontOfficeDraftState() {
+      frontOfficeDraftCreated = false;
+      frontOfficeDraftSavedAt = null;
+      frontOfficeDraftInfoDismissed = false;
+      updateFrontOfficeRequestHeaders();
+    }
+
+    function setFrontOfficeInstanceSwitchModalOpen(isOpen, { restoreFocus = true } = {}) {
+      if (!frontOfficeInstanceSwitchModal) return;
+      if (isOpen) {
+        frontOfficeInstanceSwitchReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        frontOfficeInstanceSwitchModal.hidden = false;
+        frontOfficeInstanceSwitchModal.querySelector(".e-permits-fo-instance-switch-modal__secondary")?.focus({ preventScroll: true });
+        return;
+      }
+
+      frontOfficeInstanceSwitchModal.hidden = true;
+      if (restoreFocus) {
+        const focusTarget = frontOfficeInstanceSwitchReturnFocus || frontOfficeAvatarTrigger;
+        focusTarget?.focus?.({ preventScroll: true });
+      }
+      frontOfficeInstanceSwitchReturnFocus = null;
+    }
+
+    function openFrontOfficeInstanceSwitchModal() {
+      setFrontOfficeAvatarMenuOpen(false);
+      setFrontOfficeInstanceSwitchModalOpen(true);
+    }
+
+    function confirmFrontOfficeInstanceSwitch() {
+      setFrontOfficeInstanceSwitchModalOpen(false, { restoreFocus: false });
+      resetFrontOfficeDraftState();
+      if (window.location.hash !== "#choice") {
+        history.replaceState(null, "", "#choice");
+      }
+      showFrontOfficeChoice();
+    }
+
+    function requestFrontOfficeInstanceSwitch({ forceChoice = false } = {}) {
+      if (frontOfficeDraftCreated || forceChoice) {
+        openFrontOfficeInstanceSwitchModal();
+        return false;
+      }
+      return true;
     }
 
     function updateFrontOfficeAvatarMenuScrollState() {
@@ -1519,7 +1567,6 @@
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
-              <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Date solicitant" data-fo-prev="step-2"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
               <button class="e-permits-fo-next" type="button" data-fo-next="step-2"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
             </div>
           </div>
@@ -2785,9 +2832,25 @@
       const roleButton = event.target.closest("[data-fo-avatar-role]");
       if (!roleButton) return;
       event.preventDefault();
-      const selected = selectFrontOfficeSubject(roleButton.dataset.foSubjectId);
+      const subjectId = roleButton.dataset.foSubjectId;
+      if (subjectId && subjectId !== frontOfficeSelectedSubject?.id && !requestFrontOfficeInstanceSwitch()) return;
+      const selected = selectFrontOfficeSubject(subjectId);
       if (selected) {
         setFrontOfficeAvatarMenuOpen(false);
+      }
+    });
+
+    frontOfficeInstanceSwitchModal?.addEventListener("click", (event) => {
+      const cancelButton = event.target.closest("[data-fo-instance-switch-cancel]");
+      const confirmButton = event.target.closest("[data-fo-instance-switch-confirm]");
+      if (cancelButton || event.target === frontOfficeInstanceSwitchModal) {
+        event.preventDefault();
+        setFrontOfficeInstanceSwitchModalOpen(false);
+        return;
+      }
+      if (confirmButton) {
+        event.preventDefault();
+        confirmFrontOfficeInstanceSwitch();
       }
     });
 
@@ -2819,6 +2882,11 @@
     });
 
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && frontOfficeInstanceSwitchModal && !frontOfficeInstanceSwitchModal.hidden) {
+        event.preventDefault();
+        setFrontOfficeInstanceSwitchModalOpen(false);
+        return;
+      }
       if (event.key !== "Escape" || !frontOfficeAvatarMenu?.classList.contains("is-open")) return;
       setFrontOfficeAvatarMenuOpen(false);
       frontOfficeAvatarTrigger?.focus();
@@ -2853,6 +2921,7 @@
       const button = event.target.closest("[data-fo-back-choice]");
       if (!button) return;
       event.preventDefault();
+      if (!requestFrontOfficeInstanceSwitch()) return;
       if (window.location.hash !== "#choice") {
         history.replaceState(null, "", "#choice");
       }
@@ -2882,8 +2951,9 @@
         showFrontOfficeRequest({ step: 3 });
       }
       if (action === "step-2" && prev) {
-        if (window.location.hash !== "#request") history.replaceState(null, "", "#request");
-        showFrontOfficeRequest({ step: 1 });
+        event.preventDefault();
+        if (window.location.hash !== "#request-step-2") history.replaceState(null, "", "#request-step-2");
+        showFrontOfficeRequest({ step: 2 });
       }
       if (action === "step-3" && next) {
         saveFrontOfficeDraft();
