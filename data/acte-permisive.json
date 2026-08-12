@@ -496,7 +496,7 @@
         {
           "index": 2,
           "id": "service-details",
-          "label": "Detalii serviciu",
+          "label": "Detalii solicitare",
           "title": "Detalii serviciu",
           "sections": [
             {
@@ -580,7 +580,7 @@
         {
           "index": 3,
           "id": "supporting-documents",
-          "label": "Documente însoțitoare",
+          "label": "Acte necesare",
           "title": "Documente însoțitoare",
           "documents": [
             {
@@ -641,17 +641,35 @@
           "id": "review-sign",
           "label": "Verificare și semnare",
           "title": "Verificare și semnare",
-          "signing": {
-            "title": "Semnarea cererii",
-            "documentTitle": "Cererea care urmează să fie semnată",
-            "status": "Necesită semnătură",
-            "number": "C000000/2026",
-            "date": "01.01.2026",
-            "provider": "msign"
+          "signatureMode": "metadata"
+        },
+        {
+          "index": 5,
+          "id": "delivery",
+          "label": "Livrare",
+          "title": "Livrare",
+          "sectionTitle": "Cum primești actul permisiv?",
+          "options": [
+            {
+              "id": "evo-cabinet",
+              "title": "Livrare electronică (EVO Cabinet)",
+              "description": "Actul semnat electronic apare instant în EVO Cabinet → Fișierele mele.",
+              "logo": "assets/logos/evo-logo.svg",
+              "selected": true,
+              "badges": [
+                { "label": "Gratuit", "tone": "outline" },
+                { "label": "100% digital", "tone": "positive" }
+              ]
+            }
+          ],
+          "paperCopy": {
+            "label": "Am nevoie și de o copie pe suport de hârtie",
+            "description": "Opțional. De obicei nu e necesar — varianta electronică are aceeași valoare juridică.",
+            "selected": false
           }
         },
-        { "index": 5, "id": "payment", "label": "Plată" },
-        { "index": 6, "id": "finish", "label": "Finalizare" }
+        { "index": 6, "id": "payment", "label": "Plată" },
+        { "index": 7, "id": "finish", "label": "Finalizare" }
       ],
       "forms": {
         "builderSeedFormId": "form-commerce-notification"

@@ -641,14 +641,7 @@
           "id": "review-sign",
           "label": "Verificare și semnare",
           "title": "Verificare și semnare",
-          "signing": {
-            "title": "Semnarea cererii",
-            "documentTitle": "Cererea care urmează să fie semnată",
-            "status": "Necesită semnătură",
-            "number": "C000000/2026",
-            "date": "01.01.2026",
-            "provider": "msign"
-          }
+          "signatureMode": "metadata"
         },
         { "index": 5, "id": "payment", "label": "Plată" },
         { "index": 6, "id": "finish", "label": "Finalizare" }

@@ -36,7 +36,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#request", "#request-step-2", "#request-step-3", "#request-step-4"].includes(window.location.hash)) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#request", "#request-step-2", "#request-step-3", "#request-step-4", "#request-step-5"].includes(window.location.hash)) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -65,12 +65,12 @@
     const frontOfficeAvatarMenu = document.querySelector("[data-fo-avatar-menu]");
     const frontOfficeAvatarTrigger = document.querySelector("[data-fo-avatar-trigger]");
     const frontOfficeAvatarDropdown = document.querySelector("[data-fo-avatar-dropdown]");
+    const frontOfficeHeaderDraft = document.querySelector("[data-fo-header-draft]");
     const frontOfficeInstanceSwitchModal = document.querySelector("[data-fo-instance-switch-modal]");
     const frontOfficeScriptSrc = document.querySelector("script[src*='e-permits-acte-permisive.js']")?.src || "";
     let frontOfficeSchema = null;
     let frontOfficeSchemaLoadPromise = null;
     let frontOfficeSelectedSubject = null;
-    let frontOfficeStep4Signed = false;
     let frontOfficeToastTimer = null;
     let frontOfficeSubjectLoadTimer = null;
     let frontOfficeSubjectLoadToken = 0;
@@ -79,6 +79,7 @@
     let frontOfficeDraftInfoDismissed = false;
     let frontOfficeInstanceSwitchReturnFocus = null;
     const dropdownMotionTimers = new WeakMap();
+    const modalMotionTimers = new WeakMap();
 
     function setDropdownHidden(element, shouldHide) {
       if (!element) return;
@@ -104,6 +105,30 @@
       dropdownMotionTimers.set(element, timer);
     }
 
+    function setMotionModalHidden(element, shouldHide, duration = 135) {
+      if (!element) return;
+      const existingTimer = modalMotionTimers.get(element);
+      if (existingTimer) {
+        window.clearTimeout(existingTimer);
+        modalMotionTimers.delete(element);
+      }
+
+      if (!shouldHide) {
+        element.classList.remove("is-closing");
+        element.hidden = false;
+        return;
+      }
+
+      if (element.hidden) return;
+      element.classList.add("is-closing");
+      const timer = window.setTimeout(() => {
+        element.hidden = true;
+        element.classList.remove("is-closing");
+        modalMotionTimers.delete(element);
+      }, duration);
+      modalMotionTimers.set(element, timer);
+    }
+
     function escapeFrontOfficeHtml(value) {
       return String(value ?? "")
         .replace(/&/g, "&amp;")
@@ -119,12 +144,12 @@
     }
 
     function showFrontOfficeToast(message = "Schița a fost salvată.") {
-      document.querySelectorAll("[data-fo-toast]").forEach((toast) => toast.remove());
+      document.querySelectorAll('[data-fo-toast="transient"]').forEach((toast) => toast.remove());
       if (frontOfficeToastTimer) window.clearTimeout(frontOfficeToastTimer);
 
       const toast = document.createElement("div");
       toast.className = "e-permits-fo-toast e-permits-fo-toast--success";
-      toast.dataset.foToast = "true";
+      toast.dataset.foToast = "transient";
       toast.setAttribute("role", "status");
       toast.setAttribute("aria-live", "polite");
       toast.innerHTML = `
@@ -147,7 +172,39 @@
       });
 
       document.body.appendChild(toast);
+      const persistentToast = document.querySelector('[data-fo-toast="draft-created"]');
+      if (persistentToast) {
+        toast.style.setProperty("--fo-toast-top", `${32 + persistentToast.offsetHeight + 12}px`);
+      }
       frontOfficeToastTimer = window.setTimeout(() => dismissFrontOfficeToast(toast), 4000);
+    }
+
+    function showFrontOfficeDraftCreatedToast() {
+      if (document.querySelector('[data-fo-toast="draft-created"]')) return;
+
+      const toast = document.createElement("div");
+      toast.className = "e-permits-fo-toast e-permits-fo-toast--inverse";
+      toast.dataset.foToast = "draft-created";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.innerHTML = `
+        <span class="e-permits-fo-toast__icon" aria-hidden="true">
+          <svg class="icon" width="20" height="20">
+            <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-success"></use>
+          </svg>
+        </span>
+        <span class="e-permits-fo-toast__text">
+          <strong>Cererea a fost creată ca schiță</strong> și poate fi accesată în
+          <a href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a>.
+        </span>
+        <button class="e-permits-fo-toast__close" type="button" aria-label="Închide notificarea">
+          <svg class="icon" width="16" height="16" aria-hidden="true">
+            <use href="assets/icons/sprite.svg#icon-cross-large"></use>
+          </svg>
+        </button>
+      `;
+      toast.querySelector(".e-permits-fo-toast__close")?.addEventListener("click", () => dismissFrontOfficeToast(toast));
+      document.body.appendChild(toast);
     }
 
     function frontOfficeTimeLabel(date = new Date()) {
@@ -158,43 +215,33 @@
       }).format(date);
     }
 
+    function updateFrontOfficeHeaderDraft() {
+      if (!frontOfficeHeaderDraft) return;
+      const shouldShow = frontOfficeDraftCreated && frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden;
+      frontOfficeHeaderDraft.hidden = !shouldShow;
+      if (!shouldShow) {
+        frontOfficeHeaderDraft.innerHTML = "";
+        return;
+      }
+
+      frontOfficeHeaderDraft.innerHTML = `
+        <span class="e-permits-fo-draft-status__saved">
+          <svg class="icon" width="16" height="16" aria-hidden="true">
+            <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-success"></use>
+          </svg>
+          <span class="e-permits-fo-draft-status__label">Salvat ca schiță</span>
+        </span>
+        <a class="e-permits-fo-draft-status__link" href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a>
+        <span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span>
+        <time class="e-permits-fo-draft-status__time" datetime="${frontOfficeDraftSavedAt ? frontOfficeDraftSavedAt.toISOString() : ""}" data-fo-draft-time>
+          ${escapeFrontOfficeHtml(frontOfficeTimeLabel(frontOfficeDraftSavedAt || new Date()))}
+        </time>
+      `;
+    }
+
     function requestHeaderHtml({ id, title }) {
-      const draftStatus = frontOfficeDraftCreated ? `
-        <div class="e-permits-fo-draft-status" aria-label="Starea schiței">
-          <span class="e-permits-fo-draft-status__saved">
-            <svg class="icon" width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span>Salvat ca schiță</span>
-          </span>
-          <span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span>
-          <time class="e-permits-fo-draft-status__time" datetime="${frontOfficeDraftSavedAt ? frontOfficeDraftSavedAt.toISOString() : ""}" data-fo-draft-time>
-            ${escapeFrontOfficeHtml(frontOfficeTimeLabel(frontOfficeDraftSavedAt || new Date()))}
-          </time>
-          <span class="e-permits-fo-draft-status__separator" aria-hidden="true"></span>
-          <a class="e-permits-fo-draft-status__link" href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a>
-        </div>
-      ` : "";
-      const draftInfo = frontOfficeDraftCreated && !frontOfficeDraftInfoDismissed ? `
-        <div class="e-permits-fo-draft-info" role="note" data-fo-draft-info>
-          <span class="e-permits-fo-draft-info__bone" aria-hidden="true"></span>
-          <span class="e-permits-fo-draft-info__icon" aria-hidden="true">
-            <svg class="icon" width="24" height="24" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
-          <p><strong>Cererea se salvează automat.</strong> Poți închide oricând și o reiei din <a href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a> în EVO cabinet.</p>
-          <button class="e-permits-fo-draft-info__close" type="button" aria-label="Închide mesajul" data-fo-draft-info-close>
-            <svg class="icon" width="16" height="16" aria-hidden="true">
-              <use href="assets/icons/sprite.svg#icon-cross-large"></use>
-            </svg>
-          </button>
-        </div>
-      ` : "";
       return `
-        ${draftStatus}
         <h1 id="${escapeFrontOfficeHtml(id)}" tabindex="-1">${escapeFrontOfficeHtml(title)}</h1>
-        ${draftInfo}
       `;
     }
 
@@ -210,12 +257,15 @@
         header.dataset.foTitleId = id;
         header.innerHTML = requestHeaderHtml({ id, title });
       });
+      updateFrontOfficeHeaderDraft();
     }
 
     function saveFrontOfficeDraft({ toast = false } = {}) {
+      const isNewDraft = !frontOfficeDraftCreated;
       frontOfficeDraftCreated = true;
       frontOfficeDraftSavedAt = new Date();
       updateFrontOfficeRequestHeaders();
+      if (isNewDraft && !toast) showFrontOfficeDraftCreatedToast();
       if (toast) showFrontOfficeToast("Schița a fost salvată.");
     }
 
@@ -249,6 +299,7 @@
       frontOfficeDraftCreated = false;
       frontOfficeDraftSavedAt = null;
       frontOfficeDraftInfoDismissed = false;
+      document.querySelector('[data-fo-toast="draft-created"]')?.remove();
       updateFrontOfficeRequestHeaders();
     }
 
@@ -256,12 +307,12 @@
       if (!frontOfficeInstanceSwitchModal) return;
       if (isOpen) {
         frontOfficeInstanceSwitchReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-        frontOfficeInstanceSwitchModal.hidden = false;
+        setMotionModalHidden(frontOfficeInstanceSwitchModal, false);
         frontOfficeInstanceSwitchModal.querySelector(".e-permits-fo-instance-switch-modal__secondary")?.focus({ preventScroll: true });
         return;
       }
 
-      frontOfficeInstanceSwitchModal.hidden = true;
+      setMotionModalHidden(frontOfficeInstanceSwitchModal, true);
       if (restoreFocus) {
         const focusTarget = frontOfficeInstanceSwitchReturnFocus || frontOfficeAvatarTrigger;
         focusTarget?.focus?.({ preventScroll: true });
@@ -800,10 +851,11 @@
       if (!stepperList || !Array.isArray(schema?.steps) || !schema.steps.length) return;
       stepperList.innerHTML = schema.steps.map((step, index) => {
         const active = index === 0;
+        const available = Number(step.index) <= 5 && Boolean(document.querySelector(`[data-fo-step-panel="${Number(step.index)}"]`));
         return `
           <li class="e-permits-fo-stepper__item${active ? " is-active" : ""}" ${active ? 'aria-current="step"' : ""} data-fo-step="${escapeFrontOfficeHtml(step.index)}">
             <span class="e-permits-fo-stepper__connector" aria-hidden="true"></span>
-            <span class="e-permits-fo-stepper__row">
+            <span class="e-permits-fo-stepper__row" ${available ? `role="button" tabindex="0" aria-label="Deschide pasul ${escapeFrontOfficeHtml(step.index)}: ${escapeFrontOfficeHtml(step.label)}"` : 'aria-disabled="true"'}>
               <span class="e-permits-fo-stepper__number">
                 <span class="e-permits-fo-stepper__number-text">${escapeFrontOfficeHtml(step.index)}</span>
                 <svg class="icon e-permits-fo-stepper__check" width="16" height="16" aria-hidden="true">
@@ -1561,9 +1613,9 @@
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
             <button class="e-permits-fo-draft-button" type="button">
-              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
+                    </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
@@ -1643,8 +1695,8 @@
                 </span>
                 <span class="e-permits-fo-mdocs__attachment-meta" data-fo-mdocs-attachment-meta></span>
               </span>
-              <button class="e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
-                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+              <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
+                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
               </button>
             </div>
           </div>
@@ -1703,9 +1755,9 @@
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
             <button class="e-permits-fo-draft-button" type="button">
-              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
+                    </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
@@ -1723,6 +1775,74 @@
 
       // file-drop and mdocs dropdowns removed — handled by modal
       updateFrontOfficeRequestHeaders();
+    }
+
+    function renderFrontOfficeStep5FromSchema(schema) {
+      const panel = document.querySelector("[data-fo-step-panel='5']");
+      const step = schema?.steps?.find((item) => item.id === "delivery" || Number(item.index) === 5);
+      if (!panel || !step) return;
+
+      const title = panel.querySelector("[data-fo-delivery-title]");
+      const heading = panel.querySelector("[data-fo-delivery-heading]");
+      const optionsRoot = panel.querySelector("[data-fo-delivery-options]");
+      const paperRoot = panel.querySelector("[data-fo-delivery-paper]");
+      if (title) title.textContent = step.title || step.label || "Livrare";
+      if (heading) heading.textContent = step.sectionTitle || "Cum primești actul permisiv?";
+
+      const options = Array.isArray(step.options) ? step.options : [];
+      if (optionsRoot) {
+        optionsRoot.innerHTML = options.map((option, index) => {
+          const badges = Array.isArray(option.badges) ? option.badges : [];
+          return `
+            <label class="e-permits-fo-delivery-option${option.selected || (!options.some((item) => item.selected) && index === 0) ? " is-selected" : ""}">
+              <input
+                class="e-permits-fo-delivery-option__input"
+                type="radio"
+                name="fo-delivery-method"
+                value="${escapeFrontOfficeHtml(option.id || `delivery-${index + 1}`)}"
+                ${option.selected || (!options.some((item) => item.selected) && index === 0) ? "checked" : ""}
+              >
+              <span class="e-permits-fo-delivery-option__content">
+                <img class="e-permits-fo-delivery-option__logo" src="${escapeFrontOfficeHtml(option.logo || "assets/logos/evo-logo.svg")}" alt="">
+                <span class="e-permits-fo-delivery-option__copy">
+                  <span class="e-permits-fo-delivery-option__title-row">
+                    <span class="e-permits-fo-delivery-option__title">${escapeFrontOfficeHtml(option.title || "Livrare electronică")}</span>
+                    ${badges.map((badge) => `<span class="e-permits-fo-delivery-badge e-permits-fo-delivery-badge--${escapeFrontOfficeHtml(badge.tone || "outline")}">${escapeFrontOfficeHtml(badge.label || "")}</span>`).join("")}
+                  </span>
+                  <span class="e-permits-fo-delivery-option__description">${escapeFrontOfficeHtml(option.description || "")}</span>
+                </span>
+              </span>
+              <svg class="icon e-permits-fo-delivery-option__check" width="20" height="20" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use>
+              </svg>
+            </label>
+          `;
+        }).join("");
+
+        optionsRoot.querySelectorAll("input[name='fo-delivery-method']").forEach((input) => {
+          input.addEventListener("change", () => {
+            optionsRoot.querySelectorAll(".e-permits-fo-delivery-option").forEach((option) => {
+              option.classList.toggle("is-selected", option.querySelector("input")?.checked === true);
+            });
+          });
+        });
+      }
+
+      const paperCopy = step.paperCopy || {};
+      if (paperRoot) {
+        paperRoot.innerHTML = `
+          <label class="e-permits-fo-delivery-paper">
+            <input type="checkbox" ${paperCopy.selected ? "checked" : ""}>
+            <span class="e-permits-fo-delivery-paper__box" aria-hidden="true">
+              <svg class="icon" width="18" height="18"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>
+            </span>
+            <span class="e-permits-fo-delivery-paper__copy">
+              <span class="e-permits-fo-delivery-paper__title">${escapeFrontOfficeHtml(paperCopy.label || "Am nevoie și de o copie pe suport de hârtie")}</span>
+              <span class="e-permits-fo-delivery-paper__description">${escapeFrontOfficeHtml(paperCopy.description || "")}</span>
+            </span>
+          </label>
+        `;
+      }
     }
 
     function initFrontOfficeDynamicControls(root = document) {
@@ -2075,6 +2195,7 @@
       renderStepperFromSchema(schema);
       renderFrontOfficeStep2FromSchema(schema);
       renderFrontOfficeStep3FromSchema(schema);
+      renderFrontOfficeStep5FromSchema(schema);
       selectFrontOfficeSubject(schema.defaultSubjectId);
       updateFrontOfficeRequestHeaders();
     }
@@ -2130,6 +2251,7 @@
         updateFrontOfficeMobileProgress(activeStep);
         scrollFrontOfficeStepToTop();
       }
+      updateFrontOfficeHeaderDraft();
 
       if (!focus) return;
       if (screen === "choice") {
@@ -2175,12 +2297,19 @@
         panel.hidden = panel.dataset.foStepPanel !== String(step);
       });
 
+      const activePanel = frontOfficeRequestScreen?.querySelector(`[data-fo-step-panel="${step}"]`);
+      window.PageReveal?.showStep?.(activePanel);
+
       frontOfficeStepperItems.forEach((item) => {
         const itemStep = Number(item.dataset.foStep);
         const isActive = itemStep === step;
         item.classList.toggle("is-active", isActive);
         item.classList.toggle("is-completed", itemStep < step);
         if (isActive) {
+          item.classList.remove("is-step-activating");
+          void item.offsetWidth;
+          item.classList.add("is-step-activating");
+          window.setTimeout(() => item.classList.remove("is-step-activating"), 320);
           item.setAttribute("aria-current", "step");
         } else {
           item.removeAttribute("aria-current");
@@ -2200,24 +2329,70 @@
       setFrontOfficeScreen("choice", { focus });
     }
 
+    function openMpassTestPage() {
+      const returnUrl = new URL(window.location.href);
+      returnUrl.hash = "#choice-authenticated";
+      const testPage = new URL(window.location.pathname.includes("/Components/") ? "../mpass-test.html" : "mpass-test.html", window.location.href);
+      testPage.searchParams.set("return", `${returnUrl.pathname}${returnUrl.search}${returnUrl.hash}`);
+      window.location.assign(testPage.href);
+    }
+
     function showFrontOfficeRequest({ focus = true, step = 1 } = {}) {
       if (!frontOfficeRequestScreen) return;
       setFrontOfficeStep(step, { focus: false });
       setFrontOfficeScreen("request", { focus });
     }
 
+    function navigateToFrontOfficeStep(step, { focus = true } = {}) {
+      const targetStep = Number(step);
+      const panel = document.querySelector(`[data-fo-step-panel="${targetStep}"]`);
+      if (!panel || targetStep < 1 || targetStep > 5) return false;
+
+      const currentStep = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
+      if (currentStep !== targetStep && currentStep >= 2) saveFrontOfficeDraft();
+      if (targetStep === 4) populateFrontOfficeStep4();
+
+      const hash = targetStep === 1 ? "#request" : `#request-step-${targetStep}`;
+      if (window.location.hash !== hash) history.replaceState(null, "", hash);
+      showFrontOfficeRequest({ focus, step: targetStep });
+      return true;
+    }
+
+    document.addEventListener("click", (event) => {
+      const row = event.target.closest(".e-permits-fo-stepper__row");
+      if (!row) return;
+      const item = row.closest("[data-fo-step]");
+      if (!item) return;
+      event.preventDefault();
+      navigateToFrontOfficeStep(item.dataset.foStep);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const row = event.target.closest(".e-permits-fo-stepper__row");
+      if (!row) return;
+      const item = row.closest("[data-fo-step]");
+      if (!item) return;
+      event.preventDefault();
+      navigateToFrontOfficeStep(item.dataset.foStep);
+    });
+
     frontOfficeSchemaLoadPromise = loadFrontOfficeSchema().then((schema) => {
-      if (window.location.hash === "#request" || window.location.hash === "#request-step-2" || window.location.hash === "#request-step-3" || window.location.hash === "#request-step-4") {
+      if (window.location.hash === "#request" || window.location.hash === "#request-step-2" || window.location.hash === "#request-step-3" || window.location.hash === "#request-step-4" || window.location.hash === "#request-step-5") {
         selectFrontOfficeSubject(frontOfficeSelectedSubject?.id || frontOfficeSchema?.defaultSubjectId);
-        const hashStep = window.location.hash === "#request-step-4" ? 4 : window.location.hash === "#request-step-3" ? 3 : window.location.hash === "#request-step-2" ? 2 : 1;
+        const hashStep = window.location.hash === "#request-step-5" ? 5 : window.location.hash === "#request-step-4" ? 4 : window.location.hash === "#request-step-3" ? 3 : window.location.hash === "#request-step-2" ? 2 : 1;
         setFrontOfficeStep(hashStep, { focus: false });
         if (hashStep === 4) populateFrontOfficeStep4();
       }
       return schema;
     });
 
-    if (window.location.hash === "#choice") {
+    if (window.location.hash === "#choice" || window.location.hash === "#choice-authenticated") {
       setFrontOfficeScreen("choice", { focus: false });
+      if (window.location.hash === "#choice-authenticated") {
+        window.PageReveal?.showInstanceChoice?.(frontOfficeChoiceScreen, { duration: 1650 });
+        history.replaceState(null, "", "#choice");
+      }
     }
 
     if (window.location.hash === "#request") {
@@ -2236,6 +2411,10 @@
       showFrontOfficeRequest({ focus: false, step: 4 });
     }
 
+    if (window.location.hash === "#request-step-5") {
+      showFrontOfficeRequest({ focus: false, step: 5 });
+    }
+
     frontOfficeBetaClose?.addEventListener("click", () => {
       if (frontOfficeBetaBanner) frontOfficeBetaBanner.hidden = true;
       updateFoHeaderHeight();
@@ -2251,10 +2430,7 @@
     new ResizeObserver(updateFoHeaderHeight).observe(foHeader || document.body);
 
     frontOfficeAuthButton?.addEventListener("click", () => {
-      if (window.location.hash !== "#choice") {
-        history.replaceState(null, "", "#choice");
-      }
-      showFrontOfficeChoice();
+      openMpassTestPage();
     });
 
     document.addEventListener("click", async (event) => {
@@ -2322,7 +2498,7 @@
     function foDocLibItemHTML(doc) {
       if (doc.type === "uploaded") {
         return `<button class="e-permits-fo-lib-item" type="button">
-          <svg class="e-permits-fo-lib-item__icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-page-text"></use></svg>
+          <img class="e-permits-fo-lib-item__icon" src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">
           <div class="e-permits-fo-lib-item__content">
             <div class="e-permits-fo-lib-item__title-row">
               <span class="e-permits-fo-lib-item__title">${escapeFrontOfficeHtml(doc.fileName)}</span>
@@ -2404,13 +2580,13 @@
       foDocRenderLibrary("");
       if (foDocSearchInput) foDocSearchInput.value = "";
       foDocSwitchTab("library");
-      foDocOverlay.hidden = false;
+      setMotionModalHidden(foDocOverlay, false);
       document.body.style.overflow = "hidden";
     }
 
     function foDocCloseModal() {
       if (!foDocOverlay) return;
-      foDocOverlay.hidden = true;
+      setMotionModalHidden(foDocOverlay, true);
       document.body.style.overflow = "";
       foDocModalField = null;
       foDocModalSelectedLib = null;
@@ -2423,7 +2599,7 @@
       item.className = "e-permits-fo-file-item is-uploaded e-permits-fo-doc-attached-item";
       item.innerHTML = `
         <div class="e-permits-fo-lib-item__icon">
-          <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-page-text"></use></svg>
+          <img src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">
         </div>
         <div class="e-permits-fo-lib-item__content">
           <div class="e-permits-fo-lib-item__title-row">
@@ -2431,7 +2607,7 @@
           </div>
           ${sizeLabel ? `<div class="e-permits-fo-lib-item__meta">${escapeFrontOfficeHtml(sizeLabel)}</div>` : ""}
         </div>
-        <button class="e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină">
+        <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
         </button>`;
       item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => item.remove());
@@ -2455,7 +2631,7 @@
           ${doc.emis || doc.authority ? `<div class="e-permits-fo-lib-item__meta">Emis <strong>${escapeFrontOfficeHtml(doc.emis || "")}</strong><span class="e-permits-fo-lib-item__dot"></span>${escapeFrontOfficeHtml(doc.authority || "")}</div>` : ""}
           <span class="e-permits-fo-mdocs__attachment-meta" hidden>${escapeFrontOfficeHtml(metaText)}</span>
         </div>
-        <button class="e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină">
+        <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
         </button>`;
       att.querySelector(".e-permits-fo-mdocs__attachment-remove").addEventListener("click", () => att.remove());
@@ -2483,7 +2659,7 @@
         foDocModalPendingFile = file;
         if (foDocUploadPreview) {
           foDocUploadPreview.hidden = false;
-          foDocUploadPreview.innerHTML = `<div class="e-permits-fo-file-item is-uploaded" style="max-width:100%;height:auto;padding:12px 16px;"><span class="e-permits-fo-file-item__name">${escapeFrontOfficeHtml(file.name)}</span></div>`;
+          foDocUploadPreview.innerHTML = `<div class="e-permits-fo-file-item is-uploaded e-permits-fo-doc-modal__preview-item"><img src="assets/icons/document-uploaded.svg" width="24" height="24" alt=""><span class="e-permits-fo-file-item__name">${escapeFrontOfficeHtml(file.name)}</span></div>`;
         }
         foDocUpdateSubmit();
       });
@@ -2582,26 +2758,30 @@
 
       const subject = frontOfficeSelectedSubject;
       const user = frontOfficeSchema?.authenticatedUser;
-      const signing = frontOfficeSchema?.steps?.find((item) => Number(item.index) === 4)?.signing || {};
-      const isSigned = frontOfficeStep4Signed;
       const step2Panel = document.querySelector("[data-fo-step-panel='2']");
 
       // --- Applicant rows ---
       let applicantRows = "";
       if (subject) {
-        const isProxy = subject.type === "PJ" && user;
-        applicantRows += summaryRow(subject.type === "PJ" ? "Date companie" : "Date solicitant", [
+        const representative = subject.representative || (subject.type === "PJ" ? user : null);
+        const notificationContact = subject.contact || user?.contact || {};
+        const notificationPhone = String(notificationContact.phone || "+37322000000").replace(/\s+/g, "");
+        const formattedNotificationPhone = notificationPhone.startsWith("+") ? notificationPhone : `+373${notificationPhone}`;
+
+        applicantRows += summaryRow("Solicitant", [
           escapeFrontOfficeHtml(subject.name),
           escapeFrontOfficeHtml(`${subject.idLabel} ${subject.idValue}`),
         ]);
-        if (isProxy) {
-          applicantRows += summaryRow("Date reprezentant", [
-            escapeFrontOfficeHtml(user.name),
-            escapeFrontOfficeHtml(`${user.idLabel} ${user.idValue}`),
-            escapeFrontOfficeHtml(user.phone || "+37322000000"),
-            escapeFrontOfficeHtml(user.email || "a.cojocaru1993@gmail.com"),
+        if (representative) {
+          applicantRows += summaryRow("Reprezentant", [
+            escapeFrontOfficeHtml(representative.name),
+            escapeFrontOfficeHtml(`${representative.idLabel} ${representative.idValue}`),
           ]);
         }
+        applicantRows += summaryRow("Date de contact pentru notificări", [
+          escapeFrontOfficeHtml(formattedNotificationPhone),
+          escapeFrontOfficeHtml(notificationContact.email || "a.cojocaru1993@gmail.com"),
+        ]);
       }
 
       // --- Service rows ---
@@ -2735,38 +2915,6 @@
           </div>
           <div class="e-permits-fo-summary-docs">${docsHtml}</div>
         </div>
-        <div class="e-permits-fo-summary-section e-permits-fo-summary-section--signing">
-          <div class="e-permits-fo-summary-section__header">
-            <h2 class="e-permits-fo-summary-section__heading">${escapeFrontOfficeHtml(signing.title || "Semnarea cererii")}</h2>
-          </div>
-          <div class="e-permits-fo-signing-card${isSigned ? " is-signed" : ""}">
-            <div class="e-permits-fo-signing-card__main">
-              <img class="e-permits-fo-signing-card__icon" width="24" height="24" src="assets/icons/document-generated.svg" alt="">
-              <div class="e-permits-fo-signing-card__content">
-                <div class="e-permits-fo-signing-card__title-row">
-                  <span class="e-permits-fo-signing-card__title">${escapeFrontOfficeHtml(signing.documentTitle || "Cererea care urmează să fie semnată")}</span>
-                  <span class="e-permits-fo-signing-card__badge">
-                    ${isSigned ? `<svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>` : ""}
-                    <span>${escapeFrontOfficeHtml(isSigned ? "Semnat" : (signing.status || "Necesită semnătură"))}</span>
-                  </span>
-                </div>
-                <div class="e-permits-fo-signing-card__meta">
-                  <span>Nr. <strong>${escapeFrontOfficeHtml(signing.number || "C000000/2026")}</strong></span>
-                  <span class="e-permits-fo-summary-dot" aria-hidden="true"></span>
-                  <span>din ${escapeFrontOfficeHtml(signing.date || "01.01.2026")}</span>
-                </div>
-              </div>
-            </div>
-            <button class="e-permits-fo-signing-card__preview" type="button">
-              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
-              <span>Vezi documentul</span>
-            </button>
-          </div>
-          ${isSigned ? "" : `<button class="e-permits-fo-msign-button" type="button" data-fo-msign-trigger>
-            <img src="assets/logos/m-platforms/m-sign.svg" width="24" height="24" alt="" aria-hidden="true">
-            Semnează prin msign
-          </button>`}
-        </div>
       `;
 
       const footer = panel.querySelector(".e-permits-fo-form__footer");
@@ -2774,35 +2922,24 @@
         footer.innerHTML = `
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--confirmation">
             <button class="e-permits-fo-draft-button" type="button">
-              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
+                    </svg>
               <span>Salvează ca schiță</span>
             </button>
-            <div class="e-permits-fo-form__actions-primary">
+            <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
               <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
-              <button class="e-permits-fo-next" type="button" data-fo-next="step-4"${isSigned ? "" : " disabled"}>
-                <span>Înainte</span>
-                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+              <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-next="step-4">
+                <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-sign.svg" alt=""></span>
+                <span class="btn-badge__label">Semnează prin msign</span>
               </button>
             </div>
           </div>
         `;
       }
 
-      const msignBtn = container.querySelector("[data-fo-msign-trigger]");
-      if (msignBtn) {
-        msignBtn.addEventListener("click", () => {
-          msignBtn.disabled = true;
-          msignBtn.innerHTML = `<svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>Se semnează...`;
-          setTimeout(() => {
-            frontOfficeStep4Signed = true;
-            populateFrontOfficeStep4();
-          }, 900);
-        });
-      }
     }
 
     frontOfficeAvatarTrigger?.addEventListener("click", (event) => {
@@ -2970,6 +3107,16 @@
         showFrontOfficeRequest({ step: 3 });
       }
       if (action === "step-4" && next) {
+        saveFrontOfficeDraft();
+        if (window.location.hash !== "#request-step-5") history.replaceState(null, "", "#request-step-5");
+        showFrontOfficeRequest({ step: 5 });
+      }
+      if (action === "step-5" && prev) {
+        populateFrontOfficeStep4();
+        if (window.location.hash !== "#request-step-4") history.replaceState(null, "", "#request-step-4");
+        showFrontOfficeRequest({ step: 4 });
+      }
+      if (action === "step-5" && next) {
         saveFrontOfficeDraft();
       }
     });
@@ -3676,8 +3823,8 @@
               <span class="e-permits-fo-file-item__size">${escapeFrontOfficeHtml(formatFoFileSize(file.size))}</span>
             </div>
           </div>
-          <button class="e-permits-fo-file-item__remove" type="button" aria-label="Elimină fișierul" hidden>
-            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+          <button class="e-permits-fo-document-remove e-permits-fo-file-item__remove" type="button" aria-label="Elimină fișierul" hidden>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
           </button>
           <div class="e-permits-fo-file-item__progress">
             <div class="e-permits-fo-file-item__progress-bar"></div>
@@ -6623,7 +6770,7 @@
               tree: classifier.treeKey ? { enabled: false, maxLevels: 0, minLevel: 0 } : undefined,
               parentPairs: current.parentPairs || [],
             });
-            registryModal.hidden = true;
+            setMotionModalHidden(registryModal, true);
             registryModal.setAttribute("aria-hidden", "true");
             if (registrySearch) registrySearch.value = "";
           });
@@ -6634,7 +6781,7 @@
       function openClassifierRegistry() {
         if (!registryModal) return;
         renderRegistryList();
-        registryModal.hidden = false;
+        setMotionModalHidden(registryModal, false);
         registryModal.setAttribute("aria-hidden", "false");
         registrySearch?.focus();
       }
@@ -6642,13 +6789,13 @@
       builder.querySelector("[data-builder-browse-classifiers]")?.addEventListener("click", openClassifierRegistry);
 
       registryModal?.querySelector("[data-builder-classifier-close]")?.addEventListener("click", () => {
-        registryModal.hidden = true;
+        setMotionModalHidden(registryModal, true);
         registryModal.setAttribute("aria-hidden", "true");
       });
 
       registryModal?.addEventListener("click", (event) => {
         if (event.target === registryModal) {
-          registryModal.hidden = true;
+          setMotionModalHidden(registryModal, true);
           registryModal.setAttribute("aria-hidden", "true");
         }
       });

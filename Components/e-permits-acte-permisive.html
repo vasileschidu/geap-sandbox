@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=modal-motion-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=user-profile-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=user-profile-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=review-wrappers-v1">
+  <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v5">
   <script src="js/search.js" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=bo-specialist-workplace" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=document-remove-v1" defer></script>
+  <script src="../js/page-reveal.js?v=soft-reveal-v5" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
   <main class="e-permits-flow-home" data-flow-home>
@@ -19,7 +21,7 @@
       <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
         <div class="e-permits-fo-auth__choice-copy">
           <h1 id="flow-home-title">Alege demo-ul pe care vrei să-l pornești</h1>
-          <p>Sunt expuse doar flow-urile pregătite pentru review: full flow, builder și back office/profile.</p>
+          <p>Sunt expuse flow-urile pregătite pentru review: full flow, builder, back office/profile, RAP în EVO și sitemap-ul GEAP.</p>
         </div>
 
         <div class="e-permits-flow-home__demo-list" aria-label="Demo-uri disponibile">
@@ -73,6 +75,40 @@
               </svg>
             </span>
           </a>
+
+          <a class="e-permits-flow-home__demo-item" href="../rap-evo/">
+            <span class="e-permits-flow-home__demo-row">
+              <span class="e-permits-flow-home__demo-avatar e-permits-flow-home__demo-avatar--icon e-permits-flow-home__demo-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-page-text"></use></svg>
+              </span>
+              <span class="e-permits-flow-home__demo-text">
+                <span class="e-permits-flow-home__demo-heading">
+                  <span class="e-permits-flow-home__demo-name">RAP în EVO</span>
+                </span>
+                <span class="e-permits-flow-home__demo-meta">Registrul public al actelor permisive din ecosistemul EVO</span>
+              </span>
+              <svg class="icon e-permits-flow-home__demo-arrow" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
+
+          <a class="e-permits-flow-home__demo-item" href="geap-sitemap.html">
+            <span class="e-permits-flow-home__demo-row">
+              <span class="e-permits-flow-home__demo-avatar e-permits-flow-home__demo-avatar--icon e-permits-flow-home__demo-avatar--brand" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-tree"></use></svg>
+              </span>
+              <span class="e-permits-flow-home__demo-text">
+                <span class="e-permits-flow-home__demo-heading">
+                  <span class="e-permits-flow-home__demo-name">GEAP Sitemap</span>
+                </span>
+                <span class="e-permits-flow-home__demo-meta">Arhitectura interactivă Front Office, Back Office și Workplace</span>
+              </span>
+              <svg class="icon e-permits-flow-home__demo-arrow" aria-hidden="true">
+                <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
+              </svg>
+            </span>
+          </a>
         </div>
       </div>
     </section>
@@ -103,8 +139,8 @@
             <div class="e-permits-fo-auth__service-title-wrap">
               <div class="e-permits-fo-auth__service-title-row">
                 <h1>09 Autorizația sanitară pentru funcționare</h1>
-                <span class="e-permits-fo-auth__service-type">Autorizație</span>
               </div>
+              <div class="e-permits-fo-draft-status e-permits-fo-draft-status--header" data-fo-header-draft hidden></div>
             </div>
           </div>
           <div class="e-permits-fo-auth__profile" data-fo-avatar-menu hidden>
@@ -464,7 +500,7 @@
           <div class="e-permits-fo-mobile-progress__row">
             <span class="e-permits-fo-mobile-progress__label" data-fo-mobile-progress-label>Date solicitant</span>
             <span class="e-permits-fo-mobile-progress__count">
-              Pasul <span data-fo-mobile-progress-current>1</span> din <span data-fo-mobile-progress-total>6</span>
+              Pasul <span data-fo-mobile-progress-current>1</span> din <span data-fo-mobile-progress-total>7</span>
             </span>
           </div>
           <div class="e-permits-fo-mobile-progress__bar" aria-hidden="true">
@@ -496,7 +532,7 @@
                         <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
                       </svg>
                     </span>
-                    <span class="e-permits-fo-stepper__label">Detalii serviciu</span>
+                    <span class="e-permits-fo-stepper__label">Detalii solicitare</span>
                   </span>
                 </li>
                 <li class="e-permits-fo-stepper__item" data-fo-step="3">
@@ -508,7 +544,7 @@
                         <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
                       </svg>
                     </span>
-                    <span class="e-permits-fo-stepper__label">Documente însoțitoare</span>
+                    <span class="e-permits-fo-stepper__label">Acte necesare</span>
                   </span>
                 </li>
                 <li class="e-permits-fo-stepper__item" data-fo-step="4">
@@ -532,7 +568,7 @@
                         <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
                       </svg>
                     </span>
-                    <span class="e-permits-fo-stepper__label">Plată</span>
+                    <span class="e-permits-fo-stepper__label">Livrare</span>
                   </span>
                 </li>
                 <li class="e-permits-fo-stepper__item" data-fo-step="6">
@@ -540,6 +576,18 @@
                   <span class="e-permits-fo-stepper__row">
                     <span class="e-permits-fo-stepper__number">
                       <span class="e-permits-fo-stepper__number-text">6</span>
+                      <svg class="icon e-permits-fo-stepper__check" width="16" height="16" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
+                      </svg>
+                    </span>
+                    <span class="e-permits-fo-stepper__label">Plată</span>
+                  </span>
+                </li>
+                <li class="e-permits-fo-stepper__item" data-fo-step="7">
+                  <span class="e-permits-fo-stepper__connector" aria-hidden="true"></span>
+                  <span class="e-permits-fo-stepper__row">
+                    <span class="e-permits-fo-stepper__number">
+                      <span class="e-permits-fo-stepper__number-text">7</span>
                       <svg class="icon e-permits-fo-stepper__check" width="16" height="16" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
                       </svg>
@@ -1099,8 +1147,8 @@
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
                   <button class="e-permits-fo-draft-button" type="button">
-                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
                     <span>Salvează ca schiță</span>
                   </button>
@@ -1223,8 +1271,8 @@
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
                   <button class="e-permits-fo-draft-button" type="button">
-                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                      <path d="M6.45833 3.125V6.04167C6.45833 6.5019 6.83143 6.875 7.29167 6.875H12.7083C13.1686 6.875 13.5417 6.5019 13.5417 6.04167V3.125M16.875 6.31536V15.2083C16.875 16.1288 16.1288 16.875 15.2083 16.875H4.79167C3.87119 16.875 3.125 16.1288 3.125 15.2083V4.79167C3.125 3.87119 3.87119 3.125 4.79167 3.125H13.6846C14.1267 3.125 14.5506 3.30059 14.8632 3.61316L16.3868 5.13684C16.6994 5.44941 16.875 5.87333 16.875 6.31536ZM6.45833 11.4583V16.0417C6.45833 16.5019 6.83143 16.875 7.29167 16.875H12.7083C13.1686 16.875 13.5417 16.5019 13.5417 16.0417V11.4583C13.5417 10.9981 13.1686 10.625 12.7083 10.625H7.29167C6.83143 10.625 6.45833 10.9981 6.45833 11.4583Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
                     <span>Salvează ca schiță</span>
                   </button>
@@ -1266,13 +1314,49 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions">
-                  <div class="e-permits-fo-form__actions-primary">
+                  <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
                     <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
-                      <svg class="icon" width="24" height="24" aria-hidden="true">
+                      <svg class="icon" width="20" height="20" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
                       </svg>
                     </button>
-                    <button class="e-permits-fo-next" type="button" data-fo-next="step-4" disabled>
+                    <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-next="step-4">
+                      <span class="btn-badge__logo" aria-hidden="true">
+                        <img src="assets/logos/m-platforms/m-sign.svg" alt="">
+                      </span>
+                      <span class="btn-badge__label">Semnează prin msign</span>
+                    </button>
+                  </div>
+                </div>
+              </footer>
+            </div>
+
+            <div class="e-permits-fo-step-panel e-permits-fo-delivery" data-fo-step-panel="5" hidden>
+              <header class="e-permits-fo-form__header">
+                <h1 id="fo-request-step-5-title" tabindex="-1" data-fo-delivery-title>Livrare</h1>
+              </header>
+
+              <section class="e-permits-fo-delivery__section" aria-labelledby="fo-delivery-section-title">
+                <h2 class="e-permits-fo-delivery__heading" id="fo-delivery-section-title" data-fo-delivery-heading>Cum primești actul permisiv?</h2>
+                <div data-fo-delivery-options></div>
+                <div data-fo-delivery-paper></div>
+              </section>
+
+              <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only e-permits-fo-delivery__footer">
+                <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
+                  <button class="e-permits-fo-draft-button" type="button">
+                    <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
+                      <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
+                    </svg>
+                    <span>Salvează schiță</span>
+                  </button>
+                  <div class="e-permits-fo-form__actions-primary">
+                    <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Verificare și semnare" data-fo-prev="step-5">
+                      <svg class="icon" width="20" height="20" aria-hidden="true">
+                        <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
+                      </svg>
+                    </button>
+                    <button class="e-permits-fo-next" type="button" data-fo-next="step-5">
                       <span>Înainte</span>
                       <svg class="icon" width="20" height="20" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
@@ -3204,12 +3288,12 @@
       <!-- Library panel -->
       <div class="e-permits-fo-doc-modal__panel" data-fo-doc-panel="library">
         <div class="e-permits-fo-doc-modal__search-wrap">
-          <div class="e-permits-fo-doc-modal__search-field">
-            <input type="search" class="e-permits-fo-doc-modal__search-input" placeholder="Caută fișier" autocomplete="off" data-fo-doc-search>
+          <label class="e-permits-fo-input e-permits-fo-doc-modal__search-field">
             <span class="e-permits-fo-doc-modal__search-icon" aria-hidden="true">
               <svg class="icon medium" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
             </span>
-          </div>
+            <input type="search" class="e-permits-fo-doc-modal__search-input" placeholder="Caută fișier" autocomplete="off" aria-label="Caută fișier" data-fo-doc-search>
+          </label>
         </div>
         <div class="e-permits-fo-doc-modal__list" data-fo-doc-modal-list></div>
       </div>

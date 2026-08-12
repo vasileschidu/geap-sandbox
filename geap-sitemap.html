@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GEAP · Sitemap</title>
+<link href="assets/fonts/Onest.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<style>
+:root{
+  --font:'Onest',system-ui,sans-serif;
+  --brand:#0058d2;
+  --ink:#121212; --ink2:#3a3a3f; --mut:#7a7a82;
+  --bg:#fafafb; --panel:#ffffff; --line:#c9ced8; --hair:#ececf0;
+  --evo-bg:#eaf1fd; --evo-bd:#0058d2; --evo-tx:#0846a6;
+  --sur-bg:#f3eefe; --sur-bd:#7c5cdf; --sur-tx:#5b3fc4;
+  --pg-bg:#ffffff;  --pg-bd:#e0e0e6; --pg-tx:#1c1c1e;
+  --act-bg:#1d1d24; --act-bd:#1d1d24; --act-tx:#ffffff;
+  --cfg-bg:#fff4e3; --cfg-bd:#e8912a; --cfg-tx:#9a5600;
+  --int-bg:#e6f7f0; --int-bd:#129e74; --int-tx:#0a7657;
+  --opn-bg:#fdecec; --opn-bd:#d9453b; --opn-tx:#b42318;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+#root{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.hd{padding:15px 22px 11px;border-bottom:1px solid var(--hair);background:var(--panel);flex:none}
+.hd-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hd-title{font-size:17px;font-weight:600;letter-spacing:-.01em}
+.hd-sub{font-size:12.5px;color:var(--mut)}
+.hd-row{display:flex;align-items:center;gap:12px;margin-top:11px;flex-wrap:wrap}
+.seg{display:inline-flex;background:#f1f2f5;border:1px solid var(--hair);border-radius:10px;padding:3px;flex-wrap:wrap}
+.seg button{font-family:var(--font);font-size:12.3px;font-weight:500;color:var(--ink2);border:0;background:transparent;padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;transition:.12s}
+.seg button:hover{color:var(--ink)}
+.seg button.on{background:var(--panel);color:var(--brand);box-shadow:0 1px 3px rgba(0,0,0,.10),0 0 .5px rgba(0,0,0,.16);font-weight:600}
+.spacer{flex:1}
+.tools{display:inline-flex;align-items:center;gap:6px}
+.tbtn{font-family:var(--font);font-size:12px;font-weight:500;color:var(--ink2);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer;transition:.12s}
+.tbtn:hover{background:#f5f6f8;color:var(--ink)}
+.tbtn.on{background:#eaf1fd;border-color:#9dc0f2;color:var(--brand)}
+.zoom{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.zoom button{width:29px;height:29px;border:0;background:transparent;font-size:15px;color:var(--ink2);cursor:pointer}
+.zoom button:hover{background:#f5f6f8}
+.zoom .zval{min-width:42px;text-align:center;font-size:11.5px;color:var(--mut);border-left:1px solid var(--hair);border-right:1px solid var(--hair);padding:0 4px;line-height:29px}
+.legend{display:flex;gap:13px;flex-wrap:wrap;margin-top:9px;align-items:center}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:11.3px;color:var(--ink2)}
+.lg .sw{width:12px;height:12px;border-radius:4px;border:1.5px solid}
+.lgsep{width:1px;height:13px;background:var(--hair)}
+.viewport{flex:1;overflow:auto;position:relative;background:radial-gradient(circle at 1px 1px, #e7e9ee 1px, transparent 0) 0 0/22px 22px}
+.stage{transform-origin:0 0;will-change:transform}
+.canvas{position:relative;display:inline-flex;padding:44px 90px 60px 40px;min-width:100%}
+.links{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:0}
+.links path{fill:none;stroke:var(--line);stroke-width:1.6}
+.links path.dash{stroke-dasharray:5 4;stroke:#9aa1ae}
+.links path.seq{stroke:#7c5cdf;stroke-width:2}
+.subtree{display:flex;align-items:center}
+.kids{display:flex;flex-direction:column;gap:11px;margin-left:52px}
+.nodewrap{position:relative;z-index:1}
+.chip{position:relative;display:inline-flex;flex-direction:column;gap:2px;padding:8px 12px;border-radius:11px;border:1.5px solid var(--pg-bd);background:var(--pg-bg);min-width:96px;max-width:262px;box-shadow:0 1px 2px rgba(20,20,30,.05)}
+.chip .lab{font-size:12.7px;font-weight:600;line-height:1.28;letter-spacing:-.005em;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.chip .meta{font-size:10.7px;color:var(--mut);line-height:1.32;font-weight:400}
+.chip .plain{font-size:11px;color:var(--ink2);line-height:1.4;font-weight:400;margin-top:4px;padding-top:5px;border-top:1px dashed #e2e2e8}
+.chip.t-act .plain{color:#cfcfd8;border-top-color:#3d3d47}
+.kids.seq{gap:18px}
+.seqbadge{font-size:9px;font-weight:700;letter-spacing:.05em;color:#5b3fc4;background:#f3eefe;border:1px solid #c3b0f0;border-radius:4px;padding:1.5px 5px;flex:none}
+.chip .prov{width:7px;height:7px;border-radius:50%;flex:none}
+.chip .sf{font-size:8.5px;font-weight:700;letter-spacing:.05em;padding:1.5px 5px;border-radius:4px;border:1px solid;flex:none}
+.sf-EVO{background:#eaf1fd;border-color:#9dc0f2;color:#0846a6}
+.sf-CAB{background:#e4f0ff;border-color:#8fb9ef;color:#06398a}
+.sf-FOD{background:#f3eefe;border-color:#c3b0f0;color:#5b3fc4}
+.sf-BO{background:#e9e9ee;border-color:#c4c4cf;color:#2b2b33}
+.chip.t-act .sf-BO{background:#3a3a45;border-color:#55555f;color:#dcdce3}
+.chip.t-act .sf-FOD{background:#4b3f6b;border-color:#645489;color:#e0d8f5}
+.chip.t-act .sf-CAB{background:#2a4570;border-color:#3d5d8f;color:#d5e3f8}
+.chip.t-act .sf-EVO{background:#2a4570;border-color:#3d5d8f;color:#d5e3f8}
+.dim{opacity:.22;transition:opacity .15s}
+.sfbtn{font-family:var(--font);font-size:11px;font-weight:600;letter-spacing:.03em;padding:4px 9px;border-radius:7px;border:1px solid;cursor:pointer;transition:.12s}
+.sfbtn.off{opacity:.5}
+.chip .own{font-size:8.5px;font-weight:700;letter-spacing:.04em;padding:1.5px 4px;border-radius:4px;border:1px solid;flex:none}
+.own-M{background:#eaf1fd;border-color:#a9c7f4;color:#0846a6}
+.own-S{background:#f2f2f4;border-color:#dcdce1;color:#5c5c66}
+.chip.t-evo{background:var(--evo-bg);border-color:var(--evo-bd)} .chip.t-evo .lab{color:var(--evo-tx)}
+.chip.t-sur{background:var(--sur-bg);border-color:var(--sur-bd)} .chip.t-sur .lab{color:var(--sur-tx)}
+.chip.t-pg{background:var(--pg-bg);border-color:var(--pg-bd)} .chip.t-pg .lab{color:var(--pg-tx)}
+.chip.t-act{background:var(--act-bg);border-color:var(--act-bd)} .chip.t-act .lab{color:var(--act-tx)} .chip.t-act .meta{color:#b9b9c4} .chip.t-act .own-S{background:#33333d;border-color:#4a4a55;color:#d5d5dd}
+.chip.t-cfg{background:var(--cfg-bg);border-color:var(--cfg-bd)} .chip.t-cfg .lab{color:var(--cfg-tx)}
+.chip.t-int{background:var(--int-bg);border-color:var(--int-bd)} .chip.t-int .lab{color:var(--int-tx)}
+.chip.t-opn{background:var(--opn-bg);border-color:var(--opn-bd);border-style:dashed} .chip.t-opn .lab{color:var(--opn-tx)}
+.chip.root{min-width:120px;box-shadow:0 3px 10px rgba(20,20,40,.10)}
+.chip.flag::after{content:'⚠';position:absolute;top:-7px;left:-7px;width:16px;height:16px;border-radius:50%;background:#fff;border:1.5px solid var(--opn-bd);color:var(--opn-bd);font-size:9px;display:flex;align-items:center;justify-content:center;z-index:4}
+.tog{position:absolute;right:-11px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--panel);border:1.5px solid var(--line);color:var(--ink2);font-size:13px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:3;font-weight:600}
+.tog:hover{border-color:var(--brand);color:var(--brand)}
+.count{font-size:9.5px;color:var(--mut);position:absolute;right:-11px;top:calc(50% + 14px);transform:translateX(35%)}
+.hint{font-size:11px;color:var(--mut);padding:0 22px 11px;background:var(--panel);border-bottom:1px solid var(--hair);flex:none;line-height:1.5}
+.conv{display:flex;align-items:center;gap:64px}
+.roleswitch{display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap;position:sticky;left:0}
+.rchip{border:1.5px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--panel);cursor:pointer;transition:.12s;min-width:150px}
+.rchip:hover{border-color:#9dc0f2}
+.rchip.on{border-color:var(--brand);background:#eef5fe;box-shadow:0 2px 8px rgba(0,88,210,.12)}
+.rchip .rlab{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.rchip.on .rlab{color:var(--brand)}
+.rchip .rsc{font-size:10.3px;color:var(--mut);margin-top:2px;font-family:ui-monospace,monospace}
+.wpwrap{display:flex}
+.incol{display:flex;flex-direction:column;gap:15px}
+.grp{position:relative;padding-left:11px;border-left:2px solid var(--hair)}
+.glab{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);margin-bottom:6px}
+.gitems{display:flex;flex-direction:column;gap:9px}
+.gi{display:flex}
+.hubcol{display:flex;align-items:center}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+var h=React.createElement;
+var useState=React.useState,useRef=React.useRef,useMemo=React.useMemo,useLayoutEffect=React.useLayoutEffect,useCallback=React.useCallback,useEffect=React.useEffect;
+
+/* N(id,label,type,{meta,prov,own,flag,children}) */
+function N(id,label,type,o){o=o||{};return {id:id,label:label,type:type,meta:o.meta,prov:o.prov,own:o.own,flag:o.flag,seq:o.seq,plain:o.plain,children:o.children};}
+
+/* ================= FRONT-OFFICE (per Sitemap v0.1) ================= */
+var FRONT=N('fo','MMIP v2 Front-Office','sur',{meta:'applicant-facing surfaces',prov:'C',children:[
+  N('ep','Evo Portal','evo',{meta:'public, anonymous entry point',prov:'C',own:'S',children:[
+    N('ep1','Service Catalogue','pg',{meta:'UC01 · searchable e-service list',prov:'C',own:'M',children:[
+      N('ep1a','e-Service Profile','pg',{meta:'legal basis · fees · documents · time · regulator',prov:'C',own:'M'})
+    ]}),
+    N('ep2','Public Permits Register (RAP)','pg',{meta:'read-only public register',prov:'C',own:'M',children:[
+      N('ep2s','Search & Filter','pg',{meta:'number · IDNO · category · authority · status',prov:'C',own:'M'}),
+      N('ep2a','Permit Record (public view)','pg',{meta:'masked for natural persons · full for legal entities',prov:'C',own:'M',children:[
+        N('ep2b','Download Extract','act',{meta:'QR-verifiable PDF — conflicts with earlier decision',prov:'?',own:'M',flag:true}),
+        N('ep2c','Download Permit','act',{meta:'MDocs PDF of the issued document',prov:'C',own:'M'})
+      ]})
+    ]}),
+    N('ep4','Content Pages','pg',{meta:'news · FAQ · authority contacts',prov:'C',own:'S'})
+  ]}),
+  N('ig','Identity & Representation Gateway','int',{meta:'shared across all e-services',prov:'C',own:'S',children:[
+    N('ig1','MPass Authentication','int',{meta:'SSO · natural person / legal entity rep',prov:'C',own:'S'}),
+    N('ig2','MPower Entity Selection','int',{meta:'beneficiaries the user may act for',prov:'C',own:'S'})
+  ]}),
+  N('f2','FOD2 — Request Flow Engine','sur',{meta:'UC03 · shared runtime, MMIP-driven',prov:'C',own:'M',children:[
+    N('f2a','Request Wizard','sur',{meta:'ONE request · 7 sequential steps',seq:true,prov:'C',own:'M',
+      plain:'Not 7 separate things — one request the user fills in, step by step, top to bottom.',children:[
+      N('w1','1 · Identification','pg',{prov:'C',
+        plain:'The system confirms who is logged in and loads their identity data. The user does not retype it.'}),
+      N('w2','2 · Beneficiary & Representative','pg',{meta:'MPower',prov:'C',
+        plain:'Who is this request FOR? Myself, or a company/person I am empowered to act for. This decides the owner of the request.'}),
+      N('w3','3 · Service Data Provisioning','pg',{meta:'fields from Form Builder',prov:'C',
+        plain:'The actual form: service-specific fields and required documents. Different for every service — it is rendered from the schema, not hardcoded.'}),
+      N('w4','4 · Delivery Preferences','int',{meta:'MDelivery',prov:'C',
+        plain:'How the user wants to receive the result: electronically, by post, or pick-up at the counter.'}),
+      N('w5','5 · Confirmation & Signature','int',{meta:'MSign',prov:'C',
+        plain:'A summary of everything entered, then an electronic signature. This is the moment it becomes a legal submission.'}),
+      N('w6','6 · Payment','int',{meta:'MPay',prov:'C',
+        plain:'Pay the state fee. The amount comes from the service configuration — the user does not calculate it.'}),
+      N('w7','7 · Submission Confirmation','act',{meta:'redirect → Evo Cabinet',prov:'C',
+        plain:'Confirmation with a reference number, then the user lands in the Cabinet where the request is now visible and trackable.'})
+    ]}),
+    N('f2b','Lifecycle Actions — Post-Processes','sur',{meta:'FR 03.1.01 · 9 post-processes · pick ONE',prov:'C',own:'M',
+      plain:'Alternatives, not steps. Each is a separate mini-flow started later, against a request or an already-issued permit.',children:[
+      N('l1','Renewal','act',{prov:'C'}),N('l2','Amendment','act',{prov:'C'}),
+      N('l3','Modification','act',{prov:'C'}),N('l4','Suspension','act',{prov:'C'}),
+      N('l5','Withdrawal','act',{meta:'against an ISSUED permit — see naming conflict',prov:'C',flag:true}),
+      N('l6','Cancellation','act',{prov:'C'}),
+      N('l7','Appeal','act',{prov:'C'}),
+      N('l8','Supply Additional Information','act',{prov:'C'}),
+      N('l9','Additional Payment','act',{prov:'C'}),
+      N('l0','✕ Duplicate — does not exist','opn',{meta:'a permit is a registry record, not a copyable document',prov:'C'})
+    ]})
+  ]}),
+  N('ec','Evo Cabinet — Personal Workplace','evo',{meta:'UC02 · shared surface, MMIP-fed',prov:'C',own:'S',children:[
+    N('ec0','Dashboard','pg',{meta:'NEW — was missing from FO architecture',prov:'C',own:'S',children:[
+      N('ec0a','Widgets List','pg',{meta:'configurable tiles',prov:'C',own:'S',children:[
+        N('ec0p','Pending Actions Widget','sur',{meta:'aggregates actions across all compartments',prov:'C',own:'S',children:[
+          N('ec0x','Atomic Pending Action','act',{meta:'→ same FOD2 workflow',prov:'C'})
+        ]})
+      ]})
+    ]}),
+    N('ec1','/requests folder','pg',{meta:'active requests and cases only',prov:'C',own:'S',children:[
+      N('ec1p','/requests/permits','pg',{meta:'Evo v2: /ecabinet/requests',prov:'C',own:'S',flag:true,children:[
+        N('ec1a','Request Record','pg',{meta:'case no. · service · authority · date · status',prov:'C',own:'M',children:[
+          N('ec1b','Contextual Actions','act',{meta:'→ FOD2 Lifecycle Actions',prov:'C',own:'M'})
+        ]})
+      ]})
+    ]}),
+    N('ec2','/permits folder','pg',{meta:'registry-centric · renamed from "/data folder"',prov:'C',own:'M',children:[
+      N('ec2a','Permit Record','pg',{meta:'full UNMASKED dataset · in sync with RAP',prov:'C',own:'M',children:[
+        N('ec2b','Contextual Actions','act',{meta:'→ FOD2 Lifecycle Actions',prov:'C',own:'M'}),
+        N('ec2d','Document Form Generation','act',{meta:'on-demand MDocs PDF · any number of times',prov:'C',own:'M'})
+      ]})
+    ]}),
+    N('ec3','Notifications','int',{meta:'web push + MNotify (SMS/email)',prov:'C',own:'S',children:[
+      N('ec3a','Notification','pg',{meta:'subject · message',prov:'C',children:[
+        N('ec3b','Contextual Actions','act',{meta:'"Add more information" · "Pay now"',prov:'C'})
+      ]})
+    ]}),
+    N('ec5','Payments','int',{meta:'invoices · confirmations · receipts (MPay)',prov:'C',own:'M',children:[
+      N('ec5a','Payment','pg',{meta:'invoice no. · amount · related case · status',prov:'C',children:[
+        N('ec5b','Contextual Actions','act',{meta:'View invoice · Pay · Download receipt',prov:'C'})
+      ]})
+    ]}),
+    N('ec7','Profile & Preferences','pg',{meta:'personal data · channels · locale',prov:'C',own:'S'})
+  ]})
+]});
+
+/* ================= BACK-OFFICE ================= */
+var BACK=N('bo','MMIP v2 Back-Office','sur',{meta:'internal Workplace, per role · UC04/07/15',prov:'C',own:'M',children:[
+  N('as','App Shell','pg',{meta:'structural wrapper, not a compartment',prov:'C',own:'M',children:[
+    N('as1','Header','pg',{meta:'navigation · branding · search · profile',prov:'C'}),
+    N('as2','Footer','pg',{meta:'version · support · legal',prov:'C'})
+  ]}),
+  N('b','Dashboard','pg',{meta:'UC04 · role-scoped landing page',prov:'C',own:'M',children:[
+    N('b1','Widgets List','pg',{meta:'KPI tiles · counters · shortcuts',prov:'C',children:[
+      N('b1a','Atomic Widget','pg',{meta:'open cases · SLA breaches · pending approvals',prov:'C'})
+    ]})
+  ]}),
+  N('c','Workplace','sur',{meta:'case processing compartment',prov:'C',own:'M',children:[
+    N('c1','Folder Structure','pg',{meta:'multi-level menu, configurable per role',prov:'C',children:[
+      N('c1a','Atomic Folder','pg',{meta:'My Cases · Team Queue · Drafts · Escalated',prov:'C'})
+    ]}),
+    N('c2','Records List','pg',{meta:'UC05 · editable grid, configurable columns',prov:'C',children:[
+      N('c2a','Atomic Record','pg',{meta:'case no. · date · permit type · status · assignee',prov:'C',children:[
+        N('c2b','Record-Based Workflow','sur',{meta:'UC09 · Case Record Form',prov:'C',children:[
+          N('r1','Basic metadata','pg',{prov:'C'}),
+          N('r2','Request details','pg',{meta:'submitted form data',prov:'C'}),
+          N('r3','Supporting documents','pg',{meta:'applicant-provided + generated',prov:'C'}),
+          N('r4','Payments','int',{meta:'from Payment Engine',prov:'C'}),
+          N('r5','Intermediate review files','pg',{meta:'notes · decisions · expertise',prov:'C'}),
+          N('r6','Actions','act',{meta:'Continue / Save as draft / Go back',prov:'C'})
+        ]})
+      ]})
+    ]})
+  ]}),
+  N('d','Registers','pg',{meta:'UC10 · MMIP registries',prov:'C',own:'M',children:[
+    N('d1','Records List','pg',{meta:'Applicants · Authorized Objects · Issued Permits',prov:'C'}),
+    N('d2','Record Manager','pg',{meta:'add / update / disable / version',prov:'C'})
+  ]}),
+  N('e','Reports','pg',{meta:'UC06 · business-event reporting',prov:'C',own:'M',children:[
+    N('e1','Report Viewer','pg',{meta:'pre-built + ad-hoc · XLSX/CSV/PDF',prov:'C'}),
+    N('e2','Report Editor','pg',{meta:'query builder, administrators',prov:'C'})
+  ]}),
+  N('f','Calendar','pg',{meta:'deadlines and scheduled events',prov:'C',own:'M',children:[
+    N('f1','Atomic Event','pg',{meta:'SLA · inspection · expertise due',prov:'C'})
+  ]}),
+  N('m','System Monitoring','pg',{meta:'System / Global Admin ONLY',prov:'C',own:'M',children:[
+    N('m1','Health and Diagnostics','pg',{meta:'UC16 · ADM001–011',prov:'C'}),
+    N('m2','Audit Log Viewer','pg',{meta:'UC21 · MLog · SEC054–074',prov:'C'}),
+    N('m3','Job Runs','pg',{meta:'UC19 · execution history',prov:'C'}),
+    N('m4','Integration Log','pg',{meta:'IDEX 001–016 · MConnect',prov:'C'})
+  ]}),
+  N('hs','Settings','cfg',{meta:'UC12–UC15 · "define" only',prov:'C',own:'M',children:[
+    N('h1','Service Manager','cfg',{meta:'UC14 · RSSPA · fees · eligibility',prov:'C'}),
+    N('h2','Form Builder','cfg',{meta:'UC15 · schema · conditional logic',prov:'C'}),
+    N('h3','Classifier Manager','cfg',{meta:'UC13 · classifiers',prov:'C'}),
+    N('h4','Process Engine','cfg',{meta:'UC15 · BPM · versioning · escalation',prov:'C'}),
+    N('h5','Content Manager','cfg',{meta:'UC15 · labels · public content',prov:'C'}),
+    N('h6','Workplace Editor','cfg',{meta:'per-role layout',prov:'C'}),
+    N('h7','Notifications Engine','cfg',{meta:'UC20 · event→channel→template',prov:'C'}),
+    N('h8','Users Manager & RBAC','cfg',{meta:'UC12 · roles · authority scoping · delegation',prov:'C'}),
+    N('h9','Tenant & Workspace Manager','cfg',{meta:'ARH010 · authority provisioning',prov:'C'}),
+    N('h10','Integration Manager','cfg',{meta:'UC17 · adapters · retry/timeout',prov:'C'}),
+    N('h11','Job Scheduler','cfg',{meta:'UC19 · job definitions',prov:'C'}),
+    N('h12','Search Index Manager','cfg',{meta:'UC05/UC19 · reindex · saved searches',prov:'C'})
+  ]}),
+  N('i','User Profile','pg',{meta:'from the header, not left navigation',prov:'C',own:'M',children:[
+    N('i1','Profile Management','pg',{meta:'personal data · contacts',prov:'C'}),
+    N('i2','Preferences Management','pg',{meta:'locale · channels',prov:'C'}),
+    N('i3','Notifications Hub','pg',{meta:'UC20 · in-app business feed',prov:'C',children:[
+      N('i3a','Atomic Notification','pg',{meta:'assignment · SLA · escalation',prov:'C'})
+    ]})
+  ]}),
+  N('hd','✕ Helpdesk — removed','opn',{meta:'delegated to MSupport (incident widget)',prov:'C'})
+]});
+
+/* ========== CONVERGENCE 1: entry points → /requests/permits ========== */
+var IN_REQ=[
+  {g:'From Evo Cabinet',items:[
+    N('e-nav','/requests folder','evo',{meta:'cabinet navigation',prov:'C',own:'S'}),
+    N('e-dash','Dashboard → Pending Actions','evo',{meta:'aggregator widget',prov:'C',own:'S'}),
+    N('e-perm','/permits → Permit Record','pg',{meta:'case reference → source case',prov:'I',own:'M'}),
+    N('e-pay','Payments → Payment','int',{meta:'invoice → related case',prov:'C',own:'M'})
+  ]},
+  {g:'From the FOD2 flow',items:[
+    N('e-sub','Submission Confirmation','act',{meta:'step 7 → redirect to Cabinet',prov:'C'}),
+    N('e-drf','Saved draft','act',{meta:'Continue draft',prov:'C'})
+  ]},
+  {g:'From notifications',items:[
+    N('e-ntf','Notification → Contextual Action','int',{meta:'web push',prov:'C',own:'S'}),
+    N('e-mn','MNotify (SMS / email)','int',{meta:'deep link',prov:'C',own:'S'})
+  ]},
+  {g:'Direct / legacy',items:[
+    N('e-lnk','Deep link / bookmark','pg',{meta:'/ecabinet/requests/{id}',prov:'C'}),
+    N('e-leg','Legacy /applications/permits','opn',{meta:'Evo v1 path → redirects to /ecabinet/requests',prov:'C',flag:true})
+  ]}
+];
+var HUB_REQ=N('hreq','/requests/permits','evo',{meta:'Evo v2: evo.gov.md/ecabinet/requests',prov:'C',own:'S',flag:true,children:[
+  N('q1','Request Record','pg',{meta:'ACTIVE requests and cases',prov:'C',own:'M',children:[
+    N('q2','Contextual Actions','sur',{meta:'status-dependent → FOD2',prov:'C',children:[
+      N('qa','Continue draft','act',{prov:'C'}),
+      N('qb','Supply additional information','act',{prov:'C'}),
+      N('qc','Additional payment','act',{prov:'C'}),
+      N('qd','Withdraw','act',{meta:'against an ACTIVE case — see naming conflict',prov:'C',flag:true}),
+      N('qe','Document Form Generation','act',{meta:'once the request links to an issued permit',prov:'C'})
+    ]})
+  ]})
+]});
+
+/* ========== CONVERGENCE 2: post-process initiation → FOD2 ========== */
+var IN_PP=[
+  {g:'Against an ISSUED permit',items:[
+    N('p-perm','/permits → Permit Record','pg',{meta:'Contextual Actions',prov:'C',own:'M'}),
+    N('p-ntf','Notifications → Notification','int',{meta:'Contextual Actions',prov:'C',own:'S'}),
+    N('p-dash','Dashboard → Pending Action','evo',{meta:'Pending Actions Widget',prov:'C',own:'S'})
+  ]},
+  {g:'Against an ACTIVE request',items:[
+    N('p-app','/requests/permits → Record','evo',{meta:'Contextual Actions',prov:'C',own:'S'}),
+    N('p-ntf2','Notifications','int',{meta:'same actions',prov:'C',own:'S'}),
+    N('p-dash2','Dashboard → Pending Action','evo',{prov:'C',own:'S'})
+  ]}
+];
+var HUB_PP=N('hpp','FOD2 — Lifecycle Actions','sur',{meta:'the SINGLE shared execution path',prov:'C',own:'M',children:[
+  N('pp1','Post-processes on an issued permit','sur',{prov:'C',children:[
+    N('n1','Renewal','act',{prov:'C'}),N('n2','Amendment','act',{prov:'C'}),
+    N('n3','Modification','act',{prov:'C'}),N('n4','Suspension','act',{prov:'C'}),
+    N('n5','Withdrawal','act',{meta:'revokes an issued permit',prov:'C',flag:true}),
+    N('n6','Cancellation','act',{prov:'C'}),N('n7','Appeal','act',{prov:'C'})
+  ]}),
+  N('pp2','Actions on an active request','sur',{prov:'C',children:[
+    N('n8','Continue draft','act',{prov:'C'}),
+    N('n9','Supply Additional Information','act',{prov:'C'}),
+    N('n10','Additional Payment','act',{prov:'C'}),
+    N('n11','Withdraw','act',{meta:'closes a not-yet-decided request',prov:'C',flag:true})
+  ]}),
+  N('pp3','Document Form Generation','act',{meta:'identical from /requests/permits and /permits',prov:'C'})
+]});
+
+var PLAIN={"fo": "Everything the applicant ever sees. Three different surfaces live under here: the public portal, the form engine, and the personal cabinet.","ep": "The public website. No login needed — this is where someone lands from Google or from gov.md before they are anyone in the system.","ep1": "The shop window: the searchable list of all services the state offers. MMIP publishes the permitting ones into it.","ep1a": "One service explained before you commit: what it costs, how long it takes, which documents you need, who issues it. This is where a person decides whether to apply at all.","ep2": "The public register of permits, open to anyone without login. Journalists, lawyers and companies use it to check whether a permit is real and still valid.","ep2s": "How the public finds a specific permit — by number, company code, category, authority or date.","ep2a": "The public view of one permit. Company data is shown fully; personal data of individuals is masked, because this page is open to the whole internet.","ep2b": "A PDF proving the record exists, with a QR code so the reader can verify it is genuine.","ep2c": "A PDF of the permitting document itself, rendered from the register data.","ep4": "Static informational pages — news, FAQ, who to contact. Not part of any request flow.","ig": "The doorway between anonymous browsing and being a known user. Shared by all state services, not built by MMIP.","ig1": "The national login. The user proves identity once and can then use any state service without logging in again.","ig2": "After login: 'who am I acting for right now?' Lists the companies or people who have legally empowered this user to act on their behalf.","f2": "The engine that turns a service configuration into a real, fillable form on screen. It does not know about permits specifically — it renders whatever schema it is given.","l1": "Ask to extend a permit that is about to expire, instead of applying from scratch.","l2": "Ask to change the content of an issued permit — for example correcting or updating what it covers.","l3": "Change data attached to the permit without changing what it authorises.","l4": "Temporarily freeze a permit so it cannot be used, without cancelling it.","l5": "Give up a permit you already hold — you no longer want or need it.","l6": "The permit is annulled, typically by the authority, and stops being valid.","l7": "Formally contest a decision the authority made about your request or permit.","l8": "The authority asked for something extra; this is the flow where the applicant supplies it.","l9": "A further fee became due after the original payment — this flow collects it.","l0": "Deliberately absent. Since a permit is a database record rather than a paper document, you never need a 'copy' — you just generate the PDF again.","ec": "The user's private home after login. Everything about them in one place: what they asked for, what they hold, what they owe, what they were told.","ec0": "The landing screen — a summary of what needs attention, so the user does not have to hunt through folders. Newly added; it did not exist before.","ec0a": "The configurable tiles the dashboard is built from.","ec0p": "One tile that answers 'what do I need to do?' by pulling every outstanding action from every folder into a single list.","ec0x": "A single to-do item. Clicking it starts exactly the same flow as starting it from its own folder — nothing separate happens here.","ec1": "Things still in motion: requests being filled in or being processed. Once a request is decided, the result lives in /permits instead.","ec1p": "The permitting slice of that folder. Other kinds of state services would sit alongside it.","ec1a": "One request being tracked: its number, which service, which authority, when submitted, where it is now.","ec1b": "The buttons available on this request right now. Which ones appear depends on the request's current status.","ec2": "Things the user actually holds: every issued permit as data. This is the shift from thinking in documents to thinking in records.","ec2a": "The user's own copy of a register record, with nothing masked — unlike the public RAP view, because this is their own data.","ec2b": "Actions against an issued permit: renew it, amend it, suspend it, give it up.","ec2d": "Generate the PDF on demand from current record data. Any number of times, always up to date — which is why no 'duplicate' action is needed.","ec3": "Everything the state has told this user, in one feed.","ec3a": "A single message — what happened and what it concerns.","ec3b": "Notifications are not dead ends: 'pay now' or 'send more information' starts the real flow directly from the message.","ec5": "The money side: what is owed, what was paid, and the proof of payment.","ec5a": "One invoice or transaction, tied to the request or permit it belongs to.","ec5b": "See the invoice, pay it, or download the receipt.","ec7": "Personal details, language, and how the user wants to be contacted.","bo": "The internal side, used by civil servants. Same data as the citizen sees, but with the processing tools attached.","as": "The frame around every internal screen — not a place you navigate to, just what is always on screen.","as1": "Top bar: navigation, search, and the user menu.","as2": "Bottom bar: version, support and legal links.","b": "What an official sees on login, showing only their own workload and authority.","b1": "The tiles the dashboard is assembled from, configurable per role.","b1a": "One tile — for example open cases, deadlines about to breach, or approvals waiting.","c": "Where the actual work happens: the queues of cases and the screens for processing them.","c1": "The left-hand menu of case folders, which can differ per role and per authority.","c1a": "One queue — my cases, the team's, drafts, escalated ones.","c2": "The table of cases in the selected folder, with columns and filters the organisation can configure.","c2a": "One case in the list — number, date, permit type, status, who it is assigned to.","c2b": "Opening a case: everything about it on one screen, with the actions the workflow currently allows.","r1": "The identifying facts of the case — number, date, type, status.","r2": "Exactly what the applicant submitted in the form.","r3": "Files: both what the applicant attached and what the system generated.","r4": "Fees due and paid on this case.","r5": "Internal working material — notes, expert opinions, inspection results. Not shown to the applicant.","r6": "Move the case forward, park it as draft, or step back — the options come from the workflow, not from the screen.","d": "The authoritative lists the system maintains: who applied, what objects are authorised, what permits were issued.","d1": "Browsing those registers.","d2": "Maintaining register entries — adding, correcting, disabling, versioning.","e": "Business reporting: how many, how fast, by whom. Not IT monitoring.","e1": "Running and exporting reports.","e2": "Building new reports, for administrators.","f": "Deadlines and scheduled events across the cases an official is responsible for.","f1": "One dated thing — an SLA deadline, an inspection, an expertise due date.","m": "The IT health view. Only system administrators see this; ordinary officials never do.","m1": "Is the platform healthy right now — heartbeats, performance thresholds, alerts.","m2": "Who did what and when, kept for compliance and investigations.","m3": "Did the scheduled jobs run, and did any fail.","m4": "The record of calls to and from other state systems, used when something breaks.","hs": "Where the platform is configured. Note this is 'define' only — watching things run happens under System Monitoring.","h1": "Define a service: its fees, who is eligible, how the result is delivered.","h2": "Build the form the applicant fills in, including which fields appear only under certain conditions.","h3": "Maintain the shared lists of values the forms and registers draw from.","h4": "Design the workflow a case follows, and version it so cases in flight are not disrupted.","h5": "Labels, translations and public text — changing wording without changing code.","h6": "Arrange what each role sees: their dashboard, folders and navigation.","h7": "Decide which event sends which message, to whom, over which channel.","h8": "Create users, give them roles, scope them to an authority, and delegate rights.","h9": "Set up authorities themselves and their internal structure.","h10": "Configure the connections to other state systems, including what happens when they fail.","h11": "Define the automatic jobs — expiry checks, SLA monitoring, archiving, syncs.","h12": "Manage what is searchable and rebuild the index when needed.","i": "The official's own account, reached from the header rather than the main menu.","i1": "Their own personal and contact data.","i2": "Language and how they want to be notified.","i3": "Their work feed — assignments, deadlines, escalations.","i3a": "One such message.","hd": "Deliberately removed. Support tickets now go to MSupport through a widget; triage and resolution happen by email, outside this system.","hreq": "Where every path leads. Whatever the user clicked, they end up on this list of their active requests.","q1": "One active request. Only things still in motion appear here — decided ones move to /permits.","q2": "What the user can do about this request right now. The list changes with the request's status.","qa": "Pick up an unfinished form where it was left.","qb": "Upload whatever the authority asked for.","qc": "Pay an extra fee that became due during processing.","qd": "Abandon a request that has not been decided yet.","qe": "Produce the PDF, available once the request has produced an issued permit.","hpp": "All roads end here. No matter which screen the user started from, the same engine runs the action — no screen has its own private logic.","pp1": "Actions that only make sense against a permit that already exists.","n1": "Extend a permit before it expires.","n2": "Change what an issued permit covers.","n3": "Update data attached to the permit.","n4": "Temporarily freeze it.","n5": "Give up a permit you hold.","n6": "Annul the permit entirely.","n7": "Contest a decision.","pp2": "Actions that only make sense while a request is still undecided.","n8": "Resume an unfinished form.","n9": "Send what the authority asked for.","n10": "Pay an additional fee.","n11": "Abandon the request before a decision.","pp3": "Generate the PDF. Reachable from either folder — same action, same record.","e-nav": "The plain way in: the user clicks the folder in their cabinet menu.","e-dash": "From the landing screen, via the tile that aggregates everything needing attention.","e-perm": "From an issued permit back to the case that produced it.","e-pay": "From an invoice back to the request it belongs to.","e-sub": "Straight after submitting: the user is sent into the cabinet and sees the new request there.","e-drf": "Returning to a form abandoned earlier — the draft was waiting in the list.","e-ntf": "Clicking a message in the cabinet feed.","e-mn": "Clicking a link in an SMS or email, which lands on the specific request.","e-lnk": "A saved or shared URL that opens the request directly.","e-leg": "The old Evo v1 address. Kept working through a redirect so existing links and bookmarks do not break.","p-perm": "Starting an action from the permit record itself.","p-ntf": "Starting it from the message that told the user about it.","p-dash": "Starting it from the to-do tile on the landing screen.","p-app": "Starting a case-level action from the request record.","p-ntf2": "The same actions, reached from a notification.","p-dash2": "The same actions, reached from the dashboard tile."};
+/* attach plain-language explanations by node id (inline ones win) */
+function explain(node){ if(!node) return node;
+  if(!node.plain && PLAIN[node.id]) node.plain=PLAIN[node.id];
+  (node.children||[]).forEach(explain); return node; }
+[FRONT,BACK,HUB_REQ,HUB_PP].forEach(explain);
+[IN_REQ,IN_PP].forEach(function(gs){gs.forEach(function(g){g.items.forEach(explain);});});
+
+var SURF={
+  EVO:{s:'EVO',t:'Evo Portal — public, anonymous (Front-Office)'},
+  CAB:{s:'CABINET',t:'Evo Cabinet — authenticated personal workplace (Front-Office)'},
+  FOD:{s:'FOD2',t:'FOD2 — Request Flow Engine (Front-Office)'},
+  BO:{s:'BACK-OFFICE',t:'MMIP v2 Back-Office — internal Workplace'}
+};
+/* stamp a surface onto a node and everything beneath it, unless already set */
+function stamp(node,sf){ if(!node) return node; if(!node.sf) node.sf=sf;
+  (node.children||[]).forEach(function(c){stamp(c,node.sf);}); return node; }
+
+/* Front-Office: three distinct surfaces under one root */
+FRONT.sf='EVO';
+stamp(FRONT.children[0],'EVO');   /* Evo Portal */
+stamp(FRONT.children[1],'EVO');   /* Identity & Representation Gateway */
+stamp(FRONT.children[2],'FOD');   /* FOD2 */
+stamp(FRONT.children[3],'CAB');   /* Evo Cabinet */
+/* Back-Office */
+stamp(BACK,'BO');
+/* Convergence hubs */
+stamp(HUB_REQ,'CAB');
+stamp(HUB_PP,'FOD');
+/* Convergence entry points — set per item */
+(function(){
+  var m={'e-nav':'CAB','e-dash':'CAB','e-perm':'CAB','e-pay':'CAB','e-sub':'FOD','e-drf':'FOD',
+         'e-ntf':'CAB','e-mn':'CAB','e-lnk':'CAB','e-leg':'CAB',
+         'p-perm':'CAB','p-ntf':'CAB','p-dash':'CAB','p-app':'CAB','p-ntf2':'CAB','p-dash2':'CAB'};
+  [IN_REQ,IN_PP].forEach(function(gs){gs.forEach(function(g){g.items.forEach(function(it){
+    if(m[it.id]) stamp(it,m[it.id]);
+  });});});
+})();
+
+/* ===== Back-Office Workplace, per role (from prototype locul-de-munca-v3) ===== */
+/* Cristian's sitemap marks Folder Structure "configurable per role" but does not
+   enumerate the folders. This is [I] — reconstructed from the validated prototype. */
+var ROLES=[
+  {id:'spec',label:'Specialist',scope:'authority · subdivision · self',
+   plain:'Processes their own cases. Sees only what is assigned to them.'},
+  {id:'sup',label:'Supervizor',scope:'authority · subdivision · all specialists',
+   plain:'Distributes incoming cases and approves task requests for one subdivision.'},
+  {id:'adml',label:'Administrator local',scope:'authority · subdivision · filter',
+   plain:'Manages users within their own authority. The only role that can delegate.'},
+  {id:'admc',label:'Administrator central (ADM-C)',scope:'authority · all subdivisions',
+   plain:'Authority-wide. Cases are view-only here; the real job is Administration.'}
+];
+function WROOT(role,label,kids){return N('wp-'+role,'Workplace — '+label,'sur',{sf:'BO',own:'M',prov:'I',
+  meta:role+' · folders reconfigure on role switch',
+  plain:'What this role sees in the left sidebar. Switching role rebuilds these folders, their columns and their actions.',children:kids});}
+
+var WP={
+/* -------- SPECIALIST -------- */
+spec:WROOT('spec','Specialist',[
+  N('sp-g1','Group · Dosare','sur',{sf:'BO',prov:'I',plain:'The case queues this specialist works from.',children:[
+    N('sp-mele','Atribuite mie','pg',{sf:'BO',prov:'I',meta:'status: inExaminare (mine)',
+      plain:'Cases handed to me to examine. My main working queue.'}),
+    N('sp-elib','Spre eliberare pe hârtie','pg',{sf:'BO',prov:'I',meta:'action: eliberare',
+      plain:'Signed decisions waiting to be handed over on paper.'}),
+    N('sp-ofi','Inițiate din oficiu','pg',{sf:'BO',prov:'I',meta:'ex-officio · titular, not solicitant',
+      plain:'Cases the authority started itself, not from a citizen request.'})
+  ]}),
+  N('sp-g2','Group · Sarcini','sur',{sf:'BO',prov:'I',plain:'Task requests I raise on my cases.',children:[
+    N('sp-sar','Sarcinile mele','pg',{sf:'BO',prov:'I',meta:'radiere · redeschidere',
+      plain:'Requests I send up for a supervisor to approve — to strike out or reopen a case.'})
+  ]})
+]),
+/* -------- SUPERVIZOR -------- */
+sup:WROOT('sup','Supervizor',[
+  N('su-g1','Group · Dosare','sur',{sf:'BO',prov:'I',plain:'The whole subdivision’s flow, from intake to sign-off.',children:[
+    N('su-noi','Dosare noi','pg',{sf:'BO',prov:'I',meta:'status: depus · action: distribuire',
+      plain:'Just-arrived cases with nobody assigned yet. The supervisor hands them to specialists.'}),
+    N('su-der','Dosare în derulare','pg',{sf:'BO',prov:'I',meta:'assigned · action: redistribuire',
+      plain:'Cases currently being examined. Can be reassigned if needed.'}),
+    N('su-coord','Dosare spre coordonare','pg',{sf:'BO',prov:'I',meta:'status: spreCoordonare',
+      plain:'Examination done; the draft decision needs coordinating before signature.'}),
+    N('su-semn','Dosare spre semnare','pg',{sf:'BO',prov:'I',meta:'status: spreSemnare',
+      plain:'Cases the supervisor signs directly (those not needing a Director signature).'}),
+    N('su-toate','Toate dosarele','pg',{sf:'BO',prov:'?',flag:true,meta:'read-only conflict in US',
+      plain:'Everything in the subdivision. The US contradicts itself on whether this is read-only — flagged.'})
+  ]}),
+  N('su-g2','Group · Sarcini','sur',{sf:'BO',prov:'I',plain:'Approving the task requests specialists send up.',children:[
+    N('su-sar','Sarcinile mele','pg',{sf:'BO',prov:'I',meta:'action: aprobă / respinge',
+      plain:'Strike-out and reopen requests from specialists, to approve or reject.',children:[
+        N('su-rad','Confirmare radiere','pg',{sf:'BO',prov:'I',plain:'Approve or reject striking a case out.'}),
+        N('su-red','Confirmare redeschidere','pg',{sf:'BO',prov:'I',plain:'Approve or reject reopening a case.'})
+      ]})
+  ]})
+]),
+/* -------- ADMIN LOCAL -------- */
+adml:WROOT('adml','Administrator local',[
+  N('al-g1','Group · Dosare','sur',{sf:'BO',prov:'I',plain:'Oversight of the authority’s cases, not day-to-day processing.',children:[
+    N('al-toate','Dosarele autorității','pg',{sf:'BO',prov:'I',meta:'view / oversight',
+      plain:'A view over the authority’s cases for oversight.'})
+  ]}),
+  N('al-g2','Group · Administrare','sur',{sf:'BO',prov:'I',plain:'The real job: managing people and access in this authority.',children:[
+    N('al-users','Utilizatori','pg',{sf:'BO',prov:'C',meta:'US-74/75',plain:'Create and manage users in this authority.'}),
+    N('al-del','Delegări','pg',{sf:'BO',prov:'C',meta:'US-79 · only ADM-L delegates',
+      plain:'Temporarily hand one person’s role to another for a period. Only this role can.'}),
+    N('al-subs','Subdiviziuni','pg',{sf:'BO',prov:'C',meta:'US-93/94',plain:'Manage the authority’s internal units.'})
+  ]})
+]),
+/* -------- ADMIN CENTRAL -------- */
+admc:WROOT('admc','Administrator central',[
+  N('ac-g1','Group · Dosare','sur',{sf:'BO',prov:'I',plain:'Cross-authority visibility, view-only.',children:[
+    N('ac-toate','Toate dosarele','pg',{sf:'BO',prov:'I',meta:'view-only',
+      plain:'Every authority’s cases, read-only — for a platform-wide picture, not processing.'})
+  ]}),
+  N('ac-g2','Group · Administrare','sur',{sf:'BO',prov:'C',plain:'Platform-wide configuration and access — the full Settings surface.',children:[
+    N('ac-auth','Autorități','pg',{sf:'BO',prov:'C',meta:'US-87/88/90/91',plain:'Provision authorities, import and merge them.'}),
+    N('ac-users','Utilizatori (toți)','pg',{sf:'BO',prov:'C',meta:'US-89',plain:'Manage users across every authority.'}),
+    N('ac-roles','Roluri & permisiuni','pg',{sf:'BO',prov:'C',meta:'US-80/83/85',plain:'Define roles and the effective-rights formula.'}),
+    N('ac-settings','Settings (toate)','cfg',{sf:'BO',prov:'C',meta:'12 config modules',plain:'The full configuration surface — Form Builder, Process Engine, integrations, jobs.'})
+  ]})
+])
+};
+
+Object.keys(WP).forEach(function(k){explain(WP[k]);});
+
+var VIEWS={
+  roleworkplace:{label:'Back-Office · Workplace per role',kind:'roles',collapse:[]},
+  requests:{label:'Entry points → My requests',kind:'converge',groups:IN_REQ,hub:HUB_REQ,collapse:[]},
+  postproc:{label:'Post-process initiation → FOD2',kind:'converge',groups:IN_PP,hub:HUB_PP,collapse:[]},
+  front:{label:'Front-Office',kind:'tree',root:FRONT,collapse:['f2b','w1','ec0']},
+  back:{label:'Back-Office',kind:'tree',root:BACK,collapse:['hs','c2b','m']}
+};
+var PROV={C:{c:'#129e74',t:'Confirmed in Sitemap v0.1'},I:{c:'#0058d2',t:'Inferred'},P:{c:'#e8912a',t:'Proposed'},'?':{c:'#d9453b',t:'Conflict / TBD'}};
+
+function allIds(node,acc){acc=acc||[];acc.push(node.id);(node.children||[]).forEach(function(c){allIds(c,acc);});return acc;}
+
+function Chip(props){
+  var n=props.node,hasKids=n.children&&n.children.length,isOpen=props.isOpen,pv=n.prov?PROV[n.prov]:null;
+  return h('div',{className:'nodewrap'},
+    h('div',{className:'chip t-'+n.type+(props.root?' root':'')+(n.flag&&props.showFlags?' flag':'')+((props.focus&&n.sf&&n.sf!==props.focus)?' dim':''),ref:props.reg},
+      h('div',{className:'lab'},
+        pv?h('span',{className:'prov',style:{background:pv.c},title:pv.t}):null,
+        n.sf?h('span',{className:'sf sf-'+n.sf,title:SURF[n.sf].t},SURF[n.sf].s):null,
+        n.label,
+        n.own?h('span',{className:'own own-'+n.own,title:n.own==='M'?'MMIP v2 owns the content/logic':'Shared Evo/FOD2 platform surface'},n.own):null
+      ),
+      n.meta?h('div',{className:'meta'},n.meta):null,
+      (n.plain&&props.showPlain)?h('div',{className:'plain'},n.plain):null
+    ),
+    hasKids?h('div',{className:'tog',onClick:props.onToggle,title:isOpen?'Collapse':'Expand'},isOpen?'–':'+'):null,
+    (hasKids&&!isOpen)?h('div',{className:'count'},n.children.length):null
+  );
+}
+function Tree(props){
+  var n=props.node,open=props.expanded[n.id]!==false,hasKids=n.children&&n.children.length;
+  return h('div',{className:'subtree'},
+    h(Chip,{node:n,root:props.root,isOpen:open,showFlags:props.showFlags,focus:props.focus,showPlain:props.showPlain,
+      reg:function(el){props.register(n.id,el);},onToggle:function(){props.toggle(n.id);}}),
+    (hasKids&&open)?h('div',{className:'kids'+(n.seq?' seq':'')},n.children.map(function(c){
+      return h(Tree,{key:c.id,node:c,expanded:props.expanded,register:props.register,toggle:props.toggle,showFlags:props.showFlags,focus:props.focus,showPlain:props.showPlain});
+    })):null
+  );
+}
+function App(){
+  var vk=useState('requests'),view=vk[0],setView=vk[1];
+  var ex=useState({}),expanded=ex[0],setExpanded=ex[1];
+  var zs=useState(1),scale=zs[0],setScale=zs[1];
+  var pk=useState([]),paths=pk[0],setPaths=pk[1];
+  var dk=useState({w:0,h:0}),dims=dk[0],setDims=dk[1];
+  var tk=useState(0),tick=tk[0],setTick=tk[1];
+  var fk=useState(true),showFlags=fk[0],setShowFlags=fk[1];
+  var sk=useState(null),focus=sk[0],setFocus=sk[1];
+  var pl=useState(true),showPlain=pl[0],setShowPlain=pl[1];
+  var rk=useState('spec'),role=rk[0],setRole=rk[1];
+  var canvasRef=useRef(null),nodeEls=useRef({}),scaleRef=useRef(1);scaleRef.current=scale;
+  var cur=VIEWS[view];
+  var wpRoot=(cur.kind==='roles')?WP[role]:null;
+
+  useEffect(function(){var e={};(cur.collapse||[]).forEach(function(id){e[id]=false;});setExpanded(e);nodeEls.current={};},[view]);
+  useEffect(function(){nodeEls.current={};setTick(function(t){return t+1;});},[role]);
+  var register=useCallback(function(id,el){if(el){nodeEls.current[id]=el;}else{delete nodeEls.current[id];}},[]);
+  var toggle=useCallback(function(id){setExpanded(function(p){var n=Object.assign({},p);n[id]=(p[id]===false);return n;});},[]);
+
+  var pairs=useMemo(function(){
+    var out=[];
+    function walk(node){
+      var open=expanded[node.id]!==false;
+      if(node.children&&open){
+        if(node.seq){
+          /* sequence: parent connects to step 1 only, then step N → step N+1 vertically */
+          out.push([node.id,node.children[0].id,'']);
+          for(var k=0;k<node.children.length-1;k++){
+            out.push([node.children[k].id,node.children[k+1].id,'seq']);
+          }
+          node.children.forEach(function(c){walk(c);});
+        } else {
+          node.children.forEach(function(c){out.push([node.id,c.id,'']);walk(c);});
+        }
+      }
+    }
+    if(cur.kind==='roles'){ walk(wpRoot); }
+    else if(cur.kind==='converge'){
+      cur.groups.forEach(function(gr){gr.items.forEach(function(it){out.push([it.id,cur.hub.id,'dash']);});});
+      walk(cur.hub);
+    } else { walk(cur.root); }
+    return out;
+  },[view,expanded]);
+
+  function compute(){
+    var cv=canvasRef.current;if(!cv)return;
+    var cr=cv.getBoundingClientRect(),sc=scaleRef.current||1,list=[];
+    for(var i=0;i<pairs.length;i++){
+      var p=pairs[i],pe=nodeEls.current[p[0]],ce=nodeEls.current[p[1]];if(!pe||!ce)continue;
+      var a=pe.getBoundingClientRect(),b=ce.getBoundingClientRect(),d,x1,y1,x2,y2,mx,my;
+      if(p[2]==='seq'){
+        x1=(a.left-cr.left)/sc+22; y1=(a.bottom-cr.top)/sc;
+        x2=(b.left-cr.left)/sc+22; y2=(b.top-cr.top)/sc;
+        my=y1+(y2-y1)/2;
+        d='M '+x1+' '+y1+' C '+x1+' '+my+', '+x2+' '+my+', '+x2+' '+y2;
+      } else {
+        x1=(a.right-cr.left)/sc; y1=(a.top+a.height/2-cr.top)/sc;
+        x2=(b.left-cr.left)/sc;  y2=(b.top+b.height/2-cr.top)/sc; mx=x1+(x2-x1)/2;
+        d='M '+x1+' '+y1+' C '+mx+' '+y1+', '+mx+' '+y2+', '+x2+' '+y2;
+      }
+      list.push({key:p[0]+'>'+p[1],dash:p[2]==='dash',seq:p[2]==='seq',d:d});
+    }
+    setPaths(list);setDims({w:cv.offsetWidth,h:cv.offsetHeight});
+  }
+  useLayoutEffect(compute,[pairs,scale,tick,view]);
+  useEffect(function(){
+    function onR(){setTick(function(t){return t+1;});}
+    window.addEventListener('resize',onR);var ro=null;
+    if(typeof ResizeObserver!=='undefined'&&canvasRef.current){ro=new ResizeObserver(onR);ro.observe(canvasRef.current);}
+    return function(){window.removeEventListener('resize',onR);if(ro)ro.disconnect();};
+  },[view]);
+
+  function setAll(val){
+    var e={};
+    if(cur.kind==='roles'){allIds(wpRoot).forEach(function(id){e[id]=val;});}
+    else if(cur.kind==='converge'){allIds(cur.hub).forEach(function(id){e[id]=val;});}
+    else {allIds(cur.root).forEach(function(id){e[id]=val;});}
+    setExpanded(e);
+  }
+  function zoom(d){setScale(function(s){return Math.min(1.6,Math.max(.5,Math.round((s+d)*10)/10));});}
+
+  return h('div',{style:{height:'100%',display:'flex',flexDirection:'column'}},
+    h('div',{className:'hd'},
+      h('div',{className:'hd-top'},
+        h('div',{className:'hd-title'},'GEAP · Sitemap'),
+        h('div',{className:'hd-sub'},'aligned to Sitemap v0.1 · Front-Office & Back-Office')
+      ),
+      h('div',{className:'hd-row'},
+        h('div',{className:'seg'},Object.keys(VIEWS).map(function(k){
+          return h('button',{key:k,className:view===k?'on':'',onClick:function(){setView(k);}},VIEWS[k].label);
+        })),
+        h('div',{className:'spacer'}),
+        h('div',{className:'tools'},
+          h('button',{className:'tbtn'+(showPlain?' on':''),onClick:function(){setShowPlain(!showPlain);},title:'Show plain-language explanation of what actually happens'},'Explanations'),
+          h('button',{className:'tbtn'+(showFlags?' on':''),onClick:function(){setShowFlags(!showFlags);},title:'Highlight conflicts and open decisions'},'⚠ Conflicts'),
+          h('button',{className:'tbtn',onClick:function(){setAll(true);}},'Expand all'),
+          h('button',{className:'tbtn',onClick:function(){setAll(false);}},'Collapse all'),
+          h('div',{className:'zoom'},
+            h('button',{onClick:function(){zoom(-.1);}},'−'),
+            h('div',{className:'zval'},Math.round(scale*100)+'%'),
+            h('button',{onClick:function(){zoom(.1);}},'+'),
+            h('button',{onClick:function(){setScale(1);},style:{fontSize:'12px'}},'⟳')
+          )
+        )
+      ),
+      h('div',{className:'legend'},
+        [['t-evo','Evo / cabinet'],['t-sur','Compartment'],['t-pg','Page'],['t-act','Action'],['t-cfg','Settings'],['t-int','M-service'],['t-opn','Removed / conflict']].map(function(x){
+          var vars={'t-evo':['--evo-bg','--evo-bd'],'t-sur':['--sur-bg','--sur-bd'],'t-pg':['--pg-bg','--pg-bd'],'t-act':['--act-bg','--act-bd'],'t-cfg':['--cfg-bg','--cfg-bd'],'t-int':['--int-bg','--int-bd'],'t-opn':['--opn-bg','--opn-bd']};
+          var vv=vars[x[0]];
+          return h('span',{key:x[0],className:'lg'},h('span',{className:'sw',style:{background:'var('+vv[0]+')',borderColor:'var('+vv[1]+')'}}),x[1]);
+        }),
+        h('span',{className:'lgsep',key:'s1'}),
+        h('span',{className:'lg',key:'oM'},h('span',{className:'own own-M'},'M'),'MMIP-owned'),
+        h('span',{className:'lg',key:'oS'},h('span',{className:'own own-S'},'S'),'Shared surface'),
+        h('span',{className:'lgsep',key:'s2'}),
+        h('span',{className:'lg',key:'sfl',style:{gap:'6px'}},
+          'Surface:',
+          ['EVO','CAB','FOD','BO'].map(function(k){
+            return h('span',{key:k,className:'sfbtn sf-'+k+(focus&&focus!==k?' off':''),
+              title:SURF[k].t,
+              onClick:function(){setFocus(focus===k?null:k);}},SURF[k].s);
+          }),
+          focus?h('span',{className:'sfbtn',style:{background:'#fff',borderColor:'var(--line)',color:'var(--mut)'},
+            onClick:function(){setFocus(null);}},'Show all'):null
+        )
+      )
+    ),
+    h('div',{className:'hint'},'Purple chained arrows = a sequence the user walks through in order. Plain fan-out = contained parts, no order. Dashed = different entry points into the same shared workflow.'),
+    h('div',{className:'viewport'},
+      h('div',{className:'stage',style:{transform:'scale('+scale+')'}},
+        h('div',{className:'canvas',ref:canvasRef},
+          h('svg',{className:'links',width:dims.w,height:dims.h,viewBox:'0 0 '+dims.w+' '+dims.h},
+            [h('defs',{key:'d'},h('marker',{id:'arw',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:5,markerHeight:5,orient:'auto-start-reverse'},
+              h('path',{d:'M 0 0 L 10 5 L 0 10 z',fill:'#7c5cdf'}))),
+            paths.map(function(p){return h('path',{key:p.key,className:p.dash?'dash':(p.seq?'seq':''),
+              markerEnd:p.seq?'url(#arw)':undefined,d:p.d});})]
+          ),
+          cur.kind==='roles'
+            ? h('div',null,
+                h('div',{className:'roleswitch'},
+                  ROLES.map(function(r){
+                    return h('div',{key:r.id,className:'rchip'+(role===r.id?' on':''),onClick:function(){setRole(r.id);}},
+                      h('div',{className:'rlab'},r.label),
+                      h('div',{className:'rsc'},r.scope));
+                  })
+                ),
+                h('div',{className:'wpwrap'},
+                  h(Tree,{node:wpRoot,root:true,expanded:expanded,register:register,toggle:toggle,showFlags:showFlags,focus:focus,showPlain:showPlain})
+                )
+              )
+            : cur.kind==='converge'
+            ? h('div',{className:'conv'},
+                h('div',{className:'incol'},cur.groups.map(function(gr){
+                  return h('div',{className:'grp',key:gr.g},
+                    h('div',{className:'glab'},gr.g),
+                    h('div',{className:'gitems'},gr.items.map(function(it){
+                      return h('div',{className:'gi',key:it.id},
+                        h(Chip,{node:it,isOpen:true,showFlags:showFlags,focus:focus,showPlain:showPlain,reg:function(el){register(it.id,el);},onToggle:function(){}}));
+                    }))
+                  );
+                })),
+                h('div',{className:'hubcol'},
+                  h(Tree,{node:cur.hub,root:true,expanded:expanded,register:register,toggle:toggle,showFlags:showFlags,focus:focus,showPlain:showPlain})
+                )
+              )
+            : h(Tree,{node:cur.root,root:true,expanded:expanded,register:register,toggle:toggle,showFlags:showFlags,focus:focus,showPlain:showPlain})
+        )
+      )
+    )
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body.mpass-test-page {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  color: var(--color-text-base-default, #121212);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+  min-height: 100dvh;
+}
+
+.mpass-test__header {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  height: 72px;
+  padding: 0 clamp(24px, 5vw, 72px);
+}
+
+.mpass-test__brand {
+  align-items: center;
+  color: inherit;
+  display: inline-flex;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.mpass-test__brand-mark {
+  align-items: center;
+  background: #087ea4;
+  border-radius: 10px;
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  overflow: hidden;
+  width: 40px;
+}
+
+.mpass-test__brand-mark img {
+  height: 100%;
+  width: 100%;
+}
+
+.mpass-test__brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mpass-test__brand-copy strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.mpass-test__brand-copy span {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.mpass-test__main {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-height: calc(100dvh - 72px);
+  padding: 40px 24px;
+}
+
+.mpass-test__card {
+  background: var(--color-background-base-default, #fff);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(18, 18, 18, 0.08);
+  max-width: 480px;
+  padding: 40px;
+  width: 100%;
+}
+
+.mpass-test__content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.mpass-test__lock {
+  align-items: center;
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-radius: 10px;
+  color: var(--color-icon-brand-default, #0058d2);
+  display: inline-flex;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.mpass-test__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mpass-test__eyebrow,
+.mpass-test__copy h1,
+.mpass-test__copy p,
+.mpass-test__note {
+  margin: 0;
+}
+
+.mpass-test__eyebrow {
+  color: var(--color-text-brand-default, #0058d2);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.mpass-test__copy h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.28px;
+  line-height: 36px;
+}
+
+.mpass-test__copy > p:last-child {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.mpass-test__identity {
+  align-items: center;
+  appearance: none;
+  background: #fff;
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 12px;
+  min-height: 72px;
+  padding: 12px 16px;
+  text-align: left;
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  width: 100%;
+}
+
+.mpass-test__identity:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.mpass-test__identity:focus-visible,
+.mpass-test__primary:focus-visible,
+.mpass-test__secondary:focus-visible {
+  outline: 2px solid var(--color-border-brand-default, #0058d2);
+  outline-offset: 3px;
+}
+
+.mpass-test__avatar {
+  align-items: center;
+  background: var(--color-background-brand-default, #0058d2);
+  border-radius: 999px;
+  color: #fff;
+  display: inline-flex;
+  flex: 0 0 40px;
+  font-size: 14px;
+  font-weight: 500;
+  height: 40px;
+  justify-content: center;
+}
+
+.mpass-test__identity-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mpass-test__identity-copy strong {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.mpass-test__identity-copy span {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.mpass-test__identity > .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: 0 0 20px;
+}
+
+.mpass-test__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mpass-test__primary,
+.mpass-test__secondary {
+  align-items: center;
+  appearance: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  gap: 8px;
+  height: 48px;
+  justify-content: center;
+  line-height: 24px;
+  padding: 0 16px;
+  transition: background-color 120ms ease, opacity 120ms ease, transform 120ms ease;
+  width: 100%;
+}
+
+.mpass-test__primary {
+  background: var(--color-background-brand-default, #0058d2);
+  color: #fff;
+}
+
+.mpass-test__primary:hover {
+  background: var(--color-background-brand-default-hover, #004bab);
+}
+
+.mpass-test__primary:active {
+  transform: scale(0.995);
+}
+
+.mpass-test__primary[aria-busy="true"] {
+  cursor: wait;
+  opacity: 0.78;
+}
+
+.mpass-test__secondary {
+  background: transparent;
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.mpass-test__secondary:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.mpass-test__note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+}
+
+.mpass-test-page.is-completing .mpass-test__identity,
+.mpass-test-page.is-completing .mpass-test__secondary {
+  pointer-events: none;
+}
+
+@media (max-width: 560px) {
+  .mpass-test__header {
+    height: 64px;
+    padding: 0 16px;
+  }
+
+  .mpass-test__main {
+    align-items: flex-start;
+    min-height: calc(100dvh - 64px);
+    padding: 24px 16px;
+  }
+
+  .mpass-test__card {
+    border-radius: 16px;
+    padding: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mpass-test__identity,
+  .mpass-test__primary,
+  .mpass-test__secondary {
+    transition: none;
+  }
+}

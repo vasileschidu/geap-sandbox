@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPass · Autentificare test</title>
+  <link rel="stylesheet" href="assets/fonts/Onest.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/mpass-test.css?v=mpass-test-v1">
+  <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
+  <script src="js/mpass-test.js?v=mpass-test-v1" defer></script>
+  <script src="js/page-reveal.js?v=soft-reveal-v5" defer></script>
+</head>
+<body class="mpass-test-page">
+  <header class="mpass-test__header">
+    <a class="mpass-test__brand" href="#" data-mpass-cancel aria-label="Înapoi la serviciul GEAP">
+      <span class="mpass-test__brand-mark" aria-hidden="true">
+        <img src="assets/logos/m-platforms/m-pass.svg" alt="">
+      </span>
+      <span class="mpass-test__brand-copy">
+        <strong>MPass</strong>
+        <span>Mediu de test</span>
+      </span>
+    </a>
+  </header>
+
+  <main class="mpass-test__main">
+    <section class="mpass-test__card" aria-labelledby="mpass-test-title">
+      <div class="mpass-test__content">
+        <span class="mpass-test__lock" aria-hidden="true">
+          <svg class="icon" width="28" height="28"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
+        </span>
+
+        <div class="mpass-test__copy">
+          <p class="mpass-test__eyebrow">Autentificare securizată</p>
+          <h1 id="mpass-test-title">Confirmă identitatea</h1>
+          <p>Acesta este un ecran de test MPass. Continuă pentru a reveni în serviciul GEAP.</p>
+        </div>
+
+        <button class="mpass-test__identity" type="button" data-mpass-complete>
+          <span class="mpass-test__avatar" aria-hidden="true">AC</span>
+          <span class="mpass-test__identity-copy">
+            <strong>Anastasia Cojocaru</strong>
+            <span>Identitate de test</span>
+          </span>
+          <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+        </button>
+
+        <div class="mpass-test__actions">
+          <button class="mpass-test__primary" type="button" data-mpass-complete>
+            <span data-mpass-button-label>Continuă autentificarea</span>
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+          </button>
+          <button class="mpass-test__secondary" type="button" data-mpass-cancel>Înapoi la serviciu</button>
+        </div>
+
+        <p class="mpass-test__note">Nu sunt transmise date reale în acest mediu.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
