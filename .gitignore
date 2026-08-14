@@ -3,7 +3,8 @@
 *.7z
 
 # Local AI and audit workspaces
-.claude/
+.claude/*
+!.claude/skills/
 .lh/
 
 ## Ignore Visual Studio temporary files, build results, and
