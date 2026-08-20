@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Actele mele permisive · EVO Cabinet</title>
+  <link rel="stylesheet" href="../assets/fonts/Onest.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <!-- brings the JetBrains Mono @font-face + .e-permits-fo-copy-value component -->
+  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css">
+  <link rel="stylesheet" href="cabinet-evo.css?v=20260814-19">
+  <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v3">
+  <script src="cabinet-evo.js?v=20260814-19" defer></script>
+  <script src="../js/page-reveal.js?v=soft-reveal-v3" defer></script>
+</head>
+<body class="e-permits-front-office-page is-fo-request-mode cab-page">
+    <header class="e-permits-fo-auth__header" data-service-header>
+      <div class="e-permits-fo-auth__topline">
+        <div class="e-permits-fo-auth__topline-inner">
+          <a href="#" class="e-permits-fo-auth__gov-link" aria-label="Guvernul Republicii Moldova">
+            <img src="../assets/logos/government-logo.png" alt="">
+            <span>Guvernul Republicii Moldova</span>
+          </a>
+          <nav class="e-permits-fo-auth__language" aria-label="Limbă">
+            <a class="is-active" href="#" lang="ro">Ro</a>
+            <a href="#" lang="ru">Ru</a>
+            <a href="#" lang="en">En</a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="e-permits-fo-auth__brandbar">
+        <div class="e-permits-fo-auth__brandbar-inner">
+          <div class="e-permits-fo-auth__service-heading">
+            <a href="#" class="e-permits-fo-auth__evo-logo" aria-label="EVO">
+              <img src="../assets/logos/evo-logo.svg" alt="">
+            </a>
+            <div class="e-permits-fo-auth__service-title-wrap">
+              <div class="e-permits-fo-auth__service-title-row">
+                <h1 data-cab-header-title>Actele mele permisive</h1>
+              </div>
+              <div class="e-permits-fo-draft-status e-permits-fo-draft-status--header" data-fo-header-draft hidden></div>
+            </div>
+          </div>
+          <div class="e-permits-fo-auth__profile" data-fo-avatar-menu>
+            <button
+              class="e-permits-fo-auth__avatar"
+              type="button"
+              aria-label="Deschide meniul profilului"
+              aria-haspopup="menu"
+              aria-expanded="false"
+              aria-controls="fo-avatar-menu"
+              data-fo-avatar-trigger
+            >
+              <span class="e-permits-fo-auth__avatar-inner">
+                <span class="e-permits-fo-auth__avatar-badge e-permits-fo-auth__avatar-badge--brand e-permits-fo-auth__avatar-badge--initials" aria-hidden="true">AC</span>
+                <span class="e-permits-fo-auth__avatar-copy">
+                  <span class="e-permits-fo-auth__avatar-name" data-cab-name>Anastasia Cojocaru</span>
+                  <span class="e-permits-fo-auth__avatar-meta" data-cab-role>Persoană fizică</span>
+                </span>
+                <svg class="icon e-permits-fo-auth__avatar-chevron" width="20" height="20" aria-hidden="true">
+                  <use href="../assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                </svg>
+              </span>
+            </button>
+            <div class="e-permits-fo-avatar-menu" id="fo-avatar-menu" role="menu" aria-label="Profil și roluri" data-fo-avatar-dropdown hidden>
+              <div class="e-permits-fo-avatar-menu__profile">
+                <span class="e-permits-fo-avatar-menu__photo e-permits-fo-avatar-menu__photo--brand" aria-hidden="true">AC</span>
+                <div class="e-permits-fo-avatar-menu__identity">
+                  <strong>Anastasia Cojocaru</strong>
+                  <span>Persoană fizică</span>
+                </div>
+                <div class="e-permits-fo-avatar-menu__actions">
+                  <a class="e-permits-fo-avatar-menu__cabinet" href="#" role="menuitem">Cabinetul Personal</a>
+                  <button class="e-permits-fo-avatar-menu__settings" type="button" aria-label="Setări" role="menuitem">
+                    <svg class="icon" width="20" height="20" aria-hidden="true">
+                      <use href="../assets/icons/sprite.svg#icon-settings"></use>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div class="e-permits-fo-avatar-menu__content">
+                <section class="e-permits-fo-avatar-menu__group" aria-labelledby="fo-avatar-menu-roles">
+                  <h2 id="fo-avatar-menu-roles">Alege alt rol</h2>
+                  <div class="e-permits-fo-avatar-menu__role-list">
+                    <button class="e-permits-fo-avatar-menu__role is-selected" type="button" role="menuitemradio" aria-checked="true" data-fo-avatar-role>
+                      <span class="e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__role-avatar--initials e-permits-fo-avatar-menu__role-avatar--brand" aria-hidden="true">AC</span>
+                      <span class="e-permits-fo-avatar-menu__role-copy">
+                        <strong>Anastasia Cojocaru</strong>
+                        <span>IDNP 2990000000002</span>
+                      </span>
+                      <svg class="icon e-permits-fo-avatar-menu__role-check" width="20" height="20" aria-hidden="true">
+                        <use href="../assets/icons/sprite.svg#icon-checkmark-large"></use>
+                      </svg>
+                    </button>
+                    <button class="e-permits-fo-avatar-menu__role" type="button" role="menuitemradio" aria-checked="false" data-fo-avatar-role>
+                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                        <svg class="icon" width="20" height="20">
+                          <use href="../assets/icons/sprite.svg#icon-business"></use>
+                        </svg>
+                      </span>
+                      <span class="e-permits-fo-avatar-menu__role-copy">
+                        <strong>SRL Global Trader</strong>
+                        <span>IDNO 1012600000002</span>
+                      </span>
+                      <svg class="icon e-permits-fo-avatar-menu__role-check" width="20" height="20" aria-hidden="true">
+                        <use href="../assets/icons/sprite.svg#icon-checkmark-large"></use>
+                      </svg>
+                    </button>
+                  </div>
+                </section>
+                <section class="e-permits-fo-avatar-menu__group" aria-labelledby="fo-avatar-menu-proxy">
+                  <h2 id="fo-avatar-menu-proxy">Cu împuternicire MPower</h2>
+                  <button class="e-permits-fo-avatar-menu__proxy" type="button" role="menuitem" aria-expanded="false" data-fo-avatar-proxy-toggle>
+                    <span data-fo-avatar-proxy-label>Arată mai multe</span>
+                    <span class="e-permits-fo-avatar-menu__proxy-stack" aria-hidden="true">
+                      <span class="e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--apricot">GV</span>
+                      <span class="e-permits-fo-avatar-menu__stack-avatar">
+                        <svg class="icon" width="20" height="20">
+                          <use href="../assets/icons/sprite.svg#icon-business"></use>
+                        </svg>
+                      </span>
+                      <span class="e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--apricot">OF</span>
+                      <span class="e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--counter">+5</span>
+                      <span class="e-permits-fo-avatar-menu__proxy-arrow">
+                        <svg class="icon" width="20" height="20">
+                          <use href="../assets/icons/sprite.svg#icon-chevron-bottom"></use>
+                        </svg>
+                      </span>
+                    </span>
+                  </button>
+                  <div class="e-permits-fo-avatar-menu__proxy-details" data-fo-avatar-proxy-details>
+                    <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
+                      <span class="e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__role-avatar--apricot" aria-hidden="true">GV</span>
+                      <span class="e-permits-fo-avatar-menu__proxy-role-copy">
+                        <span class="e-permits-fo-avatar-menu__proxy-role-heading">
+                          <strong>Grigore Vasilescu</strong>
+                          <span class="e-permits-fo-avatar-menu__proxy-badge">Împuternicire</span>
+                        </span>
+                        <span>IDNO 1012600000001</span>
+                      </span>
+                    </button>
+                    <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
+                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                        <svg class="icon" width="20" height="20"><use href="../assets/icons/sprite.svg#icon-business"></use></svg>
+                      </span>
+                      <span class="e-permits-fo-avatar-menu__proxy-role-copy">
+                        <span class="e-permits-fo-avatar-menu__proxy-role-heading">
+                          <strong>«Vita-Plant» SRL</strong>
+                          <span class="e-permits-fo-avatar-menu__proxy-badge">Împuternicire</span>
+                        </span>
+                        <span>IDNO 1012600000001</span>
+                      </span>
+                    </button>
+                    <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
+                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                        <svg class="icon" width="20" height="20"><use href="../assets/icons/sprite.svg#icon-business"></use></svg>
+                      </span>
+                      <span class="e-permits-fo-avatar-menu__proxy-role-copy">
+                        <span class="e-permits-fo-avatar-menu__proxy-role-heading">
+                          <strong>«Vita-Plant» SRL</strong>
+                          <span class="e-permits-fo-avatar-menu__proxy-badge">Împuternicire</span>
+                        </span>
+                        <span>IDNO 1012600000001</span>
+                      </span>
+                    </button>
+                    <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
+                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                        <svg class="icon" width="20" height="20"><use href="../assets/icons/sprite.svg#icon-business"></use></svg>
+                      </span>
+                      <span class="e-permits-fo-avatar-menu__proxy-role-copy">
+                        <span class="e-permits-fo-avatar-menu__proxy-role-heading">
+                          <strong>«Vita-Plant» SRL</strong>
+                          <span class="e-permits-fo-avatar-menu__proxy-badge">Împuternicire</span>
+                        </span>
+                        <span>IDNO 1012600000001</span>
+                      </span>
+                    </button>
+                    <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
+                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                        <svg class="icon" width="20" height="20"><use href="../assets/icons/sprite.svg#icon-business"></use></svg>
+                      </span>
+                      <span class="e-permits-fo-avatar-menu__proxy-role-copy">
+                        <span class="e-permits-fo-avatar-menu__proxy-role-heading">
+                          <strong>«Vita-Plant» SRL</strong>
+                          <span class="e-permits-fo-avatar-menu__proxy-badge">Împuternicire</span>
+                        </span>
+                        <span>IDNP 2990000000001</span>
+                      </span>
+                    </button>
+                  </div>
+                </section>
+              </div>
+              <div class="e-permits-fo-avatar-menu__footer">
+                <button class="e-permits-fo-avatar-menu__logout" type="button" role="menuitem">
+                  <span>Ieșire</span>
+                  <svg class="icon" width="20" height="20" aria-hidden="true">
+                    <use href="../assets/icons/sprite.svg#icon-logout"></use>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <button class="e-permits-fo-auth__menu" type="button" aria-label="Deschide meniul">
+            <svg class="icon" width="24" height="24" aria-hidden="true">
+              <use href="../assets/icons/sprite.svg#icon-menu"></use>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+  <main class="cab-main">
+    <div class="cab-main__container">
+      <section class="cab-intro" aria-labelledby="cab-title">
+        <h1 class="text-heading-h2" id="cab-title" data-cab-title>Actele mele permisive</h1>
+        <p class="text-body-sm" data-cab-subtitle>Actele emise pe numele tău ca rezultat al solicitărilor — vizualizare, descărcare și acțiuni ulterioare.</p>
+      </section>
+
+      <div class="cab-toolbar">
+        <div class="search-input medium rectangular cab-search">
+          <span class="icon-search" aria-hidden="true">
+            <svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg>
+          </span>
+          <input
+            class="input"
+            type="search"
+            autocomplete="off"
+            placeholder="Caută după nr. dosar sau denumire"
+            aria-label="Caută în actele permisive"
+            data-cab-search
+          >
+          <div class="btn-group cab-search__actions">
+            <button class="btn-icon clear cab-search__clear" type="button" aria-label="Șterge căutarea" data-cab-search-clear>
+              <svg class="icon small" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-cross-small"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" class="chip cab-filter" data-cab-filter-trigger>
+          <span class="chip__icon">
+            <svg class="icon small" aria-hidden="true">
+              <use href="../assets/icons/sprite.svg#icon-filter-2"></use>
+            </svg>
+          </span>
+          <span class="chip__label">Filtre</span>
+        </button>
+      </div>
+
+      <div class="cab-chips" role="tablist" aria-label="Filtrează după stare" data-cab-chips></div>
+
+      <section class="cab-list" aria-label="Lista actelor permisive" data-cab-list></section>
+
+      <p class="cab-empty text-body-sm" data-cab-empty hidden>Niciun act permisiv nu corespunde căutării.</p>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,106 @@
+{
+  "user": {
+    "name": "Anastasia Cojocaru",
+    "role": "Persoană fizică",
+    "initials": "AC"
+  },
+  "page": {
+    "title": "Actele mele permisive",
+    "subtitle": "Actele emise pe numele tău ca rezultat al solicitărilor — vizualizare, descărcare și acțiuni ulterioare."
+  },
+  "filters": [
+    {
+      "id": "toate",
+      "label": "Toate"
+    },
+    {
+      "id": "valabil",
+      "label": "Valabile"
+    },
+    {
+      "id": "suspendat",
+      "label": "Suspendate"
+    },
+    {
+      "id": "expirat",
+      "label": "Expirate"
+    },
+    {
+      "id": "anulat",
+      "label": "Anulate"
+    }
+  ],
+  "permits": [
+    {
+      "id": "cazier-judiciar",
+      "title": "Cazier judiciar",
+      "authority": "IGP",
+      "dossier": "CJ-2026-113847",
+      "status": "valabil",
+      "statusLabel": "Valabil",
+      "date": "valabil până la 28 aug 2026",
+      "dateIcon": "icon-calendar"
+    },
+    {
+      "id": "extras-bun-imobil",
+      "title": "Extras bun imobil",
+      "authority": "ASP",
+      "dossier": "CJ-2026-113847",
+      "status": "valabil",
+      "statusLabel": "Valabil",
+      "date": "valabil până la 28 aug 2026",
+      "dateIcon": "icon-calendar"
+    },
+    {
+      "id": "autorizatie-functionare",
+      "title": "Autorizație de funcționare",
+      "authority": "Primăria mun. Chișinău",
+      "dossier": "CJ-2026-113847",
+      "status": "valabil",
+      "statusLabel": "Valabil",
+      "date": "valabil până la 28 aug 2026",
+      "dateIcon": "icon-calendar",
+      "tacit": "Aprobat tacit"
+    },
+    {
+      "id": "licenta-comerciala",
+      "title": "Licență activitate comercială",
+      "authority": "Primăria mun. Chișinău",
+      "dossier": "CJ-2026-113847",
+      "status": "expirat",
+      "statusLabel": "Expirat",
+      "date": "expirat la 26 mai 2026",
+      "dateIcon": "icon-calendar-remove"
+    },
+    {
+      "id": "autorizatie-sanitara",
+      "title": "Autorizație sanitară de funcționare",
+      "authority": "ANSP",
+      "dossier": "AUT-2025-990102",
+      "status": "suspendat",
+      "statusLabel": "Suspendat",
+      "date": "suspendat din 20 iun 2026",
+      "dateIcon": "icon-calendar-edit",
+      "notice": {
+        "tone": "warning",
+        "icon": "icon-pause",
+        "text": "Suspendat — poți relua valabilitatea"
+      }
+    },
+    {
+      "id": "autorizatie-publicitate",
+      "title": "Autorizație de amplasare publicitate",
+      "authority": "ANSP",
+      "dossier": "AUT-2025-990102",
+      "status": "anulat",
+      "statusLabel": "Retras",
+      "date": "retras la 12 iul 2026",
+      "dateIcon": "icon-calendar-remove",
+      "notice": {
+        "tone": "danger",
+        "icon": "icon-circle-error-filled",
+        "text": "Anulat — poți depune o contestație"
+      }
+    }
+  ]
+}
