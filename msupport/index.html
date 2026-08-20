@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MSupport · Raportare incidente</title>
+  <link rel="stylesheet" href="../assets/fonts/Onest.css">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css">
+  <link rel="stylesheet" href="msupport.css?v=20260820-25">
+  <style>
+    /* demo host page only — not part of the widget */
+    body.msup-demo {
+      background: #fff;
+      color: #121212;
+      font-family: "Onest", system-ui, sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+    .demo-wrap { margin: 0 auto; max-width: 860px; padding: 48px 24px 120px; }
+    .demo-wrap h1 { font-size: 32px; font-weight: 600; letter-spacing: -0.02em; line-height: 40px; margin: 0; }
+    .demo-wrap .lead { color: #757575; font-size: 14px; line-height: 20px; margin: 6px 0 0; }
+    .demo-surfaces { display: flex; gap: 8px; margin: 24px 0 32px; }
+    .demo-note {
+      background: #f5f5f5; border-radius: 12px; color: #383838;
+      font-size: 14px; line-height: 20px; padding: 16px;
+    }
+    .demo-note strong { color: #121212; }
+    .demo-note code {
+      background: #fff; border-radius: 4px; font-family: "JetBrains Mono", monospace;
+      font-size: 13px; padding: 1px 5px;
+    }
+    .demo-note ul { margin: 8px 0 0; padding-left: 18px; }
+    .demo-note li { margin-top: 4px; }
+    .demo-filler { border-top: 1px solid #d9d9d9; margin-top: 32px; padding-top: 24px; }
+    .demo-filler p { color: #757575; font-size: 14px; line-height: 22px; max-width: 62ch; }
+  </style>
+</head>
+<body class="msup-demo">
+  <main class="demo-wrap">
+    <h1>MSupport — raportare incidente</h1>
+    <p class="lead">Widget portabil de raportare. Aceeași componentă, două surse de context — comută mai jos.</p>
+
+    <div class="demo-surfaces" role="group" aria-label="Alege suprafața">
+      <button type="button" class="chip is-selected" data-surface="citizen">
+        <span class="chip__label">EVO Cabinet Cetățean</span>
+      </button>
+      <button type="button" class="chip" data-surface="business">
+        <span class="chip__label">GEAP Back Office</span>
+      </button>
+    </div>
+
+    <div class="demo-note">
+      <strong>Ce demonstrează pagina.</strong> Formularul, validarea, captura de diagnostic și confirmarea sunt
+      identice pe ambele suprafețe. Se schimbă doar <code>getContext()</code> și <code>dispatch()</code>.
+      <ul>
+        <li><strong>Cetățean:</strong> își alege dosarul din propriile solicitări — listă derulantă.</li>
+        <li><strong>Business:</strong> dosarul este preluat automat din modulul aflat în lucru; rămâne editabil.</li>
+        <li>Doar utilizatorii business au <em>Autoritate</em> și <em>Subdiviziune</em> în informațiile tehnice.</li>
+      </ul>
+    </div>
+
+    <div class="demo-filler">
+      <p>Panoul se deschide ancorat în dreapta-jos, fără overlay — pagina rămâne vizibilă și utilizabilă
+        în spatele lui. Poți derula și selecta text aici cât timp formularul este deschis.</p>
+      <p>Sesizarea nu devine dosar: după trimitere, discuția continuă exclusiv pe email cu MSupport.</p>
+    </div>
+  </main>
+
+  <script src="msupport.js?v=20260820-25"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      /* ---- surface adapters: the ONLY things that differ between products ---- */
+
+      var SURFACES = {
+        citizen: {
+          surface: "EVO Cabinet Cetățean",
+          route: "/applications/GEAP-2026-009-04588",
+          entityKind: "Dosar",
+          entityRef: "GEAP-2026-009-04588",
+          entityLabel: "Autorizație sanitară de funcționare",
+          entityOptions: [
+            { ref: "GEAP-2026-009-04588", label: "Autorizație sanitară de funcționare" },
+            { ref: "GEAP-2026-012-01192", label: "Licență activitate comercială" },
+            { ref: "GEAP-2025-004-77310", label: "Autorizație de amplasare publicitate" }
+          ],
+          actor: { type: "citizen", name: "Anastasia Cojocaru", idnp: "2990000000002" },
+          bubbleAvatar: "../assets/logos/evo-logo-square.svg"
+        },
+        business: {
+          surface: "GEAP Back Office",
+          route: "/workplace/dosare/GEAP-2026-009-04588",
+          entityKind: "Modul / dosar în lucru",
+          entityRef: "GEAP-2026-009-04588",
+          entityLabel: "Autorizație sanitară de funcționare",
+          entityOptions: [
+            { ref: "GEAP-2026-009-04588", label: "Autorizație sanitară de funcționare" },
+            { ref: "MODUL-REGISTRE", label: "Registre — Acte permisive emise" }
+          ],
+          actor: { type: "business", name: "Ion Rusu", role: "Specialist" },
+          authority: "ANSP",
+          subdivision: "Subdiviziunea Chișinău",
+          bubbleAvatar: "../assets/logos/evo-logo-square.svg"
+        }
+      };
+
+      var current = "citizen";
+      var widget = null;
+
+      function mount() {
+        if (widget) widget.destroy();
+        widget = MSupport.init({
+          sprite: "../assets/icons/sprite.svg",
+
+          /* Trigger/Core read the host's context from here. */
+          getContext: function () { return SURFACES[current]; },
+
+          /* The single swap point for reuse. In MMIP this is MNotify →
+             support@egov.md; elsewhere it could be Jira, ServiceNow, a webhook.
+             Stubbed here so the demo runs without a backend. */
+          dispatch: function (payload) {
+            console.log("[MSupport] dispatch →", payload);
+            return new Promise(function (resolve) {
+              window.setTimeout(function () {
+                resolve({ referenceId: MSupport.referenceId(new Date()) });
+              }, 900);
+            });
+          }
+        });
+      }
+
+      document.querySelector(".demo-surfaces").addEventListener("click", function (event) {
+        var button = event.target.closest("[data-surface]");
+        if (!button) return;
+        current = button.getAttribute("data-surface");
+        var all = document.querySelectorAll("[data-surface]");
+        for (var i = 0; i < all.length; i++) {
+          all[i].classList.toggle("is-selected", all[i] === button);
+        }
+        mount();
+      });
+
+      mount();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1118 @@
+/* ==========================================================================
+   MSupport — Incident Reporter
+   Figma: GEAP 2.0 · node 8382:92322 (launcher set) + panel composition
+   Brief: MSupport Incident Reporter — Implementation Brief (behaviour/data/scope)
+
+   Library components are used as-is and NOT restyled here:
+     .e-permits-fo-field / __label-counter / __counter   field + char counter
+     .e-permits-fo-required                              red asterisk
+     .e-permits-fo-input / .e-permits-fo-textarea        input + textarea shells
+     .dropzone / __content / __link / __details          attachments
+     .btn btn-primary / .btn-text                        footer actions
+     .message message--inline message--error             inline field errors
+   Only the widget shell (launcher, bubble, panel, type cards, context chip,
+   diagnostics disclosure, confirmation) is defined below.
+   ========================================================================== */
+
+.msup {
+  /* main.css maps these onto --black-1000 / --white-1000, which are defined
+     nowhere, so they compute to guaranteed-invalid on :root and inherit down
+     as such. Repaired here so the widget is correct in any host page. */
+  --color-background-base-default: #ffffff;
+  --color-background-base-inverse-default: #121212;
+  --color-background-base-inverse-on-color: #ffffff;
+  --color-icon-base-default: #121212;
+  --color-icon-base-default-on-color: #121212;
+  --color-icon-base-inverse-default: #ffffff;
+  --color-icon-base-inverse-on-color: #ffffff;
+  --color-text-base-default: #121212;
+  --color-text-base-default-on-color: #121212;
+  --color-text-base-inverse-default: #ffffff;
+  --color-text-base-inverse-on-color: #ffffff;
+
+  /* motion — Tailwind's default curves */
+  --msup-ease: cubic-bezier(0.4, 0, 0.2, 1);       /* ease-in-out */
+  --msup-ease-out: cubic-bezier(0, 0, 0.2, 1);     /* ease-out */
+  --msup-fast: 150ms;
+  --msup-base: 200ms;
+
+  --msup-inset: var(--spacing-24, 24px);
+  --msup-panel-width: 500px;
+  /* Drop Shadow/400 */
+  --msup-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 12%),
+    0 10px 24px rgb(0 0 0 / 8%),
+    0 2px 8px rgb(0 0 0 / 8%);
+
+  bottom: var(--msup-inset);
+  box-sizing: border-box;
+  color: var(--color-text-base-default);
+  font-family: var(--font-family-primary-font, "Onest"), system-ui, sans-serif;
+  position: fixed;
+  right: var(--msup-inset);
+  z-index: 1200;
+}
+
+.msup *,
+.msup *::before,
+.msup *::after {
+  box-sizing: border-box;
+}
+
+/* library components set `display`, which beats the [hidden] attribute */
+.msup [hidden] {
+  display: none !important;
+}
+
+/* ---------- mobile scrim ---------- */
+/* desktop keeps the page usable behind the popover — no scrim there at all */
+.msup-scrim {
+  display: none;
+}
+
+/* ---------- launcher ---------- */
+
+.msup-launcher {
+  align-items: center;
+  background: var(--color-background-brand-default, #0058d2);
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: var(--msup-shadow);
+  color: var(--color-icon-base-inverse-default, #fff);
+  cursor: pointer;
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  margin-left: auto;
+  position: relative;
+  transition: background-color var(--msup-fast) var(--msup-ease),
+              transform var(--msup-fast) var(--msup-ease),
+              box-shadow var(--msup-fast) var(--msup-ease);
+  width: 48px;
+}
+
+.msup-launcher:hover {
+  transform: scale(1.06);
+}
+
+.msup-launcher:active {
+  transform: scale(0.96);
+}
+
+/* closed shows the bubble, open shows the ×, per the Figma launcher states */
+.msup-launcher__glyph {
+  align-items: center;
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transition: opacity var(--msup-base) var(--msup-ease),
+              transform var(--msup-base) var(--msup-ease);
+  width: 24px;
+}
+
+.msup-launcher__glyph--closed {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+.msup-launcher__glyph--open {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(-90deg) scale(0.7);
+}
+
+.msup.is-open .msup-launcher__glyph--closed {
+  opacity: 0;
+  transform: translate(-50%, -50%) rotate(90deg) scale(0.7);
+}
+
+.msup.is-open .msup-launcher__glyph--open {
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(0deg) scale(1);
+}
+
+.msup-launcher:hover {
+  background: var(--color-background-brand-default-hover, #0049ad);
+}
+
+.msup-launcher:focus-visible {
+  outline: 0;
+  box-shadow: var(--msup-shadow), 0 0 0 3px #fff, 0 0 0 5px var(--blue-sky-500, #3379db);
+}
+
+.msup-launcher .icon {
+  height: 24px;
+  width: 24px;
+}
+
+/* unread badge — clears once the bubble has been seen */
+.msup-launcher__badge {
+  background: var(--color-background-danger-default, #d92d20);
+  border: var(--border-width-1-5, 1.5px) solid #fff;
+  border-radius: var(--border-radius-full, 999px);
+  height: 12px;
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  width: 12px;
+}
+
+.msup-launcher__badge[hidden] {
+  display: none;
+}
+
+.msup.is-open .msup-launcher__badge {
+  display: none;
+}
+
+/* hover tooltip, per the Figma launcher states */
+.msup-launcher__tip {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  box-shadow: var(--msup-shadow);
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  opacity: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  pointer-events: none;
+  position: absolute;
+  right: calc(100% + var(--spacing-12, 12px));
+  top: 50%;
+  transform: translateY(-50%);
+  transition: opacity 0.12s ease;
+  white-space: nowrap;
+}
+
+.msup-launcher:hover .msup-launcher__tip,
+.msup-launcher:focus-visible .msup-launcher__tip {
+  opacity: 1;
+}
+
+.msup.is-open .msup-launcher__tip,
+.msup.has-bubble .msup-launcher__tip {
+  display: none;
+}
+
+/* ---------- proactive bubble ---------- */
+
+.msup-bubble {
+  align-items: flex-start;
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-16, 16px);
+  box-shadow:
+    0 16px 45px -3px rgb(0 0 0 / 20%),
+    0 4px 6px -2px rgb(0 0 0 / 5%),
+    0 0 0 1px rgb(0 0 0 / 8%);
+  cursor: pointer;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  margin-bottom: var(--spacing-12, 12px);
+  /* Figma specifies 304, where the message is 2 lines. Browser text metrics
+     wrap it to 3 at that width — it only settles at 2 from 340 up, so the
+     bubble is widened to 344 to hold the designed 2-line block. */
+  max-width: 344px;
+  padding: var(--spacing-16, 16px);
+  position: relative;
+  text-align: left;
+  width: 344px;
+}
+
+/* Figma "Frame 1261156303" — the text column */
+.msup-bubble__copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+}
+
+.msup-bubble[hidden] {
+  display: none;
+}
+
+.msup-bubble {
+  animation: msup-bubble-in 320ms var(--msup-ease-out) both;
+  transition: transform var(--msup-fast) var(--msup-ease),
+              box-shadow var(--msup-fast) var(--msup-ease);
+}
+
+.msup-bubble:hover {
+  transform: translateY(-2px);
+}
+
+@keyframes msup-bubble-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* the EVO mark is a squircle in the asset itself — do not clip it to a circle */
+.msup-bubble__avatar {
+  flex: none;
+  height: 40px;
+  width: 40px;
+}
+
+.msup-bubble__avatar img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.msup-bubble__title {
+  color: var(--color-text-base-default, #121212);
+  display: block;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.msup-bubble__text {
+  color: var(--color-text-base-secondary, #383838);
+  display: block;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.msup-bubble__from {
+  color: var(--color-text-base-tertiary, #757575);
+  display: block;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* discreet dismiss — revealed on hover/focus, per Figma */
+.msup-bubble__close {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 10%),
+    0 4px 6px -2px rgb(0 0 0 / 5%),
+    0 0 0 1px rgb(0 0 0 / 8%);
+  color: var(--color-icon-base-secondary, #444);
+  cursor: pointer;
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  opacity: 0;
+  position: absolute;
+  right: -8px;
+  top: -8px;
+  transition: opacity var(--msup-fast) var(--msup-ease),
+              background-color var(--msup-fast) var(--msup-ease);
+  width: 24px;
+}
+
+.msup-bubble__close:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.msup-bubble:hover .msup-bubble__close,
+.msup-bubble__close:focus-visible {
+  opacity: 1;
+}
+
+/* an SVG is a replaced element: as a flex item it shrinks off its intrinsic
+   size, which squashed the 1:1 viewBox to 12x16 */
+.msup-bubble__close .msup-x {
+  display: block;
+  flex: none;
+  height: 16px;
+  min-width: 16px;
+  width: 16px;
+}
+
+/* ---------- panel ---------- */
+
+.msup-panel {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-16, 16px);
+  box-shadow: var(--msup-shadow);
+  display: flex;
+  flex-direction: column;
+  /* sits just above the launcher */
+  margin-bottom: var(--spacing-12, 12px);
+  min-width: 280px;
+  /* never taller than the viewport, and always clear of the launcher */
+  max-height: calc(100vh - (var(--msup-inset) * 2) - 48px - var(--spacing-12, 12px));
+  overflow: hidden;
+  width: var(--msup-panel-width);
+}
+
+.msup-panel[hidden] {
+  display: none;
+}
+
+.msup-panel {
+  animation: msup-panel-in var(--msup-base) var(--msup-ease-out) both;
+  transform-origin: bottom right;
+}
+
+.msup-panel.is-closing {
+  animation: msup-panel-out 140ms var(--msup-ease) both;
+}
+
+@keyframes msup-panel-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes msup-panel-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.98); }
+}
+
+.msup-panel__header {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex: none;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-20, 20px);
+}
+
+.msup-panel__heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.msup-panel__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-lh-28, 28px);
+  margin: 0;
+}
+
+.msup-panel__close {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-base-secondary, #444);
+  cursor: pointer;
+  display: flex;
+  flex: none;
+  height: 32px;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+  width: 32px;
+}
+
+.msup-panel__close:hover {
+  background: var(--color-background-base-tertiary-hover, #e5e5e5);
+}
+
+.msup-panel__close .icon {
+  height: 20px;
+  width: 20px;
+}
+
+.msup-panel__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-20, 20px);
+  /* a flex item will not shrink below its content without this, which pushes
+     the footer past the panel's clipped edge */
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-20, 20px);
+}
+
+/* without this the fields compress to fit the fixed-height panel instead of
+   the body scrolling — which silently clipped the expanded diagnostics */
+.msup-panel__body > * {
+  flex: none;
+}
+
+/* each state is the flex column that owns the scroll region */
+.msup-state {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.msup-state[data-msup-state="form"],
+.msup-state[data-msup-state="submitting"] {
+  animation: msup-fade-in var(--msup-base) var(--msup-ease-out) both;
+}
+
+.msup-panel__footer {
+  align-items: center;
+  box-shadow: inset 0 1px 0 var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex: none;
+  gap: var(--spacing-12, 12px);
+  height: 64px;
+  justify-content: flex-end;
+  padding: var(--spacing-12, 12px);
+}
+
+/* both footer actions are 40px pills, Body/Small 500 */
+.msup-panel__footer .btn {
+  border-radius: var(--border-radius-full, 999px);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: 40px;
+  min-width: 56px;
+  padding: 0 var(--spacing-20, 20px);
+  transition: background-color var(--msup-fast) var(--msup-ease),
+              color var(--msup-fast) var(--msup-ease);
+}
+
+/* button-text-circular */
+.msup-panel__footer .btn-text-strict {
+  color: var(--color-text-base-default, #121212);
+  padding: 0 var(--spacing-16, 16px);
+}
+
+.msup-panel__footer .btn-text-strict:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+/* the confirmation footer is taller and holds a single action */
+.msup-state[data-msup-state="confirmation"] .msup-panel__footer {
+  height: 72px;
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+}
+
+/* ---------- request type selector ---------- */
+
+.msup-types {
+  display: flex;
+  gap: var(--spacing-16, 16px);
+}
+
+/* Figma ".formulare" type card: 172x96, padding 12, radius 16, 1px #D9D9D9.
+   Inner frame stacks a 20px icon over a Body/Small 500 label with gap 12. */
+.msup-type {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: 0;
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  justify-content: center;
+  height: 96px;
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-12, 12px);
+  text-align: center;
+  transition: background-color var(--msup-fast) var(--msup-ease),
+              box-shadow var(--msup-fast) var(--msup-ease);
+}
+
+.msup-type .icon,
+.msup-type .msup-glyph {
+  color: var(--color-icon-base-default, #121212);
+  flex: none;
+  height: 20px;
+  min-width: 20px;
+  width: 20px;
+}
+
+.msup-type:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-secondary, #b2b2b2);
+}
+
+.msup-type:active {
+  transform: scale(0.985);
+}
+
+.msup-type .icon,
+.msup-type .msup-glyph {
+  transition: color var(--msup-fast) var(--msup-ease);
+}
+
+.msup-type[aria-pressed="true"]:hover {
+  background: var(--blue-sky-100, #e8f0fb);
+}
+
+.msup-type[aria-pressed="true"] {
+  background: var(--blue-sky-100, #e8f0fb);
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--color-background-brand-default, #0058d2);
+}
+
+.msup-type[aria-pressed="true"]:hover {
+  background: var(--blue-sky-100, #e8f0fb);
+}
+
+.msup-type:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+/* ---------- context chip ---------- */
+
+.msup-context {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-height: 44px;
+  padding: var(--spacing-12, 12px);
+}
+
+.msup-context .icon {
+  color: var(--color-icon-base-secondary, #444);
+  flex: none;
+  height: 20px;
+  width: 20px;
+}
+
+.msup-context__label {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msup-context__change {
+  background: none;
+  border: 0;
+  color: var(--color-text-brand-default, #0058d2);
+  cursor: pointer;
+  flex: none;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0;
+}
+
+.msup-context__change:hover {
+  text-decoration: underline;
+}
+
+.msup-context {
+  animation: msup-fade-in var(--msup-fast) var(--msup-ease-out) both;
+  transition: background-color var(--msup-fast) var(--msup-ease);
+}
+
+.msup-context__edit {
+  animation: msup-fade-in var(--msup-fast) var(--msup-ease-out) both;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+@keyframes msup-fade-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* the selector is the full flow's .e-permits-fo-select, used unmodified */
+.msup-context__edit .e-permits-fo-select {
+  width: 100%;
+}
+
+.msup-context__actions {
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+/* ---------- diagnostics disclosure ---------- */
+
+.msup-diag {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  overflow: hidden;
+}
+
+.msup-diag__toggle {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-12, 12px);
+  text-align: left;
+  width: 100%;
+}
+
+.msup-diag__toggle:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.msup-diag__toggle .icon {
+  color: var(--color-icon-base-secondary, #444);
+  flex: none;
+  height: 20px;
+  transition: transform 0.15s ease;
+  width: 20px;
+}
+
+.msup-diag__toggle[aria-expanded="true"] .msup-diag__chevron {
+  transform: rotate(180deg);
+}
+
+.msup-diag__toggle-label {
+  flex: 1 1 auto;
+}
+
+.msup-diag__panel {
+  padding: 0 var(--spacing-12, 12px) var(--spacing-12, 12px);
+}
+
+.msup-diag__panel {
+  animation: msup-reveal var(--msup-base) var(--msup-ease-out) both;
+}
+
+@keyframes msup-reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* GDPR / Law 133 transparency note — required, do not remove */
+.msup-diag__note {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0 0 var(--spacing-12, 12px);
+}
+
+.msup-diag__list {
+  display: grid;
+  gap: var(--spacing-6, 6px) var(--spacing-12, 12px);
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  margin: 0;
+}
+
+.msup-diag__list dt {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.msup-diag__list dd {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- attachments ---------- */
+
+.msup-files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  margin-top: var(--spacing-12, 12px);
+}
+
+.msup-files:empty {
+  display: none;
+}
+
+.msup-file {
+  animation: msup-fade-in var(--msup-fast) var(--msup-ease-out) both;
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border: var(--border-width-1, 1px) solid transparent;
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.msup-file.is-invalid {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  border-color: var(--color-background-danger-default, #d92d20);
+}
+
+.msup-file__name {
+  color: var(--color-text-base-default, #121212);
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msup-file__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: none;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.msup-file.is-invalid .msup-file__meta {
+  color: var(--color-text-danger-on-secondary, #b42318);
+}
+
+.msup-file__remove {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-base-secondary, #444);
+  cursor: pointer;
+  display: flex;
+  flex: none;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.msup-file__remove:hover {
+  background: rgb(18 18 18 / 8%);
+}
+
+.msup-file__remove .icon {
+  height: 16px;
+  width: 16px;
+}
+
+/* the library dropzone sizes itself for a page; scale it to the popover */
+.msup .dropzone {
+  cursor: pointer;
+  padding: var(--spacing-20, 20px);
+  transition: border-color var(--msup-fast) var(--msup-ease),
+              background-color var(--msup-fast) var(--msup-ease);
+}
+
+.msup .dropzone:hover,
+.msup .dropzone.is-dragover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-color: var(--color-background-brand-default, #0058d2);
+}
+
+.msup .dropzone__details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin-top: var(--spacing-8, 8px);
+}
+
+.msup .dropzone__details p {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+/* ---------- states ---------- */
+
+.msup-state {
+  animation: msup-fade-in var(--msup-base) var(--msup-ease-out) both;
+}
+
+.msup-busy {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* the confirmation reveals its parts one after another */
+.msup-state[data-msup-state="confirmation"] .msup-done > * {
+  animation: msup-rise 340ms var(--msup-ease-out) both;
+}
+
+.msup-state[data-msup-state="confirmation"] .msup-done > *:nth-child(1) {
+  animation: msup-pop 420ms var(--msup-ease-out) both;
+}
+
+.msup-state[data-msup-state="confirmation"] .msup-done > *:nth-child(2) { animation-delay: 90ms; }
+.msup-state[data-msup-state="confirmation"] .msup-done > *:nth-child(3) { animation-delay: 180ms; }
+.msup-state[data-msup-state="confirmation"] .msup-done > *:nth-child(4) { animation-delay: 270ms; }
+
+@keyframes msup-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes msup-pop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- confirmation ----------
+   Figma: ".content-slot" padding 20 / gap 20 wraps a "Container" that is
+   padding 32/24, gap 12, centred, 412 wide inside a 500 modal. */
+
+/* the padding lives on the content-slot; the Container itself has none */
+.msup-state[data-msup-state="confirmation"] .msup-panel__body,
+.msup-state[data-msup-state="submitting"] .msup-panel__body {
+  padding: var(--spacing-32, 32px);
+}
+
+.msup-done {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: 0;
+  text-align: center;
+  width: 100%;
+}
+
+.msup-done__tick {
+  color: var(--color-icon-positive-default, #039855);
+  flex: none;
+  height: 32px;
+  width: 32px;
+}
+
+/* the loader stands in the tick's slot while submitting */
+.msup-done__loader {
+  align-items: center;
+  color: inherit;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.msup-done__loader .spinner {
+  border-width: 3px;
+  height: 26px;
+  width: 26px;
+}
+
+.msup-done__copy {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.msup-done__heading {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.msup-done__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-lh-28, 28px);
+  margin: 0;
+  text-align: center;
+}
+
+.msup-done__text {
+  align-self: stretch;
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  text-align: center;
+}
+
+/* the shared .e-permits-fo-copy-value component, dressed as the Figma
+   "copy-block": padding 4/6, gap 4, #F5F5F5, radius 4 — Onest 500, not mono */
+.msup-done__ref {
+  display: inline-flex;
+}
+
+.msup-ref.e-permits-fo-copy-value {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-4, 4px);
+  font-family: var(--font-family-primary-font, "Onest"), system-ui, sans-serif;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-4, 4px);
+  letter-spacing: 0;
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-4, 4px) var(--spacing-6, 6px);
+}
+
+/* direct child only — a descendant selector also caught the tooltip's
+   "Copiat" checkmark and overrode the component's green */
+.msup-ref > .icon {
+  color: var(--color-icon-base-secondary, #444);
+  flex: none;
+  height: 20px;
+  width: 20px;
+}
+
+/* Figma "Frame 1261156312" / "Frame 1261156310" — the what-happens-next box */
+.msup-next {
+  align-self: stretch;
+  padding: var(--spacing-16, 16px) 0 0;
+}
+
+.msup-next__box {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--spacing-20, 20px);
+}
+
+.msup-next__row {
+  align-items: flex-start;
+  align-self: stretch;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+.msup-next__row .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: none;
+  height: 20px;
+  width: 20px;
+}
+
+.msup-next__row p {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  text-align: left;
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 640px) {
+  .msup {
+    --msup-inset: var(--spacing-16, 16px);
+    left: var(--msup-inset);
+  }
+
+  .msup-bubble {
+    max-width: none;
+    width: auto;
+  }
+
+  /* type selector becomes stacked rows: icon left, label right */
+  .msup-types {
+    flex-direction: column;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .msup-type {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--spacing-12, 12px);
+    height: auto;
+    min-height: 56px;
+    text-align: left;
+  }
+
+  /* ---- the panel becomes a modal sheet ---- */
+
+  .msup.is-open .msup-scrim {
+    animation: msup-fade-in var(--msup-base) var(--msup-ease-out) both;
+    background: rgb(0 0 0 / 40%);
+    display: block;
+    inset: 0;
+    position: fixed;
+    z-index: 0;
+  }
+
+  .msup-panel {
+    /* full width, full height less 24px — the strip at the top shows the scrim */
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    bottom: 0;
+    height: calc(100dvh - 24px);
+    left: 0;
+    margin: 0;
+    max-height: none;
+    position: fixed;
+    right: 0;
+    transform-origin: bottom center;
+    width: 100%;
+    z-index: 1;
+  }
+
+  /* it rises from the bottom edge rather than scaling from the corner */
+  @keyframes msup-panel-in {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes msup-panel-out {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(16px); }
+  }
+
+  /* the sheet covers the bottom of the screen, so the launcher goes with it —
+     the header × is the only way out */
+  .msup.is-open .msup-launcher,
+  .msup.is-open .msup-bubble {
+    display: none;
+  }
+
+  /* the confirmation and loader drop the header, so they keep their own close */
+  .msup-state[data-msup-state="confirmation"] .msup-panel__body,
+  .msup-state[data-msup-state="submitting"] .msup-panel__body {
+    justify-content: center;
+    padding: var(--spacing-24, 24px);
+  }
+}
+
+/* the page behind a mobile sheet must not scroll */
+body.msup-locked {
+  overflow: hidden;
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .msup *,
+  .msup *::before,
+  .msup *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  .msup-launcher:hover,
+  .msup-bubble:hover,
+  .msup-type:active {
+    transform: none;
+  }
+}
