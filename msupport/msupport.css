@@ -173,6 +173,40 @@
   display: none;
 }
 
+/* receipt badge — stands in for the unread dot once a report has been sent,
+   and stays put while the confirmation can still be revisited */
+.msup-launcher__done {
+  align-items: center;
+  background: var(--color-icon-positive-default, #039855);
+  border: var(--border-width-2, 2px) solid var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-base-inverse-default, #fff);
+  display: flex;
+  height: 18px;
+  justify-content: center;
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  width: 18px;
+  /* a small flourish so the user registers it as a receipt */
+  animation: msup-badge-in 420ms var(--msup-ease-out) both;
+}
+
+.msup-launcher__done[hidden] {
+  display: none;
+}
+
+.msup-launcher__done .icon {
+  height: 12px;
+  width: 12px;
+}
+
+@keyframes msup-badge-in {
+  0%   { opacity: 0; transform: scale(0.2); }
+  60%  { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 /* hover tooltip, per the Figma launcher states */
 .msup-launcher__tip {
   background: var(--color-background-base-default, #fff);

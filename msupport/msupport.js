@@ -447,7 +447,8 @@
             "</div>" +
           "</div>" +
           '<div class="msup-panel__footer">' +
-            '<button class="btn btn-primary msup-done__close" type="button" data-msup-close>Închide</button>' +
+            '<button class="btn btn-primary msup-done__close" type="button" data-msup-close data-msup-done-close>Închide</button>' +
+            '<button class="btn btn-primary msup-done__close" type="button" hidden data-msup-restart>Trimite o sesizare nouă</button>' +
           "</div>" +
         "</div>" +
       "</div>" +
@@ -460,6 +461,9 @@
         '<span class="msup-launcher__glyph msup-launcher__glyph--open">' +
           icon(sprite, "icon-cross-large") + "</span>" +
         '<span class="msup-launcher__badge" data-msup-badge></span>' +
+        '<span class="msup-launcher__done" data-msup-done-badge hidden>' +
+          icon(sprite, "icon-checkmark-small") +
+        "</span>" +
       "</button>"
     );
   }
@@ -480,6 +484,8 @@
     var session = { sessionId: randomId("sess-", 6), traceId: randomId("trc-", 8) };
     var ctx = getContext();
     var state = {
+      submitted: false,
+      reference: null,
       type: findType("BUG"),
       entityRef: ctx.entityRef || null,
       entityLabel: ctx.entityLabel || null,
@@ -499,6 +505,9 @@
       title: q("[data-msup-title]"),
       launcher: q("[data-msup-launcher]"),
       badge: q("[data-msup-badge]"),
+      doneBadge: q("[data-msup-done-badge]"),
+      doneClose: q("[data-msup-done-close]"),
+      restart: q("[data-msup-restart]"),
       bubble: q("[data-msup-bubble]"),
       panel: q("[data-msup-panel]"),
       name: q("[data-msup-name]"),
@@ -566,11 +575,19 @@
       el.launcher.setAttribute("aria-label", open ? "Închide" : "Raportează o problemă");
       root.classList.toggle("is-open", open);
       syncModality();
+      if (!open && state.submitted) el.doneBadge.hidden = false;
       if (open) {
         dismissBubble();
         el.contextPicker.hidden = true;
         el.context.hidden = false;
-        showState("type");
+        if (state.submitted) {
+          /* revisiting a sent report — offer to start another rather than close */
+          el.doneClose.hidden = true;
+          el.restart.hidden = false;
+          showState("confirmation");
+        } else {
+          showState("type");
+        }
         renderDiagnostics();
         window.requestAnimationFrame(function () {
           var first = root.querySelector('[data-msup-state="type"] .msup-choice');
@@ -678,6 +695,13 @@
       if (typeButton) {
         applyType(typeButton.getAttribute("data-msup-type"));
         showState("form");
+      }
+
+      if (event.target.closest("[data-msup-restart]")) {
+        resetReport();
+        showState("type");
+        var firstChoice = root.querySelector('[data-msup-state="type"] .msup-choice');
+        if (firstChoice) firstChoice.focus();
       }
 
       if (event.target.closest("[data-msup-back]")) {
@@ -824,6 +848,22 @@
       }
     });
 
+    function resetReport() {
+      state.submitted = false;
+      state.reference = null;
+      state.files = [];
+      el.name.value = "";
+      el.desc.value = "";
+      setError("name", "");
+      setError("description", "");
+      renderFiles();
+      el.doneBadge.hidden = true;
+      el.doneClose.hidden = false;
+      el.restart.hidden = true;
+      el.diagToggle.setAttribute("aria-expanded", "false");
+      el.diagPanel.hidden = true;
+    }
+
     /* ---------- dispatch ---------- */
 
     function submit() {
@@ -847,6 +887,8 @@
       Promise.all([Promise.resolve(dispatch(payload)), settled]).then(function (results) {
         var result = results[0];
         var reference = (result && result.referenceId) || referenceId(new Date());
+        state.reference = reference;
+        state.submitted = true;
         el.refSlot.innerHTML = copyValueHtml(sprite, reference);
         showState("confirmation");
       }, function () {
