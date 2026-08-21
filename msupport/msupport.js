@@ -441,7 +441,7 @@
 
               /* what happens next — expectations, not status */
               '<div class="msup-next">' +
-                '<p class="msup-next__title">Ce urmează</p>' +
+                '<p class="msup-next__title">Informații importante</p>' +
                 '<div class="msup-next__row">' +
                   icon(sprite, "icon-envelope") +
                   "<p>Ai putea să nu-l vezi imediat în Inbox — verifică și Spam/Promoții. " +
