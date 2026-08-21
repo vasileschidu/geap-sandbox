@@ -424,7 +424,9 @@
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-20, 20px);
+  /* the full flow stacks single-column fields at 20; the popover is narrower
+     and reads tighter at 16 */
+  gap: var(--spacing-16, 16px);
   /* a flex item will not shrink below its content without this, which pushes
      the footer past the panel's clipped edge */
   min-height: 0;
