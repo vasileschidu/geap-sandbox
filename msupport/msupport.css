@@ -429,7 +429,10 @@
      the footer past the panel's clipped edge */
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--spacing-20, 20px);
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* without this the fields compress to fit the fixed-height panel instead of
@@ -1042,6 +1045,21 @@
     text-align: left;
   }
 
+  /* the H4 title is oversized on a phone — drop to H5 */
+  .msup-panel__title {
+    font-size: var(--font-size-fs-18, 18px);
+    line-height: var(--line-height-lh-26, 26px);
+  }
+
+  .msup-panel__header {
+    padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+  }
+
+  .msup-done__title {
+    font-size: var(--font-size-fs-18, 18px);
+    line-height: var(--line-height-lh-26, 26px);
+  }
+
   /* ---- the panel becomes a modal sheet ---- */
 
   .msup.is-open .msup-scrim {
@@ -1050,6 +1068,7 @@
     display: block;
     inset: 0;
     position: fixed;
+    touch-action: none;
     z-index: 0;
   }
 

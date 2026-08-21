@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="../assets/fonts/Onest.css">
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/e-permits-acte-permisive.css">
-  <link rel="stylesheet" href="msupport.css?v=20260820-25">
+  <link rel="stylesheet" href="msupport.css?v=20260821-1">
   <style>
     /* demo host page only — not part of the widget */
     body.msup-demo {
@@ -34,6 +34,12 @@
     .demo-note li { margin-top: 4px; }
     .demo-filler { border-top: 1px solid #d9d9d9; margin-top: 32px; padding-top: 24px; }
     .demo-filler p { color: #757575; font-size: 14px; line-height: 22px; max-width: 62ch; }
+
+    @media (max-width: 640px) {
+      .demo-wrap { padding: 24px 16px 96px; }
+      .demo-wrap h1 { font-size: 22px; line-height: 30px; }
+      .demo-surfaces { flex-wrap: wrap; }
+    }
   </style>
 </head>
 <body class="msup-demo">
@@ -67,7 +73,7 @@
     </div>
   </main>
 
-  <script src="msupport.js?v=20260820-25"></script>
+  <script src="msupport.js?v=20260821-1"></script>
   <script>
     (function () {
       "use strict";
