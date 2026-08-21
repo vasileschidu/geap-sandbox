@@ -1120,6 +1120,37 @@ body.msup-locked {
   overflow: hidden;
 }
 
+
+/* ---------- input / textarea size parity ----------
+   The flow's mobile block (max-width: 720px) enlarges .e-permits-fo-input and
+   the select buttons to 48px / 16px-24 but never lists .e-permits-fo-textarea,
+   so on a phone the input renders at 16px and the textarea stays at 14px with a
+   narrower inset. Matching the textarea to the same step here, on the flow's
+   own breakpoint so the two never disagree in the 640-720 band.
+   16px also stops iOS zooming the page on focus. */
+
+@media (max-width: 720px) {
+  .msup .e-permits-fo-textarea {
+    padding: var(--spacing-12, 12px) 44px var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .msup .e-permits-fo-textarea textarea {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: 48px;
+  }
+
+  .msup .e-permits-fo-textarea > .icon {
+    bottom: var(--spacing-12, 12px);
+    right: var(--spacing-16, 16px);
+  }
+
+  /* the listbox value follows the same step as the input */
+  .msup .e-permits-fo-select__button {
+    height: 48px;
+  }
+}
+
 /* ---------- reduced motion ---------- */
 
 @media (prefers-reduced-motion: reduce) {
