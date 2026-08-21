@@ -410,13 +410,16 @@
   to   { opacity: 0; transform: translateY(8px) scale(0.98); }
 }
 
-/* no divider, and the header sits close to the body beneath it */
+/* no divider, and the header sits close to the body beneath it.
+   Per 8431:118265: the 6px gap is the back-chevron-to-title spacing — the
+   title flexes to fill the rest, so the close button lands at the far right
+   without needing its own explicit gap. */
 .msup-panel__header {
   align-items: center;
   display: flex;
   flex: none;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-20, 20px) var(--spacing-20, 20px) var(--spacing-6, 6px);
+  gap: var(--spacing-6, 6px);
+  padding: var(--spacing-20, 20px) var(--spacing-24, 24px) var(--spacing-6, 6px);
 }
 
 .msup-panel__heading {
@@ -453,8 +456,8 @@
 }
 
 .msup-panel__close .icon {
-  height: 20px;
-  width: 20px;
+  height: 16px;
+  width: 16px;
 }
 
 .msup-panel__body {
@@ -469,7 +472,9 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--spacing-20, 20px);
+  /* 24 on every side, per 8431:118270 — same figure now used across step 1,
+     step 2 and the confirmation, so the panel reads consistently */
+  padding: var(--spacing-24, 24px);
   touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
 }
@@ -653,8 +658,8 @@
 }
 
 .msup-panel__back .icon {
-  height: 20px;
-  width: 20px;
+  height: 16px;
+  width: 16px;
 }
 
 /* ---------- context chip ---------- */
@@ -961,14 +966,9 @@
 }
 
 /* ---------- confirmation ----------
-   Figma: ".content-slot" padding 20 / gap 20 wraps a "Container" that is
-   padding 32/24, gap 12, centred, 412 wide inside a 500 modal. */
-
-/* the padding lives on the content-slot; the Container itself has none */
-.msup-state[data-msup-state="confirmation"] .msup-panel__body,
-.msup-state[data-msup-state="submitting"] .msup-panel__body {
-  padding: var(--spacing-32, 32px);
-}
+   Figma originally specified 32px here; superseded by 8431:118270, which puts
+   every state (step 1, step 2, confirmation) on the same 24px padding as
+   .msup-panel__body, so no override is needed any more. */
 
 .msup-done {
   align-items: center;

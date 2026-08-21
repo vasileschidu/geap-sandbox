@@ -449,8 +449,8 @@
                 "</div>" +
                 '<div class="msup-next__row">' +
                   ALERT_ICON +
-                  "<p>Sesizarea nu apare ca dosar în cabinet — nu are un statut pe care " +
-                  "să-l urmărești aici.</p>" +
+                  "<p>Sesizarea nu este păstrată ca dosar în cabinet și nu are un statut de " +
+                  "urmărire. Comunicarea continuă exclusiv pe email.</p>" +
                 "</div>" +
               "</div>" +
             "</div>" +
