@@ -35,6 +35,8 @@
      brief is the source of truth for data, so 1000 stands. Flagged to UX. */
   var LIMITS = { name: 80, description: 1000 };
 
+  var SUPPORT_EMAIL = "support@egov.md";
+
   var MAX_FILE_BYTES = 10 * 1024 * 1024; /* 10 MB per file */
   var ALLOWED_EXT = ["pdf", "png", "jpg", "jpeg", "doc", "docx", "xls", "xlsx", "txt"];
 
@@ -215,23 +217,6 @@
   }
 
 
-  /* the library copy-value component used across the flows, with its tooltip */
-  function copyValueHtml(sprite, value) {
-    var safe = esc(value);
-    return (
-      '<button class="e-permits-fo-copy-value msup-ref" type="button"' +
-      ' data-fo-copy-value="' + safe + '" aria-label="Copiază numărul de referință ' + safe + '">' +
-        '<span data-msup-ref>' + safe + "</span>" +
-        icon(sprite, "icon-copy") +
-        '<span class="e-permits-fo-copy-value__tooltip" aria-hidden="true">' +
-          '<span class="e-permits-fo-copy-value__tooltip-default">Copiază</span>' +
-          '<span class="e-permits-fo-copy-value__tooltip-copied">' +
-            icon(sprite, "icon-checkmark-small") + "<span>Copiat</span>" +
-          "</span>" +
-        "</span>" +
-      "</button>"
-    );
-  }
 
   function widgetHtml(sprite, ctx, type) {
     var kind = ctx.entityKind || "Dosar";
@@ -431,17 +416,33 @@
                 '<div class="msup-done__heading">' +
                   '<h3 class="msup-done__title">Am primit sesizarea ta</h3>' +
                 "</div>" +
-                '<p class="msup-done__text">Ți-am trimis o confirmare pe email. Păstrează numărul de ' +
-                "referință — folosește-l în orice mesaj despre această sesizare.</p>" +
+                '<p class="msup-done__text">Ți-am trimis o confirmare pe email, la ' +
+                '<strong data-msup-user-email></strong>.</p>' +
               "</div>" +
-              '<span class="msup-done__ref" data-msup-ref-slot></span>' +
-              '<div class="msup-next">' +
-                '<div class="msup-next__box">' +
-                  '<div class="msup-next__row">' +
-                    icon(sprite, "icon-envelope") +
-                    "<p>Discuția continuă pe email, la adresa din contul tău. Răspunde direct la acel " +
-                    "email dacă mai ai detalii sau capturi de ecran.</p>" +
+
+              /* who the reply will come from */
+              '<div class="msup-sender">' +
+                '<div class="msup-sender__box">' +
+                  icon(sprite, "icon-envelope", "msup-sender__icon") +
+                  '<div class="msup-sender__copy">' +
+                    '<span class="msup-sender__label">Răspunsul va veni de la</span>' +
+                    '<span class="msup-sender__value">' + esc(SUPPORT_EMAIL) + "</span>" +
                   "</div>" +
+                "</div>" +
+              "</div>" +
+
+              /* what happens next — expectations, not status */
+              '<div class="msup-next">' +
+                '<p class="msup-next__title">Ce urmează</p>' +
+                '<div class="msup-next__row">' +
+                  icon(sprite, "icon-envelope") +
+                  "<p>Ai putea să nu-l vezi imediat în Inbox — verifică și Spam/Promoții. " +
+                  "Răspunde direct la el dacă mai ai detalii sau capturi de ecran.</p>" +
+                "</div>" +
+                '<div class="msup-next__row">' +
+                  icon(sprite, "icon-warning-filled") +
+                  "<p>Sesizarea nu apare ca dosar în cabinet — nu are un statut pe care " +
+                  "să-l urmărești aici.</p>" +
                 "</div>" +
               "</div>" +
             "</div>" +
@@ -527,7 +528,6 @@
       diagToggle: q("[data-msup-diag-toggle]"),
       diagPanel: q("[data-msup-diag-panel]"),
       diagList: q("[data-msup-diag-list]"),
-      refSlot: q("[data-msup-ref-slot]"),
     };
 
     /* ---------- state machine: form → submitting → confirmation ---------- */
@@ -584,6 +584,7 @@
           /* revisiting a sent report — offer to start another rather than close */
           el.doneClose.hidden = true;
           el.restart.hidden = false;
+          renderUserEmail();
           showState("confirmation");
         } else {
           showState("type");
@@ -864,6 +865,12 @@
       el.diagPanel.hidden = true;
     }
 
+    function renderUserEmail() {
+      var current = getContext();
+      var slot = root.querySelector("[data-msup-user-email]");
+      if (slot) slot.textContent = (current.actor && current.actor.email) || "adresa din contul tău";
+    }
+
     /* ---------- dispatch ---------- */
 
     function submit() {
@@ -889,7 +896,7 @@
         var reference = (result && result.referenceId) || referenceId(new Date());
         state.reference = reference;
         state.submitted = true;
-        el.refSlot.innerHTML = copyValueHtml(sprite, reference);
+        renderUserEmail();
         showState("confirmation");
       }, function () {
         settled.then(function () {
