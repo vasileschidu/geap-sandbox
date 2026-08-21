@@ -45,8 +45,8 @@
       id: "BUG",
       glyph: "BUG",
       card: "Ceva nu funcționează",
-      nameLabel: "Rezumat pe scurt",
-      descLabel: "Ce s-a întâmplat?",
+      nameLabel: "Subiect",
+      descLabel: "Detalii",
       namePlaceholder: "ex: Plată efectuată, dar statut nu s-a modificat",
       descPlaceholder:
         "ex: Am achitat taxa prin MPay pe 28 iulie și am primit confirmarea, dar dosarul arată în continuare „Plată în așteptare”.",
@@ -55,8 +55,8 @@
       id: "FEATURE",
       glyph: "BULB",
       card: "Propunere de îmbunătățire",
-      nameLabel: "Rezumat pe scurt",
-      descLabel: "Ce ai vrea să poți face?",
+      nameLabel: "Subiect",
+      descLabel: "Detalii",
       namePlaceholder: "ex: Export în Excel al listei de dosare",
       descPlaceholder:
         "ex: Aș vrea să pot exporta lista dosarelor filtrate, ca să pregătesc raportul lunar fără să copiez manual fiecare rând.",
@@ -65,9 +65,9 @@
       id: "INFORMATION",
       glyph: null,
       icon: "icon-bubble-question",
-      card: "Întrebare",
-      nameLabel: "Subiectul întrebării",
-      descLabel: "Cu ce te putem ajuta?",
+      card: "Am o întrebare",
+      nameLabel: "Subiect",
+      descLabel: "Detalii",
       namePlaceholder: "ex: Ce documente sunt necesare pentru reînnoire",
       descPlaceholder:
         "ex: Vreau să reînnoiesc autorizația sanitară. Ce documente trebuie să pregătesc și cu cât timp înainte de expirare?",
@@ -240,16 +240,6 @@
       : "Fără legătură cu un dosar anume";
     var req = requiredMark().split("SPRITE").join(sprite);
 
-    var typeCards = TYPES.map(function (t) {
-      return (
-        '<button class="msup-type" type="button" aria-pressed="' + (t.id === type.id) + '"' +
-        ' data-msup-type="' + t.id + '">' +
-        (t.glyph ? GLYPH[t.glyph] : icon(sprite, t.icon)) +
-        "<span>" + esc(t.card) + "</span>" +
-        "</button>"
-      );
-    }).join("");
-
     var entries = (ctx.entityOptions || []).map(function (o) {
       return { value: o.ref || "", label: o.ref ? o.ref + " — " + o.label : o.label };
     });
@@ -283,24 +273,39 @@
       /* ---- panel: anchored popover, NOT a modal drawer; no scrim ---- */
       '<div class="msup-panel" role="dialog" aria-modal="false" aria-label="Ajutor și suport" hidden data-msup-panel>' +
         '<div class="msup-panel__header">' +
+          '<button class="msup-panel__back" type="button" aria-label="Înapoi" hidden data-msup-back>' +
+            icon(sprite, "icon-chevron-left") +
+          "</button>" +
           '<div class="msup-panel__heading">' +
-            '<h2 class="msup-panel__title">Raportează o problemă</h2>' +
+            '<h2 class="msup-panel__title" data-msup-title>Ce s-a întâmplat?</h2>' +
           "</div>" +
           '<button class="msup-panel__close" type="button" aria-label="Închide" data-msup-close>' +
             icon(sprite, "icon-cross-large") +
           "</button>" +
         "</div>" +
 
-        /* ---- state: form ---- */
-        '<div class="msup-state" data-msup-state="form">' +
+        /* ---- state: type chooser (step 1) ---- */
+        '<div class="msup-state" data-msup-state="type">' +
           '<div class="msup-panel__body">' +
-            '<div class="e-permits-fo-field">' +
-              '<div class="e-permits-fo-field__label-row">' +
-                "<label>Despre ce este vorba? " + req + "</label>" +
-              "</div>" +
-              '<div class="msup-types" role="group" aria-label="Tipul sesizării">' + typeCards + "</div>" +
+            '<div class="msup-choices" role="group" aria-label="Tipul sesizării">' +
+              TYPES.map(function (t) {
+                return (
+                  '<button class="msup-choice" type="button" data-msup-type="' + t.id + '">' +
+                    '<span class="msup-choice__main">' +
+                      (t.glyph ? GLYPH[t.glyph] : icon(sprite, t.icon)) +
+                      '<span class="msup-choice__label">' + esc(t.card) + "</span>" +
+                    "</span>" +
+                    '<span class="msup-choice__arrow">' + icon(sprite, "icon-chevron-right") + "</span>" +
+                  "</button>"
+                );
+              }).join("") +
             "</div>" +
+          "</div>" +
+        "</div>" +
 
+        /* ---- state: form (step 2) ---- */
+        '<div class="msup-state" data-msup-state="form" hidden>' +
+          '<div class="msup-panel__body">' +
             '<div class="e-permits-fo-field">' +
               '<div class="e-permits-fo-field__label-row">' +
                 "<label>La ce se referă " + req + "</label>" +
@@ -394,7 +399,6 @@
           "</div>" +
 
           '<div class="msup-panel__footer">' +
-            '<button class="btn btn-text-strict" type="button" data-msup-cancel>Anulează</button>' +
             '<button class="btn btn-primary" type="button" data-msup-submit>Trimite</button>' +
           "</div>" +
         "</div>" +
@@ -491,6 +495,8 @@
     var q = function (sel) { return root.querySelector(sel); };
     var el = {
       header: q(".msup-panel__header"),
+      back: q("[data-msup-back]"),
+      title: q("[data-msup-title]"),
       launcher: q("[data-msup-launcher]"),
       badge: q("[data-msup-badge]"),
       bubble: q("[data-msup-bubble]"),
@@ -522,8 +528,14 @@
       for (var i = 0; i < states.length; i++) {
         states[i].hidden = states[i].getAttribute("data-msup-state") !== name;
       }
-      /* the loader and the confirmation stand on their own — no header */
-      el.header.hidden = name !== "form";
+      /* step 1 titles itself; step 2 shows the chosen type with a back control;
+         the loader and confirmation stand on their own with no header at all */
+      var chrome = name === "type" || name === "form";
+      el.header.hidden = !chrome;
+      if (chrome) {
+        el.back.hidden = name !== "form";
+        el.title.textContent = name === "form" ? state.type.card : "Ce s-a întâmplat?";
+      }
     }
 
     var closeTimer = null;
@@ -558,9 +570,12 @@
         dismissBubble();
         el.contextPicker.hidden = true;
         el.context.hidden = false;
+        showState("type");
         renderDiagnostics();
-        /* focus enters the form */
-        window.requestAnimationFrame(function () { el.name.focus(); });
+        window.requestAnimationFrame(function () {
+          var first = root.querySelector('[data-msup-state="type"] .msup-choice');
+          if (first) first.focus();
+        });
       }
     }
 
@@ -575,13 +590,6 @@
 
     function applyType(id) {
       state.type = findType(id);
-      var buttons = root.querySelectorAll("[data-msup-type]");
-      for (var i = 0; i < buttons.length; i++) {
-        buttons[i].setAttribute(
-          "aria-pressed",
-          String(buttons[i].getAttribute("data-msup-type") === state.type.id)
-        );
-      }
       el.nameLabel.innerHTML = esc(state.type.nameLabel) + " " +
         requiredMark().split("SPRITE").join(sprite);
       el.descLabel.innerHTML = esc(state.type.descLabel) + " " +
@@ -667,7 +675,16 @@
       if (event.target.closest("[data-msup-close], [data-msup-cancel], [data-msup-scrim]")) setOpen(false);
 
       var typeButton = event.target.closest("[data-msup-type]");
-      if (typeButton) applyType(typeButton.getAttribute("data-msup-type"));
+      if (typeButton) {
+        applyType(typeButton.getAttribute("data-msup-type"));
+        showState("form");
+      }
+
+      if (event.target.closest("[data-msup-back]")) {
+        showState("type");
+        var current = root.querySelector('[data-msup-type="' + state.type.id + '"]');
+        if (current) current.focus();
+      }
 
       if (event.target.closest("[data-msup-context-change]")) openContextEditor();
       if (event.target.closest("[data-msup-context-save]")) commitContext();
@@ -845,7 +862,7 @@
     mobile.addEventListener("change", syncModality);
     root.classList.add("has-bubble");
     applyType(state.type.id);
-    showState("form");
+    showState("type");
 
     return {
       open: function () { setOpen(true); },

@@ -497,79 +497,122 @@
   padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
 }
 
-/* ---------- request type selector ---------- */
+/* ---------- step 1: type chooser ----------
+   Figma ".formulare" row: 460x54, padding 16, gap 12, radius 12, 1px #D9D9D9.
+   Inner frame is a row with gap 8; the chevron sits in a 6px-inset wrapper. */
 
-.msup-types {
+.msup-choices {
   display: flex;
-  gap: var(--spacing-16, 16px);
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
 }
 
-/* Figma ".formulare" type card: 172x96, padding 12, radius 16, 1px #D9D9D9.
-   Inner frame stacks a 20px icon over a Body/Small 500 label with gap 12. */
-.msup-type {
+.msup-choice {
   align-items: center;
   background: var(--color-background-base-default, #fff);
-  border: 0;
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
   box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
-  flex: 1 1 0;
-  flex-direction: column;
+  flex-direction: row;
   font-family: inherit;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-12, 12px);
+  height: 54px;
   justify-content: center;
-  height: 96px;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-12, 12px);
-  text-align: center;
+  padding: var(--spacing-16, 16px);
+  text-align: left;
   transition: background-color var(--msup-fast) var(--msup-ease),
-              box-shadow var(--msup-fast) var(--msup-ease);
+              border-color var(--msup-fast) var(--msup-ease);
+  width: 100%;
 }
 
-.msup-type .icon,
-.msup-type .msup-glyph {
+.msup-choice:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.msup-choice:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+.msup-choice__main {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.msup-choice .icon,
+.msup-choice .msup-glyph {
   color: var(--color-icon-base-default, #121212);
   flex: none;
   height: 20px;
   min-width: 20px;
+  transition: color 180ms ease;
   width: 20px;
 }
 
-.msup-type:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-secondary, #b2b2b2);
+/* the glyph picks up brand on hover, per the Figma hover state */
+.msup-choice:hover .msup-glyph,
+.msup-choice:focus-visible .msup-glyph {
+  color: var(--color-background-brand-default, #0058d2);
 }
 
-.msup-type:active {
-  transform: scale(0.985);
+.msup-choice__label {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
 }
 
-.msup-type .icon,
-.msup-type .msup-glyph {
-  transition: color var(--msup-fast) var(--msup-ease);
+/* same technique as the full flow's role list, at the specified 6px */
+.msup-choice__arrow {
+  align-items: center;
+  display: flex;
+  flex: none;
+  padding-left: var(--spacing-6, 6px);
 }
 
-.msup-type[aria-pressed="true"]:hover {
-  background: var(--blue-sky-100, #e8f0fb);
+.msup-choice__arrow .icon {
+  color: var(--color-text-base-tertiary, #757575);
+  transform: translateX(0);
+  transition: transform 180ms ease, color 180ms ease;
 }
 
-.msup-type[aria-pressed="true"] {
-  background: var(--blue-sky-100, #e8f0fb);
-  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--color-background-brand-default, #0058d2);
+.msup-choice:hover .msup-choice__arrow .icon,
+.msup-choice:focus-visible .msup-choice__arrow .icon {
+  color: var(--color-text-base-default, #121212);
+  transform: translateX(6px);
 }
 
-.msup-type[aria-pressed="true"]:hover {
-  background: var(--blue-sky-100, #e8f0fb);
+/* ---------- header back control ---------- */
+
+.msup-panel__back {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-icon-base-secondary, #444);
+  cursor: pointer;
+  display: flex;
+  flex: none;
+  height: 32px;
+  justify-content: center;
+  padding: 0;
+  transition: background-color var(--msup-fast) var(--msup-ease);
+  width: 32px;
 }
 
-.msup-type:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+.msup-panel__back:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.msup-panel__back .icon {
+  height: 20px;
+  width: 20px;
 }
 
 /* ---------- context chip ---------- */
@@ -1030,21 +1073,6 @@
   .msup-bubble {
     max-width: none;
     width: auto;
-  }
-
-  /* type selector becomes stacked rows: icon left, label right */
-  .msup-types {
-    flex-direction: column;
-    gap: var(--spacing-8, 8px);
-  }
-
-  .msup-type {
-    align-items: center;
-    flex-direction: row;
-    gap: var(--spacing-12, 12px);
-    height: auto;
-    min-height: 56px;
-    text-align: left;
   }
 
   /* the H4 title is oversized on a phone — drop to H5 */
