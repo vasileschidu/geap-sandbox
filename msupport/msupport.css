@@ -555,9 +555,14 @@
   width: 20px;
 }
 
-/* the glyph picks up brand on hover, per the Figma hover state */
-.msup-choice:hover .msup-glyph,
-.msup-choice:focus-visible .msup-glyph {
+/* The leading mark picks up brand on hover, per the Figma hover state.
+   Two of the three are inline .msup-glyph SVGs and the third is a sprite
+   .icon, so both have to be named — but scoped to __main, or the trailing
+   chevron would go blue with them. */
+.msup-choice:hover .msup-choice__main .msup-glyph,
+.msup-choice:hover .msup-choice__main .icon,
+.msup-choice:focus-visible .msup-choice__main .msup-glyph,
+.msup-choice:focus-visible .msup-choice__main .icon {
   color: var(--color-background-brand-default, #0058d2);
 }
 
