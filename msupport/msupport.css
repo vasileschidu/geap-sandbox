@@ -38,11 +38,17 @@
 
   --msup-inset: var(--spacing-24, 24px);
   --msup-panel-width: 500px;
-  /* Drop Shadow/400 */
+  /* Drop Shadow/400 — launcher and tooltip */
   --msup-shadow:
     0 0 0 0.5px rgb(0 0 0 / 12%),
     0 10px 24px rgb(0 0 0 / 8%),
     0 2px 8px rgb(0 0 0 / 8%);
+
+  /* every modal surface (panel, bubble) shares this one */
+  --msup-modal-shadow:
+    0 16px 45px -3px rgb(0 0 0 / 20%),
+    0 4px 6px -2px rgb(0 0 0 / 5%),
+    0 0 0 1px rgb(0 0 0 / 8%);
 
   bottom: var(--msup-inset);
   box-sizing: border-box;
@@ -204,10 +210,7 @@
   align-items: flex-start;
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-16, 16px);
-  box-shadow:
-    0 16px 45px -3px rgb(0 0 0 / 20%),
-    0 4px 6px -2px rgb(0 0 0 / 5%),
-    0 0 0 1px rgb(0 0 0 / 8%);
+  box-shadow: var(--msup-modal-shadow);
   cursor: pointer;
   display: flex;
   gap: var(--spacing-16, 16px);
@@ -338,7 +341,7 @@
 .msup-panel {
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-16, 16px);
-  box-shadow: var(--msup-shadow);
+  box-shadow: var(--msup-modal-shadow);
   display: flex;
   flex-direction: column;
   /* sits just above the launcher */
