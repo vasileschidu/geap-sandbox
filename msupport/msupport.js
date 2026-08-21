@@ -422,7 +422,7 @@
               icon(sprite, "icon-circle-checkmark-filled", "msup-done__tick") +
               '<div class="msup-done__copy">' +
                 '<div class="msup-done__heading">' +
-                  '<h3 class="msup-done__title">Sesizarea a fost trimiză cu succes</h3>' +
+                  '<h3 class="msup-done__title">A fost trimisă cu succes!</h3>' +
                 "</div>" +
                 '<p class="msup-done__text">Vei primi o confirmare pe email, la adresa ' +
                 '<strong data-msup-user-email></strong>.</p>' +
