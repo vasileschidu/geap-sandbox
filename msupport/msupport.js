@@ -89,6 +89,14 @@
       'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   };
 
+  /* exact alert-triangle glyph from Figma — the sprite has no outlined
+     triangle, only icon-warning-filled, which does not match the design.
+     class="icon" so it still picks up the surrounding .icon colour rules. */
+  var ALERT_ICON =
+    '<svg class="icon" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">' +
+    '<path d="M8.63359 2.52919C9.24582 1.49027 10.7492 1.49027 11.3615 2.52919L18.2356 14.1991C18.8576 15.2552 18.0943 16.5834 16.8717 16.5836H3.12333C1.90073 16.5834 1.13743 15.2552 1.7594 14.1991L8.63359 2.52919ZM9.9552 3.25999C9.94674 3.26464 9.93663 3.2727 9.9259 3.29091L3.05172 14.96C3.04069 14.9787 3.03941 14.9916 3.03951 15.0007C3.03965 15.0121 3.04248 15.0266 3.0509 15.0414C3.05945 15.0563 3.07087 15.067 3.08102 15.0731C3.08915 15.078 3.10132 15.0829 3.12333 15.0829H16.8717C16.8937 15.0829 16.9059 15.078 16.914 15.0731C16.9242 15.067 16.9356 15.0563 16.9441 15.0414C16.9526 15.0266 16.9554 15.0121 16.9555 15.0007C16.9556 14.9916 16.9543 14.9787 16.9433 14.96L10.0691 3.29091C10.0584 3.2727 10.0483 3.26464 10.0398 3.25999C10.0294 3.25428 10.0148 3.25022 9.99752 3.25022C9.98024 3.25022 9.96561 3.25428 9.9552 3.25999ZM9.99996 11.5412C10.5292 11.5412 10.9586 11.9706 10.9586 12.4999C10.9586 13.0292 10.5292 13.4586 9.99996 13.4586C9.47069 13.4586 9.0413 13.0292 9.0413 12.4999C9.0413 11.9706 9.47069 11.5412 9.99996 11.5412ZM9.24719 10.0097V8.34625C9.24719 7.93204 9.58331 7.59593 9.99752 7.59593C10.4117 7.59593 10.7478 7.93204 10.7478 8.34625V10.0097C10.7478 10.4239 10.4117 10.76 9.99752 10.76C9.58331 10.76 9.24719 10.4239 9.24719 10.0097Z" ' +
+    'fill="currentColor"/></svg>';
+
   var ERRORS = {
     name: "Adaugă un rezumat scurt — devine subiectul sesizării.",
     description: "Descrie situația, ca să putem investiga fără să revenim cu întrebări.",
@@ -414,9 +422,9 @@
               icon(sprite, "icon-circle-checkmark-filled", "msup-done__tick") +
               '<div class="msup-done__copy">' +
                 '<div class="msup-done__heading">' +
-                  '<h3 class="msup-done__title">Am primit sesizarea ta</h3>' +
+                  '<h3 class="msup-done__title">Sesizarea a fost trimiză cu succes</h3>' +
                 "</div>" +
-                '<p class="msup-done__text">Ți-am trimis o confirmare pe email, la ' +
+                '<p class="msup-done__text">Vei primi o confirmare pe email, la adresa ' +
                 '<strong data-msup-user-email></strong>.</p>' +
               "</div>" +
 
@@ -440,7 +448,7 @@
                   "Răspunde direct la el dacă mai ai detalii sau capturi de ecran.</p>" +
                 "</div>" +
                 '<div class="msup-next__row">' +
-                  icon(sprite, "icon-warning-filled") +
+                  ALERT_ICON +
                   "<p>Sesizarea nu apare ca dosar în cabinet — nu are un statut pe care " +
                   "să-l urmărești aici.</p>" +
                 "</div>" +

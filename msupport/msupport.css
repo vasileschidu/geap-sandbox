@@ -1037,7 +1037,7 @@
 }
 
 /* Figma "Frame 1261156310": the reply-from box — 436x62, padding 12/16,
-   24px envelope, 12px gap, #F5F5F5, radius 16 */
+   20px envelope, 12px gap, #F5F5F5, radius 16 */
 .msup-sender {
   align-self: stretch;
   padding: var(--spacing-16, 16px) 0 0;
@@ -1056,8 +1056,8 @@
 .msup-sender__icon {
   color: var(--color-icon-base-tertiary, #757575);
   flex: none;
-  height: 24px;
-  width: 24px;
+  height: 20px;
+  width: 20px;
 }
 
 .msup-sender__copy {
@@ -1112,7 +1112,7 @@
 .msup-next__row {
   align-items: flex-start;
   display: flex;
-  gap: 10px;
+  gap: var(--spacing-12, 12px);
 }
 
 .msup-next__row .icon {
