@@ -20424,7 +20424,7 @@ label.required::after {
   transition: color 0.2s ease;
 }
 .breadcrumbs__link:hover, .breadcrumbs__link.is-hover {
-  color: var(--brand-600);
+  color: var(--color-text-brand-default);
   text-decoration: underline;
 }
 .breadcrumbs__link:focus-visible, .breadcrumbs__link.is-focus {
