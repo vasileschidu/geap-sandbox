@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Table cells · Component reference</title>
+<link rel="stylesheet" href="assets/fonts/Onest.css">
+<link rel="stylesheet" href="css/main.css">
+<script src="js/table-cells.js" defer></script>
+<style>
+  /* DEMO-ONLY chrome. The .cell component owns no table styling — this is here
+     purely so the cells have a realistic surface to sit on. */
+  body { margin:0; background:#fff; color:#121212; font:400 14px/20px Onest, system-ui, sans-serif; }
+  .wrap { max-width:1200px; margin:0 auto; padding:48px 24px 96px; }
+  h1 { font:600 32px/40px Onest; letter-spacing:-.02em; margin:0 0 8px; }
+  .lede { color:#757575; font-size:16px; line-height:24px; margin:0 0 40px; max-width:70ch; }
+  h2 { font:600 20px/28px Onest; letter-spacing:-.01em; margin:48px 0 4px; }
+  h2:first-of-type { margin-top:0; }
+  .note { color:#757575; margin:0 0 16px; max-width:72ch; }
+  .demo-table-wrap { border:1px solid #d9d9d9; border-radius:12px; overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; table-layout:fixed; }
+  th { height:38px; padding:0 12px; text-align:left; font:500 12px/16px Onest; color:#383838;
+       border-bottom:1px solid #d9d9d9; background:#fff; }
+  td { height:56px; padding:0 12px; border-bottom:1px solid #d9d9d9; vertical-align:middle;
+       transition:background-color 100ms ease; }
+  tbody tr:last-child td { border-bottom:0; }
+  tbody tr { cursor:pointer; }
+  tbody tr:hover td { background:#f5f5f5; }
+  tbody tr:focus-visible { outline:none; box-shadow:inset 0 0 0 2px #0058d2; }
+  .cat { display:grid; grid-template-columns:minmax(260px,340px) 1fr; gap:0; border:1px solid #d9d9d9;
+         border-radius:12px; overflow:hidden; }
+  .cat > div { padding:16px; border-bottom:1px solid #d9d9d9; }
+  .cat > div:nth-child(2n) { background:#fafafa; border-left:1px solid #d9d9d9; }
+  .cat > div:nth-last-child(-n+2) { border-bottom:0; }
+  .cat h3 { font:500 14px/20px Onest; margin:0 0 12px; color:#121212; }
+  pre { margin:0; font:500 12px/18px "JetBrains Mono", ui-monospace, monospace; color:#383838;
+        white-space:pre-wrap; word-break:break-word; }
+  .kbd { font:500 12px/16px "JetBrains Mono", monospace; background:#f1f1f1; padding:1px 5px; border-radius:4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Table cells</h1>
+  <p class="lede">
+    One composable cell family for every table in the product. Three ideas do the work:
+    <span class="kbd">.cell</span> is the horizontal row, <span class="kbd">.cell__body</span> is the
+    vertical text column, and the modifiers are orthogonal so they combine freely.
+    Drop it into any <span class="kbd">&lt;td&gt;</span> — it owns no table chrome.
+  </p>
+
+  <h2>In context</h2>
+  <p class="note">
+    A realistic registry row. Hover a row for the trailing chevron, hover or tab to a copy
+    button, and tab to the truncated permit name — the tooltip only appears when text is
+    actually clipped.
+  </p>
+  <div class="demo-table-wrap">
+    <table>
+      <colgroup>
+        <col style="width:300px"><col style="width:260px"><col style="width:170px">
+        <col style="width:170px"><col style="width:150px"><col style="width:110px"><col style="width:44px">
+      </colgroup>
+      <thead><tr>
+        <th>Beneficiar</th><th>Denumire act</th><th>Autoritate</th><th>Nr. act</th>
+        <th>Termen</th><th>Statut</th><th><span class="u-visually-hidden">Deschide</span></th>
+      </tr></thead>
+      <tbody>
+        <tr tabindex="0">
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__media" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-person"></use></svg>
+              </span>
+              <span class="cell__body">
+                <span class="cell__primary" data-cell-tooltip="Andrei Vasilescu-Popescu">Andrei Vasilescu-Popescu</span>
+                <button class="cell__copy cell__copy--sm" type="button" data-cell-copy="2004011234567" aria-label="Copiază 2004011234567">
+                  <span class="cell__copy__value">2004011234567</span>
+                  <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
+                  <span class="cell__copy-tooltip" aria-hidden="true">
+                    <span data-copy-default>Copiază</span>
+                    <span data-copy-success><svg class="icon"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Copiat</span>
+                  </span>
+                </button>
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__text" data-cell-tooltip="Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice">Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice</span>
+            </div>
+          </td>
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__body">
+                <span class="cell__primary">ASP</span>
+                <span class="cell__secondary" data-cell-tooltip="Agenția Servicii Publice">Agenția Servicii Publice</span>
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <span class="cell__body">
+                <button class="cell__copy" type="button" data-cell-copy="P-8988/2026" aria-label="Copiază P-8988/2026">
+                  <span class="cell__copy__value">P-8988/2026</span>
+                  <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
+                  <span class="cell__copy-tooltip" aria-hidden="true">
+                    <span data-copy-default>Copiază</span>
+                    <span data-copy-success><svg class="icon"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Copiat</span>
+                  </span>
+                </button>
+                <span class="cell__secondary">Dosar: C382137/2026</span>
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <span class="cell__body">
+                <span class="cell__text">12.03.2026</span>
+                <span class="cell__secondary cell__secondary--danger">
+                  <span class="cell__dot" aria-hidden="true"></span>4 z. depășit
+                </span>
+              </span>
+            </div>
+          </td>
+          <td><div class="cell"><span class="status-tag status-tag--success is-subtle">Valabil</span></div></td>
+          <td>
+            <div class="cell cell--action">
+              <span class="cell__action" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+              </span>
+            </div>
+          </td>
+        </tr>
+        <tr tabindex="0">
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__media cell__media--brand" aria-hidden="true">MB</span>
+              <span class="cell__body">
+                <span class="cell__primary">Maria Botnaru</span>
+                <span class="cell__secondary">Specialist</span>
+              </span>
+            </div>
+          </td>
+          <td><div class="cell cell--truncate"><span class="cell__text">Autorizație de funcționare</span></div></td>
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__body">
+                <span class="cell__primary">ANSP</span>
+                <span class="cell__secondary">Agenția Națională pentru Sănătate Publică</span>
+              </span>
+            </div>
+          </td>
+          <td><div class="cell"><span class="cell__empty">—</span></div></td>
+          <td>
+            <div class="cell">
+              <span class="cell__body">
+                <span class="cell__text">28.08.2026</span>
+                <span class="cell__secondary cell__secondary--warning">2 z. rămase</span>
+              </span>
+            </div>
+          </td>
+          <td><div class="cell"><span class="status-tag status-tag--accent is-strong">Suspendat</span></div></td>
+          <td>
+            <div class="cell cell--action">
+              <span class="cell__action" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+              </span>
+            </div>
+          </td>
+        </tr>
+        <tr tabindex="0">
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__media" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-business"></use></svg>
+              </span>
+              <span class="cell__body">
+                <span class="cell__primary">MOLDAGROTEH S.R.L.</span>
+                <span class="cell__copy cell__copy--sm cell__copy--masked"><span class="cell__copy__value">00•••••••••44</span></span>
+              </span>
+            </div>
+          </td>
+          <td>
+            <div class="cell cell--truncate">
+              <span class="cell__text" data-cell-tooltip="Notificare privind inițierea activității de comerț ambulant">Notificare privind inițierea activității de comerț ambulant</span>
+            </div>
+          </td>
+          <td>
+            <div class="cell">
+              <span class="cell__tags">
+                <span class="status-tag status-tag--neutral is-subtle">Specialist</span>
+                <span class="status-tag status-tag--neutral is-subtle">Auditor</span>
+                <span class="cell__more">+2</span>
+              </span>
+            </div>
+          </td>
+          <td><div class="cell"><span class="cell__code">AP-2019-4471</span></div></td>
+          <td><div class="cell cell--numeric"><span class="cell__text">1 240,00 MDL</span></div></td>
+          <td><div class="cell"><span class="status-tag status-tag--danger is-strong">Retras</span></div></td>
+          <td>
+            <div class="cell cell--action">
+              <span class="cell__action" aria-hidden="true">
+                <svg class="icon"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+              </span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Catalogue</h2>
+  <p class="note">Every cell type, with the markup to copy.</p>
+  <div class="cat">
+
+    <div>
+      <h3>Plain value</h3>
+      <div class="cell"><span class="cell__text">Autorizație de funcționare</span></div>
+    </div>
+    <div><pre>&lt;div class="cell"&gt;
+  &lt;span class="cell__text"&gt;…&lt;/span&gt;
+&lt;/div&gt;</pre></div>
+
+    <div>
+      <h3>Truncated + tooltip</h3>
+      <div class="cell cell--truncate" style="max-width:220px">
+        <span class="cell__text" data-cell-tooltip="Licență pentru fabricarea alcoolului etilic, a berii și a băuturilor alcoolice">Licență pentru fabricarea alcoolului etilic, a berii</span>
+      </div>
+    </div>
+    <div><pre>&lt;div class="cell cell--truncate"&gt;
+  &lt;span class="cell__text"
+        data-cell-tooltip="full text"&gt;…&lt;/span&gt;
+&lt;/div&gt;
+
+Tooltip fires only when actually clipped,
+on hover AND focus.</pre></div>
+
+    <div>
+      <h3>Two-line stack</h3>
+      <div class="cell">
+        <span class="cell__body">
+          <span class="cell__primary">ASP</span>
+          <span class="cell__secondary">Agenția Servicii Publice</span>
+        </span>
+      </div>
+    </div>
+    <div><pre>&lt;div class="cell"&gt;
+  &lt;span class="cell__body"&gt;
+    &lt;span class="cell__primary"&gt;…&lt;/span&gt;
+    &lt;span class="cell__secondary"&gt;…&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/div&gt;</pre></div>
+
+    <div>
+      <h3>Media — icon, initials, image</h3>
+      <div class="cell" style="gap:16px">
+        <span class="cell__media" aria-hidden="true"><svg class="icon"><use href="assets/icons/sprite.svg#icon-person"></use></svg></span>
+        <span class="cell__media cell__media--brand" aria-hidden="true">MB</span>
+        <span class="cell__media cell__media--square" aria-hidden="true"><svg class="icon"><use href="assets/icons/sprite.svg#icon-business"></use></svg></span>
+      </div>
+    </div>
+    <div><pre>&lt;span class="cell__media"&gt;&lt;svg class="icon"&gt;…&lt;/span&gt;
+&lt;span class="cell__media cell__media--brand"&gt;MB&lt;/span&gt;
+&lt;span class="cell__media cell__media--square"&gt;…&lt;/span&gt;
+
+24px by default — override with
+--cell-media-size.</pre></div>
+
+    <div>
+      <h3>Copyable value</h3>
+      <div class="cell">
+        <button class="cell__copy" type="button" data-cell-copy="P-8988/2026" aria-label="Copiază P-8988/2026">
+          <span class="cell__copy__value">P-8988/2026</span>
+          <svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
+          <span class="cell__copy-tooltip" aria-hidden="true">
+            <span data-copy-default>Copiază</span>
+            <span data-copy-success><svg class="icon"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Copiat</span>
+          </span>
+        </button>
+      </div>
+    </div>
+    <div><pre>&lt;button class="cell__copy" type="button"
+        data-cell-copy="P-8988/2026"
+        aria-label="Copiază P-8988/2026"&gt;
+  &lt;span class="cell__copy__value"&gt;…&lt;/span&gt;
+  &lt;svg class="icon"&gt;…&lt;/svg&gt;
+  &lt;span class="cell__copy-tooltip"&gt;
+    &lt;span data-copy-default&gt;Copiază&lt;/span&gt;
+    &lt;span data-copy-success&gt;…Copiat&lt;/span&gt;
+  &lt;/span&gt;
+&lt;/button&gt;
+
+--sm for secondary ids. Icon reveals on
+hover/focus. Click never opens the row.</pre></div>
+
+    <div>
+      <h3>Masked — not copyable</h3>
+      <div class="cell">
+        <span class="cell__copy cell__copy--sm cell__copy--masked"><span class="cell__copy__value">00•••••••••09</span></span>
+      </div>
+    </div>
+    <div><pre>&lt;span class="cell__copy cell__copy--sm
+             cell__copy--masked"&gt;
+  &lt;span class="cell__copy__value"&gt;…&lt;/span&gt;
+&lt;/span&gt;
+
+A span, not a button — inert by design.</pre></div>
+
+    <div>
+      <h3>Meta tones</h3>
+      <div class="cell" style="gap:20px">
+        <span class="cell__secondary">2 z. rămase</span>
+        <span class="cell__secondary cell__secondary--warning">2 z. rămase</span>
+        <span class="cell__secondary cell__secondary--danger"><span class="cell__dot"></span>4 z. depășit</span>
+      </div>
+    </div>
+    <div><pre>&lt;span class="cell__secondary"&gt;…&lt;/span&gt;
+&lt;span class="cell__secondary
+             cell__secondary--warning"&gt;…&lt;/span&gt;
+&lt;span class="cell__secondary
+             cell__secondary--danger"&gt;
+  &lt;span class="cell__dot"&gt;&lt;/span&gt;…
+&lt;/span&gt;</pre></div>
+
+    <div>
+      <h3>Status</h3>
+      <div class="cell" style="gap:8px">
+        <span class="status-tag status-tag--success is-subtle">Valabil</span>
+        <span class="status-tag status-tag--accent is-strong">Suspendat</span>
+        <span class="status-tag status-tag--neutral is-subtle">Expirat</span>
+      </div>
+    </div>
+    <div><pre>&lt;span class="status-tag
+             status-tag--success is-subtle"&gt;…&lt;/span&gt;
+
+Reuses the library component — the
+intensity class is REQUIRED.</pre></div>
+
+    <div>
+      <h3>Tag list + overflow</h3>
+      <div class="cell">
+        <span class="cell__tags">
+          <span class="status-tag status-tag--neutral is-subtle">Specialist</span>
+          <span class="status-tag status-tag--neutral is-subtle">Auditor</span>
+          <span class="cell__more">+2</span>
+        </span>
+      </div>
+    </div>
+    <div><pre>&lt;span class="cell__tags"&gt;
+  &lt;span class="status-tag …"&gt;…&lt;/span&gt;
+  &lt;span class="cell__more"&gt;+2&lt;/span&gt;
+&lt;/span&gt;</pre></div>
+
+    <div>
+      <h3>Monospace code · numeric · empty</h3>
+      <div class="cell" style="gap:20px">
+        <span class="cell__code">AP-2019-4471</span>
+        <span class="cell__text" style="font-variant-numeric:tabular-nums">1 240,00</span>
+        <span class="cell__empty">—</span>
+      </div>
+    </div>
+    <div><pre>&lt;span class="cell__code"&gt;AP-2019-4471&lt;/span&gt;
+
+&lt;div class="cell cell--numeric"&gt;…&lt;/div&gt;
+
+&lt;span class="cell__empty"&gt;—&lt;/span&gt;</pre></div>
+
+    <div>
+      <h3>Trailing action</h3>
+      <div class="cell cell--action">
+        <span class="cell__action" aria-hidden="true"><svg class="icon"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></span>
+      </div>
+    </div>
+    <div><pre>&lt;div class="cell cell--action"&gt;
+  &lt;span class="cell__action" aria-hidden="true"&gt;
+    &lt;svg class="icon"&gt;…chevron-right&lt;/svg&gt;
+  &lt;/span&gt;
+&lt;/div&gt;
+
+Decorative — the &lt;tr&gt; is the target.
+Nudges on row hover.</pre></div>
+
+  </div>
+</div>
+</body>
+</html>
