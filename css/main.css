@@ -19198,7 +19198,7 @@ label.required::after {
   cursor: not-allowed;
 }
 .checkbox .checkbox-input:focus + .checkbox-custom {
-  outline: 2px solid var(--blue-sky-500, #3379DD);
+  outline: 2px solid var(--blue-sky-500, #3379DB);
   outline-offset: 1px;
 }
 .checkbox.checkbox--error .checkbox-custom {
@@ -19333,7 +19333,7 @@ label.required::after {
   transform: translate(calc(var(--track-width) - var(--thumb-size) - 4px), -50%);
 }
 .switch .switch-input:focus + .switch-track {
-  outline: 2px solid var(--blue-sky-500, #3379DD);
+  outline: 2px solid var(--blue-sky-500, #3379DB);
   outline-offset: 1px;
 }
 .switch .switch-input:active + .switch-track {
