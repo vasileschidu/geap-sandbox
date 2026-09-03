@@ -20607,7 +20607,7 @@ label.required::after {
 }
 .avatar--lg svg {
   height: var(--spacing-24);
-  width: var(--spacing-25);
+  width: var(--spacing-24);
 }
 .avatar--xl {
   width: var(--spacing-72);
