@@ -113,6 +113,16 @@
   --font-weight-regular: 400;
   --font-weight-semibold: 500;
   --font-weight-bold: 600;
+  /* Font-size primitives (Figma font-size/fs-N). Hundreds of rules reference
+     var(--font-size-fs-N, Npx) and the family was never defined, so every one of
+     them was living on its fallback. fs-32 is deliberately left out: one shipped
+     rule references it with a 20px fallback, so defining it would change a screen. */
+  --font-size-fs-12: 12px;
+  --font-size-fs-14: 14px;
+  --font-size-fs-16: 16px;
+  --font-size-fs-18: 18px;
+  --font-size-fs-20: 20px;
+  --font-size-fs-24: 24px;
 }
 
 :root {
