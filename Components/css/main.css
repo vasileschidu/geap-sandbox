@@ -18786,6 +18786,15 @@ label.required::after {
   color: transparent;
 }
 
+/* Size — matches the Text Area "Medium" variant in Figma (Components 226:4439).
+   Text size and horizontal padding are taken from `.input--medium` so a textarea
+   sits correctly beside a small input. The base `.textarea` padding is !important,
+   so this override must be too. */
+.textarea--medium {
+  font-size: var(--text-body-sm-font-size);
+  padding: var(--spacing-12, 12px) !important;
+}
+
 .textarea:disabled {
   background-color: var(--gray-100);
   border-color: var(--gray-250);
