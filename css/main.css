@@ -15700,8 +15700,8 @@ body.has-overlay footer {
 }
 
 .custom-select[data-variant=destructive] {
-  --select-border: var(--color-danger-500, #ef4444);
-  --select-accent: var(--color-danger-600, #dc2626);
+  --select-border: var(--color-border-danger-default);
+  --select-accent: var(--color-text-danger-default);
   --select-focus-ring: rgba(239, 68, 68, 0.25);
   --select-border-disabled: #d9d9d9;
 }
