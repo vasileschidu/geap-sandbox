@@ -15769,7 +15769,7 @@ body.has-overlay footer {
   box-sizing: border-box;
 }
 .select-control:hover {
-  border-color: var(--select-shadow);
+  border-color: var(--select-hover-shadow);
   outline: 1px solid var(--select-hover-shadow);
 }
 
