@@ -18820,21 +18820,6 @@ label.required::after {
   color: var(--gray-700);
 }
 
-.file-input.default {
-  --border-color: map.get(map.get(tokens.$input-colors, $variant), border);
-  --focus-color: map.get(map.get(tokens.$input-colors, $variant), focus);
-}
-
-.file-input.success {
-  --border-color: map.get(map.get(tokens.$input-colors, $variant), border);
-  --focus-color: map.get(map.get(tokens.$input-colors, $variant), focus);
-}
-
-.file-input.error {
-  --border-color: map.get(map.get(tokens.$input-colors, $variant), border);
-  --focus-color: map.get(map.get(tokens.$input-colors, $variant), focus);
-}
-
 .upload-block__title {
   margin-bottom: var(--spacing-16);
   font-weight: 600;
