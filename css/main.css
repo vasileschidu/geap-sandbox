@@ -13843,7 +13843,7 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   border: none;
   cursor: pointer;
   line-height: 1;
-  display: varf(--flex, flex);
+  display: flex;
   align-items: center;
   justify-content: center;
   height: var(--spacing-32, 32px);
