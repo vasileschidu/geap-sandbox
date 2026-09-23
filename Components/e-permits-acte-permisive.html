@@ -7,13 +7,13 @@
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=modal-motion-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=user-profile-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=review-wrappers-v1">
-  <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v5">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=instance-switch-v3">
+  <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <script src="js/search.js" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=document-remove-v1" defer></script>
-  <script src="../js/page-reveal.js?v=soft-reveal-v5" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=document-cross-v1" defer></script>
+  <script src="js/page-reveal.js?v=soft-reveal-v5" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
   <main class="e-permits-flow-home" data-flow-home>
@@ -76,7 +76,7 @@
             </span>
           </a>
 
-          <a class="e-permits-flow-home__demo-item" href="../rap-evo/">
+          <a class="e-permits-flow-home__demo-item" href="rap-evo/">
             <span class="e-permits-flow-home__demo-row">
               <span class="e-permits-flow-home__demo-avatar e-permits-flow-home__demo-avatar--icon e-permits-flow-home__demo-avatar--brand" aria-hidden="true">
                 <svg class="icon"><use href="assets/icons/sprite.svg#icon-page-text"></use></svg>
@@ -1352,15 +1352,11 @@
                   </button>
                   <div class="e-permits-fo-form__actions-primary">
                     <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Verificare și semnare" data-fo-prev="step-5">
-                      <svg class="icon" width="20" height="20" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
-                      </svg>
+                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
                     </button>
                     <button class="e-permits-fo-next" type="button" data-fo-next="step-5">
                       <span>Înainte</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
-                      </svg>
+                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
                     </button>
                   </div>
                 </div>
@@ -3237,22 +3233,22 @@
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
-    <div class="e-permits-fo-instance-switch-modal__card">
-      <button class="e-permits-fo-instance-switch-modal__close" type="button" aria-label="Închide" data-fo-instance-switch-cancel>
-        <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
-      </button>
-      <div class="e-permits-fo-instance-switch-modal__icon" aria-hidden="true">
-        <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg>
-      </div>
-      <div class="e-permits-fo-instance-switch-modal__content">
-        <h2 id="fo-instance-switch-title">Schimbi solicitantul?</h2>
-        <p id="fo-instance-switch-description">
-          Dacă alegi alt solicitant, vei reveni la începutul procesului. Schița curentă rămâne salvată în solicitările tale.
-        </p>
+    <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
+      <div class="e-permits-fo-instance-switch-modal__body">
+        <div class="e-permits-fo-instance-switch-modal__icon" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-reorder"></use></svg>
+        </div>
+        <div class="e-permits-fo-instance-switch-modal__content">
+          <h2 id="fo-instance-switch-title">Schimbi rolul cererii</h2>
+          <div id="fo-instance-switch-description" class="e-permits-fo-instance-switch-modal__description">
+            <p>Cererea curentă <strong data-fo-instance-switch-current>(ION POPESCU)</strong> se salvează automat ca schiță în <strong>Solicitările mele</strong> și o poți relua oricând.</p>
+            <p data-fo-instance-switch-target-copy>Vei începe o cerere nouă ca <strong data-fo-instance-switch-target>SRL Global Trader</strong>.</p>
+          </div>
+        </div>
       </div>
       <div class="e-permits-fo-instance-switch-modal__actions">
-        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-instance-switch-cancel>Rămân aici</button>
-        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-instance-switch-confirm>Schimbă solicitantul</button>
+        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-instance-switch-cancel>Anulează</button>
+        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-instance-switch-confirm>Salvează și schimbă</button>
       </div>
     </div>
   </div>

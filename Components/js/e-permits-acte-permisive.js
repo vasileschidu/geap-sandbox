@@ -78,6 +78,7 @@
     let frontOfficeDraftSavedAt = null;
     let frontOfficeDraftInfoDismissed = false;
     let frontOfficeInstanceSwitchReturnFocus = null;
+    let frontOfficePendingSubjectId = null;
     const dropdownMotionTimers = new WeakMap();
     const modalMotionTimers = new WeakMap();
 
@@ -308,7 +309,7 @@
       if (isOpen) {
         frontOfficeInstanceSwitchReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         setMotionModalHidden(frontOfficeInstanceSwitchModal, false);
-        frontOfficeInstanceSwitchModal.querySelector(".e-permits-fo-instance-switch-modal__secondary")?.focus({ preventScroll: true });
+        frontOfficeInstanceSwitchModal.querySelector(".e-permits-fo-instance-switch-modal__card")?.focus({ preventScroll: true });
         return;
       }
 
@@ -320,23 +321,62 @@
       frontOfficeInstanceSwitchReturnFocus = null;
     }
 
-    function openFrontOfficeInstanceSwitchModal() {
+    function frontOfficeInstanceSwitchSubject(subjectId) {
+      if (!subjectId || !frontOfficeSchema) return null;
+      return frontOfficeSelectableSubjects(frontOfficeSchema).find((subject) => subject.id === subjectId) || null;
+    }
+
+    function updateFrontOfficeInstanceSwitchModal(targetSubjectId = null) {
+      if (!frontOfficeInstanceSwitchModal) return;
+      const currentName = frontOfficeSelectedSubject?.name || "solicitantul curent";
+      const targetSubject = frontOfficeInstanceSwitchSubject(targetSubjectId);
+      const current = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-current]");
+      const target = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-target]");
+      const targetCopy = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-target-copy]");
+
+      if (current) current.textContent = `(${currentName.toLocaleUpperCase("ro-RO")})`;
+      if (targetSubject && target && targetCopy) {
+        target.textContent = targetSubject.name;
+        targetCopy.innerHTML = `Vei începe o cerere nouă ca <strong data-fo-instance-switch-target>${escapeFrontOfficeHtml(targetSubject.name)}</strong>.`;
+      } else if (targetCopy) {
+        targetCopy.textContent = "Vei reveni la alegerea rolului pentru a începe o cerere nouă.";
+      }
+    }
+
+    function openFrontOfficeInstanceSwitchModal({ targetSubjectId = null } = {}) {
+      frontOfficePendingSubjectId = targetSubjectId;
+      updateFrontOfficeInstanceSwitchModal(targetSubjectId);
       setFrontOfficeAvatarMenuOpen(false);
       setFrontOfficeInstanceSwitchModalOpen(true);
     }
 
     function confirmFrontOfficeInstanceSwitch() {
+      const targetSubjectId = frontOfficePendingSubjectId;
+      frontOfficePendingSubjectId = null;
+      saveFrontOfficeDraft();
       setFrontOfficeInstanceSwitchModalOpen(false, { restoreFocus: false });
       resetFrontOfficeDraftState();
+
+      if (targetSubjectId) {
+        const selected = selectFrontOfficeSubject(targetSubjectId);
+        if (selected) {
+          history.replaceState(null, "", "#request");
+          showFrontOfficeRequest({ step: 1 });
+          return;
+        }
+      }
+
       if (window.location.hash !== "#choice") {
         history.replaceState(null, "", "#choice");
       }
       showFrontOfficeChoice();
     }
 
-    function requestFrontOfficeInstanceSwitch({ forceChoice = false } = {}) {
-      if (frontOfficeDraftCreated || forceChoice) {
-        openFrontOfficeInstanceSwitchModal();
+    function requestFrontOfficeInstanceSwitch({ forceChoice = false, targetSubjectId = null } = {}) {
+      const activeStep = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
+      const isRequestOpen = Boolean(frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden);
+      if ((isRequestOpen && activeStep >= 2) || forceChoice) {
+        openFrontOfficeInstanceSwitchModal({ targetSubjectId });
         return false;
       }
       return true;
@@ -1696,7 +1736,7 @@
                 <span class="e-permits-fo-mdocs__attachment-meta" data-fo-mdocs-attachment-meta></span>
               </span>
               <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
-                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
               </button>
             </div>
           </div>
@@ -2608,7 +2648,7 @@
           ${sizeLabel ? `<div class="e-permits-fo-lib-item__meta">${escapeFrontOfficeHtml(sizeLabel)}</div>` : ""}
         </div>
         <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină">
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
       item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => item.remove());
       container.appendChild(item);
@@ -2632,7 +2672,7 @@
           <span class="e-permits-fo-mdocs__attachment-meta" hidden>${escapeFrontOfficeHtml(metaText)}</span>
         </div>
         <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină">
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
       att.querySelector(".e-permits-fo-mdocs__attachment-remove").addEventListener("click", () => att.remove());
       container.appendChild(att);
@@ -2970,7 +3010,7 @@
       if (!roleButton) return;
       event.preventDefault();
       const subjectId = roleButton.dataset.foSubjectId;
-      if (subjectId && subjectId !== frontOfficeSelectedSubject?.id && !requestFrontOfficeInstanceSwitch()) return;
+      if (subjectId && subjectId !== frontOfficeSelectedSubject?.id && !requestFrontOfficeInstanceSwitch({ targetSubjectId: subjectId })) return;
       const selected = selectFrontOfficeSubject(subjectId);
       if (selected) {
         setFrontOfficeAvatarMenuOpen(false);
@@ -3824,7 +3864,7 @@
             </div>
           </div>
           <button class="e-permits-fo-document-remove e-permits-fo-file-item__remove" type="button" aria-label="Elimină fișierul" hidden>
-            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
           </button>
           <div class="e-permits-fo-file-item__progress">
             <div class="e-permits-fo-file-item__progress-bar"></div>

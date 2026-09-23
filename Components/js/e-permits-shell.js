@@ -2578,6 +2578,25 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
     }).join("");
 
+  /* Switching tabs must never tear down and rebuild the tab buttons — that
+     destroys the focused element (killing keyboard nav + flashing the focus
+     ring off/on) and forces an avoidable reflow. This just flips the
+     active/aria-selected/tabindex state on the buttons that already exist.
+     `attr` is the plain HTML attribute name (e.g. "data-user-profile-tab"),
+     `datasetProp` its camelCase `.dataset` counterpart (e.g. "userProfileTab"). */
+  const syncTabStripActive = (container, attr, datasetProp, activeId) => {
+    if (!container) {
+      return;
+    }
+
+    container.querySelectorAll(`[${attr}]`).forEach((button) => {
+      const isActive = button.dataset[datasetProp] === activeId;
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-selected", String(isActive));
+      button.tabIndex = isActive ? 0 : -1;
+    });
+  };
+
   const renderUserProfileEditor = (field, user) => {
     const value = userProfileState.draftValue;
     let control = "";
@@ -3313,7 +3332,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const count = tab.count ? tab.count(role) : null;
 
     return `
-      <button class="tab-button${active ? " active" : ""}" type="button" role="tab" aria-selected="${active ? "true" : "false"}" data-role-profile-tab="${tab.id}">
+      <button id="role-profile-tab-${tab.id}" class="tab-button${active ? " active" : ""}" type="button" role="tab" aria-selected="${active ? "true" : "false"}" tabindex="${active ? "0" : "-1"}" data-role-profile-tab="${tab.id}">
         ${tab.icon ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${tab.icon}"></use></svg>` : ""}
         <span>${escapeHtml(tab.label)}</span>
         ${count !== null ? `<span class="e-permits-user-profile__tab-count">${count}</span>` : ""}
@@ -3480,7 +3499,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (tabButton) {
         roleProfileState.tabKey = tabButton.dataset.roleProfileTab;
-        renderRoleProfile(role);
+        syncTabStripActive(roleProfileTabs, "data-role-profile-tab", "roleProfileTab", roleProfileState.tabKey);
+        renderRoleProfilePanelBody(role);
+        tabButton.focus();
         return;
       }
 
@@ -3541,6 +3562,29 @@ document.addEventListener("DOMContentLoaded", () => {
         roleProfileState.permRemove = new Set();
         renderRoleProfilePanelBody(role);
       }
+    });
+
+    roleProfileTabs?.addEventListener("keydown", (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+        return;
+      }
+
+      const tabs = [...roleProfileTabs.querySelectorAll("[data-role-profile-tab]")];
+      const currentIndex = tabs.findIndex((tab) => tab.dataset.roleProfileTab === roleProfileState.tabKey);
+      let nextIndex = currentIndex;
+
+      if (event.key === "Home") {
+        nextIndex = 0;
+      } else if (event.key === "End") {
+        nextIndex = tabs.length - 1;
+      } else if (event.key === "ArrowRight") {
+        nextIndex = (currentIndex + 1) % tabs.length;
+      } else if (event.key === "ArrowLeft") {
+        nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+      }
+
+      event.preventDefault();
+      tabs[nextIndex]?.click();
     });
   }
 
@@ -4768,9 +4812,10 @@ document.addEventListener("DOMContentLoaded", () => {
         userProfileState.editKey = null;
         userProfileState.draftValue = "";
         resetSupportingTabState();
-        renderUserProfile(user);
+        syncTabStripActive(userProfileTabs, "data-user-profile-tab", "userProfileTab", userProfileState.tabKey);
+        renderUserProfilePanelBody(user);
         history.replaceState(null, "", `#utilizator/${user.id}/${userProfileState.tabKey}`);
-        document.getElementById(`user-profile-tab-${userProfileState.tabKey}`)?.focus();
+        tabButton.focus();
         return;
       }
 
@@ -4896,13 +4941,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       dosarProfilState.tabKey = tabButton.dataset.dosarTab;
 
-      if (dosarProfilTabs) {
-        dosarProfilTabs.innerHTML = renderDosarProfilTabs(getDosarById(dosarProfilState.rowId));
-      }
-
+      syncTabStripActive(dosarProfilTabs, "data-dosar-tab", "dosarTab", dosarProfilState.tabKey);
       renderDosarProfilPanelBody(getDosarById(dosarProfilState.rowId));
       history.replaceState(null, "", `#dosar/${dosarProfilState.rowId}/${dosarProfilState.tabKey}`);
-      document.getElementById(`dosar-tab-${dosarProfilState.tabKey}`)?.focus();
+      tabButton.focus();
     });
 
     dosarProfilTabs?.addEventListener("keydown", (event) => {

@@ -1484,6 +1484,12 @@
   gap: 8px;
   height: 48px;
   padding-inline: 16px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.e-permits-dosar-profil__tabs .tab-button:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-dosar-profil__tab-signal {
@@ -2034,7 +2040,7 @@
   height: 48px;
   justify-content: center;
   padding: 0 16px;
-  transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .e-permits-user-profile__tabs .tab-button:hover {
@@ -7997,8 +8003,8 @@
 /* ===== Instance Switch Modal ===== */
 .e-permits-fo-instance-switch-modal {
   align-items: center;
-  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  background: rgba(18, 18, 18, 0.42);
+  animation: e-permits-fo-modal-fade-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: rgba(18, 18, 18, 0.4);
   bottom: 0;
   box-sizing: border-box;
   display: flex;
@@ -8016,65 +8022,44 @@
 }
 
 .e-permits-fo-instance-switch-modal__card {
-  animation: e-permits-fo-modal-card-in 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-card-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 24px 64px rgba(18, 18, 18, 0.18), 0 4px 16px rgba(18, 18, 18, 0.08);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
   max-width: 100%;
-  padding: var(--spacing-24, 24px);
-  position: relative;
-  width: 480px;
+  overflow: hidden;
+  width: 588px;
 }
 
-.e-permits-fo-instance-switch-modal__close {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border: none;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-icon-base-default, #121212);
-  cursor: pointer;
+.e-permits-fo-instance-switch-modal__card:focus {
+  outline: none;
+}
+
+.e-permits-fo-instance-switch-modal__body {
   display: flex;
-  height: 32px;
-  justify-content: center;
-  padding: 0;
-  position: absolute;
-  right: var(--spacing-16, 16px);
-  top: var(--spacing-16, 16px);
-  width: 32px;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-32, 32px);
 }
 
-.e-permits-fo-instance-switch-modal__close:hover,
-.e-permits-fo-instance-switch-modal__close:focus-visible {
-  background: #e5e5e5;
-}
-
-.e-permits-fo-instance-switch-modal__close:focus-visible,
 .e-permits-fo-instance-switch-modal__secondary:focus-visible,
 .e-permits-fo-instance-switch-modal__primary:focus-visible {
   outline: 3px solid var(--blue-sky-100, #cfe1fa);
   outline-offset: 2px;
 }
 
-.e-permits-fo-instance-switch-modal__close .icon {
-  height: 16px;
-  width: 16px;
-}
-
 .e-permits-fo-instance-switch-modal__icon {
   align-items: center;
-  background: #fff4e5;
-  border-radius: var(--border-radius-full, 999px);
-  color: #c45100;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  color: var(--color-icon-brand-default, #0058d2);
   display: flex;
-  height: 48px;
+  height: 40px;
   justify-content: center;
-  width: 48px;
+  width: 40px;
 }
 
 .e-permits-fo-instance-switch-modal__icon .icon {
@@ -8085,20 +8070,25 @@
 .e-permits-fo-instance-switch-modal__content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding-right: var(--spacing-32, 32px);
+  gap: var(--spacing-16, 16px);
 }
 
 .e-permits-fo-instance-switch-modal__content h2 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--font-size-fs-32, 32px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
+  letter-spacing: -0.64px;
+  line-height: var(--line-height-lh-40, 40px);
   margin: 0;
 }
 
-.e-permits-fo-instance-switch-modal__content p {
+.e-permits-fo-instance-switch-modal__description {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-instance-switch-modal__description p {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-16, 16px);
   font-weight: var(--font-weight-fw-regular, 400);
@@ -8106,11 +8096,16 @@
   margin: 0;
 }
 
+.e-permits-fo-instance-switch-modal__description strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
 .e-permits-fo-instance-switch-modal__actions {
   display: flex;
   gap: var(--spacing-8, 8px);
   justify-content: flex-end;
-  padding-top: var(--spacing-8, 8px);
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px);
 }
 
 .e-permits-fo-instance-switch-modal__secondary,
@@ -8124,22 +8119,23 @@
   font-family: inherit;
   font-size: var(--font-size-fs-16, 16px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 44px;
+  height: 48px;
   justify-content: center;
   line-height: var(--line-height-lh-24, 24px);
   min-width: 88px;
   padding: 0 var(--spacing-20, 20px);
-  transition: background-color 100ms ease, color 100ms ease;
+  transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease, transform 100ms ease;
   white-space: nowrap;
 }
 
 .e-permits-fo-instance-switch-modal__secondary {
-  background: var(--color-background-base-tertiary, #f1f1f1);
+  background: var(--color-background-base-default, #fff);
+  border: 1.5px solid var(--color-border-base-inverse, #121212);
   color: var(--color-text-base-default, #121212);
 }
 
 .e-permits-fo-instance-switch-modal__secondary:hover {
-  background: #e5e5e5;
+  background: var(--color-background-base-secondary, #f5f5f5);
 }
 
 .e-permits-fo-instance-switch-modal__primary {
@@ -8149,6 +8145,11 @@
 
 .e-permits-fo-instance-switch-modal__primary:hover {
   background: #004ab3;
+}
+
+.e-permits-fo-instance-switch-modal__secondary:active,
+.e-permits-fo-instance-switch-modal__primary:active {
+  transform: scale(0.985);
 }
 
 @keyframes e-permits-fo-modal-fade-in {
@@ -8163,7 +8164,7 @@
 @keyframes e-permits-fo-modal-card-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 4px, 0) scale(0.985);
+    transform: translate3d(0, 8px, 0) scale(0.98);
   }
   to {
     opacity: 1;
@@ -8189,13 +8190,41 @@
 
 .e-permits-fo-instance-switch-modal.is-closing,
 .e-permits-fo-doc-modal-overlay.is-closing {
-  animation: e-permits-fo-modal-fade-out 130ms ease-in both;
+  animation: e-permits-fo-modal-fade-out 140ms ease-in both;
   pointer-events: none;
 }
 
 .e-permits-fo-instance-switch-modal.is-closing .e-permits-fo-instance-switch-modal__card,
 .e-permits-fo-doc-modal-overlay.is-closing .e-permits-fo-doc-modal {
-  animation: e-permits-fo-modal-card-out 130ms ease-in both;
+  animation: e-permits-fo-modal-card-out 140ms ease-in both;
+}
+
+@media (max-width: 640px) {
+  .e-permits-fo-instance-switch-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .e-permits-fo-instance-switch-modal__card {
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .e-permits-fo-instance-switch-modal__body {
+    padding: var(--spacing-32, 32px);
+  }
+
+  .e-permits-fo-instance-switch-modal__actions {
+    flex-direction: column-reverse;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px);
+  }
+
+  .e-permits-fo-instance-switch-modal__secondary,
+  .e-permits-fo-instance-switch-modal__primary {
+    width: 100%;
+  }
 }
 
 /* ===== Document Picker Modal ===== */
@@ -10845,10 +10874,7 @@
 }
 
 @media (max-width: 720px) {
-  .e-permits-fo-delivery-option {
-    align-items: flex-start;
-  }
-
+  .e-permits-fo-delivery-option,
   .e-permits-fo-delivery-option__content {
     align-items: flex-start;
   }
