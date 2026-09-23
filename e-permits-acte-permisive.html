@@ -770,6 +770,14 @@
         </div>
       </section>
 
+      <!-- "Ce vrei să soliciți?" (US-191, Figma 9285:37289 / 9317:46705 /
+           9290:42502). Shown after an identity is picked and before the
+           request form; skipped for the guest flow and the notarial-proxy path.
+           Rendered from intent{} in the flow schema by renderFrontOfficeIntent. -->
+      <section class="e-permits-fo-intent" aria-labelledby="fo-intent-title" data-fo-screen="intent" hidden>
+        <div class="e-permits-fo-intent__inner" data-fo-intent-body></div>
+      </section>
+
       <section class="e-permits-fo-request" aria-labelledby="fo-request-title" data-fo-screen="request" hidden>
         <div class="e-permits-fo-mobile-progress" aria-live="polite" data-fo-mobile-progress>
           <div class="e-permits-fo-mobile-progress__row">
@@ -3541,6 +3549,29 @@
     </div>
   </div>
 
+  <!-- Confirmation for a consequential post-process (suspendare, retragere).
+       Same dialog component as the instance switch above. -->
+  <div class="e-permits-fo-instance-switch-modal" data-fo-postprocess-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-postprocess-title" aria-describedby="fo-postprocess-description">
+    <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
+      <div class="e-permits-fo-instance-switch-modal__body">
+        <div class="e-permits-fo-instance-switch-modal__icon" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-warning-filled" data-fo-postprocess-icon></use></svg>
+        </div>
+        <div class="e-permits-fo-instance-switch-modal__content">
+          <h2 id="fo-postprocess-title" data-fo-postprocess-title>Confirmă postprocesul</h2>
+          <div id="fo-postprocess-description" class="e-permits-fo-instance-switch-modal__description">
+            <p data-fo-postprocess-consequence></p>
+            <p>Act: <strong data-fo-postprocess-act></strong></p>
+          </div>
+        </div>
+      </div>
+      <div class="e-permits-fo-instance-switch-modal__actions">
+        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-postprocess-cancel>Anulează</button>
+        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-postprocess-confirm>Confirm și continui</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Document picker modal -->
   <div class="e-permits-fo-doc-modal-overlay" data-fo-doc-modal-overlay hidden aria-modal="true" role="dialog" aria-labelledby="fo-doc-modal-title">
     <div class="e-permits-fo-doc-modal">
@@ -3657,6 +3688,24 @@
           <div class="segmented-control" role="tablist" aria-label="Stare utilizator" data-fo-testcfg-group="authenticated">
             <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" data-fo-testcfg-value="yes">Autentificat</button>
             <button class="segment-item" type="button" role="tab" aria-selected="false" data-fo-testcfg-value="no">Neautentificat</button>
+          </div>
+        </div>
+
+        <div class="e-permits-fo-testcfg__field">
+          <p class="e-permits-fo-testcfg__label">Pas „Ce vrei să soliciți?”</p>
+          <p class="e-permits-fo-testcfg__hint">intent — între identitate și cerere (US-191)</p>
+          <div class="segmented-control" role="tablist" aria-label="Pas „Ce vrei să soliciți?”" data-fo-testcfg-group="intent">
+            <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" data-fo-testcfg-value="yes">Afișat</button>
+            <button class="segment-item" type="button" role="tab" aria-selected="false" data-fo-testcfg-value="no">Omis</button>
+          </div>
+        </div>
+
+        <div class="e-permits-fo-testcfg__field">
+          <p class="e-permits-fo-testcfg__label">Acte emise</p>
+          <p class="e-permits-fo-testcfg__hint">intent.acts — „Fără acte” arată starea goală</p>
+          <div class="segmented-control" role="tablist" aria-label="Acte emise" data-fo-testcfg-group="acts">
+            <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" data-fo-testcfg-value="yes">Cu acte</button>
+            <button class="segment-item" type="button" role="tab" aria-selected="false" data-fo-testcfg-value="no">Fără acte</button>
           </div>
         </div>
 

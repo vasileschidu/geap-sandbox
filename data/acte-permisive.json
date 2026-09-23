@@ -863,6 +863,79 @@
       ],
       "forms": {
         "builderSeedFormId": "form-commerce-notification"
+      },
+      "intent": {
+        "_note": "US-191. Not from spec, flag for PO: the status × post-process matrix, the routine/consequential split, the consequence copy, the service-passport list (serviceAllows) and the act fields shown are prototype assumptions.",
+        "title": "Ce vrei să soliciți?",
+        "subjectLabel": "Solicitant",
+        "newRequest": { "title": "Solicitare nouă", "text": "Depui o cerere pentru un act nou" },
+        "separator": "sau",
+        "actsTitle": "Acte emise pentru acest serviciu",
+        "actionLabel": "Inițiază un postproces",
+        "emptyText": "Nu ai acte emise pentru acest serviciu asupra cărora să poți iniția un postproces.",
+        "postProcesses": {
+          "reperfectare": { "label": "Reperfectare", "icon": "icon-edit", "kind": "routine" },
+          "prelungire": { "label": "Prelungire", "icon": "icon-rotate-arrow", "kind": "routine" },
+          "suspendare": {
+            "label": "Suspendare valabilitate",
+            "icon": "icon-pause",
+            "kind": "consequential",
+            "consequence": "Actul permisiv nu va mai fi valabil pe durata suspendării. Nu poți desfășura activitatea autorizată până când valabilitatea nu este reluată."
+          },
+          "reluare": { "label": "Reluare valabilitate", "icon": "icon-rotate-arrow", "kind": "routine" },
+          "retragere": {
+            "label": "Retragere act permisiv",
+            "icon": "icon-cross-small",
+            "kind": "consequential",
+            "consequence": "Actul permisiv va fi retras definitiv și nu mai poate fi reactivat. Pentru a relua activitatea va trebui să depui o cerere nouă."
+          },
+          "contestatie": { "label": "Contestație", "icon": "icon-bubble-alert", "kind": "routine" }
+        },
+        "serviceAllows": ["reperfectare", "prelungire", "suspendare", "reluare", "retragere", "contestatie"],
+        "availability": {
+          "valabil": ["reperfectare", "prelungire", "suspendare", "retragere", "contestatie"],
+          "suspendat": ["reluare", "retragere", "contestatie"],
+          "expirat": [],
+          "retras": []
+        },
+        "acts": {
+          "pj-global-trader": [
+            {
+              "id": "act-izvoras",
+              "name": "Cafeneaua „Izvoraș”, mun. Bălți",
+              "number": "ASF-2026-04521",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "validUntil": "15.09.2028"
+            },
+            {
+              "id": "act-piata-mare",
+              "name": "Restaurantul „Piața Mare”, mun. Chișinău",
+              "number": "ASF-2026-04521",
+              "status": "suspendat",
+              "statusLabel": "Suspendat",
+              "validUntil": "15.09.2028"
+            },
+            {
+              "id": "act-bistro",
+              "name": "Bistro „Colț”, or. Orhei",
+              "number": "ASF-2021-01877",
+              "status": "expirat",
+              "statusLabel": "Expirat",
+              "validUntil": "02.03.2024"
+            }
+          ],
+          "pj-vita-plant": [
+            {
+              "id": "act-vita",
+              "name": "Depozit „Vita-Plant”, mun. Chișinău",
+              "number": "ASF-2025-11302",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "validUntil": "30.06.2030"
+            }
+          ]
+        }
       }
     }
   ],

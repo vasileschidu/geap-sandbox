@@ -48,7 +48,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -63,6 +63,7 @@
     const frontOfficeChoiceScreen = document.querySelector("[data-fo-screen='choice']");
     const frontOfficeRequestScreen = document.querySelector("[data-fo-screen='request']");
     const frontOfficeGuestScreen = document.querySelector("[data-fo-screen='guest']");
+    const frontOfficeIntentScreen = document.querySelector("[data-fo-screen='intent']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
     const frontOfficeConsent = document.querySelector("[data-fo-consent]");
@@ -2817,6 +2818,9 @@
         renderSubjectDetails(subject);
       }
       renderFrontOfficeAvatarMenuFromSchema(frontOfficeSchema);
+      /* switching identity from the header while on "Ce vrei să soliciți?"
+         swaps the acts list to the new identity's */
+      if (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden) renderFrontOfficeIntent();
     }
 
     function selectFrontOfficeSubject(subjectId) {
@@ -2879,6 +2883,7 @@
         choice: frontOfficeChoiceScreen,
         request: frontOfficeRequestScreen,
         guest: frontOfficeGuestScreen,
+        intent: frontOfficeIntentScreen,
       };
 
       Object.entries(screens).forEach(([name, node]) => {
@@ -2890,12 +2895,13 @@
          (same "keep the stepper on the left" treatment as the real wizard),
          so it needs the same full-width, top-aligned chrome — not the
          centered-card chrome auth/choice use. */
-      const isWizardLayout = screen === "request" || screen === "guest";
+      const isWizardLayout = screen === "request" || screen === "guest" || screen === "intent";
       frontOfficeMain?.classList.toggle("is-request-mode", isWizardLayout);
       frontOfficeRoot?.classList.toggle("is-request-mode", isWizardLayout);
       document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
-        const shouldShowRoleSwitcher = screen === "request";
+        /* the intent screen already has an identity, so the header shows it */
+        const shouldShowRoleSwitcher = screen === "request" || screen === "intent";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
         frontOfficeAvatarMenu.setAttribute("aria-hidden", String(!shouldShowRoleSwitcher));
         if (!shouldShowRoleSwitcher) setFrontOfficeAvatarMenuOpen(false);
@@ -2917,6 +2923,9 @@
       }
       if (screen === "guest") {
         frontOfficeGuestScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
+      }
+      if (screen === "intent") {
+        frontOfficeIntentScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
       }
     }
 
@@ -3229,6 +3238,238 @@
       }, FINISH_PAYMENT_DELAY_MS);
     });
 
+    /* ===================================================================
+       "Ce vrei să soliciți?" (US-191) — between identity and request.
+       Two exits: a new request (always available, straight into step 1) or
+       a post-process on an act already issued to this identity for this
+       service. An act is listed only if at least one post-process is
+       available for it, where available = availability[act.status] ∩
+       serviceAllows (the service passport). Routine post-processes hand
+       off directly; consequential ones confirm first, with the consequence
+       spelled out. The post-process flow itself is out of scope here, so
+       the hand-off ends in a toast rather than a new screen.
+       Not shown for the guest flow (it never passes through the picker) or
+       the notarial-proxy path. All copy and rules live in schema.intent. */
+    const frontOfficePostprocessModal = document.querySelector("[data-fo-postprocess-modal]");
+    let frontOfficePendingPostprocess = null;
+
+    function frontOfficeIntentConfig() {
+      return frontOfficeSchema?.intent || null;
+    }
+
+    function frontOfficeShouldShowIntent(subject) {
+      return Boolean(frontOfficeIntentConfig() && subject && subject.scenario !== "notarial-proxy");
+    }
+
+    function availablePostprocesses(act, config = frontOfficeIntentConfig()) {
+      if (!config) return [];
+      const byStatus = config.availability?.[act.status] || [];
+      const allowed = config.serviceAllows || [];
+      return byStatus
+        .filter((id) => allowed.includes(id) && config.postProcesses?.[id])
+        .map((id) => ({ id, ...config.postProcesses[id] }));
+    }
+
+    function intentActs(subject, config = frontOfficeIntentConfig()) {
+      const acts = config?.acts?.[subject?.id] || [];
+      return acts
+        .map((act) => ({ ...act, postProcesses: availablePostprocesses(act, config) }))
+        .filter((act) => act.postProcesses.length > 0);
+    }
+
+    const INTENT_TAG_TONE = { valabil: "status-tag--success", suspendat: "status-tag--accent" };
+
+    function intentActHtml(act, index) {
+      const esc = escapeFrontOfficeHtml;
+      const menuId = `fo-intent-menu-${index}`;
+      const tone = INTENT_TAG_TONE[act.status] || "status-tag--neutral";
+      return `
+        <li class="e-permits-fo-intent-act" data-fo-intent-act="${esc(act.id)}">
+          <span class="e-permits-fo-auth__role-avatar e-permits-fo-intent-act__avatar" aria-hidden="true">
+            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg>
+          </span>
+          <div class="e-permits-fo-intent-act__copy">
+            <div class="e-permits-fo-intent-act__heading">
+              <span class="e-permits-fo-intent-act__name">${esc(act.name)}</span>
+              <span class="status-tag ${tone} is-subtle e-permits-fo-intent-act__tag">${esc(act.statusLabel || act.status)}</span>
+            </div>
+            <div class="e-permits-fo-intent-act__meta">
+              <span class="e-permits-fo-intent-act__number">${esc(act.number)}</span>
+              <span class="e-permits-fo-intent-act__dot" aria-hidden="true"></span>
+              <span>valabil până la ${esc(act.validUntil)}</span>
+            </div>
+          </div>
+          <div class="e-permits-fo-intent-act__action">
+            <button class="btn btn-neutral btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-fo-intent-trigger>
+              <span>${esc(frontOfficeIntentConfig()?.actionLabel || "Inițiază un postproces")}</span>
+              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+            </button>
+            <ul class="e-permits-fo-intent-menu" id="${menuId}" role="menu" aria-label="Postprocese pentru ${esc(act.name)}" hidden>
+              ${act.postProcesses.map((pp) => `
+                <li role="none">
+                  <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fo-intent-postprocess="${esc(pp.id)}">
+                    <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${esc(pp.icon || "icon-edit")}"></use></svg>
+                    <span>${esc(pp.label)}</span>
+                  </button>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        </li>
+      `;
+    }
+
+    function renderFrontOfficeIntent() {
+      const body = frontOfficeIntentScreen?.querySelector("[data-fo-intent-body]");
+      const config = frontOfficeIntentConfig();
+      const subject = frontOfficeSelectedSubject;
+      if (!body || !config || !subject) return;
+      const esc = escapeFrontOfficeHtml;
+      const acts = intentActs(subject, config);
+
+      body.innerHTML = `
+        <header class="e-permits-fo-intent__header">
+          <h1 id="fo-intent-title" tabindex="-1">${esc(config.title)}</h1>
+          <p class="e-permits-fo-intent__subject">
+            <span class="e-permits-fo-intent__subject-label">${esc(config.subjectLabel || "Solicitant")}</span>
+            <span class="e-permits-fo-intent__subject-name">${esc(subject.name)}</span>
+            <button class="e-permits-fo-selected-role__change e-permits-fo-intent__change" type="button" data-fo-back-choice>
+              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-reorder"></use></svg>
+              <span>Schimbă</span>
+            </button>
+          </p>
+        </header>
+
+        <button class="e-permits-fo-intent-new" type="button" data-fo-intent-new>
+          <span class="e-permits-fo-intent-new__avatar" aria-hidden="true">
+            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
+          </span>
+          <span class="e-permits-fo-intent-new__copy">
+            <span class="e-permits-fo-intent-new__title">${esc(config.newRequest?.title || "Solicitare nouă")}</span>
+            <span class="e-permits-fo-intent-new__text">${esc(config.newRequest?.text || "")}</span>
+          </span>
+          <svg class="icon e-permits-fo-intent-new__arrow" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+        </button>
+
+        <div class="e-permits-fo-intent__separator" role="separator"><span>${esc(config.separator || "sau")}</span></div>
+
+        <section class="e-permits-fo-intent__acts" aria-labelledby="fo-intent-acts-title">
+          <p class="e-permits-fo-intent__acts-title" id="fo-intent-acts-title">${esc(config.actsTitle)}</p>
+          ${acts.length
+            ? `<ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>`
+            : `<p class="e-permits-fo-intent__empty">${esc(config.emptyText)}</p>`}
+        </section>
+      `;
+    }
+
+    function showFrontOfficeIntent({ focus = true } = {}) {
+      if (!frontOfficeIntentScreen) return;
+      renderFrontOfficeIntent();
+      if (window.location.hash !== "#intent") history.replaceState(null, "", "#intent");
+      setFrontOfficeScreen("intent", { focus });
+    }
+
+    function closeFrontOfficeIntentMenus(except = null) {
+      frontOfficeIntentScreen?.querySelectorAll("[data-fo-intent-trigger]").forEach((trigger) => {
+        const menu = document.getElementById(trigger.getAttribute("aria-controls"));
+        if (!menu || menu === except) return;
+        menu.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    function handOffPostprocess(act, pp) {
+      /* the post-process flow is the next piece of work, not this screen's */
+      showFrontOfficeToast(`${pp.label} pentru ${act.number} — continuă în fluxul de postprocesare (nu e inclus în acest prototip).`);
+    }
+
+    function setFrontOfficePostprocessModalOpen(open) {
+      setMotionModalHidden(frontOfficePostprocessModal, !open);
+      document.body.classList.toggle("is-fo-modal-open", open);
+      if (open) frontOfficePostprocessModal?.querySelector("[data-fo-postprocess-cancel]")?.focus();
+    }
+
+    frontOfficeIntentScreen?.addEventListener("click", (event) => {
+      if (event.target.closest("[data-fo-intent-new]")) {
+        history.replaceState(null, "", "#request");
+        showFrontOfficeRequest({ step: 1 });
+        return;
+      }
+
+      const trigger = event.target.closest("[data-fo-intent-trigger]");
+      if (trigger) {
+        const menu = document.getElementById(trigger.getAttribute("aria-controls"));
+        const open = menu?.hidden !== false;
+        closeFrontOfficeIntentMenus(menu);
+        if (menu) menu.hidden = !open;
+        trigger.setAttribute("aria-expanded", String(open));
+        if (open) menu?.querySelector("[role='menuitem']")?.focus();
+        return;
+      }
+
+      const item = event.target.closest("[data-fo-intent-postprocess]");
+      if (!item) return;
+      const actId = item.closest("[data-fo-intent-act]")?.dataset.foIntentAct;
+      const act = intentActs(frontOfficeSelectedSubject).find((a) => a.id === actId);
+      const pp = act?.postProcesses.find((p) => p.id === item.dataset.foIntentPostprocess);
+      closeFrontOfficeIntentMenus();
+      if (!act || !pp) return;
+
+      if (pp.kind === "consequential") {
+        frontOfficePendingPostprocess = { act, pp };
+        const q = (sel) => frontOfficePostprocessModal?.querySelector(sel);
+        if (q("[data-fo-postprocess-title]")) q("[data-fo-postprocess-title]").textContent = pp.label;
+        if (q("[data-fo-postprocess-consequence]")) q("[data-fo-postprocess-consequence]").textContent = pp.consequence || "";
+        if (q("[data-fo-postprocess-act]")) q("[data-fo-postprocess-act]").textContent = `${act.name} · ${act.number}`;
+        setFrontOfficePostprocessModalOpen(true);
+        return;
+      }
+      handOffPostprocess(act, pp);
+    });
+
+    frontOfficeIntentScreen?.addEventListener("keydown", (event) => {
+      const menu = event.target.closest(".e-permits-fo-intent-menu");
+      if (event.key === "Escape" && menu && !menu.hidden) {
+        const trigger = frontOfficeIntentScreen.querySelector(`[aria-controls="${menu.id}"]`);
+        closeFrontOfficeIntentMenus();
+        trigger?.focus();
+        return;
+      }
+      if (!menu || !["ArrowDown", "ArrowUp"].includes(event.key)) return;
+      event.preventDefault();
+      const items = [...menu.querySelectorAll("[role='menuitem']")];
+      const i = items.indexOf(document.activeElement);
+      const next = event.key === "ArrowDown" ? (i + 1) % items.length : (i - 1 + items.length) % items.length;
+      items[next]?.focus();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!frontOfficeIntentScreen || frontOfficeIntentScreen.hidden) return;
+      if (event.target.closest(".e-permits-fo-intent-act__action")) return;
+      closeFrontOfficeIntentMenus();
+    });
+
+    frontOfficePostprocessModal?.addEventListener("click", (event) => {
+      if (event.target.closest("[data-fo-postprocess-confirm]")) {
+        const pending = frontOfficePendingPostprocess;
+        frontOfficePendingPostprocess = null;
+        setFrontOfficePostprocessModalOpen(false);
+        if (pending) handOffPostprocess(pending.act, pending.pp);
+        return;
+      }
+      if (event.target.closest("[data-fo-postprocess-cancel]") || event.target === frontOfficePostprocessModal) {
+        frontOfficePendingPostprocess = null;
+        setFrontOfficePostprocessModalOpen(false);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && frontOfficePostprocessModal && !frontOfficePostprocessModal.hidden) {
+        frontOfficePendingPostprocess = null;
+        setFrontOfficePostprocessModalOpen(false);
+      }
+    });
+
     document.addEventListener("click", (event) => {
       if (!event.target.closest("[data-fo-logout]")) return;
       setFrontOfficeAvatarMenuOpen(false);
@@ -3360,6 +3601,13 @@
       showFrontOfficeRequest({ focus: false, step: bootStep });
     }
 
+    if (window.location.hash === "#intent") {
+      frontOfficeSchemaLoadPromise.then(() => {
+        const subject = frontOfficeSelectedSubject || selectFrontOfficeSubject(frontOfficeSchema?.defaultSubjectId);
+        if (frontOfficeShouldShowIntent(subject)) showFrontOfficeIntent({ focus: false });
+      });
+    }
+
     /* ===================================================================
        Test configuration panel — full flow only.
        Rewrites the live flow schema instead of re-implementing anything:
@@ -3388,6 +3636,8 @@
             return forTypes[0] === "PJ" ? "PJ" : "PF";
           })(),
           authenticated: "yes",
+          intent: pristine.intent ? "yes" : "no",
+          acts: "yes",
         };
 
         const allowedFor = () => (cfg.eligibility === "BOTH" ? ["PF", "PJ"] : [cfg.eligibility]);
@@ -3413,10 +3663,20 @@
           if (cfg.authenticated === "no") {
             return "<strong>Ecran: formular liber</strong>Fără autentificare — solicitantul se identifică tastând IDNP-ul.";
           }
+          const next = cfg.intent === "yes"
+            ? (cfg.acts === "yes"
+              ? " După alegere urmează „Ce vrei să soliciți?” (SRL Global Trader și «Vita-Plant» SRL au acte)."
+              : " După alegere urmează „Ce vrei să soliciți?”, cu lista de acte goală.")
+            : " După alegere se deschide direct cererea.";
+          if (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden) {
+            return cfg.acts === "yes"
+              ? "<strong>Ecran: Ce vrei să soliciți?</strong>Solicitare nouă sau un postproces pe unul din actele emise identității alese."
+              : "<strong>Ecran: Ce vrei să soliciți?</strong>Fără acte emise — rămâne doar Solicitare nouă, plus mesajul de stare goală.";
+          }
           if (!selectable.length) {
             return `<strong>Ecran: selectorul de instanțe</strong>Nicio identitate ${allowed.join(" + ")} eligibilă; rămâne doar procura notarială.`;
           }
-          return `<strong>Ecran: selectorul de instanțe</strong>${selectable.length} ${selectable.length === 1 ? "instanță" : "instanțe"} ${allowed.join(" + ")} disponibile.`;
+          return `<strong>Ecran: selectorul de instanțe</strong>${selectable.length} ${selectable.length === 1 ? "instanță" : "instanțe"} ${allowed.join(" + ")} disponibile.${next}`;
         }
 
         function apply({ focus = false } = {}) {
@@ -3424,6 +3684,12 @@
           next.auth = next.auth || {};
           next.auth.required = cfg.requiresAuth === "yes";
           next.auth.availableFor = allowedFor();
+
+          /* "Ce vrei să soliciți?": dropping schema.intent is what switches the
+             step off (frontOfficeShouldShowIntent reads it); emptying acts
+             leaves the step on but with its empty state */
+          if (cfg.intent === "no") delete next.intent;
+          else if (next.intent && cfg.acts === "no") next.intent.acts = {};
 
           /* the default has to be one that survived the type filter, or the
              picker opens with nothing selected */
@@ -3433,9 +3699,21 @@
           );
           next.defaultSubjectId = firstUsable ? firstUsable.id : null;
 
+          const wasOnIntent = Boolean(frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden);
+          const previousSubjectId = frontOfficeSelectedSubject?.id;
+
           applyFrontOfficeSchema(next);
 
-          if (cfg.authenticated === "yes") {
+          if (cfg.authenticated === "yes" && wasOnIntent && frontOfficeIntentConfig()) {
+            /* stay on "Ce vrei să soliciți?" with the same identity if it is
+               still eligible, so toggling acts is visible in place */
+            const kept = previousSubjectId ? selectFrontOfficeSubject(previousSubjectId) : null;
+            if (frontOfficeShouldShowIntent(kept || frontOfficeSelectedSubject)) {
+              showFrontOfficeIntent({ focus });
+            } else {
+              setFrontOfficeScreen("choice", { focus });
+            }
+          } else if (cfg.authenticated === "yes") {
             setFrontOfficeScreen("choice", { focus });
           } else {
             /* applyFrontOfficeSchema seeds a subject from defaultSubjectId;
@@ -3525,6 +3803,10 @@
       }
       const selected = selectFrontOfficeSubject(button.dataset.foSubjectId);
       if (!selected) return;
+      if (frontOfficeShouldShowIntent(selected)) {
+        showFrontOfficeIntent();
+        return;
+      }
       if (window.location.hash !== "#request") {
         history.replaceState(null, "", "#request");
       }
