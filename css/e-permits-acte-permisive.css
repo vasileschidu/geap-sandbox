@@ -41,6 +41,12 @@
 :root {
   --motion-dropdown-duration: 100ms;
   --motion-dropdown-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Figma page container — the same 1248px the library's .container caps at
+     from the 1280 breakpoint up. Header bands and the request layout share it
+     so the stepper's left edge lines up with the logo. */
+  --fo-page-width: 1248px;
+  --fo-sidebar-width: 256px;
+  --fo-form-width: 756px;
 }
 
 @keyframes e-permits-dropdown-in {
@@ -1484,6 +1490,12 @@
   gap: 8px;
   height: 48px;
   padding-inline: 16px;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.e-permits-dosar-profil__tabs .tab-button:focus-visible {
+  outline: 0;
+  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-dosar-profil__tab-signal {
@@ -2034,7 +2046,7 @@
   height: 48px;
   justify-content: center;
   padding: 0 16px;
-  transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
 }
 
 .e-permits-user-profile__tabs .tab-button:hover {
@@ -3276,7 +3288,7 @@
   align-items: center;
   display: flex;
   justify-content: space-between;
-  max-width: 1280px;
+  max-width: var(--fo-page-width, 1248px);
   min-width: 0;
   width: 100%;
 }
@@ -5195,11 +5207,11 @@
 .e-permits-fo-request__inner {
   align-items: flex-start;
   display: flex;
-  flex: 0 1 calc(256px + var(--spacing-56, 56px) + 756px);
+  flex: 0 1 var(--fo-page-width, 1248px);
   gap: var(--spacing-56, 56px);
   justify-content: flex-start;
   margin-inline: auto;
-  max-width: calc(256px + var(--spacing-56, 56px) + 756px);
+  max-width: var(--fo-page-width, 1248px);
   min-width: 0;
   overflow: visible;
   width: 100%;
@@ -5209,13 +5221,13 @@
   align-items: flex-start;
   align-self: flex-start;
   display: flex;
-  flex: 0 0 256px;
+  flex: 0 0 var(--fo-sidebar-width, 256px);
   flex-direction: column;
   gap: var(--spacing-48, 48px);
   padding-top: var(--spacing-32, 32px);
   position: sticky;
   top: var(--fo-header-height, 152px);
-  width: 256px;
+  width: var(--fo-sidebar-width, 256px);
 }
 
 .e-permits-fo-stepper,
@@ -5445,7 +5457,8 @@
   display: flex;
   flex: 1 1 0;
   flex-direction: column;
-  max-width: 756px;
+  margin-inline: auto;
+  max-width: var(--fo-form-width, 756px);
   overflow: visible;
   padding: var(--spacing-24, 24px) 0;
   width: 100%;
@@ -6132,6 +6145,45 @@
   padding-top: var(--spacing-0, 0);
 }
 
+/* Tipul solicitantului: per Figma (node 2250-5005) this header + control
+   sit in a 346px column, not the section's usual full width, and the
+   control sits flush under the header (header 50px + control 52px = the
+   whole 102px block, zero gap) — unlike every other section, which puts
+   24px between the header and its .e-permits-fo-form__section-body. A 24px
+   gap precedes the block (closing the 0px gap after the MPass banner) and
+   a 32px gap follows it, before the next section. The h2 stays a direct
+   child so the shared header rule below still applies, now at 346px
+   instead of 100% — except Figma's header here carries no border-bottom,
+   unlike every other section's, so that gets switched off too. */
+.e-permits-fo-form__section--narrow {
+  margin-top: var(--spacing-24, 24px);
+  padding-bottom: var(--spacing-32, 32px);
+  width: 346px;
+  max-width: 100%;
+}
+
+.e-permits-fo-form__section.e-permits-fo-form__section--narrow > h2 {
+  border-bottom: none;
+}
+
+/* Tipul solicitantului's segmented control (node 2250-5008). Scoped rather
+   than edited on .segmented-control/.segment-item directly, since the
+   shared library rule has documented drift from Figma project-wide
+   (components.md: #f5f5f5 vs #f1f1f1 background, no selected weight/shadow)
+   — fixing it here only, not for every other segmented-control instance. */
+[data-fo-guest-type-group] {
+  background-color: #f1f1f1;
+}
+
+[data-fo-guest-type-group] .segment-item {
+  gap: var(--spacing-6, 6px);
+}
+
+[data-fo-guest-type-group] .segment-item.is-selected {
+  font-weight: var(--font-weight-fw-medium, 500);
+  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.16);
+}
+
 .e-permits-fo-form__section > h2 {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-default, #121212);
@@ -6444,6 +6496,17 @@
 .e-permits-fo-phone.is-filled .icon {
   color: var(--color-icon-positive-default, #039855);
   flex: 0 0 auto;
+}
+
+/* .e-permits-fo-input:has(input:disabled) .icon (below) is more specific
+   than the rule above — :has() counts the specificity of its argument, so
+   ":has(input:disabled)" outweighs a second class. Every other is-readonly
+   field in this file uses a plain <span>, not a real <input>, so it never
+   hits that rule; the guest IDNP-resolved name fields are real, re-editable
+   inputs that get .disabled toggled, so they need this narrow win-back to
+   keep the confirmation green instead of the disabled grey. */
+.e-permits-fo-input.is-readonly:has(input:disabled) .icon {
+  color: var(--color-icon-positive-default, #039855);
 }
 
 .e-permits-fo-select {
@@ -6807,13 +6870,15 @@
   display: none;
 }
 
+/* Figma puts the connector rule flush with the CAEM field and indents the
+   subgen select 16px from it — the 1px rule eats one of those pixels */
 .e-permits-fo-subgen {
   align-items: flex-start;
   box-sizing: border-box;
+  column-gap: 15px;
   display: grid;
-  gap: var(--spacing-16, 16px);
   grid-template-columns: 1px minmax(0, 1fr);
-  padding-left: var(--spacing-16, 16px);
+  padding-left: 0;
   width: 100%;
 }
 
@@ -7128,6 +7193,12 @@
 
 .e-permits-fo-input .icon,
 .e-permits-fo-phone .icon {
+  flex: 0 0 auto;
+}
+
+/* Trailing spinner during an IDNP lookup, in the same flex slot the
+   checkmark icon occupies on a resolved is-filled.is-readonly field. */
+.e-permits-fo-input .spinner {
   flex: 0 0 auto;
 }
 
@@ -7620,6 +7691,68 @@
   box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
+/* Title + description composition for a radio's trailing copy, used where a
+   choice needs a one-line explanation ("Pentru cine este acest serviciu?").
+   Token values match .e-permits-fo-selected-role__copy's identical role. */
+.e-permits-fo-radio__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-radio__copy-desc {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-radio--span-6 {
+  grid-column: span 6;
+}
+
+/* MPass upsell banner (guest screen). .info-box's own padding (16px 20px),
+   align-items (flex-start) and title sizing (h5, ~20px) don't match this
+   banner: it wants a fixed 12px/72px/vertically-centered shell with plain
+   14px text throughout, not the taller stacked-content layout the shared
+   component defaults to. Background/radius/icon colour come from
+   .info-box--subtle.info-box--info as-is (--blue-sky-100 #E8F0FB is exact). */
+.e-permits-fo-guest__upsell {
+  align-items: center;
+  /* main.css declares .info-box's border-radius twice (12px, then 8px) —
+     the second wins project-wide. Not touching that shared duplicate; this
+     scoped override just restores 12px for this one banner. */
+  border-radius: var(--border-radius-12, 12px);
+  gap: var(--spacing-24, 24px);
+  min-height: 72px;
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-fo-guest__upsell .info-box__content {
+  gap: var(--spacing-8, 8px);
+}
+
+/* .info-box__content p { margin-bottom: 6px } (main.css) has a type
+   selector in it, so it outranks a plain .e-permits-fo-guest__upsell-title
+   class — has to be beaten with the same .info-box__content p shape. */
+.e-permits-fo-guest__upsell .info-box__content p {
+  margin: 0;
+}
+
+.e-permits-fo-guest__upsell-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-guest__upsell-desc {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
 .e-permits-fo-detail-card,
 .e-permits-fo-activity-card {
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
@@ -7997,8 +8130,8 @@
 /* ===== Instance Switch Modal ===== */
 .e-permits-fo-instance-switch-modal {
   align-items: center;
-  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  background: rgba(18, 18, 18, 0.42);
+  animation: e-permits-fo-modal-fade-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: rgba(18, 18, 18, 0.4);
   bottom: 0;
   box-sizing: border-box;
   display: flex;
@@ -8016,65 +8149,44 @@
 }
 
 .e-permits-fo-instance-switch-modal__card {
-  animation: e-permits-fo-modal-card-in 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-card-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
   background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 24px 64px rgba(18, 18, 18, 0.18), 0 4px 16px rgba(18, 18, 18, 0.08);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-16, 16px);
   max-width: 100%;
-  padding: var(--spacing-24, 24px);
-  position: relative;
-  width: 480px;
+  overflow: hidden;
+  width: 588px;
 }
 
-.e-permits-fo-instance-switch-modal__close {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border: none;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-icon-base-default, #121212);
-  cursor: pointer;
+.e-permits-fo-instance-switch-modal__card:focus {
+  outline: none;
+}
+
+.e-permits-fo-instance-switch-modal__body {
   display: flex;
-  height: 32px;
-  justify-content: center;
-  padding: 0;
-  position: absolute;
-  right: var(--spacing-16, 16px);
-  top: var(--spacing-16, 16px);
-  width: 32px;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-32, 32px);
 }
 
-.e-permits-fo-instance-switch-modal__close:hover,
-.e-permits-fo-instance-switch-modal__close:focus-visible {
-  background: #e5e5e5;
-}
-
-.e-permits-fo-instance-switch-modal__close:focus-visible,
 .e-permits-fo-instance-switch-modal__secondary:focus-visible,
 .e-permits-fo-instance-switch-modal__primary:focus-visible {
   outline: 3px solid var(--blue-sky-100, #cfe1fa);
   outline-offset: 2px;
 }
 
-.e-permits-fo-instance-switch-modal__close .icon {
-  height: 16px;
-  width: 16px;
-}
-
 .e-permits-fo-instance-switch-modal__icon {
   align-items: center;
-  background: #fff4e5;
-  border-radius: var(--border-radius-full, 999px);
-  color: #c45100;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  color: var(--color-icon-brand-default, #0058d2);
   display: flex;
-  height: 48px;
+  height: 40px;
   justify-content: center;
-  width: 48px;
+  width: 40px;
 }
 
 .e-permits-fo-instance-switch-modal__icon .icon {
@@ -8085,20 +8197,25 @@
 .e-permits-fo-instance-switch-modal__content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding-right: var(--spacing-32, 32px);
+  gap: var(--spacing-16, 16px);
 }
 
 .e-permits-fo-instance-switch-modal__content h2 {
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--font-size-fs-32, 32px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
+  letter-spacing: -0.64px;
+  line-height: var(--line-height-lh-40, 40px);
   margin: 0;
 }
 
-.e-permits-fo-instance-switch-modal__content p {
+.e-permits-fo-instance-switch-modal__description {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-instance-switch-modal__description p {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-16, 16px);
   font-weight: var(--font-weight-fw-regular, 400);
@@ -8106,11 +8223,16 @@
   margin: 0;
 }
 
+.e-permits-fo-instance-switch-modal__description strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
 .e-permits-fo-instance-switch-modal__actions {
   display: flex;
   gap: var(--spacing-8, 8px);
   justify-content: flex-end;
-  padding-top: var(--spacing-8, 8px);
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px);
 }
 
 .e-permits-fo-instance-switch-modal__secondary,
@@ -8124,22 +8246,23 @@
   font-family: inherit;
   font-size: var(--font-size-fs-16, 16px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 44px;
+  height: 48px;
   justify-content: center;
   line-height: var(--line-height-lh-24, 24px);
   min-width: 88px;
   padding: 0 var(--spacing-20, 20px);
-  transition: background-color 100ms ease, color 100ms ease;
+  transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease, transform 100ms ease;
   white-space: nowrap;
 }
 
 .e-permits-fo-instance-switch-modal__secondary {
-  background: var(--color-background-base-tertiary, #f1f1f1);
+  background: var(--color-background-base-default, #fff);
+  border: 1.5px solid var(--color-border-base-inverse, #121212);
   color: var(--color-text-base-default, #121212);
 }
 
 .e-permits-fo-instance-switch-modal__secondary:hover {
-  background: #e5e5e5;
+  background: var(--color-background-base-secondary, #f5f5f5);
 }
 
 .e-permits-fo-instance-switch-modal__primary {
@@ -8149,6 +8272,11 @@
 
 .e-permits-fo-instance-switch-modal__primary:hover {
   background: #004ab3;
+}
+
+.e-permits-fo-instance-switch-modal__secondary:active,
+.e-permits-fo-instance-switch-modal__primary:active {
+  transform: scale(0.985);
 }
 
 @keyframes e-permits-fo-modal-fade-in {
@@ -8163,7 +8291,7 @@
 @keyframes e-permits-fo-modal-card-in {
   from {
     opacity: 0;
-    transform: translate3d(0, 4px, 0) scale(0.985);
+    transform: translate3d(0, 8px, 0) scale(0.98);
   }
   to {
     opacity: 1;
@@ -8189,13 +8317,41 @@
 
 .e-permits-fo-instance-switch-modal.is-closing,
 .e-permits-fo-doc-modal-overlay.is-closing {
-  animation: e-permits-fo-modal-fade-out 130ms ease-in both;
+  animation: e-permits-fo-modal-fade-out 140ms ease-in both;
   pointer-events: none;
 }
 
 .e-permits-fo-instance-switch-modal.is-closing .e-permits-fo-instance-switch-modal__card,
 .e-permits-fo-doc-modal-overlay.is-closing .e-permits-fo-doc-modal {
-  animation: e-permits-fo-modal-card-out 130ms ease-in both;
+  animation: e-permits-fo-modal-card-out 140ms ease-in both;
+}
+
+@media (max-width: 640px) {
+  .e-permits-fo-instance-switch-modal {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .e-permits-fo-instance-switch-modal__card {
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .e-permits-fo-instance-switch-modal__body {
+    padding: var(--spacing-32, 32px);
+  }
+
+  .e-permits-fo-instance-switch-modal__actions {
+    flex-direction: column-reverse;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px);
+  }
+
+  .e-permits-fo-instance-switch-modal__secondary,
+  .e-permits-fo-instance-switch-modal__primary {
+    width: 100%;
+  }
 }
 
 /* ===== Document Picker Modal ===== */
@@ -8224,10 +8380,42 @@
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  height: min(800px, 90vh);
+  max-height: min(800px, 90vh);
   overflow: hidden;
   transform-origin: center;
   width: 720px;
+}
+
+/* tab switch: the shell animates between the two panel heights while the
+   incoming panel fades up, so the modal never jumps */
+.e-permits-fo-doc-modal.is-tab-animating {
+  transition: height 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.e-permits-fo-doc-modal__panel {
+  animation: e-permits-fo-doc-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes e-permits-fo-doc-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-doc-modal.is-tab-animating {
+    transition: none;
+  }
+
+  .e-permits-fo-doc-modal__panel {
+    animation: none;
+  }
 }
 
 .e-permits-fo-doc-modal__header {
@@ -8237,7 +8425,7 @@
   gap: var(--spacing-12, 12px);
   flex-shrink: 0;
   justify-content: center;
-  padding: var(--spacing-24, 24px) var(--spacing-20, 20px) var(--spacing-12, 12px) var(--spacing-32, 32px);
+  padding: var(--spacing-24, 24px);
 }
 
 .e-permits-fo-doc-modal__header-text {
@@ -8307,10 +8495,14 @@
 
 .e-permits-fo-doc-modal__panel {
   display: flex;
-  flex: 1 1 0;
+  flex: 0 1 auto;
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+}
+
+.e-permits-fo-doc-modal__panel[data-fo-doc-panel="library"] {
+  flex: 1 1 auto;
 }
 
 .e-permits-fo-doc-modal__panel[hidden] {
@@ -8506,7 +8698,7 @@
 .e-permits-fo-doc-modal__upload-content {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-12, 12px);
+  gap: var(--spacing-8, 8px);
   overflow-y: auto;
   padding: var(--spacing-24, 24px);
 }
@@ -8519,9 +8711,11 @@
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
+  flex: none;
   flex-direction: column;
   gap: var(--spacing-20, 20px);
   justify-content: center;
+  min-height: 160px;
   padding: var(--spacing-32, 32px) var(--spacing-24, 24px);
   width: 100%;
 }
@@ -10660,19 +10854,29 @@
   align-items: center;
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-12, 12px);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
   box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
-  gap: var(--spacing-8, 8px);
-  min-height: 70px;
+  gap: var(--spacing-16, 16px);
+  margin: 0;
+  min-height: 71px;
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
-  transition: background-color 120ms ease;
+  position: relative;
+  transition: background-color 120ms ease, box-shadow 120ms ease;
   width: 100%;
 }
 
-.e-permits-fo-delivery-option.is-selected {
+/* checkmark variant (electronic delivery): selected reads as a brand tint */
+.e-permits-fo-delivery-option--check.is-selected {
   background: var(--color-background-brand-secondary, #e8f0fb);
+  box-shadow: none;
+}
+
+/* radio variant (paper methods, couriers): selected reads as a brand ring */
+.e-permits-fo-delivery-option--radio.is-selected {
+  box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-fo-delivery-option__input,
@@ -10685,14 +10889,17 @@
 }
 
 .e-permits-fo-delivery-option:has(.e-permits-fo-delivery-option__input:focus-visible) {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
+  box-shadow:
+    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
+    0 0 0 2px var(--color-background-base-default, #fff),
+    0 0 0 5px var(--blue-sky-500, #3379db);
 }
 
 .e-permits-fo-delivery-option__content {
   align-items: center;
   display: flex;
   flex: 1 1 auto;
-  gap: var(--spacing-16, 16px);
+  gap: var(--spacing-12, 12px);
   min-width: 0;
 }
 
@@ -10701,6 +10908,51 @@
   flex: 0 0 24px;
   height: 24px;
   width: 24px;
+}
+
+.e-permits-fo-delivery-option__glyph {
+  align-items: center;
+  color: var(--color-icon-base-tertiary, #757575);
+  display: inline-flex;
+  flex: 0 0 24px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+/* stand-in for the courier brand marks, which are raster assets in Figma */
+.e-permits-fo-delivery-option__mark {
+  align-items: center;
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 32px;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  height: 32px;
+  justify-content: center;
+  letter-spacing: 0.2px;
+  line-height: var(--line-height-lh-16, 16px);
+  width: 32px;
+}
+
+.e-permits-fo-delivery-option__mark--brand {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-fo-delivery-option__mark--apricot {
+  background: var(--apricot-100, #feefc6);
+  color: var(--apricot-700, #b54708);
+}
+
+.e-permits-fo-delivery-option__price {
+  color: var(--color-text-base-default, #121212);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  white-space: nowrap;
 }
 
 .e-permits-fo-delivery-option__copy {
@@ -10716,7 +10968,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px);
-  min-height: 20px;
+  min-height: 21px;
 }
 
 .e-permits-fo-delivery-option__title {
@@ -10753,6 +11005,12 @@
   color: var(--color-background-base-inverse-on-color, #fff);
 }
 
+.e-permits-fo-delivery-badge--warning {
+  background: var(--color-background-warning-secondary, #feefc6);
+  border: var(--border-width-1, 1px) solid var(--color-border-warning-default, #dc6803);
+  color: var(--color-text-warning-default, #b54708);
+}
+
 .e-permits-fo-delivery-option__description {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-14, 14px);
@@ -10768,6 +11026,34 @@
   width: 20px;
 }
 
+/* the design-system radio, at the 20px size the row uses */
+.e-permits-fo-delivery-option__radio {
+  flex: 0 0 20px;
+  height: 20px;
+  width: 20px;
+}
+
+.e-permits-fo-delivery-option__radio::after {
+  background: var(--color-background-brand-default, #0058d2);
+  border-radius: inherit;
+  content: "";
+  display: block;
+  height: 10px;
+  opacity: 0;
+  transform: scale(0.7);
+  transition: opacity 140ms ease, transform 140ms ease;
+  width: 10px;
+}
+
+.e-permits-fo-delivery-option--radio.is-selected .e-permits-fo-delivery-option__radio {
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-fo-delivery-option--radio.is-selected .e-permits-fo-delivery-option__radio::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .e-permits-fo-delivery-option.is-selected .e-permits-fo-delivery-option__check {
   display: block;
 }
@@ -10779,7 +11065,7 @@
   cursor: pointer;
   display: flex;
   gap: var(--spacing-12, 12px);
-  margin-top: var(--spacing-32, 32px);
+  margin: var(--spacing-32, 32px) 0 0;
   min-height: 48px;
   padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
   width: 100%;
@@ -10856,6 +11142,505 @@
 
   .e-permits-fo-delivery__footer {
     margin-top: var(--spacing-40, 40px);
+  }
+}
+
+/* ===== Livrare — progressive disclosure (copie pe hârtie → ridicare/curier) ===== */
+
+/* 0fr → 1fr keeps the reveal height-agnostic; overflow is released once the
+   transition settles so cascade focus rings and hints are not clipped */
+.e-permits-fo-delivery-disclosure {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 240ms cubic-bezier(0.2, 0, 0, 1), opacity 160ms ease;
+}
+
+.e-permits-fo-delivery-disclosure.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.e-permits-fo-delivery-disclosure__inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.e-permits-fo-delivery-disclosure.is-settled .e-permits-fo-delivery-disclosure__inner {
+  overflow: visible;
+}
+
+.e-permits-fo-delivery-methods {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding-top: var(--spacing-8, 8px);
+}
+
+/* the courier row and everything it reveals share one bordered card; the row
+   keeps its own brand ring on top of the card's hairline, exactly as the
+   Figma strokes overlap */
+.e-permits-fo-delivery-group {
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 160ms ease;
+  width: 100%;
+}
+
+.e-permits-fo-delivery-group.is-open {
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-fo-delivery-group__section {
+  box-shadow: inset 0 var(--border-width-1, 1px) 0 var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-fo-delivery-group__section > * + * {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* a collapsed disclosure is a zero-height item — it must not add its gap too */
+.e-permits-fo-delivery-group__section > .e-permits-fo-delivery-disclosure:not(.is-open) {
+  margin-top: 0;
+}
+
+.e-permits-fo-delivery-group__label {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+  min-height: 24px;
+}
+
+/* saved-address summary — the same row geometry, on the secondary surface */
+.e-permits-fo-delivery-address {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  min-height: 71px;
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-16, 16px);
+  width: 100%;
+}
+
+.e-permits-fo-delivery-address[hidden] {
+  display: none;
+}
+
+.e-permits-fo-delivery-address__glyph {
+  align-items: center;
+  color: var(--color-icon-base-secondary, #444);
+  display: inline-flex;
+  flex: 0 0 24px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.e-permits-fo-delivery-address__copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+}
+
+.e-permits-fo-delivery-address__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-delivery-address__value {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-delivery-address .e-permits-fo-summary-section__edit {
+  color: var(--color-icon-brand-default, #0058d2);
+  flex: 0 0 40px;
+}
+
+.e-permits-fo-delivery-address__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-delivery-address__actions {
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  .e-permits-fo-delivery-group__section {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .e-permits-fo-delivery-option__price {
+    align-self: flex-start;
+  }
+
+  .e-permits-fo-delivery-address {
+    align-items: flex-start;
+  }
+
+  .e-permits-fo-delivery-address__actions {
+    justify-content: stretch;
+  }
+
+  .e-permits-fo-delivery-address__actions .btn {
+    flex: 1 1 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-delivery-disclosure {
+    transition: none;
+  }
+}
+
+/* ===== Plată ===== */
+
+.e-permits-fo-payment__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-32, 32px);
+  width: 100%;
+}
+
+/* request recap — the shared summary rows on the gray-50 surface */
+.e-permits-fo-payment-summary {
+  background: var(--gray-50, #f7f7f7);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
+  width: 100%;
+}
+
+.e-permits-fo-payment-summary .e-permits-fo-summary-row {
+  padding: var(--spacing-12, 12px) 0;
+}
+
+.e-permits-fo-payment-summary .e-permits-fo-summary-row__label {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* Figma's copy-block sets this value in Onest, not the mono the component
+   uses elsewhere; the behaviour and tooltip stay the component's */
+/* keeps the row at the 44px Figma height — a 20px glyph on a 20px baseline
+   would push it taller */
+.e-permits-fo-payment-summary .e-permits-fo-copy-value {
+  align-items: center;
+  font-family: inherit;
+  gap: var(--spacing-8, 8px);
+  letter-spacing: normal;
+  margin-left: calc(var(--spacing-4, 4px) * -1);
+}
+
+.e-permits-fo-payment-summary .e-permits-fo-copy-value > span:first-child {
+  font-family: inherit;
+  letter-spacing: normal;
+}
+
+/* Copy value inside a summary row (payment + Finalizare). Figma copy-block:
+   the id, a 4px gap, then the 20px copy glyph in #444 — and the hover
+   surface hugs just that pair. Without align-self the row's flex column
+   stretched the button across the whole value column, and the row's own
+   `span` colour rule turned the tooltip's white text dark. */
+.e-permits-fo-payment-summary .e-permits-fo-copy-value {
+  align-self: flex-start;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-payment-summary .e-permits-fo-copy-value > .icon {
+  color: var(--color-icon-base-secondary, #444);
+  flex: 0 0 20px;
+  height: 20px;
+  width: 20px;
+}
+
+.e-permits-fo-payment-summary .e-permits-fo-copy-value__tooltip span {
+  color: var(--color-text-base-inverse-default, #fff);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* notă de plată — one card, closed off by the torn edge below it */
+.e-permits-fo-payment-invoice {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.e-permits-fo-payment-invoice__card {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-bottom: 0;
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* the receipt is torn off, so the bottom edge is a zigzag hairline rather
+   than a border; 12px teeth, matching the Figma vector */
+.e-permits-fo-payment-invoice__edge {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Cpath d='M0 .5 6 5.5 12 .5' fill='none' stroke='%23d9d9d9' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  height: 6px;
+  width: 100%;
+}
+
+.e-permits-fo-payment-invoice__header {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-fo-payment-invoice__caption {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+  min-height: 24px;
+}
+
+.e-permits-fo-payment-invoice__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-payment-invoice__status {
+  flex: 0 0 auto;
+  min-height: 24px;
+  text-transform: none;
+}
+
+.e-permits-fo-payment-invoice__amount {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-32, 32px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.64px;
+  line-height: var(--line-height-lh-40, 40px);
+  margin: 0;
+}
+
+.e-permits-fo-payment-table {
+  overflow-x: auto;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) 0;
+}
+
+.e-permits-fo-payment-table table,
+.e-permits-fo-payment-totals table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-fo-payment-table th,
+.e-permits-fo-payment-table td {
+  box-sizing: border-box;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.e-permits-fo-payment-table thead th {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  height: 32px;
+  line-height: var(--line-height-lh-20, 20px);
+  padding-bottom: var(--spacing-6, 6px);
+  padding-top: var(--spacing-6, 6px);
+}
+
+.e-permits-fo-payment-table thead th:not(:first-child),
+.e-permits-fo-payment-table tbody td:not(:first-child) {
+  width: 100px;
+}
+
+.e-permits-fo-payment-table tbody td {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  height: 40px;
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* line items are separated by the receipt's perforation, not a solid rule */
+.e-permits-fo-payment-table thead th,
+.e-permits-fo-payment-table tbody tr:not(:last-child) td {
+  border-bottom: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-fo-payment-table__amount {
+  text-align: right !important;
+  white-space: nowrap;
+}
+
+.e-permits-fo-payment-totals {
+  padding: 0 var(--spacing-12, 12px) var(--spacing-12, 12px);
+}
+
+.e-permits-fo-payment-totals th,
+.e-permits-fo-payment-totals td {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 40px;
+  line-height: var(--line-height-lh-24, 24px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+}
+
+.e-permits-fo-payment-totals tr.is-strong th,
+.e-permits-fo-payment-totals tr.is-strong td {
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+.e-permits-fo-payment-actions {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* the 20px glyph would otherwise make the button 50px tall */
+.e-permits-fo-payment-actions .btn {
+  box-sizing: border-box;
+  min-height: 48px;
+  padding-block: 0;
+}
+
+.e-permits-fo-payment-actions__download {
+  gap: var(--spacing-8, 8px);
+}
+
+@media (max-width: 720px) {
+  .e-permits-fo-payment__body {
+    gap: var(--spacing-24, 24px);
+  }
+
+  .e-permits-fo-payment-summary .e-permits-fo-summary-row {
+    grid-template-columns: 1fr;
+    row-gap: var(--spacing-2, 2px);
+  }
+
+  .e-permits-fo-payment-invoice__header {
+    padding: var(--spacing-16, 16px);
+  }
+
+  /* the fee table would need ~480px to keep its four columns, so on phones
+     each line item folds into description / qty × unit price / total */
+  .e-permits-fo-payment-table {
+    padding: 0;
+  }
+
+  .e-permits-fo-payment-table thead {
+    display: none;
+  }
+
+  .e-permits-fo-payment-table table {
+    display: block;
+  }
+
+  .e-permits-fo-payment-table tbody {
+    display: block;
+  }
+
+  .e-permits-fo-payment-table tbody tr {
+    align-items: baseline;
+    border-bottom: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
+    column-gap: var(--spacing-8, 8px);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+    row-gap: var(--spacing-2, 2px);
+  }
+
+  .e-permits-fo-payment-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .e-permits-fo-payment-table tbody td,
+  .e-permits-fo-payment-table tbody tr:not(:last-child) td {
+    border: 0;
+    display: block;
+    height: auto;
+    padding: 0;
+    width: auto;
+  }
+
+  .e-permits-fo-payment-table tbody td:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .e-permits-fo-payment-table tbody tr:not(.e-permits-fo-payment-table__row--span) td:nth-child(2),
+  .e-permits-fo-payment-table tbody tr:not(.e-permits-fo-payment-table__row--span) td:nth-child(3) {
+    color: var(--color-text-base-tertiary, #757575);
+  }
+
+  .e-permits-fo-payment-table tbody tr:not(.e-permits-fo-payment-table__row--span) td:nth-child(2)::after {
+    content: " ×";
+  }
+
+  .e-permits-fo-payment-table tbody td:last-child {
+    font-weight: var(--font-weight-fw-medium, 500);
+    grid-column: 3;
+  }
+
+  .e-permits-fo-payment-table__row--span {
+    grid-template-columns: 1fr auto !important;
+  }
+
+  .e-permits-fo-payment-table__row--span td:first-child {
+    grid-column: 1 !important;
+  }
+
+  .e-permits-fo-payment-table__row--span td:last-child {
+    grid-column: 2 !important;
+  }
+
+  .e-permits-fo-payment-totals {
+    padding: 0 var(--spacing-4, 4px) var(--spacing-12, 12px);
+  }
+
+  .e-permits-fo-payment-totals th,
+  .e-permits-fo-payment-totals td {
+    padding-left: var(--spacing-12, 12px);
+    padding-right: var(--spacing-12, 12px);
+  }
+
+  .e-permits-fo-payment-actions {
+    flex-direction: column-reverse;
+  }
+
+  .e-permits-fo-payment-actions .btn {
+    width: 100%;
   }
 }
 
@@ -15821,9 +16606,9 @@
   }
 
   .e-permits-fo-request__inner {
-    flex-basis: calc(220px + var(--spacing-32, 32px) + 756px);
+    flex-basis: calc(220px + var(--spacing-32, 32px) + var(--fo-form-width, 756px));
     gap: var(--spacing-32, 32px);
-    max-width: calc(220px + var(--spacing-32, 32px) + 756px);
+    max-width: calc(220px + var(--spacing-32, 32px) + var(--fo-form-width, 756px));
   }
 
   .e-permits-fo-request__sidebar {
@@ -17470,4 +18255,578 @@
     gap: 0;
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Requestor identity: blocked row + empty list.
+   Both are inert unless the schema marks a subject unselectable with a reason,
+   or leaves no eligible subject at all. */
+
+.e-permits-fo-auth__role-blocked {
+  align-items: flex-start;
+  color: var(--color-text-warning-on-secondary, #b54708);
+  display: flex;
+  gap: var(--spacing-6, 6px);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin-top: var(--spacing-4, 4px);
+  text-align: left;
+}
+
+.e-permits-fo-auth__role-blocked .icon {
+  color: var(--color-icon-warning-default, #dc6803);
+  flex: none;
+  height: 16px;
+  width: 16px;
+}
+
+/* A blocked row still has to be readable, so it keeps full contrast rather
+   than the 0.56 opacity used for plain disabled rows. It also carries an extra
+   line, which the fixed 70px row height clips — so only these rows are allowed
+   to grow. Every other row keeps its original height. */
+.e-permits-fo-auth__role-item.is-disabled:has(.e-permits-fo-auth__role-blocked),
+.e-permits-fo-auth__role-item:disabled:has(.e-permits-fo-auth__role-blocked) {
+  background: var(--color-background-warning-secondary, #fffaeb);
+  height: auto;
+  min-height: 70px;
+  opacity: 1;
+  overflow: visible;
+  padding-bottom: var(--spacing-12, 12px);
+  padding-top: var(--spacing-12, 12px);
+}
+
+.e-permits-fo-auth__role-item:has(.e-permits-fo-auth__role-blocked) .e-permits-fo-auth__role-row {
+  align-items: flex-start;
+  height: auto;
+}
+
+.e-permits-fo-auth__role-empty {
+  align-items: flex-start;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+  text-align: left;
+}
+
+.e-permits-fo-auth__role-empty-icon .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: none;
+  height: 24px;
+  width: 24px;
+}
+
+.e-permits-fo-auth__role-empty-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-fo-auth__role-empty-copy strong {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-auth__role-empty-copy p {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* ==========================================================================
+   Test configuration panel — full flow only.
+   A prototyping aid, not product UI. Bottom-left so it never collides with
+   MSupport's launcher (bottom-right, z-index 1200); this sits just below it.
+   Controls reuse .segmented-control from the library; only the shell, the
+   labels and the outcome line are new.
+   ========================================================================== */
+.e-permits-fo-testcfg {
+  bottom: var(--spacing-24, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  left: var(--spacing-24, 24px);
+  position: fixed;
+  z-index: 1100;
+}
+
+.e-permits-fo-testcfg[hidden] {
+  display: none;
+}
+
+.e-permits-fo-testcfg__launcher {
+  align-items: center;
+  align-self: flex-start;
+  background: var(--color-background-base-inverse-default, #121212);
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16), 0 4px 12px rgba(0, 0, 0, 0.12);
+  color: var(--color-text-base-inverse-default, #fff);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-10, 10px) var(--spacing-16, 16px);
+}
+
+.e-permits-fo-testcfg__launcher:hover {
+  background: var(--gray-800, #2c2c2c);
+}
+
+.e-permits-fo-testcfg__launcher:focus-visible {
+  outline: 2px solid var(--white, #fff);
+  box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-fo-testcfg__panel {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  order: -1;
+  width: 328px;
+}
+
+.e-permits-fo-testcfg__panel[hidden] {
+  display: none;
+}
+
+.e-permits-fo-testcfg__header {
+  align-items: flex-start;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-testcfg__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-fo-testcfg__subtitle {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: var(--spacing-2, 2px) 0 0;
+}
+
+.e-permits-fo-testcfg__close {
+  background: none;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-testcfg__close:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-fo-testcfg__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20, 20px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-testcfg__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-fo-testcfg__hint {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: var(--spacing-2, 2px) 0 var(--spacing-8, 8px);
+}
+
+/* The panel is narrower than the form, so segments wrap instead of
+   overflowing; equal widths keep the three-option row readable. */
+.e-permits-fo-testcfg .segmented-control {
+  display: flex;
+  width: 100%;
+}
+
+.e-permits-fo-testcfg .segment-item {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--spacing-10, 10px) var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+.e-permits-fo-testcfg .segment-item.is-selected {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-fo-testcfg__outcome {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-fo-testcfg__outcome strong {
+  color: var(--color-text-base-default, #121212);
+  display: block;
+  font-weight: var(--font-weight-fw-medium, 500);
+  margin-bottom: var(--spacing-4, 4px);
+}
+
+@media (max-width: 640px) {
+  .e-permits-fo-testcfg {
+    bottom: var(--spacing-16, 16px);
+    left: var(--spacing-16, 16px);
+    right: var(--spacing-16, 16px);
+  }
+
+  .e-permits-fo-testcfg__panel {
+    width: auto;
+  }
+}
+
+/* ==========================================================================
+   Finalizare — confirmation after payment (Figma 3607:56145).
+   Only the tracker, the document banner and the status timeline are new;
+   the summary card, copy value, status tags, buttons and footer are reused.
+   Figma's column is 768px against the form's 756px; the form width wins.
+   ========================================================================== */
+.e-permits-fo-finish__hero {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-32, 32px) 0 var(--spacing-32, 32px);
+  text-align: center;
+}
+
+.e-permits-fo-finish__hero-icon {
+  color: var(--color-icon-positive-default, #039855);
+  height: 32px;
+  width: 32px;
+}
+
+.e-permits-fo-finish__header {
+  align-items: center;
+  padding-bottom: 0;
+}
+
+.e-permits-fo-finish__lead {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: calc(var(--spacing-4, 4px) * -1) 0 0;
+}
+
+.e-permits-fo-finish__lead a,
+.e-permits-fo-finish-doc__text a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.e-permits-fo-finish__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-32, 32px);
+  width: 100%;
+}
+
+/* ---- horizontal case-status tracker ---- */
+.e-permits-fo-finish-tracker {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-20, 20px) var(--spacing-24, 24px);
+}
+
+.e-permits-fo-finish-tracker__item {
+  align-items: center;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+  position: relative;
+}
+
+/* connector to the next item, centred on the 24px marker */
+.e-permits-fo-finish-tracker__item:not(:last-child)::after {
+  background: var(--color-border-base-default, #d9d9d9);
+  content: "";
+  height: 1.5px;
+  left: calc(50% + 16px);
+  position: absolute;
+  right: calc(-50% + 16px);
+  top: 11.25px;
+}
+
+.e-permits-fo-finish-tracker__item.is-done::after,
+.e-permits-fo-finish-tracker__item.is-done:has(+ .is-current)::after {
+  background: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-fo-finish-tracker__marker {
+  display: inline-flex;
+  height: 24px;
+  width: 24px;
+}
+
+.e-permits-fo-finish-tracker__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: nowrap;
+}
+
+/* ---- markers shared by tracker and timeline ---- */
+.e-permits-fo-finish-marker--done {
+  color: var(--color-icon-positive-default, #039855);
+}
+
+.e-permits-fo-finish-marker--current {
+  color: var(--color-icon-brand-default, #0058d2);
+}
+
+.e-permits-fo-finish-marker--todo {
+  border: 1.5px solid var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  display: inline-block;
+  height: calc(var(--fo-finish-marker-size, 24px) - 4px);
+  margin: 2px;
+  width: calc(var(--fo-finish-marker-size, 24px) - 4px);
+}
+
+/* ---- proof-of-filing document banner (Figma system-files-item 4315:32535)
+   70px tall, 0 12px padding, icon+copy group (12px gap) and the button
+   20px apart. The icon is Figma's document illustration, not a sprite glyph. */
+.e-permits-fo-finish-doc {
+  align-items: center;
+  background: var(--color-background-positive-secondary, #e6f5ee);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  min-height: 70px;
+  overflow: hidden;
+  padding: 0 var(--spacing-12, 12px);
+}
+
+.e-permits-fo-finish-doc__icon {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 24px;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.e-permits-fo-finish-doc__icon img {
+  display: block;
+  height: 21.4px;
+  width: 18.6px;
+}
+
+.e-permits-fo-finish-doc__copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+}
+
+.e-permits-fo-finish-doc__title,
+.e-permits-fo-finish-doc__text {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-fo-finish-doc__title {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-fo-finish-doc__text {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-fo-finish-doc__text a {
+  color: var(--color-text-base-default, #121212);
+}
+
+/* Figma's small outlined button here is 32px tall, 1.5px border, 6px
+   radius, 8px/12px side padding — scoped, the library .btn-sm is unchanged. */
+.e-permits-fo-finish-doc__action.btn {
+  border-radius: var(--border-radius-6, 6px);
+  border-width: var(--border-width-1-5, 1.5px);
+  flex: 0 0 auto;
+  gap: var(--spacing-6, 6px);
+  height: 32px;
+  line-height: var(--line-height-lh-20, 20px);
+  margin-left: var(--spacing-8, 8px);
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+}
+
+/* ---- "Statutul dosarului" vertical timeline (Figma 3629:19973) ----
+   Each step is a 16px-gap row: a rail (20px marker, 6px gap, then a line
+   that grows to the bottom of the step) beside the copy (4px gap, 6px
+   bottom padding). Steps sit 6px apart. The line under a completed step is
+   1.5px brand blue; every other connector is 1px grey. */
+.e-permits-fo-finish__section-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.18px;
+  line-height: var(--line-height-lh-26, 26px);
+  margin: 0;
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-fo-finish-timeline {
+  background: var(--gray-50, #f7f7f7);
+  border-radius: var(--border-radius-24, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-fo-finish-timeline__item {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-finish-timeline__rail {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  flex: 0 0 20px;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-fo-finish-timeline__marker {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 20px;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.e-permits-fo-finish-timeline__marker .icon {
+  height: 16px;
+  width: 16px;
+}
+
+.e-permits-fo-finish-timeline__line {
+  background: var(--color-border-base-default, #d9d9d9);
+  flex: 1 1 auto;
+  width: 1px;
+}
+
+.e-permits-fo-finish-timeline__item.is-done .e-permits-fo-finish-timeline__line {
+  background: var(--color-border-brand-default, #0058d2);
+  width: 1.5px;
+}
+
+.e-permits-fo-finish-timeline__item:last-child .e-permits-fo-finish-timeline__line {
+  display: none;
+}
+
+.e-permits-fo-finish-timeline__copy {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+  padding-bottom: var(--spacing-6, 6px);
+}
+
+.e-permits-fo-finish-timeline__title,
+.e-permits-fo-finish-timeline__text {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-fo-finish-timeline__title {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: 10px;
+}
+
+.e-permits-fo-finish-timeline__text {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+.e-permits-fo-finish__footer {
+  margin-top: var(--spacing-32, 32px);
+}
+
+.e-permits-fo-finish__footer .e-permits-fo-form__actions {
+  justify-content: flex-end;
+}
+
+.e-permits-fo-finish__cta {
+  gap: var(--spacing-8, 8px);
+  text-decoration: none;
+}
+
+@media (max-width: 720px) {
+  .e-permits-fo-finish-tracker {
+    padding-inline: 0;
+  }
+
+  .e-permits-fo-finish-tracker__label {
+    font-size: var(--font-size-fs-12, 12px);
+  }
+
+  .e-permits-fo-finish-doc {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .e-permits-fo-finish-doc__action {
+    margin-left: calc(24px + var(--spacing-12, 12px));
+  }
+
+  .e-permits-fo-finish__cta {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+/* Figma draws pending steps in the timeline as dashed rings
+   (circle-placeholder-dashed) and in the tracker as solid ones. */
+.e-permits-fo-finish-timeline .e-permits-fo-finish-marker--todo {
+  border-style: dashed;
 }

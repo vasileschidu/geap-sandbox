@@ -648,7 +648,7 @@
           "id": "delivery",
           "label": "Livrare",
           "title": "Livrare",
-          "sectionTitle": "Cum primești actul permisiv?",
+          "sectionTitle": "Cum primești rezultatul?",
           "options": [
             {
               "id": "evo-cabinet",
@@ -665,11 +665,201 @@
           "paperCopy": {
             "label": "Am nevoie și de o copie pe suport de hârtie",
             "description": "Opțional. De obicei nu e necesar — varianta electronică are aceeași valoare juridică.",
-            "selected": false
+            "selected": false,
+            "methods": [
+              {
+                "id": "pickup",
+                "title": "Ridicare de la Ghișeul Unic",
+                "description": "Vii personal la Agenția Națională pentru Sănătate Publică și ridici originalul pe hârtie.",
+                "icon": "icon-store",
+                "selected": false,
+                "badges": [
+                  { "label": "Gratuit", "tone": "outline" }
+                ]
+              },
+              {
+                "id": "courier",
+                "title": "Livrare prin Curier",
+                "description": "Document fizic livrat la adresa ta. Alegi curierul și achiți pe MDelivery (separat de taxa serviciului).",
+                "icon": "icon-car",
+                "selected": false,
+                "badges": [
+                  { "label": "Cu plată", "tone": "warning" }
+                ],
+                "address": {
+                  "title": "Adresa livrării",
+                  "required": true,
+                  "icon": "icon-map-pin",
+                  "label": "Adresa unității economice",
+                  "value": "Strada Calea Ieșilor 80, Chișinău, Moldova",
+                  "editLabel": "Editează adresa livrării",
+                  "cancelLabel": "Anulează",
+                  "saveLabel": "Salvează",
+                  "form": {
+                    "id": "delivery-address",
+                    "type": "cascade-address",
+                    "span": 12,
+                    "phone": {
+                      "id": "delivery-phone",
+                      "label": "Telefon de contact",
+                      "required": true,
+                      "span": 6,
+                      "placeholder": "60 000 000",
+                      "countryCodes": [
+                        { "flag": "🇲🇩", "code": "+373" },
+                        { "flag": "🇷🇴", "code": "+40" },
+                        { "flag": "🇺🇦", "code": "+380" }
+                      ]
+                    },
+                    "email": {
+                      "id": "delivery-email",
+                      "label": "Email de contact",
+                      "type": "email",
+                      "span": 6,
+                      "placeholder": "adresa@exemplu.md"
+                    }
+                  }
+                },
+                "couriers": {
+                  "title": "Alege serviciul de curierat",
+                  "required": true,
+                  "items": [
+                    {
+                      "id": "posta-moldovei",
+                      "title": "Curier Rapid (Poșta Moldovei)",
+                      "description": "3-5 zile lucrătoare",
+                      "price": "35 MDL",
+                      "mark": "PM",
+                      "tone": "brand",
+                      "selected": false
+                    },
+                    {
+                      "id": "nova-post",
+                      "title": "Nova Post",
+                      "description": "1-2 zile lucrătoare",
+                      "price": "60 MDL",
+                      "mark": "NP",
+                      "tone": "apricot",
+                      "selected": false
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
-        { "index": 6, "id": "payment", "label": "Plată" },
-        { "index": 7, "id": "finish", "label": "Finalizare" }
+        {
+          "index": 6,
+          "id": "payment",
+          "label": "Plată",
+          "title": "Plată",
+          "summary": {
+            "rows": [
+              { "label": "Data depunerii", "value": "Autorizația sanitară pentru funcționare" },
+              { "label": "Instituția", "value": "Agenția Națională pentru Sănătate Publică" },
+              { "label": "Numărul dosarului", "value": "GEAP-2026-009-04521", "copy": true }
+            ]
+          },
+          "invoice": {
+            "label": "Notă de plată",
+            "status": { "label": "Neachitat", "tone": "accent" },
+            "amount": "755 MDL",
+            "columns": ["Descriere", "Cantitate", "Preț unitar", "Total"],
+            "items": [
+              {
+                "description": "Taxa de stat — examinarea cererii de Act Permisiv sanitar",
+                "quantity": "1",
+                "unitPrice": "500 MDL",
+                "total": "500 MDL"
+              },
+              {
+                "description": "Taxă pentru verificare epidemiologică în teren",
+                "quantity": "1",
+                "unitPrice": "200 MDL",
+                "total": "200 MDL"
+              },
+              {
+                "description": "Eliberare formular Act Permisiv",
+                "quantity": "1",
+                "unitPrice": "50 MDL",
+                "total": "50 MDL"
+              },
+              {
+                "description": "MDelivery for reference",
+                "quantity": "1",
+                "unitPrice": "50 MDL",
+                "total": "50 MDL"
+              },
+              { "description": "Comision MPay (procesare plată online)", "total": "+5 MDL", "span": true }
+            ],
+            "totals": [
+              { "label": "Subtotal", "value": "750 MDL" },
+              { "label": "Total de plată", "value": "755 MDL", "strong": true }
+            ]
+          },
+          "actions": {
+            "download": { "label": "Descarcă nota de plată", "icon": "icon-page-download" },
+            "pay": { "label": "Plătește 755 MDL cu mpay", "logo": "assets/logos/m-platforms/m-pay.svg" }
+          }
+        },
+        {
+          "index": 7,
+          "id": "finish",
+          "label": "Finalizare",
+          "title": "Cererea a fost depusă cu succes",
+          "lead": {
+            "text": "Urmărește statutul în EVO Cabinet →",
+            "link": "Solicitările mele",
+            "href": "cabinet-evo/"
+          },
+          "tracker": [
+            { "label": "Depusă", "state": "done" },
+            { "label": "Plată", "state": "done" },
+            { "label": "Verificare", "state": "current" },
+            { "label": "Decizie", "state": "todo" },
+            { "label": "Emis", "state": "todo" },
+            { "label": "Livrare", "state": "todo" }
+          ],
+          "document": {
+            "title": "Certificatul Constatator",
+            "text": "Dovada depunerii cererii. Disponibil și în",
+            "link": "EVO Cabinet",
+            "href": "cabinet-evo/",
+            "action": "Vezi documentul"
+          },
+          "summary": {
+            "rows": [
+              { "label": "Serviciul", "value": "Autorizația sanitară pentru funcționare" },
+              { "label": "Numărul dosarului", "value": "GEAP-2026-009-04521", "copy": true },
+              { "label": "Data depunerii", "value": "12/06/2026, 13:50" },
+              { "label": "Termenul de examinare", "value": "până la 10 zile lucrătoare" }
+            ]
+          },
+          "timeline": {
+            "title": "Statutul dosarului",
+            "items": [
+              { "title": "Cerere depusă", "text": "Semnată și transmisă către autoritate", "state": "done" },
+              {
+                "title": "Dosar în examinare",
+                "text": "Specialistul analizează dosarul — până la 10 zile lucrătoare",
+                "state": "current",
+                "tag": "Acum"
+              },
+              {
+                "title": "Posibilă solicitare de informații",
+                "text": "Dacă lipsesc date, dosarul poate fi suspendat temporar — vei fi notificat",
+                "state": "todo",
+                "tag": "Opțional"
+              },
+              {
+                "title": "Decizie finală",
+                "text": "Actul permisiv emis apare în EVO Cabinet → Solicitările mele",
+                "state": "todo"
+              }
+            ]
+          },
+          "action": { "label": "Urmărește statutul în EVO Cabinet", "href": "cabinet-evo/" }
+        }
       ],
       "forms": {
         "builderSeedFormId": "form-commerce-notification"

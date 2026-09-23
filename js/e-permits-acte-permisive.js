@@ -33,10 +33,22 @@
       return "";
     }
 
+    /* step ⇄ hash lives in one place so adding a step is a panel + a schema
+       entry, not another rung on four separate ladders */
+    function frontOfficeStepFromHash(hash = window.location.hash) {
+      if (hash === "#request") return 1;
+      const match = /^#request-step-([2-9])$/.exec(hash);
+      return match ? Number(match[1]) : 0;
+    }
+
+    function frontOfficeStepHash(step) {
+      return Number(step) === 1 ? "#request" : `#request-step-${Number(step)}`;
+    }
+
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated", "#request", "#request-step-2", "#request-step-3", "#request-step-4", "#request-step-5"].includes(window.location.hash)) {
+      if (flow === "full" && !["#choice", "#choice-authenticated"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -50,6 +62,7 @@
     const frontOfficeAuthScreen = document.querySelector("[data-fo-screen='auth']");
     const frontOfficeChoiceScreen = document.querySelector("[data-fo-screen='choice']");
     const frontOfficeRequestScreen = document.querySelector("[data-fo-screen='request']");
+    const frontOfficeGuestScreen = document.querySelector("[data-fo-screen='guest']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
     const frontOfficeConsent = document.querySelector("[data-fo-consent]");
@@ -75,9 +88,13 @@
     let frontOfficeSubjectLoadTimer = null;
     let frontOfficeSubjectLoadToken = 0;
     let frontOfficeDraftCreated = false;
+    /* the "creată ca schiță" toast is a one-shot per request, not per step */
+    let frontOfficeDraftToastShown = false;
+    let frontOfficeDraftToastTimer = null;
     let frontOfficeDraftSavedAt = null;
     let frontOfficeDraftInfoDismissed = false;
     let frontOfficeInstanceSwitchReturnFocus = null;
+    let frontOfficePendingSubjectId = null;
     const dropdownMotionTimers = new WeakMap();
     const modalMotionTimers = new WeakMap();
 
@@ -172,7 +189,7 @@
       });
 
       document.body.appendChild(toast);
-      const persistentToast = document.querySelector('[data-fo-toast="draft-created"]');
+      const persistentToast = document.querySelector('[data-fo-toast="draft-created"]:not(.is-hiding)');
       if (persistentToast) {
         toast.style.setProperty("--fo-toast-top", `${32 + persistentToast.offsetHeight + 12}px`);
       }
@@ -180,7 +197,9 @@
     }
 
     function showFrontOfficeDraftCreatedToast() {
+      if (frontOfficeDraftToastShown) return;
       if (document.querySelector('[data-fo-toast="draft-created"]')) return;
+      frontOfficeDraftToastShown = true;
 
       const toast = document.createElement("div");
       toast.className = "e-permits-fo-toast e-permits-fo-toast--inverse";
@@ -203,8 +222,12 @@
           </svg>
         </button>
       `;
-      toast.querySelector(".e-permits-fo-toast__close")?.addEventListener("click", () => dismissFrontOfficeToast(toast));
+      toast.querySelector(".e-permits-fo-toast__close")?.addEventListener("click", () => {
+        window.clearTimeout(frontOfficeDraftToastTimer);
+        dismissFrontOfficeToast(toast);
+      });
       document.body.appendChild(toast);
+      frontOfficeDraftToastTimer = window.setTimeout(() => dismissFrontOfficeToast(toast), 5000);
     }
 
     function frontOfficeTimeLabel(date = new Date()) {
@@ -217,7 +240,10 @@
 
     function updateFrontOfficeHeaderDraft() {
       if (!frontOfficeHeaderDraft) return;
-      const shouldShow = frontOfficeDraftCreated && frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden;
+      /* once paid, the request is filed — the Finalizare step must not claim
+         it is still "Salvat ca schiță" */
+      const isSubmitted = Boolean(frontOfficeRequestScreen?.querySelector("[data-fo-step-panel='7']:not([hidden])"));
+      const shouldShow = frontOfficeDraftCreated && frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden && !isSubmitted;
       frontOfficeHeaderDraft.hidden = !shouldShow;
       if (!shouldShow) {
         frontOfficeHeaderDraft.innerHTML = "";
@@ -299,6 +325,8 @@
       frontOfficeDraftCreated = false;
       frontOfficeDraftSavedAt = null;
       frontOfficeDraftInfoDismissed = false;
+      frontOfficeDraftToastShown = false;
+      window.clearTimeout(frontOfficeDraftToastTimer);
       document.querySelector('[data-fo-toast="draft-created"]')?.remove();
       updateFrontOfficeRequestHeaders();
     }
@@ -308,7 +336,7 @@
       if (isOpen) {
         frontOfficeInstanceSwitchReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         setMotionModalHidden(frontOfficeInstanceSwitchModal, false);
-        frontOfficeInstanceSwitchModal.querySelector(".e-permits-fo-instance-switch-modal__secondary")?.focus({ preventScroll: true });
+        frontOfficeInstanceSwitchModal.querySelector(".e-permits-fo-instance-switch-modal__card")?.focus({ preventScroll: true });
         return;
       }
 
@@ -320,23 +348,62 @@
       frontOfficeInstanceSwitchReturnFocus = null;
     }
 
-    function openFrontOfficeInstanceSwitchModal() {
+    function frontOfficeInstanceSwitchSubject(subjectId) {
+      if (!subjectId || !frontOfficeSchema) return null;
+      return frontOfficeSelectableSubjects(frontOfficeSchema).find((subject) => subject.id === subjectId) || null;
+    }
+
+    function updateFrontOfficeInstanceSwitchModal(targetSubjectId = null) {
+      if (!frontOfficeInstanceSwitchModal) return;
+      const currentName = frontOfficeSelectedSubject?.name || "solicitantul curent";
+      const targetSubject = frontOfficeInstanceSwitchSubject(targetSubjectId);
+      const current = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-current]");
+      const target = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-target]");
+      const targetCopy = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-target-copy]");
+
+      if (current) current.textContent = `(${currentName.toLocaleUpperCase("ro-RO")})`;
+      if (targetSubject && target && targetCopy) {
+        target.textContent = targetSubject.name;
+        targetCopy.innerHTML = `Vei începe o cerere nouă ca <strong data-fo-instance-switch-target>${escapeFrontOfficeHtml(targetSubject.name)}</strong>.`;
+      } else if (targetCopy) {
+        targetCopy.textContent = "Vei reveni la alegerea rolului pentru a începe o cerere nouă.";
+      }
+    }
+
+    function openFrontOfficeInstanceSwitchModal({ targetSubjectId = null } = {}) {
+      frontOfficePendingSubjectId = targetSubjectId;
+      updateFrontOfficeInstanceSwitchModal(targetSubjectId);
       setFrontOfficeAvatarMenuOpen(false);
       setFrontOfficeInstanceSwitchModalOpen(true);
     }
 
     function confirmFrontOfficeInstanceSwitch() {
+      const targetSubjectId = frontOfficePendingSubjectId;
+      frontOfficePendingSubjectId = null;
+      saveFrontOfficeDraft();
       setFrontOfficeInstanceSwitchModalOpen(false, { restoreFocus: false });
       resetFrontOfficeDraftState();
+
+      if (targetSubjectId) {
+        const selected = selectFrontOfficeSubject(targetSubjectId);
+        if (selected) {
+          history.replaceState(null, "", "#request");
+          showFrontOfficeRequest({ step: 1 });
+          return;
+        }
+      }
+
       if (window.location.hash !== "#choice") {
         history.replaceState(null, "", "#choice");
       }
       showFrontOfficeChoice();
     }
 
-    function requestFrontOfficeInstanceSwitch({ forceChoice = false } = {}) {
-      if (frontOfficeDraftCreated || forceChoice) {
-        openFrontOfficeInstanceSwitchModal();
+    function requestFrontOfficeInstanceSwitch({ forceChoice = false, targetSubjectId = null } = {}) {
+      const activeStep = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
+      const isRequestOpen = Boolean(frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden);
+      if ((isRequestOpen && activeStep >= 2) || forceChoice) {
+        openFrontOfficeInstanceSwitchModal({ targetSubjectId });
         return false;
       }
       return true;
@@ -605,6 +672,18 @@
       renderAvailabilityFromSchema(schema);
     }
 
+    function roleBlockedNoteHtml(subject) {
+      if (subject.selectable !== false || !subject.blockedReason) return "";
+      return `
+        <span class="e-permits-fo-auth__role-blocked">
+          <svg class="icon" width="16" height="16" aria-hidden="true">
+            <use href="assets/icons/sprite.svg#icon-warning-filled"></use>
+          </svg>
+          <span>${escapeFrontOfficeHtml(subject.blockedReason)}</span>
+        </span>
+      `;
+    }
+
     function renderRoleButton(subject) {
       const selectable = subject.selectable !== false;
       const isAuthorization = Boolean(subject.authorization);
@@ -629,6 +708,7 @@
                 </span>
               ` : `<span class="e-permits-fo-auth__role-name">${escapeFrontOfficeHtml(subject.name)}</span>`}
               ${isAuthorization ? authorizationRoleMetaHtml(subject) : subjectMetaHtml(subject)}
+              ${roleBlockedNoteHtml(subject)}
             </span>
             <svg class="e-permits-fo-auth__role-arrow icon" width="20" height="20" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-chevron-right"></use>
@@ -710,6 +790,33 @@
         renderRoleCluster(directSubjects),
         renderRoleGroup("Cu împuternicire MPower", proxySubjects, { collapseAfter: 3 }),
       ].join("");
+
+      /* No identity at all can start this request. Say why, rather than
+         leaving the list blank — the notarial-proxy row below may still be
+         the way through, and if it is not, this is a dead end that has to
+         explain itself. */
+      if (!subjects.length) {
+        const typeLabels = allowed
+          .map((type) => (schema?.subjectTypes?.[type] || frontOfficeSubjectTypeMeta(type)).label)
+          .join(" sau ");
+        const proxyIsWayOut = Boolean(schema?.proxyOption?.visibleWhenAnyOf?.some((type) => allowed.includes(type)));
+        roleList.innerHTML = `
+          <div class="e-permits-fo-auth__role-empty" role="status">
+            <span class="e-permits-fo-auth__role-empty-icon" aria-hidden="true">
+              <svg class="icon" width="24" height="24">
+                <use href="assets/icons/sprite.svg#icon-circle-info"></use>
+              </svg>
+            </span>
+            <div class="e-permits-fo-auth__role-empty-copy">
+              <strong>Nu ai nicio identitate eligibilă pentru acest serviciu</strong>
+              <p>Serviciul este disponibil doar pentru ${escapeFrontOfficeHtml(typeLabels)}, iar contul tău nu are o astfel de identitate ${escapeFrontOfficeHtml(proxyIsWayOut ? "adăugată." : "adăugată sau împuternicită prin MPower.")}</p>
+              ${proxyIsWayOut
+                ? "<p>Poți continua cu o procură notarială, folosind opțiunea de mai jos.</p>"
+                : "<p>Pentru a continua, ai nevoie de o împuternicire MPower din partea unei organizații eligibile.</p>"}
+            </div>
+          </div>
+        `;
+      }
 
       const proxy = schema?.proxyOption;
       const showProxy = Boolean(proxy?.visibleWhenAnyOf?.some((type) => allowed.includes(type)));
@@ -1696,7 +1803,7 @@
                 <span class="e-permits-fo-mdocs__attachment-meta" data-fo-mdocs-attachment-meta></span>
               </span>
               <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
-                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
               </button>
             </div>
           </div>
@@ -1777,6 +1884,115 @@
       updateFrontOfficeRequestHeaders();
     }
 
+    /* The Livrare step is one progressive-disclosure chain:
+         electronic option → "și pe hârtie" checkbox → pickup | curier
+         → courier address (summary ⇄ cascade editor) + courier service.
+       Every level is the same `system-files-item-selectable` row from the
+       design system: 71px tall, 12/16 padding, 24px glyph, 12px to the copy,
+       16px to the indicator. The electronic option carries the filled
+       checkmark; the paper methods and couriers carry a radio, which is why
+       their selected state is a 2px brand ring on white rather than a tint. */
+
+    function deliveryRowMediaHtml(option) {
+      if (option.logo) {
+        return `<img class="e-permits-fo-delivery-option__logo" src="${escapeFrontOfficeHtml(option.logo)}" alt="">`;
+      }
+      if (option.icon) {
+        return `<span class="e-permits-fo-delivery-option__glyph" aria-hidden="true"><svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(option.icon)}"></use></svg></span>`;
+      }
+      if (option.mark) {
+        /* stand-in until the courier brand marks are exported from Figma */
+        return `<span class="e-permits-fo-delivery-option__mark e-permits-fo-delivery-option__mark--${escapeFrontOfficeHtml(option.tone || "brand")}" aria-hidden="true">${escapeFrontOfficeHtml(option.mark)}</span>`;
+      }
+      return "";
+    }
+
+    function deliveryOptionRow(option, { name, index, selected, indicator = "check" }) {
+      const badges = Array.isArray(option.badges) ? option.badges : [];
+      const price = option.price
+        ? `<span class="e-permits-fo-delivery-option__price">${escapeFrontOfficeHtml(option.price)}</span>`
+        : "";
+      const indicatorHtml =
+        indicator === "radio"
+          ? `<span class="e-permits-fo-radio__control e-permits-fo-delivery-option__radio" aria-hidden="true"></span>`
+          : `<svg class="icon e-permits-fo-delivery-option__check" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>`;
+      return `
+        <label class="e-permits-fo-delivery-option e-permits-fo-delivery-option--${escapeFrontOfficeHtml(indicator)}${selected ? " is-selected" : ""}">
+          <input class="e-permits-fo-delivery-option__input" type="radio" name="${escapeFrontOfficeHtml(name)}" value="${escapeFrontOfficeHtml(option.id || `${name}-${index + 1}`)}" ${selected ? "checked" : ""}>
+          <span class="e-permits-fo-delivery-option__content">
+            ${deliveryRowMediaHtml(option)}
+            <span class="e-permits-fo-delivery-option__copy">
+              <span class="e-permits-fo-delivery-option__title-row">
+                <span class="e-permits-fo-delivery-option__title">${escapeFrontOfficeHtml(option.title || "")}</span>
+                ${badges.map((badge) => `<span class="e-permits-fo-delivery-badge e-permits-fo-delivery-badge--${escapeFrontOfficeHtml(badge.tone || "outline")}">${escapeFrontOfficeHtml(badge.label || "")}</span>`).join("")}
+              </span>
+              <span class="e-permits-fo-delivery-option__description">${escapeFrontOfficeHtml(option.description || "")}</span>
+            </span>
+            ${price}
+          </span>
+          ${indicatorHtml}
+        </label>
+      `;
+    }
+
+    function deliverySectionLabelHtml(section) {
+      return `<h3 class="e-permits-fo-delivery-group__label">${escapeFrontOfficeHtml(section.title || "")}${section.required ? requiredMarkerHtml() : ""}</h3>`;
+    }
+
+    /* radio group → .is-selected on the row that owns the checked input */
+    function bindDeliveryRadioGroup(root, name, onChange) {
+      root.querySelectorAll(`input[name='${name}']`).forEach((input) => {
+        input.addEventListener("change", () => {
+          root.querySelectorAll(`input[name='${name}']`).forEach((other) => {
+            other.closest(".e-permits-fo-delivery-option")?.classList.toggle("is-selected", other.checked);
+          });
+          if (onChange) onChange(root.querySelector(`input[name='${name}']:checked`)?.value || "");
+        });
+      });
+    }
+
+    /* grid-template-rows 0fr → 1fr reveal; overflow is released once the
+       transition is done so cascade focus rings are not clipped */
+    function setDeliveryDisclosure(element, isOpen) {
+      if (!element) return;
+      window.clearTimeout(element._foDisclosureTimer);
+      element.classList.toggle("is-open", isOpen);
+      element.inert = !isOpen;
+      if (!isOpen) {
+        element.classList.remove("is-settled");
+        return;
+      }
+      element._foDisclosureTimer = window.setTimeout(() => {
+        element.classList.add("is-settled");
+      }, 280);
+    }
+
+    /* the flow never stores addresses — the editor just reformats what the
+       cascade selects currently hold, same order as the seeded summary */
+    function readCascadeAddressSummary(root, fallback) {
+      if (!root) return fallback;
+      const selectValue = (selector) => {
+        const value = root.querySelector(selector);
+        if (!value || value.classList.contains("e-permits-fo-select__value--placeholder")) return "";
+        return value.textContent.trim();
+      };
+      const inputValue = (part) => root.querySelector(`[data-fo-address-part='${part}']`)?.value?.trim() || "";
+      const street = selectValue("[data-fo-cascade-strada] [data-fo-select-value]");
+      const city = selectValue("[data-fo-cascade-localitate] [data-fo-select-value]");
+      const raion = selectValue("[data-fo-cascade-raion] [data-fo-select-value]");
+      const country = root.querySelector("[data-fo-address-part='country']")?.textContent?.trim() || "";
+      const house = inputValue("house");
+      const apartment = inputValue("apartment");
+
+      const line = [street, house].filter(Boolean).join(" ");
+      const parts = [
+        apartment ? `${line}, ap. ${apartment}` : line,
+        city || raion,
+        country,
+      ].filter(Boolean);
+      return parts.length > 1 ? parts.join(", ") : fallback;
+    }
+
     function renderFrontOfficeStep5FromSchema(schema) {
       const panel = document.querySelector("[data-fo-step-panel='5']");
       const step = schema?.steps?.find((item) => item.id === "delivery" || Number(item.index) === 5);
@@ -1787,54 +2003,483 @@
       const optionsRoot = panel.querySelector("[data-fo-delivery-options]");
       const paperRoot = panel.querySelector("[data-fo-delivery-paper]");
       if (title) title.textContent = step.title || step.label || "Livrare";
-      if (heading) heading.textContent = step.sectionTitle || "Cum primești actul permisiv?";
+      if (heading) heading.textContent = step.sectionTitle || "Cum primești rezultatul?";
 
       const options = Array.isArray(step.options) ? step.options : [];
       if (optionsRoot) {
-        optionsRoot.innerHTML = options.map((option, index) => {
-          const badges = Array.isArray(option.badges) ? option.badges : [];
-          return `
-            <label class="e-permits-fo-delivery-option${option.selected || (!options.some((item) => item.selected) && index === 0) ? " is-selected" : ""}">
-              <input class="e-permits-fo-delivery-option__input" type="radio" name="fo-delivery-method" value="${escapeFrontOfficeHtml(option.id || `delivery-${index + 1}`)}" ${option.selected || (!options.some((item) => item.selected) && index === 0) ? "checked" : ""}>
-              <span class="e-permits-fo-delivery-option__content">
-                <img class="e-permits-fo-delivery-option__logo" src="${escapeFrontOfficeHtml(option.logo || "assets/logos/evo-logo.svg")}" alt="">
-                <span class="e-permits-fo-delivery-option__copy">
-                  <span class="e-permits-fo-delivery-option__title-row">
-                    <span class="e-permits-fo-delivery-option__title">${escapeFrontOfficeHtml(option.title || "Livrare electronică")}</span>
-                    ${badges.map((badge) => `<span class="e-permits-fo-delivery-badge e-permits-fo-delivery-badge--${escapeFrontOfficeHtml(badge.tone || "outline")}">${escapeFrontOfficeHtml(badge.label || "")}</span>`).join("")}
-                  </span>
-                  <span class="e-permits-fo-delivery-option__description">${escapeFrontOfficeHtml(option.description || "")}</span>
-                </span>
-              </span>
-              <svg class="icon e-permits-fo-delivery-option__check" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>
-            </label>
-          `;
-        }).join("");
-
-        optionsRoot.querySelectorAll("input[name='fo-delivery-method']").forEach((input) => {
-          input.addEventListener("change", () => {
-            optionsRoot.querySelectorAll(".e-permits-fo-delivery-option").forEach((option) => {
-              option.classList.toggle("is-selected", option.querySelector("input")?.checked === true);
-            });
-          });
-        });
+        const hasSelected = options.some((item) => item.selected);
+        optionsRoot.innerHTML = options
+          .map((option, index) =>
+            deliveryOptionRow(option, {
+              name: "fo-delivery-method",
+              index,
+              selected: Boolean(option.selected || (!hasSelected && index === 0)),
+            })
+          )
+          .join("");
+        bindDeliveryRadioGroup(optionsRoot, "fo-delivery-method");
       }
 
       const paperCopy = step.paperCopy || {};
-      if (paperRoot) {
-        paperRoot.innerHTML = `
-          <label class="e-permits-fo-delivery-paper">
-            <input type="checkbox" ${paperCopy.selected ? "checked" : ""}>
-            <span class="e-permits-fo-delivery-paper__box" aria-hidden="true">
-              <svg class="icon" width="18" height="18"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>
-            </span>
-            <span class="e-permits-fo-delivery-paper__copy">
-              <span class="e-permits-fo-delivery-paper__title">${escapeFrontOfficeHtml(paperCopy.label || "Am nevoie și de o copie pe suport de hârtie")}</span>
-              <span class="e-permits-fo-delivery-paper__description">${escapeFrontOfficeHtml(paperCopy.description || "")}</span>
-            </span>
-          </label>
-        `;
+      if (!paperRoot) return;
+
+      const methods = Array.isArray(paperCopy.methods) ? paperCopy.methods : [];
+      const courier = methods.find((item) => item.address || item.couriers);
+      const address = courier?.address || null;
+      const couriers = courier?.couriers || null;
+      const courierItems = Array.isArray(couriers?.items) ? couriers.items : [];
+      /* the request-data step already carries the district tree — reuse it so
+         the delivery editor offers the same localities, no duplicated data */
+      const districts =
+        address?.form?.districts ||
+        schema?.steps
+          ?.flatMap((item) => item.sections || [])
+          .flatMap((section) => section.fields || [])
+          .find((field) => field?.type === "cascade-address" && Array.isArray(field.districts))?.districts ||
+        [];
+
+      const addressSectionHtml = address
+        ? `
+          <section class="e-permits-fo-delivery-group__section" data-fo-delivery-address>
+            ${deliverySectionLabelHtml(address)}
+            <div class="e-permits-fo-delivery-address" data-fo-delivery-address-card>
+              <span class="e-permits-fo-delivery-address__glyph" aria-hidden="true">
+                <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(address.icon || "icon-map-pin")}"></use></svg>
+              </span>
+              <span class="e-permits-fo-delivery-address__copy">
+                <span class="e-permits-fo-delivery-address__label">${escapeFrontOfficeHtml(address.label || "")}</span>
+                <span class="e-permits-fo-delivery-address__value" data-fo-delivery-address-value>${escapeFrontOfficeHtml(address.value || "")}</span>
+              </span>
+              <button class="e-permits-fo-summary-section__edit" type="button" aria-label="${escapeFrontOfficeHtml(address.editLabel || "Editează adresa livrării")}" data-fo-delivery-address-edit>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
+              </button>
+            </div>
+            <div class="e-permits-fo-delivery-disclosure" data-fo-delivery-address-editor>
+              <div class="e-permits-fo-delivery-disclosure__inner">
+                <div class="e-permits-fo-delivery-address__editor">
+                  <div class="e-permits-fo-form__grid">
+                    ${cascadeAddressHtml({ ...(address.form || {}), districts })}
+                  </div>
+                  <div class="e-permits-fo-delivery-address__actions">
+                    <button class="btn btn-secondary btn-rounded btn-sm" type="button" data-fo-delivery-address-cancel>${escapeFrontOfficeHtml(address.cancelLabel || "Anulează")}</button>
+                    <button class="btn btn-primary btn-rounded btn-sm" type="button" data-fo-delivery-address-save>${escapeFrontOfficeHtml(address.saveLabel || "Salvează")}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        `
+        : "";
+
+      const couriersSectionHtml = courierItems.length
+        ? `
+          <section class="e-permits-fo-delivery-group__section" data-fo-delivery-couriers>
+            ${deliverySectionLabelHtml(couriers)}
+            ${courierItems
+              .map((item, index) =>
+                deliveryOptionRow(item, {
+                  name: "fo-delivery-courier",
+                  index,
+                  indicator: "radio",
+                  selected: Boolean(item.selected),
+                })
+              )
+              .join("")}
+          </section>
+        `
+        : "";
+
+      const methodsHtml = methods.length
+        ? `
+          <div class="e-permits-fo-delivery-disclosure" data-fo-delivery-methods>
+            <div class="e-permits-fo-delivery-disclosure__inner">
+              <div class="e-permits-fo-delivery-methods">
+                ${methods
+                  .map((method, index) => {
+                    const row = deliveryOptionRow(method, {
+                      name: "fo-delivery-paper-method",
+                      index,
+                      indicator: "radio",
+                      selected: Boolean(method.selected),
+                    });
+                    if (method !== courier) return row;
+                    return `
+                      <div class="e-permits-fo-delivery-group" data-fo-delivery-group>
+                        ${row}
+                        <div class="e-permits-fo-delivery-disclosure" data-fo-delivery-courier>
+                          <div class="e-permits-fo-delivery-disclosure__inner">
+                            ${addressSectionHtml}
+                            ${couriersSectionHtml}
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            </div>
+          </div>
+        `
+        : "";
+
+      paperRoot.innerHTML = `
+        <label class="e-permits-fo-delivery-paper">
+          <input type="checkbox" ${paperCopy.selected ? "checked" : ""} data-fo-delivery-paper-toggle>
+          <span class="e-permits-fo-delivery-paper__box" aria-hidden="true">
+            <svg class="icon" width="18" height="18"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>
+          </span>
+          <span class="e-permits-fo-delivery-paper__copy">
+            <span class="e-permits-fo-delivery-paper__title">${escapeFrontOfficeHtml(paperCopy.label || "Am nevoie și de o copie pe suport de hârtie")}</span>
+            <span class="e-permits-fo-delivery-paper__description">${escapeFrontOfficeHtml(paperCopy.description || "")}</span>
+          </span>
+        </label>
+        ${methodsHtml}
+      `;
+
+      const paperToggle = paperRoot.querySelector("[data-fo-delivery-paper-toggle]");
+      const methodsBlock = paperRoot.querySelector("[data-fo-delivery-methods]");
+      const courierBlock = paperRoot.querySelector("[data-fo-delivery-courier]");
+      const courierGroup = paperRoot.querySelector("[data-fo-delivery-group]");
+      const courierId = courier?.id || "courier";
+
+      const syncCourierBlock = () => {
+        const checked = paperRoot.querySelector("input[name='fo-delivery-paper-method']:checked");
+        const isCourier = Boolean(paperToggle?.checked) && checked?.value === courierId;
+        setDeliveryDisclosure(courierBlock, isCourier);
+        courierGroup?.classList.toggle("is-open", isCourier);
+      };
+
+      setDeliveryDisclosure(methodsBlock, Boolean(paperToggle?.checked));
+      syncCourierBlock();
+
+      paperToggle?.addEventListener("change", () => {
+        setDeliveryDisclosure(methodsBlock, paperToggle.checked);
+        syncCourierBlock();
+      });
+
+      if (methodsBlock) bindDeliveryRadioGroup(methodsBlock, "fo-delivery-paper-method", syncCourierBlock);
+      if (courierBlock) bindDeliveryRadioGroup(courierBlock, "fo-delivery-courier");
+
+      const addressSection = paperRoot.querySelector("[data-fo-delivery-address]");
+      if (addressSection) {
+        const card = addressSection.querySelector("[data-fo-delivery-address-card]");
+        const editor = addressSection.querySelector("[data-fo-delivery-address-editor]");
+        const valueEl = addressSection.querySelector("[data-fo-delivery-address-value]");
+        const cascadeRoot = addressSection.querySelector("[data-fo-cascade-address]");
+
+        const setEditing = (isEditing) => {
+          addressSection.classList.toggle("is-editing", isEditing);
+          card?.toggleAttribute("hidden", isEditing);
+          setDeliveryDisclosure(editor, isEditing);
+        };
+
+        setEditing(false);
+        addressSection.querySelector("[data-fo-delivery-address-edit]")?.addEventListener("click", () => {
+          setEditing(true);
+        });
+        addressSection.querySelector("[data-fo-delivery-address-cancel]")?.addEventListener("click", () => {
+          setEditing(false);
+        });
+        addressSection.querySelector("[data-fo-delivery-address-save]")?.addEventListener("click", () => {
+          if (valueEl) valueEl.textContent = readCascadeAddressSummary(cascadeRoot, valueEl.textContent);
+          setEditing(false);
+        });
       }
+
+      initFrontOfficeDynamicControls(paperRoot);
+    }
+
+    /* Plată: a read-only summary card, the "notă de plată" receipt (header +
+       fee table + totals, closed off with the torn edge) and the two actions.
+       The summary rows reuse .e-permits-fo-summary-row, the dossier number
+       reuses the copy-value button, the status chip is the library status-tag
+       and the pay button is the standard mpay badge button. */
+
+    function paymentSummaryValueHtml(row) {
+      const value = escapeFrontOfficeHtml(row.value || "");
+      if (!row.copy) return `<span>${value}</span>`;
+      return `
+        <button class="e-permits-fo-copy-value" type="button" data-fo-copy-value="${value}" aria-label="Copiază numărul dosarului ${value}">
+          <span>${value}</span>
+          <svg class="icon medium" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
+          <span class="e-permits-fo-copy-value__tooltip" aria-hidden="true">
+            <span class="e-permits-fo-copy-value__tooltip-default">Copiază</span>
+            <span class="e-permits-fo-copy-value__tooltip-copied">
+              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg><span>Copiat</span>
+            </span>
+          </span>
+        </button>
+      `;
+    }
+
+    function renderFrontOfficeStep6FromSchema(schema) {
+      const panel = document.querySelector("[data-fo-step-panel='6']");
+      const step = schema?.steps?.find((item) => item.id === "payment" || Number(item.index) === 6);
+      if (!panel || !step) return;
+
+      const title = panel.querySelector("[data-fo-payment-title]");
+      const body = panel.querySelector("[data-fo-payment-body]");
+      if (title) title.textContent = step.title || step.label || "Plată";
+      if (!body) return;
+
+      const summaryRows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
+      const invoice = step.invoice || {};
+      const columns = Array.isArray(invoice.columns) ? invoice.columns : [];
+      const items = Array.isArray(invoice.items) ? invoice.items : [];
+      const totals = Array.isArray(invoice.totals) ? invoice.totals : [];
+      const actions = step.actions || {};
+
+      const summaryHtml = summaryRows.length
+        ? `
+          <section class="e-permits-fo-payment-summary" aria-label="Detaliile cererii">
+            ${summaryRows
+              .map(
+                (row) => `
+                  <div class="e-permits-fo-summary-row">
+                    <span class="e-permits-fo-summary-row__label">${escapeFrontOfficeHtml(row.label || "")}</span>
+                    <div class="e-permits-fo-summary-row__value">${paymentSummaryValueHtml(row)}</div>
+                  </div>
+                `
+              )
+              .join("")}
+          </section>
+        `
+        : "";
+
+      /* the commission line has no quantity or unit price — it spans them */
+      const itemsHtml = items
+        .map((item) => {
+          if (item.span) {
+            return `
+              <tr class="e-permits-fo-payment-table__row e-permits-fo-payment-table__row--span">
+                <td colspan="${Math.max(1, columns.length - 1)}">${escapeFrontOfficeHtml(item.description || "")}</td>
+                <td class="e-permits-fo-payment-table__amount">${escapeFrontOfficeHtml(item.total || "")}</td>
+              </tr>
+            `;
+          }
+          return `
+            <tr class="e-permits-fo-payment-table__row">
+              <td>${escapeFrontOfficeHtml(item.description || "")}</td>
+              <td>${escapeFrontOfficeHtml(item.quantity || "")}</td>
+              <td>${escapeFrontOfficeHtml(item.unitPrice || "")}</td>
+              <td class="e-permits-fo-payment-table__amount">${escapeFrontOfficeHtml(item.total || "")}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      const invoiceHtml = `
+        <section class="e-permits-fo-payment-invoice" aria-label="${escapeFrontOfficeHtml(invoice.label || "Notă de plată")}">
+          <div class="e-permits-fo-payment-invoice__card">
+            <header class="e-permits-fo-payment-invoice__header">
+              <div class="e-permits-fo-payment-invoice__caption">
+                <span class="e-permits-fo-payment-invoice__label">${escapeFrontOfficeHtml(invoice.label || "Notă de plată")}</span>
+                ${
+                  invoice.status
+                    ? `<span class="status-tag status-tag--${escapeFrontOfficeHtml(invoice.status.tone || "accent")} is-strong e-permits-fo-payment-invoice__status">${escapeFrontOfficeHtml(invoice.status.label || "")}</span>`
+                    : ""
+                }
+              </div>
+              <p class="e-permits-fo-payment-invoice__amount">${escapeFrontOfficeHtml(invoice.amount || "")}</p>
+            </header>
+
+            <div class="e-permits-fo-payment-table">
+              <table>
+                <thead>
+                  <tr>
+                    ${columns
+                      .map(
+                        (column, index) =>
+                          `<th${index === columns.length - 1 ? ' class="e-permits-fo-payment-table__amount"' : ""} scope="col">${escapeFrontOfficeHtml(column)}</th>`
+                      )
+                      .join("")}
+                  </tr>
+                </thead>
+                <tbody>${itemsHtml}</tbody>
+              </table>
+            </div>
+
+            ${
+              totals.length
+                ? `
+              <div class="e-permits-fo-payment-totals">
+                <table>
+                  <tbody>
+                    ${totals
+                      .map(
+                        (total) => `
+                          <tr${total.strong ? ' class="is-strong"' : ""}>
+                            <th scope="row">${escapeFrontOfficeHtml(total.label || "")}</th>
+                            <td class="e-permits-fo-payment-table__amount">${escapeFrontOfficeHtml(total.value || "")}</td>
+                          </tr>
+                        `
+                      )
+                      .join("")}
+                  </tbody>
+                </table>
+              </div>
+            `
+                : ""
+            }
+          </div>
+          <div class="e-permits-fo-payment-invoice__edge" aria-hidden="true"></div>
+        </section>
+      `;
+
+      const actionsHtml = `
+        <div class="e-permits-fo-payment-actions">
+          ${
+            actions.download
+              ? `<button class="btn btn-outline-primary e-permits-fo-payment-actions__download" type="button" data-fo-payment-download>
+                   <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(actions.download.icon || "icon-page-download")}"></use></svg>
+                   <span>${escapeFrontOfficeHtml(actions.download.label || "Descarcă nota de plată")}</span>
+                 </button>`
+              : ""
+          }
+          ${
+            actions.pay
+              ? `<button class="btn btn-badge btn-badge--primary e-permits-fo-payment-actions__pay" type="button" data-fo-payment-pay>
+                   <span class="btn-badge__logo" aria-hidden="true"><img src="${escapeFrontOfficeHtml(actions.pay.logo || "assets/logos/m-platforms/m-pay.svg")}" alt=""></span>
+                   <span class="btn-badge__label">${escapeFrontOfficeHtml(actions.pay.label || "")}</span>
+                 </button>`
+              : ""
+          }
+        </div>
+      `;
+
+      body.innerHTML = summaryHtml + invoiceHtml + actionsHtml;
+    }
+
+    /* Finalizare (Figma 3607:56145): the confirmation shown once MPay returns.
+       Everything is read from steps[7] in the schema. Reused as-is: the
+       form header h1, the payment step's summary card (.e-permits-fo-payment-
+       summary + .e-permits-fo-summary-row + the copy-value button), the
+       library .status-tag for "Acum"/"Opțional", the outlined and primary
+       .btn, and the form footer. New, because nothing local matches: the
+       horizontal case-status tracker, the proof-of-filing document banner and
+       the vertical "Statutul dosarului" timeline (.e-permits-fo-finish-*). */
+    function finishMarkerHtml(state, size) {
+      if (state === "done") {
+        return `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--done" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>`;
+      }
+      if (state === "current") {
+        return `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--current" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time-filled"></use></svg>`;
+      }
+      return `<span class="e-permits-fo-finish-marker e-permits-fo-finish-marker--todo" style="--fo-finish-marker-size:${size}px" aria-hidden="true"></span>`;
+    }
+
+    const FINISH_STATE_LABEL = { done: "finalizat", current: "în curs", todo: "urmează" };
+
+    function renderFrontOfficeStep7FromSchema(schema) {
+      const panel = document.querySelector("[data-fo-step-panel='7']");
+      const step = schema?.steps?.find((item) => item.id === "finish" || Number(item.index) === 7);
+      const body = panel?.querySelector("[data-fo-finish-body]");
+      if (!panel || !step || !body) return;
+      const esc = escapeFrontOfficeHtml;
+
+      const lead = step.lead
+        ? `<p class="e-permits-fo-finish__lead">${esc(step.lead.text || "")} <a href="${esc(step.lead.href || "#")}">${esc(step.lead.link || "")}</a>.</p>`
+        : "";
+
+      const tracker = Array.isArray(step.tracker) && step.tracker.length
+        ? `
+          <ol class="e-permits-fo-finish-tracker" aria-label="Progresul dosarului">
+            ${step.tracker.map((item) => `
+              <li class="e-permits-fo-finish-tracker__item is-${esc(item.state || "todo")}">
+                <span class="e-permits-fo-finish-tracker__marker">${finishMarkerHtml(item.state, 24)}</span>
+                <span class="e-permits-fo-finish-tracker__label">${esc(item.label || "")}<span class="u-visually-hidden"> — ${FINISH_STATE_LABEL[item.state] || FINISH_STATE_LABEL.todo}</span></span>
+              </li>
+            `).join("")}
+          </ol>
+        `
+        : "";
+
+      const doc = step.document
+        ? `
+          <div class="e-permits-fo-finish-doc">
+            <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
+            <div class="e-permits-fo-finish-doc__copy">
+              <p class="e-permits-fo-finish-doc__title">${esc(step.document.title || "")}</p>
+              <p class="e-permits-fo-finish-doc__text">${esc(step.document.text || "")} <a href="${esc(step.document.href || "#")}">${esc(step.document.link || "")}</a>.</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm e-permits-fo-finish-doc__action" type="button" data-fo-finish-document>
+              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
+              <span>${esc(step.document.action || "Vezi documentul")}</span>
+            </button>
+          </div>
+        `
+        : "";
+
+      const rows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
+      const summary = rows.length
+        ? `
+          <section class="e-permits-fo-payment-summary" aria-label="Detaliile cererii">
+            ${rows.map((row) => `
+              <div class="e-permits-fo-summary-row">
+                <span class="e-permits-fo-summary-row__label">${esc(row.label || "")}</span>
+                <div class="e-permits-fo-summary-row__value">${paymentSummaryValueHtml(row)}</div>
+              </div>
+            `).join("")}
+          </section>
+        `
+        : "";
+
+      const timelineItems = Array.isArray(step.timeline?.items) ? step.timeline.items : [];
+      const tagClass = (item) => (item.state === "current" ? "status-tag--brand is-strong" : "status-tag--neutral is-subtle");
+      const timeline = timelineItems.length
+        ? `
+          <section class="e-permits-fo-finish__section" aria-labelledby="fo-finish-timeline-title">
+            <h2 class="e-permits-fo-finish__section-title" id="fo-finish-timeline-title">${esc(step.timeline.title || "Statutul dosarului")}</h2>
+            <ol class="e-permits-fo-finish-timeline">
+              ${timelineItems.map((item) => `
+                <li class="e-permits-fo-finish-timeline__item is-${esc(item.state || "todo")}">
+                  <span class="e-permits-fo-finish-timeline__rail" aria-hidden="true">
+                    <span class="e-permits-fo-finish-timeline__marker">${finishMarkerHtml(item.state, 16)}</span>
+                    <span class="e-permits-fo-finish-timeline__line"></span>
+                  </span>
+                  <div class="e-permits-fo-finish-timeline__copy">
+                    <p class="e-permits-fo-finish-timeline__title">
+                      <span>${esc(item.title || "")}</span>
+                      ${item.tag ? `<span class="status-tag status-tag--small ${tagClass(item)}">${esc(item.tag)}</span>` : ""}
+                    </p>
+                    <p class="e-permits-fo-finish-timeline__text">${esc(item.text || "")}</p>
+                  </div>
+                </li>
+              `).join("")}
+            </ol>
+          </section>
+        `
+        : "";
+
+      const action = step.action
+        ? `
+          <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only e-permits-fo-finish__footer">
+            <div class="e-permits-fo-form__actions">
+              <a class="btn btn-primary e-permits-fo-finish__cta" href="${esc(step.action.href || "#")}">
+                <span>${esc(step.action.label || "")}</span>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-external-link"></use></svg>
+              </a>
+            </div>
+          </footer>
+        `
+        : "";
+
+      body.innerHTML = `
+        <header class="e-permits-fo-finish__hero">
+          <svg class="icon e-permits-fo-finish__hero-icon" width="32" height="32" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>
+          <div class="e-permits-fo-form__header e-permits-fo-finish__header">
+            <h1 id="fo-request-step-7-title" tabindex="-1">${esc(step.title || step.label || "Finalizare")}</h1>
+          </div>
+          ${lead}
+        </header>
+        <div class="e-permits-fo-finish__content">
+          ${tracker}
+          ${doc}
+          ${summary}
+          ${timeline}
+        </div>
+        ${action}
+      `;
     }
 
     function initFrontOfficeDynamicControls(root = document) {
@@ -1985,14 +2630,23 @@
       return null;
     }
 
+    /* "Schimbă" only earns its place when there is somewhere else to go. With a
+       single eligible identity the choice screen has nothing to offer, so the
+       link is omitted entirely rather than shown and leading to a dead end. */
+    function subjectIsChangeable(schema = frontOfficeSchema) {
+      return frontOfficeSelectableSubjects(schema).filter((item) => item.selectable !== false).length > 1;
+    }
+
     function subjectRolesHtml(subject) {
       const representative = representativeForSubject(subject);
+      const changeable = subjectIsChangeable();
+      const changeableClass = changeable ? " e-permits-fo-selected-role--changeable" : "";
       if (!representative) {
         return `
           <div class="e-permits-fo-form__role-group">
             ${roleGroupTitleHtml("Solicitant")}
-            <div class="e-permits-fo-selected-role e-permits-fo-selected-role--changeable">
-              ${selectedRoleHtml(subject, { changeable: true })}
+            <div class="e-permits-fo-selected-role${changeableClass}">
+              ${selectedRoleHtml(subject, { changeable })}
             </div>
           </div>
         `;
@@ -2000,8 +2654,8 @@
       return `
         <div class="e-permits-fo-form__role-group">
           ${roleGroupTitleHtml("Solicitant")}
-          <div class="e-permits-fo-selected-role e-permits-fo-selected-role--changeable">
-            ${selectedRoleHtml(subject, { changeable: true })}
+          <div class="e-permits-fo-selected-role${changeableClass}">
+            ${selectedRoleHtml(subject, { changeable })}
           </div>
         </div>
         <div class="e-permits-fo-form__role-group">
@@ -2188,6 +2842,8 @@
       renderFrontOfficeStep2FromSchema(schema);
       renderFrontOfficeStep3FromSchema(schema);
       renderFrontOfficeStep5FromSchema(schema);
+      renderFrontOfficeStep6FromSchema(schema);
+      renderFrontOfficeStep7FromSchema(schema);
       selectFrontOfficeSubject(schema.defaultSubjectId);
       updateFrontOfficeRequestHeaders();
     }
@@ -2222,6 +2878,7 @@
         auth: frontOfficeAuthScreen,
         choice: frontOfficeChoiceScreen,
         request: frontOfficeRequestScreen,
+        guest: frontOfficeGuestScreen,
       };
 
       Object.entries(screens).forEach(([name, node]) => {
@@ -2229,9 +2886,14 @@
         node.hidden = name !== screen;
       });
 
-      frontOfficeMain?.classList.toggle("is-request-mode", screen === "request");
-      frontOfficeRoot?.classList.toggle("is-request-mode", screen === "request");
-      document.body.classList.toggle("is-fo-request-mode", screen === "request");
+      /* The guest screen reuses .e-permits-fo-request's sidebar+form layout
+         (same "keep the stepper on the left" treatment as the real wizard),
+         so it needs the same full-width, top-aligned chrome — not the
+         centered-card chrome auth/choice use. */
+      const isWizardLayout = screen === "request" || screen === "guest";
+      frontOfficeMain?.classList.toggle("is-request-mode", isWizardLayout);
+      frontOfficeRoot?.classList.toggle("is-request-mode", isWizardLayout);
+      document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
         const shouldShowRoleSwitcher = screen === "request";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
@@ -2252,6 +2914,9 @@
       if (screen === "request") {
         frontOfficeRequestScreen?.querySelector("[data-fo-step-panel]:not([hidden]) h1")?.focus?.({ preventScroll: true });
         scrollFrontOfficeStepToTop();
+      }
+      if (screen === "guest") {
+        frontOfficeGuestScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
       }
     }
 
@@ -2329,6 +2994,249 @@
       window.location.assign(testPage.href);
     }
 
+    /* ===================================================================
+       Guest / no-auth entry — "Date solicitant" without MPass.
+       Reached by logging out ([data-fo-logout] in the avatar menu), which
+       simulates a service that does not require authentication: the
+       citizen identifies themselves by typing an IDNP directly, the same
+       way MPass would resolve an identity behind the scenes. Surname and
+       First name are pulled from the identity registry once 13 digits are
+       entered and become read-only, mirroring is-filled.is-readonly on
+       .e-permits-fo-input elsewhere in this file. Phone and email are not
+       looked up — they are the citizen's own contact details, not identity
+       data, same distinction the authenticated flow draws for the
+       representative's "Date de contact" section.
+       =================================================================== */
+    const GUEST_IDENTITY_URL = "data/e-permits-rssp-people.json";
+    const GUEST_LOOKUP_DELAY_MS = 1400; // "a loader time... like 1-2 s"
+
+    const guestIdnpInput = document.querySelector("[data-fo-guest-idnp]");
+    const guestIdnpField = document.querySelector("[data-fo-guest-idnp-field]");
+    const guestIdnpCounter = document.querySelector("[data-fo-guest-idnp-counter]");
+    const guestIdnpHint = document.querySelector("[data-fo-guest-idnp-hint]");
+    const guestSurnameInput = document.querySelector("[data-fo-guest-surname]");
+    const guestSurnameField = document.querySelector("[data-fo-guest-surname-field]");
+    const guestFirstnameInput = document.querySelector("[data-fo-guest-firstname]");
+    const guestFirstnameField = document.querySelector("[data-fo-guest-firstname-field]");
+    const guestPhoneInput = document.querySelector("[data-fo-guest-phone]");
+    const guestEmailInput = document.querySelector("[data-fo-guest-email]");
+    const guestConsent = document.querySelector("[data-fo-guest-consent]");
+    const guestNextButton = document.querySelector("[data-fo-guest-next]");
+    const guestTypeGroup = document.querySelector("[data-fo-guest-type-group]");
+    const guestBeneficiaryGroup = document.querySelector("[data-fo-guest-beneficiary]");
+
+    let guestIdentityDb = null;
+    let guestIdentityLoadPromise = null;
+    let guestLookupToken = 0;
+    let guestLookupTimer = null;
+    let guestMatchedPerson = null;
+
+    function loadGuestIdentityDb() {
+      if (guestIdentityDb) return Promise.resolve(guestIdentityDb);
+      if (!guestIdentityLoadPromise) {
+        guestIdentityLoadPromise = fetch(GUEST_IDENTITY_URL, { cache: "no-store" })
+          .then((response) => (response.ok ? response.json() : Promise.reject(new Error(`Cannot load ${GUEST_IDENTITY_URL}: ${response.status}`))))
+          .then((db) => { guestIdentityDb = db; return db; })
+          .catch((error) => {
+            console.warn(error);
+            guestIdentityDb = { people: [] };
+            return guestIdentityDb;
+          });
+      }
+      return guestIdentityLoadPromise;
+    }
+
+    function setGuestIdnpLoading(isLoading) {
+      guestIdnpField?.classList.toggle("is-loading", isLoading);
+      if (guestIdnpInput) guestIdnpInput.disabled = isLoading;
+      const existingSpinner = guestIdnpField?.querySelector(".spinner");
+      if (isLoading && guestIdnpField && !existingSpinner) {
+        const spinner = document.createElement("span");
+        spinner.className = "spinner spinner--small spinner--brand";
+        spinner.setAttribute("aria-hidden", "true");
+        guestIdnpField.appendChild(spinner);
+      } else if (!isLoading && existingSpinner) {
+        existingSpinner.remove();
+      }
+    }
+
+    function setGuestIdnpHint(text, isError = false) {
+      if (guestIdnpHint) guestIdnpHint.textContent = text;
+      guestIdnpField?.classList.toggle("is-error", isError);
+    }
+
+    /* Same trailing checkmark used elsewhere on a resolved is-filled.is-readonly
+       field (e.g. the IDNO / Denumire companie fields) — .e-permits-fo-input
+       .is-readonly .icon is already coloured var(--color-icon-positive-default,
+       #039855), so no new CSS is needed, only the icon markup. */
+    function setFieldCheckmark(field, show) {
+      const existing = field?.querySelector(".icon");
+      if (show && field && !existing) {
+        field.insertAdjacentHTML(
+          "beforeend",
+          '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>'
+        );
+      } else if (!show && existing) {
+        existing.remove();
+      }
+    }
+
+    function setGuestNameFieldsEditable() {
+      guestMatchedPerson = null;
+      [guestSurnameField, guestFirstnameField].forEach((field) => {
+        field?.classList.remove("is-filled", "is-readonly");
+        setFieldCheckmark(field, false);
+      });
+      if (guestSurnameInput) { guestSurnameInput.value = ""; guestSurnameInput.disabled = false; }
+      if (guestFirstnameInput) { guestFirstnameInput.value = ""; guestFirstnameInput.disabled = false; }
+    }
+
+    function applyGuestPerson(person) {
+      guestMatchedPerson = person;
+      if (guestSurnameInput) { guestSurnameInput.value = person.lastName; guestSurnameInput.disabled = true; }
+      if (guestFirstnameInput) { guestFirstnameInput.value = person.firstName; guestFirstnameInput.disabled = true; }
+      [guestSurnameField, guestFirstnameField].forEach((field) => {
+        field?.classList.add("is-filled", "is-readonly");
+        setFieldCheckmark(field, true);
+      });
+    }
+
+    function runGuestIdnpLookup(idnp) {
+      const token = ++guestLookupToken;
+      setGuestIdnpLoading(true);
+      loadGuestIdentityDb().then((db) => {
+        if (token !== guestLookupToken) return; // superseded before the fetch even settled
+        guestLookupTimer = window.setTimeout(() => {
+          if (token !== guestLookupToken) return; // the IDNP changed again while we were "loading"
+          setGuestIdnpLoading(false);
+          const person = (db?.people || []).find((item) => item.idnp === idnp);
+          if (person) {
+            applyGuestPerson(person);
+            setGuestIdnpHint("13 digits", false);
+          } else {
+            setGuestNameFieldsEditable();
+            setGuestIdnpHint("Nu am găsit date pentru acest IDNP.", true);
+          }
+          updateGuestNextState();
+        }, GUEST_LOOKUP_DELAY_MS);
+      });
+    }
+
+    function handleGuestIdnpInput() {
+      if (!guestIdnpInput) return;
+      const digits = guestIdnpInput.value.replace(/\D/g, "").slice(0, 13);
+      if (digits !== guestIdnpInput.value) guestIdnpInput.value = digits;
+      if (guestIdnpCounter) guestIdnpCounter.textContent = `${digits.length}/13`;
+
+      guestLookupToken += 1; // cancels any lookup in flight for the previous value
+      if (guestLookupTimer) { window.clearTimeout(guestLookupTimer); guestLookupTimer = null; }
+      setGuestIdnpLoading(false);
+      setGuestIdnpHint("13 digits", false);
+
+      if (guestMatchedPerson && digits !== guestMatchedPerson.idnp) setGuestNameFieldsEditable();
+      updateGuestNextState();
+
+      if (digits.length === 13) runGuestIdnpLookup(digits);
+    }
+
+    function updateGuestNextState() {
+      if (!guestNextButton) return;
+      const idnpComplete = (guestIdnpInput?.value || "").length === 13;
+      const phoneFilled = (guestPhoneInput?.value || "").trim().length > 0;
+      const emailFilled = (guestEmailInput?.value || "").trim().length > 0;
+      const consented = !!guestConsent?.checked;
+      const notLoading = !guestIdnpField?.classList.contains("is-loading");
+      guestNextButton.disabled = !(idnpComplete && phoneFilled && emailFilled && consented && notLoading);
+    }
+
+    function resetGuestSubjectType() {
+      guestTypeGroup?.querySelectorAll("[data-fo-guest-type]").forEach((button) => {
+        const isPf = button.dataset.foGuestType === "PF";
+        button.classList.toggle("is-selected", isPf);
+        button.setAttribute("aria-selected", String(isPf));
+      });
+    }
+
+    function resetGuestScreen() {
+      guestLookupToken += 1;
+      if (guestLookupTimer) { window.clearTimeout(guestLookupTimer); guestLookupTimer = null; }
+      setGuestIdnpLoading(false);
+      if (guestIdnpInput) guestIdnpInput.value = "";
+      if (guestIdnpCounter) guestIdnpCounter.textContent = "0/13";
+      setGuestIdnpHint("13 digits", false);
+      setGuestNameFieldsEditable();
+      if (guestPhoneInput) guestPhoneInput.value = "";
+      if (guestEmailInput) guestEmailInput.value = "";
+      if (guestConsent) guestConsent.checked = false;
+      const selfRadio = guestBeneficiaryGroup?.querySelector('input[value="self"]');
+      if (selfRadio) selfRadio.checked = true;
+      resetGuestSubjectType();
+      updateGuestNextState();
+    }
+
+    guestIdnpInput?.addEventListener("input", handleGuestIdnpInput);
+    guestPhoneInput?.addEventListener("input", updateGuestNextState);
+    guestEmailInput?.addEventListener("input", updateGuestNextState);
+    guestConsent?.addEventListener("change", updateGuestNextState);
+
+    guestTypeGroup?.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-fo-guest-type]");
+      if (!button || button.classList.contains("is-selected")) return;
+      guestTypeGroup.querySelectorAll("[data-fo-guest-type]").forEach((item) => {
+        const selected = item === button;
+        item.classList.toggle("is-selected", selected);
+        item.setAttribute("aria-selected", String(selected));
+      });
+      /* Persoană juridică: no company registry fixture exists to look IDNO
+         up against (unlike the citizen identity registry used for PF), so
+         this deliberately stays a plain editable field rather than faking
+         an autofill. Only the PF/IDNP path pulls real data, as asked. */
+    });
+
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-fo-guest-authenticate]")) openMpassTestPage();
+    });
+
+    guestNextButton?.addEventListener("click", () => {
+      if (guestNextButton.disabled) return;
+      /* Deliberately does not continue into steps 2-6: those assume a
+         subject resolved from the schema's `subjects` list (role cards,
+         representative, authorization data). Synthesising a compatible
+         subject from freeform guest input is a separate, larger piece of
+         work than what was asked for here. */
+      showFrontOfficeToast("Datele au fost înregistrate.");
+    });
+
+    /* "Plătește … cu mpay": there is no MPay sandbox in this prototype (unlike
+       MPass, which has mpass-test.html), so the round-trip is simulated with a
+       short processing state on the button, then the flow lands on
+       Finalizare. The button stays in place so the step doesn't jump. */
+    const FINISH_PAYMENT_DELAY_MS = 1200;
+    document.addEventListener("click", (event) => {
+      const payButton = event.target.closest("[data-fo-payment-pay]");
+      if (!payButton || payButton.getAttribute("aria-busy") === "true") return;
+      event.preventDefault();
+      const label = payButton.querySelector(".btn-badge__label");
+      const originalLabel = label?.textContent || "";
+      payButton.setAttribute("aria-busy", "true");
+      payButton.disabled = true;
+      if (label) label.textContent = "Se procesează plata…";
+      window.setTimeout(() => {
+        payButton.removeAttribute("aria-busy");
+        payButton.disabled = false;
+        if (label) label.textContent = originalLabel;
+        navigateToFrontOfficeStep(7);
+      }, FINISH_PAYMENT_DELAY_MS);
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-fo-logout]")) return;
+      setFrontOfficeAvatarMenuOpen(false);
+      frontOfficeSelectedSubject = null;
+      resetGuestScreen();
+      setFrontOfficeScreen("guest");
+    });
+
     function showFrontOfficeRequest({ focus = true, step = 1 } = {}) {
       if (!frontOfficeRequestScreen) return;
       setFrontOfficeStep(step, { focus: false });
@@ -2338,13 +3246,13 @@
     function navigateToFrontOfficeStep(step, { focus = true } = {}) {
       const targetStep = Number(step);
       const panel = document.querySelector(`[data-fo-step-panel="${targetStep}"]`);
-      if (!panel || targetStep < 1 || targetStep > 5) return false;
+      if (!panel || targetStep < 1) return false;
 
       const currentStep = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
       if (currentStep !== targetStep && currentStep >= 2) saveFrontOfficeDraft();
       if (targetStep === 4) populateFrontOfficeStep4();
 
-      const hash = targetStep === 1 ? "#request" : `#request-step-${targetStep}`;
+      const hash = frontOfficeStepHash(targetStep);
       if (window.location.hash !== hash) history.replaceState(null, "", hash);
       showFrontOfficeRequest({ focus, step: targetStep });
       return true;
@@ -2370,14 +3278,74 @@
     });
 
     frontOfficeSchemaLoadPromise = loadFrontOfficeSchema().then((schema) => {
-      if (window.location.hash === "#request" || window.location.hash === "#request-step-2" || window.location.hash === "#request-step-3" || window.location.hash === "#request-step-4" || window.location.hash === "#request-step-5") {
+      const hashStep = frontOfficeStepFromHash();
+      if (hashStep) {
         selectFrontOfficeSubject(frontOfficeSelectedSubject?.id || frontOfficeSchema?.defaultSubjectId);
-        const hashStep = window.location.hash === "#request-step-5" ? 5 : window.location.hash === "#request-step-4" ? 4 : window.location.hash === "#request-step-3" ? 3 : window.location.hash === "#request-step-2" ? 2 : 1;
         setFrontOfficeStep(hashStep, { focus: false });
         if (hashStep === 4) populateFrontOfficeStep4();
       }
       return schema;
     });
+
+    /* ===================================================================
+       MSupport — floating help button, full flow only.
+       Portable widget built in msupport/msupport.js (see that file's own
+       header comment for the full contract). Mounted only after the schema
+       promise resolves: MSupport.init() reads getContext() once synchronously
+       at construction to seed its entity picker's initial label, and that
+       first snapshot is never re-rendered later — calling init() any earlier
+       would permanently bake in "no dossier" instead of the real service
+       title, even though later reads (diagnostics, submit) are always fresh.
+       getContext() itself still reflects whoever is filling the form right
+       now — the MPass-resolved subject, or the guest IDNP match, or neither
+       before either has run. There is no real dossier yet during intake, so
+       entityRef/entityLabel describe the SERVICE being applied for rather
+       than inventing a case number. No backend exists in this prototype, so
+       dispatch() is the same console-log + simulated-delay stub the
+       msupport/index.html demo host uses. */
+    if (demoFlow === "full" && typeof MSupport !== "undefined") {
+      frontOfficeSchemaLoadPromise.then(() => {
+        const supportGuestActor = () => {
+          if (!guestMatchedPerson) return null;
+          const name = [guestFirstnameInput?.value, guestSurnameInput?.value].filter(Boolean).join(" ");
+          return {
+            type: "citizen",
+            name: name || undefined,
+            idnp: guestIdnpInput?.value || undefined,
+            email: guestEmailInput?.value || undefined,
+          };
+        };
+
+        const supportContext = () => {
+          const service = frontOfficeSchema?.service;
+          const subject = frontOfficeSelectedSubject;
+          const actor = subject
+            ? { type: "citizen", name: subject.name, idnp: subject.idValue, email: subject.contact?.email }
+            : supportGuestActor();
+          return {
+            surface: "Front Office" + (service?.shortTitle ? ` — ${service.shortTitle}` : ""),
+            route: window.location.pathname + window.location.search + window.location.hash,
+            entityKind: "Cerere",
+            entityRef: service?.code || null,
+            entityLabel: service?.shortTitle || null,
+            entityOptions: service ? [{ ref: service.code, label: service.shortTitle }] : [],
+            actor,
+            bubbleAvatar: "assets/logos/evo-logo-square.svg",
+          };
+        };
+
+        MSupport.init({
+          sprite: "assets/icons/sprite.svg",
+          getContext: supportContext,
+          dispatch: (payload) => {
+            console.log("[MSupport] dispatch →", payload);
+            return new Promise((resolve) => {
+              window.setTimeout(() => resolve({ referenceId: MSupport.referenceId(new Date()) }), 900);
+            });
+          },
+        });
+      });
+    }
 
     if (window.location.hash === "#choice" || window.location.hash === "#choice-authenticated") {
       setFrontOfficeScreen("choice", { focus: false });
@@ -2387,24 +3355,135 @@
       }
     }
 
-    if (window.location.hash === "#request") {
-      showFrontOfficeRequest({ focus: false, step: 1 });
+    const bootStep = frontOfficeStepFromHash();
+    if (bootStep) {
+      showFrontOfficeRequest({ focus: false, step: bootStep });
     }
 
-    if (window.location.hash === "#request-step-2") {
-      showFrontOfficeRequest({ focus: false, step: 2 });
-    }
+    /* ===================================================================
+       Test configuration panel — full flow only.
+       Rewrites the live flow schema instead of re-implementing anything:
+       auth.availableFor already drives both the "Disponibil pentru" badges
+       and the instance picker's filtering (frontOfficeAllowedTypes /
+       renderRolesFromSchema), so setting it to ["PJ"] is all it takes for
+       only PJ instances to remain. Every edit is re-derived from a pristine
+       clone taken at load, so toggling back and forth never compounds.
+       Same idea as solicitant-sandbox/, minus the iframe and the fetch
+       patching — in-page we can just call applyFrontOfficeSchema(). */
+    if (demoFlow === "full") {
+      frontOfficeSchemaLoadPromise.then((loaded) => {
+        const root = document.querySelector("[data-fo-testcfg]");
+        if (!root || !loaded) return;
 
-    if (window.location.hash === "#request-step-3") {
-      showFrontOfficeRequest({ focus: false, step: 3 });
-    }
+        const pristine = JSON.parse(JSON.stringify(loaded));
+        const panel = root.querySelector("[data-fo-testcfg-panel]");
+        const toggle = root.querySelector("[data-fo-testcfg-toggle]");
+        const outcome = root.querySelector("[data-fo-testcfg-outcome]");
 
-    if (window.location.hash === "#request-step-4") {
-      showFrontOfficeRequest({ focus: false, step: 4 });
-    }
+        const cfg = {
+          requiresAuth: pristine.auth?.required === false ? "no" : "yes",
+          eligibility: (() => {
+            const forTypes = pristine.auth?.availableFor;
+            if (!Array.isArray(forTypes) || forTypes.length !== 1) return "BOTH";
+            return forTypes[0] === "PJ" ? "PJ" : "PF";
+          })(),
+          authenticated: "yes",
+        };
 
-    if (window.location.hash === "#request-step-5") {
-      showFrontOfficeRequest({ focus: false, step: 5 });
+        const allowedFor = () => (cfg.eligibility === "BOTH" ? ["PF", "PJ"] : [cfg.eligibility]);
+
+        function syncButtons() {
+          root.querySelectorAll("[data-fo-testcfg-group]").forEach((group) => {
+            const key = group.dataset.foTestcfgGroup;
+            group.querySelectorAll("[data-fo-testcfg-value]").forEach((button) => {
+              const on = button.dataset.foTestcfgValue === cfg[key];
+              button.classList.toggle("is-selected", on);
+              button.setAttribute("aria-selected", String(on));
+            });
+          });
+        }
+
+        function describe(schema) {
+          const allowed = allowedFor();
+          const eligible = (schema.subjects || []).filter((s) => allowed.includes(s.type));
+          const selectable = eligible.filter((s) => s.selectable !== false);
+          if (cfg.authenticated === "no" && cfg.requiresAuth === "yes") {
+            return `<strong>Ecran: poarta de autentificare</strong>Serviciul cere MPass. Badge-urile „Disponibil pentru” arată ${allowed.join(" + ")}.`;
+          }
+          if (cfg.authenticated === "no") {
+            return "<strong>Ecran: formular liber</strong>Fără autentificare — solicitantul se identifică tastând IDNP-ul.";
+          }
+          if (!selectable.length) {
+            return `<strong>Ecran: selectorul de instanțe</strong>Nicio identitate ${allowed.join(" + ")} eligibilă; rămâne doar procura notarială.`;
+          }
+          return `<strong>Ecran: selectorul de instanțe</strong>${selectable.length} ${selectable.length === 1 ? "instanță" : "instanțe"} ${allowed.join(" + ")} disponibile.`;
+        }
+
+        function apply({ focus = false } = {}) {
+          const next = JSON.parse(JSON.stringify(pristine));
+          next.auth = next.auth || {};
+          next.auth.required = cfg.requiresAuth === "yes";
+          next.auth.availableFor = allowedFor();
+
+          /* the default has to be one that survived the type filter, or the
+             picker opens with nothing selected */
+          const allowed = allowedFor();
+          const firstUsable = (next.subjects || []).find(
+            (s) => allowed.includes(s.type) && s.selectable !== false
+          );
+          next.defaultSubjectId = firstUsable ? firstUsable.id : null;
+
+          applyFrontOfficeSchema(next);
+
+          if (cfg.authenticated === "yes") {
+            setFrontOfficeScreen("choice", { focus });
+          } else {
+            /* applyFrontOfficeSchema seeds a subject from defaultSubjectId;
+               drop it again so the header and MSupport's actor context both
+               agree that nobody is signed in */
+            frontOfficeSelectedSubject = null;
+            if (cfg.requiresAuth === "yes") {
+              setFrontOfficeScreen("auth", { focus });
+            } else {
+              resetGuestScreen();
+              setFrontOfficeScreen("guest", { focus });
+            }
+          }
+
+          if (outcome) outcome.innerHTML = describe(next);
+          syncButtons();
+        }
+
+        function setPanelOpen(open) {
+          if (panel) panel.hidden = !open;
+          toggle?.setAttribute("aria-expanded", String(open));
+        }
+
+        root.addEventListener("click", (event) => {
+          if (event.target.closest("[data-fo-testcfg-toggle]")) {
+            setPanelOpen(panel?.hidden !== false);
+            return;
+          }
+          if (event.target.closest("[data-fo-testcfg-close]")) {
+            setPanelOpen(false);
+            return;
+          }
+          const choice = event.target.closest("[data-fo-testcfg-value]");
+          if (!choice) return;
+          const key = choice.closest("[data-fo-testcfg-group]")?.dataset.foTestcfgGroup;
+          if (!key || cfg[key] === choice.dataset.foTestcfgValue) return;
+          cfg[key] = choice.dataset.foTestcfgValue;
+          apply();
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && panel && !panel.hidden) setPanelOpen(false);
+        });
+
+        root.hidden = false;
+        syncButtons();
+        if (outcome) outcome.innerHTML = describe(frontOfficeSchema || pristine);
+      });
     }
 
     frontOfficeBetaClose?.addEventListener("click", () => {
@@ -2554,10 +3633,36 @@
       if (foDocSubmitBtn) foDocSubmitBtn.disabled = !canSubmit;
     }
 
-    function foDocSwitchTab(tab) {
+    /* the two panels are very different heights, so the shell is animated from
+       the outgoing height to the incoming one and then released back to auto */
+    function foDocSwitchTab(tab, { animate = true } = {}) {
+      const modal = foDocOverlay?.querySelector(".e-permits-fo-doc-modal");
+      const current = foDocOverlay?.querySelector("[data-fo-doc-panel]:not([hidden])");
+      const shouldAnimate =
+        animate &&
+        modal &&
+        current &&
+        current.dataset.foDocPanel !== tab &&
+        !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const fromHeight = shouldAnimate ? modal.getBoundingClientRect().height : 0;
+
       foDocOverlay?.querySelectorAll("[data-fo-doc-tab]").forEach((t) => t.classList.toggle("active", t.dataset.foDocTab === tab));
       foDocOverlay?.querySelectorAll("[data-fo-doc-panel]").forEach((p) => { p.hidden = p.dataset.foDocPanel !== tab; });
       foDocUpdateSubmit();
+      if (!shouldAnimate) return;
+
+      window.clearTimeout(modal._foTabTimer);
+      const toHeight = modal.getBoundingClientRect().height;
+      if (Math.round(fromHeight) === Math.round(toHeight)) return;
+
+      modal.style.height = `${fromHeight}px`;
+      modal.classList.add("is-tab-animating");
+      void modal.offsetHeight;
+      modal.style.height = `${toHeight}px`;
+      modal._foTabTimer = window.setTimeout(() => {
+        modal.classList.remove("is-tab-animating");
+        modal.style.height = "";
+      }, 280);
     }
 
     function foDocOpenModal(fieldEl, label) {
@@ -2571,7 +3676,7 @@
       if (subtitleEl) subtitleEl.textContent = label || "";
       foDocRenderLibrary("");
       if (foDocSearchInput) foDocSearchInput.value = "";
-      foDocSwitchTab("library");
+      foDocSwitchTab("library", { animate: false });
       setMotionModalHidden(foDocOverlay, false);
       document.body.style.overflow = "hidden";
     }
@@ -2600,7 +3705,7 @@
           ${sizeLabel ? `<div class="e-permits-fo-lib-item__meta">${escapeFrontOfficeHtml(sizeLabel)}</div>` : ""}
         </div>
         <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină">
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
       item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => item.remove());
       container.appendChild(item);
@@ -2624,7 +3729,7 @@
           <span class="e-permits-fo-mdocs__attachment-meta" hidden>${escapeFrontOfficeHtml(metaText)}</span>
         </div>
         <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină">
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
       att.querySelector(".e-permits-fo-mdocs__attachment-remove").addEventListener("click", () => att.remove());
       container.appendChild(att);
@@ -2962,7 +4067,7 @@
       if (!roleButton) return;
       event.preventDefault();
       const subjectId = roleButton.dataset.foSubjectId;
-      if (subjectId && subjectId !== frontOfficeSelectedSubject?.id && !requestFrontOfficeInstanceSwitch()) return;
+      if (subjectId && subjectId !== frontOfficeSelectedSubject?.id && !requestFrontOfficeInstanceSwitch({ targetSubjectId: subjectId })) return;
       const selected = selectFrontOfficeSubject(subjectId);
       if (selected) {
         setFrontOfficeAvatarMenuOpen(false);
@@ -3110,6 +4215,12 @@
       }
       if (action === "step-5" && next) {
         saveFrontOfficeDraft();
+        if (window.location.hash !== "#request-step-6") history.replaceState(null, "", "#request-step-6");
+        showFrontOfficeRequest({ step: 6 });
+      }
+      if (action === "step-6" && prev) {
+        if (window.location.hash !== "#request-step-5") history.replaceState(null, "", "#request-step-5");
+        showFrontOfficeRequest({ step: 5 });
       }
     });
 
@@ -3816,7 +4927,7 @@
             </div>
           </div>
           <button class="e-permits-fo-document-remove e-permits-fo-file-item__remove" type="button" aria-label="Elimină fișierul" hidden>
-            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
           </button>
           <div class="e-permits-fo-file-item__progress">
             <div class="e-permits-fo-file-item__progress-bar"></div>
