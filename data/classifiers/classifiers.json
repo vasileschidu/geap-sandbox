@@ -1,0 +1,2590 @@
+{
+  "classifiers": [
+    {
+      "id": "cl-cuatm",
+      "denumire": "CUATM — Clasificatorul unităților administrativ-teritoriale",
+      "descriere": "Unitățile administrativ-teritoriale ale Republicii Moldova. Sursă autoritativă: BNS, prin MConnect.",
+      "familie": "national",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "mconnect",
+      "endpoint": "mconnect://bns.gov.md/registre/cuatm/v3",
+      "sursa": "mconnect",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "3.4",
+      "editatLa": "2026-06-28",
+      "editatDe": "Sistem (MConnect)",
+      "nrValori": 1682,
+      "campuriExtra": [
+        {
+          "id": "nivel",
+          "label": "Nivel UAT",
+          "tip": "Selecție",
+          "cfg": "I / II / mun."
+        },
+        {
+          "id": "codRaion",
+          "label": "Cod raion",
+          "tip": "Text"
+        }
+      ],
+      "mapare": [
+        {
+          "camp": "cod",
+          "sursa": "uatm_code"
+        },
+        {
+          "camp": "denRo",
+          "sursa": "name_ro"
+        },
+        {
+          "camp": "denRu",
+          "sursa": "name_ru"
+        },
+        {
+          "camp": "activ",
+          "sursa": "is_active"
+        },
+        {
+          "camp": "activDeLa",
+          "sursa": "valid_from"
+        },
+        {
+          "camp": "activPanaLa",
+          "sursa": "valid_to"
+        },
+        {
+          "camp": "nivel",
+          "sursa": "level"
+        },
+        {
+          "camp": "codRaion",
+          "sursa": "parent_code"
+        }
+      ],
+      "valori": [
+        {
+          "cod": "1000",
+          "denRo": "mun. Chișinău",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-07-18",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1007",
+          "denRo": "mun. Bălți",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-11-14",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1014",
+          "denRo": "or. Ungheni",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-06-02",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1021",
+          "denRo": "or. Cahul",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-10-09",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1028",
+          "denRo": "or. Orhei",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-12-11",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1035",
+          "denRo": "s. Costești",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-04-20",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1042",
+          "denRo": "s. Zăicani",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-04-08",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1049",
+          "denRo": "com. Bubuieci",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-03-11",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1056",
+          "denRo": "or. Comrat",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-06-09",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1063",
+          "denRo": "s. Cociulia",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2024-11-05",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1070",
+          "denRo": "or. Soroca",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2024-08-13",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1077",
+          "denRo": "s. Trușeni",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-10-06",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1084",
+          "denRo": "or. Edineț",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-06-15",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        },
+        {
+          "cod": "1091",
+          "denRo": "com. Ciorescu",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2024-03-20",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "import"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Adresa juridică — localitate",
+            "Adresa obiectivului — localitate",
+            "Adresa de corespondență"
+          ]
+        },
+        {
+          "modul": "Registrul dosarelor",
+          "obiecte": [
+            "Localitatea obiectivului"
+          ]
+        },
+        {
+          "modul": "Raportare & Analiză",
+          "obiecte": [
+            "Dimensiune: teritoriu"
+          ]
+        },
+        {
+          "modul": "Catalogul public RAP",
+          "obiecte": [
+            "Filtru: localitate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-caem1",
+      "denumire": "CAEM-2 Nivel 1 — Secțiuni",
+      "descriere": "Secțiunile Clasificatorului activităților din economia Moldovei, rev. 2.",
+      "familie": "national",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "2.1",
+      "editatLa": "2026-05-07",
+      "editatDe": "Administrator Central",
+      "nrValori": 21,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "A",
+          "denRo": "Agricultură, silvicultură și pescuit",
+          "denRu": "Сельское хозяйство",
+          "denEn": "Agriculture, forestry and fishing",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "B",
+          "denRo": "Industria extractivă",
+          "denRu": "Добывающая промышленность",
+          "denEn": "Mining and quarrying",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "C",
+          "denRo": "Industria prelucrătoare",
+          "denRu": "Обрабатывающая промышленность",
+          "denEn": "Manufacturing",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "E",
+          "denRo": "Distribuția apei; salubritate, gestionarea deșeurilor",
+          "denRu": null,
+          "denEn": "Water supply; waste management",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "F",
+          "denRo": "Construcții",
+          "denRu": "Строительство",
+          "denEn": "Construction",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "G",
+          "denRo": "Comerț cu ridicata și cu amănuntul",
+          "denRu": "Торговля",
+          "denEn": "Wholesale and retail trade",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "H",
+          "denRo": "Transport și depozitare",
+          "denRu": "Транспорт и хранение",
+          "denEn": "Transportation and storage",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "I",
+          "denRo": "Activități de cazare și alimentație publică",
+          "denRu": null,
+          "denEn": "Accommodation and food service",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "Q",
+          "denRo": "Sănătate și asistență socială",
+          "denRu": null,
+          "denEn": "Human health and social work",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Genul de activitate — secțiune"
+          ]
+        },
+        {
+          "modul": "Raportare & Analiză",
+          "obiecte": [
+            "Dimensiune: domeniu de activitate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-caem2",
+      "denumire": "CAEM-2 Nivel 2 — Diviziuni",
+      "descriere": "Diviziunile CAEM-2. Fiecare valoare este subordonată unei secțiuni din Nivel 1.",
+      "familie": "national",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": "cl-caem1",
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "2.1",
+      "editatLa": "2026-05-07",
+      "editatDe": "Administrator Central",
+      "nrValori": 88,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "01",
+          "denRo": "Agricultură, vânat și servicii auxiliare",
+          "denRu": null,
+          "denEn": "Crop and animal production",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "A",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "10",
+          "denRo": "Industria alimentară",
+          "denRu": "Пищевая промышленность",
+          "denEn": "Manufacture of food products",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "C",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "11",
+          "denRo": "Fabricarea băuturilor",
+          "denRu": null,
+          "denEn": "Manufacture of beverages",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "C",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "41",
+          "denRo": "Construcții de clădiri",
+          "denRu": null,
+          "denEn": "Construction of buildings",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "F",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "47",
+          "denRo": "Comerț cu amănuntul",
+          "denRu": "Розничная торговля",
+          "denEn": "Retail trade",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "G",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "49",
+          "denRo": "Transporturi terestre",
+          "denRu": null,
+          "denEn": "Land transport",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "H",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "56",
+          "denRo": "Restaurante și alte servicii de alimentație",
+          "denRu": null,
+          "denEn": "Food and beverage service",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "I",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "86",
+          "denRo": "Activități referitoare la sănătatea umană",
+          "denRu": null,
+          "denEn": "Human health activities",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "Q",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "52",
+          "denRo": "Depozitare (denumire retrasă în rev. 2)",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": "2025-12-31",
+          "parinte": "H",
+          "extra": {},
+          "autoInactivat": true,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Genul de activitate — diviziune",
+            "Activitatea solicitată (multi-select)"
+          ]
+        },
+        {
+          "modul": "Registrul actelor permisive",
+          "obiecte": [
+            "Domeniul actului"
+          ]
+        },
+        {
+          "modul": "Raportare & Analiză",
+          "obiecte": [
+            "Dimensiune: diviziune CAEM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-cfoj",
+      "denumire": "CFOJ — Formele organizatorico-juridice",
+      "descriere": "Formele juridice de organizare a persoanelor juridice. Sursă: ASP, prin MConnect.",
+      "familie": "national",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "mconnect",
+      "endpoint": "mconnect://asp.gov.md/registre/cfoj/v2",
+      "sursa": "mconnect",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "1.9",
+      "editatLa": "2026-07-05",
+      "editatDe": "Sistem (MConnect)",
+      "nrValori": 34,
+      "campuriExtra": [
+        {
+          "id": "abrev",
+          "label": "Abreviere",
+          "tip": "Text",
+          "cfg": "max. 12"
+        }
+      ],
+      "mapare": [
+        {
+          "camp": "cod",
+          "sursa": "form_code"
+        },
+        {
+          "camp": "denRo",
+          "sursa": "name_ro"
+        },
+        {
+          "camp": "denRu",
+          "sursa": "name_ru"
+        },
+        {
+          "camp": "denEn",
+          "sursa": "name_en"
+        },
+        {
+          "camp": "activ",
+          "sursa": "active"
+        },
+        {
+          "camp": "activDeLa",
+          "sursa": "valid_from"
+        },
+        {
+          "camp": "abrev",
+          "sursa": "short_name"
+        }
+      ],
+      "valori": [
+        {
+          "cod": "1",
+          "denRo": "Societate cu răspundere limitată",
+          "denRu": "Общество с ограниченной ответственностью",
+          "denEn": "Limited liability company",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "abrev": "SRL"
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "2",
+          "denRo": "Societate pe acțiuni",
+          "denRu": "Акционерное общество",
+          "denEn": "Joint stock company",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "abrev": "SA"
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "3",
+          "denRo": "Întreprindere individuală",
+          "denRu": null,
+          "denEn": "Sole proprietorship",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "abrev": "ÎI"
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "5",
+          "denRo": "Întreprindere de stat",
+          "denRu": null,
+          "denEn": "State enterprise",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "abrev": "ÎS"
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "6",
+          "denRo": "Organizație necomercială",
+          "denRu": null,
+          "denEn": "Non-commercial organization",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "abrev": "ON"
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "9",
+          "denRo": "Întreprindere de arendă",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "abrev": "ÎA"
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Forma juridică a solicitantului"
+          ]
+        },
+        {
+          "modul": "Cabinetul cetățeanului",
+          "obiecte": [
+            "Profil PJ — forma juridică"
+          ]
+        },
+        {
+          "modul": "Registrul dosarelor",
+          "obiecte": [
+            "Tipul titularului"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-iso3166",
+      "denumire": "ISO 3166 — Coduri de țară",
+      "descriere": "Codurile de țară alfa-2 și alfa-3, standard internațional.",
+      "familie": "internațional",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "1.2",
+      "editatLa": "2026-02-09",
+      "editatDe": "Administrator Central",
+      "nrValori": 249,
+      "campuriExtra": [
+        {
+          "id": "alfa3",
+          "label": "Alfa-3",
+          "tip": "Text",
+          "cfg": "exact 3"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "MD",
+          "denRo": "Republica Moldova",
+          "denRu": "Республика Молдова",
+          "denEn": "Republic of Moldova",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "alfa3": "MDA"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "RO",
+          "denRo": "România",
+          "denRu": "Румыния",
+          "denEn": "Romania",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "alfa3": "ROU"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "UA",
+          "denRo": "Ucraina",
+          "denRu": "Украина",
+          "denEn": "Ukraine",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "alfa3": "UKR"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "DE",
+          "denRo": "Germania",
+          "denRu": "Германия",
+          "denEn": "Germany",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "alfa3": "DEU"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "IT",
+          "denRo": "Italia",
+          "denRu": "Италия",
+          "denEn": "Italy",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "alfa3": "ITA"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "TR",
+          "denRo": "Turcia",
+          "denRu": "Турция",
+          "denEn": "Türkiye",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "alfa3": "TUR"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Țara de origine a mărfii",
+            "Cetățenia solicitantului",
+            "Țara de destinație"
+          ]
+        },
+        {
+          "modul": "Integration Gateway",
+          "obiecte": [
+            "Validare IBAN — cod țară"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-iso4217",
+      "denumire": "ISO 4217 — Coduri valutare",
+      "descriere": "Codurile valutare utilizate la calculul taxelor și al garanțiilor.",
+      "familie": "internațional",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "1.0",
+      "editatLa": "2025-09-12",
+      "editatDe": "Administrator Central",
+      "nrValori": 42,
+      "campuriExtra": [
+        {
+          "id": "simbol",
+          "label": "Simbol",
+          "tip": "Text",
+          "cfg": "max. 4"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "MDL",
+          "denRo": "Leu moldovenesc",
+          "denRu": "Молдавский лей",
+          "denEn": "Moldovan leu",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "simbol": "L"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "EUR",
+          "denRo": "Euro",
+          "denRu": "Евро",
+          "denEn": "Euro",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "simbol": "€"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "USD",
+          "denRo": "Dolar american",
+          "denRu": "Доллар США",
+          "denEn": "US dollar",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "simbol": "$"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "RON",
+          "denRo": "Leu românesc",
+          "denRu": null,
+          "denEn": "Romanian leu",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "simbol": "lei"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Modulul de plăți (MPay)",
+          "obiecte": [
+            "Valuta contului de plată"
+          ]
+        },
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Valuta garanției"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-iban",
+      "denumire": "Coduri de țară IBAN",
+      "descriere": "Prefixele IBAN acceptate la validarea conturilor bancare. Partajat cu MConnect.",
+      "familie": "interoperabilitate",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "mconnect",
+      "endpoint": "mconnect://bnm.md/iban/country-prefixes/v1",
+      "sursa": "mconnect",
+      "parintId": null,
+      "copiatDinId": "cl-iso3166",
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "1.4",
+      "editatLa": "2026-06-18",
+      "editatDe": "Sistem (MConnect)",
+      "nrValori": 78,
+      "campuriExtra": [
+        {
+          "id": "lungime",
+          "label": "Lungime IBAN",
+          "tip": "Număr"
+        }
+      ],
+      "mapare": [
+        {
+          "camp": "cod",
+          "sursa": "country"
+        },
+        {
+          "camp": "denRo",
+          "sursa": "country_name"
+        },
+        {
+          "camp": "denEn",
+          "sursa": "country_name_en"
+        },
+        {
+          "camp": "activ",
+          "sursa": "enabled"
+        },
+        {
+          "camp": "activDeLa",
+          "sursa": "since"
+        },
+        {
+          "camp": "lungime",
+          "sursa": "iban_length"
+        }
+      ],
+      "valori": [
+        {
+          "cod": "MD",
+          "denRo": "Republica Moldova",
+          "denRu": null,
+          "denEn": "Republic of Moldova",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "lungime": 24
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "RO",
+          "denRo": "România",
+          "denRu": null,
+          "denEn": "Romania",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "lungime": 24
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "DE",
+          "denRo": "Germania",
+          "denRu": null,
+          "denEn": "Germany",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "lungime": 22
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        },
+        {
+          "cod": "FR",
+          "denRo": "Franța",
+          "denRu": null,
+          "denEn": "France",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "lungime": 27
+          },
+          "autoInactivat": false,
+          "sursa": "mconnect"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Integration Gateway",
+          "obiecte": [
+            "Validare IBAN la depunere"
+          ]
+        },
+        {
+          "modul": "Modulul de plăți (MPay)",
+          "obiecte": [
+            "Contul de restituire"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-statut",
+      "denumire": "Statut dosar",
+      "descriere": "Stările din ciclul de viață al dosarului. Consumat de motorul de proces la ramificarea fluxurilor.",
+      "familie": "intern",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": true,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": true,
+      "versiune": "4.2",
+      "editatLa": "2026-06-21",
+      "editatDe": "Administrator Central",
+      "nrValori": 9,
+      "campuriExtra": [
+        {
+          "id": "tonPill",
+          "label": "Culoare afișare",
+          "tip": "Selecție",
+          "cfg": "neutral / info / warn / ok / crit"
+        },
+        {
+          "id": "final",
+          "label": "Stare finală",
+          "tip": "Boolean"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "schita",
+          "denRo": "Schiță",
+          "denRu": "Черновик",
+          "denEn": "Draft",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "neutral",
+            "final": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "depus",
+          "denRo": "Depus",
+          "denRu": "Подан",
+          "denEn": "Submitted",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "info",
+            "final": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "inExaminare",
+          "denRo": "În examinare",
+          "denRu": "На рассмотрении",
+          "denEn": "Under review",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "info",
+            "final": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "spreCoordonare",
+          "denRo": "Spre coordonare",
+          "denRu": null,
+          "denEn": "For coordination",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "warn",
+            "final": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "spreSemnare",
+          "denRo": "Spre semnare",
+          "denRu": null,
+          "denEn": "For signature",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "warn",
+            "final": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "semnat",
+          "denRo": "Semnat",
+          "denRu": "Подписан",
+          "denEn": "Signed",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "ok",
+            "final": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "eliberat",
+          "denRo": "Eliberat",
+          "denRu": "Выдан",
+          "denEn": "Issued",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "ok",
+            "final": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "respins",
+          "denRo": "Respins",
+          "denRu": "Отклонён",
+          "denEn": "Rejected",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "crit",
+            "final": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "arhivat",
+          "denRo": "Arhivat",
+          "denRu": "Архивирован",
+          "denEn": "Archived",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "tonPill": "neutral",
+            "final": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Motorul de proces",
+          "obiecte": [
+            "Gateway: distribuire",
+            "Gateway: coordonare",
+            "Regulă SLA: termen de examinare"
+          ]
+        },
+        {
+          "modul": "Registrul dosarelor",
+          "obiecte": [
+            "Coloana Statutul",
+            "Compartimentele Locului de muncă"
+          ]
+        },
+        {
+          "modul": "Cabinetul cetățeanului",
+          "obiecte": [
+            "Solicitările mele — status"
+          ]
+        },
+        {
+          "modul": "Raportare & Analiză",
+          "obiecte": [
+            "Dimensiune: status dosar"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-tipdoc",
+      "denumire": "Tipuri de documente",
+      "descriere": "Tipurile de documente atașabile la dosar sau generate de platformă.",
+      "familie": "intern",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "2.7",
+      "editatLa": "2026-07-03",
+      "editatDe": "Administrator Central",
+      "nrValori": 26,
+      "campuriExtra": [
+        {
+          "id": "extensii",
+          "label": "Extensii permise",
+          "tip": "Text",
+          "cfg": "max. 60"
+        },
+        {
+          "id": "maxMb",
+          "label": "Dimensiune max. (MB)",
+          "tip": "Număr"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "cerere",
+          "denRo": "Cerere",
+          "denRu": "Заявление",
+          "denEn": "Application",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "extensii": "pdf",
+            "maxMb": 10
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "extrasReg",
+          "denRo": "Extras din registru",
+          "denRu": null,
+          "denEn": "Registry extract",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "extensii": "pdf",
+            "maxMb": 10
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "planAmpl",
+          "denRo": "Plan de amplasare",
+          "denRu": null,
+          "denEn": "Site plan",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "extensii": "pdf, dwg",
+            "maxMb": 25
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "procura",
+          "denRo": "Procură",
+          "denRu": "Доверенность",
+          "denEn": "Power of attorney",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "extensii": "pdf",
+            "maxMb": 10
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "bonPlata",
+          "denRo": "Bon de plată",
+          "denRu": null,
+          "denEn": "Payment receipt",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "extensii": "pdf, jpg, png",
+            "maxMb": 5
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "fisaTehnica",
+          "denRo": "Fișă tehnică (formular vechi)",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": "2026-03-31",
+          "parinte": null,
+          "extra": {
+            "extensii": "pdf",
+            "maxMb": 10
+          },
+          "autoInactivat": true,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Blocul de atașamente — tip document"
+          ]
+        },
+        {
+          "modul": "Managementul documentelor",
+          "obiecte": [
+            "Clasificarea la încărcare"
+          ]
+        },
+        {
+          "modul": "Cabinetul cetățeanului",
+          "obiecte": [
+            "Documentele mele — filtru"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-livrare",
+      "denumire": "Canale de livrare",
+      "descriere": "Modalitățile de livrare a actului permisiv sau a deciziei către titular.",
+      "familie": "intern",
+      "categorie": "global",
+      "servicii": [],
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": true,
+      "versiune": "1.6",
+      "editatLa": "2026-06-05",
+      "editatDe": "Administrator Central",
+      "nrValori": 5,
+      "campuriExtra": [
+        {
+          "id": "necesitaMDelivery",
+          "label": "Necesită MDelivery",
+          "tip": "Boolean"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "electronic",
+          "denRo": "Electronic (cabinet)",
+          "denRu": "Электронно",
+          "denEn": "Electronic",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "necesitaMDelivery": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "mdelivery",
+          "denRo": "Poștă (MDelivery)",
+          "denRu": null,
+          "denEn": "Postal (MDelivery)",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "necesitaMDelivery": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "ghiseu",
+          "denRo": "Ridicare la ghișeu",
+          "denRu": null,
+          "denEn": "Counter pickup",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "necesitaMDelivery": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "curier",
+          "denRo": "Curier",
+          "denRu": null,
+          "denEn": "Courier",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "necesitaMDelivery": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "fax",
+          "denRo": "Fax",
+          "denRu": null,
+          "denEn": "Fax",
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "necesitaMDelivery": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Motorul de proces",
+          "obiecte": [
+            "Ramificare: eliberare pe hârtie / electronic"
+          ]
+        },
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Modul de livrare solicitat"
+          ]
+        },
+        {
+          "modul": "MDelivery",
+          "obiecte": [
+            "Comanda de expediere"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-risc",
+      "denumire": "Categorii de risc sanitar",
+      "descriere": "Categoriile de risc utilizate la stabilirea termenului de examinare și a frecvenței controalelor.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "ansp",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Autorizație sanitară de funcționare"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.8",
+      "editatLa": "2026-06-30",
+      "editatDe": "Administrator Local",
+      "nrValori": 4,
+      "campuriExtra": [
+        {
+          "id": "termenZile",
+          "label": "Termen de examinare (zile)",
+          "tip": "Număr"
+        },
+        {
+          "id": "frecventa",
+          "label": "Frecvența controalelor",
+          "tip": "Selecție",
+          "cfg": "anual / 2 ani / 3 ani"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "R1",
+          "denRo": "Risc major",
+          "denRu": "Высокий риск",
+          "denEn": "High risk",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "termenZile": 30,
+            "frecventa": "anual"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "R2",
+          "denRo": "Risc mediu",
+          "denRu": "Средний риск",
+          "denEn": "Medium risk",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "termenZile": 20,
+            "frecventa": "2 ani"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "R3",
+          "denRo": "Risc minor",
+          "denRu": "Низкий риск",
+          "denEn": "Low risk",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "termenZile": 15,
+            "frecventa": "3 ani"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "R0",
+          "denRo": "Risc neevaluat",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "termenZile": 30,
+            "frecventa": "anual"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Autorizație sanitară — categoria de risc"
+          ]
+        },
+        {
+          "modul": "Motorul de proces",
+          "obiecte": [
+            "Regulă SLA: termen per categorie de risc"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-unitati",
+      "denumire": "Tipuri de unități de alimentație publică",
+      "descriere": "Tipologia unităților pentru care se solicită autorizație de alimentație publică.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "ansp",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Autorizație pentru activitate de alimentație publică"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.3",
+      "editatLa": "2026-07-07",
+      "editatDe": "Administrator Local",
+      "nrValori": 8,
+      "campuriExtra": [
+        {
+          "id": "capacitate",
+          "label": "Capacitate min. (locuri)",
+          "tip": "Număr"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "rest",
+          "denRo": "Restaurant",
+          "denRu": "Ресторан",
+          "denEn": "Restaurant",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "capacitate": 40
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "cafe",
+          "denRo": "Cafenea",
+          "denRu": "Кафе",
+          "denEn": "Café",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "capacitate": 12
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "bar",
+          "denRo": "Bar",
+          "denRu": "Бар",
+          "denEn": "Bar",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "capacitate": 8
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "cant",
+          "denRo": "Cantină",
+          "denRu": "Столовая",
+          "denEn": "Canteen",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "capacitate": 30
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "fast",
+          "denRo": "Unitate de tip fast-food",
+          "denRu": null,
+          "denEn": "Fast-food outlet",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "capacitate": 6
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "catering",
+          "denRo": "Unitate de catering",
+          "denRu": null,
+          "denEn": "Catering unit",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "capacitate": 0
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "sezon",
+          "denRo": "Terasă sezonieră",
+          "denRu": null,
+          "denEn": "Seasonal terrace",
+          "activ": true,
+          "activDeLa": "2026-04-01",
+          "activPanaLa": "2026-10-31",
+          "parinte": null,
+          "extra": {
+            "capacitate": 10
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Alimentație publică — tipul unității"
+          ]
+        },
+        {
+          "modul": "Catalogul public RAP",
+          "obiecte": [
+            "Filtru: tip unitate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-grupe",
+      "denumire": "Grupe de produse alimentare",
+      "descriere": "Grupele de produse pentru care se eliberează certificate de conformitate.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "ansp",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Certificat de conformitate pentru produse alimentare"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": "cl-caem2",
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "2.2",
+      "editatLa": "2026-06-24",
+      "editatDe": "Administrator Local",
+      "nrValori": 12,
+      "campuriExtra": [
+        {
+          "id": "codHS",
+          "label": "Cod tarifar (HS)",
+          "tip": "Text",
+          "cfg": "max. 8"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "G01",
+          "denRo": "Lapte și produse lactate",
+          "denRu": "Молочные продукты",
+          "denEn": "Milk and dairy",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "10",
+          "extra": {
+            "codHS": "0401"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "G02",
+          "denRo": "Carne și preparate din carne",
+          "denRu": null,
+          "denEn": "Meat and meat products",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "10",
+          "extra": {
+            "codHS": "0201"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "G03",
+          "denRo": "Produse de panificație",
+          "denRu": null,
+          "denEn": "Bakery products",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "10",
+          "extra": {
+            "codHS": "1905"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "G05",
+          "denRo": "Băuturi nealcoolice",
+          "denRu": null,
+          "denEn": "Non-alcoholic beverages",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "11",
+          "extra": {
+            "codHS": "2202"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "G06",
+          "denRo": "Vinuri și băuturi alcoolice",
+          "denRu": "Вина",
+          "denEn": "Wine and spirits",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "11",
+          "extra": {
+            "codHS": "2204"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "G09",
+          "denRo": "Suplimente alimentare (transferat la ANSA)",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "10",
+          "extra": {
+            "codHS": "2106"
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Certificat de conformitate — grupa de produse"
+          ]
+        },
+        {
+          "modul": "Registrul actelor permisive",
+          "obiecte": [
+            "Obiectul certificatului"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-motive",
+      "denumire": "Motive de refuz — ANSP",
+      "descriere": "Temeiurile de respingere invocate în deciziile autorității. Consumate de șabloanele de decizie.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "ansp",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Autorizație sanitară de funcționare",
+        "Autorizație pentru activitate de alimentație publică",
+        "Certificat de conformitate pentru produse alimentare"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": true,
+      "versiune": "1.5",
+      "editatLa": "2026-06-17",
+      "editatDe": "Administrator Central",
+      "nrValori": 9,
+      "campuriExtra": [
+        {
+          "id": "temeiLegal",
+          "label": "Temei legal",
+          "tip": "Text",
+          "cfg": "max. 120"
+        },
+        {
+          "id": "contestabil",
+          "label": "Permite contestație",
+          "tip": "Boolean"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "M01",
+          "denRo": "Documentație incompletă",
+          "denRu": null,
+          "denEn": "Incomplete documentation",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "temeiLegal": "Legea 160/2011, art. 12 alin. (3)",
+            "contestabil": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "M02",
+          "denRo": "Neconformitate a obiectivului",
+          "denRu": null,
+          "denEn": "Non-compliant premises",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "temeiLegal": "Legea 10/2009, art. 24",
+            "contestabil": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "M03",
+          "denRo": "Date neveridice în cerere",
+          "denRu": null,
+          "denEn": "False data in application",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "temeiLegal": "Legea 160/2011, art. 15",
+            "contestabil": true
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "M04",
+          "denRo": "Taxă neachitată în termen",
+          "denRu": null,
+          "denEn": "Fee not paid in time",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "temeiLegal": "Legea 160/2011, art. 13",
+            "contestabil": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "M05",
+          "denRo": "Retragerea cererii de către solicitant",
+          "denRu": null,
+          "denEn": "Withdrawn by applicant",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "temeiLegal": "Legea 160/2011, art. 14",
+            "contestabil": false
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Șabloane de decizie",
+          "obiecte": [
+            "Decizie de respingere — temei",
+            "Notificare de respingere"
+          ]
+        },
+        {
+          "modul": "Motorul de proces",
+          "obiecte": [
+            "Ramificare: contestabil / necontestabil"
+          ]
+        },
+        {
+          "modul": "Cabinetul cetățeanului",
+          "obiecte": [
+            "Solicitarea mea — motivul respingerii"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-vehicule",
+      "denumire": "Categorii de vehicule",
+      "descriere": "Categoriile de vehicule declarate la solicitarea licențelor de transport.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "anta",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Licență de transport rutier de mărfuri",
+        "Licență de transport rutier de persoane"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.1",
+      "editatLa": "2026-06-09",
+      "editatDe": "Administrator Local",
+      "nrValori": 7,
+      "campuriExtra": [
+        {
+          "id": "masaMax",
+          "label": "Masa max. (t)",
+          "tip": "Număr"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "N1",
+          "denRo": "Autovehicul de marfă până la 3,5 t",
+          "denRu": null,
+          "denEn": "Goods vehicle up to 3.5 t",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "masaMax": 3.5
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "N2",
+          "denRo": "Autovehicul de marfă 3,5 – 12 t",
+          "denRu": null,
+          "denEn": "Goods vehicle 3.5–12 t",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "masaMax": 12
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "N3",
+          "denRo": "Autovehicul de marfă peste 12 t",
+          "denRu": null,
+          "denEn": "Goods vehicle over 12 t",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "masaMax": 40
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "M2",
+          "denRo": "Autobuz până la 5 t",
+          "denRu": null,
+          "denEn": "Bus up to 5 t",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "masaMax": 5
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "M3",
+          "denRo": "Autobuz peste 5 t",
+          "denRu": null,
+          "denEn": "Bus over 5 t",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {
+            "masaMax": 18
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Parcul de vehicule — categorie"
+          ]
+        },
+        {
+          "modul": "Registrul actelor permisive",
+          "obiecte": [
+            "Anexa: lista vehiculelor"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-proceduri",
+      "denumire": "Tipuri de proceduri administrative",
+      "descriere": "Taxonomia generică a tipurilor de proceduri (autorizare, avizare, certificare) — nivelul cel mai de sus, comun mai multor domenii.",
+      "familie": "intern",
+      "categorie": "global",
+      "autoritate": null,
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": false,
+      "criticProces": false,
+      "versiune": "1.0",
+      "editatLa": "2026-05-10",
+      "editatDe": "Administrator Central",
+      "nrValori": 4,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "PA1",
+          "denRo": "Autorizare",
+          "denRu": "Разрешение",
+          "denEn": "Authorization",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "PA2",
+          "denRo": "Avizare",
+          "denRu": "Согласование",
+          "denEn": "Endorsement",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "PA3",
+          "denRo": "Certificare",
+          "denRu": "Сертификация",
+          "denEn": "Certification",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "PA4",
+          "denRo": "Înregistrare",
+          "denRu": "Регистрация",
+          "denEn": "Registration",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Motorul de proces",
+          "obiecte": [
+            "Tipul procedurii — ramificare flux"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-catsan",
+      "denumire": "Categorii de proceduri sanitare",
+      "descriere": "Categoriile de proceduri sanitare gestionate de ANSP — nivelul de mijloc: subordonat Tipurilor de proceduri, cu propriile categorii-copil pentru operatorii de transport.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "ansp",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Autorizație sanitară de funcționare",
+        "Autorizație sanitar-veterinară pentru exploatații zootehnice"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": "cl-proceduri",
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.3",
+      "editatLa": "2026-07-01",
+      "editatDe": "Administrator Local",
+      "nrValori": 3,
+      "campuriExtra": [
+        {
+          "id": "termenZile",
+          "label": "Termen de soluționare (zile)",
+          "tip": "Număr"
+        }
+      ],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "CS1",
+          "denRo": "Autorizare sanitară de funcționare",
+          "denRu": "Санитарное разрешение",
+          "denEn": "Sanitary operating authorization",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "PA1",
+          "extra": {
+            "termenZile": 15
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "CS2",
+          "denRo": "Avizare sanitar-veterinară",
+          "denRu": "Ветеринарное согласование",
+          "denEn": "Sanitary-veterinary endorsement",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "PA2",
+          "extra": {
+            "termenZile": 10
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "CS3",
+          "denRo": "Autorizare specială — activitate temporară",
+          "denRu": null,
+          "denEn": "Special authorization — temporary activity",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "PA1",
+          "extra": {
+            "termenZile": 5
+          },
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Tip procedură sanitară"
+          ]
+        },
+        {
+          "modul": "Registrul actelor permisive",
+          "obiecte": [
+            "Categoria autorizației"
+          ]
+        },
+        {
+          "modul": "Raportare & Analiză",
+          "obiecte": [
+            "Filtrul categorie sanitară"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cl-subtransp",
+      "denumire": "Subcategorii proceduri — operatori transport",
+      "descriere": "Subcategorii specifice ANTA pentru operatorii de transport ale căror mărfuri/animale cad sub o procedură sanitară — de-aia se leagă de categoria sanitară corespunzătoare, nu de o categorie de transport.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "anta",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Autorizație de transport internațional"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": "cl-catsan",
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.0",
+      "editatLa": "2026-07-07",
+      "editatDe": "Administrator Local",
+      "nrValori": 2,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "ST1",
+          "denRo": "Operator transport marfă periculoasă",
+          "denRu": null,
+          "denEn": "Dangerous-goods transport operator",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "CS1",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        },
+        {
+          "cod": "ST2",
+          "denRo": "Operator transport animale vii",
+          "denRu": null,
+          "denEn": "Live-animal transport operator",
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": "CS2",
+          "extra": {},
+          "autoInactivat": false,
+          "sursa": "manual"
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Form Engine (FOD2)",
+          "obiecte": [
+            "Subcategoria operatorului"
+          ]
+        }
+      ]
+    }
+  ]
+}

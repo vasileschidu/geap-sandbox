@@ -1,0 +1,9 @@
+{
+  "_source": "CLAS_FAMILII (artifact L3809). Taxonomy of where a classifier originates.",
+  "families": {
+    "national":           { "label": "Național",           "short": "NAȚ",  "tone": "info" },
+    "internațional":      { "label": "Internațional",      "short": "INT",  "tone": "teal" },
+    "interoperabilitate": { "label": "Interoperabilitate", "short": "IOP",  "tone": "violet" },
+    "intern":             { "label": "Intern GEAP 2.0",    "short": "GEAP", "tone": "neutral" }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "_source": "COMPARTMENTS (artifact L6043), classifier entries only.",
+  "_note": "In the artifact each compartment's `filter` is a JS closure. Here it is a declarative predicate interpreted by core/filters.js, so adding or re-scoping a compartment is configuration, not a code deploy.",
+  "_predicateGrammar": "{ all|any: [clause] } or a single clause. Clause: { field, eq|ne|in|nin|gt|lt|contains, value }. Omitted filter means match-all.",
+  "compartments": [
+    {
+      "id": "admc-clasificatoare",
+      "role": "adm-c",
+      "section": "Administrare",
+      "label": "Clasificatoare",
+      "icon": "book-open",
+      "kind": "clasificatoare",
+      "hint": "Clasificatoarele și nomenclatoarele platformei — naționale, internaționale, de interoperabilitate și interne. Nicio valoare nu e codificată în module: fiecare consumator o rezolvă prin acest modul.",
+      "filter": null,
+      "columns": ["clDenumire", "clScope", "clSursa", "clUtilizat", "clVersiune", "clEditatLa", "clStatus"],
+      "search": ["clDenumire", "clDescriere", "clScope", "clSursa", "clServiciu", "clStatus"],
+      "tabs": [
+        { "id": "globale",   "label": "Clasificatoare globale",   "filter": { "field": "categorie", "eq": "global" } },
+        { "id": "specifice", "label": "Clasificatoare specifice", "filter": { "field": "categorie", "eq": "specific" } }
+      ],
+      "actions": ["sincronizeazaClas", "publicaClas", "arhiveazaClas", "republicaClas", "exportLista"],
+      "newAction": "creeazaClas",
+      "extraAction": "divergenteClas"
+    },
+    {
+      "id": "adml-clasificatoare",
+      "role": "adm-l",
+      "section": "Administrare",
+      "label": "Clasificatoare specifice",
+      "icon": "book-open",
+      "kind": "clasificatoare",
+      "hint": "Valorile clasificatoarelor specifice aferente serviciilor autorității. Structura — câmpuri, mod de gestionare, ierarhie — e definită de Administratorul central (Feature 91424).",
+      "_filterNote": "Feature 91424 scopes the local admin to their own authority's specific classifiers. Concept v0.2 adds draft isolation: a specific classifier in Ciornă is not yet visible to the local admin.",
+      "filter": {
+        "all": [
+          { "field": "categorie", "eq": "specific" },
+          { "field": "status", "ne": "draft" }
+        ]
+      },
+      "columns": ["clDenumire", "clScope", "clSursa", "clUtilizat", "clVersiune", "clEditatLa", "clStatus"],
+      "search": ["clDenumire", "clDescriere", "clSursa", "clServiciu", "clStatus"],
+      "tabs": [],
+      "actions": ["exportLista"],
+      "newAction": null,
+      "extraAction": "divergenteClas"
+    }
+  ]
+}

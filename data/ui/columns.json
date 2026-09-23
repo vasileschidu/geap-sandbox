@@ -1,0 +1,13 @@
+{
+  "_source": "CLAS_COLUMNS (artifact L4982). Column registry, keyed by entity kind.",
+  "_note": "Widths are in px. `sticky` pins the column on horizontal scroll. `sortable` enables the header sort button.",
+  "clasificatoare": {
+    "clDenumire": { "label": "Denumire",         "w": 320, "sticky": true },
+    "clScope":    { "label": "Domeniu",          "w": 200 },
+    "clSursa":    { "label": "Sursă",            "w": 130 },
+    "clUtilizat": { "label": "Utilizat de",      "w": 180 },
+    "clVersiune": { "label": "Versiune",         "w": 90 },
+    "clEditatLa": { "label": "Data modificării", "w": 130, "sortable": true },
+    "clStatus":   { "label": "Status",           "w": 120 }
+  }
+}

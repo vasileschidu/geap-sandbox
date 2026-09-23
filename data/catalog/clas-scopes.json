@@ -1,0 +1,10 @@
+{
+  "_source": "CLAS_SCOPE (artifact L3845).",
+  "_note": "Only `system` is a stored flag (scopeSystem). The other three are derived from categorie + servicii.length by core/classifiers.js scopeOf(), so there is one source of truth for perimeter.",
+  "scopes": {
+    "system":    { "label": "Sistem",     "short": "SIS", "tone": "neutral" },
+    "global":    { "label": "Global",     "short": "GLB", "tone": "info" },
+    "authority": { "label": "Autoritate", "short": "AUT", "tone": "violet" },
+    "service":   { "label": "Serviciu",   "short": "SRV", "tone": "teal" }
+  }
+}

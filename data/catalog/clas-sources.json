@@ -1,0 +1,9 @@
+{
+  "_source": "CLAS_SURSA (artifact L3828). Labels where the data comes from. Separate axis from `mod`, which governs behaviour.",
+  "_note": "`api` has no example in the seed. It is selectable and behaves like mconnect (sync, no manual add), but has no sync flow of its own yet.",
+  "sources": {
+    "intern":   { "label": "Intern",   "icon": "edit",    "tone": "neutral", "manualEdit": true },
+    "mconnect": { "label": "MConnect", "icon": "refresh", "tone": "teal",    "manualEdit": false },
+    "api":      { "label": "API",      "icon": "share",   "tone": "violet",  "manualEdit": false }
+  }
+}

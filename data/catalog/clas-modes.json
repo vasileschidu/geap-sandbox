@@ -1,0 +1,7 @@
+{
+  "_source": "CLAS_MOD (artifact L3816). Governs behaviour: row-by-row editing versus sync-only.",
+  "modes": {
+    "manual":   { "label": "Manual & CSV", "icon": "edit",    "tone": "neutral" },
+    "mconnect": { "label": "MConnect",     "icon": "refresh", "tone": "teal" }
+  }
+}

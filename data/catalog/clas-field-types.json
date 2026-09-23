@@ -1,0 +1,18 @@
+{
+  "_source": "TIPURI_CAMP_CLAS (artifact L3925) and campuriImpliciteFor (artifact L4033).",
+  "fieldTypes": ["Text", "Număr", "Dată", "Boolean", "Selecție", "Referință clasificator"],
+  "defaults": {
+    "_note": "Default value fields cannot be removed, only configured. idFormat defaults to INT, limitaDenumiri to 200.",
+    "idFormat": "INT",
+    "limitaDenumiri": 200,
+    "fields": [
+      { "id": "cod",         "label": "ID",            "tip": "ID",      "implicit": true, "cfgFrom": "idFormat" },
+      { "id": "denRo",       "label": "Denumire RO",   "tip": "Text",    "implicit": true, "obligatoriu": true, "cfgFrom": "limitaDenumiri" },
+      { "id": "denRu",       "label": "Denumire RU",   "tip": "Text",    "implicit": true, "cfgFrom": "limitaDenumiri" },
+      { "id": "denEn",       "label": "Denumire EN",   "tip": "Text",    "implicit": true, "cfgFrom": "limitaDenumiri" },
+      { "id": "activ",       "label": "Activ",         "tip": "Boolean", "implicit": true, "obligatoriu": true },
+      { "id": "activDeLa",   "label": "Activ de la",   "tip": "Dată",    "implicit": true, "obligatoriu": true },
+      { "id": "activPanaLa", "label": "Activ până la", "tip": "Dată",    "implicit": true }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clasificatoare — GEAP 2.0 Back Office</title>
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/clasificatoare.css" />
+</head>
+<body>
+  <main class="clas-page">
+    <div class="clas-page__container" data-clas-root>
+      <!-- rendered by js/clasificatoare-view.js -->
+    </div>
+  </main>
+
+  <!-- Detail dialog. Uses the existing .modal component; the .drawer this
+       screen eventually wants does not exist in the library yet and is not
+       invented here. -->
+  <div class="modal-overlay" data-clas-modal-overlay>
+    <div class="modal modal--lg" role="dialog" aria-modal="true" aria-labelledby="clas-detail-title">
+      <button type="button" class="modal-close" data-clas-modal-close aria-label="Închide">
+        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
+      </button>
+      <div data-clas-modal-body></div>
+    </div>
+  </div>
+
+  <!-- Order matters: core before api, api before the view. Each module
+       throws a named error if a dependency is missing. -->
+  <script src="core/render.js"></script>
+  <script src="core/classifiers.js"></script>
+  <script src="core/permissions.js"></script>
+  <script src="core/gating.js"></script>
+  <script src="core/filters.js"></script>
+  <script src="api/endpoints.js"></script>
+  <script src="api/mock-server.js"></script>
+  <script src="api/client.js"></script>
+  <script src="js/clasificatoare-view.js"></script>
+</body>
+</html>

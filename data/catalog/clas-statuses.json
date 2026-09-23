@@ -1,0 +1,9 @@
+{
+  "_source": "CLAS_STATUS (artifact L3862). Lifecycle of the classifier itself, not of its values (those stay activ/inactiv).",
+  "_note": "Simplified from Concept v0.2's Draft/Published/Deprecated: `archived` replaces `deprecated` by explicit request, and applies to the whole classifier rather than a version. Tracked as DIV-C1.",
+  "statuses": {
+    "draft":     { "label": "Ciornă",   "tone": "neutral", "icon": "edit" },
+    "published": { "label": "Publicat", "tone": "ok",      "icon": "check" },
+    "archived":  { "label": "Arhivat",  "tone": "crit",    "icon": "archive" }
+  }
+}
