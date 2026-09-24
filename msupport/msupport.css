@@ -1264,3 +1264,63 @@ body.msup-locked {
     transform: none;
   }
 }
+
+/* ---- anonymous reporters ----------------------------------------------
+   Step 1 (Figma 8384:108926): reply email, then the optional MPass nudge
+   — the library subtle-info banner (banner--info + --subtle; children use
+   the banner__ prefix, see components.md) with a text-link action. */
+.msup-anon {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  /* + the panel body's 16px gap = Figma's 32px before the choices */
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.msup-auth-note {
+  animation: none;
+  gap: var(--spacing-12, 12px);
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.msup-auth-note .banner__content {
+  gap: var(--spacing-8, 8px);
+}
+
+.msup-auth-note .banner__text {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.msup-auth-note__action {
+  align-self: flex-start;
+  appearance: none;
+  background: none;
+  border: 0;
+  color: var(--color-text-brand-default, #0058d2);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: 0;
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.msup-auth-note__action:hover {
+  text-decoration: none;
+}
+
+.msup-auth-note__action:focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.msup-anon[hidden],
+.msup-auth-note[hidden] {
+  display: none;
+}

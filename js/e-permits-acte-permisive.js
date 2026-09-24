@@ -3579,7 +3579,15 @@
 
         const supportContext = () => {
           const service = frontOfficeSchema?.service;
-          const subject = frontOfficeSelectedSubject;
+          /* the page pre-selects a default subject at load, even behind the
+             MPass gate — only count it as signed in on the screens that sit
+             after authentication */
+          const signedIn = Boolean(
+            (frontOfficeChoiceScreen && !frontOfficeChoiceScreen.hidden)
+            || (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden)
+            || (frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden)
+          );
+          const subject = signedIn ? frontOfficeSelectedSubject : null;
           const actor = subject
             ? { type: "citizen", name: subject.name, idnp: subject.idValue, email: subject.contact?.email }
             : supportGuestActor();
@@ -3598,6 +3606,8 @@
         MSupport.init({
           sprite: "assets/icons/sprite.svg",
           getContext: supportContext,
+          /* offered by the widget only while the reporter is anonymous */
+          authenticate: openMpassTestPage,
           dispatch: (payload) => {
             console.log("[MSupport] dispatch →", payload);
             return new Promise((resolve) => {

@@ -54,6 +54,9 @@
       <button type="button" class="chip" data-surface="business">
         <span class="chip__label">GEAP Back Office</span>
       </button>
+      <button type="button" class="chip" data-surface="anonymous">
+        <span class="chip__label">Neautentificat</span>
+      </button>
     </div>
 
     <div class="demo-note">
@@ -63,6 +66,8 @@
         <li><strong>Cetățean:</strong> își alege dosarul din propriile solicitări — listă derulantă.</li>
         <li><strong>Business:</strong> dosarul este preluat automat din modulul aflat în lucru; rămâne editabil.</li>
         <li>Doar utilizatorii business au <em>Autoritate</em> și <em>Subdiviziune</em> în informațiile tehnice.</li>
+        <li><strong>Neautentificat:</strong> fără <code>actor.email</code>, formularul cere o adresă de email; dacă gazda oferă
+          <code>authenticate()</code>, primul pas propune autentificarea cu MPass.</li>
       </ul>
     </div>
 
@@ -109,6 +114,16 @@
           authority: "ANSP",
           subdivision: "Subdiviziunea Chișinău",
           bubbleAvatar: "../assets/logos/evo-logo-square.svg"
+        },
+        anonymous: {
+          surface: "EVO — serviciu fără autentificare",
+          route: "/services/09",
+          entityKind: "Cerere",
+          entityRef: null,
+          entityLabel: null,
+          entityOptions: [],
+          actor: null,
+          bubbleAvatar: "../assets/logos/evo-logo-square.svg"
         }
       };
 
@@ -122,6 +137,11 @@
 
           /* Trigger/Core read the host's context from here. */
           getContext: function () { return SURFACES[current]; },
+
+          /* the host's sign-in; stubbed here — in the full flow it opens MPass */
+          authenticate: function () {
+            window.alert("Aici gazda deschide autentificarea MPass.");
+          },
 
           /* The single swap point for reuse. In MMIP this is MNotify →
              support@egov.md; elsewhere it could be Jira, ServiceNow, a webhook.

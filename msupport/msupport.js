@@ -23,7 +23,14 @@
                             authority?, subdivision? }),
        dispatch:   async (payload) => ({ referenceId }),
        sprite?:    "assets/icons/sprite.svg",
+       authenticate?: () => void,   // optional host sign-in (e.g. MPass)
      });
+
+   Anonymous reporters: when getContext().actor carries no email, step 1 asks
+   for one first (the reply channel is email, so it is required before a type can
+   be picked). If the host passes authenticate(), step 1 also offers signing
+   in instead — on step 1, because signing in leaves the page and would
+   discard a draft.
    ========================================================================== */
 
 (function (global) {
@@ -100,7 +107,15 @@
   var ERRORS = {
     name: "Adaugă un rezumat scurt — devine subiectul sesizării.",
     description: "Descrie situația, ca să putem investiga fără să revenim cu întrebări.",
+    email: "Adaugă adresa de email la care să-ți răspundem.",
+    emailFormat: "Verifică adresa de email — pare incompletă.",
   };
+
+  var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  function isAnonymous(ctx) {
+    return !(ctx && ctx.actor && ctx.actor.email);
+  }
 
   /* ---------- helpers ---------- */
 
@@ -280,6 +295,33 @@
         /* ---- state: type chooser (step 1) ---- */
         '<div class="msup-state" data-msup-state="type">' +
           '<div class="msup-panel__body">' +
+            /* anonymous reporters only (Figma 8384:108926): reply email, then
+               the optional MPass nudge */
+            '<div class="msup-anon" hidden data-msup-anon>' +
+              '<div class="e-permits-fo-field" data-msup-field="email" data-msup-email-field>' +
+                '<div class="e-permits-fo-field__label-row">' +
+                  '<label for="msup-email">Email pentru răspuns ' + req + "</label>" +
+                "</div>" +
+                '<div class="e-permits-fo-input">' +
+                  '<input id="msup-email" type="email" inputmode="email" autocomplete="email"' +
+                  ' placeholder="ex: ion.popescu@gmail.com" data-msup-email>' +
+                "</div>" +
+                '<div class="message message--inline message--error message--small" hidden data-msup-error="email">' +
+                  icon(sprite, "icon-circle-error", "small") +
+                  "<span></span>" +
+                "</div>" +
+              "</div>" +
+              /* anonymous + host can sign in: an optional nudge, never a gate */
+              '<div class="message message--subtle banner--info msup-auth-note" hidden data-msup-auth-note>' +
+                '<span class="banner__icon">' + icon(sprite, "icon-circle-info-filled") + "</span>" +
+                '<div class="banner__content">' +
+                  '<p class="banner__text">Autentifică-te cu MPass și îți completăm automat datele de contact, ' +
+                  "sau lasă-ne mai jos adresa de email și trimite sesizarea fără autentificare.</p>" +
+                  '<button class="msup-auth-note__action" type="button" data-msup-authenticate>Autentifică-te cu MPass</button>' +
+                "</div>" +
+              "</div>" +
+            "</div>" +
+
             '<div class="msup-choices" role="group" aria-label="Tipul sesizării">' +
               TYPES.map(function (t) {
                 return (
@@ -536,7 +578,21 @@
       diagToggle: q("[data-msup-diag-toggle]"),
       diagPanel: q("[data-msup-diag-panel]"),
       diagList: q("[data-msup-diag-list]"),
+      email: q("[data-msup-email]"),
+      anon: q("[data-msup-anon]"),
+      authNote: q("[data-msup-auth-note]"),
     };
+
+    var authenticate = typeof options.authenticate === "function" ? options.authenticate : null;
+
+    /* re-read on every open: the host may sign the user in or out while the
+       widget stays mounted */
+    function syncAnonymous() {
+      var anon = isAnonymous(getContext());
+      el.anon.hidden = !anon;
+      el.authNote.hidden = !authenticate;
+      if (!anon) setError("email", "");
+    }
 
     /* ---------- state machine: form → submitting → confirmation ---------- */
 
@@ -569,6 +625,7 @@
       state.open = open;
       window.clearTimeout(closeTimer);
       if (open) {
+        syncAnonymous();
         el.panel.classList.remove("is-closing");
         el.panel.hidden = false;
       } else if (!el.panel.hidden) {
@@ -631,7 +688,7 @@
       var box = root.querySelector('[data-msup-error="' + field + '"]');
       box.querySelector("span").textContent = message || "";
       box.hidden = !message;
-      var control = field === "name" ? el.name : el.desc;
+      var control = field === "name" ? el.name : field === "email" ? el.email : el.desc;
       control.setAttribute("aria-invalid", message ? "true" : "false");
     }
 
@@ -643,6 +700,17 @@
       /* an invalid attachment blocks submit until it is removed */
       for (var i = 0; i < state.files.length; i++) if (state.files[i].error) ok = false;
       return ok;
+    }
+
+    /* step 1 gate for anonymous reporters: no type until the reply address is valid */
+    function validateEmail() {
+      if (el.anon.hidden) return true;
+      var email = el.email.value.trim();
+      if (!email) setError("email", ERRORS.email);
+      else if (!EMAIL_RE.test(email)) setError("email", ERRORS.emailFormat);
+      else { setError("email", ""); return true; }
+      el.email.focus();
+      return false;
     }
 
     /* ---------- attachments ---------- */
@@ -701,7 +769,7 @@
       if (event.target.closest("[data-msup-close], [data-msup-cancel], [data-msup-scrim]")) setOpen(false);
 
       var typeButton = event.target.closest("[data-msup-type]");
-      if (typeButton) {
+      if (typeButton && validateEmail()) {
         applyType(typeButton.getAttribute("data-msup-type"));
         showState("form");
       }
@@ -795,6 +863,12 @@
 
     el.name.addEventListener("input", function () { setError("name", ""); });
     el.desc.addEventListener("input", function () { setError("description", ""); });
+    el.email.addEventListener("input", function () { setError("email", ""); });
+
+    root.addEventListener("click", function (event) {
+      if (!event.target.closest("[data-msup-authenticate]") || !authenticate) return;
+      authenticate();
+    });
 
     el.diagToggle.addEventListener("click", function () {
       var expanded = el.diagToggle.getAttribute("aria-expanded") === "true";
@@ -865,6 +939,7 @@
       el.desc.value = "";
       setError("name", "");
       setError("description", "");
+      setError("email", "");
       renderFiles();
       el.doneBadge.hidden = true;
       el.doneClose.hidden = false;
@@ -876,7 +951,8 @@
     function renderUserEmail() {
       var current = getContext();
       var slot = root.querySelector("[data-msup-user-email]");
-      if (slot) slot.textContent = (current.actor && current.actor.email) || "adresa din contul tău";
+      var typed = !el.anon.hidden ? el.email.value.trim() : "";
+      if (slot) slot.textContent = (current.actor && current.actor.email) || typed || "adresa din contul tău";
     }
 
     /* ---------- dispatch ---------- */
@@ -891,7 +967,10 @@
         relatedEntity: state.entityRef ? { ref: state.entityRef, label: state.entityLabel } : null,
         attachments: state.files.map(function (f) { return { name: f.name, size: f.size }; }),
         diagnostics: renderDiagnostics(),
-        actor: current.actor,
+        /* anonymous reporters are identified only by the email they gave */
+        actor: isAnonymous(current)
+          ? { type: "anonymous", email: el.email.value.trim() }
+          : current.actor,
         submittedAt: new Date().toISOString(),
       };
 
@@ -919,6 +998,7 @@
     mobile.addEventListener("change", syncModality);
     root.classList.add("has-bubble");
     applyType(state.type.id);
+    syncAnonymous();
     showState("type");
 
     return {
