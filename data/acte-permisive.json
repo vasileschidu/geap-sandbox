@@ -865,14 +865,13 @@
         "builderSeedFormId": "form-commerce-notification"
       },
       "intent": {
-        "_note": "US-191. Not from spec, flag for PO: the status × post-process matrix, the routine/consequential split, the consequence copy, the service-passport list (serviceAllows) and the act fields shown are prototype assumptions.",
+        "_note": "US-191. Not from spec, flag for PO: the status × post-process matrix, the routine/consequential split, the consequence copy, the service-passport list (serviceAllows) and the act fields shown are prototype assumptions. The step is skipped entirely when the identity has no act with an available post-process.",
         "title": "Ce vrei să soliciți?",
         "subjectLabel": "Solicitant",
         "newRequest": { "title": "Solicitare nouă", "text": "Depui o cerere pentru un act nou" },
         "separator": "sau",
         "actsTitle": "Acte emise pentru acest serviciu",
         "actionLabel": "Inițiază un postproces",
-        "emptyText": "Nu ai acte emise pentru acest serviciu asupra cărora să poți iniția un postproces.",
         "postProcesses": {
           "reperfectare": { "label": "Reperfectare", "icon": "icon-edit", "kind": "routine" },
           "prelungire": { "label": "Prelungire", "icon": "icon-rotate-arrow", "kind": "routine" },

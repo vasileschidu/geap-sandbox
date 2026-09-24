@@ -2822,7 +2822,15 @@
       renderFrontOfficeAvatarMenuFromSchema(frontOfficeSchema);
       /* switching identity from the header while on "Ce vrei să soliciți?"
          swaps the acts list to the new identity's */
-      if (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden) renderFrontOfficeIntent();
+      if (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden && !frontOfficeIntentApplying) {
+        if (frontOfficeShouldShowIntent(subject)) {
+          renderFrontOfficeIntent();
+        } else {
+          /* the new identity has nothing to post-process: skip to the form */
+          history.replaceState(null, "", "#request");
+          showFrontOfficeRequest({ step: 1 });
+        }
+      }
     }
 
     function selectFrontOfficeSubject(subjectId) {
@@ -3259,9 +3267,21 @@
       return frontOfficeSchema?.intent || null;
     }
 
+    /* Shown only when there is something to act on: an identity with no act
+       that has an available post-process goes straight to the request form
+       (no empty state — "Solicitare nouă" would be the only choice). */
     function frontOfficeShouldShowIntent(subject) {
-      return Boolean(frontOfficeIntentConfig() && subject && subject.scenario !== "notarial-proxy");
+      return Boolean(
+        frontOfficeIntentConfig()
+        && subject
+        && subject.scenario !== "notarial-proxy"
+        && intentActs(subject).length > 0
+      );
     }
+
+    /* set while the test panel re-applies the schema, so the identity-switch
+       hook below doesn't navigate on its own mid-apply */
+    let frontOfficeIntentApplying = false;
 
     function availablePostprocesses(act, config = frontOfficeIntentConfig()) {
       if (!config) return [];
@@ -3357,9 +3377,7 @@
 
         <section class="e-permits-fo-intent__acts" aria-labelledby="fo-intent-acts-title">
           <p class="e-permits-fo-intent__acts-title" id="fo-intent-acts-title">${esc(config.actsTitle)}</p>
-          ${acts.length
-            ? `<ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>`
-            : `<p class="e-permits-fo-intent__empty">${esc(config.emptyText)}</p>`}
+          <ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>
         </section>
       `;
     }
@@ -3606,7 +3624,12 @@
     if (window.location.hash === "#intent") {
       frontOfficeSchemaLoadPromise.then(() => {
         const subject = frontOfficeSelectedSubject || selectFrontOfficeSubject(frontOfficeSchema?.defaultSubjectId);
-        if (frontOfficeShouldShowIntent(subject)) showFrontOfficeIntent({ focus: false });
+        if (frontOfficeShouldShowIntent(subject)) {
+          showFrontOfficeIntent({ focus: false });
+        } else if (subject) {
+          history.replaceState(null, "", "#request");
+          showFrontOfficeRequest({ focus: false, step: 1 });
+        }
       });
     }
 
@@ -3665,15 +3688,11 @@
           if (cfg.authenticated === "no") {
             return "<strong>Ecran: formular liber</strong>Fără autentificare — solicitantul se identifică tastând IDNP-ul.";
           }
-          const next = cfg.intent === "yes"
-            ? (cfg.acts === "yes"
-              ? " După alegere urmează „Ce vrei să soliciți?” (SRL Global Trader și «Vita-Plant» SRL au acte)."
-              : " După alegere urmează „Ce vrei să soliciți?”, cu lista de acte goală.")
+          const next = cfg.intent === "yes" && cfg.acts === "yes"
+            ? " După alegere urmează „Ce vrei să soliciți?” pentru identitățile cu acte (SRL Global Trader, «Vita-Plant» SRL); celelalte merg direct la cerere."
             : " După alegere se deschide direct cererea.";
           if (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden) {
-            return cfg.acts === "yes"
-              ? "<strong>Ecran: Ce vrei să soliciți?</strong>Solicitare nouă sau un postproces pe unul din actele emise identității alese."
-              : "<strong>Ecran: Ce vrei să soliciți?</strong>Fără acte emise — rămâne doar Solicitare nouă, plus mesajul de stare goală.";
+            return "<strong>Ecran: Ce vrei să soliciți?</strong>Solicitare nouă sau un postproces pe unul din actele emise identității alese.";
           }
           if (!selectable.length) {
             return `<strong>Ecran: selectorul de instanțe</strong>Nicio identitate ${allowed.join(" + ")} eligibilă; rămâne doar procura notarială.`;
@@ -3687,9 +3706,9 @@
           next.auth.required = cfg.requiresAuth === "yes";
           next.auth.availableFor = allowedFor();
 
-          /* "Ce vrei să soliciți?": dropping schema.intent is what switches the
-             step off (frontOfficeShouldShowIntent reads it); emptying acts
-             leaves the step on but with its empty state */
+          /* "Ce vrei să soliciți?": dropping schema.intent switches the step
+             off; emptying acts has the same visible effect, since the step
+             is only shown when the identity has an act to post-process */
           if (cfg.intent === "no") delete next.intent;
           else if (next.intent && cfg.acts === "no") next.intent.acts = {};
 
@@ -3704,16 +3723,24 @@
           const wasOnIntent = Boolean(frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden);
           const previousSubjectId = frontOfficeSelectedSubject?.id;
 
+          frontOfficeIntentApplying = true;
           applyFrontOfficeSchema(next);
+          frontOfficeIntentApplying = false;
 
-          if (cfg.authenticated === "yes" && wasOnIntent && frontOfficeIntentConfig()) {
-            /* stay on "Ce vrei să soliciți?" with the same identity if it is
-               still eligible, so toggling acts is visible in place */
-            const kept = previousSubjectId ? selectFrontOfficeSubject(previousSubjectId) : null;
-            if (frontOfficeShouldShowIntent(kept || frontOfficeSelectedSubject)) {
+          const previousStillEligible = Boolean(
+            previousSubjectId
+            && frontOfficeSelectableSubjects(next).some((s) => s.id === previousSubjectId && s.selectable !== false)
+          );
+
+          if (cfg.authenticated === "yes" && wasOnIntent && previousStillEligible) {
+            /* same identity still eligible: keep it, and show the step only
+               if it still has acts — otherwise continue to the request form */
+            const kept = selectFrontOfficeSubject(previousSubjectId);
+            if (frontOfficeShouldShowIntent(kept)) {
               showFrontOfficeIntent({ focus });
             } else {
-              setFrontOfficeScreen("choice", { focus });
+              history.replaceState(null, "", "#request");
+              showFrontOfficeRequest({ focus, step: 1 });
             }
           } else if (cfg.authenticated === "yes") {
             setFrontOfficeScreen("choice", { focus });
