@@ -316,7 +316,7 @@
                 '<span class="banner__icon">' + icon(sprite, "icon-circle-info-filled") + "</span>" +
                 '<div class="banner__content">' +
                   '<p class="banner__text">Autentifică-te cu MPass și îți completăm automat datele de contact, ' +
-                  "sau lasă-ne mai jos adresa de email și trimite sesizarea fără autentificare.</p>" +
+                  "sau lasă-ne mai sus adresa de email și trimite sesizarea fără autentificare.</p>" +
                   '<button class="msup-auth-note__action" type="button" data-msup-authenticate>Autentifică-te cu MPass</button>' +
                 "</div>" +
               "</div>" +
