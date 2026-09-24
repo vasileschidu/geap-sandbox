@@ -955,7 +955,9 @@
     }
 
     function renderStepperFromSchema(schema) {
-      const stepperList = document.querySelector(".e-permits-fo-stepper ol");
+      /* scoped: the guest screen carries a static copy of this stepper earlier
+         in the DOM, and an unscoped lookup rendered into that one instead */
+      const stepperList = frontOfficeRequestScreen?.querySelector(".e-permits-fo-stepper ol");
       if (!stepperList || !Array.isArray(schema?.steps) || !schema.steps.length) return;
       stepperList.innerHTML = schema.steps.map((step, index) => {
         const active = index === 0;

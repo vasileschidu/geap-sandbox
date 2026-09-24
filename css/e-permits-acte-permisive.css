@@ -41,12 +41,16 @@
 :root {
   --motion-dropdown-duration: 100ms;
   --motion-dropdown-ease: cubic-bezier(0.4, 0, 0.2, 1);
-  /* Figma page container — the same 1248px the library's .container caps at
-     from the 1280 breakpoint up. Header bands and the request layout share it
-     so the stepper's left edge lines up with the logo. */
+  /* Figma grid (4815:55679): a 1248px page container with 24px side padding,
+     so header and body share one 1200px column (x=120 at 1440). Inside it:
+     280px stepper, 24px gap, then the remaining column with the 768px form
+     centred in it. The header bands and the request layout both use it, so
+     the logo, the stepper and the form edges line up. */
   --fo-page-width: 1248px;
-  --fo-sidebar-width: 256px;
-  --fo-form-width: 756px;
+  --fo-page-gutter: var(--spacing-24, 24px);
+  --fo-sidebar-width: 280px;
+  --fo-sidebar-gap: var(--spacing-24, 24px);
+  --fo-form-width: 768px;
 }
 
 @keyframes e-permits-dropdown-in {
@@ -3288,7 +3292,7 @@
   align-items: center;
   display: flex;
   justify-content: space-between;
-  max-width: var(--fo-page-width, 1248px);
+  max-width: calc(var(--fo-page-width, 1248px) - 2 * var(--fo-page-gutter, 24px));
   min-width: 0;
   width: 100%;
 }
@@ -3381,10 +3385,11 @@
   flex-direction: column;
   flex: 1 1 auto;
   gap: var(--spacing-6, 6px);
-  height: 48px;
   justify-content: center;
   min-width: 0;
-  padding: 0 0 0 var(--spacing-16, 16px);
+  /* Figma Title Container: the divider hugs the title (4px above and below),
+     it no longer spans the full 48px */
+  padding: var(--spacing-4, 4px) 0 var(--spacing-4, 4px) var(--spacing-16, 16px);
 }
 
 .e-permits-fo-auth__service-title-row {
@@ -3457,7 +3462,8 @@
   flex: 0 0 256px;
   font-family: var(--font-family-primary-font, Onest), system-ui, sans-serif;
   gap: 0;
-  height: 54px;
+  /* Figma role-switch-item: 6px top/bottom around the 40px avatar = 52 */
+  height: 52px;
   justify-content: flex-start;
   overflow: visible;
   padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
@@ -3470,7 +3476,7 @@
   align-items: center;
   display: flex;
   gap: var(--spacing-12, 12px);
-  height: 42px;
+  height: 40px;
   min-width: 0;
   width: 240px;
 }
@@ -4471,7 +4477,9 @@
   flex: 1 0 auto;
   justify-content: center;
   overflow: visible;
-  padding: 0 var(--spacing-56, 56px);
+  /* the 24px gutter lives on .e-permits-fo-request__inner, same as the
+     header bands, so body and header share one column at every width */
+  padding: 0;
 }
 
 .e-permits-fo-auth__card {
@@ -5206,9 +5214,11 @@
 
 .e-permits-fo-request__inner {
   align-items: flex-start;
+  box-sizing: border-box;
   display: flex;
   flex: 0 1 var(--fo-page-width, 1248px);
-  gap: var(--spacing-56, 56px);
+  gap: var(--fo-sidebar-gap, 24px);
+  padding-inline: var(--fo-page-gutter, 24px);
   justify-content: flex-start;
   margin-inline: auto;
   max-width: var(--fo-page-width, 1248px);
@@ -16605,10 +16615,13 @@
     padding-right: var(--spacing-24, 24px);
   }
 
+  /* narrower stepper; main pads 24px here, and the column spans it fully so
+     the stepper stays under the logo */
   .e-permits-fo-request__inner {
-    flex-basis: calc(220px + var(--spacing-32, 32px) + var(--fo-form-width, 756px));
+    flex-basis: auto;
     gap: var(--spacing-32, 32px);
-    max-width: calc(220px + var(--spacing-32, 32px) + var(--fo-form-width, 756px));
+    max-width: none;
+    padding-inline: 0;
   }
 
   .e-permits-fo-request__sidebar {
