@@ -85,13 +85,11 @@
     let frontOfficeSchema = null;
     let frontOfficeSchemaLoadPromise = null;
     let frontOfficeSelectedSubject = null;
-    let frontOfficeToastTimer = null;
     let frontOfficeSubjectLoadTimer = null;
     let frontOfficeSubjectLoadToken = 0;
     let frontOfficeDraftCreated = false;
     /* the "creată ca schiță" toast is a one-shot per request, not per step */
     let frontOfficeDraftToastShown = false;
-    let frontOfficeDraftToastTimer = null;
     let frontOfficeDraftSavedAt = null;
     let frontOfficeDraftInfoDismissed = false;
     let frontOfficeInstanceSwitchReturnFocus = null;
@@ -155,80 +153,22 @@
         .replace(/"/g, "&quot;");
     }
 
-    function dismissFrontOfficeToast(toast) {
-      if (!toast || toast.classList.contains("is-hiding")) return;
-      toast.classList.add("is-hiding");
-      toast.addEventListener("animationend", () => toast.remove(), { once: true });
-    }
-
+    /* toasts are the product toast (js/toast.js → library .toast) */
     function showFrontOfficeToast(message = "Schița a fost salvată.") {
-      document.querySelectorAll('[data-fo-toast="transient"]').forEach((toast) => toast.remove());
-      if (frontOfficeToastTimer) window.clearTimeout(frontOfficeToastTimer);
-
-      const toast = document.createElement("div");
-      toast.className = "e-permits-fo-toast e-permits-fo-toast--success";
-      toast.dataset.foToast = "transient";
-      toast.setAttribute("role", "status");
-      toast.setAttribute("aria-live", "polite");
-      toast.innerHTML = `
-        <span class="e-permits-fo-toast__icon" aria-hidden="true">
-          <svg class="icon" width="20" height="20">
-            <use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use>
-          </svg>
-        </span>
-        <span class="e-permits-fo-toast__text">${escapeFrontOfficeHtml(message)}</span>
-        <button class="e-permits-fo-toast__close" type="button" aria-label="Închide notificarea">
-          <svg class="icon" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-cross-large"></use>
-          </svg>
-        </button>
-      `;
-
-      toast.querySelector(".e-permits-fo-toast__close")?.addEventListener("click", () => {
-        if (frontOfficeToastTimer) window.clearTimeout(frontOfficeToastTimer);
-        dismissFrontOfficeToast(toast);
-      });
-
-      document.body.appendChild(toast);
-      const persistentToast = document.querySelector('[data-fo-toast="draft-created"]:not(.is-hiding)');
-      if (persistentToast) {
-        toast.style.setProperty("--fo-toast-top", `${32 + persistentToast.offsetHeight + 12}px`);
-      }
-      frontOfficeToastTimer = window.setTimeout(() => dismissFrontOfficeToast(toast), 4000);
+      window.GEAPToast?.show({ type: "success", message, key: "fo-transient" });
     }
 
     function showFrontOfficeDraftCreatedToast() {
       if (frontOfficeDraftToastShown) return;
-      if (document.querySelector('[data-fo-toast="draft-created"]')) return;
       frontOfficeDraftToastShown = true;
-
-      const toast = document.createElement("div");
-      toast.className = "e-permits-fo-toast e-permits-fo-toast--inverse";
-      toast.dataset.foToast = "draft-created";
-      toast.setAttribute("role", "status");
-      toast.setAttribute("aria-live", "polite");
-      toast.innerHTML = `
-        <span class="e-permits-fo-toast__icon" aria-hidden="true">
-          <svg class="icon" width="20" height="20">
-            <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-success"></use>
-          </svg>
-        </span>
-        <span class="e-permits-fo-toast__text">
-          <strong>Cererea a fost creată ca schiță</strong> și poate fi accesată în
-          <a href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a>.
-        </span>
-        <button class="e-permits-fo-toast__close" type="button" aria-label="Închide notificarea">
-          <svg class="icon" width="16" height="16" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-cross-large"></use>
-          </svg>
-        </button>
-      `;
-      toast.querySelector(".e-permits-fo-toast__close")?.addEventListener("click", () => {
-        window.clearTimeout(frontOfficeDraftToastTimer);
-        dismissFrontOfficeToast(toast);
+      window.GEAPToast?.show({
+        type: "success",
+        title: "Cererea a fost creată ca schiță",
+        message: "O poți relua oricând din Solicitările mele.",
+        link: { href: "e-permits-acte-permisive.html?flow=back-office", label: "Deschide Solicitările mele" },
+        duration: 5000,
+        key: "fo-draft-created"
       });
-      document.body.appendChild(toast);
-      frontOfficeDraftToastTimer = window.setTimeout(() => dismissFrontOfficeToast(toast), 5000);
     }
 
     function frontOfficeTimeLabel(date = new Date()) {
@@ -327,8 +267,7 @@
       frontOfficeDraftSavedAt = null;
       frontOfficeDraftInfoDismissed = false;
       frontOfficeDraftToastShown = false;
-      window.clearTimeout(frontOfficeDraftToastTimer);
-      document.querySelector('[data-fo-toast="draft-created"]')?.remove();
+      document.querySelector('[data-toast-key="fo-draft-created"]')?.remove();
       updateFrontOfficeRequestHeaders();
     }
 
@@ -2126,11 +2065,9 @@
         : "";
 
       paperRoot.innerHTML = `
-        <label class="e-permits-fo-delivery-paper">
-          <input type="checkbox" ${paperCopy.selected ? "checked" : ""} data-fo-delivery-paper-toggle>
-          <span class="e-permits-fo-delivery-paper__box" aria-hidden="true">
-            <svg class="icon" width="18" height="18"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>
-          </span>
+        <label class="checkbox checkbox--medium e-permits-fo-delivery-paper">
+          <input class="checkbox-input" type="checkbox" ${paperCopy.selected ? "checked" : ""} data-fo-delivery-paper-toggle>
+          <span class="checkbox-custom" aria-hidden="true"></span>
           <span class="e-permits-fo-delivery-paper__copy">
             <span class="e-permits-fo-delivery-paper__title">${escapeFrontOfficeHtml(paperCopy.label || "Am nevoie și de o copie pe suport de hârtie")}</span>
             <span class="e-permits-fo-delivery-paper__description">${escapeFrontOfficeHtml(paperCopy.description || "")}</span>
@@ -4994,7 +4931,7 @@
       if (!list) return;
       list.innerHTML = subgenres.map((value) => `
         <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="${escapeFrontOfficeHtml(value)}" tabindex="-1">
-          <span class="e-permits-fo-subgen-select__checkbox" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
+          <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span>
           <span>${escapeFrontOfficeHtml(value)}</span>
         </li>
       `).join("");
@@ -5496,6 +5433,8 @@
           chip.querySelector(".e-permits-fo-subgen-chip__remove").addEventListener("click", () => {
             option.classList.remove("is-selected");
             option.setAttribute("aria-selected", "false");
+            const subgenBox = option.querySelector(".checkbox-input");
+            if (subgenBox) subgenBox.checked = false;
             updateSummary();
           });
           chips.appendChild(chip);
@@ -5546,6 +5485,8 @@
         const isSelected = !option.classList.contains("is-selected");
         option.classList.toggle("is-selected", isSelected);
         option.setAttribute("aria-selected", String(isSelected));
+        const subgenBox = option.querySelector(".checkbox-input");
+        if (subgenBox) subgenBox.checked = isSelected;
         updateSummary();
       }
 
@@ -5596,6 +5537,8 @@
         options.forEach((option) => {
           option.classList.remove("is-selected");
           option.setAttribute("aria-selected", "false");
+          const subgenBox = option.querySelector(".checkbox-input");
+          if (subgenBox) subgenBox.checked = false;
         });
         setOpen(false);
         updateSummary();
@@ -5645,6 +5588,8 @@
         option.hidden = false;
         option.classList.remove("is-selected", "is-active", "is-disabled");
         option.setAttribute("aria-selected", "false");
+        const subgenBox = option.querySelector(".checkbox-input");
+        if (subgenBox) subgenBox.checked = false;
         option.setAttribute("aria-disabled", "false");
       });
 
@@ -5691,6 +5636,8 @@
         option.hidden = false;
         option.classList.remove("is-selected", "is-active");
         option.setAttribute("aria-selected", "false");
+        const subgenBox = option.querySelector(".checkbox-input");
+        if (subgenBox) subgenBox.checked = false;
       });
     }
 
@@ -6774,7 +6721,7 @@
           <div class="e-permits-builder__static-editor-row" data-static-row="${index}">
             <span>#${value.id}</span>
             <input type="text" value="${String(value.name || "").replace(/"/g, "&quot;")}" placeholder="Nume valoare" data-static-name>
-            <label><input type="checkbox" ${value.isValid !== false ? "checked" : ""} data-static-active> Active</label>
+            <label class="checkbox checkbox--medium e-permits-builder__mini-check"><input class="checkbox-input" type="checkbox" ${value.isValid !== false ? "checked" : ""} data-static-active><span class="checkbox-custom" aria-hidden="true"></span><span>Active</span></label>
           </div>
         `).join("");
         const paint = () => {
@@ -7040,9 +6987,9 @@
                   <button class="e-permits-builder__required-chip${part.required ? " is-on" : ""}" type="button" aria-pressed="${String(part.required)}" data-address-required="${escapeHtml(part.key)}">
                     <span aria-hidden="true"><svg class="icon" width="12" height="12"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
                   </button>
-                  <label class="e-permits-builder__mini-check e-permits-builder__mini-check--only" aria-label="Vizibilitate">
-                    <input type="checkbox" ${part.visible ? "checked" : ""} data-address-visible="${escapeHtml(part.key)}">
-                    <span></span>
+                  <label class="checkbox checkbox--medium e-permits-builder__mini-check" aria-label="Vizibilitate">
+                    <input class="checkbox-input" type="checkbox" ${part.visible ? "checked" : ""} data-address-visible="${escapeHtml(part.key)}">
+                    <span class="checkbox-custom" aria-hidden="true"></span>
                   </label>
                   <button class="e-permits-builder__address-collapse" type="button" aria-expanded="${String(isOpen)}" data-address-toggle-section="${escapeHtml(part.key)}" aria-label="${isOpen ? "Restrânge" : "Extinde"} ${escapeHtml(part.label)}">
                     <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
@@ -8639,39 +8586,6 @@
     }
 
     initFormBuilder();
-
-    document.querySelectorAll(".permits-profile__tabs .tab-buttons").forEach((tabList) => {
-      const tabs = Array.from(tabList.querySelectorAll(".tab-button[role='tab']"));
-
-      function activateTab(tab) {
-        tabs.forEach((item) => {
-          const isActive = item === tab;
-          item.classList.toggle("active", isActive);
-          item.setAttribute("aria-selected", String(isActive));
-          item.tabIndex = isActive ? 0 : -1;
-        });
-      }
-
-      tabs.forEach((tab, index) => {
-        tab.tabIndex = tab.classList.contains("active") ? 0 : -1;
-
-        tab.addEventListener("click", () => {
-          activateTab(tab);
-        });
-
-        tab.addEventListener("keydown", (event) => {
-          const isNext = event.key === "ArrowRight" || event.key === "ArrowDown";
-          const isPrevious = event.key === "ArrowLeft" || event.key === "ArrowUp";
-          if (!isNext && !isPrevious) return;
-
-          event.preventDefault();
-          const direction = isNext ? 1 : -1;
-          const nextIndex = (index + direction + tabs.length) % tabs.length;
-          tabs[nextIndex].focus();
-          activateTab(tabs[nextIndex]);
-        });
-      });
-    });
 
     document.querySelectorAll(".permits-table__row[data-row-link]").forEach((row) => {
       row.addEventListener("click", (event) => {

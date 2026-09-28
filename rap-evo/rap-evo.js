@@ -60,7 +60,6 @@
     resetAll: document.querySelector("[data-rap-filter-reset-all]"),
     filterCounts: [...document.querySelectorAll("[data-rap-filter-count]")],
     tooltip: document.querySelector("[data-rap-tooltip]"),
-    toast: document.querySelector("[data-rap-toast]"),
     listView: document.querySelector("[data-rap-list-view]"),
     profileView: document.querySelector("[data-rap-profile-view]"),
     companySummary: document.querySelector("[data-rap-company-summary]")
@@ -192,7 +191,7 @@
       }, 1600);
     } catch (error) {
       console.error(error);
-      showToast("Valoarea nu a putut fi copiată.");
+      showToast("Valoarea nu a putut fi copiată.", "error");
     }
   };
 
@@ -595,9 +594,9 @@
     const options = sectionOptions(key).filter((option) => !query || normalize(option.label).includes(query));
     list.innerHTML = options.length
       ? options.map((option) => `
-        <label class="rap-filter-option${draft.has(option.value) ? " is-checked" : ""}">
-          <input type="checkbox" value="${escapeHtml(option.value)}" data-rap-option="${key}" ${draft.has(option.value) ? "checked" : ""}>
-          <span class="rap-filter-option__box" aria-hidden="true">${icon("checkmark-small")}</span>
+        <label class="checkbox checkbox--medium rap-filter-option${draft.has(option.value) ? " is-checked" : ""}">
+          <input class="checkbox-input" type="checkbox" value="${escapeHtml(option.value)}" data-rap-option="${key}" ${draft.has(option.value) ? "checked" : ""}>
+          <span class="checkbox-custom" aria-hidden="true"></span>
           <span class="rap-filter-option__label">${escapeHtml(option.label)}</span>
         </label>
       `).join("")
@@ -823,13 +822,9 @@
     tooltip.style.zIndex = "100";
   };
 
-  const showToast = (message) => {
-    elements.toast.textContent = message;
-    elements.toast.hidden = false;
-    window.clearTimeout(showToast.timeout);
-    showToast.timeout = window.setTimeout(() => {
-      elements.toast.hidden = true;
-    }, 2200);
+  /* the product toast (../js/toast.js → library .toast) */
+  const showToast = (message, type = "info") => {
+    window.GEAPToast?.show({ type, message });
   };
 
   const copyText = async (value) => {

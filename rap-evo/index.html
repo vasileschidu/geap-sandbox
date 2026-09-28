@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registrul actelor permisive · EVO</title>
   <link rel="stylesheet" href="../assets/fonts/Onest.css">
-  <link rel="stylesheet" href="../css/main.css">
-  <link rel="stylesheet" href="rap-evo.css?v=20260803-4">
+  <link rel="stylesheet" href="../css/main.css?v=checkbox-v1">
+  <link rel="stylesheet" href="rap-evo.css?v=checkbox-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v3">
-  <script src="rap-evo.js?v=20260803-4" defer></script>
+  <script src="../js/toast.js?v=toast-v1" defer></script>
+  <script src="rap-evo.js?v=checkbox-v1" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v3" defer></script>
 </head>
 <body class="rap-page">
@@ -285,9 +286,9 @@
             </label>
             <svg class="icon rap-filter-date-row__arrow" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-arrow-right"></use></svg>
             <div class="rap-filter-date-end">
-              <label class="rap-filter-inline-check">
-                <input type="checkbox" data-rap-date-single="issued">
-                <span class="rap-filter-option__box" aria-hidden="true"><svg class="icon"><use href="../assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
+              <label class="checkbox checkbox--medium rap-filter-inline-check">
+                <input class="checkbox-input" type="checkbox" data-rap-date-single="issued">
+                <span class="checkbox-custom" aria-hidden="true"></span>
                 <span>Fără interval</span>
               </label>
               <label class="search-input medium rectangular rap-filter-date-input">
@@ -306,9 +307,9 @@
             </label>
             <svg class="icon rap-filter-date-row__arrow" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-arrow-right"></use></svg>
             <div class="rap-filter-date-end">
-              <label class="rap-filter-inline-check">
-                <input type="checkbox" data-rap-date-single="expires">
-                <span class="rap-filter-option__box" aria-hidden="true"><svg class="icon"><use href="../assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
+              <label class="checkbox checkbox--medium rap-filter-inline-check">
+                <input class="checkbox-input" type="checkbox" data-rap-date-single="expires">
+                <span class="checkbox-custom" aria-hidden="true"></span>
                 <span>Fără interval</span>
               </label>
               <label class="search-input medium rectangular rap-filter-date-input">
@@ -328,6 +329,5 @@
   </section>
 
   <div class="rap-tooltip" role="tooltip" data-rap-tooltip hidden></div>
-  <div class="rap-toast" role="status" aria-live="polite" data-rap-toast hidden></div>
 </body>
 </html>

@@ -120,7 +120,7 @@
               "id": "permits",
               "label": "Acte permisive",
               "icon": "stamp",
-              "shellView": "permits-profile",
+              "shellView": "services-registry",
               "badge": 142
             }
           ]
@@ -173,13 +173,25 @@
               "id": "authorities",
               "label": "Autorități",
               "iconAsset": "assets/icons/admin-authority.svg",
-              "shellView": "role-placeholder"
+              "shellView": "authorities-registry"
             },
             {
               "id": "subdivisions",
               "label": "Subdiviziuni",
               "iconAsset": "assets/icons/admin-subdivision.svg",
               "shellView": "role-placeholder"
+            },
+            {
+              "id": "classifiers",
+              "label": "Clasificatoare",
+              "iconAsset": "assets/icons/admin-newspaper.svg",
+              "shellView": "role-placeholder"
+            },
+            {
+              "id": "service-config",
+              "label": "Configurări servicii",
+              "iconAsset": "assets/icons/admin-list-sparkle.svg",
+              "shellView": "services-registry"
             }
           ]
         }

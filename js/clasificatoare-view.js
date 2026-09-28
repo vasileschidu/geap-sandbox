@@ -225,7 +225,7 @@
 
     return '<table class="table table--default"><thead><tr class="table__row">' +
       '<th class="table__head-cell" style="width:44px">' +
-        '<label class="checkbox checkbox--small"><input type="checkbox" class="checkbox-input"' +
+        '<label class="checkbox checkbox--medium"><input type="checkbox" class="checkbox-input"' +
         (allOn ? " checked" : "") + ' data-clas-select-all aria-label="Selectează tot" />' +
         '<span class="checkbox-custom"></span></label>' +
       "</th>" +
@@ -238,7 +238,7 @@
         var on = s.selected.indexOf(row.id) !== -1;
         return '<tr class="table__row' + (on ? " is-selected" : "") + '" data-clas-row="' + esc(row.id) + '">' +
           '<td class="table__body-cell">' +
-            '<label class="checkbox checkbox--small"><input type="checkbox" class="checkbox-input"' +
+            '<label class="checkbox checkbox--medium"><input type="checkbox" class="checkbox-input"' +
             (on ? " checked" : "") + ' data-clas-select="' + esc(row.id) + '"' +
             ' aria-label="Selectează ' + esc(row.denumire) + '" />' +
             '<span class="checkbox-custom"></span></label>' +

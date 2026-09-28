@@ -204,7 +204,9 @@ but this doc previously described it wrongly, see the entry.
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
 | Tag | `.tag-item` (a layout row, not a pill) | `tags.html` | library (partial) |
 | Copy value | `.e-permits-fo-copy-value` | — | app |
-| Toast | `.e-permits-shell-toast`, `.toast` | `messaget-toast.html` | app |
+| Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
+| Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
+| Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
@@ -777,6 +779,52 @@ Figma ships **two** sizes (20, 24); CSS ships **three** (16, 20, 24). So writing
 `.checkbox--large`. `.checkbox--small` (16px) has no design behind it at all. Nothing
 renders wrongly today — but the vocabulary means design and code say "medium" about
 two different things.
+
+#### One checkbox, one size — product rule (2026-09-27)
+
+Every checkbox in the product is this component at **`.checkbox--medium` (20px)**:
+registry tables, classifiers, dropdown/suggestion options, GDPR consent, the
+paper-copy option, RAP filters, builder toggles. The old hand-rolled boxes
+(`e-permits-workplace__checkbox`, `e-permits-fo-subgen-select__checkbox`,
+`e-permits-fo-consent__box`, `e-permits-fo-delivery-paper__box`,
+`e-permits-user-profile__perm-checkbox`, `rap-filter-option__box`, `rap-checkbox`,
+`e-permits-builder__mini-check--only`) are deleted — do not bring them back.
+Do not use `--small` or `--large`.
+
+`.checkbox-custom` now carries `box-sizing: border-box` and `flex: 0 0 auto` in
+`main.css`. Without them it rendered **24px** on pages with no global border-box
+reset (`clasificatoare.html`) and shrank next to long wrapping text.
+
+Three placements:
+
+```html
+<!-- 1. standalone / table cell — a label, the input takes the click -->
+<label class="checkbox checkbox--medium">
+  <input class="checkbox-input" type="checkbox" aria-label="Selectează rândul">
+  <span class="checkbox-custom" aria-hidden="true"></span>
+</label>
+
+<!-- 2. with text — keep a layout class on the label for the row's own spacing -->
+<label class="checkbox checkbox--medium e-permits-fo-consent">
+  <input class="checkbox-input" type="checkbox" data-fo-consent>
+  <span class="checkbox-custom" aria-hidden="true"></span>
+  <span>Text…</span>
+</label>
+
+<!-- 3. inside a listbox option — decorative; the option owns aria-selected,
+        JS keeps input.checked in sync with it -->
+<li role="option" aria-selected="true">
+  <span class="checkbox checkbox--medium" aria-hidden="true">
+    <input class="checkbox-input" type="checkbox" tabindex="-1" checked>
+    <span class="checkbox-custom"></span>
+  </span>
+  …
+</li>
+```
+
+⚠ The library input has `pointer-events: none`, so clicks land on the `<label>`.
+Row-click handlers must ignore `label` as well as `input` (see the registry row
+handler: `closest("input, label, button, a")`), or ticking a row opens its profile.
 
 **⚠ Mismatch 2 — touch targets are unimplemented.** Figma's accessibility section
 (`2822:1206`) specs enlarged hit areas on touch: a 20px box gets a **36×36** target
@@ -2080,6 +2128,132 @@ Root states on `.e-permits-shell`: `is-collapsed`, `is-users-registry`,
 
 Nav contract: `data-nav-item`, `data-workplace-view="mine|unassigned|office|print"`,
 `data-workplace-badge`.
+
+### `e-permits-page-header` — back-office detail header
+
+Figma `8993:37914`. **Every** back-office detail page uses it: dosar, utilizator,
+rol, act permisiv. Do not build another hero; render through the helpers in
+`js/e-permits-shell.js`:
+
+- `renderPageHeaderTop({ crumbs, title, actions?, caption? })`: breadcrumbs
+  (last crumb = current; a crumb with `attr` becomes a link wired to that page's
+  close handler, one without is plain text) over a 24/32 semibold title
+  (`--color-text-base-secondary`, gap 8), plus optional actions and a 10/12 caption on the right.
+- `renderPageHeaderMeta([[label, valueHtml], …])`: label 12/16 tertiary over value
+  14/20 medium (row padding 12 top / 8 bottom), split by `.separator--vertical` (28px). Use `renderProfileCopyCode`
+  for IDs and `renderTag` for status.
+- `renderPageHeaderTabCount(count, tone?)`: 20px numbered badge; tone `warning`
+  (accent `#fec84b`) or `danger`.
+
+```html
+<header class="e-permits-page-header">
+  <div class="e-permits-page-header__body">
+    <div class="e-permits-page-header__top" data-…-title></div>
+    <div class="e-permits-page-header__meta" data-…-summary></div>
+  </div>
+  <div class="tabs e-permits-page-header__tabs">
+    <div class="tab-buttons" role="tablist" data-…-tabs></div>
+  </div>
+</header>
+```
+
+Measured against Figma: 16px inset, top row 60, meta row 68, tabs 48 with no
+inter-tab gap, 14/20 regular (active 500 brand + 2px). Actions are library `.btn`
++ `.btn-sm`, scoped to Figma's Small (32px, radius 6, 8px icon-side padding),
+because `.btn-sm` alone renders 29px. Breadcrumb labels truncate at 30ch (Figma rule).
+At ≤760px the top row stacks and the meta row becomes a two-column grid without
+separators.
+
+**Detail sections under the header** (Figma `8993:39453`): 20px below the tabs, a
+1024 column of stacked sections. Use `renderInfoCard(title, rows)` →
+`.e-permits-dosar-profil__section` > `__section-title` (48px, H5 18/26, optional
+source tag `e-permits-workplace__tag--neutral` at gap 16) > `__card` (`#f7f7f7`,
+radius 24, padding 8/20) > `__row` (40px including the divider; label 256 column
+truncates with `title`, value at +300). Row values: plain text, copy-code, or the
+library `.status-tag` (24px, `text-transform` reset): `--neutral.is-subtle` for
+lists and for "✱ Obligatoriu" (asterisk icon `.e-permits-dosar-profil__required-icon`),
+and bare `--success` + check icon for "✓ Da". Utilizator and rol keep their
+`__property-card` markup, but it measures identically.
+
+**Top bar height is a shell constant.** `.e-permits-shell` defines
+`--e-permits-shell-topbar-height: 66px` (Figma sidebar header + Main Navigation);
+the header, sidebar header, workspace grid and nav all read it, so the bar and the
+role switcher never move between pages or roles. Page states (`is-*-open`,
+`is-users-registry`) must not set their own header height. Registries without status
+tabs leave `[data-workplace-tabs]` hidden/empty and the row collapses (the workplace
+header grid is `56px auto`) — never reserve a fixed 48px tab band.
+
+### Toast — Figma `toast` (9399:32597)
+
+The **only** toast in the product. Library CSS `.toast` in `css/main.css` (mirror
+kept identical); JS `js/toast.js`:
+
+```js
+GEAPToast.show({ type: "success", title: "Serviciu creat", message: "…",
+                 link: { href, label }, duration: 4000, key: "dedupe-key" });
+```
+
+`type` info (brand) · success (`--green-600` — see token note) · warning · error
+(`role="alert"`). `title` → Figma "w/ Heading" (18/26 semibold); omit it for
+text-only. 350px, padding 12/12/16, radius 8, 24px icon in a 2px frame, 16px close,
+link 16/24 underlined. Container top-right (desktop) / bottom (mobile), above
+modals. Back office: `showShellToast(message, tone, title?)`; front office:
+`showFrontOfficeToast`; RAP: its `showToast(message, type)` — all delegate here.
+The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are removed.
+
+### Pașaportul Serviciului — registry + profile (Feature 90575)
+
+- **Rules:** `core/service-passport.js` (`GEAP.servicePassport`) — RSSP mapping and
+  US-111 sync (validation, unavailable / not found / invalid, create vs update,
+  authority create vs link, event log) and the payment lifecycle of Feature 93591.
+  Pure, tested by `node test/service-passport.test.mjs`. The shell only renders.
+- **Data:** `data/e-permits-services.json` — services (`rssp` read-only half,
+  `geap` configured half), authorities, process flows, and the RSSP mock
+  (`responses`, `unavailable`, `invalid` codes).
+- **Registries** `kind: "services"` / `"authorities"` on the workplace engine
+  (nav `shellView: "services-registry"` / `"authorities-registry"`). Status filter =
+  status tabs with `svc:<Statut>` tokens. Toolbar primary action
+  `[data-workplace-sync-service]` and per-row sync are Administrator central only.
+- **Profile** reuses `.permits-profile` + `.e-permits-page-header` (10 tabs, deep link
+  `#serviciu/<cod>/<tab>`) and the dosar stacked sections / `renderProfileTable`.
+  RSSP sections carry an `RSSP` source tag and are never editable.
+- **Dates** are written out (`formatLongDate` → "22 aprilie 2026"). In tables and
+  detail rows use `renderDateTime(value, author?)`: the dosar list's
+  `.e-permits-workplace__date-stack` with the time, then the author, as small
+  `__date-meta` lines. One-line contexts (captions, labels) use `formatStamp`
+  ("22 aprilie 2026, 14:00"). Date-only strings are read as local days.
+- **Lists** are the stacked list `renderStackedList(title, groups)` →
+  `.e-permits-stack` (Tailwind UI stacked-list rhythm in our tokens): grey group
+  heading 14/24 semibold + count; rows 12px top/bottom (table-cell rhythm), dividers
+  `--color-border-base-default` (as the detail-section rows), title 14/24 semibold + our
+  status tags (gap 12), meta 12/20 tertiary with 2px dots in an 18px gap (dots are
+  `::before`, `.is-row-start` from `syncStackMetaRows` drops them at line starts),
+  right side = one visible action: constructive (Publică, Activează) = `.btn-secondary`
+  (blue), others = `.btn-neutral` (both `.btn-sm` at the header's 32px Small size);
+  destructive actions (Dezactivează, Șterge) go only in the menu, in red;
+  + overflow menu = the post-process menu `.e-permits-fo-intent-menu` /
+  `__item` (20px icon + label), trigger `more-vertical` at `icon small` in a 32px
+  icon button (grey on hover / open); ↑↓ move, Esc / outside click close).
+  Group by what the list is used for (request type, source, relation, recipient,
+  day) — see `renderService*` in `js/e-permits-shell.js`. The grey stacked card
+  stays for label/value details (Date generale, Setări).
+- **Permisiuni** (user and role profiles, `renderPermissionsTab`) use the same
+  stacked list: collapsible groups (`.e-permits-stack__group-toggle` in the grey
+  heading, chevron, granted/total + pending ±tags), rows with state tags
+  (Acordată / Se adaugă / Se retrage) and the original two toggles Adaugă /
+  Retrage (`.e-permits-user-profile__perm-btn`, active = green / red); Salvează = primary,
+  Renunță = neutral. Stack menus are handled document-wide. The search above the
+  groups is the **full-flow suggestion search** — `.e-permits-fo-address-search` >
+  `.e-permits-fo-input.e-permits-fo-input--with-action` (40px, trailing search icon) +
+  `.e-permits-fo-address-search__list` options (`__option` / `__copy` / `__title` /
+  `__meta`) with a library checkbox in the icon slot; empty = `.e-permits-fo-caem__empty`.
+  Typing refreshes only the list (`syncPermSearchMenu`) — never re-render the panel
+  per keystroke, it drops characters. Ticking an option patches it in place and swaps
+  only the heading + groups (`patchPermissionsTab`) so the open list keeps its scroll
+  and position. Esc clears; picking an option keeps focus.
+- **Dialogs** are library `.modal`: `#service-sync-modal`, `#service-rt-modal`,
+  `#service-confirm-modal`. Feedback via `showShellToast(message, "error")` for
+  blocked actions — never the success tone.
 
 ### `e-permits-workplace__*` — registry / data grid
 

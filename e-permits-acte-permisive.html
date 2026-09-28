@@ -5,16 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css?v=modal-motion-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=user-profile-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=instance-switch-v3">
+  <link rel="stylesheet" href="css/main.css?v=checkbox-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=checkbox-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=checkbox-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
-  <link rel="stylesheet" href="msupport/msupport.css?v=20260821-14">
+  <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <script src="js/search.js" defer></script>
   <script src="js/modal.js" defer></script>
+  <script src="js/toast.js?v=toast-v1" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="msupport/msupport.js?v=20260821-14" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=document-cross-v1" defer></script>
+  <script src="msupport/msupport.js?v=20260925-anon" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=checkbox-v1" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v5" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
@@ -745,13 +746,9 @@
 
           <footer class="e-permits-fo-form__footer">
             <div class="e-permits-fo-form__consent-row">
-              <label class="e-permits-fo-consent">
-                <input type="checkbox" data-fo-guest-consent>
-                <span class="e-permits-fo-consent__box" aria-hidden="true">
-                  <svg class="icon" width="20" height="20">
-                    <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                  </svg>
-                </span>
+              <label class="checkbox checkbox--medium e-permits-fo-consent">
+                <input class="checkbox-input" type="checkbox" data-fo-guest-consent>
+                <span class="checkbox-custom" aria-hidden="true"></span>
                 <span>În conformitate cu prevederile <a href="#">legii nr.133 din 08.07.2011</a> sunt de acord cu prelucrarea datelor mele cu caracter personal.</span>
               </label>
             </div>
@@ -1039,13 +1036,9 @@
 
               <footer class="e-permits-fo-form__footer">
                 <div class="e-permits-fo-form__consent-row">
-                  <label class="e-permits-fo-consent">
-                    <input type="checkbox" data-fo-consent>
-                    <span class="e-permits-fo-consent__box" aria-hidden="true">
-                      <svg class="icon" width="20" height="20">
-                        <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                      </svg>
-                    </span>
+                  <label class="checkbox checkbox--medium e-permits-fo-consent">
+                    <input class="checkbox-input" type="checkbox" data-fo-consent>
+                    <span class="checkbox-custom" aria-hidden="true"></span>
                     <span>În conformitate cu prevederile <a href="#">legii nr.133 din 08.07.2011</a> sunt de acord cu prelucrarea datelor mele cu caracter personal.</span>
                   </label>
                 </div>
@@ -1399,11 +1392,11 @@
                                 <input type="search" placeholder="Caută subgen" aria-label="Caută subgen" data-fo-subgen-search>
                               </div>
                               <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-labelledby="fo-subgen-activity" aria-multiselectable="true" data-fo-subgen-list>
-                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Restaurant clasic" tabindex="-1"><span class="e-permits-fo-subgen-select__checkbox" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span><span>Restaurant clasic</span></li>
-                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Pizzerie" tabindex="-1"><span class="e-permits-fo-subgen-select__checkbox" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span><span>Pizzerie</span></li>
-                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Bistrou" tabindex="-1"><span class="e-permits-fo-subgen-select__checkbox" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span><span>Bistrou</span></li>
-                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Cafenea cu meniu cald" tabindex="-1"><span class="e-permits-fo-subgen-select__checkbox" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span><span>Cafenea cu meniu cald</span></li>
-                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Restaurant fastfood" tabindex="-1"><span class="e-permits-fo-subgen-select__checkbox" aria-hidden="true"><svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span><span>Restaurant fastfood</span></li>
+                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Restaurant clasic" tabindex="-1"><span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span><span>Restaurant clasic</span></li>
+                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Pizzerie" tabindex="-1"><span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span><span>Pizzerie</span></li>
+                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Bistrou" tabindex="-1"><span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span><span>Bistrou</span></li>
+                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Cafenea cu meniu cald" tabindex="-1"><span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span><span>Cafenea cu meniu cald</span></li>
+                                <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="Restaurant fastfood" tabindex="-1"><span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span><span>Restaurant fastfood</span></li>
                               </ul>
                               <div class="e-permits-fo-subgen-select__footer">
                                 <span><strong data-fo-subgen-count>0</strong> <span data-fo-subgen-count-label>selectate</span></span>
@@ -1693,21 +1686,28 @@
         </a>
 
         <button class="e-permits-dosar-profil__shell-back" type="button" data-dosar-profil-back-shell hidden>
-          <svg class="icon" width="20" height="20" aria-hidden="true">
+          <svg class="icon small" aria-hidden="true">
             <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
           </svg>
           <span>Înapoi la dosare</span>
         </button>
 
         <button class="e-permits-user-profile__shell-back" type="button" data-user-profile-back-shell hidden>
-          <svg class="icon" width="20" height="20" aria-hidden="true">
+          <svg class="icon small" aria-hidden="true">
             <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
           </svg>
           <span>Înapoi la utilizatori</span>
         </button>
 
+        <button class="e-permits-user-profile__shell-back" type="button" data-service-profile-back-shell hidden>
+          <svg class="icon small" aria-hidden="true">
+            <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
+          </svg>
+          <span>Înapoi la servicii</span>
+        </button>
+
         <button class="e-permits-user-profile__shell-back" type="button" data-role-profile-back-shell hidden>
-          <svg class="icon" width="20" height="20" aria-hidden="true">
+          <svg class="icon small" aria-hidden="true">
             <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
           </svg>
           <span>Înapoi la roluri</span>
@@ -2349,9 +2349,9 @@
               <div class="e-permits-builder__section-body">
                 <article class="e-permits-builder__section-option is-open" data-builder-section-option="title">
                   <header class="e-permits-builder__section-option-head" data-builder-section-option-toggle="title">
-                    <label class="e-permits-builder__mini-check e-permits-builder__mini-check--only" aria-label="Afișează titlul secțiunii">
-                      <input type="checkbox" checked data-builder-section-visible="title">
-                      <span></span>
+                    <label class="checkbox checkbox--medium e-permits-builder__mini-check" aria-label="Afișează titlul secțiunii">
+                      <input class="checkbox-input" type="checkbox" checked data-builder-section-visible="title">
+                      <span class="checkbox-custom" aria-hidden="true"></span>
                     </label>
                     <div class="e-permits-builder__section-option-title">
                       <strong>Titlu secțiune</strong>
@@ -2373,9 +2373,9 @@
 
                 <article class="e-permits-builder__section-option" data-builder-section-option="description">
                   <header class="e-permits-builder__section-option-head" data-builder-section-option-toggle="description">
-                    <label class="e-permits-builder__mini-check e-permits-builder__mini-check--only" aria-label="Afișează descrierea secțiunii">
-                      <input type="checkbox" data-builder-section-visible="description">
-                      <span></span>
+                    <label class="checkbox checkbox--medium e-permits-builder__mini-check" aria-label="Afișează descrierea secțiunii">
+                      <input class="checkbox-input" type="checkbox" data-builder-section-visible="description">
+                      <span class="checkbox-custom" aria-hidden="true"></span>
                     </label>
                     <div class="e-permits-builder__section-option-title">
                       <strong>Descriere</strong>
@@ -2397,9 +2397,9 @@
 
                 <article class="e-permits-builder__section-option" data-builder-section-option="separator">
                   <header class="e-permits-builder__section-option-head" data-builder-section-option-toggle="separator">
-                    <label class="e-permits-builder__mini-check e-permits-builder__mini-check--only" aria-label="Afișează separatorul secțiunii">
-                      <input type="checkbox" data-builder-section-visible="separator">
-                      <span></span>
+                    <label class="checkbox checkbox--medium e-permits-builder__mini-check" aria-label="Afișează separatorul secțiunii">
+                      <input class="checkbox-input" type="checkbox" data-builder-section-visible="separator">
+                      <span class="checkbox-custom" aria-hidden="true"></span>
                     </label>
                     <div class="e-permits-builder__section-option-title">
                       <strong>Separator</strong>
@@ -2597,9 +2597,9 @@
                               <svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-circle-info"></use></svg>
                             </button>
                           </span>
-                          <label class="e-permits-builder__mini-check e-permits-builder__mini-check--only">
-                            <input type="checkbox" data-builder-tree-enabled>
-                            <span></span>
+                          <label class="checkbox checkbox--medium e-permits-builder__mini-check">
+                            <input class="checkbox-input" type="checkbox" data-builder-tree-enabled>
+                            <span class="checkbox-custom" aria-hidden="true"></span>
                           </label>
                         </div>
                         <div class="e-permits-builder__conditional-settings" data-builder-tree-settings hidden>
@@ -2619,9 +2619,9 @@
                               <svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-circle-info"></use></svg>
                             </button>
                           </span>
-                          <label class="e-permits-builder__mini-check e-permits-builder__mini-check--only">
-                            <input type="checkbox" data-builder-cascade-enabled>
-                            <span></span>
+                          <label class="checkbox checkbox--medium e-permits-builder__mini-check">
+                            <input class="checkbox-input" type="checkbox" data-builder-cascade-enabled>
+                            <span class="checkbox-custom" aria-hidden="true"></span>
                           </label>
                         </div>
                         <div class="e-permits-builder__conditional-settings" data-builder-cascade-settings hidden>
@@ -2660,8 +2660,8 @@
                           <label><input type="radio" name="builder-new-visibility" value="authority"> Authority</label>
                           <label><input type="radio" name="builder-new-visibility" value="service"> Service</label>
                         </div>
-                        <label class="e-permits-builder__mini-check"><input type="checkbox" data-builder-new-ml><span>Multilingv</span></label>
-                        <label class="e-permits-builder__mini-check"><input type="checkbox" data-builder-new-search><span>Server-side search</span></label>
+                        <label class="checkbox checkbox--medium e-permits-builder__mini-check"><input class="checkbox-input" type="checkbox" data-builder-new-ml><span class="checkbox-custom" aria-hidden="true"></span><span>Multilingv</span></label>
+                        <label class="checkbox checkbox--medium e-permits-builder__mini-check"><input class="checkbox-input" type="checkbox" data-builder-new-search><span class="checkbox-custom" aria-hidden="true"></span><span>Server-side search</span></label>
                       </div>
                       <button class="e-permits-builder__primary-soft" type="button" data-builder-create-classifier>Creează clasificator</button>
                     </section>
@@ -2669,7 +2669,7 @@
                     <section class="e-permits-builder__source-pane" data-builder-source-pane="static">
                       <div class="e-permits-builder__source-card">
                         <strong>Structură</strong>
-                        <label class="e-permits-builder__mini-check"><input type="checkbox" data-builder-static-ml><span>Valori multilingve</span></label>
+                        <label class="checkbox checkbox--medium e-permits-builder__mini-check"><input class="checkbox-input" type="checkbox" data-builder-static-ml><span class="checkbox-custom" aria-hidden="true"></span><span>Valori multilingve</span></label>
                       </div>
                       <div class="e-permits-builder__source-card">
                         <strong>Valori</strong>
@@ -3123,6 +3123,10 @@
                         </svg>
                       </button>
                     </div>
+                    <button class="e-permits-workplace__add-user" type="button" data-workplace-sync-service hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+                      <span>Sincronizare serviciu</span>
+                    </button>
                     <button class="e-permits-workplace__add-user" type="button" data-workplace-add-user hidden>
                       <img src="assets/icons/add-user.svg" alt="" aria-hidden="true">
                       <span>Adaugă utilizator</span>
@@ -3147,7 +3151,7 @@
                   <table class="e-permits-workplace__table">
                     <thead>
                       <tr data-workplace-head>
-                        <th scope="col"><span class="e-permits-workplace__checkbox" aria-hidden="true"></span></th>
+                        <th scope="col" class="e-permits-workplace__select-cell"><span class="checkbox checkbox--medium" aria-hidden="true"><span class="checkbox-custom"></span></span></th>
                         <th scope="col">Numărul dosarului</th>
                         <th scope="col">Decizia</th>
                         <th scope="col">Statut</th>
@@ -3205,259 +3209,29 @@
                 </footer>
               </div>
 
-              <div class="permits-page__content permits-profile" hidden>
-                <header class="permits-profile__hero">
-                  <button class="btn btn-text-strict btn-sm permits-profile__back-button" type="button">
-                    <svg class="icon small" aria-hidden="true">
-                      <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
-                    </svg>
-                    <span>Acte permisive</span>
-                  </button>
-
-                  <div class="permits-profile__title-block">
-                    <h1 class="permits-profile__title">Notificare în comerț</h1>
-                    <p class="permits-profile__subtitle">Notificarea privind inițierea, modificarea sau încetarea activității de comerț</p>
+              <!-- Pașaportul Serviciului (Feature 90575): shared page header + 10 tabs,
+                   rendered by the passport block in js/e-permits-shell.js. -->
+              <div class="permits-page__content permits-profile" hidden data-passport>
+                <header class="e-permits-page-header" data-passport-header>
+                  <div class="e-permits-page-header__body">
+                    <div class="e-permits-page-header__top" data-passport-top></div>
+                    <div class="e-permits-page-header__meta" data-passport-meta></div>
                   </div>
-
-                  <div class="permits-profile__hero-actions">
-                    <button class="btn btn-primary btn-rounded btn-sm permits-profile__builder-button" type="button" data-open="#form-builder-modal">
-                      <svg class="icon small" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-services"></use>
-                      </svg>
-                      <span>Deschide builder</span>
-                    </button>
-                  </div>
-
-                  <div class="tabs permits-profile__tabs">
-                    <div class="tab-buttons" role="tablist" aria-label="Secțiuni act permisiv">
-                      <button class="tab-button active" type="button" role="tab" aria-selected="true">
-                        <span class="d-inline-flex">
-                          <svg class="icon medium" aria-hidden="true">
-                            <use href="assets/icons/sprite.svg#icon-document"></use>
-                          </svg>
-                        </span>
-                        Vedere consolidată
-                      </button>
-                      <button class="tab-button" type="button" role="tab" aria-selected="false">
-                        Tipuri solicitări
-                        <span class="badge">5</span>
-                      </button>
-                      <button class="tab-button" type="button" role="tab" aria-selected="false">
-                        Formulare
-                        <span class="badge">3</span>
-                      </button>
-                      <button class="tab-button" type="button" role="tab" aria-selected="false">
-                        Șabloane
-                        <span class="badge">4</span>
-                      </button>
-                      <button class="tab-button" type="button" role="tab" aria-selected="false">Notificări</button>
-                      <button class="tab-button" type="button" role="tab" aria-selected="false">Settings</button>
-                    </div>
+                  <div class="tabs e-permits-page-header__tabs">
+                    <div class="tab-buttons" role="tablist" aria-label="Secțiuni pașaport serviciu" data-passport-tabs></div>
                   </div>
                 </header>
-
-                <section class="permits-profile__section permits-profile__rsspa" aria-labelledby="rsspa-title">
-                  <header class="permits-profile__section-header permits-profile__section-header--split">
-                    <div class="permits-profile__section-title-row">
-                      <h4 class="permits-profile__section-title" id="rsspa-title">Date din RSSPA</h4>
-                      <span class="permits-profile__sync-pill">Sincronizat din RSSPA</span>
-                    </div>
-
-                    <div class="permits-profile__sync">
-                      <span>Ultima sincronizare</span>
-                      <strong>22.04.2026, 14:00</strong>
-                      <button type="button" class="permits-profile__icon-button" aria-label="Resincronizează">
-                        <svg class="icon" width="16" height="16" aria-hidden="true">
-                          <use href="assets/icons/sprite.svg#icon-rotate-arrow"></use>
-                        </svg>
-                      </button>
-                    </div>
-                  </header>
-
-                  <article class="permits-profile__card permits-profile__summary-card">
-                    <div class="permits-profile__summary-card-head">
-                      <h5>Notificare în comerț</h5>
-                      <div class="permits-profile__portal-actions">
-                        <button class="btn btn-outline-strict btn-sm permits-profile__portal-button" type="button">
-                          <span>EVO Portal</span>
-                          <svg class="icon small" aria-hidden="true">
-                            <use href="assets/icons/sprite.svg#icon-external-link"></use>
-                          </svg>
-                        </button>
-                        <button class="btn btn-outline-strict btn-sm permits-profile__portal-button" type="button">
-                          <span>RSSPA Portal</span>
-                          <svg class="icon small" aria-hidden="true">
-                            <use href="assets/icons/sprite.svg#icon-external-link"></use>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <dl class="permits-profile__meta-grid">
-                      <div>
-                        <dt>Tipul</dt>
-                        <dd>Act permisiv</dd>
-                      </div>
-                      <div>
-                        <dt>Statut</dt>
-                        <dd><span class="status-tag status-tag--success is-subtle permits-profile__status">Publicat</span></dd>
-                      </div>
-                      <div>
-                        <dt>RSSPA ID</dt>
-                        <dd>
-                          <button type="button" class="permits-profile__copy-id" data-copy-id="rsspa-AP-023" aria-label="Copiază rsspa-AP-023">
-                            <span>rsspa-AP-023</span>
-                            <svg class="icon" width="20" height="20" aria-hidden="true">
-                              <use href="assets/icons/sprite.svg#icon-copy"></use>
-                            </svg>
-                          </button>
-                        </dd>
-                      </div>
-                      <div>
-                        <dt>Instituția</dt>
-                        <dd>AP-023&nbsp;·&nbsp;Ministerul Economiei</dd>
-                      </div>
-                      <div>
-                        <dt>Versiune</dt>
-                        <dd class="permits-profile__version"><strong>v2.1.0</strong><span>din 22.04.2026</span></dd>
-                      </div>
-                    </dl>
-                  </article>
-                </section>
-
-                <section class="permits-profile__section" aria-labelledby="objects-title">
-                  <header class="permits-profile__section-header">
-                    <h4 class="permits-profile__section-title" id="objects-title">Câte obiecte sunt configurate</h4>
-                  </header>
-                  <div class="permits-profile__metrics" aria-label="Obiecte configurate">
-                    <article class="permits-profile__metric">
-                      <div class="permits-profile__metric-info"><strong>3</strong><span>forme</span></div>
-                    </article>
-                    <article class="permits-profile__metric">
-                      <div class="permits-profile__metric-info"><strong>4</strong><span>șabloane</span></div>
-                    </article>
-                    <article class="permits-profile__metric">
-                      <div class="permits-profile__metric-info"><strong>4</strong><span>tipuri solicitări</span></div>
-                    </article>
-                    <article class="permits-profile__metric">
-                      <div class="permits-profile__metric-info"><strong>5</strong><span>documente însoțitoare</span></div>
-                    </article>
-                    <article class="permits-profile__metric">
-                      <div class="permits-profile__metric-info"><strong>2</strong><span>tipuri solicitanți</span></div>
-                    </article>
-                    <article class="permits-profile__metric">
-                      <div class="permits-profile__metric-info"><strong>1</strong><span>taxe</span></div>
-                    </article>
-                  </div>
-                </section>
-
-                <section class="permits-profile__section" aria-labelledby="lifecycle-title">
-                  <header class="permits-profile__section-header">
-                    <h4 class="permits-profile__section-title" id="lifecycle-title">Lifecycle și ultimele modificări</h4>
-                  </header>
-                  <ol class="permits-profile__timeline">
-                    <li class="permits-profile__timeline-item is-published">
-                      <span class="permits-profile__timeline-icon" aria-hidden="true">
-                        <svg class="icon" width="14" height="14">
-                          <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-                        </svg>
-                      </span>
-                      <div class="permits-profile__timeline-copy">
-                        <p><strong>Schidu Vasile</strong> published Cerere v2.1.0</p>
-                        <time datetime="2026-04-22T14:00">22.04.2026, 14:00</time>
-                      </div>
-                    </li>
-                    <li class="permits-profile__timeline-item">
-                      <span class="permits-profile__timeline-icon" aria-hidden="true">
-                        <svg class="icon" width="14" height="14">
-                          <use href="assets/icons/sprite.svg#icon-edit"></use>
-                        </svg>
-                      </span>
-                      <div class="permits-profile__timeline-copy">
-                        <p><strong>Schidu Vasile</strong> updated f_idnp validation in Cerere de notificare în baza incidentului <a href="#">rsspa-AP-023</a></p>
-                        <time datetime="2026-04-21T13:45">21.04.2026, 13:45</time>
-                      </div>
-                    </li>
-                    <li class="permits-profile__timeline-item">
-                      <span class="permits-profile__timeline-icon" aria-hidden="true">
-                        <svg class="icon" width="14" height="14">
-                          <use href="assets/icons/sprite.svg#icon-edit"></use>
-                        </svg>
-                      </span>
-                      <div class="permits-profile__timeline-copy">
-                        <p><strong>Schidu Vasile</strong> updated f_idnp validation in Cerere de notificare</p>
-                        <time datetime="2026-04-21T13:45">21.04.2026, 13:45</time>
-                      </div>
-                    </li>
-                    <li class="permits-profile__timeline-item">
-                      <span class="permits-profile__timeline-icon" aria-hidden="true">
-                        <svg class="icon" width="14" height="14">
-                          <use href="assets/icons/sprite.svg#icon-edit"></use>
-                        </svg>
-                      </span>
-                      <div class="permits-profile__timeline-copy">
-                        <p><strong>Schidu Vasile</strong> updated f_idnp validation in Cerere de notificare</p>
-                        <time datetime="2026-04-21T13:45">21.04.2026, 13:45</time>
-                      </div>
-                    </li>
-                    <li class="permits-profile__timeline-item">
-                      <span class="permits-profile__timeline-icon" aria-hidden="true">
-                        <svg class="icon" width="14" height="14">
-                          <use href="assets/icons/sprite.svg#icon-templates"></use>
-                        </svg>
-                      </span>
-                      <div class="permits-profile__timeline-copy">
-                        <p><strong>Schidu Vasile</strong> created Suspendare draft from Cerere template</p>
-                        <time datetime="2026-04-21T09:15">21.04.2026, 09:15</time>
-                      </div>
-                    </li>
-                  </ol>
-                </section>
-
-                <section class="permits-profile__section" aria-labelledby="services-title">
-                  <header class="permits-profile__section-header">
-                    <h4 class="permits-profile__services-title" id="services-title">Servicii guvernamentale conectate</h4>
-                  </header>
-                  <div class="permits-profile__services">
-                    <article class="permits-profile__service-card">
-                      <div class="permits-profile__service-logo">
-                        <img src="https://www.figma.com/api/mcp/asset/c7e47fc9-d754-4452-819b-889e7bad7290" alt="" loading="lazy">
-                        <strong>mconnect</strong>
-                      </div>
-                      <p>Prefill date personale/companie</p>
-                    </article>
-                    <article class="permits-profile__service-card">
-                      <div class="permits-profile__service-logo">
-                        <img src="assets/logos/m-platforms/m-pay.svg" alt="" loading="lazy">
-                        <strong>mpay</strong>
-                      </div>
-                      <p>Procesare plăți electronice</p>
-                    </article>
-                    <article class="permits-profile__service-card">
-                      <div class="permits-profile__service-logo">
-                        <img src="assets/logos/m-platforms/m-sign.svg" alt="" loading="lazy">
-                        <strong>msign</strong>
-                      </div>
-                      <p>Semnare electronică calificată</p>
-                    </article>
-                  </div>
-                </section>
+                <div class="e-permits-dosar-profil__panel e-permits-passport__panel" id="passport-panel" role="tabpanel" data-passport-body></div>
               </div>
 
               <div class="permits-page__content e-permits-dosar-profil" hidden data-dosar-profil>
-                <header class="e-permits-dosar-profil__hero">
-                  <button class="btn btn-text-strict btn-sm e-permits-dosar-profil__back" type="button" data-dosar-profil-back>
-                    <svg class="icon small" aria-hidden="true">
-                      <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
-                    </svg>
-                    <span>Înapoi la dosare</span>
-                  </button>
-
-                  <div class="e-permits-dosar-profil__title-row" data-dosar-profil-title-row></div>
-
-                  <div class="e-permits-dosar-profil__summary" data-dosar-profil-summary></div>
-
-                  <div class="tabs e-permits-dosar-profil__tabs">
+                <!-- Shared page header (Figma 8993:37914), rendered by js/e-permits-shell.js -->
+                <header class="e-permits-page-header">
+                  <div class="e-permits-page-header__body">
+                    <div class="e-permits-page-header__top" data-dosar-profil-title-row></div>
+                    <div class="e-permits-page-header__meta" data-dosar-profil-summary></div>
+                  </div>
+                  <div class="tabs e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni dosar" data-dosar-profil-tabs></div>
                   </div>
                 </header>
@@ -3466,10 +3240,12 @@
               </div>
 
               <div class="permits-page__content e-permits-user-profile" hidden data-user-profile>
-                <header class="e-permits-user-profile__hero">
-                  <div class="e-permits-user-profile__title-row" data-user-profile-title></div>
-                  <div class="e-permits-user-profile__summary" data-user-profile-summary></div>
-                  <div class="tabs e-permits-user-profile__tabs">
+                <header class="e-permits-page-header">
+                  <div class="e-permits-page-header__body">
+                    <div class="e-permits-page-header__top" data-user-profile-title></div>
+                    <div class="e-permits-page-header__meta" data-user-profile-summary></div>
+                  </div>
+                  <div class="tabs e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni utilizator" data-user-profile-tabs></div>
                   </div>
                 </header>
@@ -3477,10 +3253,12 @@
               </div>
 
               <div class="permits-page__content e-permits-user-profile e-permits-role-profile" hidden data-role-profile>
-                <header class="e-permits-user-profile__hero">
-                  <div class="e-permits-user-profile__title-row" data-role-profile-title></div>
-                  <div class="e-permits-user-profile__summary" data-role-profile-summary></div>
-                  <div class="tabs e-permits-user-profile__tabs">
+                <header class="e-permits-page-header">
+                  <div class="e-permits-page-header__body">
+                    <div class="e-permits-page-header__top" data-role-profile-title></div>
+                    <div class="e-permits-page-header__meta" data-role-profile-summary></div>
+                  </div>
+                  <div class="tabs e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni rol" data-role-profile-tabs></div>
                   </div>
                 </header>
@@ -3518,14 +3296,56 @@
     </aside>
   </div>
 
-  <div class="e-permits-shell-toast" role="status" aria-live="polite" data-shell-toast hidden>
-    <svg class="icon" width="20" height="20" aria-hidden="true">
-      <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-    </svg>
-    <span data-shell-toast-text></span>
+
+
+  <!-- Pașaportul Serviciului dialogs — library .modal (components.md › Modal) -->
+  <div class="modal-overlay" id="service-sync-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-sync-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header"><h2 class="modal--header-title" id="service-sync-title" data-service-sync-title>Sincronizare serviciu din RSSP</h2></div>
+      <div class="modal-content" data-service-sync-body></div>
+      <div class="modal--footer" data-service-sync-footer></div>
+    </div>
   </div>
 
-  <script src="js/e-permits-shell.js?v=user-profile-v1"></script>
+  <div class="modal-overlay" id="service-rt-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-rt-heading">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="service-rt-heading">Configurează tipul de solicitare</h2>
+        <p class="e-permits-passport__modal-subtitle" data-service-rt-title></p>
+      </div>
+      <div class="modal-content" data-service-rt-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-secondary btn-rounded btn-md" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-rt-save>Salvează</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="service-confirm-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-confirm-title" aria-describedby="service-confirm-text">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header"><h2 class="modal--header-title" id="service-confirm-title" data-service-confirm-title></h2></div>
+      <div class="modal-content"><p class="e-permits-passport__lead" id="service-confirm-text" data-service-confirm-text></p></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-secondary btn-rounded btn-md" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-confirm-ok></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="core/service-passport.js?v=passport-v1"></script>
+  <script src="js/e-permits-shell.js?v=checkbox-v2"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

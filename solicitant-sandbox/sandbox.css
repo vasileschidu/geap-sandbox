@@ -46,7 +46,7 @@
 .sbx-panel__head code {
   background: var(--gray-100, #f5f5f5);
   border-radius: 4px;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 11px;
   padding: 1px 4px;
 }
@@ -125,7 +125,7 @@
 
 .sbx-toggle__hint {
   color: var(--gray-500, #949494);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 10px;
   font-weight: 400;
   line-height: 14px;
@@ -183,7 +183,7 @@
   background: var(--gray-100, #f5f5f5);
   border-radius: 8px;
   color: var(--gray-700, #444);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 10.5px;
   line-height: 15px;
   margin: 0;

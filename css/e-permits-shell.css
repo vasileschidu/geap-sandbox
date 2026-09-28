@@ -107,7 +107,7 @@ body {
   position: sticky;
   top: 32px;
   z-index: 25;
-  min-height: 72px;
+  min-height: var(--e-permits-shell-topbar-height, 66px);
   border-bottom: 1px solid var(--gray-250);
   background: var(--white);
 }
@@ -1302,13 +1302,17 @@ body {
   }
 }
 
-/* Specialist workplace shell */
+/* Specialist workplace shell.
+   One top-bar height for every page and role (Figma sidebar + Main Navigation:
+   66px), so switching menu items never moves the header or the role switcher.
+   Page states must not override it. */
 .e-permits-shell {
-  --e-permits-shell-header-offset: 104px;
+  --e-permits-shell-topbar-height: 66px;
+  --e-permits-shell-header-offset: calc(32px + var(--e-permits-shell-topbar-height));
   --e-permits-shell-sidebar-width: 272px;
   display: grid;
   grid-template-columns: var(--e-permits-shell-sidebar-width) minmax(0, 1fr);
-  grid-template-rows: 32px 72px minmax(0, 1fr);
+  grid-template-rows: 32px var(--e-permits-shell-topbar-height) minmax(0, 1fr);
 }
 
 .e-permits-shell__topbar {
@@ -1329,11 +1333,11 @@ body {
   position: relative;
   top: auto;
   z-index: 24;
-  min-height: 72px;
+  min-height: var(--e-permits-shell-topbar-height, 66px);
 }
 
 .e-permits-shell__header-inner {
-  min-height: 72px;
+  min-height: var(--e-permits-shell-topbar-height, 66px);
   padding: 0 16px;
   justify-content: flex-end;
 }
@@ -1392,7 +1396,7 @@ body {
   min-height: 0;
   display: grid;
   grid-template-columns: var(--e-permits-shell-sidebar-width) minmax(0, 1fr);
-  grid-template-rows: 72px minmax(0, 1fr);
+  grid-template-rows: var(--e-permits-shell-topbar-height, 66px) minmax(0, 1fr);
 }
 
 .e-permits-shell__body {
@@ -1415,7 +1419,7 @@ body {
 }
 
 .e-permits-shell__sidebar-header {
-  height: 72px;
+  height: var(--e-permits-shell-topbar-height, 66px);
   padding: 8px 8px 8px 12px;
   display: flex;
   align-items: center;
@@ -1495,7 +1499,7 @@ body {
 }
 
 .e-permits-shell__nav--specialist {
-  height: calc(100% - 72px);
+  height: calc(100% - var(--e-permits-shell-topbar-height, 66px));
   padding: 12px 8px;
   display: flex;
   flex-direction: column;
@@ -1797,17 +1801,8 @@ body {
   line-height: 16px;
 }
 
-.e-permits-workplace__checkbox {
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  border: 1.5px solid var(--color-border-base-strong, #b2b2b2);
-  border-radius: 5px;
-  background: var(--white);
-}
-
 .e-permits-workplace__case-id {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   color: var(--color-text-base-default, #121212);
   font-size: 13px;
   font-weight: 500;
@@ -2056,7 +2051,7 @@ body {
 @media (max-width: 960px) {
   .e-permits-shell {
     grid-template-columns: 1fr;
-    grid-template-rows: 32px 72px minmax(0, 1fr);
+    grid-template-rows: 32px var(--e-permits-shell-topbar-height, 66px) minmax(0, 1fr);
   }
 
   .e-permits-shell__workspace {
@@ -2356,6 +2351,19 @@ body {
   mask-size: 16.9167px 15.25px;
   -webkit-mask-image: url("../assets/icons/admin-subdivision.svg");
   -webkit-mask-size: 16.9167px 15.25px;
+}
+
+/* Figma 8993:37913 — "newspaper-2" and "list-sparkle" (Central Icons, 1.5
+   stroke), exported as full 20×20 frames so the glyph keeps Figma's exact
+   placement: the base 20px mask size and centring apply unchanged. */
+.e-permits-shell__nav--specialist [data-nav-id="classifiers"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/admin-newspaper.svg");
+  -webkit-mask-image: url("../assets/icons/admin-newspaper.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="service-config"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/admin-list-sparkle.svg");
+  -webkit-mask-image: url("../assets/icons/admin-list-sparkle.svg");
 }
 
 .e-permits-shell__nav--specialist .e-permits-shell__nav-badge {
@@ -2841,8 +2849,7 @@ body {
   height: 38px;
 }
 
-.e-permits-workplace__select-cell .e-permits-workplace__checkbox-control {
-  margin: 0;
+.e-permits-workplace__select-cell .checkbox {
   vertical-align: middle;
 }
 
@@ -2957,69 +2964,6 @@ button.e-permits-workplace__th-content:focus-visible {
   transform: rotate(180deg);
 }
 
-.e-permits-workplace__checkbox-control {
-  position: relative;
-  width: 20px;
-  height: 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  vertical-align: middle;
-  cursor: pointer;
-}
-
-.e-permits-workplace__checkbox-control input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.e-permits-workplace__checkbox {
-  width: 20px;
-  height: 20px;
-  position: relative;
-  display: inline-flex;
-  flex: 0 0 20px;
-  border: 2px solid var(--color-border-base-secondary, #b2b2b2);
-  border-radius: var(--border-radius-6, 6px);
-  background: var(--color-background-base-default, #fff);
-  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
-}
-
-.e-permits-workplace__checkbox-control input:checked + .e-permits-workplace__checkbox,
-.e-permits-workplace__checkbox-control input:indeterminate + .e-permits-workplace__checkbox {
-  border-color: var(--color-border-brand-default, #0058d2);
-  background: var(--color-background-brand-default, #0058d2);
-}
-
-.e-permits-workplace__checkbox-control input:checked + .e-permits-workplace__checkbox::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 9px;
-  height: 5px;
-  border: solid #fff;
-  border-width: 0 0 2px 2px;
-  transform: translate(-50%, -60%) rotate(-45deg);
-}
-
-.e-permits-workplace__checkbox-control input:indeterminate + .e-permits-workplace__checkbox::after {
-  content: "";
-  position: absolute;
-  left: 4px;
-  right: 4px;
-  top: 8px;
-  height: 2px;
-  border-radius: 999px;
-  background: #fff;
-}
-
-.e-permits-workplace__checkbox-control input:focus-visible + .e-permits-workplace__checkbox {
-  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb);
-}
-
 .e-permits-workplace__case-cell,
 .e-permits-workplace__date-stack,
 .e-permits-workplace__act-base {
@@ -3041,7 +2985,7 @@ button.e-permits-workplace__th-content:focus-visible {
   border-radius: var(--border-radius-4, 4px);
   background: transparent;
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   line-height: var(--line-height-lh-20, 20px);
@@ -3354,7 +3298,7 @@ button.e-permits-workplace__th-content:focus-visible {
 
 .e-permits-workplace__user-idnp {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   line-height: var(--line-height-lh-20, 20px);
@@ -4189,40 +4133,6 @@ body.is-user-create-open {
   cursor: not-allowed;
 }
 
-.e-permits-shell-toast {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 1300;
-  min-height: 48px;
-  max-width: min(420px, calc(100vw - 48px));
-  padding: 12px 16px;
-  border-radius: var(--border-radius-8, 8px);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--color-background-success-secondary, #e6f5ee);
-  color: var(--color-text-success-default, #027948);
-  box-shadow: 0 10px 24px rgb(0 0 0 / 12%);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  animation: e-permits-shell-toast-in 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-.e-permits-shell-toast[hidden] {
-  display: none;
-}
-
-.e-permits-shell-toast .icon {
-  flex: 0 0 20px;
-}
-
-@keyframes e-permits-shell-toast-in {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
 @media (max-width: 760px) {
   .e-permits-user-create__header {
     min-height: 72px;
@@ -4257,8 +4167,7 @@ body.is-user-create-open {
 
 @media (prefers-reduced-motion: reduce) {
   .e-permits-user-create__scrim,
-  .e-permits-user-create__drawer,
-  .e-permits-shell-toast {
+.e-permits-user-create__drawer {
     animation: none;
   }
 }

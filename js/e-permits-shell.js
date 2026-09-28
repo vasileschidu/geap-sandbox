@@ -27,12 +27,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const workplaceFieldCount = document.querySelector(".e-permits-workplace__field-count");
   const workplaceToolbar = document.querySelector("[data-workplace-toolbar]");
   const workplaceAddUser = document.querySelector("[data-workplace-add-user]");
+  const workplaceSyncService = document.querySelector("[data-workplace-sync-service]");
   const userCreate = document.querySelector("[data-user-create]");
   const userCreateDrawer = userCreate?.querySelector(".e-permits-user-create__drawer");
   const userCreateBody = userCreate?.querySelector("[data-user-create-body]");
   const userCreateSubmit = userCreate?.querySelector("[data-user-create-submit]");
-  const shellToast = document.querySelector("[data-shell-toast]");
-  const shellToastText = shellToast?.querySelector("[data-shell-toast-text]");
   const permitsProfilePanel = document.querySelector(".permits-profile");
   const workplacePageSizeOptions = [16, 32, 48, 96];
   const dosarProfilPanel = document.querySelector("[data-dosar-profil]");
@@ -65,7 +64,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let rolesDb = null;
   let activeAssignmentId = null;
   let userCreateReturnFocus = null;
-  let shellToastTimer = null;
   const workplaceState = {
     viewKey: "mine",
     tabKey: null,
@@ -592,17 +590,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 120);
   };
 
-  const showShellToast = (message) => {
-    if (!shellToast || !shellToastText) {
-      return;
-    }
-
-    window.clearTimeout(shellToastTimer);
-    shellToastText.textContent = message;
-    shellToast.hidden = false;
-    shellToastTimer = window.setTimeout(() => {
-      shellToast.hidden = true;
-    }, 3200);
+  /* back-office feedback = the product toast (js/toast.js → library .toast);
+     tone "success" (default) or "error" — an error never reads as a success */
+  const showShellToast = (message, tone = "success", title = "") => {
+    window.GEAPToast?.show({ type: tone === "error" ? "error" : tone === "info" ? "info" : "success", title, message });
   };
 
   const lookupRsspPerson = () => {
@@ -1300,6 +1291,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return row.tipSarcina === filterToken.slice(8);
     }
 
+    if (filterToken.startsWith("svc:")) {
+      return row.statut === filterToken.slice(4);
+    }
+
     return true;
   };
 
@@ -1320,6 +1315,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "dataInitierii":
       case "ultimaConectare":
       case "ultimaActualizare":
+      case "actualizat":
         return row[key] ? Date.parse(row[key]) : 0;
       case "actBaza":
         return `${row.actBaza?.nr || ""} ${row.actBaza?.denumire || ""}`;
@@ -1360,6 +1356,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getSearchHaystack = (row) => {
+    if (workplaceDb?.kind === "services" || workplaceDb?.kind === "authorities") {
+      return [row.cod, row.denumire, row.institutie, row.autoritateCod, row.statut, row.idno]
+        .filter(Boolean).join(" ").toLocaleLowerCase("ro");
+    }
+
     if (workplaceDb?.kind === "users") {
       return [
         row.numeComplet,
@@ -1576,7 +1577,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getNaturalColumnWidth = (key, rows) => {
-    if (workplaceDb?.kind === "users" && workplaceDb.columns[key]?.width) {
+    if (["users", "services", "authorities"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
       return workplaceDb.columns[key].width;
     }
 
@@ -1602,7 +1603,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const visibleTableWidth = workplaceTable?.parentElement?.clientWidth || 0;
     const naturalWidth = columns.reduce((sum, key) => sum + widths[key], tablePaddingWidth);
     const extraWidth = Math.max(0, visibleTableWidth - naturalWidth);
-    const growable = columns.filter((key) => fillColumns.has(key));
+    const growable = columns.filter((key) => fillColumns.has(key) || workplaceDb?.columns[key]?.fill);
 
     if (extraWidth > 0 && growable.length) {
       const each = Math.floor(extraWidth / growable.length);
@@ -1643,9 +1644,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     workplaceHead.innerHTML = `
       ${selectable ? `<th scope="col" class="e-permits-workplace__select-cell">
-        <label class="e-permits-workplace__checkbox-control">
-          <input type="checkbox" data-workplace-select-all>
-          <span class="e-permits-workplace__checkbox" aria-hidden="true"></span>
+        <label class="checkbox checkbox--medium">
+          <input class="checkbox-input" type="checkbox" aria-label="Selectează toate rândurile" data-workplace-select-all>
+          <span class="checkbox-custom" aria-hidden="true"></span>
         </label>
       </th>` : ""}
       ${columns.map((key) => {
@@ -1757,6 +1758,74 @@ document.addEventListener("DOMContentLoaded", () => {
       </button>
     `;
   };
+
+  /* Shared back-office page header (Figma 8993:37914): breadcrumbs + title,
+     optional actions with a caption on the right, a meta row of label/value
+     pairs split by vertical separators, then the tab row. Every profile —
+     dosar, utilizator, rol, act permisiv — renders through these, so the
+     format stays identical everywhere. A crumb with `attr` is a link that
+     reuses an existing back handler; without it, it is plain text. */
+  const renderPageHeaderTop = ({ crumbs = [], title = "", actions = "", caption = "" }) => `
+    <div class="e-permits-page-header__heading">
+      <nav class="breadcrumbs e-permits-page-header__breadcrumbs" aria-label="Navigare">
+        <ol class="breadcrumbs__list">
+          ${crumbs.map((crumb, index) => index < crumbs.length - 1
+            ? `<li class="breadcrumbs__item">${crumb.attr
+              ? `<a class="breadcrumbs__link" href="#" ${crumb.attr}>${escapeHtml(crumb.label)}</a>`
+              : `<span class="breadcrumbs__link">${escapeHtml(crumb.label)}</span>`}</li>`
+            : `<li class="breadcrumbs__item"><span class="breadcrumbs__current" aria-current="page">${escapeHtml(crumb.label)}</span></li>`
+          ).join("")}
+        </ol>
+      </nav>
+      <h1 class="e-permits-page-header__title" title="${escapeHtml(title)}">${escapeHtml(title)}</h1>
+    </div>
+    ${actions || caption ? `
+      <div class="e-permits-page-header__aside">
+        ${actions ? `<div class="e-permits-page-header__actions">${actions}</div>` : ""}
+        ${caption ? `<p class="e-permits-page-header__caption">${escapeHtml(caption)}</p>` : ""}
+      </div>
+    ` : ""}
+  `;
+
+  /* Separators are drawn by each item's ::before (see the CSS), not as flex
+     children, so hiding one never changes the layout it depends on. */
+  const renderPageHeaderMeta = (items) => items.map(([label, valueHtml]) => `
+    <div class="e-permits-page-header__meta-item">
+      <span class="e-permits-page-header__meta-label">${escapeHtml(label)}</span>
+      <span class="e-permits-page-header__meta-value">${valueHtml}</span>
+    </div>
+  `).join("");
+
+  /* When the meta row wraps, an item that starts a new line gets
+     .is-row-start, which drops its separator — so no line ever ends or begins
+     with one. Re-measured whenever a meta row resizes or is re-rendered. */
+  const syncPageHeaderMetaRows = (meta) => {
+    let previousTop = null;
+
+    meta.querySelectorAll(":scope > .e-permits-page-header__meta-item").forEach((item) => {
+      const top = item.offsetTop;
+      item.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
+      previousTop = top;
+    });
+  };
+
+  const pageHeaderMetaObserver = "ResizeObserver" in window
+    ? new ResizeObserver((entries) => entries.forEach((entry) => syncPageHeaderMetaRows(entry.target)))
+    : null;
+
+  const watchPageHeaderMeta = (meta) => {
+    if (!meta) {
+      return;
+    }
+
+    pageHeaderMetaObserver?.observe(meta);
+    syncPageHeaderMetaRows(meta);
+  };
+
+  document.querySelectorAll(".e-permits-page-header__meta").forEach(watchPageHeaderMeta);
+
+  const renderPageHeaderTabCount = (count, tone) =>
+    `<span class="e-permits-page-header__tab-count${tone ? ` e-permits-page-header__tab-count--${escapeHtml(tone)}` : ""}">${count}</span>`;
 
   const DOSAR_STATUS_ORDER = [
     "schita",
@@ -2031,42 +2100,30 @@ document.addEventListener("DOMContentLoaded", () => {
     return days < 0 ? `${Math.abs(days)} z. depășit` : `${days} z. rămase`;
   };
 
-  const renderDosarProfilTitle = (row) => {
-    const status = workplaceDb.statuses[row.status];
-
-    return `
-      <div class="e-permits-dosar-profil__title-copy">
-        <h1 class="e-permits-dosar-profil__title">${escapeHtml(row.serviciu)}</h1>
-      </div>
-      <div class="e-permits-dosar-profil__title-tags">
-        ${renderTag(status?.label, status?.tone)}
-        ${renderTag(row.tipDosar, "neutral")}
-      </div>
-    `;
-  };
+  const renderDosarProfilTitle = (row) => renderPageHeaderTop({
+    crumbs: [
+      { label: workplaceTitle?.textContent.trim() || "Dosare", attr: "data-dosar-profil-crumb-back" },
+      { label: row.nrDosar }
+    ],
+    title: row.serviciu
+  });
 
   const renderDosarProfilSummary = (row) => {
     const termenMeta = renderTermenMeta(row);
     const profile = buildDosarProfile(row);
+    const status = workplaceDb.statuses[row.status];
     const applicant = row.companie || row.numeSolicitant || "—";
     const representative = profile.representative?.nume || (row.companie ? row.numeSolicitant : "—");
 
-    const blocks = [
-      ["Numărul dosarului", renderCopyCode(row.nrDosar, `Copiază ${row.nrDosar}`)],
+    return renderPageHeaderMeta([
+      ["Numărul dosarului", renderProfileCopyCode(row.nrDosar, `Copiază ${row.nrDosar}`)],
       [profile.isOficiu ? "Titular" : "Solicitant", escapeHtml(profile.isOficiu ? row.actBaza?.titular || applicant : applicant)],
       ["Reprezentant", escapeHtml(profile.isOficiu ? "—" : representative)],
       ["Termen", `${escapeHtml(formatDate(row.termenExaminare))}${termenMeta ? ` <span class="e-permits-dosar-profil__termen-meta">${escapeHtml(termenMeta)}</span>` : ""}`],
       ["Alerte", renderAlerts(row.alerte)],
-      ["Specialist", renderAvatarChip(row.specialist)]
-    ];
-
-    return blocks.map(([label, valueHtml], index) => `
-      ${index > 0 ? '<span class="e-permits-dosar-profil__divider" aria-hidden="true"></span>' : ""}
-      <div class="e-permits-dosar-profil__summary-item">
-        <span class="e-permits-dosar-profil__summary-label">${escapeHtml(label)}</span>
-        <span class="e-permits-dosar-profil__summary-value">${valueHtml}</span>
-      </div>
-    `).join("");
+      ["Specialist", renderAvatarChip(row.specialist)],
+      ["Statut", `${renderTag(status?.label, status?.tone)}${row.tipDosar ? renderTag(row.tipDosar, "neutral") : ""}`]
+    ]);
   };
 
   const renderDosarProfilTabs = (row = getDosarById(dosarProfilState.rowId)) => getDosarProfileTabs(row).map((tab) => {
@@ -2076,7 +2133,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <button class="tab-button${isActive ? " active" : ""}" id="dosar-tab-${tab.id}" type="button" role="tab" aria-controls="dosar-panel-${tab.id}" aria-selected="${isActive ? "true" : "false"}" tabindex="${isActive ? "0" : "-1"}" data-dosar-tab="${tab.id}">
         ${tab.icon ? renderProfileIcon(tab.icon, 20) : ""}
         <span>${escapeHtml(tab.label)}</span>
-        ${tab.countValue !== null && tab.countValue > 0 ? `<span class="e-permits-dosar-profil__tab-count${tab.signal ? ` e-permits-dosar-profil__tab-count--${tab.signal.tone}` : ""}">${tab.countValue}</span>` : ""}
+        ${tab.countValue !== null && tab.countValue > 0 ? renderPageHeaderTabCount(tab.countValue, tab.signal?.tone) : ""}
       </button>
     `;
   }).join("");
@@ -2087,7 +2144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-dosar-profil__card">
         ${rows.map(([label, valueHtml]) => `
           <div class="e-permits-dosar-profil__row">
-            <span class="e-permits-dosar-profil__row-label">${escapeHtml(label)}</span>
+            <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
             <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
           </div>
         `).join("")}
@@ -2423,6 +2480,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (dosarProfilSummary) {
       dosarProfilSummary.innerHTML = renderDosarProfilSummary(row);
+      watchPageHeaderMeta(dosarProfilSummary);
     }
 
     if (dosarProfilTabs) {
@@ -2500,6 +2558,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   dosarProfilBackShell?.addEventListener("click", closeDosarProfil);
+  dosarProfilTitleRow?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-dosar-profil-crumb-back]")) {
+      event.preventDefault();
+      closeDosarProfil();
+    }
+  });
 
   const getUserById = (id) =>
     (usersDb?.runtimeRows || []).find((user) => user.id === id) || null;
@@ -2509,47 +2573,27 @@ document.addEventListener("DOMContentLoaded", () => {
       .flatMap((section) => section.fields || [])
       .find((field) => field.key === key) || null;
 
-  const renderUserProfileTitle = (user) => `
-    <div class="e-permits-user-profile__heading">
-      <h1>${escapeHtml(user.numeComplet)}</h1>
-      ${renderTag(user.status, user.status === "Activ" ? "success" : "neutral")}
-    </div>
-    <div class="e-permits-user-profile__title-actions">
-      <button class="e-permits-user-profile__secondary-action" type="button" data-user-profile-delegate>
-        Deleagă rol
-      </button>
-      <button class="e-permits-user-profile__danger-action" type="button" data-user-profile-status-toggle>
+  const renderUserProfileTitle = (user) => renderPageHeaderTop({
+    crumbs: [
+      { label: "Utilizatori", attr: "data-user-profile-crumb-back" },
+      { label: user.idnp }
+    ],
+    title: user.numeComplet,
+    actions: `
+      <button class="btn btn-neutral btn-sm" type="button" data-user-profile-delegate>Deleagă rol</button>
+      <button class="btn btn-outline-destructive btn-sm" type="button" data-user-profile-status-toggle>
         ${user.status === "Activ" ? "Inactivare" : "Activare"}
       </button>
-    </div>
-  `;
+    `
+  });
 
-  const renderUserProfileSummary = (user) => `
-    <div class="e-permits-user-profile__summary-item">
-      <span class="e-permits-user-profile__summary-label">IDNP</span>
-      <span class="e-permits-user-profile__summary-value">
-        ${renderCopyCode(user.idnp, `Copiază IDNP ${user.idnp}`)}
-      </span>
-    </div>
-    <span class="e-permits-user-profile__summary-divider" aria-hidden="true"></span>
-    <div class="e-permits-user-profile__summary-item">
-      <span class="e-permits-user-profile__summary-label">Rol</span>
-      <span class="e-permits-user-profile__summary-value e-permits-user-profile__summary-roles">${(user.roluri?.length ? user.roluri : ["Specialist"]).map((role) => renderTag(role, "neutral")).join("")}</span>
-    </div>
-    <span class="e-permits-user-profile__summary-divider" aria-hidden="true"></span>
-    <div class="e-permits-user-profile__summary-item">
-      <span class="e-permits-user-profile__summary-label">Autoritatea</span>
-      <span class="e-permits-user-profile__summary-value e-permits-user-profile__summary-authority">
-        <img src="assets/icons/admin-authority.svg" alt="" aria-hidden="true">
-        <span>${escapeHtml(user.autoritateScurta || "ANSP")}</span>
-      </span>
-    </div>
-    <span class="e-permits-user-profile__summary-divider" aria-hidden="true"></span>
-    <div class="e-permits-user-profile__summary-item e-permits-user-profile__summary-item--email">
-      <span class="e-permits-user-profile__summary-label">Email</span>
-      <span class="e-permits-user-profile__summary-value">${escapeHtml(user.email)}</span>
-    </div>
-  `;
+  const renderUserProfileSummary = (user) => renderPageHeaderMeta([
+    ["IDNP", renderProfileCopyCode(user.idnp, `Copiază IDNP ${user.idnp}`)],
+    ["Rol", `<span class="e-permits-user-profile__summary-roles">${(user.roluri?.length ? user.roluri : ["Specialist"]).map((role) => renderTag(role, "neutral")).join("")}</span>`],
+    ["Autoritatea", `<span class="e-permits-user-profile__summary-authority"><span class="e-permits-user-profile__authority-icon" aria-hidden="true"></span><span>${escapeHtml(user.autoritateScurta || "ANSP")}</span></span>`],
+    ["Email", escapeHtml(user.email)],
+    ["Statut", renderTag(user.status, user.status === "Activ" ? "success" : "neutral")]
+  ]);
 
   const renderUserProfileTabs = (user) =>
     (usersDb?.profile?.tabs || []).map((tab) => {
@@ -2573,7 +2617,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </svg>
           ` : ""}
           <span>${escapeHtml(tab.label)}</span>
-          ${count !== null ? `<span class="e-permits-user-profile__tab-count">${count}</span>` : ""}
+          ${count !== null ? renderPageHeaderTabCount(count) : ""}
         </button>
       `;
     }).join("");
@@ -2801,44 +2845,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const permBaseActiveCount = (subject) => (subject.grantedPermissions || subject.functii || []).length;
 
+  /* Permisiuni reuse the passport's stacked list (state tag + source line);
+     the two row actions stay as they were: Adaugă / Retrage toggles */
   const banIcon = `<svg class="e-permits-user-profile__ban" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.25" stroke="currentColor" stroke-width="1.5"/><line x1="3.75" y1="3.75" x2="12.25" y2="12.25" stroke="currentColor" stroke-width="1.5"/></svg>`;
 
-  const renderPermStateIcon = (state) => {
-    if (state === "add" || state === "granted") {
-      return `<span class="e-permits-user-profile__perm-icon is-on" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>`;
-    }
-
-    if (state === "remove") {
-      return `<span class="e-permits-user-profile__perm-icon is-remove" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></span>`;
-    }
-
-    return `<span class="e-permits-user-profile__perm-icon is-off" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></span>`;
+  const PERM_STATE_TAG = {
+    granted: ["Acordată", "success"],
+    add: ["Se adaugă", "brand"],
+    remove: ["Se retrage", "danger"]
   };
 
   const renderPermRow = (subject, permission, state = userProfileState) => {
     const rowState = permRowState(subject, permission.id, state);
     const addDisabled = rowState === "granted" || rowState === "remove";
     const subtitle = rowState === "add" ? "acordată individual, peste rol" : `din rolul ${permission.role}`;
+    const tag = PERM_STATE_TAG[rowState];
 
-    return `
-      <div class="e-permits-user-profile__perm-row e-permits-user-profile__perm-row--${rowState}" data-perm-id="${permission.id}">
-        ${renderPermStateIcon(rowState)}
-        <div class="e-permits-user-profile__perm-copy">
-          <p class="e-permits-user-profile__perm-name">${escapeHtml(permission.label)}</p>
-          <p class="e-permits-user-profile__perm-source">${escapeHtml(subtitle)}</p>
-        </div>
-        <div class="e-permits-user-profile__perm-actions">
-          <button class="e-permits-user-profile__perm-btn e-permits-user-profile__perm-add${rowState === "add" ? " is-active" : ""}" type="button" data-perm-add="${permission.id}" ${addDisabled ? "disabled" : ""}>
-            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
-            <span>Adaugă</span>
-          </button>
-          <button class="e-permits-user-profile__perm-btn e-permits-user-profile__perm-retrage${rowState === "remove" ? " is-active" : ""}" type="button" data-perm-remove="${permission.id}">
-            ${banIcon}
-            <span>Retrage</span>
-          </button>
-        </div>
-      </div>
-    `;
+    return renderStackItem({
+      plainTitle: permission.label,
+      title: escapeHtml(permission.label),
+      badges: tag ? [renderTag(tag[0], tag[1])] : [],
+      meta: [escapeHtml(subtitle)],
+      actionsHtml: `
+        <button class="e-permits-user-profile__perm-btn e-permits-user-profile__perm-add${rowState === "add" ? " is-active" : ""}" type="button" aria-pressed="${rowState === "add" ? "true" : "false"}" data-perm-add="${permission.id}" ${addDisabled ? "disabled" : ""}>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
+          <span>Adaugă</span>
+        </button>
+        <button class="e-permits-user-profile__perm-btn e-permits-user-profile__perm-retrage${rowState === "remove" ? " is-active" : ""}" type="button" aria-pressed="${rowState === "remove" ? "true" : "false"}" data-perm-remove="${permission.id}">
+          ${banIcon}
+          <span>Retrage</span>
+        </button>
+      `
+    });
   };
 
   const renderPermGroup = (subject, group, state = userProfileState) => {
@@ -2850,47 +2888,64 @@ document.addEventListener("DOMContentLoaded", () => {
     const open = state.permOpenGroups.has(group.id);
 
     return `
-      <div class="e-permits-user-profile__perm-group${open ? " is-open" : ""}">
-        <button class="e-permits-user-profile__perm-group-head" type="button" data-perm-group="${group.id}" aria-expanded="${open ? "true" : "false"}">
-          <span class="e-permits-user-profile__perm-group-title">
-            <span class="e-permits-user-profile__perm-group-name">${escapeHtml(group.label)}</span>
-            <span class="e-permits-user-profile__perm-group-count">${granted}/${total}</span>
-            ${addDelta ? `<span class="e-permits-user-profile__perm-delta is-add">+${addDelta}</span>` : ""}
-            ${removeDelta ? `<span class="e-permits-user-profile__perm-delta is-remove">+${removeDelta}</span>` : ""}
-          </span>
-          <span class="e-permits-user-profile__perm-group-chevron" aria-hidden="true">
-            <svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
-          </span>
-        </button>
-        ${open ? `<div class="e-permits-user-profile__perm-group-body">${permissions.map((permission) => renderPermRow(subject, permission, state)).join("")}</div>` : ""}
+      <div class="e-permits-stack__group${open ? " is-open" : " is-collapsed"}">
+        <h3 class="e-permits-stack__group-label e-permits-stack__group-label--toggle">
+          <button class="e-permits-stack__group-toggle" type="button" data-perm-group="${group.id}" aria-expanded="${open ? "true" : "false"}">
+            <span class="e-permits-stack__group-name">${escapeHtml(group.label)}</span>
+            <span class="e-permits-stack__group-count">${granted}/${total}</span>
+            ${addDelta ? renderTag(`+${addDelta}`, "brand") : ""}
+            ${removeDelta ? renderTag(`−${removeDelta}`, "danger") : ""}
+            <svg class="icon small e-permits-stack__group-chevron" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+          </button>
+        </h3>
+        ${open ? `<ul class="e-permits-stack__list" role="list">${permissions.map((permission) => renderPermRow(subject, permission, state)).join("")}</ul>` : ""}
       </div>
     `;
   };
 
-  const renderPermSearchDropdown = (subject, state = userProfileState) => {
+  /* Search options reuse the full-flow suggestion list (.e-permits-fo-address-search)
+     with the library checkbox in place of the leading icon. */
+  const renderPermSearchOptions = (subject, state = userProfileState) => {
     const query = state.permSearch.trim().toLocaleLowerCase("ro");
     const matches = getAllPermissions()
       .filter((permission) => permission.label.toLocaleLowerCase("ro").includes(query))
       .slice(0, 6);
 
-    return `
-      <div class="e-permits-user-profile__perm-menu" data-perm-menu>
-        ${matches.length ? matches.map((permission) => {
-          const checked = permEffectiveGranted(subject, permission.id, state);
-          return `
-            <button class="e-permits-user-profile__perm-option" type="button" role="checkbox" aria-checked="${checked ? "true" : "false"}" data-perm-toggle="${permission.id}">
-              <span class="e-permits-user-profile__perm-checkbox${checked ? " is-checked" : ""}" aria-hidden="true">
-                ${checked ? `<svg class="icon" width="14" height="14"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>` : ""}
-              </span>
-              <span class="e-permits-user-profile__perm-option-copy">
-                <span class="e-permits-user-profile__perm-option-name">${escapeHtml(permission.label)}</span>
-                <span class="e-permits-user-profile__perm-option-group">${escapeHtml(permission.groupLabel)}</span>
-              </span>
-            </button>
-          `;
-        }).join("") : `<p class="e-permits-user-profile__perm-menu-empty">Nicio permisiune găsită</p>`}
-      </div>
-    `;
+    if (!matches.length) {
+      return `<li class="e-permits-fo-caem__empty" role="presentation">Nicio permisiune găsită</li>`;
+    }
+
+    return matches.map((permission) => {
+      const checked = permEffectiveGranted(subject, permission.id, state);
+      return `
+        <li class="e-permits-fo-address-search__option" role="option" aria-selected="${checked ? "true" : "false"}" data-perm-toggle="${permission.id}">
+          <span class="checkbox checkbox--medium" aria-hidden="true">
+            <input class="checkbox-input" type="checkbox" tabindex="-1"${checked ? " checked" : ""}>
+            <span class="checkbox-custom"></span>
+          </span>
+          <span class="e-permits-fo-address-search__copy">
+            <span class="e-permits-fo-address-search__title">${escapeHtml(permission.label)}</span>
+            <span class="e-permits-fo-address-search__meta">${escapeHtml(permission.groupLabel)}</span>
+          </span>
+        </li>
+      `;
+    }).join("");
+  };
+
+  /* Typing only refreshes the suggestion list — re-rendering the whole panel
+     on every keystroke dropped characters typed before the refocus. */
+  const syncPermSearchMenu = (panelBody, subject, state) => {
+    const input = panelBody?.querySelector("[data-perm-search]");
+    const list = panelBody?.querySelector("[data-perm-menu]");
+
+    if (!input || !list) {
+      return;
+    }
+
+    const open = Boolean(state.permSearch.trim());
+    list.innerHTML = open ? renderPermSearchOptions(subject, state) : "";
+    list.hidden = !open;
+    input.setAttribute("aria-expanded", String(open));
   };
 
   const renderPermissionsTab = (subject, state = userProfileState) => {
@@ -2900,31 +2955,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const editing = addCount > 0 || removeCount > 0;
 
     return `
-      <section class="e-permits-user-profile__section e-permits-user-profile__perms">
-        <div class="e-permits-user-profile__perms-header">
-          <div class="e-permits-user-profile__perms-title-row">
-            <h2>Permisiuni</h2>
-            <span class="e-permits-user-profile__perms-count">${active} permisiuni active</span>
-            ${addCount ? `<span class="e-permits-user-profile__perm-delta is-add">+${addCount}</span>` : ""}
-            ${removeCount ? `<span class="e-permits-user-profile__perm-delta is-remove">+${removeCount}</span>` : ""}
-          </div>
+      <section class="e-permits-user-profile__section e-permits-user-profile__perms e-permits-stack-section">
+        <div class="e-permits-dosar-profil__section-heading e-permits-perms__heading">
+          <h2 class="e-permits-dosar-profil__section-title">Permisiuni${renderTag(`${active} active`, "neutral")}${addCount ? renderTag(`+${addCount}`, "brand") : ""}${removeCount ? renderTag(`−${removeCount}`, "danger") : ""}</h2>
           ${editing ? `
-            <div class="e-permits-user-profile__perms-actions">
-              <button class="e-permits-user-profile__perms-save" type="button" data-perm-save>Salvează</button>
-              <button class="e-permits-user-profile__perms-cancel" type="button" data-perm-discard>Renunță</button>
+            <div class="e-permits-stack__actions">
+              <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-perm-discard>Renunță</button>
+              <button class="btn btn-primary btn-sm e-permits-stack__action" type="button" data-perm-save>Salvează</button>
             </div>
           ` : ""}
         </div>
-        <div class="e-permits-user-profile__perm-search">
-          <label class="search-input medium rectangular e-permits-user-profile__perm-search-input">
-            <span class="icon-search" aria-hidden="true">
-              <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-            </span>
-            <input class="input" type="search" data-perm-search placeholder="Căutare permisiune" value="${escapeHtml(state.permSearch)}" autocomplete="off">
-          </label>
-          ${state.permSearch.trim() ? renderPermSearchDropdown(subject, state) : ""}
+        <div class="e-permits-fo-address-search e-permits-user-profile__perm-search">
+          <div class="e-permits-fo-input e-permits-fo-input--with-action">
+            <input type="text" placeholder="Caută permisiune" value="${escapeHtml(state.permSearch)}" autocomplete="off" role="combobox" aria-label="Caută permisiune" aria-autocomplete="list" aria-expanded="${state.permSearch.trim() ? "true" : "false"}" data-perm-search>
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+          </div>
+          <ul class="e-permits-fo-address-search__list" role="listbox" aria-label="Permisiuni găsite" data-perm-menu${state.permSearch.trim() ? "" : " hidden"}>${state.permSearch.trim() ? renderPermSearchOptions(subject, state) : ""}</ul>
         </div>
-        <div class="e-permits-user-profile__perm-groups">
+        <div class="e-permits-stack e-permits-perms__stack">
           ${getPermissionGroups().map((group) => renderPermGroup(subject, group, state)).join("")}
         </div>
       </section>
@@ -2979,6 +3027,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     userProfileTitle.innerHTML = renderUserProfileTitle(user);
     userProfileSummary.innerHTML = renderUserProfileSummary(user);
+    watchPageHeaderMeta(userProfileSummary);
     userProfileTabs.innerHTML = renderUserProfileTabs(user);
     renderUserProfilePanelBody(user);
   };
@@ -3202,6 +3251,34 @@ document.addEventListener("DOMContentLoaded", () => {
     showShellToast("Permisiunile au fost salvate.");
   };
 
+  /* Ticking a search option must not touch the open list (scroll, hover, focus):
+     patch the option in place and swap only the heading counts and the groups. */
+  const patchPermissionsTab = (panelBody, subject, state) => {
+    const heading = panelBody?.querySelector(".e-permits-perms__heading");
+    const stack = panelBody?.querySelector(".e-permits-perms__stack");
+
+    if (!heading || !stack) {
+      return false;
+    }
+
+    const next = document.createElement("div");
+    next.innerHTML = renderPermissionsTab(subject, state);
+    heading.replaceWith(next.querySelector(".e-permits-perms__heading"));
+    stack.replaceWith(next.querySelector(".e-permits-perms__stack"));
+
+    panelBody.querySelectorAll("[data-perm-menu] [data-perm-toggle]").forEach((option) => {
+      const checked = permEffectiveGranted(subject, option.dataset.permToggle, state);
+      option.setAttribute("aria-selected", String(checked));
+      const box = option.querySelector(".checkbox-input");
+
+      if (box) {
+        box.checked = checked;
+      }
+    });
+
+    return true;
+  };
+
   const refocusPermSearch = () => {
     requestAnimationFrame(() => {
       const input = userProfilePanelBody?.querySelector("[data-perm-search]");
@@ -3258,8 +3335,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (toggleButton) {
       togglePermFromSearch(user, toggleButton.dataset.permToggle);
-      renderUserProfilePanelBody(user);
-      refocusPermSearch();
+
+      if (!patchPermissionsTab(userProfilePanelBody, user, userProfileState)) {
+        renderUserProfilePanelBody(user);
+        refocusPermSearch();
+      }
       return true;
     }
 
@@ -3279,6 +3359,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   userProfileBackShell?.addEventListener("click", closeUserProfile);
+  userProfileTitle?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-user-profile-crumb-back]")) {
+      event.preventDefault();
+      closeUserProfile();
+    }
+  });
 
   // ---- Role profile ----
   const roleProfileState = {
@@ -3305,27 +3391,20 @@ document.addEventListener("DOMContentLoaded", () => {
     roleProfileState.permSearch = "";
   };
 
-  const renderRoleProfileTitle = (role) => `
-    <div class="e-permits-role-profile__heading-block">
-      <div class="e-permits-user-profile__heading">
-        <h1>${escapeHtml(role.denumire)}</h1>
-        ${renderTag(role.activ ? "Activ" : "Inactiv", role.activ ? "success" : "neutral")}
-      </div>
-      <p class="e-permits-role-profile__description">${escapeHtml(role.descriere)}</p>
-    </div>
-  `;
+  const renderRoleProfileTitle = (role) => renderPageHeaderTop({
+    crumbs: [
+      { label: "Roluri", attr: "data-role-profile-crumb-back" },
+      { label: role.id }
+    ],
+    title: role.denumire
+  });
 
-  const renderRoleProfileSummary = (role) => `
-    <div class="e-permits-user-profile__summary-item">
-      <span class="e-permits-user-profile__summary-label">Nr. de permisiuni</span>
-      <span class="e-permits-user-profile__summary-value">${role.functii.length}/${roleAdminDb.permissionTotal}</span>
-    </div>
-    <span class="e-permits-user-profile__summary-divider" aria-hidden="true"></span>
-    <div class="e-permits-user-profile__summary-item">
-      <span class="e-permits-user-profile__summary-label">Utilizatori cu acest rol</span>
-      <span class="e-permits-user-profile__summary-value">${role.utilizatori}</span>
-    </div>
-  `;
+  const renderRoleProfileSummary = (role) => renderPageHeaderMeta([
+    ["Nr. de permisiuni", `${role.functii.length}/${roleAdminDb.permissionTotal}`],
+    ["Utilizatori cu acest rol", String(role.utilizatori)],
+    ["Creat", escapeHtml(formatDate(role.dataCreare))],
+    ["Statut", renderTag(role.activ ? "Activ" : "Inactiv", role.activ ? "success" : "neutral")]
+  ]);
 
   const renderRoleProfileTabs = (role) => ROLE_PROFILE_TABS.map((tab) => {
     const active = tab.id === roleProfileState.tabKey;
@@ -3335,7 +3414,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <button id="role-profile-tab-${tab.id}" class="tab-button${active ? " active" : ""}" type="button" role="tab" aria-selected="${active ? "true" : "false"}" tabindex="${active ? "0" : "-1"}" data-role-profile-tab="${tab.id}">
         ${tab.icon ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${tab.icon}"></use></svg>` : ""}
         <span>${escapeHtml(tab.label)}</span>
-        ${count !== null ? `<span class="e-permits-user-profile__tab-count">${count}</span>` : ""}
+        ${count !== null ? renderPageHeaderTabCount(count) : ""}
       </button>
     `;
   }).join("");
@@ -3402,11 +3481,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     roleProfileTitle.innerHTML = renderRoleProfileTitle(role);
     roleProfileSummary.innerHTML = renderRoleProfileSummary(role);
+    watchPageHeaderMeta(roleProfileSummary);
     roleProfileTabs.innerHTML = renderRoleProfileTabs(role);
     renderRoleProfilePanelBody(role);
   };
 
   const openRoleProfile = (role) => {
+    shell.classList.remove("is-service-profile-open");
+    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (!role || !roleProfilePanel) {
       return;
     }
@@ -3445,6 +3527,22 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   roleProfileBackShell?.addEventListener("click", closeRoleProfile);
+  /* the act-permisiv page is static markup; give its IDs the same copy behaviour */
+  permitsProfilePanel?.addEventListener("click", async (event) => {
+    const copyButton = event.target.closest("[data-shell-copy-value]");
+
+    if (copyButton) {
+      event.preventDefault();
+      await handleCopyClick(copyButton);
+    }
+  });
+
+  roleProfileTitle?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-role-profile-crumb-back]")) {
+      event.preventDefault();
+      closeRoleProfile();
+    }
+  });
 
   const commitRolePermissions = (role) => {
     const granted = new Set(role.functii || []);
@@ -3475,8 +3573,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (search) {
         roleProfileState.permSearch = search.value;
-        renderRoleProfilePanelBody(getRoleById(roleProfileState.roleId));
-        refocusRolePermSearch();
+        syncPermSearchMenu(roleProfilePanelBody, getRoleById(roleProfileState.roleId), roleProfileState);
+      }
+    });
+
+    roleProfilePanel.addEventListener("mousedown", (event) => {
+      if (event.target.closest("[data-perm-toggle]")) {
+        event.preventDefault();
+      }
+    });
+
+    roleProfilePanel.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && event.target.closest("[data-perm-search]") && roleProfileState.permSearch) {
+        event.preventDefault();
+        event.stopPropagation();
+        roleProfileState.permSearch = "";
+        event.target.value = "";
+        syncPermSearchMenu(roleProfilePanelBody, getRoleById(roleProfileState.roleId), roleProfileState);
       }
     });
 
@@ -3547,8 +3660,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (toggleButton) {
         togglePermFromSearch(role, toggleButton.dataset.permToggle, roleProfileState);
-        renderRoleProfilePanelBody(role);
-        refocusRolePermSearch();
+
+        if (!patchPermissionsTab(roleProfilePanelBody, role, roleProfileState)) {
+          renderRoleProfilePanelBody(role);
+          refocusRolePermSearch();
+        }
         return;
       }
 
@@ -3724,6 +3840,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return renderRoleAdminCell(row, key);
     }
 
+    if (workplaceDb?.kind === "services") {
+      return renderServiceCell(row, key);
+    }
+
+    if (workplaceDb?.kind === "authorities") {
+      return renderAuthorityCell(row, key);
+    }
+
     switch (key) {
       case "nrDosar":
         return renderNrDosar(row);
@@ -3779,9 +3903,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderDataRow = (row, columns, columnWidths, view = getView()) => `
     <tr data-workplace-row="${escapeHtml(row.id)}">
       ${view?.selectable === false ? "" : `<td class="e-permits-workplace__select-cell">
-        <label class="e-permits-workplace__checkbox-control">
-          <input type="checkbox" data-workplace-select-row="${escapeHtml(row.id)}" ${workplaceState.selected.has(row.id) ? "checked" : ""}>
-          <span class="e-permits-workplace__checkbox" aria-hidden="true"></span>
+        <label class="checkbox checkbox--medium">
+          <input class="checkbox-input" type="checkbox" aria-label="Selectează rândul" data-workplace-select-row="${escapeHtml(row.id)}" ${workplaceState.selected.has(row.id) ? "checked" : ""}>
+          <span class="checkbox-custom" aria-hidden="true"></span>
         </label>
       </td>`}
       ${columns.map((key) => {
@@ -3939,6 +4063,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const isUsersRegistry = workplaceDb.kind === "users";
     workplacePanel?.classList.toggle("is-users-registry", isUsersRegistry);
+
+    if (workplacePanel) {
+      workplacePanel.dataset.registryKind = workplaceDb.kind || "dossiers";
+    }
     shell.classList.toggle("is-users-registry", isUsersRegistry);
     workplaceToolbar?.setAttribute(
       "aria-label",
@@ -3954,6 +4082,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (workplaceAddUser) {
       workplaceAddUser.hidden = workplaceDb.kind !== "users";
+    }
+
+    if (workplaceSyncService) {
+      /* US-111: synchronisation is reserved to Administrator central */
+      workplaceSyncService.hidden = workplaceDb.kind !== "services" || !isCentralAdmin();
     }
 
     if (workplaceFieldCount) {
@@ -3991,6 +4124,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const setWorkplaceView = (viewKey) => {
+    shell.classList.remove("is-service-profile-open");
+    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (dossierDb) {
       activeRegistry = "dossiers";
       workplaceDb = dossierDb;
@@ -4049,6 +4184,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const showUsersRegistry = () => {
+    shell.classList.remove("is-service-profile-open");
+    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (!usersDb) {
       showRolePlaceholder("Utilizatori");
       return;
@@ -4144,6 +4281,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const showRolesRegistry = () => {
+    shell.classList.remove("is-service-profile-open");
+    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (!roleAdminDb) {
       showRolePlaceholder("Roluri");
       return;
@@ -4182,6 +4321,1452 @@ document.addEventListener("DOMContentLoaded", () => {
     renderWorkplace();
   };
 
+  /* ==========================================================================
+     Pașaportul Serviciului — Feature 90575, US-111, Feature 93591.
+     Rules live in core/service-passport.js (GEAP.servicePassport); this block
+     only renders and wires. Registries (Servicii, Autorități) run on the shared
+     workplace engine; the profile is the shared page header + 10 tabs, drawn
+     into the .permits-profile panel.
+     ========================================================================== */
+  const passport = window.GEAP?.servicePassport || null;
+  const serviceProfileBackShell = document.querySelector("[data-service-profile-back-shell]");
+  let servicesStore = null;
+  let servicesDb = null;
+  let authoritiesDb = null;
+  let servicesRegistryLabel = "Configurări servicii";
+  const serviceProfileState = { code: null, tabKey: "general", focusCode: null };
+
+  const SERVICE_STATUS_TONES = { Publicat: "success", Nepublicat: "warning", Inactiv: "neutral" };
+
+  const SERVICE_PROFILE_TABS = [
+    { id: "general", label: "Date generale", icon: "page-text" },
+    { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
+    { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
+    { id: "payments", label: "Plăți și tarife", count: (service) => service.geap.payments.length },
+    { id: "dependencies", label: "Interdependențe", count: (service) => service.geap.dependencies.length },
+    { id: "classifiers", label: "Clasificatoare specifice", count: (service) => service.geap.classifiers.length },
+    { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
+    { id: "notifications", label: "Notificări", count: (service) => service.geap.notifications.length },
+    { id: "settings", label: "Setări" },
+    { id: "events", label: "Jurnal evenimente", count: (service) => service.geap.events.length }
+  ];
+
+  const isCentralAdmin = () =>
+    getRoleAssignments().find((assignment) => assignment.id === activeAssignmentId)?.menuProfile === "central-admin";
+
+  const currentUserName = () =>
+    document.querySelector(".e-permits-shell__user-name")?.textContent.trim() || "Anastasia Cojocaru";
+
+  const pad2 = (value) => String(value).padStart(2, "0");
+
+  const localIsoNow = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}T${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+  };
+
+  /* Passport dates are written out ("22 aprilie 2026"); the time goes on a
+     small second line (the dosar list's date stack). formatStamp is the
+     one-line form for captions and labels. */
+  const RO_MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+
+  const toDate = (value) => {
+    /* "yyyy-mm-dd" alone would parse as UTC midnight; read it as a local day */
+    const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? `${value}T00:00:00` : value);
+    return Number.isNaN(date.getTime()) ? null : date;
+  };
+
+  const formatLongDate = (value) => {
+    const date = toDate(value);
+    return date ? `${date.getDate()}\u00a0${RO_MONTHS[date.getMonth()]}\u00a0${date.getFullYear()}` : "—";
+  };
+
+  const formatTime = (value) => {
+    const date = toDate(value);
+    return date ? `${pad2(date.getHours())}:${pad2(date.getMinutes())}` : "";
+  };
+
+  const formatStamp = (value) => (toDate(value) ? `${formatLongDate(value)}, ${formatTime(value)}` : "—");
+
+  /* "Anastasia Cojocaru" → "A. Cojocaru" for narrow table cells */
+  const shortName = (name) => {
+    const parts = String(name || "").trim().split(/\s+/);
+    return parts.length > 1 ? `${parts[0][0]}. ${parts.slice(1).join(" ")}` : parts[0] || "";
+  };
+
+  /* date over "hh:mm · who" in 12/16 tertiary. `short` abbreviates the first
+     name for table cells; the full name stays in the tooltip. */
+  const renderDateTime = (value, author = "", { short = false } = {}) => (toDate(value) ? `
+    <span class="e-permits-workplace__date-stack">
+      <span>${escapeHtml(formatLongDate(value))}</span>
+      <span class="e-permits-workplace__date-meta"${author ? ` title="${escapeHtml(author)}"` : ""}>${escapeHtml([formatTime(value), short ? shortName(author) : author].filter(Boolean).join(" · "))}</span>
+    </span>
+  ` : '<span class="e-permits-workplace__dash">—</span>');
+
+  const getServiceByCode = (code) => servicesStore?.services.find((service) => service.code === code) || null;
+  const getAuthorityById = (id) => servicesStore?.authorities.find((authority) => authority.id === id) || null;
+  const getFlowById = (id) => servicesStore?.flows.find((flow) => flow.id === id) || null;
+
+  const serviceRow = (service) => ({
+    id: service.code,
+    cod: service.code,
+    denumire: service.title,
+    institutie: getAuthorityById(service.authorityId)?.name || "—",
+    autoritateCod: getAuthorityById(service.authorityId)?.code || "",
+    statut: service.status,
+    actualizat: service.lastSync,
+    actualizatDe: service.syncedBy || "",
+    actiuni: ""
+  });
+
+  const authorityRow = (authority) => ({
+    id: authority.id,
+    denumire: authority.name,
+    idno: authority.idno,
+    cod: authority.code || "—",
+    servicii: servicesStore.services.filter((service) => service.authorityId === authority.id).length,
+    sursa: authority.source || "RSSP"
+  });
+
+  const buildServicesDb = () => ({
+    kind: "services",
+    fieldCount: 5,
+    columns: {
+      denumire: { label: "Act permisiv", width: 360, fill: true, sortable: true },
+      institutie: { label: "Instituția", width: 300, sortable: true },
+      statut: { label: "Statut", width: 120, sortable: true },
+      actualizat: { label: "Actualizat", width: 196, sortable: true },
+      actiuni: { label: "Acțiuni", width: 104 }
+    },
+    views: {
+      services: {
+        title: servicesRegistryLabel,
+        selectable: false,
+        columns: ["denumire", "institutie", "statut", "actualizat", "actiuni"],
+        tabs: [
+          { id: "all", label: "Toate", filter: "all" },
+          { id: "published", label: "Publicate", filter: "svc:Publicat" },
+          { id: "unpublished", label: "Nepublicate", filter: "svc:Nepublicat" },
+          { id: "inactive", label: "Inactive", filter: "svc:Inactiv" }
+        ]
+      }
+    },
+    runtimeRows: servicesStore.services.map(serviceRow)
+  });
+
+  const buildAuthoritiesDb = () => ({
+    kind: "authorities",
+    fieldCount: 5,
+    columns: {
+      denumire: { label: "Denumire", width: 360, fill: true, sortable: true },
+      idno: { label: "IDNO", width: 160 },
+      cod: { label: "Cod", width: 104 },
+      servicii: { label: "Servicii", width: 104, sortable: true },
+      sursa: { label: "Sursă", width: 104 }
+    },
+    views: {
+      authorities: {
+        title: "Autorități",
+        selectable: false,
+        columns: ["denumire", "idno", "cod", "servicii", "sursa"]
+      }
+    },
+    runtimeRows: servicesStore.authorities.map(authorityRow)
+  });
+
+  const refreshServiceRegistries = () => {
+    if (!servicesStore) {
+      return;
+    }
+
+    servicesDb = buildServicesDb();
+    authoritiesDb = buildAuthoritiesDb();
+
+    if (activeRegistry === "services") {
+      workplaceDb = servicesDb;
+      workplaceState.rows = servicesDb.runtimeRows;
+      renderWorkplace();
+    } else if (activeRegistry === "authorities") {
+      workplaceDb = authoritiesDb;
+      workplaceState.rows = authoritiesDb.runtimeRows;
+      renderWorkplace();
+    }
+  };
+
+  const renderServiceCell = (row, key) => {
+    switch (key) {
+      /* two-line cells, the users-registry stack: name over copyable ID,
+         abbreviation over full institution name (as in RAP) */
+      case "denumire":
+        return `
+          <span class="e-permits-workplace__user-name-stack e-permits-workplace__service-stack">
+            <span class="e-permits-workplace__service-name" title="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
+            <span class="e-permits-workplace__service-id">${renderCopyCode(row.cod, `Copiază ${row.cod}`)}</span>
+          </span>
+        `;
+      case "institutie":
+        return `
+          <span class="e-permits-workplace__user-name-stack e-permits-workplace__service-stack">
+            <span title="${escapeHtml(row.autoritateCod || row.institutie)}">${escapeHtml(row.autoritateCod || row.institutie)}</span>
+            <span title="${escapeHtml(row.institutie)}">${escapeHtml(row.institutie)}</span>
+          </span>
+        `;
+      case "statut":
+        return renderTag(row.statut, SERVICE_STATUS_TONES[row.statut] || "neutral");
+      case "actualizat":
+        return renderDateTime(row.actualizat, row.actualizatDe);
+      case "actiuni":
+        return `
+          <span class="e-permits-workplace__row-actions">
+            ${isCentralAdmin() ? `
+              <button class="e-permits-workplace__icon-action" type="button" data-service-row-sync="${escapeHtml(row.cod)}" aria-label="Sincronizare din RSSP: ${escapeHtml(row.denumire)}" title="Sincronizare din RSSP">
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+              </button>
+            ` : ""}
+            <button class="e-permits-workplace__icon-action" type="button" data-service-row-open="${escapeHtml(row.cod)}" aria-label="Actualizare configurație: ${escapeHtml(row.denumire)}" title="Actualizare configurație">
+              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
+            </button>
+          </span>
+        `;
+      default:
+        return escapeHtml(row[key] ?? "—");
+    }
+  };
+
+  const renderAuthorityCell = (row, key) => {
+    switch (key) {
+      case "denumire":
+        return `<span class="e-permits-passport__name">${escapeHtml(row.denumire)}</span>`;
+      case "idno":
+        return renderCopyCode(row.idno, `Copiază IDNO ${row.idno}`);
+      case "sursa":
+        return renderTag(row.sursa, "neutral");
+      default:
+        return escapeHtml(String(row[key] ?? "—"));
+    }
+  };
+
+  const hideProfilePanels = () => {
+    [userProfilePanel, userProfileBackShell, dosarProfilPanel, dosarProfilBackShell, roleProfilePanel, roleProfileBackShell].forEach((panel) => {
+      if (panel) {
+        panel.hidden = true;
+      }
+    });
+    shell.classList.remove("is-user-profile-open", "is-dosar-profile-open", "is-role-profile-open", "is-users-registry", "is-service-profile-open");
+
+    if (serviceProfileBackShell) {
+      serviceProfileBackShell.hidden = true;
+    }
+  };
+
+  const showServiceRegistry = (kind, label) => {
+    if (!servicesStore) {
+      showRolePlaceholder(label || "Servicii");
+      return;
+    }
+
+    if (kind === "services") {
+      servicesRegistryLabel = label || servicesRegistryLabel;
+      servicesDb = buildServicesDb();
+    } else {
+      authoritiesDb = buildAuthoritiesDb();
+    }
+
+    const db = kind === "services" ? servicesDb : authoritiesDb;
+    activeRegistry = kind;
+    workplaceDb = db;
+    workplaceState.rows = db.runtimeRows;
+    workplaceState.viewKey = kind;
+    workplaceState.tabKey = null;
+    workplaceState.query = "";
+    workplaceState.page = 1;
+    workplaceState.pageSize = 16;
+    workplaceState.sortKey = null;
+    workplaceState.sortDirection = "desc";
+    workplaceState.selected.clear();
+    serviceProfileState.code = null;
+
+    hideProfilePanels();
+
+    if (permitsProfilePanel) {
+      permitsProfilePanel.hidden = true;
+    }
+
+    if (workplacePanel) {
+      workplacePanel.hidden = false;
+    }
+
+    if (workplaceRefresh) {
+      workplaceRefresh.hidden = false;
+    }
+
+    renderWorkplace();
+  };
+
+  /* ---- profile ----------------------------------------------------------- */
+
+  const renderPassportSection = (title, rows, tag) => `
+    <section class="e-permits-dosar-profil__section">
+      <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}${tag ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral">${escapeHtml(tag)}</span>` : ""}</h2>
+      <div class="e-permits-dosar-profil__card">
+        ${rows.map(([label, valueHtml]) => `
+          <div class="e-permits-dosar-profil__row">
+            <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+            <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
+          </div>
+        `).join("")}
+      </div>
+    </section>
+  `;
+
+  const renderPassportEmpty = (title, message, actionHtml = "") => `
+    <section class="e-permits-dosar-profil__section">
+      <div class="e-permits-dosar-profil__section-heading">
+        <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
+      </div>
+      <div class="e-permits-dosar-profil__card e-permits-passport__empty">
+        <p>${escapeHtml(message)}</p>
+        ${actionHtml}
+      </div>
+    </section>
+  `;
+
+  const yesNo = (value) => (value
+    ? `<span class="status-tag status-tag--success"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Da</span>`
+    : "Nu");
+
+  const valueTags = (items) => (items?.length
+    ? `<span class="e-permits-passport__tag-list">${items.map((item) => `<span class="status-tag status-tag--neutral is-subtle">${escapeHtml(item)}</span>`).join("")}</span>`
+    : '<span class="e-permits-workplace__dash">—</span>');
+
+  const requiredTag = `<span class="status-tag status-tag--neutral is-subtle"><svg class="icon small e-permits-dosar-profil__required-icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg>Obligatoriu</span>`;
+
+  const renderRowAction = (label, attrs) =>
+    `<button class="btn btn-text-primary btn-sm e-permits-passport__row-action" type="button" ${attrs}>${escapeHtml(label)}</button>`;
+
+  const renderServiceGeneral = (service) => {
+    const rssp = service.rssp;
+    const authority = getAuthorityById(service.authorityId);
+    const geap = service.geap;
+    const connected = [
+      ["MPass", "Autentificarea solicitantului"],
+      ...(rssp.paid ? [["MPay", "Procesare plăți electronice"]] : []),
+      ["MSign", "Semnare electronică calificată"],
+      ...(rssp.allowsMDelivery ? [["MDelivery", "Livrarea actului pe hârtie"]] : []),
+      ...(rssp.allowsMPower ? [["MPower", `Împuterniciri, cod ${escapeHtml(rssp.mpowerCode || service.code)}`]] : []),
+      ["MConnect", "Prefill date personale / companie și clasificatoare externe"],
+      ["MNotify", "Notificări către solicitant"]
+    ];
+
+    return `
+      <div class="message message--subtle banner--info e-permits-passport__notice">
+        <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></span>
+        <div class="banner__content">
+          <p class="banner__text">Secțiunile marcate <strong>RSSP</strong> sunt preluate din Registrul de Stat al Serviciilor Publice și nu se editează în GEAP — se actualizează doar prin resincronizare.</p>
+        </div>
+      </div>
+      ${renderPassportSection("Identificare", [
+        ["Cod serviciu RSSP", renderProfileCopyCode(service.code, `Copiază ${service.code}`)],
+        ["Denumirea serviciului", escapeHtml(service.title)],
+        ["Tipul", rssp.isPermissiveAct ? "Act permisiv" : "Serviciu public"],
+        ["Autoritatea prestatoare", escapeHtml(authority?.name || "—")],
+        ["IDNO autoritate", authority ? renderProfileCopyCode(authority.idno, `Copiază IDNO ${authority.idno}`) : "—"],
+        ["Statut", renderTag(service.status, SERVICE_STATUS_TONES[service.status] || "neutral")],
+        ["Ultima sincronizare", renderDateTime(service.lastSync, service.syncedBy || "")]
+      ], "RSSP")}
+      ${renderPassportSection("Descriere și eligibilitate", [
+        ["Descriere", escapeHtml(rssp.objective || "—")],
+        ["Tipul solicitantului", valueTags(rssp.applicantTypes)],
+        ["Serviciu cu plată", yesNo(rssp.paid)],
+        ["Permite MPower", yesNo(rssp.allowsMPower)],
+        ["Permite MDelivery", yesNo(rssp.allowsMDelivery)],
+        ["Livrare", valueTags(rssp.delivery)]
+      ], "RSSP")}
+      ${rssp.subServices.length ? renderPassportSection("Subservicii", rssp.subServices.map((sub) => [
+        sub.title,
+        [sub.type, sub.duration ? `${sub.duration.value} ${sub.duration.unit}` : null, sub.price ? `${sub.price.amount} ${sub.price.currency}` : null]
+          .filter(Boolean).map(escapeHtml).join(" · ")
+      ]), "RSSP") : ""}
+      ${rssp.documents.length ? renderPassportSection("Documente însoțitoare", rssp.documents.map((doc) => [
+        doc.title, doc.required ? requiredTag : "Opțional"
+      ]), "RSSP") : ""}
+      ${rssp.validity.length ? renderPassportSection("Valabilitatea actului", rssp.validity.map((period, index) => [
+        index === 0 ? "Valabilitatea" : `Varianta ${index + 1}`, escapeHtml(period.description || "—")
+      ]), "RSSP") : ""}
+      ${renderPassportSection("Obiecte configurate în GEAP", SERVICE_PROFILE_TABS
+        .filter((tab) => tab.count && tab.id !== "events")
+        .map((tab) => [tab.label, String(tab.count(service))]))}
+      ${renderPassportSection("Servicii guvernamentale conectate", connected.map(([name, use]) => [name, escapeHtml(use)]))}
+      ${geap.events.length ? renderPassportSection("Ultimele modificări", geap.events.slice(0, 4).map((item) => [
+        formatStamp(item.at),
+        `${escapeHtml(item.user)} · ${escapeHtml(item.type)}${item.status === "Eșuat" ? ` ${renderTag("Eșuat", "danger")}` : ""}`
+      ])) : ""}
+    `;
+  };
+
+  /* ---- stacked lists ----------------------------------------------------
+     The passport's lists (Tipuri solicitări, Formulare, Plăți, …) are
+     stacked lists (Tailwind UI "stacked list" rhythm, our tokens/components):
+     a group heading, then rows of title + status tags, a dot-separated meta
+     line, and on the right our neutral Small button + an overflow menu. */
+  /* overflow menu = the post-process menu from "Ce vrei să soliciți?"
+     (.e-permits-fo-intent-menu: icon + 16/24 medium items, 16px panel) */
+  let stackMenuSeq = 0;
+
+  const renderStackMenu = (items, label) => {
+    if (!items.length) {
+      return "";
+    }
+
+    const menuId = `passport-stack-menu-${stackMenuSeq += 1}`;
+    return `
+      <div class="e-permits-stack__menu-wrap">
+        <button class="e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-stack-menu-trigger>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-more-vertical"></use></svg>
+        </button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${menuId}" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
+          ${items.map((item) => `
+            <li role="none">
+              <button class="e-permits-fo-intent-menu__item${item.danger ? " is-danger" : ""}" type="button" role="menuitem" ${item.attrs}>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(item.icon || "edit")}"></use></svg>
+                <span>${escapeHtml(item.label)}</span>
+              </button>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    `;
+  };
+
+  const renderStackItem = (item) => `
+    <li class="e-permits-stack__item">
+      <div class="e-permits-stack__main">
+        <div class="e-permits-stack__title-row">
+          <p class="e-permits-stack__title">${item.title}</p>
+          ${(item.badges || []).join("")}
+        </div>
+        ${[item.meta, item.meta2].filter((line) => line && line.length).map((line) => `
+          <div class="e-permits-stack__meta">
+            ${line.map((part) => `<span class="e-permits-stack__part">${part}</span>`).join("")}
+          </div>
+        `).join("")}
+      </div>
+      ${item.actionsHtml ? `<div class="e-permits-stack__actions">${item.actionsHtml}</div>` : item.action || item.menu?.length ? `
+        <div class="e-permits-stack__actions">
+          ${item.action ? `<button class="btn ${item.action.tone === "secondary" ? "btn-secondary" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${item.action.attrs}>${escapeHtml(item.action.label)}</button>` : ""}
+          ${renderStackMenu(item.menu || [], item.plainTitle || "")}
+        </div>
+      ` : ""}
+    </li>
+  `;
+
+  const groupBy = (items, keyOf, order = []) => {
+    const map = new Map(order.map((key) => [key, []]));
+    items.forEach((item) => {
+      const key = keyOf(item);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(item);
+    });
+    return [...map.entries()].filter(([, list]) => list.length).map(([label, list]) => ({ label, items: list }));
+  };
+
+  const renderStackedList = (title, groups, options = {}) => {
+    const total = groups.reduce((sum, group) => sum + group.items.length, 0);
+
+    if (!total) {
+      return renderPassportEmpty(title, options.empty || "Nu există înregistrări pentru această secțiune.");
+    }
+
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-stack-section">
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
+          ${options.meta ? `<span class="e-permits-dosar-profil__section-meta">${escapeHtml(options.meta)}</span>` : ""}
+        </div>
+        <div class="e-permits-stack">
+          ${groups.map((group) => `
+            <div class="e-permits-stack__group">
+              ${group.label ? `<h3 class="e-permits-stack__group-label">${escapeHtml(group.label)}<span class="e-permits-stack__group-count">${group.items.length}</span></h3>` : ""}
+              <ul class="e-permits-stack__list" role="list">${group.items.map(renderStackItem).join("")}</ul>
+            </div>
+          `).join("")}
+        </div>
+      </section>
+    `;
+  };
+
+  const whoWhen = (verb, at, by) => `${verb} ${escapeHtml(formatLongDate(at))}, ${escapeHtml(formatTime(at))}${by ? ` de ${escapeHtml(shortName(by))}` : ""}`;
+
+  const renderServiceRequestTypes = (service) => {
+    const admin = isCentralAdmin();
+    const items = service.geap.requestTypes.map((rt) => {
+      const state = passport.requestTypeState(rt);
+      const flow = getFlowById(rt.flow);
+      const forms = (rt.forms || []).map((id) => service.geap.forms.find((form) => form.id === id)?.name).filter(Boolean);
+      return {
+        source: rt.source,
+        plainTitle: rt.name,
+        title: escapeHtml(rt.name),
+        badges: [renderTag(state.label, state.tone)],
+        meta: [
+          flow ? `Flux: ${escapeHtml(flow.name)} ${escapeHtml(flow.version)}` : "Fără flux de procesare",
+          forms.length ? `${forms.length} ${forms.length === 1 ? "formular" : "formulare"}` : "Fără formulare"
+        ],
+        meta2: forms.length ? [escapeHtml(forms.join(", "))] : null,
+        action: admin ? { label: "Configurează", attrs: `data-passport-configure-rt="${escapeHtml(rt.id)}"` } : null
+      };
+    });
+
+    return renderStackedList("Tipuri solicitări", groupBy(items, (item) => (item.source === "RSSP" ? "Subservicii RSSP" : "Adăugate în GEAP"), ["Subservicii RSSP", "Adăugate în GEAP"]), {
+      meta: "Fluxul și formularele se setează per tip de solicitare",
+      empty: "Serviciul nu are tipuri de solicitare. Ele se preiau din subserviciile RSSP la sincronizare."
+    });
+  };
+
+  const renderServiceForms = (service) => {
+    const admin = isCentralAdmin();
+    const typeName = (id) => service.geap.requestTypes.find((rt) => rt.id === id)?.name || "Fără tip de solicitare";
+    const items = service.geap.forms.map((form) => ({
+      group: typeName(form.requestType),
+      plainTitle: form.name,
+      title: escapeHtml(form.name),
+      badges: [renderTag(form.status === "Published" ? "Publicat" : "Schiță", form.status === "Published" ? "success" : "neutral")],
+      meta: [renderTag(form.technical, "neutral"), `${form.fields} câmpuri`, escapeHtml(form.version), whoWhen("Editat", form.editedAt, form.editedBy)],
+      action: admin ? { label: "Editează", attrs: "data-passport-open-builder" } : { label: "Previzualizează", attrs: "data-passport-open-builder" },
+      menu: admin ? [{ label: "Previzualizează", icon: "eye-open", attrs: "data-passport-open-builder" }] : []
+    }));
+
+    return renderStackedList("Formulare electronice", groupBy(items, (item) => item.group, service.geap.requestTypes.map((rt) => rt.name)), {
+      empty: "Nu există formulare. Adaugă primul formular pentru un tip de solicitare."
+    });
+  };
+
+  const PAYMENT_ACTION_LABELS = { publish: "Publică", activate: "Activează", deactivate: "Dezactivează", delete: "Șterge" };
+
+  const renderServicePayments = (service) => {
+    const admin = isCentralAdmin();
+    const items = service.geap.payments.map((pay) => {
+      const actions = admin ? passport.paymentActions(pay) : [];
+      const actionAttrs = (action) => `data-passport-payment="${escapeHtml(pay.id)}" data-passport-payment-action="${action}"`;
+      /* constructive actions stay visible (blue secondary); destructive ones
+         (deactivate, delete) live in the overflow menu */
+      const primary = actions.find((action) => action === "publish" || action === "activate");
+      const destructive = actions.filter((action) => action === "deactivate" || action === "delete");
+      return {
+        group: pay.requestType,
+        plainTitle: pay.name,
+        title: escapeHtml(pay.name),
+        badges: [
+          renderTag(pay.state, pay.state === "Publicat" ? "success" : "neutral"),
+          ...(pay.state === "Publicat" ? [renderTag(pay.active ? "Activ" : "Inactiv", pay.active ? "brand" : "neutral")] : []),
+          ...(!pay.tariffs.length && pay.generation === "Automat" ? [renderTag("Fără tarif", "warning")] : [])
+        ],
+        meta: [
+          escapeHtml(pay.moment),
+          escapeHtml(pay.generation),
+          `termen ${pay.term} zile`,
+          ...(pay.recurring ? [`recurentă ${escapeHtml(pay.recurring.frequency.toLowerCase())}, notificare cu ${pay.recurring.noticeDays} zile înainte`] : []),
+          `v${pay.version}`,
+          whoWhen("Modificat", pay.modifiedAt, pay.modifiedBy)
+        ],
+        meta2: [
+          pay.tariffs.length ? escapeHtml(pay.tariffs.join(", ")) : (pay.generation === "Automat" ? "Fără tarif" : "Tarifele se aleg la generarea notei"),
+          ...(pay.exemptions.length ? [`Scutiri: ${escapeHtml(pay.exemptions.join(", "))}`] : [])
+        ],
+        action: primary ? { label: PAYMENT_ACTION_LABELS[primary], attrs: actionAttrs(primary), tone: "secondary" } : null,
+        menu: destructive.map((action) => ({
+          label: PAYMENT_ACTION_LABELS[action],
+          icon: action === "delete" ? "delete" : "pause",
+          attrs: actionAttrs(action),
+          danger: true
+        }))
+      };
+    });
+
+    return renderStackedList("Plăți și tarife", groupBy(items, (item) => item.group, service.geap.requestTypes.map((rt) => rt.name)), {
+      meta: "Tarifele se administrează în clasificatorul tarifelor (Feature 94153)",
+      empty: "Nu există plăți configurate pentru acest serviciu."
+    });
+  };
+
+  const renderServiceSimpleTab = (service, tabId) => {
+    const geap = service.geap;
+
+    switch (tabId) {
+      case "dependencies":
+        return renderStackedList("Interdependențe", groupBy(geap.dependencies.map((dep) => ({
+          group: dep.relation === "Precondiție" ? "Precondiții" : "Excluderi mutuale",
+          plainTitle: dep.act,
+          title: escapeHtml(dep.act),
+          meta: [renderCopyCode(dep.code, `Copiază ${dep.code}`), escapeHtml(dep.note)],
+          action: getServiceByCode(dep.code) ? { label: "Deschide pașaportul", attrs: `data-passport-open-service="${escapeHtml(dep.code)}"` } : null
+        })), (item) => item.group, ["Precondiții", "Excluderi mutuale"]), { empty: "Serviciul nu are interdependențe cu alte acte permisive." });
+      case "classifiers":
+        return renderStackedList("Clasificatoare specifice", groupBy(geap.classifiers.map((item) => ({
+          group: item.source === "MConnect" ? "Externe · sincronizate din MConnect" : "Specifice serviciului",
+          plainTitle: item.name,
+          title: escapeHtml(item.name),
+          meta: [renderTag(item.code, "neutral"), `${item.values} valori`, `Actualizat ${escapeHtml(formatLongDate(item.updated))}`]
+        })), (item) => item.group, ["Specifice serviciului", "Externe · sincronizate din MConnect"]), { empty: "Serviciul nu are clasificatoare specifice." });
+      case "templates":
+        return renderStackedList("Șabloane de tipar", [{ label: "", items: geap.templates.map((item) => ({
+          plainTitle: item.name,
+          title: escapeHtml(item.name),
+          badges: [renderTag(item.version, "neutral")],
+          meta: [escapeHtml(item.type), escapeHtml(item.format), `Actualizat ${escapeHtml(formatLongDate(item.updated))}`]
+        })) }], { empty: "Nu există șabloane de tipar pentru acest serviciu." });
+      case "notifications":
+        return renderStackedList("Notificări", groupBy(geap.notifications.map((item) => ({
+          group: item.recipient === "Solicitant" ? "Către solicitant" : `Către ${item.recipient.toLowerCase()}`,
+          plainTitle: item.event,
+          title: escapeHtml(item.event),
+          badges: [renderTag(item.active ? "Activ" : "Inactiv", item.active ? "success" : "neutral")],
+          meta: item.channel.split(" · ").map(escapeHtml)
+        })), (item) => item.group, ["Către solicitant"]), {
+          meta: "Conținutul notificărilor se administrează în modulul Notificări",
+          empty: "Serviciul nu are notificări specifice."
+        });
+      case "settings":
+        return geap.settings
+          ? renderPassportSection("Setări adiționale", [
+            ["Avize necesare", valueTags(geap.settings.avize)],
+            ["Subdiviziuni de examinare", valueTags(geap.settings.subdivisions)],
+            ["Suspendarea termenului de examinare", escapeHtml(geap.settings.suspension)],
+            ["Distribuire automată a dosarelor", escapeHtml(geap.settings.autoDistribution)],
+            ["Actorul care eliberează actul", escapeHtml(geap.settings.issuer)],
+            ["Așteptarea plății", escapeHtml(geap.settings.paymentWait)]
+          ])
+          : renderPassportEmpty("Setări adiționale", "Setările adiționale nu au fost configurate încă.");
+      case "events":
+        return renderStackedList("Jurnal evenimente", groupBy(geap.events.map((item) => ({
+          group: formatLongDate(item.at),
+          plainTitle: item.type,
+          title: escapeHtml(item.type),
+          badges: [renderTag(item.status, item.status === "Reușit" ? "success" : "danger")],
+          meta: [escapeHtml(formatTime(item.at)), escapeHtml(item.user), escapeHtml(item.detail)]
+        })), (item) => item.group), { meta: "Jurnalizat prin MLog", empty: "Nu există evenimente înregistrate." });
+      default:
+        return "";
+    }
+  };
+
+  const renderServiceTabBody = (service, tabId) => {
+    switch (tabId) {
+      case "general": return renderServiceGeneral(service);
+      case "request-types": return renderServiceRequestTypes(service);
+      case "forms": return renderServiceForms(service);
+      case "payments": return renderServicePayments(service);
+      default: return renderServiceSimpleTab(service, tabId);
+    }
+  };
+
+  const renderServiceProfile = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+
+    if (!service || !permitsProfilePanel) {
+      return;
+    }
+
+    const authority = getAuthorityById(service.authorityId);
+    const canSync = isCentralAdmin();
+    const header = permitsProfilePanel.querySelector("[data-passport-header]");
+    const top = permitsProfilePanel.querySelector("[data-passport-top]");
+    const meta = permitsProfilePanel.querySelector("[data-passport-meta]");
+    const tabs = permitsProfilePanel.querySelector("[data-passport-tabs]");
+    const body = permitsProfilePanel.querySelector("[data-passport-body]");
+
+    top.innerHTML = renderPageHeaderTop({
+      crumbs: [
+        { label: servicesRegistryLabel, attr: "data-passport-crumb-back" },
+        { label: service.code }
+      ],
+      title: service.title,
+      actions: canSync ? `
+        <button class="btn btn-neutral btn-sm" type="button" data-passport-resync>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+          <span>Sincronizează</span>
+        </button>
+      ` : "",
+      caption: `Ultima sincronizare ${formatStamp(service.lastSync)}`
+    });
+    meta.innerHTML = renderPageHeaderMeta([
+      ["ID", renderProfileCopyCode(service.code, `Copiază ${service.code}`)],
+      ["Autoritate", escapeHtml(authority?.name || "—")],
+      ["Versiune", escapeHtml(service.geap.version)],
+      ["Statut", renderTag(service.status, SERVICE_STATUS_TONES[service.status] || "neutral")]
+    ]);
+    watchPageHeaderMeta(meta);
+    tabs.innerHTML = SERVICE_PROFILE_TABS.map((tab) => {
+      const active = tab.id === serviceProfileState.tabKey;
+      const count = tab.count ? tab.count(service) : null;
+      return `
+        <button class="tab-button${active ? " active" : ""}" id="passport-tab-${tab.id}" type="button" role="tab" aria-selected="${active ? "true" : "false"}" aria-controls="passport-panel" tabindex="${active ? "0" : "-1"}" data-passport-tab="${tab.id}">
+          ${tab.icon ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${tab.icon}"></use></svg>` : ""}
+          <span>${escapeHtml(tab.label)}</span>
+          ${count ? renderPageHeaderTabCount(count, tab.id === "request-types" && service.geap.requestTypes.some((rt) => passport.requestTypeState(rt).tone === "warning") ? "warning" : null) : ""}
+        </button>
+      `;
+    }).join("");
+    tabs.querySelector(".tab-button.active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    syncPassportTabOverflow();
+    body.setAttribute("aria-labelledby", `passport-tab-${serviceProfileState.tabKey}`);
+    body.innerHTML = renderServiceTabBody(service, serviceProfileState.tabKey);
+    syncStackMetaRows(body);
+    header.hidden = false;
+  };
+
+  const openServiceProfile = (code, tabKey = "general") => {
+    const service = getServiceByCode(code);
+
+    if (!service || !permitsProfilePanel) {
+      return;
+    }
+
+    serviceProfileState.code = code;
+    serviceProfileState.tabKey = SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey) ? tabKey : "general";
+
+    if (workplacePanel) {
+      workplacePanel.hidden = true;
+    }
+
+    hideProfilePanels();
+    permitsProfilePanel.hidden = false;
+    shell.classList.add("is-service-profile-open");
+
+    if (serviceProfileBackShell) {
+      serviceProfileBackShell.hidden = false;
+    }
+
+    renderServiceProfile();
+    history.replaceState(null, "", `#serviciu/${code}/${serviceProfileState.tabKey}`);
+    permitsProfilePanel.scrollIntoView?.({ block: "start" });
+  };
+
+  const closeServiceProfile = () => {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+    showServiceRegistry("services");
+  };
+
+  /* ---- RSSP lookup (mock of GET api/public-service/code/{cod}) ----------- */
+
+  const rsspLookup = (code) => {
+    const mock = servicesStore.rssp;
+
+    if (mock.unavailable.includes(code)) {
+      return { status: "unavailable" };
+    }
+
+    if (mock.invalid.includes(code)) {
+      return { status: "ok", data: { code } };
+    }
+
+    if (mock.responses[code]) {
+      return { status: "ok", data: mock.responses[code] };
+    }
+
+    /* codes already in GEAP resync from their stored RSSP data */
+    const existing = getServiceByCode(code);
+    const authority = existing && getAuthorityById(existing.authorityId);
+
+    if (existing && authority) {
+      const r = existing.rssp;
+      return {
+        status: "ok",
+        data: {
+          code,
+          title: { ro: r.title },
+          objective: { ro: r.objective },
+          types: passport.APPLICANT_TYPES.filter((type) => r.applicantTypes.includes(type.label)).reduce((mask, type) => mask | type.bit, 0),
+          isPermissiveAct: r.isPermissiveAct,
+          allowsMPay: r.paid,
+          allowsMDelivery: r.allowsMDelivery,
+          allowsMPower: r.allowsMPower,
+          eService: r.delivery.includes("Electronic"),
+          isActive: r.rsspStatus !== "Inactiv",
+          published: r.rsspStatus !== "Nepublicat",
+          organization: { idno: authority.idno, code: authority.code, name: { ro: authority.name } },
+          subServices: r.subServices.map((sub) => ({
+            title: { ro: sub.title },
+            subServiceType: { title: { ro: sub.type } },
+            isDisabled: false,
+            costs: [{ price: sub.price?.amount ?? 0, currency: sub.price?.currency || "MDL", durationValue: sub.duration?.value || 0, durationUnit: sub.duration?.unit === "zile lucrătoare" ? "WorkDay" : "CalendarDay" }]
+          })),
+          documents: r.documents.map((doc) => ({ title: { ro: doc.title }, type: doc.required ? "required" : "optional" })),
+          validityPeriods: r.validity.map((period) => ({ validFor: period.validFor, description: { ro: period.description } }))
+        }
+      };
+    }
+
+    return { status: "notFound" };
+  };
+
+  /* ---- sync modal (US-111) ------------------------------------------------ */
+
+  const syncModal = document.querySelector("#service-sync-modal");
+  const syncModalBody = syncModal?.querySelector("[data-service-sync-body]");
+  const syncModalFooter = syncModal?.querySelector("[data-service-sync-footer]");
+  const syncState = { code: "", phase: "form", error: "", fieldError: "", result: null };
+
+  const renderSyncModal = () => {
+    if (!syncModalBody || !syncModalFooter) {
+      return;
+    }
+
+    const title = syncModal.querySelector("[data-service-sync-title]");
+
+    if (syncState.phase === "done") {
+      const result = syncState.result;
+      const summary = result.summary;
+      title.textContent = result.kind === "created" ? "Serviciu creat din RSSP" : "Serviciu actualizat din RSSP";
+      syncModalBody.innerHTML = `
+        <div class="message message--success e-permits-passport__sync-message" role="status">
+          <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg></span>
+          <div class="banner__content">
+            <p class="banner__text">${result.kind === "created"
+              ? "Pașaportul serviciului a fost creat. Datele RSSP sunt needitabile în GEAP."
+              : "Datele RSSP ale serviciului au fost actualizate. Configurația GEAP a rămas neschimbată."}</p>
+          </div>
+        </div>
+        <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
+          ${[
+            ["Cod serviciu", escapeHtml(summary.code)],
+            ["Denumire", escapeHtml(summary.title)],
+            ["Autoritate", `${escapeHtml(result.authority.name)} ${renderTag(result.authorityCreated ? "Creată" : "Legată", result.authorityCreated ? "brand" : "neutral")}`],
+            ["Tipul solicitantului", valueTags(summary.applicantTypes)],
+            ["Subservicii importate", `${summary.subServices}${summary.ignoredSubServices ? ` <span class="e-permits-passport__muted">(${summary.ignoredSubServices} dezactivate, ignorate)</span>` : ""}`],
+            ["Documente", String(summary.documents)],
+            ["Indicatori", valueTags(Object.entries(summary.flags).filter(([, on]) => on).map(([name]) => name))]
+          ].map(([label, value]) => `
+            <div class="e-permits-dosar-profil__row">
+              <span class="e-permits-dosar-profil__row-label">${escapeHtml(label)}</span>
+              <span class="e-permits-dosar-profil__row-value">${value}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+      syncModalFooter.innerHTML = `
+        <div class="modal-buttons">
+          <button class="btn btn-secondary btn-rounded btn-md" type="button" data-service-sync-close>Închide</button>
+          <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-sync-open="${escapeHtml(summary.code)}">Deschide pașaportul</button>
+        </div>
+      `;
+      return;
+    }
+
+    const loading = syncState.phase === "loading";
+    title.textContent = "Sincronizare serviciu din RSSP";
+    syncModalBody.innerHTML = `
+      <p class="e-permits-passport__lead">Introdu codul serviciului din Registrul de Stat al Serviciilor Publice. Dacă serviciul există deja în GEAP, datele RSSP se actualizează; altfel se creează un pașaport nou.</p>
+      ${syncState.error ? `
+        <div class="message message--error e-permits-passport__sync-message" role="alert">
+          <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span>
+          <div class="banner__content"><p class="banner__text">${escapeHtml(syncState.error)}</p></div>
+        </div>
+      ` : ""}
+      <label class="e-permits-user-create__field">
+        <span class="e-permits-user-create__label">Cod serviciu RSSP${requiredMark()}</span>
+        <span class="e-permits-user-create__input-shell${syncState.fieldError ? " is-error" : ""}">
+          <input class="e-permits-user-create__input" type="text" inputmode="numeric" autocomplete="off" placeholder="ex. 003000333"
+            value="${escapeHtml(syncState.code)}" data-service-sync-code ${loading ? "disabled" : ""}
+            aria-invalid="${syncState.fieldError ? "true" : "false"}" aria-describedby="service-sync-hint">
+        </span>
+        ${syncState.fieldError ? `
+          <span class="message message--inline message--error message--small">
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+            <span>${escapeHtml(syncState.fieldError)}</span>
+          </span>
+        ` : `<span class="e-permits-passport__hint" id="service-sync-hint">Coduri demo: 003000333 (serviciu nou, autoritate nouă) · 003000451 (serviciu nou, autoritate existentă) · 003000023 (existent) · 000000000 (RSSP indisponibil) · 003999998 (răspuns invalid)</span>`}
+      </label>
+    `;
+    syncModalFooter.innerHTML = `
+      <div class="modal-buttons">
+        <button class="btn btn-secondary btn-rounded btn-md" type="button" data-service-sync-close ${loading ? "disabled" : ""}>Închide</button>
+        <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-sync-submit ${loading ? "disabled aria-busy=\"true\"" : ""}>
+          ${loading ? '<span class="spinner spinner--small spinner--light-on-color" aria-hidden="true"></span><span>Se preiau datele…</span>' : "<span>Sincronizează serviciu</span>"}
+        </button>
+      </div>
+    `;
+  };
+
+  const openSyncModal = (code = "") => {
+    if (!syncModal || !isCentralAdmin()) {
+      return;
+    }
+
+    Object.assign(syncState, { code, phase: "form", error: "", fieldError: "", result: null });
+    renderSyncModal();
+    window.__modal?.open?.("#service-sync-modal");
+    syncModal.querySelector("[data-service-sync-code]")?.focus();
+  };
+
+  const closeSyncModal = () => window.__modal?.close?.("#service-sync-modal");
+
+  const logServiceEvents = (code, events) => {
+    const service = getServiceByCode(code);
+
+    if (service && events.length) {
+      service.geap.events = [...events].reverse().concat(service.geap.events);
+    }
+  };
+
+  const runSync = () => {
+    const input = syncModal.querySelector("[data-service-sync-code]");
+    syncState.code = input ? input.value : syncState.code;
+    syncState.error = "";
+    syncState.fieldError = "";
+
+    if (!syncState.code.trim()) {
+      /* US-111: validation only — RSSP is not called */
+      syncState.fieldError = passport.MESSAGES.required;
+      renderSyncModal();
+      syncModal.querySelector("[data-service-sync-code]")?.focus();
+      return;
+    }
+
+    syncState.phase = "loading";
+    renderSyncModal();
+
+    window.setTimeout(() => {
+      const result = passport.syncService({
+        code: syncState.code,
+        lookup: rsspLookup,
+        services: servicesStore.services,
+        authorities: servicesStore.authorities,
+        now: localIsoNow(),
+        user: currentUserName()
+      });
+
+      if (!result.ok) {
+        logServiceEvents(syncState.code.trim(), result.events);
+        syncState.phase = "form";
+        syncState.error = result.message;
+        renderSyncModal();
+        return;
+      }
+
+      const index = servicesStore.services.findIndex((service) => service.code === result.service.code);
+
+      if (index >= 0) {
+        servicesStore.services[index] = result.service;
+      } else {
+        servicesStore.services.unshift(result.service);
+      }
+
+      if (result.authorityCreated) {
+        servicesStore.authorities.push(result.authority);
+      }
+
+      logServiceEvents(result.service.code, result.events);
+      syncState.phase = "done";
+      syncState.result = result;
+      renderSyncModal();
+      refreshServiceRegistries();
+
+      if (serviceProfileState.code === result.service.code) {
+        renderServiceProfile();
+      }
+
+      showShellToast(`${result.service.code} · ${result.service.title}`, "success", result.kind === "created" ? "Serviciu creat din RSSP" : "Serviciu actualizat din RSSP");
+    }, 900);
+  };
+
+  syncModal?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-service-sync-submit]")) {
+      runSync();
+    } else if (event.target.closest("[data-service-sync-close]")) {
+      closeSyncModal();
+    } else {
+      const open = event.target.closest("[data-service-sync-open]");
+
+      if (open) {
+        closeSyncModal();
+        openServiceProfile(open.dataset.serviceSyncOpen);
+      }
+    }
+  });
+
+  syncModal?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && event.target.matches("[data-service-sync-code]")) {
+      event.preventDefault();
+      runSync();
+    }
+  });
+
+  syncModal?.addEventListener("input", (event) => {
+    if (event.target.matches("[data-service-sync-code]") && syncState.fieldError) {
+      syncState.fieldError = "";
+      syncState.code = event.target.value;
+      const shellEl = event.target.closest(".e-permits-user-create__input-shell");
+      shellEl?.classList.remove("is-error");
+      event.target.setAttribute("aria-invalid", "false");
+      shellEl?.parentElement.querySelector(".message--error")?.remove();
+    }
+  });
+
+  /* ---- request type configuration --------------------------------------- */
+
+  const rtModal = document.querySelector("#service-rt-modal");
+  let rtEditingId = null;
+
+  const openRequestTypeModal = (rtId) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const requestType = service?.geap.requestTypes.find((rt) => rt.id === rtId);
+
+    if (!rtModal || !requestType) {
+      return;
+    }
+
+    rtEditingId = rtId;
+    rtModal.querySelector("[data-service-rt-title]").textContent = requestType.name;
+    rtModal.querySelector("[data-service-rt-body]").innerHTML = `
+      <div class="e-permits-user-create__field" data-service-rt-flow-field>
+        <span class="e-permits-user-create__label" id="service-rt-flow-label">Flux de procesare${requiredMark()}</span>
+        <!-- the full-flow dropdown (.e-permits-fo-select): same states everywhere -->
+        <div class="e-permits-fo-select" data-service-rt-flow-select data-value="${escapeHtml(requestType.flow || "")}">
+          <button class="e-permits-fo-select__button" type="button" aria-haspopup="listbox" aria-expanded="false"
+            aria-labelledby="service-rt-flow-label service-rt-flow-value" aria-describedby="service-rt-flow-error" data-service-rt-flow>
+            <span class="e-permits-fo-select__value${requestType.flow ? "" : " e-permits-fo-select__value--placeholder"}" id="service-rt-flow-value">${escapeHtml(getFlowById(requestType.flow) ? `${getFlowById(requestType.flow).name} · ${getFlowById(requestType.flow).version}` : "Selectează fluxul de procesare")}</span>
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+          </button>
+          <ul class="e-permits-fo-select__list" role="listbox" aria-labelledby="service-rt-flow-label" hidden>
+            ${servicesStore.flows.map((flow) => `
+              <li class="e-permits-fo-select__option${flow.id === requestType.flow ? " is-selected" : ""}" role="option" tabindex="-1" aria-selected="${flow.id === requestType.flow ? "true" : "false"}" data-value="${escapeHtml(flow.id)}">${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}</li>
+            `).join("")}
+          </ul>
+        </div>
+        <span class="message message--inline message--error message--small" id="service-rt-flow-error" hidden data-service-rt-flow-error>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+          <span>Selectează fluxul de procesare pentru acest tip de solicitare.</span>
+        </span>
+      </div>
+      <fieldset class="e-permits-passport__fieldset">
+        <legend class="e-permits-user-create__label">Formulare utilizate</legend>
+        ${service.geap.forms.length ? service.geap.forms.map((form) => `
+          <label class="checkbox checkbox--medium">
+            <input type="checkbox" class="checkbox-input" value="${escapeHtml(form.id)}" data-service-rt-form${(requestType.forms || []).includes(form.id) ? " checked" : ""}>
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-texts">
+              <span class="checkbox-label">${escapeHtml(form.name)}</span>
+              <span class="checkbox-description">${escapeHtml(form.technical)} · ${escapeHtml(form.version)} · ${escapeHtml(form.status)}</span>
+            </span>
+          </label>
+        `).join("") : '<p class="e-permits-passport__hint">Serviciul nu are încă formulare electronice. Adaugă-le în tab-ul Formulare.</p>'}
+      </fieldset>
+    `;
+    window.__modal?.open?.("#service-rt-modal");
+  };
+
+  /* the back-office field error state: red control, inline message */
+  const setFieldError = (control, message, on) => {
+    control.closest(".e-permits-user-create__select-shell, .e-permits-user-create__input-shell, .e-permits-fo-select")?.classList.toggle("is-error", on);
+    control.setAttribute("aria-invalid", on ? "true" : "false");
+
+    if (message) {
+      message.hidden = !on;
+    }
+  };
+
+  /* "Flux de procesare" dropdown: click / Enter / Space open, ↑↓ move,
+     Enter or click select, Esc or outside click close */
+  const flowDropdown = () => rtModal?.querySelector("[data-service-rt-flow-select]");
+
+  const setFlowOpen = (open) => {
+    const dropdown = flowDropdown();
+
+    if (!dropdown) {
+      return;
+    }
+
+    const list = dropdown.querySelector(".e-permits-fo-select__list");
+    const button = dropdown.querySelector(".e-permits-fo-select__button");
+    dropdown.classList.toggle("is-open", open);
+    list.hidden = !open;
+    button.setAttribute("aria-expanded", String(open));
+
+    if (open) {
+      (list.querySelector(".is-selected") || list.querySelector("[role='option']"))?.focus();
+    }
+  };
+
+  const chooseFlow = (option) => {
+    const dropdown = flowDropdown();
+    const value = dropdown.querySelector(".e-permits-fo-select__value");
+    dropdown.dataset.value = option.dataset.value;
+    dropdown.querySelectorAll("[role='option']").forEach((item) => {
+      const selected = item === option;
+      item.classList.toggle("is-selected", selected);
+      item.setAttribute("aria-selected", String(selected));
+    });
+    value.textContent = option.textContent.trim();
+    value.classList.remove("e-permits-fo-select__value--placeholder");
+    setFieldError(dropdown.querySelector(".e-permits-fo-select__button"), rtModal.querySelector("[data-service-rt-flow-error]"), false);
+    setFlowOpen(false);
+    dropdown.querySelector(".e-permits-fo-select__button").focus();
+  };
+
+  rtModal?.addEventListener("click", (event) => {
+    const dropdown = flowDropdown();
+
+    if (!dropdown) {
+      return;
+    }
+
+    if (event.target.closest("[data-service-rt-flow]")) {
+      setFlowOpen(!dropdown.classList.contains("is-open"));
+      return;
+    }
+
+    const option = event.target.closest("[data-service-rt-flow-select] [role='option']");
+
+    if (option) {
+      chooseFlow(option);
+      return;
+    }
+
+    if (!event.target.closest("[data-service-rt-flow-select]")) {
+      setFlowOpen(false);
+    }
+  });
+
+  rtModal?.addEventListener("keydown", (event) => {
+    const dropdown = flowDropdown();
+
+    if (!dropdown || !dropdown.contains(event.target)) {
+      return;
+    }
+
+    const options = [...dropdown.querySelectorAll("[role='option']")];
+
+    if (["ArrowDown", "ArrowUp"].includes(event.key)) {
+      event.preventDefault();
+
+      if (!dropdown.classList.contains("is-open")) {
+        setFlowOpen(true);
+        return;
+      }
+
+      const index = options.indexOf(document.activeElement);
+      options[event.key === "ArrowDown" ? (index + 1) % options.length : (index - 1 + options.length) % options.length]?.focus();
+    } else if ((event.key === "Enter" || event.key === " ") && event.target.matches("[role='option']")) {
+      event.preventDefault();
+      chooseFlow(event.target);
+    }
+  }, true);
+
+  /* modal.js closes the dialog on Esc from a document capture listener; catch
+     Esc earlier (window capture) while the dropdown is open, so the first Esc
+     closes only the dropdown */
+  window.addEventListener("keydown", (event) => {
+    const dropdown = flowDropdown();
+
+    if (event.key !== "Escape" || !dropdown?.classList.contains("is-open") || !dropdown.contains(event.target)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    setFlowOpen(false);
+    dropdown.querySelector(".e-permits-fo-select__button").focus();
+  }, true);
+
+  rtModal?.querySelector("[data-service-rt-save]")?.addEventListener("click", () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const requestType = service?.geap.requestTypes.find((rt) => rt.id === rtEditingId);
+
+    if (!requestType) {
+      return;
+    }
+
+    const flowSelect = rtModal.querySelector("[data-service-rt-flow-select]");
+    const flowButton = rtModal.querySelector("[data-service-rt-flow]");
+
+    if (!flowSelect.dataset.value) {
+      /* required field: error state + message, nothing saved */
+      setFieldError(flowButton, rtModal.querySelector("[data-service-rt-flow-error]"), true);
+      flowButton.focus();
+      return;
+    }
+
+    requestType.flow = flowSelect.dataset.value;
+    requestType.forms = [...rtModal.querySelectorAll("[data-service-rt-form]:checked")].map((input) => input.value);
+    logServiceEvents(service.code, [{
+      at: localIsoNow(), user: currentUserName(), type: "Configurare tip solicitare", status: "Reușit",
+      detail: `${requestType.name}: ${getFlowById(requestType.flow)?.name || "fără flux"}, ${requestType.forms.length} formulare`
+    }]);
+    window.__modal?.close?.("#service-rt-modal");
+    renderServiceProfile();
+    showShellToast(`Tipul de solicitare „${requestType.name}” a fost salvat.`);
+  });
+
+  /* ---- payment actions (Feature 93591) ---------------------------------- */
+
+  const confirmModal = document.querySelector("#service-confirm-modal");
+  let pendingConfirm = null;
+
+  const askConfirm = ({ title, text, confirmLabel, destructive }, onConfirm) => {
+    if (!confirmModal) {
+      onConfirm();
+      return;
+    }
+
+    confirmModal.querySelector("[data-service-confirm-title]").textContent = title;
+    confirmModal.querySelector("[data-service-confirm-text]").textContent = text;
+    const button = confirmModal.querySelector("[data-service-confirm-ok]");
+    button.textContent = confirmLabel;
+    button.className = `btn ${destructive ? "btn-destructive" : "btn-primary"} btn-rounded btn-md`;
+    pendingConfirm = onConfirm;
+    window.__modal?.open?.("#service-confirm-modal");
+  };
+
+  confirmModal?.querySelector("[data-service-confirm-ok]")?.addEventListener("click", () => {
+    window.__modal?.close?.("#service-confirm-modal");
+    const run = pendingConfirm;
+    pendingConfirm = null;
+    run?.();
+  });
+
+  const runPaymentAction = (paymentId, action) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const payments = service?.geap.payments || [];
+    const payment = payments.find((item) => item.id === paymentId);
+
+    if (!payment) {
+      return;
+    }
+
+    const commit = (type, detail, message) => {
+      payment.modifiedAt = localIsoNow();
+      payment.modifiedBy = currentUserName();
+      logServiceEvents(service.code, [{ at: payment.modifiedAt, user: payment.modifiedBy, type, status: "Reușit", detail }]);
+      renderServiceProfile();
+      showShellToast(message);
+    };
+
+    if (action === "publish") {
+      const check = passport.canPublish(payment);
+
+      if (!check.ok) {
+        showShellToast(check.message, "error");
+        return;
+      }
+
+      payment.state = "Publicat";
+      payment.active = !passport.activationConflict(payments, { ...payment, active: true });
+      commit("Publicare plată", `${payment.name} v${payment.version}`, payment.active
+        ? `Plata „${payment.name}” a fost publicată și activată.`
+        : `Plata „${payment.name}” a fost publicată inactivă: există deja o plată activă pentru același tip și moment.`);
+      return;
+    }
+
+    if (action === "activate") {
+      const conflict = passport.activationConflict(payments, payment);
+
+      if (conflict) {
+        askConfirm({
+          title: "Există deja o plată activă",
+          text: `Pentru „${payment.requestType}” · „${payment.moment}” este activă plata „${conflict.name}”. Doar o plată poate fi activă pentru aceeași combinație. Dezactivează „${conflict.name}” și activează „${payment.name}”?`,
+          confirmLabel: "Înlocuiește plata activă"
+        }, () => {
+          conflict.active = false;
+          payment.active = true;
+          commit("Activare plată", `${payment.name} (înlocuiește ${conflict.name})`, `Plata „${payment.name}” este acum activă.`);
+        });
+        return;
+      }
+
+      payment.active = true;
+      commit("Activare plată", payment.name, `Plata „${payment.name}” este acum activă.`);
+      return;
+    }
+
+    if (action === "deactivate") {
+      askConfirm({
+        title: "Dezactivezi plata?",
+        text: `„${payment.name}” este folosită în ${payment.usage} ${payment.usage === 1 ? "dosar" : "dosare"}. Notele de plată deja generate nu se modifică; dosarele noi nu vor mai declanșa această plată.`,
+        confirmLabel: "Dezactivează",
+        destructive: true
+      }, () => {
+        payment.active = false;
+        commit("Dezactivare plată", payment.name, `Plata „${payment.name}” a fost dezactivată.`);
+      });
+      return;
+    }
+
+    if (action === "delete" && passport.canDelete(payment)) {
+      askConfirm({
+        title: "Ștergi plata?",
+        text: `„${payment.name}” va fi eliminată definitiv din pașaportul serviciului.`,
+        confirmLabel: "Șterge",
+        destructive: true
+      }, () => {
+        service.geap.payments = payments.filter((item) => item.id !== payment.id);
+        commit("Ștergere plată", payment.name, `Plata „${payment.name}” a fost ștearsă.`);
+      });
+    }
+  };
+
+  /* ---- wiring ----------------------------------------------------------- */
+
+  /* a meta line that wraps must not end or start with a dot: parts that
+     begin a new line get .is-row-start (the dot is their ::before, drawn in
+     the gap, so hiding it never reflows the line) */
+  const syncStackMetaRows = (root) => {
+    root?.querySelectorAll(".e-permits-stack__meta").forEach((line) => {
+      let previousTop = null;
+
+      line.querySelectorAll(":scope > .e-permits-stack__part").forEach((part) => {
+        const top = part.offsetTop;
+        part.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
+        previousTop = top;
+      });
+    });
+  };
+
+  const passportBodyObserver = "ResizeObserver" in window
+    ? new ResizeObserver(() => syncStackMetaRows(permitsProfilePanel))
+    : null;
+  const passportBodyEl = permitsProfilePanel?.querySelector("[data-passport-body]");
+
+  if (passportBodyEl) {
+    passportBodyObserver?.observe(passportBodyEl);
+  }
+
+  /* stacked-list overflow menus: one open at a time, Esc / outside click close */
+  const closeStackMenus = (except = null) => {
+    document.querySelectorAll("[data-stack-menu]").forEach((menu) => {
+      if (menu !== except) {
+        menu.hidden = true;
+        document.querySelector(`[aria-controls="${menu.id}"]`)?.setAttribute("aria-expanded", "false");
+      }
+    });
+  };
+
+  /* one handler for every stacked list (passport, user / role permissions):
+     open / close the overflow menu; its items keep their own data-* actions */
+  document.addEventListener("click", (event) => {
+    const menuTrigger = event.target.closest("[data-stack-menu-trigger]");
+
+    if (menuTrigger) {
+      const menu = document.getElementById(menuTrigger.getAttribute("aria-controls"));
+      const willOpen = menu.hidden;
+      closeStackMenus(menu);
+      menu.hidden = !willOpen;
+      menuTrigger.setAttribute("aria-expanded", String(willOpen));
+
+      if (willOpen) {
+        menu.querySelector("[role='menuitem']")?.focus();
+      }
+
+      return;
+    }
+
+    if (!event.target.closest(".e-permits-stack__menu-wrap") || event.target.closest(".e-permits-stack__menu [role='menuitem']")) {
+      closeStackMenus();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const open = document.querySelector("[data-stack-menu]:not([hidden])");
+
+    if (!open) {
+      return;
+    }
+
+    if (event.key === "Escape") {
+      closeStackMenus();
+      document.querySelector(`[aria-controls="${open.id}"]`)?.focus();
+      return;
+    }
+
+    /* same keyboard model as the post-process menu */
+    if (["ArrowDown", "ArrowUp"].includes(event.key) && open.contains(document.activeElement)) {
+      event.preventDefault();
+      const items = [...open.querySelectorAll("[role='menuitem']")];
+      const index = items.indexOf(document.activeElement);
+      items[event.key === "ArrowDown" ? (index + 1) % items.length : (index - 1 + items.length) % items.length]?.focus();
+    }
+  });
+
+  permitsProfilePanel?.addEventListener("click", (event) => {
+    const openService = event.target.closest("[data-passport-open-service]");
+
+    if (openService) {
+      openServiceProfile(openService.dataset.passportOpenService);
+      return;
+    }
+
+    const tabButton = event.target.closest("[data-passport-tab]");
+
+    if (tabButton) {
+      serviceProfileState.tabKey = tabButton.dataset.passportTab;
+      renderServiceProfile();
+      history.replaceState(null, "", `#serviciu/${serviceProfileState.code}/${serviceProfileState.tabKey}`);
+      permitsProfilePanel.querySelector(`[data-passport-tab="${serviceProfileState.tabKey}"]`)?.focus();
+      return;
+    }
+
+    if (event.target.closest("[data-passport-crumb-back]")) {
+      event.preventDefault();
+      closeServiceProfile();
+      return;
+    }
+
+    if (event.target.closest("[data-passport-resync]")) {
+      openSyncModal(serviceProfileState.code);
+      return;
+    }
+
+    const configure = event.target.closest("[data-passport-configure-rt]");
+
+    if (configure) {
+      openRequestTypeModal(configure.dataset.passportConfigureRt);
+      return;
+    }
+
+    if (event.target.closest("[data-passport-open-builder]")) {
+      window.__modal?.open?.("#form-builder-modal");
+      return;
+    }
+
+    const paymentButton = event.target.closest("[data-passport-payment]");
+
+    if (paymentButton) {
+      runPaymentAction(paymentButton.dataset.passportPayment, paymentButton.dataset.passportPaymentAction);
+    }
+  });
+
+  permitsProfilePanel?.addEventListener("keydown", (event) => {
+    const tab = event.target.closest("[data-passport-tab]");
+
+    if (!tab || !["ArrowLeft", "ArrowRight"].includes(event.key)) {
+      return;
+    }
+
+    event.preventDefault();
+    const tabs = [...permitsProfilePanel.querySelectorAll("[data-passport-tab]")];
+    const next = tabs[(tabs.indexOf(tab) + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+    next?.click();
+  });
+
+  document.querySelector("[data-workplace-sync-service]")?.addEventListener("click", () => openSyncModal());
+  serviceProfileBackShell?.addEventListener("click", closeServiceProfile);
+
+  /* 10 tabs outgrow the page: keep the active one in view and fade the edge
+     that hides more (Figma's tab .arrow buttons are not in the library yet) */
+  const syncPassportTabOverflow = () => {
+    const scroller = permitsProfilePanel?.querySelector(".e-permits-page-header__tabs");
+
+    if (!scroller) {
+      return;
+    }
+
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    scroller.classList.toggle("has-overflow-start", scroller.scrollLeft > 1);
+    scroller.classList.toggle("has-overflow-end", max - scroller.scrollLeft > 1);
+  };
+
+  permitsProfilePanel?.querySelector(".e-permits-page-header__tabs")?.addEventListener("scroll", syncPassportTabOverflow, { passive: true });
+  window.addEventListener("resize", syncPassportTabOverflow);
+
   const initWorkplace = async () => {
     if (!workplacePanel) {
       return;
@@ -4213,6 +5798,19 @@ document.addEventListener("DOMContentLoaded", () => {
       usersDb.runtimeRows = buildUsers(usersDb);
       sarciniDb = buildSarciniDb();
       roleAdminDb = buildRoleAdminDb();
+
+      /* Pașaportul Serviciului seed + mock RSSP; the rest of the shell works without it */
+      try {
+        const servicesResponse = await fetch("data/e-permits-services.json", { cache: "no-store" });
+
+        if (servicesResponse.ok && passport) {
+          servicesStore = await servicesResponse.json();
+          servicesDb = buildServicesDb();
+          authoritiesDb = buildAuthoritiesDb();
+        }
+      } catch (servicesError) {
+        console.warn(servicesError);
+      }
       workplaceDb = dossierDb;
       workplaceState.rows = dossierDb.runtimeRows;
     } catch (error) {
@@ -4239,6 +5837,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (linkedRow) {
       openDosarProfil(linkedRow, dosarHashMatch[2] || "general");
+    }
+
+    const serviceHashMatch = window.location.hash.match(/^#serviciu\/([^/]+)(?:\/([^/]+))?$/);
+
+    if (serviceHashMatch && getServiceByCode(serviceHashMatch[1])) {
+      activeRegistry = "services";
+      servicesDb = buildServicesDb();
+      workplaceDb = servicesDb;
+      workplaceState.rows = servicesDb.runtimeRows;
+      openServiceProfile(serviceHashMatch[1], serviceHashMatch[2] || "general");
     }
 
     const userHashMatch = window.location.hash.match(/^#utilizator\/([^/]+)(?:\/([^/]+))?$/);
@@ -4371,26 +5979,12 @@ document.addEventListener("DOMContentLoaded", () => {
         setWorkplaceView(item.dataset.workplaceView);
       }
 
-      if (item.dataset.shellView === "permits-profile") {
-        activeRegistry = "permits-profile";
-        shell.classList.remove("is-users-registry");
-        shell.classList.remove("is-user-profile-open");
+      if (item.dataset.shellView === "services-registry" || item.dataset.shellView === "permits-profile") {
+        showServiceRegistry("services", item.dataset.navLabel || "Configurări servicii");
+      }
 
-        if (workplacePanel) {
-          workplacePanel.hidden = true;
-        }
-
-        if (permitsProfilePanel) {
-          permitsProfilePanel.hidden = false;
-        }
-
-        if (userProfilePanel) {
-          userProfilePanel.hidden = true;
-        }
-
-        if (userProfileBackShell) {
-          userProfileBackShell.hidden = true;
-        }
+      if (item.dataset.shellView === "authorities-registry") {
+        showServiceRegistry("authorities", item.dataset.navLabel || "Autorități");
       }
 
       if (item.dataset.shellView === "users-registry") {
@@ -4699,7 +6293,37 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      if (event.target.closest("input, button, a")) {
+      const serviceRowSync = event.target.closest("[data-service-row-sync]");
+
+      if (serviceRowSync) {
+        openSyncModal(serviceRowSync.dataset.serviceRowSync);
+        return;
+      }
+
+      const serviceRowOpen = event.target.closest("[data-service-row-open]");
+
+      if (serviceRowOpen) {
+        openServiceProfile(serviceRowOpen.dataset.serviceRowOpen);
+        return;
+      }
+
+      if (event.target.closest("input, label, button, a")) {
+        return;
+      }
+
+      const serviceRowEl = event.target.closest("tr[data-workplace-row]");
+
+      if (serviceRowEl && activeRegistry === "services") {
+        openServiceProfile(serviceRowEl.dataset.workplaceRow);
+        return;
+      }
+
+      if (serviceRowEl && activeRegistry === "authorities") {
+        /* an authority row lists its services */
+        const authority = getAuthorityById(serviceRowEl.dataset.workplaceRow);
+        showServiceRegistry("services", servicesRegistryLabel);
+        workplaceState.query = authority?.name || "";
+        renderWorkplace();
         return;
       }
 
@@ -4759,8 +6383,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (search) {
         userProfileState.permSearch = search.value;
-        renderUserProfilePanelBody(getUserById(userProfileState.rowId));
-        refocusPermSearch();
+        syncPermSearchMenu(userProfilePanelBody, getUserById(userProfileState.rowId), userProfileState);
+      }
+    });
+
+    userProfilePanel.addEventListener("mousedown", (event) => {
+      if (event.target.closest("[data-perm-toggle]")) {
+        event.preventDefault();
       }
     });
 
@@ -4885,7 +6514,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (event.key === "Escape" && event.target.closest("[data-perm-search]") && userProfileState.permSearch) {
         event.preventDefault();
         userProfileState.permSearch = "";
-        renderUserProfilePanelBody(getUserById(userProfileState.rowId));
+        event.target.value = "";
+        syncPermSearchMenu(userProfilePanelBody, getUserById(userProfileState.rowId), userProfileState);
         return;
       }
 
@@ -5047,7 +6677,13 @@ document.addEventListener("DOMContentLoaded", () => {
     await initRoleSwitcher();
     await initWorkplace();
 
-    if (activeAssignmentId) {
+    /* initWorkplace may have opened a #dosar/ or #utilizator/ deep link;
+       re-applying the assignment would put the registry back over it */
+    const deepLinkedProfileOpen = shell.classList.contains("is-dosar-profile-open") ||
+      shell.classList.contains("is-user-profile-open") ||
+      Boolean(serviceProfileState.code && permitsProfilePanel && !permitsProfilePanel.hidden);
+
+    if (activeAssignmentId && !deepLinkedProfileOpen) {
       applyRoleAssignment(activeAssignmentId, { persist: false, closeMenu: false });
     }
   })();

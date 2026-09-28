@@ -30,14 +30,6 @@
   font-weight: 700;
 }
 
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../assets/fonts/JetBrainsMono/JetBrainsMono-500.woff2") format("woff2");
-  font-display: swap;
-  font-style: normal;
-  font-weight: 500;
-}
-
 :root {
   --motion-dropdown-duration: 100ms;
   --motion-dropdown-ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -480,7 +472,7 @@
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: inline-flex;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-style: normal;
   font-weight: 500;
@@ -821,84 +813,6 @@
   margin: 0;
 }
 
-.permits-profile__hero {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-}
-
-.permits-profile__back-button {
-  border-radius: var(--border-radius-6, 6px);
-  gap: 6px;
-  line-height: 20px;
-  padding: 0 12px 0 8px;
-  width: fit-content;
-}
-
-.permits-profile__title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.permits-profile__title {
-  font-size: 40px;
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 48px;
-}
-
-.permits-profile__subtitle {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-.permits-profile__tabs {
-  min-width: 0;
-  overflow-x: auto;
-  padding-top: 12px;
-  scrollbar-width: thin;
-  width: 100%;
-}
-
-.permits-profile__tabs .tab-buttons {
-  border-bottom-color: var(--color-border-base-default, #d9d9d9);
-  gap: 24px;
-  min-width: max-content;
-  width: 100%;
-}
-
-.permits-profile__tabs .tab-button {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 20px;
-  min-height: 36px;
-  padding: 0 0 12px;
-}
-
-.permits-profile__tabs .tab-button:focus {
-  outline: none;
-}
-
-.permits-profile__tabs .tab-button:focus-visible {
-  border-radius: var(--border-radius-4, 4px);
-  box-shadow: 0 0 0 2px rgba(0, 88, 210, 0.18);
-  outline: none;
-}
-
-.permits-profile__tabs .tab-button .badge {
-  flex: 0 0 auto;
-  font-size: 12px;
-  height: 24px;
-  line-height: 16px;
-  min-width: 24px;
-  padding: 0 6px;
-  width: auto;
-}
-
 .permits-profile__section {
   display: flex;
   flex-direction: column;
@@ -1119,7 +1033,7 @@
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: inline-flex;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   gap: 4px;
@@ -1372,41 +1286,6 @@
   margin: 0;
 }
 
-.e-permits-dosar-profil__hero {
-  background: var(--color-background-base-default, #fff);
-  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  min-width: 0;
-  position: sticky;
-  top: 0;
-  z-index: 8;
-}
-
-.e-permits-dosar-profil__back {
-  border-radius: var(--border-radius-6, 6px);
-  gap: 6px;
-  line-height: 20px;
-  padding: 0 12px 0 8px;
-  width: fit-content;
-}
-
-.e-permits-dosar-profil__title-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 16px;
-  justify-content: space-between;
-}
-
-.e-permits-dosar-profil__title-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
 .e-permits-dosar-profil__eyebrow {
   color: var(--color-text-base-tertiary, #757575);
   font-size: 12px;
@@ -1414,92 +1293,11 @@
   line-height: 16px;
 }
 
-.e-permits-dosar-profil__title {
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.24px;
-  line-height: 32px;
-}
-
-.e-permits-dosar-profil__title-tags {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.e-permits-dosar-profil__summary {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 20px;
-  padding: 8px 2px 16px;
-}
-
-.e-permits-dosar-profil__summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-width: 280px;
-  min-width: 96px;
-}
-
-.e-permits-dosar-profil__summary-label {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-}
-
-.e-permits-dosar-profil__summary-value {
-  align-items: center;
-  color: var(--color-text-base-default, #121212);
-  display: flex;
-  font-size: 14px;
-  font-weight: 500;
-  gap: 8px;
-  line-height: 20px;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.e-permits-dosar-profil__divider {
-  background: var(--color-border-base-default, #d9d9d9);
-  height: 28px;
-  width: 1px;
-}
-
 .e-permits-dosar-profil__termen-meta {
   color: var(--color-text-base-tertiary, #757575);
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;
-}
-
-.e-permits-dosar-profil__tabs {
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: thin;
-  width: 100%;
-}
-
-.e-permits-dosar-profil__tabs .tab-buttons {
-  border-bottom-color: var(--color-border-base-default, #d9d9d9);
-  gap: 0;
-  min-width: max-content;
-  width: 100%;
-}
-
-.e-permits-dosar-profil__tabs .tab-button {
-  gap: 8px;
-  height: 48px;
-  padding-inline: 16px;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
-}
-
-.e-permits-dosar-profil__tabs .tab-button:focus-visible {
-  outline: 0;
-  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
 }
 
 .e-permits-dosar-profil__tab-signal {
@@ -1738,25 +1536,13 @@
     padding: 20px 16px 32px;
   }
 
-  .e-permits-dosar-profil__hero {
-    margin-inline: -16px;
-    padding-inline: 16px;
-  }
+  
 
-  .e-permits-dosar-profil__title-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
+  
 
-  .e-permits-dosar-profil__summary {
-    align-items: stretch;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  
 
-  .e-permits-dosar-profil__divider {
-    display: none;
-  }
+  
 
   .e-permits-dosar-profil__row {
     align-items: flex-start;
@@ -1782,21 +1568,6 @@
 }
 
 /* User profile: Figma 6801:38401 and inline edit state 6890:2934. */
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-user-profile-open {
-  --e-permits-shell-header-offset: 98px;
-  grid-template-rows: 32px 66px minmax(0, 1fr);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-user-profile-open .e-permits-shell__header,
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-user-profile-open .e-permits-shell__header-inner {
-  height: 66px;
-  min-height: 66px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-user-profile-open .e-permits-shell__workspace {
-  grid-template-rows: 66px minmax(0, 1fr);
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-user-profile-open .e-permits-shell__content {
   grid-row: 2;
   padding-top: 0;
@@ -1846,7 +1617,6 @@
   width: 100%;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile__hero,
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile__panel {
   box-sizing: border-box;
   margin-inline: auto;
@@ -1854,52 +1624,6 @@
   width: calc(100% - 32px);
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile__hero {
-  background: var(--color-background-base-default, #fff);
-  display: flex;
-  flex-direction: column;
-  padding-top: 16px;
-}
-
-.e-permits-user-profile__title-row {
-  align-items: center;
-  display: flex;
-  gap: 20px;
-  justify-content: space-between;
-  min-height: 32px;
-  padding: 0 8px;
-}
-
-.e-permits-user-profile__heading,
-.e-permits-user-profile__title-actions {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  min-width: 0;
-}
-
-.e-permits-user-profile__heading h1 {
-  color: var(--color-text-base-default, #121212);
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-24, 24px);
-  font-style: normal;
-  font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-user-profile__heading .e-permits-workplace__tag {
-  border-radius: var(--border-radius-4, 4px);
-  height: 24px;
-  padding-inline: 8px;
-}
-
-.e-permits-user-profile__secondary-action,
-.e-permits-user-profile__danger-action,
 .e-permits-user-profile__save,
 .e-permits-user-profile__cancel {
   align-items: center;
@@ -1917,26 +1641,14 @@
   transition: background-color 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
 }
 
-.e-permits-user-profile__secondary-action,
 .e-permits-user-profile__cancel {
   background: var(--color-background-base-tertiary, #f1f1f1);
   border: 1px solid transparent;
   color: var(--color-text-base-default, #121212);
 }
 
-.e-permits-user-profile__secondary-action:hover,
 .e-permits-user-profile__cancel:hover {
   background: var(--color-background-base-secondary-hover, #e8e8e8);
-}
-
-.e-permits-user-profile__danger-action {
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-error-default, #d92d20);
-  color: var(--color-text-error-default, #d92d20);
-}
-
-.e-permits-user-profile__danger-action:hover {
-  background: var(--color-background-error-secondary, #fee4e2);
 }
 
 .e-permits-user-profile__save {
@@ -1949,143 +1661,27 @@
   background: var(--color-background-brand-hover, #0047aa);
 }
 
-.e-permits-user-profile__secondary-action:focus-visible,
-.e-permits-user-profile__danger-action:focus-visible,
 .e-permits-user-profile__save:focus-visible,
 .e-permits-user-profile__cancel:focus-visible {
   outline: 0;
   box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
 }
 
-.e-permits-user-profile__summary {
-  align-items: center;
-  box-sizing: border-box;
-  display: flex;
-  gap: 24px;
-  min-height: 76px;
-  overflow: visible;
-  padding: 16px 2px;
-}
-
-.e-permits-user-profile__summary-item {
-  display: flex;
-  flex: 0 1 auto;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.e-permits-user-profile__summary-item--email {
-  flex: 1 1 auto;
-}
-
-.e-permits-user-profile__summary-label {
-  color: var(--color-text-base-tertiary, #757575);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__summary-value {
-  align-items: center;
-  color: var(--color-text-base-default, #121212);
-  display: flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  min-height: 24px;
-  white-space: nowrap;
-}
-
 .e-permits-user-profile__summary-authority {
   gap: 6px;
 }
 
-.e-permits-user-profile__summary-authority img {
-  height: 20px;
-  object-fit: contain;
-  width: 20px;
-}
-
-.e-permits-user-profile__summary-divider {
-  align-self: center;
-  background: var(--color-border-base-default, #d9d9d9);
-  flex: 0 0 1px;
-  height: 28px;
-  width: 1px;
-}
-
-.e-permits-user-profile__tabs {
-  box-sizing: border-box;
-  height: 48px;
-  margin: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  width: 100%;
-}
-
-.e-permits-user-profile__tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.e-permits-user-profile__tabs .tab-buttons {
-  align-items: stretch;
-  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
-  display: flex;
-  gap: 0;
-  height: 48px;
-  min-width: max-content;
-  width: 100%;
-}
-
-.e-permits-user-profile__tabs .tab-button {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  color: var(--color-text-base-secondary, #383838);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 auto;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 8px;
-  height: 48px;
-  justify-content: center;
-  padding: 0 16px;
-  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
-}
-
-.e-permits-user-profile__tabs .tab-button:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-user-profile__tabs .tab-button.active {
-  background: transparent;
-  border-bottom-color: var(--color-border-brand-default, #0058d2);
-  color: var(--color-text-brand-default, #0058d2);
-}
-
-.e-permits-user-profile__tabs .tab-button:focus-visible {
-  outline: 0;
-  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-user-profile__tabs .icon {
-  flex: 0 0 20px;
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-user-profile__tab-count {
-  align-items: center;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: 999px;
-  color: var(--color-text-base-default, #121212);
-  display: inline-flex;
-  font: 500 12px/16px var(--font-family-primary-font, Onest), sans-serif;
-  height: 20px;
-  justify-content: center;
-  min-width: 20px;
-  padding: 0 6px;
+/* admin-authority.svg is an 18.58×13.58 glyph exported with
+   preserveAspectRatio="none", so an <img> in a 20×20 box stretches it.
+   Draw it as the sidebar does: a mask at its native size, centred in 20px,
+   painted with the text colour. */
+.e-permits-user-profile__authority-icon {
+  -webkit-mask: url("../assets/icons/admin-authority.svg") center / 18.5833px 13.5833px no-repeat;
+  background-color: currentColor;
+  flex: 0 0 var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  mask: url("../assets/icons/admin-authority.svg") center / 18.5833px 13.5833px no-repeat;
+  width: var(--spacing-20, 20px);
 }
 
 .e-permits-user-profile__panel {
@@ -2287,8 +1883,12 @@
   cursor: pointer;
 }
 
-.e-permits-user-profile__summary-roles {
-  gap: 6px;
+/* both used inside the page-header meta values */
+.e-permits-user-profile__summary-roles,
+.e-permits-user-profile__summary-authority {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
 }
 
 /* ---- Combinații de roluri tab ---- */
@@ -2541,176 +2141,15 @@
 }
 
 /* ---- Permisiuni tab ---- */
-.e-permits-user-profile__perms-header {
-  align-items: center;
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-  min-height: 48px;
-  padding-top: 12px;
-}
 
-.e-permits-user-profile__perms-title-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.e-permits-user-profile__perms-count {
-  color: var(--color-text-base-secondary, #383838);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__perm-delta {
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__perm-delta.is-add {
-  color: var(--color-text-positive-on-secondary, #027948);
-}
-
-.e-permits-user-profile__perm-delta.is-remove {
-  color: var(--color-text-danger-default, #d92d20);
-}
-
-.e-permits-user-profile__perms-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.e-permits-user-profile__perms-save,
-.e-permits-user-profile__perms-cancel {
-  align-items: center;
-  border-radius: var(--border-radius-6, 6px);
-  cursor: pointer;
-  display: inline-flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  height: 32px;
-  justify-content: center;
-  min-width: 52px;
-  padding: 0 12px;
-}
-
-.e-permits-user-profile__perms-save {
-  background: var(--color-border-base-strong, #121212);
-  border: 1px solid transparent;
-  color: var(--color-background-base-inverse-on-color, #fff);
-}
-
-.e-permits-user-profile__perms-save:hover {
-  background: #000;
-}
-
-.e-permits-user-profile__perms-cancel {
-  background: var(--color-background-base-default, #fff);
-  border: 1.5px solid var(--color-border-base-strong, #121212);
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-user-profile__perms-cancel:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
+/* Search = the full-flow suggestion field (.e-permits-fo-input + .e-permits-fo-address-search__list);
+   only the spacing to the heading lives here. */
 .e-permits-user-profile__perm-search {
-  padding: 12px 0;
-  position: relative;
+  padding: var(--spacing-12, 12px) 0;
 }
 
-.e-permits-user-profile__perm-search-input {
-  width: 100%;
-}
-
-.e-permits-user-profile__perm-menu {
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 5px 12px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  left: 0;
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 8px;
-  position: absolute;
-  right: 0;
-  top: calc(100% - 4px);
-  z-index: 30;
-}
-
-.e-permits-user-profile__perm-option {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  cursor: pointer;
-  display: flex;
-  gap: 12px;
-  padding: 8px 24px 8px 16px;
-  text-align: left;
-  width: 100%;
-}
-
-.e-permits-user-profile__perm-option:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
-}
-
-.e-permits-user-profile__perm-checkbox {
-  align-items: center;
-  border: 2px solid var(--color-border-base-secondary, #b2b2b2);
-  border-radius: var(--border-radius-6, 6px);
-  box-sizing: border-box;
-  color: #fff;
-  display: flex;
-  flex: 0 0 20px;
-  height: 20px;
-  justify-content: center;
-  width: 20px;
-}
-
-.e-permits-user-profile__perm-checkbox.is-checked {
-  background: var(--color-background-brand-default, #0058d2);
-  border-color: var(--color-background-brand-default, #0058d2);
-}
-
-.e-permits-user-profile__perm-option-copy {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.e-permits-user-profile__perm-option-name {
-  color: var(--color-text-base-secondary, #383838);
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__perm-option-group {
-  color: var(--color-text-base-tertiary, #757575);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__perm-menu-empty {
-  color: var(--color-text-base-tertiary, #757575);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-  padding: 12px 16px;
-}
-
-.e-permits-user-profile__perm-groups {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px 0 32px;
-}
-
-.e-permits-user-profile__perm-group {
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
-  overflow: hidden;
+.e-permits-user-profile__perm-search .e-permits-fo-address-search__list {
+  margin-top: calc(var(--spacing-12, 12px) * -1 + var(--spacing-4, 4px));
 }
 
 .e-permits-user-profile__perm-group-head {
@@ -2722,11 +2161,6 @@
   justify-content: space-between;
   padding: 9px 5px 9px 17px;
   width: 100%;
-}
-
-.e-permits-user-profile__perm-group.is-open .e-permits-user-profile__perm-group-head {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
 }
 
 .e-permits-user-profile__perm-group-title {
@@ -2760,19 +2194,6 @@
   flex-direction: column;
 }
 
-.e-permits-user-profile__perm-row {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
-  display: flex;
-  gap: 8px;
-  padding: 8px 12px;
-}
-
-.e-permits-user-profile__perm-row:last-child {
-  border-bottom: 0;
-}
-
 .e-permits-user-profile__perm-row--add {
   background: var(--color-background-positive-secondary, #e6f5ee);
 }
@@ -2781,113 +2202,8 @@
   background: var(--color-background-danger-secondary, #fee4e2);
 }
 
-.e-permits-user-profile__perm-icon {
-  align-items: center;
-  display: inline-flex;
-  flex: 0 0 20px;
-  height: 20px;
-  justify-content: center;
-  width: 20px;
-}
-
-.e-permits-user-profile__perm-icon.is-on {
-  color: var(--color-icon-positive-default, #027948);
-}
-
-.e-permits-user-profile__perm-icon.is-off {
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-}
-
-.e-permits-user-profile__perm-icon.is-remove {
-  color: var(--color-text-danger-default, #d92d20);
-}
-
-.e-permits-user-profile__perm-copy {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.e-permits-user-profile__perm-name {
-  color: var(--color-text-base-secondary, #383838);
-  font: 500 16px/24px var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-}
-
-.e-permits-user-profile__perm-row--off .e-permits-user-profile__perm-name {
-  color: var(--color-text-disabled-default, #b2b2b2);
-}
-
-.e-permits-user-profile__perm-source {
-  color: var(--color-text-base-tertiary, #757575);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-}
-
-.e-permits-user-profile__perm-row--off .e-permits-user-profile__perm-source {
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-}
-
-.e-permits-user-profile__perm-row--add .e-permits-user-profile__perm-source {
-  color: var(--color-text-positive-on-secondary, #027948);
-}
-
-.e-permits-user-profile__perm-actions {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 8px;
-}
-
-.e-permits-user-profile__perm-btn {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 6px;
-  height: 32px;
-  min-width: 52px;
-  padding: 0 12px 0 8px;
-}
-
-.e-permits-user-profile__perm-btn .icon,
-.e-permits-user-profile__perm-btn .e-permits-user-profile__ban {
-  flex: 0 0 16px;
-}
-
-.e-permits-user-profile__perm-btn:hover:not(:disabled):not(.is-active) {
-  background: var(--color-background-base-secondary, #f5f5f5);
-}
-
-.e-permits-user-profile__perm-btn:disabled {
-  background: var(--color-background-disabled-default, #f1f1f1);
-  border-color: var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-  cursor: not-allowed;
-}
-
-.e-permits-user-profile__perm-add.is-active {
-  background: var(--green-600, #039855);
-  border-color: transparent;
-  color: #fff;
-}
-
-.e-permits-user-profile__perm-retrage.is-active {
-  background: var(--color-background-danger-default, #d92d20);
-  border-color: transparent;
-  color: #fff;
-}
-
 @media (max-width: 900px) {
-  .e-permits-user-profile__summary {
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
+  
 
   .e-permits-user-profile__property-row {
     grid-template-columns: 192px minmax(0, 1fr);
@@ -2895,24 +2211,15 @@
 }
 
 @media (max-width: 640px) {
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile__hero,
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile__panel {
     width: calc(100% - 24px);
   }
 
-  .e-permits-user-profile__title-row {
-    align-items: flex-start;
-    flex-direction: column;
-    padding-inline: 0;
-  }
+  
 
-  .e-permits-user-profile__title-actions {
-    width: 100%;
-  }
+  
 
-  .e-permits-user-profile__summary {
-    padding-inline: 0;
-  }
+  
 
   .e-permits-user-profile__panel {
     padding-inline: 0;
@@ -5037,7 +4344,7 @@
 .e-permits-fo-subject-meta__code {
   color: var(--color-text-base-default, #121212);
   flex: 0 1 auto;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-style: normal;
   font-weight: var(--font-weight-fw-medium, 500);
@@ -5066,7 +4373,7 @@
 .e-permits-fo-avatar-menu__role-copy .e-permits-fo-subject-meta__code,
 .e-permits-fo-avatar-menu__proxy-role-copy .e-permits-fo-subject-meta__code {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
   letter-spacing: -0.14px;
@@ -5106,7 +4413,7 @@
 }
 
 .e-permits-fo-auth__role-meta-item strong.is-mono {
-  font-family: var(--font-family-mono, "JetBrains Mono"), ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   letter-spacing: -0.01em;
 }
 
@@ -5888,7 +5195,7 @@
   cursor: pointer;
   display: inline-flex;
   flex: 0 1 auto;
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-style: normal;
   font-weight: var(--font-weight-fw-medium, 500);
@@ -5903,7 +5210,7 @@
 
 .e-permits-fo-copy-value > span:first-child {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-style: normal;
   font-weight: var(--font-weight-fw-medium, 500);
@@ -6848,7 +6155,7 @@
 
 .e-permits-fo-caem__code {
   flex: 0 0 60px;
-  font-family: var(--font-family-mono-font, "JetBrains Mono"), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 600;
   letter-spacing: -0.14px;
@@ -7071,34 +6378,6 @@
 
 .e-permits-fo-subgen-select__option.is-selected {
   color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-fo-subgen-select__checkbox {
-  align-items: center;
-  border: var(--border-width-2, 2px) solid var(--color-border-base-secondary, #b2b2b2);
-  border-radius: var(--border-radius-6, 6px);
-  box-sizing: border-box;
-  display: inline-flex;
-  flex: 0 0 20px;
-  height: 20px;
-  justify-content: center;
-  width: 20px;
-}
-
-.e-permits-fo-subgen-select__checkbox .icon {
-  color: var(--color-background-base-inverse-on-color, #fff);
-  height: 16px;
-  opacity: 0;
-  width: 16px;
-}
-
-.e-permits-fo-subgen-select__option.is-selected .e-permits-fo-subgen-select__checkbox {
-  background: var(--color-background-brand-default, #0058d2);
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-fo-subgen-select__option.is-selected .e-permits-fo-subgen-select__checkbox .icon {
-  opacity: 1;
 }
 
 .e-permits-fo-subgen-select__footer {
@@ -9734,54 +9013,6 @@
   width: 100%;
 }
 
-.e-permits-fo-consent input {
-  appearance: none;
-  height: 1px;
-  margin: 0;
-  opacity: 0;
-  position: absolute;
-  width: 1px;
-}
-
-.e-permits-fo-consent__box {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-2, 2px) solid var(--color-border-base-secondary, #b2b2b2);
-  border-radius: var(--border-radius-6, 6px);
-  box-sizing: border-box;
-  color: var(--color-text-brand-on-default, #fff);
-  display: inline-flex;
-  flex: 0 0 20px;
-  height: 20px;
-  justify-content: center;
-  margin: 0;
-  width: 20px;
-}
-
-.e-permits-fo-consent__box .icon {
-  display: block;
-  height: 18px;
-  opacity: 0;
-  transform: scale(0.75);
-  transition: opacity 140ms ease, transform 140ms ease;
-  width: 18px;
-}
-
-.e-permits-fo-consent input:focus-visible + .e-permits-fo-consent__box {
-  outline: 2px solid var(--white, #fff);
-  box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
-}
-
-.e-permits-fo-consent input:checked + .e-permits-fo-consent__box {
-  background-color: var(--color-background-brand-default, #0058d2);
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-fo-consent input:checked + .e-permits-fo-consent__box .icon {
-  opacity: 1;
-  transform: scale(1);
-}
-
 .e-permits-fo-consent > span:last-child {
   flex: 1 1 auto;
   font-size: var(--font-size-fs-14, 14px);
@@ -9834,136 +9065,6 @@
 .e-permits-fo-form__actions--with-draft {
   align-items: center;
   justify-content: space-between;
-}
-
-.e-permits-fo-toast {
-  align-items: center;
-  animation: e-permits-fo-toast-enter 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  background: var(--green-600, #039855);
-  border-radius: var(--border-radius-12, 12px);
-  box-shadow: 0 12px 32px rgb(18 18 18 / 18%);
-  box-sizing: border-box;
-  color: var(--color-background-base-inverse-on-color, #fff);
-  display: flex;
-  gap: var(--spacing-12, 12px);
-  left: auto;
-  max-width: min(420px, calc(100vw - 64px));
-  min-height: 48px;
-  min-width: 320px;
-  padding: var(--spacing-12, 12px) var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-12, 12px);
-  pointer-events: auto;
-  position: fixed;
-  right: var(--spacing-32, 32px);
-  top: var(--fo-toast-top, var(--spacing-32, 32px));
-  z-index: 10000;
-}
-
-.e-permits-fo-toast--inverse {
-  background: var(--color-background-base-inverse, #1e1e1e);
-}
-
-.e-permits-fo-toast--inverse .e-permits-fo-toast__icon {
-  color: var(--green-400, #32d583);
-}
-
-.e-permits-fo-toast__text strong {
-  font-weight: var(--font-weight-fw-semibold, 600);
-}
-
-.e-permits-fo-toast__text a {
-  color: inherit;
-  font-weight: var(--font-weight-fw-semibold, 600);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.e-permits-fo-toast.is-hiding {
-  animation: e-permits-fo-toast-exit 260ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-.e-permits-fo-toast__icon {
-  align-items: center;
-  display: inline-flex;
-  flex: 0 0 20px;
-  height: 20px;
-  justify-content: center;
-  width: 20px;
-}
-
-.e-permits-fo-toast__icon .icon {
-  display: block;
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-fo-toast__text {
-  flex: 1 1 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-}
-
-.e-permits-fo-toast__close {
-  align-items: center;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: inherit;
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  margin: 0;
-  opacity: 1;
-  padding: 0;
-  width: 32px;
-}
-
-.e-permits-fo-toast__close:hover,
-.e-permits-fo-toast__close:focus-visible {
-  background: rgb(255 255 255 / 16%);
-  opacity: 1;
-  outline: none;
-}
-
-.e-permits-fo-toast__close .icon {
-  display: block;
-  height: 16px;
-  width: 16px;
-}
-
-@media (max-width: 480px) {
-  .e-permits-fo-toast {
-    max-width: calc(100vw - 32px);
-    min-width: 0;
-    right: var(--spacing-16, 16px);
-    width: calc(100vw - 32px);
-  }
-}
-
-@keyframes e-permits-fo-toast-enter {
-  from {
-    opacity: 0;
-    transform: translateY(-18px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes e-permits-fo-toast-exit {
-  from {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(18px);
-  }
 }
 
 /* ── Step 4: Verificare și semnare ── */
@@ -10889,8 +9990,7 @@
   box-shadow: inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2);
 }
 
-.e-permits-fo-delivery-option__input,
-.e-permits-fo-delivery-paper input {
+.e-permits-fo-delivery-option__input {
   height: 1px;
   margin: 0;
   opacity: 0;
@@ -11081,38 +10181,9 @@
   width: 100%;
 }
 
-.e-permits-fo-delivery-paper__box {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-2, 2px) solid var(--color-border-base-secondary, #b2b2b2);
-  border-radius: var(--border-radius-6, 6px);
-  box-sizing: border-box;
-  color: var(--color-text-brand-on-default, #fff);
-  display: inline-flex;
-  flex: 0 0 24px;
-  height: 24px;
-  justify-content: center;
-  width: 24px;
-}
-
-.e-permits-fo-delivery-paper__box .icon {
-  opacity: 0;
-  transform: scale(0.75);
-  transition: opacity 120ms ease, transform 120ms ease;
-}
-
-.e-permits-fo-delivery-paper input:focus-visible + .e-permits-fo-delivery-paper__box {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
-}
-
-.e-permits-fo-delivery-paper input:checked + .e-permits-fo-delivery-paper__box {
-  background: var(--color-background-brand-default, #0058d2);
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-fo-delivery-paper input:checked + .e-permits-fo-delivery-paper__box .icon {
-  opacity: 1;
-  transform: scale(1);
+/* library checkbox (20px) centred on the 24px title line */
+.e-permits-fo-delivery-paper .checkbox-custom {
+  margin-top: var(--spacing-2, 2px);
 }
 
 .e-permits-fo-delivery-paper__copy {
@@ -11652,11 +10723,6 @@
   .e-permits-fo-payment-actions .btn {
     width: 100%;
   }
-}
-
-.permits-profile__hero-actions {
-  display: flex;
-  justify-content: flex-start;
 }
 
 .permits-profile__builder-button {
@@ -12721,7 +11787,7 @@
 
 .e-permits-builder__mono {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   letter-spacing: -0.14px;
@@ -13815,7 +12881,7 @@
 }
 
 .e-permits-builder__schema pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 13px;
   line-height: 1.6;
   margin: 0;
@@ -14121,7 +13187,6 @@
   font-weight: var(--font-weight-fw-regular, 400);
   line-height: var(--line-height-lh-20, 20px);
 }
-
 
 .e-permits-builder__property > span,
 .e-permits-builder__switch strong {
@@ -14738,7 +13803,7 @@
 
 .e-permits-builder__address-data-box code {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
 }
@@ -14890,7 +13955,7 @@
 }
 
 .e-permits-builder__classifier-card code {
-  font-family: var(--font-family-mono-font, "JetBrains Mono"), ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   letter-spacing: -0.14px;
@@ -15055,7 +14120,7 @@
   border: 0;
   color: inherit;
   font: inherit;
-  font-family: var(--font-family-mono-font, "JetBrains Mono"), ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-16, 16px);
   min-width: 0;
@@ -15164,46 +14229,6 @@
   line-height: var(--line-height-lh-20, 20px);
 }
 
-.e-permits-builder__mini-check--only {
-  display: inline-flex;
-  height: 24px;
-  position: relative;
-  width: 24px;
-}
-
-.e-permits-builder__mini-check--only input {
-  appearance: none;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-6, 6px);
-  cursor: pointer;
-  height: 24px;
-  margin: 0;
-  width: 24px;
-}
-
-.e-permits-builder__mini-check--only input:checked {
-  background: var(--color-background-brand-default, #0058d2);
-  border-color: var(--color-border-brand-default, #0058d2);
-}
-
-.e-permits-builder__mini-check--only span {
-  pointer-events: none;
-}
-
-.e-permits-builder__mini-check--only input:checked + span::after {
-  border-bottom: 2px solid #fff;
-  border-right: 2px solid #fff;
-  content: "";
-  height: 10px;
-  left: 9px;
-  position: absolute;
-  top: 5px;
-  transform: rotate(45deg);
-  width: 6px;
-}
-
-.e-permits-builder__mini-check input,
 .e-permits-builder__radio-stack input {
   accent-color: var(--color-background-brand-default, #0058d2);
   flex: 0 0 auto;
@@ -15481,7 +14506,7 @@
 
 .e-permits-builder__static-editor-row > span {
   color: var(--color-text-base-tertiary, #757575);
-  font-family: var(--font-family-mono-font, "JetBrains Mono"), ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
 }
 
@@ -15947,7 +14972,7 @@
   border-radius: var(--border-radius-4, 4px);
   color: var(--color-text-base-tertiary, #757575);
   display: inline-flex;
-  font-family: var(--font-family-mono-font, "JetBrains Mono"), ui-monospace, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   height: 24px;
@@ -16278,10 +15303,7 @@
     padding: 20px 16px;
   }
 
-  .permits-profile__title {
-    font-size: 32px;
-    line-height: 40px;
-  }
+  
 
   .permits-profile__metrics,
   .permits-profile__services {
@@ -17430,13 +16452,13 @@
 
 /* Back office Figma composition: title belongs in the shell header row. */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell__header {
-  min-height: 72px;
+  min-height: var(--e-permits-shell-topbar-height, 66px);
   border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
   background: var(--color-background-base-default, #fff);
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell__header-inner {
-  min-height: 72px;
+  min-height: var(--e-permits-shell-topbar-height, 66px);
   padding: 0 var(--spacing-16, 16px);
   justify-content: space-between;
   gap: var(--spacing-24, 24px);
@@ -17448,7 +16470,7 @@
   align-items: center;
   justify-content: flex-start;
   gap: var(--spacing-24, 24px);
-  height: 72px;
+  height: var(--e-permits-shell-topbar-height, 66px);
   min-width: 0;
   padding: 0;
   overflow: visible;
@@ -17483,7 +16505,8 @@
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 56px 48px;
+  /* the status-tab row collapses when a registry has no tabs (e.g. Roluri) */
+  grid-template-rows: 56px auto;
   border-bottom: 0;
   overflow: hidden;
 }
@@ -17531,22 +16554,6 @@
 }
 
 /* Users registry keeps the shared table component and swaps only its schema. */
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-users-registry {
-  --e-permits-shell-header-offset: 98px;
-  grid-template-rows: 32px 66px minmax(0, 1fr);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-users-registry .e-permits-shell__header,
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-users-registry .e-permits-shell__header-inner,
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-users-registry .e-permits-workplace__title-row--shell {
-  height: 66px;
-  min-height: 66px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-users-registry .e-permits-shell__workspace {
-  grid-template-rows: 66px minmax(0, 1fr);
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace.is-users-registry .e-permits-workplace__header {
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 64px;
@@ -17581,21 +16588,6 @@
 }
 
 /* Dossier profile: Figma 6675:158399. */
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-dosar-profile-open {
-  --e-permits-shell-header-offset: 98px;
-  grid-template-rows: 32px 66px minmax(0, 1fr);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-dosar-profile-open .e-permits-shell__header,
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-dosar-profile-open .e-permits-shell__header-inner {
-  height: 66px;
-  min-height: 66px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-dosar-profile-open .e-permits-shell__workspace {
-  grid-template-rows: 66px minmax(0, 1fr);
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-dosar-profile-open .e-permits-shell__content {
   grid-row: 2;
   padding-top: 0;
@@ -17646,117 +16638,11 @@
   width: 100%;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__hero,
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel {
   box-sizing: border-box;
   margin-inline: auto;
   max-width: 1024px;
   width: calc(100% - 32px);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__hero {
-  background: var(--color-background-base-default, #fff);
-  border: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 16px 0 0;
-  position: static;
-  z-index: auto;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__back {
-  display: none;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__title-row {
-  align-items: center;
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 20px;
-  height: 32px;
-  justify-content: flex-start;
-  margin-bottom: 12px;
-  min-width: 0;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__title-copy {
-  display: block;
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__title {
-  color: var(--color-text-base-default, #121212);
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-24, 24px);
-  font-style: normal;
-  font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__title-tags {
-  align-items: center;
-  display: flex;
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
-  gap: 8px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__title-tags .e-permits-workplace__tag {
-  border-radius: 4px;
-  height: 24px;
-  padding: 0 8px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__summary {
-  align-items: center;
-  box-sizing: border-box;
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 24px;
-  height: 76px;
-  margin-bottom: 12px;
-  min-width: 0;
-  overflow: visible;
-  padding: 16px 2px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__summary-item {
-  display: flex;
-  flex: 0 1 auto;
-  flex-direction: column;
-  gap: 4px;
-  max-width: none;
-  min-width: 0;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__summary-label {
-  color: var(--color-text-base-tertiary, #757575);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  white-space: nowrap;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__summary-value {
-  align-items: center;
-  color: var(--color-text-base-default, #121212);
-  display: flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 6px;
-  min-width: 0;
-  overflow-wrap: normal;
-  white-space: nowrap;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__divider {
-  background: var(--color-border-base-default, #d9d9d9);
-  flex: 0 0 1px;
-  height: 28px;
-  width: 1px;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__termen-meta {
@@ -17786,80 +16672,6 @@
   justify-content: center;
   line-height: 16px;
   width: 24px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tabs {
-  box-sizing: border-box;
-  height: 48px;
-  margin: 0;
-  min-width: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  width: 100%;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tabs .tab-buttons {
-  align-items: stretch;
-  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
-  display: flex;
-  gap: 0;
-  height: 48px;
-  min-width: max-content;
-  width: 100%;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tabs .tab-button {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
-  flex: 0 0 auto;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 8px;
-  height: 48px;
-  justify-content: center;
-  padding: 0 16px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tabs .tab-button:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tabs .tab-button.active {
-  background: transparent;
-  border-bottom-color: var(--color-border-brand-default, #0058d2);
-  color: var(--color-text-brand-default, #0058d2);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tab-count {
-  align-items: center;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: 999px;
-  color: var(--color-text-base-default, #121212);
-  display: inline-flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  height: 24px;
-  justify-content: center;
-  min-width: 24px;
-  padding: 0 8px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tab-count--warning {
-  background: var(--yellow-300, #fec84b);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__tab-count--danger {
-  background: var(--red-100, #fee4e2);
-  color: var(--red-700, #b42318);
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel {
@@ -17903,24 +16715,6 @@
   color: var(--color-text-base-tertiary, #757575);
   font: 400 12px/16px var(--font-family-primary-font, Onest), sans-serif;
   padding-right: 12px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-role-profile .e-permits-user-profile__title-row {
-  align-items: flex-start;
-}
-
-.e-permits-role-profile__heading-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.e-permits-role-profile__description {
-  color: var(--color-text-base-secondary, #383838);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-  max-width: 820px;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__card {
@@ -18226,28 +17020,14 @@
   flex: 0 0 20px;
 }
 
-@media (max-width: 1180px) {
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__summary {
-    overflow-x: auto;
-    scrollbar-width: thin;
-  }
-}
-
 @media (max-width: 760px) {
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__hero,
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel {
     width: calc(100% - 24px);
   }
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__title-row {
-    align-items: flex-start;
-    flex-direction: column;
-    height: auto;
-  }
+  
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__summary {
-    height: auto;
-  }
+  
 
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__card {
     border-radius: 16px;
@@ -19021,7 +17801,6 @@
   margin: 0;
 }
 
-
 .e-permits-fo-intent__list {
   display: flex;
   flex-direction: column;
@@ -19259,4 +18038,1147 @@
     right: 0;
     width: auto;
   }
+}
+
+/* ==========================================================================
+   Back-office page header — Figma 8993:37914
+   One format for every detail page (dosar, utilizator, rol, act permisiv):
+   breadcrumbs + H4 title, optional actions with a caption, a meta row of
+   label/value pairs split by vertical separators, then the tab row.
+   Built from library parts (.breadcrumbs, .btn, .separator, .tabs) with
+   scoped overrides only where Figma differs from the library defaults.
+   Markup: renderPageHeaderTop / renderPageHeaderMeta in js/e-permits-shell.js.
+   ========================================================================== */
+.e-permits-page-header {
+  background: var(--color-background-base-default, #fff);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  width: 100%;
+}
+
+.e-permits-page-header__body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
+}
+
+.e-permits-page-header__top {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-page-header__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-page-header__title {
+  color: var(--color-text-base-secondary, #383838);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.24px;
+  line-height: var(--line-height-lh-32, 32px);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* breadcrumbs: 14/20, tertiary levels, medium current, 16px chevron, gap 4 */
+.e-permits-page-header__breadcrumbs {
+  color: var(--color-text-base-tertiary, #757575);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-page-header__breadcrumbs .breadcrumbs__list,
+.e-permits-page-header__breadcrumbs .breadcrumbs__item {
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-page-header__breadcrumbs .breadcrumbs__item::after {
+  height: var(--spacing-16, 16px);
+  margin-left: 0;
+  width: var(--spacing-16, 16px);
+}
+
+/* Figma: truncate past 30 characters; the full label stays in the title row */
+.e-permits-page-header__breadcrumbs .breadcrumbs__link,
+.e-permits-page-header__breadcrumbs .breadcrumbs__current {
+  display: block;
+  max-width: 30ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-page-header__breadcrumbs .breadcrumbs__link,
+.e-permits-page-header__breadcrumbs .breadcrumbs__link:visited {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+.e-permits-page-header__breadcrumbs a.breadcrumbs__link:hover {
+  color: var(--color-text-brand-default, #0058d2);
+  text-decoration: underline;
+}
+
+.e-permits-page-header__breadcrumbs span.breadcrumbs__link:hover {
+  color: var(--color-text-base-tertiary, #757575);
+  text-decoration: none;
+}
+
+.e-permits-page-header__breadcrumbs a.breadcrumbs__link:focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-page-header__breadcrumbs .breadcrumbs__current {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* actions: Figma button-filled-rectangular, Small (32px, radius 6) */
+.e-permits-page-header__aside {
+  align-items: flex-end;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-page-header__actions {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-page-header__actions .btn.btn-sm,
+.e-permits-stack__action.btn.btn-sm {
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 52px;
+  padding: 0 var(--spacing-12, 12px);
+  white-space: nowrap;
+}
+
+.e-permits-page-header__actions .btn.btn-sm:has(> .icon) {
+  padding-left: var(--spacing-8, 8px);
+}
+
+/* Figma button-filled-rectangular Neutral: fill only. The library
+   .btn-neutral also draws a 1px --gray-100 border, which shows as a lighter
+   ring once the fill is --color-background-base-tertiary — keep the 1px (so the
+   32px height holds) but make it transparent in every state. */
+.e-permits-page-header__actions .btn-neutral,
+.e-permits-stack__action.btn-neutral {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-color: transparent;
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-page-header__actions .btn-neutral:hover:not(:disabled),
+.e-permits-page-header__actions .btn-neutral:active:not(:disabled),
+.e-permits-stack__action.btn-neutral:hover:not(:disabled),
+.e-permits-stack__action.btn-neutral:active:not(:disabled) {
+  border-color: transparent;
+}
+
+/* constructive row actions (Publică, Activează): library .btn-secondary at
+   the same Small size; its 1px border would show on hover, so transparent */
+.e-permits-stack__action.btn-secondary,
+.e-permits-stack__action.btn-secondary:hover:not(:disabled),
+.e-permits-stack__action.btn-secondary:active:not(:disabled) {
+  border-color: transparent;
+}
+
+.e-permits-page-header__caption {
+  color: var(--color-text-base-tertiary, #757575);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-10, 10px);
+  line-height: var(--line-height-lh-12, 12px);
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* meta row: label over value; items sit 24 + separator + 24 apart (Figma) */
+.e-permits-page-header__meta {
+  --e-permits-page-header-meta-gap: var(--spacing-24, 24px);
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) calc(var(--e-permits-page-header-meta-gap) * 2);
+  min-width: 0;
+  padding: var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-page-header__meta:empty {
+  display: none;
+}
+
+.e-permits-page-header__meta-item {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+/* the 28px separator lives in the gap before each item, outside its box, so
+   toggling it never reflows the row; items that start a line (.is-row-start,
+   set by syncPageHeaderMetaRows) draw none */
+.e-permits-page-header__meta-item {
+  position: relative;
+}
+
+.e-permits-page-header__meta-item::before {
+  background: var(--color-border-base-default, #d9d9d9);
+  content: "";
+  height: calc(var(--spacing-24, 24px) + var(--spacing-4, 4px));
+  left: calc(var(--e-permits-page-header-meta-gap) * -1);
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+}
+
+.e-permits-page-header__meta-item:first-child::before,
+.e-permits-page-header__meta-item.is-row-start::before {
+  content: none;
+}
+
+.e-permits-page-header__meta-label {
+  color: var(--color-text-base-tertiary, #757575);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-12, 12px) / var(--line-height-lh-16, 16px) var(--font-family-primary-font, Onest), sans-serif;
+  white-space: nowrap;
+}
+
+.e-permits-page-header__meta-value {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  gap: var(--spacing-6, 6px);
+  min-height: var(--spacing-24, 24px);
+  min-width: 0;
+  white-space: nowrap;
+}
+
+/* Figma copy-block: the ID sits in the primary font here, not the table mono */
+.e-permits-page-header__meta .e-permits-workplace__copy-code {
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  gap: var(--spacing-4, 4px);
+}
+
+/* Figma tag-filled Small: 20px, radius 4, 12/16 medium */
+.e-permits-page-header__meta .e-permits-workplace__tag {
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
+  min-height: var(--spacing-20, 20px);
+  padding: 0 var(--spacing-6, 6px);
+}
+
+/* tabs: 48px items, 14/20, no inter-tab gap, one full-width track line */
+.e-permits-page-header__tabs {
+  box-sizing: border-box;
+  margin: 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  width: 100%;
+}
+
+.e-permits-page-header__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* Figma 8993:39381: the track line sits inside the 48px row (header = 190px),
+   so the active tab's 2px underline covers it */
+.e-permits-page-header__tabs .tab-buttons {
+  align-items: stretch;
+  border-bottom: 0;
+  box-shadow: inset 0 -1px 0 var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: 0;
+  height: 48px;
+  min-width: max-content;
+  width: 100%;
+}
+
+.e-permits-page-header__tabs .tab-button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  box-sizing: border-box;
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  gap: var(--spacing-8, 8px);
+  height: 48px;
+  justify-content: center;
+  margin: 0;
+  min-height: 0;
+  padding: 0 var(--spacing-16, 16px);
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+  /* keep the hover fill off the transparent underline so the track line shows */
+  background-clip: padding-box;
+}
+
+/* the library's `.tabs .tab-button:hover` uses the `background` shorthand,
+   which resets background-clip — re-assert padding-box here so the hover fill
+   stops above the transparent underline and the track line stays visible */
+.e-permits-page-header__tabs .tab-button:hover {
+  background-clip: padding-box;
+  background-color: var(--color-background-base-secondary, #f5f5f5);
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-page-header__tabs .tab-button.active {
+  background-color: transparent;
+  border-bottom-color: var(--color-border-brand-default, #0058d2);
+  color: var(--color-text-brand-default, #0058d2);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-page-header__tabs .tab-button:focus {
+  outline: none;
+}
+
+.e-permits-page-header__tabs .tab-button:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.e-permits-page-header__tabs .tab-button .icon {
+  flex: 0 0 var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+/* Figma numbered-badge, Large (20px): neutral by default, warning = accent */
+.e-permits-page-header__tab-count {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-12, 12px) / var(--line-height-lh-16, 16px) var(--font-family-primary-font, Onest), sans-serif;
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  min-width: var(--spacing-20, 20px);
+  padding: 0 var(--spacing-4, 4px);
+}
+
+.e-permits-page-header__tab-count--warning {
+  background: var(--color-background-warning-accent, #fec84b);
+}
+
+.e-permits-page-header__tab-count--danger {
+  background: var(--red-100, #fee4e2);
+  color: var(--red-700, #b42318);
+}
+
+@media (max-width: 760px) {
+  .e-permits-page-header__top {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+  }
+
+  .e-permits-page-header__aside {
+    align-items: flex-start;
+  }
+
+  .e-permits-page-header__title {
+    white-space: normal;
+  }
+}
+
+/* the act-permisiv page drops its own 32px padding: the header spans edge to
+   edge and the stacked sections sit in the same 1024 column as the dosar */
+.permits-page__content.permits-profile:has(> .e-permits-page-header) {
+  gap: 0;
+  padding: 0;
+}
+
+/* role profile: same 66px top bar as dosar / utilizator (it had no rules, so
+   the registry title and refresh leaked into the bar) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-role-profile-open .e-permits-shell__content {
+  grid-row: 2;
+  padding-top: 0;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-role-profile-open .e-permits-workplace__title-row--shell {
+  display: none;
+}
+
+/* top-bar back: Figma button-text-circular (pill, 16px icon, 8/12 padding) */
+.e-permits-dosar-profil__shell-back,
+.e-permits-user-profile__shell-back {
+  border-radius: var(--border-radius-full, 999px);
+}
+
+/* ≤960px the shell stacks: the top bar leaves the workspace grid, so the
+   profile states must not keep reserving a 66px row above the header */
+@media (max-width: 960px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell:is(.is-dosar-profile-open, .is-user-profile-open, .is-role-profile-open) .e-permits-shell__workspace {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell:is(.is-dosar-profile-open, .is-user-profile-open, .is-role-profile-open) .e-permits-shell__content {
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  /* two-column list; the row-start logic still keeps separators off line edges */
+  .e-permits-page-header__meta {
+    --e-permits-page-header-meta-gap: var(--spacing-8, 8px);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .e-permits-page-header__meta-value {
+    white-space: normal;
+  }
+}
+
+/* ==========================================================================
+   Detail sections under the page header — Figma 8993:39453
+   ("Applicant Info Section"): 20px below the tabs, then stacked sections of
+   a 48px heading (H5 + optional source tag) over a #f7f7f7 card of 40px
+   label/value rows. Dosar and act permisiv render .e-permits-dosar-profil__*;
+   utilizator and rol render the same geometry through their own classes.
+   ========================================================================== */
+.e-permits-page-header ~ .e-permits-dosar-profil__panel,
+.e-permits-page-header ~ .e-permits-user-profile__panel {
+  padding-top: var(--spacing-20, 20px);
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile__panel {
+  padding-inline: 0;
+}
+
+.e-permits-user-profile__section h2 {
+  box-sizing: border-box;
+  height: 48px;
+  padding: 11px var(--spacing-12, 12px);
+}
+
+/* source tag next to the heading: Figma tag-filled Small, neutral, gap 16 */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-title,
+.e-permits-user-profile__section h2 {
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-dosar-profil__section-title .e-permits-workplace__tag,
+.e-permits-user-profile__section h2 .e-permits-workplace__tag {
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
+  letter-spacing: 0;
+  min-height: var(--spacing-20, 20px);
+  padding: 0 var(--spacing-6, 6px);
+}
+
+/* row values: Figma tag-filled Medium (24px, 14/20) via the library .status-tag */
+.e-permits-dosar-profil__row-value .status-tag {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  height: var(--spacing-24, 24px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-8, 8px);
+  text-transform: none;
+}
+
+.e-permits-dosar-profil__row-value .status-tag--neutral.is-subtle {
+  border: 0;
+}
+
+/* "✓ Da": no fill, positive text, icon + label gap 4 */
+.e-permits-dosar-profil__row-value .status-tag--success:not(.is-subtle, .is-strong, .is-outlined) {
+  color: var(--color-text-positive-on-secondary, var(--green-700, #027948));
+  padding: 0;
+}
+
+/* "✱ Obligatoriu": Figma draws it with no horizontal padding */
+.e-permits-dosar-profil__row-value .status-tag:has(> .e-permits-dosar-profil__required-icon) {
+  padding: 0;
+}
+
+.e-permits-dosar-profil__required-icon {
+  color: var(--color-icon-danger-default, var(--red-600, #d92d20));
+}
+
+.e-permits-dosar-profil__row-value .status-tag .icon {
+  flex: 0 0 var(--spacing-16, 16px);
+}
+
+/* Figma: a label longer than its 256px column truncates; the full text is in title */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Figma rows are 40px *including* the 1px divider: 8 + 24 (tag) + 7 + 1 */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__row {
+  padding: var(--spacing-8, 8px) 0 calc(var(--spacing-8, 8px) - 1px);
+}
+
+/* registries without status tabs (Roluri, …): no reserved 48px band */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs[hidden],
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   Pașaportul Serviciului (Feature 90575) — only what the reused components
+   (page header, stacked sections, profile tables, library modal / message /
+   status-tag / checkbox / select) do not already provide.
+   ========================================================================== */
+.e-permits-passport__panel {
+  padding-bottom: var(--spacing-32, 32px);
+}
+
+.e-permits-passport__notice {
+  animation: none;
+  margin: 0 0 var(--spacing-8, 8px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-passport__notice .banner__text,
+.e-permits-passport__sync-message .banner__text {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-passport__empty {
+  align-items: flex-start;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-passport__empty p,
+.e-permits-passport__lead {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-passport__row-action.btn.btn-sm {
+  height: var(--spacing-32, 32px);
+  padding: 0 var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+.e-permits-passport__hint {
+  color: var(--color-text-base-tertiary, #757575);
+  display: block;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin-top: var(--spacing-6, 6px);
+}
+
+.e-permits-passport__modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-passport__modal-subtitle {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.e-permits-passport__modal .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.e-permits-passport__modal [data-service-sync-submit] {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-passport__sync-message {
+  animation: none;
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-passport__sync-summary {
+  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
+}
+
+.e-permits-passport__sync-summary .e-permits-dosar-profil__row-label {
+  flex-basis: 160px;
+  max-width: 160px;
+}
+
+/* long values wrap as whole tags, never mid-word */
+.e-permits-passport__sync-summary .e-permits-dosar-profil__row-value,
+.e-permits-passport__panel .e-permits-dosar-profil__row-value {
+  flex-wrap: wrap;
+  row-gap: var(--spacing-6, 6px);
+}
+
+.e-permits-passport__panel .e-permits-workplace__tag,
+.e-permits-passport__panel .status-tag,
+.e-permits-passport__sync-summary .e-permits-workplace__tag,
+.e-permits-passport__sync-summary .status-tag {
+  white-space: nowrap;
+}
+
+.e-permits-passport__fieldset {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  margin: 0;
+  padding: 0;
+}
+
+/* error state for the back-office field component (input + select):
+   red border, red focus ring; the message is the library inline error */
+.e-permits-user-create__input-shell.is-error .e-permits-user-create__input,
+.e-permits-user-create__select-shell.is-error .e-permits-user-create__select,
+.e-permits-user-create__input-shell.is-error .e-permits-user-create__input:hover,
+.e-permits-user-create__select-shell.is-error .e-permits-user-create__select:hover {
+  border-color: var(--color-border-error-default, #d92d20);
+}
+
+.e-permits-user-create__input-shell.is-error .e-permits-user-create__input:focus,
+.e-permits-user-create__select-shell.is-error .e-permits-user-create__select:focus {
+  border-color: var(--color-border-error-default, #d92d20);
+  box-shadow: 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+.e-permits-user-create__field .message--inline[hidden] {
+  display: none;
+}
+
+/* Servicii registry cells: the users-registry two-line stack
+   (.e-permits-workplace__user-name-stack, 14/20 over 12/16 tertiary) */
+.e-permits-workplace__service-stack {
+  gap: var(--spacing-2, 2px);
+}
+
+/* the ID line keeps overflow visible so the copy tooltip is not clipped */
+.e-permits-workplace__service-stack > .e-permits-workplace__service-id {
+  overflow: visible;
+}
+
+.e-permits-workplace__service-id .e-permits-workplace__copy-code {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  letter-spacing: 0;
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-workplace__service-id .e-permits-workplace__copy-code:hover {
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-workplace__row-actions {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-workplace__row-actions .e-permits-workplace__icon-action:hover {
+  background: var(--color-background-base-tertiary-hover, #e5e5e5);
+}
+
+.e-permits-workplace__row-actions .e-permits-workplace__icon-action:focus-visible {
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-workplace__add-user .icon {
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+[data-workplace-sync-service] {
+  min-width: 0;
+  width: auto;
+}
+
+/* service profile: top bar carries "Înapoi la servicii" like the other profiles */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-service-profile-open .e-permits-workplace__title-row--shell {
+  display: none;
+}
+
+/* the library .status-tag capitalises every word; passport values are prose */
+.e-permits-passport__panel .status-tag,
+.e-permits-passport__sync-summary .status-tag {
+  box-sizing: border-box;
+  height: var(--spacing-24, 24px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-8, 8px);
+  text-transform: none;
+}
+
+.e-permits-passport__panel .status-tag--neutral.is-subtle {
+  border: 0;
+}
+
+.e-permits-passport__panel .status-tag--success:not(.is-subtle, .is-strong, .is-outlined) {
+  color: var(--color-text-positive-on-secondary, var(--green-700, #027948));
+  padding: 0;
+}
+
+/* tab overflow affordance */
+.e-permits-page-header__tabs.has-overflow-end {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
+}
+
+.e-permits-page-header__tabs.has-overflow-start {
+  -webkit-mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to left, #000 calc(100% - 48px), transparent);
+}
+
+.e-permits-page-header__tabs.has-overflow-start.has-overflow-end {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+
+/* two-line cells grow the row; single-line rows keep the 50px grid */
+
+/* two status tags side by side (e.g. Publicat + Activ) */
+
+/* the ID line keeps overflow visible so the copy tooltip is not clipped */
+
+.e-permits-passport__muted {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+/* tag lists wrap flush-left, one gap everywhere */
+.e-permits-passport__tag-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6, 6px);
+}
+
+/* first line of a dosar-style case cell (as the dosar number: 14/20 medium) */
+.e-permits-passport__case-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* date over "hh:mm · author": neither line breaks */
+.e-permits-passport__panel .e-permits-workplace__date-stack > span {
+  white-space: nowrap;
+}
+
+/* ---- names in tables: medium (500), base colour --------------------------
+   The users-registry stack is regular; service / passport record names are
+   the row's identity, so they read medium like the dosar number. */
+.e-permits-workplace__service-stack > span.e-permits-workplace__service-name,
+.e-permits-passport__name {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* Servicii / Autorități have no checkbox column: the registry's pinned
+   "column 2 + divider" rule (built for checkbox + name) does not apply */
+.e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table td:nth-child(1),
+.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(1) {
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table td:nth-child(2),
+.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
+/* ==========================================================================
+   Stacked list — passport lists (Tipuri solicitări, Formulare, Plăți, …).
+   Rhythm of Tailwind UI's stacked list, expressed in our tokens:
+   title 14/24 semibold · meta 12/20 tertiary · rows 20px · gap 24 / 12 / 8,
+   2px dot separators, light row dividers, grey group headings.
+   Badges = our tags, action = library outline button, menu = the shell's
+   .select-dropdown menu (same as the help menu).
+   ========================================================================== */
+.e-permits-stack {
+  background: var(--color-background-base-default, #fff);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-stack__group + .e-permits-stack__group {
+  border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-stack__group-label {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+  padding: var(--spacing-6, 6px) var(--spacing-20, 20px);
+}
+
+.e-permits-stack__group:first-child .e-permits-stack__group-label {
+  border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
+}
+
+.e-permits-stack__group-count {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-stack__list {
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--spacing-20, 20px);
+}
+
+/* 12px top/bottom: the product table-cell rhythm, not Tailwind's py-5 */
+.e-permits-stack__item {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-24, 24px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) 0;
+}
+
+/* same divider as the detail-section rows (.e-permits-dosar-profil__row) */
+.e-permits-stack__item + .e-permits-stack__item {
+  border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-stack__main {
+  min-width: 0;
+}
+
+.e-permits-stack__title-row {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-stack__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+/* tags sit on the title's first line (Tailwind mt-0.5) */
+.e-permits-stack__title-row .e-permits-workplace__tag {
+  margin-top: var(--spacing-2, 2px);
+}
+
+.e-permits-stack__title-row .e-permits-workplace__tag + .e-permits-workplace__tag {
+  margin-left: calc(var(--spacing-4, 4px) - var(--spacing-12, 12px));
+}
+
+.e-permits-stack__meta {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  /* Tailwind: text · gap-x-2 · 2px dot · gap-x-2 · text = 8 + 2 + 8 */
+  column-gap: calc(var(--spacing-8, 8px) * 2 + var(--spacing-2, 2px));
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-stack__meta + .e-permits-stack__meta {
+  margin-top: 0;
+}
+
+.e-permits-stack__part {
+  min-width: 0;
+  position: relative;
+}
+
+/* 2px dot centred in the 18px gap before each part; none at a line start */
+.e-permits-stack__part + .e-permits-stack__part::before {
+  background: currentColor;
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  height: var(--spacing-2, 2px);
+  left: calc((var(--spacing-8, 8px) + var(--spacing-2, 2px)) * -1);
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--spacing-2, 2px);
+}
+
+.e-permits-stack__part.is-row-start::before {
+  content: none;
+}
+
+.e-permits-stack__meta .e-permits-workplace__copy-code {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  letter-spacing: 0;
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-stack__actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+/* overflow trigger: 32px icon button, transparent until hover / open */
+.e-permits-stack__menu-wrap {
+  position: relative;
+}
+
+.e-permits-stack__menu-trigger {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-icon-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  padding: 0;
+  transition: background-color 120ms ease;
+  width: var(--spacing-32, 32px);
+}
+
+.e-permits-stack__menu-trigger:hover,
+.e-permits-stack__menu-trigger[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-stack__menu-trigger:active {
+  background: var(--color-background-base-secondary-hover, #e7e7e7);
+}
+
+.e-permits-stack__menu-trigger:focus-visible {
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* the menu itself is .e-permits-fo-intent-menu (post-process menu); only
+   the danger item tone is added here */
+.e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger,
+.e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger .icon {
+  color: var(--color-text-error-default, #d92d20);
+}
+
+@media (max-width: 760px) {
+  .e-permits-stack__item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+  }
+}
+
+/* error state for the full-flow dropdown (.e-permits-fo-select): the same
+   convention as the back-office fields — red border, red ring when open /
+   focused, and the component's 2px hover outline turns red */
+.e-permits-fo-select.is-error .e-permits-fo-select__button {
+  border-color: var(--color-border-error-default, #d92d20);
+}
+
+.e-permits-fo-select.is-error .e-permits-fo-select__button:hover {
+  border-color: var(--color-border-error-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20);
+}
+
+.e-permits-fo-select.is-error .e-permits-fo-select__button:focus-visible,
+.e-permits-fo-select.is-error.is-open .e-permits-fo-select__button {
+  border-color: var(--color-border-error-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+/* options are focusable for keyboard use; the focus look is the hover look */
+.e-permits-fo-select__option:focus-visible {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  outline: none;
+}
+
+/* ==========================================================================
+   Permisiuni (utilizator / rol) on the stacked list
+   Same layout as the passport lists; groups keep their collapse behaviour.
+   ========================================================================== */
+.e-permits-perms__heading {
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-perms__heading .e-permits-dosar-profil__section-title .e-permits-workplace__tag {
+  margin-left: var(--spacing-8, 8px);
+}
+
+.e-permits-perms__stack {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* the heading is the toggle: full width, chevron at the end */
+.e-permits-stack__group-label--toggle {
+  padding: 0;
+}
+
+.e-permits-stack__group-toggle {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-6, 6px) var(--spacing-20, 20px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-stack__group-toggle:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-stack__group-toggle:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.e-permits-stack__group-chevron {
+  color: var(--color-icon-base-default, #121212);
+  margin-left: auto;
+  transition: transform 160ms ease;
+}
+
+.e-permits-stack__group.is-open .e-permits-stack__group-chevron {
+  transform: rotate(180deg);
+}
+
+/* a collapsed group is only its heading: no inner divider, round the last */
+.e-permits-stack__group.is-collapsed .e-permits-stack__group-label {
+  border-bottom: 0;
+}
+
+.e-permits-stack__group:last-child.is-collapsed .e-permits-stack__group-label,
+.e-permits-stack__group:last-child.is-collapsed .e-permits-stack__group-toggle {
+  border-radius: 0 0 var(--border-radius-12, 12px) var(--border-radius-12, 12px);
+}
+
+.e-permits-stack__group:first-child:last-child.is-collapsed .e-permits-stack__group-label,
+.e-permits-stack__group:first-child:last-child.is-collapsed .e-permits-stack__group-toggle {
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-stack__group:first-child .e-permits-stack__group-toggle {
+  border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
+}
+
+/* primary row action (Salvează) at the same Small size, no border edge */
+.e-permits-stack__action.btn-primary,
+.e-permits-stack__action.btn-primary:hover:not(:disabled),
+.e-permits-stack__action.btn-primary:active:not(:disabled) {
+  border-color: transparent;
+}
+
+/* Permisiuni row actions: the original Adaugă / Retrage toggles, unchanged */
+.e-permits-user-profile__perm-btn {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: inline-flex;
+  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
+  gap: 6px;
+  height: 32px;
+  min-width: 52px;
+  padding: 0 12px 0 8px;
+}
+
+.e-permits-user-profile__perm-btn .icon,
+.e-permits-user-profile__perm-btn .e-permits-user-profile__ban {
+  flex: 0 0 16px;
+}
+
+.e-permits-user-profile__perm-btn:hover:not(:disabled):not(.is-active) {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-user-profile__perm-btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-user-profile__perm-btn:disabled {
+  background: var(--color-background-disabled-default, #f1f1f1);
+  border-color: var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-disabled-on-disabled, #b2b2b2);
+  cursor: not-allowed;
+}
+
+.e-permits-user-profile__perm-add.is-active {
+  background: var(--green-600, #039855);
+  border-color: transparent;
+  color: #fff;
+}
+
+.e-permits-user-profile__perm-retrage.is-active {
+  background: var(--color-background-danger-default, #d92d20);
+  border-color: transparent;
+  color: #fff;
 }

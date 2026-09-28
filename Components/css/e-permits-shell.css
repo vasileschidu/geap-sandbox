@@ -1807,7 +1807,7 @@ body {
 }
 
 .e-permits-workplace__case-id {
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   color: var(--color-text-base-default, #121212);
   font-size: 13px;
   font-weight: 500;
@@ -3041,7 +3041,7 @@ button.e-permits-workplace__th-content:focus-visible {
   border-radius: var(--border-radius-4, 4px);
   background: transparent;
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   line-height: var(--line-height-lh-20, 20px);
@@ -3354,7 +3354,7 @@ button.e-permits-workplace__th-content:focus-visible {
 
 .e-permits-workplace__user-idnp {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: 500;
   line-height: var(--line-height-lh-20, 20px);

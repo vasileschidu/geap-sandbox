@@ -14268,14 +14268,17 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   pointer-events: none;
 }
 
+/* Toast — Figma GEAP 2.0 `toast` (9399:32597): Info · Success (+ the
+   library's Warning · Error), content "w/ Heading" or text-only.
+   Container: 350px, top-right on desktop, bottom on mobile. */
 .toast-container {
   position: fixed;
   right: var(--spacing-24, 24px);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-12, 12px);
-  z-index: 1000;
-  width: min(360px, 90%);
+  z-index: 1100;
+  width: min(350px, calc(100vw - 32px));
   pointer-events: none;
   bottom: var(--spacing-24, 24px);
 }
@@ -14289,54 +14292,87 @@ body:has(.modal-overlay.modal-overlay.is-active) {
 .toast {
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-12, 12px) var(--spacing-12, 12px);
-  border-radius: var(--radius-12, 12px);
-  color: var(--white);
-  background-color: var(--gray-800);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-16, 16px);
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
+  color: var(--color-background-base-inverse-on-color, #fff);
+  background-color: var(--color-background-brand-default, #0058d2);
   animation: toast-slide-in 0.35s ease both;
   pointer-events: auto;
 }
+/* 24px icon in a 2px frame (Figma "Icon Container") */
 .toast__icon {
   display: inline-flex;
   flex-shrink: 0;
-  width: var(--spacing-20);
-  height: var(--spacing-20);
+  padding: var(--spacing-2, 2px);
 }
-.toast__icon svg {
-  width: 100%;
-  height: 100%;
+.toast__icon svg,
+.toast__icon .icon {
+  width: var(--spacing-24, 24px);
+  height: var(--spacing-24, 24px);
 }
 .toast__content {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4, 4px);
+  gap: var(--spacing-6, 6px);
+  /* text-only: the single line centres on the 28px icon frame */
+  padding-top: var(--spacing-4, 4px);
+}
+.toast__content:has(.toast__title) {
+  padding-top: 0;
 }
 .toast__title {
-  font-size: var(--text-heading-h5-2xs-font-size);
   margin: 0;
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.18px;
+  line-height: var(--line-height-lh-26, 26px);
 }
 .toast__text {
-  font-size: var(--text-body-sm-font-size);
   margin: 0;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
 }
+/* link sits 8px under the text block (gap 6 + 2) */
 .toast__link {
-  color: var(--white);
+  align-self: flex-start;
+  margin-top: var(--spacing-2, 2px);
+  color: inherit;
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  text-decoration: underline;
+  text-underline-position: from-font;
 }
 .toast__link:hover {
   text-decoration: none;
 }
+.toast__link:focus-visible,
+.toast__close:focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+/* 16px cross, 16px from the content (gap 8 + 8) */
 .toast__close {
   background: none;
   border: none;
   color: inherit;
   cursor: pointer;
   display: flex;
+  flex-shrink: 0;
+  margin-left: var(--spacing-8, 8px);
   padding: 0;
   transition: opacity 0.2s, transform 0.15s;
   opacity: 0.8;
+}
+.toast__close .icon,
+.toast__close svg {
+  width: var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
 }
 .toast__close:hover {
   opacity: 1;
@@ -14345,12 +14381,15 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   transform: scale(0.9);
 }
 .toast--info {
-  background-color: var(--blue-sky-600);
-  color: var(--white);
+  background-color: var(--color-background-brand-default, #0058d2);
+  color: var(--color-background-base-inverse-on-color, #fff);
 }
+/* Figma's color-background-positive-default is #039855 (green-600); our
+   --color-background-positive-default maps to --green-900, so the primitive
+   is used until that token is reconciled */
 .toast--success {
-  background-color: var(--green-600);
-  color: var(--white);
+  background-color: var(--green-600, #039855);
+  color: var(--color-background-base-inverse-on-color, #fff);
 }
 .toast--warning {
   background-color: var(--apricot-300);
@@ -14363,8 +14402,8 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   color: var(--black);
 }
 .toast--error {
-  background-color: var(--red-600);
-  color: var(--white);
+  background-color: var(--color-background-danger-default, #d92d20);
+  color: var(--color-background-base-inverse-on-color, #fff);
 }
 .toast.is-hiding {
   animation: toast-fade-out 0.3s ease forwards;
@@ -19137,7 +19176,9 @@ label.required::after {
   pointer-events: none;
 }
 .checkbox .checkbox-custom {
+  box-sizing: border-box;
   display: inline-flex;
+  flex: 0 0 auto;
   justify-content: center;
   align-items: center;
   border: 2px solid var(--gray-300, #b2b2b2);
@@ -20005,7 +20046,7 @@ label.required::after {
 }
 .badge-button-docs__preview-code {
   color: var(--gray-500, #757575);
-  font-family: Consolas, "Courier New", monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 14px;
   line-height: 20px;
 }
@@ -23860,10 +23901,10 @@ label.required::after {
   color: var(--color-background-base-inverse-on-color, #ffffff);
 }
 
-/* ---- monospace code ------------------------------------------------------- */
+/* ---- code value (primary font — monospace is not used) ------------------- */
 .cell__code {
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
   letter-spacing: -0.14px;
@@ -23885,7 +23926,7 @@ label.required::after {
   border-radius: var(--border-radius-4, 4px);
   background: transparent;
   color: var(--color-text-base-default, #121212);
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
   letter-spacing: -0.14px;
