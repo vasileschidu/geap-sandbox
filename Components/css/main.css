@@ -12424,9 +12424,22 @@ p {
   opacity: 0.6;
 }
 
+/* Figma button Small = 32px (the old 4/12 padding rendered 29.25px):
+   fixed height, 20px line, 12px sides, 8px on the icon side, radius 6 */
 .btn.btn-sm {
-  padding: var(--spacing-4, 0.25rem) var(--spacing-12, 0.5rem);
-  font-size: 14px;
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-12, 12px);
+  white-space: nowrap;
+}
+.btn.btn-sm:not(.btn-rounded):not(.btn-pill) {
+  border-radius: var(--border-radius-6, 6px);
+}
+.btn.btn-sm:has(> .icon:first-child) {
+  padding-left: var(--spacing-8, 8px);
 }
 
 .btn.btn-md {
@@ -14143,6 +14156,25 @@ body:has(.modal-overlay.modal-overlay.is-active) {
 .banner--subtle.banner--warning .banner__close,
 .inline-message--subtle.banner--warning .banner__close,
 .info-box--subtle.banner--warning .banner__close {
+  color: var(--black, #121212);
+}
+.message--subtle.banner--success,
+.banner--subtle.banner--success,
+.inline-message--subtle.banner--success,
+.info-box--subtle.banner--success {
+  background-color: var(--green-100, #E6F5EE);
+  color: var(--black, #121212);
+}
+.message--subtle.banner--success .banner__icon,
+.banner--subtle.banner--success .banner__icon,
+.inline-message--subtle.banner--success .banner__icon,
+.info-box--subtle.banner--success .banner__icon {
+  color: var(--green-600, #039855);
+}
+.message--subtle.banner--success .banner__close,
+.banner--subtle.banner--success .banner__close,
+.inline-message--subtle.banner--success .banner__close,
+.info-box--subtle.banner--success .banner__close {
   color: var(--black, #121212);
 }
 .message--subtle.banner--error,

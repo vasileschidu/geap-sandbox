@@ -224,11 +224,190 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+  /* the full-flow required marker (.e-permits-fo-required) */
   const requiredMark = () => `
-    <svg class="e-permits-user-create__required" width="12" height="12" aria-hidden="true">
-      <use href="assets/icons/sprite.svg#icon-asterisk"></use>
-    </svg>
+    <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
   `;
+
+  /* ---- form controls: the full-flow components, everywhere -------------------
+     Field    .e-permits-fo-field > label + control + .e-permits-fo-field__hint
+     Text     .e-permits-fo-input (is-filled is-readonly / is-error)
+     Textarea .e-permits-fo-textarea
+     Select   .e-permits-fo-select — the full-flow dropdown. It wraps a hidden
+              native <select> that keeps the value and fires "change", so form
+              handlers read select.value exactly as before. */
+  const renderFoSelectControl = ({ id, attrs = "", optionsHtml, disabled = false, label = "" }) => {
+    const probe = document.createElement("select");
+    probe.innerHTML = optionsHtml;
+    const chosen = probe.querySelector("option[selected]") || probe.options[0];
+    const isPlaceholder = !chosen || chosen.value === "";
+
+    return `
+      <div class="e-permits-fo-select${disabled ? " is-disabled" : ""}" data-fo-native-select>
+        <select ${attrs} hidden tabindex="-1"${disabled ? " disabled" : ""}>${optionsHtml}</select>
+        <button class="e-permits-fo-select__button" type="button" id="${escapeHtml(id)}" aria-haspopup="listbox" aria-expanded="false"${label ? ` aria-label="${escapeHtml(label)}"` : ""}${disabled ? " disabled" : ""}>
+          <span class="e-permits-fo-select__value${isPlaceholder ? " e-permits-fo-select__value--placeholder" : ""}">${escapeHtml(chosen?.textContent.trim() || "")}</span>
+          <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+        </button>
+      </div>
+    `;
+  };
+
+  /* hidden selects are not focusable — focus the dropdown button instead */
+  const focusFormControl = (control) => {
+    const target = control?.matches?.("select[hidden]")
+      ? control.closest("[data-fo-native-select]")?.querySelector(".e-permits-fo-select__button")
+      : control;
+    target?.focus();
+  };
+
+  /* open lists float (fixed) next to the trigger so modals and drawers never
+     clip them; up when there is no room below — the full-flow
+     positionFloatingSelectList rule */
+  const placeFloatingList = (trigger, list, root) => {
+    const rect = trigger.getBoundingClientRect();
+    const gap = 4;
+    const edge = 8;
+    const below = window.innerHeight - rect.bottom - gap - edge;
+    const above = rect.top - gap - edge;
+    const openUp = below < 180 && above > below;
+
+    list.classList.add("is-floating");
+    Object.assign(list.style, {
+      position: "fixed",
+      left: `${Math.round(rect.left)}px`,
+      width: `${Math.round(rect.width)}px`,
+      maxHeight: `${Math.round(Math.max(144, Math.min(280, openUp ? above : below)))}px`,
+      top: openUp ? "auto" : `${Math.round(rect.bottom + gap)}px`,
+      bottom: openUp ? `${Math.round(window.innerHeight - rect.top + gap)}px` : "auto"
+    });
+    root?.classList.toggle("is-open-up", openUp);
+  };
+
+  let openFoSelect = null;
+
+  const closeFoSelect = ({ focus = false } = {}) => {
+    if (!openFoSelect) {
+      return;
+    }
+
+    const { root, list } = openFoSelect;
+    openFoSelect = null;
+    list.remove();
+    root.classList.remove("is-open", "is-open-up");
+    const button = root.querySelector(".e-permits-fo-select__button");
+    button?.setAttribute("aria-expanded", "false");
+
+    if (focus && button?.isConnected) {
+      button.focus();
+    }
+  };
+
+  const openFoSelectList = (root) => {
+    closeFoSelect();
+    const select = root.querySelector("select");
+    const button = root.querySelector(".e-permits-fo-select__button");
+    const list = document.createElement("ul");
+    list.className = "e-permits-fo-select__list";
+    list.setAttribute("role", "listbox");
+    list.setAttribute("aria-labelledby", button.id);
+
+    [...select.options].filter((option) => option.value !== "" && !option.hidden).forEach((option) => {
+      const item = document.createElement("li");
+      const selected = option.value === select.value;
+      item.className = `e-permits-fo-select__option${selected ? " is-selected" : ""}`;
+      item.setAttribute("role", "option");
+      item.setAttribute("aria-selected", String(selected));
+      item.tabIndex = -1;
+      item.dataset.value = option.value;
+      item.textContent = option.textContent.trim();
+      list.appendChild(item);
+    });
+
+    document.body.appendChild(list);
+    placeFloatingList(button, list, root);
+    root.classList.add("is-open");
+    button.setAttribute("aria-expanded", "true");
+    openFoSelect = { root, list };
+    (list.querySelector(".is-selected") || list.querySelector("[role='option']"))?.focus();
+  };
+
+  const chooseFoSelectOption = (item) => {
+    const { root } = openFoSelect;
+    const select = root.querySelector("select");
+    const value = root.querySelector(".e-permits-fo-select__value");
+    value.textContent = item.textContent;
+    value.classList.remove("e-permits-fo-select__value--placeholder");
+    root.classList.remove("is-error");
+    closeFoSelect({ focus: true });
+    select.value = item.dataset.value;
+    /* handlers may re-render the form from this event */
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  };
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-fo-native-select] .e-permits-fo-select__button");
+
+    if (button) {
+      const root = button.closest("[data-fo-native-select]");
+
+      if (openFoSelect?.root === root) {
+        closeFoSelect({ focus: true });
+      } else {
+        openFoSelectList(root);
+      }
+      return;
+    }
+
+    const item = openFoSelect && event.target.closest("[role='option']");
+
+    if (item && openFoSelect.list.contains(item)) {
+      chooseFoSelectOption(item);
+      return;
+    }
+
+    if (openFoSelect && !openFoSelect.list.contains(event.target)) {
+      closeFoSelect();
+    }
+  });
+
+  /* window capture: runs before modal / drawer Esc handlers, so the first Esc
+     closes only the list */
+  window.addEventListener("keydown", (event) => {
+    const button = event.target.closest?.("[data-fo-native-select] .e-permits-fo-select__button");
+
+    if (!openFoSelect) {
+      if (button && ["ArrowDown", "ArrowUp"].includes(event.key)) {
+        event.preventDefault();
+        openFoSelectList(button.closest("[data-fo-native-select]"));
+      }
+      return;
+    }
+
+    const options = [...openFoSelect.list.querySelectorAll("[role='option']")];
+
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      closeFoSelect({ focus: true });
+    } else if (["ArrowDown", "ArrowUp"].includes(event.key)) {
+      event.preventDefault();
+      const index = options.indexOf(document.activeElement);
+      options[event.key === "ArrowDown" ? (index + 1) % options.length : (index - 1 + options.length) % options.length]?.focus();
+    } else if ((event.key === "Enter" || event.key === " ") && openFoSelect.list.contains(event.target)) {
+      event.preventDefault();
+      chooseFoSelectOption(event.target);
+    } else if (event.key === "Tab") {
+      closeFoSelect();
+    }
+  }, true);
+
+  document.addEventListener("scroll", (event) => {
+    if (openFoSelect && !openFoSelect.list.contains(event.target)) {
+      closeFoSelect();
+    }
+  }, true);
+  window.addEventListener("resize", () => closeFoSelect());
 
   const getPersistedCreatedUsers = () => {
     try {
@@ -336,11 +515,11 @@ document.addEventListener("DOMContentLoaded", () => {
     checked = false,
     calendar = false
   }) => `
-    <label class="e-permits-user-create__field e-permits-user-create__field--${span}">
-      <span class="e-permits-user-create__label">${escapeHtml(label)}${required ? requiredMark() : ""}</span>
-      <span class="e-permits-user-create__input-shell">
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="user-create-${escapeHtml(name)}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <div class="e-permits-fo-input${readonly ? " is-filled is-readonly" : ""}">
         <input
-          class="e-permits-user-create__input"
+          id="user-create-${escapeHtml(name)}"
           type="${escapeHtml(type)}"
           name="${escapeHtml(name)}"
           value="${escapeHtml(value)}"
@@ -349,19 +528,11 @@ document.addEventListener("DOMContentLoaded", () => {
           ${readonly ? "readonly" : ""}
           autocomplete="off"
         >
-        ${checked ? `
-          <svg class="e-permits-user-create__field-check" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-          </svg>
-        ` : ""}
-        ${calendar ? `
-          <svg class="e-permits-user-create__field-icon" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-calendar"></use>
-          </svg>
-        ` : ""}
-      </span>
-      ${support ? `<span class="e-permits-user-create__inline"><span>${escapeHtml(support)}</span></span>` : ""}
-    </label>
+        ${checked ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>` : ""}
+        ${calendar ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calendar"></use></svg>` : ""}
+      </div>
+      ${support ? `<p class="e-permits-fo-field__hint">${escapeHtml(support)}</p>` : ""}
+    </div>
   `;
 
   const renderCombinationCards = () => userCreateState.combinations.map((combination, index) => `
@@ -387,38 +558,23 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-user-create__combo-form">
         <h4>Adaugă combinație</h4>
         <div class="e-permits-user-create__combo-fields">
-          <label class="e-permits-user-create__field">
-            <span class="e-permits-user-create__label">Rol${requiredMark()}</span>
-            <span class="e-permits-user-create__select-shell">
-              <select class="e-permits-user-create__select" name="roleId" required>
-                ${renderSelectOptions(rsspDb?.roles || [], "Selectează rol", draft.roleId)}
-              </select>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-            </span>
-          </label>
-          <label class="e-permits-user-create__field">
-            <span class="e-permits-user-create__label">Autoritate${requiredMark()}</span>
-            <span class="e-permits-user-create__select-shell">
-              <select class="e-permits-user-create__select" name="authorityId" required>
-                ${renderSelectOptions(rsspDb?.authorities || [], "Selectează autoritate", draft.authorityId)}
-              </select>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-            </span>
-          </label>
-          <label class="e-permits-user-create__field">
-            <span class="e-permits-user-create__label">Subdiviziune${requiredMark()}</span>
-            <span class="e-permits-user-create__select-shell">
-              <select class="e-permits-user-create__select" name="subdivisionId" required ${authority ? "" : "disabled"}>
-                ${renderSelectOptions(subdivisions, authority ? "Selectează subdiviziune" : "Selectează întâi Autoritatea", draft.subdivisionId)}
-              </select>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-            </span>
-          </label>
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="user-combo-role">Rol${requiredMark()}</label>
+            ${renderFoSelectControl({ id: "user-combo-role", attrs: 'name="roleId" required', optionsHtml: renderSelectOptions(rsspDb?.roles || [], "Selectează rol", draft.roleId) })}
+          </div>
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="user-combo-authority">Autoritate${requiredMark()}</label>
+            ${renderFoSelectControl({ id: "user-combo-authority", attrs: 'name="authorityId" required', optionsHtml: renderSelectOptions(rsspDb?.authorities || [], "Selectează autoritate", draft.authorityId) })}
+          </div>
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="user-combo-subdivision">Subdiviziune${requiredMark()}</label>
+            ${renderFoSelectControl({ id: "user-combo-subdivision", attrs: 'name="subdivisionId" required', disabled: !authority, optionsHtml: renderSelectOptions(subdivisions, authority ? "Selectează subdiviziune" : "Selectează întâi Autoritatea", draft.subdivisionId) })}
+          </div>
         </div>
       </div>
       <div class="e-permits-user-create__combo-actions">
-        <button class="e-permits-user-create__compact-button" type="button" data-user-combination-confirm>Adaugă</button>
-        <button class="e-permits-user-create__outline-button" type="button" data-user-combination-cancel>Anulează</button>
+        <button class="btn btn-primary btn-sm" type="button" data-user-combination-confirm>Adaugă</button>
+        <button class="btn btn-neutral btn-sm" type="button" data-user-combination-cancel>Anulează</button>
       </div>
     `;
   };
@@ -436,7 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </span>
           <span>Niciun rol adăugat</span>
         </div>
-        <button class="e-permits-user-create__outline-button" type="button" data-user-combination-open>
+        <button class="btn btn-neutral btn-sm" type="button" data-user-combination-open>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
           <span>Adaugă combinație</span>
         </button>
@@ -445,7 +601,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       ${renderCombinationCards()}
-      <button class="e-permits-user-create__outline-button" type="button" data-user-combination-open>
+      <button class="btn btn-neutral btn-sm" type="button" data-user-combination-open>
         <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
         <span>Adaugă combinație</span>
       </button>
@@ -479,7 +635,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </span>
         </div>
         <div class="e-permits-user-create__lookup-action">
-          <button class="e-permits-user-create__compact-button e-permits-user-create__compact-button--secondary" type="button" data-user-change-idnp>
+          <button class="btn btn-secondary btn-sm" type="button" data-user-change-idnp>
             <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
             <span>Schimbă</span>
           </button>
@@ -494,10 +650,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ${renderUserCreateField({ label: "Telefon", name: "phone", value: person.phone, readonly: true, checked: true, span: 6 })}
         ${renderUserCreateField({ label: "Email", name: "email", value: person.email, readonly: true, checked: true, span: 6 })}
       </div>
-      <label class="e-permits-user-create__field">
-        <span class="e-permits-user-create__label">Informații adiționale</span>
-        <textarea class="e-permits-user-create__textarea" name="additionalInfo" placeholder="Ex. Despre când și cum poate fi contactat">${escapeHtml(userCreateState.additionalInfo)}</textarea>
-      </label>
+      <div class="e-permits-fo-field e-permits-user-create__field">
+        <label for="user-create-additional">Informații adiționale</label>
+        <div class="e-permits-fo-textarea">
+          <textarea id="user-create-additional" name="additionalInfo" rows="3" placeholder="Ex. Despre când și cum poate fi contactat">${escapeHtml(userCreateState.additionalInfo)}</textarea>
+        </div>
+      </div>
     ` : `
       <div class="e-permits-user-create__lookup-row">
         <div class="e-permits-fo-field e-permits-user-create__field--search">
@@ -511,7 +669,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </span>
         </div>
         <div class="e-permits-user-create__lookup-action">
-          <button class="e-permits-user-create__compact-button" type="button" data-user-lookup>
+          <button class="btn btn-primary btn-sm" type="button" data-user-lookup>
             <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
             <span>Caută</span>
           </button>
@@ -536,10 +694,12 @@ document.addEventListener("DOMContentLoaded", () => {
               required: true,
               support: "Funcția pe care o are utilizatorul în cadrul autorității."
             })}
-            <label class="e-permits-user-create__field">
-              <span class="e-permits-user-create__label">Comentarii</span>
-              <textarea class="e-permits-user-create__textarea" name="comments" placeholder="Placeholder">${escapeHtml(userCreateState.comments)}</textarea>
-            </label>
+            <div class="e-permits-fo-field e-permits-user-create__field">
+              <label for="user-create-comments">Comentarii</label>
+              <div class="e-permits-fo-textarea">
+                <textarea id="user-create-comments" name="comments" rows="3" placeholder="Comentarii despre utilizator">${escapeHtml(userCreateState.comments)}</textarea>
+              </div>
+            </div>
           </div>
         </section>
         <section class="e-permits-user-create__section">
@@ -555,7 +715,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (focusName) {
       requestAnimationFrame(() => {
-        userCreateBody.querySelector(`[name="${focusName}"]`)?.focus();
+        focusFormControl(userCreateBody.querySelector(`[name="${focusName}"]`));
       });
     }
   };
@@ -1813,6 +1973,23 @@ document.addEventListener("DOMContentLoaded", () => {
     ? new ResizeObserver((entries) => entries.forEach((entry) => syncPageHeaderMetaRows(entry.target)))
     : null;
 
+  /* Sticky tabs: the whole header is sticky with a negative top of
+     (tabs height − header height), so the title and meta scroll away and the
+     tab row pins under the shell top bar. Heights change with wrapping meta,
+     so the offset is re-measured on resize. */
+  const syncStickyPageHeader = (header) => {
+    const tabs = header.querySelector(".e-permits-page-header__tabs");
+    header.classList.toggle("is-sticky", Boolean(tabs));
+
+    if (tabs) {
+      header.style.setProperty("--page-header-stick", `${tabs.offsetHeight - header.offsetHeight}px`);
+    }
+  };
+
+  const pageHeaderObserver = "ResizeObserver" in window
+    ? new ResizeObserver((entries) => entries.forEach((entry) => syncStickyPageHeader(entry.target)))
+    : null;
+
   const watchPageHeaderMeta = (meta) => {
     if (!meta) {
       return;
@@ -1820,6 +1997,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     pageHeaderMetaObserver?.observe(meta);
     syncPageHeaderMetaRows(meta);
+
+    const header = meta.closest(".e-permits-page-header");
+
+    if (header) {
+      pageHeaderObserver?.observe(header);
+      syncStickyPageHeader(header);
+    }
   };
 
   document.querySelectorAll(".e-permits-page-header__meta").forEach(watchPageHeaderMeta);
@@ -2646,21 +2830,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let control = "";
 
     if (field.type === "authority") {
-      control = `
-        <span class="e-permits-user-profile__select-shell">
-          <select class="e-permits-user-profile__control" data-user-profile-editor aria-label="${escapeHtml(field.label)}">
-            ${(usersDb?.profile?.authorities || []).map((authority) => `
-              <option value="${escapeHtml(authority.id)}"${authority.id === value ? " selected" : ""}>${escapeHtml(authority.label)}</option>
-            `).join("")}
-          </select>
-          <svg class="icon" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
-          </svg>
-        </span>
-      `;
+      control = renderFoSelectControl({
+        id: `user-profile-editor-${field.key || "authority"}`,
+        attrs: 'data-user-profile-editor',
+        label: field.label,
+        optionsHtml: (usersDb?.profile?.authorities || []).map((authority) => `
+          <option value="${escapeHtml(authority.id)}"${authority.id === value ? " selected" : ""}>${escapeHtml(authority.label)}</option>
+        `).join("")
+      });
     } else if (field.type === "textarea") {
       control = `
-        <textarea class="e-permits-user-profile__textarea" data-user-profile-editor aria-label="${escapeHtml(field.label)}">${escapeHtml(value)}</textarea>
+        <div class="e-permits-fo-textarea">
+          <textarea rows="3" data-user-profile-editor aria-label="${escapeHtml(field.label)}">${escapeHtml(value)}</textarea>
+        </div>
       `;
     } else {
       control = `
@@ -2766,17 +2948,20 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   const renderComboSelect = (key, label, placeholder, options, value, disabled = false) => `
-    <label class="e-permits-user-profile__combo-field">
-      <span class="e-permits-user-profile__combo-field-label">${escapeHtml(label)} <span class="e-permits-user-profile__combo-req" aria-hidden="true">*</span></span>
-      <span class="e-permits-user-profile__combo-select${disabled ? " is-disabled" : ""}">
-        <select data-combo-field="${key}" ${disabled ? "disabled" : ""} aria-label="${escapeHtml(label)}">
+    <div class="e-permits-fo-field e-permits-user-profile__combo-field">
+      <label for="user-profile-combo-${key}">${escapeHtml(label)}${requiredMark()}</label>
+      ${renderFoSelectControl({
+        id: `user-profile-combo-${key}`,
+        attrs: `data-combo-field="${key}"`,
+        disabled,
+        optionsHtml: `
           <option value="" ${value ? "" : "selected"} disabled hidden>${escapeHtml(placeholder)}</option>
           ${options.map((option) => `<option value="${escapeHtml(option.value)}" ${option.value === value ? "selected" : ""}>${escapeHtml(option.label)}</option>`).join("")}
-        </select>
-        <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-      </span>
-    </label>
+        `
+      })}
+    </div>
   `;
+
 
   const renderComboForm = () => {
     const form = userProfileState.comboForm || {};
@@ -3016,7 +3201,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : renderUserProfileSupportingTab(user);
 
     if (userProfileState.editKey) {
-      requestAnimationFrame(() => userProfilePanelBody.querySelector("[data-user-profile-editor]")?.focus());
+      requestAnimationFrame(() => focusFormControl(userProfilePanelBody.querySelector("[data-user-profile-editor]")));
     }
   };
 
@@ -4646,16 +4831,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderServiceGeneral = (service) => {
     const rssp = service.rssp;
     const authority = getAuthorityById(service.authorityId);
-    const geap = service.geap;
-    const connected = [
-      ["MPass", "Autentificarea solicitantului"],
-      ...(rssp.paid ? [["MPay", "Procesare plăți electronice"]] : []),
-      ["MSign", "Semnare electronică calificată"],
-      ...(rssp.allowsMDelivery ? [["MDelivery", "Livrarea actului pe hârtie"]] : []),
-      ...(rssp.allowsMPower ? [["MPower", `Împuterniciri, cod ${escapeHtml(rssp.mpowerCode || service.code)}`]] : []),
-      ["MConnect", "Prefill date personale / companie și clasificatoare externe"],
-      ["MNotify", "Notificări către solicitant"]
-    ];
 
     return `
       <div class="message message--subtle banner--info e-permits-passport__notice">
@@ -4692,14 +4867,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ${rssp.validity.length ? renderPassportSection("Valabilitatea actului", rssp.validity.map((period, index) => [
         index === 0 ? "Valabilitatea" : `Varianta ${index + 1}`, escapeHtml(period.description || "—")
       ]), "RSSP") : ""}
-      ${renderPassportSection("Obiecte configurate în GEAP", SERVICE_PROFILE_TABS
-        .filter((tab) => tab.count && tab.id !== "events")
-        .map((tab) => [tab.label, String(tab.count(service))]))}
-      ${renderPassportSection("Servicii guvernamentale conectate", connected.map(([name, use]) => [name, escapeHtml(use)]))}
-      ${geap.events.length ? renderPassportSection("Ultimele modificări", geap.events.slice(0, 4).map((item) => [
-        formatStamp(item.at),
-        `${escapeHtml(item.user)} · ${escapeHtml(item.type)}${item.status === "Eșuat" ? ` ${renderTag("Eșuat", "danger")}` : ""}`
-      ])) : ""}
     `;
   };
 
@@ -5118,7 +5285,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const summary = result.summary;
       title.textContent = result.kind === "created" ? "Serviciu creat din RSSP" : "Serviciu actualizat din RSSP";
       syncModalBody.innerHTML = `
-        <div class="message message--success e-permits-passport__sync-message" role="status">
+        <div class="message message--subtle banner--success e-permits-passport__sync-message" role="status">
           <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg></span>
           <div class="banner__content">
             <p class="banner__text">${result.kind === "created"
@@ -5145,8 +5312,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       syncModalFooter.innerHTML = `
         <div class="modal-buttons">
-          <button class="btn btn-secondary btn-rounded btn-md" type="button" data-service-sync-close>Închide</button>
-          <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-sync-open="${escapeHtml(summary.code)}">Deschide pașaportul</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-service-sync-close>Închide</button>
         </div>
       `;
       return;
@@ -5157,30 +5323,30 @@ document.addEventListener("DOMContentLoaded", () => {
     syncModalBody.innerHTML = `
       <p class="e-permits-passport__lead">Introdu codul serviciului din Registrul de Stat al Serviciilor Publice. Dacă serviciul există deja în GEAP, datele RSSP se actualizează; altfel se creează un pașaport nou.</p>
       ${syncState.error ? `
-        <div class="message message--error e-permits-passport__sync-message" role="alert">
+        <div class="message message--subtle banner--error e-permits-passport__sync-message" role="alert">
           <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span>
           <div class="banner__content"><p class="banner__text">${escapeHtml(syncState.error)}</p></div>
         </div>
       ` : ""}
-      <label class="e-permits-user-create__field">
-        <span class="e-permits-user-create__label">Cod serviciu RSSP${requiredMark()}</span>
-        <span class="e-permits-user-create__input-shell${syncState.fieldError ? " is-error" : ""}">
-          <input class="e-permits-user-create__input" type="text" inputmode="numeric" autocomplete="off" placeholder="ex. 003000333"
+      <div class="e-permits-fo-field">
+        <label for="service-sync-code">Cod serviciu RSSP${requiredMark()}</label>
+        <div class="e-permits-fo-input${syncState.fieldError ? " is-error" : ""}">
+          <input id="service-sync-code" type="text" inputmode="numeric" autocomplete="off" placeholder="ex. 003000333"
             value="${escapeHtml(syncState.code)}" data-service-sync-code ${loading ? "disabled" : ""}
             aria-invalid="${syncState.fieldError ? "true" : "false"}" aria-describedby="service-sync-hint">
-        </span>
+        </div>
         ${syncState.fieldError ? `
           <span class="message message--inline message--error message--small">
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
             <span>${escapeHtml(syncState.fieldError)}</span>
           </span>
-        ` : `<span class="e-permits-passport__hint" id="service-sync-hint">Coduri demo: 003000333 (serviciu nou, autoritate nouă) · 003000451 (serviciu nou, autoritate existentă) · 003000023 (existent) · 000000000 (RSSP indisponibil) · 003999998 (răspuns invalid)</span>`}
-      </label>
+        ` : `<p class="e-permits-fo-field__hint" id="service-sync-hint">Coduri demo: 003000333 (serviciu nou, autoritate nouă) · 003000451 (serviciu nou, autoritate existentă) · 003000023 (existent) · 000000000 (RSSP indisponibil) · 003999998 (răspuns invalid)</p>`}
+      </div>
     `;
     syncModalFooter.innerHTML = `
       <div class="modal-buttons">
-        <button class="btn btn-secondary btn-rounded btn-md" type="button" data-service-sync-close ${loading ? "disabled" : ""}>Închide</button>
-        <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-sync-submit ${loading ? "disabled aria-busy=\"true\"" : ""}>
+        <button class="btn btn-secondary btn-sm" type="button" data-service-sync-close ${loading ? "disabled" : ""}>Închide</button>
+        <button class="btn btn-primary btn-sm" type="button" data-service-sync-submit ${loading ? "disabled aria-busy=\"true\"" : ""}>
           ${loading ? '<span class="spinner spinner--small spinner--light-on-color" aria-hidden="true"></span><span>Se preiau datele…</span>' : "<span>Sincronizează serviciu</span>"}
         </button>
       </div>
@@ -5274,13 +5440,6 @@ document.addEventListener("DOMContentLoaded", () => {
       runSync();
     } else if (event.target.closest("[data-service-sync-close]")) {
       closeSyncModal();
-    } else {
-      const open = event.target.closest("[data-service-sync-open]");
-
-      if (open) {
-        closeSyncModal();
-        openServiceProfile(open.dataset.serviceSyncOpen);
-      }
     }
   });
 
@@ -5295,7 +5454,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.matches("[data-service-sync-code]") && syncState.fieldError) {
       syncState.fieldError = "";
       syncState.code = event.target.value;
-      const shellEl = event.target.closest(".e-permits-user-create__input-shell");
+      const shellEl = event.target.closest(".e-permits-fo-input");
       shellEl?.classList.remove("is-error");
       event.target.setAttribute("aria-invalid", "false");
       shellEl?.parentElement.querySelector(".message--error")?.remove();
@@ -5316,10 +5475,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     rtEditingId = rtId;
+    rtModal.querySelectorAll(":scope > [data-service-rt-flow-list]").forEach((list) => list.remove());
     rtModal.querySelector("[data-service-rt-title]").textContent = requestType.name;
     rtModal.querySelector("[data-service-rt-body]").innerHTML = `
-      <div class="e-permits-user-create__field" data-service-rt-flow-field>
-        <span class="e-permits-user-create__label" id="service-rt-flow-label">Flux de procesare${requiredMark()}</span>
+      <div class="e-permits-fo-field" data-service-rt-flow-field>
+        <label id="service-rt-flow-label">Flux de procesare${requiredMark()}</label>
         <!-- the full-flow dropdown (.e-permits-fo-select): same states everywhere -->
         <div class="e-permits-fo-select" data-service-rt-flow-select data-value="${escapeHtml(requestType.flow || "")}">
           <button class="e-permits-fo-select__button" type="button" aria-haspopup="listbox" aria-expanded="false"
@@ -5327,7 +5487,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="e-permits-fo-select__value${requestType.flow ? "" : " e-permits-fo-select__value--placeholder"}" id="service-rt-flow-value">${escapeHtml(getFlowById(requestType.flow) ? `${getFlowById(requestType.flow).name} · ${getFlowById(requestType.flow).version}` : "Selectează fluxul de procesare")}</span>
             <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
           </button>
-          <ul class="e-permits-fo-select__list" role="listbox" aria-labelledby="service-rt-flow-label" hidden>
+          <ul class="e-permits-fo-select__list" role="listbox" aria-labelledby="service-rt-flow-label" hidden data-service-rt-flow-list>
             ${servicesStore.flows.map((flow) => `
               <li class="e-permits-fo-select__option${flow.id === requestType.flow ? " is-selected" : ""}" role="option" tabindex="-1" aria-selected="${flow.id === requestType.flow ? "true" : "false"}" data-value="${escapeHtml(flow.id)}">${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}</li>
             `).join("")}
@@ -5338,26 +5498,46 @@ document.addEventListener("DOMContentLoaded", () => {
           <span>Selectează fluxul de procesare pentru acest tip de solicitare.</span>
         </span>
       </div>
-      <fieldset class="e-permits-passport__fieldset">
-        <legend class="e-permits-user-create__label">Formulare utilizate</legend>
-        ${service.geap.forms.length ? service.geap.forms.map((form) => `
-          <label class="checkbox checkbox--medium">
-            <input type="checkbox" class="checkbox-input" value="${escapeHtml(form.id)}" data-service-rt-form${(requestType.forms || []).includes(form.id) ? " checked" : ""}>
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-texts">
-              <span class="checkbox-label">${escapeHtml(form.name)}</span>
-              <span class="checkbox-description">${escapeHtml(form.technical)} · ${escapeHtml(form.version)} · ${escapeHtml(form.status)}</span>
-            </span>
-          </label>
-        `).join("") : '<p class="e-permits-passport__hint">Serviciul nu are încă formulare electronice. Adaugă-le în tab-ul Formulare.</p>'}
-      </fieldset>
+      ${service.geap.forms.length ? `
+        <!-- the stacked-list group (grey header + count), each form a checkable row -->
+        <div class="e-permits-stack" role="group" aria-labelledby="service-rt-forms-label">
+          <div class="e-permits-stack__group">
+            <h3 class="e-permits-stack__group-label" id="service-rt-forms-label">Formulare utilizate<span class="e-permits-stack__group-count">${service.geap.forms.length}</span></h3>
+            <ul class="e-permits-stack__list" role="list">
+              ${service.geap.forms.map((form) => `
+                <li class="e-permits-stack__item">
+                  <label class="checkbox checkbox--medium e-permits-passport__rt-form">
+                    <input type="checkbox" class="checkbox-input" value="${escapeHtml(form.id)}" data-service-rt-form${(requestType.forms || []).includes(form.id) ? " checked" : ""}>
+                    <span class="checkbox-custom" aria-hidden="true"></span>
+                    <span class="e-permits-stack__main">
+                      <span class="e-permits-stack__title-row">
+                        <span class="e-permits-stack__title">${escapeHtml(form.name)}</span>
+                        ${renderTag(form.status === "Published" ? "Publicat" : "Schiță", form.status === "Published" ? "success" : "neutral")}
+                      </span>
+                      <span class="e-permits-stack__meta">
+                        <span class="e-permits-stack__part">${renderTag(form.technical, "neutral")}</span>
+                        <span class="e-permits-stack__part">${escapeHtml(form.version)}</span>
+                      </span>
+                    </span>
+                  </label>
+                </li>
+              `).join("")}
+            </ul>
+          </div>
+        </div>
+      ` : `
+        <div class="e-permits-fo-field">
+          <label>Formulare utilizate</label>
+          <p class="e-permits-fo-field__hint">Serviciul nu are încă formulare electronice. Adaugă-le în tab-ul Formulare.</p>
+        </div>
+      `}
     `;
     window.__modal?.open?.("#service-rt-modal");
   };
 
   /* the back-office field error state: red control, inline message */
   const setFieldError = (control, message, on) => {
-    control.closest(".e-permits-user-create__select-shell, .e-permits-user-create__input-shell, .e-permits-fo-select")?.classList.toggle("is-error", on);
+    control.closest(".e-permits-fo-input, .e-permits-fo-select")?.classList.toggle("is-error", on);
     control.setAttribute("aria-invalid", on ? "true" : "false");
 
     if (message) {
@@ -5368,30 +5548,56 @@ document.addEventListener("DOMContentLoaded", () => {
   /* "Flux de procesare" dropdown: click / Enter / Space open, ↑↓ move,
      Enter or click select, Esc or outside click close */
   const flowDropdown = () => rtModal?.querySelector("[data-service-rt-flow-select]");
+  const flowList = () => rtModal?.querySelector("[data-service-rt-flow-list]");
+
+  /* The modal clips (overflow: hidden) and is transformed, so an open list would
+     be cut at its edge. While open, the list floats in the overlay — fixed to the
+     trigger, flipping up when there is no room below — the full-flow
+     positionFloatingSelectList pattern; closing puts it back. */
+  const placeFlowList = (dropdown, list) =>
+    placeFloatingList(dropdown.querySelector(".e-permits-fo-select__button"), list, dropdown);
 
   const setFlowOpen = (open) => {
     const dropdown = flowDropdown();
+    const list = flowList();
 
-    if (!dropdown) {
+    if (!dropdown || !list) {
       return;
     }
 
-    const list = dropdown.querySelector(".e-permits-fo-select__list");
     const button = dropdown.querySelector(".e-permits-fo-select__button");
     dropdown.classList.toggle("is-open", open);
-    list.hidden = !open;
     button.setAttribute("aria-expanded", String(open));
 
     if (open) {
+      rtModal.appendChild(list);
+      placeFlowList(dropdown, list);
+      list.hidden = false;
       (list.querySelector(".is-selected") || list.querySelector("[role='option']"))?.focus();
+      return;
+    }
+
+    list.hidden = true;
+    list.classList.remove("is-floating");
+    list.removeAttribute("style");
+    dropdown.classList.remove("is-open-up");
+    dropdown.appendChild(list);
+  };
+
+  /* the trigger moves when the modal body scrolls or the window resizes */
+  const closeFlowOnMove = (event) => {
+    if (flowDropdown()?.classList.contains("is-open") && !flowList()?.contains(event.target)) {
+      setFlowOpen(false);
     }
   };
+  rtModal?.addEventListener("scroll", closeFlowOnMove, true);
+  window.addEventListener("resize", closeFlowOnMove);
 
   const chooseFlow = (option) => {
     const dropdown = flowDropdown();
     const value = dropdown.querySelector(".e-permits-fo-select__value");
     dropdown.dataset.value = option.dataset.value;
-    dropdown.querySelectorAll("[role='option']").forEach((item) => {
+    flowList().querySelectorAll("[role='option']").forEach((item) => {
       const selected = item === option;
       item.classList.toggle("is-selected", selected);
       item.setAttribute("aria-selected", String(selected));
@@ -5415,14 +5621,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const option = event.target.closest("[data-service-rt-flow-select] [role='option']");
+    const option = event.target.closest("[data-service-rt-flow-list] [role='option']");
 
     if (option) {
       chooseFlow(option);
       return;
     }
 
-    if (!event.target.closest("[data-service-rt-flow-select]")) {
+    if (!event.target.closest("[data-service-rt-flow-select], [data-service-rt-flow-list]")) {
       setFlowOpen(false);
     }
   });
@@ -5430,11 +5636,11 @@ document.addEventListener("DOMContentLoaded", () => {
   rtModal?.addEventListener("keydown", (event) => {
     const dropdown = flowDropdown();
 
-    if (!dropdown || !dropdown.contains(event.target)) {
+    if (!dropdown || !(dropdown.contains(event.target) || flowList()?.contains(event.target))) {
       return;
     }
 
-    const options = [...dropdown.querySelectorAll("[role='option']")];
+    const options = [...flowList().querySelectorAll("[role='option']")];
 
     if (["ArrowDown", "ArrowUp"].includes(event.key)) {
       event.preventDefault();
@@ -5458,7 +5664,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("keydown", (event) => {
     const dropdown = flowDropdown();
 
-    if (event.key !== "Escape" || !dropdown?.classList.contains("is-open") || !dropdown.contains(event.target)) {
+    if (event.key !== "Escape" || !dropdown?.classList.contains("is-open") || !(dropdown.contains(event.target) || flowList()?.contains(event.target))) {
       return;
     }
 
@@ -5512,7 +5718,7 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmModal.querySelector("[data-service-confirm-text]").textContent = text;
     const button = confirmModal.querySelector("[data-service-confirm-ok]");
     button.textContent = confirmLabel;
-    button.className = `btn ${destructive ? "btn-destructive" : "btn-primary"} btn-rounded btn-md`;
+    button.className = `btn ${destructive ? "btn-destructive" : "btn-primary"} btn-sm`;
     pendingConfirm = onConfirm;
     window.__modal?.open?.("#service-confirm-modal");
   };
@@ -6069,7 +6275,7 @@ document.addEventListener("DOMContentLoaded", () => {
       target.value = value;
       userCreateState.idnp = value;
       userCreateState.lookupError = "";
-      const inline = target.closest(".e-permits-user-create__field")?.querySelector(".e-permits-user-create__inline");
+      const inline = target.closest(".e-permits-fo-field")?.querySelector(".e-permits-user-create__inline");
       const message = inline?.querySelector("span:first-child");
       const counter = inline?.querySelector(".e-permits-user-create__counter");
       inline?.classList.remove("e-permits-user-create__error");

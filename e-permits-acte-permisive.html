@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css?v=checkbox-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=checkbox-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=checkbox-v1">
+  <link rel="stylesheet" href="css/main.css?v=fo-fields-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=fo-fields-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=sticky-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <script src="js/search.js" defer></script>
@@ -1718,7 +1718,7 @@
             <p class="e-permits-workplace__eyebrow">Locul de muncă</p>
             <h1 class="e-permits-workplace__title" data-workplace-title>Dosarele mele</h1>
           </div>
-          <button class="btn btn-secondary btn-rounded btn-sm e-permits-workplace__refresh" type="button">
+          <button class="btn btn-secondary btn-sm e-permits-workplace__refresh" type="button">
             <svg class="icon small" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-rotate-arrow"></use>
             </svg>
@@ -2802,8 +2802,8 @@
 
         <div class="modal--footer">
           <div class="modal-buttons e-permits-shell__role-modal-actions">
-            <button class="btn btn-secondary btn-rounded btn-lg" data-close>Cancel</button>
-            <button class="btn btn-primary btn-rounded btn-lg" data-close>Confirm</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-close>Anulează</button>
+            <button class="btn btn-primary btn-sm" type="button" data-close>Confirmă</button>
           </div>
         </div>
       </div>
@@ -3108,7 +3108,7 @@
                       </span>
                       <input class="input" type="search" data-workplace-search placeholder="Căutare rapidă după denumire, cod sau instituție">
                     </label>
-                    <button class="btn btn-secondary btn-rounded btn-sm e-permits-workplace__advanced" type="button">
+                    <button class="btn btn-secondary btn-sm e-permits-workplace__advanced" type="button">
                       <svg class="icon" width="16" height="16" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-filter"></use>
                       </svg>
@@ -3290,8 +3290,8 @@
       </header>
       <div class="e-permits-user-create__body" data-user-create-body></div>
       <footer class="e-permits-user-create__footer">
-        <button class="e-permits-user-create__cancel" type="button" data-user-create-close>Anulează</button>
-        <button class="e-permits-user-create__submit" type="button" data-user-create-submit disabled>Crează utilizator nou</button>
+        <button class="btn btn-secondary btn-sm" type="button" data-user-create-close>Anulează</button>
+        <button class="btn btn-primary btn-sm" type="button" data-user-create-submit disabled>Crează utilizator nou</button>
       </footer>
     </aside>
   </div>
@@ -3322,8 +3322,8 @@
       <div class="modal-content" data-service-rt-body></div>
       <div class="modal--footer">
         <div class="modal-buttons">
-          <button class="btn btn-secondary btn-rounded btn-md" type="button" data-close>Anulează</button>
-          <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-rt-save>Salvează</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-sm" type="button" data-service-rt-save>Salvează</button>
         </div>
       </div>
     </div>
@@ -3338,14 +3338,14 @@
       <div class="modal-content"><p class="e-permits-passport__lead" id="service-confirm-text" data-service-confirm-text></p></div>
       <div class="modal--footer">
         <div class="modal-buttons">
-          <button class="btn btn-secondary btn-rounded btn-md" type="button" data-close>Anulează</button>
-          <button class="btn btn-primary btn-rounded btn-md" type="button" data-service-confirm-ok></button>
+          <button class="btn btn-secondary btn-sm" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-sm" type="button" data-service-confirm-ok></button>
         </div>
       </div>
     </div>
   </div>
   <script src="core/service-passport.js?v=passport-v1"></script>
-  <script src="js/e-permits-shell.js?v=checkbox-v2"></script>
+  <script src="js/e-permits-shell.js?v=sticky-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

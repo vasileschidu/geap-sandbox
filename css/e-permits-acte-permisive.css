@@ -137,7 +137,9 @@
 .permits-page__content {
   min-height: 100%;
   min-width: 0;
-  overflow-x: hidden;
+  /* clip, not hidden: hidden makes this a scroll container, which traps the
+     sticky page header */
+  overflow-x: clip;
   padding: 32px;
 }
 
@@ -1795,67 +1797,6 @@
   width: 100%;
 }
 
-.e-permits-user-profile__editor .e-permits-fo-input {
-  width: 100%;
-}
-
-.e-permits-user-profile__editor .e-permits-fo-input input,
-.e-permits-user-profile__control,
-.e-permits-user-profile__textarea {
-  box-sizing: border-box;
-  color: var(--color-text-base-default, #121212);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  width: 100%;
-}
-
-.e-permits-user-profile__editor .e-permits-fo-input input,
-.e-permits-user-profile__control {
-  height: 40px;
-}
-
-.e-permits-user-profile__select-shell {
-  display: block;
-  position: relative;
-}
-
-.e-permits-user-profile__control {
-  appearance: none;
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-8, 8px);
-  padding: 0 44px 0 12px;
-}
-
-.e-permits-user-profile__select-shell > .icon {
-  height: 20px;
-  pointer-events: none;
-  position: absolute;
-  right: 12px;
-  top: 10px;
-  width: 20px;
-}
-
-.e-permits-user-profile__textarea {
-  background: var(--color-background-base-default, #fff);
-  border: 2px solid var(--color-border-brand-default, #0058d2);
-  border-radius: var(--border-radius-8, 8px);
-  min-height: 78px;
-  padding: 8px 12px;
-  resize: vertical;
-  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb);
-}
-
-.e-permits-user-profile__control:focus,
-.e-permits-user-profile__editor .e-permits-fo-input:focus-within {
-  border-color: var(--color-border-brand-default, #0058d2);
-  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb);
-  outline: 0;
-}
-
-.e-permits-user-profile__textarea:focus {
-  outline: 0;
-}
-
 .e-permits-user-profile__editor-actions {
   align-items: center;
   display: flex;
@@ -2039,61 +1980,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-}
-
-.e-permits-user-profile__combo-field-label {
-  color: var(--color-text-base-secondary, #383838);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__combo-req {
-  color: var(--color-text-danger-default, #d92d20);
-}
-
-.e-permits-user-profile__combo-select {
-  display: block;
-  position: relative;
-}
-
-.e-permits-user-profile__combo-select select {
-  appearance: none;
-  -webkit-appearance: none;
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  height: 40px;
-  padding: 0 40px 0 12px;
-  width: 100%;
-}
-
-.e-permits-user-profile__combo-select select:invalid,
-.e-permits-user-profile__combo-select select option[value=""] {
-  color: var(--color-text-base-tertiary, #757575);
-}
-
-.e-permits-user-profile__combo-select select:focus-visible {
-  border-color: var(--color-border-brand-default, #0058d2);
-  outline: 0;
-  box-shadow: 0 0 0 3px var(--blue-sky-200, #ccdef6);
-}
-
-.e-permits-user-profile__combo-select.is-disabled select {
-  background: var(--color-background-disabled-default, #f1f1f1);
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-  cursor: not-allowed;
-}
-
-.e-permits-user-profile__combo-select > .icon {
-  color: var(--color-icon-base-secondary, #383838);
-  pointer-events: none;
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
 }
 
 .e-permits-user-profile__combo-form-actions {
@@ -18058,6 +17944,14 @@
   width: 100%;
 }
 
+/* the tab row pins under the shell top bar while the title and meta scroll
+   away; --page-header-stick = tabs height − header height (set in JS) */
+.e-permits-page-header.is-sticky {
+  position: sticky;
+  top: var(--page-header-stick, 0px);
+  z-index: 20;
+}
+
 .e-permits-page-header__body {
   display: flex;
   flex-direction: column;
@@ -18168,45 +18062,33 @@
 
 .e-permits-page-header__actions .btn.btn-sm,
 .e-permits-stack__action.btn.btn-sm {
-  border-radius: var(--border-radius-6, 6px);
-  box-sizing: border-box;
-  font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  height: var(--spacing-32, 32px);
-  line-height: var(--line-height-lh-20, 20px);
   min-width: 52px;
-  padding: 0 var(--spacing-12, 12px);
-  white-space: nowrap;
 }
 
-.e-permits-page-header__actions .btn.btn-sm:has(> .icon) {
-  padding-left: var(--spacing-8, 8px);
-}
 
-/* Figma button-filled-rectangular Neutral: fill only. The library
-   .btn-neutral also draws a 1px --gray-100 border, which shows as a lighter
-   ring once the fill is --color-background-base-tertiary — keep the 1px (so the
+/* ONE back-office button: library .btn + variant + .btn-sm = 32px, radius 6
+   (page header, list rows, toolbars, modal and drawer footers alike).
+   Figma button-filled-rectangular is fill only. The library variants also
+   draw a 1px border, which shows as a lighter ring — keep the 1px (so the
    32px height holds) but make it transparent in every state. */
-.e-permits-page-header__actions .btn-neutral,
-.e-permits-stack__action.btn-neutral {
+.btn.btn-sm.btn-neutral {
   background: var(--color-background-base-tertiary, #f1f1f1);
   border-color: transparent;
   color: var(--color-text-base-default, #121212);
 }
 
-.e-permits-page-header__actions .btn-neutral:hover:not(:disabled),
-.e-permits-page-header__actions .btn-neutral:active:not(:disabled),
-.e-permits-stack__action.btn-neutral:hover:not(:disabled),
-.e-permits-stack__action.btn-neutral:active:not(:disabled) {
+.btn.btn-sm.btn-neutral:hover:not(:disabled),
+.btn.btn-sm.btn-neutral:active:not(:disabled) {
   border-color: transparent;
 }
 
-/* constructive row actions (Publică, Activează): library .btn-secondary at
-   the same Small size; its 1px border would show on hover, so transparent */
-.e-permits-stack__action.btn-secondary,
-.e-permits-stack__action.btn-secondary:hover:not(:disabled),
-.e-permits-stack__action.btn-secondary:active:not(:disabled) {
+.btn.btn-sm.btn-secondary,
+.btn.btn-sm.btn-secondary:hover:not(:disabled),
+.btn.btn-sm.btn-secondary:active:not(:disabled),
+.btn.btn-sm.btn-primary,
+.btn.btn-sm.btn-primary:hover:not(:disabled),
+.btn.btn-sm.btn-primary:active:not(:disabled) {
   border-color: transparent;
 }
 
@@ -18599,14 +18481,6 @@
   white-space: nowrap;
 }
 
-.e-permits-passport__hint {
-  color: var(--color-text-base-tertiary, #757575);
-  display: block;
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
-  margin-top: var(--spacing-6, 6px);
-}
-
 .e-permits-passport__modal .modal-content {
   display: flex;
   flex-direction: column;
@@ -18660,31 +18534,48 @@
   white-space: nowrap;
 }
 
-.e-permits-passport__fieldset {
-  border: 0;
+/* Configurează tipul de solicitare → Formulare utilizate: a stacked-list row
+   that is one label, library checkbox on the title's first line */
+.e-permits-passport__rt-form {
+  cursor: pointer;
+  width: 100%;
+}
+
+.e-permits-passport__rt-form .checkbox-custom {
+  margin-top: var(--spacing-2, 2px);
+}
+
+.e-permits-passport__rt-form .e-permits-stack__main,
+.e-permits-passport__rt-form .e-permits-stack__meta {
   display: flex;
+}
+
+.e-permits-passport__rt-form .e-permits-stack__main {
+  flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-12, 12px);
-  margin: 0;
-  padding: 0;
 }
 
-/* error state for the back-office field component (input + select):
-   red border, red focus ring; the message is the library inline error */
-.e-permits-user-create__input-shell.is-error .e-permits-user-create__input,
-.e-permits-user-create__select-shell.is-error .e-permits-user-create__select,
-.e-permits-user-create__input-shell.is-error .e-permits-user-create__input:hover,
-.e-permits-user-create__select-shell.is-error .e-permits-user-create__select:hover {
+/* error state for the full-flow input (.e-permits-fo-input) and textarea —
+   the same convention as .e-permits-fo-select.is-error: red border, red 2px
+   hover outline, red focus ring; the message is the library inline error */
+.e-permits-fo-input.is-error,
+.e-permits-fo-textarea.is-error {
   border-color: var(--color-border-error-default, #d92d20);
 }
 
-.e-permits-user-create__input-shell.is-error .e-permits-user-create__input:focus,
-.e-permits-user-create__select-shell.is-error .e-permits-user-create__select:focus {
+.e-permits-fo-input.is-error:not(.is-readonly):hover,
+.e-permits-fo-textarea.is-error:hover {
   border-color: var(--color-border-error-default, #d92d20);
-  box-shadow: 0 0 0 4px var(--red-100, #fee4e2);
+  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20);
 }
 
-.e-permits-user-create__field .message--inline[hidden] {
+.e-permits-fo-input.is-error:not(.is-readonly):focus-within,
+.e-permits-fo-textarea.is-error:focus-within {
+  border-color: var(--color-border-error-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+.e-permits-fo-field .message--inline[hidden] {
   display: none;
 }
 
@@ -19127,12 +19018,6 @@
   border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
 }
 
-/* primary row action (Salvează) at the same Small size, no border edge */
-.e-permits-stack__action.btn-primary,
-.e-permits-stack__action.btn-primary:hover:not(:disabled),
-.e-permits-stack__action.btn-primary:active:not(:disabled) {
-  border-color: transparent;
-}
 
 /* Permisiuni row actions: the original Adaugă / Retrage toggles, unchanged */
 .e-permits-user-profile__perm-btn {

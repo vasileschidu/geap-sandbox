@@ -735,6 +735,37 @@ earlier removal from this document was correct.
 
 ---
 
+### Form fields, buttons, alerts — product rules (2026-09-28)
+
+**Every form field is the full-flow component**, back office included:
+
+| Control | Markup |
+|---|---|
+| field wrapper | `.e-permits-fo-field` > `<label for>` (+ `.e-permits-fo-required` marker via `requiredMark()`) > control > `.e-permits-fo-field__hint` or library `message--inline message--error` |
+| text | `.e-permits-fo-input` > `<input>` (+ trailing `.icon`); read-only = `is-filled is-readonly`; error = `is-error` |
+| textarea | `.e-permits-fo-textarea` > `<textarea>` |
+| select | `.e-permits-fo-select` via `renderFoSelectControl()` in `e-permits-shell.js` — a hidden native `<select>` keeps the value and fires `change`; the open list floats (fixed, in `<body>`) so modals/drawers never clip it; ↑↓ Enter Esc |
+
+Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/-shell/textarea/label/required`,
+`e-permits-user-profile__control/select-shell/textarea/combo-select`, `e-permits-passport__hint`.
+`.e-permits-fo-input.is-error` / `.e-permits-fo-textarea.is-error` mirror `.e-permits-fo-select.is-error`.
+
+**One back-office button**: `.btn` + variant + `.btn-sm` = 32px, radius 6, transparent
+border — page header, list rows, toolbars, **modal and drawer footers**. No `btn-md` /
+`btn-lg` / `btn-rounded` in the back office, no hand-rolled buttons. `main.css` now
+renders `.btn.btn-sm` at the Figma Small 32px (it was 29.25px); rounded/pill
+variants keep their radius. The full flow keeps its own sizes.
+
+**Alerts inside content** use the subtle message: `message message--subtle banner--{info|success|warning|error}`.
+`banner--success` subtle (green-100 fill, green-600 icon) was missing from the
+library and is now in `main.css`. The saturated `message--success` is for toasts only.
+
+**Sticky page-header tabs**: headers with tabs get `.is-sticky` from
+`watchPageHeaderMeta` — the header is `position: sticky` with
+`top: --page-header-stick` (= tabs height − header height, re-measured on resize), so the
+title scrolls away and the tab row pins under the top bar. Needs the content to
+clip with `overflow-x: clip` (not `hidden`, which creates a scroll container).
+
 ### Checkbox
 
 The previously documented `.form-check` markup was **entirely wrong**. The real component:
@@ -2251,6 +2282,13 @@ The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are remove
   per keystroke, it drops characters. Ticking an option patches it in place and swaps
   only the heading + groups (`patchPermissionsTab`) so the open list keeps its scroll
   and position. Esc clears; picking an option keeps focus.
+- **Configurează tipul de solicitare** (`#service-rt-modal`): Flux de procesare is the
+  `.e-permits-fo-select`; its list floats in the overlay while open (the modal is
+  `overflow: hidden` + transformed, so an in-modal list gets cut) and flips up when
+  there is no room below. Formulare utilizate is a stacked-list group (grey
+  `.e-permits-stack__group-label` + count) whose rows are one
+  `label.checkbox.checkbox--medium.e-permits-passport__rt-form` — never a bare
+  `<fieldset>`/`<legend>` list.
 - **Dialogs** are library `.modal`: `#service-sync-modal`, `#service-rt-modal`,
   `#service-confirm-modal`. Feedback via `showShellToast(message, "error")` for
   blocked actions — never the success tone.
