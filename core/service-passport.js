@@ -267,7 +267,12 @@
     return {
       version: "v1.0.0",
       requestTypes: mapped.subServices.map(function (sub, index) {
-        return { id: "rt-" + (index + 1), name: sub.title, source: "RSSP", flow: null, forms: [] };
+        /* the examination term starts from the RSSP duration; editable in GEAP */
+        return {
+          id: "rt-" + (index + 1), name: sub.title, source: "RSSP", flow: null, form: null,
+          term: sub.duration ? { value: sub.duration.value, unit: sub.duration.unit } : null,
+          actions: {}
+        };
       }),
       forms: [], payments: [], dependencies: [], classifiers: [], templates: [],
       notifications: [], settings: null, events: []
@@ -277,8 +282,114 @@
   /* ---- request types -------------------------------------------------- */
   function requestTypeState(requestType) {
     if (!requestType.flow) return { label: "Fără flux", tone: "warning" };
-    if (!(requestType.forms || []).length) return { label: "Fără formulare", tone: "warning" };
+    if (!requestType.form) return { label: "Fără formular", tone: "warning" };
     return { label: "Configurat", tone: "success" };
+  }
+
+  /* ---- forms per process action ----------------------------------------
+     Each action of the flow opens the process's default form (or none). A
+     request type may override it; overrides are stored by "step/action" key
+     and only when they differ from the default. NO_FORM = explicitly none. */
+  var NO_FORM = "__none";
+
+  function actionKey(step, action) {
+    return step.id + "/" + action.id;
+  }
+
+  function actionForm(step, action, overrides) {
+    var key = actionKey(step, action);
+    var map = overrides || {};
+    if (Object.prototype.hasOwnProperty.call(map, key)) {
+      return { form: map[key] === NO_FORM ? null : map[key], overridden: true };
+    }
+    return { form: action.defaultForm || null, overridden: false };
+  }
+
+  function setActionForm(overrides, step, action, value) {
+    var next = Object.assign({}, overrides || {});
+    var key = actionKey(step, action);
+    var isDefault = value === "" || value == null ||
+      value === (action.defaultForm || NO_FORM);
+    if (isDefault) delete next[key];
+    else next[key] = value;
+    return next;
+  }
+
+  function flowActions(flow) {
+    var list = [];
+    ((flow && flow.steps) || []).forEach(function (step) {
+      step.actions.forEach(function (action) { list.push({ step: step, action: action }); });
+    });
+    return list;
+  }
+
+  /* ---- flow definitions (the process designer's JSON) ------------------
+     States of kind Human (a person acts) and Hybrid (a decision, evaluated by
+     the system) are the steps; their transitions are the actions. A
+     transition's formName is the process default form of that action. Steps
+     are listed in process order (breadth-first from the initial state). */
+  function slugify(text) {
+    return String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  }
+
+  function eventLabel(event) {
+    var text = normalizeTitle(event || "");
+    return text === "next" ? "Continuă" : text;
+  }
+
+  function stepsFromDefinition(def) {
+    var byId = {};
+    (def.states || []).forEach(function (state) { byId[state.id] = state; });
+    var lanes = {};
+    (def.lanes || []).forEach(function (lane) { lanes[lane.id] = normalizeTitle(lane.title || ""); });
+
+    var order = [];
+    var seen = {};
+    var queue = [def.initialState];
+    while (queue.length) {
+      var id = queue.shift();
+      if (!id || seen[id] || !byId[id]) continue;
+      seen[id] = true;
+      order.push(byId[id]);
+      (byId[id].transitions || []).forEach(function (t) { queue.push(t.target); });
+    }
+    (def.states || []).forEach(function (state) { if (!seen[state.id]) order.push(state); });
+
+    return order.filter(function (state) {
+      return state.kind === "Human" || state.kind === "Hybrid";
+    }).map(function (state) {
+      var used = {};
+      return {
+        id: state.id,
+        name: normalizeTitle(state.title),
+        auto: state.kind === "Hybrid",
+        lane: lanes[(state.properties || {}).laneId] || "",
+        actions: (state.transitions || []).map(function (t, index) {
+          var base = slugify(t.event) || "actiune";
+          var actionId = used[base] ? base + "-" + (index + 1) : base;
+          used[base] = true;
+          return { id: actionId, name: eventLabel(t.event), defaultForm: t.formName || null, target: t.target, index: index };
+        })
+      };
+    });
+  }
+
+  function definitionForms(def) {
+    var names = [];
+    (def.states || []).forEach(function (state) {
+      (state.transitions || []).forEach(function (t) {
+        if (t.formName && names.indexOf(t.formName) === -1) names.push(t.formName);
+      });
+    });
+    return names;
+  }
+
+  /* overrides left over from another flow do not count */
+  function overrideCount(requestType, flow) {
+    return flowActions(flow).filter(function (item) {
+      return actionForm(item.step, item.action, requestType.actions).overridden;
+    }).length;
   }
 
   /* ---- payments (Feature 93591) ---------------------------------------- */
@@ -327,6 +438,14 @@
     mapRsspService: mapRsspService,
     syncService: syncService,
     requestTypeState: requestTypeState,
+    NO_FORM: NO_FORM,
+    actionKey: actionKey,
+    actionForm: actionForm,
+    setActionForm: setActionForm,
+    flowActions: flowActions,
+    overrideCount: overrideCount,
+    stepsFromDefinition: stepsFromDefinition,
+    definitionForms: definitionForms,
     paymentActions: paymentActions,
     canPublish: canPublish,
     activationConflict: activationConflict,

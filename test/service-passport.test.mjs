@@ -2,6 +2,7 @@
 // One check per rule in US-111 (RSSP sync) and Feature 93591 (payments).
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import { readFileSync } from "node:fs";
 
 const require = createRequire(import.meta.url);
 const sp = require("../core/service-passport.js");
@@ -109,11 +110,62 @@ check("existing code + known IDNO → service updated, linked to authority, GEAP
   assert.equal(services[0].title, "Vechi", "inputs are not mutated");
 });
 
+console.log("Flow definitions (designer JSON)");
+const def = JSON.parse(readFileSync(new URL("../data/flows/ProcesFluxSimplificatFaraSupervizor.json", import.meta.url)));
+const steps = sp.stepsFromDefinition(def);
+check("Human + Hybrid states are the steps, in process order", () => {
+  assert.equal(steps.length, 16);
+  assert.equal(steps.reduce((n, st) => n + st.actions.length, 0), 29);
+  assert.equal(steps[0].name, "Distribuire automată?");
+  assert.equal(steps[0].auto, true);
+  assert.equal(steps[0].lane, "Asistent tehnic");
+});
+check("transitions become actions; formName is the default form; next = Continuă", () => {
+  const reject = steps.find((st) => st.id === "node14");
+  assert.deepEqual(reject.actions.map((a) => [a.id, a.name, a.defaultForm]),
+    [["next", "Continuă", "DecizieRespingere"], ["cerere-incompleta", "Cerere incompletă", "DecizieRespingere"]]);
+  const sign = steps.find((st) => st.id === "node10");
+  assert.equal(sign.actions[0].name, "Returnează la Specialist", "double spaces collapsed");
+});
+check("form names used by the definition", () => {
+  assert.deepEqual(sp.definitionForms(def).sort(),
+    ["DecizieRespingere", "DistribuireDosar", "ProiectActPermisiv", "ReturnareLaSemnare", "ReturnareLaSpecialist", "SuspendareTermen"]);
+});
+
 console.log("Request types / payments");
-check("request type state", () => {
+check("request type state: one electronic form", () => {
   assert.equal(sp.requestTypeState({ flow: null }).label, "Fără flux");
-  assert.equal(sp.requestTypeState({ flow: "f", forms: [] }).label, "Fără formulare");
-  assert.equal(sp.requestTypeState({ flow: "f", forms: ["a"] }).label, "Configurat");
+  assert.equal(sp.requestTypeState({ flow: "f", form: null }).label, "Fără formular");
+  assert.equal(sp.requestTypeState({ flow: "f", form: "a" }).label, "Configurat");
+});
+const flow = { steps: [
+  { id: "verifica", actions: [{ id: "suspendare", defaultForm: "SuspendareTermen" }, { id: "examinat", defaultForm: null }] },
+  { id: "semneaza", actions: [{ id: "returneaza", defaultForm: "ReturnareLaSpecialist" }] }
+] };
+const [verifica, semneaza] = flow.steps;
+check("action form: process default unless overridden; explicit none", () => {
+  assert.deepEqual(sp.actionForm(verifica, verifica.actions[0], {}), { form: "SuspendareTermen", overridden: false });
+  assert.deepEqual(sp.actionForm(verifica, verifica.actions[1], {}), { form: null, overridden: false });
+  assert.deepEqual(sp.actionForm(verifica, verifica.actions[0], { "verifica/suspendare": sp.NO_FORM }), { form: null, overridden: true });
+});
+check("setting the default back removes the override", () => {
+  let o = sp.setActionForm({}, semneaza, semneaza.actions[0], "Generic.ReturneazaLaSupervizor");
+  assert.deepEqual(o, { "semneaza/returneaza": "Generic.ReturneazaLaSupervizor" });
+  assert.deepEqual(sp.setActionForm(o, semneaza, semneaza.actions[0], "ReturnareLaSpecialist"), {});
+  assert.deepEqual(sp.setActionForm(o, semneaza, semneaza.actions[0], ""), {});
+  assert.deepEqual(sp.setActionForm({}, verifica, verifica.actions[1], sp.NO_FORM), {}, "none is already the default");
+});
+check("override count ignores keys from another flow", () => {
+  const rt = { actions: { "semneaza/returneaza": "X", "old-step/x": "Y" } };
+  assert.equal(sp.overrideCount(rt, flow), 1);
+  assert.equal(sp.flowActions(flow).length, 3);
+});
+check("imported request types: one form slot, term from RSSP duration", () => {
+  const r = sp.syncService({ ...base, code: "003000333", lookup: ok(rssp()) });
+  const rt = r.service.geap.requestTypes[0];
+  assert.equal(rt.form, null);
+  assert.deepEqual(rt.term, { value: 15, unit: "zile lucrătoare" });
+  assert.deepEqual(rt.actions, {});
 });
 check("payment actions by state", () => {
   assert.deepEqual(sp.paymentActions({ state: "Schiță" }), ["publish", "delete"]);

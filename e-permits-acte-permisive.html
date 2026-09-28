@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css?v=fo-fields-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=fo-fields-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=sticky-v1">
+  <link rel="stylesheet" href="css/main.css?v=title20">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=title20b">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=rt-link-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <script src="js/search.js" defer></script>
@@ -2802,8 +2802,8 @@
 
         <div class="modal--footer">
           <div class="modal-buttons e-permits-shell__role-modal-actions">
-            <button class="btn btn-secondary btn-sm" type="button" data-close>Anulează</button>
-            <button class="btn btn-primary btn-sm" type="button" data-close>Confirmă</button>
+            <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
+            <button class="btn btn-primary btn-rounded" type="button" data-close>Confirmă</button>
           </div>
         </div>
       </div>
@@ -3290,8 +3290,10 @@
       </header>
       <div class="e-permits-user-create__body" data-user-create-body></div>
       <footer class="e-permits-user-create__footer">
-        <button class="btn btn-secondary btn-sm" type="button" data-user-create-close>Anulează</button>
-        <button class="btn btn-primary btn-sm" type="button" data-user-create-submit disabled>Crează utilizator nou</button>
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-user-create-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-user-create-submit disabled>Crează utilizator nou</button>
+        </div>
       </footer>
     </aside>
   </div>
@@ -3310,23 +3312,28 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="service-rt-modal" aria-hidden="true">
-    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-rt-heading">
-      <button type="button" class="modal-close" data-close aria-label="Închide">
-        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
-      </button>
-      <div class="modal--header">
-        <h2 class="modal--header-title" id="service-rt-heading">Configurează tipul de solicitare</h2>
-        <p class="e-permits-passport__modal-subtitle" data-service-rt-title></p>
-      </div>
-      <div class="modal-content" data-service-rt-body></div>
-      <div class="modal--footer">
-        <div class="modal-buttons">
-          <button class="btn btn-secondary btn-sm" type="button" data-close>Anulează</button>
-          <button class="btn btn-primary btn-sm" type="button" data-service-rt-save>Salvează</button>
+  <!-- Configurează tipul de solicitare: the wide drawer (user-create drawer component) -->
+  <div class="e-permits-user-create e-permits-user-create--wide" data-rt-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide configurarea" data-rt-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="rt-drawer-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="rt-drawer-title">Configurează tipul de solicitare</h2>
+          <p class="e-permits-passport__modal-subtitle" data-rt-subtitle></p>
         </div>
-      </div>
-    </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-rt-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-rt-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary" data-rt-summary aria-live="polite"></span>
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-rt-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-rt-save>Salvează</button>
+        </div>
+      </footer>
+    </aside>
   </div>
 
   <div class="modal-overlay" id="service-confirm-modal" aria-hidden="true">
@@ -3338,14 +3345,14 @@
       <div class="modal-content"><p class="e-permits-passport__lead" id="service-confirm-text" data-service-confirm-text></p></div>
       <div class="modal--footer">
         <div class="modal-buttons">
-          <button class="btn btn-secondary btn-sm" type="button" data-close>Anulează</button>
-          <button class="btn btn-primary btn-sm" type="button" data-service-confirm-ok></button>
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-service-confirm-ok></button>
         </div>
       </div>
     </div>
   </div>
-  <script src="core/service-passport.js?v=passport-v1"></script>
-  <script src="js/e-permits-shell.js?v=sticky-v1"></script>
+  <script src="core/service-passport.js?v=flow-schema-v1"></script>
+  <script src="js/e-permits-shell.js?v=rt-link-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

@@ -312,7 +312,8 @@ document.addEventListener("DOMContentLoaded", () => {
     list.setAttribute("role", "listbox");
     list.setAttribute("aria-labelledby", button.id);
 
-    [...select.options].filter((option) => option.value !== "" && !option.hidden).forEach((option) => {
+    /* placeholders ("Selectează …") are disabled empty options — not choices */
+    [...select.options].filter((option) => !option.hidden && !(option.value === "" && option.disabled)).forEach((option) => {
       const item = document.createElement("li");
       const selected = option.value === select.value;
       item.className = `e-permits-fo-select__option${selected ? " is-selected" : ""}`;
@@ -402,9 +403,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, true);
 
+  /* scrolling the page / drawer: the list follows its trigger, and closes
+     only once the trigger has left the viewport */
   document.addEventListener("scroll", (event) => {
-    if (openFoSelect && !openFoSelect.list.contains(event.target)) {
+    if (!openFoSelect || openFoSelect.list.contains(event.target)) {
+      return;
+    }
+
+    const button = openFoSelect.root.querySelector(".e-permits-fo-select__button");
+    const rect = button?.getBoundingClientRect();
+
+    if (!button?.isConnected || rect.bottom < 0 || rect.top > window.innerHeight) {
       closeFoSelect();
+    } else {
+      placeFloatingList(button, openFoSelect.list, openFoSelect.root);
     }
   }, true);
   window.addEventListener("resize", () => closeFoSelect());
@@ -4591,6 +4603,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const getAuthorityById = (id) => servicesStore?.authorities.find((authority) => authority.id === id) || null;
   const getFlowById = (id) => servicesStore?.flows.find((flow) => flow.id === id) || null;
 
+  /* flows exported from the process designer carry their JSON definition:
+     the steps/actions (and the schema view) are derived from it, and the form
+     names it uses join the process-form catalogue */
+  const loadFlowDefinitions = async () => {
+    await Promise.all((servicesStore?.flows || []).filter((flow) => flow.definitionUrl).map(async (flow) => {
+      try {
+        const response = await fetch(flow.definitionUrl, { cache: "no-store" });
+        if (!response.ok) return;
+        flow.definition = await response.json();
+        flow.steps = passport.stepsFromDefinition(flow.definition);
+        passport.definitionForms(flow.definition).forEach((name) => {
+          if (!servicesStore.processForms.some((form) => form.id === name)) {
+            servicesStore.processForms.push({ id: name, name });
+          }
+        });
+      } catch (error) {
+        console.warn(error);
+      }
+    }));
+  };
+
   const serviceRow = (service) => ({
     id: service.code,
     cod: service.code,
@@ -4965,29 +4998,33 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderServiceRequestTypes = (service) => {
     const admin = isCentralAdmin();
-    const items = service.geap.requestTypes.map((rt) => {
+    const types = service.geap.requestTypes;
+    const configured = types.filter((rt) => passport.requestTypeState(rt).label === "Configurat").length;
+    const items = types.map((rt) => {
       const state = passport.requestTypeState(rt);
       const flow = getFlowById(rt.flow);
-      const forms = (rt.forms || []).map((id) => service.geap.forms.find((form) => form.id === id)?.name).filter(Boolean);
+      const form = service.geap.forms.find((item) => item.id === rt.form);
+      const changed = flow ? passport.overrideCount(rt, flow) : 0;
       return {
         source: rt.source,
         plainTitle: rt.name,
         title: escapeHtml(rt.name),
-        badges: [renderTag(state.label, state.tone)],
+        badges: [renderTag(state.label, state.tone), ...(changed ? [renderTag(`${changed} ${changed === 1 ? "acțiune modificată" : "acțiuni modificate"}`, "brand")] : [])],
         meta: [
-          flow ? `Flux: ${escapeHtml(flow.name)} ${escapeHtml(flow.version)}` : "Fără flux de procesare",
-          forms.length ? `${forms.length} ${forms.length === 1 ? "formular" : "formulare"}` : "Fără formulare"
+          flow ? `Flux: ${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}` : "Fără flux de procesare",
+          rt.term ? `Termen: ${rt.term.value} ${escapeHtml(rt.term.unit)}` : "Fără termen"
         ],
-        meta2: forms.length ? [escapeHtml(forms.join(", "))] : null,
+        meta2: [form ? `Formular: ${escapeHtml(form.name)} · ${escapeHtml(form.version)}` : "Fără formular electronic"],
         action: admin ? { label: "Configurează", attrs: `data-passport-configure-rt="${escapeHtml(rt.id)}"` } : null
       };
     });
 
     return renderStackedList("Tipuri solicitări", groupBy(items, (item) => (item.source === "RSSP" ? "Subservicii RSSP" : "Adăugate în GEAP"), ["Subservicii RSSP", "Adăugate în GEAP"]), {
-      meta: "Fluxul și formularele se setează per tip de solicitare",
+      meta: `${configured} din ${types.length} configurate`,
       empty: "Serviciul nu are tipuri de solicitare. Ele se preiau din subserviciile RSSP la sincronizare."
     });
   };
+
 
   const renderServiceForms = (service) => {
     const admin = isCentralAdmin();
@@ -5312,7 +5349,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `;
       syncModalFooter.innerHTML = `
         <div class="modal-buttons">
-          <button class="btn btn-secondary btn-sm" type="button" data-service-sync-close>Închide</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-service-sync-close>Închide</button>
         </div>
       `;
       return;
@@ -5345,8 +5382,8 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
     syncModalFooter.innerHTML = `
       <div class="modal-buttons">
-        <button class="btn btn-secondary btn-sm" type="button" data-service-sync-close ${loading ? "disabled" : ""}>Închide</button>
-        <button class="btn btn-primary btn-sm" type="button" data-service-sync-submit ${loading ? "disabled aria-busy=\"true\"" : ""}>
+        <button class="btn btn-neutral btn-rounded" type="button" data-service-sync-close ${loading ? "disabled" : ""}>Închide</button>
+        <button class="btn btn-primary btn-rounded" type="button" data-service-sync-submit ${loading ? "disabled aria-busy=\"true\"" : ""}>
           ${loading ? '<span class="spinner spinner--small spinner--light-on-color" aria-hidden="true"></span><span>Se preiau datele…</span>' : "<span>Sincronizează serviciu</span>"}
         </button>
       </div>
@@ -5461,79 +5498,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ---- request type configuration --------------------------------------- */
-
-  const rtModal = document.querySelector("#service-rt-modal");
-  let rtEditingId = null;
-
-  const openRequestTypeModal = (rtId) => {
-    const service = getServiceByCode(serviceProfileState.code);
-    const requestType = service?.geap.requestTypes.find((rt) => rt.id === rtId);
-
-    if (!rtModal || !requestType) {
-      return;
-    }
-
-    rtEditingId = rtId;
-    rtModal.querySelectorAll(":scope > [data-service-rt-flow-list]").forEach((list) => list.remove());
-    rtModal.querySelector("[data-service-rt-title]").textContent = requestType.name;
-    rtModal.querySelector("[data-service-rt-body]").innerHTML = `
-      <div class="e-permits-fo-field" data-service-rt-flow-field>
-        <label id="service-rt-flow-label">Flux de procesare${requiredMark()}</label>
-        <!-- the full-flow dropdown (.e-permits-fo-select): same states everywhere -->
-        <div class="e-permits-fo-select" data-service-rt-flow-select data-value="${escapeHtml(requestType.flow || "")}">
-          <button class="e-permits-fo-select__button" type="button" aria-haspopup="listbox" aria-expanded="false"
-            aria-labelledby="service-rt-flow-label service-rt-flow-value" aria-describedby="service-rt-flow-error" data-service-rt-flow>
-            <span class="e-permits-fo-select__value${requestType.flow ? "" : " e-permits-fo-select__value--placeholder"}" id="service-rt-flow-value">${escapeHtml(getFlowById(requestType.flow) ? `${getFlowById(requestType.flow).name} · ${getFlowById(requestType.flow).version}` : "Selectează fluxul de procesare")}</span>
-            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-          </button>
-          <ul class="e-permits-fo-select__list" role="listbox" aria-labelledby="service-rt-flow-label" hidden data-service-rt-flow-list>
-            ${servicesStore.flows.map((flow) => `
-              <li class="e-permits-fo-select__option${flow.id === requestType.flow ? " is-selected" : ""}" role="option" tabindex="-1" aria-selected="${flow.id === requestType.flow ? "true" : "false"}" data-value="${escapeHtml(flow.id)}">${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}</li>
-            `).join("")}
-          </ul>
-        </div>
-        <span class="message message--inline message--error message--small" id="service-rt-flow-error" hidden data-service-rt-flow-error>
-          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
-          <span>Selectează fluxul de procesare pentru acest tip de solicitare.</span>
-        </span>
-      </div>
-      ${service.geap.forms.length ? `
-        <!-- the stacked-list group (grey header + count), each form a checkable row -->
-        <div class="e-permits-stack" role="group" aria-labelledby="service-rt-forms-label">
-          <div class="e-permits-stack__group">
-            <h3 class="e-permits-stack__group-label" id="service-rt-forms-label">Formulare utilizate<span class="e-permits-stack__group-count">${service.geap.forms.length}</span></h3>
-            <ul class="e-permits-stack__list" role="list">
-              ${service.geap.forms.map((form) => `
-                <li class="e-permits-stack__item">
-                  <label class="checkbox checkbox--medium e-permits-passport__rt-form">
-                    <input type="checkbox" class="checkbox-input" value="${escapeHtml(form.id)}" data-service-rt-form${(requestType.forms || []).includes(form.id) ? " checked" : ""}>
-                    <span class="checkbox-custom" aria-hidden="true"></span>
-                    <span class="e-permits-stack__main">
-                      <span class="e-permits-stack__title-row">
-                        <span class="e-permits-stack__title">${escapeHtml(form.name)}</span>
-                        ${renderTag(form.status === "Published" ? "Publicat" : "Schiță", form.status === "Published" ? "success" : "neutral")}
-                      </span>
-                      <span class="e-permits-stack__meta">
-                        <span class="e-permits-stack__part">${renderTag(form.technical, "neutral")}</span>
-                        <span class="e-permits-stack__part">${escapeHtml(form.version)}</span>
-                      </span>
-                    </span>
-                  </label>
-                </li>
-              `).join("")}
-            </ul>
-          </div>
-        </div>
-      ` : `
-        <div class="e-permits-fo-field">
-          <label>Formulare utilizate</label>
-          <p class="e-permits-fo-field__hint">Serviciul nu are încă formulare electronice. Adaugă-le în tab-ul Formulare.</p>
-        </div>
-      `}
-    `;
-    window.__modal?.open?.("#service-rt-modal");
-  };
+  /* ---- request type configuration (wide drawer) --------------------------
+     A request type = flow + the applicant's electronic form (exactly one) +
+     examination term + the form each flow action opens. Actions inherit the
+     process default ("din proces"); overrides are kept only where they differ
+     (GEAP.servicePassport.setActionForm). Editing happens in a draft; nothing
+     is written until Salvează. */
 
   /* the back-office field error state: red control, inline message */
   const setFieldError = (control, message, on) => {
@@ -5545,162 +5515,419 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  /* "Flux de procesare" dropdown: click / Enter / Space open, ↑↓ move,
-     Enter or click select, Esc or outside click close */
-  const flowDropdown = () => rtModal?.querySelector("[data-service-rt-flow-select]");
-  const flowList = () => rtModal?.querySelector("[data-service-rt-flow-list]");
+  const rtDrawer = document.querySelector("[data-rt-drawer]");
+  const rtDrawerBody = rtDrawer?.querySelector("[data-rt-body]");
+  const RT_TERM_UNITS = ["zile lucrătoare", "zile calendaristice"];
+  const RT_FILTERS = [
+    ["all", "Toate"],
+    ["changed", "Modificate"],
+    ["with", "Cu formular"],
+    ["without", "Fără formular"]
+  ];
+  let rtDraft = null;
+  let rtReturnFocus = null;
 
-  /* The modal clips (overflow: hidden) and is transformed, so an open list would
-     be cut at its edge. While open, the list floats in the overlay — fixed to the
-     trigger, flipping up when there is no room below — the full-flow
-     positionFloatingSelectList pattern; closing puts it back. */
-  const placeFlowList = (dropdown, list) =>
-    placeFloatingList(dropdown.querySelector(".e-permits-fo-select__button"), list, dropdown);
+  const processFormName = (id) => servicesStore?.processForms?.find((form) => form.id === id)?.name || id;
 
-  const setFlowOpen = (open) => {
-    const dropdown = flowDropdown();
-    const list = flowList();
-
-    if (!dropdown || !list) {
-      return;
-    }
-
-    const button = dropdown.querySelector(".e-permits-fo-select__button");
-    dropdown.classList.toggle("is-open", open);
-    button.setAttribute("aria-expanded", String(open));
-
-    if (open) {
-      rtModal.appendChild(list);
-      placeFlowList(dropdown, list);
-      list.hidden = false;
-      (list.querySelector(".is-selected") || list.querySelector("[role='option']"))?.focus();
-      return;
-    }
-
-    list.hidden = true;
-    list.classList.remove("is-floating");
-    list.removeAttribute("style");
-    dropdown.classList.remove("is-open-up");
-    dropdown.appendChild(list);
+  const rtActionRows = () => {
+    const flow = getFlowById(rtDraft.flow);
+    return passport.flowActions(flow).map(({ step, action }) => ({
+      step,
+      action,
+      ...passport.actionForm(step, action, rtDraft.actions)
+    }));
   };
 
-  /* the trigger moves when the modal body scrolls or the window resizes */
-  const closeFlowOnMove = (event) => {
-    if (flowDropdown()?.classList.contains("is-open") && !flowList()?.contains(event.target)) {
-      setFlowOpen(false);
-    }
-  };
-  rtModal?.addEventListener("scroll", closeFlowOnMove, true);
-  window.addEventListener("resize", closeFlowOnMove);
+  const rtMatches = (row) => {
+    const query = rtDraft.query.trim().toLocaleLowerCase("ro");
+    const text = `${row.step.name} ${row.action.name} ${row.form || ""}`.toLocaleLowerCase("ro");
 
-  const chooseFlow = (option) => {
-    const dropdown = flowDropdown();
-    const value = dropdown.querySelector(".e-permits-fo-select__value");
-    dropdown.dataset.value = option.dataset.value;
-    flowList().querySelectorAll("[role='option']").forEach((item) => {
-      const selected = item === option;
-      item.classList.toggle("is-selected", selected);
-      item.setAttribute("aria-selected", String(selected));
-    });
-    value.textContent = option.textContent.trim();
-    value.classList.remove("e-permits-fo-select__value--placeholder");
-    setFieldError(dropdown.querySelector(".e-permits-fo-select__button"), rtModal.querySelector("[data-service-rt-flow-error]"), false);
-    setFlowOpen(false);
-    dropdown.querySelector(".e-permits-fo-select__button").focus();
+    if (query && !text.includes(query)) {
+      return false;
+    }
+
+    return rtDraft.filter === "changed" ? row.overridden
+      : rtDraft.filter === "with" ? Boolean(row.form)
+      : rtDraft.filter === "without" ? !row.form
+      : true;
   };
 
-  rtModal?.addEventListener("click", (event) => {
-    const dropdown = flowDropdown();
+  const renderRtChips = (rows) => {
+    const counts = {
+      all: rows.length,
+      changed: rows.filter((row) => row.overridden).length,
+      with: rows.filter((row) => row.form).length,
+      without: rows.filter((row) => !row.form).length
+    };
 
-    if (!dropdown) {
+    return RT_FILTERS.map(([key, label]) => `
+      <button type="button" class="chip${rtDraft.filter === key ? " is-selected" : ""}" aria-pressed="${rtDraft.filter === key ? "true" : "false"}" data-rt-filter="${key}">
+        <span class="chip__label">${label}</span>
+        <span class="chip__badge" aria-hidden="true">${counts[key]}</span>
+      </button>
+    `).join("");
+  };
+
+  const renderRtActionRow = (row) => {
+    const key = passport.actionKey(row.step, row.action);
+    const fallback = row.action.defaultForm ? `${processFormName(row.action.defaultForm)} · din proces` : "fără formular";
+    const current = row.overridden ? (row.form || passport.NO_FORM) : "";
+    const options = [
+      `<option value=""${current === "" ? " selected" : ""}>Implicit · ${escapeHtml(fallback)}</option>`,
+      row.action.defaultForm ? `<option value="${passport.NO_FORM}"${current === passport.NO_FORM ? " selected" : ""}>Fără formular</option>` : "",
+      ...(servicesStore?.processForms || []).filter((form) => form.id !== row.action.defaultForm).map((form) => `
+        <option value="${escapeHtml(form.id)}"${current === form.id ? " selected" : ""}>${escapeHtml(form.name)}</option>
+      `)
+    ].join("");
+
+    return `
+      <li class="e-permits-stack__item e-permits-rt__action${row.overridden ? " is-overridden" : ""}">
+        <div class="e-permits-stack__main">
+          <div class="e-permits-stack__title-row">
+            <p class="e-permits-stack__title">${escapeHtml(row.action.name)}</p>
+            ${row.overridden ? renderTag("Modificat", "brand") : ""}
+          </div>
+          ${row.overridden ? `
+            <div class="e-permits-stack__meta">
+              <span class="e-permits-stack__part">Implicit: ${escapeHtml(fallback)}</span>
+            </div>
+          ` : ""}
+        </div>
+        <div class="e-permits-stack__actions e-permits-rt__action-control">
+          ${renderFoSelectControl({
+            id: `rt-action-${key.replace(/[^a-z0-9-]/gi, "-")}`,
+            attrs: `data-rt-action="${escapeHtml(key)}"`,
+            label: `Formular pentru ${row.step.name} / ${row.action.name}`,
+            optionsHtml: options
+          })}
+          ${row.overridden ? `<button class="btn btn-text-primary btn-sm" type="button" data-rt-reset="${escapeHtml(key)}">Revino la implicit</button>` : ""}
+        </div>
+      </li>
+    `;
+  };
+
+  const renderRtActionList = () => {
+    const rows = rtActionRows();
+    const visible = rows.filter(rtMatches);
+    const steps = getFlowById(rtDraft.flow)?.steps || [];
+    const groups = steps.map((step) => ({
+      step,
+      rows: visible.filter((row) => row.step === step),
+      changed: rows.filter((row) => row.step === step && row.overridden).length
+    })).filter((group) => group.rows.length);
+
+    if (!groups.length) {
+      return `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>Nicio acțiune nu corespunde filtrului.</p></div>`;
+    }
+
+    return `
+      <div class="e-permits-stack e-permits-rt__stack">
+        ${groups.map((group) => {
+          const open = !rtDraft.collapsed.has(group.step.id);
+          return `
+            <div class="e-permits-stack__group${open ? " is-open" : " is-collapsed"}">
+              <h3 class="e-permits-stack__group-label e-permits-stack__group-label--toggle">
+                <button class="e-permits-stack__group-toggle" type="button" data-rt-step="${escapeHtml(group.step.id)}" aria-expanded="${open ? "true" : "false"}">
+                  <span class="e-permits-stack__group-name">${escapeHtml(group.step.name)}</span>
+                  <span class="e-permits-stack__group-count">${group.rows.length}</span>
+                  ${group.step.auto ? renderTag("Automat", "neutral") : ""}
+                  ${group.changed ? renderTag(`${group.changed} ${group.changed === 1 ? "modificată" : "modificate"}`, "brand") : ""}
+                  <svg class="icon small e-permits-stack__group-chevron" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                </button>
+              </h3>
+              ${open ? `<ul class="e-permits-stack__list" role="list">${group.rows.map(renderRtActionRow).join("")}</ul>` : ""}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  };
+
+  /* the flow diagram lives in the Workflows (Fluxuri de lucru) item; the
+     drawer only links there — opened in a new tab so the draft stays */
+  const renderRtFlowLink = () => rtDraft.flow ? `
+    <a class="link link-primary link-sm" href="e-permits-acte-permisive.html?flow=back-office#flux/${encodeURIComponent(rtDraft.flow)}" target="_blank" rel="noopener">Vezi schema fluxului în Fluxuri de lucru</a>
+  ` : "";
+
+  const renderRtActionsSection = () => {
+    if (!rtDraft.flow) {
+      return `<p class="e-permits-fo-field__hint">Alege întâi fluxul de procesare — acțiunile lui apar aici.</p>`;
+    }
+
+    const rows = rtActionRows();
+
+    return `
+      <div class="e-permits-rt__toolbar">
+        <div class="e-permits-rt__chips" role="group" aria-label="Filtrează acțiunile" data-rt-chips>${renderRtChips(rows)}</div>
+        <div class="e-permits-fo-input e-permits-fo-input--with-action e-permits-rt__search">
+          <input type="text" placeholder="Caută pas sau acțiune" aria-label="Caută pas sau acțiune" value="${escapeHtml(rtDraft.query)}" autocomplete="off" data-rt-search>
+          <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+        </div>
+      </div>
+      <div data-rt-list>${renderRtActionList()}</div>
+    `;
+  };
+
+  const renderRtFooterSummary = () => {
+    const flow = getFlowById(rtDraft.flow);
+    const total = passport.flowActions(flow).length;
+    const changed = flow ? passport.overrideCount(rtDraft, flow) : 0;
+    rtDrawer.querySelector("[data-rt-summary]").textContent = flow
+      ? `${total} acțiuni · ${changed} ${changed === 1 ? "modificată" : "modificate"}`
+      : "";
+  };
+
+  const renderRtDrawer = () => {
+    const service = getServiceByCode(rtDraft.serviceCode);
+    const rt = service.geap.requestTypes.find((item) => item.id === rtDraft.rtId);
+    const rsspTerm = service.rssp.subServices.find((sub) => sub.title === rt.name)?.duration;
+    const flowOptions = `
+      <option value=""${rtDraft.flow ? "" : " selected"} disabled>Selectează fluxul de procesare</option>
+      ${servicesStore.flows.map((flow) => `<option value="${escapeHtml(flow.id)}"${flow.id === rtDraft.flow ? " selected" : ""}>${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}</option>`).join("")}
+    `;
+    const formOptions = `
+      <option value=""${rtDraft.form ? "" : " selected"}>Fără formular electronic</option>
+      ${service.geap.forms.map((form) => `<option value="${escapeHtml(form.id)}"${form.id === rtDraft.form ? " selected" : ""}>${escapeHtml(form.name)} · ${escapeHtml(form.version)}${form.status === "Published" ? "" : " (schiță)"}</option>`).join("")}
+    `;
+    const unitOptions = RT_TERM_UNITS.map((unit) => `<option value="${unit}"${unit === rtDraft.termUnit ? " selected" : ""}>${unit}</option>`).join("");
+
+    rtDrawer.querySelector("[data-rt-subtitle]").textContent = `${rt.name} · ${service.title}`;
+    rtDrawerBody.innerHTML = `
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">General</h3>
+        <div class="e-permits-user-create__section-content">
+          <div class="e-permits-user-create__grid">
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+              <label for="rt-flow">Flux de procesare${requiredMark()}</label>
+              ${renderFoSelectControl({ id: "rt-flow", attrs: 'data-rt-flow required', optionsHtml: flowOptions })}
+              <p class="e-permits-fo-field__hint" data-rt-flow-link>${renderRtFlowLink()}</p>
+              <span class="message message--inline message--error message--small" hidden data-rt-flow-error>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+                <span>Selectează fluxul de procesare.</span>
+              </span>
+            </div>
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+              <label for="rt-form">Formular electronic</label>
+              ${renderFoSelectControl({ id: "rt-form", attrs: "data-rt-form", optionsHtml: formOptions })}
+              <p class="e-permits-fo-field__hint">Formularul completat de solicitant pentru acest tip de solicitare.</p>
+            </div>
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+              <label for="rt-term">Termen de examinare</label>
+              <div class="e-permits-rt__term">
+                <div class="e-permits-fo-input">
+                  <input id="rt-term" type="text" inputmode="numeric" maxlength="3" placeholder="ex. 30" value="${escapeHtml(rtDraft.termValue)}" data-rt-term>
+                </div>
+                ${renderFoSelectControl({ id: "rt-term-unit", attrs: "data-rt-term-unit", label: "Unitatea termenului", optionsHtml: unitOptions })}
+              </div>
+              <span class="message message--inline message--error message--small" hidden data-rt-term-error>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+                <span>Introdu un număr de zile între 1 și 255.</span>
+              </span>
+              <p class="e-permits-fo-field__hint" data-rt-term-hint>${rsspTerm ? `Din RSSP: ${rsspTerm.value} ${escapeHtml(rsspTerm.unit)}` : "Tip de solicitare adăugat în GEAP — fără termen în RSSP."}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Formulare pe acțiuni</h3>
+        <div class="e-permits-user-create__section-content">
+          <p class="e-permits-fo-field__hint">Formularul deschis de fiecare acțiune a fluxului. Implicit se folosește formularul definit în proces; schimbă-l doar unde tipul de solicitare cere altceva.</p>
+          <div data-rt-actions>${renderRtActionsSection()}</div>
+        </div>
+      </section>
+    `;
+    renderRtFooterSummary();
+  };
+
+  /* partial refreshes keep focus and the drawer's scroll position */
+  const refreshRtActions = ({ list = true, chips = true } = {}) => {
+    const rows = rtActionRows();
+
+    if (chips) {
+      const chipsEl = rtDrawerBody.querySelector("[data-rt-chips]");
+      if (chipsEl) chipsEl.innerHTML = renderRtChips(rows);
+    }
+
+    if (list) {
+      const listEl = rtDrawerBody.querySelector("[data-rt-list]");
+      if (listEl) listEl.innerHTML = renderRtActionList();
+    }
+
+    renderRtFooterSummary();
+  };
+
+  const openRequestTypeDrawer = (rtId) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const rt = service?.geap.requestTypes.find((item) => item.id === rtId);
+
+    if (!rtDrawer || !rt) {
       return;
     }
 
-    if (event.target.closest("[data-service-rt-flow]")) {
-      setFlowOpen(!dropdown.classList.contains("is-open"));
+    rtDraft = {
+      serviceCode: service.code,
+      rtId,
+      flow: rt.flow || "",
+      form: rt.form || "",
+      termValue: rt.term ? String(rt.term.value) : "",
+      termUnit: rt.term?.unit || RT_TERM_UNITS[0],
+      actions: { ...(rt.actions || {}) },
+      filter: "all",
+      query: "",
+      collapsed: new Set()
+    };
+    rtReturnFocus = document.activeElement;
+    renderRtDrawer();
+    rtDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => rtDrawer.querySelector("#rt-flow")?.focus());
+  };
+
+  const closeRequestTypeDrawer = () => {
+    if (!rtDrawer || rtDrawer.hidden || rtDrawer.classList.contains("is-closing")) {
       return;
     }
 
-    const option = event.target.closest("[data-service-rt-flow-list] [role='option']");
+    closeFoSelect();
+    rtDrawer.classList.add("is-closing");
+    window.setTimeout(() => {
+      rtDrawer.hidden = true;
+      rtDrawer.classList.remove("is-closing");
+      document.body.classList.remove("is-user-create-open");
+      rtDraft = null;
+      rtReturnFocus?.focus?.();
+    }, 120);
+  };
 
-    if (option) {
-      chooseFlow(option);
+  const saveRequestTypeDrawer = () => {
+    const service = getServiceByCode(rtDraft.serviceCode);
+    const rt = service.geap.requestTypes.find((item) => item.id === rtDraft.rtId);
+    const flowButton = rtDrawerBody.querySelector("#rt-flow");
+    const termInput = rtDrawerBody.querySelector("[data-rt-term]");
+    const termValue = rtDraft.termValue.trim();
+    const termOk = !termValue || (/^\d+$/.test(termValue) && Number(termValue) >= 1 && Number(termValue) <= 255);
+
+    setFieldError(flowButton, rtDrawerBody.querySelector("[data-rt-flow-error]"), !rtDraft.flow);
+    setFieldError(termInput, rtDrawerBody.querySelector("[data-rt-term-error]"), !termOk);
+    rtDrawerBody.querySelector("[data-rt-term-hint]").hidden = !termOk;
+
+    if (!rtDraft.flow || !termOk) {
+      (!rtDraft.flow ? flowButton : termInput).focus();
       return;
     }
 
-    if (!event.target.closest("[data-service-rt-flow-select], [data-service-rt-flow-list]")) {
-      setFlowOpen(false);
+    /* overrides for actions that are not in the chosen flow are dropped */
+    const flow = getFlowById(rtDraft.flow);
+    const keys = new Set(passport.flowActions(flow).map(({ step, action }) => passport.actionKey(step, action)));
+    rt.flow = rtDraft.flow;
+    rt.form = rtDraft.form || null;
+    rt.term = termValue ? { value: Number(termValue), unit: rtDraft.termUnit } : null;
+    rt.actions = Object.fromEntries(Object.entries(rtDraft.actions).filter(([key]) => keys.has(key)));
+
+    const changed = passport.overrideCount(rt, flow);
+    logServiceEvents(service.code, [{
+      at: localIsoNow(), user: currentUserName(), type: "Configurare tip solicitare", status: "Reușit",
+      detail: `${rt.name}: ${flow.name} ${flow.version}, ${rt.form ? "cu formular" : "fără formular"}, ${changed} acțiuni modificate`
+    }]);
+    closeRequestTypeDrawer();
+    renderServiceProfile();
+    showShellToast(`Tipul de solicitare „${rt.name}” a fost salvat.`);
+  };
+
+  rtDrawer?.addEventListener("change", (event) => {
+    const target = event.target;
+
+    if (!rtDraft) {
+      return;
+    }
+
+    if (target.matches("[data-rt-flow]")) {
+      rtDraft.flow = target.value;
+      rtDraft.filter = "all";
+      rtDraft.collapsed = new Set();
+      setFieldError(rtDrawerBody.querySelector("#rt-flow"), rtDrawerBody.querySelector("[data-rt-flow-error]"), false);
+      rtDrawerBody.querySelector("[data-rt-actions]").innerHTML = renderRtActionsSection();
+      rtDrawerBody.querySelector("[data-rt-flow-link]").innerHTML = renderRtFlowLink();
+      renderRtFooterSummary();
+    } else if (target.matches("[data-rt-form]")) {
+      rtDraft.form = target.value;
+    } else if (target.matches("[data-rt-term-unit]")) {
+      rtDraft.termUnit = target.value;
+    } else if (target.matches("[data-rt-action]")) {
+      const row = rtActionRows().find(({ step, action }) => passport.actionKey(step, action) === target.dataset.rtAction);
+      rtDraft.actions = passport.setActionForm(rtDraft.actions, row.step, row.action, target.value);
+      refreshRtActions();
+      rtDrawerBody.querySelector(`[data-rt-action="${CSS.escape(target.dataset.rtAction)}"]`)
+        ?.closest("[data-fo-native-select]")?.querySelector(".e-permits-fo-select__button")?.focus();
     }
   });
 
-  rtModal?.addEventListener("keydown", (event) => {
-    const dropdown = flowDropdown();
-
-    if (!dropdown || !(dropdown.contains(event.target) || flowList()?.contains(event.target))) {
+  rtDrawer?.addEventListener("input", (event) => {
+    if (!rtDraft) {
       return;
     }
 
-    const options = [...flowList().querySelectorAll("[role='option']")];
+    if (event.target.matches("[data-rt-search]")) {
+      rtDraft.query = event.target.value;
+      refreshRtActions({ chips: false });
+    } else if (event.target.matches("[data-rt-term]")) {
+      event.target.value = event.target.value.replace(/\D/g, "").slice(0, 3);
+      rtDraft.termValue = event.target.value;
+      setFieldError(event.target, rtDrawerBody.querySelector("[data-rt-term-error]"), false);
+      rtDrawerBody.querySelector("[data-rt-term-hint]").hidden = false;
+    }
+  });
 
-    if (["ArrowDown", "ArrowUp"].includes(event.key)) {
+  rtDrawer?.addEventListener("click", (event) => {
+    if (!rtDraft) {
+      return;
+    }
+
+    if (event.target.closest("[data-rt-close]")) {
+      closeRequestTypeDrawer();
+      return;
+    }
+
+    if (event.target.closest("[data-rt-save]")) {
+      saveRequestTypeDrawer();
+      return;
+    }
+
+    const filter = event.target.closest("[data-rt-filter]");
+
+    if (filter) {
+      rtDraft.filter = filter.dataset.rtFilter;
+      refreshRtActions();
+      return;
+    }
+
+    const step = event.target.closest("[data-rt-step]");
+
+    if (step) {
+      const id = step.dataset.rtStep;
+      rtDraft.collapsed.has(id) ? rtDraft.collapsed.delete(id) : rtDraft.collapsed.add(id);
+      refreshRtActions({ chips: false });
+      rtDrawerBody.querySelector(`[data-rt-step="${CSS.escape(id)}"]`)?.focus();
+      return;
+    }
+
+    const reset = event.target.closest("[data-rt-reset]");
+
+    if (reset) {
+      const key = reset.dataset.rtReset;
+      const row = rtActionRows().find(({ step: s, action }) => passport.actionKey(s, action) === key);
+      rtDraft.actions = passport.setActionForm(rtDraft.actions, row.step, row.action, "");
+      refreshRtActions();
+      rtDrawerBody.querySelector(`[data-rt-action="${CSS.escape(key)}"]`)
+        ?.closest("[data-fo-native-select]")?.querySelector(".e-permits-fo-select__button")?.focus();
+    }
+  });
+
+  rtDrawer?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && rtDraft) {
       event.preventDefault();
-
-      if (!dropdown.classList.contains("is-open")) {
-        setFlowOpen(true);
-        return;
-      }
-
-      const index = options.indexOf(document.activeElement);
-      options[event.key === "ArrowDown" ? (index + 1) % options.length : (index - 1 + options.length) % options.length]?.focus();
-    } else if ((event.key === "Enter" || event.key === " ") && event.target.matches("[role='option']")) {
-      event.preventDefault();
-      chooseFlow(event.target);
+      closeRequestTypeDrawer();
     }
-  }, true);
-
-  /* modal.js closes the dialog on Esc from a document capture listener; catch
-     Esc earlier (window capture) while the dropdown is open, so the first Esc
-     closes only the dropdown */
-  window.addEventListener("keydown", (event) => {
-    const dropdown = flowDropdown();
-
-    if (event.key !== "Escape" || !dropdown?.classList.contains("is-open") || !(dropdown.contains(event.target) || flowList()?.contains(event.target))) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    setFlowOpen(false);
-    dropdown.querySelector(".e-permits-fo-select__button").focus();
-  }, true);
-
-  rtModal?.querySelector("[data-service-rt-save]")?.addEventListener("click", () => {
-    const service = getServiceByCode(serviceProfileState.code);
-    const requestType = service?.geap.requestTypes.find((rt) => rt.id === rtEditingId);
-
-    if (!requestType) {
-      return;
-    }
-
-    const flowSelect = rtModal.querySelector("[data-service-rt-flow-select]");
-    const flowButton = rtModal.querySelector("[data-service-rt-flow]");
-
-    if (!flowSelect.dataset.value) {
-      /* required field: error state + message, nothing saved */
-      setFieldError(flowButton, rtModal.querySelector("[data-service-rt-flow-error]"), true);
-      flowButton.focus();
-      return;
-    }
-
-    requestType.flow = flowSelect.dataset.value;
-    requestType.forms = [...rtModal.querySelectorAll("[data-service-rt-form]:checked")].map((input) => input.value);
-    logServiceEvents(service.code, [{
-      at: localIsoNow(), user: currentUserName(), type: "Configurare tip solicitare", status: "Reușit",
-      detail: `${requestType.name}: ${getFlowById(requestType.flow)?.name || "fără flux"}, ${requestType.forms.length} formulare`
-    }]);
-    window.__modal?.close?.("#service-rt-modal");
-    renderServiceProfile();
-    showShellToast(`Tipul de solicitare „${requestType.name}” a fost salvat.`);
   });
 
   /* ---- payment actions (Feature 93591) ---------------------------------- */
@@ -5718,7 +5945,7 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmModal.querySelector("[data-service-confirm-text]").textContent = text;
     const button = confirmModal.querySelector("[data-service-confirm-ok]");
     button.textContent = confirmLabel;
-    button.className = `btn ${destructive ? "btn-destructive" : "btn-primary"} btn-sm`;
+    button.className = `btn ${destructive ? "btn-destructive" : "btn-primary"} btn-rounded`;
     pendingConfirm = onConfirm;
     window.__modal?.open?.("#service-confirm-modal");
   };
@@ -5924,7 +6151,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const configure = event.target.closest("[data-passport-configure-rt]");
 
     if (configure) {
-      openRequestTypeModal(configure.dataset.passportConfigureRt);
+      openRequestTypeDrawer(configure.dataset.passportConfigureRt);
       return;
     }
 
@@ -6011,6 +6238,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (servicesResponse.ok && passport) {
           servicesStore = await servicesResponse.json();
+          await loadFlowDefinitions();
           servicesDb = buildServicesDb();
           authoritiesDb = buildAuthoritiesDb();
         }

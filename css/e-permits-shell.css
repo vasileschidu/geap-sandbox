@@ -3582,9 +3582,10 @@ body.is-user-create-open {
 
 .e-permits-user-create__header {
   box-sizing: border-box;
+  /* never squeezed by the scrolling body */
+  flex: 0 0 auto;
   width: 100%;
-  min-height: 80px;
-  padding: 24px;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -3596,10 +3597,10 @@ body.is-user-create-open {
   margin: 0;
   flex: 1 1 auto;
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-24, 24px);
+  font-size: var(--font-size-fs-20, 20px);
   font-weight: var(--font-weight-fw-semibold, 600);
   line-height: var(--line-height-lh-32, 32px);
-  letter-spacing: -0.24px;
+  letter-spacing: -0.2px;
 }
 
 .e-permits-user-create__close {
@@ -3851,23 +3852,24 @@ body.is-user-create-open {
   height: 16px;
 }
 
+/* drawer footer = the modal footer: 16 / 24 padding, library .modal-buttons
+   (40px pill buttons, 12px gap) */
 .e-permits-user-create__footer {
   box-sizing: border-box;
+  flex: 0 0 auto;
   width: 100%;
-  min-height: 88px;
-  padding: 16px 20px 24px;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--spacing-12, 12px);
   background: var(--color-background-base-default, #fff);
   box-shadow: 0 -1px 1.5px rgb(0 0 0 / 16%), 0 0 0.25px rgb(0 0 0 / 30%);
 }
 
 @media (max-width: 760px) {
   .e-permits-user-create__header {
-    min-height: 72px;
-    padding: 20px 16px;
+    padding: var(--spacing-16, 16px);
   }
 
   .e-permits-user-create__body {

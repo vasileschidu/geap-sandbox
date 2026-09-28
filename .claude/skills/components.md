@@ -751,8 +751,16 @@ Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/
 `.e-permits-fo-input.is-error` / `.e-permits-fo-textarea.is-error` mirror `.e-permits-fo-select.is-error`.
 
 **One back-office button**: `.btn` + variant + `.btn-sm` = 32px, radius 6, transparent
-border — page header, list rows, toolbars, **modal and drawer footers**. No `btn-md` /
-`btn-lg` / `btn-rounded` in the back office, no hand-rolled buttons. `main.css` now
+border — page header, list rows, toolbars. No `btn-md` / `btn-lg`, no hand-rolled buttons.
+
+**Modal AND drawer footers** (Figma EVO WEB 3.0 `20612:37263`): buttons sit in the
+library `.modal-buttons` group → **40px pill**, 14/20 medium, 20px sides (12/16 with a
+leading icon), fill only, 12px gap; secondary = `btn-neutral` (grey), main action =
+`btn-primary`; markup `btn btn-neutral btn-rounded` / `btn btn-primary btn-rounded`, no size
+class. Footers are compact: `.modal--footer` and `.e-permits-user-create__footer` padding
+16 top/bottom, 24 sides. Headers are compact too: `.modal--header` top 16 (close button
+at top 16), drawer header 16/24, no min-height; modal and drawer titles are 20px
+semibold on a 32px line (level with the 32px close button). A lone "Închide" is primary. `main.css` now
 renders `.btn.btn-sm` at the Figma Small 32px (it was 29.25px); rounded/pill
 variants keep their radius. The full flow keeps its own sizes.
 
@@ -2282,15 +2290,29 @@ The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are remove
   per keystroke, it drops characters. Ticking an option patches it in place and swaps
   only the heading + groups (`patchPermissionsTab`) so the open list keeps its scroll
   and position. Esc clears; picking an option keeps focus.
-- **Configurează tipul de solicitare** (`#service-rt-modal`): Flux de procesare is the
-  `.e-permits-fo-select`; its list floats in the overlay while open (the modal is
-  `overflow: hidden` + transformed, so an in-modal list gets cut) and flips up when
-  there is no room below. Formulare utilizate is a stacked-list group (grey
-  `.e-permits-stack__group-label` + count) whose rows are one
-  `label.checkbox.checkbox--medium.e-permits-passport__rt-form` — never a bare
-  `<fieldset>`/`<legend>` list.
-- **Dialogs** are library `.modal`: `#service-sync-modal`, `#service-rt-modal`,
-  `#service-confirm-modal`. Feedback via `showShellToast(message, "error")` for
+- **Configurează tipul de solicitare** = a **wide drawer** (`[data-rt-drawer]`, the
+  user-create drawer + `.e-permits-user-create--wide`, max 1120px), not a modal. A request
+  type = flow + **one** electronic form + examination term (prefilled from the RSSP
+  sub-service duration, editable) + the form each flow action opens.
+  - General: three full-flow fields (Flux required, Formular electronic, Termen = number + unit).
+  - Formulare pe acțiuni: filter chips with counts (Toate / Modificate / Cu formular /
+    Fără formular, library `.chip` + `.chip__badge`), full-flow search, then a collapsible
+    stacked list **grouped by step** (automatic branches tagged "Automat"). Each action has a
+    full-flow dropdown whose first option is "Implicit · <default>"; an override shows a
+    "Modificat" tag, the default underneath and a "Revino la implicit" text button. No
+    pagination, no tables.
+  - Rules live in `GEAP.servicePassport` (`actionForm`, `setActionForm`, `overrideCount`):
+    overrides are stored only where they differ from the process default; overrides for
+    actions not in the saved flow are dropped. Flows carry `steps[].actions[].defaultForm`;
+    process forms are `processForms` in `data/e-permits-services.json`.
+  - Flows exported from the process designer (`flows[].definitionUrl`, e.g.
+    `data/flows/ProcesFluxSimplificatFaraSupervizor.json`) give the steps & actions via
+    `stepsFromDefinition` (Human + Hybrid states, breadth-first; `formName` = default
+    form; `next` = "Continuă"). The **diagram is not in this drawer** — it belongs to the
+    Workflows item ("Fluxuri de lucru", not built yet); under Flux de procesare a library
+    `.link` "Vezi schema fluxului în Fluxuri de lucru" points to `#flux/<id>` (new tab).
+- **Dialogs** are library `.modal`: `#service-sync-modal`, `#service-confirm-modal`.
+  Feedback via `showShellToast(message, "error")` for
   blocked actions — never the success tone.
 
 ### `e-permits-workplace__*` — registry / data grid

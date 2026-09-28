@@ -1,0 +1,528 @@
+{
+  "name": "ProcesFluxSimplificatFaraSupervizor",
+  "title": "Flux Simplificat Fara Supervizor",
+  "version": "1.0.0",
+  "initialState": "start",
+  "states": [
+    {
+      "id": "start",
+      "title": "Start",
+      "smStatus": 0,
+      "kind": "Server",
+      "roles": [],
+      "transitions": [
+        { "event": "next", "target": "node1" },
+        { "event": "next", "target": "node2", "sourcePort": "bottom" }
+      ],
+      "properties": { "x": 128, "y": 48, "laneId": "lane1" }
+    },
+    {
+      "id": "end",
+      "fieldAssignments": [{ "name": "StatusId", "value": "9" }],
+      "title": "End",
+      "smStatus": 0,
+      "kind": "Terminal",
+      "roles": [],
+      "transitions": [],
+      "properties": { "x": 2088, "y": 48, "laneId": "lane1" }
+    },
+    {
+      "id": "node1",
+      "title": "Sub-Proces Initiere Cerere FO",
+      "kind": "Server",
+      "roles": [],
+      "description": "Sub-Proces Initiere Cerere FrontOffice",
+      "transitions": [{ "event": "next", "target": "RecordState7" }],
+      "properties": { "x": 220, "y": 52, "elementType": "subproces", "laneId": "lane1", "processRef": "SubProcessDepunereCereriiFrontOffice" }
+    },
+    {
+      "id": "node2",
+      "title": "Sub-Proces Initiere Cerere BO",
+      "kind": "Server",
+      "roles": [],
+      "description": "Sub-Proces Initiere Cerere BackOffice",
+      "transitions": [{ "event": "next", "target": "node40" }],
+      "properties": { "x": 80, "y": 252, "elementType": "subproces", "laneId": "lane2", "processRef": "SubProcessDepunereCereriiGEAPGhieu" }
+    },
+    {
+      "id": "node3",
+      "title": "Distribuire automată?",
+      "kind": "Hybrid",
+      "roles": [],
+      "description": "Distribuire automată se prea din pașaportul serviciului",
+      "transitions": [
+        { "event": "Da", "target": "node4", "guard": { "groups": [{ "conditions": [{ "sourceField": "IsAutoDistribution", "operator": "isTrue", "valueKind": "static" }] }] }, "sourcePort": "corner-br" },
+        { "event": "Nu", "target": "node5", "sourcePort": "corner-tr" }
+      ],
+      "properties": { "x": 138, "y": 418, "elementType": "decizie", "laneId": "lane3" }
+    },
+    {
+      "id": "node4",
+      "title": "Distribuire Automată",
+      "kind": "Server",
+      "roles": [],
+      "description": "Distribuire Automată",
+      "transitions": [{ "event": "next", "target": "node29", "sourcePort": "right" }],
+      "properties": { "x": 139, "y": 1479, "elementType": "eveniment", "laneId": "lane6", "showName": true }
+    },
+    {
+      "id": "node5",
+      "fieldAssignments": [{ "name": "StatusId", "value": "10" }],
+      "title": "Selectează specialistul cu instrucțiuni",
+      "kind": "Human",
+      "roles": ["61b20cc3-baaa-4823-9822-c01399bb8c68"],
+      "transitions": [{ "event": "Distribue", "target": "node29", "formName": "DistribuireDosar" }],
+      "properties": { "x": 190, "y": 772, "elementType": "stare", "laneId": "lane5" }
+    },
+    {
+      "id": "node6",
+      "fieldAssignments": [{ "name": "StatusId", "value": "2" }],
+      "title": "Verifică date",
+      "kind": "Human",
+      "roles": ["61b20cc3-baaa-4823-9822-c01399bb8c68"],
+      "description": "Verifică date",
+      "transitions": [
+        { "event": "Suspendare", "target": "node7", "formName": "SuspendareTermen", "labelDx": 1.9999313354492188, "labelDy": 1.9999313354492188 },
+        { "event": "Dosar examinat", "target": "node12", "labelDx": 28.66669464111328, "labelDy": -0.6666717529296875, "sourcePort": "bottom-right" }
+      ],
+      "properties": { "x": 370, "y": 872, "elementType": "stare", "laneId": "lane5", "terms": [{ "term": "Examinare", "action": "start" }] }
+    },
+    {
+      "id": "node7",
+      "title": "Suspendare cu coordonare și semnare?",
+      "kind": "Hybrid",
+      "roles": [],
+      "transitions": [
+        { "event": "Da", "target": "node10", "guard": { "groups": [{ "conditions": [{ "sourceField": "SuspensionWithCoordination", "operator": "isTrue", "valueKind": "static" }] }] }, "labelDx": 1.2223052978515625, "labelDy": -151.5555648803711, "sourcePort": "corner-br", "targetPort": "right" },
+        { "event": "Nu", "target": "RecordState2", "labelDx": -2.9999542236328125, "labelDy": 288.9999771118164, "sourcePort": "corner-tl", "targetPort": "right" }
+      ],
+      "properties": { "x": 858, "y": 878, "elementType": "decizie", "laneId": "lane5" }
+    },
+    {
+      "id": "node10",
+      "fieldAssignments": [{ "name": "StatusId", "value": "2" }],
+      "title": "Semnează decizie suspendare",
+      "kind": "Human",
+      "roles": [],
+      "description": "Semnează decizie suspendare",
+      "transitions": [
+        { "event": "Returnează la  Specialist", "target": "node35", "formName": "ReturnareLaSpecialist", "labelDx": 79.00001525878906, "labelDy": 4.000091552734375, "targetPort": "bottom" },
+        { "event": "Semnează", "target": "RecordState2", "labelDx": 5, "labelDy": 385, "sourcePort": "top" }
+      ],
+      "properties": { "x": 690, "y": 1312, "elementType": "stare", "laneId": "lane7" }
+    },
+    {
+      "id": "node11",
+      "title": "Sub-proces Suplinire informații",
+      "kind": "Server",
+      "roles": [],
+      "description": "Sub-proces Suplinire informații",
+      "transitions": [{ "event": "next", "target": "node43", "sourcePort": "left" }],
+      "properties": { "x": 580, "y": 52, "elementType": "subproces", "laneId": "lane1", "processRef": "SubProcessSuplinireInformaiiFrontOffice", "terms": [{ "term": "Examinare", "action": "pause" }, { "term": "RaspunsSolicitant", "action": "start", "onExpire": "next" }] },
+      "fieldAssignments": [{ "name": "StatusId", "value": "3" }]
+    },
+    {
+      "id": "node12",
+      "title": "Necesită Avizare?",
+      "kind": "Hybrid",
+      "roles": [],
+      "transitions": [
+        { "event": "Avizare", "target": "node31", "guard": { "groups": [{ "conditions": [{ "sourceField": "WithExpertise", "operator": "isTrue", "valueKind": "static" }] }] }, "labelDx": 1.0000228881835938, "labelDy": 135, "sourcePort": "corner-tl" },
+        { "event": "Aprobare", "target": "RecordState9" },
+        { "event": "Respingere", "target": "node14", "labelDx": -52.00006103515625, "labelDy": 2, "sourcePort": "corner-br" }
+      ],
+      "properties": { "x": 598, "y": 1018, "elementType": "decizie", "laneId": "lane5" }
+    },
+    {
+      "id": "node13",
+      "title": "Sub-Process Avizare Interinstitutionala",
+      "kind": "Server",
+      "roles": [],
+      "description": "Sub-Process Avizare Interinstitutionala",
+      "transitions": [{ "event": "Returnare  după avizare", "target": "node6", "labelDx": 43.46669006347656, "labelDy": -35.28877258300781, "sourcePort": "left", "targetPort": "top" }],
+      "properties": { "x": 500, "y": 552, "elementType": "subproces", "laneId": "lane4", "processRef": "SubProcesAvizareexterna" }
+    },
+    {
+      "id": "RecordState9",
+      "title": "Calculează taxele",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "payment-accrual",
+      "transitions": [
+        { "event": "next", "target": "node9" },
+        { "event": "failed", "target": "node9" }
+      ],
+      "properties": { "x": 919, "y": 1019, "elementType": "eveniment", "laneId": "lane5", "momentId": 2 }
+    },
+    {
+      "id": "node9",
+      "fieldAssignments": [{ "name": "StatusId", "value": "2" }],
+      "title": "Setează taxă",
+      "kind": "Human",
+      "roles": [],
+      "transitions": [{ "event": "next", "target": "node15", "targetPort": "right" }],
+      "properties": { "x": 1050, "y": 1012, "elementType": "stare", "laneId": "lane5" }
+    },
+    {
+      "id": "node14",
+      "fieldAssignments": [{ "name": "StatusId", "value": "2" }],
+      "title": "Creează proiectul deciziei de respingere",
+      "kind": "Human",
+      "roles": ["61b20cc3-baaa-4823-9822-c01399bb8c68"],
+      "description": "Creează proiectul deciziei de respingere",
+      "transitions": [
+        { "event": "next", "target": "node33", "formName": "DecizieRespingere", "sourcePort": "right" },
+        { "event": "Cerere incompletă", "target": "node34", "formName": "DecizieRespingere", "sourcePort": "top" }
+      ],
+      "properties": { "x": 950, "y": 1112, "elementType": "stare", "laneId": "lane5" }
+    },
+    {
+      "id": "node15",
+      "fieldAssignments": [{ "name": "StatusId", "value": "4" }],
+      "title": "Modifică taxe și creează notă de plată",
+      "kind": "Human",
+      "roles": [],
+      "description": "Modifică taxe și creează notă de plată",
+      "componentType": "payment-note",
+      "transitions": [{ "event": "next", "target": "RecordState3" }],
+      "properties": { "x": 950, "y": 412, "elementType": "stare", "laneId": "lane3", "momentId": 2 }
+    },
+    {
+      "id": "node16",
+      "fieldAssignments": [{ "name": "StatusId", "value": "4" }],
+      "title": "Achită MPay",
+      "kind": "Human",
+      "roles": [],
+      "transitions": [{ "event": "next", "target": "node17", "sourcePort": "right" }],
+      "properties": { "x": 1130, "y": 52, "elementType": "stare", "laneId": "lane1", "terms": [{ "term": "Examinare", "action": "pause" }] }
+    },
+    {
+      "id": "node17",
+      "fieldAssignments": [{ "name": "StatusId", "value": "2" }],
+      "title": "Creează proiectul actului",
+      "kind": "Human",
+      "roles": ["61b20cc3-baaa-4823-9822-c01399bb8c68"],
+      "description": "Creează proiectul actului",
+      "transitions": [
+        { "event": "next", "target": "node32", "formName": "ProiectActPermisiv", "sourcePort": "right" },
+        { "event": "Cerere incompletă", "target": "node34", "formName": "ProiectActPermisiv", "labelDx": 25.000076293945312, "labelDy": -2.0000076293945312, "sourcePort": "left" }
+      ],
+      "properties": { "x": 1230, "y": 752, "elementType": "stare", "laneId": "lane5", "terms": [{ "term": "Examinare", "action": "resume" }] }
+    },
+    {
+      "id": "node18",
+      "title": "Aprobare secundară?",
+      "kind": "Hybrid",
+      "roles": [],
+      "transitions": [
+        { "event": "Da", "target": "node19", "labelDx": 4.80010986328125, "labelDy": -37.600006103515625, "waypoints": [{ "x": 1460, "y": 1320 }], "sourcePort": "corner-br", "targetPort": "top" },
+        { "event": "Nu", "target": "node20", "sourcePort": "corner-tr", "targetPort": "bottom" }
+      ],
+      "properties": { "x": 1418, "y": 1118, "elementType": "decizie", "laneId": "lane5" }
+    },
+    {
+      "id": "node19",
+      "fieldAssignments": [{ "name": "StatusId", "value": "9" }],
+      "title": "Verifică și semnează actul/decizia MSign",
+      "kind": "Human",
+      "roles": [],
+      "transitions": [
+        { "event": "Semnează", "target": "node21", "labelDx": 20, "labelDy": 2.399993896484375, "waypoints": [{ "x": 1600, "y": 1340 }, { "x": 1720, "y": 1340 }, { "x": 1860, "y": 1340 }], "sourcePort": "right" },
+        { "event": "Returnează", "target": "node26", "formName": "ReturnareLaSemnare", "labelDy": 87.19998168945312, "sourcePort": "left" }
+      ],
+      "properties": { "x": 1370, "y": 1352, "elementType": "stare", "laneId": "lane7" }
+    },
+    {
+      "id": "node20",
+      "fieldAssignments": [{ "name": "StatusId", "value": "9" }],
+      "title": "Semnează actul/decizia MSign",
+      "kind": "Human",
+      "roles": [],
+      "transitions": [
+        { "event": "Semnează", "target": "node21", "labelDx": -8, "labelDy": 0.79998779296875 },
+        { "event": "Returnează", "target": "node26", "formName": "ReturnareLaSemnare", "labelDx": 68, "sourcePort": "left" }
+      ],
+      "properties": { "x": 1570, "y": 992, "elementType": "stare", "laneId": "lane5" }
+    },
+    {
+      "id": "node21",
+      "title": "Eliberarea pe hârtie?",
+      "kind": "Hybrid",
+      "roles": [],
+      "transitions": [
+        { "event": "Da", "target": "node28", "guard": { "groups": [{ "conditions": [{ "sourceField": "IsPaperPermit", "operator": "isTrue", "valueKind": "static" }] }] }, "labelDx": 2.29998779296875, "labelDy": -1.599945068359375, "sourcePort": "corner-tl" },
+        { "event": "Nu", "target": "node44" }
+      ],
+      "properties": { "x": 1838, "y": 998, "elementType": "decizie", "laneId": "lane5", "terms": [{ "term": "Examinare", "action": "stop" }] }
+    },
+    {
+      "id": "node26",
+      "title": "Notificare returnare de la semnare",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "node36" }],
+      "properties": { "x": 1279, "y": 999, "elementType": "eveniment", "laneId": "lane5", "templateCodes": ["Case.ReturnedFromSigning"] }
+    },
+    {
+      "id": "node27",
+      "title": "Notificare dosar finalizat",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "RecordState1" }],
+      "properties": { "x": 1979, "y": 899, "elementType": "eveniment", "laneId": "lane5", "templateCodes": ["Case.Completed"] }
+    },
+    {
+      "id": "node28",
+      "title": "Notificare act spre imprimare",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "node22" }],
+      "properties": { "x": 1839, "y": 839, "elementType": "eveniment", "laneId": "lane5", "templateCodes": ["Permit.ToPrint"] }
+    },
+    {
+      "id": "node22",
+      "title": "Sub-proces Emitere Fizică",
+      "kind": "Server",
+      "roles": [],
+      "transitions": [{ "event": "next", "target": "node37", "targetPort": "left" }],
+      "properties": { "x": 1780, "y": 732, "elementType": "subproces", "laneId": "lane5", "processRef": "SubProcesEmiterefizic" }
+    },
+    {
+      "id": "RecordState1",
+      "title": "Publicare în MDocs",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "mdocs-publish",
+      "transitions": [{ "event": "next", "target": "RecordState5" }],
+      "properties": { "x": 1979, "y": 379, "elementType": "eveniment", "laneId": "lane3", "showName": true }
+    },
+    {
+      "id": "RecordState2",
+      "title": "Publica Event Dosar",
+      "kind": "Server",
+      "roles": [],
+      "description": "Schimbare statutului solicitarii",
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "node42" }],
+      "properties": { "x": 739, "y": 279, "elementType": "eveniment", "laneId": "lane2", "objectType": "Case", "showName": true }
+    },
+    {
+      "id": "RecordState3",
+      "title": "Publica Event Dosar",
+      "kind": "Server",
+      "roles": [],
+      "description": "Schimbare statutului solicitarii",
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "node16" }],
+      "properties": { "x": 999, "y": 59, "elementType": "eveniment", "laneId": "lane1", "objectType": "Case", "showName": true }
+    },
+    {
+      "id": "RecordState4",
+      "title": "Publica Event Dosar",
+      "kind": "Server",
+      "roles": [],
+      "description": "Schimbare statutului solicitarii",
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "node18" }],
+      "properties": { "x": 1419, "y": 839, "elementType": "eveniment", "laneId": "lane5", "objectType": "Case" }
+    },
+    {
+      "id": "RecordState5",
+      "title": "Publica Event Dosar",
+      "kind": "Server",
+      "roles": [],
+      "description": "Schimbare statutului solicitarii",
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "RecordState6" }],
+      "properties": { "x": 1979, "y": 259, "elementType": "eveniment", "laneId": "lane2", "objectType": "Case", "showName": true }
+    },
+    {
+      "id": "RecordState6",
+      "title": "Publica EVO Cabinet Event",
+      "kind": "Server",
+      "roles": [],
+      "description": "Schimbare statutului actului permisive (registrarea, retragere, ect)",
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "node37" }],
+      "properties": { "x": 1979, "y": 179, "elementType": "eveniment", "laneId": "lane2", "objectType": "Permit", "showName": true }
+    },
+    {
+      "id": "RecordState7",
+      "title": "Publica Event Dosar",
+      "kind": "Server",
+      "roles": [],
+      "description": "Schimbare statutului solicitarii",
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "node40" }],
+      "properties": { "x": 279, "y": 199, "elementType": "eveniment", "laneId": "lane2", "objectType": "Case", "showName": true }
+    },
+    {
+      "id": "node29",
+      "title": "Jurnal: dosar distribuit",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node41" }],
+      "properties": { "x": 239, "y": 879, "elementType": "eveniment", "laneId": "lane5", "auditCode": "GEAP.CASE.DISTRIBUTED" }
+    },
+    {
+      "id": "node30",
+      "title": "Jurnal: examinare suspendată",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node11", "targetPort": "right" }],
+      "properties": { "x": 739, "y": 199, "elementType": "eveniment", "laneId": "lane2", "auditCode": "GEAP.CASE.SUSPENDED" }
+    },
+    {
+      "id": "node31",
+      "title": "Jurnal: transmis spre avizare",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node13", "targetPort": "bottom-right" }],
+      "properties": { "x": 599, "y": 639, "elementType": "eveniment", "laneId": "lane4", "auditCode": "GEAP.CASE.SENT_FOR_ENDORSEMENT" }
+    },
+    {
+      "id": "node32",
+      "title": "Jurnal: cerere aprobată",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "RecordState4" }],
+      "properties": { "x": 1419, "y": 759, "elementType": "eveniment", "laneId": "lane5", "auditCode": "GEAP.CASE.APPROVED" }
+    },
+    {
+      "id": "node33",
+      "title": "Jurnal: cerere respinsă",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node18", "targetPort": "corner-bl" }],
+      "properties": { "x": 1159, "y": 1119, "elementType": "eveniment", "laneId": "lane5", "auditCode": "GEAP.CASE.REJECTED" }
+    },
+    {
+      "id": "node34",
+      "title": "Jurnal: informații solicitate",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node6", "targetPort": "top-right" }],
+      "properties": { "x": 659, "y": 759, "elementType": "eveniment", "laneId": "lane5", "auditCode": "GEAP.CASE.COMPLETION_REQUESTED" }
+    },
+    {
+      "id": "node35",
+      "title": "Jurnal: dosar returnat",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node6" }],
+      "properties": { "x": 419, "y": 1139, "elementType": "eveniment", "laneId": "lane5", "auditCode": "GEAP.CASE.RETURNED" }
+    },
+    {
+      "id": "node36",
+      "title": "Jurnal: dosar returnat",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "node17", "targetPort": "bottom" }],
+      "properties": { "x": 1279, "y": 879, "elementType": "eveniment", "laneId": "lane5", "auditCode": "GEAP.CASE.RETURNED" }
+    },
+    {
+      "id": "node37",
+      "title": "Jurnal: dosar finalizat",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "audit-log",
+      "transitions": [{ "event": "next", "target": "end" }],
+      "properties": { "x": 1979, "y": 59, "elementType": "eveniment", "laneId": "lane1", "auditCode": "GEAP.CASE.CLOSED" }
+    },
+    {
+      "id": "node40",
+      "title": "Notificare cerere înregistrată",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "node3" }],
+      "properties": { "x": 139, "y": 359, "elementType": "eveniment", "laneId": "lane3", "templateCodes": ["Case.Registered"], "showName": true }
+    },
+    {
+      "id": "node41",
+      "title": "Notificare dosar repartizat",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "node6" }],
+      "properties": { "x": 299, "y": 879, "elementType": "eveniment", "laneId": "lane5", "templateCodes": ["Case.Assigned", "Case.InProgress"], "showName": true }
+    },
+    {
+      "id": "node42",
+      "title": "Notificare dosar suspendat",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "node30" }],
+      "properties": { "x": 659, "y": 279, "elementType": "eveniment", "laneId": "lane2", "templateCodes": ["Case.Suspended"], "showName": true }
+    },
+    {
+      "id": "node43",
+      "title": "Notificare informații primite",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "RecordState8" }],
+      "properties": { "x": 459, "y": 59, "elementType": "eveniment", "laneId": "lane1", "templateCodes": ["Case.SupplementReceived"], "showName": true }
+    },
+    {
+      "id": "node44",
+      "title": "Tip decizie?",
+      "kind": "Hybrid",
+      "roles": [],
+      "transitions": [
+        { "event": "Respins", "target": "node45", "guard": { "groups": [{ "conditions": [{ "sourceField": "CaseDecisionId", "operator": "eq", "valueKind": "static", "value": "2" }] }] } },
+        { "event": "Act", "target": "node27" }
+      ],
+      "properties": { "x": 1978, "y": 998, "elementType": "decizie", "laneId": "lane5" }
+    },
+    {
+      "id": "node45",
+      "title": "Notificare cerere respinsă",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "notify",
+      "transitions": [{ "event": "next", "target": "RecordState1", "targetPort": "right" }],
+      "properties": { "x": 2079, "y": 999, "elementType": "eveniment", "laneId": "lane5", "templateCodes": ["Case.Rejected"], "showName": true }
+    },
+    {
+      "id": "RecordState8",
+      "title": "Eveniment intermediar",
+      "kind": "Server",
+      "roles": [],
+      "componentType": "mconnect-event-publish",
+      "transitions": [{ "event": "next", "target": "node6", "targetPort": "top-left" }],
+      "properties": { "x": 419, "y": 199, "elementType": "eveniment", "laneId": "lane2", "objectType": "Case" }
+    }
+  ],
+  "lanes": [
+    { "id": "lane1", "title": "Solicitant", "role": "88d2dec8-8a98-4fa1-a394-4cedb980a1d2", "height": 160, "description": "Solicitant FrontOffice" },
+    { "id": "lane2", "title": "Specialist Ghișeu", "role": "a9a0442d-0cec-444e-99df-c6513015aa14", "height": 200, "description": "Specialist Ghișeu" },
+    { "id": "lane3", "title": "Asistent tehnic ", "role": "35977a09-1d67-4d9a-91e9-448c3339129f", "height": 180, "description": "Asistent tehnic " },
+    { "id": "lane4", "title": "Expert", "role": "e36f3dab-09a9-4071-8066-4b0d4eb47f0a", "height": 180 },
+    { "id": "lane5", "title": "Specialist", "role": "61b20cc3-baaa-4823-9822-c01399bb8c68", "height": 540, "description": "Specialist" },
+    { "id": "lane7", "title": "Director", "role": "0c849b78-8e11-4763-bf9f-dc36ed598f9f", "height": 200 },
+    { "id": "lane6", "title": "GEAP Modul Distribuire", "role": "", "height": 150, "description": "GEAP Modul Distribuire" }
+  ],
+  "tableName": "GEAP_Cases",
+  "recordKey": "Id",
+  "variables": {
+    "IsAutoDistribution": "checkbox",
+    "WithPayment": "checkbox",
+    "SuspensionWithCoordination": "checkbox",
+    "WithExpertise": "checkbox",
+    "SecondaryApproval": "checkbox",
+    "IsPaperPermit": "checkbox"
+  }
+}

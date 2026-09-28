@@ -13850,7 +13850,7 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   border-radius: var(--border-radius-full, 9999px);
   color: var(--gray-600, #444);
   position: absolute;
-  top: var(--spacing-24, 24px);
+  top: var(--spacing-16, 16px);
   right: var(--spacing-20, 20px);
   font-size: var(--text-heading-h4-xs-font-size, 24px);
   border: none;
@@ -13881,11 +13881,12 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   display: none;
 }
 .modal--header {
-  padding: var(--spacing-24, 24px) var(--spacing-48, 48px) var(--spacing-0, 0px) var(--spacing-32, 32px);
+  padding: var(--spacing-16, 16px) var(--spacing-48, 48px) var(--spacing-0, 0px) var(--spacing-32, 32px);
 }
 .modal--header-title {
   color: var(--black, #121212);
-  font-size: var(--text-heading-h3-sm-font-size, 24px);
+  /* 20px title; the 32px line keeps it level with the 32px close button */
+  font-size: var(--font-size-fs-20, 20px);
   line-height: var(--spacing-32, 32px);
   margin: 0;
   display: -webkit-box;
@@ -13904,9 +13905,6 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   overflow-y: auto;
   scrollbar-width: thin;
 }
-.modal--footer {
-  padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px) var(--spacing-20, 20px);
-}
 .modal-text {
   font-size: var(--text-body-md-font-size, 16px);
   color: var(--gray-700, #383838);
@@ -13916,7 +13914,38 @@ body:has(.modal-overlay.modal-overlay.is-active) {
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-12, 12px);
+}
+/* Figma modal Footer (EVO WEB 3.0, 20612:37263): 40px pill buttons, 14/20
+   medium, 20px sides (12 / 16 with a leading icon), fill only — the
+   secondary is the neutral grey fill. Footer: 16 top/bottom, 24 sides. */
+.modal--footer {
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+.modal-buttons .btn {
+  border-color: transparent;
+  border-radius: var(--border-radius-full, 9999px);
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  height: 40px;
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 56px;
+  padding: 0 var(--spacing-20, 20px);
+  white-space: nowrap;
+}
+.modal-buttons .btn:has(> .icon:first-child) {
+  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
+}
+.modal-buttons .btn-neutral,
+.modal-buttons .btn-neutral:hover:not(:disabled),
+.modal-buttons .btn-neutral:active:not(:disabled) {
+  border-color: transparent;
+  color: var(--color-text-base-default, #121212);
+}
+.modal-buttons .btn-neutral {
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 .modal--fade {
   opacity: 0;
@@ -19871,9 +19900,12 @@ label.required::after {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   font-size: 12px;
   height: var(--spacing-16, 16px);
   min-width: var(--spacing-16, 16px);
+  /* one digit stays a 16px circle; two or more become a pill */
+  padding: 0 var(--spacing-4, 4px);
   border-radius: var(--border-radius-full, 9999px);
   background-color: var(--color-white, #fff);
   color: var(--gray-900);

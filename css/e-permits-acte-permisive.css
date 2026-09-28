@@ -19067,3 +19067,78 @@
   border-color: transparent;
   color: #fff;
 }
+
+/* ---- Configurează tipul de solicitare: the user-create drawer, wide ------
+   enough for the step list with one form dropdown per action */
+.e-permits-user-create--wide .e-permits-user-create__drawer {
+  width: min(1120px, calc(100vw - var(--spacing-64, 64px)));
+}
+
+.e-permits-rt__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-rt__summary {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-right: auto;
+}
+
+/* number + unit on one line */
+.e-permits-rt__term {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+.e-permits-rt__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-rt__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-rt__search {
+  width: min(320px, 100%);
+}
+
+.e-permits-rt__action-control {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-rt__action-control .e-permits-fo-select {
+  width: 340px;
+}
+
+@media (max-width: 760px) {
+  .e-permits-user-create--wide .e-permits-user-create__drawer {
+    width: 100vw;
+  }
+
+  .e-permits-rt__action {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-rt__action-control,
+  .e-permits-rt__action-control .e-permits-fo-select,
+  .e-permits-rt__search {
+    width: 100%;
+  }
+}

@@ -3,29 +3,478 @@
   "note": "Seed for the Pașaportul Serviciului prototype (Feature 90575). `rssp` = data synced from RSSP (read-only); `geap` = configured in GEAP.",
   "flows": [
     {
+      "id": "flux-simplificat-fara-supervizor",
+      "name": "Flux Simplificat Fara Supervizor",
+      "version": "v1.0.0",
+      "definitionUrl": "data/flows/ProcesFluxSimplificatFaraSupervizor.json"
+    },
+    {
       "id": "flux-standard-v3",
       "name": "Flux standard act permisiv",
-      "version": "v3"
+      "version": "v3",
+      "steps": [
+        {
+          "id": "distribuire-automata",
+          "name": "Distribuire automată?",
+          "auto": true,
+          "actions": [
+            {
+              "id": "da",
+              "name": "Da",
+              "defaultForm": null
+            },
+            {
+              "id": "nu",
+              "name": "Nu",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "selecteaza-specialistul-cu-instructiuni",
+          "name": "Selectează specialistul cu instrucțiuni",
+          "actions": [
+            {
+              "id": "distribuie",
+              "name": "Distribuie",
+              "defaultForm": "DistribuireDosar"
+            }
+          ]
+        },
+        {
+          "id": "verifica-plata",
+          "name": "Verifică plata",
+          "actions": [
+            {
+              "id": "plata-confirmata",
+              "name": "Plată confirmată",
+              "defaultForm": null
+            },
+            {
+              "id": "plata-lipsa",
+              "name": "Plată lipsă",
+              "defaultForm": "ReturnareLaSolicitant"
+            }
+          ]
+        },
+        {
+          "id": "verifica-date",
+          "name": "Verifică date",
+          "actions": [
+            {
+              "id": "suspendare",
+              "name": "Suspendare",
+              "defaultForm": "SuspendareTermen"
+            },
+            {
+              "id": "dosar-examinat",
+              "name": "Dosar examinat",
+              "defaultForm": null
+            },
+            {
+              "id": "informatii-suficiente",
+              "name": "Informații suficiente",
+              "defaultForm": null
+            },
+            {
+              "id": "respinge",
+              "name": "Respinge",
+              "defaultForm": "RespingereCerere"
+            }
+          ]
+        },
+        {
+          "id": "suspendare-cu-coordonare-si-semnare",
+          "name": "Suspendare cu coordonare și semnare?",
+          "auto": true,
+          "actions": [
+            {
+              "id": "da",
+              "name": "Da",
+              "defaultForm": null
+            },
+            {
+              "id": "nu",
+              "name": "Nu",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "semneaza-decizie-suspendare",
+          "name": "Semnează decizie suspendare",
+          "actions": [
+            {
+              "id": "returneaza-la-specialist",
+              "name": "Returnează la Specialist",
+              "defaultForm": "ReturnareLaSpecialist"
+            },
+            {
+              "id": "semneaza",
+              "name": "Semnează",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "necesita-avizare",
+          "name": "Necesită avizare?",
+          "auto": true,
+          "actions": [
+            {
+              "id": "avizare",
+              "name": "Avizare",
+              "defaultForm": null
+            },
+            {
+              "id": "fara-avizare",
+              "name": "Fără avizare",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "solicita-aviz",
+          "name": "Solicită aviz",
+          "actions": [
+            {
+              "id": "trimite-solicitarea",
+              "name": "Trimite solicitarea",
+              "defaultForm": "SolicitareAviz"
+            }
+          ]
+        },
+        {
+          "id": "examineaza-avizele",
+          "name": "Examinează avizele",
+          "actions": [
+            {
+              "id": "aviz-pozitiv",
+              "name": "Aviz pozitiv",
+              "defaultForm": null
+            },
+            {
+              "id": "aviz-negativ",
+              "name": "Aviz negativ",
+              "defaultForm": null
+            },
+            {
+              "id": "returneaza-la-supervizor",
+              "name": "Returnează la Supervizor",
+              "defaultForm": "Generic.ReturneazaLaSupervizor"
+            }
+          ]
+        },
+        {
+          "id": "pregateste-decizia",
+          "name": "Pregătește decizia",
+          "actions": [
+            {
+              "id": "emitere",
+              "name": "Emitere",
+              "defaultForm": "DecizieEmitere"
+            },
+            {
+              "id": "refuz",
+              "name": "Refuz",
+              "defaultForm": "RespingereCerere"
+            }
+          ]
+        },
+        {
+          "id": "coordoneaza-decizia",
+          "name": "Coordonează decizia",
+          "actions": [
+            {
+              "id": "aproba",
+              "name": "Aprobă",
+              "defaultForm": null
+            },
+            {
+              "id": "returneaza-la-specialist",
+              "name": "Returnează la Specialist",
+              "defaultForm": "ReturnareLaSpecialist"
+            }
+          ]
+        },
+        {
+          "id": "semneaza-decizia",
+          "name": "Semnează decizia",
+          "actions": [
+            {
+              "id": "semneaza",
+              "name": "Semnează",
+              "defaultForm": "SemnareDecizie"
+            },
+            {
+              "id": "returneaza-la-supervizor",
+              "name": "Returnează la Supervizor",
+              "defaultForm": "Generic.ReturneazaLaSupervizor"
+            }
+          ]
+        },
+        {
+          "id": "elibereaza-actul",
+          "name": "Eliberează actul",
+          "actions": [
+            {
+              "id": "elibereaza",
+              "name": "Eliberează",
+              "defaultForm": "EliberareAct"
+            }
+          ]
+        },
+        {
+          "id": "notifica-solicitantul",
+          "name": "Notifică solicitantul",
+          "actions": [
+            {
+              "id": "trimite-notificarea",
+              "name": "Trimite notificarea",
+              "defaultForm": "NotificareSolicitant"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "flux-avizare-v2",
       "name": "Flux cu avizare",
-      "version": "v2"
+      "version": "v2",
+      "steps": [
+        {
+          "id": "distribuire-automata",
+          "name": "Distribuire automată?",
+          "auto": true,
+          "actions": [
+            {
+              "id": "da",
+              "name": "Da",
+              "defaultForm": null
+            },
+            {
+              "id": "nu",
+              "name": "Nu",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "selecteaza-specialistul",
+          "name": "Selectează specialistul",
+          "actions": [
+            {
+              "id": "distribuie",
+              "name": "Distribuie",
+              "defaultForm": "DistribuireDosar"
+            }
+          ]
+        },
+        {
+          "id": "verifica-date",
+          "name": "Verifică date",
+          "actions": [
+            {
+              "id": "solicita-aviz",
+              "name": "Solicită aviz",
+              "defaultForm": "SolicitareAviz"
+            },
+            {
+              "id": "respinge",
+              "name": "Respinge",
+              "defaultForm": "RespingereCerere"
+            }
+          ]
+        },
+        {
+          "id": "examineaza-avizele",
+          "name": "Examinează avizele",
+          "actions": [
+            {
+              "id": "aviz-pozitiv",
+              "name": "Aviz pozitiv",
+              "defaultForm": null
+            },
+            {
+              "id": "aviz-negativ",
+              "name": "Aviz negativ",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "semneaza-decizia",
+          "name": "Semnează decizia",
+          "actions": [
+            {
+              "id": "semneaza",
+              "name": "Semnează",
+              "defaultForm": "SemnareDecizie"
+            },
+            {
+              "id": "returneaza-la-specialist",
+              "name": "Returnează la Specialist",
+              "defaultForm": "ReturnareLaSpecialist"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "flux-notificare-v1",
       "name": "Flux simplificat de notificare",
-      "version": "v1"
+      "version": "v1",
+      "steps": [
+        {
+          "id": "inregistrare-automata",
+          "name": "Înregistrare automată?",
+          "auto": true,
+          "actions": [
+            {
+              "id": "da",
+              "name": "Da",
+              "defaultForm": null
+            },
+            {
+              "id": "nu",
+              "name": "Nu",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "verifica-notificarea",
+          "name": "Verifică notificarea",
+          "actions": [
+            {
+              "id": "confirma",
+              "name": "Confirmă",
+              "defaultForm": null
+            },
+            {
+              "id": "returneaza-pentru-completare",
+              "name": "Returnează pentru completare",
+              "defaultForm": "ReturnareLaSolicitant"
+            }
+          ]
+        },
+        {
+          "id": "emite-confirmarea",
+          "name": "Emite confirmarea",
+          "actions": [
+            {
+              "id": "semneaza",
+              "name": "Semnează",
+              "defaultForm": "SemnareDecizie"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "flux-postprocesare-v1",
       "name": "Flux de postprocesare (suspendare, retragere)",
-      "version": "v1"
+      "version": "v1",
+      "steps": [
+        {
+          "id": "examineaza-cererea",
+          "name": "Examinează cererea",
+          "actions": [
+            {
+              "id": "suspenda",
+              "name": "Suspendă",
+              "defaultForm": "SuspendareTermen"
+            },
+            {
+              "id": "retrage",
+              "name": "Retrage",
+              "defaultForm": "RetragereAct"
+            },
+            {
+              "id": "respinge",
+              "name": "Respinge",
+              "defaultForm": "RespingereCerere"
+            }
+          ]
+        },
+        {
+          "id": "semneaza-decizia",
+          "name": "Semnează decizia",
+          "actions": [
+            {
+              "id": "semneaza",
+              "name": "Semnează",
+              "defaultForm": "SemnareDecizie"
+            },
+            {
+              "id": "returneaza-la-specialist",
+              "name": "Returnează la Specialist",
+              "defaultForm": "ReturnareLaSpecialist"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "flux-laborator-v2",
       "name": "Flux analiză de laborator",
-      "version": "v2"
+      "version": "v2",
+      "steps": [
+        {
+          "id": "selecteaza-specialistul",
+          "name": "Selectează specialistul",
+          "actions": [
+            {
+              "id": "distribuie",
+              "name": "Distribuie",
+              "defaultForm": "DistribuireDosar"
+            }
+          ]
+        },
+        {
+          "id": "prelevare-probe",
+          "name": "Prelevare probe",
+          "actions": [
+            {
+              "id": "probe-prelevate",
+              "name": "Probe prelevate",
+              "defaultForm": "ProcesVerbalPrelevare"
+            },
+            {
+              "id": "prelevare-imposibila",
+              "name": "Prelevare imposibilă",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "analiza-de-laborator",
+          "name": "Analiză de laborator",
+          "actions": [
+            {
+              "id": "rezultat-conform",
+              "name": "Rezultat conform",
+              "defaultForm": null
+            },
+            {
+              "id": "rezultat-neconform",
+              "name": "Rezultat neconform",
+              "defaultForm": null
+            }
+          ]
+        },
+        {
+          "id": "emite-buletinul",
+          "name": "Emite buletinul",
+          "actions": [
+            {
+              "id": "semneaza",
+              "name": "Semnează",
+              "defaultForm": "BuletinAnaliza"
+            }
+          ]
+        }
+      ]
     }
   ],
   "authorities": [
@@ -172,34 +621,50 @@
             "id": "rt-1",
             "name": "Emitere primară",
             "source": "RSSP",
-            "flow": "flux-notificare-v1",
-            "forms": [
-              "frm-1",
-              "frm-2"
-            ]
+            "flow": "flux-simplificat-fara-supervizor",
+            "form": "frm-1",
+            "term": {
+              "value": 5,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {
+              "node17/cerere-incompleta": "ReturnareLaSpecialist"
+            }
           },
           {
             "id": "rt-2",
             "name": "Reperfectare",
             "source": "RSSP",
             "flow": "flux-standard-v3",
-            "forms": [
-              "frm-3"
-            ]
+            "form": "frm-3",
+            "term": {
+              "value": 3,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {
+              "semneaza-decizie-suspendare/returneaza-la-specialist": "Generic.ReturneazaLaSupervizor"
+            }
           },
           {
             "id": "rt-3",
             "name": "Suspendarea valabilității",
             "source": "GEAP",
             "flow": "flux-postprocesare-v1",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 10,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           },
           {
             "id": "rt-4",
             "name": "Retragere",
             "source": "GEAP",
             "flow": null,
-            "forms": []
+            "form": null,
+            "term": null,
+            "actions": {}
           }
         ],
         "forms": [
@@ -576,16 +1041,24 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": "flux-laborator-v2",
-            "forms": [
-              "frm-1"
-            ]
+            "form": "frm-1",
+            "term": {
+              "value": 10,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           },
           {
             "id": "rt-2",
             "name": "Emitere duplicat",
             "source": "RSSP",
             "flow": "flux-standard-v3",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 3,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           }
         ],
         "forms": [
@@ -743,14 +1216,24 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": "flux-avizare-v2",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 15,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           },
           {
             "id": "rt-2",
             "name": "Prelungire",
             "source": "RSSP",
             "flow": "flux-standard-v3",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 10,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           }
         ],
         "forms": [],
@@ -824,7 +1307,12 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": "flux-standard-v3",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 10,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           }
         ],
         "forms": [],
@@ -910,14 +1398,24 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": "flux-avizare-v2",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 20,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           },
           {
             "id": "rt-2",
             "name": "Reperfectare",
             "source": "RSSP",
             "flow": null,
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 5,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           }
         ],
         "forms": [],
@@ -991,7 +1489,12 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": null,
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 30,
+              "unit": "zile calendaristice"
+            },
+            "actions": {}
           }
         ],
         "forms": [],
@@ -1065,7 +1568,12 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": "flux-standard-v3",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 10,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           }
         ],
         "forms": [],
@@ -1140,7 +1648,12 @@
             "name": "Emitere primară",
             "source": "RSSP",
             "flow": "flux-avizare-v2",
-            "forms": []
+            "form": null,
+            "term": {
+              "value": 15,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
           }
         ],
         "forms": [],
@@ -1419,5 +1932,63 @@
         "updatedOn": "2026-09-20T10:00:00"
       }
     }
-  }
+  },
+  "processForms": [
+    {
+      "id": "DistribuireDosar",
+      "name": "DistribuireDosar"
+    },
+    {
+      "id": "SuspendareTermen",
+      "name": "SuspendareTermen"
+    },
+    {
+      "id": "ReturnareLaSpecialist",
+      "name": "ReturnareLaSpecialist"
+    },
+    {
+      "id": "Generic.ReturneazaLaSupervizor",
+      "name": "Generic.ReturneazaLaSupervizor"
+    },
+    {
+      "id": "ReturnareLaSolicitant",
+      "name": "ReturnareLaSolicitant"
+    },
+    {
+      "id": "RespingereCerere",
+      "name": "RespingereCerere"
+    },
+    {
+      "id": "SolicitareAviz",
+      "name": "SolicitareAviz"
+    },
+    {
+      "id": "DecizieEmitere",
+      "name": "DecizieEmitere"
+    },
+    {
+      "id": "SemnareDecizie",
+      "name": "SemnareDecizie"
+    },
+    {
+      "id": "EliberareAct",
+      "name": "EliberareAct"
+    },
+    {
+      "id": "RetragereAct",
+      "name": "RetragereAct"
+    },
+    {
+      "id": "ProcesVerbalPrelevare",
+      "name": "ProcesVerbalPrelevare"
+    },
+    {
+      "id": "BuletinAnaliza",
+      "name": "BuletinAnaliza"
+    },
+    {
+      "id": "NotificareSolicitant",
+      "name": "NotificareSolicitant"
+    }
+  ]
 }
