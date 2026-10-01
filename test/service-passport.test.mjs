@@ -192,4 +192,125 @@ check("delete only draft or never-used", () => {
   assert.equal(sp.canDelete({ state: "Publicat", usage: 2 }), false);
 });
 
+console.log("eAPL sync");
+const svc = { code: "003000023", title: "Notificare", lastSync: "2026-01-01T00:00:00" };
+const eaplOk = () => ({ status: "ok", data: { localAuthority: { name: "Primăria Chișinău" }, localFee: { amount: 100, currency: "MDL" }, localTerm: { value: 5, unit: "zile lucrătoare" } } });
+check("eAPL enriches an existing service; logged Reușit", () => {
+  const r = sp.syncFromEapl({ ...base, code: "003000023", service: svc, lookup: eaplOk });
+  assert.equal(r.ok, true);
+  assert.equal(r.service.eapl.authority.name, "Primăria Chișinău");
+  assert.equal(r.service.lastSync, base.now);
+  assert.equal(r.events[0].status, "Reușit");
+  assert.equal(svc.eapl, undefined, "input not mutated");
+});
+check("eAPL cannot create a service; unavailable / not found are explicit and logged", () => {
+  assert.equal(sp.syncFromEapl({ ...base, code: "1", service: null, lookup: eaplOk }).reason, "newService");
+  const down = sp.syncFromEapl({ ...base, code: "1", service: svc, lookup: () => ({ status: "unavailable" }) });
+  assert.equal(down.message, sp.EAPL_MESSAGES.unavailable);
+  assert.equal(down.events[0].status, "Eșuat");
+  assert.ok(sp.syncFromEapl({ ...base, code: "9", service: svc, lookup: () => ({ status: "notFound" }) }).message.includes("nu a fost găsit în eAPL"));
+});
+
+console.log("Payment editor rules");
+const flowStd = { name: "Flux standard", paymentMoments: ["La examinare", "La luarea deciziei"] };
+check("moment needs a payment branch in the flow; initiation always allowed", () => {
+  assert.equal(sp.momentAllowed(flowStd, "La examinare"), true);
+  assert.equal(sp.momentAllowed(flowStd, "La avizare"), false);
+  assert.equal(sp.momentAllowed(null, "La inițierea solicitării"), true);
+  assert.equal(sp.momentAllowed(null, "La examinare"), false);
+});
+check("designer JSON: momentId marks the payment steps", () => {
+  assert.deepEqual(sp.momentsFromDefinition(def), ["La examinare"]);
+});
+check("tariffs: published + active + global/own; automatic excludes user-variable formulas", () => {
+  const base = { scope: "global", state: "Publicat", active: true, userVariables: false };
+  assert.equal(sp.tariffEligibility(base, "S1", "Automat").ok, true);
+  assert.equal(sp.tariffEligibility({ ...base, scope: "S2" }, "S1", "Manual").ok, false);
+  assert.equal(sp.tariffEligibility({ ...base, state: "Schiță" }, "S1", "Manual").ok, false);
+  assert.equal(sp.tariffEligibility({ ...base, active: false }, "S1", "Manual").ok, false);
+  assert.equal(sp.tariffEligibility({ ...base, userVariables: true }, "S1", "Automat").ok, false);
+  assert.equal(sp.tariffEligibility({ ...base, userVariables: true }, "S1", "Manual").ok, true);
+});
+const draft = { requestType: "Emitere primară", moment: "La examinare", generation: "Manual", tariffs: [], term: "10", exemptions: [], recurring: null };
+check("validation: valid manual draft; initiation forces automatic; no exemptions on automatic", () => {
+  assert.deepEqual(sp.validatePayment(draft, { flow: flowStd }), {});
+  assert.ok(sp.validatePayment({ ...draft, moment: "La avizare" }, { flow: flowStd }).moment.includes("nu are ramificație"));
+  assert.ok(sp.validatePayment({ ...draft, moment: "La inițierea solicitării" }, { flow: flowStd }).generation);
+  assert.ok(sp.validatePayment({ ...draft, generation: "Automat", exemptions: ["Fără scutire"] }, { flow: flowStd }).exemptions);
+  assert.ok(sp.validatePayment({ ...draft, term: "0" }, { flow: flowStd }).term);
+});
+check("validation: recurrence needs frequency (+ months for Interval) and notice days", () => {
+  const e = sp.validatePayment({ ...draft, recurring: { frequency: "Interval", months: "", noticeDays: "" } }, { flow: flowStd });
+  assert.ok(e.frequency && e.noticeDays);
+  assert.deepEqual(sp.validatePayment({ ...draft, recurring: { frequency: "Anual", noticeDays: "15" } }, { flow: flowStd }), {});
+});
+check("publish: automatic needs ≥ 1 tariff; manual publishes without", () => {
+  assert.ok(sp.validatePayment({ ...draft, generation: "Automat" }, { flow: flowStd, publish: true }).tariffs);
+  assert.deepEqual(sp.validatePayment(draft, { flow: flowStd, publish: true }), {});
+});
+check("save: new = v1 draft or published; editing a published payment bumps the version", () => {
+  const meta = { at: "2026-09-29T10:00:00", user: "A" };
+  assert.deepEqual([sp.applyPaymentEdit(null, draft, meta).state, sp.applyPaymentEdit(null, draft, meta).version], ["Schiță", 1]);
+  assert.equal(sp.applyPaymentEdit(null, draft, { ...meta, publish: true }).state, "Publicat");
+  const pub = { ...draft, state: "Publicat", version: 3, active: true };
+  const next = sp.applyPaymentEdit(pub, { term: "12" }, meta);
+  assert.deepEqual([next.version, next.state, next.active, next.term], [4, "Publicat", true, "12"]);
+});
+
+console.log("Tariff classifier");
+const tf = { scope: "global", name: "Taxă de stat", type: "Taxă de stat", amount: "50", currency: "MDL", validFrom: "2026-01-01", formula: false };
+check("validation: required fields; service tariffs need request + person type", () => {
+  assert.deepEqual(sp.validateTariff(tf), {});
+  const e = sp.validateTariff({ ...tf, scope: "S1", name: "", amount: "5,555", validTo: "2025-01-01" });
+  assert.ok(e.name && e.amount && e.requestType && e.personType && e.validTo);
+  assert.ok(sp.validateTariff({ ...tf, iban: "MD12" }).iban);
+});
+check("formula: variables, safe evaluation, rounding", () => {
+  assert.deepEqual(sp.formulaVariables("{suprafata} * 2 + {a}"), ["suprafata", "a"]);
+  assert.deepEqual(sp.evaluateFormula("{s} * 2.345", { s: 10 }, "2 zecimale"), { ok: true, value: 23.45 });
+  assert.equal(sp.evaluateFormula("{s} / 3", { s: 10 }, "Rotunjire în sus la leu").value, 4);
+  assert.equal(sp.evaluateFormula("{s} * 2", {}, "2 zecimale").ok, false);
+  assert.equal(sp.evaluateFormula("alert(1)", {}, "2 zecimale").ok, false);
+  assert.ok(sp.validateTariff({ ...tf, formula: true, expression: "", rounding: "2 zecimale" }).expression);
+});
+check("RSSP / eAPL tariffs lock the registry fields", () => {
+  assert.equal(sp.tariffLocked({ source: "RSSP" }, "amount"), true);
+  assert.equal(sp.tariffLocked({ source: "eAPL" }, "type"), false);
+  assert.equal(sp.tariffLocked({ source: "GEAP" }, "amount"), false);
+});
+check("versioning: editing a published tariff adds a version with what changed", () => {
+  const meta = { at: "2026-09-30T10:00:00", user: "A" };
+  const created = sp.applyTariffEdit(null, tf, { ...meta, publish: true });
+  assert.deepEqual([created.state, created.version, created.active], ["Publicat", 1, true]);
+  const edited = sp.applyTariffEdit(created, { amount: "60" }, meta);
+  assert.equal(edited.version, 2);
+  assert.equal(edited.versions[1].note, "Sumă 50 → 60");
+  assert.equal(sp.applyTariffEdit(edited, { amount: "60" }, meta).version, 2, "no change → same version");
+  const draft = sp.applyTariffEdit(null, tf, meta);
+  assert.equal(sp.applyTariffEdit(draft, { amount: "70" }, meta).version, 1, "drafts are not versioned");
+});
+check("lifecycle actions; delete only when unused", () => {
+  assert.deepEqual(sp.tariffActions({ state: "Schiță", active: true }, 0), ["publish", "deactivate", "delete"]);
+  assert.deepEqual(sp.tariffActions({ state: "Publicat", active: false }, 3), ["activate"]);
+});
+check("payment account: own IBAN → principal active → any active", () => {
+  const acc = [{ authorityId: "A", iban: "MD1", principal: false, active: true }, { authorityId: "A", iban: "MD2", principal: true, active: true }];
+  assert.equal(sp.tariffPayAccount({ iban: "MDX" }, acc, "A").source, "tarif");
+  assert.equal(sp.tariffPayAccount({ iban: "" }, acc, "A").iban, "MD2");
+  assert.equal(sp.tariffPayAccount({ iban: "" }, [acc[0]], "A").source, "activ");
+  assert.equal(sp.tariffPayAccount({ iban: "" }, [], "A").iban, null);
+});
+check("sync: creates, updates (new version) and leaves unchanged", () => {
+  const base = { serviceCode: "S1", source: "RSSP", now: "2026-09-30T10:00:00", today: "2026-09-30" };
+  const first = sp.syncServiceTariffs({ ...base, tariffs: [], incoming: [{ externalId: "sub-1", name: "Emitere", amount: 50 }] });
+  assert.equal(first.created, 1);
+  const again = sp.syncServiceTariffs({ ...base, tariffs: first.tariffs, incoming: [{ externalId: "sub-1", name: "Emitere", amount: 50 }] });
+  assert.equal(again.unchanged, 1);
+  const changed = sp.syncServiceTariffs({ ...base, tariffs: first.tariffs, incoming: [{ externalId: "sub-1", name: "Emitere", amount: 75 }] });
+  assert.equal(changed.updated, 1);
+  assert.equal(changed.tariffs[0].version, 2);
+  const kept = sp.syncServiceTariffs({ ...base, tariffs: [{ ...first.tariffs[0], iban: "MD00KEEP" }], incoming: [{ externalId: "sub-1", name: "Emitere", amount: 50 }] });
+  assert.equal(kept.tariffs[0].iban, "MD00KEEP", "fields the registry does not send are kept");
+});
+
 console.log(`\n${passed} checks passed`);

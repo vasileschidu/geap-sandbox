@@ -192,6 +192,12 @@
               "label": "Configurări servicii",
               "iconAsset": "assets/icons/admin-list-sparkle.svg",
               "shellView": "services-registry"
+            },
+            {
+              "id": "tariffs",
+              "label": "Tarife",
+              "iconAsset": "assets/icons/coins.svg",
+              "shellView": "tariffs-registry"
             }
           ]
         }

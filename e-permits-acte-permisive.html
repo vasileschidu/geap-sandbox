@@ -5,17 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css?v=title20">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=title20b">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=rt-link-v1">
+  <link rel="stylesheet" href="css/main.css?v=dp-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=drawer-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tl-v2">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <script src="js/search.js" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v1" defer></script>
   <script src="js/dropdown-select.js" defer></script>
+  <script src="js/icon-tooltip.js?v=tip-v1" defer></script>
+  <script src="js/input-date-picker.js?v=dp-v2" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=checkbox-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=access-copy" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v5" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
@@ -369,6 +371,37 @@
         </div>
       </section>
 
+      <!-- Service available with AND without MPass: before any manual entry,
+           say what MPass brings, then let the user choose (auth card component) -->
+      <!-- Service available with AND without MPass: the familiar "sign in or
+           continue as guest" choice, before any manual entry (auth card component) -->
+      <section class="e-permits-fo-auth__card e-permits-fo-auth__card--access" aria-labelledby="fo-access-title" data-fo-screen="access" hidden>
+        <div class="e-permits-fo-auth__content">
+          <div class="e-permits-fo-auth__title-group">
+            <svg class="e-permits-fo-auth__lock icon" width="36" height="36" aria-hidden="true">
+              <use href="assets/icons/sprite.svg#icon-user-account"></use>
+            </svg>
+            <h1 id="fo-access-title">Autentifică-te sau continuă fără cont</h1>
+          </div>
+          <p class="e-permits-fo-auth__description">Poți depune cererea în ambele moduri.</p>
+
+          <div class="e-permits-fo-access__option">
+            <button class="btn btn-badge btn-badge--primary btn-badge--mpass" type="button" data-fo-access-mpass>
+              <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-pass.svg" alt=""></span>
+              <span class="btn-badge__label">Autentifică-te prin mpass</span>
+            </button>
+            <p class="e-permits-fo-access__hint">Recomandat: datele tale se completează automat, iar actul îl primești în contul EVO.</p>
+          </div>
+
+          <div class="e-permits-fo-access__or" role="separator"><span>sau</span></div>
+
+          <div class="e-permits-fo-access__option">
+            <button class="btn btn-neutral" type="button" data-fo-access-guest>Continuă fără cont</button>
+            <p class="e-permits-fo-access__hint">Completezi datele manual, iar actul îl primești pe e-mail.</p>
+          </div>
+        </div>
+      </section>
+
       <section class="e-permits-fo-auth__card e-permits-fo-auth__card--choice" aria-labelledby="fo-choice-title" data-fo-screen="choice" hidden>
         <div class="e-permits-fo-auth__content e-permits-fo-auth__content--choice">
           <div class="e-permits-fo-auth__choice-copy">
@@ -636,7 +669,7 @@
             </span>
             <div class="info-box__content">
               <p class="e-permits-fo-guest__upsell-title">Autentifică-te cu MPass, e mai ușor!</p>
-              <p class="e-permits-fo-guest__upsell-desc">Datele tale se vor completa automat din actele de identitate.</p>
+              <p class="e-permits-fo-guest__upsell-desc">Datele se completează automat, semnezi electronic și primești actul în EVO Cabinet.</p>
             </div>
             <button class="btn btn-badge btn-badge--primary btn-badge--mpass" type="button" data-fo-guest-authenticate>
               <span class="btn-badge__logo" aria-hidden="true">
@@ -2850,7 +2883,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Dosarele mele</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="mine">33</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge" data-workplace-badge="mine">33</span>
                   </a>
                 </li>
                 <li>
@@ -2861,7 +2894,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Dosare nedistribuite</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="unassigned">12</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge" data-workplace-badge="unassigned">12</span>
                   </a>
                 </li>
                 <li>
@@ -2872,7 +2905,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Dosare inițiate în oficiu</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="office">5</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge" data-workplace-badge="office">5</span>
                   </a>
                 </li>
                 <li>
@@ -2883,7 +2916,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Dosare spre printare</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge" data-workplace-badge="print">8</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge" data-workplace-badge="print">8</span>
                   </a>
                 </li>
               </ul>
@@ -2900,7 +2933,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Acte permisive</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">142</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">142</span>
                   </a>
                 </li>
               </ul>
@@ -2929,7 +2962,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Cereri</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">47</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">47</span>
                   </a>
                 </li>
                 <li>
@@ -2940,7 +2973,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Incidente</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">8</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">8</span>
                   </a>
                 </li>
                 <li>
@@ -2977,7 +3010,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Solicitanți</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">185</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">185</span>
                   </a>
                 </li>
                 <li>
@@ -2988,7 +3021,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Solicitanți străini</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">22</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">22</span>
                   </a>
                 </li>
                 <li>
@@ -2999,7 +3032,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Autorități</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">17</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">17</span>
                   </a>
                 </li>
                 <li>
@@ -3026,7 +3059,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Acte permisive</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">142</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">142</span>
                   </a>
                 </li>
                 <li>
@@ -3037,7 +3070,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Taxe</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">24</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">24</span>
                   </a>
                 </li>
                 <li>
@@ -3048,7 +3081,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Documente</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">84</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">84</span>
                   </a>
                 </li>
                 <li>
@@ -3059,7 +3092,7 @@
                       </svg>
                     </span>
                     <span class="e-permits-shell__nav-text">Legislație</span>
-                    <span class="badge badge--solid-neutral badge--lg e-permits-shell__nav-badge">44</span>
+                    <span class="badge badge--solid-neutral badge--xl e-permits-shell__nav-badge">44</span>
                   </a>
                 </li>
               </ul>
@@ -3117,13 +3150,17 @@
                     <div class="e-permits-workplace__table-tools" aria-label="Acțiuni tabel">
                       <span class="e-permits-workplace__field-count">48 câmpuri</span>
                       <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
-                      <button class="e-permits-workplace__icon-action" type="button" aria-label="Exportă">
+                      <button class="e-permits-workplace__icon-action" type="button" aria-label="Exportă" title="Exportă" data-workplace-export>
                         <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                           <path d="M2.06641 12V10C2.06641 9.66863 2.3353 9.39974 2.66667 9.39974C2.99804 9.39974 3.26693 9.66863 3.26693 10V12C3.26693 12.405 3.59499 12.7331 4 12.7331H12C12.405 12.7331 12.7331 12.405 12.7331 12V10C12.7331 9.66863 13.002 9.39974 13.3333 9.39974C13.6647 9.39974 13.9336 9.66863 13.9336 10V12C13.9336 13.0678 13.0678 13.9336 12 13.9336H4C2.93225 13.9336 2.06641 13.0678 2.06641 12ZM7.39974 2.66667C7.39974 2.3353 7.66863 2.06641 8 2.06641C8.33137 2.06641 8.60026 2.3353 8.60026 2.66667V8.21745L9.90885 6.90885C10.1432 6.67454 10.5235 6.67454 10.7578 6.90885C10.9921 7.14317 10.9921 7.5235 10.7578 7.75781L8.42448 10.0911C8.31196 10.2037 8.15913 10.2669 8 10.2669C7.84087 10.2669 7.68804 10.2037 7.57552 10.0911L5.24219 7.75781C5.00787 7.5235 5.00787 7.14317 5.24219 6.90885C5.4765 6.67454 5.85683 6.67454 6.09115 6.90885L7.39974 8.21745V2.66667Z" fill="#121212"/>
                         </svg>
                       </button>
                     </div>
-                    <button class="e-permits-workplace__add-user" type="button" data-workplace-sync-service hidden>
+                    <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-tariff hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                      <span>Adaugă tarif</span>
+                    </button>
+                    <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-sync-service hidden>
                       <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
                       <span>Sincronizare serviciu</span>
                     </button>
@@ -3217,7 +3254,7 @@
                     <div class="e-permits-page-header__top" data-passport-top></div>
                     <div class="e-permits-page-header__meta" data-passport-meta></div>
                   </div>
-                  <div class="tabs e-permits-page-header__tabs">
+                  <div class="tabs tabs--sm e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni pașaport serviciu" data-passport-tabs></div>
                   </div>
                 </header>
@@ -3231,7 +3268,7 @@
                     <div class="e-permits-page-header__top" data-dosar-profil-title-row></div>
                     <div class="e-permits-page-header__meta" data-dosar-profil-summary></div>
                   </div>
-                  <div class="tabs e-permits-page-header__tabs">
+                  <div class="tabs tabs--sm e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni dosar" data-dosar-profil-tabs></div>
                   </div>
                 </header>
@@ -3245,7 +3282,7 @@
                     <div class="e-permits-page-header__top" data-user-profile-title></div>
                     <div class="e-permits-page-header__meta" data-user-profile-summary></div>
                   </div>
-                  <div class="tabs e-permits-page-header__tabs">
+                  <div class="tabs tabs--sm e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni utilizator" data-user-profile-tabs></div>
                   </div>
                 </header>
@@ -3258,7 +3295,7 @@
                     <div class="e-permits-page-header__top" data-role-profile-title></div>
                     <div class="e-permits-page-header__meta" data-role-profile-summary></div>
                   </div>
-                  <div class="tabs e-permits-page-header__tabs">
+                  <div class="tabs tabs--sm e-permits-page-header__tabs">
                     <div class="tab-buttons" role="tablist" aria-label="Secțiuni rol" data-role-profile-tabs></div>
                   </div>
                 </header>
@@ -3336,6 +3373,48 @@
     </aside>
   </div>
 
+  <!-- Plată: add / edit (Feature «Plăți și tarife»), the wide drawer component -->
+  <div class="e-permits-user-create" data-pay-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide editorul plății" data-pay-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="pay-drawer-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="pay-drawer-title" data-pay-title>Plată nouă</h2>
+          <p class="e-permits-passport__modal-subtitle" data-pay-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-pay-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-pay-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary" data-pay-summary aria-live="polite"></span>
+        <div class="modal-buttons" data-pay-buttons></div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Tarif: add / edit (Feature «Gestionarea clasificatorului de tarife») -->
+  <div class="e-permits-user-create" data-tariff-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide editorul tarifului" data-tariff-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="tariff-drawer-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="tariff-drawer-title" data-tariff-title>Tarif nou</h2>
+          <p class="e-permits-passport__modal-subtitle" data-tariff-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-tariff-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-tariff-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary" data-tariff-summary aria-live="polite"></span>
+        <div class="modal-buttons" data-tariff-buttons></div>
+      </footer>
+    </aside>
+  </div>
+
   <div class="modal-overlay" id="service-confirm-modal" aria-hidden="true">
     <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-confirm-title" aria-describedby="service-confirm-text">
       <button type="button" class="modal-close" data-close aria-label="Închide">
@@ -3351,8 +3430,8 @@
       </div>
     </div>
   </div>
-  <script src="core/service-passport.js?v=flow-schema-v1"></script>
-  <script src="js/e-permits-shell.js?v=rt-link-v1"></script>
+  <script src="core/service-passport.js?v=tarife-v4"></script>
+  <script src="js/e-permits-shell.js?v=tl-v2"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
@@ -3495,7 +3574,7 @@
           <p class="e-permits-fo-testcfg__hint">auth.required</p>
           <div class="segmented-control" role="tablist" aria-label="Autentificare" data-fo-testcfg-group="requiresAuth">
             <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" data-fo-testcfg-value="yes">Necesară</button>
-            <button class="segment-item" type="button" role="tab" aria-selected="false" data-fo-testcfg-value="no">Nu e necesară</button>
+            <button class="segment-item" type="button" role="tab" aria-selected="false" data-fo-testcfg-value="no">Opțională</button>
           </div>
         </div>
 

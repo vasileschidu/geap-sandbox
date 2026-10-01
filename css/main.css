@@ -11932,10 +11932,12 @@ p {
   opacity: 0.6;
 }
 
+/* fill only: the 1px border stays (so heights hold) but is transparent in
+   every state — a grey border showed as a lighter ring on hover */
 .btn-neutral {
   background-color: var(--gray-100, #F5F5F5);
   color: var(--black, #000000);
-  border: 1px solid var(--gray-100, #F5F5F5);
+  border: 1px solid transparent;
   position: relative;
   box-sizing: border-box;
 }
@@ -11946,7 +11948,7 @@ p {
 .btn-neutral:active:not(:disabled) {
   background-color: var(--gray-300, #D9D9D9);
 }
-.btn-neutral:focus:not(:disabled) {
+.btn-neutral:focus-visible:not(:disabled) {
   outline: 2px solid var(--white, #ffffff);
   box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379DB));
 }
@@ -13850,7 +13852,7 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   border-radius: var(--border-radius-full, 9999px);
   color: var(--gray-600, #444);
   position: absolute;
-  top: var(--spacing-16, 16px);
+  top: var(--spacing-20, 20px);
   right: var(--spacing-20, 20px);
   font-size: var(--text-heading-h4-xs-font-size, 24px);
   border: none;
@@ -13880,8 +13882,11 @@ body:has(.modal-overlay.modal-overlay.is-active) {
 .modal--simple .modal-image-wrapper {
   display: none;
 }
+/* one inset for the whole modal: 20px. The close button sits 20 from the top
+   and 20 from the right; the title starts 20 in and 20 down (level with it);
+   content and footer use the same 20px sides; the footer is 20 on all sides. */
 .modal--header {
-  padding: var(--spacing-16, 16px) var(--spacing-48, 48px) var(--spacing-0, 0px) var(--spacing-32, 32px);
+  padding: var(--spacing-20, 20px) var(--spacing-64, 64px) var(--spacing-0, 0px) var(--spacing-20, 20px);
 }
 .modal--header-title {
   color: var(--black, #121212);
@@ -13900,7 +13905,7 @@ body:has(.modal-overlay.modal-overlay.is-active) {
   display: var(--flex, flex);
   flex-direction: column;
   gap: var(--spacing-16, 16px);
-  padding: var(--spacing-24, 24px) var(--spacing-20, 20px) var(--spacing-40, 40px) var(--spacing-32, 32px);
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px) var(--spacing-4, 4px);
   max-height: calc(64vh - 4px);
   overflow-y: auto;
   scrollbar-width: thin;
@@ -13918,9 +13923,9 @@ body:has(.modal-overlay.modal-overlay.is-active) {
 }
 /* Figma modal Footer (EVO WEB 3.0, 20612:37263): 40px pill buttons, 14/20
    medium, 20px sides (12 / 16 with a leading icon), fill only — the
-   secondary is the neutral grey fill. Footer: 16 top/bottom, 24 sides. */
+   secondary is the neutral grey fill. */
 .modal--footer {
-  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  padding: var(--spacing-20, 20px);
 }
 .modal-buttons .btn {
   border-color: transparent;
@@ -16329,6 +16334,32 @@ body.has-overlay footer {
   padding: var(--spacing-16) var(--spacing-24);
 }
 
+/* Plain label tooltip — names an icon-only control on a long hover or keyboard focus
+   (Google-style: compact, no arrow, no delay once another tooltip was just shown).
+   Shown and placed by js/icon-tooltip.js; the label is the control's aria-label. */
+.tooltip--plain {
+  padding: 0;
+  pointer-events: none;
+  transform: translateY(var(--spacing-4));
+}
+.tooltip--plain.show {
+  transform: none;
+}
+.tooltip--plain .tooltip-inner {
+  padding: var(--spacing-4) var(--spacing-8);
+  border-radius: var(--border-radius-4);
+  font-size: var(--font-size-fs-12);
+  line-height: var(--line-height-lh-16, 16px);
+  text-align: center;
+  box-shadow: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tooltip--plain {
+    transition: none;
+    transform: none;
+  }
+}
+
 .tooltip-inner {
   background: var(--gray-900);
   color: var(--white);
@@ -18130,6 +18161,12 @@ label.required::after {
   width: 320px;
   z-index: 1100;
 }
+
+/* opens upwards when it would be clipped below (set by js/input-date-picker.js) */
+.date-picker-panel.is-up {
+  top: auto;
+  bottom: calc(100% + var(--spacing-8));
+}
 .date-picker-panel[hidden] {
   display: none;
 }
@@ -19245,7 +19282,9 @@ label.required::after {
   border: 2px solid var(--gray-300, #b2b2b2);
   border-radius: var(--border-radius-6, 6px);
   background: var(--white, #fff);
-  transition: all 0.2s ease;
+  /* colours only: "all" also animated the focus outline, which stepped in
+     over 200ms and read as a laggy, low-frame-rate focus */
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
   position: relative;
 }
 .checkbox .checkbox-custom::after {
@@ -19294,9 +19333,11 @@ label.required::after {
   color: var(--gray-300, #b2b2b2);
   cursor: not-allowed;
 }
-.checkbox .checkbox-input:focus + .checkbox-custom {
-  outline: 2px solid var(--blue-sky-500, #3379DB);
-  outline-offset: 1px;
+/* keyboard focus only (never on a mouse click) — the full-flow focus:
+   blue stroke + light-blue halo, as on .e-permits-fo-input */
+.checkbox .checkbox-input:focus-visible + .checkbox-custom {
+  border-color: var(--blue-sky-600, #0058D2);
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #CCDEF6);
 }
 .checkbox.checkbox--error .checkbox-custom {
   border-color: var(--red-600, #d32f2f);
@@ -19580,10 +19621,20 @@ label.required::after {
 .tabs .tab-panels .tab-panel.active {
   display: block;
 }
+/* Figma tab-item-s (145:4480): h40 · px12 · 14/20 — used across the back office.
+   It now resets the 48px height (it used to stay 48px tall). */
 .tabs--sm .tab-button {
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  font-size: var(--text-body-sm-font-size);
-  line-height: 1.25;
+  height: 40px;
+  padding: 0 var(--spacing-12, 12px);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+.tabs--sm .tab-button .badge {
+  font-size: var(--font-size-fs-12, 12px);
+  height: var(--spacing-20, 20px);
+  line-height: var(--line-height-lh-16, 16px);
+  min-width: var(--spacing-20, 20px);
+  width: auto;
 }
 
 .segmented-control {
@@ -19832,7 +19883,9 @@ label.required::after {
 .chip:hover:not(.is-disabled):not(.is-selected) {
   background-color: var(--gray-250);
 }
-.chip:focus-within {
+/* keyboard focus only — a mouse click never leaves a ring */
+.chip:focus-visible,
+.chip:has(:focus-visible) {
   outline: 2px solid var(--blue-sky-500);
   outline-offset: 2px;
 }
@@ -19849,7 +19902,8 @@ label.required::after {
 .chip.is-selected:hover {
   background-color: var(--black);
 }
-.chip.is-selected:focus-within {
+.chip.is-selected:focus-visible,
+.chip.is-selected:has(:focus-visible) {
   outline: 2px solid var(--blue-sky-500);
   outline-offset: 2px;
 }
@@ -20230,11 +20284,22 @@ label.required::after {
   height: 14px;
   min-width: 14px;
 }
+/* Figma numbered-badge sizes (149:4932): L 20 · XL 24 */
 .badge--lg {
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: 0 var(--spacing-4, 4px);
+  height: var(--spacing-20, 20px);
+  min-width: var(--spacing-20, 20px);
+}
+.badge--xl {
+  box-sizing: border-box;
   font-size: var(--text-body-sm-500-font-size);
-  padding: var(--spacing-2, 2px);
-  height: 18px;
-  min-width: 18px;
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-6, 6px);
+  height: var(--spacing-24, 24px);
+  min-width: var(--spacing-24, 24px);
 }
 .badge__icon {
   display: inline-flex;
@@ -20311,8 +20376,8 @@ label.required::after {
 }
 
 .badge--solid-light {
-  background-color: #fff;
-  color: #000;
+  background-color: var(--color-background-base-default, #fff);
+  color: var(--color-text-base-default, #121212);
 }
 .badge--solid-light:hover, .badge--solid-light:focus {
   opacity: 0.85;

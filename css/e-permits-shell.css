@@ -312,11 +312,12 @@ body {
   background: var(--color-background-base-secondary-active, #e5e5e5);
 }
 
+/* the full-flow focus (as .e-permits-fo-input): blue stroke + light-blue halo */
 .e-permits-shell__user-trigger:focus-visible {
   background: var(--color-background-base-secondary, var(--gray-100));
   box-shadow:
-    0 0 0 3px var(--color-background-base-default, var(--white)),
-    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
+    0 0 0 4px var(--blue-sky-200, #ccdef6);
   outline: none;
 }
 
@@ -565,12 +566,17 @@ body {
   box-shadow: inset 0 0 0 1px var(--color-border-base-hover, #b2b2b2);
 }
 
+/* instance / role switch: the full-flow focus — blue stroke + light-blue
+   halo (as .e-permits-fo-input); the active card keeps its brand border */
 .e-permits-shell__role-card:focus-visible {
   outline: none;
   box-shadow:
-    inset 0 0 0 1px var(--color-border-base-default, #d9d9d9),
-    0 0 0 3px var(--color-background-base-default, #fff),
-    0 0 0 5px var(--focus-ring, #3379db);
+    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
+    0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+.e-permits-shell__role-card.is-active:focus-visible {
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
 }
 
 .e-permits-shell__role-card.is-active {
@@ -2360,6 +2366,13 @@ body {
   -webkit-mask-image: url("../assets/icons/admin-list-sparkle.svg");
 }
 
+.e-permits-shell__nav--specialist [data-nav-id="tariffs"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/coins.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/coins.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
 .e-permits-shell__nav--specialist .e-permits-shell__nav-badge {
   display: none;
 }
@@ -2636,7 +2649,7 @@ body {
   grid-column: 1 / -1;
   grid-row: 2;
   box-sizing: border-box;
-  height: 48px;
+  height: 40px;
   padding: 0;
   border-top: 0;
   border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
@@ -2656,12 +2669,12 @@ body {
 .e-permits-workplace__status-tab {
   box-sizing: border-box;
   min-width: max-content;
-  height: 48px;
-  padding: 0 16px;
+  height: 40px;
+  padding: 0 var(--spacing-12, 12px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--spacing-6, 6px);
   border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
@@ -3585,7 +3598,8 @@ body.is-user-create-open {
   /* never squeezed by the scrolling body */
   flex: 0 0 auto;
   width: 100%;
-  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  /* compact: 12 top/bottom, 20 sides — the close button lines up with the title */
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -3597,13 +3611,14 @@ body.is-user-create-open {
   margin: 0;
   flex: 1 1 auto;
   font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-20, 20px);
+  font-size: var(--font-size-fs-18, 18px);
   font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-32, 32px);
-  letter-spacing: -0.2px;
+  line-height: var(--line-height-lh-26, 26px);
 }
 
 .e-permits-user-create__close {
+  /* centre the 32px button on the 26px title line */
+  margin-top: calc((var(--line-height-lh-26, 26px) - var(--spacing-32, 32px)) / 2);
   width: 32px;
   height: 32px;
   padding: 8px;
@@ -3636,7 +3651,7 @@ body.is-user-create-open {
 .e-permits-user-create__body {
   box-sizing: border-box;
   min-height: 0;
-  padding: 8px 24px;
+  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
   flex: 1 1 auto;
   overflow-x: hidden;
   overflow-y: auto;
@@ -3852,13 +3867,42 @@ body.is-user-create-open {
   height: 16px;
 }
 
-/* drawer footer = the modal footer: 16 / 24 padding, library .modal-buttons
+/* drawer footer = the modal footer: 20 on every side, library .modal-buttons
    (40px pill buttons, 12px gap) */
+/* back office: controls read at 14/20, never 16 — the library checkbox and
+   switch default to 16px labels */
+.e-permits-user-create .checkbox .checkbox-label,
+.e-permits-user-create .switch .switch-label {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-user-create .switch .switch-description {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* switch with a description = the Figma label pattern (radio-label / svc/switch-label):
+   default 48×28 track, 12px gap, label medium, track top-aligned with the label line
+   (4px nudge centres the 20px label line on the 28px track) */
+.e-permits-user-create .switch .switch-label {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+.e-permits-user-create .switch .switch-wrapper:has(.switch-description) {
+  align-items: flex-start;
+  gap: var(--spacing-12, 12px);
+}
+.e-permits-user-create .switch .switch-wrapper:has(.switch-description) .switch-text {
+  padding-top: var(--spacing-4, 4px);
+  gap: var(--spacing-2, 2px);
+}
+
 .e-permits-user-create__footer {
   box-sizing: border-box;
   flex: 0 0 auto;
   width: 100%;
-  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+  padding: var(--spacing-20, 20px);
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -3873,7 +3917,7 @@ body.is-user-create-open {
   }
 
   .e-permits-user-create__body {
-    padding: 8px 16px;
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
     scrollbar-gutter: auto;
   }
 
@@ -3894,7 +3938,7 @@ body.is-user-create-open {
   }
 
   .e-permits-user-create__footer {
-    padding-inline: 16px;
+    padding: var(--spacing-16, 16px);
   }
 }
 

@@ -63,6 +63,7 @@
     const frontOfficeChoiceScreen = document.querySelector("[data-fo-screen='choice']");
     const frontOfficeRequestScreen = document.querySelector("[data-fo-screen='request']");
     const frontOfficeGuestScreen = document.querySelector("[data-fo-screen='guest']");
+    const frontOfficeAccessScreen = document.querySelector("[data-fo-screen='access']");
     const frontOfficeIntentScreen = document.querySelector("[data-fo-screen='intent']");
     const frontOfficeRoot = document.querySelector(".e-permits-fo-auth");
     const frontOfficeMain = document.querySelector(".e-permits-fo-auth__main");
@@ -2827,6 +2828,7 @@
     function setFrontOfficeScreen(screen, { focus = true } = {}) {
       const screens = {
         auth: frontOfficeAuthScreen,
+        access: frontOfficeAccessScreen,
         choice: frontOfficeChoiceScreen,
         request: frontOfficeRequestScreen,
         guest: frontOfficeGuestScreen,
@@ -2870,6 +2872,9 @@
       }
       if (screen === "guest") {
         frontOfficeGuestScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
+      }
+      if (screen === "access") {
+        frontOfficeAccessScreen?.querySelector("[data-fo-access-mpass]")?.focus?.({ preventScroll: true });
       }
       if (screen === "intent") {
         frontOfficeIntentScreen?.querySelector("h1")?.focus?.({ preventScroll: true });
@@ -2941,6 +2946,23 @@
       if (!frontOfficeAuthScreen || !frontOfficeChoiceScreen) return;
       setFrontOfficeScreen("choice", { focus });
     }
+
+    /* "Autentifică-te sau continuă fără cont" — for services available with and without MPass:
+       sign in with MPass, or continue as a guest. */
+    function showFrontOfficeAccess({ focus = true } = {}) {
+      setFrontOfficeScreen("access", { focus });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-fo-access-mpass]")) {
+        openMpassTestPage();
+        return;
+      }
+      if (event.target.closest("[data-fo-access-guest]")) {
+        resetGuestScreen();
+        setFrontOfficeScreen("guest");
+      }
+    });
 
     function openMpassTestPage() {
       const returnUrl = new URL(window.location.href);
@@ -3431,8 +3453,12 @@
       if (!event.target.closest("[data-fo-logout]")) return;
       setFrontOfficeAvatarMenuOpen(false);
       frontOfficeSelectedSubject = null;
-      resetGuestScreen();
-      setFrontOfficeScreen("guest");
+      if (frontOfficeSchema?.auth?.required === false) {
+        showFrontOfficeAccess();
+      } else {
+        resetGuestScreen();
+        setFrontOfficeScreen("guest");
+      }
     });
 
     function showFrontOfficeRequest({ focus = true, step = 1 } = {}) {
@@ -3633,7 +3659,7 @@
             return `<strong>Ecran: poarta de autentificare</strong>Serviciul cere MPass. Badge-urile „Disponibil pentru” arată ${allowed.join(" + ")}.`;
           }
           if (cfg.authenticated === "no") {
-            return "<strong>Ecran: formular liber</strong>Fără autentificare — solicitantul se identifică tastând IDNP-ul.";
+            return "<strong>Ecran: Autentifică-te sau continuă fără cont</strong>Serviciul merge și fără MPass: autentificare prin MPass sau „Continuă fără cont” (formularul liber).";
           }
           const next = cfg.intent === "yes" && cfg.acts === "yes"
             ? " După alegere urmează „Ce vrei să soliciți?” pentru identitățile cu acte (SRL Global Trader, «Vita-Plant» SRL); celelalte merg direct la cerere."
@@ -3699,8 +3725,8 @@
             if (cfg.requiresAuth === "yes") {
               setFrontOfficeScreen("auth", { focus });
             } else {
-              resetGuestScreen();
-              setFrontOfficeScreen("guest", { focus });
+              /* available with and without MPass: explain the benefits first */
+              showFrontOfficeAccess({ focus });
             }
           }
 

@@ -422,6 +422,320 @@
     })[0] || null;
   }
 
+  /* ---- eAPL sync (registrul local al actelor permisive) -----------------
+     Some services are synced from RSSP, eAPL or both (BO: „se poate integra cu
+     RSSP și cu eAPL"). eAPL only enriches an existing service with its local
+     data; a new service is always created from RSSP (US-111). */
+  var EAPL_MESSAGES = {
+    unavailable: "Serviciul eAPL este momentan indisponibil. Încercați mai târziu.",
+    notFound: function (code) { return "Serviciul cu codul " + code + " nu a fost găsit în eAPL."; },
+    newService: "Un serviciu nou se creează doar din RSSP. Alege sursa RSSP sau RSSP + eAPL."
+  };
+
+  function syncFromEapl(input) {
+    var code = String(input.code || "").trim();
+    var event = function (status, detail) {
+      return { at: input.now, user: input.user, type: "Sincronizare serviciu (eAPL)", status: status, detail: detail };
+    };
+    if (!code) return { ok: false, message: MESSAGES.required, events: [] };
+    if (!input.service) return { ok: false, reason: "newService", message: EAPL_MESSAGES.newService, events: [] };
+    var answer = input.lookup(code) || {};
+    if (answer.status === "unavailable") {
+      return { ok: false, reason: "unavailable", message: EAPL_MESSAGES.unavailable, events: [event("Eșuat", EAPL_MESSAGES.unavailable)] };
+    }
+    if (answer.status !== "ok" || !answer.data) {
+      var notFound = EAPL_MESSAGES.notFound(code);
+      return { ok: false, reason: "notFound", message: notFound, events: [event("Eșuat", notFound)] };
+    }
+    var data = answer.data;
+    var service = Object.assign({}, input.service, {
+      lastSync: input.now,
+      syncedBy: input.user,
+      eapl: {
+        authority: data.localAuthority,
+        fee: data.localFee || null,
+        term: data.localTerm || null,
+        register: data.register || "eAPL",
+        updatedOn: data.updatedOn || null,
+        syncedAt: input.now
+      }
+    });
+    return {
+      ok: true,
+      service: service,
+      summary: { authority: data.localAuthority, fee: data.localFee || null, term: data.localTerm || null },
+      events: [event("Reușit", (data.localAuthority && data.localAuthority.name) || code)]
+    };
+  }
+
+  /* ---- payment editor rules (Feature «Plăți și tarife») ----------------- */
+  var PAYMENT_MOMENTS = ["La inițierea solicitării", "La examinare", "La avizare", "La luarea deciziei", "După semnare act", "După emitere act"];
+  var INITIATION = PAYMENT_MOMENTS[0];
+
+  /* the designer JSON marks payment steps with properties.momentId (1-based) */
+  function momentsFromDefinition(def) {
+    var found = [];
+    (def.states || []).forEach(function (state) {
+      var id = (state.properties || {}).momentId;
+      var name = PAYMENT_MOMENTS[id - 1];
+      if (name && found.indexOf(name) === -1) found.push(name);
+    });
+    return found;
+  }
+
+  /* a moment needs a payment branch in the request type's flow — except the
+     initiation of the request (BO/FO), where the branch is always present */
+  function momentAllowed(flow, moment) {
+    if (moment === INITIATION) return true;
+    return Boolean(flow) && (flow.paymentMoments || []).indexOf(moment) !== -1;
+  }
+
+  /* eligible = published + active, global or this service's; an automatic
+     payment cannot take a tariff whose formula needs user-entered variables */
+  function tariffEligibility(tariff, serviceCode, generation) {
+    if (tariff.scope !== "global" && tariff.scope !== serviceCode) return { ok: false, reason: "Tarif al altui serviciu" };
+    if (tariff.state !== "Publicat") return { ok: false, reason: "Tarif nepublicat" };
+    if (!tariff.active) return { ok: false, reason: "Tarif inactiv" };
+    if (generation === "Automat" && tariff.userVariables) {
+      return { ok: false, reason: "Formula cere variabile completate la generarea notei — doar plată manuală" };
+    }
+    return { ok: true };
+  }
+
+  function positiveInt(value, max) {
+    var text = String(value == null ? "" : value).trim();
+    return /^\d+$/.test(text) && Number(text) >= 1 && Number(text) <= max;
+  }
+
+  /* field → message; empty object = valid. publish adds the tariff rule. */
+  function validatePayment(payment, context) {
+    var ctx = context || {};
+    var errors = {};
+    if (!payment.requestType) errors.requestType = "Selectează tipul de solicitare.";
+    if (!payment.moment) {
+      errors.moment = "Selectează momentul generării.";
+    } else if (!momentAllowed(ctx.flow, payment.moment)) {
+      errors.moment = ctx.flow
+        ? "Fluxul „" + ctx.flow.name + "” nu are ramificație de plată la momentul „" + payment.moment + "”."
+        : "Tipul de solicitare nu are flux de procesare — doar „" + INITIATION + "” e disponibil.";
+    }
+    if (payment.moment === INITIATION && payment.generation !== "Automat") {
+      errors.generation = "La inițierea solicitării plata e întotdeauna automată.";
+    }
+    if (!positiveInt(payment.term, 365)) errors.term = "Introdu termenul de achitare, între 1 și 365 de zile.";
+    if (payment.generation === "Automat" && (payment.exemptions || []).length) {
+      errors.exemptions = "O plată automată nu poate avea elemente de scutire.";
+    }
+    if (payment.recurring) {
+      if (!payment.recurring.frequency) errors.frequency = "Selectează frecvența recurenței.";
+      else if (payment.recurring.frequency === "Interval" && !positiveInt(payment.recurring.months, 120)) {
+        errors.frequency = "Introdu intervalul în luni, între 1 și 120.";
+      }
+      if (!positiveInt(payment.recurring.noticeDays, 365)) errors.noticeDays = "Introdu numărul de zile, între 1 și 365.";
+    }
+    if (ctx.publish) {
+      var check = canPublish(payment);
+      if (!check.ok) errors.tariffs = check.message;
+    }
+    return errors;
+  }
+
+  /* save: a draft stays a draft; editing a published payment bumps its
+     version (notes generated earlier keep the old one) */
+  function applyPaymentEdit(payment, draft, meta) {
+    var next = Object.assign({}, payment || {}, draft);
+    if (!payment) {
+      next.version = 1;
+      next.state = meta.publish ? "Publicat" : "Schiță";
+      next.active = false;
+      next.usage = 0;
+    } else if (payment.state === "Publicat") {
+      next.version = (payment.version || 1) + 1;
+    } else if (meta.publish) {
+      next.state = "Publicat";
+    }
+    next.modifiedAt = meta.at;
+    next.modifiedBy = meta.user;
+    return next;
+  }
+
+  /* ---- tariff classifier (Feature «Gestionarea clasificatorului de tarife») ----
+     One model for global and service tariffs. RSSP / eAPL tariffs keep their
+     registry fields read-only. Editing a published tariff creates a new
+     version (payment notes keep the version they were generated with). */
+  var TARIFF_LOCKED_FIELDS = ["name", "amount", "currency", "requestType", "iban", "legalBasis"];
+  var ROUNDING = {
+    "2 zecimale": function (v) { return Math.round(v * 100) / 100; },
+    "1 zecimală": function (v) { return Math.round(v * 10) / 10; },
+    "Fără zecimale (întreg)": function (v) { return Math.round(v); },
+    "Rotunjire în sus la leu": function (v) { return Math.ceil(v); }
+  };
+
+  function tariffLocked(tariff, field) {
+    return (tariff.source === "RSSP" || tariff.source === "eAPL") && TARIFF_LOCKED_FIELDS.indexOf(field) !== -1;
+  }
+
+  function formulaVariables(expression) {
+    var found = [];
+    String(expression || "").replace(/\{([a-z0-9_]+)\}/gi, function (match, name) {
+      if (found.indexOf(name) === -1) found.push(name);
+      return match;
+    });
+    return found;
+  }
+
+  /* safe arithmetic only: numbers, + - * / ( ) after the {variables} are filled */
+  function evaluateFormula(expression, values, rounding) {
+    var text = String(expression || "").trim();
+    if (!text) return { ok: false, error: "Formula este goală." };
+    var missing = formulaVariables(text).filter(function (name) {
+      return values == null || values[name] === "" || values[name] == null || !isFinite(Number(values[name]));
+    });
+    if (missing.length) return { ok: false, error: "Completează valoarea de test pentru: " + missing.join(", ") + "." };
+    var filled = text.replace(/\{([a-z0-9_]+)\}/gi, function (match, name) { return "(" + Number(values[name]) + ")"; });
+    if (!/^[\d\s+\-*/().,]+$/.test(filled)) return { ok: false, error: "Formula poate conține doar numere, variabile {nume} și + − × ÷ ( )." };
+    var result;
+    try {
+      /* eslint-disable-next-line no-new-func */
+      result = Function("return (" + filled.replace(/,/g, ".") + ");")();
+    } catch (error) {
+      return { ok: false, error: "Formula nu este validă." };
+    }
+    if (typeof result !== "number" || !isFinite(result)) return { ok: false, error: "Formula nu dă un număr." };
+    var round = ROUNDING[rounding] || ROUNDING["2 zecimale"];
+    return { ok: true, value: round(result) };
+  }
+
+  function validateTariff(tariff) {
+    var errors = {};
+    var isService = tariff.scope && tariff.scope !== "global";
+    if (!String(tariff.name || "").trim()) errors.name = "Introdu denumirea tarifului (RO).";
+    if (!tariff.type) errors.type = "Selectează tipul tarifului.";
+    if (!/^\d+([.,]\d{1,2})?$/.test(String(tariff.amount == null ? "" : tariff.amount).trim())) errors.amount = "Introdu suma, un număr cu cel mult două zecimale.";
+    if (!tariff.currency) errors.currency = "Selectează valuta.";
+    if (isService && !tariff.requestType) errors.requestType = "Selectează tipul solicitării.";
+    if (isService && !tariff.personType) errors.personType = "Selectează tipul persoanei.";
+    if (tariff.iban && !/^MD\d{2}[A-Z0-9]{20}$/.test(String(tariff.iban).replace(/\s+/g, ""))) errors.iban = "IBAN-ul nu este valid (MD + 22 caractere).";
+    if (tariff.formula) {
+      if (!String(tariff.expression || "").trim()) {
+        errors.expression = "Introdu expresia formulei.";
+      } else {
+        var probe = {};
+        formulaVariables(tariff.expression).forEach(function (name) { probe[name] = 1; });
+        var check = evaluateFormula(tariff.expression, probe, tariff.rounding);
+        if (!check.ok) errors.expression = check.error;
+      }
+      if (!tariff.rounding) errors.rounding = "Selectează regula de rotunjire.";
+    }
+    if (!tariff.validFrom) errors.validFrom = "Introdu data de la care tariful este valabil.";
+    if (tariff.validFrom && tariff.validTo && tariff.validTo < tariff.validFrom) errors.validTo = "„Valabil până la” nu poate fi înainte de „Valabil de la”.";
+    return errors;
+  }
+
+  var TARIFF_TRACKED = [
+    ["name", "Denumire"], ["nameRu", "Denumire RU"], ["nameEn", "Denumire EN"], ["type", "Tip"], ["amount", "Sumă"],
+    ["currency", "Valută"], ["legalBasis", "Temei legal"], ["iban", "IBAN"], ["requestType", "Tip solicitare"],
+    ["personType", "Tip persoană"], ["subdivision", "Subdiviziune"], ["formula", "Formulă"], ["expression", "Expresie"],
+    ["rounding", "Rotunjire"], ["validFrom", "Valabil de la"], ["validTo", "Valabil până la"]
+  ];
+
+  function tariffChanges(before, after) {
+    return TARIFF_TRACKED.filter(function (pair) {
+      return String(before[pair[0]] == null ? "" : before[pair[0]]) !== String(after[pair[0]] == null ? "" : after[pair[0]]);
+    }).map(function (pair) {
+      return pair[0] === "amount" ? "Sumă " + before.amount + " → " + after.amount : pair[1];
+    });
+  }
+
+  function applyTariffEdit(existing, draft, meta) {
+    var next = Object.assign({}, existing || {}, draft);
+    if (!existing) {
+      next.version = 1;
+      next.state = meta.publish ? "Publicat" : "Schiță";
+      next.active = true;
+      next.source = next.source || "GEAP";
+      next.versions = [{ version: 1, at: meta.at, by: meta.user, note: "Creat" }];
+    } else {
+      var changes = tariffChanges(existing, next);
+      if (existing.state === "Publicat" && changes.length) {
+        next.version = (existing.version || 1) + 1;
+        next.versions = (existing.versions || []).concat([{ version: next.version, at: meta.at, by: meta.user, note: changes.join(", ") }]);
+      } else if (existing.state !== "Publicat" && meta.publish) {
+        next.state = "Publicat";
+      }
+    }
+    next.modifiedAt = meta.at;
+    next.modifiedBy = meta.user;
+    return next;
+  }
+
+  /* draft: publish, delete · published: activate / deactivate (+ delete if unused) */
+  function tariffActions(tariff, usage) {
+    var acts = [];
+    if (tariff.state !== "Publicat") acts.push("publish");
+    acts.push(tariff.active ? "deactivate" : "activate");
+    if (!usage) acts.push("delete");
+    return acts;
+  }
+
+  function tariffValidOn(tariff, day) {
+    return (!tariff.validFrom || tariff.validFrom <= day) && (!tariff.validTo || tariff.validTo >= day);
+  }
+
+  /* payment account: the tariff's own IBAN, else the authority's principal
+     active account, else any active account */
+  function tariffPayAccount(tariff, accounts, authorityId) {
+    if (tariff.iban) return { iban: tariff.iban, source: "tarif" };
+    var own = (accounts || []).filter(function (a) { return a.authorityId === authorityId && a.active; });
+    var principal = own.filter(function (a) { return a.principal; })[0];
+    if (principal) return { iban: principal.iban, source: "principal" };
+    if (own[0]) return { iban: own[0].iban, source: "activ" };
+    return { iban: null, source: "lipsă" };
+  }
+
+  /* RSSP: one tariff per enabled sub-service with a price; eAPL: the local fee.
+     Registry fields are overwritten (new version when they change), GEAP-owned
+     fields (type, subdivision, validity…) are kept. */
+  function syncServiceTariffs(input) {
+    var list = (input.tariffs || []).map(function (t) { return Object.assign({}, t); });
+    var result = { created: 0, updated: 0, unchanged: 0 };
+    var nextCode = function () {
+      var max = list.reduce(function (m, t) { var n = parseInt(String(t.code || "").replace(/\D/g, ""), 10); return n > m ? n : m; }, 0);
+      return "TRF-" + String(max + 1).padStart(3, "0");
+    };
+    (input.incoming || []).forEach(function (item) {
+      var match = list.filter(function (t) { return t.scope === input.serviceCode && t.source === input.source && t.externalId === item.externalId; })[0];
+      /* only what the registry sends is overwritten */
+      var fields = {};
+      ["name", "amount", "currency", "requestType", "iban", "legalBasis"].forEach(function (key) {
+        if (item[key] !== undefined) fields[key] = item[key];
+      });
+      if (!match) {
+        list.push(Object.assign({
+          id: "tf-" + input.source.toLowerCase() + "-" + input.serviceCode + "-" + item.externalId, code: nextCode(),
+          externalId: item.externalId, scope: input.serviceCode, source: input.source, nameRu: "", nameEn: "",
+          type: item.type || "Taxă de stat", personType: item.personType || "Persoană juridică", subdivision: null,
+          formula: false, userVariables: false, expression: "", rounding: "2 zecimale", validFrom: input.today,
+          validTo: null, state: "Publicat", active: true, version: 1,
+          versions: [{ version: 1, at: input.now, by: "Sincronizare " + input.source, note: "Importat din " + input.source }],
+          modifiedAt: input.now, modifiedBy: "Sincronizare " + input.source,
+          currency: "MDL", requestType: null, iban: "", legalBasis: ""
+        }, fields));
+        result.created += 1;
+        return;
+      }
+      var changes = tariffChanges(match, Object.assign({}, match, fields));
+      if (!changes.length) { result.unchanged += 1; return; }
+      Object.assign(match, fields, {
+        version: (match.version || 1) + 1, modifiedAt: input.now, modifiedBy: "Sincronizare " + input.source,
+        versions: (match.versions || []).concat([{ version: (match.version || 1) + 1, at: input.now, by: "Sincronizare " + input.source, note: changes.join(", ") }])
+      });
+      result.updated += 1;
+    });
+    result.tariffs = list;
+    return result;
+  }
+
   /* Physical delete: draft, or published but never used; otherwise deactivate */
   function canDelete(payment) {
     return payment.state === "Schiță" || !payment.usage;
@@ -449,6 +763,23 @@
     paymentActions: paymentActions,
     canPublish: canPublish,
     activationConflict: activationConflict,
-    canDelete: canDelete
+    canDelete: canDelete,
+    tariffLocked: tariffLocked,
+    formulaVariables: formulaVariables,
+    evaluateFormula: evaluateFormula,
+    validateTariff: validateTariff,
+    applyTariffEdit: applyTariffEdit,
+    tariffActions: tariffActions,
+    tariffValidOn: tariffValidOn,
+    tariffPayAccount: tariffPayAccount,
+    syncServiceTariffs: syncServiceTariffs,
+    syncFromEapl: syncFromEapl,
+    EAPL_MESSAGES: EAPL_MESSAGES,
+    PAYMENT_MOMENTS: PAYMENT_MOMENTS,
+    momentsFromDefinition: momentsFromDefinition,
+    momentAllowed: momentAllowed,
+    tariffEligibility: tariffEligibility,
+    validatePayment: validatePayment,
+    applyPaymentEdit: applyPaymentEdit
   };
 });

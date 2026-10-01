@@ -757,10 +757,11 @@ border — page header, list rows, toolbars. No `btn-md` / `btn-lg`, no hand-rol
 library `.modal-buttons` group → **40px pill**, 14/20 medium, 20px sides (12/16 with a
 leading icon), fill only, 12px gap; secondary = `btn-neutral` (grey), main action =
 `btn-primary`; markup `btn btn-neutral btn-rounded` / `btn btn-primary btn-rounded`, no size
-class. Footers are compact: `.modal--footer` and `.e-permits-user-create__footer` padding
-16 top/bottom, 24 sides. Headers are compact too: `.modal--header` top 16 (close button
-at top 16), drawer header 16/24, no min-height; modal and drawer titles are 20px
-semibold on a 32px line (level with the 32px close button). A lone "Închide" is primary. `main.css` now
+class. **One 20px inset** for modals and drawers: header 20 (title starts 20 in and 20
+down), close button 20 from the top and 20 from the right, content 20 on the sides
+(`.modal-content` 16 / 20 / 4), footer 20 on **all four sides** so the buttons sit
+exactly as far from the right edge as from the bottom (16 on phones for drawers).
+Titles are 20px semibold on a 32px line, level with the 32px close button. A lone "Închide" is primary. `main.css` now
 renders `.btn.btn-sm` at the Figma Small 32px (it was 29.25px); rounded/pill
 variants keep their radius. The full flow keeps its own sizes.
 
@@ -818,6 +819,84 @@ Figma ships **two** sizes (20, 24); CSS ships **three** (16, 20, 24). So writing
 `.checkbox--large`. `.checkbox--small` (16px) has no design behind it at all. Nothing
 renders wrongly today — but the vocabulary means design and code say "medium" about
 two different things.
+
+#### Full flow — services with optional MPass (2026-09-30)
+
+When a service works **with and without** authentication (`auth.required: false`), an
+unauthenticated user first sees **„Autentifică-te sau continuă fără cont”** (`[data-fo-screen="access"]`; EN reference: "Sign in or continue without an account"),
+before any manual entry — the familiar "sign in / continue as guest" pattern, nothing more:
+the auth card (icon, title, one description line), then two full-width 48px options, each
+with one line under it (`.e-permits-fo-access__hint`): **MPass badge button** („Recomandat.
+Datele se completează automat, actul în contul EVO”), a plain **„sau”** rule
+(`.e-permits-fo-access__or`), then `btn btn-neutral`
+„Continuă fără cont” („Completezi datele manual, iar actul îl primești pe e-mail.”) → the guest
+form. Wording rule (GOV.UK / Baymard): name both options in the title, say "without an account"
+rather than "guest", the guest option is a full button of equal weight, never a text link. No logo lists,
+no tags. Services with `auth.required: true` keep the MPass gate. Logout returns here.
+
+#### Back-office sizing rules (2026-09-30)
+
+- **Tabs** = Figma `tab-item-s`: `.tabs.tabs--sm` → **40px, 12px sides, 14/20**, count badge
+  20px. The library `.tabs--sm` now resets the 48px height. Page-header tabs and the
+  registry status tabs (`.e-permits-workplace__status-tab`) use the same 40 / 12 / 14.
+- **Counters** = library numbered badge **Light**: `badge badge--lg badge--solid-light`
+  (Figma 9442:44730: 20px, 4px sides, 12/16 medium). The library ramp now matches Figma:
+  `--lg` 20px (12/16), new `--xl` 24px (14/20, the sidebar nav badges). Group headers of
+  stacked lists: 16/24 medium secondary, 8/20 padding, 10px gap.
+- **⋮ menu** (`.e-permits-stack__menu`): items 32px, 14/20, 16px icon, radius 6 — the
+  footprint of a small button.
+- **Row actions**: edit / export are icon buttons (`.e-permits-workplace__icon-action`,
+  32px) — "Editează" and "Exportă" are icon-only with aria-label + title.
+- **Sync sources**: services declare `syncSources` (`RSSP`, `eAPL`). With both, the passport
+  "Sincronizează" is a menu (RSSP / eAPL / RSSP și eAPL) and the modal shows a
+  **Sursa sincronizării** segmented control. A new service is created only from RSSP;
+  eAPL enriches (Date locale). While syncing: one progress line per source + a
+  `.e-permits-fo-skeleton` summary. Rules: `GEAP.servicePassport.syncFromEapl`.
+- **Tarife** (Feature «Gestionarea clasificatorului de tarife»): one model, two places —
+  **global** tariffs in Administrare → Tarife (registry, `kind: "tariffs"`, toolbar
+  „Adaugă tarif” + export) and **service** tariffs in the passport's **Tarife** tab (stacked
+  list grouped by Tip tarif; chips · search · export · Sincronizează RSSP/eAPL · Adaugă tarif).
+  Both open the same drawer `[data-tariff-drawer]`: **Identitate** (Denumire RO/RU/EN, Tip,
+  Temei legal; service only: Tip solicitare, Subdiviziune, Tip persoană = 14px segmented),
+  **Sumă și formulă** (Sumă + Valută, switch „Calcul prin formulă” → expresie `{var}`,
+  rotunjire, grey „Verifică formula” panel with test values, IBAN select with the authority's
+  principal account as default), **Ciclu de viață** (Valabil de la/până la, stare, sursă,
+  Folosit de, istoric versiuni, Activează/Dezactivează, Șterge only if unused — confirmed
+  inline). RSSP/eAPL tariffs show Denumire RO, Sumă, Valută, Tip solicitare, IBAN, Temei
+  legal as read-only (lock icon + „Preluat din …”). Rules: `validateTariff`, `tariffLocked`,
+  `applyTariffEdit` (published + changed → new version with a note), `tariffActions`,
+  `evaluateFormula` (safe arithmetic), `tariffPayAccount`, `syncServiceTariffs` (overwrites
+  only fields the registry sends). Export buttons share `EXPORT_ICON`.
+- **Filter chips** (`.e-permits-rt__chips`): medium labels; counts = the numbered badge Light
+  (`badge badge--lg badge--solid-light`), not `.chip__badge`.
+- **Plăți și tarife**: one toolbar (chips · search · export icon · Adaugă plată) and a
+  wide-drawer editor with every field of the payment model; rules in
+  `validatePayment`, `momentAllowed`, `tariffEligibility`, `applyPaymentEdit`.
+
+#### Single choice in a form (2026-09-30)
+
+- **Mode switch** (Tip generare Automat / Manual): the library **segmented control at the
+  14px default size** — `.segmented-control` > `button.segment-item[role=radio]`, no size
+  modifier (Figma 8715:73423). Never `--small` (12px) and never `--large` (16px) in the
+  back office. Unavailable option = `disabled`.
+- **Pick a source / option set** (Sursa sincronizării RSSP / eAPL / RSSP + eAPL): library
+  mono-select chips via `renderChoiceChips()` — selected `.is-selected` + `.chip__icon` check.
+- **Back office never uses 16px text on controls**: inside drawers the library checkbox and
+  switch labels are set to 14/20 (`.e-permits-user-create .checkbox-label / .switch-label`).
+  Only headings are larger.
+- Form drawers (Figma 8722:107671): single column, full-width fields with hints, short fields
+  paired 6/6, sections with an 18px heading and a rule. Chip focus is keyboard-only.
+
+#### Focus — one look, product-wide (2026-09-29)
+
+Keyboard focus everywhere is the **full-flow focus** (as `.e-permits-fo-input:focus-within`):
+**blue stroke** (`--color-border-brand-default`, 2px, inset or border) **+ 4px light-blue
+halo** (`--blue-sky-200`). Show it on `:focus-visible` only, so mouse clicks never flash
+a ring. The library checkbox does this (`border-color` brand + halo) and animates colours
+only (`transition: background-color, border-color, box-shadow 120ms`). Never
+`transition: all` on a control: it animated the focus outline in steps and made the
+Dosare checkboxes feel laggy. Same focus on the back-office instance/role cards
+(`.e-permits-shell__role-card`) and the profile trigger.
 
 #### One checkbox, one size — product rule (2026-09-27)
 
@@ -1104,6 +1183,25 @@ Oriented), `.footer-column` (Light/Dark) and `.column-item`.
 Figma counterpart.
 
 ---
+
+### Tooltip — plain label for icon-only controls (added 2026-10-01)
+
+Every icon-only control (button / `a[href]` / `[role=button]` with no visible text) gets a
+Google-style label tooltip automatically from `js/icon-tooltip.js` (also in `Components/js/`).
+Markup: the library tooltip with `.tooltip.tooltip--small.tooltip--plain` (no arrow, padding
+4/8, 12/16 text, radius 4, `--gray-900`), one shared node `#icon-tooltip` with `role=tooltip`.
+- **Behaviour:** mouse — appears after a 600 ms hover; while one is showing (or within 400 ms
+  after), the next icon shows at once. Keyboard — on `:focus-visible`, no delay. Hides on
+  mouse-out, blur, pointer-down/click, scroll, resize, Escape, window blur. Below and
+  centred, flipped above near the viewport bottom, clamped 8px from the edges. Not shown
+  while the control's menu is open (`aria-expanded="true"`).
+- **Text:** `data-tooltip-label`, else `aria-label`, else `title` (a `title` is moved into
+  `data-tooltip-label` so the native tooltip never doubles it). Keep the tooltip short and
+  the `aria-label` specific: edit icons `title="Editează"` + `aria-label="Editează <obiect>"`;
+  ⋮ triggers `data-tooltip-label="Mai multe acțiuni"`.
+- **Opt out:** `data-no-tooltip`. Controls using the rich tooltip (`data-tooltip`) are skipped.
+- Loaded on `e-permits-acte-permisive.html` and `e-permits-shell.html`
+  (`js/icon-tooltip.js?v=…`, defer). Delegated on `document`, so re-rendered lists need no wiring.
 
 ### Tooltip — verified
 
@@ -1805,6 +1903,22 @@ underline actually changes on hover. Fix by pointing it at `--blue-sky-600` (or
 
 ---
 
+### Date field in app forms (added 2026-10-01)
+
+Never `<input type="date">`. Use the **library date picker** inside the full-flow field shell:
+`.e-permits-fo-field` > label > `.date-picker__field[data-date-picker][data-locale="ro"][data-selected=ISO]`
+> `.e-permits-fo-input.e-permits-fo-input--with-action` (text input `.js-date-picker-input`,
+placeholder `ZZ/LL/AAAA`, value `DD/MM/YYYY`; trigger `.e-permits-fo-input__icon-button.js-date-picker-toggle`
+with `icon-calendar`, `aria-label="Alege data"`) + `.date-picker-panel` (library markup; weekdays L M M J V S D).
+Reference renderer: `datePicker()` in the tariff drawer (`e-permits-shell.js`).
+- `js/input-date-picker.js` (library) exposes `window.GEAPDatePicker.init(root)` — call it after
+  rendering pickers late (drawers, modals); pickers present at load are wired automatically.
+- Picking a day fires a bubbling `change` on the input; the ISO value is on the picker's
+  `data-selected` (typed `DD/MM/YYYY` is parsed on change too).
+- The panel opens **upwards** (`.date-picker-panel.is-up`) when it would be clipped by a
+  scrolling drawer/modal body or the viewport.
+- In Figma: library `date-input` (Components, `4449e61e…`).
+
 ### Date Picker
 
 Well implemented (46 rules) and previously undocumented. Trigger `.date-picker` +
@@ -2348,6 +2462,61 @@ Entry points: `__workspace`, `__library`, `__stage`, `__canvas`, `__field` (`is-
 
 `cabinet-evo` invents `.chip__badge--accent` (`--color-background-warning-accent`) on top
 of the library chip. `rap-evo` uses **no design tokens at all** — see §8.
+
+
+### Event log timeline — "Jurnal de evenimente" (added 2026-10-01)
+
+Source: EVO Cabinet "Istoric complet" (Figma EVO-Cabinet `519:12410`). The same component
+is used by all three BO event-log tabs: the service passport, the role profile and the
+user profile. Render it only through `renderEventTimeline(title, events, { meta, empty })`
+in `js/e-permits-shell.js`; CSS is in `css/e-permits-acte-permisive.css`.
+
+```html
+<section class="e-permits-dosar-profil__section">
+  <div class="e-permits-dosar-profil__section-heading">
+    <h2 class="e-permits-dosar-profil__section-title">Jurnal de evenimente</h2>
+    <span class="e-permits-dosar-profil__section-meta">Jurnalizat prin MLog</span>
+  </div>
+  <ol class="e-permits-timeline">
+    <li class="e-permits-timeline__item e-permits-timeline__item--success">
+      <span class="e-permits-timeline__rail" aria-hidden="true">
+        <span class="e-permits-timeline__marker"><svg class="icon">…#icon-circle-checkmark-filled</svg></span>
+      </span>
+      <div class="e-permits-timeline__content">
+        <span class="e-permits-timeline__title">Publicare formular</span>
+        <span class="e-permits-timeline__stamp"><time datetime="…">22 aprilie 2026, 14:00</time> · Vasile Schidu</span>
+        <p class="e-permits-timeline__text">Cerere de notificare v2.1.0</p>
+      </div>
+    </li>
+  </ol>
+</section>
+```
+
+- **Card:** `background-base-secondary`, radius 24, padding 20, 6px between steps.
+- **Step:** 20px marker (16px icon), then a 16px gap before the content. The rail is a
+  1px `border-base-default` line down to the next step; the last step has none.
+- **Text:**
+  - Title: 14/20 Medium, `text-base-secondary`.
+  - Stamp: 12/16, `text-base-tertiary`. Date-only values show just the day; the user,
+    if any, follows after " · ".
+  - Text: 14/20, `text-base-secondary`.
+- **Tones (by event `status`):**
+  - `Reușit`: `--success`, `circle-checkmark-filled`, `icon-positive-default`.
+  - `Eșuat`: `--danger`, `circle-error-filled`, `icon-danger-default`, plus a danger tag
+    after the title.
+  - Anything else: `--pending`, `time-filled`, `icon-brand-default`.
+- **Data:** an event is `{ at, user, type, status, detail }`, newest first. Roles and
+  users have no audit data yet, so `roleEvents()` and `userEvents()` derive events from
+  their dates.
+
+### Workplace toolbar primary action (added 2026-10-01)
+
+"Adaugă tarif" and "Sincronizare serviciu" in the workplace toolbar use the library
+`btn btn-primary btn-sm` with `e-permits-workplace__primary-action`, which hugs the label
+and keeps `[hidden]` working. Do not use the fixed-width `.e-permits-workplace__add-user`
+for new actions. Leading "add" icons on small buttons are `icon-plus-large` at
+`.icon.small` (16px), as in the Figma 16/plus. `icon-plus-small` draws a visibly smaller
+glyph at that size.
 
 ---
 

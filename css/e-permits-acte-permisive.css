@@ -16094,7 +16094,7 @@
   box-sizing: border-box;
   display: grid;
   grid-template-columns: minmax(360px, max-content) minmax(0, 1fr);
-  grid-template-rows: 64px 48px;
+  grid-template-rows: 64px 40px;
   width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -16266,7 +16266,7 @@
   display: flex;
   align-items: center;
   gap: 0;
-  height: 48px;
+  height: 40px;
   min-width: 0;
   padding: 0;
   overflow-x: auto;
@@ -16285,10 +16285,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-8, 8px);
-  height: 48px;
+  gap: var(--spacing-6, 6px);
+  height: 40px;
   min-width: max-content;
-  padding: 0 var(--spacing-16, 16px);
+  padding: 0 var(--spacing-12, 12px);
   flex: 0 0 auto;
   border: 0;
   border-bottom: 2px solid transparent;
@@ -18179,7 +18179,7 @@
   padding: 0 var(--spacing-6, 6px);
 }
 
-/* tabs: 48px items, 14/20, no inter-tab gap, one full-width track line */
+/* tabs: 40px items (tab-item-s), 14/20, no inter-tab gap, one full-width track line */
 .e-permits-page-header__tabs {
   box-sizing: border-box;
   margin: 0;
@@ -18194,15 +18194,15 @@
   display: none;
 }
 
-/* Figma 8993:39381: the track line sits inside the 48px row (header = 190px),
-   so the active tab's 2px underline covers it */
+/* Figma 8993:39381: the track line sits inside the tab row, so the active tab's
+   2px underline covers it. Back office = the small tab (tab-item-s): 40px, px12, 14/20. */
 .e-permits-page-header__tabs .tab-buttons {
   align-items: stretch;
   border-bottom: 0;
   box-shadow: inset 0 -1px 0 var(--color-border-base-default, #d9d9d9);
   display: flex;
   gap: 0;
-  height: 48px;
+  height: 40px;
   min-width: max-content;
   width: 100%;
 }
@@ -18219,12 +18219,12 @@
   display: inline-flex;
   flex: 0 0 auto;
   font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
-  gap: var(--spacing-8, 8px);
-  height: 48px;
+  gap: var(--spacing-6, 6px);
+  height: 40px;
   justify-content: center;
   margin: 0;
   min-height: 0;
-  padding: 0 var(--spacing-16, 16px);
+  padding: 0 var(--spacing-12, 12px);
   transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
   /* keep the hover fill off the transparent underline so the track line shows */
   background-clip: padding-box;
@@ -18432,7 +18432,7 @@
   padding: var(--spacing-8, 8px) 0 calc(var(--spacing-8, 8px) - 1px);
 }
 
-/* registries without status tabs (Roluri, …): no reserved 48px band */
+/* registries without status tabs (Roluri, …): no reserved tab band */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs[hidden],
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs:empty {
   display: none;
@@ -18491,7 +18491,7 @@
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
-  margin: var(--spacing-4, 4px) 0 0;
+  margin: var(--spacing-2, 2px) 0 0;
 }
 
 .e-permits-passport__modal .btn:disabled {
@@ -18585,23 +18585,6 @@
   gap: var(--spacing-2, 2px);
 }
 
-/* the ID line keeps overflow visible so the copy tooltip is not clipped */
-.e-permits-workplace__service-stack > .e-permits-workplace__service-id {
-  overflow: visible;
-}
-
-.e-permits-workplace__service-id .e-permits-workplace__copy-code {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  letter-spacing: 0;
-  line-height: var(--line-height-lh-16, 16px);
-}
-
-.e-permits-workplace__service-id .e-permits-workplace__copy-code:hover {
-  color: var(--color-text-base-default, #121212);
-}
-
 .e-permits-workplace__row-actions {
   align-items: center;
   display: inline-flex;
@@ -18623,9 +18606,14 @@
   width: var(--spacing-16, 16px);
 }
 
-[data-workplace-sync-service] {
-  min-width: 0;
-  width: auto;
+/* Workplace toolbar primary actions (Adaugă tarif, Sincronizare serviciu) are the library
+   btn-primary btn-sm and hug their label; .btn's display would otherwise beat [hidden]. */
+.e-permits-workplace__primary-action {
+  flex: 0 0 auto;
+}
+
+.e-permits-workplace__primary-action[hidden] {
+  display: none;
 }
 
 /* service profile: top bar carries "Înapoi la servicii" like the other profiles */
@@ -18702,7 +18690,6 @@
 /* ---- names in tables: medium (500), base colour --------------------------
    The users-registry stack is regular; service / passport record names are
    the row's identity, so they read medium like the dosar number. */
-.e-permits-workplace__service-stack > span.e-permits-workplace__service-name,
 .e-permits-passport__name {
   color: var(--color-text-base-default, #121212);
   font-weight: var(--font-weight-fw-medium, 500);
@@ -18713,16 +18700,28 @@
 .e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table th:nth-child(1),
 .e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table th:nth-child(1),
-.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(1) {
+.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(1),
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1) {
   left: 0;
   position: sticky;
   z-index: 7;
 }
 
+/* Servicii / Tarife: the pinned ID column carries the Dosare divider */
+.e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table td:nth-child(1),
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
 .e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table th:nth-child(2),
 .e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table td:nth-child(2),
 .e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table th:nth-child(2),
-.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(2) {
+.e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(2),
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(2) {
   border-right: 0;
   left: auto;
   position: static;
@@ -18747,18 +18746,20 @@
   border-top: 1px solid var(--color-border-base-default, #d9d9d9);
 }
 
+/* Figma group header (9442:44730): 16/24 medium secondary, 8 / 20 padding,
+   10px gap, count = library numbered badge Light (.badge--lg.badge--solid-light) */
 .e-permits-stack__group-label {
   align-items: center;
   background: var(--color-background-base-secondary, #f5f5f5);
   border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-default, #121212);
+  color: var(--color-text-base-secondary, #383838);
   display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  gap: var(--spacing-8, 8px);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: 10px;
   line-height: var(--line-height-lh-24, 24px);
   margin: 0;
-  padding: var(--spacing-6, 6px) var(--spacing-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
 }
 
 .e-permits-stack__group:first-child .e-permits-stack__group-label {
@@ -18766,8 +18767,7 @@
 }
 
 .e-permits-stack__group-count {
-  color: var(--color-text-base-tertiary, #757575);
-  font-weight: var(--font-weight-fw-medium, 500);
+  flex: 0 0 auto;
 }
 
 .e-permits-stack__list {
@@ -18907,6 +18907,32 @@
 
 /* the menu itself is .e-permits-fo-intent-menu (post-process menu); only
    the danger item tone is added here */
+/* back-office size of the post-process menu: each item has the footprint of
+   a small button (32px, 14/20 medium, 16px icon, radius 6) */
+.e-permits-stack__menu {
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-4, 4px);
+  width: max-content;
+  min-width: 180px;
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.e-permits-stack__menu .e-permits-fo-intent-menu__item {
+  border-radius: var(--border-radius-6, 6px);
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+.e-permits-stack__menu .e-permits-fo-intent-menu__item .icon {
+  flex: 0 0 16px;
+  height: 16px;
+  width: 16px;
+}
+
 .e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger,
 .e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger .icon {
   color: var(--color-text-error-default, #d92d20);
@@ -18936,6 +18962,19 @@
 .e-permits-fo-select.is-error.is-open .e-permits-fo-select__button {
   border-color: var(--color-border-error-default, #d92d20);
   box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+/* a disabled choice (e.g. a moment with no payment branch): listed with its
+   reason, not selectable — same treatment as .e-permits-fo-caem__option */
+.e-permits-fo-select__option.is-disabled {
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+.e-permits-fo-select__option.is-disabled:hover,
+.e-permits-fo-select__option.is-disabled:focus-visible {
+  background: transparent;
 }
 
 /* options are focusable for keyboard use; the focus look is the hover look */
@@ -18974,8 +19013,8 @@
   cursor: pointer;
   display: flex;
   font: inherit;
-  gap: var(--spacing-8, 8px);
-  padding: var(--spacing-6, 6px) var(--spacing-20, 20px);
+  gap: 10px;
+  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
   text-align: left;
   width: 100%;
 }
@@ -19110,6 +19149,16 @@
   gap: var(--spacing-8, 8px);
 }
 
+/* filter chips: medium labels; counts = the library numbered badge Light
+   (.badge--lg.badge--solid-light), the same badge as the group headers */
+.e-permits-rt__chips .chip__label {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-rt__chips .chip .badge {
+  margin-left: var(--spacing-2, 2px);
+}
+
 .e-permits-rt__search {
   width: min(320px, 100%);
 }
@@ -19141,4 +19190,334 @@
   .e-permits-rt__search {
     width: 100%;
   }
+}
+
+/* ---- Plată editor (drawer) ------------------------------------------------ */
+.e-permits-pay__exemptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+
+
+/* Plăți și tarife — one toolbar row under the title */
+.e-permits-pay__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-pay__tools {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-pay__search {
+  width: 240px;
+}
+
+@media (max-width: 760px) {
+  .e-permits-pay__tools,
+  .e-permits-pay__search {
+    width: 100%;
+  }
+}
+
+/* sync progress: one line per source (RSSP, eAPL) above the skeleton */
+.e-permits-sync__steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-sync__step {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-sync__step.is-pending {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-sync__step.is-done .icon {
+  color: var(--green-600, #039855);
+}
+
+.e-permits-sync__step.is-error .icon {
+  color: var(--color-icon-error-default, #d92d20);
+}
+
+.e-permits-sync__step-dot {
+  border: var(--border-width-2, 2px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  height: 16px;
+  width: 16px;
+}
+
+/* a segmented control inside a form field hugs its segments (left-aligned),
+   it does not stretch across the field */
+.e-permits-fo-field > .segmented-control {
+  align-self: flex-start;
+}
+
+/* a row reached by a redirect (e.g. a tariff from a service's Plăți tab)
+   flashes the brand tint once so the eye lands on it */
+.e-permits-workplace__table tr.is-flash > td {
+  animation: e-permits-row-flash 1.8s ease-out 1;
+}
+
+@keyframes e-permits-row-flash {
+  0%, 35% { background-color: var(--color-background-brand-secondary, #e8f0fb); }
+  100% { background-color: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-workplace__table tr.is-flash > td {
+    animation: none;
+    background-color: var(--color-background-brand-secondary, #e8f0fb);
+  }
+}
+
+/* ---- "Cum vrei să continui?" — service available with and without MPass ----
+   The auth card; two options (MPass first) each with one line of explanation,
+   split by a plain "sau" rule — the familiar sign-in / continue-as-guest pattern. */
+.e-permits-fo-access__option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  width: 100%;
+}
+
+.e-permits-fo-access__option > .btn {
+  justify-content: center;
+  width: 100%;
+}
+
+.e-permits-fo-access__hint {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-fo-access__or {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-12, 12px);
+  line-height: var(--line-height-lh-20, 20px);
+  width: 100%;
+}
+
+.e-permits-fo-access__or::before,
+.e-permits-fo-access__or::after {
+  background: var(--color-border-base-default, #d9d9d9);
+  content: "";
+  flex: 1 1 auto;
+  height: var(--border-width-1, 1px);
+}
+
+/* ---- Tarife (classifier) — editor pieces the library does not cover ------- */
+.e-permits-tariff__global-link {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px);
+  margin-top: var(--spacing-12, 12px);
+}
+
+/* formula check: a quiet grey panel with test inputs and the result */
+.e-permits-tariff__test {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-tariff__test-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-tariff__test-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-tariff__test-result {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-tariff__test-error {
+  color: var(--color-text-error-default, #d92d20);
+}
+
+.e-permits-tariff__version {
+  display: block;
+}
+
+.e-permits-tariff__version + .e-permits-tariff__version {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-tariff__lifecycle {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-tariff__confirm {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* Library date picker (.date-picker__field + .date-picker-panel, js/input-date-picker.js)
+   inside the full-flow field shell: the field fills its column (the library caps it at
+   320px for standalone use) and the calendar trigger is a bare icon button. */
+.e-permits-fo-field .date-picker__field {
+  max-width: none;
+}
+
+.e-permits-fo-input__icon-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  background: transparent;
+  color: var(--color-icon-base-default, #121212);
+  cursor: pointer;
+}
+
+.e-permits-fo-input__icon-button:focus-visible {
+  outline: 0;
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+/* Event log timeline — "Jurnal de evenimente" tabs (servicii, roluri, utilizatori).
+   EVO Cabinet "Istoric complet" (Figma EVO-Cabinet 519:12410): a secondary card, one
+   .step per event — 20px marker with a rail down to the next step, then title, stamp
+   and an optional sentence. */
+.e-permits-timeline {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-24, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  list-style: none;
+  margin: 0;
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-timeline__item {
+  display: flex;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-timeline__rail {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-timeline__item:not(:last-child) .e-permits-timeline__rail::after {
+  background: var(--color-border-base-default, #d9d9d9);
+  content: "";
+  flex: 1 1 auto;
+  width: 1px;
+}
+
+.e-permits-timeline__marker {
+  align-items: center;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-brand-default, #0060d2);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-timeline__marker .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-timeline__item--success .e-permits-timeline__marker {
+  color: var(--color-icon-positive-default, #039855);
+}
+
+.e-permits-timeline__item--danger .e-permits-timeline__marker {
+  color: var(--color-icon-danger-default, #d92d20);
+}
+
+.e-permits-timeline__content {
+  align-items: flex-start;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-timeline__item:not(:last-child) .e-permits-timeline__content {
+  padding-bottom: var(--spacing-6, 6px);
+}
+
+.e-permits-timeline__title {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  word-break: break-word;
+}
+
+.e-permits-timeline__stamp {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-timeline__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  word-break: break-word;
 }

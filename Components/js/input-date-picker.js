@@ -1,6 +1,10 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const pickers = Array.from(document.querySelectorAll("[data-date-picker]"));
-  if (!pickers.length) return;
+/* Date picker — library. Pickers present at load are wired on DOMContentLoaded; content
+   rendered later (drawers, modals) calls window.GEAPDatePicker.init(root). Romanian month
+   names with data-locale="ro". Picking a day fires a bubbling "change" on the input;
+   the ISO value is on the picker's data-selected. */
+(() => {
+  const allPickers = () => Array.from(document.querySelectorAll("[data-date-picker]"));
+  const monthsRo = ["Ianuarie", "Februarie", "Martie", "Aprilie", "Mai", "Iunie", "Iulie", "August", "Septembrie", "Octombrie", "Noiembrie", "Decembrie"];
 
   const months = [
     "Jan",
@@ -38,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const applyResponsive = () => {
     const isMobile = mobileQuery.matches;
-    pickers.forEach((picker) => {
+    allPickers().forEach((picker) => {
       picker.classList.toggle("is-mobile", isMobile);
       const panel = picker.querySelector(".date-picker-panel");
       if (panel) {
@@ -60,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const buildMonthView = (state, container, setView, onSelect) => {
     if (!container) return;
     container.innerHTML = "";
-    months.forEach((monthName, index) => {
+    (state.months || months).forEach((monthName, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "date-picker__option";
@@ -176,7 +180,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  pickers.forEach((picker) => {
+  const initPicker = (picker) => {
+    if (picker.dataset.dpReady === "true") return;
+    picker.dataset.dpReady = "true";
     const input = picker.querySelector(".js-date-picker-input");
     const toggle = picker.querySelector(".js-date-picker-toggle");
     const panel = picker.querySelector(".date-picker-panel");
@@ -199,7 +205,8 @@ document.addEventListener("DOMContentLoaded", () => {
       rangeStart: picker.dataset.rangeStart || "",
       rangeEnd: picker.dataset.rangeEnd || "",
       today: picker.dataset.today || toISODate(now.getFullYear(), now.getMonth(), now.getDate()),
-      yearRangeStart: null
+      yearRangeStart: null,
+      months: picker.dataset.locale === "ro" ? monthsRo : months
     };
 
     const viewGrids = picker.querySelectorAll(".date-picker__grid[data-view]");
@@ -215,10 +222,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const syncLabels = () => {
       if (label) {
-        label.textContent = `${months[state.month]} ${state.year}`;
+        label.textContent = `${state.months[state.month]} ${state.year}`;
       }
       if (monthLabel) {
-        monthLabel.textContent = months[state.month];
+        monthLabel.textContent = state.months[state.month];
       }
       if (yearLabel) {
         yearLabel.textContent = String(state.year);
@@ -240,6 +247,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     };
 
+    /* nearest ancestor that clips (scrolling drawer/modal body), else the viewport */
+    const clipBottom = () => {
+      for (let el = picker.parentElement; el && el !== document.body; el = el.parentElement) {
+        const o = getComputedStyle(el).overflowY;
+        if (o === "auto" || o === "scroll" || o === "hidden") return Math.min(el.getBoundingClientRect().bottom, window.innerHeight);
+      }
+      return window.innerHeight;
+    };
+
     const open = () => {
       if (!panel) return;
       applyResponsive();
@@ -247,6 +263,13 @@ document.addEventListener("DOMContentLoaded", () => {
       panel.hidden = false;
       panel.setAttribute("aria-hidden", "false");
       if (toggle) toggle.setAttribute("aria-expanded", "true");
+      /* open upwards when the panel would be clipped below and there is room above */
+      panel.classList.remove("is-up");
+      if (!picker.classList.contains("is-mobile")) {
+        const rect = panel.getBoundingClientRect();
+        const field = picker.getBoundingClientRect();
+        if (rect.bottom > clipBottom() && field.top - rect.height - 8 > 0) panel.classList.add("is-up");
+      }
     };
 
     const close = () => {
@@ -355,6 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
       picker.dataset.rangeEnd = state.rangeEnd || "";
 
       render();
+      input?.dispatchEvent(new Event("change", { bubbles: true }));
 
       if (state.type === "range") {
         if (state.rangeStart && state.rangeEnd) {
@@ -415,12 +439,23 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
+    /* typed DD/MM/YYYY → selected date */
+    input?.addEventListener("change", (event) => {
+      if (!event.isTrusted || state.type === "range") return;
+      const m = input.value.trim().match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
+      if (!m) { if (!input.value.trim()) { state.selected = ""; picker.dataset.selected = ""; } return; }
+      state.selected = toISODate(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+      state.year = Number(m[3]); state.month = Number(m[2]) - 1;
+      picker.dataset.selected = state.selected;
+      render();
+    });
+
     render();
     setView(state.view);
-  });
+  };
 
   document.addEventListener("click", (event) => {
-    pickers.forEach((picker) => {
+    allPickers().forEach((picker) => {
       const panel = picker.querySelector(".date-picker-panel");
       if (!panel) return;
       if (!picker.contains(event.target)) {
@@ -435,7 +470,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
-    pickers.forEach((picker) => {
+    allPickers().forEach((picker) => {
       const panel = picker.querySelector(".date-picker-panel");
       if (!panel) return;
       panel.hidden = true;
@@ -446,13 +481,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  applyResponsive();
   if (typeof mobileQuery.addEventListener === "function") {
     mobileQuery.addEventListener("change", applyResponsive);
   } else {
     window.addEventListener("resize", applyResponsive);
   }
-});
+
+  window.GEAPDatePicker = {
+    init(root = document) {
+      root.querySelectorAll("[data-date-picker]").forEach(initPicker);
+      applyResponsive();
+    }
+  };
+  const boot = () => window.GEAPDatePicker.init(document);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
 
 
 

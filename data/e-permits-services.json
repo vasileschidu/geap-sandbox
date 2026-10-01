@@ -235,6 +235,11 @@
             }
           ]
         }
+      ],
+      "paymentMoments": [
+        "La examinare",
+        "La luarea deciziei",
+        "După emitere act"
       ]
     },
     {
@@ -318,6 +323,10 @@
             }
           ]
         }
+      ],
+      "paymentMoments": [
+        "La examinare",
+        "La avizare"
       ]
     },
     {
@@ -369,7 +378,8 @@
             }
           ]
         }
-      ]
+      ],
+      "paymentMoments": []
     },
     {
       "id": "flux-postprocesare-v1",
@@ -413,6 +423,9 @@
             }
           ]
         }
+      ],
+      "paymentMoments": [
+        "La luarea deciziei"
       ]
     },
     {
@@ -474,6 +487,10 @@
             }
           ]
         }
+      ],
+      "paymentMoments": [
+        "La examinare",
+        "După emitere act"
       ]
     }
   ],
@@ -710,7 +727,10 @@
             "moment": "La inițierea solicitării",
             "generation": "Automat",
             "tariffs": [
-              "Taxă de stat — 50 MDL"
+              {
+                "id": "tf-taxa-stat-50",
+                "removable": false
+              }
             ],
             "term": 5,
             "exemptions": [],
@@ -720,7 +740,9 @@
             "active": true,
             "usage": 128,
             "modifiedAt": "2026-04-10T09:30:00",
-            "modifiedBy": "Anastasia Cojocaru"
+            "modifiedBy": "Anastasia Cojocaru",
+            "nameRu": "",
+            "nameEn": ""
           },
           {
             "id": "pay-2",
@@ -729,8 +751,14 @@
             "moment": "La examinare",
             "generation": "Manual",
             "tariffs": [
-              "Examinare documente — 120 MDL",
-              "Deplasare la obiect — 300 MDL"
+              {
+                "id": "tf-examinare-120",
+                "removable": false
+              },
+              {
+                "id": "tf-deplasare-300",
+                "removable": true
+              }
             ],
             "term": 10,
             "exemptions": [
@@ -743,7 +771,9 @@
             "active": true,
             "usage": 34,
             "modifiedAt": "2026-04-12T11:05:00",
-            "modifiedBy": "Anastasia Cojocaru"
+            "modifiedBy": "Anastasia Cojocaru",
+            "nameRu": "",
+            "nameEn": ""
           },
           {
             "id": "pay-3",
@@ -752,7 +782,10 @@
             "moment": "La examinare",
             "generation": "Manual",
             "tariffs": [
-              "Examinare documente — 100 MDL"
+              {
+                "id": "tf-examinare-100",
+                "removable": false
+              }
             ],
             "term": 10,
             "exemptions": [
@@ -764,7 +797,9 @@
             "active": false,
             "usage": 57,
             "modifiedAt": "2026-01-15T08:20:00",
-            "modifiedBy": "Vasile Schidu"
+            "modifiedBy": "Vasile Schidu",
+            "nameRu": "",
+            "nameEn": ""
           },
           {
             "id": "pay-4",
@@ -773,12 +808,16 @@
             "moment": "După emitere act",
             "generation": "Automat",
             "tariffs": [
-              "Taxă anuală — 200 MDL"
+              {
+                "id": "tf-anuala-200",
+                "removable": false
+              }
             ],
             "term": 30,
             "exemptions": [],
             "recurring": {
               "frequency": "Anual",
+              "months": null,
               "noticeDays": 15
             },
             "version": 2,
@@ -786,7 +825,9 @@
             "active": false,
             "usage": 0,
             "modifiedAt": "2026-03-28T16:40:00",
-            "modifiedBy": "Anastasia Cojocaru"
+            "modifiedBy": "Anastasia Cojocaru",
+            "nameRu": "",
+            "nameEn": ""
           },
           {
             "id": "pay-5",
@@ -803,7 +844,9 @@
             "active": false,
             "usage": 0,
             "modifiedAt": "2026-04-21T13:50:00",
-            "modifiedBy": "Vasile Schidu"
+            "modifiedBy": "Vasile Schidu",
+            "nameRu": "",
+            "nameEn": ""
           }
         ],
         "dependencies": [
@@ -957,7 +1000,11 @@
             "detail": "Cod 003000023: Serviciul RSSP este momentan indisponibil. Încercați mai târziu."
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP",
+        "eAPL"
+      ]
     },
     {
       "code": "003578151",
@@ -1082,7 +1129,10 @@
             "moment": "La inițierea solicitării",
             "generation": "Automat",
             "tariffs": [
-              "Analiză fizico-chimică — 350 MDL"
+              {
+                "id": "tf-analiza-350",
+                "removable": false
+              }
             ],
             "term": 5,
             "exemptions": [],
@@ -1092,7 +1142,9 @@
             "active": true,
             "usage": 61,
             "modifiedAt": "2026-06-10T10:00:00",
-            "modifiedBy": "Anastasia Cojocaru"
+            "modifiedBy": "Anastasia Cojocaru",
+            "nameRu": "",
+            "nameEn": ""
           }
         ],
         "dependencies": [],
@@ -1148,7 +1200,10 @@
             "detail": "Datele RSSP ale serviciului au fost actualizate"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP"
+      ]
     },
     {
       "code": "003000118",
@@ -1252,7 +1307,10 @@
             "detail": "Cod 003000118 preluat din RSSP"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP"
+      ]
     },
     {
       "code": "003000207",
@@ -1331,7 +1389,11 @@
             "detail": "Cod 003000207 preluat din RSSP"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP",
+        "eAPL"
+      ]
     },
     {
       "code": "003000245",
@@ -1434,7 +1496,10 @@
             "detail": "Cod 003000245 preluat din RSSP"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP"
+      ]
     },
     {
       "code": "003000312",
@@ -1513,7 +1578,10 @@
             "detail": "Cod 003000312 preluat din RSSP"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP"
+      ]
     },
     {
       "code": "003000377",
@@ -1592,7 +1660,10 @@
             "detail": "Cod 003000377 preluat din RSSP"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP"
+      ]
     },
     {
       "code": "003000402",
@@ -1672,7 +1743,10 @@
             "detail": "Cod 003000402 preluat din RSSP"
           }
         ]
-      }
+      },
+      "syncSources": [
+        "RSSP"
+      ]
     }
   ],
   "rssp": {
@@ -1989,6 +2063,533 @@
     {
       "id": "NotificareSolicitant",
       "name": "NotificareSolicitant"
+    }
+  ],
+  "paymentMoments": [
+    "La inițierea solicitării",
+    "La examinare",
+    "La avizare",
+    "La luarea deciziei",
+    "După semnare act",
+    "După emitere act"
+  ],
+  "exemptionOptions": [
+    "Solicitarea nu necesită plată",
+    "Fără scutire",
+    "Nu achită taxa de stat",
+    "Nu achită serviciile",
+    "Scutiri % la plata serviciilor"
+  ],
+  "tariffs": [
+    {
+      "id": "tf-taxa-stat-50",
+      "name": "Taxă de stat",
+      "amount": 50,
+      "currency": "MDL",
+      "scope": "global",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-001",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-11T10:03:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de stat",
+      "legalBasis": "Legea nr. 213/2023 cu privire la taxa de stat, anexa 1, poz. 12",
+      "iban": "",
+      "requestType": null,
+      "personType": null,
+      "subdivision": null,
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 3,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2025-02-10T09:00:00",
+          "by": "Vasile Schidu",
+          "note": "Creat · 40 MDL"
+        },
+        {
+          "version": 2,
+          "at": "2025-11-03T12:30:00",
+          "by": "Vasile Schidu",
+          "note": "Sumă 40 → 45 MDL"
+        },
+        {
+          "version": 3,
+          "at": "2026-09-11T10:03:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Sumă 45 → 50 MDL"
+        }
+      ]
+    },
+    {
+      "id": "tf-examinare-120",
+      "name": "Examinare documente",
+      "amount": 120,
+      "currency": "MDL",
+      "scope": "003000023",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-002",
+      "source": "RSSP",
+      "modifiedAt": "2026-09-12T10:06:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "HG nr. 1101/2023, anexa 3",
+      "iban": "",
+      "requestType": "Emitere primară",
+      "personType": "Persoană juridică",
+      "subdivision": "Direcția comerț",
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-12T10:06:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-examinare-100",
+      "name": "Examinare documente (redus)",
+      "amount": 100,
+      "currency": "MDL",
+      "scope": "003000023",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-003",
+      "source": "RSSP",
+      "modifiedAt": "2026-09-13T10:09:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": "Emitere primară",
+      "personType": "Persoană juridică",
+      "subdivision": "Direcția comerț",
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-13T10:09:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-deplasare-300",
+      "name": "Deplasare la obiect",
+      "amount": 300,
+      "currency": "MDL",
+      "scope": "global",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-004",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-14T10:12:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă suplimentară",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": null,
+      "personType": null,
+      "subdivision": null,
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-14T10:12:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-anuala-200",
+      "name": "Taxă anuală",
+      "amount": 200,
+      "currency": "MDL",
+      "scope": "003000023",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-005",
+      "source": "RSSP",
+      "modifiedAt": "2026-09-15T10:15:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă suplimentară",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": "Emitere primară",
+      "personType": "Persoană juridică",
+      "subdivision": "Direcția comerț",
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-15T10:15:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-analiza-350",
+      "name": "Analiză fizico-chimică",
+      "amount": 350,
+      "currency": "MDL",
+      "scope": "003578151",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-006",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-16T10:18:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": "Emitere primară",
+      "personType": "Persoană juridică",
+      "subdivision": null,
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-16T10:18:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-suprafata",
+      "name": "Taxă pe suprafață comercială",
+      "amount": 2,
+      "currency": "MDL/m²",
+      "scope": "global",
+      "state": "Publicat",
+      "active": true,
+      "formula": true,
+      "userVariables": true,
+      "code": "TRF-007",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-17T10:21:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă suplimentară",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": null,
+      "personType": null,
+      "subdivision": null,
+      "expression": "{suprafata_m2} * 2",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-17T10:21:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-urgenta",
+      "name": "Examinare în regim de urgență",
+      "amount": 50,
+      "currency": "%",
+      "scope": "global",
+      "state": "Publicat",
+      "active": true,
+      "formula": true,
+      "userVariables": false,
+      "code": "TRF-008",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-18T10:24:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": null,
+      "personType": null,
+      "subdivision": null,
+      "expression": "{taxa_examinare} * 0.5",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-18T10:24:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-eliberare-duplicat",
+      "name": "Eliberare duplicat",
+      "amount": 80,
+      "currency": "MDL",
+      "scope": "global",
+      "state": "Schiță",
+      "active": false,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-009",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-19T10:27:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă suplimentară",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": null,
+      "personType": null,
+      "subdivision": null,
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-19T10:27:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-vechi",
+      "name": "Taxă de verificare (abrogată)",
+      "amount": 90,
+      "currency": "MDL",
+      "scope": "global",
+      "state": "Publicat",
+      "active": false,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-010",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-20T10:30:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă suplimentară",
+      "legalBasis": "",
+      "iban": "",
+      "requestType": null,
+      "personType": null,
+      "subdivision": null,
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": "2026-06-30",
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-20T10:30:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat"
+        }
+      ]
+    },
+    {
+      "id": "tf-eapl-comert",
+      "code": "TRF-011",
+      "name": "Taxa locală pentru dreptul de comerț",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă suplimentară",
+      "amount": 100,
+      "currency": "MDL",
+      "scope": "003000023",
+      "source": "eAPL",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "legalBasis": "Decizia CMC nr. 5/2 din 2025",
+      "iban": "MD75TR000000022599887766",
+      "requestType": "Emitere primară",
+      "personType": "Persoană juridică",
+      "subdivision": null,
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-20T10:15:00",
+          "by": "Sincronizare eAPL",
+          "note": "Importat din eAPL"
+        }
+      ],
+      "modifiedAt": "2026-09-20T10:15:00",
+      "modifiedBy": "Sincronizare eAPL",
+      "externalId": "local-fee"
+    }
+  ],
+  "eapl": {
+    "note": "Mock eAPL (registrul local al actelor permisive): date locale ale serviciului pentru autoritățile publice locale. 000000000 = eAPL indisponibil.",
+    "unavailable": [
+      "000000000"
+    ],
+    "responses": {
+      "003000023": {
+        "code": "003000023",
+        "localAuthority": {
+          "name": "Primăria municipiului Chișinău",
+          "code": "PMC",
+          "idno": "1007601000301"
+        },
+        "localFee": {
+          "label": "Taxa locală pentru dreptul de comerț",
+          "amount": 100,
+          "currency": "MDL"
+        },
+        "localTerm": {
+          "value": 5,
+          "unit": "zile lucrătoare"
+        },
+        "register": "eAPL — Registrul local al actelor permisive",
+        "updatedOn": "2026-09-20T10:15:00"
+      },
+      "003000207": {
+        "code": "003000207",
+        "localAuthority": {
+          "name": "Primăria municipiului Bălți",
+          "code": "PMB",
+          "idno": "1007601000412"
+        },
+        "localFee": {
+          "label": "Taxa pentru amplasarea unităților comerciale",
+          "amount": 250,
+          "currency": "MDL"
+        },
+        "localTerm": {
+          "value": 10,
+          "unit": "zile lucrătoare"
+        },
+        "register": "eAPL — Registrul local al actelor permisive",
+        "updatedOn": "2026-09-18T09:00:00"
+      }
+    }
+  },
+  "tariffTypes": [
+    "Taxă de stat",
+    "Taxă de examinare",
+    "Taxă de avizare",
+    "Taxă suplimentară"
+  ],
+  "currencies": [
+    "MDL",
+    "EUR",
+    "USD"
+  ],
+  "roundingRules": [
+    "2 zecimale",
+    "1 zecimală",
+    "Fără zecimale (întreg)",
+    "Rotunjire în sus la leu"
+  ],
+  "bankAccounts": [
+    {
+      "id": "ba-mec-1",
+      "authorityId": "aut-mec",
+      "iban": "MD24AG000000022512345678",
+      "bank": "Ministerul Finanțelor — Trezoreria de Stat",
+      "label": "Cont principal MEC",
+      "principal": true,
+      "active": true
+    },
+    {
+      "id": "ba-mec-2",
+      "authorityId": "aut-mec",
+      "iban": "MD41TR000000022598765432",
+      "bank": "Trezoreria de Stat",
+      "label": "Taxe de examinare",
+      "principal": false,
+      "active": true
+    },
+    {
+      "id": "ba-ansp-1",
+      "authorityId": "aut-ansp",
+      "iban": "MD13TR000000022544556677",
+      "bank": "Trezoreria de Stat",
+      "label": "Cont principal ANSP",
+      "principal": true,
+      "active": true
+    },
+    {
+      "id": "ba-lrsp-1",
+      "authorityId": "aut-lrsp",
+      "iban": "MD88TR000000022511223344",
+      "bank": "Trezoreria de Stat",
+      "label": "Cont LRSP",
+      "principal": false,
+      "active": true
     }
   ]
 }
