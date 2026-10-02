@@ -1627,11 +1627,6 @@ body {
   letter-spacing: -0.28px;
 }
 
-.e-permits-workplace__refresh {
-  gap: 6px;
-  white-space: nowrap;
-}
-
 .e-permits-workplace__toolbar {
   padding: 0 24px 16px;
   display: grid;
@@ -2446,26 +2441,6 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.e-permits-workplace__refresh {
-  width: 126px;
-  min-width: 126px;
-  flex: 0 0 126px;
-  height: 32px;
-  padding: 0 12px 0 8px;
-  border: 0;
-  border-radius: var(--border-radius-full, 999px);
-  background: transparent;
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-workplace__refresh .icon {
-  width: 16px;
-  height: 16px;
 }
 
 .e-permits-workplace__toolbar {

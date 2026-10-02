@@ -16113,32 +16113,10 @@
   letter-spacing: -0.24px;
 }
 
+/* "Actualizează" is the button component (btn-strict btn-sm btn-rounded); only its
+   place in the title row is set here */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__refresh {
   flex: 0 0 auto;
-  width: auto;
-  min-width: 0;
-  height: 32px;
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
-  gap: var(--spacing-6, 6px);
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  background: transparent;
-  color: var(--color-text-base-default, #121212);
-  font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-14, 14px);
-  font-style: normal;
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__refresh:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__refresh .icon {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__toolbar {
@@ -16336,10 +16314,6 @@
   font-weight: var(--font-weight-fw-semibold, 600);
   line-height: var(--line-height-lh-28, 28px);
   letter-spacing: -0.2px;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__title-row--shell .e-permits-workplace__refresh {
-  height: 32px;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header {
@@ -18028,10 +18002,15 @@
 /* Icon = Only (Figma button-filled-rectangular / button-text-circular · Icon Only · Small):
    a 32px square, 16px icon, no label — it always carries an aria-label, which
    js/icon-tooltip.js shows as the plain hover/focus tooltip. ✎ edit, export, sync, filter
-   = btn-neutral; ⋮ more = btn-strict + btn-rounded. Never a custom icon-button class. */
-.btn.btn-sm.btn-icon-only {
+   = btn-neutral; ⋮ more = btn-strict (square, radius 6 like every icon button). Never a
+   custom icon-button class. */
+/* :has() repeats the library's ".btn.btn-sm:has(> .icon:first-child)" (8px on the icon
+   side, meant for icon + label) so the icon-only square wins it and the icon is centred */
+.btn.btn-sm.btn-icon-only,
+.btn.btn-sm.btn-icon-only:has(> .icon:first-child) {
   flex: 0 0 var(--spacing-32, 32px);
   gap: 0;
+  justify-content: center;
   padding: 0;
   width: var(--spacing-32, 32px);
 }

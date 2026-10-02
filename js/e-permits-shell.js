@@ -6129,7 +6129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
     /* Taxe = tariffs + their application rules in one place (revised 2026-10-02: a tax is
        a tariff plus the rule RSSP / eAPL do not carry). Count = taxes + tariffs to configure */
-    { id: "fees", label: "Taxe", count: (service) => serviceTaxes(service).length + unconfiguredServiceTariffs(service).length },
+    { id: "fees", label: "Taxe și tarife", count: (service) => serviceTaxes(service).length + unconfiguredServiceTariffs(service).length },
     { id: "dependencies", label: "Interdependențe", count: (service) => service.geap.dependencies.length },
     { id: "classifiers", label: "Clasificatoare specifice", count: (service) => service.geap.classifiers.length },
     { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
@@ -6671,7 +6671,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const menuId = `passport-stack-menu-${stackMenuSeq += 1}`;
     return `
       <div class="e-permits-stack__menu-wrap">
-        <button class="btn btn-strict btn-sm btn-icon-only btn-rounded e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-tooltip-label="Mai multe acțiuni" data-stack-menu-trigger>
+        <button class="btn btn-strict btn-sm btn-icon-only e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-tooltip-label="Mai multe acțiuni" data-stack-menu-trigger>
           <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-more-vertical"></use></svg>
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${menuId}" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
@@ -7035,39 +7035,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  /* sync the service's tariffs from its registries (icon; RSSP + eAPL = a menu) */
-  const renderTariffSyncControl = (service) => (service.syncSources || []).includes("eAPL") ? `
-    <div class="e-permits-stack__menu-wrap">
-      <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Sincronizează tarifele" aria-haspopup="menu" aria-expanded="false" aria-controls="tariff-sync-menu" data-stack-menu-trigger>
-        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-      </button>
-      <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="tariff-sync-menu" role="menu" aria-label="Sursa tarifelor" hidden data-stack-menu>
-        ${[["RSSP", "Din RSSP"], ["eAPL", "Din eAPL"]].map(([source, label]) => `
-          <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-tariff-sync="${source}">
-            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>${label}</span>
-          </button></li>
-        `).join("")}
-      </ul>
-    </div>
-  ` : `
-    <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Sincronizează tarifele din RSSP" data-tariff-sync="RSSP">
-      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-    </button>
-  `;
-
   const renderServicePayments = (service) => {
     const admin = isCentralAdmin();
 
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title">Taxe</h2>
-          <button class="btn btn-neutral btn-sm" type="button" data-tax-simulate>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calculator"></use></svg>
-            <span>Simulează nota de plată</span>
-          </button>
-        </div>
-        <!-- one toolbar: filters left; search, export, sync and Adaugă taxă right -->
+        <h2 class="e-permits-dosar-profil__section-title">Taxe</h2>
+        <!-- one toolbar: filters left; search, Adaugă taxă and ⋮ (simulate, export, sync) right -->
         <div class="e-permits-pay__toolbar">
           <div class="e-permits-rt__chips" role="group" aria-label="Filtrează taxele" data-pay-chips>${renderPayChips(service)}</div>
           <div class="e-permits-pay__tools">
@@ -7075,17 +7049,20 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
               <input class="input" type="search" placeholder="Caută taxă sau tarif" aria-label="Caută după tarif, tip solicitare, moment sau condiție" value="${escapeHtml(payListState.query)}" autocomplete="off" data-pay-search>
             </label>
-            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Exportă taxele" data-pay-export>
-              ${EXPORT_ICON}
-            </button>
             ${admin ? `
-              ${renderTariffSyncControl(service)}
-              <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
               <button class="btn btn-secondary btn-sm" type="button" data-pay-add>
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                 <span>Adaugă taxă</span>
               </button>
             ` : ""}
+            <!-- one visible action; the rest (simulate, export, sync) in the ⋮ menu -->
+            ${renderStackMenu([
+              { label: "Simulează nota de plată", icon: "calculator", attrs: "data-tax-simulate" },
+              { label: "Exportă taxele", icon: "download", attrs: "data-pay-export" },
+              ...(admin ? ["RSSP", ...((service.syncSources || []).includes("eAPL") ? ["eAPL"] : [])].map((source) => ({
+                label: `Sincronizează tarifele din ${source}`, icon: "rotate-arrow", attrs: `data-tariff-sync="${source}"`
+              })) : [])
+            ], "taxe")}
           </div>
         </div>
         <div data-pay-list>${renderPaymentList(service)}</div>

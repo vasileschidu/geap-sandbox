@@ -346,14 +346,24 @@ selectors at least as specific as the block above.
 - **Icon-only buttons are the same component (rule, 2026-10-02).** ✎ edit, export, sync,
   filter, download = Figma `button-filled-rectangular` Neutral · **Icon Only** · Small →
   `class="btn btn-neutral btn-sm btn-icon-only"` (32×32, 16px icon `icon small`); ⋮ more =
-  Figma `button-text-circular` **Strict** · Icon Only · Small → `btn btn-strict btn-sm
-  btn-icon-only btn-rounded` (no fill; tertiary-hover / tertiary-active, also while its menu
-  is open). Never a custom icon-button class (`e-permits-workplace__icon-action`,
+  Strict · Icon Only · Small → `btn btn-strict btn-sm btn-icon-only` — **square, radius 6**
+  like every icon button (decision 2026-10-02: no round ⋮ anywhere; Figma instances use
+  `button-text-rectangular` Strict, Components library set `4ad2518c34b8b51d5113119316eac5934c1eb9fb`) — no fill; tertiary-hover / tertiary-active,
+  also while its menu is open. Never a custom icon-button class (`e-permits-workplace__icon-action`,
   `__row-action`, `e-permits-stack__menu-trigger` styles, `e-permits-user-profile__edit` were
   removed — each had its own hover and focus ring). Never resize them: in list toolbars they
   stay 32 next to the 36px search/chips. Every one carries an `aria-label` (specific:
   "Editează taxa …") and, when the label is long, `data-tooltip-label` (short: "Editează") —
   `js/icon-tooltip.js` shows it as the plain tooltip on hover (600 ms) and focus.
+- **Centring gotcha:** the library rule `.btn.btn-sm:has(> .icon:first-child)` adds 8px on
+  the icon side (for icon + label) and out-specifies a plain `.btn-icon-only`, pushing the
+  icon off-centre. `btn-icon-only` therefore repeats that `:has()` selector with
+  `padding: 0`. After touching buttons, measure: icon centre − button centre must be 0, 0.
+- **Text button with a label, no fill** ("Actualizează" in the list headers) = Figma
+  `button-text-circular` Strict · Leading · Small → `btn btn-strict btn-sm btn-rounded`
+  (pill, 8/12 padding, 14/20 medium, tertiary-hover on hover). Its page class
+  (`e-permits-workplace__refresh`) is only a JS hook / flex placement — no colours, radius
+  or padding.
 - **Figma: every icon-only button type gets a hover explainer** — the instance in
   `State = Hover` plus the "Tooltip · etichetă (icon)" component (`9736:694`) 8px below,
   centred, with the code's label. Document all types used on a screen (✎, export, sync, ⋮),
@@ -2602,7 +2612,7 @@ These are the tabs in `SERVICE_PROFILE_TABS`, in order:
 9. Setări
 10. Jurnal de evenimente
 
-- **Taxe** (`fees`) is the only money tab (revised 2026-10-02 — the separate Tarife tab
+- **Taxe și tarife** (`fees`) is the only money tab (revised 2026-10-02 — the separate Tarife tab
   confused: a tax is computed *from* a tariff). Old `#serviciu/<code>/payments` and
   `…/tariffs` links map to `fees` (`normalizePassportTab`).
   - **Taxe** opens with the model note, "Sumar taxe" (see below), then the taxes
@@ -3090,10 +3100,12 @@ Taxes of the same request type + moment land on **one payment note**.
 1. Model note (grey inline note): "O taxă = un tarif + regula de aplicare…".
 2. Sumar taxe: Taxe (Active · De configurat), Tarife (Din RSSP / eAPL · Adăugate manual),
    Conturi bancare.
-3. Section "Taxe": heading with **"Simulează nota de plată"** (`btn-neutral btn-sm`, icon
-   calculator); toolbar chips Toate · Active · Schiță · Inactive (De configurat counts in
-   Toate and Schiță) · search · export · sync tariffs (icon / RSSP+eAPL menu) · divider ·
-   "Adaugă taxă" (`btn-secondary`).
+3. Section "Taxe" (tab label **"Taxe și tarife"**): toolbar chips Toate · Active · Schiță ·
+   Inactive (De configurat counts in Toate and Schiță) · search · **one visible action**
+   "Adaugă taxă" (`btn-secondary`) · ⋮ menu (`renderStackMenu`): Simulează nota de plată
+   (calculator) · Exportă taxele (download) · Sincronizează tarifele din RSSP / eAPL
+   (rotate-arrow, admin). Rule: next to a list's search keep only the primary action; every
+   secondary action goes in the ⋮.
 4. Stacked list: first the group **"De configurat"** — tariffs without a rule, tags source +
    "Fără regulă de aplicare" (warning), actions **Configurează** (`btn-neutral`) and **Aplică
    ca atare** (`btn-secondary`, publishes the default rule at once). Then groups by **Tip
