@@ -3603,6 +3603,16 @@ Reuse it for any flow documented in Figma:
   confirms, a case returns) start from the block. End on the target block.
 - Screens use the shared parts only: header instance, screen template, library
   components; real data that matches code; labels 12px in the details header.
+- **Flows with choices (dropdowns, segmented, condition values):** one block per distinct
+  choice the user can make, including one block with the **dropdown open** (library
+  `selection-menu`, the chosen option `Selected`, the pointed one `Hover`), each result
+  exactly as code computes it. Example: Servicii band 04c–04g (Simulează: reason unset →
+  dropdown open → major change 7.743 → administrative 1.292 → other request type 9.252).
+- **Every screen copies code data**: extract it from the running prototype's DOM (row
+  titles, tags, meta, chip counts, summary numbers) instead of retyping; texts set on
+  instances that are bound to a component property must be set through
+  `setProperties`, and compare text with `normalize("NFC")` (Figma stores some Romanian
+  diacritics decomposed).
 - **List toolbars in Figma = code:** chips left and tools right on **one 36px row**
   (search 320 in sections / 400 in registries, chips 36; buttons keep the component's Small
   size — icon-only 32×32, add button h32 —, 1px divider h28), gap 12. Icon-only actions use the library button `📍 Icon = Only` —

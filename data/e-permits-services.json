@@ -825,16 +825,16 @@
           {
             "at": "2026-04-12T11:05:00",
             "user": "Anastasia Cojocaru",
-            "type": "Publicare plată",
+            "type": "Publicare taxă",
             "status": "Reușit",
-            "detail": "Servicii de examinare v1"
+            "detail": "Examinare documente · Emitere primară · v1"
           },
           {
             "at": "2026-04-10T09:30:00",
             "user": "Anastasia Cojocaru",
-            "type": "Editare plată",
+            "type": "Editare taxă",
             "status": "Reușit",
-            "detail": "Taxa de înregistrare a notificării v3"
+            "detail": "Taxă de stat · Emitere primară · v3"
           },
           {
             "at": "2026-03-02T08:10:00",

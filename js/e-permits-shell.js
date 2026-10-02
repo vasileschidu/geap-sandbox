@@ -6940,8 +6940,9 @@ document.addEventListener("DOMContentLoaded", () => {
       badges: [tariffSourceTag(tariff), renderTag("Fără regulă de aplicare", "warning")],
       meta: [`<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`, escapeHtml(tariff.code), escapeHtml(tariff.requestType || "Tip solicitare neprecizat"), whoWhen(tariff.source === "GEAP" ? "Adăugat" : "Preluat", tariff.modifiedAt, tariff.modifiedBy)],
       actionsHtml: admin ? `
-        <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-tax-configure="${escapeHtml(tariff.id)}">Configurează</button>
+        <!-- the row component's action order: ✎ · secondary · neutral · ⋮ -->
         <button class="btn btn-secondary btn-sm e-permits-stack__action" type="button" data-tax-apply="${escapeHtml(tariff.id)}">Aplică ca atare</button>
+        <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-tax-configure="${escapeHtml(tariff.id)}">Configurează</button>
       ` : ""
     }));
 
@@ -11992,7 +11993,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const exportTariffs = (list, filename) => {
-    exportCsv(filename, ["Cod", "Denumire", "Tip", "Sumă", "Valută", "Formulă", "Tip solicitare", "Tip persoană", "Domeniu", "Sursă", "Stare", "Activ", "Valabil de la", "Valabil până la", "Versiune", "Folosit în plăți"],
+    exportCsv(filename, ["Cod", "Denumire", "Tip", "Sumă", "Valută", "Formulă", "Tip solicitare", "Tip persoană", "Domeniu", "Sursă", "Stare", "Activ", "Valabil de la", "Valabil până la", "Versiune", "Folosit în taxe"],
       list.map((t) => [t.code, t.name, t.type, t.amount, t.currency, t.formula ? t.expression : "Nu", t.requestType || "", t.personType || "", t.scope === "global" ? "Global" : t.scope, t.source, t.state, t.active ? "Da" : "Nu", t.validFrom || "", t.validTo || "", `v${t.version || 1}`, tariffUsage(t).length]));
     showShellToast(`${list.length} ${list.length === 1 ? "tarif exportat" : "tarife exportate"}.`);
   };
@@ -12098,8 +12099,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const status = existing ? tariffStatus(existing) : "";
     const STATUS_COPY = {
       Schiță: "Nu se folosește încă. Publică-l din subsol ca să devină disponibil.",
-      Activ: "Disponibil la selecție în plăți și note de plată.",
-      Inactiv: "Publicat, dar nu apare la selecție în plăți și note de plată."
+      Activ: "Disponibil la selecție în taxe și pe notele de plată.",
+      Inactiv: "Publicat, dar nu poate fi ales în taxe."
     };
     const deleteReason = usage.length ? `Folosit în ${usage.length === 1 ? "1 taxă" : `${usage.length} taxe`} — poate fi doar dezactivat.` : "";
     const statusStrip = existing ? `
