@@ -1,9 +1,11 @@
+/* @font-face descriptors must be literal values: var() is invalid here and silently
+   drops the weight (every face falls back to 400). Keep these four as plain numbers. */
 @font-face {
   font-family: "Onest";
   src: url("../assets/fonts/Onest/OnestRegular1602-hint.woff") format("woff"), url("../assets/fonts/Onest/OnestRegular1602-hint.ttf") format("truetype");
   font-display: swap;
   font-style: normal;
-  font-weight: var(--font-weight-fw-regular, 400);
+  font-weight: 400;
 }
 
 @font-face {
@@ -11,7 +13,7 @@
   src: url("../assets/fonts/Onest/OnestMedium1602-hint.woff") format("woff"), url("../assets/fonts/Onest/OnestMedium1602-hint.ttf") format("truetype");
   font-display: swap;
   font-style: normal;
-  font-weight: var(--font-weight-fw-medium, 500);
+  font-weight: 500;
 }
 
 @font-face {
@@ -19,7 +21,7 @@
   src: url("../assets/fonts/Onest/OnestMedium1602-hint.woff") format("woff"), url("../assets/fonts/Onest/OnestMedium1602-hint.ttf") format("truetype");
   font-display: swap;
   font-style: normal;
-  font-weight: var(--font-weight-fw-semibold, 600);
+  font-weight: 600;
 }
 
 @font-face {
@@ -17983,29 +17985,81 @@
 }
 
 
-/* ONE back-office button: library .btn + variant + .btn-sm = 32px, radius 6
-   (page header, list rows, toolbars, modal and drawer footers alike).
-   Figma button-filled-rectangular is fill only. The library variants also
-   draw a 1px border, which shows as a lighter ring — keep the 1px (so the
-   32px height holds) but make it transparent in every state. */
+/* ONE back-office button = Figma button-filled-rectangular, Size Small (Components file):
+   library .btn + .btn-sm + variant → 32px, radius 6, 0/12 padding (8 on the icon side),
+   gap 6, 14/20 medium, 16px icon. Fill only — the library's 1px border stays (keeps the
+   32px) but is transparent in every state. Every state comes from the Figma tokens:
+     Neutral   base/tertiary → tertiary-hover → tertiary-active
+     Secondary brand/secondary → secondary-hover → secondary-active (text brand/on-secondary)
+     Primary   brand/default → default-hover → default-active (text on-color)
+     Disabled  background/disabled/default + text/disabled/on-disabled (no opacity)
+     Focus     2px white + 5px blue ring
+   Selectors carry one class more than the library's :hover rules, so these win in
+   every state (the old flat `background` here silently removed the hover). */
+.btn.btn-sm {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.btn.btn-sm.btn-neutral,
+.btn.btn-sm.btn-secondary,
+.btn.btn-sm.btn-primary {
+  border-color: transparent;
+}
+
 .btn.btn-sm.btn-neutral {
   background: var(--color-background-base-tertiary, #f1f1f1);
-  border-color: transparent;
   color: var(--color-text-base-default, #121212);
 }
 
-.btn.btn-sm.btn-neutral:hover:not(:disabled),
-.btn.btn-sm.btn-neutral:active:not(:disabled) {
+.btn.btn-sm.btn-neutral:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
   border-color: transparent;
 }
 
-.btn.btn-sm.btn-secondary,
-.btn.btn-sm.btn-secondary:hover:not(:disabled),
-.btn.btn-sm.btn-secondary:active:not(:disabled),
-.btn.btn-sm.btn-primary,
-.btn.btn-sm.btn-primary:hover:not(:disabled),
-.btn.btn-sm.btn-primary:active:not(:disabled) {
+.btn.btn-sm.btn-neutral:active:not(:disabled),
+.btn.btn-sm.btn-neutral[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-active, #d9d9d9);
   border-color: transparent;
+}
+
+.btn.btn-sm.btn-secondary {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  color: var(--color-text-brand-on-secondary, #0058d2);
+}
+
+.btn.btn-sm.btn-secondary:hover:not(:disabled) {
+  background: var(--color-background-brand-secondary-hover, #c4dbf4);
+  border-color: transparent;
+}
+
+.btn.btn-sm.btn-secondary:active:not(:disabled),
+.btn.btn-sm.btn-secondary[aria-expanded="true"] {
+  background: var(--color-background-brand-secondary-active, #a3c4ee);
+  border-color: transparent;
+}
+
+.btn.btn-sm.btn-primary:hover:not(:disabled) {
+  background: var(--color-background-brand-default-hover, #0046a8);
+  border-color: transparent;
+}
+
+.btn.btn-sm.btn-primary:active:not(:disabled),
+.btn.btn-sm.btn-primary[aria-expanded="true"] {
+  background: var(--color-background-brand-default-active, #003380);
+  border-color: transparent;
+}
+
+.btn.btn-sm:is(.btn-neutral, .btn-secondary, .btn-primary):disabled,
+.btn.btn-sm:is(.btn-neutral, .btn-secondary, .btn-primary)[aria-disabled="true"] {
+  background: var(--color-background-disabled-default, #e5e5e5);
+  border-color: transparent;
+  color: var(--color-text-disabled-on-disabled, #d9d9d9);
+  opacity: 1;
+}
+
+.btn.btn-sm:is(.btn-neutral, .btn-secondary, .btn-primary):focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
 }
 
 /* one line, in the meta labels' type (Cod, Versiune, Stare): 12/16 regular tertiary */
@@ -19257,12 +19311,16 @@
 }
 
 /* ---- Tarife (classifier) — editor pieces the library does not cover ------- */
+/* the "global tariffs live in Administrare → Tarife" pointer under the list: the canonical
+   grey inline note, one section gap (24) below the list */
 .e-permits-tariff__global-link {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-4, 4px);
-  margin-top: var(--spacing-12, 12px);
+  margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-tariff__global-link .link {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 /* formula check: a quiet grey panel with test inputs and the result */

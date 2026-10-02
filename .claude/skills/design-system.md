@@ -111,6 +111,8 @@ font-weight: var(--font-weight-fw-medium, 500);   /* fw-regular 400 · fw-medium
 ```
 Only values on the scale below. Off-scale (13, 22, 28, 36, 40, weight 700…) = ask before
 using. `font-family` comes from the base; never monospace.
+**Exception:** `@font-face { font-weight: 400; }` stays a literal — `var()` is invalid in
+`@font-face` descriptors and silently breaks every weight.
 
 ### Font Scale Primitives
 

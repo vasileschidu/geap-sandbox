@@ -309,6 +309,43 @@ Sub-variants: `--mpass` `--msign` `--mpay` `--mpower` `--mdelivery` × `--primar
 
 ---
 
+#### Back-office button — Figma `button-filled-rectangular`, Size Small (rule, 2026-10-02)
+
+Every button in the back office (page header, toolbars, list rows, modal/drawer footers)
+is the library `.btn` + `.btn-sm` + variant. Never a custom button class, never local
+padding/height/font.
+
+```html
+<button class="btn btn-neutral btn-sm" type="button">
+  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+  <span>Sincronizează</span>
+</button>
+```
+
+| Figma | Code |
+|---|---|
+| Size Small: h32, padding 0/12 (8 on the icon side), gap 6, radius 6 | `.btn.btn-sm` (main.css) |
+| 14/20 **Medium**, icon 16 | `.btn.btn-sm` weight = `--font-weight-fw-medium` |
+| Icon None / Leading / Only — **one icon**, no extra chevron | label-only · icon + label · icon-only (`aria-label`, gets the plain tooltip) |
+
+| Style | Default | Hover | Active / menu open (`aria-expanded="true"`) | Text |
+|---|---|---|---|---|
+| Neutral | `background-base-tertiary` | `…-tertiary-hover` | `…-tertiary-active` | `text-base-default` |
+| Secondary | `background-brand-secondary` | `…-secondary-hover` | `…-secondary-active` | `text-brand-on-secondary` |
+| Primary | `background-brand-default` | `…-default-hover` | `…-default-active` | on-color |
+| Disabled (any) | `background-disabled-default` | — | — | `text-disabled-on-disabled`, no opacity |
+| Focus-visible | 2px white + 5px `--focus-ring` | | | |
+
+Defined once in `css/e-permits-acte-permisive.css` ("ONE back-office button"). **Never set a
+flat `background` on `.btn.btn-sm.btn-<variant>` elsewhere** — it has the same specificity
+as the library `:hover` rule and loads later, so it silently kills the hover (that bug
+removed hover from every neutral button until 2026-10-02). Override states only with
+selectors at least as specific as the block above.
+- A button that opens a menu keeps its normal look (no chevron) and shows the Active fill
+  while open; the menu is announced by `aria-haspopup="menu"`.
+- One action, one place: e.g. service resync lives only in the passport header
+  ("Sincronizează"), not repeated inside Date generale.
+
 ### Search input
 
 The full contract. The `.btn-group` block is optional — omit it for a plain filter field.
@@ -2963,6 +3000,11 @@ Default icons: info `circle-info-filled`, success `circle-checkmark-filled`, war
 - The **only** exception is the dismissible page banner `.e-permits-ntpl-banner`
   (Figma 8230:2388, 24px padding, 16/24 text, close button) — page-level, not inline.
 - A bigger, titled message (icon + title + text) is a **Callout** (`.e-permits-callout`), not a note.
+- A pointer/explanation **under a list or card** (e.g. "Tarifele globale … se gestionează în
+  Administrare → Tarife" under the passport Tarife list) is this grey note, never a bare hint
+  line; it sits **24** below the list (`margin-top: var(--spacing-24)` when the parent has no gap).
+  An in-text action is a library link `a.link.link-primary` inheriting the note's 14/20
+  (`display: inline; font-size/line-height: inherit`), not a button.
 
 ### Sum list — a list with its total (added 2026-10-02, Figma 9721:9920)
 
@@ -3424,7 +3466,9 @@ the Figma variables returned so far.
    error · success. Note the library is inconsistent here (`.btn` uses `:focus`,
    most others `:focus-visible`); prefer `:focus-visible` for new work.
 7. If the component needs JS, give it a `data-*` contract and document it here.
-8. **Font tokens only.** Every `font-size`, `line-height` and `font-weight` is a token with
+8. **Font tokens only** (except inside `@font-face`: descriptors must be literal numbers —
+   `var()` there is invalid and silently drops the weight, so every face becomes 400 and
+   Medium/Regular swap files; that broke all text weights on 2026-10-02). Every `font-size`, `line-height` and `font-weight` is a token with
    its value as fallback: `var(--font-size-fs-14, 14px)`, `var(--line-height-lh-20, 20px)`,
    `var(--font-weight-fw-regular|medium|semibold, 400|500|600)`. Scale: sizes 12/14/16/18/20/24/32/56,
    line-heights 16/20/24/26/28/32/40/64. A value off the scale is a design question — ask,
@@ -3458,6 +3502,14 @@ Reuse it for any flow documented in Figma:
   confirms, a case returns) start from the block. End on the target block.
 - Screens use the shared parts only: header instance, screen template, library
   components; real data that matches code; labels 12px in the details header.
+- **List toolbars in Figma = code:** chips left and tools right on **one 36px row**
+  (search 320 in sections / 400 in registries, icon buttons 36×36, 1px divider h28, then
+  the add button), gap 12. Icon-only actions use the library button `📍 Icon = Only` —
+  never a labelled "Sincronizează" button where code has an icon.
+- **Icon-only buttons get a hover block:** library button `State = Hover` + the local
+  component **"Tooltip · etichetă (icon)"** (`9736:694`, = `.tooltip--plain`: no arrow,
+  4/8, 12/16, radius 4, gray-900), 8px below, centred, text = the code's `aria-label`.
+  Example: Servicii page block 05c.
 
 ## 8. Known issues and open questions
 

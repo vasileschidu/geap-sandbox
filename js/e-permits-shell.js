@@ -6545,7 +6545,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `<button class="btn btn-text-primary btn-sm e-permits-passport__row-action" type="button" ${attrs}>${escapeHtml(label)}</button>`;
 
   /* a passport section whose heading carries a status tag, a caption and an action
-     (Date din RSSP: Sincronizat · last sync · Resincronizează) */
+     (Date din RSSP: Sincronizat · last sync) */
   const renderPassportBlock = (title, rows, { tagHtml = "", meta = "", actionHtml = "" } = {}) => `
     <section class="e-permits-dosar-profil__section">
       <div class="e-permits-dosar-profil__section-heading">
@@ -6572,19 +6572,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
 
-  /* Date generale (Feature 90575): Date din RSSP (read-only, resync), what is configured
+  /* Date generale (Feature 90575): Date din RSSP (read-only; resync is in the header), what is configured
      in GEAP, the latest changes, the government services the passport relies on, then
      the rest of the RSSP record */
   const renderServiceGeneral = (service) => {
     const rssp = service.rssp;
     const geap = service.geap;
     const authority = getAuthorityById(service.authorityId);
-    const multiSource = (service.syncSources || ["RSSP"]).length > 1;
-    const resync = !isCentralAdmin() ? "" : `
-      <button class="btn btn-neutral btn-sm" type="button" ${multiSource ? `data-sync-open="${escapeHtml(service.code)}" data-sync-source="RSSP"` : "data-passport-resync"}>
-        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-        <span>Resincronizează</span>
-      </button>`;
     const configuredTypes = geap.requestTypes.filter((rt) => passport.requestTypeState(rt).label === "Configurat").length;
     const publishedForms = geap.forms.filter((form) => form.status === "Published").length;
     const tariffs = serviceTariffList(service);
@@ -6610,8 +6604,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Versiune", escapeHtml(geap.version || "—")]
       ], {
         tagHtml: renderTag("Sincronizat", "success"),
-        meta: `Ultima sincronizare ${escapeHtml(formatStamp(service.lastSync))}${service.syncedBy ? ` · ${escapeHtml(service.syncedBy)}` : ""}`,
-        actionHtml: resync
+        /* resync lives only in the page header (Sincronizează) */
+        meta: `Ultima sincronizare ${escapeHtml(formatStamp(service.lastSync))}${service.syncedBy ? ` · ${escapeHtml(service.syncedBy)}` : ""}`
       })}
       ${renderPassportSection("Obiecte configurate în GEAP", [
         ["Tipuri solicitări", withLink(`${configuredTypes} din ${geap.requestTypes.length} configurate`, "request-types", "Vezi tipurile")],
@@ -10324,14 +10318,13 @@ document.addEventListener("DOMContentLoaded", () => {
         { label: service.code }
       ],
       title: service.title,
-      /* one source: a button; RSSP + eAPL: the same button opens a menu of
-         sources (the stack-menu component, back-office size) */
+      /* Figma button-filled-rectangular Neutral · Small · Leading icon. One source: it
+         resyncs; RSSP + eAPL: the same button opens the sources menu (stack-menu) */
       actions: canSync ? ((service.syncSources || ["RSSP"]).length > 1 ? `
         <div class="e-permits-stack__menu-wrap">
           <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="passport-sync-menu" data-stack-menu-trigger>
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
             <span>Sincronizează</span>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
           </button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="passport-sync-menu" role="menu" aria-label="Sursa sincronizării" hidden data-stack-menu>
             ${[["RSSP", "Sincronizează din RSSP"], ["eAPL", "Sincronizează din eAPL"], ["both", "Sincronizează din RSSP și eAPL"]].map(([source, label]) => `
@@ -11853,7 +11846,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         <div data-tariff-list>${renderServiceTariffList(service)}</div>
-        ${admin ? `<p class="e-permits-fo-field__hint e-permits-tariff__global-link">Tarifele globale (valabile pentru orice serviciu) se gestionează în <button class="btn btn-text-primary btn-sm" type="button" data-tariff-goto="">Administrare → Tarife</button>.</p>` : ""}
+        ${admin ? `<div class="e-permits-tariff__global-link">${renderInfoNote('Tarifele globale (valabile pentru orice serviciu) se gestionează în <a class="link link-primary link-md" href="#tarife" data-tariff-goto="">Administrare → Tarife</a>.')}</div>` : ""}
       </section>
     `;
   };
@@ -12635,6 +12628,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tariffGoto = event.target.closest("[data-tariff-goto]");
 
     if (tariffGoto) {
+      event.preventDefault();
       goToTariff(tariffGoto.dataset.tariffGoto);
       return;
     }
