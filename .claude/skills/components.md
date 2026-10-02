@@ -206,6 +206,8 @@ but this doc previously described it wrongly, see the entry.
 | Copy value | `.e-permits-fo-copy-value` | — | app |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
+| Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
+| Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
@@ -2933,17 +2935,68 @@ panel: dossiers, sarcini, users, roles, services, authorities, tariffs, ntpl.
   string[] }`). Arrays are multi-value. Facets named `statut` / `status` render their
   values as tags.
 
-### Info note — explanatory text in a grey box (added 2026-10-01)
+- **Closed by default (2026-10-02):** the chip bar never restores "open" from the session
+  and closes whenever you arrive on another page (registry kind + view); an unapplied
+  draft is dropped. Applied filters persist per registry and show as the count badge on
+  "Filtrare avansată" while the bar is closed.
 
-`renderInfoNote(html)`: the library `.info-box.info-box--neutral` with
-`.e-permits-info-note`, at hint scale.
-- **Geometry:** padding 8/12, radius 8, background `base-secondary`, 14/20 secondary
-  text, a 20px `circle-info-filled` icon in tertiary, gap 8, no slide-in animation.
-- **When to use it:** for a sentence that explains a *rule or consequence* and is not
-  tied to one input. Examples: "Tarif global: nu se leagă de …", "Tariful nu apare la
-  selecție până nu este activat.", "Scutirile sunt disponibile doar pentru plata
-  manuală."
-- **Not for field hints:** a hint under an input stays `.e-permits-fo-field__hint`.
+### Inline note — info and alerts inside content (rule, updated 2026-10-02)
+
+**One component, one geometry, everywhere** (pages, drawers, modals). Never style a note
+per screen — no local padding, radius, font or icon size.
+
+| Use | Helper | Markup |
+|---|---|---|
+| neutral explanation (grey, "i") | `renderInfoNote(html)` | `.info-box.info-box--neutral.e-permits-info-note` > `.info-box__icon` + `.info-box__content > p` |
+| info / success / warning / error | `renderNotice(tone, html, { icon })` | `.message.message--subtle.banner--{tone}` > `.banner__icon` + `.banner__content > p.banner__text` |
+| read-only / restricted | `renderNotice("warning", html, { icon: "lock" })` (classifiers: `clasLockNotice`) | same as above |
+
+Geometry (CSS "Inline note", scoped to `[data-demo-flow="back-office"]`): padding **12/16**,
+radius **12**, icon **20** top-aligned, icon–text gap **12**, text **14/20 regular**,
+`--color-text-base-default`, `strong` = medium; margin 0 (spacing comes from the parent's
+gap); no entry animation. The tone only changes background and icon colour
+(grey `--color-background-base-secondary`; blue / green / apricot / red library subtle tints).
+Default icons: info `circle-info-filled`, success `circle-checkmark-filled`, warning
+`warning-filled`, error `circle-error-filled`.
+- Copy: one or two sentences; lead with a bold phrase when it states a restriction
+  ("**Doar consultare.** …").
+- The **only** exception is the dismissible page banner `.e-permits-ntpl-banner`
+  (Figma 8230:2388, 24px padding, 16/24 text, close button) — page-level, not inline.
+- A bigger, titled message (icon + title + text) is a **Callout** (`.e-permits-callout`), not a note.
+
+### Sum list — a list with its total (added 2026-10-02, Figma 9721:9920)
+
+Any bordered list whose amounts add up (fee picker in "Setarea taxei", "Ce s-a generat" in
+"N taxe generate") ends in a **total tray that hangs under the list** — never a loose
+"Total" line or a right-aligned paragraph.
+
+```html
+<div class="e-permits-sum-list">
+  <ul class="e-permits-case-form__fees" role="list">…</ul>
+  <div class="e-permits-sum-list__total"><span>Total</span><strong>170 MDL</strong></div>
+</div>
+```
+JS: `renderSumList(listHtml, "170 MDL")`. Tray: inset **12** each side, padding **12/20**,
+radius **0 0 16 16** (square top, it attaches to the list), `--color-background-base-secondary`,
+14/20 — label regular, amount `strong` = semibold. Field errors go **after** the whole group.
+Same "attached tray" idea as the Acum callout under the trajectory.
+
+### Next step — where an action leads (added 2026-10-02, Figma 9721:9920)
+
+Every step form and confirmation in the case modal ends with the target step:
+
+```html
+<div class="e-permits-next-step">
+  <span class="e-permits-next-step__label">Următorul pas</span>
+  <div class="e-permits-next-step__box"><svg class="icon">…arrow-right…</svg><span>Generarea taxelor automate · Asistent tehnic</span></div>
+</div>
+```
+JS: `renderNextStep(target)`; a **return** uses `renderNextStep(target, { label: "Se întoarce la", icon: "arrow-left" })`.
+Label 14/20 tertiary, gap **8**; box padding **12/20**, radius **16**, gap **12**,
+`--color-background-base-secondary`, 20px icon, text 14/20 **medium** default colour.
+The label never repeats the target. Used by: `renderCaseModal` (all forms), the Aprobare /
+Respingere choice (`decizie`, updates with the choice), and form-less confirmations.
+Do not write "Următorul pas: …" as plain text anywhere.
 
 ### Tariff drawer — status strip (added 2026-10-01)
 
@@ -3014,6 +3067,22 @@ glyph at that size.
 
 ---
 
+### List toolbar — search + chips + actions (added 2026-10-02)
+
+One system for every list toolbar: registries (`[data-workplace-toolbar]`), classifier
+Valori (`.e-permits-clas-grid__toolbar`), passport Plăți / Tarife (`.e-permits-pay__toolbar`)
+and the request-type drawer (`.e-permits-rt__toolbar`).
+- **Search:** always the library Search with the product layer —
+  `label.search-input.medium.rectangular.e-permits-workplace__search` (+ `e-permits-list-search`
+  in sections) > `.icon-search` + `input.input[type=search]`. Width 400 in registries and
+  full-width tables, 320 in sections and drawers (min 200, full width ≤760px). Never a
+  `.e-permits-fo-input` with a trailing search icon.
+- **Control height:** `--list-toolbar-control` = 40px − 2 × 2px focus border = **36px**, the
+  Search's visible height. Chips (`.chip` with the numbered badge), icon actions and
+  `.btn.btn-sm` in these toolbars all take it, `padding-block: 0`, centred; the Search's
+  library 6px bottom margin is removed.
+- **Spacing:** 12px between controls, 16px between wrapped rows.
+
 ### Field error message — Figma text-input Destructive (updated 2026-10-02)
 
 Source: GEAP 2.0 `text-input` (1559:44137), Style=Destructive (1559:44346), "Error message":
@@ -3038,6 +3107,118 @@ the control (the `.e-permits-fo-field` gap).
 
 `#service-confirm-modal` carries `.e-permits-confirm-overlay` (z-index 1300 > drawer 1200 >
 modal 1000), so an `askConfirm` raised from inside a drawer is never hidden behind it.
+
+### Traiectoria dosarului — case path on Date generale (added 2026-10-02)
+
+Figma GEAP 2.0 `8929:7814`. First section of the dosar "Date generale" tab
+(`renderDosarTrajectory`). Grey card (`--color-background-base-secondary`, radius 16, padding
+20) with an `<ol>` of six steps spread evenly: Depusă (Inițiat for ex officio) · Examinare ·
+Coordonare · Semnare · Semnat · Eliberat (Respins on a rejection).
+- Markers 24px: done `circle-checkmark-filled` positive; current `time-filled` brand
+  (`aria-current="step"`); suspended `pause` amber; rejected final `circle-error-filled`
+  danger; to do a 20px grey ring. Connectors 2px: brand between reached steps, grey after.
+- Label 14/20 medium; under reached steps the date + who, 12/16 tertiary (Figma's 10/12 has
+  no token and is below a readable size; Figma's `#f7f7f7` / radius 24 → nearest tokens).
+- Under the card, a separate **callout** (below): the timeline's `time-filled` clock (brand; `pause` when suspended), title "Acum: <step>" (+ red
+  "Termen depășit" tag), meta "de N zile · termen …" (while waiting for payment: "plată până
+  la …", the payment note's deadline), and "**Urmează:** <next step in one sentence>".
+  Finished cases: check (or error) icon, "Dosar finalizat / respins" + one line.
+- Step dates are kept in order (an earlier step never shows a later date).
+- Status → current step: schita 0, depus/inExaminare 1, spreCoordonare 2, spreSemnare 3,
+  semnat 5, eliberat/respins/arhivat all done. Dates the seed lacks are derived from the
+  filing / signing dates (deterministic per case).
+- ≤760px the steps stack vertically.
+
+### Callout — tinted note with icon, title and text (added 2026-10-02)
+
+Figma GEAP 2.0 `8440:119598` (Cabinet "Autoritatea a cerut modificări"), simplified to a flat
+tint: `.e-permits-callout.e-permits-callout--info` (`--color-background-brand-secondary`) or
+`--warning` (`--color-background-warning-secondary`); radius 16, padding 20, gap 16;
+`__icon` 24px (brand / apricot-700), `__content` gap 8: `__title` 16/24 medium (a tag may
+sit inline), `__meta` and `__text` 14/20 secondary (`strong` = default, medium). Wrap in
+`.e-permits-callout-wrap` (16px above). The Figma's name/date strip and inner glow are not
+used. First use: "Acum / Urmează" under Traiectoria dosarului, where it **hangs from the
+card** (`.e-permits-trajectory + .e-permits-callout-wrap`): no gap, square top corners,
+rounded bottom (16), inset 24px on each side.
+
+### Detail modal — payment note, approval, act, document (added 2026-10-02)
+
+Figma GEAP 2.0 `8912:54211` "Notă de plată". `#dosar-detail-modal` (library `modal--md`):
+title + subtitle, a `renderInfoCard("Date generale", rows)` passport card, the grey
+**"Doar citire"** note (`info-box` + `icon-lock`, 12/16 tertiary), footer `btn-neutral`
+Descarcă (download icon) · `btn-primary` Închide.
+- Opened from Taxe și plăți / Avize / Act-Decizie / Documente generate: each row has a
+  "Detalii" action (`data-dosar-detail="kind|key"`) and the whole row is clickable
+  (`renderStackItem` `rowAttrs` → `.e-permits-stack__item.is-clickable`).
+- Rows: Notă de plată = Număr cont, Denumirea, Suma, Statutul (Achitat / Neachitat /
+  Expirat), Data emiterii, Termen de plată, Data achitării, Metoda de plată, Număr dosar.
+  Aviz = Număr aviz, Instituția, Statutul, Solicitat la / de, Termen, Rezultat, Număr dosar.
+  Act = Denumirea, Tipul, Număr act, Emis la, Emitent, Registru, Semnat electronic.
+  Document = Denumirea, Format, Emis la, Autor, Dimensiune.
+- Injected footer buttons close through their own handler (`modal.js` binds `data-close`
+  only at load).
+
+### Fees — generated by the specialist, then paid (updated 2026-10-02)
+
+**Model:** a dossier has **no fee at submission**. The specialist verifies the case and
+then generates the fee(s) — `confirmaTaxa` at "Setarea taxei" or `taxaExaminare` during
+"Verificarea datelor". MPay issues the payment note and the citizen is **notified
+automatically** (e-mail + MNotify: "Notă de plată emisă — de achitat"); the case waits for
+payment, then continues. Rejected cases never get fees. The Taxe și plăți tab appears only
+once a fee exists.
+
+Seed data follows it: draft / submitted / in examination → no fees; `asteaptaPlata` (seed
+rows with the overdue-payment alert) → 2 generated, unpaid, overdue; coordination, signing,
+signed, released → 2 generated after verification (submission + 2–4 days), then paid; each
+generated set leaves the two citizen notifications.
+
+**"Taxe generate" modal** (`openFeesCreatedModal`, in `#dosar-detail-modal`, instead of a
+toast): title "Taxă generată" / "N taxe generate", subtitle the dosar number; the library
+success alert (`message message--subtle banner--success` + `circle-checkmark-filled`, no entry
+animation) "Nota de plată a fost emisă în MPay. Solicitantul a fost notificat prin e-mail și
+MNotify că are de achitat."; **Ce s-a generat** — `e-permits-case-form__fees` rows (name,
+MPAY number, payment deadline, amount) + Total; **Dosarul acum** — status tag, current step,
+fees status; info note pointing to Taxe și plăți and Notificări; one `btn-primary` Închide.
+Closing it any way (button, ×, overlay, Esc — a MutationObserver on `aria-hidden` runs a
+one-shot `dosarDetailAfterClose`) lands on **Taxe și plăți**.
+- List status **`asteaptaPlata` "Așteaptă plata"** (warning): `caseFlow.listStatus` for
+  node15 / RecordState5 / node16 (public status 4); `initialState("asteaptaPlata")` → node16;
+  counts as active work; trajectory step Examinare ("Acum: Așteaptă plata taxelor").
+- New fees are dated on the dossiers' clock (`workplaceDb.today`).
+- `renderDeadlineMeta(iso)` (" 5 z. rămase" / " 2 z. depășit") is now defined — the Taxe
+  tab used it without a definition and crashed on any unpaid fee.
+
+### Checkbox / radio inside a form field (fixed 2026-10-02)
+
+`.e-permits-fo-field label` (the field caption: 4px gap, 20px height) was also styling
+library `label.checkbox` / `label.radio` inside fields, so the box sat 4px from its text.
+They now keep the library anatomy: checkbox gap 12 (top-aligned), radio gap 8 (centred).
+
+### Șablon nou — notification template create drawer (added 2026-10-02)
+
+Toolbar primary action "Șablon nou" (`data-workplace-add-ntpl`, central admin, Șabloane de
+notificare). The standard `.e-permits-user-create` drawer (`data-ntpl-create`) with the
+shared step strip (`renderStepStrip(steps, state, gotoAttr)`, also used by Clasificator nou).
+Order follows notification tools (Customer.io, HubSpot, Azure Communication Services):
+define the message, then who gets it on which channel, then write it — the channel decides
+what must be written and the data source which fields can be inserted.
+1. **Setări** — Denumire (unique), Cod (suggested from the name until edited; letters and
+   digits, unique), Sursa de date (select; decides the insertable fields), Prioritate
+   (segmented Scăzută / Normală / Înaltă with a hint per value), Descriere (`clasTextarea`
+   with counter, admin only), Punct de plecare Zero / Copia unui șablon (copies data source,
+   recipients and texts in all languages; name gets "(copie)").
+2. **Destinatari** — rows recipient select · channel select · delete icon-action
+   (aria-disabled with a reason on the last row); "Adaugă destinatar"; no duplicate
+   recipient; info note on what each channel requires.
+3. **Conținut** — language segmented RO / RU / EN (dot = incomplete; RO required),
+   "Inserează câmp" select of the data source's `{{Token}}`s, inserted at the last caret;
+   Email/MDelivery → Subiect + Corp (plain textarea, blank line = paragraph); MNotify →
+   Mesaj scurt with the 160 counter. Rich formatting stays in the profile editor.
+4. **Revizuire** — passport blocks per step with "Modifică" + the RO preview with sample
+   data (`fillNtplSample`), then "Creează șablonul": created `unpublished`, version "—",
+   origin Personalizat, and opens on the Conținut tab.
+Esc (document-level while the drawer is open, ignored when a list, date picker or modal is
+open) and Anulează ask before discarding entered data.
 
 ### Clasificatoare — catalogue, profile, lifecycle (added 2026-10-02)
 
@@ -3125,15 +3306,18 @@ summary modal (noi / actualizate / dezactivate automat) plus a warning naming th
 ancestors → current (brand-secondary, `aria-current`) → children, indented with a 2px rail) ·
 Creat din (dead copy lineage, kept separate from the hierarchy) · Autorități și servicii.
 
-**Create wizard** (updated 2026-10-02) — the classifier drawer opened with
-`.e-permits-user-create--wide` (1120px, as "Configurează tipul de solicitare"): a
-`.e-permits-clas-create` grid = the full-flow vertical stepper `.e-permits-fo-stepper`
-(200px, sticky; visited steps are `button.e-permits-fo-stepper__row` with
-`data-clas-create-goto`) + the step content. Footer: "Pasul n din 4 · …" · Anulează/Înapoi ·
+**Create wizard** (updated 2026-10-02) — the classifier drawer opened as
+the standard `.e-permits-user-create` drawer (normal width, as every other drawer),
+content in its 20px gutter. Under the header, the **step strip**
+`nav.e-permits-steps-strip` (Figma GEAP 2.0 `8772:118666`, `.step-desktop` horizontal):
+24px numbered circle + 14/20 label side by side, 36px × 1.5px line between steps, padding
+16/20, bottom border. Current = brand ring + medium label; completed = brand-filled circle
+with `checkmark-small` + underlined label, a `button` (`data-clas-create-goto`) to go back;
+incomplete = grey ring, secondary label. Reusable for any multi-step drawer. Footer: "Pasul n din 4 · …" · Anulează/Înapoi ·
 Continuă / Creează ciorna. Each step validates before moving on; closing with data asks
 first (`askConfirm`, destructive).
 1. **Date generale** — Denumire (unique), Descriere, Familie; Categorie Global/Specific (hint
-   says who can use it) + Autoritate + Servicii; **Punct de plecare** Zero / Copia unui
+   says who can use it) + Autoritate + Servicii (with the grey info note "Un singur serviciu → domeniul „Serviciu”…"); **Punct de plecare** Zero / Copia unui
    clasificator (+ source select; copies its extra columns and ID format).
 2. **Structură** — standard columns as neutral tags (locked); extra columns edited in rows
    `.e-permits-clas-create__col-row` (name · type select · settings: options for Selecție,
@@ -3240,10 +3424,47 @@ the Figma variables returned so far.
    error · success. Note the library is inconsistent here (`.btn` uses `:focus`,
    most others `:focus-visible`); prefer `:focus-visible` for new work.
 7. If the component needs JS, give it a `data-*` contract and document it here.
+8. **Font tokens only.** Every `font-size`, `line-height` and `font-weight` is a token with
+   its value as fallback: `var(--font-size-fs-14, 14px)`, `var(--line-height-lh-20, 20px)`,
+   `var(--font-weight-fw-regular|medium|semibold, 400|500|600)`. Scale: sizes 12/14/16/18/20/24/32/56,
+   line-heights 16/20/24/26/28/32/40/64. A value off the scale is a design question — ask,
+   don't invent a token. (`font: inherit` and unitless keywords are fine.) Converted
+   product-wide 2026-10-02; the remaining off-scale values are listed in §8.
+9. **Record every new pattern.** When something new is built that could repeat (a layout,
+   a tray, a box, a Figma page format), add it to this file — inventory row + a short
+   section with markup, helper, geometry in tokens and where it is used — in the same change.
 
 ---
 
+## 7a. Figma — flow documentation pages (added 2026-10-02)
+
+Format used by the Tarife page (9618:13362) and the Dosare page (9696:526, file `aHgwVwiNCOSOqbMhMjjUOj`).
+Reuse it for any flow documented in Figma:
+
+- **One section per flow**, a `.header` cover + a "How to read" card at the top.
+- **Bands** (columns) left → right, x = 160 + k·2080, each with a band header
+  (ID chip + title + one-line description) at y = 700.
+- **Blocks** stacked in a band from y = 1080, **240** apart, ordered by ID. A block is a
+  vertical auto-layout (clone `9622:1681`): **label row** (blue ID chip `01a` + screen name) →
+  **the screen** (1920 wide, hug height — never cut; modals sit on a `Modal overlay` frame
+  sized to the screen) → **NOTE DEV / PM** (tag + "ID · title" + 1–3 sentences: what
+  changed, the rule, what it links to).
+- IDs: band number + letter (`03`, `03a`, `03b`…); the note references other blocks by ID.
+- **Arrows** (connectors, elbowed, 3px, `border/brand/default` blue, label text
+  `text/brand/default`, label in „…”): they start from **the element that is clicked**, not
+  the screen. Mark it with a `Hotspot · <label>` frame — absolute in the screen, 2px blue
+  outside stroke, 4px outset, radius = element radius + 4 — and attach the connector to the
+  hotspot (connectors cannot attach to layers inside instances). System events (MPay
+  confirms, a case returns) start from the block. End on the target block.
+- Screens use the shared parts only: header instance, screen template, library
+  components; real data that matches code; labels 12px in the details header.
+
 ## 8. Known issues and open questions
+
+**Off-scale font values still raw (2026-10-02, need a design decision):**
+`css/e-permits-shell.css` — 13px/18px ×4 (lines ~1617–1809), 28px/36px (~1624);
+`css/e-permits-acte-permisive.css` — 40px/48px (~168), 36px/44px and 28px/36px (mobile, ~707/782),
+22px + weight 700 (~1253), weight 700 (~30), 10px/12px (~2723), 13px/1.6 (~12767).
 
 **Scope question (needs a decision).** This document now covers two largely disjoint
 vocabularies — the `Components/` library and the application namespaces. They could

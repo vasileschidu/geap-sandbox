@@ -17,7 +17,7 @@
     "inExaminare": {
       "label": "În examinare",
       "tone": "teal"
-    },
+    }, "asteaptaPlata": {"label": "Așteaptă plata", "tone": "warning"},
     "spreCoordonare": {
       "label": "Spre coordonare",
       "tone": "violet"

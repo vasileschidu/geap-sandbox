@@ -110,6 +110,8 @@ check("§4 steps with two actions pair advance + return", () => {
 check("list status follows the resting node", () => {
   assert.equal(cf.listStatus(complex, at("node5")), "depus");
   assert.equal(cf.listStatus(complex, at("RecordState2")), "spreCoordonare");
+  assert.equal(cf.listStatus(complex, at("node16")), "asteaptaPlata");
+  assert.equal(cf.initialState(complex, "asteaptaPlata").stateId, "node16");
   assert.equal(cf.listStatus(complex, at("end", { decision: "respingere" })), "respins");
   assert.equal(cf.initialState(complex, "spreSemnare", { vars }).stateId, "node19");
 });

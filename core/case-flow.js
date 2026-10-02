@@ -296,6 +296,8 @@
         return opts.hasSpecialist ? { stateId: "node6", suspended: false } : resolve(flow, "node3", opts.vars);
       case "inExaminare":
         return { stateId: "node6", suspended: !!opts.suspended };
+      case "asteaptaPlata":
+        return { stateId: "node16", suspended: false };
       case "spreCoordonare":
         return flow.nodes.RecordState2 ? { stateId: "RecordState2", suspended: false } : resolve(flow, "node18", opts.vars);
       case "spreSemnare":
@@ -312,6 +314,8 @@
     if (state.stateId === "end") return state.decision === "respingere" ? "respins" : "semnat";
     if (state.stateId === "node5") return "depus";
     if (state.stateId === "RecordState2") return "spreCoordonare";
+    /* fees issued, waiting for MPay — public status 4 (Achitare) */
+    if (state.stateId === "node15" || state.stateId === "RecordState5" || state.stateId === "node16") return "asteaptaPlata";
     if (state.stateId === "node19" || state.stateId === "node20") return "spreSemnare";
     return "inExaminare";
   }

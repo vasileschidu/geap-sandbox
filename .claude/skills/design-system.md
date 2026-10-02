@@ -100,6 +100,18 @@ All styles are defined as `Desktop/{Category}/{Variant}`.
 
 ---
 
+### Font tokens in CSS — the only allowed form (rule, 2026-10-02)
+
+Never write a raw font value. Always the token with its value as fallback:
+
+```css
+font-size: var(--font-size-fs-14, 14px);
+line-height: var(--line-height-lh-20, 20px);
+font-weight: var(--font-weight-fw-medium, 500);   /* fw-regular 400 · fw-medium 500 · fw-semibold 600 */
+```
+Only values on the scale below. Off-scale (13, 22, 28, 36, 40, weight 700…) = ask before
+using. `font-family` comes from the base; never monospace.
+
 ### Font Scale Primitives
 
 | Variable | Value |
