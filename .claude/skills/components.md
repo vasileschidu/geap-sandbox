@@ -343,6 +343,22 @@ removed hover from every neutral button until 2026-10-02). Override states only 
 selectors at least as specific as the block above.
 - A button that opens a menu keeps its normal look (no chevron) and shows the Active fill
   while open; the menu is announced by `aria-haspopup="menu"`.
+- **Icon-only buttons are the same component (rule, 2026-10-02).** ✎ edit, export, sync,
+  filter, download = Figma `button-filled-rectangular` Neutral · **Icon Only** · Small →
+  `class="btn btn-neutral btn-sm btn-icon-only"` (32×32, 16px icon `icon small`); ⋮ more =
+  Figma `button-text-circular` **Strict** · Icon Only · Small → `btn btn-strict btn-sm
+  btn-icon-only btn-rounded` (no fill; tertiary-hover / tertiary-active, also while its menu
+  is open). Never a custom icon-button class (`e-permits-workplace__icon-action`,
+  `__row-action`, `e-permits-stack__menu-trigger` styles, `e-permits-user-profile__edit` were
+  removed — each had its own hover and focus ring). Never resize them: in list toolbars they
+  stay 32 next to the 36px search/chips. Every one carries an `aria-label` (specific:
+  "Editează taxa …") and, when the label is long, `data-tooltip-label` (short: "Editează") —
+  `js/icon-tooltip.js` shows it as the plain tooltip on hover (600 ms) and focus.
+- **Figma: every icon-only button type gets a hover explainer** — the instance in
+  `State = Hover` plus the "Tooltip · etichetă (icon)" component (`9736:694`) 8px below,
+  centred, with the code's label. Document all types used on a screen (✎, export, sync, ⋮),
+  not just one. Instances keep the component size (32), never stretched to 36.
+
 - One action, one place: e.g. service resync lives only in the passport header
   ("Sincronizează"), not repeated inside Date generale.
 
@@ -891,11 +907,11 @@ no tags. Services with `auth.required: true` keep the MPass gate. Logout returns
   **Sursa sincronizării** segmented control. A new service is created only from RSSP;
   eAPL enriches (Date locale). While syncing: one progress line per source + a
   `.e-permits-fo-skeleton` summary. Rules: `GEAP.servicePassport.syncFromEapl`.
-- **Tarife** (Feature «Gestionarea clasificatorului de tarife»): one model, two places —
-  **global** tariffs in Administrare → Tarife (registry, `kind: "tariffs"`, toolbar
-  „Adaugă tarif” + export) and **service** tariffs in the passport's **Tarife** tab (stacked
-  list grouped by Tip tarif; chips · search · export · Sincronizează RSSP/eAPL · Adaugă tarif).
-  Both open the same drawer `[data-tariff-drawer]`: **Identitate** (Denumire RO/RU/EN, Tip,
+- **Tarife** (Feature «Gestionarea clasificatorului de tarife») = the **price list**: **global**
+  tariffs in Administrare → Tarife (registry, `kind: "tariffs"`, toolbar „Adaugă tarif” +
+  export); a **service's** tariffs (mostly from RSSP / eAPL) have no tab of their own any
+  more — they are charged through the passport's **Taxe** tab (see "Taxe — tariff +
+  application rule"); a manual service tariff is created from the tax drawer. Both open the same drawer `[data-tariff-drawer]`: **Identitate** (Denumire RO/RU/EN, Tip,
   Temei legal; service only: Tip solicitare, Subdiviziune, Tip persoană = 14px segmented),
   **Sumă și formulă** (Sumă + Valută, switch „Calcul prin formulă” → expresie `{var}`,
   rotunjire, grey „Verifică formula” panel with test values, IBAN select with the authority's
@@ -908,9 +924,10 @@ no tags. Services with `auth.required: true` keep the MPass gate. Logout returns
   only fields the registry sends). Export buttons share `EXPORT_ICON`.
 - **Filter chips** (`.e-permits-rt__chips`): medium labels; counts = the numbered badge Light
   (`badge badge--lg badge--solid-light`), not `.chip__badge`.
-- **Plăți și tarife**: one toolbar (chips · search · export icon · Adaugă plată) and a
-  wide-drawer editor with every field of the payment model; rules in
-  `validatePayment`, `momentAllowed`, `tariffEligibility`, `applyPaymentEdit`.
+- **Taxe** (replaces "Plăți" + the service "Tarife" tab, 2026-10-02): one toolbar (chips ·
+  search · export · sync tariffs · Adaugă taxă) and a wide-drawer editor; rules in
+  `validateTax`, `taxConflict`, `simulateTaxes`, `momentAllowed`, `tariffEligibility`,
+  `applyPaymentEdit`. Full spec: "Taxe — tariff + application rule".
 
 #### Single choice in a form (2026-09-30)
 
@@ -2585,12 +2602,11 @@ These are the tabs in `SERVICE_PROFILE_TABS`, in order:
 9. Setări
 10. Jurnal de evenimente
 
-- **Taxe** (`fees`) and **Tarife** (`tariffs`) are separate top-level tabs. "Plăți și
-  tarife" is gone, and an old `#serviciu/<code>/payments` link maps to `fees`
-  (`normalizePassportTab`).
-  - **Taxe** opens with "Sumar taxe" (see below), then the payments
+- **Taxe** (`fees`) is the only money tab (revised 2026-10-02 — the separate Tarife tab
+  confused: a tax is computed *from* a tariff). Old `#serviciu/<code>/payments` and
+  `…/tariffs` links map to `fees` (`normalizePassportTab`).
+  - **Taxe** opens with the model note, "Sumar taxe" (see below), then the taxes
     (`renderServicePayments`).
-  - **Tarife** is `renderServiceTariffsTab`.
 - **Sumar taxe** (`.e-permits-fee-summary`), revised 2026-10-01, reuses the **stacked-list
   group** pattern (the "Emitere primară" header):
   - Each figure is one `.e-permits-stack` with an `h3.e-permits-stack__group-label`
@@ -2599,12 +2615,12 @@ These are the tabs in `SERVICE_PROFILE_TABS`, in order:
     (14/20 Medium) on the right.
   - Grid: 4 columns, 2 below 900px, 24px gap, `align-items: start`. A value is held to one
     20px line, so IBAN rows match the plain-number rows.
-  - **Plăți** and **Tarife** break down into Publicate and Inactive, two rows each, so all
-    three groups line up.
+  - **Taxe** breaks down into Active / De configurat, **Tarife** into Din RSSP / eAPL /
+    Adăugate manual — two rows each, so all three groups line up.
     **Conturi bancare** (`--wide`, 2 columns) lists each account name with its IBAN in
     `renderProfileCopyCode`.
   - Each header starts with a gray 20px icon (`.icon.medium.e-permits-fee-summary__icon`,
-    `icon-base-tertiary`): Plăți `receipt-bill`, Tarife `coins`, Conturi bancare
+    `icon-base-tertiary`): Taxe `receipt-bill`, Tarife `coins`, Conturi bancare
     `credit-card`.
   - Build them with `renderFeeGroup({ label, icon, count, rows, wide })`.
   - No stat cards: the earlier stat-card and stats-strip versions are gone.
@@ -3040,6 +3056,79 @@ The label never repeats the target. Used by: `renderCaseModal` (all forms), the 
 Respingere choice (`decizie`, updates with the choice), and form-less confirmations.
 Do not write "Următorul pas: …" as plain text anywhere.
 
+### Taxe — tariff + application rule (revised 2026-10-02)
+
+**Why (feedback G. Roșca, O. Luchian, 2 Oct 2026):** taxes (the sum to pay) are computed
+from tariffs; ~80% of taxes equal the tariff; tariffs come mostly from RSSP / eAPL. Separate
+"Taxe" (payments bundling tariffs) and "Tarife" tabs made the admin configure the same thing
+twice and hid the starting point. Olesea's case: *Înregistrarea produselor biocide* —
+emitere primară 9252 MDL; at reperfectare **two different tariffs at the same moment**,
+chosen by the reason picked at initiation (minor/major change 7743 · administrative 1292).
+
+**Model** (`service.geap.taxes`, one object per tariff it charges):
+`{ id, tariffId, requestType, moment, generation: Automat|Manual, condition: null |
+{ classifier, values[] }, calc: { mode: tarif | formula (expression on {tarif}, rounding) |
+reducere (percent) }, term, exemptions[], removable, recurring, version, state, active,
+usage }`. Condition classifiers: `servicesStore.conditionClassifiers` (`{ code, name, scope,
+values: [{ code, label }] }`) — the value the applicant picks in the form at initiation.
+Taxes of the same request type + moment land on **one payment note**.
+
+**Rules** (`core/service-passport.js`, tests in `test/service-passport.test.mjs`):
+- `conditionApplies` / `conditionsOverlap`; `taxConflict` = the same tariff may not be
+  charged twice: another active tax with the same tariff + request type + moment and an
+  overlapping condition. Different tariffs **may** stack on one note.
+- `taxAmount`: tariff as is (or the tariff's own formula), `{tarif}`-formula, reduction %.
+- `validateTax` = payment rules (moment in the flow, initiation = automatic, term,
+  exemptions only manual, recurrence) + tariff required and eligible + condition needs a
+  classifier and ≥ 1 value + reduction 1–100 + an automatic formula may use only `{tarif}`.
+- `unconfiguredTariffs` (the service's tariffs no tax uses) and `defaultTaxForTariff`
+  ("Aplică ca atare": registry request type, at initiation, Automat, the tariff as is).
+- `simulateTaxes({ taxes, tariffs, requestType, moment, answers })` → applied (+ sums),
+  skipped (condition false), total.
+
+**UI — passport tab Taxe** (`renderServiceFees` → `renderServicePayments` → `renderPaymentList`):
+1. Model note (grey inline note): "O taxă = un tarif + regula de aplicare…".
+2. Sumar taxe: Taxe (Active · De configurat), Tarife (Din RSSP / eAPL · Adăugate manual),
+   Conturi bancare.
+3. Section "Taxe": heading with **"Simulează nota de plată"** (`btn-neutral btn-sm`, icon
+   calculator); toolbar chips Toate · Active · Schiță · Inactive (De configurat counts in
+   Toate and Schiță) · search · export · sync tariffs (icon / RSSP+eAPL menu) · divider ·
+   "Adaugă taxă" (`btn-secondary`).
+4. Stacked list: first the group **"De configurat"** — tariffs without a rule, tags source +
+   "Fără regulă de aplicare" (warning), actions **Configurează** (`btn-neutral`) and **Aplică
+   ca atare** (`btn-secondary`, publishes the default rule at once). Then groups by **Tip
+   solicitare**: title = tariff name; tags state (Activă / Inactivă / Schiță) · source (RSSP ·
+   eAPL · Manual · Global) · "Condiționată" (info) · "Fără ramificație în flux"; meta = sum
+   (bold) · moment · generation · term · version · modified; meta2 = "Se aplică doar dacă
+   <clasificator> = <valori>", exemptions, "eliminabilă din notă".
+5. The global-tariffs pointer note (Administrare → Tarife).
+
+**Tax drawer** (`[data-pay-drawer]`, sections in question order): **Tarif** (fo-select of the
+service's then global tariffs, each option names its source; hint = code · type · legal
+basis · "preluat din RSSP, nu se editează aici"; "Tariful lipsește din RSSP / eAPL?
+Creează un tarif nou" hands over to the tariff drawer and returns with the new tariff
+selected) · **Aplicare** (Tip solicitare — prefilled from the registry tariff, Moment,
+Automat / Manual) · **Condiție** (segmented Întotdeauna / Doar pentru anumite valori →
+Clasificator + value checkboxes) · **Calcul** (segmented Suma tarifului / Formulă /
+Reducere, with the resulting sum) · Termen · Scutiri (manual only, + "Specialistul poate
+scoate taxa din notă") · Recurență. Footer: draft / publish, or save = new version.
+
+**Simulează** (`#tax-sim-modal`, library `modal--md`): Tip solicitare · Moment · one select per
+condition classifier "(ales de solicitant)"; "Pe nota de plată" = `renderSumList` with the
+total tray; "Nu se aplică" = the same list, muted, with the condition.
+
+**Lifecycle confirms** (all via `askConfirm`): Publică, Activează (or "Înlocuiește taxa activă"
+on conflict), Dezactivează, Șterge (the tariff returns to "De configurat").
+Tariff "Folosit de" / delete-blocking count taxes (`tariffUsage`).
+
+**Demo data:** service `003000519` Înregistrarea produselor biocide (ANSP) with TRF-012 9252
+(RSSP), TRF-013 7743 (RSSP) and TRF-014 1292 (manual — missing in RSSP), classifier
+`CLS-BIO-01` Motivul reperfectării; `003000023` keeps one eAPL tariff "De configurat".
+
+**Open for the PO:** where the condition value comes from in the form (field bound to the
+classifier), reductions vs. exemptions overlap, and whether a manual tax at examination should
+also offer conditional tariffs to the specialist (today: the specialist picks fees by hand).
+
 ### Tariff drawer — status strip (added 2026-10-01)
 
 An existing tariff opens with `.e-permits-tariff__status` at the top of the drawer
@@ -3052,7 +3141,7 @@ body, before Identitate. It is a grey, radius-12 strip with 12/16 padding:
 - **Right:** the actions, `btn-sm`:
   - **Activează** (`btn-secondary`) / **Dezactivează** (`btn-neutral`), only for a
     published tariff.
-  - **Șterge** (`btn-outline-destructive`). While the tariff is used by payments,
+  - **Șterge** (`btn-outline-destructive`). While the tariff is used by taxes,
     Șterge is `aria-disabled` with a `data-tooltip-reason` ("Folosit în N plăți — poate
     fi doar dezactivat.").
 - **Every action confirms** through `askConfirm`.
@@ -3112,7 +3201,7 @@ glyph at that size.
 ### List toolbar — search + chips + actions (added 2026-10-02)
 
 One system for every list toolbar: registries (`[data-workplace-toolbar]`), classifier
-Valori (`.e-permits-clas-grid__toolbar`), passport Plăți / Tarife (`.e-permits-pay__toolbar`)
+Valori (`.e-permits-clas-grid__toolbar`), passport Taxe (`.e-permits-pay__toolbar`)
 and the request-type drawer (`.e-permits-rt__toolbar`).
 - **Search:** always the library Search with the product layer —
   `label.search-input.medium.rectangular.e-permits-workplace__search` (+ `e-permits-list-search`
@@ -3503,8 +3592,8 @@ Reuse it for any flow documented in Figma:
 - Screens use the shared parts only: header instance, screen template, library
   components; real data that matches code; labels 12px in the details header.
 - **List toolbars in Figma = code:** chips left and tools right on **one 36px row**
-  (search 320 in sections / 400 in registries, icon buttons 36×36, 1px divider h28, then
-  the add button), gap 12. Icon-only actions use the library button `📍 Icon = Only` —
+  (search 320 in sections / 400 in registries, chips 36; buttons keep the component's Small
+  size — icon-only 32×32, add button h32 —, 1px divider h28), gap 12. Icon-only actions use the library button `📍 Icon = Only` —
   never a labelled "Sincronizează" button where code has an icon.
 - **Icon-only buttons get a hover block:** library button `State = Hover` + the local
   component **"Tooltip · etichetă (icon)"** (`9736:694`, = `.tooltip--plain`: no arrow,

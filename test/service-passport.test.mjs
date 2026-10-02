@@ -1,5 +1,6 @@
 // Run: node test/service-passport.test.mjs
-// One check per rule in US-111 (RSSP sync) and Feature 93591 (payments).
+// One check per rule in US-111 (RSSP sync), Feature 93591 (payments) and the
+// revised Taxe model (tax = tariff + application rule, 2026-10-02).
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
@@ -311,6 +312,78 @@ check("sync: creates, updates (new version) and leaves unchanged", () => {
   assert.equal(changed.tariffs[0].version, 2);
   const kept = sp.syncServiceTariffs({ ...base, tariffs: [{ ...first.tariffs[0], iban: "MD00KEEP" }], incoming: [{ externalId: "sub-1", name: "Emitere", amount: 50 }] });
   assert.equal(kept.tariffs[0].iban, "MD00KEEP", "fields the registry does not send are kept");
+});
+
+/* ---- Taxe = tariff + application rule (feedback G. Roșca / O. Luchian, 2026-10-02) ----
+   Olesea's case: Înregistrarea produselor biocide, reperfectare at initiation —
+   7743 MDL for a minor/major change, 1292 MDL for an administrative one. */
+const T = {
+  bio: { id: "t-bio", amount: 9252, currency: "MDL", scope: "B", state: "Publicat", active: true, requestType: "Emitere primară", source: "RSSP" },
+  mod: { id: "t-mod", amount: 7743, currency: "MDL", scope: "B", state: "Publicat", active: true, requestType: "Reperfectare", source: "RSSP" },
+  adm: { id: "t-adm", amount: 1292, currency: "MDL", scope: "B", state: "Publicat", active: true, requestType: "Reperfectare", source: "GEAP" },
+  free: { id: "t-free", amount: 300, currency: "MDL", scope: "B", state: "Publicat", active: true, requestType: "Reperfectare", source: "eAPL" }
+};
+const INIT = "La inițierea solicitării";
+const tax = (over) => ({ state: "Publicat", active: true, moment: INIT, generation: "Automat", condition: null, calc: { mode: "tarif" }, term: 5, exemptions: [], recurring: null, ...over });
+const reason = (...values) => ({ classifier: "CLS-BIO-01", values });
+const bioTaxes = [
+  tax({ id: "x1", tariffId: "t-bio", requestType: "Emitere primară" }),
+  tax({ id: "x2", tariffId: "t-mod", requestType: "Reperfectare", condition: reason("minora", "majora") }),
+  tax({ id: "x3", tariffId: "t-adm", requestType: "Reperfectare", condition: reason("administrativa") })
+];
+
+check("taxe: a condition applies only for the chosen classifier values; none = always", () => {
+  assert.equal(sp.conditionApplies(null, {}), true);
+  assert.equal(sp.conditionApplies(reason("minora"), { "CLS-BIO-01": "minora" }), true);
+  assert.equal(sp.conditionApplies(reason("minora"), { "CLS-BIO-01": "administrativa" }), false);
+  assert.equal(sp.conditionApplies(reason("minora"), {}), false, "no answer yet = not applied");
+});
+
+check("taxe: simulation — reperfectare charges 7743 or 1292 by the reason chosen at initiation", () => {
+  const run = (answer) => sp.simulateTaxes({ taxes: bioTaxes, tariffs: Object.values(T), requestType: "Reperfectare", moment: INIT, answers: { "CLS-BIO-01": answer } });
+  assert.deepEqual([run("majora").total, run("majora").applied.map((a) => a.tax.id), run("majora").skipped.map((a) => a.tax.id)], [7743, ["x2"], ["x3"]]);
+  assert.deepEqual([run("administrativa").total, run("administrativa").applied.map((a) => a.tax.id)], [1292, ["x3"]]);
+  const primary = sp.simulateTaxes({ taxes: bioTaxes, tariffs: Object.values(T), requestType: "Emitere primară", moment: INIT, answers: {} });
+  assert.equal(primary.total, 9252);
+});
+
+check("taxe: inactive and draft taxes never reach the note", () => {
+  const list = [tax({ id: "a", tariffId: "t-bio", requestType: "Emitere primară", active: false }), tax({ id: "b", tariffId: "t-bio", requestType: "Emitere primară", state: "Schiță" })];
+  assert.equal(sp.simulateTaxes({ taxes: list, tariffs: Object.values(T), requestType: "Emitere primară" }).applied.length, 0);
+});
+
+check("taxe: the same tariff cannot be charged twice when conditions overlap", () => {
+  const a = tax({ id: "a", tariffId: "t-mod", requestType: "Reperfectare", condition: reason("minora") });
+  assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare", condition: reason("majora") })), null, "disjoint values");
+  assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare", condition: reason("minora", "majora") })).id, "a");
+  assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare" })).id, "a", "always overlaps any condition");
+  assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-adm", requestType: "Reperfectare" })), null, "different tariffs may stack on one note");
+  assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare", moment: "La examinare" })), null);
+});
+
+check("taxe: calculation — the tariff as is, a reduction, a formula on {tarif}", () => {
+  assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "tarif" } }), T.mod), { ok: true, value: 7743 });
+  assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "reducere", percent: 50 } }), T.adm), { ok: true, value: 646 });
+  assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "formula", expression: "{tarif} * {n}", rounding: "2 zecimale" } }), T.adm, { n: 2 }), { ok: true, value: 2584 });
+  assert.equal(sp.taxAmount(tax({ calc: { mode: "formula", expression: "{tarif} * {n}" } }), T.adm, {}).ok, false, "values completed when the note is generated");
+});
+
+check("taxe: tariffs without a rule wait to be configured; 'Aplică ca atare' = automatic at initiation", () => {
+  assert.deepEqual(sp.unconfiguredTariffs(Object.values(T), bioTaxes, "B").map((t) => t.id), ["t-free"]);
+  const asIs = sp.defaultTaxForTariff(T.free, { term: 5 });
+  assert.deepEqual([asIs.requestType, asIs.moment, asIs.generation, asIs.calc.mode, asIs.condition], ["Reperfectare", INIT, "Automat", "tarif", null]);
+  assert.deepEqual(sp.validateTax(asIs, { tariff: T.free, serviceCode: "B" }), {});
+});
+
+check("taxe: validation — tariff, condition values, reduction range, automatic formulas only on {tarif}", () => {
+  const base = { ...sp.defaultTaxForTariff(T.mod, { term: 5 }) };
+  assert.ok(sp.validateTax({ ...base, tariffId: "" }).tariffId);
+  assert.ok(sp.validateTax({ ...base, condition: { classifier: "", values: [] } }).conditionClassifier);
+  assert.ok(sp.validateTax({ ...base, condition: { classifier: "CLS-BIO-01", values: [] } }).conditionValues);
+  assert.ok(sp.validateTax({ ...base, calc: { mode: "reducere", percent: "0" } }).percent);
+  assert.ok(sp.validateTax({ ...base, calc: { mode: "formula", expression: "{tarif} * {m2}" } }).expression, "automatic tax cannot ask the specialist");
+  assert.deepEqual(sp.validateTax({ ...base, calc: { mode: "formula", expression: "{tarif} * 1.2", rounding: "2 zecimale" } }), {});
+  assert.ok(sp.validateTax({ ...base, tariffId: "t-x" }, { tariff: { ...T.mod, active: false }, serviceCode: "B" }).tariffId, "an inactive tariff cannot be charged");
 });
 
 console.log(`\n${passed} checks passed`);

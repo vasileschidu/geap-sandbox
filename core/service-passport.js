@@ -559,6 +559,138 @@
     return next;
   }
 
+  /* ---- taxes = tariff + application rule (revised 2026-10-02) -------------
+     Tariffs are the price list, consumed mostly from RSSP / eAPL. A tax is ONE
+     tariff plus the rule the registries do not carry: request type, moment,
+     automatic / manual, an optional condition (a classifier value chosen at the
+     initiation of the request, e.g. the reason of a reperfectare), how the sum
+     is computed (the tariff as is — ~80% of cases —, a formula or a reduction),
+     the payment term, exemptions and recurrence. Taxes of the same request type
+     and moment end up on one payment note. */
+  var TAX_CALC = ["tarif", "formula", "reducere"];
+  var TAX_CALC_LABELS = { tarif: "Suma tarifului", formula: "Formulă", reducere: "Reducere" };
+
+  /* null / empty values = always applies */
+  function conditionApplies(condition, answers) {
+    if (!condition || !condition.classifier || !(condition.values || []).length) return true;
+    var answer = (answers || {})[condition.classifier];
+    return answer != null && condition.values.indexOf(answer) !== -1;
+  }
+
+  /* two conditions can be true for the same request */
+  function conditionsOverlap(a, b) {
+    var always = function (c) { return !c || !c.classifier || !(c.values || []).length; };
+    if (always(a) || always(b)) return true;
+    if (a.classifier !== b.classifier) return true;
+    return a.values.some(function (value) { return b.values.indexOf(value) !== -1; });
+  }
+
+  /* the same tariff cannot be charged twice for one request: another active
+     tax with the same tariff, request type and moment whose condition overlaps */
+  function taxConflict(taxes, tax) {
+    return (taxes || []).filter(function (other) {
+      return other.id !== tax.id && other.active && other.state === "Publicat" &&
+        other.tariffId === tax.tariffId && other.requestType === tax.requestType &&
+        other.moment === tax.moment && conditionsOverlap(other.condition, tax.condition);
+    })[0] || null;
+  }
+
+  /* the sum of a tax; formula values may be missing (computed when the note is generated) */
+  function taxAmount(tax, tariff, values) {
+    var base = Number(tariff && tariff.amount);
+    var calc = tax.calc || { mode: "tarif" };
+    if (calc.mode === "reducere") {
+      var percent = Number(calc.percent);
+      if (!isFinite(base) || !isFinite(percent)) return { ok: false, error: "Reducere nevalidă." };
+      return { ok: true, value: Math.round(base * (100 - percent)) / 100 };
+    }
+    if (calc.mode === "formula") {
+      var filled = Object.assign({ tarif: base }, values || {});
+      return evaluateFormula(calc.expression, filled, calc.rounding);
+    }
+    if (tariff && tariff.formula) return evaluateFormula(tariff.expression, values || {}, tariff.rounding);
+    return isFinite(base) ? { ok: true, value: base } : { ok: false, error: "Tarif fără sumă." };
+  }
+
+  /* service tariffs no tax uses yet — the ones still to configure */
+  function unconfiguredTariffs(tariffs, taxes, serviceCode) {
+    var used = (taxes || []).map(function (tax) { return tax.tariffId; });
+    return (tariffs || []).filter(function (t) { return t.scope === serviceCode && used.indexOf(t.id) === -1; });
+  }
+
+  /* "Aplică ca atare": the tariff as is, automatic at the initiation of the
+     request it came with (RSSP / eAPL carry the request type) */
+  function defaultTaxForTariff(tariff, context) {
+    var ctx = context || {};
+    return {
+      tariffId: tariff.id,
+      requestType: tariff.requestType || ctx.requestType || "",
+      moment: INITIATION,
+      generation: "Automat",
+      condition: null,
+      calc: { mode: "tarif" },
+      term: ctx.term || 5,
+      exemptions: [],
+      removable: false,
+      recurring: null
+    };
+  }
+
+  function canPublishTax(tax) {
+    return tax.tariffId ? { ok: true } : { ok: false, message: "Alege tariful taxei înainte de publicare." };
+  }
+
+  /* the payment rules plus tariff, condition and calculation */
+  function validateTax(tax, context) {
+    var ctx = context || {};
+    var errors = validatePayment(Object.assign({}, tax, { tariffs: [tax.tariffId].filter(Boolean) }), { flow: ctx.flow });
+    if (!tax.tariffId) errors.tariffId = "Alege tariful din care se calculează taxa.";
+    else if (ctx.tariff) {
+      var eligible = tariffEligibility(ctx.tariff, ctx.serviceCode, tax.generation);
+      if (!eligible.ok) errors.tariffId = eligible.reason + ".";
+    }
+    var c = tax.condition;
+    if (c) {
+      if (!c.classifier) errors.conditionClassifier = "Alege clasificatorul de care depinde taxa.";
+      else if (!(c.values || []).length) errors.conditionValues = "Bifează cel puțin o valoare pentru care se aplică taxa.";
+    }
+    var calc = tax.calc || { mode: "tarif" };
+    if (TAX_CALC.indexOf(calc.mode) === -1) errors.calc = "Alege modul de calcul.";
+    if (calc.mode === "reducere" && !positiveInt(calc.percent, 100)) errors.percent = "Introdu reducerea în procente, între 1 și 100.";
+    if (calc.mode === "formula") {
+      var probe = { tarif: 1 };
+      formulaVariables(calc.expression).forEach(function (name) { probe[name] = 1; });
+      var check = evaluateFormula(calc.expression, probe, calc.rounding);
+      if (!check.ok) errors.expression = check.error;
+      if (tax.generation === "Automat" && formulaVariables(calc.expression).some(function (name) { return name !== "tarif"; })) {
+        errors.expression = "O taxă automată nu poate cere valori completate de specialist — doar {tarif}. Alege generarea manuală.";
+      }
+    }
+    return errors;
+  }
+
+  /* Simulare: which taxes a request triggers at a moment, with the answers given
+     at initiation; formula taxes needing values are listed without a sum */
+  function simulateTaxes(input) {
+    var taxes = (input.taxes || []).filter(function (tax) {
+      return tax.state === "Publicat" && tax.active && tax.requestType === input.requestType && (!input.moment || tax.moment === input.moment);
+    });
+    var applied = [];
+    var skipped = [];
+    var total = 0;
+    taxes.forEach(function (tax) {
+      var tariff = (input.tariffs || []).filter(function (t) { return t.id === tax.tariffId; })[0] || null;
+      if (!conditionApplies(tax.condition, input.answers)) {
+        skipped.push({ tax: tax, tariff: tariff, reason: "condition" });
+        return;
+      }
+      var sum = taxAmount(tax, tariff, input.values);
+      if (sum.ok) total = Math.round((total + sum.value) * 100) / 100;
+      applied.push({ tax: tax, tariff: tariff, amount: sum.ok ? sum.value : null });
+    });
+    return { applied: applied, skipped: skipped, total: total };
+  }
+
   /* ---- tariff classifier (Feature «Gestionarea clasificatorului de tarife») ----
      One model for global and service tariffs. RSSP / eAPL tariffs keep their
      registry fields read-only. Editing a published tariff creates a new
@@ -780,6 +912,17 @@
     momentAllowed: momentAllowed,
     tariffEligibility: tariffEligibility,
     validatePayment: validatePayment,
-    applyPaymentEdit: applyPaymentEdit
+    applyPaymentEdit: applyPaymentEdit,
+    TAX_CALC: TAX_CALC,
+    TAX_CALC_LABELS: TAX_CALC_LABELS,
+    conditionApplies: conditionApplies,
+    conditionsOverlap: conditionsOverlap,
+    taxConflict: taxConflict,
+    taxAmount: taxAmount,
+    unconfiguredTariffs: unconfiguredTariffs,
+    defaultTaxForTariff: defaultTaxForTariff,
+    canPublishTax: canPublishTax,
+    validateTax: validateTax,
+    simulateTaxes: simulateTaxes
   };
 });

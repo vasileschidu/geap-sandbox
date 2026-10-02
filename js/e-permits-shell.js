@@ -4177,8 +4177,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="e-permits-user-profile__property-display">
               <span>${renderUserProfileFieldValue(field, user)}</span>
               ${field.editable ? `
-                <button class="e-permits-user-profile__edit" type="button" aria-label="Editează ${escapeHtml(field.label)}" data-user-profile-edit="${escapeHtml(field.key)}">
-                  <svg class="icon" width="16" height="16" aria-hidden="true">
+                <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-tooltip-label="Editează" aria-label="Editează ${escapeHtml(field.label)}" data-user-profile-edit="${escapeHtml(field.key)}">
+                  <svg class="icon small" aria-hidden="true">
                     <use href="assets/icons/sprite.svg#icon-edit"></use>
                   </svg>
                 </button>
@@ -6113,9 +6113,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let servicesRegistryLabel = "Configurări servicii";
   const serviceProfileState = { code: null, tabKey: "general", focusCode: null };
 
-  /* the former Plăți și tarife tab is now Taxe; old links still land there */
+  /* the former Plăți și tarife and Tarife tabs are now Taxe; old links still land there */
   const normalizePassportTab = (tabKey) => {
-    if (tabKey === "payments") {
+    if (tabKey === "payments" || tabKey === "tariffs") {
       return "fees";
     }
     return SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey) ? tabKey : "general";
@@ -6127,9 +6127,9 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "general", label: "Date generale", icon: "page-text" },
     { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
-    /* Taxe = fee summary cards + the payments (Feature 93591); Tarife = the service's tariffs */
-    { id: "fees", label: "Taxe", count: (service) => service.geap.payments.length },
-    { id: "tariffs", label: "Tarife", count: (service) => (servicesStore?.tariffs || []).filter((tariff) => tariff.scope === service.code).length },
+    /* Taxe = tariffs + their application rules in one place (revised 2026-10-02: a tax is
+       a tariff plus the rule RSSP / eAPL do not carry). Count = taxes + tariffs to configure */
+    { id: "fees", label: "Taxe", count: (service) => serviceTaxes(service).length + unconfiguredServiceTariffs(service).length },
     { id: "dependencies", label: "Interdependențe", count: (service) => service.geap.dependencies.length },
     { id: "classifiers", label: "Clasificatoare specifice", count: (service) => service.geap.classifiers.length },
     { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
@@ -6357,7 +6357,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "actiuni":
         return `
           <span class="e-permits-workplace__row-actions">
-            <button class="e-permits-workplace__icon-action" type="button" data-tariff-edit="${escapeHtml(row.id)}" aria-label="Editează tariful ${escapeHtml(row.denumire)}" title="Editează">
+            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-tariff-edit="${escapeHtml(row.id)}" aria-label="Editează tariful ${escapeHtml(row.denumire)}" title="Editează">
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
             </button>
           </span>
@@ -6417,11 +6417,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <span class="e-permits-workplace__row-actions">
             ${isCentralAdmin() ? `
-              <button class="e-permits-workplace__icon-action" type="button" data-service-row-sync="${escapeHtml(row.cod)}" aria-label="Sincronizare din RSSP: ${escapeHtml(row.denumire)}" title="Sincronizare din RSSP">
+              <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-service-row-sync="${escapeHtml(row.cod)}" aria-label="Sincronizare din RSSP: ${escapeHtml(row.denumire)}" title="Sincronizare din RSSP">
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
               </button>
             ` : ""}
-            <button class="e-permits-workplace__icon-action" type="button" data-service-row-open="${escapeHtml(row.cod)}" aria-label="Actualizare configurație: ${escapeHtml(row.denumire)}" title="Actualizare configurație">
+            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-service-row-open="${escapeHtml(row.cod)}" aria-label="Actualizare configurație: ${escapeHtml(row.denumire)}" title="Actualizare configurație">
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
             </button>
           </span>
@@ -6611,7 +6611,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Tipuri solicitări", withLink(`${configuredTypes} din ${geap.requestTypes.length} configurate`, "request-types", "Vezi tipurile")],
         ["Formulare electronice", withLink(`${plural(publishedForms, "publicat", "publicate")} · ${geap.forms.length - publishedForms} în schiță`, "forms", "Vezi formularele")],
         ["Șabloane de tipar", withLink(plural(geap.templates.length, "șablon", "șabloane"), "templates", "Vezi șabloanele")],
-        ["Taxe", withLink(`${plural(tariffs.length, "tarif", "tarife")} · ${plural(geap.payments.length, "plată", "plăți")}`, "fees", "Vezi taxele")],
+        ["Taxe", withLink(`${plural(serviceTaxes(service).length, "taxă", "taxe")} · ${plural(tariffs.length, "tarif", "tarife")}${unconfiguredServiceTariffs(service).length ? ` · ${unconfiguredServiceTariffs(service).length} de configurat` : ""}`, "fees", "Vezi taxele")],
         ["Documente însoțitoare", rssp.documents.length ? `${rssp.documents.length} · ${requiredDocs} obligatorii` : "—"],
         ["Tipuri solicitanți", valueTags(rssp.applicantTypes)]
       ], "GEAP")}
@@ -6621,7 +6621,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })}
       ${renderPassportSection("Servicii guvernamentale conectate", [
         ["MConnect", connected(mconnect > 0, mconnect ? `${plural(mconnect, "clasificator preluat", "clasificatoare preluate")} din registrele de stat` : "Nu preia date din registre")],
-        ["MPay", connected(rssp.paid || geap.payments.length > 0, rssp.paid ? "Achitarea taxelor serviciului" : "Serviciu fără plată")],
+        ["MPay", connected(rssp.paid || serviceTaxes(service).length > 0, rssp.paid ? "Achitarea taxelor serviciului" : "Serviciu fără plată")],
         ["MSign", connected(geap.templates.length > 0, geap.templates.length ? "Semnarea documentelor eliberate" : "Fără documente de semnat")]
       ])}
       ${renderPassportSection("Descriere și eligibilitate", [
@@ -6671,7 +6671,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const menuId = `passport-stack-menu-${stackMenuSeq += 1}`;
     return `
       <div class="e-permits-stack__menu-wrap">
-        <button class="e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-tooltip-label="Mai multe acțiuni" data-stack-menu-trigger>
+        <button class="btn btn-strict btn-sm btn-icon-only btn-rounded e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-tooltip-label="Mai multe acțiuni" data-stack-menu-trigger>
           <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-more-vertical"></use></svg>
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${menuId}" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
@@ -6853,12 +6853,19 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the tables' export icon (tray + arrow), shared by every export button */
   const EXPORT_ICON = `<svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"> <path d="M2.06641 12V10C2.06641 9.66863 2.3353 9.39974 2.66667 9.39974C2.99804 9.39974 3.26693 9.66863 3.26693 10V12C3.26693 12.405 3.59499 12.7331 4 12.7331H12C12.405 12.7331 12.7331 12.405 12.7331 12V10C12.7331 9.66863 13.002 9.39974 13.3333 9.39974C13.6647 9.39974 13.9336 9.66863 13.9336 10V12C13.9336 13.0678 13.0678 13.9336 12 13.9336H4C2.93225 13.9336 2.06641 13.0678 2.06641 12ZM7.39974 2.66667C7.39974 2.3353 7.66863 2.06641 8 2.06641C8.33137 2.06641 8.60026 2.3353 8.60026 2.66667V8.21745L9.90885 6.90885C10.1432 6.67454 10.5235 6.67454 10.7578 6.90885C10.9921 7.14317 10.9921 7.5235 10.7578 7.75781L8.42448 10.0911C8.31196 10.2037 8.15913 10.2669 8 10.2669C7.84087 10.2669 7.68804 10.2037 7.57552 10.0911L5.24219 7.75781C5.00787 7.5235 5.00787 7.14317 5.24219 6.90885C5.4765 6.67454 5.85683 6.67454 6.09115 6.90885L7.39974 8.21745V2.66667Z" fill="currentColor"/> </svg>`;
 
-  /* ---- Plăți și tarife: list (search, filters, export) + editor drawer ---- */
-  const PAY_FILTERS = [
+  /* ---- Taxe = tariff + application rule (revised 2026-10-02) ----------------
+     Feedback (G. Roșca, O. Luchian): taxes are computed from tariffs, ~80% equal the
+     tariff, and the tariffs come mostly from RSSP / eAPL. So the tab starts from the
+     tariff: a tax is ONE tariff plus the rule the registries do not carry (request
+     type, moment, automatic/manual, an optional condition on a classifier value
+     chosen at initiation, calculation, term, exemptions, recurrence). Tariffs that
+     arrived without a rule wait in "De configurat" ("Aplică ca atare" = the 80%).
+     Rules: GEAP.servicePassport (validateTax, taxConflict, simulateTaxes). */
+  const TAX_FILTERS = [
     ["all", "Toate", () => true],
-    ["published", "Publicate", (pay) => pay.state === "Publicat" && pay.active],
-    ["draft", "Schiță", (pay) => pay.state === "Schiță"],
-    ["inactive", "Inactive", (pay) => pay.state === "Publicat" && !pay.active]
+    ["active", "Active", (tax) => tax.state === "Publicat" && tax.active],
+    ["draft", "Schiță", (tax) => tax.state !== "Publicat"],
+    ["inactive", "Inactive", (tax) => tax.state === "Publicat" && !tax.active]
   ];
   const payListState = { query: "", filter: "all" };
 
@@ -6866,56 +6873,114 @@ document.addEventListener("DOMContentLoaded", () => {
   const tariffLabel = (tariff) => tariff ? `${tariff.name} · ${tariff.amount} ${tariff.currency}` : "Tarif necunoscut";
   const requestTypeFlow = (service, requestTypeName) =>
     getFlowById(service.geap.requestTypes.find((rt) => rt.name === requestTypeName)?.flow);
-
-  const payMatches = (service, pay) => {
-    const filter = PAY_FILTERS.find(([key]) => key === payListState.filter)?.[2] || (() => true);
-    const query = payListState.query.trim().toLocaleLowerCase("ro");
-    const text = [pay.name, pay.requestType, pay.moment, pay.generation, ...pay.tariffs.map((item) => getTariff(item.id)?.name || "")]
-      .join(" ").toLocaleLowerCase("ro");
-    return filter(pay) && (!query || text.includes(query));
+  const serviceTaxes = (service) => service.geap.taxes || (service.geap.taxes = []);
+  const unconfiguredServiceTariffs = (service) => passport.unconfiguredTariffs(servicesStore?.tariffs || [], serviceTaxes(service), service.code);
+  const conditionClassifiers = (service) => (servicesStore?.conditionClassifiers || []).filter((item) => item.scope === service.code || item.scope === "global");
+  const getConditionClassifier = (code) => (servicesStore?.conditionClassifiers || []).find((item) => item.code === code) || null;
+  const conditionLabel = (condition) => {
+    if (!condition?.classifier) return "";
+    const classifier = getConditionClassifier(condition.classifier);
+    const labels = (condition.values || []).map((code) => classifier?.values.find((value) => value.code === code)?.label || code);
+    return `${classifier?.name || condition.classifier} = ${labels.join(" sau ")}`;
   };
+  const tariffSourceTag = (tariff) => !tariff ? "" : tariff.scope === "global"
+    ? renderTag("Global", "neutral")
+    : renderTag(tariff.source === "GEAP" ? "Manual" : tariff.source, "neutral");
+  const TAX_STATUS = (tax) => (tax.state === "Publicat" ? (tax.active ? "Activă" : "Inactivă") : "Schiță");
+  const TAX_STATUS_TONES = { "Activă": "success", "Inactivă": "neutral", "Schiță": "warning" };
+  const money = (value, currency = "MDL") => `${Number(value).toLocaleString("ro-MD")} ${currency}`;
+
+  /* what the tax charges: the tariff as is, a formula on it, or a reduction */
+  const taxCalcLabel = (tax, tariff) => {
+    const calc = tax.calc || { mode: "tarif" };
+    if (!tariff) return "Tarif lipsă";
+    if (calc.mode === "formula") return `Formulă · ${escapeHtml(calc.expression || "—")}`;
+    if (calc.mode === "reducere") {
+      const sum = passport.taxAmount(tax, tariff);
+      return `${escapeHtml(money(tariff.amount, tariff.currency))} − ${escapeHtml(String(calc.percent))}% = <strong>${escapeHtml(sum.ok ? money(sum.value, tariff.currency) : "—")}</strong>`;
+    }
+    return tariff.formula ? `Formulă tarif · ${escapeHtml(tariff.expression || "—")}` : `<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`;
+  };
+
+  const payMatches = (service, tax) => {
+    const filter = TAX_FILTERS.find(([key]) => key === payListState.filter)?.[2] || (() => true);
+    const query = payListState.query.trim().toLocaleLowerCase("ro");
+    const tariff = getTariff(tax.tariffId);
+    const text = [tariff?.name, tariff?.code, tax.requestType, tax.moment, tax.generation, conditionLabel(tax.condition)]
+      .join(" ").toLocaleLowerCase("ro");
+    return filter(tax) && (!query || text.includes(query));
+  };
+  const unconfiguredMatches = (tariff) => {
+    if (!["all", "draft"].includes(payListState.filter)) return false;
+    const query = payListState.query.trim().toLocaleLowerCase("ro");
+    return !query || [tariff.name, tariff.code, tariff.requestType, tariff.source].join(" ").toLocaleLowerCase("ro").includes(query);
+  };
+
+  const renderTaxGroup = (label, items, extraClass = "") => `
+    <div class="e-permits-stack__group${extraClass}">
+      <h3 class="e-permits-stack__group-label">${escapeHtml(label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${items.length}</span></h3>
+      <ul class="e-permits-stack__list" role="list">${items.map(renderStackItem).join("")}</ul>
+    </div>
+  `;
 
   const renderPaymentList = (service) => {
     const admin = isCentralAdmin();
-    const visible = service.geap.payments.filter((pay) => payMatches(service, pay));
+    const taxes = serviceTaxes(service);
+    const visible = taxes.filter((tax) => payMatches(service, tax));
+    const pending = unconfiguredServiceTariffs(service).filter(unconfiguredMatches);
 
-    if (!visible.length) {
-      return `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>${service.geap.payments.length ? "Nicio plată nu corespunde filtrului." : "Nu există plăți configurate pentru acest serviciu."}</p></div>`;
+    if (!visible.length && !pending.length) {
+      return `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>${taxes.length ? "Nicio taxă nu corespunde filtrului." : "Serviciul nu are taxe. Sincronizează tarifele din RSSP / eAPL sau adaugă o taxă."}</p></div>`;
     }
 
-    const items = visible.map((pay) => {
-      const actions = admin ? passport.paymentActions(pay) : [];
-      const actionAttrs = (action) => `data-passport-payment="${escapeHtml(pay.id)}" data-passport-payment-action="${action}"`;
+    /* tariffs that came in without a rule: apply as is (one click) or configure */
+    const pendingItems = pending.map((tariff) => ({
+      plainTitle: tariff.name,
+      title: escapeHtml(tariff.name),
+      badges: [tariffSourceTag(tariff), renderTag("Fără regulă de aplicare", "warning")],
+      meta: [`<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`, escapeHtml(tariff.code), escapeHtml(tariff.requestType || "Tip solicitare neprecizat"), whoWhen(tariff.source === "GEAP" ? "Adăugat" : "Preluat", tariff.modifiedAt, tariff.modifiedBy)],
+      actionsHtml: admin ? `
+        <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-tax-configure="${escapeHtml(tariff.id)}">Configurează</button>
+        <button class="btn btn-secondary btn-sm e-permits-stack__action" type="button" data-tax-apply="${escapeHtml(tariff.id)}">Aplică ca atare</button>
+      ` : ""
+    }));
+
+    const items = visible.map((tax) => {
+      const tariff = getTariff(tax.tariffId);
+      const actions = admin ? passport.paymentActions(tax) : [];
+      const actionAttrs = (action) => `data-passport-payment="${escapeHtml(tax.id)}" data-passport-payment-action="${action}"`;
       /* Editează always; constructive actions (Publică, Activează) blue
          secondary; destructive ones (Dezactivează, Șterge) in the ⋮ menu */
       const primary = actions.find((action) => action === "publish" || action === "activate");
       const destructive = actions.filter((action) => action === "deactivate" || action === "delete");
-      const branchMissing = !passport.momentAllowed(requestTypeFlow(service, pay.requestType), pay.moment);
-      const tariffs = pay.tariffs.map((item) => `${escapeHtml(tariffLabel(getTariff(item.id)))}${pay.generation === "Manual" && item.removable ? " (eliminabil)" : ""}`);
+      const branchMissing = !passport.momentAllowed(requestTypeFlow(service, tax.requestType), tax.moment);
+      const status = TAX_STATUS(tax);
       return {
-        group: pay.requestType,
-        plainTitle: pay.name,
-        title: escapeHtml(pay.name),
+        group: tax.requestType,
+        plainTitle: tariff?.name || tax.tariffId,
+        title: escapeHtml(tariff?.name || tax.tariffId),
         badges: [
-          renderTag(pay.state, pay.state === "Publicat" ? "success" : "neutral"),
-          ...(pay.state === "Publicat" ? [renderTag(pay.active ? "Activ" : "Inactiv", pay.active ? "brand" : "neutral")] : []),
-          ...(!pay.tariffs.length && pay.generation === "Automat" ? [renderTag("Fără tarif", "warning")] : []),
+          renderTag(status, TAX_STATUS_TONES[status]),
+          tariffSourceTag(tariff),
+          ...(tax.condition?.classifier ? [renderTag("Condiționată", "info")] : []),
           ...(branchMissing ? [renderTag("Fără ramificație în flux", "warning")] : [])
         ],
         meta: [
-          escapeHtml(pay.moment),
-          escapeHtml(pay.generation),
-          `termen ${escapeHtml(String(pay.term))} zile`,
-          ...(pay.recurring ? [`recurentă ${pay.recurring.frequency === "Interval" ? `la ${pay.recurring.months} luni` : "anual"}, notificare cu ${pay.recurring.noticeDays} zile înainte`] : []),
-          `v${pay.version}`,
-          whoWhen("Modificat", pay.modifiedAt, pay.modifiedBy)
+          taxCalcLabel(tax, tariff),
+          escapeHtml(tax.moment),
+          escapeHtml(tax.generation),
+          `termen ${escapeHtml(String(tax.term))} zile`,
+          ...(tax.recurring ? [`recurentă ${tax.recurring.frequency === "Interval" ? `la ${tax.recurring.months} luni` : "anual"}`] : []),
+          `v${tax.version}`,
+          whoWhen("Modificat", tax.modifiedAt, tax.modifiedBy)
         ],
         meta2: [
-          tariffs.length ? tariffs.join(", ") : (pay.generation === "Automat" ? "Fără tarif" : "Tarifele se aleg la generarea notei"),
-          ...(pay.exemptions.length ? [`Scutiri: ${escapeHtml(pay.exemptions.join(", "))}`] : [])
+          ...(tax.condition?.classifier ? [`Se aplică doar dacă ${escapeHtml(conditionLabel(tax.condition))}`] : []),
+          ...(tax.exemptions.length ? [`Scutiri: ${escapeHtml(tax.exemptions.join(", "))}`] : []),
+          ...(tax.generation === "Manual" && tax.removable ? ["eliminabilă din notă"] : [])
         ],
         actionsHtml: admin ? `
-          <button class="e-permits-workplace__icon-action" type="button" data-pay-edit="${escapeHtml(pay.id)}" aria-label="Editează ${escapeHtml(pay.name)}" title="Editează">
+          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-pay-edit="${escapeHtml(tax.id)}" aria-label="Editează taxa ${escapeHtml(tariff?.name || "")}" title="Editează">
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
           </button>
           ${primary ? `<button class="btn btn-secondary btn-sm e-permits-stack__action" type="button" ${actionAttrs(primary)}>${PAYMENT_ACTION_LABELS[primary]}</button>` : ""}
@@ -6924,7 +6989,7 @@ document.addEventListener("DOMContentLoaded", () => {
             icon: action === "delete" ? "delete" : "pause",
             attrs: actionAttrs(action),
             danger: true
-          })), pay.name)}
+          })), tariff?.name || "taxă")}
         ` : ""
       };
     });
@@ -6932,20 +6997,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const groups = groupBy(items, (item) => item.group, service.geap.requestTypes.map((rt) => rt.name));
     return `
       <div class="e-permits-stack">
-        ${groups.map((group) => `
-          <div class="e-permits-stack__group">
-            <h3 class="e-permits-stack__group-label">${escapeHtml(group.label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${group.items.length}</span></h3>
-            <ul class="e-permits-stack__list" role="list">${group.items.map(renderStackItem).join("")}</ul>
-          </div>
-        `).join("")}
+        ${pendingItems.length ? renderTaxGroup("De configurat", pendingItems, " e-permits-tax__pending") : ""}
+        ${groups.map((group) => renderTaxGroup(group.label, group.items)).join("")}
       </div>
     `;
   };
 
-  const renderPayChips = (service) => PAY_FILTERS.map(([key, label, test]) => `
+  const renderPayChips = (service) => TAX_FILTERS.map(([key, label, test]) => `
     <button type="button" class="chip${payListState.filter === key ? " is-selected" : ""}" aria-pressed="${payListState.filter === key ? "true" : "false"}" data-pay-filter="${key}">
       <span class="chip__label">${label}</span>
-      <span class="badge badge--lg badge--solid-light" aria-hidden="true">${service.geap.payments.filter(test).length}</span>
+      <span class="badge badge--lg badge--solid-light" aria-hidden="true">${serviceTaxes(service).filter(test).length + (["all", "draft"].includes(key) ? unconfiguredServiceTariffs(service).length : 0)}</span>
     </button>
   `).join("");
 
@@ -6974,37 +7035,64 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  /* sync the service's tariffs from its registries (icon; RSSP + eAPL = a menu) */
+  const renderTariffSyncControl = (service) => (service.syncSources || []).includes("eAPL") ? `
+    <div class="e-permits-stack__menu-wrap">
+      <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Sincronizează tarifele" aria-haspopup="menu" aria-expanded="false" aria-controls="tariff-sync-menu" data-stack-menu-trigger>
+        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+      </button>
+      <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="tariff-sync-menu" role="menu" aria-label="Sursa tarifelor" hidden data-stack-menu>
+        ${[["RSSP", "Din RSSP"], ["eAPL", "Din eAPL"]].map(([source, label]) => `
+          <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-tariff-sync="${source}">
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>${label}</span>
+          </button></li>
+        `).join("")}
+      </ul>
+    </div>
+  ` : `
+    <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Sincronizează tarifele din RSSP" data-tariff-sync="RSSP">
+      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+    </button>
+  `;
+
   const renderServicePayments = (service) => {
     const admin = isCentralAdmin();
 
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <h2 class="e-permits-dosar-profil__section-title">Plăți</h2>
-        <!-- one toolbar: filters left; search, export (icon, as in the tables) and Adaugă plată right -->
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title">Taxe</h2>
+          <button class="btn btn-neutral btn-sm" type="button" data-tax-simulate>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calculator"></use></svg>
+            <span>Simulează nota de plată</span>
+          </button>
+        </div>
+        <!-- one toolbar: filters left; search, export, sync and Adaugă taxă right -->
         <div class="e-permits-pay__toolbar">
-          <div class="e-permits-rt__chips" role="group" aria-label="Filtrează plățile" data-pay-chips>${renderPayChips(service)}</div>
+          <div class="e-permits-rt__chips" role="group" aria-label="Filtrează taxele" data-pay-chips>${renderPayChips(service)}</div>
           <div class="e-permits-pay__tools">
             <label class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search">
               <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" placeholder="Caută plată sau tarif" aria-label="Caută plată, tarif sau moment" value="${escapeHtml(payListState.query)}" autocomplete="off" data-pay-search>
+              <input class="input" type="search" placeholder="Caută taxă sau tarif" aria-label="Caută după tarif, tip solicitare, moment sau condiție" value="${escapeHtml(payListState.query)}" autocomplete="off" data-pay-search>
             </label>
-            <button class="e-permits-workplace__icon-action" type="button" aria-label="Exportă plățile" title="Exportă" data-pay-export>
+            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Exportă taxele" data-pay-export>
               ${EXPORT_ICON}
             </button>
             ${admin ? `
+              ${renderTariffSyncControl(service)}
               <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
               <button class="btn btn-secondary btn-sm" type="button" data-pay-add>
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-                <span>Adaugă plată</span>
+                <span>Adaugă taxă</span>
               </button>
             ` : ""}
           </div>
         </div>
         <div data-pay-list>${renderPaymentList(service)}</div>
+        ${admin ? `<div class="e-permits-tariff__global-link">${renderInfoNote('Tarifele globale (valabile pentru orice serviciu) se gestionează în <a class="link link-primary link-md" href="#tarife" data-tariff-goto="">Administrare → Tarife</a>.')}</div>` : ""}
       </section>
     `;
   };
-
 
   const renderServiceSimpleTab = (service, tabId) => {
     const geap = service.geap;
@@ -7071,20 +7159,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderServiceFees = (service) => {
     const tariffs = serviceTariffList(service);
-    const payments = service.geap.payments;
+    const taxes = serviceTaxes(service);
+    const pending = unconfiguredServiceTariffs(service);
     const accounts = (servicesStore?.bankAccounts || []).filter((account) => account.authorityId === service.authorityId && account.active);
-    /* two rows each, so the three groups line up: Publicate (active) · Inactive */
-    const breakdown = (items) => [
-      ["Publicate", String(items.filter((item) => item.state === "Publicat" && item.active).length)],
-      ["Inactive", String(items.filter((item) => item.state === "Publicat" && !item.active).length)]
-    ];
+    const fromRegistry = tariffs.filter((tariff) => tariff.source === "RSSP" || tariff.source === "eAPL").length;
 
     return `
+      ${renderInfoNote("<strong>O taxă = un tarif + regula de aplicare.</strong> Tarifele vin din RSSP și eAPL; aici adaugi doar ce lipsește: când se aplică, condiția și calculul. Un tarif nou se creează doar dacă lipsește din registre.")}
       <section class="e-permits-dosar-profil__section">
         <h2 class="e-permits-dosar-profil__section-title">Sumar taxe</h2>
         <div class="e-permits-fee-summary">
-          ${renderFeeGroup({ label: "Plăți", icon: "receipt-bill", count: payments.length, rows: breakdown(payments) })}
-          ${renderFeeGroup({ label: "Tarife", icon: "coins", count: tariffs.length, rows: breakdown(tariffs) })}
+          ${renderFeeGroup({ label: "Taxe", icon: "receipt-bill", count: taxes.length, rows: [
+            ["Active", String(taxes.filter((tax) => tax.state === "Publicat" && tax.active).length)],
+            ["De configurat", String(pending.length)]
+          ] })}
+          ${renderFeeGroup({ label: "Tarife", icon: "coins", count: tariffs.length, rows: [
+            ["Din RSSP / eAPL", String(fromRegistry)],
+            ["Adăugate manual", String(tariffs.length - fromRegistry)]
+          ] })}
           ${renderFeeGroup({
             label: "Conturi bancare", icon: "credit-card", count: accounts.length, wide: true,
             /* every active account: its name and the IBAN with the copy-ID component */
@@ -7567,7 +7659,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return clasGridText(v[col.key]);
   };
-  const clasIconAction = (icon, label, attrs, reason = "") => `<button class="e-permits-workplace__icon-action" type="button" aria-label="${escapeHtml(label)}" data-tooltip-label="${escapeHtml(label)}"${reason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(reason)}"` : ""} ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg></button>`;
+  const clasIconAction = (icon, label, attrs, reason = "") => `<button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="${escapeHtml(label)}" data-tooltip-label="${escapeHtml(label)}"${reason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(reason)}"` : ""} ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg></button>`;
 
   const renderClassifierValues = (c) => {
     const editable = clasCanEdit(c) && c.sursa === "intern";
@@ -10291,7 +10383,6 @@ document.addEventListener("DOMContentLoaded", () => {
       case "request-types": return renderServiceRequestTypes(service);
       case "forms": return renderServiceForms(service);
       case "fees": return renderServiceFees(service);
-      case "tariffs": return renderServiceTariffsTab(service);
       case "notifications": return renderServiceNotifications(service);
       default: return renderServiceSimpleTab(service, tabId);
     }
@@ -11234,19 +11325,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* ---- payment editor (drawer) -------------------------------------------
-     Draft-based: nothing is written until Salvează / Publică. Field rules come
-     from GEAP.servicePassport.validatePayment; the moment list marks moments
-     without a payment branch in the request type's flow as unavailable. */
+  /* ---- tax editor (drawer) — a tax = one tariff + its application rule ----
+     Draft-based: nothing is written until Salvează / Publică. Sections follow the
+     question order: which tariff · when · for whom (condition) · how much ·
+     until when · exemptions · recurrence. Rules: GEAP.servicePassport.validateTax.
+     The drawer keeps the data-pay-* hooks of the former payment editor. */
   const payDrawer = document.querySelector("[data-pay-drawer]");
   const payDrawerBody = payDrawer?.querySelector("[data-pay-body]");
   const PAY_FREQUENCIES = [["Anual", "Anual"], ["Interval", "Interval configurabil (luni)"]];
   let payDraft = null;
   let payReturnFocus = null;
+  /* "Tarif nou" hands over to the tariff drawer and comes back with the new tariff */
+  let taxAwaitingTariff = null;
+  let taxResumeTariffId = null;
 
   const defaultPaymentTerm = (service) => {
     const match = String(service.geap.settings?.paymentWait || "").match(/\d+/);
-    return match ? match[0] : "";
+    return match ? match[0] : "5";
   };
 
   const payFieldError = (key) => payDraft.errors[key] ? `
@@ -11256,65 +11351,135 @@ document.addEventListener("DOMContentLoaded", () => {
     </span>
   ` : "";
 
-  const renderPayTariffs = (service) => {
-    const manual = payDraft.generation === "Manual";
-    const chosen = payDraft.tariffs.map((item) => ({ ...item, tariff: getTariff(item.id) }));
-    const catalogue = (servicesStore.tariffs || []).filter((tariff) => !payDraft.tariffs.some((item) => item.id === tariff.id));
-    const options = `
-      <option value="" selected disabled>Adaugă un tarif din clasificator</option>
-      ${catalogue.map((tariff) => {
-        const check = passport.tariffEligibility(tariff, service.code, payDraft.generation);
-        return `<option value="${escapeHtml(tariff.id)}"${check.ok ? "" : " disabled"}>${escapeHtml(tariffLabel(tariff))}${tariff.scope === "global" ? " · global" : " · al serviciului"}${check.ok ? "" : ` — ${escapeHtml(check.reason)}`}</option>`;
-      }).join("")}
-    `;
+  const paySegmented = (labelId, label, options, current, attr, { disabled = () => false, hint = "", error = "" } = {}) => `
+    <div class="e-permits-fo-field">
+      <label id="${labelId}">${escapeHtml(label)}${requiredMark()}</label>
+      <div class="segmented-control" role="radiogroup" aria-labelledby="${labelId}">
+        ${options.map(([value, text]) => `
+          <button class="segment-item${current === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${current === value ? "true" : "false"}" ${attr}="${value}"${disabled(value) ? " disabled" : ""}>${escapeHtml(text)}</button>
+        `).join("")}
+      </div>
+      ${error ? payFieldError(error) : ""}
+      ${hint ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+    </div>
+  `;
 
+  /* Tarif: the price the tax is computed from — the service's tariffs first, then global
+     (flat list: each option says its source, the fo-select has no group headings) */
+  const renderTaxTariff = (service) => {
+    const tariff = getTariff(payDraft.tariffId);
+    const own = (servicesStore.tariffs || []).filter((t) => t.scope === service.code);
+    const global = (servicesStore.tariffs || []).filter((t) => t.scope === "global");
+    const option = (t) => {
+      const check = passport.tariffEligibility(t, service.code, payDraft.generation);
+      const source = t.scope === "global" ? "global" : t.source === "GEAP" ? "manual" : `din ${t.source}`;
+      return `<option value="${escapeHtml(t.id)}"${t.id === payDraft.tariffId ? " selected" : ""}${check.ok || t.id === payDraft.tariffId ? "" : " disabled"}>${escapeHtml(`${t.name} · ${money(t.amount, t.currency)} · ${source}`)}${check.ok ? "" : ` — ${escapeHtml(check.reason)}`}</option>`;
+    };
     return `
-      ${chosen.length ? `
-        <div class="e-permits-stack">
-          <ul class="e-permits-stack__list" role="list">
-            ${chosen.map(({ id, removable, tariff }) => `
-              <li class="e-permits-stack__item">
-                <div class="e-permits-stack__main">
-                  <div class="e-permits-stack__title-row">
-                    <p class="e-permits-stack__title">${escapeHtml(tariff?.name || id)}</p>
-                    ${tariff?.formula ? renderTag("Formulă", "neutral") : ""}
-                  </div>
-                  <div class="e-permits-stack__meta">
-                    <span class="e-permits-stack__part">${escapeHtml(`${tariff?.amount ?? "—"} ${tariff?.currency || ""}`)}</span>
-                    <span class="e-permits-stack__part">${tariff?.scope === "global" ? "Tarif global" : "Tarif al serviciului"}</span>
-                  </div>
-                </div>
-                <div class="e-permits-stack__actions">
-                  ${manual ? `
-                    <label class="checkbox checkbox--medium">
-                      <input class="checkbox-input" type="checkbox" data-pay-removable="${escapeHtml(id)}"${removable ? " checked" : ""}>
-                      <span class="checkbox-custom" aria-hidden="true"></span>
-                      <span class="checkbox-texts"><span class="checkbox-label">Eliminabil din notă</span></span>
-                    </label>
-                  ` : ""}
-                  <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-pay-tariff-remove="${escapeHtml(id)}" aria-label="Elimină ${escapeHtml(tariff?.name || id)}">Elimină</button>
-                </div>
-              </li>
-            `).join("")}
-          </ul>
+      <div class="e-permits-fo-field">
+        <label for="pay-tariff">Tarif${requiredMark()}</label>
+        ${renderFoSelectControl({ id: "pay-tariff", attrs: "data-pay-tariff", optionsHtml: `
+          <option value=""${payDraft.tariffId ? "" : " selected"} disabled>Alege tariful din care se calculează taxa</option>
+          ${own.map(option).join("")}
+          ${global.map(option).join("")}
+        ` })}
+        ${payFieldError("tariffId")}
+        ${tariff && !payDraft.errors.tariffId ? `<p class="e-permits-fo-field__hint">${escapeHtml([tariff.code, tariff.type, tariff.legalBasis].filter(Boolean).join(" · "))}${tariff.source !== "GEAP" ? ` · preluat din ${escapeHtml(tariff.source)}, nu se editează aici` : ""}</p>` : ""}
+      </div>
+      <p class="e-permits-tax__new-tariff">Tariful lipsește din RSSP / eAPL? <button class="link link-primary link-md" type="button" data-tax-new-tariff>Creează un tarif nou</button></p>
+    `;
+  };
+
+  /* Condiție: always, or only for some values of a classifier chosen at initiation */
+  const renderTaxCondition = (service) => {
+    const classifiers = conditionClassifiers(service);
+    const conditional = Boolean(payDraft.condition);
+    const classifier = conditional ? getConditionClassifier(payDraft.condition.classifier) : null;
+    return `
+      ${paySegmented("pay-condition-label", "Se aplică", [["always", "Întotdeauna"], ["conditional", "Doar pentru anumite valori"]], conditional ? "conditional" : "always", "data-pay-condition-mode", {
+        disabled: (value) => value === "conditional" && !classifiers.length,
+        hint: classifiers.length
+          ? "Ex.: la reperfectare, tariful depinde de motivul ales de solicitant la inițierea solicitării."
+          : "Serviciul nu are clasificatoare pentru condiții. Adaugă-le în Clasificatoare specifice."
+      })}
+      ${conditional ? `
+        <div class="e-permits-fo-field">
+          <label for="pay-condition-classifier">Clasificator${requiredMark()}</label>
+          ${renderFoSelectControl({ id: "pay-condition-classifier", attrs: "data-pay-condition-classifier", optionsHtml: `
+            <option value=""${classifier ? "" : " selected"} disabled>Alege clasificatorul</option>
+            ${classifiers.map((c) => `<option value="${escapeHtml(c.code)}"${c.code === classifier?.code ? " selected" : ""}>${escapeHtml(c.name)}</option>`).join("")}
+          ` })}
+          ${payFieldError("conditionClassifier")}
+          ${payDraft.errors.conditionClassifier ? "" : '<p class="e-permits-fo-field__hint">Valoarea o alege solicitantul în formular, la inițiere.</p>'}
+        </div>
+        ${classifier ? `
+          <div class="e-permits-fo-field">
+            <label id="pay-condition-values-label">Valori pentru care se aplică taxa${requiredMark()}</label>
+            <div class="e-permits-pay__exemptions" role="group" aria-labelledby="pay-condition-values-label">
+              ${classifier.values.map((value) => `
+                <label class="checkbox checkbox--medium">
+                  <input class="checkbox-input" type="checkbox" value="${escapeHtml(value.code)}" data-pay-condition-value${payDraft.condition.values.includes(value.code) ? " checked" : ""}>
+                  <span class="checkbox-custom" aria-hidden="true"></span>
+                  <span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(value.label)}</span></span>
+                </label>
+              `).join("")}
+            </div>
+            ${payFieldError("conditionValues")}
+          </div>
+        ` : ""}
+      ` : ""}
+    `;
+  };
+
+  /* Calcul: the tariff as is (default), a formula on it, or a reduction */
+  const renderTaxCalc = () => {
+    const tariff = getTariff(payDraft.tariffId);
+    const mode = payDraft.calc.mode;
+    const preview = tariff ? passport.taxAmount({ calc: { ...payDraft.calc, expression: payDraft.calc.expression } }, tariff, {}) : null;
+    return `
+      ${paySegmented("pay-calc-label", "Calcul", passport.TAX_CALC.map((value) => [value, passport.TAX_CALC_LABELS[value]]), mode, "data-pay-calc", {
+        hint: mode === "tarif"
+          ? (tariff ? `Taxa = tariful: <strong>${escapeHtml(tariff.formula ? `formula tarifului (${tariff.expression})` : money(tariff.amount, tariff.currency))}</strong>. Cazul cel mai des întâlnit.` : "Taxa este egală cu tariful ales.")
+          : mode === "formula" ? "Folosește {tarif} pentru suma tarifului. Alte variabile {nume} le completează specialistul la generarea notei — doar la generarea manuală."
+          : "Procent scăzut din tarif (ex. reducere pentru IMM-uri)."
+      })}
+      ${mode === "formula" ? `
+        <div class="e-permits-user-create__grid">
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--8">
+            <label for="pay-expression">Formulă${requiredMark()}</label>
+            <div class="e-permits-fo-input${payDraft.errors.expression ? " is-error" : ""}">
+              <input id="pay-expression" type="text" value="${escapeHtml(payDraft.calc.expression || "")}" placeholder="ex. {tarif} * {suprafata} / 100" data-pay-calc-field="expression" autocomplete="off">
+            </div>
+            ${payFieldError("expression")}
+          </div>
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--4">
+            <label for="pay-rounding">Rotunjire</label>
+            ${renderFoSelectControl({ id: "pay-rounding", attrs: "data-pay-rounding", optionsHtml: (servicesStore.roundingRules || ["2 zecimale"]).map((rule) => `<option value="${escapeHtml(rule)}"${rule === payDraft.calc.rounding ? " selected" : ""}>${escapeHtml(rule)}</option>`).join("") })}
+          </div>
         </div>
       ` : ""}
-      <div class="e-permits-fo-field e-permits-pay__add-tariff">
-        ${renderFoSelectControl({ id: "pay-add-tariff", attrs: "data-pay-add-tariff", label: "Adaugă un tarif", optionsHtml: options })}
-        ${payFieldError("tariffs")}
-        <p class="e-permits-fo-field__hint">${payDraft.notice ? `${escapeHtml(payDraft.notice)} ` : ""}Doar tarife publicate și active, globale sau ale serviciului. ${manual
-          ? "La plata manuală, bifează „Eliminabil din notă” pentru tarifele pe care specialistul le poate scoate din nota de plată."
-          : "Plata automată are nevoie de cel puțin un tarif pentru a fi publicată."}</p>
-      </div>
+      ${mode === "reducere" ? `
+        <div class="e-permits-user-create__grid">
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--4">
+            <label for="pay-percent">Reducere (%)${requiredMark()}</label>
+            <div class="e-permits-fo-input${payDraft.errors.percent ? " is-error" : ""}">
+              <input id="pay-percent" type="text" inputmode="numeric" maxlength="3" value="${escapeHtml(payDraft.calc.percent || "")}" data-pay-calc-field="percent" autocomplete="off">
+            </div>
+            ${payFieldError("percent")}
+            ${!payDraft.errors.percent && tariff && preview?.ok ? `<p class="e-permits-fo-field__hint">De plată: <strong>${escapeHtml(money(preview.value, tariff.currency))}</strong> din ${escapeHtml(money(tariff.amount, tariff.currency))}</p>` : ""}
+          </div>
+        </div>
+      ` : ""}
     `;
   };
 
   const renderPayDrawer = () => {
     const service = getServiceByCode(payDraft.serviceCode);
-    const existing = service.geap.payments.find((pay) => pay.id === payDraft.id);
+    const existing = serviceTaxes(service).find((tax) => tax.id === payDraft.id);
     const flow = requestTypeFlow(service, payDraft.requestType);
     const initiation = payDraft.moment === passport.PAYMENT_MOMENTS[0];
     const manual = payDraft.generation === "Manual";
+    const tariff = getTariff(payDraft.tariffId);
     const rtOptions = `
       <option value=""${payDraft.requestType ? "" : " selected"} disabled>Selectează tipul de solicitare</option>
       ${service.geap.requestTypes.map((rt) => `<option value="${escapeHtml(rt.name)}"${rt.name === payDraft.requestType ? " selected" : ""}>${escapeHtml(rt.name)}</option>`).join("")}
@@ -11336,113 +11501,92 @@ document.addEventListener("DOMContentLoaded", () => {
         ${hint && !payDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
       </div>
     `;
+    const section = (title, content, attr = "") => `
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">${escapeHtml(title)}</h3>
+        <div class="e-permits-user-create__section-content"${attr}>${content}</div>
+      </section>
+    `;
 
-    payDrawer.querySelector("[data-pay-title]").textContent = existing ? "Editează plata" : "Plată nouă";
+    payDrawer.querySelector("[data-pay-title]").textContent = existing ? "Editează taxa" : "Taxă nouă";
     payDrawer.querySelector("[data-pay-subtitle]").textContent = existing
-      ? `${existing.name} · ${existing.state} · v${existing.version}`
+      ? `${tariff?.name || ""} · ${TAX_STATUS(existing)} · v${existing.version}`
       : service.title;
     payDrawerBody.innerHTML = `
-      <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Denumire plată</h3>
-        <div class="e-permits-user-create__section-content">
+      ${section("Tarif", renderTaxTariff(service))}
+      ${section("Aplicare", `
+        <div class="e-permits-user-create__grid">
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="pay-request-type">Tip solicitare${requiredMark()}</label>
+            ${renderFoSelectControl({ id: "pay-request-type", attrs: "data-pay-request-type", optionsHtml: rtOptions })}
+            ${payFieldError("requestType")}
+            ${!payDraft.errors.requestType && tariff?.requestType && tariff.requestType === payDraft.requestType && tariff.source !== "GEAP" ? `<p class="e-permits-fo-field__hint">Preluat din ${escapeHtml(tariff.source)} odată cu tariful.</p>` : ""}
+          </div>
+          <div class="e-permits-fo-field e-permits-user-create__field">
+            <label for="pay-moment">Moment generare${requiredMark()}</label>
+            ${renderFoSelectControl({ id: "pay-moment", attrs: "data-pay-moment", optionsHtml: momentOptions })}
+            ${payFieldError("moment")}
+            ${payDraft.errors.moment ? "" : `<p class="e-permits-fo-field__hint">${payDraft.requestType
+              ? (flow ? `Momentele vin din ramificațiile de plată ale fluxului „${escapeHtml(flow.name)}”; inițierea e mereu disponibilă.` : "Tipul de solicitare nu are flux — doar inițierea solicitării e disponibilă.")
+              : "Alege întâi tipul de solicitare."}</p>`}
+          </div>
+        </div>
+        ${paySegmented("pay-generation-label", "Tip generare", [["Automat", "Automat"], ["Manual", "Manual"]], payDraft.generation, "data-pay-generation", {
+          disabled: (value) => initiation && value === "Manual",
+          error: "generation",
+          hint: initiation ? "La inițierea solicitării taxa e întotdeauna automată."
+            : manual ? "Specialistul generează nota în dosar, după verificare." : "Nota se generează automat la momentul ales."
+        })}
+      `)}
+      ${section("Condiție", renderTaxCondition(service))}
+      ${section("Calcul", renderTaxCalc(), " data-pay-calc-section")}
+      ${section("Termen de achitare", `
+        <div class="e-permits-user-create__grid">
+          ${input("pay-term", "term", payDraft.term, { label: "Termen (zile)", required: true, numeric: true, span: 6,
+            hint: `Precompletat din pașaport (Așteptarea plății: ${escapeHtml(service.geap.settings?.paymentWait || "—")}).` })}
+        </div>
+      `)}
+      ${section("Scutiri", manual ? `
+        <div class="e-permits-pay__exemptions">
+          ${(servicesStore.exemptionOptions || []).map((option) => `
+            <label class="checkbox checkbox--medium">
+              <input class="checkbox-input" type="checkbox" value="${escapeHtml(option)}" data-pay-exemption${payDraft.exemptions.includes(option) ? " checked" : ""}>
+              <span class="checkbox-custom" aria-hidden="true"></span>
+              <span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(option)}</span></span>
+            </label>
+          `).join("")}
+          <label class="checkbox checkbox--medium">
+            <input class="checkbox-input" type="checkbox" data-pay-removable${payDraft.removable ? " checked" : ""}>
+            <span class="checkbox-custom" aria-hidden="true"></span>
+            <span class="checkbox-texts"><span class="checkbox-label">Specialistul poate scoate taxa din notă</span></span>
+          </label>
+        </div>
+        ${payFieldError("exemptions")}
+      ` : renderInfoNote("Scutirile se aleg de specialist, deci sunt disponibile doar pentru taxele generate manual."))}
+      ${section("Recurență", `
+        ${renderToggle({ label: "Taxă recurentă", description: "Generează periodic nota de plată pe actul permisiv emis (ex. taxa anuală).", checked: Boolean(payDraft.recurring), attrs: "data-pay-recurring" })}
+        ${payDraft.recurring ? `
           <div class="e-permits-user-create__grid">
-            ${input("pay-name-ro", "name", payDraft.name, { label: "Denumire (RO)", span: 12, placeholder: "ex. Servicii de examinare",
-              hint: "Eticheta afișată pe nota de plată când plata are mai multe tarife componente." })}
-            ${input("pay-name-ru", "nameRu", payDraft.nameRu, { label: "Denumire (RU)", span: 6 })}
-            ${input("pay-name-en", "nameEn", payDraft.nameEn, { label: "Denumire (EN)", span: 6 })}
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+              <label for="pay-frequency">Frecvență${requiredMark()}</label>
+              ${renderFoSelectControl({ id: "pay-frequency", attrs: "data-pay-frequency", optionsHtml: `
+                <option value=""${payDraft.frequency ? "" : " selected"} disabled>Selectează frecvența</option>
+                ${PAY_FREQUENCIES.map(([value, label]) => `<option value="${value}"${value === payDraft.frequency ? " selected" : ""}>${label}</option>`).join("")}
+              ` })}
+              ${payFieldError("frequency")}
+            </div>
+            ${payDraft.frequency === "Interval" ? input("pay-months", "months", payDraft.months, { label: "Interval (luni)", required: true, numeric: true, span: 6 }) : ""}
+            ${input("pay-notice", "noticeDays", payDraft.noticeDays, { label: "Zile notificare prealabilă", required: true, numeric: true, span: 6,
+              hint: "Cu câte zile înaintea scadenței se trimite notificarea și se generează nota." })}
           </div>
-        </div>
-      </section>
-      <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Aplicare</h3>
-        <div class="e-permits-user-create__section-content">
-          <div class="e-permits-user-create__grid">
-            <div class="e-permits-fo-field e-permits-user-create__field">
-              <label for="pay-request-type">Tip solicitare${requiredMark()}</label>
-              ${renderFoSelectControl({ id: "pay-request-type", attrs: "data-pay-request-type", optionsHtml: rtOptions })}
-              ${payFieldError("requestType")}
-            </div>
-            <div class="e-permits-fo-field e-permits-user-create__field">
-              <label for="pay-moment">Moment generare${requiredMark()}</label>
-              ${renderFoSelectControl({ id: "pay-moment", attrs: "data-pay-moment", optionsHtml: momentOptions })}
-              ${payFieldError("moment")}
-              ${payDraft.errors.moment ? "" : `<p class="e-permits-fo-field__hint">${payDraft.requestType
-                ? (flow ? `Momentele disponibile vin din ramificațiile de plată ale fluxului „${escapeHtml(flow.name)}”; inițierea solicitării e mereu disponibilă.` : "Tipul de solicitare nu are flux — doar inițierea solicitării e disponibilă.")
-                : "Alege întâi tipul de solicitare."}</p>`}
-            </div>
-          </div>
-          <div class="e-permits-fo-field">
-            <label id="pay-generation-label">Tip generare${requiredMark()}</label>
-            <!-- library segmented control, 14px (default) size — Figma 8715:73423 -->
-            <div class="segmented-control" role="radiogroup" aria-labelledby="pay-generation-label">
-              ${["Automat", "Manual"].map((value) => `
-                <button class="segment-item${payDraft.generation === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${payDraft.generation === value ? "true" : "false"}" data-pay-generation="${value}"${initiation && value === "Manual" ? " disabled" : ""}>${value}</button>
-              `).join("")}
-            </div>
-            ${payFieldError("generation")}
-            <p class="e-permits-fo-field__hint">${initiation
-              ? "La inițierea solicitării plata e întotdeauna automată."
-              : manual ? "Specialistul generează nota în dosar și poate alege tarifele și scutirile." : "Nota se generează automat la momentul ales, cu tarifele de mai jos."}</p>
-          </div>
-        </div>
-      </section>
-      <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Tarife</h3>
-        <div class="e-permits-user-create__section-content" data-pay-tariffs>${renderPayTariffs(service)}</div>
-      </section>
-      <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Termen de achitare</h3>
-        <div class="e-permits-user-create__section-content">
-          <div class="e-permits-user-create__grid">
-            ${input("pay-term", "term", payDraft.term, { label: "Termen (zile)", required: true, numeric: true, span: 6,
-              hint: `Precompletat din pașaport (Așteptarea plății: ${escapeHtml(service.geap.settings?.paymentWait || "—")}); nota de plată reține termenul plății.` })}
-          </div>
-        </div>
-      </section>
-      <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Scutiri vizibile pe notă</h3>
-        <div class="e-permits-user-create__section-content">
-          ${manual ? `
-            <div class="e-permits-pay__exemptions">
-              ${(servicesStore.exemptionOptions || []).map((option, index) => `
-                <label class="checkbox checkbox--medium">
-                  <input class="checkbox-input" type="checkbox" value="${escapeHtml(option)}" data-pay-exemption${payDraft.exemptions.includes(option) ? " checked" : ""}>
-                  <span class="checkbox-custom" aria-hidden="true"></span>
-                  <span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(option)}</span></span>
-                </label>
-              `).join("")}
-            </div>
-            ${payFieldError("exemptions")}
-          ` : renderInfoNote("Scutirile sunt disponibile doar pentru plata manuală.")}
-        </div>
-      </section>
-      <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Recurență</h3>
-        <div class="e-permits-user-create__section-content">
-          ${renderToggle({ label: "Plată recurentă", description: "Generează periodic nota de plată pe actul permisiv emis, independent de momentul generării.", checked: Boolean(payDraft.recurring), attrs: "data-pay-recurring" })}
-          ${payDraft.recurring ? `
-            <div class="e-permits-user-create__grid">
-              <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
-                <label for="pay-frequency">Frecvență${requiredMark()}</label>
-                ${renderFoSelectControl({ id: "pay-frequency", attrs: "data-pay-frequency", optionsHtml: `
-                  <option value=""${payDraft.frequency ? "" : " selected"} disabled>Selectează frecvența</option>
-                  ${PAY_FREQUENCIES.map(([value, label]) => `<option value="${value}"${value === payDraft.frequency ? " selected" : ""}>${label}</option>`).join("")}
-                ` })}
-                ${payFieldError("frequency")}
-              </div>
-              ${payDraft.frequency === "Interval" ? input("pay-months", "months", payDraft.months, { label: "Interval (luni)", required: true, numeric: true, span: 6 }) : ""}
-              ${input("pay-notice", "noticeDays", payDraft.noticeDays, { label: "Zile notificare prealabilă", required: true, numeric: true, span: 6,
-                hint: "Cu câte zile înaintea scadenței se trimite notificarea și se generează plata." })}
-            </div>
-          ` : ""}
-        </div>
-      </section>
+        ` : ""}
+      `)}
     `;
 
     const published = existing?.state === "Publicat";
     payDrawer.querySelector("[data-pay-summary]").textContent = published
       ? `Salvarea creează v${existing.version + 1}; notele deja generate rămân neschimbate.`
-      : existing ? `Schiță · v${existing.version}` : "Plată nouă · se salvează ca schiță sau se publică direct";
+      : existing ? `Schiță · v${existing.version}` : "Taxă nouă · se salvează ca schiță sau se publică direct";
     payDrawer.querySelector("[data-pay-buttons]").innerHTML = published ? `
       <button class="btn btn-neutral btn-rounded" type="button" data-pay-close>Anulează</button>
       <button class="btn btn-primary btn-rounded" type="button" data-pay-save="save">Salvează · v${existing.version + 1}</button>
@@ -11461,41 +11605,48 @@ document.addEventListener("DOMContentLoaded", () => {
     if (focusSelector) focusFormControl(payDrawerBody.querySelector(focusSelector));
   };
 
-  const openPaymentDrawer = (paymentId = null) => {
-    const service = getServiceByCode(serviceProfileState.code);
-    const pay = paymentId ? service?.geap.payments.find((item) => item.id === paymentId) : null;
-
-    if (!payDrawer || !service || (paymentId && !pay)) {
-      return;
-    }
-
-    payDraft = {
-      serviceCode: service.code,
-      id: pay?.id || null,
-      name: pay?.name || "",
-      nameRu: pay?.nameRu || "",
-      nameEn: pay?.nameEn || "",
-      requestType: pay?.requestType || "",
-      moment: pay?.moment || "",
-      generation: pay?.generation || "Automat",
-      tariffs: (pay?.tariffs || []).map((item) => ({ ...item })),
-      term: pay ? String(pay.term) : defaultPaymentTerm(service),
-      exemptions: [...(pay?.exemptions || [])],
-      recurring: Boolean(pay?.recurring),
-      frequency: pay?.recurring?.frequency || "",
-      months: pay?.recurring?.months ? String(pay.recurring.months) : "",
-      noticeDays: pay?.recurring?.noticeDays ? String(pay.recurring.noticeDays) : "",
-      errors: {},
-      notice: ""
-    };
-    payReturnFocus = document.activeElement;
+  const showPayDrawer = (focusSelector) => {
     renderPayDrawer();
     payDrawer.hidden = false;
     document.body.classList.add("is-user-create-open");
-    requestAnimationFrame(() => payDrawerBody.querySelector("#pay-name-ro")?.focus());
+    requestAnimationFrame(() => focusFormControl(payDrawerBody.querySelector(focusSelector)));
   };
 
-  const closePaymentDrawer = () => {
+  /* open: an existing tax, a new one, or a new one for a tariff to configure */
+  const openPaymentDrawer = (taxId = null, { tariffId = null } = {}) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const tax = taxId ? serviceTaxes(service || { geap: {} }).find((item) => item.id === taxId) : null;
+
+    if (!payDrawer || !service || (taxId && !tax)) {
+      return;
+    }
+
+    const tariff = getTariff(tax?.tariffId || tariffId);
+    const base = tax || (tariff ? passport.defaultTaxForTariff(tariff, { term: defaultPaymentTerm(service) }) : null);
+    payDraft = {
+      serviceCode: service.code,
+      id: tax?.id || null,
+      tariffId: base?.tariffId || "",
+      requestType: base?.requestType || "",
+      moment: base?.moment || "",
+      generation: base?.generation || "Automat",
+      condition: base?.condition ? { classifier: base.condition.classifier, values: [...base.condition.values] } : null,
+      calc: { mode: "tarif", rounding: "2 zecimale", expression: "", percent: "", ...(base?.calc || {}) },
+      term: base ? String(base.term) : defaultPaymentTerm(service),
+      exemptions: [...(base?.exemptions || [])],
+      removable: Boolean(base?.removable),
+      recurring: Boolean(base?.recurring),
+      frequency: base?.recurring?.frequency || "",
+      months: base?.recurring?.months ? String(base.recurring.months) : "",
+      noticeDays: base?.recurring?.noticeDays ? String(base.recurring.noticeDays) : "",
+      errors: {}
+    };
+    payDraft.calc.percent = payDraft.calc.percent == null ? "" : String(payDraft.calc.percent);
+    payReturnFocus = document.activeElement;
+    showPayDrawer(tariff ? "#pay-moment" : "#pay-tariff");
+  };
+
+  const closePaymentDrawer = ({ keepDraft = false } = {}) => {
     if (!payDrawer || payDrawer.hidden || payDrawer.classList.contains("is-closing")) {
       return;
     }
@@ -11505,43 +11656,62 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       payDrawer.hidden = true;
       payDrawer.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
-      payDraft = null;
-      payReturnFocus?.focus?.();
+      if (!keepDraft) {
+        document.body.classList.remove("is-user-create-open");
+        payDraft = null;
+        payReturnFocus?.focus?.();
+      }
     }, 120);
   };
 
+  /* back from the tariff drawer: the kept draft, with the new tariff if one was saved */
+  const resumeTaxDraft = (draft, tariffId) => {
+    payDraft = draft;
+    if (tariffId) {
+      payDraft.tariffId = tariffId;
+      const tariff = getTariff(tariffId);
+      if (tariff?.requestType && !payDraft.requestType) payDraft.requestType = tariff.requestType;
+      delete payDraft.errors.tariffId;
+    }
+    showPayDrawer("#pay-tariff");
+  };
+
   const paymentFromDraft = () => ({
-    /* the name is optional (a label on multi-tariff notes); default one for the list */
-    name: payDraft.name.trim() || [payDraft.requestType, payDraft.moment].filter(Boolean).join(" · ") || "Plată nouă",
-    nameRu: payDraft.nameRu.trim(),
-    nameEn: payDraft.nameEn.trim(),
+    tariffId: payDraft.tariffId,
     requestType: payDraft.requestType,
     moment: payDraft.moment,
     generation: payDraft.generation,
-    tariffs: payDraft.tariffs.map((item) => ({ id: item.id, removable: payDraft.generation === "Manual" && item.removable })),
+    condition: payDraft.condition ? { classifier: payDraft.condition.classifier, values: [...payDraft.condition.values] } : null,
+    calc: payDraft.calc.mode === "formula" ? { mode: "formula", expression: String(payDraft.calc.expression || "").trim(), rounding: payDraft.calc.rounding || "2 zecimale" }
+      : payDraft.calc.mode === "reducere" ? { mode: "reducere", percent: payDraft.calc.percent }
+      : { mode: "tarif" },
     term: payDraft.term,
     exemptions: payDraft.generation === "Manual" ? payDraft.exemptions : [],
+    removable: payDraft.generation === "Manual" && payDraft.removable,
     recurring: payDraft.recurring
       ? { frequency: payDraft.frequency, months: payDraft.frequency === "Interval" ? payDraft.months : null, noticeDays: payDraft.noticeDays }
       : null
   });
 
+  const taxName = (tax) => getTariff(tax.tariffId)?.name || "taxa";
+
   const savePaymentDrawer = (mode) => {
     const service = getServiceByCode(payDraft.serviceCode);
-    const existing = service.geap.payments.find((pay) => pay.id === payDraft.id) || null;
+    const taxes = serviceTaxes(service);
+    const existing = taxes.find((tax) => tax.id === payDraft.id) || null;
     const publish = mode === "publish" || (mode === "save" && existing?.state === "Publicat");
     const fields = paymentFromDraft();
-    const errors = passport.validatePayment(fields, { flow: requestTypeFlow(service, fields.requestType), publish });
+    const errors = passport.validateTax(fields, { flow: requestTypeFlow(service, fields.requestType), tariff: getTariff(fields.tariffId), serviceCode: service.code });
 
     if (Object.keys(errors).length) {
       payDraft.errors = errors;
-      const first = { requestType: "#pay-request-type", moment: "#pay-moment", generation: "[data-pay-generation]", tariffs: "#pay-add-tariff", term: "#pay-term", exemptions: "[data-pay-exemption]", frequency: "#pay-frequency", noticeDays: "#pay-notice" }[Object.keys(errors)[0]];
+      const first = { tariffId: "#pay-tariff", requestType: "#pay-request-type", moment: "#pay-moment", generation: "[data-pay-generation]", conditionClassifier: "#pay-condition-classifier", conditionValues: "[data-pay-condition-value]", calc: "[data-pay-calc]", expression: "#pay-expression", percent: "#pay-percent", term: "#pay-term", exemptions: "[data-pay-exemption]", frequency: "#pay-frequency", noticeDays: "#pay-notice" }[Object.keys(errors)[0]];
       rerenderPayDrawer(first);
       return;
     }
 
     fields.term = Number(fields.term);
+    if (fields.calc.mode === "reducere") fields.calc.percent = Number(fields.calc.percent);
     if (fields.recurring) {
       fields.recurring.noticeDays = Number(fields.recurring.noticeDays);
       fields.recurring.months = fields.recurring.months ? Number(fields.recurring.months) : null;
@@ -11549,42 +11719,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const meta = { at: localIsoNow(), user: currentUserName(), publish };
     const next = passport.applyPaymentEdit(existing, fields, meta);
+    const name = taxName(next);
     let message;
     let type;
 
     if (!existing) {
-      next.id = `pay-${Date.now().toString(36)}`;
+      next.id = `tax-${Date.now().toString(36)}`;
       if (next.state === "Publicat") {
-        next.active = !passport.activationConflict(service.geap.payments, { ...next, active: true });
+        next.active = !passport.taxConflict(taxes, { ...next, active: true });
       }
-      service.geap.payments.push(next);
-      type = next.state === "Publicat" ? "Publicare plată" : "Creare plată";
+      taxes.push(next);
+      type = next.state === "Publicat" ? "Publicare taxă" : "Creare taxă";
       message = next.state === "Publicat"
-        ? (next.active ? `Plata „${next.name}” a fost publicată și activată.` : `Plata „${next.name}” a fost publicată inactivă: există deja o plată activă pentru același tip și moment.`)
-        : `Plata „${next.name}” a fost salvată ca schiță.`;
+        ? (next.active ? `Taxa „${name}” a fost publicată și activată.` : `Taxa „${name}” a fost publicată inactivă: același tarif se aplică deja la acest tip, moment și condiție.`)
+        : `Taxa „${name}” a fost salvată ca schiță.`;
     } else {
-      const wasDraft = existing.state === "Schiță";
+      const wasDraft = existing.state !== "Publicat";
       Object.assign(existing, next);
       if (wasDraft && existing.state === "Publicat") {
-        existing.active = !passport.activationConflict(service.geap.payments, { ...existing, active: true });
+        existing.active = !passport.taxConflict(taxes, { ...existing, active: true });
       }
-      type = wasDraft && existing.state === "Publicat" ? "Publicare plată" : "Editare plată";
+      type = wasDraft && existing.state === "Publicat" ? "Publicare taxă" : "Editare taxă";
       message = existing.state === "Publicat" && !wasDraft
-        ? `Plata „${existing.name}” a fost actualizată la v${existing.version}. Se aplică dosarelor inițiate de acum.`
-        : existing.state === "Publicat" ? `Plata „${existing.name}” a fost publicată.` : `Schița „${existing.name}” a fost salvată.`;
+        ? `Taxa „${name}” a fost actualizată la v${existing.version}. Se aplică dosarelor inițiate de acum.`
+        : existing.state === "Publicat" ? `Taxa „${name}” a fost publicată.` : `Schița „${name}” a fost salvată.`;
     }
 
     const saved = existing || next;
-    logServiceEvents(service.code, [{ at: meta.at, user: meta.user, type, status: "Reușit", detail: `${saved.name} v${saved.version}` }]);
+    logServiceEvents(service.code, [{ at: meta.at, user: meta.user, type, status: "Reușit", detail: `${name} · ${saved.requestType} · v${saved.version}` }]);
     closePaymentDrawer();
     renderServiceProfile();
     showShellToast(message);
   };
 
+  /* "Aplică ca atare": the tariff as is, automatic at initiation — published at once */
+  const applyTariffAsIs = (tariffId) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const tariff = getTariff(tariffId);
+    if (!service || !tariff) return;
+    const fields = passport.defaultTaxForTariff(tariff, { term: Number(defaultPaymentTerm(service)) });
+    const errors = passport.validateTax(fields, { flow: requestTypeFlow(service, fields.requestType), tariff, serviceCode: service.code });
+
+    /* no request type from the registry (or a draft tariff): configure it instead */
+    if (Object.keys(errors).length) {
+      openPaymentDrawer(null, { tariffId });
+      return;
+    }
+
+    const meta = { at: localIsoNow(), user: currentUserName(), publish: true };
+    const next = passport.applyPaymentEdit(null, fields, meta);
+    next.id = `tax-${Date.now().toString(36)}`;
+    next.active = !passport.taxConflict(serviceTaxes(service), { ...next, active: true });
+    serviceTaxes(service).push(next);
+    logServiceEvents(service.code, [{ at: meta.at, user: meta.user, type: "Publicare taxă", status: "Reușit", detail: `${tariff.name} · aplicat ca atare · ${next.requestType}` }]);
+    renderServiceProfile();
+    showShellToast(`Taxa „${tariff.name}” se aplică ca atare: ${next.requestType} · la inițierea solicitării · ${money(tariff.amount, tariff.currency)}.`);
+  };
+
   payDrawer?.addEventListener("input", (event) => {
+    if (!payDraft) {
+      return;
+    }
+
+    const calcField = event.target.closest("[data-pay-calc-field]");
+    if (calcField) {
+      const key = calcField.dataset.payCalcField;
+      if (key === "percent") calcField.value = calcField.value.replace(/\D/g, "").slice(0, 3);
+      payDraft.calc[key] = calcField.value;
+      if (payDraft.errors[key]) {
+        delete payDraft.errors[key];
+        calcField.closest(".e-permits-fo-input")?.classList.remove("is-error");
+        calcField.closest(".e-permits-fo-field")?.querySelector(".message--error")?.remove();
+      }
+      return;
+    }
+
     const field = event.target.closest("[data-pay-field]");
 
-    if (!payDraft || !field) {
+    if (!field) {
       return;
     }
 
@@ -11600,6 +11812,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  payDrawer?.addEventListener("focusout", (event) => {
+    /* the reduction preview follows the typed percent */
+    if (payDraft && event.target.matches?.('[data-pay-calc-field="percent"]')) rerenderPayDrawer();
+  });
+
   payDrawer?.addEventListener("change", (event) => {
     const target = event.target;
 
@@ -11607,7 +11824,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (target.matches("[data-pay-request-type]")) {
+    if (target.matches("[data-pay-tariff]")) {
+      payDraft.tariffId = target.value;
+      const tariff = getTariff(target.value);
+      /* the registry's request type comes with the tariff */
+      if (tariff?.requestType && tariff.source !== "GEAP" && !payDraft.id) payDraft.requestType = tariff.requestType;
+      delete payDraft.errors.tariffId;
+      rerenderPayDrawer("#pay-tariff");
+    } else if (target.matches("[data-pay-request-type]")) {
       payDraft.requestType = target.value;
       delete payDraft.errors.requestType;
       /* a moment the new flow cannot generate is cleared */
@@ -11625,14 +11849,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       delete payDraft.errors.generation;
       rerenderPayDrawer("#pay-moment");
-    } else if (target.matches("[data-pay-add-tariff]")) {
-      payDraft.tariffs.push({ id: target.value, removable: false });
-      payDraft.notice = "";
-      delete payDraft.errors.tariffs;
-      rerenderPayDrawer("#pay-add-tariff");
+    } else if (target.matches("[data-pay-condition-classifier]")) {
+      payDraft.condition = { classifier: target.value, values: [] };
+      delete payDraft.errors.conditionClassifier;
+      rerenderPayDrawer("#pay-condition-classifier");
+    } else if (target.matches("[data-pay-condition-value]")) {
+      payDraft.condition.values = [...payDrawerBody.querySelectorAll("[data-pay-condition-value]:checked")].map((input) => input.value);
+      delete payDraft.errors.conditionValues;
+      target.closest(".e-permits-fo-field")?.querySelector(".message--error")?.remove();
+    } else if (target.matches("[data-pay-rounding]")) {
+      payDraft.calc.rounding = target.value;
     } else if (target.matches("[data-pay-removable]")) {
-      const item = payDraft.tariffs.find((tariff) => tariff.id === target.dataset.payRemovable);
-      if (item) item.removable = target.checked;
+      payDraft.removable = target.checked;
     } else if (target.matches("[data-pay-exemption]")) {
       payDraft.exemptions = [...payDrawerBody.querySelectorAll("[data-pay-exemption]:checked")].map((input) => input.value);
       delete payDraft.errors.exemptions;
@@ -11646,22 +11874,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* switching to automatic drops what an automatic payment cannot have */
+  /* switching to automatic drops what an automatic tax cannot have */
   const setPayGeneration = (value) => {
     payDraft.generation = value;
-    if (value !== "Automat") {
-      return;
+    if (value === "Automat") {
+      payDraft.exemptions = [];
+      payDraft.removable = false;
     }
-
-    const service = getServiceByCode(payDraft.serviceCode);
-    const dropped = payDraft.tariffs.filter((item) => !passport.tariffEligibility(getTariff(item.id) || {}, service.code, "Automat").ok);
-    payDraft.tariffs = payDraft.tariffs.filter((item) => !dropped.includes(item));
-    const hadExemptions = payDraft.exemptions.length > 0;
-    payDraft.exemptions = [];
-    payDraft.notice = [
-      dropped.length ? `Am scos ${dropped.map((item) => getTariff(item.id)?.name || item.id).join(", ")} — necesită plată manuală.` : "",
-      hadExemptions ? "Scutirile au fost golite: plata automată nu are scutiri." : ""
-    ].filter(Boolean).join(" ");
   };
 
   payDrawer?.addEventListener("click", (event) => {
@@ -11681,6 +11900,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (event.target.closest("[data-tax-new-tariff]")) {
+      /* keep the draft, create the tariff, come back with it selected */
+      taxAwaitingTariff = payDraft;
+      closePaymentDrawer({ keepDraft: true });
+      window.setTimeout(() => openTariffDrawer(null, payDraft?.serviceCode || serviceProfileState.code, { requestType: taxAwaitingTariff?.requestType }), 140);
+      return;
+    }
+
     const generation = event.target.closest("[data-pay-generation]");
 
     if (generation && !generation.disabled) {
@@ -11690,12 +11917,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const remove = event.target.closest("[data-pay-tariff-remove]");
+    const conditionMode = event.target.closest("[data-pay-condition-mode]");
 
-    if (remove) {
-      payDraft.tariffs = payDraft.tariffs.filter((item) => item.id !== remove.dataset.payTariffRemove);
-      payDraft.notice = "";
-      rerenderPayDrawer("#pay-add-tariff");
+    if (conditionMode && !conditionMode.disabled) {
+      const conditional = conditionMode.dataset.payConditionMode === "conditional";
+      const service = getServiceByCode(payDraft.serviceCode);
+      const only = conditionClassifiers(service);
+      payDraft.condition = conditional ? (payDraft.condition || { classifier: only.length === 1 ? only[0].code : "", values: [] }) : null;
+      ["conditionClassifier", "conditionValues"].forEach((key) => delete payDraft.errors[key]);
+      rerenderPayDrawer(`[data-pay-condition-mode="${conditionMode.dataset.payConditionMode}"]`);
+      return;
+    }
+
+    const calc = event.target.closest("[data-pay-calc]");
+
+    if (calc) {
+      payDraft.calc.mode = calc.dataset.payCalc;
+      ["calc", "expression", "percent"].forEach((key) => delete payDraft.errors[key]);
+      rerenderPayDrawer(`[data-pay-calc="${calc.dataset.payCalc}"]`);
     }
   });
 
@@ -11708,148 +11947,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* export = the filtered list as CSV (Excel-friendly: BOM + semicolons) */
   const exportPayments = (service) => {
-    const rows = service.geap.payments.filter((pay) => payMatches(service, pay));
-    const header = ["Denumire", "Tip solicitare", "Moment generare", "Tip generare", "Tarife", "Termen (zile)", "Scutiri", "Recurentă", "Versiune", "Stare", "Activ", "Modificat de", "Modificat la"];
+    const rows = serviceTaxes(service).filter((tax) => payMatches(service, tax));
+    const header = ["Tarif", "Cod tarif", "Sursa tarifului", "Tip solicitare", "Moment generare", "Tip generare", "Condiție", "Calcul", "Termen (zile)", "Scutiri", "Recurentă", "Versiune", "Stare", "Modificat de", "Modificat la"];
     const cell = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-    const lines = [header, ...rows.map((pay) => [
-      pay.name, pay.requestType, pay.moment, pay.generation,
-      pay.tariffs.map((item) => tariffLabel(getTariff(item.id))).join(", "),
-      pay.term, pay.exemptions.join(", "),
-      pay.recurring ? (pay.recurring.frequency === "Interval" ? `La ${pay.recurring.months} luni` : "Anual") : "Nu",
-      `v${pay.version}`, pay.state, pay.active ? "Da" : "Nu", pay.modifiedBy, pay.modifiedAt
-    ])].map((line) => line.map(cell).join(";")).join("\r\n");
+    const lines = [header, ...rows.map((tax) => {
+      const tariff = getTariff(tax.tariffId);
+      const calc = tax.calc || { mode: "tarif" };
+      return [
+        tariff?.name, tariff?.code, tariff?.scope === "global" ? "Global" : tariff?.source, tax.requestType, tax.moment, tax.generation,
+        conditionLabel(tax.condition) || "Întotdeauna",
+        calc.mode === "formula" ? `Formulă ${calc.expression}` : calc.mode === "reducere" ? `Reducere ${calc.percent}%` : `${tariff?.amount} ${tariff?.currency}`,
+        tax.term, tax.exemptions.join(", "),
+        tax.recurring ? (tax.recurring.frequency === "Interval" ? `La ${tax.recurring.months} luni` : "Anual") : "Nu",
+        `v${tax.version}`, TAX_STATUS(tax), tax.modifiedBy, tax.modifiedAt
+      ];
+    })].map((line) => line.map(cell).join(";")).join("\r\n");
     const url = URL.createObjectURL(new Blob(["﻿" + lines], { type: "text/csv;charset=utf-8" }));
-    const link = Object.assign(document.createElement("a"), { href: url, download: `plati-${service.code}.csv` });
+    const link = Object.assign(document.createElement("a"), { href: url, download: `taxe-${service.code}.csv` });
     document.body.appendChild(link);
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    showShellToast(`${rows.length} ${rows.length === 1 ? "plată exportată" : "plăți exportate"}.`);
+    showShellToast(`${rows.length} ${rows.length === 1 ? "taxă exportată" : "taxe exportate"}.`);
   };
 
   /* ---- Tarife (Feature «Gestionarea clasificatorului de tarife») ---------
-     Global tariffs live in Administrare → Tarife; service tariffs in the
-     passport's Tarife tab. Same model, same editor (drawer: Identitate ·
-     Sumă și formulă · Ciclu de viață). Rules: GEAP.servicePassport. */
-  const TARIFF_FILTERS = [
-    ["all", "Toate", () => true],
-    ["active", "Active", (t) => t.state === "Publicat" && t.active],
-    ["draft", "Schiță", (t) => t.state !== "Publicat"],
-    ["inactive", "Inactive", (t) => t.state === "Publicat" && !t.active]
-  ];
-  const tariffListState = { query: "", filter: "all" };
+     The price list. Global tariffs live in Administrare → Tarife; a service's
+     tariffs (mostly from RSSP / eAPL) are charged through its Taxe tab. Same
+     model, same editor (drawer: Identitate · Sumă și formulă · Ciclu de viață).
+     Rules: GEAP.servicePassport. */
   const tariffStatus = (t) => (t.state === "Publicat" ? (t.active ? "Activ" : "Inactiv") : "Schiță");
+  /* where a tariff is charged: the taxes that use it, in every service */
   const tariffUsage = (tariff) => (servicesStore?.services || []).flatMap((service) =>
-    service.geap.payments.filter((pay) => pay.tariffs.some((item) => item.id === tariff.id)).map((pay) => ({ service, pay })));
+    serviceTaxes(service).filter((tax) => tax.tariffId === tariff.id).map((tax) => ({ service, tax })));
   const tariffAmountLabel = (t) => (t.formula ? `Formulă · ${escapeHtml(t.expression || "—")}` : `${escapeHtml(String(t.amount))} ${escapeHtml(t.currency)}`);
   const tariffValidity = (t) => `${t.validFrom ? formatLongDate(t.validFrom) : "—"}${t.validTo ? ` – ${formatLongDate(t.validTo)}` : " – nelimitat"}`;
   const serviceTariffList = (service) => (servicesStore?.tariffs || []).filter((tariff) => tariff.scope === service.code);
-
-  const tariffMatches = (t) => {
-    const filter = TARIFF_FILTERS.find(([key]) => key === tariffListState.filter)?.[2] || (() => true);
-    const query = tariffListState.query.trim().toLocaleLowerCase("ro");
-    const text = [t.code, t.name, t.type, t.requestType, t.source].join(" ").toLocaleLowerCase("ro");
-    return filter(t) && (!query || text.includes(query));
-  };
-
-  const renderTariffChips = (list) => TARIFF_FILTERS.map(([key, label, test]) => `
-    <button type="button" class="chip${tariffListState.filter === key ? " is-selected" : ""}" aria-pressed="${tariffListState.filter === key ? "true" : "false"}" data-tariff-filter="${key}">
-      <span class="chip__label">${label}</span>
-      <span class="badge badge--lg badge--solid-light" aria-hidden="true">${list.filter(test).length}</span>
-    </button>
-  `).join("");
-
-  const renderServiceTariffList = (service) => {
-    const all = serviceTariffList(service);
-    const visible = all.filter(tariffMatches);
-
-    if (!visible.length) {
-      return `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>${all.length ? "Niciun tarif nu corespunde filtrului." : "Serviciul nu are tarife proprii. Adaugă un tarif sau sincronizează din RSSP."}</p></div>`;
-    }
-
-    const items = visible.map((t) => {
-      const usage = tariffUsage(t).length;
-      return {
-        group: t.type,
-        plainTitle: t.name,
-        title: escapeHtml(t.name),
-        badges: [
-          renderTag(tariffStatus(t), TARIFF_STATUS_TONES[tariffStatus(t)] || "neutral"),
-          ...(t.source !== "GEAP" ? [renderTag(t.source, "neutral")] : []),
-          ...(t.formula ? [renderTag("Formulă", "neutral")] : [])
-        ],
-        meta: [escapeHtml(t.code), tariffAmountLabel(t), escapeHtml(t.requestType || "—"), escapeHtml(t.personType || "—"), `v${t.version || 1}`, whoWhen("Modificat", t.modifiedAt, t.modifiedBy)],
-        meta2: [`Valabil ${tariffValidity(t)}`, usage ? `folosit în ${usage} ${usage === 1 ? "plată" : "plăți"}` : "nefolosit"],
-        actionsHtml: isCentralAdmin() ? `
-          <button class="e-permits-workplace__icon-action" type="button" data-tariff-edit="${escapeHtml(t.id)}" aria-label="Editează ${escapeHtml(t.name)}" title="Editează">
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
-          </button>
-        ` : ""
-      };
-    });
-    const groups = groupBy(items, (item) => item.group, servicesStore.tariffTypes || []);
-    return `
-      <div class="e-permits-stack">
-        ${groups.map((group) => `
-          <div class="e-permits-stack__group">
-            <h3 class="e-permits-stack__group-label">${escapeHtml(group.label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${group.items.length}</span></h3>
-            <ul class="e-permits-stack__list" role="list">${group.items.map(renderStackItem).join("")}</ul>
-          </div>
-        `).join("")}
-      </div>
-    `;
-  };
-
-  const renderServiceTariffsTab = (service) => {
-    const admin = isCentralAdmin();
-    const all = serviceTariffList(service);
-    const eapl = (service.syncSources || []).includes("eAPL");
-
-    return `
-      <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <h2 class="e-permits-dosar-profil__section-title">Tarife</h2>
-        <div class="e-permits-pay__toolbar">
-          <div class="e-permits-rt__chips" role="group" aria-label="Filtrează tarifele" data-tariff-chips>${renderTariffChips(all)}</div>
-          <div class="e-permits-pay__tools">
-            <label class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search">
-              <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" placeholder="Caută tarif" aria-label="Caută tarif după cod, denumire sau tip" value="${escapeHtml(tariffListState.query)}" autocomplete="off" data-tariff-search>
-            </label>
-            <button class="e-permits-workplace__icon-action" type="button" aria-label="Exportă tarifele" data-tariff-export>
-              ${EXPORT_ICON}
-            </button>
-            ${admin ? `
-              ${eapl ? `
-                <div class="e-permits-stack__menu-wrap">
-                  <button class="e-permits-workplace__icon-action" type="button" aria-label="Sincronizează tarifele" aria-haspopup="menu" aria-expanded="false" aria-controls="tariff-sync-menu" data-stack-menu-trigger>
-                    <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-                  </button>
-                  <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="tariff-sync-menu" role="menu" aria-label="Sursa tarifelor" hidden data-stack-menu>
-                    ${[["RSSP", "Din RSSP"], ["eAPL", "Din eAPL"]].map(([source, label]) => `
-                      <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-tariff-sync="${source}">
-                        <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>${label}</span>
-                      </button></li>
-                    `).join("")}
-                  </ul>
-                </div>
-              ` : `
-                <button class="e-permits-workplace__icon-action" type="button" aria-label="Sincronizează tarifele din RSSP" data-tariff-sync="RSSP">
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-                </button>
-              `}
-              <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
-              <button class="btn btn-secondary btn-sm" type="button" data-tariff-add="${escapeHtml(service.code)}">
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-                <span>Adaugă tarif</span>
-              </button>
-            ` : ""}
-          </div>
-        </div>
-        <div data-tariff-list>${renderServiceTariffList(service)}</div>
-        ${admin ? `<div class="e-permits-tariff__global-link">${renderInfoNote('Tarifele globale (valabile pentru orice serviciu) se gestionează în <a class="link link-primary link-md" href="#tarife" data-tariff-goto="">Administrare → Tarife</a>.')}</div>` : ""}
-      </section>
-    `;
-  };
 
   /* RSSP sub-services with a price → one tariff each; eAPL local fee → one tariff */
   const syncServiceTariffsFrom = (service, source) => {
@@ -11867,7 +12000,7 @@ document.addEventListener("DOMContentLoaded", () => {
     servicesStore.tariffs = result.tariffs;
     logServiceEvents(service.code, [{ at: now, user: currentUserName(), type: `Sincronizare tarife (${source})`, status: "Reușit", detail: `${result.created} create, ${result.updated} actualizate, ${result.unchanged} neschimbate` }]);
     renderServiceProfile();
-    showShellToast(`${result.created} create, ${result.updated} actualizate, ${result.unchanged} neschimbate.`, "success", `Tarife sincronizate din ${source}`);
+    showShellToast(`${result.created} create, ${result.updated} actualizate, ${result.unchanged} neschimbate.${result.created ? " Tarifele noi așteaptă regula de aplicare la „De configurat”." : ""}`, "success", `Tarife sincronizate din ${source}`);
   };
 
   const exportCsv = (filename, header, rows) => {
@@ -11991,7 +12124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       Activ: "Disponibil la selecție în plăți și note de plată.",
       Inactiv: "Publicat, dar nu apare la selecție în plăți și note de plată."
     };
-    const deleteReason = usage.length ? `Folosit în ${usage.length === 1 ? "1 plată" : `${usage.length} plăți`} — poate fi doar dezactivat.` : "";
+    const deleteReason = usage.length ? `Folosit în ${usage.length === 1 ? "1 taxă" : `${usage.length} taxe`} — poate fi doar dezactivat.` : "";
     const statusStrip = existing ? `
       <div class="e-permits-tariff__status">
         <div class="e-permits-tariff__status-copy">
@@ -12094,7 +12227,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
               ${[
                 ["Sursă", escapeHtml(existing.source)],
-                ["Folosit de", usage.length ? usage.map(({ service: svc, pay }) => `${escapeHtml(pay.name)} <span class="e-permits-passport__muted">(${escapeHtml(svc.title)})</span>`).join("<br>") : "Nefolosit în nicio plată"],
+                ["Folosit de", usage.length ? usage.map(({ service: svc, tax }) => `${escapeHtml(tax.requestType)} · ${escapeHtml(tax.moment)}${tax.condition?.classifier ? ` · ${escapeHtml(conditionLabel(tax.condition))}` : ""} <span class="e-permits-passport__muted">(${escapeHtml(svc.title)})</span>`).join("<br>") : "Nefolosit în nicio taxă"],
                 ["Istoric versiuni", (existing.versions || []).slice().reverse().map((v) => `<span class="e-permits-tariff__version"><strong>v${v.version}</strong> · ${escapeHtml(v.note || "")} <span class="e-permits-passport__muted">· ${formatStamp(v.at)} · ${escapeHtml(shortName(v.by || ""))}</span></span>`).join("")]
               ].map(([label, value]) => `
                 <div class="e-permits-dosar-profil__row">
@@ -12131,13 +12264,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (focusSelector) focusFormControl(tariffDrawerBody.querySelector(focusSelector));
   };
 
-  const openTariffDrawer = (tariffId = null, scope = "global") => {
+  const openTariffDrawer = (tariffId = null, scope = "global", { requestType = null } = {}) => {
     const existing = tariffId ? (servicesStore.tariffs || []).find((t) => t.id === tariffId) : null;
     if (!tariffDrawer || (tariffId && !existing)) return;
     const service = !existing && scope !== "global" ? getServiceByCode(scope) : null;
     const base = existing || {
       scope, source: "GEAP", name: "", nameRu: "", nameEn: "", type: "", legalBasis: "", amount: "", currency: "MDL",
-      iban: "", requestType: service?.geap.requestTypes[0]?.name || null, personType: "Persoană juridică", subdivision: null,
+      iban: "", requestType: requestType || service?.geap.requestTypes[0]?.name || null, personType: "Persoană juridică", subdivision: null,
       formula: false, expression: "", rounding: "2 zecimale", userVariables: false, validFrom: localIsoNow().slice(0, 10), validTo: null
     };
     tariffDraft = { ...base, id: existing?.id || null, amount: base.amount === "" ? "" : String(base.amount), validTo: base.validTo || "", errors: {}, testValues: {}, testResult: "", confirmDelete: false };
@@ -12157,6 +12290,15 @@ document.addEventListener("DOMContentLoaded", () => {
       tariffDrawer.classList.remove("is-closing");
       document.body.classList.remove("is-user-create-open");
       tariffDraft = null;
+      /* opened from a tax ("Creează un tarif nou"): go back to that tax */
+      if (taxAwaitingTariff) {
+        const draft = taxAwaitingTariff;
+        const created = taxResumeTariffId;
+        taxAwaitingTariff = null;
+        taxResumeTariffId = null;
+        resumeTaxDraft(draft, created);
+        return;
+      }
       tariffReturnFocus?.focus?.();
     }, 120);
   };
@@ -12208,6 +12350,7 @@ document.addEventListener("DOMContentLoaded", () => {
       next.id = `tf-${Date.now().toString(36)}`;
       next.code = `TRF-${String(max + 1).padStart(3, "0")}`;
       servicesStore.tariffs.push(next);
+      if (taxAwaitingTariff) taxResumeTariffId = next.id;
       message = next.state === "Publicat" ? `Tariful „${next.name}” a fost publicat.` : `Tariful „${next.name}” a fost salvat ca schiță.`;
       tariffEvent(next, next.state === "Publicat" ? "Publicare tarif" : "Creare tarif", `${next.code} ${next.name}`);
     } else {
@@ -12296,8 +12439,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-tariff-toggle-active]") && existing) {
       const next = !existing.active;
       askConfirm(next
-        ? { title: "Activezi tariful?", text: `„${existing.name}” va apărea la selecție în plăți și note de plată.`, confirmLabel: "Activează" }
-        : { title: "Dezactivezi tariful?", text: `„${existing.name}” nu va mai apărea la selecție în plăți și note de plată. Notele deja generate nu se modifică.`, confirmLabel: "Dezactivează", destructive: true }, () => {
+        ? { title: "Activezi tariful?", text: `„${existing.name}” va putea fi ales în taxe și apare pe notele de plată.`, confirmLabel: "Activează" }
+        : { title: "Dezactivezi tariful?", text: `„${existing.name}” nu va mai putea fi ales în taxe. Taxele și notele deja generate nu se modifică.`, confirmLabel: "Dezactivează", destructive: true }, () => {
         existing.active = next;
         existing.modifiedAt = localIsoNow();
         existing.modifiedBy = currentUserName();
@@ -12360,88 +12503,190 @@ document.addEventListener("DOMContentLoaded", () => {
     run?.();
   });
 
-  const runPaymentAction = (paymentId, action) => {
-    const service = getServiceByCode(serviceProfileState.code);
-    const payments = service?.geap.payments || [];
-    const payment = payments.find((item) => item.id === paymentId);
+  /* ---- Simulează: pick a request, the answers given at initiation, see the note ---- */
+  const taxSimModal = document.querySelector("#tax-sim-modal");
+  const taxSimState = { requestType: "", moment: "", answers: {} };
 
-    if (!payment) {
+  const renderTaxSimulation = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service || !taxSimModal) return;
+    const taxes = serviceTaxes(service);
+    const tariffs = servicesStore.tariffs || [];
+    const forType = taxes.filter((tax) => tax.state === "Publicat" && tax.active && tax.requestType === taxSimState.requestType);
+    const moments = passport.PAYMENT_MOMENTS.filter((moment) => forType.some((tax) => tax.moment === moment));
+    const askedCodes = [...new Set(forType.filter((tax) => tax.condition?.classifier && (!taxSimState.moment || tax.moment === taxSimState.moment)).map((tax) => tax.condition.classifier))];
+    const result = passport.simulateTaxes({ taxes, tariffs, requestType: taxSimState.requestType, moment: taxSimState.moment, answers: taxSimState.answers });
+    const select = (id, label, attrs, options, value, hint = "") => `
+      <div class="e-permits-fo-field">
+        <label for="${id}">${escapeHtml(label)}</label>
+        ${renderFoSelectControl({ id, attrs, optionsHtml: options.map(([v, text]) => `<option value="${escapeHtml(v)}"${v === value ? " selected" : ""}>${escapeHtml(text)}</option>`).join("") })}
+        ${hint ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+      </div>
+    `;
+    const row = ({ tax, tariff, amount }) => `
+      <li class="e-permits-case-form__fee">
+        <span class="e-permits-case-form__fee-copy">
+          <span class="e-permits-case-form__fee-name">${escapeHtml(tariff?.name || tax.tariffId)}</span>
+          <span class="e-permits-case-form__fee-meta">${escapeHtml([tax.moment, tax.generation, conditionLabel(tax.condition)].filter(Boolean).join(" · "))}</span>
+        </span>
+        <span class="e-permits-case-form__fee-amount">${amount == null ? "la generarea notei" : escapeHtml(money(amount, tariff?.currency))}</span>
+      </li>`;
+
+    taxSimModal.querySelector("[data-tax-sim-subtitle]").textContent = service.title;
+    taxSimModal.querySelector("[data-tax-sim-body]").innerHTML = `
+      <div class="e-permits-case-form">
+        <div class="e-permits-user-create__grid">
+          <div class="e-permits-user-create__field e-permits-user-create__field--6">
+            ${select("tax-sim-rt", "Tip solicitare", "data-tax-sim-rt", service.geap.requestTypes.map((rt) => [rt.name, rt.name]), taxSimState.requestType)}
+          </div>
+          <div class="e-permits-user-create__field e-permits-user-create__field--6">
+            ${select("tax-sim-moment", "Moment", "data-tax-sim-moment", [["", "Toate momentele"], ...moments.map((m) => [m, m])], taxSimState.moment)}
+          </div>
+        </div>
+        ${askedCodes.map((code) => {
+          const classifier = getConditionClassifier(code);
+          return select(`tax-sim-${code}`, `${classifier?.name || code} (ales de solicitant)`, `data-tax-sim-answer="${escapeHtml(code)}"`,
+            [["", "Neales"], ...(classifier?.values || []).map((v) => [v.code, v.label])], taxSimState.answers[code] || "");
+        }).join("")}
+        <section class="e-permits-dosar-profil__section">
+          <h2 class="e-permits-dosar-profil__section-title">Pe nota de plată</h2>
+          ${result.applied.length
+            ? renderSumList(`<ul class="e-permits-case-form__fees" role="list">${result.applied.map(row).join("")}</ul>`, money(result.total))
+            : renderInfoNote(forType.length ? "Nicio taxă nu se aplică pentru alegerile de mai sus." : "Tipul de solicitare nu are taxe active — e gratuit sau tarifele lui sunt încă de configurat.")}
+        </section>
+        ${result.skipped.length ? `
+          <section class="e-permits-dosar-profil__section">
+            <h2 class="e-permits-dosar-profil__section-title">Nu se aplică</h2>
+            <ul class="e-permits-case-form__fees e-permits-tax__skipped" role="list">${result.skipped.map(({ tax, tariff }) => `
+              <li class="e-permits-case-form__fee">
+                <span class="e-permits-case-form__fee-copy">
+                  <span class="e-permits-case-form__fee-name">${escapeHtml(tariff?.name || tax.tariffId)}</span>
+                  <span class="e-permits-case-form__fee-meta">Doar dacă ${escapeHtml(conditionLabel(tax.condition))}</span>
+                </span>
+                <span class="e-permits-case-form__fee-amount">${escapeHtml(money(tariff?.amount ?? 0, tariff?.currency))}</span>
+              </li>`).join("")}</ul>
+          </section>
+        ` : ""}
+      </div>
+    `;
+  };
+
+  const openTaxSimulation = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service || !taxSimModal) return;
+    /* start where it is interesting: the first request type with a conditional tax */
+    const taxes = serviceTaxes(service).filter((tax) => tax.state === "Publicat" && tax.active);
+    const start = taxes.find((tax) => tax.condition?.classifier) || taxes[0];
+    taxSimState.requestType = start?.requestType || service.geap.requestTypes[0]?.name || "";
+    taxSimState.moment = start?.moment || "";
+    taxSimState.answers = {};
+    renderTaxSimulation();
+    window.__modal?.open?.("#tax-sim-modal");
+  };
+
+  taxSimModal?.addEventListener("change", (event) => {
+    const t = event.target;
+    let selector;
+    if (t.matches("[data-tax-sim-rt]")) { taxSimState.requestType = t.value; taxSimState.moment = ""; taxSimState.answers = {}; selector = "[data-tax-sim-rt]"; }
+    else if (t.matches("[data-tax-sim-moment]")) { taxSimState.moment = t.value; selector = "[data-tax-sim-moment]"; }
+    else if (t.matches("[data-tax-sim-answer]")) { taxSimState.answers[t.dataset.taxSimAnswer] = t.value; selector = `[data-tax-sim-answer="${CSS.escape(t.dataset.taxSimAnswer)}"]`; }
+    else return;
+    renderTaxSimulation();
+    /* the select is hidden: give focus back to its dropdown button */
+    focusFormControl(taxSimModal.querySelector(selector));
+  });
+
+  /* tax lifecycle from the list: publish · activate · deactivate · delete, all confirmed */
+  const runPaymentAction = (taxId, action) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const taxes = service ? serviceTaxes(service) : [];
+    const tax = taxes.find((item) => item.id === taxId);
+
+    if (!tax) {
       return;
     }
 
+    const name = taxName(tax);
+    const where = `„${tax.requestType}” · „${tax.moment}”${tax.condition?.classifier ? ` · ${conditionLabel(tax.condition)}` : ""}`;
     const commit = (type, detail, message) => {
-      payment.modifiedAt = localIsoNow();
-      payment.modifiedBy = currentUserName();
-      logServiceEvents(service.code, [{ at: payment.modifiedAt, user: payment.modifiedBy, type, status: "Reușit", detail }]);
+      tax.modifiedAt = localIsoNow();
+      tax.modifiedBy = currentUserName();
+      logServiceEvents(service.code, [{ at: tax.modifiedAt, user: tax.modifiedBy, type, status: "Reușit", detail }]);
       renderServiceProfile();
       showShellToast(message);
     };
 
     if (action === "publish") {
-      const check = passport.canPublish(payment);
+      const check = passport.canPublishTax(tax);
 
       if (!check.ok) {
         showShellToast(check.message, "error");
         return;
       }
 
-      payment.state = "Publicat";
-      payment.active = !passport.activationConflict(payments, { ...payment, active: true });
-      commit("Publicare plată", `${payment.name} v${payment.version}`, payment.active
-        ? `Plata „${payment.name}” a fost publicată și activată.`
-        : `Plata „${payment.name}” a fost publicată inactivă: există deja o plată activă pentru același tip și moment.`);
+      askConfirm({
+        title: "Publici taxa?",
+        text: `Dosarele noi pentru ${where} vor include „${name}”.`,
+        confirmLabel: "Publică"
+      }, () => {
+        tax.state = "Publicat";
+        tax.active = !passport.taxConflict(taxes, { ...tax, active: true });
+        commit("Publicare taxă", `${name} v${tax.version}`, tax.active
+          ? `Taxa „${name}” a fost publicată și activată.`
+          : `Taxa „${name}” a fost publicată inactivă: același tarif se aplică deja la ${where}.`);
+      });
       return;
     }
 
     if (action === "activate") {
-      const conflict = passport.activationConflict(payments, payment);
+      const conflict = passport.taxConflict(taxes, tax);
 
       if (conflict) {
         askConfirm({
-          title: "Există deja o plată activă",
-          text: `Pentru „${payment.requestType}” · „${payment.moment}” este activă plata „${conflict.name}”. Doar o plată poate fi activă pentru aceeași combinație. Dezactivează „${conflict.name}” și activează „${payment.name}”?`,
-          confirmLabel: "Înlocuiește plata activă"
+          title: "Tariful se aplică deja",
+          text: `„${name}” se aplică deja la ${where} printr-o altă taxă activă. Același tarif nu se poate încasa de două ori pe o solicitare. Dezactivezi cealaltă taxă și o activezi pe aceasta?`,
+          confirmLabel: "Înlocuiește taxa activă"
         }, () => {
           conflict.active = false;
-          payment.active = true;
-          commit("Activare plată", `${payment.name} (înlocuiește ${conflict.name})`, `Plata „${payment.name}” este acum activă.`);
+          tax.active = true;
+          commit("Activare taxă", `${name} (înlocuiește v${conflict.version})`, `Taxa „${name}” este acum activă.`);
         });
         return;
       }
 
       askConfirm({
-        title: "Activezi plata?",
-        text: `Dosarele noi pentru „${payment.requestType}” · „${payment.moment}” vor declanșa plata „${payment.name}”.`,
+        title: "Activezi taxa?",
+        text: `Dosarele noi pentru ${where} vor include „${name}”.`,
         confirmLabel: "Activează"
       }, () => {
-        payment.active = true;
-        commit("Activare plată", payment.name, `Plata „${payment.name}” este acum activă.`);
+        tax.active = true;
+        commit("Activare taxă", name, `Taxa „${name}” este acum activă.`);
       });
       return;
     }
 
     if (action === "deactivate") {
       askConfirm({
-        title: "Dezactivezi plata?",
-        text: `„${payment.name}” este folosită în ${payment.usage} ${payment.usage === 1 ? "dosar" : "dosare"}. Notele de plată deja generate nu se modifică; dosarele noi nu vor mai declanșa această plată.`,
+        title: "Dezactivezi taxa?",
+        text: `„${name}” a fost aplicată în ${tax.usage} ${tax.usage === 1 ? "dosar" : "dosare"}. Notele de plată deja generate nu se modifică; dosarele noi nu o vor mai include.`,
         confirmLabel: "Dezactivează",
         destructive: true
       }, () => {
-        payment.active = false;
-        commit("Dezactivare plată", payment.name, `Plata „${payment.name}” a fost dezactivată.`);
+        tax.active = false;
+        commit("Dezactivare taxă", name, `Taxa „${name}” a fost dezactivată.`);
       });
       return;
     }
 
-    if (action === "delete" && passport.canDelete(payment)) {
+    if (action === "delete" && passport.canDelete(tax)) {
       askConfirm({
-        title: "Ștergi plata?",
-        text: `„${payment.name}” va fi eliminată definitiv din pașaportul serviciului.`,
+        title: "Ștergi taxa?",
+        text: `Regula pentru „${name}” va fi eliminată. Tariful rămâne și revine la „De configurat”.`,
         confirmLabel: "Șterge",
         destructive: true
       }, () => {
-        service.geap.payments = payments.filter((item) => item.id !== payment.id);
-        commit("Ștergere plată", payment.name, `Plata „${payment.name}” a fost ștearsă.`);
+        service.geap.taxes = taxes.filter((item) => item.id !== tax.id);
+        commit("Ștergere taxă", name, `Taxa „${name}” a fost ștearsă.`);
       });
     }
   };
@@ -12608,23 +12853,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (event.target.closest("[data-tariff-export]")) {
-      const service = getServiceByCode(serviceProfileState.code);
-      exportTariffs(serviceTariffList(service).filter(tariffMatches), `tarife-${service.code}.csv`);
-      return;
-    }
-
-    const tariffFilter = event.target.closest("[data-tariff-filter]");
-
-    if (tariffFilter) {
-      const service = getServiceByCode(serviceProfileState.code);
-      tariffListState.filter = tariffFilter.dataset.tariffFilter;
-      permitsProfilePanel.querySelector("[data-tariff-chips]").innerHTML = renderTariffChips(serviceTariffList(service));
-      permitsProfilePanel.querySelector("[data-tariff-list]").innerHTML = renderServiceTariffList(service);
-      permitsProfilePanel.querySelector(`[data-tariff-filter="${tariffListState.filter}"]`)?.focus();
-      return;
-    }
-
     const tariffGoto = event.target.closest("[data-tariff-goto]");
 
     if (tariffGoto) {
@@ -12635,6 +12863,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (event.target.closest("[data-pay-add]")) {
       openPaymentDrawer();
+      return;
+    }
+
+    const taxApply = event.target.closest("[data-tax-apply]");
+
+    if (taxApply) {
+      applyTariffAsIs(taxApply.dataset.taxApply);
+      return;
+    }
+
+    const taxConfigure = event.target.closest("[data-tax-configure]");
+
+    if (taxConfigure) {
+      openPaymentDrawer(null, { tariffId: taxConfigure.dataset.taxConfigure });
+      return;
+    }
+
+    if (event.target.closest("[data-tax-simulate]")) {
+      openTaxSimulation();
       return;
     }
 
@@ -12681,12 +12928,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   permitsProfilePanel?.addEventListener("input", (event) => {
-    if (event.target.matches("[data-tariff-search]")) {
-      tariffListState.query = event.target.value;
-      permitsProfilePanel.querySelector("[data-tariff-list]").innerHTML = renderServiceTariffList(getServiceByCode(serviceProfileState.code));
-      return;
-    }
-
     if (event.target.matches("[data-pay-search]")) {
       payListState.query = event.target.value;
       permitsProfilePanel.querySelector("[data-pay-list]").innerHTML = renderPaymentList(getServiceByCode(serviceProfileState.code));

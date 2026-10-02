@@ -6,8 +6,8 @@
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=tokens-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=buttons-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=iconbtn-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=iconbtn-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <script src="js/search.js" defer></script>
@@ -3167,7 +3167,7 @@
                     <div class="e-permits-workplace__table-tools" aria-label="Acțiuni tabel">
                       <span class="e-permits-workplace__field-count">48 câmpuri</span>
                       <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
-                      <button class="e-permits-workplace__icon-action" type="button" aria-label="Exportă" title="Exportă" data-workplace-export>
+                      <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Exportă" title="Exportă" data-workplace-export>
                         <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                           <path d="M2.06641 12V10C2.06641 9.66863 2.3353 9.39974 2.66667 9.39974C2.99804 9.39974 3.26693 9.66863 3.26693 10V12C3.26693 12.405 3.59499 12.7331 4 12.7331H12C12.405 12.7331 12.7331 12.405 12.7331 12V10C12.7331 9.66863 13.002 9.39974 13.3333 9.39974C13.6647 9.39974 13.9336 9.66863 13.9336 10V12C13.9336 13.0678 13.0678 13.9336 12 13.9336H4C2.93225 13.9336 2.06641 13.0678 2.06641 12ZM7.39974 2.66667C7.39974 2.3353 7.66863 2.06641 8 2.06641C8.33137 2.06641 8.60026 2.3353 8.60026 2.66667V8.21745L9.90885 6.90885C10.1432 6.67454 10.5235 6.67454 10.7578 6.90885C10.9921 7.14317 10.9921 7.5235 10.7578 7.75781L8.42448 10.0911C8.31196 10.2037 8.15913 10.2669 8 10.2669C7.84087 10.2669 7.68804 10.2037 7.57552 10.0911L5.24219 7.75781C5.00787 7.5235 5.00787 7.14317 5.24219 6.90885C5.4765 6.67454 5.85683 6.67454 6.09115 6.90885L7.39974 8.21745V2.66667Z" fill="#121212"/>
                         </svg>
@@ -3450,6 +3450,21 @@
     </aside>
   </div>
 
+  <!-- Taxe: Simulează — which taxes a request triggers (GEAP.servicePassport.simulateTaxes) -->
+  <div class="modal-overlay" id="tax-sim-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal e-permits-case-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tax-sim-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="tax-sim-title">Simulează taxele</h2>
+        <p class="e-permits-passport__modal-subtitle" data-tax-sim-subtitle></p>
+      </div>
+      <div class="modal-content" data-tax-sim-body></div>
+      <div class="modal--footer"><div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-close>Închide</button></div></div>
+    </div>
+  </div>
+
   <!-- Tarif: add / edit (Feature «Gestionarea clasificatorului de tarife») -->
   <div class="e-permits-user-create" data-tariff-drawer hidden>
     <button class="e-permits-user-create__scrim" type="button" aria-label="Închide editorul tarifului" data-tariff-close></button>
@@ -3684,11 +3699,11 @@
       </div>
     </div>
   </div>
-  <script src="core/service-passport.js?v=tarife-v4"></script>
+  <script src="core/service-passport.js?v=taxe-v1"></script>
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=buttons-v1"></script>
+  <script src="js/e-permits-shell.js?v=iconbtn-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

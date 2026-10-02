@@ -1761,36 +1761,6 @@
   overflow-wrap: anywhere;
 }
 
-.e-permits-user-profile__edit {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-icon-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  padding: 8px;
-  transition: background-color 100ms ease, box-shadow 100ms ease;
-  width: 32px;
-}
-
-.e-permits-user-profile__edit:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-user-profile__edit:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
-.e-permits-user-profile__edit .icon {
-  height: 16px;
-  width: 16px;
-}
-
 .e-permits-user-profile__editor {
   display: flex;
   flex-direction: column;
@@ -16243,13 +16213,6 @@
   border-left: 1px solid var(--color-border-base-default, #d9d9d9);
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__icon-action {
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  padding: 0;
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs {
   box-sizing: border-box;
   grid-column: 1 / -1;
@@ -18057,9 +18020,52 @@
   opacity: 1;
 }
 
-.btn.btn-sm:is(.btn-neutral, .btn-secondary, .btn-primary):focus-visible {
+.btn.btn-sm:is(.btn-neutral, .btn-secondary, .btn-primary, .btn-strict):focus-visible {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
+}
+
+/* Icon = Only (Figma button-filled-rectangular / button-text-circular · Icon Only · Small):
+   a 32px square, 16px icon, no label — it always carries an aria-label, which
+   js/icon-tooltip.js shows as the plain hover/focus tooltip. ✎ edit, export, sync, filter
+   = btn-neutral; ⋮ more = btn-strict + btn-rounded. Never a custom icon-button class. */
+.btn.btn-sm.btn-icon-only {
+  flex: 0 0 var(--spacing-32, 32px);
+  gap: 0;
+  padding: 0;
+  width: var(--spacing-32, 32px);
+}
+
+.btn.btn-sm.btn-icon-only .icon {
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+/* Strict (Figma button-text-circular Strict): no fill; tertiary-hover on hover,
+   tertiary-active while pressed or while its menu is open */
+.btn.btn-sm.btn-strict {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-base-default, #121212);
+}
+
+.btn.btn-sm.btn-strict:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+  border-color: transparent;
+}
+
+.btn.btn-sm.btn-strict:active:not(:disabled),
+.btn.btn-sm.btn-strict[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-active, #d9d9d9);
+  border-color: transparent;
+}
+
+.btn.btn-sm.btn-strict:disabled,
+.btn.btn-sm.btn-strict[aria-disabled="true"] {
+  background: transparent;
+  color: var(--color-icon-disabled-default, #a3a3a3);
+  opacity: 1;
 }
 
 /* one line, in the meta labels' type (Cod, Versiune, Stare): 12/16 regular tertiary */
@@ -18564,15 +18570,6 @@
   gap: var(--spacing-8, 8px);
 }
 
-.e-permits-workplace__row-actions .e-permits-workplace__icon-action:hover {
-  background: var(--color-background-base-tertiary-hover, #e5e5e5);
-}
-
-.e-permits-workplace__row-actions .e-permits-workplace__icon-action:focus-visible {
-  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
-}
-
 .e-permits-workplace__add-user .icon {
   flex: 0 0 var(--spacing-16, 16px);
   height: var(--spacing-16, 16px);
@@ -18853,35 +18850,6 @@
 /* overflow trigger: 32px icon button, transparent until hover / open */
 .e-permits-stack__menu-wrap {
   position: relative;
-}
-
-.e-permits-stack__menu-trigger {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-icon-base-default, #121212);
-  cursor: pointer;
-  display: flex;
-  height: var(--spacing-32, 32px);
-  justify-content: center;
-  padding: 0;
-  transition: background-color 120ms ease;
-  width: var(--spacing-32, 32px);
-}
-
-.e-permits-stack__menu-trigger:hover,
-.e-permits-stack__menu-trigger[aria-expanded="true"] {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-stack__menu-trigger:active {
-  background: var(--color-background-base-secondary-hover, #e7e7e7);
-}
-
-.e-permits-stack__menu-trigger:focus-visible {
-  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
 }
 
 /* the menu itself is .e-permits-fo-intent-menu (post-process menu); only
@@ -19321,6 +19289,36 @@
   display: inline;
   font-size: inherit;
   line-height: inherit;
+}
+
+/* ---- Taxe (tariff + application rule, 2026-10-02) ----
+   "Tariful lipsește?" pointer under the tariff select: 14/20 secondary, the link inline */
+.e-permits-tax__new-tariff {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* a library link rendered on a <button> (it opens a drawer, not a page): no button chrome */
+.e-permits-tax__new-tariff .link {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  padding: 0;
+}
+
+/* "Nu se aplică" in Simulează: the same bordered list, muted */
+.e-permits-tax__skipped .e-permits-case-form__fee-name,
+.e-permits-tax__skipped .e-permits-case-form__fee-amount {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
 }
 
 /* formula check: a quiet grey panel with test inputs and the result */
@@ -20922,7 +20920,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.2fr) 32px;
 }
 
-.e-permits-clas-create__col-row > .e-permits-workplace__icon-action {
+.e-permits-clas-create__col-row > .btn-icon-only {
   margin-top: var(--spacing-4, 4px);
 }
 
@@ -21228,8 +21226,9 @@ button.e-permits-steps-strip__cell:focus-visible {
    Registries ([data-workplace-toolbar]), the classifier's Valori, the passport lists
    (Plăți, Tarife — .e-permits-pay__toolbar) and the request-type drawer
    (.e-permits-rt__toolbar). One search component (library Search, medium), and every
-   control beside it takes the Search's visible height: 40px minus its 2px focus border
-   on each side = 36px (the same as "Filtrare avansată"), all centred on one line.
+   chip and "Filtrare avansată" take the Search's visible height: 40px minus its 2px focus
+   border on each side = 36px. Buttons keep the Figma Small size (32px, icon-only 32×32)
+   — they are the button component, never resized — and everything centres on one line.
    Spacing: 12px between controls, 16px between wrapped rows. */
 .e-permits-front-office-page[data-demo-flow="back-office"] :is([data-workplace-toolbar], .e-permits-clas-grid__toolbar, .e-permits-pay__toolbar, .e-permits-rt__toolbar) {
   --list-toolbar-control: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
@@ -21244,18 +21243,6 @@ button.e-permits-steps-strip__cell:focus-visible {
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] :is([data-workplace-toolbar], .e-permits-clas-grid__toolbar, .e-permits-pay__toolbar, .e-permits-rt__toolbar) .chip {
-  box-sizing: border-box;
-  height: var(--list-toolbar-control);
-  padding-block: 0;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] :is([data-workplace-toolbar], .e-permits-clas-grid__toolbar, .e-permits-pay__toolbar, .e-permits-rt__toolbar) .e-permits-workplace__icon-action {
-  flex: 0 0 var(--list-toolbar-control);
-  height: var(--list-toolbar-control);
-  width: var(--list-toolbar-control);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] :is([data-workplace-toolbar], .e-permits-clas-grid__toolbar, .e-permits-pay__toolbar, .e-permits-rt__toolbar) .btn.btn-sm {
   box-sizing: border-box;
   height: var(--list-toolbar-control);
   padding-block: 0;

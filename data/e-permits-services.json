@@ -719,136 +719,6 @@
             "editedBy": "Vasile Schidu"
           }
         ],
-        "payments": [
-          {
-            "id": "pay-1",
-            "name": "Taxa de înregistrare a notificării",
-            "requestType": "Emitere primară",
-            "moment": "La inițierea solicitării",
-            "generation": "Automat",
-            "tariffs": [
-              {
-                "id": "tf-taxa-stat-50",
-                "removable": false
-              }
-            ],
-            "term": 5,
-            "exemptions": [],
-            "recurring": null,
-            "version": 3,
-            "state": "Publicat",
-            "active": true,
-            "usage": 128,
-            "modifiedAt": "2026-04-10T09:30:00",
-            "modifiedBy": "Anastasia Cojocaru",
-            "nameRu": "",
-            "nameEn": ""
-          },
-          {
-            "id": "pay-2",
-            "name": "Servicii de examinare",
-            "requestType": "Emitere primară",
-            "moment": "La examinare",
-            "generation": "Manual",
-            "tariffs": [
-              {
-                "id": "tf-examinare-120",
-                "removable": false
-              },
-              {
-                "id": "tf-deplasare-300",
-                "removable": true
-              }
-            ],
-            "term": 10,
-            "exemptions": [
-              "Solicitarea nu necesită plată",
-              "Scutiri % la plata serviciilor"
-            ],
-            "recurring": null,
-            "version": 1,
-            "state": "Publicat",
-            "active": true,
-            "usage": 34,
-            "modifiedAt": "2026-04-12T11:05:00",
-            "modifiedBy": "Anastasia Cojocaru",
-            "nameRu": "",
-            "nameEn": ""
-          },
-          {
-            "id": "pay-3",
-            "name": "Servicii de examinare (tarife 2025)",
-            "requestType": "Emitere primară",
-            "moment": "La examinare",
-            "generation": "Manual",
-            "tariffs": [
-              {
-                "id": "tf-examinare-100",
-                "removable": false
-              }
-            ],
-            "term": 10,
-            "exemptions": [
-              "Fără scutire"
-            ],
-            "recurring": null,
-            "version": 4,
-            "state": "Publicat",
-            "active": false,
-            "usage": 57,
-            "modifiedAt": "2026-01-15T08:20:00",
-            "modifiedBy": "Vasile Schidu",
-            "nameRu": "",
-            "nameEn": ""
-          },
-          {
-            "id": "pay-4",
-            "name": "Taxă anuală de menținere",
-            "requestType": "Emitere primară",
-            "moment": "După emitere act",
-            "generation": "Automat",
-            "tariffs": [
-              {
-                "id": "tf-anuala-200",
-                "removable": false
-              }
-            ],
-            "term": 30,
-            "exemptions": [],
-            "recurring": {
-              "frequency": "Anual",
-              "months": null,
-              "noticeDays": 15
-            },
-            "version": 2,
-            "state": "Publicat",
-            "active": false,
-            "usage": 0,
-            "modifiedAt": "2026-03-28T16:40:00",
-            "modifiedBy": "Anastasia Cojocaru",
-            "nameRu": "",
-            "nameEn": ""
-          },
-          {
-            "id": "pay-5",
-            "name": "Taxă de reperfectare",
-            "requestType": "Reperfectare",
-            "moment": "La inițierea solicitării",
-            "generation": "Automat",
-            "tariffs": [],
-            "term": 5,
-            "exemptions": [],
-            "recurring": null,
-            "version": 1,
-            "state": "Schiță",
-            "active": false,
-            "usage": 0,
-            "modifiedAt": "2026-04-21T13:50:00",
-            "modifiedBy": "Vasile Schidu",
-            "nameRu": "",
-            "nameEn": ""
-          }
-        ],
         "dependencies": [
           {
             "code": "003000118",
@@ -1050,6 +920,125 @@
             "createdBy": "Anastasia Cojocaru",
             "object": "Dosar"
           }
+        ],
+        "taxes": [
+          {
+            "id": "tax-1",
+            "tariffId": "tf-taxa-stat-50",
+            "requestType": "Emitere primară",
+            "moment": "La inițierea solicitării",
+            "generation": "Automat",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 5,
+            "exemptions": [],
+            "removable": false,
+            "recurring": null,
+            "version": 3,
+            "state": "Publicat",
+            "active": true,
+            "usage": 128,
+            "modifiedAt": "2026-04-10T09:30:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          },
+          {
+            "id": "tax-2-1",
+            "tariffId": "tf-examinare-120",
+            "requestType": "Emitere primară",
+            "moment": "La examinare",
+            "generation": "Manual",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 10,
+            "exemptions": [
+              "Solicitarea nu necesită plată",
+              "Scutiri % la plata serviciilor"
+            ],
+            "removable": false,
+            "recurring": null,
+            "version": 1,
+            "state": "Publicat",
+            "active": true,
+            "usage": 34,
+            "modifiedAt": "2026-04-12T11:05:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          },
+          {
+            "id": "tax-2-2",
+            "tariffId": "tf-deplasare-300",
+            "requestType": "Emitere primară",
+            "moment": "La examinare",
+            "generation": "Manual",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 10,
+            "exemptions": [
+              "Solicitarea nu necesită plată",
+              "Scutiri % la plata serviciilor"
+            ],
+            "removable": true,
+            "recurring": null,
+            "version": 1,
+            "state": "Publicat",
+            "active": true,
+            "usage": 34,
+            "modifiedAt": "2026-04-12T11:05:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          },
+          {
+            "id": "tax-3",
+            "tariffId": "tf-examinare-100",
+            "requestType": "Emitere primară",
+            "moment": "La examinare",
+            "generation": "Manual",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 10,
+            "exemptions": [
+              "Fără scutire"
+            ],
+            "removable": false,
+            "recurring": null,
+            "version": 4,
+            "state": "Publicat",
+            "active": false,
+            "usage": 57,
+            "modifiedAt": "2026-01-15T08:20:00",
+            "modifiedBy": "Vasile Schidu"
+          },
+          {
+            "id": "tax-4",
+            "tariffId": "tf-anuala-200",
+            "requestType": "Emitere primară",
+            "moment": "După emitere act",
+            "generation": "Automat",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 30,
+            "exemptions": [],
+            "removable": false,
+            "recurring": {
+              "frequency": "Anual",
+              "months": null,
+              "noticeDays": 15
+            },
+            "version": 2,
+            "state": "Publicat",
+            "active": false,
+            "usage": 0,
+            "modifiedAt": "2026-03-28T16:40:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          }
         ]
       },
       "syncSources": [
@@ -1172,32 +1161,6 @@
             "editedBy": "Anastasia Cojocaru"
           }
         ],
-        "payments": [
-          {
-            "id": "pay-1",
-            "name": "Analiză fizico-chimică",
-            "requestType": "Emitere primară",
-            "moment": "La inițierea solicitării",
-            "generation": "Automat",
-            "tariffs": [
-              {
-                "id": "tf-analiza-350",
-                "removable": false
-              }
-            ],
-            "term": 5,
-            "exemptions": [],
-            "recurring": null,
-            "version": 1,
-            "state": "Publicat",
-            "active": true,
-            "usage": 61,
-            "modifiedAt": "2026-06-10T10:00:00",
-            "modifiedBy": "Anastasia Cojocaru",
-            "nameRu": "",
-            "nameEn": ""
-          }
-        ],
         "dependencies": [],
         "classifiers": [
           {
@@ -1243,7 +1206,30 @@
             "detail": "Datele RSSP ale serviciului au fost actualizate"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": [
+          {
+            "id": "tax-1",
+            "tariffId": "tf-analiza-350",
+            "requestType": "Emitere primară",
+            "moment": "La inițierea solicitării",
+            "generation": "Automat",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 5,
+            "exemptions": [],
+            "removable": false,
+            "recurring": null,
+            "version": 1,
+            "state": "Publicat",
+            "active": true,
+            "usage": 61,
+            "modifiedAt": "2026-06-10T10:00:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          }
+        ]
       },
       "syncSources": [
         "RSSP"
@@ -1336,7 +1322,6 @@
           }
         ],
         "forms": [],
-        "payments": [],
         "dependencies": [],
         "classifiers": [],
         "templates": [],
@@ -1350,7 +1335,8 @@
             "detail": "Cod 003000118 preluat din RSSP"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": []
       },
       "syncSources": [
         "RSSP"
@@ -1418,7 +1404,6 @@
           }
         ],
         "forms": [],
-        "payments": [],
         "dependencies": [],
         "classifiers": [],
         "templates": [],
@@ -1432,7 +1417,8 @@
             "detail": "Cod 003000207 preluat din RSSP"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": []
       },
       "syncSources": [
         "RSSP",
@@ -1525,7 +1511,6 @@
           }
         ],
         "forms": [],
-        "payments": [],
         "dependencies": [],
         "classifiers": [],
         "templates": [],
@@ -1539,7 +1524,8 @@
             "detail": "Cod 003000245 preluat din RSSP"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": []
       },
       "syncSources": [
         "RSSP"
@@ -1607,7 +1593,6 @@
           }
         ],
         "forms": [],
-        "payments": [],
         "dependencies": [],
         "classifiers": [],
         "templates": [],
@@ -1621,7 +1606,8 @@
             "detail": "Cod 003000312 preluat din RSSP"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": []
       },
       "syncSources": [
         "RSSP"
@@ -1689,7 +1675,6 @@
           }
         ],
         "forms": [],
-        "payments": [],
         "dependencies": [],
         "classifiers": [],
         "templates": [],
@@ -1703,7 +1688,8 @@
             "detail": "Cod 003000377 preluat din RSSP"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": []
       },
       "syncSources": [
         "RSSP"
@@ -1772,7 +1758,6 @@
           }
         ],
         "forms": [],
-        "payments": [],
         "dependencies": [],
         "classifiers": [],
         "templates": [],
@@ -1786,7 +1771,197 @@
             "detail": "Cod 003000402 preluat din RSSP"
           }
         ],
-        "notificationTemplates": []
+        "notificationTemplates": [],
+        "taxes": []
+      },
+      "syncSources": [
+        "RSSP"
+      ]
+    },
+    {
+      "code": "003000519",
+      "title": "Înregistrarea produselor biocide",
+      "authorityId": "aut-ansp",
+      "status": "Publicat",
+      "lastSync": "2026-09-30T10:00:00",
+      "syncedBy": "Anastasia Cojocaru",
+      "rssp": {
+        "title": "Înregistrarea produselor biocide",
+        "objective": "Serviciu public de înregistrare a produselor biocide și de eliberare a certificatului de înregistrare.",
+        "isPermissiveAct": true,
+        "paid": true,
+        "allowsMDelivery": true,
+        "allowsMPower": false,
+        "delivery": [
+          "Electronic",
+          "MDelivery"
+        ],
+        "applicantTypes": [
+          "Persoană juridică"
+        ],
+        "subServices": [
+          {
+            "title": "Emitere primară",
+            "type": "Eliberare",
+            "duration": {
+              "value": 30,
+              "unit": "zile lucrătoare"
+            },
+            "price": {
+              "amount": 9252,
+              "currency": "MDL"
+            }
+          },
+          {
+            "title": "Reperfectare",
+            "type": "Modificare",
+            "duration": {
+              "value": 15,
+              "unit": "zile lucrătoare"
+            },
+            "price": {
+              "amount": 7743,
+              "currency": "MDL"
+            }
+          }
+        ],
+        "ignoredSubServices": 0,
+        "documents": [
+          {
+            "title": "Copia actului de identitate",
+            "required": true
+          }
+        ],
+        "validity": [],
+        "rsspStatus": "Publicat"
+      },
+      "geap": {
+        "version": "v1.0.0",
+        "requestTypes": [
+          {
+            "id": "rt-1",
+            "name": "Emitere primară",
+            "source": "RSSP",
+            "flow": "flux-standard-v3",
+            "form": null,
+            "term": {
+              "value": 30,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
+          },
+          {
+            "id": "rt-2",
+            "name": "Reperfectare",
+            "source": "RSSP",
+            "flow": null,
+            "form": null,
+            "term": {
+              "value": 15,
+              "unit": "zile lucrătoare"
+            },
+            "actions": {}
+          }
+        ],
+        "forms": [],
+        "dependencies": [],
+        "classifiers": [
+          {
+            "name": "Motivul reperfectării",
+            "code": "CLS-BIO-01",
+            "values": 3,
+            "source": "Serviciu",
+            "updated": "2026-09-30"
+          }
+        ],
+        "templates": [],
+        "settings": null,
+        "events": [
+          {
+            "at": "2026-09-30T10:00:00",
+            "user": "Anastasia Cojocaru",
+            "type": "Sincronizare serviciu",
+            "status": "Reușit",
+            "detail": "Cod 003000519 preluat din RSSP"
+          }
+        ],
+        "notificationTemplates": [],
+        "taxes": [
+          {
+            "id": "tax-bio-1",
+            "tariffId": "tf-bio-autorizare",
+            "requestType": "Emitere primară",
+            "moment": "La inițierea solicitării",
+            "generation": "Automat",
+            "condition": null,
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 5,
+            "exemptions": [],
+            "removable": false,
+            "recurring": null,
+            "version": 1,
+            "state": "Publicat",
+            "active": true,
+            "usage": 12,
+            "modifiedAt": "2026-09-30T10:20:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          },
+          {
+            "id": "tax-bio-2",
+            "tariffId": "tf-bio-modificare",
+            "requestType": "Reperfectare",
+            "moment": "La inițierea solicitării",
+            "generation": "Automat",
+            "condition": {
+              "classifier": "CLS-BIO-01",
+              "values": [
+                "minora",
+                "majora"
+              ]
+            },
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 5,
+            "exemptions": [],
+            "removable": false,
+            "recurring": null,
+            "version": 1,
+            "state": "Publicat",
+            "active": true,
+            "usage": 4,
+            "modifiedAt": "2026-09-30T10:20:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          },
+          {
+            "id": "tax-bio-3",
+            "tariffId": "tf-bio-administrativa",
+            "requestType": "Reperfectare",
+            "moment": "La inițierea solicitării",
+            "generation": "Automat",
+            "condition": {
+              "classifier": "CLS-BIO-01",
+              "values": [
+                "administrativa"
+              ]
+            },
+            "calc": {
+              "mode": "tarif"
+            },
+            "term": 5,
+            "exemptions": [],
+            "removable": false,
+            "recurring": null,
+            "version": 1,
+            "state": "Publicat",
+            "active": true,
+            "usage": 2,
+            "modifiedAt": "2026-09-30T10:20:00",
+            "modifiedBy": "Anastasia Cojocaru"
+          }
+        ]
       },
       "syncSources": [
         "RSSP"
@@ -2533,6 +2708,114 @@
       "modifiedAt": "2026-09-20T10:15:00",
       "modifiedBy": "Sincronizare eAPL",
       "externalId": "local-fee"
+    },
+    {
+      "id": "tf-bio-autorizare",
+      "name": "Autorizarea produselor biocide",
+      "amount": 9252,
+      "currency": "MDL",
+      "scope": "003000519",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-012",
+      "source": "RSSP",
+      "modifiedAt": "2026-09-30T10:00:00",
+      "modifiedBy": "Sincronizare RSSP",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "HG nr. 1101/2023, anexa 5",
+      "iban": "",
+      "requestType": "Emitere primară",
+      "personType": "Persoană juridică",
+      "subdivision": "Direcția comerț",
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-30T10:00:00",
+          "by": "Sincronizare RSSP",
+          "note": "Preluat din RSSP · 9252 MDL"
+        }
+      ]
+    },
+    {
+      "id": "tf-bio-modificare",
+      "name": "Modificare minoră/majoră a certificatului",
+      "amount": 7743,
+      "currency": "MDL",
+      "scope": "003000519",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-013",
+      "source": "RSSP",
+      "modifiedAt": "2026-09-30T10:00:00",
+      "modifiedBy": "Sincronizare RSSP",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "HG nr. 1101/2023, anexa 5",
+      "iban": "",
+      "requestType": "Reperfectare",
+      "personType": "Persoană juridică",
+      "subdivision": "Direcția comerț",
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-30T10:00:00",
+          "by": "Sincronizare RSSP",
+          "note": "Preluat din RSSP · 7743 MDL"
+        }
+      ]
+    },
+    {
+      "id": "tf-bio-administrativa",
+      "name": "Modificare administrativă a certificatului",
+      "amount": 1292,
+      "currency": "MDL",
+      "scope": "003000519",
+      "state": "Publicat",
+      "active": true,
+      "formula": false,
+      "userVariables": false,
+      "code": "TRF-014",
+      "source": "GEAP",
+      "modifiedAt": "2026-09-30T10:15:00",
+      "modifiedBy": "Anastasia Cojocaru",
+      "nameRu": "",
+      "nameEn": "",
+      "type": "Taxă de examinare",
+      "legalBasis": "HG nr. 1101/2023, anexa 5 (lipsește în RSSP)",
+      "iban": "",
+      "requestType": "Reperfectare",
+      "personType": "Persoană juridică",
+      "subdivision": "Direcția comerț",
+      "expression": "",
+      "rounding": "2 zecimale",
+      "validFrom": "2026-01-01",
+      "validTo": null,
+      "version": 1,
+      "versions": [
+        {
+          "version": 1,
+          "at": "2026-09-30T10:15:00",
+          "by": "Anastasia Cojocaru",
+          "note": "Creat manual — lipsește în RSSP · 1292 MDL"
+        }
+      ]
     }
   ],
   "eapl": {
@@ -4276,6 +4559,46 @@
           "at": "2026-10-01T09:00:00",
           "by": "Sistem",
           "note": "Versiune publicată"
+        }
+      ]
+    }
+  ],
+  "conditionClassifiers": [
+    {
+      "code": "CLS-BIO-01",
+      "name": "Motivul reperfectării",
+      "scope": "003000519",
+      "values": [
+        {
+          "code": "minora",
+          "label": "Modificare minoră a certificatului"
+        },
+        {
+          "code": "majora",
+          "label": "Modificare majoră a certificatului"
+        },
+        {
+          "code": "administrativa",
+          "label": "Modificare administrativă a certificatului"
+        }
+      ]
+    },
+    {
+      "code": "CLS-COM-01",
+      "name": "Tipuri de activitate comercială",
+      "scope": "003000023",
+      "values": [
+        {
+          "code": "alimentar",
+          "label": "Comerț cu produse alimentare"
+        },
+        {
+          "code": "nealimentar",
+          "label": "Comerț cu produse nealimentare"
+        },
+        {
+          "code": "alimentatie",
+          "label": "Alimentație publică"
         }
       ]
     }
