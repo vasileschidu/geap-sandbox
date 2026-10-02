@@ -6530,9 +6530,17 @@
   display: flex;
   min-height: 48px;
   overflow: hidden;
-  padding: var(--spacing-8, 8px) 36px var(--spacing-8, 8px) var(--spacing-12, 12px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   position: relative;
+  resize: vertical;
   width: 100%;
+}
+
+/* Figma text-area (Components 14701:8123): 8/12 padding and a resize grip in the
+   bottom-right corner; the right padding grows only when a trailing icon sits there */
+.e-permits-fo-textarea:has(> .icon) {
+  padding-right: 36px;
+  resize: none;
 }
 
 .e-permits-fo-textarea:hover {
@@ -11567,18 +11575,6 @@
   width: 100%;
 }
 
-.e-permits-builder__breadcrumbs {
-  align-items: center;
-  color: var(--color-text-base-tertiary, #757575);
-  display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  white-space: nowrap;
-}
-
 .e-permits-builder__service-title-row {
   align-items: center;
   display: flex;
@@ -16201,14 +16197,7 @@
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__advanced {
-  box-sizing: border-box;
   width: auto;
-  min-width: 158px;
-  max-width: none;
-  height: 32px;
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-10, 10px);
-  gap: var(--spacing-8, 8px);
-  overflow: hidden;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__table-tools {
@@ -16411,14 +16400,14 @@
   overflow: hidden;
 }
 
+/* one quick-search width on every table — the Utilizatori size (400) */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__search {
-  flex: 0 1 560px;
-  width: min(560px, 100%);
-  min-width: 320px;
-  max-width: 560px;
+  flex: 0 1 400px;
+  width: min(400px, 100%);
+  min-width: 200px;
+  max-width: 400px;
   height: 40px;
   align-self: center;
-  transform: translateY(3px);
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__advanced {
@@ -16442,23 +16431,7 @@
 /* Users registry keeps the shared table component and swaps only its schema. */
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace.is-users-registry .e-permits-workplace__header {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 64px;
   overflow: visible;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace.is-users-registry .e-permits-workplace__toolbar {
-  height: 64px;
-  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
-  gap: var(--spacing-16, 16px);
-  overflow: visible;
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace.is-users-registry .e-permits-workplace__search {
-  width: min(400px, 100%);
-  min-width: 200px;
-  max-width: 400px;
-  flex: 0 1 400px;
-  transform: none;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace.is-users-registry .e-permits-workplace__table-tools {
@@ -16604,7 +16577,8 @@
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__card {
-  background: #f7f7f7;
+  /* same surface as the timeline, stack group heads and preview frame */
+  background: var(--color-background-base-secondary, #f5f5f5);
   border: 0;
   border-radius: 24px;
   box-sizing: border-box;
@@ -17987,64 +17961,6 @@
   white-space: nowrap;
 }
 
-/* breadcrumbs: 14/20, tertiary levels, medium current, 16px chevron, gap 4 */
-.e-permits-page-header__breadcrumbs {
-  color: var(--color-text-base-tertiary, #757575);
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-}
-
-.e-permits-page-header__breadcrumbs .breadcrumbs__list,
-.e-permits-page-header__breadcrumbs .breadcrumbs__item {
-  gap: var(--spacing-4, 4px);
-  min-width: 0;
-}
-
-.e-permits-page-header__breadcrumbs .breadcrumbs__item::after {
-  height: var(--spacing-16, 16px);
-  margin-left: 0;
-  width: var(--spacing-16, 16px);
-}
-
-/* Figma: truncate past 30 characters; the full label stays in the title row */
-.e-permits-page-header__breadcrumbs .breadcrumbs__link,
-.e-permits-page-header__breadcrumbs .breadcrumbs__current {
-  display: block;
-  max-width: 30ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-page-header__breadcrumbs .breadcrumbs__link,
-.e-permits-page-header__breadcrumbs .breadcrumbs__link:visited {
-  color: var(--color-text-base-tertiary, #757575);
-  font-weight: var(--font-weight-fw-regular, 400);
-}
-
-.e-permits-page-header__breadcrumbs a.breadcrumbs__link:hover {
-  color: var(--color-text-brand-default, #0058d2);
-  text-decoration: underline;
-}
-
-.e-permits-page-header__breadcrumbs span.breadcrumbs__link:hover {
-  color: var(--color-text-base-tertiary, #757575);
-  text-decoration: none;
-}
-
-.e-permits-page-header__breadcrumbs a.breadcrumbs__link:focus-visible {
-  border-radius: var(--border-radius-4, 4px);
-  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
-}
-
-.e-permits-page-header__breadcrumbs .breadcrumbs__current {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
 /* actions: Figma button-filled-rectangular, Small (32px, radius 6) */
 .e-permits-page-header__aside {
   align-items: flex-end;
@@ -18092,11 +18008,12 @@
   border-color: transparent;
 }
 
+/* one line, in the meta labels' type (Cod, Versiune, Stare): 12/16 regular tertiary */
 .e-permits-page-header__caption {
   color: var(--color-text-base-tertiary, #757575);
   font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-10, 10px);
-  line-height: var(--line-height-lh-12, 12px);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
   margin: 0;
   white-space: nowrap;
 }
@@ -18310,11 +18227,15 @@
 
 /* role profile: same 66px top bar as dosar / utilizator (it had no rules, so
    the registry title and refresh leaked into the bar) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-clas-profile-open .e-permits-shell__content,
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-ntpl-profile-open .e-permits-shell__content,
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-role-profile-open .e-permits-shell__content {
   grid-row: 2;
   padding-top: 0;
 }
 
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-clas-profile-open .e-permits-workplace__title-row--shell,
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-ntpl-profile-open .e-permits-workplace__title-row--shell,
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell.is-role-profile-open .e-permits-workplace__title-row--shell {
   display: none;
 }
@@ -18328,11 +18249,11 @@
 /* ≤960px the shell stacks: the top bar leaves the workspace grid, so the
    profile states must not keep reserving a 66px row above the header */
 @media (max-width: 960px) {
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell:is(.is-dosar-profile-open, .is-user-profile-open, .is-role-profile-open) .e-permits-shell__workspace {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell:is(.is-dosar-profile-open, .is-user-profile-open, .is-role-profile-open, .is-ntpl-profile-open, .is-clas-profile-open) .e-permits-shell__workspace {
     grid-template-rows: minmax(0, 1fr);
   }
 
-  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell:is(.is-dosar-profile-open, .is-user-profile-open, .is-role-profile-open) .e-permits-shell__content {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell:is(.is-dosar-profile-open, .is-user-profile-open, .is-role-profile-open, .is-ntpl-profile-open, .is-clas-profile-open) .e-permits-shell__content {
     grid-row: 1;
   }
 }
@@ -18560,19 +18481,19 @@
    hover outline, red focus ring; the message is the library inline error */
 .e-permits-fo-input.is-error,
 .e-permits-fo-textarea.is-error {
-  border-color: var(--color-border-error-default, #d92d20);
+  border-color: var(--color-border-danger-default, #d92d20);
 }
 
 .e-permits-fo-input.is-error:not(.is-readonly):hover,
 .e-permits-fo-textarea.is-error:hover {
-  border-color: var(--color-border-error-default, #d92d20);
-  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20);
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20);
 }
 
 .e-permits-fo-input.is-error:not(.is-readonly):focus-within,
 .e-permits-fo-textarea.is-error:focus-within {
-  border-color: var(--color-border-error-default, #d92d20);
-  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
 }
 
 .e-permits-fo-field .message--inline[hidden] {
@@ -18950,18 +18871,18 @@
    convention as the back-office fields — red border, red ring when open /
    focused, and the component's 2px hover outline turns red */
 .e-permits-fo-select.is-error .e-permits-fo-select__button {
-  border-color: var(--color-border-error-default, #d92d20);
+  border-color: var(--color-border-danger-default, #d92d20);
 }
 
 .e-permits-fo-select.is-error .e-permits-fo-select__button:hover {
-  border-color: var(--color-border-error-default, #d92d20);
-  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20);
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20);
 }
 
 .e-permits-fo-select.is-error .e-permits-fo-select__button:focus-visible,
 .e-permits-fo-select.is-error.is-open .e-permits-fo-select__button {
-  border-color: var(--color-border-error-default, #d92d20);
-  box-shadow: inset 0 0 0 1px var(--color-border-error-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
 }
 
 /* a disabled choice (e.g. a moment with no payment branch): listed with its
@@ -19520,4 +19441,1212 @@
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
   word-break: break-word;
+}
+
+/* Pașaportul serviciului — Date generale / Taxe (Feature 90575) */
+/* heading tools: caption + action on the right of a section heading (Date din RSSP) */
+.e-permits-passport__heading-tools {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-12, 12px);
+  padding-bottom: var(--spacing-12, 12px);
+}
+
+/* "Vezi …" tab link after a row value (Obiecte configurate în GEAP) */
+.e-permits-passport__row-link {
+  margin-left: auto;
+  padding-left: var(--spacing-12, 12px);
+}
+
+/* the caption after a Conectat / Neutilizat tag */
+.e-permits-passport__row-note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+/* one value per line (Conturi bancare) */
+.e-permits-passport__row-lines {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-passport__row-line {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* Sumar taxe — three stacked-list groups side by side (Plăți, Tarife, Conturi bancare
+   at double width); each hugs its rows. Rows are name left, value right. */
+.e-permits-fee-summary {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .e-permits-fee-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.e-permits-fee-summary__group {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.e-permits-fee-summary__group--wide {
+  grid-column: span 2;
+}
+
+/* a gray 20px icon before each group title, to set the summary apart from the lists */
+.e-permits-fee-summary__icon {
+  color: var(--color-icon-base-tertiary, #8c8c8c);
+  flex: 0 0 auto;
+  margin-right: calc(var(--spacing-2, 2px) * -1);
+}
+
+.e-permits-fee-summary__row {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-fee-summary__name {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+/* value box held to one text line, so a row with the IBAN copy button is as tall as a
+   plain-number row and the three groups end on the same line */
+.e-permits-fee-summary__value {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--line-height-lh-20, 20px);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* Dosar — process actions (core/case-flow.js; Figma 6675:158399).
+   Trigger: library btn-primary btn-md with the current step's name and a chevron.
+   Menu: the stack-menu component; items carry a second line (where the action leads,
+   or why it is blocked). Blocked items stay visible and focusable (aria-disabled). */
+.e-permits-case-actions__trigger {
+  gap: var(--spacing-8, 8px);
+  max-width: 100%;
+}
+
+.e-permits-case-actions__trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-case-actions__menu {
+  max-width: min(360px, calc(100vw - var(--spacing-32, 32px)));
+  min-width: 300px;
+}
+
+.e-permits-stack__menu .e-permits-case-actions__item {
+  align-items: flex-start;
+  height: auto;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-8, 8px) var(--spacing-8, 8px);
+  white-space: normal;
+}
+
+.e-permits-stack__menu .e-permits-case-actions__item .icon {
+  margin-top: var(--spacing-2, 2px);
+}
+
+.e-permits-case-actions__copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.e-permits-case-actions__label {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-case-actions__hint {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-case-actions__item[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+.e-permits-case-actions__item[aria-disabled="true"] .e-permits-case-actions__label,
+.e-permits-case-actions__item[aria-disabled="true"] .icon {
+  color: var(--color-text-disabled-default, #a3a3a3);
+}
+
+.e-permits-case-actions__item[aria-disabled="true"] .e-permits-case-actions__hint {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-case-actions__note {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-case-actions__separator {
+  background: var(--color-border-base-default, #d9d9d9);
+  height: 1px;
+  margin: var(--spacing-2, 2px) 0;
+}
+
+/* step forms in the case drawer */
+/* modal forms: 24 between every field, toggle and block (grid rows included) */
+.e-permits-case-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-case-form .e-permits-user-create__grid {
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-case-form__lead {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-case-form__fees {
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--spacing-16, 16px);
+}
+
+.e-permits-case-form__fee {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px) 0;
+}
+
+.e-permits-case-form__fee + .e-permits-case-form__fee,
+.e-permits-case-form__fees > li + li {
+  border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-case-form__fee--pick {
+  cursor: pointer;
+}
+
+.e-permits-case-form__fee-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.e-permits-case-form__fee-name {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-case-form__fee-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  overflow-wrap: anywhere;
+}
+
+.e-permits-case-form__fee-amount {
+  color: var(--color-text-base-default, #121212);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-case-form__total {
+  align-items: center;
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  justify-content: space-between;
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-16, 16px);
+}
+
+/* timeline: a step not reached yet (Vezi fluxul) — an empty ring */
+.e-permits-timeline__item--upcoming .e-permits-timeline__marker::before {
+  border: 2px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  content: "";
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-timeline__item--upcoming .e-permits-timeline__title {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* the step the action leads to, under the form in the case modal */
+.e-permits-case-form__next {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* while a date picker is open in the case modal, let its panel overflow the dialog
+   (the modal clips and the content scrolls, which would cut the calendar) */
+.e-permits-case-modal:has(.date-picker__field.is-open),
+.e-permits-case-modal:has(.date-picker__field.is-open) .modal-content {
+  overflow: visible;
+}
+
+/* US-187 — notification template detail inside the passport Notificări tab */
+.e-permits-ntpl__back {
+  align-self: flex-start;
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl__notice {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl__tabs {
+  align-self: flex-start;
+}
+
+.e-permits-ntpl__body {
+  margin-top: var(--spacing-16, 16px);
+}
+
+
+/* ==========================================================================
+   Șablon de notificare — profile (Feature 91332)
+   Shared page header; Texte = form column + "Câmpuri disponibile" panel,
+   Destinatari = rule cards. The Texte layout needs the wider 1280 column.
+   ========================================================================== */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-ntpl-profile .e-permits-user-profile__panel {
+  max-width: 1280px;
+}
+
+.e-permits-ntpl-card {
+  background: var(--color-background-base-default, #fff);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  padding: var(--spacing-20, 20px);
+}
+
+/* body editor: formatting bar + editable surface (or the raw HTML) */
+.e-permits-ntpl-editor {
+  background: var(--color-background-base-default, #fff);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  margin-top: var(--spacing-8, 8px);
+  overflow: hidden;
+}
+
+/* the full-flow input focus (.e-permits-fo-textarea:focus-within): brand border,
+   1px inset brand, 4px blue-sky-200 ring — Vizual and HTML alike */
+.e-permits-ntpl-editor:focus-within {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+  /* the inner 1px as an outline: it paints above the toolbar, so the 2px brand edge
+     runs round the whole perimeter (an inset shadow sat under the toolbar fill) */
+  outline: 1px solid var(--color-border-brand-default, #0058d2);
+  outline-offset: -2px;
+}
+
+.e-permits-ntpl-editor.is-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-ntpl-editor__toolbar {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-editor__tool .icon {
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-ntpl-editor__tool {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  min-width: var(--spacing-32, 32px);
+  padding: 0 var(--spacing-6, 6px);
+}
+
+.e-permits-ntpl-editor__tool:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-ntpl-editor__tool:focus-visible {
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-ntpl-editor__sep {
+  background: var(--color-border-base-default, #d9d9d9);
+  height: var(--spacing-20, 20px);
+  margin: 0 var(--spacing-4, 4px);
+  width: 1px;
+}
+
+.e-permits-ntpl-editor__surface,
+
+.e-permits-ntpl-editor__surface {
+  outline: none;
+}
+
+.e-permits-ntpl-editor__surface p {
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-editor__surface blockquote {
+  border-left: 3px solid var(--color-border-base-default, #d9d9d9);
+  margin: 0 0 var(--spacing-8, 8px);
+  padding-left: var(--spacing-12, 12px);
+}
+
+/* HTML mode is the plain text-area component, tall enough for a template */
+.e-permits-fo-textarea.e-permits-ntpl-html {
+  min-height: 240px;
+}
+
+/* unpublished-changes notice — the Figma info-box geometry (Strong · Warning +
+   Close, 8230:2388) on the library message block: radius 8, an 8px "bone" + 8px
+   before the 24px icon, text 16/24 regular secondary with 24px top/bottom, the 16px
+   close in a 16 / 16 / 16 / 8 padded box */
+.message.e-permits-ntpl-banner {
+  align-items: flex-start;
+  animation: none;
+  background: var(--color-background-warning-secondary, #feefc6);
+  border-radius: var(--border-radius-8, 8px);
+  gap: 0;
+  margin-bottom: var(--spacing-24, 24px);
+  padding: 0 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-banner .banner__icon {
+  align-self: stretch;
+  align-items: flex-start;
+  color: var(--color-icon-warning-default, #dc6803);
+  padding: var(--spacing-24, 24px) 0 var(--spacing-16, 16px) var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-banner .banner__icon .icon {
+  height: var(--spacing-24, 24px);
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-ntpl-banner .banner__content {
+  padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-24, 24px) var(--spacing-12, 12px);
+}
+
+.e-permits-ntpl-banner .banner__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-ntpl-banner .banner__close {
+  align-items: flex-start;
+  align-self: stretch;
+  border-radius: 0 var(--border-radius-8, 8px) var(--border-radius-8, 8px) 0;
+  color: var(--color-icon-base-default, #121212);
+  margin-left: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-banner .banner__close > span {
+  align-items: center;
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-ntpl-banner .banner__close .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl-card--stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20, 20px);
+}
+
+/* Corp: label left, Vizual · HTML right */
+/* "Corp" (the regular field label) sits on the row's baseline, right above the
+   editor; the Vizual / HTML switch on the right */
+.e-permits-ntpl-body-head {
+  align-items: flex-end;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-ntpl-body-head > label {
+  margin: 0;
+  padding: 0;
+}
+
+
+
+/* ---- Șablon › Conținut: editor column + sticky live preview ---------------- */
+/* 7 / 5 of the column: the preview gets real width */
+.e-permits-ntpl-content {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-32, 32px);
+  grid-template-columns: minmax(0, 7fr) minmax(360px, 5fr);
+}
+
+@media (max-width: 1100px) {
+  .e-permits-ntpl-content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.e-permits-ntpl-content__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-ntpl-content__main > .e-permits-dosar-profil__section {
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+/* language switch left, "Inserează câmp" right */
+.e-permits-ntpl-content__bar {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+  margin-bottom: var(--spacing-8, 8px);
+}
+
+/* a language with missing subject / body */
+.e-permits-ntpl-dot {
+  background: var(--color-icon-warning-default, #dc6803);
+  border-radius: var(--border-radius-full, 999px);
+  display: inline-block;
+  height: var(--spacing-6, 6px);
+  margin-left: var(--spacing-6, 6px);
+  vertical-align: middle;
+  width: var(--spacing-6, 6px);
+}
+
+/* field picker (stack-menu) — search + list */
+.e-permits-ntpl-picker {
+  max-height: 420px;
+  overflow: hidden;
+  padding: var(--spacing-8, 8px);
+  width: 320px;
+}
+
+.e-permits-ntpl-picker:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+}
+
+.e-permits-ntpl-picker__search {
+  flex: 0 0 auto;
+}
+
+.e-permits-ntpl-picker__group {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: var(--spacing-12, 12px) var(--spacing-8, 8px) var(--spacing-4, 4px);
+}
+
+.e-permits-ntpl-picker__list {
+  list-style: none;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+.e-permits-stack__menu .e-permits-ntpl-picker__item {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
+  height: auto;
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+  white-space: normal;
+}
+
+.e-permits-ntpl-picker__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-ntpl-picker__token {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-ntpl-picker__empty {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  padding: var(--spacing-8, 8px);
+}
+
+/* SMS counter: hint left, count right; red when over one SMS */
+.e-permits-ntpl-count {
+  display: flex;
+  justify-content: space-between;
+}
+
+.e-permits-ntpl-count__value.is-over {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+/* preview — the message as the recipient sees it */
+.e-permits-ntpl-content__preview {
+  min-width: 0;
+  position: sticky;
+  top: var(--spacing-24, 24px);
+}
+
+/* the E-mail / SMS switch is taller than the title: keep air above the preview */
+.e-permits-ntpl-content__preview > .e-permits-dosar-profil__section-heading {
+  margin-bottom: var(--spacing-12, 12px);
+}
+
+/* concentric corners: outer radius = inner card radius (12) + the padding between (16) */
+.e-permits-ntpl-preview {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: calc(var(--border-radius-12, 12px) + var(--spacing-16, 16px));
+  padding: var(--spacing-16, 16px);
+}
+
+/* the grey frame always hugs the white card (16 all round); the card owns the height.
+   Head / body divider: inset 16 from the card edges, not edge to edge */
+.e-permits-ntpl-preview__mail-head,
+.e-permits-ntpl-preview__chat-head {
+  background-image: linear-gradient(var(--color-border-base-default, #d9d9d9), var(--color-border-base-default, #d9d9d9));
+  background-position: bottom center;
+  background-repeat: no-repeat;
+  background-size: calc(100% - 2 * var(--spacing-16, 16px)) 1px;
+}
+
+.e-permits-ntpl-preview__mail-head {
+  background-color: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl-preview__from {
+  color: var(--color-text-base-tertiary, #757575);
+  display: block;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-ntpl-preview__subject {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.e-permits-ntpl-preview__mail-body {
+  background: var(--color-background-base-default, #fff);
+  min-height: 160px;
+  border-radius: 0 0 var(--border-radius-12, 12px) var(--border-radius-12, 12px);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow-wrap: anywhere;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl-preview__mail-body p {
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-ntpl-preview__mail-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Mobil — iOS Messages: centred sender, a timestamp, a received grey bubble with
+   one squared corner on the sender side */
+.e-permits-ntpl-preview__chat-head {
+  align-items: center;
+  background-color: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-12, 12px);
+}
+
+.e-permits-ntpl-preview__avatar {
+  align-items: center;
+  background: var(--gray-400, #a3a3a3);
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--white, #fff);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-40, 40px);
+  justify-content: center;
+  line-height: var(--line-height-lh-20, 20px);
+  width: var(--spacing-40, 40px);
+}
+
+.e-permits-ntpl-preview__sender {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-ntpl-preview__chat {
+  align-items: flex-start;
+  background: var(--color-background-base-default, #fff);
+  border-radius: 0 0 var(--border-radius-12, 12px) var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-height: 200px;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-ntpl-preview__time {
+  align-self: center;
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-ntpl-preview__sms {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) var(--border-radius-16, 16px) var(--border-radius-4, 4px);
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  max-width: 80%;
+  overflow-wrap: anywhere;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+/* a field filled with sample data */
+.e-permits-ntpl-preview__token {
+  background: var(--color-background-brand-secondary, #e6effb);
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-brand-default, #0058d2);
+  padding: 0 var(--spacing-2, 2px);
+}
+
+.e-permits-ntpl-preview__empty {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-style: normal;
+  margin: 0;
+}
+
+.e-permits-ntpl-preview__note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: var(--spacing-8, 8px) 0 0;
+}
+
+
+
+/* compact neutral info note (renderInfoNote): library .info-box--neutral at hint
+   scale — 8/12 padding, radius 8, 14/20 secondary, 20px tertiary info icon */
+.info-box.e-permits-info-note {
+  align-items: flex-start;
+  animation: none;
+  background-color: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-info-note .info-box__icon {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-info-note .info-box__icon .icon {
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-info-note .info-box__content p {
+  margin: 0;
+}
+
+/* tariff drawer: status strip on top — one status tag + its meaning, actions right */
+.e-permits-tariff__status {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-tariff__status-copy {
+  display: flex;
+  flex: 1 1 240px;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.e-permits-tariff__status-title {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-tariff__status-text {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-tariff__status-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+/* advanced filter row: between the toolbar and the status tabs (back office grid) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header {
+  grid-template-rows: 56px auto auto;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__filters {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tabs {
+  grid-row: 3;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace.is-users-registry .e-permits-workplace__header {
+  grid-template-rows: 56px auto;
+}
+
+/* Workplace toolbar = one component for every table: search, "Filtrare avansată",
+   tools, primary action on one 56px row, all centred on the same line. The search
+   (40px box, 36px visible) and the button (36px) share that centre — no per-table
+   geometry, no nudges. */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__toolbar {
+  align-items: center;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__toolbar > * {
+  align-self: center;
+  margin-block: 0;
+  transform: none;
+}
+
+/* ===== Clasificatoare (profile, values, dependency map, wizard) ===== */
+.e-permits-clas-profile .e-permits-user-profile__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-clas-banner {
+  margin: 0;
+}
+
+/* Valori: full-width grid edited in place — the registry table (.e-permits-workplace__table)
+   with a sticky Cod column and a sticky actions column on the right */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-clas-profile .e-permits-user-profile__panel.is-wide {
+  gap: 0;
+  max-width: none;
+  padding: 0;
+  width: 100%;
+}
+
+.e-permits-clas-grid__notice {
+  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) 0;
+}
+
+.e-permits-clas-grid__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-clas-grid__toolbar .e-permits-workplace__search {
+  min-width: 200px;
+}
+
+.e-permits-clas-grid__toolbar .e-permits-rt__chips {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 1100px) {
+  .e-permits-clas-grid__toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+/* notices are re-rendered with the grid: no entry animation on every keystroke */
+.e-permits-clas-profile .e-permits-clas-banner,
+.e-permits-clas-grid__notice .message {
+  animation: none;
+}
+
+.e-permits-clas-grid__actions-bar {
+  flex: 0 0 auto;
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  margin-left: auto;
+}
+
+.e-permits-clas-grid__selection {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-right: var(--spacing-4, 4px);
+}
+
+.e-permits-clas-grid__wrap {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-clas-grid__table .e-permits-clas-grid__actions {
+  max-width: 136px !important;
+  min-width: 136px !important;
+  width: 136px !important;
+}
+
+/* only the actions column stays pinned: the registry pins columns 1–2, the values
+   table does not (Cod is short and the table is compact) */
+.e-permits-clas-grid__table th:nth-child(1),
+.e-permits-clas-grid__table td:nth-child(1),
+.e-permits-clas-grid__table th:nth-child(2),
+.e-permits-clas-grid__table td:nth-child(2) {
+  border-right: 0;
+  position: static;
+}
+
+.e-permits-clas-grid__table.is-editable tbody tr[data-clas-row] {
+  cursor: pointer;
+}
+
+.e-permits-clas-grid__table tbody tr[data-clas-row]:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
+}
+
+.e-permits-clas-grid__text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-clas-grid__muted {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-clas-grid__code {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-clas-grid__tags {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-clas-grid__table tr.is-inactive td {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-clas-grid__table tbody tr.is-selected td {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-clas-grid__empty-row td {
+  height: auto;
+  padding: var(--spacing-16, 16px);
+  white-space: normal;
+}
+
+.e-permits-clas-grid__footer {
+  color: var(--color-text-base-tertiary, #757575);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-clas-empty {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  justify-content: center;
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-32, 32px) var(--spacing-20, 20px);
+}
+
+.e-permits-clas-add-row {
+  display: flex;
+  margin-top: calc(var(--spacing-12, 12px) * -1);
+}
+
+/* Hartă dependențe: ancestors → this → children, as linked cards */
+.e-permits-clas-tree {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-clas-tree__link {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding-left: var(--spacing-16, 16px);
+}
+
+.e-permits-clas-tree__children {
+  border-left: var(--border-width-2, 2px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+  margin-left: var(--spacing-16, 16px);
+  padding-left: var(--spacing-16, 16px);
+}
+
+.e-permits-clas-tree__branch {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-clas-node {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  font-family: var(--font-family-primary-font, Onest);
+  gap: var(--spacing-2, 2px);
+  max-width: 360px;
+  padding: var(--spacing-10, 10px) var(--spacing-16, 16px);
+  text-align: left;
+}
+
+.e-permits-clas-node:hover {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+}
+
+.e-permits-clas-node:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: var(--spacing-2, 2px);
+}
+
+.e-permits-clas-node.is-current {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+  cursor: default;
+}
+
+.e-permits-clas-node__name {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-clas-node__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-clas-lineage {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0 0 var(--spacing-12, 12px);
+}
+
+/* Setări: stacked form fields inside a card, 24 between fields */
+.e-permits-clas-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-clas-form__row {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* wizard: services / subset checklists */
+.e-permits-clas-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-clas-checklist--values {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  max-height: 360px;
+  overflow-y: auto;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-clas-subset__bar {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  justify-content: space-between;
+  line-height: var(--line-height-lh-20, 20px);
+  margin-bottom: var(--spacing-8, 8px);
+}
+
+.e-permits-clas-choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  margin-top: var(--spacing-16, 16px);
+}
+
+/* CSV import */
+.e-permits-clas-import__keys {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-clas-import__file {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+}
+
+/* Field error — Figma GEAP 2.0 text-input, Style=Destructive (1559:44346) "Error message":
+   20px circle-error-filled + 14/20 regular danger text, 4px apart, 8px under the control.
+   Replaces the 12px message--small every drawer used before. */
+.message--inline.e-permits-fo-field__error {
+  align-items: flex-start;
+  color: var(--color-text-danger-default, #d92d20);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.message--inline.e-permits-fo-field__error .icon {
+  color: var(--color-icon-danger-default, #d92d20);
+  flex: 0 0 20px;
+  height: 20px;
+  width: 20px;
+}
+
+/* the shared confirmation (askConfirm) can be raised from inside a drawer (1200):
+   it always stacks above whatever opened it */
+.modal-overlay.e-permits-confirm-overlay {
+  z-index: 1300;
+}
+
+/* two-line cells (RU over EN) truncate per line with an ellipsis */
+.e-permits-clas-grid__table td .e-permits-workplace__case-cell {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-clas-grid__table td .e-permits-workplace__case-cell > .e-permits-clas-grid__text {
+  max-width: 100%;
 }

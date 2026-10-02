@@ -193,7 +193,7 @@ but this doc previously described it wrongly, see the entry.
 | Pagination | `.pagination .pagination__item .pagination__link` | `pagination.html` | library |
 | Accordion | `.accordion__trigger[aria-expanded]` | `accordion.html` | library (partial) |
 | Avatar | `.avatar` + type + size | `avatar.html` | library |
-| Breadcrumb | `.breadcrumbs__list .breadcrumbs__item` | `breadcrumbs.html` | library |
+| Breadcrumb | `.breadcrumbs .breadcrumbs__list .breadcrumbs__item` + `--trailing/--truncate/--mobile`; JS `renderBreadcrumbs()` | `breadcrumbs.html` | app (every page) |
 | Progress tracker | `.progress-tracker .progress-step--*` | `progress-tracker.html` | library (partial) |
 | Sidebar | `.sidebar .sidebar__link--active` | `sidebar.html` | library (partial) |
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
@@ -743,7 +743,7 @@ earlier removal from this document was correct.
 |---|---|
 | field wrapper | `.e-permits-fo-field` > `<label for>` (+ `.e-permits-fo-required` marker via `requiredMark()`) > control > `.e-permits-fo-field__hint` or library `message--inline message--error` |
 | text | `.e-permits-fo-input` > `<input>` (+ trailing `.icon`); read-only = `is-filled is-readonly`; error = `is-error` |
-| textarea | `.e-permits-fo-textarea` > `<textarea>` |
+| textarea | `.e-permits-fo-textarea` > `<textarea>` — Figma text-area (Components 14701:8123): padding 8/12, radius 8, 14/20, `resize: vertical` with the grip bottom-right; a trailing `.icon` adds 36px right padding and turns resize off |
 | select | `.e-permits-fo-select` via `renderFoSelectControl()` in `e-permits-shell.js` — a hidden native `<select>` keeps the value and fires `change`; the open list floats (fixed, in `<body>`) so modals/drawers never clip it; ↑↓ Enter Esc |
 
 Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/-shell/textarea/label/required`,
@@ -1280,6 +1280,17 @@ text column, and modifiers are orthogonal so they combine freely:
 intensity class is mandatory (§0.3).
 
 **JS contracts** — `data-cell-copy="<value>"` and `data-cell-tooltip="<full text>"`.
+
+**Back office (2026-10-01):** `js/table-cells.js` is loaded on
+`e-permits-acte-permisive.html`, and table cells use the **dark `.cell-tooltip`**, never a
+native `title`:
+- **Long text:** registry names and authority stacks carry `data-cell-tooltip`. The
+  tooltip shows only when the text is clipped.
+- **"+N" overflow badges** (e.g. user roles beyond the first 2): the
+  `.e-permits-workplace__user-role-more` has `data-cell-tooltip="<all items, comma
+  separated>"` + **`data-cell-tooltip-always`**, which shows it even though nothing is
+  clipped. It also has `tabindex="0"` and an `aria-label` "Toate rolurile: …", so a
+  keyboard reaches it. Every future "+N" uses the same pattern.
 
 **Three deliberate behaviours, each fixing a flaw in what it replaces:**
 
@@ -1866,35 +1877,45 @@ the same gesture on the *header/indicator* dismisses or expands the sheet.
 
 ### Breadcrumb
 
-`.breadcrumbs` → `.breadcrumbs__list` (gap 6) → `.breadcrumbs__item` (draws its own
-chevron `::after`) → `.breadcrumbs__link`, ending in `.breadcrumbs__current`
-(semibold, `--gray-900`). Also real: `.breadcrumbs__item--back` (rotated `::before`),
-`.breadcrumbs--mobile`, and `.breadcrumbs__item.is-selected` (suppresses the separator).
-State-mirror classes `.is-hover` / `.is-focus` / `.is-visited` exist alongside the real
-pseudo-classes. Visited is `--magenta-600`.
+**Updated 2026-10-01 to Figma Components `232:5282`** (items `81:714` Enabled / `81:763`
+Active). It is used on every page, and nothing else draws a trail.
 
-#### Verified against Figma — 2026-09-03
+```html
+<nav class="breadcrumbs" aria-label="Navigare">
+  <ol class="breadcrumbs__list">
+    <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="#">Level 1</a></li>
+    <li class="breadcrumbs__item is-selected"><span class="breadcrumbs__current" aria-current="page">Active</span></li>
+  </ol>
+</nav>
+```
 
-Source: **Components** file, page **Breadcrumb** `602:1933`. Its guidance is explicit,
-and **two rules are entirely unimplemented**:
-
-**⚠ Mismatch 1 — no overflow collapsing.** Figma: *"Limit the visible items to a maximum
-of **4**. If there are additional pages, collapse them into an overflow menu"* — and the
-page shows a `contextual-menu` instance doing exactly that. CSS has **no** overflow,
-collapse, or menu class (`breadcrumbs__overflow` / `--collapsed` / `__menu` all return
-zero). A long trail renders in full.
-
-**⚠ Mismatch 2 — no truncation or tooltip.** Figma: *"If a breadcrumb label exceeds **30
-characters**, truncate it with an ellipsis and display the full page title in a tooltip
-on hover"*, with a `tooltip` instance shown. The breadcrumb CSS contains **no**
-`text-overflow`, `ellipsis`, `max-width`, `overflow` or `white-space` rule at all.
-
-**⚠ Mismatch 3 — hover colour is broken.** `.breadcrumbs__link:hover` sets
-`color: var(--brand-600)` **with no fallback**, and `--brand-600` is **defined nowhere**
-(0 occurrences). The declaration is therefore invalid at computed-value time, so `color`
-resolves to `unset` → `inherit`, picking up `.breadcrumbs`' `--gray-700`. Only the
-underline actually changes on hover. Fix by pointing it at `--blue-sky-600` (or
-`--color-text-brand-default`), consistent with `.link`.
+- Levels: 14/20 regular, `--color-text-base-tertiary`. Each item draws a 16px
+  chevron-right-small `::after`, gap 4 (list and item).
+- Current: 14/20 **medium**, `--color-text-base-default`, no chevron.
+- Hover (a / button link): brand text + underline. Focus: 2px white + 4px focus-ring
+  shadow, radius 4. Visited = enabled (no magenta). A `<span class="breadcrumbs__link">`
+  is plain text and has no hover.
+- Modifiers:
+  - `.breadcrumbs--trailing`: the last item keeps its chevron. Use it when the trail runs
+    into a page title (RAP EVO, the form builder).
+  - `.breadcrumbs--truncate`: levels are cut at 30ch with an ellipsis (back-office page
+    header).
+  - `.breadcrumbs--mobile` + `.breadcrumbs__item--back`: a 20px chevron-left-small and
+    the previous level only.
+- Leading icon: an `<svg class="icon">` inside the first link (16px).
+- `button.breadcrumbs__link` is reset, for back handlers such as
+  `data-rap-profile-back`.
+- JS: `renderBreadcrumbs(crumbs, { trailing, truncate, label })` in `e-permits-shell.js`;
+  `renderPageHeaderTop` uses it with `truncate`. A crumb with `attr` is a link.
+- **Profile trail = menu section › registry › record.** `renderPageHeaderTop`
+  prepends the side-menu group (`navSectionOf()`: the group of the menu item named by
+  the first crumb, else of the active item) as plain text. For example: Administrare ›
+  Configurări servicii › 003000023, or Locul de muncă › Dosarele mele › D-2026-004575.
+- Deleted forks — never bring back: `.e-permits-page-header__breadcrumbs` overrides,
+  `.e-permits-builder__breadcrumbs`, and the `.rap-breadcrumbs` visuals (that class is
+  now only a layout/reveal hook).
+- Still open from Figma `602:1933`: collapsing past 4 levels into an overflow menu, and
+  the full-label tooltip on truncated levels.
 
 > Third instance of the same class of bug: `--black-1000`/`--white-1000` (12 tokens,
 > §8), the `--color-text-brand-default-hover` collapse on `.link`, and now
@@ -1911,6 +1932,8 @@ Never `<input type="date">`. Use the **library date picker** inside the full-flo
 placeholder `ZZ/LL/AAAA`, value `DD/MM/YYYY`; trigger `.e-permits-fo-input__icon-button.js-date-picker-toggle`
 with `icon-calendar`, `aria-label="Alege data"`) + `.date-picker-panel` (library markup; weekdays L M M J V S D).
 Reference renderer: `datePicker()` in the tariff drawer (`e-permits-shell.js`).
+- `data-min="YYYY-MM-DD"` on the picker disables earlier days (today keeps its ring
+  but reads disabled). Still validate typed dates.
 - `js/input-date-picker.js` (library) exposes `window.GEAPDatePicker.init(root)` — call it after
   rendering pickers late (drawers, modals); pickers present at load are wired automatically.
 - Picking a day fires a bubbling `change` on the input; the ISO value is on the picker's
@@ -2053,8 +2076,8 @@ Figma also wraps each spinner in a container 4px larger on every side (24 / 28 /
 (`.progress-tracker`, `.progress-step--completed/--current/--blocked`) is *not* on this
 page, despite the page's name. It is either undesigned or lives elsewhere — do not
 assume this page covers it.
-- **Breadcrumb** — `.breadcrumbs__item` draws its own chevron `::after`.
-  `.breadcrumbs__item--back`, `.breadcrumbs--mobile` real. **`.breadcrumbs--with-icon` does not exist.**
+- **Breadcrumb** — see "Breadcrumb" above (Figma 232:5282). `--trailing`, `--truncate`,
+  `--mobile` are real; **`.breadcrumbs--with-icon` does not exist** (an icon inside the link is enough).
 - **Tooltip** — **no `data-tooltip` selector exists in CSS.** The component is
   `.tooltip` + `.tooltip-inner` + `.tooltip-arrow`, revealed with `.show`, positioned by
   `js/tooltip.js`, with 12 placement modifiers (`--top-left` … `--right-bottom`) and
@@ -2146,8 +2169,8 @@ them. Needs a pixel check against Figma before changing anything.
 `--color-text-base-inverse-default` → `var(--white-1000)`, one of the 12 undefined
 primitives (§8). Fixing `--white-1000` would let `.link-white` use the token properly.
 
-Primary visited resolves to `--magenta-600` (`#aa18ce`), consistent with
-`.breadcrumbs__link:visited`.
+Primary visited resolves to `--magenta-600` (`#aa18ce`). Breadcrumbs no longer use
+visited (Figma 232:5282).
 
 ---
 
@@ -2320,7 +2343,7 @@ separators.
 **Detail sections under the header** (Figma `8993:39453`): 20px below the tabs, a
 1024 column of stacked sections. Use `renderInfoCard(title, rows)` →
 `.e-permits-dosar-profil__section` > `__section-title` (48px, H5 18/26, optional
-source tag `e-permits-workplace__tag--neutral` at gap 16) > `__card` (`#f7f7f7`,
+source tag `e-permits-workplace__tag--neutral` at gap 16) > `__card` (`--color-background-base-secondary` #f5f5f5, the same as the timeline; was a hardcoded #f7f7f7 until 2026-10-01,
 radius 24, padding 8/20) > `__row` (40px including the divider; label 256 column
 truncates with `title`, value at +300). Row values: plain text, copy-code, or the
 library `.status-tag` (24px, `text-transform` reset): `--neutral.is-subtle` for
@@ -2509,6 +2532,477 @@ in `js/e-permits-shell.js`; CSS is in `css/e-permits-acte-permisive.css`.
   users have no audit data yet, so `roleEvents()` and `userEvents()` derive events from
   their dates.
 
+### Service passport structure — Feature 90575 (updated 2026-10-01)
+
+These are the tabs in `SERVICE_PROFILE_TABS`, in order:
+1. Date generale
+2. Tipuri solicitări
+3. Formulare
+4. **Taxe**
+5. Interdependențe
+6. Clasificatoare specifice
+7. Șabloane
+8. Notificări
+9. Setări
+10. Jurnal de evenimente
+
+- **Taxe** (`fees`) and **Tarife** (`tariffs`) are separate top-level tabs. "Plăți și
+  tarife" is gone, and an old `#serviciu/<code>/payments` link maps to `fees`
+  (`normalizePassportTab`).
+  - **Taxe** opens with "Sumar taxe" (see below), then the payments
+    (`renderServicePayments`).
+  - **Tarife** is `renderServiceTariffsTab`.
+- **Sumar taxe** (`.e-permits-fee-summary`), revised 2026-10-01, reuses the **stacked-list
+  group** pattern (the "Emitere primară" header):
+  - Each figure is one `.e-permits-stack` with an `h3.e-permits-stack__group-label`
+    (the name plus the `badge badge--lg badge--solid-light` count), then
+    `.e-permits-stack__item` rows: `__name` (14/20, secondary) on the left, `__value`
+    (14/20 Medium) on the right.
+  - Grid: 4 columns, 2 below 900px, 24px gap, `align-items: start`. A value is held to one
+    20px line, so IBAN rows match the plain-number rows.
+  - **Plăți** and **Tarife** break down into Publicate and Inactive, two rows each, so all
+    three groups line up.
+    **Conturi bancare** (`--wide`, 2 columns) lists each account name with its IBAN in
+    `renderProfileCopyCode`.
+  - Each header starts with a gray 20px icon (`.icon.medium.e-permits-fee-summary__icon`,
+    `icon-base-tertiary`): Plăți `receipt-bill`, Tarife `coins`, Conturi bancare
+    `credit-card`.
+  - Build them with `renderFeeGroup({ label, icon, count, rows, wide })`.
+  - No stat cards: the earlier stat-card and stats-strip versions are gone.
+- **Date generale** blocks, in order:
+  1. **Date din RSSP**: `renderPassportBlock`, a section heading with a "Sincronizat"
+     tag, then `.e-permits-passport__heading-tools` (last-sync caption plus an admin-only
+     "Resincronizează" `btn-neutral btn-sm`).
+  2. **Obiecte configurate în GEAP**: rows end with a `passportTabLink` (library
+     `link link-primary link-sm` with `data-passport-tab`) in
+     `.e-permits-passport__row-link`.
+  3. **Ultimele modificări**: the first 3 events, via `renderEventTimeline` with the
+     `actionHtml` link "Vezi tot jurnalul".
+  4. **Servicii guvernamentale conectate**: MConnect, MPay and MSign, each with a
+     "Conectat"/"Neutilizat" tag and an `.e-permits-passport__row-note`.
+  5. The rest of the RSSP record (descriere, subservicii, documente, valabilitate,
+     date locale).
+- **List:** the columns read "Act permisiv" and "Instituția". The toolbar button is
+  "Creează serviciu nou" (it opens the RSSP import modal titled "Creează serviciu nou din
+  RSSP"). The per-row actions stay Sincronizare and Actualizare.
+
+### Dosar process actions — case profile header (added 2026-10-01)
+
+Source: "Case (Dosar) logic and actions" plus Figma `6675:158399`. The engine is
+`core/case-flow.js`, pure and unit-tested in `test/case-flow.test.mjs`. It holds both
+flows (Complex, Simplified), and node ids stay local to each.
+
+- **State:**
+  - `row.flowState` holds `{ flowId, stateId, suspended, decision, vars, visited, log }`.
+  - `statusId` (5 values) is always derived, never stored.
+  - Decision and server nodes are auto-resolved; a case only rests on a human or
+    terminal node.
+- **Header button:** the library `btn btn-primary btn-md` (blue, medium) labelled with the current
+  step's **US name**, plus a chevron. It opens the **stack-menu** (`data-stack-menu-trigger`,
+  `.e-permits-stack__menu.e-permits-case-actions__menu`). The page-header caption reads
+  "Responsabil: <lane>".
+- **Menu items** (`.e-permits-case-actions__item`): an icon plus `__copy`, which holds
+  `__label` and a 12/16 `__hint` (where the action leads, or why it is blocked).
+  - Order: advance, then branch, then return, then a separator, then operations.
+  - `__note` explains when the role cannot act ("Acest pas aparține rolului X…").
+  - The menu always ends with "Vezi fluxul".
+  - Blocked actions stay visible with `aria-disabled="true"`; never use `disabled`.
+- **Rules:**
+  - Lane gating, plus role bans (`ROLE_BANS`).
+  - "Dosar examinat" is blocked by pending fees, active reviews or suspension.
+  - No "Suspendare termen" while the case is suspended.
+  - Operations ("Taxă de examinare", "Avize interinstituționale") do not move the case.
+- **Forms** open in the simple library modal `#case-action-modal` (`modal--md`, header
+  plus `modal-content` plus a `modal-buttons` footer). They are short forms, so no
+  drawer. The right drawer `[data-case-drawer]` is only for "Vezi fluxul". The fields
+  are the full-flow fields, the library date picker, segmented control and checkbox
+  (the fee row is the label).
+  - While a date picker is open, the modal lets its panel overflow
+    (`.e-permits-case-modal:has(.date-picker__field.is-open)`).
+  - Operations get verb buttons: "Adaugă taxele", "Solicită avizul". Each form uses the current step's form if it has one, else the target step's.
+  - Documented: distribuire (US-114), taxa (US-117), nota (US-156, read-only), act
+    (US-120), respingere (US-121).
+  - Deduced, and shown with a warning banner until the PO confirms: suspendare
+    (US-126/127), aviz (US-119).
+- **Demo stand-ins**, tagged "Demo" in the menu:
+  - Asistent tehnic step, MPay payment
+  - "Simulează achitarea taxelor", "Simulează răspunsul la avize"
+  - "Reia examinarea" (the info-supplement sub-process)
+- **Tabs (§10):**
+  - Taxe, Avize and Act/Decizie show only when they have content.
+  - Expert sees only Avize; Specialist ghișeu sees only Date generale and Detalii
+    solicitare.
+  - New tab: **Jurnalul activităților** (`renderEventTimeline` over `flowState.log`).
+- **"Vezi fluxul":** the guard variables plus the human steps on the timeline:
+  visited = check, current = clock, not reached = the `--upcoming` ring.
+- **Roles:** a Director assignment (`ansp-director-chisinau`) was added for the signing
+  steps.
+
+### Dosar profile tabs — stacked lists (updated 2026-10-01)
+
+The case tabs use the same layout as the service passport: a section heading with a
+short meta, then `renderStackedList` groups (stack group header plus count badge, rows
+of title, status tags, a dot-separated meta line and an optional right-side action).
+The old `renderProfileTable` / `renderProfileDocList` helpers are removed.
+
+| Tab | Groups | Row |
+|---|---|---|
+| Taxe și plăți | În așteptare · Achitate | name, Neachitat/Achitat tag · **amount**, MPAY id (copy), issued, due date (+ days left) or paid date. Meta: "Total … · achitat …" |
+| Avize | Active · Termen depășit · Finalizate | institution, status tag · id (copy), requested, deadline, result |
+| Act/Decizie | — | title, Aprobare/Respingere tag · issued, source · "Vezi documentul" |
+| Documente generate | — | name, file-type tag · issued, author · "Vezi documentul" |
+| Notificări | by channel (Email, MNotify) | event, Livrată/Livrare eșuată tag · recipient, sent at |
+
+### Passport Notificări — service notification templates, US-187 (added 2026-10-01)
+
+- **Data:**
+  - `servicesStore.notificationTemplates` holds the **system** templates, the only
+    clone sources.
+  - `service.geap.notificationTemplates` holds the service's own templates (the old
+    `geap.notifications` list is gone).
+  - Template fields: `{ code, name, dataSource, priority, description,
+    rules: [{ recipient, channels }], texts: { ro|ru|en: { subject, body } }, active,
+    source, createdAt, createdBy }`.
+- **List** (`renderServiceNotifications`):
+  - Section title "Șabloane de notificare", then the `.e-permits-pay__toolbar` with a
+    meta line and, for the central admin only, "Clonează" (`btn-neutral btn-sm`, icon
+    copy) and "Șablon nou" (`btn-secondary btn-sm`, icon plus-large).
+  - Rows are stack items: Denumire, an Activ/Inactiv tag · Cod tag, "Obiect: …", rules
+    summary · "Deschide".
+  - Empty state: "Serviciul nu are încă șabloane proprii de notificare." The buttons
+    stay.
+- **Clone** (`#ntpl-clone-modal`, library `modal--md`):
+  - Fields: Șablonul sursă (fo-select), Cod and Denumire. Picking a source fills Cod and
+    Denumire; both stay editable.
+  - The code must be unique in the service (case-insensitive).
+  - The copy keeps texts and rules and starts Inactiv. It opens the detail on Texte.
+- **New** (`[data-ntpl-drawer]`, right drawer):
+  - Fields: Cod, Denumire, Sursa de date (Dosar · Plată · Act permisiv · Aviz),
+    Prioritate (segmented Normală · Înaltă), Descriere, then content per language
+    (segmented RO · RU · EN switching Obiect + Text).
+  - It starts Inactiv with no rules.
+- **Detail** (in the tab):
+  - A "← Șabloane de notificare" `btn-neutral btn-sm` returns to this tab, not to a
+    global list.
+  - Then the title, an Activ/Inactiv tag and the code, an info banner while inactive,
+    and a segmented control: Texte (one passport section per language) · Reguli de
+    destinatari (stack rows) · Detalii.
+  - Editing and activation are US-184.
+- Each form uses its own id prefix (`ntpl-clone-*`, `ntpl-new-*`), so labels never
+  point at a hidden duplicate.
+- **Global registry** (Administrare › Șabloane de notificare, central admin;
+  `shellView: "ntpl-registry"`, nav icon `notification.svg` mask):
+  - A read-only workplace table of the system templates (`buildNtplDb`, kind `ntpl`).
+    Columns: Cod tag, Denumire, Obiect, Sursa de date, Destinatari, Clonat în (number
+    of services), Stare.
+  - A row opens the **template profile** (see below).
+  - Revised columns: Cod (copy code plus "Sursă: Sistem | Personalizat", the template's
+    origin), Denumire (fill), Obiect (Dosar · Notificare · Plată · Act permisiv ·
+    Utilizator), Reguli (count), Versiune, Actualizat (date stack), Stare. Tabs: Toate ·
+    Active. Only the Cod column is frozen, with no divider after Denumire.
+  - The dataset has 31 templates, codes like `Case.Registered`. Only `origin: "Sistem"`
+    templates can be cloned into a service.
+  - Create, edit and activate wait for Feature 91332 / US-184.
+
+### Notification template profile (redesigned 2026-10-01)
+
+Designed around the job: write what the notification says (per language and channel),
+see it as the recipient will, choose who gets it, then publish.
+
+- **Route:** `#sablon/<code>/<content|recipients|settings|history>`. The old `texts`
+  maps to `content`.
+- **Panel:** `[data-ntpl-profile]`, shell state `is-ntpl-profile-open`, column 1280.
+
+**Header:** the standard page header.
+- Actions follow the state (the Contentful / Sanity save-then-publish pattern), with no
+  ⋮ menu:
+  - unsaved edits: Renunță (`btn-neutral`) · Salvează (`btn-secondary`) · Publică
+    (`btn-primary`)
+  - saved, not published: Publică
+  - nothing pending: "Publică" stays, aria-disabled, tooltip "Nu există modificări de
+    publicat."
+- **Publish modal** (`#ntpl-publish-modal`, `modal--md`): Publică saves pending edits
+  silently, then opens "Publică șablonul":
+  - Subtitle: `vX → vY · destinatarii primesc noua versiune imediat.`
+  - "Ce s-a modificat": a diff against `tpl.published` (the last published snapshot;
+    taken on first open when the data has none). It uses the case-modal bordered list
+    (`.e-permits-case-form__fees` / `__fee`): area + detail, with a tag on the right
+    (Adăugat `success` · Modificat `info` · Eliminat `danger`).
+  - Areas: Conținut · <limbă> (Subiect, Corp, Mesaj scurt), Regulă · <destinatar>
+    (matched by recipient; Livrare a → b, separate, active), and Setări. Stare is not
+    included, because it applies at once.
+  - "Intră în vigoare": a segmented control, Imediat · La o dată anume. "La o dată
+    anume" shows the library date picker "Data intrării în vigoare" (required,
+    `data-min` = tomorrow), with the hint "Până atunci destinatarii primesc versiunea
+    curentă." The subtitle switches to "intră în vigoare pe <date>."
+  - "Comentariu" (required, max 200, counter): why it changed, e.g. a law amendment. It
+    becomes the Istoric entry text; the change list is stored in `history[].changes`.
+  - A scheduled publish stores `history[].effectiveFrom`. Until that date the entry is
+    "vX · programată pentru <date>" with the pending (clock) marker, the previous version
+    stays "curentă", and the caption reads "vX intră în vigoare pe <date> · <user>".
+    Toast: "Publicare programată".
+- Caption: one line, "Publicat <date> · <user>", 12/16 tertiary (the meta labels' type).
+- Meta: Cod (copy) · Versiune · Stare · Obiect · Sursă.
+- Tabs: **Conținut · Destinatari (count) · Setări · Istoric (count)**.
+- Leaving with unsaved edits asks first: crumb, shell back, menu, `beforeunload`.
+
+**Unpublished notice:** the Figma info-box, Strong · Warning with Close
+(`.e-permits-ntpl-banner`; see the banner notes above). Closing it is remembered per
+template for the session.
+
+**Conținut** (`.e-permits-ntpl-content`): the editor and a sticky **Previzualizare**,
+split **7fr / 5fr** (the preview is at least 360px). The preview heading keeps 12px
+above the preview because its segmented control is taller than the title. "Corp" is
+the regular field label (14/20), **bottom-aligned** with the Vizual / HTML switch, so it
+sits right above the editor. The preview container uses **concentric corners**: outer
+radius = inner card radius + the padding between them (`calc(radius-12 + spacing-16)` =
+28).
+- Top bar: the small RO · RU · EN segmented control on the left. A language missing its
+  subject or body shows a warning dot (`.e-permits-ntpl-dot`) and the aria label
+  "— incomplet". On the right, **"Inserează câmp"**.
+- Editor toolbar icons come from the **central icon system v1.22** (filled=off,
+  stroke=2, radius=1, join=round), added to both sprites: `text-bold`, `text-italic`,
+  `text-underline`, `list-bullets`, `list-numbers`, `link`, `brackets` (IF), `undo`,
+  `redo`, `eraser`.
+- Editor focus = the input focus: brand border, a 1px brand **outline** (offset −2, so it
+  paints over the toolbar on the whole perimeter) and a 4px blue-sky-200 ring.
+- "Inserează câmp" (`btn-secondary btn-sm`) is a stack-menu picker (`.e-permits-ntpl-picker`): search, the
+  data-source group, then label plus `{{Token}}`. It inserts at the last caret, in
+  Subiect, Corp or the SMS text. It replaces the permanent fields column.
+- **E-mail** card: Subiect, then Corp (label left, Vizual · HTML right), then the
+  editor. Toolbar: B I U · lists · link, IF · undo, redo, clear.
+  HTML mode swaps the editor for the plain text-area component
+  (`.e-permits-fo-textarea.e-permits-ntpl-html`, min-height 240), with no custom frame.
+- **Mesaj scurt** card ("SMS și MNotify — fără formatare"): a textarea and a counter
+  `n/160` that turns `danger` when over.
+- **Previzualizare:** E-mail · **Mobil** segmented control.
+  - E-mail shows a header (sender, subject) and the body.
+  - The grey frame has no min-height: it always hugs the white card at 16 all round,
+    and the card owns the height (body min 160, chat min 200). The head/body divider
+    is inset 16 from the card's edges (a 1px background gradient, not a border).
+  - Mobil is the iOS Messages pattern on the same white card as the e-mail. No phone
+    frame:
+    - head (`__chat-head`): a centred 40px grey avatar "eP" and "e-Permis" 12/16
+      medium, then a divider
+    - body (`__chat`): a centred "Mesaj text · Azi 09:41" 12/16 tertiary stamp, then
+      one received bubble (`__sms`: base-tertiary, radius 16 with a 4px sender-side
+      corner, 8/12 padding, max 80%) holding the short text.
+  - Tokens are filled from `NTPL_FIELDS` sample values and marked
+    (`.e-permits-ntpl-preview__token`, brand-secondary).
+  - It updates live on every input.
+
+**Destinatari:** a stacked list plus `#ntpl-rule-modal` (unchanged).
+
+**Setări:**
+- "Identificare" card: Cod*, Denumire* · Sursa de date (determines the fields),
+  Prioritate · Descriere (for admins). These are versioned and saved via the header.
+- "Stare" card: the library switch "Șablon activ". It applies immediately, without
+  publishing.
+
+**Istoric:** published versions as the event timeline; the newest is tagged
+"· curentă".
+
+**Segmented controls** on this page (language, Vizual/HTML, E-mail/SMS) are the library
+default (Figma `segmented-control`). There is no `--small` and no page override.
+
+**Validation:** code required and unique; name required; RO subject and body required.
+A failed save jumps to the tab that holds the error.
+
+### Routing — every page has its own address (added 2026-10-01)
+
+- **Menu pages** write `#<nav-id>` with `pushState`, so Back and Forward work.
+- **Profiles** write `#dosar/<id>/<tab>`, `#serviciu/<code>/<tab>`, `#utilizator/<id>/<tab>`
+  or `#rol/<id>/<tab>` with `replaceState`, and light up their parent menu item
+  (`setActiveNav`).
+- **On load and on `popstate`, `routeFromHash()` opens what the address names.** An
+  unknown or foreign hash keeps the role's default page and rewrites its hash.
+- **Closing a profile** restores its page's hash (`restorePageHash`). A role switch
+  writes the new default page's hash.
+- Creating or cloning writes a row to the service's Jurnal de evenimente.
+
+### Segmented control — aligned to Figma (updated 2026-10-01)
+
+Figma Components `segmented-control` (`661:10142`, Segment Count 2–5 × Breakpoint) with
+`.segmented-control-item` (`663:10946`, Mode On/Off × State Default/Hover/Focus). The
+library CSS (`main.css`, both copies) now matches it:
+
+| Part | Value |
+|---|---|
+| Track | `background-base-tertiary`, radius full, padding 6, gap 6 (Mobile: padding 4) |
+| Item | 40px pill (padding 10/16; Mobile 44px), 14/20 |
+| Off | regular 400, `text-base-secondary`, transparent |
+| Hover | `background-base-tertiary-hover` |
+| On (`.is-selected`) | `background-base-inverse-default`, `text-base-inverse-default`, **medium 500**, shadow `0 1px 3px rgba(0,0,0,.16), 0 0 .5px rgba(0,0,0,.3)` |
+| Focus | `0 0 0 2px white, 0 0 0 5px blue-sky-500` (on or off) |
+| Separator | the 1px divider between two unselected items (Figma "Separator" property) |
+
+`--small` and `--large` remain in the library, but Figma has no such sizes. Use the
+default.
+
+### Toggle — the back-office switch (added 2026-10-01)
+
+`renderToggle({ label, description, checked, attrs, disabled })` in
+`e-permits-shell.js`, CSS `.e-permits-toggle` in `e-permits-shell.css`. It replaces every
+library `.switch` in the back office: template "Șablon activ", the rule modal switches,
+"Plată recurentă" and "Calcul prin formulă".
+
+- **Geometry:** Tailwind "toggle with label on the right". The toggle comes first, then
+  a 12px gap, then the text. Track 44×24 (`calc(20*2+4)`), padding 2, radius full, an
+  inset hairline. Knob 20px white with a small shadow, slides 20px.
+- **Colours:** off `--gray-250`; on `background-brand-default`; focus-visible 2px brand
+  outline with 2px offset; disabled 50% opacity.
+- **Text:** `__label` 14/20 medium default (`margin: 0`, it is a real `<label for>`),
+  then `__description` 14/20 tertiary, with no gap between them. The track is
+  **vertically centred on the whole text block** (`align-items: center`).
+- **Spacing in modal forms:** `.e-permits-case-form` puts 24 between every field and
+  toggle; its `.e-permits-user-create__grid` uses 24 too (the drawer grid default is 32).
+  In the rule modal, Destinatar and Livrare are both full width, required, and use full-flow
+  selects.
+- **Knob** has `pointer-events: none`, so a click on it reaches the switch.
+- **Activation needs a confirmation:** see "Activare / dezactivare" below.
+- **Markup:** a real checkbox with `role="switch"` covers the track
+  (`appearance: none`). The description is linked by `aria-describedby`. Respects
+  `prefers-reduced-motion`.
+
+### Advanced filter — faceted chips, one master apply (added 2026-10-01)
+
+Figma: GEAP 2.0 `244:14333` (filter-chip + numbered badge + contextual-menu). The
+pattern is Azure DevOps / Linear. The code is in `e-permits-shell.js` (`FILTER_FACETS`,
+`renderFilterBar`, `openFilterPopover`, `commitFilters`) and `e-permits-shell.css`
+(`.e-permits-workplace__filter*`). It works on every table in the shared workplace
+panel: dossiers, sarcini, users, roles, services, authorities, tariffs, ntpl.
+
+- **Quick search:** the same width on every table, the Utilizatori size: `flex: 0 1 400px`,
+  min 200, max 400 (2026-10-01).
+- **Toolbar = one component:** every table uses the same 56px toolbar row. Its items are
+  all `align-self: center`, with no transforms and no per-registry geometry (the users
+  registry used to override height/padding and the search had a 3px nudge, which put
+  them out of line). The search (40px box, 36px visible) and the button (36px) share
+  one centre line. Never re-add per-table toolbar overrides.
+- **Trigger:** "Filtrare avansată" is the plain library button. It is **`btn btn-neutral
+  btn-sm`**: always grey, with no local colours/hover/focus. It is 36px tall, which is
+  the quick search's *visible* height: the search is a 40px box whose 1px line sits
+  inside a 2px transparent border.
+  - **Icon:** `icon-filter-lines`, the Foundations "filter-2". The symbol's viewBox is
+    padded (`-3 -3 30 30`) so it has the same optical margin as the other 16px button
+    icons; at 0 0 24 24 it touched the label.
+  - **Badge:** our numbered badge `badge badge--lg badge--solid-light`, with the number
+    of applied values.
+  - **Bar:** shows **only after a click** on the button (user 2026-10-01). A second
+    click hides it even with filters applied; the badge keeps the count.
+  - **Nothing to filter:** it stays visible but `aria-disabled`, with the tooltip "Lista
+    nu are încă valori după care să filtrezi."
+- **Bar** (`[data-workplace-filters]`, header grid row 2):
+  - **Chips:** one per facet. The chip is the library `.chip` sized to the Figma
+    filter-chip: 40px, **14/20 medium** (user 2026-10-01; Figma has 16/24), 16 left / 12 right padding, gap 6,
+    `base-tertiary` background.
+  - **Selected chip:** `inverse-default` background, with a white `.chip__badge`
+    (18px, 12 medium) holding the number of selected values, then a 20px chevron
+    (bottom, or top while open).
+  - **Count badge:** the same `badge badge--lg badge--solid-light` as everywhere else.
+  - **"Mai multe":** the first 4 facets are chips; the rest sit in "Mai multe" (a menu)
+    until they hold a value.
+- **Popover** (Figma contextual-menu: 270 wide, radius 16, Drop Shadow/300):
+  - **Options:** compact: padding 8 / 12, gap 10, no gap between rows (~36–40px
+    tall; user 2026-10-01), a library checkbox, then the value.
+    **Status values render as their tag** (`renderTag` with the registry tone); other
+    values are plain 14/20.
+  - **Search:** shown when there are more than 7 values.
+  - **Footer:** a top border, right-aligned: **Confirmă** (`btn-primary btn-sm`) and
+    **Șterge** (`btn-neutral btn-sm` with `cross-small`).
+- **Two layers, one query (the calls are costly):**
+  1. **Popover "Confirmă":** writes that facet into the bar's draft. **No query.** Esc,
+     an outside click, a resize or a table scroll closes it without changes.
+  2. **Pending draft:** the bar shows "Filtre neaplicate" · **Renunță**
+     (`btn-text-neutral`) · **Aplică filtrele** (`btn-primary btn-sm`). One click
+     commits every facet at once, as one query, and resets to page 1.
+  3. **Applied:** "N rezultate" · "Șterge filtrele" (clearing everything applies at
+     once). Nothing applied: the hint "Alege valorile, apoi aplică filtrele."
+- **Logic:**
+  - OR within a facet, AND across facets, on top of the status tab and the quick
+    search.
+  - **Status tabs:** they count inside the applied filters.
+  - **Which facets show:** a facet is offered when the registry has at least 2 values,
+    or when it holds a value.
+- **State:**
+  - **Persisted:** the applied filters + whether the bar is open, per registry kind, in
+    `sessionStorage` (`e-permits-filters:<kind>`).
+  - **Not persisted:** the draft.
+- **Empty result:** "Nu există rezultate pentru filtrele aplicate." + "Șterge filtrele".
+- **New registry:** add `FILTER_FACETS[kind]` (`{ key, label, get(row) → string |
+  string[] }`). Arrays are multi-value. Facets named `statut` / `status` render their
+  values as tags.
+
+### Info note — explanatory text in a grey box (added 2026-10-01)
+
+`renderInfoNote(html)`: the library `.info-box.info-box--neutral` with
+`.e-permits-info-note`, at hint scale.
+- **Geometry:** padding 8/12, radius 8, background `base-secondary`, 14/20 secondary
+  text, a 20px `circle-info-filled` icon in tertiary, gap 8, no slide-in animation.
+- **When to use it:** for a sentence that explains a *rule or consequence* and is not
+  tied to one input. Examples: "Tarif global: nu se leagă de …", "Tariful nu apare la
+  selecție până nu este activat.", "Scutirile sunt disponibile doar pentru plata
+  manuală."
+- **Not for field hints:** a hint under an input stays `.e-permits-fo-field__hint`.
+
+### Tariff drawer — status strip (added 2026-10-01)
+
+An existing tariff opens with `.e-permits-tariff__status` at the top of the drawer
+body, before Identitate. It is a grey, radius-12 strip with 12/16 padding:
+- **Left:** "Stare" plus **one** tag: Schiță / Activ (`success`) / Inactiv. Under it,
+  the meaning in 12/16 tertiary:
+  - Schiță: "Nu se folosește încă. Publică-l din subsol…"
+  - Activ: "Disponibil la selecție…"
+  - Inactiv: "Publicat, dar nu apare la selecție…"
+- **Right:** the actions, `btn-sm`:
+  - **Activează** (`btn-secondary`) / **Dezactivează** (`btn-neutral`), only for a
+    published tariff.
+  - **Șterge** (`btn-outline-destructive`). While the tariff is used by payments,
+    Șterge is `aria-disabled` with a `data-tooltip-reason` ("Folosit în N plăți — poate
+    fi doar dezactivat.").
+- **Every action confirms** through `askConfirm`.
+- **Publică vs Activează:** Publică (footer, drafts only) is the first release.
+  Activează turns a published tariff back on. The old double tags (Publicat + Activ)
+  and the bottom lifecycle row are gone.
+
+### "Vezi …" links that go elsewhere (updated 2026-10-01)
+
+A link that switches tab or page (passport "Vezi tipurile / formularele / șabloanele /
+taxele / tot jurnalul", "Vezi schema fluxului…") ends with the **"→" character in its
+label**, e.g. "Vezi tipurile →". It is not a separate icon element. It uses the library
+`.link` (Figma: Components `link`, 14 Small, with the label "… →").
+
+### Activare / dezactivare — always confirmed (added 2026-10-01)
+
+Every activate/deactivate goes through `askConfirm({ title, text, confirmLabel,
+destructive }, onConfirm)`, which uses the shared `#service-confirm-modal`.
+- **Title:** a question ("Activezi …?" / "Dezactivezi …?" / "Inactivezi …?").
+- **Text:** one sentence on the consequence.
+- **Buttons:** Anulează plus a verb button. The verb button is `btn-primary` to
+  activate and `btn-destructive` to deactivate.
+- **A switch waits for the answer:** it is reset to its old state, and is set only on
+  confirm.
+- **Covered:** the template "Șablon activ" switch, rule Activează/Dezactivează (⋮),
+  the tariff Activează/Dezactivează, payment activate/deactivate, and user
+  Activare/Inactivare.
+
+### Buttons — focus and "disabled with a reason" (updated 2026-10-01)
+
+- **Focus:** Figma `button-filled-rectangular` State=Focus, the same for every Style and
+  Size: `box-shadow: 0 0 0 2px white, 0 0 0 5px var(--focus-ring)`, `outline: none`.
+  - All 16 `.btn-*` focus rules now use `:focus-visible`, so a mouse click no longer
+    leaves a ring. Before, most used `:focus` with a white outline and a 4px ring.
+  - The demo page `Components/buttons.html` shows the same ring.
+- **`.btn[aria-disabled="true"]`:** the disabled look (gray-250 / gray-500, opacity .6,
+  not-allowed), with no hover or active change.
+  - Use it instead of `disabled` when the user should learn **why** the action is
+    unavailable. Add `data-tooltip-reason="…"`; the click handler checks
+    `aria-disabled` itself.
+  - `js/icon-tooltip.js` (both copies) shows `data-tooltip-reason` on **any** control,
+    text buttons included, even when aria-disabled.
+- **Example:** the template header's "Publică" is always present. With nothing to
+  publish it is aria-disabled, with the tooltip "Nu există modificări de publicat."
+
 ### Workplace toolbar primary action (added 2026-10-01)
 
 "Adaugă tarif" and "Sincronizare serviciu" in the workplace toolbar use the library
@@ -2519,6 +3013,136 @@ for new actions. Leading "add" icons on small buttons are `icon-plus-large` at
 glyph at that size.
 
 ---
+
+### Field error message — Figma text-input Destructive (updated 2026-10-02)
+
+Source: GEAP 2.0 `text-input` (1559:44137), Style=Destructive (1559:44346), "Error message":
+20px `circle-error-filled` + 14/20 regular `--color-text-danger-default`, 4px gap, 8px under
+the control (the `.e-permits-fo-field` gap).
+
+```html
+<span class="message message--inline message--error e-permits-fo-field__error">
+  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
+  <span>Completează denumirea.</span>
+</span>
+```
+
+- Replaces the 12px `message--small` + outline icon in **every** back-office drawer (case,
+  tariff, payment, template, request type, sync, classifiers).
+- The control gets `is-error`. A field's hint stays in the DOM with `hidden` while the error
+  shows, and returns when the field is edited (the error clears on input; validation re-runs
+  on save). Copy: an instruction ending in a full stop — "Completează …", "Alege …",
+  "Codul există deja în acest clasificator."
+
+### Confirmation above drawers (added 2026-10-02)
+
+`#service-confirm-modal` carries `.e-permits-confirm-overlay` (z-index 1300 > drawer 1200 >
+modal 1000), so an `askConfirm` raised from inside a drawer is never hidden behind it.
+
+### Clasificatoare — catalogue, profile, lifecycle (added 2026-10-02)
+
+Back-office module for governed reference lists (Features 91423 / 91424, Concept v0.2).
+Code: `js/e-permits-shell.js` section "CLASIFICATOARE"; pure logic in `core/classifiers.js`
+(tests: `test/classifiers-lifecycle.test.mjs`, `test/parity.classifiers.mjs`); rights in
+`core/permissions.js`. Data: `data/classifiers/classifiers.json`, `data/catalog/clas-field-types.json`.
+Route: `#classifiers` (catalogue), `#clasificator/<id>/<tab>` (profile).
+
+**Catalogue** — the shared workplace registry, `workplaceDb.kind = "classifiers"`.
+Columns: Denumire (sticky; name over description, `e-permits-workplace__case-cell`) · Domeniu (tag:
+Sistem neutral / Global brand / Autoritate info / Serviciu neutral) · Familie · Sursă · Utilizat de
+(modules over objects) · Valori · Versiune · Modificat (`renderDateTime`) · Statut (tag).
+Tabs Toate / Publicate / Ciorne / Arhivate. Facets: Statut, Domeniu, Familie, Sursă, Autoritate,
+Utilizare. Toolbar primary action "Clasificator nou" (`data-workplace-add-classifier`).
+
+**Profile** — standard page header (breadcrumb Administrare › Clasificatoare › name, title,
+actions, caption), meta row (Domeniu, Familie, Sursă, Versiune, Statut, Autoritate), sticky tabs:
+Valori · Coloane (`#…/coloane`, ex-Câmpuri: values are a table and a CSV, so "coloană" is the word users see) · Mapare MConnect (only `mod = mconnect` or `sursa = api`) · Hartă dependențe ·
+Jurnal de evenimente · Setări. A state notice sits above every tab:
+
+| State | Notice |
+|---|---|
+| archived | info note "arhivat … Republică-l ca să-l poți edita" (read-only) |
+| local admin, flag off | info note "Administratorul central gestionează…" (read-only) |
+| draft over published | `banner--warning` "Ciornă nepublicată. Consumatorii văd încă vX · N noi, M modificate…" (`core.draftChanges`) |
+| never-published draft | info note "nu este disponibil consumatorilor până la prima publicare" |
+
+**Lifecycle actions** (header, from `core.statusActions` + `discardMeta`; primary is the right-most):
+
+| Status | Actions |
+|---|---|
+| draft, never published | `btn-outline-destructive` Șterge ciorna · `btn-primary` Publică |
+| draft over published | `btn-neutral` Renunță la ciornă · Arhivează · `btn-primary` Publică |
+| published | `btn-neutral` Arhivează |
+| archived | `btn-primary` Republică |
+
+Every action goes through `askConfirm` and says the consumers it affects. "Publică" names the next
+version (`core.nextVersion`) and lists the changes. Non-intern sources add `btn-secondary`
+"Sincronizează". On the Setări tab with unsaved edits, Renunță · Salvează are prepended.
+
+**Editing rule** — no edit touches a published classifier in place: the first save calls
+`core.beginDraft` (snapshot kept), then logs "Ciornă deschisă". Archived blocks every edit (manual,
+import, sync). Values are never deleted — only `activ` on/off; inactive rows render tertiary text.
+
+**Valori tab — full-width compact table, edit in the drawer** (updated 2026-10-02; the
+inline row editing tried first was dropped: a value has 8–12 fields, so editing in the row
+forced sideways scrolling, and pinned columns took the space). The panel gets `.is-wide`;
+the tab renders the registry table: `.e-permits-workplace__table-wrap` >
+`table.e-permits-workplace__table.e-permits-clas-grid__table` with an explicit pixel width
+(sum of columns, as the registry) and `setColumnWidth` on each `th`; Denumire RO takes the rest.
+- Columns: select · Cod (96) · Denumire RO · Traduceri RU · EN (220, two lines "RU · …" /
+  "EN · …", ellipsis per line) · Valoare-părinte (150, code + name, tooltip) · extra columns ·
+  Activ de la (112, `dd.mm.yyyy`) · Stare (180: Activ/Inactiv + Nouă/Modificată +
+  "până la …") · actions (136, the only pinned column). Cod is NOT pinned.
+- Toolbar: registry search · chips Toate/Active/Inactive with `.badge--lg.badge--solid-light`
+  (as Tarife/Plăți) · Importă CSV · Adaugă valoare; with a selection: "N valori selectate ·
+  Activează · Dezactivează · Anulează selecția".
+- **Editing:** click a row (or Enter/Space on a focused row, rows are `tabindex=0`) or the
+  pencil opens the `.e-permits-user-create` drawer: Identificare (Cod, Valoare-părinte) ·
+  Denumiri (română required, rusă, engleză) · Coloane suplimentare (toggle / select / input
+  by type) · Valabilitate (two library date pickers). Footer: summary ("Salvarea deschide o
+  ciornă peste vX.") · Anulează · (new only) `btn-secondary` "Salvează și adaugă alta" ·
+  Salvează. Activation is not in the drawer — it is a confirmed row / bulk action.
+- Row actions: Editează · Dezactivează (`icon-pause`) / Activează (`icon-checkmark-large`) ·
+  Șterge (`icon-delete`, `aria-disabled` + reason when the value was published).
+- Renaming a code that children use asks first (`askConfirm`, raised above the drawer).
+
+**CSV import** (`#clas-modal`) — accepted column keys shown as neutral tags; "Descarcă modelul CSV";
+preview lists new / updated / ignored rows; unknown columns named in a `banner--warning`; missing
+required columns block "Importă" with a `banner--error`. `;` or `,`, quoted fields, BOM ok.
+
+**Sync** (MConnect/API) — confirm → apply (`core.applySync`: absent values auto-deactivated) →
+summary modal (noi / actualizate / dezactivate automat) plus a warning naming the consumer modules.
+
+**Hartă dependențe** — Consumatori (stacked list) · Ierarhie (`.e-permits-clas-node` cards:
+ancestors → current (brand-secondary, `aria-current`) → children, indented with a 2px rail) ·
+Creat din (dead copy lineage, kept separate from the hierarchy) · Autorități și servicii.
+
+**Create wizard** (drawer, 2 steps) — 1 Date generale: Denumire (unique), Descriere, Familie,
+Categorie (segmented Global/Specific, with a hint under it that says who can use it; Global central only), Autoritate + Servicii checklist,
+Sursă (Intern / MConnect / API, hint explains where values come from), "Pornește de la un clasificator existent". 2: copy → subset
+checklist (all checked, Selectează/Deselectează tot); intern → start empty or CSV right after;
+MConnect/API → endpoint + mapping table (ID and Denumire RO required). Creates `status: draft`,
+`everPublished: false`, v0.1, then opens the profile.
+
+Field errors clear as soon as the field is edited; validation re-runs on save.
+
+**Roles** — central admin (`adm-c`): everything. Local admin (`adm-l`, assignment
+`ansp-local-admin`, menu profile `local-admin` with a single Clasificatoare item): sees only its
+authority's *specific* classifiers; edits values only where `localAdminManageable` is on; never the
+structure (fields, parent, ID format). "Critic pentru proces" forces the flag off.
+
+**Open divergences (Feature ↔ Concept) — implemented as below, still awaiting PO decisions:**
+
+| ID | Topic | What the code does now |
+|---|---|---|
+| DIV-C1 | Immediate effect vs Draft → Published | Concept-ward: edits open a classifier-level draft over the published snapshot; consumers keep the published version until "Publică". Not per-change versions; no blocking of disruptive changes. |
+| DIV-C2 | Local admin right: perimeter or flag | Both: perimeter (own authority, specific) AND `localAdminManageable`. Flag set in Setări by central admin. |
+| DIV-C3 | Deactivation vs deprecation with replacement code | Feature: active/inactive only, no replacement code. |
+| DIV-C4 | Environment promotion DEV → PROD | Not modelled; single environment. |
+| DIV-C5 | Two "parent" relations | Separated: "Clasificator-părinte" (live hierarchy) vs "Creat din" (dead lineage), shown apart in Setări and the dependency map. |
+| DIV-C6 | Local admin read access to global classifiers | Hidden: local admin sees only its authority's specific classifiers. |
+| DIV-C7 | Auto-deactivation on sync without preview | Feature: applied immediately; summary shown after, with the consumer modules. Not blocking. |
+| DIV-C8 | Archive effect on consumers | Archive is read-only for edits/import/sync; nothing happens automatically in consumer modules. |
 
 ## 5. Removed from this document
 

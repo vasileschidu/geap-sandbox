@@ -2,6 +2,8 @@
    Two delegated concerns, both opt-in via data attributes:
      [data-cell-copy="<value>"]     copy-to-clipboard on a .cell__copy button
      [data-cell-tooltip="<text>"]   full text for a truncated .cell__truncate
+     [data-cell-tooltip-always]     with it, shown even when nothing is clipped —
+                                    e.g. a "+3" overflow badge listing the hidden items
 
    Deliberate choices, and why:
    - The tooltip only appears when the text is ACTUALLY clipped
@@ -79,7 +81,7 @@
 
   function show(target) {
     // only when the text is genuinely clipped
-    if (target.scrollWidth <= target.clientWidth) return;
+    if (!target.hasAttribute("data-cell-tooltip-always") && target.scrollWidth <= target.clientWidth) return;
     const text = target.dataset.cellTooltip || target.textContent.trim();
     if (!text) return;
 

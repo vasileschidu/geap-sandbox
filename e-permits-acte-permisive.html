@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css?v=dp-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=drawer-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tl-v2">
+  <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=filters-v7">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=clas-v6">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <script src="js/search.js" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v1" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/icon-tooltip.js?v=tip-v1" defer></script>
-  <script src="js/input-date-picker.js?v=dp-v2" defer></script>
+  <script src="js/icon-tooltip.js?v=tip-v2" defer></script>
+  <script src="js/table-cells.js?v=more-v1" defer></script>
+  <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=access-copy" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v5" defer></script>
@@ -1746,6 +1747,20 @@
           <span>Înapoi la roluri</span>
         </button>
 
+        <button class="e-permits-user-profile__shell-back" type="button" data-clas-profile-back-shell hidden>
+          <svg class="icon small" aria-hidden="true">
+            <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
+          </svg>
+          <span>Înapoi la clasificatoare</span>
+        </button>
+
+        <button class="e-permits-user-profile__shell-back" type="button" data-ntpl-profile-back-shell hidden>
+          <svg class="icon small" aria-hidden="true">
+            <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
+          </svg>
+          <span>Înapoi la șabloane</span>
+        </button>
+
         <div class="e-permits-workplace__title-row e-permits-workplace__title-row--shell">
           <div>
             <p class="e-permits-workplace__eyebrow">Locul de muncă</p>
@@ -2061,9 +2076,10 @@
           <main class="e-permits-builder__stage" aria-label="Spațiu de lucru builder">
             <header class="e-permits-builder__service-header">
               <div class="e-permits-builder__service-main">
-                <nav class="e-permits-builder__breadcrumbs" aria-label="Breadcrumb">
-                  <span>23. Notificare în comerț</span>
-                  <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right-small"></use></svg>
+                <nav class="breadcrumbs breadcrumbs--trailing" aria-label="Breadcrumb">
+                  <ol class="breadcrumbs__list">
+                    <li class="breadcrumbs__item"><span class="breadcrumbs__link">23. Notificare în comerț</span></li>
+                  </ol>
                 </nav>
                 <div class="e-permits-builder__service-title-row">
                   <h2>Cerere de notificare în comerț</h2>
@@ -3141,11 +3157,12 @@
                       </span>
                       <input class="input" type="search" data-workplace-search placeholder="Căutare rapidă după denumire, cod sau instituție">
                     </label>
-                    <button class="btn btn-secondary btn-sm e-permits-workplace__advanced" type="button">
+                    <button class="btn btn-neutral btn-sm e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="workplace-filters" data-workplace-filter-toggle>
                       <svg class="icon" width="16" height="16" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-filter"></use>
+                        <use href="assets/icons/sprite.svg#icon-filter-lines"></use>
                       </svg>
                       <span>Filtrare avansată</span>
+                      <span class="badge badge--lg badge--solid-light" data-workplace-filter-count hidden></span>
                     </button>
                     <div class="e-permits-workplace__table-tools" aria-label="Acțiuni tabel">
                       <span class="e-permits-workplace__field-count">48 câmpuri</span>
@@ -3156,19 +3173,25 @@
                         </svg>
                       </button>
                     </div>
+                    <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-classifier hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                      <span>Clasificator nou</span>
+                    </button>
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-tariff hidden>
                       <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                       <span>Adaugă tarif</span>
                     </button>
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-sync-service hidden>
-                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-                      <span>Sincronizare serviciu</span>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                      <span>Creează serviciu nou</span>
                     </button>
                     <button class="e-permits-workplace__add-user" type="button" data-workplace-add-user hidden>
                       <img src="assets/icons/add-user.svg" alt="" aria-hidden="true">
                       <span>Adaugă utilizator</span>
                     </button>
                   </div>
+
+                  <div class="e-permits-workplace__filters" id="workplace-filters" role="group" aria-label="Filtre" data-workplace-filters hidden></div>
 
                   <div class="e-permits-workplace__status-tabs" data-workplace-tabs role="tablist" aria-label="Status dosare">
                     <button class="e-permits-workplace__status-tab e-permits-workplace__status-tab--crit" type="button" role="tab">
@@ -3301,6 +3324,35 @@
                 </header>
                 <div class="e-permits-user-profile__panel" data-role-profile-panel></div>
               </div>
+
+              <!-- Clasificator — profile (Features 91423 / 91424, Concept v0.2): shared page
+                   header + Valori · Câmpuri · Mapare MConnect · Hartă dependențe · Jurnal · Setări -->
+              <div class="permits-page__content e-permits-user-profile e-permits-clas-profile" hidden data-clas-profile>
+                <header class="e-permits-page-header">
+                  <div class="e-permits-page-header__body">
+                    <div class="e-permits-page-header__top" data-clas-profile-title></div>
+                    <div class="e-permits-page-header__meta" data-clas-profile-summary></div>
+                  </div>
+                  <div class="tabs tabs--sm e-permits-page-header__tabs">
+                    <div class="tab-buttons" role="tablist" aria-label="Secțiuni clasificator" data-clas-profile-tabs></div>
+                  </div>
+                </header>
+                <div class="e-permits-user-profile__panel" data-clas-profile-panel></div>
+              </div>
+
+              <!-- Șablon de notificare — profile (Feature 91332): shared page header + Texte · Destinatari -->
+              <div class="permits-page__content e-permits-user-profile e-permits-ntpl-profile" hidden data-ntpl-profile>
+                <header class="e-permits-page-header">
+                  <div class="e-permits-page-header__body">
+                    <div class="e-permits-page-header__top" data-ntpl-profile-title></div>
+                    <div class="e-permits-page-header__meta" data-ntpl-profile-summary></div>
+                  </div>
+                  <div class="tabs tabs--sm e-permits-page-header__tabs">
+                    <div class="tab-buttons" role="tablist" aria-label="Secțiuni șablon" data-ntpl-profile-tabs></div>
+                  </div>
+                </header>
+                <div class="e-permits-user-profile__panel" data-ntpl-profile-panel></div>
+              </div>
             </div>
           </div>
         </section>
@@ -3415,7 +3467,167 @@
     </aside>
   </div>
 
-  <div class="modal-overlay" id="service-confirm-modal" aria-hidden="true">
+  <!-- Clasificatoare: one right drawer for a value's editor and for the 2-step
+       "Clasificator nou" wizard -->
+  <div class="e-permits-user-create" data-clas-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-clas-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="clas-drawer-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="clas-drawer-title" data-clas-drawer-title></h2>
+          <p class="e-permits-passport__modal-subtitle" data-clas-drawer-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-clas-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-clas-drawer-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary" data-clas-drawer-summary aria-live="polite"></span>
+        <div class="modal-buttons" data-clas-drawer-buttons></div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Clasificatoare: field editor, CSV import, MConnect sync — library modals -->
+  <div class="modal-overlay" id="clas-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal e-permits-case-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="clas-modal-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="clas-modal-title" data-clas-modal-title></h2>
+        <p class="e-permits-passport__modal-subtitle" data-clas-modal-subtitle></p>
+      </div>
+      <div class="modal-content" data-clas-modal-body></div>
+      <div class="modal--footer"><div class="modal-buttons" data-clas-modal-buttons></div></div>
+    </div>
+  </div>
+
+  <!-- Dosar: a process action's form (core/case-flow.js) — the simple library modal;
+       short forms, so no drawer -->
+  <div class="modal-overlay" id="case-action-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal e-permits-case-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="case-modal-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="case-modal-title" data-case-modal-title></h2>
+        <p class="e-permits-passport__modal-subtitle" data-case-modal-subtitle></p>
+      </div>
+      <div class="modal-content" data-case-modal-body></div>
+      <div class="modal--footer" data-case-modal-footer></div>
+    </div>
+  </div>
+
+  <!-- Dosar: "Vezi fluxul" (core/case-flow.js), right drawer -->
+  <div class="e-permits-user-create" data-case-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-case-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="case-drawer-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="case-drawer-title" data-case-title></h2>
+          <p class="e-permits-passport__modal-subtitle" data-case-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-case-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-case-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary" data-case-summary aria-live="polite"></span>
+        <div class="modal-buttons" data-case-buttons></div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- US-187: clone a system notification template into the service -->
+  <div class="modal-overlay" id="ntpl-clone-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="ntpl-clone-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="ntpl-clone-title">Clonarea unui șablon de notificare</h2>
+        <p class="e-permits-passport__modal-subtitle">Copia păstrează textele și regulile de destinatari și rămâne inactivă.</p>
+      </div>
+      <div class="modal-content" data-ntpl-clone-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-clone-cancel>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-ntpl-clone-save>Salvează</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Șablon de notificare › add / edit a recipient rule — library modal -->
+  <div class="modal-overlay" id="ntpl-rule-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="ntpl-rule-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="ntpl-rule-title" data-ntpl-rule-title></h2>
+        <p class="e-permits-passport__modal-subtitle">Regula intră în vigoare după publicarea șablonului.</p>
+      </div>
+      <div class="modal-content" data-ntpl-rule-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-rule-cancel>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-ntpl-rule-confirm>Salvează</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template profile: Publică — what changed since the last published version
+       and a required comment that goes to Istoric -->
+  <div class="modal-overlay" id="ntpl-publish-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal e-permits-case-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="ntpl-publish-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="ntpl-publish-title">Publică șablonul</h2>
+        <p class="e-permits-passport__modal-subtitle" data-ntpl-publish-subtitle></p>
+      </div>
+      <div class="modal-content" data-ntpl-publish-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-publish-cancel>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-ntpl-publish-confirm>Publică</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- US-187: a new notification template (Cod, Denumire, Sursa de date, Prioritate,
+       Descriere, content per language) — right drawer -->
+  <div class="e-permits-user-create" data-ntpl-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-ntpl-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="ntpl-drawer-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="ntpl-drawer-title">Șablon nou de notificare</h2>
+          <p class="e-permits-passport__modal-subtitle" data-ntpl-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-ntpl-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-ntpl-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary">Se creează inactiv, fără reguli de destinatari.</span>
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-ntpl-save>Salvează</button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+
+  <div class="modal-overlay e-permits-confirm-overlay" id="service-confirm-modal" aria-hidden="true">
     <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-confirm-title" aria-describedby="service-confirm-text">
       <button type="button" class="modal-close" data-close aria-label="Închide">
         <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
@@ -3431,7 +3643,10 @@
     </div>
   </div>
   <script src="core/service-passport.js?v=tarife-v4"></script>
-  <script src="js/e-permits-shell.js?v=tl-v2"></script>
+  <script src="core/classifiers.js?v=clas-v1"></script>
+  <script src="core/permissions.js?v=clas-v1"></script>
+  <script src="core/case-flow.js?v=case-v59"></script>
+  <script src="js/e-permits-shell.js?v=clas-v6"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

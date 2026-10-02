@@ -33,12 +33,31 @@
           "icon": "people"
         },
         {
+          "id": "ansp-director-chisinau",
+          "roleId": "director",
+          "roleLabel": "Director",
+          "instanceLabel": "CSP Chișinău",
+          "headerMeta": "Director • Chișinău",
+          "menuProfile": "specialist",
+          "icon": "stamp"
+        },
+        {
           "id": "ansp-central-admin",
           "roleId": "central-admin",
           "roleLabel": "Administrator central",
           "instanceLabel": "Administrația centrală ANSP",
           "headerMeta": "Administrator central • ANSP",
           "menuProfile": "central-admin",
+          "icon": "shield-user"
+        },
+        {
+          "id": "ansp-local-admin",
+          "roleId": "local-admin",
+          "roleLabel": "Administrator local",
+          "instanceLabel": "ANSP",
+          "headerMeta": "Administrator local • ANSP",
+          "menuProfile": "local-admin",
+          "authority": "ansp",
           "icon": "shield-user"
         }
       ]
@@ -185,7 +204,7 @@
               "id": "classifiers",
               "label": "Clasificatoare",
               "iconAsset": "assets/icons/admin-newspaper.svg",
-              "shellView": "role-placeholder"
+              "shellView": "classifiers-registry"
             },
             {
               "id": "service-config",
@@ -198,6 +217,29 @@
               "label": "Tarife",
               "iconAsset": "assets/icons/coins.svg",
               "shellView": "tariffs-registry"
+            },
+            {
+              "id": "notification-templates",
+              "label": "Șabloane de notificare",
+              "iconAsset": "assets/icons/notification.svg",
+              "shellView": "ntpl-registry"
+            }
+          ]
+        }
+      ]
+    },
+    "local-admin": {
+      "ariaLabel": "Administrare locală",
+      "defaultItemId": "classifiers",
+      "groups": [
+        {
+          "label": "Administrare",
+          "items": [
+            {
+              "id": "classifiers",
+              "label": "Clasificatoare",
+              "iconAsset": "assets/icons/admin-newspaper.svg",
+              "shellView": "classifiers-registry"
             }
           ]
         }

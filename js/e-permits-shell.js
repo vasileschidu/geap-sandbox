@@ -61,6 +61,35 @@ document.addEventListener("DOMContentLoaded", () => {
   let sarciniDb = null;
   let roleAdminDb = null;
   let activeRegistry = "dossiers";
+
+  /* ---- routing: every page has its own address ---------------------------------
+     #<nav-id> for a menu page (pushed, so Back works), #dosar/… #serviciu/…
+     #utilizator/… #rol/… for profiles (replaced). A refresh or Back re-reads the
+     hash (routeFromHash); closing a profile restores its page's hash. */
+  let routingFromHash = false;
+  const activeNavId = () => document.querySelector("[data-nav-item].is-active")?.dataset.navId || "";
+  const writeHash = (hash, { push = false } = {}) => {
+    const url = `${window.location.pathname}${window.location.search}${hash}`;
+    if (window.location.hash === hash) return;
+    if (push && !routingFromHash) history.pushState(null, "", url);
+    else history.replaceState(null, "", url);
+  };
+  const restorePageHash = () => {
+    const id = activeNavId();
+    if (id) writeHash(`#${id}`);
+    else history.replaceState(null, "", window.location.pathname + window.location.search);
+  };
+  /* a profile lights up the menu item it belongs to */
+  const setActiveNav = (navId) => {
+    const target = document.querySelector(`[data-nav-item][data-nav-id="${navId}"]`);
+    if (!target) return;
+    document.querySelectorAll("[data-nav-item]").forEach((link) => {
+      const isActive = link === target;
+      link.classList.toggle("is-active", isActive);
+      if (isActive) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  };
   let rolesDb = null;
   let activeAssignmentId = null;
   let userCreateReturnFocus = null;
@@ -225,6 +254,36 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#039;");
 
   /* the full-flow required marker (.e-permits-fo-required) */
+  /* Toggle — the one switch of the back office (Tailwind "toggle with label on the
+     right" geometry, our type): 44×24 track, 20px knob, 2px inset, 12px gap, then the
+     label (14/20 medium) over an optional description (14/20 tertiary).
+     attrs carry the data-* hooks; the input is a real checkbox with role="switch". */
+  let toggleSeq = 0;
+  const renderToggle = ({ label, description = "", checked = false, attrs = "", disabled = false }) => {
+    const id = `e-permits-toggle-${toggleSeq += 1}`;
+    return `
+      <div class="e-permits-toggle">
+        <span class="e-permits-toggle__control">
+          <input class="e-permits-toggle__input" type="checkbox" role="switch" id="${id}"${description ? ` aria-describedby="${id}-desc"` : ""}${checked ? " checked" : ""}${disabled ? " disabled" : ""} ${attrs}>
+          <span class="e-permits-toggle__knob" aria-hidden="true"></span>
+        </span>
+        <span class="e-permits-toggle__text">
+          <label class="e-permits-toggle__label" for="${id}">${escapeHtml(label)}</label>
+          ${description ? `<span class="e-permits-toggle__description" id="${id}-desc">${escapeHtml(description)}</span>` : ""}
+        </span>
+      </div>
+    `;
+  };
+
+  /* explanatory note (not a field hint): the library neutral info-box, compact —
+     grey surface + info icon, so it reads as information, not as a control */
+  const renderInfoNote = (html) => `
+    <div class="info-box info-box--neutral e-permits-info-note">
+      <span class="info-box__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></span>
+      <div class="info-box__content"><p>${html}</p></div>
+    </div>
+  `;
+
   const requiredMark = () => `
     <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
   `;
@@ -1048,6 +1107,8 @@ document.addEventListener("DOMContentLoaded", () => {
       setWorkplaceView(defaultItem.workplaceView);
     } else if (defaultItem?.shellView === "users-registry" && usersDb) {
       showUsersRegistry();
+    } else if (defaultItem?.shellView === "classifiers-registry") {
+      showClassifiersRegistry();
     } else if (defaultItem) {
       showRolePlaceholder(defaultItem.label);
     }
@@ -1554,8 +1615,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getSearchHaystack = (row) => {
-    if (["services", "authorities", "tariffs"].includes(workplaceDb?.kind)) {
-      return [row.cod, row.denumire, row.institutie, row.autoritateCod, row.statut, row.idno, row.domeniu]
+    if (["services", "authorities", "tariffs", "ntpl", "classifiers"].includes(workplaceDb?.kind)) {
+      return [row.cod, row.denumire, row.descriere, row.familie, row.id, row.institutie, row.autoritateCod, row.statut, row.idno, row.domeniu, row.obiect, row.sursaDate, row.reguli]
         .filter(Boolean).join(" ").toLocaleLowerCase("ro");
     }
 
@@ -1635,13 +1696,125 @@ document.addEventListener("DOMContentLoaded", () => {
     return query.split(/\s+/).every((term) => getSearchHaystack(row).includes(term));
   };
 
+  /* ---- Advanced filter (faceted, Azure DevOps / Linear pattern) -----------------
+     "Filtrare avansată" opens a bar of facet chips; a chip opens a checklist with live
+     counts; choices are staged and applied with "Aplică". OR inside a facet, AND
+     across facets, on top of the status tab and the quick search. Per registry, kept
+     for the session. */
+  const registryKindOf = () => workplaceDb?.kind || "dossiers";
+  const asList = (value) => (Array.isArray(value) ? value : [value]).map((v) => (v == null ? "" : String(v).trim())).filter((v) => v && v !== "—");
+  const FILTER_FACETS = {
+    dossiers: [
+      { key: "status", label: "Statut", get: (r) => workplaceDb.statuses?.[r.status]?.label || r.status },
+      { key: "tipDosar", label: "Tip dosar", get: (r) => workplaceDb.tipDosar?.[r.tipDosar]?.label || r.tipDosar },
+      { key: "decizia", label: "Decizia", get: (r) => workplaceDb.decisions?.[r.decizia]?.label },
+      { key: "alerte", label: "Alerte", get: (r) => (r.alerte || []).map((a) => workplaceDb.alerts?.[a]?.label || a) },
+      { key: "serviciu", label: "Serviciu", get: (r) => r.serviciu },
+      { key: "specialist", label: "Specialist", get: (r) => r.specialist?.nume },
+      { key: "subdiviziune", label: "Subdiviziune", get: (r) => r.subdiviziune },
+      { key: "modLivrare", label: "Mod de livrare", get: (r) => r.modLivrare },
+      { key: "sursa", label: "Sursă", get: (r) => r.sursa }
+    ],
+    sarcini: [
+      { key: "tipSarcina", label: "Tip sarcină", get: (r) => workplaceDb.tipSarcina?.[r.tipSarcina]?.label || r.tipSarcina },
+      { key: "status", label: "Statut", get: (r) => workplaceDb.statuses?.[r.status]?.label || r.status },
+      { key: "serviciu", label: "Serviciu", get: (r) => r.serviciu }
+    ],
+    users: [
+      { key: "status", label: "Statut", get: (r) => r.status },
+      { key: "roluri", label: "Roluri", get: (r) => r.roluri },
+      { key: "autoritate", label: "Autoritate", get: (r) => r.autoritateScurta || r.autoritate },
+      { key: "subdiviziune", label: "Subdiviziune", get: (r) => r.subdiviziune }
+    ],
+    roles: [
+      { key: "statut", label: "Statut", get: (r) => r.statut || (r.activ === false ? "Inactiv" : "Activ") },
+      { key: "eligibilLocal", label: "Eligibil adm. locală", get: (r) => (r.eligibilLocal ? "Da" : "Nu") }
+    ],
+    services: [
+      { key: "statut", label: "Statut", get: (r) => r.statut },
+      { key: "institutie", label: "Instituția", get: (r) => r.institutie },
+      { key: "sursa", label: "Sursă", get: (r) => r.sursa }
+    ],
+    authorities: [
+      { key: "sursa", label: "Sursă", get: (r) => r.sursa }
+    ],
+    tariffs: [
+      { key: "statut", label: "Statut", get: (r) => r.statut },
+      { key: "tip", label: "Tip tarif", get: (r) => r.tip },
+      { key: "domeniu", label: "Domeniu", get: (r) => r.domeniu },
+      { key: "formula", label: "Formulă", get: (r) => r.formula },
+      { key: "sursa", label: "Sursă", get: (r) => r.sursa }
+    ],
+    ntpl: [
+      { key: "statut", label: "Stare", get: (r) => r.statut },
+      { key: "obiect", label: "Obiect", get: (r) => r.obiect },
+      { key: "sursa", label: "Sursă", get: (r) => r.sursa },
+      { key: "prioritate", label: "Prioritate", get: (r) => r.prioritate }
+    ],
+    classifiers: [
+      { key: "statut", label: "Statut", get: (r) => r.statut },
+      { key: "domeniu", label: "Domeniu", get: (r) => r.domeniu },
+      { key: "familie", label: "Familie", get: (r) => r.familie },
+      { key: "sursa", label: "Sursă", get: (r) => r.sursa },
+      { key: "autoritate", label: "Autoritate", get: (r) => r.autoritate },
+      { key: "utilizare", label: "Utilizare", get: (r) => r.utilizare }
+    ]
+  };
+  const filterStore = {};
+  const filterStorageKey = (kind) => `e-permits-filters:${kind}`;
+  const getFilterState = (kind = registryKindOf()) => {
+    if (!filterStore[kind]) {
+      let saved = null;
+      try { saved = JSON.parse(window.sessionStorage.getItem(filterStorageKey(kind)) || "null"); } catch { saved = null; }
+      filterStore[kind] = { open: Boolean(saved?.open), applied: saved?.applied || {} };
+    }
+    return filterStore[kind];
+  };
+  const saveFilterState = (kind = registryKindOf()) => {
+    const st = getFilterState(kind);
+    try { window.sessionStorage.setItem(filterStorageKey(kind), JSON.stringify({ open: st.open, applied: st.applied })); } catch { /* private mode: session only */ }
+  };
+  const facetsOf = () => FILTER_FACETS[registryKindOf()] || [];
+  const appliedEntries = () => Object.entries(getFilterState().applied).filter(([, values]) => values?.length);
+  const matchesFacets = (row, except = null) => appliedEntries().every(([key, values]) => {
+    if (key === except) return true;
+    const facet = facetsOf().find((f) => f.key === key);
+    if (!facet) return true;
+    const rowValues = asList(facet.get(row));
+    return values.some((v) => rowValues.includes(v));
+  });
+  /* rows the facet's options are counted on: everything else applied, this facet not */
+  const facetPool = (exceptKey) => {
+    const view = getView();
+    const tab = getActiveTab(view);
+    return getBaseRows(view).filter((row) => filterByToken(row, tab?.filter)).filter(filterBySearch).filter((row) => matchesFacets(row, exceptKey));
+  };
+  const facetOptions = (facet) => {
+    const counts = new Map();
+    for (const row of facetPool(facet.key)) for (const v of new Set(asList(facet.get(row)))) counts.set(v, (counts.get(v) || 0) + 1);
+    for (const v of getFilterState().applied[facet.key] || []) if (!counts.has(v)) counts.set(v, 0);
+    return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro", { numeric: true }));
+  };
+  /* a facet is offered when the registry has at least two values for it */
+  const availableFacets = () => {
+    const view = getView();
+    const base = getBaseRows(view);
+    return facetsOf().filter((facet) => {
+      if (getFilterState().applied[facet.key]?.length) return true;
+      const seen = new Set();
+      for (const row of base) { for (const v of asList(facet.get(row))) seen.add(v); if (seen.size > 1) return true; }
+      return false;
+    });
+  };
+
   const getVisibleRows = () => {
     const view = getView();
     const tab = getActiveTab(view);
 
     const rows = getBaseRows(view)
       .filter((row) => filterByToken(row, tab?.filter))
-      .filter(filterBySearch);
+      .filter(filterBySearch)
+      .filter((row) => matchesFacets(row));
 
     return [...rows].sort((a, b) => {
       if (!view?.groupBy) {
@@ -1775,7 +1948,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getNaturalColumnWidth = (key, rows) => {
-    if (["users", "services", "authorities", "tariffs"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
+    if (["users", "services", "authorities", "tariffs", "ntpl"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
       return workplaceDb.columns[key].width;
     }
 
@@ -1957,24 +2130,42 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
+  /* Library breadcrumbs (Figma Components 232:5282). A crumb with `attr` is a link that
+     reuses an existing back handler; without it, it is plain text. The last crumb is the
+     current level unless `trailing` (the trail runs into a title shown below it). */
+  const renderBreadcrumbs = (crumbs, { trailing = false, truncate = false, label = "Navigare" } = {}) => `
+    <nav class="breadcrumbs${trailing ? " breadcrumbs--trailing" : ""}${truncate ? " breadcrumbs--truncate" : ""}" aria-label="${escapeHtml(label)}">
+      <ol class="breadcrumbs__list">
+        ${crumbs.map((crumb, index) => index < crumbs.length - 1 || trailing
+          ? `<li class="breadcrumbs__item">${crumb.attr
+            ? `<a class="breadcrumbs__link" href="#" ${crumb.attr}>${escapeHtml(crumb.label)}</a>`
+            : `<span class="breadcrumbs__link">${escapeHtml(crumb.label)}</span>`}</li>`
+          : `<li class="breadcrumbs__item is-selected"><span class="breadcrumbs__current" aria-current="page">${escapeHtml(crumb.label)}</span></li>`
+        ).join("")}
+      </ol>
+    </nav>
+  `;
+
   /* Shared back-office page header (Figma 8993:37914): breadcrumbs + title,
      optional actions with a caption on the right, a meta row of label/value
      pairs split by vertical separators, then the tab row. Every profile —
      dosar, utilizator, rol, act permisiv — renders through these, so the
-     format stays identical everywhere. A crumb with `attr` is a link that
-     reuses an existing back handler; without it, it is plain text. */
-  const renderPageHeaderTop = ({ crumbs = [], title = "", actions = "", caption = "" }) => `
+     format stays identical everywhere. */
+  /* the menu section a page lives in (Locul de muncă, Administrare…): the group of the
+     menu item named by the first crumb, else of the active item */
+  const navSectionOf = (label) => {
+    const links = [...document.querySelectorAll("[data-nav-item]")];
+    const link = links.find((item) => (item.getAttribute("title") || item.textContent).trim() === label)
+      || links.find((item) => item.classList.contains("is-active"));
+    return link?.closest(".e-permits-shell__nav-group")?.querySelector(".e-permits-shell__group-label")?.textContent.trim() || "";
+  };
+
+  const renderPageHeaderTop = ({ crumbs = [], title = "", actions = "", caption = "" }) => {
+    const section = crumbs.length ? navSectionOf(crumbs[0].label) : "";
+    const trail = section && section !== crumbs[0].label ? [{ label: section }, ...crumbs] : crumbs;
+    return `
     <div class="e-permits-page-header__heading">
-      <nav class="breadcrumbs e-permits-page-header__breadcrumbs" aria-label="Navigare">
-        <ol class="breadcrumbs__list">
-          ${crumbs.map((crumb, index) => index < crumbs.length - 1
-            ? `<li class="breadcrumbs__item">${crumb.attr
-              ? `<a class="breadcrumbs__link" href="#" ${crumb.attr}>${escapeHtml(crumb.label)}</a>`
-              : `<span class="breadcrumbs__link">${escapeHtml(crumb.label)}</span>`}</li>`
-            : `<li class="breadcrumbs__item"><span class="breadcrumbs__current" aria-current="page">${escapeHtml(crumb.label)}</span></li>`
-          ).join("")}
-        </ol>
-      </nav>
+      ${renderBreadcrumbs(trail, { truncate: true })}
       <h1 class="e-permits-page-header__title" title="${escapeHtml(title)}">${escapeHtml(title)}</h1>
     </div>
     ${actions || caption ? `
@@ -1984,6 +2175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     ` : ""}
   `;
+  };
 
   /* Separators are drawn by each item's ::before (see the CSS), not as flex
      children, so hiding one never changes the layout it depends on. */
@@ -2068,8 +2260,21 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "avize", label: "Avize", count: (profile) => profile.avize.length },
     { id: "decizie", label: "Act/Decizie", count: (profile) => profile.acte.length },
     { id: "documente", label: "Documente generate", count: (profile) => profile.documente.length },
-    { id: "notificari", label: "Notificări", count: (profile) => profile.notificari.length }
+    { id: "notificari", label: "Notificări", count: (profile) => profile.notificari.length },
+    { id: "jurnal", label: "Jurnalul activităților" }
   ];
+
+  /* US-115 §10: which tabs a case shows — by its content and by the viewer's role */
+  const DOSAR_TAB_ROLES = { expert: ["avize"], "operator-ghiseu": ["general", "solicitare"] };
+  const dosarTabVisible = (tab, profile, row) => {
+    const allowed = DOSAR_TAB_ROLES[currentEngineRole()];
+    if (allowed && !allowed.includes(tab.id)) return false;
+    if (tab.id === "taxe") return profile.taxe.length > 0;
+    if (tab.id === "avize") return profile.avize.length > 0;
+    if (tab.id === "decizie") return profile.acte.length > 0;
+    if (tab.id === "jurnal") return Boolean(caseFlowOf(row));
+    return true;
+  };
 
   const getDosarById = (id) =>
     workplaceState.rows.find((row) => row.id === id) ||
@@ -2291,6 +2496,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
 
     return DOSAR_PROFIL_TABS
+      .filter((tab) => dosarTabVisible(tab, profile, row))
       .map((tab) => ({
         ...tab,
         countValue: tab.count ? tab.count(profile) : null,
@@ -2327,7 +2533,10 @@ document.addEventListener("DOMContentLoaded", () => {
       { label: workplaceTitle?.textContent.trim() || "Dosare", attr: "data-dosar-profil-crumb-back" },
       { label: row.nrDosar }
     ],
-    title: row.serviciu
+    title: row.serviciu,
+    /* the current process step and its actions (core/case-flow.js) */
+    actions: renderCaseActions(row),
+    caption: caseActionCaption(row)
   });
 
   const renderDosarProfilSummary = (row) => {
@@ -2401,58 +2610,9 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  const renderProfileState = (label, tone = "neutral") => renderTag(label, tone);
 
-  const renderDeadlineMeta = (iso) => {
-    const days = daysUntil(iso);
-    const label = days < 0 ? `${Math.abs(days)} z. depășit` : `${days} z. rămase`;
-    const tone = days < 0 ? "crit" : "warn";
-    return ` <span class="e-permits-dosar-profil__deadline-meta e-permits-dosar-profil__deadline-meta--${tone}">${escapeHtml(label)}</span>`;
-  };
 
-  const renderProfileDocItem = ({ title, meta }) => `
-    <div class="e-permits-dosar-profil__doc-item">
-      <span class="e-permits-dosar-profil__doc-icon" aria-hidden="true">${renderProfileIcon("document-filled", 20)}</span>
-      <div class="e-permits-dosar-profil__doc-copy">
-        <p class="e-permits-dosar-profil__doc-title">${escapeHtml(title)}</p>
-        <p class="e-permits-dosar-profil__doc-meta">${meta}</p>
-      </div>
-      <button class="e-permits-dosar-profil__doc-action" type="button">
-        ${renderProfileIcon("eye-open", 16)}
-        <span>Vezi documentul</span>
-      </button>
-    </div>
-  `;
 
-  const renderProfileDocList = (title, items) => `
-    <section class="e-permits-dosar-profil__section e-permits-dosar-profil__section--docs">
-      <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
-      <div class="e-permits-dosar-profil__doc-list">
-        ${items.length ? items.map(renderProfileDocItem).join("") : `<p class="e-permits-dosar-profil__empty">Nu există înregistrări pentru această secțiune.</p>`}
-      </div>
-    </section>
-  `;
-
-  const renderProfileTable = (title, columns, rows, options = {}) => `
-    <section class="e-permits-dosar-profil__section e-permits-dosar-profil__section--table">
-      <div class="e-permits-dosar-profil__section-heading">
-        <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
-        ${options.meta ? `<span class="e-permits-dosar-profil__section-meta">${escapeHtml(options.meta)}</span>` : ""}
-      </div>
-      <div class="e-permits-dosar-profil__card e-permits-dosar-profil__card--table">
-        <div class="e-permits-dosar-profil__table-scroll">
-        <table class="e-permits-dosar-profil__table">
-          <thead>
-            <tr>${columns.map((column) => `<th scope="col">${escapeHtml(column.label)}</th>`).join("")}</tr>
-          </thead>
-          <tbody>
-            ${rows.map((item) => `<tr>${columns.map((column) => `<td data-label="${escapeHtml(column.label)}">${column.render(item)}</td>`).join("")}</tr>`).join("")}
-          </tbody>
-        </table>
-        </div>
-      </div>
-    </section>
-  `;
 
   const renderRepresentation = (representative) => {
     if (!representative) {
@@ -2493,10 +2653,21 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Denumirea serviciului", escapeHtml(row.serviciu)]
     ]);
 
+    /* MMIP v2 Case Profile: current status, current step and assigned actor */
+    const flowCtx = caseFlowOf(row);
+    const publicStatus = casePublicStatus(row);
+    const stepNode = flowCtx ? flowCtx.flow.nodes[flowCtx.state.stateId] : null;
+    const stepLane = flowCtx ? caseFlow.laneOf(flowCtx.flow, flowCtx.state.stateId) : null;
     const dateDeProces = renderInfoCard("Date de proces", [
       [isOficiu ? "Data inițierii" : "Data depunerii", escapeHtml(formatDate(isOficiu ? row.dataInitierii : row.dataDepunerii))],
       ["Termenul de examinare", `${escapeHtml(formatDate(row.termenExaminare))}${termenMeta ? ` <span class="e-permits-dosar-profil__termen-meta">${escapeHtml(termenMeta)}</span>` : ""}`],
-      ["Statutul dosarului", renderTag(status?.label, status?.tone)]
+      ["Statutul dosarului", renderTag(status?.label, status?.tone)],
+      ...(flowCtx ? [
+        ["Pasul curent", stepNode?.kind === "terminal" ? escapeHtml(stepNode.name) : `${escapeHtml(stepNode?.name || "—")}${flowCtx.state.suspended ? renderTag("Suspendat", "neutral") : ""}`],
+        ["Responsabil", stepLane ? escapeHtml(stepLane.title) : dash],
+        ["Statut public (Evo Cabinet)", escapeHtml(publicStatus?.label || "—")],
+        ["Flux", escapeHtml(flowCtx.flow.name)]
+      ] : [])
     ]);
 
     const organizare = renderInfoCard("Organizare", [
@@ -2593,71 +2764,110 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
+  /* Dosar tabs as the passport's stacked lists (renderStackedList): a section heading
+     with a short meta, grouped rows — title + status tags, a dot-separated meta line,
+     and the row's action on the right */
+  const sumMdl = (items) => `${items.reduce((sum, item) => sum + Number(item.suma || 0), 0).toLocaleString("ro-MD")} MDL`;
+
   const renderDosarProfilTaxe = (row) => {
     const profile = buildDosarProfile(row);
-    const dash = '<span class="e-permits-workplace__dash">—</span>';
+    const paid = profile.taxe.filter((taxa) => taxa.status !== "neachitat");
+    const items = profile.taxe.map((taxa) => {
+      const pending = taxa.status === "neachitat";
+      return {
+        group: pending ? "În așteptare" : "Achitate",
+        plainTitle: taxa.denumire,
+        title: escapeHtml(taxa.denumire),
+        badges: [pending ? renderTag("Neachitat", "warning") : renderTag("Achitat", "success")],
+        meta: [
+          `<strong>${escapeHtml(String(taxa.suma))} MDL</strong>`,
+          renderCopyCode(taxa.id, `Copiază ${taxa.id}`),
+          `Emisă ${escapeHtml(formatDate(taxa.emitere))}`,
+          pending
+            ? `Termen ${escapeHtml(formatDate(taxa.termen))}${renderDeadlineMeta(taxa.termen)}`
+            : `Achitată ${escapeHtml(formatDate(taxa.achitare || taxa.termen))}`
+        ]
+      };
+    });
 
-    return renderProfileTable("Conturi de plată", [
-      { label: "Numărul cont", render: (taxa) => renderCopyCode(taxa.id, `Copiază ${taxa.id}`) },
-      { label: "Denumirea", render: (taxa) => escapeHtml(taxa.denumire) },
-      { label: "Suma", render: (taxa) => `${taxa.suma} MDL` },
-      { label: "Statut", render: (taxa) => taxa.status === "neachitat" ? renderTag("Neachitat", "warning") : renderTag("Achitat", "ok") },
-      { label: "Data emiterii", render: (taxa) => escapeHtml(formatDate(taxa.emitere)) },
-      { label: "Termen plată", render: (taxa) => `${escapeHtml(formatDate(taxa.termen))}${taxa.status === "neachitat" ? renderDeadlineMeta(taxa.termen) : ""}` },
-      { label: "Data achitării", render: (taxa) => taxa.achitare ? escapeHtml(formatDate(taxa.achitare)) : dash }
-    ], profile.taxe);
+    return renderStackedList("Taxe și plăți", groupBy(items, (item) => item.group, ["În așteptare", "Achitate"]), {
+      meta: `Total ${sumMdl(profile.taxe)} · achitat ${sumMdl(paid)}`,
+      empty: "Dosarul nu are taxe."
+    });
   };
 
   const renderDosarProfilAvize = (row) => {
     const profile = buildDosarProfile(row);
     const states = {
-      favorabil: ["Finalizat", "ok"],
-      inLucru: ["În lucru", "warning"],
-      expirat: ["Termen depășit", "crit"]
+      inLucru: ["În lucru", "warning", "Active"],
+      expirat: ["Termen depășit", "danger", "Termen depășit"],
+      favorabil: ["Finalizat", "success", "Finalizate"]
     };
+    const items = profile.avize.map((aviz) => {
+      const [label, tone, group] = states[aviz.status] || states.favorabil;
+      return {
+        group,
+        plainTitle: aviz.institutie,
+        title: escapeHtml(aviz.institutie),
+        badges: [renderTag(label, tone)],
+        meta: [
+          renderCopyCode(aviz.id, `Copiază ${aviz.id}`),
+          `Solicitat ${escapeHtml(aviz.solicitatLa)}`,
+          `Termen ${escapeHtml(aviz.termen)}`,
+          `Rezultat: ${escapeHtml(aviz.rezultat)}`
+        ]
+      };
+    });
 
-    return renderProfileTable("Avize solicitate", [
-      { label: "Număr", render: (aviz) => renderCopyCode(aviz.id, `Copiază ${aviz.id}`) },
-      { label: "Instituție", render: (aviz) => escapeHtml(aviz.institutie) },
-      { label: "Solicitat la", render: (aviz) => escapeHtml(aviz.solicitatLa) },
-      { label: "Termen", render: (aviz) => escapeHtml(aviz.termen) },
-      { label: "Rezultat", render: (aviz) => escapeHtml(aviz.rezultat) },
-      { label: "Statut", render: (aviz) => renderProfileState(...states[aviz.status]) }
-    ], profile.avize, { meta: `${profile.avize.length} aviz solicitat` });
+    return renderStackedList("Avize", groupBy(items, (item) => item.group, ["Active", "Termen depășit", "Finalizate"]), {
+      meta: plural(profile.avize.length, "aviz solicitat", "avize solicitate"),
+      empty: "Nu au fost solicitate avize."
+    });
   };
 
   const renderDosarProfilDecizie = (row) => {
     const profile = buildDosarProfile(row);
+    const items = profile.acte.map((act) => ({
+      plainTitle: act.titlu,
+      title: escapeHtml(act.titlu),
+      badges: [renderTag(/respingere/i.test(act.titlu) ? "Respingere" : "Aprobare", /respingere/i.test(act.titlu) ? "danger" : "success")],
+      meta: [`Emis ${escapeHtml(act.emis)}`, escapeHtml(act.sursa)],
+      action: { label: "Vezi documentul", attrs: "data-dosar-doc-view" }
+    }));
 
-    return renderProfileDocList("Acte și decizii", profile.acte.map((act) => ({
-      title: act.titlu,
-      meta: `Emis <strong>${escapeHtml(act.emis)}</strong> &middot; ${escapeHtml(act.sursa)}`
-    })));
+    return renderStackedList("Acte și decizii", [{ label: "", items }], { empty: "Nu există acte sau decizii emise." });
   };
 
   const renderDosarProfilDocumente = (row) => {
     const profile = buildDosarProfile(row);
+    const items = profile.documente.map((document) => ({
+      plainTitle: document.nume,
+      title: escapeHtml(document.nume),
+      badges: [renderTag(document.tip || "PDF", "neutral")],
+      meta: [`Emis ${escapeHtml(document.data)}`, escapeHtml(document.autor)],
+      action: { label: "Vezi documentul", attrs: "data-dosar-doc-view" }
+    }));
 
-    return renderProfileDocList("Documente generate", profile.documente.map((document) => ({
-      title: document.nume,
-      meta: `Emis <strong>${escapeHtml(document.data)}</strong> &middot; ${escapeHtml(document.autor)}`
-    })));
+    return renderStackedList("Documente generate", [{ label: "", items }], {
+      meta: "Generate în timpul examinării",
+      empty: "Nu există documente generate."
+    });
   };
 
   const renderDosarProfilNotificari = (row) => {
     const profile = buildDosarProfile(row);
-    const states = {
-      livrata: ["Livrată", "ok"],
-      esuata: ["Livrare eșuată", "crit"]
-    };
+    const items = profile.notificari.map((item) => ({
+      group: item.canal,
+      plainTitle: item.eveniment,
+      title: escapeHtml(item.eveniment),
+      badges: [item.status === "esuata" ? renderTag("Livrare eșuată", "danger") : renderTag("Livrată", "success")],
+      meta: [escapeHtml(item.destinatar), `Trimisă ${escapeHtml(item.trimisaLa)}`]
+    }));
 
-    return renderProfileTable("Istoricul notificărilor", [
-      { label: "Canal", render: (item) => escapeHtml(item.canal) },
-      { label: "Destinatar", render: (item) => escapeHtml(item.destinatar) },
-      { label: "Eveniment", render: (item) => escapeHtml(item.eveniment) },
-      { label: "Trimisă la", render: (item) => escapeHtml(item.trimisaLa) },
-      { label: "Statut", render: (item) => renderProfileState(...states[item.status]) }
-    ], profile.notificari, { meta: `${profile.notificari.length} notificări` });
+    return renderStackedList("Notificări", groupBy(items, (item) => item.group), {
+      meta: plural(profile.notificari.length, "notificare trimisă", "notificări trimise"),
+      empty: "Nu au fost trimise notificări."
+    });
   };
 
   const renderDosarProfilSection = (row) => {
@@ -2674,6 +2884,8 @@ document.addEventListener("DOMContentLoaded", () => {
         return renderDosarProfilDocumente(row);
       case "notificari":
         return renderDosarProfilNotificari(row);
+      case "jurnal":
+        return renderEventTimeline("Jurnalul activităților", caseFlowOf(row)?.state.log || [], { meta: "Jurnalizat prin MLog", empty: "Nu există activități înregistrate." });
       case "general":
       default:
         return renderDosarProfilGeneral(row);
@@ -2691,9 +2903,735 @@ document.addEventListener("DOMContentLoaded", () => {
     dosarProfilPanelBody.innerHTML = renderDosarProfilSection(row);
   };
 
+  /* ---- Dosar: process actions (core/case-flow.js) ---------------------------
+     "Case (Dosar) logic and actions": the case rests on a BPMN node (stateId); the
+     header button names that step (US name) and opens what the current role may do
+     there. Status (statusId, 5 values) is derived. */
+  const caseFlow = window.GEAP?.caseFlow || null;
+  const ENGINE_ROLES = { specialist: "specialist", supervisor: "supervizor", director: "director", "central-admin": "adm-c", "local-admin": "adm-l", expert: "expert", "operator-ghiseu": "operator-ghiseu" };
+  const currentEngineRole = () => ENGINE_ROLES[getRoleAssignments().find((assignment) => assignment.id === activeAssignmentId)?.roleId] || "specialist";
+
+  const personFromName = (name) => ({
+    nume: name,
+    initiale: String(name).split(/\s+/).map((part) => part[0] || "").join("").slice(0, 2).toUpperCase(),
+    color: "#0058D2"
+  });
+
+  /* the journal a case starts with (US-104), newest first */
+  const seedCaseLog = (row) => {
+    const log = [{
+      at: `${row.dataDepunerii}T09:00:00`,
+      user: row.sursa === "FO" ? (row.companie || row.numeSolicitant) : "Specialist ghișeu",
+      type: "Dosar depus",
+      status: "Reușit",
+      detail: row.sursa === "FO" ? "Depus prin Front Office." : "Înregistrat la ghișeu."
+    }];
+    if (row.specialist) {
+      log.unshift({ at: `${row.dataDepunerii}T11:30:00`, user: row.repartizatDe?.nume || "", type: "Dosar distribuit", status: "Reușit", detail: `Repartizat către ${row.specialist.nume}.` });
+    }
+    return log;
+  };
+
+  /* a case's process state, created on first use. The flow is a property of the
+     service; the guard variables come from the service passport, except
+     SecondaryApproval, which follows the processing subdivision (US-113). */
+  const caseFlowOf = (row) => {
+    if (!caseFlow || !row || row.sursa === "OFICIU" || row.status === "schita") {
+      return null;
+    }
+
+    if (!row.flowState) {
+      const serviceHash = hashValue(row.serviciu);
+      const flow = caseFlow.getFlow(serviceHash % 3 === 0 ? "simplified" : "complex");
+      const vars = {
+        IsAutoDistribution: false,
+        SuspensionWithCoordination: serviceHash % 2 === 0,
+        WithExpertise: false,
+        IsPaperPermit: serviceHash % 5 === 0,
+        SecondaryApproval: row.subdiviziune !== (dossierDb?.mySubdiviziune || "")
+      };
+      const init = caseFlow.initialState(flow, row.status, {
+        hasSpecialist: Boolean(row.specialist) && !row.nedistribuit,
+        suspended: row.alerte.includes("suspendat"),
+        vars
+      });
+
+      if (!init) {
+        return null;
+      }
+
+      /* visited: the human steps this case has passed through (for "Vezi fluxul") */
+      const visited = [
+        ...(row.specialist && !vars.IsAutoDistribution ? ["node5"] : []),
+        ...(["spreCoordonare", "spreSemnare", "semnat", "eliberat", "respins", "arhivat"].includes(row.status) ? ["node6", row.decizia === "respingere" ? "node14" : "node17"] : []),
+        ...(row.status === "spreSemnare" && flow.nodes.RecordState2 ? ["RecordState2"] : [])
+      ];
+      row.flowState = { flowId: flow.id, vars, ...init, visited, decision: row.decizia === "respingere" ? "respingere" : null, log: seedCaseLog(row) };
+    }
+
+    return { flow: caseFlow.getFlow(row.flowState.flowId), state: row.flowState };
+  };
+
+  const caseBlockers = (row) => {
+    const profile = buildDosarProfile(row);
+    return {
+      pendingFees: profile.taxe.filter((taxa) => taxa.status === "neachitat").length,
+      activeReviews: profile.avize.filter((aviz) => aviz.status === "inLucru").length
+    };
+  };
+
+  /* statusId; a manual fee addition at "Verificarea datelor" shows Plată suplimentară (US-117) */
+  const casePublicStatus = (row) => {
+    const cf = caseFlowOf(row);
+    if (!cf) return null;
+    const id = cf.state.stateId === "node6" && !cf.state.suspended && row.flowState.manualFee && caseBlockers(row).pendingFees
+      ? 4
+      : caseFlow.statusId(cf.flow, cf.state);
+    return { id, label: caseFlow.STATUS[id] };
+  };
+
+  const caseAvailable = (row) => {
+    const cf = caseFlowOf(row);
+    if (!cf) return null;
+    const blockers = caseBlockers(row);
+    const avail = caseFlow.available(cf.flow, cf.state, { role: currentEngineRole(), vars: cf.state.vars, ...blockers });
+    /* the Asistent tehnic has no back-office role in this prototype: its automatic step
+       (US-156, nothing editable) gets a demo stand-in so the case can move on */
+    const lane = caseFlow.laneOf(cf.flow, cf.state.stateId);
+    if (lane?.role === "asistent-tehnic" && !avail.items.length) {
+      const t = avail.step.transitions[0];
+      avail.items.push({ id: t.id, label: `Simulează: ${t.label}`, kind: "advance", icon: t.icon, form: avail.step.form, demo: true, target: "Achitare notă de plată (MPay) · Solicitant" });
+    }
+    /* prototype stand-ins for the applicant paying and the institutions answering, so a
+       blocked case can be moved on in the demo */
+    if (cf.state.stateId === "node6" && avail.items.length && !cf.state.suspended) {
+      if (blockers.pendingFees) avail.items.push({ id: "demoAchitaTaxe", label: "Simulează achitarea taxelor", kind: "operation", icon: "receipt-check", demo: true, target: `${blockers.pendingFees} ${blockers.pendingFees === 1 ? "taxă în așteptare" : "taxe în așteptare"}` });
+      if (blockers.activeReviews) avail.items.push({ id: "demoFinalizeazaAvize", label: "Simulează răspunsul la avize", kind: "operation", icon: "check-all", demo: true, target: `${blockers.activeReviews} ${blockers.activeReviews === 1 ? "aviz activ" : "avize active"}` });
+    }
+    return { ...cf, avail };
+  };
+
+  /* the header action: the current step's name on the library btn-primary btn-md (Figma
+     6675:158399), opening the stack-menu component with the role's actions */
+  const renderCaseActions = (row) => {
+    const ctx = caseAvailable(row);
+    if (!ctx) return "";
+    const { avail, state } = ctx;
+    const finished = state.stateId === "end";
+    const label = finished ? "Dosar finalizat" : avail.step.name;
+
+    return `
+      <div class="e-permits-stack__menu-wrap e-permits-case-actions">
+        <button class="btn btn-primary btn-md e-permits-case-actions__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="case-actions-menu" data-stack-menu-trigger>
+          <span>${escapeHtml(label)}</span>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+        </button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-case-actions__menu" id="case-actions-menu" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
+          ${avail.items.map((item, index) => `
+            ${index && item.kind === "operation" && avail.items[index - 1].kind !== "operation" ? '<li role="separator" class="e-permits-case-actions__separator"></li>' : ""}
+            <li role="none">
+              <button class="e-permits-fo-intent-menu__item e-permits-case-actions__item" type="button" role="menuitem" data-case-action="${escapeHtml(item.id)}"${item.disabled ? ' aria-disabled="true"' : ""}>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(item.icon || "checkmark-large")}"></use></svg>
+                <span class="e-permits-case-actions__copy">
+                  <span class="e-permits-case-actions__label">${escapeHtml(item.label)}${item.demo ? renderTag("Demo", "neutral") : ""}</span>
+                  <span class="e-permits-case-actions__hint">${escapeHtml(item.disabled ? item.reason : item.kind === "return" ? `Înapoi la: ${item.target}` : item.target)}</span>
+                </span>
+              </button>
+            </li>
+          `).join("")}
+          ${avail.note ? `<li role="none" class="e-permits-case-actions__note">${escapeHtml(avail.note)}</li>` : ""}
+          <li role="separator" class="e-permits-case-actions__separator"></li>
+          <li role="none">
+            <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-case-flow-view>
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-tree"></use></svg>
+              <span>Vezi fluxul</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    `;
+  };
+
+  const caseActionCaption = (row) => {
+    const ctx = caseFlowOf(row);
+    if (!ctx || ctx.state.stateId === "end") return "";
+    const lane = caseFlow.laneOf(ctx.flow, ctx.state.stateId);
+    return lane ? `Responsabil: ${lane.title}` : "";
+  };
+
+  /* ---- the step form (§12): the current node's form, else the target's. Short forms,
+     so the simple library modal; "Vezi fluxul" keeps the right drawer ---- */
+  const caseModal = document.querySelector("#case-action-modal");
+  const caseModalBody = caseModal?.querySelector("[data-case-modal-body]");
+  const caseDrawer = document.querySelector("[data-case-drawer]");
+  const caseDrawerBody = caseDrawer?.querySelector("[data-case-body]");
+  let caseDraft = null;
+  let caseReturnFocus = null;
+  const CASE_TEXT_MAX = 5000;
+
+  const caseFieldError = (key) => caseDraft.errors[key] ? `
+    <span class="message message--inline message--error e-permits-fo-field__error">
+      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
+      <span>${escapeHtml(caseDraft.errors[key])}</span>
+    </span>
+  ` : "";
+
+  const caseReadonly = (label, value, span = 6) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label>${escapeHtml(label)}</label>
+      <div class="e-permits-fo-input is-filled is-readonly">
+        <input type="text" value="${escapeHtml(value || "—")}" readonly tabindex="-1">
+        <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
+      </div>
+    </div>
+  `;
+
+  const caseTextarea = (key, label, { required = false, hint = "" } = {}) => {
+    const value = caseDraft.values[key] || "";
+    return `
+      <div class="e-permits-fo-field e-permits-user-create__field">
+        <label for="case-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+        <div class="e-permits-fo-textarea${caseDraft.errors[key] ? " is-error" : ""}">
+          <textarea id="case-${key}" rows="4" maxlength="${CASE_TEXT_MAX}" data-case-field="${key}">${escapeHtml(value)}</textarea>
+        </div>
+        ${caseFieldError(key)}
+        <p class="e-permits-fo-field__hint">${hint ? `${escapeHtml(hint)} · ` : ""}<span data-case-count="${key}">${value.length}</span>/${CASE_TEXT_MAX}</p>
+      </div>
+    `;
+  };
+
+  const caseInput = (key, label, { required = false, numeric = false, hint = "", span = 12 } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="case-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <div class="e-permits-fo-input${caseDraft.errors[key] ? " is-error" : ""}">
+        <input id="case-${key}" type="text"${numeric ? ' inputmode="numeric"' : ""} value="${escapeHtml(caseDraft.values[key] || "")}" data-case-field="${key}" autocomplete="off">
+      </div>
+      ${caseFieldError(key)}
+      ${hint && !caseDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}
+    </div>
+  `;
+
+  const caseSelect = (key, label, options, { required = false, placeholder = "Alege", hint = "" } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field">
+      <label for="case-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      ${renderFoSelectControl({
+        id: `case-${key}`, attrs: `data-case-select="${key}"`,
+        optionsHtml: `<option value=""${caseDraft.values[key] ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>${options.map(([value, text]) => `<option value="${escapeHtml(value)}"${value === caseDraft.values[key] ? " selected" : ""}>${escapeHtml(text)}</option>`).join("")}`
+      })}
+      ${caseFieldError(key)}
+      ${hint && !caseDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}
+    </div>
+  `;
+
+  /* library date picker in the full-flow field shell (as the tariff drawer) */
+  const caseDate = (key, label, { required = false, span = 6, hint = "" } = {}) => {
+    const iso = caseDraft.values[key] || "";
+    const [y, m, day] = iso ? iso.split("-") : [];
+    const today = localIsoNow().slice(0, 10);
+    const view = (iso || today).split("-");
+    const id = `case-${key}`;
+    return `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+        <label for="${id}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+        <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${escapeHtml(iso)}" data-today="${today}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}" data-case-date="${key}">
+          <div class="e-permits-fo-input e-permits-fo-input--with-action${caseDraft.errors[key] ? " is-error" : ""}">
+            <input id="${id}" type="text" class="js-date-picker-input" value="${iso ? `${day}/${m}/${y}` : ""}" placeholder="ZZ/LL/AAAA" autocomplete="off">
+            <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data" aria-controls="${id}-panel" aria-expanded="false">
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calendar"></use></svg>
+            </button>
+          </div>
+          <div id="${id}-panel" class="date-picker-panel" aria-hidden="true" hidden>
+            <div class="date-picker" role="dialog" aria-label="Alege data">
+              <div class="date-picker__header">
+                <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg></button>
+                <div class="date-picker__month js-date-picker-label"></div>
+                <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></button>
+              </div>
+              <div class="date-picker__grid date-picker__grid--days" data-view="day">
+                <div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div>
+                <div class="date-picker__days js-date-picker-days"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        ${caseFieldError(key)}
+        ${hint && !caseDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}
+      </div>
+    `;
+  };
+
+  const caseNotice = (text, tone = "info") => `
+    <div class="message message--subtle banner--${tone} e-permits-case-form__notice">
+      <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></span>
+      <div class="banner__content"><p class="banner__text">${text}</p></div>
+    </div>
+  `;
+
+  /* US-117: the fees come from the service passport; nothing is typed */
+  const caseFeeOptions = () => {
+    const accounts = (servicesStore?.bankAccounts || []).filter((account) => account.active);
+    const principal = accounts.find((account) => account.principal) || accounts[0];
+    return (servicesStore?.tariffs || [])
+      .filter((tariff) => tariff.state === "Publicat" && tariff.active && !tariff.formula)
+      .slice(0, 6)
+      .map((tariff) => ({ id: tariff.id, denumire: tariff.name, suma: Number(tariff.amount) || 0, currency: tariff.currency || "MDL", iban: tariff.iban || principal?.iban || "—" }));
+  };
+
+  const caseSpecialists = () => {
+    const rows = dossierDb?.runtimeRows || [];
+    return (dossierDb?.specialisti || []).map((person) => ({
+      ...person,
+      load: rows.filter((row) => row.specialist?.id === person.id && !["semnat", "eliberat", "respins", "arhivat"].includes(row.status)).length
+    }));
+  };
+
+  const CASE_REVIEW_INSTITUTIONS = ["Agenția Națională pentru Siguranța Alimentelor", "Inspectoratul General pentru Situații de Urgență", "Agenția de Mediu", "Inspectoratul de Stat în Construcții"];
+
+  const renderCaseForm = (row) => {
+    const d = caseDraft;
+    const applicant = row.companie || row.numeSolicitant || "—";
+    switch (d.form) {
+      case "distribuire":
+        return `
+          <div class="e-permits-user-create__grid">
+            ${caseReadonly("Numărul dosarului", row.nrDosar)}
+            ${caseReadonly("Data depunerii", formatDate(row.dataDepunerii))}
+            ${caseReadonly("Serviciul", row.serviciu, 12)}
+            ${caseReadonly("Solicitant", applicant)}
+            ${caseReadonly("Termenul de examinare", formatDate(row.termenExaminare))}
+          </div>
+          ${caseSelect("specialist", "Specialist", caseSpecialists().map((person) => [person.id, `${person.nume} · ${person.load} ${person.load === 1 ? "dosar" : "dosare"} în lucru`]), { required: true, placeholder: "Alege specialistul", hint: "Numărul de dosare în lucru ajută la o repartizare echilibrată." })}
+          ${caseTextarea("instructiuni", "Instrucțiuni", { required: true })}
+        `;
+      case "decizie":
+        return `
+          <div class="e-permits-fo-field">
+            <label id="case-decision-label">Rezultatul examinării${requiredMark()}</label>
+            <div class="segmented-control" role="radiogroup" aria-labelledby="case-decision-label">
+              ${[["aprobare", "Aprobare"], ["respingere", "Respingere"]].map(([value, text]) => `
+                <button class="segment-item${d.values.choice === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${d.values.choice === value ? "true" : "false"}" data-case-choice="${value}">${text}</button>
+              `).join("")}
+            </div>
+            <p class="e-permits-fo-field__hint">${d.values.choice === "respingere"
+              ? "Următorul pas: Crearea proiectului deciziei de respingere (US-121)."
+              : "Următorul pas: Setarea taxei (US-117), apoi proiectul actului permisiv (US-120)."}</p>
+          </div>
+        `;
+      case "suspendare":
+        return `
+          ${caseNotice("Câmpuri deduse din titlul pasului BPMN „Indică motiv, setează termen”. US-126/127 nu au fost furnizate — de confirmat cu PO.", "warning")}
+          ${caseTextarea("motiv", "Motivul suspendării", { required: true })}
+          ${caseInput("zile", "Termenul suspendării (zile lucrătoare)", { required: true, numeric: true, hint: "Termenul de examinare se oprește pe durata suspendării." })}
+          <p class="e-permits-case-form__lead">${row.flowState.vars.SuspensionWithCoordination
+            ? "Varianta B: decizia de suspendare se semnează. Dosarul rămâne „În lucru” până la semnare."
+            : "Varianta A: dosarul se suspendă imediat după confirmare."}</p>
+        `;
+      case "taxa": {
+        const fees = caseFeeOptions();
+        const chosen = fees.filter((fee) => (d.values.fees || []).includes(fee.id));
+        const total = chosen.reduce((sum, fee) => sum + fee.suma, 0);
+        return `
+          <p class="e-permits-case-form__lead">Alege taxele configurate în pașaportul serviciului. Denumirea, suma, valuta și contul nu se editează.</p>
+          <ul class="e-permits-case-form__fees" role="list">
+            ${fees.map((fee) => `
+              <li>
+                <!-- the whole row is the label; the library checkbox sits inside it -->
+                <label class="e-permits-case-form__fee e-permits-case-form__fee--pick">
+                  <span class="checkbox checkbox--medium">
+                    <input class="checkbox-input" type="checkbox" value="${escapeHtml(fee.id)}" data-case-fee${(d.values.fees || []).includes(fee.id) ? " checked" : ""}>
+                    <span class="checkbox-custom" aria-hidden="true"></span>
+                  </span>
+                  <span class="e-permits-case-form__fee-copy">
+                    <span class="e-permits-case-form__fee-name">${escapeHtml(fee.denumire)}</span>
+                    <span class="e-permits-case-form__fee-meta">Cont ${escapeHtml(fee.iban)}</span>
+                  </span>
+                  <span class="e-permits-case-form__fee-amount">${fee.suma} ${escapeHtml(fee.currency)}</span>
+                </label>
+              </li>
+            `).join("")}
+          </ul>
+          ${caseFieldError("fees")}
+          <div class="e-permits-case-form__total"><span>Total</span><strong>${total.toLocaleString("ro-MD")} MDL</strong></div>
+        `;
+      }
+      case "nota": {
+        const pending = buildDosarProfile(row).taxe.filter((taxa) => taxa.status === "neachitat");
+        return `
+          <p class="e-permits-case-form__lead">Nota de plată se generează automat din taxele setate. Niciun câmp nu este editabil (US-156).</p>
+          <ul class="e-permits-case-form__fees" role="list">
+            ${(pending.length ? pending : buildDosarProfile(row).taxe.slice(-1)).map((taxa) => `
+              <li class="e-permits-case-form__fee">
+                <span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">${escapeHtml(taxa.denumire)}</span><span class="e-permits-case-form__fee-meta">${escapeHtml(taxa.id)}</span></span>
+                <span class="e-permits-case-form__fee-amount">${taxa.suma} MDL</span>
+              </li>
+            `).join("")}
+          </ul>
+        `;
+      }
+      case "act":
+        return `
+          <div class="e-permits-user-create__grid">
+            ${caseReadonly("Numărul dosarului", row.nrDosar)}
+            ${caseReadonly("Tipul dosarului", row.tipDosar)}
+            ${caseReadonly("Serviciul", row.serviciu, 12)}
+            ${caseReadonly("Titular", applicant, 12)}
+            ${caseDate("valabilDin", "Valabil din", { required: true })}
+            ${caseDate("valabilPana", "Valabil până la", { hint: "Opțional — fără dată, actul este nelimitat." })}
+          </div>
+        `;
+      case "respingere":
+        return `
+          ${caseTextarea("motiv", "Motivul refuzului", { required: true })}
+          ${caseTextarea("temei", "Temei legal")}
+          ${caseTextarea("recomandari", "Recomandări")}
+        `;
+      case "aviz":
+        return `
+          ${caseNotice("Câmpuri deduse — US-119 (Avize interinstituționale) nu a fost furnizat. De confirmat cu PO.", "warning")}
+          ${caseSelect("institutie", "Instituția avizatoare", CASE_REVIEW_INSTITUTIONS.map((name) => [name, name]), { required: true, placeholder: "Alege instituția" })}
+          ${caseTextarea("obiect", "Obiectul avizului", { required: true })}
+          <p class="e-permits-case-form__lead">Dosarul rămâne la Specialist. „Dosar examinat” se blochează până la răspunsul instituției.</p>
+        `;
+      default:
+        return `<p class="e-permits-case-form__lead">${escapeHtml(d.confirmText)}</p>`;
+    }
+  };
+
+  const renderCaseModal = () => {
+    const row = getDosarById(caseDraft.rowId);
+    caseModal.querySelector("[data-case-modal-title]").textContent = caseDraft.title;
+    caseModal.querySelector("[data-case-modal-subtitle]").textContent = caseDraft.subtitle;
+    caseModalBody.innerHTML = `
+      <div class="e-permits-case-form">
+        ${renderCaseForm(row)}
+        ${caseDraft.next && caseDraft.form && caseDraft.form !== "decizie" ? `<p class="e-permits-case-form__next">Următorul pas: ${escapeHtml(caseDraft.next)}</p>` : ""}
+      </div>
+    `;
+    caseModal.querySelector("[data-case-modal-footer]").innerHTML = `
+      <div class="modal-buttons">
+        <button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>
+        <button class="btn ${caseDraft.kind === "return" ? "btn-neutral" : "btn-primary"} btn-rounded" type="button" data-case-submit>${escapeHtml(caseDraft.submitLabel)}</button>
+      </div>
+    `;
+    window.GEAPDatePicker?.init(caseModalBody);
+  };
+
+  const openCaseAction = (row, actionId) => {
+    const ctx = caseAvailable(row);
+    const item = ctx?.avail.items.find((entry) => entry.id === actionId);
+
+    if (!item || item.disabled || !caseModal) {
+      return;
+    }
+
+    const quick = { demoAchitaTaxe: true, demoFinalizeazaAvize: true, reiaExaminarea: true };
+    if (quick[actionId]) {
+      applyCaseAction(row, item, {});
+      return;
+    }
+
+    const today = localIsoNow().slice(0, 10);
+    caseDraft = {
+      rowId: row.id,
+      actionId,
+      kind: item.kind,
+      form: item.kind === "return" ? null : item.form,
+      /* a form of the current step is titled by the step (US name); a form of the
+         next step (Suspendare termen at Verificarea datelor) by the action */
+      title: item.kind !== "operation" && item.form && item.form === ctx.avail.step.form ? ctx.avail.step.name : item.label,
+      subtitle: `${row.nrDosar} · ${row.serviciu}`,
+      /* operations get a verb; transitions keep their US label */
+      submitLabel: { taxaExaminare: "Adaugă taxele", aviz: "Solicită avizul" }[actionId] || item.label,
+      next: item.kind === "operation" ? "" : item.target,
+      confirmText: item.kind === "return"
+        ? `Dosarul se întoarce la pasul „${item.target}”.`
+        : `Confirmați acțiunea „${item.label}”. Dosarul trece la: ${item.target}.`,
+      values: {
+        instructiuni: "Spre examinare",
+        choice: "aprobare",
+        fees: [],
+        valabilDin: today,
+        ...(row.flowState.suspension && item.form === "suspendare" ? row.flowState.suspension : {})
+      },
+      errors: {}
+    };
+    renderCaseModal();
+    window.__modal?.open?.("#case-action-modal");
+    requestAnimationFrame(() => focusFormControl(caseModalBody.querySelector("[data-case-field], [data-case-select], [data-case-choice], [data-case-fee]") || caseModal.querySelector("[data-case-submit]")));
+  };
+
+  const closeCaseModal = () => {
+    closeFoSelect();
+    window.__modal?.close?.("#case-action-modal");
+    caseDraft = null;
+  };
+
+  const closeCaseDrawer = () => {
+    if (!caseDrawer || caseDrawer.hidden || caseDrawer.classList.contains("is-closing")) return;
+    caseDrawer.classList.add("is-closing");
+    window.setTimeout(() => {
+      caseDrawer.hidden = true;
+      caseDrawer.classList.remove("is-closing");
+      document.body.classList.remove("is-user-create-open");
+      caseReturnFocus?.focus?.();
+    }, 120);
+  };
+
+  const validateCaseDraft = () => {
+    const v = caseDraft.values;
+    const errors = {};
+    const need = (key, message) => { if (!String(v[key] || "").trim()) errors[key] = message; };
+    switch (caseDraft.form) {
+      case "distribuire": need("specialist", "Alege specialistul."); need("instructiuni", "Scrie instrucțiunile."); break;
+      case "suspendare":
+        need("motiv", "Indică motivul suspendării.");
+        if (!/^\d+$/.test(String(v.zile || "")) || Number(v.zile) < 1) errors.zile = "Indică un număr de zile mai mare ca 0.";
+        break;
+      case "taxa": if (!(v.fees || []).length) errors.fees = "Alege cel puțin o taxă."; break;
+      case "act":
+        need("valabilDin", "Alege data de început.");
+        if (v.valabilPana && v.valabilDin && v.valabilPana < v.valabilDin) errors.valabilPana = "Data de sfârșit este înaintea datei de început.";
+        break;
+      case "respingere": need("motiv", "Indică motivul refuzului."); break;
+      case "aviz": need("institutie", "Alege instituția."); need("obiect", "Descrie obiectul avizului."); break;
+      default: break;
+    }
+    caseDraft.errors = errors;
+    return !Object.keys(errors).length;
+  };
+
+  /* apply: move the case (or run the operation), update the record and its journal */
+  const applyCaseAction = (row, item, values) => {
+    const ctx = caseFlowOf(row);
+    const { flow, state } = ctx;
+    const profile = buildDosarProfile(row);
+    const me = currentUserName();
+    const now = localIsoNow();
+    const today = now.slice(0, 10);
+    const stepName = flow.nodes[state.stateId]?.name || "";
+    let detail = "";
+
+    switch (item.id) {
+      case "distribuie": {
+        const person = (dossierDb?.specialisti || []).find((entry) => entry.id === values.specialist);
+        row.specialist = person || row.specialist;
+        row.repartizatDe = personFromName(me);
+        row.nedistribuit = false;
+        detail = `Repartizat către ${person?.nume || "—"}. Instrucțiuni: ${values.instructiuni}`;
+        break;
+      }
+      case "taxaExaminare":
+      case "confirmaTaxa": {
+        const fees = caseFeeOptions().filter((fee) => values.fees.includes(fee.id));
+        const base = 90000 + (hashValue(row.id + now) % 9000);
+        fees.forEach((fee, index) => profile.taxe.push({ id: `MPAY-${base + index}`, denumire: fee.denumire, suma: fee.suma, status: "neachitat", emitere: today, termen: toIsoDate(addDays(parseIsoDate(today), 5)), achitare: null }));
+        if (item.id === "taxaExaminare") state.manualFee = true;
+        detail = fees.map((fee) => `${fee.denumire} · ${fee.suma} ${fee.currency}`).join("; ");
+        break;
+      }
+      case "aviz":
+        profile.avize.push({ id: `AV-${String(hashValue(row.id + now) % 100000).padStart(5, "0")}`, institutie: values.institutie, solicitatLa: formatDate(today), termen: formatDate(toIsoDate(addDays(parseIsoDate(today), 10))), status: "inLucru", rezultat: "—" });
+        if (!row.alerte.includes("inAvizare")) row.alerte.push("inAvizare");
+        detail = `${values.institutie}: ${values.obiect}`;
+        break;
+      case "demoAchitaTaxe":
+        profile.taxe.forEach((taxa) => { if (taxa.status === "neachitat") { taxa.status = "achitat"; taxa.achitare = today; } });
+        row.alerte = row.alerte.filter((alert) => alert !== "neachitatTermen");
+        state.manualFee = false;
+        detail = "Toate taxele în așteptare au fost achitate (MPay).";
+        break;
+      case "demoFinalizeazaAvize":
+        profile.avize.forEach((aviz) => { if (aviz.status === "inLucru") { aviz.status = "favorabil"; aviz.rezultat = "Pozitiv"; } });
+        row.alerte = row.alerte.filter((alert) => !["inAvizare", "neavizatTermen"].includes(alert));
+        detail = "Avizele active au primit răspuns favorabil.";
+        break;
+      case "suspendare":
+      case "confirmaSuspendarea":
+        state.suspension = { motiv: values.motiv, zile: values.zile };
+        detail = `${values.motiv} · ${values.zile} zile`;
+        break;
+      case "dosarExaminat":
+        detail = values.choice === "respingere" ? "Rezultat: respingere." : "Rezultat: aprobare.";
+        break;
+      case "inainteAct":
+        state.act = { valabilDin: values.valabilDin, valabilPana: values.valabilPana || null };
+        detail = `Valabil din ${formatDate(values.valabilDin)}${values.valabilPana ? ` până la ${formatDate(values.valabilPana)}` : ", nelimitat"}.`;
+        break;
+      case "inainteRespingere":
+        state.rejection = { motiv: values.motiv, temei: values.temei, recomandari: values.recomandari };
+        detail = values.motiv;
+        break;
+      default:
+        break;
+    }
+
+    const next = caseFlow.apply(flow, state, item.id, { vars: state.vars, choice: values.choice });
+    const wasSuspended = state.suspended;
+    if (next.stateId !== state.stateId && !state.visited.includes(state.stateId)) state.visited.push(state.stateId);
+    Object.assign(state, next);
+
+    /* alerts follow the suspension (§11) */
+    if (state.suspended && !wasSuspended) {
+      row.alerte = [...row.alerte.filter((alert) => alert !== "dupaSuspendare"), "suspendat"];
+    } else if (!state.suspended && wasSuspended) {
+      row.alerte = [...row.alerte.filter((alert) => alert !== "suspendat"), "dupaSuspendare"];
+      detail = detail || "Informațiile au fost completate; termenul de examinare a fost reluat.";
+    }
+
+    /* the registry keeps its coarse status in step with the resting node */
+    row.status = caseFlow.listStatus(flow, state);
+    if (["node14", "node17", "RecordState2", "node19", "node20"].includes(state.stateId)) row.decizia = "proiect";
+    if (state.stateId === "end") {
+      row.decizia = state.decision === "respingere" ? "respingere" : "aprobare";
+      row.dataSemnarii = today;
+      row.nrActEmis = row.decizia === "aprobare" ? `AUT-2026-${row.nrDosar.slice(-6)}` : null;
+      profile.hasDecisionStage = true;
+      profile.acte = [{ titlu: row.decizia === "respingere" ? "Decizie de respingere" : `Act permisiv ${row.nrActEmis}`, emis: formatDate(today), sursa: "ASP" }];
+    }
+
+    const landed = flow.nodes[state.stateId];
+    state.log.unshift({
+      at: now,
+      user: item.id === "achitat" ? (row.companie || row.numeSolicitant) : me,
+      type: item.kind === "operation" ? item.label : `${item.label} — ${stepName}`,
+      status: "Reușit",
+      detail: [detail, item.kind !== "operation" ? `Pas curent: ${state.suspended ? "dosar suspendat" : landed?.name || ""}.` : ""].filter(Boolean).join(" ")
+    });
+
+    renderDosarProfil(row);
+    syncCaseRowInList(row);
+    showShellToast(item.kind === "operation" ? detail || item.label : `Pas curent: ${state.suspended ? "Dosar suspendat" : landed?.name || "—"}.`, "success", item.label);
+  };
+
+  /* the open registry shows the new status / alerts at once */
+  const syncCaseRowInList = (row) => {
+    if (workplacePanel && !workplacePanel.hidden && typeof renderWorkplace === "function") {
+      renderWorkplace();
+    }
+  };
+
+  const submitCaseDraft = () => {
+    if (!caseDraft) return;
+    if (!validateCaseDraft()) {
+      renderCaseModal();
+      focusFormControl(caseModalBody.querySelector(".is-error input, .is-error textarea, .e-permits-fo-select.is-error .e-permits-fo-select__button, [data-case-fee]"));
+      return;
+    }
+    const row = getDosarById(caseDraft.rowId);
+    const item = caseAvailable(row)?.avail.items.find((entry) => entry.id === caseDraft.actionId);
+    const values = { ...caseDraft.values };
+    closeCaseModal();
+    if (item) applyCaseAction(row, item, values);
+  };
+
+  /* ---- Vezi fluxul: the flow's human steps, the current one marked ---- */
+  const renderCaseFlowView = (row) => {
+    const { flow, state } = caseFlowOf(row);
+    const vars = state.vars;
+    const yesNo = (value) => (value ? "Da" : "Nu");
+    return `
+      <div class="e-permits-case-form">
+        ${renderInfoCard("Schema procesului", [
+          ["Flux", escapeHtml(flow.name)],
+          ["Pas curent", escapeHtml(state.stateId === "end" ? "Dosar finalizat" : `${flow.nodes[state.stateId].name}${state.suspended ? " (suspendat)" : ""}`)],
+          ["Statut public", escapeHtml(casePublicStatus(row)?.label || "—")],
+          ["Distribuire automată", yesNo(vars.IsAutoDistribution)],
+          ["Suspendare cu semnare", yesNo(vars.SuspensionWithCoordination)],
+          ["Aprobare secundară", `${yesNo(vars.SecondaryApproval)} <span class="e-permits-dosar-profil__termen-meta">din subdiviziunea de procesare</span>`],
+          ["Eliberare pe hârtie", yesNo(vars.IsPaperPermit)]
+        ])}
+        <section class="e-permits-dosar-profil__section">
+          <h2 class="e-permits-dosar-profil__section-title">Pașii umani</h2>
+          <ol class="e-permits-timeline">
+            ${flow.order.map((id) => {
+              const node = flow.nodes[id];
+              const lane = caseFlow.LANES[node.lane];
+              const tone = id === state.stateId ? "pending" : state.visited.includes(id) ? "success" : "upcoming";
+              return `
+                <li class="e-permits-timeline__item e-permits-timeline__item--${tone}">
+                  <span class="e-permits-timeline__rail" aria-hidden="true">
+                    <span class="e-permits-timeline__marker">${tone === "upcoming" ? "" : `<svg class="icon"><use href="assets/icons/sprite.svg#icon-${tone === "pending" ? "time-filled" : "circle-checkmark-filled"}"></use></svg>`}</span>
+                  </span>
+                  <div class="e-permits-timeline__content">
+                    <span class="e-permits-timeline__title">${escapeHtml(node.name)}${id === state.stateId ? renderTag("Pas curent", "info") : ""}</span>
+                    <span class="e-permits-timeline__stamp">${escapeHtml(`${lane.title} · ${node.us} · BPMN: ${node.bpmn}`)}</span>
+                  </div>
+                </li>
+              `;
+            }).join("")}
+          </ol>
+        </section>
+      </div>
+    `;
+  };
+
+  const openCaseFlowView = (row) => {
+    if (!caseDrawer || !caseFlowOf(row)) return;
+    caseReturnFocus = document.activeElement;
+    caseDrawer.querySelector("[data-case-title]").textContent = "Fluxul dosarului";
+    caseDrawer.querySelector("[data-case-subtitle]").textContent = `${row.nrDosar} · ${row.serviciu}`;
+    caseDrawerBody.innerHTML = renderCaseFlowView(row);
+    caseDrawer.querySelector("[data-case-summary]").textContent = "";
+    caseDrawer.querySelector("[data-case-buttons]").innerHTML = '<button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>';
+    caseDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => caseDrawer.querySelector("[data-case-close]")?.focus());
+  };
+
+  caseDrawer?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-case-close]")) closeCaseDrawer();
+  });
+
+  caseModal?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-case-close]")) { closeCaseModal(); return; }
+    if (event.target.closest("[data-case-submit]")) { submitCaseDraft(); return; }
+    const choice = event.target.closest("[data-case-choice]");
+    if (choice && caseDraft) {
+      caseDraft.values.choice = choice.dataset.caseChoice;
+      renderCaseModal();
+      caseModalBody.querySelector(`[data-case-choice="${caseDraft.values.choice}"]`)?.focus();
+    }
+  });
+
+  caseModal?.addEventListener("input", (event) => {
+    const field = event.target.closest("[data-case-field]");
+    if (!field || !caseDraft) return;
+    caseDraft.values[field.dataset.caseField] = field.value;
+    const count = caseModalBody.querySelector(`[data-case-count="${field.dataset.caseField}"]`);
+    if (count) count.textContent = field.value.length;
+  });
+
+  caseModal?.addEventListener("change", (event) => {
+    if (!caseDraft) return;
+    const select = event.target.closest("[data-case-select]");
+    if (select) { caseDraft.values[select.dataset.caseSelect] = select.value; delete caseDraft.errors[select.dataset.caseSelect]; return; }
+    const fee = event.target.closest("[data-case-fee]");
+    if (fee) {
+      const set = new Set(caseDraft.values.fees || []);
+      if (fee.checked) set.add(fee.value); else set.delete(fee.value);
+      caseDraft.values.fees = [...set];
+      delete caseDraft.errors.fees;
+      renderCaseModal();
+      caseModalBody.querySelector(`[data-case-fee][value="${fee.value}"]`)?.focus();
+      return;
+    }
+    const picker = event.target.closest("[data-case-date]");
+    if (picker) { caseDraft.values[picker.dataset.caseDate] = picker.dataset.selected || ""; delete caseDraft.errors[picker.dataset.caseDate]; }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && caseDrawer && !caseDrawer.hidden && !document.querySelector(".date-picker-panel:not([hidden]), body > .e-permits-fo-select__list")) closeCaseDrawer();
+  });
+
   const renderDosarProfil = (row) => {
     if (!dosarProfilPanel || !row) {
       return;
+    }
+
+    /* a tab can disappear (role switch, §10): fall back to the first visible one */
+    const visibleTabs = getDosarProfileTabs(row);
+    if (!visibleTabs.some((tab) => tab.id === dosarProfilState.tabKey)) {
+      dosarProfilState.tabKey = visibleTabs[0]?.id || "general";
     }
 
     if (dosarProfilTitleRow) {
@@ -2764,7 +3702,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dosarProfilBackShell.hidden = true;
     }
 
-    history.replaceState(null, "", window.location.pathname + window.location.search);
+    restorePageHash();
 
     if (dosarProfilState.returnTo === "sarcini") {
       dosarProfilState.returnTo = "dossiers";
@@ -2784,6 +3722,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-dosar-profil-crumb-back]")) {
       event.preventDefault();
       closeDosarProfil();
+      return;
+    }
+
+    const row = getDosarById(dosarProfilState.rowId);
+    const action = event.target.closest("[data-case-action]");
+
+    if (action) {
+      if (action.getAttribute("aria-disabled") === "true") {
+        return;
+      }
+      openCaseAction(row, action.dataset.caseAction);
+      return;
+    }
+
+    if (event.target.closest("[data-case-flow-view]")) {
+      openCaseFlowView(row);
     }
   });
 
@@ -3316,7 +4270,7 @@ document.addEventListener("DOMContentLoaded", () => {
     shell.classList.remove("is-user-profile-open");
     userProfileState.rowId = null;
     userProfileState.editKey = null;
-    history.replaceState(null, "", window.location.pathname + window.location.search);
+    restorePageHash();
     renderWorkplace();
   };
 
@@ -3727,7 +4681,9 @@ document.addEventListener("DOMContentLoaded", () => {
     shell.classList.remove("is-user-profile-open");
     shell.classList.remove("is-dosar-profile-open");
     shell.classList.add("is-role-profile-open");
+    setActiveNav("roles");
     renderRoleProfile(role);
+    writeHash(`#rol/${role.id}/${roleProfileState.tabKey}`);
     roleProfilePanel.scrollIntoView?.({ block: "start" });
   };
 
@@ -3743,6 +4699,7 @@ document.addEventListener("DOMContentLoaded", () => {
     shell.classList.remove("is-role-profile-open");
     roleProfileState.roleId = null;
     showRolesRegistry();
+    restorePageHash();
   };
 
   roleProfileBackShell?.addEventListener("click", closeRoleProfile);
@@ -3831,6 +4788,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (tabButton) {
         roleProfileState.tabKey = tabButton.dataset.roleProfileTab;
+        writeHash(`#rol/${role.id}/${roleProfileState.tabKey}`);
         syncTabStripActive(roleProfileTabs, "data-role-profile-tab", "roleProfileTab", roleProfileState.tabKey);
         renderRoleProfilePanelBody(role);
         tabButton.focus();
@@ -3940,7 +4898,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <div class="e-permits-workplace__user-roles">
         ${visibleRoles.map((role) => renderTag(role, "neutral")).join("")}
-        ${remaining ? `<span class="e-permits-workplace__user-role-more">+${remaining}</span>` : ""}
+        ${remaining ? `<span class="e-permits-workplace__user-role-more" tabindex="0" data-cell-tooltip="${escapeHtml(roles.join(", "))}" data-cell-tooltip-always aria-label="${escapeHtml(`Toate rolurile: ${roles.join(", ")}`)}">+${remaining}</span>` : ""}
       </div>
     `;
   };
@@ -4071,6 +5029,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return renderTariffCell(row, key);
     }
 
+    if (workplaceDb?.kind === "ntpl") {
+      return renderNtplCell(row, key);
+    }
+
+    if (workplaceDb?.kind === "classifiers") {
+      return renderClassifierCell(row, key);
+    }
+
     switch (key) {
       case "nrDosar":
         return renderNrDosar(row);
@@ -4147,7 +5113,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const colSpan = columns.length + (view?.selectable === false ? 0 : 1);
       workplaceRows.innerHTML = `
         <tr>
-          <td class="e-permits-workplace__empty" colspan="${colSpan}">${escapeHtml(view?.emptyMessage || "Nu sunt dosare pentru filtrul curent.")}</td>
+          <td class="e-permits-workplace__empty" colspan="${colSpan}">${appliedEntries().length ? 'Nu există rezultate pentru filtrele aplicate. <button class="btn btn-text-primary btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : escapeHtml(view?.emptyMessage || ({ tariffs: "Nu există tarife pentru filtrul curent.", ntpl: "Nu există șabloane pentru filtrul curent.", services: "Nu există servicii pentru filtrul curent.", users: "Nu există utilizatori pentru filtrul curent.", roles: "Nu există roluri pentru filtrul curent.", authorities: "Nu există autorități pentru filtrul curent." })[workplaceDb?.kind] || "Nu sunt dosare pentru filtrul curent.")}</td>
         </tr>
       `;
       return;
@@ -4192,8 +5158,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return '<span class="e-permits-workplace__status-divider" aria-hidden="true"></span>';
       }
 
-      const computedCount = baseRows.filter((row) => filterByToken(row, tab.filter)).length;
-      const count = Number.isFinite(tab.displayCount) ? tab.displayCount : computedCount;
+      /* with advanced filters on, every tab counts inside them (and the search) */
+      const filtering = appliedEntries().length > 0;
+      const computedCount = baseRows.filter((row) => filterByToken(row, tab.filter) && (!filtering || (filterBySearch(row) && matchesFacets(row)))).length;
+      const count = Number.isFinite(tab.displayCount) && !filtering ? tab.displayCount : computedCount;
       const isActive = activeTab?.id === tab.id;
 
       return `
@@ -4268,6 +5236,275 @@ document.addEventListener("DOMContentLoaded", () => {
     selectAll.indeterminate = selectedCount > 0 && selectedCount < visibleIds.length;
   };
 
+  /* ---- Advanced filter: bar + popover (Figma GEAP 244:14333) ----
+     Two layers, so one table query covers many choices:
+     - a facet popover edits the bar's DRAFT ("Confirmă" keeps it, Esc / outside click
+       drops it) — no query;
+     - "Aplică filtrele" in the bar commits the whole draft at once — one query. */
+  const filterBar = document.querySelector("[data-workplace-filters]");
+  const filterToggle = document.querySelector("[data-workplace-filter-toggle]");
+  const filterCount = document.querySelector("[data-workplace-filter-count]");
+  const FILTER_INLINE_MAX = 4;
+  let filterPopover = null;
+  let filterEdit = null; /* { key, values:Set, query, anchor } while a facet popover is open */
+  let filterMoreOpen = false;
+
+  const draftOf = () => { const st = getFilterState(); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
+  const sameSelection = (a = {}, b = {}) => {
+    const norm = (o) => JSON.stringify(Object.keys(o).filter((k) => o[k]?.length).sort().map((k) => [k, [...o[k]].sort()]));
+    return norm(a) === norm(b);
+  };
+  const filterPending = () => !sameSelection(draftOf(), getFilterState().applied);
+  const facetTone = (facet, value) => {
+    if (!/^(statut|status)$/.test(facet.key)) return null;
+    const fromDb = Object.values(workplaceDb.statuses || {}).find((st) => st.label === value)?.tone;
+    return fromDb || { Activ: "success", Activă: "success", Publicat: "success", Inactiv: "neutral", Schiță: "warning", Nepublicat: "warning" }[value] || "neutral";
+  };
+
+  const renderFilterBar = () => {
+    if (!filterBar) return;
+    const state = getFilterState();
+    const draft = draftOf();
+    const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
+    if (filterCount) { filterCount.hidden = !appliedCount; filterCount.textContent = String(appliedCount); }
+    const facets = availableFacets();
+    /* the chips show only after "Filtrare avansată" is clicked; the button's badge
+       keeps telling how many values are applied while the bar is closed */
+    const show = (state.open || filterPending()) && facets.length > 0;
+    filterBar.hidden = !show;
+    if (filterToggle) {
+      const none = !facets.length;
+      filterToggle.setAttribute("aria-expanded", String(show));
+      if (none) { filterToggle.setAttribute("aria-disabled", "true"); filterToggle.dataset.tooltipReason = "Lista nu are încă valori după care să filtrezi."; }
+      else { filterToggle.removeAttribute("aria-disabled"); delete filterToggle.dataset.tooltipReason; }
+    }
+    if (!show) { filterBar.innerHTML = ""; return; }
+    /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
+    const inline = facets.filter((f, i) => i < FILTER_INLINE_MAX || draft[f.key]?.length);
+    const more = facets.filter((f) => !inline.includes(f));
+    const chip = (facet) => {
+      const n = draft[facet.key]?.length || 0;
+      const open = filterEdit?.key === facet.key;
+      return `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
+        <span class="chip__label">${escapeHtml(facet.label)}</span>
+        ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
+        <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
+      </button>`;
+    };
+    const pending = filterPending();
+    const total = getVisibleRows().length;
+    filterBar.innerHTML = `
+      <div class="e-permits-workplace__filter-chips">
+        ${inline.map(chip).join("")}
+        ${more.length ? `<button class="chip e-permits-workplace__filter-chip" type="button" aria-haspopup="menu" aria-expanded="${filterMoreOpen}" data-filter-more>
+          <span class="chip__label">Mai multe</span>
+          <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-${filterMoreOpen ? "top" : "bottom"}"></use></svg>
+        </button>` : ""}
+      </div>
+      <div class="e-permits-workplace__filter-meta" aria-live="polite">
+        ${pending ? `
+          <span class="e-permits-workplace__filter-hint">Filtre neaplicate</span>
+          <button class="btn btn-text-neutral btn-sm" type="button" data-filter-discard>Renunță</button>
+          <button class="btn btn-primary btn-sm" type="button" data-filter-commit>Aplică filtrele</button>
+        ` : appliedCount ? `
+          <span class="e-permits-workplace__filter-result">${total === 1 ? "1 rezultat" : `${total} rezultate`}</span>
+          <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>
+        ` : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
+      </div>
+    `;
+  };
+
+  const ensureFilterPopover = () => {
+    if (filterPopover) return;
+    filterPopover = document.createElement("div");
+    filterPopover.className = "e-permits-fo-intent-menu e-permits-workplace__filter-pop";
+    filterPopover.hidden = true;
+    document.body.appendChild(filterPopover);
+    wireFilterPopover();
+  };
+
+  const placeFilterPopover = (anchor) => {
+    const r = anchor.getBoundingClientRect();
+    const width = filterPopover.offsetWidth;
+    filterPopover.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - width - 8))}px`;
+    filterPopover.style.top = `${r.bottom + 8}px`;
+  };
+
+  const closeFilterPopover = (restoreFocus = true) => {
+    if (!filterPopover || filterPopover.hidden) return;
+    const key = filterEdit?.key;
+    const wasMore = filterMoreOpen;
+    filterPopover.hidden = true;
+    filterEdit = null;
+    filterMoreOpen = false;
+    renderFilterBar();
+    if (!restoreFocus) return;
+    const back = (key && filterBar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)) || ((wasMore || key) && filterBar?.querySelector("[data-filter-more]"));
+    back?.focus();
+  };
+
+  const renderFilterOptions = () => {
+    const facet = facetsOf().find((f) => f.key === filterEdit.key);
+    const q = filterEdit.query.trim().toLocaleLowerCase("ro");
+    const options = facetOptions(facet).filter((o) => !q || o.value.toLocaleLowerCase("ro").includes(q));
+    return options.length ? options.map((o) => {
+      const tone = facetTone(facet, o.value);
+      return `
+        <li>
+          <label class="e-permits-workplace__filter-option">
+            <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${filterEdit.values.has(o.value) ? " checked" : ""} data-filter-option><span class="checkbox-custom" aria-hidden="true"></span></span>
+            ${tone ? renderTag(o.value, tone) : `<span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>`}
+          </label>
+        </li>
+      `;
+    }).join("") : '<li class="e-permits-workplace__filter-empty">Nicio valoare nu corespunde.</li>';
+  };
+
+  const openFilterPopover = (key, anchor) => {
+    const facet = facetsOf().find((f) => f.key === key);
+    if (!facet) return;
+    ensureFilterPopover();
+    filterMoreOpen = false;
+    filterEdit = { key, values: new Set(draftOf()[key] || []), query: "", anchor };
+    const many = facetOptions(facet).length > 7;
+    filterPopover.setAttribute("role", "dialog");
+    filterPopover.setAttribute("aria-label", `Filtru: ${facet.label}`);
+    filterPopover.innerHTML = `
+      ${many ? `
+        <div class="e-permits-workplace__filter-head">
+          <label class="search-input medium rectangular e-permits-workplace__search">
+            <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+            <input class="input" type="search" placeholder="Caută în ${escapeHtml(facet.label.toLocaleLowerCase("ro"))}" aria-label="Caută în ${escapeHtml(facet.label)}" data-filter-search>
+          </label>
+        </div>` : ""}
+      <ul class="e-permits-workplace__filter-list" role="list" data-filter-list>${renderFilterOptions()}</ul>
+      <div class="e-permits-workplace__filter-footer">
+        <button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
+        <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+          <span>Șterge</span>
+        </button>
+      </div>
+    `;
+    filterPopover.hidden = false;
+    renderFilterBar();
+    placeFilterPopover(filterBar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || filterBar.querySelector("[data-filter-more]") || anchor);
+    requestAnimationFrame(() => (filterPopover.querySelector("[data-filter-search]") || filterPopover.querySelector("[data-filter-option]") || filterPopover.querySelector("[data-filter-confirm]"))?.focus());
+  };
+
+  const openMoreMenu = (anchor) => {
+    ensureFilterPopover();
+    filterEdit = null;
+    filterMoreOpen = true;
+    const facets = availableFacets();
+    const draft = draftOf();
+    const inline = facets.filter((f, i) => i < FILTER_INLINE_MAX || draft[f.key]?.length);
+    filterPopover.setAttribute("role", "menu");
+    filterPopover.setAttribute("aria-label", "Mai multe filtre");
+    filterPopover.innerHTML = `<div class="e-permits-workplace__filter-list">${facets.filter((f) => !inline.includes(f)).map((f) => `
+      <button class="e-permits-workplace__filter-more-item" type="button" role="menuitem" data-filter-more-facet="${escapeHtml(f.key)}">${escapeHtml(f.label)}</button>`).join("")}</div>`;
+    filterPopover.hidden = false;
+    renderFilterBar();
+    placeFilterPopover(filterBar.querySelector("[data-filter-more]") || anchor);
+    requestAnimationFrame(() => filterPopover.querySelector("[data-filter-more-facet]")?.focus());
+  };
+
+  /* popover "Confirmă": the facet goes into the draft; nothing is queried yet */
+  const confirmFacetEdit = () => {
+    const draft = draftOf();
+    const values = [...filterEdit.values];
+    if (values.length) draft[filterEdit.key] = values; else delete draft[filterEdit.key];
+    closeFilterPopover();
+  };
+
+  /* bar "Aplică filtrele": one query for everything that changed */
+  const commitFilters = () => {
+    const state = getFilterState();
+    state.applied = JSON.parse(JSON.stringify(draftOf()));
+    Object.keys(state.applied).forEach((k) => { if (!state.applied[k]?.length) delete state.applied[k]; });
+    state.draft = null;
+    saveFilterState();
+    workplaceState.page = 1;
+    renderWorkplace();
+    filterBar?.querySelector("[data-filter-clear-all], [data-filter-facet]")?.focus();
+  };
+
+  const discardFilterDraft = () => { getFilterState().draft = null; renderFilterBar(); };
+
+  const clearAllFilters = () => {
+    const state = getFilterState();
+    state.applied = {};
+    state.draft = null;
+    saveFilterState();
+    workplaceState.page = 1;
+    renderWorkplace();
+  };
+
+  function wireFilterPopover() {
+    filterPopover.addEventListener("change", (event) => {
+      const box = event.target.closest("[data-filter-option]");
+      if (!box || !filterEdit) return;
+      if (box.checked) filterEdit.values.add(box.value); else filterEdit.values.delete(box.value);
+    });
+    filterPopover.addEventListener("input", (event) => {
+      if (!event.target.closest("[data-filter-search]") || !filterEdit) return;
+      filterEdit.query = event.target.value;
+      filterPopover.querySelector("[data-filter-list]").innerHTML = renderFilterOptions();
+    });
+    filterPopover.addEventListener("click", (event) => {
+      const moreFacet = event.target.closest("[data-filter-more-facet]");
+      if (moreFacet) { openFilterPopover(moreFacet.dataset.filterMoreFacet, filterBar.querySelector("[data-filter-more]")); return; }
+      if (!filterEdit) return;
+      if (event.target.closest("[data-filter-confirm]")) { confirmFacetEdit(); return; }
+      if (event.target.closest("[data-filter-reset]")) {
+        filterEdit.values.clear();
+        filterPopover.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
+      }
+    });
+    filterPopover.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { event.preventDefault(); closeFilterPopover(); return; }
+      if (event.key === "Enter" && filterEdit && !event.target.closest("button")) { event.preventDefault(); confirmFacetEdit(); }
+    });
+  }
+
+  filterToggle?.addEventListener("click", () => {
+    if (filterToggle.getAttribute("aria-disabled") === "true") return;
+    const state = getFilterState();
+    const visible = !filterBar.hidden;
+    if (visible && filterPending()) { filterBar.querySelector("[data-filter-commit]")?.focus(); return; }
+    state.open = !visible;
+    saveFilterState();
+    renderFilterBar();
+    if (state.open) filterBar.querySelector("[data-filter-facet]")?.focus();
+  });
+
+  filterBar?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-filter-clear-all]")) { clearAllFilters(); return; }
+    if (event.target.closest("[data-filter-commit]")) { commitFilters(); return; }
+    if (event.target.closest("[data-filter-discard]")) { discardFilterDraft(); return; }
+    const more = event.target.closest("[data-filter-more]");
+    if (more) { if (filterMoreOpen) closeFilterPopover(); else openMoreMenu(more); return; }
+    const chip = event.target.closest("[data-filter-facet]");
+    if (!chip) return;
+    if (filterEdit?.key === chip.dataset.filterFacet) { closeFilterPopover(); return; }
+    openFilterPopover(chip.dataset.filterFacet, chip);
+  });
+
+  /* the empty-table "Șterge filtrele" lives in the table body */
+  document.addEventListener("click", (event) => {
+    const clear = event.target.closest("[data-filter-clear-all]");
+    if (clear && !filterBar?.contains(clear)) { event.stopPropagation(); clearAllFilters(); }
+  });
+
+  /* outside click / resize / table scroll cancel the open popover (the draft stays) */
+  document.addEventListener("pointerdown", (event) => {
+    if (!filterPopover || filterPopover.hidden) return;
+    if (filterPopover.contains(event.target) || event.target.closest("[data-filter-facet], [data-filter-more]")) return;
+    closeFilterPopover(false);
+  });
+  window.addEventListener("resize", () => closeFilterPopover(false));
+  document.querySelector(".e-permits-workplace__table-wrap")?.addEventListener("scroll", () => closeFilterPopover(false), { passive: true });
+
   const renderWorkplace = () => {
     if (!workplaceDb || !workplaceTable) {
       return;
@@ -4317,6 +5554,11 @@ document.addEventListener("DOMContentLoaded", () => {
       workplaceAddTariff.hidden = workplaceDb.kind !== "tariffs" || !isCentralAdmin();
     }
 
+    const workplaceAddClassifier = document.querySelector("[data-workplace-add-classifier]");
+    if (workplaceAddClassifier) {
+      workplaceAddClassifier.hidden = workplaceDb.kind !== "classifiers";
+    }
+
     if (workplaceFieldCount) {
       workplaceFieldCount.innerHTML = `<strong>${workplaceDb.fieldCount || view.columns.length}</strong> câmpuri`;
     }
@@ -4331,6 +5573,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceTable.style.width = `${tableWidth}px`;
 
     renderWorkplaceTabs(view);
+    renderFilterBar();
     renderTableHead(view.columns, columnWidths);
 
     const startIndex = (workplaceState.page - 1) * workplaceState.pageSize;
@@ -4564,18 +5807,27 @@ document.addEventListener("DOMContentLoaded", () => {
   let servicesRegistryLabel = "Configurări servicii";
   const serviceProfileState = { code: null, tabKey: "general", focusCode: null };
 
+  /* the former Plăți și tarife tab is now Taxe; old links still land there */
+  const normalizePassportTab = (tabKey) => {
+    if (tabKey === "payments") {
+      return "fees";
+    }
+    return SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey) ? tabKey : "general";
+  };
+
   const SERVICE_STATUS_TONES = { Publicat: "success", Nepublicat: "warning", Inactiv: "neutral" };
 
   const SERVICE_PROFILE_TABS = [
     { id: "general", label: "Date generale", icon: "page-text" },
     { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
-    { id: "payments", label: "Plăți și tarife", count: (service) => service.geap.payments.length },
+    /* Taxe = fee summary cards + the payments (Feature 93591); Tarife = the service's tariffs */
+    { id: "fees", label: "Taxe", count: (service) => service.geap.payments.length },
     { id: "tariffs", label: "Tarife", count: (service) => (servicesStore?.tariffs || []).filter((tariff) => tariff.scope === service.code).length },
     { id: "dependencies", label: "Interdependențe", count: (service) => service.geap.dependencies.length },
     { id: "classifiers", label: "Clasificatoare specifice", count: (service) => service.geap.classifiers.length },
     { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
-    { id: "notifications", label: "Notificări", count: (service) => service.geap.notifications.length },
+    { id: "notifications", label: "Notificări", count: (service) => (service.geap.notificationTemplates || []).length },
     { id: "settings", label: "Setări" },
     { id: "events", label: "Jurnal de evenimente", count: (service) => service.geap.events.length }
   ];
@@ -4599,6 +5851,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const RO_MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
 
   const toDate = (value) => {
+    /* no value is no date (new Date(null) would be 1 Jan 1970) */
+    if (value === null || value === undefined || value === "") return null;
     /* "yyyy-mm-dd" alone would parse as UTC midnight; read it as a local day */
     const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? `${value}T00:00:00` : value);
     return Number.isNaN(date.getTime()) ? null : date;
@@ -4688,8 +5942,8 @@ document.addEventListener("DOMContentLoaded", () => {
     /* the Dosare layout: ID column (code + source) first, name on its own */
     columns: {
       cod: { label: "Cod serviciu RSSP", width: 156, sticky: true, sortable: true },
-      denumire: { label: "Denumire", width: 260, fill: true, sortable: true },
-      institutie: { label: "Autoritate", width: 240, sortable: true },
+      denumire: { label: "Act permisiv", width: 260, fill: true, sortable: true },
+      institutie: { label: "Instituția", width: 240, sortable: true },
       statut: { label: "Statut", width: 116, sortable: true },
       versiune: { label: "Versiune", width: 100, sortable: true },
       actualizat: { label: "Ultima actualizare", width: 180, sortable: true },
@@ -4732,7 +5986,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* Tarife — the tariff classifier (Feature 94153). For now the registry and
-     the redirect from a service's Plăți și tarife tab; the editor comes later. */
+     the redirect from a service's Taxe tab; the editor comes later. */
   const tariffRow = (tariff) => ({
     id: tariff.id,
     cod: tariff.code,
@@ -4740,6 +5994,7 @@ document.addEventListener("DOMContentLoaded", () => {
     denumire: tariff.name,
     valoare: `${tariff.amount} ${tariff.currency}`,
     domeniu: tariff.scope === "global" ? "Global" : (getServiceByCode(tariff.scope)?.title || tariff.scope),
+    tip: tariff.type || "",
     formula: tariff.formula ? (tariff.userVariables ? "Da, cu variabile" : "Da") : "Nu",
     statut: tariff.state === "Publicat" ? (tariff.active ? "Activ" : "Inactiv") : tariff.state,
     actualizat: tariff.modifiedAt,
@@ -4788,7 +6043,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
       case "denumire":
-        return `<span class="e-permits-passport__name" title="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
+        return `<span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
       case "statut":
         return renderTag(row.statut, TARIFF_STATUS_TONES[row.statut] || "neutral");
       case "actualizat":
@@ -4839,13 +6094,13 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         `;
       case "denumire":
-        return `<span class="e-permits-passport__name" title="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
+        return `<span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
       /* abbreviation over full institution name (as in RAP) */
       case "institutie":
         return `
           <span class="e-permits-workplace__user-name-stack e-permits-workplace__service-stack">
-            <span title="${escapeHtml(row.autoritateCod || row.institutie)}">${escapeHtml(row.autoritateCod || row.institutie)}</span>
-            <span title="${escapeHtml(row.institutie)}">${escapeHtml(row.institutie)}</span>
+            <span data-cell-tooltip="${escapeHtml(row.autoritateCod || row.institutie)}">${escapeHtml(row.autoritateCod || row.institutie)}</span>
+            <span data-cell-tooltip="${escapeHtml(row.institutie)}">${escapeHtml(row.institutie)}</span>
           </span>
         `;
       case "statut":
@@ -4889,7 +6144,9 @@ document.addEventListener("DOMContentLoaded", () => {
         panel.hidden = true;
       }
     });
-    shell.classList.remove("is-user-profile-open", "is-dosar-profile-open", "is-role-profile-open", "is-users-registry", "is-service-profile-open");
+    shell.classList.remove("is-user-profile-open", "is-dosar-profile-open", "is-role-profile-open", "is-users-registry", "is-service-profile-open", "is-ntpl-profile-open");
+    document.querySelectorAll("[data-ntpl-profile], [data-ntpl-profile-back-shell], [data-clas-profile], [data-clas-profile-back-shell]").forEach((panel) => { panel.hidden = true; });
+    shell.classList.remove("is-clas-profile-open");
 
     if (serviceProfileBackShell) {
       serviceProfileBackShell.hidden = true;
@@ -4909,7 +6166,7 @@ document.addEventListener("DOMContentLoaded", () => {
       authoritiesDb = buildAuthoritiesDb();
     }
 
-    const db = kind === "services" ? servicesDb : kind === "tariffs" ? buildTariffsDb() : authoritiesDb;
+    const db = kind === "services" ? servicesDb : kind === "tariffs" ? buildTariffsDb() : kind === "ntpl" ? buildNtplDb() : authoritiesDb;
     activeRegistry = kind;
     workplaceDb = db;
     workplaceState.rows = db.runtimeRows;
@@ -4981,9 +6238,54 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderRowAction = (label, attrs) =>
     `<button class="btn btn-text-primary btn-sm e-permits-passport__row-action" type="button" ${attrs}>${escapeHtml(label)}</button>`;
 
+  /* a passport section whose heading carries a status tag, a caption and an action
+     (Date din RSSP: Sincronizat · last sync · Resincronizează) */
+  const renderPassportBlock = (title, rows, { tagHtml = "", meta = "", actionHtml = "" } = {}) => `
+    <section class="e-permits-dosar-profil__section">
+      <div class="e-permits-dosar-profil__section-heading">
+        <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}${tagHtml}</h2>
+        ${meta || actionHtml ? `<div class="e-permits-passport__heading-tools">
+          ${meta ? `<span class="e-permits-dosar-profil__section-meta">${meta}</span>` : ""}
+          ${actionHtml}
+        </div>` : ""}
+      </div>
+      <div class="e-permits-dosar-profil__card">
+        ${rows.map(([label, valueHtml]) => `
+          <div class="e-permits-dosar-profil__row">
+            <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+            <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
+          </div>
+        `).join("")}
+      </div>
+    </section>
+  `;
+
+  /* a library link that switches the passport tab (handled by [data-passport-tab]) */
+  const passportTabLink = (service, tabId, label, size = "sm") =>
+    `<a class="link link-primary link-${size} e-permits-passport__tab-link" href="#serviciu/${escapeHtml(service.code)}/${tabId}" data-passport-tab="${tabId}">${escapeHtml(label)} →</a>`;
+
+  const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+
+  /* Date generale (Feature 90575): Date din RSSP (read-only, resync), what is configured
+     in GEAP, the latest changes, the government services the passport relies on, then
+     the rest of the RSSP record */
   const renderServiceGeneral = (service) => {
     const rssp = service.rssp;
+    const geap = service.geap;
     const authority = getAuthorityById(service.authorityId);
+    const multiSource = (service.syncSources || ["RSSP"]).length > 1;
+    const resync = !isCentralAdmin() ? "" : `
+      <button class="btn btn-neutral btn-sm" type="button" ${multiSource ? `data-sync-open="${escapeHtml(service.code)}" data-sync-source="RSSP"` : "data-passport-resync"}>
+        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+        <span>Resincronizează</span>
+      </button>`;
+    const configuredTypes = geap.requestTypes.filter((rt) => passport.requestTypeState(rt).label === "Configurat").length;
+    const publishedForms = geap.forms.filter((form) => form.status === "Published").length;
+    const tariffs = serviceTariffList(service);
+    const requiredDocs = rssp.documents.filter((doc) => doc.required).length;
+    const withLink = (text, tabId, label) => `${text}<span class="e-permits-passport__row-link">${passportTabLink(service, tabId, label)}</span>`;
+    const connected = (on, detail) => `${renderTag(on ? "Conectat" : "Neutilizat", on ? "success" : "neutral")}<span class="e-permits-passport__row-note">${escapeHtml(detail)}</span>`;
+    const mconnect = geap.classifiers.filter((item) => item.source === "MConnect").length;
 
     return `
       <div class="message message--subtle banner--info e-permits-passport__notice">
@@ -4992,15 +6294,36 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="banner__text">Secțiunile marcate <strong>RSSP</strong> sunt preluate din Registrul de Stat al Serviciilor Publice și nu se editează în GEAP — se actualizează doar prin resincronizare.</p>
         </div>
       </div>
-      ${renderPassportSection("Identificare", [
+      ${renderPassportBlock("Date din RSSP", [
         ["Cod serviciu RSSP", renderProfileCopyCode(service.code, `Copiază ${service.code}`)],
         ["Denumirea serviciului", escapeHtml(service.title)],
         ["Tipul", rssp.isPermissiveAct ? "Act permisiv" : "Serviciu public"],
-        ["Autoritatea prestatoare", escapeHtml(authority?.name || "—")],
-        ["IDNO autoritate", authority ? renderProfileCopyCode(authority.idno, `Copiază IDNO ${authority.idno}`) : "—"],
+        ["Instituția", escapeHtml(authority?.name || "—")],
+        ["IDNO instituție", authority ? renderProfileCopyCode(authority.idno, `Copiază IDNO ${authority.idno}`) : "—"],
         ["Statut", renderTag(service.status, SERVICE_STATUS_TONES[service.status] || "neutral")],
-        ["Ultima sincronizare", renderDateTime(service.lastSync, service.syncedBy || "")]
-      ], "RSSP")}
+        ["Versiune", escapeHtml(geap.version || "—")]
+      ], {
+        tagHtml: renderTag("Sincronizat", "success"),
+        meta: `Ultima sincronizare ${escapeHtml(formatStamp(service.lastSync))}${service.syncedBy ? ` · ${escapeHtml(service.syncedBy)}` : ""}`,
+        actionHtml: resync
+      })}
+      ${renderPassportSection("Obiecte configurate în GEAP", [
+        ["Tipuri solicitări", withLink(`${configuredTypes} din ${geap.requestTypes.length} configurate`, "request-types", "Vezi tipurile")],
+        ["Formulare electronice", withLink(`${plural(publishedForms, "publicat", "publicate")} · ${geap.forms.length - publishedForms} în schiță`, "forms", "Vezi formularele")],
+        ["Șabloane de tipar", withLink(plural(geap.templates.length, "șablon", "șabloane"), "templates", "Vezi șabloanele")],
+        ["Taxe", withLink(`${plural(tariffs.length, "tarif", "tarife")} · ${plural(geap.payments.length, "plată", "plăți")}`, "fees", "Vezi taxele")],
+        ["Documente însoțitoare", rssp.documents.length ? `${rssp.documents.length} · ${requiredDocs} obligatorii` : "—"],
+        ["Tipuri solicitanți", valueTags(rssp.applicantTypes)]
+      ], "GEAP")}
+      ${renderEventTimeline("Ultimele modificări", geap.events.slice(0, 3), {
+        empty: "Nu există modificări înregistrate.",
+        actionHtml: geap.events.length > 3 ? passportTabLink(service, "events", "Vezi tot jurnalul") : ""
+      })}
+      ${renderPassportSection("Servicii guvernamentale conectate", [
+        ["MConnect", connected(mconnect > 0, mconnect ? `${plural(mconnect, "clasificator preluat", "clasificatoare preluate")} din registrele de stat` : "Nu preia date din registre")],
+        ["MPay", connected(rssp.paid || geap.payments.length > 0, rssp.paid ? "Achitarea taxelor serviciului" : "Serviciu fără plată")],
+        ["MSign", connected(geap.templates.length > 0, geap.templates.length ? "Semnarea documentelor eliberate" : "Fără documente de semnat")]
+      ])}
       ${renderPassportSection("Descriere și eligibilitate", [
         ["Descriere", escapeHtml(rssp.objective || "—")],
         ["Tipul solicitantului", valueTags(rssp.applicantTypes)],
@@ -5140,6 +6463,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
           ${options.meta ? `<span class="e-permits-dosar-profil__section-meta">${escapeHtml(options.meta)}</span>` : ""}
+          ${options.actionHtml || ""}
         </div>
         <ol class="e-permits-timeline">
           ${events.map((item) => {
@@ -5355,7 +6679,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <h2 class="e-permits-dosar-profil__section-title">Plăți și tarife</h2>
+        <h2 class="e-permits-dosar-profil__section-title">Plăți</h2>
         <!-- one toolbar: filters left; search, export (icon, as in the tables) and Adaugă plată right -->
         <div class="e-permits-pay__toolbar">
           <div class="e-permits-rt__chips" role="group" aria-label="Filtrează plățile" data-pay-chips>${renderPayChips(service)}</div>
@@ -5408,17 +6732,6 @@ document.addEventListener("DOMContentLoaded", () => {
           badges: [renderTag(item.version, "neutral")],
           meta: [escapeHtml(item.type), escapeHtml(item.format), `Actualizat ${escapeHtml(formatLongDate(item.updated))}`]
         })) }], { empty: "Nu există șabloane de tipar pentru acest serviciu." });
-      case "notifications":
-        return renderStackedList("Notificări", groupBy(geap.notifications.map((item) => ({
-          group: item.recipient === "Solicitant" ? "Către solicitant" : `Către ${item.recipient.toLowerCase()}`,
-          plainTitle: item.event,
-          title: escapeHtml(item.event),
-          badges: [renderTag(item.active ? "Activ" : "Inactiv", item.active ? "success" : "neutral")],
-          meta: item.channel.split(" · ").map(escapeHtml)
-        })), (item) => item.group, ["Către solicitant"]), {
-          meta: "Conținutul notificărilor se administrează în modulul Notificări",
-          empty: "Serviciul nu are notificări specifice."
-        });
       case "settings":
         return geap.settings
           ? renderPassportSection("Setări adiționale", [
@@ -5437,13 +6750,2647 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  /* Taxe (Feature 90575): fee summary as stat cards, then the payments (Feature 93591) */
+  /* Sumar taxe: one stacked-list group per figure (the "Emitere primară" header with its
+     count badge), the breakdown as rows below */
+  const renderFeeGroup = ({ label, icon, count, rows, wide = false }) => `
+    <div class="e-permits-stack e-permits-fee-summary__group${wide ? " e-permits-fee-summary__group--wide" : ""}">
+      <div class="e-permits-stack__group">
+        <h3 class="e-permits-stack__group-label"><svg class="icon medium e-permits-fee-summary__icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg>${escapeHtml(label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${count}</span></h3>
+        <ul class="e-permits-stack__list" role="list">
+          ${rows.map(([name, valueHtml]) => `
+            <li class="e-permits-stack__item e-permits-fee-summary__row">
+              <span class="e-permits-fee-summary__name">${escapeHtml(name)}</span>
+              <span class="e-permits-fee-summary__value">${valueHtml}</span>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    </div>
+  `;
+
+  const renderServiceFees = (service) => {
+    const tariffs = serviceTariffList(service);
+    const payments = service.geap.payments;
+    const accounts = (servicesStore?.bankAccounts || []).filter((account) => account.authorityId === service.authorityId && account.active);
+    /* two rows each, so the three groups line up: Publicate (active) · Inactive */
+    const breakdown = (items) => [
+      ["Publicate", String(items.filter((item) => item.state === "Publicat" && item.active).length)],
+      ["Inactive", String(items.filter((item) => item.state === "Publicat" && !item.active).length)]
+    ];
+
+    return `
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">Sumar taxe</h2>
+        <div class="e-permits-fee-summary">
+          ${renderFeeGroup({ label: "Plăți", icon: "receipt-bill", count: payments.length, rows: breakdown(payments) })}
+          ${renderFeeGroup({ label: "Tarife", icon: "coins", count: tariffs.length, rows: breakdown(tariffs) })}
+          ${renderFeeGroup({
+            label: "Conturi bancare", icon: "credit-card", count: accounts.length, wide: true,
+            /* every active account: its name and the IBAN with the copy-ID component */
+            rows: accounts.length
+              ? accounts.map((account) => [account.label, renderProfileCopyCode(account.iban, `Copiază IBAN ${account.iban}`)])
+              : [["Niciun cont activ", "—"]]
+          })}
+        </div>
+      </section>
+      ${renderServicePayments(service)}
+    `;
+  };
+
+  /* ---- Notificări — the service's own notification templates (US-187) ----------
+     List (Cod, Denumire, Obiect, Reguli, Stare) with "Clonează" and "Șablon nou";
+     clone = library modal (system templates only), new = right drawer; both create the
+     template Inactiv and open its detail on Texte. "← Șabloane de notificare" returns to
+     this tab. Editing and activation are US-184. */
+  const NTPL_LANGS = [["ro", "Română"], ["ru", "Русский"], ["en", "English"]];
+  const NTPL_SOURCES = ["Dosar", "Plată", "Act permisiv", "Aviz"];
+  const NTPL_PRIORITIES = ["Normală", "Înaltă"];
+  /* the global templates; origin "Sistem" (shipped) or "Personalizat" (custom) */
+  const globalTemplates = () => servicesStore?.notificationTemplates || [];
+  /* US-187: only system templates can be cloned into a service */
+  const systemTemplates = () => globalTemplates().filter((tpl) => tpl.origin !== "Personalizat");
+  const serviceTemplates = (service) => service.geap.notificationTemplates || (service.geap.notificationTemplates = []);
+  const templateRulesLabel = (tpl) => (tpl.rules || []).length
+    ? `${tpl.rules.length === 1 ? "1 regulă" : `${tpl.rules.length} reguli`}: ${tpl.rules.map((rule) => rule.recipient).join(", ")}`
+    : "Fără reguli";
+
+  const renderServiceNotifications = (service) => {
+    const tpl = serviceProfileState.templateCode ? serviceTemplates(service).find((item) => item.code === serviceProfileState.templateCode) : null;
+    if (tpl) return renderTemplateDetail(service, tpl);
+
+    const admin = isCentralAdmin();
+    const list = serviceTemplates(service);
+    const items = list.map((item) => ({
+      plainTitle: item.name,
+      title: escapeHtml(item.name),
+      badges: [renderTag(item.active ? "Activ" : "Inactiv", item.active ? "success" : "neutral")],
+      meta: [renderTag(item.code, "neutral"), `Obiect: ${escapeHtml(item.object || item.dataSource || "—")}`, escapeHtml(templateRulesLabel(item))],
+      action: { label: "Deschide", attrs: `data-ntpl-open="${escapeHtml(item.code)}"` }
+    }));
+
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-stack-section">
+        <h2 class="e-permits-dosar-profil__section-title">Șabloane de notificare</h2>
+        <div class="e-permits-pay__toolbar">
+          <span class="e-permits-dosar-profil__section-meta">Proprii serviciului — gestionate independent de șabloanele globale</span>
+          ${admin ? `
+            <div class="e-permits-pay__tools">
+              <button class="btn btn-neutral btn-sm" type="button" data-ntpl-clone>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
+                <span>Clonează</span>
+              </button>
+              <button class="btn btn-secondary btn-sm" type="button" data-ntpl-new>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                <span>Șablon nou</span>
+              </button>
+            </div>
+          ` : ""}
+        </div>
+        ${items.length ? `
+          <div class="e-permits-stack">
+            <div class="e-permits-stack__group">
+              <ul class="e-permits-stack__list" role="list">${items.map(renderStackItem).join("")}</ul>
+            </div>
+          </div>
+        ` : `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>Serviciul nu are încă șabloane proprii de notificare.</p></div>`}
+      </section>
+    `;
+  };
+
+  /* a template's sections — Texte (per language) · Reguli de destinatari · Detalii —
+     shared by the passport detail and the global registry drawer */
+  const renderTemplateBody = (tpl, view, tabAttr, extraDetails = []) => {
+    const source = tpl.source ? systemTemplates().find((item) => item.code === tpl.source) : null;
+    const dash = '<span class="e-permits-workplace__dash">—</span>';
+    const content = view === "rules"
+      ? (tpl.rules || []).length ? `
+          <div class="e-permits-stack">
+            <div class="e-permits-stack__group">
+              <ul class="e-permits-stack__list" role="list">${tpl.rules.map((rule) => renderStackItem({
+                plainTitle: rule.recipient,
+                title: escapeHtml(rule.recipient),
+                meta: (rule.channels || []).map(escapeHtml)
+              })).join("")}</ul>
+            </div>
+          </div>
+        ` : `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>Fără reguli de destinatari. Se adaugă la editare (US-184).</p></div>`
+      : view === "details"
+        ? renderPassportSection("Detalii", [
+          ["Cod", renderTag(tpl.code, "neutral")],
+          ["Denumire", escapeHtml(tpl.name)],
+          ["Sursa de date", escapeHtml(tpl.dataSource || "—")],
+          ["Prioritate", escapeHtml(tpl.priority || "—")],
+          ["Descriere", tpl.description ? escapeHtml(tpl.description) : dash],
+          ["Stare", renderTag(tpl.active === false ? "Inactiv" : "Activ", tpl.active === false ? "neutral" : "success")],
+          ...(tpl.createdAt || tpl.source !== undefined ? [["Creat din", source ? `${escapeHtml(source.name)} ${renderTag(source.code, "neutral")}` : "Creat de la zero"]] : []),
+          ...(tpl.createdAt ? [["Creat", `${escapeHtml(formatStamp(tpl.createdAt))}${tpl.createdBy ? ` · ${escapeHtml(tpl.createdBy)}` : ""}`]] : []),
+          ...extraDetails
+        ])
+        : NTPL_LANGS.map(([lang, label]) => {
+          const text = tpl.texts?.[lang] || {};
+          return renderPassportSection(label, [
+            ["Obiect", text.subject ? escapeHtml(text.subject) : dash],
+            ["Text", text.body ? escapeHtml(text.body) : dash]
+          ]);
+        }).join("");
+
+    return `
+      <div class="segmented-control e-permits-ntpl__tabs" role="radiogroup" aria-label="Secțiunile șablonului">
+        ${[["texts", "Texte"], ["rules", "Reguli de destinatari"], ["details", "Detalii"]].map(([id, label]) => `
+          <button class="segment-item${view === id ? " is-selected" : ""}" type="button" role="radio" aria-checked="${view === id ? "true" : "false"}" ${tabAttr}="${id}">${label}</button>
+        `).join("")}
+      </div>
+      <div class="e-permits-ntpl__body">${content}</div>
+    `;
+  };
+
+  /* detail inside the passport: back to this tab, title + state, then the sections */
+  const renderTemplateDetail = (service, tpl) => `
+    <section class="e-permits-dosar-profil__section e-permits-ntpl">
+      <button class="btn btn-neutral btn-sm e-permits-ntpl__back" type="button" data-ntpl-back>
+        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+        <span>Șabloane de notificare</span>
+      </button>
+      <div class="e-permits-dosar-profil__section-heading">
+        <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(tpl.name)}${renderTag(tpl.active ? "Activ" : "Inactiv", tpl.active ? "success" : "neutral")}</h2>
+        <span class="e-permits-dosar-profil__section-meta">${escapeHtml(tpl.code)}</span>
+      </div>
+      ${tpl.active ? "" : `
+        <div class="message message--subtle banner--info e-permits-ntpl__notice">
+          <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></span>
+          <div class="banner__content"><p class="banner__text">Șablonul este inactiv și nu se trimite. Editarea textelor, a regulilor și activarea se fac conform US-184.</p></div>
+        </div>
+      `}
+      ${renderTemplateBody(tpl, serviceProfileState.templateTab || "texts", "data-ntpl-tab")}
+    </section>
+  `;
+
+  /* ---- Administrare › Șabloane de notificare — the global (system) templates ----
+     Feature 91332 is not detailed yet: a read-only registry in the workplace table
+     (as Tarife); a row opens the template in the right drawer. */
+  const templateUsage = (code) => (servicesStore?.services || []).filter((service) => (service.geap.notificationTemplates || []).some((tpl) => tpl.source === code));
+
+  const ntplRegistryRow = (tpl) => ({
+    id: tpl.code,
+    cod: tpl.code,
+    sursa: tpl.origin || "Sistem",
+    denumire: tpl.name,
+    obiect: tpl.object || tpl.dataSource || "—",
+    reguli: (tpl.rules || []).length,
+    versiune: tpl.version || "—",
+    actualizat: tpl.updatedAt || null,
+    actualizatDe: tpl.updatedBy || "",
+    statut: tpl.active === false ? "Inactiv" : "Activ",
+    prioritate: tpl.priority || "Normală"
+  });
+
+  const buildNtplDb = () => ({
+    kind: "ntpl",
+    fieldCount: 7,
+    columns: {
+      cod: { label: "Cod", width: 236, sticky: true, sortable: true },
+      denumire: { label: "Denumire", width: 300, fill: true, sortable: true },
+      obiect: { label: "Obiect", width: 132, sortable: true },
+      reguli: { label: "Reguli", width: 88, sortable: true },
+      versiune: { label: "Versiune", width: 96, sortable: true },
+      actualizat: { label: "Actualizat", width: 180, sortable: true },
+      statut: { label: "Stare", width: 96, sortable: true }
+    },
+    views: {
+      ntpl: {
+        title: "Șabloane de notificare",
+        selectable: false,
+        columns: ["cod", "denumire", "obiect", "reguli", "versiune", "actualizat", "statut"],
+        tabs: [
+          { id: "all", label: "Toate", filter: "all" },
+          { id: "active", label: "Active", filter: "svc:Activ" }
+        ]
+      }
+    },
+    runtimeRows: globalTemplates().map(ntplRegistryRow)
+  });
+
+  /* =====================================================================
+     CLASIFICATOARE — Back Office module (Features 91423 / 91424, Concept v0.2)
+     A classifier is a governed reference list consumed by forms, registers,
+     reports and process logic. Two lifecycles, never mixed:
+       classifier  draft → published → archived (republish), draft-over-published
+                   keeps a snapshot that "Renunță la ciornă" restores (core/classifiers.js)
+       value       active / inactive only — never deleted, stays resolvable
+     Rights (core/permissions.js): central admin everything; local admin only the
+     authority's specific classifiers flagged localAdminManageable; archived = read-only.
+     Open divergences DIV-C1…C8 are documented in components.md, not hidden here.
+     ===================================================================== */
+  const clasCore = window.GEAP?.classifiers;
+  const clasPerm = window.GEAP?.permissions;
+  let classifiersStore = null; /* { list, fieldTypes } */
+  const CLAS_FAMILY = { national: "Național", "internațional": "Internațional", interoperabilitate: "Interoperabilitate", intern: "Intern GEAP 2.0" };
+  const CLAS_SCOPE = { system: ["Sistem", "neutral"], global: ["Global", "brand"], authority: ["Autoritate", "info"], service: ["Serviciu", "neutral"] };
+  const CLAS_SOURCE = { intern: "Intern", mconnect: "MConnect", api: "API" };
+  const CLAS_STATUS = { draft: ["Ciornă", "warning"], published: ["Publicat", "success"], archived: ["Arhivat", "neutral"] };
+  const CLAS_AUTHORITY = { ansp: ["ANSP", "Agenția Națională pentru Sănătate Publică"], anta: ["ANTA", "Agenția Națională Transport Auto"] };
+  const CLAS_TABS = [["valori", "Valori"], ["coloane", "Coloane"], ["mapare", "Mapare MConnect"], ["dependente", "Hartă dependențe"], ["jurnal", "Jurnal de evenimente"], ["setari", "Setări"]];
+  const clasState = { id: null, tabKey: "valori", query: "", activity: "all", draft: null, selected: new Set() };
+
+  const clasList = () => classifiersStore?.list || [];
+  const getClassifier = (id) => clasList().find((c) => c.id === id) || null;
+  const replaceClassifier = (next) => { classifiersStore.list = clasList().map((c) => (c.id === next.id ? next : c)); return next; };
+  const clasRole = () => {
+    const a = getRoleAssignments().find((x) => x.id === activeAssignmentId);
+    if (a?.menuProfile === "central-admin") return { id: "adm-c", authority: null };
+    if (a?.menuProfile === "local-admin") return { id: "adm-l", authority: a.authority || "ansp" };
+    return { id: "viewer", authority: null };
+  };
+  /* Local Admin sees its authority's specific classifiers only (DIV-C6 as implemented) */
+  const clasVisible = (c) => { const r = clasRole(); return r.id === "adm-c" || (c.categorie === "specific" && c.autoritate === r.authority); };
+  const clasCanEdit = (c) => {
+    const r = clasRole();
+    if (r.id === "viewer") return false;
+    if (r.id === "adm-l" && (c.categorie !== "specific" || c.autoritate !== r.authority)) return false;
+    return clasPerm.canEditClassifier(c, r.id === "adm-c" ? "adm-c" : "adm-l");
+  };
+  const clasCanEditStructure = (c) => c.status !== "archived" && clasPerm.canEditStructure(clasRole().id === "adm-c" ? "adm-c" : "adm-l");
+  const clasReadOnlyReason = (c) => {
+    if (c.status === "archived") return "Clasificatorul este arhivat: nu se mai modifică. Republică-l ca să-l poți edita.";
+    if (clasRole().id === "adm-l" && !c.localAdminManageable) return "Administratorul central gestionează acest clasificator (alimentează procese, termene sau validări). Îl poți doar consulta.";
+    return "";
+  };
+  const clasScope = (c) => clasCore.scopeOf(c);
+  const clasAuthorityLabel = (c) => (c.autoritate ? (CLAS_AUTHORITY[c.autoritate]?.[0] || c.autoritate.toUpperCase()) : "Toate");
+  const clasNumber = (n) => Number(n || 0).toLocaleString("ro-MD");
+  const clasToday = () => localIsoNow().slice(0, 10);
+  const clasLog = (c, type, detail, status = "Reușit") => {
+    c.jurnal = [{ at: localIsoNow(), user: currentUserName(), type, status, detail }, ...(c.jurnal || [])];
+    c.editatLa = clasToday();
+    c.editatDe = currentUserName();
+  };
+  /* every edit of a published classifier goes through a draft first */
+  const clasEdit = (c, mutate, journal) => {
+    let next = clasCore.beginDraft(c);
+    if (next === c) next = JSON.parse(JSON.stringify(c));
+    const opened = c.status === "published";
+    mutate(next);
+    if (opened) clasLog(next, "Ciornă deschisă", `Peste versiunea publicată v${c.versiune}; consumatorii văd încă v${c.versiune}.`);
+    if (journal) clasLog(next, journal[0], journal[1]);
+    return replaceClassifier(next);
+  };
+
+  /* seed: journal and flags the JSON does not carry */
+  const seedClassifiers = (list) => list.map((c) => {
+    const x = { ...c, everPublished: c.status !== "draft", publishedSnapshot: c.publishedSnapshot || null };
+    if (!x.jurnal || !x.jurnal.length) {
+      const j = [{ at: `${c.editatLa}T10:00:00`, user: c.editatDe || "Sistem", type: c.status === "published" ? `Publicat v${c.versiune}` : "Actualizat", status: "Reușit", detail: c.sursa === "mconnect" ? `${clasNumber(c.nrValori)} valori sincronizate din MConnect.` : `${clasNumber(c.nrValori)} valori.` }];
+      if (c.sursa === "mconnect") j.push({ at: "2026-06-01T08:00:00", user: "Sistem (MConnect)", type: "Sincronizare", status: "Reușit", detail: "Fără valori noi; 0 dezactivate." });
+      j.push({ at: "2024-07-18T09:00:00", user: "Vasile Schidu", type: "Creat", status: "Reușit", detail: c.copiatDinId ? `Creat din „${list.find((y) => y.id === c.copiatDinId)?.denumire || c.copiatDinId}”.` : "Clasificator creat." });
+      x.jurnal = j;
+    }
+    return x;
+  });
+
+  /* ---- registry ---- */
+  const clasRow = (c) => {
+    const usage = clasCore.usageOf(c);
+    return {
+      id: c.id,
+      denumire: c.denumire,
+      descriere: c.descriere,
+      domeniu: CLAS_SCOPE[clasScope(c)][0],
+      familie: CLAS_FAMILY[c.familie] || c.familie,
+      sursa: CLAS_SOURCE[c.sursa] || c.sursa,
+      autoritate: clasAuthorityLabel(c),
+      utilizare: usage.unused ? "Neutilizat" : "Utilizat",
+      utilizat: usage,
+      valori: c.nrValori || (c.valori || []).length,
+      versiune: c.versiune,
+      actualizat: c.editatLa ? `${c.editatLa}T12:00:00` : null,
+      actualizatDe: c.editatDe || "",
+      statut: CLAS_STATUS[c.status][0]
+    };
+  };
+
+  const buildClassifiersDb = () => ({
+    kind: "classifiers",
+    fieldCount: 9,
+    columns: {
+      denumire: { label: "Denumire", width: 340, fill: true, sticky: true, sortable: true },
+      domeniu: { label: "Domeniu", width: 120, sortable: true },
+      familie: { label: "Familie", width: 150, sortable: true },
+      sursa: { label: "Sursă", width: 110, sortable: true },
+      utilizat: { label: "Utilizat de", width: 140 },
+      valori: { label: "Valori", width: 96, sortable: true },
+      versiune: { label: "Versiune", width: 96, sortable: true },
+      actualizat: { label: "Modificat", width: 180, sortable: true },
+      statut: { label: "Statut", width: 108, sortable: true }
+    },
+    views: {
+      classifiers: {
+        title: "Clasificatoare",
+        selectable: false,
+        columns: ["denumire", "domeniu", "familie", "sursa", "utilizat", "valori", "versiune", "actualizat", "statut"],
+        tabs: [
+          { id: "all", label: "Toate", filter: "all" },
+          { id: "published", label: "Publicate", filter: "svc:Publicat" },
+          { id: "draft", label: "Ciorne", filter: "svc:Ciornă" },
+          { id: "archived", label: "Arhivate", filter: "svc:Arhivat" }
+        ],
+        emptyMessage: "Nu există clasificatoare pentru filtrul curent."
+      }
+    },
+    runtimeRows: clasList().filter(clasVisible).map(clasRow)
+  });
+
+  const renderClassifierCell = (row, key) => {
+    switch (key) {
+      /* name over its description, as the registries' two-line ID cell */
+      case "denumire": return `
+        <div class="e-permits-workplace__case-cell">
+          <span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
+          ${row.descriere ? `<span class="e-permits-workplace__source" data-cell-tooltip="${escapeHtml(row.descriere)}"><span>${escapeHtml(row.descriere)}</span></span>` : ""}
+        </div>`;
+      case "domeniu": { const scope = Object.values(CLAS_SCOPE).find(([l]) => l === row.domeniu); return renderTag(row.domeniu, scope?.[1] || "neutral"); }
+      case "utilizat": return row.utilizat.unused ? '<span class="e-permits-workplace__dash">Neutilizat</span>' : `
+        <div class="e-permits-workplace__case-cell">
+          <span>${plural(row.utilizat.modules, "modul", "module")}</span>
+          <span class="e-permits-workplace__source"><span>${plural(row.utilizat.objects, "obiect", "obiecte")}</span></span>
+        </div>`;
+      case "valori": return escapeHtml(clasNumber(row.valori));
+      case "versiune": return `v${escapeHtml(row.versiune)}`;
+      case "actualizat": return renderDateTime(row.actualizat, row.actualizatDe);
+      case "statut": { const st = Object.values(CLAS_STATUS).find(([l]) => l === row.statut); return renderTag(row.statut, st?.[1] || "neutral"); }
+      default: return escapeHtml(String(row[key] ?? "—"));
+    }
+  };
+
+  function showClassifiersRegistry() {
+    if (!classifiersStore) { showRolePlaceholder("Clasificatoare"); return; }
+    activeRegistry = "classifiers";
+    workplaceDb = buildClassifiersDb();
+    workplaceState.rows = workplaceDb.runtimeRows;
+    workplaceState.viewKey = "classifiers";
+    workplaceState.tabKey = null;
+    workplaceState.query = "";
+    workplaceState.page = 1;
+    workplaceState.pageSize = 16;
+    workplaceState.sortKey = null;
+    workplaceState.sortDirection = "desc";
+    workplaceState.selected.clear();
+    hideProfilePanels();
+    if (permitsProfilePanel) permitsProfilePanel.hidden = true;
+    if (workplacePanel) workplacePanel.hidden = false;
+    if (workplaceRefresh) workplaceRefresh.hidden = false;
+    renderWorkplace();
+  }
+
+  const refreshClassifierViews = () => {
+    if (activeRegistry === "classifiers" && workplacePanel && !workplacePanel.hidden) {
+      workplaceDb = buildClassifiersDb();
+      workplaceState.rows = workplaceDb.runtimeRows;
+      renderWorkplace();
+    }
+    if (clasProfilePanel && !clasProfilePanel.hidden) renderClassifierProfile();
+  };
+
+  /* ---- profile ---- */
+  const clasProfilePanel = document.querySelector("[data-clas-profile]");
+  const clasProfileTitle = document.querySelector("[data-clas-profile-title]");
+  const clasProfileSummary = document.querySelector("[data-clas-profile-summary]");
+  const clasProfileTabs = document.querySelector("[data-clas-profile-tabs]");
+  const clasProfileBody = document.querySelector("[data-clas-profile-panel]");
+  const clasProfileBackShell = document.querySelector("[data-clas-profile-back-shell]");
+
+  const clasTabsFor = (c) => CLAS_TABS.filter(([id]) => id !== "mapare" || c.mod === "mconnect" || c.sursa === "api");
+
+  /* lifecycle actions follow core.statusActions; the primary one (Publică / Republică)
+     is blue, Șterge ciorna is destructive, the rest neutral */
+  const renderClassifierHeader = (c) => {
+    const editable = clasCanEdit(c) || (c.status === "archived" && clasRole().id !== "viewer" && (clasRole().id === "adm-c" || c.localAdminManageable));
+    const actions = editable ? clasCore.statusActions(c).map((a) => {
+      if (a.action === "renuntaClas") {
+        const meta = clasCore.discardMeta(c);
+        return `<button class="btn ${meta.destructive ? "btn-outline-destructive" : "btn-neutral"} btn-sm" type="button" data-clas-action="${meta.destructive ? "stergeCiorna" : "renuntaClas"}">${escapeHtml(meta.label)}</button>`;
+      }
+      const primary = a.action === "publicaClas" || a.action === "republicaClas";
+      return `<button class="btn ${primary ? "btn-primary" : "btn-neutral"} btn-sm" type="button" data-clas-action="${a.action}">${escapeHtml(a.label)}</button>`;
+    }).reverse().join("") : "";
+    const sync = c.sursa !== "intern" && clasCanEdit(c) ? `<button class="btn btn-secondary btn-sm" type="button" data-clas-sync><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Sincronizează</span></button>` : "";
+    const caption = c.status === "published" ? `Publicat v${c.versiune} · ${formatLongDate(c.editatLa)} · ${c.editatDe}`
+      : c.status === "draft" ? (c.publishedSnapshot ? `Ciornă peste v${c.publishedSnapshot.versiune} · modificat ${formatLongDate(c.editatLa)}` : `Ciornă nepublicată · ${formatLongDate(c.editatLa)}`)
+      : `Arhivat · ${formatLongDate(c.editatLa)} · ${c.editatDe}`;
+    clasProfileTitle.innerHTML = renderPageHeaderTop({
+      crumbs: [{ label: "Clasificatoare", attr: "data-clas-crumb-back" }, { label: c.denumire }],
+      title: c.denumire,
+      actions: `${sync}${actions}`,
+      caption
+    });
+    const scope = CLAS_SCOPE[clasScope(c)];
+    clasProfileSummary.innerHTML = renderPageHeaderMeta([
+      ["Domeniu", renderTag(scope[0], scope[1])],
+      ["Familie", escapeHtml(CLAS_FAMILY[c.familie] || c.familie)],
+      ["Sursă", escapeHtml(CLAS_SOURCE[c.sursa] || c.sursa)],
+      ["Versiune", `v${escapeHtml(c.versiune)}`],
+      ["Statut", renderTag(CLAS_STATUS[c.status][0], CLAS_STATUS[c.status][1])],
+      ["Autoritate", escapeHtml(c.autoritate ? CLAS_AUTHORITY[c.autoritate]?.[1] || c.autoritate : "Toate autoritățile")]
+    ]);
+    watchPageHeaderMeta(clasProfileSummary);
+    const counts = { valori: c.nrValori || (c.valori || []).length, coloane: (c.campuriExtra || []).length || null, dependente: (c.consumatori || []).length || null, jurnal: (c.jurnal || []).length };
+    clasProfileTabs.innerHTML = clasTabsFor(c).map(([id, label]) => {
+      const active = id === clasState.tabKey;
+      return `<button class="tab-button${active ? " active" : ""}" id="clas-tab-${id}" type="button" role="tab" aria-selected="${active}" tabindex="${active ? "0" : "-1"}" data-clas-profile-tab="${id}"><span>${label}</span>${counts[id] ? renderPageHeaderTabCount(counts[id] > 999 ? clasNumber(counts[id]) : counts[id]) : ""}</button>`;
+    }).join("");
+  };
+
+  /* state notices: read-only, draft over published, never published */
+  const renderClassifierNotice = (c) => {
+    const ro = clasReadOnlyReason(c);
+    if (ro) return renderInfoNote(escapeHtml(ro));
+    if (c.status === "draft" && c.publishedSnapshot) {
+      const ch = clasCore.draftChanges(c);
+      const parts = [ch.added && plural(ch.added, "valoare nouă", "valori noi"), ch.changed && plural(ch.changed, "modificată", "modificate"), ch.deactivated && plural(ch.deactivated, "dezactivată", "dezactivate"), ch.structure && "structură modificată"].filter(Boolean);
+      return `<div class="message message--subtle banner--warning e-permits-clas-banner"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span><div class="banner__content"><p class="banner__text"><strong>Ciornă nepublicată.</strong> Consumatorii văd încă v${escapeHtml(c.publishedSnapshot.versiune)}${parts.length ? ` · ${parts.join(", ")}` : ""}.</p></div></div>`;
+    }
+    if (c.status === "draft") return renderInfoNote("Ciornă — clasificatorul nu este disponibil consumatorilor până la prima publicare.");
+    return "";
+  };
+
+  const clasSection = (title, meta, body, actionHtml = "") => `
+    <section class="e-permits-dosar-profil__section">
+      <div class="e-permits-dosar-profil__section-heading">
+        <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
+        ${meta || actionHtml ? `<div class="e-permits-passport__heading-tools">${meta ? `<span class="e-permits-dosar-profil__section-meta">${meta}</span>` : ""}${actionHtml}</div>` : ""}
+      </div>
+      ${body}
+    </section>`;
+
+  /* Valori: a full-width, compact table (registry table) to scan and select; a value is
+     added or edited in the side drawer (click the row or "Editează"). Row actions sit in
+     a sticky column on the right: Editează · Activează/Dezactivează · Șterge (only for
+     values never published — published values are deactivated, never deleted). Rows
+     changed since the published version are marked Nouă / Modificată. */
+  const clasPublishedValues = (c) => (c.publishedSnapshot ? c.publishedSnapshot.valori || [] : c.status === "published" ? c.valori || [] : []);
+  const clasValueIsPublished = (c, v) => clasPublishedValues(c).some((p) => p.cod === (v.codAnterior || v.cod));
+  const clasValueChange = (c, v) => {
+    if (!c.publishedSnapshot) return null;
+    const before = c.publishedSnapshot.valori.find((p) => p.cod === (v.codAnterior || v.cod));
+    if (!before) return ["Nouă", "brand"];
+    const strip = ({ codAnterior, ...rest }) => JSON.stringify(rest);
+    return v.codAnterior || strip(before) !== strip(v) ? ["Modificată", "warning"] : null;
+  };
+  const clasShortDate = (iso) => (iso ? iso.split("-").reverse().join(".") : "");
+  const clasGridColumns = (c) => {
+    const parent = c.parintId ? getClassifier(c.parintId) : null;
+    return [
+      { key: "cod", label: "Cod", width: 96 },
+      { key: "denRo", label: "Denumire RO", width: 240 },
+      { key: "traduceri", label: "Traduceri RU · EN", width: 220 },
+      ...(parent ? [{ key: "parinte", label: "Valoare-părinte", width: 150, parent }] : []),
+      ...(c.campuriExtra || []).map((f) => ({ key: `x:${f.id}`, label: f.label, width: f.tip === "Boolean" ? 104 : 150, extra: f })),
+      { key: "activDeLa", label: "Activ de la", width: 112 },
+      { key: "stare", label: "Stare", width: 180 }
+    ];
+  };
+  const clasGridText = (text, muted = false) => (text ? `<span class="e-permits-clas-grid__text${muted ? " e-permits-clas-grid__muted" : ""}" data-cell-tooltip="${escapeHtml(text)}">${escapeHtml(text)}</span>` : '<span class="e-permits-workplace__dash">—</span>');
+  const clasGridDisplayCell = (c, v, col) => {
+    if (col.key === "cod") return `<span class="e-permits-clas-grid__code">${escapeHtml(v.cod)}</span>`;
+    if (col.key === "traduceri") return v.denRu || v.denEn ? `<div class="e-permits-workplace__case-cell">${v.denRu ? clasGridText(`RU · ${v.denRu}`) : ""}${v.denEn ? clasGridText(`EN · ${v.denEn}`, Boolean(v.denRu)) : ""}</div>` : '<span class="e-permits-workplace__dash">—</span>';
+    if (col.parent) { const p = v.parinte && col.parent.valori.find((x) => x.cod === v.parinte); return v.parinte ? `<span class="e-permits-clas-grid__text" data-cell-tooltip-always data-cell-tooltip="${escapeHtml(`${v.parinte} — ${p?.denRo || "valoare negăsită"}`)}">${escapeHtml(v.parinte)}${p ? ` <span class="e-permits-clas-grid__muted">${escapeHtml(p.denRo)}</span>` : ""}</span>` : clasGridText(""); }
+    if (col.extra) { const x = v.extra?.[col.extra.id]; return x === true ? "Da" : x === false ? "Nu" : clasGridText(x == null ? "" : String(x)); }
+    if (col.key === "activDeLa") return v.activDeLa ? escapeHtml(clasShortDate(v.activDeLa)) : clasGridText("");
+    if (col.key === "stare") {
+      const ch = clasValueChange(c, v);
+      return `<span class="e-permits-clas-grid__tags">${renderTag(v.activ ? "Activ" : "Inactiv", v.activ ? "success" : "neutral")}${ch ? renderTag(ch[0], ch[1]) : ""}${v.autoInactivat ? renderTag("Din sincronizare", "neutral") : ""}${v.activ && v.activPanaLa ? `<span class="e-permits-clas-grid__muted">până la ${escapeHtml(clasShortDate(v.activPanaLa))}</span>` : ""}</span>`;
+    }
+    return clasGridText(v[col.key]);
+  };
+  const clasIconAction = (icon, label, attrs, reason = "") => `<button class="e-permits-workplace__icon-action" type="button" aria-label="${escapeHtml(label)}" data-tooltip-label="${escapeHtml(label)}"${reason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(reason)}"` : ""} ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg></button>`;
+
+  const renderClassifierValues = (c) => {
+    const editable = clasCanEdit(c) && c.sursa === "intern";
+    const cols = clasGridColumns(c);
+    const q = clasState.query.trim().toLocaleLowerCase("ro");
+    const all = c.valori || [];
+    const counts = { all: all.length, active: all.filter((v) => v.activ).length, inactive: all.filter((v) => !v.activ).length };
+    const rows = all.filter((v) => (clasState.activity === "all" || (clasState.activity === "active" ? v.activ : !v.activ)) && (!q || [v.cod, v.denRo, v.denRu, v.denEn].filter(Boolean).join(" ").toLocaleLowerCase("ro").includes(q)));
+    const selected = [...clasState.selected].filter((cod) => all.some((v) => v.cod === cod));
+    const toolbar = `
+      <div class="e-permits-clas-grid__toolbar">
+        <label class="search-input medium rectangular e-permits-workplace__search">
+          <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+          <input class="input" type="search" placeholder="Caută după cod sau denumire" value="${escapeHtml(clasState.query)}" aria-label="Caută valori" data-clas-value-search>
+        </label>
+        <div class="e-permits-rt__chips" role="group" aria-label="Filtrează după stare">
+          ${[["all", "Toate"], ["active", "Active"], ["inactive", "Inactive"]].map(([k, l]) => `
+            <button type="button" class="chip${clasState.activity === k ? " is-selected" : ""}" aria-pressed="${clasState.activity === k}" data-clas-activity="${k}">
+              <span class="chip__label">${l}</span>
+              <span class="badge badge--lg badge--solid-light" aria-hidden="true">${counts[k]}</span>
+            </button>`).join("")}
+        </div>
+        <div class="e-permits-clas-grid__actions-bar">
+          ${editable && selected.length ? `
+            <span class="e-permits-clas-grid__selection" aria-live="polite">${plural(selected.length, "valoare selectată", "valori selectate")}</span>
+            <button class="btn btn-neutral btn-sm" type="button" data-clas-grid-bulk="on">Activează</button>
+            <button class="btn btn-neutral btn-sm" type="button" data-clas-grid-bulk="off">Dezactivează</button>
+            <button class="btn btn-text-primary btn-sm" type="button" data-clas-grid-clear>Anulează selecția</button>
+          ` : editable ? `
+            <button class="btn btn-neutral btn-sm" type="button" data-clas-import><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg><span>Importă CSV</span></button>
+            <button class="btn btn-primary btn-sm" type="button" data-clas-grid-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă valoare</span></button>
+          ` : ""}
+        </div>
+      </div>`;
+    const allVisibleSelected = editable && rows.length > 0 && rows.every((v) => clasState.selected.has(v.cod));
+    const head = `<tr>
+      ${editable ? `<th scope="col" class="e-permits-workplace__select-cell"><label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" aria-label="Selectează toate valorile afișate" data-clas-grid-select-all${allVisibleSelected ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span></label></th>` : ""}
+      ${cols.map((col) => `<th scope="col" style="${col.key === "denRo" ? `min-width:${col.width}px;` : setColumnWidth(col, col.width)}"><span class="e-permits-workplace__th-content"><span>${escapeHtml(col.label)}</span></span></th>`).join("")}
+      ${editable ? '<th scope="col" class="e-permits-workplace__actions-cell e-permits-clas-grid__actions"><span class="sr-only">Acțiuni</span></th>' : ""}
+    </tr>`;
+    const row = (v) => `
+      <tr data-clas-row="${escapeHtml(v.cod)}" class="${v.activ ? "" : "is-inactive"}${clasState.selected.has(v.cod) ? " is-selected" : ""}"${editable ? ` tabindex="0" aria-label="Editează ${escapeHtml(v.cod)} — ${escapeHtml(v.denRo)}"` : ""}>
+        ${editable ? `<td class="e-permits-workplace__select-cell"><label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" aria-label="Selectează ${escapeHtml(v.cod)}" value="${escapeHtml(v.cod)}" data-clas-grid-select${clasState.selected.has(v.cod) ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span></label></td>` : ""}
+        ${cols.map((col) => `<td>${clasGridDisplayCell(c, v, col)}</td>`).join("")}
+        ${editable ? `<td class="e-permits-workplace__actions-cell e-permits-clas-grid__actions">
+          <span class="e-permits-workplace__row-actions">
+            ${clasIconAction("edit", "Editează", `data-clas-grid-edit="${escapeHtml(v.cod)}"`)}
+            ${v.activ ? clasIconAction("pause", "Dezactivează", `data-clas-grid-toggle="${escapeHtml(v.cod)}"`) : clasIconAction("checkmark-large", "Activează", `data-clas-grid-toggle="${escapeHtml(v.cod)}"`)}
+            ${clasIconAction("delete", "Șterge", `data-clas-grid-delete="${escapeHtml(v.cod)}"`, clasValueIsPublished(c, v) ? "Valoarea a fost publicată: nu se șterge, se dezactivează." : "")}
+          </span>
+        </td>` : ""}
+      </tr>`;
+    const colSpan = cols.length + (editable ? 2 : 0);
+    const body = rows.length ? rows.map(row).join("") : `<tr class="e-permits-clas-grid__empty-row"><td colspan="${colSpan}"><div class="e-permits-clas-empty">${q || clasState.activity !== "all" ? "Nicio valoare nu corespunde căutării." : "Clasificatorul nu are încă valori."}${editable && !q && clasState.activity === "all" ? ' <button class="btn btn-text-primary btn-sm" type="button" data-clas-grid-add>Adaugă prima valoare</button>' : ""}</div></td></tr>`;
+    const sample = (c.nrValori || 0) > all.length;
+    const note = c.sursa === "mconnect" ? renderInfoNote("Valorile vin din MConnect: se actualizează prin sincronizare, nu manual. Valorile care lipsesc din răspuns se dezactivează automat.") : c.sursa === "api" ? renderInfoNote("Valorile vin din API-ul extern: se actualizează prin sincronizare, nu manual.") : "";
+    return `
+      <div class="e-permits-clas-grid">
+        ${note ? `<div class="e-permits-clas-grid__notice">${note}</div>` : ""}
+        ${toolbar}
+        <div class="e-permits-workplace__table-wrap e-permits-clas-grid__wrap">
+          <table class="e-permits-workplace__table e-permits-clas-grid__table${editable ? " is-editable" : ""}" style="width:${cols.reduce((sum, col) => sum + col.width, editable ? 43 + 136 : 0)}px">
+            <thead>${head}</thead>
+            <tbody>${body}</tbody>
+          </table>
+        </div>
+        <p class="e-permits-clas-grid__footer">
+          <span>${sample ? `Afișate ${clasNumber(all.length)} din ${clasNumber(c.nrValori)} (eșantion)` : `Afișate ${rows.length} din ${plural(all.length, "valoare", "valori")}`}</span>
+        </p>
+      </div>`;
+  };
+
+  const flashClasRow = (cod) => {
+    const tr = clasProfileBody.querySelector(`tr[data-clas-row="${CSS.escape(cod)}"]`);
+    if (!tr) return;
+    tr.classList.add("is-flash");
+    window.setTimeout(() => tr.classList.remove("is-flash"), 1600);
+  };
+  const clasDraftOpenedToast = (before) => {
+    if (before.status === "published") showShellToast(`S-a deschis o ciornă peste v${before.versiune}. Consumatorii o văd după „Publică”.`, "info", "Ciornă deschisă");
+  };
+
+  /* validate + save one value (drawer). Returns false when it must stay open: field
+     errors, or a rename that children use (asks first, then calls done). */
+  const saveClasValue = (e, done) => {
+    const c = getClassifier(clasState.id), v = e.values;
+    v.cod = String(v.cod || "").trim();
+    v.denRo = String(v.denRo || "").trim();
+    e.errors = clasCore.validateValueRow(e.key || "__new__", v, c.valori);
+    if (e.errors.cod === "ID obligatoriu") e.errors.cod = "Completează codul.";
+    if (e.errors.cod === "ID deja existent") e.errors.cod = "Codul există deja în acest clasificator.";
+    if (e.errors.denRo) e.errors.denRo = "Completează denumirea în română.";
+    if (e.errors.activDeLa) e.errors.activDeLa = "Alege data de la care valoarea este activă.";
+    const limit = Number(c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri);
+    ["denRo", "denRu", "denEn"].forEach((k) => { if ((v[k] || "").length > limit) e.errors[k] = `Denumirea are peste ${limit} de caractere.`; });
+    if ((c.idFormat || "INT") === "INT" && !e.key && v.cod && !/^\d+$/.test(v.cod)) e.errors.cod = "Formatul ID este INT: folosește doar cifre.";
+    if (v.activPanaLa && v.activDeLa && v.activPanaLa < v.activDeLa) e.errors.activPanaLa = "Data de sfârșit este înaintea datei de început.";
+    if (Object.keys(e.errors).length) return false;
+    const clean = { ...v, denRu: v.denRu || null, denEn: v.denEn || null, activPanaLa: v.activPanaLa || null, sursa: v.sursa || "manual" };
+    const apply = () => {
+      if (!e.key) {
+        clasEdit(c, (x) => { x.valori = [clean, ...x.valori]; x.nrValori = (x.nrValori || 0) + 1; }, ["Valoare adăugată", `${clean.cod} — ${clean.denRo}`]);
+      } else if (e.key !== clean.cod) {
+        /* open the draft first, so the published snapshot keeps the old code */
+        if (c.status === "published") { const d = clasCore.beginDraft(c); clasLog(d, "Ciornă deschisă", `Peste versiunea publicată v${c.versiune}; consumatorii văd încă v${c.versiune}.`); replaceClassifier(d); }
+        const r = clasCore.renameValueCode(clasList(), c.id, e.key, clean.cod);
+        classifiersStore.list = r.classifiers;
+        r.affected.forEach((id) => clasLog(getClassifier(id), "Referință actualizată", `Cod-părinte ${e.key} → ${clean.cod} în „${c.denumire}”; trecut în ciornă.`));
+        clean.codAnterior = e.original.codAnterior || e.key;
+        clasEdit(getClassifier(c.id), (x) => { x.valori = x.valori.map((y) => (y.cod === clean.cod || y.cod === e.key ? clean : y)); }, ["Cod redenumit", `${e.key} → ${clean.cod}${r.affected.length ? `; actualizat în ${plural(r.affected.length, "clasificator-copil", "clasificatoare-copil")}` : ""}.`]);
+      } else {
+        clasEdit(c, (x) => { x.valori = x.valori.map((y) => (y.cod === e.key ? clean : y)); }, ["Valoare modificată", `${clean.cod} — ${clean.denRo}`]);
+      }
+      clasDraftOpenedToast(c);
+      done(clean.cod);
+    };
+    const children = e.key && e.key !== clean.cod ? clasCore.childrenOf(clasList(), c.id).filter((ch) => (ch.valori || []).some((x) => x.parinte === e.key)) : [];
+    if (children.length) {
+      const refs = children.reduce((n, ch) => n + ch.valori.filter((x) => x.parinte === e.key).length, 0);
+      askConfirm({ title: `Redenumești codul ${e.key} în ${clean.cod}?`, text: `Codul este folosit de ${plural(refs, "valoare", "valori")} în ${children.map((ch) => `„${ch.denumire}”`).join(", ")}. Referințele se actualizează automat, iar acele clasificatoare trec în ciornă.`, confirmLabel: "Redenumește" }, apply);
+      return true;
+    }
+    apply();
+    return true;
+  };
+
+  /* activate / deactivate / delete — always confirmed */
+  const setClasValuesActive = (codes, active) => {
+    const c = getClassifier(clasState.id);
+    const targets = c.valori.filter((v) => codes.includes(v.cod) && v.activ !== active);
+    if (!targets.length) { showShellToast(`Valorile selectate sunt deja ${active ? "active" : "inactive"}.`, "info", "Nimic de schimbat"); return; }
+    const usage = clasCore.usageOf(c);
+    const what = targets.length === 1 ? `„${targets[0].cod} — ${targets[0].denRo}”` : plural(targets.length, "valoare", "valori");
+    askConfirm({
+      title: active ? `Activezi ${targets.length === 1 ? "valoarea" : `${targets.length} valori`}?` : `Dezactivezi ${targets.length === 1 ? "valoarea" : `${targets.length} valori`}?`,
+      text: active ? `${what} va putea fi aleasă din nou după publicare.` : `${what} nu va mai putea fi aleasă după publicare, dar rămâne citită corect în înregistrările existente.${usage.unused ? "" : ` Clasificatorul este folosit de ${plural(usage.modules, "modul", "module")}.`}`,
+      confirmLabel: active ? "Activează" : "Dezactivează",
+      destructive: !active
+    }, () => {
+      const set = new Set(targets.map((v) => v.cod));
+      clasEdit(c, (x) => { x.valori = x.valori.map((v) => (set.has(v.cod) ? { ...v, activ: active, autoInactivat: false, ...(active ? { activPanaLa: null } : {}) } : v)); }, [active ? "Valori activate" : "Valori dezactivate", targets.map((v) => v.cod).join(", ")]);
+      clasState.selected.clear();
+      refreshClassifierViews();
+      targets.forEach((v) => flashClasRow(v.cod));
+      clasDraftOpenedToast(c);
+    });
+  };
+  const deleteClasValue = (cod) => {
+    const c = getClassifier(clasState.id);
+    const v = c.valori.find((x) => x.cod === cod);
+    askConfirm({ title: "Ștergi valoarea?", text: `„${v.cod} — ${v.denRo}” nu a fost publicată niciodată, deci nu e folosită nicăieri. Se șterge din ciornă.`, confirmLabel: "Șterge", destructive: true }, () => {
+      clasEdit(c, (x) => { x.valori = x.valori.filter((y) => y.cod !== cod); x.nrValori = Math.max(0, (x.nrValori || 1) - 1); }, ["Valoare ștearsă", `${v.cod} — ${v.denRo} (nepublicată)`]);
+      clasState.selected.delete(cod);
+      refreshClassifierViews();
+      showShellToast(`„${v.cod}” a fost ștearsă.`, "info", "Valoare ștearsă");
+    });
+  };
+
+  const renderClassifierFields = (c) => {
+    const structure = clasCanEditStructure(c);
+    const fields = clasCore.fieldsOf(c, classifiersStore.fieldTypes);
+    const items = fields.map((f) => ({
+      title: escapeHtml(f.label),
+      badges: [renderTag(f.tip, "neutral"), f.obligatoriu ? renderTag("Obligatoriu", "brand") : "", f.derivat ? renderTag("Din ierarhie", "info") : ""].filter(Boolean),
+      meta: [f.cfg ? escapeHtml(f.cfg) : f.implicit ? "Coloană standard — nu se poate elimina" : f.derivat ? "Valoarea-părinte din clasificatorul-părinte" : "Coloană suplimentară", `Cheie: ${escapeHtml(f.id)}`],
+      plainTitle: f.label,
+      actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">Editează</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">Elimină</button>` : ""
+    }));
+    const lock = !structure ? renderInfoNote(c.status === "archived" ? "Structura unui clasificator arhivat nu se modifică." : "Doar administratorul central modifică structura (coloanele).") : "";
+    return `${lock}${renderStackedList("Coloane", [{ label: "Standard", items: items.filter((_, i) => fields[i].implicit) }, { label: "Suplimentare", items: items.filter((_, i) => !fields[i].implicit) }].filter((g) => g.items.length), { meta: `Format ID: ${escapeHtml(c.idFormat || classifiersStore.fieldTypes.defaults.idFormat)} · denumiri max. ${c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri} caractere` })}
+      ${structure ? '<div class="e-permits-clas-add-row"><button class="btn btn-secondary btn-sm" type="button" data-clas-field-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă coloană</span></button></div>' : ""}`;
+  };
+
+  const renderClassifierMapping = (c) => {
+    const last = (c.jurnal || []).find((e) => /Sincronizare/.test(e.type));
+    return `${renderPassportBlock("Sursă", [
+      ["Mod", escapeHtml(c.mod === "mconnect" ? "Sincronizare MConnect" : "API extern")],
+      ["Endpoint", c.endpoint ? renderCopyCode(c.endpoint, `Copiază ${c.endpoint}`) : "—"],
+      ["Ultima sincronizare", last ? `${escapeHtml(formatStamp(last.at))} · ${escapeHtml(last.user)}` : "—"],
+      ["La lipsa unei valori", "Se dezactivează automat (rămâne în înregistrările existente)"]
+    ], { actionHtml: clasCanEdit(c) ? '<button class="btn btn-secondary btn-sm" type="button" data-clas-sync>Sincronizează acum</button>' : "" })}
+    ${clasSection("Mapare coloane", plural((c.mapare || []).length, "coloană", "coloane"), `
+      <div class="e-permits-dosar-profil__table-scroll">
+        <table class="e-permits-dosar-profil__table">
+          <thead><tr><th scope="col">Coloană GEAP</th><th scope="col">Câmp sursă</th></tr></thead>
+          <tbody>${(c.mapare || []).map((m) => { const f = clasCore.fieldsOf(c, classifiersStore.fieldTypes).find((x) => x.id === m.camp); return `<tr><td>${escapeHtml(f?.label || m.camp)} <span class="e-permits-workplace__source">${escapeHtml(m.camp)}</span></td><td>${escapeHtml(m.sursa)}</td></tr>`; }).join("")}</tbody>
+        </table>
+      </div>`)}`;
+  };
+
+  /* Hartă dependențe: who consumes it, the live hierarchy, the dead copy lineage
+     (kept apart — DIV-C5), and where it applies */
+  const renderClassifierDependencies = (c) => {
+    const all = clasList();
+    const consumers = (c.consumatori || []).map((m) => ({ title: escapeHtml(m.modul), badges: [renderTag(plural(m.obiecte.length, "obiect", "obiecte"), "neutral")], meta: m.obiecte.map(escapeHtml), plainTitle: m.modul }));
+    const node = (x, here = false) => x ? `<button class="e-permits-clas-node${here ? " is-current" : ""}" type="button"${here ? ' aria-current="true"' : ` data-clas-open="${escapeHtml(x.id)}"`}><span class="e-permits-clas-node__name">${escapeHtml(x.denumire)}</span><span class="e-permits-clas-node__meta">${escapeHtml(CLAS_SCOPE[clasScope(x)][0])} · ${escapeHtml(clasNumber(x.nrValori))} valori · ${escapeHtml(CLAS_STATUS[x.status][0])}</span></button>` : "";
+    const ancestors = clasCore.ancestorsOf(all, c);
+    const children = clasCore.childrenOf(all, c.id);
+    const grand = children.flatMap((ch) => clasCore.childrenOf(all, ch.id).map((g) => ({ g, ch })));
+    const chain = ancestors.length || children.length ? `
+      <div class="e-permits-clas-tree">
+        ${ancestors.map((a) => `${node(a)}<span class="e-permits-clas-tree__link" aria-hidden="true">↓ părinte al</span>`).join("")}
+        ${node(c, true)}
+        ${children.length ? `<span class="e-permits-clas-tree__link" aria-hidden="true">↓ copii</span><div class="e-permits-clas-tree__children">${children.map((ch) => `<div class="e-permits-clas-tree__branch">${node(ch)}${grand.filter((x) => x.ch === ch).map((x) => `<span class="e-permits-clas-tree__link" aria-hidden="true">↓</span>${node(x.g)}`).join("")}</div>`).join("")}</div>` : ""}
+      </div>` : renderInfoNote("Nu face parte dintr-o ierarhie: nu are clasificator-părinte și nici copii.");
+    const copy = c.copiatDinId ? getClassifier(c.copiatDinId) : null;
+    const copies = all.filter((x) => x.copiatDinId === c.id);
+    const lineage = copy || copies.length ? `${copy ? `<p class="e-permits-clas-lineage">Creat din ${node(copy)}</p>` : ""}${copies.length ? `<p class="e-permits-clas-lineage">Copii create din acesta: ${copies.map((x) => node(x)).join("")}</p>` : ""}${renderInfoNote("„Creat din” e doar originea: copia nu se sincronizează cu sursa. Ierarhia (clasificator-părinte) este o legătură vie.")}` : "";
+    const services = (c.servicii || []);
+    const where = c.categorie === "global" ? renderInfoNote("Clasificator global: disponibil tuturor autorităților și serviciilor platformei.") : `
+      <div class="e-permits-dosar-profil__table-scroll"><table class="e-permits-dosar-profil__table">
+        <thead><tr><th scope="col">Autoritate</th><th scope="col">Serviciu</th></tr></thead>
+        <tbody>${services.map((sv, i) => `<tr><td>${i === 0 ? escapeHtml(CLAS_AUTHORITY[c.autoritate]?.[1] || c.autoritate || "—") : ""}</td><td>${escapeHtml(sv)}</td></tr>`).join("")}</tbody>
+      </table></div>`;
+    return `${consumers.length ? renderStackedList("Consumatori", [{ label: "", items: consumers }], { meta: `${plural(consumers.length, "modul", "module")} · ${plural(clasCore.usageOf(c).objects, "obiect", "obiecte")}` }) : clasSection("Consumatori", "", renderInfoNote("Niciun modul nu folosește încă acest clasificator."))}
+      ${clasSection("Ierarhie", "Clasificator-părinte · copii", chain)}
+      ${lineage ? clasSection("Creat din", "Origine, fără sincronizare", lineage) : ""}
+      ${clasSection("Autorități și servicii", c.categorie === "global" ? "Global" : plural(services.length, "serviciu", "servicii"), where)}`;
+  };
+
+  const renderClassifierJournal = (c) => renderEventTimeline("Jurnal de evenimente", (c.jurnal || []).map((e) => ({ at: e.at, user: e.user, type: e.type, status: e.status, detail: e.detail })), { meta: "Cel mai recent primul", empty: "Nu există evenimente." });
+
+  /* Setări: identity, hierarchy, who may edit, value format. Edits go into a local
+     draft; the header offers Renunță · Salvează while it differs. */
+  const renderClassifierSettings = (c) => {
+    const d = clasState.draft;
+    const editable = clasCanEdit(c);
+    const central = clasRole().id === "adm-c";
+    const all = clasList();
+    const banned = new Set([c.id, ...clasCore.descendantIds(all, c.id)]);
+    const parents = all.filter((x) => !banned.has(x.id) && x.status !== "archived");
+    const ro = !editable;
+    const field = (id, label, key, { required = false, hint = "", textarea = false } = {}) => `
+      <div class="e-permits-fo-field">
+        <label for="${id}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+        ${textarea ? `<div class="e-permits-fo-textarea${d.errors?.[key] ? " is-error" : ""}"><textarea id="${id}" rows="3" data-clas-setting="${key}"${ro ? " readonly" : ""}>${escapeHtml(d[key] || "")}</textarea></div>`
+          : `<div class="e-permits-fo-input${ro ? " is-filled is-readonly" : ""}${d.errors?.[key] ? " is-error" : ""}"><input id="${id}" type="text" value="${escapeHtml(d[key] || "")}" data-clas-setting="${key}" autocomplete="off"${ro ? " readonly" : ""}></div>`}
+        ${d.errors?.[key] ? `<span class="message message--inline message--error e-permits-fo-field__error"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeHtml(d.errors[key])}</span></span>` : ""}${hint ? `<p class="e-permits-fo-field__hint"${d.errors?.[key] ? " hidden" : ""}>${hint}</p>` : ""}
+      </div>`;
+    const select = (id, label, key, options, { hint = "", disabled = false } = {}) => `
+      <div class="e-permits-fo-field">
+        <label for="${id}">${escapeHtml(label)}</label>
+        ${renderFoSelectControl({ id, attrs: `data-clas-setting="${key}"`, disabled: ro || disabled, optionsHtml: options.map(([v, l]) => `<option value="${escapeHtml(v)}"${String(d[key] ?? "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}
+        ${hint ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+      </div>`;
+    const copy = c.copiatDinId ? getClassifier(c.copiatDinId) : null;
+    return `
+      ${clasSection("Identificare", "", `<div class="e-permits-ntpl-card e-permits-clas-form">
+        ${field("clas-set-name", "Denumire", "denumire", { required: true })}
+        ${field("clas-set-desc", "Descriere", "descriere", { textarea: true, hint: "Spune ce conține și cine îl folosește." })}
+        <div class="e-permits-clas-form__row">
+          ${select("clas-set-family", "Familie", "familie", Object.entries(CLAS_FAMILY), { disabled: !central })}
+          <div class="e-permits-fo-field"><label>Categorie</label><div class="e-permits-fo-input is-filled is-readonly"><input type="text" value="${c.categorie === "global" ? "Global — toată platforma" : `Specific — ${escapeHtml(clasAuthorityLabel(c))}`}" readonly tabindex="-1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg></div><p class="e-permits-fo-field__hint">Se alege la creare.</p></div>
+        </div>
+      </div>`)}
+      ${clasSection("Ierarhie", "", `<div class="e-permits-ntpl-card e-permits-clas-form">
+        ${select("clas-set-parent", "Clasificator-părinte", "parintId", [["", "Fără părinte"], ...parents.map((x) => [x.id, x.denumire])], { disabled: !central || !clasCanEditStructure(c), hint: "Legătură vie: fiecare valoare indică o valoare din clasificatorul-părinte." })}
+        <div class="e-permits-fo-field"><label>Creat din</label><div class="e-permits-fo-input is-filled is-readonly"><input type="text" value="${escapeHtml(copy ? copy.denumire : "—")}" readonly tabindex="-1"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg></div><p class="e-permits-fo-field__hint">Originea copiei — fără sincronizare.</p></div>
+      </div>`)}
+      ${clasSection("Acces și utilizare", "", `<div class="e-permits-ntpl-card e-permits-clas-form">
+        ${renderToggle({ label: "Critic pentru proces", description: "Alimentează procese, termene (SLA) sau validări. Un clasificator critic rămâne la administratorul central.", checked: Boolean(d.criticProces), attrs: 'data-clas-toggle="criticProces"', disabled: !central || ro })}
+        ${renderToggle({ label: "Administratorul local poate modifica valorile", description: c.categorie !== "specific" ? "Doar pentru clasificatoarele specifice unei autorități." : d.criticProces ? "Indisponibil: clasificatorul este critic pentru proces." : "Administratorul local al autorității gestionează valorile; structura rămâne la administratorul central.", checked: Boolean(d.localAdminManageable), attrs: 'data-clas-toggle="localAdminManageable"', disabled: !central || ro || c.categorie !== "specific" || Boolean(d.criticProces) })}
+      </div>`)}
+      ${clasSection("Format valori", "", `<div class="e-permits-ntpl-card e-permits-clas-form">
+        <div class="e-permits-fo-field"><label id="clas-set-idf">Format ID</label>
+          <div class="segmented-control" role="radiogroup" aria-labelledby="clas-set-idf">${[["INT", "Număr (INT)"], ["UID", "Cod unic (UID)"]].map(([v, l]) => `<button class="segment-item${(d.idFormat || "INT") === v ? " is-selected" : ""}" type="button" role="radio" aria-checked="${(d.idFormat || "INT") === v}" data-clas-idformat="${v}"${!central || !clasCanEditStructure(c) ? " disabled" : ""}>${l}</button>`).join("")}</div>
+        </div>
+        ${field("clas-set-limit", "Lungime maximă a denumirii", "limitaDenumiri", { hint: "Caractere, pentru RO / RU / EN." })}
+      </div>`)}`;
+  };
+
+  const clasSettingsDraft = (c) => ({ denumire: c.denumire, descriere: c.descriere || "", familie: c.familie, parintId: c.parintId || "", criticProces: Boolean(c.criticProces), localAdminManageable: Boolean(c.localAdminManageable), idFormat: c.idFormat || classifiersStore.fieldTypes.defaults.idFormat, limitaDenumiri: String(c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri), errors: {} });
+  const clasSettingsDirty = (c) => { const a = clasSettingsDraft(c), b = clasState.draft; return b && ["denumire", "descriere", "familie", "parintId", "criticProces", "localAdminManageable", "idFormat", "limitaDenumiri"].some((k) => String(a[k]) !== String(b[k])); };
+
+  function renderClassifierProfile() {
+    const c = getClassifier(clasState.id);
+    if (!c || !clasProfilePanel) return;
+    if (!clasTabsFor(c).some(([id]) => id === clasState.tabKey)) clasState.tabKey = "valori";
+    if (!clasState.draft) clasState.draft = clasSettingsDraft(c);
+    renderClassifierHeader(c);
+    if (clasState.tabKey === "setari" && clasSettingsDirty(c)) {
+      clasProfileTitle.querySelector(".e-permits-page-header__actions")?.insertAdjacentHTML("afterbegin", '<button class="btn btn-neutral btn-sm" type="button" data-clas-settings-discard>Renunță</button><button class="btn btn-secondary btn-sm" type="button" data-clas-settings-save>Salvează</button>');
+    }
+    const views = { valori: renderClassifierValues, coloane: renderClassifierFields, mapare: renderClassifierMapping, dependente: renderClassifierDependencies, jurnal: renderClassifierJournal, setari: renderClassifierSettings };
+    const notice = renderClassifierNotice(c);
+    /* Valori is a full-width grid, as the registries; the other tabs keep the reading column */
+    const wide = clasState.tabKey === "valori";
+    clasProfileBody.classList.toggle("is-wide", wide);
+    clasProfileBody.innerHTML = wide ? `${notice ? `<div class="e-permits-clas-grid__notice">${notice}</div>` : ""}${views.valori(c)}` : `${notice}${views[clasState.tabKey](c)}`;
+  }
+
+  const openClassifierProfile = (id, tab = "valori") => {
+    const c = getClassifier(id);
+    if (!c || !clasProfilePanel) return;
+    Object.assign(clasState, { id, tabKey: tab, query: "", activity: "all", draft: null, selected: new Set() });
+    if (workplacePanel) workplacePanel.hidden = true;
+    hideProfilePanels();
+    if (permitsProfilePanel) permitsProfilePanel.hidden = true;
+    clasProfilePanel.hidden = false;
+    if (clasProfileBackShell) clasProfileBackShell.hidden = false;
+    shell.classList.add("is-clas-profile-open");
+    setActiveNav("classifiers");
+    renderClassifierProfile();
+    writeHash(`#clasificator/${encodeURIComponent(id)}/${clasState.tabKey}`);
+    clasProfilePanel.scrollIntoView?.({ block: "start" });
+  };
+
+  const hideClassifierProfile = () => {
+    if (clasProfilePanel) clasProfilePanel.hidden = true;
+    if (clasProfileBackShell) clasProfileBackShell.hidden = true;
+    shell.classList.remove("is-clas-profile-open");
+  };
+
+  const closeClassifierProfile = () => {
+    const c = getClassifier(clasState.id);
+    if (c && clasSettingsDirty(c) && !window.confirm("Ai modificări nesalvate în setări. Renunți la ele?")) return;
+    hideClassifierProfile();
+    clasState.id = null;
+    showClassifiersRegistry();
+    restorePageHash();
+  };
+
+  /* ---- lifecycle ---- */
+  const runClassifierAction = (action) => {
+    const c = getClassifier(clasState.id);
+    if (!c) return;
+    const usage = clasCore.usageOf(c);
+    const consumersText = usage.unused ? "Niciun modul nu îl folosește." : `Îl folosesc ${plural(usage.modules, "modul", "module")} (${(c.consumatori || []).map((m) => m.modul).join(", ")}).`;
+    if (action === "publicaClas") {
+      const ch = clasCore.draftChanges(c);
+      const next = clasCore.nextVersion(c);
+      const what = ch.first ? `Prima publicare, cu ${plural((c.valori || []).filter((v) => v.activ).length, "valoare activă", "valori active")}.` : [ch.added && plural(ch.added, "valoare nouă", "valori noi"), ch.changed && plural(ch.changed, "valoare modificată", "valori modificate"), ch.deactivated && plural(ch.deactivated, "valoare dezactivată", "valori dezactivate"), ch.structure && "structura"].filter(Boolean).join(", ");
+      askConfirm({ title: `Publici v${next}?`, text: `${ch.first ? what : what ? `Modificări: ${what}.` : "Fără diferențe față de versiunea publicată."} ${consumersText} Consumatorii văd noua versiune imediat.`, confirmLabel: "Publică" }, () => {
+        const pub = clasCore.transition(c, "publicaClas"); clasLog(pub, `Publicat v${pub.versiune}`, ch.first ? "Prima publicare." : what ? `Modificări: ${what}.` : "Fără modificări de valori."); replaceClassifier(pub);
+        refreshClassifierViews(); showShellToast(`„${c.denumire}” v${pub.versiune} este publicat.`, "success", "Clasificator publicat");
+      });
+      return;
+    }
+    if (action === "arhiveazaClas") {
+      askConfirm({ title: "Arhivezi clasificatorul?", text: `Devine doar-citire: nu mai poate fi modificat, importat sau sincronizat. ${consumersText}${c.status === "draft" ? " Ciorna curentă se abandonează; se arhivează versiunea publicată." : ""}`, confirmLabel: "Arhivează", destructive: true }, () => {
+        const arch = clasCore.transition(c, "arhiveazaClas"); clasLog(arch, "Arhivat", `v${arch.versiune} arhivată.`); replaceClassifier(arch);
+        refreshClassifierViews(); showShellToast(`„${c.denumire}” este arhivat.`, "info", "Clasificator arhivat");
+      });
+      return;
+    }
+    if (action === "republicaClas") {
+      askConfirm({ title: "Republici clasificatorul?", text: `v${c.versiune} redevine disponibilă consumatorilor și poate fi modificată.`, confirmLabel: "Republică" }, () => {
+        const rp = clasCore.transition(c, "republicaClas"); clasLog(rp, `Republicat v${rp.versiune}`, "Scos din arhivă."); replaceClassifier(rp);
+        refreshClassifierViews(); showShellToast(`„${c.denumire}” este din nou publicat.`, "success", "Clasificator republicat");
+      });
+      return;
+    }
+    if (action === "renuntaClas") {
+      askConfirm({ title: "Renunți la ciornă?", text: `Modificările nepublicate se pierd; clasificatorul revine la v${c.publishedSnapshot.versiune} publicată.`, confirmLabel: "Renunță la ciornă" }, () => {
+        const back = clasCore.transition(c, "renuntaClas"); clasLog(back, "Ciornă abandonată", `Revenit la v${back.versiune}.`); replaceClassifier(back);
+        clasState.draft = null; refreshClassifierViews(); showShellToast("Ciorna a fost abandonată.", "info", "Revenit la versiunea publicată");
+      });
+      return;
+    }
+    if (action === "stergeCiorna") {
+      askConfirm({ title: "Ștergi ciorna?", text: `„${c.denumire}” nu a fost publicat niciodată: se șterge definitiv, cu toate valorile.`, confirmLabel: "Șterge ciorna", destructive: true }, () => {
+        classifiersStore.list = clasList().filter((x) => x.id !== c.id);
+        hideClassifierProfile(); clasState.id = null; showClassifiersRegistry(); restorePageHash();
+        showShellToast(`„${c.denumire}” a fost șters.`, "info", "Ciornă ștearsă");
+      });
+    }
+  };
+
+  /* ---- drawer: value editor + create wizard ---- */
+  const clasDrawer = document.querySelector("[data-clas-drawer]");
+  const clasDrawerBody = clasDrawer?.querySelector("[data-clas-drawer-body]");
+  let clasDrawerState = null; /* { mode: "value"|"create", ... } */
+  let clasDrawerReturn = null;
+  const clasFieldError = (errors, key) => errors?.[key] ? `<span class="message message--inline message--error e-permits-fo-field__error"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeHtml(errors[key])}</span></span>` : "";
+  const clasInput = (id, key, value, { label, required = false, hint = "", span = 12, errors, attr = "data-clas-value" }) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="${id}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <div class="e-permits-fo-input${errors?.[key] ? " is-error" : ""}"><input id="${id}" type="text" value="${escapeHtml(value ?? "")}" ${attr}="${key}" autocomplete="off"></div>
+      ${clasFieldError(errors, key)}${hint ? `<p class="e-permits-fo-field__hint"${errors?.[key] ? " hidden" : ""}>${hint}</p>` : ""}
+    </div>`;
+  /* ---- value drawer: add / edit one value ---- */
+  const clasDateField = (id, key, iso, { label, required = false, span = 6, errors, hint = "" }) => {
+    const [y, m, d] = iso ? iso.split("-") : [];
+    const today = clasToday();
+    const view = (iso || today).split("-");
+    return `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+        <label for="${id}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+        <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${escapeHtml(iso || "")}" data-today="${today}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}" data-clas-date="${key}">
+          <div class="e-permits-fo-input e-permits-fo-input--with-action${errors?.[key] ? " is-error" : ""}">
+            <input id="${id}" type="text" class="js-date-picker-input" value="${iso ? `${d}/${m}/${y}` : ""}" placeholder="ZZ/LL/AAAA" autocomplete="off">
+            <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data" aria-controls="${id}-panel" aria-expanded="false"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calendar"></use></svg></button>
+          </div>
+          <div id="${id}-panel" class="date-picker-panel" aria-hidden="true" hidden>
+            <div class="date-picker" role="dialog" aria-label="Alege data">
+              <div class="date-picker__header">
+                <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg></button>
+                <div class="date-picker__month js-date-picker-label"></div>
+                <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></button>
+              </div>
+              <div class="date-picker__grid date-picker__grid--days" data-view="day"><div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div><div class="date-picker__days js-date-picker-days"></div></div>
+            </div>
+          </div>
+        </div>
+        ${clasFieldError(errors, key)}${hint ? `<p class="e-permits-fo-field__hint"${errors?.[key] ? " hidden" : ""}>${hint}</p>` : ""}
+      </div>`;
+  };
+
+  const renderValueDrawer = () => {
+    const s = clasDrawerState, c = getClassifier(clasState.id), v = s.values, e = s.errors;
+    const parent = c.parintId ? getClassifier(c.parintId) : null;
+    const extras = c.campuriExtra || [];
+    const usedByChildren = s.key && clasCore.childrenOf(clasList(), c.id).some((ch) => (ch.valori || []).some((x) => x.parinte === s.key));
+    clasDrawer.querySelector("[data-clas-drawer-title]").textContent = s.key ? `Editează valoarea ${s.key}` : "Valoare nouă";
+    clasDrawer.querySelector("[data-clas-drawer-subtitle]").textContent = c.denumire;
+    clasDrawerBody.innerHTML = `
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Identificare</h3>
+        <div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+          ${clasInput("clas-v-cod", "cod", v.cod, { label: "Cod", required: true, span: 6, errors: e, hint: usedByChildren ? "Folosit de clasificatoare-copil: la redenumire, referințele se actualizează." : `Unic în clasificator${(c.idFormat || "INT") === "INT" ? "; doar cifre" : ""}.` })}
+          ${parent ? `<div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><label for="clas-v-parent">Valoare-părinte</label>${renderFoSelectControl({ id: "clas-v-parent", attrs: 'data-clas-value="parinte"', optionsHtml: [["", "Fără"], ...parent.valori.filter((p) => p.activ || p.cod === v.parinte).map((p) => [p.cod, `${p.cod} — ${p.denRo}`])].map(([val, l]) => `<option value="${escapeHtml(val)}"${(v.parinte || "") === val ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}<p class="e-permits-fo-field__hint">Din „${escapeHtml(parent.denumire)}”.</p></div>` : ""}
+        </div></div>
+      </section>
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Denumiri</h3>
+        <div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+          ${clasInput("clas-v-ro", "denRo", v.denRo, { label: "Denumire în română", required: true, errors: e })}
+          ${clasInput("clas-v-ru", "denRu", v.denRu, { label: "Denumire în rusă", span: 6, errors: e })}
+          ${clasInput("clas-v-en", "denEn", v.denEn, { label: "Denumire în engleză", span: 6, errors: e })}
+        </div></div>
+      </section>
+      ${extras.length ? `<section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Coloane suplimentare</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+        ${extras.map((f) => {
+          const x = v.extra?.[f.id];
+          if (f.tip === "Boolean") return `<div class="e-permits-user-create__field e-permits-user-create__field--12">${renderToggle({ label: f.label, checked: Boolean(x), attrs: `data-clas-extra-bool="${escapeHtml(f.id)}"` })}</div>`;
+          if (f.tip === "Selecție" && f.cfg) return `<div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><label for="clas-v-x-${escapeHtml(f.id)}">${escapeHtml(f.label)}</label>${renderFoSelectControl({ id: `clas-v-x-${f.id}`, attrs: `data-clas-extra="${escapeHtml(f.id)}"`, optionsHtml: [["", "Alege"], ...f.cfg.split("/").map((o) => o.trim()).filter(Boolean).map((o) => [o, o])].map(([val, l]) => `<option value="${escapeHtml(val)}"${String(x ?? "") === val ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}</div>`;
+          return clasInput(`clas-v-x-${f.id}`, f.id, x ?? "", { label: f.label, span: 6, errors: e, attr: "data-clas-extra" });
+        }).join("")}
+      </div></div></section>` : ""}
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Valabilitate</h3>
+        <div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+          ${clasDateField("clas-v-from", "activDeLa", v.activDeLa, { label: "Activ de la", required: true, errors: e })}
+          ${clasDateField("clas-v-to", "activPanaLa", v.activPanaLa, { label: "Activ până la", errors: e, hint: "Opțional. Fără dată, valoarea rămâne activă." })}
+        </div></div>
+      </section>`;
+    const c0 = getClassifier(clasState.id);
+    clasDrawer.querySelector("[data-clas-drawer-summary]").textContent = c0.status === "published" ? `Salvarea deschide o ciornă peste v${c0.versiune}.` : "Se salvează în ciornă.";
+    clasDrawer.querySelector("[data-clas-drawer-buttons]").innerHTML = `
+      <button class="btn btn-neutral btn-rounded" type="button" data-clas-close>Anulează</button>
+      ${s.key ? "" : '<button class="btn btn-secondary btn-rounded" type="button" data-clas-value-save="next">Salvează și adaugă alta</button>'}
+      <button class="btn btn-primary btn-rounded" type="button" data-clas-value-save>Salvează</button>`;
+    window.GEAPDatePicker?.init(clasDrawerBody);
+  };
+
+  const openValueEditor = (key = null) => {
+    const c = getClassifier(clasState.id);
+    const v = key ? JSON.parse(JSON.stringify(c.valori.find((x) => x.cod === key))) : { cod: "", denRo: "", denRu: "", denEn: "", activ: true, activDeLa: clasToday(), activPanaLa: null, parinte: null, extra: {} };
+    openClasDrawer({ mode: "value", key, values: v, original: JSON.parse(JSON.stringify(v)), errors: {} });
+  };
+
+  const saveValueFromDrawer = (addAnother) => {
+    const s = clasDrawerState;
+    const ok = saveClasValue(s, (cod) => {
+      refreshClassifierViews();
+      flashClasRow(cod);
+      if (addAnother) {
+        openValueEditor(null);
+        showShellToast(`„${cod}” a fost adăugată.`, "success", "Valoare salvată");
+      } else {
+        closeClasDrawer();
+      }
+    });
+    if (!ok) { renderValueDrawer(); clasDrawerBody.querySelector(".is-error input")?.focus(); }
+  };
+
+  const openClasDrawer = (state) => {
+    clasDrawerState = state;
+    clasDrawerReturn = document.activeElement;
+    (state.mode === "value" ? renderValueDrawer : renderCreateDrawer)();
+    clasDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => clasDrawerBody.querySelector("input:not([readonly])")?.focus());
+  };
+  const closeClasDrawer = () => {
+    if (!clasDrawer || clasDrawer.hidden || clasDrawer.classList.contains("is-closing")) return;
+    closeFoSelect();
+    clasDrawer.classList.add("is-closing");
+    window.setTimeout(() => { clasDrawer.hidden = true; clasDrawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); clasDrawerState = null; clasDrawerReturn?.focus?.(); }, 120);
+  };
+
+  /* ---- create wizard (2 steps) ---- */
+  const renderCreateDrawer = () => {
+    const s = clasDrawerState, d = s.values, e = s.errors;
+    const role = clasRole();
+    const sources = clasList().filter(clasVisible).filter((c) => c.status !== "draft");
+    const copyFrom = d.copiatDinId ? getClassifier(d.copiatDinId) : null;
+    clasDrawer.querySelector("[data-clas-drawer-title]").textContent = "Clasificator nou";
+    clasDrawer.querySelector("[data-clas-drawer-subtitle]").textContent = `Pasul ${s.step} din 2 · ${s.step === 1 ? "Date generale" : d.sursa === "intern" ? (copyFrom ? "Valori copiate" : "Valori") : "Mapare"}`;
+    const chips = (name, label, options, value, disabled = false, hint = "") => `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+        <label id="clas-c-${name}-l">${escapeHtml(label)}${requiredMark()}</label>
+        <div class="segmented-control" role="radiogroup" aria-labelledby="clas-c-${name}-l"${hint ? ` aria-describedby="clas-c-${name}-h"` : ""}>${options.map(([v, l]) => `<button class="segment-item${value === v ? " is-selected" : ""}" type="button" role="radio" aria-checked="${value === v}" data-clas-create-choice="${name}" data-value="${v}"${disabled ? " disabled" : ""}>${l}</button>`).join("")}</div>
+        ${hint ? `<p class="e-permits-fo-field__hint" id="clas-c-${name}-h">${hint}</p>` : ""}
+      </div>`;
+    const categoryHint = role.id !== "adm-c" ? "Administratorul local creează doar clasificatoare pentru autoritatea sa."
+      : d.categorie === "global" ? "Poate fi folosit de toate autoritățile și serviciile platformei."
+      : "Poate fi folosit doar de serviciile alese ale unei autorități.";
+    const sourceHint = { intern: "Valorile se adaugă manual sau prin import CSV.", mconnect: "Valorile se preiau și se actualizează automat din MConnect.", api: "Valorile se preiau dintr-un serviciu extern, la sincronizare." }[d.sursa];
+    if (s.step === 1) {
+      const services = (servicesStore?.services || []).filter((sv) => sv.authorityId === `aut-${d.autoritate}`).map((sv) => sv.title);
+      const svcOptions = [...new Set([...services, ...clasList().filter((c) => c.autoritate === d.autoritate).flatMap((c) => c.servicii || [])])];
+      clasDrawerBody.innerHTML = `
+        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Identificare</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+          ${clasInput("clas-c-name", "denumire", d.denumire, { label: "Denumire", required: true, errors: e, attr: "data-clas-create", hint: "Ex. Motive de suspendare — ANSP" })}
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-desc">Descriere</label><div class="e-permits-fo-textarea"><textarea id="clas-c-desc" rows="2" data-clas-create="descriere">${escapeHtml(d.descriere)}</textarea></div><p class="e-permits-fo-field__hint">Ce conține și cine îl folosește.</p></div>
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><label for="clas-c-family">Familie${requiredMark()}</label>${renderFoSelectControl({ id: "clas-c-family", attrs: 'data-clas-create="familie"', optionsHtml: Object.entries(CLAS_FAMILY).map(([v, l]) => `<option value="${v}"${d.familie === v ? " selected" : ""}>${l}</option>`).join("") })}</div>
+        </div></div></section>
+        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Unde se aplică</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+          ${chips("categorie", "Categorie", [["global", "Global"], ["specific", "Specific unei autorități"]], d.categorie, role.id !== "adm-c", categoryHint)}
+          ${d.categorie === "specific" ? `
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-auth">Autoritate${requiredMark()}</label>${renderFoSelectControl({ id: "clas-c-auth", attrs: 'data-clas-create="autoritate"', disabled: role.id !== "adm-c", optionsHtml: Object.entries(CLAS_AUTHORITY).map(([v, [s1, l]]) => `<option value="${v}"${d.autoritate === v ? " selected" : ""}>${s1} — ${l}</option>`).join("") })}</div>
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><span class="e-permits-fo-field__label-row"><label>Servicii${requiredMark()}</label></span>
+              <div class="e-permits-clas-checklist">${svcOptions.map((sv) => `<label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(sv)}"${d.servicii.includes(sv) ? " checked" : ""} data-clas-create-service><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(sv)}</span></span></label>`).join("")}</div>
+              ${clasFieldError(e, "servicii")}<p class="e-permits-fo-field__hint"${e.servicii ? " hidden" : ""}>Un serviciu = domeniu „Serviciu”; mai multe = „Autoritate”.</p>
+            </div>` : ""}
+        </div></div></section>
+        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Sursa valorilor</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+          ${chips("sursa", "Sursă", [["intern", "Intern"], ["mconnect", "MConnect"], ["api", "API extern"]], d.sursa, false, sourceHint)}
+          ${d.sursa === "intern" ? `<div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-copy">Pornește de la un clasificator existent</label>${renderFoSelectControl({ id: "clas-c-copy", attrs: 'data-clas-create="copiatDinId"', optionsHtml: [["", "Nu — încep de la zero"], ...sources.map((c) => [c.id, c.denumire])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(d.copiatDinId || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}<p class="e-permits-fo-field__hint">Se copiază valorile alese; copia nu se sincronizează cu originalul.</p></div>` : ""}
+        </div></div></section>`;
+    } else if (d.sursa === "intern" && copyFrom) {
+      const vals = copyFrom.valori || [];
+      clasDrawerBody.innerHTML = `
+        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Valori de copiat din „${escapeHtml(copyFrom.denumire)}”</h3><div class="e-permits-user-create__section-content">
+          <div class="e-permits-clas-subset__bar"><span>${s.subset.size} din ${vals.length} selectate</span><button class="btn btn-text-primary btn-sm" type="button" data-clas-subset-all>${s.subset.size === vals.length ? "Deselectează tot" : "Selectează tot"}</button></div>
+          <div class="e-permits-clas-checklist e-permits-clas-checklist--values">${vals.map((v) => `<label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(v.cod)}"${s.subset.has(v.cod) ? " checked" : ""} data-clas-subset><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(v.cod)} — ${escapeHtml(v.denRo)}</span>${v.activ ? "" : '<span class="checkbox-description">Inactivă în original</span>'}</span></label>`).join("")}</div>
+          ${clasFieldError(e, "subset")}
+          ${renderInfoNote("Valorile neselectate nu se copiază. Jurnalul păstrează câte au fost copiate și de unde.")}
+        </div></section>`;
+    } else if (d.sursa === "intern") {
+      clasDrawerBody.innerHTML = `<section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Valori</h3><div class="e-permits-user-create__section-content">
+        ${renderInfoNote("Clasificatorul se creează ca ciornă, fără valori. Le adaugi pe rând sau le imporți din CSV în tab-ul Valori, apoi îl publici.")}
+        <div class="e-permits-clas-choice">${[["empty", "Adaug valorile după creare"], ["csv", "Import CSV imediat după creare"]].map(([v, l]) => `<label class="radio"><input class="radio-input" type="radio" name="clas-c-start" value="${v}"${(d.start || "empty") === v ? " checked" : ""} data-clas-create-start><span class="radio-custom" aria-hidden="true"></span><span class="radio-label">${l}</span></label>`).join("")}</div>
+      </div></section>`;
+    } else {
+      const defaults = classifiersStore.fieldTypes.defaults.fields;
+      clasDrawerBody.innerHTML = `<section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Endpoint</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
+        ${clasInput("clas-c-endpoint", "endpoint", d.endpoint, { label: d.sursa === "mconnect" ? "Endpoint MConnect" : "URL API", required: true, errors: e, attr: "data-clas-create", hint: d.sursa === "mconnect" ? "Ex. mconnect://bns.gov.md/registre/cuatm/v3" : "Ex. https://api.exemplu.gov.md/clasificator" })}
+      </div></div></section>
+      <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Mapare coloane</h3><div class="e-permits-user-create__section-content">
+        <div class="e-permits-dosar-profil__table-scroll"><table class="e-permits-dosar-profil__table"><thead><tr><th scope="col">Coloană GEAP</th><th scope="col">Câmp sursă</th></tr></thead><tbody>
+          ${defaults.map((f) => `<tr><td>${escapeHtml(f.label)}${f.obligatoriu || f.id === "cod" ? requiredMark() : ""}</td><td><div class="e-permits-fo-input${e["map_" + f.id] ? " is-error" : ""}"><input type="text" value="${escapeHtml(d.mapare[f.id] || "")}" placeholder="${f.id === "cod" ? "ex. code" : ""}" aria-label="Câmp sursă pentru ${escapeHtml(f.label)}" data-clas-map="${f.id}" autocomplete="off"></div></td></tr>`).join("")}
+        </tbody></table></div>
+        ${e.mapare ? clasFieldError(e, "mapare") : `<p class="e-permits-fo-field__hint">ID și Denumire RO sunt obligatorii. La fiecare sincronizare, valorile lipsă din răspuns se dezactivează automat.</p>`}
+      </div></section>`;
+    }
+    clasDrawer.querySelector("[data-clas-drawer-summary]").textContent = s.step === 1 ? "Se creează ca ciornă — invizibilă consumatorilor până la publicare." : "";
+    clasDrawer.querySelector("[data-clas-drawer-buttons]").innerHTML = s.step === 1
+      ? '<button class="btn btn-neutral btn-rounded" type="button" data-clas-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-clas-create-next>Continuă</button>'
+      : '<button class="btn btn-neutral btn-rounded" type="button" data-clas-create-back>Înapoi</button><button class="btn btn-primary btn-rounded" type="button" data-clas-create-done>Creează ciorna</button>';
+  };
+
+  const openCreateWizard = () => {
+    const role = clasRole();
+    openClasDrawer({ mode: "create", step: 1, errors: {}, subset: new Set(), values: { denumire: "", descriere: "", familie: "intern", categorie: role.id === "adm-c" ? "global" : "specific", autoritate: role.authority || "ansp", servicii: [], sursa: "intern", copiatDinId: "", endpoint: "", mapare: {}, start: "empty" } });
+  };
+
+  const createNext = () => {
+    const s = clasDrawerState, d = s.values, e = {};
+    if (!d.denumire.trim()) e.denumire = "Completează denumirea.";
+    else if (clasList().some((c) => clasCore.normName(c.denumire) === clasCore.normName(d.denumire))) e.denumire = "Există deja un clasificator cu această denumire.";
+    if (d.categorie === "specific" && !d.servicii.length) e.servicii = "Alege cel puțin un serviciu.";
+    s.errors = e;
+    if (Object.keys(e).length) { renderCreateDrawer(); clasDrawerBody.querySelector(".is-error input, .is-error textarea")?.focus(); return; }
+    if (d.copiatDinId) s.subset = new Set((getClassifier(d.copiatDinId)?.valori || []).map((v) => v.cod));
+    s.step = 2; renderCreateDrawer();
+    clasDrawerBody.querySelector("input")?.focus();
+  };
+
+  const createDone = () => {
+    const s = clasDrawerState, d = s.values, e = {};
+    const copyFrom = d.copiatDinId ? getClassifier(d.copiatDinId) : null;
+    if (d.sursa !== "intern") { if (!d.endpoint.trim()) e.endpoint = "Completează endpoint-ul."; if (!d.mapare.cod || !d.mapare.denRo) e.mapare = "Mapează cel puțin Cod și Denumire RO."; }
+    if (copyFrom && !s.subset.size) e.subset = "Alege cel puțin o valoare sau revino și pornește de la zero.";
+    s.errors = e;
+    if (Object.keys(e).length) { renderCreateDrawer(); return; }
+    const id = `cl-${Date.now().toString(36)}`;
+    const valori = copyFrom ? copyFrom.valori.filter((v) => s.subset.has(v.cod)).map((v) => ({ ...JSON.parse(JSON.stringify(v)), parinte: null, sursa: "copie" })) : [];
+    const c = {
+      id, denumire: d.denumire.trim(), descriere: d.descriere.trim(), familie: d.familie, categorie: d.categorie, servicii: d.categorie === "specific" ? d.servicii : [], autoritate: d.categorie === "specific" ? d.autoritate : null,
+      activ: true, status: "draft", everPublished: false, scopeSystem: false, mod: d.sursa === "mconnect" ? "mconnect" : "manual", endpoint: d.sursa === "intern" ? null : d.endpoint.trim(), sursa: d.sursa,
+      parintId: null, copiatDinId: copyFrom?.id || null, localAdminManageable: clasRole().id === "adm-l", criticProces: false, versiune: "0.1", editatLa: clasToday(), editatDe: currentUserName(),
+      nrValori: valori.length, campuriExtra: copyFrom ? JSON.parse(JSON.stringify(copyFrom.campuriExtra || [])) : [], mapare: d.sursa === "intern" ? [] : Object.entries(d.mapare).filter(([, v]) => v).map(([camp, sursa]) => ({ camp, sursa })), valori, consumatori: [], publishedSnapshot: null, jurnal: []
+    };
+    clasLog(c, "Creat", copyFrom ? `Creat din „${copyFrom.denumire}”: ${s.subset.size} din ${copyFrom.valori.length} valori${s.subset.size < copyFrom.valori.length ? " (subset selectat)" : ""}.` : d.sursa === "intern" ? "Ciornă fără valori." : `Sursă ${CLAS_SOURCE[d.sursa]}: ${d.endpoint.trim()}.`);
+    classifiersStore.list = [c, ...clasList()];
+    const importAfter = d.sursa === "intern" && !copyFrom && d.start === "csv";
+    closeClasDrawer();
+    openClassifierProfile(id, "valori");
+    showShellToast(`„${c.denumire}” a fost creat ca ciornă. Adaugă valorile, apoi publică.`, "success", "Clasificator creat");
+    if (importAfter) window.setTimeout(openImportModal, 200);
+  };
+
+  /* ---- modal: fields, CSV import, sync ---- */
+  const clasModal = document.querySelector("#clas-modal");
+  const clasModalBody = clasModal?.querySelector("[data-clas-modal-body]");
+  let clasModalState = null;
+  const openClasModal = (title, subtitle, body, buttons, state) => {
+    clasModalState = state;
+    clasModal.querySelector("[data-clas-modal-title]").textContent = title;
+    clasModal.querySelector("[data-clas-modal-subtitle]").textContent = subtitle || "";
+    clasModalBody.innerHTML = body;
+    clasModal.querySelector("[data-clas-modal-buttons]").innerHTML = buttons;
+    window.__modal?.open?.("#clas-modal");
+  };
+  const closeClasModal = () => { closeFoSelect(); window.__modal?.close?.("#clas-modal"); clasModalState = null; };
+
+  const renderFieldModalBody = () => {
+    const s = clasModalState;
+    return `<div class="e-permits-case-form">
+      <div class="e-permits-fo-field"><label for="clas-f-label">Denumire${requiredMark()}</label><div class="e-permits-fo-input${s.errors.label ? " is-error" : ""}"><input id="clas-f-label" type="text" value="${escapeHtml(s.label)}" data-clas-f="label" autocomplete="off"></div>${clasFieldError(s.errors, "label")}</div>
+      <div class="e-permits-fo-field"><label for="clas-f-tip">Tip${requiredMark()}</label>${renderFoSelectControl({ id: "clas-f-tip", attrs: 'data-clas-f="tip"', optionsHtml: classifiersStore.fieldTypes.fieldTypes.map((t) => `<option value="${escapeHtml(t)}"${s.tip === t ? " selected" : ""}>${escapeHtml(t)}</option>`).join("") })}</div>
+      ${s.tip === "Selecție" || s.tip === "Referință clasificator" ? `<div class="e-permits-fo-field"><label for="clas-f-cfg">${s.tip === "Selecție" ? "Opțiuni" : "Clasificator referit"}</label><div class="e-permits-fo-input"><input id="clas-f-cfg" type="text" value="${escapeHtml(s.cfg)}" placeholder="${s.tip === "Selecție" ? "ex. I / II / mun." : "ex. CUATM"}" data-clas-f="cfg" autocomplete="off"></div><p class="e-permits-fo-field__hint">${s.tip === "Selecție" ? "Separă opțiunile cu „/”." : "Numele clasificatorului din care se aleg valorile."}</p></div>` : ""}
+      ${renderInfoNote("Coloana apare în tabelul de valori, pentru fiecare valoare. Modificarea structurii trece clasificatorul în ciornă.")}
+    </div>`;
+  };
+  const openFieldModal = (fieldId = null) => {
+    const c = getClassifier(clasState.id);
+    const f = fieldId ? c.campuriExtra.find((x) => x.id === fieldId) : null;
+    openClasModal(f ? "Editează coloana" : "Coloană nouă", c.denumire, "", '<button class="btn btn-neutral btn-rounded" type="button" data-clas-modal-cancel>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-clas-field-save>Salvează</button>', { kind: "field", id: fieldId, label: f?.label || "", tip: f?.tip || "Text", cfg: f?.cfg || "", errors: {} });
+    clasModalBody.innerHTML = renderFieldModalBody();
+    requestAnimationFrame(() => clasModalBody.querySelector("#clas-f-label")?.focus());
+  };
+  const saveField = () => {
+    const s = clasModalState, c = getClassifier(clasState.id);
+    const all = clasCore.fieldsOf(c, classifiersStore.fieldTypes);
+    s.errors = clasCore.validateFieldRow(s.id || "__new__", { label: s.label }, all);
+    if (Object.keys(s.errors).length) { clasModalBody.innerHTML = renderFieldModalBody(); clasModalBody.querySelector("#clas-f-label")?.focus(); return; }
+    const key = s.id || clasCore.normName(s.label).replace(/[^a-z0-9]+(.)/g, (_, ch) => ch.toUpperCase()).replace(/[^a-zA-Z0-9]/g, "");
+    clasEdit(c, (x) => { const def = { id: key, label: s.label.trim(), tip: s.tip, ...(s.cfg ? { cfg: s.cfg } : {}) }; x.campuriExtra = s.id ? x.campuriExtra.map((y) => (y.id === s.id ? def : y)) : [...(x.campuriExtra || []), def]; }, [s.id ? "Coloană modificată" : "Coloană adăugată", `${s.label.trim()} (${s.tip})`]);
+    closeClasModal(); refreshClassifierViews(); showShellToast("Structura s-a actualizat în ciornă.", "success", "Coloană salvată");
+  };
+
+  const openImportModal = () => {
+    const c = getClassifier(clasState.id);
+    const known = clasCore.fieldsOf(c, classifiersStore.fieldTypes).map((f) => f.id);
+    openClasModal("Importă valori din CSV", c.denumire, `<div class="e-permits-case-form">
+      <p class="e-permits-case-form__lead">Prima linie conține cheile coloanelor. Codurile existente se actualizează, cele noi se adaugă; nimic nu se șterge.</p>
+      <div class="e-permits-clas-import__keys"><span>Coloane acceptate:</span> ${known.map((k) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral">${escapeHtml(k)}</span>`).join(" ")}</div>
+      <div class="e-permits-clas-import__file">
+        <label class="btn btn-secondary btn-sm" for="clas-import-file"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg><span>Alege fișierul CSV</span></label>
+        <input id="clas-import-file" class="sr-only" type="file" accept=".csv,text/csv" data-clas-import-file>
+        <button class="btn btn-text-primary btn-sm" type="button" data-clas-import-template>Descarcă modelul CSV</button>
+      </div>
+      <div data-clas-import-result></div>
+    </div>`, '<button class="btn btn-neutral btn-rounded" type="button" data-clas-modal-cancel>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-clas-import-apply disabled>Importă</button>', { kind: "import", parsed: null, known });
+  };
+  const showImportPreview = (text, fileName) => {
+    const s = clasModalState, c = getClassifier(clasState.id);
+    const p = clasCore.parseCsv(text, s.known);
+    const existing = new Set(c.valori.map((v) => v.cod));
+    const valid = p.rows.filter((r) => r.cod && r.denRo);
+    const upd = valid.filter((r) => existing.has(r.cod)).length;
+    s.parsed = { ...p, valid };
+    clasModalBody.querySelector("[data-clas-import-result]").innerHTML = `
+      <p class="e-permits-case-form__lead"><strong>${escapeHtml(fileName)}</strong> · ${plural(p.rows.length, "rând", "rânduri")}</p>
+      ${p.missing.length ? `<div class="message message--subtle banner--error"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Lipsesc coloanele obligatorii: ${p.missing.map(escapeHtml).join(", ")}.</p></div></div>` : `
+      <ul class="e-permits-case-form__fees" role="list">
+        <li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Valori noi</span></span>${renderTag(String(valid.length - upd), "success")}</li>
+        <li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Valori actualizate</span></span>${renderTag(String(upd), "info")}</li>
+        ${p.rows.length - valid.length ? `<li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Rânduri ignorate</span><span class="e-permits-case-form__fee-meta">Fără cod sau fără Denumire RO</span></span>${renderTag(String(p.rows.length - valid.length), "neutral")}</li>` : ""}
+      </ul>`}
+      ${p.unknownColumns.length ? `<div class="message message--subtle banner--warning"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Coloane necunoscute, nu se importă: <strong>${p.unknownColumns.map(escapeHtml).join(", ")}</strong>. Adaugă-le întâi în tab-ul Coloane, dacă sunt necesare.</p></div></div>` : ""}`;
+    clasModal.querySelector("[data-clas-import-apply]").disabled = Boolean(p.missing.length) || !valid.length;
+  };
+  const applyImport = () => {
+    const s = clasModalState, c = getClassifier(clasState.id);
+    const extraIds = (c.campuriExtra || []).map((f) => f.id);
+    let added = 0, updatedN = 0;
+    clasEdit(c, (x) => {
+      const by = new Map(x.valori.map((v) => [v.cod, v]));
+      s.parsed.valid.forEach((r) => {
+        const extra = {}; extraIds.forEach((k) => { if (r[k] != null && r[k] !== "") extra[k] = r[k]; });
+        const base = { cod: r.cod, denRo: r.denRo, denRu: r.denRu || null, denEn: r.denEn || null, activ: r.activ ? !/^(0|false|nu)$/i.test(r.activ) : true, activDeLa: r.activDeLa || clasToday(), activPanaLa: r.activPanaLa || null, parinte: r.parinte || null, extra, autoInactivat: false, sursa: "import" };
+        if (by.has(r.cod)) { Object.assign(by.get(r.cod), { ...base, extra: { ...by.get(r.cod).extra, ...extra } }); updatedN++; } else { x.valori.push(base); added++; }
+      });
+      x.nrValori = Math.max(x.nrValori || 0, x.valori.length) + added - (x.nrValori >= x.valori.length ? 0 : 0);
+    }, ["Import CSV", `${plural(added, "valoare nouă", "valori noi")}, ${plural(updatedN, "actualizată", "actualizate")}${s.parsed.unknownColumns.length ? `; coloane ignorate: ${s.parsed.unknownColumns.join(", ")}` : ""}.`]);
+    closeClasModal(); refreshClassifierViews(); showShellToast(`${plural(added, "valoare nouă", "valori noi")}, ${plural(updatedN, "actualizată", "actualizate")}. Publică pentru a fi vizibile consumatorilor.`, "success", "Import finalizat");
+  };
+
+  /* MConnect sync: fetch → apply → summary with impact (DIV-C7: no blocking) */
+  const openSyncFlow = () => {
+    const c = getClassifier(clasState.id);
+    askConfirm({ title: "Sincronizezi din MConnect?", text: `Valorile se preiau din ${c.endpoint || "sursă"}. Valorile care lipsesc din răspuns se dezactivează automat (rămân în înregistrările existente).`, confirmLabel: "Sincronizează" }, () => {
+      /* mock response: the source renamed one value, added one, dropped the last active one */
+      const active = c.valori.filter((v) => v.activ);
+      const incoming = active.slice(0, -1).map((v, i) => (i === 0 ? { ...v, denRo: `${v.denRo}` } : v));
+      incoming.push({ cod: String(9000 + Math.floor(Math.random() * 900)), denRo: "Valoare nouă din sursă", denRu: null, denEn: null });
+      const plan = clasCore.syncPlan(c, incoming);
+      const next = clasCore.applySync(c, incoming, clasToday());
+      next.versiune = clasCore.bumpVersion(c.versiune);
+      next.nrValori = (c.nrValori || 0) + plan.added.length;
+      clasLog(next, "Sincronizare", `${plural(plan.added.length, "valoare nouă", "valori noi")}, ${plural(plan.updated.length, "actualizată", "actualizate")}, ${plural(plan.deactivated.length, "dezactivată automat", "dezactivate automat")}.`);
+      next.editatDe = "Sistem (MConnect)";
+      replaceClassifier(next);
+      refreshClassifierViews();
+      const affected = (c.consumatori || []);
+      openClasModal("Sincronizare finalizată", `${c.denumire} · v${next.versiune}`, `<div class="e-permits-case-form">
+        <ul class="e-permits-case-form__fees" role="list">
+          <li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Valori noi</span><span class="e-permits-case-form__fee-meta">${plan.added.map(escapeHtml).join(", ") || "—"}</span></span>${renderTag(String(plan.added.length), "success")}</li>
+          <li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Actualizate</span></span>${renderTag(String(plan.updated.length), "info")}</li>
+          <li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Dezactivate automat</span><span class="e-permits-case-form__fee-meta">${plan.deactivated.map(escapeHtml).join(", ") || "—"} — lipseau din răspuns</span></span>${renderTag(String(plan.deactivated.length), plan.deactivated.length ? "warning" : "neutral")}</li>
+        </ul>
+        ${plan.deactivated.length && affected.length ? `<div class="message message--subtle banner--warning"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span><div class="banner__content"><p class="banner__text"><strong>Verifică modulele care îl folosesc:</strong> ${affected.map((m) => escapeHtml(m.modul)).join(", ")}. Valorile dezactivate nu mai pot fi alese.</p></div></div>` : ""}
+      </div>`, '<button class="btn btn-primary btn-rounded" type="button" data-clas-modal-cancel>Am înțeles</button>', { kind: "sync" });
+    });
+  };
+
+  /* ---- events ---- */
+  /* a field's error clears as soon as it is edited (validation re-runs on save) */
+  const clearClasFieldError = (target, errors) => {
+    const box = target.closest(".e-permits-fo-input.is-error, .e-permits-fo-textarea.is-error");
+    if (!box) return;
+    box.classList.remove("is-error");
+    box.parentElement.querySelector(":scope > .message--error")?.remove();
+    box.parentElement.querySelector(":scope > .e-permits-fo-field__hint[hidden]")?.removeAttribute("hidden");
+    const key = target.dataset.clasCell || target.dataset.clasValue || target.dataset.clasCreate || target.dataset.clasSetting || target.dataset.clasExtra || target.dataset.clasF;
+    if (errors && key) delete errors[key];
+  };
+  [clasDrawer, clasProfileBody, clasModal].forEach((root) => root?.addEventListener("input", (event) => {
+    const errors = root === clasDrawer ? clasDrawerState?.errors : root === clasModal ? clasModalState?.errors : clasState.draft?.errors;
+    clearClasFieldError(event.target, errors);
+  }, true));
+  clasProfileBackShell?.addEventListener("click", closeClassifierProfile);
+  document.querySelector("[data-workplace-add-classifier]")?.addEventListener("click", openCreateWizard);
+
+  clasProfileTitle?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-clas-crumb-back]")) { event.preventDefault(); closeClassifierProfile(); return; }
+    const act = event.target.closest("[data-clas-action]"); if (act) { runClassifierAction(act.dataset.clasAction); return; }
+    if (event.target.closest("[data-clas-sync]")) { openSyncFlow(); return; }
+    if (event.target.closest("[data-clas-settings-discard]")) { clasState.draft = null; renderClassifierProfile(); return; }
+    if (event.target.closest("[data-clas-settings-save]")) saveClassifierSettings();
+  });
+
+  clasProfileTabs?.addEventListener("click", (event) => {
+    const tab = event.target.closest("[data-clas-profile-tab]"); if (!tab) return;
+    clasState.tabKey = tab.dataset.clasProfileTab;
+    renderClassifierProfile();
+    writeHash(`#clasificator/${encodeURIComponent(clasState.id)}/${clasState.tabKey}`);
+    clasProfileTabs.querySelector(`[data-clas-profile-tab="${clasState.tabKey}"]`)?.focus();
+  });
+
+  const saveClassifierSettings = () => {
+    const c = getClassifier(clasState.id), d = clasState.draft;
+    d.errors = {};
+    if (!d.denumire.trim()) d.errors.denumire = "Completează denumirea.";
+    else if (clasList().some((x) => x.id !== c.id && clasCore.normName(x.denumire) === clasCore.normName(d.denumire))) d.errors.denumire = "Există deja un clasificator cu această denumire.";
+    if (!/^\d+$/.test(String(d.limitaDenumiri)) || Number(d.limitaDenumiri) < 10) d.errors.limitaDenumiri = "Un număr de cel puțin 10.";
+    if (Object.keys(d.errors).length) { renderClassifierProfile(); clasProfileBody.querySelector(".is-error input")?.focus(); return; }
+    const parentChanged = (c.parintId || "") !== d.parintId;
+    clasEdit(c, (x) => { x.denumire = d.denumire.trim(); x.descriere = d.descriere.trim(); x.familie = d.familie; x.parintId = d.parintId || null; x.criticProces = d.criticProces; x.localAdminManageable = d.criticProces ? false : d.localAdminManageable; x.idFormat = d.idFormat; x.limitaDenumiri = Number(d.limitaDenumiri); if (parentChanged) x.valori.forEach((v) => { v.parinte = null; }); }, ["Setări modificate", parentChanged ? `Clasificator-părinte: ${d.parintId ? getClassifier(d.parintId)?.denumire : "fără"}.` : "Identificare, acces sau format."]);
+    clasState.draft = null; refreshClassifierViews(); showShellToast("Setările au fost salvate.", "success", "Salvat");
+  };
+
+  clasProfileBody?.addEventListener("click", (event) => {
+    const open = event.target.closest("[data-clas-open]"); if (open) { openClassifierProfile(open.dataset.clasOpen, "dependente"); return; }
+    const act = event.target.closest("[data-clas-activity]"); if (act) { clasState.activity = act.dataset.clasActivity; renderClassifierProfile(); clasProfileBody.querySelector(`[data-clas-activity="${clasState.activity}"]`)?.focus(); return; }
+    if (event.target.closest("[data-clas-grid-add]")) { openValueEditor(); return; }
+    const ed = event.target.closest("[data-clas-grid-edit]"); if (ed) { openValueEditor(ed.dataset.clasGridEdit); return; }
+    const tg = event.target.closest("[data-clas-grid-toggle]");
+    if (tg) { const v = getClassifier(clasState.id).valori.find((x) => x.cod === tg.dataset.clasGridToggle); setClasValuesActive([v.cod], !v.activ); return; }
+    const del = event.target.closest("[data-clas-grid-delete]"); if (del) { if (del.getAttribute("aria-disabled") !== "true") deleteClasValue(del.dataset.clasGridDelete); return; }
+    const bulk = event.target.closest("[data-clas-grid-bulk]"); if (bulk) { setClasValuesActive([...clasState.selected], bulk.dataset.clasGridBulk === "on"); return; }
+    if (event.target.closest("[data-clas-grid-clear]")) { clasState.selected.clear(); renderClassifierProfile(); return; }
+    if (event.target.closest("[data-clas-import]")) { openImportModal(); return; }
+    if (event.target.closest("[data-clas-sync]")) { openSyncFlow(); return; }
+    if (event.target.closest("[data-clas-field-add]")) { openFieldModal(); return; }
+    const fe = event.target.closest("[data-clas-field-edit]"); if (fe) { openFieldModal(fe.dataset.clasFieldEdit); return; }
+    const fr = event.target.closest("[data-clas-field-remove]");
+    if (fr) {
+      const c = getClassifier(clasState.id); const f = c.campuriExtra.find((x) => x.id === fr.dataset.clasFieldRemove);
+      const used = c.valori.filter((v) => v.extra && v.extra[f.id] != null && v.extra[f.id] !== "").length;
+      askConfirm({ title: "Elimini coloana?", text: `„${f.label}”${used ? ` are date la ${plural(used, "valoare", "valori")}; ele se pierd la publicare` : " nu are date"}. Modificarea trece clasificatorul în ciornă.`, confirmLabel: "Elimină", destructive: true }, () => {
+        clasEdit(c, (x) => { x.campuriExtra = x.campuriExtra.filter((y) => y.id !== f.id); x.valori.forEach((v) => { if (v.extra) delete v.extra[f.id]; }); x.mapare = (x.mapare || []).filter((m) => m.camp !== f.id); }, ["Coloană eliminată", f.label]);
+        refreshClassifierViews(); showShellToast(`„${f.label}” a fost eliminat din ciornă.`, "info", "Coloană eliminată");
+      });
+      return;
+    }
+    const idf = event.target.closest("[data-clas-idformat]"); if (idf && !idf.disabled) { clasState.draft.idFormat = idf.dataset.clasIdformat; renderClassifierProfile(); }
+  });
+  clasProfileBody?.addEventListener("input", (event) => {
+    const sr = event.target.closest("[data-clas-value-search]");
+    if (sr) { clasState.query = sr.value; const pos = sr.selectionStart; renderClassifierProfile(); const ni = clasProfileBody.querySelector("[data-clas-value-search]"); ni?.focus(); ni?.setSelectionRange(pos, pos); return; }
+    const st = event.target.closest("[data-clas-setting]");
+    if (st && st.tagName !== "SELECT") { const wasDirty = clasSettingsDirty(getClassifier(clasState.id)); clasState.draft[st.dataset.clasSetting] = st.value; if (wasDirty !== clasSettingsDirty(getClassifier(clasState.id))) renderClassifierHeaderOnly(); }
+  });
+  clasProfileBody?.addEventListener("change", (event) => {
+    const st = event.target.closest("select[data-clas-setting]"); if (st) { clasState.draft[st.dataset.clasSetting] = st.value; renderClassifierProfile(); return; }
+    const tg = event.target.closest("[data-clas-toggle]"); if (tg) { clasState.draft[tg.dataset.clasToggle] = tg.checked; if (tg.dataset.clasToggle === "criticProces" && tg.checked) clasState.draft.localAdminManageable = false; renderClassifierProfile(); }
+  });
+  /* table: checkboxes select; click a row (or Enter on it) to edit in the drawer */
+  clasProfileBody?.addEventListener("change", (event) => {
+    const one = event.target.closest("[data-clas-grid-select]");
+    if (one) { if (one.checked) clasState.selected.add(one.value); else clasState.selected.delete(one.value); renderClassifierProfile(); clasProfileBody.querySelector(`[data-clas-grid-select][value="${CSS.escape(one.value)}"]`)?.focus(); return; }
+    const allBox = event.target.closest("[data-clas-grid-select-all]");
+    if (allBox) {
+      clasProfileBody.querySelectorAll("[data-clas-grid-select]").forEach((box) => { if (allBox.checked) clasState.selected.add(box.value); else clasState.selected.delete(box.value); });
+      renderClassifierProfile(); clasProfileBody.querySelector("[data-clas-grid-select-all]")?.focus();
+    }
+  });
+  clasProfileBody?.addEventListener("click", (event) => {
+    const tr = event.target.closest(".e-permits-clas-grid__table.is-editable tr[data-clas-row]");
+    if (!tr || event.target.closest("button, label, input, a")) return;
+    openValueEditor(tr.dataset.clasRow);
+  });
+  clasProfileBody?.addEventListener("keydown", (event) => {
+    const tr = event.target.matches?.(".e-permits-clas-grid__table.is-editable tr[data-clas-row]") ? event.target : null;
+    if (tr && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); openValueEditor(tr.dataset.clasRow); }
+  });
+
+  const renderClassifierHeaderOnly = () => {
+    const c = getClassifier(clasState.id);
+    renderClassifierHeader(c);
+    if (clasState.tabKey === "setari" && clasSettingsDirty(c)) clasProfileTitle.querySelector(".e-permits-page-header__actions")?.insertAdjacentHTML("afterbegin", '<button class="btn btn-neutral btn-sm" type="button" data-clas-settings-discard>Renunță</button><button class="btn btn-secondary btn-sm" type="button" data-clas-settings-save>Salvează</button>');
+  };
+
+  clasDrawer?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-clas-close]")) { closeClasDrawer(); return; }
+    const vs = event.target.closest("[data-clas-value-save]"); if (vs) { saveValueFromDrawer(vs.dataset.clasValueSave === "next"); return; }
+    if (event.target.closest("[data-clas-create-next]")) { createNext(); return; }
+    if (event.target.closest("[data-clas-create-back]")) { clasDrawerState.step = 1; clasDrawerState.errors = {}; renderCreateDrawer(); return; }
+    if (event.target.closest("[data-clas-create-done]")) { createDone(); return; }
+    const ch = event.target.closest("[data-clas-create-choice]");
+    if (ch && !ch.disabled) { clasDrawerState.values[ch.dataset.clasCreateChoice] = ch.dataset.value; if (ch.dataset.clasCreateChoice === "categorie" && ch.dataset.value === "global") clasDrawerState.values.servicii = []; renderCreateDrawer(); return; }
+    if (event.target.closest("[data-clas-subset-all]")) { const vals = getClassifier(clasDrawerState.values.copiatDinId).valori; clasDrawerState.subset = clasDrawerState.subset.size === vals.length ? new Set() : new Set(vals.map((v) => v.cod)); renderCreateDrawer(); }
+  });
+  clasDrawer?.addEventListener("input", (event) => {
+    const s = clasDrawerState; if (!s) return;
+    if (s.mode === "value") {
+      const v = event.target.closest("input[data-clas-value]"); if (v) { s.values[v.dataset.clasValue] = v.value; return; }
+      const x = event.target.closest("input[data-clas-extra]"); if (x) s.values.extra = { ...(s.values.extra || {}), [x.dataset.clasExtra]: x.value };
+      return;
+    }
+    const x = event.target.closest("[data-clas-extra]"); if (x) { s.values.extra = { ...(s.values.extra || {}), [x.dataset.clasExtra]: x.value }; return; }
+    const cr = event.target.closest("[data-clas-create]"); if (cr && cr.tagName !== "SELECT") { s.values[cr.dataset.clasCreate] = cr.value; return; }
+    const mp = event.target.closest("[data-clas-map]"); if (mp) s.values.mapare[mp.dataset.clasMap] = mp.value.trim();
+  });
+  clasDrawer?.addEventListener("change", (event) => {
+    const s = clasDrawerState; if (!s) return;
+    if (s.mode === "value") {
+      const sel = event.target.closest("select[data-clas-value]"); if (sel) { s.values[sel.dataset.clasValue] = sel.value || null; return; }
+      const xs = event.target.closest("select[data-clas-extra]"); if (xs) { s.values.extra = { ...(s.values.extra || {}), [xs.dataset.clasExtra]: xs.value }; return; }
+      const xb = event.target.closest("[data-clas-extra-bool]"); if (xb) { s.values.extra = { ...(s.values.extra || {}), [xb.dataset.clasExtraBool]: xb.checked }; return; }
+      const dt = event.target.closest("[data-clas-date]");
+      if (dt) {
+        s.values[dt.dataset.clasDate] = dt.dataset.selected || null;
+        if (s.errors[dt.dataset.clasDate]) { delete s.errors[dt.dataset.clasDate]; dt.querySelector(".is-error")?.classList.remove("is-error"); const f = dt.closest(".e-permits-fo-field"); f.querySelector(":scope > .message--error")?.remove(); f.querySelector(":scope > .e-permits-fo-field__hint")?.removeAttribute("hidden"); }
+      }
+      return;
+    }
+    const cs = event.target.closest("select[data-clas-create]"); if (cs) { s.values[cs.dataset.clasCreate] = cs.value; if (cs.dataset.clasCreate === "autoritate") s.values.servicii = []; renderCreateDrawer(); return; }
+    const sv = event.target.closest("[data-clas-create-service]"); if (sv) { s.values.servicii = sv.checked ? [...s.values.servicii, sv.value] : s.values.servicii.filter((x) => x !== sv.value); if (s.errors.servicii && s.values.servicii.length) { delete s.errors.servicii; const f = sv.closest(".e-permits-fo-field"); f.querySelector(":scope > .message--error")?.remove(); f.querySelector(":scope > .e-permits-fo-field__hint")?.removeAttribute("hidden"); } return; }
+    const sb = event.target.closest("[data-clas-subset]"); if (sb) { if (sb.checked) s.subset.add(sb.value); else s.subset.delete(sb.value); clasDrawerBody.querySelector(".e-permits-clas-subset__bar span").textContent = `${s.subset.size} din ${getClassifier(s.values.copiatDinId).valori.length} selectate`; return; }
+    const stt = event.target.closest("[data-clas-create-start]"); if (stt) s.values.start = stt.value;
+  });
+  clasDrawer?.addEventListener("keydown", (event) => { if (event.key === "Escape" && clasDrawerState && !document.querySelector(".date-picker-panel:not([hidden]), body > .e-permits-fo-select__list")) { event.preventDefault(); closeClasDrawer(); } });
+
+  clasModal?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-clas-modal-cancel]")) { closeClasModal(); return; }
+    if (event.target.closest("[data-clas-field-save]")) { saveField(); return; }
+    if (event.target.closest("[data-clas-import-apply]")) { applyImport(); return; }
+    if (event.target.closest("[data-clas-import-template]")) {
+      const c = getClassifier(clasState.id);
+      const cols = clasCore.fieldsOf(c, classifiersStore.fieldTypes).map((f) => f.id);
+      const blob = new Blob([`﻿${cols.join(";")}\n`], { type: "text/csv;charset=utf-8" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `${c.id}-model.csv`; a.click(); URL.revokeObjectURL(a.href);
+    }
+  });
+  clasModal?.addEventListener("input", (event) => { const f = event.target.closest("[data-clas-f]"); if (f && clasModalState?.kind === "field" && f.tagName !== "SELECT") clasModalState[f.dataset.clasF] = f.value; });
+  clasModal?.addEventListener("change", (event) => {
+    const f = event.target.closest("select[data-clas-f]"); if (f && clasModalState?.kind === "field") { clasModalState[f.dataset.clasF] = f.value; clasModalBody.innerHTML = renderFieldModalBody(); return; }
+    const file = event.target.closest("[data-clas-import-file]");
+    if (file?.files?.[0]) { const fl = file.files[0]; const r = new FileReader(); r.onload = () => showImportPreview(String(r.result || ""), fl.name); r.readAsText(fl); }
+  });
+
+
+  const renderNtplCell = (row, key) => {
+    switch (key) {
+      /* the registries' ID cell: copyable code + source line (as Tarife, Servicii);
+         the template's origin is the source */
+      case "cod": return `
+        <div class="e-permits-workplace__case-cell">
+          ${renderCopyCode(row.cod, `Copiază ${row.cod}`)}
+          <span class="e-permits-workplace__source"><span>Sursă:</span><span>${escapeHtml(row.sursa)}</span></span>
+        </div>
+      `;
+      case "denumire": return `<span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
+      case "actualizat": return renderDateTime(row.actualizat, row.actualizatDe);
+      case "statut": return renderTag(row.statut, row.statut === "Activ" ? "success" : "neutral");
+      default: return escapeHtml(String(row[key] ?? "—"));
+    }
+  };
+
+  /* ---- Șablon de notificare — profile (Feature 91332) -------------------------
+     Designed around the job: write what the notification says (per language, per
+     channel), see it as the recipient will, choose who gets it, publish.
+       Header   standard page header; actions follow the state —
+                unsaved edits: Renunță · Salvează · Publică; saved: Publică; else none.
+       Conținut editor (E-mail: Subiect + Corp; Mesaj scurt: SMS / MNotify) next to a
+                live Previzualizare with sample data; "Inserează câmp" = searchable
+                picker that inserts at the last caret.
+       Destinatari  stacked list; add / edit in a modal.
+       Setări   identity fields (rarely edited) + the "Șablon activ" switch.
+       Istoric  published versions as a timeline. */
+  const ntplProfilePanel = document.querySelector("[data-ntpl-profile]");
+  const ntplProfileTitle = document.querySelector("[data-ntpl-profile-title]");
+  const ntplProfileSummary = document.querySelector("[data-ntpl-profile-summary]");
+  const ntplProfileTabs = document.querySelector("[data-ntpl-profile-tabs]");
+  const ntplProfileBody = document.querySelector("[data-ntpl-profile-panel]");
+  const ntplProfileBackShell = document.querySelector("[data-ntpl-profile-back-shell]");
+  const NTPL_TABS = [["content", "Conținut"], ["recipients", "Destinatari"], ["settings", "Setări"], ["history", "Istoric"]];
+  const NTPL_DATA_SOURCES = ["Dosar", "Plată", "Act permisiv", "Notificare", "Utilizator"];
+  const NTPL_PRIORITY_OPTIONS = ["Scăzută", "Normală", "Înaltă"];
+  const NTPL_RECIPIENTS = ["Responsabilul dosarului", "Solicitant", "Specialist", "Supervizor", "Director", "Instituția avizatoare", "Utilizator", "Destinatari selectați"];
+  const NTPL_DELIVERY = ["Email", "MNotify", "Email și MNotify", "MDelivery"];
+  const NTPL_DELIVERY_CHANNELS = { Email: ["Email"], MNotify: ["MNotify"], "Email și MNotify": ["Email", "MNotify"], MDelivery: ["MDelivery"] };
+  const NTPL_SMS_LIMIT = 160;
+  /* placeholders by data source, with the sample value the preview shows */
+  const NTPL_FIELDS = {
+    Dosar: [
+      ["Numărul dosarului", "CaseNumber", "D-2026-004575"], ["Denumirea serviciului", "ServiceTitle", "Autorizație sanitară de funcționare"],
+      ["Tipul solicitării", "SubServiceName", "Eliberare"], ["Numele solicitantului", "ApplicantName", "Victor Grosu"],
+      ["Denumirea persoanei juridice", "CompanyName", "SRL Construct Plus"], ["Autoritatea emitentă", "AuthorityName", "Agenția Națională pentru Sănătate Publică"],
+      ["Subdiviziunea responsabilă", "TeamName", "CSP Chișinău"], ["Data creării dosarului", "CreatedOn", "5 iulie 2026"],
+      ["Data depunerii", "SubmittedOn", "5 iulie 2026"], ["Termenul de examinare", "DueOn", "16 iulie 2026"],
+      ["Suspendat până la", "SuspendedUntil", "30 iulie 2026"], ["Motivul suspendării", "SuspensionReason", "Lipsește avizul de mediu"],
+      ["Motivul returnării la Specialist", "ReturnReason", "Date incomplete în cerere"], ["Tipul expertizei solicitate", "ExpertiseType", "Expertiză sanitară"],
+      ["Subdiviziunea de avizare", "ExpertiseTeam", "ANSA Chișinău"], ["Termenul avizării", "ExpertiseDueOn", "20 iulie 2026"],
+      ["Motivul revocării avizării", "RevokeReason", "Cerere retrasă"]
+    ],
+    "Plată": [["Numărul notei de plată", "PaymentNoteNumber", "MPAY-470173"], ["Suma", "Amount", "560 MDL"], ["Termenul de achitare", "PaymentDueOn", "12 iulie 2026"], ["Contul bancar", "BankAccount", "MD24AG000000022512345678"]],
+    "Act permisiv": [["Numărul actului", "PermitNumber", "AUT-2026-004575"], ["Data emiterii", "IssuedOn", "18 iulie 2026"], ["Valabil până la", "ValidUntil", "18 iulie 2031"], ["Titularul", "HolderName", "SRL Construct Plus"]],
+    Notificare: [["Destinatarul", "RecipientName", "Victor Grosu"], ["Mesajul", "MessageText", "Text liber"]],
+    Utilizator: [["Numele utilizatorului", "UserName", "Elena Caragia"], ["Rolul", "RoleName", "Specialist"], ["Autoritatea", "AuthorityName", "Agenția Națională pentru Sănătate Publică"]]
+  };
+  const NTPL_SAMPLE = Object.fromEntries(Object.values(NTPL_FIELDS).flat().map(([, token, sample]) => [token, sample]));
+  const ntplProfileState = { code: null, tabKey: "content", lang: "ro", mode: "visual", preview: "email", draft: null, fieldQuery: "", focusTarget: null, range: null };
+
+  const getGlobalTemplate = (code) => globalTemplates().find((tpl) => tpl.code === code) || null;
+
+  const ntplDraftFrom = (tpl) => ({
+    code: tpl.code, name: tpl.name, dataSource: tpl.dataSource || tpl.object || "Dosar", priority: tpl.priority || "Normală",
+    description: tpl.description || "", texts: JSON.parse(JSON.stringify(tpl.texts || {})), errors: {}, dirty: false
+  });
+
+  const ntplLangComplete = (texts, lang) => Boolean((texts?.[lang]?.subject || "").trim() && plainText(texts?.[lang]?.body));
+
+  /* the standard header; actions follow the state */
+  const renderNtplProfileHeader = (tpl) => {
+    const inactive = tpl.active === false;
+    const dirty = Boolean(ntplProfileState.draft?.dirty);
+    const lastPublished = (tpl.history || [])[0];
+    ntplProfileTitle.innerHTML = renderPageHeaderTop({
+      crumbs: [{ label: "Șabloane de notificare", attr: "data-ntpl-crumb-back" }, { label: tpl.code }],
+      title: tpl.name,
+      actions: `
+        ${dirty ? `
+          <button class="btn btn-neutral btn-sm" type="button" data-ntpl-discard>Renunță</button>
+          <button class="btn btn-secondary btn-sm" type="button" data-ntpl-save>Salvează</button>
+        ` : ""}
+        ${dirty || tpl.unpublished
+          ? '<button class="btn btn-primary btn-sm" type="button" data-ntpl-publish>Publică</button>'
+          /* stays in place, unavailable: the tooltip says why (aria-disabled keeps it focusable) */
+          : '<button class="btn btn-primary btn-sm" type="button" aria-disabled="true" data-tooltip-reason="Nu există modificări de publicat." data-ntpl-publish>Publică</button>'}
+      `,
+      caption: !lastPublished ? "Nepublicat încă"
+        : ntplIsPending(lastPublished) ? `${lastPublished.version} intră în vigoare pe ${formatLongDate(lastPublished.effectiveFrom)} · ${lastPublished.by}`
+        : `Publicat ${formatStamp(lastPublished.at)} · ${lastPublished.by}`
+    });
+    ntplProfileSummary.innerHTML = renderPageHeaderMeta([
+      ["Cod", renderProfileCopyCode(tpl.code, `Copiază ${tpl.code}`)],
+      ["Versiune", escapeHtml(tpl.version || "—")],
+      ["Stare", renderTag(inactive ? "Inactiv" : "Activ", inactive ? "neutral" : "success")],
+      ["Obiect", escapeHtml(tpl.object || tpl.dataSource || "—")],
+      ["Sursă", escapeHtml(tpl.origin || "Sistem")]
+    ]);
+    watchPageHeaderMeta(ntplProfileSummary);
+    const counts = { recipients: (tpl.rules || []).length, history: (tpl.history || []).length };
+    ntplProfileTabs.innerHTML = NTPL_TABS.map(([id, label]) => {
+      const active = id === ntplProfileState.tabKey;
+      return `
+        <button class="tab-button${active ? " active" : ""}" id="ntpl-tab-${id}" type="button" role="tab" aria-selected="${active ? "true" : "false"}" tabindex="${active ? "0" : "-1"}" data-ntpl-profile-tab="${id}">
+          <span>${label}</span>
+          ${counts[id] ? renderPageHeaderTabCount(counts[id]) : ""}
+        </button>
+      `;
+    }).join("");
+  };
+
+  /* library info-box, Strong · Warning, with its Close option (Figma 8230:2388);
+     closed, it stays closed for this template for the session */
+  const ntplBannerKey = (tpl) => `e-permits-ntpl-banner-closed:${tpl.code}`;
+  const ntplBannerClosed = (tpl) => { try { return window.sessionStorage.getItem(ntplBannerKey(tpl)) === "1"; } catch { return false; } };
+  const renderNtplUnpublishedBanner = (tpl) => tpl.unpublished && !ntplBannerClosed(tpl) ? `
+    <div class="message message--subtle banner--warning e-permits-ntpl-banner" role="status">
+      <span class="banner__icon"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span>
+      <div class="banner__content">
+        <p class="banner__text">Modificări nepublicate. Destinatarii primesc încă versiunea ${escapeHtml(tpl.version || "")} până la publicare.</p>
+      </div>
+      <button class="banner__close" type="button" aria-label="Închide mesajul" data-ntpl-banner-close>
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+    </div>
+  ` : "";
+
+  const ntplField = (key, label, control, { required = false, span = 12, hint = "" } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="ntplp-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      ${control}
+      ${ntplError(ntplProfileState.draft.errors[key])}
+      ${hint && !ntplProfileState.draft.errors[key] ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+    </div>
+  `;
+
+  const ntplTextInput = (key, value, extra = "") => `
+    <div class="e-permits-fo-input${ntplProfileState.draft.errors[key] ? " is-error" : ""}">
+      <input id="ntplp-${key}" type="text" value="${escapeHtml(value || "")}" autocomplete="off" ${extra}>
+    </div>
+  `;
+
+  const ntplSelectControl = (key, value, options, attr) => renderFoSelectControl({
+    id: `ntplp-${key}`, attrs: attr,
+    optionsHtml: options.map((option) => `<option value="${escapeHtml(option)}"${option === value ? " selected" : ""}>${escapeHtml(option)}</option>`).join("")
+  });
+
+  /* formatting bar for the e-mail body (contenteditable + execCommand) */
+  /* [command, sprite icon (central icon system, text-editor set), label] */
+  const NTPL_TOOLBAR = [
+    ["bold", "text-bold", "Aldin"], ["italic", "text-italic", "Cursiv"], ["underline", "text-underline", "Subliniat"],
+    "|", ["insertUnorderedList", "list-bullets", "Listă cu puncte"], ["insertOrderedList", "list-numbers", "Listă numerotată"],
+    "|", ["createLink", "link", "Link"], ["insertIf", "brackets", "Bloc condiționat {{#if}}"],
+    "|", ["undo", "undo", "Anulează"], ["redo", "redo", "Refă"], ["removeFormat", "eraser", "Șterge formatarea"]
+  ];
+
+  /* "Inserează câmp": searchable picker (stack-menu), inserts at the last caret */
+  const renderNtplFieldItems = () => {
+    const d = ntplProfileState.draft;
+    const query = ntplProfileState.fieldQuery.trim().toLocaleLowerCase("ro");
+    const fields = (NTPL_FIELDS[d.dataSource] || NTPL_FIELDS.Dosar).filter(([label, token]) => !query || `${label} ${token}`.toLocaleLowerCase("ro").includes(query));
+    return fields.length ? fields.map(([label, token]) => `
+      <li role="none">
+        <button class="e-permits-fo-intent-menu__item e-permits-ntpl-picker__item" type="button" role="menuitem" data-ntplp-token="{{${escapeHtml(token)}}}">
+          <span class="e-permits-ntpl-picker__label">${escapeHtml(label)}</span>
+          <span class="e-permits-ntpl-picker__token">{{${escapeHtml(token)}}}</span>
+        </button>
+      </li>
+    `).join("") : '<li role="none" class="e-permits-ntpl-picker__empty">Niciun câmp nu corespunde.</li>';
+  };
+
+  const renderNtplFieldPicker = () => `
+    <div class="e-permits-stack__menu-wrap">
+      <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="ntpl-field-picker" data-stack-menu-trigger>
+        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+        <span>Inserează câmp</span>
+      </button>
+      <div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-ntpl-picker" id="ntpl-field-picker" hidden data-stack-menu>
+        <div class="e-permits-fo-input e-permits-fo-input--with-action e-permits-ntpl-picker__search">
+          <input type="text" placeholder="Caută un câmp" aria-label="Caută un câmp" value="${escapeHtml(ntplProfileState.fieldQuery)}" data-ntplp-field-search autocomplete="off">
+          <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+        </div>
+        <p class="e-permits-ntpl-picker__group">${escapeHtml(ntplProfileState.draft.dataSource)}</p>
+        <ul class="e-permits-ntpl-picker__list" role="menu" aria-label="Câmpuri" data-ntplp-field-list>${renderNtplFieldItems()}</ul>
+      </div>
+    </div>
+  `;
+
+  /* the preview: tokens filled with sample data and marked */
+  const fillNtplSample = (text, { html = false } = {}) => {
+    const safe = html ? String(text || "").replace(/<\/?(script|style|iframe)[^>]*>/gi, "") : escapeHtml(text || "");
+    return safe.replace(/\{\{\s*([A-Za-z]+)\s*\}\}/g, (match, token) => `<mark class="e-permits-ntpl-preview__token" title="{{${token}}}">${escapeHtml(NTPL_SAMPLE[token] || match)}</mark>`);
+  };
+
+  const renderNtplPreviewBody = () => {
+    const d = ntplProfileState.draft;
+    const text = d.texts[ntplProfileState.lang] || {};
+    /* Mobil: the short text as it lands in the phone's messages app (iOS Messages
+       pattern): sender on top, a timestamp, one received bubble */
+    if (ntplProfileState.preview === "mobile") {
+      const sms = (text.plain || "").trim();
+      return `
+        <div class="e-permits-ntpl-preview__chat-head">
+          <span class="e-permits-ntpl-preview__avatar" aria-hidden="true">eP</span>
+          <span class="e-permits-ntpl-preview__sender">e-Permis</span>
+        </div>
+        <div class="e-permits-ntpl-preview__chat">
+          <span class="e-permits-ntpl-preview__time">Mesaj text · Azi 09:41</span>
+          ${sms
+            ? `<div class="e-permits-ntpl-preview__sms">${fillNtplSample(sms)}</div>`
+            : '<p class="e-permits-ntpl-preview__empty">Fără mesaj scurt în această limbă.</p>'}
+        </div>
+      `;
+    }
+    return `
+      <div class="e-permits-ntpl-preview__mail-head">
+        <span class="e-permits-ntpl-preview__from">e-Permis · noreply@e-permits.gov.md</span>
+        <p class="e-permits-ntpl-preview__subject">${text.subject?.trim() ? fillNtplSample(text.subject) : '<span class="e-permits-ntpl-preview__empty">Fără subiect</span>'}</p>
+      </div>
+      <div class="e-permits-ntpl-preview__mail-body">${plainText(text.body) ? fillNtplSample(text.body, { html: true }) : '<p class="e-permits-ntpl-preview__empty">Corpul mesajului este gol.</p>'}</div>
+    `;
+  };
+
+  const refreshNtplPreview = () => {
+    const pane = ntplProfileBody.querySelector("[data-ntpl-preview]");
+    if (pane) pane.innerHTML = renderNtplPreviewBody();
+    const counter = ntplProfileBody.querySelector("[data-ntpl-sms-count]");
+    if (counter) {
+      const length = (ntplProfileState.draft.texts[ntplProfileState.lang]?.plain || "").length;
+      counter.textContent = `${length}/${NTPL_SMS_LIMIT}`;
+      counter.classList.toggle("is-over", length > NTPL_SMS_LIMIT);
+    }
+  };
+
+  const renderNtplContent = (tpl) => {
+    const d = ntplProfileState.draft;
+    const lang = ntplProfileState.lang;
+    const text = d.texts[lang] || (d.texts[lang] = { subject: "", body: "", plain: "" });
+    const smsLength = (text.plain || "").length;
+
+    return `
+      ${renderNtplUnpublishedBanner(tpl)}
+      <div class="e-permits-ntpl-content">
+        <div class="e-permits-ntpl-content__main">
+          <div class="e-permits-ntpl-content__bar">
+            <div class="segmented-control" role="radiogroup" aria-label="Limba conținutului">
+              ${NTPL_LANGS.map(([value, label]) => {
+                const done = ntplLangComplete(d.texts, value);
+                return `<button class="segment-item${lang === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${lang === value ? "true" : "false"}" aria-label="${label}${done ? "" : " — incomplet"}" data-ntplp-lang="${value}">${value.toUpperCase()}${done ? "" : '<span class="e-permits-ntpl-dot" aria-hidden="true"></span>'}</button>`;
+              }).join("")}
+            </div>
+            ${renderNtplFieldPicker()}
+          </div>
+
+          <section class="e-permits-dosar-profil__section">
+            <h2 class="e-permits-dosar-profil__section-title">E-mail</h2>
+            <div class="e-permits-ntpl-card e-permits-ntpl-card--stack">
+              ${ntplField(`subject-${lang}`, "Subiect", ntplTextInput(`subject-${lang}`, text.subject, 'data-ntplp-text="subject" data-ntpl-insert-target'), { required: lang === "ro" })}
+              <div class="e-permits-fo-field">
+                <div class="e-permits-ntpl-body-head">
+                  <label id="ntplp-body-label">Corp${lang === "ro" ? requiredMark() : ""}</label>
+                  <div class="segmented-control" role="radiogroup" aria-label="Mod de editare">
+                    ${[["visual", "Vizual"], ["html", "HTML"]].map(([value, label]) => `<button class="segment-item${ntplProfileState.mode === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${ntplProfileState.mode === value ? "true" : "false"}" data-ntplp-mode="${value}">${label}</button>`).join("")}
+                  </div>
+                </div>
+                ${ntplProfileState.mode === "visual" ? `
+                <div class="e-permits-ntpl-editor${d.errors[`body-${lang}`] ? " is-error" : ""}">
+                    <div class="e-permits-ntpl-editor__toolbar" role="toolbar" aria-label="Formatare">
+                      ${NTPL_TOOLBAR.map((item) => item === "|"
+                        ? '<span class="e-permits-ntpl-editor__sep" aria-hidden="true"></span>'
+                        : `<button class="e-permits-ntpl-editor__tool" type="button" data-ntplp-cmd="${item[0]}" aria-label="${escapeHtml(item[2])}" data-tooltip-label="${escapeHtml(item[2])}"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${item[1]}"></use></svg></button>`).join("")}
+                    </div>
+                    <div class="e-permits-ntpl-editor__surface" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="ntplp-body-label" data-ntplp-body data-ntpl-insert-target>${text.body || ""}</div>
+                </div>` : `
+                <div class="e-permits-fo-textarea e-permits-ntpl-html${d.errors[`body-${lang}`] ? " is-error" : ""}"><textarea rows="12" aria-labelledby="ntplp-body-label" data-ntplp-html data-ntpl-insert-target spellcheck="false">${escapeHtml(text.body || "")}</textarea></div>`}
+                ${ntplError(d.errors[`body-${lang}`])}
+              </div>
+            </div>
+          </section>
+
+          <section class="e-permits-dosar-profil__section">
+            <div class="e-permits-dosar-profil__section-heading">
+              <h2 class="e-permits-dosar-profil__section-title">Mesaj scurt</h2>
+              <span class="e-permits-dosar-profil__section-meta">SMS și MNotify — fără formatare</span>
+            </div>
+            <div class="e-permits-ntpl-card">
+              <div class="e-permits-fo-field">
+                <label for="ntplp-plain">Text</label>
+                <div class="e-permits-fo-textarea"><textarea id="ntplp-plain" rows="3" data-ntplp-text="plain" data-ntpl-insert-target>${escapeHtml(text.plain || "")}</textarea></div>
+                <p class="e-permits-fo-field__hint e-permits-ntpl-count"><span>Un SMS are ${NTPL_SMS_LIMIT} de caractere.</span><span class="e-permits-ntpl-count__value${smsLength > NTPL_SMS_LIMIT ? " is-over" : ""}" data-ntpl-sms-count>${smsLength}/${NTPL_SMS_LIMIT}</span></p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="e-permits-ntpl-content__preview" aria-labelledby="ntpl-preview-title">
+          <div class="e-permits-dosar-profil__section-heading">
+            <h2 class="e-permits-dosar-profil__section-title" id="ntpl-preview-title">Previzualizare</h2>
+            <div class="segmented-control" role="radiogroup" aria-label="Previzualizare pe">
+              ${[["email", "E-mail"], ["mobile", "Mobil"]].map(([value, label]) => `<button class="segment-item${ntplProfileState.preview === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${ntplProfileState.preview === value ? "true" : "false"}" data-ntplp-preview="${value}">${label}</button>`).join("")}
+            </div>
+          </div>
+          <div class="e-permits-ntpl-preview" aria-live="polite" data-ntpl-preview>${renderNtplPreviewBody()}</div>
+          <p class="e-permits-ntpl-preview__note">Câmpurile marcate sunt completate cu date de exemplu.</p>
+        </aside>
+      </div>
+    `;
+  };
+
+  /* Destinatari — the stacked list, as every list in the back office */
+  const renderNtplRecipients = (tpl) => {
+    const rules = tpl.rules || [];
+    const items = rules.map((rule, index) => ({
+      plainTitle: rule.recipient,
+      title: escapeHtml(rule.recipient),
+      badges: [renderTag(rule.active === false ? "Inactivă" : "Activă", rule.active === false ? "neutral" : "success")],
+      meta: [`Livrare: ${escapeHtml(rule.delivery || (rule.channels || []).join(", ") || "—")}`, rule.separate ? "Un mesaj pentru fiecare destinatar" : "Un mesaj comun"],
+      action: { label: "Editează", attrs: `data-ntpl-rule-edit="${index}"` },
+      menu: [
+        { label: rule.active === false ? "Activează" : "Dezactivează", icon: rule.active === false ? "checkmark-large" : "pause", attrs: `data-ntpl-rule-toggle="${index}"` },
+        { label: "Șterge", icon: "delete", danger: true, attrs: `data-ntpl-rule-delete="${index}"` }
+      ]
+    }));
+    return `
+      ${renderNtplUnpublishedBanner(tpl)}
+      <section class="e-permits-dosar-profil__section e-permits-stack-section">
+        <div class="e-permits-dosar-profil__section-heading">
+          <h2 class="e-permits-dosar-profil__section-title">Reguli de destinatari</h2>
+          <button class="btn btn-secondary btn-sm" type="button" data-ntpl-rule-add>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+            <span>Adaugă regulă</span>
+          </button>
+        </div>
+        ${items.length ? `
+          <div class="e-permits-stack">
+            <div class="e-permits-stack__group">
+              <ul class="e-permits-stack__list" role="list">${items.map(renderStackItem).join("")}</ul>
+            </div>
+          </div>
+        ` : `<div class="e-permits-dosar-profil__card e-permits-passport__empty"><p>Șablonul nu are reguli de destinatari, deci nu se trimite nimănui.</p></div>`}
+      </section>
+    `;
+  };
+
+  /* Setări — identity (versioned, saved with the header) + the active switch (immediate) */
+  const renderNtplSettings = (tpl) => {
+    const d = ntplProfileState.draft;
+    return `
+      ${renderNtplUnpublishedBanner(tpl)}
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">Identificare</h2>
+        <div class="e-permits-ntpl-card">
+          <div class="e-permits-user-create__grid">
+            ${ntplField("code", "Cod", ntplTextInput("code", d.code, 'data-ntplp-field="code"'), { required: true, span: 6, hint: "Unic. Folosit de sistem pentru a declanșa notificarea." })}
+            ${ntplField("name", "Denumire", ntplTextInput("name", d.name, 'data-ntplp-field="name"'), { required: true, span: 6 })}
+            ${ntplField("dataSource", "Sursa de date", ntplSelectControl("dataSource", d.dataSource, NTPL_DATA_SOURCES, 'data-ntplp-select="dataSource"'), { span: 6, hint: "Determină câmpurile care pot fi inserate." })}
+            ${ntplField("priority", "Prioritate", ntplSelectControl("priority", d.priority, NTPL_PRIORITY_OPTIONS, 'data-ntplp-select="priority"'), { span: 6 })}
+            ${ntplField("description", "Descriere", `<div class="e-permits-fo-textarea"><textarea id="ntplp-description" rows="3" data-ntplp-field="description">${escapeHtml(d.description)}</textarea></div>`, { hint: "Pentru administratori — nu se trimite destinatarilor." })}
+          </div>
+        </div>
+      </section>
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">Stare</h2>
+        <div class="e-permits-ntpl-card">
+          ${renderToggle({ label: "Șablon activ", description: "Un șablon inactiv nu se trimite. Se aplică imediat, fără publicare.", checked: tpl.active !== false, attrs: "data-ntpl-active" })}
+        </div>
+      </section>
+    `;
+  };
+
+  /* a version published with a future "Intră în vigoare" date is Programat until then */
+  const ntplIsPending = (entry) => Boolean(entry?.effectiveFrom && entry.effectiveFrom > localIsoNow().slice(0, 10));
+
+  const renderNtplHistory = (tpl) => {
+    const history = tpl.history || [];
+    const current = history.findIndex((entry) => !ntplIsPending(entry));
+    return renderEventTimeline("Versiuni publicate", history.map((entry, index) => ({
+      at: entry.at,
+      user: entry.by,
+      type: ntplIsPending(entry)
+        ? `${entry.version} · programată pentru ${formatLongDate(entry.effectiveFrom)}`
+        : index === current ? `${entry.version} · curentă` : entry.version,
+      status: ntplIsPending(entry) ? "Programat" : "Reușit",
+      detail: entry.note
+    })), { meta: "Cea mai recentă primele", empty: "Șablonul nu a fost publicat încă." });
+  };
+
+  const renderNtplProfile = () => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    if (!tpl || !ntplProfilePanel) return;
+    renderNtplProfileHeader(tpl);
+    const views = { content: renderNtplContent, recipients: renderNtplRecipients, settings: renderNtplSettings, history: renderNtplHistory };
+    ntplProfileBody.innerHTML = (views[ntplProfileState.tabKey] || renderNtplContent)(tpl);
+  };
+
+  const ntplTabFromHash = (tab) => (tab === "texts" ? "content" : NTPL_TABS.some(([id]) => id === tab) ? tab : "content");
+
+  const openNtplProfile = (code, tab = "content") => {
+    const tpl = getGlobalTemplate(code);
+    if (!tpl || !ntplProfilePanel) return;
+    ntplPublishedBase(tpl);
+    Object.assign(ntplProfileState, { code, tabKey: ntplTabFromHash(tab), lang: "ro", mode: "visual", preview: "email", draft: ntplDraftFrom(tpl), fieldQuery: "", focusTarget: null, range: null });
+    if (workplacePanel) workplacePanel.hidden = true;
+    hideProfilePanels();
+    if (permitsProfilePanel) permitsProfilePanel.hidden = true;
+    ntplProfilePanel.hidden = false;
+    if (ntplProfileBackShell) ntplProfileBackShell.hidden = false;
+    shell.classList.add("is-ntpl-profile-open");
+    setActiveNav("notification-templates");
+    renderNtplProfile();
+    writeHash(`#sablon/${encodeURIComponent(code)}/${ntplProfileState.tabKey}`);
+    ntplProfilePanel.scrollIntoView?.({ block: "start" });
+  };
+
+  const hideNtplProfile = () => {
+    if (ntplProfilePanel) ntplProfilePanel.hidden = true;
+    if (ntplProfileBackShell) ntplProfileBackShell.hidden = true;
+    shell.classList.remove("is-ntpl-profile-open");
+  };
+
+  /* leaving with unsaved edits asks first */
+  const confirmLeaveNtpl = () => !ntplProfileState.draft?.dirty || window.confirm("Ai modificări nesalvate în acest șablon. Renunți la ele?");
+
+  window.addEventListener("beforeunload", (event) => {
+    if (ntplProfilePanel && !ntplProfilePanel.hidden && ntplProfileState.draft?.dirty) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  });
+
+  const closeNtplProfile = () => {
+    if (!confirmLeaveNtpl()) return;
+    if (ntplProfileState.draft) ntplProfileState.draft.dirty = false;
+    hideNtplProfile();
+    showServiceRegistry("ntpl", "Șabloane de notificare");
+    restorePageHash();
+  };
+
+  /* read the visual / HTML body into the draft */
+  const syncNtplBody = () => {
+    const d = ntplProfileState.draft;
+    if (!d) return;
+    const text = d.texts[ntplProfileState.lang];
+    const surface = ntplProfileBody.querySelector("[data-ntplp-body]");
+    const html = ntplProfileBody.querySelector("[data-ntplp-html]");
+    if (surface && text) text.body = surface.innerHTML.trim() === "<br>" ? "" : surface.innerHTML;
+    if (html && text) text.body = html.value;
+  };
+
+  /* the first edit brings Renunță / Salvează into the header; the body is not
+     re-rendered, so the caret stays */
+  const markNtplDirty = () => {
+    const d = ntplProfileState.draft;
+    if (!d) return;
+    refreshNtplPreview();
+    if (d.dirty) return;
+    d.dirty = true;
+    renderNtplProfileHeader(getGlobalTemplate(ntplProfileState.code));
+  };
+
+  function plainText(html) {
+    const probe = document.createElement("div");
+    probe.innerHTML = html || "";
+    return probe.textContent.trim();
+  }
+
+  const saveNtplTexts = ({ silent = false } = {}) => {
+    syncNtplBody();
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    const d = ntplProfileState.draft;
+    const errors = {};
+    if (!d.code.trim()) errors.code = "Completează codul.";
+    else if (globalTemplates().some((item) => item !== tpl && item.code.toLowerCase() === d.code.trim().toLowerCase())) errors.code = "Codul există deja.";
+    if (!d.name.trim()) errors.name = "Completează denumirea.";
+    if (!(d.texts.ro?.subject || "").trim()) errors["subject-ro"] = "Completează subiectul în română.";
+    if (!plainText(d.texts.ro?.body)) errors["body-ro"] = "Completează corpul mesajului în română.";
+    d.errors = errors;
+    if (Object.keys(errors).length) {
+      ntplProfileState.tabKey = errors.code || errors.name ? "settings" : "content";
+      if (errors["subject-ro"] || errors["body-ro"]) ntplProfileState.lang = "ro";
+      renderNtplProfile();
+      writeHash(`#sablon/${encodeURIComponent(ntplProfileState.code)}/${ntplProfileState.tabKey}`);
+      focusFormControl(ntplProfileBody.querySelector(".is-error input, .is-error textarea, .e-permits-ntpl-editor.is-error [data-ntplp-body]"));
+      return false;
+    }
+    const oldCode = tpl.code;
+    Object.assign(tpl, { code: d.code.trim(), name: d.name.trim(), dataSource: d.dataSource, object: d.dataSource, priority: d.priority, description: d.description.trim(), texts: JSON.parse(JSON.stringify(d.texts)), unpublished: true });
+    d.dirty = false;
+    ntplProfileState.code = tpl.code;
+    if (oldCode !== tpl.code) writeHash(`#sablon/${encodeURIComponent(tpl.code)}/${ntplProfileState.tabKey}`);
+    renderNtplProfile();
+    if (!silent) showShellToast("Modificările intră în vigoare după publicare.", "success", "Salvat");
+    return true;
+  };
+
+  const discardNtplTexts = () => {
+    ntplProfileState.draft = ntplDraftFrom(getGlobalTemplate(ntplProfileState.code));
+    renderNtplProfile();
+  };
+
+  const bumpVersion = (version) => {
+    const parts = String(version || "v1.0.0").replace(/^v/, "").split(".").map(Number);
+    parts[2] = (parts[2] || 0) + 1;
+    return `v${parts.join(".")}`;
+  };
+
+  /* what a published version is made of; Stare (active) applies at once, so it is
+     not part of it */
+  const ntplSnapshot = (tpl) => JSON.parse(JSON.stringify({
+    code: tpl.code, name: tpl.name, dataSource: tpl.dataSource || tpl.object || "Dosar", priority: tpl.priority || "Normală",
+    description: tpl.description || "", texts: tpl.texts || {}, rules: tpl.rules || []
+  }));
+
+  /* the last published version; taken when the profile first opens if the data has none */
+  const ntplPublishedBase = (tpl) => {
+    if (!tpl.published) tpl.published = ntplSnapshot(tpl);
+    return tpl.published;
+  };
+
+  /* the changes between the published version and the saved one, grouped by area */
+  const ntplChanges = (tpl) => {
+    const base = ntplPublishedBase(tpl);
+    const next = ntplSnapshot(tpl);
+    const rows = [];
+    NTPL_LANGS.forEach(([lang, label]) => {
+      const before = base.texts[lang] || {};
+      const after = next.texts[lang] || {};
+      const parts = [["subject", "Subiect"], ["body", "Corp"], ["plain", "Mesaj scurt"]]
+        .filter(([key]) => (before[key] || "").trim() !== (after[key] || "").trim())
+        .map(([, name]) => name);
+      if (!parts.length) return;
+      const added = !ntplLangComplete(base.texts, lang) && ntplLangComplete(next.texts, lang);
+      rows.push({ area: `Conținut · ${label}`, detail: parts.join(", "), status: added ? "Adăugat" : "Modificat" });
+    });
+    const ruleKey = (rule) => JSON.stringify([rule.delivery || "Email", Boolean(rule.separate), rule.active !== false]);
+    const byRecipient = (rules) => new Map(rules.map((rule) => [rule.recipient, rule]));
+    const beforeRules = byRecipient(base.rules);
+    const afterRules = byRecipient(next.rules);
+    [...afterRules].filter(([who]) => !beforeRules.has(who)).forEach(([who, rule]) => rows.push({ area: `Regulă · ${who}`, detail: rule.delivery || "Email", status: "Adăugat" }));
+    [...afterRules].filter(([who, rule]) => beforeRules.has(who) && ruleKey(beforeRules.get(who)) !== ruleKey(rule)).forEach(([who, rule]) => {
+      const was = beforeRules.get(who);
+      const parts = [];
+      if ((was.delivery || "Email") !== (rule.delivery || "Email")) parts.push(`Livrare: ${was.delivery || "Email"} → ${rule.delivery || "Email"}`);
+      if (Boolean(was.separate) !== Boolean(rule.separate)) parts.push(rule.separate ? "Mesaje separate" : "Mesaj comun");
+      if ((was.active !== false) !== (rule.active !== false)) parts.push(rule.active !== false ? "Activată" : "Dezactivată");
+      rows.push({ area: `Regulă · ${who}`, detail: parts.join(" · "), status: "Modificat" });
+    });
+    [...beforeRules].filter(([who]) => !afterRules.has(who)).forEach(([who, rule]) => rows.push({ area: `Regulă · ${who}`, detail: rule.delivery || "Email", status: "Eliminat" }));
+    const settings = [["name", "Denumire"], ["code", "Cod"], ["dataSource", "Sursa de date"], ["priority", "Prioritate"], ["description", "Descriere"]]
+      .filter(([key]) => (base[key] || "") !== (next[key] || ""))
+      .map(([key, name]) => key === "description" ? name : `${name}: ${base[key] || "—"} → ${next[key] || "—"}`);
+    if (settings.length) rows.push({ area: "Setări", detail: settings.join(" · "), status: "Modificat" });
+    return rows;
+  };
+
+  const NTPL_NOTE_MAX = 200;
+  const ntplNextDay = (iso) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    const next = new Date(y, m - 1, d + 1);
+    return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, "0")}-${String(next.getDate()).padStart(2, "0")}`;
+  };
+  const NTPL_CHANGE_TONES = { Adăugat: "success", Modificat: "info", Eliminat: "danger" };
+  const ntplPublishModal = document.querySelector("#ntpl-publish-modal");
+  const ntplPublishBody = ntplPublishModal?.querySelector("[data-ntpl-publish-body]");
+  let ntplPublishDraft = null;
+
+  const renderNtplPublishModal = () => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    const { note, error, changes, when, date, dateError } = ntplPublishDraft;
+    const today = localIsoNow().slice(0, 10);
+    const tomorrow = ntplNextDay(today);
+    const [y, m, day] = date ? date.split("-") : [];
+    const view = (date || tomorrow).split("-");
+    ntplPublishModal.querySelector("[data-ntpl-publish-subtitle]").textContent = `${tpl.version || "v1.0.0"} → ${bumpVersion(tpl.version)} · ${when === "scheduled" && date ? `intră în vigoare pe ${formatLongDate(date)}.` : "destinatarii primesc noua versiune imediat."}`;
+    ntplPublishBody.innerHTML = `
+      <div class="e-permits-case-form">
+        <div class="e-permits-fo-field">
+          <label>Ce s-a modificat</label>
+          ${changes.length ? `
+            <ul class="e-permits-case-form__fees" role="list">
+              ${changes.map((row) => `
+                <li class="e-permits-case-form__fee">
+                  <span class="e-permits-case-form__fee-copy">
+                    <span class="e-permits-case-form__fee-name">${escapeHtml(row.area)}</span>
+                    ${row.detail ? `<span class="e-permits-case-form__fee-meta">${escapeHtml(row.detail)}</span>` : ""}
+                  </span>
+                  ${renderTag(row.status, NTPL_CHANGE_TONES[row.status])}
+                </li>
+              `).join("")}
+            </ul>
+          ` : '<p class="e-permits-case-form__lead">Conținutul este identic cu versiunea publicată; se publică o versiune nouă.</p>'}
+        </div>
+        <div class="e-permits-fo-field">
+          <label id="ntpl-publish-when-label">Intră în vigoare</label>
+          <div class="segmented-control" role="radiogroup" aria-labelledby="ntpl-publish-when-label">
+            ${[["now", "Imediat"], ["scheduled", "La o dată anume"]].map(([value, label]) => `<button class="segment-item${when === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${when === value ? "true" : "false"}" data-ntpl-publish-when="${value}">${label}</button>`).join("")}
+          </div>
+        </div>
+        ${when === "scheduled" ? `
+          <div class="e-permits-fo-field">
+            <label for="ntpl-publish-date">Data intrării în vigoare${requiredMark()}</label>
+            <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${escapeHtml(date)}" data-today="${today}" data-min="${tomorrow}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}" data-ntpl-publish-date>
+              <div class="e-permits-fo-input e-permits-fo-input--with-action${dateError ? " is-error" : ""}">
+                <input id="ntpl-publish-date" type="text" class="js-date-picker-input" value="${date ? `${day}/${m}/${y}` : ""}" placeholder="ZZ/LL/AAAA" autocomplete="off">
+                <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data" aria-controls="ntpl-publish-date-panel" aria-expanded="false">
+                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calendar"></use></svg>
+                </button>
+              </div>
+              <div id="ntpl-publish-date-panel" class="date-picker-panel" aria-hidden="true" hidden>
+                <div class="date-picker" role="dialog" aria-label="Alege data">
+                  <div class="date-picker__header">
+                    <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg></button>
+                    <div class="date-picker__month js-date-picker-label"></div>
+                    <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></button>
+                  </div>
+                  <div class="date-picker__grid date-picker__grid--days" data-view="day">
+                    <div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div>
+                    <div class="date-picker__days js-date-picker-days"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            ${dateError ? `
+              <span class="message message--inline message--error e-permits-fo-field__error">
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
+                <span>${escapeHtml(dateError)}</span>
+              </span>
+            ` : '<p class="e-permits-fo-field__hint">Până atunci destinatarii primesc versiunea curentă.</p>'}
+          </div>
+        ` : ""}
+        <div class="e-permits-fo-field">
+          <label for="ntpl-publish-note">Comentariu${requiredMark()}</label>
+          <div class="e-permits-fo-textarea${error ? " is-error" : ""}">
+            <textarea id="ntpl-publish-note" rows="3" maxlength="${NTPL_NOTE_MAX}" placeholder="Ex. Text actualizat conform modificărilor Legii nr. 160/2011" data-ntpl-publish-note>${escapeHtml(note)}</textarea>
+          </div>
+          ${error ? `
+            <span class="message message--inline message--error e-permits-fo-field__error">
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
+              <span>${escapeHtml(error)}</span>
+            </span>
+          ` : ""}
+          <p class="e-permits-fo-field__hint e-permits-ntpl-count"><span>De ce publici — apare în Istoric.</span><span class="e-permits-ntpl-count__value" data-ntpl-publish-count>${note.length}/${NTPL_NOTE_MAX}</span></p>
+        </div>
+      </div>
+    `;
+    window.GEAPDatePicker?.init(ntplPublishBody);
+  };
+
+  /* Publică saves pending edits first (silently), then asks what and why */
+  const publishNtpl = () => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    if (ntplProfileState.draft?.dirty && !saveNtplTexts({ silent: true })) return;
+    if (!tpl.unpublished || !ntplPublishModal) return;
+    ntplPublishDraft = { note: "", error: "", changes: ntplChanges(tpl), when: "now", date: "", dateError: "" };
+    renderNtplPublishModal();
+    window.__modal?.open?.("#ntpl-publish-modal");
+    requestAnimationFrame(() => ntplPublishBody.querySelector("[data-ntpl-publish-note]")?.focus());
+  };
+
+  const closeNtplPublishModal = () => {
+    window.__modal?.close?.("#ntpl-publish-modal");
+    ntplPublishDraft = null;
+  };
+
+  const confirmNtplPublish = () => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    const note = ntplPublishDraft.note.trim();
+    const { when, date } = ntplPublishDraft;
+    const tomorrow = ntplNextDay(localIsoNow().slice(0, 10));
+    ntplPublishDraft.error = note ? "" : "Scrie pe scurt ce și de ce s-a modificat.";
+    ntplPublishDraft.dateError = when !== "scheduled" ? ""
+      : !date ? "Alege data intrării în vigoare."
+      : date < tomorrow ? "Alege o dată din viitor." : "";
+    if (ntplPublishDraft.error || ntplPublishDraft.dateError) {
+      renderNtplPublishModal();
+      ntplPublishBody.querySelector(ntplPublishDraft.dateError ? "#ntpl-publish-date" : "[data-ntpl-publish-note]")?.focus();
+      return;
+    }
+    const effectiveFrom = when === "scheduled" ? date : "";
+    const at = localIsoNow();
+    const by = currentUserName();
+    const changes = ntplPublishDraft.changes.map((row) => `${row.area}${row.detail ? ` (${row.detail})` : ""}`);
+    tpl.version = bumpVersion(tpl.version);
+    tpl.updatedAt = at;
+    tpl.updatedBy = by;
+    tpl.unpublished = false;
+    tpl.published = ntplSnapshot(tpl);
+    tpl.history = [{ version: tpl.version, at, by, note, changes, ...(effectiveFrom ? { effectiveFrom } : {}) }, ...(tpl.history || [])];
+    closeNtplPublishModal();
+    renderNtplProfile();
+    showShellToast(effectiveFrom
+      ? `Versiunea ${tpl.version} intră în vigoare pe ${formatLongDate(effectiveFrom)}.`
+      : `Destinatarii primesc de acum versiunea ${tpl.version}.`, "success", effectiveFrom ? "Publicare programată" : "Șablon publicat");
+  };
+
+  ntplPublishModal?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-ntpl-publish-cancel]")) { closeNtplPublishModal(); return; }
+    const when = event.target.closest("[data-ntpl-publish-when]");
+    if (when && ntplPublishDraft && ntplPublishDraft.when !== when.dataset.ntplPublishWhen) {
+      ntplPublishDraft.when = when.dataset.ntplPublishWhen;
+      ntplPublishDraft.dateError = "";
+      renderNtplPublishModal();
+      if (ntplPublishDraft.when === "scheduled") ntplPublishBody.querySelector("#ntpl-publish-date")?.focus();
+      return;
+    }
+    if (event.target.closest("[data-ntpl-publish-confirm]")) confirmNtplPublish();
+  });
+
+  ntplPublishModal?.addEventListener("change", (event) => {
+    const picker = event.target.closest("[data-ntpl-publish-date]");
+    if (!picker || !ntplPublishDraft) return;
+    ntplPublishDraft.date = picker.dataset.selected || "";
+    ntplPublishDraft.dateError = "";
+    renderNtplPublishModal();
+  });
+
+  ntplPublishModal?.addEventListener("input", (event) => {
+    const field = event.target.closest("[data-ntpl-publish-note]");
+    if (!field || !ntplPublishDraft) return;
+    ntplPublishDraft.note = field.value;
+    ntplPublishModal.querySelector("[data-ntpl-publish-count]").textContent = `${field.value.length}/${NTPL_NOTE_MAX}`;
+    if (ntplPublishDraft.error && field.value.trim()) {
+      ntplPublishDraft.error = "";
+      field.closest(".e-permits-fo-textarea").classList.remove("is-error");
+      ntplPublishModal.querySelector(".message--error")?.remove();
+    }
+  });
+
+  /* a field token goes to the last place the user typed in */
+  const insertNtplToken = (token) => {
+    const target = ntplProfileState.focusTarget && ntplProfileBody.contains(ntplProfileState.focusTarget)
+      ? ntplProfileState.focusTarget
+      : ntplProfileBody.querySelector("[data-ntplp-body], [data-ntplp-html]");
+    if (!target) return;
+    if (target.matches("[data-ntplp-body]")) {
+      target.focus();
+      const selection = window.getSelection();
+      if (ntplProfileState.range && target.contains(ntplProfileState.range.startContainer)) {
+        selection.removeAllRanges();
+        selection.addRange(ntplProfileState.range);
+      }
+      document.execCommand("insertText", false, token);
+    } else {
+      const start = target.selectionStart ?? target.value.length;
+      const end = target.selectionEnd ?? target.value.length;
+      target.focus();
+      target.setRangeText(token, start, end, "end");
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    markNtplDirty();
+  };
+
+  /* ---- rule modal (add / edit) ---- */
+  const ntplRuleModal = document.querySelector("#ntpl-rule-modal");
+  const ntplRuleBody = ntplRuleModal?.querySelector("[data-ntpl-rule-body]");
+  let ntplRuleDraft = null;
+
+  const renderNtplRuleModal = () => {
+    const r = ntplRuleDraft;
+    ntplRuleModal.querySelector("[data-ntpl-rule-title]").textContent = r.index === null ? "Regulă nouă" : `Regula ${r.index + 1}`;
+    const select = (key, label, options) => `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+        <label for="ntpl-rule-${key}">${escapeHtml(label)}${requiredMark()}</label>
+        ${renderFoSelectControl({ id: `ntpl-rule-${key}`, attrs: `data-ntpl-rule-field="${key}"`, optionsHtml: options.map((option) => `<option value="${escapeHtml(option)}"${option === r[key] ? " selected" : ""}>${escapeHtml(option)}</option>`).join("") })}
+      </div>
+    `;
+    const toggle = (key, label, description) => renderToggle({ label, description, checked: Boolean(r[key]), attrs: `data-ntpl-rule-switch="${key}"` });
+    ntplRuleBody.innerHTML = `
+      <div class="e-permits-case-form">
+        <div class="e-permits-user-create__grid">
+          ${select("recipient", "Destinatar", NTPL_RECIPIENTS)}
+          ${select("delivery", "Livrare", NTPL_DELIVERY)}
+        </div>
+        ${toggle("separate", "Mesaje separate", "Fiecare destinatar primește propriul mesaj, nu un mesaj comun.")}
+        ${toggle("active", "Regulă activă", "O regulă inactivă rămâne în șablon, dar nu trimite.")}
+      </div>
+    `;
+  };
+
+  const openNtplRuleModal = (index = null) => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    const rule = index === null ? null : tpl.rules[index];
+    ntplRuleDraft = rule
+      ? { index, recipient: rule.recipient, delivery: rule.delivery || "Email", separate: Boolean(rule.separate), active: rule.active !== false }
+      : { index: null, recipient: "Solicitant", delivery: "Email", separate: false, active: true };
+    renderNtplRuleModal();
+    window.__modal?.open?.("#ntpl-rule-modal");
+    requestAnimationFrame(() => ntplRuleBody.querySelector(".e-permits-fo-select__button")?.focus());
+  };
+
+  const closeNtplRuleModal = () => {
+    closeFoSelect();
+    window.__modal?.close?.("#ntpl-rule-modal");
+    ntplRuleDraft = null;
+  };
+
+  const commitNtplRules = (tpl, message, title) => {
+    tpl.unpublished = true;
+    renderNtplProfile();
+    showShellToast(message, "success", title);
+  };
+
+  const saveNtplRule = () => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    const r = ntplRuleDraft;
+    const rule = { recipient: r.recipient, delivery: r.delivery, channels: NTPL_DELIVERY_CHANNELS[r.delivery] || ["Email"], separate: r.separate, active: r.active };
+    tpl.rules = tpl.rules || [];
+    if (r.index === null) tpl.rules.push(rule); else tpl.rules[r.index] = rule;
+    closeNtplRuleModal();
+    commitNtplRules(tpl, "Intră în vigoare după publicare.", r.index === null ? "Regulă adăugată" : "Regulă salvată");
+  };
+
+  ntplRuleModal?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-ntpl-rule-cancel]")) { closeNtplRuleModal(); return; }
+    if (event.target.closest("[data-ntpl-rule-confirm]")) saveNtplRule();
+  });
+
+  ntplRuleModal?.addEventListener("change", (event) => {
+    if (!ntplRuleDraft) return;
+    const field = event.target.closest("[data-ntpl-rule-field]");
+    if (field) { ntplRuleDraft[field.dataset.ntplRuleField] = field.value; return; }
+    const toggle = event.target.closest("[data-ntpl-rule-switch]");
+    if (toggle) ntplRuleDraft[toggle.dataset.ntplRuleSwitch] = toggle.checked;
+  });
+
+  ntplProfileBackShell?.addEventListener("click", closeNtplProfile);
+
+  ntplProfileTitle?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-ntpl-crumb-back]")) { event.preventDefault(); closeNtplProfile(); return; }
+    if (event.target.closest("[data-ntpl-save]")) { saveNtplTexts(); return; }
+    if (event.target.closest("[data-ntpl-discard]")) { discardNtplTexts(); return; }
+    const publish = event.target.closest("[data-ntpl-publish]");
+    if (publish && publish.getAttribute("aria-disabled") !== "true") publishNtpl();
+  });
+
+  ntplProfileTabs?.addEventListener("click", (event) => {
+    const tab = event.target.closest("[data-ntpl-profile-tab]");
+    if (!tab) return;
+    syncNtplBody();
+    ntplProfileState.tabKey = tab.dataset.ntplProfileTab;
+    renderNtplProfile();
+    writeHash(`#sablon/${encodeURIComponent(ntplProfileState.code)}/${ntplProfileState.tabKey}`);
+    ntplProfileTabs.querySelector(`[data-ntpl-profile-tab="${ntplProfileState.tabKey}"]`)?.focus();
+  });
+
+  ntplProfileBody?.addEventListener("mousedown", (event) => {
+    /* toolbar and picker items must not steal the editor's selection */
+    if (event.target.closest("[data-ntplp-cmd], [data-ntplp-token]")) event.preventDefault();
+  });
+
+  ntplProfileBody?.addEventListener("click", (event) => {
+    const tpl = getGlobalTemplate(ntplProfileState.code);
+    const lang = event.target.closest("[data-ntplp-lang]");
+    if (lang) { syncNtplBody(); ntplProfileState.lang = lang.dataset.ntplpLang; renderNtplProfile(); ntplProfileBody.querySelector(`[data-ntplp-lang="${ntplProfileState.lang}"]`)?.focus(); return; }
+    const mode = event.target.closest("[data-ntplp-mode]");
+    if (mode) { syncNtplBody(); ntplProfileState.mode = mode.dataset.ntplpMode; renderNtplProfile(); ntplProfileBody.querySelector(`[data-ntplp-mode="${ntplProfileState.mode}"]`)?.focus(); return; }
+    const preview = event.target.closest("[data-ntplp-preview]");
+    if (preview) {
+      syncNtplBody();
+      ntplProfileState.preview = preview.dataset.ntplpPreview;
+      preview.parentElement.querySelectorAll("[data-ntplp-preview]").forEach((button) => {
+        const on = button === preview;
+        button.classList.toggle("is-selected", on);
+        button.setAttribute("aria-checked", String(on));
+      });
+      refreshNtplPreview();
+      return;
+    }
+    const cmd = event.target.closest("[data-ntplp-cmd]");
+    if (cmd) {
+      ntplProfileBody.querySelector("[data-ntplp-body]")?.focus();
+      const name = cmd.dataset.ntplpCmd;
+      if (name === "createLink") {
+        const url = window.prompt("Adresa linkului", "https://");
+        if (url) document.execCommand("createLink", false, url);
+      } else if (name === "insertIf") {
+        document.execCommand("insertText", false, "{{#if Câmp}}text{{/if}}");
+      } else {
+        document.execCommand(name, false, null);
+      }
+      syncNtplBody();
+      markNtplDirty();
+      return;
+    }
+    const token = event.target.closest("[data-ntplp-token]");
+    if (token) {
+      insertNtplToken(token.dataset.ntplpToken);
+      syncNtplBody();
+      refreshNtplPreview();
+      closeStackMenus();
+      return;
+    }
+    if (event.target.closest("[data-ntpl-banner-close]")) {
+      try { window.sessionStorage.setItem(ntplBannerKey(tpl), "1"); } catch { /* private mode: closes until re-render */ }
+      event.target.closest(".e-permits-ntpl-banner")?.remove();
+      return;
+    }
+    if (event.target.closest("[data-ntpl-rule-add]")) { openNtplRuleModal(); return; }
+    const ruleEdit = event.target.closest("[data-ntpl-rule-edit]");
+    if (ruleEdit) { openNtplRuleModal(Number(ruleEdit.dataset.ntplRuleEdit)); return; }
+    const ruleToggle = event.target.closest("[data-ntpl-rule-toggle]");
+    if (ruleToggle) {
+      const rule = tpl.rules[Number(ruleToggle.dataset.ntplRuleToggle)];
+      const next = rule.active === false;
+      closeStackMenus();
+      askConfirm(next
+        ? { title: "Activezi regula?", text: `${rule.recipient} va primi notificarea prin ${rule.delivery || "Email"}. Intră în vigoare după publicare.`, confirmLabel: "Activează" }
+        : { title: "Dezactivezi regula?", text: `${rule.recipient} nu va mai primi notificarea. Regula rămâne în șablon; intră în vigoare după publicare.`, confirmLabel: "Dezactivează", destructive: true }, () => {
+        rule.active = next;
+        commitNtplRules(tpl, "Intră în vigoare după publicare.", rule.active ? "Regulă activată" : "Regulă dezactivată");
+      });
+      return;
+    }
+    const ruleDelete = event.target.closest("[data-ntpl-rule-delete]");
+    if (ruleDelete) {
+      tpl.rules.splice(Number(ruleDelete.dataset.ntplRuleDelete), 1);
+      commitNtplRules(tpl, "Intră în vigoare după publicare.", "Regulă ștearsă");
+    }
+  });
+
+  ntplProfileBody?.addEventListener("focusin", (event) => {
+    const target = event.target.closest("[data-ntpl-insert-target]");
+    if (target) ntplProfileState.focusTarget = target;
+  });
+
+  /* remember the caret inside the visual editor, so a field lands where the user was */
+  document.addEventListener("selectionchange", () => {
+    const surface = ntplProfileBody?.querySelector("[data-ntplp-body]");
+    const selection = window.getSelection();
+    if (surface && selection.rangeCount && surface.contains(selection.anchorNode)) ntplProfileState.range = selection.getRangeAt(0).cloneRange();
+  });
+
+  ntplProfileBody?.addEventListener("input", (event) => {
+    const d = ntplProfileState.draft;
+    if (!d) return;
+    const field = event.target.closest("[data-ntplp-field]");
+    if (field) { d[field.dataset.ntplpField] = field.value; markNtplDirty(); return; }
+    const text = event.target.closest("[data-ntplp-text]");
+    if (text) { d.texts[ntplProfileState.lang][text.dataset.ntplpText] = text.value; markNtplDirty(); return; }
+    if (event.target.closest("[data-ntplp-body], [data-ntplp-html]")) { syncNtplBody(); markNtplDirty(); return; }
+    const search = event.target.closest("[data-ntplp-field-search]");
+    if (search) {
+      ntplProfileState.fieldQuery = search.value;
+      const list = ntplProfileBody.querySelector("[data-ntplp-field-list]");
+      if (list) list.innerHTML = renderNtplFieldItems();
+    }
+  });
+
+  ntplProfileBody?.addEventListener("change", (event) => {
+    const d = ntplProfileState.draft;
+    const select = event.target.closest("[data-ntplp-select]");
+    if (select && d) { d[select.dataset.ntplpSelect] = select.value; d.dirty = true; renderNtplProfile(); return; }
+    const active = event.target.closest("[data-ntpl-active]");
+    if (active) {
+      const tpl = getGlobalTemplate(ntplProfileState.code);
+      const next = active.checked;
+      /* the switch waits for the confirmation */
+      active.checked = !next;
+      askConfirm(next
+        ? { title: "Activezi șablonul?", text: `„${tpl.name}” se trimite din nou destinatarilor, imediat, fără publicare.`, confirmLabel: "Activează" }
+        : { title: "Dezactivezi șablonul?", text: `„${tpl.name}” nu se mai trimite până la reactivare. Se aplică imediat, fără publicare.`, confirmLabel: "Dezactivează", destructive: true }, () => {
+        tpl.active = next;
+        active.checked = next;
+        renderNtplProfileHeader(tpl);
+        showShellToast(tpl.active ? "Șablonul se trimite din nou." : "Șablonul nu se mai trimite până la reactivare.", tpl.active ? "success" : "info", tpl.active ? "Șablon activat" : "Șablon dezactivat");
+      });
+    }
+  });
+
+  ntplProfileBody?.addEventListener("dragstart", (event) => {
+    const token = event.target.closest?.("[data-ntplp-token]");
+    if (token) { event.dataTransfer.setData("text/plain", token.dataset.ntplpToken); event.dataTransfer.effectAllowed = "copy"; }
+  });
+
+  ntplProfileBody?.addEventListener("drop", (event) => {
+    if (event.target.closest?.("[data-ntpl-insert-target]")) window.setTimeout(() => { syncNtplBody(); markNtplDirty(); }, 0);
+  });
+
+
+  const openTemplateDetail = (code, tab = "texts") => {
+    serviceProfileState.tabKey = "notifications";
+    serviceProfileState.templateCode = code;
+    serviceProfileState.templateTab = tab;
+    renderServiceProfile();
+    history.replaceState(null, "", `#serviciu/${serviceProfileState.code}/notifications`);
+    permitsProfilePanel.querySelector("[data-ntpl-back]")?.focus();
+  };
+
+  const ntplCodeTaken = (service, code) => serviceTemplates(service).some((item) => item.code.toLowerCase() === code.trim().toLowerCase());
+
+  const ntplError = (message) => message ? `
+    <span class="message message--inline message--error e-permits-fo-field__error">
+      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
+      <span>${escapeHtml(message)}</span>
+    </span>
+  ` : "";
+
+  const ntplInput = (draft, key, label, { required = true, hint = "", span = 12 } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="${draft.prefix}-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <div class="e-permits-fo-input${draft.errors[key] ? " is-error" : ""}">
+        <input id="${draft.prefix}-${key}" type="text" value="${escapeHtml(draft[key] || "")}" data-ntpl-field="${key}" autocomplete="off">
+      </div>
+      ${ntplError(draft.errors[key])}
+      ${hint && !draft.errors[key] ? `<p class="e-permits-fo-field__hint">${escapeHtml(hint)}</p>` : ""}
+    </div>
+  `;
+
+  const ntplSelect = (draft, key, label, options, placeholder) => `
+    <div class="e-permits-fo-field e-permits-user-create__field">
+      <label for="${draft.prefix}-${key}">${escapeHtml(label)}${requiredMark()}</label>
+      ${renderFoSelectControl({
+        id: `${draft.prefix}-${key}`, attrs: `data-ntpl-select="${key}"`,
+        optionsHtml: `<option value=""${draft[key] ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>${options.map(([value, text]) => `<option value="${escapeHtml(value)}"${value === draft[key] ? " selected" : ""}>${escapeHtml(text)}</option>`).join("")}`
+      })}
+      ${ntplError(draft.errors[key])}
+    </div>
+  `;
+
+  /* ---- Calea A — Clonare (library modal) ---- */
+  const ntplCloneModal = document.querySelector("#ntpl-clone-modal");
+  const ntplCloneBody = ntplCloneModal?.querySelector("[data-ntpl-clone-body]");
+  let ntplClone = null;
+
+  const renderNtplClone = () => {
+    ntplCloneBody.innerHTML = `
+      <div class="e-permits-case-form">
+        ${ntplSelect(ntplClone, "source", "Șablonul sursă", systemTemplates().map((item) => [item.code, `${item.name} · ${item.code}`]), "Alege un șablon de sistem")}
+        <div class="e-permits-user-create__grid">
+          ${ntplInput(ntplClone, "code", "Cod", { span: 6, hint: "Unic în cadrul serviciului." })}
+          ${ntplInput(ntplClone, "name", "Denumire", { span: 6 })}
+        </div>
+      </div>
+    `;
+  };
+
+  const openNtplClone = () => {
+    if (!ntplCloneModal || !isCentralAdmin()) return;
+    ntplClone = { prefix: "ntpl-clone", source: "", code: "", name: "", errors: {} };
+    renderNtplClone();
+    window.__modal?.open?.("#ntpl-clone-modal");
+    requestAnimationFrame(() => focusFormControl(ntplCloneBody.querySelector("[data-ntpl-select]")));
+  };
+
+  const closeNtplClone = () => {
+    closeFoSelect();
+    window.__modal?.close?.("#ntpl-clone-modal");
+    ntplClone = null;
+    if (ntplCloneBody) ntplCloneBody.innerHTML = "";
+  };
+
+  const saveNtplClone = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!ntplClone || !service) return;
+    const errors = {};
+    if (!ntplClone.source) errors.source = "Alege șablonul sursă.";
+    if (!ntplClone.code.trim()) errors.code = "Completează codul.";
+    else if (ntplCodeTaken(service, ntplClone.code)) errors.code = "Codul există deja în acest serviciu.";
+    if (!ntplClone.name.trim()) errors.name = "Completează denumirea.";
+    ntplClone.errors = errors;
+    if (Object.keys(errors).length) {
+      renderNtplClone();
+      focusFormControl(ntplCloneBody.querySelector(".is-error input, .e-permits-fo-select.is-error .e-permits-fo-select__button") || ntplCloneBody.querySelector("[data-ntpl-select]"));
+      return;
+    }
+    const source = systemTemplates().find((item) => item.code === ntplClone.source);
+    const created = {
+      code: ntplClone.code.trim(),
+      name: ntplClone.name.trim(),
+      dataSource: source.dataSource,
+      priority: source.priority,
+      description: source.description,
+      rules: JSON.parse(JSON.stringify(source.rules || [])),
+      texts: JSON.parse(JSON.stringify(source.texts || {})),
+      active: false,
+      source: source.code,
+      createdAt: localIsoNow(),
+      createdBy: currentUserName()
+    };
+    serviceTemplates(service).push(created);
+    logServiceEvents(service.code, [{ at: created.createdAt, user: created.createdBy, type: "Clonare șablon de notificare", status: "Reușit", detail: `${created.code} din ${source.code}` }]);
+    closeNtplClone();
+    openTemplateDetail(created.code, "texts");
+    showShellToast(`„${created.name}” a fost creat inactiv, cu textele și regulile sursei.`, "success", "Șablon clonat");
+  };
+
+  ntplCloneModal?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-ntpl-clone-cancel]")) { closeNtplClone(); return; }
+    if (event.target.closest("[data-ntpl-clone-save]")) saveNtplClone();
+  });
+
+  ntplCloneModal?.addEventListener("input", (event) => {
+    const field = event.target.closest("[data-ntpl-field]");
+    if (field && ntplClone) ntplClone[field.dataset.ntplField] = field.value;
+  });
+
+  ntplCloneModal?.addEventListener("change", (event) => {
+    const select = event.target.closest("[data-ntpl-select]");
+    if (!select || !ntplClone) return;
+    /* the source fills Cod and Denumire; both stay editable */
+    const source = systemTemplates().find((item) => item.code === select.value);
+    Object.assign(ntplClone, { source: select.value, code: source?.code || "", name: source?.name || "", errors: {} });
+    renderNtplClone();
+    ntplCloneBody.querySelector("#ntpl-clone-code")?.focus();
+  });
+
+  /* ---- Calea B — Creare nouă (right drawer) ---- */
+  const ntplDrawer = document.querySelector("[data-ntpl-drawer]");
+  const ntplDrawerBody = ntplDrawer?.querySelector("[data-ntpl-body]");
+  let ntplDraft = null;
+  let ntplReturnFocus = null;
+
+  const renderNtplDrawer = () => {
+    const d = ntplDraft;
+    const lang = d.lang;
+    ntplDrawer.querySelector("[data-ntpl-subtitle]").textContent = getServiceByCode(serviceProfileState.code)?.title || "";
+    ntplDrawerBody.innerHTML = `
+      <div class="e-permits-user-create__grid">
+        ${ntplInput(d, "code", "Cod", { span: 6, hint: "Unic în cadrul serviciului." })}
+        ${ntplInput(d, "name", "Denumire", { span: 6 })}
+      </div>
+      ${ntplSelect(d, "dataSource", "Sursa de date", NTPL_SOURCES.map((value) => [value, value]), "Alege sursa de date")}
+      <div class="e-permits-fo-field">
+        <label id="ntpl-priority-label">Prioritate${requiredMark()}</label>
+        <div class="segmented-control" role="radiogroup" aria-labelledby="ntpl-priority-label">
+          ${NTPL_PRIORITIES.map((value) => `<button class="segment-item${d.priority === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${d.priority === value ? "true" : "false"}" data-ntpl-priority="${value}">${value}</button>`).join("")}
+        </div>
+      </div>
+      <div class="e-permits-fo-field e-permits-user-create__field">
+        <label for="ntpl-description">Descriere</label>
+        <div class="e-permits-fo-textarea"><textarea id="ntpl-description" rows="2" data-ntpl-field="description">${escapeHtml(d.description)}</textarea></div>
+      </div>
+      <div class="e-permits-fo-field">
+        <label id="ntpl-lang-label">Conținut</label>
+        <div class="segmented-control" role="radiogroup" aria-labelledby="ntpl-lang-label">
+          ${NTPL_LANGS.map(([value]) => `<button class="segment-item${lang === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${lang === value ? "true" : "false"}" data-ntpl-lang="${value}">${value.toUpperCase()}</button>`).join("")}
+        </div>
+        <p class="e-permits-fo-field__hint">Opțional la creare — textele se pot completa ulterior (US-184).</p>
+      </div>
+      <div class="e-permits-fo-field e-permits-user-create__field">
+        <label for="ntpl-subject">Obiect (${lang.toUpperCase()})</label>
+        <div class="e-permits-fo-input"><input id="ntpl-subject" type="text" value="${escapeHtml(d.texts[lang].subject)}" data-ntpl-text="subject" autocomplete="off"></div>
+      </div>
+      <div class="e-permits-fo-field e-permits-user-create__field">
+        <label for="ntpl-body">Text (${lang.toUpperCase()})</label>
+        <div class="e-permits-fo-textarea"><textarea id="ntpl-body" rows="5" data-ntpl-text="body">${escapeHtml(d.texts[lang].body)}</textarea></div>
+      </div>
+    `;
+  };
+
+  const openNtplDrawer = () => {
+    if (!ntplDrawer || !isCentralAdmin()) return;
+    ntplDraft = {
+      prefix: "ntpl-new", code: "", name: "", dataSource: "", priority: "Normală", description: "", lang: "ro",
+      texts: { ro: { subject: "", body: "" }, ru: { subject: "", body: "" }, en: { subject: "", body: "" } },
+      errors: {}
+    };
+    ntplReturnFocus = document.activeElement;
+    renderNtplDrawer();
+    ntplDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => ntplDrawerBody.querySelector("#ntpl-new-code")?.focus());
+  };
+
+  const closeNtplDrawer = () => {
+    if (!ntplDrawer || ntplDrawer.hidden || ntplDrawer.classList.contains("is-closing")) return;
+    closeFoSelect();
+    ntplDrawer.classList.add("is-closing");
+    window.setTimeout(() => {
+      ntplDrawer.hidden = true;
+      ntplDrawer.classList.remove("is-closing");
+      document.body.classList.remove("is-user-create-open");
+      ntplDraft = null;
+      ntplReturnFocus?.focus?.();
+    }, 120);
+  };
+
+  const saveNtplDraft = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!ntplDraft || !service) return;
+    const d = ntplDraft;
+    const errors = {};
+    if (!d.code.trim()) errors.code = "Completează codul.";
+    else if (ntplCodeTaken(service, d.code)) errors.code = "Codul există deja în acest serviciu.";
+    if (!d.name.trim()) errors.name = "Completează denumirea.";
+    if (!d.dataSource) errors.dataSource = "Alege sursa de date.";
+    d.errors = errors;
+    if (Object.keys(errors).length) {
+      renderNtplDrawer();
+      focusFormControl(ntplDrawerBody.querySelector(".is-error input, .e-permits-fo-select.is-error .e-permits-fo-select__button") || ntplDrawerBody.querySelector("[data-ntpl-select]"));
+      return;
+    }
+    const created = {
+      code: d.code.trim(), name: d.name.trim(), dataSource: d.dataSource, priority: d.priority, description: d.description.trim(),
+      rules: [], texts: JSON.parse(JSON.stringify(d.texts)), active: false, source: null, createdAt: localIsoNow(), createdBy: currentUserName()
+    };
+    serviceTemplates(service).push(created);
+    logServiceEvents(service.code, [{ at: created.createdAt, user: created.createdBy, type: "Creare șablon de notificare", status: "Reușit", detail: created.code }]);
+    ntplReturnFocus = null;
+    closeNtplDrawer();
+    openTemplateDetail(created.code, "texts");
+    showShellToast(`„${created.name}” a fost creat inactiv, fără reguli de destinatari.`, "success", "Șablon creat");
+  };
+
+  ntplDrawer?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-ntpl-close]")) { closeNtplDrawer(); return; }
+    if (event.target.closest("[data-ntpl-save]")) { saveNtplDraft(); return; }
+    const priority = event.target.closest("[data-ntpl-priority]");
+    if (priority && ntplDraft) { ntplDraft.priority = priority.dataset.ntplPriority; renderNtplDrawer(); ntplDrawerBody.querySelector(`[data-ntpl-priority="${ntplDraft.priority}"]`)?.focus(); return; }
+    const lang = event.target.closest("[data-ntpl-lang]");
+    if (lang && ntplDraft) { ntplDraft.lang = lang.dataset.ntplLang; renderNtplDrawer(); ntplDrawerBody.querySelector(`[data-ntpl-lang="${ntplDraft.lang}"]`)?.focus(); }
+  });
+
+  ntplDrawer?.addEventListener("input", (event) => {
+    if (!ntplDraft) return;
+    const field = event.target.closest("[data-ntpl-field]");
+    if (field) { ntplDraft[field.dataset.ntplField] = field.value; return; }
+    const text = event.target.closest("[data-ntpl-text]");
+    if (text) ntplDraft.texts[ntplDraft.lang][text.dataset.ntplText] = text.value;
+  });
+
+  ntplDrawer?.addEventListener("change", (event) => {
+    const select = event.target.closest("[data-ntpl-select]");
+    if (select && ntplDraft) { ntplDraft[select.dataset.ntplSelect] = select.value; delete ntplDraft.errors[select.dataset.ntplSelect]; }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && ntplDrawer && !ntplDrawer.hidden && !document.querySelector("body > .e-permits-fo-select__list")) closeNtplDrawer();
+  });
+
   const renderServiceTabBody = (service, tabId) => {
     switch (tabId) {
       case "general": return renderServiceGeneral(service);
       case "request-types": return renderServiceRequestTypes(service);
       case "forms": return renderServiceForms(service);
-      case "payments": return renderServicePayments(service);
+      case "fees": return renderServiceFees(service);
       case "tariffs": return renderServiceTariffsTab(service);
+      case "notifications": return renderServiceNotifications(service);
       default: return renderServiceSimpleTab(service, tabId);
     }
   };
@@ -5531,7 +9478,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     serviceProfileState.code = code;
-    serviceProfileState.tabKey = SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey) ? tabKey : "general";
+    serviceProfileState.tabKey = normalizePassportTab(tabKey);
+    serviceProfileState.templateCode = null;
 
     if (workplacePanel) {
       workplacePanel.hidden = true;
@@ -5545,14 +9493,15 @@ document.addEventListener("DOMContentLoaded", () => {
       serviceProfileBackShell.hidden = false;
     }
 
+    setActiveNav("service-config");
     renderServiceProfile();
     history.replaceState(null, "", `#serviciu/${code}/${serviceProfileState.tabKey}`);
     permitsProfilePanel.scrollIntoView?.({ block: "start" });
   };
 
   const closeServiceProfile = () => {
-    history.replaceState(null, "", window.location.pathname + window.location.search);
     showServiceRegistry("services");
+    restorePageHash();
   };
 
   /* ---- RSSP lookup (mock of GET api/public-service/code/{cod}) ----------- */
@@ -5725,7 +9674,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const loading = syncState.phase === "loading";
-    title.textContent = multiSource ? "Sincronizare serviciu" : "Sincronizare serviciu din RSSP";
+    /* a service is created only by import from RSSP (Feature 90575, US-111) */
+    title.textContent = syncState.creating ? "Creează serviciu nou din RSSP" : multiSource ? "Sincronizare serviciu" : "Sincronizare serviciu din RSSP";
     syncModalBody.innerHTML = `
       <p class="e-permits-passport__lead">${multiSource
         ? "Serviciul se integrează cu RSSP și cu eAPL. Alege sursa: RSSP actualizează datele pașaportului, eAPL aduce datele locale (autoritatea locală, taxa și termenul local)."
@@ -5756,8 +9706,8 @@ document.addEventListener("DOMContentLoaded", () => {
             aria-invalid="${syncState.fieldError ? "true" : "false"}" aria-describedby="service-sync-hint">
         </div>
         ${syncState.fieldError ? `
-          <span class="message message--inline message--error message--small">
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+          <span class="message message--inline message--error e-permits-fo-field__error">
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
             <span>${escapeHtml(syncState.fieldError)}</span>
           </span>
         ` : loading ? "" : `<p class="e-permits-fo-field__hint" id="service-sync-hint">Coduri demo: 003000333 (serviciu nou, autoritate nouă) · 003000451 (serviciu nou, autoritate existentă) · 003000023 (existent, RSSP + eAPL) · 000000000 (indisponibil) · 003999998 (răspuns invalid)</p>`}
@@ -5782,7 +9732,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sources = getServiceByCode(code)?.syncSources || ["RSSP"];
     const allowed = sources.length > 1 ? ["RSSP", "eAPL", "both"] : ["RSSP"];
     Object.assign(syncState, {
-      code, phase: "form", error: "", fieldError: "", result: null, eaplResult: null, eaplError: "",
+      code, creating: !code, phase: "form", error: "", fieldError: "", result: null, eaplResult: null, eaplError: "",
       sources, source: allowed.includes(source) ? source : "RSSP", steps: []
     });
     renderSyncModal();
@@ -6099,7 +10049,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the flow diagram lives in the Workflows (Fluxuri de lucru) item; the
      drawer only links there — opened in a new tab so the draft stays */
   const renderRtFlowLink = () => rtDraft.flow ? `
-    <a class="link link-primary link-sm" href="e-permits-acte-permisive.html?flow=back-office#flux/${encodeURIComponent(rtDraft.flow)}" target="_blank" rel="noopener">Vezi schema fluxului în Fluxuri de lucru</a>
+    <a class="link link-primary link-sm e-permits-passport__tab-link" href="e-permits-acte-permisive.html?flow=back-office#flux/${encodeURIComponent(rtDraft.flow)}" target="_blank" rel="noopener">Vezi schema fluxului în Fluxuri de lucru →</a>
   ` : "";
 
   const renderRtActionsSection = () => {
@@ -6154,8 +10104,8 @@ document.addEventListener("DOMContentLoaded", () => {
               <label for="rt-flow">Flux de procesare${requiredMark()}</label>
               ${renderFoSelectControl({ id: "rt-flow", attrs: 'data-rt-flow required', optionsHtml: flowOptions })}
               <p class="e-permits-fo-field__hint" data-rt-flow-link>${renderRtFlowLink()}</p>
-              <span class="message message--inline message--error message--small" hidden data-rt-flow-error>
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+              <span class="message message--inline message--error e-permits-fo-field__error" hidden data-rt-flow-error>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
                 <span>Selectează fluxul de procesare.</span>
               </span>
             </div>
@@ -6172,8 +10122,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 ${renderFoSelectControl({ id: "rt-term-unit", attrs: "data-rt-term-unit", label: "Unitatea termenului", optionsHtml: unitOptions })}
               </div>
-              <span class="message message--inline message--error message--small" hidden data-rt-term-error>
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+              <span class="message message--inline message--error e-permits-fo-field__error" hidden data-rt-term-error>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
                 <span>Introdu un număr de zile între 1 și 255.</span>
               </span>
               <p class="e-permits-fo-field__hint" data-rt-term-hint>${rsspTerm ? `Din RSSP: ${rsspTerm.value} ${escapeHtml(rsspTerm.unit)}` : "Tip de solicitare adăugat în GEAP — fără termen în RSSP."}</p>
@@ -6399,8 +10349,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const payFieldError = (key) => payDraft.errors[key] ? `
-    <span class="message message--inline message--error message--small">
-      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+    <span class="message message--inline message--error e-permits-fo-field__error">
+      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
       <span>${escapeHtml(payDraft.errors[key])}</span>
     </span>
   ` : "";
@@ -6562,22 +10512,13 @@ document.addEventListener("DOMContentLoaded", () => {
               `).join("")}
             </div>
             ${payFieldError("exemptions")}
-          ` : `<p class="e-permits-fo-field__hint">Disponibile doar pentru plata manuală.</p>`}
+          ` : renderInfoNote("Scutirile sunt disponibile doar pentru plata manuală.")}
         </div>
       </section>
       <section class="e-permits-user-create__section">
         <h3 class="e-permits-user-create__section-title">Recurență</h3>
         <div class="e-permits-user-create__section-content">
-          <div class="switch">
-            <label class="switch-wrapper">
-              <input type="checkbox" class="switch-input" data-pay-recurring${payDraft.recurring ? " checked" : ""}>
-              <span class="switch-track"><span class="switch-thumb"></span></span>
-              <span class="switch-text">
-                <span class="switch-label">Plată recurentă</span>
-                <span class="switch-description">Generează periodic nota de plată pe actul permisiv emis, independent de momentul generării.</span>
-              </span>
-            </label>
-          </div>
+          ${renderToggle({ label: "Plată recurentă", description: "Generează periodic nota de plată pe actul permisiv emis, independent de momentul generării.", checked: Boolean(payDraft.recurring), attrs: "data-pay-recurring" })}
           ${payDraft.recurring ? `
             <div class="e-permits-user-create__grid">
               <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
@@ -7052,8 +10993,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let tariffReturnFocus = null;
 
   const tariffFieldError = (key) => tariffDraft.errors[key] ? `
-    <span class="message message--inline message--error message--small">
-      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error"></use></svg>
+    <span class="message message--inline message--error e-permits-fo-field__error">
+      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
       <span>${escapeHtml(tariffDraft.errors[key])}</span>
     </span>
   ` : "";
@@ -7139,7 +11080,32 @@ document.addEventListener("DOMContentLoaded", () => {
       ? `${existing.code} · ${tariffStatus(existing)} · v${existing.version || 1}${existing.source !== "GEAP" ? ` · din ${existing.source}` : ""}`
       : (service ? `Tarif al serviciului „${service.title}”` : "Tarif global — disponibil pentru orice serviciu");
 
+    /* one status, its meaning, and the actions that change it — at the top, so
+       Activează / Dezactivează / Șterge are visible and not confused with Publică
+       (Publică = a draft's first release, in the footer; Activează = turn a published
+       tariff back on) */
+    const status = existing ? tariffStatus(existing) : "";
+    const STATUS_COPY = {
+      Schiță: "Nu se folosește încă. Publică-l din subsol ca să devină disponibil.",
+      Activ: "Disponibil la selecție în plăți și note de plată.",
+      Inactiv: "Publicat, dar nu apare la selecție în plăți și note de plată."
+    };
+    const deleteReason = usage.length ? `Folosit în ${usage.length === 1 ? "1 plată" : `${usage.length} plăți`} — poate fi doar dezactivat.` : "";
+    const statusStrip = existing ? `
+      <div class="e-permits-tariff__status">
+        <div class="e-permits-tariff__status-copy">
+          <span class="e-permits-tariff__status-title">Stare ${renderTag(status, status === "Activ" ? "success" : "neutral")}</span>
+          <span class="e-permits-tariff__status-text">${STATUS_COPY[status]}</span>
+        </div>
+        <div class="e-permits-tariff__status-actions">
+          ${existing.state === "Publicat" ? `<button class="btn ${existing.active ? "btn-neutral" : "btn-secondary"} btn-sm" type="button" data-tariff-toggle-active>${existing.active ? "Dezactivează" : "Activează"}</button>` : ""}
+          <button class="btn btn-outline-destructive btn-sm" type="button" data-tariff-delete${deleteReason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(deleteReason)}"` : ""}>Șterge</button>
+        </div>
+      </div>
+    ` : "";
+
     tariffDrawerBody.innerHTML = `
+      ${statusStrip}
       <section class="e-permits-user-create__section">
         <h3 class="e-permits-user-create__section-title">Identitate</h3>
         <div class="e-permits-user-create__section-content">
@@ -7164,7 +11130,7 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>
               ${tariffFieldError("personType")}
             </div>
-          ` : `<p class="e-permits-fo-field__hint">Tarif global: nu se leagă de serviciu, tip solicitare, persoană sau subdiviziune.</p>`}
+          ` : renderInfoNote("Tarif global: nu se leagă de serviciu, tip solicitare, persoană sau subdiviziune.")}
         </div>
       </section>
       <section class="e-permits-user-create__section">
@@ -7174,16 +11140,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${input("tariff-amount", "amount", { label: d.formula ? "Sumă de bază" : "Sumă", required: true, span: 6, numeric: true, placeholder: "0.00" })}
             ${select("tariff-currency", "currency", { label: "Valută", required: true, span: 6, options: (servicesStore.currencies || ["MDL"]).map((c) => [c, c]) })}
           </div>
-          <div class="switch">
-            <label class="switch-wrapper">
-              <input type="checkbox" class="switch-input" data-tariff-formula${d.formula ? " checked" : ""}>
-              <span class="switch-track"><span class="switch-thumb"></span></span>
-              <span class="switch-text">
-                <span class="switch-label">Calcul prin formulă</span>
-                <span class="switch-description">Suma se calculează din valorile dosarului, ex. suprafața × cota.</span>
-              </span>
-            </label>
-          </div>
+          ${renderToggle({ label: "Calcul prin formulă", description: "Suma se calculează din valorile dosarului, ex. suprafața × cota.", checked: Boolean(d.formula), attrs: "data-tariff-formula" })}
           ${d.formula ? `
             <div class="e-permits-fo-field">
               <label for="tariff-expression">Expresia formulei${requiredMark()}</label>
@@ -7235,7 +11192,6 @@ document.addEventListener("DOMContentLoaded", () => {
           ${existing ? `
             <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
               ${[
-                ["Stare", `${renderTag(existing.state, existing.state === "Publicat" ? "success" : "neutral")} ${renderTag(existing.active ? "Activ" : "Inactiv", existing.active ? "brand" : "neutral")}`],
                 ["Sursă", escapeHtml(existing.source)],
                 ["Folosit de", usage.length ? usage.map(({ service: svc, pay }) => `${escapeHtml(pay.name)} <span class="e-permits-passport__muted">(${escapeHtml(svc.title)})</span>`).join("<br>") : "Nefolosit în nicio plată"],
                 ["Istoric versiuni", (existing.versions || []).slice().reverse().map((v) => `<span class="e-permits-tariff__version"><strong>v${v.version}</strong> · ${escapeHtml(v.note || "")} <span class="e-permits-passport__muted">· ${formatStamp(v.at)} · ${escapeHtml(shortName(v.by || ""))}</span></span>`).join("")]
@@ -7246,15 +11202,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               `).join("")}
             </div>
-            <div class="e-permits-tariff__lifecycle">
-              <button class="btn ${existing.active ? "btn-neutral" : "btn-secondary"} btn-sm" type="button" data-tariff-toggle-active>${existing.active ? "Dezactivează" : "Activează"}</button>
-              ${usage.length ? "" : (d.confirmDelete ? `
-                <span class="e-permits-tariff__confirm">Ștergi definitiv tariful?</span>
-                <button class="btn btn-destructive btn-sm" type="button" data-tariff-delete-confirm>Da, șterge</button>
-                <button class="btn btn-neutral btn-sm" type="button" data-tariff-delete-cancel>Nu</button>
-              ` : `<button class="btn btn-text-destructive btn-sm" type="button" data-tariff-delete>Șterge tariful</button>`)}
-            </div>
-            <p class="e-permits-fo-field__hint">${existing.active ? "Un tarif inactiv nu mai apare la selecție în plăți și note de plată." : "Tariful nu apare la selecție până nu este activat."}${usage.length ? " Tariful e folosit, deci nu poate fi șters — doar dezactivat." : ""}</p>
           ` : ""}
         </div>
       </section>
@@ -7446,24 +11393,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (event.target.closest("[data-tariff-toggle-active]") && existing) {
-      existing.active = !existing.active;
-      existing.modifiedAt = localIsoNow();
-      existing.modifiedBy = currentUserName();
-      tariffEvent(existing, existing.active ? "Activare tarif" : "Dezactivare tarif", existing.code);
-      showShellToast(`Tariful „${existing.name}” a fost ${existing.active ? "activat" : "dezactivat"}.`);
-      rerenderTariffDrawer("[data-tariff-toggle-active]");
-      refreshTariffViews();
+      const next = !existing.active;
+      askConfirm(next
+        ? { title: "Activezi tariful?", text: `„${existing.name}” va apărea la selecție în plăți și note de plată.`, confirmLabel: "Activează" }
+        : { title: "Dezactivezi tariful?", text: `„${existing.name}” nu va mai apărea la selecție în plăți și note de plată. Notele deja generate nu se modifică.`, confirmLabel: "Dezactivează", destructive: true }, () => {
+        existing.active = next;
+        existing.modifiedAt = localIsoNow();
+        existing.modifiedBy = currentUserName();
+        tariffEvent(existing, existing.active ? "Activare tarif" : "Dezactivare tarif", existing.code);
+        showShellToast(`Tariful „${existing.name}” a fost ${existing.active ? "activat" : "dezactivat"}.`);
+        rerenderTariffDrawer("[data-tariff-toggle-active]");
+        refreshTariffViews();
+      });
       return;
     }
 
-    if (event.target.closest("[data-tariff-delete]")) { d.confirmDelete = true; rerenderTariffDrawer("[data-tariff-delete-confirm]"); return; }
-    if (event.target.closest("[data-tariff-delete-cancel]")) { d.confirmDelete = false; rerenderTariffDrawer("[data-tariff-delete]"); return; }
-    if (event.target.closest("[data-tariff-delete-confirm]") && existing && !tariffUsage(existing).length) {
-      servicesStore.tariffs = servicesStore.tariffs.filter((t) => t.id !== existing.id);
-      tariffEvent(existing, "Ștergere tarif", `${existing.code} ${existing.name}`);
-      closeTariffDrawer();
-      refreshTariffViews();
-      showShellToast(`Tariful „${existing.name}” a fost șters.`);
+    const del = event.target.closest("[data-tariff-delete]");
+    if (del && existing && del.getAttribute("aria-disabled") !== "true" && !tariffUsage(existing).length) {
+      askConfirm({
+        title: "Ștergi tariful?",
+        text: `„${existing.name}” (${existing.code}) va fi eliminat definitiv. Acțiunea nu poate fi anulată.`,
+        confirmLabel: "Șterge",
+        destructive: true
+      }, () => {
+        servicesStore.tariffs = servicesStore.tariffs.filter((t) => t.id !== existing.id);
+        tariffEvent(existing, "Ștergere tarif", `${existing.code} ${existing.name}`);
+        closeTariffDrawer();
+        refreshTariffViews();
+        showShellToast(`Tariful „${existing.name}” a fost șters.`);
+      });
     }
   });
 
@@ -7550,8 +11508,14 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      payment.active = true;
-      commit("Activare plată", payment.name, `Plata „${payment.name}” este acum activă.`);
+      askConfirm({
+        title: "Activezi plata?",
+        text: `Dosarele noi pentru „${payment.requestType}” · „${payment.moment}” vor declanșa plata „${payment.name}”.`,
+        confirmLabel: "Activează"
+      }, () => {
+        payment.active = true;
+        commit("Activare plată", payment.name, `Plata „${payment.name}” este acum activă.`);
+      });
       return;
     }
 
@@ -7671,13 +11635,36 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    if (event.target.closest("[data-ntpl-clone]")) { openNtplClone(); return; }
+    if (event.target.closest("[data-ntpl-new]")) { openNtplDrawer(); return; }
+    const ntplOpen = event.target.closest("[data-ntpl-open]");
+    if (ntplOpen) { openTemplateDetail(ntplOpen.dataset.ntplOpen); return; }
+    if (event.target.closest("[data-ntpl-back]")) {
+      /* back to this service's Notificări tab, not a global list (US-187) */
+      const code = serviceProfileState.templateCode;
+      serviceProfileState.templateCode = null;
+      renderServiceProfile();
+      permitsProfilePanel.querySelector(`[data-ntpl-open="${code}"]`)?.focus();
+      return;
+    }
+    const ntplTab = event.target.closest("[data-ntpl-tab]");
+    if (ntplTab) {
+      serviceProfileState.templateTab = ntplTab.dataset.ntplTab;
+      renderServiceProfile();
+      permitsProfilePanel.querySelector(`[data-ntpl-tab="${serviceProfileState.templateTab}"]`)?.focus();
+      return;
+    }
+
     const tabButton = event.target.closest("[data-passport-tab]");
 
     if (tabButton) {
-      serviceProfileState.tabKey = tabButton.dataset.passportTab;
+      event.preventDefault();
+      serviceProfileState.tabKey = normalizePassportTab(tabButton.dataset.passportTab);
+      serviceProfileState.templateCode = null;
       renderServiceProfile();
       history.replaceState(null, "", `#serviciu/${serviceProfileState.code}/${serviceProfileState.tabKey}`);
-      permitsProfilePanel.querySelector(`[data-passport-tab="${serviceProfileState.tabKey}"]`)?.focus();
+      permitsProfilePanel.querySelector(`[data-passport-tabs] [data-passport-tab="${serviceProfileState.tabKey}"]`)?.focus();
+
       return;
     }
 
@@ -7891,6 +11878,20 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (servicesError) {
         console.warn(servicesError);
       }
+
+      /* Clasificatoare seed + field-type catalogue */
+      try {
+        const [clsResponse, typesResponse] = await Promise.all([
+          fetch("data/classifiers/classifiers.json", { cache: "no-store" }),
+          fetch("data/catalog/clas-field-types.json", { cache: "no-store" })
+        ]);
+        if (clsResponse.ok && typesResponse.ok && clasCore && clasPerm) {
+          const seed = await clsResponse.json();
+          classifiersStore = { list: seedClassifiers(seed.classifiers || []), fieldTypes: await typesResponse.json() };
+        }
+      } catch (classifiersError) {
+        console.warn(classifiersError);
+      }
       workplaceDb = dossierDb;
       workplaceState.rows = dossierDb.runtimeRows;
     } catch (error) {
@@ -7912,33 +11913,84 @@ document.addEventListener("DOMContentLoaded", () => {
         : document.querySelector("[data-workplace-view].is-active")?.dataset.workplaceView || "mine"
     );
 
-    const dosarHashMatch = window.location.hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
-    const linkedRow = dosarHashMatch && getDosarById(dosarHashMatch[1]);
+    routeFromHash();
+  };
 
-    if (linkedRow) {
-      openDosarProfil(linkedRow, dosarHashMatch[2] || "general");
-    }
+  /* open whatever the address names; unknown or empty → keep the role's default page
+     and write its hash, so the link always matches the screen */
+  const routeFromHash = () => {
+    routingFromHash = true;
+    try {
+      const hash = window.location.hash;
+      let match = hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
+      const linkedRow = match && getDosarById(match[1]);
+      if (linkedRow) {
+        openDosarProfil(linkedRow, match[2] || "general");
+        return;
+      }
 
-    const serviceHashMatch = window.location.hash.match(/^#serviciu\/([^/]+)(?:\/([^/]+))?$/);
+      match = hash.match(/^#serviciu\/([^/]+)(?:\/([^/]+))?$/);
+      if (match && getServiceByCode(match[1])) {
+        activeRegistry = "services";
+        servicesDb = buildServicesDb();
+        workplaceDb = servicesDb;
+        workplaceState.rows = servicesDb.runtimeRows;
+        openServiceProfile(match[1], match[2] || "general");
+        return;
+      }
 
-    if (serviceHashMatch && getServiceByCode(serviceHashMatch[1])) {
-      activeRegistry = "services";
-      servicesDb = buildServicesDb();
-      workplaceDb = servicesDb;
-      workplaceState.rows = servicesDb.runtimeRows;
-      openServiceProfile(serviceHashMatch[1], serviceHashMatch[2] || "general");
-    }
+      match = hash.match(/^#utilizator\/([^/]+)(?:\/([^/]+))?$/);
+      const linkedUser = match && getUserById(match[1]);
+      if (linkedUser) {
+        setActiveNav("users");
+        activeRegistry = "users";
+        workplaceDb = usersDb;
+        workplaceState.rows = usersDb.runtimeRows || [];
+        openUserProfile(linkedUser, match[2] || "general");
+        return;
+      }
 
-    const userHashMatch = window.location.hash.match(/^#utilizator\/([^/]+)(?:\/([^/]+))?$/);
-    const linkedUser = userHashMatch && getUserById(userHashMatch[1]);
+      match = hash.match(/^#sablon\/([^/]+)(?:\/([^/]+))?$/);
+      if (match && getGlobalTemplate(decodeURIComponent(match[1]))) {
+        document.querySelector('[data-nav-item][data-nav-id="notification-templates"]')?.click();
+        openNtplProfile(decodeURIComponent(match[1]), match[2] || "content");
+        return;
+      }
 
-    if (linkedUser) {
-      activeRegistry = "users";
-      workplaceDb = usersDb;
-      workplaceState.rows = usersDb.runtimeRows || [];
-      openUserProfile(linkedUser, userHashMatch[2] || "general");
+      match = hash.match(/^#clasificator\/([^/]+)(?:\/([^/]+))?$/);
+      if (match && getClassifier(decodeURIComponent(match[1])) && clasVisible(getClassifier(decodeURIComponent(match[1])))) {
+        document.querySelector('[data-nav-item][data-nav-id="classifiers"]')?.click();
+        openClassifierProfile(decodeURIComponent(match[1]), match[2] || "valori");
+        return;
+      }
+
+      match = hash.match(/^#rol\/([^/]+)(?:\/([^/]+))?$/);
+      const linkedRole = match && getRoleById(match[1]);
+      if (linkedRole) {
+        document.querySelector('[data-nav-item][data-nav-id="roles"]')?.click();
+        openRoleProfile(linkedRole);
+        const tab = match[2] && roleProfileTabs?.querySelector(`[data-role-profile-tab="${match[2]}"]`);
+        tab?.click();
+        return;
+      }
+
+      const navId = decodeURIComponent(hash.slice(1));
+      const nav = navId && [...document.querySelectorAll("[data-nav-item]")].find((item) => item.dataset.navId === navId);
+      if (nav) {
+        nav.click();
+        return;
+      }
+
+      restorePageHash();
+    } finally {
+      routingFromHash = false;
     }
   };
+
+  window.addEventListener("popstate", () => {
+    closeStackMenus?.();
+    routeFromHash();
+  });
 
   const setHelpMenuOpen = (nextOpen) => {
     if (!helpTrigger || !helpPanel) {
@@ -8044,6 +12096,13 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
       }
 
+      if (ntplProfilePanel && !ntplProfilePanel.hidden && !confirmLeaveNtpl()) {
+        event.preventDefault();
+        return;
+      }
+      if (ntplProfileState.draft) ntplProfileState.draft.dirty = false;
+      hideNtplProfile();
+
       document.querySelectorAll("[data-nav-item]").forEach((link) => {
         const isActive = link === item;
         link.classList.toggle("is-active", isActive);
@@ -8071,6 +12130,14 @@ document.addEventListener("DOMContentLoaded", () => {
         showServiceRegistry("tariffs", item.dataset.navLabel || "Tarife");
       }
 
+      if (item.dataset.shellView === "ntpl-registry") {
+        showServiceRegistry("ntpl", item.dataset.navLabel || "Șabloane de notificare");
+      }
+
+      if (item.dataset.shellView === "classifiers-registry") {
+        showClassifiersRegistry();
+      }
+
       if (item.dataset.shellView === "users-registry") {
         showUsersRegistry();
       }
@@ -8085,6 +12152,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (item.dataset.shellView === "role-placeholder") {
         showRolePlaceholder(item.dataset.navLabel || item.textContent.trim());
+      }
+
+      if (item.dataset.navId) {
+        writeHash(`#${item.dataset.navId}`, { push: true });
       }
     });
   }
@@ -8409,6 +12480,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      if (serviceRowEl && activeRegistry === "ntpl") {
+        openNtplProfile(serviceRowEl.dataset.workplaceRow);
+        return;
+      }
+
+      if (serviceRowEl && activeRegistry === "classifiers") {
+        openClassifierProfile(serviceRowEl.dataset.workplaceRow);
+        return;
+      }
+
       if (serviceRowEl && activeRegistry === "authorities") {
         /* an authority row lists its services */
         const authority = getAuthorityById(serviceRowEl.dataset.workplaceRow);
@@ -8583,13 +12664,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (event.target.closest("[data-user-profile-status-toggle]")) {
-        user.status = user.status === "Activ" ? "Inactiv" : "Activ";
-        user.ultimaActualizare = new Date().toISOString().slice(0, 10);
-        persistUserProfileOverride(user);
-        renderUserProfile(user);
-        showShellToast(user.status === "Activ"
-          ? "Utilizatorul a fost activat."
-          : "Utilizatorul a fost inactivat.");
+        const activate = user.status !== "Activ";
+        askConfirm(activate
+          ? { title: "Activezi utilizatorul?", text: `${user.numeComplet} va putea accesa din nou sistemul cu rolurile atribuite.`, confirmLabel: "Activează" }
+          : { title: "Inactivezi utilizatorul?", text: `${user.numeComplet} nu va mai putea accesa sistemul. Rolurile rămân atribuite și revin la reactivare.`, confirmLabel: "Inactivează", destructive: true }, () => {
+          user.status = activate ? "Activ" : "Inactiv";
+          user.ultimaActualizare = new Date().toISOString().slice(0, 10);
+          persistUserProfileOverride(user);
+          renderUserProfile(user);
+          showShellToast(user.status === "Activ"
+            ? "Utilizatorul a fost activat."
+            : "Utilizatorul a fost inactivat.");
+        });
       }
     });
 
@@ -8733,6 +12819,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       applyRoleAssignment(option.dataset.assignmentId);
+      restorePageHash();
     });
 
     document.addEventListener("click", (event) => {
@@ -8772,10 +12859,15 @@ document.addEventListener("DOMContentLoaded", () => {
        re-applying the assignment would put the registry back over it */
     const deepLinkedProfileOpen = shell.classList.contains("is-dosar-profile-open") ||
       shell.classList.contains("is-user-profile-open") ||
+      shell.classList.contains("is-role-profile-open") ||
+      shell.classList.contains("is-ntpl-profile-open") ||
+      shell.classList.contains("is-clas-profile-open") ||
       Boolean(serviceProfileState.code && permitsProfilePanel && !permitsProfilePanel.hidden);
 
     if (activeAssignmentId && !deepLinkedProfileOpen) {
       applyRoleAssignment(activeAssignmentId, { persist: false, closeMenu: false });
+      /* the role's default page is drawn; now open the page the address names */
+      routeFromHash();
     }
   })();
   syncExpandedState();

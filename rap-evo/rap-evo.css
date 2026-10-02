@@ -290,30 +290,10 @@ a {
   width: 100%;
 }
 
+/* breadcrumbs: the library .breadcrumbs (Figma Components 232:5282); this class
+   is only a layout / reveal hook */
 .rap-breadcrumbs {
-  align-items: center;
-  display: flex;
-  gap: 4px;
-  height: 20px;
-}
-
-.rap-breadcrumbs a {
-  color: var(--rap-text-tertiary);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  text-decoration: none;
-}
-
-.rap-breadcrumbs a:hover {
-  color: var(--rap-text);
-  text-decoration: underline;
-}
-
-.rap-breadcrumbs .icon {
-  color: var(--rap-text-tertiary);
-  height: 16px;
-  width: 16px;
+  min-height: 20px;
 }
 
 .rap-intro {
@@ -1021,29 +1001,6 @@ a {
   margin: 0 auto;
   max-width: 876px;
   width: 100%;
-}
-
-.rap-profile__breadcrumbs button {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  color: var(--rap-text-tertiary);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  padding: 0;
-}
-
-.rap-profile__breadcrumbs button:hover {
-  color: var(--rap-text);
-  text-decoration: underline;
-}
-
-.rap-profile__breadcrumbs button:focus-visible {
-  border-radius: 2px;
-  outline: 2px solid var(--rap-brand);
-  outline-offset: 2px;
 }
 
 .rap-profile__hero {

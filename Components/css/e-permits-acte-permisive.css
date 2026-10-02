@@ -11841,18 +11841,6 @@
   width: 100%;
 }
 
-.e-permits-builder__breadcrumbs {
-  align-items: center;
-  color: var(--color-text-base-tertiary, #757575);
-  display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  white-space: nowrap;
-}
-
 .e-permits-builder__service-title-row {
   align-items: center;
   display: flex;

@@ -38,6 +38,7 @@
   });
 
   const labelOf = (el) => {
+    if (el.dataset.tooltipReason) return el.dataset.tooltipReason.trim();
     if (el.hasAttribute("title")) {
       const title = el.getAttribute("title").trim();
       if (title && !el.dataset.tooltipLabel) el.dataset.tooltipLabel = title;
@@ -47,9 +48,12 @@
     return (el.dataset.tooltipLabel || el.getAttribute("aria-label") || "").trim();
   };
 
+  /* data-tooltip-reason opts any control in (text buttons too), typically one that is
+     aria-disabled: the tooltip then says why it is unavailable */
   const candidate = (node) => {
     const el = node instanceof Element ? node.closest("button, a[href], [role='button']") : null;
     if (!el || el.hasAttribute("data-no-tooltip") || el.hasAttribute("data-tooltip")) return null;
+    if (el.dataset.tooltipReason) return el;
     if (el.disabled || el.getAttribute("aria-disabled") === "true") return null;
     if (hasVisibleText(el)) return null;
     return labelOf(el) ? el : null;

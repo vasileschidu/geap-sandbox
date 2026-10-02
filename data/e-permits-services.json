@@ -909,32 +909,6 @@
             "updated": "2026-01-15"
           }
         ],
-        "notifications": [
-          {
-            "event": "Cerere depusă",
-            "channel": "Email · MNotify",
-            "recipient": "Solicitant",
-            "active": true
-          },
-          {
-            "event": "Notă de plată generată",
-            "channel": "Email · MNotify",
-            "recipient": "Solicitant",
-            "active": true
-          },
-          {
-            "event": "Act emis",
-            "channel": "Email · MNotify · MDelivery",
-            "recipient": "Solicitant",
-            "active": true
-          },
-          {
-            "event": "Termen de examinare aproape de expirare",
-            "channel": "Email",
-            "recipient": "Specialist",
-            "active": false
-          }
-        ],
         "settings": {
           "avize": [
             "Aviz ANSA",
@@ -998,6 +972,83 @@
             "type": "Sincronizare serviciu",
             "status": "Eșuat",
             "detail": "Cod 003000023: Serviciul RSSP este momentan indisponibil. Încercați mai târziu."
+          }
+        ],
+        "notificationTemplates": [
+          {
+            "code": "NTF-COM-CERERE",
+            "name": "Confirmare — notificare în comerț",
+            "dataSource": "Dosar",
+            "priority": "Normală",
+            "description": "Confirmarea depunerii, cu trimitere la registrul comercial local.",
+            "rules": [
+              {
+                "recipient": "Solicitant",
+                "channels": [
+                  "Email",
+                  "MNotify"
+                ]
+              }
+            ],
+            "texts": {
+              "ro": {
+                "subject": "Notificarea {{nrDosar}} a fost înregistrată",
+                "body": "Stimate {{solicitant}}, notificarea privind activitatea de comerț a fost înregistrată cu numărul {{nrDosar}}. Datele vor fi publicate în registrul local."
+              },
+              "ru": {
+                "subject": "Заявление {{nrDosar}} зарегистрировано",
+                "body": "Уважаемый {{solicitant}}, ваше заявление на {{serviciu}} зарегистрировано под номером {{nrDosar}}. Срок рассмотрения: {{termen}}."
+              },
+              "en": {
+                "subject": "Application {{nrDosar}} has been registered",
+                "body": "Dear {{solicitant}}, your application for {{serviciu}} has been registered under number {{nrDosar}}. Examination deadline: {{termen}}."
+              }
+            },
+            "active": true,
+            "source": "Case.Registered",
+            "createdAt": "2026-04-18T10:20:00",
+            "createdBy": "Vasile Schidu",
+            "object": "Dosar"
+          },
+          {
+            "code": "NTF-COM-TERMEN",
+            "name": "Termen de examinare — comerț",
+            "dataSource": "Dosar",
+            "priority": "Înaltă",
+            "description": "Alertă internă cu termen redus pentru notificările de comerț.",
+            "rules": [
+              {
+                "recipient": "Specialist",
+                "channels": [
+                  "Email"
+                ]
+              },
+              {
+                "recipient": "Supervizor",
+                "channels": [
+                  "Email"
+                ]
+              }
+            ],
+            "texts": {
+              "ro": {
+                "subject": "Dosarul {{nrDosar}} expiră în {{zileRamase}} zile",
+                "body": "Termenul de examinare al dosarului {{nrDosar}} expiră la {{termen}}."
+              },
+              "ru": {
+                "subject": "Срок по делу {{nrDosar}} истекает через {{zileRamase}} дн.",
+                "body": "Срок рассмотрения дела {{nrDosar}} истекает {{termen}}."
+              },
+              "en": {
+                "subject": "Case {{nrDosar}} is due in {{zileRamase}} days",
+                "body": "The examination deadline of case {{nrDosar}} is {{termen}}."
+              }
+            },
+            "active": false,
+            "source": "Case.DeadlineSoon",
+            "createdAt": "2026-04-20T15:05:00",
+            "createdBy": "Anastasia Cojocaru",
+            "object": "Dosar"
           }
         ]
       },
@@ -1166,14 +1217,6 @@
             "updated": "2026-06-19"
           }
         ],
-        "notifications": [
-          {
-            "event": "Act emis",
-            "channel": "Email · MNotify",
-            "recipient": "Solicitant",
-            "active": true
-          }
-        ],
         "settings": {
           "avize": [],
           "subdivisions": [
@@ -1199,7 +1242,8 @@
             "status": "Reușit",
             "detail": "Datele RSSP ale serviciului au fost actualizate"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP"
@@ -1296,7 +1340,6 @@
         "dependencies": [],
         "classifiers": [],
         "templates": [],
-        "notifications": [],
         "settings": null,
         "events": [
           {
@@ -1306,7 +1349,8 @@
             "status": "Reușit",
             "detail": "Cod 003000118 preluat din RSSP"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP"
@@ -1378,7 +1422,6 @@
         "dependencies": [],
         "classifiers": [],
         "templates": [],
-        "notifications": [],
         "settings": null,
         "events": [
           {
@@ -1388,7 +1431,8 @@
             "status": "Reușit",
             "detail": "Cod 003000207 preluat din RSSP"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP",
@@ -1485,7 +1529,6 @@
         "dependencies": [],
         "classifiers": [],
         "templates": [],
-        "notifications": [],
         "settings": null,
         "events": [
           {
@@ -1495,7 +1538,8 @@
             "status": "Reușit",
             "detail": "Cod 003000245 preluat din RSSP"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP"
@@ -1567,7 +1611,6 @@
         "dependencies": [],
         "classifiers": [],
         "templates": [],
-        "notifications": [],
         "settings": null,
         "events": [
           {
@@ -1577,7 +1620,8 @@
             "status": "Reușit",
             "detail": "Cod 003000312 preluat din RSSP"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP"
@@ -1649,7 +1693,6 @@
         "dependencies": [],
         "classifiers": [],
         "templates": [],
-        "notifications": [],
         "settings": null,
         "events": [
           {
@@ -1659,7 +1702,8 @@
             "status": "Reușit",
             "detail": "Cod 003000377 preluat din RSSP"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP"
@@ -1732,7 +1776,6 @@
         "dependencies": [],
         "classifiers": [],
         "templates": [],
-        "notifications": [],
         "settings": null,
         "events": [
           {
@@ -1742,7 +1785,8 @@
             "status": "Reușit",
             "detail": "Cod 003000402 preluat din RSSP"
           }
-        ]
+        ],
+        "notificationTemplates": []
       },
       "syncSources": [
         "RSSP"
@@ -2590,6 +2634,1650 @@
       "label": "Cont LRSP",
       "principal": false,
       "active": true
+    }
+  ],
+  "notificationTemplates": [
+    {
+      "code": "AprobareNIAC",
+      "name": "AprobareNIAC",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "Notificare de aprobarea NIAC",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": true
+        },
+        {
+          "recipient": "Responsabilul dosarului",
+          "channels": [
+            "MNotify"
+          ],
+          "delivery": "MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Cererea {{CaseNumber}} a fost aprobată",
+          "body": "<p>Stimate {{ApplicantName}},</p><p>Cererea nr. <strong>{{CaseNumber}}</strong> pentru serviciul „{{ServiceTitle}}”, depusă pe {{SubmittedOn}} în numele {{CompanyName}}, a fost aprobată de {{AuthorityName}} ({{TeamName}}).</p><p>Actul permisiv poate fi descărcat din Cabinetul personal până la {{DueOn}}.</p><p>Notificarea este generată automat de sistem. Vă rugăm să nu răspundeți la acest mesaj.</p>",
+          "plain": "e-Permis: cererea {{CaseNumber}} ({{ServiceTitle}}) a fost aprobată de {{AuthorityName}}. Actul e disponibil în Cabinet."
+        },
+        "ru": {
+          "subject": "Заявление {{CaseNumber}} одобрено",
+          "body": "<p>Уважаемый(ая) {{ApplicantName}},</p><p>Заявление № <strong>{{CaseNumber}}</strong> на услугу «{{ServiceTitle}}», поданное {{SubmittedOn}} от имени {{CompanyName}}, одобрено {{AuthorityName}} ({{TeamName}}).</p><p>Разрешительный документ можно скачать в личном кабинете до {{DueOn}}.</p><p>Уведомление сформировано автоматически. Пожалуйста, не отвечайте на это сообщение.</p>",
+          "plain": "e-Permis: заявление {{CaseNumber}} ({{ServiceTitle}}) одобрено {{AuthorityName}}. Документ в кабинете."
+        },
+        "en": {
+          "subject": "Application {{CaseNumber}} has been approved",
+          "body": "<p>Dear {{ApplicantName}},</p><p>Application no. <strong>{{CaseNumber}}</strong> for “{{ServiceTitle}}”, submitted on {{SubmittedOn}} on behalf of {{CompanyName}}, has been approved by {{AuthorityName}} ({{TeamName}}).</p><p>You can download the permit from your personal cabinet until {{DueOn}}.</p><p>This notification was generated automatically. Please do not reply to this message.</p>",
+          "plain": "e-Permis: application {{CaseNumber}} ({{ServiceTitle}}) was approved by {{AuthorityName}}. Permit in your cabinet."
+        }
+      },
+      "version": "v1.1.5",
+      "updatedAt": "2026-10-01T11:20:00",
+      "updatedBy": "Olesea Luchian",
+      "origin": "Personalizat",
+      "active": true,
+      "unpublished": true,
+      "history": [
+        {
+          "version": "v1.1.5",
+          "at": "2026-10-01T11:20:00",
+          "by": "Olesea Luchian",
+          "note": "Text actualizat"
+        },
+        {
+          "version": "v1.1.4",
+          "at": "2026-09-18T15:02:00",
+          "by": "Olesea Luchian",
+          "note": "Regulă de destinatari modificată"
+        },
+        {
+          "version": "v1.0.0",
+          "at": "2026-08-04T10:00:00",
+          "by": "Vasile Schidu",
+          "note": "Creat"
+        }
+      ],
+      "published": {
+        "code": "AprobareNIAC",
+        "name": "AprobareNIAC",
+        "dataSource": "Dosar",
+        "priority": "Normală",
+        "description": "Notificare de aprobarea NIAC",
+        "texts": {
+          "ro": {
+            "subject": "Cerere aprobată",
+            "body": "<p>Stimate {{ApplicantName}},</p><p>Cererea nr. <strong>{{CaseNumber}}</strong> pentru serviciul „{{ServiceTitle}}”, depusă pe {{SubmittedOn}} în numele {{CompanyName}}, a fost aprobată de {{AuthorityName}} ({{TeamName}}).</p><p>Actul permisiv poate fi descărcat din Cabinetul personal până la {{DueOn}}.</p><p>Notificarea este generată automat de sistem. Vă rugăm să nu răspundeți la acest mesaj.</p>",
+            "plain": "e-Permis: cererea {{CaseNumber}} a fost aprobată. Actul e disponibil în Cabinet."
+          },
+          "ru": {
+            "subject": "Заявление {{CaseNumber}} одобрено",
+            "body": "<p>Уважаемый(ая) {{ApplicantName}},</p><p>Заявление № <strong>{{CaseNumber}}</strong> на услугу «{{ServiceTitle}}», поданное {{SubmittedOn}} от имени {{CompanyName}}, одобрено {{AuthorityName}} ({{TeamName}}).</p><p>Разрешительный документ можно скачать в личном кабинете до {{DueOn}}.</p><p>Уведомление сформировано автоматически. Пожалуйста, не отвечайте на это сообщение.</p>",
+            "plain": "e-Permis: заявление {{CaseNumber}} ({{ServiceTitle}}) одобрено {{AuthorityName}}. Документ в кабинете."
+          },
+          "en": {
+            "subject": "Application {{CaseNumber}} has been approved",
+            "body": "<p>Dear {{ApplicantName}},</p><p>Application no. <strong>{{CaseNumber}}</strong> for “{{ServiceTitle}}”, submitted on {{SubmittedOn}} on behalf of {{CompanyName}}, has been approved by {{AuthorityName}} ({{TeamName}}).</p><p>You can download the permit from your personal cabinet until {{DueOn}}.</p><p>This notification was generated automatically. Please do not reply to this message.</p>",
+            "plain": "e-Permis: application {{CaseNumber}} ({{ServiceTitle}}) was approved by {{AuthorityName}}. Permit in your cabinet."
+          }
+        },
+        "rules": [
+          {
+            "recipient": "Solicitant",
+            "channels": [
+              "Email",
+              "MNotify"
+            ],
+            "delivery": "Email și MNotify",
+            "active": true,
+            "separate": true
+          }
+        ]
+      }
+    },
+    {
+      "code": "Batch.Notification",
+      "name": "Notificare in masa",
+      "object": "Notificare",
+      "dataSource": "Notificare",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Destinatari selectați",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Notificare in masa",
+          "body": "<p>Notificare in masa.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Notificare in masa: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Массовое уведомление",
+          "body": "<p>Массовое уведомление.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Массовое уведомление: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Bulk notification",
+          "body": "<p>Bulk notification.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Bulk notification: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.Assigned",
+      "name": "Dosar repartizat",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Dosar repartizat",
+          "body": "<p>Dosar repartizat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Dosar repartizat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Дело распределено",
+          "body": "<p>Дело распределено.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Дело распределено: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Case assigned",
+          "body": "<p>Case assigned.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Case assigned: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.Completed",
+      "name": "Cerere aprobată",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Cerere aprobată",
+          "body": "<p>Cerere aprobată.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Cerere aprobată: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Заявление одобрено",
+          "body": "<p>Заявление одобрено.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Заявление одобрено: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Application approved",
+          "body": "<p>Application approved.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Application approved: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.Coordinated",
+      "name": "Proiect coordonat",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Proiect coordonat",
+          "body": "<p>Proiect coordonat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Proiect coordonat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Проект согласован",
+          "body": "<p>Проект согласован.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Проект согласован: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Draft coordinated",
+          "body": "<p>Draft coordinated.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Draft coordinated: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.InProgress",
+      "name": "Dosar transmis spre examinare",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Dosar transmis spre examinare",
+          "body": "<p>Dosar transmis spre examinare.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Dosar transmis spre examinare: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Дело передано на рассмотрение",
+          "body": "<p>Дело передано на рассмотрение.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Дело передано на рассмотрение: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Case sent for examination",
+          "body": "<p>Case sent for examination.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Case sent for examination: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.PaymentNote",
+      "name": "Notă de plată generată",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Notă de plată generată",
+          "body": "<p>Notă de plată generată.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Notă de plată generată: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Сформировано платёжное поручение",
+          "body": "<p>Сформировано платёжное поручение.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Сформировано платёжное поручение: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Payment note issued",
+          "body": "<p>Payment note issued.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Payment note issued: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": null,
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": []
+    },
+    {
+      "code": "Case.Registered",
+      "name": "Cerere înregistrată",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Cerere înregistrată",
+          "body": "<p>Cerere înregistrată.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Cerere înregistrată: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Заявление зарегистрировано",
+          "body": "<p>Заявление зарегистрировано.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Заявление зарегистрировано: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Application registered",
+          "body": "<p>Application registered.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Application registered: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.Rejected",
+      "name": "Cerere respinsă",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Cerere respinsă",
+          "body": "<p>Cerere respinsă.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Cerere respinsă: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Заявление отклонено",
+          "body": "<p>Заявление отклонено.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Заявление отклонено: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Application rejected",
+          "body": "<p>Application rejected.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Application rejected: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.ReturnedFromSigning",
+      "name": "Proiect returnat de la semnare",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        },
+        {
+          "recipient": "Supervizor",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Proiect returnat de la semnare",
+          "body": "<p>Proiect returnat de la semnare.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Proiect returnat de la semnare: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Проект возвращён с подписания",
+          "body": "<p>Проект возвращён с подписания.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Проект возвращён с подписания: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Draft returned from signing",
+          "body": "<p>Draft returned from signing.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Draft returned from signing: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.ReturnedToSpecialist",
+      "name": "Proiect returnat la Specialist",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Proiect returnat la Specialist",
+          "body": "<p>Proiect returnat la Specialist.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Proiect returnat la Specialist: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Проект возвращён специалисту",
+          "body": "<p>Проект возвращён специалисту.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Проект возвращён специалисту: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Draft returned to Specialist",
+          "body": "<p>Draft returned to Specialist.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Draft returned to Specialist: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.SupplementReceived",
+      "name": "Informații suplimentare recepționate",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Informații suplimentare recepționate",
+          "body": "<p>Informații suplimentare recepționate.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Informații suplimentare recepționate: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Получена дополнительная информация",
+          "body": "<p>Получена дополнительная информация.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Получена дополнительная информация: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Additional information received",
+          "body": "<p>Additional information received.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Additional information received: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.Suspended",
+      "name": "Dosar suspendat: informații suplimentare",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Dosar suspendat: informații suplimentare",
+          "body": "<p>Dosar suspendat: informații suplimentare.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Dosar suspendat: informații suplimentare: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Дело приостановлено: дополнительная информация",
+          "body": "<p>Дело приостановлено: дополнительная информация.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Дело приостановлено: дополнительная информация: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Case suspended: additional information",
+          "body": "<p>Case suspended: additional information.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Case suspended: additional information: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Expertise.DueTomorrow",
+      "name": "Termenul avizarii este pe sfarsite",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Instituția avizatoare",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Termenul avizarii este pe sfarsite",
+          "body": "<p>Termenul avizarii este pe sfarsite.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Termenul avizarii este pe sfarsite: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Срок заключения истекает",
+          "body": "<p>Срок заключения истекает.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Срок заключения истекает: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Review deadline ending",
+          "body": "<p>Review deadline ending.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Review deadline ending: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Expertise.Expired",
+      "name": "Termen de avizare expirat",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Termen de avizare expirat",
+          "body": "<p>Termen de avizare expirat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Termen de avizare expirat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Срок заключения истёк",
+          "body": "<p>Срок заключения истёк.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Срок заключения истёк: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Review deadline expired",
+          "body": "<p>Review deadline expired.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Review deadline expired: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Expertise.HalfTerm",
+      "name": "Jumatate din termenul avizarii",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Instituția avizatoare",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Jumatate din termenul avizarii",
+          "body": "<p>Jumatate din termenul avizarii.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Jumatate din termenul avizarii: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Половина срока заключения",
+          "body": "<p>Половина срока заключения.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Половина срока заключения: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Half of the review term",
+          "body": "<p>Half of the review term.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Half of the review term: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Expertise.Requested",
+      "name": "Aviz solicitat",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Instituția avizatoare",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Aviz solicitat",
+          "body": "<p>Aviz solicitat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Aviz solicitat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Запрошено заключение",
+          "body": "<p>Запрошено заключение.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Запрошено заключение: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Review requested",
+          "body": "<p>Review requested.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Review requested: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Expertise.Received",
+      "name": "Aviz recepționat",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Aviz recepționat",
+          "body": "<p>Aviz recepționat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Aviz recepționat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Заключение получено",
+          "body": "<p>Заключение получено.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Заключение получено: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Review received",
+          "body": "<p>Review received.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Review received: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.DeadlineSoon",
+      "name": "Termenul de examinare expiră",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        },
+        {
+          "recipient": "Supervizor",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Termenul de examinare expiră",
+          "body": "<p>Termenul de examinare expiră.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Termenul de examinare expiră: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Срок рассмотрения истекает",
+          "body": "<p>Срок рассмотрения истекает.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Срок рассмотрения истекает: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Examination deadline approaching",
+          "body": "<p>Examination deadline approaching.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Examination deadline approaching: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.SuspensionLifted",
+      "name": "Examinare reluată",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Examinare reluată",
+          "body": "<p>Examinare reluată.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Examinare reluată: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Рассмотрение возобновлено",
+          "body": "<p>Рассмотрение возобновлено.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Рассмотрение возобновлено: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Examination resumed",
+          "body": "<p>Examination resumed.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Examination resumed: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Case.Withdrawn",
+      "name": "Cerere retrasă de solicitant",
+      "object": "Dosar",
+      "dataSource": "Dosar",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Cerere retrasă de solicitant",
+          "body": "<p>Cerere retrasă de solicitant.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Cerere retrasă de solicitant: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Заявление отозвано заявителем",
+          "body": "<p>Заявление отозвано заявителем.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Заявление отозвано заявителем: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Application withdrawn",
+          "body": "<p>Application withdrawn.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Application withdrawn: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Payment.Confirmed",
+      "name": "Plată confirmată",
+      "object": "Plată",
+      "dataSource": "Plată",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Plată confirmată",
+          "body": "<p>Plată confirmată.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Plată confirmată: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Оплата подтверждена",
+          "body": "<p>Оплата подтверждена.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Оплата подтверждена: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Payment confirmed",
+          "body": "<p>Payment confirmed.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Payment confirmed: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Payment.Reminder",
+      "name": "Reamintire plată",
+      "object": "Plată",
+      "dataSource": "Plată",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Reamintire plată",
+          "body": "<p>Reamintire plată.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Reamintire plată: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Напоминание об оплате",
+          "body": "<p>Напоминание об оплате.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Напоминание об оплате: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Payment reminder",
+          "body": "<p>Payment reminder.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Payment reminder: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Payment.Overdue",
+      "name": "Termen de plată depășit",
+      "object": "Plată",
+      "dataSource": "Plată",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        },
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Termen de plată depășit",
+          "body": "<p>Termen de plată depășit.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Termen de plată depășit: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Срок оплаты истёк",
+          "body": "<p>Срок оплаты истёк.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Срок оплаты истёк: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Payment overdue",
+          "body": "<p>Payment overdue.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Payment overdue: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Permit.Signed",
+      "name": "Act semnat",
+      "object": "Act permisiv",
+      "dataSource": "Act permisiv",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Specialist",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Act semnat",
+          "body": "<p>Act semnat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Act semnat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Документ подписан",
+          "body": "<p>Документ подписан.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Документ подписан: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Permit signed",
+          "body": "<p>Permit signed.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Permit signed: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Permit.Issued",
+      "name": "Act permisiv emis",
+      "object": "Act permisiv",
+      "dataSource": "Act permisiv",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Act permisiv emis",
+          "body": "<p>Act permisiv emis.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Act permisiv emis: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Разрешительный документ выдан",
+          "body": "<p>Разрешительный документ выдан.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Разрешительный документ выдан: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Permit issued",
+          "body": "<p>Permit issued.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Permit issued: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Permit.ExpiresSoon",
+      "name": "Actul expiră în curând",
+      "object": "Act permisiv",
+      "dataSource": "Act permisiv",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Actul expiră în curând",
+          "body": "<p>Actul expiră în curând.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Actul expiră în curând: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Срок действия документа истекает",
+          "body": "<p>Срок действия документа истекает.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Срок действия документа истекает: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Permit expiring soon",
+          "body": "<p>Permit expiring soon.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Permit expiring soon: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Permit.Suspended",
+      "name": "Act suspendat",
+      "object": "Act permisiv",
+      "dataSource": "Act permisiv",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Act suspendat",
+          "body": "<p>Act suspendat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Act suspendat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Документ приостановлен",
+          "body": "<p>Документ приостановлен.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Документ приостановлен: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Permit suspended",
+          "body": "<p>Permit suspended.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Permit suspended: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "Permit.Revoked",
+      "name": "Act retras",
+      "object": "Act permisiv",
+      "dataSource": "Act permisiv",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Solicitant",
+          "channels": [
+            "Email",
+            "MNotify"
+          ],
+          "delivery": "Email și MNotify",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Act retras",
+          "body": "<p>Act retras.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Act retras: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Документ отозван",
+          "body": "<p>Документ отозван.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Документ отозван: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Permit revoked",
+          "body": "<p>Permit revoked.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Permit revoked: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "User.AccountCreated",
+      "name": "Cont creat",
+      "object": "Utilizator",
+      "dataSource": "Utilizator",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Utilizator",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Cont creat",
+          "body": "<p>Cont creat.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Cont creat: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Учётная запись создана",
+          "body": "<p>Учётная запись создана.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Учётная запись создана: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Account created",
+          "body": "<p>Account created.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Account created: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
+    },
+    {
+      "code": "User.RoleAssigned",
+      "name": "Rol atribuit",
+      "object": "Utilizator",
+      "dataSource": "Utilizator",
+      "priority": "Normală",
+      "description": "",
+      "rules": [
+        {
+          "recipient": "Utilizator",
+          "channels": [
+            "Email"
+          ],
+          "delivery": "Email",
+          "active": true,
+          "separate": false
+        }
+      ],
+      "texts": {
+        "ro": {
+          "subject": "Rol atribuit",
+          "body": "<p>Rol atribuit.</p><p>Dosarul {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Rol atribuit: {{CaseNumber}}"
+        },
+        "ru": {
+          "subject": "Роль назначена",
+          "body": "<p>Роль назначена.</p><p>Дело {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Роль назначена: {{CaseNumber}}"
+        },
+        "en": {
+          "subject": "Role assigned",
+          "body": "<p>Role assigned.</p><p>Case {{CaseNumber}} · {{ServiceTitle}}</p>",
+          "plain": "Role assigned: {{CaseNumber}}"
+        }
+      },
+      "version": "v1.0.0",
+      "updatedAt": "2026-10-01T09:00:00",
+      "updatedBy": "",
+      "origin": "Sistem",
+      "active": true,
+      "unpublished": false,
+      "history": [
+        {
+          "version": "v1.0.0",
+          "at": "2026-10-01T09:00:00",
+          "by": "Sistem",
+          "note": "Versiune publicată"
+        }
+      ]
     }
   ]
 }

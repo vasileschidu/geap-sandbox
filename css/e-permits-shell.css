@@ -2373,6 +2373,13 @@ body {
   -webkit-mask-size: 20px 20px;
 }
 
+.e-permits-shell__nav--specialist [data-nav-id="notification-templates"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/notification.svg");
+  mask-size: 20px 20px;
+  -webkit-mask-image: url("../assets/icons/notification.svg");
+  -webkit-mask-size: 20px 20px;
+}
+
 .e-permits-shell__nav--specialist .e-permits-shell__nav-badge {
   display: none;
 }
@@ -2415,7 +2422,7 @@ body {
 .e-permits-workplace__header {
   display: grid;
   grid-template-columns: minmax(320px, max-content) minmax(0, 1fr);
-  grid-template-rows: 64px auto;
+  grid-template-rows: 64px auto auto;
   border-bottom: 0;
   background: var(--color-background-base-default, #fff);
   min-width: 0;
@@ -2556,39 +2563,22 @@ body {
   line-height: var(--line-height-lh-20, 20px);
 }
 
+/* "Filtrare avansată" is the library button (btn-neutral btn-sm, always grey, no local
+   colours / hover / focus) at the search field's VISIBLE height: the search is a 40px
+   box whose 1px line is drawn inside a 2px transparent border, so it reads as 36px */
 .e-permits-workplace__advanced {
+  flex: 0 0 auto;
   width: auto;
-  min-width: 158px;
-  max-width: 100%;
-  height: 32px;
-  padding: 0 12px 0 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
 }
 
-.e-permits-workplace__advanced:hover:not(:disabled) {
-  background: var(--color-background-base-secondary-hover, #e7e7e7);
-}
-
-.e-permits-workplace__advanced:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+.btn.btn-sm.e-permits-workplace__advanced {
+  height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
 }
 
 .e-permits-workplace__advanced .icon {
   width: 16px;
   height: 16px;
   flex: 0 0 16px;
-  color: var(--color-icon-base-default, #121212);
 }
 
 .e-permits-workplace__field-count {
@@ -2647,7 +2637,7 @@ body {
 
 .e-permits-workplace__status-tabs {
   grid-column: 1 / -1;
-  grid-row: 2;
+  grid-row: 3;
   box-sizing: border-box;
   height: 40px;
   padding: 0;
@@ -3711,6 +3701,10 @@ body.is-user-create-open {
   grid-column: span 6;
 }
 
+.e-permits-user-create__field--8 {
+  grid-column: span 8;
+}
+
 .e-permits-user-create__field--search {
   grid-column: span 6;
 }
@@ -3869,33 +3863,11 @@ body.is-user-create-open {
 
 /* drawer footer = the modal footer: 20 on every side, library .modal-buttons
    (40px pill buttons, 12px gap) */
-/* back office: controls read at 14/20, never 16 — the library checkbox and
-   switch default to 16px labels */
-.e-permits-user-create .checkbox .checkbox-label,
-.e-permits-user-create .switch .switch-label {
+/* back office: controls read at 14/20, never 16 — the library checkbox defaults to
+   16px labels (switches are the .e-permits-toggle component below) */
+.e-permits-user-create .checkbox .checkbox-label {
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-user-create .switch .switch-description {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-/* switch with a description = the Figma label pattern (radio-label / svc/switch-label):
-   default 48×28 track, 12px gap, label medium, track top-aligned with the label line
-   (4px nudge centres the 20px label line on the 28px track) */
-.e-permits-user-create .switch .switch-label {
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-.e-permits-user-create .switch .switch-wrapper:has(.switch-description) {
-  align-items: flex-start;
-  gap: var(--spacing-12, 12px);
-}
-.e-permits-user-create .switch .switch-wrapper:has(.switch-description) .switch-text {
-  padding-top: var(--spacing-4, 4px);
-  gap: var(--spacing-2, 2px);
 }
 
 .e-permits-user-create__footer {
@@ -3928,6 +3900,7 @@ body.is-user-create-open {
 
   .e-permits-user-create__field--4,
   .e-permits-user-create__field--6,
+  .e-permits-user-create__field--8,
   .e-permits-user-create__field--search {
     grid-column: span 12;
   }
@@ -3948,3 +3921,290 @@ body.is-user-create-open {
     animation: none;
   }
 }
+
+/* Șabloane de notificare: only the ID column is frozen — no divider after Denumire */
+.e-permits-workplace[data-registry-kind="ntpl"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="ntpl"] .e-permits-workplace__table td:nth-child(2) {
+  position: static;
+  left: auto;
+  z-index: auto;
+  border-right: 0;
+}
+
+
+/* ==========================================================================
+   Toggle — the one switch of the back office (renderToggle in e-permits-shell.js)
+   Tailwind "toggle with label on the right" geometry, our tokens and type:
+   44×24 track (2px inset, inset hairline), 20px white knob that slides 20px,
+   12px gap, label 14/20 medium over a 14/20 tertiary description; the track
+   sits on the label's first line. The checkbox covers the track (role="switch").
+   ========================================================================== */
+.e-permits-toggle {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-toggle__control {
+  background: var(--gray-250, #d9d9d9);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.05);
+  box-sizing: border-box;
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: var(--spacing-2, 2px);
+  position: relative;
+  transition: background-color 200ms ease-in-out;
+  width: calc(var(--spacing-20, 20px) * 2 + var(--spacing-4, 4px));
+}
+
+.e-permits-toggle__knob {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(17, 24, 39, 0.05);
+  height: var(--spacing-20, 20px);
+  /* clicks on the knob reach the switch input under it */
+  pointer-events: none;
+  transition: transform 200ms ease-in-out;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-toggle__input {
+  appearance: none;
+  cursor: pointer;
+  height: 100%;
+  inset: 0;
+  margin: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.e-permits-toggle__input:focus {
+  outline: none;
+}
+
+.e-permits-toggle__control:has(:checked) {
+  background: var(--color-background-brand-default, #0058d2);
+}
+
+.e-permits-toggle__control:has(:checked) .e-permits-toggle__knob {
+  transform: translateX(var(--spacing-20, 20px));
+}
+
+.e-permits-toggle__control:has(:focus-visible) {
+  outline: 2px solid var(--color-border-brand-default, #0058d2);
+  outline-offset: 2px;
+}
+
+.e-permits-toggle__control:has(:disabled) {
+  opacity: 0.5;
+}
+
+.e-permits-toggle__input:disabled {
+  cursor: not-allowed;
+}
+
+.e-permits-toggle__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-toggle__label {
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  margin: 0;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-toggle__description {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-toggle__control,
+  .e-permits-toggle__knob {
+    transition: none;
+  }
+}
+
+/* ---- Advanced filter (faceted): bar of facet chips under the toolbar, a checklist
+   popover per chip with live counts, staged until "Aplică" ---- */
+.e-permits-workplace__filters {
+  align-items: flex-start;
+  background: var(--color-background-base-default, #fff);
+  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  grid-column: 1 / -1;
+  grid-row: 2;
+  justify-content: space-between;
+  min-width: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-workplace__filters[hidden] {
+  display: none;
+}
+
+.e-permits-workplace__filter-chips {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+/* Figma filter-chip (GEAP 244:14334): library .chip at 40px, 14/20 medium (user),
+   16 left / 12 right, 6 between label, numbered badge and the 20px chevron */
+.chip.e-permits-workplace__filter-chip {
+  background-color: var(--color-background-base-tertiary, #f1f1f1);
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-40, 40px);
+  line-height: var(--line-height-lh-20, 20px);
+  max-width: 320px;
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-16, 16px);
+}
+
+.chip.e-permits-workplace__filter-chip.is-selected {
+  background-color: var(--color-background-base-inverse-default, #1e1e1e);
+  border-color: var(--color-background-base-inverse-default, #1e1e1e);
+}
+
+.e-permits-workplace__filter-chip .badge {
+  flex: 0 0 auto;
+}
+
+.e-permits-workplace__filter-chip .chip__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-workplace__filter-caret {
+  flex: 0 0 auto;
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+/* stays on the first chip line when the chips wrap */
+.e-permits-workplace__filter-meta {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+  min-height: var(--spacing-40, 40px);
+}
+
+.e-permits-workplace__filter-result,
+.e-permits-workplace__filter-hint {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: nowrap;
+}
+
+.e-permits-workplace__advanced .badge {
+  margin-left: var(--spacing-4, 4px);
+}
+
+/* popover: Figma contextual-menu (GEAP 244:15994) — 270 wide, radius 16, options
+   16/24 left-right padding, 12 vertical, checkbox + value (status values as tags),
+   footer with a top border: Confirmă · Șterge, right-aligned */
+.e-permits-fo-intent-menu.e-permits-workplace__filter-pop {
+  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15), 0 5px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.08);
+  gap: 0;
+  max-height: min(440px, calc(100vh - 120px));
+  overflow: hidden;
+  padding: 0;
+  position: fixed;
+  right: auto;
+  top: 0;
+  width: 270px;
+  z-index: 1000;
+}
+
+.e-permits-workplace__filter-pop[hidden] {
+  display: none;
+}
+
+.e-permits-workplace__filter-head {
+  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) 0;
+}
+
+.e-permits-workplace__filter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  list-style: none;
+  margin: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-8, 8px);
+}
+
+.e-permits-workplace__filter-option,
+.e-permits-workplace__filter-more-item {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-10, 10px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-workplace__filter-option:hover,
+.e-permits-workplace__filter-more-item:hover,
+.e-permits-workplace__filter-more-item:focus-visible {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-workplace__filter-more-item:focus-visible {
+  outline: 2px solid var(--color-border-brand-default, #0058d2);
+  outline-offset: -2px;
+}
+
+.e-permits-workplace__filter-option .checkbox {
+  flex: 0 0 auto;
+}
+
+.e-permits-workplace__filter-option-label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-workplace__filter-empty {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-workplace__filter-footer {
+  align-items: center;
+  border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-12, 12px);
+  justify-content: flex-end;
+  padding: var(--spacing-8, 8px);
+}
+

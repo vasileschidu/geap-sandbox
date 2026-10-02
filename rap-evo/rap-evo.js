@@ -262,13 +262,12 @@
 
     elements.profileView.innerHTML = `
       <div class="rap-profile__container">
-        <nav class="rap-breadcrumbs rap-profile__breadcrumbs" aria-label="Breadcrumb">
-          <a href="../index.html">Acasă</a>
-          ${icon("chevron-right-small")}
-          <a href="#">Resurse utile</a>
-          ${icon("chevron-right-small")}
-          <button type="button" data-rap-profile-back>Registrul actelor permisive</button>
-          ${icon("chevron-right-small")}
+        <nav class="breadcrumbs breadcrumbs--trailing rap-breadcrumbs rap-profile__breadcrumbs" aria-label="Breadcrumb">
+          <ol class="breadcrumbs__list">
+            <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="../index.html">Acasă</a></li>
+            <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="#">Resurse utile</a></li>
+            <li class="breadcrumbs__item"><button class="breadcrumbs__link" type="button" data-rap-profile-back>Registrul actelor permisive</button></li>
+          </ol>
         </nav>
 
         <section class="rap-profile__hero" aria-labelledby="rap-profile-title">

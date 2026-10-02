@@ -119,6 +119,7 @@
     const rangeEnd = state.rangeEnd || "";
     const selected = state.selected || "";
     const today = state.today || "";
+    const min = state.min || "";
 
     container.innerHTML = "";
     for (let i = 0; i < totalCells; i += 1) {
@@ -155,6 +156,11 @@
 
       if (isOutside) {
         button.classList.add("is-outside");
+        button.disabled = true;
+      }
+
+      /* data-min="YYYY-MM-DD": earlier days cannot be picked */
+      if (min && isoDate < min) {
         button.disabled = true;
       }
 
@@ -205,6 +211,7 @@
       rangeStart: picker.dataset.rangeStart || "",
       rangeEnd: picker.dataset.rangeEnd || "",
       today: picker.dataset.today || toISODate(now.getFullYear(), now.getMonth(), now.getDate()),
+      min: picker.dataset.min || "",
       yearRangeStart: null,
       months: picker.dataset.locale === "ro" ? monthsRo : months
     };
