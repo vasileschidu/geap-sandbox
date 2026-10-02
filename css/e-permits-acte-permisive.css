@@ -18623,7 +18623,9 @@
 .e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table th:nth-child(1),
 .e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(1),
-.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1) {
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1),
+.e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table td:nth-child(1) {
   left: 0;
   position: sticky;
   z-index: 7;
@@ -18633,7 +18635,9 @@
 .e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table th:nth-child(1),
 .e-permits-workplace[data-registry-kind="services"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(1),
-.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1) {
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1),
+.e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table td:nth-child(1) {
   border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
@@ -18642,7 +18646,9 @@
 .e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table th:nth-child(2),
 .e-permits-workplace[data-registry-kind="authorities"] .e-permits-workplace__table td:nth-child(2),
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(2),
-.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(2) {
+.e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(2),
+.e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table td:nth-child(2) {
   border-right: 0;
   left: auto;
   position: static;
@@ -20649,4 +20655,161 @@
 
 .e-permits-clas-grid__table td .e-permits-workplace__case-cell > .e-permits-clas-grid__text {
   max-width: 100%;
+}
+
+/* catalogue name cell: name over description, each line truncated with an ellipsis;
+   the full text shows in the cell tooltip (js/table-cells.js) when it is clipped */
+.e-permits-clas-cell {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-clas-cell > .e-permits-clas-grid__text {
+  max-width: 100%;
+}
+
+.e-permits-clas-cell__desc {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* ===== Clasificator nou — wide drawer: full-flow stepper rail + step content ===== */
+.e-permits-clas-create {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-32, 32px);
+  grid-template-columns: 200px minmax(0, 1fr);
+}
+
+.e-permits-clas-create__steps {
+  position: sticky;
+  top: 0;
+}
+
+.e-permits-clas-create__steps button.e-permits-fo-stepper__row:focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-clas-create__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  min-width: 0;
+}
+
+.e-permits-clas-create__label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-clas-create__muted {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-clas-create__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6, 6px);
+}
+
+/* extra columns editor: name · type · settings · remove */
+.e-permits-clas-create__cols {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-clas-create__col-row {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-12, 12px);
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1.2fr) 32px;
+}
+
+.e-permits-clas-create__col-row > .e-permits-workplace__icon-action {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-clas-create__col-row .e-permits-clas-create__muted {
+  line-height: 40px;
+}
+
+.e-permits-clas-create__col-head {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* link to the source + connection test on one line */
+.e-permits-clas-create__link-row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-clas-create__link-row > .e-permits-fo-input {
+  flex: 1 1 auto;
+}
+
+.e-permits-clas-create__link-row > .btn {
+  flex: 0 0 auto;
+}
+
+.e-permits-clas-create__map td {
+  vertical-align: middle;
+}
+
+.e-permits-clas-create__map td:last-child {
+  width: 50%;
+}
+
+@media (max-width: 860px) {
+  .e-permits-clas-create {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-clas-create__steps {
+    position: static;
+  }
+
+  .e-permits-clas-create__col-row {
+    grid-template-columns: minmax(0, 1fr) 32px;
+  }
+
+  .e-permits-clas-create__col-head {
+    display: none;
+  }
+}
+
+.e-permits-clas-source-link {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-clas-source-link > .link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* success variant of the field message — Figma text-input Style=Success */
+.message--inline.e-permits-fo-field__success {
+  color: var(--color-text-positive-default, #027948);
+}
+
+.message--inline.e-permits-fo-field__success .icon {
+  color: var(--color-icon-positive-default, #039855);
 }

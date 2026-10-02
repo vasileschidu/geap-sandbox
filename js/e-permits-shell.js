@@ -7012,8 +7012,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const clasCanEditStructure = (c) => c.status !== "archived" && clasPerm.canEditStructure(clasRole().id === "adm-c" ? "adm-c" : "adm-l");
   const clasReadOnlyReason = (c) => {
-    if (c.status === "archived") return "Clasificatorul este arhivat: nu se mai modifică. Republică-l ca să-l poți edita.";
-    if (clasRole().id === "adm-l" && !c.localAdminManageable) return "Administratorul central gestionează acest clasificator (alimentează procese, termene sau validări). Îl poți doar consulta.";
+    if (c.status === "archived") return "Clasificatorul este arhivat și nu se mai modifică. Republică-l ca să-l poți edita.";
+    if (clasRole().id === "adm-l" && !c.localAdminManageable) return "Administratorul central gestionează acest clasificator, pentru că alimentează procese, termene sau validări.";
     return "";
   };
   const clasScope = (c) => clasCore.scopeOf(c);
@@ -7104,9 +7104,9 @@ document.addEventListener("DOMContentLoaded", () => {
     switch (key) {
       /* name over its description, as the registries' two-line ID cell */
       case "denumire": return `
-        <div class="e-permits-workplace__case-cell">
-          <span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
-          ${row.descriere ? `<span class="e-permits-workplace__source" data-cell-tooltip="${escapeHtml(row.descriere)}"><span>${escapeHtml(row.descriere)}</span></span>` : ""}
+        <div class="e-permits-workplace__case-cell e-permits-clas-cell">
+          <span class="e-permits-passport__name e-permits-clas-grid__text" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
+          ${row.descriere ? `<span class="e-permits-clas-grid__text e-permits-clas-cell__desc" data-cell-tooltip="${escapeHtml(row.descriere)}">${escapeHtml(row.descriere)}</span>` : ""}
         </div>`;
       case "domeniu": { const scope = Object.values(CLAS_SCOPE).find(([l]) => l === row.domeniu); return renderTag(row.domeniu, scope?.[1] || "neutral"); }
       case "utilizat": return row.utilizat.unused ? '<span class="e-permits-workplace__dash">Neutilizat</span>' : `
@@ -7187,7 +7187,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clasProfileSummary.innerHTML = renderPageHeaderMeta([
       ["Domeniu", renderTag(scope[0], scope[1])],
       ["Familie", escapeHtml(CLAS_FAMILY[c.familie] || c.familie)],
-      ["Sursă", escapeHtml(CLAS_SOURCE[c.sursa] || c.sursa)],
+      ["Sursă", c.endpoint ? `${escapeHtml(CLAS_SOURCE[c.sursa] || c.sursa)} · <a class="link link-primary link-sm" href="${escapeHtml(c.endpoint)}" target="_blank" rel="noopener">Deschide sursa ↗</a>` : escapeHtml(CLAS_SOURCE[c.sursa] || c.sursa)],
       ["Versiune", `v${escapeHtml(c.versiune)}`],
       ["Statut", renderTag(CLAS_STATUS[c.status][0], CLAS_STATUS[c.status][1])],
       ["Autoritate", escapeHtml(c.autoritate ? CLAS_AUTHORITY[c.autoritate]?.[1] || c.autoritate : "Toate autoritățile")]
@@ -7200,10 +7200,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   };
 
+  /* "cannot be edited here" notice: amber banner with a lock, so read-only reads as a
+     restriction, not as information (archived, local admin without the right, values
+     from MConnect/API, structure reserved to the central admin) */
+  const clasLockNotice = (html) => `<div class="message message--subtle banner--warning e-permits-clas-banner e-permits-clas-lock"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg></span><div class="banner__content"><p class="banner__text">${html}</p></div></div>`;
+
   /* state notices: read-only, draft over published, never published */
   const renderClassifierNotice = (c) => {
     const ro = clasReadOnlyReason(c);
-    if (ro) return renderInfoNote(escapeHtml(ro));
+    if (ro) return clasLockNotice(`<strong>Doar consultare.</strong> ${escapeHtml(ro)}`);
     if (c.status === "draft" && c.publishedSnapshot) {
       const ch = clasCore.draftChanges(c);
       const parts = [ch.added && plural(ch.added, "valoare nouă", "valori noi"), ch.changed && plural(ch.changed, "modificată", "modificate"), ch.deactivated && plural(ch.deactivated, "dezactivată", "dezactivate"), ch.structure && "structură modificată"].filter(Boolean);
@@ -7318,7 +7323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const colSpan = cols.length + (editable ? 2 : 0);
     const body = rows.length ? rows.map(row).join("") : `<tr class="e-permits-clas-grid__empty-row"><td colspan="${colSpan}"><div class="e-permits-clas-empty">${q || clasState.activity !== "all" ? "Nicio valoare nu corespunde căutării." : "Clasificatorul nu are încă valori."}${editable && !q && clasState.activity === "all" ? ' <button class="btn btn-text-primary btn-sm" type="button" data-clas-grid-add>Adaugă prima valoare</button>' : ""}</div></td></tr>`;
     const sample = (c.nrValori || 0) > all.length;
-    const note = c.sursa === "mconnect" ? renderInfoNote("Valorile vin din MConnect: se actualizează prin sincronizare, nu manual. Valorile care lipsesc din răspuns se dezactivează automat.") : c.sursa === "api" ? renderInfoNote("Valorile vin din API-ul extern: se actualizează prin sincronizare, nu manual.") : "";
+    const note = clasReadOnlyReason(c) ? "" : c.sursa === "mconnect" ? clasLockNotice("<strong>Valorile nu se editează manual.</strong> Vin din MConnect și se actualizează prin sincronizare; valorile care lipsesc din răspuns se dezactivează automat.") : c.sursa === "api" ? clasLockNotice("<strong>Valorile nu se editează manual.</strong> Vin din API-ul extern și se actualizează prin sincronizare.") : "";
     return `
       <div class="e-permits-clas-grid">
         ${note ? `<div class="e-permits-clas-grid__notice">${note}</div>` : ""}
@@ -7431,7 +7436,7 @@ document.addEventListener("DOMContentLoaded", () => {
       plainTitle: f.label,
       actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">Editează</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">Elimină</button>` : ""
     }));
-    const lock = !structure ? renderInfoNote(c.status === "archived" ? "Structura unui clasificator arhivat nu se modifică." : "Doar administratorul central modifică structura (coloanele).") : "";
+    const lock = !structure && !clasReadOnlyReason(c) ? clasLockNotice("<strong>Structura nu se editează aici.</strong> Doar administratorul central adaugă sau modifică coloane.") : "";
     return `${lock}${renderStackedList("Coloane", [{ label: "Standard", items: items.filter((_, i) => fields[i].implicit) }, { label: "Suplimentare", items: items.filter((_, i) => !fields[i].implicit) }].filter((g) => g.items.length), { meta: `Format ID: ${escapeHtml(c.idFormat || classifiersStore.fieldTypes.defaults.idFormat)} · denumiri max. ${c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri} caractere` })}
       ${structure ? '<div class="e-permits-clas-add-row"><button class="btn btn-secondary btn-sm" type="button" data-clas-field-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă coloană</span></button></div>' : ""}`;
   };
@@ -7440,7 +7445,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const last = (c.jurnal || []).find((e) => /Sincronizare/.test(e.type));
     return `${renderPassportBlock("Sursă", [
       ["Mod", escapeHtml(c.mod === "mconnect" ? "Sincronizare MConnect" : "API extern")],
-      ["Endpoint", c.endpoint ? renderCopyCode(c.endpoint, `Copiază ${c.endpoint}`) : "—"],
+      ["Link la sursă", c.endpoint ? `<span class="e-permits-clas-source-link"><a class="link link-primary link-sm" href="${escapeHtml(c.endpoint)}" target="_blank" rel="noopener">${escapeHtml(c.endpoint)} ↗</a>${clasIconAction("copy", "Copiază linkul", `data-shell-copy-value="${escapeHtml(c.endpoint)}"`)}</span>` : "—"],
       ["Ultima sincronizare", last ? `${escapeHtml(formatStamp(last.at))} · ${escapeHtml(last.user)}` : "—"],
       ["La lipsa unei valori", "Se dezactivează automat (rămâne în înregistrările existente)"]
     ], { actionHtml: clasCanEdit(c) ? '<button class="btn btn-secondary btn-sm" type="button" data-clas-sync>Sincronizează acum</button>' : "" })}
@@ -7742,6 +7747,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const openClasDrawer = (state) => {
     clasDrawerState = state;
     clasDrawerReturn = document.activeElement;
+    clasDrawer.classList.toggle("e-permits-user-create--wide", state.mode === "create");
     (state.mode === "value" ? renderValueDrawer : renderCreateDrawer)();
     clasDrawer.hidden = false;
     document.body.classList.add("is-user-create-open");
@@ -7754,117 +7760,331 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => { clasDrawer.hidden = true; clasDrawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); clasDrawerState = null; clasDrawerReturn?.focus?.(); }, 120);
   };
 
-  /* ---- create wizard (2 steps) ---- */
-  const renderCreateDrawer = () => {
-    const s = clasDrawerState, d = s.values, e = s.errors;
-    const role = clasRole();
+  /* ---- create wizard: wide right drawer, 4 steps (full-flow stepper on the left) ----
+     1 Date generale  name, description, family, where it applies, starting point
+     2 Structură      standard columns (locked) + extra columns, ID format, parent, access
+     3 Valori         source: Intern (none / CSV checked against step 2 / copy subset)
+                      or MConnect / API (link to the source, connection test, mapping)
+     4 Revizuire      summary per step with "Modifică", then "Creează ciorna"
+     Visited steps stay clickable; closing with data asks first. */
+  const CLAS_CREATE_STEPS = ["Date generale", "Structură", "Valori", "Revizuire"];
+  const clasSnake = (label) => clasCore.normName(label).replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  const clasCamel = (label) => clasSnake(label).replace(/_(.)/g, (_, ch) => ch.toUpperCase());
+  const clasCreateExtras = (d) => d.extras.filter((x) => x.label.trim()).map((x) => ({ id: x.id || clasCamel(x.label), label: x.label.trim(), tip: x.tip, ...(x.cfg ? { cfg: x.cfg } : {}) }));
+  const clasCreateDraftClassifier = (d) => ({ parintId: d.parintId || null, campuriExtra: clasCreateExtras(d), idFormat: d.idFormat, limitaDenumiri: classifiersStore.fieldTypes.defaults.limitaDenumiri });
+  const clasCreateColumns = (d) => clasCore.fieldsOf(clasCreateDraftClassifier(d), classifiersStore.fieldTypes);
+  const clasIsHttps = (url) => /^https:\/\/[^\s/$.?#].[^\s]*$/i.test(String(url || "").trim());
+
+  const clasSegmented = (name, label, options, value, { disabled = false, hint = "", required = true } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+      <label id="clas-c-${name}-l">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <div class="segmented-control" role="radiogroup" aria-labelledby="clas-c-${name}-l"${hint ? ` aria-describedby="clas-c-${name}-h"` : ""}>${options.map(([v, l]) => `<button class="segment-item${value === v ? " is-selected" : ""}" type="button" role="radio" aria-checked="${value === v}" data-clas-create-choice="${name}" data-value="${v}"${disabled ? " disabled" : ""}>${l}</button>`).join("")}</div>
+      ${hint ? `<p class="e-permits-fo-field__hint" id="clas-c-${name}-h">${hint}</p>` : ""}
+    </div>`;
+  const clasCreateSection = (title, body) => `<section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">${escapeHtml(title)}</h3><div class="e-permits-user-create__section-content">${body}</div></section>`;
+
+  const renderCreateStepper = (s) => `
+    <nav class="e-permits-fo-stepper e-permits-clas-create__steps" aria-label="Pașii creării">
+      <ol>
+        ${CLAS_CREATE_STEPS.map((label, i) => {
+          const n = i + 1, active = n === s.step, done = n < s.step || (n <= s.maxStep && !active);
+          const inner = `<span class="e-permits-fo-stepper__number"><span class="e-permits-fo-stepper__number-text">${n}</span><svg class="icon e-permits-fo-stepper__check" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span><span class="e-permits-fo-stepper__label">${label}</span>`;
+          return `<li class="e-permits-fo-stepper__item${active ? " is-active" : done ? " is-completed" : ""}"${active ? ' aria-current="step"' : ""}>
+            <span class="e-permits-fo-stepper__connector" aria-hidden="true"></span>
+            ${n <= s.maxStep && !active ? `<button class="e-permits-fo-stepper__row" type="button" data-clas-create-goto="${n}">${inner}</button>` : `<span class="e-permits-fo-stepper__row">${inner}</span>`}
+          </li>`;
+        }).join("")}
+      </ol>
+    </nav>`;
+
+  const renderCreateStep1 = (s) => {
+    const d = s.values, e = s.errors, role = clasRole();
     const sources = clasList().filter(clasVisible).filter((c) => c.status !== "draft");
-    const copyFrom = d.copiatDinId ? getClassifier(d.copiatDinId) : null;
-    clasDrawer.querySelector("[data-clas-drawer-title]").textContent = "Clasificator nou";
-    clasDrawer.querySelector("[data-clas-drawer-subtitle]").textContent = `Pasul ${s.step} din 2 · ${s.step === 1 ? "Date generale" : d.sursa === "intern" ? (copyFrom ? "Valori copiate" : "Valori") : "Mapare"}`;
-    const chips = (name, label, options, value, disabled = false, hint = "") => `
-      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
-        <label id="clas-c-${name}-l">${escapeHtml(label)}${requiredMark()}</label>
-        <div class="segmented-control" role="radiogroup" aria-labelledby="clas-c-${name}-l"${hint ? ` aria-describedby="clas-c-${name}-h"` : ""}>${options.map(([v, l]) => `<button class="segment-item${value === v ? " is-selected" : ""}" type="button" role="radio" aria-checked="${value === v}" data-clas-create-choice="${name}" data-value="${v}"${disabled ? " disabled" : ""}>${l}</button>`).join("")}</div>
-        ${hint ? `<p class="e-permits-fo-field__hint" id="clas-c-${name}-h">${hint}</p>` : ""}
-      </div>`;
+    const services = (servicesStore?.services || []).filter((sv) => sv.authorityId === `aut-${d.autoritate}`).map((sv) => sv.title);
+    const svcOptions = [...new Set([...services, ...clasList().filter((c) => c.autoritate === d.autoritate).flatMap((c) => c.servicii || [])])];
     const categoryHint = role.id !== "adm-c" ? "Administratorul local creează doar clasificatoare pentru autoritatea sa."
-      : d.categorie === "global" ? "Poate fi folosit de toate autoritățile și serviciile platformei."
-      : "Poate fi folosit doar de serviciile alese ale unei autorități.";
-    const sourceHint = { intern: "Valorile se adaugă manual sau prin import CSV.", mconnect: "Valorile se preiau și se actualizează automat din MConnect.", api: "Valorile se preiau dintr-un serviciu extern, la sincronizare." }[d.sursa];
-    if (s.step === 1) {
-      const services = (servicesStore?.services || []).filter((sv) => sv.authorityId === `aut-${d.autoritate}`).map((sv) => sv.title);
-      const svcOptions = [...new Set([...services, ...clasList().filter((c) => c.autoritate === d.autoritate).flatMap((c) => c.servicii || [])])];
-      clasDrawerBody.innerHTML = `
-        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Identificare</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
-          ${clasInput("clas-c-name", "denumire", d.denumire, { label: "Denumire", required: true, errors: e, attr: "data-clas-create", hint: "Ex. Motive de suspendare — ANSP" })}
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-desc">Descriere</label><div class="e-permits-fo-textarea"><textarea id="clas-c-desc" rows="2" data-clas-create="descriere">${escapeHtml(d.descriere)}</textarea></div><p class="e-permits-fo-field__hint">Ce conține și cine îl folosește.</p></div>
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><label for="clas-c-family">Familie${requiredMark()}</label>${renderFoSelectControl({ id: "clas-c-family", attrs: 'data-clas-create="familie"', optionsHtml: Object.entries(CLAS_FAMILY).map(([v, l]) => `<option value="${v}"${d.familie === v ? " selected" : ""}>${l}</option>`).join("") })}</div>
-        </div></div></section>
-        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Unde se aplică</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
-          ${chips("categorie", "Categorie", [["global", "Global"], ["specific", "Specific unei autorități"]], d.categorie, role.id !== "adm-c", categoryHint)}
-          ${d.categorie === "specific" ? `
-            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-auth">Autoritate${requiredMark()}</label>${renderFoSelectControl({ id: "clas-c-auth", attrs: 'data-clas-create="autoritate"', disabled: role.id !== "adm-c", optionsHtml: Object.entries(CLAS_AUTHORITY).map(([v, [s1, l]]) => `<option value="${v}"${d.autoritate === v ? " selected" : ""}>${s1} — ${l}</option>`).join("") })}</div>
-            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><span class="e-permits-fo-field__label-row"><label>Servicii${requiredMark()}</label></span>
-              <div class="e-permits-clas-checklist">${svcOptions.map((sv) => `<label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(sv)}"${d.servicii.includes(sv) ? " checked" : ""} data-clas-create-service><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(sv)}</span></span></label>`).join("")}</div>
-              ${clasFieldError(e, "servicii")}<p class="e-permits-fo-field__hint"${e.servicii ? " hidden" : ""}>Un serviciu = domeniu „Serviciu”; mai multe = „Autoritate”.</p>
-            </div>` : ""}
-        </div></div></section>
-        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Sursa valorilor</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
-          ${chips("sursa", "Sursă", [["intern", "Intern"], ["mconnect", "MConnect"], ["api", "API extern"]], d.sursa, false, sourceHint)}
-          ${d.sursa === "intern" ? `<div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-copy">Pornește de la un clasificator existent</label>${renderFoSelectControl({ id: "clas-c-copy", attrs: 'data-clas-create="copiatDinId"', optionsHtml: [["", "Nu — încep de la zero"], ...sources.map((c) => [c.id, c.denumire])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(d.copiatDinId || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}<p class="e-permits-fo-field__hint">Se copiază valorile alese; copia nu se sincronizează cu originalul.</p></div>` : ""}
-        </div></div></section>`;
-    } else if (d.sursa === "intern" && copyFrom) {
+      : d.categorie === "global" ? "Poate fi folosit de toate autoritățile și serviciile platformei." : "Poate fi folosit doar de serviciile alese ale unei autorități.";
+    return `
+      ${clasCreateSection("Identificare", `<div class="e-permits-user-create__grid">
+        ${clasInput("clas-c-name", "denumire", d.denumire, { label: "Denumire", required: true, errors: e, attr: "data-clas-create", hint: "Ex. Motive de suspendare — ANSP" })}
+        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-desc">Descriere</label><div class="e-permits-fo-textarea"><textarea id="clas-c-desc" rows="2" data-clas-create="descriere">${escapeHtml(d.descriere)}</textarea></div><p class="e-permits-fo-field__hint">Ce conține și cine îl folosește.</p></div>
+        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><label for="clas-c-family">Familie${requiredMark()}</label>${renderFoSelectControl({ id: "clas-c-family", attrs: 'data-clas-create="familie"', optionsHtml: Object.entries(CLAS_FAMILY).map(([v, l]) => `<option value="${v}"${d.familie === v ? " selected" : ""}>${l}</option>`).join("") })}</div>
+      </div>`)}
+      ${clasCreateSection("Unde se aplică", `<div class="e-permits-user-create__grid">
+        ${clasSegmented("categorie", "Categorie", [["global", "Global"], ["specific", "Specific unei autorități"]], d.categorie, { disabled: role.id !== "adm-c", hint: categoryHint })}
+        ${d.categorie === "specific" ? `
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-auth">Autoritate${requiredMark()}</label>${renderFoSelectControl({ id: "clas-c-auth", attrs: 'data-clas-create="autoritate"', disabled: role.id !== "adm-c", optionsHtml: Object.entries(CLAS_AUTHORITY).map(([v, [s1, l]]) => `<option value="${v}"${d.autoritate === v ? " selected" : ""}>${s1} — ${l}</option>`).join("") })}</div>
+          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><span class="e-permits-fo-field__label-row"><label>Servicii${requiredMark()}</label></span>
+            <div class="e-permits-clas-checklist">${svcOptions.map((sv) => `<label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(sv)}"${d.servicii.includes(sv) ? " checked" : ""} data-clas-create-service><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(sv)}</span></span></label>`).join("")}</div>
+            ${clasFieldError(e, "servicii")}<p class="e-permits-fo-field__hint"${e.servicii ? " hidden" : ""}>Un serviciu = domeniu „Serviciu”; mai multe = „Autoritate”.</p>
+          </div>` : ""}
+      </div>`)}
+      ${clasCreateSection("Punct de plecare", `<div class="e-permits-user-create__grid">
+        ${clasSegmented("start", "Pornești de la", [["zero", "Zero"], ["copy", "Copia unui clasificator existent"]], d.start, { hint: d.start === "copy" ? "Se preiau coloanele și valorile alese. Copia nu se sincronizează cu originalul." : "Definești coloanele și valorile în pașii următori." })}
+        ${d.start === "copy" ? `<div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-copy">Clasificator sursă${requiredMark()}</label><div class="${e.copiatDinId ? "is-error-wrap" : ""}">${renderFoSelectControl({ id: "clas-c-copy", attrs: 'data-clas-create="copiatDinId"', optionsHtml: [["", "Alege clasificatorul"], ...sources.map((c) => [c.id, `${c.denumire} · ${clasNumber(c.nrValori)} valori`])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(d.copiatDinId || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}</div>${clasFieldError(e, "copiatDinId")}</div>` : ""}
+      </div>`)}`;
+  };
+
+  const renderCreateStep2 = (s) => {
+    const d = s.values, e = s.errors, central = clasRole().id === "adm-c";
+    const standard = classifiersStore.fieldTypes.defaults.fields;
+    const parents = clasList().filter((c) => c.status !== "archived" && clasVisible(c));
+    const types = classifiersStore.fieldTypes.fieldTypes;
+    const rows = d.extras.map((x, i) => `
+      <div class="e-permits-clas-create__col-row">
+        <div class="e-permits-fo-field"><div class="e-permits-fo-input${e[`x${i}label`] ? " is-error" : ""}"><input type="text" value="${escapeHtml(x.label)}" placeholder="Ex. Termen de examinare (zile)" aria-label="Denumirea coloanei ${i + 1}" data-clas-x="label" data-index="${i}" autocomplete="off"></div>${clasFieldError(e, `x${i}label`)}</div>
+        <div class="e-permits-fo-field">${renderFoSelectControl({ id: `clas-c-x${i}-tip`, attrs: `data-clas-x="tip" data-index="${i}" aria-label="Tipul coloanei ${i + 1}"`, optionsHtml: types.map((t) => `<option value="${escapeHtml(t)}"${x.tip === t ? " selected" : ""}>${escapeHtml(t)}</option>`).join("") })}</div>
+        <div class="e-permits-fo-field">${x.tip === "Selecție" ? `<div class="e-permits-fo-input${e[`x${i}cfg`] ? " is-error" : ""}"><input type="text" value="${escapeHtml(x.cfg || "")}" placeholder="Opțiuni: anual / 2 ani / 3 ani" aria-label="Opțiunile coloanei ${i + 1}" data-clas-x="cfg" data-index="${i}" autocomplete="off"></div>${clasFieldError(e, `x${i}cfg`)}`
+          : x.tip === "Referință clasificator" ? `${renderFoSelectControl({ id: `clas-c-x${i}-ref`, attrs: `data-clas-x="cfg" data-index="${i}" aria-label="Clasificatorul referit de coloana ${i + 1}"`, optionsHtml: [["", "Alege clasificatorul"], ...parents.map((c) => [c.denumire, c.denumire])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(x.cfg || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}${clasFieldError(e, `x${i}cfg`)}`
+          : '<span class="e-permits-clas-create__muted">Fără setări</span>'}</div>
+        ${clasIconAction("delete", "Elimină coloana", `data-clas-x-remove="${i}"`)}
+      </div>`).join("");
+    return `
+      ${clasCreateSection("Coloane", `
+        <p class="e-permits-clas-create__label">Standard <span class="e-permits-clas-create__muted">· au toate clasificatoarele, nu se pot elimina</span></p>
+        <div class="e-permits-clas-create__tags">${standard.map((f) => renderTag(`${f.label}${f.obligatoriu || f.id === "cod" ? " *" : ""}`, "neutral")).join("")}${d.parintId ? renderTag("Valoare-părinte", "info") : ""}</div>
+        <p class="e-permits-clas-create__label">Suplimentare <span class="e-permits-clas-create__muted">· apar în tabelul de valori, pentru fiecare valoare</span></p>
+        ${d.extras.length ? `<div class="e-permits-clas-create__cols"><div class="e-permits-clas-create__col-row e-permits-clas-create__col-head" aria-hidden="true"><span>Denumire coloană</span><span>Tip</span><span>Setări</span><span></span></div>${rows}</div>` : '<p class="e-permits-clas-create__muted">Nicio coloană suplimentară. Adaugă doar ce trebuie păstrat la fiecare valoare (ex. termen, frecvență, cod extern).</p>'}
+        <div><button class="btn btn-secondary btn-sm" type="button" data-clas-x-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă coloană</span></button></div>`)}
+      ${clasCreateSection("Format și ierarhie", `<div class="e-permits-user-create__grid">
+        ${clasSegmented("idFormat", "Format cod", [["INT", "Număr (INT)"], ["UID", "Cod unic (UID)"]], d.idFormat, { hint: d.idFormat === "INT" ? "Codurile sunt numere: 1, 2, 1001." : "Codurile pot conține litere și cifre: MD, R1, A-01." })}
+        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-parent">Clasificator-părinte</label>${renderFoSelectControl({ id: "clas-c-parent", attrs: 'data-clas-create="parintId"', optionsHtml: [["", "Fără părinte"], ...parents.map((c) => [c.id, c.denumire])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(d.parintId || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}<p class="e-permits-fo-field__hint">Opțional. Legătură vie: fiecare valoare va indica o valoare din clasificatorul-părinte.</p></div>
+      </div>`)}
+      ${central ? clasCreateSection("Acces", `<div class="e-permits-clas-form">
+        ${renderToggle({ label: "Critic pentru proces", description: "Alimentează procese, termene (SLA) sau validări. Rămâne la administratorul central.", checked: d.criticProces, attrs: 'data-clas-create-toggle="criticProces"' })}
+        ${renderToggle({ label: "Administratorul local poate modifica valorile", description: d.categorie !== "specific" ? "Doar pentru clasificatoarele specifice unei autorități." : d.criticProces ? "Indisponibil: clasificatorul este critic pentru proces." : "Structura rămâne la administratorul central.", checked: d.localAdminManageable, attrs: 'data-clas-create-toggle="localAdminManageable"', disabled: d.categorie !== "specific" || d.criticProces })}
+      </div>`) : ""}`;
+  };
+
+  const renderCreateStep3 = (s) => {
+    const d = s.values, e = s.errors;
+    const copyFrom = d.start === "copy" ? getClassifier(d.copiatDinId) : null;
+    if (copyFrom) {
       const vals = copyFrom.valori || [];
-      clasDrawerBody.innerHTML = `
-        <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Valori de copiat din „${escapeHtml(copyFrom.denumire)}”</h3><div class="e-permits-user-create__section-content">
-          <div class="e-permits-clas-subset__bar"><span>${s.subset.size} din ${vals.length} selectate</span><button class="btn btn-text-primary btn-sm" type="button" data-clas-subset-all>${s.subset.size === vals.length ? "Deselectează tot" : "Selectează tot"}</button></div>
-          <div class="e-permits-clas-checklist e-permits-clas-checklist--values">${vals.map((v) => `<label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(v.cod)}"${s.subset.has(v.cod) ? " checked" : ""} data-clas-subset><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(v.cod)} — ${escapeHtml(v.denRo)}</span>${v.activ ? "" : '<span class="checkbox-description">Inactivă în original</span>'}</span></label>`).join("")}</div>
-          ${clasFieldError(e, "subset")}
-          ${renderInfoNote("Valorile neselectate nu se copiază. Jurnalul păstrează câte au fost copiate și de unde.")}
-        </div></section>`;
-    } else if (d.sursa === "intern") {
-      clasDrawerBody.innerHTML = `<section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Valori</h3><div class="e-permits-user-create__section-content">
-        ${renderInfoNote("Clasificatorul se creează ca ciornă, fără valori. Le adaugi pe rând sau le imporți din CSV în tab-ul Valori, apoi îl publici.")}
-        <div class="e-permits-clas-choice">${[["empty", "Adaug valorile după creare"], ["csv", "Import CSV imediat după creare"]].map(([v, l]) => `<label class="radio"><input class="radio-input" type="radio" name="clas-c-start" value="${v}"${(d.start || "empty") === v ? " checked" : ""} data-clas-create-start><span class="radio-custom" aria-hidden="true"></span><span class="radio-label">${l}</span></label>`).join("")}</div>
-      </div></section>`;
-    } else {
-      const defaults = classifiersStore.fieldTypes.defaults.fields;
-      clasDrawerBody.innerHTML = `<section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Endpoint</h3><div class="e-permits-user-create__section-content"><div class="e-permits-user-create__grid">
-        ${clasInput("clas-c-endpoint", "endpoint", d.endpoint, { label: d.sursa === "mconnect" ? "Endpoint MConnect" : "URL API", required: true, errors: e, attr: "data-clas-create", hint: d.sursa === "mconnect" ? "Ex. mconnect://bns.gov.md/registre/cuatm/v3" : "Ex. https://api.exemplu.gov.md/clasificator" })}
-      </div></div></section>
-      <section class="e-permits-user-create__section"><h3 class="e-permits-user-create__section-title">Mapare coloane</h3><div class="e-permits-user-create__section-content">
-        <div class="e-permits-dosar-profil__table-scroll"><table class="e-permits-dosar-profil__table"><thead><tr><th scope="col">Coloană GEAP</th><th scope="col">Câmp sursă</th></tr></thead><tbody>
-          ${defaults.map((f) => `<tr><td>${escapeHtml(f.label)}${f.obligatoriu || f.id === "cod" ? requiredMark() : ""}</td><td><div class="e-permits-fo-input${e["map_" + f.id] ? " is-error" : ""}"><input type="text" value="${escapeHtml(d.mapare[f.id] || "")}" placeholder="${f.id === "cod" ? "ex. code" : ""}" aria-label="Câmp sursă pentru ${escapeHtml(f.label)}" data-clas-map="${f.id}" autocomplete="off"></div></td></tr>`).join("")}
-        </tbody></table></div>
-        ${e.mapare ? clasFieldError(e, "mapare") : `<p class="e-permits-fo-field__hint">ID și Denumire RO sunt obligatorii. La fiecare sincronizare, valorile lipsă din răspuns se dezactivează automat.</p>`}
-      </div></section>`;
+      return clasCreateSection(`Valori copiate din „${copyFrom.denumire}”`, `
+        <div class="e-permits-clas-subset__bar"><span>${s.subset.size} din ${vals.length} selectate</span><button class="btn btn-text-primary btn-sm" type="button" data-clas-subset-all>${s.subset.size === vals.length ? "Deselectează tot" : "Selectează tot"}</button></div>
+        <div class="e-permits-clas-checklist e-permits-clas-checklist--values">${vals.map((v) => `<label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(v.cod)}"${s.subset.has(v.cod) ? " checked" : ""} data-clas-subset><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(v.cod)} — ${escapeHtml(v.denRo)}</span>${v.activ ? "" : '<span class="checkbox-description">Inactivă în original</span>'}</span></label>`).join("")}</div>
+        ${clasFieldError(e, "subset")}
+        ${renderInfoNote("Copia este internă: valorile se gestionează aici, fără sincronizare cu originalul.")}`);
     }
-    clasDrawer.querySelector("[data-clas-drawer-summary]").textContent = s.step === 1 ? "Se creează ca ciornă — invizibilă consumatorilor până la publicare." : "";
-    clasDrawer.querySelector("[data-clas-drawer-buttons]").innerHTML = s.step === 1
-      ? '<button class="btn btn-neutral btn-rounded" type="button" data-clas-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-clas-create-next>Continuă</button>'
-      : '<button class="btn btn-neutral btn-rounded" type="button" data-clas-create-back>Înapoi</button><button class="btn btn-primary btn-rounded" type="button" data-clas-create-done>Creează ciorna</button>';
+    const sourceHint = { intern: "Valorile se adaugă manual sau din fișier CSV.", mconnect: "Valorile se preiau din MConnect și se actualizează la sincronizare.", api: "Valorile se preiau dintr-un API extern, la sincronizare." }[d.sursa];
+    const source = `<div class="e-permits-user-create__grid">${clasSegmented("sursa", "Sursa valorilor", [["intern", "Intern"], ["mconnect", "MConnect"], ["api", "API extern"]], d.sursa, { hint: sourceHint })}</div>`;
+    if (d.sursa === "intern") {
+      const cols = clasCreateColumns(d).map((f) => f.id);
+      const p = d.csv?.parsed;
+      const valid = p ? p.rows.filter((r) => r.cod && r.denRo) : [];
+      return `${clasCreateSection("Sursa", source)}
+        ${clasCreateSection("Valori inițiale", `
+          <div class="e-permits-clas-choice" role="radiogroup" aria-label="Valori inițiale">
+            ${[["empty", "Fără valori acum", "Le adaugi din tab-ul Valori, după creare."], ["csv", "Import din fișier CSV", "Fișierul se verifică pe coloanele definite la pasul Structură."]].map(([v, l, h]) => `<label class="radio"><input class="radio-input" type="radio" name="clas-c-values" value="${v}"${d.valoriStart === v ? " checked" : ""} data-clas-create-values><span class="radio-custom" aria-hidden="true"></span><span class="radio-label">${l}<span class="e-permits-clas-create__muted"> — ${h}</span></span></label>`).join("")}
+          </div>
+          ${d.valoriStart === "csv" ? `
+            <div class="e-permits-clas-import__keys"><span>Coloane acceptate:</span> ${cols.map((k) => renderTag(k, "neutral")).join(" ")}</div>
+            <div class="e-permits-clas-import__file">
+              <label class="btn btn-secondary btn-sm" for="clas-c-file"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg><span>${d.csv ? "Alege alt fișier" : "Alege fișierul CSV"}</span></label>
+              <input id="clas-c-file" class="sr-only" type="file" accept=".csv,text/csv" data-clas-create-file>
+              <button class="btn btn-text-primary btn-sm" type="button" data-clas-create-template>Descarcă modelul CSV</button>
+            </div>
+            ${clasFieldError(e, "csv")}
+            ${p ? `
+              <p class="e-permits-case-form__lead"><strong>${escapeHtml(d.csv.name)}</strong> · ${plural(p.rows.length, "rând", "rânduri")}</p>
+              ${p.missing.length ? `<div class="message message--subtle banner--error"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Lipsesc coloanele obligatorii: ${p.missing.map(escapeHtml).join(", ")}.</p></div></div>` : `
+              <ul class="e-permits-case-form__fees" role="list">
+                <li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Valori de importat</span></span>${renderTag(String(valid.length), "success")}</li>
+                ${p.rows.length - valid.length ? `<li class="e-permits-case-form__fee"><span class="e-permits-case-form__fee-copy"><span class="e-permits-case-form__fee-name">Rânduri ignorate</span><span class="e-permits-case-form__fee-meta">Fără cod sau fără Denumire RO</span></span>${renderTag(String(p.rows.length - valid.length), "neutral")}</li>` : ""}
+              </ul>`}
+              ${p.unknownColumns.length ? `<div class="message message--subtle banner--warning"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Coloane necunoscute, nu se importă: <strong>${p.unknownColumns.map(escapeHtml).join(", ")}</strong>. Adaugă-le la pasul Structură dacă sunt necesare.</p></div></div>` : ""}` : ""}` : ""}`)}`;
+    }
+    const isM = d.sursa === "mconnect";
+    const test = s.test;
+    const fields = clasCreateColumns(d);
+    const detected = test?.status === "ok" ? test.fields : null;
+    return `${clasCreateSection("Sursa", source)}
+      ${clasCreateSection("Link la sursă", `<div class="e-permits-user-create__grid">
+        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+          <label for="clas-c-endpoint">${isM ? "Link la serviciul MConnect" : "Link la API"}${requiredMark()}</label>
+          <div class="e-permits-clas-create__link-row">
+            <div class="e-permits-fo-input${e.endpoint ? " is-error" : ""}"><input id="clas-c-endpoint" type="url" inputmode="url" value="${escapeHtml(d.endpoint)}" placeholder="https://" data-clas-create="endpoint" autocomplete="off"></div>
+            <button class="btn btn-secondary btn-sm" type="button" data-clas-create-test${test?.status === "loading" ? " disabled" : ""}>${test?.status === "loading" ? "Se verifică…" : "Testează conexiunea"}</button>
+          </div>
+          ${clasFieldError(e, "endpoint")}
+          ${test?.status === "ok" ? `<span class="message message--inline message--success e-permits-fo-field__error e-permits-fo-field__success"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg><span>Sursa răspunde · ${clasNumber(test.count)} înregistrări · ${test.fields.length} câmpuri găsite. Maparea a fost propusă mai jos — verific-o.</span></span>` : ""}
+          ${test?.status === "error" ? clasFieldError({ t: test.message }, "t") : ""}
+          <p class="e-permits-fo-field__hint"${e.endpoint || test ? " hidden" : ""}>${isM ? "Adresa serviciului din catalogul MConnect, ex. https://mconnect.gov.md/api/bns/cuatm/v3" : "Adresa HTTPS a API-ului, ex. https://api.exemplu.gov.md/clasificator"}</p>
+        </div>
+      </div>`)}
+      ${clasCreateSection("Mapare coloane", `
+        <div class="e-permits-dosar-profil__table-scroll"><table class="e-permits-dosar-profil__table e-permits-clas-create__map"><thead><tr><th scope="col">Coloană GEAP</th><th scope="col">Câmp în sursă</th></tr></thead><tbody>
+          ${fields.filter((f) => !f.derivat).map((f) => `<tr><td>${escapeHtml(f.label)}${f.id === "cod" || f.id === "denRo" ? requiredMark() : ""} <span class="e-permits-clas-create__muted">${escapeHtml(f.id)}</span></td><td>${detected
+            ? renderFoSelectControl({ id: `clas-c-map-${f.id}`, attrs: `data-clas-map="${f.id}" aria-label="Câmp în sursă pentru ${escapeHtml(f.label)}"`, optionsHtml: [["", "Nemapat"], ...detected.map((x) => [x, x])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(d.mapare[f.id] || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })
+            : `<div class="e-permits-fo-input"><input type="text" value="${escapeHtml(d.mapare[f.id] || "")}" placeholder="${f.id === "cod" ? "ex. code" : ""}" aria-label="Câmp în sursă pentru ${escapeHtml(f.label)}" data-clas-map="${f.id}" autocomplete="off"></div>`}</td></tr>`).join("")}
+        </tbody></table></div>
+        ${clasFieldError(e, "mapare")}<p class="e-permits-fo-field__hint"${e.mapare ? " hidden" : ""}>ID și Denumire RO sunt obligatorii. La fiecare sincronizare, valorile care lipsesc din răspuns se dezactivează automat.</p>`)}`;
+  };
+
+  const renderCreateStep4 = (s) => {
+    const d = s.values;
+    const copyFrom = d.start === "copy" ? getClassifier(d.copiatDinId) : null;
+    const extras = clasCreateExtras(d);
+    const goto = (n) => `<button class="btn btn-text-primary btn-sm" type="button" data-clas-create-goto="${n}">Modifică</button>`;
+    const valid = d.csv?.parsed ? d.csv.parsed.rows.filter((r) => r.cod && r.denRo).length : 0;
+    const sursa = copyFrom ? "Intern (copie)" : CLAS_SOURCE[d.sursa];
+    const initial = copyFrom ? `${s.subset.size} copiate din „${escapeHtml(copyFrom.denumire)}”` : d.sursa !== "intern" ? "Se preiau la prima sincronizare" : d.valoriStart === "csv" ? `${valid} din fișierul ${escapeHtml(d.csv?.name || "")}` : "Niciuna — le adaugi după creare";
+    return `
+      ${renderPassportBlock("Date generale", [
+        ["Denumire", escapeHtml(d.denumire.trim())],
+        ["Descriere", d.descriere.trim() ? escapeHtml(d.descriere.trim()) : "—"],
+        ["Familie", escapeHtml(CLAS_FAMILY[d.familie])],
+        ["Se aplică", d.categorie === "global" ? "Global — toată platforma" : `${escapeHtml(CLAS_AUTHORITY[d.autoritate]?.[0] || d.autoritate)} · ${plural(d.servicii.length, "serviciu", "servicii")}`],
+        ["Punct de plecare", copyFrom ? `Copie a „${escapeHtml(copyFrom.denumire)}”` : "De la zero"]
+      ], { actionHtml: goto(1) })}
+      ${renderPassportBlock("Structură", [
+        ["Coloane", `${classifiersStore.fieldTypes.defaults.fields.length} standard${extras.length ? ` + ${extras.map((x) => `${escapeHtml(x.label)} (${escapeHtml(x.tip)})`).join(", ")}` : ""}`],
+        ["Format cod", d.idFormat === "INT" ? "Număr (INT)" : "Cod unic (UID)"],
+        ["Clasificator-părinte", d.parintId ? escapeHtml(getClassifier(d.parintId)?.denumire || "") : "Fără"],
+        ["Acces", `${d.criticProces ? "Critic pentru proces" : "Necritic"} · ${d.localAdminManageable && d.categorie === "specific" && !d.criticProces ? "administratorul local poate modifica valorile" : "doar administratorul central modifică"}`]
+      ], { actionHtml: goto(2) })}
+      ${renderPassportBlock("Valori", [
+        ["Sursă", escapeHtml(sursa)],
+        ...(!copyFrom && d.sursa !== "intern" ? [["Link la sursă", `<a class="link link-primary link-sm" href="${escapeHtml(d.endpoint.trim())}" target="_blank" rel="noopener">${escapeHtml(d.endpoint.trim())} ↗</a>`], ["Mapare", plural(Object.values(d.mapare).filter(Boolean).length, "coloană mapată", "coloane mapate")]] : []),
+        ["Valori inițiale", initial]
+      ], { actionHtml: goto(3) })}
+      ${renderInfoNote("Se creează <strong>ciorna v0.1</strong>, invizibilă consumatorilor. O publici din pagina clasificatorului, după ce verifici valorile.")}`;
+  };
+
+  const renderCreateDrawer = () => {
+    const s = clasDrawerState;
+    clasDrawer.querySelector("[data-clas-drawer-title]").textContent = "Clasificator nou";
+    clasDrawer.querySelector("[data-clas-drawer-subtitle]").textContent = s.values.denumire.trim() || "Ciornă nouă";
+    const views = [renderCreateStep1, renderCreateStep2, renderCreateStep3, renderCreateStep4];
+    clasDrawerBody.innerHTML = `<div class="e-permits-clas-create">${renderCreateStepper(s)}<div class="e-permits-clas-create__main">${views[s.step - 1](s)}</div></div>`;
+    clasDrawer.querySelector("[data-clas-drawer-summary]").textContent = `Pasul ${s.step} din ${CLAS_CREATE_STEPS.length} · ${CLAS_CREATE_STEPS[s.step - 1]}`;
+    clasDrawer.querySelector("[data-clas-drawer-buttons]").innerHTML = `
+      ${s.step === 1 ? '<button class="btn btn-neutral btn-rounded" type="button" data-clas-close>Anulează</button>' : '<button class="btn btn-neutral btn-rounded" type="button" data-clas-create-back>Înapoi</button>'}
+      ${s.step < CLAS_CREATE_STEPS.length ? '<button class="btn btn-primary btn-rounded" type="button" data-clas-create-next>Continuă</button>' : '<button class="btn btn-primary btn-rounded" type="button" data-clas-create-done>Creează ciorna</button>'}`;
   };
 
   const openCreateWizard = () => {
     const role = clasRole();
-    openClasDrawer({ mode: "create", step: 1, errors: {}, subset: new Set(), values: { denumire: "", descriere: "", familie: "intern", categorie: role.id === "adm-c" ? "global" : "specific", autoritate: role.authority || "ansp", servicii: [], sursa: "intern", copiatDinId: "", endpoint: "", mapare: {}, start: "empty" } });
+    openClasDrawer({ mode: "create", step: 1, maxStep: 1, errors: {}, subset: new Set(), test: null, dirty: false, values: {
+      denumire: "", descriere: "", familie: "intern", categorie: role.id === "adm-c" ? "global" : "specific", autoritate: role.authority || "ansp", servicii: [],
+      start: "zero", copiatDinId: "", extras: [], idFormat: classifiersStore.fieldTypes.defaults.idFormat, parintId: "", criticProces: false, localAdminManageable: role.id === "adm-l",
+      sursa: "intern", valoriStart: "empty", csv: null, endpoint: "", mapare: {}
+    } });
   };
 
-  const createNext = () => {
-    const s = clasDrawerState, d = s.values, e = {};
-    if (!d.denumire.trim()) e.denumire = "Completează denumirea.";
-    else if (clasList().some((c) => clasCore.normName(c.denumire) === clasCore.normName(d.denumire))) e.denumire = "Există deja un clasificator cu această denumire.";
-    if (d.categorie === "specific" && !d.servicii.length) e.servicii = "Alege cel puțin un serviciu.";
-    s.errors = e;
-    if (Object.keys(e).length) { renderCreateDrawer(); clasDrawerBody.querySelector(".is-error input, .is-error textarea")?.focus(); return; }
-    if (d.copiatDinId) s.subset = new Set((getClassifier(d.copiatDinId)?.valori || []).map((v) => v.cod));
-    s.step = 2; renderCreateDrawer();
-    clasDrawerBody.querySelector("input")?.focus();
+  /* validation per step; returns the errors map */
+  const validateCreateStep = (s, step) => {
+    const d = s.values, e = {};
+    if (step === 1) {
+      if (!d.denumire.trim()) e.denumire = "Completează denumirea.";
+      else if (clasList().some((c) => clasCore.normName(c.denumire) === clasCore.normName(d.denumire))) e.denumire = "Există deja un clasificator cu această denumire.";
+      if (d.categorie === "specific" && !d.servicii.length) e.servicii = "Alege cel puțin un serviciu.";
+      if (d.start === "copy" && !d.copiatDinId) e.copiatDinId = "Alege clasificatorul pe care îl copiezi.";
+    }
+    if (step === 2) {
+      const reserved = new Set(classifiersStore.fieldTypes.defaults.fields.map((f) => clasCore.normName(f.label)));
+      const seen = new Set();
+      d.extras.forEach((x, i) => {
+        const n = clasCore.normName(x.label);
+        if (!x.label.trim()) e[`x${i}label`] = "Completează denumirea coloanei.";
+        else if (reserved.has(n)) e[`x${i}label`] = "Este o coloană standard.";
+        else if (seen.has(n)) e[`x${i}label`] = "Există deja o coloană cu această denumire.";
+        seen.add(n);
+        if (x.tip === "Selecție" && !String(x.cfg || "").split("/").map((o) => o.trim()).filter(Boolean).length) e[`x${i}cfg`] = "Completează opțiunile, separate cu „/”.";
+        if (x.tip === "Referință clasificator" && !x.cfg) e[`x${i}cfg`] = "Alege clasificatorul.";
+      });
+    }
+    if (step === 3) {
+      if (d.start === "copy") { if (!s.subset.size) e.subset = "Alege cel puțin o valoare de copiat."; }
+      else if (d.sursa === "intern") {
+        if (d.valoriStart === "csv") {
+          const p = d.csv?.parsed;
+          if (!p) e.csv = "Alege fișierul CSV sau continuă fără valori.";
+          else if (p.missing.length) e.csv = "Fișierul nu are coloanele obligatorii.";
+          else if (!p.rows.some((r) => r.cod && r.denRo)) e.csv = "Fișierul nu are nicio valoare validă.";
+        }
+      } else {
+        if (!d.endpoint.trim()) e.endpoint = "Completează linkul la sursă.";
+        else if (!clasIsHttps(d.endpoint)) e.endpoint = "Linkul trebuie să înceapă cu https://.";
+        else if (s.test?.status !== "ok") e.endpoint = "Testează conexiunea înainte de a continua.";
+        if (!d.mapare.cod || !d.mapare.denRo) e.mapare = "Mapează cel puțin ID și Denumire RO.";
+      }
+    }
+    return e;
+  };
+
+  const goCreateStep = (target) => {
+    const s = clasDrawerState;
+    if (target > s.step) {
+      for (let st = s.step; st < target; st += 1) {
+        const e = validateCreateStep(s, st);
+        if (Object.keys(e).length) { s.step = st; s.errors = e; renderCreateDrawer(); clasDrawerBody.querySelector(".is-error input, .is-error textarea, .e-permits-fo-field__error")?.closest(".e-permits-fo-field, section")?.querySelector("input, textarea, button")?.focus(); return; }
+      }
+    }
+    if (target === 3 && s.values.start === "copy" && !s.subsetFor) { s.subset = new Set((getClassifier(s.values.copiatDinId)?.valori || []).map((v) => v.cod)); s.subsetFor = s.values.copiatDinId; }
+    if (s.values.csv?.text) s.values.csv.parsed = clasCore.parseCsv(s.values.csv.text, clasCreateColumns(s.values).map((f) => f.id));
+    s.step = target; s.maxStep = Math.max(s.maxStep, target); s.errors = {};
+    renderCreateDrawer();
+    clasDrawerBody.scrollTop = 0;
+    clasDrawerBody.querySelector(".e-permits-clas-create__main input:not([type=checkbox]):not([type=radio]), .e-permits-clas-create__main button")?.focus();
+  };
+
+  /* simulated connection test: an https link answers; fields are proposed from the columns */
+  const testCreateSource = () => {
+    const s = clasDrawerState, d = s.values;
+    if (!clasIsHttps(d.endpoint)) { s.errors = { ...s.errors, endpoint: d.endpoint.trim() ? "Linkul trebuie să înceapă cu https://." : "Completează linkul la sursă." }; renderCreateDrawer(); clasDrawerBody.querySelector("#clas-c-endpoint")?.focus(); return; }
+    s.test = { status: "loading" }; delete s.errors.endpoint; renderCreateDrawer();
+    window.setTimeout(() => {
+      if (clasDrawerState !== s) return;
+      if (/eroare|error|invalid/i.test(d.endpoint)) { s.test = { status: "error", message: "Sursa nu răspunde. Verifică linkul sau contactează furnizorul." }; renderCreateDrawer(); return; }
+      const guess = { cod: "code", denRo: "name_ro", denRu: "name_ru", denEn: "name_en", activ: "is_active", activDeLa: "valid_from", activPanaLa: "valid_to", parinte: "parent_code" };
+      const cols = clasCreateColumns(d).filter((f) => !f.derivat || f.id === "parinte");
+      const fields = cols.map((f) => guess[f.id] || clasSnake(f.label));
+      cols.forEach((f, i) => { if (!d.mapare[f.id]) d.mapare[f.id] = fields[i]; });
+      s.test = { status: "ok", fields: [...new Set([...fields, "updated_at"])], count: 120 + Math.floor(Math.random() * 400) };
+      delete s.errors.mapare;
+      renderCreateDrawer();
+    }, 700);
   };
 
   const createDone = () => {
-    const s = clasDrawerState, d = s.values, e = {};
-    const copyFrom = d.copiatDinId ? getClassifier(d.copiatDinId) : null;
-    if (d.sursa !== "intern") { if (!d.endpoint.trim()) e.endpoint = "Completează endpoint-ul."; if (!d.mapare.cod || !d.mapare.denRo) e.mapare = "Mapează cel puțin Cod și Denumire RO."; }
-    if (copyFrom && !s.subset.size) e.subset = "Alege cel puțin o valoare sau revino și pornește de la zero.";
-    s.errors = e;
-    if (Object.keys(e).length) { renderCreateDrawer(); return; }
+    const s = clasDrawerState, d = s.values;
+    for (let st = 1; st <= 3; st += 1) { const e = validateCreateStep(s, st); if (Object.keys(e).length) { s.step = st; s.errors = e; renderCreateDrawer(); return; } }
+    const copyFrom = d.start === "copy" ? getClassifier(d.copiatDinId) : null;
+    const extras = clasCreateExtras(d);
+    const extraIds = extras.map((x) => x.id);
+    let valori = [];
+    if (copyFrom) valori = copyFrom.valori.filter((v) => s.subset.has(v.cod)).map((v) => ({ ...JSON.parse(JSON.stringify(v)), parinte: null, sursa: "copie" }));
+    else if (d.sursa === "intern" && d.valoriStart === "csv") valori = d.csv.parsed.rows.filter((r) => r.cod && r.denRo).map((r) => {
+      const extra = {}; extraIds.forEach((k) => { if (r[k] != null && r[k] !== "") extra[k] = r[k]; });
+      return { cod: r.cod, denRo: r.denRo, denRu: r.denRu || null, denEn: r.denEn || null, activ: r.activ ? !/^(0|false|nu)$/i.test(r.activ) : true, activDeLa: r.activDeLa || clasToday(), activPanaLa: r.activPanaLa || null, parinte: r.parinte || null, extra, autoInactivat: false, sursa: "import" };
+    });
+    const sursa = copyFrom ? "intern" : d.sursa;
     const id = `cl-${Date.now().toString(36)}`;
-    const valori = copyFrom ? copyFrom.valori.filter((v) => s.subset.has(v.cod)).map((v) => ({ ...JSON.parse(JSON.stringify(v)), parinte: null, sursa: "copie" })) : [];
     const c = {
       id, denumire: d.denumire.trim(), descriere: d.descriere.trim(), familie: d.familie, categorie: d.categorie, servicii: d.categorie === "specific" ? d.servicii : [], autoritate: d.categorie === "specific" ? d.autoritate : null,
-      activ: true, status: "draft", everPublished: false, scopeSystem: false, mod: d.sursa === "mconnect" ? "mconnect" : "manual", endpoint: d.sursa === "intern" ? null : d.endpoint.trim(), sursa: d.sursa,
-      parintId: null, copiatDinId: copyFrom?.id || null, localAdminManageable: clasRole().id === "adm-l", criticProces: false, versiune: "0.1", editatLa: clasToday(), editatDe: currentUserName(),
-      nrValori: valori.length, campuriExtra: copyFrom ? JSON.parse(JSON.stringify(copyFrom.campuriExtra || [])) : [], mapare: d.sursa === "intern" ? [] : Object.entries(d.mapare).filter(([, v]) => v).map(([camp, sursa]) => ({ camp, sursa })), valori, consumatori: [], publishedSnapshot: null, jurnal: []
+      activ: true, status: "draft", everPublished: false, scopeSystem: false, mod: sursa === "mconnect" ? "mconnect" : "manual", endpoint: sursa === "intern" ? null : d.endpoint.trim(), sursa,
+      parintId: d.parintId || null, copiatDinId: copyFrom?.id || null, localAdminManageable: d.categorie === "specific" && !d.criticProces && d.localAdminManageable, criticProces: d.criticProces,
+      idFormat: d.idFormat, limitaDenumiri: classifiersStore.fieldTypes.defaults.limitaDenumiri, versiune: "0.1", editatLa: clasToday(), editatDe: currentUserName(),
+      nrValori: valori.length, campuriExtra: extras, mapare: sursa === "intern" ? [] : Object.entries(d.mapare).filter(([, v]) => v).map(([camp, src]) => ({ camp, sursa: src })), valori, consumatori: [], publishedSnapshot: null, jurnal: []
     };
-    clasLog(c, "Creat", copyFrom ? `Creat din „${copyFrom.denumire}”: ${s.subset.size} din ${copyFrom.valori.length} valori${s.subset.size < copyFrom.valori.length ? " (subset selectat)" : ""}.` : d.sursa === "intern" ? "Ciornă fără valori." : `Sursă ${CLAS_SOURCE[d.sursa]}: ${d.endpoint.trim()}.`);
+    clasLog(c, "Creat", [copyFrom ? `Copie a „${copyFrom.denumire}”: ${s.subset.size} din ${copyFrom.valori.length} valori.` : sursa === "intern" ? (valori.length ? `${plural(valori.length, "valoare importată", "valori importate")} din ${d.csv.name}.` : "Fără valori.") : `Sursă ${CLAS_SOURCE[sursa]}: ${c.endpoint}.`, extras.length ? `Coloane suplimentare: ${extras.map((x) => x.label).join(", ")}.` : ""].filter(Boolean).join(" "));
     classifiersStore.list = [c, ...clasList()];
-    const importAfter = d.sursa === "intern" && !copyFrom && d.start === "csv";
+    s.dirty = false;
     closeClasDrawer();
     openClassifierProfile(id, "valori");
-    showShellToast(`„${c.denumire}” a fost creat ca ciornă. Adaugă valorile, apoi publică.`, "success", "Clasificator creat");
-    if (importAfter) window.setTimeout(openImportModal, 200);
+    showShellToast(sursa === "intern" ? `„${c.denumire}” este o ciornă${valori.length ? ` cu ${plural(valori.length, "valoare", "valori")}` : ""}. Verifică valorile, apoi publică.` : `„${c.denumire}” este o ciornă. Sincronizează valorile din sursă, apoi publică.`, "success", "Clasificator creat");
+  };
+
+  /* closing a wizard with data asks first */
+  const requestCloseClasDrawer = () => {
+    const s = clasDrawerState;
+    if (s?.mode === "create" && s.dirty) {
+      askConfirm({ title: "Renunți la clasificatorul nou?", text: "Datele introduse în acest formular se pierd.", confirmLabel: "Renunță", destructive: true }, () => { s.dirty = false; closeClasDrawer(); });
+      return;
+    }
+    closeClasDrawer();
   };
 
   /* ---- modal: fields, CSV import, sync ---- */
@@ -7991,7 +8211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     box.classList.remove("is-error");
     box.parentElement.querySelector(":scope > .message--error")?.remove();
     box.parentElement.querySelector(":scope > .e-permits-fo-field__hint[hidden]")?.removeAttribute("hidden");
-    const key = target.dataset.clasCell || target.dataset.clasValue || target.dataset.clasCreate || target.dataset.clasSetting || target.dataset.clasExtra || target.dataset.clasF;
+    const key = (target.dataset.clasX ? `x${target.dataset.index}${target.dataset.clasX}` : "") || target.dataset.clasCell || target.dataset.clasValue || target.dataset.clasCreate || target.dataset.clasSetting || target.dataset.clasExtra || target.dataset.clasF;
     if (errors && key) delete errors[key];
   };
   [clasDrawer, clasProfileBody, clasModal].forEach((root) => root?.addEventListener("input", (event) => {
@@ -8092,14 +8312,39 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   clasDrawer?.addEventListener("click", (event) => {
-    if (event.target.closest("[data-clas-close]")) { closeClasDrawer(); return; }
+    if (event.target.closest("[data-clas-close]")) { requestCloseClasDrawer(); return; }
     const vs = event.target.closest("[data-clas-value-save]"); if (vs) { saveValueFromDrawer(vs.dataset.clasValueSave === "next"); return; }
-    if (event.target.closest("[data-clas-create-next]")) { createNext(); return; }
-    if (event.target.closest("[data-clas-create-back]")) { clasDrawerState.step = 1; clasDrawerState.errors = {}; renderCreateDrawer(); return; }
+    const s = clasDrawerState; if (!s || s.mode !== "create") return;
+    const d = s.values;
+    if (event.target.closest("[data-clas-create-next]")) { goCreateStep(s.step + 1); return; }
+    if (event.target.closest("[data-clas-create-back]")) { goCreateStep(s.step - 1); return; }
+    const go = event.target.closest("[data-clas-create-goto]"); if (go) { goCreateStep(Number(go.dataset.clasCreateGoto)); return; }
     if (event.target.closest("[data-clas-create-done]")) { createDone(); return; }
+    if (event.target.closest("[data-clas-create-test]")) { testCreateSource(); return; }
     const ch = event.target.closest("[data-clas-create-choice]");
-    if (ch && !ch.disabled) { clasDrawerState.values[ch.dataset.clasCreateChoice] = ch.dataset.value; if (ch.dataset.clasCreateChoice === "categorie" && ch.dataset.value === "global") clasDrawerState.values.servicii = []; renderCreateDrawer(); return; }
-    if (event.target.closest("[data-clas-subset-all]")) { const vals = getClassifier(clasDrawerState.values.copiatDinId).valori; clasDrawerState.subset = clasDrawerState.subset.size === vals.length ? new Set() : new Set(vals.map((v) => v.cod)); renderCreateDrawer(); }
+    if (ch && !ch.disabled) {
+      const key = ch.dataset.clasCreateChoice, value = ch.dataset.value;
+      d[key] = value; s.dirty = true;
+      if (key === "categorie" && value === "global") { d.servicii = []; d.localAdminManageable = false; }
+      if (key === "sursa") { s.test = null; d.mapare = {}; delete s.errors.endpoint; delete s.errors.mapare; }
+      if (key === "start" && value === "zero") { d.copiatDinId = ""; s.subsetFor = null; }
+      renderCreateDrawer();
+      clasDrawerBody.querySelector(`[data-clas-create-choice="${key}"][data-value="${value}"]`)?.focus();
+      return;
+    }
+    if (event.target.closest("[data-clas-x-add]")) {
+      d.extras.push({ label: "", tip: "Text", cfg: "" }); s.dirty = true; renderCreateDrawer();
+      clasDrawerBody.querySelector(`[data-clas-x="label"][data-index="${d.extras.length - 1}"]`)?.focus();
+      return;
+    }
+    const rm = event.target.closest("[data-clas-x-remove]");
+    if (rm) { d.extras.splice(Number(rm.dataset.clasXRemove), 1); s.errors = {}; renderCreateDrawer(); clasDrawerBody.querySelector("[data-clas-x-add]")?.focus(); return; }
+    if (event.target.closest("[data-clas-subset-all]")) { const vals = getClassifier(d.copiatDinId).valori; s.subset = s.subset.size === vals.length ? new Set() : new Set(vals.map((v) => v.cod)); renderCreateDrawer(); return; }
+    if (event.target.closest("[data-clas-create-template]")) {
+      const cols = clasCreateColumns(d).map((f) => f.id);
+      const blob = new Blob([`\uFEFF${cols.join(";")}\n`], { type: "text/csv;charset=utf-8" });
+      const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${clasSnake(d.denumire || "clasificator") || "clasificator"}-model.csv`; link.click(); URL.revokeObjectURL(link.href);
+    }
   });
   clasDrawer?.addEventListener("input", (event) => {
     const s = clasDrawerState; if (!s) return;
@@ -8108,9 +8353,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const x = event.target.closest("input[data-clas-extra]"); if (x) s.values.extra = { ...(s.values.extra || {}), [x.dataset.clasExtra]: x.value };
       return;
     }
-    const x = event.target.closest("[data-clas-extra]"); if (x) { s.values.extra = { ...(s.values.extra || {}), [x.dataset.clasExtra]: x.value }; return; }
-    const cr = event.target.closest("[data-clas-create]"); if (cr && cr.tagName !== "SELECT") { s.values[cr.dataset.clasCreate] = cr.value; return; }
-    const mp = event.target.closest("[data-clas-map]"); if (mp) s.values.mapare[mp.dataset.clasMap] = mp.value.trim();
+    s.dirty = true;
+    const cr = event.target.closest("[data-clas-create]");
+    if (cr && cr.tagName !== "SELECT") {
+      s.values[cr.dataset.clasCreate] = cr.value;
+      if (cr.dataset.clasCreate === "endpoint" && s.test) { s.test = null; clasDrawerBody.querySelectorAll(".message--success").forEach((m) => m.remove()); }
+      if (cr.dataset.clasCreate === "denumire") clasDrawer.querySelector("[data-clas-drawer-subtitle]").textContent = cr.value.trim() || "Ciornă nouă";
+      return;
+    }
+    const x = event.target.closest("input[data-clas-x]"); if (x) { s.values.extras[Number(x.dataset.index)][x.dataset.clasX] = x.value; return; }
+    const mp = event.target.closest("input[data-clas-map]"); if (mp) s.values.mapare[mp.dataset.clasMap] = mp.value.trim();
   });
   clasDrawer?.addEventListener("change", (event) => {
     const s = clasDrawerState; if (!s) return;
@@ -8125,12 +8377,30 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       return;
     }
-    const cs = event.target.closest("select[data-clas-create]"); if (cs) { s.values[cs.dataset.clasCreate] = cs.value; if (cs.dataset.clasCreate === "autoritate") s.values.servicii = []; renderCreateDrawer(); return; }
-    const sv = event.target.closest("[data-clas-create-service]"); if (sv) { s.values.servicii = sv.checked ? [...s.values.servicii, sv.value] : s.values.servicii.filter((x) => x !== sv.value); if (s.errors.servicii && s.values.servicii.length) { delete s.errors.servicii; const f = sv.closest(".e-permits-fo-field"); f.querySelector(":scope > .message--error")?.remove(); f.querySelector(":scope > .e-permits-fo-field__hint")?.removeAttribute("hidden"); } return; }
-    const sb = event.target.closest("[data-clas-subset]"); if (sb) { if (sb.checked) s.subset.add(sb.value); else s.subset.delete(sb.value); clasDrawerBody.querySelector(".e-permits-clas-subset__bar span").textContent = `${s.subset.size} din ${getClassifier(s.values.copiatDinId).valori.length} selectate`; return; }
-    const stt = event.target.closest("[data-clas-create-start]"); if (stt) s.values.start = stt.value;
+    s.dirty = true;
+    const d = s.values;
+    const cs = event.target.closest("select[data-clas-create]");
+    if (cs) {
+      d[cs.dataset.clasCreate] = cs.value;
+      if (cs.dataset.clasCreate === "autoritate") d.servicii = [];
+      if (cs.dataset.clasCreate === "copiatDinId") { s.subsetFor = null; const src = getClassifier(cs.value); if (src && !d.extras.length) d.extras = (src.campuriExtra || []).map((f) => ({ id: f.id, label: f.label, tip: f.tip, cfg: f.cfg || "" })); if (src) d.idFormat = src.idFormat || d.idFormat; }
+      if (s.errors[cs.dataset.clasCreate]) delete s.errors[cs.dataset.clasCreate];
+      renderCreateDrawer(); return;
+    }
+    const xs = event.target.closest("select[data-clas-x]"); if (xs) { const x = d.extras[Number(xs.dataset.index)]; if (xs.dataset.clasX === "tip" && x.tip !== xs.value) x.cfg = ""; x[xs.dataset.clasX] = xs.value; delete s.errors[`x${xs.dataset.index}cfg`]; renderCreateDrawer(); return; }
+    const mp = event.target.closest("select[data-clas-map]"); if (mp) { d.mapare[mp.dataset.clasMap] = mp.value; return; }
+    const tg = event.target.closest("[data-clas-create-toggle]"); if (tg) { d[tg.dataset.clasCreateToggle] = tg.checked; if (tg.dataset.clasCreateToggle === "criticProces" && tg.checked) d.localAdminManageable = false; renderCreateDrawer(); return; }
+    const sv = event.target.closest("[data-clas-create-service]"); if (sv) { d.servicii = sv.checked ? [...d.servicii, sv.value] : d.servicii.filter((x) => x !== sv.value); if (s.errors.servicii && d.servicii.length) { delete s.errors.servicii; const f = sv.closest(".e-permits-fo-field"); f.querySelector(":scope > .message--error")?.remove(); f.querySelector(":scope > .e-permits-fo-field__hint")?.removeAttribute("hidden"); } return; }
+    const sb = event.target.closest("[data-clas-subset]"); if (sb) { if (sb.checked) s.subset.add(sb.value); else s.subset.delete(sb.value); clasDrawerBody.querySelector(".e-permits-clas-subset__bar span").textContent = `${s.subset.size} din ${getClassifier(d.copiatDinId).valori.length} selectate`; return; }
+    const vr = event.target.closest("[data-clas-create-values]"); if (vr) { d.valoriStart = vr.value; delete s.errors.csv; renderCreateDrawer(); return; }
+    const file = event.target.closest("[data-clas-create-file]");
+    if (file?.files?.[0]) {
+      const fl = file.files[0]; const reader = new FileReader();
+      reader.onload = () => { d.csv = { name: fl.name, text: String(reader.result || ""), parsed: clasCore.parseCsv(String(reader.result || ""), clasCreateColumns(d).map((f) => f.id)) }; delete s.errors.csv; renderCreateDrawer(); };
+      reader.readAsText(fl);
+    }
   });
-  clasDrawer?.addEventListener("keydown", (event) => { if (event.key === "Escape" && clasDrawerState && !document.querySelector(".date-picker-panel:not([hidden]), body > .e-permits-fo-select__list")) { event.preventDefault(); closeClasDrawer(); } });
+  clasDrawer?.addEventListener("keydown", (event) => { if (event.key === "Escape" && clasDrawerState && !document.querySelector(".date-picker-panel:not([hidden]), body > .e-permits-fo-select__list") && !document.querySelector("#service-confirm-modal.is-open, #service-confirm-modal[aria-hidden='false']")) { event.preventDefault(); requestCloseClasDrawer(); } });
 
   clasModal?.addEventListener("click", (event) => {
     if (event.target.closest("[data-clas-modal-cancel]")) { closeClasModal(); return; }

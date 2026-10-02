@@ -3061,10 +3061,18 @@ Jurnal de evenimente · Setări. A state notice sits above every tab:
 
 | State | Notice |
 |---|---|
-| archived | info note "arhivat … Republică-l ca să-l poți edita" (read-only) |
-| local admin, flag off | info note "Administratorul central gestionează…" (read-only) |
+| archived | **lock notice** "Doar consultare. … arhivat … Republică-l ca să-l poți edita." |
+| local admin, flag off | **lock notice** "Doar consultare. Administratorul central gestionează…" |
+| values from MConnect / API (Valori) | **lock notice** "Valorile nu se editează manual. …" |
+| structure, not central admin (Coloane) | **lock notice** "Structura nu se editează aici. …" |
 | draft over published | `banner--warning` "Ciornă nepublicată. Consumatorii văd încă vX · N noi, M modificate…" (`core.draftChanges`) |
 | never-published draft | info note "nu este disponibil consumatorilor până la prima publicare" |
+
+**Lock notice** (`clasLockNotice`, added 2026-10-02): anything the user cannot edit is
+announced with the amber `message message--subtle banner--warning` + `icon-lock` and a bold
+lead, never with the grey "i" info note — read-only is a restriction, not information. Only
+one lock notice per screen (the tab-level ones are skipped when the classifier is already
+read-only).
 
 **Lifecycle actions** (header, from `core.statusActions` + `discardMeta`; primary is the right-most):
 
@@ -3117,12 +3125,30 @@ summary modal (noi / actualizate / dezactivate automat) plus a warning naming th
 ancestors → current (brand-secondary, `aria-current`) → children, indented with a 2px rail) ·
 Creat din (dead copy lineage, kept separate from the hierarchy) · Autorități și servicii.
 
-**Create wizard** (drawer, 2 steps) — 1 Date generale: Denumire (unique), Descriere, Familie,
-Categorie (segmented Global/Specific, with a hint under it that says who can use it; Global central only), Autoritate + Servicii checklist,
-Sursă (Intern / MConnect / API, hint explains where values come from), "Pornește de la un clasificator existent". 2: copy → subset
-checklist (all checked, Selectează/Deselectează tot); intern → start empty or CSV right after;
-MConnect/API → endpoint + mapping table (ID and Denumire RO required). Creates `status: draft`,
-`everPublished: false`, v0.1, then opens the profile.
+**Create wizard** (updated 2026-10-02) — the classifier drawer opened with
+`.e-permits-user-create--wide` (1120px, as "Configurează tipul de solicitare"): a
+`.e-permits-clas-create` grid = the full-flow vertical stepper `.e-permits-fo-stepper`
+(200px, sticky; visited steps are `button.e-permits-fo-stepper__row` with
+`data-clas-create-goto`) + the step content. Footer: "Pasul n din 4 · …" · Anulează/Înapoi ·
+Continuă / Creează ciorna. Each step validates before moving on; closing with data asks
+first (`askConfirm`, destructive).
+1. **Date generale** — Denumire (unique), Descriere, Familie; Categorie Global/Specific (hint
+   says who can use it) + Autoritate + Servicii; **Punct de plecare** Zero / Copia unui
+   clasificator (+ source select; copies its extra columns and ID format).
+2. **Structură** — standard columns as neutral tags (locked); extra columns edited in rows
+   `.e-permits-clas-create__col-row` (name · type select · settings: options for Selecție,
+   classifier for Referință · delete icon-action) + "Adaugă coloană"; Format cod INT/UID;
+   Clasificator-părinte; Acces toggles (central only).
+3. **Valori** — copy: subset checklist (all checked). Otherwise Sursa Intern / MConnect / API:
+   Intern = radio "Fără valori acum" / "Import din fișier CSV" (accepted keys from step 2,
+   template download, preview, unknown-column warning). MConnect / API = **Link la sursă**
+   (https only) + `btn-secondary` "Testează conexiunea" → success message
+   (`e-permits-fo-field__success`: records + fields found) and the mapping proposed as selects
+   of the detected fields; the test is required.
+4. **Revizuire** — `renderPassportBlock` per step with a "Modifică" text button, then an info
+   note: the classifier is created as **ciorna v0.1**.
+In the profile the source is a link: meta "MConnect · Deschide sursa ↗", Mapare tab
+"Link la sursă" (link ↗ + copy icon-action). Seed endpoints are demo https addresses.
 
 Field errors clear as soon as the field is edited; validation re-runs on save.
 
