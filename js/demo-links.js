@@ -15,6 +15,17 @@
     return;
   }
 
+  /* a clean start: the prototype keeps edits in this browser (created users,
+     profile changes, filters, the form-builder sandbox), so a link opened after
+     someone played with the demo would show another screen. Only this
+     prototype's own keys go — github.io shares one origin between projects. */
+  const OWN_KEY = /^(e-permits-|geap\.)/;
+  [window.localStorage, window.sessionStorage].forEach((store) => {
+    try {
+      Object.keys(store).filter((key) => OWN_KEY.test(key)).forEach((key) => store.removeItem(key));
+    } catch (error) { /* private mode: nothing stored */ }
+  });
+
   if (state.as) {
     try { window.sessionStorage.setItem("e-permits-back-office-assignment", state.as); } catch (error) { /* private mode */ }
   }
