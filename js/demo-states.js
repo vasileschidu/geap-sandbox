@@ -68,6 +68,28 @@
     for (const id of ["av1", "av2", "av3"]) { await h.click(`[data-perm-switch="${id}"]`); await h.wait(300); }
   };
 
+  /* Administrare › Tarife (Figma page "BO -> Tarife") */
+  const trf = (run) => ({ flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="tariffs"]'); if (run) await run(h); } });
+  const newTariff = async (h) => { await h.click("[data-workplace-add-tariff]"); };
+  const editTariff = (id) => async (h) => { await h.click(`[data-tariff-edit="${id}"]`); };
+
+  /* Șabloane de notificare (Figma page "BO -> Șabloane de notificare"): template AprobareNIAC */
+  const ntpl = (tab, run) => ({ flow: "back-office", as: ADMIN, hash: `#sablon/AprobareNIAC/${tab}`, run });
+  /* the Figma diff = RO subject + short text changed */
+  const ntplEdit = async (h) => {
+    await h.fill("#ntplp-subject-ro", "Cererea {{CaseNumber}} a fost aprobată");
+    await h.fill("#ntplp-plain", "e-Permis: cererea {{CaseNumber}} a fost aprobată. Detalii în Cabinetul personal.");
+  };
+  const ntplPublishOpen = async (h) => { await ntplEdit(h); await h.click("[data-ntpl-publish]"); };
+  const ntplScheduled = async (h) => {
+    await ntplPublishOpen(h);
+    await h.click('[data-ntpl-publish-when="scheduled"]');
+    const picker = await h.find("[data-ntpl-publish-date]");
+    picker.dataset.selected = "2026-10-15";
+    picker.dispatchEvent(new Event("change", { bubbles: true }));
+    await h.wait(450);
+  };
+
   window.GEAP_DEMO_STATES = {
     /* ---- Utilizatori › profil (Figma page "BO -> Utilizatori") ---- */
     "usr-01": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/general" },
@@ -276,6 +298,51 @@
     }),
     "svc-11": svc("events"),
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
-    "svc-11b": svc("events", async (h) => { await h.click('[data-svc-events-filter="failed"]'); })
+    "svc-11b": svc("events", async (h) => { await h.click('[data-svc-events-filter="failed"]'); }),
+
+    /* ---- Administrare › Tarife (Figma page "BO -> Tarife") ---- */
+    "trf-01": trf(),
+    "trf-01a": trf(async (h) => { await h.click('[data-workplace-tab="draft"]'); }),
+    "trf-01b": trf(async (h) => { await h.fill("[data-workplace-search]", "zzz", { leave: false }); }),
+    "trf-02": trf(newTariff),
+    "trf-02a": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-save="publish"]'); }),
+    "trf-02b": trf(async (h) => { await newTariff(h); await h.click("#tariff-type"); }),
+    "trf-02c": trf(async (h) => { await newTariff(h); await h.click("[data-tariff-formula]"); }),
+    "trf-02d": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-drawer] .js-date-picker-toggle'); }),
+    "trf-03": trf(editTariff("tf-taxa-stat-50")),
+    "trf-03a": trf(editTariff("tf-vechi")),
+    "trf-03b": trf(editTariff("tf-eliberare-duplicat")),
+    "trf-03c": trf(editTariff("tf-examinare-120")),
+    "trf-04": trf(async (h) => { await editTariff("tf-taxa-stat-50")(h); await h.click("[data-tariff-toggle-active]"); }),
+    "trf-04a": trf(async (h) => { await editTariff("tf-vechi")(h); await h.click("[data-tariff-delete]"); }),
+    "trf-04b": trf(async (h) => { await editTariff("tf-taxa-stat-50")(h); await h.hover("[data-tariff-delete]"); }),
+    "trf-04c": trf(async (h) => { await editTariff("tf-vechi")(h); await h.click("[data-tariff-toggle-active]"); }),
+
+    /* ---- Șabloane de notificare (Figma page "BO -> Șabloane de notificare") ---- */
+    "ntpl-01": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="notification-templates"]'); } },
+    "ntpl-02": ntpl("content"),
+    "ntpl-02a": ntpl("content", async (h) => { await h.click('[data-ntplp-mode="html"]'); }),
+    "ntpl-02b": ntpl("content", async (h) => { await h.click('[data-ntplp-preview="mobile"]'); }),
+    "ntpl-02c": ntpl("content", async (h) => { await h.click('[aria-controls="ntpl-field-picker"]'); }),
+    "ntpl-02d": ntpl("content", ntplEdit),
+    /* a template with nothing pending (AprobareNIAC has an unpublished draft in the demo data) */
+    "ntpl-02e": { flow: "back-office", as: ADMIN, hash: "#sablon/Case.Registered/content", run: async (h) => { await h.hover("[data-ntpl-publish]"); } },
+    "ntpl-03": ntpl("recipients"),
+    "ntpl-03a": ntpl("recipients", async (h) => { await h.click('[data-ntpl-rule-edit="0"]'); }),
+    "ntpl-03b": ntpl("recipients", rowMenu("[data-ntpl-profile-panel]")),
+    "ntpl-04": ntpl("settings"),
+    "ntpl-04a": ntpl("settings", async (h) => { await h.click("[data-ntpl-active]"); }),
+    "ntpl-04b": ntpl("history"),
+    "ntpl-04c": ntpl("content", async (h) => {
+      await ntplScheduled(h);
+      await h.fill("[data-ntpl-publish-note]", "Text actualizat: aprobarea se comunică și prin SMS.", { leave: false });
+      await h.click("[data-ntpl-publish-confirm]");
+      await h.wait(600);
+      await clearToasts(h);
+      await h.click('[data-ntpl-profile-tab="history"]');
+    }),
+    "ntpl-05": ntpl("content", ntplPublishOpen),
+    "ntpl-05a": ntpl("content", ntplScheduled),
+    "ntpl-05b": ntpl("content", async (h) => { await ntplPublishOpen(h); await h.click("[data-ntpl-publish-confirm]"); })
   };
 })();

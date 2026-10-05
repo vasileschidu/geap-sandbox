@@ -4270,7 +4270,9 @@ screen: `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.ht
   A toast from an in-between step is dismissed (`clearToasts`). `h.choose` waits for the
   hidden native select to exist, not to be visible.
 - **Ids:** `<page prefix>-<block code>`: Servicii `svc-04h2`; Utilizatori `usr-01…05` (tabs) and
-  `usr-u03b` … `usr-u05k` (= Figma U-codes); Roluri `rol-00 … rol-01c`.
+  `usr-u03b` … `usr-u05k` (= Figma U-codes); Roluri `rol-00 … rol-01c`; Tarife `trf-01 … trf-04c`;
+  Șabloane de notificare `ntpl-01 … ntpl-05b` (template AprobareNIAC; `ntpl-02e` uses
+  Case.Registered, which has nothing to publish).
 - **Figma:** in each block's „Screen label” after the title: text „Deschide în prototip →”,
   layer `Link · prototip`, Desktop/Body/Small, `text/brand/default`, underlined, hyperlink =
   the URL above. Every new block gets a state + this link; a renamed block keeps its id.
