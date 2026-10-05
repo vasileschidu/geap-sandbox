@@ -11,6 +11,10 @@
    - It triggers on focus as well as hover. The RAP implementation this
      replaces was pointer-only, which left truncated text unreachable by
      keyboard.
+   - Hover waits SHOW_DELAY_MS (1s) — sweeping the pointer across a table must
+     not flash a tooltip on every cell. Once one is showing, moving straight to
+     the next cell (within WARM_MS) shows it at once, so scanning a column does
+     not mean waiting again. Keyboard focus shows it immediately.
    - The copy handler stops propagation so clicking it never also opens a
      clickable row.
 */
@@ -19,6 +23,8 @@
 
   const COPIED_MS = 1600;
   const HIDE_MS = 150;
+  const SHOW_DELAY_MS = 1000;
+  const WARM_MS = 300;
 
   /* ---------- clipboard ---------- */
 
@@ -68,6 +74,8 @@
 
   let tip = null;
   let hideTimer = 0;
+  let showTimer = 0;
+  let lastHiddenAt = 0;
 
   function ensureTip() {
     if (tip) return tip;
@@ -103,15 +111,23 @@
   }
 
   function hide() {
+    window.clearTimeout(showTimer);
     if (!tip) return;
+    if (tip.classList.contains("is-visible")) lastHiddenAt = Date.now();
     tip.classList.remove("is-visible");
     hideTimer = window.setTimeout(() => { tip.hidden = true; }, HIDE_MS);
   }
 
   document.addEventListener("pointerover", (e) => {
     const t = e.target.closest("[data-cell-tooltip]");
-    if (t) show(t);
+    if (!t) return;
+    window.clearTimeout(showTimer);
+    const warm = (tip && tip.classList.contains("is-visible")) || Date.now() - lastHiddenAt < WARM_MS;
+    if (warm) show(t);
+    else showTimer = window.setTimeout(() => show(t), SHOW_DELAY_MS);
   });
+  // a click (row open, badge focus) never leaves a pending tooltip behind
+  document.addEventListener("pointerdown", hide, true);
   document.addEventListener("pointerout", (e) => {
     if (e.target.closest("[data-cell-tooltip]")) hide();
   });

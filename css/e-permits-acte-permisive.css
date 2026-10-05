@@ -1628,66 +1628,6 @@
   width: calc(100% - 32px);
 }
 
-.e-permits-user-profile__save,
-.e-permits-user-profile__cancel {
-  align-items: center;
-  border-radius: var(--border-radius-6, 6px);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: 32px;
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 52px;
-  padding: 0 12px;
-  transition: background-color 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
-}
-
-.e-permits-user-profile__cancel {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border: 1px solid transparent;
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-user-profile__cancel:hover {
-  background: var(--color-background-base-secondary-hover, #e8e8e8);
-}
-
-.e-permits-user-profile__save {
-  background: var(--color-background-brand-default, #0058d2);
-  border: 1px solid transparent;
-  color: var(--color-text-base-inverse, #fff);
-}
-
-.e-permits-user-profile__save:hover {
-  background: var(--color-background-brand-hover, #0047aa);
-}
-
-.e-permits-user-profile__save:focus-visible,
-.e-permits-user-profile__cancel:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
-.e-permits-user-profile__summary-authority {
-  gap: 6px;
-}
-
-/* admin-authority.svg is an 18.58×13.58 glyph exported with
-   preserveAspectRatio="none", so an <img> in a 20×20 box stretches it.
-   Draw it as the sidebar does: a mask at its native size, centred in 20px,
-   painted with the text colour. */
-.e-permits-user-profile__authority-icon {
-  -webkit-mask: url("../assets/icons/admin-authority.svg") center / 18.5833px 13.5833px no-repeat;
-  background-color: currentColor;
-  flex: 0 0 var(--spacing-20, 20px);
-  height: var(--spacing-20, 20px);
-  mask: url("../assets/icons/admin-authority.svg") center / 18.5833px 13.5833px no-repeat;
-  width: var(--spacing-20, 20px);
-}
-
 .e-permits-user-profile__panel {
   padding: 0 8px 48px;
 }
@@ -1711,361 +1651,15 @@
   padding: 12px 0;
 }
 
-.e-permits-user-profile__property-card {
-  background: var(--gray-50, #f7f7f7);
-  border-radius: 24px;
-  box-sizing: border-box;
-  padding: 8px 20px;
-}
-
-.e-permits-user-profile__property-row {
-  align-items: center;
-  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
-  box-sizing: border-box;
-  display: grid;
-  gap: 24px;
-  grid-template-columns: 256px minmax(0, 1fr);
-  min-height: 40px;
-  padding: 8px 0;
-}
-
-.e-permits-user-profile__property-row:last-child {
-  border-bottom: 0;
-}
-
-.e-permits-user-profile__property-row.is-editing {
-  align-items: start;
-}
-
-.e-permits-user-profile__property-label {
-  color: var(--color-text-base-secondary, #383838);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__property-value {
-  color: var(--color-text-base-default, #121212);
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  min-width: 0;
-}
-
-.e-permits-user-profile__property-display {
-  align-items: center;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.e-permits-user-profile__property-display > span {
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.e-permits-user-profile__editor {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-  width: 100%;
-}
-
-.e-permits-user-profile__editor-actions {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.e-permits-user-profile__empty {
-  align-items: center;
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-12, 12px);
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 12px;
-  min-height: 72px;
-  padding: 16px 20px;
-}
-
-.e-permits-user-profile__empty .icon {
-  color: var(--color-icon-base-tertiary, #757575);
-  flex: 0 0 24px;
-}
-
 .e-permits-workplace.is-users-registry tr[data-workplace-row] {
   cursor: pointer;
 }
 
-/* both used inside the page-header meta values */
-.e-permits-user-profile__summary-roles,
-.e-permits-user-profile__summary-authority {
+/* used inside the page-header meta values */
+.e-permits-user-profile__summary-roles {
   align-items: center;
   display: inline-flex;
   gap: var(--spacing-6, 6px);
-}
-
-/* ---- Combinații de roluri tab ---- */
-.e-permits-user-profile__combos-section h2,
-.e-permits-user-profile__perms h2 {
-  font-size: var(--font-size-fs-20, 20px);
-  letter-spacing: -0.2px;
-  line-height: var(--line-height-lh-28, 28px);
-  padding: 12px 0;
-}
-
-.e-permits-user-profile__combos {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 16px 0;
-}
-
-.e-permits-user-profile__combo {
-  align-items: center;
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-12, 12px);
-  box-sizing: border-box;
-  display: flex;
-  gap: 20px;
-  min-height: 70px;
-  padding: 0 12px;
-}
-
-.e-permits-user-profile__combo-icon {
-  align-items: center;
-  background: var(--color-background-brand-secondary-hover, #ccdef6);
-  border-radius: var(--border-radius-full, 999px);
-  display: flex;
-  flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  width: 32px;
-}
-
-.e-permits-user-profile__combo-icon img {
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-user-profile__combo-info {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.e-permits-user-profile__combo-crumb {
-  align-items: center;
-  color: var(--color-text-base-default, #121212);
-  display: flex;
-  flex-wrap: wrap;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 8px;
-}
-
-.e-permits-user-profile__combo-crumb .icon {
-  color: var(--color-icon-base-tertiary, #757575);
-  flex: 0 0 20px;
-}
-
-.e-permits-user-profile__combo-meta {
-  color: var(--color-text-base-secondary, #383838);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-}
-
-.e-permits-user-profile__combo-meta strong {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
-.e-permits-user-profile__combo-remove {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-full, 999px);
-  color: var(--color-icon-base-secondary, #383838);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  width: 32px;
-}
-
-.e-permits-user-profile__combo-remove:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-user-profile__combo-add {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: 1.5px solid var(--color-border-brand-default, #0058d2);
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-brand-default, #0058d2);
-  cursor: pointer;
-  display: inline-flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 6px;
-  height: 32px;
-  padding: 0 12px 0 8px;
-}
-
-.e-permits-user-profile__combo-add:hover {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-}
-
-.e-permits-user-profile__combo-add .icon {
-  flex: 0 0 16px;
-}
-
-.e-permits-user-profile__combo-form-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 8px 0 16px;
-}
-
-.e-permits-user-profile__combo-form {
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  padding: 20px;
-}
-
-.e-permits-user-profile__combo-form-title {
-  color: var(--color-text-base-default, #121212);
-  font: 500 16px/24px var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-}
-
-.e-permits-user-profile__combo-form-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.e-permits-user-profile__combo-field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.e-permits-user-profile__combo-form-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.e-permits-user-profile__combo-submit,
-.e-permits-user-profile__combo-cancel {
-  align-items: center;
-  border-radius: var(--border-radius-6, 6px);
-  cursor: pointer;
-  display: inline-flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  height: 32px;
-  justify-content: center;
-  min-width: 52px;
-  padding: 0 12px;
-}
-
-.e-permits-user-profile__combo-submit {
-  background: var(--color-background-brand-default, #0058d2);
-  border: 1px solid transparent;
-  color: var(--color-background-base-inverse-on-color, #fff);
-}
-
-.e-permits-user-profile__combo-submit:hover:not(:disabled) {
-  background: var(--color-background-brand-hover, #0047aa);
-}
-
-.e-permits-user-profile__combo-submit:disabled {
-  background: var(--color-background-disabled-default, #f1f1f1);
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-  cursor: not-allowed;
-}
-
-.e-permits-user-profile__combo-cancel {
-  background: var(--color-background-base-default, #fff);
-  border: 1.5px solid var(--color-border-base-strong, #121212);
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-user-profile__combo-cancel:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-/* ---- Permisiuni tab ---- */
-
-/* Search = the full-flow suggestion field (.e-permits-fo-input + .e-permits-fo-address-search__list);
-   only the spacing to the heading lives here. */
-.e-permits-user-profile__perm-search {
-  padding: var(--spacing-12, 12px) 0;
-}
-
-.e-permits-user-profile__perm-search .e-permits-fo-address-search__list {
-  margin-top: calc(var(--spacing-12, 12px) * -1 + var(--spacing-4, 4px));
-}
-
-.e-permits-user-profile__perm-group-head {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  padding: 9px 5px 9px 17px;
-  width: 100%;
-}
-
-.e-permits-user-profile__perm-group-title {
-  align-items: center;
-  display: flex;
-  gap: 10px;
-}
-
-.e-permits-user-profile__perm-group-name {
-  color: var(--color-text-base-secondary, #383838);
-  font: 500 16px/24px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__perm-group-count {
-  color: var(--color-text-base-tertiary, #757575);
-  font: 400 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-}
-
-.e-permits-user-profile__perm-group-chevron {
-  align-items: center;
-  color: var(--color-icon-base-secondary, #383838);
-  display: inline-flex;
-  flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  width: 32px;
-}
-
-.e-permits-user-profile__perm-group-body {
-  display: flex;
-  flex-direction: column;
-}
-
-.e-permits-user-profile__perm-row--add {
-  background: var(--color-background-positive-secondary, #e6f5ee);
-}
-
-.e-permits-user-profile__perm-row--remove {
-  background: var(--color-background-danger-secondary, #fee4e2);
-}
-
-@media (max-width: 900px) {
-  
-
-  .e-permits-user-profile__property-row {
-    grid-template-columns: 192px minmax(0, 1fr);
-  }
 }
 
 @media (max-width: 640px) {
@@ -2081,17 +1675,6 @@
 
   .e-permits-user-profile__panel {
     padding-inline: 0;
-  }
-
-  .e-permits-user-profile__property-card {
-    border-radius: 16px;
-    padding-inline: 16px;
-  }
-
-  .e-permits-user-profile__property-row {
-    align-items: start;
-    gap: 4px;
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -3864,12 +3447,15 @@
   width: 100%;
 }
 
-.e-permits-fo-auth__role-collapse > .e-permits-fo-auth__role-group-list {
+.e-permits-fo-auth__role-collapse > .e-permits-fo-auth__role-group-list,
+.e-permits-fo-auth__role-collapse > .e-permits-shell__role-list {
   min-height: 0;
   overflow: hidden;
 }
 
-.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse {
+/* also the back-office role switcher (.e-permits-shell__role-group), same collapse */
+.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse,
+.e-permits-shell__role-group.is-expanded .e-permits-fo-auth__role-collapse {
   grid-template-rows: 1fr;
   opacity: 1;
 }
@@ -4002,15 +3588,18 @@
   background: rgb(18 18 18 / 6%);
 }
 
-.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse-arrow .icon {
+.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse-arrow .icon,
+.e-permits-shell__role-group.is-expanded .e-permits-fo-auth__role-collapse-arrow .icon {
   transform: rotate(180deg);
 }
 
-.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse-preview {
+.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse-preview,
+.e-permits-shell__role-group.is-expanded .e-permits-fo-auth__role-collapse-preview {
   flex-basis: 32px;
 }
 
-.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse-stack {
+.e-permits-fo-auth__role-group.is-expanded .e-permits-fo-auth__role-collapse-stack,
+.e-permits-shell__role-group.is-expanded .e-permits-fo-auth__role-collapse-stack {
   display: none;
 }
 
@@ -7671,50 +7260,6 @@
   padding: var(--spacing-12, 12px) var(--spacing-24, 24px);
 }
 
-.e-permits-fo-doc-modal__search-field {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  height: 40px;
-  padding: 0 var(--spacing-12, 12px);
-  width: 100%;
-  cursor: text;
-  transition: border-color 100ms ease, box-shadow 100ms ease, background-color 100ms ease;
-}
-
-.e-permits-fo-doc-modal__search-input {
-  background: transparent;
-  border: none;
-  color: var(--color-text-base-default, #121212);
-  flex: 1 1 0;
-  font-family: "Onest", sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  outline: none;
-}
-
-.e-permits-fo-doc-modal__search-input::placeholder {
-  color: var(--color-text-base-tertiary, #757575);
-}
-
-.e-permits-fo-doc-modal__search-icon {
-  color: var(--color-text-base-tertiary, #757575);
-  display: inline-flex;
-  flex-shrink: 0;
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-fo-doc-modal__search-field:hover .e-permits-fo-doc-modal__search-icon,
-.e-permits-fo-doc-modal__search-field:focus-within .e-permits-fo-doc-modal__search-icon {
-  color: var(--color-icon-base-secondary, #444);
-}
-
 .e-permits-fo-doc-modal__list {
   display: flex;
   flex-direction: column;
@@ -8458,12 +8003,9 @@
   padding: 0 var(--spacing-8, 8px);
 }
 
-.e-permits-fo-mdocs__empty {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-  padding: var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+/* wrapper of the shared empty state (bare) under the MDocs search */
+.e-permits-fo-mdocs__empty[hidden] {
+  display: none;
 }
 
 .e-permits-fo-mdocs__attachment {
@@ -10418,8 +9960,8 @@
   font-weight: var(--font-weight-fw-regular, 400);
   height: 32px;
   line-height: var(--line-height-lh-20, 20px);
-  padding-bottom: var(--spacing-6, 6px);
-  padding-top: var(--spacing-6, 6px);
+  padding-bottom: var(--spacing-4, 4px);
+  padding-top: var(--spacing-4, 4px);
 }
 
 .e-permits-fo-payment-table thead th:not(:first-child),
@@ -11239,56 +10781,6 @@
 
 .e-permits-builder__library-tabs button:not(.is-active):hover {
   background: rgba(255, 255, 255, 0.48);
-}
-
-.e-permits-builder__search {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
-  color: var(--color-text-base-tertiary, #757575);
-  cursor: text;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  height: 40px;
-  overflow: hidden;
-  padding: 0 var(--spacing-12, 12px);
-  width: 100%;
-}
-
-.e-permits-builder__search:hover {
-  border-color: var(--color-border-base-tertiary, #444);
-  box-shadow: inset 0 0 0 1px var(--color-border-base-tertiary, #444);
-}
-
-.e-permits-builder__search:focus-within {
-  border-color: var(--color-border-brand-default, #0058d2);
-  box-shadow: inset 0 0 0 1px var(--color-border-brand-default, #0058d2), 0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
-.e-permits-builder__search input {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  color: var(--color-text-base-default, #121212);
-  flex: 1 1 auto;
-  font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  outline: none;
-  padding: 0;
-}
-
-.e-permits-builder__search input::placeholder {
-  color: var(--color-text-base-tertiary, #757575);
-  opacity: 1;
-}
-
-.e-permits-builder__search input::-webkit-search-cancel-button {
-  appearance: none;
 }
 
 .e-permits-builder__library-list,
@@ -13883,6 +13375,12 @@
   width: 24px;
 }
 
+/* square icon inside the 24px button (4px padding): .icon alone keeps a 24px height */
+.e-permits-builder__info-button > .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
 .e-permits-builder__source-card-head .e-permits-builder__info-button {
   background: transparent;
   border: 0;
@@ -14743,12 +14241,6 @@
   outline: none;
 }
 
-.e-permits-builder-registry__search {
-  flex: 1 1 0;
-  margin: 0;
-  min-width: 280px;
-}
-
 .e-permits-builder-registry__list {
   display: flex;
   flex: 1 1 auto;
@@ -14866,16 +14358,6 @@
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
-.e-permits-builder-registry__empty {
-  border: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 680px;
-  padding: var(--spacing-24, 24px);
-  text-align: center;
-}
 
 .e-permits-builder[data-mode="preview"] .e-permits-builder__library,
 .e-permits-builder[data-mode="preview"] .e-permits-builder__inspector,
@@ -16349,6 +15831,14 @@
   align-self: center;
 }
 
+/* the same search filling its container — side panels, modal bodies, a profile tab
+   (builder library, document library, Permisiuni): no 400 cap */
+.e-permits-front-office-page .e-permits-workplace__search.e-permits-list-search--fill {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: none;
+}
+
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__advanced {
   flex: 0 0 auto;
   align-self: center;
@@ -16816,7 +16306,10 @@
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__copy-code > .icon {
   color: var(--color-icon-base-default, #121212);
   display: block;
-  flex: 0 0 20px;
+  flex: 0 0 var(--spacing-20, 20px);
+  /* square: .icon alone sets the 24px default height */
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
 }
 
 @media (max-width: 760px) {
@@ -17921,6 +17414,21 @@
   min-width: 52px;
 }
 
+/* the ⋮ overflow trigger stays square in a header too (the 52px minimum is for labels) */
+.e-permits-page-header__actions .btn.btn-sm.btn-icon-only {
+  min-width: 0;
+  width: var(--spacing-32, 32px);
+}
+
+/* draft actions (Renunță · Salvează) | the page's own actions */
+.e-permits-page-header__divider {
+  align-self: stretch;
+  background: var(--color-border-base-default, #d9d9d9);
+  flex: 0 0 auto;
+  margin: var(--spacing-4, 4px);
+  width: var(--border-width-1, 1px);
+}
+
 
 /* ONE back-office button = Figma button-filled-rectangular, Size Small (Components file):
    library .btn + .btn-sm + variant → 32px, radius 6, 0/12 padding (8 on the icon side),
@@ -18055,6 +17563,56 @@
   line-height: var(--line-height-lh-16, 16px);
   margin: 0;
   white-space: nowrap;
+}
+
+/* header state that is not an action ("Modificări nepublicate"): an 8px dot + text in the
+   tone's colour — in the caption under the buttons, or inline before them in a sheet
+   header. Replaces the warning tag that sat between buttons. */
+.e-permits-page-header__status {
+  align-items: center;
+  color: var(--color-text-warning-default, #b54708);
+  display: inline-flex;
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-16, 16px);
+  white-space: nowrap;
+}
+
+.e-permits-page-header__status::before {
+  background: var(--color-icon-warning-default, #e8890c);
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  flex: 0 0 auto;
+  height: var(--spacing-8, 8px);
+  width: var(--spacing-8, 8px);
+}
+
+/* clickable status (profile drafts): opens the changes review; dotted underline on hover */
+.e-permits-page-header__status--button {
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  cursor: pointer;
+  padding: 0;
+}
+
+.e-permits-page-header__status--button:hover {
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.e-permits-page-header__status--button:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+/* in a row of buttons (sheet header) it reads at the buttons' size */
+.e-permits-dtpl__actions .e-permits-page-header__status {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-right: var(--spacing-4, 4px);
 }
 
 /* meta row: label over value; items sit 24 + separator + 24 apart (Figma) */
@@ -18419,13 +17977,6 @@
   margin: 0;
 }
 
-.e-permits-passport__empty {
-  align-items: flex-start;
-  gap: var(--spacing-12, 12px);
-  padding: var(--spacing-20, 20px);
-}
-
-.e-permits-passport__empty p,
 .e-permits-passport__lead {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-14, 14px);
@@ -18831,6 +18382,18 @@
   position: relative;
 }
 
+/* ⋮ while its menu is open: pressed fill + the focus ring, so the trigger reads
+   as the owner of the menu; the menu hangs right-aligned 8px below it (clear of
+   the 5px ring) */
+.e-permits-stack__menu-trigger[aria-expanded="true"] {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-stack__menu-wrap > .e-permits-stack__menu {
+  right: 0;
+  top: calc(100% + var(--spacing-8, 8px));
+}
+
 /* the menu itself is .e-permits-fo-intent-menu (post-process menu); only
    the danger item tone is added here */
 /* back-office size of the post-process menu: each item has the footprint of
@@ -18862,6 +18425,17 @@
 .e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger,
 .e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger .icon {
   color: var(--color-text-error-default, #d92d20);
+}
+
+/* an unavailable item stays in place (focusable, the tooltip says why), greyed */
+.e-permits-stack__menu .e-permits-fo-intent-menu__item[aria-disabled="true"],
+.e-permits-stack__menu .e-permits-fo-intent-menu__item[aria-disabled="true"] .icon {
+  color: var(--color-text-disabled-default, #bfbfbf);
+  cursor: not-allowed;
+}
+
+.e-permits-stack__menu .e-permits-fo-intent-menu__item[aria-disabled="true"]:hover {
+  background: transparent;
 }
 
 @media (max-width: 760px) {
@@ -18909,21 +18483,6 @@
   outline: none;
 }
 
-/* ==========================================================================
-   Permisiuni (utilizator / rol) on the stacked list
-   Same layout as the passport lists; groups keep their collapse behaviour.
-   ========================================================================== */
-.e-permits-perms__heading {
-  gap: var(--spacing-16, 16px);
-}
-
-.e-permits-perms__heading .e-permits-dosar-profil__section-title .e-permits-workplace__tag {
-  margin-left: var(--spacing-8, 8px);
-}
-
-.e-permits-perms__stack {
-  margin-top: var(--spacing-8, 8px);
-}
 
 /* the heading is the toggle: full width, chevron at the end */
 .e-permits-stack__group-label--toggle {
@@ -18981,56 +18540,6 @@
 
 .e-permits-stack__group:first-child .e-permits-stack__group-toggle {
   border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
-}
-
-
-/* Permisiuni row actions: the original Adaugă / Retrage toggles, unchanged */
-.e-permits-user-profile__perm-btn {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: 6px;
-  height: 32px;
-  min-width: 52px;
-  padding: 0 12px 0 8px;
-}
-
-.e-permits-user-profile__perm-btn .icon,
-.e-permits-user-profile__perm-btn .e-permits-user-profile__ban {
-  flex: 0 0 16px;
-}
-
-.e-permits-user-profile__perm-btn:hover:not(:disabled):not(.is-active) {
-  background: var(--color-background-base-secondary, #f5f5f5);
-}
-
-.e-permits-user-profile__perm-btn:focus-visible {
-  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
-}
-
-.e-permits-user-profile__perm-btn:disabled {
-  background: var(--color-background-disabled-default, #f1f1f1);
-  border-color: var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-  cursor: not-allowed;
-}
-
-.e-permits-user-profile__perm-add.is-active {
-  background: var(--green-600, #039855);
-  border-color: transparent;
-  color: #fff;
-}
-
-.e-permits-user-profile__perm-retrage.is-active {
-  background: var(--color-background-danger-default, #d92d20);
-  border-color: transparent;
-  color: #fff;
 }
 
 /* ---- Configurează tipul de solicitare: the user-create drawer, wide ------
@@ -19258,13 +18767,8 @@
 }
 
 /* ---- Tarife (classifier) — editor pieces the library does not cover ------- */
-/* the "global tariffs live in Administrare → Tarife" pointer under the list: the canonical
-   grey inline note, one section gap (24) below the list */
-.e-permits-tariff__global-link {
-  margin-top: var(--spacing-24, 24px);
-}
-
-.e-permits-tariff__global-link .link {
+/* a link inside a note tray reads as part of the sentence */
+.e-permits-sum-list__note .link {
   display: inline;
   font-size: inherit;
   line-height: inherit;
@@ -19291,13 +18795,6 @@
   font-size: inherit;
   line-height: inherit;
   padding: 0;
-}
-
-/* "Nu se aplică" in Simulează: the same bordered list, muted */
-.e-permits-tax__skipped .e-permits-case-form__fee-name,
-.e-permits-tax__skipped .e-permits-case-form__fee-amount {
-  color: var(--color-text-base-tertiary, #757575);
-  font-weight: var(--font-weight-fw-regular, 400);
 }
 
 /* formula check: a quiet grey panel with test inputs and the result */
@@ -19520,28 +19017,25 @@
   gap: var(--spacing-8, 8px);
 }
 
-/* Sumar taxe — three stacked-list groups side by side (Plăți, Tarife, Conturi bancare
-   at double width); each hugs its rows. Rows are name left, value right. */
+/* Sumar taxe — Taxe, Tarife, Conturi bancare in one row, each hugging its rows (name
+   left, ending in „…” when long; value right); Conturi bancare wider for the account
+   name + the IBAN copy component */
 .e-permits-fee-summary {
   align-items: start;
   display: grid;
   gap: var(--spacing-24, 24px);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr);
 }
 
 @media (max-width: 900px) {
   .e-permits-fee-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .e-permits-fee-summary__group {
   min-width: 0;
   overflow: hidden;
-}
-
-.e-permits-fee-summary__group--wide {
-  grid-column: span 2;
 }
 
 /* a gray 20px icon before each group title, to set the summary apart from the lists */
@@ -19555,11 +19049,15 @@
   gap: var(--spacing-12, 12px);
 }
 
+/* one line: a long tax / tariff name ends in „…” (full name in the title tooltip) */
 .e-permits-fee-summary__name {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* value box held to one text line, so a row with the IBAN copy button is as tall as a
@@ -19573,6 +19071,62 @@
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-20, 20px);
+}
+
+/* Sumar taxe: „Arată toate” in the totals tray under the list — a rounded text button
+   (btn-rounded) with the same 4px of tray around it on the top, right and bottom; the
+   „Încă N” text keeps the 20px start padding of a totals row → a 40px tray */
+.e-permits-sum-list__total.e-permits-fee-summary__more {
+  color: var(--color-text-base-tertiary, #757575);
+  padding: var(--spacing-4, 4px) var(--spacing-4, 4px) var(--spacing-4, 4px) var(--spacing-20, 20px);
+}
+
+.e-permits-fee-accounts__toolbar {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  margin-bottom: var(--spacing-12, 12px);
+}
+
+.e-permits-fee-accounts__count {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* the list scrolls inside the modal; the modal itself never grows past the viewport */
+.e-permits-fee-accounts__list {
+  max-height: min(56vh, 520px);
+  overflow-y: auto;
+}
+
+.e-permits-fee-accounts__copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.e-permits-fee-accounts__name {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fee-accounts__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-fee-accounts__empty {
+  list-style: none;
 }
 
 /* Dosar — process actions (core/case-flow.js; Figma 6675:158399).
@@ -19915,10 +19469,13 @@
   width: 1px;
 }
 
-.e-permits-ntpl-editor__surface,
-
+/* the writing area keeps the form-field inset (12/16), not flush with the frame */
 .e-permits-ntpl-editor__surface {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: 160px;
   outline: none;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
 .e-permits-ntpl-editor__surface p {
@@ -20534,19 +20091,6 @@
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-.e-permits-clas-empty {
-  align-items: center;
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-12, 12px);
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  flex-wrap: wrap;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-8, 8px);
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-32, 32px) var(--spacing-20, 20px);
-}
 
 .e-permits-clas-add-row {
   display: flex;
@@ -21396,4 +20940,540 @@ button.e-permits-steps-strip__cell:focus-visible {
 
 [data-demo-flow="back-office"] :is(.e-permits-info-note, .message--subtle:not(.e-permits-ntpl-banner)) strong {
   font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* ==========================================================================
+   Servicii › Notificări — a service's own template opens the template editor
+   in a full-screen sheet: 24px clear at the top so it reads as a modal over the
+   passport; it slides up, scrolls inside, and keeps every editor style
+   (the [data-ntpl-profile] node is moved in and back, not duplicated).
+   ========================================================================== */
+body.is-ntpl-sheet-open {
+  overflow: hidden;
+}
+
+.e-permits-ntpl-sheet {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  inset: 0;
+  padding-top: var(--spacing-24, 24px);
+  position: fixed;
+  z-index: 950; /* under library modals (1000) and drawers (1200) opened from it */
+}
+
+.e-permits-ntpl-sheet[hidden] {
+  display: none;
+}
+
+.e-permits-ntpl-sheet__scrim {
+  animation: e-permits-user-create-scrim-in 120ms ease-out both;
+  background: rgba(0, 0, 0, 0.4); /* library .modal-overlay backdrop */
+  inset: 0;
+  position: absolute;
+}
+
+.e-permits-ntpl-sheet__panel {
+  animation: e-permits-ntpl-sheet-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+  box-shadow: var(--shadow-300, 0 1px 3px rgba(0, 0, 0, 0.08), 0 5px 12px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.15));
+  flex: 1 1 auto;
+  min-height: 0;
+  outline: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  position: relative;
+}
+
+.e-permits-ntpl-sheet.is-closing .e-permits-ntpl-sheet__scrim {
+  animation: e-permits-user-create-scrim-out 100ms ease-in both;
+}
+
+.e-permits-ntpl-sheet.is-closing .e-permits-ntpl-sheet__panel {
+  animation: e-permits-ntpl-sheet-out 140ms ease-in both;
+}
+
+@keyframes e-permits-ntpl-sheet-in {
+  from { opacity: 0; transform: translateY(var(--spacing-24, 24px)); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes e-permits-ntpl-sheet-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(var(--spacing-24, 24px)); }
+}
+
+/* the page header keeps the shell content's 24px inset inside the sheet */
+.e-permits-ntpl-sheet .e-permits-ntpl-profile .e-permits-page-header__body,
+.e-permits-ntpl-sheet .e-permits-ntpl-profile .e-permits-page-header__tabs {
+  padding-inline: var(--spacing-24, 24px);
+}
+
+/* the sheet's close sits after the page actions, divided from them */
+.e-permits-ntpl-sheet__divider {
+  align-self: stretch;
+  background: var(--color-border-base-default, #d9d9d9);
+  margin: var(--spacing-4, 4px) var(--spacing-4, 4px);
+  width: 1px;
+}
+
+@media (max-width: 760px) {
+  .e-permits-ntpl-sheet .e-permits-ntpl-profile .e-permits-page-header__body,
+  .e-permits-ntpl-sheet .e-permits-ntpl-profile .e-permits-page-header__tabs {
+    padding-inline: var(--spacing-16, 16px);
+  }
+}
+
+/* ==========================================================================
+   Servicii › Șabloane — document template constructor (MDocs), full-screen
+   sheet: head (identity · Șablon / Date de test / Previzualizare · actions),
+   optional MDocs banner, body (fields panel + editor), sticky footer.
+   ========================================================================== */
+.e-permits-dtpl__panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.e-permits-dtpl__head {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: grid;
+  flex: 0 0 auto;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  padding: var(--spacing-12, 12px) var(--spacing-24, 24px);
+}
+
+.e-permits-dtpl__identity {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-dtpl__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-dtpl__actions {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-end;
+}
+
+.e-permits-dtpl__banner {
+  flex: 0 0 auto;
+  margin: var(--spacing-12, 12px) var(--spacing-24, 24px) 0;
+}
+
+.e-permits-dtpl__banner > .btn {
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.e-permits-dtpl__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.e-permits-dtpl__body[data-dtpl-body-view="template"] {
+  overflow: hidden;
+}
+
+.e-permits-dtpl__work {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  height: 100%;
+}
+
+/* Câmpuri disponibile — scrolls on its own; groups collapse */
+.e-permits-dtpl-fields {
+  border-right: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--spacing-20, 20px) var(--spacing-16, 16px);
+}
+
+.e-permits-dtpl-fields__heading {
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.e-permits-dtpl-fields__hint,
+.e-permits-dtpl-fields__empty {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-dtpl-fields__groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-dtpl-fields__head {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-secondary, #4d4d4d);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-8, 8px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-dtpl-fields__head:hover {
+  background: var(--color-background-base-secondary, #f5f5f5);
+}
+
+.e-permits-dtpl-fields__head:focus-visible {
+  box-shadow: 0 0 0 2px var(--white-1000, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
+  outline: none;
+}
+
+.e-permits-dtpl-fields__title {
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-dtpl-fields__list {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-dtpl-fields__list .e-permits-ntpl-picker__item {
+  cursor: grab;
+  width: 100%;
+}
+
+/* editor column */
+.e-permits-dtpl__editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  min-height: 0;
+  min-width: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-dtpl__editor-bar,
+.e-permits-dtpl__status {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-dtpl__status .e-permits-fo-field__hint {
+  margin: 0;
+}
+
+.e-permits-dtpl__toolbar {
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  flex-wrap: wrap;
+}
+
+.e-permits-dtpl__block-select {
+  width: 180px;
+}
+
+.e-permits-dtpl__canvas {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-32, 32px);
+}
+
+.e-permits-dtpl__canvas--preview {
+  margin: var(--spacing-24, 24px) auto 0;
+  max-width: 1040px;
+}
+
+.e-permits-dtpl__preview-note {
+  margin: var(--spacing-8, 8px) auto var(--spacing-24, 24px);
+  max-width: 1040px;
+}
+
+/* A4 page; the background image (Fundal pagină) covers it */
+.e-permits-dtpl__page {
+  background-color: var(--color-background-base-default, #fff);
+  background-position: center;
+  background-size: cover;
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  box-sizing: border-box;
+  margin: 0 auto;
+  min-height: 297mm;
+  padding: 18mm 16mm;
+  width: min(100%, 210mm);
+}
+
+.e-permits-dtpl__surface {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: 200px;
+  outline: none;
+}
+
+.e-permits-dtpl__surface h1 {
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: var(--spacing-16, 16px) 0 var(--spacing-8, 8px);
+  text-align: center;
+}
+
+.e-permits-dtpl__surface h2,
+.e-permits-dtpl__surface h3 {
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  margin: var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-dtpl__surface p {
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-dtpl__surface table {
+  border-collapse: collapse;
+  margin: var(--spacing-12, 12px) 0;
+  width: 100%;
+}
+
+.e-permits-dtpl__surface td {
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+  vertical-align: top;
+}
+
+.e-permits-dtpl__surface[contenteditable="true"] :is(p, td, h1, h2, h3, li):hover {
+  outline: 1px dashed var(--color-border-brand-default, #0058d2);
+}
+
+/* a field in the document: brand chip; unknown = danger + wavy underline; logic = neutral */
+.e-permits-dtpl-token {
+  background: var(--color-background-brand-secondary, #eef4ff);
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-brand-default, #0058d2);
+  padding: 0 var(--spacing-2, 2px);
+  white-space: nowrap;
+}
+
+.e-permits-dtpl-token.is-unknown {
+  background: var(--color-background-danger-secondary, #fef3f2);
+  color: var(--color-text-danger-default, #d92d20);
+  text-decoration: underline wavy;
+}
+
+.e-permits-dtpl-token.is-logic {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-text-base-secondary, #4d4d4d);
+}
+
+.e-permits-dtpl__html {
+  flex: 1 1 auto;
+}
+
+.e-permits-dtpl__html textarea {
+  min-height: 100%;
+}
+
+.e-permits-dtpl__narrow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  margin: 0 auto;
+  max-width: 960px;
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-dtpl__foot {
+  align-items: center;
+  border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) var(--spacing-24, 24px);
+}
+
+@media (max-width: 1100px) {
+  .e-permits-dtpl__head {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .e-permits-dtpl__views {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
+  .e-permits-dtpl__work {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+}
+
+/* fields panel: label over token (the panel is narrow) */
+.e-permits-dtpl-fields__list .e-permits-ntpl-picker__item {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* a list toolbar with actions only (empty list, no search) keeps them on the right */
+.e-permits-pay__toolbar > .e-permits-pay__tools:only-child {
+  margin-left: auto;
+}
+
+/* Sum list tray as a note: info icon + text, left aligned, secondary text */
+.e-permits-sum-list__note {
+  align-items: flex-start;
+  color: var(--color-text-base-secondary, #4d4d4d);
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-start;
+}
+
+.e-permits-sum-list__note > .icon {
+  color: var(--color-icon-base-tertiary, #8c8c8c);
+  flex: 0 0 auto;
+  height: 20px;
+  width: 20px;
+}
+
+.e-permits-sum-list__note p {
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+.e-permits-sum-list__note strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* Date generale › Documente însoțitoare (RSSP) — the Dosar document tiles: the name takes
+   the whole width and wraps (no ellipsis); the flag sits right: „✱ Obligatoriu” (neutral
+   subtle tag, red asterisk) or a quiet „Opțional”; the count sits after the source tag */
+.e-permits-passport__docs-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-left: auto;
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-passport__doc-title {
+  overflow: visible;
+  white-space: normal;
+}
+
+.e-permits-passport__doc-flag {
+  flex: 0 0 auto;
+}
+
+.e-permits-passport__doc-flag--optional {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* Servicii › Jurnal de evenimente — long log: count line, the timeline, then „Afișate X din
+   N” + „Arată încă N” centred under it */
+.e-permits-svc-events {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-svc-events__count {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-svc-events__more {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding-top: var(--spacing-4, 4px);
+}
+
+/* the flags end on the same edge: the „✱ Obligatoriu” tag drops its pill padding */
+.e-permits-passport__doc-flag.status-tag {
+  padding-right: 0;
+}
+
+/* ---- Service › Setări: compact switch rows in the bordered form card -----------
+   Actionable, so the white bordered card (.e-permits-ntpl-card), not the grey
+   read-only one; hairline rows, each = the product toggle (.e-permits-toggle:
+   switch first, label 14/20 medium over one tertiary line). */
+.e-permits-ntpl-card.e-permits-svc-settings {
+  padding-bottom: var(--spacing-4, 4px);
+  padding-top: var(--spacing-4, 4px);
+}
+
+.e-permits-svc-setting {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: var(--spacing-12, 12px) 0;
+}
+
+.e-permits-svc-setting:last-child {
+  border-bottom: 0;
+}
+
+/* ---- Permisiuni (user + role): switch rows -----------------------------------------
+   Stacked list rows with the product switch on the right; the label is the switch's
+   label (click toggles). A group heading is not collapsible while a search or a filter
+   is active (every group with matches is open). */
+.e-permits-perms__label {
+  cursor: pointer;
+  margin: 0;
+}
+
+.e-permits-perms .e-permits-stack__group-toggle:disabled {
+  cursor: default;
+}
+
+.e-permits-perms .e-permits-stack__group-toggle:disabled:hover {
+  background: transparent;
+}
+
+.e-permits-perms .e-permits-stack__group-toggle:disabled .e-permits-stack__group-chevron {
+  visibility: hidden;
 }

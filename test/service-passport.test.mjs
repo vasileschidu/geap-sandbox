@@ -339,19 +339,6 @@ check("taxe: a condition applies only for the chosen classifier values; none = a
   assert.equal(sp.conditionApplies(reason("minora"), {}), false, "no answer yet = not applied");
 });
 
-check("taxe: simulation — reperfectare charges 7743 or 1292 by the reason chosen at initiation", () => {
-  const run = (answer) => sp.simulateTaxes({ taxes: bioTaxes, tariffs: Object.values(T), requestType: "Reperfectare", moment: INIT, answers: { "CLS-BIO-01": answer } });
-  assert.deepEqual([run("majora").total, run("majora").applied.map((a) => a.tax.id), run("majora").skipped.map((a) => a.tax.id)], [7743, ["x2"], ["x3"]]);
-  assert.deepEqual([run("administrativa").total, run("administrativa").applied.map((a) => a.tax.id)], [1292, ["x3"]]);
-  const primary = sp.simulateTaxes({ taxes: bioTaxes, tariffs: Object.values(T), requestType: "Emitere primară", moment: INIT, answers: {} });
-  assert.equal(primary.total, 9252);
-});
-
-check("taxe: inactive and draft taxes never reach the note", () => {
-  const list = [tax({ id: "a", tariffId: "t-bio", requestType: "Emitere primară", active: false }), tax({ id: "b", tariffId: "t-bio", requestType: "Emitere primară", state: "Schiță" })];
-  assert.equal(sp.simulateTaxes({ taxes: list, tariffs: Object.values(T), requestType: "Emitere primară" }).applied.length, 0);
-});
-
 check("taxe: the same tariff cannot be charged twice when conditions overlap", () => {
   const a = tax({ id: "a", tariffId: "t-mod", requestType: "Reperfectare", condition: reason("minora") });
   assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare", condition: reason("majora") })), null, "disjoint values");

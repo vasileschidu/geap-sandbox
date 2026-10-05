@@ -144,12 +144,18 @@
       (comp.tabs && comp.tabs.length ? tabs(s) : "") +
 
       '<div class="clas-page__toolbar">' +
-        '<div class="search-input rectangular' + (s.search ? " has-value" : "") + '">' +
-          '<span class="p-2 radius-8 d-inline-flex icon-search">' +
-            '<svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>' +
+        '<div class="search-input medium rectangular' + (s.search ? " has-value is-ready" : "") + '">' +
+          '<span class="icon-search" aria-hidden="true">' +
+            '<svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg>' +
           "</span>" +
-          '<input type="text" class="input" placeholder="Caută după denumire sau descriere"' +
-            ' value="' + esc(s.search) + '" data-clas-search data-focus-key="search" />' +
+          '<input type="search" class="input" placeholder="Caută după denumire sau descriere" aria-label="Caută clasificator"' +
+            ' autocomplete="off" value="' + esc(s.search) + '" data-clas-search data-focus-key="search" />' +
+          '<div class="btn-group">' +
+            '<span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>' +
+            '<button type="button" class="btn-icon clear" aria-label="Șterge căutarea">' +
+              '<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>' +
+            "</button>" +
+          "</div>" +
         "</div>" +
         (comp.newAction
           ? '<button type="button" class="btn btn-primary btn-md" data-clas-new>Adaugă clasificator</button>'
@@ -216,7 +222,8 @@
   }
 
   function emptyState() {
-    return '<div class="clas-page__empty">Niciun clasificator pentru filtrul curent.</div>';
+    /* the shared empty-state component (js/empty-state.js) */
+    return window.GEAPEmptyState.noResults("Niciun clasificator pentru filtrul curent", { text: "Schimbă filtrul sau caută altceva.", bare: true });
   }
 
   function table(s, cat) {

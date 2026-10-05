@@ -669,28 +669,6 @@
     return errors;
   }
 
-  /* Simulare: which taxes a request triggers at a moment, with the answers given
-     at initiation; formula taxes needing values are listed without a sum */
-  function simulateTaxes(input) {
-    var taxes = (input.taxes || []).filter(function (tax) {
-      return tax.state === "Publicat" && tax.active && tax.requestType === input.requestType && (!input.moment || tax.moment === input.moment);
-    });
-    var applied = [];
-    var skipped = [];
-    var total = 0;
-    taxes.forEach(function (tax) {
-      var tariff = (input.tariffs || []).filter(function (t) { return t.id === tax.tariffId; })[0] || null;
-      if (!conditionApplies(tax.condition, input.answers)) {
-        skipped.push({ tax: tax, tariff: tariff, reason: "condition" });
-        return;
-      }
-      var sum = taxAmount(tax, tariff, input.values);
-      if (sum.ok) total = Math.round((total + sum.value) * 100) / 100;
-      applied.push({ tax: tax, tariff: tariff, amount: sum.ok ? sum.value : null });
-    });
-    return { applied: applied, skipped: skipped, total: total };
-  }
-
   /* ---- tariff classifier (Feature «Gestionarea clasificatorului de tarife») ----
      One model for global and service tariffs. RSSP / eAPL tariffs keep their
      registry fields read-only. Editing a published tariff creates a new
@@ -922,7 +900,6 @@
     unconfiguredTariffs: unconfiguredTariffs,
     defaultTaxForTariff: defaultTaxForTariff,
     canPublishTax: canPublishTax,
-    validateTax: validateTax,
-    simulateTaxes: simulateTaxes
+    validateTax: validateTax
   };
 });

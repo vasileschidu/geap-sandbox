@@ -312,12 +312,14 @@ body {
   background: var(--color-background-base-secondary-active, #e5e5e5);
 }
 
-/* the full-flow focus (as .e-permits-fo-input): blue stroke + light-blue halo */
-.e-permits-shell__user-trigger:focus-visible {
+/* the system focus ring (2px white + blue ring) on keyboard focus and while the
+   menu is open — a trigger with its dropdown open is in the Focus state */
+.e-permits-shell__user-trigger:focus-visible,
+.e-permits-shell__user-trigger[aria-expanded="true"] {
   background: var(--color-background-base-secondary, var(--gray-100));
   box-shadow:
-    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
-    0 0 0 4px var(--blue-sky-200, #ccdef6);
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
 }
 
@@ -379,13 +381,14 @@ body {
   width: 100%;
 }
 
+/* "Rol • Instanță" under the user's name: 12/16 regular, secondary grey */
 .e-permits-shell__user-meta {
   align-items: center;
-  color: var(--color-text-base-tertiary, var(--gray-400));
+  color: var(--color-text-base-secondary, #383838);
   display: flex;
-  font-size: var(--font-size-fs-14, 14px);
+  font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
+  line-height: var(--line-height-lh-16, 16px);
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -535,7 +538,8 @@ body {
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
   overflow: hidden;
-  padding: 12px 0;
+  /* no top padding: the panel's 20px and the 24px between institutions are the space above */
+  padding: 0 0 var(--spacing-12, 12px);
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
@@ -548,41 +552,46 @@ body {
 .e-permits-shell__role-card {
   align-items: center;
   background: var(--color-background-base-default, #fff);
-  border: 2px solid transparent;
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: 12px;
-  box-shadow: inset 0 0 0 1px var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
   gap: 12px;
-  padding: 8px 12px;
+  /* 8/12 + 1px for the 2px the selected card's border takes (keeps one card size) */
+  padding: 9px 13px;
   text-align: left;
   transition: background-color 100ms ease, border-color 100ms ease, box-shadow 100ms ease;
   width: 100%;
 }
 
+/* instance / role switch: one real 1px grey border, kept on hover; hover only fills
+   the inside grey; focus = the system ring, 2px white + blue focus ring; the selected
+   card = 2px brand (border + 1px inner line) on brand-secondary */
 .e-permits-shell__role-card:hover {
   background: var(--color-background-base-secondary, #f5f5f5);
-  box-shadow: inset 0 0 0 1px var(--color-border-base-hover, #b2b2b2);
 }
 
-/* instance / role switch: the full-flow focus — blue stroke + light-blue
-   halo (as .e-permits-fo-input); the active card keeps its brand border */
 .e-permits-shell__role-card:focus-visible {
   outline: none;
+  position: relative;
+  z-index: 1;
   box-shadow:
-    inset 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2),
-    0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
-.e-permits-shell__role-card.is-active:focus-visible {
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 .e-permits-shell__role-card.is-active {
   background: var(--color-background-brand-secondary, #e8f0fb);
   border-color: var(--color-border-brand-default, #0058d2);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-shell__role-card.is-active:focus-visible {
+  box-shadow:
+    inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
+    0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
 .e-permits-shell__role-card.is-active:hover {
@@ -599,6 +608,34 @@ body {
   height: 32px;
   justify-content: center;
   width: 32px;
+}
+
+/* collapsible institution (> 3 roles): the full-flow role collapse
+   (.e-permits-fo-auth__role-collapse-*, e-permits-acte-permisive.css). Toggle 6px under
+   the title, cards 6px under the toggle when open */
+.e-permits-shell__role-group.is-collapsible {
+  gap: var(--spacing-6, 6px);
+}
+
+/* title → toggle stays 12px (6 + the 6px gap) */
+.e-permits-shell__role-group.is-collapsible .e-permits-shell__role-group-title {
+  padding-bottom: var(--spacing-6, 6px);
+}
+
+/* the collapse clips (overflow: hidden) — 4px of room so a card's focus ring isn't cut */
+.e-permits-shell__role-group .e-permits-fo-auth__role-collapse {
+  margin: calc(var(--spacing-4, 4px) * -1);
+  width: auto;
+}
+
+.e-permits-shell__role-group .e-permits-fo-auth__role-collapse > .e-permits-shell__role-list {
+  padding: var(--spacing-4, 4px);
+}
+
+/* badges in the stack = the role card's own icon circle */
+.e-permits-fo-auth__role-collapse-avatar.e-permits-shell__role-card-icon {
+  background: var(--blue-sky-200, #ccdef6);
+  color: var(--color-icon-brand-default, #0058d2);
 }
 
 .e-permits-shell__role-card-icon img,
@@ -875,6 +912,12 @@ body {
 
 .e-permits-shell__role-option.is-active .e-permits-shell__role-option-check {
   display: inline-flex;
+}
+
+/* square icon: .icon alone keeps the 24px default height */
+.e-permits-shell__role-option-check > .icon {
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
 }
 
 .e-permits-shell__role-modal-actions {
@@ -1386,8 +1429,8 @@ body {
 }
 
 .e-permits-shell__user-meta {
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
 }
 
 .e-permits-shell__workspace {
@@ -2505,6 +2548,27 @@ body {
   padding-right: 12px;
 }
 
+/* with a value the library clear (x) shows at the right: keep the text clear of it */
+.e-permits-workplace__search.search-input.has-value .input {
+  padding-right: var(--spacing-40, 40px);
+}
+
+/* typing spinner and clear (x) share one 20px slot: the spinner is 16 + 2 inset, so it
+   sits centred where the x appears, not 4px further right */
+.search-input .btn-group .spinner {
+  box-sizing: border-box;
+  height: var(--spacing-16, 16px);
+  margin: var(--spacing-2, 2px);
+  width: var(--spacing-16, 16px);
+}
+
+/* one clear button only — the library x, never the browser's own */
+.search-input .input::-webkit-search-cancel-button,
+.search-input .input::-webkit-search-decoration {
+  appearance: none;
+  display: none;
+}
+
 .e-permits-workplace__search .input {
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
@@ -3367,10 +3431,10 @@ button.e-permits-workplace__th-content:focus-visible {
   border-radius: var(--border-radius-full, 999px);
 }
 
+/* the table's empty row holds the empty-state component (bare) */
 .e-permits-workplace__empty {
-  height: 120px !important;
+  padding: var(--spacing-16, 16px) !important;
   text-align: center !important;
-  color: var(--color-text-base-tertiary, #757575);
 }
 
 .e-permits-workplace__footer {
@@ -3677,34 +3741,6 @@ body.is-user-create-open {
   align-items: center;
 }
 
-.e-permits-user-create__empty {
-  min-height: 112px;
-  padding: 24px;
-  border: 1px dashed var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-user-create__empty-icon {
-  width: 36px;
-  height: 36px;
-  padding: 6px;
-  border-radius: var(--border-radius-6, 6px);
-  background: var(--color-background-base-secondary, #f5f5f5);
-}
-
-.e-permits-user-create__empty-icon img {
-  width: 24px;
-  height: 24px;
-  display: block;
-}
 
 .e-permits-user-create__combo-form,
 .e-permits-user-create__combo-card {
@@ -4132,4 +4168,5 @@ body.is-user-create-open {
   justify-content: flex-end;
   padding: var(--spacing-8, 8px);
 }
+
 

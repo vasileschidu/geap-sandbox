@@ -1,48 +1,56 @@
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.search-input').forEach((searchInput) => {
-    const input = searchInput.querySelector('input');
-    const clearBtn = searchInput.querySelector('.btn-icon.clear');
-    const searchBtn = searchInput.querySelector('.btn-search');
+/* Search input (library .search-input) — states for every search on the page,
+   including the ones rendered after load (delegated on document):
+     has-value  → shows .btn-group
+     is-typing  → spinner while the user types (500ms)
+     is-ready   → clear (x) button
+   The clear button empties the field, resets the state, keeps focus and fires an
+   `input` event so the list that listens to the field filters again. */
+(() => {
+  const TYPING_MS = 500;
+  const timers = new WeakMap();
 
-    if (!input) return;
+  const fieldOf = (input) => input?.closest?.('.search-input');
 
-    let typingTimer;
+  const reset = (field) => {
+    field.classList.remove('has-value', 'is-typing', 'is-ready');
+    clearTimeout(timers.get(field));
+  };
 
-    const resetState = () => {
-      searchInput.classList.remove('has-value', 'is-typing', 'is-ready');
-      clearTimeout(typingTimer);
-    };
+  document.addEventListener('input', (e) => {
+    const input = e.target;
+    const field = fieldOf(input);
+    if (!field || !input.matches('input')) return;
 
-    input.addEventListener('input', () => {
-      const hasValue = input.value.trim() !== '';
-
-      if (!hasValue) {
-        resetState();
-        return;
-      }
-
-      searchInput.classList.add('has-value');
-      searchInput.classList.remove('is-ready');
-      searchInput.classList.add('is-typing');
-
-      clearTimeout(typingTimer);
-
-      typingTimer = setTimeout(() => {
-        searchInput.classList.remove('is-typing');
-        searchInput.classList.add('is-ready');
-      }, 500);
-    });
-
-    if (clearBtn) {
-      clearBtn.addEventListener('click', () => {
-        input.value = '';
-        resetState();
-        input.focus();
-      });
+    if (input.value.trim() === '') {
+      reset(field);
+      return;
     }
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') searchBtn?.click();
-    });
+    field.classList.add('has-value', 'is-typing');
+    field.classList.remove('is-ready');
+    clearTimeout(timers.get(field));
+    timers.set(field, setTimeout(() => {
+      field.classList.remove('is-typing');
+      field.classList.add('is-ready');
+    }, TYPING_MS));
   });
-});
+
+  document.addEventListener('click', (e) => {
+    const clear = e.target.closest('.search-input .btn-icon.clear');
+    if (!clear) return;
+    e.preventDefault();
+    const field = clear.closest('.search-input');
+    const input = field.querySelector('input');
+    if (!input) return;
+    input.value = '';
+    reset(field);
+    input.focus();
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const field = fieldOf(e.target);
+    field?.querySelector('.btn-search')?.click();
+  });
+})();

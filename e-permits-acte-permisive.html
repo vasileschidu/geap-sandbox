@@ -6,19 +6,24 @@
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=iconbtn-v2">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=taxmenu-v3">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=empty-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=changes-v3">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
-  <script src="js/search.js" defer></script>
+  <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
+  <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
+  <script src="js/empty-state.js?v=empty-v1"></script>
+  <script src="js/demo-states.js?v=perms-v1"></script>
+  <script src="js/demo-links.js?v=links-v1"></script>
+  <script src="js/search.js?v=delegated-v1" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v1" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/icon-tooltip.js?v=tip-v2" defer></script>
-  <script src="js/table-cells.js?v=more-v1" defer></script>
+  <script src="js/icon-tooltip.js?v=tip-v3" defer></script>
+  <script src="js/table-cells.js?v=delay-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=access-copy" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=empty-v1" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v5" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
@@ -2050,10 +2055,16 @@
                 <button type="button" role="tab" aria-selected="false">Logic</button>
                 <button type="button" role="tab" aria-selected="false">Label</button>
               </div>
-              <label class="e-permits-builder__search">
-                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-                <input type="search" placeholder="Search..." data-builder-library-search>
-              </label>
+              <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
+                <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+                <input class="input" type="search" placeholder="Search..." aria-label="Caută în librărie" autocomplete="off" data-builder-library-search>
+                <div class="btn-group">
+                <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">
+                  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                </button>
+              </div>
+              </div>
             </div>
             <div class="e-permits-builder__library-list" data-builder-library>
               <div class="e-permits-builder__library-section">
@@ -2786,10 +2797,16 @@
           </button>
         </header>
         <div class="e-permits-builder-registry__toolbar">
-          <label class="e-permits-builder__search e-permits-builder-registry__search">
-            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-            <input type="search" placeholder="Caută după nume" data-builder-registry-search>
-          </label>
+          <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search">
+            <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+            <input class="input" type="search" placeholder="Caută după nume" aria-label="Caută după nume" autocomplete="off" data-builder-registry-search>
+            <div class="btn-group">
+                <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">
+                  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                </button>
+              </div>
+          </div>
           <div class="e-permits-builder__source-mode" role="tablist" aria-label="Filtru clasificatoare">
             <button class="is-active" type="button" data-builder-registry-filter="all">All</button>
             <button type="button" data-builder-registry-filter="global">Global</button>
@@ -3149,14 +3166,20 @@
               <div class="e-permits-workplace" data-workplace>
                 <header class="e-permits-workplace__header">
                   <div class="e-permits-workplace__toolbar" aria-label="Filtrare dosare" data-workplace-toolbar>
-                    <label class="search-input medium rectangular e-permits-workplace__search">
+                    <div class="search-input medium rectangular e-permits-workplace__search">
                       <span class="icon-search" aria-hidden="true">
                         <svg class="icon" width="20" height="20">
                           <use href="assets/icons/sprite.svg#icon-search"></use>
                         </svg>
                       </span>
                       <input class="input" type="search" data-workplace-search placeholder="Căutare rapidă după denumire, cod sau instituție">
-                    </label>
+                      <div class="btn-group">
+                <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">
+                  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                </button>
+              </div>
+                    </div>
                     <button class="btn btn-neutral btn-sm e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="workplace-filters" data-workplace-filter-toggle>
                       <svg class="icon" width="16" height="16" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-filter-lines"></use>
@@ -3168,9 +3191,7 @@
                       <span class="e-permits-workplace__field-count">48 câmpuri</span>
                       <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
                       <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Exportă" title="Exportă" data-workplace-export>
-                        <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                          <path d="M2.06641 12V10C2.06641 9.66863 2.3353 9.39974 2.66667 9.39974C2.99804 9.39974 3.26693 9.66863 3.26693 10V12C3.26693 12.405 3.59499 12.7331 4 12.7331H12C12.405 12.7331 12.7331 12.405 12.7331 12V10C12.7331 9.66863 13.002 9.39974 13.3333 9.39974C13.6647 9.39974 13.9336 9.66863 13.9336 10V12C13.9336 13.0678 13.0678 13.9336 12 13.9336H4C2.93225 13.9336 2.06641 13.0678 2.06641 12ZM7.39974 2.66667C7.39974 2.3353 7.66863 2.06641 8 2.06641C8.33137 2.06641 8.60026 2.3353 8.60026 2.66667V8.21745L9.90885 6.90885C10.1432 6.67454 10.5235 6.67454 10.7578 6.90885C10.9921 7.14317 10.9921 7.5235 10.7578 7.75781L8.42448 10.0911C8.31196 10.2037 8.15913 10.2669 8 10.2669C7.84087 10.2669 7.68804 10.2037 7.57552 10.0911L5.24219 7.75781C5.00787 7.5235 5.00787 7.14317 5.24219 6.90885C5.4765 6.67454 5.85683 6.67454 6.09115 6.90885L7.39974 8.21745V2.66667Z" fill="#121212"/>
-                        </svg>
+                        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg>
                       </button>
                     </div>
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-ntpl hidden>
@@ -3450,21 +3471,6 @@
     </aside>
   </div>
 
-  <!-- Taxe: Simulează — which taxes a request triggers (GEAP.servicePassport.simulateTaxes) -->
-  <div class="modal-overlay" id="tax-sim-modal" aria-hidden="true">
-    <div class="modal modal--md e-permits-passport__modal e-permits-case-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="tax-sim-title">
-      <button type="button" class="modal-close" data-close aria-label="Închide">
-        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
-      </button>
-      <div class="modal--header">
-        <h2 class="modal--header-title" id="tax-sim-title">Simulează taxele</h2>
-        <p class="e-permits-passport__modal-subtitle" data-tax-sim-subtitle></p>
-      </div>
-      <div class="modal-content" data-tax-sim-body></div>
-      <div class="modal--footer"><div class="modal-buttons"><button class="btn btn-primary btn-rounded" type="button" data-close>Închide</button></div></div>
-    </div>
-  </div>
-
   <!-- Tarif: add / edit (Feature «Gestionarea clasificatorului de tarife») -->
   <div class="e-permits-user-create" data-tariff-drawer hidden>
     <button class="e-permits-user-create__scrim" type="button" aria-label="Închide editorul tarifului" data-tariff-close></button>
@@ -3598,24 +3604,197 @@
     </aside>
   </div>
 
-  <!-- US-187: clone a system notification template into the service -->
+  <!-- Servicii › Taxe › Sumar taxe › „Arată toate” — Taxe / Tarife / Conturi bancare (search + scroll; FEE_LISTS) -->
+  <div class="modal-overlay" id="fee-accounts-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal e-permits-fee-accounts" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="fee-accounts-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="fee-accounts-title">Conturi bancare</h2>
+        <p class="e-permits-passport__modal-subtitle" data-fee-accounts-subtitle></p>
+      </div>
+      <div class="modal-content">
+        <div class="e-permits-fee-accounts__toolbar">
+          <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
+            <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+            <input class="input" type="search" placeholder="Caută după denumire, bancă sau IBAN" aria-label="Caută cont bancar" autocomplete="off" data-fee-accounts-search>
+            <div class="btn-group">
+              <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+              <button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button>
+            </div>
+          </div>
+          <span class="e-permits-fee-accounts__count" data-fee-accounts-count aria-live="polite"></span>
+        </div>
+        <div class="e-permits-stack e-permits-fee-accounts__stack">
+          <ul class="e-permits-stack__list e-permits-fee-accounts__list" role="list" data-fee-accounts-list></ul>
+        </div>
+      </div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-fee-accounts-close>Închide</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- US-187: clone a system notification template into the service — centred library
+       modal: pick the source (dropdown), see what is copied, then Cod + Denumire -->
   <div class="modal-overlay" id="ntpl-clone-modal" aria-hidden="true">
     <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="ntpl-clone-title">
       <button type="button" class="modal-close" data-close aria-label="Închide">
         <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
       </button>
       <div class="modal--header">
-        <h2 class="modal--header-title" id="ntpl-clone-title">Clonarea unui șablon de notificare</h2>
-        <p class="e-permits-passport__modal-subtitle">Copia păstrează textele și regulile de destinatari și rămâne inactivă.</p>
+        <h2 class="modal--header-title" id="ntpl-clone-title">Clonează un șablon de sistem</h2>
+        <p class="e-permits-passport__modal-subtitle">Copia se creează inactivă, cu textele și regulile sursei.</p>
       </div>
       <div class="modal-content" data-ntpl-clone-body></div>
       <div class="modal--footer">
         <div class="modal-buttons">
-          <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-clone-cancel>Anulează</button>
-          <button class="btn btn-primary btn-rounded" type="button" data-ntpl-clone-save>Salvează</button>
+          <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-clone-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-ntpl-clone-save>Clonează</button>
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Servicii › Șabloane (document templates, MDocs): edit details — drawer -->
+  <div class="e-permits-user-create" data-dtpl-edit-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-dtpl-drawer-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="dtpl-edit-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="dtpl-edit-title">Editează șablonul</h2>
+          <p class="e-permits-passport__modal-subtitle" data-dtpl-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-dtpl-drawer-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-dtpl-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary">Textul documentului se schimbă în constructor.</span>
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-dtpl-drawer-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-dtpl-edit-save>Salvează</button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Servicii › Șabloane: attach a catalog template — centred library modal (dropdown + details) -->
+  <div class="modal-overlay" id="dtpl-attach-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="dtpl-attach-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="dtpl-attach-title">Atașează un șablon din catalog</h2>
+        <p class="e-permits-passport__modal-subtitle">Șablonul rămâne în catalog; serviciul îl folosește.</p>
+      </div>
+      <div class="modal-content" data-dtpl-attach-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-dtpl-attach-save>Atașează</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Utilizatori › Combinații de roluri: add one — library modal (Rol → Autoritate → Subdiviziune) -->
+  <div class="modal-overlay" id="user-combo-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="user-combo-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="user-combo-title">Adaugă combinație de rol</h2>
+        <p class="e-permits-passport__modal-subtitle">Rolul aduce permisiunile; autoritatea și subdiviziunea — dosarele vizibile.</p>
+      </div>
+      <div class="modal-content" data-user-combo-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-user-combo-save>Adaugă</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile drafts (user / role): review every unsaved change — opened from the header status -->
+  <div class="modal-overlay" id="profile-changes-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="profile-changes-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="profile-changes-title">Modificări nesalvate</h2>
+        <p class="e-permits-passport__modal-subtitle" data-profile-changes-subtitle></p>
+      </div>
+      <div class="modal-content" data-profile-changes-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-profile-changes-discard>Renunță la toate</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-profile-changes-save>Salvează</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Servicii › Șabloane: import a template from MDocs — library modal -->
+  <div class="modal-overlay" id="dtpl-import-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="dtpl-import-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="dtpl-import-title">Importă din MDocs</h2>
+        <p class="e-permits-passport__modal-subtitle">Se preia ultima versiune publicată în MDocs și se adaugă în catalog.</p>
+      </div>
+      <div class="modal-content" data-dtpl-import-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-dtpl-import-save>Importă</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Servicii › Șabloane › constructor › Istoric versiuni — library modal -->
+  <div class="modal-overlay" id="dtpl-history-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="dtpl-history-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="dtpl-history-title">Istoric versiuni</h2>
+        <p class="e-permits-passport__modal-subtitle" data-dtpl-history-subtitle></p>
+      </div>
+      <div class="modal-content e-permits-dtpl-history" data-dtpl-history-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Închide</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Servicii › Șabloane › constructor — full-screen sheet (24px clear at the top) -->
+  <div class="e-permits-ntpl-sheet e-permits-dtpl" data-dtpl-sheet hidden>
+    <div class="e-permits-ntpl-sheet__scrim" aria-hidden="true"></div>
+    <div class="e-permits-ntpl-sheet__panel e-permits-dtpl__panel" role="dialog" aria-modal="true" aria-label="Constructor de șablon" tabindex="-1" data-dtpl-panel></div>
+    <input type="file" accept=".xml,.html,.htm,text/xml,text/html" hidden data-dtpl-xml-file>
+    <input type="file" accept="image/png,image/jpeg,image/svg+xml" hidden data-dtpl-bg-file>
+  </div>
+
+  <!-- a service's own template — the full template editor in a full-screen sheet,
+       24px clear at the top so it reads as a modal over the service passport -->
+  <div class="e-permits-ntpl-sheet" data-ntpl-sheet hidden>
+    <div class="e-permits-ntpl-sheet__scrim" aria-hidden="true"></div>
+    <div class="e-permits-ntpl-sheet__panel" role="dialog" aria-modal="true" aria-label="Șablon de notificare" tabindex="-1" data-ntpl-sheet-panel></div>
   </div>
 
   <!-- Șablon de notificare › add / edit a recipient rule — library modal -->
@@ -3699,11 +3878,11 @@
       </div>
     </div>
   </div>
-  <script src="core/service-passport.js?v=taxe-v1"></script>
+  <script src="core/service-passport.js?v=nosim-v1"></script>
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=taxwording-v1"></script>
+  <script src="js/e-permits-shell.js?v=changes-v4"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
@@ -3781,12 +3960,16 @@
       <!-- Library panel -->
       <div class="e-permits-fo-doc-modal__panel" data-fo-doc-panel="library">
         <div class="e-permits-fo-doc-modal__search-wrap">
-          <label class="e-permits-fo-input e-permits-fo-doc-modal__search-field">
-            <span class="e-permits-fo-doc-modal__search-icon" aria-hidden="true">
-              <svg class="icon medium" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-            </span>
-            <input type="search" class="e-permits-fo-doc-modal__search-input" placeholder="Caută fișier" autocomplete="off" aria-label="Caută fișier" data-fo-doc-search>
-          </label>
+          <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill">
+            <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+            <input class="input" type="search" placeholder="Caută fișier" autocomplete="off" aria-label="Caută fișier" data-fo-doc-search>
+            <div class="btn-group">
+                <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">
+                  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                </button>
+              </div>
+          </div>
         </div>
         <div class="e-permits-fo-doc-modal__list" data-fo-doc-modal-list></div>
       </div>

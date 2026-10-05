@@ -1,0 +1,71 @@
+/* ==========================================================================
+   Empty state — one component (js/empty-state.js: GEAPEmptyState.render / .noResults).
+   Tailwind "simple" empty state on our tokens: dashed box, 48px soft circle with a 24px
+   tertiary icon, title 14/20 semibold, one tertiary line (max 440), actions 20 below.
+   --compact: less padding (drawers, modals) · --bare: no box (inside a table / list).
+   ========================================================================== */
+.e-permits-empty {
+  align-items: center;
+  border: var(--border-width-1-5, 1.5px) dashed var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-40, 40px) var(--spacing-24, 24px);
+  text-align: center;
+  width: 100%;
+}
+
+.e-permits-empty--compact {
+  padding: var(--spacing-24, 24px) var(--spacing-20, 20px);
+}
+
+.e-permits-empty--bare {
+  border: 0;
+  padding: var(--spacing-24, 24px) var(--spacing-16, 16px);
+}
+
+.e-permits-empty__icon {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-full, 9999px);
+  color: var(--color-icon-base-tertiary, #8c8c8c);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--spacing-48, 48px);
+  justify-content: center;
+  margin-bottom: var(--spacing-12, 12px);
+  width: var(--spacing-48, 48px);
+}
+
+.e-permits-empty__icon .icon {
+  height: var(--spacing-24, 24px);
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-empty__title {
+  color: var(--color-text-base-default, #121212);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-empty__text {
+  color: var(--color-text-base-tertiary, #757575);
+  font-family: var(--font-family-primary-font, Onest), sans-serif;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: var(--spacing-4, 4px) 0 0;
+  max-width: 440px;
+}
+
+.e-permits-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  justify-content: center;
+  margin-top: var(--spacing-20, 20px);
+}

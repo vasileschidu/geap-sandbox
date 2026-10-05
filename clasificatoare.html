@@ -6,6 +6,7 @@
   <title>Clasificatoare — GEAP 2.0 Back Office</title>
   <link rel="stylesheet" href="css/main.css?v=crumbs-v2" />
   <link rel="stylesheet" href="css/clasificatoare.css" />
+  <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
 </head>
 <body>
   <main class="clas-page">
@@ -28,6 +29,7 @@
 
   <!-- Order matters: core before api, api before the view. Each module
        throws a named error if a dependency is missing. -->
+  <script src="js/empty-state.js?v=empty-v1"></script>
   <script src="core/render.js"></script>
   <script src="core/classifiers.js"></script>
   <script src="core/permissions.js"></script>
@@ -36,6 +38,7 @@
   <script src="api/endpoints.js"></script>
   <script src="api/mock-server.js"></script>
   <script src="api/client.js"></script>
-  <script src="js/clasificatoare-view.js?v=checkbox-v1"></script>
+  <script src="js/search.js?v=delegated-v1"></script>
+  <script src="js/clasificatoare-view.js?v=empty-v1"></script>
 </body>
 </html>

@@ -1732,7 +1732,7 @@
                 </button>
               </label>
               <ul class="e-permits-fo-mdocs__list" role="listbox" aria-label="Documente MDocs">${suggestions}</ul>
-              <p class="e-permits-fo-mdocs__empty" hidden data-fo-mdocs-empty>Nu am găsit documente în MDocs.</p>
+              <div class="e-permits-fo-mdocs__empty" hidden data-fo-mdocs-empty>${window.GEAPEmptyState.noResults("Nu am găsit documente în MDocs", { text: "Verifică denumirea sau numărul documentului.", bare: true })}</div>
             </div>
             <div class="e-permits-fo-mdocs__attachment" hidden data-fo-mdocs-attachment>
               <span class="e-permits-fo-mdocs__attachment-avatar" aria-hidden="true">
@@ -4272,7 +4272,7 @@
       });
 
       if (!docsHtml) {
-        docsHtml = `<p class="e-permits-fo-mdocs__empty" style="padding-left:0">Nu au fost adăugate documente.</p>`;
+        docsHtml = window.GEAPEmptyState.render({ title: "Nu au fost adăugate documente", text: "Le poți încărca la pasul Documente însoțitoare.", icon: "document", compact: true });
       }
 
       container.innerHTML = `
@@ -4532,7 +4532,7 @@
     document.querySelectorAll("[data-fo-contact-person]").forEach(syncContactPersonGroup);
 
     document.addEventListener("click", (event) => {
-      const field = event.target.closest(".e-permits-fo-input:not(.is-readonly), .e-permits-fo-phone--editable, .e-permits-fo-textarea, .e-permits-builder__search");
+      const field = event.target.closest(".e-permits-fo-input:not(.is-readonly), .e-permits-fo-phone--editable, .e-permits-fo-textarea");
       if (!field || event.target.closest("button, [role='option']")) return;
       const control = field.querySelector("input, textarea, select");
       if (!control || event.target === control || control.disabled) return;
@@ -8134,10 +8134,8 @@
         });
         registryList.innerHTML = "";
         if (!items.length) {
-          const empty = document.createElement("div");
-          empty.className = "e-permits-builder-registry__empty";
-          empty.textContent = "Nu am găsit clasificatoare pentru căutarea curentă.";
-          registryList.append(empty);
+          /* the shared empty-state component (js/empty-state.js) */
+          registryList.innerHTML = window.GEAPEmptyState.noResults("Nu am găsit clasificatoare pentru căutarea curentă", { bare: true });
           return;
         }
         items.forEach((classifier) => {

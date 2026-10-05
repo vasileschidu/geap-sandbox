@@ -6,7 +6,7 @@
      neighbouring icon shows the next one at once (WARM_WINDOW);
    - keyboard: appears on :focus-visible without delay;
    - hides on mouse-out, blur, click / pointer-down, scroll, Escape or window blur;
-   - placed below and centred on the control, flipped above when there is no room,
+   - placed 4px below and centred on the control, flipped above when there is no room,
      clamped inside the viewport; never steals pointer events.
 
    The text is the control's data-tooltip-label, else aria-label, else title. A title
@@ -20,7 +20,7 @@
 
   const SHOW_DELAY = 600;
   const WARM_WINDOW = 400;
-  const GAP = 8;
+  const GAP = 4;
   const EDGE = 8;
 
   let tip = null;
