@@ -94,7 +94,9 @@
 
     root.appendChild(toast);
 
-    var duration = opts.duration == null ? 4000 : opts.duration;
+    /* opened from a Figma link (?state=…): the toast is part of the screen, so it stays until closed */
+    var fromDemoLink = !!document.documentElement.dataset.demoLink;
+    var duration = opts.duration == null ? (fromDemoLink ? 0 : 4000) : opts.duration;
     if (duration > 0) toast.__geapTimer = window.setTimeout(function () { dismiss(toast); }, duration);
     return toast;
   }

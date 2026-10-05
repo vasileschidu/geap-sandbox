@@ -4259,6 +4259,24 @@ has 4 steps with the step strip (Setări · Destinatari · Conținut · Revizuir
 data, „Creează șablonul”) · 09h5 (result: the full-screen editor opens on Conținut + library
 toast „Șablon creat”). Arrows: Continuă → next step, Creează șablonul → 09h5.
 
+### Figma ↔ prototype links — „Deschide în prototip →” (2026-10-05)
+
+Every Figma screen block links to the running prototype on GitHub Pages, on that exact
+screen: `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=<id>`.
+- **Code:** `js/demo-states.js` = one entry per Figma block `{ flow, as, hash, run(h) }`;
+  `js/demo-links.js` runs it (role, page/tab, the user's own clicks). Every link starts from
+  clean demo data (removes only the prototype's `e-permits-*` / `geap.*` keys — github.io
+  shares one origin) and toasts stay until closed (`dataset.demoLink` → `toast.js` duration 0).
+  A toast from an in-between step is dismissed (`clearToasts`). `h.choose` waits for the
+  hidden native select to exist, not to be visible.
+- **Ids:** `<page prefix>-<block code>`: Servicii `svc-04h2`; Utilizatori `usr-01…05` (tabs) and
+  `usr-u03b` … `usr-u05k` (= Figma U-codes); Roluri `rol-00 … rol-01c`.
+- **Figma:** in each block's „Screen label” after the title: text „Deschide în prototip →”,
+  layer `Link · prototip`, Desktop/Body/Small, `text/brand/default`, underlined, hyperlink =
+  the URL above. Every new block gets a state + this link; a renamed block keeps its id.
+- **Check before linking:** every state must end with `data-demo-state="<id>"` (no `:error`);
+  sweep all ids headless after changing a flow.
+
 ## 8. Known issues and open questions
 
 **Off-scale font values still raw (2026-10-02, need a design decision):**

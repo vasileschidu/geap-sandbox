@@ -45,6 +45,29 @@
   const ntplClone = async (h) => { await h.click("[data-ntpl-clone]"); };
   const dtplBuilder = async (h) => { await h.nth("[data-dtpl-open]", 0); };
 
+  /* Utilizatori › profil click paths */
+  const usr = (tab, run) => ({ flow: "back-office", as: ADMIN, hash: `#utilizator/user-1/${tab}`, run });
+  const headerMenu = async (h) => { await h.click("[data-user-profile] .e-permits-page-header__actions [data-stack-menu-trigger]"); };
+  /* a toast from an in-between step is not part of the target screen */
+  const clearToasts = async (h) => { document.querySelectorAll(".toast").forEach((toast) => window.GEAPToast?.dismiss?.(toast)); await h.wait(450); };
+  const deactivate = async (h) => { await headerMenu(h); await h.click("[data-user-profile-status-toggle]"); await h.click("[data-service-confirm-ok]"); await h.wait(600); await clearToasts(h); };
+  const editFunction = async (h) => { await h.fill("#user-geap-function", "Specialist principal", { leave: false }); };
+  const rowMenu0 = async (h) => { await h.nth("[data-user-profile] .e-permits-stack__item [data-stack-menu-trigger]", 0); };
+  const comboFilled = async (h) => {
+    await h.click("[data-combo-add-open]");
+    await h.choose('[data-combo-field="role"]', "Supervizor");
+    await h.choose('[data-combo-field="authority"]', "ansp");
+    await h.wait(300);
+    const sub = document.querySelector('[data-combo-field="subdivision"]');
+    const select = sub.tagName === "SELECT" ? sub : sub.querySelector("select");
+    await h.choose('[data-combo-field="subdivision"]', [...select.options].map((o) => o.value).filter(Boolean)[1]);
+  };
+  const twoWithdrawn = async (h) => { await h.nth("[data-perm-switch]", 0); await h.wait(300); await h.nth("[data-perm-switch]", 5); await h.wait(300); };
+  const avizare = async (h) => {
+    await h.click('[data-perm-group="avizare"]');
+    for (const id of ["av1", "av2", "av3"]) { await h.click(`[data-perm-switch="${id}"]`); await h.wait(300); }
+  };
+
   window.GEAP_DEMO_STATES = {
     /* ---- Utilizatori › profil (Figma page "BO -> Utilizatori") ---- */
     "usr-01": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/general" },
@@ -75,6 +98,26 @@
     "rol-01": { flow: "back-office", as: ADMIN, hash: "#rol/rol-specialist/permissions" },
     "rol-01a": { flow: "back-office", as: ADMIN, hash: "#rol/rol-specialist/permissions", run: async (h) => { await h.nth("[data-perm-switch]", 1); } },
     "usr-02c": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/roles", run: async (h) => { await h.nth("[data-passport-body] [data-stack-menu-trigger], [data-user-profile-panel] [data-stack-menu-trigger]", 0); } },
+
+    /* the rest of the Figma Users / Roles blocks — id = usr-<block code> (U03b → usr-u03b) */
+    "usr-u03b": usr("general", headerMenu),
+    "usr-u03c": usr("general", async (h) => { await headerMenu(h); await h.click("[data-user-profile-status-toggle]"); }),
+    "usr-u03d": usr("general", async (h) => { await deactivate(h); await headerMenu(h); }),
+    "usr-u03e": usr("general", async (h) => { await deactivate(h); await headerMenu(h); await h.click("[data-user-profile-delete]"); }),
+    "usr-u03f": usr("general", async (h) => { await editFunction(h); await h.click("[data-user-profile] [data-profile-changes]"); }),
+    "usr-u03g": usr("general", async (h) => { await editFunction(h); await h.click("[data-user-profile-save]"); }),
+    "usr-u04c": usr("roles", comboFilled),
+    "usr-u04e": usr("roles", async (h) => { await rowMenu0(h); await h.click("[data-combo-remove]"); }),
+    "usr-u04f": usr("roles", async (h) => { await comboFilled(h); await h.click("[data-user-combo-save]"); }),
+    "usr-u04g": usr("roles", async (h) => { await rowMenu0(h); await h.click("[data-combo-remove]"); await h.click("[data-service-confirm-ok]"); await h.wait(700); await clearToasts(h); await rowMenu0(h); }),
+    "usr-u05b": usr("permissions", async (h) => { await twoWithdrawn(h); await h.click('[data-perm-filter="changed"]'); }),
+    "usr-u05d": usr("permissions", async (h) => { await h.fill("[data-perm-search]", "zzz", { leave: false }); }),
+    "usr-u05e": usr("permissions", async (h) => { await twoWithdrawn(h); await h.click("[data-user-profile-save]"); }),
+    "usr-u05f": usr("permissions", async (h) => { await twoWithdrawn(h); await h.click("[data-user-profile] [data-profile-changes]"); }),
+    "usr-u05i": usr("permissions", async (h) => { await avizare(h); await h.click("[data-user-profile] [data-profile-changes]"); await h.click("#profile-changes-modal [data-change-undo]"); }),
+    "usr-u05j": usr("permissions", async (h) => { await twoWithdrawn(h); await h.click("[data-user-profile] [data-profile-changes]"); await h.click("#profile-changes-modal [data-change-undo]"); await h.click("#profile-changes-modal [data-change-undo]"); }),
+    "usr-u05k": usr("permissions", async (h) => { await twoWithdrawn(h); await h.click("[data-user-profile] [data-profile-changes]"); await h.click("[data-profile-changes-discard]"); }),
+    "rol-01c": { flow: "back-office", as: ADMIN, hash: "#rol/rol-specialist/permissions", run: async (h) => { await h.nth("[data-perm-switch]", 1); await h.wait(300); await h.click("[data-role-profile-save]"); } },
 
     /* ---- Servicii › Profile Serviciu (Figma page "BO -> Servicii") ---- */
     "svc-01": svc("general"),
@@ -154,6 +197,8 @@
       await h.wait(800);
     }),
     "svc-05": bio("fees", async (h) => { await openTax("tax-bio-2")(h); await h.click("[data-tax-new-tariff]"); }),
+    /* Administrare › Tarife → ✎ on a tariff from RSSP: registry fields read-only */
+    "svc-05a": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="tariffs"]'); await h.click('[data-tariff-edit="tf-bio-autorizare"]'); } },
     "svc-05a": { flow: "back-office", as: ADMIN, hash: "#tariffs", run: async (h) => {
       const source = await h.find(".e-permits-workplace__source", "RSSP");
       source.closest("tr, [role=row]").querySelector("[data-tariff-edit]").click();
@@ -218,7 +263,7 @@
     "svc-09h3": svc("notifications", ntplWizardStep(3)),
     "svc-09h4": svc("notifications", ntplWizardStep(4)),
     "svc-09h5": svc("notifications", ntplWizardStep(5)),
-    "svc-09j": svc("notifications", async (h) => { await h.nth("[data-ntpl-row-toggle]", 0); }),
+    "svc-09j": svc("notifications", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click("[data-ntpl-row-toggle]"); }),
     "svc-10": svc("settings"),
     "svc-10a": svc("settings", async (h) => { await h.click('[data-svc-setting="aprobareSecundara"]'); await h.wait(300); await h.focus('[data-svc-setting="aprobareSecundara"]'); }),
     "svc-10b": svc("settings", async (h) => { await h.click('[data-svc-setting="aprobareSecundara"]'); await h.wait(300); await h.click("[data-service-publish]"); }),

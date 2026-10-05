@@ -15,6 +15,8 @@
     return;
   }
 
+  document.documentElement.dataset.demoLink = id;
+
   /* a clean start: the prototype keeps edits in this browser (created users,
      profile changes, filters, the form-builder sandbox), so a link opened after
      someone played with the demo would show another screen. Only this
@@ -71,7 +73,8 @@
     },
     /* a native <select> behind the library dropdown */
     choose: async (selector, value) => {
-      await waitFor(selector).catch(() => null);
+      /* the native select is hidden behind the library dropdown: wait for it to exist */
+      for (let i = 0; i < 100 && !document.querySelector(selector); i += 1) await sleep(100);
       const el = document.querySelector(selector);
       const select = el.tagName === "SELECT" ? el : el.querySelector("select");
       select.value = value ?? [...select.options].find((o) => o.value && !o.disabled)?.value;
