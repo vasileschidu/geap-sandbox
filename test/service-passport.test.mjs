@@ -273,6 +273,7 @@ check("formula: variables, safe evaluation, rounding", () => {
   assert.equal(sp.evaluateFormula("{s} * 2", {}, "2 zecimale").ok, false);
   assert.equal(sp.evaluateFormula("alert(1)", {}, "2 zecimale").ok, false);
   assert.ok(sp.validateTariff({ ...tf, formula: true, expression: "", rounding: "2 zecimale" }).expression);
+  assert.equal(sp.validateTariff({ ...tf, amount: "", formula: true, expression: "{suprafata_m2} * 2", rounding: "2 zecimale" }).amount, undefined, "a formula tariff has no amount to fill");
 });
 check("RSSP / eAPL tariffs lock the registry fields", () => {
   assert.equal(sp.tariffLocked({ source: "RSSP" }, "amount"), true);
@@ -348,11 +349,14 @@ check("taxe: the same tariff cannot be charged twice when conditions overlap", (
   assert.equal(sp.taxConflict([a], tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare", moment: "La examinare" })), null);
 });
 
-check("taxe: calculation — the tariff as is, a reduction, a formula on {tarif}", () => {
+check("taxe: calculation — the tariff's sum (its amount or its own formula), optionally reduced", () => {
+  const area = { id: "t-area", formula: true, expression: "{suprafata_m2} * 2", rounding: "2 zecimale", amount: "", currency: "MDL" };
+  assert.deepEqual(sp.TAX_CALC, ["tarif", "reducere"], "a formula belongs to the tariff, not to the tax");
   assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "tarif" } }), T.mod), { ok: true, value: 7743 });
   assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "reducere", percent: 50 } }), T.adm), { ok: true, value: 646 });
-  assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "formula", expression: "{tarif} * {n}", rounding: "2 zecimale" } }), T.adm, { n: 2 }), { ok: true, value: 2584 });
-  assert.equal(sp.taxAmount(tax({ calc: { mode: "formula", expression: "{tarif} * {n}" } }), T.adm, {}).ok, false, "values completed when the note is generated");
+  assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "tarif" } }), area, { suprafata_m2: 120 }), { ok: true, value: 240 }, "the tariff's own formula");
+  assert.deepEqual(sp.taxAmount(tax({ calc: { mode: "reducere", percent: 50 } }), area, { suprafata_m2: 120 }), { ok: true, value: 120 }, "the reduction applies to the formula result, not to a base amount");
+  assert.equal(sp.taxAmount(tax({ calc: { mode: "tarif" } }), area, {}).ok, false, "values completed when the note is generated");
 });
 
 check("taxe: tariffs without a rule wait to be configured; 'Aplică ca atare' = automatic at initiation", () => {
@@ -362,14 +366,14 @@ check("taxe: tariffs without a rule wait to be configured; 'Aplică ca atare' = 
   assert.deepEqual(sp.validateTax(asIs, { tariff: T.free, serviceCode: "B" }), {});
 });
 
-check("taxe: validation — tariff, condition values, reduction range, automatic formulas only on {tarif}", () => {
+check("taxe: validation — tariff, condition values, reduction range, no formula on the tax", () => {
   const base = { ...sp.defaultTaxForTariff(T.mod, { term: 5 }) };
   assert.ok(sp.validateTax({ ...base, tariffId: "" }).tariffId);
   assert.ok(sp.validateTax({ ...base, condition: { classifier: "", values: [] } }).conditionClassifier);
   assert.ok(sp.validateTax({ ...base, condition: { classifier: "CLS-BIO-01", values: [] } }).conditionValues);
   assert.ok(sp.validateTax({ ...base, calc: { mode: "reducere", percent: "0" } }).percent);
-  assert.ok(sp.validateTax({ ...base, calc: { mode: "formula", expression: "{tarif} * {m2}" } }).expression, "automatic tax cannot ask the specialist");
-  assert.deepEqual(sp.validateTax({ ...base, calc: { mode: "formula", expression: "{tarif} * 1.2", rounding: "2 zecimale" } }), {});
+  assert.ok(sp.validateTax({ ...base, calc: { mode: "formula", expression: "{tarif} * 1.2" } }).calc, "a formula is set on the tariff, not on the tax");
+  assert.deepEqual(sp.validateTax({ ...base, calc: { mode: "reducere", percent: "25" } }), {});
   assert.ok(sp.validateTax({ ...base, tariffId: "t-x" }, { tariff: { ...T.mod, active: false }, serviceCode: "B" }).tariffId, "an inactive tariff cannot be charged");
 });
 

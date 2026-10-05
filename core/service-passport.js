@@ -564,11 +564,12 @@
      tariff plus the rule the registries do not carry: request type, moment,
      automatic / manual, an optional condition (a classifier value chosen at the
      initiation of the request, e.g. the reason of a reperfectare), how the sum
-     is computed (the tariff as is — ~80% of cases —, a formula or a reduction),
+     is computed (the tariff as is — ~80% of cases — or a reduction of it; a
+     formula belongs to the tariff, never to the tax: one formula level only),
      the payment term, exemptions and recurrence. Taxes of the same request type
      and moment end up on one payment note. */
-  var TAX_CALC = ["tarif", "formula", "reducere"];
-  var TAX_CALC_LABELS = { tarif: "Suma tarifului", formula: "Formulă", reducere: "Reducere" };
+  var TAX_CALC = ["tarif", "reducere"];
+  var TAX_CALC_LABELS = { tarif: "Suma tarifului", reducere: "Reducere" };
 
   /* null / empty values = always applies */
   function conditionApplies(condition, answers) {
@@ -595,21 +596,22 @@
     })[0] || null;
   }
 
-  /* the sum of a tax; formula values may be missing (computed when the note is generated) */
-  function taxAmount(tax, tariff, values) {
-    var base = Number(tariff && tariff.amount);
-    var calc = tax.calc || { mode: "tarif" };
-    if (calc.mode === "reducere") {
-      var percent = Number(calc.percent);
-      if (!isFinite(base) || !isFinite(percent)) return { ok: false, error: "Reducere nevalidă." };
-      return { ok: true, value: Math.round(base * (100 - percent)) / 100 };
-    }
-    if (calc.mode === "formula") {
-      var filled = Object.assign({ tarif: base }, values || {});
-      return evaluateFormula(calc.expression, filled, calc.rounding);
-    }
+  /* the tariff's own sum: its amount, or its formula on the case values
+     (those may be missing until the payment note is generated) */
+  function tariffAmount(tariff, values) {
     if (tariff && tariff.formula) return evaluateFormula(tariff.expression, values || {}, tariff.rounding);
-    return isFinite(base) ? { ok: true, value: base } : { ok: false, error: "Tarif fără sumă." };
+    var base = Number(tariff && tariff.amount);
+    return tariff && String(tariff.amount == null ? "" : tariff.amount).trim() !== "" && isFinite(base) ? { ok: true, value: base } : { ok: false, error: "Tarif fără sumă." };
+  }
+
+  /* the sum of a tax = the tariff's sum, optionally reduced by a percent */
+  function taxAmount(tax, tariff, values) {
+    var sum = tariffAmount(tariff, values);
+    var calc = tax.calc || { mode: "tarif" };
+    if (calc.mode !== "reducere" || !sum.ok) return sum;
+    var percent = Number(calc.percent);
+    if (!isFinite(percent)) return { ok: false, error: "Reducere nevalidă." };
+    return { ok: true, value: Math.round(sum.value * (100 - percent)) / 100 };
   }
 
   /* service tariffs no tax uses yet — the ones still to configure */
@@ -657,15 +659,6 @@
     var calc = tax.calc || { mode: "tarif" };
     if (TAX_CALC.indexOf(calc.mode) === -1) errors.calc = "Alege modul de calcul.";
     if (calc.mode === "reducere" && !positiveInt(calc.percent, 100)) errors.percent = "Introdu reducerea în procente, între 1 și 100.";
-    if (calc.mode === "formula") {
-      var probe = { tarif: 1 };
-      formulaVariables(calc.expression).forEach(function (name) { probe[name] = 1; });
-      var check = evaluateFormula(calc.expression, probe, calc.rounding);
-      if (!check.ok) errors.expression = check.error;
-      if (tax.generation === "Automat" && formulaVariables(calc.expression).some(function (name) { return name !== "tarif"; })) {
-        errors.expression = "O taxă automată nu poate cere valori completate de specialist — doar {tarif}. Alege generarea manuală.";
-      }
-    }
     return errors;
   }
 
@@ -721,7 +714,7 @@
     var isService = tariff.scope && tariff.scope !== "global";
     if (!String(tariff.name || "").trim()) errors.name = "Introdu denumirea tarifului (RO).";
     if (!tariff.type) errors.type = "Selectează tipul tarifului.";
-    if (!/^\d+([.,]\d{1,2})?$/.test(String(tariff.amount == null ? "" : tariff.amount).trim())) errors.amount = "Introdu suma, un număr cu cel mult două zecimale.";
+    if (!tariff.formula && !/^\d+([.,]\d{1,2})?$/.test(String(tariff.amount == null ? "" : tariff.amount).trim())) errors.amount = "Introdu suma, un număr cu cel mult două zecimale.";
     if (!tariff.currency) errors.currency = "Selectează valuta.";
     if (isService && !tariff.requestType) errors.requestType = "Selectează tipul solicitării.";
     if (isService && !tariff.personType) errors.personType = "Selectează tipul persoanei.";
@@ -897,6 +890,7 @@
     conditionsOverlap: conditionsOverlap,
     taxConflict: taxConflict,
     taxAmount: taxAmount,
+    tariffAmount: tariffAmount,
     unconfiguredTariffs: unconfiguredTariffs,
     defaultTaxForTariff: defaultTaxForTariff,
     canPublishTax: canPublishTax,

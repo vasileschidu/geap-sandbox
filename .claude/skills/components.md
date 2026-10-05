@@ -971,7 +971,8 @@ no tags. Services with `auth.required: true` keep the MPass gate. Logout returns
   more — they are charged through the passport's **Taxe** tab (see "Taxe — tariff +
   application rule"); a manual service tariff is created from the tax drawer. Both open the same drawer `[data-tariff-drawer]`: **Identitate** (Denumire RO/RU/EN, Tip,
   Temei legal; service only: Tip solicitare, Subdiviziune, Tip persoană = 14px segmented),
-  **Sumă și formulă** (Sumă + Valută, switch „Calcul prin formulă” → expresie `{var}`,
+  **Sumă și formulă** (Sumă + Valută, switch „Calcul prin formulă” → the Sumă field goes away
+  — a formula tariff has no amount — and the expresie `{var}` appears,
   rotunjire, grey „Verifică formula” panel with test values, IBAN select with the authority's
   principal account as default), **Ciclu de viață** (Valabil de la/până la, stare, sursă,
   Folosit de, istoric versiuni, Activează/Dezactivează, Șterge only if unused — confirmed
@@ -3169,8 +3170,7 @@ chosen by the reason picked at initiation (minor/major change 7743 · administra
 
 **Model** (`service.geap.taxes`, one object per tariff it charges):
 `{ id, tariffId, requestType, moment, generation: Automat|Manual, condition: null |
-{ classifier, values[] }, calc: { mode: tarif | formula (expression on {tarif}, rounding) |
-reducere (percent) }, term, exemptions[], removable, recurring, version, state, active,
+{ classifier, values[] }, calc: { mode: tarif | reducere (percent) }, term, exemptions[], removable, recurring, version, state, active,
 usage }`. Condition classifiers: `servicesStore.conditionClassifiers` (`{ code, name, scope,
 values: [{ code, label }] }`) — the value the applicant picks in the form at initiation.
 Taxes of the same request type + moment land on **one payment note**.
@@ -3179,10 +3179,16 @@ Taxes of the same request type + moment land on **one payment note**.
 - `conditionApplies` / `conditionsOverlap`; `taxConflict` = the same tariff may not be
   charged twice: another active tax with the same tariff + request type + moment and an
   overlapping condition. Different tariffs **may** stack on one note.
-- `taxAmount`: tariff as is (or the tariff's own formula), `{tarif}`-formula, reduction %.
+- `tariffAmount` = the tariff's amount or its own formula; `taxAmount` = that, optionally
+  reduced by a percent (the reduction applies to the formula's result).
+- **One formula level (2026-10-05):** a formula is defined only on the tariff („Calcul prin
+  formulă”), never on the tax. A legacy `calc.mode: "formula"` fails validation and opens
+  as „Suma tarifului”. Every list shows a formula tariff's value the same way — „Formulă ·
+  {expresie}” (`tariffValueText`, registry „Valoare”, tax picker, stacked rows) — never the
+  raw amount.
 - `validateTax` = payment rules (moment in the flow, initiation = automatic, term,
   exemptions only manual, recurrence) + tariff required and eligible + condition needs a
-  classifier and ≥ 1 value + reduction 1–100 + an automatic formula may use only `{tarif}`.
+  classifier and ≥ 1 value + reduction 1–100.
 - `unconfiguredTariffs` (the service's tariffs no tax uses) and `defaultTaxForTariff`
   ("Aplică ca atare": registry request type, at initiation, Automat, the tariff as is).
 
@@ -3210,7 +3216,7 @@ basis · "preluat din RSSP, nu se editează aici"; "Tariful lipsește din RSSP /
 Creează un tarif nou" hands over to the tariff drawer and returns with the new tariff
 selected) · **Aplicare** (Tip solicitare — prefilled from the registry tariff, Moment,
 Automat / Manual) · **Condiție** (segmented Întotdeauna / Doar pentru anumite valori →
-Clasificator + value checkboxes) · **Calcul** (segmented Suma tarifului / Formulă /
+Clasificator + value checkboxes) · **Calcul** (segmented Suma tarifului /
 Reducere, with the resulting sum) · Termen · Scutiri (manual only, + "Specialistul poate
 scoate taxa din notă") · Recurență. Footer: draft / publish, or save = new version.
 
@@ -4146,8 +4152,8 @@ Reuse it for any flow documented in Figma:
 - **Flows with choices (dropdowns, segmented, condition values):** one block per distinct
   choice the user can make, including one block with the **dropdown open** (library
   `selection-menu`, the chosen option `Selected`, the pointed one `Hover`), each result
-  exactly as code computes it. Example: Servicii band 04h1–04h3 (Taxă › Calcul: Suma
-  tarifului → Formulă with its result line → Reducere).
+  exactly as code computes it. Example: Servicii band 04h1–04h3 (Taxă › Calcul on a formula
+  tariff: Suma tarifului → Reducere on the formula → Reducere on a fixed tariff).
 - **Every screen copies code data**: extract it from the running prototype's DOM (row
   titles, tags, meta, chip counts, summary numbers) instead of retyping; texts set on
   instances that are bound to a component property must be set through
@@ -4218,16 +4224,17 @@ Servicii › **Jurnal de evenimente** (`renderServiceEvents`) logs every change,
 - the tab badge shows the full count. Search / filter reset the page to 25.
 Reuse for any audit log that can grow past a screen.
 
-### Taxă › Calcul — result line under Formulă and Reducere (2026-10-04)
+### Taxă › Calcul — result line (2026-10-04, one formula level since 2026-10-05)
 
-The tax editor's **Calcul** segmented control (Suma tarifului / Formulă / Reducere) always
-shows what the tax will charge, as the field's hint line (re-rendered on leaving the field):
-- **Suma tarifului** → the hint under the control: „Taxa = tariful: **7.743 MDL**”.
-- **Formulă** (input + Rotunjire select): with only `{tarif}` → „Rezultat: **3.871,5 MDL** (cu
-  {tarif} = 7.743 MDL)”; with other variables → „Se calculează la generarea notei:
-  **{suprafata}** o completează specialistul.” (they exist only for manual taxes).
-- **Reducere (%)** (1–100) → „De plată: **3.871,5 MDL** din 7.743 MDL”; empty → no line.
-Figma: Servicii blocks 04h1 / 04h2 / 04h3.
+The tax editor's **Calcul** segmented control (**Suma tarifului / Reducere**) always shows
+what the tax will charge, as the field's hint line (re-rendered on leaving the field):
+- **Suma tarifului** → „Taxa = tariful: **7.743 MDL**”, or for a formula tariff „Taxa =
+  tariful: **formula tarifului ({expresie})**, calculată la generarea notei”.
+- **Reducere (%)** (1–100) → „De plată: **3.871,5 MDL** din 7.743 MDL”; on a formula tariff
+  „De plată: rezultatul formulei tarifului − **50%**, calculat la generarea notei”; empty →
+  no line.
+There is no formula on the tax — it lives on the tariff. Demo: `svc-04h1` (formula tariff),
+`svc-04h2` (formula tariff − 50%), `svc-04h3` (fixed tariff − 50%).
 
 ### Servicii list — advanced filter in Figma (2026-10-04)
 

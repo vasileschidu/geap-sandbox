@@ -6323,7 +6323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cod: tariff.code,
     sursa: tariff.source || "GEAP",
     denumire: tariff.name,
-    valoare: `${tariff.amount} ${tariff.currency}`,
+    valoare: tariff.formula ? `Formulă · ${tariff.expression || "—"}` : `${tariff.amount} ${tariff.currency}`,
     domeniu: tariff.scope === "global" ? "Global" : (getServiceByCode(tariff.scope)?.title || tariff.scope),
     tip: tariff.type || "",
     formula: tariff.formula ? (tariff.userVariables ? "Da, cu variabile" : "Da") : "Nu",
@@ -7080,7 +7080,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const payListState = { query: "", filter: "all" };
 
   const getTariff = (id) => servicesStore?.tariffs?.find((tariff) => tariff.id === id) || null;
-  const tariffLabel = (tariff) => tariff ? `${tariff.name} · ${tariff.amount} ${tariff.currency}` : "Tarif necunoscut";
+  /* a tariff's value as text: its sum, or its formula (computed on the payment note) */
+  const tariffValueText = (tariff) => (tariff.formula ? `Formulă · ${tariff.expression || "—"}` : `${Number(tariff.amount).toLocaleString("ro-MD")} ${tariff.currency}`);
+  const tariffLabel = (tariff) => tariff ? `${tariff.name} · ${tariffValueText(tariff)}` : "Tarif necunoscut";
   const requestTypeFlow = (service, requestTypeName) =>
     getFlowById(service.geap.requestTypes.find((rt) => rt.name === requestTypeName)?.flow);
   const serviceTaxes = (service) => service.geap.taxes || (service.geap.taxes = []);
@@ -7100,16 +7102,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const TAX_STATUS_TONES = { "Activă": "success", "Inactivă": "neutral", "Schiță": "warning" };
   const money = (value, currency = "MDL") => `${Number(value).toLocaleString("ro-MD")} ${currency}`;
 
-  /* what the tax charges: the tariff as is, a formula on it, or a reduction */
+  /* what the tax charges: the tariff's sum (its amount or its own formula),
+     optionally reduced — a formula is set on the tariff, never on the tax */
   const taxCalcLabel = (tax, tariff) => {
     const calc = tax.calc || { mode: "tarif" };
     if (!tariff) return "Tarif lipsă";
-    if (calc.mode === "formula") return `Formulă · ${escapeHtml(calc.expression || "—")}`;
     if (calc.mode === "reducere") {
+      if (tariff.formula) return `Formula tarifului · ${escapeHtml(tariff.expression || "—")} − ${escapeHtml(String(calc.percent))}%`;
       const sum = passport.taxAmount(tax, tariff);
       return `${escapeHtml(money(tariff.amount, tariff.currency))} − ${escapeHtml(String(calc.percent))}% = <strong>${escapeHtml(sum.ok ? money(sum.value, tariff.currency) : "—")}</strong>`;
     }
-    return tariff.formula ? `Formulă tarif · ${escapeHtml(tariff.expression || "—")}` : `<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`;
+    return tariff.formula ? `Formula tarifului · ${escapeHtml(tariff.expression || "—")}` : `<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`;
   };
 
   const payMatches = (service, tax) => {
@@ -7150,7 +7153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       plainTitle: tariff.name,
       title: escapeHtml(tariff.name),
       badges: [tariffSourceTag(tariff), renderTag("Fără regulă de aplicare", "warning")],
-      meta: [`<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`, escapeHtml(tariff.code), escapeHtml(tariff.requestType || "Tip solicitare neprecizat"), whoWhen(tariff.source === "GEAP" ? "Adăugat" : "Preluat", tariff.modifiedAt, tariff.modifiedBy)],
+      meta: [`<strong>${escapeHtml(tariffValueText(tariff))}</strong>`, escapeHtml(tariff.code), escapeHtml(tariff.requestType || "Tip solicitare neprecizat"), whoWhen(tariff.source === "GEAP" ? "Adăugat" : "Preluat", tariff.modifiedAt, tariff.modifiedBy)],
       actionsHtml: admin ? `
         <!-- the row component's action order: ✎ · secondary · neutral · ⋮ -->
         <button class="btn btn-secondary btn-sm e-permits-stack__action" type="button" data-tax-apply="${escapeHtml(tariff.id)}">Aplică ca atare</button>
@@ -7377,7 +7380,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const taxShortValue = (tax) => {
     const tariff = getTariff(tax.tariffId);
     const sum = tariff ? passport.taxAmount(tax, tariff) : { ok: false };
-    return sum.ok ? money(sum.value, tariff.currency) : "Formulă";
+    if (sum.ok) return money(sum.value, tariff.currency);
+    return tax.calc?.mode === "reducere" && tariff?.formula ? `Formulă − ${tax.calc.percent}%` : "Formulă";
   };
   const tariffShortValue = (tariff) => (tariff.formula ? "Formulă" : money(tariff.amount, tariff.currency));
 
@@ -12686,7 +12690,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const option = (t) => {
       const check = passport.tariffEligibility(t, service.code, payDraft.generation);
       const source = t.scope === "global" ? "global" : t.source === "GEAP" ? "manual" : `din ${t.source}`;
-      return `<option value="${escapeHtml(t.id)}"${t.id === payDraft.tariffId ? " selected" : ""}${check.ok || t.id === payDraft.tariffId ? "" : " disabled"}>${escapeHtml(`${t.name} · ${money(t.amount, t.currency)} · ${source}`)}${check.ok ? "" : ` — ${escapeHtml(check.reason)}`}</option>`;
+      return `<option value="${escapeHtml(t.id)}"${t.id === payDraft.tariffId ? " selected" : ""}${check.ok || t.id === payDraft.tariffId ? "" : " disabled"}>${escapeHtml(`${t.name} · ${tariffValueText(t)} · ${source}`)}${check.ok ? "" : ` — ${escapeHtml(check.reason)}`}</option>`;
     };
     return `
       <div class="e-permits-fo-field">
@@ -12744,42 +12748,20 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  /* Calcul: the tariff as is (default), a formula on it, or a reduction */
+  /* Calcul: the tariff's sum as is (default) or a reduction of it. A formula
+     lives on the tariff („Calcul prin formulă”), so there is one formula level. */
   const renderTaxCalc = () => {
     const tariff = getTariff(payDraft.tariffId);
-    const mode = payDraft.calc.mode;
-    const preview = tariff ? passport.taxAmount({ calc: { ...payDraft.calc, expression: payDraft.calc.expression } }, tariff, {}) : null;
+    const mode = payDraft.calc.mode === "reducere" ? "reducere" : "tarif";
+    const preview = tariff ? passport.taxAmount({ calc: payDraft.calc }, tariff, {}) : null;
+    const tariffSum = tariff ? (tariff.formula ? `formula tarifului (${tariff.expression})` : money(tariff.amount, tariff.currency)) : "";
+    const percent = String(payDraft.calc.percent || "").trim();
     return `
       ${paySegmented("pay-calc-label", "Calcul", passport.TAX_CALC.map((value) => [value, passport.TAX_CALC_LABELS[value]]), mode, "data-pay-calc", {
         hint: mode === "tarif"
-          ? (tariff ? `Taxa = tariful: <strong>${escapeHtml(tariff.formula ? `formula tarifului (${tariff.expression})` : money(tariff.amount, tariff.currency))}</strong>. Cazul cel mai des întâlnit.` : "Taxa este egală cu tariful ales.")
-          : mode === "formula" ? "Folosește {tarif} pentru suma tarifului. Alte variabile {nume} le completează specialistul la generarea notei — doar la generarea manuală."
+          ? (tariff ? `Taxa = tariful: <strong>${escapeHtml(tariffSum)}</strong>${tariff.formula ? ", calculată la generarea notei" : ""}. Cazul cel mai des întâlnit.` : "Taxa este egală cu tariful ales.")
           : "Procent scăzut din tarif (ex. reducere pentru IMM-uri)."
       })}
-      ${mode === "formula" ? `
-        <div class="e-permits-user-create__grid">
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--8">
-            <label for="pay-expression">Formulă${requiredMark()}</label>
-            <div class="e-permits-fo-input${payDraft.errors.expression ? " is-error" : ""}">
-              <input id="pay-expression" type="text" value="${escapeHtml(payDraft.calc.expression || "")}" placeholder="ex. {tarif} * {suprafata} / 100" data-pay-calc-field="expression" autocomplete="off">
-            </div>
-            ${payFieldError("expression")}
-            ${(() => {
-              /* the result line, like „De plată” for Reducere: computed when only {tarif} is used,
-                 otherwise it names the variables the specialist fills in on the payment note */
-              const expr = String(payDraft.calc.expression || "").trim();
-              if (payDraft.errors.expression || !expr || !tariff) return "";
-              const vars = [...new Set((expr.match(/\{([^}]+)\}/g) || []).map((v) => v.slice(1, -1)).filter((v) => v !== "tarif"))];
-              if (vars.length) return `<p class="e-permits-fo-field__hint">Se calculează la generarea notei: ${vars.map((v) => `<strong>{${escapeHtml(v)}}</strong>`).join(", ")} ${vars.length === 1 ? "o completează" : "le completează"} specialistul.</p>`;
-              return preview?.ok ? `<p class="e-permits-fo-field__hint">Rezultat: <strong>${escapeHtml(money(preview.value, tariff.currency))}</strong> (cu {tarif} = ${escapeHtml(money(tariff.amount, tariff.currency))})</p>` : "";
-            })()}
-          </div>
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--4">
-            <label for="pay-rounding">Rotunjire</label>
-            ${renderFoSelectControl({ id: "pay-rounding", attrs: "data-pay-rounding", optionsHtml: (servicesStore.roundingRules || ["2 zecimale"]).map((rule) => `<option value="${escapeHtml(rule)}"${rule === payDraft.calc.rounding ? " selected" : ""}>${escapeHtml(rule)}</option>`).join("") })}
-          </div>
-        </div>
-      ` : ""}
       ${mode === "reducere" ? `
         <div class="e-permits-user-create__grid">
           <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--4">
@@ -12788,7 +12770,11 @@ document.addEventListener("DOMContentLoaded", () => {
               <input id="pay-percent" type="text" inputmode="numeric" maxlength="3" value="${escapeHtml(payDraft.calc.percent || "")}" data-pay-calc-field="percent" autocomplete="off">
             </div>
             ${payFieldError("percent")}
-            ${!payDraft.errors.percent && tariff && preview?.ok && String(payDraft.calc.percent || "").trim() ? `<p class="e-permits-fo-field__hint">De plată: <strong>${escapeHtml(money(preview.value, tariff.currency))}</strong> din ${escapeHtml(money(tariff.amount, tariff.currency))}</p>` : ""}
+            ${!payDraft.errors.percent && tariff && percent
+              ? (tariff.formula
+                ? `<p class="e-permits-fo-field__hint">De plată: rezultatul formulei tarifului − <strong>${escapeHtml(percent)}%</strong>, calculat la generarea notei</p>`
+                : preview?.ok ? `<p class="e-permits-fo-field__hint">De plată: <strong>${escapeHtml(money(preview.value, tariff.currency))}</strong> din ${escapeHtml(money(tariff.amount, tariff.currency))}</p>` : "")
+              : ""}
           </div>
         </div>
       ` : ""}
@@ -12953,7 +12939,7 @@ document.addEventListener("DOMContentLoaded", () => {
       moment: base?.moment || "",
       generation: base?.generation || "Automat",
       condition: base?.condition ? { classifier: base.condition.classifier, values: [...base.condition.values] } : null,
-      calc: { mode: "tarif", rounding: "2 zecimale", expression: "", percent: "", ...(base?.calc || {}) },
+      calc: { percent: "", ...(base?.calc || {}), mode: base?.calc?.mode === "reducere" ? "reducere" : "tarif" },
       term: base ? String(base.term) : defaultPaymentTerm(service),
       exemptions: [...(base?.exemptions || [])],
       removable: Boolean(base?.removable),
@@ -13004,9 +12990,7 @@ document.addEventListener("DOMContentLoaded", () => {
     moment: payDraft.moment,
     generation: payDraft.generation,
     condition: payDraft.condition ? { classifier: payDraft.condition.classifier, values: [...payDraft.condition.values] } : null,
-    calc: payDraft.calc.mode === "formula" ? { mode: "formula", expression: String(payDraft.calc.expression || "").trim(), rounding: payDraft.calc.rounding || "2 zecimale" }
-      : payDraft.calc.mode === "reducere" ? { mode: "reducere", percent: payDraft.calc.percent }
-      : { mode: "tarif" },
+    calc: payDraft.calc.mode === "reducere" ? { mode: "reducere", percent: payDraft.calc.percent } : { mode: "tarif" },
     term: payDraft.term,
     exemptions: payDraft.generation === "Manual" ? payDraft.exemptions : [],
     removable: payDraft.generation === "Manual" && payDraft.removable,
@@ -13027,7 +13011,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (Object.keys(errors).length) {
       payDraft.errors = errors;
-      const first = { tariffId: "#pay-tariff", requestType: "#pay-request-type", moment: "#pay-moment", generation: "[data-pay-generation]", conditionClassifier: "#pay-condition-classifier", conditionValues: "[data-pay-condition-value]", calc: "[data-pay-calc]", expression: "#pay-expression", percent: "#pay-percent", term: "#pay-term", exemptions: "[data-pay-exemption]", frequency: "#pay-frequency", noticeDays: "#pay-notice" }[Object.keys(errors)[0]];
+      const first = { tariffId: "#pay-tariff", requestType: "#pay-request-type", moment: "#pay-moment", generation: "[data-pay-generation]", conditionClassifier: "#pay-condition-classifier", conditionValues: "[data-pay-condition-value]", calc: "[data-pay-calc]", percent: "#pay-percent", term: "#pay-term", exemptions: "[data-pay-exemption]", frequency: "#pay-frequency", noticeDays: "#pay-notice" }[Object.keys(errors)[0]];
       rerenderPayDrawer(first);
       return;
     }
@@ -13095,7 +13079,7 @@ document.addEventListener("DOMContentLoaded", () => {
     serviceTaxes(service).push(next);
     logServiceEvents(service.code, [{ at: meta.at, user: meta.user, type: "Publicare taxă", status: "Reușit", detail: `${tariff.name} · aplicat ca atare · ${next.requestType}` }]);
     renderServiceProfile();
-    showShellToast(`Taxa „${tariff.name}” se aplică ca atare: ${next.requestType} · la inițierea solicitării · ${money(tariff.amount, tariff.currency)}.`);
+    showShellToast(`Taxa „${tariff.name}” se aplică ca atare: ${next.requestType} · la inițierea solicitării · ${tariffValueText(tariff)}.`);
   };
 
   payDrawer?.addEventListener("input", (event) => {
@@ -13135,7 +13119,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   payDrawer?.addEventListener("focusout", (event) => {
-    /* the reduction and formula result lines follow the typed value */
+    /* the reduction's result line follows the typed value */
     if (payDraft && event.target.matches?.("[data-pay-calc-field]")) rerenderPayDrawer();
   });
 
@@ -13179,8 +13163,6 @@ document.addEventListener("DOMContentLoaded", () => {
       payDraft.condition.values = [...payDrawerBody.querySelectorAll("[data-pay-condition-value]:checked")].map((input) => input.value);
       delete payDraft.errors.conditionValues;
       target.closest(".e-permits-fo-field")?.querySelector(".message--error")?.remove();
-    } else if (target.matches("[data-pay-rounding]")) {
-      payDraft.calc.rounding = target.value;
     } else if (target.matches("[data-pay-removable]")) {
       payDraft.removable = target.checked;
     } else if (target.matches("[data-pay-exemption]")) {
@@ -13278,7 +13260,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return [
         tariff?.name, tariff?.code, tariff?.scope === "global" ? "Global" : tariff?.source, tax.requestType, tax.moment, tax.generation,
         conditionLabel(tax.condition) || "Întotdeauna",
-        calc.mode === "formula" ? `Formulă ${calc.expression}` : calc.mode === "reducere" ? `Reducere ${calc.percent}%` : `${tariff?.amount} ${tariff?.currency}`,
+        calc.mode === "reducere" ? `Reducere ${calc.percent}%` : tariff?.formula ? `Formula tarifului ${tariff.expression}` : `${tariff?.amount} ${tariff?.currency}`,
         tax.term, tax.exemptions.join(", "),
         tax.recurring ? (tax.recurring.frequency === "Interval" ? `La ${tax.recurring.months} luni` : "Anual") : "Nu",
         `v${tax.version}`, TAX_STATUS(tax), tax.modifiedBy, tax.modifiedAt
@@ -13493,7 +13475,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h3 class="e-permits-user-create__section-title">Sumă și formulă</h3>
         <div class="e-permits-user-create__section-content">
           <div class="e-permits-user-create__grid">
-            ${input("tariff-amount", "amount", { label: d.formula ? "Sumă de bază" : "Sumă", required: true, span: 6, numeric: true, placeholder: "0.00" })}
+            ${d.formula ? "" : input("tariff-amount", "amount", { label: "Sumă", required: true, span: 6, numeric: true, placeholder: "0.00" })}
             ${select("tariff-currency", "currency", { label: "Valută", required: true, span: 6, options: (servicesStore.currencies || ["MDL"]).map((c) => [c, c]) })}
           </div>
           ${renderToggle({ label: "Calcul prin formulă", description: "Suma se calculează din valorile dosarului, ex. suprafața × cota.", checked: Boolean(d.formula), attrs: "data-tariff-formula" })}
@@ -13647,13 +13629,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const publish = mode === "publish" || (mode === "save" && existing?.state === "Publicat");
     const fields = {
       scope: d.scope, name: d.name.trim(), nameRu: d.nameRu.trim(), nameEn: d.nameEn.trim(), type: d.type, legalBasis: d.legalBasis.trim(),
-      amount: String(d.amount).trim().replace(",", "."), currency: d.currency, iban: d.iban || "",
+      amount: d.formula ? "" : String(d.amount).trim().replace(",", "."), currency: d.currency, iban: d.iban || "",
       requestType: d.scope !== "global" ? d.requestType : null, personType: d.scope !== "global" ? d.personType : null,
       subdivision: d.scope !== "global" ? (d.subdivision || null) : null,
       formula: d.formula, expression: d.formula ? d.expression.trim() : "", rounding: d.rounding, userVariables: d.formula && d.userVariables,
       validFrom: d.validFrom, validTo: d.validTo || null
     };
-    const errors = passport.validateTariff({ ...fields, amount: String(d.amount).trim() });
+    const errors = passport.validateTariff({ ...fields, amount: d.formula ? "" : String(d.amount).trim() });
 
     if (Object.keys(errors).length) {
       d.errors = errors;

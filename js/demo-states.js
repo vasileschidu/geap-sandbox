@@ -113,15 +113,16 @@
     "svc-04a": svc("fees", async (h) => { await h.click('[data-passport-body] [aria-label="Mai multe acțiuni: taxe"]'); }),
     "svc-04b": bio("fees"),
     "svc-04h": bio("fees", openTax("tax-bio-2")),
+    /* a tax on a formula tariff: the formula is the tariff's, the tax only reduces it */
     "svc-04h1": bio("fees", async (h) => {
       await openTax("tax-bio-2")(h);
-      await h.click('[data-pay-calc="formula"]');
-      await h.fill("#pay-expression", "{tarif} * 0.5");
+      await h.choose("select[data-pay-tariff]", "tf-urgenta");
     }),
     "svc-04h2": bio("fees", async (h) => {
       await openTax("tax-bio-2")(h);
-      await h.click('[data-pay-calc="formula"]');
-      await h.fill("#pay-expression", "{tarif} * {suprafata} / 100");
+      await h.choose("select[data-pay-tariff]", "tf-urgenta");
+      await h.click('[data-pay-calc="reducere"]');
+      await h.fill("#pay-percent", "50");
     }),
     "svc-04h3": bio("fees", async (h) => {
       await openTax("tax-bio-2")(h);
