@@ -3232,6 +3232,36 @@ Tariff "Folosit de" / delete-blocking count taxes (`tariffUsage`).
 classifier), reductions vs. exemptions overlap, and whether a manual tax at examination should
 also offer conditional tariffs to the specialist (today: the specialist picks fees by hand).
 
+### Tariff drawer — tabs + formula builder (added 2026-10-06)
+
+**Tabs** (status strip stays above them): the library small tabs
+`.tabs.tabs--sm.e-permits-tariff__tabs` → Detalii (Identitate + Valabilitate) ·
+Sumă și formulă · Utilizare și istoric (saved tariffs only). Panel `.e-permits-tariff__panel`.
+A tab whose fields have errors shows `.e-permits-ntpl-dot.e-permits-tariff__tab-error` (red);
+Salvează / Publică opens the tab of the first error (`TARIFF_FIELD_TAB`). A tab never repeats its
+own name as a section heading.
+
+**Tab row:** the library component as is — `.tabs.tabs--sm` (Figma `tab-item-s`: 40px, px12,
+14/20; Selected = 2px underline + Medium, Unselected = Regular), no extra padding. Only the row
+spans the drawer width (`.e-permits-tariff__tabs` bleeds over the body's side padding, flush under
+the header; 16px below the status strip).
+
+**Formula field** `.e-permits-fo-field.e-permits-tariff-formula` — the Șabloane approach (subject +
+„Inserează câmp”), not a token builder:
+- `__head` = label + „Inserează variabilă” (`btn-secondary btn-sm` stack-menu trigger → the
+  Șabloane picker `.e-permits-ntpl-picker`: search, groups by source, label + `unit · {key}`).
+  The chosen `{key}` lands **at the caret** (`setRangeText`, like `insertNtplToken`).
+- Plain `.e-permits-fo-textarea` (`#tariff-expression`): cursor anywhere; numbers, spaces and
+  + − × ÷ ( ) are typed (× ÷ − are stored as * / -). Letters outside a whole `{variable}` are
+  dropped while typing (`sanitizeFormula`, caret preserved) — names cannot be typed freely.
+- `__readable` „Se citește: …” = the formula in words, variables marked with the Șabloane preview
+  token (`.e-permits-ntpl-preview__token`); a variable not in the catalogue = `__unknown` (red).
+- Stored as `{var} * 2`; catalogue = `formulaVariables` in `data/e-permits-services.json`
+  (key, label, unit, source). `passport.validateTariff(t, { variables })` rejects unknown variables.
+- Everywhere else the formula is shown readable: `formulaReadable()` → „Suprafața obiectului × 2”.
+- Demo states: `trf-02c` (empty), `trf-02e` (picker open), `trf-02f` (formula + test),
+  `trf-02g` (error dots), `trf-03d` (saved formula), `trf-03e` (Utilizare și istoric).
+
 ### Tariff drawer — status strip (added 2026-10-01)
 
 An existing tariff opens with `.e-permits-tariff__status` at the top of the drawer
@@ -3354,8 +3384,8 @@ modal 1000), so an `askConfirm` raised from inside a drawer is never hidden behi
 ### Traiectoria dosarului — case path on Date generale (added 2026-10-02)
 
 Figma GEAP 2.0 `8929:7814`. First section of the dosar "Date generale" tab
-(`renderDosarTrajectory`). Grey card (`--color-background-base-secondary`, radius 16, padding
-20) with an `<ol>` of six steps spread evenly: Depusă (Inițiat for ex officio) · Examinare ·
+(`renderDosarTrajectory`). White card (`--color-background-base-default`, 1px
+`--color-border-base-default` border, radius 24 like the dosar cards — no token, padding 20) with an `<ol>` of six evenly spaced steps whose first and last hug the card edges (columns 1·2·2·2·2·1; first step left-aligned, last right-aligned): Depusă (Inițiat for ex officio) · Examinare ·
 Coordonare · Semnare · Semnat · Eliberat (Respins on a rejection).
 - Markers 24px: done `circle-checkmark-filled` positive; current `time-filled` brand
   (`aria-current="step"`); suspended `pause` amber; rejected final `circle-error-filled`
@@ -3382,7 +3412,8 @@ sit inline), `__meta` and `__text` 14/20 secondary (`strong` = default, medium).
 `.e-permits-callout-wrap` (16px above). The Figma's name/date strip and inner glow are not
 used. First use: "Acum / Urmează" under Traiectoria dosarului, where it **hangs from the
 card** (`.e-permits-trajectory + .e-permits-callout-wrap`): no gap, square top corners,
-rounded bottom (16), inset 24px on each side.
+rounded bottom (24, as the card), inset 16px on each side, and compact — padding 12/16, icon–text gap 12,
+gap between title / meta / text 4, title 14/20 medium, icon 20 (updated 2026-10-05).
 
 ### Detail modal — payment note, approval, act, document (added 2026-10-02)
 
@@ -3902,6 +3933,80 @@ structure (fields, parent, ID format). "Critic pentru proces" forces the flag of
 | DIV-C7 | Auto-deactivation on sync without preview | Feature: applied immediately; summary shown after, with the consumer modules. Not blocking. |
 | DIV-C8 | Archive effect on consumers | Archive is read-only for edits/import/sync; nothing happens automatically in consumer modules. |
 
+### Post-procese — titular, Part I (added 2026-10-06)
+
+Spec: Feature 89533 / 90818, US-55, US-191 and the stories in `docs/azure/` (map:
+`docs/azure/postprocese-harta.md`). Data: `data/acte-permisive.json` → `frontOfficeFlows[0].intent`
+(`postProcesses`, `availability` = status matrix, `services` 09/10/DEMO with `allows`/`terms`/
+`delivery`, `reasons`, `activityTypes10`, `acts` by subject). Code: `js/e-permits-acte-permisive.js`
+(post-process module) and `cabinet-evo/cabinet-evo.js`.
+
+**What is available** = status matrix (US-55) ∩ `services[act.service].allows`. Paper or historical
+acts (`act.paper`) have none and show the offline-flow notice. One active post-process per act
+(`act.pending`) → the act is locked.
+
+**Entry 1 — EVO Cabinet /permits** (`cabinet-evo/index.html?as=<subject>`):
+- Act card: `.cab-card__heading` (title + status tag) over `.cab-card__service`; ⋮ = library
+  `btn-icon` → `.e-permits-fo-intent-menu.cab-menu` with Vezi detalii / Descarcă /
+  `.cab-menu__separator` / `.cab-menu__label` „Postprocese” / one item per post-process.
+  A locked act's items are disabled (`.cab-menu__item[disabled]`).
+- Act detail `.cab-detail*`: back link, notice (paper / pending), summary card, Descarcă, the same menu.
+- Suspendare / Retragere first open `[data-cab-pp-modal]` (consequence + Continuă). **UX proposal** —
+  the spec does not ask for it; keep it labelled as such in Figma.
+- Every action redirects to `e-permits-acte-permisive.html?flow=full&pp=<type>&act=<id>#request`.
+
+**Entry 2 — „Ce vrei să soliciți?” (US-191)** — never skipped (unless notarial proxy).
+„Solicitare nouă” is always there; under it the acts of the current service with ≥1 post-process.
+- Locked act: `.e-permits-fo-intent-act.is-locked` + `.e-permits-fo-intent-act__pending`
+  (`icon-time`, „Post-proces în curs · GEAP-…”) and a disabled trigger.
+- No acts: `[data-fo-intent-empty]` `.e-permits-fo-intent__empty` (inline info note)
+  „Dumneavoastră nu aveți acte emise pentru serviciul dat.”
+
+**The wizard** (`body[data-fo-postprocess]`, `startFrontOfficePostprocess(act, pp)`; Solicitare nouă
+calls `stopFrontOfficePostprocess`). It reuses the primary FO wizard; only content changes:
+
+| Step | Post-process content |
+|---|---|
+| 1 Date solicitant | `[data-fo-pp-request]` `.e-permits-fo-pp-request` card: Serviciul · Tip solicitare · Numărul actului permisiv (read-only); role „Schimbă” hidden |
+| 2 Detalii solicitare | `.e-permits-fo-pp-lead` (type · act no. · object), then per type: reperfectare 09 = motiv + primary form prefilled; reperfectare 10 = address cascade, activity type (+ hemp fields), responsible person, scope; prelungire = act data read-only; duplicat = motiv (Deteriorare / Pierdere); retragere = subdiviziune (09, read-only) + motiv; suspendare = motiv, data, termen + note; reluare = motiv + note |
+| 3 Acte necesare | previous act as an MDocs attachment (Descarcă) + reason-specific doc fields |
+| 4 Verificare și semnare | review rows built from step 2 (empty optional fields skipped) + Persoana de contact |
+| 5 Livrare | read-only (EVO Cabinet + pe hârtie) |
+| 6 Plată | hidden when the service has no fee (09/10); 7 is renumbered 6 |
+| 7 Finalizare | summary (Tip, Serviciul, Nr. act, Nr. dosar `GEAP-2026-<code>-<n>`, Autoritatea, Termen), tracker Depusă → Examinare → Decizie → result, no Plată |
+
+- Selects: library `.e-permits-fo-select` with `data-fo-pp-select` / `data-fo-pp-required`;
+  `selectOption` dispatches `fo-select-change`. „Alte” reveals `[data-fo-pp-other]` (textarea, required).
+- Validation on Înainte: inline `message message--inline e-permits-fo-field__error` „Câmp obligatoriu”.
+- Notes (`.e-permits-fo-pp-note`) = inline info note, e.g. „…se va relua din data semnării deciziei”.
+- Suspendare / reluare fields and the DEMO service are **de confirmat** (no US yet).
+
+**Demo states** (`js/demo-states.js`): `pp-01…01i` Cabinet, `pp-02…02c` intent (02c = MPower subject
+with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp-11` reperfectare 10,
+`pp-12/12a` prelungire, `pp-13…13b` duplicat, `pp-14…14b` retragere, `pp-15/15a` suspendare,
+`pp-16/16a` reluare.
+
+### Logare în Back Office / Admin Portal — MPass (added 2026-10-06)
+
+US-105 (logare), US-110 (ieșire); states from US-107 (sesiune expirată) and US-109 (MPass
+indisponibil). Page `bo-login.html` + `js/bo-login.js` + `css/bo-login.css`; Figma: section
+„Autentificare · Back Office / Admin Portal” on „↳ BO -> Application Shell”.
+
+- **Reuses the EVO auth page**: `.e-permits-fo-auth` header (gov top line + brand bar with
+  „e-Permis <Back Office|Admin Portal>”, `.bo-login__product`; no profile before login — US-110
+  AC-01) and the card `.e-permits-fo-auth__card` (lock 36 + h1 + description + MPass
+  `btn-badge--mpass` + separator + `.bo-login__help`).
+- **States** (`?view=` / `?mpass=` / `?ended=`): login · redirecting (badge button Loading) ·
+  denied (red lock, AC-10 text verbatim, `.bo-login__identity` = who MPass confirmed, IDNP masked,
+  `btn btn-neutral` „Ieșire” = SLO) · retrying (spinner large brand, „încercarea N din 3”) ·
+  unavailable (warning-filled 36, `btn-primary` „Reîncearcă”) · expired (inline warning note in the
+  card — the user did not choose it).
+- **Logout feedback = toast**, not a card note: `GEAPToast.show({ type: "info", title: "Te-ai
+  deconectat", … })` with ×. Shell „Ieșire” (`.e-permits-shell__profile-logout`) →
+  `bo-login.html?ended=logout`.
+- `?portal=admin` = Admin Portal (product name only; landing = Utilizatori — de confirmat).
+- Demo states `auth-01 … auth-06` (`page`-based, incl. `mpass-test.html`).
+
 ## 5. Removed from this document
 
 These were documented as usable but have **no CSS rule anywhere in the repo**. They have
@@ -4269,6 +4374,9 @@ screen: `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.ht
   shares one origin) and toasts stay until closed (`dataset.demoLink` → `toast.js` duration 0).
   A toast from an in-between step is dismissed (`clearToasts`). `h.choose` waits for the
   hidden native select to exist, not to be visible.
+- **Other pages:** a state may set `page` (path from the site root, e.g. `cabinet-evo/index.html`;
+  `demo-links.js` redirects there keeping `?state=`) and `params` (extra query keys merged into
+  the URL, e.g. `{ pp, act }`).
 - **Ids:** `<page prefix>-<block code>`: Servicii `svc-04h2`; Utilizatori `usr-01…05` (tabs) and
   `usr-u03b` … `usr-u05k` (= Figma U-codes); Roluri `rol-00 … rol-01c`; Tarife `trf-01 … trf-04c`;
   Șabloane de notificare `ntpl-01 … ntpl-05b` (template AprobareNIAC; `ntpl-02e` uses

@@ -709,8 +709,10 @@
     return { ok: true, value: round(result) };
   }
 
-  function validateTariff(tariff) {
+  /* options.variables = the formula variable catalogue (keys); a formula may use only these */
+  function validateTariff(tariff, options) {
     var errors = {};
+    var known = options && options.variables;
     var isService = tariff.scope && tariff.scope !== "global";
     if (!String(tariff.name || "").trim()) errors.name = "Introdu denumirea tarifului (RO).";
     if (!tariff.type) errors.type = "Selectează tipul tarifului.";
@@ -725,8 +727,10 @@
       } else {
         var probe = {};
         formulaVariables(tariff.expression).forEach(function (name) { probe[name] = 1; });
+        var unknown = known ? formulaVariables(tariff.expression).filter(function (name) { return known.indexOf(name) === -1; }) : [];
         var check = evaluateFormula(tariff.expression, probe, tariff.rounding);
-        if (!check.ok) errors.expression = check.error;
+        if (unknown.length) errors.expression = "Variabila " + unknown.map(function (name) { return "{" + name + "}"; }).join(", ") + " nu există în catalog. Elimin-o și alege una din listă.";
+        else if (!check.ok) errors.expression = check.error;
       }
       if (!tariff.rounding) errors.rounding = "Selectează regula de rotunjire.";
     }

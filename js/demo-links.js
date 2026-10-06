@@ -28,10 +28,22 @@
     } catch (error) { /* private mode: nothing stored */ }
   });
 
+  /* a state may live on another page (EVO Cabinet ↔ front office): go there
+     with the same ?state, relative to the prototype's root */
+  if (state.page) {
+    const root = (document.currentScript?.src || "").replace(/js\/demo-links\.js.*$/, "");
+    const target = new URL(state.page, root || window.location.href);
+    if (target.pathname !== window.location.pathname) {
+      window.location.replace(`${target.pathname}?state=${encodeURIComponent(id)}`);
+      return;
+    }
+  }
+
   if (state.as) {
     try { window.sessionStorage.setItem("e-permits-back-office-assignment", state.as); } catch (error) { /* private mode */ }
   }
   if (state.flow && params.get("flow") !== state.flow) params.set("flow", state.flow);
+  Object.entries(state.params || {}).forEach(([key, value]) => params.set(key, value));
   const search = `?${params.toString()}`;
   history.replaceState(null, "", `${window.location.pathname}${search}${state.hash || window.location.hash}`);
 

@@ -274,6 +274,9 @@ check("formula: variables, safe evaluation, rounding", () => {
   assert.equal(sp.evaluateFormula("alert(1)", {}, "2 zecimale").ok, false);
   assert.ok(sp.validateTariff({ ...tf, formula: true, expression: "", rounding: "2 zecimale" }).expression);
   assert.equal(sp.validateTariff({ ...tf, amount: "", formula: true, expression: "{suprafata_m2} * 2", rounding: "2 zecimale" }).amount, undefined, "a formula tariff has no amount to fill");
+  const vars = { variables: ["suprafata_m2"] };
+  assert.deepEqual(sp.validateTariff({ ...tf, amount: "", formula: true, expression: "{suprafata_m2} * 2", rounding: "2 zecimale" }, vars), {}, "a catalogue variable is accepted");
+  assert.match(sp.validateTariff({ ...tf, amount: "", formula: true, expression: "{suprafata} * 2", rounding: "2 zecimale" }, vars).expression, /nu există în catalog/, "a variable outside the catalogue is rejected");
 });
 check("RSSP / eAPL tariffs lock the registry fields", () => {
   assert.equal(sp.tariffLocked({ source: "RSSP" }, "amount"), true);

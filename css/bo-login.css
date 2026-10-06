@@ -1,0 +1,71 @@
+/* Pagina de logare în SIA GEAP — Back Office / Admin Portal (2026-10-06).
+   Reuses the EVO auth page: .e-permits-fo-auth header + .e-permits-fo-auth__card.
+   Only the login-specific bits live here. */
+
+/* the product name next to „e-Permis” in the brand bar */
+.bo-login__product {
+  color: var(--color-text-base-secondary, #383838);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+/* state icon in place of the lock: 36px, tone colour (same footprint as __lock) */
+.bo-login__state-icon {
+  display: inline-flex;
+  height: 36px;
+  width: 36px;
+}
+
+.bo-login__state-icon .icon {
+  height: 36px;
+  width: 36px;
+}
+
+.bo-login__state-icon--warning {
+  color: var(--color-icon-warning-default, #dc6803);
+}
+
+.bo-login__state-icon--danger {
+  color: var(--color-icon-danger-default, #d92d20);
+}
+
+.bo-login__spinner {
+  display: inline-block;
+}
+
+/* who MPass confirmed (refusal screen): label over value, grey box */
+.bo-login__identity {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  width: 100%;
+}
+
+.bo-login__identity-label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.bo-login__identity-value {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+/* who to contact — quiet text under the separator */
+.bo-login__help {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* the inline note above the title (logged out / session expired) spans the card */
+.bo-login__card .message--subtle {
+  width: 100%;
+}

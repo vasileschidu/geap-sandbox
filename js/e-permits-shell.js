@@ -6323,7 +6323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cod: tariff.code,
     sursa: tariff.source || "GEAP",
     denumire: tariff.name,
-    valoare: tariff.formula ? `Formulă · ${tariff.expression || "—"}` : `${tariff.amount} ${tariff.currency}`,
+    valoare: tariff.formula ? `Formulă · ${formulaReadable(tariff.expression)}` : `${tariff.amount} ${tariff.currency}`,
     domeniu: tariff.scope === "global" ? "Global" : (getServiceByCode(tariff.scope)?.title || tariff.scope),
     tip: tariff.type || "",
     formula: tariff.formula ? (tariff.userVariables ? "Da, cu variabile" : "Da") : "Nu",
@@ -7081,7 +7081,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const getTariff = (id) => servicesStore?.tariffs?.find((tariff) => tariff.id === id) || null;
   /* a tariff's value as text: its sum, or its formula (computed on the payment note) */
-  const tariffValueText = (tariff) => (tariff.formula ? `Formulă · ${tariff.expression || "—"}` : `${Number(tariff.amount).toLocaleString("ro-MD")} ${tariff.currency}`);
+  const tariffValueText = (tariff) => (tariff.formula ? `Formulă · ${formulaReadable(tariff.expression)}` : `${Number(tariff.amount).toLocaleString("ro-MD")} ${tariff.currency}`);
   const tariffLabel = (tariff) => tariff ? `${tariff.name} · ${tariffValueText(tariff)}` : "Tarif necunoscut";
   const requestTypeFlow = (service, requestTypeName) =>
     getFlowById(service.geap.requestTypes.find((rt) => rt.name === requestTypeName)?.flow);
@@ -7108,11 +7108,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const calc = tax.calc || { mode: "tarif" };
     if (!tariff) return "Tarif lipsă";
     if (calc.mode === "reducere") {
-      if (tariff.formula) return `Formula tarifului · ${escapeHtml(tariff.expression || "—")} − ${escapeHtml(String(calc.percent))}%`;
+      if (tariff.formula) return `Formula tarifului · ${escapeHtml(formulaReadable(tariff.expression))} − ${escapeHtml(String(calc.percent))}%`;
       const sum = passport.taxAmount(tax, tariff);
       return `${escapeHtml(money(tariff.amount, tariff.currency))} − ${escapeHtml(String(calc.percent))}% = <strong>${escapeHtml(sum.ok ? money(sum.value, tariff.currency) : "—")}</strong>`;
     }
-    return tariff.formula ? `Formula tarifului · ${escapeHtml(tariff.expression || "—")}` : `<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`;
+    return tariff.formula ? `Formula tarifului · ${escapeHtml(formulaReadable(tariff.expression))}` : `<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`;
   };
 
   const payMatches = (service, tax) => {
@@ -12754,7 +12754,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tariff = getTariff(payDraft.tariffId);
     const mode = payDraft.calc.mode === "reducere" ? "reducere" : "tarif";
     const preview = tariff ? passport.taxAmount({ calc: payDraft.calc }, tariff, {}) : null;
-    const tariffSum = tariff ? (tariff.formula ? `formula tarifului (${tariff.expression})` : money(tariff.amount, tariff.currency)) : "";
+    const tariffSum = tariff ? (tariff.formula ? `formula tarifului (${formulaReadable(tariff.expression)})` : money(tariff.amount, tariff.currency)) : "";
     const percent = String(payDraft.calc.percent || "").trim();
     return `
       ${paySegmented("pay-calc-label", "Calcul", passport.TAX_CALC.map((value) => [value, passport.TAX_CALC_LABELS[value]]), mode, "data-pay-calc", {
@@ -13260,7 +13260,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return [
         tariff?.name, tariff?.code, tariff?.scope === "global" ? "Global" : tariff?.source, tax.requestType, tax.moment, tax.generation,
         conditionLabel(tax.condition) || "Întotdeauna",
-        calc.mode === "reducere" ? `Reducere ${calc.percent}%` : tariff?.formula ? `Formula tarifului ${tariff.expression}` : `${tariff?.amount} ${tariff?.currency}`,
+        calc.mode === "reducere" ? `Reducere ${calc.percent}%` : tariff?.formula ? `Formula tarifului ${formulaReadable(tariff.expression)}` : `${tariff?.amount} ${tariff?.currency}`,
         tax.term, tax.exemptions.join(", "),
         tax.recurring ? (tax.recurring.frequency === "Interval" ? `La ${tax.recurring.months} luni` : "Anual") : "Nu",
         `v${tax.version}`, TAX_STATUS(tax), tax.modifiedBy, tax.modifiedAt
@@ -13284,7 +13284,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* where a tariff is charged: the taxes that use it, in every service */
   const tariffUsage = (tariff) => (servicesStore?.services || []).flatMap((service) =>
     serviceTaxes(service).filter((tax) => tax.tariffId === tariff.id).map((tax) => ({ service, tax })));
-  const tariffAmountLabel = (t) => (t.formula ? `Formulă · ${escapeHtml(t.expression || "—")}` : `${escapeHtml(String(t.amount))} ${escapeHtml(t.currency)}`);
+  const tariffAmountLabel = (t) => (t.formula ? `Formulă · ${escapeHtml(formulaReadable(t.expression))}` : `${escapeHtml(String(t.amount))} ${escapeHtml(t.currency)}`);
   const tariffValidity = (t) => `${t.validFrom ? formatLongDate(t.validFrom) : "—"}${t.validTo ? ` – ${formatLongDate(t.validTo)}` : " – nelimitat"}`;
   const serviceTariffList = (service) => (servicesStore?.tariffs || []).filter((tariff) => tariff.scope === service.code);
 
@@ -13336,6 +13336,108 @@ document.addEventListener("DOMContentLoaded", () => {
       <span>${escapeHtml(tariffDraft.errors[key])}</span>
     </span>
   ` : "";
+
+  /* the drawer's tabs and which tab owns each validated field */
+  const tariffDrawerTabs = (existing) => [["detalii", "Detalii"], ["suma", "Sumă și formulă"], ...(existing ? [["utilizare", "Utilizare și istoric"]] : [])];
+  const TARIFF_FIELD_TAB = {
+    name: "detalii", nameRu: "detalii", nameEn: "detalii", type: "detalii", legalBasis: "detalii", requestType: "detalii",
+    subdivision: "detalii", personType: "detalii", validFrom: "detalii", validTo: "detalii",
+    amount: "suma", currency: "suma", expression: "suma", rounding: "suma", iban: "suma"
+  };
+
+  /* formula builder: the expression is a row of tokens — variables chosen from the
+     catalogue (no free text), numbers, + − × ÷ ( ) — stored as "{var} * 2" */
+  const TARIFF_FORMULA_OPS = [["+", "+", "Plus"], ["-", "−", "Minus"], ["*", "×", "Înmulțit cu"], ["/", "÷", "Împărțit la"], ["(", "(", "Paranteză deschisă"], [")", ")", "Paranteză închisă"]];
+  const formulaTokens = (expression) => String(expression || "").match(/\{[a-z0-9_]+\}|\d+(?:[.,]\d+)?|[-+*/()]/gi) || [];
+  const formulaVar = (key) => (servicesStore.formulaVariables || []).find((v) => v.key === key) || null;
+  const formulaVarCaption = (key) => { const v = formulaVar(key); return v ? `${v.label}${v.unit ? ` (${v.unit})` : ""}` : key; };
+  /* the expression as people read it: "Suprafața obiectului × 2" */
+  const formulaReadable = (expression) => formulaTokens(expression).map((token) => {
+    if (token.startsWith("{")) return formulaVar(token.slice(1, -1))?.label || token;
+    if (/^\d/.test(token)) return token.replace(".", ",");
+    return (TARIFF_FORMULA_OPS.find(([op]) => op === token) || [token, token])[1];
+  }).join(" ") || "—";
+
+  const renderTariffFormulaVarItems = (query = "") => {
+    const q = query.trim().toLocaleLowerCase("ro");
+    const vars = (servicesStore.formulaVariables || []).filter((v) => !q || `${v.label} ${v.key} ${v.source}`.toLocaleLowerCase("ro").includes(q));
+    if (!vars.length) return '<li role="none" class="e-permits-ntpl-picker__empty">Nicio variabilă nu corespunde.</li>';
+    const groups = [...new Set(vars.map((v) => v.source))];
+    return groups.map((group) => `
+      <li role="none"><p class="e-permits-ntpl-picker__group">${escapeHtml(group)}</p></li>
+      ${vars.filter((v) => v.source === group).map((v) => `
+        <li role="none">
+          <button class="e-permits-fo-intent-menu__item e-permits-ntpl-picker__item" type="button" role="menuitem" data-tariff-var="${escapeHtml(v.key)}">
+            <span class="e-permits-ntpl-picker__label">${escapeHtml(v.label)}</span>
+            <span class="e-permits-ntpl-picker__token">${escapeHtml(v.unit ? `${v.unit} · ` : "")}{${escapeHtml(v.key)}}</span>
+          </button>
+        </li>
+      `).join("")}
+    `).join("");
+  };
+
+  /* typed text → formula text: digits, spaces, + - * / ( ) . , and whole {variable} tokens;
+     × ÷ − become * / -; anything else (letters outside a variable) is dropped. The caret stays put. */
+  const sanitizeFormula = (value, caret) => {
+    let out = "";
+    let at = caret;
+    for (let i = 0; i < value.length;) {
+      const token = value[i] === "{" ? value.slice(i).match(/^\{[a-z0-9_]+\}/i) : null;
+      if (token) {
+        if (caret > i && caret < i + token[0].length) at = out.length + (caret - i);
+        out += token[0];
+        i += token[0].length;
+        if (caret >= i) at = out.length;
+        continue;
+      }
+      const ch = { "×": "*", "÷": "/", "−": "-" }[value[i]] || value[i];
+      if (/[\d\s.,+\-*/()]/.test(ch)) out += ch;
+      i += 1;
+      if (caret >= i) at = out.length;
+    }
+    return { value: out, caret: at };
+  };
+
+  /* the formula as people read it, variables marked as in the Șabloane preview */
+  const formulaReadableHtml = (expression) => formulaTokens(expression).map((token) => {
+    if (token.startsWith("{")) {
+      const v = formulaVar(token.slice(1, -1));
+      return v
+        ? `<mark class="e-permits-ntpl-preview__token" title="${escapeHtml(token)}">${escapeHtml(formulaVarCaption(v.key))}</mark>`
+        : `<mark class="e-permits-ntpl-preview__token e-permits-tariff-formula__unknown" title="Variabilă necunoscută">${escapeHtml(token)}</mark>`;
+    }
+    if (/^\d/.test(token)) return escapeHtml(token.replace(".", ","));
+    return (TARIFF_FORMULA_OPS.find(([op]) => op === token) || [token, token])[1];
+  }).join(" ");
+
+  /* Expresia formulei: a text field like the Șabloane subject — the cursor goes anywhere,
+     numbers and + − × ÷ ( ) are typed, variables come only from „Inserează variabilă” */
+  const renderTariffFormulaBuilder = (d) => `
+    <div class="e-permits-fo-field e-permits-tariff-formula">
+      <div class="e-permits-tariff-formula__head">
+        <label for="tariff-expression">Expresia formulei${requiredMark()}</label>
+        <div class="e-permits-stack__menu-wrap">
+          <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tariff-var-picker" data-stack-menu-trigger>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+            <span>Inserează variabilă</span>
+          </button>
+          <div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-ntpl-picker" id="tariff-var-picker" hidden data-stack-menu>
+            <div class="e-permits-fo-input e-permits-fo-input--with-action e-permits-ntpl-picker__search">
+              <input type="text" placeholder="Caută o variabilă" aria-label="Caută o variabilă" value="${escapeHtml(d.varQuery || "")}" data-tariff-var-search autocomplete="off">
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
+            </div>
+            <ul class="e-permits-ntpl-picker__list" role="menu" aria-label="Variabile" data-tariff-var-list>${renderTariffFormulaVarItems(d.varQuery || "")}</ul>
+          </div>
+        </div>
+      </div>
+      <div class="e-permits-fo-textarea${d.errors.expression ? " is-error" : ""}">
+        <textarea id="tariff-expression" rows="2" spellcheck="false" placeholder="ex. {suprafata_m2} * 2" data-tariff-field="expression">${escapeHtml(d.expression)}</textarea>
+      </div>
+      ${tariffFieldError("expression")}
+      ${d.errors.expression ? "" : '<p class="e-permits-fo-field__hint">Scrie numere și + − × ÷ ( ). Variabilele se adaugă din „Inserează variabilă”, la poziția cursorului.</p>'}
+      <p class="e-permits-tariff-formula__readable" data-tariff-readable${d.expression.trim() ? "" : " hidden"}>Se citește: <span>${formulaReadableHtml(d.expression)}</span></p>
+    </div>
+  `;
 
   const renderTariffDrawer = () => {
     const d = tariffDraft;
@@ -13412,6 +13514,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fallback = service ? passport.tariffPayAccount({ iban: "" }, servicesStore.bankAccounts, service.authorityId) : null;
     const usage = existing ? tariffUsage(existing) : [];
     const variables = passport.formulaVariables(d.expression);
+    d.renderedVars = variables.join();
 
     tariffDrawer.querySelector("[data-tariff-title]").textContent = existing ? "Editează tariful" : "Tarif nou";
     tariffDrawer.querySelector("[data-tariff-subtitle]").textContent = existing
@@ -13442,8 +13545,12 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     ` : "";
 
-    tariffDrawerBody.innerHTML = `
-      ${statusStrip}
+    /* tabs: Detalii · Sumă și formulă (· Utilizare și istoric for a saved tariff).
+       A tab with an error carries a dot; saving opens the first tab with an error. */
+    const tabs = tariffDrawerTabs(existing);
+    if (!tabs.some(([id]) => id === d.tab)) d.tab = "detalii";
+    const panels = {
+      detalii: `
       <section class="e-permits-user-create__section">
         <h3 class="e-permits-user-create__section-title">Identitate</h3>
         <div class="e-permits-user-create__section-content">
@@ -13472,7 +13579,17 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </section>
       <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Sumă și formulă</h3>
+        <h3 class="e-permits-user-create__section-title">Valabilitate</h3>
+        <div class="e-permits-user-create__section-content">
+          <div class="e-permits-user-create__grid">
+            ${datePicker("tariff-from", "validFrom", { label: "Valabil de la", required: true, span: 6 })}
+            ${datePicker("tariff-to", "validTo", { label: "Valabil până la", span: 6, hint: "Gol = valabil pe termen nelimitat." })}
+          </div>
+        </div>
+      </section>
+      `,
+      suma: `
+      <section class="e-permits-user-create__section">
         <div class="e-permits-user-create__section-content">
           <div class="e-permits-user-create__grid">
             ${d.formula ? "" : input("tariff-amount", "amount", { label: "Sumă", required: true, span: 6, numeric: true, placeholder: "0.00" })}
@@ -13480,14 +13597,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           ${renderToggle({ label: "Calcul prin formulă", description: "Suma se calculează din valorile dosarului, ex. suprafața × cota.", checked: Boolean(d.formula), attrs: "data-tariff-formula" })}
           ${d.formula ? `
-            <div class="e-permits-fo-field">
-              <label for="tariff-expression">Expresia formulei${requiredMark()}</label>
-              <div class="e-permits-fo-textarea${d.errors.expression ? " is-error" : ""}">
-                <textarea id="tariff-expression" rows="2" placeholder="{suprafata_m2} * 2" data-tariff-field="expression">${escapeHtml(d.expression)}</textarea>
-              </div>
-              ${tariffFieldError("expression")}
-              ${d.errors.expression ? "" : `<p class="e-permits-fo-field__hint">Variabilele se scriu între acolade, ex. {suprafata_m2}; operații: + − × ÷ și paranteze.</p>`}
-            </div>
+            ${renderTariffFormulaBuilder(d)}
             <div class="e-permits-user-create__grid">
               ${select("tariff-rounding", "rounding", { label: "Regulă de rotunjire", required: true, span: 6, options: (servicesStore.roundingRules || []).map((r) => [r, r]) })}
             </div>
@@ -13496,7 +13606,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="e-permits-user-create__grid">
                 ${variables.map((name) => `
                   <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
-                    <label for="tariff-test-${name}">{${escapeHtml(name)}}</label>
+                    <label for="tariff-test-${name}">${escapeHtml(formulaVarCaption(name))}</label>
                     <div class="e-permits-fo-input"><input id="tariff-test-${name}" type="text" inputmode="decimal" value="${escapeHtml(d.testValues[name] ?? "")}" placeholder="valoare de test" data-tariff-test="${escapeHtml(name)}"></div>
                   </div>
                 `).join("") || '<p class="e-permits-fo-field__hint">Formula nu are variabile.</p>'}
@@ -13520,14 +13630,10 @@ document.addEventListener("DOMContentLoaded", () => {
           })}
         </div>
       </section>
+      `,
+      utilizare: existing ? `
       <section class="e-permits-user-create__section">
-        <h3 class="e-permits-user-create__section-title">Ciclu de viață</h3>
         <div class="e-permits-user-create__section-content">
-          <div class="e-permits-user-create__grid">
-            ${datePicker("tariff-from", "validFrom", { label: "Valabil de la", required: true, span: 6 })}
-            ${datePicker("tariff-to", "validTo", { label: "Valabil până la", span: 6, hint: "Gol = valabil pe termen nelimitat." })}
-          </div>
-          ${existing ? `
             <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
               ${[
                 ["Sursă", escapeHtml(existing.source)],
@@ -13540,9 +13646,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
               `).join("")}
             </div>
-          ` : ""}
         </div>
       </section>
+      ` : ""
+    };
+    tariffDrawerBody.innerHTML = `
+      ${statusStrip}
+      <div class="tabs tabs--sm e-permits-tariff__tabs">
+        <div class="tab-buttons" role="tablist" aria-label="Secțiunile tarifului">
+          ${tabs.map(([id, label]) => {
+            const active = id === d.tab;
+            const hasError = Object.keys(d.errors).some((key) => TARIFF_FIELD_TAB[key] === id);
+            return `<button class="tab-button${active ? " active" : ""}" id="tariff-tab-${id}" type="button" role="tab" aria-selected="${active}" aria-controls="tariff-panel" tabindex="${active ? "0" : "-1"}" data-tariff-tab="${id}"><span>${label}</span>${hasError ? '<span class="e-permits-ntpl-dot e-permits-tariff__tab-error" aria-label="conține erori"></span>' : ""}</button>`;
+          }).join("")}
+        </div>
+      </div>
+      <div class="e-permits-tariff__panel" id="tariff-panel" role="tabpanel" aria-labelledby="tariff-tab-${d.tab}">
+        ${panels[d.tab]}
+      </div>
     `;
 
     window.GEAPDatePicker?.init(tariffDrawerBody);
@@ -13577,7 +13698,7 @@ document.addEventListener("DOMContentLoaded", () => {
       iban: "", requestType: requestType || service?.geap.requestTypes[0]?.name || null, personType: "Persoană juridică", subdivision: null,
       formula: false, expression: "", rounding: "2 zecimale", userVariables: false, validFrom: localIsoNow().slice(0, 10), validTo: null
     };
-    tariffDraft = { ...base, id: existing?.id || null, amount: base.amount === "" ? "" : String(base.amount), validTo: base.validTo || "", errors: {}, testValues: {}, testResult: "", confirmDelete: false };
+    tariffDraft = { ...base, id: existing?.id || null, amount: base.amount === "" ? "" : String(base.amount), validTo: base.validTo || "", errors: {}, testValues: {}, testResult: "", confirmDelete: false, tab: "detalii", varQuery: "" };
     tariffReturnFocus = document.activeElement;
     renderTariffDrawer();
     tariffDrawer.hidden = false;
@@ -13635,10 +13756,11 @@ document.addEventListener("DOMContentLoaded", () => {
       formula: d.formula, expression: d.formula ? d.expression.trim() : "", rounding: d.rounding, userVariables: d.formula && d.userVariables,
       validFrom: d.validFrom, validTo: d.validTo || null
     };
-    const errors = passport.validateTariff({ ...fields, amount: d.formula ? "" : String(d.amount).trim() });
+    const errors = passport.validateTariff({ ...fields, amount: d.formula ? "" : String(d.amount).trim() }, { variables: (servicesStore.formulaVariables || []).map((v) => v.key) });
 
     if (Object.keys(errors).length) {
       d.errors = errors;
+      d.tab = TARIFF_FIELD_TAB[Object.keys(errors)[0]] || d.tab;
       const first = { name: "#tariff-name", type: "#tariff-type", amount: "#tariff-amount", currency: "#tariff-currency", requestType: "#tariff-rt", personType: "[data-tariff-person]", iban: "#tariff-iban", expression: "#tariff-expression", rounding: "#tariff-rounding", validFrom: "#tariff-from", validTo: "#tariff-to" }[Object.keys(errors)[0]];
       rerenderTariffDrawer(first);
       return;
@@ -13678,6 +13800,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (field) {
       const key = field.dataset.tariffField;
       if (key === "amount") field.value = field.value.replace(/[^\d.,]/g, "");
+      if (key === "expression") {
+        const clean = sanitizeFormula(field.value, field.selectionStart ?? field.value.length);
+        if (clean.value !== field.value) { field.value = clean.value; field.setSelectionRange(clean.caret, clean.caret); }
+        const readable = tariffDrawerBody.querySelector("[data-tariff-readable]");
+        readable.hidden = !clean.value.trim();
+        readable.querySelector("span").innerHTML = formulaReadableHtml(clean.value);
+        tariffDraft.testResult = "";
+      }
       tariffDraft[key] = field.value;
       if (tariffDraft.errors[key]) {
         delete tariffDraft.errors[key];
@@ -13686,6 +13816,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     } else if (test) {
       tariffDraft.testValues[test.dataset.tariffTest] = test.value;
+    } else if (event.target.matches("[data-tariff-var-search]")) {
+      tariffDraft.varQuery = event.target.value;
+      tariffDrawerBody.querySelector("[data-tariff-var-list]").innerHTML = renderTariffFormulaVarItems(tariffDraft.varQuery);
     }
   });
 
@@ -13711,8 +13844,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (target.matches("[data-tariff-uservars]")) {
       tariffDraft.userVariables = target.checked;
     } else if (target.matches('[data-tariff-field="expression"]')) {
-      /* new variables → new test inputs */
+      /* new variables → new test inputs; the caret stays where it was */
+      if (passport.formulaVariables(tariffDraft.expression).join() === tariffDraft.renderedVars) return;
+      const caret = target.selectionStart;
       rerenderTariffDrawer("#tariff-expression");
+      tariffDrawerBody.querySelector("#tariff-expression")?.setSelectionRange(caret, caret);
     }
   });
 
@@ -13730,6 +13866,23 @@ document.addEventListener("DOMContentLoaded", () => {
       d.personType = person.dataset.tariffPerson;
       delete d.errors.personType;
       rerenderTariffDrawer(`[data-tariff-person="${person.dataset.tariffPerson}"]`);
+      return;
+    }
+
+    const tab = event.target.closest("[data-tariff-tab]");
+    if (tab) { d.tab = tab.dataset.tariffTab; rerenderTariffDrawer(`[data-tariff-tab="${d.tab}"]`); return; }
+
+    /* „Inserează variabilă”: the token lands at the caret (as in Șabloane) */
+    const pick = event.target.closest("[data-tariff-var]");
+    if (pick) {
+      const area = tariffDrawerBody.querySelector("#tariff-expression");
+      const start = area.selectionStart ?? area.value.length;
+      const end = area.selectionEnd ?? area.value.length;
+      closeStackMenus();
+      area.focus();
+      area.setRangeText(`{${pick.dataset.tariffVar}}`, start, end, "end");
+      area.dispatchEvent(new Event("input", { bubbles: true }));
+      area.dispatchEvent(new Event("change", { bubbles: true }));
       return;
     }
 
@@ -13928,6 +14081,14 @@ document.addEventListener("DOMContentLoaded", () => {
   if (passportBodyEl) {
     passportBodyObserver?.observe(passportBodyEl);
   }
+
+  /* „Ieșire” (US-110): ends the session (SIA GEAP + MPass SLO) and lands on the login page */
+  document.addEventListener("click", (event) => {
+    const logout = event.target.closest(".e-permits-shell__profile-logout");
+    if (!logout) return;
+    event.preventDefault();
+    window.location.assign("bo-login.html?ended=logout");
+  });
 
   /* stacked-list overflow menus: one open at a time, Esc / outside click close */
   const closeStackMenus = (except = null) => {

@@ -453,3 +453,84 @@
     width: 100%;
   }
 }
+
+/* ===== Post-procese din /permits (Feature 90818 / 89533) =====
+   ⋮ menu per act (the front office's .e-permits-fo-intent-menu), the
+   service under the act name, and the act profile view. */
+.cab-card__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.cab-card__service {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.cab-card__actions .btn.cab-card__more {
+  height: 36px;
+  min-width: 36px;
+  padding: 0;
+  width: 36px;
+}
+
+.cab-menu__separator {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  margin: var(--spacing-4, 4px) 0;
+}
+
+.cab-menu__label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-4, 4px) var(--spacing-12, 12px) 0;
+}
+
+.cab-menu .e-permits-fo-intent-menu__item:disabled {
+  color: var(--color-text-base-disabled, #b2b2b2);
+  cursor: not-allowed;
+}
+
+.cab-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.cab-detail__back {
+  align-self: flex-start;
+}
+
+.cab-detail__head {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.cab-detail__head h1 {
+  margin: 0;
+}
+
+.cab-detail__service,
+.cab-detail__muted {
+  color: var(--color-text-base-tertiary, #757575);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.cab-detail__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+}
+
+.cab-detail__actions .e-permits-fo-intent-menu {
+  left: 0;
+  right: auto;
+}

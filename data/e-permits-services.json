@@ -2875,6 +2875,56 @@
     "EUR",
     "USD"
   ],
+  "formulaVariables": [
+    {
+      "key": "suprafata_m2",
+      "label": "Suprafața obiectului",
+      "unit": "m²",
+      "source": "Formularul cererii"
+    },
+    {
+      "key": "numar_locuri",
+      "label": "Numărul de locuri",
+      "unit": "locuri",
+      "source": "Formularul cererii"
+    },
+    {
+      "key": "numar_angajati",
+      "label": "Numărul de angajați",
+      "unit": "pers.",
+      "source": "Formularul cererii"
+    },
+    {
+      "key": "numar_unitati_transport",
+      "label": "Unități de transport",
+      "unit": "buc.",
+      "source": "Formularul cererii"
+    },
+    {
+      "key": "numar_activitati",
+      "label": "Genuri de activitate (CAEM)",
+      "unit": "buc.",
+      "source": "Dosarul"
+    },
+    {
+      "key": "numar_puncte_lucru",
+      "label": "Puncte de lucru",
+      "unit": "buc.",
+      "source": "Dosarul"
+    },
+    {
+      "key": "durata_luni",
+      "label": "Termenul de valabilitate solicitat",
+      "unit": "luni",
+      "source": "Dosarul"
+    },
+    {
+      "key": "taxa_examinare",
+      "label": "Taxa de examinare",
+      "unit": "MDL",
+      "source": "Alte tarife"
+    }
+  ],
   "roundingRules": [
     "2 zecimale",
     "1 zecimală",

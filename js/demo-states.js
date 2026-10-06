@@ -90,6 +90,44 @@
     await h.wait(450);
   };
 
+  /* Administrare › Clasificatoare (Figma page "BO -> Clasificatoare") */
+  const LOCAL_ADMIN = "ansp-local-admin";
+  const clf = (hash, run, as = ADMIN) => ({ flow: "back-office", as, hash, run });
+  const clfProfile = (id, tab, run, as) => clf(`#clasificator/${id}/${tab}`, run, as);
+  const clfNew = async (h) => { await h.click("[data-workplace-add-classifier]"); };
+  const clfStep1 = async (h) => {
+    await clfNew(h);
+    await h.fill("#clas-c-name", "Motive de suspendare — ANSP");
+    await h.choose('select[data-clas-create="familie"]');
+  };
+  const clfStep = (n) => async (h) => { await clfStep1(h); for (let i = 1; i < n; i += 1) await h.click("[data-clas-create-next]"); };
+  /* a saved value edit opens the draft over the published classifier */
+  const clfDraft = async (h) => {
+    await h.nth("[data-clas-grid-edit]", 0);
+    await h.fill("#clas-v-ro", "Depus (în așteptare)");
+    await h.click("[data-clas-value-save]");
+    await h.wait(500);
+    await clearToasts(h);
+  };
+
+  /* post-process helpers: the EVO Cabinet page, the intent screen and the
+     FOD2 wizard opened straight on a step (?pp=<type>&act=<id>) */
+  const PP_FO = "e-permits-acte-permisive.html";
+  const ppCab = (run) => ({ page: "cabinet-evo/index.html", ready: "[data-cab-card]", run });
+  const ppIntent = (run) => ({ page: PP_FO, flow: "full", hash: "#intent", ready: "[data-fo-intent-act], [data-fo-intent-empty]", run });
+  const ppFo = (type, act, step = 1, run) => ({
+    page: PP_FO,
+    flow: "full",
+    params: { pp: type, act },
+    hash: step === 1 ? "#request" : `#request-step-${step}`,
+    ready: "body[data-fo-postprocess] [data-fo-step-panel]:not([hidden]) h1",
+    run: async (h) => { await clearToasts(h); if (run) await run(h); }
+  });
+  const ppReason = (value) => async (h) => {
+    await h.click("[data-fo-step-panel='2'] [data-fo-pp-select='pp-reason'] .e-permits-fo-select__button");
+    await h.click(".e-permits-fo-select__option", value);
+  };
+
   window.GEAP_DEMO_STATES = {
     /* ---- Utilizatori › profil (Figma page "BO -> Utilizatori") ---- */
     "usr-01": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/general" },
@@ -300,6 +338,19 @@
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
     "svc-11b": svc("events", async (h) => { await h.click('[data-svc-events-filter="failed"]'); }),
 
+    /* ---- Logare în Back Office / Admin Portal (US-105, US-110; US-107 / US-109 states) ---- */
+    "auth-01": { page: "bo-login.html", ready: "[data-bo-login] h1" },
+    "auth-01a": { page: "bo-login.html", params: { portal: "admin" }, ready: "[data-bo-login] h1" },
+    "auth-01b": { page: "bo-login.html", params: { view: "redirecting" }, ready: "[data-bo-login] h1" },
+    "auth-02": { page: "mpass-test.html", params: { return: "bo-login.html?mpass=ok&as=activ" }, ready: "h1" },
+    "auth-03": { page: "bo-login.html", params: { mpass: "ok", as: "fara-cont" }, ready: "[data-bo-login] h1" },
+    "auth-04": { page: "bo-login.html", params: { view: "retrying" }, ready: "[data-bo-login] h1" },
+    "auth-04a": { page: "bo-login.html", params: { view: "unavailable" }, ready: "[data-bo-login] h1" },
+    "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
+    "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
+    "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },
+    "auth-06": { page: "bo-login.html", params: { ended: "expired" }, ready: "[data-bo-login] h1" },
+
     /* ---- Administrare › Tarife (Figma page "BO -> Tarife") ---- */
     "trf-01": trf(),
     "trf-01a": trf(async (h) => { await h.click('[data-workplace-tab="draft"]'); }),
@@ -307,12 +358,24 @@
     "trf-02": trf(newTariff),
     "trf-02a": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-save="publish"]'); }),
     "trf-02b": trf(async (h) => { await newTariff(h); await h.click("#tariff-type"); }),
-    "trf-02c": trf(async (h) => { await newTariff(h); await h.click("[data-tariff-formula]"); }),
+    "trf-02c": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]"); }),
+    /* formula field: typed numbers and + − × ÷ ( ); variables only from „Inserează variabilă” */
+    "trf-02e": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]"); await h.click('[aria-controls="tariff-var-picker"]'); }),
+    "trf-02f": trf(async (h) => {
+      await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]");
+      await h.click('[aria-controls="tariff-var-picker"]'); await h.click('[data-tariff-var="suprafata_m2"]');
+      await h.fill("#tariff-expression", "{suprafata_m2} * 2");
+      await h.fill('[data-tariff-test="suprafata_m2"]', "120", { leave: false }); await h.click("[data-tariff-test-run]");
+    }),
+    /* Publică with errors on both tabs: the red dots, the first tab with an error opens */
+    "trf-02g": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]"); await h.click('[data-tariff-save="publish"]'); }),
     "trf-02d": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-drawer] .js-date-picker-toggle'); }),
     "trf-03": trf(editTariff("tf-taxa-stat-50")),
     "trf-03a": trf(editTariff("tf-vechi")),
     "trf-03b": trf(editTariff("tf-eliberare-duplicat")),
     "trf-03c": trf(editTariff("tf-examinare-120")),
+    "trf-03d": trf(async (h) => { await editTariff("tf-suprafata")(h); await h.click('[data-tariff-tab="suma"]'); }),
+    "trf-03e": trf(async (h) => { await editTariff("tf-examinare-120")(h); await h.click('[data-tariff-tab="utilizare"]'); }),
     "trf-04": trf(async (h) => { await editTariff("tf-taxa-stat-50")(h); await h.click("[data-tariff-toggle-active]"); }),
     "trf-04a": trf(async (h) => { await editTariff("tf-vechi")(h); await h.click("[data-tariff-delete]"); }),
     "trf-04b": trf(async (h) => { await editTariff("tf-taxa-stat-50")(h); await h.hover("[data-tariff-delete]"); }),
@@ -343,6 +406,91 @@
     }),
     "ntpl-05": ntpl("content", ntplPublishOpen),
     "ntpl-05a": ntpl("content", ntplScheduled),
-    "ntpl-05b": ntpl("content", async (h) => { await ntplPublishOpen(h); await h.click("[data-ntpl-publish-confirm]"); })
+    "ntpl-05b": ntpl("content", async (h) => { await ntplPublishOpen(h); await h.click("[data-ntpl-publish-confirm]"); }),
+
+    /* ---- Administrare › Clasificatoare (Figma page "BO -> Clasificatoare") ---- */
+    "clf-01": clf("#classifiers"),
+    "clf-01a": clf("#classifiers", async (h) => { await h.fill("[data-workplace-search]", "CAEM", { leave: false }); }),
+    "clf-01b": clf("#classifiers", null, LOCAL_ADMIN),
+    "clf-02": clf("#classifiers", clfNew),
+    "clf-02a": clf("#classifiers", async (h) => { await clfNew(h); await h.click("[data-clas-create-next]"); }),
+    "clf-02b": clf("#classifiers", async (h) => { await clfStep1(h); await h.click('[data-clas-create-choice="start"][data-value="copy"]'); await h.choose('select[data-clas-create="copiatDinId"]', "cl-motive"); }),
+    "clf-02c": clf("#classifiers", async (h) => { await clfStep(2)(h); await h.click("[data-clas-x-add]"); await h.fill('[data-clas-drawer] .e-permits-clas-create__col-row input[type="text"]', "Termen de examinare (zile)"); }),
+    "clf-02d": clf("#classifiers", async (h) => { await clfStep(3)(h); await h.click('[data-clas-create-values][value="csv"]'); }),
+    "clf-02e": clf("#classifiers", async (h) => {
+      await clfStep(3)(h);
+      await h.click('[data-clas-create-choice="sursa"][data-value="mconnect"]');
+      await h.fill("#clas-c-endpoint", "https://mconnect.gov.md/api/clasificatoare/motive-suspendare");
+      await h.click("[data-clas-create-test]");
+      await h.wait(1600);
+    }),
+    "clf-02f": clf("#classifiers", clfStep(4)),
+    "clf-02g": clf("#classifiers", async (h) => { await clfStep1(h); await h.click("[data-clas-close]"); }),
+    "clf-03": clfProfile("cl-statut", "valori"),
+    "clf-03a": clfProfile("cl-statut", "valori", async (h) => { await h.nth("[data-clas-grid-select]", 0); await h.nth("[data-clas-grid-select]", 1); }),
+    "clf-03b": clfProfile("cl-statut", "valori", async (h) => { await h.nth("[data-clas-grid-edit]", 0); }),
+    "clf-03c": clfProfile("cl-statut", "valori", async (h) => { await h.click("[data-clas-grid-add]"); }),
+    "clf-03d": clfProfile("cl-statut", "valori", async (h) => { await h.hover("[data-clas-grid-delete]"); }),
+    "clf-03e": clfProfile("cl-statut", "valori", async (h) => { await h.nth("[data-clas-grid-toggle]", 0); }),
+    "clf-03f": clfProfile("cl-statut", "valori", async (h) => { await h.click("[data-clas-import]"); }),
+    "clf-03g": clfProfile("cl-statut", "valori", clfDraft),
+    "clf-04": clfProfile("cl-statut", "coloane"),
+    "clf-04a": clfProfile("cl-statut", "dependente"),
+    "clf-04b": clfProfile("cl-statut", "jurnal"),
+    "clf-04c": clfProfile("cl-statut", "setari"),
+    "clf-04d": clfProfile("cl-statut", "setari", async (h) => { await h.fill('[data-clas-setting="descriere"]', "Statusurile unui dosar în GEAP, de la depunere la eliberare."); }),
+    "clf-05": clfProfile("cl-statut", "valori", async (h) => { await clfDraft(h); await h.click('[data-clas-action="publicaClas"]'); }),
+    "clf-05a": clfProfile("cl-statut", "valori", async (h) => { await h.click('[data-clas-action="arhiveazaClas"]'); }),
+    "clf-05b": clfProfile("cl-statut", "valori", async (h) => { await h.click('[data-clas-action="arhiveazaClas"]'); await h.click("[data-service-confirm-ok]"); await h.wait(600); await clearToasts(h); }),
+    "clf-05c": clfProfile("cl-statut", "valori", async (h) => { await clfDraft(h); await h.click('[data-clas-action="renuntaClas"]'); }),
+    "clf-06": clfProfile("cl-cuatm", "valori"),
+    "clf-06a": clfProfile("cl-cuatm", "mapare"),
+    "clf-06b": clfProfile("cl-cuatm", "valori", async (h) => { await h.click("[data-clas-sync]"); }),
+    "clf-06c": clfProfile("cl-cuatm", "valori", async (h) => { await h.click("[data-clas-sync]"); await h.click("[data-service-confirm-ok]"); await h.wait(800); await clearToasts(h); }),
+    "clf-07": clfProfile("cl-risc", "valori", null, LOCAL_ADMIN),
+    "clf-07a": clfProfile("cl-motive", "valori", null, LOCAL_ADMIN),
+
+    /* Post-procese (Feature 89533 Part I — titular): EVO Cabinet /permits,
+       "Ce vrei să soliciți?" and the FOD2 post-process wizard per type */
+    "pp-01": ppCab(),
+    "pp-01a": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); }),
+    "pp-01b": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] [data-cab-menu-trigger]"); }),
+    "pp-01c": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] [data-cab-menu-trigger]"); }),
+    "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .cab-card__title"); }),
+    "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .cab-card__title"); }),
+    "pp-01f": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cofetaria']"); }),
+    "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']"); }),
+    "pp-01h": ppCab(async (h) => { await h.click("[data-cab-chip='expirat']"); }),
+    "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .cab-card__title"); }),
+    "pp-02": ppIntent(),
+    "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
+    "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']"); }),
+    "pp-02c": ppIntent(async (h) => {
+      await h.click("[data-fo-avatar-trigger]");
+      await h.click("[data-fo-avatar-proxy-toggle]");
+      await h.click("[data-fo-avatar-role][data-fo-subject-id='mpower-pj-nord-agro']");
+      await h.find("[data-fo-intent-empty]");
+    }),
+    "pp-10": ppFo("reperfectare", "act-izvoras", 1),
+    "pp-10a": ppFo("reperfectare", "act-izvoras", 2),
+    "pp-10b": ppFo("reperfectare", "act-izvoras", 2, async (h) => { await ppReason("Alte")(h); await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
+    "pp-10c": ppFo("reperfectare", "act-izvoras", 3),
+    "pp-10d": ppFo("reperfectare", "act-izvoras", 4),
+    "pp-10e": ppFo("reperfectare", "act-izvoras", 5),
+    "pp-10f": ppFo("reperfectare", "act-izvoras", 7),
+    "pp-10g": ppFo("reperfectare", "act-salon-pf", 1),
+    "pp-11": ppFo("reperfectare", "act-depozit-10", 2),
+    "pp-12": ppFo("prelungire", "act-depozit-10", 2),
+    "pp-12a": ppFo("prelungire", "act-depozit-10", 7),
+    "pp-13": ppFo("duplicat", "act-depozit-10", 2, ppReason("Pierdere")),
+    "pp-13a": ppFo("duplicat", "act-depozit-10", 2, async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
+    "pp-13b": ppFo("duplicat", "act-depozit-10", 3),
+    "pp-14": ppFo("retragere", "act-izvoras", 2, ppReason("Alte")),
+    "pp-14a": ppFo("retragere", "act-piata-mare", 1),
+    "pp-14b": ppFo("retragere", "act-izvoras", 7),
+    "pp-15": ppFo("suspendare", "act-licenta-demo", 2),
+    "pp-15a": ppFo("suspendare", "act-licenta-demo", 2, async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
+    "pp-16": ppFo("reluare", "act-licenta-susp", 2),
+    "pp-16a": ppFo("reluare", "act-licenta-susp", 7)
   };
 })();

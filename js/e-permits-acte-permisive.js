@@ -3226,15 +3226,16 @@
       return frontOfficeSchema?.intent || null;
     }
 
-    /* Shown only when there is something to act on: an identity with no act
-       that has an available post-process goes straight to the request form
-       (no empty state — "Solicitare nouă" would be the only choice). */
+    /* US-191: after identification the intermediate screen is always shown
+       (it cannot be skipped) — with the identity's acts that still have a
+       post-process, or "Dumneavoastră nu aveți acte emise pentru serviciul
+       dat." when there are none; "Solicitare nouă" is there in both cases.
+       The notarial-proxy path has no acts of its own and goes straight on. */
     function frontOfficeShouldShowIntent(subject) {
       return Boolean(
         frontOfficeIntentConfig()
         && subject
         && subject.scenario !== "notarial-proxy"
-        && intentActs(subject).length > 0
       );
     }
 
@@ -3242,19 +3243,36 @@
        hook below doesn't navigate on its own mid-apply */
     let frontOfficeIntentApplying = false;
 
+    /* Feature 89533 / US-55: a post-process is offered when the act's status
+       allows it (availability) AND the service passport (RSSPA) has it
+       configured (services[code].allows). Paper / historical acts have no
+       digital post-process; an act with one already in progress is blocked
+       (one active post-process per act). */
+    function intentServiceCode(config = frontOfficeIntentConfig()) {
+      return frontOfficeSchema?.service?.code || Object.keys(config?.services || {})[0] || "";
+    }
+
     function availablePostprocesses(act, config = frontOfficeIntentConfig()) {
-      if (!config) return [];
+      if (!config || act.paper) return [];
       const byStatus = config.availability?.[act.status] || [];
-      const allowed = config.serviceAllows || [];
+      const allowed = config.services?.[act.service]?.allows || config.serviceAllows || [];
       return byStatus
         .filter((id) => allowed.includes(id) && config.postProcesses?.[id])
         .map((id) => ({ id, ...config.postProcesses[id] }));
     }
 
+    function intentAllActs(subject, config = frontOfficeIntentConfig()) {
+      return (config?.acts?.[subject?.id] || [])
+        .map((act) => ({ ...act, postProcesses: availablePostprocesses(act, config) }));
+    }
+
+    /* "Ce vrei să soliciți?" lists this service's acts with at least one
+       available post-process (US-191 AC-02); an act with one in progress
+       stays listed but locked, so the citizen sees why it can't be used. */
     function intentActs(subject, config = frontOfficeIntentConfig()) {
-      const acts = config?.acts?.[subject?.id] || [];
-      return acts
-        .map((act) => ({ ...act, postProcesses: availablePostprocesses(act, config) }))
+      const code = intentServiceCode(config);
+      return intentAllActs(subject, config)
+        .filter((act) => !act.service || act.service === code)
         .filter((act) => act.postProcesses.length > 0);
     }
 
@@ -3264,8 +3282,10 @@
       const esc = escapeFrontOfficeHtml;
       const menuId = `fo-intent-menu-${index}`;
       const tone = INTENT_TAG_TONE[act.status] || "status-tag--neutral";
+      const pending = act.pending;
+      const pendingLabel = pending ? (frontOfficeIntentConfig()?.postProcesses?.[pending.type]?.label || pending.type) : "";
       return `
-        <li class="e-permits-fo-intent-act" data-fo-intent-act="${esc(act.id)}">
+        <li class="e-permits-fo-intent-act${pending ? " is-locked" : ""}" data-fo-intent-act="${esc(act.id)}">
           <span class="e-permits-fo-auth__role-avatar e-permits-fo-intent-act__avatar" aria-hidden="true">
             <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg>
           </span>
@@ -3279,9 +3299,10 @@
               <span class="e-permits-fo-intent-act__dot" aria-hidden="true"></span>
               <span>valabil până la ${esc(act.validUntil)}</span>
             </div>
+            ${pending ? `<p class="e-permits-fo-intent-act__pending"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg><span>${esc(pendingLabel)} în curs · dosar ${esc(act.pending.dossier)}. Poți iniția un alt postproces după finalizarea acestuia.</span></p>` : ""}
           </div>
           <div class="e-permits-fo-intent-act__action">
-            <button class="btn btn-neutral btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-fo-intent-trigger>
+            <button class="btn btn-neutral btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-fo-intent-trigger ${pending ? "disabled" : ""}>
               <span>${esc(frontOfficeIntentConfig()?.actionLabel || "Inițiază un postproces")}</span>
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
@@ -3336,7 +3357,13 @@
 
         <section class="e-permits-fo-intent__acts" aria-labelledby="fo-intent-acts-title">
           <p class="e-permits-fo-intent__acts-title" id="fo-intent-acts-title">${esc(config.actsTitle)}</p>
-          <ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>
+          ${acts.length
+            ? `<ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>`
+            : `<div class="e-permits-fo-infobox e-permits-fo-intent__empty" role="note" data-fo-intent-empty>
+                <div class="e-permits-fo-infobox__bone" aria-hidden="true"></div>
+                <div class="e-permits-fo-infobox__icon" aria-hidden="true"><svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></div>
+                <div class="e-permits-fo-infobox__body"><p>${esc(config.emptyText || "Dumneavoastră nu aveți acte emise pentru serviciul dat.")}</p></div>
+              </div>`}
         </section>
       `;
     }
@@ -3358,9 +3385,538 @@
     }
 
     function handOffPostprocess(act, pp) {
-      /* the post-process flow is the next piece of work, not this screen's */
-      showFrontOfficeToast(`${pp.label} pentru ${act.number} — continuă în fluxul de postprocesare (nu e inclus în acest prototip).`);
+      startFrontOfficePostprocess(act, pp);
     }
+
+    /* ===================================================================
+       Post-process mode — Feature 89533 Part I (titular): US-55 generic
+       initiation + the per-type stories (US-59 reperfectare 09, US-62
+       reperfectare 10, US-63 prelungire 10, US-61 duplicat 10, US-58/60
+       retragere). The primary request wizard is reused step by step:
+       - Date solicitant: a read-only "Detalii solicitare" card (service,
+         request type, act number) above the pre-filled applicant; contact
+         details stay editable.
+       - Detalii solicitare: the form of the chosen type, pre-filled from the
+         act (reperfectare repeats the primary form + the reason).
+       - Documente însoțitoare: the previous act as a download, plus what the
+         type needs.
+       - Verificare și semnare: MSign is mandatory for the titular.
+       - Livrare: read-only — the passport sets one method.
+       - Plată: skipped when the post-process has no fee (09/10: none).
+       - Finalizare: request type, service, term (CC + N working days).
+       Suspendare / Reluare have no US yet: their fields are placeholders
+       („de confirmat”) and run on the DEMO service.
+       =================================================================== */
+    let frontOfficePostprocess = null;
+
+    function postprocessConfig() { return frontOfficeIntentConfig() || {}; }
+    function postprocessService(act) { return postprocessConfig().services?.[act?.service] || {}; }
+    function postprocessHasFee(ctx = frontOfficePostprocess) { return Boolean(ctx?.service?.fees?.[ctx.pp.id]); }
+
+    function findPostprocessAct(actId) {
+      const acts = postprocessConfig().acts || {};
+      for (const [subjectId, list] of Object.entries(acts)) {
+        const act = (list || []).find((item) => item.id === actId);
+        if (act) return { act, subjectId };
+      }
+      return null;
+    }
+
+    function postprocessReadonly(label, value, span = 12) {
+      return readonlyFieldHtml({ label, value: value || "—", span });
+    }
+
+    function postprocessNoteHtml(text, { icon = "icon-circle-info-filled", attrs = "" } = {}) {
+      return `
+        <div class="e-permits-fo-infobox e-permits-fo-pp-note" role="note" ${attrs}>
+          <div class="e-permits-fo-infobox__bone" aria-hidden="true"></div>
+          <div class="e-permits-fo-infobox__icon" aria-hidden="true"><svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#${icon}"></use></svg></div>
+          <div class="e-permits-fo-infobox__body"><p>${escapeFrontOfficeHtml(text)}</p></div>
+        </div>`;
+    }
+
+    function postprocessTextareaHtml({ id, label, required = true, maxLength = 250, hidden = false, attrs = "", placeholder = "" }) {
+      const fid = fieldId(id);
+      return `
+        <div class="${fieldClass({ span: 12 })}" ${hidden ? "hidden" : ""} ${attrs}>
+          <div class="e-permits-fo-field__label-counter">${labelHtml(fid, { label, required })}<span class="e-permits-fo-field__counter" data-fo-char-counter data-fo-char-max="${maxLength}" hidden>0 / ${maxLength}</span></div>
+          <div class="e-permits-fo-textarea"><textarea id="${escapeFrontOfficeHtml(fid)}" rows="3" maxlength="${maxLength}" placeholder="${escapeFrontOfficeHtml(placeholder)}" data-fo-char-input data-fo-pp-required="${required ? "true" : "false"}"></textarea></div>
+        </div>`;
+    }
+
+    function postprocessDateHtml({ id, label, required = true, span = 6, hint = "" }) {
+      const fid = fieldId(id);
+      return `
+        <div class="${fieldClass({ span })}">
+          ${labelHtml(fid, { label, required })}
+          <div class="e-permits-fo-input"><input id="${escapeFrontOfficeHtml(fid)}" type="date" data-fo-pp-required="${required ? "true" : "false"}"></div>
+          ${hint ? `<p class="e-permits-fo-field__hint">${escapeFrontOfficeHtml(hint)}</p>` : ""}
+        </div>`;
+    }
+
+    function postprocessSelectHtml(field) {
+      return selectFieldHtml({ span: 12, placeholder: "Selectează", ...field }).replace("data-fo-select", `data-fo-select data-fo-pp-select="${escapeFrontOfficeHtml(field.id)}"${field.required === false ? "" : " data-fo-pp-required=\"true\""}`);
+    }
+
+    function postprocessSectionHtml(id, title, body, { desc = "" } = {}) {
+      return `
+        <section class="e-permits-fo-form__section" aria-labelledby="fo-pp-${id}-title" data-fo-pp-section="${id}">
+          <div class="e-permits-fo-section-header">
+            <h2 id="fo-pp-${id}-title">${escapeFrontOfficeHtml(title)}</h2>
+            ${desc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(desc)}</p>` : ""}
+          </div>
+          <div class="e-permits-fo-form__section-body">${body}</div>
+        </section>`;
+    }
+
+    /* a reason picked from the classifier; "Alte" opens the 250-char text */
+    function postprocessReasonHtml(sectionTitle, reasons, { label = "Motivul", sectionId = "reason" } = {}) {
+      return postprocessSectionHtml(sectionId, sectionTitle, `
+        ${postprocessSelectHtml({ id: "pp-reason", label, required: true, options: reasons })}
+        ${postprocessTextareaHtml({ id: "pp-reason-other", label: "Specificați motivul", hidden: true, attrs: "data-fo-pp-other", placeholder: "Descrieți pe scurt motivul" })}
+      `);
+    }
+
+    function postprocessFooterHtml(step) {
+      return `
+        <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
+          <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
+            <button class="e-permits-fo-draft-button" type="button">
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg>
+              <span>Salvează ca schiță</span>
+            </button>
+            <div class="e-permits-fo-form__actions-primary">
+              ${step > 2 ? `<button class="e-permits-fo-back-button" type="button" aria-label="Înapoi" data-fo-prev="step-${step}"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>` : ""}
+              <button class="e-permits-fo-next" type="button" data-fo-next="step-${step}"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+            </div>
+          </div>
+        </footer>`;
+    }
+
+    /* reperfectare 09 repeats the primary form (US-59: "deține toate câmpurile
+       similar unei solicitări de emitere primară"), section for section */
+    function postprocessPrimarySectionsHtml() {
+      const step = frontOfficeSchema?.steps?.find((item) => Number(item.index) === 2);
+      return (step?.sections || []).map((section) => `
+        <section class="e-permits-fo-form__section" aria-labelledby="fo-pp-${escapeFrontOfficeHtml(section.id)}-title" data-fo-pp-section="${escapeFrontOfficeHtml(section.id)}">
+          <div class="e-permits-fo-section-header${section.noBorder ? " e-permits-fo-section-header--no-border" : ""}">
+            <h2 id="fo-pp-${escapeFrontOfficeHtml(section.id)}-title">${escapeFrontOfficeHtml(section.title || "Obiectul autorizat")}</h2>
+            ${section.secDesc ? `<p class="e-permits-fo-section-header__desc">${escapeFrontOfficeHtml(section.secDesc)}</p>` : ""}
+          </div>
+          <div class="e-permits-fo-form__section-body${section.layout === "single" ? " e-permits-fo-form__section-body--single" : ""}">
+            ${(section.fields || []).map(stepFieldHtml).join("")}
+          </div>
+        </section>`).join("");
+    }
+
+    function postprocessStep2BodyHtml(ctx) {
+      const { act, pp, service } = ctx;
+      const reasons = postprocessConfig().reasons || {};
+      const code = service.code || act.service;
+      if (pp.id === "reperfectare" && code === "09") {
+        return `${postprocessReasonHtml("Motivul reperfectării", reasons["reperfectare-09"] || [], { label: "Comentarii / Motivul" })}${postprocessPrimarySectionsHtml()}`;
+      }
+      if (pp.id === "reperfectare") {
+        const cascade = frontOfficeSchema?.steps?.find((item) => Number(item.index) === 2)?.sections?.find((s) => s.id === "economic-address")?.fields?.[0];
+        const types = postprocessConfig().activityTypes10 || [];
+        return `
+          ${cascade ? postprocessSectionHtml("activity-address", "Adresa desfășurării activității", cascadeAddressHtml({ ...cascade, phone: null, email: null })) : ""}
+          ${postprocessSectionHtml("activity-type", "Tipul activității", `
+            ${postprocessSelectHtml({ id: "pp-activity-type", label: "Tipul activității", required: true, options: types, value: act.activityType || "" })}
+            <div class="${fieldClass({ span: 6 })}" data-fo-pp-hemp hidden>${labelHtml("fo-pp-area", { label: "Suprafața totală a terenului conform titlului de folosire a terenului", required: true })}<div class="e-permits-fo-input"><input id="fo-pp-area" type="text" inputmode="decimal" placeholder="0,00"></div></div>
+            <div data-fo-pp-hemp hidden class="${fieldClass({ span: 6 })}">${selectFieldHtml({ id: "pp-area-unit", label: "Unitatea de măsură", required: true, span: 12, options: ["Hectare (ha)", "Ari (a)"], placeholder: "Selectează" })}</div>
+          `)}
+          ${postprocessSectionHtml("responsible", "Persoana responsabilă", `
+            <div class="${fieldClass({ span: 12 })}">
+              <label class="checkbox checkbox--medium e-permits-fo-consent e-permits-fo-pp-consent"><input class="checkbox-input" type="checkbox" data-fo-pp-consent><span class="checkbox-custom" aria-hidden="true"></span><span>Declar pe proprie răspundere că dețin consimțământul sau temeiul legal pentru introducerea IDNP-ului și preluarea datelor prin platforma de interoperabilitate.</span></label>
+            </div>
+            <div class="${fieldClass({ span: 4 })}">${labelHtml("fo-pp-resp-idnp", { label: "IDNP persoanei", required: true })}<div class="e-permits-fo-input is-disabled"><input id="fo-pp-resp-idnp" type="text" inputmode="numeric" maxlength="13" placeholder="13 cifre" disabled data-fo-pp-idnp></div></div>
+            ${textFieldHtml({ id: "pp-resp-last", label: "Nume", span: 4, disabled: true, placeholder: "Din MConnect, după IDNP" })}
+            ${textFieldHtml({ id: "pp-resp-first", label: "Prenume", span: 4, disabled: true, placeholder: "Din MConnect, după IDNP" })}
+          `)}
+          ${postprocessReasonHtml("Scopul reperfectării", reasons["reperfectare-10"] || [], { label: "Scopul reperfectării", sectionId: "purpose" })}
+        `;
+      }
+      if (pp.id === "prelungire") {
+        return postprocessSectionHtml("act-data", "Date act permisiv", `
+          ${postprocessReadonly("Numărul actului permisiv", act.number, 12)}
+          ${postprocessReadonly("Valabil de la", act.validFrom || act.issued, 6)}
+          ${postprocessReadonly("Valabil până la", act.validUntil, 6)}
+        `, { desc: "Datele actului care se prelungește. Noua perioadă de valabilitate se stabilește la aprobare." });
+      }
+      if (pp.id === "duplicat") {
+        return postprocessSectionHtml("reason", "Motivul emiterii duplicatului", postprocessSelectHtml({ id: "pp-reason", label: "Motivul", required: true, options: reasons.duplicat || [] }));
+      }
+      if (pp.id === "retragere") {
+        return `${code === "09" ? postprocessSectionHtml("subdivision", "Subdiviziunea de procesare", postprocessReadonly("Subdiviziunea de procesare", act.subdivision, 12), { desc: "Subdiviziunea care a emis actul." }) : ""}
+          ${postprocessReasonHtml("Motivul retragerii", reasons.retragere || [])}`;
+      }
+      if (pp.id === "suspendare") {
+        return `${postprocessReasonHtml("Motivul suspendării", reasons.suspendare || [])}
+          ${postprocessSectionHtml("period", "Perioada suspendării", `
+            ${postprocessDateHtml({ id: "pp-suspend-from", label: "Data necesară de suspendare", span: 6 })}
+            <div class="${fieldClass({ span: 6 })}">${selectFieldHtml({ id: "pp-suspend-term", label: "Termenul necesar de suspendare", required: true, span: 12, options: ["1 lună", "3 luni", "6 luni", "12 luni"], placeholder: "Selectează" }).replace("data-fo-select", "data-fo-select data-fo-pp-required=\"true\"")}</div>
+          `)}
+          ${postprocessNoteHtml("Suspendarea valabilității actului permisiv se va iniția din data semnării deciziei de aprobare.")}`;
+      }
+      if (pp.id === "reluare") {
+        return `${postprocessReasonHtml("Motivul reluării valabilității", reasons.reluare || [])}
+          ${postprocessNoteHtml("Valabilitatea actului permisiv se va relua din data semnării deciziei de aprobare.")}`;
+      }
+      return "";
+    }
+
+    function renderPostprocessStep1(ctx = frontOfficePostprocess) {
+      const panel = document.querySelector("[data-fo-step-panel='1']");
+      if (!panel || !ctx) return;
+      panel.querySelector("[data-fo-pp-request]")?.remove();
+      const header = panel.querySelector(":scope > .e-permits-fo-form__header");
+      const card = document.createElement("section");
+      card.className = "e-permits-fo-form__section e-permits-fo-pp-request";
+      card.dataset.foPpRequest = "";
+      card.setAttribute("aria-labelledby", "fo-pp-request-title");
+      card.innerHTML = `
+        <h2 id="fo-pp-request-title">Detalii solicitare</h2>
+        <div class="e-permits-fo-form__section-body">
+          ${postprocessReadonly("Serviciul", ctx.service.title || ctx.act.service, 12)}
+          ${postprocessReadonly("Tip solicitare", ctx.pp.requestType || ctx.pp.label, 6)}
+          ${postprocessReadonly("Numărul actului permisiv", ctx.act.number, 6)}
+        </div>`;
+      header?.insertAdjacentElement("afterend", card);
+    }
+
+    function renderPostprocessStep2(ctx = frontOfficePostprocess) {
+      const panel = document.querySelector("[data-fo-step-panel='2']");
+      if (!panel || !ctx) return;
+      panel.innerHTML = `
+        <header class="e-permits-fo-form__header"><h1 id="fo-request-step-2-title" tabindex="-1">Detalii solicitare</h1></header>
+        <p class="e-permits-fo-pp-lead">${escapeFrontOfficeHtml(ctx.pp.requestType || ctx.pp.label)} · ${escapeFrontOfficeHtml(ctx.act.number)} · ${escapeFrontOfficeHtml(ctx.act.name)}</p>
+        ${postprocessStep2BodyHtml(ctx)}
+        ${postprocessFooterHtml(2)}`;
+      initFrontOfficeDynamicControls(panel);
+      prefillPostprocessStep2(ctx);
+    }
+
+    function prefillPostprocessStep2({ act, pp }) {
+      const panel = document.querySelector("[data-fo-step-panel='2']");
+      if (!panel || pp.id !== "reperfectare") return;
+      const o = act.object;
+      const objectName = panel.querySelector("#fo-object-name");
+      if (objectName && o?.name) objectName.value = o.name;
+      const phone = panel.querySelector("#fo-unit-phone, #unit-phone");
+      if (phone && o?.phone) phone.value = o.phone;
+      const email = panel.querySelector("#fo-unit-email, #unit-email");
+      if (email && o?.email) email.value = o.email;
+      const searchRoot = panel.querySelector("[data-fo-cascade-address] [data-fo-address-search]");
+      const address = o
+        ? { district: o.raion, locality: o.localitate, sector: o.sector, street: o.strada, house: o.house }
+        : { district: "Municipiul Chișinău", locality: "Chișinău", sector: "Centru", street: "str. Armenească", house: "17" };
+      searchRoot?.foCascadeAddressFill?.(address);
+      if (o?.caem) {
+        const option = [...panel.querySelectorAll(".e-permits-fo-caem__option")].find((opt) => (opt.dataset.code || "").includes(o.caem));
+        option?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+      }
+      if (act.activityType) togglePostprocessHemp(panel, act.activityType);
+    }
+
+    function togglePostprocessHemp(panel, value) {
+      const isHemp = /cânepii/i.test(value || "");
+      panel.querySelectorAll("[data-fo-pp-hemp]").forEach((el) => { el.hidden = !isHemp; });
+    }
+
+    function postprocessDocFieldHtml({ id, label, description = "", required = true, filesHtml = "", addable = true }) {
+      const req = required
+        ? requiredMarkerHtml()
+        : `<span class="e-permits-fo-optional-tag">Opțional</span>`;
+      return `
+        <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(id)}">
+          <div class="e-permits-fo-doc-field__row">
+            <div class="e-permits-fo-doc-field__info">
+              <span class="e-permits-fo-doc-field__label">${escapeFrontOfficeHtml(label)} ${req}</span>
+              ${description ? `<p class="e-permits-fo-doc-field__desc">${escapeFrontOfficeHtml(description)}</p>` : ""}
+            </div>
+            ${addable ? `<button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${escapeFrontOfficeHtml(label)}"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>Adaugă fișier</button>` : ""}
+          </div>
+          <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files>${filesHtml}</div>
+        </div>`;
+    }
+
+    /* S5 Documente însoțitoare: the previous act comes from MDocs as a
+       download (the citizen doesn't upload it); reperfectare adds the
+       documents confirming the change; suspendare / reluare accept optional
+       ones (placeholder, de confirmat) */
+    function renderPostprocessStep3(ctx = frontOfficePostprocess) {
+      const panel = document.querySelector("[data-fo-step-panel='3']");
+      if (!panel || !ctx) return;
+      const { act, pp, service } = ctx;
+      const esc = escapeFrontOfficeHtml;
+      const prevAct = `
+        <div class="e-permits-fo-mdocs__attachment" data-fo-pp-prev-act>
+          <span class="e-permits-fo-mdocs__attachment-avatar" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg></span>
+          <span class="e-permits-fo-mdocs__attachment-content">
+            <span class="e-permits-fo-mdocs__attachment-title-row"><span class="e-permits-fo-mdocs__attachment-title">${esc(act.number)} · ${esc(service.shortTitle || service.title || "")}</span></span>
+            <span class="e-permits-fo-mdocs__attachment-meta">Emis ${esc(act.issued || "")} · ${esc(service.authority || "")} · PDF</span>
+          </span>
+          <a class="btn btn-neutral btn-sm" href="#" download data-fo-pp-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg><span>Descarcă</span></a>
+        </div>`;
+      const extra = {
+        reperfectare: { id: "pp-change-docs", label: "Documentele care confirmă modificările intervenite", description: "Documentele sau copiile acestora, cu prezentarea ulterioară a originalelor pentru verificare.", required: true },
+        suspendare: { id: "pp-suspend-docs", label: "Documente care justifică suspendarea", description: "", required: false },
+        reluare: { id: "pp-resume-docs", label: "Documente care confirmă înlăturarea cauzelor suspendării", description: "", required: false }
+      }[pp.id];
+      panel.innerHTML = `
+        <header class="e-permits-fo-form__header"><h1 id="fo-request-step-3-title" tabindex="-1">Documente însoțitoare</h1></header>
+        <section class="e-permits-fo-documents" aria-label="Documente însoțitoare" data-fo-step3-documents>
+          ${postprocessDocFieldHtml({ id: "pp-previous-act", label: "Actul permisiv emis anterior", description: "Atașat automat din MDocs — nu trebuie încărcat.", required: true, addable: false, filesHtml: prevAct })}
+          ${extra ? `<hr class="e-permits-fo-documents__separator">${postprocessDocFieldHtml(extra)}` : ""}
+        </section>
+        ${pp.id === "duplicat" ? postprocessNoteHtml("Pentru motivul „Deteriorare” originalul actului deteriorat se prezintă la ridicarea duplicatului.") : ""}
+        ${postprocessFooterHtml(3)}`;
+    }
+
+    function renderPostprocessStep5(ctx = frontOfficePostprocess) {
+      const panel = document.querySelector("[data-fo-step-panel='5']");
+      if (!panel || !ctx) return;
+      const methods = ctx.service.delivery || ["Livrare electronică (EVO Cabinet)"];
+      panel.innerHTML = `
+        <header class="e-permits-fo-form__header"><h1 id="fo-request-step-5-title" tabindex="-1">Livrare</h1></header>
+        ${postprocessSectionHtml("delivery", "Cum primești rezultatul?", methods.map((m) => postprocessReadonly("Metoda de livrare", m, 12)).join(""), { desc: "Metoda de livrare este stabilită în pașaportul serviciului și nu poate fi modificată." })}
+        ${postprocessFooterHtml(5)}`;
+    }
+
+    function postprocessResultText({ act, pp }) {
+      if (pp.newAct) return `La aprobare se emite un act permisiv nou; actul ${act.number} devine inactiv.`;
+      if (pp.id === "suspendare") return "La aprobare, actul devine „Suspendat” din data semnării deciziei.";
+      if (pp.id === "reluare") return "La aprobare, actul redevine „Valabil” din data semnării deciziei.";
+      if (pp.id === "retragere") return "La aprobare, actul devine „Retras” și nu mai poate fi post-procesat.";
+      return "";
+    }
+
+    function renderPostprocessStep7(ctx = frontOfficePostprocess) {
+      if (!ctx) return;
+      const base = frontOfficeSchema?.steps?.find((item) => item.id === "finish") || {};
+      const { act, pp, service } = ctx;
+      const days = service.terms?.[pp.id];
+      const dossier = `GEAP-2026-${String(service.code || "00").padStart(3, "0")}-${act.number.replace(/\D/g, "").slice(-5).padStart(5, "0")}`;
+      const finish = {
+        ...base,
+        title: "Cererea a fost depusă cu succes",
+        tracker: [
+          { label: "Depusă", state: "done" },
+          ...(postprocessHasFee(ctx) ? [{ label: "Plată", state: "done" }] : []),
+          { label: "Examinare", state: "current" },
+          { label: "Decizie", state: "todo" },
+          { label: pp.newAct ? "Act nou emis" : "Statut actualizat", state: "todo" }
+        ],
+        summary: { rows: [
+          { label: "Tip solicitare", value: pp.requestType || pp.label },
+          { label: "Serviciul", value: service.title || "" },
+          { label: "Numărul actului permisiv", value: act.number },
+          { label: "Numărul dosarului", value: dossier, copy: true },
+          { label: "Autoritatea", value: [service.authority, act.subdivision].filter(Boolean).join(" / ") },
+          { label: "Termenul de examinare", value: days ? `${days} ${days === 1 ? "zi lucrătoare" : "zile lucrătoare"} de la eliberarea Certificatului Constatator` : "conform pașaportului serviciului" }
+        ] },
+        timeline: { ...(base.timeline || {}), title: "Statutul dosarului", items: [
+          { title: "Cerere depusă", text: "Semnată prin MSign și transmisă autorității", state: "done" },
+          { title: "Dosar în examinare", text: days ? `Termen: ${days} ${days === 1 ? "zi lucrătoare" : "zile lucrătoare"}` : "Autoritatea examinează cererea", state: "current", tag: "Acum" },
+          { title: "Decizie", text: postprocessResultText(ctx), state: "todo" }
+        ] }
+      };
+      renderFrontOfficeStep7FromSchema({ steps: [finish] });
+    }
+
+    function renderPostprocessReview() {
+      const ctx = frontOfficePostprocess;
+      const panel = document.querySelector("[data-fo-step-panel='4']");
+      const container = panel?.querySelector("[data-fo-review-sections]");
+      if (!ctx || !container) return;
+      panel.querySelector(".e-permits-fo-infobox")?.remove();
+      const subject = frontOfficeSelectedSubject;
+      const user = frontOfficeSchema?.authenticatedUser;
+      const step2 = document.querySelector("[data-fo-step-panel='2']");
+      const esc = escapeFrontOfficeHtml;
+      let applicantRows = "";
+      if (subject) {
+        applicantRows += summaryRow("Solicitant", [esc(subject.name), esc(`${subject.idLabel} ${subject.idValue}`)]);
+        const rep = subject.representative || (subject.type === "PJ" ? user : null);
+        if (rep) applicantRows += summaryRow("Reprezentant", [esc(rep.name), esc(`${rep.idLabel} ${rep.idValue}`)]);
+        const contact = subject.contact || user?.contact || {};
+        applicantRows += summaryRow("Date de contact pentru notificări", [esc(contact.phone || "—"), esc(contact.email || "—")]);
+      }
+      const requestRows = [
+        summaryRow("Serviciul", [esc(ctx.service.title || "")]),
+        summaryRow("Tip solicitare", [esc(ctx.pp.requestType || ctx.pp.label)]),
+        summaryRow("Numărul actului permisiv", [esc(ctx.act.number)])
+      ].join("");
+      const visibleIn = (el, root) => { for (let n = el; n && n !== root; n = n.parentElement) if (n.hidden) return false; return true; };
+      const fieldValue = (field) => {
+        const v = field.querySelector("[data-fo-caem-value], [data-fo-subgen-value], [data-fo-select-value]")?.textContent?.trim()
+          || field.querySelector("input:not([type=checkbox]):not([type=file]):not([type=search]), textarea")?.value?.trim()
+          || field.querySelector(".e-permits-fo-input__value")?.textContent?.trim() || "";
+        return /^(Selectează|Alege|Selectează cod CAEM)/.test(v) ? "" : v;
+      };
+      const detailRows = [...(step2?.querySelectorAll("[data-fo-pp-section]") || [])].map((section) => {
+        let rows = "";
+        const cascade = section.querySelector("[data-fo-cascade-address]");
+        if (cascade) {
+          const part = (sel) => cascade.querySelector(`${sel} [data-fo-select-value]`)?.textContent?.trim() || "";
+          const house = cascade.querySelector("[data-fo-address-part='house']")?.value?.trim() || "";
+          const street = part("[data-fo-cascade-strada]");
+          const address = [street && house ? `${street} ${house}` : street, part("[data-fo-cascade-localitate]"), part("[data-fo-cascade-raion]")].filter(Boolean).join(", ");
+          rows += summaryRow("Adresa", [esc(address || "—")]);
+        }
+        [...section.querySelectorAll(".e-permits-fo-field")].forEach((field) => {
+          if (!visibleIn(field, section) || (cascade && cascade.contains(field) && !field.querySelector("input[type=tel], input[type=email]"))) return;
+          const label = field.querySelector("label")?.textContent?.replace(/\s+/g, " ").trim();
+          if (!label || /^Caută adresa/.test(label)) return;
+          const value = fieldValue(field);
+          const required = Boolean(field.querySelector("label .e-permits-fo-required"));
+          if (!value && !required) return;
+          rows += summaryRow(label, [esc(value || "—")]);
+        });
+        const contact = section.querySelector("[data-fo-contact-person] input:checked");
+        if (contact) rows += summaryRow("Persoana de contact", [esc(contact.value === "other" ? "Altă persoană" : "Eu sunt persoana de contact")]);
+        return rows;
+      }).join("");
+      container.innerHTML = `
+        <div class="e-permits-fo-summary-section e-permits-fo-summary-section--applicant">
+          <div class="e-permits-fo-summary-section__header"><h2 class="e-permits-fo-summary-section__heading">Date solicitant</h2></div>
+          <div class="e-permits-fo-summary-card">${applicantRows}</div>
+        </div>
+        <div class="e-permits-fo-summary-section">
+          <div class="e-permits-fo-summary-section__header"><h2 class="e-permits-fo-summary-section__heading">Detalii solicitare</h2>${summaryEditButton(2, "Editează detaliile solicitării")}</div>
+          <div class="e-permits-fo-summary-card">${requestRows}${detailRows}</div>
+        </div>
+        <div class="e-permits-fo-summary-section">
+          <div class="e-permits-fo-summary-section__header"><h2 class="e-permits-fo-summary-section__heading">Documente însoțitoare</h2>${summaryEditButton(3, "Editează documentele însoțitoare")}</div>
+          <div class="e-permits-fo-summary-card">${summaryRow("Actul permisiv emis anterior", [esc(`${ctx.act.number} · PDF`)])}</div>
+        </div>`;
+    }
+
+    /* required fields of the post-process form; errors use the FO inline error */
+    function validatePostprocessStep2() {
+      const panel = document.querySelector("[data-fo-step-panel='2']");
+      if (!panel) return true;
+      panel.querySelectorAll("[data-fo-pp-error]").forEach((el) => el.remove());
+      panel.querySelectorAll(".is-error").forEach((el) => el.classList.remove("is-error"));
+      let firstInvalid = null;
+      panel.querySelectorAll("[data-fo-pp-required='true']").forEach((control) => {
+        const field = control.closest(".e-permits-fo-field");
+        if (!field || field.hidden || field.closest("[hidden]")) return;
+        const isSelect = control.matches("[data-fo-select]");
+        const empty = isSelect
+          ? control.querySelector("[data-fo-select-value]")?.classList.contains("e-permits-fo-select__value--placeholder")
+          : !String(control.value || "").trim();
+        if (!empty) return;
+        (isSelect ? control : control.closest(".e-permits-fo-input, .e-permits-fo-textarea"))?.classList.add("is-error");
+        field.insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" data-fo-pp-error role="alert"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>Câmp obligatoriu</span></p>`);
+        firstInvalid ||= field;
+      });
+      firstInvalid?.scrollIntoView({ block: "center", behavior: "smooth" });
+      return !firstInvalid;
+    }
+
+    function applyPostprocessStepper(active) {
+      const paymentItem = document.querySelector("[data-fo-step='6']");
+      const finishNumber = document.querySelector("[data-fo-step='7'] .e-permits-fo-stepper__number-text");
+      const skip = active && !postprocessHasFee();
+      if (paymentItem) paymentItem.hidden = skip;
+      if (finishNumber) finishNumber.textContent = skip ? "6" : "7";
+      const title = document.querySelector(".e-permits-fo-auth__service-title-row h1");
+      if (active && frontOfficePostprocess) {
+        const { service, pp } = frontOfficePostprocess;
+        document.title = `${service.code || ""} · ${pp.requestType || pp.label} — ${service.shortTitle || service.title || ""}`;
+        if (title) title.textContent = service.title || title.textContent;
+      } else if (frontOfficeSchema) {
+        setServiceHeaderFromSchema(frontOfficeSchema);
+      }
+    }
+
+    function startFrontOfficePostprocess(act, pp, { step = 1 } = {}) {
+      if (!act || !pp) return;
+      frontOfficePostprocess = { act, pp, service: postprocessService(act) };
+      document.body.dataset.foPostprocess = pp.id;
+      applyPostprocessStepper(true);
+      renderPostprocessStep1();
+      renderPostprocessStep2();
+      renderPostprocessStep3();
+      renderPostprocessStep5();
+      renderPostprocessStep7();
+      updateFrontOfficeRequestHeaders();
+      const hash = frontOfficeStepHash(step);
+      if (window.location.hash !== hash) history.replaceState(null, "", hash);
+      if (step === 4) renderPostprocessReview();
+      showFrontOfficeRequest({ step });
+    }
+
+    /* leaving the post-process ("Solicitare nouă", identity change) restores
+       the primary request's steps */
+    function stopFrontOfficePostprocess() {
+      if (!frontOfficePostprocess) return;
+      frontOfficePostprocess = null;
+      delete document.body.dataset.foPostprocess;
+      document.querySelector("[data-fo-pp-request]")?.remove();
+      applyPostprocessStepper(false);
+      if (frontOfficeSchema) {
+        renderFrontOfficeStep2FromSchema(frontOfficeSchema);
+        renderFrontOfficeStep3FromSchema(frontOfficeSchema);
+        renderFrontOfficeStep5FromSchema(frontOfficeSchema);
+        renderFrontOfficeStep7FromSchema(frontOfficeSchema);
+      }
+    }
+
+    document.addEventListener("fo-select-change", (event) => {
+      if (!frontOfficePostprocess) return;
+      const root = event.target;
+      const panel = root.closest("[data-fo-step-panel='2']");
+      if (!panel) return;
+      const value = event.detail?.value || "";
+      if (root.matches("[data-fo-pp-select='pp-reason']")) {
+        const other = panel.querySelector("[data-fo-pp-other]");
+        if (other) other.hidden = value !== "Alte";
+      }
+      if (root.matches("[data-fo-pp-select='pp-activity-type']")) togglePostprocessHemp(panel, value);
+      root.classList.remove("is-error");
+      root.closest(".e-permits-fo-field")?.querySelector("[data-fo-pp-error]")?.remove();
+    });
+
+    document.addEventListener("change", (event) => {
+      const consent = event.target.closest?.("[data-fo-pp-consent]");
+      if (!consent) return;
+      const idnp = document.querySelector("[data-fo-pp-idnp]");
+      if (!idnp) return;
+      idnp.disabled = !consent.checked;
+      idnp.closest(".e-permits-fo-input")?.classList.toggle("is-disabled", !consent.checked);
+    });
+
+    /* post-process navigation, ahead of the primary handler: validate the
+       form, skip MPay when there is no fee, build the review */
+    document.addEventListener("click", (event) => {
+      if (!frontOfficePostprocess) return;
+      const next = event.target.closest("[data-fo-next]");
+      const prev = event.target.closest("[data-fo-prev]");
+      const action = next?.dataset.foNext || prev?.dataset.foPrev;
+      if (!action) return;
+      if (action === "step-2" && next && !validatePostprocessStep2()) {
+        event.stopImmediatePropagation();
+        return;
+      }
+      if (action === "step-3" && next) {
+        event.stopImmediatePropagation();
+        saveFrontOfficeDraft();
+        renderPostprocessReview();
+        history.replaceState(null, "", frontOfficeStepHash(4));
+        showFrontOfficeRequest({ step: 4 });
+        return;
+      }
+      if (action === "step-5" && next && !postprocessHasFee()) {
+        event.stopImmediatePropagation();
+        saveFrontOfficeDraft();
+        renderPostprocessStep7();
+        history.replaceState(null, "", frontOfficeStepHash(7));
+        showFrontOfficeRequest({ step: 7 });
+      }
+    }, true);
 
     function setFrontOfficePostprocessModalOpen(open) {
       setMotionModalHidden(frontOfficePostprocessModal, !open);
@@ -3370,6 +3926,7 @@
 
     frontOfficeIntentScreen?.addEventListener("click", (event) => {
       if (event.target.closest("[data-fo-intent-new]")) {
+        stopFrontOfficePostprocess();
         history.replaceState(null, "", "#request");
         showFrontOfficeRequest({ step: 1 });
         return;
@@ -3502,6 +4059,16 @@
     });
 
     frontOfficeSchemaLoadPromise = loadFrontOfficeSchema().then((schema) => {
+      /* EVO Cabinet → FOD2 redirect (US-55 step 6): ?pp=<type>&act=<id> opens
+         the post-process for that act, as its holder, at the hash's step */
+      const ppParams = new URLSearchParams(window.location.search);
+      const ppFound = ppParams.get("act") && findPostprocessAct(ppParams.get("act"));
+      const ppDef = ppFound && postprocessConfig().postProcesses?.[ppParams.get("pp")];
+      if (ppFound && ppDef) {
+        selectFrontOfficeSubject(ppFound.subjectId);
+        startFrontOfficePostprocess(ppFound.act, { id: ppParams.get("pp"), ...ppDef }, { step: frontOfficeStepFromHash() || 1 });
+        return schema;
+      }
       const hashStep = frontOfficeStepFromHash();
       if (hashStep) {
         selectFrontOfficeSubject(frontOfficeSelectedSubject?.id || frontOfficeSchema?.defaultSubjectId);
@@ -4129,6 +4696,7 @@
     }
 
     function populateFrontOfficeStep4() {
+      if (frontOfficePostprocess) { renderPostprocessReview(); return; }
       const panel = document.querySelector("[data-fo-step-panel='4']");
       if (!panel) return;
       panel.querySelector(".e-permits-fo-infobox")?.remove();
@@ -4880,6 +5448,7 @@
         activeIndex = options.indexOf(option);
         setOpen(false);
         button.focus();
+        selectRoot.dispatchEvent(new CustomEvent("fo-select-change", { bubbles: true, detail: { value: value.textContent } }));
       }
 
       button.addEventListener("click", () => {

@@ -865,73 +865,331 @@
         "builderSeedFormId": "form-commerce-notification"
       },
       "intent": {
-        "_note": "US-191. Not from spec, flag for PO: the status × post-process matrix, the routine/consequential split, the consequence copy, the service-passport list (serviceAllows) and the act fields shown are prototype assumptions. The step is skipped entirely when the identity has no act with an available post-process.",
+        "_note": "Feature 89533 / US-55 / US-191 + US-58/59/61/63 (Azure, 2026-10). Matrix, reasons, terms and service rules come from those stories. Suspendare/Reluare have no US yet: their reasons, fields and the DEMO service are prototype placeholders („de confirmat”). The consequence modal for Suspendare/Retragere is a UX proposal, not in the spec.",
         "title": "Ce vrei să soliciți?",
         "subjectLabel": "Solicitant",
-        "newRequest": { "title": "Solicitare nouă", "text": "Depui o cerere pentru un act nou" },
+        "newRequest": {
+          "title": "Solicitare nouă",
+          "text": "Depui o cerere pentru un act nou"
+        },
         "separator": "sau",
         "actsTitle": "Acte emise pentru acest serviciu",
         "actionLabel": "Inițiază un postproces",
+        "emptyText": "Dumneavoastră nu aveți acte emise pentru serviciul dat.",
+        "proposalNote": "Propunere UX — confirmarea nu este în specificație; de confirmat cu PO.",
         "postProcesses": {
-          "reperfectare": { "label": "Reperfectare", "icon": "icon-edit", "kind": "routine" },
-          "prelungire": { "label": "Prelungire", "icon": "icon-rotate-arrow", "kind": "routine" },
+          "reperfectare": {
+            "label": "Reperfectare",
+            "icon": "icon-edit",
+            "kind": "routine",
+            "requestType": "Reperfectare",
+            "newAct": true
+          },
+          "prelungire": {
+            "label": "Prelungire",
+            "icon": "icon-rotate-arrow",
+            "kind": "routine",
+            "requestType": "Prelungire",
+            "newAct": true
+          },
+          "duplicat": {
+            "label": "Emitere duplicat",
+            "icon": "icon-copy",
+            "kind": "routine",
+            "requestType": "Emitere duplicat",
+            "newAct": true
+          },
           "suspendare": {
             "label": "Suspendare valabilitate",
             "icon": "icon-pause",
             "kind": "consequential",
+            "requestType": "Suspendare valabilitate",
             "consequence": "Actul permisiv nu va mai fi valabil pe durata suspendării. Nu poți desfășura activitatea autorizată până când valabilitatea nu este reluată."
           },
-          "reluare": { "label": "Reluare valabilitate", "icon": "icon-rotate-arrow", "kind": "routine" },
+          "reluare": {
+            "label": "Reluarea valabilității",
+            "icon": "icon-rotate-arrow",
+            "kind": "routine",
+            "requestType": "Reluarea valabilității"
+          },
           "retragere": {
             "label": "Retragere act permisiv",
             "icon": "icon-cross-small",
             "kind": "consequential",
+            "requestType": "Retragere",
             "consequence": "Actul permisiv va fi retras definitiv și nu mai poate fi reactivat. Pentru a relua activitatea va trebui să depui o cerere nouă."
-          },
-          "contestatie": { "label": "Contestație", "icon": "icon-bubble-alert", "kind": "routine" }
+          }
         },
-        "serviceAllows": ["reperfectare", "prelungire", "suspendare", "reluare", "retragere", "contestatie"],
         "availability": {
-          "valabil": ["reperfectare", "prelungire", "suspendare", "retragere", "contestatie"],
-          "suspendat": ["reluare", "retragere", "contestatie"],
+          "valabil": [
+            "reperfectare",
+            "prelungire",
+            "duplicat",
+            "suspendare",
+            "retragere"
+          ],
+          "suspendat": [
+            "reluare",
+            "retragere"
+          ],
           "expirat": [],
-          "retras": []
+          "retras": [],
+          "anulat": []
         },
+        "services": {
+          "09": {
+            "code": "09",
+            "title": "Autorizația sanitară de funcționare",
+            "authority": "ANSP",
+            "allows": [
+              "reperfectare",
+              "retragere"
+            ],
+            "terms": {
+              "reperfectare": 5,
+              "retragere": 1
+            },
+            "delivery": [
+              "Livrare electronică (EVO Cabinet)",
+              "Pe hârtie la autoritatea emitentă"
+            ]
+          },
+          "10": {
+            "code": "10",
+            "title": "Autorizația de activitate cu utilizarea obiectivelor și încăperilor legate de circulația substanțelor stupefiante, psihotrope și a precursorilor",
+            "shortTitle": "Autorizația pentru substanțe stupefiante și psihotrope",
+            "authority": "AMDM",
+            "subdivision": "Comitetul permanent de control asupra drogurilor",
+            "allows": [
+              "reperfectare",
+              "prelungire",
+              "duplicat",
+              "retragere"
+            ],
+            "terms": {
+              "reperfectare": 5,
+              "prelungire": 10,
+              "duplicat": 3,
+              "retragere": 1
+            },
+            "delivery": [
+              "Livrare electronică (EVO Cabinet)",
+              "Pe hârtie la autoritatea emitentă"
+            ]
+          },
+          "DEMO": {
+            "code": "DEMO",
+            "title": "Licență de activitate (exemplu pentru suspendare și reluare)",
+            "authority": "Autoritate emitentă",
+            "demo": true,
+            "allows": [
+              "suspendare",
+              "reluare",
+              "retragere"
+            ],
+            "terms": {
+              "suspendare": 5,
+              "reluare": 5,
+              "retragere": 1
+            },
+            "delivery": [
+              "Livrare electronică (EVO Cabinet)"
+            ]
+          }
+        },
+        "reasons": {
+          "reperfectare-09": [
+            "Modificare administrativă fără necesitatea inspecției",
+            "Modificare cu necesitatea inspecției",
+            "Alte"
+          ],
+          "reperfectare-10": [
+            "Modificare administrativă",
+            "Modificare adresa desfășurare a activității",
+            "Alte"
+          ],
+          "duplicat": [
+            "Deteriorare",
+            "Pierdere"
+          ],
+          "retragere": [
+            "Încetarea activității",
+            "Actualizarea datelor în RSUD",
+            "Alte"
+          ],
+          "suspendare": [
+            "Întreruperea temporară a activității",
+            "Lucrări de reparație sau reamenajare",
+            "Alte"
+          ],
+          "reluare": [
+            "Reluarea activității",
+            "Înlăturarea cauzelor suspendării",
+            "Alte"
+          ]
+        },
+        "activityTypes10": [
+          "Circulația substanțelor psihotrope și a precursorilor",
+          "Circulația substanțelor stupefiante, psihotrope și a precursorilor",
+          "Circulaţia precursorilor",
+          "Cultivarea cânepii în scopul producerii de semințe, fibre și/sau ulei"
+        ],
         "acts": {
           "pj-global-trader": [
             {
               "id": "act-izvoras",
+              "service": "09",
               "name": "Cafeneaua „Izvoraș”, mun. Bălți",
               "number": "ASF-2026-04521",
               "status": "valabil",
               "statusLabel": "Valabil",
-              "validUntil": "15.09.2028"
+              "issued": "15.09.2025",
+              "validUntil": "15.09.2028",
+              "subdivision": "CSP Bălți",
+              "object": {
+                "name": "Cafenea",
+                "raion": "Municipiul Bălți",
+                "localitate": "Bălți",
+                "strada": "str. Independenței",
+                "house": "12",
+                "phone": "60 123 456",
+                "email": "izvoras@globaltrader.md",
+                "caem": "56.10"
+              }
             },
             {
               "id": "act-piata-mare",
+              "service": "09",
               "name": "Restaurantul „Piața Mare”, mun. Chișinău",
-              "number": "ASF-2026-04521",
+              "number": "ASF-2025-11873",
               "status": "suspendat",
               "statusLabel": "Suspendat",
-              "validUntil": "15.09.2028"
+              "issued": "02.04.2025",
+              "validUntil": "02.04.2028",
+              "subdivision": "CSP Chișinău"
             },
             {
               "id": "act-bistro",
+              "service": "09",
               "name": "Bistro „Colț”, or. Orhei",
               "number": "ASF-2021-01877",
               "status": "expirat",
               "statusLabel": "Expirat",
-              "validUntil": "02.03.2024"
+              "issued": "02.03.2021",
+              "validUntil": "02.03.2024",
+              "subdivision": "CSP Orhei"
+            },
+            {
+              "id": "act-cantina",
+              "service": "09",
+              "name": "Cantina „Nord”, or. Soroca",
+              "number": "ASF-2024-07740",
+              "status": "retras",
+              "statusLabel": "Retras",
+              "issued": "10.05.2024",
+              "validUntil": "10.05.2027",
+              "subdivision": "CSP Soroca"
+            },
+            {
+              "id": "act-cofetaria",
+              "service": "09",
+              "name": "Cofetăria „Dulce”, mun. Chișinău",
+              "number": "AS-2019-0412",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "21.11.2019",
+              "validUntil": "21.11.2029",
+              "subdivision": "CSP Chișinău",
+              "paper": true
+            },
+            {
+              "id": "act-depozit-10",
+              "service": "10",
+              "name": "Depozit farmaceutic, mun. Chișinău",
+              "number": "AMDM-10-2026-0118",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "20.01.2026",
+              "validFrom": "20.01.2026",
+              "validUntil": "20.01.2031",
+              "subdivision": "Comitetul permanent de control asupra drogurilor",
+              "activityType": "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
+            },
+            {
+              "id": "act-lab-10",
+              "service": "10",
+              "name": "Laborator de analize, mun. Chișinău",
+              "number": "AMDM-10-2025-0342",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "14.07.2025",
+              "validFrom": "14.07.2025",
+              "validUntil": "14.07.2030",
+              "subdivision": "Comitetul permanent de control asupra drogurilor",
+              "pending": {
+                "type": "prelungire",
+                "dossier": "GEAP-2026-010-00877",
+                "since": "28.09.2026"
+              }
+            },
+            {
+              "id": "act-licenta-demo",
+              "service": "DEMO",
+              "name": "Magazin „Global”, mun. Chișinău",
+              "number": "LIC-2025-2231",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "03.06.2025",
+              "validUntil": "03.06.2030",
+              "subdivision": "Direcția teritorială Chișinău"
+            },
+            {
+              "id": "act-licenta-susp",
+              "service": "DEMO",
+              "name": "Depozit „Global”, mun. Chișinău",
+              "number": "LIC-2024-1876",
+              "status": "suspendat",
+              "statusLabel": "Suspendat",
+              "issued": "11.02.2024",
+              "validUntil": "11.02.2029",
+              "subdivision": "Direcția teritorială Chișinău"
+            }
+          ],
+          "pf-anastasia": [
+            {
+              "id": "act-salon-pf",
+              "service": "09",
+              "name": "Bar „Ana”, mun. Chișinău",
+              "number": "ASF-2025-09931",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "08.08.2025",
+              "validUntil": "08.08.2028",
+              "subdivision": "CSP Chișinău",
+              "object": {
+                "name": "Bar",
+                "raion": "Municipiul Chișinău",
+                "localitate": "Chișinău",
+                "sector": "Botanica",
+                "strada": "bd. Dacia",
+                "house": "27",
+                "phone": "60 999 999",
+                "email": "anastasia.cojocaru@mnotify.gov.md",
+                "caem": "56.30"
+              }
             }
           ],
           "pj-vita-plant": [
             {
               "id": "act-vita",
+              "service": "09",
               "name": "Depozit „Vita-Plant”, mun. Chișinău",
               "number": "ASF-2025-11302",
               "status": "valabil",
               "statusLabel": "Valabil",
-              "validUntil": "30.06.2030"
+              "issued": "30.06.2025",
+              "validUntil": "30.06.2030",
+              "subdivision": "CSP Chișinău"
             }
           ]
         }

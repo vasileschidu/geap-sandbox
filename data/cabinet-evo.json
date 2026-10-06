@@ -26,6 +26,10 @@
       "label": "Expirate"
     },
     {
+      "id": "retras",
+      "label": "Retrase"
+    },
+    {
       "id": "anulat",
       "label": "Anulate"
     }

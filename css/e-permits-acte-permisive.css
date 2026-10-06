@@ -20535,8 +20535,10 @@ button.e-permits-steps-strip__cell:focus-visible {
    current step, grey after); label 14/20 medium, date + actor 12/16 tertiary
    (Figma 10/12 has no token and is below a readable size). */
 .e-permits-trajectory {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px);
+  background: var(--color-background-base-default, #ffffff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  /* same corners as the dosar cards below (.e-permits-dosar-profil__card: 24, no token) */
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-16, 16px);
@@ -20545,8 +20547,8 @@ button.e-permits-steps-strip__cell:focus-visible {
 
 .e-permits-trajectory__steps {
   display: grid;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
+  /* first and last step hug the card edges; the steps stay evenly spaced (1 · 2 · 2 · 2 · 2 · 1) */
+  grid-template-columns: minmax(0, 1fr) repeat(4, minmax(0, 2fr)) minmax(0, 1fr);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -20575,6 +20577,33 @@ button.e-permits-steps-strip__cell:focus-visible {
 
 .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-rejected) + .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-rejected)::before {
   background: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-trajectory__step:first-child {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.e-permits-trajectory__step:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+/* the edge steps' text may run into the half-column next to them */
+.e-permits-trajectory__step:is(:first-child, :last-child) :is(.e-permits-trajectory__label, .e-permits-trajectory__meta) {
+  max-width: none;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* connectors next to the edge steps start / end at their edge-aligned markers */
+.e-permits-trajectory__step:first-child + .e-permits-trajectory__step::before {
+  left: calc(-50% + 28px);
+}
+
+.e-permits-trajectory__step + .e-permits-trajectory__step:last-child::before {
+  left: calc(-100% + 16px);
+  right: 28px;
 }
 
 .e-permits-trajectory__marker {
@@ -20642,7 +20671,12 @@ button.e-permits-steps-strip__cell:focus-visible {
 @media (max-width: 760px) {
   .e-permits-trajectory__steps {
     grid-auto-flow: row;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--spacing-12, 12px);
+  }
+
+  .e-permits-trajectory__step:last-child {
+    text-align: left;
   }
 
   .e-permits-trajectory__step {
@@ -20876,13 +20910,32 @@ button.e-permits-steps-strip__cell:focus-visible {
 
 
 /* under the trajectory the callout hangs from the card, like the Figma strip:
-   no gap, square top corners, inset 24px on each side */
+   no gap, square top corners, inset 16px on each side; compact (padding 12/16,
+   icon–text gap 12, lines gap 4) so it reads as part of the timeline */
 .e-permits-trajectory + .e-permits-callout-wrap {
-  margin: 0 var(--spacing-24, 24px);
+  margin: 0 var(--spacing-16, 16px);
 }
 
 .e-permits-trajectory + .e-permits-callout-wrap .e-permits-callout {
-  border-radius: 0 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px);
+  border-radius: 0 0 24px 24px;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-trajectory + .e-permits-callout-wrap .e-permits-callout__content {
+  gap: var(--spacing-4, 4px);
+}
+
+/* smaller title (14/20 medium) and a 20px icon on its first line */
+.e-permits-trajectory + .e-permits-callout-wrap .e-permits-callout__title {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-trajectory + .e-permits-callout-wrap :is(.e-permits-callout__icon, .e-permits-callout__icon .icon) {
+  flex-basis: 20px;
+  height: 20px;
+  width: 20px;
 }
 
 
@@ -21476,4 +21529,121 @@ body.is-ntpl-sheet-open {
 
 .e-permits-perms .e-permits-stack__group-toggle:disabled .e-permits-stack__group-chevron {
   visibility: hidden;
+}
+
+
+/* ===== Post-procese (Feature 89533, US-55 / US-191) =====
+   Reuses the wizard: a read-only "Detalii solicitare" card on Date solicitant,
+   a one-line context under the step-2 title, the previous act as an MDocs
+   attachment with a download, and the intent list's locked / empty states. */
+.e-permits-fo-pp-request {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-fo-pp-lead {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: calc(var(--spacing-8, 8px) * -1) 0 var(--spacing-24, 24px);
+}
+
+.e-permits-fo-pp-note {
+  margin-top: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-pp-consent {
+  align-items: flex-start;
+}
+
+.e-permits-fo-intent-act__pending {
+  align-items: flex-start;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.e-permits-fo-intent-act__pending .icon {
+  color: var(--color-icon-warning-default, #dc6803);
+  flex: 0 0 16px;
+  margin-top: 2px;
+}
+
+.e-permits-fo-intent__empty {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* the applicant of a post-process is the act's holder — no identity switch */
+body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role__change {
+  display: none;
+}
+
+/* Tarif drawer — tabs (Detalii · Sumă și formulă · Utilizare și istoric).
+   The back-office small tab row (.e-permits-page-header__tabs); a tab with an
+   error carries the red dot (2026-10-06). */
+/* the library tabs (.tabs.tabs--sm = Figma tab-item-s) as they are; only the row
+   spans the drawer width, flush under the header, its line full width */
+.e-permits-tariff__tabs {
+  flex-shrink: 0;
+  margin: calc(-1 * var(--spacing-8, 8px)) calc(-1 * var(--spacing-20, 20px)) 0;
+}
+
+.e-permits-tariff__tabs .tab-buttons {
+  padding: 0 var(--spacing-20, 20px);
+  width: auto;
+}
+
+.e-permits-tariff__status + .e-permits-tariff__tabs {
+  margin-top: var(--spacing-16, 16px);
+}
+
+@media (max-width: 768px) {
+  .e-permits-tariff__tabs {
+    margin-left: calc(-1 * var(--spacing-16, 16px));
+    margin-right: calc(-1 * var(--spacing-16, 16px));
+  }
+
+  .e-permits-tariff__tabs .tab-buttons {
+    padding: 0 var(--spacing-16, 16px);
+  }
+}
+
+.e-permits-tariff__tab-error {
+  background: var(--color-icon-danger-default, #d92d20);
+  margin-left: 0;
+}
+
+.e-permits-tariff__panel {
+  display: flex;
+  padding-top: var(--spacing-8, 8px);
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+/* Formula field — as the Șabloane subject: label + „Inserează variabilă” on one row,
+   a text field (cursor anywhere; numbers and + − × ÷ ( ) typed), then the formula
+   read in words with the variables marked (the Șabloane preview token). */
+.e-permits-tariff-formula__head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-tariff-formula__readable {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-tariff-formula__readable[hidden] {
+  display: none;
+}
+
+.e-permits-tariff-formula__unknown {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-text-error-default, #d92d20);
 }

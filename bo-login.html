@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autentificare · e-Permis Back Office</title>
+  <link rel="stylesheet" href="assets/fonts/Onest.css">
+  <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=trf-formula-v4">
+  <link rel="stylesheet" href="css/bo-login.css?v=bo-login-v1">
+  <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v3">
+  <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
+  <script src="js/demo-states.js?v=bo-login-v1"></script>
+  <script src="js/demo-links.js?v=links-v4"></script>
+  <script src="js/toast.js?v=toast-v2" defer></script>
+  <script src="js/bo-login.js?v=bo-login-v3" defer></script>
+  <script src="js/page-reveal.js?v=soft-reveal-v3" defer></script>
+</head>
+<!-- Pagina de logare în SIA GEAP (US-105 / US-110; US-107 and US-109 states).
+     ?portal=admin → Admin Portal; ?ended=logout|expired → the reason the session ended;
+     ?mpass=ok&as=<activ|fara-cont> → the return from MPass; ?mpass=down → MPass unavailable. -->
+<body class="e-permits-front-office-page bo-login-page">
+  <div class="e-permits-fo-auth">
+    <header class="e-permits-fo-auth__header">
+      <div class="e-permits-fo-auth__topline">
+        <div class="e-permits-fo-auth__topline-inner">
+          <a href="#" class="e-permits-fo-auth__gov-link" aria-label="Guvernul Republicii Moldova">
+            <img src="assets/logos/government-logo.png" alt="">
+            <span>Guvernul Republicii Moldova</span>
+          </a>
+          <nav class="e-permits-fo-auth__language" aria-label="Limbă">
+            <a class="is-active" href="#" lang="ro">Ro</a>
+            <a href="#" lang="ru">Ru</a>
+            <a href="#" lang="en">En</a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- no profile / „Ieșire” before authentication (US-110 AC-01) -->
+      <div class="e-permits-fo-auth__brandbar">
+        <div class="e-permits-fo-auth__brandbar-inner">
+          <div class="e-permits-fo-auth__service-heading">
+            <a href="#" class="e-permits-fo-auth__evo-logo" aria-label="e-Permis">
+              <img src="assets/logos/evo-logo.svg" alt="">
+            </a>
+            <div class="e-permits-fo-auth__service-title-wrap">
+              <div class="e-permits-fo-auth__service-title-row">
+                <h1><span>e-Permis</span> <span class="bo-login__product" data-bo-product>Back Office</span></h1>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="e-permits-fo-auth__main">
+      <section class="e-permits-fo-auth__card bo-login__card" aria-labelledby="bo-login-title" aria-live="polite" data-bo-login></section>
+    </main>
+  </div>
+</body>
+</html>
