@@ -71,6 +71,8 @@
   /* Administrare › Tarife (Figma page "BO -> Tarife") */
   const trf = (run) => ({ flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="tariffs"]'); if (run) await run(h); } });
   const newTariff = async (h) => { await h.click("[data-workplace-add-tariff]"); };
+  /* step 1 „Detalii” filled, then Continuă → step 2 „Sumă și formulă” */
+  const tariffStep2 = async (h) => { await newTariff(h); await h.fill("#tariff-name", "Taxă pe suprafață comercială"); await h.choose('[data-tariff-select="type"]', "Taxă de examinare"); await h.click("[data-tariff-next]"); };
   const editTariff = (id) => async (h) => { await h.click(`[data-tariff-edit="${id}"]`); };
 
   /* Șabloane de notificare (Figma page "BO -> Șabloane de notificare"): template AprobareNIAC */
@@ -81,14 +83,25 @@
     await h.fill("#ntplp-plain", "e-Permis: cererea {{CaseNumber}} a fost aprobată. Detalii în Cabinetul personal.");
   };
   const ntplPublishOpen = async (h) => { await ntplEdit(h); await h.click("[data-ntpl-publish]"); };
-  const ntplScheduled = async (h) => {
-    await ntplPublishOpen(h);
+  /* the publish modal (templates and services share it): „La o dată anume” + a date */
+  const pickPublishDate = async (h, iso) => {
     await h.click('[data-ntpl-publish-when="scheduled"]');
     const picker = await h.find("[data-ntpl-publish-date]");
-    picker.dataset.selected = "2026-10-15";
+    picker.dataset.selected = iso;
     picker.dispatchEvent(new Event("change", { bubbles: true }));
     await h.wait(450);
   };
+  /* the service publishes a tariff change for 15 Oct 2026 (Programat) */
+  const publishScheduled = async (h) => {
+    await applyOneTariff(h);
+    await h.click("[data-service-publish]");
+    await pickPublishDate(h, "2026-10-15");
+    await h.fill("#ntpl-publish-modal textarea", "Taxă de examinare actualizată conform HG nr. 112/2026.", { leave: false });
+    await h.click("#ntpl-publish-modal .modal--footer .btn-primary");
+    await h.wait(600);
+    await clearToasts(h);
+  };
+  const ntplScheduled = async (h) => { await ntplPublishOpen(h); await pickPublishDate(h, "2026-10-15"); };
 
   /* Administrare › Clasificatoare (Figma page "BO -> Clasificatoare") */
   const LOCAL_ADMIN = "ansp-local-admin";
@@ -204,8 +217,29 @@
       await h.click("#ntpl-publish-modal .modal--footer .btn-primary");
     }),
     "svc-01h": svc("general", async (h) => { await h.click("[data-service-history]"); }),
+    /* Publică › Intră în vigoare „La o dată anume”: date picker, missing date, then Programat in Istoric */
+    "svc-01f1": svc("fees", async (h) => { await applyOneTariff(h); await h.click("[data-service-publish]"); await pickPublishDate(h, "2026-10-15"); }),
+    "svc-01f2": svc("fees", async (h) => {
+      await applyOneTariff(h);
+      await h.click("[data-service-publish]");
+      await h.click('[data-ntpl-publish-when="scheduled"]');
+      await h.fill("#ntpl-publish-modal textarea", "Taxă de examinare actualizată conform HG nr. 112/2026.", { leave: false });
+      await h.click("#ntpl-publish-modal .modal--footer .btn-primary");
+    }),
+    "svc-01h1": svc("fees", async (h) => { await publishScheduled(h); await h.click("[data-service-history]"); }),
+    /* a scheduled version: the date takes the place of Publică → Reprogramează / Publică acum / Anulează */
+    "svc-01j": svc("fees", async (h) => { await publishScheduled(h); await h.click('[aria-controls="service-schedule-menu"]'); }),
+    "svc-01j1": svc("fees", async (h) => { await publishScheduled(h); await h.click('[aria-controls="service-schedule-menu"]'); await h.click('[data-service-schedule="reschedule"]'); }),
+    "svc-01j2": svc("fees", async (h) => { await publishScheduled(h); await h.click('[aria-controls="service-schedule-menu"]'); await h.click('[data-service-schedule="now"]'); }),
+    "svc-01j3": svc("fees", async (h) => { await publishScheduled(h); await h.click('[aria-controls="service-schedule-menu"]'); await h.click('[data-service-schedule="cancel"]'); }),
     "svc-02": svc("request-types"),
     "svc-02a": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); }),
+    /* + Adaugă tip solicitare → the eligible post-processes the service does not have yet */
+    "svc-02b": svc("request-types", async (h) => { await h.click('[aria-controls="passport-add-rt-menu"]'); }),
+    /* adding a type = steps (General → Formulare → Documente generate → Notificări); it is added on „Adaugă tipul” */
+    "svc-02c": svc("request-types", async (h) => { await h.click('[aria-controls="passport-add-rt-menu"]'); await h.click('[data-passport-add-rt="Prelungire"]'); }),
+    "svc-02e": svc("request-types", async (h) => { await h.click('[aria-controls="passport-add-rt-menu"]'); await h.click('[data-passport-add-rt="Prelungire"]'); await h.choose('[data-rt-flow]'); await h.click("[data-rt-next]"); }),
+    "svc-02f": svc("request-types", async (h) => { await h.click('[aria-controls="passport-add-rt-menu"]'); await h.click('[data-passport-add-rt="Prelungire"]'); await h.click("[data-rt-next]"); }),
     "svc-03": svc("forms"),
     "svc-03a": svc("forms", rowMenu("[data-passport-body]")),
     "svc-04": svc("fees"),
@@ -264,7 +298,12 @@
       source.closest("tr, [role=row]").querySelector("[data-tariff-edit]").click();
       await h.wait(600);
     } },
-    "svc-06": svc("dependencies"),
+    /* Interdependențe live in Setări since 2026-10-07 (the old hash still lands there) */
+    "svc-06": svc("settings"),
+    "svc-06a": svc("documents"),
+    /* header „N modificări nepublicate” → the list of pending changes */
+    "svc-01i": svc("documents", async (h) => { await h.click('[data-svc-doc-required="3"]'); await h.wait(500); await h.click("[data-service-pending]"); }),
+    "svc-02d": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); }),
     "svc-07": svc("classifiers"),
     "svc-08": svc("templates"),
     "svc-08a": svc("templates", rowMenu("[data-dtpl-list]")),
@@ -356,19 +395,20 @@
     "trf-01a": trf(async (h) => { await h.click('[data-workplace-tab="draft"]'); }),
     "trf-01b": trf(async (h) => { await h.fill("[data-workplace-search]", "zzz", { leave: false }); }),
     "trf-02": trf(newTariff),
-    "trf-02a": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-save="publish"]'); }),
+    /* Continuă on an empty step 1: the errors stay on „Detalii” */
+    "trf-02a": trf(async (h) => { await newTariff(h); await h.click("[data-tariff-next]"); }),
     "trf-02b": trf(async (h) => { await newTariff(h); await h.click("#tariff-type"); }),
-    "trf-02c": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]"); }),
+    "trf-02c": trf(async (h) => { await tariffStep2(h); await h.click("[data-tariff-formula]"); }),
     /* formula field: typed numbers and + − × ÷ ( ); variables only from „Inserează variabilă” */
-    "trf-02e": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]"); await h.click('[aria-controls="tariff-var-picker"]'); }),
+    "trf-02e": trf(async (h) => { await tariffStep2(h); await h.click("[data-tariff-formula]"); await h.click('[aria-controls="tariff-var-picker"]'); }),
     "trf-02f": trf(async (h) => {
-      await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]");
+      await tariffStep2(h); await h.click("[data-tariff-formula]");
       await h.click('[aria-controls="tariff-var-picker"]'); await h.click('[data-tariff-var="suprafata_m2"]');
       await h.fill("#tariff-expression", "{suprafata_m2} * 2");
       await h.fill('[data-tariff-test="suprafata_m2"]', "120", { leave: false }); await h.click("[data-tariff-test-run]");
     }),
     /* Publică with errors on both tabs: the red dots, the first tab with an error opens */
-    "trf-02g": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-tab="suma"]'); await h.click("[data-tariff-formula]"); await h.click('[data-tariff-save="publish"]'); }),
+    "trf-02g": trf(async (h) => { await tariffStep2(h); await h.click("[data-tariff-formula]"); await h.click('[data-tariff-save="publish"]'); }),
     "trf-02d": trf(async (h) => { await newTariff(h); await h.click('[data-tariff-drawer] .js-date-picker-toggle'); }),
     "trf-03": trf(editTariff("tf-taxa-stat-50")),
     "trf-03a": trf(editTariff("tf-vechi")),

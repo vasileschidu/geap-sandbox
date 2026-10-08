@@ -6,14 +6,14 @@
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=empty-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=trf-formula-v4">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=modal-edges-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=sticky-tabs-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/empty-state.js?v=empty-v1"></script>
-  <script src="js/demo-states.js?v=bo-login-v1"></script>
+  <script src="js/demo-states.js?v=schedule-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/search.js?v=delegated-v1" defer></script>
   <script src="js/modal.js" defer></script>
@@ -3302,8 +3302,16 @@
                     <div class="e-permits-page-header__top" data-passport-top></div>
                     <div class="e-permits-page-header__meta" data-passport-meta></div>
                   </div>
-                  <div class="tabs tabs--sm e-permits-page-header__tabs">
-                    <div class="tab-buttons" role="tablist" aria-label="Secțiuni pașaport serviciu" data-passport-tabs></div>
+                  <div class="e-permits-page-header__tabs-scroll">
+                    <div class="tabs tabs--sm e-permits-page-header__tabs">
+                      <div class="tab-buttons" role="tablist" aria-label="Secțiuni pașaport serviciu" data-passport-tabs></div>
+                    </div>
+                    <button class="btn btn-neutral btn-sm btn-icon-only e-permits-page-header__tabs-arrow e-permits-page-header__tabs-arrow--start" type="button" aria-label="Taburile anterioare" tabindex="-1" data-passport-tabs-scroll="-1" hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg>
+                    </button>
+                    <button class="btn btn-neutral btn-sm btn-icon-only e-permits-page-header__tabs-arrow e-permits-page-header__tabs-arrow--end" type="button" aria-label="Taburile următoare" tabindex="-1" data-passport-tabs-scroll="1" hidden>
+                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+                    </button>
                   </div>
                 </header>
                 <div class="e-permits-dosar-profil__panel e-permits-passport__panel" id="passport-panel" role="tabpanel" data-passport-body></div>
@@ -3432,17 +3440,18 @@
     <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="rt-drawer-title" tabindex="-1">
       <header class="e-permits-user-create__header">
         <div class="e-permits-rt__heading">
-          <h2 id="rt-drawer-title">Configurează tipul de solicitare</h2>
+          <h2 id="rt-drawer-title" data-rt-title>Configurează tipul de solicitare</h2>
           <p class="e-permits-passport__modal-subtitle" data-rt-subtitle></p>
         </div>
         <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-rt-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
+      <nav class="e-permits-steps-strip" aria-label="Pașii adăugării" data-rt-steps hidden></nav>
       <div class="e-permits-user-create__body" data-rt-body></div>
       <footer class="e-permits-user-create__footer">
         <span class="e-permits-rt__summary" data-rt-summary aria-live="polite"></span>
-        <div class="modal-buttons">
+        <div class="modal-buttons" data-rt-buttons>
           <button class="btn btn-neutral btn-rounded" type="button" data-rt-close>Anulează</button>
           <button class="btn btn-primary btn-rounded" type="button" data-rt-save>Salvează</button>
         </div>
@@ -3484,6 +3493,7 @@
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
+      <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-tariff-steps hidden></nav>
       <div class="e-permits-user-create__body" data-tariff-body></div>
       <footer class="e-permits-user-create__footer">
         <span class="e-permits-rt__summary" data-tariff-summary aria-live="polite"></span>
@@ -3743,6 +3753,26 @@
     </div>
   </div>
 
+  <!-- „N modificări nepublicate” (page-header status) — what would go out with Publică -->
+  <div class="modal-overlay" id="pending-changes-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="pending-changes-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header">
+        <h2 class="modal--header-title" id="pending-changes-title">Modificări nepublicate</h2>
+        <p class="e-permits-passport__modal-subtitle" data-pending-changes-subtitle></p>
+      </div>
+      <div class="modal-content" data-pending-changes-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Închide</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-pending-changes-publish>Publică</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Servicii › Șabloane: import a template from MDocs — library modal -->
   <div class="modal-overlay" id="dtpl-import-modal" aria-hidden="true">
     <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="dtpl-import-title">
@@ -3878,11 +3908,11 @@
       </div>
     </div>
   </div>
-  <script src="core/service-passport.js?v=trf-formula-v1"></script>
+  <script src="core/service-passport.js?v=svc-fb-v4"></script>
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=bo-login-v1"></script>
+  <script src="js/e-permits-shell.js?v=schedule-v2"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

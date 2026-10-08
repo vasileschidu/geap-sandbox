@@ -18140,6 +18140,31 @@
   padding: 0;
 }
 
+/* tab overflow affordance: faded edge + an arrow over it (passport tabs, narrow screens) */
+.e-permits-page-header__tabs-scroll {
+  min-width: 0;
+  position: relative;
+}
+
+.e-permits-page-header__tabs-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.e-permits-page-header__tabs-arrow[hidden] {
+  display: none;
+}
+
+.e-permits-page-header__tabs-arrow--start {
+  left: var(--spacing-4, 4px);
+}
+
+.e-permits-page-header__tabs-arrow--end {
+  right: var(--spacing-4, 4px);
+}
+
 /* tab overflow affordance */
 .e-permits-page-header__tabs.has-overflow-end {
   -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 48px), transparent);
@@ -18298,6 +18323,19 @@
 
 .e-permits-stack__main {
   min-width: 0;
+}
+
+/* a row with a leading icon (Documente: the grey document): icon · text · actions */
+.e-permits-stack__item.has-lead .e-permits-stack__main {
+  flex: 1 1 auto;
+}
+
+.e-permits-stack__item.has-lead {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-stack__item.has-lead .e-permits-stack__actions {
+  margin-left: var(--spacing-12, 12px);
 }
 
 .e-permits-stack__title-row {
@@ -18607,6 +18645,11 @@
 
 .e-permits-rt__action-control .e-permits-fo-select {
   width: 340px;
+}
+
+/* Documente generate: select + „Generează” toggle on the right */
+.e-permits-rt__action-control .e-permits-toggle {
+  margin-left: var(--spacing-4, 4px);
 }
 
 @media (max-width: 760px) {
@@ -21590,9 +21633,32 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   margin: calc(-1 * var(--spacing-8, 8px)) calc(-1 * var(--spacing-20, 20px)) 0;
 }
 
+/* drawer tabs stay pinned under the header while the panel scrolls */
+.e-permits-user-create__body > .e-permits-tariff__tabs {
+  background-color: var(--color-background-base-default, #ffffff);
+  position: sticky;
+  top: calc(-1 * var(--spacing-8, 8px));
+  z-index: 2;
+}
+
+/* the library row line is --gray-300; here it is the drawer's border colour, and the row
+   gets the same line on top */
 .e-permits-tariff__tabs .tab-buttons {
+  border-bottom-color: var(--color-border-base-default, #d9d9d9);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   padding: 0 var(--spacing-20, 20px);
   width: auto;
+}
+
+/* tabs straight under the drawer header: the header's bottom border is the row's top
+   line — no second border (it only belongs under a status strip) */
+.e-permits-user-create__body > .e-permits-tariff__tabs:first-child .tab-buttons {
+  border-top: 0;
+}
+
+/* the status box under the drawer header: same 20px as the side gutter */
+.e-permits-tariff__status {
+  margin-top: var(--spacing-12, 12px);
 }
 
 .e-permits-tariff__status + .e-permits-tariff__tabs {

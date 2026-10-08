@@ -3831,17 +3831,22 @@ body.is-user-create-open {
   line-height: var(--line-height-lh-20, 20px);
 }
 
+/* compact like the header (12 / 20); a 1px top border, not a hairline shadow — the
+   shadow vanished where a white field scrolled under it, and positioned controls in
+   the body painted over it. z-index keeps the footer above anything that scrolls. */
 .e-permits-user-create__footer {
   box-sizing: border-box;
   flex: 0 0 auto;
   width: 100%;
-  padding: var(--spacing-20, 20px);
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--spacing-12, 12px);
   background: var(--color-background-base-default, #fff);
-  box-shadow: 0 -1px 1.5px rgb(0 0 0 / 16%), 0 0 0.25px rgb(0 0 0 / 30%);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  position: relative;
+  z-index: 2;
 }
 
 @media (max-width: 760px) {
@@ -3872,7 +3877,7 @@ body.is-user-create-open {
   }
 
   .e-permits-user-create__footer {
-    padding: var(--spacing-16, 16px);
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
   }
 }
 
@@ -3981,6 +3986,36 @@ body.is-user-create-open {
 }
 
 .e-permits-toggle__description {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* Checkbox with a title + description = the switch's layout with a checkbox
+   (.checkbox.e-permits-check, 2026-10-08): 12px between control and text, centred,
+   title 14/20 medium default, description 14/20 regular tertiary — exactly
+   .e-permits-toggle__label / __description. main.css stays the library copy. */
+.checkbox.e-permits-check {
+  align-items: center;
+  gap: var(--spacing-12, 12px);
+}
+
+.checkbox.e-permits-check .checkbox-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.checkbox.e-permits-check .checkbox-label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.checkbox.e-permits-check .checkbox-description {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-regular, 400);
@@ -4170,3 +4205,20 @@ body.is-user-create-open {
 }
 
 
+
+/* Modals: when the content scrolls, a hairline separates it from the header (scrolled
+   down) and from the footer (more below) — set by syncModalScrollEdges(). The borders
+   are always there, transparent, so nothing shifts. */
+.modal .modal-content {
+  border-bottom: var(--border-width-1, 1px) solid transparent;
+  border-top: var(--border-width-1, 1px) solid transparent;
+  transition: border-color 120ms ease;
+}
+
+.modal.has-scroll-above .modal-content {
+  border-top-color: var(--color-border-base-default, #d9d9d9);
+}
+
+.modal.has-scroll-below .modal-content {
+  border-bottom-color: var(--color-border-base-default, #d9d9d9);
+}

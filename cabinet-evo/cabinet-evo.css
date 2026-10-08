@@ -473,10 +473,10 @@
 }
 
 .cab-card__actions .btn.cab-card__more {
-  height: 36px;
-  min-width: 36px;
+  height: 40px;
+  min-width: 40px;
   padding: 0;
-  width: 36px;
+  width: 40px;
 }
 
 .cab-menu__separator {

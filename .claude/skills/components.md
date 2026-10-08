@@ -933,6 +933,57 @@ Figma ships **two** sizes (20, 24); CSS ships **three** (16, 20, 24). So writing
 renders wrongly today — but the vocabulary means design and code say "medium" about
 two different things.
 
+#### Document icons + per-step output rows (2026-10-08)
+
+- **Icon by origin:** every document the **system generates** (output forms / șabloane de
+  tipar, acts, decisions, notes, certificates) uses the **blue** full-flow icon
+  `assets/icons/document-generated.svg`; documents the **user uploads** or that come from
+  RSSP use the **grey** `assets/icons/document-uploaded.svg`. 24px,
+  `.e-permits-fo-lib-item__icon`. Figma: the grey one is the local component
+  „Icon / Document (grey, filled)” (`10327:34118`).
+- **Document row** = the Documente tab row: `.e-permits-stack__item.has-lead` (icon · title ·
+  meta line with the code tag) inside one bordered, integrated `.e-permits-stack` with a
+  group header (title + count) — never one card per row, never a checkbox list.
+- **Per-step override row** (request type › Documente generate / Notificări — the Formulare
+  model: the process sets the default, the request type may override per step).
+  `rtOverrideRow()` in `js/e-permits-shell.js`:
+  - one row per flow step (`passport.documentSteps(flow)` / `notificationSteps(flow)`),
+    lead = blue icon (documents only), title = step name, meta = doc-type tag;
+  - status tag next to the title: `Implicit` (documents) / `Din proces` (notificări) neutral,
+    `Personalizat` brand when overridden, `Nu se generează` neutral when switched off;
+  - right side `.e-permits-rt__action-control`: fo-select 340px (first option
+    `value="default"` = „Implicit · <template>”, so it renders as a value, not a
+    placeholder) · `Revino la implicit` text button only when overridden · documents only:
+    switch **„Generează”** (on by default; off → select disabled, step skipped by
+    `rtTemplateCodes`). Stored as `rt.docOverrides`, `rt.docOff`, `rt.notifyOverrides`.
+
+#### Checkbox with title + description = the switch layout (2026-10-08)
+
+Every checkbox that has a **title and a description** uses exactly the switch row's layout
+(`.e-permits-toggle`), only with a checkbox:
+
+```html
+<label class="checkbox checkbox--medium e-permits-check">
+  <input type="checkbox" class="checkbox-input">
+  <span class="checkbox-custom" aria-hidden="true"></span>
+  <span class="checkbox-texts">
+    <span class="checkbox-label">Titlu</span>
+    <span class="checkbox-description">Descriere</span>
+  </span>
+</label>
+```
+
+- 12px between box and text, vertically centred (as the switch).
+- Title 14/20 **medium**, `--color-text-base-default`; description 14/20 regular,
+  `--color-text-base-tertiary` — identical to `.e-permits-toggle__label` / `__description`.
+- CSS lives in `css/e-permits-shell.css` (`.checkbox.e-permits-check`); `main.css` stays the
+  library copy. Used by: tariff „Specialistul completează
+  variabilele…”, classifier value checklist.
+- **Figma:** local component set **„Checkbox · titlu + descriere”** (`10387:1247`, page
+  ↳ BO -> Servicii): variants `Checked=True|False`, props `Titlu`, `Descriere`,
+  `Arată descrierea`; library `checkbox` (Size=Small = 20px) + texts Body/Small 500 and
+  Body/Small tertiary, gap 12, centred. Never rebuild it from a bare box + text frames.
+
 #### Full flow — services with optional MPass (2026-09-30)
 
 When a service works **with and without** authentication (`auth.required: false`), an
@@ -2678,19 +2729,159 @@ in `js/e-permits-shell.js`; CSS is in `css/e-permits-acte-permisive.css`.
   users have no audit data yet, so `roleEvents()` and `userEvents()` derive events from
   their dates.
 
-### Service passport structure — Feature 90575 (updated 2026-10-01)
+### Service passport structure — Feature 90575 (updated 2026-10-07)
 
 These are the tabs in `SERVICE_PROFILE_TABS`, in order:
 1. Date generale
 2. Tipuri solicitări
 3. Formulare
-4. **Taxe**
-5. Interdependențe
+4. **Documente** (Documente însoțitoare from RSSP — moved out of Date generale, 2026-10-07)
+5. **Taxe**
 6. Clasificatoare specifice
 7. Șabloane
 8. Notificări
-9. Setări
+9. Setări (the switches, then **Interdependențe** — no tab of its own since 2026-10-07;
+   `#serviciu/<code>/dependencies` maps to `settings`)
 10. Jurnal de evenimente
+
+**Rule — Figma comments (2026-10-08, from the user):** a Figma comment is answered
+„✅ Rezolvat” **only after the change is in Figma** (the frame edited or created), never when
+it is only in code. Each reply links the comment and the Figma frame(s) changed. If something
+is done in code but not yet in Figma, reply „În cod — urmează în Figma” and come back to it.
+
+**Scheduled publication (service, 2026-10-08)** — publish modal „Intră în vigoare”:
+Imediat | La o dată anume (date ≥ tomorrow, required; subtitle „intră în vigoare pe …” /
+„… la data aleasă”). After a scheduled publish (pattern: Contentful / ibexa — one schedule
+at a time, the schedule replaces the publish action):
+- header: `btn-secondary btn-sm` **„Programat · DD/MM/YYYY”** (leading clock icon only — the library button has no
+  leading + trailing variant; `aria-haspopup="menu"` carries the menu) in place
+  of Publică → stack-menu `#service-schedule-menu`: Reprogramează (calendar-edit) · Publică
+  acum (cloud-upload) · Anulează programarea (calendar-remove, `is-danger`);
+- caption „vX intră în vigoare pe …”; meta Versiune and Istoric „curentă” = the version
+  **in force** (`serviceVersionInForce`), the scheduled one is „programată pentru …” + Programat;
+- Reprogramează = the publish modal in reschedule mode (no Imediat/La o dată choice, date and
+  comment prefilled, button „Reprogramează”); Publică acum / Anulează programarea confirm
+  first (`askConfirm`; cancel's dismiss = „Păstrează programarea”, never two „Anulează”).
+  Cancel → the changes return to „nepublicate”;
+- new changes while scheduled: Publică shows again; that publication replaces the schedule
+  (info banner in the modal, same version number, changes merged).
+Demo: `svc-01f1` (date), `svc-01f2` (date missing), `svc-01h1` (Istoric), `svc-01j` (menu),
+`svc-01j1` (reprogramează), `svc-01j2` (publică acum), `svc-01j3` (anulează).
+
+**Modals — scroll edges (2026-10-08):** while `.modal-content` scrolls, a 1px
+`--color-border-base-default` line appears under the header (content scrolled up out of
+view) and above the footer (more content below) — `.modal.has-scroll-above / .has-scroll-below`
+set by `syncModalScrollEdges()` in `js/e-permits-shell.js`; borders are always present but
+transparent, so nothing shifts. Figma: show the line on modal screens whose content scrolls.
+
+**Rule — Figma changes cover the whole column (2026-10-08, from the user):** a change to a
+screen (a tab moved, a header/stepper/field changed) is applied to **every block in that
+column and every other block that shows the same UI**, not only the top screen. Find them
+by searching the whole file (all pages) for the old element/text, fix all, then **verify**:
+- re-run the search → 0 stale hits (e.g. every service tab row = the code's tab list);
+- vertical check per column: blocks sorted by y, gap ≥ 40, no overlaps; when a block grows,
+  shift every block below it in the column by the same delta; plus a no-overlap check
+  between all blocks of the page;
+- screenshot the changed screens.
+
+**Figma flow arrows (2026-10-08, from the user):** one object per flow, elbow shape, no two
+arrows on the same line. Figma connectors cannot be routed (every elbow from a screen takes the
+same vertical), curved was too messy and two joined connectors were rejected — so side flows
+are a **group „Flow · <action>”** = one VECTOR path (start at the clicked element's edge →
+horizontal to its lane → vertical → into the target block's RIGHT/LEFT edge, corner radius 24,
+3px `--color-border-brand` stroke, ARROW_LINES end cap) + a white „label” chip (Onest Medium 14,
+brand text) centred on the vertical run. Lanes: 120px apart, first lane 64px from the column,
+interval colouring per gap (arrows whose vertical runs overlap get different lanes); the gap
+between columns = 64 + lanes × 120 + 260. Straight-down flows between consecutive blocks stay
+ELBOWED connectors BOTTOM → TOP. Vectors do not follow moved blocks: when a block moves,
+rebuild the arrow paths (script: recompute lanes from the groups, move columns, re-set the
+vector network). Verify: no block overlap and no lane passing through a block.
+
+**Page header component (Main Navigation `9442:44686`)** — it had been deleted from the
+canvas (instances kept working but no edit reached them); restored on ↳ BO -> Servicii next
+to the local components. Props: `Modificări nepublicate`, `Programat` (shows „btn ·
+Programat”, Secondary + clock), `Buton Publică` (hide it when Programat). Per instance set
+Caption / Version texts. Scheduled-publication blocks: 01f1, 01f2, 01h1, 01j, 01j1–01j3
+(Modal instances with content components „Modal conținut / S01f1 …”).
+
+**Stepper (Figma) = local component „Stepper · drawer” (`10421:197819`, page ↳ BO ->
+Servicii)** — strip (padding 16/20, bottom border) with 4 `.step-desktop` instances
+(Horizontal). Per use: set each step's Step Label + State (Completed / Current /
+Incomplete), hide unused steps; width FILL. Every wizard drawer (clasificator nou, tarif
+nou, șablon nou, …) uses it — never a frame-built strip. Code: `renderStepStrip`.
+
+**Feedback round 2026-10-07 (A. Pascalov, Figma comments on Profile Serviciu):**
+- **Tab count badge:** grey = all good. Yellow (`--warning`) only when something blocks
+  the service — today, a request type **without a flow**. The tab then carries
+  `data-tooltip-reason` saying what. „Fără formular” is a grey tag (`requestTypeState`
+  tone `neutral`): a request without an electronic form is not blocked.
+- **Section heading action:** `renderStackedList(title, groups, { meta, actionHtml })` puts
+  meta + action together in `.e-permits-passport__heading-tools` (right side). Add buttons
+  are `btn btn-secondary btn-sm` with `icon-plus-large`, like „Atașează șablon”.
+- **Tipuri solicitări:** „Adaugă tip solicitare” is a stack-menu button
+  (`data-stack-menu-trigger`, menu `#passport-add-rt-menu`) listing the eligible
+  post-processes (`RT_POST_PROCESS_TYPES`) the service does not have yet, matched by
+  stem (`rtStem`: „Suspendare” = „Suspendarea valabilității”). Picking one adds a
+  `source: "GEAP"` type and opens its drawer. GEAP types get a ⋮ with Elimină
+  (`askConfirm`); RSSP types cannot be removed.
+- **Formulare:** one flat list (no grouping by request type — a form can serve several
+  at once). `meta2` = „Folosit în” + neutral tags of the request types whose `rt.form`
+  is this form (the mapping is made in the request type), or a muted „niciun tip de
+  solicitare”. Heading: „Adaugă formular”. ⋮ menu: Previzualizează · Duplică · Versiuni ·
+  Exportă setări (JSON) · Elimină (danger; refused with an error toast while the form is
+  used).
+- **Adaugă tip de solicitare — steps, not tabs** (2026-10-07): picking a post-process from
+  „Adaugă tip solicitare” opens the same drawer in create mode — the step strip
+  `[data-rt-steps]` (`renderStepStrip`, as Tarif nou / Clasificator nou) with
+  General → Formulare → Documente generate → Notificări (`RT_CREATE_STEPS`; Taxe has nothing
+  yet for a new type). Footer: Anulează · Continuă → Înapoi · Continuă → Înapoi · „Adaugă tipul”;
+  caption „Pasul n din 4 · …”. Continuă from General checks flux + termen. The type is held in
+  `rtDraft.pending` and pushed to the service only on „Adaugă tipul” (Anulează leaves nothing).
+- **Configurează tipul de solicitare (02a) — tabs** (too much to scroll in one view):
+  General · Formulare · Documente generate · Notificări · Taxe (`RT_DRAWER_TABS`,
+  `rtDraft.tab`). Same tab row as the tariff edit drawer: `.tabs.tabs--sm.e-permits-tariff__tabs`
+  + `.e-permits-tariff__panel` (`data-rt-tab`). Save with a missing flow / bad term jumps
+  back to General to show the error.
+- **Drawer tabs are sticky** (2026-10-08): `.e-permits-user-create__body >
+  .e-permits-tariff__tabs` is `position: sticky; top: -var(--spacing-8)` (cancels the body's
+  top padding) on `--color-background-base-default`, z-index 2 — only the panel scrolls.
+  Applies to every drawer with this tab row (request type, tariff edit).
+- **Their content:** Formulare = which **form (screen)** each flow action opens for the
+  specialist (US-224; e.g. „Suspendare” → SuspendareTermen); **Documente generate** and
+  **Notificări** = per-step override rows (see „Document icons + per-step output rows”);
+  **Taxe** = read-only rows grouped by flow moment, pointing to Taxe și tarife. Every
+  „Implicit · …” option has `value="default"` so it renders as a value, not a placeholder.
+- **Șabloane de tipar rows:** no MDocs/PDF tag (every template is a PDF from MDocs; the
+  list note says so). Meta: code tag · type · version · edited; `meta2` = „Generat la” +
+  request-type tags (`dtplRequestTypes`; until a type is saved, the first one issues all).
+- **Documente tab:** the bordered stacked list (`renderStackedList`), not grey tiles. Each
+  row: the full flow's grey filled document icon (`assets/icons/document-uploaded.svg`,
+  24px, `.e-permits-fo-lib-item__icon`) via `renderStackItem({ leadHtml })` (row gets
+  `.has-lead`), title, meta `RSSP` tag · „În RSSP: obligatoriu/opțional”, and on the right
+  the „Obligatoriu” switch (`renderToggle`, `data-svc-doc-required`). GEAP overrides RSSP
+  (`geap.documentRequired[title]`); a changed row gets a brand „Modificat în GEAP” tag.
+- **„N modificări nepublicate” is clickable everywhere** (service header, template builder):
+  `renderHeaderStatus(text, "warning", 'data-… aria-haspopup="dialog" title="Vezi modificările"')`
+  opens `#pending-changes-modal` (`openPendingChanges({ subject, changes, publishLabel, onPublish })`):
+  stacked groups Adăugat (success) / Modificat (brand) / Eliminat (danger), each row
+  area · detail · when · who; footer Închide + Publică (continues to the publish modal).
+- **Side drawers (`.e-permits-user-create`) — header / footer (2026-10-07):** the footer is
+  compact like the header — padding 12 / 20 (12 / 16 under 760px) — with a 1px
+  `--color-border-base-default` **top border, no shadow** (the hairline shadow vanished
+  where a white field scrolled under it), `position: relative; z-index: 2`. Tabs placed
+  straight under the header drop their own top border (`.e-permits-user-create__body >
+  .e-permits-tariff__tabs:first-child`) so there is one line, not two; under a status strip
+  they keep it.
+- **Tab row overflow — Figma (2026-10-08):** local component set **„Tabs · overflow edge”**
+  (`10452:6511`, page ↳ BO -> Application Shell): Side=End / Start = 80×40 fade (transparent →
+  `background/base/default`) + library button Neutral · Small · Icon=Only (20/chevron-right /
+  -left). Screens 03 / 03a / 03b (1440px: start / middle / end) in section „03 · Taburi lungi”:
+  the header's own tab row is hidden and a clipped strip of the same tab instances, shifted
+  by the scroll offset, carries the edge instances.
+- **Tab row overflow:** `.e-permits-page-header__tabs-scroll` wraps the passport tabs; the
+  faded edge (existing mask) gets a `btn btn-neutral btn-sm btn-icon-only`
+  chevron (`.e-permits-page-header__tabs-arrow--start/--end`, `data-passport-tabs-scroll`)
+  shown only while that side overflows (`syncPassportTabOverflow`); a click scrolls 60%.
 
 - **Taxe și tarife** (`fees`) is the only money tab (revised 2026-10-02 — the separate Tarife tab
   confused: a tax is computed *from* a tariff). Old `#serviciu/<code>/payments` and
@@ -2725,8 +2916,8 @@ These are the tabs in `SERVICE_PROFILE_TABS`, in order:
      `actionHtml` link "Vezi tot jurnalul".
   4. **Servicii guvernamentale conectate**: MConnect, MPay and MSign, each with a
      "Conectat"/"Neutilizat" tag and an `.e-permits-passport__row-note`.
-  5. The rest of the RSSP record (descriere, subservicii, documente, valabilitate,
-     date locale).
+  5. The rest of the RSSP record (descriere, subservicii, valabilitate, date locale).
+     Documente însoțitoare have their own tab; the „Obiecte configurate” row links there.
 - **List:** the columns read "Act permisiv" and "Instituția". The toolbar button is
   "Creează serviciu nou" (it opens the RSSP import modal titled "Creează serviciu nou din
   RSSP"). The per-row actions stay Sincronizare and Actualizare.
@@ -3241,10 +3432,15 @@ A tab whose fields have errors shows `.e-permits-ntpl-dot.e-permits-tariff__tab-
 Salvează / Publică opens the tab of the first error (`TARIFF_FIELD_TAB`). A tab never repeats its
 own name as a section heading.
 
+**Create vs edit:** a new tariff uses the **step strip** of every create drawer
+(`nav.e-permits-steps-strip[data-tariff-steps]` + `renderStepStrip`, steps Detalii · Sumă și formulă;
+footer „Pasul n din 2 · …”, Anulează/Continuă → Înapoi/Salvează schiță/Publică; Continuă validates
+step 1). A saved tariff uses **tabs** (Detalii · Sumă și formulă · Utilizare și istoric).
+
 **Tab row:** the library component as is — `.tabs.tabs--sm` (Figma `tab-item-s`: 40px, px12,
-14/20; Selected = 2px underline + Medium, Unselected = Regular), no extra padding. Only the row
-spans the drawer width (`.e-permits-tariff__tabs` bleeds over the body's side padding, flush under
-the header; 16px below the status strip).
+14/20; Selected = 2px underline + Medium, Unselected = Regular). The row spans the drawer width
+with a 1px `--color-border-base-default` line above and below (the library line is `--gray-300`);
+16px below the status strip, which itself sits 12px under the header (20px with the body padding).
 
 **Formula field** `.e-permits-fo-field.e-permits-tariff-formula` — the Șabloane approach (subject +
 „Inserează câmp”), not a token builder:

@@ -380,4 +380,29 @@ check("taxe: validation — tariff, condition values, reduction range, no formul
   assert.ok(sp.validateTax({ ...base, tariffId: "t-x" }, { tariff: { ...T.mod, active: false }, serviceCode: "B" }).tariffId, "an inactive tariff cannot be charged");
 });
 
+// Request type › Documente generate / Notificări: one row per flow step (US-222, US-223)
+check("documentSteps: one row per document kind, keyed by step id, in flow order", () => {
+  const flow = { definition: JSON.parse(readFileSync(new URL("../data/flows/ProcesFluxSimplificatFaraSupervizor.json", import.meta.url), "utf8")) };
+  const docs = sp.documentSteps(flow);
+  assert.deepEqual(docs.map((d) => d.docType), ["Decizie", "Notă de plată", "Act permisiv"]);
+  assert.ok(docs.every((d) => d.key && d.stepName), "every row has a step id and name");
+  assert.equal(new Set(docs.map((d) => d.kind)).size, docs.length, "each kind appears once");
+});
+
+check("documentSteps / notificationSteps: inline flows (steps only) and no flow", () => {
+  assert.deepEqual(sp.documentSteps(null), []);
+  assert.deepEqual(sp.notificationSteps(null), []);
+  const inline = { steps: [{ id: "s1", name: "Creează proiectul actului" }, { id: "s2", name: "Examinare" }] };
+  assert.deepEqual(sp.documentSteps(inline).map((d) => [d.key, d.kind]), [["s1", "act"]]);
+  assert.deepEqual(sp.notificationSteps(inline), [], "inline flows carry no notify steps");
+});
+
+check("notificationSteps: one row per (notify step, event), key = stepId|event", () => {
+  const flow = { definition: { states: [
+    { id: "n1", title: "Notifică solicitantul", componentType: "notify", properties: { templateCodes: ["E1", "E2"] } },
+    { id: "x", title: "Examinare", componentType: "task", properties: { templateCodes: ["E9"] } }
+  ] } };
+  assert.deepEqual(sp.notificationSteps(flow).map((n) => n.key), ["n1|E1", "n1|E2"]);
+});
+
 console.log(`\n${passed} checks passed`);

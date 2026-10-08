@@ -282,7 +282,9 @@
   /* ---- request types -------------------------------------------------- */
   function requestTypeState(requestType) {
     if (!requestType.flow) return { label: "Fără flux", tone: "warning" };
-    if (!requestType.form) return { label: "Fără formular", tone: "warning" };
+    /* a missing form does not block (the request can be filed on paper / at the desk):
+       grey, not yellow — yellow is kept for what stops the service (no flow) */
+    if (!requestType.form) return { label: "Fără formular", tone: "neutral" };
     return { label: "Configurat", tone: "success" };
   }
 
@@ -473,6 +475,52 @@
   var INITIATION = PAYMENT_MOMENTS[0];
 
   /* the designer JSON marks payment steps with properties.momentId (1-based) */
+  /* ---- what a flow produces, per step (US-222 / US-188) ---------------------
+     Notification steps = componentType "notify" with their event codes (one row per
+     step × event). Document steps = the steps whose work yields a document: the act
+     draft, the rejection decision, the payment note. A request type keeps the process
+     default or replaces it with a service template — the same override model as the
+     forms per action. */
+  var DOC_STEP_KINDS = [
+    { test: /proiectul actului|publicare .*mdocs/i, kind: "act", docType: "Act permisiv" },
+    { test: /decizi[ae]i? de respingere|proiectul deciziei/i, kind: "decizie", docType: "Decizie" },
+    { test: /not[ăa] de plat[ăa]/i, kind: "nota", docType: "Notă de plată" }
+  ];
+
+  function stepList(flow) {
+    if (flow && flow.definition) {
+      return (flow.definition.states || []).map(function (state) {
+        return { id: state.id, name: normalizeTitle(state.title || ""), componentType: state.componentType || null, templateCodes: (state.properties || {}).templateCodes || [] };
+      });
+    }
+    return ((flow && flow.steps) || []).map(function (step) { return { id: step.id, name: step.name, componentType: null, templateCodes: [] }; });
+  }
+
+  function documentSteps(flow) {
+    var seen = {};
+    var out = [];
+    stepList(flow).forEach(function (step) {
+      for (var i = 0; i < DOC_STEP_KINDS.length; i += 1) {
+        var k = DOC_STEP_KINDS[i];
+        if (k.test.test(step.name) && !seen[k.kind]) {
+          seen[k.kind] = true;
+          out.push({ key: step.id, stepName: step.name, kind: k.kind, docType: k.docType });
+          break;
+        }
+      }
+    });
+    return out;
+  }
+
+  function notificationSteps(flow) {
+    var out = [];
+    stepList(flow).forEach(function (step) {
+      if (step.componentType !== "notify") return;
+      step.templateCodes.forEach(function (code) { out.push({ key: step.id + "|" + code, stepName: step.name, event: code }); });
+    });
+    return out;
+  }
+
   function momentsFromDefinition(def) {
     var found = [];
     (def.states || []).forEach(function (state) {
@@ -866,6 +914,8 @@
     flowActions: flowActions,
     overrideCount: overrideCount,
     stepsFromDefinition: stepsFromDefinition,
+    documentSteps: documentSteps,
+    notificationSteps: notificationSteps,
     definitionForms: definitionForms,
     paymentActions: paymentActions,
     canPublish: canPublish,
