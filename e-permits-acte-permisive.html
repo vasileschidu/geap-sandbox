@@ -6,14 +6,14 @@
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=modal-edges-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=sticky-tabs-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=float-v2">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=mail-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/empty-state.js?v=empty-v1"></script>
-  <script src="js/demo-states.js?v=schedule-v1"></script>
+  <script src="js/demo-states.js?v=peek-all-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/search.js?v=delegated-v1" defer></script>
   <script src="js/modal.js" defer></script>
@@ -3449,12 +3449,48 @@
       </header>
       <nav class="e-permits-steps-strip" aria-label="Pașii adăugării" data-rt-steps hidden></nav>
       <div class="e-permits-user-create__body" data-rt-body></div>
+      <!-- Documente generate › Previzualizează: view-only document, docked left of the drawer -->
+      <section class="e-permits-doc-peek" id="rt-peek" aria-labelledby="rt-peek-title" data-rt-peek hidden>
+        <header class="e-permits-user-create__header">
+          <div class="e-permits-rt__heading">
+            <h2 id="rt-peek-title" data-rt-peek-title>Previzualizare</h2>
+            <p class="e-permits-passport__modal-subtitle" data-rt-peek-subtitle></p>
+          </div>
+          <button class="e-permits-user-create__close" type="button" aria-label="Închide previzualizarea" data-rt-peek-close>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+          </button>
+        </header>
+        <div class="e-permits-doc-peek__canvas" data-rt-peek-canvas></div>
+        <p class="e-permits-doc-peek__note" data-rt-peek-note>Doar vizualizare · câmpurile marcate sunt completate cu date de exemplu. Documentul final se generează în MDocs, ca PDF.</p>
+      </section>
       <footer class="e-permits-user-create__footer">
         <span class="e-permits-rt__summary" data-rt-summary aria-live="polite"></span>
         <div class="modal-buttons" data-rt-buttons>
           <button class="btn btn-neutral btn-rounded" type="button" data-rt-close>Anulează</button>
           <button class="btn btn-primary btn-rounded" type="button" data-rt-save>Salvează</button>
         </div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Șabloane › Previzualizează: a print template, view-only (the same page as the
+       request-type preview); the builder opens only from „Deschide constructorul” -->
+  <div class="e-permits-user-create" data-tpl-preview hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide previzualizarea" data-tpl-preview-close></button>
+    <aside class="e-permits-user-create__drawer e-permits-doc-preview" id="tpl-preview" role="dialog" aria-modal="true" aria-labelledby="tpl-preview-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="tpl-preview-title" data-tpl-preview-title>Previzualizare</h2>
+          <p class="e-permits-passport__modal-subtitle" data-tpl-preview-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-tpl-preview-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-doc-peek__canvas" data-tpl-preview-canvas></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary">Doar vizualizare · date de exemplu · PDF generat în MDocs</span>
+        <div class="modal-buttons" data-tpl-preview-buttons></div>
       </footer>
     </aside>
   </div>
@@ -3912,7 +3948,7 @@
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=schedule-v2"></script>
+  <script src="js/e-permits-shell.js?v=mail-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

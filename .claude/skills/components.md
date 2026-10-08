@@ -950,12 +950,49 @@ two different things.
   - one row per flow step (`passport.documentSteps(flow)` / `notificationSteps(flow)`),
     lead = blue icon (documents only), title = step name, meta = doc-type tag;
   - status tag next to the title: `Implicit` (documents) / `Din proces` (notificări) neutral,
-    `Personalizat` brand when overridden, `Nu se generează` neutral when switched off;
-  - right side `.e-permits-rt__action-control`: fo-select 340px (first option
-    `value="default"` = „Implicit · <template>”, so it renders as a value, not a
-    placeholder) · `Revino la implicit` text button only when overridden · documents only:
-    switch **„Generează”** (on by default; off → select disabled, step skipped by
-    `rtTemplateCodes`). Stored as `rt.docOverrides`, `rt.docOff`, `rt.notifyOverrides`.
+    `Personalizat` brand when overridden;
+  - right side `.e-permits-rt__action-control`: documents only — icon-only
+    `btn btn-neutral btn-sm btn-icon-only` eye („Previzualizează”, `data-rt-doc-peek`,
+    `aria-expanded`) · fo-select 340px (first option `value="default"` = „Implicit ·
+    <template>”, so it renders as a value, not a placeholder) · `Revino la implicit` text
+    button only when overridden. No „Generează” switch (removed 2026-10-08, user: not needed
+    in the drawer). Stored as `rt.docOverrides`, `rt.notifyOverrides`.
+- **Document preview (view-only) next to a drawer (2026-10-08, comment 1958021586):**
+  `section.e-permits-doc-peek` inside the drawer `<aside>` (so the dialog keeps focus/Esc),
+  docked in the free space left of the drawer (`left: calc(100% - 100vw); right: calc(100% +
+  12px)` — a 12px strip of the dimmed backdrop separates the two panels); when
+  that space is < 560px it slides over the drawer's left part (`.is-overlay`, max 760px) —
+  the selects on the right stay visible. Header = drawer header (template name; subtitle
+  step · type · version + `Implicit`/`Personalizat` + `Doar vizualizare` tags; close),
+  grey canvas with the builder's A4 page (`.e-permits-dtpl__page`, `dtplFill` with sample
+  data) scaled to fit via `zoom`, footer note. The previewed row gets `.is-previewing`
+  (brand-secondary background). It follows the row's select; Esc closes the preview first,
+  focus returns to the eye button. Motion: opens from behind the drawer (200ms
+  `cubic-bezier(0.16,1,0.3,1)`, 24px + fade), closes 140ms ease-in (`.is-closing`), another
+  template in the open panel cross-fades the page (180ms, `.is-swapping`); re-renders that
+  keep the same template do not re-animate; `prefers-reduced-motion` turns all of it off.
+  Demo `svc-02d1`.
+  - **Notificări** rows have the same eye: the panel shows the notification template the
+    step sends (override or the process one), RO text, with an E-mail / Mobil segmented
+    switch (`renderNtplPreviewOf(text, mode)` — the same card as the template's Conținut
+    preview). Built exactly like that Conținut preview: **white** canvas (`.is-mail`) → the
+    switch on white → the grey frame `.e-permits-ntpl-preview` → the white card (the A4
+    documents keep the grey canvas). Demo `svc-02d2`.
+  - **Șabloane tab:** the eye on a print-template row (`data-dtpl-preview`) opens the same
+    A4 page **view-only** in its own drawer (`[data-tpl-preview]`, 880px); the builder is
+    one step further — „Deschide constructorul” (admins) in that drawer's footer. An eye
+    never opens an editor. Demo `svc-08l`.
+- **Preview floats, drawer does not (2026-10-08, user):** the drawer stays full height, square,
+  edge to edge (as every drawer); only the document / notification preview floats — **16px on every side**: from the
+  screen's top, bottom and left edges and from the drawer; `--border-radius-16` all round,
+  `--drop-shadow-400`. (Tried and rejected: 12px gap; flush against the drawer.)
+  **Room for both:** while the preview is open the wide drawer narrows (`.has-peek`:
+  `clamp(640px, 100vw − 592px, 960px)`, 200ms width transition) so both sit side by side —
+  1440: drawer 848 + preview 560; 1920: 960 + 912. Below 1232px (and on phones) there is no
+  room: the drawer keeps its width and the preview opens as a regular full-screen panel over
+  it (`.is-overlay`), keeping the 16px inset and the rounded corners, and the drawer behind it
+  dims with the page backdrop colour (`.has-peek-overlay` → `::after` scrim). The A4 page re-scales
+  on every canvas resize (ResizeObserver → `zoom`). 
 
 #### Checkbox with title + description = the switch layout (2026-10-08)
 
@@ -2744,6 +2781,16 @@ These are the tabs in `SERVICE_PROFILE_TABS`, in order:
    `#serviciu/<code>/dependencies` maps to `settings`)
 10. Jurnal de evenimente
 
+**Rule — the button that opened something keeps its focus ring (2026-10-08, from the user,
+every button in the system):** while a button's menu, dropdown, side panel or preview is
+open, the button shows its pressed fill **plus the focus ring** (2px
+`--color-background-base-default` + 5px `--focus-ring`), so it is obvious which button opened
+it. Mechanism: the button carries `aria-expanded="true"` (openers, with `aria-controls`) or
+`aria-pressed="true"` (toggles) — the global rule `.btn[aria-expanded="true"],
+.btn[aria-pressed="true"]` in `css/e-permits-shell.css` draws the ring; never a custom
+`is-active` class. Every new opener must set and clear `aria-expanded`. Figma: the trigger
+of an open menu / panel uses State=Focus.
+
 **Rule — Figma comments (2026-10-08, from the user):** a Figma comment is answered
 „✅ Rezolvat” **only after the change is in Figma** (the frame edited or created), never when
 it is only in code. Each reply links the comment and the Figma frame(s) changed. If something
@@ -2837,7 +2884,7 @@ nou, șablon nou, …) uses it — never a frame-built strip. Code: `renderStepS
   yet for a new type). Footer: Anulează · Continuă → Înapoi · Continuă → Înapoi · „Adaugă tipul”;
   caption „Pasul n din 4 · …”. Continuă from General checks flux + termen. The type is held in
   `rtDraft.pending` and pushed to the service only on „Adaugă tipul” (Anulează leaves nothing).
-- **Configurează tipul de solicitare (02a) — tabs** (too much to scroll in one view):
+- **Configurează tipul de solicitare (02a) — 960px wide (`--wide`, was 1120; 2026-10-08) — tabs** (too much to scroll in one view):
   General · Formulare · Documente generate · Notificări · Taxe (`RT_DRAWER_TABS`,
   `rtDraft.tab`). Same tab row as the tariff edit drawer: `.tabs.tabs--sm.e-permits-tariff__tabs`
   + `.e-permits-tariff__panel` (`data-rt-tab`). Save with a missing flow / bad term jumps

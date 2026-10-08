@@ -18583,7 +18583,23 @@
 /* ---- Configurează tipul de solicitare: the user-create drawer, wide ------
    enough for the step list with one form dropdown per action */
 .e-permits-user-create--wide .e-permits-user-create__drawer {
-  width: min(1120px, calc(100vw - var(--spacing-64, 64px)));
+  transition: width 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* 960 (was 1120): the rows had room to spare (user, 2026-10-08) */
+  width: min(960px, calc(100vw - var(--spacing-64, 64px)));
+}
+
+/* the document preview is open: the drawer makes room so both sit side by side
+   (preview ≥ 560px incl. its 16px gaps; the drawer never below 640px) */
+@media (min-width: 1232px) {
+  .e-permits-user-create--wide.has-peek .e-permits-user-create__drawer {
+    width: clamp(640px, calc(100vw - 592px), 960px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-user-create--wide .e-permits-user-create__drawer {
+    transition: none;
+  }
 }
 
 .e-permits-rt__heading {
@@ -18645,11 +18661,6 @@
 
 .e-permits-rt__action-control .e-permits-fo-select {
   width: 340px;
-}
-
-/* Documente generate: select + „Generează” toggle on the right */
-.e-permits-rt__action-control .e-permits-toggle {
-  margin-left: var(--spacing-4, 4px);
 }
 
 @media (max-width: 760px) {
@@ -21712,4 +21723,157 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 .e-permits-tariff-formula__unknown {
   background: var(--color-background-danger-secondary, #fee4e2);
   color: var(--color-text-error-default, #d92d20);
+}
+
+/* Documente generate › Previzualizează: a view-only panel docked in the free space left
+   of the request-type drawer (inside the dialog, so focus and Esc stay with it); when that
+   space is under 560px it slides over the drawer's left part instead (.is-overlay) */
+.e-permits-doc-peek {
+  background: var(--color-background-base-default, #fff);
+  /* the drawer stays full height; the preview floats 16px from the screen's top, bottom
+     and left edges and 16px from the drawer, rounded all round (user, 2026-10-08) */
+  border-radius: var(--border-radius-16, 16px);
+  bottom: var(--spacing-16, 16px);
+  box-shadow: var(--drop-shadow-400);
+  display: flex;
+  flex-direction: column;
+  left: calc(100% + var(--spacing-16, 16px) - 100vw);
+  overflow: hidden;
+  position: absolute;
+  right: calc(100% + var(--spacing-16, 16px));
+  top: var(--spacing-16, 16px);
+  z-index: 3; /* above the drawer footer (z-index 2) */
+}
+
+.e-permits-doc-peek[hidden] {
+  display: none;
+}
+
+/* appears from behind the drawer, like the drawer itself (160ms ease-out, 24px) */
+.e-permits-doc-peek {
+  animation: e-permits-doc-peek-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.e-permits-doc-peek.is-closing {
+  animation: e-permits-doc-peek-out 140ms ease-in both;
+  pointer-events: none;
+}
+
+.e-permits-doc-peek__canvas.is-swapping .e-permits-doc-peek__page {
+  animation: e-permits-doc-peek-swap 180ms ease-out both;
+}
+
+@keyframes e-permits-doc-peek-in {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes e-permits-doc-peek-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0; transform: translateX(24px); }
+}
+
+@keyframes e-permits-doc-peek-swap {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-doc-peek,
+  .e-permits-doc-peek.is-closing,
+  .e-permits-doc-peek__canvas.is-swapping .e-permits-doc-peek__page {
+    animation: none;
+  }
+}
+
+/* not enough room for both (< 1232px, phones too): the preview is a regular full-screen
+   panel over the drawer — same 16px inset on every side, same rounded corners */
+.e-permits-doc-peek.is-overlay {
+  right: var(--spacing-16, 16px);
+}
+
+.e-permits-doc-peek__canvas {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-doc-peek__page {
+  width: 210mm;
+}
+
+.e-permits-doc-peek__note {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-tertiary, #6b6b6b);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
+}
+
+.e-permits-doc-peek .e-permits-passport__modal-subtitle .tag {
+  margin-left: var(--spacing-4, 4px);
+}
+
+/* the row being previewed */
+.e-permits-rt__action.is-previewing {
+  background: var(--color-background-brand-secondary, #eef4ff);
+  border-radius: var(--border-radius-8, 8px);
+  margin: 0 calc(-1 * var(--spacing-8, 8px));
+  padding-left: var(--spacing-8, 8px);
+  padding-right: var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  .e-permits-doc-peek,
+  .e-permits-doc-peek.is-overlay {
+    left: var(--spacing-16, 16px);
+    right: var(--spacing-16, 16px);
+  }
+}
+
+/* Notificări preview inside the panel = the Șabloane de notificare Conținut preview: white
+   panel → the switch on white → the grey frame (.e-permits-ntpl-preview) → the white card */
+.e-permits-doc-peek__canvas.is-mail {
+  background: var(--color-background-base-default, #fff);
+}
+
+.e-permits-doc-peek__mail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  margin: 0 auto;
+  max-width: 600px;
+}
+
+.e-permits-doc-peek__mail .segmented-control {
+  align-self: flex-start;
+}
+
+.e-permits-doc-peek__mail .e-permits-doc-peek__page {
+  width: auto;
+}
+
+/* Șabloane › Previzualizează: the standalone view-only drawer */
+.e-permits-doc-preview {
+  width: min(880px, 100vw);
+}
+
+
+/* the preview open full screen (< 1232px): the drawer behind it dims with the page's
+   backdrop colour, so the preview reads as the front layer */
+.e-permits-user-create--wide.has-peek-overlay .e-permits-user-create__drawer::after {
+  animation: e-permits-user-create-scrim-in 120ms ease-out both;
+  background: rgb(18 18 18 / 36%); /* = .e-permits-user-create__scrim */
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
+}
+
+.e-permits-user-create--wide.has-peek-overlay .e-permits-doc-peek {
+  z-index: 4;
 }

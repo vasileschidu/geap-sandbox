@@ -4222,3 +4222,12 @@ body.is-user-create-open {
 .modal.has-scroll-below .modal-content {
   border-bottom-color: var(--color-border-base-default, #d9d9d9);
 }
+
+/* Every button that owns something open — a menu, a dropdown, a side panel, a preview —
+   keeps the focus ring (on top of its pressed fill) for as long as that thing is open,
+   so it is clear which button opened it (user, 2026-10-08). Toggles use aria-pressed. */
+.btn[aria-expanded="true"]:not(:disabled),
+.btn[aria-pressed="true"]:not(:disabled) {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}

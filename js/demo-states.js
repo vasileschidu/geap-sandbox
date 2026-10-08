@@ -304,8 +304,13 @@
     /* header „N modificări nepublicate” → the list of pending changes */
     "svc-01i": svc("documents", async (h) => { await h.click('[data-svc-doc-required="3"]'); await h.wait(500); await h.click("[data-service-pending]"); }),
     "svc-02d": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); }),
+    /* Documente generate › Previzualizează: the document of a step, read-only, left of the drawer */
+    "svc-02d1": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); await h.click("[data-rt-doc-peek]"); }),
+    "svc-02d2": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="notifications"]'); await h.click("[data-rt-doc-peek]"); }),
     "svc-07": svc("classifiers"),
     "svc-08": svc("templates"),
+    /* Șabloane › eye = view-only preview drawer (the builder opens from its footer) */
+    "svc-08l": svc("templates", async (h) => { await h.click("[data-dtpl-preview]"); }),
     "svc-08a": svc("templates", rowMenu("[data-dtpl-list]")),
     "svc-08b": svc("templates", async (h) => { await h.nth("[data-dtpl-edit]", 0); }),
     "svc-08c": svc("templates", async (h) => {

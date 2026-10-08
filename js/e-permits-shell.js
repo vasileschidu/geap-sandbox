@@ -7726,7 +7726,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rtTemplateCodes = (service, rt) => {
     const flow = getFlowById(rt.flow);
     if (!flow) return [];
-    return passport.documentSteps(flow).filter((st) => !(rt.docOff || {})[st.key]).map((st) => (rt.docOverrides || {})[st.key] || serviceDocTemplates(service).find((t) => t.type === st.docType)?.code).filter(Boolean);
+    return passport.documentSteps(flow).map((st) => (rt.docOverrides || {})[st.key] || serviceDocTemplates(service).find((t) => t.type === st.docType)?.code).filter(Boolean);
   };
   const dtplRequestTypes = (service, code) => service.geap.requestTypes.filter((rt) => rtTemplateCodes(service, rt).includes(code));
 
@@ -7791,7 +7791,7 @@ document.addEventListener("DOMContentLoaded", () => {
             meta: [renderTag(t.code, "neutral"), escapeHtml(t.type || "—"), escapeHtml(t.version), `Editat ${escapeHtml(formatStamp(t.editedAt))} · ${escapeHtml(t.editedBy || "—")}`],
             meta2: [(() => { const used = dtplRequestTypes(service, t.code); return `Generat la ${used.length ? `<span class="e-permits-passport__tag-list">${used.map((rt) => renderTag(rt.name, "neutral")).join("")}</span>` : '<span class="e-permits-passport__muted">niciun tip de solicitare</span>'}`; })()],
             actionsHtml: `
-              <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Deschide constructorul: ${escapeHtml(t.name)}" data-tooltip-label="Deschide constructorul" data-dtpl-open="${escapeHtml(t.code)}">
+              <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(t.name)}" data-tooltip-label="Previzualizează" aria-haspopup="dialog" aria-controls="tpl-preview" aria-expanded="false" data-dtpl-preview="${escapeHtml(t.code)}">
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
               </button>
               ${admin ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-dtpl-edit="${escapeHtml(t.code)}">Editează</button>` : ""}
@@ -7838,6 +7838,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const dtplService = () => getServiceByCode(serviceProfileState.code);
   const dtplFind = (code, service = dtplService()) => (service ? serviceDocTemplates(service).find((t) => t.code === code) : null);
+  /* Șabloane › eye = view-only preview (same A4 page as the request-type preview); the
+     builder is one step further: „Deschide constructorul” in the preview's footer */
+  const tplPreview = document.querySelector("[data-tpl-preview]");
+  let tplPreviewTrigger = null;
+  const fitTplPreview = () => {
+    const canvas = tplPreview?.querySelector("[data-tpl-preview-canvas]"); const page = canvas?.querySelector(".e-permits-dtpl__page");
+    if (page) page.style.zoom = String(Math.min(1, (canvas.clientWidth - 48) / 794));
+  };
+  const openTplPreview = (code, trigger) => {
+    const service = dtplService(); const tpl = service && serviceDocTemplates(service).find((t) => t.code === code);
+    if (!tpl || !tplPreview) return;
+    tplPreview.querySelector("[data-tpl-preview-title]").textContent = tpl.name;
+    tplPreview.querySelector("[data-tpl-preview-subtitle]").innerHTML = `${renderTag(tpl.code, "neutral")} ${escapeHtml(tpl.type || "—")} · ${escapeHtml(tpl.version)} ${renderTag("Doar vizualizare", "neutral")}`;
+    tplPreview.querySelector("[data-tpl-preview-canvas]").innerHTML = `<div class="e-permits-dtpl__page e-permits-doc-peek__page"${tpl.background ? ` style="background-image:url('${tpl.background}')"` : ""}><div class="e-permits-dtpl__surface">${dtplFill(tpl.html, tpl.testData || {})}</div></div>`;
+    tplPreview.querySelector("[data-tpl-preview-buttons]").innerHTML = `
+      <button class="btn btn-neutral btn-rounded" type="button" data-tpl-preview-close>Închide</button>
+      ${isCentralAdmin() ? `<button class="btn btn-primary btn-rounded" type="button" data-tpl-preview-builder="${escapeHtml(tpl.code)}">Deschide constructorul</button>` : ""}`;
+    tplPreviewTrigger = trigger || null;
+    tplPreviewTrigger?.setAttribute("aria-expanded", "true");
+    tplPreview.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    fitTplPreview();
+    requestAnimationFrame(() => tplPreview.querySelector(".e-permits-user-create__close")?.focus());
+  };
+  const closeTplPreview = (after) => {
+    if (!tplPreview || tplPreview.hidden || tplPreview.classList.contains("is-closing")) return;
+    tplPreview.classList.add("is-closing");
+    window.setTimeout(() => {
+      tplPreview.hidden = true; tplPreview.classList.remove("is-closing");
+      document.body.classList.remove("is-user-create-open");
+      tplPreviewTrigger?.setAttribute("aria-expanded", "false");
+      if (after) after(); else tplPreviewTrigger?.focus?.();
+    }, 120);
+  };
+  tplPreview?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-tpl-preview-close]")) { closeTplPreview(); return; }
+    const b = event.target.closest("[data-tpl-preview-builder]");
+    if (b) { const code = b.dataset.tplPreviewBuilder; closeTplPreview(() => openDtpl(code)); }
+  });
+  tplPreview?.addEventListener("keydown", (event) => { if (event.key === "Escape") { event.preventDefault(); closeTplPreview(); } });
+  window.addEventListener("resize", fitTplPreview);
+
   const refreshDtplList = () => { const service = dtplService(); const box = permitsProfilePanel?.querySelector("[data-dtpl-list]"); if (service && box) box.innerHTML = renderDtplRows(service); else renderServiceProfile(); };
 
   /* ---- drawers (Editează · Atașează) share the open / close ---- */
@@ -10215,12 +10257,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return safe.replace(/\{\{\s*([A-Za-z]+)\s*\}\}/g, (match, token) => `<mark class="e-permits-ntpl-preview__token" title="{{${token}}}">${escapeHtml(NTPL_SAMPLE[token] || match)}</mark>`);
   };
 
-  const renderNtplPreviewBody = () => {
-    const d = ntplProfileState.draft;
-    const text = d.texts[ntplProfileState.lang] || {};
+  const renderNtplPreviewBody = () => renderNtplPreviewOf(ntplProfileState.draft.texts[ntplProfileState.lang] || {}, ntplProfileState.preview);
+  /* one language's texts as e-mail or as the phone's message (also the read-only preview) */
+  const renderNtplPreviewOf = (text, mode) => {
     /* Mobil: the short text as it lands in the phone's messages app (iOS Messages
        pattern): sender on top, a timestamp, one received bubble */
-    if (ntplProfileState.preview === "mobile") {
+    if (mode === "mobile") {
       const sms = (text.plain || "").trim();
       return `
         <div class="e-permits-ntpl-preview__chat-head">
@@ -12691,16 +12733,15 @@ document.addEventListener("DOMContentLoaded", () => {
      request type keeps it („Implicit” / „Din proces”) or replaces it with a template of
      the service („Personalizat”) — the forms-per-action model. Taxes are read-only here
      (owned by Taxe și tarife), grouped by the moment of the flow where they apply. */
-  const rtOverrideRow = ({ key, attr, lead, title, meta, defaultLabel, defaultTag, current, options, toggle = null }) => {
-    const off = Boolean(toggle && !toggle.on);
-    const overridden = Boolean(current) && !off;
+  const rtOverrideRow = ({ key, attr, lead, title, meta, defaultLabel, defaultTag, current, options }) => {
+    const overridden = Boolean(current);
     return `
-      <li class="e-permits-stack__item${lead ? " has-lead" : ""} e-permits-rt__action${overridden ? " is-overridden" : ""}">
+      <li class="e-permits-stack__item${lead ? " has-lead" : ""} e-permits-rt__action${overridden ? " is-overridden" : ""}${rtDraft.peek === key ? " is-previewing" : ""}">
         ${lead || ""}
         <div class="e-permits-stack__main">
           <div class="e-permits-stack__title-row">
             <p class="e-permits-stack__title">${escapeHtml(title)}</p>
-            ${off ? renderTag("Nu se generează", "neutral") : overridden ? renderTag("Personalizat", "brand") : renderTag(defaultTag, "neutral")}
+            ${overridden ? renderTag("Personalizat", "brand") : renderTag(defaultTag, "neutral")}
           </div>
           <div class="e-permits-stack__meta">
             ${meta.map((part) => `<span class="e-permits-stack__part">${part}</span>`).join("")}
@@ -12708,15 +12749,14 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         <div class="e-permits-stack__actions e-permits-rt__action-control">
+          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Previzualizează ${attr === "doc" ? "documentul" : "notificarea"}: ${escapeHtml(title)}" data-tooltip-label="Previzualizează" aria-controls="rt-peek" aria-expanded="${rtDraft.peek === key}" data-rt-doc-peek="${escapeHtml(key)}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>
           ${renderFoSelectControl({
             id: `rt-${attr}-${String(key).replace(/[^a-z0-9-]/gi, "-")}`,
             attrs: `data-rt-${attr}="${escapeHtml(key)}"`,
             label: `Șablon pentru ${title}`,
-            optionsHtml: `<option value="default"${overridden ? "" : " selected"}>${escapeHtml(defaultTag)} · ${escapeHtml(defaultLabel)}</option>${options.map((o) => `<option value="${escapeHtml(o.value)}"${o.value === current ? " selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}`,
-            disabled: off
+            optionsHtml: `<option value="default"${overridden ? "" : " selected"}>${escapeHtml(defaultTag)} · ${escapeHtml(defaultLabel)}</option>${options.map((o) => `<option value="${escapeHtml(o.value)}"${o.value === current ? " selected" : ""}>${escapeHtml(o.label)}</option>`).join("")}`
           })}
           ${overridden ? `<button class="btn btn-text-primary btn-sm" type="button" data-rt-${attr}-reset="${escapeHtml(key)}">Revino la implicit</button>` : ""}
-          ${toggle ? renderToggle({ label: "Generează", checked: toggle.on, attrs: `data-rt-${attr}-on="${escapeHtml(key)}"` }) : ""}
         </div>
       </li>`;
   };
@@ -12752,7 +12792,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="e-permits-fo-field__hint">Fluxul stabilește documentul generat la fiecare pas (PDF din MDocs). Păstrează-l implicit sau înlocuiește-l cu un șablon de tipar al serviciului.</p>
           ${!flow ? needFlow : docSteps.length ? group("Pași care generează documente", docSteps.length, changedDocs, docSteps.map((st) => {
             const def = serviceDocTemplates(service).find((t) => t.type === st.docType);
-            return rtOverrideRow({ key: st.key, attr: "doc", lead: blue, title: st.stepName, meta: [renderTag(st.docType, "neutral")], defaultLabel: def ? def.name : "șablonul procesului", defaultTag: "Implicit", current: rtDraft.docOverrides[st.key] || "", options: docOptions, toggle: { on: !rtDraft.docOff[st.key] } });
+            return rtOverrideRow({ key: st.key, attr: "doc", lead: blue, title: st.stepName, meta: [renderTag(st.docType, "neutral")], defaultLabel: def ? def.name : "șablonul procesului", defaultTag: "Implicit", current: rtDraft.docOverrides[st.key] || "", options: docOptions });
           }).join("")) : '<p class="e-permits-fo-field__hint">Fluxul ales nu are pași care generează documente.</p>'}
         </div>
       </section>`,
@@ -12797,7 +12837,101 @@ document.addEventListener("DOMContentLoaded", () => {
   const rtCurrent = (service) => rtDraft.pending || service.geap.requestTypes.find((item) => item.id === rtDraft.rtId);
   const RT_DRAWER_TABS = [["general", "General"], ["forms", "Formulare"], ["documents", "Documente generate"], ["notifications", "Notificări"], ["taxes", "Taxe"]];
 
-  const renderRtDrawer = () => {
+  const renderRtDrawer = () => { renderRtDrawerCore(); syncRtPeek(); };
+
+  /* Documente generate › Previzualizează (comment 1958021586): the document the step
+     will generate — override or the default for its type — read-only, A4 scaled to fit,
+     docked in the free space left of the drawer (over the drawer's left part when the
+     screen is too narrow). It follows the row's select. */
+  const rtPeek = rtDrawer?.querySelector("[data-rt-peek]");
+  const syncRtPeek = () => {
+    if (!rtPeek) return;
+    const service = rtDraft && getServiceByCode(rtDraft.serviceCode);
+    const flow = service && getFlowById(rtDraft.flow);
+    const kind = rtDraft?.tab === "notifications" ? "notify" : rtDraft?.tab === "documents" ? "doc" : null;
+    const st = rtDraft?.peek && kind && flow ? (kind === "doc" ? passport.documentSteps(flow) : passport.notificationSteps(flow)).find((s) => s.key === rtDraft.peek) : null;
+    if (!st) {
+      if (rtDraft) rtDraft.peek = null;
+      /* slide back behind the drawer, then hide */
+      rtDrawer.classList.remove("has-peek", "has-peek-overlay");
+      if (!rtPeek.hidden && !rtPeek.classList.contains("is-closing")) {
+        rtPeek.classList.add("is-closing");
+        window.setTimeout(() => { if (rtDraft?.peek) return; rtPeek.hidden = true; rtPeek.classList.remove("is-closing"); delete rtPeek.dataset.code; }, 140);
+      }
+      return;
+    }
+    if (kind === "notify") { syncRtPeekNotify(service, st); return; }
+    const own = rtDraft.docOverrides[st.key];
+    const tpl = serviceDocTemplates(service).find((t) => t.code === own) || serviceDocTemplates(service).find((t) => t.type === st.docType);
+    rtPeek.querySelector("[data-rt-peek-title]").textContent = tpl ? tpl.name : st.docType;
+    rtPeek.querySelector("[data-rt-peek-subtitle]").innerHTML = `${escapeHtml(st.stepName)} · ${escapeHtml(st.docType)}${tpl ? ` · ${escapeHtml(tpl.version)}` : ""} ${renderTag(own ? "Personalizat" : "Implicit", own ? "brand" : "neutral")} ${renderTag("Doar vizualizare", "neutral")}`;
+    rtPeek.querySelector("[data-rt-peek-note]").textContent = "Doar vizualizare · câmpurile marcate sunt completate cu date de exemplu. Documentul final se generează în MDocs, ca PDF.";
+    const canvasEl = rtPeek.querySelector("[data-rt-peek-canvas]");
+    const code = tpl?.code || st.docType;
+    const swapped = !rtPeek.hidden && rtPeek.dataset.code && rtPeek.dataset.code !== code;
+    const unchanged = !rtPeek.hidden && rtPeek.dataset.code === code && !rtPeek.classList.contains("is-closing");
+    rtPeek.classList.remove("is-closing");
+    rtDrawer.classList.add("has-peek");
+    rtPeek.dataset.code = code;
+    if (unchanged) { fitRtPeek(); return; }
+    canvasEl.classList.remove("is-mail");
+    canvasEl.innerHTML = tpl
+      ? `<div class="e-permits-dtpl__page e-permits-doc-peek__page"${tpl.background ? ` style="background-image:url('${tpl.background}')"` : ""}><div class="e-permits-dtpl__surface">${dtplFill(tpl.html, tpl.testData || {})}</div></div>`
+      : `<p class="e-permits-fo-field__hint">Serviciul nu are încă un șablon pentru ${escapeHtml(st.docType)}.</p>`;
+    rtPeek.hidden = false;
+    fitRtPeek();
+    /* another template in the same panel: a short cross-fade instead of a jump */
+    if (swapped) { canvasEl.classList.remove("is-swapping"); void canvasEl.offsetWidth; canvasEl.classList.add("is-swapping"); }
+  };
+  /* Notificări: the template that step sends — override or the process one — as e-mail
+     or as the phone's message (the same preview as the template's Conținut tab) */
+  const syncRtPeekNotify = (service, st) => {
+    const own = rtDraft.notifyOverrides[st.key];
+    const all = [...serviceTemplates(service), ...(servicesStore?.notificationTemplates || [])];
+    const tpl = all.find((t) => t.code === (own || st.event));
+    const mode = rtDraft.peekMode || "email";
+    rtPeek.querySelector("[data-rt-peek-title]").textContent = tpl ? tpl.name : st.event;
+    rtPeek.querySelector("[data-rt-peek-subtitle]").innerHTML = `${escapeHtml(st.stepName)} · ${escapeHtml(st.event)}${tpl?.version ? ` · ${escapeHtml(tpl.version)}` : ""} ${renderTag(own ? "Personalizat" : "Din proces", own ? "brand" : "neutral")} ${renderTag("Doar vizualizare", "neutral")}`;
+    rtPeek.querySelector("[data-rt-peek-note]").textContent = "Doar vizualizare · câmpurile marcate sunt completate cu date de exemplu. Textul în română.";
+    const canvasEl = rtPeek.querySelector("[data-rt-peek-canvas]");
+    const code = `${tpl?.code || st.event}|${mode}`;
+    const swapped = !rtPeek.hidden && rtPeek.dataset.code && rtPeek.dataset.code !== code;
+    const unchanged = !rtPeek.hidden && rtPeek.dataset.code === code && !rtPeek.classList.contains("is-closing");
+    rtPeek.classList.remove("is-closing"); rtDrawer.classList.add("has-peek"); rtPeek.dataset.code = code;
+    if (unchanged) { fitRtPeek(); return; }
+    canvasEl.classList.add("is-mail");
+    canvasEl.innerHTML = `
+      <div class="e-permits-doc-peek__mail">
+        <div class="segmented-control" role="radiogroup" aria-label="Previzualizare pe">
+          ${[["email", "E-mail"], ["mobile", "Mobil"]].map(([v, l]) => `<button class="segment-item${mode === v ? " is-selected" : ""}" type="button" role="radio" aria-checked="${mode === v}" data-rt-peek-mode="${v}">${l}</button>`).join("")}
+        </div>
+        <div class="e-permits-ntpl-preview e-permits-doc-peek__page" aria-live="polite">${tpl ? renderNtplPreviewOf((tpl.texts || {}).ro || {}, mode) : '<p class="e-permits-ntpl-preview__empty">Șablonul nu a fost găsit.</p>'}</div>
+      </div>`;
+    rtPeek.hidden = false;
+    fitRtPeek();
+    if (swapped) { canvasEl.classList.remove("is-swapping"); void canvasEl.offsetWidth; canvasEl.classList.add("is-swapping"); }
+  };
+  /* while the preview is open the drawer narrows (CSS .has-peek: 100vw − 592px, 640–1120)
+     so both sit side by side; only below ~1200px is there no room — then the preview
+     slides over the drawer (.is-overlay). Decided from the drawer's target width, as the
+     drawer is still animating; the A4 page re-scales whenever the canvas resizes. */
+  const fitRtPeek = () => {
+    if (!rtPeek || rtPeek.hidden) return;
+    /* side by side from 1232px (640 drawer + 560 preview + gaps); below that the preview
+       is a full-screen panel inside the 16px inset */
+    const overlay = window.innerWidth < 1232;
+    rtPeek.classList.toggle("is-overlay", overlay);
+    rtDrawer.classList.toggle("has-peek-overlay", overlay);
+    zoomRtPeek();
+  };
+  const zoomRtPeek = () => {
+    const canvas = rtPeek?.querySelector("[data-rt-peek-canvas]"); const page = canvas?.querySelector(".e-permits-dtpl__page.e-permits-doc-peek__page");
+    if (page && canvas.clientWidth) page.style.zoom = String(Math.min(1, (canvas.clientWidth - 48) / 794));
+  };
+  if (rtPeek && "ResizeObserver" in window) new ResizeObserver(zoomRtPeek).observe(rtPeek.querySelector("[data-rt-peek-canvas]"));
+  window.addEventListener("resize", fitRtPeek);
+
+  const renderRtDrawerCore = () => {
     const service = getServiceByCode(rtDraft.serviceCode);
     const rt = rtCurrent(service);
     const rsspTerm = service.rssp.subServices.find((sub) => sub.title === rt.name)?.duration;
@@ -12934,7 +13068,6 @@ document.addEventListener("DOMContentLoaded", () => {
       termUnit: rt.term?.unit || RT_TERM_UNITS[0],
       actions: { ...(rt.actions || {}) },
       docOverrides: { ...(rt.docOverrides || {}) },
-      docOff: { ...(rt.docOff || {}) },
       notifyOverrides: { ...(rt.notifyOverrides || {}) },
       tab: "general",
       pending,
@@ -12962,6 +13095,8 @@ document.addEventListener("DOMContentLoaded", () => {
       rtDrawer.hidden = true;
       rtDrawer.classList.remove("is-closing");
       document.body.classList.remove("is-user-create-open");
+      if (rtPeek) rtPeek.hidden = true;
+      rtDrawer.classList.remove("has-peek", "has-peek-overlay");
       rtDraft = null;
       rtReturnFocus?.focus?.();
     }, 120);
@@ -13000,7 +13135,6 @@ document.addEventListener("DOMContentLoaded", () => {
     rt.term = termValue ? { value: Number(termValue), unit: rtDraft.termUnit } : null;
     rt.actions = Object.fromEntries(Object.entries(rtDraft.actions).filter(([key]) => keys.has(key)));
     rt.docOverrides = { ...rtDraft.docOverrides };
-    rt.docOff = { ...rtDraft.docOff };
     rt.notifyOverrides = { ...rtDraft.notifyOverrides };
 
     const changed = passport.overrideCount(rt, flow);
@@ -13019,13 +13153,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const target = event.target;
 
     if (!rtDraft) {
-      return;
-    }
-
-    if (target.matches("[data-rt-doc-on]")) {
-      const key = target.dataset.rtDocOn;
-      if (target.checked) delete rtDraft.docOff[key]; else rtDraft.docOff[key] = true;
-      window.setTimeout(() => { renderRtDrawer(); rtDrawerBody.querySelector(`[data-rt-doc-on="${CSS.escape(key)}"]`)?.focus(); }, 220);
       return;
     }
 
@@ -13122,6 +13249,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const peekMode = event.target.closest("[data-rt-peek-mode]");
+    if (peekMode) { rtDraft.peekMode = peekMode.dataset.rtPeekMode; syncRtPeek(); rtPeek.querySelector(`[data-rt-peek-mode="${rtDraft.peekMode}"]`)?.focus(); return; }
+    const peekBtn = event.target.closest("[data-rt-doc-peek]");
+    if (peekBtn) {
+      const key = peekBtn.dataset.rtDocPeek;
+      rtDraft.peek = rtDraft.peek === key ? null : key;
+      renderRtDrawer();
+      rtDrawerBody.querySelector(`[data-rt-doc-peek="${CSS.escape(key)}"]`)?.focus();
+      return;
+    }
+    if (event.target.closest("[data-rt-peek-close]")) {
+      const key = rtDraft.peek; rtDraft.peek = null; renderRtDrawer();
+      rtDrawerBody.querySelector(`[data-rt-doc-peek="${CSS.escape(key || "")}"]`)?.focus();
+      return;
+    }
+
     const rtTab = event.target.closest("[data-rt-tab]");
 
     if (rtTab) {
@@ -13165,6 +13308,8 @@ document.addEventListener("DOMContentLoaded", () => {
   rtDrawer?.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && rtDraft) {
       event.preventDefault();
+      /* Esc closes the preview first, then the drawer */
+      if (rtDraft.peek) { const key = rtDraft.peek; rtDraft.peek = null; renderRtDrawer(); rtDrawerBody.querySelector(`[data-rt-doc-peek="${CSS.escape(key)}"]`)?.focus(); return; }
       closeRequestTypeDrawer();
     }
   });
@@ -14744,6 +14889,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-service-pending]")) { openServicePendingChanges(); return; }
     const svcPublish = event.target.closest("[data-service-publish]");
     if (svcPublish) { if (svcPublish.getAttribute("aria-disabled") !== "true") openServicePublish(); return; }
+    const dtplPreviewBtn = event.target.closest("[data-dtpl-preview]");
+    if (dtplPreviewBtn) { openTplPreview(dtplPreviewBtn.dataset.dtplPreview, dtplPreviewBtn); return; }
     const dtplOpenBtn = event.target.closest("[data-dtpl-open]");
     if (dtplOpenBtn) { openDtpl(dtplOpenBtn.dataset.dtplOpen); return; }
     const dtplEditBtn = event.target.closest("[data-dtpl-edit]");
