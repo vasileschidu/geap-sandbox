@@ -460,6 +460,8 @@
     "svc-10k1": svc("settings", async (h) => { await cfgNav("numbering")(h); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="prefix"]', "DR"); }),
     "svc-10l": svc("settings", cfgNav("rap")),
     "svc-10m": svc("settings", cfgNav("drafts")),
+    "svc-10p": svc("settings", cfgNav("appeal")),
+    "svc-10q": svc("settings", cfgNav("other")),
     /* Interdependențe: inline blocks; add (type decides the fields), validation on Salvează,
        remove without a confirm (nothing applies before Salvează) */
     "svc-10n": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); await h.fill('[data-cfg2-dep]:last-of-type [data-cfg-input="name"]', "Act cadastral verificat"); await h.choose('[data-cfg2-dep]:last-of-type select[data-cfg-select="type"]', "Externă"); }),

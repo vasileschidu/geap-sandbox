@@ -4146,23 +4146,23 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   validation and audit events are the drawer's: handlers `onCfgClick/Input/Change` run in a
   context (`cfgWith({ draft, body, render, prefix })`); repeated forms prefix their ids.
   MDelivery and aprobare tacită become switches only when RSSP sends nothing (`cfgRssp`).
-- **Figma — Setări (2026-10-09, GEAP 2.0 › Servicii, band 10 widened to 3 columns 25053 / 27417 /
-  29781; Jurnal de evenimente moved to 32145):** 15 full-height blocks built from the exported code
-  states (`?state=` link on each): middle 10 · 10a · 10o · 10b · 10c (default → change → save →
-  publish → published), left 10e1 · 10j · 10j1 · 10v4 · 10r, right 10h1 · 10k1 · 10n · 10n1 · 10n3.
-  Modal states (10v4, 10b) = 1024 viewport, the sticky save bar pinned at the viewport bottom.
-  13 flows „Flow · Setări · …” (elbow vectors from the clicked element, lanes in the column gaps,
-  labels beside the lane). Local components (🧩 Componente locale › „Componente · Setări”):
-  **Setări · Element listă secțiuni** `10638:1533` (State Default/Hover/Curent/Curent hover ×
-  Indicator Fără/Modificat/Eroare; Label, Icon swap — central icon system, 16), **Setări · Bara de
-  salvare** `10638:1534` (Text, Erori, Arată erori), **Setări · Câmp read-only** `10638:1577`
-  (Fundal Gri/Alb; Label, Valoare, Text secundar, 2 tag-uri expuse, „Din RSSP”). svc/field-row got
-  optional „Text secundar” + right „Caption” (read-only Setări, 10r). Everything else is library /
-  existing local: select-input, text-input, svc/switch-label, Checkbox · titlu + descriere (plain
-  lists), Opțiune document · checkbox (RAP pair), svc/info-note, tag-filled Small, buttons, toast,
-  Modal (Confirmare). Builder helpers (do not edit): `setari builder (helper)` `10640:1502`
-  (BUILD(spec, opt)), `setari spec svc-10 (helper)` `10648:1502` (default state; other states are
-  patches on it). Header component Main Navigation: tab „Setări” moved right after „Date generale”.
+- **Figma — Setări (2026-10-09, GEAP 2.0 › Servicii; band 02, Setări is the 2nd tab — the whole
+  page was renumbered to the tab order: 01 Date generale · 02 Setări · 03 Tipuri solicitări ·
+  04 Formulare · 05 Documente · 06 Taxe · 07 Tarife · 08 Clasificatoare · 09 Șabloane ·
+  10 Notificări · 11 Jurnal; columns placed left → right in that order):** only **02** (default) is
+  full height; every other Setări screen is a **fixed 1024 viewport scrolled to its section** —
+  header collapsed to the pinned tab row (`header · lipit (doar tab-uri)`, Main Navigation at
+  y −140), section title 24 under the tabs, section list sticky (nav padded down by the scroll),
+  save bar pinned at the viewport bottom. Columns: left **02s1–02s11** = one screen per section-list
+  item (current item highlighted; links svc-10e…svc-10q), middle **02 · 02a · 02o · 02b · 02c ·
+  02v4 · 02r**, right **02e1 · 02j · 02j1 · 02h1 · 02k1 · 02n · 02n1 · 02n3** (scrolled to their
+  section / new block). 24 flows „Flow · Setări · …”: section-list item → section screen (left
+  gap), change → state (right gap), save/publish chain, errors after Salvează. Section-list icons =
+  central icon system **filled=off, stroke=1, radius=2, join=round**, 16px (as the code sprite).
+  Local components (🧩 Componente locale › „Componente · Setări”): Setări · Element listă secțiuni
+  `10638:1533`, Setări · Bara de salvare `10638:1534`, Setări · Câmp read-only `10638:1577`;
+  svc/field-row has optional „Text secundar” + right „Caption”. Helpers (do not edit): builder
+  `10640:1502`, default spec `10648:1502`, scroll `10666:1502` (SCROLL(block, {key|node|top})).
 - **Editează** → standard drawer `#svc-cfg-drawer` (title = section, subtitle „Setări · serviciu”,
   footer „Intră în vigoare după publicarea pașaportului.” · Anulează / Salvează). Fields: fo-select,
   numeric fo-input, checkbox groups, `renderToggle` switches (full row, no row rule / padding —
