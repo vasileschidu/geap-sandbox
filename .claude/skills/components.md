@@ -188,6 +188,7 @@ but this doc previously described it wrongly, see the entry.
 | Radio | `.radio-group .radio .radio-custom` | `radio-buttons.html` | library |
 | Switch | `.switch > .switch-wrapper` | `switch.html` | library |
 | Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
+| Long multi-select (100+ options) | summary `.e-permits-cfg-picks` + picker modal `#cfg-subdiv-modal` (`.e-permits-subdiv*`) | `cfgSubdivPicks` / `openCfgSubdiv` | app |
 | Input | `.input`, `.input-wrapper` | `input-preview.html` | library |
 | Textarea | `.textarea` | `textarea.html` | library |
 | Table | `.table` + `--default/--subtle/--strong/--white` | `table.html` | library |
@@ -1164,7 +1165,9 @@ required. States: hover base-secondary-hover · keyboard focus ring · disabled 
 label + `data-tooltip-reason` · checked = brand box. Several sit in `.e-permits-check-options`
 (gap 8, wraps). **`plain: true`** = the same 20px box + icon tick without the grey container
 and with a regular label — every checkbox list in Setări (`cfgChecks`) uses it, so all
-checkboxes on a screen look the same. Never hand-roll another.
+checkboxes on a screen look the same. Never hand-roll another. A group checkbox („all of
+this group”) sets `input.indeterminate` for „some”: the option then hides the icon tick and shows
+the library's 10×2 dash, centred; `label: ""` hides the empty label.
 
 `.checkbox-custom` now carries `box-sizing: border-box` and `flex: 0 0 auto` in
 `main.css`. Without them it rendered **24px** on pages with no global border-box
@@ -4851,6 +4854,84 @@ configured per list in `FEE_LISTS` (title, search placeholder, noun, subtitle, r
 Services with an eAPL local fee also list one treasury account per APL (mock: 500,
 `aplBankAccounts`). Reuse this pattern (add an entry to `FEE_LISTS`, or copy the modal) for
 any summary card whose list can be long.
+
+### Long multi-select — summary in the form + picker modal (2026-10-09)
+
+When a multi-select can hold **more than 12 options** (Setări › **Subdiviziuni de examinare**
+for services delivered by primării: ~900 APL until the amalgamation, grouped by raion), the
+checkbox list and the dropdown both stop working: neither can be scanned, and the choice
+cannot be reviewed. Best practice (Google Ads locations, Salesforce dual listbox, Atlassian
+group pickers): a **summary in the form** + a **dialog** to choose. Up to 12 options stay the
+plain checkbox list (`cfgChecks`). The full-flow dropdown multi-select
+(`e-permits-fo-subgen-select`, CAEM subgen) is only for short lists.
+
+- **Field** (`cfgSubdivPicks(service, key, label, o)`): the field title and hint on top, then
+  `.e-permits-cfg-picks` (gap 12) — built like the full-flow CAEM step 2 „Subgen de activitate”.
+  - **Trigger:** the full-flow multi-select button `.e-permits-fo-subgen-select` >
+    `button.e-permits-fo-subgen-select__button` (40px, chevron, `aria-haspopup="dialog"`).
+    - Value: „N din M selectate · K grupuri”, or the placeholder „Alege subdiviziunile”.
+    - Clicking it opens the picker modal. While the modal is open, the field keeps `is-open`
+      (focus ring, chevron up, `aria-expanded="true"`); a MutationObserver on the overlay
+      clears it on close.
+    - Error state = red border (`.is-error`, the `.e-permits-fo-select` convention).
+    - The field title is **not** `<label for>`: a label passes its hover and click on to the
+      control it points to, so hovering the title showed the field hover and clicking it
+      opened the modal. `cfgField(..., { labelFor: false })` gives the title an `id` instead,
+      and the button uses `aria-labelledby="<title id> <value id>"`.
+  - **Chips:** the selection uses the **full-flow chip** (as under „Subgen de activitate”):
+    `.e-permits-fo-subgen__chips` (gap 6) > `span.e-permits-fo-subgen-chip` >
+    `span.e-permits-fo-subgen-chip__label` + `button.e-permits-fo-subgen-chip__remove` with a
+    20px `cross-small` (`<svg class="icon" width="20" height="20">`). Never use the library
+    `.chip` + `.chip__close` for selected values.
+    - Compressed, so the chip row stays short: **several in one raion = one chip**, „Briceni ·
+      12 din 30”, or „Briceni · toate 30” when the whole raion is selected. The raion name is in the chip's medium weight; „· 12/30” is
+      regular secondary (`.e-permits-cfg-picks__chip-meta`). × clears the whole raion.
+    - A single subdivision in a raion keeps its own chip („Primăria Cahul · UAT 03”). The
+      authority's own subdivisions are always one chip each.
+    - × takes it out of the draft at once: the save bar counts the change and Renunță brings
+      it back. Focus moves to the chip that takes its place, or to the field button if none is left.
+    - The first `CFG_SUBDIV_TAGS` (8) chips are shown, then `btn-text-primary` „Încă N · Arată
+      toate”, which opens the modal on the **Selectate** chip.
+- **Modal** `#cfg-subdiv-modal`: library `.modal.modal--lg` + `.e-permits-passport__modal`.
+  - **Height:** `min(100vh − 2×48px, 880px)`, fixed, so it never jumps while filtering. The
+    modal is a flex column: `.modal-content` gets `flex: 1; min-height: 0; max-height: none`.
+    Header, search, chips and footer stay put and only the list (`flex: 1`) scrolls. On a
+    small screen the list is what shrinks.
+  - **Header and search:** title = field name; subtitle „{serviciu} · M subdiviziuni în G
+    grupuri”; the library Search (`--fill`) matches the subdivision or the raion.
+  - **Toolbar** `.e-permits-subdiv__toolbar`:
+    - chips Toate / Selectate / Neselectate, each with a count badge;
+    - on the right, `btn-text-primary`: „Selectează / Deselectează toate (N)”, or „…rezultatele
+      (N)” while filtered. It acts on what is visible.
+  - **List** `.e-permits-subdiv__list`: one flat list, **no collapsing**.
+    - It fills the rest of the modal and scrolls, with a 1px base divider above and below.
+    - It is split into **sections by raion** (`.e-permits-subdiv__section`), with a 1px divider
+      between sections.
+    - Section heading `.e-permits-subdiv__head` (sticky, white, padding 12/0/4, gap 4): a group
+      checkbox whose label is the raion name in medium weight (`renderCheckOption` plain,
+      tri-state, acts on the section's visible rows), then the tertiary counter „n/total” at the
+      **same 14/20**, so both sit on one line.
+    - Every selectable line (rows and heading) is a full-width hit area: padding 6/8, radius 8,
+      `base-secondary-hover` on hover, pointer cursor. The library `.checkbox` 6px bottom margin
+      is reset to 0 here, otherwise the label sits 3px above the counter.
+    - Once open, this modal drops the library's `will-change` / 3d transform layer
+      (`.modal-overlay.is-active .modal.e-permits-subdiv`). With it, GPU Chrome repainted the row
+      hover only on the next click.
+    - Rows sit in a **2-column grid** (gap 0/8), indented 28px so their boxes line up under the
+      heading label (1 column under 640px).
+    - Search and filters hide sections with no matching rows.
+  - **Footer** `.e-permits-subdiv__footer`: „**N** din M selectate” (live) on the left;
+    Renunță (neutral) and Aplică (primary) on the right.
+- **Behaviour:**
+  - The choice is a draft until **Aplică**, which writes it into the Setări draft in catalog
+    order, clears the field error, redraws only that section, and puts focus back on Editează.
+  - Ticking patches in place (group checkbox, badges, chips, total) and the list keeps its
+    scroll. Typing redraws only the list.
+  - The audit names up to 3 changes; past that it records counts: „+N adăugate, −M eliminate
+    (acum X)” (`cfgListDiff`).
+- **Data** (`cfgSubdivisionCatalog`): the authority's own subdivisions (group „Subdiviziunile
+  autorității”), plus, for an eAPL service, mock APL „Primăria {raion} · UAT NN” per
+  `APL_RAIONS` (deterministic, 968 for `003000023`).
 
 ### Documente însoțitoare (RSSP) in a service — document tiles, not label/value rows (2026-10-03)
 

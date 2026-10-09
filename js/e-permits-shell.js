@@ -15502,6 +15502,30 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
   const cfgSubdivisionOptions = (service) => [...new Set([...(service.geap.settings?.subdivisions || []), "Secția autorizări Bălți", "Secția autorizări Cahul"])];
+  /* Subdiviziuni de examinare as a catalog: the authority's own subdivisions, plus — when the
+     service is delivered by primării (eAPL) — one per local public authority, grouped by raion.
+     Mock, deterministic, sized like reality (~900 until the amalgamation); names follow the
+     APL accounts (aplBankAccounts). Above CFG_SUBDIV_INLINE options the field becomes a
+     summary + the picker modal (#cfg-subdiv-modal) instead of a checkbox list. */
+  const CFG_SUBDIV_OWN = "Subdiviziunile autorității";
+  const CFG_SUBDIV_INLINE = 12;
+  const cfgSubdivCache = new Map();
+  const cfgSubdivisionCatalog = (service) => {
+    if (cfgSubdivCache.has(service.code)) return cfgSubdivCache.get(service.code);
+    const list = cfgSubdivisionOptions(service).map((value) => ({ value, group: CFG_SUBDIV_OWN }));
+    if (servicesStore?.eapl?.responses?.[service.code]) {
+      APL_RAIONS.forEach((raion, i) => {
+        for (let n = 1; n <= 16 + ((i * 11) % 23); n += 1) list.push({ value: `Primăria ${raion} · UAT ${String(n).padStart(2, "0")}`, group: raion });
+      });
+    }
+    cfgSubdivCache.set(service.code, list);
+    return list;
+  };
+  const cfgSubdivGroups = (list) => {
+    const groups = new Map();
+    for (const item of list) (groups.get(item.group) || groups.set(item.group, []).get(item.group)).push(item);
+    return [...groups];
+  };
   const cfgPublishedServices = (service) => (servicesStore?.services || []).filter((s) => s.code !== service.code && s.status !== "Inactiv");
   const cfgServiceTitle = (code) => { const s = getServiceByCode(code); return s ? `${s.title} · ${s.code}` : code || "—"; };
 
@@ -15560,9 +15584,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const cfgClone = (v) => JSON.parse(JSON.stringify(v));
   /* hintTop: a checkbox group explains itself under its title, before the options */
-  const cfgField = (key, label, control, { required = false, hint = "", span = 12, cls = "", hintTop = false } = {}) => `
+  /* labelFor: false = the title names the control by aria-labelledby instead of for=, so
+     hovering / clicking the title does not hover / open a button control (the picker field) */
+  const cfgField = (key, label, control, { required = false, hint = "", span = 12, cls = "", hintTop = false, labelFor = true } = {}) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}${cls ? ` ${cls}` : ""}">
-      <label for="cfg-${cfgIdPrefix}${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <label ${labelFor ? `for="cfg-${cfgIdPrefix}${key}"` : `id="cfg-${cfgIdPrefix}${key}-label"`}>${escapeHtml(label)}${required ? requiredMark() : ""}</label>
       ${hint && hintTop ? `<p class="e-permits-fo-field__hint e-permits-fo-field__hint--top">${hint}</p>` : ""}
       ${control}
       ${clasFieldError(cfgDraft.errors, key)}
@@ -15573,6 +15599,45 @@ document.addEventListener("DOMContentLoaded", () => {
   const cfgInput = (key, label, o = {}) => cfgField(key, label, `<div class="e-permits-fo-input${cfgDraft.errors[key] ? " is-error" : ""}"><input id="cfg-${cfgIdPrefix}${key}" type="text"${o.numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="60"'} value="${escapeHtml(cfgDraft.v[key] ?? "")}" placeholder="${escapeHtml(o.placeholder || "")}" autocomplete="off" data-cfg-input="${key}"></div>`, o);
   const cfgSwitch = (key, label, description, { disabled = false } = {}) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(cfgDraft.v[key]), attrs: `data-cfg-switch="${key}"`, disabled })}</div>`;
   const cfgChecks = (key, label, options, o = {}) => cfgField(key, label, `<div class="e-permits-pay__exemptions" role="group" aria-label="${escapeHtml(label)}">${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return renderCheckOption({ label: lab, plain: true, checked: (cfgDraft.v[key] || []).includes(val), attrs: `value="${escapeHtml(val)}" data-cfg-check="${key}"` }); }).join("")}</div>`, { ...o, cls: "e-permits-cfg-checks", hintTop: true });
+  /* long list (primării): the full-flow multi-select field (as „Subgen de activitate”, CAEM
+     step 2) — the button shows „N din M selectate · K grupuri” and opens the picker modal
+     (stays open-looking while it is open); chips under it. Compressed — several in one raion
+     are one chip („Anenii Noi · 12/26”, × clears the raion), a single one keeps its name. The full-flow chip
+     (.e-permits-fo-subgen-chip, as under „Subgen de activitate”): × takes it out of the
+     draft straight away. The first CFG_SUBDIV_TAGS chips + „Arată toate”; the choice itself
+     happens in the picker modal */
+  const CFG_SUBDIV_TAGS = 8;
+  const cfgSubdivPicks = (service, key, label, o = {}) => {
+    const all = cfgSubdivisionCatalog(service), sel = new Set(cfgDraft.v[key] || []);
+    const groups = cfgSubdivGroups(all), chips = [];
+    let used = 0;
+    for (const [group, items] of groups) {
+      const on = items.filter((x) => sel.has(x.value));
+      if (!on.length) continue;
+      used += 1;
+      /* several in one raion = one chip „Briceni · 12 din 30”, or „Briceni · toate 30” when
+         the whole raion is in; a single one keeps its own name; the authority's own
+         subdivisions are always one chip each */
+      const meta = on.length === items.length ? `toate ${items.length}` : `${on.length} din ${items.length}`;
+      if (on.length > 1 && group !== CFG_SUBDIV_OWN) chips.push({ label: `${group} · ${meta}`, html: `${escapeHtml(group)} <span class="e-permits-cfg-picks__chip-meta">· ${meta}</span>`, remove: `group:${group}` });
+      else chips.push(...on.map((x) => ({ label: x.value, remove: `item:${x.value}` })));
+    }
+    const shown = chips.slice(0, CFG_SUBDIV_TAGS), rest = chips.length - shown.length, n = all.filter((x) => sel.has(x.value)).length;
+    return cfgField(key, label, `
+      <div class="e-permits-cfg-picks">
+        <div class="e-permits-fo-subgen-select${cfgDraft.errors[key] ? " is-error" : ""}" data-cfg-subdiv-select>
+          <button id="cfg-${cfgIdPrefix}${key}" class="e-permits-fo-subgen-select__button" type="button" aria-labelledby="cfg-${cfgIdPrefix}${key}-label cfg-${cfgIdPrefix}${key}-value" aria-haspopup="dialog" aria-expanded="false" data-cfg-subdiv-open="all">
+            <span class="e-permits-fo-subgen-select__value${n ? "" : " e-permits-fo-subgen-select__value--placeholder"}" id="cfg-${cfgIdPrefix}${key}-value">${n ? `${clasNumber(n)} din ${clasNumber(all.length)} selectate · ${used === 1 ? "1 grup" : `${used} grupuri`}` : "Alege subdiviziunile"}</span>
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+          </button>
+        </div>
+        ${shown.length ? `<div class="e-permits-fo-subgen__chips">${shown.map((c) => `
+          <span class="e-permits-fo-subgen-chip">
+            <span class="e-permits-fo-subgen-chip__label">${c.html || escapeHtml(c.label)}</span>
+            <button class="e-permits-fo-subgen-chip__remove" type="button" aria-label="${escapeHtml(`Elimină ${c.label}`)}" data-cfg-subdiv-remove="${escapeHtml(c.remove)}"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button>
+          </span>`).join("")}${rest ? `<button class="btn btn-text-primary btn-sm btn-rounded e-permits-cfg-picks__more" type="button" aria-haspopup="dialog" data-cfg-subdiv-open="selected">Încă ${clasNumber(rest)} · Arată toate</button>` : ""}</div>` : ""}
+      </div>`, { ...o, cls: "e-permits-cfg-checks", hintTop: true, labelFor: false });
+  };
   const cfgReadonly = (label, html) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
       <span class="e-permits-cfg-ro__label">${escapeHtml(label)}</span>
@@ -15595,7 +15660,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ${cfgReadonly("Durata valabilității actului", `${escapeHtml(r.validity)}${r.validityUnit !== "—" ? ` ${escapeHtml(r.validityUnit.toLocaleLowerCase("ro"))}` : ""}`)}
         ${r.tacit === null ? cfgSwitch("tacit", "Aprobare tacită activată", "Implicit Nu. Pe fiecare tip de solicitare se setează în „Tipuri solicitări”.") : cfgReadonly("Aprobare tacită activată", yesNo(r.tacit))}`);
       case "exam": return cfgGrid(`
-        ${cfgChecks("subdivisions", "Subdiviziuni de examinare", cfgSubdivisionOptions(service), { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })}
+        ${cfgSubdivisionCatalog(service).length > CFG_SUBDIV_INLINE
+          ? cfgSubdivPicks(service, "subdivisions", "Subdiviziuni de examinare", { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })
+          : cfgChecks("subdivisions", "Subdiviziuni de examinare", cfgSubdivisionOptions(service), { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })}
         ${cfgGroup(cfgSwitch("autoDist", "Distribuire automată", v.autoDist ? "Dosarele noi se distribuie după regulile de mai jos." : "Dosarele se distribuie manual de supervizor."), v.autoDist, `
           ${cfgSwitch("distEligible", "Doar specialiștii eligibili pentru serviciu", "Dosarele merg doar la specialiștii marcați eligibili.")}
           ${cfgSwitch("distExcludeAbsent", "Exclude specialiștii absenți sau inactivi", "Concediu sau cont inactiv = nu primesc dosare.")}
@@ -15717,6 +15784,12 @@ document.addEventListener("DOMContentLoaded", () => {
       default: break;
     }
     return e;
+  };
+  /* a list that can hold hundreds (subdiviziuni): the audit names up to 3 changes, else counts */
+  const cfgListDiff = (before = [], after = []) => {
+    const added = after.filter((x) => !before.includes(x)), removed = before.filter((x) => !after.includes(x));
+    if (added.length + removed.length <= 3) return [added.length ? `adăugat ${added.join(", ")}` : "", removed.length ? `eliminat ${removed.join(", ")}` : ""].filter(Boolean).join("; ");
+    return `${[added.length ? `+${added.length} adăugate` : "", removed.length ? `−${removed.length} eliminate` : ""].filter(Boolean).join(", ")} (acum ${after.length})`;
   };
   const cfgFmt = (val) => Array.isArray(val) ? (val.length ? val.map((x) => (typeof x === "object" ? (x.doc || x.field || JSON.stringify(x)) : x)).join(", ") : "—") : typeof val === "boolean" ? (val ? "Da" : "Nu") : (val === "" || val == null ? "—" : String(val));
 
@@ -15887,7 +15960,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const c = serviceConfig(service), flags = serviceSettingFlags(service), at = localIsoNow(), by = currentUserName(), events = [];
     const secTitle = (k) => (CFG_SECTIONS.find(([x]) => x === k) || [])[1];
     for (const x of list) {
-      if (x.key) { events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${secTitle(x.sec)} · ${x.label}: ${cfgFmt(c[x.key])} → ${cfgFmt(cfg2.v[x.key])}` }); c[x.key] = cfgClone(cfg2.v[x.key]); }
+      if (x.key) { events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${secTitle(x.sec)} · ${x.label}: ${x.key === "subdivisions" ? cfgListDiff(c[x.key], cfg2.v[x.key]) : `${cfgFmt(c[x.key])} → ${cfgFmt(cfg2.v[x.key])}`}` }); c[x.key] = cfgClone(cfg2.v[x.key]); }
       else if (x.dep) events.push({ at, user: by, type: x.kind === "add" ? "Adăugare interdependență" : x.kind === "remove" ? "Eliminare interdependență" : "Modificare interdependență", status: "Reușit", detail: `${x.dep.name} · ${x.dep.type}` });
       else if (x.flag) { flags[x.flag] = cfg2.flags[x.flag]; events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${SERVICE_SETTING_LABELS[x.flag]}: ${cfg2.flags[x.flag] ? "activată" : "dezactivată"}` }); }
     }
@@ -15923,6 +15996,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (!cfg2 || !event.target.closest(".e-permits-cfg2")) return;
+    const subdivOpen = event.target.closest("[data-cfg-subdiv-open]");
+    if (subdivOpen) { openCfgSubdiv(subdivOpen.dataset.cfgSubdivOpen); return; }
+    const subdivRemove = event.target.closest("[data-cfg-subdiv-remove]");
+    if (subdivRemove) {
+      /* × on a chip: out of the draft at once (the save bar counts it, Renunță brings it back);
+         focus moves to the chip that takes its place, else to Editează */
+      const raw = subdivRemove.dataset.cfgSubdivRemove, cut = raw.indexOf(":"), kind = raw.slice(0, cut), value = raw.slice(cut + 1);
+      const service = getServiceByCode(serviceProfileState.code);
+      const gone = new Set(kind === "group" ? cfgSubdivisionCatalog(service).filter((x) => x.group === value).map((x) => x.value) : [value]);
+      const index = [...cfg2Root().querySelectorAll("[data-cfg-subdiv-remove]")].indexOf(subdivRemove);
+      cfg2.v.subdivisions = cfg2.v.subdivisions.filter((x) => !gone.has(x));
+      cfg2RenderSection("exam"); cfg2Refresh();
+      const left = [...cfg2Root().querySelectorAll("[data-cfg-subdiv-remove]")];
+      (left[Math.min(index, left.length - 1)] || cfg2Root().querySelector("#cfg-subdivisions"))?.focus();
+      return;
+    }
     if (event.target.closest("[data-cfg2-dep-add]")) {
       const dep = { ...CFG2_EMPTY_DEP(), id: `dep-${Date.now()}` };
       cfg2.v.deps.push(dep);
@@ -15954,6 +16043,139 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctx = cfg2EventCtx(event.target);
     if (ctx) { cfgWith(ctx, () => onCfgChange(event)); cfg2Refresh(); }
   });
+  /* Subdiviziuni de examinare — picker modal for long lists (best practice for 100+ options:
+     a dropdown is too small to scan and to review the choice; Google Ads locations, Salesforce
+     dual listbox, Atlassian group pickers use a dialog with search + browse by group + a
+     „selected” view). Search (subdivision or raion), chips Toate / Selectate / Neselectate,
+     one flat list in sections by raion (no collapsing; the heading is a tri-state checkbox that
+     acts on the section's visible rows, sticky while its rows scroll; a divider between), „Selectează / Deselectează toate (N)” for the current results, a live total, and
+     the choice is a draft until „Aplică”. Ticking patches in place — the list keeps its scroll. */
+  const cfgSubdivModal = document.querySelector("#cfg-subdiv-modal");
+  let cfgSubdiv = null;
+  const CFG_SUBDIV_FILTERS = [["all", "Toate"], ["selected", "Selectate"], ["unselected", "Neselectate"]];
+  const cfgSubdivAll = () => cfgSubdivisionCatalog(getServiceByCode(cfgSubdiv.code));
+  const cfgSubdivMatch = () => {
+    const q = clasCore.normName(cfgSubdiv.query.trim()), f = cfgSubdiv.filter;
+    return (x) => (!q || clasCore.normName(`${x.value} ${x.group}`).includes(q)) && (f === "all" || (f === "selected") === cfgSubdiv.sel.has(x.value));
+  };
+  const cfgSubdivGroupHead = (group, items, shown) => {
+    const on = items.filter((x) => cfgSubdiv.sel.has(x.value)).length, shownOn = shown.filter((x) => cfgSubdiv.sel.has(x.value)).length;
+    return { on, checked: shownOn === shown.length, mixed: shownOn > 0 && shownOn < shown.length };
+  };
+  const cfgSubdivListHtml = () => {
+    const match = cfgSubdivMatch();
+    const html = cfgSubdivGroups(cfgSubdivAll()).map(([group, items]) => {
+      const shown = items.filter(match);
+      if (!shown.length) return "";
+      const head = cfgSubdivGroupHead(group, items, shown);
+      return `
+        <section class="e-permits-subdiv__section" data-cfg-subdiv-group="${escapeHtml(group)}" aria-label="${escapeHtml(group)}">
+          <div class="e-permits-subdiv__head">
+            ${renderCheckOption({ label: group, plain: true, checked: head.checked, attrs: "data-cfg-subdiv-all" })}
+            <span class="e-permits-subdiv__count" data-cfg-subdiv-count aria-label="${head.on} din ${items.length} selectate">${head.on}/${items.length}</span>
+          </div>
+          <ul class="e-permits-subdiv__items" role="list">${shown.map((x) => `<li>${renderCheckOption({ label: x.value, plain: true, checked: cfgSubdiv.sel.has(x.value), attrs: `value="${escapeHtml(x.value)}" data-cfg-subdiv-item` })}</li>`).join("")}</ul>
+        </section>`;
+    }).join("");
+    return html || `<div class="e-permits-subdiv__empty">${renderNoResults(cfgSubdiv.query.trim() ? "Nicio subdiviziune nu corespunde căutării" : "Nicio subdiviziune în acest filtru", { text: "Schimbă filtrul sau caută altceva." })}</div>`;
+  };
+  /* everything around the list: chips, bulk action, total, group heads */
+  const cfgSubdivSync = () => {
+    const all = cfgSubdivAll(), sel = cfgSubdiv.sel, n = all.filter((x) => sel.has(x.value)).length;
+    const counts = { all: all.length, selected: n, unselected: all.length - n };
+    cfgSubdivModal.querySelector("[data-cfg-subdiv-chips]").innerHTML = CFG_SUBDIV_FILTERS.map(([key, label]) => `
+      <button type="button" class="chip${cfgSubdiv.filter === key ? " is-selected" : ""}" aria-pressed="${cfgSubdiv.filter === key}" data-cfg-subdiv-filter="${key}">
+        <span class="chip__label">${label}</span>
+        <span class="badge badge--lg badge--solid-light" aria-hidden="true">${clasNumber(counts[key])}</span>
+      </button>`).join("");
+    const shown = all.filter(cfgSubdivMatch()), allOn = shown.length && shown.every((x) => sel.has(x.value));
+    const bulk = cfgSubdivModal.querySelector("[data-cfg-subdiv-bulk]");
+    bulk.hidden = !shown.length;
+    bulk.dataset.cfgSubdivBulk = allOn ? "off" : "on";
+    bulk.textContent = `${allOn ? "Deselectează" : "Selectează"} ${cfgSubdiv.query.trim() || cfgSubdiv.filter !== "all" ? "rezultatele" : "toate"} (${clasNumber(shown.length)})`;
+    cfgSubdivModal.querySelector("[data-cfg-subdiv-total]").innerHTML = `<strong>${clasNumber(n)}</strong> din ${clasNumber(all.length)} selectate`;
+    const match = cfgSubdivMatch(), groups = new Map(cfgSubdivGroups(all));
+    cfgSubdivModal.querySelectorAll("[data-cfg-subdiv-group]").forEach((el) => {
+      const items = groups.get(el.dataset.cfgSubdivGroup) || [], head = cfgSubdivGroupHead(el.dataset.cfgSubdivGroup, items, items.filter(match));
+      const box = el.querySelector("[data-cfg-subdiv-all]"), count = el.querySelector("[data-cfg-subdiv-count]");
+      box.checked = head.checked; box.indeterminate = head.mixed;
+      count.textContent = `${head.on}/${items.length}`; count.setAttribute("aria-label", `${head.on} din ${items.length} selectate`);
+    });
+  };
+  const cfgSubdivRender = () => {
+    const list = cfgSubdivModal.querySelector("[data-cfg-subdiv-list]"), top = list.scrollTop;
+    list.innerHTML = cfgSubdivListHtml();
+    list.scrollTop = top;
+    cfgSubdivSync();
+  };
+  const openCfgSubdiv = (filter = "all") => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!cfgSubdivModal || !service || !cfg2) return;
+    const all = cfgSubdivisionCatalog(service), sel = new Set(cfg2.v.subdivisions || []);
+    cfgSubdiv = { code: service.code, sel, query: "", filter };
+    cfgSubdivModal.querySelector("[data-cfg-subdiv-subtitle]").textContent = `${service.title || service.code} · ${clasNumber(all.length)} subdiviziuni în ${cfgSubdivGroups(all).length} grupuri`;
+    const input = cfgSubdivModal.querySelector("[data-cfg-subdiv-search]");
+    input.value = "";
+    input.closest(".search-input")?.classList.remove("has-value", "is-typing", "is-ready");
+    cfgSubdivRender();
+    cfgSubdivModal.querySelector("[data-cfg-subdiv-list]").scrollTop = 0;
+    window.__modal?.open?.("#cfg-subdiv-modal");
+    cfgSubdivOpenState(true);
+    requestAnimationFrame(() => input.focus());
+  };
+  /* the field keeps its open look (focus ring, chevron up) while its modal is open */
+  const cfgSubdivOpenState = (open) => cfg2Root()?.querySelectorAll("[data-cfg-subdiv-select]").forEach((el) => {
+    el.classList.toggle("is-open", open);
+    el.querySelector("[data-cfg-subdiv-open]")?.setAttribute("aria-expanded", String(open));
+  });
+  if (cfgSubdivModal) new MutationObserver(() => { if (!cfgSubdivModal.classList.contains("is-active")) cfgSubdivOpenState(false); }).observe(cfgSubdivModal, { attributes: true, attributeFilter: ["class"] });
+  cfgSubdivModal?.addEventListener("input", (event) => {
+    if (!cfgSubdiv || !event.target.matches("[data-cfg-subdiv-search]")) return;
+    cfgSubdiv.query = event.target.value;
+    cfgSubdivRender();
+    cfgSubdivModal.querySelector("[data-cfg-subdiv-list]").scrollTop = 0;
+  });
+  cfgSubdivModal?.addEventListener("change", (event) => {
+    if (!cfgSubdiv) return;
+    const t = event.target;
+    if (t.matches("[data-cfg-subdiv-item]")) { if (t.checked) cfgSubdiv.sel.add(t.value); else cfgSubdiv.sel.delete(t.value); cfgSubdivSync(); return; }
+    if (t.matches("[data-cfg-subdiv-all]")) {
+      const group = t.closest("[data-cfg-subdiv-group]"), match = cfgSubdivMatch();
+      const items = (new Map(cfgSubdivGroups(cfgSubdivAll())).get(group.dataset.cfgSubdivGroup) || []).filter(match);
+      items.forEach((x) => (t.checked ? cfgSubdiv.sel.add(x.value) : cfgSubdiv.sel.delete(x.value)));
+      group.querySelectorAll("[data-cfg-subdiv-item]").forEach((box) => { box.checked = t.checked; });
+      cfgSubdivSync();
+    }
+  });
+  cfgSubdivModal?.addEventListener("click", (event) => {
+    if (!cfgSubdiv) return;
+    const chip = event.target.closest("[data-cfg-subdiv-filter]");
+    if (chip) { cfgSubdiv.filter = chip.dataset.cfgSubdivFilter; cfgSubdivRender(); cfgSubdivModal.querySelector("[data-cfg-subdiv-list]").scrollTop = 0; cfgSubdivModal.querySelector(`[data-cfg-subdiv-filter="${cfgSubdiv.filter}"]`)?.focus(); return; }
+    const bulk = event.target.closest("[data-cfg-subdiv-bulk]");
+    if (bulk) {
+      const on = bulk.dataset.cfgSubdivBulk === "on";
+      cfgSubdivAll().filter(cfgSubdivMatch()).forEach((x) => (on ? cfgSubdiv.sel.add(x.value) : cfgSubdiv.sel.delete(x.value)));
+      cfgSubdivRender();
+      bulk.focus();
+      return;
+    }
+    if (event.target.closest("[data-cfg-subdiv-apply]")) {
+      if (cfg2 && cfg2.code === cfgSubdiv.code) {
+        /* stored in catalog order, so the summary and the audit read the same way */
+        cfg2.v.subdivisions = cfgSubdivAll().filter((x) => cfgSubdiv.sel.has(x.value)).map((x) => x.value);
+        delete cfg2.errors.subdivisions;
+        cfg2RenderSection("exam");
+        cfg2Refresh();
+      }
+      cfgSubdiv = null;
+      window.__modal?.close?.("#cfg-subdiv-modal");
+      /* back to the field; after a mouse click without the focus ring, which would hide the
+         field's hover border (keyboard users still get the ring) */
+      const byMouse = event.detail > 0;
+      requestAnimationFrame(() => cfg2Root()?.querySelector("#cfg-subdivisions")?.focus({ focusVisible: !byMouse }));
+    }
+  });
+
   /* the section list follows the scroll */
   const cfg2Spy = () => {
     const root = cfg2Root();

@@ -22257,6 +22257,185 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
+/* Subdiviziuni de examinare, long list (primării): the full-flow multi-select field (CAEM
+   step 2 „Subgen de activitate”) opening the picker modal, then the full-flow chips with ×
+   (a whole raion = one chip) + „Arată toate”; gap 12 as field → chips */
+.e-permits-cfg-picks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+/* a whole raion chip: the raion in the chip's medium, „· toate N” regular secondary */
+.e-permits-cfg-picks__chip-meta {
+  color: var(--color-text-base-secondary);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+/* error = the full-flow field convention (as .e-permits-fo-select.is-error) */
+.e-permits-cfg-picks .e-permits-fo-subgen-select.is-error .e-permits-fo-subgen-select__button {
+  border-color: var(--color-border-danger-default);
+}
+
+/* „Arată toate” after the full-flow chips: centred on the 36px chip row */
+.e-permits-cfg-picks__more {
+  align-self: center;
+}
+
+/* a group checkbox shows „some” with the library dash (the option hides the drawn tick) */
+.checkbox.e-permits-check-option .checkbox-input:indeterminate + .checkbox-custom::after {
+  display: block;
+}
+
+.checkbox.e-permits-check-option .checkbox-input:indeterminate + .checkbox-custom .e-permits-check-option__tick {
+  display: none;
+}
+
+.checkbox.e-permits-check-option .checkbox-label:empty {
+  display: none;
+}
+
+/* picker modal (#cfg-subdiv-modal) */
+.e-permits-subdiv__toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-subdiv__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* the picker is as tall as the screen allows (48px margin top + bottom, max 880px) and
+   keeps that height while filtering, so it never jumps; header, search, chips and footer
+   stay fixed and only the list scrolls — on a small screen the list is what shrinks */
+.modal.e-permits-subdiv {
+  display: flex;
+  flex-direction: column;
+  height: min(calc(100vh - 2 * var(--spacing-48, 48px)), 880px);
+}
+
+.e-permits-subdiv .modal-content {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* one flat list in sections by raion: scrolls between two dividers; each section heading
+   (group checkbox + n/total) stays pinned while its rows scroll */
+.e-permits-subdiv__list {
+  border-bottom: 1px solid var(--color-border-base-default);
+  border-top: 1px solid var(--color-border-base-default);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.e-permits-subdiv__section + .e-permits-subdiv__section {
+  border-top: 1px solid var(--color-border-base-default);
+}
+
+.e-permits-subdiv__head {
+  align-items: center;
+  background: var(--color-background-base-default);
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-12, 12px) 0 var(--spacing-4, 4px);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.e-permits-subdiv__head .checkbox.e-permits-check-option--plain .checkbox-label {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* same 14/20 as the label, so the counter sits on the label's line */
+.e-permits-subdiv__count {
+  color: var(--color-text-base-tertiary);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* every selectable line (rows and the section heading) is a full-width hit area: 6/8 padding,
+   radius 8, grey on hover, pointer; rows are indented so their boxes sit under the heading label */
+.e-permits-subdiv .checkbox.e-permits-check-option--plain,
+.e-permits-subdiv .checkbox.e-permits-check-option--plain:hover:not(.is-disabled) {
+  border-radius: var(--border-radius-8, 8px);
+  cursor: pointer;
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+}
+
+.e-permits-subdiv .checkbox.e-permits-check-option--plain:hover:not(.is-disabled) {
+  background: var(--color-background-base-secondary-hover);
+}
+
+/* the library modal stays a composited layer (will-change + 3d transform) after it opens;
+   with a scrolling list inside, Chrome then repainted the row hover only on the next click.
+   Once open, this modal drops the layer so hover paints as the pointer moves */
+.modal-overlay.is-active .modal.e-permits-subdiv {
+  transform: none;
+  will-change: auto;
+}
+
+.modal-overlay.is-active:has(.e-permits-subdiv) {
+  will-change: auto;
+}
+
+.e-permits-subdiv__items .checkbox.e-permits-check-option--plain {
+  display: flex;
+  width: 100%;
+}
+
+/* the library .checkbox carries a 6px bottom margin — off here, so the counter lines up */
+.e-permits-subdiv .checkbox.e-permits-check-option--plain {
+  margin-bottom: 0;
+}
+
+
+.e-permits-subdiv__items {
+  display: grid;
+  gap: 0 var(--spacing-8, 8px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0 0 var(--spacing-12, 12px) calc(var(--spacing-20, 20px) + var(--spacing-8, 8px));
+}
+
+.e-permits-subdiv__empty {
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-subdiv__footer {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-subdiv__total {
+  color: var(--color-text-base-secondary);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-subdiv__total strong {
+  color: var(--color-text-base-default);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+@media (max-width: 640px) {
+  .e-permits-subdiv__items {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* the form's 24px gap already spaces the list from the note; the first / last row carry no
    outer padding, so the card's padding is the only space at the bottom */
 .e-permits-cfg-rap {
