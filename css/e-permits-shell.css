@@ -3097,30 +3097,20 @@ button.e-permits-workplace__th-content:focus-visible {
   line-height: var(--line-height-lh-16, 16px);
 }
 
-/* Tags = Figma tag-filled **Medium** everywhere (24px, 14/20 medium, px 8, radius 4) —
-   only table cells keep **Small** (20px, 12/16, px 6) (user, 2026-10-09) */
+/* Tags = Figma tag-filled **Small** everywhere, tables included (20px, 12/16 medium,
+   px 6, radius 4) (user, 2026-10-09: Small for all, not Medium) */
 .e-permits-workplace__tag {
   min-width: 32px;
-  height: var(--spacing-24, 24px);
-  min-height: var(--spacing-24, 24px);
-  padding: 0 var(--spacing-8, 8px);
-  justify-content: center;
-  border-radius: var(--border-radius-4, 4px);
-  box-sizing: border-box;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  white-space: nowrap;
-}
-
-table .e-permits-workplace__tag,
-[role="table"] .e-permits-workplace__tag,
-[role="grid"] .e-permits-workplace__tag {
   height: var(--spacing-20, 20px);
   min-height: var(--spacing-20, 20px);
   padding: 0 var(--spacing-6, 6px);
+  justify-content: center;
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
   font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-16, 16px);
+  white-space: nowrap;
 }
 
 .e-permits-workplace__tag--ok,
@@ -3157,24 +3147,18 @@ table .e-permits-workplace__tag,
   color: var(--color-text-danger-on-secondary, #b32318);
 }
 
+/* Small · Icon=Leading: pl 4, pr 6, gap 4, 16px icon */
 .e-permits-workplace__tag--icon {
   align-items: center;
   display: inline-flex;
-  gap: 4px;
-  padding: 0 8px 0 6px;
+  gap: var(--spacing-4, 4px);
+  padding: 0 var(--spacing-6, 6px) 0 var(--spacing-4, 4px);
 }
 
 .e-permits-workplace__tag--icon .icon {
   flex: 0 0 var(--spacing-16, 16px);
   height: var(--spacing-16, 16px);
   width: var(--spacing-16, 16px);
-}
-
-/* tables keep the small tag: 14px icon */
-table .e-permits-workplace__tag--icon .icon {
-  flex-basis: 14px;
-  height: 14px;
-  width: 14px;
 }
 
 .e-permits-workplace__role-identity {

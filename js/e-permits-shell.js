@@ -262,6 +262,21 @@ document.addEventListener("DOMContentLoaded", () => {
      label (14/20 medium) over an optional description (14/20 tertiary).
      attrs carry the data-* hooks; the input is a real checkbox with role="switch". */
   let toggleSeq = 0;
+  /* Checkbox option — Figma GEAP 2.0 „Opțiune document · checkbox” (10507:125565): library
+     checkbox Size=Small (20px box, radius 6, 16/checkmark-small) in a grey container
+     (base-secondary, radius 8, padding 6/12/6/8, gap 8), label 14/20 medium, 12px asterisk
+     when required. Code: the library .checkbox--medium box (20px = Figma Small). Use for every
+     on/off option that sits beside a row (Documente Afișează / Obligatoriu, RAP Publică /
+     Anonimizează); group several in .e-permits-check-options. plain: the same box + tick
+     without the grey container and with a regular label — for checkbox lists (a group of
+     options under a title), so every checkbox on a screen looks the same. */
+  const renderCheckOption = ({ label, checked = false, disabled = false, required = false, attrs = "", reason = "", plain = false }) => `
+    <label class="checkbox checkbox--medium e-permits-check-option${plain ? " e-permits-check-option--plain" : ""}${disabled ? " is-disabled" : ""}" data-tooltip-reason="${disabled && reason ? escapeHtml(reason) : ""}">
+      <input class="checkbox-input" type="checkbox"${checked ? " checked" : ""}${disabled ? " disabled" : ""} ${attrs}>
+      <span class="checkbox-custom" aria-hidden="true"><svg class="icon e-permits-check-option__tick" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
+      <span class="checkbox-label">${escapeHtml(label)}${required ? requiredMark() : ""}</span>
+    </label>`;
+
   const renderToggle = ({ label, description = "", checked = false, attrs = "", disabled = false }) => {
     const id = `e-permits-toggle-${toggleSeq += 1}`;
     return `
@@ -6144,7 +6159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return "fees";
     }
     /* Interdependențe moved into Setări (feedback 2026-10-07: few services use it) */
-    if (tabKey === "dependencies") {
+    if (tabKey === "dependencies" || tabKey === "settings-v2") {
       return "settings";
     }
     return SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey) ? tabKey : "general";
@@ -6155,6 +6170,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const SERVICE_PROFILE_TABS = [
     { id: "general", label: "Date generale", icon: "page-text" },
     /* US-221 AC-05: Setări sits right after Date generale */
+    /* Setări = every section on one page, edited inline, one draft (user 2026-10-09: the
+       one-page version replaced the read view + per-section drawer) */
     { id: "settings", label: "Setări" },
     { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
@@ -6643,17 +6660,9 @@ document.addEventListener("DOMContentLoaded", () => {
         badges: changed ? [renderTag("Modificat în GEAP", "brand")] : [],
         meta: [renderTag("RSSP", "neutral"), `În RSSP: ${doc.required ? "obligatoriu" : "opțional"}`, ...(visible ? [] : ["Nu apare în cerere"])],
         /* two checkboxes, each in a small grey container; Obligatoriu carries the red star */
-        actionsHtml: `<div class="e-permits-svc-doc__switches">
-          <label class="checkbox checkbox--small e-permits-svc-doc__opt${!admin ? " is-disabled" : ""}">
-            <input class="checkbox-input" type="checkbox"${visible ? " checked" : ""}${!admin ? " disabled" : ""} data-svc-doc-visible="${index}">
-            <span class="checkbox-custom" aria-hidden="true"></span>
-            <span class="checkbox-label">Afișează</span>
-          </label>
-          <label class="checkbox checkbox--small e-permits-svc-doc__opt${!admin || !visible ? " is-disabled" : ""}"${admin && !visible ? ' data-tooltip-reason="Bifează întâi „Afișează” — un document care nu apare în cerere nu poate fi obligatoriu."' : ""}>
-            <input class="checkbox-input" type="checkbox"${value ? " checked" : ""}${!admin || !visible ? " disabled" : ""} data-svc-doc-required="${index}">
-            <span class="checkbox-custom" aria-hidden="true"></span>
-            <span class="checkbox-label">Obligatoriu${requiredMark()}</span>
-          </label>
+        actionsHtml: `<div class="e-permits-check-options">
+          ${renderCheckOption({ label: "Afișează", checked: visible, disabled: !admin, attrs: `data-svc-doc-visible="${index}"` })}
+          ${renderCheckOption({ label: "Obligatoriu", checked: value, disabled: !admin || !visible, required: true, attrs: `data-svc-doc-required="${index}"`, reason: admin && !visible ? "Bifează întâi „Afișează” — un document care nu apare în cerere nu poate fi obligatoriu." : "" })}
         </div>`
       };
     }) }] : [], {
@@ -7528,7 +7537,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "templates":
         return renderServiceDocTemplates(service);
       case "settings":
-        return renderServiceSettings(service);
+        return renderServiceSettingsV2(service);
       case "events":
         return renderServiceEvents(service);
       default:
@@ -12185,7 +12194,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : '<button class="btn btn-primary btn-sm" type="button" aria-disabled="true" data-tooltip-reason="Nu există modificări de publicat." data-service-publish>Publică</button>'}`;
   };
 
-  const renderServiceProfile = () => {
+  const renderServiceProfile = ({ headerOnly = false } = {}) => {
     const service = getServiceByCode(serviceProfileState.code);
 
     if (!service || !permitsProfilePanel) {
@@ -12231,8 +12240,10 @@ document.addEventListener("DOMContentLoaded", () => {
           <span>Sincronizează</span>
         </button>
       `) + renderServicePublishActions(service) : "",
-      /* pending changes lead the caption as a warning status (dot + text), not a tag */
-      status: (() => { const n = servicePendingChanges(service).length; return canSync && n ? renderHeaderStatus(n === 1 ? "1 modificare nepublicată" : `${n} modificări nepublicate`, "warning", 'data-service-pending aria-haspopup="dialog" title="Vezi modificările"') : ""; })(),
+      /* pending changes lead the caption as a warning status (dot + text), not a tag;
+         a Setări v2 draft shows „● N modificări nesalvate” (its Renunță · Salvează sit in the
+         page's sticky save bar — the header scrolls away on a long page) */
+      status: (() => { const d = cfg2Changes(service).length; if (serviceProfileState.tabKey === "settings" && d) return renderHeaderStatus(d === 1 ? "1 modificare nesalvată" : `${d} modificări nesalvate`, "warning"); const n = servicePendingChanges(service).length; return canSync && n ? renderHeaderStatus(n === 1 ? "1 modificare nepublicată" : `${n} modificări nepublicate`, "warning", 'data-service-pending aria-haspopup="dialog" title="Vezi modificările"') : ""; })(),
       caption: (() => { const n = servicePendingChanges(service).length; const g = servicePublication(service); const next = (g.publications || [])[0]; return `${n ? `față de ${g.version}` : servicePublicationPending(next) ? `${next.version} intră în vigoare pe ${formatLongDate(next.effectiveFrom)}` : `Publicat ${formatStamp(g.publishedAt)}`} · sincronizat ${formatStamp(service.lastSync)}`; })()
     });
     meta.innerHTML = renderPageHeaderMeta([
@@ -12259,9 +12270,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
     tabs.querySelector(".tab-button.active")?.scrollIntoView({ block: "nearest", inline: "nearest" });
     syncPassportTabOverflow();
+    if (headerOnly) return;
     body.setAttribute("aria-labelledby", `passport-tab-${serviceProfileState.tabKey}`);
     body.innerHTML = renderServiceTabBody(service, serviceProfileState.tabKey);
     syncStackMetaRows(body);
+    if (serviceProfileState.tabKey === "settings") { cfg2LastCount = cfg2Changes(service).length; cfg2Spy(); }
     header.hidden = false;
   };
 
@@ -12294,10 +12307,10 @@ document.addEventListener("DOMContentLoaded", () => {
     permitsProfilePanel.scrollIntoView?.({ block: "start" });
   };
 
-  const closeServiceProfile = () => {
+  const closeServiceProfile = () => cfg2Guard(() => {
     showServiceRegistry("services");
     restorePageHash();
-  };
+  });
 
   /* ---- RSSP lookup (mock of GET api/public-service/code/{cod}) ----------- */
 
@@ -15249,12 +15262,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (tabButton) {
       event.preventDefault();
-      serviceProfileState.tabKey = normalizePassportTab(tabButton.dataset.passportTab);
-      serviceProfileState.templateCode = null;
-      renderServiceProfile();
-      history.replaceState(null, "", `#serviciu/${serviceProfileState.code}/${serviceProfileState.tabKey}`);
-      permitsProfilePanel.querySelector(`[data-passport-tabs] [data-passport-tab="${serviceProfileState.tabKey}"]`)?.focus();
-
+      const next = normalizePassportTab(tabButton.dataset.passportTab);
+      if (next === serviceProfileState.tabKey) return;
+      cfg2Guard(() => {
+        serviceProfileState.tabKey = next;
+        serviceProfileState.templateCode = null;
+        renderServiceProfile();
+        history.replaceState(null, "", `#serviciu/${serviceProfileState.code}/${serviceProfileState.tabKey}`);
+        permitsProfilePanel.querySelector(`[data-passport-tabs] [data-passport-tab="${serviceProfileState.tabKey}"]`)?.focus();
+      });
       return;
     }
 
@@ -15431,7 +15447,6 @@ document.addEventListener("DOMContentLoaded", () => {
      and the passport header counts them as unpublished changes. The three switches that are
      not in the story stay as they were, under „Alte setări”.
      ===================================================================== */
-  const CFG_APPLICANT = { "Persoană fizică": "PF", "Persoană juridică": "PJ", "Persoană fizică străină": "PF Străin", "Persoană juridică străină": "PJ Străin" };
   const CFG_AUTH_MODES = ["Doar MPower", "Doar procură pe hârtie", "MPower și procură pe hârtie"];
   const CFG_CRITERIA = ["După coeficientul de ocupare", "Aleatoriu"];
   const CFG_SIGN_REQUEST = ["Obligatorie", "Opțională", "Nu se semnează"];
@@ -15475,7 +15490,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const r = service.rssp || {};
     const v = (r.validity || [])[0];
     return {
-      applicants: (r.applicantTypes || []).map((t) => CFG_APPLICANT[t] || t),
+      /* full names in Setări, never PF / PJ (user, 2026-10-09) */
+      applicants: [...(r.applicantTypes || [])],
       mpower: typeof r.allowsMPower === "boolean" ? r.allowsMPower : null,
       validity: v ? (v.validFor ? String(v.validFor) : "Nelimitată") : "—",
       validityUnit: v && v.validFor ? "Ani" : "—",
@@ -15571,12 +15587,12 @@ document.addEventListener("DOMContentLoaded", () => {
       default: return [];
     }
   };
-  const cfgEditButton = (key, title) => `<button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-controls="svc-cfg-drawer" aria-expanded="false" aria-label="Editează: ${escapeHtml(title)}" data-svc-cfg-edit="${key}">${EDIT_LABEL_HTML}</button>`;
+  /* read-only Setări for roles that cannot edit (the Central Administrator gets the one-page
+     editor, renderServiceSettingsV2) */
   const renderServiceSettings = (service) => {
-    const editable = isCentralAdmin();
     const flags = serviceSettingFlags(service);
     const c = serviceConfig(service);
-    const blocks = CFG_SECTIONS.map(([key, title]) => renderPassportBlock(title, cfgRows(service, key), { actionHtml: editable ? cfgEditButton(key, title) : "" })).join("");
+    const blocks = CFG_SECTIONS.map(([key, title]) => renderPassportBlock(title, cfgRows(service, key))).join("");
     const deps = c.deps.map((dep) => ({
       plainTitle: dep.name,
       title: escapeHtml(dep.name),
@@ -15584,44 +15600,50 @@ document.addEventListener("DOMContentLoaded", () => {
       meta: [
         dep.type === "Externă" ? `${escapeHtml(dep.formField)} → ${escapeHtml(dep.extSource)}` : dep.type === "Exclusivă" ? `Serviciul incompatibil: ${escapeHtml(cfgServiceTitle(dep.incompatible))}` : `Serviciul sursă: ${escapeHtml(cfgServiceTitle(dep.source))}`,
         `Tip solicitare: ${escapeHtml(dep.requestTypes.join(", ") || "—")}`
-      ],
-      actionsHtml: editable ? `
-        <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-haspopup="dialog" aria-controls="svc-cfg-drawer" data-svc-dep-edit="${escapeHtml(dep.id)}">${EDIT_LABEL_HTML}</button>
-        ${renderStackMenu([{ label: "Elimină", icon: "delete", danger: true, attrs: `data-svc-dep-remove="${escapeHtml(dep.id)}"` }], dep.name)}` : ""
+      ]
     }));
-    const addDep = editable ? `<button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" aria-controls="svc-cfg-drawer" aria-expanded="false" data-svc-dep-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă interdependență</span></button>` : "";
     const kept = SERVICE_SETTINGS.filter(([key]) => ["aprobareSecundara", "cuExpertiza", "suspendareCoordonare"].includes(key));
     return `
       ${c.editedAt ? `<p class="e-permits-cfg-edited">Editat ${escapeHtml(formatStamp(c.editedAt))} · ${escapeHtml(c.editedBy || "—")}</p>` : ""}
       ${blocks}
-      ${renderStackedList("Interdependențe", deps.length ? [{ label: "", items: deps }] : [], { actionHtml: addDep, meta: deps.length ? plural(deps.length, "interdependență", "interdependențe") : "", empty: "Serviciul nu are interdependențe cu alte servicii sau surse externe." })}
+      ${renderStackedList("Interdependențe", deps.length ? [{ label: "", items: deps }] : [], { meta: deps.length ? plural(deps.length, "interdependență", "interdependențe") : "", empty: "Serviciul nu are interdependențe cu alte servicii sau surse externe." })}
       <section class="e-permits-dosar-profil__section">
         <h2 class="e-permits-dosar-profil__section-title">Alte setări</h2>
         <div class="e-permits-ntpl-card e-permits-svc-settings">
-          ${kept.map(([key, label, description]) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(flags[key]), attrs: `data-svc-setting="${key}"`, disabled: !editable })}</div>`).join("")}
+          ${kept.map(([key, label, description]) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(flags[key]), attrs: `data-svc-setting="${key}"`, disabled: true })}</div>`).join("")}
         </div>
       </section>
     `;
   };
 
-  /* ---- edit drawer (one section, or one interdependence) ---- */
-  const cfgDrawer = document.querySelector("[data-svc-cfg-drawer]");
-  const cfgBody = cfgDrawer?.querySelector("[data-svc-cfg-body]");
+  /* ---- the section forms (Setări, one page) ----
+     the field handlers read the current context (draft, the element that holds the form, how
+     to redraw it, an id prefix for repeated forms) — set by cfgWith */
   let cfgDraft = null;
+  let cfgBody = null;
+  let cfgRender = () => {};
+  let cfgIdPrefix = "";
+  const cfgCapture = () => ({ draft: cfgDraft, body: cfgBody, render: cfgRender, prefix: cfgIdPrefix });
+  const cfgWith = (ctx, fn) => {
+    const prev = cfgCapture();
+    cfgDraft = ctx.draft; cfgBody = ctx.body; cfgRender = ctx.render; cfgIdPrefix = ctx.prefix || "";
+    try { return fn(); } finally { cfgDraft = prev.draft; cfgBody = prev.body; cfgRender = prev.render; cfgIdPrefix = prev.prefix; }
+  };
   const cfgClone = (v) => JSON.parse(JSON.stringify(v));
-  const cfgField = (key, label, control, { required = false, hint = "", span = 12 } = {}) => `
-    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
-      <label for="cfg-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+  /* hintTop: a checkbox group explains itself under its title, before the options */
+  const cfgField = (key, label, control, { required = false, hint = "", span = 12, cls = "", hintTop = false } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}${cls ? ` ${cls}` : ""}">
+      <label for="cfg-${cfgIdPrefix}${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      ${hint && hintTop ? `<p class="e-permits-fo-field__hint e-permits-fo-field__hint--top">${hint}</p>` : ""}
       ${control}
       ${clasFieldError(cfgDraft.errors, key)}
-      ${hint && !cfgDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+      ${hint && !hintTop && !cfgDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
     </div>`;
-  const cfgSelect = (key, label, options, o = {}) => cfgField(key, label, renderFoSelectControl({ id: `cfg-${key}`, attrs: `data-cfg-select="${key}"`, error: Boolean(cfgDraft.errors[key]),
+  const cfgSelect = (key, label, options, o = {}) => cfgField(key, label, renderFoSelectControl({ id: `cfg-${cfgIdPrefix}${key}`, attrs: `data-cfg-select="${key}"`, error: Boolean(cfgDraft.errors[key]),
     optionsHtml: `${o.placeholder ? `<option value=""${cfgDraft.v[key] ? "" : " selected"} disabled>${escapeHtml(o.placeholder)}</option>` : ""}${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return `<option value="${escapeHtml(val)}"${val === cfgDraft.v[key] ? " selected" : ""}>${escapeHtml(lab)}</option>`; }).join("")}` }), o);
-  const cfgInput = (key, label, o = {}) => cfgField(key, label, `<div class="e-permits-fo-input${cfgDraft.errors[key] ? " is-error" : ""}"><input id="cfg-${key}" type="text"${o.numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="60"'} value="${escapeHtml(cfgDraft.v[key] ?? "")}" placeholder="${escapeHtml(o.placeholder || "")}" autocomplete="off" data-cfg-input="${key}"></div>`, o);
+  const cfgInput = (key, label, o = {}) => cfgField(key, label, `<div class="e-permits-fo-input${cfgDraft.errors[key] ? " is-error" : ""}"><input id="cfg-${cfgIdPrefix}${key}" type="text"${o.numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="60"'} value="${escapeHtml(cfgDraft.v[key] ?? "")}" placeholder="${escapeHtml(o.placeholder || "")}" autocomplete="off" data-cfg-input="${key}"></div>`, o);
   const cfgSwitch = (key, label, description, { disabled = false } = {}) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(cfgDraft.v[key]), attrs: `data-cfg-switch="${key}"`, disabled })}</div>`;
-  const cfgChecks = (key, label, options, o = {}) => cfgField(key, label, `<div class="e-permits-pay__exemptions" role="group" aria-label="${escapeHtml(label)}">${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return `
-    <label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(val)}" data-cfg-check="${key}"${(cfgDraft.v[key] || []).includes(val) ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(lab)}</span></span></label>`; }).join("")}</div>`, o);
+  const cfgChecks = (key, label, options, o = {}) => cfgField(key, label, `<div class="e-permits-pay__exemptions" role="group" aria-label="${escapeHtml(label)}">${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return renderCheckOption({ label: lab, plain: true, checked: (cfgDraft.v[key] || []).includes(val), attrs: `value="${escapeHtml(val)}" data-cfg-check="${key}"` }); }).join("")}</div>`, { ...o, cls: "e-permits-cfg-checks", hintTop: true });
   const cfgReadonly = (label, html) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
       <span class="e-permits-cfg-ro__label">${escapeHtml(label)}</span>
@@ -15629,19 +15651,20 @@ document.addEventListener("DOMContentLoaded", () => {
       <p class="e-permits-fo-field__hint">Preluat din RSSP — se actualizează la resincronizarea serviciului.</p>
     </div>`;
   const cfgGrid = (html) => `<div class="e-permits-user-create__grid">${html}</div>`;
-  /* a switch that unlocks more fields: one bordered group, the fields under the switch text */
-  const cfgGroup = (switchHtml, on, bodyHtml) => `<div class="e-permits-cfg-group">${switchHtml}${on ? `<div class="e-permits-cfg-group__body">${bodyHtml}</div>` : ""}</div>`;
+  /* a switch that unlocks more fields: the switch on its own, then — only while it is on —
+     a grey group with those fields (user, 2026-10-09) */
+  const cfgGroup = (switchHtml, on, bodyHtml) => `<div class="e-permits-cfg-cascade">${switchHtml}${on ? `<div class="e-permits-cfg-group">${bodyHtml}</div>` : ""}</div>`;
 
   const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable"];
   const renderCfgForm = (service) => {
     const v = cfgDraft.v, r = cfgRssp(service), rts = service.geap.requestTypes.map((rt) => rt.name);
     switch (cfgDraft.section) {
       case "applicant": return cfgGrid(`
-        ${cfgReadonly("Tip solicitant", escapeHtml(r.applicants.join(", ") || "—"))}
-        ${r.mpower === null ? cfgSwitch("mpower", "Verificare împuternicire prin MPower", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Verificare împuternicire prin MPower", r.mpower ? "Da" : "Nu")}
+        ${cfgReadonly("Tip solicitant", applicantTags(r.applicants))}
+        ${r.mpower === null ? cfgSwitch("mpower", "Verificare împuternicire prin MPower", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Verificare împuternicire prin MPower", yesNo(r.mpower))}
         ${cfgSelect("authMode", "Modalitatea de verificare a împuternicirii", CFG_AUTH_MODES, { required: true, hint: "Cum se verifică împuternicirea solicitantului care acționează în numele altei persoane." })}
         ${cfgReadonly("Durata valabilității actului", `${escapeHtml(r.validity)}${r.validityUnit !== "—" ? ` ${escapeHtml(r.validityUnit.toLocaleLowerCase("ro"))}` : ""}`)}
-        ${r.tacit === null ? cfgSwitch("tacit", "Aprobare tacită activată", "Implicit Nu. Pe fiecare tip de solicitare se setează în „Tipuri solicitări”.") : cfgReadonly("Aprobare tacită activată", r.tacit ? "Da" : "Nu")}`);
+        ${r.tacit === null ? cfgSwitch("tacit", "Aprobare tacită activată", "Implicit Nu. Pe fiecare tip de solicitare se setează în „Tipuri solicitări”.") : cfgReadonly("Aprobare tacită activată", yesNo(r.tacit))}`);
       case "exam": return cfgGrid(`
         ${cfgChecks("subdivisions", "Subdiviziuni de examinare", cfgSubdivisionOptions(service), { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })}
         ${cfgGroup(cfgSwitch("autoDist", "Distribuire automată", v.autoDist ? "Dosarele noi se distribuie după regulile de mai jos." : "Dosarele se distribuie manual de supervizor."), v.autoDist, `
@@ -15659,12 +15682,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ${cfgSelect("pdfGen", "Generarea documentului PDF", CFG_PDF_GEN, { required: true, hint: "Pentru actul permisiv și decizia de respingere." })}
         ${cfgSwitch("pdfSign", "Semnarea documentului PDF prin MSign", "Numărul de semnături se setează pe tipul de solicitare.")}`);
       case "payment": return cfgGrid(`
-        ${cfgReadonly("Serviciu cu plată", r.paid ? "Da — RSSP are tarife mai mari de 0 lei" : "Nu")}
+        ${cfgReadonly("Serviciu cu plată", `${yesNo(r.paid)}${r.paid ? '<span class="e-permits-passport__muted">RSSP are tarife mai mari de 0 lei</span>' : ""}`)}
         ${r.paid ? cfgInput("mpayCode", "Cod serviciu MPay", { required: true, span: 6, placeholder: "Ex. MP-003000023", hint: "Identificatorul serviciului în MPay, pentru nota de plată." }) : ""}
         ${cfgInput("payTerm", "Termenul de achitare (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice; precompletează termenul fiecărei taxe noi." })}`);
       case "delivery": return cfgGrid(`
         ${cfgSwitch("eDelivery", "Livrare electronică", "Actul ajunge în EVO Cabinet.")}
-        ${r.mdelivery === null ? cfgSwitch("mdelivery", "Livrare prin MDelivery", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Livrare prin MDelivery", r.mdelivery ? "Da" : "Nu")}
+        ${r.mdelivery === null ? cfgSwitch("mdelivery", "Livrare prin MDelivery", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Livrare prin MDelivery", yesNo(r.mdelivery))}
         ${cfgSwitch("paperRelease", "Eliberare pe hârtie la autoritatea emitentă", "Declanșează emiterea fizică a rezultatului solicitării.")}
         ${cfgSelect("releaseActor", "Actorul care imprimă și eliberează actul", CFG_RELEASE_ACTORS, { required: true })}`);
       case "appeal": return cfgGrid(`
@@ -15695,7 +15718,7 @@ document.addEventListener("DOMContentLoaded", () => {
               </div>`;
           }).join("")}</div>
           <div class="e-permits-tax-cond__add">
-            <button class="btn btn-neutral btn-sm" type="button" data-cfg-rule-add${used.length >= CFG_DOC_TYPES.length ? " disabled" : ""}><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>Adaugă regulă</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-cfg-rule-add${used.length >= CFG_DOC_TYPES.length ? " disabled" : ""}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă regulă</span></button>
             ${renderInfoNote("Câte o regulă pentru fiecare tip de document emis: act permisiv, decizie de respingere, înștiințare. „Valoare curentă” = ultimul număr atribuit.")}
           </div>`;
       }
@@ -15703,11 +15726,21 @@ document.addEventListener("DOMContentLoaded", () => {
         ${renderInfoNote("<strong>Datele personale ale persoanei fizice</strong> (IDNP, numele și prenumele) se publică mereu anonimizat, indiferent de setare.")}
         <ul class="e-permits-cfg-rap" role="list">${CFG_FORM_FIELDS.map((field) => {
           const row = v.rap.find((x) => x.field === field); const always = CFG_ALWAYS_ANON.includes(field);
+          /* Publică = the field goes to RAP; Anonimizează = it goes masked. Same pair as
+             Documente (Afișează / Obligatoriu): the second needs the first */
+          const anonOff = !row || always;
+          const reason = always ? "Datele personale ale persoanei fizice se publică mereu anonimizat." : "Bifează întâi „Publică” — un câmp nepublicat nu are ce anonimiza.";
           return `<li class="e-permits-cfg-rap__row">
-            <label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(field)}" data-cfg-rap="${escapeHtml(field)}"${row ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(field)}</span></span></label>
-            ${renderToggle({ label: "Anonimizare", checked: always || Boolean(row?.anon), attrs: `data-cfg-rap-anon="${escapeHtml(field)}"`, disabled: !row || always })}
+            <span class="e-permits-cfg-rap__name">${escapeHtml(field)}</span>
+            <div class="e-permits-check-options">
+              ${renderCheckOption({ label: "Publică", checked: Boolean(row), attrs: `value="${escapeHtml(field)}" data-cfg-rap="${escapeHtml(field)}" aria-label="Publică: ${escapeHtml(field)}"` })}
+              ${renderCheckOption({ label: "Anonimizează", checked: always || Boolean(row?.anon), disabled: anonOff, reason, attrs: `data-cfg-rap-anon="${escapeHtml(field)}" aria-label="Anonimizează: ${escapeHtml(field)}"` })}
+            </div>
           </li>`; }).join("")}</ul>`;
-      case "drafts": return cfgGrid(cfgInput("draftDays", "Perioada de retenție a schițelor (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice. Înainte de expirare, solicitantul e anunțat prin MNotify; apoi schița se arhivează. Doar Administratorul Central." }));
+      /* the field keeps a one-line hint; what happens at expiry goes into the grey info note */
+      case "drafts": return `
+        ${cfgGrid(cfgInput("draftDays", "Perioada de retenție a schițelor (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice." }))}
+        ${renderInfoNote("Înainte de expirare, solicitantul e anunțat prin MNotify; apoi schița se arhivează. Doar Administratorul Central poate schimba perioada.")}`;
       case "dep": {
         const d = v;
         const svcOpts = cfgPublishedServices(service).map((s) => [s.code, `${s.title} · ${s.code}`]);
@@ -15728,37 +15761,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       default: return "";
     }
-  };
-  const renderCfgDrawer = () => {
-    const service = getServiceByCode(serviceProfileState.code);
-    if (!cfgDraft || !service) return;
-    const top = cfgBody.scrollTop;
-    const isDep = cfgDraft.section === "dep";
-    cfgDrawer.querySelector("[data-svc-cfg-title]").textContent = isDep ? (cfgDraft.depId ? "Editează interdependența" : "Interdependență nouă") : (CFG_SECTIONS.find(([k]) => k === cfgDraft.section) || [])[1] || "Setări";
-    cfgDrawer.querySelector("[data-svc-cfg-subtitle]").textContent = `Setări · ${service.title}`;
-    cfgBody.innerHTML = `<div class="e-permits-clas-create e-permits-cfg-form">${renderCfgForm(service)}</div>`;
-    cfgBody.scrollTop = top;
-  };
-  const openCfgDrawer = (section, trigger, depId = null) => {
-    const service = getServiceByCode(serviceProfileState.code);
-    if (!service || !cfgDrawer || !isCentralAdmin()) return;
-    const c = serviceConfig(service);
-    const dep = depId ? c.deps.find((d) => d.id === depId) : null;
-    cfgDraft = { section, depId, v: section === "dep" ? cfgClone(dep || { name: "", requestTypes: [], type: "", source: "", fields: [], acts: [], formField: "", extSource: "", incompatible: "" }) : cfgClone(c), errors: {}, dirty: false, trigger };
-    renderCfgDrawer();
-    trigger?.setAttribute("aria-expanded", "true");
-    cfgDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
-    requestAnimationFrame(() => cfgBody.querySelector("input:not([disabled]), .e-permits-fo-select__button")?.focus());
-  };
-  const closeCfgDrawer = (force = false) => {
-    if (!cfgDraft || cfgDrawer.hidden) return;
-    if (!force && cfgDraft.dirty) { askConfirm({ title: "Renunți la modificări?", text: "Setările schimbate în acest formular se pierd.", confirmLabel: "Renunță", destructive: true }, () => closeCfgDrawer(true)); return; }
-    closeFoSelect();
-    const trigger = cfgDraft.trigger;
-    trigger?.setAttribute("aria-expanded", "false");
-    cfgDrawer.classList.add("is-closing");
-    window.setTimeout(() => { cfgDrawer.hidden = true; cfgDrawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); cfgDraft = null; trigger?.focus?.(); }, 120);
   };
   const CFG_REQUIRED_MSG = "Câmpul este obligatoriu.";
   const CFG_INT_MSG = "Introdu un număr întreg mai mare ca zero.";
@@ -15788,76 +15790,285 @@ document.addEventListener("DOMContentLoaded", () => {
     return e;
   };
   const cfgFmt = (val) => Array.isArray(val) ? (val.length ? val.map((x) => (typeof x === "object" ? (x.doc || x.field || JSON.stringify(x)) : x)).join(", ") : "—") : typeof val === "boolean" ? (val ? "Da" : "Nu") : (val === "" || val == null ? "—" : String(val));
-  const saveCfgDrawer = () => {
+
+  /* ---- Setări v2: every section on one page, edited inline, one draft ----
+     Research (Shopify settings template + contextual save, GitHub / Vercel settings): one
+     explicit save for the whole page, never mixed with instant switches; related options in
+     annotated groups; a sticky in-page section list for a long page. Product convention: the
+     draft's Renunță · Salvează lead the page-header actions with „● N modificări nesalvate”
+     (as the user / role / classifier profiles); leaving the tab asks first. Fields, validation
+     and audit events are the drawer's (shared handlers via cfgWith). */
+  const CFG2_SECTIONS = [...CFG_SECTIONS, ["deps", "Interdependențe"], ["other", "Alte setări"]];
+  /* section list icons (central icon system): one literal icon per section, always with its
+     label — recognition aid, never the meaning; 16px, grey, brand on the current section */
+  const CFG2_ICONS = { applicant: "person", exam: "people", suspension: "pause", signing: "signature", payment: "wallet", delivery: "envelope", appeal: "judge-gavel", numbering: "hashtag", rap: "globe", drafts: "page-text", deps: "link", other: "settings" };
+  const CFG2_DESC = {
+    applicant: "Cine poate depune cererea și cum se verifică împuternicirea. Datele din RSSP se schimbă doar la resincronizare.",
+    exam: "Subdiviziunile care examinează dosarele și cum ajung dosarele la specialiști.",
+    suspension: "Termenul și regulile pentru suspendarea examinării unui dosar.",
+    signing: "Semnarea electronică a cererii și a documentelor generate.",
+    payment: "Datele pentru nota de plată din MPay și termenul de achitare.",
+    delivery: "Cum ajunge actul la solicitant și cine îl eliberează pe hârtie.",
+    appeal: "Dacă și în ce termen se pot contesta deciziile serviciului.",
+    numbering: "Formatul numerelor atribuite documentelor emise.",
+    rap: "Ce date din cerere se publică în Registrul actelor permisive și care se anonimizează.",
+    drafts: "Cât timp se păstrează schițele de cerere nedepuse.",
+    deps: "Servicii sau surse externe de care depinde depunerea cererii.",
+    other: "Opțiuni ale fluxului de examinare."
+  };
+  const CFG2_KEPT = ["aprobareSecundara", "cuExpertiza", "suspendareCoordonare"];
+  const CFG2_EMPTY_DEP = () => ({ name: "", requestTypes: [], type: "", source: "", fields: [], acts: [], formField: "", extSource: "", incompatible: "" });
+  let cfg2 = null;
+  const cfg2Base = (service) => { const c = serviceConfig(service), f = serviceSettingFlags(service); return { c, flags: Object.fromEntries(CFG2_KEPT.map((k) => [k, Boolean(f[k])])) }; };
+  const cfg2Ensure = (service) => {
+    if (cfg2 && cfg2.code === service.code) return cfg2;
+    const { c, flags } = cfg2Base(service);
+    cfg2 = { code: service.code, v: cfgClone(c), flags, errors: {}, depErrors: {}, active: "applicant" };
+    return cfg2;
+  };
+  /* one entry per changed field / interdependence / switch — the header counts them */
+  const cfg2Changes = (service) => {
+    if (!cfg2 || cfg2.code !== service.code) return [];
+    const { c, flags } = cfg2Base(service), out = [];
+    for (const [sec, fields] of Object.entries(CFG_FIELDS)) for (const [key, label] of fields) if (JSON.stringify(c[key]) !== JSON.stringify(cfg2.v[key])) out.push({ sec, key, label });
+    const before = new Map(c.deps.map((d) => [d.id, d])), after = new Map(cfg2.v.deps.map((d) => [d.id, d]));
+    for (const d of cfg2.v.deps) if (!before.has(d.id)) out.push({ sec: "deps", dep: d, kind: "add" }); else if (JSON.stringify(before.get(d.id)) !== JSON.stringify(d)) out.push({ sec: "deps", dep: d, kind: "edit" });
+    for (const d of c.deps) if (!after.has(d.id)) out.push({ sec: "deps", dep: d, kind: "remove" });
+    for (const k of CFG2_KEPT) if (flags[k] !== cfg2.flags[k]) out.push({ sec: "other", flag: k });
+    return out;
+  };
+  const cfg2ErrorSections = () => {
+    if (!cfg2) return new Set();
+    const s = new Set();
+    for (const [sec, fields] of Object.entries(CFG_FIELDS)) for (const [key] of fields) if (cfg2.errors[key]) s.add(sec);
+    if (Object.keys(cfg2.errors).some((k) => /^n\d+-/.test(k))) s.add("numbering");
+    if (Object.values(cfg2.depErrors).some((e) => Object.keys(e).length)) s.add("deps");
+    return s;
+  };
+  const cfg2SectionCtx = (service, key, body) => ({ draft: { section: key, v: cfg2.v, errors: cfg2.errors, dirty: false }, body, render: () => cfg2RenderSection(key), prefix: "" });
+  const cfg2DepCtx = (dep, body) => ({ draft: { section: "dep", v: dep, errors: (cfg2.depErrors[dep.id] ||= {}), dirty: false }, body, render: () => cfg2RenderSection("deps"), prefix: `${dep.id}-` });
+  const cfg2SectionHtml = (service, key) => {
+    if (key === "deps") {
+      const deps = cfg2.v.deps;
+      const isNew = (d) => !serviceConfig(service).deps.some((x) => x.id === d.id);
+      return `
+        ${deps.length ? `<div class="e-permits-tax-cond__list">${deps.map((dep, i) => `
+          <div class="e-permits-tax-cond" data-cfg2-dep="${escapeHtml(dep.id)}">
+            <div class="e-permits-tax-cond__head"><label>Interdependența ${i + 1}${isNew(dep) ? ` ${renderTag("Nouă", "brand")}` : ""}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg2-dep-remove="${escapeHtml(dep.id)}">Elimină</button></div>
+            <div data-cfg2-dep-body>${cfgWith(cfg2DepCtx(dep, null), () => renderCfgForm(service))}</div>
+          </div>`).join("")}</div>` : `<p class="e-permits-cfg2__empty">Serviciul nu are interdependențe cu alte servicii sau surse externe.</p>`}
+        <div class="e-permits-tax-cond__add">
+          <button class="btn btn-secondary btn-sm" type="button" data-cfg2-dep-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă interdependență</span></button>
+        </div>`;
+    }
+    if (key === "other") {
+      return `<div class="e-permits-user-create__grid">${SERVICE_SETTINGS.filter(([k]) => CFG2_KEPT.includes(k)).map(([k, label, description]) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: cfg2.flags[k], attrs: `data-cfg2-flag="${k}"` })}</div>`).join("")}</div>`;
+    }
+    return cfgWith(cfg2SectionCtx(service, key, null), () => renderCfgForm(service));
+  };
+  const renderServiceSettingsV2 = (service) => {
+    if (!isCentralAdmin()) return renderServiceSettings(service);
+    cfg2Ensure(service);
+    const changed = new Set(cfg2Changes(service).map((x) => x.sec)), errs = cfg2ErrorSections();
+    const c = serviceConfig(service);
+    return `
+      <div class="e-permits-cfg2">
+        <nav class="e-permits-cfg2__nav" aria-label="Secțiunile setărilor">
+          <ul role="list">${CFG2_SECTIONS.map(([key, title]) => `
+            <li><a class="e-permits-cfg2__nav-link" href="#cfg2-${key}" data-cfg2-nav="${key}"${cfg2.active === key ? ' aria-current="true"' : ""}>
+              <svg class="icon small e-permits-cfg2__nav-icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${CFG2_ICONS[key]}"></use></svg>
+              <span class="e-permits-cfg2__nav-text" data-text="${escapeHtml(title)}">${escapeHtml(title)}</span>${cfg2NavDot(key, changed, errs)}
+            </a></li>`).join("")}</ul>
+        </nav>
+        <div class="e-permits-cfg2__main">
+          ${renderInfoNote(`Toate setările serviciului, pe o singură pagină. Modificările se salvează împreună, din bara de jos, și intră în vigoare după publicarea pașaportului.${c.editedAt ? ` Ultima editare: ${escapeHtml(formatStamp(c.editedAt))} · ${escapeHtml(c.editedBy || "—")}.` : ""}`)}
+          ${CFG2_SECTIONS.map(([key, title]) => `
+            <section class="e-permits-cfg2__section" id="cfg2-${key}" data-cfg2-section="${key}" aria-labelledby="cfg2-${key}-title">
+              <div class="e-permits-cfg2__head">
+                <h2 class="e-permits-dosar-profil__section-title" id="cfg2-${key}-title" tabindex="-1">${escapeHtml(title)}</h2>
+                <p class="e-permits-cfg2__desc">${escapeHtml(CFG2_DESC[key])}</p>
+              </div>
+              <div class="e-permits-ntpl-card e-permits-clas-create e-permits-cfg-form" data-cfg2-body="${key}">${cfg2SectionHtml(service, key)}</div>
+            </section>`).join("")}
+        </div>
+        <div class="e-permits-cfg2__bar" role="region" aria-label="Modificări nesalvate" data-cfg2-bar${cfg2Changes(service).length ? "" : " hidden"}>${cfg2BarHtml(service)}</div>
+      </div>`;
+  };
+  /* sticky save bar (Shopify contextual save bar): appears with the first change, holds the
+     only Renunță · Salvează of the page; errors after a failed save are counted here too */
+  const cfg2BarHtml = (service) => {
+    const n = cfg2Changes(service).length;
+    const e = Object.keys(cfg2?.errors || {}).length + Object.values(cfg2?.depErrors || {}).reduce((s, x) => s + Object.keys(x).length, 0);
+    return `
+      <p class="e-permits-cfg2__bar-text" aria-live="polite">${renderHeaderStatus(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning")}${e ? ` · <span class="e-permits-cfg2__bar-error">${e === 1 ? "1 câmp de corectat" : `${e} câmpuri de corectat`}</span>` : ""}</p>
+      <div class="e-permits-cfg2__bar-actions">
+        <button class="btn btn-neutral btn-sm" type="button" data-cfg2-discard>Renunță</button>
+        <button class="btn btn-primary btn-sm" type="button" data-cfg2-save>Salvează</button>
+      </div>`;
+  };
+  const cfg2NavDot = (key, changed, errs) => errs.has(key)
+    ? '<span class="e-permits-cfg2__dot e-permits-cfg2__dot--error" role="img" aria-label="are erori"></span>'
+    : changed.has(key) ? '<span class="e-permits-cfg2__dot" role="img" aria-label="modificat"></span>' : "";
+  const cfg2Root = () => permitsProfilePanel?.querySelector(".e-permits-cfg2");
+  const cfg2SetCurrent = (a, on) => (on ? a.setAttribute("aria-current", "true") : a.removeAttribute("aria-current"));
+  const cfg2RenderSection = (key) => {
+    const service = getServiceByCode(serviceProfileState.code), body = cfg2Root()?.querySelector(`[data-cfg2-body="${key}"]`);
+    if (!service || !body) return;
+    body.innerHTML = cfg2SectionHtml(service, key);
+  };
+  /* after every edit: the header (count, Renunță · Salvează) and the section dots — never the
+     form itself, so focus and the switch / checkbox transitions stay */
+  let cfg2LastCount = 0;
+  const cfg2Refresh = () => {
+    const service = getServiceByCode(serviceProfileState.code), root = cfg2Root();
+    if (!service || !root) return;
+    const list = cfg2Changes(service), changed = new Set(list.map((x) => x.sec)), errs = cfg2ErrorSections();
+    root.querySelectorAll("[data-cfg2-nav]").forEach((a) => { a.querySelector(".e-permits-cfg2__dot")?.remove(); a.insertAdjacentHTML("beforeend", cfg2NavDot(a.dataset.cfg2Nav, changed, errs)); });
+    const bar = root.querySelector("[data-cfg2-bar]");
+    if (bar) { bar.hidden = !list.length; const focusIn = bar.contains(document.activeElement); if (!focusIn) bar.innerHTML = cfg2BarHtml(service); }
+    if (list.length !== cfg2LastCount) { cfg2LastCount = list.length; renderServiceProfile({ headerOnly: true }); }
+  };
+  const cfg2EventCtx = (target) => {
     const service = getServiceByCode(serviceProfileState.code);
-    cfgDraft.errors = validateCfg(service);
-    if (Object.keys(cfgDraft.errors).length) {
-      renderCfgDrawer();
-      cfgBody.querySelector(".is-error input, .e-permits-fo-select.is-error .e-permits-fo-select__button, .e-permits-fo-field__error")?.closest(".e-permits-fo-field")?.querySelector("input, button")?.focus();
+    if (!cfg2 || !service || !target.closest(".e-permits-cfg2")) return null;
+    const depEl = target.closest("[data-cfg2-dep]");
+    if (depEl) { const dep = cfg2.v.deps.find((d) => d.id === depEl.dataset.cfg2Dep); return dep ? cfg2DepCtx(dep, depEl.querySelector("[data-cfg2-dep-body]")) : null; }
+    const sec = target.closest("[data-cfg2-section]")?.dataset.cfg2Section;
+    return sec && sec !== "deps" && sec !== "other" ? cfg2SectionCtx(service, sec, target.closest("[data-cfg2-body]")) : null;
+  };
+  const cfg2Validate = (service) => {
+    const errors = {};
+    for (const [key] of CFG_SECTIONS) cfgWith(cfg2SectionCtx(service, key, null), () => Object.assign(errors, validateCfg(service)));
+    cfg2.errors = errors;
+    cfg2.depErrors = Object.fromEntries(cfg2.v.deps.map((dep) => [dep.id, cfgWith(cfg2DepCtx(dep, null), () => validateCfg(service))]));
+    return Object.keys(errors).length + Object.values(cfg2.depErrors).reduce((n, e) => n + Object.keys(e).length, 0);
+  };
+  const cfg2Save = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service || !cfg2) return;
+    const list = cfg2Changes(service);
+    if (!list.length) return;
+    if (cfg2Validate(service)) {
+      renderServiceProfile();
+      const first = cfg2Root()?.querySelector(".e-permits-fo-field__error")?.closest(".e-permits-fo-field");
+      first?.scrollIntoView({ block: "center", behavior: "smooth" });
+      first?.querySelector("input:not([type=hidden]), .e-permits-fo-select__button")?.focus({ preventScroll: true });
       return;
     }
-    const c = serviceConfig(service), at = localIsoNow(), by = currentUserName();
-    let events = [], toast;
-    if (cfgDraft.section === "dep") {
-      const v = cfgDraft.v, prev = cfgDraft.depId ? c.deps.find((d) => d.id === cfgDraft.depId) : null;
-      if (prev) Object.assign(prev, v); else c.deps.push({ ...v, id: `dep-${Date.now()}` });
-      events = [{ at, user: by, type: prev ? "Modificare interdependență" : "Adăugare interdependență", status: "Reușit", detail: `${v.name} · ${v.type}` }];
-      toast = [prev ? "Interdependența a fost salvată." : "Interdependența a fost adăugată.", prev ? "Interdependență salvată" : "Interdependență adăugată"];
-    } else {
-      const title = (CFG_SECTIONS.find(([k]) => k === cfgDraft.section) || [])[1];
-      for (const [key, label] of CFG_FIELDS[cfgDraft.section] || []) {
-        const before = cfgFmt(c[key]), after = cfgFmt(cfgDraft.v[key]);
-        if (JSON.stringify(c[key]) !== JSON.stringify(cfgDraft.v[key])) events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${title} · ${label}: ${before} → ${after}` });
-        c[key] = cfgClone(cfgDraft.v[key]);
-      }
-      toast = events.length ? [`${title}: ${plural(events.length, "setare modificată", "setări modificate")}. Intră în vigoare după publicarea pașaportului.`, "Setări salvate"] : null;
+    const c = serviceConfig(service), flags = serviceSettingFlags(service), at = localIsoNow(), by = currentUserName(), events = [];
+    const secTitle = (k) => (CFG_SECTIONS.find(([x]) => x === k) || [])[1];
+    for (const x of list) {
+      if (x.key) { events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${secTitle(x.sec)} · ${x.label}: ${cfgFmt(c[x.key])} → ${cfgFmt(cfg2.v[x.key])}` }); c[x.key] = cfgClone(cfg2.v[x.key]); }
+      else if (x.dep) events.push({ at, user: by, type: x.kind === "add" ? "Adăugare interdependență" : x.kind === "remove" ? "Eliminare interdependență" : "Modificare interdependență", status: "Reușit", detail: `${x.dep.name} · ${x.dep.type}` });
+      else if (x.flag) { flags[x.flag] = cfg2.flags[x.flag]; events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${SERVICE_SETTING_LABELS[x.flag]}: ${cfg2.flags[x.flag] ? "activată" : "dezactivată"}` }); }
     }
-    if (events.length) { c.editedAt = at; c.editedBy = by; syncCfgFlags(service); logServiceEvents(service.code, events, { render: false }); }
-    closeCfgDrawer(true);
+    c.deps = cfgClone(cfg2.v.deps);
+    c.editedAt = at; c.editedBy = by;
+    syncCfgFlags(service);
+    logServiceEvents(service.code, events, { render: false });
+    cfg2 = null; cfg2LastCount = 0;
     renderServiceProfile();
-    if (toast) showShellToast(toast[0], "success", toast[1]);
+    showShellToast(`${plural(list.length, "setare modificată", "setări modificate")}. Intră în vigoare după publicarea pașaportului.`, "success", "Setări salvate");
   };
-  const removeCfgDep = (depId) => {
-    const service = getServiceByCode(serviceProfileState.code), c = serviceConfig(service), dep = c.deps.find((d) => d.id === depId);
-    if (!dep) return;
-    closeStackMenus();
-    askConfirm({ title: "Elimină interdependența", text: `„${dep.name}” nu se mai verifică la completarea și depunerea cererii. Intră în vigoare după publicarea pașaportului.`, confirmLabel: "Confirmă", destructive: true }, () => {
-      c.deps.splice(c.deps.indexOf(dep), 1);
-      c.editedAt = localIsoNow(); c.editedBy = currentUserName();
-      logServiceEvents(service.code, [{ at: c.editedAt, user: c.editedBy, type: "Eliminare interdependență", status: "Reușit", detail: `${dep.name} · ${dep.type}` }], { render: false });
-      renderServiceProfile();
-      showShellToast(`„${dep.name}” a fost eliminată.`, "success", "Interdependență eliminată");
-    });
+  const cfg2Discard = () => { cfg2 = null; cfg2LastCount = 0; renderServiceProfile(); };
+  /* leaving Setări v2 with a draft asks first (as every profile draft) */
+  const cfg2Guard = (proceed) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (serviceProfileState.tabKey !== "settings" || !service || !cfg2Changes(service).length) { cfg2 = null; cfg2LastCount = 0; proceed(); return; }
+    askConfirm({ title: "Renunți la modificări?", text: "Setările schimbate pe această pagină se pierd.", confirmLabel: "Renunță", destructive: true }, () => { cfg2 = null; cfg2LastCount = 0; proceed(); });
   };
   permitsProfilePanel?.addEventListener("click", (event) => {
-    const edit = event.target.closest("[data-svc-cfg-edit]");
-    if (edit) { openCfgDrawer(edit.dataset.svcCfgEdit, edit); return; }
-    const add = event.target.closest("[data-svc-dep-add]");
-    if (add) { openCfgDrawer("dep", add); return; }
-    const depEdit = event.target.closest("[data-svc-dep-edit]");
-    if (depEdit) { openCfgDrawer("dep", depEdit, depEdit.dataset.svcDepEdit); return; }
-    const depRemove = event.target.closest("[data-svc-dep-remove]");
-    if (depRemove) removeCfgDep(depRemove.dataset.svcDepRemove);
+    if (event.target.closest("[data-cfg2-discard]")) { cfg2Discard(); return; }
+    if (event.target.closest("[data-cfg2-save]")) { cfg2Save(); return; }
+    const nav = event.target.closest("[data-cfg2-nav]");
+    if (nav) {
+      event.preventDefault();
+      cfg2.active = nav.dataset.cfg2Nav;
+      /* the jump scrolls past other sections: the scroll tracking waits until it lands, so
+         the highlight goes straight to the clicked item instead of flickering through */
+      cfg2.spyPausedUntil = Date.now() + 900;
+      cfg2Root()?.querySelectorAll("[data-cfg2-nav]").forEach((a) => cfg2SetCurrent(a, a === nav));
+      const target = document.getElementById(`cfg2-${nav.dataset.cfg2Nav}`);
+      target?.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      target?.querySelector("h2")?.focus({ preventScroll: true });
+      return;
+    }
+    if (!cfg2 || !event.target.closest(".e-permits-cfg2")) return;
+    if (event.target.closest("[data-cfg2-dep-add]")) {
+      const dep = { ...CFG2_EMPTY_DEP(), id: `dep-${Date.now()}` };
+      cfg2.v.deps.push(dep);
+      cfg2RenderSection("deps"); cfg2Refresh();
+      cfg2Root()?.querySelector(`[data-cfg2-dep="${dep.id}"] input`)?.focus();
+      return;
+    }
+    const rm = event.target.closest("[data-cfg2-dep-remove]");
+    if (rm) {
+      /* nothing is applied before Salvează, so no confirm: the header counts the removal and
+         Renunță brings it back */
+      cfg2.v.deps = cfg2.v.deps.filter((d) => d.id !== rm.dataset.cfg2DepRemove);
+      delete cfg2.depErrors[rm.dataset.cfg2DepRemove];
+      cfg2RenderSection("deps"); cfg2Refresh();
+      cfg2Root()?.querySelector("[data-cfg2-dep-add]")?.focus();
+      return;
+    }
+    const ctx = cfg2EventCtx(event.target);
+    if (ctx) { cfgWith(ctx, () => onCfgClick(event)); cfg2Refresh(); }
   });
+  permitsProfilePanel?.addEventListener("input", (event) => {
+    const ctx = cfg2EventCtx(event.target);
+    if (ctx) { cfgWith(ctx, () => onCfgInput(event)); cfg2Refresh(); }
+  });
+  permitsProfilePanel?.addEventListener("change", (event) => {
+    if (!cfg2 || !event.target.closest(".e-permits-cfg2")) return;
+    const flag = event.target.closest("[data-cfg2-flag]");
+    if (flag) { cfg2.flags[flag.dataset.cfg2Flag] = flag.checked; cfg2Refresh(); return; }
+    const ctx = cfg2EventCtx(event.target);
+    if (ctx) { cfgWith(ctx, () => onCfgChange(event)); cfg2Refresh(); }
+  });
+  /* the section list follows the scroll */
+  const cfg2Spy = () => {
+    const root = cfg2Root();
+    if (!root) return;
+    /* the tab row stays pinned on scroll: the section list and anchors sit 24px below it */
+    root.style.setProperty("--cfg2-stick", `${(permitsProfilePanel.querySelector("[data-passport-tabs]")?.offsetHeight || 0) + 24}px`);
+    /* active = the last section whose title is in the top 30% of the visible area (under the
+       pinned tab row); at the very bottom, the last section */
+    let scroller = root.parentElement;
+    while (scroller && scroller !== document.body && !(/(auto|scroll)/.test(getComputedStyle(scroller).overflowY) && scroller.scrollHeight > scroller.clientHeight)) scroller = scroller.parentElement;
+    const onScroll = () => {
+      if (!root.isConnected || !cfg2) { window.removeEventListener("scroll", onScroll, true); return; }
+      if (cfg2.spyPausedUntil && Date.now() < cfg2.spyPausedUntil) return;
+      const secs = [...root.querySelectorAll("[data-cfg2-section]")];
+      const pinned = permitsProfilePanel.querySelector("[data-passport-tabs]")?.getBoundingClientRect().bottom || 0;
+      const stick = pinned + (window.innerHeight - pinned) * 0.3;
+      const el = scroller && scroller !== document.body ? scroller : document.scrollingElement;
+      const atEnd = el.scrollTop > 0 && Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight - 2;
+      const current = atEnd ? secs[secs.length - 1] : secs.filter((s) => s.getBoundingClientRect().top <= stick).pop() || secs[0];
+      if (current && current.dataset.cfg2Section !== cfg2.active) {
+        cfg2.active = current.dataset.cfg2Section;
+        root.querySelectorAll("[data-cfg2-nav]").forEach((a) => cfg2SetCurrent(a, a.dataset.cfg2Nav === cfg2.active));
+      }
+    };
+    window.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    onScroll();
+  };
   const cfgMark = (key, target) => {
     cfgDraft.dirty = true;
     if (cfgDraft.errors[key]) { delete cfgDraft.errors[key]; target?.closest(".e-permits-fo-input, .e-permits-fo-select")?.classList.remove("is-error"); target?.closest(".e-permits-fo-field")?.querySelector(".e-permits-fo-field__error")?.remove(); }
   };
-  cfgDrawer?.addEventListener("click", (event) => {
+  const onCfgClick = (event) => {
     if (!cfgDraft) return;
-    if (event.target.closest("[data-svc-cfg-close]")) { closeCfgDrawer(); return; }
-    if (event.target.closest("[data-svc-cfg-save]")) { saveCfgDrawer(); return; }
     if (event.target.closest("[data-cfg-rule-add]")) {
       const used = cfgDraft.v.numbering.map((x) => x.doc);
       cfgDraft.v.numbering.push({ doc: CFG_DOC_TYPES.find((d) => !used.includes(d)) || "", prefix: "", sep: "-", len: "6", start: "1", current: 0, reset: "Anual" });
-      cfgDraft.dirty = true; renderCfgDrawer();
+      cfgDraft.dirty = true; cfgRender();
       cfgBody.querySelector(`[data-cfg-rule-block="${cfgDraft.v.numbering.length - 1}"] input`)?.focus();
       return;
     }
     const rm = event.target.closest("[data-cfg-rule-remove]");
-    if (rm) { cfgDraft.v.numbering.splice(Number(rm.dataset.cfgRuleRemove), 1); cfgDraft.errors = {}; cfgDraft.dirty = true; renderCfgDrawer(); cfgBody.querySelector("[data-cfg-rule-add]")?.focus(); }
-  });
-  cfgDrawer?.addEventListener("input", (event) => {
+    if (rm) { cfgDraft.v.numbering.splice(Number(rm.dataset.cfgRuleRemove), 1); for (const k of Object.keys(cfgDraft.errors)) delete cfgDraft.errors[k]; cfgDraft.dirty = true; cfgRender(); cfgBody.querySelector("[data-cfg-rule-add]")?.focus(); }
+  };
+  const onCfgInput = (event) => {
     if (!cfgDraft) return;
     const t = event.target;
     if (t.matches("[data-cfg-numeric]")) t.value = t.value.replace(/\D/g, "").slice(0, 5);
@@ -15866,22 +16077,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const i = Number(t.dataset.cfgRule), f = t.dataset.cfgRuleField; cfgDraft.v.numbering[i][f] = t.value; cfgMark(`n${i}-${f}`, t);
       const ex = cfgBody.querySelector(`[data-cfg-rule-example="${i}"] strong`); if (ex) ex.textContent = cfgNumberExample(cfgDraft.v.numbering[i]);
     }
-  });
-  cfgDrawer?.addEventListener("change", (event) => {
+  };
+  const onCfgChange = (event) => {
     if (!cfgDraft) return;
     const t = event.target;
     if (t.matches("[data-cfg-select]")) {
       const key = t.dataset.cfgSelect; cfgDraft.v[key] = t.value; cfgMark(key, t);
       /* a new interdependence type or source changes which fields follow */
-      if (cfgDraft.section === "dep" && (key === "type" || key === "source")) { if (key === "source") cfgDraft.v.acts = []; renderCfgDrawer(); cfgBody.querySelector(`#cfg-${key}`)?.focus(); }
+      if (cfgDraft.section === "dep" && (key === "type" || key === "source")) { if (key === "source") cfgDraft.v.acts = []; cfgRender(); cfgBody.querySelector(`#cfg-${cfgIdPrefix}${key}`)?.focus(); }
       return;
     }
-    if (t.matches("[data-cfg-rule]")) { const i = Number(t.dataset.cfgRule), f = t.dataset.cfgRuleField; cfgDraft.v.numbering[i][f] = t.value; cfgMark(`n${i}-${f}`, t); if (f === "doc") { renderCfgDrawer(); cfgBody.querySelector(`#cfg-n${i}-doc`)?.focus(); } return; }
+    if (t.matches("[data-cfg-rule]")) { const i = Number(t.dataset.cfgRule), f = t.dataset.cfgRuleField; cfgDraft.v.numbering[i][f] = t.value; cfgMark(`n${i}-${f}`, t); if (f === "doc") { cfgRender(); cfgBody.querySelector(`#cfg-n${i}-doc`)?.focus(); } return; }
     if (t.matches("[data-cfg-switch]")) {
       const key = t.dataset.cfgSwitch; cfgDraft.v[key] = t.checked; cfgDraft.dirty = true;
       /* only a group switch changes the form; redraw once the knob has slid (200ms), so the
          switch keeps its transition */
-      if (CFG_GROUP_SWITCHES.includes(key)) setTimeout(() => { if (!cfgDraft) return; renderCfgDrawer(); cfgBody.querySelector(`[data-cfg-switch="${key}"]`)?.focus(); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
+      if (CFG_GROUP_SWITCHES.includes(key)) { const ctx = cfgCapture(); setTimeout(() => cfgWith(ctx, () => { if (!cfgDraft || !cfgBody?.isConnected) return; cfgRender(); cfgBody.querySelector(`[data-cfg-switch="${key}"]`)?.focus(); }), matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200); }
       return;
     }
     if (t.matches("[data-cfg-check]")) { const key = t.dataset.cfgCheck; cfgDraft.v[key] = [...cfgBody.querySelectorAll(`[data-cfg-check="${key}"]:checked`)].map((x) => x.value); cfgMark(key, t); return; }
@@ -15891,16 +16102,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (t.checked) cfgDraft.v.rap.push({ field, anon: always }); else cfgDraft.v.rap = cfgDraft.v.rap.filter((x) => x.field !== field);
       /* in place, no redraw: the checkbox keeps its transition; Anonimizare follows the row */
       const anon = t.closest(".e-permits-cfg-rap__row")?.querySelector("[data-cfg-rap-anon]");
-      if (anon) { anon.disabled = !t.checked || always; anon.checked = always || (t.checked && anon.checked); const row = cfgDraft.v.rap.find((x) => x.field === field); if (row) row.anon = anon.checked; }
+      if (anon) {
+        anon.disabled = !t.checked || always; anon.checked = always || (t.checked && anon.checked);
+        const opt = anon.closest(".e-permits-check-option");
+        opt?.classList.toggle("is-disabled", anon.disabled);
+        opt?.setAttribute("data-tooltip-reason", anon.disabled ? (always ? "Datele personale ale persoanei fizice se publică mereu anonimizat." : "Bifează întâi „Publică” — un câmp nepublicat nu are ce anonimiza.") : "");
+        const row = cfgDraft.v.rap.find((x) => x.field === field); if (row) row.anon = anon.checked;
+      }
       cfgDraft.dirty = true; return;
     }
     if (t.matches("[data-cfg-rap-anon]")) { const row = cfgDraft.v.rap.find((x) => x.field === t.dataset.cfgRapAnon); if (row) row.anon = t.checked; cfgDraft.dirty = true; }
-  });
-  cfgDrawer?.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || document.querySelector(".modal-overlay.is-active, body > .e-permits-fo-select__list")) return;
-    event.preventDefault(); closeCfgDrawer();
-  });
-
+  };
   /* Setări: a switch goes straight into the service draft */
   permitsProfilePanel?.addEventListener("change", (event) => {
     const input = event.target.closest("[data-svc-setting]");

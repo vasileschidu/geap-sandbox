@@ -187,6 +187,7 @@ but this doc previously described it wrongly, see the entry.
 | Checkbox | `.checkbox .checkbox-input .checkbox-custom` | `checkbox.html` | library |
 | Radio | `.radio-group .radio .radio-custom` | `radio-buttons.html` | library |
 | Switch | `.switch > .switch-wrapper` | `switch.html` | library |
+| Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
 | Input | `.input`, `.input-wrapper` | `input-preview.html` | library |
 | Textarea | `.textarea` | `textarea.html` | library |
 | Table | `.table` + `--default/--subtle/--strong/--white` | `table.html` | library |
@@ -1151,8 +1152,19 @@ paper-copy option, RAP filters, builder toggles. The old hand-rolled boxes
 `e-permits-user-profile__perm-checkbox`, `rap-filter-option__box`, `rap-checkbox`,
 `e-permits-builder__mini-check--only`) are deleted — do not bring them back.
 Do not use `--small` or `--large`.
-**One exception (user, 2026-10-08):** the Documente tab's „Afișează” / „Obligatoriu” options
-in their grey containers (`.e-permits-svc-doc__opt`) use **`.checkbox--small` (16px)**.
+**Checkbox option component (2026-10-09):** an on/off option beside a row (Documente
+„Afișează” / „Obligatoriu”, Setări › RAP „Publică” / „Anonimizează”) is always
+`renderCheckOption({ label, checked, disabled, required, attrs, reason })` — Figma „Opțiune
+document · checkbox” (`10507:125565`): library checkbox **Figma Size=Small = 20px box** (code
+`.checkbox--medium`; the code `--small` is 16px and does not match Figma), radius 6, the
+**16/checkmark-small icon** as the tick (`.e-permits-check-option__tick`, white; disabled =
+icon-disabled; the drawn `::after` tick is hidden), grey container base-secondary, radius 8,
+padding 6/12/6/8, gap 8, label 14/20 medium, 12px danger asterisk (`requiredMark()`) when
+required. States: hover base-secondary-hover · keyboard focus ring · disabled = disabled
+label + `data-tooltip-reason` · checked = brand box. Several sit in `.e-permits-check-options`
+(gap 8, wraps). **`plain: true`** = the same 20px box + icon tick without the grey container
+and with a regular label — every checkbox list in Setări (`cfgChecks`) uses it, so all
+checkboxes on a screen look the same. Never hand-roll another.
 
 `.checkbox-custom` now carries `box-sizing: border-box` and `flex: 0 0 auto` in
 `main.css`. Without them it rendered **24px** on pages with no global border-box
@@ -2816,8 +2828,7 @@ Toasts are for results that are not visible where the user acted (a save / publi
 **Documente tab (2026-10-08, US-225):** each RSSP document row: grey document icon · title ·
 meta `RSSP` tag · „În RSSP: obligatoriu/opțional” (read-only) · „Nu apare în cerere” when
 hidden; right side two **checkboxes, each in a small grey container**
-(`label.checkbox.checkbox--small.e-permits-svc-doc__opt`: `--color-background-base-secondary`,
-radius 8, padding 6/12/6/8, gap 8; hover `secondary-hover`; focus ring on `:focus-within`;
+(the **checkbox option component** `renderCheckOption()` — see the Checkbox section;
 Figma: component set „Opțiune document · checkbox” `10507:44447` — State × Checked, props
 Label + Asterisc) —
 **„Afișează”** (Vizibilitatea: the applicant sees it in the request) and **„Obligatoriu”** +
@@ -4070,9 +4081,9 @@ in the overflow, destructive separated and last. Tables (registries) keep their 
 **„Editează” always carries the pen** (`icon-edit`, small, before the label — same markup as
 „+ Adaugă …”): `actionLabelHtml` / `EDIT_LABEL_HTML`, in rows, section headings and drawers.
 
-**Tags = Figma tag-filled Medium everywhere except tables** (`.e-permits-workplace__tag`: 24px,
-14/20 medium, px 8, radius 4); inside `table` / `[role=table|grid]` they stay Small (20px, 12/16,
-px 6). Value lists (`valueTags`) use the same tag. Neutral tag = library neutral subtle
+**Tags = Figma tag-filled Small everywhere, tables included** (`.e-permits-workplace__tag`: 20px,
+12/16 medium, px 6, radius 4; with icon `--icon`: pl 4, pr 6, gap 4, 16px icon) — user
+2026-10-09 reverted the short-lived „Medium outside tables” rule. Value lists (`valueTags`) use the same tag. Neutral tag = library neutral subtle
 (`background/base/tertiary`, default text) so it shows on white and on grey cards alike.
 **Subtle tags have a 1px border** in their outlined twin's colour (library `tag-filled` Subtle,
 Components file `doJ7tDY0PlQ0PqMgbpFVIC` › Tag `22:80`, 2026-10-09): Neutral / Muted
@@ -4092,16 +4103,58 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   three switches outside the story (Aprobare secundară, Cu expertiză, Suspendare cu coordonare),
   unchanged, instant.
 - RSSP values: value left + plain caption „Din RSSP” at the row's right end (`.e-permits-cfg-value--rssp` + `.e-permits-cfg-source`, 12/16 tertiary like the header „sincronizat …”; no tag), also inside the drawer's grey read-only box, read-only for everyone; MPower,
+- **Tip solicitant** (read view, drawer, v2) = `applicantTags` with the full names („Persoană fizică” / „Persoană juridică”, never PF / PJ) and the
+  filled person / suitcase icon, never plain „PF, PJ” text.
+- **Setări (one page; was „Setări v2”, `renderServiceSettingsV2`, states svc-10…10o, svc-10v…10v4):**
+  the same sections on one page, edited inline, no drawers / modals. Layout `.e-permits-cfg2`:
+  sticky section list left (220px, `__nav-link` 14/20 secondary; hover base-secondary; current
+  `aria-current` = brand-secondary bg + brand text medium; focus ring; dot warning = changed,
+  danger = errors; sticks under the pinned tab row via `--cfg2-stick`, active section follows the
+  scroll), sections right (title 18/26 flush + 14/20 secondary description, then a white
+  `.e-permits-ntpl-card` with the drawer's fields; radius 16 + padding 20 — 32 was tried and read
+  too round; grey boxes inside 8; the section title / description get 20 side padding to line
+  up with the card content). **Inside the card: grey filled boxes are fine,
+  no bordered box** (user 2026-10-09) — read-only RSSP grey box, grey notes, grey rule /
+  interdependence blocks and the grey switch group stay; the repeated „Preluat din RSSP”
+  hint is hidden (caption + section description say it). **Spacing:** card padding 20; 24 between
+  fields (the drawer keeps 32); 16 inside a switch group (drawer too); RAP list sits 24 under its note, first /
+  last row without outer padding (drawer too), so the card padding is the only bottom space.
+  List sections (Numerotare, Interdependențe): 12 between blocks, 12 from the last block to
+  the add button, 12 from the button to its note. Section list: 16px grey icon per section
+  (`CFG2_ICONS`, central icon system, always with the label; brand on the current item);
+  current = brand-secondary + brand text, **medium** — the text reserves its medium width with a
+  hidden `::after` copy (`data-text`), so it never shifts; no transitions (hover follows the
+  pointer exactly); hover base-secondary-hover (+ brand
+  hover on the current one); no underline in any state; scroll tracking pauses ~900ms after a click so the highlight does not
+  flicker through the sections it scrolls past. The old read view + per-section drawer are
+  gone; `renderServiceSettings` is only the read-only view for roles that cannot edit.
+  One draft for the page (`cfg2`): header caption „● N modificări nesalvate”; the only Renunță ·
+  Salvează live in the **sticky save bar** at the bottom (`__bar`, appears with the first change,
+  counts „N câmpuri de corectat” after a failed save; Shopify contextual-save pattern — the header
+  scrolls away on a long page). Removing an interdependence needs no confirm (nothing applies
+  before Salvează). Leaving the tab / profile with a draft → „Renunți la modificări?”. Fields,
+  validation and audit events are the drawer's: handlers `onCfgClick/Input/Change` run in a
+  context (`cfgWith({ draft, body, render, prefix })`); repeated forms prefix their ids.
   MDelivery and aprobare tacită become switches only when RSSP sends nothing (`cfgRssp`).
 - **Editează** → standard drawer `#svc-cfg-drawer` (title = section, subtitle „Setări · serviciu”,
   footer „Intră în vigoare după publicarea pașaportului.” · Anulează / Salvează). Fields: fo-select,
   numeric fo-input, checkbox groups, `renderToggle` switches (full row, no row rule / padding —
   the grid gap spaces them); a switch that unlocks fields (Distribuire automată, Suspendare
-  personalizată, Serviciu contestabil) = one bordered group `.e-permits-cfg-group` (1px base
-  border, radius 8, padding 16, gap 16) with the fields in `__body` aligned under the switch text
-  (indent 56), no separators inside. Switches/checkboxes never redraw the drawer (keeps the
+  personalizată, Serviciu contestabil) stands on its own; **only while it is on** a **grey**
+  group `.e-permits-cfg-group` appears under it (12 below, inside `.e-permits-cfg-cascade`;
+  background base-secondary, radius 8, padding 16, gap 16, fields 16 apart — user 2026-10-09:
+  grey, never bordered, no indent). A group of several checkboxes (`cfgChecks` →
+  `.e-permits-cfg-checks`) has a **medium** label, so it reads as a heading over its options. Its hint sits **under the title, before the options**
+  (`cfgField({ hintTop })`, `.e-permits-fo-field__hint--top`: 4 under the title, 12 above the
+  options).
+  **RAP rows** = field name + the Documente pair of checkboxes in grey containers
+  — the checkbox option component `renderCheckOption()` (Figma Small, 20px box): „Publică” (the field goes to RAP) · „Anonimizează”
+  (it goes masked) — the second is disabled with a reason until the first is ticked; PF personal
+  data (IDNP, nume) = Anonimizează ticked + disabled („se publică mereu anonimizat”). Add
+  buttons (Adaugă regulă / interdependență) = `btn btn-secondary btn-sm` + `icon small` + span,
+  like every „Adaugă …”. Switches/checkboxes never redraw the drawer (keeps the
   library transition); a group switch redraws 200ms later, after the knob slides. Read view:
-  Da = Medium success tag with checkmark, Nu = neutral tag. Read-only RSSP fields =
+  Da = success tag with checkmark, Nu = neutral tag. Read-only RSSP fields =
   grey box `.e-permits-cfg-ro` + tag. Numerotare = one grey `.e-permits-tax-cond` block per rule
   (Tip document · Resetare · Prefix · Separator · Lungime · Valoare inițială · Valoare curentă) +
   „Exemplu (numărul următor)”, max one rule per document type. RAP = rows checkbox + switch

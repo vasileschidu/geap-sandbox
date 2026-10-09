@@ -22067,28 +22067,62 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 }
 
 /* Documente tab: Afișează + Obligatoriu checkboxes, each in a small grey container */
-.e-permits-svc-doc__switches {
+/* Checkbox option (component, renderCheckOption) — Figma „Opțiune document · checkbox”
+   10507:125565: library checkbox Size=Small = 20px box, radius 6, 16px checkmark icon
+   (icon/base-inverse/on-color); grey container base-secondary, radius 8, padding 6/12/6/8,
+   gap 8; label 14/20 medium default; 12px danger asterisk when required.
+   States: hover base-secondary-hover · focus ring (keyboard) · disabled = tertiary label,
+   library disabled box, reason in a tooltip · checked = brand box + white tick. */
+.e-permits-check-options {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: var(--spacing-8, 8px);
 }
 
-.checkbox.e-permits-svc-doc__opt {
+.checkbox.e-permits-check-option {
   align-items: center;
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-secondary);
   border-radius: var(--border-radius-8, 8px);
   cursor: pointer;
   gap: var(--spacing-8, 8px);
   padding: var(--spacing-6, 6px) var(--spacing-12, 12px) var(--spacing-6, 6px) var(--spacing-8, 8px);
 }
 
-.checkbox.e-permits-svc-doc__opt:hover:not(.is-disabled) {
-  background: var(--color-background-base-secondary-hover, #ebebeb);
+.checkbox.e-permits-check-option:hover:not(.is-disabled) {
+  background: var(--color-background-base-secondary-hover);
 }
 
-.checkbox.e-permits-svc-doc__opt .checkbox-label {
+.checkbox.e-permits-check-option .checkbox-custom {
+  border-radius: var(--border-radius-6, 6px);
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+/* the Figma tick is the 16/checkmark-small icon, not the library's drawn ::after tick */
+.checkbox.e-permits-check-option .checkbox-custom::after {
+  display: none;
+}
+
+.e-permits-check-option__tick {
+  color: var(--color-icon-base-inverse-on-color);
+  height: var(--spacing-16, 16px);
+  opacity: 0;
+  transition: opacity 120ms ease;
+  width: var(--spacing-16, 16px);
+}
+
+.checkbox.e-permits-check-option .checkbox-input:checked + .checkbox-custom .e-permits-check-option__tick {
+  opacity: 1;
+}
+
+.checkbox.e-permits-check-option .checkbox-input:disabled + .checkbox-custom .e-permits-check-option__tick {
+  color: var(--color-icon-disabled-default);
+}
+
+.checkbox.e-permits-check-option .checkbox-label {
   align-items: center;
-  color: var(--color-text-base-default, #121212);
+  color: var(--color-text-base-default);
   display: inline-flex;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
@@ -22096,16 +22130,28 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   line-height: var(--line-height-lh-20, 20px);
 }
 
-.checkbox.e-permits-svc-doc__opt.is-disabled {
+/* plain = a checkbox list item: no container, regular label */
+.checkbox.e-permits-check-option--plain,
+.checkbox.e-permits-check-option--plain:hover:not(.is-disabled) {
+  background: none;
+  border-radius: var(--border-radius-4, 4px);
+  padding: 0;
+}
+
+.checkbox.e-permits-check-option--plain .checkbox-label {
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+.checkbox.e-permits-check-option.is-disabled {
   cursor: default;
 }
 
-.checkbox.e-permits-svc-doc__opt.is-disabled .checkbox-label {
-  color: var(--color-text-disabled-default, #a3a3a3);
+.checkbox.e-permits-check-option.is-disabled .checkbox-label {
+  color: var(--color-text-disabled-default);
 }
 
-.checkbox.e-permits-svc-doc__opt:focus-within {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+.checkbox.e-permits-check-option:focus-within:has(:focus-visible) {
+  box-shadow: 0 0 0 2px var(--color-background-base-default), 0 0 0 5px var(--focus-ring, var(--blue-sky-500));
 }
 
 /* Constructor › Date de test (JSON) — editor + status bar under it (2026-10-09) */
@@ -22187,10 +22233,18 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   padding: 0 var(--spacing-12, 12px);
 }
 
-/* a switch that unlocks more fields = one bordered group; the fields line up under the
-   switch text (track 44 + gap 12), no separators inside */
+/* a switch that unlocks more fields: the switch, then (only while on) a grey group with those
+   fields — no border, no indent, the group's 16px padding is the only space (user,
+   2026-10-09); a group of several checkboxes reads as a heading: its label is medium */
+.e-permits-cfg-cascade {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  grid-column: 1 / -1;
+}
+
 .e-permits-cfg-group {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default);
+  background: var(--color-background-base-secondary);
   border-radius: var(--border-radius-8, 8px);
   display: flex;
   flex-direction: column;
@@ -22199,19 +22253,33 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   padding: var(--spacing-16, 16px);
 }
 
-.e-permits-cfg-group__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-  padding-left: calc(var(--spacing-20, 20px) * 2 + var(--spacing-4, 4px) + var(--spacing-12, 12px));
+.e-permits-cfg-checks > label {
+  font-weight: var(--font-weight-fw-medium, 500);
 }
 
+/* the form's 24px gap already spaces the list from the note; the first / last row carry no
+   outer padding, so the card's padding is the only space at the bottom */
 .e-permits-cfg-rap {
   display: flex;
   flex-direction: column;
   list-style: none;
-  margin: var(--spacing-16, 16px) 0 0;
+  margin: 0;
   padding: 0;
+}
+
+.e-permits-cfg-rap__name {
+  color: var(--color-text-base-default);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-cfg-rap__row:first-child {
+  padding-top: 0;
+}
+
+.e-permits-cfg-rap__row:last-child {
+  padding-bottom: 0;
 }
 
 .e-permits-cfg-rap__row {
@@ -22240,4 +22308,270 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 
 .e-permits-tax-cond .e-permits-cfg-ro {
   background: var(--color-background-base-default, #fff);
+}
+
+/* ---- Servicii › Setări v2 (exploration, 2026-10-09): every section on one page --------
+   Sticky section list left (same family as the shell's side menu, 14/20), sections right:
+   title + one-line description over a white bordered card with the drawer's fields. One
+   draft for the page; Renunță · Salvează live in the page header. Dots: warning = changed,
+   danger = has errors. */
+.e-permits-cfg2 {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-40, 40px);
+  grid-template-columns: 220px minmax(0, 1fr);
+}
+
+.e-permits-cfg2__nav {
+  position: sticky;
+  top: var(--cfg2-stick, var(--spacing-24, 24px));
+}
+
+.e-permits-cfg2__nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-cfg2__nav-link {
+  align-items: center;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-secondary);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-decoration: none;
+}
+
+.e-permits-cfg2__nav-icon {
+  color: var(--color-icon-base-tertiary);
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-cfg2__nav-text {
+  display: inline-flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-cfg2__nav-text::after {
+  content: attr(data-text);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  visibility: hidden;
+}
+
+/* a checkbox group's hint sits under its title, before the options */
+.e-permits-fo-field__hint--top {
+  margin-bottom: var(--spacing-4, 4px);
+  margin-top: calc(var(--spacing-4, 4px) * -1);
+}
+
+.e-permits-cfg2__nav-link:hover .e-permits-cfg2__nav-icon {
+  color: var(--color-icon-base-secondary);
+}
+
+.e-permits-cfg2__nav-link[aria-current="true"] .e-permits-cfg2__nav-icon {
+  color: var(--color-icon-brand-default);
+}
+
+
+/* states: hover = base-secondary-hover + default text; current = brand-secondary + brand
+   text, medium; current + hover = brand-secondary-hover; no underline in any state. The
+   text reserves its medium width (hidden ::after copy), so going medium never shifts it */
+.e-permits-cfg2 .e-permits-cfg2__nav-link,
+.e-permits-cfg2 .e-permits-cfg2__nav-link:hover,
+.e-permits-cfg2 .e-permits-cfg2__nav-link:focus,
+.e-permits-cfg2 .e-permits-cfg2__nav-link:active,
+.e-permits-cfg2 .e-permits-cfg2__nav-link:visited {
+  text-decoration: none;
+}
+
+.e-permits-cfg2 .e-permits-cfg2__nav-link:hover {
+  background: var(--color-background-base-secondary-hover);
+  color: var(--color-text-base-default);
+}
+
+.e-permits-cfg2 .e-permits-cfg2__nav-link:active {
+  background: var(--color-background-base-secondary-active);
+}
+
+.e-permits-cfg2 .e-permits-cfg2__nav-link[aria-current="true"] {
+  background: var(--color-background-brand-secondary);
+  color: var(--color-text-brand-default);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-cfg2 .e-permits-cfg2__nav-link[aria-current="true"]:hover {
+  background: var(--color-background-brand-secondary-hover);
+}
+
+/* list sections (Numerotare, Interdependențe): one rhythm — 12 between the blocks, 12 from
+   the last block to the add button, 12 from the button to its note (user, 2026-10-09) */
+.e-permits-cfg2 [data-cfg2-body="numbering"],
+.e-permits-cfg2 [data-cfg2-body="deps"] {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-cfg2 .e-permits-tax-cond__add {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-cfg2__nav-link:focus-visible {
+  outline: 2px solid var(--color-border-brand-default);
+  outline-offset: 2px;
+}
+
+.e-permits-cfg2__dot {
+  background: var(--color-icon-warning-default);
+  border-radius: var(--border-radius-full, 999px);
+  flex: 0 0 var(--spacing-8, 8px);
+  height: var(--spacing-8, 8px);
+  width: var(--spacing-8, 8px);
+}
+
+.e-permits-cfg2__dot--error {
+  background: var(--color-icon-danger-default);
+}
+
+.e-permits-cfg2__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-40, 40px);
+  min-width: 0;
+}
+
+.e-permits-cfg2__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  scroll-margin-top: var(--cfg2-stick, var(--spacing-24, 24px));
+}
+
+/* title + description line up with the card's content (20 = the card padding) */
+.e-permits-cfg2__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  padding: 0 var(--spacing-20, 20px);
+}
+
+/* section cards keep the white-card radius (16) and padding (20) — 32 read too round
+   (user, 2026-10-09); grey boxes inside stay 8 */
+.e-permits-cfg2 .e-permits-ntpl-card .info-box.e-permits-info-note,
+.e-permits-cfg2 .e-permits-ntpl-card .e-permits-tax-cond,
+.e-permits-cfg2 .e-permits-ntpl-card .e-permits-cfg-group,
+.e-permits-cfg2 .e-permits-ntpl-card .e-permits-cfg-ro {
+  border-radius: var(--border-radius-8, 8px);
+}
+
+/* the back-office section title carries 12px padding for grey cards; here it sits flush */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-cfg2__head .e-permits-dosar-profil__section-title,
+.e-permits-cfg2__head .e-permits-dosar-profil__section-title {
+  height: auto;
+  padding: 0;
+}
+
+/* back office: controls read at 14/20 (as in the drawer) */
+.e-permits-cfg2 .checkbox .checkbox-label {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-cfg2__bar {
+  align-items: center;
+  background: var(--color-background-base-default);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default);
+  bottom: 0;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) 0;
+  position: sticky;
+  z-index: 5;
+}
+
+.e-permits-cfg2__bar[hidden] {
+  display: none;
+}
+
+.e-permits-cfg2__bar-text {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  margin: 0;
+}
+
+.e-permits-cfg2__bar-error {
+  color: var(--color-text-danger-default);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-cfg2__bar-actions {
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-cfg2__head .e-permits-dosar-profil__section-title:focus {
+  outline: none;
+}
+
+.e-permits-cfg2__desc,
+.e-permits-cfg2__empty {
+  color: var(--color-text-base-secondary);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-cfg2__empty {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-cfg2 .e-permits-cfg-form > .e-permits-user-create__grid:only-child,
+.e-permits-cfg2 .e-permits-cfg-form > .e-permits-info-note:first-child {
+  margin-top: 0;
+}
+
+/* inside a section card (user, 2026-10-09): grey filled boxes are fine (read-only RSSP box,
+   notes, grey rule / interdependence blocks, the grey switch group); no bordered box inside
+   the card. The repeated „Preluat din
+   RSSP” hint goes: the „Din RSSP” caption and the section description say it. */
+.e-permits-cfg2 .e-permits-cfg-ro + .e-permits-fo-field__hint {
+  display: none;
+}
+
+/* spacing inside a v2 card: 24 between fields (the white-card form rhythm), 16 inside a
+   switch group; the drawer keeps its 32 */
+.e-permits-cfg2 .e-permits-user-create__grid {
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-cfg-group .e-permits-user-create__grid {
+  gap: var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+/* narrow: the section list goes away, the page is one column */
+@media (max-width: 1023px) {
+  .e-permits-cfg2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .e-permits-cfg2__nav {
+    display: none;
+  }
 }

@@ -9,6 +9,8 @@
   const SVC = "003000023"; /* Notificare în comerț: RSSP + eAPL, every tab filled */
   const BIO = "003000519"; /* Înregistrarea produselor biocide: conditional taxes */
   const svc = (tab, run, code = SVC) => ({ flow: "back-office", as: ADMIN, hash: `#serviciu/${code}/${tab}`, run });
+  /* Setări: jump to a section from the section list */
+  const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
 
   /* shared click paths */
@@ -429,38 +431,49 @@
     "svc-09h4": svc("notifications", ntplWizardStep(4)),
     "svc-09h5": svc("notifications", ntplWizardStep(5)),
     "svc-09j": svc("notifications", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click("[data-ntpl-row-toggle]"); }),
+    /* Setări = one page, edited inline, one draft (the old read view + drawer states open the
+       matching section, so existing links keep working) */
     "svc-10": svc("settings"),
-    "svc-10a": svc("settings", async (h) => { await h.click('[data-svc-setting="aprobareSecundara"]'); await h.wait(300); await h.focus('[data-svc-setting="aprobareSecundara"]'); }),
-    "svc-10b": svc("settings", async (h) => { await h.click('[data-svc-setting="aprobareSecundara"]'); await h.wait(300); await h.click("[data-service-publish]"); }),
+    "svc-10a": svc("settings", async (h) => { await cfgNav("other")(h); await h.click('[data-cfg2-flag="aprobareSecundara"]'); await h.wait(300); }),
+    "svc-10b": svc("settings", async (h) => { await cfgNav("other")(h); await h.click('[data-cfg2-flag="aprobareSecundara"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); await h.click("[data-service-publish]"); }),
     "svc-10c": svc("settings", async (h) => {
-      await h.click('[data-svc-setting="aprobareSecundara"]');
+      await cfgNav("other")(h);
+      await h.click('[data-cfg2-flag="aprobareSecundara"]');
       await h.wait(300);
+      await h.click("[data-cfg2-save]");
+      await h.wait(400);
       await h.click("[data-service-publish]");
       await h.fill("#ntpl-publish-modal textarea", "Aprobare secundară pentru actele emise de Direcția comerț.", { leave: false });
       await h.click("#ntpl-publish-modal .modal--footer .btn-primary");
     }),
-    /* Setări (US-221): every section is a card with „Editează” → the standard drawer */
-    "svc-10d": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="applicant"]'); }),
-    "svc-10e": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="exam"]'); }),
-    "svc-10e1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="exam"]'); await h.click('[data-cfg-switch="autoDist"]'); }),
-    "svc-10f": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="suspension"]'); }),
-    "svc-10g": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="signing"]'); }),
-    "svc-10h": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="payment"]'); }),
-    "svc-10h1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="payment"]'); await h.fill("#cfg-mpayCode", ""); await h.fill("#cfg-payTerm", "0"); await h.click("[data-svc-cfg-save]"); }),
-    "svc-10i": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="delivery"]'); }),
-    "svc-10j": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="appeal"]'); await h.click('[data-cfg-switch="appealable"]'); }),
-    "svc-10j1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="appeal"]'); await h.click('[data-cfg-switch="appealable"]'); await h.click("[data-svc-cfg-save]"); }),
-    "svc-10k": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="numbering"]'); }),
-    "svc-10k1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="numbering"]'); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="prefix"]', "DR"); }),
-    "svc-10l": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="rap"]'); }),
-    "svc-10m": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="drafts"]'); }),
-    /* Interdependențe: add (type decides the fields), validation, remove with confirmation */
-    "svc-10n": svc("settings", async (h) => { await h.click("[data-svc-dep-add]"); await h.fill("#cfg-name", "Act cadastral verificat"); await h.choose('select[data-cfg-select="type"]', "Externă"); }),
-    "svc-10n1": svc("settings", async (h) => { await h.click("[data-svc-dep-add]"); await h.click("[data-svc-cfg-save]"); }),
-    "svc-10n2": svc("settings", async (h) => { await h.nth("[data-svc-dep-edit]", 0); }),
-    "svc-10n3": svc("settings", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click("[data-svc-dep-remove]"); }),
+    "svc-10d": svc("settings", cfgNav("applicant")),
+    "svc-10e": svc("settings", cfgNav("exam")),
+    "svc-10e1": svc("settings", async (h) => { await cfgNav("exam")(h); await h.click('[data-cfg-switch="autoDist"]'); await h.wait(400); }),
+    "svc-10f": svc("settings", cfgNav("suspension")),
+    "svc-10g": svc("settings", cfgNav("signing")),
+    "svc-10h": svc("settings", cfgNav("payment")),
+    "svc-10h1": svc("settings", async (h) => { await h.fill("#cfg-mpayCode", ""); await h.fill("#cfg-payTerm", "0"); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
+    "svc-10i": svc("settings", cfgNav("delivery")),
+    "svc-10j": svc("settings", async (h) => { await cfgNav("appeal")(h); await h.click('[data-cfg-switch="appealable"]'); await h.wait(400); }),
+    "svc-10j1": svc("settings", async (h) => { await cfgNav("appeal")(h); await h.click('[data-cfg-switch="appealable"]'); await h.wait(400); await h.click("[data-cfg2-save]"); await h.wait(600); }),
+    "svc-10k": svc("settings", cfgNav("numbering")),
+    "svc-10k1": svc("settings", async (h) => { await cfgNav("numbering")(h); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="prefix"]', "DR"); }),
+    "svc-10l": svc("settings", cfgNav("rap")),
+    "svc-10m": svc("settings", cfgNav("drafts")),
+    /* Interdependențe: inline blocks; add (type decides the fields), validation on Salvează,
+       remove without a confirm (nothing applies before Salvează) */
+    "svc-10n": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); await h.fill('[data-cfg2-dep]:last-of-type [data-cfg-input="name"]', "Act cadastral verificat"); await h.choose('[data-cfg2-dep]:last-of-type select[data-cfg-select="type"]', "Externă"); }),
+    "svc-10n1": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(600); }),
+    "svc-10n2": svc("settings", cfgNav("deps")),
+    "svc-10n3": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-remove]"); await h.wait(300); }),
     /* after a save: the header counts the changes as unpublished */
-    "svc-10o": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="suspension"]'); await h.click('[data-cfg-switch="suspSigned"]'); await h.click("[data-svc-cfg-save]"); }),
+    "svc-10o": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspSigned"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); }),
+    /* aliases of the exploration states (svc-10v…) */
+    "svc-10v": svc("settings"),
+    "svc-10v1": svc("settings", async (h) => { await cfgNav("exam")(h); await h.click('[data-cfg-switch="distEligible"]'); await h.fill("#cfg-distMax", "20"); await h.wait(300); }),
+    "svc-10v2": svc("settings", async (h) => { await h.fill("#cfg-payTerm", ""); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
+    "svc-10v3": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); }),
+    "svc-10v4": svc("settings", async (h) => { await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); await h.click('[data-passport-tab="forms"]'); }),
     "svc-11": svc("events"),
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
     "svc-11b": svc("events", async (h) => { await h.click('[data-svc-events-filter="failed"]'); }),
