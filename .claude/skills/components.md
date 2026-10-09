@@ -4137,7 +4137,7 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   pointer exactly); hover base-secondary-hover (+ brand
   hover on the current one); no underline in any state; scroll tracking pauses ~900ms after a click so the highlight does not
   flicker through the sections it scrolls past. The old read view + per-section drawer are
-  gone; `renderServiceSettings` is only the read-only view for roles that cannot edit.
+  gone. US-221 AC-01: a role without configuration rights has **no Setări tab** (tab `visible: isCentralAdmin`, a hash to it lands on Date generale; demo svc-10r) — there is no read-only Setări view.
   One draft for the page (`cfg2`): header caption „● N modificări nesalvate”; the only Renunță ·
   Salvează live in the **sticky save bar** at the bottom (`__bar`, appears with the first change,
   counts „N câmpuri de corectat” after a failed save; Shopify contextual-save pattern — the header
@@ -4155,7 +4155,7 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   y −140), section title 24 under the tabs, section list sticky (nav padded down by the scroll),
   save bar pinned at the viewport bottom. Columns: left **02s1–02s11** = one screen per section-list
   item (current item highlighted; links svc-10e…svc-10q), middle **02 · 02a · 02o · 02b · 02c ·
-  02v4 · 02r**, right **02e1 · 02j · 02j1 · 02h1 · 02k1 · 02n · 02n1 · 02n3** (scrolled to their
+  02v4**, right **02e1 · 02j · 02j1 · 02h1 · 02k1 · 02n · 02n1 · 02n3** (scrolled to their
   section / new block). 24 flows „Flow · Setări · …”: section-list item → section screen (left
   gap), change → state (right gap), save/publish chain, errors after Salvează. Section-list icons =
   central icon system **filled=off, stroke=1, radius=2, join=round**, 16px (as the code sprite).

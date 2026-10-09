@@ -6162,7 +6162,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tabKey === "dependencies" || tabKey === "settings-v2") {
       return "settings";
     }
-    return SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey) ? tabKey : "general";
+    /* US-221 AC-01: a role without configuration rights does not get the Setări tab */
+    return SERVICE_PROFILE_TABS.some((tab) => tab.id === tabKey && (!tab.visible || tab.visible())) ? tabKey : "general";
   };
 
   const SERVICE_STATUS_TONES = { Publicat: "success", Nepublicat: "warning", Inactiv: "neutral" };
@@ -6172,7 +6173,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* US-221 AC-05: Setări sits right after Date generale */
     /* Setări = every section on one page, edited inline, one draft (user 2026-10-09: the
        one-page version replaced the read view + per-section drawer) */
-    { id: "settings", label: "Setări" },
+    { id: "settings", label: "Setări", visible: () => isCentralAdmin() },
     { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
     /* Documente însoțitoare left Date generale for their own tab (feedback 2026-10-07):
@@ -12253,7 +12254,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ["Statut", renderTag(service.status, SERVICE_STATUS_TONES[service.status] || "neutral")]
     ]);
     watchPageHeaderMeta(meta);
-    tabs.innerHTML = SERVICE_PROFILE_TABS.map((tab) => {
+    tabs.innerHTML = SERVICE_PROFILE_TABS.filter((tab) => !tab.visible || tab.visible()).map((tab) => {
       const active = tab.id === serviceProfileState.tabKey;
       const count = tab.count ? tab.count(service) : null;
       /* count badge: grey = all good; yellow = something blocks the service (a request
@@ -15543,78 +15544,6 @@ document.addEventListener("DOMContentLoaded", () => {
      header), not a tag (user, 2026-10-09) */
   const cfgRssPNote = () => '<span class="e-permits-cfg-source">Din RSSP</span>';
   const cfgFromRssp = (html) => `<span class="e-permits-cfg-value e-permits-cfg-value--rssp"><span class="e-permits-cfg-value">${html}</span>${cfgRssPNote()}</span>`;
-  const cfgRows = (service, key) => {
-    const c = serviceConfig(service), r = cfgRssp(service);
-    switch (key) {
-      case "applicant": return [
-        ["Tip solicitant", cfgFromRssp(applicantTags(r.applicants))],
-        ["Verificare împuternicire prin MPower", r.mpower === null ? yesNo(c.mpower) : cfgFromRssp(yesNo(r.mpower))],
-        ["Modalitatea de verificare a împuternicirii", escapeHtml(c.authMode)],
-        ["Durata valabilității actului", cfgFromRssp(escapeHtml(r.validity))],
-        ["Unitatea valabilității", cfgFromRssp(escapeHtml(r.validityUnit))],
-        ["Aprobare tacită activată", r.tacit === null ? yesNo(c.tacit) : cfgFromRssp(yesNo(r.tacit))]];
-      case "exam": return [
-        ["Subdiviziuni de examinare", valueTags(c.subdivisions)],
-        ["Distribuire automată", c.autoDist ? yesNo(true) : "Nu — dosarele se distribuie manual"],
-        ...(c.autoDist ? [["Doar specialiștii eligibili pentru serviciu", yesNo(c.distEligible)], ["Exclude specialiștii absenți sau inactivi", yesNo(c.distExcludeAbsent)], ["Criteriu de distribuire", escapeHtml(c.distCriterion)], ["Coeficientul maxim de ocupare", escapeHtml(c.distMax ? `${c.distMax} dosare active / specialist` : "—")]] : [])];
-      case "suspension": return [
-        ["Suspendare termen examinare personalizată", yesNo(c.suspCustom)],
-        ["Termenul de suspendare implicit (zile)", escapeHtml(c.suspCustom ? `${c.suspDays} zile calendaristice` : "30 zile calendaristice (implicit)")],
-        ["Termen de suspendare modificabil de specialist", yesNo(c.suspEditable)],
-        ["Suspendare cu semnarea deciziei", yesNo(c.suspSigned)]];
-      case "signing": return [
-        ["Semnarea cererii prin MSign", escapeHtml(c.signRequest)], ["Semnarea cererii MSign de ghișeu", yesNo(c.signCounter)],
-        ["Generarea documentului PDF", escapeHtml(c.pdfGen)], ["Semnarea documentului PDF prin MSign", yesNo(c.pdfSign)]];
-      case "payment": return [
-        ["Serviciu cu plată", cfgFromRssp(yesNo(r.paid))],
-        ["Cod serviciu MPay", r.paid ? escapeHtml(c.mpayCode || "—") : '<span class="e-permits-passport__muted">Nu se aplică — serviciul nu are plată</span>'],
-        ["Termenul de achitare (zile)", escapeHtml(`${c.payTerm} zile calendaristice`)]];
-      case "delivery": return [
-        ["Livrare electronică", yesNo(c.eDelivery)],
-        ["Livrare prin MDelivery", r.mdelivery === null ? yesNo(c.mdelivery) : cfgFromRssp(yesNo(r.mdelivery))],
-        ["Eliberare pe hârtie la autoritatea emitentă", yesNo(c.paperRelease)],
-        ["Actorul care imprimă și eliberează actul", escapeHtml(c.releaseActor)]];
-      case "appeal": return [
-        ["Serviciu contestabil", yesNo(c.appealable)],
-        ...(c.appealable ? [["Tipuri de solicitare contestabile", valueTags(c.appealTypes)], ["Decizii contestabile", valueTags(c.appealDecisions)], ["Termen admisibil de contestare", escapeHtml(`${c.appealDays} ${c.appealDayType.toLocaleLowerCase("ro")}`)]] : [])];
-      case "numbering": return c.numbering.length
-        ? c.numbering.map((rule) => [rule.doc, `<span class="e-permits-cfg-value"><strong>${escapeHtml(cfgNumberExample(rule))}</strong><span class="e-permits-passport__muted">următorul · contor ${escapeHtml(rule.len)} cifre · ${escapeHtml(rule.reset === "Anual" ? "resetare anuală" : "fără resetare")} · ultimul ${escapeHtml(String(rule.current || 0))}</span></span>`])
-        : [["Reguli de numerotare", '<span class="e-permits-passport__muted">Nicio regulă</span>']];
-      case "rap": return c.rap.length
-        ? c.rap.map((row) => [row.field, row.anon || CFG_ALWAYS_ANON.includes(row.field) ? renderTag("Anonimizat", "neutral") : "Se publică"])
-        : [["Câmpuri transmise în RAP", '<span class="e-permits-passport__muted">Niciun câmp</span>']];
-      case "drafts": return [["Perioada de retenție a schițelor (zile)", escapeHtml(`${c.draftDays} zile calendaristice`)]];
-      default: return [];
-    }
-  };
-  /* read-only Setări for roles that cannot edit (the Central Administrator gets the one-page
-     editor, renderServiceSettingsV2) */
-  const renderServiceSettings = (service) => {
-    const flags = serviceSettingFlags(service);
-    const c = serviceConfig(service);
-    const blocks = CFG_SECTIONS.map(([key, title]) => renderPassportBlock(title, cfgRows(service, key))).join("");
-    const deps = c.deps.map((dep) => ({
-      plainTitle: dep.name,
-      title: escapeHtml(dep.name),
-      badges: [renderTag(dep.type, "neutral")],
-      meta: [
-        dep.type === "Externă" ? `${escapeHtml(dep.formField)} → ${escapeHtml(dep.extSource)}` : dep.type === "Exclusivă" ? `Serviciul incompatibil: ${escapeHtml(cfgServiceTitle(dep.incompatible))}` : `Serviciul sursă: ${escapeHtml(cfgServiceTitle(dep.source))}`,
-        `Tip solicitare: ${escapeHtml(dep.requestTypes.join(", ") || "—")}`
-      ]
-    }));
-    const kept = SERVICE_SETTINGS.filter(([key]) => ["aprobareSecundara", "cuExpertiza", "suspendareCoordonare"].includes(key));
-    return `
-      ${c.editedAt ? `<p class="e-permits-cfg-edited">Editat ${escapeHtml(formatStamp(c.editedAt))} · ${escapeHtml(c.editedBy || "—")}</p>` : ""}
-      ${blocks}
-      ${renderStackedList("Interdependențe", deps.length ? [{ label: "", items: deps }] : [], { meta: deps.length ? plural(deps.length, "interdependență", "interdependențe") : "", empty: "Serviciul nu are interdependențe cu alte servicii sau surse externe." })}
-      <section class="e-permits-dosar-profil__section">
-        <h2 class="e-permits-dosar-profil__section-title">Alte setări</h2>
-        <div class="e-permits-ntpl-card e-permits-svc-settings">
-          ${kept.map(([key, label, description]) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(flags[key]), attrs: `data-svc-setting="${key}"`, disabled: true })}</div>`).join("")}
-        </div>
-      </section>
-    `;
-  };
 
   /* ---- the section forms (Setări, one page) ----
      the field handlers read the current context (draft, the element that holds the form, how
@@ -15867,7 +15796,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return cfgWith(cfg2SectionCtx(service, key, null), () => renderCfgForm(service));
   };
   const renderServiceSettingsV2 = (service) => {
-    if (!isCentralAdmin()) return renderServiceSettings(service);
+    if (!isCentralAdmin()) return "";
     cfg2Ensure(service);
     const changed = new Set(cfg2Changes(service).map((x) => x.sec)), errs = cfg2ErrorSections();
     const c = serviceConfig(service);
