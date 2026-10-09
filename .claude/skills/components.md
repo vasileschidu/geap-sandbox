@@ -4077,6 +4077,16 @@ MDelivery · Suspendare cu coordonare.
    atare), destructive red last.
 Why: NN/g — labelled actions are understood, icons alone rarely are; Carbon — secondary actions
 in the overflow, destructive separated and last. Tables (registries) keep their icon-only ✎.
+**Figma (2026-10-09, GEAP 2.0 › Servicii, all blocks):** svc/stack-item `9521:8751` — „Edit” is
+button-filled-rectangular Neutral · Icon=Leading (16/edit) „Editează”; the secondary row button
+was removed (its property too) — Activează / Aplică ca atare live in ⋮. Every „Editează” has the
+pen; configured request types „Editează”, unconfigured „Configurează” + ⋮; Notificări rows
+„Editează” (was „Deschide”); Formulare rows eye (button-text-rectangular Strict · Icon Only ·
+20/eye-open) + Editează + ⋮; drawer peek eyes are the same strict eye (Focus kept on the open
+one). Open menus follow code: Formulare = Duplică · Versiuni · Exportă setări (JSON) · Elimină;
+inactive tax = Activează · Șterge (red, last). Applicant tags (Persoană fizică / juridică) carry
+the filled person / suitcase icon (central icon system, filled=on, 16) everywhere; no Medium
+product tags left (only the NOTĂ DEV / PM annotation tags are Medium).
 
 **„Editează” always carries the pen** (`icon-edit`, small, before the label — same markup as
 „+ Adaugă …”): `actionLabelHtml` / `EDIT_LABEL_HTML`, in rows, section headings and drawers.
@@ -4136,6 +4146,23 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   validation and audit events are the drawer's: handlers `onCfgClick/Input/Change` run in a
   context (`cfgWith({ draft, body, render, prefix })`); repeated forms prefix their ids.
   MDelivery and aprobare tacită become switches only when RSSP sends nothing (`cfgRssp`).
+- **Figma — Setări (2026-10-09, GEAP 2.0 › Servicii, band 10 widened to 3 columns 25053 / 27417 /
+  29781; Jurnal de evenimente moved to 32145):** 15 full-height blocks built from the exported code
+  states (`?state=` link on each): middle 10 · 10a · 10o · 10b · 10c (default → change → save →
+  publish → published), left 10e1 · 10j · 10j1 · 10v4 · 10r, right 10h1 · 10k1 · 10n · 10n1 · 10n3.
+  Modal states (10v4, 10b) = 1024 viewport, the sticky save bar pinned at the viewport bottom.
+  13 flows „Flow · Setări · …” (elbow vectors from the clicked element, lanes in the column gaps,
+  labels beside the lane). Local components (🧩 Componente locale › „Componente · Setări”):
+  **Setări · Element listă secțiuni** `10638:1533` (State Default/Hover/Curent/Curent hover ×
+  Indicator Fără/Modificat/Eroare; Label, Icon swap — central icon system, 16), **Setări · Bara de
+  salvare** `10638:1534` (Text, Erori, Arată erori), **Setări · Câmp read-only** `10638:1577`
+  (Fundal Gri/Alb; Label, Valoare, Text secundar, 2 tag-uri expuse, „Din RSSP”). svc/field-row got
+  optional „Text secundar” + right „Caption” (read-only Setări, 10r). Everything else is library /
+  existing local: select-input, text-input, svc/switch-label, Checkbox · titlu + descriere (plain
+  lists), Opțiune document · checkbox (RAP pair), svc/info-note, tag-filled Small, buttons, toast,
+  Modal (Confirmare). Builder helpers (do not edit): `setari builder (helper)` `10640:1502`
+  (BUILD(spec, opt)), `setari spec svc-10 (helper)` `10648:1502` (default state; other states are
+  patches on it). Header component Main Navigation: tab „Setări” moved right after „Date generale”.
 - **Editează** → standard drawer `#svc-cfg-drawer` (title = section, subtitle „Setări · serviciu”,
   footer „Intră în vigoare după publicarea pașaportului.” · Anulează / Salvează). Fields: fo-select,
   numeric fo-input, checkbox groups, `renderToggle` switches (full row, no row rule / padding —

@@ -468,6 +468,8 @@
     "svc-10n3": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-remove]"); await h.wait(300); }),
     /* after a save: the header counts the changes as unpublished */
     "svc-10o": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspSigned"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); }),
+    /* read-only Setări: a role that cannot edit (Administrator local) sees the passport cards */
+    "svc-10r": { ...svc("settings"), as: LOCAL_ADMIN },
     /* aliases of the exploration states (svc-10v…) */
     "svc-10v": svc("settings"),
     "svc-10v1": svc("settings", async (h) => { await cfgNav("exam")(h); await h.click('[data-cfg-switch="distEligible"]'); await h.fill("#cfg-distMax", "20"); await h.wait(300); }),
