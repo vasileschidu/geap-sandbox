@@ -287,14 +287,18 @@
   --color-border-base-strong: var(--gray-900);
   /* Brand */
   --color-border-brand-default: var(--blue-sky-600);
+  --color-border-brand-secondary: var(--blue-sky-200);
   /* Disabled */
   --color-border-disabled-default: var(--gray-250);
   /* Positive */
   --color-border-positive-default: var(--green-700);
+  --color-border-positive-secondary: var(--green-200);
   /* Warning */
   --color-border-warning-default: var(--apricot-600);
+  --color-border-warning-secondary: var(--apricot-200);
   /* Danger */
   --color-border-danger-default: var(--red-600);
+  --color-border-danger-secondary: var(--red-200);
 }
 
 /* +++++++++++++++++++++++++++ END BORDERS ++++++++++++++++++++++++++++++++*/
@@ -467,10 +471,14 @@
   --color-border-base-tertiary: var(--gray-250);
   --color-border-base-strong: var(--gray-100);
   --color-border-brand-default: var(--blue-sky-500);
+  --color-border-brand-secondary: var(--blue-sky-800);
   --color-border-disabled-default: var(--gray-600);
   --color-border-positive-default: var(--green-500);
+  --color-border-positive-secondary: var(--green-800);
   --color-border-warning-default: var(--apricot-500);
+  --color-border-warning-secondary: var(--apricot-800);
   --color-border-danger-default: var(--red-500);
+  --color-border-danger-secondary: var(--red-800);
 }
 
 /* ++++++++++++++++++++ END BORDERS ++++++++++++++++++++ */
@@ -19791,7 +19799,7 @@ label.required::after {
 .status-tag--muted.is-subtle {
   background-color: var(--white);
   color: var(--gray-400);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-base-default);
 }
 .status-tag--muted.is-strong {
   background-color: var(--gray-600);
@@ -19807,7 +19815,7 @@ label.required::after {
 .status-tag--neutral.is-subtle {
   background-color: var(--gray-200);
   color: var(--black);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-base-default);
 }
 .status-tag--neutral.is-strong {
   background-color: var(--black);
@@ -19823,7 +19831,7 @@ label.required::after {
 .status-tag--accent.is-subtle {
   background-color: var(--apricot-100);
   color: var(--apricot-700);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-warning-secondary);
 }
 .status-tag--accent.is-strong {
   background-color: var(--apricot-300);
@@ -19839,7 +19847,7 @@ label.required::after {
 .status-tag--success.is-subtle {
   background-color: var(--green-100);
   color: var(--green-700);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-positive-secondary);
 }
 .status-tag--success.is-strong {
   background-color: var(--green-600);
@@ -19855,7 +19863,7 @@ label.required::after {
 .status-tag--brand.is-subtle {
   background-color: var(--blue-sky-100);
   color: var(--blue-sky-600);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-brand-secondary);
 }
 .status-tag--brand.is-strong {
   background-color: var(--blue-sky-600);
@@ -19871,7 +19879,7 @@ label.required::after {
 .status-tag--danger.is-subtle {
   background-color: var(--red-100);
   color: var(--red-700);
-  border: 1px solid transparent;
+  border: 1px solid var(--color-border-danger-secondary);
 }
 .status-tag--danger.is-strong {
   background-color: var(--red-600);

@@ -75,18 +75,22 @@
 
   /* Brand */
   --color-border-brand-default: var(--blue-sky-600);
+  --color-border-brand-secondary: var(--blue-sky-200);
 
   /* Disabled */
   --color-border-disabled-default: var(--gray-250);
 
   /* Positive */
   --color-border-positive-default: var(--green-700);
+  --color-border-positive-secondary: var(--green-200);
 
   /* Warning */
   --color-border-warning-default: var(--apricot-600);
+  --color-border-warning-secondary: var(--apricot-200);
 
   /* Danger */
   --color-border-danger-default: var(--red-600);
+  --color-border-danger-secondary: var(--red-200);
 }
 /* +++++++++++++++++++++++++++ END BORDERS ++++++++++++++++++++++++++++++++*/
 

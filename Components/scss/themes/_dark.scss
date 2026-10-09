@@ -109,17 +109,21 @@
  
      //Brand
      --color-border-brand-default: var(--blue-sky-500);
+     --color-border-brand-secondary: var(--blue-sky-800);
  
      //Disabled
      --color-border-disabled-default: var(--gray-600);
  
      //Positive
      --color-border-positive-default: var(--green-500);
+     --color-border-positive-secondary: var(--green-800);
  
      //Warning
      --color-border-warning-default: var(--apricot-500);
+     --color-border-warning-secondary: var(--apricot-800);
  
      //Danger
      --color-border-danger-default: var(--red-500);
+     --color-border-danger-secondary: var(--red-800);
 }
 /* ++++++++++++++++++++ END BORDERS ++++++++++++++++++++ */ 

@@ -646,3 +646,9 @@ background: var(--color-background-base-default);
 /* Tertiary */  color: var(--color-text-base-tertiary);   /* #757575 — disabled, hints */
 /* Brand link */color: var(--color-text-brand-default);   /* #0058d2 */
 ```
+
+### Border — subtle step per colour (added 2026-10-09)
+`border/positive/secondary` (green 200 / dark 800), `border/warning/secondary` (apricot 200 / 800),
+`border/danger/secondary` (red 200 / 800), `border/brand/secondary` (blue-sky 200 / 800) — Foundations
+„1. Semantic Colors”, stroke scope; CSS `--color-border-<tone>-secondary`. Same role as
+`border/base/secondary` (gray 300). Used by Subtle tags.

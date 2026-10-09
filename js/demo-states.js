@@ -14,6 +14,9 @@
   /* shared click paths */
   const openTax = (taxId) => async (h) => { await h.click(`[data-pay-edit="${taxId}"]`); };
   const applyOneTariff = async (h) => {
+    /* „Aplică ca atare” lives in the row's ⋮ (uniform row actions, 2026-10-09) */
+    (await h.find("[data-tax-configure]")).closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+    await h.wait(300);
     await h.click("[data-tax-apply]");
     await h.click("[data-service-confirm-ok]").catch(() => {});
     await h.hash(`#serviciu/${SVC}/general`);
@@ -43,7 +46,9 @@
     await h.click("[data-ntpl-c-done]");
   };
   const ntplClone = async (h) => { await h.click("[data-ntpl-clone]"); };
-  const dtplBuilder = async (h) => { await h.nth("[data-dtpl-open]", 0); };
+  /* the constructor opens from the preview's footer („Deschide constructorul”) */
+  const dtplOpenNth = (index) => async (h) => { await h.nth("[data-dtpl-preview]", index); await h.click("[data-tpl-preview-builder]"); };
+  const dtplBuilder = dtplOpenNth(0);
 
   /* Utilizatori › profil click paths */
   const usr = (tab, run) => ({ flow: "back-office", as: ADMIN, hash: `#utilizator/user-1/${tab}`, run });
@@ -242,6 +247,13 @@
     "svc-02f": svc("request-types", async (h) => { await h.click('[aria-controls="passport-add-rt-menu"]'); await h.click('[data-passport-add-rt="Prelungire"]'); await h.click("[data-rt-next]"); }),
     "svc-03": svc("forms"),
     "svc-03a": svc("forms", rowMenu("[data-passport-body]")),
+    /* the ⋮ items of a form: every one has its state (Figma 03b–03f) */
+    "svc-03b": svc("forms", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click('[data-passport-form-action="preview"]'); }),
+    "svc-03c": svc("forms", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click('[data-passport-form-action="versions"]'); }),
+    "svc-03d": svc("forms", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click('[data-passport-form-action="duplicate"]'); }),
+    "svc-03e": svc("forms", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click('[data-passport-form-action="remove"]'); }),
+    "svc-03g": svc("forms", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click('[data-passport-form-action="export"]'); }),
+    "svc-03f": svc("forms", async (h) => { await rowMenu("[data-passport-body]", 2)(h); await h.click('[data-passport-form-action="remove"]'); }),
     "svc-04": svc("fees"),
     "svc-04q": svc("fees", async (h) => { await h.click('[data-fee-list-all="taxes"]'); }),
     "svc-04r": svc("fees", async (h) => { await h.click('[data-fee-list-all="tariffs"]'); }),
@@ -255,18 +267,50 @@
       await openTax("tax-bio-2")(h);
       await h.choose("select[data-pay-tariff]", "tf-urgenta");
     }),
+    /* tax-bio-2 is conditional: the reduction is set per scenario (row 0 = minoră) */
     "svc-04h2": bio("fees", async (h) => {
       await openTax("tax-bio-2")(h);
       await h.choose("select[data-pay-tariff]", "tf-urgenta");
-      await h.click('[data-pay-calc="reducere"]');
-      await h.fill("#pay-percent", "50");
+      await h.choose('select[data-pay-scn-calc="0"]', "reducere");
+      await h.fill("#pay-percent-0", "50");
     }),
     "svc-04h3": bio("fees", async (h) => {
       await openTax("tax-bio-2")(h);
-      await h.click('[data-pay-calc="reducere"]');
-      await h.fill("#pay-percent", "50");
+      await h.choose('select[data-pay-scn-calc="0"]', "reducere");
+      await h.fill("#pay-percent-0", "50");
+    }),
+    /* two classifiers (AND), multi-select values → 2 × 2 scenarios, IMM reduced 50% */
+    "svc-04h4": bio("fees", async (h) => {
+      await openTax("tax-bio-2")(h);
+      await h.click("[data-pay-condition-add]");
+      await h.choose('select[data-pay-condition-classifier="1"]', "CLS-BIO-02");
+      await h.click('[data-pay-condition-value="1"][value="imm"]');
+      await h.click('[data-pay-condition-value="1"][value="mare"]');
+      await h.choose('select[data-pay-scn-calc="0"]', "reducere");
+      await h.fill("#pay-percent-0", "50");
+      await h.choose('select[data-pay-scn-calc="2"]', "reducere");
+      await h.fill("#pay-percent-2", "50");
+    }),
+    /* save with an empty classifier and a reduction without percent → inline errors */
+    "svc-04h5": bio("fees", async (h) => {
+      await openTax("tax-bio-2")(h);
+      await h.choose('select[data-pay-scn-calc="1"]', "reducere");
+      await h.click("[data-pay-condition-add]");
+      await h.click('[data-pay-save="save"], [data-pay-save="publish"]');
     }),
     "svc-04i": svc("fees", async (h) => { await h.click("[data-tax-configure]"); }),
+    /* hierarchical classifier (CAEM): G covers its divisions, 47 is an exception (−50%),
+       47.3 an exception of the exception (full tariff) — the most specific value wins */
+    "svc-04s": svc("fees", async (h) => {
+      await h.click("[data-tax-configure]");
+      await h.click('[data-pay-condition-mode="conditional"]');
+      await h.choose('select[data-pay-condition-classifier="0"]', "CLS-COM-03");
+      await h.click('[data-pay-condition-value="0"][value="G"]');
+      await h.click('[data-pay-condition-value="0"][value="47"]');
+      await h.click('[data-pay-condition-value="0"][value="47.3"]');
+      await h.choose('select[data-pay-scn-calc="1"]', "reducere");
+      await h.fill("#pay-percent-1", "50");
+    }),
     "svc-04j": svc("fees", async (h) => {
       await h.click("[data-tax-configure]");
       await h.click('[data-pay-condition-mode="conditional"]');
@@ -301,6 +345,8 @@
     /* Interdependențe live in Setări since 2026-10-07 (the old hash still lands there) */
     "svc-06": svc("settings"),
     "svc-06a": svc("documents"),
+    /* a document hidden from the request: Obligatoriu turns off and locks */
+    "svc-06b": svc("documents", async (h) => { await h.click('[data-svc-doc-visible="4"]'); await h.wait(500); }),
     /* header „N modificări nepublicate” → the list of pending changes */
     "svc-01i": svc("documents", async (h) => { await h.click('[data-svc-doc-required="3"]'); await h.wait(500); await h.click("[data-service-pending]"); }),
     "svc-02d": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); }),
@@ -313,18 +359,20 @@
     "svc-08l": svc("templates", async (h) => { await h.click("[data-dtpl-preview]"); }),
     "svc-08a": svc("templates", rowMenu("[data-dtpl-list]")),
     "svc-08b": svc("templates", async (h) => { await h.nth("[data-dtpl-edit]", 0); }),
-    "svc-08c": svc("templates", async (h) => {
-      await h.click("[data-dtpl-attach]");
-      await h.click("#dtpl-attach-pick");
-      await h.click("body > .e-permits-fo-select__list [role=option]");
-    }),
+    /* Șablon nou — created from scratch for this service (comment 1957263114) */
+    "svc-08c": svc("templates", async (h) => { await h.click("[data-dtpl-new]"); await h.fill("#dtpl-n-name", "Decizie de respingere"); }),
+    "svc-08c1": svc("templates", async (h) => { await h.click("[data-dtpl-new]"); await h.click("[data-dtpl-new-save]"); }),
+    "svc-08c2": svc("templates", async (h) => { await h.click("[data-dtpl-new]"); await h.fill("#dtpl-n-name", "Decizie de respingere"); await h.click("[data-dtpl-new-save]"); }),
     "svc-08d": svc("templates", async (h) => { await h.click("[data-dtpl-import]"); await h.click("[data-dtpl-import-save]"); }),
     "svc-08e": svc("templates", dtplBuilder),
     "svc-08f": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="test"]'); }),
+    /* JSON test data: a syntax error, then the preview warns it uses the last valid data */
+    "svc-08f1": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="test"]'); const t = await h.find("[data-dtpl-json]"); await h.fill("[data-dtpl-json]", t.value.replace(/,\s*$/m, "").replace(/"\s*\n\s*"/, '"\n  ')); }),
+    "svc-08f2": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="test"]'); const t = await h.find("[data-dtpl-json]"); await h.fill("[data-dtpl-json]", t.value.replace(/,(\s*\n\s*"[^"]+":)/, "$1")); await h.click('[data-dtpl-view="preview"]'); }),
     "svc-08g": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="preview"]'); }),
     "svc-08h": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-mode="html"]'); }),
     "svc-08i": svc("templates", async (h) => {
-      await h.nth("[data-dtpl-open]", 1);
+      await dtplOpenNth(1)(h);
       const surface = await h.find("[data-dtpl-surface]");
       surface.focus();
       const range = document.createRange();
@@ -336,14 +384,14 @@
       await h.click('[data-dtpl-token="{{CaseNumber}}"]');
     }),
     "svc-08j": svc("templates", async (h) => {
-      await h.nth("[data-dtpl-open]", 1);
+      await dtplOpenNth(1)(h);
       const surface = await h.find("[data-dtpl-surface]");
       surface.focus();
       document.execCommand("insertText", false, " ");
       await h.click("[data-dtpl-save]");
       await h.click("[data-dtpl-publish]");
     }),
-    "svc-08k": svc("templates", async (h) => { await rowMenu("[data-dtpl-list]")(h); await h.click("[data-dtpl-detach]"); }),
+    "svc-08k": svc("templates", async (h) => { await rowMenu("[data-dtpl-list]")(h); await h.click("[data-dtpl-delete]"); }),
     "svc-09": svc("notifications"),
     "svc-09a": svc("notifications", rowMenu("[data-ntpl-svc-list]")),
     "svc-09b": svc("notifications", async (h) => { await ntplClone(h); await h.click("#ntpl-clone-source"); }),
@@ -355,6 +403,19 @@
     }),
     "svc-09e": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); }),
     "svc-09f": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]'); }),
+    /* recipient rules in the service editor: add (Regulă nouă) and edit (Regula 1) — comment 1957279684 */
+    "svc-09f1": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]'); await h.click("[data-ntpl-rule-add]"); }),
+    "svc-09f2": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]'); await h.click('[data-ntpl-rule-edit="0"]'); }),
+    "svc-09f3": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]'); await rowMenu("[data-ntpl-profile-panel]")(h); }),
+    /* the only rule: Șterge disabled, hover explains why */
+    "svc-09f4": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]'); await rowMenu("[data-ntpl-profile-panel]")(h); await h.hover("[data-ntpl-rule-delete]"); }),
+    /* two rules → delete asks first (destructive confirm) */
+    "svc-09f5": svc("notifications", async (h) => {
+      await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]');
+      await h.click("[data-ntpl-rule-add]"); await h.choose("select[data-ntpl-rule-field=\"recipient\"]", "Specialist"); await h.click("[data-ntpl-rule-confirm]");
+      await rowMenu("[data-ntpl-profile-panel]", 1)(h); await h.click('[data-ntpl-rule-delete="1"]');
+    }),
+    "svc-09f6": svc("notifications", async (h) => { await h.nth("[data-ntpl-open]", 0); await h.click('[data-ntpl-profile-tab="recipients"]'); await rowMenu("[data-ntpl-profile-panel]")(h); await h.click('[data-ntpl-rule-toggle="0"]'); }),
     "svc-09g": svc("notifications", async (h) => {
       await h.nth("[data-ntpl-open]", 0);
       const subject = await h.find('[data-ntplp-text="subject"]');
@@ -378,6 +439,28 @@
       await h.fill("#ntpl-publish-modal textarea", "Aprobare secundară pentru actele emise de Direcția comerț.", { leave: false });
       await h.click("#ntpl-publish-modal .modal--footer .btn-primary");
     }),
+    /* Setări (US-221): every section is a card with „Editează” → the standard drawer */
+    "svc-10d": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="applicant"]'); }),
+    "svc-10e": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="exam"]'); }),
+    "svc-10e1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="exam"]'); await h.click('[data-cfg-switch="autoDist"]'); }),
+    "svc-10f": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="suspension"]'); }),
+    "svc-10g": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="signing"]'); }),
+    "svc-10h": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="payment"]'); }),
+    "svc-10h1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="payment"]'); await h.fill("#cfg-mpayCode", ""); await h.fill("#cfg-payTerm", "0"); await h.click("[data-svc-cfg-save]"); }),
+    "svc-10i": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="delivery"]'); }),
+    "svc-10j": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="appeal"]'); await h.click('[data-cfg-switch="appealable"]'); }),
+    "svc-10j1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="appeal"]'); await h.click('[data-cfg-switch="appealable"]'); await h.click("[data-svc-cfg-save]"); }),
+    "svc-10k": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="numbering"]'); }),
+    "svc-10k1": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="numbering"]'); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="prefix"]', "DR"); }),
+    "svc-10l": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="rap"]'); }),
+    "svc-10m": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="drafts"]'); }),
+    /* Interdependențe: add (type decides the fields), validation, remove with confirmation */
+    "svc-10n": svc("settings", async (h) => { await h.click("[data-svc-dep-add]"); await h.fill("#cfg-name", "Act cadastral verificat"); await h.choose('select[data-cfg-select="type"]', "Externă"); }),
+    "svc-10n1": svc("settings", async (h) => { await h.click("[data-svc-dep-add]"); await h.click("[data-svc-cfg-save]"); }),
+    "svc-10n2": svc("settings", async (h) => { await h.nth("[data-svc-dep-edit]", 0); }),
+    "svc-10n3": svc("settings", async (h) => { await rowMenu("[data-passport-body]")(h); await h.click("[data-svc-dep-remove]"); }),
+    /* after a save: the header counts the changes as unpublished */
+    "svc-10o": svc("settings", async (h) => { await h.click('[data-svc-cfg-edit="suspension"]'); await h.click('[data-cfg-switch="suspSigned"]'); await h.click("[data-svc-cfg-save]"); }),
     "svc-11": svc("events"),
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
     "svc-11b": svc("events", async (h) => { await h.click('[data-svc-events-filter="failed"]'); }),
@@ -409,7 +492,7 @@
     "trf-02f": trf(async (h) => {
       await tariffStep2(h); await h.click("[data-tariff-formula]");
       await h.click('[aria-controls="tariff-var-picker"]'); await h.click('[data-tariff-var="suprafata_m2"]');
-      await h.fill("#tariff-expression", "{suprafata_m2} * 2");
+      await h.fill("#tariff-expression", "{{suprafata_m2}} * 2");
       await h.fill('[data-tariff-test="suprafata_m2"]', "120", { leave: false }); await h.click("[data-tariff-test-run]");
     }),
     /* Publică with errors on both tabs: the red dots, the first tab with an error opens */
@@ -437,6 +520,7 @@
     "ntpl-02e": { flow: "back-office", as: ADMIN, hash: "#sablon/Case.Registered/content", run: async (h) => { await h.hover("[data-ntpl-publish]"); } },
     "ntpl-03": ntpl("recipients"),
     "ntpl-03a": ntpl("recipients", async (h) => { await h.click('[data-ntpl-rule-edit="0"]'); }),
+    "ntpl-03c": ntpl("recipients", async (h) => { await h.click("[data-ntpl-rule-add]"); }),
     "ntpl-03b": ntpl("recipients", rowMenu("[data-ntpl-profile-panel]")),
     "ntpl-04": ntpl("settings"),
     "ntpl-04a": ntpl("settings", async (h) => { await h.click("[data-ntpl-active]"); }),

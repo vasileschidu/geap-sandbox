@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
-  <link rel="stylesheet" href="css/main.css?v=crumbs-v2">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=float-v2">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=mail-v1">
+  <link rel="stylesheet" href="css/main.css?v=border200-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=tags-v6">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=cfg-v3">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/empty-state.js?v=empty-v1"></script>
-  <script src="js/demo-states.js?v=peek-all-v1"></script>
+  <script src="js/demo-states.js?v=rows-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/search.js?v=delegated-v1" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v2" defer></script>
   <script src="js/dropdown-select.js" defer></script>
-  <script src="js/icon-tooltip.js?v=tip-v3" defer></script>
+  <script src="js/icon-tooltip.js?v=tip-v4" defer></script>
   <script src="js/table-cells.js?v=delay-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
@@ -2002,6 +2002,7 @@
         <header class="e-permits-builder__topbar">
           <span class="e-permits-builder__sr-only" id="form-builder-title">Builder formular</span>
           <div class="e-permits-builder__nav-left">
+            <span class="e-permits-builder__view-title" data-builder-view-title></span>
             <button class="e-permits-builder__version" type="button">
               <span>v1.4.2</span>
               <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
@@ -3729,21 +3730,45 @@
     </aside>
   </div>
 
-  <!-- Servicii › Șabloane: attach a catalog template — centred library modal (dropdown + details) -->
-  <div class="modal-overlay" id="dtpl-attach-modal" aria-hidden="true">
-    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="dtpl-attach-title">
+  <!-- Servicii › Setări (US-221): edit one section / one interdependence — standard drawer -->
+  <div class="e-permits-user-create" id="svc-cfg-drawer" data-svc-cfg-drawer hidden>
+    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-svc-cfg-close></button>
+    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="svc-cfg-title" tabindex="-1">
+      <header class="e-permits-user-create__header">
+        <div class="e-permits-rt__heading">
+          <h2 id="svc-cfg-title" data-svc-cfg-title>Setări</h2>
+          <p class="e-permits-passport__modal-subtitle" data-svc-cfg-subtitle></p>
+        </div>
+        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-svc-cfg-close>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
+        </button>
+      </header>
+      <div class="e-permits-user-create__body" data-svc-cfg-body></div>
+      <footer class="e-permits-user-create__footer">
+        <span class="e-permits-rt__summary">Intră în vigoare după publicarea pașaportului.</span>
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-svc-cfg-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-svc-cfg-save>Salvează</button>
+        </div>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Servicii › Șabloane: a new template, created from scratch for this service — library modal -->
+  <div class="modal-overlay" id="dtpl-new-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="dtpl-new-title">
       <button type="button" class="modal-close" data-close aria-label="Închide">
         <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
       </button>
       <div class="modal--header">
-        <h2 class="modal--header-title" id="dtpl-attach-title">Atașează un șablon din catalog</h2>
-        <p class="e-permits-passport__modal-subtitle">Șablonul rămâne în catalog; serviciul îl folosește.</p>
+        <h2 class="modal--header-title" id="dtpl-new-title">Șablon nou</h2>
+        <p class="e-permits-passport__modal-subtitle">Doar pentru acest serviciu. Conținutul îl scrii în constructor, apoi îl publici în MDocs.</p>
       </div>
-      <div class="modal-content" data-dtpl-attach-body></div>
+      <div class="modal-content" data-dtpl-new-body></div>
       <div class="modal--footer">
         <div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
-          <button class="btn btn-primary btn-rounded" type="button" data-dtpl-attach-save>Atașează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-dtpl-new-save>Creează și deschide constructorul</button>
         </div>
       </div>
     </div>
@@ -3817,7 +3842,7 @@
       </button>
       <div class="modal--header">
         <h2 class="modal--header-title" id="dtpl-import-title">Importă din MDocs</h2>
-        <p class="e-permits-passport__modal-subtitle">Se preia ultima versiune publicată în MDocs și se adaugă în catalog.</p>
+        <p class="e-permits-passport__modal-subtitle">Se preia ultima versiune publicată în MDocs și se adaugă la șabloanele acestui serviciu.</p>
       </div>
       <div class="modal-content" data-dtpl-import-body></div>
       <div class="modal--footer">
@@ -3948,7 +3973,7 @@
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=mail-v1"></script>
+  <script src="js/e-permits-shell.js?v=cfg-v3"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

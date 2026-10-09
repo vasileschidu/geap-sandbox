@@ -6154,6 +6154,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const SERVICE_PROFILE_TABS = [
     { id: "general", label: "Date generale", icon: "page-text" },
+    /* US-221 AC-05: Setări sits right after Date generale */
+    { id: "settings", label: "Setări" },
     { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
     /* Documente însoțitoare left Date generale for their own tab (feedback 2026-10-07):
@@ -6165,7 +6167,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "classifiers", label: "Clasificatoare specifice", count: (service) => service.geap.classifiers.length },
     { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
     { id: "notifications", label: "Notificări", count: (service) => (service.geap.notificationTemplates || []).length },
-    { id: "settings", label: "Setări" },
     { id: "events", label: "Jurnal de evenimente", count: (service) => serviceEventLog(service).length }
   ];
 
@@ -6588,28 +6589,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return geap.flags;
   };
 
-  const renderServiceSettings = (service) => {
-    const flags = serviceSettingFlags(service);
-    const editable = isCentralAdmin();
-    const activeTaxes = serviceTaxes(service).filter((tax) => tax.state === "Publicat" && tax.active).length;
-    /* a switch that cannot change now says why, in place of its line */
-    const lock = {
-      cuPlata: flags.cuPlata && activeTaxes ? `Are ${activeTaxes === 1 ? "o taxă activă" : `${activeTaxes} taxe active`} — dezactivează-le întâi în Taxe și tarife.` : "",
-      mdelivery: !flags.actHartie ? "Disponibil doar cu actul pe suport de hârtie." : ""
-    };
-    return `
-      <section class="e-permits-dosar-profil__section">
-        <h2 class="e-permits-dosar-profil__section-title">Setări adiționale</h2>
-        <div class="e-permits-ntpl-card e-permits-svc-settings">
-          ${SERVICE_SETTINGS.map(([key, label, description]) => {
-            const reason = editable ? lock[key] || "" : "";
-            return `<div class="e-permits-svc-setting">${renderToggle({ label, description: reason || description, checked: Boolean(flags[key]), attrs: `data-svc-setting="${key}"`, disabled: !editable || Boolean(reason) })}</div>`;
-          }).join("")}
-        </div>
-      </section>
-    `;
-  };
-
   /* Empty state — the shared component (js/empty-state.js, css/empty-state.css) */
   const renderEmptyState = (options) => window.GEAPEmptyState.render(options);
   const renderNoResults = (title, options) => window.GEAPEmptyState.noResults(title, options);
@@ -6624,36 +6603,61 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   const yesNo = (value) => (value
-    ? `<span class="status-tag status-tag--success"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Da</span>`
-    : "Nu");
+    ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--success e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Da</span>`
+    : renderTag("Nu", "neutral"));
 
-  const valueTags = (items) => (items?.length
-    ? `<span class="e-permits-passport__tag-list">${items.map((item) => `<span class="status-tag status-tag--neutral is-subtle">${escapeHtml(item)}</span>`).join("")}</span>`
+  /* applicant types get a filled icon so PF / PJ read at a glance (user, 2026-10-09):
+     person = persoană fizică, suitcase = persoană juridică (central icon system, filled) */
+  const applicantIcon = (label) => /fizic|^PF/i.test(label) ? "person-filled" : /juridic|^PJ/i.test(label) ? "suitcase-filled" : "";
+  const applicantTags = (items) => (items?.length
+    ? `<span class="e-permits-passport__tag-list">${items.map((item) => { const icon = applicantIcon(item); return icon
+      ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg>${escapeHtml(item)}</span>`
+      : renderTag(item, "neutral"); }).join("")}</span>`
     : '<span class="e-permits-workplace__dash">—</span>');
 
-  /* Documente tab (2026-10-07): the bordered stacked list of the other tabs; each row has
-     the full flow's grey document icon (document-uploaded.svg) and an „Obligatoriu”
-     switch — GEAP can make an RSSP document mandatory or optional (stored as an
-     override in geap.documentRequired, keyed by title; RSSP keeps its own value) */
-  const serviceDocRequired = (service, doc) => service.geap.documentRequired?.[doc.title] ?? Boolean(doc.required);
+  /* value lists use the same Medium tag as every other tag outside tables */
+  const valueTags = (items) => (items?.length
+    ? `<span class="e-permits-passport__tag-list">${items.map((item) => renderTag(item, "neutral")).join("")}</span>`
+    : '<span class="e-permits-workplace__dash">—</span>');
+
+  /* Documente tab: for each RSSP document GEAP configures Vizibilitatea („Afișează” — the
+     applicant sees it in the request) and Obligativitatea („Obligatoriu”); RSSP's own value
+     stays read-only in the row (US-225). Overrides in geap.documentVisible /
+     geap.documentRequired, keyed by title. A hidden document is never required. */
+  const serviceDocVisible = (service, doc) => service.geap.documentVisible?.[doc.title] ?? true;
+  const serviceDocRequired = (service, doc) => serviceDocVisible(service, doc) && (service.geap.documentRequired?.[doc.title] ?? Boolean(doc.required));
 
   const renderServiceDocuments = (service) => {
     const admin = isCentralAdmin();
     const docs = service.rssp.documents;
     const required = docs.filter((doc) => serviceDocRequired(service, doc)).length;
+    const hidden = docs.filter((doc) => !serviceDocVisible(service, doc)).length;
     return renderStackedList("Documente însoțitoare", docs.length ? [{ label: "", items: docs.map((doc, index) => {
+      const visible = serviceDocVisible(service, doc);
       const value = serviceDocRequired(service, doc);
-      const changed = value !== Boolean(doc.required);
+      const changed = !visible || value !== Boolean(doc.required);
       return {
         plainTitle: doc.title,
         title: escapeHtml(doc.title),
         leadHtml: '<img class="e-permits-fo-lib-item__icon" src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">',
         badges: changed ? [renderTag("Modificat în GEAP", "brand")] : [],
-        meta: [renderTag("RSSP", "neutral"), `În RSSP: ${doc.required ? "obligatoriu" : "opțional"}`],
-        actionsHtml: renderToggle({ label: "Obligatoriu", checked: value, attrs: `data-svc-doc-required="${index}"`, disabled: !admin })
+        meta: [renderTag("RSSP", "neutral"), `În RSSP: ${doc.required ? "obligatoriu" : "opțional"}`, ...(visible ? [] : ["Nu apare în cerere"])],
+        /* two checkboxes, each in a small grey container; Obligatoriu carries the red star */
+        actionsHtml: `<div class="e-permits-svc-doc__switches">
+          <label class="checkbox checkbox--small e-permits-svc-doc__opt${!admin ? " is-disabled" : ""}">
+            <input class="checkbox-input" type="checkbox"${visible ? " checked" : ""}${!admin ? " disabled" : ""} data-svc-doc-visible="${index}">
+            <span class="checkbox-custom" aria-hidden="true"></span>
+            <span class="checkbox-label">Afișează</span>
+          </label>
+          <label class="checkbox checkbox--small e-permits-svc-doc__opt${!admin || !visible ? " is-disabled" : ""}"${admin && !visible ? ' data-tooltip-reason="Bifează întâi „Afișează” — un document care nu apare în cerere nu poate fi obligatoriu."' : ""}>
+            <input class="checkbox-input" type="checkbox"${value ? " checked" : ""}${!admin || !visible ? " disabled" : ""} data-svc-doc-required="${index}">
+            <span class="checkbox-custom" aria-hidden="true"></span>
+            <span class="checkbox-label">Obligatoriu${requiredMark()}</span>
+          </label>
+        </div>`
       };
     }) }] : [], {
-      meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}`,
+      meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}${hidden ? ` · ${hidden} ${hidden === 1 ? "ascuns" : "ascunse"}` : ""}`,
       empty: "Serviciul nu are documente însoțitoare în RSSP."
     });
   };
@@ -6725,7 +6729,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Șabloane de tipar", withLink(plural(geap.templates.length, "șablon", "șabloane"), "templates", "Vezi șabloanele")],
         ["Taxe", withLink(`${plural(serviceTaxes(service).length, "taxă", "taxe")} · ${plural(tariffs.length, "tarif", "tarife")}${unconfiguredServiceTariffs(service).length ? ` · ${unconfiguredServiceTariffs(service).length} de configurat` : ""}`, "fees", "Vezi taxele")],
         ["Documente însoțitoare", rssp.documents.length ? withLink(`${rssp.documents.length} · ${requiredDocs} obligatorii`, "documents", "Vezi documentele") : "—"],
-        ["Tipuri solicitanți", valueTags(rssp.applicantTypes)]
+        ["Tipuri solicitanți", applicantTags(rssp.applicantTypes)]
       ], "GEAP")}
       ${renderEventTimeline("Ultimele modificări", geap.events.slice(0, 3), {
         empty: "Nu există modificări înregistrate.",
@@ -6738,7 +6742,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ])}
       ${renderPassportSection("Descriere și eligibilitate", [
         ["Descriere", escapeHtml(rssp.objective || "—")],
-        ["Tipul solicitantului", valueTags(rssp.applicantTypes)],
+        ["Tipul solicitantului", applicantTags(rssp.applicantTypes)],
         ["Serviciu cu plată", yesNo(rssp.paid)],
         ["Permite MPower", yesNo(rssp.allowsMPower)],
         ["Permite MDelivery", yesNo(rssp.allowsMDelivery)],
@@ -6813,7 +6817,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       ${item.actionsHtml ? `<div class="e-permits-stack__actions">${item.actionsHtml}</div>` : item.action || item.menu?.length ? `
         <div class="e-permits-stack__actions">
-          ${item.action ? `<button class="btn ${item.action.tone === "secondary" ? "btn-secondary" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${item.action.attrs}>${escapeHtml(item.action.label)}</button>` : ""}
+          ${item.action ? `<button class="btn ${item.action.tone === "secondary" ? "btn-secondary" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${item.action.attrs}>${actionLabelHtml(item.action.label)}</button>` : ""}
           ${renderStackMenu(item.menu || [], item.plainTitle || "")}
         </div>
       ` : ""}
@@ -6829,6 +6833,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     return [...map.entries()].filter(([, list]) => list.length).map(([label, list]) => ({ label, items: list }));
   };
+
+  /* „Editează” always carries the pen (user, 2026-10-09); other labels stay text */
+  const actionLabelHtml = (label) => label === "Editează"
+    ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Editează</span>`
+    : escapeHtml(label);
+  const EDIT_LABEL_HTML = actionLabelHtml("Editează");
+
+  /* Row actions — one rule for every list in the service profile (2026-10-09; NN/g: labelled
+     actions beat icons; Carbon: secondary actions in the overflow, destructive last):
+     [eye „Previzualizează” — icon-only, strict, tooltip, only where a view-only preview exists]
+     · [one labelled primary: „Editează”, or „Configurează” for what is not configured yet]
+     · [⋮ everything else, destructive last]. Never an icon-only primary, never two text buttons. */
+  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "" }) => `
+    ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
+    ${primary ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" ${primary.attrs}>${actionLabelHtml(primary.label)}</button>` : ""}
+    ${menu.length ? renderStackMenu(menu, label) : ""}`;
 
   const renderStackedList = (title, groups, options = {}) => {
     const total = groups.reduce((sum, group) => sum + group.items.length, 0);
@@ -6863,7 +6883,8 @@ document.addEventListener("DOMContentLoaded", () => {
      green check, "Eșuat" the red error and a tag; anything else is pending (clock). */
   const TIMELINE_TONES = {
     "Reușit": { tone: "success", icon: "circle-checkmark-filled" },
-    "Eșuat": { tone: "danger", icon: "circle-error-filled" }
+    "Eșuat": { tone: "danger", icon: "circle-error-filled" },
+    "Schiță": { tone: "pending", icon: "edit" }
   };
 
   const renderEventTimeline = (title, events, options = {}) => {
@@ -7064,7 +7085,7 @@ document.addEventListener("DOMContentLoaded", () => {
           rt.term ? `Termen: ${rt.term.value} ${escapeHtml(rt.term.unit)}` : "Fără termen"
         ],
         meta2: [form ? `Formular: ${escapeHtml(form.name)} · ${escapeHtml(form.version)}` : "Fără formular electronic"],
-        action: admin ? { label: "Configurează", attrs: `data-passport-configure-rt="${escapeHtml(rt.id)}"` } : null,
+        action: admin ? { label: state.label === "Configurat" ? "Editează" : "Configurează", attrs: `data-passport-configure-rt="${escapeHtml(rt.id)}"` } : null,
         /* only the types added in GEAP can be removed; RSSP ones come back at every sync */
         menu: admin && rt.source !== "RSSP" ? [{ label: "Elimină", icon: "delete", danger: true, attrs: `data-passport-remove-rt="${escapeHtml(rt.id)}"` }] : []
       };
@@ -7115,14 +7136,17 @@ document.addEventListener("DOMContentLoaded", () => {
         badges: [renderTag(form.status === "Published" ? "Publicat" : "Schiță", form.status === "Published" ? "success" : "neutral")],
         meta: [renderTag(form.technical, "neutral"), `${form.fields} câmpuri`, escapeHtml(form.version), whoWhen("Editat", form.editedAt, form.editedBy)],
         meta2: [`Folosit în ${used.length ? `<span class="e-permits-passport__tag-list">${used.map((rt) => renderTag(rt.name, "neutral")).join("")}</span>` : '<span class="e-permits-passport__muted">niciun tip de solicitare</span>'}`],
-        action: admin ? { label: "Editează", attrs: "data-passport-open-builder" } : { label: "Previzualizează", attrs: "data-passport-open-builder" },
-        menu: admin ? [
-          { label: "Previzualizează", icon: "eye-open", attrs: "data-passport-open-builder" },
-          { label: "Duplică", icon: "copy", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="duplicate"` },
-          { label: "Versiuni", icon: "time", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="versions"` },
-          { label: "Exportă setări (JSON)", icon: "download", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="export"` },
-          { label: "Elimină", icon: "delete", danger: true, attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="remove"` }
-        ] : []
+        actionsHtml: renderRowActions({
+          preview: `aria-haspopup="dialog" data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="preview"`,
+          primary: admin ? { label: "Editează", attrs: "data-passport-open-builder" } : null,
+          menu: admin ? [
+            { label: "Duplică", icon: "copy", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="duplicate"` },
+            { label: "Versiuni", icon: "time", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="versions"` },
+            { label: "Exportă setări (JSON)", icon: "download", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="export"` },
+            { label: "Elimină", icon: "delete", danger: true, attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="remove"` }
+          ] : [],
+          label: form.name
+        })
       };
     });
     const addHtml = admin ? `
@@ -7146,8 +7170,48 @@ document.addEventListener("DOMContentLoaded", () => {
     service.geap.forms.unshift({ id: `frm-${n}`, name: "Formular nou", technical: `f_formular_${n}`, requestType: null, fields: 0, version: "v0.1.0", status: "Draft", editedAt: localIsoNow(), editedBy: currentUserName() });
     logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Creare formular", status: "Reușit", detail: `Formular nou (f_formular_${n})` }]);
     renderServiceProfile();
+    formBuilderOverlay?.classList.add("is-sheet");
     window.__modal?.open?.("#form-builder-modal");
   };
+
+  /* the form's published versions (seeded once from its current version, newest first);
+     a draft sits on top of the version in force */
+  const FORM_VERSION_NOTES = ["Câmpuri noi pentru reprezentant (procură) și validarea IDNO.", "Adresa obiectului din registrul de adrese; mesaje de eroare revizuite.", "Prima versiune publicată."];
+  const formVersionHistory = (form) => {
+    if (form.history) return form.history;
+    const [maj, min] = String(form.version).replace(/^v/, "").split(".").map(Number);
+    const at0 = new Date(form.editedAt || localIsoNow());
+    const list = [{ version: form.version, at: form.editedAt, by: form.editedBy, draft: form.status !== "Published", note: form.status !== "Published" ? "Modificări în lucru — nu se folosesc încă în cereri." : "Versiunea folosită acum în cereri." }];
+    const prev = [];
+    for (let m = (min || 0) - 1, M = maj; prev.length < 3 && M >= 1; m--) { if (m < 0) { M--; m = 2; if (M < 1) break; } prev.push(`v${M}.${m}.0`); }
+    prev.forEach((version, i) => { const d = new Date(at0); d.setMonth(d.getMonth() - 2 * (i + 1)); list.push({ version, at: d.toISOString().slice(0, 16), by: i % 2 ? "Alexandr Pascalov" : form.editedBy, note: FORM_VERSION_NOTES[Math.min(i, FORM_VERSION_NOTES.length - 1)] }); });
+    if (list.length > 1) list[list.length - 1].note = "Prima versiune publicată.";
+    form.history = list;
+    return list;
+  };
+
+  const formBuilderOverlay = document.querySelector("#form-builder-modal");
+  /* Previzualizează = the rendered form, as the applicant sees it: the builder's Preview,
+     view-only (editing controls hidden), in the same sheet as Editează */
+  const openFormPreview = (form) => {
+    if (!formBuilderOverlay) return;
+    formBuilderOverlay.classList.add("is-sheet", "is-view-only");
+    const title = formBuilderOverlay.querySelector("[data-builder-view-title]");
+    if (title) title.innerHTML = `Previzualizare · ${escapeHtml(form.name)} <span class="e-permits-builder__view-meta">${escapeHtml(form.version)}</span> ${renderTag("Doar vizualizare", "neutral")}`;
+    window.__modal?.open?.("#form-builder-modal");
+    formBuilderOverlay.querySelector('[data-builder-mode="preview"]')?.click();
+  };
+  /* leaving the view-only preview resets the builder for „Editează” */
+  if (formBuilderOverlay) new MutationObserver(() => {
+    /* guard every remove: DOMTokenList.remove re-sets the attribute even when the class is
+       absent, which would re-trigger this observer forever */
+    if (formBuilderOverlay.classList.contains("is-active")) return;
+    if (formBuilderOverlay.classList.contains("is-sheet")) formBuilderOverlay.classList.remove("is-sheet");
+    if (formBuilderOverlay.classList.contains("is-view-only")) {
+      formBuilderOverlay.classList.remove("is-view-only");
+      formBuilderOverlay.querySelector('[data-builder-mode="build"]')?.click();
+    }
+  }).observe(formBuilderOverlay, { attributes: true, attributeFilter: ["class"] });
 
   const runServiceFormAction = (formId, action) => {
     const service = getServiceByCode(serviceProfileState.code);
@@ -7165,11 +7229,24 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    /* Versiuni = the standard „Istoric versiuni” modal (as for the service and the templates) */
     if (action === "versions") {
-      const events = (service.geap.events || []).filter((e) => /formular/i.test(e.type) && String(e.detail || "").includes(form.name)).slice(0, 3);
-      showShellToast(`În vigoare: ${form.version}${form.status === "Published" ? "" : " (schiță)"}. ${events.length ? `Ultimele modificări: ${events.map((e) => formatStamp(e.at)).join(", ")}.` : "Nu există alte versiuni."}`, "info", `Versiuni · ${form.name}`);
+      const modal = document.querySelector("#dtpl-history-modal");
+      if (!modal) return;
+      modal.querySelector("#dtpl-history-title").textContent = "Istoric versiuni";
+      modal.querySelector("[data-dtpl-history-subtitle]").textContent = `${form.name} · ${form.technical}`;
+      modal.querySelector("[data-dtpl-history-body]").innerHTML = renderEventTimeline("Versiuni", formVersionHistory(form).map((h, i) => ({
+        at: h.at, user: h.by,
+        type: h.draft ? `${h.version} · schiță, nepublicată` : (i === 0 || formVersionHistory(form)[i - 1]?.draft) ? `${h.version} · în vigoare` : h.version,
+        status: h.draft ? "Schiță" : "Reușit",
+        detail: h.note
+      })), { meta: "Cea mai recentă primele" });
+      window.__modal?.open?.("#dtpl-history-modal");
       return;
     }
+
+    /* Previzualizează = the builder's Preview, view-only, as an inset modal */
+    if (action === "preview") { openFormPreview(form); return; }
 
     if (action === "export") {
       const used = formUsage(service, form.id).map((rt) => rt.name);
@@ -7229,12 +7306,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const unconfiguredServiceTariffs = (service) => passport.unconfiguredTariffs(servicesStore?.tariffs || [], serviceTaxes(service), service.code);
   const conditionClassifiers = (service) => (servicesStore?.conditionClassifiers || []).filter((item) => item.scope === service.code || item.scope === "global");
   const getConditionClassifier = (code) => (servicesStore?.conditionClassifiers || []).find((item) => item.code === code) || null;
+  /* value → parent per classifier: a checked parent covers its children (CAEM G ⊃ 47 ⊃ 47.1) */
+  const conditionTree = () => passport.classifierTree(servicesStore?.conditionClassifiers || []);
+  const conditionValueLabel = (classifier, code) => getConditionClassifier(classifier)?.values.find((v) => v.code === code)?.label || code;
   const conditionLabel = (condition) => {
     if (!condition?.classifier) return "";
     const classifier = getConditionClassifier(condition.classifier);
     const labels = (condition.values || []).map((code) => classifier?.values.find((value) => value.code === code)?.label || code);
     return `${classifier?.name || condition.classifier} = ${labels.join(" sau ")}`;
   };
+  /* several classifiers = AND: „Motiv = minoră sau majoră și Solicitant = IMM” */
+  const conditionsLabel = (tax) => passport.taxConditions(tax).map(conditionLabel).join(" și ");
+  const isConditional = (tax) => passport.taxConditions(tax).length > 0;
+  /* a scenario = one checked value of each classifier, named by its value labels */
+  const scenarioLabel = (scenario) => scenario.picks.map(({ classifier, value }) =>
+    getConditionClassifier(classifier)?.values.find((v) => v.code === value)?.label || value).join(" · ");
+  const scenarioCalcText = (calc) => (calc.mode === "reducere" ? `Reducere ${calc.percent}%` : passport.TAX_CALC_LABELS.tarif);
   const tariffSourceTag = (tariff) => !tariff ? "" : tariff.scope === "global"
     ? renderTag("Global", "neutral")
     : renderTag(tariff.source === "GEAP" ? "Manual" : tariff.source, "neutral");
@@ -7247,6 +7334,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const taxCalcLabel = (tax, tariff) => {
     const calc = tax.calc || { mode: "tarif" };
     if (!tariff) return "Tarif lipsă";
+    const scenarios = passport.taxScenarios(tax);
+    const reduced = scenarios.filter((s) => passport.scenarioCalc(tax, s.key).mode === "reducere").length;
+    if (reduced) {
+      const base = tariff.formula ? `Formula tarifului · ${escapeHtml(formulaReadable(tariff.expression))}` : `<strong>${escapeHtml(money(tariff.amount, tariff.currency))}</strong>`;
+      return `${base} · reducere în ${reduced} din ${scenarios.length} scenarii`;
+    }
     if (calc.mode === "reducere") {
       if (tariff.formula) return `Formula tarifului · ${escapeHtml(formulaReadable(tariff.expression))} − ${escapeHtml(String(calc.percent))}%`;
       const sum = passport.taxAmount(tax, tariff);
@@ -7259,7 +7352,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const filter = TAX_FILTERS.find(([key]) => key === payListState.filter)?.[2] || (() => true);
     const query = payListState.query.trim().toLocaleLowerCase("ro");
     const tariff = getTariff(tax.tariffId);
-    const text = [tariff?.name, tariff?.code, tax.requestType, tax.moment, tax.generation, conditionLabel(tax.condition)]
+    const text = [tariff?.name, tariff?.code, tax.requestType, tax.moment, tax.generation, conditionsLabel(tax)]
       .join(" ").toLocaleLowerCase("ro");
     return filter(tax) && (!query || text.includes(query));
   };
@@ -7294,11 +7387,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: escapeHtml(tariff.name),
       badges: [tariffSourceTag(tariff), renderTag("Fără regulă de aplicare", "warning")],
       meta: [`<strong>${escapeHtml(tariffValueText(tariff))}</strong>`, escapeHtml(tariff.code), escapeHtml(tariff.requestType || "Tip solicitare neprecizat"), whoWhen(tariff.source === "GEAP" ? "Adăugat" : "Preluat", tariff.modifiedAt, tariff.modifiedBy)],
-      actionsHtml: admin ? `
-        <!-- the row component's action order: ✎ · secondary · neutral · ⋮ -->
-        <button class="btn btn-secondary btn-sm e-permits-stack__action" type="button" data-tax-apply="${escapeHtml(tariff.id)}">Aplică ca atare</button>
-        <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-tax-configure="${escapeHtml(tariff.id)}">Configurează</button>
-      ` : ""
+      actionsHtml: admin ? renderRowActions({ primary: { label: "Configurează", attrs: `data-tax-configure="${escapeHtml(tariff.id)}"` }, menu: [{ label: "Aplică ca atare", icon: "checkmark-large", attrs: `data-tax-apply="${escapeHtml(tariff.id)}"` }], label: tariff.name }) : ""
     }));
 
     const items = visible.map((tax) => {
@@ -7318,7 +7407,7 @@ document.addEventListener("DOMContentLoaded", () => {
         badges: [
           renderTag(status, TAX_STATUS_TONES[status]),
           tariffSourceTag(tariff),
-          ...(tax.condition?.classifier ? [renderTag("Condiționată", "info")] : []),
+          ...(isConditional(tax) ? [renderTag("Condiționată", "info")] : []),
           ...(branchMissing ? [renderTag("Fără ramificație în flux", "warning")] : [])
         ],
         meta: [
@@ -7331,22 +7420,18 @@ document.addEventListener("DOMContentLoaded", () => {
           whoWhen("Modificat", tax.modifiedAt, tax.modifiedBy)
         ],
         meta2: [
-          ...(tax.condition?.classifier ? [`Se aplică doar dacă ${escapeHtml(conditionLabel(tax.condition))}`] : []),
+          ...(isConditional(tax) ? [`Se aplică doar dacă ${escapeHtml(conditionsLabel(tax))}`] : []),
           ...(tax.exemptions.length ? [`Scutiri: ${escapeHtml(tax.exemptions.join(", "))}`] : []),
           ...(tax.generation === "Manual" && tax.removable ? ["eliminabilă din notă"] : [])
         ],
-        actionsHtml: admin ? `
-          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-pay-edit="${escapeHtml(tax.id)}" aria-label="Editează taxa ${escapeHtml(tariff?.name || "")}" title="Editează">
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
-          </button>
-          ${primary ? `<button class="btn btn-secondary btn-sm e-permits-stack__action" type="button" ${actionAttrs(primary)}>${PAYMENT_ACTION_LABELS[primary]}</button>` : ""}
-          ${renderStackMenu(destructive.map((action) => ({
-            label: PAYMENT_ACTION_LABELS[action],
-            icon: action === "delete" ? "delete" : "pause",
-            attrs: actionAttrs(action),
-            danger: true
-          })), tariff?.name || "taxă")}
-        ` : ""
+        actionsHtml: admin ? renderRowActions({
+          primary: { label: "Editează", attrs: `data-pay-edit="${escapeHtml(tax.id)}" aria-label="Editează taxa ${escapeHtml(tariff?.name || "")}"` },
+          menu: [
+            ...(primary ? [{ label: PAYMENT_ACTION_LABELS[primary], icon: primary === "publish" ? "cloud-upload" : "checkmark-large", attrs: actionAttrs(primary) }] : []),
+            ...destructive.map((action) => ({ label: PAYMENT_ACTION_LABELS[action], icon: action === "delete" ? "delete" : "pause", attrs: actionAttrs(action), danger: true }))
+          ],
+          label: tariff?.name || "taxă"
+        }) : ""
       };
     });
 
@@ -7429,16 +7514,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  /* Interdependențe: only a few services have them, so they sit in Setări, under the
-     switches (feedback 2026-10-07), not in a tab of their own */
-  const renderServiceDependencies = (service) => renderStackedList("Interdependențe", groupBy(service.geap.dependencies.map((dep) => ({
-    group: dep.relation === "Precondiție" ? "Precondiții" : "Excluderi mutuale",
-    plainTitle: dep.act,
-    title: escapeHtml(dep.act),
-    meta: [renderCopyCode(dep.code, `Copiază ${dep.code}`), escapeHtml(dep.note)],
-    action: getServiceByCode(dep.code) ? { label: "Deschide pașaportul", attrs: `data-passport-open-service="${escapeHtml(dep.code)}"` } : null
-  })), (item) => item.group, ["Precondiții", "Excluderi mutuale"]), { empty: "Serviciul nu are interdependențe cu alte acte permisive." });
-
   const renderServiceSimpleTab = (service, tabId) => {
     const geap = service.geap;
 
@@ -7453,7 +7528,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "templates":
         return renderServiceDocTemplates(service);
       case "settings":
-        return renderServiceSettings(service) + renderServiceDependencies(service);
+        return renderServiceSettings(service);
       case "events":
         return renderServiceEvents(service);
       default:
@@ -7522,6 +7597,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const taxShortValue = (tax) => {
     const tariff = getTariff(tax.tariffId);
     const sum = tariff ? passport.taxAmount(tax, tariff) : { ok: false };
+    const sums = tariff ? passport.taxScenarios(tax).map((s) => passport.taxAmount(tax, tariff, {}, { scenario: s.key })) : [];
+    if (sums.length && sums.every((x) => x.ok)) {
+      const values = sums.map((x) => x.value);
+      const low = Math.min(...values), high = Math.max(...values);
+      return low === high ? money(low, tariff.currency) : `${money(low, tariff.currency)} – ${money(high, tariff.currency)}`;
+    }
     if (sum.ok) return money(sum.value, tariff.currency);
     return tax.calc?.mode === "reducere" && tariff?.formula ? `Formulă − ${tax.calc.percent}%` : "Formulă";
   };
@@ -7634,7 +7715,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: escapeHtml(item.name),
       badges: [renderTag(item.active ? "Activ" : "Inactiv", item.active ? "success" : "neutral")],
       meta: [renderTag(item.code, "neutral"), `Obiect: ${escapeHtml(item.object || item.dataSource || "—")}`, escapeHtml(templateRulesLabel(item))],
-      action: { label: "Deschide", attrs: `data-ntpl-open="${escapeHtml(item.code)}"` },
+      action: { label: admin ? "Editează" : "Vezi", attrs: `data-ntpl-open="${escapeHtml(item.code)}"` },
       menu: admin ? [
         { label: item.active === false ? "Activează" : "Dezactivează", icon: item.active === false ? "checkmark-large" : "pause", attrs: `data-ntpl-row-toggle="${escapeHtml(item.code)}"` },
         { label: "Șterge", icon: "delete", danger: true, attrs: `data-ntpl-row-delete="${escapeHtml(item.code)}"` }
@@ -7655,11 +7736,11 @@ document.addEventListener("DOMContentLoaded", () => {
   /* =====================================================================
      Servicii › Șabloane — document templates kept in MDocs (acts, decisions,
      payment notes). List: eye = constructor (full-screen sheet), Editează =
-     details drawer, ⋮ = Detașează / Șterge din catalog. Toolbar: Importă din
-     MDocs (modal) · Atașează șablon (drawer). Constructor: Șablon · Date de test
+     details drawer, ⋮ = Șterge. Toolbar: Importă din MDocs (modal) · Șablon nou (modal →
+     constructor). Every template belongs to this service only — created from scratch or
+     imported, never attached from a shared catalog (A. Pascalov, 2026-10-07). Constructor: Șablon · Date de test (JSON)
      · Previzualizare, "Câmpuri disponibile" panel, Vizual / HTML, Publică în MDocs.
      ===================================================================== */
-  const DTPL_VISIBILITY = [["service", "Doar acest serviciu"], ["authority", "Serviciile autorității"], ["global", "Toate serviciile (global)"]];
   const DTPL_TYPES = ["Act permisiv", "Certificat", "Decizie", "Notă de plată", "Aviz"];
   const DTPL_FIELD_GROUPS = [
     ["Dosar", [["Numărul dosarului", "CaseNumber", "D-2026-004575"], ["Data depunerii", "SubmittedOn", "5 iulie 2026"], ["Termenul de examinare", "DueOn", "16 iulie 2026"], ["Suspendat la", "SuspendedOn", "8 iulie 2026"], ["Suspendat până la", "SuspendedUntil", "30 iulie 2026"], ["Motivul suspendării", "SuspensionReason", "Lipsește avizul de mediu"], ["Denumirea serviciului", "ServiceTitle", "Autorizație sanitară de funcționare"], ["Autoritatea emitentă", "AuthorityName", "Agenția Națională pentru Sănătate Publică"], ["Subdiviziunea", "TeamName", "CSP Chișinău"], ["Tipul solicitării", "SubServiceName", "Eliberare"]]],
@@ -7705,7 +7786,6 @@ document.addEventListener("DOMContentLoaded", () => {
         version: dtplVersion(tpl.version),
         status: "published",
         description: tpl.description || `Șablon MDocs pentru ${String(tpl.type || "document").toLocaleLowerCase("ro")} eliberat de autoritate.`,
-        visibility: "service",
         source: "MDocs",
         editedAt: tpl.updated ? `${tpl.updated}T10:00:00` : localIsoNow(),
         editedBy: "Alexandr Pascalov",
@@ -7730,14 +7810,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const dtplRequestTypes = (service, code) => service.geap.requestTypes.filter((rt) => rtTemplateCodes(service, rt).includes(code));
 
-  const dtplUsage = (code) => (servicesStore?.services || []).filter((s) => (s.geap?.templates || []).some((t) => (t.code || dtplCodeFrom(t.name)) === code));
-  const dtplCatalog = (service) => {
-    const attached = new Set(serviceDocTemplates(service).map((t) => t.code));
-    const seen = new Map();
-    (servicesStore?.services || []).forEach((s) => { if (s.geap) serviceDocTemplates(s).forEach((t) => { if (!attached.has(t.code) && !seen.has(t.code)) seen.set(t.code, t); }); });
-    return [...seen.values()];
-  };
-
   /* tokens of a template: known (in a field group), helpers ({{#if}}/{{/if}}), unknown */
   const dtplTokens = (html) => {
     const used = new Set(), unknown = new Set();
@@ -7750,6 +7822,38 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     return { used: [...used], unknown: [...unknown] };
   };
+
+  /* Date de test = one JSON object, as in MDocs (A. Pascalov, 2026-10-07): the key is the field
+     name; nested objects fill dotted fields ({"Applicant":{"Name":"…"}} → {{Applicant.Name}}) */
+  const dtplFlatten = (obj, prefix = "", out = {}) => {
+    Object.entries(obj || {}).forEach(([key, value]) => {
+      const path = prefix ? `${prefix}.${key}` : key;
+      if (value && typeof value === "object" && !Array.isArray(value)) dtplFlatten(value, path, out);
+      else out[path] = value == null ? "" : String(value);
+    });
+    return out;
+  };
+  const dtplParseJson = (text) => {
+    try {
+      const value = JSON.parse(String(text || "").trim() || "{}");
+      if (!value || typeof value !== "object" || Array.isArray(value)) return { error: "Datele de test trebuie să fie un obiect: { \"Câmp\": \"valoare\" }." };
+      return { data: dtplFlatten(value), raw: value };
+    } catch (error) {
+      /* the browser's message is English and differs per engine — say where and what, in Romanian */
+      const msg = String(error.message || ""), text0 = String(text || "");
+      const pos = Number((msg.match(/position (\d+)/) || [])[1]);
+      const lc = msg.match(/line (\d+) column (\d+)/);
+      const before = Number.isFinite(pos) ? text0.slice(0, pos).split("\n") : null;
+      const line = lc ? lc[1] : before ? before.length : null, col = lc ? lc[2] : before ? before[before.length - 1].length + 1 : null;
+      const what = /Expected ',' or '[}\]]'|expected ',' or/i.test(msg) ? "lipsește o virgulă sau o acoladă de închidere"
+        : /end of (JSON|data)|Unexpected end/i.test(msg) ? "JSON-ul se termină prea devreme"
+        : /property name|double-quoted/i.test(msg) ? "cheile și textele se scriu între ghilimele duble"
+        : "caracter neașteptat";
+      return { error: `JSON invalid${line ? ` la linia ${line}, coloana ${col}` : ""}: ${what}.` };
+    }
+  };
+  /* every field the template uses, with its current or sample value */
+  const dtplSampleJson = (html, data = {}) => JSON.stringify(Object.fromEntries(dtplTokens(html).used.map((t) => [t, data[t] ?? DTPL_FIELD_MAP.get(t)?.sample ?? ""])), null, 2);
 
   /* visual mode: tokens become non-editable chips; reading back turns them into text */
   const dtplMarkTokens = (html) => String(html || "").replace(DTPL_TOKEN_RE, (m, sign, name, arg) => {
@@ -7777,7 +7881,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const all = serviceDocTemplates(service);
     const q = clasCore.normName(dtplQuery.trim());
     const rows = q ? all.filter((t) => clasCore.normName(`${t.name} ${t.code} ${t.type || ""}`).includes(q)) : all;
-    if (!all.length) return renderEmptyState({ title: "Serviciul nu are șabloane de tipar", text: "Atașează unul din catalog sau importă-l din MDocs." });
+    if (!all.length) return renderEmptyState({ title: "Serviciul nu are șabloane de tipar", text: "Creează unul nou sau importă-l din MDocs." });
     if (!rows.length) return renderNoResults("Niciun șablon nu corespunde căutării");
     return `
       <div class="e-permits-stack">
@@ -7785,7 +7889,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <ul class="e-permits-stack__list" role="list">${rows.map((t) => renderStackItem({
             plainTitle: t.name,
             title: escapeHtml(t.name),
-            badges: [t.status === "unpublished" ? renderTag("Modificări nepublicate", "warning") : renderTag("Publicat", "success")],
+            badges: [t.status === "draft" ? renderTag("Schiță · nepublicat în MDocs", "warning") : t.status === "unpublished" ? renderTag("Modificări nepublicate", "warning") : renderTag("Publicat", "success")],
             /* every template is a PDF from MDocs (the note under the list says so), so the
                row shows what differs: type, version, and where it is generated */
             meta: [renderTag(t.code, "neutral"), escapeHtml(t.type || "—"), escapeHtml(t.version), `Editat ${escapeHtml(formatStamp(t.editedAt))} · ${escapeHtml(t.editedBy || "—")}`],
@@ -7794,10 +7898,9 @@ document.addEventListener("DOMContentLoaded", () => {
               <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(t.name)}" data-tooltip-label="Previzualizează" aria-haspopup="dialog" aria-controls="tpl-preview" aria-expanded="false" data-dtpl-preview="${escapeHtml(t.code)}">
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
               </button>
-              ${admin ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-dtpl-edit="${escapeHtml(t.code)}">Editează</button>` : ""}
+              ${admin ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" data-dtpl-edit="${escapeHtml(t.code)}">${EDIT_LABEL_HTML}</button>` : ""}
               ${admin ? renderStackMenu([
-                { label: "Detașează", icon: "cross-large", attrs: `data-dtpl-detach="${escapeHtml(t.code)}"` },
-                { label: "Șterge din catalog", icon: "delete", danger: true, attrs: `data-dtpl-delete="${escapeHtml(t.code)}"` }
+                { label: "Șterge", icon: "delete", danger: true, attrs: `data-dtpl-delete="${escapeHtml(t.code)}"` }
               ], t.name) : ""}`
           })).join("")}</ul>
         </div>
@@ -7823,9 +7926,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg>
                 <span>Importă din MDocs</span>
               </button>
-              <button class="btn btn-secondary btn-sm" type="button" data-dtpl-attach>
+              <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" aria-controls="dtpl-new-modal" aria-expanded="false" data-dtpl-new>
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-                <span>Atașează șablon</span>
+                <span>Șablon nou</span>
               </button>` : ""}
           </div>
         </div>
@@ -7911,20 +8014,13 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           ${clasTextarea("dtpl-e-desc", 'data-dtpl-e="description"', e.description, { label: "Descriere scurtă", hint: "Pentru administratori — nu apare pe document.", placeholder: "Ex. Actul permisiv emis după aprobarea dosarului." })}
         </div>`)}
-        ${clasCreateSection("Vizibilitate și acces", `<div class="e-permits-user-create__grid">
-          <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
-            <label for="dtpl-e-vis">Cine îl poate folosi</label>
-            ${renderFoSelectControl({ id: "dtpl-e-vis", attrs: 'data-dtpl-e-select="visibility"', optionsHtml: DTPL_VISIBILITY.map(([v, l]) => `<option value="${v}"${v === e.visibility ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}
-            <p class="e-permits-fo-field__hint">Cine poate vedea și reutiliza acest șablon în alte servicii.</p>
-          </div>
-        </div>`)}
-        ${renderPassportBlock("Din MDocs", [["Cod", renderTag(tpl.code, "neutral")], ["Versiune", escapeHtml(tpl.version)], ["Tip document", escapeHtml(tpl.type || "—")], ["Folosit în", escapeHtml(plural(dtplUsage(tpl.code).length, "serviciu", "servicii"))]])}
+        ${renderPassportBlock("Din MDocs", [["Cod", renderTag(tpl.code, "neutral")], ["Versiune", escapeHtml(tpl.version)], ["Tip document", escapeHtml(tpl.type || "—")], ["Generat la", escapeHtml(dtplRequestTypes(service, tpl.code).map((rt) => rt.name).join(", ") || "niciun tip de solicitare")]])}
       </div>`;
   };
   const openDtplEdit = (code) => {
     const tpl = dtplFind(code);
     if (!tpl || !dtplEditDrawer) return;
-    dtplEdit = { code, name: tpl.name, description: tpl.description || "", visibility: tpl.visibility || "service", errors: {}, dirty: false, ret: document.activeElement };
+    dtplEdit = { code, name: tpl.name, description: tpl.description || "", errors: {}, dirty: false, ret: document.activeElement };
     renderDtplEdit();
     dtplDrawerOpen(dtplEditDrawer, "#dtpl-e-name");
   };
@@ -7938,7 +8034,7 @@ document.addEventListener("DOMContentLoaded", () => {
     e.errors = e.name.trim() ? {} : { name: "Completează denumirea." };
     if (!e.errors.name && serviceDocTemplates(service).some((t) => t !== tpl && clasCore.normName(t.name) === clasCore.normName(e.name))) e.errors.name = "Serviciul are deja un șablon cu această denumire.";
     if (e.errors.name) { renderDtplEdit(); dtplEditDrawer.querySelector("#dtpl-e-name")?.focus(); return; }
-    Object.assign(tpl, { name: e.name.trim(), description: e.description.trim(), visibility: e.visibility, editedAt: localIsoNow(), editedBy: currentUserName() });
+    Object.assign(tpl, { name: e.name.trim(), description: e.description.trim(), editedAt: localIsoNow(), editedBy: currentUserName() });
     logServiceEvents(service.code, [{ at: tpl.editedAt, user: tpl.editedBy, type: "Modificare șablon de tipar", status: "Reușit", detail: tpl.code }]);
     closeDtplEdit(true);
     refreshDtplList();
@@ -7959,53 +8055,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (f && dtplEdit) { dtplEdit[f.dataset.dtplESelect] = f.value; dtplEdit.dirty = true; }
   });
 
-  /* Atașează — centred library modal: pick from the catalog in a dropdown, then its details */
-  const dtplAttachModal = document.querySelector("#dtpl-attach-modal");
-  let dtplAttach = null;
-  const renderDtplAttach = () => {
-    const all = dtplCatalog(dtplService());
-    const t = all.find((x) => x.code === dtplAttach.code);
-    dtplAttachModal.querySelector("[data-dtpl-attach-body]").innerHTML = `
-      <div class="e-permits-case-form">
-        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
-          <label for="dtpl-attach-pick">Șablonul din catalog${requiredMark()}</label>
-          ${renderFoSelectControl({ id: "dtpl-attach-pick", attrs: "data-dtpl-attach-pick", disabled: !all.length, optionsHtml: `<option value=""${t ? "" : " selected"} disabled>${all.length ? "Alege un șablon" : "Toate șabloanele sunt deja atașate"}</option>${all.map((x) => `<option value="${escapeHtml(x.code)}"${x.code === dtplAttach.code ? " selected" : ""}>${escapeHtml(`${x.name} · ${x.code}`)}</option>`).join("")}` })}
-          ${dtplAttach.error ? clasFieldError({ e: dtplAttach.error }, "e") : '<p class="e-permits-fo-field__hint">Atașat, șablonul se poate lega de pașii procesului din tipurile de solicitare.</p>'}
-        </div>
-        ${t ? renderPassportBlock("Șablonul ales", [
-          ["Tip document", escapeHtml(t.type || "—")], ["Versiune", escapeHtml(t.version)],
-          ["Folosit în", escapeHtml(dtplUsage(t.code).map((s) => s.code).join(", ") || "—")], ["Descriere", escapeHtml(t.description || "—")]
-        ]) : ""}
-      </div>`;
-    if (dtplAttach.error) dtplAttachModal.querySelector(".e-permits-fo-select")?.classList.add("is-error");
-  };
-  const openDtplAttach = () => {
-    if (!dtplAttachModal || !isCentralAdmin()) return;
-    dtplAttach = { code: "", error: "" };
-    renderDtplAttach();
-    window.__modal?.open?.("#dtpl-attach-modal");
-    requestAnimationFrame(() => dtplAttachModal.querySelector("#dtpl-attach-pick")?.focus());
-  };
-  const saveDtplAttach = () => {
-    const service = dtplService();
-    const t = dtplCatalog(service).find((x) => x.code === dtplAttach.code);
-    if (!t) { dtplAttach.error = "Alege un șablon din catalog."; renderDtplAttach(); dtplAttachModal.querySelector("#dtpl-attach-pick")?.focus(); return; }
-    serviceDocTemplates(service).push(Object.assign(JSON.parse(JSON.stringify(t)), { mdocsChange: null }));
-    logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Atașare șablon de tipar", status: "Reușit", detail: t.code }]);
-    closeFoSelect();
-    window.__modal?.close?.("#dtpl-attach-modal");
-    dtplAttach = null;
-    renderServiceProfile();
-    showShellToast(`„${t.name}” este atașat serviciului. Leagă-l de pașii procesului din tipurile de solicitare.`, "success", "Șablon atașat");
-  };
-  dtplAttachModal?.addEventListener("click", (event) => { if (event.target.closest("[data-dtpl-attach-save]")) saveDtplAttach(); });
-  dtplAttachModal?.addEventListener("change", (event) => {
-    const pick = event.target.closest("[data-dtpl-attach-pick]");
-    if (!pick || !dtplAttach) return;
-    Object.assign(dtplAttach, { code: pick.value, error: "" });
-    renderDtplAttach();
-    dtplAttachModal.querySelector("#dtpl-attach-pick")?.focus();
-  });
   dtplEditDrawer?.addEventListener("keydown", (event) => {
     if (event.key !== "Escape" || document.querySelector(".modal-overlay.is-active, body > .e-permits-fo-select__list")) return;
     event.preventDefault();
@@ -8043,23 +8092,85 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const saveDtplImport = () => {
     const d = dtplImport, service = dtplService();
-    const all = (servicesStore?.services || []).flatMap((s) => (s.geap ? serviceDocTemplates(s) : []));
     d.errors = {};
     if (!d.code.trim()) d.errors.code = "Completează codul din MDocs.";
     else if (!/^[A-Za-z][A-Za-z0-9._]*$/.test(d.code.trim())) d.errors.code = "Doar litere, cifre și punct, fără spații.";
-    else if (all.some((t) => t.code.toLowerCase() === d.code.trim().toLowerCase())) d.errors.code = "Șablonul există deja în catalog — atașează-l.";
+    else if (serviceDocTemplates(service).some((t) => t.code.toLowerCase() === d.code.trim().toLowerCase())) d.errors.code = "Serviciul are deja un șablon cu acest cod.";
     if (!d.name.trim()) d.errors.name = "Completează denumirea.";
     if (Object.keys(d.errors).length) { renderDtplImport(); dtplImportModal.querySelector(".is-error input")?.focus(); return; }
     const at = localIsoNow(), by = currentUserName();
-    const tpl = { name: d.name.trim(), type: d.type, format: "PDF · MDocs", code: d.code.trim(), version: "v1.0.0", status: "published", description: "", visibility: "service", source: "MDocs", editedAt: at, editedBy: by, testData: {}, history: [{ version: "v1.0.0", at, by, note: "Importat din MDocs." }], mdocsChange: null };
+    const tpl = { name: d.name.trim(), type: d.type, format: "PDF · MDocs", code: d.code.trim(), version: "v1.0.0", status: "published", description: "", source: "MDocs", editedAt: at, editedBy: by, testData: {}, history: [{ version: "v1.0.0", at, by, note: "Importat din MDocs." }], mdocsChange: null };
     tpl.html = dtplDefaultHtml(tpl, service);
     serviceDocTemplates(service).push(tpl);
     logServiceEvents(service.code, [{ at, user: by, type: "Import șablon din MDocs", status: "Reușit", detail: tpl.code }]);
     window.__modal?.close?.("#dtpl-import-modal");
     dtplImport = null;
     renderServiceProfile();
-    showShellToast(`„${tpl.name}” a fost importat din MDocs și atașat serviciului.`, "success", "Șablon importat");
+    showShellToast(`„${tpl.name}” a fost importat din MDocs.`, "success", "Șablon importat");
   };
+
+  /* ---- Șablon nou — created from scratch for this service only (library modal), then the
+     constructor opens on the draft; it goes to MDocs with „Publică în MDocs” ---- */
+  const dtplNewModal = document.querySelector("#dtpl-new-modal");
+  let dtplNew = null;
+  const renderDtplNew = () => {
+    const d = dtplNew;
+    const input = (key, label, placeholder, hint) => `
+      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+        <label for="dtpl-n-${key}">${label}${requiredMark()}</label>
+        <div class="e-permits-fo-input${d.errors[key] ? " is-error" : ""}"><input id="dtpl-n-${key}" type="text" value="${escapeHtml(d[key])}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" data-dtpl-n="${key}"></div>
+        ${clasFieldError(d.errors, key)}
+        ${hint && !d.errors[key] ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+      </div>`;
+    dtplNewModal.querySelector("[data-dtpl-new-body]").innerHTML = `
+      <div class="e-permits-case-form"><div class="e-permits-user-create__grid">
+        ${input("name", "Denumire", "Ex. Decizie de respingere", "Cum apare în lista serviciului și în pașii de proces.")}
+        <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+          <label for="dtpl-n-type">Tip document${requiredMark()}</label>
+          ${renderFoSelectControl({ id: "dtpl-n-type", attrs: 'data-dtpl-n-select="type"', optionsHtml: DTPL_TYPES.map((t) => `<option value="${escapeHtml(t)}"${t === d.type ? " selected" : ""}>${escapeHtml(t)}</option>`).join("") })}
+        </div>
+        ${input("code", "Cod în MDocs", "Ex. GEAP.DecizieRespingere", "Se completează din denumire; cu acest cod se publică în MDocs.")}
+      </div></div>`;
+  };
+  const openDtplNew = (trigger) => {
+    if (!dtplNewModal || !isCentralAdmin()) return;
+    dtplNew = { name: "", type: DTPL_TYPES[0], code: "", codeTouched: false, errors: {}, trigger };
+    renderDtplNew();
+    trigger?.setAttribute("aria-expanded", "true");
+    window.__modal?.open?.("#dtpl-new-modal");
+    requestAnimationFrame(() => dtplNewModal.querySelector("#dtpl-n-name")?.focus());
+  };
+  const saveDtplNew = () => {
+    const d = dtplNew, service = dtplService(), list = serviceDocTemplates(service);
+    d.errors = {};
+    if (!d.name.trim()) d.errors.name = "Completează denumirea.";
+    else if (list.some((t) => clasCore.normName(t.name) === clasCore.normName(d.name))) d.errors.name = "Serviciul are deja un șablon cu această denumire.";
+    if (!d.code.trim()) d.errors.code = "Completează codul.";
+    else if (!/^[A-Za-z][A-Za-z0-9._]*$/.test(d.code.trim())) d.errors.code = "Doar litere, cifre și punct, fără spații.";
+    else if (list.some((t) => t.code.toLowerCase() === d.code.trim().toLowerCase())) d.errors.code = "Serviciul are deja un șablon cu acest cod.";
+    if (Object.keys(d.errors).length) { renderDtplNew(); dtplNewModal.querySelector(".is-error input")?.focus(); return; }
+    const at = localIsoNow(), by = currentUserName();
+    const tpl = { name: d.name.trim(), type: d.type, format: "PDF · MDocs", code: d.code.trim(), version: "v0.1.0", status: "draft", description: "", source: "GEAP", editedAt: at, editedBy: by, testData: {}, history: [], mdocsChange: null };
+    tpl.html = dtplDefaultHtml(tpl, service);
+    list.push(tpl);
+    logServiceEvents(service.code, [{ at, user: by, type: "Creare șablon de tipar", status: "Reușit", detail: tpl.code }]);
+    d.trigger?.setAttribute("aria-expanded", "false");
+    window.__modal?.close?.("#dtpl-new-modal");
+    dtplNew = null;
+    renderServiceProfile();
+    openDtpl(tpl.code);
+  };
+  dtplNewModal?.addEventListener("click", (event) => { if (event.target.closest("[data-dtpl-new-save]")) saveDtplNew(); });
+  dtplNewModal?.addEventListener("input", (event) => {
+    const f = event.target.closest("[data-dtpl-n]");
+    if (!f || !dtplNew) return;
+    dtplNew[f.dataset.dtplN] = f.value;
+    if (f.dataset.dtplN === "code") dtplNew.codeTouched = Boolean(f.value);
+    /* the code follows the name until it is typed by hand */
+    if (f.dataset.dtplN === "name" && !dtplNew.codeTouched) { dtplNew.code = f.value.trim() ? dtplCodeFrom(f.value) : ""; const c = dtplNewModal.querySelector("#dtpl-n-code"); if (c) c.value = dtplNew.code; }
+    clearClasFieldError(event.target, null);
+  });
+  dtplNewModal?.addEventListener("change", (event) => { const f = event.target.closest("[data-dtpl-n-select]"); if (f && dtplNew) dtplNew.type = f.value; });
   dtplImportModal?.addEventListener("click", (event) => { if (event.target.closest("[data-dtpl-import-save]")) saveDtplImport(); });
   dtplImportModal?.addEventListener("input", (event) => {
     const f = event.target.closest("[data-dtpl-i]");
@@ -8069,26 +8180,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   dtplImportModal?.addEventListener("change", (event) => { const f = event.target.closest("[data-dtpl-i-select]"); if (f && dtplImport) dtplImport.type = f.value; });
 
-  /* ---- Detașează · Șterge din catalog ---- */
-  const detachDtpl = (code) => {
+  /* ---- Șterge — the template belongs to this service only ---- */
+  const deleteDtpl = (code) => {
     const service = dtplService(), list = serviceDocTemplates(service), tpl = dtplFind(code);
     if (!tpl) return;
-    askConfirm({ title: `Detașezi „${tpl.name}”?`, text: "Șablonul rămâne în catalog și în celelalte servicii. Pașii de proces care îl generau rămân fără document până alegi altul.", confirmLabel: "Detașează", destructive: true }, () => {
+    const used = dtplRequestTypes(service, code);
+    askConfirm({ title: `Ștergi „${tpl.name}”?`, text: `${used.length ? `Îl generează ${plural(used.length, "tip de solicitare", "tipuri de solicitare")} (${used.map((rt) => rt.name).join(", ")}); pașii rămân fără document până alegi altul. ` : ""}Documentele deja emise rămân în dosare. Acțiunea nu se poate anula.`, confirmLabel: "Șterge", destructive: true }, () => {
       list.splice(list.indexOf(tpl), 1);
-      logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Detașare șablon de tipar", status: "Reușit", detail: tpl.code }]);
+      logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Ștergere șablon de tipar", status: "Reușit", detail: code }]);
       renderServiceProfile();
-      showShellToast(`„${tpl.name}” nu mai este folosit de acest serviciu. Rămâne în catalog.`, "success", "Șablon detașat");
-    });
-  };
-  const deleteDtpl = (code) => {
-    const tpl = dtplFind(code);
-    if (!tpl) return;
-    const users = dtplUsage(code);
-    askConfirm({ title: `Ștergi „${tpl.name}” din catalog?`, text: `Șablonul dispare din ${users.length === 1 ? "acest serviciu" : `toate cele ${users.length} servicii care îl folosesc`}. Documentele deja emise rămân în dosare. Acțiunea nu se poate anula.`, confirmLabel: "Șterge din catalog", destructive: true }, () => {
-      users.forEach((s) => { s.geap.templates = s.geap.templates.filter((t) => t.code !== code); });
-      logServiceEvents(dtplService().code, [{ at: localIsoNow(), user: currentUserName(), type: "Ștergere șablon din catalog", status: "Reușit", detail: code }]);
-      renderServiceProfile();
-      showShellToast(`„${tpl.name}” a fost șters din catalog.`, "success", "Șablon șters");
+      showShellToast(`„${tpl.name}” a fost șters.`, "success", "Șablon șters");
     });
   };
 
@@ -8164,30 +8265,47 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   };
 
+  const renderDtplJsonStatus = () => {
+    const d = dtplState.draft;
+    const { used, unknown } = dtplTokens(d.html);
+    const parsed = dtplParseJson(d.testJson);
+    const data = parsed.data || {};
+    const missing = used.filter((t) => DTPL_FIELD_MAP.has(t) && !(t in data));
+    const extra = Object.keys(data).filter((k) => !used.includes(k));
+    const bad = Boolean(parsed.error);
+    return `
+      <div class="e-permits-dtpl__json-bar">
+        <div class="e-permits-dtpl__json-state">
+          ${bad ? `<span class="message message--inline message--error e-permits-fo-field__error"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeHtml(parsed.error)}</span></span>`
+            : `<p class="e-permits-fo-field__hint">${plural(Object.keys(data).length, "câmp", "câmpuri")} cu valoare de test.</p>`}
+        </div>
+        <div class="e-permits-dtpl__json-tools">
+          <button class="btn btn-neutral btn-sm" type="button" data-dtpl-json-fill${bad ? ' aria-disabled="true" data-tooltip-reason="Corectează întâi JSON-ul."' : ""}>Completează cu exemple</button>
+          <button class="btn btn-neutral btn-sm" type="button" data-dtpl-json-format${bad ? ' aria-disabled="true" data-tooltip-reason="Corectează întâi JSON-ul."' : ""}>Formatează</button>
+        </div>
+      </div>
+      ${unknown.length ? renderNotice("error", `<strong>Câmpuri necunoscute:</strong> ${unknown.map((t) => escapeHtml(`{{${t}}}`)).join(", ")} — șablonul le folosește, dar nu există în sursele de date; la emitere rămân goale. Corectează numele în șablon.`) : ""}
+      ${!bad && missing.length ? renderInfoNote(`<strong>Fără valoare de test:</strong> ${missing.map((t) => escapeHtml(`{{${t}}}`)).join(", ")} — la previzualizare folosesc exemplul implicit.`) : ""}
+      ${!bad && extra.length ? renderInfoNote(`<strong>Chei care nu apar în șablon:</strong> ${extra.map((k) => escapeHtml(k)).join(", ")} — sunt ignorate.`) : ""}`;
+  };
   const renderDtplTestView = () => {
     const d = dtplState.draft;
-    const { used } = dtplTokens(d.html);
-    const known = used.filter((t) => DTPL_FIELD_MAP.has(t)), unknown = used.filter((t) => !DTPL_FIELD_MAP.has(t));
-    const row = (token, label, hint, unknownField) => `
-      <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
-        <label for="dtpl-t-${escapeHtml(token)}">${escapeHtml(label)}</label>
-        <div class="e-permits-fo-input${unknownField ? " is-error" : ""}"><input id="dtpl-t-${escapeHtml(token)}" type="text" value="${escapeHtml(d.testData[token] ?? DTPL_FIELD_MAP.get(token)?.sample ?? "")}" autocomplete="off" data-dtpl-test="${escapeHtml(token)}"></div>
-        <p class="e-permits-fo-field__hint">${hint}</p>
-      </div>`;
+    const bad = Boolean(dtplParseJson(d.testJson).error);
     return `
       <div class="e-permits-dtpl__narrow">
-        ${renderInfoNote("Valorile de aici se folosesc doar la <strong>Previzualizare</strong>. La emitere, câmpurile se completează din dosar.")}
-        ${unknown.length ? clasCreateSection("Câmpuri inexistente", `<div class="e-permits-user-create__grid">${unknown.map((t) => row(t, `{{${t}}}`, "Nu există în sursele de date — la emitere rămâne gol. Corectează numele în șablon.", true)).join("")}</div>`) : ""}
-        ${DTPL_FIELD_GROUPS.map(([group]) => {
-          const tokens = known.filter((t) => DTPL_FIELD_MAP.get(t).group === group);
-          return tokens.length ? clasCreateSection(group, `<div class="e-permits-user-create__grid">${tokens.map((t) => row(t, DTPL_FIELD_MAP.get(t).label, `{{${t}}}`, false)).join("")}</div>`) : "";
-        }).join("")}
+        ${renderInfoNote("Datele de test sunt un obiect <strong>JSON</strong>, ca în MDocs: cheia este numele câmpului din șablon („{{CaseNumber}}” → \"CaseNumber\"), iar obiectele imbricate completează câmpurile cu punct („{{Applicant.Name}}”). Se folosesc doar la Previzualizare; la emitere, câmpurile se completează din dosar.")}
+        <div class="e-permits-fo-field e-permits-dtpl__json">
+          <label for="dtpl-json">Date de test (JSON)</label>
+          <div class="e-permits-fo-textarea e-permits-ntpl-html${bad ? " is-error" : ""}" data-dtpl-json-box><textarea id="dtpl-json" rows="20" spellcheck="false" autocomplete="off" data-dtpl-json>${escapeHtml(d.testJson)}</textarea></div>
+          <div data-dtpl-json-status>${renderDtplJsonStatus()}</div>
+        </div>
       </div>`;
   };
 
   const renderDtplPreviewView = () => {
     const d = dtplState.draft;
     return `
+      ${dtplParseJson(d.testJson).error ? `<div class="e-permits-dtpl__narrow">${renderNotice("warning", "<strong>JSON-ul cu date de test are erori.</strong> Previzualizarea folosește ultimele date valide — corectează-l în „Date de test”.")}</div>` : ""}
       <div class="e-permits-dtpl__canvas e-permits-dtpl__canvas--preview">
         <div class="e-permits-dtpl__page"${d.background ? ` style="background-image:url('${d.background}')"` : ""}><div class="e-permits-dtpl__surface">${dtplFill(d.html, d.testData)}</div></div>
       </div>
@@ -8197,7 +8315,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderDtpl = () => {
     const tpl = dtplTpl(), d = dtplState.draft;
     if (!tpl) return;
-    const pending = dtplState.dirty || tpl.status === "unpublished";
+    const pending = dtplState.dirty || tpl.status === "unpublished" || tpl.status === "draft";
     const view = dtplState.view;
     dtplPanel.innerHTML = `
       <header class="e-permits-dtpl__head">
@@ -8210,7 +8328,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${[["template", "Șablon"], ["test", "Date de test"], ["preview", "Previzualizare"]].map(([v, l]) => `<button class="segment-item${view === v ? " is-selected" : ""}" type="button" role="tab" aria-selected="${view === v}" data-dtpl-view="${v}">${l}</button>`).join("")}
         </div>
         <div class="e-permits-dtpl__actions">
-          ${pending ? (dtplState.dirty ? renderHeaderStatus("Modificări nesalvate") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" title="Vezi modificările"')) : ""}
+          ${pending ? (dtplState.dirty ? renderHeaderStatus("Modificări nesalvate") : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" title="Vezi modificările"')) : ""}
           <button class="btn btn-neutral btn-sm" type="button" data-dtpl-history><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-history"></use></svg><span>Istoric versiuni</span></button>
           ${pending
             ? '<button class="btn btn-primary btn-sm" type="button" data-dtpl-publish>Publică în MDocs</button>'
@@ -8272,7 +8390,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const openDtpl = (code) => {
     const tpl = dtplFind(code);
     if (!tpl || !dtplSheet) return;
-    Object.assign(dtplState, { code, view: "template", mode: "visual", fieldQuery: "", draft: { html: tpl.html || "", testData: { ...(tpl.testData || {}) }, background: tpl.background || "" }, dirty: false, range: null, ret: document.activeElement });
+    Object.assign(dtplState, { code, view: "template", mode: "visual", fieldQuery: "", draft: { html: tpl.html || "", testData: { ...(tpl.testData || {}) }, testJson: tpl.testJson || dtplSampleJson(tpl.html, tpl.testData || {}), background: tpl.background || "" }, dirty: false, range: null, ret: document.activeElement });
     renderDtpl();
     dtplSheet.hidden = false;
     document.body.classList.add("is-ntpl-sheet-open");
@@ -8296,7 +8414,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveDtpl = ({ silent = false } = {}) => {
     syncDtpl();
     const tpl = dtplTpl(), service = dtplService();
-    Object.assign(tpl, { html: dtplState.draft.html, testData: { ...dtplState.draft.testData }, background: dtplState.draft.background, status: "unpublished", editedAt: localIsoNow(), editedBy: currentUserName() });
+    Object.assign(tpl, { html: dtplState.draft.html, testData: { ...dtplState.draft.testData }, testJson: dtplState.draft.testJson, background: dtplState.draft.background, status: tpl.status === "draft" ? "draft" : "unpublished", editedAt: localIsoNow(), editedBy: currentUserName() });
     dtplState.dirty = false;
     logServiceEvents(service.code, [{ at: tpl.editedAt, user: tpl.editedBy, type: "Modificare șablon de tipar", status: "Reușit", detail: `${tpl.code} · ciornă` }]);
     renderDtpl();
@@ -8304,7 +8422,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const publishDtpl = () => {
     const tpl = dtplTpl();
-    const next = dtplBump(tpl.version);
+    /* a template created here goes to MDocs for the first time as v1.0.0 */
+    const next = tpl.status === "draft" ? "v1.0.0" : dtplBump(tpl.version);
     const run = () => {
       if (dtplState.dirty) saveDtpl({ silent: true });
       const at = localIsoNow(), by = currentUserName();
@@ -8397,6 +8516,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-dtpl-xml]")) { dtplSheet.querySelector("[data-dtpl-xml-file]").click(); return; }
     if (event.target.closest("[data-dtpl-history]")) { openDtplHistory(); return; }
     if (event.target.closest("[data-dtpl-pending]")) { openDtplPendingChanges(); return; }
+    const jsonTool = event.target.closest("[data-dtpl-json-fill], [data-dtpl-json-format]");
+    if (jsonTool) {
+      if (jsonTool.getAttribute("aria-disabled") === "true") return;
+      const d = dtplState.draft; const parsed = dtplParseJson(d.testJson);
+      if (parsed.error) return;
+      const raw = jsonTool.matches("[data-dtpl-json-fill]")
+        ? { ...Object.fromEntries(dtplTokens(d.html).used.filter((t) => !(t in parsed.data)).map((t) => [t, DTPL_FIELD_MAP.get(t)?.sample ?? ""])), ...parsed.raw }
+        : parsed.raw;
+      d.testJson = JSON.stringify(raw, null, 2); d.testData = dtplFlatten(raw);
+      markDtplDirty(); renderDtpl();
+      dtplPanel.querySelector(jsonTool.matches("[data-dtpl-json-fill]") ? "[data-dtpl-json-fill]" : "[data-dtpl-json-format]")?.focus();
+      return;
+    }
     if (event.target.closest("[data-dtpl-pull]")) { pullDtpl(); return; }
     const publish = event.target.closest("[data-dtpl-publish]");
     if (publish && publish.getAttribute("aria-disabled") !== "true") { publishDtpl(); return; }
@@ -8407,8 +8539,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!dtplState.code) return;
     const search = event.target.closest("[data-dtpl-field-search]");
     if (search) { dtplState.fieldQuery = search.value; dtplPanel.querySelector("[data-dtpl-fields]").innerHTML = renderDtplFields(); return; }
-    const test = event.target.closest("[data-dtpl-test]");
-    if (test) { dtplState.draft.testData[test.dataset.dtplTest] = test.value; markDtplDirty(); return; }
+    const json = event.target.closest("[data-dtpl-json]");
+    if (json) {
+      const d = dtplState.draft;
+      d.testJson = json.value;
+      const parsed = dtplParseJson(d.testJson);
+      if (parsed.data) d.testData = parsed.data;
+      /* only the status under the editor changes — the caret stays where it is */
+      dtplPanel.querySelector("[data-dtpl-json-box]")?.classList.toggle("is-error", Boolean(parsed.error));
+      const status = dtplPanel.querySelector("[data-dtpl-json-status]"); if (status) status.innerHTML = renderDtplJsonStatus();
+      markDtplDirty();
+      return;
+    }
     if (event.target.closest("[data-dtpl-surface], [data-dtpl-html]")) markDtplDirty();
   });
   dtplPanel?.addEventListener("change", (event) => {
@@ -9031,7 +9173,7 @@ document.addEventListener("DOMContentLoaded", () => {
       badges: [renderTag(f.tip, "neutral"), f.obligatoriu ? renderTag("Obligatoriu", "brand") : "", f.derivat ? renderTag("Din ierarhie", "info") : ""].filter(Boolean),
       meta: [f.cfg ? escapeHtml(f.cfg) : f.implicit ? "Coloană standard — nu se poate elimina" : f.derivat ? "Valoarea-părinte din clasificatorul-părinte" : "Coloană suplimentară", `Cheie: ${escapeHtml(f.id)}`],
       plainTitle: f.label,
-      actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">Editează</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">Elimină</button>` : ""
+      actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">${EDIT_LABEL_HTML}</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">Elimină</button>` : ""
     }));
     const lock = !structure && !clasReadOnlyReason(c) ? clasLockNotice("<strong>Structura nu se editează aici.</strong> Doar administratorul central adaugă sau modifică coloane.") : "";
     return `${lock}${renderStackedList("Coloane", [{ label: "Standard", items: items.filter((_, i) => fields[i].implicit) }, { label: "Suplimentare", items: items.filter((_, i) => !fields[i].implicit) }].filter((g) => g.items.length), { meta: `Format ID: ${escapeHtml(c.idFormat || classifiersStore.fieldTypes.defaults.idFormat)} · denumiri max. ${c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri} caractere` })}
@@ -10383,7 +10525,10 @@ document.addEventListener("DOMContentLoaded", () => {
       action: { label: "Editează", attrs: `data-ntpl-rule-edit="${index}"` },
       menu: [
         { label: rule.active === false ? "Activează" : "Dezactivează", icon: rule.active === false ? "checkmark-large" : "pause", attrs: `data-ntpl-rule-toggle="${index}"` },
-        { label: "Șterge", icon: "delete", danger: true, attrs: `data-ntpl-rule-delete="${index}"` }
+        /* the template needs at least one recipient — the last rule cannot be deleted */
+        { label: "Șterge", icon: "delete", danger: true, attrs: rules.length === 1
+          ? `data-ntpl-rule-delete="${index}" aria-disabled="true" data-tooltip-reason="Șablonul are nevoie de cel puțin un destinatar. Adaugă altă regulă înainte să o ștergi pe aceasta."`
+          : `data-ntpl-rule-delete="${index}"` }
       ]
     }));
     return `
@@ -11372,8 +11517,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const ruleDelete = event.target.closest("[data-ntpl-rule-delete]");
     if (ruleDelete) {
-      tpl.rules.splice(Number(ruleDelete.dataset.ntplRuleDelete), 1);
-      commitNtplRules(tpl, "Intră în vigoare după publicare.", "Regulă ștearsă");
+      if (ruleDelete.getAttribute("aria-disabled") === "true") return;
+      const index = Number(ruleDelete.dataset.ntplRuleDelete);
+      const rule = tpl.rules[index];
+      closeStackMenus();
+      askConfirm({ title: "Ștergi regula?", text: `${rule.recipient} nu va mai primi această notificare. Intră în vigoare după publicare.`, confirmLabel: "Șterge", destructive: true }, () => {
+        tpl.rules.splice(index, 1);
+        commitNtplRules(tpl, "Intră în vigoare după publicare.", "Regulă ștearsă");
+      });
     }
   });
 
@@ -11421,7 +11572,7 @@ document.addEventListener("DOMContentLoaded", () => {
         tpl.active = next;
         active.checked = next;
         renderNtplProfileHeader(tpl);
-        showShellToast(tpl.active ? "Șablonul se trimite din nou." : "Șablonul nu se mai trimite până la reactivare.", tpl.active ? "success" : "info", tpl.active ? "Șablon activat" : "Șablon dezactivat");
+        /* the switch and the header show the result — no toast */
       });
     }
   });
@@ -12300,7 +12451,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ["Cod serviciu", escapeHtml(summary.code)],
               ["Denumire", escapeHtml(summary.title)],
               ["Autoritate", `${escapeHtml(result.authority.name)} ${renderTag(result.authorityCreated ? "Creată" : "Legată", result.authorityCreated ? "brand" : "neutral")}`],
-              ["Tipul solicitantului", valueTags(summary.applicantTypes)],
+              ["Tipul solicitantului", applicantTags(summary.applicantTypes)],
               ["Subservicii importate", `${summary.subServices}${summary.ignoredSubServices ? ` <span class="e-permits-passport__muted">(${summary.ignoredSubServices} dezactivate, ignorate)</span>` : ""}`],
               ["Documente", String(summary.documents)],
               ["Indicatori", valueTags(Object.entries(summary.flags).filter(([, on]) => on).map(([name]) => name))]
@@ -12749,7 +12900,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
         </div>
         <div class="e-permits-stack__actions e-permits-rt__action-control">
-          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Previzualizează ${attr === "doc" ? "documentul" : "notificarea"}: ${escapeHtml(title)}" data-tooltip-label="Previzualizează" aria-controls="rt-peek" aria-expanded="${rtDraft.peek === key}" data-rt-doc-peek="${escapeHtml(key)}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>
+          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează ${attr === "doc" ? "documentul" : "notificarea"}: ${escapeHtml(title)}" data-tooltip-label="Previzualizează" aria-controls="rt-peek" aria-expanded="${rtDraft.peek === key}" data-rt-doc-peek="${escapeHtml(key)}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>
           ${renderFoSelectControl({
             id: `rt-${attr}-${String(key).replace(/[^a-z0-9-]/gi, "-")}`,
             attrs: `data-rt-${attr}="${escapeHtml(key)}"`,
@@ -13328,10 +13479,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let taxAwaitingTariff = null;
   let taxResumeTariffId = null;
 
-  const defaultPaymentTerm = (service) => {
-    const match = String(service.geap.settings?.paymentWait || "").match(/\d+/);
-    return match ? match[0] : "5";
-  };
+  /* US-221 AC-45: „Termenul de achitare (zile)” from Setări › Plată prefills every new tax */
+  const defaultPaymentTerm = (service) => String(serviceConfig(service).payTerm || "30");
 
   const payFieldError = (key) => payDraft.errors[key] ? `
     <span class="message message--inline message--error e-permits-fo-field__error">
@@ -13379,11 +13528,60 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  /* Condiție: always, or only for some values of a classifier chosen at initiation */
+  /* Condiție: always, or only for some values of one or more classifiers chosen at
+     initiation (AND). Each checked value of each classifier makes a scenario; the
+     scenarios get their own calculation in Calcul (user, Figma 04h, 2026-10-08). */
+  const condErrorKey = (base, index) => base + (payDraft.conditions.length > 1 ? `:${index}` : "");
   const renderTaxCondition = (service) => {
     const classifiers = conditionClassifiers(service);
-    const conditional = Boolean(payDraft.condition);
-    const classifier = conditional ? getConditionClassifier(payDraft.condition.classifier) : null;
+    const tree = conditionTree();
+    const conditions = payDraft.conditions;
+    const conditional = Boolean(conditions);
+    const used = (conditions || []).map((c) => c.classifier);
+    const block = (condition, index) => {
+      const classifier = getConditionClassifier(condition.classifier);
+      const free = classifiers.filter((c) => c.code === condition.classifier || !used.includes(c.code));
+      const classifierKey = condErrorKey("conditionClassifier", index);
+      const valuesKey = condErrorKey("conditionValues", index);
+      return `
+        <div class="e-permits-tax-cond" data-pay-condition="${index}">
+          <div class="e-permits-tax-cond__head">
+            <label for="pay-condition-classifier-${index}">Clasificator${conditions.length > 1 ? ` ${index + 1}` : ""}${requiredMark()}</label>
+            ${conditions.length > 1 ? `<button class="btn btn-text-destructive btn-sm" type="button" data-pay-condition-remove="${index}">Elimină</button>` : ""}
+          </div>
+          <div class="e-permits-fo-field">
+            ${renderFoSelectControl({ id: `pay-condition-classifier-${index}`, attrs: `data-pay-condition-classifier="${index}"`, error: Boolean(payDraft.errors[classifierKey]), optionsHtml: `
+              <option value=""${classifier ? "" : " selected"} disabled>Alege clasificatorul</option>
+              ${free.map((c) => `<option value="${escapeHtml(c.code)}"${c.code === classifier?.code ? " selected" : ""}>${escapeHtml(c.name)}</option>`).join("")}
+            ` })}
+            ${payFieldError(classifierKey)}
+          </div>
+          ${classifier ? `
+            <div class="e-permits-fo-field">
+              <span class="e-permits-tax-cond__label" id="pay-condition-values-label-${index}">Valori pentru care se aplică taxa${requiredMark()}</span>
+              <div class="e-permits-pay__exemptions" role="group" aria-labelledby="pay-condition-values-label-${index}">
+                ${classifier.values.map((value) => {
+                  const ancestors = passport.valueAncestors(tree, classifier.code, value.code);
+                  const coveredBy = ancestors.find((code) => condition.values.includes(code));
+                  const checked = condition.values.includes(value.code);
+                  const note = coveredBy && !checked ? `Inclus în ${conditionValueLabel(classifier.code, coveredBy).split(" — ")[0]} · bifează pentru o sumă separată`
+                    : coveredBy && checked ? `Excepție de la ${conditionValueLabel(classifier.code, coveredBy).split(" — ")[0]}` : "";
+                  return `
+                    <label class="checkbox checkbox--medium e-permits-tax-cond__value" style="--tax-cond-level: ${Math.min(ancestors.length, 3)}">
+                      <input class="checkbox-input" type="checkbox" value="${escapeHtml(value.code)}" data-pay-condition-value="${index}"${checked ? " checked" : ""}>
+                      <span class="checkbox-custom" aria-hidden="true"></span>
+                      <span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(value.label)}</span>${note ? `<span class="checkbox-description">${escapeHtml(note)}</span>` : ""}</span>
+                    </label>
+                  `;
+                }).join("")}
+              </div>
+              ${payFieldError(valuesKey)}
+              ${classifier.hierarchical && !payDraft.errors[valuesKey] ? '<p class="e-permits-fo-field__hint">Clasificator pe niveluri: o valoare bifată include tot ce e sub ea. Bifează și o subdiviziune ca să-i dai o sumă separată — se aplică cea mai specifică.</p>' : ""}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    };
     return `
       ${paySegmented("pay-condition-label", "Se aplică", [["always", "Întotdeauna"], ["conditional", "Doar pentru anumite valori"]], conditional ? "conditional" : "always", "data-pay-condition-mode", {
         disabled: (value) => value === "conditional" && !classifiers.length,
@@ -13392,38 +13590,96 @@ document.addEventListener("DOMContentLoaded", () => {
           : "Serviciul nu are clasificatoare pentru condiții. Adaugă-le în Clasificatoare specifice."
       })}
       ${conditional ? `
-        <div class="e-permits-fo-field">
-          <label for="pay-condition-classifier">Clasificator${requiredMark()}</label>
-          ${renderFoSelectControl({ id: "pay-condition-classifier", attrs: "data-pay-condition-classifier", optionsHtml: `
-            <option value=""${classifier ? "" : " selected"} disabled>Alege clasificatorul</option>
-            ${classifiers.map((c) => `<option value="${escapeHtml(c.code)}"${c.code === classifier?.code ? " selected" : ""}>${escapeHtml(c.name)}</option>`).join("")}
-          ` })}
-          ${payFieldError("conditionClassifier")}
-          ${payDraft.errors.conditionClassifier ? "" : '<p class="e-permits-fo-field__hint">Valoarea o alege solicitantul în formular, la inițiere.</p>'}
+        <div class="e-permits-tax-cond__list">${conditions.map(block).join("")}</div>
+        <div class="e-permits-tax-cond__add">
+          <button class="btn btn-neutral btn-sm" type="button" data-pay-condition-add${used.length >= classifiers.length ? " disabled" : ""}>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+            Adaugă clasificator
+          </button>
+          ${renderInfoNote(`${conditions.length > 1
+            ? "<strong>Taxa se aplică doar dacă toate condițiile sunt îndeplinite.</strong> Valoarea o alege solicitantul în formular, la inițiere."
+            : "Valoarea o alege solicitantul în formular, la inițiere."}${used.length >= classifiers.length && classifiers.length > 1 ? " Toate clasificatoarele serviciului sunt folosite." : ""}`)}
         </div>
-        ${classifier ? `
-          <div class="e-permits-fo-field">
-            <label id="pay-condition-values-label">Valori pentru care se aplică taxa${requiredMark()}</label>
-            <div class="e-permits-pay__exemptions" role="group" aria-labelledby="pay-condition-values-label">
-              ${classifier.values.map((value) => `
-                <label class="checkbox checkbox--medium">
-                  <input class="checkbox-input" type="checkbox" value="${escapeHtml(value.code)}" data-pay-condition-value${payDraft.condition.values.includes(value.code) ? " checked" : ""}>
-                  <span class="checkbox-custom" aria-hidden="true"></span>
-                  <span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(value.label)}</span></span>
-                </label>
-              `).join("")}
-            </div>
-            ${payFieldError("conditionValues")}
-          </div>
-        ` : ""}
       ` : ""}
     `;
   };
 
   /* Calcul: the tariff's sum as is (default) or a reduction of it. A formula
-     lives on the tariff („Calcul prin formulă”), so there is one formula level. */
+     lives on the tariff („Calcul prin formulă”), so there is one formula level.
+     A conditional tax computes per scenario — one amount for each combination. */
+  const draftTax = () => ({ conditions: payDraft.conditions || [], scenarioCalc: payDraft.scenarioCalc, calc: payDraft.calc });
+  /* hierarchy: a parent row covers what is not an exception; a child row is the exception */
+  const scenarioNote = (scenario) => {
+    const tree = conditionTree();
+    const checked = (code) => (payDraft.conditions || []).find((c) => c.classifier === code)?.values || [];
+    return scenario.picks.map(({ classifier, value }) => {
+      const parent = passport.valueAncestors(tree, classifier, value).find((code) => checked(classifier).includes(code));
+      if (parent) return `excepție de la ${conditionValueLabel(classifier, parent).split(" — ")[0]}`;
+      const children = Object.keys(tree[classifier] || {}).filter((code) => passport.valueAncestors(tree, classifier, code).includes(value));
+      if (!children.length) return "";
+      /* only the direct exceptions: 47.3 under a checked 47 belongs to 47's row */
+      const excepted = children.filter((code) => checked(classifier).includes(code) &&
+        passport.valueAncestors(tree, classifier, code).find((up) => checked(classifier).includes(up)) === value);
+      return excepted.length ? `restul subdiviziunilor, fără ${excepted.map((code) => conditionValueLabel(classifier, code).split(" — ")[0]).join(", ")}` : "cu toate subdiviziunile";
+    }).filter(Boolean).join(" · ");
+  };
+  const draftScenarioCalc = (key) => payDraft.scenarioCalc[key] || (payDraft.scenarioCalc[key] = { mode: "tarif", percent: "" });
+  const renderScenarioCalc = (tariff, scenarios) => {
+    if (!scenarios.length) {
+      return `<p class="e-permits-fo-field__hint">Bifează valorile din Condiție — fiecare combinație primește calculul ei.</p>`;
+    }
+    if (scenarios.length > passport.TAX_SCENARIO_MAX) {
+      return `
+        <span class="message message--inline message--error e-permits-fo-field__error">
+          <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg>
+          <span>Prea multe combinații (${scenarios.length}). Bifează mai puține valori — cel mult ${passport.TAX_SCENARIO_MAX} scenarii.</span>
+        </span>
+      `;
+    }
+    const tax = draftTax();
+    const row = (scenario, index) => {
+      const calc = draftScenarioCalc(scenario.key);
+      const reduce = calc.mode === "reducere";
+      const label = scenarioLabel(scenario);
+      const sum = tariff ? passport.taxAmount(tax, tariff, {}, { scenario: scenario.key }) : null;
+      const percent = String(calc.percent || "").trim();
+      const result = !tariff ? "—"
+        : tariff.formula ? (reduce && percent ? `Formula − ${percent}%` : "Formula tarifului")
+        : reduce && !percent ? "—"
+        : sum?.ok ? money(sum.value, tariff.currency) : "—";
+      const percentKey = `percent:${scenario.key}`;
+      return `
+        <li class="e-permits-stack__item e-permits-tax-scn__row" data-pay-scn="${index}">
+          <span class="e-permits-stack__main e-permits-tax-scn__label" id="pay-scn-label-${index}">${scenario.picks.map(({ classifier, value }) =>
+            `<span>${escapeHtml(conditionValueLabel(classifier, value))}</span>`).join("")}${scenarioNote(scenario) ? `<span class="e-permits-tax-scn__note">${escapeHtml(scenarioNote(scenario))}</span>` : ""}</span>
+          <div class="e-permits-stack__actions">
+            <div class="e-permits-tax-scn__calc">
+              ${renderFoSelectControl({ id: `pay-scn-calc-${index}`, attrs: `data-pay-scn-calc="${index}"`, label: `Calcul: ${label}`, optionsHtml: passport.TAX_CALC.map((value) =>
+                `<option value="${value}"${calc.mode === value ? " selected" : ""}>${escapeHtml(passport.TAX_CALC_LABELS[value])}</option>`).join("") })}
+            </div>
+            ${reduce ? `
+              <div class="e-permits-fo-input e-permits-tax-scn__percent${payDraft.errors[percentKey] ? " is-error" : ""}">
+                <input id="pay-percent-${index}" type="text" inputmode="numeric" maxlength="3" value="${escapeHtml(calc.percent || "")}" data-pay-scn-percent="${index}" placeholder="0" aria-label="Reducere (%): ${escapeHtml(label)}" autocomplete="off">
+                <label class="e-permits-fo-input__suffix" for="pay-percent-${index}" aria-hidden="true">%</label>
+              </div>
+            ` : '<span class="e-permits-tax-scn__percent" aria-hidden="true"></span>'}
+            <span class="e-permits-tax-scn__sum">${escapeHtml(result)}</span>
+          </div>
+          ${payDraft.errors[percentKey] ? `<div class="e-permits-tax-scn__error">${payFieldError(percentKey)}</div>` : ""}
+        </li>
+      `;
+    };
+    return `
+      <div class="e-permits-fo-field">
+        <span class="e-permits-tax-cond__label">Calcul pe scenarii${requiredMark()}</span>
+        <div class="e-permits-stack e-permits-tax-scn"><div class="e-permits-stack__group"><ul class="e-permits-stack__list" role="list">${scenarios.map(row).join("")}</ul></div></div>
+        <p class="e-permits-fo-field__hint">${scenarios.length} ${scenarios.length === 1 ? "scenariu" : "scenarii"} — câte o sumă pentru fiecare combinație de valori bifate. Reducerea se aplică doar scenariului ales${tariff?.formula ? "; formula se calculează la generarea notei" : ""}.</p>
+      </div>
+    `;
+  };
   const renderTaxCalc = () => {
     const tariff = getTariff(payDraft.tariffId);
+    if (payDraft.conditions) return renderScenarioCalc(tariff, passport.taxScenarios(draftTax()));
     const mode = payDraft.calc.mode === "reducere" ? "reducere" : "tarif";
     const preview = tariff ? passport.taxAmount({ calc: payDraft.calc }, tariff, {}) : null;
     const tariffSum = tariff ? (tariff.formula ? `formula tarifului (${formulaReadable(tariff.expression)})` : money(tariff.amount, tariff.currency)) : "";
@@ -13439,7 +13695,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--4">
             <label for="pay-percent">Reducere (%)${requiredMark()}</label>
             <div class="e-permits-fo-input${payDraft.errors.percent ? " is-error" : ""}">
-              <input id="pay-percent" type="text" inputmode="numeric" maxlength="3" value="${escapeHtml(payDraft.calc.percent || "")}" data-pay-calc-field="percent" autocomplete="off">
+              <input id="pay-percent" type="text" inputmode="numeric" maxlength="3" value="${escapeHtml(payDraft.calc.percent || "")}" data-pay-calc-field="percent" placeholder="0" autocomplete="off">
+              <label class="e-permits-fo-input__suffix" for="pay-percent" aria-hidden="true">%</label>
             </div>
             ${payFieldError("percent")}
             ${!payDraft.errors.percent && tariff && percent
@@ -13523,7 +13780,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${section("Termen de achitare", `
         <div class="e-permits-user-create__grid">
           ${input("pay-term", "term", payDraft.term, { label: "Termen (zile)", required: true, numeric: true, span: 6,
-            hint: `Precompletat din pașaport (Așteptarea plății: ${escapeHtml(service.geap.settings?.paymentWait || "—")}).` })}
+            hint: `Precompletat din Setări › Plată (${escapeHtml(defaultPaymentTerm(service))} zile).` })}
         </div>
       `)}
       ${section("Scutiri", manual ? `
@@ -13610,7 +13867,11 @@ document.addEventListener("DOMContentLoaded", () => {
       requestType: base?.requestType || "",
       moment: base?.moment || "",
       generation: base?.generation || "Automat",
-      condition: base?.condition ? { classifier: base.condition.classifier, values: [...base.condition.values] } : null,
+      conditions: base && passport.taxConditions(base).length ? passport.taxConditions(base).map((c) => ({ classifier: c.classifier, values: [...c.values] })) : null,
+      scenarioCalc: Object.fromEntries(base ? passport.taxScenarios(base).map((sc) => {
+        const calc = passport.scenarioCalc(base, sc.key);
+        return [sc.key, { mode: calc.mode === "reducere" ? "reducere" : "tarif", percent: calc.percent ? String(calc.percent) : "" }];
+      }) : []),
       calc: { percent: "", ...(base?.calc || {}), mode: base?.calc?.mode === "reducere" ? "reducere" : "tarif" },
       term: base ? String(base.term) : defaultPaymentTerm(service),
       exemptions: [...(base?.exemptions || [])],
@@ -13661,8 +13922,14 @@ document.addEventListener("DOMContentLoaded", () => {
     requestType: payDraft.requestType,
     moment: payDraft.moment,
     generation: payDraft.generation,
-    condition: payDraft.condition ? { classifier: payDraft.condition.classifier, values: [...payDraft.condition.values] } : null,
-    calc: payDraft.calc.mode === "reducere" ? { mode: "reducere", percent: payDraft.calc.percent } : { mode: "tarif" },
+    condition: null,
+    conditions: (payDraft.conditions || []).map((c) => ({ classifier: c.classifier, values: [...c.values] })),
+    /* only the scenarios that still exist; a missing one falls back to the tariff */
+    scenarioCalc: Object.fromEntries(passport.taxScenarios(draftTax()).map((sc) => {
+      const calc = draftScenarioCalc(sc.key);
+      return [sc.key, calc.mode === "reducere" ? { mode: "reducere", percent: calc.percent } : { mode: "tarif" }];
+    })),
+    calc: !payDraft.conditions && payDraft.calc.mode === "reducere" ? { mode: "reducere", percent: payDraft.calc.percent } : { mode: "tarif" },
     term: payDraft.term,
     exemptions: payDraft.generation === "Manual" ? payDraft.exemptions : [],
     removable: payDraft.generation === "Manual" && payDraft.removable,
@@ -13683,7 +13950,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (Object.keys(errors).length) {
       payDraft.errors = errors;
-      const first = { tariffId: "#pay-tariff", requestType: "#pay-request-type", moment: "#pay-moment", generation: "[data-pay-generation]", conditionClassifier: "#pay-condition-classifier", conditionValues: "[data-pay-condition-value]", calc: "[data-pay-calc]", percent: "#pay-percent", term: "#pay-term", exemptions: "[data-pay-exemption]", frequency: "#pay-frequency", noticeDays: "#pay-notice" }[Object.keys(errors)[0]];
+      /* per-condition keys end in :index, per-scenario keys in :scenarioKey */
+      const [base, suffix = ""] = Object.keys(errors)[0].split(/:(.*)/s);
+      const scenarioIndex = passport.taxScenarios(fields).findIndex((sc) => sc.key === suffix);
+      const first = {
+        tariffId: "#pay-tariff", requestType: "#pay-request-type", moment: "#pay-moment", generation: "[data-pay-generation]",
+        conditionClassifier: `#pay-condition-classifier-${suffix || 0}`, conditionValues: `[data-pay-condition-value="${suffix || 0}"]`,
+        scenarios: "[data-pay-condition-value]",
+        calc: suffix ? `#pay-scn-calc-${scenarioIndex}` : "[data-pay-calc]", percent: suffix ? `#pay-percent-${scenarioIndex}` : "#pay-percent",
+        term: "#pay-term", exemptions: "[data-pay-exemption]", frequency: "#pay-frequency", noticeDays: "#pay-notice"
+      }[base];
       rerenderPayDrawer(first);
       return;
     }
@@ -13704,7 +13980,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!existing) {
       next.id = `tax-${Date.now().toString(36)}`;
       if (next.state === "Publicat") {
-        next.active = !passport.taxConflict(taxes, { ...next, active: true });
+        next.active = !passport.taxConflict(taxes, { ...next, active: true }, conditionTree());
       }
       taxes.push(next);
       type = next.state === "Publicat" ? "Publicare taxă" : "Creare taxă";
@@ -13715,7 +13991,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const wasDraft = existing.state !== "Publicat";
       Object.assign(existing, next);
       if (wasDraft && existing.state === "Publicat") {
-        existing.active = !passport.taxConflict(taxes, { ...existing, active: true });
+        existing.active = !passport.taxConflict(taxes, { ...existing, active: true }, conditionTree());
       }
       type = wasDraft && existing.state === "Publicat" ? "Publicare taxă" : "Editare taxă";
       message = existing.state === "Publicat" && !wasDraft
@@ -13747,7 +14023,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const meta = { at: localIsoNow(), user: currentUserName(), publish: true };
     const next = passport.applyPaymentEdit(null, fields, meta);
     next.id = `tax-${Date.now().toString(36)}`;
-    next.active = !passport.taxConflict(serviceTaxes(service), { ...next, active: true });
+    next.active = !passport.taxConflict(serviceTaxes(service), { ...next, active: true }, conditionTree());
     serviceTaxes(service).push(next);
     logServiceEvents(service.code, [{ at: meta.at, user: meta.user, type: "Publicare taxă", status: "Reușit", detail: `${tariff.name} · aplicat ca atare · ${next.requestType}` }]);
     renderServiceProfile();
@@ -13756,6 +14032,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   payDrawer?.addEventListener("input", (event) => {
     if (!payDraft) {
+      return;
+    }
+
+    const scnPercent = event.target.closest("[data-pay-scn-percent]");
+    if (scnPercent) {
+      scnPercent.value = scnPercent.value.replace(/\D/g, "").slice(0, 3);
+      const key = passport.taxScenarios(draftTax())[Number(scnPercent.dataset.payScnPercent)]?.key;
+      if (key) draftScenarioCalc(key).percent = scnPercent.value;
+      if (payDraft.errors[`percent:${key}`]) {
+        delete payDraft.errors[`percent:${key}`];
+        scnPercent.closest(".e-permits-fo-input")?.classList.remove("is-error");
+        scnPercent.closest(".e-permits-tax-scn__row")?.querySelector(".e-permits-tax-scn__error")?.remove();
+      }
       return;
     }
 
@@ -13792,7 +14081,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   payDrawer?.addEventListener("focusout", (event) => {
     /* the reduction's result line follows the typed value */
-    if (payDraft && event.target.matches?.("[data-pay-calc-field]")) rerenderPayDrawer();
+    if (payDraft && event.target.matches?.("[data-pay-calc-field], [data-pay-scn-percent]")) rerenderPayDrawer();
   });
 
   payDrawer?.addEventListener("change", (event) => {
@@ -13828,13 +14117,27 @@ document.addEventListener("DOMContentLoaded", () => {
       delete payDraft.errors.generation;
       rerenderPayDrawer("#pay-moment");
     } else if (target.matches("[data-pay-condition-classifier]")) {
-      payDraft.condition = { classifier: target.value, values: [] };
-      delete payDraft.errors.conditionClassifier;
-      rerenderPayDrawer("#pay-condition-classifier");
+      const index = Number(target.dataset.payConditionClassifier);
+      delete payDraft.errors[condErrorKey("conditionClassifier", index)];
+      delete payDraft.errors[condErrorKey("conditionValues", index)];
+      payDraft.conditions[index] = { classifier: target.value, values: [] };
+      rerenderPayDrawer(`#pay-condition-classifier-${index}`);
     } else if (target.matches("[data-pay-condition-value]")) {
-      payDraft.condition.values = [...payDrawerBody.querySelectorAll("[data-pay-condition-value]:checked")].map((input) => input.value);
-      delete payDraft.errors.conditionValues;
-      target.closest(".e-permits-fo-field")?.querySelector(".message--error")?.remove();
+      const index = Number(target.dataset.payConditionValue);
+      payDraft.conditions[index].values = [...payDrawerBody.querySelectorAll(`[data-pay-condition-value="${index}"]:checked`)].map((input) => input.value);
+      delete payDraft.errors[condErrorKey("conditionValues", index)];
+      delete payDraft.errors.scenarios;
+      /* the scenario rows in Calcul follow the checked values */
+      rerenderPayDrawer(`[data-pay-condition-value="${index}"][value="${CSS.escape(target.value)}"]`);
+    } else if (target.matches("[data-pay-scn-calc]")) {
+      const index = Number(target.dataset.payScnCalc);
+      const key = passport.taxScenarios(draftTax())[index]?.key;
+      if (key) {
+        draftScenarioCalc(key).mode = target.value;
+        delete payDraft.errors[`calc:${key}`];
+        delete payDraft.errors[`percent:${key}`];
+      }
+      rerenderPayDrawer(target.value === "reducere" ? `#pay-percent-${index}` : `#pay-scn-calc-${index}`);
     } else if (target.matches("[data-pay-removable]")) {
       payDraft.removable = target.checked;
     } else if (target.matches("[data-pay-exemption]")) {
@@ -13899,9 +14202,27 @@ document.addEventListener("DOMContentLoaded", () => {
       const conditional = conditionMode.dataset.payConditionMode === "conditional";
       const service = getServiceByCode(payDraft.serviceCode);
       const only = conditionClassifiers(service);
-      payDraft.condition = conditional ? (payDraft.condition || { classifier: only.length === 1 ? only[0].code : "", values: [] }) : null;
-      ["conditionClassifier", "conditionValues"].forEach((key) => delete payDraft.errors[key]);
+      payDraft.conditions = conditional ? (payDraft.conditions || [{ classifier: only.length === 1 ? only[0].code : "", values: [] }]) : null;
+      Object.keys(payDraft.errors).filter((key) => /^(condition|scenarios|calc:|percent:)/.test(key)).forEach((key) => delete payDraft.errors[key]);
       rerenderPayDrawer(`[data-pay-condition-mode="${conditionMode.dataset.payConditionMode}"]`);
+      return;
+    }
+
+    if (event.target.closest("[data-pay-condition-add]") && payDraft.conditions) {
+      const service = getServiceByCode(payDraft.serviceCode);
+      const used = payDraft.conditions.map((c) => c.classifier);
+      const free = conditionClassifiers(service).filter((c) => !used.includes(c.code));
+      payDraft.conditions.push({ classifier: free.length === 1 ? free[0].code : "", values: [] });
+      Object.keys(payDraft.errors).filter((key) => key.startsWith("condition")).forEach((key) => delete payDraft.errors[key]);
+      rerenderPayDrawer(`#pay-condition-classifier-${payDraft.conditions.length - 1}`);
+      return;
+    }
+
+    const conditionRemove = event.target.closest("[data-pay-condition-remove]");
+    if (conditionRemove && payDraft.conditions) {
+      payDraft.conditions.splice(Number(conditionRemove.dataset.payConditionRemove), 1);
+      Object.keys(payDraft.errors).filter((key) => /^(condition|scenarios|calc:|percent:)/.test(key)).forEach((key) => delete payDraft.errors[key]);
+      rerenderPayDrawer("[data-pay-condition-add]");
       return;
     }
 
@@ -13931,8 +14252,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const calc = tax.calc || { mode: "tarif" };
       return [
         tariff?.name, tariff?.code, tariff?.scope === "global" ? "Global" : tariff?.source, tax.requestType, tax.moment, tax.generation,
-        conditionLabel(tax.condition) || "Întotdeauna",
-        calc.mode === "reducere" ? `Reducere ${calc.percent}%` : tariff?.formula ? `Formula tarifului ${formulaReadable(tariff.expression)}` : `${tariff?.amount} ${tariff?.currency}`,
+        conditionsLabel(tax) || "Întotdeauna",
+        passport.taxScenarios(tax).length ? passport.taxScenarios(tax).map((sc) => `${scenarioLabel(sc)}: ${scenarioCalcText(passport.scenarioCalc(tax, sc.key))}`).join("; ") : calc.mode === "reducere" ? `Reducere ${calc.percent}%` : tariff?.formula ? `Formula tarifului ${formulaReadable(tariff.expression)}` : `${tariff?.amount} ${tariff?.currency}`,
         tax.term, tax.exemptions.join(", "),
         tax.recurring ? (tax.recurring.frequency === "Interval" ? `La ${tax.recurring.months} luni` : "Anual") : "Nu",
         `v${tax.version}`, TAX_STATUS(tax), tax.modifiedBy, tax.modifiedAt
@@ -14021,12 +14342,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* formula builder: the expression is a row of tokens — variables chosen from the
      catalogue (no free text), numbers, + − × ÷ ( ) — stored as "{var} * 2" */
   const TARIFF_FORMULA_OPS = [["+", "+", "Plus"], ["-", "−", "Minus"], ["*", "×", "Înmulțit cu"], ["/", "÷", "Împărțit la"], ["(", "(", "Paranteză deschisă"], [")", ")", "Paranteză închisă"]];
-  const formulaTokens = (expression) => String(expression || "").match(/\{[a-z0-9_]+\}|\d+(?:[.,]\d+)?|[-+*/()]/gi) || [];
+  /* {{nume}} like the templates; the older {nume} still reads */
+  const formulaTokens = (expression) => String(expression || "").match(/\{\{\s*[a-z0-9_]+\s*\}\}|\{[a-z0-9_]+\}|\d+(?:[.,]\d+)?|[-+*/()]/gi) || [];
+  const formulaTokenKey = (token) => token.replace(/[{}\s]/g, "");
   const formulaVar = (key) => (servicesStore.formulaVariables || []).find((v) => v.key === key) || null;
   const formulaVarCaption = (key) => { const v = formulaVar(key); return v ? `${v.label}${v.unit ? ` (${v.unit})` : ""}` : key; };
   /* the expression as people read it: "Suprafața obiectului × 2" */
   const formulaReadable = (expression) => formulaTokens(expression).map((token) => {
-    if (token.startsWith("{")) return formulaVar(token.slice(1, -1))?.label || token;
+    if (token.startsWith("{")) return formulaVar(formulaTokenKey(token))?.label || token;
     if (/^\d/.test(token)) return token.replace(".", ",");
     return (TARIFF_FORMULA_OPS.find(([op]) => op === token) || [token, token])[1];
   }).join(" ") || "—";
@@ -14042,20 +14365,20 @@ document.addEventListener("DOMContentLoaded", () => {
         <li role="none">
           <button class="e-permits-fo-intent-menu__item e-permits-ntpl-picker__item" type="button" role="menuitem" data-tariff-var="${escapeHtml(v.key)}">
             <span class="e-permits-ntpl-picker__label">${escapeHtml(v.label)}</span>
-            <span class="e-permits-ntpl-picker__token">${escapeHtml(v.unit ? `${v.unit} · ` : "")}{${escapeHtml(v.key)}}</span>
+            <span class="e-permits-ntpl-picker__token">${escapeHtml(v.unit ? `${v.unit} · ` : "")}{{${escapeHtml(v.key)}}}</span>
           </button>
         </li>
       `).join("")}
     `).join("");
   };
 
-  /* typed text → formula text: digits, spaces, + - * / ( ) . , and whole {variable} tokens;
+  /* typed text → formula text: digits, spaces, + - * / ( ) . , and whole {{variable}} tokens;
      × ÷ − become * / -; anything else (letters outside a variable) is dropped. The caret stays put. */
   const sanitizeFormula = (value, caret) => {
     let out = "";
     let at = caret;
     for (let i = 0; i < value.length;) {
-      const token = value[i] === "{" ? value.slice(i).match(/^\{[a-z0-9_]+\}/i) : null;
+      const token = value[i] === "{" ? value.slice(i).match(/^\{\{\s*[a-z0-9_]+\s*\}\}|^\{[a-z0-9_]+\}/i) : null;
       if (token) {
         if (caret > i && caret < i + token[0].length) at = out.length + (caret - i);
         out += token[0];
@@ -14074,7 +14397,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the formula as people read it, variables marked as in the Șabloane preview */
   const formulaReadableHtml = (expression) => formulaTokens(expression).map((token) => {
     if (token.startsWith("{")) {
-      const v = formulaVar(token.slice(1, -1));
+      const v = formulaVar(formulaTokenKey(token));
       return v
         ? `<mark class="e-permits-ntpl-preview__token" title="${escapeHtml(token)}">${escapeHtml(formulaVarCaption(v.key))}</mark>`
         : `<mark class="e-permits-ntpl-preview__token e-permits-tariff-formula__unknown" title="Variabilă necunoscută">${escapeHtml(token)}</mark>`;
@@ -14104,7 +14427,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
       <div class="e-permits-fo-textarea${d.errors.expression ? " is-error" : ""}">
-        <textarea id="tariff-expression" rows="2" spellcheck="false" placeholder="ex. {suprafata_m2} * 2" data-tariff-field="expression">${escapeHtml(d.expression)}</textarea>
+        <textarea id="tariff-expression" rows="2" spellcheck="false" placeholder="ex. {{suprafata_m2}} * 2" data-tariff-field="expression">${escapeHtml(d.expression)}</textarea>
       </div>
       ${tariffFieldError("expression")}
       ${d.errors.expression ? "" : '<p class="e-permits-fo-field__hint">Scrie numere și + − × ÷ ( ). Variabilele se adaugă din „Inserează variabilă”, la poziția cursorului.</p>'}
@@ -14276,14 +14599,14 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="e-permits-tariff__test">
               <p class="e-permits-tariff__test-title">Verifică formula</p>
-              <div class="e-permits-user-create__grid">
+              ${variables.length ? `<div class="e-permits-user-create__grid">
                 ${variables.map((name) => `
                   <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
                     <label for="tariff-test-${name}">${escapeHtml(formulaVarCaption(name))}</label>
                     <div class="e-permits-fo-input"><input id="tariff-test-${name}" type="text" inputmode="decimal" value="${escapeHtml(d.testValues[name] ?? "")}" placeholder="valoare de test" data-tariff-test="${escapeHtml(name)}"></div>
                   </div>
-                `).join("") || '<p class="e-permits-fo-field__hint">Formula nu are variabile.</p>'}
-              </div>
+                `).join("")}
+              </div>` : '<p class="e-permits-fo-field__hint">Formula nu are variabile.</p>'}
               <div class="e-permits-tariff__test-row">
                 <button class="btn btn-neutral btn-sm" type="button" data-tariff-test-run>Calculează</button>
                 <span class="e-permits-tariff__test-result" data-tariff-test-result aria-live="polite">${d.testResult || ""}</span>
@@ -14310,7 +14633,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
               ${[
                 ["Sursă", escapeHtml(existing.source)],
-                ["Folosit de", usage.length ? usage.map(({ service: svc, tax }) => `${escapeHtml(tax.requestType)} · ${escapeHtml(tax.moment)}${tax.condition?.classifier ? ` · ${escapeHtml(conditionLabel(tax.condition))}` : ""} <span class="e-permits-passport__muted">(${escapeHtml(svc.title)})</span>`).join("<br>") : "Nefolosit în nicio taxă"],
+                ["Folosit de", usage.length ? usage.map(({ service: svc, tax }) => `${escapeHtml(tax.requestType)} · ${escapeHtml(tax.moment)}${isConditional(tax) ? ` · ${escapeHtml(conditionsLabel(tax))}` : ""} <span class="e-permits-passport__muted">(${escapeHtml(svc.title)})</span>`).join("<br>") : "Nefolosit în nicio taxă"],
                 ["Istoric versiuni", (existing.versions || []).slice().reverse().map((v) => `<span class="e-permits-tariff__version"><strong>v${v.version}</strong> · ${escapeHtml(v.note || "")} <span class="e-permits-passport__muted">· ${formatStamp(v.at)} · ${escapeHtml(shortName(v.by || ""))}</span></span>`).join("")]
               ].map(([label, value]) => `
                 <div class="e-permits-dosar-profil__row">
@@ -14580,7 +14903,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const end = area.selectionEnd ?? area.value.length;
       closeStackMenus();
       area.focus();
-      area.setRangeText(`{${pick.dataset.tariffVar}}`, start, end, "end");
+      area.setRangeText(`{{${pick.dataset.tariffVar}}}`, start, end, "end");
       area.dispatchEvent(new Event("input", { bubbles: true }));
       area.dispatchEvent(new Event("change", { bubbles: true }));
       return;
@@ -14673,7 +14996,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const name = taxName(tax);
-    const where = `„${tax.requestType}” · „${tax.moment}”${tax.condition?.classifier ? ` · ${conditionLabel(tax.condition)}` : ""}`;
+    const where = `„${tax.requestType}” · „${tax.moment}”${isConditional(tax) ? ` · ${conditionsLabel(tax)}` : ""}`;
     const commit = (type, detail, message) => {
       tax.modifiedAt = localIsoNow();
       tax.modifiedBy = currentUserName();
@@ -14696,7 +15019,7 @@ document.addEventListener("DOMContentLoaded", () => {
         confirmLabel: "Publică"
       }, () => {
         tax.state = "Publicat";
-        tax.active = !passport.taxConflict(taxes, { ...tax, active: true });
+        tax.active = !passport.taxConflict(taxes, { ...tax, active: true }, conditionTree());
         commit("Publicare taxă", `${name} v${tax.version}`, tax.active
           ? `Taxa „${name}” a fost publicată și activată.`
           : `Taxa „${name}” a fost publicată inactivă: același tarif se aplică deja la ${where}.`);
@@ -14705,7 +15028,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (action === "activate") {
-      const conflict = passport.taxConflict(taxes, tax);
+      const conflict = passport.taxConflict(taxes, tax, conditionTree());
 
       if (conflict) {
         askConfirm({
@@ -14895,12 +15218,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dtplOpenBtn) { openDtpl(dtplOpenBtn.dataset.dtplOpen); return; }
     const dtplEditBtn = event.target.closest("[data-dtpl-edit]");
     if (dtplEditBtn) { openDtplEdit(dtplEditBtn.dataset.dtplEdit); return; }
-    const dtplDetachBtn = event.target.closest("[data-dtpl-detach]");
-    if (dtplDetachBtn) { detachDtpl(dtplDetachBtn.dataset.dtplDetach); return; }
     const dtplDeleteBtn = event.target.closest("[data-dtpl-delete]");
     if (dtplDeleteBtn) { deleteDtpl(dtplDeleteBtn.dataset.dtplDelete); return; }
     if (event.target.closest("[data-dtpl-import]")) { openDtplImport(); return; }
-    if (event.target.closest("[data-dtpl-attach]")) { openDtplAttach(); return; }
+    const dtplNewBtn = event.target.closest("[data-dtpl-new]");
+    if (dtplNewBtn) { openDtplNew(dtplNewBtn); return; }
     const ntplToggle = event.target.closest("[data-ntpl-row-toggle]");
     if (ntplToggle) { toggleServiceTemplate(ntplToggle.dataset.ntplRowToggle); return; }
     const ntplDelete = event.target.closest("[data-ntpl-row-delete]");
@@ -15059,6 +15381,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (event.target.closest("[data-passport-open-builder]")) {
+      formBuilderOverlay?.classList.add("is-sheet");
       window.__modal?.open?.("#form-builder-modal");
       return;
     }
@@ -15077,22 +15400,505 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* Documente: „Obligatoriu” goes into the service draft like a setting */
+  /* Documente: „Afișează” / „Obligatoriu” go into the service draft like a setting */
   permitsProfilePanel?.addEventListener("change", (event) => {
-    const input = event.target.closest("[data-svc-doc-required]");
+    const input = event.target.closest("[data-svc-doc-required], [data-svc-doc-visible]");
     const service = input && getServiceByCode(serviceProfileState.code);
     if (!service) return;
-    const index = input.dataset.svcDocRequired;
+    const isVisible = input.dataset.svcDocVisible !== undefined;
+    const index = isVisible ? input.dataset.svcDocVisible : input.dataset.svcDocRequired;
     const doc = service.rssp.documents[Number(index)];
-    service.geap.documentRequired = { ...(service.geap.documentRequired || {}), [doc.title]: input.checked };
-    if (input.checked === Boolean(doc.required)) delete service.geap.documentRequired[doc.title];
-    logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Editare document însoțitor", status: "Reușit", detail: `${doc.title}: ${input.checked ? "obligatoriu" : "opțional"}` }], { render: false });
+    const key = isVisible ? "documentVisible" : "documentRequired";
+    const rssp = isVisible ? true : Boolean(doc.required);
+    service.geap[key] = { ...(service.geap[key] || {}), [doc.title]: input.checked };
+    if (input.checked === rssp) delete service.geap[key][doc.title];
+    const what = isVisible ? (input.checked ? "afișat în cerere" : "ascuns din cerere") : (input.checked ? "obligatoriu" : "opțional");
+    logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Editare document însoțitor", status: "Reușit", detail: `${doc.title}: ${what}` }], { render: false });
+    const attr = isVisible ? "data-svc-doc-visible" : "data-svc-doc-required";
     setTimeout(() => {
       if (permitsProfilePanel.hidden || serviceProfileState.code !== service.code) return;
       renderServiceProfile();
-      permitsProfilePanel.querySelector(`[data-svc-doc-required="${index}"]`)?.focus();
+      permitsProfilePanel.querySelector(`[${attr}="${index}"]`)?.focus();
     }, SERVICE_SETTING_SLIDE_MS);
-    showShellToast(`„${doc.title}” este acum ${input.checked ? "obligatoriu" : "opțional"}. Se aplică după publicarea serviciului.`);
+    /* a switch shows its own result — no toast (user, 2026-10-08) */
+  });
+
+  /* =====================================================================
+     Servicii › Setări (US-221, Azure 95229): the story's 11 sections, in its order, each a
+     read-only card with „Editează” → the standard drawer (Salvează / Anulează). RSSP values
+     are read-only and tagged „Din RSSP”; MPower, MDelivery and aprobare tacită are editable
+     only when RSSP sends nothing. Saving logs one audit event per changed field (old → new)
+     and the passport header counts them as unpublished changes. The three switches that are
+     not in the story stay as they were, under „Alte setări”.
+     ===================================================================== */
+  const CFG_APPLICANT = { "Persoană fizică": "PF", "Persoană juridică": "PJ", "Persoană fizică străină": "PF Străin", "Persoană juridică străină": "PJ Străin" };
+  const CFG_AUTH_MODES = ["Doar MPower", "Doar procură pe hârtie", "MPower și procură pe hârtie"];
+  const CFG_CRITERIA = ["După coeficientul de ocupare", "Aleatoriu"];
+  const CFG_SIGN_REQUEST = ["Obligatorie", "Opțională", "Nu se semnează"];
+  const CFG_PDF_GEN = ["Automat la aprobare", "La inițiativa specialistului"];
+  const CFG_RELEASE_ACTORS = ["Specialist ghișeu", "Specialist", "Asistent tehnic"];
+  const CFG_DECISIONS = ["Aprobare", "Respingere"];
+  const CFG_DAY_TYPES = ["Zile lucrătoare", "Zile calendaristice"];
+  const CFG_DOC_TYPES = ["Act permisiv", "Decizie de respingere", "Înștiințare"];
+  const CFG_RESET = ["Anual", "Fără resetare"];
+  const CFG_DEP_TYPES = ["Totală", "Parțială", "Externă", "Exclusivă"];
+  const CFG_DEP_HINT = {
+    "Totală": "Cererea se depune doar după emiterea actului în serviciul sursă; câmpurile alese se preiau din dosarul sursă.",
+    "Parțială": "Cererea poate solicita actele alese ale serviciului sursă; câmpurile alese se preiau din dosarul sursă.",
+    "Externă": "Valoarea câmpului din cerere se verifică prin MConnect în sursa externă.",
+    "Exclusivă": "Solicitantul cu un act activ în serviciul incompatibil nu poate depune cererea — și invers."
+  };
+  const CFG_EXT_SOURCES = ["Registrul bunurilor imobile · MConnect", "Registrul de stat al unităților de drept · MConnect", "Registrul de stat al populației · MConnect"];
+  /* fields of the service's forms (Formulare) — what RAP can publish and a source service can give */
+  const CFG_FORM_FIELDS = ["Denumirea persoanei juridice", "IDNO", "Adresa juridică", "Obiectul autorizat", "Adresa desfășurării activității", "Genul de activitate (CAEM)", "Suprafața obiectului (m²)", "Codul cadastral", "Numele și prenumele (PF)", "IDNP"];
+  /* personal data of a natural person is always published anonymised (US-145) */
+  const CFG_ALWAYS_ANON = ["Numele și prenumele (PF)", "IDNP"];
+  const CFG_SECTIONS = [
+    ["applicant", "Solicitant și act"], ["exam", "Examinare și distribuire"], ["suspension", "Suspendare"], ["signing", "Semnare"],
+    ["payment", "Plată"], ["delivery", "Livrare și eliberare"], ["appeal", "Contestare"], ["numbering", "Numerotare"],
+    ["rap", "Publicare în RAP"], ["drafts", "Schițe"]
+  ];
+  const CFG_FIELDS = {
+    applicant: [["mpower", "Verificare împuternicire prin MPower"], ["authMode", "Modalitatea de verificare a împuternicirii"], ["tacit", "Aprobare tacită activată"]],
+    exam: [["subdivisions", "Subdiviziuni de examinare"], ["autoDist", "Distribuire automată"], ["distEligible", "Doar specialiștii eligibili pentru serviciu"], ["distExcludeAbsent", "Exclude specialiștii absenți sau inactivi"], ["distCriterion", "Criteriu de distribuire"], ["distMax", "Coeficientul maxim de ocupare"]],
+    suspension: [["suspCustom", "Suspendare termen examinare personalizată"], ["suspDays", "Termenul de suspendare implicit (zile)"], ["suspEditable", "Termen de suspendare modificabil de specialist"], ["suspSigned", "Suspendare cu semnarea deciziei"]],
+    signing: [["signRequest", "Semnarea cererii prin MSign"], ["signCounter", "Semnarea cererii MSign de ghișeu"], ["pdfGen", "Generarea documentului PDF"], ["pdfSign", "Semnarea documentului PDF prin MSign"]],
+    payment: [["mpayCode", "Cod serviciu MPay"], ["payTerm", "Termenul de achitare (zile)"]],
+    delivery: [["eDelivery", "Livrare electronică"], ["mdelivery", "Livrare prin MDelivery"], ["paperRelease", "Eliberare pe hârtie la autoritatea emitentă"], ["releaseActor", "Actorul care imprimă și eliberează actul"]],
+    appeal: [["appealable", "Serviciu contestabil"], ["appealTypes", "Tipuri de solicitare contestabile"], ["appealDecisions", "Decizii contestabile"], ["appealDays", "Termen admisibil de contestare (zile)"], ["appealDayType", "Tipul zilelor de contestare"]],
+    numbering: [["numbering", "Reguli de numerotare"]],
+    rap: [["rap", "Câmpuri transmise în RAP"]],
+    drafts: [["draftDays", "Perioada de retenție a schițelor (zile)"]]
+  };
+
+  const cfgRssp = (service) => {
+    const r = service.rssp || {};
+    const v = (r.validity || [])[0];
+    return {
+      applicants: (r.applicantTypes || []).map((t) => CFG_APPLICANT[t] || t),
+      mpower: typeof r.allowsMPower === "boolean" ? r.allowsMPower : null,
+      validity: v ? (v.validFor ? String(v.validFor) : "Nelimitată") : "—",
+      validityUnit: v && v.validFor ? "Ani" : "—",
+      tacit: typeof r.tacitApproval === "boolean" ? r.tacitApproval : null,
+      paid: Boolean(r.paid),
+      mdelivery: typeof r.allowsMDelivery === "boolean" ? r.allowsMDelivery : null
+    };
+  };
+  const cfgSubdivisionOptions = (service) => [...new Set([...(service.geap.settings?.subdivisions || []), "Secția autorizări Bălți", "Secția autorizări Cahul"])];
+  const cfgPublishedServices = (service) => (servicesStore?.services || []).filter((s) => s.code !== service.code && s.status !== "Inactiv");
+  const cfgServiceTitle = (code) => { const s = getServiceByCode(code); return s ? `${s.title} · ${s.code}` : code || "—"; };
+
+  const serviceConfig = (service) => {
+    const geap = service.geap;
+    if (geap.cfg) return geap.cfg;
+    const s = geap.settings || {}, flags = serviceSettingFlags(service), r = cfgRssp(service);
+    const rts = geap.requestTypes.map((rt) => rt.name);
+    const term = String(s.paymentWait || "").match(/\d+/);
+    geap.cfg = {
+      authMode: CFG_AUTH_MODES[2], mpower: r.mpower ?? true, tacit: r.tacit ?? false,
+      subdivisions: [...(s.subdivisions || [])], autoDist: Boolean(flags.distribuireAutomata), distEligible: true, distExcludeAbsent: true, distCriterion: CFG_CRITERIA[0], distMax: "15",
+      suspCustom: /^Da/.test(s.suspension || ""), suspDays: (String(s.suspension || "").match(/(\d+)\s*zile/) || [])[1] || "30", suspEditable: true, suspSigned: false,
+      signRequest: CFG_SIGN_REQUEST[1], signCounter: true, pdfGen: CFG_PDF_GEN[0], pdfSign: true,
+      mpayCode: r.paid ? `MP-${service.code}` : "", payTerm: term ? term[0] : "30",
+      eDelivery: true, mdelivery: r.mdelivery ?? Boolean(flags.mdelivery), paperRelease: Boolean(flags.actHartie), releaseActor: CFG_RELEASE_ACTORS[0],
+      appealable: false, appealTypes: [], appealDecisions: [], appealDays: "", appealDayType: CFG_DAY_TYPES[0],
+      numbering: [{ doc: "Act permisiv", prefix: (getAuthorityById(service.authorityId)?.code || "AUT"), sep: "-", len: "6", start: "1", current: 4575, reset: "Anual" }],
+      rap: [{ field: "Denumirea persoanei juridice", anon: false }, { field: "IDNO", anon: false }, { field: "Obiectul autorizat", anon: false }, { field: "Numele și prenumele (PF)", anon: true }],
+      draftDays: "90",
+      deps: (geap.dependencies || []).map((d, i) => d.relation === "Excludere mutuală"
+        ? { id: `dep-${i + 1}`, name: d.act, requestTypes: [...rts], type: "Exclusivă", incompatible: d.code }
+        : { id: `dep-${i + 1}`, name: d.act, requestTypes: rts.slice(0, 1), type: "Totală", source: d.code, fields: ["Denumirea persoanei juridice", "IDNO"] }),
+      editedAt: null, editedBy: null
+    };
+    return geap.cfg;
+  };
+  /* the switches elsewhere read flags: keep them in step with the settings */
+  const syncCfgFlags = (service) => {
+    const c = serviceConfig(service), f = serviceSettingFlags(service);
+    Object.assign(f, { distribuireAutomata: c.autoDist, actHartie: c.paperRelease, mdelivery: c.mdelivery });
+  };
+  const cfgNumberExample = (rule) => {
+    const next = Math.max(Number(rule.current || 0) + 1, Number(rule.start || 1));
+    return `${rule.prefix || ""}${rule.sep || ""}${String(next).padStart(Number(rule.len) || 1, "0")}`;
+  };
+
+  /* ---- read view ---- */
+  /* the RSSP source is plain caption text at the row's right end (as „sincronizat …” in the
+     header), not a tag (user, 2026-10-09) */
+  const cfgRssPNote = () => '<span class="e-permits-cfg-source">Din RSSP</span>';
+  const cfgFromRssp = (html) => `<span class="e-permits-cfg-value e-permits-cfg-value--rssp"><span class="e-permits-cfg-value">${html}</span>${cfgRssPNote()}</span>`;
+  const cfgRows = (service, key) => {
+    const c = serviceConfig(service), r = cfgRssp(service);
+    switch (key) {
+      case "applicant": return [
+        ["Tip solicitant", cfgFromRssp(applicantTags(r.applicants))],
+        ["Verificare împuternicire prin MPower", r.mpower === null ? yesNo(c.mpower) : cfgFromRssp(yesNo(r.mpower))],
+        ["Modalitatea de verificare a împuternicirii", escapeHtml(c.authMode)],
+        ["Durata valabilității actului", cfgFromRssp(escapeHtml(r.validity))],
+        ["Unitatea valabilității", cfgFromRssp(escapeHtml(r.validityUnit))],
+        ["Aprobare tacită activată", r.tacit === null ? yesNo(c.tacit) : cfgFromRssp(yesNo(r.tacit))]];
+      case "exam": return [
+        ["Subdiviziuni de examinare", valueTags(c.subdivisions)],
+        ["Distribuire automată", c.autoDist ? yesNo(true) : "Nu — dosarele se distribuie manual"],
+        ...(c.autoDist ? [["Doar specialiștii eligibili pentru serviciu", yesNo(c.distEligible)], ["Exclude specialiștii absenți sau inactivi", yesNo(c.distExcludeAbsent)], ["Criteriu de distribuire", escapeHtml(c.distCriterion)], ["Coeficientul maxim de ocupare", escapeHtml(c.distMax ? `${c.distMax} dosare active / specialist` : "—")]] : [])];
+      case "suspension": return [
+        ["Suspendare termen examinare personalizată", yesNo(c.suspCustom)],
+        ["Termenul de suspendare implicit (zile)", escapeHtml(c.suspCustom ? `${c.suspDays} zile calendaristice` : "30 zile calendaristice (implicit)")],
+        ["Termen de suspendare modificabil de specialist", yesNo(c.suspEditable)],
+        ["Suspendare cu semnarea deciziei", yesNo(c.suspSigned)]];
+      case "signing": return [
+        ["Semnarea cererii prin MSign", escapeHtml(c.signRequest)], ["Semnarea cererii MSign de ghișeu", yesNo(c.signCounter)],
+        ["Generarea documentului PDF", escapeHtml(c.pdfGen)], ["Semnarea documentului PDF prin MSign", yesNo(c.pdfSign)]];
+      case "payment": return [
+        ["Serviciu cu plată", cfgFromRssp(yesNo(r.paid))],
+        ["Cod serviciu MPay", r.paid ? escapeHtml(c.mpayCode || "—") : '<span class="e-permits-passport__muted">Nu se aplică — serviciul nu are plată</span>'],
+        ["Termenul de achitare (zile)", escapeHtml(`${c.payTerm} zile calendaristice`)]];
+      case "delivery": return [
+        ["Livrare electronică", yesNo(c.eDelivery)],
+        ["Livrare prin MDelivery", r.mdelivery === null ? yesNo(c.mdelivery) : cfgFromRssp(yesNo(r.mdelivery))],
+        ["Eliberare pe hârtie la autoritatea emitentă", yesNo(c.paperRelease)],
+        ["Actorul care imprimă și eliberează actul", escapeHtml(c.releaseActor)]];
+      case "appeal": return [
+        ["Serviciu contestabil", yesNo(c.appealable)],
+        ...(c.appealable ? [["Tipuri de solicitare contestabile", valueTags(c.appealTypes)], ["Decizii contestabile", valueTags(c.appealDecisions)], ["Termen admisibil de contestare", escapeHtml(`${c.appealDays} ${c.appealDayType.toLocaleLowerCase("ro")}`)]] : [])];
+      case "numbering": return c.numbering.length
+        ? c.numbering.map((rule) => [rule.doc, `<span class="e-permits-cfg-value"><strong>${escapeHtml(cfgNumberExample(rule))}</strong><span class="e-permits-passport__muted">următorul · contor ${escapeHtml(rule.len)} cifre · ${escapeHtml(rule.reset === "Anual" ? "resetare anuală" : "fără resetare")} · ultimul ${escapeHtml(String(rule.current || 0))}</span></span>`])
+        : [["Reguli de numerotare", '<span class="e-permits-passport__muted">Nicio regulă</span>']];
+      case "rap": return c.rap.length
+        ? c.rap.map((row) => [row.field, row.anon || CFG_ALWAYS_ANON.includes(row.field) ? renderTag("Anonimizat", "neutral") : "Se publică"])
+        : [["Câmpuri transmise în RAP", '<span class="e-permits-passport__muted">Niciun câmp</span>']];
+      case "drafts": return [["Perioada de retenție a schițelor (zile)", escapeHtml(`${c.draftDays} zile calendaristice`)]];
+      default: return [];
+    }
+  };
+  const cfgEditButton = (key, title) => `<button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-controls="svc-cfg-drawer" aria-expanded="false" aria-label="Editează: ${escapeHtml(title)}" data-svc-cfg-edit="${key}">${EDIT_LABEL_HTML}</button>`;
+  const renderServiceSettings = (service) => {
+    const editable = isCentralAdmin();
+    const flags = serviceSettingFlags(service);
+    const c = serviceConfig(service);
+    const blocks = CFG_SECTIONS.map(([key, title]) => renderPassportBlock(title, cfgRows(service, key), { actionHtml: editable ? cfgEditButton(key, title) : "" })).join("");
+    const deps = c.deps.map((dep) => ({
+      plainTitle: dep.name,
+      title: escapeHtml(dep.name),
+      badges: [renderTag(dep.type, "neutral")],
+      meta: [
+        dep.type === "Externă" ? `${escapeHtml(dep.formField)} → ${escapeHtml(dep.extSource)}` : dep.type === "Exclusivă" ? `Serviciul incompatibil: ${escapeHtml(cfgServiceTitle(dep.incompatible))}` : `Serviciul sursă: ${escapeHtml(cfgServiceTitle(dep.source))}`,
+        `Tip solicitare: ${escapeHtml(dep.requestTypes.join(", ") || "—")}`
+      ],
+      actionsHtml: editable ? `
+        <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-haspopup="dialog" aria-controls="svc-cfg-drawer" data-svc-dep-edit="${escapeHtml(dep.id)}">${EDIT_LABEL_HTML}</button>
+        ${renderStackMenu([{ label: "Elimină", icon: "delete", danger: true, attrs: `data-svc-dep-remove="${escapeHtml(dep.id)}"` }], dep.name)}` : ""
+    }));
+    const addDep = editable ? `<button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" aria-controls="svc-cfg-drawer" aria-expanded="false" data-svc-dep-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă interdependență</span></button>` : "";
+    const kept = SERVICE_SETTINGS.filter(([key]) => ["aprobareSecundara", "cuExpertiza", "suspendareCoordonare"].includes(key));
+    return `
+      ${c.editedAt ? `<p class="e-permits-cfg-edited">Editat ${escapeHtml(formatStamp(c.editedAt))} · ${escapeHtml(c.editedBy || "—")}</p>` : ""}
+      ${blocks}
+      ${renderStackedList("Interdependențe", deps.length ? [{ label: "", items: deps }] : [], { actionHtml: addDep, meta: deps.length ? plural(deps.length, "interdependență", "interdependențe") : "", empty: "Serviciul nu are interdependențe cu alte servicii sau surse externe." })}
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">Alte setări</h2>
+        <div class="e-permits-ntpl-card e-permits-svc-settings">
+          ${kept.map(([key, label, description]) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(flags[key]), attrs: `data-svc-setting="${key}"`, disabled: !editable })}</div>`).join("")}
+        </div>
+      </section>
+    `;
+  };
+
+  /* ---- edit drawer (one section, or one interdependence) ---- */
+  const cfgDrawer = document.querySelector("[data-svc-cfg-drawer]");
+  const cfgBody = cfgDrawer?.querySelector("[data-svc-cfg-body]");
+  let cfgDraft = null;
+  const cfgClone = (v) => JSON.parse(JSON.stringify(v));
+  const cfgField = (key, label, control, { required = false, hint = "", span = 12 } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="cfg-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      ${control}
+      ${clasFieldError(cfgDraft.errors, key)}
+      ${hint && !cfgDraft.errors[key] ? `<p class="e-permits-fo-field__hint">${hint}</p>` : ""}
+    </div>`;
+  const cfgSelect = (key, label, options, o = {}) => cfgField(key, label, renderFoSelectControl({ id: `cfg-${key}`, attrs: `data-cfg-select="${key}"`, error: Boolean(cfgDraft.errors[key]),
+    optionsHtml: `${o.placeholder ? `<option value=""${cfgDraft.v[key] ? "" : " selected"} disabled>${escapeHtml(o.placeholder)}</option>` : ""}${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return `<option value="${escapeHtml(val)}"${val === cfgDraft.v[key] ? " selected" : ""}>${escapeHtml(lab)}</option>`; }).join("")}` }), o);
+  const cfgInput = (key, label, o = {}) => cfgField(key, label, `<div class="e-permits-fo-input${cfgDraft.errors[key] ? " is-error" : ""}"><input id="cfg-${key}" type="text"${o.numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="60"'} value="${escapeHtml(cfgDraft.v[key] ?? "")}" placeholder="${escapeHtml(o.placeholder || "")}" autocomplete="off" data-cfg-input="${key}"></div>`, o);
+  const cfgSwitch = (key, label, description, { disabled = false } = {}) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(cfgDraft.v[key]), attrs: `data-cfg-switch="${key}"`, disabled })}</div>`;
+  const cfgChecks = (key, label, options, o = {}) => cfgField(key, label, `<div class="e-permits-pay__exemptions" role="group" aria-label="${escapeHtml(label)}">${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return `
+    <label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(val)}" data-cfg-check="${key}"${(cfgDraft.v[key] || []).includes(val) ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(lab)}</span></span></label>`; }).join("")}</div>`, o);
+  const cfgReadonly = (label, html) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+      <span class="e-permits-cfg-ro__label">${escapeHtml(label)}</span>
+      <div class="e-permits-cfg-ro">${cfgFromRssp(html)}</div>
+      <p class="e-permits-fo-field__hint">Preluat din RSSP — se actualizează la resincronizarea serviciului.</p>
+    </div>`;
+  const cfgGrid = (html) => `<div class="e-permits-user-create__grid">${html}</div>`;
+  /* a switch that unlocks more fields: one bordered group, the fields under the switch text */
+  const cfgGroup = (switchHtml, on, bodyHtml) => `<div class="e-permits-cfg-group">${switchHtml}${on ? `<div class="e-permits-cfg-group__body">${bodyHtml}</div>` : ""}</div>`;
+
+  const CFG_GROUP_SWITCHES = ["autoDist", "suspCustom", "appealable"];
+  const renderCfgForm = (service) => {
+    const v = cfgDraft.v, r = cfgRssp(service), rts = service.geap.requestTypes.map((rt) => rt.name);
+    switch (cfgDraft.section) {
+      case "applicant": return cfgGrid(`
+        ${cfgReadonly("Tip solicitant", escapeHtml(r.applicants.join(", ") || "—"))}
+        ${r.mpower === null ? cfgSwitch("mpower", "Verificare împuternicire prin MPower", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Verificare împuternicire prin MPower", r.mpower ? "Da" : "Nu")}
+        ${cfgSelect("authMode", "Modalitatea de verificare a împuternicirii", CFG_AUTH_MODES, { required: true, hint: "Cum se verifică împuternicirea solicitantului care acționează în numele altei persoane." })}
+        ${cfgReadonly("Durata valabilității actului", `${escapeHtml(r.validity)}${r.validityUnit !== "—" ? ` ${escapeHtml(r.validityUnit.toLocaleLowerCase("ro"))}` : ""}`)}
+        ${r.tacit === null ? cfgSwitch("tacit", "Aprobare tacită activată", "Implicit Nu. Pe fiecare tip de solicitare se setează în „Tipuri solicitări”.") : cfgReadonly("Aprobare tacită activată", r.tacit ? "Da" : "Nu")}`);
+      case "exam": return cfgGrid(`
+        ${cfgChecks("subdivisions", "Subdiviziuni de examinare", cfgSubdivisionOptions(service), { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })}
+        ${cfgGroup(cfgSwitch("autoDist", "Distribuire automată", v.autoDist ? "Dosarele noi se distribuie după regulile de mai jos." : "Dosarele se distribuie manual de supervizor."), v.autoDist, `
+          ${cfgSwitch("distEligible", "Doar specialiștii eligibili pentru serviciu", "Dosarele merg doar la specialiștii marcați eligibili.")}
+          ${cfgSwitch("distExcludeAbsent", "Exclude specialiștii absenți sau inactivi", "Concediu sau cont inactiv = nu primesc dosare.")}
+          ${cfgGrid(`${cfgSelect("distCriterion", "Criteriu de distribuire", CFG_CRITERIA, { required: true, span: 6 })}${cfgInput("distMax", "Coeficientul maxim de ocupare", { numeric: true, span: 6, placeholder: "Ex. 15", hint: "Dosare active la examinare per specialist." })}`)}`)}`);
+      case "suspension": return cfgGrid(`
+        ${cfgGroup(cfgSwitch("suspCustom", "Suspendare termen examinare personalizată", v.suspCustom ? "Termenul implicit de mai jos înlocuiește cele 30 de zile." : "Se aplică termenul implicit de 30 de zile calendaristice."), v.suspCustom,
+          cfgGrid(cfgInput("suspDays", "Termenul de suspendare implicit (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice." })))}
+        ${cfgSwitch("suspEditable", "Termen de suspendare modificabil de specialist", "Specialistul poate schimba termenul la inițierea suspendării.")}
+        ${cfgSwitch("suspSigned", "Suspendare cu semnarea deciziei", "Suspendarea trece prin semnarea deciziei (US-127); altfel fără semnare (US-126).")}`);
+      case "signing": return cfgGrid(`
+        ${cfgSelect("signRequest", "Semnarea cererii prin MSign", CFG_SIGN_REQUEST, { required: true, hint: "Semnarea cererii de către solicitant la depunerea online." })}
+        ${cfgSwitch("signCounter", "Semnarea cererii MSign de ghișeu", "Specialistul ghișeu semnează prin MSign cererea depusă la ghișeu.")}
+        ${cfgSelect("pdfGen", "Generarea documentului PDF", CFG_PDF_GEN, { required: true, hint: "Pentru actul permisiv și decizia de respingere." })}
+        ${cfgSwitch("pdfSign", "Semnarea documentului PDF prin MSign", "Numărul de semnături se setează pe tipul de solicitare.")}`);
+      case "payment": return cfgGrid(`
+        ${cfgReadonly("Serviciu cu plată", r.paid ? "Da — RSSP are tarife mai mari de 0 lei" : "Nu")}
+        ${r.paid ? cfgInput("mpayCode", "Cod serviciu MPay", { required: true, span: 6, placeholder: "Ex. MP-003000023", hint: "Identificatorul serviciului în MPay, pentru nota de plată." }) : ""}
+        ${cfgInput("payTerm", "Termenul de achitare (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice; precompletează termenul fiecărei taxe noi." })}`);
+      case "delivery": return cfgGrid(`
+        ${cfgSwitch("eDelivery", "Livrare electronică", "Actul ajunge în EVO Cabinet.")}
+        ${r.mdelivery === null ? cfgSwitch("mdelivery", "Livrare prin MDelivery", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Livrare prin MDelivery", r.mdelivery ? "Da" : "Nu")}
+        ${cfgSwitch("paperRelease", "Eliberare pe hârtie la autoritatea emitentă", "Declanșează emiterea fizică a rezultatului solicitării.")}
+        ${cfgSelect("releaseActor", "Actorul care imprimă și eliberează actul", CFG_RELEASE_ACTORS, { required: true })}`);
+      case "appeal": return cfgGrid(`
+        ${cfgGroup(cfgSwitch("appealable", "Serviciu contestabil", v.appealable ? "Se poate depune contestație în termenul de mai jos." : "Nu se pot depune contestații pentru dosarele serviciului."), v.appealable, cfgGrid(`
+          ${cfgChecks("appealTypes", "Tipuri de solicitare contestabile", rts, { required: true })}
+          ${cfgChecks("appealDecisions", "Decizii contestabile", CFG_DECISIONS, { required: true })}
+          ${cfgInput("appealDays", "Termen admisibil de contestare (zile)", { required: true, numeric: true, span: 6, hint: "Calculat de la emiterea deciziei." })}
+          ${cfgSelect("appealDayType", "Tipul zilelor de contestare", CFG_DAY_TYPES, { required: true, span: 6 })}`))}`);
+      case "numbering": {
+        const used = v.numbering.map((x) => x.doc);
+        return `
+          <div class="e-permits-tax-cond__list">${v.numbering.map((rule, i) => {
+            const k = (f) => `n${i}-${f}`;
+            const sel = (f, label, options, span, req = true) => cfgField(k(f), label, renderFoSelectControl({ id: `cfg-${k(f)}`, attrs: `data-cfg-rule="${i}" data-cfg-rule-field="${f}"`, error: Boolean(cfgDraft.errors[k(f)]), optionsHtml: `<option value=""${rule[f] ? "" : " selected"} disabled>Alege</option>${options.map((x) => `<option value="${escapeHtml(x)}"${x === rule[f] ? " selected" : ""}>${escapeHtml(x)}</option>`).join("")}` }), { required: req, span });
+            const inp = (f, label, span, req, numeric, ph) => cfgField(k(f), label, `<div class="e-permits-fo-input${cfgDraft.errors[k(f)] ? " is-error" : ""}"><input id="cfg-${k(f)}" type="text"${numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="12"'} value="${escapeHtml(rule[f] ?? "")}" placeholder="${escapeHtml(ph || "")}" autocomplete="off" data-cfg-rule="${i}" data-cfg-rule-field="${f}"></div>`, { required: req, span });
+            return `
+              <div class="e-permits-tax-cond" data-cfg-rule-block="${i}">
+                <div class="e-permits-tax-cond__head"><label>Regula ${i + 1}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg-rule-remove="${i}">Elimină</button></div>
+                ${cfgGrid(`
+                  ${sel("doc", "Tip document", CFG_DOC_TYPES.filter((d) => d === rule.doc || !used.includes(d)), 6)}
+                  ${sel("reset", "Resetare contor", CFG_RESET, 6)}
+                  ${inp("prefix", "Prefix", 4, true, false, "Ex. AUT")}
+                  ${inp("sep", "Separator", 4, false, false, "Ex. -")}
+                  ${inp("len", "Lungime contor", 4, true, true, "Ex. 6")}
+                  ${inp("start", "Valoare inițială", 6, true, true, "Ex. 1")}
+                  <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><span class="e-permits-cfg-ro__label">Valoare curentă</span><div class="e-permits-cfg-ro">${escapeHtml(String(rule.current || 0))}</div></div>`)}
+                <p class="e-permits-fo-field__hint" data-cfg-rule-example="${i}">Exemplu (numărul următor): <strong>${escapeHtml(cfgNumberExample(rule))}</strong></p>
+              </div>`;
+          }).join("")}</div>
+          <div class="e-permits-tax-cond__add">
+            <button class="btn btn-neutral btn-sm" type="button" data-cfg-rule-add${used.length >= CFG_DOC_TYPES.length ? " disabled" : ""}><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>Adaugă regulă</button>
+            ${renderInfoNote("Câte o regulă pentru fiecare tip de document emis: act permisiv, decizie de respingere, înștiințare. „Valoare curentă” = ultimul număr atribuit.")}
+          </div>`;
+      }
+      case "rap": return `
+        ${renderInfoNote("<strong>Datele personale ale persoanei fizice</strong> (IDNP, numele și prenumele) se publică mereu anonimizat, indiferent de setare.")}
+        <ul class="e-permits-cfg-rap" role="list">${CFG_FORM_FIELDS.map((field) => {
+          const row = v.rap.find((x) => x.field === field); const always = CFG_ALWAYS_ANON.includes(field);
+          return `<li class="e-permits-cfg-rap__row">
+            <label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(field)}" data-cfg-rap="${escapeHtml(field)}"${row ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span><span class="checkbox-texts"><span class="checkbox-label">${escapeHtml(field)}</span></span></label>
+            ${renderToggle({ label: "Anonimizare", checked: always || Boolean(row?.anon), attrs: `data-cfg-rap-anon="${escapeHtml(field)}"`, disabled: !row || always })}
+          </li>`; }).join("")}</ul>`;
+      case "drafts": return cfgGrid(cfgInput("draftDays", "Perioada de retenție a schițelor (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice. Înainte de expirare, solicitantul e anunțat prin MNotify; apoi schița se arhivează. Doar Administratorul Central." }));
+      case "dep": {
+        const d = v;
+        const svcOpts = cfgPublishedServices(service).map((s) => [s.code, `${s.title} · ${s.code}`]);
+        const src = getServiceByCode(d.source);
+        const acts = src ? [...new Set((src.geap?.templates || []).map((t) => t.name))] : [];
+        return cfgGrid(`
+          ${cfgInput("name", "Denumire", { required: true, placeholder: "Ex. Autorizație sanitară valabilă" })}
+          ${cfgChecks("requestTypes", "Tip solicitare", rts, { required: true, hint: "Tipurile de solicitare la care se aplică." })}
+          ${cfgSelect("type", "Tip interdependență", CFG_DEP_TYPES, { required: true, placeholder: "Alege tipul", hint: d.type ? CFG_DEP_HINT[d.type] : "" })}
+          ${d.type === "Totală" || d.type === "Parțială" ? `
+            ${cfgSelect("source", "Serviciul sursă", svcOpts, { required: true, placeholder: "Alege serviciul", hint: "Doar servicii publicate; finalizarea lui = emiterea actului." })}
+            ${cfgChecks("fields", "Date preluate", CFG_FORM_FIELDS.filter((f) => !CFG_ALWAYS_ANON.includes(f)), { required: true })}
+            ${d.type === "Parțială" ? (acts.length ? cfgChecks("acts", "Acte solicitate", acts, { required: true }) : cfgField("acts", "Acte solicitate", `<p class="e-permits-fo-field__hint">${src ? "Serviciul sursă nu are acte configurate." : "Alege întâi serviciul sursă."}</p>`, { required: true })) : ""}` : ""}
+          ${d.type === "Externă" ? `
+            ${cfgSelect("formField", "Câmp din cerere", CFG_FORM_FIELDS, { required: true, placeholder: "Alege câmpul", span: 6 })}
+            ${cfgSelect("extSource", "Sursa externă", CFG_EXT_SOURCES, { required: true, placeholder: "Alege sursa", span: 6, hint: "Surse disponibile prin MConnect." })}` : ""}
+          ${d.type === "Exclusivă" ? cfgSelect("incompatible", "Serviciul incompatibil", svcOpts, { required: true, placeholder: "Alege serviciul", hint: "Doar servicii publicate, fără serviciul deschis." }) : ""}`);
+      }
+      default: return "";
+    }
+  };
+  const renderCfgDrawer = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!cfgDraft || !service) return;
+    const top = cfgBody.scrollTop;
+    const isDep = cfgDraft.section === "dep";
+    cfgDrawer.querySelector("[data-svc-cfg-title]").textContent = isDep ? (cfgDraft.depId ? "Editează interdependența" : "Interdependență nouă") : (CFG_SECTIONS.find(([k]) => k === cfgDraft.section) || [])[1] || "Setări";
+    cfgDrawer.querySelector("[data-svc-cfg-subtitle]").textContent = `Setări · ${service.title}`;
+    cfgBody.innerHTML = `<div class="e-permits-clas-create e-permits-cfg-form">${renderCfgForm(service)}</div>`;
+    cfgBody.scrollTop = top;
+  };
+  const openCfgDrawer = (section, trigger, depId = null) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service || !cfgDrawer || !isCentralAdmin()) return;
+    const c = serviceConfig(service);
+    const dep = depId ? c.deps.find((d) => d.id === depId) : null;
+    cfgDraft = { section, depId, v: section === "dep" ? cfgClone(dep || { name: "", requestTypes: [], type: "", source: "", fields: [], acts: [], formField: "", extSource: "", incompatible: "" }) : cfgClone(c), errors: {}, dirty: false, trigger };
+    renderCfgDrawer();
+    trigger?.setAttribute("aria-expanded", "true");
+    cfgDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => cfgBody.querySelector("input:not([disabled]), .e-permits-fo-select__button")?.focus());
+  };
+  const closeCfgDrawer = (force = false) => {
+    if (!cfgDraft || cfgDrawer.hidden) return;
+    if (!force && cfgDraft.dirty) { askConfirm({ title: "Renunți la modificări?", text: "Setările schimbate în acest formular se pierd.", confirmLabel: "Renunță", destructive: true }, () => closeCfgDrawer(true)); return; }
+    closeFoSelect();
+    const trigger = cfgDraft.trigger;
+    trigger?.setAttribute("aria-expanded", "false");
+    cfgDrawer.classList.add("is-closing");
+    window.setTimeout(() => { cfgDrawer.hidden = true; cfgDrawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); cfgDraft = null; trigger?.focus?.(); }, 120);
+  };
+  const CFG_REQUIRED_MSG = "Câmpul este obligatoriu.";
+  const CFG_INT_MSG = "Introdu un număr întreg mai mare ca zero.";
+  const validateCfg = (service) => {
+    const v = cfgDraft.v, r = cfgRssp(service), e = {};
+    const req = (k, ok) => { if (!ok) e[k] = CFG_REQUIRED_MSG; };
+    const int = (k, val, required = true) => { const s = String(val ?? "").trim(); if (!s) { if (required) e[k] = CFG_REQUIRED_MSG; } else if (!/^\d+$/.test(s) || Number(s) < 1) e[k] = CFG_INT_MSG; };
+    switch (cfgDraft.section) {
+      case "applicant": req("authMode", v.authMode); break;
+      case "exam": req("subdivisions", v.subdivisions.length); if (v.autoDist) { req("distCriterion", v.distCriterion); int("distMax", v.distMax, false); } break;
+      case "suspension": if (v.suspCustom) int("suspDays", v.suspDays); break;
+      case "signing": req("signRequest", v.signRequest); req("pdfGen", v.pdfGen); break;
+      case "payment": if (r.paid) req("mpayCode", String(v.mpayCode || "").trim()); int("payTerm", v.payTerm); break;
+      case "delivery": req("releaseActor", v.releaseActor); break;
+      case "appeal": if (v.appealable) { req("appealTypes", v.appealTypes.length); req("appealDecisions", v.appealDecisions.length); int("appealDays", v.appealDays); req("appealDayType", v.appealDayType); } break;
+      case "numbering": v.numbering.forEach((rule, i) => { req(`n${i}-doc`, rule.doc); req(`n${i}-reset`, rule.reset); req(`n${i}-prefix`, String(rule.prefix || "").trim()); int(`n${i}-len`, rule.len); int(`n${i}-start`, rule.start); }); break;
+      case "drafts": int("draftDays", v.draftDays); break;
+      case "dep":
+        req("name", String(v.name || "").trim()); req("requestTypes", v.requestTypes.length); req("type", v.type);
+        if (v.type === "Totală" || v.type === "Parțială") { req("source", v.source); req("fields", (v.fields || []).length); }
+        if (v.type === "Parțială") req("acts", (v.acts || []).length);
+        if (v.type === "Externă") { req("formField", v.formField); req("extSource", v.extSource); }
+        if (v.type === "Exclusivă") req("incompatible", v.incompatible);
+        break;
+      default: break;
+    }
+    return e;
+  };
+  const cfgFmt = (val) => Array.isArray(val) ? (val.length ? val.map((x) => (typeof x === "object" ? (x.doc || x.field || JSON.stringify(x)) : x)).join(", ") : "—") : typeof val === "boolean" ? (val ? "Da" : "Nu") : (val === "" || val == null ? "—" : String(val));
+  const saveCfgDrawer = () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    cfgDraft.errors = validateCfg(service);
+    if (Object.keys(cfgDraft.errors).length) {
+      renderCfgDrawer();
+      cfgBody.querySelector(".is-error input, .e-permits-fo-select.is-error .e-permits-fo-select__button, .e-permits-fo-field__error")?.closest(".e-permits-fo-field")?.querySelector("input, button")?.focus();
+      return;
+    }
+    const c = serviceConfig(service), at = localIsoNow(), by = currentUserName();
+    let events = [], toast;
+    if (cfgDraft.section === "dep") {
+      const v = cfgDraft.v, prev = cfgDraft.depId ? c.deps.find((d) => d.id === cfgDraft.depId) : null;
+      if (prev) Object.assign(prev, v); else c.deps.push({ ...v, id: `dep-${Date.now()}` });
+      events = [{ at, user: by, type: prev ? "Modificare interdependență" : "Adăugare interdependență", status: "Reușit", detail: `${v.name} · ${v.type}` }];
+      toast = [prev ? "Interdependența a fost salvată." : "Interdependența a fost adăugată.", prev ? "Interdependență salvată" : "Interdependență adăugată"];
+    } else {
+      const title = (CFG_SECTIONS.find(([k]) => k === cfgDraft.section) || [])[1];
+      for (const [key, label] of CFG_FIELDS[cfgDraft.section] || []) {
+        const before = cfgFmt(c[key]), after = cfgFmt(cfgDraft.v[key]);
+        if (JSON.stringify(c[key]) !== JSON.stringify(cfgDraft.v[key])) events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${title} · ${label}: ${before} → ${after}` });
+        c[key] = cfgClone(cfgDraft.v[key]);
+      }
+      toast = events.length ? [`${title}: ${plural(events.length, "setare modificată", "setări modificate")}. Intră în vigoare după publicarea pașaportului.`, "Setări salvate"] : null;
+    }
+    if (events.length) { c.editedAt = at; c.editedBy = by; syncCfgFlags(service); logServiceEvents(service.code, events, { render: false }); }
+    closeCfgDrawer(true);
+    renderServiceProfile();
+    if (toast) showShellToast(toast[0], "success", toast[1]);
+  };
+  const removeCfgDep = (depId) => {
+    const service = getServiceByCode(serviceProfileState.code), c = serviceConfig(service), dep = c.deps.find((d) => d.id === depId);
+    if (!dep) return;
+    closeStackMenus();
+    askConfirm({ title: "Elimină interdependența", text: `„${dep.name}” nu se mai verifică la completarea și depunerea cererii. Intră în vigoare după publicarea pașaportului.`, confirmLabel: "Confirmă", destructive: true }, () => {
+      c.deps.splice(c.deps.indexOf(dep), 1);
+      c.editedAt = localIsoNow(); c.editedBy = currentUserName();
+      logServiceEvents(service.code, [{ at: c.editedAt, user: c.editedBy, type: "Eliminare interdependență", status: "Reușit", detail: `${dep.name} · ${dep.type}` }], { render: false });
+      renderServiceProfile();
+      showShellToast(`„${dep.name}” a fost eliminată.`, "success", "Interdependență eliminată");
+    });
+  };
+  permitsProfilePanel?.addEventListener("click", (event) => {
+    const edit = event.target.closest("[data-svc-cfg-edit]");
+    if (edit) { openCfgDrawer(edit.dataset.svcCfgEdit, edit); return; }
+    const add = event.target.closest("[data-svc-dep-add]");
+    if (add) { openCfgDrawer("dep", add); return; }
+    const depEdit = event.target.closest("[data-svc-dep-edit]");
+    if (depEdit) { openCfgDrawer("dep", depEdit, depEdit.dataset.svcDepEdit); return; }
+    const depRemove = event.target.closest("[data-svc-dep-remove]");
+    if (depRemove) removeCfgDep(depRemove.dataset.svcDepRemove);
+  });
+  const cfgMark = (key, target) => {
+    cfgDraft.dirty = true;
+    if (cfgDraft.errors[key]) { delete cfgDraft.errors[key]; target?.closest(".e-permits-fo-input, .e-permits-fo-select")?.classList.remove("is-error"); target?.closest(".e-permits-fo-field")?.querySelector(".e-permits-fo-field__error")?.remove(); }
+  };
+  cfgDrawer?.addEventListener("click", (event) => {
+    if (!cfgDraft) return;
+    if (event.target.closest("[data-svc-cfg-close]")) { closeCfgDrawer(); return; }
+    if (event.target.closest("[data-svc-cfg-save]")) { saveCfgDrawer(); return; }
+    if (event.target.closest("[data-cfg-rule-add]")) {
+      const used = cfgDraft.v.numbering.map((x) => x.doc);
+      cfgDraft.v.numbering.push({ doc: CFG_DOC_TYPES.find((d) => !used.includes(d)) || "", prefix: "", sep: "-", len: "6", start: "1", current: 0, reset: "Anual" });
+      cfgDraft.dirty = true; renderCfgDrawer();
+      cfgBody.querySelector(`[data-cfg-rule-block="${cfgDraft.v.numbering.length - 1}"] input`)?.focus();
+      return;
+    }
+    const rm = event.target.closest("[data-cfg-rule-remove]");
+    if (rm) { cfgDraft.v.numbering.splice(Number(rm.dataset.cfgRuleRemove), 1); cfgDraft.errors = {}; cfgDraft.dirty = true; renderCfgDrawer(); cfgBody.querySelector("[data-cfg-rule-add]")?.focus(); }
+  });
+  cfgDrawer?.addEventListener("input", (event) => {
+    if (!cfgDraft) return;
+    const t = event.target;
+    if (t.matches("[data-cfg-numeric]")) t.value = t.value.replace(/\D/g, "").slice(0, 5);
+    if (t.matches("[data-cfg-input]")) { cfgDraft.v[t.dataset.cfgInput] = t.value; cfgMark(t.dataset.cfgInput, t); return; }
+    if (t.matches("[data-cfg-rule]")) {
+      const i = Number(t.dataset.cfgRule), f = t.dataset.cfgRuleField; cfgDraft.v.numbering[i][f] = t.value; cfgMark(`n${i}-${f}`, t);
+      const ex = cfgBody.querySelector(`[data-cfg-rule-example="${i}"] strong`); if (ex) ex.textContent = cfgNumberExample(cfgDraft.v.numbering[i]);
+    }
+  });
+  cfgDrawer?.addEventListener("change", (event) => {
+    if (!cfgDraft) return;
+    const t = event.target;
+    if (t.matches("[data-cfg-select]")) {
+      const key = t.dataset.cfgSelect; cfgDraft.v[key] = t.value; cfgMark(key, t);
+      /* a new interdependence type or source changes which fields follow */
+      if (cfgDraft.section === "dep" && (key === "type" || key === "source")) { if (key === "source") cfgDraft.v.acts = []; renderCfgDrawer(); cfgBody.querySelector(`#cfg-${key}`)?.focus(); }
+      return;
+    }
+    if (t.matches("[data-cfg-rule]")) { const i = Number(t.dataset.cfgRule), f = t.dataset.cfgRuleField; cfgDraft.v.numbering[i][f] = t.value; cfgMark(`n${i}-${f}`, t); if (f === "doc") { renderCfgDrawer(); cfgBody.querySelector(`#cfg-n${i}-doc`)?.focus(); } return; }
+    if (t.matches("[data-cfg-switch]")) {
+      const key = t.dataset.cfgSwitch; cfgDraft.v[key] = t.checked; cfgDraft.dirty = true;
+      /* only a group switch changes the form; redraw once the knob has slid (200ms), so the
+         switch keeps its transition */
+      if (CFG_GROUP_SWITCHES.includes(key)) setTimeout(() => { if (!cfgDraft) return; renderCfgDrawer(); cfgBody.querySelector(`[data-cfg-switch="${key}"]`)?.focus(); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
+      return;
+    }
+    if (t.matches("[data-cfg-check]")) { const key = t.dataset.cfgCheck; cfgDraft.v[key] = [...cfgBody.querySelectorAll(`[data-cfg-check="${key}"]:checked`)].map((x) => x.value); cfgMark(key, t); return; }
+    if (t.matches("[data-cfg-rap]")) {
+      const field = t.value;
+      const always = CFG_ALWAYS_ANON.includes(field);
+      if (t.checked) cfgDraft.v.rap.push({ field, anon: always }); else cfgDraft.v.rap = cfgDraft.v.rap.filter((x) => x.field !== field);
+      /* in place, no redraw: the checkbox keeps its transition; Anonimizare follows the row */
+      const anon = t.closest(".e-permits-cfg-rap__row")?.querySelector("[data-cfg-rap-anon]");
+      if (anon) { anon.disabled = !t.checked || always; anon.checked = always || (t.checked && anon.checked); const row = cfgDraft.v.rap.find((x) => x.field === field); if (row) row.anon = anon.checked; }
+      cfgDraft.dirty = true; return;
+    }
+    if (t.matches("[data-cfg-rap-anon]")) { const row = cfgDraft.v.rap.find((x) => x.field === t.dataset.cfgRapAnon); if (row) row.anon = t.checked; cfgDraft.dirty = true; }
+  });
+  cfgDrawer?.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || document.querySelector(".modal-overlay.is-active, body > .e-permits-fo-select__list")) return;
+    event.preventDefault(); closeCfgDrawer();
   });
 
   /* Setări: a switch goes straight into the service draft */
@@ -15114,7 +15920,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderServiceProfile();
       permitsProfilePanel.querySelector(`[data-svc-setting="${key}"]`)?.focus();
     }, SERVICE_SETTING_SLIDE_MS);
-    showShellToast(`Setarea „${label}” a fost ${state}. Se aplică după publicarea serviciului.`);
+    /* the switch shows its own result and the header shows „N modificări nepublicate” —
+       no toast (user, 2026-10-08) */
   });
 
   permitsProfilePanel?.addEventListener("keydown", (event) => {

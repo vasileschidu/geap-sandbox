@@ -51,7 +51,9 @@
   /* data-tooltip-reason opts any control in (text buttons too), typically one that is
      aria-disabled: the tooltip then says why it is unavailable */
   const candidate = (node) => {
-    const el = node instanceof Element ? node.closest("button, a[href], [role='button']") : null;
+    /* [data-tooltip-reason] also covers non-buttons, e.g. a checkbox container whose input is
+       disabled (Documente › Obligatoriu while the document is hidden) */
+    const el = node instanceof Element ? node.closest("[data-tooltip-reason], button, a[href], [role='button']") : null;
     if (!el || el.hasAttribute("data-no-tooltip") || el.hasAttribute("data-tooltip")) return null;
     if (el.dataset.tooltipReason) return el;
     if (el.disabled || el.getAttribute("aria-disabled") === "true") return null;

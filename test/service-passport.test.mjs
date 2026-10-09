@@ -380,6 +380,113 @@ check("taxe: validation — tariff, condition values, reduction range, no formul
   assert.ok(sp.validateTax({ ...base, tariffId: "t-x" }, { tariff: { ...T.mod, active: false }, serviceCode: "B" }).tariffId, "an inactive tariff cannot be charged");
 });
 
+// Figma 04h (user, 2026-10-08): several classifiers (AND), multi-select values,
+// one amount and one reduction per scenario (= one checked value of each classifier)
+const who = (...values) => ({ classifier: "CLS-BIO-02", values });
+check("taxe: several classifiers apply together (AND); legacy single condition still read", () => {
+  const multi = { conditions: [reason("minora", "majora"), who("imm")] };
+  assert.equal(sp.conditionApplies(multi, { "CLS-BIO-01": "majora", "CLS-BIO-02": "imm" }), true);
+  assert.equal(sp.conditionApplies(multi, { "CLS-BIO-01": "majora", "CLS-BIO-02": "mare" }), false);
+  assert.equal(sp.conditionApplies(multi, { "CLS-BIO-01": "majora" }), false, "every classifier needs an answer");
+  assert.deepEqual(sp.taxConditions({ condition: reason("minora") }), [reason("minora")]);
+  assert.deepEqual(sp.taxConditions({ conditions: [] }), [], "no conditions = always");
+  assert.equal(sp.conditionApplies({ conditions: [] }, {}), true);
+});
+
+check("taxe: overlap across classifiers — disjoint on any shared classifier = no conflict", () => {
+  const a = tax({ id: "a", tariffId: "t-mod", requestType: "Reperfectare", condition: null, conditions: [reason("minora"), who("imm")] });
+  const b = (conditions) => tax({ id: "b", tariffId: "t-mod", requestType: "Reperfectare", condition: null, conditions });
+  assert.equal(sp.taxConflict([a], b([reason("minora"), who("mare")])), null, "same reason, other applicant type");
+  assert.equal(sp.taxConflict([a], b([reason("minora")])).id, "a", "a wider condition overlaps");
+  assert.equal(sp.taxConflict([a], b([who("imm"), reason("minora", "majora")])).id, "a", "order of classifiers does not matter");
+});
+
+check("taxe: scenarios = cartesian product of checked values, keyed classifier=value", () => {
+  const t = { conditions: [reason("minora", "majora"), who("imm", "mare")] };
+  const scn = sp.taxScenarios(t);
+  assert.equal(scn.length, 4);
+  assert.deepEqual(scn.map((s) => s.key), [
+    "CLS-BIO-01=minora&CLS-BIO-02=imm", "CLS-BIO-01=minora&CLS-BIO-02=mare",
+    "CLS-BIO-01=majora&CLS-BIO-02=imm", "CLS-BIO-01=majora&CLS-BIO-02=mare"
+  ]);
+  assert.deepEqual(sp.taxScenarios({ conditions: [] }), [], "unconditional = no scenarios");
+  assert.equal(sp.scenarioFor(t, { "CLS-BIO-01": "majora", "CLS-BIO-02": "imm" }).key, "CLS-BIO-01=majora&CLS-BIO-02=imm");
+  assert.equal(sp.scenarioFor(t, { "CLS-BIO-01": "administrativa", "CLS-BIO-02": "imm" }), null);
+});
+
+check("taxe: each scenario has its own amount — reduction only where it is set", () => {
+  const t = { conditions: [reason("minora", "majora"), who("imm", "mare")], scenarioCalc: {
+    "CLS-BIO-01=minora&CLS-BIO-02=imm": { mode: "reducere", percent: 50 },
+    "CLS-BIO-01=majora&CLS-BIO-02=imm": { mode: "reducere", percent: 25 }
+  } };
+  const amount = (answers) => sp.taxAmount(t, T.mod, {}, { answers }).value;
+  assert.equal(amount({ "CLS-BIO-01": "minora", "CLS-BIO-02": "imm" }), 3871.5);
+  assert.equal(amount({ "CLS-BIO-01": "majora", "CLS-BIO-02": "imm" }), 5807.25);
+  assert.equal(amount({ "CLS-BIO-01": "minora", "CLS-BIO-02": "mare" }), 7743, "a scenario without a reduction = the tariff");
+  assert.equal(sp.taxAmount(t, T.mod, {}, { scenario: "CLS-BIO-01=minora&CLS-BIO-02=imm" }).value, 3871.5, "by scenario key");
+  const area = { id: "t-area", formula: true, expression: "{{suprafata_m2}} * 2", rounding: "2 zecimale", amount: "", currency: "MDL" };
+  assert.deepEqual(sp.taxAmount(t, area, { suprafata_m2: 100 }, { answers: { "CLS-BIO-01": "minora", "CLS-BIO-02": "imm" } }), { ok: true, value: 100 }, "per-scenario reduction on a formula tariff");
+});
+
+check("taxe: validation per condition and per scenario; at most 24 scenarios", () => {
+  const base = { ...sp.defaultTaxForTariff(T.mod, { term: 5 }), condition: null };
+  const two = [reason("minora"), who("imm", "mare")];
+  assert.deepEqual(sp.validateTax({ ...base, conditions: two }), {});
+  const e1 = sp.validateTax({ ...base, conditions: [reason("minora"), { classifier: "", values: [] }] });
+  assert.ok(e1["conditionClassifier:1"], "errors keyed by the condition's index");
+  assert.ok(sp.validateTax({ ...base, conditions: [reason("minora"), reason("majora")] })["conditionClassifier:1"], "a classifier only once");
+  assert.ok(sp.validateTax({ ...base, conditions: [reason("minora"), who()] })["conditionValues:1"]);
+  const e2 = sp.validateTax({ ...base, conditions: two, scenarioCalc: { "CLS-BIO-01=minora&CLS-BIO-02=mare": { mode: "reducere", percent: "" } } });
+  assert.deepEqual(Object.keys(e2), ["percent:CLS-BIO-01=minora&CLS-BIO-02=mare"], "only the scenario with the empty reduction");
+  const many = (code, n) => ({ classifier: code, values: Array.from({ length: n }, (_, i) => `v${i}`) });
+  assert.equal(sp.taxScenarios({ conditions: [many("A", 5), many("B", 5)] }).length, 25);
+  assert.ok(sp.validateTax({ ...base, conditions: [many("A", 5), many("B", 5)] }).scenarios, "25 > 24");
+  assert.equal(sp.validateTax({ ...base, conditions: [many("A", 4), many("B", 6)] }).scenarios, undefined, "24 is fine");
+});
+
+// Hierarchical classifier (CAEM G ⊃ 47 ⊃ 47.3): a checked value covers what is under it,
+// a checked child is an exception, the most specific scenario wins (2026-10-08)
+const CAEM = [{ code: "CAEM", values: [
+  { code: "G" }, { code: "46", parent: "G" }, { code: "47", parent: "G" },
+  { code: "47.1", parent: "47" }, { code: "47.3", parent: "47" }, { code: "I" }, { code: "56", parent: "I" }
+] }];
+const tree = sp.classifierTree(CAEM);
+check("taxe: hierarchy — a checked parent covers its children; ancestors from the tree", () => {
+  assert.deepEqual(sp.valueAncestors(tree, "CAEM", "47.3"), ["47", "G"]);
+  assert.deepEqual(sp.valueAncestors(tree, "CAEM", "G"), []);
+  const g = { conditions: [{ classifier: "CAEM", values: ["G"] }] };
+  assert.equal(sp.conditionApplies(g, { CAEM: "47.1" }, tree), true, "47.1 is under G");
+  assert.equal(sp.conditionApplies(g, { CAEM: "56" }, tree), false);
+  assert.equal(sp.conditionApplies(g, { CAEM: "47.1" }), false, "without a tree the classifier is flat");
+});
+
+check("taxe: hierarchy — the most specific checked value decides the amount", () => {
+  const t = { conditions: [{ classifier: "CAEM", values: ["G", "47", "47.3"] }], scenarioCalc: { "CAEM=47": { mode: "reducere", percent: 50 } } };
+  const pay = (code) => sp.taxAmount(t, T.mod, {}, { answers: { CAEM: code }, tree }).value;
+  assert.equal(pay("46"), 7743, "46 → G (full tariff)");
+  assert.equal(pay("47.1"), 3871.5, "47.1 → 47 (−50%)");
+  assert.equal(pay("47.3"), 7743, "47.3 → its own row (exception of the exception)");
+  assert.equal(sp.scenarioFor(t, { CAEM: "56" }, tree), null, "outside G = the tax does not apply");
+});
+
+check("taxe: hierarchy — G and 47 overlap (same tariff twice is a conflict); G and I do not", () => {
+  const mk = (id, values) => tax({ id, tariffId: "t-com", requestType: "Emitere", condition: null, conditions: [{ classifier: "CAEM", values }] });
+  assert.equal(sp.taxConflict([mk("a", ["G"])], mk("b", ["47"]), tree).id, "a");
+  assert.equal(sp.taxConflict([mk("a", ["G"])], mk("b", ["I"]), tree), null);
+  assert.equal(sp.taxConflict([mk("a", ["G"])], mk("b", ["47"])), null, "flat: different codes");
+});
+
+// Tariff formula: variables written {{nume}} like the templates (user, 2026-10-08)
+check("formula: {{nume}} variables, spaces inside allowed; legacy {nume} still parsed", () => {
+  assert.deepEqual(sp.formulaVariables("{{suprafata_m2}} * 2 + {{ taxa }} - {vechi}"), ["suprafata_m2", "taxa", "vechi"]);
+  const r = sp.evaluateFormula("{{a}} * 2 + {b}", { a: 3, b: 1 }, "2 zecimale");
+  assert.equal(r.ok, true); assert.equal(r.value, 7);
+  assert.equal(sp.evaluateFormula("{{lipsa}} * 2", {}, "2 zecimale").ok, false, "a value is needed for every variable");
+  const tf = { name: "T", amount: "", currency: "MDL", scope: "global", formula: true, expression: "{{necunoscut}} * 2", rounding: "2 zecimale" };
+  assert.match(sp.validateTariff(tf, { variables: ["suprafata_m2"] }).expression, /\{\{necunoscut\}\}/, "the catalog error names the variable as written");
+  assert.equal(sp.validateTariff({ ...tf, expression: "{{ suprafata_m2 }} * 2" }, { variables: ["suprafata_m2"] }).expression, undefined);
+});
+
 // Request type › Documente generate / Notificări: one row per flow step (US-222, US-223)
 check("documentSteps: one row per document kind, keyed by step id, in flow order", () => {
   const flow = { definition: JSON.parse(readFileSync(new URL("../data/flows/ProcesFluxSimplificatFaraSupervizor.json", import.meta.url), "utf8")) };

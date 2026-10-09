@@ -619,28 +619,99 @@
   var TAX_CALC = ["tarif", "reducere"];
   var TAX_CALC_LABELS = { tarif: "Suma tarifului", reducere: "Reducere" };
 
-  /* null / empty values = always applies */
-  function conditionApplies(condition, answers) {
-    if (!condition || !condition.classifier || !(condition.values || []).length) return true;
-    var answer = (answers || {})[condition.classifier];
-    return answer != null && condition.values.indexOf(answer) !== -1;
+  /* a tax may depend on several classifiers (2026-10-08): tax.conditions = [{ classifier,
+     values }], all must match (AND); the legacy single tax.condition is still read.
+     Accepts a tax, a condition list or a single condition. Empty = always. */
+  function taxConditions(source) {
+    if (!source) return [];
+    var list = Array.isArray(source) ? source
+      : source.conditions ? source.conditions
+      : source.classifier !== undefined ? [source]
+      : source.condition ? [source.condition] : [];
+    return list.filter(function (c) { return c && c.classifier && (c.values || []).length; });
   }
 
-  /* two conditions can be true for the same request */
-  function conditionsOverlap(a, b) {
-    var always = function (c) { return !c || !c.classifier || !(c.values || []).length; };
-    if (always(a) || always(b)) return true;
-    if (a.classifier !== b.classifier) return true;
-    return a.values.some(function (value) { return b.values.indexOf(value) !== -1; });
+  /* null / empty values = always applies; every classifier must match */
+  /* hierarchical classifiers (CAEM secțiune → diviziune → grupă): tree =
+     { classifierCode: { valueCode: parentCode } }. A checked value covers itself and every
+     value under it; without a tree every classifier is flat, as before. */
+  function classifierTree(classifiers) {
+    var tree = {};
+    (classifiers || []).forEach(function (c) {
+      var map = {};
+      (c.values || []).forEach(function (v) { if (v.parent) map[v.code] = v.parent; });
+      tree[c.code] = map;
+    });
+    return tree;
+  }
+  function valueAncestors(tree, classifier, value) {
+    var map = (tree || {})[classifier] || {};
+    var out = [];
+    for (var cur = map[value]; cur && out.length < 20; cur = map[cur]) out.push(cur);
+    return out;
+  }
+  function valueCovers(tree, classifier, checked, answer) {
+    return checked === answer || valueAncestors(tree, classifier, answer).indexOf(checked) !== -1;
+  }
+
+  function conditionApplies(condition, answers, tree) {
+    return taxConditions(condition).every(function (c) {
+      var answer = (answers || {})[c.classifier];
+      return answer != null && c.values.some(function (value) { return valueCovers(tree, c.classifier, value, answer); });
+    });
+  }
+
+  /* two condition sets can be true for the same request: on every classifier both
+     constrain, their values intersect (a classifier only one of them uses can match) */
+  function conditionsOverlap(a, b, tree) {
+    var A = taxConditions(a), B = taxConditions(b);
+    return A.every(function (ca) {
+      var cb = B.filter(function (c) { return c.classifier === ca.classifier; })[0];
+      /* G and 47 overlap: an applicant in 47 matches both */
+      return !cb || ca.values.some(function (value) {
+        return cb.values.some(function (other) { return valueCovers(tree, ca.classifier, value, other) || valueCovers(tree, ca.classifier, other, value); });
+      });
+    });
+  }
+
+  /* scenarios = one checked value per classifier (all combinations); each one carries its
+     own calculation (tax.scenarioCalc[key]) — „câte un amount pentru fiecare bifă” */
+  var TAX_SCENARIO_MAX = 24;
+  function taxScenarios(tax) {
+    var conds = taxConditions(tax);
+    if (!conds.length) return [];
+    var out = [[]];
+    conds.forEach(function (c) {
+      var next = [];
+      out.forEach(function (picks) { c.values.forEach(function (value) { next.push(picks.concat([{ classifier: c.classifier, value: value }])); }); });
+      out = next;
+    });
+    return out.map(function (picks) {
+      return { key: picks.map(function (p) { return p.classifier + "=" + p.value; }).join("&"), picks: picks };
+    });
+  }
+
+  function scenarioCalc(tax, key) {
+    return (tax.scenarioCalc || {})[key] || tax.calc || { mode: "tarif" };
+  }
+
+  /* the scenario a request falls in, from its classifier answers */
+  /* with a hierarchy several scenarios can cover one request (G and 47 for 47.1):
+     the most specific one wins — a checked child is an exception to its parent */
+  function scenarioFor(tax, answers, tree) {
+    var depth = function (s) { return s.picks.reduce(function (sum, p) { return sum + valueAncestors(tree, p.classifier, p.value).length; }, 0); };
+    return taxScenarios(tax).filter(function (s) {
+      return s.picks.every(function (p) { var answer = (answers || {})[p.classifier]; return answer != null && valueCovers(tree, p.classifier, p.value, answer); });
+    }).sort(function (x, y) { return depth(y) - depth(x); })[0] || null;
   }
 
   /* the same tariff cannot be charged twice for one request: another active
      tax with the same tariff, request type and moment whose condition overlaps */
-  function taxConflict(taxes, tax) {
+  function taxConflict(taxes, tax, tree) {
     return (taxes || []).filter(function (other) {
       return other.id !== tax.id && other.active && other.state === "Publicat" &&
         other.tariffId === tax.tariffId && other.requestType === tax.requestType &&
-        other.moment === tax.moment && conditionsOverlap(other.condition, tax.condition);
+        other.moment === tax.moment && conditionsOverlap(other, tax, tree);
     })[0] || null;
   }
 
@@ -652,10 +723,13 @@
     return tariff && String(tariff.amount == null ? "" : tariff.amount).trim() !== "" && isFinite(base) ? { ok: true, value: base } : { ok: false, error: "Tarif fără sumă." };
   }
 
-  /* the sum of a tax = the tariff's sum, optionally reduced by a percent */
-  function taxAmount(tax, tariff, values) {
+  /* the sum of a tax = the tariff's sum, optionally reduced by a percent; a conditional
+     tax uses the calculation of its scenario (options.scenario = key, or options.answers) */
+  function taxAmount(tax, tariff, values, options) {
     var sum = tariffAmount(tariff, values);
-    var calc = tax.calc || { mode: "tarif" };
+    var opts = options || {};
+    var key = opts.scenario || (opts.answers ? (scenarioFor(tax, opts.answers, opts.tree) || {}).key : null);
+    var calc = key ? scenarioCalc(tax, key) : (tax.calc || { mode: "tarif" });
     if (calc.mode !== "reducere" || !sum.ok) return sum;
     var percent = Number(calc.percent);
     if (!isFinite(percent)) return { ok: false, error: "Reducere nevalidă." };
@@ -699,14 +773,24 @@
       var eligible = tariffEligibility(ctx.tariff, ctx.serviceCode, tax.generation);
       if (!eligible.ok) errors.tariffId = eligible.reason + ".";
     }
-    var c = tax.condition;
-    if (c) {
-      if (!c.classifier) errors.conditionClassifier = "Alege clasificatorul de care depinde taxa.";
-      else if (!(c.values || []).length) errors.conditionValues = "Bifează cel puțin o valoare pentru care se aplică taxa.";
-    }
-    var calc = tax.calc || { mode: "tarif" };
-    if (TAX_CALC.indexOf(calc.mode) === -1) errors.calc = "Alege modul de calcul.";
-    if (calc.mode === "reducere" && !positiveInt(calc.percent, 100)) errors.percent = "Introdu reducerea în procente, între 1 și 100.";
+    /* conditions: each needs a classifier and at least one value; a classifier once */
+    var raw = tax.conditions || (tax.condition ? [tax.condition] : []);
+    var seen = {};
+    raw.forEach(function (c, i) {
+      var suffix = raw.length > 1 ? ":" + i : "";
+      if (!c.classifier) errors["conditionClassifier" + suffix] = "Alege clasificatorul de care depinde taxa.";
+      else if (seen[c.classifier]) errors["conditionClassifier" + suffix] = "Clasificatorul este deja folosit într-o condiție.";
+      else if (!(c.values || []).length) errors["conditionValues" + suffix] = "Bifează cel puțin o valoare pentru care se aplică taxa.";
+      if (c.classifier) seen[c.classifier] = true;
+    });
+    var scenarios = taxScenarios(tax);
+    if (scenarios.length > TAX_SCENARIO_MAX) errors.scenarios = "Prea multe combinații (" + scenarios.length + "). Bifează mai puține valori — cel mult " + TAX_SCENARIO_MAX + " scenarii.";
+    var checkCalc = function (calc, key) {
+      if (TAX_CALC.indexOf(calc.mode) === -1) errors[key ? "calc:" + key : "calc"] = "Alege modul de calcul.";
+      if (calc.mode === "reducere" && !positiveInt(calc.percent, 100)) errors[key ? "percent:" + key : "percent"] = "Introdu reducerea în procente, între 1 și 100.";
+    };
+    if (scenarios.length) scenarios.forEach(function (s) { checkCalc(scenarioCalc(tax, s.key), s.key); });
+    else checkCalc(tax.calc || { mode: "tarif" }, null);
     return errors;
   }
 
@@ -726,9 +810,13 @@
     return (tariff.source === "RSSP" || tariff.source === "eAPL") && TARIFF_LOCKED_FIELDS.indexOf(field) !== -1;
   }
 
+  /* variables are written {{nume}}, like in the notification / print templates (user,
+     2026-10-08); the older {nume} is still read */
+  var FORMULA_VAR = /\{\{\s*([a-z0-9_]+)\s*\}\}|\{([a-z0-9_]+)\}/gi;
   function formulaVariables(expression) {
     var found = [];
-    String(expression || "").replace(/\{([a-z0-9_]+)\}/gi, function (match, name) {
+    String(expression || "").replace(FORMULA_VAR, function (match, a, b) {
+      var name = a || b;
       if (found.indexOf(name) === -1) found.push(name);
       return match;
     });
@@ -743,8 +831,8 @@
       return values == null || values[name] === "" || values[name] == null || !isFinite(Number(values[name]));
     });
     if (missing.length) return { ok: false, error: "Completează valoarea de test pentru: " + missing.join(", ") + "." };
-    var filled = text.replace(/\{([a-z0-9_]+)\}/gi, function (match, name) { return "(" + Number(values[name]) + ")"; });
-    if (!/^[\d\s+\-*/().,]+$/.test(filled)) return { ok: false, error: "Formula poate conține doar numere, variabile {nume} și + − × ÷ ( )." };
+    var filled = text.replace(FORMULA_VAR, function (match, a, b) { return "(" + Number(values[a || b]) + ")"; });
+    if (!/^[\d\s+\-*/().,]+$/.test(filled)) return { ok: false, error: "Formula poate conține doar numere, variabile {{nume}} și + − × ÷ ( )." };
     var result;
     try {
       /* eslint-disable-next-line no-new-func */
@@ -777,7 +865,7 @@
         formulaVariables(tariff.expression).forEach(function (name) { probe[name] = 1; });
         var unknown = known ? formulaVariables(tariff.expression).filter(function (name) { return known.indexOf(name) === -1; }) : [];
         var check = evaluateFormula(tariff.expression, probe, tariff.rounding);
-        if (unknown.length) errors.expression = "Variabila " + unknown.map(function (name) { return "{" + name + "}"; }).join(", ") + " nu există în catalog. Elimin-o și alege una din listă.";
+        if (unknown.length) errors.expression = "Variabila " + unknown.map(function (name) { return "{{" + name + "}}"; }).join(", ") + " nu există în catalog. Elimin-o și alege una din listă.";
         else if (!check.ok) errors.expression = check.error;
       }
       if (!tariff.rounding) errors.rounding = "Selectează regula de rotunjire.";
@@ -941,7 +1029,14 @@
     TAX_CALC: TAX_CALC,
     TAX_CALC_LABELS: TAX_CALC_LABELS,
     conditionApplies: conditionApplies,
+    classifierTree: classifierTree,
+    valueAncestors: valueAncestors,
     conditionsOverlap: conditionsOverlap,
+    taxConditions: taxConditions,
+    taxScenarios: taxScenarios,
+    scenarioCalc: scenarioCalc,
+    scenarioFor: scenarioFor,
+    TAX_SCENARIO_MAX: TAX_SCENARIO_MAX,
     taxConflict: taxConflict,
     taxAmount: taxAmount,
     tariffAmount: tariffAmount,

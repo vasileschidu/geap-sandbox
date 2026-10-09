@@ -40,14 +40,16 @@
 // ==============  Variants (Color Categories) 
 
 // Utility mixin to simplify repetitive patterns
-@mixin status-variant($name, $bg-subtle, $text-subtle, $bg-strong, $text-strong, $border-color) {
+// $border-subtle: Subtle tags carry a 1px border — base grey for muted / neutral, the
+// colour's subtle step (border/<tone>/secondary, shade 300) otherwise (2026-10-09)
+@mixin status-variant($name, $bg-subtle, $text-subtle, $bg-strong, $text-strong, $border-color, $border-subtle: transparent) {
   .status-tag--#{$name} {
 
     // Subtle
     &.is-subtle {
       background-color: #{$bg-subtle};
       color: #{$text-subtle};
-      border: 1px solid transparent;
+      border: 1px solid #{$border-subtle};
     }
 
     // Strong
@@ -79,7 +81,8 @@
   var(--gray-400),
   var(--gray-600),
   var(--white),
-  var(--gray-250)
+  var(--gray-250),
+  var(--color-border-base-default)
 );
 
 @include status-variant(
@@ -88,7 +91,8 @@
   var(--black),
   var(--black),
   var(--white),
-  var(--gray-250)
+  var(--gray-250),
+  var(--color-border-base-default)
 );
 
 @include status-variant(
@@ -97,7 +101,8 @@
   var(--apricot-700),
   var(--apricot-300),
   var(--black),
-  var(--apricot-600)
+  var(--apricot-600),
+  var(--color-border-warning-secondary)
 );
 
 @include status-variant(
@@ -106,7 +111,8 @@
   var(--green-700),
   var(--green-600),
   var(--white),
-  var(--green-700)
+  var(--green-700),
+  var(--color-border-positive-secondary)
 );
 
 @include status-variant(
@@ -115,7 +121,8 @@
   var(--blue-sky-600),
   var(--blue-sky-600),
   var(--white),
-  var(--blue-sky-600)
+  var(--blue-sky-600),
+  var(--color-border-brand-secondary)
 );
 
 @include status-variant(
@@ -124,7 +131,8 @@
   var(--red-700),
   var(--red-600),
   var(--white),
-  var(--red-600)
+  var(--red-600),
+  var(--color-border-danger-secondary)
 );
 
 @include status-variant(

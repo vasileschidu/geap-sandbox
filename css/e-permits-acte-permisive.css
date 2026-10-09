@@ -17685,13 +17685,6 @@
   gap: var(--spacing-4, 4px);
 }
 
-/* Figma tag-filled Small: 20px, radius 4, 12/16 medium */
-.e-permits-page-header__meta .e-permits-workplace__tag {
-  border-radius: var(--border-radius-4, 4px);
-  box-sizing: border-box;
-  min-height: var(--spacing-20, 20px);
-  padding: 0 var(--spacing-6, 6px);
-}
 
 /* tabs: 40px items (tab-item-s), 14/20, no inter-tab gap, one full-width track line */
 .e-permits-page-header__tabs {
@@ -17896,14 +17889,6 @@
   gap: var(--spacing-16, 16px);
 }
 
-.e-permits-dosar-profil__section-title .e-permits-workplace__tag,
-.e-permits-user-profile__section h2 .e-permits-workplace__tag {
-  border-radius: var(--border-radius-4, 4px);
-  box-sizing: border-box;
-  letter-spacing: 0;
-  min-height: var(--spacing-20, 20px);
-  padding: 0 var(--spacing-6, 6px);
-}
 
 /* row values: Figma tag-filled Medium (24px, 14/20) via the library .status-tag */
 .e-permits-dosar-profil__row-value .status-tag {
@@ -18353,9 +18338,9 @@
   margin: 0;
 }
 
-/* tags sit on the title's first line (Tailwind mt-0.5) */
+/* Medium tags (24) share the title's 24px line — no offset */
 .e-permits-stack__title-row .e-permits-workplace__tag {
-  margin-top: var(--spacing-2, 2px);
+  margin-top: 0;
 }
 
 .e-permits-stack__title-row .e-permits-workplace__tag + .e-permits-workplace__tag {
@@ -18686,6 +18671,157 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-12, 12px);
+}
+
+/* Taxă › Condiție — one grey block per classifier (AND), „Adaugă clasificator” under
+   them; Calcul — one row per scenario (combination of checked values) with its own
+   Suma tarifului / Reducere and the resulting sum (2026-10-08) */
+.e-permits-tax-cond__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-tax-cond {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-tax-cond__head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  min-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-tax-cond .e-permits-tax-cond__head + .e-permits-fo-field {
+  margin-top: calc(-1 * var(--spacing-4, 4px));
+}
+
+/* „Clasificator 1 / 2” = the block title: medium, default colour (user, 2026-10-08) */
+.e-permits-tax-cond__head label {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-tax-cond__label {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-tax-cond__add {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-tax-cond__add > .e-permits-info-note {
+  align-self: stretch;
+}
+
+/* the scenario list IS the shared stacked list (.e-permits-stack › __list › __item:
+   12 radius box, 20 side padding, 12 row padding, 1px divider between rows);
+   only what a row of controls needs on top of it (user, 2026-10-08) */
+.e-permits-stack__item.e-permits-tax-scn__row {
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-24, 24px);
+}
+
+/* one line per classifier value, regular weight: the row reads as a plain sentence */
+.e-permits-tax-scn__label {
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex: 1 1 200px;
+  flex-direction: column;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-tax-scn__label > span + span {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-tax-scn__calc {
+  width: 180px;
+}
+
+.e-permits-tax-scn__percent {
+  width: 88px;
+}
+
+/* unit inside a text input („%”, later „MDL”, „m²”): trailing, tertiary, a <label for>
+   so a click on it focuses the field; the value is right-aligned next to it */
+.e-permits-fo-input .e-permits-fo-input__suffix {
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: text;
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  height: auto;
+  line-height: var(--line-height-lh-20, 20px);
+  user-select: none;
+}
+
+.e-permits-fo-input:has(.e-permits-fo-input__suffix) {
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-input:has(.e-permits-fo-input__suffix) input {
+  min-width: 0;
+  text-align: right;
+}
+
+.e-permits-fo-input:has(input:not(:placeholder-shown)) .e-permits-fo-input__suffix,
+.e-permits-fo-input:focus-within .e-permits-fo-input__suffix {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-fo-input:has(input:disabled) .e-permits-fo-input__suffix {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-tax-scn__sum {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 104px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.e-permits-tax-scn__error {
+  flex: 1 0 100%;
+}
+
+/* hierarchical classifier (CAEM): one indent step (24) per level under the parent */
+.checkbox.e-permits-tax-cond__value {
+  margin-left: calc(var(--tax-cond-level, 0) * var(--spacing-24, 24px));
+}
+
+.e-permits-tax-scn__label > .e-permits-tax-scn__note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
 }
 
 
@@ -21125,6 +21261,12 @@ body.is-ntpl-sheet-open {
   width: 1px;
 }
 
+/* the publish status lines up with the button group, not under the × (user, 2026-10-09):
+   skip the close button (32) + divider (1 + 2 × 4) + two gaps (2 × 8) */
+.e-permits-page-header__aside:has([data-ntpl-sheet-close]) .e-permits-page-header__caption {
+  padding-right: calc(var(--spacing-32, 32px) + var(--border-width-1, 1px) + 2 * var(--spacing-4, 4px) + 2 * var(--spacing-8, 8px));
+}
+
 @media (max-width: 760px) {
   .e-permits-ntpl-sheet .e-permits-ntpl-profile .e-permits-page-header__body,
   .e-permits-ntpl-sheet .e-permits-ntpl-profile .e-permits-page-header__tabs {
@@ -21876,4 +22018,226 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 
 .e-permits-user-create--wide.has-peek-overlay .e-permits-doc-peek {
   z-index: 4;
+}
+
+/* the form builder opened from a service (Editează, Adaugă formular, Previzualizează) is a
+   sheet — a 16px strip of the dimmed page above it and rounded top corners, so it reads as
+   a modal over the service; Previzualizează opens it on the Preview tab (user, 2026-10-08) */
+.e-permits-builder__view-title {
+  display: none;
+}
+
+.form-builder-modal-overlay.is-sheet.is-active {
+  padding: var(--spacing-16, 16px) 0 0;
+}
+
+.form-builder-modal-overlay.is-sheet .e-permits-builder {
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+  box-shadow: var(--drop-shadow-400);
+  height: calc(100vh - var(--spacing-16, 16px));
+}
+
+/* Previzualizează = the rendered form only (what the applicant sees): the builder's Preview,
+   view-only, in the same sheet as Editează (16px dimmed strip on top, rounded top corners);
+   editing controls hidden, header „Previzualizare · <formular> vX” + Doar vizualizare
+   (user, 2026-10-08) */
+
+.form-builder-modal-overlay.is-view-only :is(.e-permits-builder__mode, .e-permits-builder__version, .e-permits-builder__errors, .e-permits-builder__service-scope, .e-permits-builder__publish) {
+  display: none;
+}
+
+.form-builder-modal-overlay.is-view-only .e-permits-builder__topbar {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.form-builder-modal-overlay.is-view-only .e-permits-builder__view-title {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-26, 26px);
+}
+
+.e-permits-builder__view-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+}
+
+/* Documente tab: Afișează + Obligatoriu checkboxes, each in a small grey container */
+.e-permits-svc-doc__switches {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.checkbox.e-permits-svc-doc__opt {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  cursor: pointer;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-6, 6px) var(--spacing-12, 12px) var(--spacing-6, 6px) var(--spacing-8, 8px);
+}
+
+.checkbox.e-permits-svc-doc__opt:hover:not(.is-disabled) {
+  background: var(--color-background-base-secondary-hover, #ebebeb);
+}
+
+.checkbox.e-permits-svc-doc__opt .checkbox-label {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.checkbox.e-permits-svc-doc__opt.is-disabled {
+  cursor: default;
+}
+
+.checkbox.e-permits-svc-doc__opt.is-disabled .checkbox-label {
+  color: var(--color-text-disabled-default, #a3a3a3);
+}
+
+.checkbox.e-permits-svc-doc__opt:focus-within {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+/* Constructor › Date de test (JSON) — editor + status bar under it (2026-10-09) */
+.e-permits-dtpl__json {
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-dtpl__json-bar {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-dtpl__json-state {
+  min-width: 0;
+  padding-top: var(--spacing-6, 6px);
+}
+
+.e-permits-dtpl__json-tools {
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+[data-dtpl-json-status] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+/* Servicii › Setări (US-221) — RSSP values carry a „Din RSSP” tag next to the value; read-only
+   fields in the drawer are a grey box; a switch's dependent fields sit indented under it;
+   RAP rows = checkbox (transmis) + Anonimizare switch */
+.e-permits-cfg-value {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+/* RSSP-sourced value: value left, „Din RSSP” caption (12/16 tertiary) right */
+.e-permits-cfg-value--rssp {
+  justify-content: space-between;
+  width: 100%;
+}
+
+.e-permits-cfg-source {
+  color: var(--color-text-base-tertiary);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12);
+  line-height: var(--line-height-lh-16);
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.e-permits-cfg-edited {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-cfg-ro__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-cfg-ro {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: 40px;
+  padding: 0 var(--spacing-12, 12px);
+}
+
+/* a switch that unlocks more fields = one bordered group; the fields line up under the
+   switch text (track 44 + gap 12), no separators inside */
+.e-permits-cfg-group {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  grid-column: 1 / -1;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-cfg-group__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding-left: calc(var(--spacing-20, 20px) * 2 + var(--spacing-4, 4px) + var(--spacing-12, 12px));
+}
+
+.e-permits-cfg-rap {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: var(--spacing-16, 16px) 0 0;
+  padding: 0;
+}
+
+.e-permits-cfg-rap__row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) 0;
+}
+
+.e-permits-cfg-rap__row + .e-permits-cfg-rap__row {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+/* a switch, a sub-block or a note in the Setări drawer grid takes the whole row */
+/* a switch in the Setări drawer takes the whole row; the grid gap spaces it, so no row
+   rule or padding (those belong to the read-view list) */
+.e-permits-cfg-form .e-permits-user-create__grid > .e-permits-svc-setting {
+  grid-column: 1 / -1;
+}
+
+.e-permits-cfg-form .e-permits-svc-setting {
+  border-bottom: 0;
+  padding: 0;
+}
+
+.e-permits-tax-cond .e-permits-cfg-ro {
+  background: var(--color-background-base-default, #fff);
 }

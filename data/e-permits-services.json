@@ -754,6 +754,13 @@
             "values": 1681,
             "source": "MConnect",
             "updated": "2026-09-01"
+          },
+          {
+            "name": "Activitate economică (CAEM-2)",
+            "code": "CLS-COM-03",
+            "values": 8,
+            "source": "MConnect",
+            "updated": "2026-10-08"
           }
         ],
         "templates": [
@@ -1872,6 +1879,13 @@
             "values": 3,
             "source": "Serviciu",
             "updated": "2026-09-30"
+          },
+          {
+            "name": "Tipul solicitantului",
+            "code": "CLS-BIO-02",
+            "values": 2,
+            "source": "Serviciu",
+            "updated": "2026-10-08"
           }
         ],
         "templates": [],
@@ -1914,13 +1928,13 @@
             "requestType": "Reperfectare",
             "moment": "La inițierea solicitării",
             "generation": "Automat",
-            "condition": {
+            "conditions": [{
               "classifier": "CLS-BIO-01",
               "values": [
                 "minora",
                 "majora"
               ]
-            },
+            }],
             "calc": {
               "mode": "tarif"
             },
@@ -1941,12 +1955,12 @@
             "requestType": "Reperfectare",
             "moment": "La inițierea solicitării",
             "generation": "Automat",
-            "condition": {
+            "conditions": [{
               "classifier": "CLS-BIO-01",
               "values": [
                 "administrativa"
               ]
-            },
+            }],
             "calc": {
               "mode": "tarif"
             },
@@ -2550,7 +2564,7 @@
       "requestType": null,
       "personType": null,
       "subdivision": null,
-      "expression": "{suprafata_m2} * 2",
+      "expression": "{{suprafata_m2}} * 2",
       "rounding": "2 zecimale",
       "validFrom": "2026-01-01",
       "validTo": null,
@@ -2586,7 +2600,7 @@
       "requestType": null,
       "personType": null,
       "subdivision": null,
-      "expression": "{taxa_examinare} * 0.5",
+      "expression": "{{taxa_examinare}} * 0.5",
       "rounding": "2 zecimale",
       "validFrom": "2026-01-01",
       "validTo": null,
@@ -4634,6 +4648,21 @@
       ]
     },
     {
+      "code": "CLS-BIO-02",
+      "name": "Tipul solicitantului",
+      "scope": "003000519",
+      "values": [
+        {
+          "code": "imm",
+          "label": "Întreprindere mică sau mijlocie (IMM)"
+        },
+        {
+          "code": "mare",
+          "label": "Întreprindere mare"
+        }
+      ]
+    },
+    {
       "code": "CLS-COM-01",
       "name": "Tipuri de activitate comercială",
       "scope": "003000023",
@@ -4649,6 +4678,52 @@
         {
           "code": "alimentatie",
           "label": "Alimentație publică"
+        }
+      ]
+    },
+    {
+      "code": "CLS-COM-03",
+      "name": "Activitate economică (CAEM-2)",
+      "scope": "003000023",
+      "hierarchical": true,
+      "values": [
+        {
+          "code": "G",
+          "label": "G — Comerț cu ridicata și cu amănuntul"
+        },
+        {
+          "code": "46",
+          "label": "46 — Comerț cu ridicata",
+          "parent": "G"
+        },
+        {
+          "code": "47",
+          "label": "47 — Comerț cu amănuntul",
+          "parent": "G"
+        },
+        {
+          "code": "47.1",
+          "label": "47.1 — În magazine nespecializate",
+          "parent": "47"
+        },
+        {
+          "code": "47.2",
+          "label": "47.2 — Produse alimentare în magazine specializate",
+          "parent": "47"
+        },
+        {
+          "code": "47.3",
+          "label": "47.3 — Carburanți pentru autovehicule",
+          "parent": "47"
+        },
+        {
+          "code": "I",
+          "label": "I — Cazare și alimentație publică"
+        },
+        {
+          "code": "56",
+          "label": "56 — Restaurante și alimentație publică",
+          "parent": "I"
         }
       ]
     }

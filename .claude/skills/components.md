@@ -957,6 +957,23 @@ two different things.
     <template>”, so it renders as a value, not a placeholder) · `Revino la implicit` text
     button only when overridden. No „Generează” switch (removed 2026-10-08, user: not needed
     in the drawer). Stored as `rt.docOverrides`, `rt.notifyOverrides`.
+- **Formulare (service tab) › ⋮ per form (2026-10-08, user):** every item has a defined result
+  (demo states `svc-03b…03g`, Figma 03b–03g):
+  - **Editează / Adaugă formular** open the whole builder as a **sheet**
+    (`.form-builder-modal-overlay.is-sheet`: 16px dimmed strip on top, rounded top corners);
+    the FO builder demo flow keeps its full-page builder.
+  - **Previzualizează** → the **rendered form, as the applicant sees it**: the builder's
+    Preview, view-only (`.is-sheet.is-view-only`): the same sheet as Editează (16px dimmed
+    strip on top only, rounded top corners); Build/Schema switch, version, errors, scope and Publică hidden;
+    header „Previzualizare · <formular> vX” + `Doar vizualizare`; × on the right. Closing
+    resets the builder to Build. (Showing the whole builder here was tried and reverted — the
+    user wants the end-user render.) Non-admins get Previzualizează as the row action.
+  - **Versiuni** → the standard „Istoric versiuni” modal (`#dtpl-history-modal`, same as the
+    service and the templates): newest first, the version in force marked „în vigoare”, a
+    draft on top as „schiță, nepublicată” (marker: edit icon). `formVersionHistory(form)`.
+  - **Duplică** → copy in draft + success toast · **Exportă setări (JSON)** → download +
+    toast · **Elimină** → blocked (error toast naming the request types) when the form is
+    used, else the destructive confirmation.
 - **Document preview (view-only) next to a drawer (2026-10-08, comment 1958021586):**
   `section.e-permits-doc-peek` inside the drawer `<aside>` (so the dialog keeps focus/Esc),
   docked in the free space left of the drawer (`left: calc(100% - 100vw); right: calc(100% +
@@ -1134,6 +1151,8 @@ paper-copy option, RAP filters, builder toggles. The old hand-rolled boxes
 `e-permits-user-profile__perm-checkbox`, `rap-filter-option__box`, `rap-checkbox`,
 `e-permits-builder__mini-check--only`) are deleted — do not bring them back.
 Do not use `--small` or `--large`.
+**One exception (user, 2026-10-08):** the Documente tab's „Afișează” / „Obligatoriu” options
+in their grey containers (`.e-permits-svc-doc__opt`) use **`.checkbox--small` (16px)**.
 
 `.checkbox-custom` now carries `box-sizing: border-box` and `flex: 0 0 auto` in
 `main.css`. Without them it rendered **24px** on pages with no global border-box
@@ -1818,6 +1837,13 @@ for this component.
 **Gap — the `.suffix` sub-component is unimplemented.** Figma defines Type (MDL **19x28** ·
 Euro **13x28**); `grep suffix|prefix|MDL` over `main.css` returns nothing. Only a generic
 `has-trailing` 40px padding reservation exists.
+
+**Local unit suffix (2026-10-08)** — until the library ships `.suffix`, a unit inside an
+`.e-permits-fo-input` is `<label class="e-permits-fo-input__suffix" for="<input id>"
+aria-hidden="true">%</label>` after the input: fs-14 regular, tertiary when empty, secondary
+once filled or focused (`:placeholder-shown`, so the input carries `placeholder="0"`), gap 4,
+the value right-aligned next to it; clicking the unit focuses the field. Used by the tax
+reduction (`#pay-percent`, `#pay-percent-<i>`, 88 wide in scenario rows). Reuse for MDL / m².
 
 ---
 
@@ -2781,6 +2807,30 @@ These are the tabs in `SERVICE_PROFILE_TABS`, in order:
    `#serviciu/<code>/dependencies` maps to `settings`)
 10. Jurnal de evenimente
 
+**Rule — no toast for self-evident actions (2026-10-08, from the user):** a switch, checkbox
+or chip already shows its result on the spot — never confirm it with a toast in the corner.
+Toasts are for results that are not visible where the user acted (a save / publish / export
+/ duplicate / delete, an error that blocks the action). Removed: Setări switches, Documente
+„Afișează” / „Obligatoriu”, the notification template's Activ switch.
+
+**Documente tab (2026-10-08, US-225):** each RSSP document row: grey document icon · title ·
+meta `RSSP` tag · „În RSSP: obligatoriu/opțional” (read-only) · „Nu apare în cerere” when
+hidden; right side two **checkboxes, each in a small grey container**
+(`label.checkbox.checkbox--small.e-permits-svc-doc__opt`: `--color-background-base-secondary`,
+radius 8, padding 6/12/6/8, gap 8; hover `secondary-hover`; focus ring on `:focus-within`;
+Figma: component set „Opțiune document · checkbox” `10507:44447` — State × Checked, props
+Label + Asterisc) —
+**„Afișează”** (Vizibilitatea: the applicant sees it in the request) and **„Obligatoriu”** +
+the red star (`requiredMark()`) (Obligativitatea; disabled and off while hidden — a hidden
+document is never required; hovering the disabled „Obligatoriu” explains it via
+`data-tooltip-reason` on the container: „Bifează întâi „Afișează” — un document care nu apare
+în cerere nu poate fi obligatoriu.”). Switches were tried first and replaced (user). „Modificat în GEAP” (brand) when anything differs from RSSP.
+Section meta: N documente · X obligatorii · Y ascunse. Overrides `geap.documentVisible` /
+`geap.documentRequired` by title, go into the service draft (no toast). Demo `svc-06a`,
+`svc-06b` (hidden). Figma: blocks 06 (default), 06b (hidden + library tooltip on the disabled
+Obligatoriu, header pending), 06c (hover), 01i list updated; block 10a (switch toast) deleted —
+the Setări flow goes 10 → 10b directly.
+
 **Rule — the button that opened something keeps its focus ring (2026-10-08, from the user,
 every button in the system):** while a button's menu, dropdown, side panel or preview is
 open, the button shows its pressed fill **plus the focus ring** (2px
@@ -2851,6 +2901,24 @@ Programat”, Secondary + clock), `Buton Publică` (hide it when Programat). Per
 Caption / Version texts. Scheduled-publication blocks: 01f1, 01f2, 01h1, 01j, 01j1–01j3
 (Modal instances with content components „Modal conținut / S01f1 …”).
 
+**Figma — previews and the Formulare ⋮ (2026-10-08):** local components in frame
+„Componente · Previzualizare” (`10484:39818`, page ↳ BO -> Servicii):
+- **„Panou previzualizare”** (`10488:205014`) — variants Tip=Document / Document îngust (A4
+  scaled 512/794 for the 560px panel) / E-mail / Mobil; text props Titlu, Subtitlu. Built
+  from the code capture (A4 = `.e-permits-dtpl__page`, notification card =
+  `.e-permits-ntpl-preview`, library segmented control). Placed absolute in the screen, 16px
+  from the edges and from the drawer.
+- **„Drawer · Previzualizare șablon”** (`10488:205077`) — the 880px Șabloane preview drawer
+  (footer Închide · Deschide constructorul), inside the overlay next to the scrim.
+- Blocks: 02a5 documents 1920 · 02a6 e-mail · 02a7 mobil · 02a8 at 1440 (drawer 848) ·
+  02a9 < 1232 (full-screen panel over the dimmed drawer) · 08l Șabloane preview ·
+  03b–03g the Formulare ⋮ items (03b inset builder preview with `.step-desktop` Vertical,
+  03c Modal + „Modal conținut / S03c”, 03d–03g toasts / confirmation). The opener keeps
+  State=Focus; the previewed row has the brand-secondary fill.
+- Every flow from a menu item / eye has its own arrow (vector path in its own lane; the
+  routing script re-lanes all arrows, widens the gaps and moves the columns).
+- When replacing a drawer inside an „Overlay” frame, keep its `user-create__scrim` (08l lost it once).
+
 **Stepper (Figma) = local component „Stepper · drawer” (`10421:197819`, page ↳ BO ->
 Servicii)** — strip (padding 16/20, bottom border) with 4 `.step-desktop` instances
 (Horizontal). Per use: set each step's Step Label + State (Completed / Current /
@@ -2905,8 +2973,7 @@ nou, șablon nou, …) uses it — never a frame-built strip. Code: `renderStepS
   row: the full flow's grey filled document icon (`assets/icons/document-uploaded.svg`,
   24px, `.e-permits-fo-lib-item__icon`) via `renderStackItem({ leadHtml })` (row gets
   `.has-lead`), title, meta `RSSP` tag · „În RSSP: obligatoriu/opțional”, and on the right
-  the „Obligatoriu” switch (`renderToggle`, `data-svc-doc-required`). GEAP overrides RSSP
-  (`geap.documentRequired[title]`); a changed row gets a brand „Modificat în GEAP” tag.
+  the „Afișează” + „Obligatoriu” switches (see „Documente tab (2026-10-08, US-225)”).
 - **„N modificări nepublicate” is clickable everywhere** (service header, template builder):
   `renderHeaderStatus(text, "warning", 'data-… aria-haspopup="dialog" title="Vezi modificările"')`
   opens `#pending-changes-modal` (`openPendingChanges({ subject, changes, publishLabel, onPublish })`):
@@ -3407,9 +3474,11 @@ emitere primară 9252 MDL; at reperfectare **two different tariffs at the same m
 chosen by the reason picked at initiation (minor/major change 7743 · administrative 1292).
 
 **Model** (`service.geap.taxes`, one object per tariff it charges):
-`{ id, tariffId, requestType, moment, generation: Automat|Manual, condition: null |
-{ classifier, values[] }, calc: { mode: tarif | reducere (percent) }, term, exemptions[], removable, recurring, version, state, active,
-usage }`. Condition classifiers: `servicesStore.conditionClassifiers` (`{ code, name, scope,
+`{ id, tariffId, requestType, moment, generation: Automat|Manual, conditions: [{ classifier,
+values[] }] (AND; [] = always), scenarioCalc: { "<cls>=<val>&<cls2>=<val2>": { mode: tarif |
+reducere, percent } }, calc: { mode: tarif | reducere (percent) } (unconditional only), term,
+exemptions[], removable, recurring, version, state, active, usage }`. The older single
+`condition: { classifier, values[] }` is still read (`taxConditions`). Condition classifiers: `servicesStore.conditionClassifiers` (`{ code, name, scope,
 values: [{ code, label }] }`) — the value the applicant picks in the form at initiation.
 Taxes of the same request type + moment land on **one payment note**.
 
@@ -3425,8 +3494,27 @@ Taxes of the same request type + moment land on **one payment note**.
   {expresie}” (`tariffValueText`, registry „Valoare”, tax picker, stacked rows) — never the
   raw amount.
 - `validateTax` = payment rules (moment in the flow, initiation = automatic, term,
-  exemptions only manual, recurrence) + tariff required and eligible + condition needs a
-  classifier and ≥ 1 value + reduction 1–100.
+  exemptions only manual, recurrence) + tariff required and eligible + each condition needs a
+  classifier (once) and ≥ 1 value (keys `conditionClassifier[:i]`, `conditionValues[:i]`) +
+  ≤ `TAX_SCENARIO_MAX` (24) scenarios (`scenarios`) + reduction 1–100, per scenario
+  (`calc:<key>`, `percent:<key>`) or, unconditional, plain `percent`.
+- **Hierarchical classifiers (2026-10-08):** a condition classifier may have
+  `hierarchical: true` and values with `parent` (CAEM G → 47 → 47.3; demo `CLS-COM-03` on
+  `003000023`, state `svc-04s`). `classifierTree(classifiers)` → `{ cls: { value: parent } }`,
+  passed as the optional `tree` to `conditionApplies` / `conditionsOverlap` / `taxConflict` /
+  `scenarioFor` / `taxAmount({ tree })`; without it everything stays flat. A checked value
+  covers everything under it; a checked child is an exception with its own row; the **most
+  specific** matching scenario wins. UI: value checkboxes indented 24 per level
+  (`.checkbox.e-permits-tax-cond__value`, `--tax-cond-level`), `checkbox-description`
+  „Inclus în G · bifează pentru o sumă separată” / „Excepție de la G”, hint under the list;
+  scenario rows get a tertiary fs-12 note (`.e-permits-tax-scn__note`): „restul
+  subdiviziunilor, fără 47” (direct exceptions only), „cu toate subdiviziunile”, „excepție de
+  la G”. Not handled yet: two *separate* classifiers in a parent/child relation (valid pairs only).
+- **Scenarios (2026-10-08, user comments on Figma 04h):** `taxScenarios(tax)` = cartesian
+  product of the checked values (one value of each classifier), key `cls=val&cls2=val2`;
+  `scenarioFor(tax, answers)`; `taxAmount(tax, tariff, values, { scenario | answers })` uses
+  that scenario's calc (missing → the tariff as is). Overlap/conflict: two taxes conflict only
+  if every classifier they share has a common value.
 - `unconfiguredTariffs` (the service's tariffs no tax uses) and `defaultTaxForTariff`
   ("Aplică ca atare": registry request type, at initiation, Automat, the tariff as is).
 
@@ -3453,9 +3541,24 @@ service's then global tariffs, each option names its source; hint = code · type
 basis · "preluat din RSSP, nu se editează aici"; "Tariful lipsește din RSSP / eAPL?
 Creează un tarif nou" hands over to the tariff drawer and returns with the new tariff
 selected) · **Aplicare** (Tip solicitare — prefilled from the registry tariff, Moment,
-Automat / Manual) · **Condiție** (segmented Întotdeauna / Doar pentru anumite valori →
-Clasificator + value checkboxes) · **Calcul** (segmented Suma tarifului /
-Reducere, with the resulting sum) · Termen · Scutiri (manual only, + "Specialistul poate
+Automat / Manual) · **Condiție** (segmented Întotdeauna / Doar pentru anumite valori → one
+grey `.e-permits-tax-cond` block per classifier: „Clasificator N” (block title: 14 medium, text/base/default) + „Elimină”
+(`btn-text-destructive btn-sm`, only when > 1), fo-select without the classifiers used in
+the other blocks, value checkboxes; under the blocks „Adaugă clasificator” (`btn-neutral
+btn-sm` + `icon-plus-large` 16, disabled when every classifier is used) + grey info note
+(`renderInfoNote`, gap 12): „**Taxa se aplică doar dacă toate condițiile sunt îndeplinite.**
+Valoarea o alege solicitantul…” / single classifier: „Valoarea o alege solicitantul…”) · **Calcul** — unconditional: segmented Suma
+tarifului / Reducere with the resulting sum; conditional: „Calcul pe scenarii”, one grey
+the shared stacked list (`.e-permits-stack` › `__group` › `__list` › `__item.e-permits-tax-scn__row`, labels in `__main`, controls in `__actions`; only flex-wrap + gap 8/24 added) — one row per scenario = one value label per line, regular 400 (first line
+default colour, the next ones secondary — never bold) | fo-select Suma tarifului / Reducere
+(180) | % input (88, `e-permits-fo-input__suffix` „%”; an empty slot keeps the columns aligned) | result (right, medium 500:
+sum, „Formula − 50%”, or „—”); errors under the row; hint „N scenarii —
+câte o sumă pentru fiecare combinație…”; > 24 → inline error instead of rows. List: meta
+„7.743 MDL · reducere în 2 din 4 scenarii”, meta2 „Se aplică doar dacă A = x sau y și B = z”,
+summary card shows the range „3.871,5 MDL – 7.743 MDL”; CSV „Calcul” lists every scenario.
+Demo: `svc-04h` (1 classifier, 2 scenarios), `svc-04h3` (row 1 −50%), `svc-04h4` (2
+classifiers → 4 scenarios, IMM −50%), `svc-04h5` (errors: values missing in block 2, empty
+reduction on a scenario). · Termen · Scutiri (manual only, + "Specialistul poate
 scoate taxa din notă") · Recurență. Footer: draft / publish, or save = new version.
 
 **Lifecycle confirms** (all via `askConfirm`): Publică, Activează (or "Înlocuiește taxa activă"
@@ -3950,6 +4053,128 @@ MDelivery · Suspendare cu coordonare.
   v2.1.1). Arrows: switch → 10a, header (Main Navigation instance) → 10b, modal Publică → 10c.
 - Initial flags (`serviceSettingFlags`): avize → Cu expertiză; suspension / autoDistribution
   starting with „Da”; taxes → Cu plată; the rest off.
+
+### Row actions, „Editează” and tag size — rules (2026-10-09)
+
+**Row actions** (every stacked-list row; `renderRowActions` / `renderStackItem`):
+1. Eye „Previzualizează” — only where a view-only preview exists: icon-only **`btn-strict`**
+   (no background), `data-tooltip-label`, aria-label „Previzualizează: <name>”. First.
+2. **One** labelled primary — `btn-neutral btn-sm`: **„Editează”** for anything that exists,
+   „Configurează” only for what is not configured yet (tariff without a rule, request type not
+   „Configurat”). Never an icon-only primary (the old ✎ on taxes), never two text buttons.
+3. ⋮ (`renderStackMenu`) for everything else — constructive first (Publică, Activează, Aplică ca
+   atare), destructive red last.
+Why: NN/g — labelled actions are understood, icons alone rarely are; Carbon — secondary actions
+in the overflow, destructive separated and last. Tables (registries) keep their icon-only ✎.
+
+**„Editează” always carries the pen** (`icon-edit`, small, before the label — same markup as
+„+ Adaugă …”): `actionLabelHtml` / `EDIT_LABEL_HTML`, in rows, section headings and drawers.
+
+**Tags = Figma tag-filled Medium everywhere except tables** (`.e-permits-workplace__tag`: 24px,
+14/20 medium, px 8, radius 4); inside `table` / `[role=table|grid]` they stay Small (20px, 12/16,
+px 6). Value lists (`valueTags`) use the same tag. Neutral tag = library neutral subtle
+(`background/base/tertiary`, default text) so it shows on white and on grey cards alike.
+**Subtle tags have a 1px border** in their outlined twin's colour (library `tag-filled` Subtle,
+Components file `doJ7tDY0PlQ0PqMgbpFVIC` › Tag `22:80`, 2026-10-09): Neutral / Muted
+`border/base/default`; colours use the **subtle** step — new Foundations semantic tokens
+`border/{positive,warning,danger,brand}/secondary` (light 200, dark 800; code: `--color-border-<tone>-secondary`
+in e-permits-shell.css until main.css is re-synced); inside, so sizes do not change. Code: inset
+`box-shadow` on `.e-permits-workplace__tag--{tone}`. PF / PJ tags lead with a filled icon
+(`icon-person-filled` / `icon-suitcase-filled`, central icon system) via `applicantTags`.
+
+### Servicii › Setări — US-221 (Azure 95229), 2026-10-09
+
+- Tab order: **Setări right after Date generale** (AC-05).
+- 11 sections in the story's order, each `renderPassportBlock(title, rows, { actionHtml: Editează })`:
+  Solicitant și act · Examinare și distribuire · Suspendare · Semnare · Plată · Livrare și
+  eliberare · Contestare · Numerotare · Publicare în RAP · Schițe · Interdependențe (stacked
+  list: Editează + ⋮ Elimină; „Adaugă interdependență” `btn-secondary`). Then „Alte setări” — the
+  three switches outside the story (Aprobare secundară, Cu expertiză, Suspendare cu coordonare),
+  unchanged, instant.
+- RSSP values: value left + plain caption „Din RSSP” at the row's right end (`.e-permits-cfg-value--rssp` + `.e-permits-cfg-source`, 12/16 tertiary like the header „sincronizat …”; no tag), also inside the drawer's grey read-only box, read-only for everyone; MPower,
+  MDelivery and aprobare tacită become switches only when RSSP sends nothing (`cfgRssp`).
+- **Editează** → standard drawer `#svc-cfg-drawer` (title = section, subtitle „Setări · serviciu”,
+  footer „Intră în vigoare după publicarea pașaportului.” · Anulează / Salvează). Fields: fo-select,
+  numeric fo-input, checkbox groups, `renderToggle` switches (full row, no row rule / padding —
+  the grid gap spaces them); a switch that unlocks fields (Distribuire automată, Suspendare
+  personalizată, Serviciu contestabil) = one bordered group `.e-permits-cfg-group` (1px base
+  border, radius 8, padding 16, gap 16) with the fields in `__body` aligned under the switch text
+  (indent 56), no separators inside. Switches/checkboxes never redraw the drawer (keeps the
+  library transition); a group switch redraws 200ms later, after the knob slides. Read view:
+  Da = Medium success tag with checkmark, Nu = neutral tag. Read-only RSSP fields =
+  grey box `.e-permits-cfg-ro` + tag. Numerotare = one grey `.e-permits-tax-cond` block per rule
+  (Tip document · Resetare · Prefix · Separator · Lungime · Valoare inițială · Valoare curentă) +
+  „Exemplu (numărul următor)”, max one rule per document type. RAP = rows checkbox + switch
+  „Anonimizare” (IDNP / nume PF always anonymised, switch locked on).
+- Validation: „Câmpul este obligatoriu.” / „Introdu un număr întreg mai mare ca zero.” under the
+  field. Save logs one audit event per changed field („Secțiune · Câmp: vechi → nou”), the header
+  shows „N modificări nepublicate”, the tab shows „Editat <dată> · <user>”. Interdependence
+  removal = confirm „Elimină interdependența” (Anulează · Confirmă). Unsaved drawer → „Renunți la
+  modificări?”.
+- „Termenul de achitare (zile)” (Plată) prefills every new tax (AC-45, `defaultPaymentTerm`).
+- Demo: `svc-10` (view), `svc-10d…10m` (one drawer per section), `svc-10e1`, `svc-10h1` / `svc-10j1`
+  (validation), `svc-10k1` (2 rules), `svc-10n` / `10n1` / `10n2` / `10n3` (interdependence add,
+  validation, edit, remove), `svc-10o` (after save).
+
+### Servicii › Șabloane de tipar — service-only templates, JSON test data (2026-10-09, comments 1957263114, 1957270082)
+
+- **Only this service's templates.** No shared catalog: „Atașează șablon”, „Detașează”, „Șterge
+  din catalog” and the Vizibilitate field are gone. Toolbar: „Importă din MDocs” (`btn-neutral`)
+  · **„Șablon nou”** (`btn-secondary` + plus, `#dtpl-new-modal`: Denumire*, Tip document*, Cod în
+  MDocs* — follows the name via `dtplCodeFrom` until typed; unique per service) → „Creează și
+  deschide constructorul”. A new template is `status: "draft"`, v0.1.0, tag „Schiță · nepublicat
+  în MDocs” (list + constructor header); the first „Publică în MDocs” makes it v1.0.0.
+- ⋮ = **Șterge** only (destructive confirm naming the request types that generate it). Details
+  drawer: Identificare + „Din MDocs” (Cod, Versiune, Tip, Generat la).
+- **Date de test = one JSON object**, as in MDocs: key = field name, nested objects fill dotted
+  fields (`dtplFlatten`). Prefilled with every field the template uses (current or sample value).
+  Under the editor: status („N câmpuri cu valoare de test” / Romanian error „JSON invalid la
+  linia L, coloana C: …”) + „Completează cu exemple” · „Formatează” (aria-disabled with a reason
+  while invalid); notes: Câmpuri necunoscute (error), Fără valoare de test, Chei care nu apar în
+  șablon. Previzualizare keeps the last valid data and warns when the JSON has errors.
+- Demo: `svc-08c` (modal), `svc-08c1` (validation), `svc-08c2` (draft in the constructor),
+  `svc-08k` (Șterge), `svc-08f` (JSON), `svc-08f1` (invalid JSON), `svc-08f2` (preview warning).
+  The constructor opens from the preview footer („Deschide constructorul”).
+
+### Full-screen template editor header — publish status under the button group (2026-10-09)
+
+The status caption („Nepublicat încă” / „Publicat … · …” / „vX intră în vigoare pe …”) ends under
+**Publică**, not under the ×: `.e-permits-page-header__aside:has([data-ntpl-sheet-close])
+.e-permits-page-header__caption` pads right by × (32) + divider (1 + 2×4) + two gaps (2×8).
+Figma „Șablon notificare / Header” = Sync Information (H, top) › [Publish group (V, right):
+Renunță · Salvează · Publică / caption] · divider (1px line, 4 inset) · ×.
+
+### Menus and dropdown lists in Figma — library instances only (rule, 2026-10-09)
+
+An open ⋮ / action menu is always the library **`contextual-menu`** (rows `.menu-item-action`,
+Leading Element = Icon, State Default / Disabled; destructive rows get `text/danger` +
+`icon/danger` overrides). An open select list is always **`selection-menu`** (rows
+`.menu-item-selection`, State Default / Hover / Selected). Both hold max 6 rows (a longer list
+shows its first 6, like a scrolled dropdown). Never hand-build `fo-intent-menu` /
+`fo-select__list` frames or detach these components. Trigger State = Focus, menu right-aligned
+8 below it; widen the instance until no label wraps.
+
+### Notification template › Destinatari — recipient rules (2026-10-09, comment 1957279684)
+
+Shared by the global Șabloane editor and the service editor (Servicii › Notificări, full screen).
+- List = stacked list „Reguli de destinatari” (title Destinatar + tag Activă/Inactivă; meta
+  „Livrare: …” · „Un mesaj comun / Un mesaj pentru fiecare destinatar”); row action
+  „Editează” + ⋮ (Dezactivează/Activează · Șterge). „Adaugă regulă” (`btn-secondary`) on the
+  section header.
+- **Add / edit** = the standard modal (`#ntpl-rule-modal`): title „Regulă nouă” / „Regula N”,
+  subtitle „Regula intră în vigoare după publicarea șablonului.”; Destinatar + Livrare
+  (fo-select, required), switches Mesaje separate / Regulă activă; Anulează · Salvează.
+  New rule defaults: Solicitant · Email · common message · active.
+- **Dezactivează / Activează** → `askConfirm` (deactivate = destructive).
+- **Șterge** → `askConfirm` destructive („Ștergi regula?”). On the **only** rule the item is
+  `aria-disabled` with `data-tooltip-reason` „Șablonul are nevoie de cel puțin un destinatar…”
+  (same rule as the creation wizard).
+- Every change marks the template unpublished (banner) and takes effect after publishing.
+- Demo: `ntpl-03`, `ntpl-03a` (edit), `ntpl-03c` (add); service editor `svc-09f`, `svc-09f1`
+  (add), `svc-09f2` (edit), `svc-09f3` (⋮), `svc-09f4` (Șterge blocked), `svc-09f5` (delete
+  confirm, 2 rules), `svc-09f6` (deactivate confirm).
+- Figma: `Modal` (Tip=Conținut) + local component „Modal conținut / Regulă destinatar”
+  `10567:43442` (page „🧩 Componente locale”); blocks Servicii 09f1–09f6, Șabloane 03a, 03c.
 
 ### Servicii › Notificări — clone drawer, full-screen template editor, row actions (2026-10-03)
 
@@ -4582,7 +4807,27 @@ what the tax will charge, as the field's hint line (re-rendered on leaving the f
   „De plată: rezultatul formulei tarifului − **50%**, calculat la generarea notei”; empty →
   no line.
 There is no formula on the tax — it lives on the tariff. Demo: `svc-04h1` (formula tariff),
-`svc-04h2` (formula tariff − 50%), `svc-04h3` (fixed tariff − 50%).
+`svc-04h2` (formula tariff − 50%), `svc-04h3` (fixed tariff − 50%). A conditional tax shows
+the result per scenario row instead (see „Taxe — tariff + application rule”).
+
+**Figma (GEAP 2.0, ↳ BO -> Servicii, 2026-10-08):** local components in frame „Componente ·
+Taxe pe scenarii” `10519:44882` — „Input · procent” `10519:44896` (State Gol / Completat /
+Focus / Eroare, prop Valoare) and „Calcul · scenariu” `10519:45068` (Calcul = Suma tarifului /
+Reducere / Reducere · eroare; props Linia 1, Linia 2, Notă, Sumă, Separator; = a
+`stack__item` inside `stack › stack__group › stack__list` 0/20). Blocks rebuilt from
+instances: 04h, 04h1–04h3 (scenario rows), new 04h4 (two classifiers, 4 scenarios), 04h5
+(validation), 04s (CAEM hierarchy), 04j (no values). Builder: text node „tax builder
+(helper)” `10521:44957` run as `new AF("SPEC", text)(SPEC)` with templates in „tax builder
+templates (helper)”. Flows: „Reducere pe rând” 04h→04h3, „Adaugă clasificator” 04h→04h4,
+„Salvează · date incomplete” 04h→04h5, „CAEM pe niveluri” 04i→04s. Tarife page: registry
+values read „Formulă · Suprafața obiectului × 2” (as `tariffValueText`), picker / field /
+placeholder use `{{key}}`.
+
+**Formula variables are written `{{nume}}`** (2026-10-08), like in the notification and print
+templates: „Inserează variabilă” inserts `{{key}}`, the picker shows `{{key}}`, the
+placeholder is „ex. {{suprafata_m2}} * 2”, `sanitizeFormula` keeps whole `{{key}}` tokens,
+error messages name `{{key}}`. The older `{key}` still parses (`FORMULA_VAR`) and reads the
+same in „Se citește”.
 
 ### Servicii list — advanced filter in Figma (2026-10-04)
 
