@@ -12,6 +12,19 @@
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
+  /* Subdiviziuni de examinare: open the picker; tick a whole raion through the search, or
+     single subdivisions in the list (the clicks a person makes, without the per-click pause) */
+  const subdivOpen = async (h) => { await cfgNav("exam")(h); await h.click("[data-cfg-subdiv-open]"); };
+  const subdivRaion = async (h, raion) => { await h.fill("[data-cfg-subdiv-search]", raion, { leave: false }); await h.click(`[data-cfg-subdiv-group="${raion}"] [data-cfg-subdiv-all]`); };
+  const subdivTick = (raion, from, to) => { for (let n = from; n <= to; n += 1) document.querySelector(`[data-cfg-subdiv-item][value="Primăria ${raion} · UAT ${String(n).padStart(2, "0")}"]`)?.click(); };
+  /* the 134 of 02p2 / 02p4: own 2 + Anenii Noi 3/16 + Briceni all + Cahul UAT 05 + Orhei all +
+     Soroca 12/38 + Ungheni 5/35 + mun. Chișinău all + mun. Bălți all */
+  const subdivPick134 = async (h) => {
+    for (const raion of ["Briceni", "Orhei", "mun. Chișinău", "mun. Bălți"]) await subdivRaion(h, raion);
+    await h.fill("[data-cfg-subdiv-search]", "", { leave: false });
+    subdivTick("Anenii Noi", 1, 3); subdivTick("Cahul", 5, 5); subdivTick("Soroca", 1, 12); subdivTick("Ungheni", 1, 5);
+    await h.wait(300);
+  };
 
   /* shared click paths */
   const openTax = (taxId) => async (h) => { await h.click(`[data-pay-edit="${taxId}"]`); };
@@ -468,6 +481,13 @@
     "svc-10n1": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10n2": svc("settings", cfgNav("deps")),
     "svc-10n3": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-remove]"); await h.wait(300); }),
+    /* Subdiviziuni de examinare for primării (~900): the field opens the picker modal */
+    "svc-10w": svc("settings", subdivOpen),
+    "svc-10w1": svc("settings", async (h) => { await subdivOpen(h); await h.fill("[data-cfg-subdiv-search]", "Orhei", { leave: false }); await h.click('[data-cfg-subdiv-group="Orhei"] [data-cfg-subdiv-all]'); }),
+    "svc-10w2": svc("settings", async (h) => { await subdivOpen(h); await subdivPick134(h); await h.click('[data-cfg-subdiv-filter="selected"]'); }),
+    "svc-10w3": svc("settings", async (h) => { await subdivOpen(h); await h.fill("[data-cfg-subdiv-search]", "Varnița", { leave: false }); }),
+    "svc-10w4": svc("settings", async (h) => { await subdivOpen(h); await subdivPick134(h); await h.click("[data-cfg-subdiv-apply]"); await h.wait(300); }),
+    "svc-10w5": svc("settings", async (h) => { await cfgNav("exam")(h); await h.click("[data-cfg-subdiv-remove]"); await h.click("[data-cfg-subdiv-remove]"); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     /* after a save: the header counts the changes as unpublished */
     "svc-10o": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspSigned"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); }),
     /* US-221 AC-01: a role without configuration rights has no Setări tab (lands on Date generale) */

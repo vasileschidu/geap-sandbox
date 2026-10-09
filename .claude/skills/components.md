@@ -4166,6 +4166,34 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   `10638:1533`, Setări · Bara de salvare `10638:1534`, Setări · Câmp read-only `10638:1577`;
   svc/field-row has optional „Text secundar” + right „Caption”. Helpers (do not edit): builder
   `10640:1502`, default spec `10648:1502`, scroll `10666:1502` (SCROLL(block, {key|node|top})).
+- **Figma — Subdiviziuni de examinare picker (2026-10-09):** in every Setări screen (all 25), the old
+  checkbox list is an instance of **„Setări · Subdiviziuni de examinare”** (`10703:1782`; Stare =
+  Implicit · Deschis · Selecție aplicată · Eroare). The field = title + hint, then the library
+  `select-input` (Label off) and the library `input-chip`s; a raion chip has the raion in medium and
+  „· toate N / X din N” in regular secondary (range override); „Încă N · Arată toate” =
+  button-text-circular Primary Small.
+  - New local components in Componente · Setări:
+    - „Setări · Opțiune listă” `10700:1518` (Bifat × Stare Implicit/Hover; 32px row, hover
+      `background/base/secondary-hover`);
+    - „Setări · Antet secțiune listă” `10700:1558` (Selecție Toate/Parțial=Indeterminate/Niciuna ×
+      Stare; 48px, counter on the label line);
+    - „Stare goală · fără rezultate” `10703:1516` (bare; title uses Body/Small 500 — there is no 600
+      style);
+    - „Modal conținut / Subdiviziuni de examinare” `10704:2158` (Stare Implicit · Căutare · Selectate
+      · Fără rezultate; 680×698, the list fills and clips).
+  - The shared **Modal** set gained **Tip=Selecție** (`10704:158854`, User Management page): 720×880,
+    the content fills the height, and the footer is space-between with a **Total** text property
+    (the number bolded by a range override) on the left of Renunță · Aplică.
+  - Blocks **02p · 02p1 · 02p2 · 02p3 · 02p4 · 02p5** sit at the bottom of the right Setări column
+    (x 8913, from y 12804), cloned from 02s1. They are linked to demo states **svc-10w…svc-10w5**:
+    open · search „Orhei” + raion ticked · Selectate (134) · no results · applied (chips + bar +
+    „modificat” dot) · error after Salvează (red field + „1 câmp de corectat” + error dot).
+  - Flows: „Deschide selecția” goes from the 02 field (lane 8833, label left of the lane). Five
+    more run right of the column, in lanes 11057–11377: „Caută raionul · bifează antetul”,
+    „Selectate”, „Căutare fără rezultat”, „Aplică”, „Elimină chipurile · Salvează”.
+  - The new field is 28px shorter. In scrolled screens whose section sits below it, the Column moved
+    down 28 and the sticky section list's padding dropped 28. The 8 flows that start on 02 elements
+    below the field had their start segment moved up 28.
 - **Editează** → standard drawer `#svc-cfg-drawer` (title = section, subtitle „Setări · serviciu”,
   footer „Intră în vigoare după publicarea pașaportului.” · Anulează / Salvează). Fields: fo-select,
   numeric fo-input, checkbox groups, `renderToggle` switches (full row, no row rule / padding —
