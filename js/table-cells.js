@@ -4,6 +4,9 @@
      [data-cell-tooltip="<text>"]   full text for a truncated .cell__truncate
      [data-cell-tooltip-always]     with it, shown even when nothing is clipped —
                                     e.g. a "+3" overflow badge listing the hidden items
+   RULE (2026-10-10): any text clipped inside a table cell (ellipsis or line clamp) shows its
+   full text on hover / focus, with no attribute needed — `data-cell-tooltip` only overrides
+   the text (e.g. a full name behind an abbreviation).
 
    Deliberate choices, and why:
    - The tooltip only appears when the text is ACTUALLY clipped
@@ -87,9 +90,28 @@
     return tip;
   }
 
+  const isClipped = (el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
+
+  /* the clipped element under the pointer inside a table cell: the hovered node or one of its
+     ancestors up to the cell, whichever cuts its own text */
+  function clippedIn(node) {
+    const el = node && node.nodeType === 1 ? node : node?.parentElement;
+    const cell = el?.closest("td, th, [role='cell'], [role='gridcell']");
+    if (!cell) return null;
+    for (let n = el; n && cell.contains(n); n = n.parentElement) {
+      const style = getComputedStyle(n);
+      if (style.overflow !== "visible" || style.textOverflow === "ellipsis" || style.webkitLineClamp !== "none") {
+        if (n.textContent.trim() && isClipped(n)) return n;
+      }
+      if (n === cell) break;
+    }
+    return null;
+  }
+  const tooltipTarget = (node) => node?.closest?.("[data-cell-tooltip]") || clippedIn(node);
+
   function show(target) {
     // only when the text is genuinely clipped
-    if (!target.hasAttribute("data-cell-tooltip-always") && target.scrollWidth <= target.clientWidth) return;
+    if (!target.hasAttribute("data-cell-tooltip-always") && !isClipped(target)) return;
     const text = target.dataset.cellTooltip || target.textContent.trim();
     if (!text) return;
 
@@ -119,7 +141,7 @@
   }
 
   document.addEventListener("pointerover", (e) => {
-    const t = e.target.closest("[data-cell-tooltip]");
+    const t = tooltipTarget(e.target);
     if (!t) return;
     window.clearTimeout(showTimer);
     const warm = (tip && tip.classList.contains("is-visible")) || Date.now() - lastHiddenAt < WARM_MS;
@@ -129,15 +151,15 @@
   // a click (row open, badge focus) never leaves a pending tooltip behind
   document.addEventListener("pointerdown", hide, true);
   document.addEventListener("pointerout", (e) => {
-    if (e.target.closest("[data-cell-tooltip]")) hide();
+    if (tooltipTarget(e.target)) hide();
   });
   // keyboard parity — the gap in the implementation this replaces
   document.addEventListener("focusin", (e) => {
-    const t = e.target.closest("[data-cell-tooltip]");
+    const t = tooltipTarget(e.target);
     if (t) show(t);
   });
   document.addEventListener("focusout", (e) => {
-    if (e.target.closest("[data-cell-tooltip]")) hide();
+    if (tooltipTarget(e.target)) hide();
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
   window.addEventListener("scroll", hide, true);

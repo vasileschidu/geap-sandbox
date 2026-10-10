@@ -22754,3 +22754,61 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
     display: none;
   }
 }
+
+/* US-207 tariff card: the tags row above the sections */
+.e-permits-tariff__view-tags {
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+/* Taxe / Tarife (stacked, US-199 / US-203): the title + count badge sit at the left of the
+   toolbar line (the tools on the right), so a section starts with one row */
+.e-permits-pay__toolbar .e-permits-pay__title {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  margin: 0;
+}
+
+/* the registry's filter bar above a stacked list: its own bordered strip */
+.e-permits-pay__filters {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default);
+  border-radius: var(--border-radius-12, 12px);
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+/* Configurări servicii › Sursă externă (US-230): the RSSP state tag and the sources on one line */
+.e-permits-workplace__source-head {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+/* the register name next to the tag: small, medium weight */
+.e-permits-workplace__source-name {
+  color: var(--color-text-base-secondary);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* Configurări servicii › Serviciu: the RSSP code under the name stays copyable but takes the
+   meta line's type (Roluri „N permisiuni”: 12/16 regular tertiary) */
+.e-permits-workplace__role-meta .e-permits-workplace__copy-code {
+  border-radius: var(--border-radius-4, 4px);
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: 0;
+  line-height: inherit;
+  /* room for the hover pill without moving the text off the name's left edge */
+  margin-left: calc(var(--spacing-4, 4px) * -1);
+  padding: 0 var(--spacing-4, 4px);
+}
+
+.e-permits-workplace__role-meta .e-permits-workplace__copy-code:hover,
+.e-permits-workplace__role-meta .e-permits-workplace__copy-code:focus-visible {
+  background: var(--color-background-base-tertiary-hover);
+  color: var(--color-text-base-secondary);
+}
+

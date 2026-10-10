@@ -1558,7 +1558,7 @@ document.addEventListener("DOMContentLoaded", () => {
       solicitant: { label: "Nume solicitant", width: 152 },
       companie: { label: "Compania", width: 164 },
       modLivrare: { label: "Metoda de livrare", width: 150 },
-      dataSemnarii: { label: "Data semnării", width: 120, sortable: true }
+      dataSemnarii: { label: "Data semnării", width: 150, sortable: true }
     },
     views: {
       sarcini: {
@@ -1611,7 +1611,7 @@ document.addEventListener("DOMContentLoaded", () => {
         descriere: { label: "Descriere", width: 420 },
         statut: { label: "Statut", width: 96 },
         eligibilLocal: { label: "Eligibil adm. locală", width: 150 },
-        dataCreare: { label: "Data creării", width: 120, sortable: true }
+        dataCreare: { label: "Creat", width: 180, sortable: true }
       },
       views: {
         roles: {
@@ -1674,6 +1674,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const getSortValue = (row, key) => {
     switch (key) {
+      /* Configurări servicii › Sursă externă sorts by the sync date */
+      case "sursaExterna":
+        return row.sincronizat || "";
       case "decizia":
         return workplaceDb.decisions[row.decizia]?.label || "";
       case "status":
@@ -1696,6 +1699,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return row.initiatDe?.nume || "";
       case "solicitant":
         return row.numeSolicitant || "";
+      case "suma":
+      case "versiune":
+      case "valabil":
+        return workplaceDb?.kind === "tariffs" ? row[`${key}Sort`] : (row[key] ?? "");
       default:
         return row[key] ?? "";
     }
@@ -1727,7 +1734,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getSearchHaystack = (row) => {
-    if (["services", "authorities", "tariffs", "ntpl", "classifiers"].includes(workplaceDb?.kind)) {
+    /* US-202 AC-05: Denumire (RO/RU/EN) and Temei legal at once (the code too) */
+    if (workplaceDb?.kind === "tariffs") {
+      return [row.denumire, row.nameRu, row.nameEn, row.temei, row.cod].filter(Boolean).join(" ").toLocaleLowerCase("ro");
+    }
+    if (["services", "authorities", "ntpl", "classifiers"].includes(workplaceDb?.kind)) {
       return [row.cod, row.denumire, row.descriere, row.familie, row.id, row.institutie, row.autoritateCod, row.statut, row.idno, row.domeniu, row.obiect, row.sursaDate, row.reguli]
         .filter(Boolean).join(" ").toLocaleLowerCase("ro");
     }
@@ -1740,8 +1751,8 @@ document.addEventListener("DOMContentLoaded", () => {
         row.status,
         ...(row.roluri || []),
         row.subdiviziune,
-        formatDate(row.ultimaConectare),
-        formatDate(row.ultimaActualizare)
+        formatDate(row.ultimaConectare), formatLongDate(row.ultimaConectare),
+        formatDate(row.ultimaActualizare), formatLongDate(row.ultimaActualizare)
       ].filter(Boolean).join(" ").toLocaleLowerCase("ro");
     }
 
@@ -1756,7 +1767,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.companie,
         row.modLivrare,
         row.serviciu,
-        formatDate(row.dataSemnarii)
+        formatDate(row.dataSemnarii), formatLongDate(row.dataSemnarii)
       ].filter(Boolean).join(" ").toLocaleLowerCase("ro");
     }
 
@@ -1766,7 +1777,7 @@ document.addEventListener("DOMContentLoaded", () => {
         row.descriere,
         row.activ ? "activ" : "inactiv",
         row.eligibilLocal ? "da" : "nu",
-        formatDate(row.dataCreare)
+        formatDate(row.dataCreare), formatLongDate(row.dataCreare)
       ].filter(Boolean).join(" ").toLocaleLowerCase("ro");
     }
 
@@ -1786,9 +1797,9 @@ document.addEventListener("DOMContentLoaded", () => {
       row.companie,
       row.specialist?.nume,
       row.subdiviziune,
-      formatDate(row.dataDepunerii),
-      formatDate(row.termenExaminare),
-      formatDate(row.dataSemnarii),
+      formatDate(row.dataDepunerii), formatLongDate(row.dataDepunerii),
+      formatDate(row.termenExaminare), formatLongDate(row.termenExaminare),
+      formatDate(row.dataSemnarii), formatLongDate(row.dataSemnarii),
       row.modLivrare,
       row.actBaza?.nr,
       row.actBaza?.denumire,
@@ -1843,18 +1854,20 @@ document.addEventListener("DOMContentLoaded", () => {
       { key: "eligibilLocal", label: "Eligibil adm. locală", get: (r) => (r.eligibilLocal ? "Da" : "Nu") }
     ],
     services: [
-      { key: "statut", label: "Statut", get: (r) => r.statut },
+      /* the same names as the column headers */
+      { key: "statutRssp", label: "Statut în registru", get: (r) => r.statutRssp },
+      { key: "statut", label: "Statut în GEAP", get: (r) => r.statut },
       { key: "institutie", label: "Instituția", get: (r) => r.institutie },
       { key: "sursa", label: "Sursă", get: (r) => r.sursa }
     ],
     authorities: [
       { key: "sursa", label: "Sursă", get: (r) => r.sursa }
     ],
+    /* US-202 AC-06 */
     tariffs: [
-      { key: "statut", label: "Statut", get: (r) => r.statut },
       { key: "tip", label: "Tip tarif", get: (r) => r.tip },
-      { key: "domeniu", label: "Domeniu", get: (r) => r.domeniu },
-      { key: "formula", label: "Formulă", get: (r) => r.formula },
+      { key: "stare", label: "Stare", get: (r) => r.stare },
+      { key: "activ", label: "Activ/Inactiv", get: (r) => r.activ },
       { key: "sursa", label: "Sursă", get: (r) => r.sursa }
     ],
     ntpl: [
@@ -1970,14 +1983,15 @@ document.addEventListener("DOMContentLoaded", () => {
     tipDosar: 94,
     solicitant: 132,
     companie: 132,
-    dataDepunerii: 116,
-    termenExaminare: 126,
-    dataSemnarii: 116,
+    /* dates read „30 septembrie 2026” over „hh:mm”: wide enough for the longest month */
+    dataDepunerii: 150,
+    termenExaminare: 150,
+    dataSemnarii: 150,
     modLivrare: 104,
     actBaza: 260,
     titular: 132,
     motivOficiu: 220,
-    dataInitierii: 116,
+    dataInitierii: 150,
     initiatDe: 160,
     creatDe: 168
   };
@@ -1986,11 +2000,11 @@ document.addEventListener("DOMContentLoaded", () => {
     status: 150,
     alerte: 184,
     tipDosar: 132,
-    dataDepunerii: 132,
-    termenExaminare: 144,
-    dataSemnarii: 132,
+    dataDepunerii: 168,
+    termenExaminare: 168,
+    dataSemnarii: 168,
     modLivrare: 132,
-    dataInitierii: 132,
+    dataInitierii: 168,
     initiatDe: 180
   };
 
@@ -2022,9 +2036,9 @@ document.addEventListener("DOMContentLoaded", () => {
         case "roluri":
           return row.roluri || [];
         case "ultimaConectare":
-          return [formatDate(row.ultimaConectare), row.ultimaConectareRelativ];
+          return [formatLongDate(row.ultimaConectare), row.ultimaConectareRelativ];
         case "ultimaActualizare":
-          return [formatDate(row.ultimaActualizare)];
+          return [formatLongDate(row.ultimaActualizare)];
         default:
           return [row[key] ?? "—"];
       }
@@ -2042,11 +2056,11 @@ document.addEventListener("DOMContentLoaded", () => {
           ? row.alerte.map((alertKey) => workplaceDb.alerts[alertKey]?.short || alertKey)
           : ["—"];
       case "dataDepunerii":
-        return [formatDate(row.dataDepunerii)];
+        return [formatLongDate(row.dataDepunerii)];
       case "termenExaminare":
-        return [formatDate(row.termenExaminare), daysUntil(row.termenExaminare) < 0 ? "depășit" : "rămase"];
+        return [formatLongDate(row.termenExaminare), daysUntil(row.termenExaminare) < 0 ? "depășit" : "rămase"];
       case "dataSemnarii":
-        return [formatDate(row.dataSemnarii)];
+        return [formatLongDate(row.dataSemnarii)];
       case "actBaza":
         return [row.actBaza?.nr, row.actBaza?.denumire].filter(Boolean);
       case "titular":
@@ -2199,7 +2213,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <span class="e-permits-workplace__date-stack">
-        <span>${escapeHtml(formatDate(row.termenExaminare))}</span>
+        <span>${escapeHtml(formatLongDate(row.termenExaminare))}</span>
         ${meta ? `<span class="e-permits-workplace__date-meta e-permits-workplace__date-meta--${tone}">${tone === "danger" ? '<span class="e-permits-workplace__date-dot" aria-hidden="true"></span>' : ""}${escapeHtml(meta)}</span>` : ""}
       </span>
     `;
@@ -5252,15 +5266,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return renderTag(row.status, row.status === "Activ" ? "success" : "neutral");
       case "roluri":
         return renderUserRoles(row.roluri);
+      /* one date format everywhere: date over „hh:mm · …” (here: how long ago) */
       case "ultimaConectare":
-        return `
-          <span class="e-permits-workplace__date-stack">
-            <span>${escapeHtml(formatDate(row.ultimaConectare))}</span>
-            <span class="e-permits-workplace__date-meta">${escapeHtml(row.ultimaConectareRelativ || "")}</span>
-          </span>
-        `;
+        return row.ultimaConectare
+          ? renderDateTime(withDemoTime(row.ultimaConectare, row.id), row.ultimaConectareRelativ || "")
+          : `<span class="e-permits-workplace__date-meta">${escapeHtml(row.ultimaConectareRelativ || "—")}</span>`;
       case "ultimaActualizare":
-        return escapeHtml(formatDate(row.ultimaActualizare));
+        return renderDateTime(withDemoTime(row.ultimaActualizare, `${row.id}m`), row.ultimaActualizareDe || demoEditor(row.id), { short: true });
       default:
         return escapeHtml(row[key] ?? "—");
     }
@@ -5307,7 +5319,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "solicitant":
         return escapeHtml(row.numeSolicitant);
       case "dataSemnarii":
-        return escapeHtml(formatDate(row.dataSemnarii));
+        return renderDateTime(withDemoTime(row.dataSemnarii, `${row.id}s`));
       default:
         return escapeHtml(row[key] ?? "—");
     }
@@ -5329,7 +5341,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "eligibilLocal":
         return renderTag(row.eligibilLocal ? "Da" : "Nu", row.eligibilLocal ? "ok" : "neutral");
       case "dataCreare":
-        return escapeHtml(formatDate(row.dataCreare));
+        return renderDateTime(withDemoTime(row.dataCreare, row.id), row.creatDe || demoEditor(row.id), { short: true });
       default:
         return escapeHtml(row[key] ?? "—");
     }
@@ -5384,11 +5396,11 @@ document.addEventListener("DOMContentLoaded", () => {
       case "solicitant":
         return escapeHtml(row.numeSolicitant);
       case "dataDepunerii":
-        return escapeHtml(formatDate(row.dataDepunerii));
+        return renderDateTime(withDemoTime(row.dataDepunerii, row.id));
       case "termenExaminare":
         return renderTermen(row);
       case "dataSemnarii":
-        return escapeHtml(formatDate(row.dataSemnarii));
+        return renderDateTime(withDemoTime(row.dataSemnarii, `${row.id}s`));
       case "actBaza":
         return `
           <span class="e-permits-workplace__act-base">
@@ -5444,7 +5456,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const colSpan = columns.length + (view?.selectable === false ? 0 : 1);
       workplaceRows.innerHTML = `
         <tr>
-          <td class="e-permits-workplace__empty" colspan="${colSpan}">${appliedEntries().length
+          <td class="e-permits-workplace__empty" colspan="${colSpan}">${workplaceDb?.kind === "tariffs"
+            /* US-202 AC-04 / AC-05: the exact messages */
+            ? (workplaceState.query.trim()
+              ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumire (RO/RU/EN) sau temei legal.", bare: true })
+              : renderNoResults("Nu există tarife înregistrate", { text: appliedEntries().length ? "Schimbă filtrele sau șterge-le ca să vezi toată lista." : "Alege alt tab.", bare: true, actionHtml: appliedEntries().length ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" }))
+            : workplaceDb?.kind === "services" && (workplaceState.query.trim() || appliedEntries().length)
+            /* US-230 AC-13 */
+            ? renderNoResults("Nu au fost găsite servicii.", { text: "Caută după denumire, cod sau instituție ori schimbă filtrele.", bare: true, actionHtml: appliedEntries().length ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" })
+            : appliedEntries().length
             ? renderNoResults("Niciun rezultat pentru filtrele aplicate", { text: "Schimbă filtrele sau șterge-le ca să vezi toată lista.", bare: true, actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' })
             : renderNoResults(view?.emptyMessage || ({ tariffs: "Nu există tarife pentru filtrul curent.", ntpl: "Nu există șabloane pentru filtrul curent.", services: "Nu există servicii pentru filtrul curent.", users: "Nu există utilizatori pentru filtrul curent.", roles: "Nu există roluri pentru filtrul curent.", authorities: "Nu există autorități pentru filtrul curent." })[workplaceDb?.kind] || "Nu sunt dosare pentru filtrul curent.", { text: "Alege alt tab sau caută altceva.", bare: true })}</td>
         </tr>
@@ -6243,6 +6263,16 @@ document.addEventListener("DOMContentLoaded", () => {
     </span>
   ` : '<span class="e-permits-workplace__dash">—</span>');
 
+  /* demo data that carries only a date gets a stable working-hours time (08:00–17:59), so every
+     date column can use the one format: date over „hh:mm · who” (user, 2026-10-10) */
+  const withDemoTime = (value, seed = "") => {
+    if (!value || /T\d/.test(String(value))) return value;
+    const n = [...String(seed || value)].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+    return `${value}T${String(8 + (n % 10)).padStart(2, "0")}:${String((n * 7) % 60).padStart(2, "0")}:00`;
+  };
+  const DEMO_EDITORS = ["Vasile Schidu", "Anastasia Cojocaru", "Ion Popescu", "Mariana Rusu"];
+  const demoEditor = (seed = "") => DEMO_EDITORS[[...String(seed)].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % DEMO_EDITORS.length];
+
   const getServiceByCode = (code) => servicesStore?.services.find((service) => service.code === code) || null;
   const getAuthorityById = (id) => servicesStore?.authorities.find((authority) => authority.id === id) || null;
   const getFlowById = (id) => servicesStore?.flows.find((flow) => flow.id === id) || null;
@@ -6276,10 +6306,23 @@ document.addEventListener("DOMContentLoaded", () => {
     institutie: getAuthorityById(service.authorityId)?.name || "—",
     autoritateCod: getAuthorityById(service.authorityId)?.code || "",
     statut: service.status,
+    /* US-230: what RSSP says (Activ / Inactiv, US-232) — not the passport's GEAP status */
+    statutRssp: service.rssp?.rsspStatus === "Inactiv" || service.status === "Inactiv" ? "Inactiv" : "Activ",
+    /* published, with changes logged since (AC-05) */
+    nepublicate: service.geap ? servicePendingChanges(service).length : 0,
     versiune: service.geap?.version || "—",
     sursa: (service.syncSources || ["RSSP"]).join(" + "),
-    actualizat: service.lastSync,
-    actualizatDe: service.syncedBy || "",
+    /* Ultima sincronizare = the last pull from RSSP; Ultima actualizare = the last change in GEAP */
+    sincronizat: service.lastSync,
+    sincronizatDe: service.syncedBy || "",
+    /* the last sync attempt failed after the last good one → „Eșuat” (US-231 AC-20) */
+    syncEsuat: (service.geap?.events || []).some((e) => e.status === "Eșuat" && /Sincronizare|Eroare la sincronizare/.test(e.type || "") && e.at > (service.lastSync || "")),
+    ...(() => {
+      const last = (service.geap?.events || []).filter((e) => e.at && !/^(Sincronizare|Eroare la sincronizare)/.test(e.type || "")).sort((a, b) => (a.at < b.at ? 1 : -1))[0];
+      /* no GEAP change logged yet → the last publication (by whoever created the passport) */
+      const pub = (service.geap?.publications || [])[0];
+      return { actualizat: last?.at || service.geap?.publishedAt || service.lastSync, actualizatDe: last?.user || (pub?.by && pub.by !== "—" ? pub.by : service.syncedBy) || "" };
+    })(),
     actiuni: ""
   });
 
@@ -6295,21 +6338,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const buildServicesDb = () => ({
     kind: "services",
     fieldCount: 7,
-    /* the Dosare layout: ID column (code + source) first, name on its own */
+    /* US-230 AC-04 — „Serviciu” = the name over its code (with copy), pinned on the left */
     columns: {
-      cod: { label: "Cod serviciu RSSP", width: 156, sticky: true, sortable: true },
-      denumire: { label: "Act permisiv", width: 260, fill: true, sortable: true },
+      cod: { label: "Cod serviciu RSSP", width: 156, sortable: true },
+      denumire: { label: "Serviciu", width: 320, fill: true, sticky: true, sortable: true },
       institutie: { label: "Instituția", width: 240, sortable: true },
-      statut: { label: "Statut", width: 116, sortable: true },
+      /* two states, one meaning per column (user decision 2026-10-10, Carbon status pattern):
+         „Statut în GEAP” = the passport (+ „N modificări nepublicate”); „Statut în registru” = what
+         the source register says (RSSP: Activ / Inactiv, or Eșuat when the last sync failed), with
+         the registers and the last sync date under it */
+      statut: { label: "Statut în GEAP", width: 176, sortable: true },
+      sursaExterna: { label: "Statut în registru", width: 220, sortable: true },
       versiune: { label: "Versiune", width: 100, sortable: true },
-      actualizat: { label: "Ultima actualizare", width: 180, sortable: true },
+      actualizat: { label: "Modificat în GEAP", width: 184, sortable: true },
       actiuni: { label: "", width: 104 }
     },
     views: {
       services: {
         title: servicesRegistryLabel,
         selectable: false,
-        columns: ["cod", "denumire", "institutie", "statut", "versiune", "actualizat", "actiuni"],
+        /* the source's state first, then GEAP's own state next to its last change (user, 2026-10-10) */
+        columns: ["denumire", "institutie", "sursaExterna", "statut", "actualizat", "versiune", "actiuni"],
         tabs: [
           { id: "all", label: "Toate", filter: "all" },
           { id: "published", label: "Publicate", filter: "svc:Publicat" },
@@ -6341,17 +6390,28 @@ document.addEventListener("DOMContentLoaded", () => {
     runtimeRows: servicesStore.authorities.map(authorityRow)
   });
 
-  /* Tarife — the tariff classifier (Feature 94153). For now the registry and
-     the redirect from a service's Taxe tab; the editor comes later. */
+  /* Tarife — the global tariff classifier (Feature 94153, US-202 Azure 94767): only tariffs
+     with scope „global” (a service's own tariffs live in its passport, US-203). Columns per
+     AC-03: Denumire (Tip tarif under it) · Sumă și valută · Stare · Activ/Inactiv · Sursă ·
+     Nr. versiune · Valabil de la/până la · Modificat. A row opens the tariff card (US-207). */
   const tariffRow = (tariff) => ({
     id: tariff.id,
     cod: tariff.code,
     sursa: tariff.source || "GEAP",
     denumire: tariff.name,
-    valoare: tariff.formula ? `Formulă · ${formulaReadable(tariff.expression)}` : `${tariff.amount} ${tariff.currency}`,
-    domeniu: tariff.scope === "global" ? "Global" : (getServiceByCode(tariff.scope)?.title || tariff.scope),
+    nameRu: tariff.nameRu || "",
+    nameEn: tariff.nameEn || "",
+    temei: tariff.legalBasis || "",
     tip: tariff.type || "",
-    formula: tariff.formula ? (tariff.userVariables ? "Da, cu variabile" : "Da") : "Nu",
+    suma: tariff.formula ? `Formulă · ${formulaReadable(tariff.expression)}` : `${tariff.amount} ${tariff.currency}`,
+    sumaSort: tariff.formula ? -1 : Number(tariff.amount) || 0,
+    stare: tariff.state,
+    activ: tariff.active ? "Activ" : "Inactiv",
+    versiune: `v${tariff.version || 1}`,
+    versiuneSort: Number(tariff.version || 1),
+    valabil: tariffValidity(tariff),
+    valabilSort: tariff.validFrom || "",
+    /* the tabs keep one combined state: Activ / Inactiv (published) or Schiță */
     statut: tariff.state === "Publicat" ? (tariff.active ? "Activ" : "Inactiv") : tariff.state,
     actualizat: tariff.modifiedAt,
     actualizatDe: tariff.modifiedBy || "",
@@ -6360,22 +6420,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const buildTariffsDb = () => ({
     kind: "tariffs",
-    fieldCount: 8,
+    fieldCount: 9,
     columns: {
-      cod: { label: "Cod tarif", width: 132, sticky: true, sortable: true },
-      denumire: { label: "Denumire", width: 260, fill: true, sortable: true },
-      valoare: { label: "Valoare", width: 104, sortable: true },
-      domeniu: { label: "Domeniu", width: 200, sortable: true },
-      formula: { label: "Formulă", width: 128 },
-      statut: { label: "Statut", width: 104, sortable: true },
-      actualizat: { label: "Ultima actualizare", width: 180, sortable: true },
-      actiuni: { label: "", width: 64 }
+      denumire: { label: "Denumire", width: 260, fill: true, sortable: true, sticky: true },
+      suma: { label: "Sumă și valută", width: 148, sortable: true },
+      stare: { label: "Stare", width: 104, sortable: true },
+      activ: { label: "Activ/Inactiv", width: 120, sortable: true },
+      sursa: { label: "Sursă", width: 88, sortable: true },
+      versiune: { label: "Nr. versiune", width: 112, sortable: true },
+      valabil: { label: "Valabil de la/până la", width: 196, sortable: true },
+      actualizat: { label: "Modificat", width: 180, sortable: true },
+      actiuni: { label: "", width: 168 }
     },
     views: {
       tariffs: {
         title: "Tarife",
         selectable: false,
-        columns: ["cod", "denumire", "valoare", "domeniu", "formula", "statut", "actualizat", "actiuni"],
+        columns: ["denumire", "suma", "stare", "activ", "sursa", "versiune", "valabil", "actualizat", "actiuni"],
         tabs: [
           { id: "all", label: "Toate", filter: "all" },
           { id: "active", label: "Active", filter: "svc:Activ" },
@@ -6384,32 +6445,34 @@ document.addEventListener("DOMContentLoaded", () => {
         ]
       }
     },
-    runtimeRows: (servicesStore.tariffs || []).map(tariffRow)
+    runtimeRows: (servicesStore.tariffs || []).filter((tariff) => tariff.scope === "global").map(tariffRow)
   });
 
   const TARIFF_STATUS_TONES = { Activ: "success", Inactiv: "neutral", "Schiță": "warning" };
 
   const renderTariffCell = (row, key) => {
     switch (key) {
-      case "cod":
+      case "denumire":
         return `
           <div class="e-permits-workplace__case-cell">
-            ${renderCopyCode(row.cod, `Copiază ${row.cod}`)}
-            <span class="e-permits-workplace__source"><span>Sursă:</span><span>${escapeHtml(row.sursa)}</span></span>
+            <span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
+            <span class="e-permits-workplace__source"><span>${escapeHtml(row.tip || "—")}</span></span>
           </div>
         `;
-      case "denumire":
-        return `<span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
-      case "statut":
-        return renderTag(row.statut, TARIFF_STATUS_TONES[row.statut] || "neutral");
+      case "stare":
+        return renderTag(row.stare, row.stare === "Publicat" ? "success" : "neutral");
+      case "activ":
+        return renderTag(row.activ, row.activ === "Activ" ? "success" : "neutral");
       case "actualizat":
         return renderDateTime(row.actualizat, row.actualizatDe);
       case "actiuni":
         return `
           <span class="e-permits-workplace__row-actions">
-            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-tariff-edit="${escapeHtml(row.id)}" aria-label="Editează tariful ${escapeHtml(row.denumire)}" title="Editează">
-              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
-            </button>
+            ${renderRowActions({
+              preview: `data-tariff-view="${escapeHtml(row.id)}"`,
+              primary: isCentralAdmin() ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(row.id)}" aria-label="Editează tariful ${escapeHtml(row.denumire)}"` } : null,
+              label: row.denumire
+            })}
           </span>
         `;
       default:
@@ -6439,18 +6502,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderServiceCell = (row, key) => {
     switch (key) {
       /* the Dosare ID cell: copyable code over "Sursă: RSSP" */
+      /* the source (RSSP / eAPL) and its state live in „Sursă externă” */
       case "cod":
+        return renderCopyCode(row.cod, `Copiază ${row.cod}`);
+      /* the service name over its RSSP code — the Roluri pattern (name over „N permisiuni”) */
+      case "denumire":
         return `
-          <div class="e-permits-workplace__case-cell">
-            ${renderCopyCode(row.cod, `Copiază ${row.cod}`)}
-            <span class="e-permits-workplace__source">
-              <span>Sursă:</span>
-              <span>${escapeHtml(row.sursa)}</span>
-            </span>
+          <div class="e-permits-workplace__role-identity">
+            <span class="e-permits-workplace__role-name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
+            <span class="e-permits-workplace__role-meta">${renderCopyCode(row.cod, `Copiază ${row.cod}`)}</span>
           </div>
         `;
-      case "denumire":
-        return `<span class="e-permits-passport__name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>`;
       /* abbreviation over full institution name (as in RAP) */
       case "institutie":
         return `
@@ -6459,8 +6521,21 @@ document.addEventListener("DOMContentLoaded", () => {
             <span data-cell-tooltip="${escapeHtml(row.institutie)}">${escapeHtml(row.institutie)}</span>
           </span>
         `;
-      case "statut":
-        return renderTag(row.statut, SERVICE_STATUS_TONES[row.statut] || "neutral");
+      /* US-230 AC-05: a published service with pending changes says so under its status */
+      case "statut": {
+        const tag = renderTag(row.statut, SERVICE_STATUS_TONES[row.statut] || "neutral");
+        return row.nepublicate
+          ? `<div class="e-permits-workplace__case-cell">${tag}<span class="e-permits-workplace__source"><span>${row.nepublicate === 1 ? "1 modificare nepublicată" : `${row.nepublicate} modificări nepublicate`}</span></span></div>`
+          : tag;
+      }
+      /* line 1: what RSSP says (or Eșuat) + the sources; line 2: when it was last synced */
+      case "sursaExterna":
+        return `<div class="e-permits-workplace__case-cell">
+          <span class="e-permits-workplace__source-head">${row.syncEsuat ? renderTag("Eșuat", "danger") : renderTag(row.statutRssp, row.statutRssp === "Activ" ? "success" : "neutral")}<span class="e-permits-workplace__source-name">${escapeHtml(row.sursa)}</span></span>
+          <span class="e-permits-workplace__source"><span title="${row.syncEsuat ? "Ultima sincronizare reușită" : "Sincronizat din sursa externă"}">${row.syncEsuat ? "ultima reușită " : ""}${escapeHtml(formatStamp(row.sincronizat))}</span></span>
+        </div>`;
+      case "sincronizat":
+        return renderDateTime(row.sincronizat, row.sincronizatDe);
       case "actualizat":
         return renderDateTime(row.actualizat, row.actualizatDe);
       case "actiuni":
@@ -6531,7 +6606,8 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceState.query = "";
     workplaceState.page = 1;
     workplaceState.pageSize = 16;
-    workplaceState.sortKey = null;
+    /* Configurări servicii opens sorted by „Modificat în GEAP”, newest first (US-230 AC-09) */
+    workplaceState.sortKey = kind === "services" ? "actualizat" : null;
     workplaceState.sortDirection = "desc";
     workplaceState.selected.clear();
     serviceProfileState.code = null;
@@ -6578,12 +6654,9 @@ document.addEventListener("DOMContentLoaded", () => {
      Filed cases keep their flow. */
   const SERVICE_SETTINGS = [
     ["actHartie", "Act pe suport de hârtie", "Actul semnat se tipărește și se eliberează și pe hârtie."],
-    ["aprobareSecundara", "Aprobare secundară", "Proiectul actului trece la coordonare înainte de semnare."],
-    ["cuExpertiza", "Cu expertiză", "Dosarul cere avizul altor autorități înainte de decizie."],
     ["cuPlata", "Cu plată", "Dosarul așteaptă achitarea notei de plată în MPay."],
     ["distribuireAutomata", "Distribuire automată", "Dosarele noi se repartizează specialiștilor fără supervizor."],
-    ["mdelivery", "Livrare prin MDelivery", "Actul pe hârtie se livrează la adresa solicitantului."],
-    ["suspendareCoordonare", "Suspendare cu coordonare", "Suspendarea termenului se aprobă de supervizor."]
+    ["mdelivery", "Livrare prin MDelivery", "Actul pe hârtie se livrează la adresa solicitantului."]
   ];
   /* the toggle's knob transition (css/e-permits-shell.css .e-permits-toggle__knob) */
   const SERVICE_SETTING_SLIDE_MS = 220;
@@ -6596,12 +6669,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const settings = geap.settings || {};
       geap.flags = {
         actHartie: false,
-        aprobareSecundara: false,
-        cuExpertiza: Boolean(settings.avize?.length),
         cuPlata: serviceTaxes(service).length > 0,
         distribuireAutomata: /^Da/.test(settings.autoDistribution || ""),
-        mdelivery: false,
-        suspendareCoordonare: /^Da/.test(settings.suspension || "")
+        mdelivery: false
       };
     }
     return geap.flags;
@@ -6702,6 +6772,11 @@ document.addEventListener("DOMContentLoaded", () => {
     `<a class="link link-primary link-${size} e-permits-passport__tab-link" href="#serviciu/${escapeHtml(service.code)}/${tabId}" data-passport-tab="${tabId}">${escapeHtml(label)} →</a>`;
 
   const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+  /* Romanian: 20+ (and 0 after hundreds: 100, 101…119 excepted) takes „de” — „128 de dosare” */
+  const roCount = (count, one, many) => {
+    const n = Math.abs(count), last = n % 100;
+    return count === 1 ? `1 ${one}` : `${count} ${n >= 20 && (last === 0 || last >= 20) ? "de " : ""}${many}`;
+  };
 
   /* Date generale (Feature 90575): Date din RSSP (read-only; resync is in the header), what is configured
      in GEAP, the latest changes, the government services the passport relies on, then
@@ -6939,8 +7014,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const SVC_EVENT_SAMPLES = [
     ["Editare formular", (s, i) => `Câmp actualizat în Cerere de ${i % 2 ? "notificare" : "reperfectare"}`],
     ["Publicare formular", (s, i) => `Cerere de notificare v2.${i % 9}.0`],
-    ["Sincronizare serviciu", (s) => `Cod ${s.code} preluat din RSSP`],
-    ["Actualizare serviciu", () => "Datele RSSP ale serviciului au fost actualizate"],
+    ["Sincronizare serviciu finalizată cu succes", (s) => `Cod ${s.code} preluat din RSSP`],
+    ["Actualizare serviciu existent", () => "Datele RSSP ale serviciului au fost actualizate"],
     ["Editare taxă", (s, i) => `Taxă de stat · Emitere primară · v${1 + (i % 4)}`],
     ["Publicare taxă", (s, i) => `Examinare documente · Emitere primară · v${1 + (i % 3)}`],
     ["Editare tip solicitare", (s, i) => `${i % 2 ? "Reperfectare" : "Emitere primară"} · termen și flux`],
@@ -6968,7 +7043,7 @@ document.addEventListener("DOMContentLoaded", () => {
       geap.events.push({
         at: `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}:00`,
         user: SVC_EVENT_USERS[(seed + i) % SVC_EVENT_USERS.length],
-        type: SVC_EVENT_SAMPLES[k][0],
+        type: failed ? "Eroare la sincronizare" : SVC_EVENT_SAMPLES[k][0],
         status: failed ? "Eșuat" : "Reușit",
         detail: failed ? `Cod ${service.code}: Serviciul RSSP este momentan indisponibil. Încercați mai târziu.` : SVC_EVENT_SAMPLES[k][1](service, i)
       });
@@ -7298,13 +7373,7 @@ document.addEventListener("DOMContentLoaded", () => {
      chosen at initiation, calculation, term, exemptions, recurrence). Tariffs that
      arrived without a rule wait in "De configurat" ("Aplică ca atare" = the 80%).
      Rules: GEAP.servicePassport (validateTax, taxConflict, taxAmount). */
-  const TAX_FILTERS = [
-    ["all", "Toate", () => true],
-    ["active", "Active", (tax) => tax.state === "Publicat" && tax.active],
-    ["draft", "Schiță", (tax) => tax.state !== "Publicat"],
-    ["inactive", "Inactive", (tax) => tax.state === "Publicat" && !tax.active]
-  ];
-  const payListState = { query: "", filter: "all" };
+  const payListState = { query: "" };
 
   const getTariff = (id) => servicesStore?.tariffs?.find((tariff) => tariff.id === id) || null;
   /* a tariff's value as text: its sum, or its formula (computed on the payment note) */
@@ -7359,17 +7428,15 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const payMatches = (service, tax) => {
-    const filter = TAX_FILTERS.find(([key]) => key === payListState.filter)?.[2] || (() => true);
     const query = payListState.query.trim().toLocaleLowerCase("ro");
     const tariff = getTariff(tax.tariffId);
-    const text = [tariff?.name, tariff?.code, tax.requestType, tax.moment, tax.generation, conditionsLabel(tax)]
+    const text = [tariff?.name, tariff?.nameRu, tariff?.nameEn, tariff?.code, tax.requestType, tax.moment, tax.generation, conditionsLabel(tax)]
       .join(" ").toLocaleLowerCase("ro");
-    return filter(tax) && (!query || text.includes(query));
+    return (!query || text.includes(query)) && sfMatches("taxe", taxFacetRow(tax));
   };
   const unconfiguredMatches = (tariff) => {
-    if (!["all", "draft"].includes(payListState.filter)) return false;
     const query = payListState.query.trim().toLocaleLowerCase("ro");
-    return !query || [tariff.name, tariff.code, tariff.requestType, tariff.source].join(" ").toLocaleLowerCase("ro").includes(query);
+    return (!query || [tariff.name, tariff.nameRu, tariff.nameEn, tariff.code, tariff.requestType, tariff.source].join(" ").toLocaleLowerCase("ro").includes(query)) && sfMatches("taxe", pendingFacetRow(tariff));
   };
 
   const renderTaxGroup = (label, items, extraClass = "") => `
@@ -7386,8 +7453,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const pending = unconfiguredServiceTariffs(service).filter(unconfiguredMatches);
 
     if (!visible.length && !pending.length) {
-      return taxes.length
-        ? renderNoResults("Nicio taxă nu corespunde filtrului", { text: "Alege alt filtru sau caută după tarif, cod ori tip de solicitare." })
+      return taxes.length || unconfiguredServiceTariffs(service).length
+        ? payListState.query.trim()
+          ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumirea taxei (RO, RU, EN), cod sau tip de solicitare." })
+          : renderNoResults("Nu există taxe înregistrate", { text: "Alege alt filtru sau șterge filtrele." })
         : renderEmptyState({ title: "Serviciul nu are taxe", text: "Sincronizează tarifele din RSSP / eAPL sau adaugă o taxă.", icon: "receipt-check" });
     }
 
@@ -7454,13 +7523,6 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  const renderPayChips = (service) => TAX_FILTERS.map(([key, label, test]) => `
-    <button type="button" class="chip${payListState.filter === key ? " is-selected" : ""}" aria-pressed="${payListState.filter === key ? "true" : "false"}" data-pay-filter="${key}">
-      <span class="chip__label">${label}</span>
-      <span class="badge badge--lg badge--solid-light" aria-hidden="true">${serviceTaxes(service).filter(test).length + (["all", "draft"].includes(key) ? unconfiguredServiceTariffs(service).length : 0)}</span>
-    </button>
-  `).join("");
-
   /* go to the Tarife classifier; with an id, find and highlight that tariff */
   const goToTariff = (tariffId) => {
     const nav = document.querySelector('[data-nav-id="tariffs"]');
@@ -7486,36 +7548,331 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  /* ---- „Filtrare avansată” on a stacked list (Taxe US-199 AC-06, Tarife US-203 AC-06) -----
+     The lists stay stacked (grouped by request type); the filter is the registry's: the button
+     opens the bar of facet chips → popover with checkboxes → Confirmă; „Aplică filtrele” applies
+     the draft in one go, „Renunță”, „Șterge filtrele”, „N rezultate”. Same markup and classes
+     as the registry (.e-permits-workplace__filters / __filter-chip / __filter-pop). Stare and
+     Activ/Inactiv are facets too — no status chip row above the list (one toolbar line). A
+     facet shows when the list has at least two values for it. */
+  const SF_LISTS = {
+    taxe: {
+      facets: [{ key: "requestType", label: "Tip solicitare" }, { key: "moment", label: "Moment generare" }, { key: "generation", label: "Tip generare" }, { key: "stare", label: "Stare" }, { key: "activ", label: "Activ/Inactiv" }],
+      rows: (service) => [...serviceTaxes(service).map(taxFacetRow), ...unconfiguredServiceTariffs(service).map(pendingFacetRow)],
+      refresh: (service) => refreshPayList(service)
+    },
+    tarife: {
+      facets: [{ key: "tip", label: "Tip tarif" }, { key: "requestType", label: "Tip solicitare" }, { key: "personType", label: "Tip persoană" }, { key: "subdivision", label: "Subdiviziune de examinare" }, { key: "stare", label: "Stare" }, { key: "activ", label: "Activ/Inactiv" }, { key: "sursa", label: "Sursă" }],
+      rows: (service) => serviceTariffList(service).map(tariffFacetRow),
+      refresh: (service) => refreshTrfList(service)
+    }
+  };
+  const taxFacetRow = (tax) => ({ requestType: tax.requestType, moment: tax.moment, generation: tax.generation, stare: tax.state === "Publicat" ? "Publicată" : "Schiță", activ: tax.active ? "Activă" : "Inactivă" });
+  const pendingFacetRow = (tariff) => ({ requestType: tariff.requestType || "", moment: "", generation: "", stare: "De configurat", activ: "" });
+  const tariffFacetRow = (t) => ({ tip: t.type || "", requestType: t.requestType || "", personType: t.personType || "", subdivision: t.subdivision || "Toate", stare: t.state === "Publicat" ? "Publicat" : "Schiță", activ: t.active ? "Activ" : "Inactiv", sursa: t.source || "GEAP" });
+  const sfStates = {};
+  const sfState = (id) => sfStates[id] || (sfStates[id] = { open: false, applied: {}, draft: null });
+  const sfDraft = (id) => { const st = sfState(id); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
+  const sfPending = (id) => { const st = sfState(id); return Boolean(st.draft) && JSON.stringify(st.draft) !== JSON.stringify(st.applied); };
+  const sfAppliedCount = (id) => Object.values(sfState(id).applied).reduce((n, v) => n + (v?.length || 0), 0);
+  const sfMatchesWith = (id, applied, except = null) => (row) => Object.entries(applied).every(([key, values]) =>
+    key === except || !values?.length || values.some((v) => asList(row[key]).includes(v)));
+  const sfMatches = (id, row) => sfMatchesWith(id, sfState(id).applied)(row);
+  const sfFacets = (id, service) => {
+    const st = sfState(id), rows = SF_LISTS[id].rows(service);
+    return SF_LISTS[id].facets.filter((f) => st.applied[f.key]?.length || st.draft?.[f.key]?.length || new Set(rows.flatMap((r) => asList(r[f.key]))).size > 1);
+  };
+  const sfOptions = (id, service, key) => {
+    const st = sfState(id), counts = new Map();
+    for (const row of SF_LISTS[id].rows(service).filter(sfMatchesWith(id, st.draft || st.applied, key))) for (const v of new Set(asList(row[key]))) counts.set(v, (counts.get(v) || 0) + 1);
+    for (const v of sfDraft(id)[key] || []) if (!counts.has(v)) counts.set(v, 0);
+    return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((x, y) => x.value.localeCompare(y.value, "ro", { numeric: true }));
+  };
+  const renderSfToggle = (id, service) => {
+    const n = sfAppliedCount(id), st = sfState(id);
+    const none = !sfFacets(id, service).length;
+    return `<button class="btn btn-neutral btn-sm e-permits-workplace__advanced" type="button" aria-expanded="${st.open || sfPending(id)}" data-sf-toggle="${id}"${none ? ' aria-disabled="true" data-tooltip-reason="Lista nu are încă valori după care să filtrezi."' : ""}>
+      <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter-lines"></use></svg>
+      <span>Filtrare avansată</span>
+      <span class="badge badge--lg badge--solid-light" data-sf-count${n ? "" : " hidden"}>${n}</span>
+    </button>`;
+  };
+  const renderSfBar = (id, service, visibleCount) => {
+    const st = sfState(id), facets = sfFacets(id, service);
+    if (!(st.open || sfPending(id)) || !facets.length) return "";
+    const draft = st.draft || st.applied, pending = sfPending(id), applied = sfAppliedCount(id);
+    return `
+      <div class="e-permits-workplace__filters e-permits-pay__filters" role="group" aria-label="Filtre">
+        <div class="e-permits-workplace__filter-chips">
+          ${facets.map((facet) => {
+            const n = draft[facet.key]?.length || 0;
+            const open = sfEdit?.id === id && sfEdit.key === facet.key;
+            return `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-sf-facet="${id}:${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
+              <span class="chip__label">${escapeHtml(facet.label)}</span>
+              ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
+              <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
+            </button>`;
+          }).join("")}
+        </div>
+        <div class="e-permits-workplace__filter-meta" aria-live="polite">
+          ${pending ? `
+            <span class="e-permits-workplace__filter-hint">Filtre neaplicate</span>
+            <button class="btn btn-text-neutral btn-sm" type="button" data-sf-discard="${id}">Renunță</button>
+            <button class="btn btn-primary btn-sm" type="button" data-sf-commit="${id}">Aplică filtrele</button>
+          ` : applied ? `
+            <span class="e-permits-workplace__filter-result">${plural(visibleCount, "rezultat", "rezultate")}</span>
+            <button class="btn btn-text-neutral btn-sm" type="button" data-sf-clear="${id}">Șterge filtrele</button>
+          ` : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
+        </div>
+      </div>`;
+  };
+  const sfRefresh = (id, focusSel) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service) return;
+    SF_LISTS[id].refresh(service);
+    if (focusSel) permitsProfilePanel?.querySelector(focusSel)?.focus();
+  };
+  /* popover: one shared element, as the registry's */
+  let sfPop = null, sfEdit = null;
+  const closeSfPop = (restore = true) => {
+    if (!sfPop || sfPop.hidden) return;
+    const was = sfEdit; sfPop.hidden = true; sfEdit = null;
+    if (was) sfRefresh(was.id, restore ? `[data-sf-facet="${CSS.escape(`${was.id}:${was.key}`)}"]` : null);
+  };
+  const renderSfOptions = () => {
+    const q = sfEdit.query.trim().toLocaleLowerCase("ro");
+    const options = sfOptions(sfEdit.id, getServiceByCode(serviceProfileState.code), sfEdit.key).filter((o) => !q || o.value.toLocaleLowerCase("ro").includes(q));
+    return options.length ? options.map((o) => `
+      <li>
+        <label class="e-permits-workplace__filter-option">
+          <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${sfEdit.values.has(o.value) ? " checked" : ""} data-sf-option><span class="checkbox-custom" aria-hidden="true"></span></span>
+          <span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>
+        </label>
+      </li>`).join("") : '<li class="e-permits-workplace__filter-empty">Nicio valoare nu corespunde.</li>';
+  };
+  const openSfPop = (id, key) => {
+    const facet = SF_LISTS[id].facets.find((f) => f.key === key);
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!facet || !service) return;
+    if (!sfPop) {
+      sfPop = document.createElement("div");
+      sfPop.className = "e-permits-fo-intent-menu e-permits-workplace__filter-pop";
+      sfPop.hidden = true;
+      document.body.appendChild(sfPop);
+      sfPop.addEventListener("change", (event) => { const box = event.target.closest("[data-sf-option]"); if (!box || !sfEdit) return; if (box.checked) sfEdit.values.add(box.value); else sfEdit.values.delete(box.value); });
+      sfPop.addEventListener("input", (event) => { if (!event.target.closest("[data-sf-pop-search]") || !sfEdit) return; sfEdit.query = event.target.value; sfPop.querySelector("[data-sf-list]").innerHTML = renderSfOptions(); });
+      sfPop.addEventListener("click", (event) => {
+        if (!sfEdit) return;
+        if (event.target.closest("[data-sf-confirm]")) {
+          const draft = sfDraft(sfEdit.id), values = [...sfEdit.values];
+          if (values.length) draft[sfEdit.key] = values; else delete draft[sfEdit.key];
+          closeSfPop(); return;
+        }
+        if (event.target.closest("[data-sf-reset]")) { sfEdit.values.clear(); sfPop.querySelectorAll("[data-sf-option]").forEach((b) => { b.checked = false; }); }
+      });
+      sfPop.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") { event.preventDefault(); closeSfPop(); return; }
+        if (event.key === "Enter" && sfEdit && !event.target.closest("button")) { event.preventDefault(); sfPop.querySelector("[data-sf-confirm]")?.click(); }
+      });
+      document.addEventListener("pointerdown", (event) => { if (sfPop && !sfPop.hidden && !sfPop.contains(event.target) && !event.target.closest("[data-sf-facet]")) closeSfPop(false); });
+    }
+    sfEdit = { id, key, values: new Set(sfDraft(id)[key] || []), query: "" };
+    const many = sfOptions(id, service, key).length > 7;
+    sfPop.setAttribute("role", "dialog");
+    sfPop.setAttribute("aria-label", `Filtru: ${facet.label}`);
+    sfPop.innerHTML = `
+      ${many ? `<div class="e-permits-workplace__filter-head"><div class="search-input medium rectangular e-permits-workplace__search">
+        <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+        <input class="input" type="search" placeholder="Caută în ${escapeHtml(facet.label.toLocaleLowerCase("ro"))}" aria-label="Caută în ${escapeHtml(facet.label)}" data-sf-pop-search>
+        ${renderSearchActions()}
+      </div></div>` : ""}
+      <ul class="e-permits-workplace__filter-list" role="list" data-sf-list>${renderSfOptions()}</ul>
+      <div class="e-permits-workplace__filter-footer">
+        <button class="btn btn-primary btn-sm" type="button" data-sf-confirm>Confirmă</button>
+        <button class="btn btn-neutral btn-sm" type="button" data-sf-reset><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg><span>Șterge</span></button>
+      </div>`;
+    sfPop.hidden = false;
+    sfRefresh(id);
+    const chip = permitsProfilePanel?.querySelector(`[data-sf-facet="${CSS.escape(`${id}:${key}`)}"]`);
+    const r = chip.getBoundingClientRect();
+    sfPop.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - sfPop.offsetWidth - 8))}px`;
+    sfPop.style.top = `${r.bottom + 8}px`;
+    requestAnimationFrame(() => (sfPop.querySelector("[data-sf-pop-search]") || sfPop.querySelector("[data-sf-option]") || sfPop.querySelector("[data-sf-confirm]"))?.focus());
+  };
+  /* returns true when the click was a filter control */
+  const handleSfClick = (event) => {
+    const toggle = event.target.closest("[data-sf-toggle]");
+    if (toggle) {
+      const id = toggle.dataset.sfToggle, st = sfState(id);
+      if (toggle.getAttribute("aria-disabled") === "true") return true;
+      if (sfPending(id)) { permitsProfilePanel?.querySelector(`[data-sf-commit="${id}"]`)?.focus(); return true; }
+      st.open = !st.open; sfRefresh(id, st.open ? `[data-sf-facet^="${id}:"]` : `[data-sf-toggle="${id}"]`); return true;
+    }
+    const facet = event.target.closest("[data-sf-facet]");
+    if (facet) {
+      const [id, key] = facet.dataset.sfFacet.split(":");
+      if (sfEdit?.id === id && sfEdit.key === key) closeSfPop(); else openSfPop(id, key);
+      return true;
+    }
+    const commit = event.target.closest("[data-sf-commit]");
+    if (commit) {
+      const id = commit.dataset.sfCommit, st = sfState(id);
+      st.applied = JSON.parse(JSON.stringify(sfDraft(id))); Object.keys(st.applied).forEach((k) => { if (!st.applied[k]?.length) delete st.applied[k]; });
+      st.draft = null; sfRefresh(id, `[data-sf-clear="${id}"], [data-sf-facet^="${id}:"]`); return true;
+    }
+    const discard = event.target.closest("[data-sf-discard]");
+    if (discard) { sfState(discard.dataset.sfDiscard).draft = null; sfRefresh(discard.dataset.sfDiscard, `[data-sf-facet^="${discard.dataset.sfDiscard}:"]`); return true; }
+    const clear = event.target.closest("[data-sf-clear]");
+    if (clear) { const st = sfState(clear.dataset.sfClear); st.applied = {}; st.draft = null; sfRefresh(clear.dataset.sfClear, `[data-sf-toggle="${clear.dataset.sfClear}"]`); return true; }
+    const refresh = event.target.closest("[data-sf-refresh]");
+    if (refresh) { closeStackMenus?.(); sfRefresh(refresh.dataset.sfRefresh); showShellToast("Lista a fost reîncărcată. Căutarea și filtrele au rămas.", "info"); return true; }
+    return false;
+  };
+
+  document.addEventListener("keydown", (event) => {
+    const row = event.target.closest?.("[data-tariff-row]");
+    if (row && event.key === "Enter" && event.target === row) { event.preventDefault(); openTariffView(row.dataset.tariffRow); }
+  });
+
+  /* ---- Tarife (US-203, Azure 94768) — the service's own tariffs, stacked like the taxes:
+     grouped by request type; title = name, tags Stare · Sursă; meta = Sumă și valută · Tip
+     tarif · Tip persoană · Subdiviziune · vN · Modificat. Chips Toate · Active · Schiță ·
+     Inactive, search on name RO/RU/EN + Temei legal (AC-05), „Filtrare avansată” (AC-06),
+     ⋮ Sincronizează (US-206) · Actualizează (AC-09) · Exportă (AC-10, AC-12). A row (or the
+     eye) opens the tariff card (AC-11, US-207); „Editează” opens the editor. */
+  const TRF_STATUS_TONES = { Activ: "success", Inactiv: "neutral", "Schiță": "warning" };
+  const trfListState = { query: "" };
+  const trfMatches = (t) => {
+    const query = trfListState.query.trim().toLocaleLowerCase("ro");
+    const text = [t.name, t.nameRu, t.nameEn, t.legalBasis].join(" ").toLocaleLowerCase("ro");
+    return (!query || text.includes(query)) && sfMatches("tarife", tariffFacetRow(t));
+  };
+  const visibleServiceTariffs = (service) => serviceTariffList(service).filter(trfMatches);
+  const renderServiceTariffList = (service) => {
+    const admin = isCentralAdmin();
+    const all = serviceTariffList(service);
+    const visible = visibleServiceTariffs(service);
+    if (!visible.length) {
+      if (!all.length) return renderEmptyState({ title: "Nu există tarife înregistrate", text: "Tarifele serviciului vin din RSSP / eAPL la sincronizare sau se adaugă manual.", icon: "coins" });
+      return trfListState.query.trim()
+        ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumire (RO, RU, EN) sau temei legal." })
+        : renderNoResults("Nu există tarife înregistrate", { text: "Alege alt filtru sau șterge filtrele." });
+    }
+    const items = visible.map((t) => {
+      const status = tariffStatus(t);
+      return {
+        group: t.requestType || "Tip solicitare neprecizat",
+        plainTitle: t.name,
+        title: escapeHtml(t.name),
+        rowAttrs: `data-tariff-row="${escapeHtml(t.id)}" tabindex="0"`,
+        badges: [renderTag(status, TRF_STATUS_TONES[status]), tariffSourceTag(t)],
+        meta: [
+          `<strong>${escapeHtml(tariffValueText(t))}</strong>`,
+          escapeHtml(t.type || "—"),
+          escapeHtml(t.personType || "—"),
+          escapeHtml(t.subdivision || "Toate subdiviziunile"),
+          `v${escapeHtml(String(t.version || 1))}`,
+          whoWhen("Modificat", t.modifiedAt, t.modifiedBy)
+        ],
+        actionsHtml: renderRowActions({
+          preview: `data-tariff-view="${escapeHtml(t.id)}"`,
+          primary: admin ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(t.id)}" aria-label="Editează tariful ${escapeHtml(t.name)}"` } : null,
+          label: t.name
+        })
+      };
+    });
+    const groups = groupBy(items, (item) => item.group, service.geap.requestTypes.map((rt) => rt.name));
+    return `<div class="e-permits-stack">${groups.map((group) => renderTaxGroup(group.label, group.items)).join("")}</div>`;
+  };
+  const refreshTrfList = (service) => {
+    const panel = permitsProfilePanel;
+    if (!panel?.querySelector("[data-trf-list]")) return;
+    const visible = visibleServiceTariffs(service).length;
+    panel.querySelector("[data-trf-list]").innerHTML = renderServiceTariffList(service);
+    panel.querySelector('[data-sf-bar="tarife"]').innerHTML = renderSfBar("tarife", service, visible);
+    panel.querySelector('[data-sf-toggle="tarife"]').outerHTML = renderSfToggle("tarife", service);
+    panel.querySelector('[data-sf-total="tarife"]').textContent = String(visible);
+  };
+  const renderServiceTariffs = (service) => {
+    const admin = isCentralAdmin();
+    const sources = ["RSSP", ...((service.syncSources || []).includes("eAPL") ? ["eAPL"] : [])];
+    const visible = visibleServiceTariffs(service).length;
+    return `
+      <section class="e-permits-dosar-profil__section e-permits-stack-section">
+        <div class="e-permits-pay__toolbar">
+          <h2 class="e-permits-dosar-profil__section-title e-permits-pay__title">Tarife <span class="badge badge--lg badge--solid-neutral" data-sf-total="tarife">${visible}</span></h2>
+          <div class="e-permits-pay__tools">
+            <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search${trfListState.query.trim() ? " has-value is-ready" : ""}">
+              <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+              <input class="input" type="search" placeholder="Caută tarife" aria-label="Caută tarife după denumire (RO, RU, EN) sau temei legal" value="${escapeHtml(trfListState.query)}" autocomplete="off" data-trf-search>
+              ${renderSearchActions()}
+            </div>
+            ${renderSfToggle("tarife", service)}
+            ${admin ? `
+              <button class="btn btn-secondary btn-sm" type="button" data-tariff-add="${escapeHtml(service.code)}">
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                <span>Adaugă tarif</span>
+              </button>
+            ` : ""}
+            ${renderStackMenu([
+              ...(admin ? sources.map((source) => ({ label: `Sincronizează tarifele din ${source}`, icon: "rotate-arrow", attrs: `data-tariff-sync="${source}"` })) : []),
+              { label: "Actualizează lista", icon: "rotate-arrow", attrs: 'data-sf-refresh="tarife"' },
+              { label: "Exportă tarifele", icon: "download", attrs: "data-trf-export" }
+            ], "tarife")}
+          </div>
+        </div>
+        <div data-sf-bar="tarife">${renderSfBar("tarife", service, visible)}</div>
+        <div class="e-permits-sum-list">
+          <div data-trf-list>${renderServiceTariffList(service)}</div>
+        </div>
+      </section>
+    `;
+  };
+
+  const visibleTaxCount = (service) => serviceTaxes(service).filter((tax) => payMatches(service, tax)).length + unconfiguredServiceTariffs(service).filter(unconfiguredMatches).length;
+  const refreshPayList = (service) => {
+    const panel = permitsProfilePanel;
+    if (!panel?.querySelector("[data-pay-list]")) return;
+    const visible = visibleTaxCount(service);
+    panel.querySelector("[data-pay-list]").innerHTML = renderPaymentList(service);
+    panel.querySelector('[data-sf-bar="taxe"]').innerHTML = renderSfBar("taxe", service, visible);
+    panel.querySelector('[data-sf-toggle="taxe"]').outerHTML = renderSfToggle("taxe", service);
+    panel.querySelector('[data-sf-total="taxe"]').textContent = String(visible);
+  };
+
+  /* Taxe (US-199, Azure 94641) — stacked, grouped by request type (the list stays a list, no
+     table): count badge on the title (AC-02), chips Toate · Active · Schiță · Inactive, search
+     (name RO/RU/EN, AC-05), „Filtrare avansată” Tip solicitare · Moment generare · Tip generare
+     (AC-06), ⋮ Actualizează (AC-09) · Exportă (AC-10, logged AC-12) */
   const renderServicePayments = (service) => {
     const admin = isCentralAdmin();
+    const visible = visibleTaxCount(service);
 
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <h2 class="e-permits-dosar-profil__section-title">Taxe</h2>
-        <!-- one toolbar: filters left; search, Adaugă taxă and ⋮ (export, sync) right -->
+        <!-- one line: title + count left; search, Filtrare avansată, Adaugă taxă and ⋮ right -->
         <div class="e-permits-pay__toolbar">
-          <div class="e-permits-rt__chips" role="group" aria-label="Filtrează taxele" data-pay-chips>${renderPayChips(service)}</div>
+          <h2 class="e-permits-dosar-profil__section-title e-permits-pay__title">Taxe <span class="badge badge--lg badge--solid-neutral" data-sf-total="taxe">${visible}</span></h2>
           <div class="e-permits-pay__tools">
             <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search${String(payListState.query || "").trim() ? " has-value is-ready" : ""}">
               <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" placeholder="Caută taxă sau tarif" aria-label="Caută după tarif, tip solicitare, moment sau condiție" value="${escapeHtml(payListState.query)}" autocomplete="off" data-pay-search>
+              <input class="input" type="search" placeholder="Caută taxe" aria-label="Caută taxe după denumire (RO, RU, EN), cod sau tip de solicitare" value="${escapeHtml(payListState.query)}" autocomplete="off" data-pay-search>
               ${renderSearchActions()}
             </div>
+            ${renderSfToggle("taxe", service)}
             ${admin ? `
               <button class="btn btn-secondary btn-sm" type="button" data-pay-add>
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                 <span>Adaugă taxă</span>
               </button>
             ` : ""}
-            <!-- one visible action; the rest (export, sync) in the ⋮ menu -->
             ${renderStackMenu([
-              { label: "Exportă taxele", icon: "download", attrs: "data-pay-export" },
-              ...(admin ? ["RSSP", ...((service.syncSources || []).includes("eAPL") ? ["eAPL"] : [])].map((source) => ({
-                label: `Sincronizează tarifele din ${source}`, icon: "rotate-arrow", attrs: `data-tariff-sync="${source}"`
-              })) : [])
+              { label: "Actualizează lista", icon: "rotate-arrow", attrs: 'data-sf-refresh="taxe"' },
+              { label: "Exportă taxele", icon: "download", attrs: "data-pay-export" }
             ], "taxe")}
           </div>
         </div>
+        <div data-sf-bar="taxe">${renderSfBar("taxe", service, visible)}</div>
         <div class="e-permits-sum-list">
           <div data-pay-list>${renderPaymentList(service)}</div>
           ${admin ? renderListNote('Tarifele globale (valabile pentru orice serviciu) se gestionează în <a class="link link-primary link-md" href="#tarife" data-tariff-goto="">Administrare → Tarife</a>.') : ""}
@@ -7657,6 +8014,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </section>
       ${renderServicePayments(service)}
+      ${renderServiceTariffs(service)}
     `;
   };
 
@@ -12001,12 +12359,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- Servicii › publicare: like the template / classifier profiles. Every change
      logged since the last publication is pending; "Publică" asks what changed (from the
      log), a comment and when it takes effect, then raises the version. ---- */
-  const SERVICE_EVENT_SILENT = /^(Sincronizare|Publicare serviciu)/;
+  const SERVICE_EVENT_SILENT = /^(Sincronizare|Eroare la sincronizare|Publicare serviciu)/;
   const servicePublication = (service) => {
     const g = service.geap;
     if (!g.publishedAt) {
-      g.publishedAt = (g.events || []).map((e) => e.at).filter(Boolean).sort().pop() || service.lastSync || localIsoNow();
-      g.publications = g.publications || [{ version: g.version, at: g.publishedAt, by: (g.events || [])[0]?.user || "—", note: "Versiunea în vigoare." }];
+      /* sync runs (incl. failed ones) are not GEAP changes: they never set the publication */
+      const own = (g.events || []).filter((e) => e.at && !SERVICE_EVENT_SILENT.test(e.type || ""));
+      g.publishedAt = own.map((e) => e.at).sort().pop() || service.lastSync || localIsoNow();
+      g.publications = g.publications || [{ version: g.version, at: g.publishedAt, by: own[0]?.user || service.syncedBy || "—", note: "Versiunea în vigoare." }];
     }
     return g;
   };
@@ -12371,7 +12731,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const syncModal = document.querySelector("#service-sync-modal");
   const syncModalBody = syncModal?.querySelector("[data-service-sync-body]");
   const syncModalFooter = syncModal?.querySelector("[data-service-sync-footer]");
-  const syncState = { code: "", phase: "form", error: "", fieldError: "", result: null, eaplResult: null, eaplError: "", sources: ["RSSP"], source: "RSSP", steps: [] };
+  const syncState = { code: "", phase: "form", error: "", fieldError: "", result: null, eaplResult: null, eaplError: "", sources: ["RSSP"], source: "RSSP", steps: [], tariffs: {} };
 
   /* ---- sync: RSSP, eAPL or both ------------------------------------------
      Services declare their sources (syncSources). A new service is always
@@ -12429,6 +12789,12 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
 
+  /* the tariffs the sync brought (per source): new ones wait for their tax rule at „De configurat” */
+  const syncTariffsLine = () => {
+    const parts = Object.entries(syncState.tariffs).filter(([, r]) => r).map(([source, r]) => `${source}: ${plural(r.created, "nou", "noi")} · ${plural(r.updated, "actualizat", "actualizate")} · ${plural(r.unchanged, "neschimbat", "neschimbate")}`);
+    const created = Object.values(syncState.tariffs).reduce((n, r) => n + (r?.created || 0), 0);
+    return parts.length ? `${escapeHtml(parts.join("; "))}${created ? ' <span class="e-permits-passport__muted">(cele noi așteaptă regula de aplicare la „De configurat”)</span>' : ""}` : "—";
+  };
   const renderSyncModal = () => {
     if (!syncModalBody || !syncModalFooter) {
       return;
@@ -12468,11 +12834,13 @@ document.addEventListener("DOMContentLoaded", () => {
               ["Tipul solicitantului", applicantTags(summary.applicantTypes)],
               ["Subservicii importate", `${summary.subServices}${summary.ignoredSubServices ? ` <span class="e-permits-passport__muted">(${summary.ignoredSubServices} dezactivate, ignorate)</span>` : ""}`],
               ["Documente", String(summary.documents)],
+              ["Tarife", syncTariffsLine()],
               ["Indicatori", valueTags(Object.entries(summary.flags).filter(([, on]) => on).map(([name]) => name))]
             ].map(syncRow).join("")}
           </div>
         ` : ""}
         ${eapl ? renderEaplSummary(eapl.service.eapl) : ""}
+        ${eapl && !result ? `<div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">${syncRow(["Tarife", syncTariffsLine()])}</div>` : ""}
       `;
       syncModalFooter.innerHTML = `
         <div class="modal-buttons">
@@ -12484,7 +12852,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const loading = syncState.phase === "loading";
     /* a service is created only by import from RSSP (Feature 90575, US-111) */
-    title.textContent = syncState.creating ? "Creează serviciu nou din RSSP" : multiSource ? "Sincronizare serviciu" : "Sincronizare serviciu din RSSP";
+    title.textContent = syncState.creating ? "Sincronizare serviciu din RSSP" : multiSource ? "Sincronizare serviciu" : "Sincronizare serviciu din RSSP";
     syncModalBody.innerHTML = `
       <p class="e-permits-passport__lead">${multiSource
         ? "Serviciul se integrează cu RSSP și cu eAPL. Alege sursa: RSSP actualizează datele pașaportului, eAPL aduce datele locale (autoritatea locală, taxa și termenul local)."
@@ -12541,7 +12909,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sources = getServiceByCode(code)?.syncSources || ["RSSP"];
     const allowed = sources.length > 1 ? ["RSSP", "eAPL", "both"] : ["RSSP"];
     Object.assign(syncState, {
-      code, creating: !code, phase: "form", error: "", fieldError: "", result: null, eaplResult: null, eaplError: "",
+      code, creating: !code, phase: "form", error: "", fieldError: "", result: null, eaplResult: null, eaplError: "", tariffs: {},
       sources, source: allowed.includes(source) ? source : "RSSP", steps: []
     });
     renderSyncModal();
@@ -12590,6 +12958,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (result.authorityCreated) servicesStore.authorities.push(result.authority);
     logServiceEvents(result.service.code, result.events);
     syncState.result = result;
+    syncState.tariffs.RSSP = syncServiceTariffsFrom(result.service, "RSSP");
     return { ok: true };
   };
 
@@ -12605,6 +12974,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const index = servicesStore.services.findIndex((item) => item.code === result.service.code);
     servicesStore.services[index] = result.service;
     syncState.eaplResult = result;
+    syncState.tariffs.eAPL = syncServiceTariffsFrom(result.service, "eAPL");
     return { ok: true };
   };
 
@@ -12627,7 +12997,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const runSync = () => {
     const input = syncModal.querySelector("[data-service-sync-code]");
     syncState.code = input ? input.value : syncState.code;
-    Object.assign(syncState, { error: "", fieldError: "", result: null, eaplResult: null, eaplError: "" });
+    Object.assign(syncState, { error: "", fieldError: "", result: null, eaplResult: null, eaplError: "", tariffs: {} });
 
     if (!syncState.code.trim()) {
       /* US-111: validation only — no registry is called */
@@ -14279,7 +14649,9 @@ document.addEventListener("DOMContentLoaded", () => {
     link.click();
     link.remove();
     URL.revokeObjectURL(url);
-    showShellToast(`${rows.length} ${rows.length === 1 ? "taxă exportată" : "taxe exportate"}.`);
+    const detail = rows.length === 1 ? "1 taxă exportată" : `${rows.length} taxe exportate`;
+    logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Export taxe", status: "Reușit", detail }]);
+    showShellToast(`${detail}.`);
   };
 
   /* ---- Tarife (Feature «Gestionarea clasificatorului de tarife») ---------
@@ -14295,11 +14667,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const tariffValidity = (t) => `${t.validFrom ? formatLongDate(t.validFrom) : "—"}${t.validTo ? ` – ${formatLongDate(t.validTo)}` : " – nelimitat"}`;
   const serviceTariffList = (service) => (servicesStore?.tariffs || []).filter((tariff) => tariff.scope === service.code);
 
-  /* RSSP sub-services with a price → one tariff each; eAPL local fee → one tariff */
+  /* RSSP sub-services with a price → one tariff each (named after its type and request type —
+     RSSP sends no fee name); eAPL local fee → one tariff. Runs with the service sync
+     (Sincronizează serviciul), once per source, and on its own from the Tarife table (US-206) */
   const syncServiceTariffsFrom = (service, source) => {
     const incoming = source === "RSSP"
       ? (service.rssp.subServices || []).filter((sub) => Number(sub.price?.amount) > 0).map((sub) => ({
-          externalId: `sub-${sub.title}`, name: `Taxă — ${sub.title}`, amount: Number(sub.price.amount), currency: sub.price.currency || "MDL",
+          externalId: `sub-${sub.title}`, name: `Taxă de stat — ${sub.title}`, amount: Number(sub.price.amount), currency: sub.price.currency || "MDL",
           requestType: sub.title, type: "Taxă de stat"
         }))
       : [servicesStore.eapl?.responses?.[service.code]].filter(Boolean).map((local) => ({
@@ -14309,9 +14683,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const now = localIsoNow();
     const result = passport.syncServiceTariffs({ tariffs: servicesStore.tariffs, incoming, serviceCode: service.code, source, now, today: now.slice(0, 10) });
     servicesStore.tariffs = result.tariffs;
-    logServiceEvents(service.code, [{ at: now, user: currentUserName(), type: `Sincronizare tarife (${source})`, status: "Reușit", detail: `${result.created} create, ${result.updated} actualizate, ${result.unchanged} neschimbate` }]);
+    logServiceEvents(service.code, [{ at: now, user: currentUserName(), type: `Sincronizare tarife (${source})`, status: result.failed ? "Eșuat parțial" : "Reușit", detail: `${result.created} create, ${result.updated} actualizate, ${result.unchanged} neschimbate, ${result.failed} eșuate` }], { render: false });
+    return result;
+  };
+  /* US-206 (Azure 94771) — ⋮ „Sincronizează tarifele din RSSP / eAPL” in the Taxe toolbar (one
+     item per source; eAPL only when the service has it, AC-02). Summary created · updated · failed (AC-07);
+     a source that does not answer shows an error and what the other source saved stays
+     (AC-08); each run is in the Jurnal with the source and counts (AC-12). The daily run
+     (AC-09) behaves the same, as „SIA GEAP”. */
+  const syncTariffsManually = (service, only = null) => {
+    const sources = ["RSSP", ...((service.syncSources || []).includes("eAPL") ? ["eAPL"] : [])].filter((source) => !only || source === only);
+    const done = [], errors = [];
+    for (const source of sources) {
+      if (source === "eAPL" && !servicesStore.eapl?.responses?.[service.code]) {
+        errors.push("eAPL nu a răspuns");
+        logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Sincronizare tarife (eAPL)", status: "Eșuat", detail: "eAPL indisponibil — nicio modificare" }], { render: false });
+        continue;
+      }
+      done.push([source, syncServiceTariffsFrom(service, source)]);
+    }
+    const sum = (k) => done.reduce((n, [, r]) => n + (r[k] || 0), 0);
     renderServiceProfile();
-    showShellToast(`${result.created} create, ${result.updated} actualizate, ${result.unchanged} neschimbate.${result.created ? " Tarifele noi așteaptă regula de aplicare la „De configurat”." : ""}`, "success", `Tarife sincronizate din ${source}`);
+    const text = `${plural(sum("created"), "tarif creat", "tarife create")} · ${sum("updated")} actualizate · ${sum("failed")} eșuate${sum("created") ? ". Tarifele noi așteaptă regula de aplicare la „De configurat”." : ""}`;
+    if (errors.length) showShellToast(`${errors.join("; ")}. ${done.length ? `Tarifele din ${done.map(([src]) => src).join(" și ")} au fost salvate: ${text}` : "Nu s-a modificat nimic."}`, "error", "Sincronizare incompletă");
+    else showShellToast(text, "success", `Tarife sincronizate din ${done.map(([src]) => src).join(" și ")}`);
+    requestAnimationFrame(() => permitsProfilePanel?.querySelector('[aria-label="Mai multe acțiuni: taxe"]')?.focus());
   };
 
   const exportCsv = (filename, header, rows) => {
@@ -14325,10 +14721,16 @@ document.addEventListener("DOMContentLoaded", () => {
     URL.revokeObjectURL(url);
   };
 
-  const exportTariffs = (list, filename) => {
-    exportCsv(filename, ["Cod", "Denumire", "Tip", "Sumă", "Valută", "Formulă", "Tip solicitare", "Tip persoană", "Domeniu", "Sursă", "Stare", "Activ", "Valabil de la", "Valabil până la", "Versiune", "Folosit în taxe"],
-      list.map((t) => [t.code, t.name, t.type, t.amount, t.currency, t.formula ? t.expression : "Nu", t.requestType || "", t.personType || "", t.scope === "global" ? "Global" : t.scope, t.source, t.state, t.active ? "Da" : "Nu", t.validFrom || "", t.validTo || "", `v${t.version || 1}`, tariffUsage(t).length]));
-    showShellToast(`${list.length} ${list.length === 1 ? "tarif exportat" : "tarife exportate"}.`);
+  /* CSV of the list as shown (US-202 AC-10 / US-203 AC-10): the visible columns, the filters
+     applied at export time. The export itself is logged (AC-12): a service's export in its
+     Jurnal, the global list in the audit log. */
+  const exportTariffs = (list, filename, { service = null } = {}) => {
+    exportCsv(filename, ["Denumire", "Tip tarif", ...(service ? ["Tip solicitare", "Tip persoană", "Subdiviziune de examinare"] : []), "Sumă", "Valută", "Formulă", "Stare", "Activ/Inactiv", "Sursă", "Nr. versiune", "Valabil de la", "Valabil până la", "Modificat de", "Modificat la"],
+      list.map((t) => [t.name, t.type || "", ...(service ? [t.requestType || "", t.personType || "", t.subdivision || "Toate"] : []), t.formula ? "" : t.amount, t.currency, t.formula ? formulaReadable(t.expression) : "Nu", t.state, t.active ? "Activ" : "Inactiv", t.source, `v${t.version || 1}`, t.validFrom || "", t.validTo || "", t.modifiedBy || "", t.modifiedAt || ""]));
+    const detail = `${list.length === 1 ? "1 tarif exportat" : `${list.length} tarife exportate`}`;
+    if (service) logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Export tarife", status: "Reușit", detail }]);
+    else (servicesStore.auditLog ||= []).unshift({ at: localIsoNow(), user: currentUserName(), type: "Export tarife globale", detail });
+    showShellToast(`${detail}.`);
   };
 
   /* ---- tariff editor (drawer) ---- */
@@ -14647,8 +15049,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
               ${[
                 ["Sursă", escapeHtml(existing.source)],
-                ["Folosit de", usage.length ? usage.map(({ service: svc, tax }) => `${escapeHtml(tax.requestType)} · ${escapeHtml(tax.moment)}${isConditional(tax) ? ` · ${escapeHtml(conditionsLabel(tax))}` : ""} <span class="e-permits-passport__muted">(${escapeHtml(svc.title)})</span>`).join("<br>") : "Nefolosit în nicio taxă"],
-                ["Istoric versiuni", (existing.versions || []).slice().reverse().map((v) => `<span class="e-permits-tariff__version"><strong>v${v.version}</strong> · ${escapeHtml(v.note || "")} <span class="e-permits-passport__muted">· ${formatStamp(v.at)} · ${escapeHtml(shortName(v.by || ""))}</span></span>`).join("")]
+                ["Folosit de", escapeHtml(tariffUsageText(existing))],
+                ["Istoric versiuni", tariffHistoryHtml(existing)]
               ].map(([label, value]) => `
                 <div class="e-permits-dosar-profil__row">
                   <span class="e-permits-dosar-profil__row-label">${escapeHtml(label)}</span>
@@ -14716,6 +15118,92 @@ document.addEventListener("DOMContentLoaded", () => {
     if (focusSelector) focusFormControl(tariffDrawerBody.querySelector(focusSelector));
   };
 
+  /* US-207 (Azure 94772) — the tariff card, read-only, in the tariff drawer: tags Tip tarif ·
+     Stare · Activ/Inactiv and the meta line (Sursă · Nr. versiune · Modificat) on top (AC-02),
+     then Identitate (AC-03), Sumă or Formulă (AC-04), Ciclu de viață (AC-05), Folosit de = only
+     the number of taxes (AC-06), Istoric versiuni in chronological order with what changed
+     (AC-07, AC-08). „Înapoi la tarife” closes the card; the list keeps its filters and page
+     (AC-09). „Editează” switches the same drawer to the editor. */
+  let tariffViewId = null;
+  const tariffUsageText = (t) => {
+    const n = tariffUsage(t).length;
+    return n ? `Folosit în ${n === 1 ? "1 taxă" : `${n} taxe`}` : "Acest tarif nu este folosit încă în nicio taxă sau notă de plată.";
+  };
+  const tariffHistoryHtml = (t) => {
+    const versions = (t.versions || []).slice().sort((x, y) => (x.version || 0) - (y.version || 0));
+    if (versions.length <= 1) return '<span class="e-permits-passport__muted">Acest tarif nu are versiuni anterioare.</span>';
+    return versions.map((v, i) => `<span class="e-permits-tariff__version"><strong>v${v.version}</strong> · ${escapeHtml(formatStamp(v.at))} · ${escapeHtml(v.by || "")} — ${escapeHtml(v.note || "")}${i === versions.length - 1 ? ' <span class="e-permits-passport__muted">(curentă)</span>' : ""}</span>`).join("");
+  };
+  const tariffCard = (rows) => `
+    <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
+      ${rows.filter(Boolean).map(([label, value]) => `
+        <div class="e-permits-dosar-profil__row">
+          <span class="e-permits-dosar-profil__row-label">${escapeHtml(label)}</span>
+          <span class="e-permits-dosar-profil__row-value">${value}</span>
+        </div>
+      `).join("")}
+    </div>`;
+  const tariffSection = (title, html) => `
+    <section class="e-permits-user-create__section">
+      <h3 class="e-permits-user-create__section-title">${escapeHtml(title)}</h3>
+      <div class="e-permits-user-create__section-content">${html}</div>
+    </section>`;
+  const orDash = (v) => (v ? escapeHtml(v) : '<span class="e-permits-workplace__dash">—</span>');
+  const renderTariffView = () => {
+    const t = (servicesStore.tariffs || []).find((x) => x.id === tariffViewId);
+    if (!t || !tariffDrawer) return;
+    const service = t.scope !== "global" ? getServiceByCode(t.scope) : null;
+    tariffDrawer.querySelector("[data-tariff-title]").textContent = t.name;
+    tariffDrawer.querySelector("[data-tariff-subtitle]").textContent = `Sursă: ${t.source || "GEAP"} · v${t.version || 1} · Modificat ${formatStamp(t.modifiedAt)}${t.modifiedBy ? ` · ${t.modifiedBy}` : ""}`;
+    tariffDrawer.querySelector("[data-tariff-steps]").hidden = true;
+    tariffDrawerBody.innerHTML = `
+      <div class="e-permits-clas-grid__tags e-permits-tariff__view-tags">
+        ${renderTag(t.type || "—", "neutral")}
+        ${renderTag(t.state, t.state === "Publicat" ? "success" : "neutral")}
+        ${renderTag(t.active ? "Activ" : "Inactiv", t.active ? "success" : "neutral")}
+      </div>
+      ${tariffSection("Identitate", tariffCard([
+        ["Denumire (RO)", orDash(t.name)],
+        ["Denumire (RU)", orDash(t.nameRu)],
+        ["Denumire (EN)", orDash(t.nameEn)],
+        ["Tip tarif", orDash(t.type)],
+        ["Temei legal", orDash(t.legalBasis)],
+        ["IBAN", t.iban ? escapeHtml(t.iban) : '<span class="e-permits-passport__muted">Implicit — contul principal al autorității</span>'],
+        service && ["Tip solicitare", orDash(t.requestType)],
+        service && ["Tip persoană", orDash(t.personType)],
+        service && ["Subdiviziune de examinare", t.subdivision ? escapeHtml(t.subdivision) : '<span class="e-permits-passport__muted">Toate subdiviziunile</span>']
+      ]))}
+      ${tariffSection(t.formula ? "Formulă" : "Sumă", tariffCard(t.formula
+        ? [["Expresia formulei", formulaReadableHtml(t.expression) || orDash("")], ["Regula de rotunjire", orDash(t.rounding)]]
+        : [["Sumă", escapeHtml(String(t.amount))], ["Valută", orDash(t.currency)]]))}
+      ${tariffSection("Ciclu de viață", tariffCard([
+        ["Stare", renderTag(t.state, t.state === "Publicat" ? "success" : "neutral")],
+        ["Activ/Inactiv", renderTag(t.active ? "Activ" : "Inactiv", t.active ? "success" : "neutral")],
+        ["Nr. versiune", `v${t.version || 1}`],
+        ["Valabil de la/până la", escapeHtml(tariffValidity(t))],
+        ["Modificat de/la", `${escapeHtml(t.modifiedBy || "—")} · ${escapeHtml(formatStamp(t.modifiedAt))}`],
+        t.source !== "GEAP" && ["Ultima sincronizare", t.lastSync ? escapeHtml(formatStamp(t.lastSync)) : '<span class="e-permits-passport__muted">Nesincronizat încă</span>']
+      ]))}
+      ${tariffSection("Folosit de", tariffCard([["Taxe", escapeHtml(tariffUsageText(t))]]))}
+      ${tariffSection("Istoric versiuni", tariffCard([["Versiuni", tariffHistoryHtml(t)]]))}
+    `;
+    tariffDrawer.querySelector("[data-tariff-summary]").textContent = "";
+    tariffDrawer.querySelector("[data-tariff-buttons]").innerHTML = `
+      <button class="btn btn-neutral btn-rounded" type="button" data-tariff-close><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg><span>Înapoi la tarife</span></button>
+      ${isCentralAdmin() ? `<button class="btn btn-primary btn-rounded" type="button" data-tariff-view-edit>${actionLabelHtml("Editează")}</button>` : ""}
+    `;
+  };
+  const openTariffView = (tariffId) => {
+    if (!tariffDrawer || !(servicesStore.tariffs || []).some((t) => t.id === tariffId)) return;
+    tariffDraft = null;
+    tariffViewId = tariffId;
+    if (tariffDrawer.hidden) tariffReturnFocus = document.activeElement;
+    renderTariffView();
+    tariffDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => tariffDrawer.querySelector("[data-tariff-buttons] [data-tariff-close]")?.focus());
+  };
+
   const openTariffDrawer = (tariffId = null, scope = "global", { requestType = null } = {}) => {
     const existing = tariffId ? (servicesStore.tariffs || []).find((t) => t.id === tariffId) : null;
     if (!tariffDrawer || (tariffId && !existing)) return;
@@ -14726,7 +15214,8 @@ document.addEventListener("DOMContentLoaded", () => {
       formula: false, expression: "", rounding: "2 zecimale", userVariables: false, validFrom: localIsoNow().slice(0, 10), validTo: null
     };
     tariffDraft = { ...base, id: existing?.id || null, amount: base.amount === "" ? "" : String(base.amount), validTo: base.validTo || "", errors: {}, testValues: {}, testResult: "", confirmDelete: false, tab: "detalii", varQuery: "" };
-    tariffReturnFocus = document.activeElement;
+    if (!tariffViewId || tariffDrawer.hidden) tariffReturnFocus = document.activeElement;
+    tariffViewId = null;
     renderTariffDrawer();
     tariffDrawer.hidden = false;
     document.body.classList.add("is-user-create-open");
@@ -14742,6 +15231,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tariffDrawer.classList.remove("is-closing");
       document.body.classList.remove("is-user-create-open");
       tariffDraft = null;
+      tariffViewId = null;
       /* opened from a tax ("Creează un tarif nou"): go back to that tax */
       if (taxAwaitingTariff) {
         const draft = taxAwaitingTariff;
@@ -14880,6 +15370,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   tariffDrawer?.addEventListener("click", (event) => {
+    /* the read-only card (US-207): back, or switch to the editor */
+    if (tariffViewId && !tariffDraft) {
+      if (event.target.closest("[data-tariff-close]")) { closeTariffDrawer(); return; }
+      if (event.target.closest("[data-tariff-view-edit]")) openTariffDrawer(tariffViewId);
+      return;
+    }
     if (!tariffDraft) return;
     const d = tariffDraft;
     const existing = (servicesStore.tariffs || []).find((t) => t.id === d.id) || null;
@@ -14964,7 +15460,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   tariffDrawer?.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && tariffDraft) {
+    if (event.key === "Escape" && (tariffDraft || tariffViewId)) {
       event.preventDefault();
       closeTariffDrawer();
     }
@@ -15058,9 +15554,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      /* US-201 AC-04: the story's text */
       askConfirm({
         title: "Activezi taxa?",
-        text: `Dosarele noi pentru ${where} vor include „${name}”.`,
+        text: "Taxa devine din nou disponibilă pentru declanșare în dosarele noi. Continuați?",
         confirmLabel: "Activează"
       }, () => {
         tax.active = true;
@@ -15072,7 +15569,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (action === "deactivate") {
       askConfirm({
         title: "Dezactivezi taxa?",
-        text: `„${name}” a fost aplicată în ${tax.usage} ${tax.usage === 1 ? "dosar" : "dosare"}. Notele de plată deja generate nu se modifică; dosarele noi nu o vor mai include.`,
+        /* US-201 AC-03 + AC-13: the story's text and how many dossiers use the tax */
+        text: `„${name}” este folosită în ${roCount(tax.usage || 0, "dosar", "dosare")}. O taxă inactivă nu mai poate fi declanșată în niciun dosar nou. Continuați?`,
         confirmLabel: "Dezactivează",
         destructive: true
       }, () => {
@@ -15300,17 +15798,29 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const tariffEdit = event.target.closest("[data-tariff-edit]");
-
-    if (tariffEdit) {
-      openTariffDrawer(tariffEdit.dataset.tariffEdit);
+    if (handleSfClick(event)) {
       return;
     }
 
     const tariffSync = event.target.closest("[data-tariff-sync]");
 
     if (tariffSync) {
-      syncServiceTariffsFrom(getServiceByCode(serviceProfileState.code), tariffSync.dataset.tariffSync);
+      const service = getServiceByCode(serviceProfileState.code);
+      if (service && isCentralAdmin()) syncTariffsManually(service, tariffSync.dataset.tariffSync);
+      return;
+    }
+
+    const tariffView = event.target.closest("[data-tariff-view]");
+
+    if (tariffView) {
+      openTariffView(tariffView.dataset.tariffView);
+      return;
+    }
+
+    const tariffEdit = event.target.closest("[data-tariff-edit]");
+
+    if (tariffEdit) {
+      openTariffDrawer(tariffEdit.dataset.tariffEdit);
       return;
     }
 
@@ -15353,14 +15863,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const payFilter = event.target.closest("[data-pay-filter]");
-
-    if (payFilter) {
+    if (event.target.closest("[data-trf-export]")) {
       const service = getServiceByCode(serviceProfileState.code);
-      payListState.filter = payFilter.dataset.payFilter;
-      permitsProfilePanel.querySelector("[data-pay-chips]").innerHTML = renderPayChips(service);
-      permitsProfilePanel.querySelector("[data-pay-list]").innerHTML = renderPaymentList(service);
-      permitsProfilePanel.querySelector(`[data-pay-filter="${payListState.filter}"]`)?.focus();
+      exportTariffs(visibleServiceTariffs(service), `tarife-${service.code}.csv`, { service });
+      return;
+    }
+
+    /* a tariff row opens its card (US-203 AC-11); its buttons keep their own action */
+    const trfRow = event.target.closest("[data-tariff-row]");
+
+    if (trfRow && !event.target.closest("button, a, input, label, [data-stack-menu]")) {
+      openTariffView(trfRow.dataset.tariffRow);
       return;
     }
 
@@ -15413,7 +15926,12 @@ document.addEventListener("DOMContentLoaded", () => {
   permitsProfilePanel?.addEventListener("input", (event) => {
     if (event.target.matches("[data-pay-search]")) {
       payListState.query = event.target.value;
-      permitsProfilePanel.querySelector("[data-pay-list]").innerHTML = renderPaymentList(getServiceByCode(serviceProfileState.code));
+      refreshPayList(getServiceByCode(serviceProfileState.code));
+    }
+
+    if (event.target.matches("[data-trf-search]")) {
+      trfListState.query = event.target.value;
+      refreshTrfList(getServiceByCode(serviceProfileState.code));
     }
   });
 
@@ -15800,10 +16318,13 @@ document.addEventListener("DOMContentLoaded", () => {
      draft's Renunță · Salvează lead the page-header actions with „● N modificări nesalvate”
      (as the user / role / classifier profiles); leaving the tab asks first. Fields, validation
      and audit events are the drawer's (shared handlers via cfgWith). */
-  const CFG2_SECTIONS = [...CFG_SECTIONS, ["deps", "Interdependențe"], ["other", "Alte setări"]];
+  /* „Alte setări” (Aprobare secundară, Cu expertiză, Suspendare cu coordonare) is gone: the
+     first two are set per request type (its flow), the third is „Suspendare cu semnarea
+     deciziei” under Suspendare (Figma comments, Olesea Luchian, 2026-10-09) */
+  const CFG2_SECTIONS = [...CFG_SECTIONS, ["deps", "Interdependențe"]];
   /* section list icons (central icon system): one literal icon per section, always with its
      label — recognition aid, never the meaning; 16px, grey, brand on the current section */
-  const CFG2_ICONS = { applicant: "person", exam: "people", suspension: "pause", signing: "signature", payment: "wallet", delivery: "envelope", appeal: "judge-gavel", numbering: "hashtag", rap: "globe", drafts: "page-text", deps: "link", other: "settings" };
+  const CFG2_ICONS = { applicant: "person", exam: "people", suspension: "pause", signing: "signature", payment: "wallet", delivery: "envelope", appeal: "judge-gavel", numbering: "hashtag", rap: "globe", drafts: "page-text", deps: "link" };
   const CFG2_DESC = {
     applicant: "Cine poate depune cererea și cum se verifică împuternicirea. Datele din RSSP se schimbă doar la resincronizare.",
     exam: "Subdiviziunile care examinează dosarele și cum ajung dosarele la specialiști.",
@@ -15815,28 +16336,25 @@ document.addEventListener("DOMContentLoaded", () => {
     numbering: "Formatul numerelor atribuite documentelor emise.",
     rap: "Ce date din cerere se publică în Registrul actelor permisive și care se anonimizează.",
     drafts: "Cât timp se păstrează schițele de cerere nedepuse.",
-    deps: "Servicii sau surse externe de care depinde depunerea cererii.",
-    other: "Opțiuni ale fluxului de examinare."
+    deps: "Servicii sau surse externe de care depinde depunerea cererii."
   };
-  const CFG2_KEPT = ["aprobareSecundara", "cuExpertiza", "suspendareCoordonare"];
   const CFG2_EMPTY_DEP = () => ({ name: "", requestTypes: [], type: "", source: "", fields: [], acts: [], formField: "", extSource: "", incompatible: "" });
   let cfg2 = null;
-  const cfg2Base = (service) => { const c = serviceConfig(service), f = serviceSettingFlags(service); return { c, flags: Object.fromEntries(CFG2_KEPT.map((k) => [k, Boolean(f[k])])) }; };
+  const cfg2Base = (service) => ({ c: serviceConfig(service) });
   const cfg2Ensure = (service) => {
     if (cfg2 && cfg2.code === service.code) return cfg2;
-    const { c, flags } = cfg2Base(service);
-    cfg2 = { code: service.code, v: cfgClone(c), flags, errors: {}, depErrors: {}, active: "applicant" };
+    const { c } = cfg2Base(service);
+    cfg2 = { code: service.code, v: cfgClone(c), errors: {}, depErrors: {}, active: "applicant" };
     return cfg2;
   };
-  /* one entry per changed field / interdependence / switch — the header counts them */
+  /* one entry per changed field / interdependence — the header counts them */
   const cfg2Changes = (service) => {
     if (!cfg2 || cfg2.code !== service.code) return [];
-    const { c, flags } = cfg2Base(service), out = [];
+    const { c } = cfg2Base(service), out = [];
     for (const [sec, fields] of Object.entries(CFG_FIELDS)) for (const [key, label] of fields) if (JSON.stringify(c[key]) !== JSON.stringify(cfg2.v[key])) out.push({ sec, key, label });
     const before = new Map(c.deps.map((d) => [d.id, d])), after = new Map(cfg2.v.deps.map((d) => [d.id, d]));
     for (const d of cfg2.v.deps) if (!before.has(d.id)) out.push({ sec: "deps", dep: d, kind: "add" }); else if (JSON.stringify(before.get(d.id)) !== JSON.stringify(d)) out.push({ sec: "deps", dep: d, kind: "edit" });
     for (const d of c.deps) if (!after.has(d.id)) out.push({ sec: "deps", dep: d, kind: "remove" });
-    for (const k of CFG2_KEPT) if (flags[k] !== cfg2.flags[k]) out.push({ sec: "other", flag: k });
     return out;
   };
   const cfg2ErrorSections = () => {
@@ -15862,9 +16380,6 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-tax-cond__add">
           <button class="btn btn-secondary btn-sm" type="button" data-cfg2-dep-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă interdependență</span></button>
         </div>`;
-    }
-    if (key === "other") {
-      return `<div class="e-permits-user-create__grid">${SERVICE_SETTINGS.filter(([k]) => CFG2_KEPT.includes(k)).map(([k, label, description]) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: cfg2.flags[k], attrs: `data-cfg2-flag="${k}"` })}</div>`).join("")}</div>`;
     }
     return cfgWith(cfg2SectionCtx(service, key, null), () => renderCfgForm(service));
   };
@@ -15936,7 +16451,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const depEl = target.closest("[data-cfg2-dep]");
     if (depEl) { const dep = cfg2.v.deps.find((d) => d.id === depEl.dataset.cfg2Dep); return dep ? cfg2DepCtx(dep, depEl.querySelector("[data-cfg2-dep-body]")) : null; }
     const sec = target.closest("[data-cfg2-section]")?.dataset.cfg2Section;
-    return sec && sec !== "deps" && sec !== "other" ? cfg2SectionCtx(service, sec, target.closest("[data-cfg2-body]")) : null;
+    return sec && sec !== "deps" ? cfg2SectionCtx(service, sec, target.closest("[data-cfg2-body]")) : null;
   };
   const cfg2Validate = (service) => {
     const errors = {};
@@ -15957,12 +16472,11 @@ document.addEventListener("DOMContentLoaded", () => {
       first?.querySelector("input:not([type=hidden]), .e-permits-fo-select__button")?.focus({ preventScroll: true });
       return;
     }
-    const c = serviceConfig(service), flags = serviceSettingFlags(service), at = localIsoNow(), by = currentUserName(), events = [];
+    const c = serviceConfig(service), at = localIsoNow(), by = currentUserName(), events = [];
     const secTitle = (k) => (CFG_SECTIONS.find(([x]) => x === k) || [])[1];
     for (const x of list) {
       if (x.key) { events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${secTitle(x.sec)} · ${x.label}: ${x.key === "subdivisions" ? cfgListDiff(c[x.key], cfg2.v[x.key]) : `${cfgFmt(c[x.key])} → ${cfgFmt(cfg2.v[x.key])}`}` }); c[x.key] = cfgClone(cfg2.v[x.key]); }
       else if (x.dep) events.push({ at, user: by, type: x.kind === "add" ? "Adăugare interdependență" : x.kind === "remove" ? "Eliminare interdependență" : "Modificare interdependență", status: "Reușit", detail: `${x.dep.name} · ${x.dep.type}` });
-      else if (x.flag) { flags[x.flag] = cfg2.flags[x.flag]; events.push({ at, user: by, type: "Modificare setări", status: "Reușit", detail: `${SERVICE_SETTING_LABELS[x.flag]}: ${cfg2.flags[x.flag] ? "activată" : "dezactivată"}` }); }
     }
     c.deps = cfgClone(cfg2.v.deps);
     c.editedAt = at; c.editedBy = by;
@@ -16038,8 +16552,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   permitsProfilePanel?.addEventListener("change", (event) => {
     if (!cfg2 || !event.target.closest(".e-permits-cfg2")) return;
-    const flag = event.target.closest("[data-cfg2-flag]");
-    if (flag) { cfg2.flags[flag.dataset.cfg2Flag] = flag.checked; cfg2Refresh(); return; }
     const ctx = cfg2EventCtx(event.target);
     if (ctx) { cfgWith(ctx, () => onCfgChange(event)); cfg2Refresh(); }
   });
@@ -16304,8 +16816,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelector("[data-workplace-add-tariff]")?.addEventListener("click", () => openTariffDrawer(null, "global"));
   document.querySelector("[data-workplace-export]")?.addEventListener("click", () => {
     if (workplaceDb?.kind === "tariffs") {
-      const ids = new Set(getVisibleRows().map((row) => row.id));
-      exportTariffs((servicesStore.tariffs || []).filter((t) => ids.has(t.id)), "tarife.csv");
+      /* the rows in the order shown, with the tab, search and filters applied */
+      const byId = new Map((servicesStore.tariffs || []).map((t) => [t.id, t]));
+      exportTariffs(getVisibleRows().map((row) => byId.get(row.id)).filter(Boolean), "tarife-globale.csv");
     } else {
       showShellToast("Exportul acestei liste urmează.", "info");
     }
@@ -16957,6 +17470,13 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      const registryTariffView = event.target.closest("[data-tariff-view]");
+
+      if (registryTariffView) {
+        openTariffView(registryTariffView.dataset.tariffView);
+        return;
+      }
+
       const registryTariffEdit = event.target.closest("[data-tariff-edit]");
 
       if (registryTariffEdit) {
@@ -16991,6 +17511,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (serviceRowEl && activeRegistry === "ntpl") {
         openNtplProfile(serviceRowEl.dataset.workplaceRow);
+        return;
+      }
+
+      /* US-202 AC-11: a tariff row opens its card (US-207) */
+      if (serviceRowEl && activeRegistry === "tariffs") {
+        openTariffView(serviceRowEl.dataset.workplaceRow);
         return;
       }
 

@@ -93,7 +93,7 @@ check("new code + unknown IDNO → service created, authority created", () => {
   assert.equal(r.kind, "created");
   assert.equal(r.authorityCreated, true);
   assert.equal(r.authority.idno, "1006601000111");
-  assert.deepEqual(r.events.map((e) => e.type), ["Sincronizare serviciu", "Creare serviciu", "Creare autoritate"]);
+  assert.deepEqual(r.events.map((e) => e.type), ["Sincronizare serviciu finalizată cu succes", "Creare serviciu nou", "Creare autoritate nouă"]);
   assert.equal(r.service.geap.requestTypes.length, 2, "request types seeded from enabled sub-services");
   assert.equal(r.service.geap.requestTypes[0].flow, null);
 });
@@ -107,7 +107,7 @@ check("existing code + known IDNO → service updated, linked to authority, GEAP
   assert.equal(r.service.title, "Autorizație de funcționare a farmaciei");
   assert.equal(r.service.geap.version, "v2.0.0");
   assert.equal(r.service.geap.forms.length, 1);
-  assert.deepEqual(r.events.map((e) => e.type), ["Sincronizare serviciu", "Actualizare serviciu", "Legare cu autoritate"]);
+  assert.deepEqual(r.events.map((e) => e.type), ["Sincronizare serviciu finalizată cu succes", "Actualizare serviciu existent", "Legare cu autoritate existentă"]);
   assert.equal(services[0].title, "Vechi", "inputs are not mutated");
 });
 
@@ -316,6 +316,21 @@ check("sync: creates, updates (new version) and leaves unchanged", () => {
   assert.equal(changed.tariffs[0].version, 2);
   const kept = sp.syncServiceTariffs({ ...base, tariffs: [{ ...first.tariffs[0], iban: "MD00KEEP" }], incoming: [{ externalId: "sub-1", name: "Emitere", amount: 50 }] });
   assert.equal(kept.tariffs[0].iban, "MD00KEEP", "fields the registry does not send are kept");
+});
+check("sync (US-206): failed items counted and skipped, lastSync stamped, new amount starts on the sync date", () => {
+  const base = { serviceCode: "S1", source: "RSSP", now: "2026-10-09T06:00:00", today: "2026-10-09" };
+  const first = sp.syncServiceTariffs({ ...base, now: "2026-09-30T10:00:00", today: "2026-09-30", tariffs: [], incoming: [{ externalId: "sub-1", name: "Emitere", amount: 50 }] });
+  assert.equal(first.tariffs[0].lastSync, "2026-09-30T10:00:00");
+  const res = sp.syncServiceTariffs({ ...base, tariffs: first.tariffs, incoming: [{ externalId: "sub-1", name: "Emitere", amount: 75 }, { externalId: "sub-2", name: "", amount: 10 }, { externalId: "sub-3", name: "Fără sumă", amount: "" }] });
+  assert.equal(res.failed, 2);
+  assert.equal(res.updated, 1);
+  assert.equal(res.tariffs.length, 1, "failed items are not created");
+  assert.equal(res.tariffs[0].lastSync, "2026-10-09T06:00:00");
+  assert.equal(res.tariffs[0].validFrom, "2026-10-09", "an amount change starts the new version on the sync date");
+  const same = sp.syncServiceTariffs({ ...base, now: "2026-10-10T06:00:00", tariffs: res.tariffs, incoming: [{ externalId: "sub-1", name: "Emitere", amount: 75 }] });
+  assert.equal(same.unchanged, 1);
+  assert.equal(same.tariffs[0].lastSync, "2026-10-10T06:00:00", "an unchanged sync still updates lastSync");
+  assert.equal(same.tariffs[0].version, 2, "no new version without a change");
 });
 
 /* ---- Taxe = tariff + application rule (feedback G. Roșca / O. Luchian, 2026-10-02) ----

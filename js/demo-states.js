@@ -30,7 +30,7 @@
   const openTax = (taxId) => async (h) => { await h.click(`[data-pay-edit="${taxId}"]`); };
   const applyOneTariff = async (h) => {
     /* „Aplică ca atare” lives in the row's ⋮ (uniform row actions, 2026-10-09) */
-    (await h.find("[data-tax-configure]")).closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+    (await h.find("[data-tax-configure]")).closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]").click();
     await h.wait(300);
     await h.click("[data-tax-apply]");
     await h.click("[data-service-confirm-ok]").catch(() => {});
@@ -213,6 +213,24 @@
     "rol-01c": { flow: "back-office", as: ADMIN, hash: "#rol/rol-specialist/permissions", run: async (h) => { await h.nth("[data-perm-switch]", 1); await h.wait(300); await h.click("[data-role-profile-save]"); } },
 
     /* ---- Servicii › Profile Serviciu (Figma page "BO -> Servicii") ---- */
+    /* US-111 (Azure 90576) — a new service only comes from RSSP: Configurări servicii ›
+       «Sincronizare serviciu» → code → summary. Codes: 003000333 new + new authority, 003000451
+       new + existing authority, 000000000 RSSP unavailable, 003999998 invalid answer */
+    "srv-01": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); } },
+    /* US-230 AC-05: a published service with a change since publishing → „1 modificare nepublicată” under Statut */
+    "srv-02": svc("fees", async (h) => { await applyOneTariff(h); await h.click('[data-nav-id="service-config"]'); }),
+    "srv-01a": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]"); } },
+    "srv-01b": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]"); await h.click("[data-service-sync-submit]"); } },
+    ...Object.fromEntries([["srv-01d", "000000000"], ["srv-01e", "003999997"], ["srv-01f", "003999998"]].map(([id, code]) => [id, { flow: "back-office", as: ADMIN, run: async (h) => {
+      await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]");
+      await h.fill("[data-service-sync-code]", code, { leave: false }); await h.click("[data-service-sync-submit]");
+      await h.find("[data-service-sync-body] .banner--error", null, 15000);
+    } }])),
+    ...Object.fromEntries([["srv-01g", "003000333"], ["srv-01h", "003000451"]].map(([id, code]) => [id, { flow: "back-office", as: ADMIN, run: async (h) => {
+      await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]");
+      await h.fill("[data-service-sync-code]", code, { leave: false }); await h.click("[data-service-sync-submit]");
+      await h.find("[data-service-sync-body] .e-permits-passport__sync-summary", null, 15000);
+    } }])),
     "svc-01": svc("general"),
     "svc-01a": svc("general", async (h) => { await h.click("[data-passport-top] [data-stack-menu-trigger]"); }),
     "svc-01b": svc("general", async (h) => { await h.click("[data-passport-top] [data-stack-menu-trigger]"); await h.click('[data-sync-source="RSSP"]'); }),
@@ -275,6 +293,19 @@
     "svc-04o": svc("fees", async (h) => { await h.click('[data-fee-list-all="accounts"]'); }),
     "svc-04p": svc("fees", async (h) => { await h.click('[data-fee-list-all="accounts"]'); await h.fill("[data-fee-accounts-search]", "Cahul", { leave: false }); }),
     "svc-04a": svc("fees", async (h) => { await h.click('[data-passport-body] [aria-label="Mai multe acțiuni: taxe"]'); }),
+    /* Taxe / Tarife stay stacked lists (2026-10-10): „Filtrare avansată” on a list (US-199 /
+       US-203 AC-06), a facet popover, a filter applied, a search with no match; Tarife:
+       ⋮ Sincronizează (US-206), a row → the tariff card (US-207) */
+    "svc-04t": svc("fees", async (h) => { await h.click('[data-sf-toggle="taxe"]'); await h.click('[data-sf-facet="taxe:stare"]'); }),
+    "svc-04t1": svc("fees", async (h) => {
+      await h.click('[data-sf-toggle="taxe"]'); await h.click('[data-sf-facet="taxe:activ"]');
+      await h.click('[data-sf-option][value="Activă"]'); await h.click("[data-sf-confirm]"); await h.click('[data-sf-commit="taxe"]');
+    }),
+    "svc-04t2": svc("fees", async (h) => { await h.fill("[data-pay-search]", "apostilă", { leave: false }); }),
+    "svc-04u": svc("fees", async (h) => { await h.scroll("[data-trf-list]"); }),
+    "svc-04u1": svc("fees", async (h) => { await h.scroll("[data-trf-list]"); await h.click('[aria-label="Mai multe acțiuni: tarife"]'); await h.click('[data-tariff-sync="RSSP"]'); }),
+    "svc-04u2": svc("fees", async (h) => { await h.scroll("[data-trf-list]"); await h.click('[data-tariff-view="tf-examinare-120"]'); }),
+    "svc-04u3": svc("fees", async (h) => { await h.scroll("[data-trf-list]"); await h.click('[data-sf-toggle="tarife"]'); }),
     "svc-04b": bio("fees"),
     "svc-04h": bio("fees", openTax("tax-bio-2")),
     /* a tax on a formula tariff: the formula is the tariff's, the tax only reduces it */
@@ -334,29 +365,38 @@
     }),
     "svc-04k": svc("fees", async (h) => {
       const edit = await h.find('[data-pay-edit="tax-4"]');
-      edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+      edit.closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]").click();
       await h.wait(400);
     }),
     "svc-04l": svc("fees", async (h) => {
       const edit = await h.find('[data-pay-edit="tax-4"]');
-      edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+      edit.closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]").click();
       await h.click('[data-passport-payment="tax-4"][data-passport-payment-action="delete"]');
+    }),
+    /* US-201: ⋮ → Dezactivează on an active tax (count of dossiers in the text), ⋮ → Activează on
+       an inactive one — the story's confirmation texts */
+    "svc-04v": svc("fees", async (h) => {
+      const edit = await h.find("[data-pay-edit]");
+      const id = edit.dataset.payEdit;
+      edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+      await h.click(`[data-passport-payment="${id}"][data-passport-payment-action="deactivate"]`);
+    }),
+    "svc-04v1": svc("fees", async (h) => {
+      const edit = await h.find('[data-pay-edit="tax-4"]');
+      edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+      await h.click('[data-passport-payment="tax-4"][data-passport-payment-action="activate"]');
     }),
     "svc-04m": svc("fees", async (h) => { await h.hover("[data-pay-edit]"); }),
     "svc-04n": svc("fees", async (h) => {
       const edit = await h.find("[data-pay-edit]");
-      const more = edit.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]");
+      const more = edit.closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]");
       more.dispatchEvent(new PointerEvent("pointerover", { bubbles: true, pointerType: "mouse" }));
       await h.wait(800);
     }),
     "svc-05": bio("fees", async (h) => { await openTax("tax-bio-2")(h); await h.click("[data-tax-new-tariff]"); }),
     /* Administrare › Tarife → ✎ on a tariff from RSSP: registry fields read-only */
-    "svc-05a": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="tariffs"]'); await h.click('[data-tariff-edit="tf-bio-autorizare"]'); } },
-    "svc-05a": { flow: "back-office", as: ADMIN, hash: "#tariffs", run: async (h) => {
-      const source = await h.find(".e-permits-workplace__source", "RSSP");
-      source.closest("tr, [role=row]").querySelector("[data-tariff-edit]").click();
-      await h.wait(600);
-    } },
+    /* a tariff from RSSP belongs to its service: edited from the service's Tarife (US-203) */
+    "svc-05a": bio("fees", async (h) => { await h.scroll("[data-trf-list]"); await h.click('[data-tariff-edit="tf-bio-autorizare"]'); await h.wait(400); }),
     /* Interdependențe live in Setări since 2026-10-07 (the old hash still lands there) */
     "svc-06": svc("settings"),
     "svc-06a": svc("documents"),
@@ -447,16 +487,18 @@
     /* Setări = one page, edited inline, one draft (the old read view + drawer states open the
        matching section, so existing links keep working) */
     "svc-10": svc("settings"),
-    "svc-10a": svc("settings", async (h) => { await cfgNav("other")(h); await h.click('[data-cfg2-flag="aprobareSecundara"]'); await h.wait(300); }),
-    "svc-10b": svc("settings", async (h) => { await cfgNav("other")(h); await h.click('[data-cfg2-flag="aprobareSecundara"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); await h.click("[data-service-publish]"); }),
+    /* a plain switch changed → save → publish („Alte setări” is gone: Aprobare secundară and
+       Cu expertiză are per request type, Suspendare cu coordonare = Suspendare cu semnarea deciziei) */
+    "svc-10a": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); }),
+    "svc-10b": svc("settings", async (h) => { await cfgNav("suspension")(h); await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); await h.click("[data-cfg2-save]"); await h.wait(400); await h.click("[data-service-publish]"); }),
     "svc-10c": svc("settings", async (h) => {
-      await cfgNav("other")(h);
-      await h.click('[data-cfg2-flag="aprobareSecundara"]');
+      await cfgNav("suspension")(h);
+      await h.click('[data-cfg-switch="suspEditable"]');
       await h.wait(300);
       await h.click("[data-cfg2-save]");
       await h.wait(400);
       await h.click("[data-service-publish]");
-      await h.fill("#ntpl-publish-modal textarea", "Aprobare secundară pentru actele emise de Direcția comerț.", { leave: false });
+      await h.fill("#ntpl-publish-modal textarea", "Termenul suspendării se stabilește doar la nivel de serviciu.", { leave: false });
       await h.click("#ntpl-publish-modal .modal--footer .btn-primary");
     }),
     "svc-10d": svc("settings", cfgNav("applicant")),
@@ -474,7 +516,8 @@
     "svc-10l": svc("settings", cfgNav("rap")),
     "svc-10m": svc("settings", cfgNav("drafts")),
     "svc-10p": svc("settings", cfgNav("appeal")),
-    "svc-10q": svc("settings", cfgNav("other")),
+    /* was „Alte setări” (removed): the last section of the page */
+    "svc-10q": svc("settings", cfgNav("deps")),
     /* Interdependențe: inline blocks; add (type decides the fields), validation on Salvează,
        remove without a confirm (nothing applies before Salvează) */
     "svc-10n": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); await h.fill('[data-cfg2-dep]:last-of-type [data-cfg-input="name"]', "Act cadastral verificat"); await h.choose('[data-cfg2-dep]:last-of-type select[data-cfg-select="type"]', "Externă"); }),
@@ -538,9 +581,16 @@
     "trf-03": trf(editTariff("tf-taxa-stat-50")),
     "trf-03a": trf(editTariff("tf-vechi")),
     "trf-03b": trf(editTariff("tf-eliberare-duplicat")),
-    "trf-03c": trf(editTariff("tf-examinare-120")),
+    /* a tariff from RSSP is always a service's own: it opens from the service's Tarife (US-203) */
+    "trf-03c": svc("fees", async (h) => { await h.scroll("[data-trf-list]"); await editTariff("tf-examinare-120")(h); }),
     "trf-03d": trf(async (h) => { await editTariff("tf-suprafata")(h); await h.click('[data-tariff-tab="suma"]'); }),
-    "trf-03e": trf(async (h) => { await editTariff("tf-examinare-120")(h); await h.click('[data-tariff-tab="utilizare"]'); }),
+    "trf-03e": svc("fees", async (h) => { await h.scroll("[data-trf-list]"); await editTariff("tf-examinare-120")(h); await h.click('[data-tariff-tab="utilizare"]'); }),
+    /* US-207 the tariff card: versions + used; a formula; one version and not used */
+    "trf-05": trf(async (h) => { await h.click('[data-tariff-view="tf-taxa-stat-50"]'); }),
+    "trf-05a": trf(async (h) => { await h.click('[data-tariff-view="tf-suprafata"]'); }),
+    "trf-05b": trf(async (h) => { await h.click('[data-tariff-view="tf-eliberare-duplicat"]'); }),
+    /* US-202 filters: Stare = Schiță applied */
+    "trf-01c": trf(async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="stare"]'); await h.click('[data-filter-option][value="Schiță"]'); await h.click("[data-filter-confirm]"); await h.click("[data-filter-commit]"); }),
     "trf-04": trf(async (h) => { await editTariff("tf-taxa-stat-50")(h); await h.click("[data-tariff-toggle-active]"); }),
     "trf-04a": trf(async (h) => { await editTariff("tf-vechi")(h); await h.click("[data-tariff-delete]"); }),
     "trf-04b": trf(async (h) => { await editTariff("tf-taxa-stat-50")(h); await h.hover("[data-tariff-delete]"); }),

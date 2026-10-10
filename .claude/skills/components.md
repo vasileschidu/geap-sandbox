@@ -3536,18 +3536,29 @@ Taxes of the same request type + moment land on **one payment note**.
 1. Model note (grey inline note): "O taxă = un tarif + regula de aplicare…".
 2. Sumar taxe: Taxe (Active · De configurat), Tarife (Din RSSP / eAPL · Adăugate manual),
    Conturi bancare.
-3. Section "Taxe" (tab label **"Taxe și tarife"**): toolbar chips Toate · Active · Schiță ·
-   Inactive (De configurat counts in Toate and Schiță) · search · **one visible action**
-   "Adaugă taxă" (`btn-secondary`) · ⋮ menu (`renderStackMenu`): Exportă taxele (download) · Sincronizează tarifele din RSSP / eAPL
-   (rotate-arrow, admin). Rule: next to a list's search keep only the primary action; every
-   secondary action goes in the ⋮.
-4. Stacked list: first the group **"De configurat"** — tariffs without a rule, tags source +
-   "Fără regulă de aplicare" (warning), actions **Configurează** (`btn-neutral`) and **Aplică
-   ca atare** (`btn-secondary`, publishes the default rule at once). Then groups by **Tip
-   solicitare**: title = tariff name; tags state (Activă / Inactivă / Schiță) · source (RSSP ·
-   eAPL · Manual · Global) · "Condiționată" (info) · "Fără ramificație în flux"; meta = sum
-   (bold) · moment · generation · term · version · modified; meta2 = "Se aplică doar dacă
-   <clasificator> = <valori>", exemptions, "eliminabilă din notă".
+3. Section **"Taxe"** (tab label **"Taxe și tarife"**, US-199 Azure 94641) — a **stacked list**
+   (`renderPaymentList`: groups „De configurat”, then one group per request type; never a table —
+   decided 2026-10-10). **One line on top** (`.e-permits-pay__toolbar`): title + count badge
+   `badge badge--lg badge--solid-neutral` (gray, = visible rows, AC-02) on the left; right: search
+   „Caută taxe” (name RO/RU/EN, code, request type — AC-05) · **„Filtrare avansată”** (AC-06) ·
+   „Adaugă taxă” (`btn-secondary`) · ⋮ (Actualizează lista — AC-09 · Exportă taxele — CSV of the
+   filtered list, logged „Export taxe” in the Jurnal, AC-10/12). No status chip row: Stare and
+   Activ/Inactiv are facets of the filter. Row = name + tags (Activă/Inactivă/Schiță, source,
+   „Condiționată”, „Fără ramificație în flux”), meta sumă · moment · generare · termen · vN ·
+   Modificat; „Editează” + ⋮ (Publică/Activează, then Dezactivează/Șterge). Empty: search →
+   „Nicio înregistrare nu corespunde criteriului de căutare”, filters → „Nu există taxe
+   înregistrate” (AC-04/05).
+4. Section **"Tarife"** (US-203 Azure 94768) — the service's own tariffs, **same stacked pattern**
+   (`renderServiceTariffs` / `renderServiceTariffList`): title + gray count; search „Caută tarife”
+   (name RO/RU/EN + Temei legal) · Filtrare avansată (Tip tarif · Tip solicitare · Tip persoană ·
+   Subdiviziune · Stare · Activ/Inactiv · Sursă) · „Adaugă tarif” · ⋮ (Sincronizează tarifele din
+   RSSP / eAPL — US-206 · Actualizează lista · Exportă tarifele). Grouped by request type; row =
+   name + tags (Activ/Inactiv/Schiță, source), meta Sumă și valută · Tip tarif · Tip persoană ·
+   Subdiviziune · vN · Modificat; eye (card, US-207) + „Editează”; click / Enter on the row opens
+   the card (AC-11). No sync meta line under the title (the card shows „Ultima sincronizare”).
+   The tab keeps the 1024 reading column.
+   **Not as a table**: sort by column (AC-07) and pagination (AC-08) don't apply to the stacked
+   list — the lists are short and grouped; agreed with the PO (user) on 2026-10-10.
 5. The global-tariffs pointer note (Administrare → Tarife).
 
 **Tax drawer** (`[data-pay-drawer]`, sections in question order): **Tarif** (fo-select of the
@@ -4041,9 +4052,11 @@ One rule for every profile (service, user, role, classifier, template):
 
 `renderServiceSettings(service)` — one compact section „Setări adiționale”. **Actionable →
 the white bordered card** (`.e-permits-ntpl-card.e-permits-svc-settings`, padding 4 20, as
-Șabloane / Clasificatoare › Setări); the grey card is only for read-only data. Seven rows (`SERVICE_SETTINGS`, alphabetical as in the registry): Act pe suport de
-hârtie · Aprobare secundară · Cu expertiză · Cu plată · Distribuire automată · Livrare prin
-MDelivery · Suspendare cu coordonare.
+Șabloane / Clasificatoare › Setări); the grey card is only for read-only data. (Historical — this
+read view is gone.) `SERVICE_SETTINGS` now keeps only the flags other code reads: Act pe suport de
+hârtie · Cu plată · Distribuire automată · Livrare prin MDelivery. Aprobare secundară and Cu
+expertiză are per request type (its flow); Suspendare cu coordonare = „Suspendare cu semnarea
+deciziei” under Suspendare (Figma comments, Olesea Luchian, 2026-10-09).
 - Row `.e-permits-svc-setting` (padding 12 0, hairline between rows) holding the product toggle
   `renderToggle` — **switch first**, label 14/20 medium, one short tertiary line on what it
   changes (one sentence, no configuration details).
@@ -4112,9 +4125,11 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
 - 11 sections in the story's order, each `renderPassportBlock(title, rows, { actionHtml: Editează })`:
   Solicitant și act · Examinare și distribuire · Suspendare · Semnare · Plată · Livrare și
   eliberare · Contestare · Numerotare · Publicare în RAP · Schițe · Interdependențe (stacked
-  list: Editează + ⋮ Elimină; „Adaugă interdependență” `btn-secondary`). Then „Alte setări” — the
-  three switches outside the story (Aprobare secundară, Cu expertiză, Suspendare cu coordonare),
-  unchanged, instant.
+  list: Editează + ⋮ Elimină; „Adaugă interdependență” `btn-secondary`). There is **no „Alte
+  setări”** (removed 2026-10-09): Aprobare secundară and Cu expertiză are set per request type
+  (its flow), Suspendare cu coordonare duplicated „Suspendare cu semnarea deciziei”. Demo states
+  svc-10a/b/c (change → save → publish) now flip „Termen de suspendare modificabil de specialist”;
+  svc-10q opens Interdependențe.
 - RSSP values: value left + plain caption „Din RSSP” at the row's right end (`.e-permits-cfg-value--rssp` + `.e-permits-cfg-source`, 12/16 tertiary like the header „sincronizat …”; no tag), also inside the drawer's grey read-only box, read-only for everyone; MPower,
 - **Tip solicitant** (read view, drawer, v2) = `applicantTags` with the full names („Persoană fizică” / „Persoană juridică”, never PF / PJ) and the
   filled person / suitcase icon, never plain „PF, PJ” text.
@@ -4156,7 +4171,7 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   full height; every other Setări screen is a **fixed 1024 viewport scrolled to its section** —
   header collapsed to the pinned tab row (`header · lipit (doar tab-uri)`, Main Navigation at
   y −140), section title 24 under the tabs, section list sticky (nav padded down by the scroll),
-  save bar pinned at the viewport bottom. Columns: left **02s1–02s11** = one screen per section-list
+  save bar pinned at the viewport bottom. Columns: left **02s1–02s10** = one screen per section-list
   item (current item highlighted; links svc-10e…svc-10q), middle **02 · 02a · 02o · 02b · 02c ·
   02v4**, right **02e1 · 02j · 02j1 · 02h1 · 02k1 · 02n · 02n1 · 02n3** (scrolled to their
   section / new block). 24 flows „Flow · Setări · …”: section-list item → section screen (left
@@ -4166,6 +4181,18 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   `10638:1533`, Setări · Bara de salvare `10638:1534`, Setări · Câmp read-only `10638:1577`;
   svc/field-row has optional „Text secundar” + right „Caption”. Helpers (do not edit): builder
   `10640:1502`, default spec `10648:1502`, scroll `10666:1502` (SCROLL(block, {key|node|top})).
+- **Figma — „Alte setări” removed (2026-10-09, Olesea's comments):** the section and its section-list
+  item were removed from every Setări screen. 02s11 and its flow are deleted. Screens scrolled near
+  the bottom (02a, 02n, 02n1, 02n3) were re-clamped so the page still ends flush: Column moved down,
+  and the sticky list's padding reduced by the same amount.
+  - **02a** is now „Suspendare — comutator schimbat”: scrolled like 02s2, with „Termen de suspendare
+    modificabil de specialist” switched off, „Suspendare” current with the orange dot, and the save bar.
+  - **02b / 02c** have the switch saved off. The 02b publish modal lists „Suspendare · Termen de
+    suspendare modificabil de specialist: Da → Nu”.
+  - The old „Aprobare secundară” flow is now „Termen modificabil”, starting on that switch in 02.
+  - **06a** Taxe ⋮ menu: only „Exportă taxele” (the two sync options are hidden).
+  - **01d** sync result: new „Tarife” row, „RSSP: 1 nou · 0 actualizate · 0 neschimbate (cele noi
+    așteaptă …)”, with the parenthesis in tertiary via a range override.
 - **Figma — Subdiviziuni de examinare picker (2026-10-09):** in every Setări screen (all 25), the old
   checkbox list is an instance of **„Setări · Subdiviziuni de examinare”** (`10703:1782`; Stare =
   Implicit · Deschis · Selecție aplicată · Eroare). The field = title + hint, then the library
@@ -5178,3 +5205,138 @@ implementation (`.rap-filter__*`, `.rap-checkbox`, `@keyframes rap-popover-in`) 
 hex palette, its own `on`/`off` state convention, and a `.chip` class that collides with the
 library chip while meaning something completely different (a sitemap tree node). It does not
 load `main.css`. Whether it should be brought into the design system is an open question.
+
+
+### Table rules — dates and truncated text (2026-10-10, all lists)
+
+- **One date format in every table column**: `renderDateTime(value, who, { short })` — date
+  „30 septembrie 2026” over „hh:mm · who” (12/16 tertiary). No `dd/mm/yyyy` in a column. Applied to
+  Utilizatori (Ultima conectare: „hh:mm · acum N zile”; „Modificat”, was the typo „Ultimei
+  actualizări”), Roluri („Creat”, was „Data creării”), Dosare / Acte (Data depunerii, Data
+  semnării, Termen de examinare „6 august 2026” over „28 z. rămase”), Servicii, Tarife,
+  Clasificatoare, Șabloane. Date columns are ≥ 150 wide (longest month). Demo data with a date only
+  gets a stable working-hours time (`withDemoTime`) and an editor (`demoEditor`).
+- **Truncated text always has a tooltip** (`js/table-cells.js`, loaded on every page with tables):
+  any text clipped inside a table cell — ellipsis or line clamp — shows its full text on hover
+  (1 s, then instant along the column) and on keyboard focus, with no attribute.
+  `data-cell-tooltip="…"` only overrides the text (full name behind an abbreviation);
+  `data-cell-tooltip-always` shows it even when nothing is clipped.
+- **Name over a secondary line** = the Roluri pattern: `.e-permits-workplace__role-identity` ›
+  `__role-name` + `__role-meta` (12/16 regular tertiary). A copyable value in the meta line keeps
+  that type and gets a rounded `--color-background-base-tertiary-hover` pill on hover/focus
+  (Configurări servicii › Serviciu: name over the RSSP code).
+
+### US-230 Lista de servicii — Configurări servicii (2026-10-10)
+
+**Azure:** US-230 „Vizualizarea, căutarea, filtrarea și exportul listei de servicii” 95244.
+
+- Columns: **Serviciu** (name over the copyable RSSP code) · Instituția · **Statut în registru** ·
+  **Statut în GEAP** · **Modificat în GEAP** · Versiune · actions (sync, edit). 7 fields. GEAP's state
+  sits next to GEAP's last change; the register's state comes first. One meaning per column (Carbon status
+  pattern; user decision + persona check 2026-10-10):
+  - **Statut în GEAP** = the passport in GEAP (Publicat / Nepublicat / Inactiv); gray line under it only for
+    „N modificări nepublicate” (changes logged since the last publication, `servicePendingChanges`).
+  - **Statut în registru** (EN „Registry status”; RSSP and eAPL are registers) = what the external register says. Line 1 (`.e-permits-workplace__source-head`):
+    tag **Activ** (success) / **Inactiv** (neutral) from RSSP, or **Eșuat** (danger) when the last
+    sync attempt failed after the last good one (US-231 AC-20), + the sources („RSSP”, „RSSP +
+    eAPL”). Line 2 (`.e-permits-workplace__source`): the last successful sync date
+    („ultima reușită …” when Eșuat). Sorts by the sync date. The code cell no longer carries „Sursă:”.
+  - **Modificat în GEAP** = last change by a GEAP user (latest non-sync Jurnal event, else the last
+    publication). Sync runs — also failed ones („Eroare la sincronizare”) — are never GEAP changes
+    (`SERVICE_EVENT_SILENT`). The list opens sorted by it, newest first (AC-09).
+- Filters (same names as the headers): Statut în registru · Statut în GEAP · Instituția · Sursă. Search: name, code, institution.
+  No match → „Nu au fost găsite servicii.” (AC-13). Demo srv-01 (003000245 = failed automatic sync), srv-02 (a pending change).
+- Figma: Servicii › section „Acte permisive Table -> Filter Interaction Logic” (01–03, 04–04f): the
+  Sursă externă column (tag + sources / date), Modificat în GEAP, the code cell without „Sursă:”
+  (hidden layer of the local „Cell 13”), the filter bars refreshed with the 4 chips.
+
+### US-201 Activare/Dezactivare taxă + US-111 Sincronizare serviciu (2026-10-10)
+
+**Azure:** US-201 „Activare/Dezactivare taxă” 94643 · US-111 „Crearea unui pașaport al serviciului
+prin sincronizare din RSSP” 90576.
+
+- **US-201**: ⋮ on a tax row → „Dezactivează” / „Activează”, both confirmed in
+  `#service-confirm-modal` (`askConfirm`) with the story's text: deactivate = „„<taxă>” este folosită
+  în N dosare. O taxă inactivă nu mai poate fi declanșată în niciun dosar nou. Continuați?”
+  (destructive button; the count = AC-13), activate = „Taxa devine din nou disponibilă pentru
+  declanșare în dosarele noi. Continuați?” (primary). Counts in Romanian use `roCount` („128 de
+  dosare”, „19 dosare”). Jurnal „Activare / Dezactivare taxă”, Modificat de/la updated. Demo
+  svc-04v / svc-04v1; Figma Servicii band 06 → 06v / 06v1 (from 06l, modal texts only).
+- **US-111**: Configurări servicii › **«Sincronizare serviciu»** (`btn-primary btn-sm`, rotate-arrow,
+  central admin only — was „Creează serviciu nou”) → `#service-sync-modal` „Sincronizare serviciu
+  din RSSP”: „Cod serviciu RSSP” (required) · „Închide” · „Sincronizează serviciu”. Errors in a
+  subtle error message above the field (RSSP indisponibil · cod negăsit · răspuns invalid), the
+  empty field under it. Success → „Serviciu creat din RSSP” + summary card (authority tag
+  „Creată” brand / „Legată” neutral). Jurnal types follow AC-22: „Sincronizare serviciu finalizată
+  cu succes”, „Creare serviciu nou”, „Actualizare serviciu existent”, „Creare autoritate nouă”,
+  „Legare cu autoritate existentă”, „Eroare la sincronizare”. Demo srv-01 … srv-01h; Figma page
+  Servicii, section „Acte permisive Table -> Filter Interaction Logic”, row 04 – 04f (registry +
+  the passport's sync modal, notes, flows).
+
+### Taxe / Tarife stories (2026-10-09/10; US-199, US-202, US-203, US-206, US-207)
+
+**Azure:** US-199 „Lista taxe și tarife” 94641 · US-202 „Tarife globale” 94767 · US-203 „Tarife
+specifice serviciului” 94768 · US-206 „Sincronizare tarife din RSSP/eAPL” 94771 · US-207 „Detalii
+tarif” 94772 (parents: Feature 93591 Taxe, Feature 94153 Clasificatorul de tarife).
+
+- **Stacked lists, not tables** (user, 2026-10-10): Taxe and Tarife in the passport stay our
+  stacked list (`.e-permits-stack`, groups by request type). The 2026-10-09 in-tab tables were
+  removed from code and Figma.
+- **„Filtrare avansată” on a stacked list** (`SF_LISTS[id] = { facets, rows(service),
+  refresh(service) }`, `renderSfToggle(id)`, `renderSfBar(id)` in `[data-sf-bar=id]`, popover
+  `openSfPop`; attributes `data-sf-toggle / -facet="id:key" / -commit / -discard / -clear /
+  -refresh / -option / -confirm / -reset`): the registry's filter markup
+  (`.e-permits-workplace__advanced`, `.e-permits-workplace__filters` + `.e-permits-pay__filters`
+  = bordered strip, radius 12, 16 below; facet chips → popover with checkboxes, search when > 7
+  values, Confirmă / Șterge; „Aplică filtrele”, „Renunță”, „N rezultate”, „Șterge filtrele”). A
+  facet shows when the list has ≥ 2 values. Filters combine with the search (AND). The button
+  keeps its focus ring while the bar is open (`aria-expanded`).
+- **US-202 Tarife (registry)**: only **global** tariffs (a service's own live in its passport,
+  US-203). Columns Denumire (Tip tarif under it) · Sumă și valută · Stare (Publicat green / Schiță) ·
+  Activ/Inactiv · Sursă · Nr. versiune · Valabil de la/până la · Modificat · actions (eye = card ·
+  „Editează”). Filters Tip tarif · Stare · Activ/Inactiv · Sursă; search name RO/RU/EN + Temei legal +
+  code; tabs Toate/Active/Schiță/Inactive stay. A row opens the card. Export = the visible rows in
+  the shown order, columns as listed; logged in `servicesStore.auditLog` („Export tarife globale”).
+- **US-207 Tariff card** (`openTariffView(id)`, the tariff drawer in read mode): title = name,
+  subtitle „Sursă · vN · Modificat …”; tags Tip tarif · Stare · Activ/Inactiv; sections (label/value
+  grey card) **Identitate** (RO/RU/EN, Tip, Temei legal, IBAN or „Implicit — contul principal al
+  autorității”; for a service tariff also Tip solicitare, Tip persoană, Subdiviziune) · **Sumă** or
+  **Formulă** (expression + rotunjire) · **Ciclu de viață** (Stare, Activ/Inactiv, Nr. versiune,
+  Valabil, Modificat, Ultima sincronizare for RSSP/eAPL) · **Folosit de** = only the number
+  („Folosit în N taxe” / „Acest tarif nu este folosit încă în nicio taxă sau notă de plată.”) ·
+  **Istoric versiuni** oldest first, „(curentă)” on the last; one version → „Acest tarif nu are
+  versiuni anterioare.” Footer: „← Înapoi la tarife” (closes; the list keeps filters and page) ·
+  „Editează” (primary, pen) switches the same drawer to the editor. The editor's „Utilizare și
+  istoric” tab shows the same count + history.
+- **US-206 Sincronizare tarife**: «Sincronizează» in the service's Tarife toolbar (central admin):
+  RSSP for any service, eAPL only when the service has it; toast „N tarife create · M actualizate ·
+  K eșuate” (+ „Tarifele noi așteaptă regula…”); a source without an answer → error toast „eAPL nu a
+  răspuns. Tarifele din RSSP au fost salvate: …”. Core `syncServiceTariffs` (tested): failed items
+  (no name / no amount) counted and skipped, `lastSync` on every touched tariff, an amount change →
+  new version with Valabil de la = sync date, nothing removed. The general service sync still
+  imports tariffs too (Galina Rosca's answer); the daily automatic run is shown as „automat zilnic”.
+- **Figma** (GEAP 2.0 `aHgwVwiNCOSOqbMhMjjUOj`):
+  - Componente locale (10566:10080): **„Servicii · Taxe · Listă (US-199)”** set 10751:3355 —
+    Conținut = Toate · Filtrare avansată · Filtru Activă · Fără rezultate · După sincronizare ·
+    Biocide; **„Servicii · Tarife · Listă (US-203)”** set 10751:4039 — Toate · Filtrare avansată ·
+    După sincronizare · Biocide. Built only from `svc/stack-group-header` + `svc/stack-item`
+    (new boolean **Show preview** = eye button, off by default), the library search,
+    `advanced-filter/button` + `advanced-filter/bar` (bordered, radius 12), numbered-badge Large
+    Neutral for the title count, `Stare goală · fără rezultate`; 1024 wide. The 2026-10-09 table
+    sets were deleted. **„Tarife · Tabel registru”** (US-202) set 10732:167123 stays (the global
+    registry is a table, as all registries).
+  - Servicii (442:17492), band 06: every Taxe și tarife screen (06, 06a–06s, 07, 07a) uses both
+    lists in the 1024 column (the section heading instance is hidden — the title is in the list's
+    first row). Blocks: 06a ⋮ menu (Actualizează lista · Exportă taxele, svc-04a), 06t popover
+    Stare (svc-04t), 06t1 Activă applied (04t1), 06t2 search without match (04t2), 06u3 Tarife
+    filtrare avansată (04u3), 06u1 ⋮ Sincronizează din RSSP + toast (04u1), 06u2 service tariff
+    card (04u2). 06k = ⋮ open on „Taxă anuală” (Focus ring, Activează / Șterge red), 06m / 06n =
+    hover on „Editează” / ⋮ of „Taxă de stat”. 06b / 06h* use the Biocide variants.
+  - Tarife (9618:13362): registry blocks 01–04 use the registry set; 01c = filter Stare = Schiță
+    applied (trf-01c); band **05 Tariff card** = 05 (history + used, trf-05), 05a (formula, not used,
+    trf-05a), 05b (draft inactive, trf-05b) — read-only drawer, footer „Înapoi la tarife” · „Editează”.
+- **Demo states**: trf-01c (filter Stare = Schiță), trf-05 / 05a / 05b (card: history + used,
+  formula, one version not used), trf-03c / 03e and svc-05a now open RSSP tariffs from the service's
+  Tarife; svc-04a (Taxe filtrare avansată), 04t (popover Stare), 04t1 (Activă applied), 04t2 (search
+  without match), 04u (Tarife table), 04u1 (sync toast), 04u2 (tariff card from the service),
+  04u3 (Tarife filtrare avansată).

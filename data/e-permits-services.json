@@ -1524,6 +1524,13 @@
         "settings": null,
         "events": [
           {
+            "at": "2026-10-09T06:00:00",
+            "user": "SIA GEAP",
+            "type": "Eroare la sincronizare",
+            "status": "Eșuat",
+            "detail": "Sincronizare automată · Cod 003000245: Serviciul RSSP este momentan indisponibil. Încercați mai târziu."
+          },
+          {
             "at": "2026-05-02T11:05:00",
             "user": "Anastasia Cojocaru",
             "type": "Sincronizare serviciu",

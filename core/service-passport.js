@@ -201,7 +201,7 @@
     var fail = function (reason, message) {
       return {
         ok: false, reason: reason, message: message,
-        events: [event(now, user, "Sincronizare serviciu", "Eșuat", "Cod " + code + ": " + message)]
+        events: [event(now, user, "Eroare la sincronizare", "Eșuat", "Cod " + code + ": " + message)]
       };
     };
 
@@ -229,13 +229,14 @@
       syncedBy: user
     });
 
-    var events = [event(now, user, "Sincronizare serviciu", "Reușit", "Cod " + code + " preluat din RSSP")];
+    /* US-111 AC-22: the story's event types */
+    var events = [event(now, user, "Sincronizare serviciu finalizată cu succes", "Reușit", "Cod " + code + " preluat din RSSP")];
     events.push(existing
-      ? event(now, user, "Actualizare serviciu", "Reușit", "Datele RSSP ale serviciului au fost actualizate")
-      : event(now, user, "Creare serviciu", "Reușit", "Pașaport nou: " + mapped.title));
+      ? event(now, user, "Actualizare serviciu existent", "Reușit", "Datele RSSP ale serviciului au fost actualizate")
+      : event(now, user, "Creare serviciu nou", "Reușit", "Pașaport nou: " + mapped.title));
     events.push(authorityCreated
-      ? event(now, user, "Creare autoritate", "Reușit", authority.name + " (IDNO " + authority.idno + ")")
-      : event(now, user, "Legare cu autoritate", "Reușit", authority.name + " (IDNO " + authority.idno + ")"));
+      ? event(now, user, "Creare autoritate nouă", "Reușit", authority.name + " (IDNO " + authority.idno + ")")
+      : event(now, user, "Legare cu autoritate existentă", "Reușit", authority.name + " (IDNO " + authority.idno + ")"));
 
     return {
       ok: true,
@@ -938,15 +939,19 @@
 
   /* RSSP: one tariff per enabled sub-service with a price; eAPL: the local fee.
      Registry fields are overwritten (new version when they change), GEAP-owned
-     fields (type, subdivision, validity…) are kept. */
+     fields (type, subdivision…) are kept. US-206 (Azure 94771): every tariff the sync
+     touches gets lastSync (AC-11); an amount change starts the new version on the sync
+     date (AC-05); an item without a name or a valid amount is counted as failed and
+     skipped, the others are still saved (AC-07, AC-08); nothing is removed (AC-10). */
   function syncServiceTariffs(input) {
     var list = (input.tariffs || []).map(function (t) { return Object.assign({}, t); });
-    var result = { created: 0, updated: 0, unchanged: 0 };
+    var result = { created: 0, updated: 0, unchanged: 0, failed: 0 };
     var nextCode = function () {
       var max = list.reduce(function (m, t) { var n = parseInt(String(t.code || "").replace(/\D/g, ""), 10); return n > m ? n : m; }, 0);
       return "TRF-" + String(max + 1).padStart(3, "0");
     };
     (input.incoming || []).forEach(function (item) {
+      if (!item || !String(item.name || "").trim() || !(Number(item.amount) >= 0) || item.amount === "" || item.amount === null) { result.failed += 1; return; }
       var match = list.filter(function (t) { return t.scope === input.serviceCode && t.source === input.source && t.externalId === item.externalId; })[0];
       /* only what the registry sends is overwritten */
       var fields = {};
@@ -961,14 +966,16 @@
           formula: false, userVariables: false, expression: "", rounding: "2 zecimale", validFrom: input.today,
           validTo: null, state: "Publicat", active: true, version: 1,
           versions: [{ version: 1, at: input.now, by: "Sincronizare " + input.source, note: "Importat din " + input.source }],
-          modifiedAt: input.now, modifiedBy: "Sincronizare " + input.source,
+          modifiedAt: input.now, modifiedBy: "Sincronizare " + input.source, lastSync: input.now,
           currency: "MDL", requestType: null, iban: "", legalBasis: ""
         }, fields));
         result.created += 1;
         return;
       }
       var changes = tariffChanges(match, Object.assign({}, match, fields));
+      match.lastSync = input.now;
       if (!changes.length) { result.unchanged += 1; return; }
+      if (fields.amount !== undefined && Number(fields.amount) !== Number(match.amount)) match.validFrom = input.today;
       Object.assign(match, fields, {
         version: (match.version || 1) + 1, modifiedAt: input.now, modifiedBy: "Sincronizare " + input.source,
         versions: (match.versions || []).concat([{ version: (match.version || 1) + 1, at: input.now, by: "Sincronizare " + input.source, note: changes.join(", ") }])
