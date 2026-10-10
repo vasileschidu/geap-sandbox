@@ -23013,3 +23013,16 @@ button.e-permits-steps-strip__cell:hover,
   right: auto;
   z-index: 50;
 }
+
+/* Section rule (2026-10-10, user, whole project): when a section's content is a gray details card,
+   its header has no divider, no gap to the card, and the Date generale inset (8 / 12) so the title
+   lines up with the rounded card — same as .e-permits-dosar-profil__section-heading */
+.e-permits-user-create__section:has(> .e-permits-user-create__section-content > .e-permits-dosar-profil__card:first-child) > .e-permits-user-create__section-title {
+  border-bottom: 0;
+  min-height: 0;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-user-create__section-content:has(> .e-permits-dosar-profil__card:first-child) {
+  padding-top: 0;
+}

@@ -5263,6 +5263,16 @@ load `main.css`. Whether it should be brought into the design system is an open 
 - Demo: svc-01k (unchanged), 01l (deactivated), 01m (reactivated), 01n/01o (reactivated with data),
   01p (inactive passport), 01q (Eșuat), srv-03/03a (automatic sync). RSSP mock: `rssp.overrides`.
 
+**Section-over-card rule (2026-10-10, user, whole project):** when a section's content is a gray
+details card (`.e-permits-dosar-profil__card`), its header has no bottom divider, no gap to the card and
+the Date generale inset — padding 8 / 12 — so the title lines up with the rounded card (drawer sections:
+`.e-permits-user-create__section:has(...card:first-child)`; Figma: header frame strokeBottom 0, padding
+8/12/8/12, content paddingTop 0 — applied to 21 headers on Tarife, Servicii, User Management).
+**Menu-button rule:** a labelled button that opens a menu is label + chevron (library Icon=Trailing, one
+icon only) — „Sincronizare ▾”, „Sincronizează ▾” (multi-source), „Adaugă tip solicitare ▾”, „Inserează
+câmp ▾”, „Programat · … ▾”. Registry: both syncs live under „Sincronizare ▾”.
+**Export icon:** `icon-export` / Figma `20/export` = central „arrow-inbox, download” (arrow over a tray).
+
 **Last-row rule (2026-10-10, user, whole project):** a row that is the last one in its card / list /
 modal never draws its bottom divider (`.e-permits-dosar-profil__row:last-child`, `svc/field-row`, info
 rows, stack items). Figma: the last `svc/field-row` (and any bottom-only divider row) in a vertical
@@ -5318,8 +5328,8 @@ never Neutral/gray. Page-level primary CTAs and modal confirm buttons stay `btn-
 Secondary, icon fill bound to the brand variable (no gray override).
 
 **Export icon rule (2026-10-10, user):** every „Exportă…” action (⋮ menu item or icon-only table button)
-uses the document-with-arrow icon: code `icon-page-download`, Figma local `20/file-download` (central icon
-pack „file-download, document”, stroke 1.5, radius 2). `icon-download` stays only for „Descarcă…”
+uses the download arrow over a curved tray: code `icon-export`, Figma local `20/export` (central icon
+pack „arrow-inbox, download”, stroke 1.5, radius 2). `icon-download` stays only for „Descarcă…”
 (download a file) and „Importă din MDocs”.
 
 ### US-230 Lista de servicii — Configurări servicii (2026-10-10)
