@@ -543,7 +543,19 @@
     "svc-10v4": svc("settings", async (h) => { await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); await h.click('[data-passport-tab="forms"]'); }),
     "svc-11": svc("events"),
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
-    "svc-11b": svc("events", async (h) => { await h.click('[data-svc-events-filter="failed"]'); }),
+    /* US-228: Rezultat = Eșuat through „Filtrare avansată”; the bar open; an event's details
+       (fields before → after); an automatic sync by SIA GEAP; oldest first */
+    "svc-11b": svc("events", async (h) => {
+      await h.click('[data-sf-toggle="jurnal"]'); await h.click('[data-sf-facet="jurnal:rezultat"]');
+      await h.click('[data-sf-option][value="Eșuat"]'); await h.click("[data-sf-confirm]"); await h.click('[data-sf-commit="jurnal"]');
+    }),
+    "svc-11c": svc("events", async (h) => { await h.click('[data-sf-toggle="jurnal"]'); }),
+    "svc-11d": svc("events", async (h) => { await h.click("[data-svc-event] .e-permits-timeline__link"); }),
+    "svc-11e": svc("events", async (h) => {
+      const link = [...document.querySelectorAll("[data-svc-event]")].find((li) => /SIA GEAP/.test(li.textContent));
+      (link || await h.find("[data-svc-event]")).querySelector(".e-permits-timeline__link").click(); await h.wait(300);
+    }),
+    "svc-11f": svc("events", async (h) => { await h.click("[data-svc-events-sort]"); }),
 
     /* ---- Logare în Back Office / Admin Portal (US-105, US-110; US-107 / US-109 states) ---- */
     "auth-01": { page: "bo-login.html", ready: "[data-bo-login] h1" },

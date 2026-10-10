@@ -5226,6 +5226,42 @@ load `main.css`. Whether it should be brought into the design system is an open 
   that type and gets a rounded `--color-background-base-tertiary-hover` pill on hover/focus
   (Configurări servicii › Serviciu: name over the RSSP code).
 
+### US-228 Jurnal de evenimente al serviciului (2026-10-10)
+
+**Azure:** US-228 „Vizualizarea, căutarea, filtrarea și exportul jurnalului de evenimente al pașaportului
+serviciului” 95242.
+
+- Header in two rows (user decision 2026-10-10). Row 1 `.e-permits-svc-events__heading`: title
+  „Jurnal de evenimente” + `.e-permits-svc-events__count` (14/20 tertiary, aria-live)
+  „100 de evenimente · Jurnalizat prin MLog”; while a search/filter is active it reads „8 din 100 de
+  evenimente · …”. No count badge (it would repeat the number). Row 2 `.e-permits-pay__toolbar
+  .e-permits-svc-events__toolbar`: search „Caută eveniment sau autor” + „Filtrare avansată”
+  (`SF_LISTS.jurnal`) on the left; sort „Cele mai noi / Cele mai vechi” + ⋮ „Exportă (Excel)” on the right.
+- Filters: Tip eveniment · Creat de · Rolul · Tab · Perioadă (Astăzi / 7 / 30 / 90 de zile / Mai vechi) ·
+  Rezultat. A facet with `always: true` shows even with a single value (Perioadă), others need ≥2.
+  Empty: AC-15 „Nu au fost găsite evenimente.”, AC-16 „Nu există evenimente înregistrate.”
+- Clickable timeline item (`renderEventTimeline(…, { openAttrs })`): the `li` gets `.is-clickable`
+  (hover background, radius 8), the title becomes `<button class="e-permits-timeline__link"
+  aria-haspopup="dialog">` with an underline in the border color (currentColor on hover). After the title:
+  the Tab tag (neutral Small), Eșuat tag when failed. Stamp: date · user · role. Sync runs without a user =
+  „SIA GEAP”.
+- Details: `#dosar-detail-modal` — „Date generale” info card (Denumirea, Tip eveniment tag, Data și ora,
+  Creat de, Rolul, Tab, Rezultat tag, Descriere) + „Modificări” card (`.e-permits-event-diff`: old value
+  struck through `__before` → new value), muted note when none, „Doar citire” note, „Închide”.
+- Demo: svc-11 (list), 11a (search), 11b (Rezultat = Eșuat), 11c (filter bar open), 11d (details),
+  11e (SIA GEAP sync details), 11f (oldest first).
+- Figma (Servicii › Profile Serviciu, column x 35348): Block 11 / 11a / 11b rebuilt from the code data
+  (header in two rows, underlined titles + Tab tag, date · user · role); 11b uses the advanced-filter bar
+  detached only to fit 6 chips (the chips stay instances — the bar component has 4 + „Mai multe”).
+  Block 11d = shared `Modal` instance (Tip=Conținut) with the local content component
+  „Conținut modal · Detalii eveniment”. Sort icon = local `16/arrow-down` / `16/arrow-up` (EVO has no 16px
+  arrow-down; they wrap a rotated EVO 16/arrow-left).
+
+**Export icon rule (2026-10-10, user):** every „Exportă…” action (⋮ menu item or icon-only table button)
+uses the document-with-arrow icon: code `icon-page-download`, Figma local `20/file-download` (central icon
+pack „file-download, document”, stroke 1.5, radius 2). `icon-download` stays only for „Descarcă…”
+(download a file) and „Importă din MDocs”.
+
 ### US-230 Lista de servicii — Configurări servicii (2026-10-10)
 
 **Azure:** US-230 „Vizualizarea, căutarea, filtrarea și exportul listei de servicii” 95244.

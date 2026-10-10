@@ -811,14 +811,14 @@
           {
             "at": "2026-04-22T13:58:00",
             "user": "Vasile Schidu",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000023 preluat din RSSP"
           },
           {
             "at": "2026-04-22T13:58:00",
             "user": "Vasile Schidu",
-            "type": "Actualizare serviciu",
+            "type": "Actualizare serviciu existent",
             "status": "Reușit",
             "detail": "Datele RSSP ale serviciului au fost actualizate"
           },
@@ -846,7 +846,7 @@
           {
             "at": "2026-03-02T08:10:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Eroare la sincronizare",
             "status": "Eșuat",
             "detail": "Cod 003000023: Serviciul RSSP este momentan indisponibil. Încercați mai târziu."
           }
@@ -1201,14 +1201,14 @@
           {
             "at": "2026-06-19T13:54:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003578151 preluat din RSSP"
           },
           {
             "at": "2026-06-19T13:54:00",
             "user": "Anastasia Cojocaru",
-            "type": "Actualizare serviciu",
+            "type": "Actualizare serviciu existent",
             "status": "Reușit",
             "detail": "Datele RSSP ale serviciului au fost actualizate"
           }
@@ -1337,7 +1337,7 @@
           {
             "at": "2026-05-30T09:12:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000118 preluat din RSSP"
           }
@@ -1419,7 +1419,7 @@
           {
             "at": "2026-05-18T15:40:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000207 preluat din RSSP"
           }
@@ -1533,7 +1533,7 @@
           {
             "at": "2026-05-02T11:05:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000245 preluat din RSSP"
           }
@@ -1615,7 +1615,7 @@
           {
             "at": "2026-04-28T10:00:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000312 preluat din RSSP"
           }
@@ -1697,7 +1697,7 @@
           {
             "at": "2026-02-11T14:20:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000377 preluat din RSSP"
           }
@@ -1780,7 +1780,7 @@
           {
             "at": "2026-06-02T08:45:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000402 preluat din RSSP"
           }
@@ -1901,7 +1901,7 @@
           {
             "at": "2026-09-30T10:00:00",
             "user": "Anastasia Cojocaru",
-            "type": "Sincronizare serviciu",
+            "type": "Sincronizare serviciu finalizată cu succes",
             "status": "Reușit",
             "detail": "Cod 003000519 preluat din RSSP"
           }
@@ -1935,13 +1935,15 @@
             "requestType": "Reperfectare",
             "moment": "La inițierea solicitării",
             "generation": "Automat",
-            "conditions": [{
-              "classifier": "CLS-BIO-01",
-              "values": [
-                "minora",
-                "majora"
-              ]
-            }],
+            "conditions": [
+              {
+                "classifier": "CLS-BIO-01",
+                "values": [
+                  "minora",
+                  "majora"
+                ]
+              }
+            ],
             "calc": {
               "mode": "tarif"
             },
@@ -1962,12 +1964,14 @@
             "requestType": "Reperfectare",
             "moment": "La inițierea solicitării",
             "generation": "Automat",
-            "conditions": [{
-              "classifier": "CLS-BIO-01",
-              "values": [
-                "administrativa"
-              ]
-            }],
+            "conditions": [
+              {
+                "classifier": "CLS-BIO-01",
+                "values": [
+                  "administrativa"
+                ]
+              }
+            ],
             "calc": {
               "mode": "tarif"
             },

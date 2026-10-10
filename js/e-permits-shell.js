@@ -6985,16 +6985,19 @@ document.addEventListener("DOMContentLoaded", () => {
           ${options.actionHtml || ""}
         </div>
         <ol class="e-permits-timeline">
-          ${events.map((item) => {
+          ${events.map((item, index) => {
             const look = TIMELINE_TONES[item.status] || { tone: "pending", icon: "time-filled" };
+            /* options.openAttrs(item, index): the item opens its details — the title is an
+               underlined button (link signifier), the whole item hovers (Jurnal, US-228) */
+            const open = options.openAttrs ? options.openAttrs(item, index) : "";
             return `
-              <li class="e-permits-timeline__item e-permits-timeline__item--${look.tone}">
+              <li class="e-permits-timeline__item e-permits-timeline__item--${look.tone}${open ? " is-clickable" : ""}"${open ? ` ${open}` : ""}>
                 <span class="e-permits-timeline__rail" aria-hidden="true">
                   <span class="e-permits-timeline__marker"><svg class="icon"><use href="assets/icons/sprite.svg#icon-${look.icon}"></use></svg></span>
                 </span>
                 <div class="e-permits-timeline__content">
-                  <span class="e-permits-timeline__title">${escapeHtml(item.type)}${look.tone === "danger" ? renderTag(item.status, "danger") : ""}</span>
-                  <span class="e-permits-timeline__stamp"><time datetime="${escapeHtml(item.at)}">${escapeHtml(String(item.at).includes("T") ? formatStamp(item.at) : formatLongDate(item.at))}</time>${item.user ? ` · ${escapeHtml(item.user)}` : ""}</span>
+                  <span class="e-permits-timeline__title">${open ? `<button class="e-permits-timeline__link" type="button" aria-haspopup="dialog">${escapeHtml(item.type)}</button>` : escapeHtml(item.type)}${item.tab ? renderTag(item.tab, "neutral") : ""}${look.tone === "danger" ? renderTag(item.status, "danger") : ""}</span>
+                  <span class="e-permits-timeline__stamp"><time datetime="${escapeHtml(item.at)}">${escapeHtml(String(item.at).includes("T") ? formatStamp(item.at) : formatLongDate(item.at))}</time>${item.user ? ` · ${escapeHtml(item.user)}` : ""}${item.role ? ` · ${escapeHtml(item.role)}` : ""}</span>
                   ${item.detail ? `<p class="e-permits-timeline__text">${escapeHtml(item.detail)}</p>` : ""}
                 </div>
               </li>
@@ -7011,20 +7014,23 @@ document.addEventListener("DOMContentLoaded", () => {
      „Arată încă N” under it loads the next page. Older history is demo data, generated
      once per service behind the real events (deterministic). */
   const SVC_EVENTS_PAGE = 25;
+  /* [type, detail(service, i), changes(service, i) → [field, before, after][]] */
   const SVC_EVENT_SAMPLES = [
-    ["Editare formular", (s, i) => `Câmp actualizat în Cerere de ${i % 2 ? "notificare" : "reperfectare"}`],
-    ["Publicare formular", (s, i) => `Cerere de notificare v2.${i % 9}.0`],
-    ["Sincronizare serviciu finalizată cu succes", (s) => `Cod ${s.code} preluat din RSSP`],
-    ["Actualizare serviciu existent", () => "Datele RSSP ale serviciului au fost actualizate"],
-    ["Editare taxă", (s, i) => `Taxă de stat · Emitere primară · v${1 + (i % 4)}`],
-    ["Publicare taxă", (s, i) => `Examinare documente · Emitere primară · v${1 + (i % 3)}`],
-    ["Editare tip solicitare", (s, i) => `${i % 2 ? "Reperfectare" : "Emitere primară"} · termen și flux`],
-    ["Editare șablon de notificare", (s, i) => `Texte RO / RU actualizate · v${1 + (i % 5)}`],
-    ["Publicare serviciu", (s, i) => `v2.${i % 9}.0 · ${2 + (i % 6)} modificări`],
-    ["Atașare șablon MDocs", () => "Act permisiv — șablon atașat din catalog"],
-    ["Editare interdependență", () => "Aviz ANSA — condiție actualizată"],
-    ["Sincronizare tarife", (s, i) => `${i % 3 ? `${1 + (i % 3)} tarife preluate` : "1 tarif preluat"} din ${i % 2 ? "eAPL" : "RSSP"}`]
+    ["Editare formular", (s, i) => `Câmp actualizat în Cerere de ${i % 2 ? "notificare" : "reperfectare"}`, (s, i) => [["Câmp „IDNP solicitant” · validare", "Opțională", "Obligatorie"], ["Versiune formular", `v2.${i % 9}.0`, `v2.${i % 9}.1 (schiță)`]]],
+    ["Publicare formular", (s, i) => `Cerere de notificare v2.${i % 9}.0`, (s, i) => [["Versiune publicată", `v2.${Math.max(0, (i % 9) - 1)}.0`, `v2.${i % 9}.0`], ["Stare", "Schiță", "Publicat"]]],
+    ["Sincronizare serviciu finalizată cu succes", (s) => `Cod ${s.code} preluat din RSSP`, () => [["Modificări preluate din RSSP", "—", "niciuna (datele erau la zi)"]]],
+    ["Actualizare serviciu existent", () => "Datele RSSP ale serviciului au fost actualizate", () => [["Denumirea serviciului (RU)", "Уведомление о торговле", "Уведомление о торговой деятельности"], ["Termen de examinare (RSSP)", "10 zile", "15 zile"]]],
+    ["Editare taxă", (s, i) => `Taxă de stat · Emitere primară · v${1 + (i % 4)}`, (s, i) => [["Termen de plată", "5 zile", "10 zile"], ["Nr. versiune", `v${i % 4 || 1}`, `v${1 + (i % 4)}`]]],
+    ["Publicare taxă", (s, i) => `Examinare documente · Emitere primară · v${1 + (i % 3)}`, () => [["Stare", "Schiță", "Publicată"], ["Activ/Inactiv", "Inactivă", "Activă"]]],
+    ["Editare tip solicitare", (s, i) => `${i % 2 ? "Reperfectare" : "Emitere primară"} · termen și flux`, () => [["Termen de examinare", "10 zile lucrătoare", "15 zile lucrătoare"], ["Flux de procesare", "Flux simplificat", "Flux simplificat fără supervizor"]]],
+    ["Editare șablon de notificare", (s, i) => `Texte RO / RU actualizate · v${1 + (i % 5)}`, (s, i) => [["Text (RO)", "Cererea a fost înregistrată.", "Cererea dvs. a fost înregistrată cu nr. {{nr_dosar}}."], ["Versiune", `v${i % 5 || 1}`, `v${1 + (i % 5)}`]]],
+    ["Publicare serviciu", (s, i) => `v2.${i % 9}.0 · ${2 + (i % 6)} modificări`, (s, i) => [["Versiune în vigoare", `v2.${Math.max(0, (i % 9) - 1)}.0`, `v2.${i % 9}.0`], ["Modificări publicate", "—", String(2 + (i % 6))]]],
+    ["Atașare șablon MDocs", () => "Act permisiv — șablon atașat din catalog", () => [["Șablon act permisiv", "—", "Act permisiv · MDocs v3"]]],
+    ["Editare interdependență", () => "Aviz ANSA — condiție actualizată", () => [["Condiție aviz ANSA", "La toate solicitările", "Doar pentru Emitere primară"]]],
+    ["Sincronizare tarife", (s, i) => `${i % 3 ? `${1 + (i % 3)} tarife preluate` : "1 tarif preluat"} din ${i % 2 ? "eAPL" : "RSSP"}`, (s, i) => [["Tarife create", "—", String(i % 3 ? 1 + (i % 3) : 1)], ["Tarife actualizate", "—", "0"]]]
   ];
+  /* AC-13: the daily automatic sync runs as „SIA GEAP” (role „Sistem”) */
+  const SVC_EVENT_AUTOMATIC = /^(Sincronizare|Eroare la sincronizare)/;
   const SVC_EVENT_USERS = ["Vasile Schidu", "Anastasia Cojocaru", "Ion Popescu", "Mariana Rusu"];
   const serviceEventLog = (service) => {
     const geap = service.geap;
@@ -7040,75 +7046,192 @@ document.addEventListener("DOMContentLoaded", () => {
       const failed = (seed + i) % 13 === 0;
       const k = failed ? 2 : (seed + i * 7) % SVC_EVENT_SAMPLES.length;
       t = new Date(t.getTime() - ((((seed + i * 13) % 50) + 6) * 60 + ((i * 17) % 60)) * 60 * 1000);
+      const type = failed ? "Eroare la sincronizare" : SVC_EVENT_SAMPLES[k][0];
       geap.events.push({
         at: `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}T${pad(t.getHours())}:${pad(t.getMinutes())}:00`,
-        user: SVC_EVENT_USERS[(seed + i) % SVC_EVENT_USERS.length],
-        type: failed ? "Eroare la sincronizare" : SVC_EVENT_SAMPLES[k][0],
+        user: SVC_EVENT_AUTOMATIC.test(type) && i % 2 === 0 ? "SIA GEAP" : SVC_EVENT_USERS[(seed + i) % SVC_EVENT_USERS.length],
+        type,
         status: failed ? "Eșuat" : "Reușit",
-        detail: failed ? `Cod ${service.code}: Serviciul RSSP este momentan indisponibil. Încercați mai târziu.` : SVC_EVENT_SAMPLES[k][1](service, i)
+        detail: failed ? `Cod ${service.code}: Serviciul RSSP este momentan indisponibil. Încercați mai târziu.` : SVC_EVENT_SAMPLES[k][1](service, i),
+        changes: failed ? [] : SVC_EVENT_SAMPLES[k][2](service, i)
       });
     }
     return geap.events;
   };
-  const SVC_EVENT_FILTERS = [["all", "Toate", () => true], ["ok", "Reușite", (e) => e.status !== "Eșuat"], ["failed", "Eșuate", (e) => e.status === "Eșuat"]];
-  const svcEventsState = { code: "", query: "", filter: "all", shown: SVC_EVENTS_PAGE };
-  const svcEventsMatches = (service) => {
-    const test = SVC_EVENT_FILTERS.find(([key]) => key === svcEventsState.filter)?.[2] || (() => true);
-    const q = clasCore.normName(svcEventsState.query.trim());
-    return serviceEventLog(service).filter((e) => test(e) && (!q || clasCore.normName(`${e.type} ${e.detail || ""} ${e.user || ""} ${formatStamp(e.at)}`).includes(q)));
+  /* ---- US-228 (Azure 95242): each event's Tip eveniment, Tab and Rolul are read from the
+     event (type name, author); details = the fields it changed, before → after (AC-12).
+     The list stays a timeline (user, 2026-10-10); an item opens its details in the same
+     read-only modal as a case's Notă de plată / Aviz / Document. */
+  const SVC_EVENT_ROLES = { "Vasile Schidu": "Administrator central", "Anastasia Cojocaru": "Administrator central", "Ion Popescu": "Administrator local", "Mariana Rusu": "Administrator local", "SIA GEAP": "Sistem" };
+  const svcEventCategory = (type = "") =>
+    /^Acces refuzat/.test(type) ? "Acces refuzat"
+      : /^Restaurare/.test(type) ? "Restaurare"
+      : /^(Sincronizare|Eroare la sincronizare)/.test(type) ? "Sincronizare"
+      : /^Publicare/.test(type) ? "Publicare"
+      : /^(Ștergere|Eliminare|Detașare)/.test(type) ? "Ștergere"
+      : /^(Creare|Adăugare|Atașare|Import|Clonare|Legare)/.test(type) ? "Creare"
+      : "Modificare";
+  const svcEventTab = (type = "") => {
+    const t = type.toLocaleLowerCase("ro");
+    return /tip(ul)? (de )?solicitare/.test(t) ? "Tipuri solicitări"
+      : /formular/.test(t) ? "Formulare"
+      : /tax|tarif/.test(t) ? "Taxe și tarife"
+      : /șablon de notificare|notificare/.test(t) ? "Notificări"
+      : /șablon|mdocs|tipar/.test(t) ? "Șabloane"
+      : /document/.test(t) ? "Documente"
+      : /clasificator/.test(t) ? "Clasificatoare specifice"
+      : /interdependen|setăr|setare|suspendare/.test(t) ? "Setări"
+      : "Date generale";
   };
-  const renderSvcEventChips = (service) => SVC_EVENT_FILTERS.map(([key, label, test]) => `
-    <button type="button" class="chip${svcEventsState.filter === key ? " is-selected" : ""}" aria-pressed="${svcEventsState.filter === key ? "true" : "false"}" data-svc-events-filter="${key}">
-      <span class="chip__label">${label}</span>
-      <span class="badge badge--lg badge--solid-light" aria-hidden="true">${serviceEventLog(service).filter(test).length}</span>
-    </button>
-  `).join("");
+  /* events logged at run time carry no field diff; a detail with „Câmp A → B” still is one */
+  const svcEventChanges = (e, service) => {
+    if (e.changes?.length) return e.changes;
+    const fromDetail = (e.detail || "").split(/;\s*/).map((part) => part.match(/^(.*?)\s+(\S[^→]*?)\s*→\s*(.+)$/)).filter(Boolean).map((m) => [m[1], m[2], m[3]]);
+    if (fromDetail.length || e.status === "Eșuat") return fromDetail;
+    /* a seeded event of a known type: the fields that type changes */
+    const sample = SVC_EVENT_SAMPLES.find(([type]) => type === e.type);
+    return sample ? sample[2](service, 1) : [];
+  };
+  const svcEventRow = (e) => ({ ...e, category: svcEventCategory(e.type), tab: svcEventTab(e.type), user: e.user || "SIA GEAP", role: SVC_EVENT_ROLES[e.user || "SIA GEAP"] || "Administrator central" });
+  const svcEventPeriods = (at) => {
+    const days = (Date.parse(localIsoNow()) - Date.parse(at)) / 86400000;
+    return days <= 1 ? ["Astăzi", "Ultimele 7 zile", "Ultimele 30 de zile", "Ultimele 90 de zile"]
+      : days <= 7 ? ["Ultimele 7 zile", "Ultimele 30 de zile", "Ultimele 90 de zile"]
+      : days <= 30 ? ["Ultimele 30 de zile", "Ultimele 90 de zile"]
+      : days <= 90 ? ["Ultimele 90 de zile"] : ["Mai vechi de 90 de zile"];
+  };
+  const svcEventFacetRow = (e) => ({ categorie: e.category, user: e.user, rol: e.role, tab: e.tab, perioada: svcEventPeriods(e.at), rezultat: e.status });
+  /* „Filtrare avansată” (AC-07) — registered on first render (SF_LISTS is defined further down) */
+  const ensureJurnalFilters = () => {
+    if (SF_LISTS.jurnal) return;
+    SF_LISTS.jurnal = {
+      facets: [{ key: "categorie", label: "Tip eveniment" }, { key: "user", label: "Creat de" }, { key: "rol", label: "Rolul" }, { key: "tab", label: "Tab" }, { key: "perioada", label: "Perioadă", always: true }, { key: "rezultat", label: "Rezultat" }],
+      rows: (service) => serviceEventLog(service).map(svcEventRow).map(svcEventFacetRow),
+      refresh: () => refreshSvcEvents()
+    };
+  };
+  const svcEventsState = { code: "", query: "", sort: "desc", shown: SVC_EVENTS_PAGE };
+  /* AC-06: search on the event's name and who made it; AC-10: newest first by default */
+  const svcEventsMatches = (service) => {
+    ensureJurnalFilters();
+    const q = clasCore.normName(svcEventsState.query.trim());
+    const rows = serviceEventLog(service).map(svcEventRow)
+      .filter((e) => (!q || clasCore.normName(`${e.type} ${e.user}`).includes(q)) && sfMatches("jurnal", svcEventFacetRow(e)));
+    return rows.sort((x, y) => (x.at < y.at ? 1 : x.at > y.at ? -1 : 0) * (svcEventsState.sort === "desc" ? 1 : -1));
+  };
+  /* the count and the log source sit next to the title: „100 de evenimente · Jurnalizat prin MLog” */
+  const svcEventsCount = (service) => {
+    const total = serviceEventLog(service).length;
+    const filtered = svcEventsState.query.trim() || sfAppliedCount("jurnal");
+    return `${filtered ? `${svcEventsMatches(service).length} din ${total}` : total}${total >= 20 && (total % 100 === 0 || total % 100 >= 20) ? " de" : ""} ${total === 1 && !filtered ? "eveniment" : "evenimente"} · Jurnalizat prin MLog`;
+  };
   const renderSvcEventList = (service) => {
     const all = serviceEventLog(service);
+    /* AC-16 */
+    if (!all.length) return renderEmptyState({ title: "Nu există evenimente înregistrate.", icon: "time-filled" });
     const rows = svcEventsMatches(service);
-    const filtered = svcEventsState.query.trim() || svcEventsState.filter !== "all";
-    const count = `<p class="e-permits-svc-events__count" aria-live="polite">${filtered ? `${rows.length} din ${all.length} evenimente` : `${all.length} evenimente`}</p>`;
-    if (!rows.length) {
-      return `${count}${renderNoResults("Niciun eveniment nu corespunde căutării")}`;
-    }
+    const filtered = svcEventsState.query.trim() || sfAppliedCount("jurnal");
+    const count = "";
+    /* AC-15 */
+    if (!rows.length) return `${count}${renderNoResults("Nu au fost găsite evenimente.", { text: "Caută după denumirea evenimentului sau autor ori schimbă filtrele." })}`;
     const shown = rows.slice(0, svcEventsState.shown);
     const rest = rows.length - shown.length;
-    /* the timeline markup of renderEventTimeline, without its section heading */
-    const timeline = renderEventTimeline("", shown).replace(/^[\s\S]*?(<ol class="e-permits-timeline">[\s\S]*<\/ol>)[\s\S]*$/, "$1");
+    /* the timeline markup of renderEventTimeline, without its section heading; each item opens its details */
+    const timeline = renderEventTimeline("", shown, { openAttrs: (e) => `data-svc-event="${escapeHtml(`${e.at}|${e.type}`)}"` }).replace(/^[\s\S]*?(<ol class="e-permits-timeline">[\s\S]*<\/ol>)[\s\S]*$/, "$1");
     return `${count}${timeline}${rest > 0 ? `
       <div class="e-permits-svc-events__more">
         <span>Afișate ${shown.length} din ${rows.length}</span>
         <button class="btn btn-neutral btn-sm btn-rounded" type="button" data-svc-events-more>Arată încă ${Math.min(rest, SVC_EVENTS_PAGE)}</button>
       </div>` : ""}`;
   };
+  /* AC-12: Detalii — field, previous value, new value; read-only (AC-14) */
+  const openSvcEventDetail = (key) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    const modal = document.querySelector("#dosar-detail-modal");
+    if (!service || !modal) return;
+    const raw = serviceEventLog(service).find((e) => `${e.at}|${e.type}` === key);
+    if (!raw) return;
+    const e = svcEventRow(raw);
+    const changes = svcEventChanges(raw, service);
+    modal.querySelector("[data-dosar-detail-title]").textContent = e.type;
+    modal.querySelector("[data-dosar-detail-subtitle]").textContent = `${formatStamp(e.at)} · ${e.user}`;
+    modal.querySelector("[data-dosar-detail-body]").innerHTML = `
+      ${renderInfoCard("Date generale", [
+        ["Denumirea evenimentului", escapeHtml(e.type)],
+        ["Tip eveniment", renderTag(e.category, "neutral")],
+        ["Data și ora", escapeHtml(formatStamp(e.at))],
+        ["Creat de", escapeHtml(e.user)],
+        ["Rolul", escapeHtml(e.role)],
+        ["Tab", escapeHtml(e.tab)],
+        ["Rezultat", renderTag(e.status, e.status === "Eșuat" ? "danger" : "success")],
+        ...(e.detail ? [["Descriere", escapeHtml(e.detail)]] : [])
+      ])}
+      ${changes.length ? renderInfoCard("Modificări", changes.map(([field, before, after]) => [field, `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${escapeHtml(before)}</span><span aria-hidden="true">→</span><span class="sr-only">devine</span><strong>${escapeHtml(after)}</strong></span>`]))
+        : `<p class="e-permits-passport__muted">${e.status === "Eșuat" ? "Operația a eșuat — nu s-a modificat nimic." : "Evenimentul nu modifică câmpuri ale pașaportului."}</p>`}
+      ${renderReadOnlyNote()}`;
+    modal.querySelector("[data-dosar-detail-buttons]").innerHTML = '<button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>';
+    window.__modal?.open?.("#dosar-detail-modal");
+  };
+  /* AC-11: the filtered rows as an Excel file (an HTML table Excel opens as a sheet) */
+  const exportSvcEvents = (service) => {
+    const rows = svcEventsMatches(service);
+    const head = ["Denumirea evenimentului", "Tip eveniment", "Data și ora evenimentului", "Creat de", "Rolul", "Tab", "Rezultat", "Detalii"];
+    const cell = (v) => `<td>${escapeHtml(String(v ?? ""))}</td>`;
+    const html = `<html><head><meta charset="utf-8"></head><body><table><tr>${head.map((h) => `<th>${escapeHtml(h)}</th>`).join("")}</tr>${rows.map((e) => `<tr>${[e.type, e.category, formatStamp(e.at), e.user, e.role, e.tab, e.status, e.detail].map(cell).join("")}</tr>`).join("")}</table></body></html>`;
+    const url = URL.createObjectURL(new Blob(["﻿" + html], { type: "application/vnd.ms-excel" }));
+    const link = Object.assign(document.createElement("a"), { href: url, download: `jurnal-${service.code}.xls` });
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    showShellToast(`${rows.length === 1 ? "1 eveniment exportat" : `${rows.length} evenimente exportate`}.`);
+  };
   const renderServiceEvents = (service) => {
-    if (svcEventsState.code !== service.code) Object.assign(svcEventsState, { code: service.code, query: "", filter: "all", shown: SVC_EVENTS_PAGE });
+    if (svcEventsState.code !== service.code) { Object.assign(svcEventsState, { code: service.code, query: "", sort: "desc", shown: SVC_EVENTS_PAGE }); if (typeof sfStates !== "undefined") delete sfStates.jurnal; }
+    ensureJurnalFilters();
     return `
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
-        <div class="e-permits-dosar-profil__section-heading">
-          <h2 class="e-permits-dosar-profil__section-title">Jurnal de evenimente</h2>
-          <span class="e-permits-dosar-profil__section-meta">Jurnalizat prin MLog</span>
+        <!-- row 1: title + count · source; row 2: search + Filtrare avansată left, order + ⋮ right -->
+        <div class="e-permits-svc-events__heading">
+          <h2 class="e-permits-dosar-profil__section-title e-permits-pay__title">Jurnal de evenimente</h2>
+          <p class="e-permits-svc-events__count" aria-live="polite" data-svc-events-count>${svcEventsCount(service)}</p>
         </div>
-        <div class="e-permits-pay__toolbar">
-          <div class="e-permits-rt__chips" role="group" aria-label="Filtrează evenimentele" data-svc-events-chips>${renderSvcEventChips(service)}</div>
+        <div class="e-permits-pay__toolbar e-permits-svc-events__toolbar">
           <div class="e-permits-pay__tools">
             <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search e-permits-pay__search${svcEventsState.query.trim() ? " has-value is-ready" : ""}">
               <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" placeholder="Caută eveniment, utilizator sau dată" aria-label="Caută în jurnalul de evenimente" autocomplete="off" value="${escapeHtml(svcEventsState.query)}" data-svc-events-search>
+              <input class="input" type="search" placeholder="Caută eveniment sau autor" aria-label="Caută în jurnal după denumirea evenimentului sau autor" autocomplete="off" value="${escapeHtml(svcEventsState.query)}" data-svc-events-search>
               ${renderSearchActions()}
             </div>
+            ${renderSfToggle("jurnal", service)}
+          </div>
+          <div class="e-permits-pay__tools">
+            ${renderSvcEventsSort()}
+            ${renderStackMenu([{ label: "Exportă (Excel)", icon: "page-download", attrs: "data-svc-events-export" }], "jurnal")}
           </div>
         </div>
+        <div data-sf-bar="jurnal">${renderSfBar("jurnal", service, svcEventsMatches(service).length)}</div>
         <div class="e-permits-svc-events" data-svc-events-list>${renderSvcEventList(service)}</div>
       </section>
     `;
   };
-  const refreshSvcEvents = (withChips = false) => {
+  /* AC-09/10: newest first by default; one button flips the order */
+  const renderSvcEventsSort = () => {
+    const desc = svcEventsState.sort === "desc";
+    return `<button class="btn btn-neutral btn-sm" type="button" data-svc-events-sort aria-label="Ordinea: ${desc ? "cele mai noi primele" : "cele mai vechi primele"}">
+      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-${desc ? "down" : "up"}"></use></svg><span>${desc ? "Cele mai noi" : "Cele mai vechi"}</span>
+    </button>`;
+  };
+  const refreshSvcEvents = () => {
     const service = getServiceByCode(serviceProfileState.code);
     const box = permitsProfilePanel?.querySelector("[data-svc-events-list]");
     if (!service || !box) return;
     box.innerHTML = renderSvcEventList(service);
-    if (withChips) permitsProfilePanel.querySelector("[data-svc-events-chips]").innerHTML = renderSvcEventChips(service);
+    const count = permitsProfilePanel.querySelector("[data-svc-events-count]");
+    if (count) count.textContent = svcEventsCount(service);
+    const bar = permitsProfilePanel.querySelector('[data-sf-bar="jurnal"]');
+    if (bar) bar.innerHTML = renderSfBar("jurnal", service, svcEventsMatches(service).length);
+    const toggle = permitsProfilePanel.querySelector('[data-sf-toggle="jurnal"]');
+    if (toggle) toggle.outerHTML = renderSfToggle("jurnal", service);
+    const sort = permitsProfilePanel.querySelector("[data-svc-events-sort]");
+    if (sort) sort.outerHTML = renderSvcEventsSort();
   };
 
   /* Roles and users keep no audit trail in the demo data — derive one from their dates */
@@ -7227,7 +7350,7 @@ document.addEventListener("DOMContentLoaded", () => {
           menu: admin ? [
             { label: "Duplică", icon: "copy", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="duplicate"` },
             { label: "Versiuni", icon: "time", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="versions"` },
-            { label: "Exportă setări (JSON)", icon: "download", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="export"` },
+            { label: "Exportă setări (JSON)", icon: "page-download", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="export"` },
             { label: "Elimină", icon: "delete", danger: true, attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="remove"` }
           ] : [],
           label: form.name
@@ -7580,7 +7703,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const sfMatches = (id, row) => sfMatchesWith(id, sfState(id).applied)(row);
   const sfFacets = (id, service) => {
     const st = sfState(id), rows = SF_LISTS[id].rows(service);
-    return SF_LISTS[id].facets.filter((f) => st.applied[f.key]?.length || st.draft?.[f.key]?.length || new Set(rows.flatMap((r) => asList(r[f.key]))).size > 1);
+    return SF_LISTS[id].facets.filter((f) => f.always || st.applied[f.key]?.length || st.draft?.[f.key]?.length || new Set(rows.flatMap((r) => asList(r[f.key]))).size > 1);
   };
   const sfOptions = (id, service, key) => {
     const st = sfState(id), counts = new Map();
@@ -7730,6 +7853,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   document.addEventListener("keydown", (event) => {
+    /* a Jurnal item opens with Enter / Space on its focused title (the button does Enter natively) */
+    const ev = event.target.closest?.("[data-svc-event]");
+    if (ev && event.key === " " && event.target.closest(".e-permits-timeline__link")) { event.preventDefault(); openSvcEventDetail(ev.dataset.svcEvent); return; }
     const row = event.target.closest?.("[data-tariff-row]");
     if (row && event.key === "Enter" && event.target === row) { event.preventDefault(); openTariffView(row.dataset.tariffRow); }
   });
@@ -7817,7 +7943,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${renderStackMenu([
               ...(admin ? sources.map((source) => ({ label: `Sincronizează tarifele din ${source}`, icon: "rotate-arrow", attrs: `data-tariff-sync="${source}"` })) : []),
               { label: "Actualizează lista", icon: "rotate-arrow", attrs: 'data-sf-refresh="tarife"' },
-              { label: "Exportă tarifele", icon: "download", attrs: "data-trf-export" }
+              { label: "Exportă tarifele", icon: "page-download", attrs: "data-trf-export" }
             ], "tarife")}
           </div>
         </div>
@@ -7868,7 +7994,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ` : ""}
             ${renderStackMenu([
               { label: "Actualizează lista", icon: "rotate-arrow", attrs: 'data-sf-refresh="taxe"' },
-              { label: "Exportă taxele", icon: "download", attrs: "data-pay-export" }
+              { label: "Exportă taxele", icon: "page-download", attrs: "data-pay-export" }
             ], "taxe")}
           </div>
         </div>
@@ -15704,12 +15830,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const evFilter = event.target.closest("[data-svc-events-filter]");
-    if (evFilter) {
-      svcEventsState.filter = evFilter.dataset.svcEventsFilter; svcEventsState.shown = SVC_EVENTS_PAGE; refreshSvcEvents(true);
-      permitsProfilePanel.querySelector(`[data-svc-events-filter="${svcEventsState.filter}"]`)?.focus();
+    if (event.target.closest("[data-svc-events-sort]")) {
+      svcEventsState.sort = svcEventsState.sort === "desc" ? "asc" : "desc"; svcEventsState.shown = SVC_EVENTS_PAGE;
+      refreshSvcEvents(); permitsProfilePanel.querySelector("[data-svc-events-sort]")?.focus();
       return;
     }
+    if (event.target.closest("[data-svc-events-export]")) { closeStackMenus?.(); const service = getServiceByCode(serviceProfileState.code); if (service) exportSvcEvents(service); return; }
+    const svcEvent = event.target.closest("[data-svc-event]");
+    if (svcEvent && !event.target.closest("a, input")) { openSvcEventDetail(svcEvent.dataset.svcEvent); return; }
     if (event.target.closest("[data-svc-events-more]")) {
       svcEventsState.shown += SVC_EVENTS_PAGE; refreshSvcEvents();
       /* focus stays on the list: the next „Arată încă” (or the last row) */

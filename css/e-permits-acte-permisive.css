@@ -22812,3 +22812,70 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   color: var(--color-text-base-secondary);
 }
 
+/* Jurnal de evenimente (US-228): an item opens its details. Layered signifiers (NN/g):
+   the title is underlined like a link, the whole item gets a hover background and the
+   pointer, the title takes keyboard focus. */
+.e-permits-timeline__item.is-clickable {
+  border-radius: var(--border-radius-8, 8px);
+  cursor: pointer;
+  /* the hover surface reaches past the rail and text without moving them */
+  margin-inline: calc(var(--spacing-8, 8px) * -1);
+  padding-inline: var(--spacing-8, 8px);
+  transition: background-color 120ms ease;
+}
+
+.e-permits-timeline__item.is-clickable:hover {
+  background: var(--color-background-base-secondary);
+}
+
+.e-permits-timeline__link {
+  background: none;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-default);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--color-border-base-default);
+  text-decoration-thickness: var(--border-width-1, 1px);
+  text-underline-offset: 3px;
+}
+
+.e-permits-timeline__item.is-clickable:hover .e-permits-timeline__link {
+  text-decoration-color: currentColor;
+}
+
+.e-permits-timeline__link:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--focus-ring, var(--blue-sky-500));
+  outline-offset: 2px;
+}
+
+/* Detalii eveniment › Modificări: previous value struck through → new value */
+.e-permits-event-diff {
+  align-items: baseline;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-event-diff__before {
+  color: var(--color-text-base-tertiary);
+  text-decoration: line-through;
+}
+
+
+/* Jurnal (US-228): row 1 title + „N de evenimente · Jurnalizat prin MLog”; row 2 the toolbar
+   (search + Filtrare avansată left, order + ⋮ right) */
+.e-permits-svc-events__heading {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px) var(--spacing-12, 12px);
+  margin-bottom: var(--spacing-16, 16px);
+}
+.e-permits-svc-events__heading .e-permits-pay__title {
+  margin: 0;
+  padding: 0;
+}
