@@ -218,16 +218,20 @@
        new + existing authority, 000000000 RSSP unavailable, 003999998 invalid answer */
     "srv-01": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); } },
     /* US-230 AC-05: a published service with a change since publishing → „1 modificare nepublicată” under Statut */
+    /* US-231 AC-05/06: automatic sync frequency (central admin) */
+    "srv-03m": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); } },
+    "srv-03": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); await h.click("[data-workplace-autosync]"); } },
+    "srv-03a": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); await h.click("[data-workplace-autosync]"); await h.click('[data-autosync-freq="weekly"]'); } },
     "srv-02": svc("fees", async (h) => { await applyOneTariff(h); await h.click('[data-nav-id="service-config"]'); }),
-    "srv-01a": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]"); } },
-    "srv-01b": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]"); await h.click("[data-service-sync-submit]"); } },
+    "srv-01a": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); await h.click("[data-workplace-sync-manual]"); } },
+    "srv-01b": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); await h.click("[data-workplace-sync-manual]"); await h.click("[data-service-sync-submit]"); } },
     ...Object.fromEntries([["srv-01d", "000000000"], ["srv-01e", "003999997"], ["srv-01f", "003999998"]].map(([id, code]) => [id, { flow: "back-office", as: ADMIN, run: async (h) => {
-      await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]");
+      await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); await h.click("[data-workplace-sync-manual]");
       await h.fill("[data-service-sync-code]", code, { leave: false }); await h.click("[data-service-sync-submit]");
       await h.find("[data-service-sync-body] .banner--error", null, 15000);
     } }])),
     ...Object.fromEntries([["srv-01g", "003000333"], ["srv-01h", "003000451"]].map(([id, code]) => [id, { flow: "back-office", as: ADMIN, run: async (h) => {
-      await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service]");
+      await h.click('[data-nav-id="service-config"]'); await h.click("[data-workplace-sync-service] [data-stack-menu-trigger]"); await h.click("[data-workplace-sync-manual]");
       await h.fill("[data-service-sync-code]", code, { leave: false }); await h.click("[data-service-sync-submit]");
       await h.find("[data-service-sync-body] .e-permits-passport__sync-summary", null, 15000);
     } }])),
@@ -247,6 +251,22 @@
       await h.click("[data-service-sync-submit]");
       await h.find("[data-service-sync-body] .e-permits-passport__sync-summary", null, 15000);
     }),
+    /* US-231 / US-232: resync outcomes from „Resincronizează” in Date din RSSP */
+    ...Object.fromEntries([["svc-01k", "003000519"], ["svc-01l", "003000207"], ["svc-01m", "003000377"], ["svc-01n", "003000402"]].map(([id, code]) => [id, svc("general", async (h) => {
+      await h.click(".e-permits-passport__heading-tools [data-passport-resync]");
+      await h.click("[data-service-sync-submit]");
+      await h.find("[data-service-sync-body] .e-permits-passport__sync-message", null, 15000);
+    }, code)])),
+    /* 003000402 after the reactivation with new data: banner + „Modificări nepublicate”, still Inactiv */
+    "svc-01o": svc("general", async (h) => {
+      await h.click(".e-permits-passport__heading-tools [data-passport-resync]");
+      await h.click("[data-service-sync-submit]");
+      await h.find("[data-service-sync-body] .e-permits-passport__sync-message", null, 15000);
+      await h.click("[data-service-sync-close]");
+      await h.wait(400);
+    }, "003000402"),
+    "svc-01p": svc("general", null, "003000377"),
+    "svc-01q": svc("general", null, "003000245"),
     "svc-01e": svc("fees", applyOneTariff),
     "svc-01f": svc("fees", async (h) => { await applyOneTariff(h); await h.click("[data-service-publish]"); }),
     "svc-01g": svc("fees", async (h) => {
@@ -409,6 +429,12 @@
     "svc-02d1": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); await h.click("[data-rt-doc-peek]"); }),
     "svc-02d2": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="notifications"]'); await h.click("[data-rt-doc-peek]"); }),
     "svc-07": svc("classifiers"),
+    /* US-226: a specific classifier opens its values (+ Adaugă valoare / Import); a global one opens read-only */
+    "svc-07a": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); }),
+    "svc-07b": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-cuatm"].e-permits-stack__item'); }),
+    "svc-07c": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); await h.click("[data-clas-grid-add]"); }),
+    "svc-07d": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-caem2"].e-permits-stack__item'); }),
+    "svc-07e": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); await h.click("[data-clas-profile-back-shell]"); }),
     "svc-08": svc("templates"),
     /* Șabloane › eye = view-only preview drawer (the builder opens from its footer) */
     "svc-08l": svc("templates", async (h) => { await h.click("[data-dtpl-preview]"); }),

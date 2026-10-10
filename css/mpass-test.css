@@ -152,7 +152,7 @@ body.mpass-test-page {
 }
 
 .mpass-test__identity:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .mpass-test__identity:focus-visible,
@@ -250,7 +250,7 @@ body.mpass-test-page {
 }
 
 .mpass-test__secondary:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .mpass-test__note {

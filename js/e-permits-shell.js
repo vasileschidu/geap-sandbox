@@ -767,7 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       ${renderCombinationCards()}
-      <button class="btn btn-neutral btn-sm" type="button" data-user-combination-open>
+      <button class="btn btn-secondary btn-sm" type="button" data-user-combination-open>
         <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
         <span>Adaugă combinație</span>
       </button>
@@ -5908,6 +5908,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (workplaceSyncService) {
       /* US-111: synchronisation is reserved to Administrator central */
       workplaceSyncService.hidden = workplaceDb.kind !== "services" || !isCentralAdmin();
+
     }
 
     const workplaceAddTariff = document.querySelector("[data-workplace-add-tariff]");
@@ -6187,6 +6188,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const SERVICE_STATUS_TONES = { Publicat: "success", Nepublicat: "warning", Inactiv: "neutral" };
+  const serviceSyncFailed = (service) => (service.geap?.events || []).some((e) => e.status === "Eșuat" && /Sincronizare|Eroare la sincronizare/.test(e.type || "") && e.at > (service.lastSync || ""));
 
   const SERVICE_PROFILE_TABS = [
     { id: "general", label: "Date generale", icon: "page-text" },
@@ -6202,7 +6204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* Taxe = tariffs + their application rules in one place (revised 2026-10-02: a tax is
        a tariff plus the rule RSSP / eAPL do not carry). Count = taxes + tariffs to configure */
     { id: "fees", label: "Taxe și tarife", count: (service) => serviceTaxes(service).length + unconfiguredServiceTariffs(service).length },
-    { id: "classifiers", label: "Clasificatoare specifice", count: (service) => service.geap.classifiers.length },
+    { id: "classifiers", label: "Clasificatoare specifice", count: (service) => (service.geap.classifiers || []).length },
     { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
     { id: "notifications", label: "Notificări", count: (service) => (service.geap.notificationTemplates || []).length },
     { id: "events", label: "Jurnal de evenimente", count: (service) => serviceEventLog(service).length }
@@ -6316,7 +6318,7 @@ document.addEventListener("DOMContentLoaded", () => {
     sincronizat: service.lastSync,
     sincronizatDe: service.syncedBy || "",
     /* the last sync attempt failed after the last good one → „Eșuat” (US-231 AC-20) */
-    syncEsuat: (service.geap?.events || []).some((e) => e.status === "Eșuat" && /Sincronizare|Eroare la sincronizare/.test(e.type || "") && e.at > (service.lastSync || "")),
+    syncEsuat: serviceSyncFailed(service),
     ...(() => {
       const last = (service.geap?.events || []).filter((e) => e.at && !/^(Sincronizare|Eroare la sincronizare)/.test(e.type || "")).sort((a, b) => (a.at < b.at ? 1 : -1))[0];
       /* no GEAP change logged yet → the last publication (by whoever created the passport) */
@@ -6791,9 +6793,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const requiredDocs = rssp.documents.filter((doc) => serviceDocRequired(service, doc)).length;
     const withLink = (text, tabId, label) => `${text}<span class="e-permits-passport__row-link">${passportTabLink(service, tabId, label)}</span>`;
     const connected = (on, detail) => `${renderTag(on ? "Conectat" : "Neutilizat", on ? "success" : "neutral")}<span class="e-permits-passport__row-note">${escapeHtml(detail)}</span>`;
-    const mconnect = geap.classifiers.filter((item) => item.source === "MConnect").length;
+    const mconnect = svcClassifiers(service).filter((item) => item.source === "MConnect").length;
 
     return `
+      ${service.status === "Inactiv" ? renderNotice("warning", service.pendingStatus
+        /* US-232 AC-10: reactivated with new data — waits for the publication */
+        ? "<strong>Serviciul este activ din nou în RSSP, dar rămâne inactiv până publici pașaportul.</strong> Datele noi din RSSP sunt în versiunea Schiță; după publicare serviciul apare din nou în catalogul EVO."
+        /* US-232 AC-03, AC-05..07 */
+        : "<strong>Serviciul este inactiv în RSSP.</strong> Nu apare în catalogul EVO și nu se poate iniția la ghișeu; dosarele depuse deja se procesează până la finalizare. Statutul se schimbă doar prin sincronizare din RSSP.", { icon: "warning-filled" }) : ""}
       ${renderTabNotice("Secțiunile marcate <strong>RSSP</strong> sunt preluate din Registrul de Stat al Serviciilor Publice și nu se editează în GEAP — se actualizează doar prin resincronizare.")}
       ${renderPassportBlock("Date din RSSP", [
         ["Cod serviciu RSSP", renderProfileCopyCode(service.code, `Copiază ${service.code}`)],
@@ -6804,9 +6811,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Statut", renderTag(service.status, SERVICE_STATUS_TONES[service.status] || "neutral")],
         ["Versiune", escapeHtml(serviceVersionInForce(servicePublication(service)) || "—")]
       ], {
-        tagHtml: renderTag("Sincronizat", "success"),
-        /* resync lives only in the page header (Sincronizează) */
-        meta: `Ultima sincronizare ${escapeHtml(formatStamp(service.lastSync))}${service.syncedBy ? ` · ${escapeHtml(service.syncedBy)}` : ""}`
+        /* US-231 AC-20: a failed sync after the last good one shows „Eșuat” */
+        tagHtml: serviceSyncFailed(service) ? renderTag("Eșuat", "danger") : renderTag("Sincronizat", "success"),
+        meta: `Ultima sincronizare ${escapeHtml(formatStamp(service.lastSync))}${service.syncedBy ? ` · ${escapeHtml(service.syncedBy)}` : ""}`,
+        /* US-231 AC-04: same manual sync as the header's „Sincronizează” */
+        actionHtml: isCentralAdmin() ? `<button class="btn btn-neutral btn-sm" type="button" data-passport-resync>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Resincronizează</span>
+        </button>` : ""
       })}
       ${renderPassportSection("Obiecte configurate în GEAP", [
         ["Tipuri solicitări", withLink(`${configuredTypes} din ${geap.requestTypes.length} configurate`, "request-types", "Vezi tipurile")],
@@ -7204,7 +7215,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <div class="e-permits-pay__tools">
             ${renderSvcEventsSort()}
-            ${renderStackMenu([{ label: "Exportă (Excel)", icon: "page-download", attrs: "data-svc-events-export" }], "jurnal")}
+            ${renderStackMenu([{ label: "Exportă (Excel)", icon: "export", attrs: "data-svc-events-export" }], "jurnal")}
           </div>
         </div>
         <div data-sf-bar="jurnal">${renderSfBar("jurnal", service, svcEventsMatches(service).length)}</div>
@@ -7304,8 +7315,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const addHtml = admin && missing.length ? `
       <div class="e-permits-stack__menu-wrap">
         <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="passport-add-rt-menu" data-stack-menu-trigger>
-          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
           <span>Adaugă tip solicitare</span>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="passport-add-rt-menu" role="menu" aria-label="Postprocese eligibile" hidden data-stack-menu>
           ${missing.map((name) => `
@@ -7350,7 +7361,7 @@ document.addEventListener("DOMContentLoaded", () => {
           menu: admin ? [
             { label: "Duplică", icon: "copy", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="duplicate"` },
             { label: "Versiuni", icon: "time", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="versions"` },
-            { label: "Exportă setări (JSON)", icon: "page-download", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="export"` },
+            { label: "Exportă setări (JSON)", icon: "export", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="export"` },
             { label: "Elimină", icon: "delete", danger: true, attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="remove"` }
           ] : [],
           label: form.name
@@ -7856,6 +7867,9 @@ document.addEventListener("DOMContentLoaded", () => {
     /* a Jurnal item opens with Enter / Space on its focused title (the button does Enter natively) */
     const ev = event.target.closest?.("[data-svc-event]");
     if (ev && event.key === " " && event.target.closest(".e-permits-timeline__link")) { event.preventDefault(); openSvcEventDetail(ev.dataset.svcEvent); return; }
+    /* US-226: Enter / Space on a focused classifier row opens it */
+    const clasRowKey = event.target.matches?.("li[data-svc-clas-open]") ? event.target : null;
+    if (clasRowKey && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); openClassifierProfile(clasRowKey.dataset.svcClasOpen, "valori", { fromService: serviceProfileState.code }); return; }
     const row = event.target.closest?.("[data-tariff-row]");
     if (row && event.key === "Enter" && event.target === row) { event.preventDefault(); openTariffView(row.dataset.tariffRow); }
   });
@@ -7943,7 +7957,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ${renderStackMenu([
               ...(admin ? sources.map((source) => ({ label: `Sincronizează tarifele din ${source}`, icon: "rotate-arrow", attrs: `data-tariff-sync="${source}"` })) : []),
               { label: "Actualizează lista", icon: "rotate-arrow", attrs: 'data-sf-refresh="tarife"' },
-              { label: "Exportă tarifele", icon: "page-download", attrs: "data-trf-export" }
+              { label: "Exportă tarifele", icon: "export", attrs: "data-trf-export" }
             ], "tarife")}
           </div>
         </div>
@@ -7994,7 +8008,7 @@ document.addEventListener("DOMContentLoaded", () => {
             ` : ""}
             ${renderStackMenu([
               { label: "Actualizează lista", icon: "rotate-arrow", attrs: 'data-sf-refresh="taxe"' },
-              { label: "Exportă taxele", icon: "page-download", attrs: "data-pay-export" }
+              { label: "Exportă taxele", icon: "export", attrs: "data-pay-export" }
             ], "taxe")}
           </div>
         </div>
@@ -8007,17 +8021,52 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
+  /* ---- US-228 sibling: US-226 Clasificatoare specifice (2026-10-10) ----------------------
+     The passport lists the classifiers the service uses, read from the Clasificatoare module
+     (one source of truth). Categorie (AC-04): global → Global; specific used by one service →
+     Specific; specific used by several services of the authority → Autoritate. A row opens the
+     module's values screen (AC-06); Global opens read-only (AC-08). Entries without a module
+     record (older demo services) keep their own name / code / count. */
+  const SVC_CLAS_GROUPS = [["Specific", "Specifice serviciului"], ["Autoritate", "Ale autorității"], ["Global", "Globale · doar vizualizare"]];
+  const svcClassifiers = (service) => (service.geap.classifiers || []).map((item) => {
+    const c = item.clasId ? getClassifier(item.clasId) : null;
+    if (!c) {
+      return { id: null, name: item.name, code: item.code, values: item.values, editedAt: item.updated, editedBy: "", active: true,
+        source: item.source === "MConnect" ? "MConnect" : "Intern", category: item.source === "MConnect" ? "Global" : "Specific", editable: false };
+    }
+    const category = c.categorie === "global" ? "Global" : (c.servicii || []).length > 1 ? "Autoritate" : "Specific";
+    return { id: c.id, name: c.denumire, code: c.cod || c.id.toUpperCase(), values: c.nrValori, editedAt: c.editatLa, editedBy: c.editatDe || "",
+      active: c.activ !== false, source: c.sursa === "mconnect" ? "MConnect" : "Intern", category,
+      /* AC-13: values are added / imported only where the source is Manual & CSV */
+      editable: category !== "Global" && c.mod === "manual" && clasCanEdit(c) };
+  });
+  const renderServiceClassifiers = (service) => {
+    const rows = svcClassifiers(service);
+    const item = (r) => ({
+      plainTitle: r.name,
+      title: escapeHtml(r.name),
+      rowAttrs: r.id ? `data-svc-clas-open="${escapeHtml(r.id)}" tabindex="0"` : "",
+      badges: [renderTag(r.active ? "Activ" : "Inactiv", r.active ? "success" : "neutral")],
+      meta: [renderCopyCode(r.code), escapeHtml(roCount(r.values, "valoare", "valori")), r.source === "MConnect" ? "Sincronizat din MConnect" : "",
+        `Editat ${escapeHtml(formatLongDate(r.editedAt))}${r.editedBy ? ` · ${escapeHtml(r.editedBy)}` : ""}`].filter(Boolean),
+      actionsHtml: r.id ? renderRowActions(r.editable
+        ? { primary: { label: "Editează", attrs: `data-svc-clas-open="${escapeHtml(r.id)}"` }, label: r.name }
+        : { preview: `data-svc-clas-open="${escapeHtml(r.id)}"`, label: r.name }) : ""
+    });
+    const groups = SVC_CLAS_GROUPS.map(([key, label]) => ({ label, items: rows.filter((r) => r.category === key).map(item) })).filter((g) => g.items.length);
+    return renderStackedList("Clasificatoare specifice", groups, {
+      /* AC-16 */
+      empty: "Serviciul nu folosește clasificatoare.",
+      meta: "Valorile se gestionează aici; structura, în Administrare → Clasificatoare"
+    });
+  };
+
   const renderServiceSimpleTab = (service, tabId) => {
     const geap = service.geap;
 
     switch (tabId) {
       case "classifiers":
-        return renderStackedList("Clasificatoare specifice", groupBy(geap.classifiers.map((item) => ({
-          group: item.source === "MConnect" ? "Externe · sincronizate din MConnect" : "Specifice serviciului",
-          plainTitle: item.name,
-          title: escapeHtml(item.name),
-          meta: [renderTag(item.code, "neutral"), `${item.values} valori`, `Actualizat ${escapeHtml(formatLongDate(item.updated))}`]
-        })), (item) => item.group, ["Specifice serviciului", "Externe · sincronizate din MConnect"]), { empty: "Serviciul nu are clasificatoare specifice." });
+        return renderServiceClassifiers(service);
       case "templates":
         return renderServiceDocTemplates(service);
       case "settings":
@@ -9219,9 +9268,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const CLAS_SCOPE = { system: ["Sistem", "neutral"], global: ["Global", "brand"], authority: ["Autoritate", "info"], service: ["Serviciu", "neutral"] };
   const CLAS_SOURCE = { intern: "Intern", mconnect: "MConnect", api: "API" };
   const CLAS_STATUS = { draft: ["Ciornă", "warning"], published: ["Publicat", "success"], archived: ["Arhivat", "neutral"] };
-  const CLAS_AUTHORITY = { ansp: ["ANSP", "Agenția Națională pentru Sănătate Publică"], anta: ["ANTA", "Agenția Națională Transport Auto"] };
+  const CLAS_AUTHORITY = { ansp: ["ANSP", "Agenția Națională pentru Sănătate Publică"], anta: ["ANTA", "Agenția Națională Transport Auto"], mec: ["MEc", "Ministerul Economiei"] };
   const CLAS_TABS = [["valori", "Valori"], ["coloane", "Coloane"], ["mapare", "Mapare MConnect"], ["dependente", "Hartă dependențe"], ["jurnal", "Jurnal de evenimente"], ["setari", "Setări"]];
-  const clasState = { id: null, tabKey: "valori", query: "", activity: "all", draft: null, selected: new Set() };
+  /* fromService: the service code when the classifier was opened from a passport (US-226) */
+  const clasState = { id: null, tabKey: "valori", query: "", activity: "all", draft: null, selected: new Set(), fromService: null };
 
   const clasList = () => classifiersStore?.list || [];
   const getClassifier = (id) => clasList().find((c) => c.id === id) || null;
@@ -9237,11 +9287,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const clasCanEdit = (c) => {
     const r = clasRole();
     if (r.id === "viewer") return false;
+    /* US-226 AC-08: from a passport a global classifier is view-only, even for the central admin */
+    if (clasState.fromService && c.categorie === "global") return false;
     if (r.id === "adm-l" && (c.categorie !== "specific" || c.autoritate !== r.authority)) return false;
     return clasPerm.canEditClassifier(c, r.id === "adm-c" ? "adm-c" : "adm-l");
   };
   const clasCanEditStructure = (c) => c.status !== "archived" && clasPerm.canEditStructure(clasRole().id === "adm-c" ? "adm-c" : "adm-l");
   const clasReadOnlyReason = (c) => {
+    /* US-226 AC-08 — MConnect classifiers already carry their own sync lock notice */
+    if (clasState.fromService && c.categorie === "global" && c.sursa === "intern") return "Clasificator global — se gestionează în Administrare → Clasificatoare.";
     if (c.status === "archived") return "Clasificatorul este arhivat și nu se mai modifică. Republică-l ca să-l poți edita.";
     if (clasRole().id === "adm-l" && !c.localAdminManageable) return "Administratorul central gestionează acest clasificator, pentru că alimentează procese, termene sau validări.";
     return "";
@@ -9389,13 +9443,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const clasProfileBody = document.querySelector("[data-clas-profile-panel]");
   const clasProfileBackShell = document.querySelector("[data-clas-profile-back-shell]");
 
-  const clasTabsFor = (c) => CLAS_TABS.filter(([id]) => id !== "mapare" || c.mod === "mconnect" || c.sursa === "api");
+  /* US-226 AC-07: from a passport only the values (and their log) are shown; structure stays in Clasificatoare */
+  const clasTabsFor = (c) => CLAS_TABS.filter(([id]) => (clasState.fromService ? ["valori", "jurnal"].includes(id) : id !== "mapare" || c.mod === "mconnect" || c.sursa === "api"));
 
   /* lifecycle actions follow core.statusActions; the primary one (Publică / Republică)
      is blue, Șterge ciorna is destructive, the rest neutral */
   const renderClassifierHeader = (c) => {
     const editable = clasCanEdit(c) || (c.status === "archived" && clasRole().id !== "viewer" && (clasRole().id === "adm-c" || c.localAdminManageable));
-    const actions = editable ? clasCore.statusActions(c).map((a) => {
+    /* US-226 AC-07: from a passport only the values' own actions (publish / discard the values draft) — no archive */
+    const passportActions = (a) => !clasState.fromService || ["publicaClas", "republicaClas", "renuntaClas"].includes(a.action);
+    const actions = editable ? clasCore.statusActions(c).filter(passportActions).map((a) => {
       if (a.action === "renuntaClas") {
         const meta = clasCore.discardMeta(c);
         return `<button class="btn ${meta.destructive ? "btn-outline-destructive" : "btn-neutral"} btn-sm" type="button" data-clas-action="${meta.destructive ? "stergeCiorna" : "renuntaClas"}">${escapeHtml(meta.label)}</button>`;
@@ -9408,7 +9465,9 @@ document.addEventListener("DOMContentLoaded", () => {
       : c.status === "draft" ? (c.publishedSnapshot ? `Ciornă peste v${c.publishedSnapshot.versiune} · modificat ${formatLongDate(c.editatLa)}` : `Ciornă nepublicată · ${formatLongDate(c.editatLa)}`)
       : `Arhivat · ${formatLongDate(c.editatLa)} · ${c.editatDe}`;
     clasProfileTitle.innerHTML = renderPageHeaderTop({
-      crumbs: [{ label: "Clasificatoare", attr: "data-clas-crumb-back" }, { label: c.denumire }],
+      crumbs: clasState.fromService
+        ? [{ label: "Configurări servicii", attr: "data-clas-crumb-back" }, { label: clasState.fromService, attr: "data-clas-crumb-back" }, { label: c.denumire }]
+        : [{ label: "Clasificatoare", attr: "data-clas-crumb-back" }, { label: c.denumire }],
       title: c.denumire,
       actions: `${sync}${actions}`,
       caption
@@ -9792,17 +9851,19 @@ document.addEventListener("DOMContentLoaded", () => {
     clasProfileBody.innerHTML = wide ? `${notice ? `<div class="e-permits-clas-grid__notice">${notice}</div>` : ""}${views.valori(c)}` : `${notice}${views[clasState.tabKey](c)}`;
   }
 
-  const openClassifierProfile = (id, tab = "valori") => {
+  const openClassifierProfile = (id, tab = "valori", { fromService = null } = {}) => {
     const c = getClassifier(id);
     if (!c || !clasProfilePanel) return;
-    Object.assign(clasState, { id, tabKey: tab, query: "", activity: "all", draft: null, selected: new Set() });
+    Object.assign(clasState, { id, tabKey: tab, query: "", activity: "all", draft: null, selected: new Set(), fromService });
+    const backLabel = clasProfileBackShell?.querySelector("span");
+    if (backLabel) backLabel.textContent = fromService ? "Înapoi la pașaportul serviciului" : "Înapoi la clasificatoare";
     if (workplacePanel) workplacePanel.hidden = true;
     hideProfilePanels();
     if (permitsProfilePanel) permitsProfilePanel.hidden = true;
     clasProfilePanel.hidden = false;
     if (clasProfileBackShell) clasProfileBackShell.hidden = false;
     shell.classList.add("is-clas-profile-open");
-    setActiveNav("classifiers");
+    setActiveNav(fromService ? "service-config" : "classifiers");
     renderClassifierProfile();
     writeHash(`#clasificator/${encodeURIComponent(id)}/${clasState.tabKey}`);
     clasProfilePanel.scrollIntoView?.({ block: "start" });
@@ -9819,6 +9880,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (c && clasSettingsDirty(c) && !window.confirm("Ai modificări nesalvate în setări. Renunți la ele?")) return;
     hideClassifierProfile();
     clasState.id = null;
+    /* US-226: opened from a passport → back to its „Clasificatoare specifice” tab */
+    if (clasState.fromService) {
+      const code = clasState.fromService;
+      clasState.fromService = null;
+      openServiceProfile(code, "classifiers");
+      return;
+    }
     showClassifiersRegistry();
     restorePageHash();
   };
@@ -10873,8 +10941,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderNtplFieldPicker = () => `
     <div class="e-permits-stack__menu-wrap">
       <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="ntpl-field-picker" data-stack-menu-trigger>
-        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
         <span>Inserează câmp</span>
+        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
       </button>
       <div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-ntpl-picker" id="ntpl-field-picker" hidden data-stack-menu>
         <div class="e-permits-fo-input e-permits-fo-input--with-action e-permits-ntpl-picker__search">
@@ -12485,7 +12553,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- Servicii › publicare: like the template / classifier profiles. Every change
      logged since the last publication is pending; "Publică" asks what changed (from the
      log), a comment and when it takes effect, then raises the version. ---- */
-  const SERVICE_EVENT_SILENT = /^(Sincronizare|Eroare la sincronizare|Publicare serviciu)/;
+  /* status changes from RSSP apply at sync (US-232 AC-02/08) — never a change to publish */
+  const SERVICE_EVENT_SILENT = /^(Sincronizare|Eroare la sincronizare|Publicare serviciu|Dezactivare serviciu|Reactivare)/;
   const servicePublication = (service) => {
     const g = service.geap;
     if (!g.publishedAt) {
@@ -12619,6 +12688,8 @@ document.addEventListener("DOMContentLoaded", () => {
         onConfirm: ({ note, effectiveFrom, changes: rows }) => {
           const at = localIsoNow(), by = currentUserName();
           g.version = to;
+          /* US-232 AC-10/11: a service reactivated with new data becomes active when the passport is published */
+          if (service.pendingStatus) { service.status = service.pendingStatus; service.pendingStatus = null; }
           const rest = (g.publications || []).filter((h) => h !== scheduled);
           g.publications = [{ version: to, at, by, note, rows, changes: rows.map((r) => `${r.area}${r.detail ? ` (${r.detail})` : ""}`), ...(effectiveFrom ? { effectiveFrom } : {}) }, ...rest];
           logServiceEvents(service.code, [{ at, user: by, type: "Publicare serviciu", status: effectiveFrom ? "Programat" : "Reușit", detail: `${to}${effectiveFrom ? ` · din ${formatLongDate(effectiveFrom)}` : ""} · ${note}` }]);
@@ -12656,8 +12727,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const scheduledHtml = scheduled ? `
       <div class="e-permits-stack__menu-wrap">
         <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="service-schedule-menu" data-stack-menu-trigger data-tooltip-label="${escapeHtml(`${scheduled.version} intră în vigoare pe ${formatLongDate(scheduled.effectiveFrom)}`)}">
-          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-clock"></use></svg>
           <span>Programat · ${escapeHtml(formatDate(scheduled.effectiveFrom))}</span>
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="service-schedule-menu" role="menu" aria-label="Publicare programată" hidden data-stack-menu>
           ${[["calendar-edit", "Reprogramează", "reschedule", false], ["cloud-upload", "Publică acum", "now", false], ["calendar-remove", "Anulează programarea", "cancel", true]].map(([icon, label, action, danger]) => `
@@ -12707,8 +12778,8 @@ document.addEventListener("DOMContentLoaded", () => {
       actions: canSync ? ((service.syncSources || ["RSSP"]).length > 1 ? `
         <div class="e-permits-stack__menu-wrap">
           <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="passport-sync-menu" data-stack-menu-trigger>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
             <span>Sincronizează</span>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
           </button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="passport-sync-menu" role="menu" aria-label="Sursa sincronizării" hidden data-stack-menu>
             ${[["RSSP", "Sincronizează din RSSP"], ["eAPL", "Sincronizează din eAPL"], ["both", "Sincronizează din RSSP și eAPL"]].map(([source, label]) => `
@@ -12822,6 +12893,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (existing && authority) {
       const r = existing.rssp;
+      /* US-231/232 demo: what RSSP returns next for this code (status flip, a new document) */
+      const over = mock.overrides?.[code] || {};
       return {
         status: "ok",
         data: {
@@ -12834,7 +12907,7 @@ document.addEventListener("DOMContentLoaded", () => {
           allowsMDelivery: r.allowsMDelivery,
           allowsMPower: r.allowsMPower,
           eService: r.delivery.includes("Electronic"),
-          isActive: r.rsspStatus !== "Inactiv",
+          isActive: over.isActive ?? r.rsspStatus !== "Inactiv",
           published: r.rsspStatus !== "Nepublicat",
           organization: { idno: authority.idno, code: authority.code, name: { ro: authority.name } },
           subServices: r.subServices.map((sub) => ({
@@ -12843,7 +12916,8 @@ document.addEventListener("DOMContentLoaded", () => {
             isDisabled: false,
             costs: [{ price: sub.price?.amount ?? 0, currency: sub.price?.currency || "MDL", durationValue: sub.duration?.value || 0, durationUnit: sub.duration?.unit === "zile lucrătoare" ? "WorkDay" : "CalendarDay" }]
           })),
-          documents: r.documents.map((doc) => ({ title: { ro: doc.title }, type: doc.required ? "required" : "optional" })),
+          documents: [...r.documents.map((doc) => ({ title: { ro: doc.title }, type: doc.required ? "required" : "optional" })),
+            ...(over.addDocument ? [{ title: { ro: over.addDocument }, type: "required" }] : [])],
           validityPeriods: r.validity.map((period) => ({ validFor: period.validFor, description: { ro: period.description } }))
         }
       };
@@ -12921,6 +12995,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const created = Object.values(syncState.tariffs).reduce((n, r) => n + (r?.created || 0), 0);
     return parts.length ? `${escapeHtml(parts.join("; "))}${created ? ' <span class="e-permits-passport__muted">(cele noi așteaptă regula de aplicare la „De configurat”)</span>' : ""}` : "—";
   };
+  /* US-231 / US-232: one title + message per sync outcome (core servicePassport.syncService) */
+  const SYNC_OUTCOMES = {
+    created: { title: "Serviciu creat din RSSP", tone: "success", icon: "circle-checkmark-filled", text: "Pașaportul serviciului a fost creat. Datele RSSP sunt needitabile în GEAP." },
+    /* AC-18, verbatim */
+    updated: { title: "Serviciu actualizat din RSSP", tone: "success", icon: "circle-checkmark-filled", text: "Sincronizarea s-a încheiat. Modificările din RSSP sunt în versiunea Schiță." },
+    /* AC-13 */
+    unchanged: { title: "Serviciu sincronizat din RSSP", tone: "info", icon: "circle-info-filled", text: "Sincronizarea s-a încheiat. RSSP nu are modificări: pașaportul a rămas neschimbat, s-a actualizat doar «Ultima sincronizare»." },
+    /* US-232 AC-02, AC-05..07 */
+    deactivated: { title: "Serviciu dezactivat din RSSP", tone: "warning", icon: "warning-filled", text: "Serviciul este inactiv în RSSP, deci a devenit inactiv și în SIA GEAP: nu mai apare în catalogul EVO și nu se poate iniția la ghișeu. Dosarele depuse deja se procesează până la finalizare." },
+    /* US-232 AC-08 */
+    reactivated: { title: "Serviciu reactivat din RSSP", tone: "success", icon: "circle-checkmark-filled", text: "Serviciul este din nou activ în RSSP și a devenit activ în SIA GEAP. Apare din nou în catalogul EVO." },
+    /* US-232 AC-09/10 */
+    reactivatedDraft: { title: "Serviciu reactivat — se publică", tone: "warning", icon: "warning-filled", text: "Serviciul este din nou activ în RSSP, cu date noi. Modificările sunt în versiunea Schiță; serviciul rămâne inactiv până la publicarea pașaportului." }
+  };
+  const syncOutcomeTitle = () => {
+    const outcome = syncState.result?.outcome;
+    if (outcome && outcome !== "updated") return SYNC_OUTCOMES[outcome].title;
+    return `Serviciu actualizat din ${[syncState.result ? "RSSP" : "", syncState.eaplResult ? "eAPL" : ""].filter(Boolean).join(" și ")}`;
+  };
+  /* the RSSP fields that changed: previous value struck through → new value */
+  const renderSyncChanges = (changes) => changes.length ? `
+    <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
+      ${changes.map((c) => syncRow([c.field, c.before === "—" ? `<strong>${escapeHtml(c.after)}</strong>`
+        : c.after === "—" ? `<span class="e-permits-event-diff__before">${escapeHtml(c.before)}</span>`
+        : `<span class="e-permits-event-diff"><span class="e-permits-event-diff__before">${escapeHtml(c.before)}</span><span aria-hidden="true">→</span><span class="sr-only">devine</span><strong>${escapeHtml(c.after)}</strong></span>`])).join("")}
+    </div>` : "";
+
   const renderSyncModal = () => {
     if (!syncModalBody || !syncModalFooter) {
       return;
@@ -12934,23 +13035,32 @@ document.addEventListener("DOMContentLoaded", () => {
       const eapl = syncState.eaplResult;
       const summary = result?.summary;
       const parts = [result ? "RSSP" : "", eapl ? "eAPL" : ""].filter(Boolean).join(" și ");
-      title.textContent = result?.kind === "created" ? "Serviciu creat din RSSP" : `Serviciu actualizat din ${parts}`;
+      const outcome = SYNC_OUTCOMES[result?.outcome] || null;
+      title.textContent = syncOutcomeTitle();
       syncModalBody.innerHTML = `
-        <div class="message message--subtle banner--success e-permits-passport__sync-message" role="status">
-          <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg></span>
+        <div class="message message--subtle banner--${outcome?.tone || "success"} e-permits-passport__sync-message" role="status">
+          <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${outcome?.icon || "circle-checkmark-filled"}"></use></svg></span>
           <div class="banner__content">
-            <p class="banner__text">${result?.kind === "created"
-              ? "Pașaportul serviciului a fost creat. Datele RSSP sunt needitabile în GEAP."
-              : `Datele ${parts} ale serviciului au fost actualizate. Configurația GEAP a rămas neschimbată.`}</p>
+            <p class="banner__text">${outcome ? escapeHtml(outcome.text) : `Datele ${parts} ale serviciului au fost actualizate. Configurația GEAP a rămas neschimbată.`}</p>
           </div>
         </div>
+        ${result?.changes?.length ? `<h3 class="e-permits-passport__sync-heading">Modificări preluate din RSSP</h3>${renderSyncChanges(result.changes)}` : ""}
         ${syncState.eaplError ? `
           <div class="message message--subtle banner--warning e-permits-passport__sync-message" role="alert">
             <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span>
             <div class="banner__content"><p class="banner__text">eAPL nu a fost sincronizat: ${escapeHtml(syncState.eaplError)} Datele RSSP au fost salvate.</p></div>
           </div>
         ` : ""}
-        ${result ? `
+        ${result && ["unchanged", "deactivated", "reactivated"].includes(result.outcome) ? `
+          <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
+            ${[
+              ["Cod serviciu", escapeHtml(summary.code)],
+              ["Denumire", escapeHtml(summary.title)],
+              ["Statut în RSSP", renderTag(result.service.rssp.rsspStatus === "Inactiv" ? "Inactiv" : "Activ", result.service.rssp.rsspStatus === "Inactiv" ? "neutral" : "success")],
+              ["Statut în SIA GEAP", renderTag(result.service.status, SERVICE_STATUS_TONES[result.service.status] || "neutral")]
+            ].map(syncRow).join("")}
+          </div>
+        ` : result ? `
           <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary">
             ${[
               ["Sursă", renderTag("RSSP", "neutral")],
@@ -13115,9 +13225,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const service = getServiceByCode(code);
-    const title = syncState.result?.kind === "created" ? "Serviciu creat din RSSP"
-      : `Serviciu actualizat din ${[syncState.result ? "RSSP" : "", syncState.eaplResult ? "eAPL" : ""].filter(Boolean).join(" și ")}`;
-    showShellToast(`${code} · ${service?.title || ""}`, "success", title);
+    const tone = SYNC_OUTCOMES[syncState.result?.outcome]?.tone;
+    showShellToast(`${code} · ${service?.title || ""}`, tone === "warning" || tone === "info" ? "info" : "success", syncOutcomeTitle());
   };
 
   const runSync = () => {
@@ -14102,7 +14211,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${conditional ? `
         <div class="e-permits-tax-cond__list">${conditions.map(block).join("")}</div>
         <div class="e-permits-tax-cond__add">
-          <button class="btn btn-neutral btn-sm" type="button" data-pay-condition-add${used.length >= classifiers.length ? " disabled" : ""}>
+          <button class="btn btn-secondary btn-sm" type="button" data-pay-condition-add${used.length >= classifiers.length ? " disabled" : ""}>
             <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
             Adaugă clasificator
           </button>
@@ -14956,8 +15065,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <label for="tariff-expression">Expresia formulei${requiredMark()}</label>
         <div class="e-permits-stack__menu-wrap">
           <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="tariff-var-picker" data-stack-menu-trigger>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
             <span>Inserează variabilă</span>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
           </button>
           <div class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-ntpl-picker" id="tariff-var-picker" hidden data-stack-menu>
             <div class="e-permits-fo-input e-permits-fo-input--with-action e-permits-ntpl-picker__search">
@@ -15774,6 +15883,12 @@ document.addEventListener("DOMContentLoaded", () => {
       closeStackMenus(menu);
       menu.hidden = !willOpen;
       menuTrigger.setAttribute("aria-expanded", String(willOpen));
+      /* a menu inside a clipping toolbar (registry header) opens fixed, under its button, right-aligned */
+      if (willOpen && menu.hasAttribute("data-stack-menu-fixed")) {
+        const r = menuTrigger.getBoundingClientRect();
+        menu.style.top = `${r.bottom + 4}px`;
+        menu.style.left = `${Math.max(8, r.right - menu.offsetWidth)}px`;
+      }
 
       if (willOpen) {
         menu.querySelector("[role='menuitem']")?.focus();
@@ -15838,6 +15953,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-svc-events-export]")) { closeStackMenus?.(); const service = getServiceByCode(serviceProfileState.code); if (service) exportSvcEvents(service); return; }
     const svcEvent = event.target.closest("[data-svc-event]");
     if (svcEvent && !event.target.closest("a, input")) { openSvcEventDetail(svcEvent.dataset.svcEvent); return; }
+    /* US-226: a classifier row (or its Editează / eye) opens its values; the copy-code chip copies */
+    const svcClas = event.target.closest("[data-svc-clas-open]");
+    if (svcClas && !event.target.closest("[data-shell-copy-value], a, input")) { openClassifierProfile(svcClas.dataset.svcClasOpen, "valori", { fromService: serviceProfileState.code }); return; }
     if (event.target.closest("[data-svc-events-more]")) {
       svcEventsState.shown += SVC_EVENTS_PAGE; refreshSvcEvents();
       /* focus stays on the list: the next „Arată încă” (or the last row) */
@@ -16940,7 +17058,48 @@ document.addEventListener("DOMContentLoaded", () => {
     next?.click();
   });
 
-  document.querySelector("[data-workplace-sync-service]")?.addEventListener("click", () => openSyncModal());
+  document.querySelector("[data-workplace-sync-manual]")?.addEventListener("click", () => openSyncModal());
+
+  /* ---- US-231 AC-05/06: automatic sync from RSSP — one frequency for all services ---- */
+  const AUTOSYNC_FREQ = [["daily", "Zilnic"], ["weekly", "Săptămânal (luni)"], ["monthly", "Lunar (pe 1)"]];
+  const autosyncModal = document.querySelector("#service-autosync-modal");
+  const autosyncSettings = () => (servicesStore.autoSync ||= { freq: "daily", hour: "02:00", by: "Administrator Central", at: "2026-09-01T09:00:00" });
+  let autosyncDraft = null;
+  const renderAutosync = () => {
+    const body = autosyncModal?.querySelector("[data-autosync-body]");
+    if (!body || !autosyncDraft) return;
+    const hours = Array.from({ length: 24 }, (_, h) => `${String(h).padStart(2, "0")}:00`);
+    body.innerHTML = `
+      <p class="e-permits-passport__lead">Sincronizarea automată preia din RSSP versiunea publicată a tuturor serviciilor, cu aceeași frecvență. Modificările ajung în versiunea Schiță a fiecărui pașaport; statutul Inactiv se aplică direct.</p>
+      <div class="e-permits-fo-field">
+        <label id="autosync-freq-label">Frecvența${requiredMark()}</label>
+        ${renderChoiceChips({ labelId: "autosync-freq-label", name: "autosync-freq", options: AUTOSYNC_FREQ, value: autosyncDraft.freq })}
+      </div>
+      <div class="e-permits-fo-field">
+        <label for="autosync-hour">Ora rulării${requiredMark()}</label>
+        ${renderFoSelectControl({ id: "autosync-hour", attrs: 'data-autosync-hour', optionsHtml: hours.map((h) => `<option value="${h}"${h === autosyncDraft.hour ? " selected" : ""}>${h}</option>`).join("") })}
+      </div>
+      ${renderInfoNote("După o sincronizare automată cu modificări sau eșuată, Administratorul Central și administratorii locali activi ai autorității serviciului primesc o notificare.")}`;
+  };
+  const openAutosync = () => {
+    if (!autosyncModal || !isCentralAdmin()) return;
+    const st = autosyncSettings();
+    autosyncDraft = { freq: st.freq, hour: st.hour };
+    renderAutosync();
+    window.__modal?.open?.("#service-autosync-modal");
+  };
+  document.querySelector("[data-workplace-autosync]")?.addEventListener("click", openAutosync);
+  autosyncModal?.addEventListener("click", (event) => {
+    const chip = event.target.closest("[data-autosync-freq]");
+    if (chip && autosyncDraft) { autosyncDraft.freq = chip.dataset.autosyncFreq; renderAutosync(); autosyncModal.querySelector(`[data-autosync-freq="${autosyncDraft.freq}"]`)?.focus(); return; }
+    if (event.target.closest("[data-autosync-save]") && autosyncDraft) {
+      const hour = autosyncModal.querySelector("[data-autosync-hour]")?.value || autosyncDraft.hour;
+      Object.assign(autosyncSettings(), { freq: autosyncDraft.freq, hour, by: currentUserName(), at: localIsoNow() });
+      window.__modal?.close?.("#service-autosync-modal");
+      const label = AUTOSYNC_FREQ.find(([k]) => k === autosyncDraft.freq)[1].toLocaleLowerCase("ro");
+      showShellToast(`Toate serviciile se sincronizează ${label}, la ${hour}.`, "success", "Sincronizare automată salvată");
+    }
+  });
   document.querySelector("[data-workplace-add-tariff]")?.addEventListener("click", () => openTariffDrawer(null, "global"));
   document.querySelector("[data-workplace-export]")?.addEventListener("click", () => {
     if (workplaceDb?.kind === "tariffs") {

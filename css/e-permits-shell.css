@@ -248,7 +248,7 @@ body {
 
 .e-permits-shell__help-link:hover,
 .e-permits-shell__help-link:focus-visible {
-  background: var(--gray-100);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-secondary);
 }
 
@@ -305,7 +305,7 @@ body {
 
 .e-permits-shell__user-trigger:hover,
 .e-permits-shell__user-trigger[aria-expanded="true"] {
-  background: var(--color-background-base-secondary, var(--gray-100));
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__user-trigger:active {
@@ -569,7 +569,7 @@ body {
    the inside grey; focus = the system ring, 2px white + blue focus ring; the selected
    card = 2px brand (border + 1px inner line) on brand-secondary */
 .e-permits-shell__role-card:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__role-card:focus-visible {
@@ -699,7 +699,7 @@ body {
 
 .e-permits-shell__profile-role-card:hover,
 .e-permits-shell__profile-role-card:focus-within {
-  background: var(--color-background-base-secondary);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__profile-role-icon {
@@ -795,7 +795,7 @@ body {
 
 .e-permits-shell__profile-link:hover,
 .e-permits-shell__profile-link:focus-visible {
-  background: var(--gray-100);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__profile-link-icon {
@@ -883,7 +883,7 @@ body {
 .e-permits-shell__role-option:hover,
 .e-permits-shell__role-option:focus-visible {
   border-color: var(--gray-300);
-  background: var(--gray-100);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__role-option.is-active {
@@ -1005,7 +1005,7 @@ body {
 }
 
 .e-permits-shell__nav-link:hover {
-  background: var(--gray-100);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__nav-link.is-active {
@@ -1532,7 +1532,7 @@ body {
 
 .e-permits-shell__sidebar-toggle:hover,
 .e-permits-shell__sidebar-toggle:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-icon-base-default, #121212);
 }
 
@@ -1582,7 +1582,7 @@ body {
 
 .e-permits-shell__nav-link:hover,
 .e-permits-shell__nav-link:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-default, #121212);
 }
 
@@ -1749,7 +1749,7 @@ body {
 }
 
 .e-permits-workplace__status-tab:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-workplace__status-tab.is-active {
@@ -1987,7 +1987,7 @@ body {
 }
 
 .e-permits-workplace__pagination button:hover:not(:disabled):not(.is-active) {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-workplace__pagination-action {
@@ -2176,7 +2176,7 @@ body {
 
 .e-permits-shell__sidebar-toggle:hover,
 .e-permits-shell__sidebar-toggle:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-shell__nav--specialist {
@@ -2251,7 +2251,7 @@ body {
 
 .e-permits-shell__nav--specialist .e-permits-shell__nav-link:hover,
 .e-permits-shell__nav--specialist .e-permits-shell__nav-link:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-default, #121212);
 }
 
@@ -2666,7 +2666,7 @@ body {
 }
 
 .e-permits-workplace__status-tab:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-default, #121212);
 }
 
@@ -4177,7 +4177,7 @@ body.is-user-create-open {
 .e-permits-workplace__filter-option:hover,
 .e-permits-workplace__filter-more-item:hover,
 .e-permits-workplace__filter-more-item:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-workplace__filter-more-item:focus-visible {

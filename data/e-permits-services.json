@@ -735,32 +735,19 @@
         ],
         "classifiers": [
           {
-            "name": "Tipuri de activitate comercială",
-            "code": "CLS-COM-01",
-            "values": 37,
-            "source": "Serviciu",
-            "updated": "2026-04-02"
+            "clasId": "cl-com-activ"
           },
           {
-            "name": "Categorii de produse comercializate",
-            "code": "CLS-COM-02",
-            "values": 112,
-            "source": "Serviciu",
-            "updated": "2026-03-18"
+            "clasId": "cl-com-produse"
           },
           {
-            "name": "Unități administrativ-teritoriale",
-            "code": "CUATM",
-            "values": 1681,
-            "source": "MConnect",
-            "updated": "2026-09-01"
+            "clasId": "cl-mec-motive"
           },
           {
-            "name": "Activitate economică (CAEM-2)",
-            "code": "CLS-COM-03",
-            "values": 8,
-            "source": "MConnect",
-            "updated": "2026-10-08"
+            "clasId": "cl-cuatm"
+          },
+          {
+            "clasId": "cl-caem2"
           }
         ],
         "templates": [
@@ -1412,7 +1399,14 @@
         ],
         "forms": [],
         "dependencies": [],
-        "classifiers": [],
+        "classifiers": [
+          {
+            "clasId": "cl-mec-motive"
+          },
+          {
+            "clasId": "cl-cuatm"
+          }
+        ],
         "templates": [],
         "settings": null,
         "events": [
@@ -1713,7 +1707,7 @@
       "code": "003000402",
       "title": "Aviz sanitar-veterinar pentru unitățile de producție",
       "authorityId": "aut-ansa",
-      "status": "Publicat",
+      "status": "Inactiv",
       "lastSync": "2026-06-02T08:45:00",
       "syncedBy": "Anastasia Cojocaru",
       "rssp": {
@@ -1753,7 +1747,7 @@
           }
         ],
         "validity": [],
-        "rsspStatus": "Publicat"
+        "rsspStatus": "Inactiv"
       },
       "geap": {
         "version": "v2.0.0",
@@ -2248,6 +2242,19 @@
           }
         ],
         "updatedOn": "2026-09-20T10:00:00"
+      }
+    },
+    "overrides": {
+      "_note": "US-231/232 demo: what RSSP returns on the next resync of an existing service (applied over its stored data)",
+      "003000207": {
+        "isActive": false
+      },
+      "003000377": {
+        "isActive": true
+      },
+      "003000402": {
+        "isActive": true,
+        "addDocument": "Declarație privind trasabilitatea produselor"
       }
     }
   },

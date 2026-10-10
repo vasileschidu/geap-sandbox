@@ -5226,6 +5226,61 @@ load `main.css`. Whether it should be brought into the design system is an open 
   that type and gets a rounded `--color-background-base-tertiary-hover` pill on hover/focus
   (Configurări servicii › Serviciu: name over the RSSP code).
 
+### US-226 Clasificatoare specifice în pașaport (2026-10-10)
+
+**Azure:** US-226 „Configurarea valorilor clasificatoarelor specifice ale serviciului” 95240.
+
+- Stacked list grouped by **Categorie** (user decision: stacked, not table): „Specifice serviciului” ·
+  „Ale autorității” · „Globale · doar vizualizare”. Data comes from the Clasificatoare module
+  (`svcClassifiers(service)` reads `geap.classifiers[].clasId` → `getClassifier`): global → Global;
+  specific used by 1 service → Specific; by ≥2 services of the authority → Autoritate.
+- Row: name + Activ/Inactiv tag; meta = copyable code · „N valori” (`roCount`) · „Sincronizat din
+  MConnect” · „Editat <data> · <cine>”. Actions per the row rule: editable (Manual & CSV, AC-13) →
+  „Editează” (pen); otherwise the strict eye. The whole row (Enter/Space too) opens the values.
+- Opening from the passport = `openClassifierProfile(id, "valori", { fromService })`: breadcrumb
+  Configurări servicii › cod › clasificator, back „Înapoi la pașaportul serviciului”, tabs only Valori +
+  Jurnal (AC-07), no Arhivează; Global read-only even for the central admin (AC-08) with a lock notice.
+- Demo: svc-07, 07a (specific → + Adaugă valoare / Importă CSV), 07b (CUATM, MConnect), 07c (new value),
+  07d (CAEM-2 global, read-only), 07e (back to the passport). Data: classifiers cl-com-activ,
+  cl-com-produse, cl-mec-motive (authority MEc).
+
+### US-231 Sincronizarea serviciului + US-232 Activ/Inactiv din RSSP (2026-10-10)
+
+**Azure:** US-231 „Sincronizarea manuală și automată a serviciului din RSSP” 95245 · US-232
+„Activarea și dezactivarea unui serviciu prin sincronizare din RSSP” 95246.
+
+- Core `servicePassport.syncService` returns `outcome` + `changes` (tested): created · updated
+  (changes → Schiță, AC-09) · unchanged (only the sync date, AC-13) · deactivated (Inactiv applied at
+  sync, US-232 AC-02) · reactivated (no other change, AC-08) · reactivatedDraft (stays Inactiv,
+  `pendingStatus` applied at publication, AC-09/10). Status events are by „SIA GEAP” and silent
+  (`SERVICE_EVENT_SILENT`); the authority link is logged only with data.
+- Sync modal: one title + banner per outcome (`SYNC_OUTCOMES`); updated uses AC-18 verbatim; the
+  changed fields as `.e-permits-event-diff` (lists = „… adăugate / eliminate”).
+- „Date din RSSP”: „Resincronizează” (central admin, AC-04) + tag Eșuat after a failed sync (AC-20).
+  Date generale of an inactive service: warning banner (inactive / waits for publication).
+- Registry: „Sincronizare automată” (neutral, central admin only, AC-05/06) → modal with Frecvența
+  (choice chips) + Ora rulării (fo-select) + who is notified (AC-07; the bell panel is Feature 91425).
+- Demo: svc-01k (unchanged), 01l (deactivated), 01m (reactivated), 01n/01o (reactivated with data),
+  01p (inactive passport), 01q (Eșuat), srv-03/03a (automatic sync). RSSP mock: `rssp.overrides`.
+
+**Last-row rule (2026-10-10, user, whole project):** a row that is the last one in its card / list /
+modal never draws its bottom divider (`.e-permits-dosar-profil__row:last-child`, `svc/field-row`, info
+rows, stack items). Figma: the last `svc/field-row` (and any bottom-only divider row) in a vertical
+container has `strokeBottomWeight = 0` — applied file-wide 2026-10-10 (116 field rows + 100 other rows).
+
+**Figma (2026-10-10):** US-226 → Servicii › 08 (grouped list), 08a (values from the passport, Valori +
+Jurnal only), 08b (global, read-only); local component „Conținut modal · Detalii eveniment” (11d).
+US-231/232 → 01 „Date din RSSP” with „Resincronizează” + „Ultima sincronizare” meta on every Date
+generale screen; 01d (AC-18 text + „Modificări preluate din RSSP”); 01k unchanged · 01l deactivated ·
+01m reactivated · 01n reactivated with data · 01p inactive passport · 01q Eșuat; registry 05 „Sincronizare
+automată” + the neutral button on every registry screen.
+
+**Hover rule (2026-10-10, user):** every interactive element shows a visible hover. On white:
+`--color-background-base-tertiary` (#f1f1f1, not the library's #f5f5f5); controls already tertiary →
+`--color-background-base-tertiary-hover`; text-like controls → brand text colour; a selected chip →
+`--color-background-base-inverse-default-hover`; an open button keeps its pressed fill on hover.
+`.link:visited:hover` restores the link hover the library's LVHA order hid.
+
 ### US-228 Jurnal de evenimente al serviciului (2026-10-10)
 
 **Azure:** US-228 „Vizualizarea, căutarea, filtrarea și exportul jurnalului de evenimente al pașaportului
@@ -5256,6 +5311,11 @@ serviciului” 95242.
   Block 11d = shared `Modal` instance (Tip=Conținut) with the local content component
   „Conținut modal · Detalii eveniment”. Sort icon = local `16/arrow-down` / `16/arrow-up` (EVO has no 16px
   arrow-down; they wrap a rotated EVO 16/arrow-left).
+
+**Add-button rule (2026-10-10, user):** every in-content „Adaugă …” button is `btn btn-secondary btn-sm`
+(blue-sky-100 bg, blue-sky-600 text) with a `+` icon in the same blue (`icon-plus-large`, currentColor) —
+never Neutral/gray. Page-level primary CTAs and modal confirm buttons stay `btn-primary`. Figma: 🖌️ Style =
+Secondary, icon fill bound to the brand variable (no gray override).
 
 **Export icon rule (2026-10-10, user):** every „Exportă…” action (⋮ menu item or icon-only table button)
 uses the document-with-arrow icon: code `icon-page-download`, Figma local `20/file-download` (central icon

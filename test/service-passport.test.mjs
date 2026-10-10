@@ -111,6 +111,44 @@ check("existing code + known IDNO → service updated, linked to authority, GEAP
   assert.equal(services[0].title, "Vechi", "inputs are not mutated");
 });
 
+console.log("US-231 / US-232 sync outcomes");
+{
+  const authorities = [{ id: "aut-x", idno: "1006601000111", name: "AMDM" }];
+  const first = sp.syncService({ ...base, authorities, code: "003000333", lookup: ok(rssp()) }).service;
+  const again = (svc, data) => sp.syncService({ ...base, services: [svc], authorities, code: "003000333", lookup: ok(data) });
+  check("same RSSP data → unchanged: no new version, only the sync date moves (AC-13)", () => {
+    const r = again({ ...first, lastSync: "2026-01-01T00:00:00" }, rssp());
+    assert.equal(r.outcome, "unchanged");
+    assert.deepEqual(r.changes, []);
+    assert.equal(r.service.lastSync, base.now);
+    assert.deepEqual(r.events.map((e) => e.type), ["Sincronizare serviciu finalizată cu succes"]);
+  });
+  check("changed title → updated, the diff names the field before → after (AC-09)", () => {
+    const r = again(first, { ...rssp(), title: { ro: "Licență farmaceutică" } });
+    assert.equal(r.outcome, "updated");
+    assert.deepEqual(r.changes, [{ field: "Denumirea serviciului", before: "Autorizație de funcționare a farmaciei", after: "Licență farmaceutică" }]);
+    assert.ok(r.events.some((e) => e.type === "Actualizare serviciu existent"));
+  });
+  check("inactive in RSSP → deactivated at sync, by SIA GEAP (US-232 AC-02, AC-12)", () => {
+    const r = again(first, { ...rssp(), isActive: false });
+    assert.equal(r.outcome, "deactivated");
+    assert.equal(r.service.status, "Inactiv");
+    assert.equal(r.events.find((e) => e.type === "Dezactivare serviciu").user, "SIA GEAP");
+  });
+  check("active again, no other change → reactivated at sync (US-232 AC-08)", () => {
+    const r = again({ ...first, status: "Inactiv" }, rssp());
+    assert.equal(r.outcome, "reactivated");
+    assert.equal(r.service.status, "Publicat");
+    assert.equal(r.service.pendingStatus, null);
+  });
+  check("active again with new data → stays inactive until publication (US-232 AC-09, AC-10)", () => {
+    const r = again({ ...first, status: "Inactiv" }, { ...rssp(), title: { ro: "Licență farmaceutică" } });
+    assert.equal(r.outcome, "reactivatedDraft");
+    assert.equal(r.service.status, "Inactiv");
+    assert.equal(r.service.pendingStatus, "Publicat");
+  });
+}
+
 console.log("Flow definitions (designer JSON)");
 const def = JSON.parse(readFileSync(new URL("../data/flows/ProcesFluxSimplificatFaraSupervizor.json", import.meta.url)));
 const steps = sp.stepsFromDefinition(def);

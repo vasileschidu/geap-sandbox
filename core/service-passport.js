@@ -219,28 +219,49 @@
     var authorityCreated = !authority;
     if (!authority) authority = authorityFromRssp(rssp.organization);
 
-    var service = Object.assign({}, existing || { geap: emptyGeapConfig(mapped) }, {
-      rssp: mapped,
+    /* US-231 / US-232: what changed in RSSP, and what happens to the status */
+    /* an existing passport without stored RSSP data takes everything as new */
+    var changes = !existing ? [] : existing.rssp ? diffRssp(existing.rssp, mapped) : [{ field: "Date RSSP", before: "—", after: "preluate integral" }];
+    var wasInactive = Boolean(existing) && existing.status === "Inactiv";
+    var nowInactive = mapped.rsspStatus === "Inactiv";
+    var outcome = !existing ? "created"
+      : nowInactive && !wasInactive ? "deactivated"          /* US-232 AC-02: applied at sync, no publication */
+      : wasInactive && !nowInactive && !changes.length ? "reactivated"        /* AC-08 */
+      : wasInactive && !nowInactive ? "reactivatedDraft"     /* AC-09/10: stays inactive until the passport is published */
+      : !changes.length ? "unchanged"                        /* US-231 AC-13: only „Ultima sincronizare” moves */
+      : "updated";                                           /* AC-09: the changes go to the Schiță version */
+
+    var base = existing || { geap: emptyGeapConfig(mapped) };
+    var service = Object.assign({}, base, {
+      /* AC-13: an unchanged sync keeps the stored RSSP data; otherwise the new data lands (in the draft) */
+      rssp: outcome === "unchanged" ? existing.rssp : mapped,
       code: mapped.code,
-      title: mapped.title,
+      title: outcome === "unchanged" ? existing.title : mapped.title,
       authorityId: authority.id,
-      status: mapped.rsspStatus,
+      status: outcome === "reactivatedDraft" ? "Inactiv" : mapped.rsspStatus,
+      pendingStatus: outcome === "reactivatedDraft" ? mapped.rsspStatus : null,
       lastSync: now,
       syncedBy: user
     });
 
-    /* US-111 AC-22: the story's event types */
-    var events = [event(now, user, "Sincronizare serviciu finalizată cu succes", "Reușit", "Cod " + code + " preluat din RSSP")];
-    events.push(existing
-      ? event(now, user, "Actualizare serviciu existent", "Reușit", "Datele RSSP ale serviciului au fost actualizate")
-      : event(now, user, "Creare serviciu nou", "Reușit", "Pașaport nou: " + mapped.title));
-    events.push(authorityCreated
+    /* US-111 AC-22: the story's event types; US-232 AC-12: status changes by „SIA GEAP” */
+    var events = [event(now, user, "Sincronizare serviciu finalizată cu succes", "Reușit",
+      outcome === "unchanged" ? "Cod " + code + ": fără modificări în RSSP" : "Cod " + code + " preluat din RSSP")];
+    if (!existing) events.push(event(now, user, "Creare serviciu nou", "Reușit", "Pașaport nou: " + mapped.title));
+    else if (changes.length) events.push(event(now, user, "Actualizare serviciu existent", "Reușit", changes.map(function (c) { return c.field + " " + c.before + " → " + c.after; }).join("; ")));
+    if (outcome === "deactivated") events.push(event(now, "SIA GEAP", "Dezactivare serviciu", "Reușit", "Inactiv în RSSP: serviciul nu mai primește cereri noi"));
+    if (outcome === "reactivated") events.push(event(now, "SIA GEAP", "Reactivare serviciu", "Reușit", "Activ din nou în RSSP, fără alte modificări"));
+    if (outcome === "reactivatedDraft") events.push(event(now, "SIA GEAP", "Reactivare în așteptarea publicării", "Reușit", "Activ în RSSP cu date noi: devine activ la publicarea pașaportului"));
+    /* the authority link is logged with the data it came with — not on a status-only or empty sync */
+    if (!existing || authorityCreated || changes.length) events.push(authorityCreated
       ? event(now, user, "Creare autoritate nouă", "Reușit", authority.name + " (IDNO " + authority.idno + ")")
       : event(now, user, "Legare cu autoritate existentă", "Reușit", authority.name + " (IDNO " + authority.idno + ")"));
 
     return {
       ok: true,
       kind: existing ? "updated" : "created",
+      outcome: outcome,
+      changes: changes,
       service: service,
       authority: authority,
       authorityCreated: authorityCreated,
@@ -260,6 +281,35 @@
       },
       events: events
     };
+  }
+
+  /* US-231: the RSSP fields GEAP shows, compared before → after (labels as in „Date din RSSP”) */
+  var DIFF_FIELDS = [
+    ["Denumirea serviciului", function (r) { return r.title; }],
+    ["Tipul solicitantului", function (r) { return (r.applicantTypes || []).join(", "); }],
+    ["Act permisiv", function (r) { return r.isPermissiveAct ? "Da" : "Nu"; }],
+    ["Serviciu cu plată", function (r) { return r.paid ? "Da" : "Nu"; }]
+  ];
+  /* lists name only what was added or removed */
+  var DIFF_LISTS = [
+    ["Subservicii", function (r) { return (r.subServices || []).map(function (x) { return x.title; }); }],
+    ["Documente", function (r) { return (r.documents || []).map(function (x) { return x.title; }); }]
+  ];
+  function diffRssp(before, after) {
+    if (!before) return [];
+    var out = DIFF_FIELDS.reduce(function (acc, f) {
+      var a = f[1](before) || "—", b = f[1](after) || "—";
+      if (a !== b) acc.push({ field: f[0], before: a, after: b });
+      return acc;
+    }, []);
+    DIFF_LISTS.forEach(function (f) {
+      var a = f[1](before), b = f[1](after);
+      var added = b.filter(function (x) { return a.indexOf(x) < 0; });
+      var removed = a.filter(function (x) { return b.indexOf(x) < 0; });
+      if (added.length) out.push({ field: f[0] + " adăugate", before: "—", after: added.join(", ") });
+      if (removed.length) out.push({ field: f[0] + " eliminate", before: removed.join(", "), after: "—" });
+    });
+    return out;
   }
 
   /* A brand-new passport: request types seeded from RSSP sub-services, with

@@ -280,7 +280,8 @@
             "Filtru: localitate"
           ]
         }
-      ]
+      ],
+      "cod": "CUATM"
     },
     {
       "id": "cl-caem1",
@@ -603,7 +604,8 @@
             "Dimensiune: diviziune CAEM"
           ]
         }
-      ]
+      ],
+      "cod": "CAEM-2"
     },
     {
       "id": "cl-cfoj",
@@ -2585,6 +2587,407 @@
           ]
         }
       ]
+    },
+    {
+      "id": "cl-com-activ",
+      "denumire": "Tipuri de activitate comercială",
+      "descriere": "Activitățile comerciale declarate în notificare.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "mec",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Notificare în comerț"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.0",
+      "editatLa": "2026-04-02",
+      "editatDe": "Ion Popescu",
+      "nrValori": 11,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "01-01",
+          "denRo": "Comerț cu amănuntul în magazine nespecializate",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-02",
+          "denRo": "Comerț cu amănuntul de produse alimentare",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-03",
+          "denRo": "Comerț cu amănuntul de băuturi",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-04",
+          "denRo": "Comerț cu amănuntul de produse din tutun",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-05",
+          "denRo": "Comerț cu amănuntul de carburanți",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-06",
+          "denRo": "Comerț cu amănuntul de echipamente IT",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-07",
+          "denRo": "Comerț cu amănuntul de articole de uz casnic",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-08",
+          "denRo": "Comerț cu amănuntul de cărți și papetărie",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-09",
+          "denRo": "Comerț cu amănuntul de îmbrăcăminte",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-10",
+          "denRo": "Comerț cu amănuntul de produse farmaceutice",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-11",
+          "denRo": "Comerț ambulant",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-12",
+          "denRo": "Comerț prin piețe și tarabe",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": "2026-06-30",
+          "parinte": null,
+          "extra": {}
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Formulare",
+          "obiecte": [
+            "Cerere de notificare — tipuri de activitate comercială"
+          ]
+        }
+      ],
+      "cod": "CLS-COM-01"
+    },
+    {
+      "id": "cl-com-produse",
+      "denumire": "Categorii de produse comercializate",
+      "descriere": "Grupele de produse vândute, alese de solicitant în formular.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "mec",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Notificare în comerț"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": false,
+      "versiune": "1.0",
+      "editatLa": "2026-03-18",
+      "editatDe": "Mariana Rusu",
+      "nrValori": 7,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "02-01",
+          "denRo": "Produse alimentare",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-02",
+          "denRo": "Băuturi alcoolice",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-03",
+          "denRo": "Produse din tutun",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-04",
+          "denRo": "Produse nealimentare",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-05",
+          "denRo": "Produse petroliere",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-06",
+          "denRo": "Produse de uz casnic",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-07",
+          "denRo": "Echipamente electronice",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "02-08",
+          "denRo": "Produse second-hand",
+          "denRu": null,
+          "denEn": null,
+          "activ": false,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": "2026-03-31",
+          "parinte": null,
+          "extra": {}
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Formulare",
+          "obiecte": [
+            "Cerere de notificare — categorii de produse comercializate"
+          ]
+        }
+      ],
+      "cod": "CLS-COM-02"
+    },
+    {
+      "id": "cl-mec-motive",
+      "denumire": "Motive de refuz — Ministerul Economiei",
+      "descriere": "Temeiurile de respingere folosite în deciziile Ministerului Economiei.",
+      "familie": "intern",
+      "categorie": "specific",
+      "autoritate": "mec",
+      "activ": true,
+      "status": "published",
+      "scopeSystem": false,
+      "servicii": [
+        "Notificare în comerț",
+        "Autorizație de comerț cu produse alcoolice"
+      ],
+      "mod": "manual",
+      "endpoint": null,
+      "sursa": "intern",
+      "parintId": null,
+      "copiatDinId": null,
+      "localAdminManageable": true,
+      "criticProces": true,
+      "versiune": "1.0",
+      "editatLa": "2026-05-12",
+      "editatDe": "Anastasia Cojocaru",
+      "nrValori": 6,
+      "campuriExtra": [],
+      "mapare": [],
+      "valori": [
+        {
+          "cod": "01-01",
+          "denRo": "Documentație incompletă",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-02",
+          "denRo": "Date neconforme cu registrele de stat",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-03",
+          "denRo": "Activitate interzisă în zona declarată",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-04",
+          "denRo": "Lipsa avizului autorității locale",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-05",
+          "denRo": "Taxă neachitată",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        },
+        {
+          "cod": "01-06",
+          "denRo": "Cerere depusă de o persoană neîmputernicită",
+          "denRu": null,
+          "denEn": null,
+          "activ": true,
+          "activDeLa": "2026-01-01",
+          "activPanaLa": null,
+          "parinte": null,
+          "extra": {}
+        }
+      ],
+      "consumatori": [
+        {
+          "modul": "Formulare",
+          "obiecte": [
+            "Cerere de notificare — motive de refuz — ministerul economiei"
+          ]
+        }
+      ],
+      "cod": "CLS-MEC-01"
     }
   ]
 }

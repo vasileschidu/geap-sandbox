@@ -222,7 +222,7 @@
 }
 
 .permits-page__refresh-icon-button:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .permits-page__refresh-icon-button:focus-visible {
@@ -415,7 +415,7 @@
 }
 
 .permits-table__row:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .permits-table__row:focus-visible {
@@ -696,7 +696,7 @@
 }
 
 .permits-page__page-link:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 @container (max-width: 1180px) {
@@ -909,7 +909,7 @@
 }
 
 .permits-profile__icon-button:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .permits-profile__card {
@@ -1495,7 +1495,7 @@
 }
 
 .e-permits-dosar-profil__table tbody tr:hover td {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-dosar-profil__document-name {
@@ -1602,7 +1602,7 @@
 }
 
 .e-permits-user-profile__shell-back:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-user-profile__shell-back:focus-visible {
@@ -1759,7 +1759,7 @@
 
 .e-permits-flow-home__demo-item:hover,
 .e-permits-flow-home__demo-item:focus-visible {
-  background: var(--color-background-base-secondary, #f3f3f3);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-flow-home__demo-item:focus-visible {
@@ -1888,7 +1888,7 @@
 }
 
 .e-permits-flow-card:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   border-color: var(--color-border-base-secondary, #b2b2b2);
   transform: translateY(-1px);
 }
@@ -2344,7 +2344,7 @@
 }
 
 .e-permits-fo-auth__avatar:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -2652,7 +2652,7 @@
 
 .e-permits-fo-avatar-menu__role:hover,
 .e-permits-fo-avatar-menu__role:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -2800,7 +2800,7 @@
 
 .e-permits-fo-avatar-menu__proxy:hover,
 .e-permits-fo-avatar-menu__proxy:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -2931,7 +2931,7 @@
 
 .e-permits-fo-avatar-menu__proxy-role:hover,
 .e-permits-fo-avatar-menu__proxy-role:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -3010,7 +3010,7 @@
 
 .e-permits-fo-avatar-menu__logout:hover,
 .e-permits-fo-avatar-menu__logout:focus-visible {
-  background: var(--color-background-base-default-hover, #e9e9e9);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -3483,7 +3483,7 @@
 }
 
 .e-permits-fo-auth__role-collapse-toggle:hover {
-  background: var(--color-background-base-secondary, #f3f3f3);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-auth__role-collapse-toggle:focus-visible {
@@ -3644,12 +3644,12 @@
 
 .e-permits-fo-auth__role-item:hover,
 .e-permits-fo-auth__role-item:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-auth__role-item.is-authorization:hover,
 .e-permits-fo-auth__role-item.is-authorization:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-auth__role-item.is-disabled:hover,
@@ -5393,7 +5393,7 @@
 
 .e-permits-fo-select__option:hover,
 .e-permits-fo-select__option.is-active {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-select__option.is-selected {
@@ -5571,7 +5571,7 @@
 
 .e-permits-fo-caem__option:hover,
 .e-permits-fo-caem__option.is-active {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-caem__option.is-selected {
@@ -5820,7 +5820,7 @@
 .e-permits-fo-subgen-select__option:hover,
 .e-permits-fo-subgen-select__option.is-active,
 .e-permits-fo-subgen-select__option.is-selected {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-subgen-select__option.is-selected {
@@ -6007,7 +6007,7 @@
 
 .e-permits-fo-address-search__option:hover,
 .e-permits-fo-address-search__option.is-active {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-address-search__option > .icon {
@@ -6281,7 +6281,7 @@
 
 .e-permits-fo-phone__code-option:hover,
 .e-permits-fo-phone__code-option.is-active {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-phone__code-option.is-selected {
@@ -6719,7 +6719,7 @@
 .e-permits-fo-icon-button:focus-visible,
 .e-permits-fo-back-button:hover,
 .e-permits-fo-back-button:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-add-activity {
@@ -7006,7 +7006,7 @@
 }
 
 .e-permits-fo-instance-switch-modal__secondary:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-instance-switch-modal__primary {
@@ -7285,7 +7285,7 @@
 }
 
 .e-permits-fo-lib-item:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-lib-item.is-selected {
@@ -7421,7 +7421,7 @@
 }
 
 .e-permits-fo-doc-modal__drop-zone:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-doc-modal__drop-icon {
@@ -7522,7 +7522,7 @@
 }
 
 .e-permits-fo-doc-modal__cancel:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-doc-modal__submit {
@@ -10919,7 +10919,7 @@
 
 .e-permits-builder__library-item:hover,
 .e-permits-builder__library-item:focus-visible {
-  background: var(--color-background-base-default-hover, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -11606,7 +11606,7 @@
 }
 
 .e-permits-builder__section-name:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-builder__section-name:focus {
@@ -11642,7 +11642,7 @@
 }
 
 .e-permits-builder__section-description:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-builder__section-description:focus {
@@ -12900,7 +12900,7 @@
 .e-permits-builder__source-menu button:hover,
 .e-permits-builder__source-menu button:focus-visible,
 .e-permits-builder__source-menu button.is-active {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -13395,13 +13395,13 @@
 .e-permits-builder__classifier-edit:focus-visible,
 .e-permits-builder__info-button:hover,
 .e-permits-builder__info-button:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
 .e-permits-builder__source-card-head .e-permits-builder__info-button:hover,
 .e-permits-builder__source-card-head .e-permits-builder__info-button:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-builder__classifier-card em,
@@ -14272,7 +14272,7 @@
 .e-permits-builder-registry__item:hover,
 .e-permits-builder-registry__item:focus-visible,
 .e-permits-builder-registry__item.is-active {
-  background: var(--color-background-base-default-hover, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   border-color: var(--color-border-base-default, #d9d9d9);
   box-shadow: none;
   outline: none;
@@ -15716,7 +15716,7 @@
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__status-tab:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-default, #121212);
 }
 
@@ -15906,7 +15906,7 @@
 }
 
 .e-permits-dosar-profil__shell-back:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-dosar-profil__shell-back:focus-visible {
@@ -16519,7 +16519,7 @@
 }
 
 .e-permits-fo-testcfg__close:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-testcfg__body {
@@ -17270,7 +17270,7 @@
 
 .e-permits-fo-intent-menu__item:hover,
 .e-permits-fo-intent-menu__item:focus-visible {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
   outline: none;
 }
 
@@ -17742,7 +17742,7 @@
    stops above the transparent underline and the track line stays visible */
 .e-permits-page-header__tabs .tab-button:hover {
   background-clip: padding-box;
-  background-color: var(--color-background-base-secondary, #f5f5f5);
+  background-color: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-default, #121212);
 }
 
@@ -20892,7 +20892,7 @@ button.e-permits-steps-strip__cell:focus-visible {
 }
 
 .e-permits-stack__item.is-clickable:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 /* detail modal (payment note, approval, act, document): passport card + read-only note */
@@ -21395,7 +21395,7 @@ body.is-ntpl-sheet-open {
 }
 
 .e-permits-dtpl-fields__head:hover {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-dtpl-fields__head:focus-visible {
@@ -22825,7 +22825,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 }
 
 .e-permits-timeline__item.is-clickable:hover {
-  background: var(--color-background-base-secondary);
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-timeline__link {
@@ -22878,4 +22878,138 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 .e-permits-svc-events__heading .e-permits-pay__title {
   margin: 0;
   padding: 0;
+}
+
+/* ---- Hover audit (2026-10-10): every interactive element shows a visible hover ----------
+   On white: --color-background-base-tertiary (#f1f1f1). On a tertiary surface: one step up,
+   --color-background-base-tertiary-hover (#d9d9d9). Text-only controls: brand text colour. */
+
+/* the library's `.link:visited` comes after `.link:hover`, so a visited link (every href="#")
+   never showed its hover colour */
+.link:visited:hover {
+  color: var(--_link-hover);
+}
+
+/* close / clear buttons whose rest is already tertiary: hover one step darker */
+.e-permits-user-create__close:hover,
+.search-input .btn-icon.clear:hover,
+.date-picker__nav:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+/* date picker days: the library only styles a JS `.is-hover`; give real :hover the same look */
+.date-picker__day:hover:not(:disabled):not(.is-outside):not(.is-selected):not(.is-range-start):not(.is-range-end) {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* switches: the track darkens (off) or deepens (on) */
+.e-permits-toggle__control:hover:not(:has(:checked)):not(:has(:disabled)) {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+}
+
+.e-permits-toggle__control:hover:has(:checked):not(:has(:disabled)) {
+  background: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* text-like step controls: the label turns brand blue */
+button.e-permits-steps-strip__cell:hover,
+.e-permits-fo-stepper__item:not(.is-active) .e-permits-fo-stepper__row:hover {
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+/* tiny 16px icon button on the beta banner: a soft ring around the icon */
+.e-permits-fo-auth__beta-close {
+  border-radius: var(--border-radius-full, 999px);
+}
+
+.e-permits-fo-auth__beta-close:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+  box-shadow: 0 0 0 4px var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+/* „Rows per page” select */
+.e-permits-workplace__rows-select select:hover {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+}
+
+/* An open button (its menu / bar / panel is shown) keeps its pressed fill while hovered —
+   the generic :hover is more specific than [aria-expanded] and made it turn lighter */
+.btn.btn-sm.btn-neutral[aria-expanded="true"]:hover:not(:disabled),
+.btn.btn-sm.btn-strict[aria-expanded="true"]:hover:not(:disabled),
+.btn.btn-sm.btn-neutral[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+}
+
+.btn.btn-sm.btn-secondary[aria-expanded="true"]:hover:not(:disabled) {
+  background: var(--color-background-brand-secondary-active, #a3c4ee);
+}
+
+.btn.btn-sm.btn-primary[aria-expanded="true"]:hover:not(:disabled) {
+  background: var(--color-background-brand-default-active, #003380);
+}
+
+/* a selected (black) chip had no hover in the library: one step lighter, like inverse surfaces */
+.chip.is-selected:hover:not(:disabled):not([aria-disabled="true"]) {
+  background-color: var(--color-background-base-inverse-default-hover, #383838);
+  border-color: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+/* Hover audit, round 2 (2026-10-10) */
+
+/* library links: --color-link-primary-hover equals the rest colour (both blue-sky-600), so a
+   link never changed; hover = the design system's hover blue + a thicker underline */
+.link.link-primary:hover,
+.link.link-primary:visited:hover {
+  color: var(--blue-sky-700, #0046a8);
+  text-decoration-thickness: var(--border-width-2, 2px);
+}
+
+/* text links without a component class (language switch, inline „Solicitările mele” etc.) */
+.e-permits-shell__language-switcher a:not(.is-active):hover,
+.e-permits-fo-auth__language a:not(.is-active):hover {
+  color: var(--color-text-base-default, #121212);
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+.e-permits-fo-draft-status__link:hover,
+.e-permits-fo-finish__lead a:hover,
+.e-permits-fo-finish-doc__text a:hover,
+.e-permits-fo-auth__beta-content a:hover {
+  color: var(--color-text-brand-default, #0058d2);
+  text-decoration-thickness: var(--border-width-2, 2px);
+}
+
+/* icon buttons that rest on tertiary: hover one step darker (was the same #f1f1f1) */
+.e-permits-fo-icon-button:hover,
+.e-permits-fo-back-button:hover,
+.e-permits-builder__close:hover,
+.cab-card__actions .btn.cab-card__more:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+/* sortable table headers: the whole header cell fills */
+.e-permits-workplace__table th:has(.e-permits-workplace__th-content.is-sortable):hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-workplace__table th:has(.e-permits-workplace__th-content.is-sortable):hover .e-permits-workplace__th-content {
+  color: var(--color-text-base-default, #121212);
+}
+
+/* US-231: „Modificări preluate din RSSP” above the changed-fields card in the sync result */
+.e-permits-passport__sync-heading {
+  /* text style Desktop/Body/Default 500 */
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+/* a stack menu opened from a clipping toolbar (Configurări servicii › Sincronizare ▾) */
+.e-permits-stack__menu[data-stack-menu-fixed] {
+  position: fixed;
+  right: auto;
+  z-index: 50;
 }

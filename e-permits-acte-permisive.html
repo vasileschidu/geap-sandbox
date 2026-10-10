@@ -6,14 +6,14 @@
   <title>Full flow 09 · Acte permisive</title>
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=tags-small-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tarife-v17">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=hover-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tarife-v34">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v5">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/empty-state.js?v=empty-v1"></script>
-  <script src="js/demo-states.js?v=tarife-v17"></script>
+  <script src="js/demo-states.js?v=tarife-v34"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <script src="js/search.js?v=delegated-v1" defer></script>
   <script src="js/modal.js" defer></script>
@@ -3192,7 +3192,7 @@
                       <span class="e-permits-workplace__field-count">48 câmpuri</span>
                       <span class="e-permits-workplace__tool-divider" aria-hidden="true"></span>
                       <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="Exportă" title="Exportă" data-workplace-export>
-                        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-page-download"></use></svg>
+                        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-export"></use></svg>
                       </button>
                     </div>
                     <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-add-ntpl hidden>
@@ -3207,10 +3207,27 @@
                       <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                       <span>Adaugă tarif</span>
                     </button>
-                    <button class="btn btn-primary btn-sm e-permits-workplace__primary-action" type="button" data-workplace-sync-service hidden>
-                      <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-                      <span>Sincronizare serviciu</span>
-                    </button>
+                    <!-- US-111 + US-231: both sync actions under one menu (chevron = it opens a menu) -->
+                    <div class="e-permits-stack__menu-wrap e-permits-workplace__primary-action" data-workplace-sync-service hidden>
+                      <button class="btn btn-primary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="workplace-sync-menu" data-stack-menu-trigger>
+                        <span>Sincronizare</span>
+                        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+                      </button>
+                      <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="workplace-sync-menu" role="menu" aria-label="Sincronizare din RSSP" hidden data-stack-menu data-stack-menu-fixed>
+                        <li role="none">
+                          <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-workplace-sync-manual>
+                            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+                            <span>Sincronizează un serviciu din RSSP</span>
+                          </button>
+                        </li>
+                        <li role="none">
+                          <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-workplace-autosync>
+                            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg>
+                            <span>Sincronizare automată</span>
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
                     <button class="e-permits-workplace__add-user" type="button" data-workplace-add-user hidden>
                       <img src="assets/icons/add-user.svg" alt="" aria-hidden="true">
                       <span>Adaugă utilizator</span>
@@ -3432,6 +3449,23 @@
       <div class="modal--header"><h2 class="modal--header-title" id="service-sync-title" data-service-sync-title>Sincronizare serviciu din RSSP</h2></div>
       <div class="modal-content" data-service-sync-body></div>
       <div class="modal--footer" data-service-sync-footer></div>
+    </div>
+  </div>
+
+  <!-- US-231 AC-05/06: frequency of the automatic RSSP sync (all services) -->
+  <div class="modal-overlay" id="service-autosync-modal" aria-hidden="true">
+    <div class="modal modal--md e-permits-passport__modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="service-autosync-title">
+      <button type="button" class="modal-close" data-close aria-label="Închide">
+        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
+      </button>
+      <div class="modal--header"><h2 class="modal--header-title" id="service-autosync-title">Sincronizare automată din RSSP</h2></div>
+      <div class="modal-content" data-autosync-body></div>
+      <div class="modal--footer">
+        <div class="modal-buttons">
+          <button class="btn btn-neutral btn-rounded" type="button" data-close>Anulează</button>
+          <button class="btn btn-primary btn-rounded" type="button" data-autosync-save>Salvează</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -3982,11 +4016,11 @@
       </div>
     </div>
   </div>
-  <script src="core/service-passport.js?v=svc-fb-v6"></script>
+  <script src="core/service-passport.js?v=svc-sync-v7"></script>
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=tarife-v17"></script>
+  <script src="js/e-permits-shell.js?v=tarife-v34"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
