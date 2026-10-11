@@ -5,6 +5,10 @@
 # Local AI and audit workspaces
 .claude/*
 !.claude/skills/
+!.claude/agents/
+
+# Persona review run outputs (screenshots, findings) — regenerated per run
+tools/persona-test/out/
 .lh/
 
 ## Ignore Visual Studio temporary files, build results, and

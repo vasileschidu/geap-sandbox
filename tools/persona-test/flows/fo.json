@@ -1,0 +1,137 @@
+{
+ "id": "fo",
+ "name": "FO · 09 — Depunerea cererii (emitere primară)",
+ "page": "e-permits-acte-permisive.html",
+ "figma": {
+  "fileKey": "aHgwVwiNCOSOqbMhMjjUOj",
+  "section": "10815:25411",
+  "inventory": "tools/persona-test/flows/fo-figma.json"
+ },
+ "specs": "tools/persona-test/specs/fo",
+ "steps": [
+  {
+   "step": "S1-S2",
+   "label": "Catalog + Autentificare MPass",
+   "us": [
+    "US-10",
+    "US-11"
+   ],
+   "states": [
+    "fo-01"
+   ],
+   "figma": [
+    "F0"
+   ]
+  },
+  {
+   "step": "S3-S4",
+   "label": "Instanța + Date solicitant",
+   "us": [
+    "US-12"
+   ],
+   "states": [
+    "fo-02"
+   ],
+   "figma": [
+    "F1",
+    "F2"
+   ]
+  },
+  {
+   "step": "S5",
+   "label": "Detalii solicitare",
+   "us": [
+    "US-13",
+    "US-21"
+   ],
+   "states": [
+    "fo-03"
+   ],
+   "figma": [
+    "F3"
+   ]
+  },
+  {
+   "step": "S6",
+   "label": "Acte necesare",
+   "us": [
+    "US-20",
+    "US-21"
+   ],
+   "states": [
+    "fo-04"
+   ],
+   "figma": [
+    "F4"
+   ]
+  },
+  {
+   "step": "S8",
+   "label": "Verificare și semnare",
+   "us": [
+    "US-14",
+    "US-15"
+   ],
+   "states": [
+    "fo-05"
+   ],
+   "figma": [
+    "F5"
+   ]
+  },
+  {
+   "step": "S9",
+   "label": "Livrare",
+   "us": [
+    "US-16"
+   ],
+   "states": [
+    "fo-06"
+   ],
+   "figma": [
+    "F6"
+   ]
+  },
+  {
+   "step": "S10",
+   "label": "Plată MPay",
+   "us": [
+    "US-17"
+   ],
+   "states": [
+    "fo-07",
+    "fo-08c"
+   ],
+   "figma": [
+    "F7"
+   ]
+  },
+  {
+   "step": "S11",
+   "label": "Finalizare",
+   "us": [
+    "US-18",
+    "US-19"
+   ],
+   "states": [
+    "fo-08",
+    "fo-08a",
+    "fo-08b",
+    "fo-08d",
+    "fo-08e"
+   ],
+   "figma": [
+    "F8"
+   ]
+  }
+ ],
+ "personas": [
+  "ion-pf-mobil",
+  "admin-pj-mpower",
+  "reprezentant-notarial",
+  "accesibilitate",
+  "spec-auditor",
+  "design-system-guardian",
+  "editor-romana"
+ ]
+}
