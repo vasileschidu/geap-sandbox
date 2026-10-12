@@ -5024,6 +5024,29 @@ Setări › Publicare în RAP switches by the size of the request form (`cfgRapC
 - The picker's search never grows: `.e-permits-subdiv .search-input.e-permits-list-search--fill
   { flex: 0 0 auto }`. This applies to both pickers.
 
+### Configurează tipul de solicitare › Avizare (US-222, 2026-10-12)
+
+This is a 6th tab of the request-type drawer (`RT_DRAWER_TABS`, between Notificări and Taxe), as
+A. Pascalov's Figma comment on 02a asked („tab cu Avizări”).
+- **„Necesită avizare” is a switch** (`renderToggle`, as in Setări). It is enabled only when the
+  chosen flow has the inter-institutional approval branch (`flowHasAvizare`: „aviz” in the steps
+  or the name). Otherwise it is off and disabled, with an info note naming the flow and
+  suggesting a flow with avizare (AC-46).
+- **Avize:** one grey block per aviz (`.e-permits-tax-cond`, head „Aviz N” + „Elimină”):
+  - Autoritatea avizatoare ▾ and Subdiviziunea avizatoare ▾ (disabled until an authority is
+    chosen; one subdivision per aviz, AC-31).
+  - Check options „Implicită” and „Cu termen”, with a hint for what „Implicită” means (US-130).
+  - With „Cu termen”: „Termenul de avizare (zile)” (in the request type's day type, AC-34) and the
+    check option „Termen modificabil de specialist”.
+  - „Adaugă aviz” (`btn-secondary btn-sm` + plus).
+- **Salvează** validates: at least one aviz (AC-29), authority + subdivision (AC-30), and a whole
+  number > 0 for the deadline (AC-33). On error it jumps to the Avizare tab. The audit detail
+  includes „avizare: N avize”.
+- **Open for PO/BA (not decided in code):** avize already configured when the flow loses the
+  branch (they are not saved); duplicate authority + subdivision; a maximum deadline.
+- Demo: `svc-02g` (locked: post-processing flow), `02h` (Reperfectare, 1 aviz), `02i` (add),
+  `02j` (validation), `02k` (switched off).
+
 ### Opening animations release their transform (hover bug, 2026-10-12)
 
 An opening animation on a drawer, preview or modal that contains a scrolling body uses

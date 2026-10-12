@@ -13678,7 +13678,101 @@ document.addEventListener("DOMContentLoaded", () => {
      Clasificator nou); configuring an existing one = tabs. Taxe has nothing yet for a new type. */
   const RT_CREATE_STEPS = [["general", "General"], ["forms", "Formulare"], ["documents", "Documente generate"], ["notifications", "Notificări"]];
   const rtCurrent = (service) => rtDraft.pending || service.geap.requestTypes.find((item) => item.id === rtDraft.rtId);
-  const RT_DRAWER_TABS = [["general", "General"], ["forms", "Formulare"], ["documents", "Documente generate"], ["notifications", "Notificări"], ["taxes", "Taxe"]];
+  const RT_DRAWER_TABS = [["general", "General"], ["forms", "Formulare"], ["documents", "Documente generate"], ["notifications", "Notificări"], ["avizare", "Avizare"], ["taxes", "Taxe"]];
+  /* Avizare (US-222, Alexandr's comment on 02a: „tab cu Avizări”): only when the flow has the
+     inter-institutional approval branch (AC-46); one aviz = one authority + ONE subdivision
+     (AC-30/31); „Implicită” avize are asked on every case, the rest the specialist picks
+     (US-130); the deadline counts in the request type's day type (AC-34). Open questions for
+     the PO/BA (not decided here): what happens to configured avize when the flow loses the
+     branch; duplicate authority + subdivision; a maximum deadline */
+  const flowHasAvizare = (flow) => Boolean(flow) && /aviz/i.test(`${JSON.stringify(flow.steps || [])} ${flow.name || ""}`);
+  const AVIZ_EXTRA_AUTHORITIES = [
+    { id: "am", label: "Agenția de Mediu", subdivisions: [{ id: "am-c", label: "Inspecția de mediu Centru" }, { id: "am-n", label: "Inspecția de mediu Nord" }, { id: "am-s", label: "Inspecția de mediu Sud" }] },
+    { id: "igsu", label: "Inspectoratul General pentru Situații de Urgență", subdivisions: [{ id: "igsu-c", label: "Direcția SU Chișinău" }, { id: "igsu-b", label: "Direcția SU Bălți" }] }
+  ];
+  const avizAuthorities = () => [...(rsspDb?.authorities || []), ...AVIZ_EXTRA_AUTHORITIES];
+  const avizNew = () => ({ authority: "", subdivision: "", implicit: false, withTerm: false, days: "", editable: false });
+  const AVIZ_REQ = "Câmpul este obligatoriu.";
+  const rtAvizErr = (key) => clasFieldError(rtDraft.avizErrors, key);
+  const renderRtAvizare = () => {
+    const flow = getFlowById(rtDraft.flow);
+    const branch = flowHasAvizare(flow);
+    const a = rtDraft.aviz, needs = branch && a.needs;
+    const unit = rtDraft.termUnit || "zile lucrătoare";
+    const auths = avizAuthorities();
+    const item = (x, i) => {
+      const auth = auths.find((y) => y.id === x.authority);
+      return `
+        <div class="e-permits-tax-cond" data-rt-aviz-block="${i}">
+          <div class="e-permits-tax-cond__head">
+            <label for="rt-aviz-auth-${i}">Aviz ${i + 1}</label>
+            <button class="btn btn-text-destructive btn-sm" type="button" data-rt-aviz-remove="${i}" aria-label="Elimină avizul ${i + 1}">Elimină</button>
+          </div>
+          <div class="e-permits-user-create__grid">
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+              <label for="rt-aviz-auth-${i}">Autoritatea avizatoare${requiredMark()}</label>
+              ${renderFoSelectControl({ id: `rt-aviz-auth-${i}`, attrs: `data-rt-aviz-field="authority" data-rt-aviz="${i}"`, error: Boolean(rtDraft.avizErrors[`a${i}`]), optionsHtml: `<option value=""${x.authority ? "" : " selected"} disabled>Alege autoritatea</option>${auths.map((y) => `<option value="${escapeHtml(y.id)}"${y.id === x.authority ? " selected" : ""}>${escapeHtml(y.label)}</option>`).join("")}` })}
+              ${rtAvizErr(`a${i}`)}
+            </div>
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+              <label for="rt-aviz-sub-${i}">Subdiviziunea avizatoare${requiredMark()}</label>
+              ${renderFoSelectControl({ id: `rt-aviz-sub-${i}`, attrs: `data-rt-aviz-field="subdivision" data-rt-aviz="${i}"`, disabled: !auth, error: Boolean(rtDraft.avizErrors[`s${i}`]), optionsHtml: `<option value=""${x.subdivision ? "" : " selected"} disabled>${auth ? "Alege subdiviziunea" : "Alege întâi autoritatea"}</option>${(auth?.subdivisions || []).map((s) => `<option value="${escapeHtml(s.label)}"${s.label === x.subdivision ? " selected" : ""}>${escapeHtml(s.label)}</option>`).join("")}` })}
+              ${rtAvizErr(`s${i}`)}
+            </div>
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
+              <div class="e-permits-check-options">
+                ${renderCheckOption({ label: "Implicită", checked: x.implicit, attrs: `data-rt-aviz-field="implicit" data-rt-aviz="${i}"` })}
+                ${renderCheckOption({ label: "Cu termen", checked: x.withTerm, attrs: `data-rt-aviz-field="withTerm" data-rt-aviz="${i}"` })}
+              </div>
+              <p class="e-permits-fo-field__hint">${x.implicit ? "Se solicită la fiecare dosar al tipului de solicitare." : "Îl alege specialistul la inițierea avizării, dacă e nevoie."}</p>
+            </div>
+            ${x.withTerm ? `
+              <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
+                <label for="rt-aviz-days-${i}">Termenul de avizare (zile)${requiredMark()}</label>
+                <div class="e-permits-fo-input${rtDraft.avizErrors[`d${i}`] ? " is-error" : ""}"><input id="rt-aviz-days-${i}" type="text" inputmode="numeric" maxlength="3" placeholder="ex. 10" value="${escapeHtml(x.days)}"${rtDraft.avizErrors[`d${i}`] ? ' aria-invalid="true"' : ""} data-rt-aviz-days="${i}"></div>
+                ${rtDraft.avizErrors[`d${i}`] ? rtAvizErr(`d${i}`) : `<p class="e-permits-fo-field__hint">În ${escapeHtml(unit)}, ca termenul de examinare.</p>`}
+              </div>
+              <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6 e-permits-doc-required">
+                <span class="e-permits-cfg-ro__label" aria-hidden="true">&nbsp;</span>
+                <div class="e-permits-check-options">${renderCheckOption({ label: "Termen modificabil de specialist", checked: x.editable, attrs: `data-rt-aviz-field="editable" data-rt-aviz="${i}"` })}</div>
+              </div>` : ""}
+          </div>
+        </div>`;
+    };
+    return `
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Avizare</h3>
+        <div class="e-permits-user-create__section-content">
+          <div class="e-permits-svc-setting">${renderToggle({ label: "Necesită avizare", description: !branch ? "Fluxul ales nu conține ramura de avizare interinstituțională." : needs ? "Dosarele acestui tip trec prin avizarea interinstituțională." : "Dosarele acestui tip nu trec prin avizare.", checked: needs, disabled: !branch, attrs: "data-rt-aviz-needs" })}</div>
+          ${!branch ? renderInfoNote(`„Necesită avizare” rămâne „Nu”: fluxul ${flow ? `„${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}”` : "ales"} nu are ramura de avizare. Pentru avize, alege în General un flux cu avizare (ex. „Flux cu avizare · v2”).`) : ""}
+          ${needs ? `
+            <p class="e-permits-fo-field__hint">Un aviz = o singură subdiviziune avizatoare; pentru altă subdiviziune a aceleiași autorități adaugă un aviz separat.</p>
+            ${a.items.length ? `<div class="e-permits-tax-cond__list">${a.items.map(item).join("")}</div>` : ""}
+            ${rtDraft.avizErrors.none ? `<span class="message message--inline message--error e-permits-fo-field__error"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeHtml(rtDraft.avizErrors.none)}</span></span>` : ""}
+            <div><button class="btn btn-secondary btn-sm" type="button" data-rt-aviz-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă aviz</span></button></div>` : ""}
+        </div>
+      </section>`;
+  };
+  const rtAvizValidate = () => {
+    const flow = getFlowById(rtDraft.flow), e = {};
+    if (flowHasAvizare(flow) && rtDraft.aviz.needs) {
+      if (!rtDraft.aviz.items.length) e.none = "Adaugă cel puțin un aviz.";
+      rtDraft.aviz.items.forEach((x, i) => {
+        if (!x.authority) e[`a${i}`] = AVIZ_REQ;
+        if (!x.subdivision) e[`s${i}`] = AVIZ_REQ;
+        if (x.withTerm && !(/^\d+$/.test(String(x.days)) && Number(x.days) > 0)) e[`d${i}`] = x.days ? "Introdu un număr întreg mai mare ca zero." : AVIZ_REQ;
+      });
+    }
+    rtDraft.avizErrors = e;
+    return !Object.keys(e).length;
+  };
+  const rtAvizRefresh = (focusSel) => {
+    const top = rtDrawerBody.scrollTop;
+    renderRtDrawer();
+    rtDrawerBody.scrollTop = top;
+    if (focusSel) rtDrawerBody.querySelector(focusSel)?.focus();
+  };
+
 
   const renderRtDrawer = () => { renderRtDrawerCore(); syncRtPeek(); };
 
@@ -13840,6 +13934,7 @@ document.addEventListener("DOMContentLoaded", () => {
 `,
       documents: outputs.documents,
       notifications: outputs.notifications,
+      avizare: renderRtAvizare(),
       taxes: outputs.taxes
     };
     const creating = Boolean(rtDraft.pending);
@@ -13912,6 +14007,11 @@ document.addEventListener("DOMContentLoaded", () => {
       actions: { ...(rt.actions || {}) },
       docOverrides: { ...(rt.docOverrides || {}) },
       notifyOverrides: { ...(rt.notifyOverrides || {}) },
+      /* demo: Reperfectare of 003000023 runs on a flow with avizare and has one aviz */
+      aviz: JSON.parse(JSON.stringify(rt.avizare || (service.code === "003000023" && rt.id === "rt-2"
+        ? { needs: true, items: [{ authority: "ansp", subdivision: "CSP Chișinău", implicit: true, withTerm: true, days: "10", editable: true }] }
+        : { needs: false, items: [] }))),
+      avizErrors: {},
       tab: "general",
       pending,
       step: 1,
@@ -13970,6 +14070,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    /* Avizare: at least one aviz, each with authority + subdivision, a deadline when „Cu termen” */
+    if (!rtAvizValidate()) {
+      rtDraft.tab = "avizare";
+      renderRtDrawer();
+      (rtDrawerBody.querySelector(".is-error input, .e-permits-fo-select.is-error .e-permits-fo-select__button") || rtDrawerBody.querySelector("[data-rt-aviz-add]"))?.focus();
+      return;
+    }
+
     /* overrides for actions that are not in the chosen flow are dropped */
     const flow = getFlowById(rtDraft.flow);
     const keys = new Set(passport.flowActions(flow).map(({ step, action }) => passport.actionKey(step, action)));
@@ -13979,13 +14087,15 @@ document.addEventListener("DOMContentLoaded", () => {
     rt.actions = Object.fromEntries(Object.entries(rtDraft.actions).filter(([key]) => keys.has(key)));
     rt.docOverrides = { ...rtDraft.docOverrides };
     rt.notifyOverrides = { ...rtDraft.notifyOverrides };
+    const avizOn = flowHasAvizare(getFlowById(rtDraft.flow)) && rtDraft.aviz.needs;
+    rt.avizare = { needs: avizOn, items: avizOn ? rtDraft.aviz.items.map((x) => ({ ...x })) : [] };
 
     const changed = passport.overrideCount(rt, flow);
     const added = Boolean(rtDraft.pending);
     if (added) service.geap.requestTypes.push(rt);
     logServiceEvents(service.code, [{
       at: localIsoNow(), user: currentUserName(), type: added ? "Adăugare tip solicitare" : "Configurare tip solicitare", status: "Reușit",
-      detail: `${rt.name}${added ? " — postproces eligibil" : ""}: ${flow.name} ${flow.version}, ${rt.form ? "cu formular" : "fără formular"}, ${changed} acțiuni modificate`
+      detail: `${rt.name}${added ? " — postproces eligibil" : ""}: ${flow.name} ${flow.version}, ${rt.form ? "cu formular" : "fără formular"}, ${changed} acțiuni modificate, ${rt.avizare.needs ? `avizare: ${rt.avizare.items.length === 1 ? "1 aviz" : `${rt.avizare.items.length} avize`}` : "fără avizare"}`
     }]);
     closeRequestTypeDrawer();
     renderServiceProfile();
@@ -14007,6 +14117,23 @@ document.addEventListener("DOMContentLoaded", () => {
       renderRtDrawer();
       rtDrawerBody.querySelector(`[data-rt-${isDoc ? "doc" : "notify"}="${CSS.escape(key)}"]`)?.closest("[data-fo-native-select]")?.querySelector(".e-permits-fo-select__button")?.focus();
       return;
+    }
+
+    if (target.matches("[data-rt-aviz-needs]")) {
+      rtDraft.aviz.needs = target.checked;
+      if (target.checked && !rtDraft.aviz.items.length) rtDraft.aviz.items.push(avizNew());
+      rtDraft.avizErrors = {};
+      /* let the knob slide, then redraw */
+      window.setTimeout(() => { if (rtDraft) rtAvizRefresh("[data-rt-aviz-needs]"); }, matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 200);
+      return;
+    }
+    if (target.matches("[data-rt-aviz-field]")) {
+      const i = Number(target.dataset.rtAviz), x = rtDraft.aviz.items[i], f = target.dataset.rtAvizField;
+      if (f === "authority") { x.authority = target.value; x.subdivision = ""; delete rtDraft.avizErrors[`a${i}`]; return rtAvizRefresh(`#rt-aviz-sub-${i}`); }
+      if (f === "subdivision") { x.subdivision = target.value; delete rtDraft.avizErrors[`s${i}`]; return rtAvizRefresh(`#rt-aviz-sub-${i}`); }
+      x[f] = target.checked;
+      if (f === "withTerm" && !x.withTerm) { x.days = ""; x.editable = false; delete rtDraft.avizErrors[`d${i}`]; }
+      return rtAvizRefresh(`[data-rt-aviz-field="${f}"][data-rt-aviz="${i}"]`);
     }
 
     if (target.matches("[data-rt-flow]")) {
@@ -14039,6 +14166,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.matches("[data-rt-search]")) {
       rtDraft.query = event.target.value;
       refreshRtActions({ chips: false });
+    } else if (event.target.matches("[data-rt-aviz-days]")) {
+      event.target.value = event.target.value.replace(/\D/g, "").slice(0, 3);
+      rtDraft.aviz.items[Number(event.target.dataset.rtAvizDays)].days = event.target.value;
     } else if (event.target.matches("[data-rt-term]")) {
       event.target.value = event.target.value.replace(/\D/g, "").slice(0, 3);
       rtDraft.termValue = event.target.value;
@@ -14054,6 +14184,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (event.target.closest("[data-rt-close]")) {
       closeRequestTypeDrawer();
+      return;
+    }
+
+    if (event.target.closest("[data-rt-aviz-add]")) {
+      rtDraft.aviz.items.push(avizNew());
+      delete rtDraft.avizErrors.none;
+      rtAvizRefresh(`#rt-aviz-auth-${rtDraft.aviz.items.length - 1}`);
+      return;
+    }
+    const avizRemove = event.target.closest("[data-rt-aviz-remove]");
+    if (avizRemove) {
+      rtDraft.aviz.items.splice(Number(avizRemove.dataset.rtAvizRemove), 1);
+      rtDraft.avizErrors = {};
+      rtAvizRefresh("[data-rt-aviz-add]");
       return;
     }
 

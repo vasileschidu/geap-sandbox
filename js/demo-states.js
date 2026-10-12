@@ -12,6 +12,8 @@
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
+  /* Tipuri solicitări: a request type's drawer on the Avizare tab */
+  const rtAviz = (id) => async (h) => { await h.click(`[data-passport-configure-rt="${id}"]`); await h.click('[data-rt-tab="avizare"]'); };
   /* Documente: open a document; a row's ⋮ action */
   const docOpen = (id) => async (h) => { await h.click(`[data-doc-open="${id}"]`); await h.wait(300); };
   const docMenu = (id, action) => async (h) => {
@@ -454,6 +456,9 @@
       await h.click("[data-doc-rule-add]"); await h.choose('[data-doc-cond="field"][data-doc-rule="0"][data-doc-ci="0"]', "SalesArea"); await h.choose('[data-doc-cond="op"][data-doc-rule="0"][data-doc-ci="0"]', "gt"); await h.fill('input[data-doc-cond="value"][data-doc-rule="0"][data-doc-ci="0"]', "150");
     }),
     "svc-06i": svc("documents", async (h) => { await docMenu("doc-g1", "deactivate")(h); }),
+    /* 05c1 / 05c2: „Adaugă condiție” → a third empty row; the „și / sau” keyword list open */
+    "svc-06m": svc("documents", async (h) => { await docOpen("doc-g1")(h); await h.click('[data-doc-cond-add="0"]'); }),
+    "svc-06n": svc("documents", async (h) => { await docOpen("doc-g1")(h); await h.click("#doc-join-0"); }),
     /* AC-01: without configuration rights — eye opens the document read-only */
     "svc-06j": { ...svc("documents", docOpen("doc-g1")), as: LOCAL_ADMIN },
     /* AC-18: a condition without its parts stops the save */
@@ -470,6 +475,13 @@
     }),
     /* header „N modificări nepublicate” → the list of pending changes */
     "svc-01i": svc("documents", async (h) => { await docMenu("doc-g2", "activate")(h); await h.click("[data-service-confirm-ok]"); await h.wait(400); await h.click("[data-service-pending]"); }),
+    /* Avizare (US-222): the tab of the request-type drawer — locked on a flow without the
+       avizare branch (rt-3, post-processing flow), one aviz on Reperfectare (rt-2), add, validation, switched off */
+    "svc-02g": svc("request-types", async (h) => { await rtAviz("rt-3")(h); }),
+    "svc-02h": svc("request-types", async (h) => { await rtAviz("rt-2")(h); }),
+    "svc-02i": svc("request-types", async (h) => { await rtAviz("rt-2")(h); await h.click("[data-rt-aviz-add]"); }),
+    "svc-02j": svc("request-types", async (h) => { await rtAviz("rt-2")(h); await h.click("[data-rt-aviz-add]"); await h.click("[data-rt-save]"); await h.wait(300); }),
+    "svc-02k": svc("request-types", async (h) => { await rtAviz("rt-2")(h); await h.click("[data-rt-aviz-needs]"); await h.wait(400); }),
     "svc-02d": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); }),
     /* Documente generate › Previzualizează: the document of a step, read-only, left of the drawer */
     "svc-02d1": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); await h.click("[data-rt-doc-peek]"); }),
