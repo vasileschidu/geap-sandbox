@@ -189,6 +189,7 @@ but this doc previously described it wrongly, see the entry.
 | Switch | `.switch > .switch-wrapper` | `switch.html` | library |
 | Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
 | Long multi-select (100+ options) | summary `.e-permits-cfg-picks` + picker modal `#cfg-subdiv-modal` (`.e-permits-subdiv*`) | `cfgSubdivPicks` / `openCfgSubdiv` | app |
+| Conditional rules (Afișează / Setează ca obligatoriu, câmp · operator · valoare, Și/Sau) | `.e-permits-doc-rule` card + `.e-permits-doc-cond` sentence rows + `.e-permits-doc-val` value group | `renderDocRule` / `renderDocCondition` | app |
 | Long checklist with per-row options (RAP, 100 fields) | `.e-permits-cfg-rap-summary` (select field + published rows) + `#cfg-rap-modal`; composite = `.e-permits-cfg-rap__table` | `cfgRapPicks` / `cfgRapItemsHtml` / `openCfgRap` | app |
 | Input | `.input`, `.input-wrapper` | `input-preview.html` | library |
 | Textarea | `.textarea` | `textarea.html` | library |
@@ -5022,6 +5023,93 @@ Setări › Publicare în RAP switches by the size of the request form (`cfgRapC
   - Draft until Aplică, which writes `v.rap` in form order.
 - The picker's search never grows: `.e-permits-subdiv .search-input.e-permits-list-search--fill
   { flex: 0 0 auto }`. This applies to both pickers.
+
+### Opening animations release their transform (hover bug, 2026-10-12)
+
+An opening animation on a drawer, preview or modal that contains a scrolling body uses
+`animation-fill-mode: backwards`, never `both`. With `both`, the final `transform` stays applied,
+the panel remains a composited layer, and GPU Chrome repaints hover only on the next click: the
+user sees no hover anywhere in the drawer. Applies to `.e-permits-user-create__drawer` and its
+scrim, and to `.e-permits-doc-peek`. **Every library modal** also drops its layer once open
+(`.modal-overlay.is-active .modal { transform: none; will-change: auto }`, plus `will-change:
+auto` on the overlay), set in our stylesheet because `main.css` stays identical to the library. Closing animations keep `both`, so the panel stays hidden until it is removed.
+
+### Servicii › Documente — documents + „Reguli de solicitare” (US-225, 2026-10-12)
+
+Replaces the two checkboxes per document („Afișează” / „Obligatoriu”, 2026-10-09). Display and
+required status are now **rules**, built like the Form Designer „Reguli de comportament” (US-42),
+following A. Pascalov's comment 1961221538 and the PO's screenshot of the „Logică” tab.
+- **Model** `service.geap.docs` (`serviceDocs`, built once from `rssp.documents`):
+  - fields: title / titleRu / titleEn, docType, requestTypes[], applicantTypes[]
+    (`DOC_APPLICANT_TYPES` PF · PJ · PF Străin · PJ Străin), required, source (RSSP / SIA GEAP),
+    state (Activ / Inactiv), published;
+  - `rules[] = { type: show|require, join: and|or, conditions[] }`;
+  - each condition: `{ field, op, mode: value|field, value, other }`.
+  - Request-form fields per request type come from `DOC_FORM_FIELDS` (demo). They have types, and
+    the type decides the operators (`DOC_OPS_BY_TYPE`; number and date add < ≤ > ≥).
+- **List** (`renderServiceDocuments`): `renderStackedList` grouped by request type.
+  - Badges: source tag (RSSP neutral / SIA GEAP brand), „Inactiv”, „Nepublicat”.
+  - Meta: tip document · tip solicitant · Obligatoriu/Opțional · „N reguli” / „Fără reguli”.
+  - Row actions: „Editează” (pen). The ⋮ menu exists only on SIA GEAP documents: Dezactivează
+    (published + active) · Activează (inactive) · Elimină (never published). Each asks for
+    confirmation (`askConfirm`) with the US-225 texts.
+  - Heading: „Adaugă document” (`btn-secondary btn-sm` + plus).
+  - A role without rights sees an eye button that opens the drawer read-only.
+- **Drawer** `[data-doc-drawer]` (`--wide`, `.e-permits-user-create__section` × 2):
+  - **Date document:** read-only `.e-permits-cfg-ro` for RSSP documents (plus an info note).
+    For SIA GEAP documents, inputs, and check options for Tip solicitare / Tip solicitant.
+    **Applicant types are always shown with the icon and the full name when there is room**
+    (person-filled / suitcase-filled, „Persoană fizică”, „Persoană juridică străină”…):
+    `renderCheckOption({ icon })` in forms, `applicantTags()` in lists and read-only views. The
+    stored values stay the codes PF / PJ / PF Străin / PJ Străin (`docApplicantLabel`).
+    **„Obligatoriu” is the checkbox option with the red star** (`renderCheckOption({ label:
+    "Obligatoriu", required: true })`) — the rule everywhere (user, 2026-10-12): never a Da/Nu
+    segmented control, never a switch.
+  - **Reguli de solicitare** (redesigned 2026-10-12, user: „too messy”). The builder reads as
+    sentences, following Notion / Linear / Google Analytics filters:
+    - **Rule** = a white card `.e-permits-doc-rule` (1px border, radius 12, 16 inset, gap 12).
+      Rules stack in `.e-permits-doc-rules` with a 12px gap.
+      - Head: rule-type fo-select (240px) „Afișează / Setează ca obligatoriu” + the keyword tag
+        „acest document” + „Elimină” (`btn-text-destructive btn-sm`, as in the other sections; an
+        icon-only × here read as unclear because it removes the whole rule).
+      - The keywords of the sentence („Când”, „și” / „sau” as text, „acest document”) are **code
+        tokens** `code.e-permits-doc-kw` (`docKw`): monospace (system mono stack), 14/20, default
+        text colour, grey tertiary fill, radius 4, padding 2/8, **no border**. This is the only monospace allowed in
+        the product, because the user asked for a code-type look „as other products do”
+        (2026-10-12).
+    - Under the head, „Când” as its own line (a code token).
+    - **Condition** = one row `.e-permits-doc-cond` on a 4-column grid
+      (`1.1fr · 0.8fr · 1.5fr · 32px`): câmp ▾, operator ▾, the value, and an icon-only ×.
+    - **Code layout (if / else):** keywords on the left; the conditions they govern are
+      indented 16px under them on a 1px guide line (`border-left`, 8px margin).
+      - Between rows, the join keyword sits on its own line `.e-permits-doc-cond__join`.
+      - Between rows 1 and 2 it is a „și / sau” fo-select styled as the token
+        (`.e-permits-doc-kwselect`: mono, grey fill, no border, 24px high, chevron 16). Its list
+        is 120px wide (`data-fo-list-min="120"`, honoured by `placeFloatingList`), so „sau”
+        never truncates. It sets
+        the rule's join. After that, the same word as a plain token. A segmented control was
+        tried and rejected (2026-10-12).
+    - **Value** = ONE bordered group `.e-permits-doc-val`: „Valoare / Alt câmp” fo-select on
+      the left (112px), then the input it governs. Between them is a divider, inset 8px top and
+      bottom (`::after`) so it never crosses the focus ring.
+      - The inner controls lose their own border; the group carries hover, the focus ring and
+        the error state.
+      - With no operator, or with Este gol / Este completat, a quiet grey slot stays in place
+        („Valoare” / „Fără valoare”) so the row keeps its shape.
+      - „În listă” has no „Alt câmp” option; it shows check options for the field's values.
+    - „Adaugă condiție” = `btn-text-primary btn-sm` + plus, right under the last row, aligned
+      left with the rows.
+    - At ≤720px each row stacks into full-width cells, with × on the right.
+    - **Rejected:** grey block with white condition cards, and „Valoare / Alt câmp” or „Și /
+      Sau” as separate segmented controls (they were disconnected from the input they govern).
+      Also rejected `segmented-control--small`, which isn't in the library.
+  - **Validation on Salvează:** „Câmpul este obligatoriu.” under each missing field or
+    condition part.
+  - **Save:** logs „Editare / Adăugare document însoțitor” with the changes (which counts in the
+    header as unpublished), then a toast.
+- Demo: `svc-06a` (list), `06b` (RSSP + Afișează), `06c` (RSSP warning), `06d` (SIA GEAP,
+  2 conditions with Sau), `06e` (Alt câmp), `06f` (new), `06g` (validation), `06h` (new,
+  filled), `06i` (Dezactivează), `01i` (Activează → pending changes).
 
 ### Documente însoțitoare (RSSP) in a service — document tiles, not label/value rows (2026-10-03)
 

@@ -12,6 +12,14 @@
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
+  /* Documente: open a document; a row's ⋮ action */
+  const docOpen = (id) => async (h) => { await h.click(`[data-doc-open="${id}"]`); await h.wait(300); };
+  const docMenu = (id, action) => async (h) => {
+    /* the menu item is hidden until ⋮ opens: find the row by its visible „Editează” */
+    const open = await h.find(`[data-doc-open="${id}"]`);
+    open.closest(".e-permits-stack__item").querySelector("[data-stack-menu-trigger]").click();
+    await h.wait(300); await h.click(`[data-doc-action="${action}"][data-doc-id="${id}"]`);
+  };
   /* Publicare în RAP with the whole request form (100 fields): summary + picker modal */
   const SAN = "003000118"; /* Autorizație sanitară pentru funcționare */
   const rapBig = (run) => svc("settings", async (h) => { await cfgNav("rap")(h); if (run) await run(h); }, SAN);
@@ -431,10 +439,37 @@
     /* Interdependențe live in Setări since 2026-10-07 (the old hash still lands there) */
     "svc-06": svc("settings"),
     "svc-06a": svc("documents"),
-    /* a document hidden from the request: Obligatoriu turns off and locks */
-    "svc-06b": svc("documents", async (h) => { await h.click('[data-svc-doc-visible="4"]'); await h.wait(500); }),
+    /* Documente (US-225): a document opens its drawer — data (RSSP read-only) + „Reguli de
+       solicitare” built like the Form Designer rules (US-42) */
+    "svc-06b": svc("documents", docOpen("doc-4")),
+    "svc-06c": svc("documents", async (h) => { await docOpen("doc-1")(h); await h.click("[data-doc-rule-add]"); await h.choose('[data-doc-rtype="0"]', "require"); }),
+    "svc-06d": svc("documents", docOpen("doc-g1")),
+    "svc-06e": svc("documents", async (h) => { await docOpen("doc-g1")(h); await h.choose('select[data-doc-mode-select][data-doc-rule="0"][data-doc-ci="0"]', "field"); await h.choose('[data-doc-cond="other"][data-doc-rule="0"][data-doc-ci="0"]', "SalesArea"); }),
+    "svc-06f": svc("documents", async (h) => { await h.click("[data-doc-add]"); await h.wait(300); }),
+    "svc-06g": svc("documents", async (h) => { await h.click("[data-doc-add]"); await h.wait(300); await h.click("[data-doc-rule-add]").catch(() => {}); await h.click("[data-doc-save]"); await h.wait(300); }),
+    "svc-06h": svc("documents", async (h) => {
+      await h.click("[data-doc-add]"); await h.wait(300);
+      await h.fill("#doc-title", "Certificat de securitate la incendiu"); await h.fill("#doc-titleRu", "Сертификат пожарной безопасности"); await h.fill("#doc-titleEn", "Fire safety certificate"); await h.fill("#doc-docType", "Certificat");
+      await h.click('[data-doc-check="requestTypes"][value="Emitere primară"]'); await h.click('[data-doc-check="applicantTypes"][value="PJ"]');
+      await h.click("[data-doc-rule-add]"); await h.choose('[data-doc-cond="field"][data-doc-rule="0"][data-doc-ci="0"]', "SalesArea"); await h.choose('[data-doc-cond="op"][data-doc-rule="0"][data-doc-ci="0"]', "gt"); await h.fill('input[data-doc-cond="value"][data-doc-rule="0"][data-doc-ci="0"]', "150");
+    }),
+    "svc-06i": svc("documents", async (h) => { await docMenu("doc-g1", "deactivate")(h); }),
+    /* AC-01: without configuration rights — eye opens the document read-only */
+    "svc-06j": { ...svc("documents", docOpen("doc-g1")), as: LOCAL_ADMIN },
+    /* AC-18: a condition without its parts stops the save */
+    "svc-06k": svc("documents", async (h) => { await docOpen("doc-g1")(h); await h.click('[data-doc-cond-add="0"]'); await h.click("[data-doc-save]"); await h.wait(300); }),
+    /* AC-09 / AC-10: a document added and never published → ⋮ Elimină, confirmed */
+    "svc-06l": svc("documents", async (h) => {
+      await h.click("[data-doc-add]"); await h.wait(300);
+      await h.fill("#doc-title", "Certificat de securitate la incendiu"); await h.fill("#doc-titleRu", "Сертификат пожарной безопасности"); await h.fill("#doc-titleEn", "Fire safety certificate"); await h.fill("#doc-docType", "Certificat");
+      await h.click('[data-doc-check="requestTypes"][value="Emitere primară"]'); await h.click('[data-doc-check="applicantTypes"][value="PJ"]');
+      await h.click("[data-doc-save]"); await h.wait(700);
+      const row = [...document.querySelectorAll(".e-permits-stack__item")].find((r) => r.textContent.includes("Certificat de securitate"));
+      row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300);
+      row.querySelector('[data-doc-action="remove"]').click(); await h.wait(450);
+    }),
     /* header „N modificări nepublicate” → the list of pending changes */
-    "svc-01i": svc("documents", async (h) => { await h.click('[data-svc-doc-required="3"]'); await h.wait(500); await h.click("[data-service-pending]"); }),
+    "svc-01i": svc("documents", async (h) => { await docMenu("doc-g2", "activate")(h); await h.click("[data-service-confirm-ok]"); await h.wait(400); await h.click("[data-service-pending]"); }),
     "svc-02d": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); }),
     /* Documente generate › Previzualizează: the document of a step, read-only, left of the drawer */
     "svc-02d1": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); await h.click("[data-rt-doc-peek]"); }),

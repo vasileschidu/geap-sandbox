@@ -270,11 +270,12 @@ document.addEventListener("DOMContentLoaded", () => {
      Anonimizează); group several in .e-permits-check-options. plain: the same box + tick
      without the grey container and with a regular label — for checkbox lists (a group of
      options under a title), so every checkbox on a screen looks the same. */
-  const renderCheckOption = ({ label, checked = false, disabled = false, required = false, attrs = "", reason = "", plain = false }) => `
+  /* icon: an optional leading glyph in the label (PF / PJ: person / suitcase, filled) */
+  const renderCheckOption = ({ label, checked = false, disabled = false, required = false, attrs = "", reason = "", plain = false, icon = "" }) => `
     <label class="checkbox checkbox--medium e-permits-check-option${plain ? " e-permits-check-option--plain" : ""}${disabled ? " is-disabled" : ""}" data-tooltip-reason="${disabled && reason ? escapeHtml(reason) : ""}">
       <input class="checkbox-input" type="checkbox"${checked ? " checked" : ""}${disabled ? " disabled" : ""} ${attrs}>
       <span class="checkbox-custom" aria-hidden="true"><svg class="icon e-permits-check-option__tick" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg></span>
-      <span class="checkbox-label">${escapeHtml(label)}${required ? requiredMark() : ""}</span>
+      <span class="checkbox-label">${icon ? `<svg class="icon e-permits-check-option__icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(icon)}"></use></svg>` : ""}${escapeHtml(label)}${required ? requiredMark() : ""}</span>
     </label>`;
 
   const renderToggle = ({ label, description = "", checked = false, attrs = "", disabled = false }) => {
@@ -421,7 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.assign(list.style, {
       position: "fixed",
       left: `${Math.round(rect.left)}px`,
-      width: `${Math.round(rect.width)}px`,
+      /* a short trigger (the „și ▾” keyword) can ask for a wider list: [data-fo-list-min] */
+      width: `${Math.round(Math.max(rect.width, Number(root?.closest("[data-fo-list-min]")?.dataset.foListMin || 0)))}px`,
       maxHeight: `${Math.round(Math.max(144, Math.min(280, openUp ? above : below)))}px`,
       top: openUp ? "auto" : `${Math.round(rect.bottom + gap)}px`,
       bottom: openUp ? `${Math.round(window.innerHeight - rect.top + gap)}px` : "auto"
@@ -6200,7 +6202,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
     /* Documente însoțitoare left Date generale for their own tab (feedback 2026-10-07):
        document settings will grow there */
-    { id: "documents", label: "Documente", count: (service) => service.rssp.documents.length },
+    { id: "documents", label: "Documente", count: (service) => serviceDocs(service).length },
     /* Taxe = tariffs + their application rules in one place (revised 2026-10-02: a tax is
        a tariff plus the rule RSSP / eAPL do not carry). Count = taxes + tariffs to configure */
     { id: "fees", label: "Taxe și tarife", count: (service) => serviceTaxes(service).length + unconfiguredServiceTariffs(service).length },
@@ -6710,37 +6712,108 @@ document.addEventListener("DOMContentLoaded", () => {
     ? `<span class="e-permits-passport__tag-list">${items.map((item) => renderTag(item, "neutral")).join("")}</span>`
     : '<span class="e-permits-workplace__dash">—</span>');
 
-  /* Documente tab: for each RSSP document GEAP configures Vizibilitatea („Afișează” — the
-     applicant sees it in the request) and Obligativitatea („Obligatoriu”); RSSP's own value
-     stays read-only in the row (US-225). Overrides in geap.documentVisible /
-     geap.documentRequired, keyed by title. A hidden document is never required. */
-  const serviceDocVisible = (service, doc) => service.geap.documentVisible?.[doc.title] ?? true;
-  const serviceDocRequired = (service, doc) => serviceDocVisible(service, doc) && (service.geap.documentRequired?.[doc.title] ?? Boolean(doc.required));
+  /* Documente tab (US-225, Azure 95238): the service's documents — from RSSP (read-only data)
+     or added in SIA GEAP — grouped by the request types they are asked for. Each document can
+     have „Reguli de solicitare” (the Form Designer rule builder, US-42): „Afișează” narrows the
+     document to requests whose form meets a rule; „Setează ca obligatoriu” makes an optional
+     document required when its rule holds. No rules = asked at every request of its types.
+     Model: service.geap.docs (built once from rssp.documents). */
+  const DOC_APPLICANT_TYPES = ["PF", "PJ", "PF Străin", "PJ Străin"];
+  /* stored as the US-225 codes; shown with the full name + person / suitcase icon */
+  const DOC_APPLICANT_LABEL = { "PF": "Persoană fizică", "PJ": "Persoană juridică", "PF Străin": "Persoană fizică străină", "PJ Străin": "Persoană juridică străină" };
+  const docApplicantLabel = (code) => DOC_APPLICANT_LABEL[code] || code;
+  const DOC_RULE_TYPES = [["show", "Afișează"], ["require", "Setează ca obligatoriu"]];
+  const DOC_OPS = {
+    eq: "Este egal", ne: "Este diferit", empty: "Este gol", filled: "Este completat", in: "În listă",
+    lt: "Mai mic", le: "Mai mic sau egal", gt: "Mai mare", ge: "Mai mare sau egal"
+  };
+  const DOC_OPS_BY_TYPE = (type) => ["eq", "ne", "empty", "filled", "in", ...(type === "number" || type === "date" ? ["lt", "le", "gt", "ge"] : [])];
+  const DOC_NO_VALUE = ["empty", "filled"];
+  /* the request form's fields per request type (demo; the real list comes from Form Designer) */
+  const DOC_FORM_FIELDS = {
+    "Emitere primară": [
+      { id: "ApplicantType", label: "Tip solicitant", type: "select", options: ["Persoană fizică", "Persoană juridică"] },
+      { id: "PremisesOwnership", label: "Regimul spațiului comercial", type: "select", options: ["În proprietate", "În locațiune", "În comodat"] },
+      { id: "SellsAlcohol", label: "Comercializează băuturi alcoolice", type: "select", options: ["Da", "Nu"] },
+      { id: "SalesArea", label: "Suprafața comercială (m²)", type: "number" },
+      { id: "WarehouseArea", label: "Suprafața depozitului (m²)", type: "number" },
+      { id: "OpeningDate", label: "Data începerii activității", type: "date" },
+      { id: "ActivityAddress", label: "Adresa activității", type: "text" },
+      { id: "ContactPhone", label: "Telefon de contact", type: "text" }
+    ],
+    "Reperfectare": [
+      { id: "ApplicantType", label: "Tip solicitant", type: "select", options: ["Persoană fizică", "Persoană juridică"] },
+      { id: "ReissueReason", label: "Motivul reperfectării", type: "select", options: ["Schimbarea denumirii", "Schimbarea adresei", "Schimbarea genului de activitate"] },
+      { id: "NewAddress", label: "Adresa nouă", type: "text" },
+      { id: "SalesArea", label: "Suprafața comercială (m²)", type: "number" }
+    ]
+  };
+  const docFormFields = (requestTypes) => {
+    const seen = new Map();
+    (requestTypes || []).forEach((rt) => (DOC_FORM_FIELDS[rt] || DOC_FORM_FIELDS["Emitere primară"]).forEach((f) => { if (!seen.has(f.id)) seen.set(f.id, f); }));
+    return [...seen.values()];
+  };
+  const DOC_TYPE_GUESS = [[/identitate/i, "Act de identitate"], [/extras/i, "Extras din registru"], [/schi[țt]/i, "Plan / schiță"], [/contract/i, "Contract"], [/declara/i, "Declarație"], [/autoriza/i, "Autorizație"], [/certificat/i, "Certificat"]];
+  const serviceDocs = (service) => {
+    const geap = service.geap;
+    if (geap.docs) return geap.docs;
+    const rts = geap.requestTypes.filter((rt) => rt.source === "RSSP").map((rt) => rt.name);
+    const primary = rts[0] || geap.requestTypes[0]?.name || "Emitere primară";
+    const pj = (service.rssp.applicantTypes || []).some((a) => /juridic/i.test(a)), pf = (service.rssp.applicantTypes || []).some((a) => /fizic/i.test(a));
+    const applicants = [...(pf ? ["PF"] : []), ...(pj ? ["PJ"] : [])];
+    const cond = (field, op, value) => ({ field, op, mode: "value", value, other: "" });
+    geap.docs = service.rssp.documents.map((doc, i) => ({
+      id: `doc-${i + 1}`, title: doc.title, titleRu: "", titleEn: "",
+      docType: (DOC_TYPE_GUESS.find(([re]) => re.test(doc.title)) || [null, "Alt document"])[1],
+      requestTypes: /identitate/i.test(doc.title) ? rts.length ? rts : [primary] : [primary],
+      applicantTypes: /registrul de stat al persoanelor juridice/i.test(doc.title) ? applicants.filter((a) => a === "PJ") : applicants.length ? applicants : ["PF", "PJ"],
+      required: Boolean(doc.required), source: "RSSP", state: "Activ", published: true,
+      rules: /locațiune/i.test(doc.title) ? [{ type: "show", join: "and", conditions: [cond("PremisesOwnership", "eq", "În locațiune")] }]
+        : /declarație/i.test(doc.title) ? [{ type: "require", join: "and", conditions: [cond("SellsAlcohol", "eq", "Da")] }] : [],
+      editedAt: null, editedBy: null
+    }));
+    if (service.code === "003000023") geap.docs.push(
+      { id: "doc-g1", title: "Autorizația de mediu", titleRu: "Экологическое разрешение", titleEn: "Environmental permit", docType: "Autorizație", requestTypes: [primary], applicantTypes: ["PJ"], required: false, source: "SIA GEAP", state: "Activ", published: true,
+        rules: [{ type: "show", join: "or", conditions: [cond("WarehouseArea", "gt", "200"), cond("SalesArea", "gt", "400")] }], editedAt: "2026-10-02T11:20:00", editedBy: "Anastasia Cojocaru" },
+      { id: "doc-g2", title: "Certificat privind lipsa datoriilor", titleRu: "Справка об отсутствии долгов", titleEn: "Certificate of no debts", docType: "Certificat", requestTypes: [primary], applicantTypes: ["PJ"], required: false, source: "SIA GEAP", state: "Inactiv", published: true, rules: [], editedAt: "2026-09-18T09:05:00", editedBy: "Vasile Schidu" }
+    );
+    return geap.docs;
+  };
+  /* what the Date generale summary counts: active documents, required ones */
+  const serviceDocRequired = (service, doc) => doc.state !== "Inactiv" && doc.required;
+  const docRulesLabel = (doc) => doc.rules.length ? (doc.rules.length === 1 ? "1 regulă" : `${doc.rules.length} reguli`) : "Fără reguli";
 
   const renderServiceDocuments = (service) => {
     const admin = isCentralAdmin();
-    const docs = service.rssp.documents;
-    const required = docs.filter((doc) => serviceDocRequired(service, doc)).length;
-    const hidden = docs.filter((doc) => !serviceDocVisible(service, doc)).length;
-    return renderStackedList("Documente însoțitoare", docs.length ? [{ label: "", items: docs.map((doc, index) => {
-      const visible = serviceDocVisible(service, doc);
-      const value = serviceDocRequired(service, doc);
-      const changed = !visible || value !== Boolean(doc.required);
+    const docs = serviceDocs(service);
+    const active = docs.filter((d) => d.state !== "Inactiv");
+    const required = active.filter((d) => d.required).length;
+    const order = service.geap.requestTypes.map((rt) => rt.name);
+    const groups = order.map((rt) => ({ label: rt, items: docs.filter((d) => d.requestTypes.includes(rt)) })).filter((g) => g.items.length);
+    const item = (doc) => {
+      const menu = !admin || doc.source !== "SIA GEAP" ? [] : [
+        ...(doc.published && doc.state === "Activ" ? [{ label: "Dezactivează", icon: "pause", attrs: `data-doc-action="deactivate" data-doc-id="${doc.id}"` }] : []),
+        ...(doc.state === "Inactiv" ? [{ label: "Activează", icon: "checkmark-large", attrs: `data-doc-action="activate" data-doc-id="${doc.id}"` }] : []),
+        ...(!doc.published ? [{ label: "Elimină", icon: "delete", danger: true, attrs: `data-doc-action="remove" data-doc-id="${doc.id}"` }] : [])
+      ];
       return {
         plainTitle: doc.title,
         title: escapeHtml(doc.title),
         leadHtml: '<img class="e-permits-fo-lib-item__icon" src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">',
-        badges: changed ? [renderTag("Modificat în GEAP", "brand")] : [],
-        meta: [renderTag("RSSP", "neutral"), `În RSSP: ${doc.required ? "obligatoriu" : "opțional"}`, ...(visible ? [] : ["Nu apare în cerere"])],
-        /* two checkboxes, each in a small grey container; Obligatoriu carries the red star */
-        actionsHtml: `<div class="e-permits-check-options">
-          ${renderCheckOption({ label: "Afișează", checked: visible, disabled: !admin, attrs: `data-svc-doc-visible="${index}"` })}
-          ${renderCheckOption({ label: "Obligatoriu", checked: value, disabled: !admin || !visible, required: true, attrs: `data-svc-doc-required="${index}"`, reason: admin && !visible ? "Bifează întâi „Afișează” — un document care nu apare în cerere nu poate fi obligatoriu." : "" })}
-        </div>`
+        badges: [renderTag(doc.source, doc.source === "RSSP" ? "neutral" : "brand"), ...(doc.state === "Inactiv" ? [renderTag("Inactiv", "neutral")] : []), ...(doc.published ? [] : [renderTag("Nepublicat", "warning")])],
+        meta: [escapeHtml(doc.docType), doc.required ? "Obligatoriu" : "Opțional", docRulesLabel(doc)],
+        meta2: [applicantTags(doc.applicantTypes.map(docApplicantLabel))],
+        actionsHtml: renderRowActions({
+          preview: admin ? null : `data-doc-open="${doc.id}"`,
+          primary: admin ? { label: "Editează", attrs: `data-doc-open="${doc.id}"` } : null,
+          menu, label: doc.title
+        })
       };
-    }) }] : [], {
-      meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}${hidden ? ` · ${hidden} ${hidden === 1 ? "ascuns" : "ascunse"}` : ""}`,
-      empty: "Serviciul nu are documente însoțitoare în RSSP."
+    };
+    return renderStackedList("Documente însoțitoare", groups.map((g) => ({ label: g.label, items: g.items.map(item) })), {
+      meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}${docs.length > active.length ? ` · ${docs.length - active.length} ${docs.length - active.length === 1 ? "inactiv" : "inactive"}` : ""}`,
+      actionHtml: admin ? `<button class="btn btn-secondary btn-sm" type="button" data-doc-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă document</span></button>` : "",
+      empty: "Serviciul nu are documente însoțitoare."
     });
   };
 
@@ -6790,7 +6863,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const configuredTypes = geap.requestTypes.filter((rt) => passport.requestTypeState(rt).label === "Configurat").length;
     const publishedForms = geap.forms.filter((form) => form.status === "Published").length;
     const tariffs = serviceTariffList(service);
-    const requiredDocs = rssp.documents.filter((doc) => serviceDocRequired(service, doc)).length;
+    const docsAll = serviceDocs(service).filter((d) => d.state !== "Inactiv");
+    const requiredDocs = docsAll.filter((doc) => serviceDocRequired(service, doc)).length;
     const withLink = (text, tabId, label) => `${text}<span class="e-permits-passport__row-link">${passportTabLink(service, tabId, label)}</span>`;
     const connected = (on, detail) => `${renderTag(on ? "Conectat" : "Neutilizat", on ? "success" : "neutral")}<span class="e-permits-passport__row-note">${escapeHtml(detail)}</span>`;
     const mconnect = svcClassifiers(service).filter((item) => item.source === "MConnect").length;
@@ -6824,7 +6898,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Formulare electronice", withLink(`${plural(publishedForms, "publicat", "publicate")} · ${geap.forms.length - publishedForms} în schiță`, "forms", "Vezi formularele")],
         ["Șabloane de tipar", withLink(plural(geap.templates.length, "șablon", "șabloane"), "templates", "Vezi șabloanele")],
         ["Taxe", withLink(`${plural(serviceTaxes(service).length, "taxă", "taxe")} · ${plural(tariffs.length, "tarif", "tarife")}${unconfiguredServiceTariffs(service).length ? ` · ${unconfiguredServiceTariffs(service).length} de configurat` : ""}`, "fees", "Vezi taxele")],
-        ["Documente însoțitoare", rssp.documents.length ? withLink(`${rssp.documents.length} · ${requiredDocs} obligatorii`, "documents", "Vezi documentele") : "—"],
+        ["Documente însoțitoare", docsAll.length ? withLink(`${docsAll.length} · ${requiredDocs} obligatorii`, "documents", "Vezi documentele") : "—"],
         ["Tipuri solicitanți", applicantTags(rssp.applicantTypes)]
       ], "GEAP")}
       ${renderEventTimeline("Ultimele modificări", geap.events.slice(0, 3), {
@@ -16181,27 +16255,298 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  /* Documente: „Afișează” / „Obligatoriu” go into the service draft like a setting */
-  permitsProfilePanel?.addEventListener("change", (event) => {
-    const input = event.target.closest("[data-svc-doc-required], [data-svc-doc-visible]");
-    const service = input && getServiceByCode(serviceProfileState.code);
-    if (!service) return;
-    const isVisible = input.dataset.svcDocVisible !== undefined;
-    const index = isVisible ? input.dataset.svcDocVisible : input.dataset.svcDocRequired;
-    const doc = service.rssp.documents[Number(index)];
-    const key = isVisible ? "documentVisible" : "documentRequired";
-    const rssp = isVisible ? true : Boolean(doc.required);
-    service.geap[key] = { ...(service.geap[key] || {}), [doc.title]: input.checked };
-    if (input.checked === rssp) delete service.geap[key][doc.title];
-    const what = isVisible ? (input.checked ? "afișat în cerere" : "ascuns din cerere") : (input.checked ? "obligatoriu" : "opțional");
-    logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: "Editare document însoțitor", status: "Reușit", detail: `${doc.title}: ${what}` }], { render: false });
-    const attr = isVisible ? "data-svc-doc-visible" : "data-svc-doc-required";
-    setTimeout(() => {
-      if (permitsProfilePanel.hidden || serviceProfileState.code !== service.code) return;
+  /* Documente › document drawer (US-225): data (read-only for RSSP) + „Reguli de solicitare”
+     with the Form Designer rule builder (US-42): rule = type („Afișează” / „Setează ca
+     obligatoriu”) „acest document”, „Când” + conditions (câmp · operator · Valoare / Alt câmp ·
+     valoare), joined by Și / Sau; „Adaugă condiție”, „Adaugă regulă”. Draft until Salvează. */
+  const docDrawer = document.querySelector("[data-doc-drawer]");
+  const docDrawerBody = docDrawer?.querySelector("[data-doc-body]");
+  let docDraft = null, docReturnFocus = null;
+  const DOC_REQ = "Câmpul este obligatoriu.";
+  const docClone = (x) => JSON.parse(JSON.stringify(x));
+  const docNewCondition = () => ({ field: "", op: "", mode: "value", value: "", other: "" });
+  const docErr = (key) => clasFieldError(docDraft.errors, key);
+  const docInput = (key, label, value, { span = 12, required = true } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <label for="doc-${key}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
+      <div class="e-permits-fo-input${docDraft.errors[key] ? " is-error" : ""}"><input id="doc-${key}" type="text" maxlength="200" value="${escapeHtml(value || "")}" autocomplete="off"${docDraft.errors[key] ? ' aria-invalid="true"' : ""} data-doc-input="${key}"></div>
+      ${docErr(key)}
+    </div>`;
+  const docChecks = (key, label, options, chosen, { span = 12, labelOf = (o) => o, iconOf = () => "" } = {}) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <span class="e-permits-cfg-ro__label" id="doc-${key}-label">${escapeHtml(label)}${requiredMark()}</span>
+      <div class="e-permits-check-options" role="group" aria-labelledby="doc-${key}-label">
+        ${options.map((o) => renderCheckOption({ label: labelOf(o), icon: iconOf(o), checked: chosen.includes(o), attrs: `value="${escapeHtml(o)}" data-doc-check="${key}"` })).join("")}
+      </div>
+      ${docErr(key)}
+    </div>`;
+  const docRo = (label, html, span = 12) => `
+    <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
+      <span class="e-permits-cfg-ro__label">${escapeHtml(label)}</span>
+      <div class="e-permits-cfg-ro">${html}</div>
+    </div>`;
+  const docSelect = (id, attrs, placeholder, options, value, { error = false, disabled = false } = {}) => renderFoSelectControl({ id, attrs, error, disabled, label: (attrs.match(/aria-label="([^"]*)"/) || [])[1] || "", optionsHtml: `
+    <option value=""${value ? "" : " selected"} disabled>${escapeHtml(placeholder)}</option>
+    ${options.map(([v, l]) => `<option value="${escapeHtml(v)}"${v === value ? " selected" : ""}>${escapeHtml(l)}</option>`).join("")}` });
+
+  /* one condition = one sentence row (Notion / Linear / Google Analytics filters):
+     câmp ▾ · operator ▾ · [Valoare▾ | value] · ×; „Când” above the rows, „și ▾ / sau” on its own
+     line between them. „Valoare / Alt câmp”
+     is the left part of the value control (one bordered group), so it reads as „what is this
+     value”, attached to the input it changes */
+  /* a keyword of the rule sentence as a code token (monospace, grey, no border) */
+  const docKw = (text) => `<code class="e-permits-doc-kw">${escapeHtml(text)}</code>`;
+  const DOC_ICON_X = '<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>';
+  const renderDocCondition = (rule, ri, c, ci, fields) => {
+    const field = fields.find((f) => f.id === c.field);
+    const k = `${ri}.${ci}`, ro = docDraft.readonly;
+    const ops = field ? DOC_OPS_BY_TYPE(field.type) : [];
+    const needsValue = Boolean(c.op) && !DOC_NO_VALUE.includes(c.op);
+    const others = field ? fields.filter((f) => f.id !== field.id && f.type === field.type) : [];
+    const vErr = Boolean(docDraft.errors[`v${k}`]);
+    const at = `data-doc-rule="${ri}" data-doc-ci="${ci}"`;
+    let input = "";
+    if (c.mode === "field") {
+      input = docSelect(`doc-other-${ri}-${ci}`, `data-doc-cond="other" ${at} aria-label="Alt câmp"`, others.length ? "Alege câmpul" : "Niciun câmp de același tip", others.map((f) => [f.id, f.label]), c.other, { disabled: ro || !others.length });
+    } else if (field?.options && c.op === "in") {
+      const vals = (c.value || "").split("|").filter(Boolean);
+      input = `<div class="e-permits-check-options e-permits-doc-val__checks" role="group" aria-label="Valori">${field.options.map((o) => renderCheckOption({ label: o, checked: vals.includes(o), disabled: ro, attrs: `value="${escapeHtml(o)}" data-doc-cond="values" ${at}` })).join("")}</div>`;
+    } else if (field?.options) {
+      input = docSelect(`doc-value-${ri}-${ci}`, `data-doc-cond="value" ${at} aria-label="Valoare"`, "Alege valoarea", field.options.map((o) => [o, o]), c.value, { disabled: ro });
+    } else {
+      const ph = field?.type === "date" ? "zz.ll.aaaa" : field?.type === "number" ? "Ex. 200" : c.op === "in" ? "Valori, separate prin virgulă" : "Valoare";
+      input = `<input id="doc-value-${ri}-${ci}" class="e-permits-doc-val__input" type="text" value="${escapeHtml(c.value)}" placeholder="${ph}" aria-label="Valoare" autocomplete="off"${field?.type === "number" ? ' inputmode="decimal"' : ""}${ro ? " readonly" : ""} data-doc-cond="value" ${at}>`;
+    }
+    /* „În listă” compares with values only; gol / completat need no value */
+    const canField = c.op !== "in";
+    const value = !c.op ? `<div class="e-permits-doc-val is-empty" aria-hidden="true"><span>Valoare</span></div>`
+      : !needsValue ? `<div class="e-permits-doc-val is-empty"><span>Fără valoare</span></div>`
+      : `<div class="e-permits-doc-val${vErr ? " is-error" : ""}${c.op === "in" && field?.options && c.mode !== "field" ? " is-checks" : ""}">
+          ${canField ? `<div class="e-permits-doc-val__mode">${docSelect(`doc-mode-${ri}-${ci}`, `data-doc-mode-select ${at} aria-label="Compară cu"`, "Valoare", [["value", "Valoare"], ["field", "Alt câmp"]], c.mode, { disabled: ro })}</div>` : ""}
+          <div class="e-permits-doc-val__control">${input}</div>
+        </div>`;
+    return `
+      <li class="e-permits-doc-cond" data-doc-condition="${k}">
+        <div class="e-permits-doc-cond__cell">${docSelect(`doc-field-${ri}-${ci}`, `data-doc-cond="field" ${at} aria-label="Câmp din cerere"`, "Câmp din cerere", fields.map((f) => [f.id, f.label]), c.field, { error: Boolean(docDraft.errors[`f${k}`]), disabled: ro || !fields.length })}${docErr(`f${k}`)}</div>
+        <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${docSelect(`doc-op-${ri}-${ci}`, `data-doc-cond="op" ${at} aria-label="Operator"`, "Operator", ops.map((o) => [o, DOC_OPS[o]]), c.op, { error: Boolean(docDraft.errors[`o${k}`]), disabled: ro || !field })}${docErr(`o${k}`)}</div>
+        <div class="e-permits-doc-cond__cell">${value}${docErr(`v${k}`)}</div>
+        ${ro ? "" : rule.conditions.length > 1
+          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-doc-cond-remove="${k}">${DOC_ICON_X}</button>`
+          : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
+      </li>`;
+  };
+  const renderDocRule = (rule, ri, fields) => {
+    const ro = docDraft.readonly, d = docDraft.doc;
+    return `
+      <div class="e-permits-doc-rule" data-doc-rule-block="${ri}">
+        <div class="e-permits-doc-rule__head">
+          <div class="e-permits-doc-rule__type">${docSelect(`doc-rtype-${ri}`, `data-doc-rtype="${ri}" aria-label="Tipul regulii ${ri + 1}"`, "Tipul regulii", DOC_RULE_TYPES, rule.type, { disabled: ro })}</div>
+          <span class="e-permits-doc-rule__target">${docKw("acest document")}</span>
+          ${ro ? "" : `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula ${ri + 1}" data-doc-rule-remove="${ri}">Elimină</button>`}
+        </div>
+        ${rule.type === "require" && d.source === "RSSP" && d.required ? `<span class="message message--inline message--warning"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg><span>Documentul este deja obligatoriu conform RSSP.</span></span>` : ""}
+        <div class="e-permits-doc-rule__when">${docKw("Când")}</div>
+        <ol class="e-permits-doc-rule__conds" role="list">${rule.conditions.map((c, ci) => `${ci === 0 ? ""
+          : ci === 1 && !ro ? `<li class="e-permits-doc-cond__join e-permits-doc-kwselect" data-fo-list-min="120">${docSelect(`doc-join-${ri}`, `data-doc-join-select="${ri}" aria-label="Combinarea condițiilor"`, "și", [["and", "și"], ["or", "sau"]], rule.join)}</li>`
+          : `<li class="e-permits-doc-cond__join">${docKw(rule.join === "or" ? "sau" : "și")}</li>`}${renderDocCondition(rule, ri, c, ci, fields)}`).join("")}</ol>
+        ${ro ? "" : `<div class="e-permits-doc-rule__foot"><button class="btn btn-text-primary btn-sm" type="button" data-doc-cond-add="${ri}"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă condiție</span></button></div>`}
+      </div>`;
+  };
+  const renderDocDrawer = () => {
+    if (!docDrawer || !docDraft) return;
+    const service = getServiceByCode(docDraft.code), d = docDraft.doc, ro = docDraft.readonly;
+    const rssp = d.source === "RSSP";
+    const fields = docFormFields(d.requestTypes);
+    const rts = service.geap.requestTypes.map((rt) => rt.name);
+    docDrawer.querySelector("[data-doc-title]").textContent = docDraft.isNew ? "Document nou" : d.title || "Document";
+    docDrawer.querySelector("[data-doc-subtitle]").textContent = `${service.title} · ${rssp ? "din RSSP" : "adăugat în SIA GEAP"}`;
+    const top = docDrawerBody.scrollTop;
+    docDrawerBody.innerHTML = `
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Date document</h3>
+        <div class="e-permits-user-create__section-content">
+        ${rssp ? renderInfoNote("<strong>Document din RSSP.</strong> Datele lui se actualizează doar la sincronizare; aici configurezi regulile de solicitare.") : ""}
+        <div class="e-permits-user-create__grid">
+          ${rssp || ro ? `
+            ${docRo("Denumire (ro)", escapeHtml(d.title))}
+            ${docRo("Denumire (ru)", escapeHtml(d.titleRu || "—"), 6)}${docRo("Denumire (en)", escapeHtml(d.titleEn || "—"), 6)}
+            ${docRo("Tip document", escapeHtml(d.docType), 6)}${docRo("Obligatoriu", d.required ? "Da" : "Nu", 6)}
+            ${docRo("Tip solicitare", valueTags(d.requestTypes))}
+            ${docRo("Tip solicitant", applicantTags(d.applicantTypes.map(docApplicantLabel)))}` : `
+            ${docInput("title", "Denumire (ro)", d.title)}
+            ${docInput("titleRu", "Denumire (ru)", d.titleRu, { span: 6 })}${docInput("titleEn", "Denumire (en)", d.titleEn, { span: 6 })}
+            ${docInput("docType", "Tip document", d.docType, { span: 6 })}
+            <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6 e-permits-doc-required">
+              <span class="e-permits-cfg-ro__label" aria-hidden="true">&nbsp;</span>
+              <div class="e-permits-check-options">${renderCheckOption({ label: "Obligatoriu", checked: d.required, required: true, attrs: "data-doc-required-check" })}</div>
+            </div>
+            ${docChecks("requestTypes", "Tip solicitare", rts, d.requestTypes)}
+            ${docChecks("applicantTypes", "Tip solicitant", DOC_APPLICANT_TYPES, d.applicantTypes, { labelOf: docApplicantLabel, iconOf: (o) => applicantIcon(docApplicantLabel(o)) })}`}
+        </div>
+        </div>
+      </section>
+      <section class="e-permits-user-create__section">
+        <h3 class="e-permits-user-create__section-title">Reguli de solicitare</h3>
+        <div class="e-permits-user-create__section-content">
+        ${fields.length ? `<p class="e-permits-fo-field__hint">${d.rules.length ? "„Afișează”: documentul se cere doar dacă cererea îndeplinește cel puțin o regulă. „Setează ca obligatoriu”: un document opțional devine obligatoriu când regula e îndeplinită." : "Fără reguli, documentul se cere la toate cererile tipurilor de solicitare și de solicitant alese."}</p>` : renderInfoNote("Bifează întâi tipul de solicitare: condițiile folosesc câmpurile din formularul de cerere al acestuia.")}
+        ${d.rules.length ? `<div class="e-permits-doc-rules">${d.rules.map((r, ri) => renderDocRule(r, ri, fields)).join("")}</div>` : ""}
+        ${ro ? "" : `<div><button class="btn btn-secondary btn-sm" type="button" data-doc-rule-add${fields.length ? "" : " disabled"}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă regulă</span></button></div>`}
+        </div>
+      </section>`;
+    docDrawerBody.scrollTop = top;
+    docDrawer.querySelector("[data-doc-summary]").textContent = d.editedAt ? `Editat ${formatStamp(d.editedAt)} · ${d.editedBy}` : "";
+    docDrawer.querySelector("[data-doc-buttons]").innerHTML = ro
+      ? `<button class="btn btn-neutral btn-rounded" type="button" data-doc-close>Închide</button>`
+      : `<button class="btn btn-neutral btn-rounded" type="button" data-doc-close>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-doc-save>${docDraft.isNew ? "Adaugă documentul" : "Salvează"}</button>`;
+  };
+  const openDocDrawer = (id = null) => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!docDrawer || !service) return;
+    const docs = serviceDocs(service);
+    const doc = id ? docs.find((x) => x.id === id) : { id: `doc-n${Date.now()}`, title: "", titleRu: "", titleEn: "", docType: "", requestTypes: [], applicantTypes: [], required: false, source: "SIA GEAP", state: "Activ", published: false, rules: [], editedAt: null, editedBy: null };
+    if (!doc) return;
+    docDraft = { code: service.code, doc: docClone(doc), isNew: !id, readonly: !isCentralAdmin(), errors: {} };
+    docReturnFocus = document.activeElement;
+    renderDocDrawer();
+    docDrawerBody.scrollTop = 0;
+    docDrawer.hidden = false;
+    document.body.classList.add("is-user-create-open");
+    requestAnimationFrame(() => (docDrawerBody.querySelector("#doc-title") || docDrawer.querySelector(".e-permits-user-create__close"))?.focus());
+  };
+  const closeDocDrawer = () => {
+    if (!docDrawer || docDrawer.hidden || docDrawer.classList.contains("is-closing")) return;
+    closeFoSelect();
+    docDrawer.classList.add("is-closing");
+    window.setTimeout(() => {
+      docDrawer.hidden = true;
+      docDrawer.classList.remove("is-closing");
+      document.body.classList.remove("is-user-create-open");
+      docDraft = null;
+      docReturnFocus?.focus?.();
+    }, 200);
+  };
+  const docValidate = () => {
+    const d = docDraft.doc, e = {};
+    if (d.source !== "RSSP") {
+      ["title", "titleRu", "titleEn", "docType"].forEach((k) => { if (!String(d[k] || "").trim()) e[k] = DOC_REQ; });
+      if (!d.requestTypes.length) e.requestTypes = DOC_REQ;
+      if (!d.applicantTypes.length) e.applicantTypes = DOC_REQ;
+    }
+    d.rules.forEach((r, ri) => r.conditions.forEach((c, ci) => {
+      const k = `${ri}.${ci}`;
+      if (!c.field) e[`f${k}`] = DOC_REQ;
+      else if (!c.op) e[`o${k}`] = DOC_REQ;
+      else if (!DOC_NO_VALUE.includes(c.op) && !(c.mode === "field" ? c.other : String(c.value || "").trim())) e[`v${k}`] = DOC_REQ;
+    }));
+    docDraft.errors = e;
+    return !Object.keys(e).length;
+  };
+  const saveDocDrawer = () => {
+    if (!docValidate()) {
+      renderDocDrawer();
+      docDrawerBody.querySelector(".is-error input, .is-error, .e-permits-fo-field__error")?.closest(".e-permits-fo-field")?.scrollIntoView({ block: "center" });
+      (docDrawerBody.querySelector(".is-error input") || docDrawerBody.querySelector(".e-permits-fo-select.is-error button, .is-error button"))?.focus();
+      return;
+    }
+    const service = getServiceByCode(docDraft.code), docs = serviceDocs(service), d = docDraft.doc;
+    d.editedAt = localIsoNow(); d.editedBy = currentUserName();
+    const i = docs.findIndex((x) => x.id === d.id);
+    const before = i >= 0 ? docs[i] : null;
+    if (i >= 0) docs[i] = d; else docs.push(d);
+    const changes = before ? [
+      ...(JSON.stringify(before.rules) !== JSON.stringify(d.rules) ? [`reguli: ${docRulesLabel(before).toLowerCase()} → ${docRulesLabel(d).toLowerCase()}`] : []),
+      ...["title", "docType", "required"].filter((k) => before[k] !== d[k]).map((k) => `${k === "title" ? "denumire" : k === "docType" ? "tip document" : "obligatoriu"}: ${before[k] === true ? "Da" : before[k] === false ? "Nu" : before[k]} → ${d[k] === true ? "Da" : d[k] === false ? "Nu" : d[k]}`),
+      ...["requestTypes", "applicantTypes"].filter((k) => before[k].join() !== d[k].join()).map((k) => `${k === "requestTypes" ? "tip solicitare" : "tip solicitant"}: ${d[k].join(", ")}`)
+    ] : [];
+    logServiceEvents(service.code, [{ at: d.editedAt, user: d.editedBy, type: before ? "Editare document însoțitor" : "Adăugare document însoțitor", status: "Reușit", detail: `${d.title}${changes.length ? `: ${changes.join("; ")}` : ""}` }], { render: false });
+    const added = !before;
+    closeDocDrawer();
+    window.setTimeout(() => { renderServiceProfile(); permitsProfilePanel.querySelector(`[data-doc-open="${d.id}"]`)?.focus(); showShellToast(added ? `Documentul „${d.title}” a fost adăugat.` : "Documentul a fost salvat."); }, 220);
+  };
+  const docCondAt = (el) => docDraft.doc.rules[Number(el.dataset.docRule)].conditions[Number(el.dataset.docCi)];
+  const docRefocus = (selector) => { renderDocDrawer(); docDrawerBody.querySelector(selector)?.focus(); };
+  docDrawer?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-doc-close]")) { closeDocDrawer(); return; }
+    if (!docDraft) return;
+    if (event.target.closest("[data-doc-save]")) { saveDocDrawer(); return; }
+    const d = docDraft.doc;
+    if (event.target.closest("[data-doc-rule-add]")) {
+      d.rules.push({ type: "show", join: "and", conditions: [docNewCondition()] });
+      return docRefocus(`#doc-rtype-${d.rules.length - 1}`);
+    }
+    const rr = event.target.closest("[data-doc-rule-remove]");
+    if (rr) { d.rules.splice(Number(rr.dataset.docRuleRemove), 1); docDraft.errors = {}; return docRefocus("[data-doc-rule-add]"); }
+    const ca = event.target.closest("[data-doc-cond-add]");
+    if (ca) { const ri = Number(ca.dataset.docCondAdd); d.rules[ri].conditions.push(docNewCondition()); return docRefocus(`#doc-field-${ri}-${d.rules[ri].conditions.length - 1}`); }
+    const cr = event.target.closest("[data-doc-cond-remove]");
+    if (cr) { const [ri, ci] = cr.dataset.docCondRemove.split(".").map(Number); d.rules[ri].conditions.splice(ci, 1); docDraft.errors = {}; return docRefocus(`[data-doc-cond-add="${ri}"]`); }
+  });
+  docDrawer?.addEventListener("input", (event) => {
+    if (!docDraft) return;
+    const t = event.target;
+    if (t.matches("[data-doc-input]")) { docDraft.doc[t.dataset.docInput] = t.value; delete docDraft.errors[t.dataset.docInput]; return; }
+    if (t.matches('input[type="text"][data-doc-cond="value"]')) { docCondAt(t).value = t.value; }
+  });
+  docDrawer?.addEventListener("change", (event) => {
+    if (!docDraft) return;
+    const t = event.target, d = docDraft.doc;
+    if (t.matches("[data-doc-check]")) {
+      const key = t.dataset.docCheck;
+      d[key] = [...docDrawerBody.querySelectorAll(`[data-doc-check="${key}"]:checked`)].map((x) => x.value);
+      delete docDraft.errors[key];
+      /* the request types decide the fields a condition can use: drop what no longer exists */
+      if (key === "requestTypes") { const ids = docFormFields(d.requestTypes).map((f) => f.id); d.rules.forEach((r) => r.conditions.forEach((c) => { if (c.field && !ids.includes(c.field)) Object.assign(c, docNewCondition()); })); return docRefocus(`[data-doc-check="requestTypes"][value="${t.value}"]`); }
+      return;
+    }
+    if (t.matches("[data-doc-required-check]")) { d.required = t.checked; return; }
+    if (t.matches("[data-doc-mode-select]")) { const c = docCondAt(t); c.mode = t.value; c.value = ""; c.other = ""; delete docDraft.errors[`v${t.dataset.docRule}.${t.dataset.docCi}`]; return docRefocus(`#doc-${c.mode === "field" ? "other" : "value"}-${t.dataset.docRule}-${t.dataset.docCi}`); }
+    if (t.matches("[data-doc-join-select]")) { d.rules[Number(t.dataset.docJoinSelect)].join = t.value; return docRefocus(`#doc-join-${t.dataset.docJoinSelect}`); }
+    if (t.matches("[data-doc-rtype]")) { d.rules[Number(t.dataset.docRtype)].type = t.value; return docRefocus(`#doc-rtype-${t.dataset.docRtype}`); }
+    if (t.matches("[data-doc-cond]")) {
+      const c = docCondAt(t), k = `${t.dataset.docRule}.${t.dataset.docCi}`, what = t.dataset.docCond;
+      if (what === "field") { c.field = t.value; c.op = ""; c.value = ""; c.other = ""; delete docDraft.errors[`f${k}`]; }
+      else if (what === "op") { c.op = t.value; if (c.op === "in" || DOC_NO_VALUE.includes(c.op)) { c.value = ""; c.mode = "value"; } delete docDraft.errors[`o${k}`]; }
+      else if (what === "value") { c.value = t.value; delete docDraft.errors[`v${k}`]; if (t.type === "text") return; }
+      else if (what === "other") { c.other = t.value; delete docDraft.errors[`v${k}`]; }
+      else if (what === "values") { c.value = [...docDrawerBody.querySelectorAll(`[data-doc-cond="values"][data-doc-rule="${t.dataset.docRule}"][data-doc-ci="${t.dataset.docCi}"]:checked`)].map((x) => x.value).join("|"); delete docDraft.errors[`v${k}`]; return; }
+      return docRefocus(`#doc-${what === "field" ? "op" : what}-${t.dataset.docRule}-${t.dataset.docCi}`);
+    }
+  });
+  /* aria-modal: Tab stays inside the drawer */
+  docDrawer?.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab" || document.querySelector("body > .e-permits-fo-select__list")) return;
+    const aside = docDrawer.querySelector("aside");
+    const items = [...aside.querySelectorAll('button:not([disabled]), input:not([disabled]):not([type="hidden"]), [tabindex]:not([tabindex="-1"])')].filter((el) => el.offsetParent !== null);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && docDrawer && !docDrawer.hidden && !document.querySelector("body > .e-permits-fo-select__list") && !document.querySelector(".modal-overlay.is-active")) closeDocDrawer();
+  });
+  /* list: open, add, lifecycle (AC-09…AC-15), each confirmed */
+  permitsProfilePanel?.addEventListener("click", (event) => {
+    const open = event.target.closest("[data-doc-open]");
+    if (open) { openDocDrawer(open.dataset.docOpen); return; }
+    if (event.target.closest("[data-doc-add]")) { openDocDrawer(null); return; }
+    const act = event.target.closest("[data-doc-action]");
+    if (!act) return;
+    const service = getServiceByCode(serviceProfileState.code), docs = serviceDocs(service);
+    const doc = docs.find((x) => x.id === act.dataset.docId);
+    if (!doc) return;
+    const A = {
+      remove: { title: "Eliminați documentul?", text: "Sunteți sigur că doriți să eliminați documentul?", confirmLabel: "Elimină", destructive: true, run: () => docs.splice(docs.indexOf(doc), 1), log: "Eliminare document însoțitor", toast: "Documentul a fost eliminat." },
+      deactivate: { title: "Dezactivați documentul?", text: "Sunteți sigur că doriți să dezactivați documentul?", confirmLabel: "Dezactivează", destructive: true, run: () => { doc.state = "Inactiv"; }, log: "Dezactivare document însoțitor", toast: "Documentul a fost dezactivat." },
+      activate: { title: "Activați documentul?", text: "Sunteți sigur că doriți să activați documentul?", confirmLabel: "Activează", destructive: false, run: () => { doc.state = "Activ"; }, log: "Activare document însoțitor", toast: "Documentul a fost activat." }
+    }[act.dataset.docAction];
+    askConfirm(A, () => {
+      A.run();
+      logServiceEvents(service.code, [{ at: localIsoNow(), user: currentUserName(), type: A.log, status: "Reușit", detail: doc.title }], { render: false });
       renderServiceProfile();
-      permitsProfilePanel.querySelector(`[${attr}="${index}"]`)?.focus();
-    }, SERVICE_SETTING_SLIDE_MS);
-    /* a switch shows its own result — no toast (user, 2026-10-08) */
+      (permitsProfilePanel.querySelector(`[data-doc-open="${doc.id}"]`) || permitsProfilePanel.querySelector("[data-doc-add]"))?.focus();
+      showShellToast(A.toast);
+    });
   });
 
   /* =====================================================================

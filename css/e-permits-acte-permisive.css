@@ -21210,7 +21210,7 @@ body.is-ntpl-sheet-open {
 }
 
 .e-permits-ntpl-sheet__scrim {
-  animation: e-permits-user-create-scrim-in 120ms ease-out both;
+  animation: e-permits-user-create-scrim-in 120ms ease-out backwards;
   background: rgba(0, 0, 0, 0.4); /* library .modal-overlay backdrop */
   inset: 0;
   position: absolute;
@@ -21893,7 +21893,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 
 /* appears from behind the drawer, like the drawer itself (160ms ease-out, 24px) */
 .e-permits-doc-peek {
-  animation: e-permits-doc-peek-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-doc-peek-in 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .e-permits-doc-peek.is-closing {
@@ -22007,7 +22007,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 /* the preview open full screen (< 1232px): the drawer behind it dims with the page's
    backdrop colour, so the preview reads as the front layer */
 .e-permits-user-create--wide.has-peek-overlay .e-permits-user-create__drawer::after {
-  animation: e-permits-user-create-scrim-in 120ms ease-out both;
+  animation: e-permits-user-create-scrim-in 120ms ease-out backwards;
   background: rgb(18 18 18 / 36%); /* = .e-permits-user-create__scrim */
   content: "";
   inset: 0;
@@ -22384,6 +22384,17 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 }
 
 .modal-overlay.is-active:has(.e-permits-subdiv) {
+  will-change: auto;
+}
+
+/* the same for every open modal (confirmations, pending changes, certificate…): once open it
+   keeps no layer, so hover repaints as the pointer moves in GPU Chrome (2026-10-12) */
+.modal-overlay.is-active .modal {
+  transform: none;
+  will-change: auto;
+}
+
+.modal-overlay.is-active {
   will-change: auto;
 }
 
@@ -23155,4 +23166,267 @@ button.e-permits-steps-strip__cell:hover,
 .e-permits-fo-cert__lead {
   color: var(--color-text-base-secondary, #383838);
   margin: 0 0 var(--spacing-8, 8px);
+}
+
+/* Servicii › Documente › „Reguli de solicitare” (US-225) — the rule builder, read as sentences
+   (Notion / Linear / Google Analytics filters): each rule a white card (border, radius 12,
+   16 inset) — head „[Afișează ▾] acest document” + × — then one row per condition on a
+   5-column grid: prefix (Când / și ▾ / și) · câmp · operator · value · ×. The value is ONE
+   bordered group: „Valoare / Alt câmp” on its left, the input it governs on its right. */
+.e-permits-doc-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-doc-rule {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-doc-rule__head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-doc-rule__type {
+  flex: 0 0 240px;
+}
+
+/* „acest document”, „Când”, „și / sau” are keywords of the rule sentence, shown as code tokens
+   (GitHub / Linear / Notion): monospace, grey fill, no border. The ONE allowed monospace in the
+   product (user, 2026-10-12) — system mono stack, --font-family-mono when defined */
+.e-permits-doc-kw {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-default, #121212);
+  font-family: var(--font-family-mono, ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-2, 2px) var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+
+.e-permits-doc-rule__target {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.e-permits-doc-rule__conds {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-doc-cond {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.8fr) minmax(0, 1.5fr) 32px;
+}
+
+.e-permits-doc-cond__cell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-doc-cond__remove {
+  margin-top: var(--spacing-4, 4px);
+}
+
+/* the add link sits right under the last row, aligned with the rows */
+.e-permits-doc-rule__foot {
+  margin-top: calc(-1 * var(--spacing-4, 4px));
+}
+
+.e-permits-doc-rule__when,
+.e-permits-doc-cond__join {
+  margin-bottom: calc(-1 * var(--spacing-2, 2px));
+}
+
+.e-permits-doc-rule__when {
+  display: flex;
+}
+
+/* „și ▾ / sau” between two rows: its own line, the select only as wide as its word */
+.e-permits-doc-cond__join {
+  display: flex;
+}
+
+/* code layout (if / else): keywords on the left — „Când”, „și / sau” — and the conditions they
+   govern indented 16 under them, on a 2px guide line, like a code block */
+.e-permits-doc-rule__conds > .e-permits-doc-cond {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  margin-left: var(--spacing-8, 8px);
+  padding-left: var(--spacing-16, 16px);
+}
+
+/* the join switch looks like its keyword: a code token with a chevron */
+.e-permits-doc-kwselect .e-permits-fo-select__button {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: none;
+  font-family: var(--font-family-mono, ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace);
+  gap: var(--spacing-4, 4px);
+  height: 24px;
+  padding: 0 var(--spacing-4, 4px) 0 var(--spacing-8, 8px);
+  width: auto;
+}
+
+.e-permits-doc-kwselect .e-permits-fo-select__button:hover {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+  border: 0;
+  box-shadow: none;
+}
+
+.e-permits-doc-kwselect .e-permits-fo-select__button .icon {
+  height: 16px;
+  width: 16px;
+}
+
+.e-permits-doc-rule__foot {
+  padding-left: calc(var(--border-width-1, 1px) + var(--spacing-16, 16px));
+}
+
+
+/* value group: one border for „Valoare / Alt câmp” + its input; the inner controls lose their
+   own border and the group carries hover / focus / error, as a single field */
+.e-permits-doc-val {
+  align-items: stretch;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  display: flex;
+  min-height: 40px;
+}
+
+.e-permits-doc-val:hover {
+  border-color: var(--color-border-base-tertiary, #444);
+  box-shadow: inset 0 0 0 1px var(--color-border-base-tertiary, #444);
+}
+
+.e-permits-doc-val:focus-within {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: inset 0 0 0 1px var(--color-border-brand-default, #0058d2), 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+.e-permits-doc-val.is-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-doc-val .e-permits-fo-select__button,
+.e-permits-doc-val .e-permits-fo-select__button:hover,
+.e-permits-doc-val .e-permits-fo-select__button:focus-visible,
+.e-permits-doc-val .e-permits-fo-select.is-open .e-permits-fo-select__button {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  height: 38px;
+}
+
+/* the divider is inset 8px top and bottom, so it never crosses the group's focus ring */
+.e-permits-doc-val__mode {
+  flex: 0 0 112px;
+  position: relative;
+}
+
+.e-permits-doc-val__mode::after {
+  background: var(--color-border-base-default, #d9d9d9);
+  bottom: var(--spacing-8, 8px);
+  content: "";
+  position: absolute;
+  right: 0;
+  top: var(--spacing-8, 8px);
+  width: var(--border-width-1, 1px);
+}
+
+.e-permits-doc-val__mode .e-permits-fo-select__button {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.e-permits-doc-val__control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-permits-doc-val__input {
+  background: transparent;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  height: 38px;
+  outline: none;
+  padding: 0 var(--spacing-12, 12px);
+  width: 100%;
+}
+
+.e-permits-doc-val.is-checks .e-permits-doc-val__control {
+  padding: var(--spacing-4, 4px);
+}
+
+/* no operator yet / gol · completat: the slot stays, quiet, so the row keeps its shape */
+.e-permits-doc-val.is-empty,
+.e-permits-doc-val.is-empty:hover {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  padding: 0 var(--spacing-12, 12px);
+}
+
+@media (max-width: 720px) {
+  .e-permits-doc-cond {
+    grid-template-columns: minmax(0, 1fr) 32px;
+  }
+  .e-permits-doc-cond__cell {
+    grid-column: 1;
+  }
+  .e-permits-doc-cond__remove {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .e-permits-doc-rule__head {
+    flex-wrap: wrap;
+  }
+  .e-permits-doc-rule__type {
+    flex: 1 1 100%;
+  }
+}
+
+/* passport section heading: on a phone the caption + action wrap under the title instead of
+   sitting on the first group (Documente, persona review 2026-10-12) */
+@media (max-width: 640px) {
+  .e-permits-stack-section > .e-permits-dosar-profil__section-heading {
+    flex-wrap: wrap;
+  }
+  .e-permits-stack-section > .e-permits-dosar-profil__section-heading .e-permits-passport__heading-tools {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+}
+
+/* a check option with a leading glyph (PF / PJ): 16px, the label colour, gap 4 from the text */
+.checkbox.e-permits-check-option .e-permits-check-option__icon {
+  fill: currentColor;
+  flex: none;
+  height: 16px;
+  width: 16px;
 }

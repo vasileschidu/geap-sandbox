@@ -3529,7 +3529,7 @@ body.is-user-create-open {
   border: 0;
   background: rgb(18 18 18 / 36%);
   cursor: default;
-  animation: e-permits-user-create-scrim-in 120ms ease-out both;
+  animation: e-permits-user-create-scrim-in 120ms ease-out backwards;
 }
 
 .e-permits-user-create__drawer {
@@ -3548,7 +3548,10 @@ body.is-user-create-open {
     0 10px 24px rgb(0 0 0 / 8%),
     0 2px 8px rgb(0 0 0 / 8%);
   outline: 0;
-  animation: e-permits-user-create-drawer-in 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* backwards, not both: once the slide ends the drawer keeps no transform, so it is not left a
+     composited layer — with a scrolling body inside, GPU Chrome then repainted hover only on
+     the next click (same fix as the picker modal, 2026-10-12) */
+  animation: e-permits-user-create-drawer-in 160ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .e-permits-user-create.is-closing .e-permits-user-create__scrim {

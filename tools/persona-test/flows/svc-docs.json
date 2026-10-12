@@ -1,0 +1,21 @@
+{
+ "id": "svc-docs",
+ "name": "BO · Pașaport serviciu › Documente (US-225)",
+ "page": "e-permits-acte-permisive.html",
+ "figma": { "fileKey": "aHgwVwiNCOSOqbMhMjjUOj", "section": "9579:18258", "inventory": null },
+ "specs": "tools/persona-test/specs/svc",
+ "personas": ["admin-platforma", "spec-auditor", "design-system-guardian", "editor-romana", "accesibilitate"],
+ "note": "Drawer contents scroll inside the drawer: each drawer state also has desktop-rules.png (drawer scrolled to „Reguli de solicitare” / first error).",
+ "steps": [
+  { "step": "D1", "label": "Lista documentelor (grupate pe tip de solicitare)", "us": ["US-225"], "states": ["svc-06a"] },
+  { "step": "D2", "label": "Document din RSSP cu regulă „Afișează”", "us": ["US-225"], "states": ["svc-06b"] },
+  { "step": "D3", "label": "Document obligatoriu RSSP + regulă „Setează ca obligatoriu” (atenționare)", "us": ["US-225"], "states": ["svc-06c"] },
+  { "step": "D4", "label": "Document SIA GEAP: date editabile, regulă cu 2 condiții (Sau)", "us": ["US-225"], "states": ["svc-06d"] },
+  { "step": "D5", "label": "Condiție „Alt câmp”", "us": ["US-225"], "states": ["svc-06e"] },
+  { "step": "D6", "label": "Adaugă document (gol)", "us": ["US-225"], "states": ["svc-06f"] },
+  { "step": "D7", "label": "Salvează fără câmpuri obligatorii (validare)", "us": ["US-225"], "states": ["svc-06g"] },
+  { "step": "D8", "label": "Document nou completat + regulă", "us": ["US-225"], "states": ["svc-06h"] },
+  { "step": "D9", "label": "Dezactivează (confirmare)", "us": ["US-225"], "states": ["svc-06i"] },
+  { "step": "D10", "label": "Activează → modificări nepublicate", "us": ["US-225"], "states": ["svc-01i"] }
+ ]
+}
