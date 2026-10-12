@@ -555,6 +555,10 @@
     "svc-10l1": rapBig(),
     "svc-10l2": rapBig(rapOpen),
     "svc-10l3": rapBig(async (h) => { await rapOpen(h); await h.fill("[data-cfg-rap-search]", "CAEM", { leave: false }); }),
+    /* a long selection: 10 rows + „Încă N · Arată toate” (71 published); „Arată toate” after
+       02s8d (13 published) → the picker on Publicate (02s8e) */
+    "svc-10l5": rapBig(async (h) => { await rapOpen(h); await h.click('[data-cfg-rap-section="Câmpuri specifice serviciului"] [data-cfg-rap-all]'); await h.click("[data-cfg-rap-apply]"); await h.wait(300); }),
+    "svc-10l6": rapBig(async (h) => { await rapOpen(h); await h.click('[data-cfg-rap-section="Detalii solicitare"] [data-cfg-rap-all]'); await h.click("[data-cfg-rap-apply]"); await h.wait(300); await h.click('[data-cfg-rap-open="published"]'); }),
     "svc-10l4": rapBig(async (h) => { await rapOpen(h); await h.click('[data-cfg-rap-section="Detalii solicitare"] [data-cfg-rap-all]'); await h.click("[data-cfg-rap-apply]"); await h.wait(300); }),
     "svc-10m": svc("settings", cfgNav("drafts")),
     "svc-10p": svc("settings", cfgNav("appeal")),

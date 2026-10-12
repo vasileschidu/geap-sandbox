@@ -16288,14 +16288,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   /* rows in form order; a composite field (editable grid) is one container — name + „Tabel”
      + a hint on a grey head, its columns as rows inside; each column is published on its own */
-  const cfgRapItemsHtml = (shown, all, isPub, isAnon, kind) => {
+  const cfgRapItemsHtml = (shown, all, isPub, isAnon, kind, pubAll = shown) => {
     const done = new Set();
     return shown.map((x) => {
       if (!x.group) return cfgRapRowHtml(x, isPub(x), isAnon(x), kind);
       if (done.has(x.group)) return "";
       done.add(x.group);
       const cols = shown.filter((y) => y.group === x.group), total = all.filter((y) => y.group === x.group).length;
-      const hint = kind === "modal" ? `${total} coloane` : `${cols.length} din ${total} coloane publicate`;
+      const hint = kind === "modal" ? `${total} coloane` : `${pubAll.filter((y) => y.group === x.group).length} din ${total} coloane publicate`;
       return `<li class="e-permits-cfg-rap__group">
             <div class="e-permits-cfg-rap__table">
               <div class="e-permits-cfg-rap__table-head">
@@ -16498,9 +16498,13 @@ document.addEventListener("DOMContentLoaded", () => {
     value.textContent = text || "Alege câmpurile";
     value.classList.toggle("e-permits-fo-subgen-select__value--placeholder", !text);
   };
+  const CFG_RAP_ROWS = 10;
   const cfgRapPicks = (service) => {
     const all = cfgRapCatalog(service), on = new Map((cfgDraft.v.rap || []).map((x) => [x.field, x]));
-    const shown = all.filter((x) => on.has(x.field)), text = cfgRapCountText(all, cfgDraft.v.rap || []);
+    const pub = all.filter((x) => on.has(x.field)), text = cfgRapCountText(all, cfgDraft.v.rap || []);
+    /* a long selection: the first CFG_RAP_ROWS fields, the rest behind „Încă N · Arată toate”
+       (opens the picker on Publicate), as the chips under Subdiviziuni */
+    const shown = pub.slice(0, CFG_RAP_ROWS), rest = pub.length - shown.length;
     return cfgGrid(cfgField("rap", "Câmpuri publicate în RAP", `
       <div class="e-permits-cfg-picks e-permits-cfg-rap-summary">
         <div class="e-permits-fo-subgen-select" data-cfg-rap-select>
@@ -16509,7 +16513,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
           </button>
         </div>
-        ${shown.length ? `<ul class="e-permits-cfg-rap" role="list">${cfgRapItemsHtml(shown, all, () => true, (x) => Boolean(on.get(x.field)?.anon), "inline")}</ul>` : ""}
+        ${shown.length ? `<ul class="e-permits-cfg-rap" role="list">${cfgRapItemsHtml(shown, all, () => true, (x) => Boolean(on.get(x.field)?.anon), "inline", pub)}</ul>` : ""}
+        ${rest ? `<button class="btn btn-text-primary btn-sm btn-rounded e-permits-cfg-picks__more" type="button" aria-haspopup="dialog" data-cfg-rap-open="published">Încă ${clasNumber(rest)} · Arată toate</button>` : ""}
       </div>`, { cls: "e-permits-cfg-checks", hintTop: true, labelFor: false, hint: "Alege câmpurile din cerere care se publică și pe cele care se anonimizează." }));
   };
   const cfgReadonly = (label, html) => `
@@ -16882,7 +16887,8 @@ document.addEventListener("DOMContentLoaded", () => {
       (left[Math.min(index, left.length - 1)] || cfg2Root().querySelector("#cfg-subdivisions"))?.focus();
       return;
     }
-    if (event.target.closest("[data-cfg-rap-open]")) { openCfgRap(); return; }
+    const rapOpen = event.target.closest("[data-cfg-rap-open]");
+    if (rapOpen) { openCfgRap(rapOpen.dataset.cfgRapOpen || "all"); return; }
     if (event.target.closest("[data-cfg2-dep-add]")) {
       const dep = { ...CFG2_EMPTY_DEP(), id: `dep-${Date.now()}` };
       cfg2.v.deps.push(dep);

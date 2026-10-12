@@ -5000,7 +5000,9 @@ Setări › Publicare în RAP switches by the size of the request form (`cfgRapC
   - The field „Câmpuri publicate în RAP” (`.e-permits-fo-subgen-select`, as Subdiviziuni)
     reads „N din M publicate · K anonimizate”. It updates live, opens the picker, and keeps
     `is-open` / `aria-expanded` while the picker is open.
-  - Under it: **only the published fields**, as the same rows, editable in place, in form order.
+  - Under it: **only the published fields**, as the same rows, editable in place, in form order —
+    the first **10** (`CFG_RAP_ROWS`), then `btn-text-primary btn-sm` „Încă N · Arată toate”,
+    which opens the picker on Publicate (the same as the chips under Subdiviziuni).
     There are no chips. (An action button „Editează câmpurile” was tried on 2026-10-12, and the
     user brought the dropdown back.)
 - **Composite field** (editable grid, e.g. CAEM) uses **lines only, no box**. (A bordered
