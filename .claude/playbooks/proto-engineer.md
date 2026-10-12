@@ -101,3 +101,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   brand-blue check in menus (icon = label colour), truncated summary labels on mobile (wrap them).
   Standing false positives: `e-permits-fo-copy-value` (button-not-library / icon colour), open menus
   overlapping content, `.u-visually-hidden` „clipped”, FO timeline gray-50.
+- 2026-10-12 · „hover breaks after I click something”: page-reveal.js re-marked items on every
+  re-render and only cleared its latest run, leaving older items with `animation … both` +
+  `will-change` (GPU Chrome stops repainting :hover). Fixed: reveal = `backwards`, no will-change,
+  every run clears its own items; all opening (`-in`) animations in the app CSS → `backwards`.
+  Test it headless: two clicks < 520ms apart, then hover a row (scratchpad hover.mjs pattern).
+- 2026-10-12 · `<a class="btn">` underlined on hover (library global `a:hover`) → `a.btn` never
+  underlines. Cabinet dropdowns = BO buttons (`btn-neutral btn-sm`, 16 icon, chevron), menus =
+  `.e-permits-stack__menu` size, ⋮ = `btn-strict btn-sm btn-icon-only` (32, radius 6).

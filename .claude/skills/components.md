@@ -4619,7 +4619,10 @@ with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp
 > 14/20 line with a 16 icon in the tone (warning #dc6803 / brand) and the date in medium; actions
 > right = one labelled primary (US-19 names) + ⋮ without that action; hover = tertiary fill, focus
 > ring inset; new row = brand-secondary fill; phone: actions under the text, primary full width,
-> ⋮ right. The card / strip description below is the earlier version (kept for the acts list).
+> ⋮ right. Toolbar Filtre / Sortează / „N pe pagină” = BO buttons (`btn btn-neutral btn-sm` + 16 icon,
+> chevron for menus); every cabinet menu also carries `.e-permits-stack__menu` (32px items); ⋮ =
+> `btn btn-strict btn-sm btn-icon-only` (32, radius 6) — same height as the labelled action.
+> The card / strip description below is the earlier version (kept for the acts list).
 
 Spec: Feature 90817 — US-19 88207, US-158 91295, US-161 91355, US-29 88532, US-24 88527,
 US-135 90946, US-159 91297; catalog US-10 88202. Figma EVO Cabinet „Solicitarile mele” 508:9600,

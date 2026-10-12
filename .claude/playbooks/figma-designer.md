@@ -161,3 +161,15 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   (read-only), fixed: tag-like frames 18/30px, inline rows, chip lists (wrap), clipped numbers,
   untokenized local components, unbound header/overlay fills. Re-run until only intentional items stay.
 
+- 2026-10-12 · QA round 2 (ui-qa-figma, cabinet): pager arrows that were swapped before the runner
+  patch kept „+” → after patching a stored builder, re-run the fix on EVERY root already processed;
+  prev arrow = State=Disabled on page 1 (next on the last page). Progress trackers → `.step-desktop`
+  1117:10830 / `.step-mobile` 1630:53322 rows (state from the captured icon colour). Callouts →
+  local `Cabinet / Callout` (5 tones, icon = swappable instance, icons deduped by SVG hash in shared
+  plugin data); one-line page messages → local `Mesaj · subtil` 9845:17951. Role-card avatars →
+  library avatar 5383:28521 (Small; PJ = Icon + suitcase 10641:1308). Never set a doc-row icon
+  wrapper to FILL when fixing truncation — only the text column / title fill.
+- 2026-10-12 · Mid-job the whole section 11067:34873 (all 53 blocks + local components) disappeared
+  from the page while the map frame stayed at page level — not done by any of my calls. When a
+  node id suddenly returns null: stop, list the page, report; don't rebuild blindly. Restore = Figma
+  version history.

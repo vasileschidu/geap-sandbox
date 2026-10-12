@@ -479,11 +479,10 @@
   margin: 0;
 }
 
+/* ⋮ = the back-office row trigger: btn-strict btn-sm btn-icon-only (32, radius of a small
+   button, 16 icon) — same height as the labelled action beside it (user, 2026-10-12) */
 .cab-card__actions .btn.cab-card__more {
-  height: 40px;
-  min-width: 40px;
   padding: 0;
-  width: 40px;
 }
 
 .cab-menu__separator {
@@ -1241,4 +1240,25 @@
 .sm-list .e-permits-stack__item:last-child,
 .sm-list .e-permits-stack__item:only-child {
   border-radius: var(--border-radius-16, 16px);
+}
+
+/* Filtre / Sortează / „N pe pagină” = the back-office small buttons (user, 2026-10-12:
+   „too big, do as in BO”): btn-neutral btn-sm (32) · 16 icon · label · chevron for menus.
+   An open one stays pressed (focus ring: the .cab-page open-button rule above). */
+.btn.cab-filter[aria-expanded="true"],
+.btn.cab-sort__trigger[aria-expanded="true"],
+.btn.cab-pager__size[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+/* cabinet menus = the back-office menu size (.e-permits-stack__menu: 32px items, 14/20,
+   16 icons, radius 6); width hugs the longest item */
+.cab-menu.e-permits-stack__menu,
+.cab-menu--wide.e-permits-stack__menu {
+  min-width: 180px;
+  width: max-content;
+}
+
+.cab-menu.e-permits-stack__menu [role="menuitemradio"] {
+  justify-content: space-between;
 }

@@ -171,7 +171,7 @@
     const items = permit.postProcesses || [];
     const locked = Boolean(permit.pending);
     return `
-      <ul class="e-permits-fo-intent-menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(permit.title)}" hidden>
+      <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(permit.title)}" hidden>
         <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-open="${escape(permit.id)}">${icon("icon-eye-open", "medium")}<span>Vezi detalii</span></button></li>
         <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-download="${escape(permit.id)}">${icon("icon-download", "medium")}<span>Descarcă actul (MDocs)</span></button></li>
         ${items.length ? `<li role="separator" class="cab-menu__separator"></li><li role="none" class="cab-menu__label">Postprocese</li>` : ""}
@@ -184,7 +184,7 @@
     const menuId = `cab-menu-${permit.id}`;
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-neutral btn-icon cab-card__more" type="button" aria-label="Acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical", "medium")}</button>
+        <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
         ${postprocessMenuHtml(permit, menuId)}
       </div>`;
   }
@@ -551,7 +551,7 @@
         ${act.postProcesses.length ? `
           <div class="e-permits-fo-intent-act__action">
             <button class="btn btn-primary" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Inițiază un postproces</span>${icon("icon-chevron-bottom", "medium")}</button>
-            <ul class="e-permits-fo-intent-menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
               ${act.postProcesses.map((pp) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}">${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
             </ul>
           </div>` : (act.paper ? "" : `<p class="text-body-sm cab-detail__muted">Nu există postprocese disponibile pentru statutul „${escape(act.statusLabel)}”.</p>`)}

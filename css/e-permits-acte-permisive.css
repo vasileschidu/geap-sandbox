@@ -81,7 +81,7 @@
 .e-permits-fo-subgen-select__menu:not([hidden]),
 .e-permits-fo-mdocs__menu:not([hidden]),
 .e-permits-builder__source-menu:not([hidden]) {
-  animation: e-permits-dropdown-in var(--motion-dropdown-duration) var(--motion-dropdown-ease) both;
+  animation: e-permits-dropdown-in var(--motion-dropdown-duration) var(--motion-dropdown-ease) backwards;
   transform-origin: top center;
   will-change: opacity, transform;
 }
@@ -6874,7 +6874,7 @@
 /* ===== Instance Switch Modal ===== */
 .e-permits-fo-instance-switch-modal {
   align-items: center;
-  animation: e-permits-fo-modal-fade-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-fade-in 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: rgba(18, 18, 18, 0.4);
   bottom: 0;
   box-sizing: border-box;
@@ -6893,7 +6893,7 @@
 }
 
 .e-permits-fo-instance-switch-modal__card {
-  animation: e-permits-fo-modal-card-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-card-in 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-16, 16px);
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -7101,7 +7101,7 @@
 /* ===== Document Picker Modal ===== */
 .e-permits-fo-doc-modal-overlay {
   align-items: center;
-  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: rgba(0, 0, 0, 0.4);
   bottom: 0;
   display: flex;
@@ -7118,7 +7118,7 @@
 }
 
 .e-permits-fo-doc-modal {
-  animation: e-permits-fo-modal-card-in 160ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-card-in 160ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-12, 12px);
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -7137,7 +7137,7 @@
 }
 
 .e-permits-fo-doc-modal__panel {
-  animation: e-permits-fo-doc-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-doc-panel-in 220ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 @keyframes e-permits-fo-doc-panel-in {
@@ -14087,7 +14087,7 @@
 
 .e-permits-builder-registry {
   align-items: stretch;
-  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: rgba(18, 18, 18, 0.32);
   display: flex;
   justify-content: flex-end;
@@ -14102,7 +14102,7 @@
 }
 
 .e-permits-builder-registry__modal {
-  animation: e-permits-builder-registry-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-builder-registry-in 180ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-8, 8px) 0 0 var(--border-radius-8, 8px);
   box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -21209,7 +21209,7 @@ body.is-ntpl-sheet-open {
 }
 
 .e-permits-ntpl-sheet__panel {
-  animation: e-permits-ntpl-sheet-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: e-permits-ntpl-sheet-in 200ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
   background: var(--color-background-base-default, #fff);
   border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
   box-shadow: var(--shadow-300, 0 1px 3px rgba(0, 0, 0, 0.08), 0 5px 12px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.15));
@@ -23516,4 +23516,12 @@ button.e-permits-steps-strip__cell:hover,
 
 .e-permits-fo-instance-switch-modal__link:hover {
   color: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* link-buttons never underline (the library's global a:hover/:focus underline is for
+   text links only) */
+a.btn:hover,
+a.btn:focus,
+a.btn:focus-visible {
+  text-decoration: none;
 }

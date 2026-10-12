@@ -360,10 +360,13 @@
       item.setAttribute("data-page-reveal-item", "");
     });
 
+    /* always clear this run's items once it is over — a newer run re-marks (and later
+       clears) only its own items, so items it dropped would otherwise stay animated */
+    rootRuns.get(root).items = items;
     window.setTimeout(() => {
       const latest = rootRuns.get(root);
-      if (!latest || latest.token !== token) return;
-      items.forEach(clearItem);
+      const stillRunning = latest && latest.token !== token ? new Set(latest.items || []) : new Set();
+      items.forEach((item) => { if (!stillRunning.has(item)) clearItem(item); });
     }, 520);
   };
 

@@ -198,8 +198,8 @@
       .filter((item, i, list) => !(item.separator && (i === 0 || list[i - 1].separator || i === list.length - 1)));
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-neutral btn-icon cab-card__more" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical", "medium")}</button>
-        <ul class="e-permits-fo-intent-menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" hidden>
+        <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" hidden>
           ${items.map((item) => item.separator
             ? `<li role="separator" class="cab-menu__separator"></li>`
             : item.href
@@ -349,8 +349,8 @@
           ${link(state.page + 1, icon("icon-chevron-right-small", "medium"), { disabled: state.page === pages, aria: "Pagina următoare" })}
         </nav>
         <div class="e-permits-fo-intent-act__action">
-          <button class="btn btn-text-neutral cab-pager__size" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-per-page" data-cab-menu-trigger><span>${state.perPage} pe pagină</span>${icon("icon-chevron-bottom", "medium")}</button>
-          <ul class="e-permits-fo-intent-menu cab-menu cab-menu--compact" id="sm-per-page" role="menu" aria-label="Dosare pe pagină" hidden>
+          <button class="btn btn-text-neutral btn-sm cab-pager__size" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-per-page" data-cab-menu-trigger><span>${state.perPage} pe pagină</span><svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg></button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--compact" id="sm-per-page" role="menu" aria-label="Dosare pe pagină" hidden>
             ${PER_PAGE.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === state.perPage}" data-sm-per-page="${size}"><span>${size} pe pagină</span>${size === state.perPage ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("")}
           </ul>
         </div>
@@ -417,17 +417,17 @@
             </button>
           </div>
         </div>
-        <button type="button" class="chip cab-filter${filterCount ? " is-selected" : ""}" aria-haspopup="dialog" aria-expanded="false" data-sm-filter-open>
-          <span class="chip__icon">${icon("icon-filter-2")}</span>
-          <span class="chip__label">Filtre</span>
-          ${filterCount ? `<span class="chip__badge">${filterCount}</span>` : ""}
+        <button type="button" class="btn btn-neutral btn-sm cab-filter" aria-haspopup="dialog" aria-expanded="false" data-sm-filter-open>
+          <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
+          <span>Filtre</span>
+          ${filterCount ? `<span class="badge badge--lg badge--solid-light">${filterCount}</span>` : ""}
         </button>
         <div class="e-permits-fo-intent-act__action cab-sort">
-          <button type="button" class="chip cab-filter cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
-            <span class="chip__label">Sortează</span>
-            <span class="chip__icon">${icon("icon-chevron-bottom")}</span>
+          <button type="button" class="btn btn-neutral btn-sm cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
+            <span>Sortează</span>
+            <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
           </button>
-          <ul class="e-permits-fo-intent-menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden>
             ${SORTS.map((sort) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${sort.id === state.sort}" data-sm-sort="${sort.id}"><span>${escape(sort.label)}</span>${sort.id === state.sort ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("")}
           </ul>
         </div>

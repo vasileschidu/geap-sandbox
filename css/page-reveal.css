@@ -4,18 +4,16 @@
   --page-reveal-easing: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* fill-mode backwards (never both) and no will-change: a held transform / promoted layer
+   makes GPU Chrome stop repainting :hover inside the item (playbook rule) */
 [data-page-reveal-item] {
-  animation: page-reveal-in var(--page-reveal-duration) var(--page-reveal-easing) both;
+  animation: page-reveal-in var(--page-reveal-duration) var(--page-reveal-easing) backwards;
   animation-delay: var(--page-reveal-delay, 0ms);
-  backface-visibility: hidden;
-  will-change: opacity, transform;
 }
 
 [data-choice-reveal-item] {
-  animation: page-choice-reveal-in 280ms var(--page-reveal-easing) both;
+  animation: page-choice-reveal-in 280ms var(--page-reveal-easing) backwards;
   animation-delay: var(--page-reveal-delay, 0ms);
-  backface-visibility: hidden;
-  will-change: opacity, transform;
 }
 
 [data-fo-screen="auth"],
