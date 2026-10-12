@@ -35,3 +35,14 @@ fix the doc, not the screen.
 
 ## When in doubt
 Ask before inventing a value. Never guess a hover color or padding.
+
+## UI QA — definition of done (2026-10-12)
+Every UI change is checked by a QA agent before it is reported as done:
+- **Code** (new/changed screen, drawer, component, CSS): run the `ui-qa-code` agent with the
+  demo states that show the change (+ a scope selector for drawers/modals). It measures the
+  rendered states (`tools/ui-qa/code-audit.mjs`) against components.md / design-system.md.
+- **Figma** (new/changed blocks, components): run the `ui-qa-figma` agent with the node ids
+  (+ the matching demo states). It audits read-only (`tools/ui-qa/figma-audit.js`): instances
+  vs raw frames, token-bound colours, text styles, spacing/radius scale, auto-layout, clipping,
+  icon = label colour, and compares with the prototype.
+Fix the major findings, re-run the agent, then report. Code first, then Figma.

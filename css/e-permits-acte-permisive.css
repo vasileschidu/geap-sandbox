@@ -23297,8 +23297,11 @@ button.e-permits-steps-strip__cell:hover,
   width: 16px;
 }
 
+/* the add link lines up with the indented rows: same 8 margin + 1px guide slot + 16 inset */
 .e-permits-doc-rule__foot {
-  padding-left: calc(var(--border-width-1, 1px) + var(--spacing-16, 16px));
+  border-left: var(--border-width-1, 1px) solid transparent;
+  margin-left: var(--spacing-8, 8px);
+  padding-left: var(--spacing-16, 16px);
 }
 
 
@@ -23352,10 +23355,6 @@ button.e-permits-steps-strip__cell:hover,
   right: 0;
   top: var(--spacing-8, 8px);
   width: var(--border-width-1, 1px);
-}
-
-.e-permits-doc-val__mode .e-permits-fo-select__button {
-  color: var(--color-text-base-secondary, #383838);
 }
 
 .e-permits-doc-val__control {
