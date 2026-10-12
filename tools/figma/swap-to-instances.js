@@ -13,6 +13,7 @@ const C = {
   input: await g("6490:68585"),         // text-input
   check: await g("10507:44447"),        // Opțiune document · checkbox (Label, Asterisc, Iconiță, Iconiță · glif)
   tag: await g("10602:106194"),         // tag-filled
+  rect: await g("5611:63230"),          // button-filled-rectangular (parameter tokens)
   textCirc: await g("5919:31320"),      // button-text-circular (text buttons: Elimină, Adaugă condiție)
   circ: await g("8382:91415"),          // button-filled-circular (drawer/modal footer Large)
   sw: await g("2009:19057"),            // switch (inner of svc/switch-label)
@@ -46,10 +47,17 @@ const absorbField = async (inst) => {
   const parent = inst.parent; if (!parent || !("children" in parent)) return;
   const kids = parent.children, i = kids.indexOf(inst);
   const lbl = kids.slice(0, i).reverse().find((k) => k.type === "FRAME" && /^(Label|Text)$/.test(k.name) && k.findOne && k.findOne((t) => t.type === "TEXT"));
-  const after = kids.slice(i + 1).filter((k) => k.findAll && k.findAll((t) => t.type === "TEXT").length);
+  /* only the plain text right after the control (hint / error paragraphs); stop at anything
+     interactive (a row of buttons, chips, tokens…) — never absorb or delete controls */
+  const after = [];
+  for (const k of kids.slice(i + 1)) {
+    const interactive = k.type === "INSTANCE" || (k.findOne && k.findOne((x) => x.type === "INSTANCE" || /^Button\b|^Button - /.test(x.name))) || /^Button/.test(k.name);
+    if (interactive) break;
+    if (k.findAll && k.findAll((t) => t.type === "TEXT").length) after.push(k);
+  }
   const afterText = after.map((k) => textOf(k)).join(" ").trim();
   if (!lbl && !afterText) return;
-  if (/obligatoriu\.|Introdu|Adaugă cel puțin/.test(afterText) && inst.mainComponent.name.includes("Style=Default")) {
+  if (/obligatoriu\.|Introdu|Adaugă cel puțin|Șablonul|Parametru necunoscut/.test(afterText) && inst.mainComponent.name.includes("Style=Default")) {
     const t = inst.mainComponent.parent.children.find((c) => c.name === inst.mainComponent.name.replace("Style=Default", "Style=Destructive"));
     if (t) inst.swapComponent(t);
   }
@@ -106,6 +114,9 @@ for (const rid of ROOTS) {
       const st = /^(Anulează|Închide|Renunță)$/.test(txt) ? "Neutral" : /^(Dezactivează|Elimină)$/.test(txt) ? "Destructive" : "Primary";
       const i = V(C.circ, { "Style": st, "Icon": "None", "Size": "Large", "State": "Default" }).createInstance(); setLabel(i, txt); i.name = "btn · " + txt; place(f, i); done.push("btn-footer"); continue;
     }
+    // parameter tokens ({NR:4}, {YYYY}…) = Neutral Small button with a code (mono) label
+    if (/^Button - Inserează/.test(name)) { const i = V(C.rect, { "Style": "Neutral", "Icon": "None", "Size": "Small", "State": "Default" }).createInstance(); setLabel(i, txt); for (const t of i.findAll((x) => x.type === "TEXT")) { await figma.loadFontAsync(t.fontName); t.fontName = { family: "JetBrains Mono", style: "Regular" }; } i.name = "btn · " + txt; place(f, i); done.push("btn-token"); continue; }
+    if (name === "Button" && txt === "Elimină" && h <= 32) { const i = V(C.textCirc, { "Style": "Destructive", "Icon": "None", "Size": "Small", "State": "Default" }).createInstance(); setLabel(i, txt); i.name = "btn · Elimină"; place(f, i); done.push("btn-remove"); continue; }
     if (name === "Button" && txt === "Editează") { const i = P.edit.clone(); i.name = "btn · Editează"; place(f, i); done.push("btn-edit"); continue; }
     if (/^Button - Mai multe acțiuni/.test(name)) { const i = P.menu.clone(); i.name = "btn · ⋮"; place(f, i); done.push("btn-menu"); continue; }
     if (/^(RSSP|SIA GEAP|Inactiv|Nepublicat|Tabel|Configurat)$/.test(txt) && h <= 24 && f.children?.length === 1 && f.children[0].type === "TEXT") {

@@ -23,7 +23,7 @@
   const RETRIES = 3;
 
   document.querySelector("[data-bo-product]").textContent = PRODUCT;
-  document.title = `Autentificare · e-Permis ${PRODUCT}`;
+  document.title = `Autentificare · SIA GEAP ${PRODUCT}`;
   /* the shared inline-note geometry is scoped to the back office */
   card.dataset.demoFlow = "back-office";
 

@@ -3034,17 +3034,17 @@
         "ro": {
           "subject": "Cererea {{CaseNumber}} a fost aprobată",
           "body": "<p>Stimate {{ApplicantName}},</p><p>Cererea nr. <strong>{{CaseNumber}}</strong> pentru serviciul „{{ServiceTitle}}”, depusă pe {{SubmittedOn}} în numele {{CompanyName}}, a fost aprobată de {{AuthorityName}} ({{TeamName}}).</p><p>Actul permisiv poate fi descărcat din Cabinetul personal până la {{DueOn}}.</p><p>Notificarea este generată automat de sistem. Vă rugăm să nu răspundeți la acest mesaj.</p>",
-          "plain": "e-Permis: cererea {{CaseNumber}} ({{ServiceTitle}}) a fost aprobată de {{AuthorityName}}. Actul e disponibil în Cabinet."
+          "plain": "SIA GEAP: cererea {{CaseNumber}} ({{ServiceTitle}}) a fost aprobată de {{AuthorityName}}. Actul e disponibil în Cabinet."
         },
         "ru": {
           "subject": "Заявление {{CaseNumber}} одобрено",
           "body": "<p>Уважаемый(ая) {{ApplicantName}},</p><p>Заявление № <strong>{{CaseNumber}}</strong> на услугу «{{ServiceTitle}}», поданное {{SubmittedOn}} от имени {{CompanyName}}, одобрено {{AuthorityName}} ({{TeamName}}).</p><p>Разрешительный документ можно скачать в личном кабинете до {{DueOn}}.</p><p>Уведомление сформировано автоматически. Пожалуйста, не отвечайте на это сообщение.</p>",
-          "plain": "e-Permis: заявление {{CaseNumber}} ({{ServiceTitle}}) одобрено {{AuthorityName}}. Документ в кабинете."
+          "plain": "SIA GEAP: заявление {{CaseNumber}} ({{ServiceTitle}}) одобрено {{AuthorityName}}. Документ в кабинете."
         },
         "en": {
           "subject": "Application {{CaseNumber}} has been approved",
           "body": "<p>Dear {{ApplicantName}},</p><p>Application no. <strong>{{CaseNumber}}</strong> for “{{ServiceTitle}}”, submitted on {{SubmittedOn}} on behalf of {{CompanyName}}, has been approved by {{AuthorityName}} ({{TeamName}}).</p><p>You can download the permit from your personal cabinet until {{DueOn}}.</p><p>This notification was generated automatically. Please do not reply to this message.</p>",
-          "plain": "e-Permis: application {{CaseNumber}} ({{ServiceTitle}}) was approved by {{AuthorityName}}. Permit in your cabinet."
+          "plain": "SIA GEAP: application {{CaseNumber}} ({{ServiceTitle}}) was approved by {{AuthorityName}}. Permit in your cabinet."
         }
       },
       "version": "v1.1.5",
@@ -3083,17 +3083,17 @@
           "ro": {
             "subject": "Cerere aprobată",
             "body": "<p>Stimate {{ApplicantName}},</p><p>Cererea nr. <strong>{{CaseNumber}}</strong> pentru serviciul „{{ServiceTitle}}”, depusă pe {{SubmittedOn}} în numele {{CompanyName}}, a fost aprobată de {{AuthorityName}} ({{TeamName}}).</p><p>Actul permisiv poate fi descărcat din Cabinetul personal până la {{DueOn}}.</p><p>Notificarea este generată automat de sistem. Vă rugăm să nu răspundeți la acest mesaj.</p>",
-            "plain": "e-Permis: cererea {{CaseNumber}} a fost aprobată. Actul e disponibil în Cabinet."
+            "plain": "SIA GEAP: cererea {{CaseNumber}} a fost aprobată. Actul e disponibil în Cabinet."
           },
           "ru": {
             "subject": "Заявление {{CaseNumber}} одобрено",
             "body": "<p>Уважаемый(ая) {{ApplicantName}},</p><p>Заявление № <strong>{{CaseNumber}}</strong> на услугу «{{ServiceTitle}}», поданное {{SubmittedOn}} от имени {{CompanyName}}, одобрено {{AuthorityName}} ({{TeamName}}).</p><p>Разрешительный документ можно скачать в личном кабинете до {{DueOn}}.</p><p>Уведомление сформировано автоматически. Пожалуйста, не отвечайте на это сообщение.</p>",
-            "plain": "e-Permis: заявление {{CaseNumber}} ({{ServiceTitle}}) одобрено {{AuthorityName}}. Документ в кабинете."
+            "plain": "SIA GEAP: заявление {{CaseNumber}} ({{ServiceTitle}}) одобрено {{AuthorityName}}. Документ в кабинете."
           },
           "en": {
             "subject": "Application {{CaseNumber}} has been approved",
             "body": "<p>Dear {{ApplicantName}},</p><p>Application no. <strong>{{CaseNumber}}</strong> for “{{ServiceTitle}}”, submitted on {{SubmittedOn}} on behalf of {{CompanyName}}, has been approved by {{AuthorityName}} ({{TeamName}}).</p><p>You can download the permit from your personal cabinet until {{DueOn}}.</p><p>This notification was generated automatically. Please do not reply to this message.</p>",
-            "plain": "e-Permis: application {{CaseNumber}} ({{ServiceTitle}}) was approved by {{AuthorityName}}. Permit in your cabinet."
+            "plain": "SIA GEAP: application {{CaseNumber}} ({{ServiceTitle}}) was approved by {{AuthorityName}}. Permit in your cabinet."
           }
         },
         "rules": [

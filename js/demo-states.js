@@ -68,7 +68,7 @@
     await h.click("[data-ntpl-c-next]");
     await h.fill("#ntpl-c-subject", "Cererea {{CaseNumber}} a fost suspendată").catch(() => {});
     await h.fill("#ntpl-c-body", "Stimate {{ApplicantName}},\n\nCererea {{CaseNumber}} a fost suspendată: lipsesc documente. Le puteți încărca din Cabinetul personal.").catch(() => {});
-    await h.fill("#ntpl-c-plain", "e-Permis: cererea {{CaseNumber}} a fost suspendată. Încărcați documentele lipsă.").catch(() => {});
+    await h.fill("#ntpl-c-plain", "SIA GEAP: cererea {{CaseNumber}} a fost suspendată. Încărcați documentele lipsă.").catch(() => {});
     if (step === 3) return;
     await h.click("[data-ntpl-c-next]");
     if (step === 4) return;
@@ -114,7 +114,7 @@
   /* the Figma diff = RO subject + short text changed */
   const ntplEdit = async (h) => {
     await h.fill("#ntplp-subject-ro", "Cererea {{CaseNumber}} a fost aprobată");
-    await h.fill("#ntplp-plain", "e-Permis: cererea {{CaseNumber}} a fost aprobată. Detalii în Cabinetul personal.");
+    await h.fill("#ntplp-plain", "SIA GEAP: cererea {{CaseNumber}} a fost aprobată. Detalii în Cabinetul personal.");
   };
   const ntplPublishOpen = async (h) => { await ntplEdit(h); await h.click("[data-ntpl-publish]"); };
   /* the publish modal (templates and services share it): „La o dată anume” + a date */
@@ -596,7 +596,9 @@
     "svc-10j": svc("settings", async (h) => { await cfgNav("appeal")(h); await h.click('[data-cfg-switch="appealable"]'); await h.wait(400); }),
     "svc-10j1": svc("settings", async (h) => { await cfgNav("appeal")(h); await h.click('[data-cfg-switch="appealable"]'); await h.wait(400); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10k": svc("settings", cfgNav("numbering")),
-    "svc-10k1": svc("settings", async (h) => { await cfgNav("numbering")(h); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="prefix"]', "DR"); }),
+    "svc-10k1": svc("settings", async (h) => { await cfgNav("numbering")(h); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="template"]', "DR-{NR:4}/{YYYY}"); }),
+    /* the template must hold {NR} once and only known parameters — „Salvează” shows why not */
+    "svc-10k2": svc("settings", async (h) => { await cfgNav("numbering")(h); await h.fill('[data-cfg-rule="0"][data-cfg-rule-field="template"]', "MEC-{AN}"); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10l": svc("settings", cfgNav("rap")),
     /* 100 fields (02s8a–d): summary, picker, search, applied */
     "svc-10l1": rapBig(),

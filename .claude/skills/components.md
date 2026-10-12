@@ -190,6 +190,7 @@ but this doc previously described it wrongly, see the entry.
 | Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
 | Long multi-select (100+ options) | summary `.e-permits-cfg-picks` + picker modal `#cfg-subdiv-modal` (`.e-permits-subdiv*`) | `cfgSubdivPicks` / `openCfgSubdiv` | app |
 | Conditional rules (Afișează / Setează ca obligatoriu, câmp · operator · valoare, Și/Sau) | `.e-permits-doc-rule` card + `.e-permits-doc-cond` sentence rows + `.e-permits-doc-val` value group | `renderDocRule` / `renderDocCondition` | app |
+| Template field with parameter tokens (Numerotare „Șablonul numărului”) | text input + `.e-permits-cfg-num-tokens` row of `btn btn-neutral btn-sm e-permits-cfg-num-token` holding `code.e-permits-doc-kw` | `cfgNumTemplate` / `cfgNumTemplateError` / `cfgNumberExample` | app |
 | Long checklist with per-row options (RAP, 100 fields) | `.e-permits-cfg-rap-summary` (select field + published rows) + `#cfg-rap-modal`; composite = `.e-permits-cfg-rap__table` | `cfgRapPicks` / `cfgRapItemsHtml` / `openCfgRap` | app |
 | Input | `.input`, `.input-wrapper` | `input-preview.html` | library |
 | Textarea | `.textarea` | `textarea.html` | library |
@@ -4244,8 +4245,15 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   library transition); a group switch redraws 200ms later, after the knob slides. Read view:
   Da = success tag with checkmark, Nu = neutral tag. Read-only RSSP fields =
   grey box `.e-permits-cfg-ro` + tag. Numerotare = one grey `.e-permits-tax-cond` block per rule
-  (Tip document · Resetare · Prefix · Separator · Lungime · Valoare inițială · Valoare curentă) +
-  „Exemplu (numărul următor)”, max one rule per document type. RAP = rows checkbox + switch
+  (Tip document · Resetare contor · „Șablonul numărului” · Valoare inițială · Valoare curentă) +
+  „Exemplu (numărul următor)”, max one rule per document type. The template is ONE text input
+  (fixed text typed directly, maxlength 40, e.g. `{AUT}-{NR:4}/{YYYY}`); under it a wrap row
+  `.e-permits-cfg-num-tokens` of parameter buttons `btn btn-neutral btn-sm e-permits-cfg-num-token`
+  (each holds a `code.e-permits-doc-kw`, transparent — an allowed code-token use) that insert
+  `{NR:4}` `{YYYY}` `{YY}` `{MM}` `{DD}` `{AUT}` at the caret, then the hint paragraph. Validation:
+  empty → „Câmpul este obligatoriu.”; {NR} not exactly once → „Șablonul trebuie să conțină
+  numărul {NR} o singură dată.”; unknown token → „Parametru necunoscut: {X}.”; Exemplu = „—”
+  while invalid. Demo `svc-10k1` (filled), `svc-10k2` (error). Figma 02s7 / 02s7a. RAP = rows checkbox + switch
   „Anonimizare” (IDNP / nume PF always anonymised, switch locked on).
 - Validation: „Câmpul este obligatoriu.” / „Introdu un număr întreg mai mare ca zero.” under the
   field. Save logs one audit event per changed field („Secțiune · Câmp: vechi → nou”), the header

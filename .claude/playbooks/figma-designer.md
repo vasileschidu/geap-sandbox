@@ -109,3 +109,14 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-12 · The empty 427×20 „Text” frames from captures are spacers — delete them.
 - 2026-10-12 · „Adaugă …” button came out centred because its captured parent had no
   auto-layout — give such wrappers HORIZONTAL auto-layout, MIN alignment.
+- 2026-10-12 · swap-to-instances absorbed a row of parameter buttons (below a field) into the
+  field's error text and deleted it → absorbField now takes only plain text paragraphs and stops at
+  the first sibling that contains a button/instance. Screenshot every swapped capture before use.
+- 2026-10-12 · Parameter-token buttons (`Button - Inserează …`) are not in the swap rules → map
+  them to button-filled-rectangular Neutral Small (`5611:63230`) with a JetBrains Mono label;
+  a raw „Button” whose text is „Elimină” → button-text-circular Destructive Small. A section that
+  grows past the 1024 screen → grow the screen (Body/Tab content are FILL) by the overflow + 40.
+- 2026-10-12 · QA: captured read-only values („Valoare curentă”) are raw label + white box → use
+  local „Setări · Câmp read-only” `10638:1577` (Fundal=Alb on a grey card). When replacing a GRID
+  child, copy `gridColumnSpan` first, then `setGridChildPosition(row, col)`, then drop empty rows
+  (`gridRowCount`) — a new child lands in a new 1-column row otherwise.

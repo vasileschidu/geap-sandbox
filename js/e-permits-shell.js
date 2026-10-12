@@ -11044,7 +11044,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return `
         <div class="e-permits-ntpl-preview__chat-head">
           <span class="e-permits-ntpl-preview__avatar" aria-hidden="true">eP</span>
-          <span class="e-permits-ntpl-preview__sender">e-Permis</span>
+          <span class="e-permits-ntpl-preview__sender">SIA GEAP</span>
         </div>
         <div class="e-permits-ntpl-preview__chat">
           <span class="e-permits-ntpl-preview__time">Mesaj text · Azi 09:41</span>
@@ -11056,7 +11056,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return `
       <div class="e-permits-ntpl-preview__mail-head">
-        <span class="e-permits-ntpl-preview__from">e-Permis · noreply@e-permits.gov.md</span>
+        <span class="e-permits-ntpl-preview__from">SIA GEAP · noreply@geap.gov.md</span>
         <p class="e-permits-ntpl-preview__subject">${text.subject?.trim() ? fillNtplSample(text.subject) : '<span class="e-permits-ntpl-preview__empty">Fără subiect</span>'}</p>
       </div>
       <div class="e-permits-ntpl-preview__mail-body">${plainText(text.body) ? fillNtplSample(text.body, { html: true }) : '<p class="e-permits-ntpl-preview__empty">Corpul mesajului este gol.</p>'}</div>
@@ -11436,7 +11436,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${short ? `
           <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
             <label for="ntpl-c-plain">Mesaj scurt (MNotify)${lang === "ro" ? requiredMark() : ""}</label>
-            <div class="e-permits-fo-textarea${ntplErr(`plain-${lang}`) ? " is-error" : ""}"><textarea id="ntpl-c-plain" rows="3" maxlength="${NTPL_SMS_LIMIT}" placeholder="e-Permis: cererea {{CaseNumber}} a fost suspendată." data-ntpl-c-text="plain" data-clas-count-max="${NTPL_SMS_LIMIT}">${escapeHtml(t.plain)}</textarea></div>
+            <div class="e-permits-fo-textarea${ntplErr(`plain-${lang}`) ? " is-error" : ""}"><textarea id="ntpl-c-plain" rows="3" maxlength="${NTPL_SMS_LIMIT}" placeholder="SIA GEAP: cererea {{CaseNumber}} a fost suspendată." data-ntpl-c-text="plain" data-clas-count-max="${NTPL_SMS_LIMIT}">${escapeHtml(t.plain)}</textarea></div>
             ${clasFieldError(c.errors, `plain-${lang}`)}
             <p class="e-permits-fo-field__hint e-permits-ntpl-count"><span>Fără formatare. Câmpurile se pot lungi la trimitere.</span><span class="e-permits-ntpl-count__value" data-clas-count>${t.plain.length}/${NTPL_SMS_LIMIT}</span></p>
           </div>` : ""}
@@ -16708,7 +16708,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const CFG_DECISIONS = ["Aprobare", "Respingere"];
   const CFG_DAY_TYPES = ["Zile lucrătoare", "Zile calendaristice"];
   const CFG_DOC_TYPES = ["Act permisiv", "Decizie de respingere", "Înștiințare"];
-  const CFG_RESET = ["Anual", "Fără resetare"];
+  const CFG_RESET = ["Anual", "Lunar", "Fără resetare"];
+  /* Numerotare: one template with parameters (A. Pascalov + G. Roșca, Figma 2026-10-12) —
+     e.g. „{AUT}-{NR:4}/{YYYY}” → MEC-0001/2026, „CU-{NR:4}”, „{YYYY}{NR:4}-C”, „{NR:4}{MM}{YYYY}” */
+  const CFG_NUM_TOKENS = [["{NR:4}", "Numărul, 4 cifre"], ["{YYYY}", "Anul"], ["{YY}", "Anul, 2 cifre"], ["{MM}", "Luna"], ["{DD}", "Ziua"], ["{AUT}", "Codul autorității"]];
+  const cfgNumTemplate = (rule) => rule.template ?? `${rule.prefix || ""}${rule.sep || ""}{NR:${Number(rule.len) || 4}}`;
+  const cfgNumTemplateError = (tpl) => {
+    const t = String(tpl || "").trim();
+    if (!t) return CFG_REQUIRED_MSG;
+    const nr = t.match(/\{NR(?::\d{1,2})?\}/g) || [];
+    if (nr.length !== 1) return "Șablonul trebuie să conțină numărul {NR} o singură dată.";
+    const unknown = (t.match(/\{[^}]*\}/g) || []).find((x) => !/^\{(NR(?::\d{1,2})?|YYYY|YY|MM|DD|AUT)\}$/.test(x));
+    return unknown ? `Parametru necunoscut: ${unknown}.` : "";
+  };
   const CFG_DEP_TYPES = ["Totală", "Parțială", "Externă", "Exclusivă"];
   const CFG_DEP_HINT = {
     "Totală": "Cererea se depune doar după emiterea actului în serviciul sursă; câmpurile alese se preiau din dosarul sursă.",
@@ -16871,7 +16883,7 @@ document.addEventListener("DOMContentLoaded", () => {
       mpayCode: r.paid ? CFG_MPAY_CODE : "", payTerm: term ? term[0] : "30",
       eDelivery: true, mdelivery: r.mdelivery ?? Boolean(flags.mdelivery), paperRelease: Boolean(flags.actHartie), releaseActor: CFG_RELEASE_ACTORS[0],
       appealable: false, appealTypes: [], appealDecisions: [], appealDays: "", appealDayType: CFG_DAY_TYPES[0],
-      numbering: [{ doc: "Act permisiv", prefix: (getAuthorityById(service.authorityId)?.code || "AUT"), sep: "-", len: "6", start: "1", current: 4575, reset: "Anual" }],
+      numbering: [{ doc: "Act permisiv", template: "{AUT}-{NR:4}/{YYYY}", start: "1", current: 4575, reset: "Anual" }],
       rap: service.code === CFG_RAP_BIG
         ? [["Denumirea persoanei juridice"], ["IDNO"], ["Numele și prenumele (PF)", true], ["Telefonul de contact", true], ["Obiectul autorizat"], [`${CFG_RAP_CAEM} › Codul CAEM`], [`${CFG_RAP_CAEM} › Denumirea activității`], ["Tipul unității"], ["Numărul de locuri"]].map(([field, anon = false]) => ({ field, anon }))
         : [{ field: "Denumirea persoanei juridice", anon: false }, { field: "IDNO", anon: false }, { field: "Obiectul autorizat", anon: false }, { field: "Numele și prenumele (PF)", anon: true }],
@@ -16890,7 +16902,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const cfgNumberExample = (rule) => {
     const next = Math.max(Number(rule.current || 0) + 1, Number(rule.start || 1));
-    return `${rule.prefix || ""}${rule.sep || ""}${String(next).padStart(Number(rule.len) || 1, "0")}`;
+    if (cfgNumTemplateError(cfgNumTemplate(rule))) return "—";
+    const d = new Date(), pad = (n, l = 2) => String(n).padStart(l, "0");
+    const aut = getAuthorityById(getServiceByCode(serviceProfileState.code)?.authorityId)?.code || "AUT";
+    return cfgNumTemplate(rule)
+      .replace(/\{NR(?::(\d{1,2}))?\}/, (m, n) => String(next).padStart(Number(n) || 1, "0"))
+      .replace(/\{YYYY\}/g, d.getFullYear()).replace(/\{YY\}/g, pad(d.getFullYear() % 100)).replace(/\{MM\}/g, pad(d.getMonth() + 1)).replace(/\{DD\}/g, pad(d.getDate())).replace(/\{AUT\}/g, aut);
   };
 
   /* ---- read view ---- */
@@ -17072,9 +17089,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${cfgGrid(`
                   ${sel("doc", "Tip document", CFG_DOC_TYPES.filter((d) => d === rule.doc || !used.includes(d)), 6)}
                   ${sel("reset", "Resetare contor", CFG_RESET, 6)}
-                  ${inp("prefix", "Prefix", 4, true, false, "Ex. AUT")}
-                  ${inp("sep", "Separator", 4, false, false, "Ex. -")}
-                  ${inp("len", "Lungime contor", 4, true, true, "Ex. 6")}
+                  ${cfgField(k("template"), "Șablonul numărului", `<div class="e-permits-fo-input${cfgDraft.errors[k("template")] ? " is-error" : ""}"><input id="cfg-${k("template")}" type="text" maxlength="40" value="${escapeHtml(cfgNumTemplate(rule))}" placeholder="Ex. {AUT}-{NR:4}/{YYYY}" autocomplete="off" spellcheck="false" data-cfg-rule="${i}" data-cfg-rule-field="template"></div>
+                    <div class="e-permits-cfg-num-tokens" role="group" aria-label="Parametri">${CFG_NUM_TOKENS.map(([tok, label]) => `<button class="btn btn-neutral btn-sm e-permits-cfg-num-token" type="button" data-cfg-rule-token="${i}" data-token="${tok}" aria-label="Inserează ${escapeHtml(label)}" data-tooltip-label="${escapeHtml(label)}"><code class="e-permits-doc-kw">${tok}</code></button>`).join("")}</div>`, { required: true, span: 12, hint: "Textul fix se scrie direct; parametrii se inserează. {NR:4} = numărul cu 4 cifre (poți schimba cifra)." })}
                   ${inp("start", "Valoare inițială", 6, true, true, "Ex. 1")}
                   <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6"><span class="e-permits-cfg-ro__label">Valoare curentă</span><div class="e-permits-cfg-ro">${escapeHtml(String(rule.current || 0))}</div></div>`)}
                 <p class="e-permits-fo-field__hint" data-cfg-rule-example="${i}">Exemplu (numărul următor): <strong>${escapeHtml(cfgNumberExample(rule))}</strong></p>
@@ -17139,7 +17155,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "payment": int("payTerm", v.payTerm); break; /* the MPay code is one for all GEAP (EPM02), not configured */
       case "delivery": req("releaseActor", v.releaseActor); break;
       case "appeal": if (v.appealable) { req("appealTypes", v.appealTypes.length); req("appealDecisions", v.appealDecisions.length); int("appealDays", v.appealDays); req("appealDayType", v.appealDayType); } break;
-      case "numbering": v.numbering.forEach((rule, i) => { req(`n${i}-doc`, rule.doc); req(`n${i}-reset`, rule.reset); req(`n${i}-prefix`, String(rule.prefix || "").trim()); int(`n${i}-len`, rule.len); int(`n${i}-start`, rule.start); }); break;
+      case "numbering": v.numbering.forEach((rule, i) => { req(`n${i}-doc`, rule.doc); req(`n${i}-reset`, rule.reset); const te = cfgNumTemplateError(cfgNumTemplate(rule)); if (te) e[`n${i}-template`] = te; int(`n${i}-start`, rule.start); }); break;
       case "drafts": int("draftDays", v.draftDays); break;
       case "dep":
         req("name", String(v.name || "").trim()); req("requestTypes", v.requestTypes.length); req("type", v.type);
@@ -17719,9 +17735,22 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cfgDraft) return;
     if (event.target.closest("[data-cfg-rule-add]")) {
       const used = cfgDraft.v.numbering.map((x) => x.doc);
-      cfgDraft.v.numbering.push({ doc: CFG_DOC_TYPES.find((d) => !used.includes(d)) || "", prefix: "", sep: "-", len: "6", start: "1", current: 0, reset: "Anual" });
+      cfgDraft.v.numbering.push({ doc: CFG_DOC_TYPES.find((d) => !used.includes(d)) || "", template: "", start: "1", current: 0, reset: "Anual" });
       cfgDraft.dirty = true; cfgRender();
       cfgBody.querySelector(`[data-cfg-rule-block="${cfgDraft.v.numbering.length - 1}"] input`)?.focus();
+      return;
+    }
+    /* a parameter chip inserts its token at the caret of the rule's template */
+    const tok = event.target.closest("[data-cfg-rule-token]");
+    if (tok) {
+      const i = Number(tok.dataset.cfgRuleToken), input = cfgBody.querySelector(`#cfg-n${i}-template`);
+      const rule = cfgDraft.v.numbering[i], val = input ? input.value : cfgNumTemplate(rule);
+      const a = input?.selectionStart ?? val.length, b = input?.selectionEnd ?? val.length;
+      rule.template = (val.slice(0, a) + tok.dataset.token + val.slice(b)).slice(0, 40);
+      if (input) { input.value = rule.template; input.focus(); input.setSelectionRange(a + tok.dataset.token.length, a + tok.dataset.token.length); }
+      cfgMark(`n${i}-template`, input);
+      const ex = cfgBody.querySelector(`[data-cfg-rule-example="${i}"] strong`); if (ex) ex.textContent = cfgNumberExample(rule);
+      cfgDraft.dirty = true;
       return;
     }
     const rm = event.target.closest("[data-cfg-rule-remove]");

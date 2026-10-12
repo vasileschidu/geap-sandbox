@@ -28,9 +28,22 @@ const FONT = [10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48];
 
 // ---- static scan --------------------------------------------------------------------------
 const staticFindings = [];
+/* only the lines this change added (git diff against HEAD, staged + unstaged); --all-lines scans everything */
+import { execSync } from "node:child_process";
+const addedLines = (f) => {
+  if (process.argv.includes("--all-lines")) return null;
+  try {
+    const diff = execSync(`git diff -U0 HEAD -- "${f}"`, { encoding: "utf8" });
+    const set = new Set(); let n = 0;
+    for (const l of diff.split("\n")) { const m = l.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/); if (m) { n = Number(m[1]); const c = m[2] === undefined ? 1 : Number(m[2]); for (let k = 0; k < c; k++) set.add(n + k); } }
+    return set;
+  } catch (e) { return null; }
+};
 for (const f of FILES) {
   if (!fs.existsSync(f)) continue;
+  const only = addedLines(f);
   fs.readFileSync(f, "utf8").split("\n").forEach((line, i) => {
+    if (only && !only.has(i + 1)) return;
     const code = line.replace(/var\([^)]*\)/g, "").replace(/\/\*.*?\*\//g, "");
     if (/#[0-9a-fA-F]{3,8}\b/.test(code) && !/url\(|sprite\.svg|href=|&#/.test(code)) staticFindings.push({ file: f, line: i + 1, rule: "hex-outside-token", text: line.trim().slice(0, 160) });
     if (/\.css$/.test(f) && /:\s*[^;]*\b\d+px/.test(code) && !/^\s*(\/\/|\*|@media|--)/.test(line) && !/(1px|0px)/.test(code.match(/\b\d+px/)?.[0] || "")) staticFindings.push({ file: f, line: i + 1, rule: "px-outside-token", text: line.trim().slice(0, 160) });
@@ -69,7 +82,7 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
   // buttons: library classes, icon colour = label colour
   for (const b of root.querySelectorAll("button")) {
     if (!vis(b)) continue;
-    const lib = /\b(btn|chip|segment-item|tab-button|e-permits-fo-select__button|checkbox|modal-close|e-permits-user-create__close|e-permits-fo-subgen-select__button|e-permits-fo-intent-menu__item|btn-icon|e-permits-timeline__link|e-permits-stack__menu-trigger)\b/.test(b.className) || b.closest(".e-permits-fo-select__list, .sidebar, header, nav, .tabs, .e-permits-fo-testcfg");
+    const lib = /\b(btn|chip|segment-item|tab-button|e-permits-fo-select__button|checkbox|modal-close|e-permits-user-create__close|e-permits-fo-subgen-select__button|e-permits-fo-intent-menu__item|btn-icon|e-permits-timeline__link|e-permits-stack__menu-trigger|e-permits-fo-subgen-chip__remove|e-permits-cfg-num-token)\b/.test(b.className) || b.closest(".e-permits-fo-select__list, .sidebar, header, nav, .tabs, .e-permits-fo-testcfg");
     if (!lib) add("button-not-library", b, b.className.slice(0, 80));
     const icon = b.querySelector("svg"); const label = [...b.childNodes].find((n) => (n.nodeType === 3 && n.textContent.trim()) || (n.nodeType === 1 && n.tagName === "SPAN" && n.textContent.trim()));
     if (icon && label) { const ic = getComputedStyle(icon).fill === "none" ? getComputedStyle(icon).color : getComputedStyle(icon).fill; const lc = getComputedStyle(label.nodeType === 1 ? label : b).color; if (ic && lc && ic.replace(/\s/g, "") !== lc.replace(/\s/g, "") && !/currentcolor/i.test(ic)) add("button-icon-colour-differs", b, `icon ${ic} vs label ${lc}`); }

@@ -23437,3 +23437,17 @@ button.e-permits-steps-strip__cell:hover,
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-12, 12px);
 }
+
+/* Setări › Numerotare: the parameters under „Șablonul numărului” — small neutral buttons that
+   insert their token at the caret; the token itself is a code keyword (as the rule builder) */
+.e-permits-cfg-num-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-cfg-num-token .e-permits-doc-kw {
+  background: transparent;
+  padding: 0;
+}
