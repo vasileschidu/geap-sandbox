@@ -9638,7 +9638,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const all = c.valori || [];
     const counts = { all: all.length, active: all.filter((v) => v.activ).length, inactive: all.filter((v) => !v.activ).length };
     const rows = all.filter((v) => (clasState.activity === "all" || (clasState.activity === "active" ? v.activ : !v.activ)) && (!q || [v.cod, v.denRo, v.denRu, v.denEn].filter(Boolean).join(" ").toLocaleLowerCase("ro").includes(q)));
-    const selected = [...clasState.selected].filter((cod) => all.some((v) => v.cod === cod));
     const toolbar = `
       <div class="e-permits-clas-grid__toolbar">
         <div class="search-input medium rectangular e-permits-workplace__search${String(clasState.query || "").trim() ? " has-value is-ready" : ""}">
@@ -9654,26 +9653,18 @@ document.addEventListener("DOMContentLoaded", () => {
             </button>`).join("")}
         </div>
         <div class="e-permits-clas-grid__actions-bar">
-          ${editable && selected.length ? `
-            <span class="e-permits-clas-grid__selection" aria-live="polite">${plural(selected.length, "valoare selectată", "valori selectate")}</span>
-            <button class="btn btn-neutral btn-sm" type="button" data-clas-grid-bulk="on">Activează</button>
-            <button class="btn btn-neutral btn-sm" type="button" data-clas-grid-bulk="off">Dezactivează</button>
-            <button class="btn btn-text-primary btn-sm" type="button" data-clas-grid-clear>Anulează selecția</button>
-          ` : editable ? `
+          ${editable ? `
             <button class="btn btn-neutral btn-sm" type="button" data-clas-import><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg><span>Importă CSV</span></button>
             <button class="btn btn-primary btn-sm" type="button" data-clas-grid-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă valoare</span></button>
           ` : ""}
         </div>
       </div>`;
-    const allVisibleSelected = editable && rows.length > 0 && rows.every((v) => clasState.selected.has(v.cod));
     const head = `<tr>
-      ${editable ? `<th scope="col" class="e-permits-workplace__select-cell"><label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" aria-label="Selectează toate valorile afișate" data-clas-grid-select-all${allVisibleSelected ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span></label></th>` : ""}
       ${cols.map((col) => `<th scope="col" style="${col.key === "denRo" ? `min-width:${col.width}px;` : setColumnWidth(col, col.width)}"><span class="e-permits-workplace__th-content"><span>${escapeHtml(col.label)}</span></span></th>`).join("")}
       ${editable ? '<th scope="col" class="e-permits-workplace__actions-cell e-permits-clas-grid__actions"><span class="sr-only">Acțiuni</span></th>' : ""}
     </tr>`;
     const row = (v) => `
-      <tr data-clas-row="${escapeHtml(v.cod)}" class="${v.activ ? "" : "is-inactive"}${clasState.selected.has(v.cod) ? " is-selected" : ""}"${editable ? ` tabindex="0" aria-label="Editează ${escapeHtml(v.cod)} — ${escapeHtml(v.denRo)}"` : ""}>
-        ${editable ? `<td class="e-permits-workplace__select-cell"><label class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" aria-label="Selectează ${escapeHtml(v.cod)}" value="${escapeHtml(v.cod)}" data-clas-grid-select${clasState.selected.has(v.cod) ? " checked" : ""}><span class="checkbox-custom" aria-hidden="true"></span></label></td>` : ""}
+      <tr data-clas-row="${escapeHtml(v.cod)}" class="${v.activ ? "" : "is-inactive"}"${editable ? ` tabindex="0" aria-label="Editează ${escapeHtml(v.cod)} — ${escapeHtml(v.denRo)}"` : ""}>
         ${cols.map((col) => `<td>${clasGridDisplayCell(c, v, col)}</td>`).join("")}
         ${editable ? `<td class="e-permits-workplace__actions-cell e-permits-clas-grid__actions">
           <span class="e-permits-workplace__row-actions">
@@ -9683,7 +9674,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </span>
         </td>` : ""}
       </tr>`;
-    const colSpan = cols.length + (editable ? 2 : 0);
+    const colSpan = cols.length + (editable ? 1 : 0);
     const body = rows.length ? rows.map(row).join("") : `<tr class="e-permits-clas-grid__empty-row"><td colspan="${colSpan}">${q || clasState.activity !== "all"
       ? renderNoResults("Nicio valoare nu corespunde căutării", { bare: true })
       : renderEmptyState({ title: "Clasificatorul nu are încă valori", text: editable ? "Adaugă prima valoare sau importă-le dintr-un fișier CSV." : "Valorile apar aici după ce sunt adăugate.", icon: "list-bullets", bare: true, actionHtml: editable ? '<button class="btn btn-secondary btn-sm" type="button" data-clas-grid-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă prima valoare</span></button>' : "" })}</td></tr>`;
@@ -9694,7 +9685,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${note ? `<div class="e-permits-clas-grid__notice">${note}</div>` : ""}
         ${toolbar}
         <div class="e-permits-workplace__table-wrap e-permits-clas-grid__wrap">
-          <table class="e-permits-workplace__table e-permits-clas-grid__table${editable ? " is-editable" : ""}" style="width:${cols.reduce((sum, col) => sum + col.width, editable ? 43 + 136 : 0)}px">
+          <table class="e-permits-workplace__table e-permits-clas-grid__table${editable ? " is-editable" : ""}" style="width:${cols.reduce((sum, col) => sum + col.width, editable ? 136 : 0)}px">
             <thead>${head}</thead>
             <tbody>${body}</tbody>
           </table>
@@ -10654,8 +10645,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const tg = event.target.closest("[data-clas-grid-toggle]");
     if (tg) { const v = getClassifier(clasState.id).valori.find((x) => x.cod === tg.dataset.clasGridToggle); setClasValuesActive([v.cod], !v.activ); return; }
     const del = event.target.closest("[data-clas-grid-delete]"); if (del) { if (del.getAttribute("aria-disabled") !== "true") deleteClasValue(del.dataset.clasGridDelete); return; }
-    const bulk = event.target.closest("[data-clas-grid-bulk]"); if (bulk) { setClasValuesActive([...clasState.selected], bulk.dataset.clasGridBulk === "on"); return; }
-    if (event.target.closest("[data-clas-grid-clear]")) { clasState.selected.clear(); renderClassifierProfile(); return; }
     if (event.target.closest("[data-clas-import]")) { openImportModal(); return; }
     if (event.target.closest("[data-clas-sync]")) { openSyncFlow(); return; }
     if (event.target.closest("[data-clas-field-add]")) { openFieldModal(); return; }
@@ -10682,16 +10671,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = event.target.closest("select[data-clas-setting]"); if (st) { clasState.draft[st.dataset.clasSetting] = st.value; renderClassifierProfile(); return; }
     const tg = event.target.closest("[data-clas-toggle]"); if (tg) { clasState.draft[tg.dataset.clasToggle] = tg.checked; if (tg.dataset.clasToggle === "criticProces" && tg.checked) clasState.draft.localAdminManageable = false; renderClassifierProfile(); }
   });
-  /* table: checkboxes select; click a row (or Enter on it) to edit in the drawer */
-  clasProfileBody?.addEventListener("change", (event) => {
-    const one = event.target.closest("[data-clas-grid-select]");
-    if (one) { if (one.checked) clasState.selected.add(one.value); else clasState.selected.delete(one.value); renderClassifierProfile(); clasProfileBody.querySelector(`[data-clas-grid-select][value="${CSS.escape(one.value)}"]`)?.focus(); return; }
-    const allBox = event.target.closest("[data-clas-grid-select-all]");
-    if (allBox) {
-      clasProfileBody.querySelectorAll("[data-clas-grid-select]").forEach((box) => { if (allBox.checked) clasState.selected.add(box.value); else clasState.selected.delete(box.value); });
-      renderClassifierProfile(); clasProfileBody.querySelector("[data-clas-grid-select-all]")?.focus();
-    }
-  });
+  /* table: click a row (or Enter on it) to edit in the drawer */
   clasProfileBody?.addEventListener("click", (event) => {
     const tr = event.target.closest(".e-permits-clas-grid__table.is-editable tr[data-clas-row]");
     if (!tr || event.target.closest("button, label, input, a")) return;

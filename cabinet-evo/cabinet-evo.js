@@ -44,7 +44,70 @@
     avatarPanel: document.querySelector("[data-fo-avatar-dropdown]"),
   };
 
-  const state = { permits: [], filters: [], active: "toate", query: "", geap: null, detail: null };
+  const state = { permits: [], filters: [], active: "toate", query: "", geap: null, detail: null, dosarByAct: {} };
+
+  /* ---------- compartments ----------
+     One page, three views (?view=): Solicitările mele (solicitari.js), Actele mele
+     permisive (this file) and the public catalog (catalog.js). ?as=<subject> is the
+     perspective, ?auth=0 a visitor without an MPass session (catalog only). */
+  const params = new URLSearchParams(window.location.search);
+  const VIEWS = {
+    solicitari: { title: "Solicitările mele" },
+    acte: { title: "Actele mele permisive" },
+    catalog: { title: "Catalogul serviciilor" },
+  };
+  const VIEW = VIEWS[params.get("view")] ? params.get("view") : "acte";
+  const AUTH = params.get("auth") !== "0";
+  const SUBJECT = params.get("as") || "pj-global-trader";
+
+  /* a cabinet URL that keeps the perspective (and the visitor mode) */
+  function cabUrl(view, extra = {}, hash = "") {
+    const next = new URLSearchParams({ view });
+    if (params.get("as")) next.set("as", params.get("as"));
+    if (!AUTH) next.set("auth", "0");
+    Object.entries(extra).forEach(([key, value]) => { if (value !== undefined && value !== null && value !== "") next.set(key, value); });
+    return `?${next.toString()}${hash}`;
+  }
+
+  const MONTHS = ["ianuarie", "februarie", "martie", "aprilie", "mai", "iunie", "iulie", "august", "septembrie", "octombrie", "noiembrie", "decembrie"];
+  /* „8 iulie 2026” from ISO (2026-07-08[THH:MM]) or the acts' DD.MM.YYYY */
+  function longDate(value) {
+    const text = String(value || "");
+    let match = /^(\d{4})-(\d{2})-(\d{2})/.exec(text);
+    if (match) return `${Number(match[3])} ${MONTHS[Number(match[2]) - 1]} ${match[1]}`;
+    match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(text);
+    if (match) return `${Number(match[1])} ${MONTHS[Number(match[2]) - 1]} ${match[3]}`;
+    return text;
+  }
+  /* „26 iunie 2026, 13:50” */
+  function longDateTime(iso) {
+    const time = /T(\d{2}:\d{2})/.exec(String(iso || ""));
+    return time ? `${longDate(iso)}, ${time[1]}` : longDate(iso);
+  }
+
+  function applyView() {
+    document.querySelectorAll("[data-cab-view]").forEach((view) => { view.hidden = view.dataset.cabView !== VIEW; });
+    document.querySelectorAll("[data-cab-nav-item]").forEach((link) => {
+      const id = link.dataset.cabNavItem;
+      const active = id === VIEW;
+      link.classList.toggle("active", active);
+      if (active) link.setAttribute("aria-current", "page"); else link.removeAttribute("aria-current");
+      link.setAttribute("href", cabUrl(id));
+      /* a visitor only sees the public catalog (US-19 AC-01: the rest needs MPass) */
+      link.hidden = !AUTH && id !== "catalog";
+    });
+    if (!AUTH) {
+      els.avatarMenu?.setAttribute("hidden", "");
+      document.querySelector("[data-cab-login]")?.removeAttribute("hidden");
+      document.querySelector("[data-cab-login]")?.setAttribute("href", `?view=catalog${window.location.hash}`);
+    }
+    setHeaderTitle(VIEWS[VIEW].title);
+  }
+
+  function setHeaderTitle(title) {
+    els.headerTitle.textContent = title;
+    document.title = `${title} · EVO Cabinet`;
+  }
 
   const icon = (id, size = "small") =>
     `<svg class="icon ${size}" aria-hidden="true"><use href="${SPRITE}#${id}"></use></svg>`;
@@ -281,6 +344,13 @@
         return;
       }
 
+      const perspective = event.target.closest("[data-cab-as]");
+      if (perspective && perspective.dataset.cabAs !== SUBJECT) {
+        const next = new URLSearchParams(window.location.search);
+        next.set("as", perspective.dataset.cabAs);
+        window.location.assign(`?${next.toString()}`);
+        return;
+      }
       const role = event.target.closest("[data-fo-avatar-role]");
       if (!role) return;
       avatarPanel.querySelectorAll("[data-fo-avatar-role]").forEach((other) => {
@@ -351,7 +421,7 @@
     if (!response.ok) return { acts: [], config: {} };
     const data = await response.json();
     const config = data.frontOfficeFlows?.[0]?.intent || {};
-    const subjectId = new URLSearchParams(window.location.search).get("as") || "pj-global-trader";
+    const subjectId = SUBJECT;
     const acts = (config.acts?.[subjectId] || []).map((act) => {
       const service = config.services?.[act.service] || {};
       const allowed = service.allows || [];
@@ -362,7 +432,6 @@
       let notice = null;
       if (act.paper) notice = { tone: "info", icon: "icon-circle-info-filled", text: "Act emis pe hârtie, în afara GEAP. Postprocesele sunt disponibile doar la ghișeul autorității emitente." };
       else if (act.pending) notice = { tone: "warning", icon: "icon-time", text: PENDING_TEXT(pendingLabel, act.pending.dossier) };
-      const ended = ["expirat", "retras", "anulat"].includes(act.status);
       return {
         ...act,
         geap: true,
@@ -372,7 +441,7 @@
         serviceCode: act.service,
         authority: [service.authority, act.subdivision].filter(Boolean).join(" · "),
         dossier: act.number,
-        date: ended ? (act.status === "expirat" ? `expirat la ${act.validUntil}` : `valabil până la ${act.validUntil}`) : `valabil până la ${act.validUntil}`,
+        date: act.status === "expirat" ? `expirat la ${longDate(act.validUntil)}` : `valabil până la ${longDate(act.validUntil)}`,
         dateIcon: "icon-calendar",
         postProcesses,
         notice,
@@ -472,12 +541,13 @@
         ${detailRow("Numărul actului permisiv", escape(act.number))}
         ${detailRow("Serviciul", escape(act.service.title || ""))}
         ${detailRow("Autoritatea emitentă", escape(act.authority))}
-        ${detailRow("Data emiterii", escape(act.issued || "—"))}
-        ${detailRow(act.status === "expirat" ? "A expirat la" : "Valabil până la", escape(act.validUntil || "—") + (remaining !== null ? ` <span class="cab-detail__muted">· ${remaining} zile rămase</span>` : ""))}
+        ${detailRow("Data emiterii", escape(longDate(act.issued) || "—"))}
+        ${detailRow(act.status === "expirat" ? "A expirat la" : "Valabil până la", escape(longDate(act.validUntil) || "—") + (remaining !== null ? ` <span class="cab-detail__muted">· ${remaining} zile rămase</span>` : ""))}
         ${detailRow("Statutul", escape(act.statusLabel))}
       </div>
       <div class="cab-detail__actions">
         <button class="btn btn-neutral" type="button" data-cab-download="${escape(act.id)}">${icon("icon-download", "medium")}<span>Descarcă actul</span></button>
+        ${state.dosarByAct[act.id] ? `<a class="btn btn-neutral" href="${escape(cabUrl("solicitari", {}, `#dosar/${state.dosarByAct[act.id]}`))}" data-cab-see-dosar>${icon("icon-page-text", "medium")}<span>Vezi solicitarea</span></a>` : ""}
         ${act.postProcesses.length ? `
           <div class="e-permits-fo-intent-act__action">
             <button class="btn btn-primary" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Inițiază un postproces</span>${icon("icon-chevron-bottom", "medium")}</button>
@@ -492,7 +562,7 @@
   function daysUntil(ddmmyyyy) {
     const [d, m, y] = String(ddmmyyyy || "").split(".").map(Number);
     if (!y) return null;
-    const today = new Date(2026, 9, 6);
+    const today = new Date(2026, 9, 12);
     return Math.max(0, Math.round((new Date(y, m - 1, d) - today) / 86400000));
   }
 
@@ -541,6 +611,13 @@
     });
   }
 
+  /* ---------- shared with solicitari.js and catalog.js ---------- */
+  window.CabEvo = {
+    VIEW, AUTH, SUBJECT, SPRITE, params,
+    icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle,
+    els,
+  };
+
   /* ---------- boot ---------- */
 
   async function init() {
@@ -554,10 +631,16 @@
 
     if (data.page) {
       els.title.textContent = data.page.title;
-      els.headerTitle.textContent = data.page.title;
       els.subtitle.textContent = data.page.subtitle;
-      document.title = `${data.page.title} · EVO Cabinet`;
     }
+    applyView();
+    /* Finalizat-Aprobat dosare ↔ their act („Vezi solicitarea” / „Vezi actul”) */
+    try {
+      const sm = await (await fetch("../data/cabinet-evo-solicitari.json")).json();
+      (sm.perspectives?.[SUBJECT]?.dosare || [])
+        .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
+        .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) state.dosarByAct[dosar.actId] = dosar.id; });
+    } catch { /* the act profile simply has no link */ }
 
     if (data.user) {
       els.name.textContent = data.user.name;
@@ -565,6 +648,11 @@
     }
     /* the perspective whose acts are listed */
     if (state.geap.subject) {
+      els.avatarPanel?.querySelectorAll("[data-fo-avatar-role]").forEach((role) => {
+        const own = role.dataset.cabAs === SUBJECT;
+        role.classList.toggle("is-selected", own);
+        role.setAttribute("aria-checked", String(own));
+      });
       els.name.textContent = state.geap.subject.name;
       els.role.textContent = state.geap.subject.roleLabel || (state.geap.subject.type === "PJ" ? "Persoană juridică" : "Persoană fizică");
     }
@@ -572,6 +660,9 @@
     bind();
     bindGeap();
     render();
+    /* ?act=<id> opens the act profile (from a dosar's „Vezi actul”) */
+    const deepAct = VIEW === "acte" && state.permits.find((permit) => permit.id === params.get("act"));
+    if (deepAct?.geap) renderDetail(deepAct);
     document.documentElement.dataset.cabReady = "true";
   }
 

@@ -215,6 +215,14 @@ but this doc previously described it wrongly, see the entry.
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
+| EVO Cabinet compartment nav | `nav.cab-nav > .cab-nav__inner.tabs > .tab-buttons > a.tab-button(.active)` (`?view=solicitari\|acte\|catalog`) | `cabinet-evo/index.html` | page-app |
+| Dosar card (Solicitările mele) | `.cab-card` + `.cab-card__foot` (deadline strip `.message.message--subtle.banner--{warning\|info}.cab-message` + ⋮) · marks `.cab-card__tacit` / `--danger` / `button.cab-mark[data-sm-tip]` · `.cab-card--static` (read-only) · `.is-new` | `cabinet-evo/solicitari.js` `cardHtml` | page-app |
+| Key facts row | `dl.cab-facts > .cab-facts__item > dt + dd` (vertical dividers; stacks ≤600) | `factsHtml` (solicitari.js), catalog service page | page-app |
+| Callout tones | `.e-permits-callout--{info\|warning\|neutral\|success\|danger}` | `calloutHtml` (solicitari.js) | app |
+| Tracker step needing the applicant / refused | `.e-permits-fo-finish-tracker__item.is-{attention\|rejected}` + `.e-permits-fo-finish-marker--{attention\|rejected}`; 16px todo = `--todo.e-permits-fo-finish-marker--sm` | `trackerHtml` / `historyHtml` | app |
+| Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + `__primary--danger` | `openConfirm({ danger: true })` (solicitari.js) | app |
+| List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
+| Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
@@ -4474,19 +4482,19 @@ forced sideways scrolling, and pinned columns took the space). The panel gets `.
 the tab renders the registry table: `.e-permits-workplace__table-wrap` >
 `table.e-permits-workplace__table.e-permits-clas-grid__table` with an explicit pixel width
 (sum of columns, as the registry) and `setColumnWidth` on each `th`; Denumire RO takes the rest.
-- Columns: select · Cod (96) · Denumire RO · Traduceri RU · EN (220, two lines "RU · …" /
+- Columns: Cod (96) · Denumire RO · Traduceri RU · EN (220, two lines "RU · …" /
   "EN · …", ellipsis per line) · Valoare-părinte (150, code + name, tooltip) · extra columns ·
   Activ de la (112, `dd.mm.yyyy`) · Stare (180: Activ/Inactiv + Nouă/Modificată +
   "până la …") · actions (136, the only pinned column). Cod is NOT pinned.
 - Toolbar: registry search · chips Toate/Active/Inactive with `.badge--lg.badge--solid-light`
-  (as Tarife/Plăți) · Importă CSV · Adaugă valoare; with a selection: "N valori selectate ·
-  Activează · Dezactivează · Anulează selecția".
+  (as Tarife/Plăți) · Importă CSV · Adaugă valoare. **No checkbox column / bulk bar** (removed
+  2026-10-12 after PO review: no bulk need — activate/deactivate per row).
 - **Editing:** click a row (or Enter/Space on a focused row, rows are `tabindex=0`) or the
   pencil opens the `.e-permits-user-create` drawer: Identificare (Cod, Valoare-părinte) ·
   Denumiri (română required, rusă, engleză) · Coloane suplimentare (toggle / select / input
   by type) · Valabilitate (two library date pickers). Footer: summary ("Salvarea deschide o
   ciornă peste vX.") · Anulează · (new only) `btn-secondary` "Salvează și adaugă alta" ·
-  Salvează. Activation is not in the drawer — it is a confirmed row / bulk action.
+  Salvează. Activation is not in the drawer — it is a confirmed row action.
 - Row actions: Editează · Dezactivează (`icon-pause`) / Activează (`icon-checkmark-large`) ·
   Șterge (`icon-delete`, `aria-disabled` + reason when the value was published).
 - Renaming a code that children use asks first (`askConfirm`, raised above the drawer).
@@ -4602,6 +4610,91 @@ calls `stopFrontOfficePostprocess`). It reuses the primary FO wizard; only conte
 with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp-11` reperfectare 10,
 `pp-12/12a` prelungire, `pp-13…13b` duplicat, `pp-14…14b` retragere, `pp-15/15a` suspendare,
 `pp-16/16a` reluare.
+
+### EVO Cabinet › Solicitările mele + Catalog (added 2026-10-12)
+
+Spec: Feature 90817 — US-19 88207, US-158 91295, US-161 91355, US-29 88532, US-24 88527,
+US-135 90946, US-159 91297; catalog US-10 88202. Figma EVO Cabinet „Solicitarile mele” 508:9600,
+profiles 544:13632 / 545:2582 / 553:4320 / 544:20022 / 544:20754 / 544:20755. Map:
+`tools/persona-test/specs/fo/full-flow.md`.
+
+**One page, three views.** `cabinet-evo/index.html?view=solicitari|acte|catalog` (default `acte`);
+`?as=<subject>` = perspective (FO subject ids; the avatar menu roles carry `data-cab-as`),
+`?auth=0` = visitor (catalog only, „Autentifică-te” instead of the avatar). `cabinet-evo.js` owns
+the header, the nav and the acts; it exposes `window.CabEvo` (`icon`, `escape`, `copyValueHtml`,
+`closeMenus`, `cabUrl(view, params, hash)` keeps `as`/`auth`, `longDate`, `longDateTime`,
+`setHeaderTitle`). `solicitari.js` and `catalog.js` render their view into `[data-cab-view]`.
+Data: `data/cabinet-evo-solicitari.json` (statuses, chips, services, help, perspectives → dosare),
+`data/cabinet-evo-catalog.json`; subjects / acts from `data/acte-permisive.json`.
+
+**List** = the acts page vocabulary: `.cab-intro`, `.cab-toolbar` (search · Filtre chip · „Sortează”
+chip = label + chevron → `.cab-menu--wide` with `menuitemradio` + trailing check), `.cab-chips`
+(Toate / Schiță / Necesită atenție [accent badge] / În derulare / Finalizate), `.cab-list` of cards,
+`.cab-pager`, empty = `GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile
+selectate.")` (paths fixed with `../`), errors = `GEAPEmptyState.render` + „Încercați din nou”.
+Card: title = object, `.cab-card__service` = „Tip · Serviciu”, meta = authority · Depusă/Creată
+date · nr (copy). Deadline strip under the meta (`.cab-card__foot`) — warning tone = action pending
+(Schiță „se elimină automat pe”, Spre achitare „Achitați taxa până la”, Informații suplimentare
+„Trimiteți informațiile cerute până la”), info tone = În derulare „Răspuns până la” / tacit
+„Termenul de examinare a expirat pe”; Finalizat has no strip, the ⋮ moves into the tags row.
+Marks before the status tag: „✓ Aprobat”, „✕ Respins” (`--danger`), „Disponibilă aprobarea tacită”
+(`button.cab-mark` + library `.tooltip` on hover/focus). Tags are sentence case on this page
+(`.cab-page .status-tag { text-transform: none }`).
+⋮ items per status: Vezi detalii · Continuă schița / — / Elimină schița · Suplinește informații ·
+Achită N MDL · Descarcă certificatul · Vezi actul / Descarcă actul (MDocs) · Descarcă decizia ·
+Depune contestație (30 days after the decision). FOD2 targets: draft → `?flow=full&schita=<nr>
+[&pp&act]#request-step-<last step>`, suplinire → `&suplinire=<nr>#request-step-2`, contestație →
+`&contestatie=<nr>#choice-authenticated`.
+
+**Profile** (`#dosar/<id>`) = the act profile shell (`.cab-detail`, back button, `.cab-detail__head`)
++ `.cab-facts` + FO finish tracker (Depusă · Verificare · [Plată] · Decizie · Finalizat/Respins;
+none for Schiță) + callout (neutral Schiță, warning Info/Achitare, info În derulare, success
+Aprobat, danger Respins) + `.cab-detail__actions` + sections (`.cab-section` > h2
+`.e-permits-fo-finish__section-title` > `.e-permits-fo-summary-card.cab-detail__card` rows):
+Date generale (conditional rows hidden when empty — US-161 AC-05…08), roles
+(`.e-permits-fo-form__roles.cab-roles` Beneficiar + Solicitant „Eu”, MPower card when
+representative), Date solicitare, Contacte, Documente însoțitoare (`.cab-docs` of
+`.e-permits-fo-confirm-file` rows + `btn-text-primary btn-sm` Descarcă), Livrare, Taxe (only with a
+payment note; Data achitării only when Achitat), Act permisiv / Decizie (only Finalizat),
+Istoric complet (`.e-permits-fo-finish-timeline`), Ai nevoie de ajutor?.
+Download error (US-19 AC-14) = `message banner--error` after the clicked scope (`[data-sm-dl-scope]`).
+
+**Modals**: Elimină schița = FO confirm modal with `--danger`; MPay stand-in = the same modal (note
+data pre-filled, „Achită” → `?achitat=<id>`, „Anulează plata” = status unchanged); Filtre = FO doc
+modal shell with authority checkboxes and two date-range pickers (AC-11 inline error).
+
+**Representative after MPower expiry** (US-159): neutral callout with lock icon on top, cards
+`.cab-card--static` with only nr, serviciu, data depunerii, statut; no ⋮, no profile, search /
+chips / sort still work.
+
+**Returns** read by the list: `depus=<nr>&obiect=&pp=&act=&subdiviziune=` (FOD2 S11), `schita=1&pas=`
+(draft saved), `achitat=<id>` / `plata=anulata` (MPay). Demo errors: `eroare=lista|cautare|mpower`,
+`descarcare=eroare`. FOD2 builds these with `frontOfficeSolicitariUrl()` / `frontOfficeDraftUrl()`
+in `js/e-permits-acte-permisive.js` (S11 lead + „Mergi la Solicitările mele”, draft banner + toast,
+instance-switch text link).
+
+**Catalog** (`?view=catalog`, `#serviciu/<id>`): search (name, code, institution — diacritic
+insensitive) + category chips + `.cab-card` per service (act type · term · cost meta, „Online” tag);
+service page = `.cab-detail` + `.cab-facts` (Tip · Termen · Cost) + `.cab-lead` + `.cab-cta`
+(„Solicită online” + hint) + Despre serviciu / Documente necesare cards. Target: visitor → FO MPass
+(`?flow=full`), session + acts for the service → `#intent`, otherwise → `#choice-authenticated`.
+
+**Page glue classes** (cabinet-evo.css, no visual identity of their own): `.cab-view` (view
+container), `.cab-login`, `.cab-message` (the static notice strip outside cards), `.cab-notice` /
+`.cab-callout` / `.cab-state` (24 above), `.cab-section`, `.cab-docs` / `.cab-docs__download`,
+`.cab-roles`, `.cab-tracker`, `.cab-lead`, `.cab-cta`, `.cab-applicants` / `.cab-applicant`
+(PF/PJ icon + full name), `.cab-tooltip` (max 320), `.cab-sort` / `.cab-sort__trigger`;
+`.sm-profile` / `.cat-service` are hooks only. Open buttons/chips keep the focus ring here too
+(`.cab-page .btn[aria-expanded="true"]`, the shell rule — this page does not load
+e-permits-shell.css). Summary-row labels wrap inside `.cab-detail__card` (no truncation).
+
+**Demo states**: `sm-01…01l` list (chips, search, empty, sort, filters, validation, applied,
+page 2, tooltip, per page), `sm-02…02e` ⋮ per status, `sm-03…03c` Schiță (profile, confirm,
+deleted, post-process draft), `sm-04…04f` În derulare / tacit / Info / Achitare / MPay /
+returns, `sm-05…05d` Finalizat aprobat / respins / retragere / download error / act ↔ dosar,
+`sm-06/06a` errors, `sm-07…07c` representative (valid, profile with MPower, expired, MPower
+error), `sm-08…08b` returns from FOD2; `cat-01…01c` catalog, `cat-02…02d` service page per
+session, `cat-03…03b` where „Solicită online” lands.
 
 ### Logare în Back Office / Admin Portal — MPass (added 2026-10-06)
 

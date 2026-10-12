@@ -810,7 +810,7 @@
           "lead": {
             "text": "Urmărește statutul în EVO Cabinet →",
             "link": "Solicitările mele",
-            "href": "cabinet-evo/"
+            "href": "cabinet-evo/?view=solicitari"
           },
           "tracker": [
             { "label": "Depusă", "state": "done" },
@@ -824,7 +824,7 @@
             "title": "Certificatul Constatator",
             "text": "Dovada depunerii cererii. Disponibil și în",
             "link": "EVO Cabinet",
-            "href": "cabinet-evo/",
+            "href": "cabinet-evo/?view=solicitari",
             "action": "Vezi documentul"
           },
           "summary": {
@@ -858,7 +858,7 @@
               }
             ]
           },
-          "action": { "label": "Urmărește statutul în EVO Cabinet", "href": "cabinet-evo/" }
+          "action": { "label": "Mergi la Solicitările mele", "href": "cabinet-evo/?view=solicitari" }
         }
       ],
       "forms": {

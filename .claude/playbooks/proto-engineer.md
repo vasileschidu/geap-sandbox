@@ -71,3 +71,33 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   builders and existing components.
 - 2026-10-12 · ui-qa-code first run: chevron colour ≠ label in the „Valoare ▾” group; an off-scale
   17px indent → use 8 margin + 1px transparent border + 16 padding.
+- 2026-10-12 · PO asked „care este scopul acestui checkbox?” on the classifier values table → the
+  selection column (bulk Activează/Dezactivează) was removed everywhere; no checkbox columns unless
+  a story asks for bulk actions. Without the select column, the first cell pads 16 (toolbar line).
+- 2026-10-12 · Solicitările mele + catalog in `cabinet-evo/` (one page, `?view=` + `?as=`; new views
+  are separate files fed by `window.CabEvo` from cabinet-evo.js). Reusing the FO vocabulary (summary
+  card, finish tracker/timeline, callout, roles, confirm-file rows, confirm + doc modals) covered a whole
+  EVO profile with ~10 glue classes — look in the FO wizard before inventing for any EVO screen.
+- 2026-10-12 · A `sed` that deleted „unused” `const status = …` lines also hit `statusTag()` (same
+  indent) → every tag read „Undefined” (bare `status` = `window.status`). Never sed-delete by line text;
+  edit the one occurrence with Python + assert count == 1.
+- 2026-10-12 · Library `.status-tag` is `text-transform: capitalize` → „În Așteptare”. Romanian labels are
+  sentence case: scope `text-transform: none` (cab page, BO dosar profile already does it).
+- 2026-10-12 · The FO intent menu stretches `left:0; right:0` at ≤720 — any reuse (`cab-menu`) must
+  re-anchor on mobile; a left-side menu trigger near the edge needs `margin-left:auto` so the menu opens
+  leftwards. Check open menus at 375 (capture overflow > 0 is the tell).
+- 2026-10-12 · `cabinet-evo/` does not load e-permits-shell.css → the global „open button keeps the focus
+  ring” rule was missing there; pages outside the shell need it copied (`.cab-page .btn[aria-expanded]`).
+- 2026-10-12 · empty-state.js / FO markup use root-relative `assets/…`; on sub-pages rewrite to `../assets/`
+  (`fixAssets`). capture.mjs only says „ok” when demoState is set — `id:error` also counts as set; check
+  `document.documentElement.dataset.demoState` for `:error` (scratch `check.mjs`) and items on page 2 of a
+  paginated list (filter first).
+- 2026-10-12 · Full-page captures put fixed modals/tooltips wherever the page was scrolled; for modal
+  states take a viewport screenshot (CDP `Page.captureScreenshot`). A `scroll` listener that hides a
+  tooltip kills it when the demo helper `h.hover` scrolls it into view — position absolute in document
+  coordinates instead.
+- 2026-10-12 · No sub-agent tool in this session → ran `tools/ui-qa/code-audit.mjs` per
+  `.claude/agents/ui-qa-code.md` myself. Real finds: chip icon colour ≠ label (cab Filtre pinned #121212),
+  brand-blue check in menus (icon = label colour), truncated summary labels on mobile (wrap them).
+  Standing false positives: `e-permits-fo-copy-value` (button-not-library / icon colour), open menus
+  overlapping content, `.u-visually-hidden` „clipped”, FO timeline gray-50.

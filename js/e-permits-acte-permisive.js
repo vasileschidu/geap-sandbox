@@ -159,6 +159,25 @@
       window.GEAPToast?.show({ type: "success", message, key: "fo-transient" });
     }
 
+    /* EVO Cabinet › Solicitările mele: every exit of the wizard lands there (US-18 AC-04/10,
+       US-21 / US-29): the filed dosar on top as „În derulare”, a saved draft as „Schiță” at the
+       step it was left on. The cabinet reads depus / schita / pas / obiect / pp / act. */
+    function frontOfficeSolicitariUrl(extra = {}) {
+      const query = new URLSearchParams({ view: "solicitari" });
+      Object.entries(extra).forEach(([key, value]) => { if (value) query.set(key, value); });
+      const ctx = typeof frontOfficePostprocess === "undefined" ? null : frontOfficePostprocess;
+      if (ctx?.pp?.id && ctx?.act?.id) { query.set("pp", ctx.pp.id); query.set("act", ctx.act.id); }
+      const object = document.querySelector("#fo-object-name")?.value?.trim() || ctx?.act?.name || "";
+      if (object) query.set("obiect", object);
+      if (ctx?.act?.subdivision) query.set("subdiviziune", ctx.act.subdivision);
+      return `cabinet-evo/?${query.toString()}`;
+    }
+
+    function frontOfficeDraftUrl() {
+      const step = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
+      return frontOfficeSolicitariUrl({ schita: "1", pas: String(step) });
+    }
+
     function showFrontOfficeDraftCreatedToast() {
       if (frontOfficeDraftToastShown) return;
       frontOfficeDraftToastShown = true;
@@ -166,7 +185,7 @@
         type: "success",
         title: "Cererea a fost creată ca schiță",
         message: "O poți relua oricând din Solicitările mele.",
-        link: { href: "e-permits-acte-permisive.html?flow=back-office", label: "Deschide Solicitările mele" },
+        link: { href: frontOfficeDraftUrl(), label: "Deschide Solicitările mele" },
         duration: 5000,
         key: "fo-draft-created"
       });
@@ -199,7 +218,7 @@
           </svg>
           <span class="e-permits-fo-draft-status__label">Salvat ca schiță</span>
         </span>
-        <a class="e-permits-fo-draft-status__link" href="e-permits-acte-permisive.html?flow=back-office">Solicitările mele</a>
+        <a class="e-permits-fo-draft-status__link" href="${escapeFrontOfficeHtml(frontOfficeDraftUrl())}">Solicitările mele</a>
         <span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span>
         <time class="e-permits-fo-draft-status__time" datetime="${frontOfficeDraftSavedAt ? frontOfficeDraftSavedAt.toISOString() : ""}" data-fo-draft-time>
           ${escapeFrontOfficeHtml(frontOfficeTimeLabel(frontOfficeDraftSavedAt || new Date()))}
@@ -303,6 +322,9 @@
       const targetCopy = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-target-copy]");
 
       if (current) current.textContent = `(${currentName.toLocaleUpperCase("ro-RO")})`;
+      /* the draft it becomes is listed in EVO Cabinet › Solicitările mele (new tab: the switch continues here) */
+      const draftLink = frontOfficeInstanceSwitchModal.querySelector("[data-fo-instance-switch-link]");
+      if (draftLink) draftLink.href = frontOfficeDraftUrl();
       if (targetSubject && target && targetCopy) {
         target.textContent = targetSubject.name;
         targetCopy.innerHTML = `Vei începe o cerere nouă ca <strong data-fo-instance-switch-target>${escapeFrontOfficeHtml(targetSubject.name)}</strong>.`;
@@ -2319,10 +2341,14 @@
     function renderFrontOfficeStep7FromSchema(schema) {
       frontOfficeLastFinishSchema = schema;
       const panel = document.querySelector("[data-fo-step-panel='7']");
-      const step = schema?.steps?.find((item) => item.id === "finish" || Number(item.index) === 7);
+      let step = schema?.steps?.find((item) => item.id === "finish" || Number(item.index) === 7);
       const body = panel?.querySelector("[data-fo-finish-body]");
       if (!panel || !step || !body) return;
       const esc = escapeFrontOfficeHtml;
+      const filedNr = (step.summary?.rows || []).find((row) => row.label === "Numărul dosarului")?.value || "";
+      const solicitariHref = frontOfficeSolicitariUrl({ depus: filedNr });
+      if (step.lead) step = { ...step, lead: { ...step.lead, href: solicitariHref } };
+      if (step.action) step = { ...step, action: { ...step.action, label: "Mergi la Solicitările mele", href: solicitariHref } };
 
       const lead = step.lead
         ? `<p class="e-permits-fo-finish__lead">${esc(step.lead.text || "")} <a href="${esc(step.lead.href || "#")}">${esc(step.lead.link || "")}</a>.</p>`

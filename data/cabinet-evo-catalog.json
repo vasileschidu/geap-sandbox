@@ -1,0 +1,109 @@
+{
+  "_note": "EVO catalog (US-10 88202, AC-01…06). Codes/authorities from data/e-permits-services.json (RSSP); service 09 is the GEAP full flow (online: true). Other services are listed for search/filter only.",
+  "categories": [
+    { "id": "toate", "label": "Toate" },
+    { "id": "sanatate", "label": "Sănătate publică" },
+    { "id": "comert", "label": "Comerț" },
+    { "id": "medicamente", "label": "Medicamente" },
+    { "id": "mediu", "label": "Mediu" },
+    { "id": "alimente", "label": "Siguranța alimentelor" },
+    { "id": "metrologie", "label": "Metrologie" }
+  ],
+  "services": [
+    {
+      "id": "09", "code": "003000118", "category": "sanatate", "online": true,
+      "title": "Autorizația sanitară de funcționare",
+      "description": "Actul permisiv care confirmă că unitatea (cafenea, restaurant, magazin, depozit) respectă cerințele sanitare pentru a-și desfășura activitatea. Cererea se depune online, se semnează cu MSign, iar taxa se achită prin MPay.",
+      "authority": "Agenția Națională pentru Sănătate Publică (ANSP)",
+      "actType": "Autorizație",
+      "term": "15 zile lucrătoare",
+      "cost": "500 MDL",
+      "validity": "3 ani de la data emiterii",
+      "applicants": ["PF", "PJ"],
+      "documents": [
+        { "title": "Copia actului de proprietate / contractului de locațiune", "required": true },
+        { "title": "Schița spațiului / planul încăperilor", "required": true },
+        { "title": "Extras din Registrul de Stat al persoanelor juridice", "required": true, "note": "Se preia automat din MDocs" },
+        { "title": "Avizul sanitar precedent", "required": false },
+        { "title": "Certificate de instruire igienică ale personalului", "required": false }
+      ]
+    },
+    {
+      "id": "10", "code": "", "category": "medicamente",
+      "title": "Autorizația pentru substanțe stupefiante și psihotrope",
+      "description": "Autorizația de activitate cu utilizarea obiectivelor și încăperilor legate de circulația substanțelor stupefiante, psihotrope și a precursorilor.",
+      "authority": "Agenția Medicamentului și Dispozitivelor Medicale (AMDM)",
+      "actType": "Autorizație", "term": "10 zile lucrătoare", "cost": "Gratuit", "validity": "5 ani de la data emiterii", "applicants": ["PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "23", "code": "003000023", "category": "comert",
+      "title": "Notificare în comerț",
+      "description": "Notificarea privind inițierea, modificarea sau încetarea activității de comerț, depusă de agentul economic la autoritatea administrației publice locale.",
+      "authority": "Ministerul Economiei (MEC)",
+      "actType": "Notificare", "term": "5 zile lucrătoare", "cost": "50 MDL", "validity": "Nelimitată, până la încetarea activității", "applicants": ["PF", "PJ"],
+      "documents": [
+        { "title": "Copia actului de identitate", "required": true },
+        { "title": "Extras din Registrul de stat al persoanelor juridice", "required": true },
+        { "title": "Schița de amplasare a obiectului", "required": true },
+        { "title": "Contract de locațiune", "required": false }
+      ]
+    },
+    {
+      "id": "207", "code": "003000207", "category": "comert",
+      "title": "Autorizație de comerț cu produse alcoolice",
+      "description": "Autorizația pentru comercializarea cu amănuntul a produselor alcoolice.",
+      "authority": "Ministerul Economiei (MEC)",
+      "actType": "Autorizație", "term": "10 zile lucrătoare", "cost": "3 000 MDL", "validity": "1 an", "applicants": ["PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "245", "code": "003000245", "category": "medicamente",
+      "title": "Licență pentru activitatea farmaceutică",
+      "description": "Licența pentru desfășurarea activității farmaceutice (farmacii comunitare și de spital).",
+      "authority": "Agenția Medicamentului și Dispozitivelor Medicale (AMDM)",
+      "actType": "Licență", "term": "20 zile lucrătoare", "cost": "4 500 MDL", "validity": "5 ani", "applicants": ["PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "312", "code": "003000312", "category": "mediu",
+      "title": "Autorizație de mediu pentru emisii",
+      "description": "Autorizația pentru emisiile de poluanți în aerul atmosferic din surse staționare.",
+      "authority": "Agenția de Mediu (AM)",
+      "actType": "Autorizație", "term": "30 zile calendaristice", "cost": "Gratuit", "validity": "7 ani", "applicants": ["PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "377", "code": "003000377", "category": "metrologie",
+      "title": "Certificat de conformitate a mijloacelor de măsurare",
+      "description": "Certificatul care confirmă conformitatea mijloacelor de măsurare cu cerințele metrologice legale.",
+      "authority": "Institutul Național de Metrologie (INM)",
+      "actType": "Certificat", "term": "10 zile lucrătoare", "cost": "800 MDL", "validity": "2 ani", "applicants": ["PF", "PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "402", "code": "003000402", "category": "alimente",
+      "title": "Aviz sanitar-veterinar pentru unitățile de producție",
+      "description": "Avizul pentru funcționarea unităților de producție, procesare și depozitare a produselor de origine animală.",
+      "authority": "Agenția Națională pentru Siguranța Alimentelor (ANSA)",
+      "actType": "Aviz", "term": "15 zile lucrătoare", "cost": "250 MDL", "validity": "Nelimitată", "applicants": ["PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "519", "code": "003000519", "category": "sanatate",
+      "title": "Înregistrarea produselor biocide",
+      "description": "Înregistrarea produselor biocide și eliberarea certificatului de înregistrare.",
+      "authority": "Agenția Națională pentru Sănătate Publică (ANSP)",
+      "actType": "Certificat", "term": "30 zile lucrătoare", "cost": "9 252 MDL", "validity": "5 ani", "applicants": ["PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    },
+    {
+      "id": "151", "code": "003578151", "category": "sanatate",
+      "title": "Certificat de analiză fizico-chimică",
+      "description": "Certificatul eliberat de laboratorul acreditat în urma analizei fizico-chimice a probelor.",
+      "authority": "Laboratorul de Referință în Sănătate Publică (LRSP)",
+      "actType": "Certificat", "term": "10 zile lucrătoare", "cost": "350 MDL", "validity": "3 ani de la data emiterii", "applicants": ["PF", "PJ"],
+      "documents": [{ "title": "Copia actului de identitate", "required": true }]
+    }
+  ]
+}

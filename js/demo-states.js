@@ -177,6 +177,24 @@
     ready: "[data-fo-step-panel]:not([hidden]) h1",
     run: async (h) => { await clearToasts(h); if (run) await run(h); }
   });
+  /* EVO Cabinet › Solicitările mele (sm-) and the catalog (cat-): one page, ?view=… ;
+     ?as=<subject> = perspective, other params = returns from FOD2 / MPay and error demos */
+  const CAB = "cabinet-evo/index.html";
+  const SM_READY = "[data-sm-card], [data-sm-profile], .cab-state";
+  const sm = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "solicitari", ...params }, hash, ready: SM_READY, run });
+  const smDosar = (id, run, params = {}) => sm(run, params, `#dosar/${id}`);
+  const smMenu = (id) => async (h) => { await h.scroll(`[data-sm-card="${id}"]`); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
+  const smFilters = async (h) => { await h.click("[data-sm-filter-open]"); };
+  const smDate = async (h, id, iso) => {
+    const input = await h.find(`#${id}`);
+    const [y, m, d] = iso.split("-");
+    input.closest("[data-date-picker]").dataset.selected = iso;
+    input.value = `${d}/${m}/${y}`;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    await h.wait(200);
+  };
+  const cat = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "catalog", ...params }, hash, ready: "[data-cat-card], [data-cat-service], .cab-state", run });
+
   const ppReason = (value) => async (h) => {
     await h.click("[data-fo-step-panel='2'] [data-fo-pp-select='pp-reason'] .e-permits-fo-select__button");
     await h.click(".e-permits-fo-select__option", value);
@@ -750,7 +768,6 @@
     "clf-02f": clf("#classifiers", clfStep(4)),
     "clf-02g": clf("#classifiers", async (h) => { await clfStep1(h); await h.click("[data-clas-close]"); }),
     "clf-03": clfProfile("cl-statut", "valori"),
-    "clf-03a": clfProfile("cl-statut", "valori", async (h) => { await h.nth("[data-clas-grid-select]", 0); await h.nth("[data-clas-grid-select]", 1); }),
     "clf-03b": clfProfile("cl-statut", "valori", async (h) => { await h.nth("[data-clas-grid-edit]", 0); }),
     "clf-03c": clfProfile("cl-statut", "valori", async (h) => { await h.click("[data-clas-grid-add]"); }),
     "clf-03d": clfProfile("cl-statut", "valori", async (h) => { await h.hover("[data-clas-grid-delete]"); }),
@@ -808,6 +825,67 @@
       await h.click("[data-fo-avatar-role][data-fo-subject-id='mpower-pj-nord-agro']");
       await h.find("[data-fo-intent-empty]");
     }),
+    /* ---- EVO Cabinet › Solicitările mele (US-19, US-158, US-161, US-29, US-24, US-135, US-159) ---- */
+    "sm-01": sm(),
+    "sm-01a": sm(async (h) => { await h.click('[data-sm-chip="atentie"]'); }),
+    "sm-01b": sm(async (h) => { await h.click('[data-sm-chip="schita"]'); }),
+    "sm-01c": sm(async (h) => { await h.click('[data-sm-chip="finalizat"]'); }),
+    "sm-01d": sm(async (h) => { await h.fill("[data-sm-search]", "04466", { leave: false }); }),
+    "sm-01e": sm(async (h) => { await h.fill("[data-sm-search]", "autorizatie stupefiante xyz", { leave: false }); }),
+    "sm-01f": sm(async (h) => { await h.click(".cab-sort__trigger"); }),
+    "sm-01g": sm(smFilters),
+    "sm-01h": sm(async (h) => { await smFilters(h); await smDate(h, "sm-sub-from", "2026-10-01"); await smDate(h, "sm-sub-to", "2026-09-01"); await h.click("[data-sm-filter-apply]"); }),
+    "sm-01i": sm(async (h) => { await smFilters(h); await h.click('[data-sm-filter-authority][value="AMDM"]'); await h.click("[data-sm-filter-apply]"); }),
+    "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
+    "sm-01k": sm(async (h) => { await h.hover("[data-sm-tip]"); }),
+    "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
+    "sm-02": sm(smMenu("d-spicul")),
+    "sm-02a": sm(smMenu("d-fresh")),
+    "sm-02b": sm(smMenu("d-sud")),
+    "sm-02c": sm(smMenu("d-nistru")),
+    "sm-02d": sm(async (h) => { await h.click('[data-sm-chip="finalizat"]'); await smMenu("d-izvoras")(h); }),
+    "sm-02e": sm(smMenu("d-nota")),
+    "sm-03": smDosar("d-spicul"),
+    "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] .cab-detail__actions [data-sm-action="delete"]'); }),
+    "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await h.click('[data-sm-card="d-spicul"] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }),
+    "sm-03c": smDosar("d-izvoras-reperf"),
+    "sm-04": smDosar("d-fresh"),
+    "sm-04a": smDosar("d-gara"),
+    "sm-04b": smDosar("d-nistru"),
+    "sm-04c": smDosar("d-sud"),
+    "sm-04d": smDosar("d-sud", async (h) => { await h.click('[data-sm-profile] [data-sm-action="pay"]'); }),
+    "sm-04e": sm(null, { achitat: "d-sud" }),
+    "sm-04f": sm(null, { plata: "anulata" }),
+    "sm-05": smDosar("d-izvoras"),
+    "sm-05a": smDosar("d-nota"),
+    "sm-05b": smDosar("d-cantina-retragere"),
+    "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] .cab-detail__actions [data-sm-action="download"]'); }, { descarcare: "eroare" }),
+    "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: ".cab-detail__head", run: null },
+    "sm-06": sm(null, { eroare: "lista" }),
+    "sm-06a": sm(async (h) => { await h.fill("[data-sm-search]", "Bălți", { leave: false }); }, { eroare: "cautare" }),
+    "sm-07": sm(null, { as: "pj-vita-plant" }),
+    "sm-07a": smDosar("d-vita-reperf", null, { as: "pj-vita-plant" }),
+    "sm-07b": sm(null, { as: "mpower-pj-lumina" }),
+    "sm-07c": sm(null, { as: "pj-vita-plant", eroare: "mpower" }),
+    "sm-08": sm(null, { depus: "GEAP-2026-009-04521", obiect: "Cafeneaua „Luminița”, mun. Chișinău" }),
+    "sm-08a": sm(null, { schita: "1", pas: "3", obiect: "Cafeneaua „Luminița”, mun. Chișinău" }),
+    "sm-08b": sm(null, { depus: "GEAP-2026-009-04521", pp: "reperfectare", act: "act-izvoras", obiect: "Cafeneaua „Izvoraș”, mun. Bălți", subdiviziune: "CSP Bălți" }),
+
+    /* ---- EVO catalog (US-10): list, search, service 09, „Solicită online” per session ---- */
+    "cat-01": cat(),
+    "cat-01a": cat(async (h) => { await h.fill("[data-cat-search]", "sanitar", { leave: false }); }),
+    "cat-01b": cat(async (h) => { await h.click('[data-cat-chip="comert"]'); }),
+    "cat-01c": cat(async (h) => { await h.fill("[data-cat-search]", "pașaport", { leave: false }); }),
+    "cat-02": cat(null, {}, "#serviciu/09"),
+    "cat-02a": cat(null, { auth: "0" }, "#serviciu/09"),
+    "cat-02b": cat(null, { as: "mpower-pj-nord-agro" }, "#serviciu/09"),
+    "cat-02c": cat(null, {}, "#serviciu/23"),
+    "cat-02d": cat(null, { auth: "0" }),
+    /* where „Solicită online” lands: MPass (no session), S3 instance, „Ce vrei să soliciți?” */
+    "cat-03": { page: PP_FO, flow: "full", ready: "[data-fo-screen='auth']:not([hidden]) h1" },
+    "cat-03a": { page: PP_FO, flow: "full", hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900 },
+    "cat-03b": ppIntent(),
+
     "pp-10": ppFo("reperfectare", "act-izvoras", 1),
     "pp-10a": ppFo("reperfectare", "act-izvoras", 2),
     "pp-10b": ppFo("reperfectare", "act-izvoras", 2, async (h) => { await ppReason("Alte")(h); await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),

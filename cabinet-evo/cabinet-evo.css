@@ -177,7 +177,7 @@
 }
 
 .chip.cab-filter .chip__icon .icon {
-  color: var(--black, #121212);
+  color: currentColor;
   height: 20px;
   width: 20px;
 }
@@ -533,4 +533,522 @@
 .cab-detail__actions .e-permits-fo-intent-menu {
   left: 0;
   right: auto;
+}
+
+/* ==========================================================================
+   Compartments, Solicitările mele, Catalog (2026-10-12)
+   Figma EVO Cabinet „Solicitarile mele” 508:9600 + dosar profiles. Only the
+   page-level glue lives here; components are the acts page ones (cab-card,
+   cab-chips, cab-menu, cab-detail) and the FO ones (summary card, finish
+   tracker / timeline, callout, roles, confirm-file rows, modals).
+   ========================================================================== */
+
+/* compartment nav under the EVO header — library tabs used as links */
+.cab-nav {
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.cab-nav__inner {
+  margin: 0 auto;
+  max-width: var(--cab-shell-width);
+  overflow-x: auto;
+  padding: 0 var(--spacing-24, 24px);
+  scrollbar-width: none;
+}
+
+.cab-nav .tab-buttons {
+  border-bottom: 0;
+  gap: 0;
+}
+
+.cab-nav .tab-button {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  flex: none;
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cab-nav .tab-button:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-text-base-default, #121212);
+}
+
+.cab-nav .tab-button.active {
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.cab-nav .tab-button[hidden],
+.cab-login[hidden] {
+  display: none;
+}
+
+.cab-login {
+  align-self: center;
+  flex: none;
+}
+
+.cab-view[hidden] {
+  display: none;
+}
+
+/* the acts page's static notice strip, reused outside cards (list notices,
+   download errors, catalog note) */
+.cab-message {
+  align-items: center;
+  animation: none;
+  border-radius: var(--border-radius-8, 8px);
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-start;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.cab-message .banner__content {
+  flex: 0 1 auto;
+}
+
+.cab-message .banner__content p {
+  margin: 0;
+}
+
+.cab-notice,
+.cab-callout {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.cab-state {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* ---------- dosar card additions ---------- */
+
+/* deadline strip + ⋮ on one row (Figma 508:9600) */
+.cab-card__foot {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.cab-card__foot .message {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cab-card__foot .message strong {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* a freshly filed / saved / paid dosar on top of the list */
+.cab-card.is-new {
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+/* representative history after MPower expiry (US-159): no profile, no hover */
+.cab-card--static {
+  cursor: default;
+}
+
+.cab-card--static:hover {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* Respins — the „Aprobat” mark in red */
+.cab-card__tacit--danger,
+.cab-card__tacit--danger .icon {
+  color: var(--color-text-danger-on-secondary, #b32318);
+}
+
+/* „Disponibilă aprobarea tacită” is a button: it carries the explanatory tooltip */
+.cab-mark {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  cursor: help;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: underline dotted;
+  text-underline-offset: var(--spacing-4, 4px);
+}
+
+.cab-mark:hover {
+  text-decoration-style: solid;
+}
+
+.cab-mark:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.cab-tooltip {
+  max-width: 320px;
+  position: absolute;
+  z-index: 1300;
+}
+
+/* ---------- toolbar menus + pagination ---------- */
+
+.cab-sort {
+  flex: none;
+}
+
+/* chip label + trailing chevron (a labelled menu button) */
+.chip.cab-sort__trigger {
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-16, 16px);
+}
+
+.chip.cab-sort__trigger .chip__icon .icon {
+  height: 20px;
+  width: 20px;
+}
+
+.chip.cab-filter[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.cab-menu--wide {
+  left: 0;
+  right: auto;
+  width: 320px;
+}
+
+.cab-menu--compact {
+  bottom: calc(100% + var(--spacing-6, 6px));
+  top: auto;
+  width: 200px;
+}
+
+/* the selected option carries a trailing check */
+.cab-menu .e-permits-fo-intent-menu__item[aria-checked] {
+  justify-content: space-between;
+}
+
+
+.cab-menu a.e-permits-fo-intent-menu__item {
+  text-decoration: none;
+}
+
+.cab-pager {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin-top: var(--spacing-24, 24px);
+}
+
+.cab-pager__range {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.cab-pager .pagination {
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  margin: 0;
+  padding: 0;
+}
+
+.cab-pager .pagination__link {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.cab-pager .pagination__link:not(.pagination__link--active):not(:disabled):hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.btn.cab-pager__size {
+  gap: var(--spacing-6, 6px);
+}
+
+/* ---------- profile (dosar + catalog service) ---------- */
+
+/* key facts row: label over value, vertical dividers (Figma profile header) */
+.cab-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px) 0;
+  margin: 0;
+}
+
+.cab-facts__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+  padding: 0 var(--spacing-24, 24px);
+}
+
+.cab-facts__item:first-child {
+  padding-left: 0;
+}
+
+.cab-facts__item + .cab-facts__item {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.cab-facts dt {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.cab-facts dd {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.cab-facts .e-permits-fo-copy-value,
+.cab-detail__card .e-permits-fo-copy-value {
+  gap: var(--spacing-4, 4px);
+  padding: 0;
+}
+
+.cab-tracker {
+  padding: var(--spacing-8, 8px) 0;
+}
+
+.cab-section {
+  display: flex;
+  flex-direction: column;
+}
+
+/* long labels (document names, „Recomandări pentru îmbunătățire”) wrap instead of truncating */
+.cab-detail__card .e-permits-fo-summary-row__label {
+  overflow: visible;
+  white-space: normal;
+}
+
+.cab-detail__card .e-permits-fo-summary-row__value span {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.cab-docs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.btn.cab-docs__download {
+  flex: none;
+  margin-left: auto;
+}
+
+.cab-roles.e-permits-fo-form__roles {
+  padding-bottom: 0;
+}
+
+.cab-lead {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.cab-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.cab-cta .cab-detail__muted {
+  margin: 0;
+}
+
+.cab-applicants {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.cab-applicant {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+/* ---------- filters dialog (FO doc modal shell) ---------- */
+
+.cab-filter-modal .e-permits-fo-doc-modal {
+  max-width: calc(100% - var(--spacing-32, 32px));
+  width: 560px;
+}
+
+.cab-filter__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  overflow-y: auto;
+  padding: 0 var(--spacing-24, 24px) var(--spacing-24, 24px);
+}
+
+.cab-filter__group {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.cab-filter__legend {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin-bottom: var(--spacing-12, 12px);
+  padding: 0;
+}
+
+.cab-filter__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.cab-filter__range {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px) {
+  .cab-toolbar {
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .cab-nav__inner {
+    padding: 0 var(--spacing-8, 8px);
+  }
+
+  .cab-nav .tab-button {
+    font-size: var(--font-size-fs-14, 14px);
+    height: var(--spacing-40, 40px);
+    padding: 0 var(--spacing-12, 12px);
+  }
+
+  .cab-toolbar {
+    gap: var(--spacing-12, 12px);
+  }
+
+  .cab-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .cab-card__foot {
+    align-items: flex-start;
+  }
+
+  .cab-detail__head {
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+  }
+
+  .cab-facts {
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+  }
+
+  .cab-facts__item {
+    padding: 0;
+  }
+
+  .cab-facts__item + .cab-facts__item {
+    border-left: 0;
+  }
+
+  .cab-detail__actions > .btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .cab-pager {
+    justify-content: center;
+  }
+
+  .cab-filter-modal {
+    align-items: flex-end;
+  }
+
+  .cab-filter-modal .e-permits-fo-doc-modal {
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .cab-filter__range {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cab-roles .e-permits-fo-form__roles-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Romanian labels are sentence case („Informații suplimentare”, „În așteptare”);
+   the library tag capitalizes every word */
+.cab-page .status-tag {
+  text-transform: none;
+}
+
+/* the FO intent screen stretches its menu on mobile; cabinet menus stay anchored */
+@media (max-width: 720px) {
+  .cab-menu.e-permits-fo-intent-menu {
+    left: auto;
+    right: 0;
+  }
+
+  /* Sortează moves to the row's end so its menu opens leftwards */
+  .cab-sort {
+    margin-left: auto;
+  }
+
+  .cab-menu--wide.e-permits-fo-intent-menu {
+    left: auto;
+    right: 0;
+    width: 280px;
+  }
+}
+
+.cab-section > .cab-detail__actions {
+  margin-top: var(--spacing-12, 12px);
+}
+
+.cab-section > .cab-message,
+.cab-detail__actions + .cab-message {
+  margin-top: var(--spacing-12, 12px);
+}
+
+.cab-detail > .cab-detail__actions + .cab-message {
+  margin-top: 0;
+}
+
+/* open button keeps the focus ring while its menu is open (the shell rule; this page
+   does not load e-permits-shell.css) */
+.cab-page .btn[aria-expanded="true"]:not(:disabled),
+.cab-page .chip[aria-expanded="true"] {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
 }

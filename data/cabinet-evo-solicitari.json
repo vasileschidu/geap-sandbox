@@ -1,0 +1,154 @@
+{
+  "_note": "Solicitările mele (Feature 90817: US-19 88207, US-158 91295, US-161 91355, US-29 88532, US-24 88527, US-135 90946, US-159 91297). Dosare service 09 / 10 consistent with the acts in acte-permisive.json (actId). Perspective = ?as=<subject> (same ids as the FO subjects). Dates ISO; today = 2026-10-12.",
+  "today": "2026-10-12",
+  "statuses": {
+    "schita": { "label": "Schiță", "tag": "status-tag--neutral is-subtle" },
+    "derulare": { "label": "În derulare", "tag": "status-tag--brand is-subtle" },
+    "achitare": { "label": "Spre achitare", "tag": "status-tag--accent is-strong" },
+    "info": { "label": "Informații suplimentare", "tag": "status-tag--accent is-strong" },
+    "finalizat": { "label": "Finalizat", "tag": "status-tag--success is-subtle" }
+  },
+  "filters": [
+    { "id": "toate", "label": "Toate" },
+    { "id": "schita", "label": "Schiță", "statuses": ["schita"] },
+    { "id": "atentie", "label": "Necesită atenție", "statuses": ["achitare", "info"], "accent": true },
+    { "id": "derulare", "label": "În derulare", "statuses": ["derulare"] },
+    { "id": "finalizat", "label": "Finalizate", "statuses": ["finalizat"] }
+  ],
+  "services": {
+    "09": { "title": "Autorizația sanitară de funcționare", "authority": "ANSP", "authorityName": "Agenția Națională pentru Sănătate Publică", "termDays": 15, "fee": 500, "actTitle": "Autorizație sanitară de funcționare", "validityYears": 3 },
+    "10": { "title": "Autorizația pentru substanțe stupefiante și psihotrope", "authority": "AMDM", "authorityName": "Agenția Medicamentului și Dispozitivelor Medicale", "termDays": 10, "fee": 0, "actTitle": "Autorizație de activitate cu substanțe stupefiante, psihotrope și precursori", "validityYears": 5 }
+  },
+  "help": {
+    "ANSP": { "name": "Agenția Națională pentru Sănătate Publică", "phone": "022 574 501", "email": "office@ansp.gov.md" },
+    "AMDM": { "name": "Agenția Medicamentului și Dispozitivelor Medicale", "phone": "022 884 301", "email": "office@amdm.gov.md" }
+  },
+  "appealDays": 30,
+  "perspectives": {
+    "pj-global-trader": {
+      "dosare": [
+        {
+          "id": "d-spicul", "nr": "GEAP-2026-009-04588", "service": "09", "tip": "Eliberare",
+          "object": "Patiseria „Spicul”, mun. Bălți", "address": "mun. Bălți, str. Independenței 40", "caem": "I 56.10 Restaurante",
+          "subdivision": "CSP Bălți", "status": "schita", "created": "2026-10-10T09:15",
+          "draft": { "step": 3, "stepLabel": "Acte necesare", "expires": "2026-11-09" },
+          "documents": [{ "name": "Contract-locatiune-Spicul.pdf", "size": "1,2 MB" }]
+        },
+        {
+          "id": "d-izvoras-reperf", "nr": "GEAP-2026-009-04571", "service": "09", "tip": "Reperfectare", "pp": "reperfectare",
+          "object": "Cafeneaua „Izvoraș”, mun. Bălți", "address": "mun. Bălți, str. Independenței 12", "caem": "I 56.10 Restaurante",
+          "subdivision": "CSP Bălți", "status": "schita", "created": "2026-10-08T16:40", "actId": "act-izvoras", "prevActNr": "ASF-2026-04521",
+          "draft": { "step": 2, "stepLabel": "Detalii solicitare", "expires": "2026-11-07" },
+          "documents": []
+        },
+        {
+          "id": "d-fresh", "nr": "GEAP-2026-009-04502", "service": "09", "tip": "Eliberare",
+          "object": "Magazin alimentar „Fresh”, mun. Chișinău", "address": "mun. Chișinău, sect. Botanica, bd. Dacia 44", "caem": "G 47.11 Comerț cu amănuntul",
+          "subdivision": "CSP Chișinău", "status": "derulare", "submitted": "2026-10-05T11:20", "examTerm": "2026-10-26",
+          "payment": { "nr": "NP-20261005-4502", "amount": 500, "status": "Achitat", "created": "2026-10-05T11:18", "paid": "2026-10-05T11:19" }
+        },
+        {
+          "id": "d-nistru", "nr": "GEAP-2026-009-04466", "service": "09", "tip": "Eliberare",
+          "object": "Terasa „Nistru”, or. Soroca", "address": "or. Soroca, str. Independenței 3", "caem": "I 56.30 Baruri",
+          "subdivision": "CSP Soroca", "status": "info", "submitted": "2026-09-24T10:05", "suspended": "2026-10-07",
+          "info": { "until": "2026-10-21", "reason": "Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor." },
+          "payment": { "nr": "NP-20260924-4466", "amount": 500, "status": "Achitat", "created": "2026-09-24T10:03", "paid": "2026-09-24T10:04" }
+        },
+        {
+          "id": "d-sud", "nr": "GEAP-2026-009-04431", "service": "09", "tip": "Eliberare",
+          "object": "Cantina „Sud”, or. Cahul", "address": "or. Cahul, str. Republicii 18", "caem": "I 56.29 Alte servicii de alimentație",
+          "subdivision": "CSP Cahul", "status": "achitare", "submitted": "2026-09-29T14:30", "feeDuringExam": true,
+          "payment": { "nr": "NP-20261007-4431", "amount": 500, "status": "În așteptare", "created": "2026-10-07T09:00", "due": "2026-10-17" }
+        },
+        {
+          "id": "d-lab-prelungire", "nr": "GEAP-2026-010-00877", "service": "10", "tip": "Prelungire", "pp": "prelungire",
+          "object": "Laborator de analize, mun. Chișinău", "address": "mun. Chișinău, str. Calea Ieșilor 8",
+          "subdivision": "Comitetul permanent de control asupra drogurilor", "status": "derulare", "submitted": "2026-09-28T09:40", "examTerm": "2026-10-13",
+          "actId": "act-lab-10", "prevActNr": "AMDM-10-2025-0342"
+        },
+        {
+          "id": "d-gara", "nr": "GEAP-2026-009-04310", "service": "09", "tip": "Eliberare",
+          "object": "Bufetul „Gara”, or. Ungheni", "address": "or. Ungheni, str. Națională 10", "caem": "I 56.10 Restaurante",
+          "subdivision": "CSP Ungheni", "status": "derulare", "submitted": "2026-09-01T13:50", "examTerm": "2026-09-22", "tacit": true,
+          "payment": { "nr": "NP-20260901-4310", "amount": 500, "status": "Achitat", "created": "2026-09-01T13:48", "paid": "2026-09-01T13:49" }
+        },
+        {
+          "id": "d-nota", "nr": "GEAP-2026-009-04254", "service": "09", "tip": "Eliberare",
+          "object": "Bar „Nota”, or. Orhei", "address": "or. Orhei, str. Vasile Lupu 21", "caem": "I 56.30 Baruri",
+          "subdivision": "CSP Orhei", "status": "finalizat", "result": "respins", "submitted": "2026-08-20T10:00", "examTerm": "2026-09-10", "finalized": "2026-09-25",
+          "decision": {
+            "nr": "D-ANSP-2026-1187", "signedBy": "Elena Rotaru",
+            "reason": "Spațiul de producție nu asigură separarea fluxurilor de materie primă și produs finit.",
+            "legal": "Legea nr. 10/2009 privind supravegherea de stat a sănătății publice, art. 21; HG nr. 1209/2010.",
+            "recommendations": "Reamenajați zona de preparare cu fluxuri separate și depuneți o solicitare nouă."
+          },
+          "payment": { "nr": "NP-20260820-4254", "amount": 500, "status": "Achitat", "created": "2026-08-20T09:58", "paid": "2026-08-20T09:59" }
+        },
+        {
+          "id": "d-cantina-retragere", "nr": "GEAP-2026-009-04120", "service": "09", "tip": "Retragere", "pp": "retragere",
+          "object": "Cantina „Nord”, or. Soroca", "address": "or. Soroca, str. Ștefan cel Mare 7",
+          "subdivision": "CSP Soroca", "status": "finalizat", "result": "aprobat", "submitted": "2026-09-12T08:30", "examTerm": "2026-09-14", "finalized": "2026-10-02",
+          "actId": "act-cantina", "prevActNr": "ASF-2024-07740", "decisionOnly": true,
+          "decision": { "nr": "D-ANSP-2026-1240", "signedBy": "Elena Rotaru", "text": "Actul permisiv ASF-2024-07740 a fost retras la cererea titularului (încetarea activității)." }
+        },
+        {
+          "id": "d-izvoras", "nr": "GEAP-2025-009-03187", "service": "09", "tip": "Eliberare",
+          "object": "Cafeneaua „Izvoraș”, mun. Bălți", "address": "mun. Bălți, str. Independenței 12", "caem": "I 56.10 Restaurante",
+          "subdivision": "CSP Bălți", "status": "finalizat", "result": "aprobat", "submitted": "2025-08-18T12:10", "examTerm": "2025-09-08", "finalized": "2025-09-15",
+          "actId": "act-izvoras", "actNr": "ASF-2026-04521", "issuedBy": "Ion Ceban",
+          "payment": { "nr": "NP-20250818-3187", "amount": 500, "status": "Achitat", "created": "2025-08-18T12:08", "paid": "2025-08-18T12:09" }
+        },
+        {
+          "id": "d-depozit-reperf", "nr": "GEAP-2026-010-00112", "service": "10", "tip": "Reperfectare", "pp": "reperfectare",
+          "object": "Depozit farmaceutic, mun. Chișinău", "address": "mun. Chișinău, str. Albișoara 4",
+          "subdivision": "Comitetul permanent de control asupra drogurilor", "status": "finalizat", "result": "aprobat", "submitted": "2026-01-08T10:30", "examTerm": "2026-01-15", "finalized": "2026-01-20",
+          "actId": "act-depozit-10", "actNr": "AMDM-10-2026-0118", "prevActNr": "AMDM-10-2023-0077", "issuedBy": "Victor Lungu"
+        },
+        {
+          "id": "d-bistro", "nr": "GEAP-2021-009-00421", "service": "09", "tip": "Eliberare",
+          "object": "Bistro „Colț”, or. Orhei", "address": "or. Orhei, str. Alecu Russo 9", "caem": "I 56.10 Restaurante",
+          "subdivision": "CSP Orhei", "status": "finalizat", "result": "aprobat", "submitted": "2021-02-10T09:00", "examTerm": "2021-03-03", "finalized": "2021-03-02",
+          "actId": "act-bistro", "actNr": "ASF-2021-01877", "issuedBy": "Ion Ceban",
+          "payment": { "nr": "NP-20210210-0421", "amount": 500, "status": "Achitat", "created": "2021-02-10T08:58", "paid": "2021-02-10T08:59" }
+        }
+      ]
+    },
+    "pf-anastasia": {
+      "dosare": [
+        {
+          "id": "d-ana", "nr": "GEAP-2025-009-02654", "service": "09", "tip": "Eliberare",
+          "object": "Bar „Ana”, mun. Chișinău", "address": "mun. Chișinău, sect. Botanica, bd. Dacia 27", "caem": "I 56.30 Baruri",
+          "subdivision": "CSP Chișinău", "status": "finalizat", "result": "aprobat", "submitted": "2025-07-14T15:20", "examTerm": "2025-08-04", "finalized": "2025-08-08",
+          "actId": "act-salon-pf", "actNr": "ASF-2025-09931", "issuedBy": "Ion Ceban",
+          "payment": { "nr": "NP-20250714-2654", "amount": 500, "status": "Achitat", "created": "2025-07-14T15:18", "paid": "2025-07-14T15:19" }
+        }
+      ]
+    },
+    "pj-vita-plant": {
+      "mpower": true,
+      "dosare": [
+        {
+          "id": "d-vita-reperf", "nr": "GEAP-2026-009-04490", "service": "09", "tip": "Reperfectare", "pp": "reperfectare",
+          "object": "Depozit „Vita-Plant”, mun. Chișinău", "address": "mun. Chișinău, sect. Ciocana, str. Albișoara 82",
+          "subdivision": "CSP Chișinău", "status": "derulare", "submitted": "2026-10-02T10:10", "examTerm": "2026-10-16",
+          "actId": "act-vita", "prevActNr": "ASF-2025-11302"
+        },
+        {
+          "id": "d-vita", "nr": "GEAP-2025-009-02280", "service": "09", "tip": "Eliberare",
+          "object": "Depozit „Vita-Plant”, mun. Chișinău", "address": "mun. Chișinău, sect. Ciocana, str. Albișoara 82", "caem": "G 46.21 Comerț cu ridicata",
+          "subdivision": "CSP Chișinău", "status": "finalizat", "result": "aprobat", "submitted": "2025-06-10T11:00", "examTerm": "2025-07-01", "finalized": "2025-06-30",
+          "actId": "act-vita", "actNr": "ASF-2025-11302", "issuedBy": "Ion Ceban",
+          "payment": { "nr": "NP-20250610-2280", "amount": 500, "status": "Achitat", "created": "2025-06-10T10:58", "paid": "2025-06-10T10:59" }
+        }
+      ]
+    },
+    "mpower-pj-lumina": {
+      "readOnly": { "since": "2026-09-30", "reason": "expirat" },
+      "dosare": [
+        { "id": "d-lumina-1", "nr": "GEAP-2026-009-04190", "service": "09", "status": "derulare", "submitted": "2026-09-05T10:40" },
+        { "id": "d-lumina-2", "nr": "GEAP-2026-009-03977", "service": "09", "status": "achitare", "submitted": "2026-08-14T16:05" },
+        { "id": "d-lumina-3", "nr": "GEAP-2025-009-02911", "service": "09", "status": "finalizat", "submitted": "2025-11-03T09:30" }
+      ]
+    }
+  }
+}
