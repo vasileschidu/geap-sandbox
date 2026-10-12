@@ -1234,3 +1234,11 @@
   background: var(--color-background-brand-secondary, #e8f0fb);
   border-color: var(--color-border-brand-default, #0058d2);
 }
+
+/* rounder boxes (user, 2026-10-12: „more round”) — 16, the largest card radius token */
+.sm-list .e-permits-stack__item,
+.sm-list .e-permits-stack__item:first-child,
+.sm-list .e-permits-stack__item:last-child,
+.sm-list .e-permits-stack__item:only-child {
+  border-radius: var(--border-radius-16, 16px);
+}
