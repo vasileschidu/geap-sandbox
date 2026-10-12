@@ -178,7 +178,7 @@
       items.push({ separator: true });
       items.push({ action: "delete", icon: "icon-delete", label: "Elimină schița" });
     }
-    if (dosar.status === "info" && dosar.info?.until >= TODAY) items.push({ action: "supplement", icon: "icon-page-upload", label: "Suplinește informații", href: foUrl(dosar, "supplement") });
+    if (dosar.status === "info" && dosar.info?.until >= TODAY) items.push({ action: "supplement", icon: "icon-page-upload", label: "Suplinire informații", href: foUrl(dosar, "supplement") });
     if (dosar.status === "achitare") items.push({ action: "pay", icon: "icon-credit-card", label: `Achită ${money(dosar.payment?.amount)}` });
     if (dosar.status === "derulare" || dosar.status === "info" || dosar.status === "achitare") items.push({ action: "download", kind: "certificat", icon: "icon-download", label: "Descarcă certificatul constatator" });
     if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) {
@@ -192,11 +192,15 @@
 
   function actionsHtml(dosar) {
     const menuId = `sm-menu-${dosar.id}`;
+    /* the row's labelled primary is not repeated in ⋮ */
+    const primaryKind = { schita: "continue", info: "supplement", achitare: "pay" }[dosar.status] || (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId ? "act" : "");
+    const items = menuItems(dosar).filter((item) => item.separator || item.action !== primaryKind)
+      .filter((item, i, list) => !(item.separator && (i === 0 || list[i - 1].separator || i === list.length - 1)));
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
         <button class="btn btn-neutral btn-icon cab-card__more" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical", "medium")}</button>
         <ul class="e-permits-fo-intent-menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" hidden>
-          ${menuItems(dosar).map((item) => item.separator
+          ${items.map((item) => item.separator
             ? `<li role="separator" class="cab-menu__separator"></li>`
             : item.href
               ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(item.href)}" data-sm-action="${item.action}" data-sm-id="${escape(dosar.id)}">${icon(item.icon, "medium")}<span>${escape(item.label)}</span></a></li>`
@@ -207,51 +211,65 @@
 
   /* ---------- list ---------- */
 
+  /* one labelled primary per row (product rule: one labelled action + ⋮), named as in
+     US-19 AC-05/06/07: Continuă · Suplinire informații · Achitare; Vezi actul when approved */
+  function primaryAction(dosar) {
+    if (dosar.status === "schita") return `<a class="btn btn-neutral btn-sm" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue" data-sm-id="${escape(dosar.id)}">Continuă</a>`;
+    if (dosar.status === "info" && dosar.info?.until >= TODAY) return `<a class="btn btn-neutral btn-sm" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement" data-sm-id="${escape(dosar.id)}">Suplinire informații</a>`;
+    if (dosar.status === "achitare") return `<button class="btn btn-neutral btn-sm" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">Achitare</button>`;
+    if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) return `<a class="btn btn-neutral btn-sm" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act" data-sm-id="${escape(dosar.id)}">Vezi actul</a>`;
+    return "";
+  }
+
+  /* the deadline of the row: one 14/20 line, icon in the status tone, date in medium */
+  function deadlineHtml(dosar) {
+    if (readOnly()) return "";
+    const line = (tone, iconId, html) => `<p class="sm-item__deadline sm-item__deadline--${tone}">${icon(iconId)}<span>${html}</span></p>`;
+    switch (dosar.status) {
+      case "schita": return line("warning", "icon-time", `Schița se elimină automat pe <strong>${escape(longDate(dosar.draft?.expires))}</strong>`);
+      case "info": return line("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la <strong>${escape(longDate(dosar.info?.until))}</strong>`);
+      case "achitare": return line("warning", "icon-credit-card", `Achitați taxa până la <strong>${escape(longDate(dosar.payment?.due))}</strong>`);
+      case "derulare": return dosar.tacit
+        ? line("info", "icon-time-filled", `Termenul de examinare a expirat pe <strong>${escape(longDate(dosar.examTerm))}</strong>`)
+        : line("info", "icon-time-filled", `Răspuns până la <strong>${escape(longDate(dosar.examTerm))}</strong>`);
+      default: return "";
+    }
+  }
+
+  /* Solicitările mele row = the app's stacked-list item (.e-permits-stack__item), read at
+     14px: title 16/24 semibold · tags · service line · authority · date · nr · deadline;
+     actions right (labelled primary + ⋮). The whole row opens the profile. */
   function cardHtml(dosar) {
     const service = serviceOf(dosar);
+    const part = (html, cls = "") => `<span class="e-permits-stack__part${cls ? ` ${cls}` : ""}">${html}</span>`;
     if (readOnly()) {
       /* US-159 AC-06: only nr, serviciu, data depunerii and the status at expiry */
       return `
-        <article class="cab-card cab-card--static" data-sm-card="${escape(dosar.id)}">
-          <div class="cab-card__container">
-            <div class="cab-card__head">
-              <div class="cab-card__heading"><h2 class="cab-card__title">${escape(service.title || "")}</h2></div>
-              <div class="cab-card__tags">${statusTag(dosar)}</div>
-            </div>
-            <div class="cab-card__meta">
-              ${copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)}
-              <span class="cab-card__dot" aria-hidden="true"></span>
-              <span class="cab-card__meta-item">${icon("icon-calendar", "medium")}Depusă ${escape(longDate(dosar.submitted))}</span>
-            </div>
+        <li class="e-permits-stack__item sm-item is-static" data-sm-card="${escape(dosar.id)}">
+          <div class="e-permits-stack__main">
+            <div class="e-permits-stack__title-row"><h2 class="e-permits-stack__title">${escape(service.title || "")}</h2>${statusTag(dosar)}</div>
+            <div class="e-permits-stack__meta">${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}${part(`Depusă ${escape(longDate(dosar.submitted))}`)}</div>
           </div>
-        </article>`;
+        </li>`;
     }
-    const strip = stripHtml(dosar);
     const dateText = dosar.status === "schita" ? `Creată ${longDate(dosar.created)}` : `Depusă ${longDate(dosar.submitted)}`;
+    const primary = primaryAction(dosar);
     return `
-      <article class="cab-card${dosar.justAdded ? " is-new" : ""}" tabindex="0" aria-label="${escape(`${dosar.object} — ${statusOf(dosar).label}`)}" data-sm-card="${escape(dosar.id)}">
-        <div class="cab-card__container">
-          <div class="cab-card__head">
-            <div class="cab-card__heading">
-              <h2 class="cab-card__title">${escape(dosar.object)}</h2>
-              <p class="cab-card__service">${escape(dosar.tip)} · ${escape(service.title || "")}</p>
-            </div>
-            <div class="cab-card__tags">
-              ${marksHtml(dosar)}
-              ${statusTag(dosar)}
-              ${strip ? "" : actionsHtml(dosar)}
-            </div>
+      <li class="e-permits-stack__item sm-item is-clickable${dosar.justAdded ? " is-new" : ""}" tabindex="0" aria-label="${escape(`${dosar.object} — ${statusOf(dosar).label}`)}" data-sm-card="${escape(dosar.id)}">
+        <div class="e-permits-stack__main">
+          <div class="e-permits-stack__title-row">
+            <h2 class="e-permits-stack__title">${escape(dosar.object)}</h2>
+            <span class="sm-item__tags">${statusTag(dosar)}${marksHtml(dosar)}</span>
           </div>
-          <div class="cab-card__meta">
-            <span class="cab-card__meta-item"><span class="icon medium cab-card__authority-icon" aria-hidden="true"></span>${escape(authorityLabel(dosar))}</span>
-            <span class="cab-card__dot" aria-hidden="true"></span>
-            <span class="cab-card__meta-item">${icon("icon-calendar", "medium")}${escape(dateText)}</span>
-            <span class="cab-card__dot" aria-hidden="true"></span>
-            ${copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)}
-          </div>
-          ${strip ? `<div class="cab-card__foot">${strip}${actionsHtml(dosar)}</div>` : ""}
+          <div class="e-permits-stack__meta">${part(escape(dosar.tip))}${part(escape(service.title || ""))}</div>
+          <div class="e-permits-stack__meta">${part(escape(authorityLabel(dosar)))}${part(escape(dateText))}${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}</div>
+          ${deadlineHtml(dosar)}
         </div>
-      </article>`;
+        <div class="e-permits-stack__actions cab-card__actions">
+          ${primary}
+          ${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}
+        </div>
+      </li>`;
   }
 
   function inFilter(dosar, filterId) {
@@ -418,10 +436,25 @@
       ${state.searchFailed
         ? `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a putut fi actualizată. Încercați din nou.", "data-sm-search-retry")}</div>`
         : pageItems.length
-          ? `<section class="cab-list" aria-label="Lista solicitărilor">${pageItems.map(cardHtml).join("")}</section>${pagerHtml(all.length)}`
+          ? `<section class="e-permits-stack sm-list" aria-label="Lista solicitărilor"><ul class="e-permits-stack__list" role="list">${pageItems.map(cardHtml).join("")}</ul></section>${pagerHtml(all.length)}`
           : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile selectate.", { text: "Modificați căutarea sau filtrele aplicate." }))}</div>`}
     `;
+    syncMetaRows();
   }
+
+  /* a meta line that wraps must not start with a dot (same rule as the app's
+     stacked lists): parts that begin a new line get .is-row-start */
+  function syncMetaRows() {
+    root.querySelectorAll(".sm-list .e-permits-stack__meta").forEach((line) => {
+      let previousTop = null;
+      line.querySelectorAll(":scope > .e-permits-stack__part").forEach((part) => {
+        const top = part.offsetTop;
+        part.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
+        previousTop = top;
+      });
+    });
+  }
+  window.addEventListener("resize", () => syncMetaRows());
 
   /* ---------- profile (US-161) ---------- */
 
@@ -485,7 +518,7 @@
         tone = "warning";
         iconId = "icon-warning-filled";
         title = `Trimiteți informațiile cerute până la ${longDate(dosar.info?.until)}`;
-        text = `${dosar.info?.reason || ""} Completarea se face prin acțiunea „Suplinește informații”; după transmitere, examinarea continuă.`;
+        text = `${dosar.info?.reason || ""} Completarea se face prin acțiunea „Suplinire informații”; după transmitere, examinarea continuă.`;
         break;
       case "achitare":
         tone = "warning";
@@ -545,7 +578,7 @@
         buttons.push(`<button class="btn btn-neutral" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete", "medium")}<span>Elimină schița</span></button>`);
         break;
       case "info":
-        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload", "medium")}<span>Suplinește informații</span></a>`);
+        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload", "medium")}<span>Suplinire informații</span></a>`);
         break;
       case "achitare":
         buttons.push(`
@@ -1085,9 +1118,9 @@
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
     if (params.get("descarcare") !== "eroare") return;
-    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".cab-card") || root.querySelector(".cab-detail__actions");
+    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".sm-item") || root.querySelector(".cab-detail__actions");
     const html = message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert", attrs: "data-sm-download-error" });
-    if (scope?.classList.contains("cab-card")) scope.querySelector(".cab-card__container")?.insertAdjacentHTML("beforeend", html);
+    if (scope?.classList.contains("sm-item")) scope.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
     else if (scope?.classList.contains("cab-detail__actions")) scope.insertAdjacentHTML("afterend", html);
     else scope?.insertAdjacentHTML("beforeend", html);
     root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
@@ -1173,14 +1206,14 @@
       }
 
       const card = target.closest("[data-sm-card]");
-      if (card && !card.classList.contains("cab-card--static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark")) {
+      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark")) {
         window.location.hash = `#dosar/${card.dataset.smCard}`;
       }
     });
 
     root.addEventListener("keydown", (event) => {
       const card = event.target.matches?.("[data-sm-card]") ? event.target : null;
-      if (card && (event.key === "Enter" || event.key === " ") && !card.classList.contains("cab-card--static")) {
+      if (card && (event.key === "Enter" || event.key === " ") && !card.classList.contains("is-static")) {
         event.preventDefault();
         window.location.hash = `#dosar/${card.dataset.smCard}`;
       }

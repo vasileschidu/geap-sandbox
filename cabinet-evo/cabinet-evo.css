@@ -550,49 +550,12 @@
    tracker / timeline, callout, roles, confirm-file rows, modals).
    ========================================================================== */
 
-/* compartment nav under the EVO header — library tabs used as links */
-.cab-nav {
-  background: var(--color-background-base-default, #fff);
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-}
 
-.cab-nav__inner {
-  margin: 0 auto;
-  max-width: var(--cab-shell-width);
-  overflow-x: auto;
-  padding: 0 var(--spacing-24, 24px);
-  scrollbar-width: none;
-}
 
-.cab-nav .tab-buttons {
-  border-bottom: 0;
-  gap: 0;
-}
 
-.cab-nav .tab-button {
-  align-items: center;
-  color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
-  flex: none;
-  font-size: var(--font-size-fs-16, 16px);
-  line-height: var(--line-height-lh-24, 24px);
-  text-decoration: none;
-  white-space: nowrap;
-}
 
-.cab-nav .tab-button:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  color: var(--color-text-base-default, #121212);
-}
 
-.cab-nav .tab-button.active {
-  color: var(--color-text-brand-default, #0058d2);
-}
 
-.cab-nav .tab-button[hidden],
-.cab-login[hidden] {
-  display: none;
-}
 
 .cab-login {
   align-self: center;
@@ -945,15 +908,7 @@
 }
 
 @media (max-width: 600px) {
-  .cab-nav__inner {
-    padding: 0 var(--spacing-8, 8px);
-  }
 
-  .cab-nav .tab-button {
-    font-size: var(--font-size-fs-14, 14px);
-    height: var(--spacing-40, 40px);
-    padding: 0 var(--spacing-12, 12px);
-  }
 
   .cab-toolbar {
     gap: var(--spacing-12, 12px);
@@ -1058,4 +1013,188 @@
 .cab-page .chip[aria-expanded="true"] {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
+}
+
+/* ===== Solicitările mele — rows (user, 2026-10-12) =====
+   The app's stacked list (.e-permits-stack › __list › __item) read at 14px instead of
+   the 12px meta: one bordered list (radius 12), full-width dividers, row 16 / 20,
+   title 16/24 semibold, meta + deadline 14/20, tags 24 (14 medium) beside the title,
+   actions right (labelled primary + ⋮). Hover = tertiary fill; the whole row opens. */
+.sm-list .e-permits-stack__list {
+  padding: 0;
+}
+
+.sm-list .e-permits-stack__item {
+  align-items: center;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+}
+
+.sm-list .e-permits-stack__item:first-child {
+  border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
+}
+
+.sm-list .e-permits-stack__item:last-child {
+  border-radius: 0 0 var(--border-radius-12, 12px) var(--border-radius-12, 12px);
+}
+
+.sm-list .e-permits-stack__item:only-child {
+  border-radius: var(--border-radius-12, 12px);
+}
+
+.sm-list .e-permits-stack__main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+.sm-list .e-permits-stack__title {
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.sm-list .e-permits-stack__meta,
+.sm-list .e-permits-stack__meta .e-permits-workplace__copy-code {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.sm-list .e-permits-stack__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  margin-top: 0;
+}
+
+.sm-list .e-permits-stack__meta + .e-permits-stack__meta {
+  margin-top: 0;
+}
+
+.sm-item__tags {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.sm-item__tags .status-tag {
+  border-radius: var(--border-radius-4, 4px);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 24px;
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 32px;
+  padding: 0 var(--spacing-8, 8px);
+  white-space: nowrap;
+}
+
+.sm-item__deadline {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.sm-item__deadline strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.sm-item__deadline .icon {
+  flex: none;
+  height: 16px;
+  width: 16px;
+}
+
+.sm-item__deadline--warning .icon {
+  color: var(--color-icon-warning-default, #dc6803);
+}
+
+.sm-item__deadline--info .icon {
+  color: var(--color-icon-brand-default, #0058d2);
+}
+
+.sm-list .e-permits-stack__actions {
+  align-self: center;
+}
+
+.sm-item.is-clickable:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline-offset: -2px;
+}
+
+.sm-item.is-new {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.sm-item.is-static {
+  cursor: default;
+}
+
+/* phone: actions drop under the text, left-aligned */
+@media (max-width: 600px) {
+  .sm-list .e-permits-stack__item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-12, 12px);
+    padding: var(--spacing-16, 16px);
+  }
+
+  .sm-list .e-permits-stack__actions {
+    align-self: stretch;
+  }
+
+  .sm-list .e-permits-stack__actions .btn-sm:not(.btn-icon) {
+    flex: 1 1 auto;
+  }
+}
+
+.sm-list {
+  margin-top: var(--spacing-20, 20px);
+}
+
+/* the dosar number reads as meta (tertiary, regular), copy icon on the text line */
+.sm-list .e-permits-stack__meta .e-permits-fo-copy-value {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.sm-list .e-permits-stack__meta .e-permits-fo-copy-value:hover {
+  color: var(--color-text-base-default, #121212);
+}
+
+.sm-list .e-permits-stack__meta .e-permits-stack__part {
+  align-items: center;
+  display: inline-flex;
+}
+
+.sm-list .e-permits-stack__meta .e-permits-fo-copy-value {
+  gap: var(--spacing-4, 4px);
+  padding: 0;
+}
+
+.sm-list .e-permits-stack__meta .e-permits-fo-copy-value > span:first-child {
+  color: inherit;
+  font-weight: var(--font-weight-fw-regular, 400);
+  letter-spacing: 0;
+}
+
+.sm-list .e-permits-stack__meta .e-permits-fo-copy-value .icon {
+  color: currentColor;
+  flex: none;
+  height: 16px;
+  width: 16px;
+}
+
+@media (max-width: 600px) {
+  .sm-list .e-permits-stack__actions {
+    align-items: center;
+    justify-content: flex-end;
+  }
 }

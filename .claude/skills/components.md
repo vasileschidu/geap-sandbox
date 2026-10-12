@@ -215,8 +215,7 @@ but this doc previously described it wrongly, see the entry.
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
-| EVO Cabinet compartment nav | `nav.cab-nav > .cab-nav__inner.tabs > .tab-buttons > a.tab-button(.active)` (`?view=solicitari\|acte\|catalog`) | `cabinet-evo/index.html` | page-app |
-| Dosar card (Solicitările mele) | `.cab-card` + `.cab-card__foot` (deadline strip `.message.message--subtle.banner--{warning\|info}.cab-message` + ⋮) · marks `.cab-card__tacit` / `--danger` / `button.cab-mark[data-sm-tip]` · `.cab-card--static` (read-only) · `.is-new` | `cabinet-evo/solicitari.js` `cardHtml` | page-app |
+| Dosar row (Solicitările mele) | `section.e-permits-stack.sm-list > ul.e-permits-stack__list > li.e-permits-stack__item.sm-item(.is-clickable/.is-new/.is-static)` — title 16 · meta/deadline 14 (`.sm-item__deadline--warning\|--info`) · `.sm-item__tags` · actions = labelled primary (Continuă / Suplinire informații / Achitare / Vezi actul) + ⋮ | `cabinet-evo/solicitari.js` `cardHtml` / `primaryAction` / `deadlineHtml` | page-app |
 | Key facts row | `dl.cab-facts > .cab-facts__item > dt + dd` (vertical dividers; stacks ≤600) | `factsHtml` (solicitari.js), catalog service page | page-app |
 | Callout tones | `.e-permits-callout--{info\|warning\|neutral\|success\|danger}` | `calloutHtml` (solicitari.js) | app |
 | Tracker step needing the applicant / refused | `.e-permits-fo-finish-tracker__item.is-{attention\|rejected}` + `.e-permits-fo-finish-marker--{attention\|rejected}`; 16px todo = `--todo.e-permits-fo-finish-marker--sm` | `trackerHtml` / `historyHtml` | app |
@@ -4613,13 +4612,22 @@ with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp
 
 ### EVO Cabinet › Solicitările mele + Catalog (added 2026-10-12)
 
+> **Rows, not cards (user, 2026-10-12):** the list is the app's stacked list read at 14px —
+> one bordered list (radius 12), full-width dividers, row padding 16/20, title 16/24 semibold +
+> status tag (24, 14 medium) + marks; meta lines 14/20 tertiary („Tip · Serviciu”, „Autoritate ·
+> Depusă … · nr (copy, regular)”), wrapped parts drop their dot (`.is-row-start`); deadline = one
+> 14/20 line with a 16 icon in the tone (warning #dc6803 / brand) and the date in medium; actions
+> right = one labelled primary (US-19 names) + ⋮ without that action; hover = tertiary fill, focus
+> ring inset; new row = brand-secondary fill; phone: actions under the text, primary full width,
+> ⋮ right. The card / strip description below is the earlier version (kept for the acts list).
+
 Spec: Feature 90817 — US-19 88207, US-158 91295, US-161 91355, US-29 88532, US-24 88527,
 US-135 90946, US-159 91297; catalog US-10 88202. Figma EVO Cabinet „Solicitarile mele” 508:9600,
 profiles 544:13632 / 545:2582 / 553:4320 / 544:20022 / 544:20754 / 544:20755. Map:
 `tools/persona-test/specs/fo/full-flow.md`.
 
 **One page, three views.** `cabinet-evo/index.html?view=solicitari|acte|catalog` (default `acte`);
-`?as=<subject>` = perspective (FO subject ids; the avatar menu roles carry `data-cab-as`),
+No compartment tab row (removed 2026-10-12, user: EVO's own navigation leads there; views are reached by URL and cross-links). `?as=<subject>` = perspective (FO subject ids; the avatar menu roles carry `data-cab-as`),
 `?auth=0` = visitor (catalog only, „Autentifică-te” instead of the avatar). `cabinet-evo.js` owns
 the header, the nav and the acts; it exposes `window.CabEvo` (`icon`, `escape`, `copyValueHtml`,
 `closeMenus`, `cabUrl(view, params, hash)` keeps `as`/`auth`, `longDate`, `longDateTime`,
@@ -4629,7 +4637,7 @@ Data: `data/cabinet-evo-solicitari.json` (statuses, chips, services, help, persp
 
 **List** = the acts page vocabulary: `.cab-intro`, `.cab-toolbar` (search · Filtre chip · „Sortează”
 chip = label + chevron → `.cab-menu--wide` with `menuitemradio` + trailing check), `.cab-chips`
-(Toate / Schiță / Necesită atenție [accent badge] / În derulare / Finalizate), `.cab-list` of cards,
+(Toate / Schiță / Necesită atenție [accent badge] / În derulare / Finalizate), then the rows,
 `.cab-pager`, empty = `GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile
 selectate.")` (paths fixed with `../`), errors = `GEAPEmptyState.render` + „Încercați din nou”.
 Card: title = object, `.cab-card__service` = „Tip · Serviciu”, meta = authority · Depusă/Creată
