@@ -1263,3 +1263,19 @@
 .cab-menu.e-permits-stack__menu [role="menuitemradio"] {
   justify-content: space-between;
 }
+
+/* profiles (dosar, act, catalog service) open with the BO detail header at the page
+   column width (user, 2026-10-12): no 16px inset (the column already has its gutter),
+   then 24 to the first block */
+.cab-page-header .e-permits-page-header__body {
+  padding: 0;
+}
+
+.cab-page-header {
+  background: transparent;
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.cab-page-header .e-permits-page-header__meta .e-permits-fo-copy-value {
+  padding: 0;
+}

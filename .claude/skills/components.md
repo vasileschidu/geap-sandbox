@@ -4622,6 +4622,11 @@ with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp
 > ⋮ right. Toolbar Filtre / Sortează / „N pe pagină” = BO buttons (`btn btn-neutral btn-sm` + 16 icon,
 > chevron for menus); every cabinet menu also carries `.e-permits-stack__menu` (32px items); ⋮ =
 > `btn btn-strict btn-sm btn-icon-only` (32, radius 6) — same height as the labelled action.
+> **Profiles (dosar / act / catalog service) open with the BO detail header** — `CabEvo.pageHeader({crumbs, title,
+> titleId, aside, meta})` → `.e-permits-page-header.cab-page-header` (no inset, page column width): breadcrumbs
+> (list › service › nr; the first crumb is a real link with the back hook) · 24/32 title · meta row label 12 /
+> value 14 split by separators (`syncHeaderMeta` drops a wrapped row's first separator). Profile actions =
+> `btn btn-md btn-rounded` (16 icons). No back button, no `.cab-facts` in profiles.
 > The card / strip description below is the earlier version (kept for the acts list).
 
 Spec: Feature 90817 — US-19 88207, US-158 91295, US-161 91355, US-29 88532, US-24 88527,

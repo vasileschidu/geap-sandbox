@@ -104,19 +104,18 @@
     const applicants = (service.applicants || []).map((type) => `<span class="cab-applicant">${icon(APPLICANT[type].icon, "medium")}${escape(APPLICANT[type].label)}</span>`).join("");
     root.innerHTML = `
       <article class="cab-detail cat-service" aria-labelledby="cat-service-title" data-cat-service="${escape(service.id)}">
-        <button class="btn btn-text-neutral cab-detail__back" type="button" data-cat-back>${icon("icon-arrow-left", "medium")}<span>Catalogul serviciilor</span></button>
-        <div class="cab-detail__head">
-          <div>
-            <h1 class="text-heading-h2" id="cat-service-title" tabindex="-1">${escape(service.title)}</h1>
-            <p class="text-body-sm cab-detail__service">${escape(service.authority)}</p>
-          </div>
-          <div class="cab-card__tags">${onlineTag(service)}</div>
-        </div>
-        <dl class="cab-facts">
-          <div class="cab-facts__item"><dt>Tipul actului</dt><dd>${escape(service.actType)}</dd></div>
-          <div class="cab-facts__item"><dt>Termen</dt><dd>${escape(service.term)}</dd></div>
-          <div class="cab-facts__item"><dt>Cost</dt><dd>${escape(service.cost)}</dd></div>
-        </dl>
+        ${C.pageHeader({
+          crumbs: [{ label: "Catalogul serviciilor", href: C.cabUrl("catalog"), attr: "data-cat-back" }, { label: service.title }],
+          title: service.title,
+          titleId: "cat-service-title",
+          meta: [
+            ["Instituția", escape(service.authority)],
+            ["Tipul actului", escape(service.actType)],
+            ["Termen", escape(service.term)],
+            ["Cost", escape(service.cost)],
+            ["Disponibil", onlineTag(service)],
+          ],
+        })}
         <p class="cab-lead">${escape(service.description)}</p>
         ${service.online
           ? `<div class="cab-cta">
@@ -148,6 +147,7 @@
           </div>
         </section>
       </article>`;
+    C.syncHeaderMeta();
     root.querySelector("#cat-service-title")?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
@@ -173,7 +173,7 @@
       if (event.target.closest("[data-cat-search-clear]")) { state.query = ""; renderList(); root.querySelector("[data-cat-search]")?.focus(); return; }
       const chip = event.target.closest("[data-cat-chip]");
       if (chip) { state.category = chip.dataset.catChip; renderList(); root.querySelector(`[data-cat-chip="${state.category}"]`)?.focus(); return; }
-      if (event.target.closest("[data-cat-back]")) { history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
+      if (event.target.closest("[data-cat-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
       const card = event.target.closest("[data-cat-card]");
       if (card) window.location.hash = `#serviciu/${card.dataset.catCard}`;
     });

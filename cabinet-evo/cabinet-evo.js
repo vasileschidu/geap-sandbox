@@ -528,14 +528,17 @@
     const remaining = act.status === "valabil" ? daysUntil(act.validUntil) : null;
     panel.hidden = false;
     panel.innerHTML = `
-      <button class="btn btn-text-neutral cab-detail__back" type="button" data-cab-back>${icon("icon-arrow-left", "medium")}<span>Actele mele permisive</span></button>
-      <div class="cab-detail__head">
-        <div>
-          <h1 class="text-heading-h2">${escape(act.title)}</h1>
-          <p class="text-body-sm cab-detail__service">${escape(act.service.title || "")}</p>
-        </div>
-        <span class="status-tag ${STATUS_TAG[act.status] || "status-tag--neutral is-subtle"}">${escape(act.statusLabel)}</span>
-      </div>
+      ${pageHeader({
+        crumbs: [{ label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" }, { label: act.service.title || "" }, { label: act.number }],
+        title: act.title,
+        meta: [
+          ["Numărul actului", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)],
+          ["Statutul", `<span class="status-tag ${STATUS_TAG[act.status] || "status-tag--neutral is-subtle"}">${escape(act.statusLabel)}</span>`],
+          ["Emis la", escape(longDate(act.issued) || "—")],
+          [act.status === "expirat" ? "A expirat la" : "Valabil până la", escape(longDate(act.validUntil) || "—")],
+          ["Autoritatea emitentă", escape(act.authority)],
+        ],
+      })}
       ${act.notice ? `<div class="message message--subtle ${NOTICE_CLASS[act.notice.tone] || "banner--info"} message--small"><span class="banner__icon">${icon(act.notice.icon, "medium")}</span><div class="banner__content"><p>${escape(act.notice.text)}</p></div></div>` : ""}
       <div class="e-permits-fo-summary-card cab-detail__card">
         ${detailRow("Numărul actului permisiv", escape(act.number))}
@@ -556,6 +559,7 @@
             </ul>
           </div>` : (act.paper ? "" : `<p class="text-body-sm cab-detail__muted">Nu există postprocese disponibile pentru statutul „${escape(act.statusLabel)}”.</p>`)}
       </div>`;
+    syncHeaderMeta();
     window.scrollTo(0, 0);
   }
 
@@ -585,7 +589,7 @@
       const cancel = event.target.closest("[data-cab-pp-cancel]");
       const card = event.target.closest("[data-cab-card]");
       if (cancel) { document.querySelector("[data-cab-pp-modal]").hidden = true; return; }
-      if (back) { renderDetail(null); render(); return; }
+      if (back) { event.preventDefault(); renderDetail(null); render(); return; }
       if (download) { event.stopPropagation(); closeMenus(); return; }
       if (ppBtn && !ppBtn.disabled) {
         event.stopPropagation();
@@ -611,10 +615,52 @@
     });
   }
 
+
+  /* the back-office detail header (.e-permits-page-header, Figma 8993:37914), used by every
+     cabinet profile (dosar, act, catalog service) at the page column width: breadcrumbs
+     (links carry their data-* hook) over the 24/32 title, an optional aside (tags), then the
+     meta row of label / value pairs split by vertical separators (user, 2026-10-12) */
+  function pageHeader({ crumbs = [], title = "", titleId = "", aside = "", meta = [] }) {
+    const trail = crumbs.map((crumb, index) => index < crumbs.length - 1
+      ? `<li class="breadcrumbs__item"><a class="breadcrumbs__link" href="${escape(crumb.href || "#")}" ${crumb.attr || ""}>${escape(crumb.label)}</a></li>`
+      : `<li class="breadcrumbs__item is-selected"><span class="breadcrumbs__current" aria-current="page">${escape(crumb.label)}</span></li>`).join("");
+    return `
+      <header class="e-permits-page-header cab-page-header">
+        <div class="e-permits-page-header__body">
+          <div class="e-permits-page-header__top">
+            <div class="e-permits-page-header__heading">
+              <nav class="breadcrumbs breadcrumbs--truncate" aria-label="Navigare"><ol class="breadcrumbs__list">${trail}</ol></nav>
+              <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""} title="${escape(title)}">${escape(title)}</h1>
+            </div>
+            ${aside ? `<div class="e-permits-page-header__aside"><div class="e-permits-page-header__actions">${aside}</div></div>` : ""}
+          </div>
+          ${meta.length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${meta.filter(Boolean).map(([label, html]) => `
+            <div class="e-permits-page-header__meta-item">
+              <span class="e-permits-page-header__meta-label">${escape(label)}</span>
+              <span class="e-permits-page-header__meta-value">${html}</span>
+            </div>`).join("")}</div>` : ""}
+        </div>
+      </header>`;
+  }
+
+  /* a wrapped meta row never starts with a separator (BO syncPageHeaderMetaRows) */
+  function syncHeaderMeta() {
+    document.querySelectorAll("[data-cab-header-meta]").forEach((meta) => {
+      let previousTop = null;
+      meta.querySelectorAll(":scope > .e-permits-page-header__meta-item").forEach((item) => {
+        const top = item.offsetTop;
+        item.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
+        previousTop = top;
+      });
+    });
+  }
+  window.addEventListener("resize", syncHeaderMeta);
+
   /* ---------- shared with solicitari.js and catalog.js ---------- */
   window.CabEvo = {
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle,
+    pageHeader, syncHeaderMeta,
     els,
   };
 

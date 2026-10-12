@@ -607,6 +607,24 @@
     return buttons.length ? `<div class="cab-detail__actions" data-sm-dl-scope>${buttons.join("")}</div>` : "";
   }
 
+  /* BO page-header meta: nr (copy) · tip · statut (+ marks) · the dates of the status */
+  function headerMeta(dosar) {
+    const meta = [
+      ["Numărul dosarului", copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)],
+      ["Tipul solicitării", escape(dosar.tip)],
+      ["Statutul", `${statusTag(dosar)}${marksHtml(dosar)}`],
+    ];
+    if (dosar.status === "schita") {
+      meta.push(["Creată", escape(longDate(dosar.created))], ["Se elimină automat", escape(longDate(dosar.draft?.expires))]);
+    } else {
+      meta.push(["Data depunerii", escape(longDate(dosar.submitted))]);
+      if (dosar.status === "finalizat") meta.push(["Data finalizării", escape(longDate(dosar.finalized))]);
+      else if (dosar.status === "info") meta.push(["Suspendat din", escape(longDate(dosar.suspended))]);
+      else if (dosar.examTerm) meta.push(["Termen de examinare", escape(longDate(dosar.examTerm))]);
+    }
+    return meta;
+  }
+
   function factsHtml(dosar) {
     const items = [{ label: "Numărul dosarului", html: copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`) }];
     if (dosar.status === "schita") {
@@ -849,15 +867,12 @@
 
     root.innerHTML = `
       <article class="cab-detail sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
-        <button class="btn btn-text-neutral cab-detail__back" type="button" data-sm-back>${icon("icon-arrow-left", "medium")}<span>Solicitările mele</span></button>
-        <div class="cab-detail__head">
-          <div>
-            <h1 class="text-heading-h2" id="sm-profile-title" tabindex="-1">${escape(dosar.object)}</h1>
-            <p class="text-body-sm cab-detail__service">${escape(dosar.tip)} · ${escape(service.title || "")}</p>
-          </div>
-          <div class="cab-card__tags">${dosar.status === "finalizat" ? marksHtml(dosar) : ""}${statusTag(dosar)}</div>
-        </div>
-        ${factsHtml(dosar)}
+        ${C.pageHeader({
+          crumbs: [{ label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" }, { label: service.title || "" }, { label: dosar.nr }],
+          title: dosar.object,
+          titleId: "sm-profile-title",
+          meta: headerMeta(dosar),
+        })}
         ${trackerHtml(dosar)}
         ${calloutHtml(dosar)}
         ${profileActions(dosar)}
@@ -872,6 +887,7 @@
         ${history}
         ${helpSection}
       </article>`;
+    C.syncHeaderMeta();
     root.querySelector("#sm-profile-title")?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
 
@@ -1188,7 +1204,7 @@
       if (page && !page.disabled) { state.page = Number(page.dataset.smPage); renderList(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
       const filterOpen = target.closest("[data-sm-filter-open]");
       if (filterOpen) { openFilters(filterOpen); return; }
-      if (target.closest("[data-sm-back]")) { history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
+      if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
       if (target.closest("[data-sm-tip]")) { event.stopPropagation(); showTip(target.closest("[data-sm-tip]")); return; }
 
       const action = target.closest("[data-sm-action]");
