@@ -430,3 +430,4 @@ FodyWeavers.xsd
 *.msm
 *.msp
 tools/ui-qa/out/
+tools/figma/.capture.js

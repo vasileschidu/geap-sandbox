@@ -1,0 +1,56 @@
+// Capture a prototype demo state (or one element of it) into Figma as a pixel-accurate layout,
+// through Figma's html-to-design capture. Used by the figma-designer agent.
+//
+// 1. Get a capture id: mcp__figma-a__generate_figma_design { fileKey, nodeId? } (one id per capture).
+// 2. node --experimental-websocket --no-warnings tools/figma/capture-to-figma.mjs \
+//      --state svc-02h --capture <id> [--selector "[data-rt-drawer] .e-permits-tariff__panel"] [--full] [--height 1024]
+//    --full     lets drawers grow to their content (no inner scroll → nothing clipped in Figma)
+//    --selector captures only that element (a section, a drawer aside, a modal) — preferred
+// 3. Poll: mcp__figma-a__generate_figma_design { fileKey, captureId } until it returns the node URL.
+//    The script itself always ends with "timeout (submitted?)" — that is normal: the upload is done.
+// Needs the prototype on http://localhost:8935 and Google Chrome. The Figma capture script is
+// downloaded once to tools/figma/.capture.js (gitignored).
+import { spawn, execSync } from "node:child_process";
+import fs from "node:fs";
+
+const arg = (name, def) => { const i = process.argv.indexOf("--" + name); return i > -1 ? (process.argv[i + 1]?.startsWith("--") || process.argv[i + 1] === undefined ? true : process.argv[i + 1]) : def; };
+const BASE = arg("base", "http://localhost:8935");
+const PAGE = arg("page", "e-permits-acte-permisive.html");
+const STATE = arg("state", "");
+const CID = arg("capture", "");
+const SEL = arg("selector", "body");
+const FULL = Boolean(arg("full", false));
+const H = Number(arg("height", 1024));
+const CHROME = arg("chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
+if (!STATE || !CID) { console.error("usage: --state <demo-state> --capture <capture-id> [--selector css] [--full]"); process.exit(1); }
+const CAPJS = "tools/figma/.capture.js";
+if (!fs.existsSync(CAPJS)) execSync(`curl -s https://mcp.figma.com/mcp/html-to-design/capture.js -o ${CAPJS}`);
+
+const port = 9600 + Math.floor(Math.random() * 300);
+const chrome = spawn(CHROME, ["--headless=new", `--remote-debugging-port=${port}`, `--user-data-dir=/tmp/figma-cap-${port}`, "--hide-scrollbars", "about:blank"], { stdio: "ignore" });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let target;
+for (let i = 0; i < 60 && !target; i++) { await sleep(250); try { target = (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).find((x) => x.type === "page"); } catch {} }
+if (!target) { console.error("Chrome did not start"); process.exit(1); }
+const ws = new WebSocket(target.webSocketDebuggerUrl);
+await new Promise((r) => ws.addEventListener("open", r));
+let seq = 0; const pending = new Map(); const errors = [];
+ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.id && pending.has(m.id)) { pending.get(m.id)(m.result || { error: m.error }); pending.delete(m.id); } if (m.method === "Runtime.exceptionThrown") errors.push(m.params.exceptionDetails.text); });
+const send = (method, params = {}) => new Promise((r) => { const i = ++seq; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
+const evaluate = async (expr) => (await send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true }))?.result?.value;
+await send("Runtime.enable"); await send("Page.enable");
+await send("Emulation.setDeviceMetricsOverride", { width: 1920, height: H, deviceScaleFactor: 1, mobile: false });
+await send("Page.navigate", { url: `${BASE}/${PAGE}?state=${STATE}` });
+for (let i = 0; i < 100; i++) { await sleep(150); if (await evaluate("document.documentElement.dataset.demoState")) break; }
+const st = await evaluate("document.documentElement.dataset.demoState");
+if (String(st).endsWith(":error")) console.error(`demo state ${STATE} stopped with an error — check js/demo-states.js`);
+await sleep(900);
+await evaluate(`(() => { const s = document.head.appendChild(document.createElement("style")); s.textContent = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important} .e-permits-fo-testcfg,.msup-bubble{display:none!important}${FULL ? " .e-permits-user-create__drawer{height:auto!important;max-height:none!important} .e-permits-user-create__body{overflow:visible!important;flex:none!important;max-height:none!important}" : ""}"; document.activeElement?.blur?.(); })()`);
+await sleep(300);
+const found = await evaluate(`Boolean(document.querySelector(${JSON.stringify(SEL)}))`);
+if (!found) { console.error(`selector not found: ${SEL}`); ws.close(); chrome.kill(); process.exit(1); }
+await evaluate(fs.readFileSync(CAPJS, "utf8"));
+await sleep(600);
+const res = await Promise.race([sleep(25000).then(() => "timeout (submitted?)"), evaluate(`(async () => { const r = await window.figma.captureForDesign({ captureId: ${JSON.stringify(CID)}, endpoint: "https://mcp.figma.com/mcp/capture/${CID}/submit?bindVariables=true", selector: ${JSON.stringify(SEL)} }); return JSON.stringify(r).slice(0, 200); })()`)]);
+console.log(STATE, st, res, errors.slice(0, 2));
+ws.close(); chrome.kill(); process.exit(0);

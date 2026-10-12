@@ -46,3 +46,13 @@ Every UI change is checked by a QA agent before it is reported as done:
   vs raw frames, token-bound colours, text styles, spacing/radius scale, auto-layout, clipping,
   icon = label colour, and compares with the prototype.
 Fix the major findings, re-run the agent, then report. Code first, then Figma.
+
+## Builder agents that learn (2026-10-12)
+- **`proto-engineer`** builds UI in code; **`figma-designer`** draws it in Figma from the prototype
+  (capture → library instances → block). Order: code first, then Figma.
+- Each reads its playbook before the job and **appends lessons after every job**:
+  `.claude/playbooks/proto-engineer.md`, `.claude/playbooks/figma-designer.md`. User corrections
+  go there too (and into memory when they are product rules). Each finishes with its QA agent
+  (`ui-qa-code` / `ui-qa-figma`).
+- Shared Figma tools: `tools/figma/capture-to-figma.mjs` (prototype state/element → Figma),
+  `tools/figma/swap-to-instances.js` (raw capture → library instances).
