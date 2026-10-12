@@ -5060,8 +5060,10 @@ following A. Pascalov's comment 1961221538 and the PO's screenshot of the „Log
     For SIA GEAP documents, inputs, and check options for Tip solicitare / Tip solicitant.
     **Applicant types are always shown with the icon and the full name when there is room**
     (person-filled / suitcase-filled, „Persoană fizică”, „Persoană juridică străină”…):
-    `renderCheckOption({ icon })` in forms, `applicantTags()` in lists and read-only views. The
-    stored values stay the codes PF / PJ / PF Străin / PJ Străin (`docApplicantLabel`).
+    `renderCheckOption({ icon })` in forms, `applicantTags()` in read-only views. **Not in the
+    stacked list:** there the meta line keeps the plain codes („PF, PJ”), no badges (user,
+    2026-10-12). The stored values stay the codes PF / PJ / PF Străin / PJ Străin
+    (`docApplicantLabel`).
     **„Obligatoriu” is the checkbox option with the red star** (`renderCheckOption({ label:
     "Obligatoriu", required: true })`) — the rule everywhere (user, 2026-10-12): never a Da/Nu
     segmented control, never a switch.

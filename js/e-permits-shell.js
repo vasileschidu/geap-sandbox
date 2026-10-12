@@ -6801,8 +6801,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: escapeHtml(doc.title),
         leadHtml: '<img class="e-permits-fo-lib-item__icon" src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">',
         badges: [renderTag(doc.source, doc.source === "RSSP" ? "neutral" : "brand"), ...(doc.state === "Inactiv" ? [renderTag("Inactiv", "neutral")] : []), ...(doc.published ? [] : [renderTag("Nepublicat", "warning")])],
-        meta: [escapeHtml(doc.docType), doc.required ? "Obligatoriu" : "Opțional", docRulesLabel(doc)],
-        meta2: [applicantTags(doc.applicantTypes.map(docApplicantLabel))],
+        meta: [escapeHtml(doc.docType), escapeHtml(doc.applicantTypes.join(", ")), doc.required ? "Obligatoriu" : "Opțional", docRulesLabel(doc)],
         actionsHtml: renderRowActions({
           preview: admin ? null : `data-doc-open="${doc.id}"`,
           primary: admin ? { label: "Editează", attrs: `data-doc-open="${doc.id}"` } : null,
