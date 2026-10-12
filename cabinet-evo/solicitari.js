@@ -570,15 +570,15 @@
 
   function profileActions(dosar) {
     const buttons = [];
-    const download = (kind, label, variant = "btn-neutral") => `<button class="btn ${variant}" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-download", "medium")}<span>${escape(label)}</span></button>`;
-    const appeal = (variant) => `<a class="btn ${variant}" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel", "medium")}<span>Depune contestație</span></a>`;
+    const download = (kind, label, variant = "btn-neutral") => `<button class="btn ${variant} btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-download")}<span>${escape(label)}</span></button>`;
+    const appeal = (variant) => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
     switch (dosar.status) {
       case "schita":
-        buttons.push(`<a class="btn btn-primary" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit", "medium")}<span>Continuă schița</span></a>`);
-        buttons.push(`<button class="btn btn-neutral" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete", "medium")}<span>Elimină schița</span></button>`);
+        buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
+        buttons.push(`<button class="btn btn-neutral btn-md btn-rounded" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
         break;
       case "info":
-        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload", "medium")}<span>Suplinire informații</span></a>`);
+        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinire informații</span></a>`);
         break;
       case "achitare":
         buttons.push(`
@@ -592,7 +592,7 @@
         break;
       case "finalizat":
         if (dosar.result === "aprobat" && dosar.actId) {
-          buttons.push(`<a class="btn btn-primary" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text", "medium")}<span>Vezi actul</span></a>`);
+          buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text")}<span>Vezi actul</span></a>`);
           buttons.push(download(dosar.decisionOnly ? "decizie" : "act", dosar.decisionOnly ? "Descarcă decizia" : "Descarcă actul"));
           if (canAppeal(dosar)) buttons.push(appeal("btn-neutral"));
         }
@@ -746,7 +746,7 @@
     if (dosar.status !== "finalizat") return "";
     const service = serviceOf(dosar);
     const beneficiary = state.subject ? `${state.subject.name} · ${state.subject.idLabel} ${state.subject.idValue}` : "";
-    const downloadButton = (kind, label) => `<div class="cab-detail__actions"><button class="btn btn-neutral" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-download", "medium")}<span>${escape(label)}</span></button></div>`;
+    const downloadButton = (kind, label) => `<div class="cab-detail__actions"><button class="btn btn-neutral btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-download")}<span>${escape(label)}</span></button></div>`;
     /* US-161 AC-31…35: a refusal shows the Decizie instead of the Act */
     if (dosar.result === "respins" || dosar.decisionOnly) {
       const decision = dosar.decision || {};

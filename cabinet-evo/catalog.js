@@ -121,7 +121,7 @@
         ${service.online
           ? `<div class="cab-cta">
                <div class="cab-detail__actions">
-                 <a class="btn btn-primary" href="${escape(target.href)}" data-cat-request>${icon("icon-external-link", "medium")}<span>Solicită online</span></a>
+                 <a class="btn btn-primary btn-md btn-rounded" href="${escape(target.href)}" data-cat-request>${icon("icon-external-link")}<span>Solicită online</span></a>
                </div>
                <p class="text-body-sm cab-detail__muted" data-cat-request-hint>${escape(target.hint)}</p>
              </div>`
