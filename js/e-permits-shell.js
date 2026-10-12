@@ -13703,7 +13703,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const item = (x, i) => {
       const auth = auths.find((y) => y.id === x.authority);
       return `
-        <div class="e-permits-tax-cond" data-rt-aviz-block="${i}">
+        <div class="e-permits-tax-cond e-permits-tax-cond--outline" data-rt-aviz-block="${i}">
           <div class="e-permits-tax-cond__head">
             <label for="rt-aviz-auth-${i}">Aviz ${i + 1}</label>
             <button class="btn btn-text-destructive btn-sm" type="button" data-rt-aviz-remove="${i}" aria-label="Elimină avizul ${i + 1}">Elimină</button>

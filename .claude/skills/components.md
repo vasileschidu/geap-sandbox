@@ -5032,7 +5032,8 @@ A. Pascalov's Figma comment on 02a asked („tab cu Avizări”).
   chosen flow has the inter-institutional approval branch (`flowHasAvizare`: „aviz” in the steps
   or the name). Otherwise it is off and disabled, with an info note naming the flow and
   suggesting a flow with avizare (AC-46).
-- **Avize:** one grey block per aviz (`.e-permits-tax-cond`, head „Aviz N” + „Elimină”):
+- **Avize:** one white outlined card per aviz (`.e-permits-tax-cond.e-permits-tax-cond--outline`:
+  1px border, radius 12, no grey fill — like the Documente rule cards; head „Aviz N” + „Elimină”):
   - Autoritatea avizatoare ▾ and Subdiviziunea avizatoare ▾ (disabled until an authority is
     chosen; one subdivision per aviz, AC-31).
   - Check options „Implicită” and „Cu termen”, with a hint for what „Implicită” means (US-130).
