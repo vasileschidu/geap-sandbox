@@ -3,7 +3,7 @@
 //
 // 1. Get a capture id: mcp__figma-a__generate_figma_design { fileKey, nodeId? } (one id per capture).
 // 2. node --experimental-websocket --no-warnings tools/figma/capture-to-figma.mjs \
-//      --state svc-02h --capture <id> [--selector "[data-rt-drawer] .e-permits-tariff__panel"] [--full] [--height 1024]
+//      --state svc-02h --capture <id> [--selector "[data-rt-drawer] .e-permits-tariff__panel"] [--full] [--height 1024] [--width 1440] [--page cabinet-evo/index.html]
 //    --full     lets drawers grow to their content (no inner scroll → nothing clipped in Figma)
 //    --selector captures only that element (a section, a drawer aside, a modal) — preferred
 // 3. Poll: mcp__figma-a__generate_figma_design { fileKey, captureId } until it returns the node URL.
@@ -21,6 +21,8 @@ const CID = arg("capture", "");
 const SEL = arg("selector", "body");
 const FULL = Boolean(arg("full", false));
 const H = Number(arg("height", 1024));
+const W = Number(arg("width", 1920));   // 1440 for FO / EVO Cabinet pages, 375 for mobile
+const MOBILE = W < 600;
 const CHROME = arg("chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
 if (!STATE || !CID) { console.error("usage: --state <demo-state> --capture <capture-id> [--selector css] [--full]"); process.exit(1); }
 const CAPJS = "tools/figma/.capture.js";
@@ -39,7 +41,7 @@ ws.addEventListener("message", (e) => { const m = JSON.parse(e.data); if (m.id &
 const send = (method, params = {}) => new Promise((r) => { const i = ++seq; pending.set(i, r); ws.send(JSON.stringify({ id: i, method, params })); });
 const evaluate = async (expr) => (await send("Runtime.evaluate", { expression: expr, awaitPromise: true, returnByValue: true }))?.result?.value;
 await send("Runtime.enable"); await send("Page.enable");
-await send("Emulation.setDeviceMetricsOverride", { width: 1920, height: H, deviceScaleFactor: 1, mobile: false });
+await send("Emulation.setDeviceMetricsOverride", { width: W, height: H, deviceScaleFactor: 1, mobile: MOBILE });
 await send("Page.navigate", { url: `${BASE}/${PAGE}?state=${STATE}` });
 for (let i = 0; i < 100; i++) { await sleep(150); if (await evaluate("document.documentElement.dataset.demoState")) break; }
 const st = await evaluate("document.documentElement.dataset.demoState");

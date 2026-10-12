@@ -64,6 +64,16 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | selection-menu | main of `10571:216146` | open dropdown list; items `.menu-item-selection` `9625:34931` (`Option Label#400:63`) |
 | Modal „Tip=Selecție” | `10704:158854` | close pinned right |
 | RAP row (Câmp / Coloană / Titlu tabel) | `10949:277452` | |
+| header-evo-desktop / -mobile (lib sets) | `11077:1058` / `11153:1253` | imported; mobile used inside `Cabinet / Antet mobil` |
+| search-input-rectangular | `9285:37474` | State Default/Filled/Focus…, `👁️ Clear Button`, `⌨️ Placeholder` |
+| filter-chip | `1244:34029` | Mono Selection; `👁️ Counter Badge` + „Badge label” text; Filtre = Icon Leading + 20/filter (key d7ef1839…) |
+| contextual-menu / selection-menu | `9646:4478` / `9625:34945` | ≤ 6 options each; items `.menu-item-action` `62:4943` (Leading Element=Icon for icons) |
+| pagination-item | set `212:7429` | Type Selected/Unselected; pager arrows = button-text-rectangular Strict Icon=Only + `🔄 Leading Icon: 20` = 20/chevron-left/right |
+| tooltip / toast / banner / info-box | `275:24285` / `10038:35031` / `10582:50841` / `5611:64071` | imported 2026-10-12 |
+| date-input / checkbox-label | `244:20250` / `1228:33646` | date: Label + Assistive Text props; checkbox: Mode Checked/Unchecked |
+| Modal (local) | `10136:657` | Tip=Confirmare (Titlu, Mesaj, 2 btns) · Tip=Conținut (Titlu, Subtitlu, `Conținut` INSTANCE_SWAP) |
+| EVO Cabinet local components | frame `11100:288632` on FO Full Flows 09 | `Cabinet / Antet` 11100:289066 · `Cabinet / Antet mobil` 11153:262259 · `Cabinet / Dosar card` 11100:289564 (+ mobil 11155:50155, static 11152:303548) · `Cabinet / Serviciu card` 11105:290265 · `Cabinet / Marcaj` 11100:289209 · `Cabinet / Meniu acțiuni` 11118:297930 · `Cabinet / Meniu · Sortează` 11118:293504 · `Modal conținut / Filtre solicitări · …` 11152:303710 / 304028 |
+| Icons (Foundations keys) | — | 20/download e6dd0e97… · 20/arrow-left f9c5634d… · 20/external-link 8df5d4b1… · 20/edit bef76865… · 20/credit-card aca711a4… · EVO 20/refresh caca3c5f… · central sets: trash b5e9b87b…, file-text 032cdf84…, user-circle 7f8dfe57… |
 
 ## Rules (from the user — never break)
 - Auto-layout + instances everywhere; no raw frames for controls; no 1px-border padding hacks.
@@ -120,3 +130,34 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   local „Setări · Câmp read-only” `10638:1577` (Fundal=Alb on a grey card). When replacing a GRID
   child, copy `gridColumnSpan` first, then `setGridChildPosition(row, col)`, then drop empty rows
   (`gridRowCount`) — a new child lands in a new 1-column row otherwise.
+- 2026-10-12 · FO / EVO Cabinet job (53 blocks, section 11067:34873): full-page captures at 1440
+  (`capture-to-figma.mjs --page cabinet-evo/index.html --width 1440 --height 900`, new `--width` flag;
+  375 for mobile) are clean — capture-binds colours + spacing but **no text styles** → always run
+  TOKENIZE (now `tools/figma/tokenize.js`, + H1 and `{mobile:true}` Mobile headings).
+- 2026-10-12 · `generate_figma_design` ids: ask ~10 at a time, run the captures in one bash loop, then
+  poll each id in order — the capture lands only when polled; node ids come back in poll order, rename
+  each root `cap · <state>` right away so the mapping can't slip.
+- 2026-10-12 · Long builders live in hidden Figma text nodes and run with
+  `new (Object.getPrototypeOf(async function(){}).constructor)("ROOTS", text)(ids)` — patch them with
+  string replace instead of re-pasting 20 KB (`__swap-cabinet` 11105:34597, `__tokenize v2` 11105:34598,
+  `__swap-cabinet-overlays` 11118:39161, `__assemble-blocks` 11156:49699). Keep the repo copies
+  (`tools/figma/swap-cabinet*.js`, `tokenize.js`) in sync.
+- 2026-10-12 · Swap scripts must never match layers inside instances they just placed (my Antet
+  component has its own „Header” frame → infinite re-swap / negative index) → filter with an
+  `own(n)` ancestor check.
+- 2026-10-12 · `swapComponent` on a parentless (just created) nested instance did not stick for the
+  pager icons → set the button's `🔄 Leading Icon: 20` property with the component id instead.
+  Small buttons use the `: 16` slot — resize a 20px icon to 16.
+- 2026-10-12 · Captured meta rows wrap → the copy button is flattened (no „Button - Copiază” frame):
+  detect cards by the `GEAP-…` text, not by the button. Non-auto-layout inline rows (IDNO + nr,
+  file + • + size) → HORIZONTAL hug with the measured gap; GRID rows need `setGridChildPosition`.
+- 2026-10-12 · Mobile: never put the desktop card component in a 375 screen (it overflowed to 855) —
+  build the mobile variant set from a mobile capture; mobile header = library header-evo-mobile +
+  title row + tab strip (`Cabinet / Antet mobil`). Truncate long file names (FILL + ENDING) in doc rows.
+- 2026-10-12 · Destructive style only for a red fill — „Elimină schița” is Neutral + trash in code.
+  Profile action icons by label (Continuă → edit, Elimină → trash, Vezi actul → file, Achită → card,
+  Descarcă → download, Încercați din nou → refresh).
+- 2026-10-12 · Agent tool unavailable in this session → ran `tools/ui-qa/figma-audit.js` rules myself
+  (read-only), fixed: tag-like frames 18/30px, inline rows, chip lists (wrap), clipped numbers,
+  untokenized local components, unbound header/overlay fills. Re-run until only intentional items stay.
+

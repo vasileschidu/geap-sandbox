@@ -6,6 +6,9 @@
 // Matching is by the capture's layer names (= accessible names: "Button - Operator", "Label",
 // "Text Input", "Code") and shape (40px selects/inputs, 32px checkbox labels). Component ids are
 // the GEAP library ones — keep them in sync with .claude/playbooks/figma-designer.md.
+// FO / EVO Cabinet captures (cabinet-evo/index.html) use tools/figma/swap-cabinet-overlays.js then
+// tools/figma/swap-cabinet.js (header, search, chips, dosar / service cards, pager, buttons, tags, marks,
+// menus, tooltips, toasts, modals) + tools/figma/tokenize.js — not this file.
 const ROOTS = ["PUT:CAPTURE-ROOT-IDS"];
 const g = (id) => figma.getNodeByIdAsync(id);
 const C = {
