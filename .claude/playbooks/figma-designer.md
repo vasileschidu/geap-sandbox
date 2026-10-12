@@ -1,0 +1,111 @@
+# Playbook — figma-designer (GEAP 2.0 Figma)
+
+Read this whole file before every Figma job. **Append to „Lessons” after every job** (what broke,
+what the user corrected, what worked better) — one dated line each, with the fix. Promote a
+lesson to the right section above when it has proved itself twice. This file is how the agent
+gets better; never delete a lesson, rewrite it if it was wrong.
+
+## The file
+- fileKey `aHgwVwiNCOSOqbMhMjjUOj`. BO page „↳ BO -> Servicii / Pașaport Serviciu”, section
+  „Profile Serviciu” `9522:7973`. Columns of **blocks** (1920 wide, gap **240** between blocks).
+- A block = `Screen label · <id>` (ID chip, title, Status instance, „Prototype ↗” text with a
+  hyperlink to `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=<demo-state>`)
+  + the screen frame (1920 × ≥1024, header-evo-desktop + Body (sidebar instance + Main)) + optional
+  `Overlay` (scrim + drawer / dialog) + `Note · <id>` (tag „NOTE DEV / PM”, title, body text).
+- Block ids follow the column: 03 → 03a, 03a1 …; new states between existing ones get a suffix
+  (03a3a, 03a3b; 05c1, 05c2). Keep the column in tab / flow order.
+
+## Workflow (code first, then Figma — always)
+1. The screen must exist in the prototype with a demo state (`js/demo-states.js`). If not, ask
+   `proto-engineer` to build it first.
+2. **Capture** each state (or just the changed element) from code:
+   - `mcp__figma-a__generate_figma_design { fileKey, nodeId: <a scratch/holding node> }` → capture id
+     (ask for all ids at once, one per state).
+   - `node --experimental-websocket --no-warnings tools/figma/capture-to-figma.mjs --state <id> --capture <cid> --selector "<css>" [--full]`
+     Prefer an element selector: a list section `.e-permits-stack-section`, a drawer
+     `[data-doc-drawer] aside`, a drawer panel `[data-rt-drawer] .e-permits-tariff__panel`, a modal
+     `#service-confirm-modal .modal`. `--full` = drawer grows to its content.
+   - Poll `generate_figma_design { fileKey, captureId }` → node URL. Where it lands: under `nodeId`
+     if given, otherwise on the first page (move it).
+3. **Swap to library instances**: run `tools/figma/swap-to-instances.js` (ROOTS = the capture
+   roots) via `use_figma`. Read its `unmapped` list and fix those by hand; extend the script +
+   this playbook when a new control type appears.
+4. **Assemble the block**: clone the nearest existing block of the column (it carries the shell:
+   header, sidebar, tabs as instances), replace only what changed (the list section, the drawer
+   panel, the overlay), update label / ID / title / note / link, select the right tab instance.
+5. **Restack** the column in order with 240 gaps — compute the order list first, then assign y
+   sequentially (never compare against a block you already moved).
+6. **Arrows** from the clicked element to the next block: clone an existing connector
+   (e.g. `10952:283686`), set `connectorStart.endpointNodeId` = the clicked instance (not a
+   sublayer of an instance — ids with „;” can't be endpoints), `connectorEnd` = target block,
+   magnet RIGHT, label = the action.
+7. **Whole column rule**: the same UI elsewhere in the column changes too (e.g. a new drawer tab
+   goes into every drawer block of the column).
+8. **QA**: run the `ui-qa-figma` agent on the new / changed blocks (+ demo states). Fix the major
+   findings, re-run, then report. Screenshot each block once at the end.
+9. Figma comments: reply „✅ Rezolvat — …” (what, where: block ids, prototype states, open
+   questions) only after the change is in Figma (REST POST comments with `comment_id`; token
+   from the transcript into an env var, never into a file).
+
+## Library ids (verified 2026-10-12)
+| What | id | Notes |
+|---|---|---|
+| select-input (set) | `8344:81663` | Style Default/Destructive × State Default/Hover/Focus/Filled/Disabled × Size; props Label `👁️ Label#132:24`, star `👁️ Mandatory Star#316:0`, hint `👁️ Assistive Text#143:22`, text `⌨️ Placeholder#215:38`. Destructive+Disabled has NO assistive slot |
+| text-input (set) | `6490:68585` | same props as select |
+| checkbox option „Opțiune document · checkbox” | `10507:44447` | Label `Label#10507:0`, star `Asterisc#10507:9`, glyph `Iconiță#11007:0` + `Iconiță · glif#11007:9` (person `6502:74649`, suitcase `10641:1308`) |
+| tag-filled | `10602:106194` | always Size=Small; label `⌨️ Label#387:32`; icon `🔄 Leading Icon: 16#12870:6793` |
+| button-filled-rectangular | `5611:63230` | „Editează” proto `10317:33373`, „Adaugă …” proto `10316:33412` |
+| button-text-rectangular | `5749:34743` | ⋮ / × proto `10317:33419` (swap inner icon: 20/more-vertical `9521:7912`, 20/cross-small `242:12038`) |
+| button-text-circular | `5919:31320` | text buttons (Elimină = Destructive, Adaugă condiție = Primary Leading) |
+| button-filled-circular | `8382:91415` | footer Large (Anulează Neutral, Salvează Primary, destructive confirm Destructive) |
+| switch | `2009:19057` | inside `svc/switch-label` `9563:18803` (Label `Label#9563:0`, `Supporting Text#9563:1`, `Show supporting text#9563:2`) |
+| info note | `9624:13362` | `svc/info-note`, text `Text#9624:0` |
+| tab-item-s | (instances in drawers) | `⌨️ Label#382:21`, `🎚️ Type` Selected/Unselected |
+| selection-menu | main of `10571:216146` | open dropdown list; items `.menu-item-selection` `9625:34931` (`Option Label#400:63`) |
+| Modal „Tip=Selecție” | `10704:158854` | close pinned right |
+| RAP row (Câmp / Coloană / Titlu tabel) | `10949:277452` | |
+
+## Rules (from the user — never break)
+- Auto-layout + instances everywhere; no raw frames for controls; no 1px-border padding hacks.
+- A field is ONE component: its own Label + Mandatory Star + Assistive Text (errors = Style
+  Destructive + „Câmpul este obligatoriu.”). Never a hand-built label/star/hint beside it.
+- Button icon colour = label colour (never override fills on button instances).
+- Obligatoriu = checkbox option with red star. Tags = Small. „Editează” always with pen.
+- No monospace — except rule-builder keywords (`Când`, `și/sau`, `acest document`) = JetBrains
+  Mono code tokens, grey fill, no border.
+- Never clip content: grow the screen (and Body, Overlay, Drawer) to fit; small modal screens = 1024.
+- Desktop = mobile content. Last row in a card/list has no divider. Hover/open states drawn when
+  the flow shows them. Arrows from the clicked element.
+- Figma = source of truth for design; prototype code = source for behaviour; they must match.
+
+## Plugin API gotchas
+- `await figma.setCurrentPageAsync(page)` before `findAll` on another page; once per call.
+- Results capped ~20 KB — return counts + ids, not trees. Long scripts (> ~5 min) time out:
+  one block per call when cloning big blocks; after a timeout CHECK what exists before retrying.
+- A failed script rolls back entirely (atomic) — safe to retry after fixing.
+- Freshly cloned instances don't expose sublayers to `findAll` — walk `.children` by name.
+- `node.removed` before touching a node you may have deleted in the same loop.
+- Mixed fonts: load every segment's font (`getStyledTextSegments(["fontName"])`) before editing.
+- Captured text may use SF Mono → set `fontName` to JetBrains Mono Regular.
+- Grid auto-layout (`layoutMode === "GRID"`): place children with `setGridChildPosition(row, col)`;
+  `gridRowCount` can be set to drop empty rows; anchor indices are read-only on instances.
+- Swapping an instance resets its overrides; to change a nested instance (e.g. the switch inside
+  switch-label, the icon inside a button) swap the inner instance directly.
+- Size=Large / variant swaps can reset icon swaps — re-apply icons after variant changes.
+- Connectors can't attach to instance sublayers; connector `text` needs its font loaded.
+- `setSharedPluginData`, not `setPluginData`.
+
+## Lessons (append — newest last)
+- 2026-10-12 · Captures land as raw frames; swapping by accessible layer name works well. The
+  sidebar icons of a full-page capture break → capture elements, not pages, and reuse the block shell.
+- 2026-10-12 · Restack bug: comparing remaining blocks against an already-moved block skipped
+  three blocks → always restack from an explicit ordered list.
+- 2026-10-12 · QA found hand-built labels beside field components (major) → absorbField in the
+  swap script; ui-qa-figma rule `field-label-outside`.
+- 2026-10-12 · `svc/switch-label` label was 16px; code is 14 medium → fixed on the component
+  (applies to every Setări block). Check component text styles against the code CSS.
+- 2026-10-12 · Overwrote a select placeholder by writing to „the last child's text” — target text
+  nodes by name (`Placeholder`, `Label`), never by position.
+- 2026-10-12 · The empty 427×20 „Text” frames from captures are spacers — delete them.
+- 2026-10-12 · „Adaugă …” button came out centred because its captured parent had no
+  auto-layout — give such wrappers HORIZONTAL auto-layout, MIN alignment.

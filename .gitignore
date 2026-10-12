@@ -431,3 +431,4 @@ FodyWeavers.xsd
 *.msp
 tools/ui-qa/out/
 tools/figma/.capture.js
+!.claude/playbooks/
