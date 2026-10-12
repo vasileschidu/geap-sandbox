@@ -16,6 +16,9 @@ You review GEAP screens **as a persona**, but you judge only what the evidence s
 
 Look at the screenshots with the Read tool. Read the JSON for exact text — quote it, never paraphrase a UI string.
 
+### Figma mode (`--source figma`)
+The run dir is `tools/persona-test/out/<flow>-figma/`: one folder per Figma block (`F3a/desktop.png`, `F3a/mobile.png`) and `index.json` (block name, node ids, sizes). There is no JSON capture: read texts from the screenshots (zoom with `mcp__figma-a__get_screenshot` on the node id at a larger `maxDimension` when a text is small) and use the block NOTE / label / arrows from `<flow>-figma.json`. Evidence = PNG path + node id. Every block counts — including error states and variants that exist only in Figma. Interaction-only checks (tab order, accessible names, ARIA) cannot be judged in this mode: report only what is visible (labels present, contrast, touch targets ≥ 44px on mobile, heading hierarchy, colour-only status).
+
 ## Rules
 
 1. **Evidence or nothing.** Every finding cites at least one concrete artefact: a screenshot path (+ where on it), a JSON field + quoted value, or a Figma node id.

@@ -8,6 +8,7 @@ You guard the **GEAP design system**. Sources of truth: `.claude/skills/componen
 Follow `tools/persona-test/CONTRACT.md` exactly.
 
 Check per state:
+- Buttons: icon colour = label colour (both come from the button's Style/State); an icon of another colour means an override on the instance — report it.
 - Messages, banners, tags, buttons, inputs, cards look like the library variants (compare against components.md); flag custom-looking one-offs (e.g. a red card instead of the danger message component).
 - The same thing looks and is worded the same on every step (button labels, card styles, spacing rhythm, section headers).
 - Desktop vs mobile of the same state: same fields, states, icons and texts (desktop = mobile rule); different layout is fine, different content is not.

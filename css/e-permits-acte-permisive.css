@@ -22473,6 +22473,95 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
 
+/* Publicare în RAP picker (#cfg-rap-modal): the inline rows inside the picker's sections,
+   indented under the section heading's label as the subdivision rows; a composite field
+   (editable grid) names itself once and its columns sit one step further in */
+.e-permits-cfg-rap.e-permits-subdiv__rap {
+  padding: 0 0 var(--spacing-12, 12px) calc(var(--spacing-20, 20px) + var(--spacing-8, 8px) + var(--spacing-8, 8px));
+}
+
+.e-permits-subdiv__rap > .e-permits-cfg-rap__row:first-child {
+  padding-top: var(--spacing-12, 12px);
+}
+
+/* a composite field (editable grid): lines only, no box — a title row (name + „Tabel” + hint),
+   then its columns as rows indented 16 under it; dividers as between any two rows */
+.e-permits-cfg-rap__group {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: var(--spacing-12, 12px) 0 0;
+}
+
+.e-permits-cfg-rap__group:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* title on the left, the column count on the right, one line */
+.e-permits-cfg-rap__table-head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  padding-bottom: var(--spacing-12, 12px);
+}
+
+.e-permits-cfg-rap__group-head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-cfg-rap__table-head .e-permits-cfg-rap__name {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-cfg-rap__group-hint {
+  color: var(--color-text-base-tertiary);
+  flex: none;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-cfg-rap.e-permits-cfg-rap__cols {
+  padding-left: var(--spacing-16, 16px);
+}
+
+.e-permits-cfg-rap.e-permits-cfg-rap__cols > .e-permits-cfg-rap__row:first-child {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding-top: var(--spacing-12, 12px);
+}
+
+.e-permits-cfg-rap.e-permits-cfg-rap__cols > .e-permits-cfg-rap__row:last-child {
+  padding-bottom: var(--spacing-12, 12px);
+}
+
+.e-permits-cfg-rap__group + .e-permits-cfg-rap__row {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-cfg-rap__group:last-child .e-permits-cfg-rap__cols > .e-permits-cfg-rap__row:last-child {
+  padding-bottom: 0;
+}
+
+/* the RAP picker uses the full screen height (24px margin top + bottom) — a long form */
+.modal.e-permits-subdiv.e-permits-subdiv--tall {
+  height: calc(100vh - 2 * var(--spacing-24, 24px));
+}
+
+/* Setări · Publicare în RAP, long form: the select field, then the published rows */
+.e-permits-cfg-rap-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+/* the search keeps its height in the picker's column layout (the full-flow --fill rule
+   makes it grow when the list is short) */
+.e-permits-subdiv .search-input.e-permits-list-search--fill {
+  flex: 0 0 auto;
+}
+
 /* a switch, a sub-block or a note in the Setări drawer grid takes the whole row */
 /* a switch in the Setări drawer takes the whole row; the grid gap spaces it, so no row
    rule or padding (those belong to the read-view list) */
@@ -23025,4 +23114,45 @@ button.e-permits-steps-strip__cell:hover,
 
 .e-permits-user-create__section-content:has(> .e-permits-dosar-profil__card:first-child) {
   padding-top: 0;
+}
+
+/* US-18: certificate card error state + the certificate preview in its modal */
+.e-permits-fo-finish-doc.is-error {
+  background: var(--color-background-danger-secondary, #fdecea);
+}
+
+.e-permits-fo-finish-doc__error {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+.e-permits-fo-payment__notice {
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-cert {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-fo-cert__kicker {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-fo-cert__title {
+  font-size: var(--font-size-fs-20, 20px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-28, 28px);
+  margin: 0;
+}
+
+.e-permits-fo-cert__lead {
+  color: var(--color-text-base-secondary, #383838);
+  margin: 0 0 var(--spacing-8, 8px);
 }

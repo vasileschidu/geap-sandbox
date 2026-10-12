@@ -12,6 +12,10 @@
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
+  /* Publicare în RAP with the whole request form (100 fields): summary + picker modal */
+  const SAN = "003000118"; /* Autorizație sanitară pentru funcționare */
+  const rapBig = (run) => svc("settings", async (h) => { await cfgNav("rap")(h); if (run) await run(h); }, SAN);
+  const rapOpen = async (h) => { await h.click("[data-cfg-rap-open]"); };
   /* Subdiviziuni de examinare: open the picker; tick a whole raion through the search, or
      single subdivisions in the list (the clicks a person makes, without the per-click pause) */
   const subdivOpen = async (h) => { await cfgNav("exam")(h); await h.click("[data-cfg-subdiv-open]"); };
@@ -154,6 +158,13 @@
     params: { pp: type, act },
     hash: step === 1 ? "#request" : `#request-step-${step}`,
     ready: "body[data-fo-postprocess] [data-fo-step-panel]:not([hidden]) h1",
+    run: async (h) => { await clearToasts(h); if (run) await run(h); }
+  });
+  /* primary request, service 09 (Figma FO · 09, columns F0–F8) */
+  const foReq = (step, params = {}, run) => ({
+    page: PP_FO, flow: "full", params,
+    hash: step === 1 ? "#request" : `#request-step-${step}`,
+    ready: "[data-fo-step-panel]:not([hidden]) h1",
     run: async (h) => { await clearToasts(h); if (run) await run(h); }
   });
   const ppReason = (value) => async (h) => {
@@ -533,13 +544,18 @@
     "svc-10f": svc("settings", cfgNav("suspension")),
     "svc-10g": svc("settings", cfgNav("signing")),
     "svc-10h": svc("settings", cfgNav("payment")),
-    "svc-10h1": svc("settings", async (h) => { await h.fill("#cfg-mpayCode", ""); await h.fill("#cfg-payTerm", "0"); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
+    "svc-10h1": svc("settings", async (h) => { await h.fill("#cfg-payTerm", "0"); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10i": svc("settings", cfgNav("delivery")),
     "svc-10j": svc("settings", async (h) => { await cfgNav("appeal")(h); await h.click('[data-cfg-switch="appealable"]'); await h.wait(400); }),
     "svc-10j1": svc("settings", async (h) => { await cfgNav("appeal")(h); await h.click('[data-cfg-switch="appealable"]'); await h.wait(400); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10k": svc("settings", cfgNav("numbering")),
     "svc-10k1": svc("settings", async (h) => { await cfgNav("numbering")(h); await h.click("[data-cfg-rule-add]"); await h.fill('[data-cfg-rule="1"][data-cfg-rule-field="prefix"]', "DR"); }),
     "svc-10l": svc("settings", cfgNav("rap")),
+    /* 100 fields (02s8a–d): summary, picker, search, applied */
+    "svc-10l1": rapBig(),
+    "svc-10l2": rapBig(rapOpen),
+    "svc-10l3": rapBig(async (h) => { await rapOpen(h); await h.fill("[data-cfg-rap-search]", "CAEM", { leave: false }); }),
+    "svc-10l4": rapBig(async (h) => { await rapOpen(h); await h.click('[data-cfg-rap-section="Detalii solicitare"] [data-cfg-rap-all]'); await h.click("[data-cfg-rap-apply]"); await h.wait(300); }),
     "svc-10m": svc("settings", cfgNav("drafts")),
     "svc-10p": svc("settings", cfgNav("appeal")),
     /* was „Alte setări” (removed): the last section of the page */
@@ -706,6 +722,20 @@
 
     /* Post-procese (Feature 89533 Part I — titular): EVO Cabinet /permits,
        "Ce vrei să soliciți?" and the FOD2 post-process wizard per type */
+    /* US-18 and the primary request flow (Figma FO · 09 bands F0–F8) */
+    "fo-01": { page: PP_FO, flow: "full", ready: "h1" },
+    "fo-02": foReq(1),
+    "fo-03": foReq(2),
+    "fo-04": foReq(3),
+    "fo-05": foReq(4),
+    "fo-06": foReq(5),
+    "fo-07": foReq(6),
+    "fo-08": foReq(7, { paid: "1" }),
+    "fo-08a": foReq(7, { paid: "1", cert: "error" }),
+    "fo-08b": foReq(7, { paid: "1", cert: "none" }),
+    "fo-08c": foReq(7),
+    "fo-08d": foReq(7, { paid: "1" }, async (h) => { await h.click("[data-fo-finish-document]"); }),
+    "fo-08e": foReq(7, { paid: "1", cert: "unavailable" }, async (h) => { await h.click("[data-fo-finish-document]"); await h.click("[data-fo-cert-download]"); }),
     "pp-01": ppCab(),
     "pp-01a": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); }),
     "pp-01b": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] [data-cab-menu-trigger]"); }),

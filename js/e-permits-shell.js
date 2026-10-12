@@ -16233,6 +16233,82 @@ document.addEventListener("DOMContentLoaded", () => {
   const CFG_FORM_FIELDS = ["Denumirea persoanei juridice", "IDNO", "Adresa juridică", "Obiectul autorizat", "Adresa desfășurării activității", "Genul de activitate (CAEM)", "Suprafața obiectului (m²)", "Codul cadastral", "Numele și prenumele (PF)", "IDNP"];
   /* personal data of a natural person is always published anonymised (US-145) */
   const CFG_ALWAYS_ANON = ["Numele și prenumele (PF)", "IDNP"];
+  /* Publicare în RAP — the request form's fields, by form section. A composite field (editable
+     grid, e.g. CAEM with subgenres) lists its columns as rows; each column is published on its
+     own. Above CFG_SUBDIV_INLINE fields the section shows a summary + the picker modal
+     (#cfg-rap-modal) — the same rule as „Subdiviziuni de examinare”. Demo: 003000118
+     (Autorizație sanitară pentru funcționare) carries its whole form — 100 fields. */
+  const CFG_RAP_BIG = "003000118";
+  const CFG_RAP_SPECIFIC = [
+    "Numărul de locuri", "Programul de lucru", "Tipul unității", "Capacitatea de producție", "Numărul de angajați", "Suprafața sălii de servire (m²)", "Suprafața bucătăriei (m²)", "Suprafața depozitului (m²)",
+    "Numărul de încăperi", "Etajul amplasării", "Accesul separat al mărfurilor", "Sursa de apă potabilă", "Sistemul de canalizare", "Ventilația mecanică", "Iluminatul natural", "Încălzirea",
+    "Echipamente frigorifice", "Numărul de frigidere", "Camere frigorifice", "Echipamente de gătit", "Mașini de spălat vase", "Chiuvete pentru mâini", "Separatoare de grăsimi", "Containere pentru deșeuri",
+    "Gestionarea deșeurilor alimentare", "Contract de deratizare", "Contract de dezinsecție", "Frecvența curățeniei", "Produse dezinfectante utilizate", "Vestiare pentru personal", "Grupuri sanitare pentru personal", "Grupuri sanitare pentru clienți",
+    "Persoana responsabilă de igienă", "Instruirea igienică a personalului", "Fișele medicale ale personalului", "Numărul de bucătari", "Numărul de chelneri", "Programul de lucru al personalului", "Echipamentul de protecție", "Spălătoria pentru echipament",
+    "Tipurile de produse preparate", "Produse de origine animală", "Produse lactate", "Produse de patiserie", "Băuturi alcoolice", "Băuturi răcoritoare", "Furnizorii principali", "Trasabilitatea produselor",
+    "Controlul temperaturii", "Registrul de temperaturi", "Planul HACCP", "Responsabilul HACCP", "Analize de laborator", "Frecvența analizelor", "Probe-martor", "Etichetarea produselor",
+    "Alergeni declarați", "Meniul afișat", "Serviciul de livrare la domiciliu", "Ambalaje pentru livrare", "Terasă de vară", "Numărul de locuri pe terasă", "Spațiu pentru fumători", "Parcare pentru clienți"
+  ];
+  const CFG_RAP_DOCS = ["Copia actului de proprietate / contractului de locațiune", "Schița spațiului / planul încăperilor", "Extras din Registrul de stat", "Avizul sanitar precedent", "Certificate de instruire igienică", "Contractul de deratizare", "Contractul de evacuare a deșeurilor", "Buletinul de analiză a apei", "Fișa tehnologică", "Autorizația de mediu", "Contractul de furnizare a apei", "Alte documente"];
+  const CFG_RAP_DELIVERY = ["Modul de livrare", "Adresa de livrare", "Telefonul pentru livrare", "Operatorul de livrare", "Taxa de livrare", "Suma achitată", "Data achitării", "Numărul notei de plată", "Contul de plată", "Codul MPay", "Statutul plății"];
+  const CFG_RAP_CAEM = "Activitatea desfășurată (CAEM)";
+  const cfgRapCache = new Map();
+  const cfgRapCatalog = (service) => {
+    const code = service?.code || "";
+    if (cfgRapCache.has(code)) return cfgRapCache.get(code);
+    const row = (section, label, group = null) => ({ field: group ? `${group} › ${label}` : label, label, section, group });
+    const list = code === CFG_RAP_BIG ? [
+      ...["Denumirea persoanei juridice", "IDNO", "Adresa juridică", "Numele și prenumele (PF)", "IDNP", "Telefonul de contact"].map((x) => row("Date solicitant", x)),
+      ...["Obiectul autorizat", "Adresa desfășurării activității"].map((x) => row("Detalii solicitare", x)),
+      ...["Codul CAEM", "Denumirea activității", "Subgenuri de activitate"].map((x) => row("Detalii solicitare", x, CFG_RAP_CAEM)),
+      ...["Suprafața obiectului (m²)", "Codul cadastral"].map((x) => row("Detalii solicitare", x)),
+      ...CFG_RAP_SPECIFIC.map((x) => row("Câmpuri specifice serviciului", x)),
+      ...CFG_RAP_DOCS.map((x) => row("Documente însoțitoare", x)),
+      ...CFG_RAP_DELIVERY.map((x) => row("Livrare și plată", x))
+    ] : CFG_FORM_FIELDS.map((x) => row(["Denumirea persoanei juridice", "IDNO", "Adresa juridică", "Numele și prenumele (PF)", "IDNP"].includes(x) ? "Date solicitant" : "Detalii solicitare", x));
+    cfgRapCache.set(code, list);
+    return list;
+  };
+  const cfgRapSections = (list) => { const m = new Map(); list.forEach((x) => { if (!m.has(x.section)) m.set(x.section, []); m.get(x.section).push(x); }); return [...m]; };
+  const CFG_RAP_ALWAYS_REASON = "Datele personale ale persoanei fizice se publică mereu anonimizat.";
+  const CFG_RAP_OFF_REASON = "Bifează întâi „Publică” — un câmp nepublicat nu are ce anonimiza.";
+  /* one row = the field + Publică / Anonimizează. kind "inline" edits the draft in place
+     (Setări), "modal" the picker's own draft */
+  const cfgRapRowHtml = (x, pub, anon, kind) => {
+    const always = CFG_ALWAYS_ANON.includes(x.field), f = escapeHtml(x.field), l = escapeHtml(x.label);
+    const pubAttrs = kind === "modal" ? `value="${f}" data-cfg-rapm-pub` : `value="${f}" data-cfg-rap="${f}"`;
+    const anonAttrs = kind === "modal" ? `value="${f}" data-cfg-rapm-anon` : `data-cfg-rap-anon="${f}"`;
+    return `<li class="e-permits-cfg-rap__row">
+            <span class="e-permits-cfg-rap__name">${l}</span>
+            <div class="e-permits-check-options">
+              ${renderCheckOption({ label: "Publică", checked: pub, attrs: `${pubAttrs} aria-label="Publică: ${l}"` })}
+              ${renderCheckOption({ label: "Anonimizează", checked: pub && (always || anon), disabled: !pub || always, reason: always ? CFG_RAP_ALWAYS_REASON : CFG_RAP_OFF_REASON, attrs: `${anonAttrs} aria-label="Anonimizează: ${l}"` })}
+            </div>
+          </li>`;
+  };
+  /* rows in form order; a composite field (editable grid) is one container — name + „Tabel”
+     + a hint on a grey head, its columns as rows inside; each column is published on its own */
+  const cfgRapItemsHtml = (shown, all, isPub, isAnon, kind) => {
+    const done = new Set();
+    return shown.map((x) => {
+      if (!x.group) return cfgRapRowHtml(x, isPub(x), isAnon(x), kind);
+      if (done.has(x.group)) return "";
+      done.add(x.group);
+      const cols = shown.filter((y) => y.group === x.group), total = all.filter((y) => y.group === x.group).length;
+      const hint = kind === "modal" ? `${total} coloane` : `${cols.length} din ${total} coloane publicate`;
+      return `<li class="e-permits-cfg-rap__group">
+            <div class="e-permits-cfg-rap__table">
+              <div class="e-permits-cfg-rap__table-head">
+                <div class="e-permits-cfg-rap__group-head">
+                  <span class="e-permits-cfg-rap__name">${escapeHtml(x.group)}</span>${renderTag("Tabel")}
+                </div>
+                <p class="e-permits-cfg-rap__group-hint">${hint}</p>
+              </div>
+              <ul class="e-permits-cfg-rap e-permits-cfg-rap__cols" role="list" aria-label="${escapeHtml(`Coloanele: ${x.group}`)}">${cols.map((y) => cfgRapRowHtml(y, isPub(y), isAnon(y), kind)).join("")}</ul>
+            </div>
+          </li>`;
+    }).join("");
+  };
   const CFG_SECTIONS = [
     ["applicant", "Solicitant și act"], ["exam", "Examinare și distribuire"], ["suspension", "Suspendare"], ["signing", "Semnare"],
     ["payment", "Plată"], ["delivery", "Livrare și eliberare"], ["appeal", "Contestare"], ["numbering", "Numerotare"],
@@ -16304,11 +16380,13 @@ document.addEventListener("DOMContentLoaded", () => {
       subdivisions: [...(s.subdivisions || [])], autoDist: Boolean(flags.distribuireAutomata), distEligible: true, distExcludeAbsent: true, distCriterion: CFG_CRITERIA[0], distMax: "15",
       suspCustom: /^Da/.test(s.suspension || ""), suspDays: (String(s.suspension || "").match(/(\d+)\s*zile/) || [])[1] || "30", suspEditable: true, suspSigned: false,
       signRequest: CFG_SIGN_REQUEST[1], signCounter: true, pdfGen: CFG_PDF_GEN[0], pdfSign: true,
-      mpayCode: r.paid ? `MP-${service.code}` : "", payTerm: term ? term[0] : "30",
+      mpayCode: r.paid ? CFG_MPAY_CODE : "", payTerm: term ? term[0] : "30",
       eDelivery: true, mdelivery: r.mdelivery ?? Boolean(flags.mdelivery), paperRelease: Boolean(flags.actHartie), releaseActor: CFG_RELEASE_ACTORS[0],
       appealable: false, appealTypes: [], appealDecisions: [], appealDays: "", appealDayType: CFG_DAY_TYPES[0],
       numbering: [{ doc: "Act permisiv", prefix: (getAuthorityById(service.authorityId)?.code || "AUT"), sep: "-", len: "6", start: "1", current: 4575, reset: "Anual" }],
-      rap: [{ field: "Denumirea persoanei juridice", anon: false }, { field: "IDNO", anon: false }, { field: "Obiectul autorizat", anon: false }, { field: "Numele și prenumele (PF)", anon: true }],
+      rap: service.code === CFG_RAP_BIG
+        ? [["Denumirea persoanei juridice"], ["IDNO"], ["Numele și prenumele (PF)", true], ["Telefonul de contact", true], ["Obiectul autorizat"], [`${CFG_RAP_CAEM} › Codul CAEM`], [`${CFG_RAP_CAEM} › Denumirea activității`], ["Tipul unității"], ["Numărul de locuri"]].map(([field, anon = false]) => ({ field, anon }))
+        : [{ field: "Denumirea persoanei juridice", anon: false }, { field: "IDNO", anon: false }, { field: "Obiectul autorizat", anon: false }, { field: "Numele și prenumele (PF)", anon: true }],
       draftDays: "90",
       deps: (geap.dependencies || []).map((d, i) => d.relation === "Excludere mutuală"
         ? { id: `dep-${i + 1}`, name: d.act, requestTypes: [...rts], type: "Exclusivă", incompatible: d.code }
@@ -16360,6 +16438,8 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>`;
   const cfgSelect = (key, label, options, o = {}) => cfgField(key, label, renderFoSelectControl({ id: `cfg-${cfgIdPrefix}${key}`, attrs: `data-cfg-select="${key}"`, error: Boolean(cfgDraft.errors[key]),
     optionsHtml: `${o.placeholder ? `<option value=""${cfgDraft.v[key] ? "" : " selected"} disabled>${escapeHtml(o.placeholder)}</option>` : ""}${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return `<option value="${escapeHtml(val)}"${val === cfgDraft.v[key] ? " selected" : ""}>${escapeHtml(lab)}</option>`; }).join("")}` }), o);
+  /* MPay: one service code for the whole GEAP 2.0 — shown read-only, never edited per service */
+  const CFG_MPAY_CODE = "EPM02";
   const cfgInput = (key, label, o = {}) => cfgField(key, label, `<div class="e-permits-fo-input${cfgDraft.errors[key] ? " is-error" : ""}"><input id="cfg-${cfgIdPrefix}${key}" type="text"${o.numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="60"'} value="${escapeHtml(cfgDraft.v[key] ?? "")}" placeholder="${escapeHtml(o.placeholder || "")}" autocomplete="off" data-cfg-input="${key}"></div>`, o);
   const cfgSwitch = (key, label, description, { disabled = false } = {}) => `<div class="e-permits-svc-setting">${renderToggle({ label, description, checked: Boolean(cfgDraft.v[key]), attrs: `data-cfg-switch="${key}"`, disabled })}</div>`;
   const cfgChecks = (key, label, options, o = {}) => cfgField(key, label, `<div class="e-permits-pay__exemptions" role="group" aria-label="${escapeHtml(label)}">${options.map((x) => { const [val, lab] = Array.isArray(x) ? x : [x, x]; return renderCheckOption({ label: lab, plain: true, checked: (cfgDraft.v[key] || []).includes(val), attrs: `value="${escapeHtml(val)}" data-cfg-check="${key}"` }); }).join("")}</div>`, { ...o, cls: "e-permits-cfg-checks", hintTop: true });
@@ -16402,6 +16482,36 @@ document.addEventListener("DOMContentLoaded", () => {
           </span>`).join("")}${rest ? `<button class="btn btn-text-primary btn-sm btn-rounded e-permits-cfg-picks__more" type="button" aria-haspopup="dialog" data-cfg-subdiv-open="selected">Încă ${clasNumber(rest)} · Arată toate</button>` : ""}</div>` : ""}
       </div>`, { ...o, cls: "e-permits-cfg-checks", hintTop: true, labelFor: false });
   };
+  /* Publicare în RAP for a long form (> CFG_SUBDIV_INLINE fields): the full-flow multi-select
+     field (as „Subdiviziuni de examinare”) — „N din M publicate · K anonimizate”, opens
+     #cfg-rap-modal and looks open while it is; under it, instead of chips, only the published
+     fields as the same rows as the short list (editable in place) */
+  const cfgRapCountText = (all, rap) => {
+    const on = new Map(rap.map((x) => [x.field, x]));
+    const n = all.filter((x) => on.has(x.field)).length, a = all.filter((x) => on.has(x.field) && (on.get(x.field).anon || CFG_ALWAYS_ANON.includes(x.field))).length;
+    return n ? `${clasNumber(n)} din ${clasNumber(all.length)} publicate · ${a === 1 ? "1 anonimizat" : `${clasNumber(a)} anonimizate`}` : "";
+  };
+  const cfgRapCountRefresh = (el) => {
+    const value = el.closest(".e-permits-cfg-rap-summary")?.querySelector("[data-cfg-rap-value]");
+    if (!value) return;
+    const text = cfgRapCountText(cfgRapCatalog(getServiceByCode(serviceProfileState.code)), cfgDraft.v.rap);
+    value.textContent = text || "Alege câmpurile";
+    value.classList.toggle("e-permits-fo-subgen-select__value--placeholder", !text);
+  };
+  const cfgRapPicks = (service) => {
+    const all = cfgRapCatalog(service), on = new Map((cfgDraft.v.rap || []).map((x) => [x.field, x]));
+    const shown = all.filter((x) => on.has(x.field)), text = cfgRapCountText(all, cfgDraft.v.rap || []);
+    return cfgGrid(cfgField("rap", "Câmpuri publicate în RAP", `
+      <div class="e-permits-cfg-picks e-permits-cfg-rap-summary">
+        <div class="e-permits-fo-subgen-select" data-cfg-rap-select>
+          <button id="cfg-${cfgIdPrefix}rap" class="e-permits-fo-subgen-select__button" type="button" aria-labelledby="cfg-${cfgIdPrefix}rap-label cfg-${cfgIdPrefix}rap-value" aria-haspopup="dialog" aria-expanded="false" data-cfg-rap-open>
+            <span class="e-permits-fo-subgen-select__value${text ? "" : " e-permits-fo-subgen-select__value--placeholder"}" id="cfg-${cfgIdPrefix}rap-value" data-cfg-rap-value>${text || "Alege câmpurile"}</span>
+            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+          </button>
+        </div>
+        ${shown.length ? `<ul class="e-permits-cfg-rap" role="list">${cfgRapItemsHtml(shown, all, () => true, (x) => Boolean(on.get(x.field)?.anon), "inline")}</ul>` : ""}
+      </div>`, { cls: "e-permits-cfg-checks", hintTop: true, labelFor: false, hint: "Alege câmpurile din cerere care se publică și pe cele care se anonimizează." }));
+  };
   const cfgReadonly = (label, html) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
       <span class="e-permits-cfg-ro__label">${escapeHtml(label)}</span>
@@ -16443,7 +16553,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${cfgSwitch("pdfSign", "Semnarea documentului PDF prin MSign", "Numărul de semnături se setează pe tipul de solicitare.")}`);
       case "payment": return cfgGrid(`
         ${cfgReadonly("Serviciu cu plată", `${yesNo(r.paid)}${r.paid ? '<span class="e-permits-passport__muted">RSSP are tarife mai mari de 0 lei</span>' : ""}`)}
-        ${r.paid ? cfgInput("mpayCode", "Cod serviciu MPay", { required: true, span: 6, placeholder: "Ex. MP-003000023", hint: "Identificatorul serviciului în MPay, pentru nota de plată." }) : ""}
+        ${r.paid ? cfgField("mpayCode", "Cod serviciu MPay", `<div class="e-permits-fo-input is-filled is-readonly"><input id="cfg-${cfgIdPrefix}mpayCode" type="text" value="${CFG_MPAY_CODE}" readonly tabindex="-1"></div>`, { span: 6, hint: "Cod unic GEAP în MPay, același pentru toate serviciile." }) : ""}
         ${cfgInput("payTerm", "Termenul de achitare (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice; precompletează termenul fiecărei taxe noi." })}`);
       case "delivery": return cfgGrid(`
         ${cfgSwitch("eDelivery", "Livrare electronică", "Actul ajunge în EVO Cabinet.")}
@@ -16484,7 +16594,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       case "rap": return `
         ${renderInfoNote("<strong>Datele personale ale persoanei fizice</strong> (IDNP, numele și prenumele) se publică mereu anonimizat, indiferent de setare.")}
-        <ul class="e-permits-cfg-rap" role="list">${CFG_FORM_FIELDS.map((field) => {
+        ${cfgRapCatalog(service).length > CFG_SUBDIV_INLINE ? cfgRapPicks(service) : `<ul class="e-permits-cfg-rap" role="list">${cfgRapCatalog(service).map(({ field }) => {
           const row = v.rap.find((x) => x.field === field); const always = CFG_ALWAYS_ANON.includes(field);
           /* Publică = the field goes to RAP; Anonimizează = it goes masked. Same pair as
              Documente (Afișează / Obligatoriu): the second needs the first */
@@ -16496,7 +16606,7 @@ document.addEventListener("DOMContentLoaded", () => {
               ${renderCheckOption({ label: "Publică", checked: Boolean(row), attrs: `value="${escapeHtml(field)}" data-cfg-rap="${escapeHtml(field)}" aria-label="Publică: ${escapeHtml(field)}"` })}
               ${renderCheckOption({ label: "Anonimizează", checked: always || Boolean(row?.anon), disabled: anonOff, reason, attrs: `data-cfg-rap-anon="${escapeHtml(field)}" aria-label="Anonimizează: ${escapeHtml(field)}"` })}
             </div>
-          </li>`; }).join("")}</ul>`;
+          </li>`; }).join("")}</ul>`}`;
       /* the field keeps a one-line hint; what happens at expiry goes into the grey info note */
       case "drafts": return `
         ${cfgGrid(cfgInput("draftDays", "Perioada de retenție a schițelor (zile)", { required: true, numeric: true, span: 6, hint: "Zile calendaristice." }))}
@@ -16533,7 +16643,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "exam": req("subdivisions", v.subdivisions.length); if (v.autoDist) { req("distCriterion", v.distCriterion); int("distMax", v.distMax, false); } break;
       case "suspension": if (v.suspCustom) int("suspDays", v.suspDays); break;
       case "signing": req("signRequest", v.signRequest); req("pdfGen", v.pdfGen); break;
-      case "payment": if (r.paid) req("mpayCode", String(v.mpayCode || "").trim()); int("payTerm", v.payTerm); break;
+      case "payment": int("payTerm", v.payTerm); break; /* the MPay code is one for all GEAP (EPM02), not configured */
       case "delivery": req("releaseActor", v.releaseActor); break;
       case "appeal": if (v.appealable) { req("appealTypes", v.appealTypes.length); req("appealDecisions", v.appealDecisions.length); int("appealDays", v.appealDays); req("appealDayType", v.appealDayType); } break;
       case "numbering": v.numbering.forEach((rule, i) => { req(`n${i}-doc`, rule.doc); req(`n${i}-reset`, rule.reset); req(`n${i}-prefix`, String(rule.prefix || "").trim()); int(`n${i}-len`, rule.len); int(`n${i}-start`, rule.start); }); break;
@@ -16772,6 +16882,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (left[Math.min(index, left.length - 1)] || cfg2Root().querySelector("#cfg-subdivisions"))?.focus();
       return;
     }
+    if (event.target.closest("[data-cfg-rap-open]")) { openCfgRap(); return; }
     if (event.target.closest("[data-cfg2-dep-add]")) {
       const dep = { ...CFG2_EMPTY_DEP(), id: `dep-${Date.now()}` };
       cfg2.v.deps.push(dep);
@@ -16934,6 +17045,151 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  /* Publicare în RAP — the same picker for a long request form (100 fields): search (field,
+     column or section), chips Toate / Publicate / Nepublicate / Anonimizate, one list in sections
+     by form section; each row is the inline pair Publică + Anonimizează, a composite field
+     (editable grid) shows its columns under its own name. The section heading is a tri-state
+     „Publică” for the section's visible rows, with „n/total publicate”. Draft until „Aplică”. */
+  const cfgRapModal = document.querySelector("#cfg-rap-modal");
+  let cfgRap = null;
+  const CFG_RAP_FILTERS = [["all", "Toate"], ["published", "Publicate"], ["unpublished", "Nepublicate"], ["anon", "Anonimizate"]];
+  const cfgRapAll = () => cfgRapCatalog(getServiceByCode(cfgRap.code));
+  const cfgRapIsAnon = (x) => cfgRap.sel.has(x.field) && (CFG_ALWAYS_ANON.includes(x.field) || cfgRap.sel.get(x.field));
+  const cfgRapMatch = () => {
+    const q = clasCore.normName(cfgRap.query.trim()), f = cfgRap.filter;
+    return (x) => (!q || clasCore.normName(`${x.label} ${x.group || ""} ${x.section}`).includes(q))
+      && (f === "all" || (f === "published" && cfgRap.sel.has(x.field)) || (f === "unpublished" && !cfgRap.sel.has(x.field)) || (f === "anon" && cfgRapIsAnon(x)));
+  };
+  const cfgRapHead = (items, shown) => {
+    const on = items.filter((x) => cfgRap.sel.has(x.field)).length, shownOn = shown.filter((x) => cfgRap.sel.has(x.field)).length;
+    return { on, checked: shownOn === shown.length, mixed: shownOn > 0 && shownOn < shown.length };
+  };
+  const cfgRapListHtml = () => {
+    const match = cfgRapMatch();
+    const html = cfgRapSections(cfgRapAll()).map(([section, items]) => {
+      const shown = items.filter(match);
+      if (!shown.length) return "";
+      const head = cfgRapHead(items, shown);
+      const rows = cfgRapItemsHtml(shown, items, (x) => cfgRap.sel.has(x.field), (x) => Boolean(cfgRap.sel.get(x.field)), "modal");
+      return `
+        <section class="e-permits-subdiv__section" data-cfg-rap-section="${escapeHtml(section)}" aria-label="${escapeHtml(section)}">
+          <div class="e-permits-subdiv__head">
+            ${renderCheckOption({ label: section, plain: true, checked: head.checked, attrs: `data-cfg-rap-all aria-label="Publică toate: ${escapeHtml(section)}"` })}
+            <span class="e-permits-subdiv__count" data-cfg-rap-count aria-label="${head.on} din ${items.length} publicate">${head.on}/${items.length}</span>
+          </div>
+          <ul class="e-permits-cfg-rap e-permits-subdiv__rap" role="list">${rows}</ul>
+        </section>`;
+    }).join("");
+    return html || `<div class="e-permits-subdiv__empty">${renderNoResults(cfgRap.query.trim() ? "Niciun câmp nu corespunde căutării" : "Niciun câmp în acest filtru", { text: "Schimbă filtrul sau caută altceva." })}</div>`;
+  };
+  const cfgRapSync = () => {
+    const all = cfgRapAll(), n = all.filter((x) => cfgRap.sel.has(x.field)).length, a = all.filter(cfgRapIsAnon).length;
+    const counts = { all: all.length, published: n, unpublished: all.length - n, anon: a };
+    cfgRapModal.querySelector("[data-cfg-rap-chips]").innerHTML = CFG_RAP_FILTERS.map(([key, label]) => `
+      <button type="button" class="chip${cfgRap.filter === key ? " is-selected" : ""}" aria-pressed="${cfgRap.filter === key}" data-cfg-rap-filter="${key}">
+        <span class="chip__label">${label}</span>
+        <span class="badge badge--lg badge--solid-light" aria-hidden="true">${clasNumber(counts[key])}</span>
+      </button>`).join("");
+    const shown = all.filter(cfgRapMatch()), allOn = shown.length && shown.every((x) => cfgRap.sel.has(x.field));
+    const bulk = cfgRapModal.querySelector("[data-cfg-rap-bulk]");
+    bulk.hidden = !shown.length;
+    bulk.dataset.cfgRapBulk = allOn ? "off" : "on";
+    bulk.textContent = `${allOn ? "Retrage" : "Publică"} ${cfgRap.query.trim() || cfgRap.filter !== "all" ? "rezultatele" : "toate"} (${clasNumber(shown.length)})`;
+    cfgRapModal.querySelector("[data-cfg-rap-total]").innerHTML = `<strong>${clasNumber(n)}</strong> din ${clasNumber(all.length)} publicate · ${a === 1 ? "1 anonimizat" : `${clasNumber(a)} anonimizate`}`;
+    const match = cfgRapMatch(), sections = new Map(cfgRapSections(all));
+    cfgRapModal.querySelectorAll("[data-cfg-rap-section]").forEach((el) => {
+      const items = sections.get(el.dataset.cfgRapSection) || [], head = cfgRapHead(items, items.filter(match));
+      const box = el.querySelector("[data-cfg-rap-all]"), count = el.querySelector("[data-cfg-rap-count]");
+      box.checked = head.checked; box.indeterminate = head.mixed;
+      count.textContent = `${head.on}/${items.length}`; count.setAttribute("aria-label", `${head.on} din ${items.length} publicate`);
+    });
+  };
+  const cfgRapRender = () => {
+    const list = cfgRapModal.querySelector("[data-cfg-rap-list]"), top = list.scrollTop;
+    list.innerHTML = cfgRapListHtml();
+    list.scrollTop = top;
+    cfgRapSync();
+  };
+  /* a row's Anonimizează follows its Publică, in place (the boxes keep their transition) */
+  const cfgRapRowSync = (row, field) => {
+    const anon = row?.querySelector("[data-cfg-rapm-anon]");
+    if (!anon) return;
+    const pub = cfgRap.sel.has(field), always = CFG_ALWAYS_ANON.includes(field);
+    row.querySelector("[data-cfg-rapm-pub]").checked = pub;
+    anon.disabled = !pub || always; anon.checked = pub && (always || Boolean(cfgRap.sel.get(field)));
+    const opt = anon.closest(".e-permits-check-option");
+    opt?.classList.toggle("is-disabled", anon.disabled);
+    opt?.setAttribute("data-tooltip-reason", anon.disabled ? (always ? CFG_RAP_ALWAYS_REASON : CFG_RAP_OFF_REASON) : "");
+  };
+  const cfgRapSet = (field, on) => {
+    if (on && !cfgRap.sel.has(field)) cfgRap.sel.set(field, CFG_ALWAYS_ANON.includes(field));
+    if (!on) cfgRap.sel.delete(field);
+  };
+  const openCfgRap = (filter = "all") => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!cfgRapModal || !service || !cfg2) return;
+    const all = cfgRapCatalog(service);
+    cfgRap = { code: service.code, sel: new Map((cfg2.v.rap || []).map((x) => [x.field, Boolean(x.anon)])), query: "", filter };
+    cfgRapModal.querySelector("[data-cfg-rap-subtitle]").textContent = `${service.title || service.code} · ${clasNumber(all.length)} de câmpuri în ${cfgRapSections(all).length} secțiuni`;
+    const input = cfgRapModal.querySelector("[data-cfg-rap-search]");
+    input.value = "";
+    input.closest(".search-input")?.classList.remove("has-value", "is-typing", "is-ready");
+    cfgRapRender();
+    cfgRapModal.querySelector("[data-cfg-rap-list]").scrollTop = 0;
+    window.__modal?.open?.("#cfg-rap-modal");
+    cfgRapOpenState(true);
+    requestAnimationFrame(() => input.focus());
+  };
+  /* the field keeps its open look (focus ring, chevron up) while its picker is open */
+  const cfgRapOpenState = (open) => cfg2Root()?.querySelectorAll("[data-cfg-rap-select]").forEach((el) => {
+    el.classList.toggle("is-open", open);
+    el.querySelector("[data-cfg-rap-open]")?.setAttribute("aria-expanded", String(open));
+  });
+  if (cfgRapModal) new MutationObserver(() => { if (!cfgRapModal.classList.contains("is-active")) cfgRapOpenState(false); }).observe(cfgRapModal, { attributes: true, attributeFilter: ["class"] });
+  cfgRapModal?.addEventListener("input", (event) => {
+    if (!cfgRap || !event.target.matches("[data-cfg-rap-search]")) return;
+    cfgRap.query = event.target.value;
+    cfgRapRender();
+    cfgRapModal.querySelector("[data-cfg-rap-list]").scrollTop = 0;
+  });
+  cfgRapModal?.addEventListener("change", (event) => {
+    if (!cfgRap) return;
+    const t = event.target;
+    if (t.matches("[data-cfg-rapm-pub]")) { cfgRapSet(t.value, t.checked); cfgRapRowSync(t.closest(".e-permits-cfg-rap__row"), t.value); cfgRapSync(); return; }
+    if (t.matches("[data-cfg-rapm-anon]")) { if (cfgRap.sel.has(t.value)) cfgRap.sel.set(t.value, t.checked); cfgRapSync(); return; }
+    if (t.matches("[data-cfg-rap-all]")) {
+      const section = t.closest("[data-cfg-rap-section]");
+      (new Map(cfgRapSections(cfgRapAll())).get(section.dataset.cfgRapSection) || []).filter(cfgRapMatch()).forEach((x) => cfgRapSet(x.field, t.checked));
+      section.querySelectorAll("[data-cfg-rapm-pub]").forEach((box) => cfgRapRowSync(box.closest(".e-permits-cfg-rap__row"), box.value));
+      cfgRapSync();
+    }
+  });
+  cfgRapModal?.addEventListener("click", (event) => {
+    if (!cfgRap) return;
+    const chip = event.target.closest("[data-cfg-rap-filter]");
+    if (chip) { cfgRap.filter = chip.dataset.cfgRapFilter; cfgRapRender(); cfgRapModal.querySelector("[data-cfg-rap-list]").scrollTop = 0; cfgRapModal.querySelector(`[data-cfg-rap-filter="${cfgRap.filter}"]`)?.focus(); return; }
+    const bulk = event.target.closest("[data-cfg-rap-bulk]");
+    if (bulk) {
+      const on = bulk.dataset.cfgRapBulk === "on";
+      cfgRapAll().filter(cfgRapMatch()).forEach((x) => cfgRapSet(x.field, on));
+      cfgRapRender();
+      bulk.focus();
+      return;
+    }
+    if (event.target.closest("[data-cfg-rap-apply]")) {
+      if (cfg2 && cfg2.code === cfgRap.code) {
+        /* stored in form order, so the summary and the audit read the same way */
+        cfg2.v.rap = cfgRapAll().filter((x) => cfgRap.sel.has(x.field)).map((x) => ({ field: x.field, anon: CFG_ALWAYS_ANON.includes(x.field) || Boolean(cfgRap.sel.get(x.field)) }));
+        cfg2RenderSection("rap");
+        cfg2Refresh();
+      }
+      cfgRap = null;
+      window.__modal?.close?.("#cfg-rap-modal");
+      const byMouse = event.detail > 0;
+      requestAnimationFrame(() => cfg2Root()?.querySelector("#cfg-rap")?.focus({ focusVisible: !byMouse }));
+    }
+  });
+
   /* the section list follows the scroll */
   const cfg2Spy = () => {
     const root = cfg2Root();
@@ -17018,9 +17274,9 @@ document.addEventListener("DOMContentLoaded", () => {
         opt?.setAttribute("data-tooltip-reason", anon.disabled ? (always ? "Datele personale ale persoanei fizice se publică mereu anonimizat." : "Bifează întâi „Publică” — un câmp nepublicat nu are ce anonimiza.") : "");
         const row = cfgDraft.v.rap.find((x) => x.field === field); if (row) row.anon = anon.checked;
       }
-      cfgDraft.dirty = true; return;
+      cfgDraft.dirty = true; cfgRapCountRefresh(t); return;
     }
-    if (t.matches("[data-cfg-rap-anon]")) { const row = cfgDraft.v.rap.find((x) => x.field === t.dataset.cfgRapAnon); if (row) row.anon = t.checked; cfgDraft.dirty = true; }
+    if (t.matches("[data-cfg-rap-anon]")) { const row = cfgDraft.v.rap.find((x) => x.field === t.dataset.cfgRapAnon); if (row) row.anon = t.checked; cfgDraft.dirty = true; cfgRapCountRefresh(t); }
   };
   /* Setări: a switch goes straight into the service draft */
   permitsProfilePanel?.addEventListener("change", (event) => {

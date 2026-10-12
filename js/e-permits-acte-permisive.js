@@ -2289,6 +2289,8 @@
       `;
 
       body.innerHTML = summaryHtml + invoiceHtml + actionsHtml;
+      /* US-18 AC-03: kept across re-renders once Finalizare was refused for an unpaid fee */
+      if (frontOfficePaymentNoticeShown) { frontOfficePaymentNoticeShown = false; showFrontOfficePaymentNotice(); frontOfficePaymentNoticeShown = true; }
     }
 
     /* Finalizare (Figma 3607:56145): the confirmation shown once MPay returns.
@@ -2311,7 +2313,11 @@
 
     const FINISH_STATE_LABEL = { done: "finalizat", current: "în curs", todo: "urmează" };
 
+    /* US-18: the certificate retry state survives a re-render */
+    let frontOfficeCertRetried = false;
+    let frontOfficeLastFinishSchema = null;
     function renderFrontOfficeStep7FromSchema(schema) {
+      frontOfficeLastFinishSchema = schema;
       const panel = document.querySelector("[data-fo-step-panel='7']");
       const step = schema?.steps?.find((item) => item.id === "finish" || Number(item.index) === 7);
       const body = panel?.querySelector("[data-fo-finish-body]");
@@ -2335,7 +2341,24 @@
         `
         : "";
 
-      const doc = step.document
+      /* US-18 AC-06/07: the certificate is shown only when the service issues one (?cert=none hides it);
+         a failed generation shows the error + „Reîncercați” (?cert=error) */
+      const certMode = new URLSearchParams(location.search).get("cert") || "";
+      const doc = step.document && certMode === "none" ? "" : step.document && certMode === "error" && !frontOfficeCertRetried
+        ? `
+          <div class="e-permits-fo-finish-doc is-error" role="alert">
+            <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
+            <div class="e-permits-fo-finish-doc__copy">
+              <p class="e-permits-fo-finish-doc__title">${esc(step.document.title || "")}</p>
+              <p class="e-permits-fo-finish-doc__text e-permits-fo-finish-doc__error">Certificatul Constatator nu a putut fi generat.</p>
+            </div>
+            <button class="btn btn-neutral btn-sm e-permits-fo-finish-doc__action" type="button" data-fo-finish-document-retry>
+              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+              <span>Reîncercați</span>
+            </button>
+          </div>
+        `
+        : step.document
         ? `
           <div class="e-permits-fo-finish-doc">
             <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
@@ -2904,7 +2927,18 @@
       });
     }
 
+    /* US-18 AC-01..03: in the primary request the Finalizare step opens only once the fee is paid
+       (MPay); post-processes without a fee skip Plată and are never gated. ?paid=1 = paid (demo). */
+    let frontOfficePaid = new URLSearchParams(location.search).get("paid") === "1";
+    let frontOfficePaymentNoticeShown = false;
+    /* a post-process (?pp=…) is known from the URL before its state is set on load */
+    const frontOfficeFinishBlocked = (step) => Number(step) === 7 && !frontOfficePostprocess && !new URLSearchParams(location.search).get("pp") && !frontOfficePaid;
     function setFrontOfficeStep(step, { focus = true, scroll = true } = {}) {
+      if (frontOfficeFinishBlocked(step)) {
+        step = 6;
+        history.replaceState(null, "", frontOfficeStepHash(6));
+        window.setTimeout(() => showFrontOfficePaymentNotice(), 0);
+      }
       if (Number(step) >= 2 && !frontOfficeDraftCreated) {
         saveFrontOfficeDraft();
       } else {
@@ -3185,6 +3219,60 @@
       showFrontOfficeToast("Datele au fost înregistrate.");
     });
 
+    /* US-18 AC-03: Finalizare reached without payment → back on Plată with the reason */
+    function showFrontOfficePaymentNotice() {
+      frontOfficePaymentNoticeShown = true;
+      const body = document.querySelector("[data-fo-payment-body]");
+      if (!body || body.querySelector("[data-fo-payment-notice]")) return;
+      body.insertAdjacentHTML("afterbegin", `
+        <div class="message message--subtle banner--warning e-permits-fo-payment__notice" role="alert" data-fo-payment-notice>
+          <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span>
+          <div class="banner__content"><p class="banner__text"><strong>Taxa nu este achitată.</strong> Cererea se finalizează după confirmarea plății prin MPay.</p></div>
+        </div>`);
+    }
+
+    /* US-18 AC-07: „Vezi documentul” → the certificate, with „Descarcă”; ?cert=unavailable = the file
+       cannot be downloaded (error + „Reîncercați”) */
+    const certModal = document.querySelector("#fo-certificate-modal");
+    const renderCertificateModal = (downloadError = false) => {
+      const step = frontOfficeLastFinishSchema?.steps?.find((item) => item.id === "finish") || {};
+      const rows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
+      const esc = escapeFrontOfficeHtml;
+      certModal.querySelector("[data-fo-cert-body]").innerHTML = `
+        ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Fișierul nu este disponibil momentan. Încercați din nou.</p></div></div>` : ""}
+        <div class="e-permits-fo-cert">
+          <p class="e-permits-fo-cert__kicker">Republica Moldova · SIA GEAP</p>
+          <h3 class="e-permits-fo-cert__title">Certificat constatator</h3>
+          <p class="e-permits-fo-cert__lead">Confirmă depunerea cererii în sistemul informațional automatizat GEAP.</p>
+          <div class="e-permits-fo-payment-summary">
+            ${rows.map((row) => `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${esc(row.label || "")}</span><div class="e-permits-fo-summary-row__value">${esc(row.value || "")}</div></div>`).join("")}
+          </div>
+        </div>`;
+      certModal.querySelector("[data-fo-cert-download] span").textContent = downloadError ? "Reîncercați" : "Descarcă";
+    };
+    document.addEventListener("click", (event) => {
+      if (event.target.closest("[data-fo-finish-document-retry]")) {
+        frontOfficeCertRetried = true;
+        renderFrontOfficeStep7FromSchema(frontOfficeLastFinishSchema);
+        document.querySelector("[data-fo-finish-document]")?.focus();
+        return;
+      }
+      if (event.target.closest("[data-fo-finish-document]") && certModal) {
+        renderCertificateModal(false);
+        window.__modal?.open?.("#fo-certificate-modal");
+        return;
+      }
+      const dl = event.target.closest("[data-fo-cert-download]");
+      if (dl && certModal) {
+        const unavailable = new URLSearchParams(location.search).get("cert") === "unavailable" && !dl.dataset.retried;
+        if (unavailable) { dl.dataset.retried = "1"; renderCertificateModal(true); return; }
+        const html = `<!doctype html><meta charset="utf-8"><title>Certificat constatator</title>${certModal.querySelector(".e-permits-fo-cert").outerHTML}`;
+        const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([html], { type: "text/html" })), download: "Certificat-constatator.html" });
+        a.click(); URL.revokeObjectURL(a.href);
+        renderCertificateModal(false);
+      }
+    });
+
     /* "Plătește … cu mpay": there is no MPay sandbox in this prototype (unlike
        MPass, which has mpass-test.html), so the round-trip is simulated with a
        short processing state on the button, then the flow lands on
@@ -3203,6 +3291,7 @@
         payButton.removeAttribute("aria-busy");
         payButton.disabled = false;
         if (label) label.textContent = originalLabel;
+        frontOfficePaid = true;
         navigateToFrontOfficeStep(7);
       }, FINISH_PAYMENT_DELAY_MS);
     });

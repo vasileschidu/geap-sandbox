@@ -15,6 +15,13 @@ description: Review a GEAP flow through persona agents backed by real evidence (
 3. Refresh the Figma inventory `tools/persona-test/flows/<flow>-figma.json` (blocks, desktop/mobile node ids, „Prototype ↗” state, NOTE text) with `use_figma` on the flow's section when Figma changed.
 4. Refresh the specs `tools/persona-test/specs/<flow>/US-*.md` from Azure DevOps (project GEAP) when stories changed — plain text, description + acceptance criteria.
 
+### Figma mode — `/persona-review <flow> --source figma`
+Review the designs instead of (or before) the prototype: all blocks, including states that only exist in Figma.
+1. Refresh `tools/persona-test/flows/<flow>-figma.json` (blocks, desktop/mobile node ids, notes).
+2. Export every block with `mcp__figma-a__get_screenshot` (`enableBase64Response: false`, desktop `maxDimension` 2000, mobile 2800) and download each URL at once with curl to `tools/persona-test/out/<flow>-figma/<KEY>/{desktop,mobile}.png`; write `index.json`. Delegate to a capture agent — 120+ frames.
+3. Run the same agents with run dir `tools/persona-test/out/<flow>-figma` and the line „Figma mode — see CONTRACT.md”.
+4. Publish as „Persona review · <flow> · Figma · <date>”. `--source both` runs both and adds a „prototype ≠ Figma” column.
+
 ## 2. Review (parallel)
 Run every agent listed in the flow's `personas`, in parallel, each with:
 `Flow map: tools/persona-test/flows/<flow>.json. Run dir: tools/persona-test/out/<flow>. Follow your agent definition in .claude/agents/<name>.md and tools/persona-test/CONTRACT.md.`

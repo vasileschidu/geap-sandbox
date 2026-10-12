@@ -189,6 +189,7 @@ but this doc previously described it wrongly, see the entry.
 | Switch | `.switch > .switch-wrapper` | `switch.html` | library |
 | Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
 | Long multi-select (100+ options) | summary `.e-permits-cfg-picks` + picker modal `#cfg-subdiv-modal` (`.e-permits-subdiv*`) | `cfgSubdivPicks` / `openCfgSubdiv` | app |
+| Long checklist with per-row options (RAP, 100 fields) | `.e-permits-cfg-rap-summary` (select field + published rows) + `#cfg-rap-modal`; composite = `.e-permits-cfg-rap__table` | `cfgRapPicks` / `cfgRapItemsHtml` / `openCfgRap` | app |
 | Input | `.input`, `.input-wrapper` | `input-preview.html` | library |
 | Textarea | `.textarea` | `textarea.html` | library |
 | Table | `.table` + `--default/--subtle/--strong/--white` | `table.html` | library |
@@ -254,6 +255,7 @@ Shape: `.btn-rounded` ≡ `.btn-pill`.
 
 - Focus is on `:focus`, not `:focus-visible`: `.btn:focus:not(:disabled)` (`main.css:12467`, duplicated at `11812`) declares `outline: 2px solid var(--white); box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379DB))`. **Verified rendering correctly** (white gap + blue ring). Note `getComputedStyle` reports this as `rgba(0,0,0,0) 0 0 0 0` — an artifact of `var()`-based shadows, not a defect. Trust a screenshot, not the computed value, when auditing this.
 - Disabled: use the native `disabled` attribute. `.btn-loading` on the bare class forces `height:48px; width:92px` — only use the compound form (`.btn-primary.btn-loading`).
+- **Icon and label are one colour — the button's.** Code: the icon `<svg>` uses `fill: currentColor` and never gets its own `color`/`fill` (no `.btn svg { color: … }`). Figma: use the button **component** and change its variant (Style / State) — never override the fill of the icon or of the label on an instance (a blue icon on a Disabled grey label, a grey icon on a Primary label). Changing the icon = swap the icon (instance swap); its colour comes from the button. Audit 2026-10-12: 547 instances had an icon colour ≠ label colour (Form Builder 348, Editable Grid 128, Address Patterns 21, Incidente 16, Pașaport 17, Process Designer 13, Tarife 4) — reset to the component colour.
 - **`.icon-leading` / `.icon-trailing` do not exist in CSS.** Put the `<svg class="icon">` directly in the button. Figma *does* define `Icon = None / Leading / Trailing / Only` as design variants — the concept exists, the CSS expresses it structurally rather than with those classes.
 
 #### Verified against Figma — 2026-09-03
@@ -4987,6 +4989,37 @@ plain checkbox list (`cfgChecks`). The full-flow dropdown multi-select
 - **Data** (`cfgSubdivisionCatalog`): the authority's own subdivisions (group „Subdiviziunile
   autorității”), plus, for an eAPL service, mock APL „Primăria {raion} · UAT NN” per
   `APL_RAIONS` (deterministic, 968 for `003000023`).
+
+### Publicare în RAP for a long form — action + published rows + picker (2026-10-12)
+
+Setări › Publicare în RAP switches by the size of the request form (`cfgRapCatalog`); demo
+`003000118` has 100 fields in 5 form sections.
+- **≤ 12 fields** (`CFG_SUBDIV_INLINE`): the inline list `.e-permits-cfg-rap`, every field as a
+  `.e-permits-cfg-rap__row` (name + Publică + Anonimizează).
+- **> 12 fields** (`cfgRapPicks`): the long multi-select field, **with rows instead of chips**:
+  - The field „Câmpuri publicate în RAP” (`.e-permits-fo-subgen-select`, as Subdiviziuni)
+    reads „N din M publicate · K anonimizate”. It updates live, opens the picker, and keeps
+    `is-open` / `aria-expanded` while the picker is open.
+  - Under it: **only the published fields**, as the same rows, editable in place, in form order.
+    There are no chips. (An action button „Editează câmpurile” was tried on 2026-10-12, and the
+    user brought the dropdown back.)
+- **Composite field** (editable grid, e.g. CAEM) uses **lines only, no box**. (A bordered
+  container was tried on 2026-10-12 and the user found it too heavy.)
+  - `.e-permits-cfg-rap__group` has a divider above it, like any other row.
+  - Then a title row `__table-head`, all on one line: on the left the name (medium) + a
+    `Tabel` tag (`renderTag`); on the right a tertiary count („3 coloane” in the picker,
+    „2 din 3 coloane publicate” in Setări).
+  - Then the columns as ordinary rows (`__cols`), **indented 16**, with a divider under the title.
+  - Each column is published on its own (`field` = „Grup › Coloană”).
+- **Picker** `#cfg-rap-modal`: the subdivision picker's shell (`.e-permits-subdiv`), plus
+  `--tall`, which makes it the full screen height minus 24 top and bottom.
+  - Filter chips: Toate / Publicate / Nepublicate / Anonimizate.
+  - Bulk action: „Publică / Retrage toate|rezultatele (N)”.
+  - Sections = form sections. The heading is a tri-state „Publică” for the visible rows, plus n/total.
+  - Rows and containers come from the same renderer (`cfgRapItemsHtml`, kind `modal`).
+  - Draft until Aplică, which writes `v.rap` in form order.
+- The picker's search never grows: `.e-permits-subdiv .search-input.e-permits-list-search--fill
+  { flex: 0 0 auto }`. This applies to both pickers.
 
 ### Documente însoțitoare (RSSP) in a service — document tiles, not label/value rows (2026-10-03)
 
