@@ -4613,7 +4613,7 @@ with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp
 ### EVO Cabinet › Solicitările mele + Catalog (added 2026-10-12)
 
 > **Rows, not cards (user, 2026-10-12):** the list is the app's stacked list read at 14px —
-> one bordered list (radius 12), full-width dividers, row padding 16/20, title 16/24 semibold +
+> each dosar its OWN bordered box (radius 12, 12 between boxes — user: „separate, not integrated”), row padding 16/20, title 16/24 semibold +
 > status tag (24, 14 medium) + marks; meta lines 14/20 tertiary („Tip · Serviciu”, „Autoritate ·
 > Depusă … · nr (copy, regular)”), wrapped parts drop their dot (`.is-row-start`); deadline = one
 > 14/20 line with a 16 icon in the tone (warning #dc6803 / brand) and the date in medium; actions
