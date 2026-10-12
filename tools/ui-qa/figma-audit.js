@@ -15,7 +15,7 @@
 //  clipped-content      a child extends outside a frame that clips content
 //  sibling-overlap      two siblings overlap in a frame without auto-layout
 //  icon-colour-override an icon inside a button instance whose fill differs from the label's
-//  detached-text-override  instance text with a different font size than its main component
+//  field-label-outside  a select / text-input with its label off and a hand-built label beside it
 const ROOTS = ["PUT:NODE-IDS-HERE"];
 const SPACING = [0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120, 160, 200, 240];
 const RADIUS = [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 999, 9999];
@@ -69,6 +69,13 @@ for (const rid of ROOTS) {
       const fam = n.fontName === figma.mixed ? "mixed" : n.fontName.family;
       const codeCtx = (() => { for (let p = n.parent, i = 0; p && i < 4; p = p.parent, i++) if (/code|kw|token|Combinarea/i.test(p.name)) return true; return false; })();
       if (fam !== "Onest" && !(fam === "JetBrains Mono" && codeCtx)) add("font-not-onest", n, fam);
+    }
+    /* a field instance (select-input / text-input) with its own label switched off and a
+       hand-built label / hint next to it — use the component's Label, Mandatory Star, Assistive Text */
+    if (n.type === "INSTANCE" && n.componentProperties && n.componentProperties["👁️ Label#132:24"] && n.componentProperties["👁️ Label#132:24"].value === false && n.parent && "children" in n.parent) {
+      const sib = n.parent.children, i = sib.indexOf(n);
+      const prev = sib.slice(0, i).reverse().find((k) => k.type === "FRAME" && k.findOne && k.findOne((t) => t.type === "TEXT"));
+      if (prev && /^(Label|Text)$/.test(prev.name)) add("field-label-outside", n, `hand-built label „${prev.findOne((t) => t.type === "TEXT").characters.slice(0, 30)}” (${prev.id})`);
     }
     if (n.type === "INSTANCE" && /btn|button/i.test(n.name + " " + ((n.mainComponent && n.mainComponent.parent && n.mainComponent.parent.name) || ""))) {
       const label = n.findOne((k) => k.type === "TEXT" && k.visible !== false);
