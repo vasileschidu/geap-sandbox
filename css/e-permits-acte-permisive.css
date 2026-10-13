@@ -14415,6 +14415,15 @@
   margin-top: var(--spacing-24, 24px);
 }
 
+/* US-54: the SRRE read-only note spans the whole address grid (every breakpoint) */
+.e-permits-fo-cascade-address__note {
+  grid-column: 1 / -1;
+}
+
+.e-permits-fo-cascade-address__note[hidden] {
+  display: none;
+}
+
 .e-permits-fo-input.is-disabled {
   background: var(--color-background-base-secondary, #f5f5f5);
   border-color: var(--color-border-base-default, #d9d9d9);
@@ -18214,6 +18223,8 @@
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(1),
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table td:nth-child(1) {
   left: 0;
   position: sticky;
@@ -18226,6 +18237,8 @@
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(1),
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table td:nth-child(1),
 .e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table td:nth-child(1) {
   border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
 }
@@ -18237,6 +18250,8 @@
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table th:nth-child(2),
 .e-permits-workplace[data-registry-kind="tariffs"] .e-permits-workplace__table td:nth-child(2),
 .e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table td:nth-child(2),
 .e-permits-workplace[data-registry-kind="classifiers"] .e-permits-workplace__table td:nth-child(2) {
   border-right: 0;
   left: auto;
@@ -20696,6 +20711,26 @@ button.e-permits-steps-strip__cell:focus-visible {
   color: var(--color-icon-positive-default, #039855);
 }
 
+/* warning variant (Figma inline-message Style=Warning) — e.g. US-54 „Adresă indisponibilă…” */
+.message--inline.e-permits-fo-field__warning {
+  color: var(--color-text-warning-default, #b54708);
+}
+
+.message--inline.e-permits-fo-field__warning .icon {
+  color: var(--color-icon-warning-default, #dc6803);
+}
+
+/* loading line under a field: library spinner Small (16) in the 20px icon slot + secondary text
+   (US-54 „Se caută adresa în Registrul de Stat al Bunurilor Imobile…”) */
+.message--inline.e-permits-fo-field__loading {
+  color: var(--color-text-base-secondary, #383838);
+}
+
+.message--inline.e-permits-fo-field__loading .spinner {
+  flex: 0 0 auto;
+  margin: var(--spacing-2, 2px);
+}
+
 /* a library checkbox / radio inside a form field keeps its own anatomy: the field-label
    rule above (4px gap, 20px height, default cursor) is for the field's caption only */
 .e-permits-fo-field label.checkbox {
@@ -21094,8 +21129,10 @@ button.e-permits-steps-strip__cell:focus-visible {
 /* under the trajectory the callout hangs from the card, like the Figma strip:
    no gap, square top corners, inset 16px on each side; compact (padding 12/16,
    icon–text gap 12, lines gap 4) so it reads as part of the timeline */
+/* inset = the card's corner radius (24), so the callout's sides start where the card's
+   rounded corners end (user, 2026-10-13) */
 .e-permits-trajectory + .e-permits-callout-wrap {
-  margin: 0 var(--spacing-16, 16px);
+  margin: 0 var(--spacing-24, 24px);
 }
 
 .e-permits-trajectory + .e-permits-callout-wrap .e-permits-callout {
@@ -23544,4 +23581,294 @@ a.btn:focus-visible {
 .e-permits-cfg2 .e-permits-cfg-form.has-error {
   border-color: var(--color-border-danger-default, #d92d20);
   border-width: var(--border-width-1-5, 1.5px);
+}
+
+/* ==========================================================================
+   eKYC back office (2026-10-13) — e-permits-acte-permisive.html?flow=ekyc, js/ekyc.js.
+   Everything else on these screens is the permits back office (shell, registry, page
+   header, info cards, stacked lists, trajectory, callouts, empty states). New here:
+   meter, KPI grid, column chart, dashboard filter row, live timer, variable-length
+   trajectory. Documented in components.md › „eKYC back office”.
+   ========================================================================== */
+
+/* Meter — a thin bar: progress (3/5), contribution, decision structure. Segments are SVG
+   rects with percentage widths (no inline styles); the wrapper rounds and clips them. */
+.e-permits-meter {
+  border-radius: var(--border-radius-full, 999px);
+  display: block;
+  flex: 1 1 auto;
+  height: var(--spacing-6, 6px);
+  min-width: var(--spacing-48, 48px);
+  overflow: hidden;
+}
+
+.e-permits-meter__svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.e-permits-meter__track {
+  fill: var(--color-background-base-default-active, #d9d9d9);
+}
+
+.e-permits-meter__fill--brand { fill: var(--color-background-brand-default, #0058d2); }
+.e-permits-meter__fill--success { fill: var(--color-background-positive-default, #039855); }
+.e-permits-meter__fill--danger { fill: var(--color-background-danger-default, #d92d20); }
+.e-permits-meter__fill--warning { fill: var(--color-background-warning-default, #f79009); }
+.e-permits-meter__fill--neutral { fill: var(--color-icon-base-tertiary, #757575); }
+
+/* a meter with its value on the right (Progres 3/5, Contribuție 0,31) */
+.e-permits-ekyc-progress {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  width: 100%;
+}
+
+.e-permits-ekyc-progress__count {
+  color: var(--color-text-base-secondary, #383838);
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* legend under a meter / chart: dot + label + count */
+.e-permits-meter-legend {
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  line-height: var(--line-height-lh-20, 20px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-meter-legend li {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-meter-legend strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-meter-legend__pct {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-meter-legend__dot {
+  border-radius: var(--border-radius-full, 999px);
+  display: inline-block;
+  flex: 0 0 auto;
+  height: var(--spacing-8, 8px);
+  width: var(--spacing-8, 8px);
+}
+
+.e-permits-meter-legend__dot--brand { background: var(--color-background-brand-default, #0058d2); }
+.e-permits-meter-legend__dot--success { background: var(--color-background-positive-default, #039855); }
+.e-permits-meter-legend__dot--danger { background: var(--color-background-danger-default, #d92d20); }
+.e-permits-meter-legend__dot--warning { background: var(--color-background-warning-default, #f79009); }
+.e-permits-meter-legend__dot--neutral { background: var(--color-icon-base-tertiary, #757575); }
+
+/* numbers that tick or compare: same width per digit */
+.e-permits-ekyc-score {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-page-header__meta-value .e-permits-ekyc-timer + .e-permits-workplace__tag {
+  margin-left: var(--spacing-8, 8px);
+}
+
+/* Trajectory with a variable number of steps (Plan de verificare: Inițiere · pași · Decizie);
+   first and last column half width, as the 6-step dosar trajectory */
+.e-permits-trajectory__steps--n3 { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+.e-permits-trajectory__steps--n4 { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 2fr)) minmax(0, 1fr); }
+.e-permits-trajectory__steps--n5 { grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 2fr)) minmax(0, 1fr); }
+.e-permits-trajectory__steps--n6 { grid-template-columns: minmax(0, 1fr) repeat(4, minmax(0, 2fr)) minmax(0, 1fr); }
+.e-permits-trajectory__steps--n7 { grid-template-columns: minmax(0, 1fr) repeat(5, minmax(0, 2fr)) minmax(0, 1fr); }
+
+/* Decision callout on a historical session: the dominant element (US-UI-05) */
+.e-permits-ekyc-decision .e-permits-callout__title {
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-26, 26px);
+}
+
+/* Descompunerea scorului: the registry table in a section, full width */
+.e-permits-ekyc-breakdown {
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+}
+
+.e-permits-ekyc-breakdown__table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-ekyc-breakdown__table th:nth-child(2),
+.e-permits-ekyc-breakdown__table th:nth-child(3) {
+  width: var(--spacing-80, 80px);
+}
+
+.e-permits-ekyc-breakdown__table th:nth-child(4) {
+  width: 40%;
+}
+
+.e-permits-ekyc-breakdown__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* ---- Dashboard ---- */
+.e-permits-ekyc-page .e-permits-dosar-profil__panel {
+  gap: var(--spacing-8, 8px);
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-ekyc-dash__filters {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px) var(--spacing-12, 12px);
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-ekyc-dash__select {
+  flex: 0 1 240px;
+  min-width: 200px;
+}
+
+.e-permits-ekyc-dash__window {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: 1 0 100%;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-ekyc-dash__cols {
+  align-items: start;
+  display: grid;
+  gap: var(--spacing-24, 24px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.e-permits-ekyc-dash__col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-ekyc-decisions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-20, 20px);
+}
+
+/* KPI cards: label · big value · one line of context (US-05-15 CA-1) */
+.e-permits-kpi-grid {
+  display: grid;
+  gap: var(--spacing-12, 12px);
+  grid-template-columns: repeat(auto-fit, minmax(var(--spacing-150, 150px), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-kpi {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+}
+
+.e-permits-kpi__label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-kpi__value {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  gap: var(--spacing-8, 8px);
+  letter-spacing: -0.24px;
+  line-height: var(--line-height-lh-32, 32px);
+}
+
+.e-permits-kpi__value--warning { color: var(--color-text-warning-default, #b54708); }
+.e-permits-kpi__value--danger { color: var(--color-text-danger-default, #d92d20); }
+
+.e-permits-kpi__meta {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-kpi__meta strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* Column chart (Tendință sesiuni, US-05-15 CA-2): SVG bars in a grey card */
+.e-permits-chart {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-chart__plot {
+  border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
+  display: block;
+  height: 120px;
+  width: 100%;
+}
+
+.e-permits-chart__bar {
+  fill: var(--color-background-brand-default, #0058d2);
+}
+
+.e-permits-chart__bar--danger {
+  fill: var(--color-background-danger-default, #d92d20);
+}
+
+.e-permits-chart__axis {
+  color: var(--color-text-base-tertiary, #757575);
+  display: flex;
+  font-size: var(--font-size-fs-12, 12px);
+  justify-content: space-between;
+  line-height: var(--line-height-lh-16, 16px);
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+@media (max-width: 960px) {
+  .e-permits-ekyc-dash__cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-ekyc-dash__select {
+    flex: 1 1 100%;
+  }
+
+  .e-permits-ekyc-dash__filters .segmented-control {
+    max-width: 100%;
+  }
 }

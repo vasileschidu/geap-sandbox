@@ -5341,7 +5341,7 @@ toast „Șablon creat”). Arrows: Continuă → next step, Creează șablonul 
 > (`dos(role, stare, tab, extra)` in demo-states.js). A `#dosar/` deep link accepts the demo-only
 > params `stare=<status key>`, `suspendat=1`, `decizia=respingere` (`applyDemoCaseState` in the
 > shell: sets the status, rebuilds the case flow). Trajectory in Figma = code: white card, 1px
-> border, radius 24, padding 20; „Acum” callout inset 16, radius 0 0 24 24, padding 12/16, title 14/20.
+> border, radius 24, padding 20; „Acum” callout inset 24 (= card radius), radius 0 0 24 24, padding 12/16, title 14/20.
 
 Every Figma screen block links to the running prototype on GitHub Pages, on that exact
 screen: `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=<id>`.
