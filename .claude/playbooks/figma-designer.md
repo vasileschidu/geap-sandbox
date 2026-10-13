@@ -393,3 +393,37 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-13 · Existing pages: don't redraw over them. Dashboard / Sesiuni got new „(din cod)” sections below the old ones
   (layout `x0/y0` = old section x, bottom + 400) with the discrepancies listed in the report; the old sections stay as
   reference until the PO decides.
+- 2026-10-13 · Coordinator correction (eKYC): every demo state gets its own block, even when it looks identical (smaller
+  note „Identic cu X, diferă: …”); old sections go to a „🗄 Arhivă — versiuni vechi” page with a dated note, never deleted;
+  heavy flows split into one page per area („↳ BO -> Monitorizare · …”, „… -> Revizie”, „… -> Audit & Rapoarte”,
+  „… -> Configurare · <group>”, „… -> Administrare”), each with its own TOC + page header (title + stories covered).
+  Move sections between pages with `page.appendChild(section)` — connectors inside the section travel with it.
+- 2026-10-13 · Write block notes from the screen, not from the state name: pull the visible texts of each screen
+  (headings, overlays, messages; skip sidebar/header by position) before writing the note — half of my first-draft
+  notes were guesses (wrong decision, „skeleton” that was an empty state, toast that was a page). US ids: grep
+  `js/demo-states.js` / data for `US-UI-…` (login = US-UI-02 91107, shell = US-UI-01 91104).
+- 2026-10-13 · Tables after the table-cell swap: the library table-cell text wraps inside a FIXED 40 „Cell Container”
+  and overflows the row silently (audit can't see inside instances). Run `tools/figma/fit-tables.js` per page: widen
+  columns whose raw cells (labelled button + ⋮) overflow, then per row set „Cell Container” HUG → measure → every cell
+  FIXED to the tallest (header row untouched). Captured cell frames carry min/max width/height — clear them first or
+  resize/FILL silently does nothing. Never ellipsize to „fix” clipping; rows grow like the code.
+- 2026-10-13 · Modal-over-list screens: the background „Container:scroll-content” is ABSOLUTE and horizontally scrolled
+  (x < 0) with the sticky first column as ABSOLUTE cells + „Table Cell - Placeholder” slots → after the widen pass its
+  parent collapsed to 1 px and the table vanished (audit reported it as plain clipped-content — open the screenshot!).
+  Fix: parent height = scroll-content height, scroll-content x = 0, move the absolute cells into the placeholder slots
+  (remove placeholder → `layoutPositioning = "AUTO"` → `setGridChildPosition`). Toggling many cells AUTO lets the grid
+  auto-place them and scrambles rows — if that happens, clone the table from the matching list screen instead.
+  Grid row count: use `gridRowCount`, not `gridRowSizes = slice()` (length must equal the count).
+- 2026-10-13 · Button icon override that `resetOverrides()` on the nested icon does not clear (Primary „Solicită acces”
+  with a dark 24/lock): recreate the button — fresh `mainComponent.createInstance()`, copy the non-variant properties
+  (label + icon swap ids), insert at the same index, remove the old one. Icon then follows the label (white).
+- 2026-10-13 · Connectors that skip a column (dx ≥ 2 columns) → delete and add a „Marker · → ID” pill (clone 10239:10444)
+  in the source block's Screen label with a NODE hyperlink to the target block; same for new states reached by a click
+  from a block in a far column (tabs, facets, Editează). Then wrap labels wider than the screen (layoutWrap WRAP, FIXED
+  = screen width) and restack.
+- 2026-10-13 · Restack after every pass that changes heights (cell fits, hugs, wrapped labels): per section group blocks
+  by x, keep order, gap 240, re-space columns 240, section pad 80, sections 400 apart — one small script for all pages.
+- 2026-10-13 · Toast / overlay on a screen invisible in the block screenshot although its own screenshot is fine: the
+  captured screen frame had `itemReverseZIndex = true` („first on top”), so the page Container covered the ABSOLUTE toast.
+  Set `itemReverseZIndex = false` (scan: frames with it true and an absolute child at index > 0). Recreating the instance
+  or appendChild does not help. Keep the captured position (toast below the header, not over it).

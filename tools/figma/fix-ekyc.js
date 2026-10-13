@@ -5,8 +5,7 @@
 // (e) bare bordered „Text Input” boxes (repeatable rows) → text-input without label
 // (f) local „Icon / eKYC / …” icons inside library buttons take the label paint
 // (g) raw „Button - Șterge căutarea” next to a library search → removed
-
-// __fix-ekyc (repo: tools/figma/fix-ekyc.js): second pass after __swap-ekyc on screens / modal content components.
+// (h) raw „Table Cell” frames → library table-cell (Text / Number / Tag); mixed cells stay frames of instances (library gap).
 const inI = (n) => { for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true; return false; };
 const prop = (i, s) => Object.keys(i.componentProperties).find((k) => k.startsWith(s));
 const CL = await figma.importComponentSetByKeyAsync("3cf40c11a574bcefcc4f9daf0f93322f77a627a1");
@@ -72,6 +71,35 @@ for (const id of ROOTS) {
 
   // (g) raw search-clear buttons next to a library search (the instance shows its own clear button)
   for (const b of root.findAll((n) => n.type === "FRAME" && !inI(n) && /^Button - Șterge căutarea/.test(n.name))) { const p = b.parent; b.remove(); if (p && p.type === "FRAME" && p.children.length === 0) p.remove(); st.clear = (st.clear || 0) + 1; }
+
+  // (h) table cells → library table-cell (Text / Number / Tag); mixed cells stay as frames of instances (gap)
+  { const TC = await figma.importComponentSetByKeyAsync("86cc7c4081411f58b3894c27d40b1cecf845efd3");
+    const tv = (t) => TC.children.find((c) => c.name.includes("Breakpoint=Desktop") && c.name.includes("Data Type=" + t));
+    const pk = (i, s) => Object.keys(i.componentProperties).find((k) => k.startsWith(s));
+    for (const cell of root.findAll((n) => n.type === "FRAME" && !inI(n) && n.name === "Table Cell")) {
+      if (cell.removed) continue;
+      const ins = cell.findAll((n) => n.type === "INSTANCE" && !inI(n));
+      const tx = cell.findAll((n) => n.type === "TEXT" && !inI(n) && n.visible !== false && n.characters.trim());
+      const hasCopy = Boolean(cell.findOne((n) => /^Copiază/.test(n.name)));
+      let kind = null;
+      if (!ins.length && !hasCopy && tx.length >= 1 && tx.length <= 2 && cell.findAll((n) => n.type === "VECTOR" || n.type === "RECTANGLE" || n.type === "ELLIPSE").length === 0) kind = tx.length === 1 && /^[\d\s.,%:+\-−–]+$/.test(tx[0].characters.trim()) ? "Number" : "Text";
+      else if (ins.length === 1 && /^tag · /.test(ins[0].name) && !tx.length) kind = "Tag";
+      if (!kind) { st.cellRaw = (st.cellRaw || 0) + 1; continue; }
+      const v = tv(kind); if (!v) continue; const i = v.createInstance();
+      const icon = pk(i, "📍 Icon"); const pp = {}; if (icon) pp[icon] = false;
+      if (kind !== "Tag") { pp[pk(i, "⌨️ Data")] = tx[0].characters.trim(); const sk = pk(i, "Secondary Text"); if (sk) pp[sk] = tx.length > 1; if (tx.length > 1) pp[pk(i, "Secondary Data")] = tx[1].characters.trim(); }
+      i.setProperties(pp);
+      if (kind === "Tag") { const nt = i.findOne((n) => n.type === "INSTANCE" && n.name === "tag-filled"); const src = ins[0]; if (nt) { const o = {}; for (const [k, val] of Object.entries(src.componentProperties)) { const kk = Object.keys(nt.componentProperties).find((x) => x.split("#")[0] === k.split("#")[0]); if (kk) o[kk] = val.value; } try { nt.setProperties(o); } catch (e) {} } }
+      const nm = "cell · " + (kind === "Tag" ? ins[0].name.replace(/^tag · /, "") : tx[0].characters.trim()).slice(0, 30); const p = cell.parent; const w = cell.width, h = cell.height; const idx = p.children.indexOf(cell);
+      const gr = p.layoutMode === "GRID" ? [cell.gridRowAnchorIndex, cell.gridColumnAnchorIndex, cell.gridRowSpan, cell.gridColumnSpan] : null;
+      const sizing = [cell.layoutSizingHorizontal, cell.layoutSizingVertical];
+      p.insertChild(idx, i);
+      if (gr) { cell.remove(); try { i.setGridChildPosition(gr[0], gr[1]); } catch (e) {} }
+      else { if (!(p.layoutMode && p.layoutMode !== "NONE")) { i.x = cell.x; i.y = cell.y; } cell.remove(); }
+      try { i.resize(w, Math.max(h, 40)); } catch (e) {}
+      try { if (sizing[0] === "FILL") i.layoutSizingHorizontal = "FILL"; if (sizing[1] === "FILL") i.layoutSizingVertical = "FILL"; } catch (e) {}
+      i.name = nm; st.cell = (st.cell || 0) + 1;
+    } }
 
 }
 return st;

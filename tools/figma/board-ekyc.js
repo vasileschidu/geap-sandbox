@@ -1,6 +1,6 @@
-// __board-ekyc — board builder for the eKYC file (stored text node 10169:964). Synced 2026-10-13.
+// __board-ekyc — board builder for the eKYC file (stored text node 10169:964). Synced 2026-10-13 (PAD 80, page header title + stories, TOC 80).
 // Run: new AF("MODE", "ARG", code)("block", { items: [{ screen, id, title, state, note, status, band }] })
-//  or  new AF("MODE", "ARG", code)("layout", { bands: [{ id, name, desc, cols: [[blockId…]…] }], x0, y0, how }).
+//  or  new AF("MODE", "ARG", code)("layout", { title, stories, how, bands: [{ id, name, desc, cols: [[blockId…]…] }], x0, y0 }).
 
     // __board-ekyc (repo: tools/figma/board-ekyc.js). MODE "block": ARG = { items: [{ screen, id, title, state, note, status, band }] } → wraps each screen
     // into „Block · <id> · <title>” (Screen label: ID chip · title · Status · „Prototype ↗” + screen + Note) inside the band section.
@@ -53,8 +53,7 @@
       return out;
     }
     if (MODE === "layout") {
-      const res = [];let x = ARG.x0 || 0;const y0 = ARG.y0 || 0;const PAD = 120,GAP = 240,HEAD = 122;
-      const blocks = page.findAll((n) => n.type === "FRAME" && n.name.startsWith("Block · "));
+      const res = [];let x = ARG.x0 || 0;const y0 = ARG.y0 || 0;const PAD = 80, GAP = 240, HEAD = 122; /*PAGEHDR*/const blocks = page.findAll((n) => n.type === "FRAME" && n.name.startsWith("Block · "));
       const byId = (id) => blocks.find((b) => b.name.startsWith("Block · " + id + " · "));
       const toc = [];
       for (const band of ARG.bands) {
@@ -77,7 +76,7 @@
       let ts = page.children.find((n) => n.type === "SECTION" && n.name === "Cum se citește · Cuprins");if (!ts) {ts = figma.createSection();page.appendChild(ts);ts.name = "Cum se citește · Cuprins";}
       ts.fills = [paint(V.bg)];for (const k of [...ts.children]) k.remove();
       const how = figma.createAutoLayout("VERTICAL", { name: "How to read" });how.fills = [paint(V.bg)];how.strokes = [paint(V.border)];how.strokeWeight = 1;how.cornerRadius = 16;how.paddingTop = how.paddingBottom = 24;how.paddingLeft = how.paddingRight = 32;how.itemSpacing = 8;ts.appendChild(how);
-      how.appendChild(await txt("Cum se citește", "h4", "text"));const ht = await txt(ARG.how || "", "bd", "text2");how.appendChild(ht);
+      if (ARG.title) how.appendChild(await txt(ARG.title, "h2", "text", "Titlu pagină")); if (ARG.stories) how.appendChild(await txt("Stories acoperite: " + ARG.stories, "bd5", "tbrand", "Stories")); how.appendChild(await txt("Cum se citește", "h4", "text"));const ht = await txt(ARG.how || "", "bd", "text2");how.appendChild(ht);
       const cup = figma.createAutoLayout("VERTICAL", { name: "Cuprinsul paginii" });cup.fills = [paint(V.bg)];cup.strokes = [paint(V.border)];cup.strokeWeight = 1;cup.cornerRadius = 16;cup.paddingTop = cup.paddingBottom = cup.paddingLeft = cup.paddingRight = 24;cup.itemSpacing = 24;ts.appendChild(cup);
       cup.appendChild(await txt("Cuprinsul paginii", "h4", "text"));cup.appendChild(await txt("Clic pe o coloană sau pe un ecran ca să ajungi direct la el. Coloanele sunt în ordinea fluxului.", "bd", "text2"));
       const cols = figma.createAutoLayout("HORIZONTAL", { name: "Coloane" });cols.fills = [];cols.layoutWrap = "WRAP";cols.itemSpacing = 32;cols.counterAxisSpacing = 32;cup.appendChild(cols);
@@ -86,10 +85,7 @@
         const h = await txt(c.band.id + " · " + c.band.name + "  ·  " + c.list.length + " ecrane", "bd5", "tbrand");h.hyperlink = { type: "NODE", value: c.hd.id };cc.appendChild(h);h.layoutSizingHorizontal = "FILL";h.textAutoResize = "HEIGHT";
         for (const it of c.list) {const nm = it.b.name.replace(/^Block · /, "");const t = await txt(nm, "bs", "tbrand");t.hyperlink = { type: "NODE", value: it.b.id };cc.appendChild(t);t.layoutSizingHorizontal = "FILL";t.textAutoResize = "HEIGHT";}
       }
-      const TW = 340 * 5 + 32 * 4 + 48;how.resize(TW, how.height);how.primaryAxisSizingMode = "AUTO";ht.layoutSizingHorizontal = "FILL";ht.textAutoResize = "HEIGHT";
-      cup.resize(TW, cup.height);cup.primaryAxisSizingMode = "AUTO";cols.layoutSizingHorizontal = "FILL";for (const k of cup.children) if (k.type === "TEXT") {k.layoutSizingHorizontal = "FILL";k.textAutoResize = "HEIGHT";}
-      how.x = 120;how.y = 120;cup.x = 120;cup.y = 120 + how.height + 40;
-      ts.resizeWithoutConstraints(TW + 240, cup.y + cup.height + 120);ts.x = (ARG.x0 || 0) - ts.width - 400;ts.y = y0;
+      const TW = 340 * 5 + 32 * 4 + 48;how.resize(TW, how.height);how.primaryAxisSizingMode = "AUTO";for (const k of how.children) if (k.type === "TEXT") { k.layoutSizingHorizontal = "FILL"; k.textAutoResize = "HEIGHT"; }cup.resize(TW, cup.height);cup.primaryAxisSizingMode = "AUTO";cols.layoutSizingHorizontal = "FILL";for (const k of cup.children) if (k.type === "TEXT") {k.layoutSizingHorizontal = "FILL";k.textAutoResize = "HEIGHT";}
+      how.x = 80; how.y = 80; cup.x = 80; cup.y = 80 + how.height + 40;ts.resizeWithoutConstraints(TW + 160, cup.y + cup.height + 80);ts.x = (ARG.x0 || 0) - ts.width - 400;ts.y = y0;
       res.push("toc " + ts.id);return res;
     }
-  
