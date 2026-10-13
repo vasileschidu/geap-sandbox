@@ -17,13 +17,14 @@ E4 Solicitările mele: Continuă schița / Suplinire ──────┘
 E5 Catalog (are acte) → „Ce vrei să soliciți?” (US-191) → Solicitare nouă | post-proces
 E6 Actele mele permisive → ⋮ post-proces (US-55) ───────→ FOD2 post-proces → S11 → Solicitările mele
 E7 Solicitările mele → Achitare → MPay → înapoi în Solicitările mele (US-135, US-19 AC-07)
+E1/E4 cu sesiune EVO → sesiunea + instanța EVO (?solicitant=) → S3 sărit → S4 (sau E5 dacă are acte)  ⚠ PO / tech
 ```
 
 ## Etape și story-uri
 
 | # | Etapă | US | Prototip (stare) | Figma |
 |---|---|---|---|---|
-| E1 | Catalog servicii: căutare, filtre, pagina serviciului, „Solicită online” | US-10 88202, US-09 AC-01…03 | **lipsă** | doar schițe vechi (Post-procese › Entry points) |
+| E1 | Catalog servicii: căutare, filtre, pagina serviciului, „Solicită online”. **Transfer EVO → serviciu** (regula utilizatorului 13 oct 2026, ⚠ de confirmat cu PO / tech): fără sesiune EVO → E2 MPass; cu sesiune EVO, sesiunea MPass ȘI instanța în care persoana acționează în EVO (PF proprie, PJ proprie, entitate MPower — `?as` din cabinet) trec în serviciu (`?solicitant=`): S3 se sare, cererea se deschide cu instanța preselectată pe „Date solicitant”, sau pe „Ce vrei să soliciți?” (E5) dacă instanța are acte emise pentru serviciu; schimbarea ulterioară = meniul de rol / „Schimbă”. Același transfer la „Continuă schița” / Suplinire / Contestație (E4) | US-10 88202, US-09 AC-01…03 | `cat-01…02f`, `cat-04` (PF MPower → pas 1), `cat-04a` (PJ MPower → pas 1), `cat-04b` (are acte → E5) | Requestor board, coloana 01 |
 | E2 | MPass: redirect, loading, eroare + „Reîncercați”, sesiune expirată | US-11 88203 | `fo-01` | FO 09 › F0 |
 | E5 | „Ce vrei să soliciți?” — acte cu post-procese + „Solicitare nouă” | US-191 94132 | `pp-02…02c` | Post-procese › Band 02 |
 | S3–S11 | Instanță · date solicitant · detalii · acte · verificare + MSign · livrare · plată · finalizare | US-12…18, US-20, US-21 | `fo-02…08e` | FO 09 › F1…F8 |

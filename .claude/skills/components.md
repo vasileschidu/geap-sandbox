@@ -4898,9 +4898,10 @@ Marks before the status tag: „✓ Aprobat”, „✕ Respins” (`--danger`), 
 (`.cab-page .status-tag { text-transform: none }`).
 ⋮ items per status: Vezi detalii · Continuă schița / — / Elimină schița · Suplinește informații ·
 Achită N MDL · Descarcă certificatul · Vezi actul / Descarcă actul (MDocs) · Descarcă decizia ·
-Depune contestație (30 days after the decision). FOD2 targets: draft → `?flow=full&schita=<nr>
+Depune contestație (30 days after the decision). FOD2 targets (all carry the cabinet instance
+`&solicitant=<as>` — EVO → service hand-over, see Catalog): draft → `?flow=full&schita=<nr>
 [&pp&act]#request-step-<last step>`, suplinire → `&suplinire=<nr>#request-step-2`, contestație →
-`&contestatie=<nr>#choice-authenticated`.
+`&contestatie=<nr>#request` (was `#choice-authenticated`; the instance is not chosen twice).
 
 **Profile** (`#dosar/<id>`) = the act profile shell (`.cab-detail`, back button, `.cab-detail__head`)
 + `.cab-facts` + FO finish tracker (Depusă · Verificare · [Plată] · Decizie · Finalizat/Respins;
@@ -4932,8 +4933,18 @@ instance-switch text link).
 **Catalog** (`?view=catalog`, `#serviciu/<id>`): search (name, code, institution — diacritic
 insensitive) + category chips + `.cab-card` per service (act type · term · cost meta, „Online” tag);
 service page = `.cab-detail` + `.cab-facts` (Tip · Termen · Cost) + `.cab-lead` + `.cab-cta`
-(„Solicită online” + hint) + Despre serviciu / Documente necesare cards. Target: visitor → FO MPass
-(`?flow=full`), session + acts for the service → `#intent`, otherwise → `#choice-authenticated`.
+(„Solicită online” + hint) + Despre serviciu / Documente necesare cards. Target (`requestTarget()`):
+visitor → FO MPass (`?flow=full`). **EVO → service hand-over** (user rule 2026-10-13, ⚠ de confirmat
+cu PO / tech): signed in to EVO, the MPass session AND the instance the person acts as in the
+cabinet (`?as` = own PF / own PJ / MPower entity, the identity in the cabinet header) go to the
+service as `?flow=full&solicitant=<as>` — the FO's existing subject param — so the instance choice
+(S3) is skipped: that instance has acts for the service → `#intent` (US-191, its own acts), otherwise
+→ `#request` (step 1 „Date solicitant” with it pre-selected). Hint: „Depuneți ca <nume>. Puteți
+schimba ulterior.” (+ the acts sentence on `#intent`). Switching later = the existing role menu /
+„Schimbă” (S1–S3). An instance whose type the service does not accept (`service.applicants`) still
+goes to `#choice-authenticated`. A fresh MPass login with no EVO instance (`mpass-test.html` →
+`#choice-authenticated`) still chooses. Actele mele → post-process already carries the instance
+(the FO selects the act's holder from `?act=`).
 
 **Page glue classes** (cabinet-evo.css, no visual identity of their own): `.cab-view` (view
 container), `.cab-login`, `.cab-message` (the static notice strip outside cards), `.cab-notice` /
@@ -4949,8 +4960,10 @@ page 2, tooltip, per page), `sm-02…02e` ⋮ per status, `sm-03…03c` Schiță
 deleted, post-process draft), `sm-04…04f` În derulare / tacit / Info / Achitare / MPay /
 returns, `sm-05…05d` Finalizat aprobat / respins / retragere / download error / act ↔ dosar,
 `sm-06/06a` errors, `sm-07…07c` representative (valid, profile with MPower, expired, MPower
-error), `sm-08…08b` returns from FOD2; `cat-01…01c` catalog, `cat-02…02d` service page per
-session, `cat-03…03b` where „Solicită online” lands.
+error), `sm-08…08b` returns from FOD2; `cat-01…01c` catalog, `cat-02…02f` service page per
+session / instance (`02b` MPower PJ, `02e` MPower PF, `02f` own PF with acts), `cat-03…03b` where
+„Solicită online” lands without an EVO instance, `cat-04` / `04a` hand-over → step 1 as the MPower PF /
+MPower PJ instance, `cat-04b` instance with issued acts → „Ce vrei să soliciți?” for it.
 
 ### Logare în Back Office / Admin Portal — MPass (added 2026-10-06)
 

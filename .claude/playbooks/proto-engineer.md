@@ -264,3 +264,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `getBoundingClientRect().y`, or the clip shows the wrong area (looked like „hover not painted”).
 - 2026-10-13 · Borders of 1.5px read as 1px at DPR 1 (`getComputedStyle` too) — check at DPR 2
   before calling the error border wrong.
+- 2026-10-13 · EVO → service hand-over (user rule): the mechanism already existed — the FO reads
+  `?solicitant=<subject id>` in `applyFrontOfficeSchema` and the cabinet `?as` ids ARE the FO subject
+  ids, so the job was link-building only (catalog `requestTarget`, solicitari `foUrl`) + `#request` /
+  `#intent` hashes; zero FO logic. `e-permits-back-office-assignment` (sessionStorage) is the BO ROLE,
+  not the FO identity — don't reuse it for applicants. Before inventing a param, grep the FO for
+  `params.get(` / `URLSearchParams(` in `js/e-permits-acte-permisive.js` (the FO lives there, not in
+  the shell).
+- 2026-10-13 · An entry point that „already works” may work only by coincidence: Solicitările mele
+  drafts resumed as the FO default subject (pj-global-trader), which happened to own every draft.
+  Probe with a non-default perspective; carry the identity explicitly.
+- 2026-10-13 · Demo states on another page can be made from a helper + override:
+  `{ ...ppIntent(run), params: {…} }`. For a cross-page link, verify the real click too (check.mjs
+  „click” mode: open the cabinet page, click `[data-cat-request]`, probe the FO screen + subject).

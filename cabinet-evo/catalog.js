@@ -1,9 +1,13 @@
 /* Catalogul serviciilor — EVO portal (US-10 88202)
    AC-01 catalog with search + category filter · AC-02 full-text search (name, code,
    institution) · AC-03 service page (denumire, descriere, instituție, tip act, termen,
-   cost, documente necesare) · AC-04…06 „Solicită online”: no session → MPass (fo-01),
-   session → S3 instance choice, or „Ce vrei să soliciți?” (US-191, pp-02) when the
-   person already has acts for the service. ?auth=0 = visitor without MPass.
+   cost, documente necesare) · AC-04…06 „Solicită online”: no session → MPass (fo-01).
+   With an EVO session the MPass session AND the instance the person acts as in EVO
+   (?as = own PF / own PJ / MPower entity) are handed over: the instance choice (S3)
+   is skipped, the request opens as that instance (?solicitant=, read by the FO) on
+   „Date solicitant”, or on „Ce vrei să soliciți?” (US-191) when that instance already
+   has acts for the service (user rule 2026-10-13, ⚠ hand-over mechanics to confirm
+   with PO / tech). ?auth=0 = visitor without MPass.
    Reuses the cabinet vocabulary: cab-intro / cab-toolbar / cab-chips / cab-card /
    cab-detail / cab-facts, FO summary card and the empty state. */
 (() => {
@@ -30,12 +34,22 @@
     return !query || fold([service.title, service.code, service.authority, service.id].join(" ")).includes(query);
   }
 
-  /* where „Solicită online” leads (US-10 AC-05/06, US-191) */
+  /* where „Solicită online” leads (US-10 AC-05/06, US-191). Signed in to EVO: the
+     current instance travels with the session (?solicitant=), no second identity pick.
+     An instance the service does not accept (applicant type) still chooses (S3). */
   function requestTarget(service) {
     if (!C.AUTH) return { href: `${FO}?flow=full`, hint: "Vă autentificați cu MPass, apoi completați cererea." };
+    const subject = state.subject;
+    const accepted = subject && (!service.applicants?.length || service.applicants.includes(subject.type));
+    if (!accepted) {
+      return { href: `${FO}?flow=full#choice-authenticated`, hint: subject
+        ? `Serviciul nu poate fi solicitat în numele ${subject.name}. Alegeți în numele cui depuneți cererea.`
+        : "Alegeți în numele cui depuneți cererea." };
+    }
+    const query = new URLSearchParams({ flow: "full", solicitant: subject.id });
     const hasActs = state.acts.some((act) => act.service === service.id);
-    if (hasActs) return { href: `${FO}?flow=full#intent`, hint: "Aveți deja acte emise pentru acest serviciu — alegeți o solicitare nouă sau o acțiune pe un act existent." };
-    return { href: `${FO}?flow=full#choice-authenticated`, hint: `Sunteți autentificat ca ${state.subject?.name || "utilizator MPass"}. Alegeți în numele cui depuneți cererea.` };
+    if (hasActs) return { href: `${FO}?${query.toString()}#intent`, hint: `Depuneți ca ${subject.name}, care are deja acte emise pentru acest serviciu — alegeți o solicitare nouă sau o acțiune pe un act existent. Puteți schimba ulterior.` };
+    return { href: `${FO}?${query.toString()}#request`, hint: `Depuneți ca ${subject.name}. Puteți schimba ulterior.` };
   }
 
   function onlineTag(service) {

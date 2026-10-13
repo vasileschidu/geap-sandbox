@@ -95,9 +95,11 @@
   const authorityLabel = (dosar) => [serviceOf(dosar).authority, dosar.subdivision].filter(Boolean).join(" · ");
   const readOnly = () => Boolean(state.perspective?.readOnly);
 
-  /* the FOD2 entry points (US-29 AC-01 last saved step, US-24 AC-02 suplinire) */
+  /* the FOD2 entry points (US-29 AC-01 last saved step, US-24 AC-02 suplinire). The
+     cabinet's current instance travels along (?solicitant=, EVO → service hand-over):
+     the FO never asks again in whose name (user rule 2026-10-13). */
   function foUrl(dosar, kind) {
-    const query = new URLSearchParams({ flow: "full" });
+    const query = new URLSearchParams({ flow: "full", solicitant: C.SUBJECT });
     if (kind === "draft") {
       query.set("schita", dosar.nr);
       if (dosar.pp && dosar.actId) { query.set("pp", dosar.pp); query.set("act", dosar.actId); }
@@ -110,7 +112,7 @@
     }
     if (kind === "appeal") {
       query.set("contestatie", dosar.nr);
-      return `${FO}?${query.toString()}#choice-authenticated`;
+      return `${FO}?${query.toString()}#request`;
     }
     return FO;
   }

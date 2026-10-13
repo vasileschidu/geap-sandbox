@@ -1133,6 +1133,13 @@
     "cat-03": { page: PP_FO, flow: "full", ready: "[data-fo-screen='auth']:not([hidden]) h1" },
     "cat-03a": { page: PP_FO, flow: "full", hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900 },
     "cat-03b": ppIntent(),
+    /* EVO → service hand-over (user rule 2026-10-13): signed in to EVO, „Solicită online” carries
+       the cabinet instance (?as → ?solicitant) — no instance choice, the request opens as it */
+    "cat-02e": cat(null, { as: "mpower-pf-vrabie" }, "#serviciu/09"),
+    "cat-02f": cat(null, { as: "pf-anastasia" }, "#serviciu/09"),
+    "cat-04": foReq(1, { solicitant: "mpower-pf-vrabie" }, async (h) => { await h.find("[data-fo-step-panel='1'] .e-permits-fo-form__roles", "Vrabie Gheorghe"); }),
+    "cat-04a": foReq(1, { solicitant: "mpower-pj-nord-agro" }, async (h) => { await h.find("[data-fo-step-panel='1'] .e-permits-fo-form__roles", "Nord Agro Market"); }),
+    "cat-04b": { ...ppIntent(async (h) => { await h.find("[data-fo-screen='intent']:not([hidden])", "Cojocaru"); }), params: { solicitant: "pf-anastasia" } },
 
     "pp-10": ppFo("reperfectare", "act-izvoras", 1),
     "pp-10a": ppFo("reperfectare", "act-izvoras", 2),

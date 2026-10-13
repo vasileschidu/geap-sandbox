@@ -3335,7 +3335,10 @@
       renderFrontOfficeStep6FromSchema(schema);
       renderFrontOfficeStep7FromSchema(schema);
       syncGuestWizardChrome();
-      /* ?solicitant=<subject id> opens the request as another applicant (demo, e.g. US-54 adr-04) */
+      /* ?solicitant=<subject id> = the EVO → service hand-over: the instance the person acts as
+         in EVO (cabinet ?as) arrives pre-selected, so #request / #intent open as that instance and
+         the choice screen is skipped (catalog „Solicită online”, Solicitările mele; user rule
+         2026-10-13, ⚠ mechanics to confirm with PO / tech). Also used by demos (US-54 adr-04). */
       selectFrontOfficeSubject(new URLSearchParams(window.location.search).get("solicitant") || schema.defaultSubjectId);
       updateFrontOfficeRequestHeaders();
     }
