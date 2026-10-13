@@ -461,3 +461,22 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     they had grown to HUG 16 px each and squeezed „Cell Container” to 8 px (numbers rendered as a tiny top glyph).
     After any table pass: Resizer → FIXED, height 0; then equalise every row to its tallest cell. Screenshot one list per
     page after each pass — counters alone did not show this.
+- 2026-10-14 · QA round 2 regressions (my own) and fixes:
+  - NEVER filter instances by a property name alone: buttons AND tags both have `📍 Icon` + `🔄 Leading Icon: 16`; a
+    "tag icon" pass set 778 BUTTONS to Icon=None. Always filter by `mainComponent.parent.name` (tag-filled / button-…).
+    Recovery heuristic: buttons whose Leading Icon property ≠ the set default had an icon → Icon=Leading again; nested-swapped
+    icons (no property, e.g. button-text-circular) come back as the default plus → swap the nested icon again.
+  - tag-filled (a97109f9) has NO icon property: swap the nested icon instance. Code icons per tag: signal (health),
+    warning-filled (flux incomplet), globe (Web), phone/mobile (iOS/Android — central „phone, iphone, mobile” filled=on),
+    award (Recomandată), checkmark / cross-small (Concordă / Diferă); every other tag = Icon None (renderTag has none).
+  - Captured login screens had TWO frames: raw `.top-section` (gov bar) + raw `header-evo-desktop` (the 72 px EVO bar).
+    My top-bar swap replaced the EVO bar by name → two gov bars. Use the full library header-evo-desktop
+    (Anonymous, Navigation Items off, right actions hidden) there. Read a frame's content before swapping by name.
+  - Connectors can't end on nested instance layers (Invalid endpointNodeId): a transparent local „Flow anchor” component
+    instance, ABSOLUTE in the screen over the button, is the endpoint. Re-anchor connectors whenever a container is swapped.
+  - Widening tables must not grow screens: one width per block column (1920 for list columns), tables scale their
+    FIXED columns down; codes get their longest token width (measured) taken from the widest wrapping column.
+  - Central icons: use the `filled=on` variant (fill bound, follows button/tag colour); `filled=off` stroke variants keep the
+    neutral icon token (good for the Read Only lock — the Read Only text-input's only icon is a nested 20/checkmark-small,
+    not the trailing slot; swap it directly).
+  - numbered-badge (68a3732b) Large Neutral for heading counters; library modal content inset = header title inset (32).
