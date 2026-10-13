@@ -427,3 +427,37 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   captured screen frame had `itemReverseZIndex = true` („first on top”), so the page Container covered the ABSOLUTE toast.
   Set `itemReverseZIndex = false` (scan: frames with it true and an absolute child at index > 0). Recreating the instance
   or appendChild does not help. Keep the captured position (toast below the header, not over it).
+- 2026-10-14 · Independent QA failed the eKYC board on library use (M01–M17). Fixed with one stored script per
+  rule (repo: tools/figma/ekyc-library-pass/*.js, stored copies as hidden „__…-ekyc” text nodes, run per page or in
+  screen chunks of ≤ 15 — larger calls drop the transport and roll back):
+  - Library keys that matter: Components lk-03f6… (NOT the older lk-708e… copy): sidebar-list-item 66c046a8,
+    filter-chip 9901c458, avatar c622e420 (Initials Extra Small = 24 px), breadcrumbs cafee05e, modal 750e0da7,
+    tabs c9366d10 (Tabs Count 2–8), header-evo-desktop ef41893a (its .top-section = the gov bar), link 34f60bd2,
+    table-cell 86cc7c40, tag-filled a97109f9 (Style Accent = amber warning). Foundations lk-e9e8… for 20/ icons.
+  - Captured local copies of library sets (sidebar-list-item, avatar, .role-switch-item, filter-chip) are orphans
+    the QA flags; `swapComponent` to the published variant with the same variant name keeps props. Nested ones
+    inside a local component swap in the main; per-screen overrides then keep the LOCAL variant (e.g. the Active
+    item) → walk every instance and swap the nested ones too.
+  - Sidebar Active icon: the library Active variant only recolours FILL icons swapped through the icon property; central
+    stroke icons (folder-open, history …) stay dark. Use Foundations 20/ fill icons, `resetOverrides()` on the nested item,
+    then `setProperties({State, Icon})`, restore `visible`.
+  - Button icon colour: `resetOverrides()` clears fill overrides but a swapped icon then renders the ICON token (dark on a
+    Primary button). Only a FRESH `mainComponent.createInstance()` + `setProperties` gets the component's own icon
+    colour (Figma lists that as a fill override on the instance — it is the component's, not ours). Check with the
+    mode-resolved colour (`variable.resolveForConsumer(node)`), not `fills[0].color` — the raw value lies for buttons.
+    Rebuild = copy props, texts, icon size, sizing / grid / absolute position, re-attach connectors.
+  - figma-audit's „icon ≠ label” compares raw colours → false positives on Primary buttons and the MPass badge; the
+    Foundations „pause” icon has an UNBOUND #000 fill (library defect) → flagged next to #121212 labels.
+  - Tables after cell swaps: measure one-line widths of dates / tags with a temporary text (same font, WIDTH_AND_HEIGHT)
+    to widen columns; rows: grow AND shrink back (min 50). Then unclip screens (frames that outgrew a fixed height →
+    HUG) and restack.
+  - Modal-background tables: when sticky-column cells were absolute, pairing them with placeholders by order can
+    scramble rows; if a background table is the same as the list screen, clone the list's table instead.
+  - Facet popovers: options inside „List Item” (VERTICAL, CENTER) → counterAxisAlignItems MIN, checkbox-label FILL,
+    Size Small (14 px) everywhere.
+  - Code changes (Obligatoriu switch → checkbox option with red star) can be mirrored in place: checkbox-label + 12/asterisk
+    bound to icon/danger/default (the token the text-input mandatory star uses) + hint text.
+  - table-cell instances carry three „↔️ Resizer” frames that must stay FIXED 0 high; after resizing / re-sizing passes
+    they had grown to HUG 16 px each and squeezed „Cell Container” to 8 px (numbers rendered as a tiny top glyph).
+    After any table pass: Resizer → FIXED, height 0; then equalise every row to its tallest cell. Screenshot one list per
+    page after each pass — counters alone did not show this.

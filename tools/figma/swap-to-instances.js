@@ -9,6 +9,15 @@
 // FO / EVO Cabinet captures (cabinet-evo/index.html) use tools/figma/swap-cabinet-overlays.js then
 // tools/figma/swap-cabinet.js (header, search, chips, dosar / service cards, pager, buttons, tags, marks,
 // menus, tooltips, toasts, modals) + tools/figma/tokenize.js — not this file.
+// Library-only controls mapped by hand on the eKYC board (2026-10-14) live in tools/figma/ekyc-library-pass/
+// (keys, not GEAP node ids — work in any file that enables the „Components” + „Foundations” libraries):
+//   content.js  raw status tags (r4 + fill + text) → tag-filled Subtle Small (Neutral/Accent/Success/Brand/Danger by bg),
+//               initials circles → avatar Initials (Extra Small for 24px), text / copy / empty / single-tag cells →
+//               table-cell, „Navigation - … › Numbered List” → breadcrumbs (Level 1–5 + Active Level)
+//   tabs.js     raw „Tab List” of .tab-item-md → library tabs (Tabs Count 2–8)
+//   topbar.js   raw gov bar „header-evo-desktop” → library .top-section
+//   modal.js    local Modal → library modal (content-slot Text / swapped content)
+//   side.js / orphans.js / icons.js / btnrebuild.js — sidebar items, orphaned local copies, captured icons, button icons
 const ROOTS = ["PUT:CAPTURE-ROOT-IDS"];
 const g = (id) => figma.getNodeByIdAsync(id);
 const C = {
