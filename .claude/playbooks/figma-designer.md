@@ -284,3 +284,44 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   `.menu-item-selection` with 20/search for „Caută codul cadastral «…»”, home-line for saved codes.
 - 2026-10-13 · Connectors cannot start on context-skeleton elements that no longer exist (footer
   „Înainte” became a Box) → start such jumps from the block; anchors only on real (address) controls.
+- 2026-10-13 · FOD-Components-flow file (`pvDAJPXKyUuJgz3P921Ye8`, page ↳ Requestor 265:14041) has NO GEAP 2.0
+  local ids — every GEAP script that does `getNodeByIdAsync("10602:…")` fails there. Libraries: „Components”
+  lk-03f… (tag-filled a97109f9…, button-filled-rectangular 2cbe2c35…, button-text-rectangular 4ad2518c…,
+  button-filled-circular fcf938f6…, search-input-rectangular a27b4efa…, filter-chip 9901c458… (Mode On/Off),
+  contextual-menu eca4c78b… (component; items .menu-item-action, Leading Element=Icon), pagination f7149ae3…,
+  header-general-desktop 235fd1d6…) and icons „Foundations” lk-e9e8… (more-vertical 8eeb6ea4…, copy 89c577ec…,
+  eye-open faa2ea50…, cross-small 3ccb9372…, chevron-left ab64d0fa…); brand text colour = variable
+  text/brand/default a43e8033… (found via `figma.teamLibrary.getVariablesInLibraryCollectionAsync`). Two
+  „Components”/„Foundations” libraries show in search — pick the one whose key matches an instance already in the file.
+- 2026-10-13 · New `tools/figma/swap-cabinet-fod.js` = cabinet swap by library KEY for that file + local
+  `Cabinet / Antet` set 649:7540 (Sesiune Autentificat/Vizitator, props Titlu/Nume/Rol; holder frame 649:7396).
+  The library header-evo-desktop / header-general-desktop are portal headers (nav items), not the Cabinet header.
+- 2026-10-13 · Capture gotchas there: CSS-mask icons (authority) capture as #444 squares → local
+  „Icon / Cabinet / autoritate” from the svg; every captured ⋮ carries a stroke → open state only for the menu's
+  own trigger; the open ⋮ menu is clipped by the next card → move it to an ABSOLUTE contextual-menu on the root;
+  `combineAsVariants` collapsed FILL headers to width 1 → resize variants after combining; a 3px screen outline with
+  `strokesIncludedInLayout` pushed content out (clipped-content) → mirror the reference screen (false) + children FILL
+  + root HUG. Instance texts are not readable from a fresh `findOne` on remote instances — read colours from variables.
+- 2026-10-13 · Connector from an item inside a menu instance: `connectorStart = {endpointNodeId: menu.id,
+  position: {x: menu.width, y: option.y + option.height / 2}}` — no anchor frame needed.
+- 2026-10-13 · Growing a column section DOWN can hit a lane section under several columns (Guest lane) → move that
+  lane down (internals untouched, 80 gap) and say so; growing RIGHT → shift every section to the right by the delta.
+  Attached page-level connectors follow. Re-run the layout pass after every fix that changes block heights
+  (tokenize / hug changed heights by 6–20 px twice in this job).
+- 2026-10-13 · Mid-job correction (coordinator, from the user): the first split in Requestor 01 is „Signed in to
+  EVO?” — signed in = MPass session AND the acting EVO instance (PF / own PJ / MPower) are handed over, 03 skipped,
+  switch later in 06, permits → 04/⚡ else 05; not signed in → 02. E4/E6 always signed in. Hand-over marked
+  „⚠ to confirm with PO / tech” in the note only.
+- 2026-10-13 · User reversed Requestor 01 mid-job: NO screens in a flow-map column — entry points are plain
+  Flow cards (tag = ID, title, one line + US ids) with a „Links” line: URL hyperlinks to the file where the
+  screen lives (EVO Cabinet iitScYOwMYjDayuyrm3750 10:19047 / 444:9934; GEAP 2.0 F0 10815:25418, Post-procese ›
+  Entry points 9285:38785, Partea I 10265:4289) + „Prototype ↗”. Ask „screens or cards?” before capturing for a
+  map board; capture only for screen boards. Text range links need an object:
+  `t.setRangeHyperlink(a, b, {type: "URL", value})` (a string fails validation, whole call rolls back).
+- 2026-10-13 · Board spacing system (Requestor page, measured): section padding 80, stage header at 80/80, first
+  block y 440, stacked blocks 396 apart (pitch 1700 for 1304 blocks), side cards / next blocks 240 to the right,
+  sections 80 apart. A side card „aligned to its screen” = block.y + 44 (label 28 + gap 16). Horizontal connector
+  to such a card: start on the block with `position: {x: block.width, y: card centre − block.y}`.
+- 2026-10-13 · Before adding a short connector (marker → section) check the straight path: the 04 marker → ⚡
+  connector crossed „No permits issued” → keep the NODE link instead. A section placed under a column must clear the
+  lane sections under it (Guest lane moved to y 10920 for ⚡ under 04; said so in the report).
