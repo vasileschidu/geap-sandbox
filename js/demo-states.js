@@ -9,6 +9,12 @@
   const SVC = "003000023"; /* Notificare în comerț: RSSP + eAPL, every tab filled */
   const BIO = "003000519"; /* Înregistrarea produselor biocide: conditional taxes */
   const svc = (tab, run, code = SVC) => ({ flow: "back-office", as: ADMIN, hash: `#serviciu/${code}/${tab}`, run });
+  /* Dosare (Figma „↳ BO -> Dosare · stări și roluri”): the story dossier in every status / role.
+     ?stare= sets its status for the demo (applyDemoCaseState in the shell). */
+  const SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", DIR = "ansp-director-chisinau", LOCAL = "ansp-local-admin";
+  const DOS = "D-2026-004575";
+  const dos = (as, stare, tab = "general", extra = {}, run) => ({ flow: "back-office", as, params: { stare, ...extra }, hash: `#dosar/${DOS}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
+  const dosList = (as) => ({ flow: "back-office", as, ready: "tr[data-workplace-row], .e-permits-workplace" });
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
   const bio = (tab, run) => svc(tab, run, BIO);
@@ -680,6 +686,47 @@
     "auth-03": { page: "bo-login.html", params: { mpass: "ok", as: "fara-cont" }, ready: "[data-bo-login] h1" },
     "auth-04": { page: "bo-login.html", params: { view: "retrying" }, ready: "[data-bo-login] h1" },
     "auth-04a": { page: "bo-login.html", params: { view: "unavailable" }, ready: "[data-bo-login] h1" },
+    /* Dosare · 01 statusuri (specialist) */
+    "dos-01": dos(SPEC, "depus"),
+    "dos-01a": dos(SPEC, "inExaminare"),
+    "dos-01b": dos(SPEC, "inExaminare", "general", { suspendat: "1" }),
+    "dos-01c": dos(SPEC, "asteaptaPlata"),
+    "dos-01d": dos(SPEC, "spreCoordonare"),
+    "dos-01e": dos(SPEC, "spreSemnare"),
+    "dos-01f": dos(SPEC, "semnat"),
+    "dos-01g": dos(SPEC, "eliberat"),
+    "dos-01h": dos(SPEC, "respins", "general", { decizia: "respingere" }),
+    /* 02 acțiuni pe rol */
+    "dos-02": dos(SUP, "depus"),
+    "dos-02a": dos(SPEC, "inExaminare"),
+    "dos-02b": dos(SPEC, "inExaminare", "general", { suspendat: "1" }),
+    "dos-02c": dos(SPEC, "inExaminare", "taxe"),
+    "dos-02d": dos(SPEC, "asteaptaPlata"),
+    "dos-02e": dos(SPEC, "inExaminare", "decizie"),
+    "dos-02f": dos(SUP, "spreCoordonare"),
+    "dos-02g": dos(DIR, "spreSemnare"),
+    "dos-02h": dos(SUP, "inExaminare", "general", { suspendat: "1" }),
+    "dos-02i": dos(DIR, "inExaminare", "general", { suspendat: "1" }),
+    "dos-02j": dos(SPEC, "spreCoordonare"),
+    "dos-02k": dos(LOCAL, "inExaminare"),
+    /* 03 taxe și plăți */
+    "dos-03": dos(SPEC, "inExaminare", "taxe"),
+    "dos-03a": dos(SPEC, "asteaptaPlata", "taxe"),
+    "dos-03b": dos(SPEC, "asteaptaPlata", "taxe"),
+    "dos-03c": dos(SPEC, "asteaptaPlata", "taxe"),
+    "dos-03d": dos(SPEC, "asteaptaPlata", "notificari"),
+    "dos-03e": dos(SPEC, "spreCoordonare", "taxe"),
+    /* 04 celelalte tab-uri */
+    "dos-04": dos(SPEC, "inExaminare", "solicitare"),
+    "dos-04a": dos(SPEC, "inExaminare", "avize"),
+    "dos-04b": dos(SPEC, "inExaminare", "avize"),
+    "dos-04c": dos(SPEC, "semnat", "decizie"),
+    "dos-04d": dos(SPEC, "semnat", "documente"),
+    "dos-04e": dos(SPEC, "semnat", "documente"),
+    "dos-04f": dos(SPEC, "inExaminare", "jurnal"),
+    /* 05 liste pe rol */
+    "dos-05": dosList(SPEC),
+    "dos-05a": dosList(SUP),
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },

@@ -2413,6 +2413,23 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   };
 
+  /* Figma ↔ prototype (Dosare page): the story dossier is shown in every status. A deep link
+     may set it — ?stare=<status key>&suspendat=1&decizia=respingere — demo only, applied once
+     before the profile opens; the case flow is rebuilt from the new status. */
+  const applyDemoCaseState = (row) => {
+    const params = new URLSearchParams(window.location.search);
+    const stare = params.get("stare");
+    if (!stare || row.demoStateApplied === window.location.search) return;
+    row.demoStateApplied = window.location.search;
+    row.status = stare;
+    if (params.get("decizia")) row.decizia = params.get("decizia");
+    row.alerte = (row.alerte || []).filter((a) => a !== "suspendat");
+    if (params.get("suspendat") === "1") row.alerte.push("suspendat");
+    if (stare !== "depus" && !row.specialist) { row.specialist = workplaceState.rows.find((r) => r.specialist)?.specialist || null; row.nedistribuit = false; }
+    if (stare === "depus") { row.nedistribuit = true; }
+    delete row.flowState;
+  };
+
   const getDosarById = (id) =>
     workplaceState.rows.find((row) => row.id === id) ||
     (dossierDb?.runtimeRows || []).find((row) => row.id === id);
@@ -17998,6 +18015,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let match = hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
       const linkedRow = match && getDosarById(match[1]);
       if (linkedRow) {
+        applyDemoCaseState(linkedRow);
         openDosarProfil(linkedRow, match[2] || "general");
         return;
       }

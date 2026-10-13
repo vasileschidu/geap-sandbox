@@ -187,3 +187,6 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-13 · Big page sections split per column (user): one SECTION per band („Servicii · NN ·
   …”), members by band x-range, absolute positions kept, flow groups left of a band belong to that
   band (check overlaps), then sections re-spaced 400 apart, tops aligned; connectors stay attached.
+- 2026-10-13 · Dosare trajectory had drifted from code (grey filled card; callout 20/20, inset 24) →
+  card = white + border/base/default 1px, r24, p20; „Dosar / Acum · callout” = p12/16, gap 12,
+  r 0 0 24 24, title 14/20. Compare a block with the live state screenshot before calling it aligned.
