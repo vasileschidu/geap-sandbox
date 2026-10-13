@@ -9365,7 +9365,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (r.id === "adm-l" && (c.categorie !== "specific" || c.autoritate !== r.authority)) return false;
     return clasPerm.canEditClassifier(c, r.id === "adm-c" ? "adm-c" : "adm-l");
   };
-  const clasCanEditStructure = (c) => c.status !== "archived" && clasPerm.canEditStructure(clasRole().id === "adm-c" ? "adm-c" : "adm-l");
+  const clasCanEditStructure = (c) => !clasState.fromService && c.status !== "archived" && clasPerm.canEditStructure(clasRole().id === "adm-c" ? "adm-c" : "adm-l");
+  /* US-226 AC-07: in a passport the classifier's details and structure are read-only */
+  const clasPassportLock = () => clasState.fromService ? clasLockNotice("<strong>Detaliile și structura se modifică în Administrare → Clasificatoare.</strong> Din pașaportul serviciului se gestionează doar valorile.") : "";
   const clasReadOnlyReason = (c) => {
     /* US-226 AC-08 — MConnect classifiers already carry their own sync lock notice */
     if (clasState.fromService && c.categorie === "global" && c.sursa === "intern") return "Clasificator global — se gestionează în Administrare → Clasificatoare.";
@@ -9517,7 +9519,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const clasProfileBackShell = document.querySelector("[data-clas-profile-back-shell]");
 
   /* US-226 AC-07: from a passport only the values (and their log) are shown; structure stays in Clasificatoare */
-  const clasTabsFor = (c) => CLAS_TABS.filter(([id]) => (clasState.fromService ? ["valori", "jurnal"].includes(id) : id !== "mapare" || c.mod === "mconnect" || c.sursa === "api"));
+  /* one editor, whatever the entry (Alexandr, 2026-10-12; US-226 AC-06/07): from a passport the
+     same tabs open — values editable, details and structure shown read-only */
+  const clasTabsFor = (c) => CLAS_TABS.filter(([id]) => id !== "mapare" || c.mod === "mconnect" || c.sursa === "api");
 
   /* lifecycle actions follow core.statusActions; the primary one (Publică / Republică)
      is blue, Șterge ciorna is destructive, the rest neutral */
@@ -9792,7 +9796,7 @@ document.addEventListener("DOMContentLoaded", () => {
       plainTitle: f.label,
       actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">${EDIT_LABEL_HTML}</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">Elimină</button>` : ""
     }));
-    const lock = !structure && !clasReadOnlyReason(c) ? clasLockNotice("<strong>Structura nu se editează aici.</strong> Doar administratorul central adaugă sau modifică coloane.") : "";
+    const lock = clasState.fromService ? clasPassportLock() : !structure && !clasReadOnlyReason(c) ? clasLockNotice("<strong>Structura nu se editează aici.</strong> Doar administratorul central adaugă sau modifică coloane.") : "";
     return `${lock}${renderStackedList("Coloane", [{ label: "Standard", items: items.filter((_, i) => fields[i].implicit) }, { label: "Suplimentare", items: items.filter((_, i) => !fields[i].implicit) }].filter((g) => g.items.length), { meta: `Format ID: ${escapeHtml(c.idFormat || classifiersStore.fieldTypes.defaults.idFormat)} · denumiri max. ${c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri} caractere` })}
       ${structure ? '<div class="e-permits-clas-add-row"><button class="btn btn-secondary btn-sm" type="button" data-clas-field-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă coloană</span></button></div>' : ""}`;
   };
@@ -9855,7 +9859,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const all = clasList();
     const banned = new Set([c.id, ...clasCore.descendantIds(all, c.id)]);
     const parents = all.filter((x) => !banned.has(x.id) && x.status !== "archived");
-    const ro = !editable;
+    const ro = !editable || Boolean(clasState.fromService);
     const field = (id, label, key, { required = false, hint = "", textarea = false } = {}) => `
       <div class="e-permits-fo-field">
         <label for="${id}">${escapeHtml(label)}${required ? requiredMark() : ""}</label>
@@ -9871,6 +9875,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
     const copy = c.copiatDinId ? getClassifier(c.copiatDinId) : null;
     return `
+      ${clasPassportLock()}
       ${clasSection("Identificare", "", `<div class="e-permits-ntpl-card e-permits-clas-form">
         ${field("clas-set-name", "Denumire", "denumire", { required: true })}
         ${clasTextarea("clas-set-desc", 'data-clas-setting="descriere"', d.descriere, { label: "Descriere", hint: "Ce conține și cine îl folosește.", placeholder: "Ex. Motivele pentru care o cerere poate fi suspendată.", readonly: ro })}
@@ -10013,7 +10018,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const clasTextarea = (id, attrs, value, { label, hint = "", placeholder = "", max = CLAS_DESC_MAX, readonly = false, error = "" } = {}) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12">
       <label for="${id}">${escapeHtml(label)}</label>
-      <div class="e-permits-fo-textarea${error ? " is-error" : ""}"><textarea id="${id}" rows="3" maxlength="${max}" placeholder="${escapeHtml(placeholder)}" ${attrs} data-clas-count-max="${max}"${readonly ? " readonly" : ""}>${escapeHtml(value || "")}</textarea></div>
+      <div class="e-permits-fo-textarea${error ? " is-error" : ""}${readonly ? " is-readonly" : ""}"><textarea id="${id}" rows="3" maxlength="${max}" placeholder="${escapeHtml(placeholder)}" ${attrs} data-clas-count-max="${max}"${readonly ? " readonly" : ""}>${escapeHtml(value || "")}</textarea></div>
       ${error ? clasFieldError({ e: error }, "e") : ""}
       <p class="e-permits-fo-field__hint e-permits-ntpl-count"><span>${hint}</span><span class="e-permits-ntpl-count__value" data-clas-count>${(value || "").length}/${max}</span></p>
     </div>`;

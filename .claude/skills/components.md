@@ -5544,8 +5544,7 @@ modal never draws its bottom divider (`.e-permits-dosar-profil__row:last-child`,
 rows, stack items). Figma: the last `svc/field-row` (and any bottom-only divider row) in a vertical
 container has `strokeBottomWeight = 0` — applied file-wide 2026-10-10 (116 field rows + 100 other rows).
 
-**Figma (2026-10-10):** US-226 → Servicii › 08 (grouped list), 08a (values from the passport, Valori +
-Jurnal only), 08b (global, read-only); local component „Conținut modal · Detalii eveniment” (11d).
+**Figma (2026-10-10):** US-226 → Servicii › 08 (grouped list), 08a (values from the passport — since 2026-10-12 the SAME editor and tabs as Administrare › Clasificatoare: Valori editable, Coloane / Hartă dependențe / Setări read-only with the lock notice „Detaliile și structura se modifică în Administrare → Clasificatoare.” (US-226 AC-06/07, Alexandr) — demo svc-07a1 / svc-07a2), 08b (global, read-only); local component „Conținut modal · Detalii eveniment” (11d).
 US-231/232 → 01 „Date din RSSP” with „Resincronizează” + „Ultima sincronizare” meta on every Date
 generale screen; 01d (AC-18 text + „Modificări preluate din RSSP”); 01k unchanged · 01l deactivated ·
 01m reactivated · 01n reactivated with data · 01p inactive passport · 01q Eșuat; registry 05 „Sincronizare
