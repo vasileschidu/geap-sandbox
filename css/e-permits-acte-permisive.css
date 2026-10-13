@@ -23872,3 +23872,17 @@ a.btn:focus-visible {
     max-width: 100%;
   }
 }
+
+/* Traiectoria dosarului — the current step's label sits on a soft pill (Figma GEAP 2.0
+   7587:68183): brand-secondary fill, 0 4 padding, radius 4; amber when the case is suspended.
+   Dates / who under the steps and the card border stay as they are (user, 2026-10-13). */
+.e-permits-trajectory__step.is-current .e-permits-trajectory__label,
+.e-permits-trajectory__step.is-paused .e-permits-trajectory__label {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-radius: var(--border-radius-4, 4px);
+  padding: 0 var(--spacing-4, 4px);
+}
+
+.e-permits-trajectory__step.is-paused .e-permits-trajectory__label {
+  background: var(--color-background-warning-secondary, #feefc6);
+}
