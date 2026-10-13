@@ -230,7 +230,7 @@ but this doc previously described it wrongly, see the entry.
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
-| Address by cadastral code (FO „Caută adresa” + SRRE fill, read-only parts) | cascade address + `[data-fo-cadastral-status]` field message (`e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + `.e-permits-fo-cascade-address__note` | `cadastralConfig` / `initCadastralLookup` (e-permits-acte-permisive.js), demo `adr-*` | app |
+| Address by cadastral code (FO „Caută adresa” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + one message slot `[data-fo-cadastral-search-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -436,7 +436,8 @@ with a value the input gets 40px right padding so text never runs under the x.
   (`.e-permits-fo-address-search` wrapper + `.e-permits-fo-address-search__list`) — e.g.
   Permisiuni (`data-perm-search`).
 - Not covered (keep their own pattern): the search row **inside** a dropdown panel (CAEM,
-  subgen, MDocs, „Inserează câmp”) and the citizen form's „Caută adresa” combobox.
+  subgen, MDocs, „Inserează câmp”). The citizen form's cascade „Caută adresa” **is** this component
+  since 2026-10-13 (Medium desktop / Large ≤720, see „Address by cadastral code — US-54”).
 - Never a `.e-permits-fo-input` with a trailing search icon, never a bespoke
   `__search` frame with its own border/hover/focus CSS (removed 2026-10-02: builder library,
   builder registry, document modal, Permisiuni).
@@ -2584,45 +2585,81 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Notices | `e-permits-fo-infobox`, `e-permits-fo-mnotify-info`, `e-permits-fo-notice--skeleton` | | |
 | Skeletons | `e-permits-fo-skeleton` + `--input/--label/--notice-*` | | |
 
-### Address by cadastral code — US-54 (2026-10-13)
+### Address by cadastral code — US-54 (2026-10-13, refined 2026-10-13)
 
 Extends the FO cascade address (`cascadeAddressHtml`, service 09 step 2 „Detalii solicitare”)
 when the schema field has `"cadastral": { "visible": true, "required": false }`
 (`data/acte-permisive.json`). No mode choice: „Caută adresa” takes a saved address **or** a
 cadastral code (digits and dots), and the address fields stay on screen.
+`cascadeAddressHtml` is the **one render path** for the request form and the Form Designer preview.
 
-- **Form Designer** (`?flow=builder` › Address pattern › Data): the part `cadastral` in
-  `ADDRESS_PATTERN_PARTS` — same row as the other parts (asterisk chip = Obligatoriu, checkbox =
-  Vizibilitate, expanded body with the two switches + „Sursă de date: MConnect · SRRE”), visible
-  by default, `noDefault: true` (no „Valoare implicită”). The canvas token row shows/hides it.
-- **Search hint** (`[data-fo-cadastral-search-hint]`) = the AC-06 text when the code is on, the
-  US-32 text otherwise. A field message replaces the hint while it shows (shell convention).
-- **Field messages** under „Caută adresa” — `[data-fo-cadastral-status]` (`aria-live="polite"`)
-  holds one `p.message.message--inline.e-permits-fo-field__error` + tone:
-  loading = `e-permits-fo-field__loading` + library `spinner spinner--small spinner--brand` in the
-  20px icon slot (2px margin), secondary text · success = `message--success e-permits-fo-field__success`
-  + `icon-circle-checkmark-filled` · invalid = `message--error` + `icon-circle-error-filled` and the
-  input `.e-permits-fo-input.is-error` + `aria-invalid` · unavailable = `message--warning
-  e-permits-fo-field__warning` (text `--color-text-warning-default`, icon `--color-icon-warning-default`)
-  + `icon-warning-filled`. Reuse these modifiers for any FO field lookup.
-- **Saved-codes list**: the same `.e-permits-fo-address-search__list` options, icon
-  `icon-home-line`, title = code, meta = saved address; empty = one
-  `li.e-permits-fo-caem__empty` „Nu aveți coduri cadastrale salvate.” (the FO combobox empty row).
-  Options carry `title` (full text when the meta is cut on mobile).
+- **„Caută adresa” = the product search input** (§ Search input, product markup), never a
+  `.e-permits-fo-input` with a trailing icon:
+  `div.search-input.{medium|large}.rectangular.e-permits-workplace__search.e-permits-list-search.e-permits-list-search--fill.e-permits-fo-cascade-address__search[data-fo-search-size]`
+  > `span.icon-search` + `input.input` (combobox) + `.btn-group` (spinner + `button.btn-icon.clear`
+  „Șterge adresa căutată”). Size follows the FO fields: Medium 40 on desktop, **Large 48 at ≤720px**
+  (`foSearchSize()` swaps the class on the media query; the mobile rule sets 48 / 16px). × shows
+  with a value (`has-value is-ready`, js/search.js; a value picked from the list sets them via
+  `syncSearchValue`). Clicking × = AC-16: field emptied, focus back in it, SRRE parts released,
+  message back to the hint (the saved-codes list reopens, as on focus). Error =
+  `.search-input.is-error` (frame below).
+  When focused it sits at z-index 6 so it never paints over the sticky FO header / mobile progress.
+  **One renderer**: `addressSearchInputHtml({ id, placeholder, describedBy, addressesJson })` — used
+  by `cascadeAddressHtml` (request form step 2, post-process forms, Form Designer preview) and
+  `addressPatternHtml`; the static step-2 fallback in the HTML carries the same markup. Never fork it.
+  **FO frame** (scoped `.e-permits-fo-field .search-input.e-permits-workplace__search`, main.css
+  untouched): 1px `--color-border-base-default` border on the box itself (the library draws a 2px
+  transparent border + inset line, which reads inset ~2px with a smaller radius next to the selects),
+  radius 8; hover / focus / error = the `.e-permits-fo-input` treatment (inset 1px tertiary / brand +
+  blue-sky-200 halo / danger + red-100 halo). Measured: same x / width / height / radius as the
+  select and input in the column (40 desktop, 48 at ≤720).
+- **One message slot** under the field: `p[data-fo-cadastral-search-hint]` (id = the input's
+  `aria-describedby`). Default = `.e-permits-fo-field__hint` with the AC-06 text (code on) or the
+  US-32 text; a lookup swaps its class to `message message--inline e-permits-fo-field__error` + tone:
+  loading = `e-permits-fo-field__loading` + library `spinner spinner--small spinner--brand` (AC-11) ·
+  success = `message--success e-permits-fo-field__success` + `icon-circle-checkmark-filled` (AC-12) ·
+  invalid = `message--error` + `icon-circle-error-filled` + `.search-input.is-error` + `aria-invalid`
+  (AC-19) · unavailable = `message--warning e-permits-fo-field__warning` + `icon-warning-filled`
+  (AC-20). A sibling `p.u-visually-hidden[aria-live=polite][data-fo-cadastral-live]` announces the
+  outcome once (success / invalid / unavailable — not the loader). Reuse for any FO field lookup.
+- **No AC-14 note** (removed on user request 2026-10-13 — the grey/green read-only fields + the
+  success message already say it; **deviates from AC-14 wording, PO to confirm**).
+- **Skeleton while SRRE answers**: every part SRRE will fill and the user can see (Cod cadastral,
+  Țară, Raion, Oraș, Sector when shown, Stradă, Cod poștal, Casă, Bloc, Apartament) gets
+  `.is-srre-loading` + an appended `span.e-permits-fo-skeleton.e-permits-fo-skeleton--input[data-fo-srre-skeleton]`;
+  CSS hides the field's other children (label stays). Height = the input (40, 48 at ≤720) → no layout
+  shift; grid `aria-busy`. Min 400 ms (`SRRE_SKELETON_MIN_MS`). Reduced motion = no shimmer, a static
+  `--color-background-base-secondary-active` bar (all FO skeletons). Scară, Etaj, Telefon, Email untouched.
 - **SRRE-filled parts = the FO Read Only field**, never a lock: `.e-permits-fo-input.is-filled.is-readonly`
-  + green `icon-checkmark-small` (as `verifiedValueHtml`). Selects (Țară, Raion, Oraș, Sector,
-  Stradă) are hidden and a `[data-fo-srre-value]` read-only input box is inserted (Țară =
-  🇲🇩 „Republica Moldova”); text parts (Cod poștal, Casă, Bloc, Apartament) become `readonly`,
-  `tabindex=-1`, empty ones show „—”. Scară, Etaj, Telefon, Email stay editable. „Cod cadastral”
-  (span-6, first in the grid) is always read-only, placeholder „Se completează din «Caută adresa»”.
-- **AC-14 note**: one `renderInfoNote` markup inside `.e-permits-fo-cascade-address__note`
-  (spans the whole grid, every breakpoint), shown only while filled from SRRE.
+  + green `icon-checkmark-small`. Selects (Țară, Raion, Oraș, Sector, Stradă) are hidden and a
+  `[data-fo-srre-value]` read-only input box is inserted (Țară = 🇲🇩 „Republica Moldova”); text parts
+  become `readonly`, `tabindex=-1`, empty ones show „—”. On arrival each box gets `.is-srre-new` once:
+  800 ms `--color-background-brand-secondary` → Read Only grey, `animation-fill-mode: backwards`.
+  Focus stays in „Caută adresa”. „Cod cadastral” (span-6, first in the grid) is always read-only.
+- **Saved-codes list**: the FO address-search list (`.e-permits-fo-address-search__list` options,
+  icon `icon-home-line`, title = code, meta = saved address); empty = `li.e-permits-fo-caem__empty`
+  „Nu aveți coduri cadastrale salvate.”
+- **Builder parts** (`field.parts`, keyed `country/district/locality/street/house/floor/block/stair/apartment`):
+  `visible: false` → the field gets `hidden data-fo-part-hidden` (CSS `display:none`), `required` →
+  red star. The sector stays conditional (Chișinău). `field.searchLabel` (+ `field.required` star)
+  replaces the „Caută adresa” label — used by the preview for the component label.
+- **Form Designer Preview** (`builderAddressPreviewHtml`): the Address pattern renders through
+  `cascadeAddressHtml` from the builder's current `addressConfig` (Vizibilitate, Obligatoriu,
+  „Cod cadastral” row) + the service districts, then `initCascadeAddress` + `bindAddressSearch` —
+  the same lookup (skeleton, messages, ×). Every builder change calls `renderPreviewAndSchema()`,
+  so the preview is live. Other components already used the builder label / required / span.
 - Behaviour: lookup on pause (900 ms), Enter, `change`, or a list choice; mock MConnect =
-  `data/srre-cadastral.json` (`parcels`, `postalCodes` by locality, `savedCodes` by FO subject id),
-  1.4 s. Change → refill; clear / non-code text → release (empty + editable, cascade reset); a
-  saved address chosen after a fill releases first. Review step adds a „Cod cadastral” row.
-- Demo params: `?codcadastral=ascuns|obligatoriu` (builder config), `?srre=asteptare` (loader
-  stays), `?solicitant=<subject id>` (another applicant). States `adr-01…adr-10`.
+  `data/srre-cadastral.json`, 1.4 s (Lent 3 s). Change → skeleton → refill; clear / non-code text →
+  release (empty + editable, cascade reset). Review step adds a „Cod cadastral” row.
+- **Test config** (`foAddressDemo`): URL `?codcadastral=vizibil|ascuns|obligatoriu`,
+  `?srre=lent|indisponibil|invalid|asteptare` (asteptare = never answers, skeleton screenshot),
+  `?coduri=fara`, `?solicitant=<subject id>`; live in „Configurare flux” (`.e-permits-fo-testcfg`):
+  three segmented groups `adrField` (default = the service schema's `cadastral` config), `adrSrre`
+  (Normal · Lent · Eroare · Invalid), `adrSaved` — a change redraws only step 2. The panel body
+  scrolls (max-height = viewport − 96).
+- States `adr-01…adr-12a`: 03 skeleton (pending) · 03a skeleton over a previous fill · 04 success ·
+  06 cleared by typing · 06a cleared with × · 07 invalid · 08 unavailable · 11 config panel ·
+  12 / 12a builder → preview (Cod cadastral hidden / required).
 
 ### `e-permits-shell__*` — back-office chrome
 

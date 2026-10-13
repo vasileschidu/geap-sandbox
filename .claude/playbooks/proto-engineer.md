@@ -145,3 +145,27 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   while another agent edits the tree).
 - 2026-10-13 · Generator gotcha: `arr.find((c) => c.id === pick(list))` calls the random pick per
   element → undefined; pick once, then find. Undecided sessions must have `finalScore: null`.
+- 2026-10-13 · US-54 refine — user corrections: (1) „use our components” = the address search is the
+  **product search input** (`.search-input` + `e-permits-workplace__search e-permits-list-search--fill`,
+  × via js/search.js), not an `.e-permits-fo-input` with a trailing icon; (2) the full-width AC-14 note was
+  „useless” → removed (lookup feedback lives in the field's own message slot: one `<p>` whose class swaps
+  hint → `message--inline` tone; outcome announced once by a visually hidden live region); (3) a lookup
+  that fills many fields shows the FO input skeleton in exactly those fields (label stays, same height,
+  min 400 ms) and the values arrive with a one-time brand-secondary flash (`backwards`).
+- 2026-10-13 · The library `.search-input` draws a 2px TRANSPARENT border + an inset 1px line → next to FO
+  selects its visible frame is inset ~2px with a smaller-looking radius; the user saw it at once. Inside FO
+  fields scope a rule (`.e-permits-fo-field .search-input…`: 1px border on the box, FO hover/focus/error) and
+  **measure visible-border x / width / height / radius against the select in the same column** (frame.mjs
+  pattern) before reporting. FO mobile fields are 48 → Large search + skeleton 48 at ≤720.
+- 2026-10-13 · „Changes in the builder must show in Preview” + „wrong component in the preview”: the
+  preview had its own hard-coded address fork. Fix = ONE renderer per field (`addressSearchInputHtml`,
+  `cascadeAddressHtml` fed by the builder config via `field.parts` / `searchLabel`), grep every
+  `data-fo-address-input` / `--with-action` renderer incl. static HTML fallbacks. Never let a preview
+  draw look-alike markup.
+- 2026-10-13 · A focused combobox wrapper with `z-index: 30` painted over the sticky FO header (10) and
+  mobile progress (20) when scrolled → keep in-form layers under the sticky chrome (6); floating lists use
+  fixed positioning anyway.
+- 2026-10-13 · Test-config panel („Configurare flux”) groups that only affect one step must not call the
+  panel's `apply()` (it re-routes the screen) — redraw just that step; give the panel body
+  `overflow-y:auto` + a max-height once it grows past the viewport. capture.mjs `--hide ".msup-bubble"`
+  shows the panel in a capture.

@@ -885,12 +885,12 @@
        („Cod cadastral” row) and the request form, service 09 step 2 „Detalii solicitare” ---- */
     ...(() => {
       const ADR = "[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-address-input]";
-      const bld = (run) => ({ page: PP_FO, flow: "builder", ready: "[data-builder-component='address']", run: async (h) => {
+      const bld = (run, { scroll = true } = {}) => ({ page: PP_FO, flow: "builder", ready: "[data-builder-component='address']", run: async (h) => {
         await h.click("[data-builder-component='address']");
         await h.click("[data-type='address']");
         await h.click("[data-builder-prop-tab='source']");
         if (run) await run(h);
-        await h.scroll("[data-address-item='cadastral']");
+        if (scroll) await h.scroll("[data-address-item='cadastral']");
       } });
       const expand = async (h) => { await h.click("header[data-address-toggle-section='cadastral']"); };
       const adr = (params, run) => foReq(2, params, async (h) => { await h.scroll(ADR); if (run) await run(h); });
@@ -904,7 +904,13 @@
         "adr-02": adr(),
         "adr-02a": adr({}, openList),
         "adr-02b": adr({ solicitant: "pj-vita-plant" }, openList),
-        "adr-03": adr({ srre: "asteptare" }, async (h) => { await h.fill(ADR, "0100510.123", { leave: false }); }),
+        /* SRRE request pending: skeletons in the parts it will fill + loading message (AC-11) */
+        "adr-03": adr({ srre: "asteptare" }, async (h) => { await h.fill(ADR, "0100510.123", { leave: false }); await h.wait(1200); }),
+        /* a changed code after a fill (slow SRRE, 3 s): the filled parts turn back into skeletons */
+        "adr-03a": adr({ srre: "lent" }, async (h) => {
+          await h.fill(ADR, "0100510.123", { leave: false }); await h.wait(4200);
+          await h.fill(ADR, "1701102.330", { leave: false }); await h.wait(1300);
+        }),
         "adr-04": adr({}, code("0100510.123")),
         "adr-04a": adr({}, async (h) => {
           await openList(h);
@@ -914,10 +920,36 @@
         }),
         "adr-05": adr({}, async (h) => { await code("0100510.123")(h); await code("1701102.330")(h); }),
         "adr-06": adr({}, async (h) => { await code("0100510.123")(h); await h.fill(ADR, "", { leave: false }); }),
+        /* AC-16 with the × of the search input: fields empty + editable, focus back in the field */
+        "adr-06a": adr({}, async (h) => {
+          await code("0100510.123")(h);
+          await h.click("[data-fo-step-panel='2'] [data-fo-cascade-address] .search-input .btn-icon.clear");
+          await h.wait(300);
+          /* the saved-codes list reopens on the emptied field; close it to show the released fields */
+          (await h.find(ADR)).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+          await h.wait(200);
+        }),
         "adr-07": adr({}, code("0100510.999")),
         "adr-08": adr({}, code("0100999.777")),
         "adr-09": adr({ codcadastral: "ascuns" }),
         "adr-09a": adr({ codcadastral: "obligatoriu" }),
+        /* „Configurare flux” › Adresă: field mode, SRRE answer, saved codes (capture with --hide .msup-bubble) */
+        "adr-11": adr({}, async (h) => {
+          await h.click("[data-fo-testcfg-toggle]");
+          await h.click("[data-fo-testcfg-group='adrField'] [data-fo-testcfg-value='obligatoriu']");
+          await h.scroll("[data-fo-testcfg-group='adrSaved']");
+        }),
+        /* Form Designer: the Preview follows the builder — Cod cadastral hidden → absent; required → star */
+        "adr-12": bld(async (h) => {
+          await h.click(".e-permits-builder__mini-check:has([data-address-visible='cadastral'])");
+          await h.click("[data-builder-mode='preview']");
+          await h.scroll("[data-builder-preview-grid] [data-fo-cascade-address]");
+        }, { scroll: false }),
+        "adr-12a": bld(async (h) => {
+          await h.click("[data-address-required='cadastral']");
+          await h.click("[data-builder-mode='preview']");
+          await h.scroll("[data-builder-preview-grid] [data-fo-cadastral-field]");
+        }, { scroll: false }),
         /* AC-18: Verificare și semnare shows the code with the address */
         "adr-10": adr({}, async (h) => {
           await code("0100510.123")(h);

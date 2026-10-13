@@ -5162,6 +5162,7 @@
 @media (prefers-reduced-motion: reduce) {
   .e-permits-fo-skeleton {
     animation: none;
+    background: var(--color-background-base-secondary-active, #e5e7eb);
   }
 }
 
@@ -14415,13 +14416,74 @@
   margin-top: var(--spacing-24, 24px);
 }
 
-/* US-54: the SRRE read-only note spans the whole address grid (every breakpoint) */
-.e-permits-fo-cascade-address__note {
-  grid-column: 1 / -1;
+/* the focused „Caută adresa” stays under the sticky FO header (10) / mobile progress (20) when the
+   page scrolls; its suggestion list floats in <body> (is-floating), so it needs no higher layer */
+.e-permits-fo-cascade-address .e-permits-fo-address-search:focus-within {
+  z-index: 6;
 }
 
-.e-permits-fo-cascade-address__note[hidden] {
+/* a part the Form Designer hid (Vizibilitate off) — .e-permits-fo-field is flex, so [hidden] needs help */
+.e-permits-fo-field[data-fo-part-hidden] {
   display: none;
+}
+
+/* US-54 „Caută adresa” = the product search input (.search-input …, one renderer:
+   addressSearchInputHtml). Inside an FO field its frame follows the FO input exactly — a 1px
+   border ON the box (the library draws a 2px transparent border + an inset line, which reads
+   inset by ~2px with a smaller radius next to the selects), radius 8, same edges/height;
+   hover / focus / error = the .e-permits-fo-input treatment. main.css stays untouched. */
+.e-permits-fo-field .search-input.e-permits-workplace__search {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  box-shadow: none;
+}
+
+.e-permits-fo-field .search-input.e-permits-workplace__search:hover:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-base-tertiary, #444);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-tertiary, #444);
+}
+
+.e-permits-fo-field .search-input.e-permits-workplace__search:focus-within:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2), 0 0 0 4px var(--blue-sky-200, #ccdef6);
+}
+
+/* AC-19 „Codul nu este valid” — mirrors .e-permits-fo-input.is-error */
+.e-permits-fo-field .search-input.e-permits-workplace__search.is-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-field .search-input.e-permits-workplace__search.is-error:hover:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-field .search-input.e-permits-workplace__search.is-error:focus-within:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+/* US-54 SRRE lookup in progress: the label stays, the control is swapped for the FO input
+   skeleton (.e-permits-fo-skeleton--input, same 40px height — no layout shift) */
+.e-permits-fo-field.is-srre-loading > :not(label):not([data-fo-srre-skeleton]) {
+  display: none;
+}
+
+/* US-54 values just filled from SRRE: one brand-secondary highlight fading to the Read Only grey */
+.e-permits-fo-input.is-filled.is-srre-new {
+  animation: e-permits-fo-srre-new 800ms ease-out backwards;
+}
+
+@keyframes e-permits-fo-srre-new {
+  from {
+    background-color: var(--color-background-brand-secondary, #e6eefa);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-input.is-filled.is-srre-new {
+    animation: none;
+  }
 }
 
 .e-permits-fo-input.is-disabled {
@@ -15473,6 +15535,23 @@
     padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-16, 16px);
   }
 
+  /* „Caută adresa” (product search input, size Large here): FO mobile fields are 48 / 16px */
+  .e-permits-fo-cascade-address__search.e-permits-workplace__search {
+    height: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-fo-cascade-address__search.e-permits-workplace__search .input,
+  .e-permits-fo-cascade-address__search.e-permits-workplace__search .input::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  /* US-54 skeleton = the mobile FO input height (48), so nothing jumps when values arrive */
+  .e-permits-fo-field.is-srre-loading > .e-permits-fo-skeleton--input {
+    height: var(--spacing-48, 48px);
+  }
+
   .e-permits-fo-form__footer {
     padding-top: var(--spacing-24, 24px);
   }
@@ -16484,6 +16563,10 @@
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-12, 12px);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  /* above the launcher, never past the top of the viewport: the body scrolls */
+  max-height: calc(100vh - var(--spacing-64, 64px) - var(--spacing-32, 32px));
   order: -1;
   width: 328px;
 }
@@ -16535,6 +16618,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-20, 20px);
+  min-height: 0;
+  overflow-y: auto;
   padding: var(--spacing-16, 16px);
 }
 

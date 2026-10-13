@@ -1022,13 +1022,7 @@
       return `
         <div class="${fieldClass(field)}">
           ${labelHtml(id, field)}
-          <div class="e-permits-fo-address-search" data-fo-address-search data-fo-addresses="${addressesJson}">
-            <div class="e-permits-fo-input e-permits-fo-input--with-action">
-              <input id="${escapeFrontOfficeHtml(id)}" type="text" placeholder="${escapeFrontOfficeHtml(field.searchPlaceholder || "Caută adresa")}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-suggestions" data-fo-address-input>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-            </div>
-            <ul class="e-permits-fo-address-search__list" id="${escapeFrontOfficeHtml(id)}-suggestions" role="listbox" aria-label="Sugestii adresă" data-fo-address-list hidden></ul>
-          </div>
+          ${addressSearchInputHtml({ id, placeholder: field.searchPlaceholder || "Caută adresa", addressesJson })}
           ${field.hint ? `<p class="e-permits-fo-field__hint">${escapeFrontOfficeHtml(field.hint)}</p>` : ""}
           <div class="e-permits-fo-address-details e-permits-fo-address-details--smart" data-fo-address-details>
             ${(field.parts || []).map(addressPartHtml).join("")}
@@ -1037,17 +1031,77 @@
       `;
     }
 
-    /* US-54 „Cod cadastral” config from the form schema; demo override ?codcadastral=ascuns|obligatoriu
-       (what the Form Designer's Vizibilitate / Obligatoriu would publish) */
+    /* US-54 demo / test configuration of the cadastral lookup. Seeded from the URL
+       (?codcadastral=vizibil|ascuns|obligatoriu · ?srre=lent|indisponibil|invalid|asteptare ·
+       ?coduri=fara) and changed live by „Configurare flux” › Adresă · cod cadastral. */
+    const foAddressDemo = (() => {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        field: params.get("codcadastral") || "",
+        srre: params.get("srre") || "normal",
+        saved: params.get("coduri") === "fara" ? "fara" : "cu",
+      };
+    })();
+
+    /* FO search inputs follow the FO field sizes: library Search input Medium (40) on desktop,
+       Large (48) at ≤720px — the size class is swapped, the library CSS does the rest */
+    const foSearchMobile = window.matchMedia("(max-width: 720px)");
+    const foSearchSize = () => (foSearchMobile.matches ? "large" : "medium");
+    foSearchMobile.addEventListener("change", () => {
+      document.querySelectorAll("[data-fo-search-size]").forEach((el) => {
+        el.classList.toggle("large", foSearchMobile.matches);
+        el.classList.toggle("medium", !foSearchMobile.matches);
+      });
+    });
+
+    /* the service's cascade address field (its „Cod cadastral” config) */
+    function cascadeAddressFieldOfSchema(schema) {
+      for (const step of schema?.steps || []) {
+        for (const section of step.sections || []) {
+          const found = (section.fields || []).find((item) => item.type === "cascade-address");
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function cadastralConfigOfSchema(schema) {
+      return cascadeAddressFieldOfSchema(schema)?.cadastral || null;
+    }
+
+    /* „Cod cadastral” config from the form schema (the service's Form Designer: Vizibilitate +
+       Obligatoriu); the demo override wins when set */
     function cadastralConfig(config) {
       if (!config) return null;
-      const mode = new URLSearchParams(window.location.search).get("codcadastral");
+      const mode = foAddressDemo.field;
       return {
-        visible: mode === "ascuns" ? false : config.visible !== false,
-        required: mode === "obligatoriu" ? true : Boolean(config.required),
+        visible: mode === "ascuns" ? false : mode === "vizibil" || mode === "obligatoriu" ? true : config.visible !== false,
+        required: mode === "obligatoriu" ? true : mode === "vizibil" ? false : Boolean(config.required),
       };
     }
 
+    /* „Caută adresa” — the ONE address search markup (request form, post-process forms, Form
+       Designer preview, address-pattern fields): the product search input (§ Search input in
+       components.md) + the FO address-search list. Size Medium 40 / Large 48 at ≤720px. */
+    function addressSearchInputHtml({ id, placeholder = "Caută adresa", describedBy = "", addressesJson = "[]" }) {
+      const safeId = escapeFrontOfficeHtml(id);
+      return `
+            <div class="e-permits-fo-address-search" data-fo-address-search data-fo-addresses="${addressesJson}">
+              <div class="search-input ${foSearchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cascade-address__search" data-fo-search-size>
+                <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+                <input class="input" id="${safeId}" type="text" placeholder="${escapeFrontOfficeHtml(placeholder)}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${safeId}-suggestions"${describedBy ? ` aria-describedby="${escapeFrontOfficeHtml(describedBy)}"` : ""} data-fo-address-input>
+                <div class="btn-group">
+                  <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                  <button type="button" class="btn-icon clear" aria-label="Șterge adresa căutată"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button>
+                </div>
+              </div>
+              <ul class="e-permits-fo-address-search__list" id="${safeId}-suggestions" role="listbox" aria-label="Sugestii adresă" data-fo-address-list hidden></ul>
+            </div>`;
+    }
+
+    /* the request form's cascade address = the one render path for the FO and the Form Designer
+       preview. `field.parts` (builder Address pattern, keyed by part) may hide a part or mark it
+       required; `field.searchLabel` / `field.required` replace the „Caută adresa” label (preview). */
     function cascadeAddressHtml(field) {
       const uid = Math.random().toString(16).slice(2, 8);
       const raionId = `fo-casc-raion-${uid}`;
@@ -1057,44 +1111,40 @@
       const districtsJson = escapeFrontOfficeHtml(JSON.stringify(field.districts || []));
       const phoneHtml = field.phone ? phoneFieldHtml(field.phone) : "";
       const emailHtml = field.email ? textFieldHtml({ ...field.email, type: "email" }) : "";
+      const parts = field.parts || {};
+      const PART_REQUIRED = { country: true, district: true };
+      const hiddenAttr = (key) => (parts[key]?.visible === false ? " hidden data-fo-part-hidden" : "");
+      const star = (key) => ((parts[key]?.required ?? PART_REQUIRED[key]) ? ` ${requiredMarkerHtml()}` : "");
       /* US-54: „Cod cadastral” sub-field (Form Designer › Componentele: Vizibilitate + Obligatoriu) */
       const cadastral = cadastralConfig(field.cadastral);
       const cadastralOn = Boolean(cadastral?.visible);
       const searchHint = cadastralOn
         ? "Căutați o adresă salvată sau introduceți codul cadastral. La un cod cadastral, adresa se completează automat din Registrul de Stat al Bunurilor Imobile."
         : "Selectarea unei adrese existente pre-completează toate câmpurile";
-      /* AC-14: one note for every SRRE read-only field (the renderInfoNote markup), shown after a fill */
+      const searchId = `fo-casc-search-${uid}`;
+      const searchLabel = field.searchLabel || "Caută adresa";
       const cadastralFieldHtml = cadastralOn ? `
-            <div class="e-permits-fo-cascade-address__note" id="${uid}-cadastral-hint" data-fo-cadastral-hint hidden>
-              <div class="info-box info-box--neutral e-permits-info-note">
-                <span class="info-box__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></span>
-                <div class="info-box__content"><p>Completat din Registrul de Stat al Bunurilor Imobile. Pentru altă adresă, schimbați sau ștergeți codul cadastral.</p></div>
-              </div>
-            </div>
             <div class="e-permits-fo-field e-permits-fo-field--span-6" data-fo-cadastral-field>
-              <label for="${uid}-cadastral">Cod cadastral ${cadastral.required ? requiredMarkerHtml() : ""}</label>
+              <label for="${uid}-cadastral">Cod cadastral${cadastral.required ? ` ${requiredMarkerHtml()}` : ""}</label>
               <div class="e-permits-fo-input is-filled is-readonly">
-                <input id="${uid}-cadastral" type="text" readonly tabindex="-1" maxlength="50" placeholder="Se completează din «Caută adresa»" aria-describedby="${uid}-cadastral-hint" data-fo-address-part="cadastralCode">
+                <input id="${uid}-cadastral" type="text" readonly tabindex="-1" maxlength="50" placeholder="Se completează din «Caută adresa»" data-fo-address-part="cadastralCode">
               </div>
             </div>` : "";
+      /* „Caută adresa” = the library search input (search icon + × clear, js/search.js); its one
+         message slot under it holds the hint, then the lookup message (loading / success / error /
+         warning); a visually hidden live region announces the outcome once */
       return `
         <div class="${fieldClass(field)} e-permits-fo-cascade-address" data-fo-cascade-address data-fo-cascade-districts="${districtsJson}"${cadastralOn ? ' data-fo-cadastral="on"' : ""}>
           <div class="e-permits-fo-field e-permits-fo-field--span-12">
-            <label for="fo-casc-search-${uid}">Caută adresa</label>
-            <div class="e-permits-fo-address-search" data-fo-address-search data-fo-addresses="[]">
-              <div class="e-permits-fo-input e-permits-fo-input--with-action">
-                <input id="fo-casc-search-${uid}" type="text" placeholder="Caută adresa" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="fo-casc-search-${uid}-suggestions" aria-describedby="fo-casc-search-${uid}-hint${cadastralOn ? ` fo-casc-search-${uid}-status` : ""}" data-fo-address-input>
-                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-              </div>
-              <ul class="e-permits-fo-address-search__list" id="fo-casc-search-${uid}-suggestions" role="listbox" aria-label="Sugestii adresă" data-fo-address-list hidden></ul>
-            </div>
-            ${cadastralOn ? `<div id="fo-casc-search-${uid}-status" aria-live="polite" data-fo-cadastral-status hidden></div>` : ""}
-            <p class="e-permits-fo-field__hint" id="fo-casc-search-${uid}-hint" data-fo-cadastral-search-hint>${escapeFrontOfficeHtml(searchHint)}</p>
+            <label for="${searchId}">${escapeFrontOfficeHtml(searchLabel)}${field.searchLabel && field.required ? ` ${requiredMarkerHtml()}` : ""}</label>
+            ${addressSearchInputHtml({ id: searchId, describedBy: `${searchId}-message` })}
+            <p class="e-permits-fo-field__hint" id="${searchId}-message" data-fo-cadastral-search-hint>${escapeFrontOfficeHtml(searchHint)}</p>
+            ${cadastralOn ? `<p class="u-visually-hidden" aria-live="polite" data-fo-cadastral-live></p>` : ""}
           </div>
           <div class="e-permits-fo-address-details--smart e-permits-fo-cascade-address__grid">
             ${cadastralFieldHtml}
-            <div class="e-permits-fo-field e-permits-fo-field--span-6">
-              <label>Țara ${requiredMarkerHtml()}</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("country")}>
+              <label>Țara${star("country")}</label>
               <div class="e-permits-fo-select e-permits-fo-select--address is-disabled" data-fo-select>
                 <button class="e-permits-fo-select__button" id="fo-casc-country-${uid}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-casc-country-${uid}-list" disabled>
                   <span class="e-permits-fo-country-flag" aria-hidden="true">🇲🇩</span>
@@ -1106,8 +1156,8 @@
                 </ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6">
-              <label>Raionul/Municipiul ${requiredMarkerHtml()}</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("district")}>
+              <label>Raionul/Municipiul${star("district")}</label>
               <div class="e-permits-fo-select" data-fo-cascade-select data-fo-cascade-raion>
                 <button class="e-permits-fo-select__button" id="${raionId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${raionId}-list">
                   <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează raionul/municipiul</span>
@@ -1118,8 +1168,8 @@
                 </ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-6">
-              <label>Orașul/Comuna</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-6"${hiddenAttr("locality")}>
+              <label>Orașul/Comuna${star("locality")}</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-localitate>
                 <button class="e-permits-fo-select__button" id="${localitateId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${localitateId}-list" disabled>
                   <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează mai întâi Raionul/Municipiul</span>
@@ -1138,8 +1188,8 @@
                 <ul class="e-permits-fo-select__list" id="${sectorId}-list" role="listbox" aria-labelledby="${sectorId}" hidden></ul>
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-8">
-              <label>Strada</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-8"${hiddenAttr("street")}>
+              <label>Strada${star("street")}</label>
               <div class="e-permits-fo-select is-disabled" data-fo-cascade-select data-fo-cascade-strada>
                 <button class="e-permits-fo-select__button" id="${stradaId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${stradaId}-list" disabled>
                   <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Selectează orașul/comuna mai întâi</span>
@@ -1154,24 +1204,24 @@
                 <input id="${uid}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
               </div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4">
-              <label for="${uid}-house">Casa</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("house")}>
+              <label for="${uid}-house">Casa${star("house")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-house" type="text" placeholder="Nr." data-fo-address-part="house"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4">
-              <label for="${uid}-block">Blocul</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("block")}>
+              <label for="${uid}-block">Blocul${star("block")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-block" type="text" placeholder="Nr." data-fo-address-part="block"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4">
-              <label for="${uid}-stair">Scara</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("stair")}>
+              <label for="${uid}-stair">Scara${star("stair")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-stair" type="text" placeholder="Scara" data-fo-address-part="stair"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4">
-              <label for="${uid}-floor">Etajul</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("floor")}>
+              <label for="${uid}-floor">Etajul${star("floor")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-floor" type="text" placeholder="0" data-fo-address-part="floor"></div>
             </div>
-            <div class="e-permits-fo-field e-permits-fo-field--span-4">
-              <label for="${uid}-apt">Apartamentul</label>
+            <div class="e-permits-fo-field e-permits-fo-field--span-4"${hiddenAttr("apartment")}>
+              <label for="${uid}-apt">Apartamentul${star("apartment")}</label>
               <div class="e-permits-fo-input"><input id="${uid}-apt" type="text" placeholder="Numărul ap." data-fo-address-part="apartment"></div>
             </div>
             ${phoneHtml}
@@ -1466,12 +1516,15 @@
     /* US-54 — address by cadastral code. „Caută adresa” also takes a cadastral code (digits,
        sometimes dots, no other format rule): on focus it lists the applicant's saved codes; a code
        asks SRRE through MConnect (mock: data/srre-cadastral.json, ~1.4 s) without submitting the
-       form. A valid code fills Țară · Raion · Oraș · Sector · Stradă · Cod poștal · Casă · Bloc ·
-       Apartament read-only (the FO „Read Only” field: is-filled is-readonly + check); Scară, Etaj,
-       Telefon, Email stay editable. Change the code → refill; clear it → those fields empty and
-       editable. Demo: ?srre=asteptare keeps the request pending (loader screenshot). */
+       form. While it asks, every part SRRE will fill shows the FO input skeleton (no layout shift);
+       a valid code fills Țară · Raion · Oraș · Sector · Stradă · Cod poștal · Casă · Bloc ·
+       Apartament read-only (the FO „Read Only” field: is-filled is-readonly + check) with a one-time
+       highlight; Scară, Etaj, Telefon, Email stay editable. Change the code → skeleton → refill;
+       × / clear → those fields empty and editable. Every message sits in the search field's own
+       message slot. Demo: foAddressDemo (?srre=asteptare keeps the request pending). */
     const SRRE_URL = "data/srre-cadastral.json";
-    const SRRE_DELAY_MS = 1400;
+    const SRRE_DELAY_MS = { normal: 1400, lent: 3000 };
+    const SRRE_SKELETON_MIN_MS = 400;
     let srreDb = null;
     let srreLoadPromise = null;
 
@@ -1493,12 +1546,13 @@
     function initCadastralLookup(root, searchRoot, api) {
       const input = searchRoot.querySelector("[data-fo-address-input]");
       const list = searchRoot.querySelector("[data-fo-address-list]");
-      const control = input?.closest(".e-permits-fo-input");
-      const searchHint = root.querySelector("[data-fo-cadastral-search-hint]");
-      const status = root.querySelector("[data-fo-cadastral-status]");
+      const control = input?.closest(".search-input");
+      const slot = root.querySelector("[data-fo-cadastral-search-hint]");
+      const live = root.querySelector("[data-fo-cadastral-live]");
+      const grid = root.querySelector(".e-permits-fo-cascade-address__grid");
       const codeInput = root.querySelector("[data-fo-address-part='cadastralCode']");
-      const codeHint = root.querySelector("[data-fo-cadastral-hint]");
-      if (!input || !status) return;
+      if (!input || !slot) return;
+      const hintText = slot.textContent;
       const field = (selector) => root.querySelector(selector)?.closest(".e-permits-fo-field");
       const selectFields = {
         country: field("[data-fo-address-part='country']"),
@@ -1507,9 +1561,10 @@
         sector: field("[data-fo-cascade-sector]"),
         street: field("[data-fo-cascade-strada]"),
       };
-      const textParts = ["postalCode", "house", "block", "apartment"].map((key) => root.querySelector(`[data-fo-address-part="${key}"]`)).filter(Boolean);
-      const pending = new URLSearchParams(window.location.search).get("srre") === "asteptare";
+      const part = (key) => root.querySelector(`[data-fo-address-part="${key}"]`);
+      const textParts = ["postalCode", "house", "block", "apartment"].map(part).filter(Boolean);
       const isCode = (value) => /^[0-9.]+$/.test(value) && /[0-9]/.test(value);
+      const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
       let timer = null;
       let token = 0;
       let lastCode = "";
@@ -1523,23 +1578,56 @@
         unavailable: { tone: "message--warning e-permits-fo-field__warning", icon: "icon-warning-filled", text: "Adresă indisponibilă. Puteți completa adresa manual." },
       };
 
+      /* the parts SRRE fills, as the user sees them now (a hidden part / sector stays out) */
+      function skeletonFields() {
+        return [
+          codeInput?.closest(".e-permits-fo-field"),
+          ...Object.values(selectFields),
+          ...textParts.map((el) => el.closest(".e-permits-fo-field")),
+        ].filter((el) => el && !el.hidden && el.style.display !== "none");
+      }
+
+      function setSkeleton(on) {
+        root.querySelectorAll("[data-fo-srre-skeleton]").forEach((el) => el.remove());
+        root.querySelectorAll(".e-permits-fo-field.is-srre-loading").forEach((el) => el.classList.remove("is-srre-loading"));
+        if (grid) grid.toggleAttribute("aria-busy", on);
+        if (!on) return;
+        skeletonFields().forEach((fieldEl) => {
+          fieldEl.classList.add("is-srre-loading");
+          fieldEl.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-skeleton e-permits-fo-skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
+        });
+      }
+
+      /* one message slot: the hint by default, the lookup message in its place */
       function setStatus(kind) {
         const message = kind ? MESSAGES[kind] : null;
         control?.classList.toggle("is-error", kind === "invalid");
         if (kind === "invalid") input.setAttribute("aria-invalid", "true");
         else input.removeAttribute("aria-invalid");
-        searchRoot.classList.toggle("is-loading", kind === "loading");
-        if (searchHint) searchHint.hidden = Boolean(message);
-        status.hidden = !message;
-        status.innerHTML = message
-          ? `<p class="message message--inline e-permits-fo-field__error ${message.tone}">${message.icon
+        setSkeleton(kind === "loading");
+        if (!message) {
+          slot.className = "e-permits-fo-field__hint";
+          slot.textContent = hintText;
+        } else {
+          slot.className = `message message--inline e-permits-fo-field__error ${message.tone}`;
+          slot.innerHTML = `${message.icon
             ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${message.icon}"></use></svg>`
-            : '<span class="spinner spinner--small spinner--brand" aria-hidden="true"></span>'}<span>${escapeFrontOfficeHtml(message.text)}</span></p>`
-          : "";
+            : '<span class="spinner spinner--small spinner--brand" aria-hidden="true"></span>'}<span>${escapeFrontOfficeHtml(message.text)}</span>`;
+        }
+        /* screen readers hear the outcome once (not the loader, not the hint) */
+        if (live) live.textContent = kind && kind !== "loading" ? message.text : "";
       }
 
       const checkHtml = '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>';
       const labelText = (fieldEl) => fieldEl?.querySelector("label")?.childNodes[0]?.textContent.trim() || "";
+
+      function flash(wrap) {
+        if (!wrap) return;
+        wrap.classList.remove("is-srre-new");
+        void wrap.offsetWidth;
+        wrap.classList.add("is-srre-new");
+        wrap.addEventListener("animationend", () => wrap.classList.remove("is-srre-new"), { once: true });
+      }
 
       function lockSelect(fieldEl, value, { flag = "" } = {}) {
         if (!fieldEl) return;
@@ -1552,6 +1640,7 @@
             <input type="text" readonly tabindex="-1" value="${escapeFrontOfficeHtml(value)}" aria-label="${escapeFrontOfficeHtml(labelText(fieldEl))}">
             ${checkHtml}
           </div>`);
+        flash(fieldEl.querySelector("[data-fo-srre-value]"));
       }
 
       function lockInput(inputEl, value) {
@@ -1566,7 +1655,10 @@
         wrap.classList.remove("is-disabled");
         wrap.classList.add("is-filled", "is-readonly");
         wrap.querySelector(".icon")?.remove();
-        if (value) wrap.insertAdjacentHTML("beforeend", checkHtml);
+        if (value) {
+          wrap.insertAdjacentHTML("beforeend", checkHtml);
+          flash(wrap);
+        }
       }
 
       function unlockInput(inputEl) {
@@ -1576,7 +1668,7 @@
         inputEl.removeAttribute("tabindex");
         inputEl.value = "";
         if (inputEl.dataset.foPlaceholder !== undefined) inputEl.placeholder = inputEl.dataset.foPlaceholder;
-        wrap.classList.remove("is-filled", "is-readonly");
+        wrap.classList.remove("is-filled", "is-readonly", "is-srre-new");
         wrap.querySelector(".icon")?.remove();
       }
 
@@ -1599,7 +1691,6 @@
           codeInput.value = "";
           codeInput.closest(".e-permits-fo-input")?.querySelector(".icon")?.remove();
         }
-        if (codeHint) codeHint.hidden = true;
       }
       root.foCadastralRelease = release;
 
@@ -1617,7 +1708,6 @@
         lockSelect(selectFields.locality, address.locality);
         if (chisinau) lockSelect(selectFields.sector, address.sector);
         lockSelect(selectFields.street, address.street);
-        const part = (key) => root.querySelector(`[data-fo-address-part="${key}"]`);
         lockInput(part("postalCode"), postalCode);
         lockInput(part("house"), address.house);
         lockInput(part("block"), address.block);
@@ -1627,8 +1717,8 @@
           const wrap = codeInput.closest(".e-permits-fo-input");
           wrap?.querySelector(".icon")?.remove();
           wrap?.insertAdjacentHTML("beforeend", checkHtml);
+          flash(wrap);
         }
-        if (codeHint) codeHint.hidden = false;
         filled = true;
         /* the cascade selects take focus when set: give it back to „Caută adresa” */
         if (keepFocus) input.focus({ preventScroll: true });
@@ -1640,20 +1730,24 @@
         if (!code || code === lastCode) return;
         lastCode = code;
         const run = ++token;
+        const mode = foAddressDemo.srre;
         setStatus("loading");
+        const started = performance.now();
         const db = await loadSrreDb();
-        if (pending) return;
-        await new Promise((resolve) => window.setTimeout(resolve, SRRE_DELAY_MS));
+        if (mode === "asteptare") return;
+        const delay = Math.max(SRRE_SKELETON_MIN_MS, SRRE_DELAY_MS[mode] || SRRE_DELAY_MS.normal);
+        await wait(Math.max(0, delay - (performance.now() - started)));
         if (run !== token) return;
-        const address = db.parcels?.[code];
+        const address = mode === "invalid" ? null : db.parcels?.[code];
+        if (mode === "indisponibil" || address?.unavailable) { release(); setStatus("unavailable"); return; }
         if (!address) { release(); setStatus("invalid"); return; }
-        if (address.unavailable) { release(); setStatus("unavailable"); return; }
         fill(address, code, db.postalCodes?.[address.locality] || "");
         setStatus("success");
       }
 
       /* typing: a message from the previous code goes away at once (AC-21); a code is looked up
-         when typing pauses, on Enter or on leaving the field; an emptied field releases the fill */
+         when typing pauses, on Enter or on leaving the field; an emptied field (× included)
+         releases the fill */
       function onInput(raw) {
         window.clearTimeout(timer);
         const value = String(raw || "").trim();
@@ -1665,6 +1759,7 @@
           return;
         }
         if (value === lastCode) return;
+        token += 1;
         setStatus(null);
         timer = window.setTimeout(() => lookup(value), 900);
       }
@@ -1680,7 +1775,7 @@
         isCode,
         onInput,
         choose: (code) => lookup(code),
-        savedCodes: () => (srreDb?.savedCodes?.[frontOfficeSelectedSubject?.id] || []).map((item) => ({
+        savedCodes: () => (foAddressDemo.saved === "fara" ? [] : (srreDb?.savedCodes?.[frontOfficeSelectedSubject?.id] || [])).map((item) => ({
           cadastral: true,
           code: item.code,
           title: item.code,
@@ -4586,7 +4681,24 @@
           authenticated: "yes",
           intent: pristine.intent ? "yes" : "no",
           acts: "yes",
+          /* US-54 address lookup: the service's own „Cod cadastral” setting is the default */
+          adrField: foAddressDemo.field || (() => {
+            const config = cadastralConfigOfSchema(pristine);
+            if (!config || config.visible === false) return "ascuns";
+            return config.required ? "obligatoriu" : "vizibil";
+          })(),
+          adrSrre: ["lent", "indisponibil", "invalid"].includes(foAddressDemo.srre) ? foAddressDemo.srre : "normal",
+          adrSaved: foAddressDemo.saved,
         };
+
+        /* Adresă · cod cadastral: only the request form's step 2 is drawn again (no screen change) */
+        function applyAddressDemo() {
+          foAddressDemo.field = cfg.adrField;
+          foAddressDemo.srre = cfg.adrSrre;
+          foAddressDemo.saved = cfg.adrSaved;
+          if (frontOfficeSchema) renderFrontOfficeStep2FromSchema(frontOfficeSchema);
+          syncButtons();
+        }
 
         const allowedFor = () => (cfg.eligibility === "BOTH" ? ["PF", "PJ"] : [cfg.eligibility]);
 
@@ -4703,7 +4815,8 @@
           const key = choice.closest("[data-fo-testcfg-group]")?.dataset.foTestcfgGroup;
           if (!key || cfg[key] === choice.dataset.foTestcfgValue) return;
           cfg[key] = choice.dataset.foTestcfgValue;
-          apply();
+          if (key.startsWith("adr")) applyAddressDemo();
+          else apply();
         });
 
         document.addEventListener("keydown", (event) => {
@@ -5599,7 +5712,13 @@
       let activeIndex = 0;
       let hasSelectedAddress = false;
       let visibleAddresses = addresses.slice(0, 2);
-      const searchTrigger = searchRoot.querySelector(".e-permits-fo-input") || input;
+      const searchTrigger = searchRoot.querySelector(".search-input, .e-permits-fo-input") || input;
+      /* a value set from the list: the library search input shows its × (js/search.js only reacts to typing) */
+      const syncSearchValue = () => {
+        const box = input.closest(".search-input");
+        box?.classList.toggle("has-value", Boolean(input.value));
+        box?.classList.toggle("is-ready", Boolean(input.value));
+      };
       const syncFloating = () => {
         if (!list.hidden) positionFloatingSelectList(searchTrigger, list, searchRoot);
       };
@@ -5758,6 +5877,7 @@
         if (!item) return;
         if (item.cadastral) {
           input.value = item.code;
+          syncSearchValue();
           hasSelectedAddress = true;
           setOpen(false);
           input.removeAttribute("aria-activedescendant");
@@ -5765,6 +5885,7 @@
           return;
         }
         input.value = item.value;
+        syncSearchValue();
         hasSelectedAddress = true;
         setOpen(false);
         input.removeAttribute("aria-activedescendant");
@@ -9356,112 +9477,7 @@
             </div>
           `;
         }
-        if (field.type === "address") {
-          const addressLabel = field.label && field.label !== "Adresă pattern" ? field.label : "Adresa unității economice";
-          return `
-            <div class="e-permits-builder__preview-address-pattern">
-              <label for="${inputId}-search">${escapeHtml(addressLabel)}</label>
-              <div class="e-permits-fo-address-search" data-fo-address-search>
-                <div class="e-permits-fo-input e-permits-fo-input--with-action">
-                  <input id="${inputId}-search" type="text" placeholder="Caută adresa" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${inputId}-suggestions" data-fo-address-input>
-                  <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-                </div>
-                <ul class="e-permits-fo-address-search__list" id="${inputId}-suggestions" role="listbox" aria-label="Sugestii adresă" data-fo-address-list hidden></ul>
-              </div>
-              <p class="e-permits-fo-field__hint">Selectarea unei adrese existente pre-completează toate câmpurile</p>
-              <div class="e-permits-fo-address-details e-permits-fo-address-details--smart" data-fo-address-details>
-                <div class="e-permits-fo-field e-permits-fo-field--span-6">
-                  <label for="${inputId}-country">Țara ${requiredMarkHtml()}</label>
-                  <div class="e-permits-fo-select e-permits-fo-select--address is-disabled" data-fo-select>
-                    <button class="e-permits-fo-select__button" id="${inputId}-country" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${inputId}-country-list" disabled>
-                      <span class="e-permits-fo-country-flag" aria-hidden="true">🇲🇩</span>
-                      <span class="e-permits-fo-select__value" data-fo-select-value data-fo-address-part="country" data-placeholder="Moldova">Moldova</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                    </button>
-                    <ul class="e-permits-fo-select__list" id="${inputId}-country-list" role="listbox" aria-labelledby="${inputId}-country" hidden>
-                      <li class="e-permits-fo-select__option is-selected" role="option" aria-selected="true" data-value="Moldova" tabindex="-1">Moldova</li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-6">
-                  <label for="${inputId}-district">Raionul/Municipiul ${requiredMarkHtml()}</label>
-                  <div class="e-permits-fo-select e-permits-fo-select--address" data-fo-select>
-                    <button class="e-permits-fo-select__button" id="${inputId}-district" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${inputId}-district-list">
-                      <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value data-fo-address-part="district" data-placeholder="Selectează raionul/municipiul">Selectează raionul/municipiul</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                    </button>
-                    <ul class="e-permits-fo-select__list" id="${inputId}-district-list" role="listbox" aria-labelledby="${inputId}-district" hidden>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Municipiul Chișinău" tabindex="-1">Municipiul Chișinău</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Municipiul Bălți" tabindex="-1">Municipiul Bălți</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Raionul Ungheni" tabindex="-1">Raionul Ungheni</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Raionul Orhei" tabindex="-1">Raionul Orhei</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Raionul Cahul" tabindex="-1">Raionul Cahul</li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-6">
-                  <label for="${inputId}-locality">Orașul/Comuna</label>
-                  <div class="e-permits-fo-select e-permits-fo-select--address is-disabled" data-fo-select>
-                    <button class="e-permits-fo-select__button" id="${inputId}-locality" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${inputId}-locality-list" disabled>
-                      <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value data-fo-address-part="locality" data-placeholder="Selectează mai întâi Raionul/Municipiul">Selectează mai întâi Raionul/Municipiul</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                    </button>
-                    <ul class="e-permits-fo-select__list" id="${inputId}-locality-list" role="listbox" aria-labelledby="${inputId}-locality" hidden>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Chișinău" tabindex="-1">Chișinău</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Bălți" tabindex="-1">Bălți</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Ungheni" tabindex="-1">Ungheni</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Orhei" tabindex="-1">Orhei</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Cahul" tabindex="-1">Cahul</li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-8">
-                  <label for="${inputId}-street">Strada</label>
-                  <div class="e-permits-fo-select e-permits-fo-select--address is-disabled" data-fo-select>
-                    <button class="e-permits-fo-select__button" id="${inputId}-street" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${inputId}-street-list" disabled>
-                      <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value data-fo-address-part="street" data-placeholder="Selectează orașul/comuna mai întâi">Selectează orașul/comuna mai întâi</span>
-                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                    </button>
-                    <ul class="e-permits-fo-select__list" id="${inputId}-street-list" role="listbox" aria-labelledby="${inputId}-street" hidden>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Calea Ieșilor" tabindex="-1">Calea Ieșilor</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Bulevardul Ștefan cel Mare și Sfânt" tabindex="-1">Bulevardul Ștefan cel Mare și Sfânt</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Strada București" tabindex="-1">Strada București</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Strada Alexandru cel Bun" tabindex="-1">Strada Alexandru cel Bun</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Bulevardul Dacia" tabindex="-1">Bulevardul Dacia</li>
-                      <li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="Strada Independenței" tabindex="-1">Strada Independenței</li>
-                    </ul>
-                  </div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                  <label for="${inputId}-postal">Codul Poștal</label>
-                  <div class="e-permits-fo-input">
-                    <input id="${inputId}-postal" type="text" placeholder="MD-0000" disabled data-fo-address-part="postalCode">
-                  </div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                  <label for="${inputId}-house">Casa</label>
-                  <div class="e-permits-fo-input"><input id="${inputId}-house" type="text" placeholder="Nr." data-fo-address-part="house"></div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                  <label for="${inputId}-block">Blocul</label>
-                  <div class="e-permits-fo-input"><input id="${inputId}-block" type="text" placeholder="Nr." data-fo-address-part="block"></div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                  <label for="${inputId}-stair">Scara</label>
-                  <div class="e-permits-fo-input"><input id="${inputId}-stair" type="text" placeholder="Scara" data-fo-address-part="stair"></div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                  <label for="${inputId}-floor">Etajul</label>
-                  <div class="e-permits-fo-input"><input id="${inputId}-floor" type="text" placeholder="0" data-fo-address-part="floor"></div>
-                </div>
-                <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                  <label for="${inputId}-apartment">Apartamentul</label>
-                  <div class="e-permits-fo-input"><input id="${inputId}-apartment" type="text" placeholder="Numărul ap." data-fo-address-part="apartment"></div>
-                </div>
-              </div>
-            </div>
-          `;
-        }
+        if (field.type === "address") return builderAddressPreviewHtml(field);
         if (field.type === "select" || field.type === "caem") {
           return previewSelectHtml(field, inputId);
         }
@@ -9480,6 +9496,30 @@
           `;
         }
         return `<div class="e-permits-fo-input">${commonInput}</div>`;
+      }
+
+      /* the Address pattern in Preview = the request form's cascade address (cascadeAddressHtml),
+         fed by the builder's current config: Vizibilitate hides a part, Obligatoriu adds the star,
+         „Cod cadastral” brings the US-54 lookup (skeleton, messages, ×) — builder ↔ form never
+         diverge. The sector stays conditional (Orașul/Comuna = Chișinău). */
+      function builderAddressPreviewHtml(field) {
+        const config = Array.isArray(field.addressConfig) ? field.addressConfig : addressConfigFor({ addressConfig: [] });
+        const parts = {};
+        config.forEach((part) => {
+          if (part.key === "sector" || part.key === "cadastral") return;
+          parts[part.key] = { visible: part.visible !== false, required: Boolean(part.required) };
+        });
+        const cadastral = config.find((part) => part.key === "cadastral");
+        const label = field.label && field.label !== "Adresă pattern" ? field.label : "Adresa unității economice";
+        return cascadeAddressHtml({
+          id: field.fieldId || field.id || "address",
+          span: 12,
+          searchLabel: label,
+          required: field.required,
+          parts,
+          cadastral: cadastral ? { visible: cadastral.visible !== false, required: Boolean(cadastral.required) } : null,
+          districts: cascadeAddressFieldOfSchema(frontOfficeSchema)?.districts || [],
+        });
       }
 
       function renderCitizenPreview(fields) {
@@ -9528,9 +9568,7 @@
           const inputId = `builder-preview-${field.fieldId || field.id || index}`.replace(/[^a-zA-Z0-9_-]/g, "-");
           node.className = `e-permits-fo-field e-permits-fo-field--span-${span}`;
           if (field.type === "address") {
-            node.className = "e-permits-fo-field e-permits-fo-field--span-12";
-            node.innerHTML = previewFieldControl(field, inputId);
-            previewGrid.appendChild(node);
+            previewGrid.insertAdjacentHTML("beforeend", builderAddressPreviewHtml(field));
             return;
           }
           node.innerHTML = `
@@ -9543,6 +9581,7 @@
           previewGrid.appendChild(node);
         });
         previewGrid.querySelectorAll("[data-fo-select]").forEach(bindFoSelect);
+        previewGrid.querySelectorAll("[data-fo-cascade-address]").forEach(initCascadeAddress);
         previewGrid.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
       }
 
@@ -9583,6 +9622,8 @@
       bindSections();
       setSelected(selectedField || getFields()[0]);
       renderPreviewAndSchema();
+      /* the preview's address lists (raioane, localități) come from the service schema */
+      Promise.resolve(frontOfficeSchemaLoadPromise).then(() => { if (frontOfficeSchema) renderCitizenPreview(getFields().map(fieldData)); });
       loadSandboxDatabase().then(() => {
         const record = sandboxDb?.forms.find((form) => form.id === activeFormId) || sandboxDb?.forms[0];
         if (record) applyFormRecord(record);
