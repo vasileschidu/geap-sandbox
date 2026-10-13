@@ -1411,6 +1411,142 @@
             "fb-43": fb(async (h) => { await preview(h); await h.fill(`${PV} input[type='email']`, "obiect@"); await validate(h); }),
             "fb-43a": fb(async (h) => { await preview(h); await h.click("[data-fb-preview-fill]"); await validate(h); })
           };
+        })(),
+
+        /* ---- batch 4 (1:N): Grilă editabilă (US-33…39) · Activități CAEM (US-40) · Bloc repetabil.
+           F09 = the seed form of service 09 (CAEM block, equipment grid with a nested grid, work
+           points with a cascade). QA scope: #form-builder-modal; the FO grid/block = the Preview. */
+        ...(() => {
+          const F09 = { formular: "form-sanitary-09" };
+          const PV = "[data-builder-preview-grid]";
+          const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(400); };
+          const validate = async (h) => { await h.click("[data-fb-preview-validate]"); await h.wait(400); };
+          const chip = (id) => `[data-fb-child='${id}']`;
+          const band = (type) => `[data-builder-field][data-type='${type}'] .e-permits-builder__sub-add`;
+          const equip = `${PV} [data-fb-field='fld-equipment']`;
+          const caem = `${PV} [data-fb-field='fld-caem']`;
+          /* a CAEM code picked the way the FO list acts (mousedown on the option) */
+          const pickCode = (scope, code, card = 0) => async (h) => {
+            await h.find(`${scope} [data-fo-repeat-item]`);
+            document.querySelectorAll(`${scope} [data-fo-repeat-item]`)[card].querySelector(`.e-permits-fo-caem__option[data-code='${code}']`).dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+            await h.wait(300);
+          };
+          const fillGrid = (scope) => async (h) => { const cell = await h.find(scope); window.GEAPFoRepeat.fill(cell); await h.wait(300); };
+          /* a generic block: „Vehicule” with Nr. de înmatriculare (max 2) — max reached in the Preview */
+          const vehicles = async (h) => {
+            await h.click("[data-builder-component='repeat']");
+            await h.fill("[data-fb-prop='label']", "Vehicule", { leave: false });
+            await h.fill("[data-fb-prop='itemTitle']", "Vehicul", { leave: false });
+            await h.fill("[data-fb-prop='addLabel']", "Adaugă alt vehicul", { leave: false });
+            await h.click(band("repeat"));
+            await h.click("[data-builder-field][data-type='repeat'] [data-fb-add-child='text']");
+            await h.fill("[data-fb-prop='label']", "Nr. de înmatriculare", { leave: false });
+            await h.click(".e-permits-builder__back");
+            await h.click("[data-builder-prop-tab='validation']");
+            await h.fill("[data-fb-prop='rowRules.maxRows']", "2", { leave: false });
+          };
+          return {
+            /* 50 palette: Grilă editabilă + Bloc repetabil usable (no „În curând”), Activități CAEM saved */
+            "fb-50": fb(async (h) => { await h.scroll("#fb-lib-repeat"); }),
+            "fb-50a": fb(async (h) => { await h.fill("[data-builder-library-search]", "caem", { leave: false }); }),
+            /* 51 a new grid: no columns (US-34), the band and the Date tab · 51a the typed menu, complex locked */
+            "fb-51": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='grid']"); }),
+            "fb-51a": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.scroll("[data-builder-field][data-type='grid']"); await h.click(band("grid")); }),
+            /* 52 column editor of the equipment grid · 52a a column selected (the field panel, US-34 AC-03)
+               · 52b a palette type dragged over the band (insertion line) */
+            "fb-52": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-id='fld-equipment']"); }, F09),
+            "fb-52a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); }, F09),
+            "fb-52b": fb(async (h) => {
+              const target = await h.scroll(chip("col-09-cap"));
+              const item = await h.find("[data-builder-component='date']");
+              const dt = new DataTransfer();
+              item.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+              const r = target.getBoundingClientRect();
+              target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 6, clientY: r.top + r.height / 2 }));
+              await h.wait(200);
+            }, F09),
+            /* 53 row rules (US-36): min / max / key / page size · 53a a list column: Date + cascade (US-37) */
+            "fb-53": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='validation']"); }, F09),
+            "fb-53a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-points']"); await h.click(chip("col-09-loc")); await h.click("[data-builder-prop-tab='data']"); await h.scroll("#fb-p-dataSource-parentFieldId"); }, F09),
+            /* 54 a nested grid (US-38): its columns, level 2 of 3 · 54a level 3: no deeper grid */
+            "fb-54": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-parts")); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            "fb-54a": fb(async (h) => {
+              await h.scroll("[data-builder-field][data-id='fld-equipment']");
+              await h.click(chip("col-09-parts"));
+              await h.click("[data-builder-prop-tab='data']");
+              await h.click("[aria-controls='fb-addchild-col-09-parts-panel']");
+              await h.click("[data-fb-add-child='grid'][data-container='col-09-parts']");
+              await h.click("[data-builder-prop-tab='data']");
+              const level3 = window.GEAPFormBuilder.state.sel.id;
+              await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
+              await h.click(`[data-fb-add-child='text'][data-container='${level3}']`);
+              await h.click(".e-permits-builder__back");
+              await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
+            }, F09),
+            /* 55 the FO grid filled (Preview desktop) · 55a a row in edit mode (click on a cell) · 55b a
+               nested grid opened under its row */
+            "fb-55": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.scroll(equip); }, F09),
+            "fb-55a": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} [data-fo-grid-cell='Denumire']`); await h.scroll(`${equip} .is-editing`); }, F09),
+            "fb-55b": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} [data-fo-grid-nested]`); await h.click(`${equip} .e-permits-fo-grid__detail [data-fo-grid-add]`); await h.scroll(`${equip} .e-permits-fo-grid__detail`); }, F09),
+            /* 56 errors: a new row with an inventory number already used + empty required cells (US-36 AC-03,
+               US-35 AC-07) · 56a „Validează”: under the minimum + a work point never filled */
+            "fb-56": fb(async (h) => {
+              await preview(h); await fillGrid(equip)(h);
+              await h.click(`${equip} [data-fo-grid-add]`);
+              await h.fill(`${equip} .is-editing [data-col='NrInventar'] input`, "INV-0012", { leave: false });
+              await h.click(`${equip} .is-editing [data-fo-grid-act='save']`);
+              await h.scroll(`${equip} .is-editing`);
+            }, F09),
+            "fb-56a": fb(async (h) => { await preview(h); await validate(h); await h.scroll(equip); }, F09),
+            /* 56b delete asks first (US-35 AC-04): the FO dialog, destructive */
+            "fb-56b": fb(async (h) => { await preview(h); await fillGrid(equip)(h); await h.click(`${equip} [data-fo-grid-act='delete']`); }, F09),
+            /* 57 phone: the Preview › Mobil frame, rows as cards (US-39 AC-02) */
+            "fb-57": fb(async (h) => {
+              await preview(h);
+              await h.click("[data-fb-preview-device='mobile']");
+              await h.wait(2200);
+              const frame = document.querySelector("[data-fb-device-frame]");
+              const doc = frame.contentDocument;
+              const cell = doc.querySelector("[data-fb-field='fld-equipment']");
+              frame.contentWindow.GEAPFoRepeat.fill(cell);
+              await h.wait(300);
+              cell.scrollIntoView({ block: "start" });
+            }, F09),
+            /* 58 Activități CAEM inserted from the palette (a saved component, linked) · 58a its band +
+               fields · 58b the FO: the first code fixes the section, the other sections are off (US-40 AC-03) */
+            "fb-58": fb(async (h) => { await h.scroll("[data-fb-preset='preset-caem']"); await h.click("[data-fb-preset='preset-caem']"); await h.scroll("[data-builder-field][data-type='repeat']"); }),
+            "fb-58a": fb(async (h) => { await h.click("[data-fb-preset='preset-caem']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-type='repeat']"); }),
+            "fb-58b": fb(async (h) => {
+              await preview(h);
+              await pickCode(caem, "I 56.10")(h);
+              await h.click(`${caem} [data-fo-repeat-add]`);
+              await pickCode(caem, "I 56.30", 1)(h);
+              await h.scroll(`${caem} [data-fo-repeat-item]:nth-child(2)`);
+            }, F09),
+            /* 59 Bloc repetabil config: fields (Date) · 59a rules (Validare: key + group = CAEM, min 1)
+               · 59b the FO with 2 elements · 59c max reached · 59d remove → toast with „Anulează” */
+            "fb-59": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-caem']"); await h.click("[data-builder-prop-tab='data']"); }, F09),
+            "fb-59a": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-caem']"); await h.click("[data-builder-prop-tab='validation']"); }, F09),
+            "fb-59b": fb(async (h) => { await preview(h); await fillGrid(caem)(h); await h.scroll(caem); }, F09),
+            "fb-59c": fb(async (h) => {
+              await vehicles(h);
+              await preview(h);
+              const block = `${PV} [data-fb-field='${window.GEAPFormBuilder.state.sel.id}']`;
+              await h.click(`${block} [data-fo-repeat-add]`);
+              await h.scroll(`${block} [data-fo-repeat-limit]`);
+            }),
+            "fb-59d": fb(async (h) => { await preview(h); await fillGrid(caem)(h); await h.click(`${caem} [data-fo-repeat-item]:nth-child(2) [data-fo-repeat-remove]`); await h.scroll(caem); }, F09),
+            /* 60 Validare in the Preview on the CAEM block: a code without its subgenre, the minimum */
+            "fb-60": fb(async (h) => { await preview(h); await pickCode(caem, "I 56.10")(h); await validate(h); await h.scroll(caem); }, F09),
+            /* 61 a classifier source down (US-39 AC-03 / US-40 AC-06): message + Reîncearcă + Introdu manual
+               · 61a loading skeleton */
+            "fb-61": fb(async (h) => { await preview(h); await h.scroll(`${PV} [data-fb-field='fld-points']`); }, { ...F09, sursa: "indisponibila" }),
+            "fb-61a": fb(async (h) => { await preview(h); await h.scroll(`${PV} [data-fb-field='fld-points']`); }, { ...F09, sursa: "asteptare" }),
+            /* 62 Schema: grids / blocks with their rows table (US-33 AC-02/03) */
+            "fb-62": fb(async (h) => { await h.click("[data-builder-mode='schema']"); await h.wait(300); const code = await h.find("[data-builder-schema-code]"); const at = code.textContent.indexOf('"storage"'); const pre = code.closest("pre") || code; pre.scrollTop = Math.max(0, (code.textContent.slice(0, at).split("\n").length - 6) * 20); }, F09),
+            /* 63 validation summary: a grid without columns, a block without fields */
+            "fb-63": fb(async (h) => { await h.click("[data-builder-component='grid']"); await h.click("[data-builder-component='repeat']"); await h.click("[data-fb-errors]"); })
+          };
         })()
       };
     })(),

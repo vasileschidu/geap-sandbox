@@ -105,6 +105,463 @@
   }
 }
 
+/* ===== Grilă editabilă — FO (batch 4, 2026-10-13; components.md „Editable grid (FO)”) =====
+   Library `.table.table--subtle` with explicit ARIA roles, geometry scoped here: 12 inset, head 38
+   (12/16 medium, secondary on grey), body 14/20, lines only (no outer box), no zebra, last row
+   without a divider, hover = tertiary on rows that are not being edited. Below 600 px of the grid's
+   own width (container query: the FO at 375, a narrow canvas card) every row is a card. */
+.e-permits-fo-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-fo-grid__label {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-fo-grid__frame {
+  min-width: 0;
+}
+
+/* fixed layout: the columns share the row (widths from the builder), inputs shrink with them */
+.e-permits-fo-grid__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  table-layout: fixed;
+  width: 100%;
+}
+
+.e-permits-fo-grid__table .table__head-cell {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: calc(var(--spacing-32, 32px) + var(--spacing-6, 6px));
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  vertical-align: middle;
+}
+
+.e-permits-fo-grid__table .table__head-cell:first-child {
+  border-top-left-radius: var(--border-radius-8, 8px);
+}
+
+.e-permits-fo-grid__table .table__head-cell:last-child {
+  border-top-right-radius: var(--border-radius-8, 8px);
+}
+
+.e-permits-fo-grid__table .table__head-cell .e-permits-fo-required {
+  vertical-align: middle;
+}
+
+.e-permits-fo-grid__table .table__body-cell,
+.e-permits-fo-grid__table .table__row:nth-child(even) .table__body-cell {
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  height: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  vertical-align: middle;
+}
+
+.e-permits-fo-grid__table > tbody > .table__row:last-child > .table__body-cell {
+  border-bottom: 0;
+}
+
+.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing):hover > .table__body-cell {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-grid__table tr[hidden] {
+  display: none;
+}
+
+/* a row being edited: FO inputs in the cells (their labels are read by screen readers only) */
+.e-permits-fo-grid__row.is-editing > .table__body-cell {
+  vertical-align: top;
+}
+
+.e-permits-fo-grid__row.is-editing > .e-permits-fo-grid__index,
+.e-permits-fo-grid__row.is-editing > .e-permits-fo-grid__actions {
+  padding-top: var(--spacing-12, 12px);
+}
+
+.e-permits-fo-grid__cell > .e-permits-fo-field > label,
+.e-permits-fo-grid__cell > .e-permits-fo-field > .e-permits-fo-field__label-counter,
+.e-permits-fo-grid__cell > fieldset > .e-permits-fo-choice__legend,
+.e-permits-fo-grid__cell .e-permits-fo-consent > span:last-child {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.e-permits-fo-grid__cell > .e-permits-fo-field,
+.e-permits-fo-grid__cell > fieldset {
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+/* controls follow their column (fixed layout): never wider than the cell */
+.e-permits-fo-grid__cell :is(.e-permits-fo-input, .e-permits-fo-select, .e-permits-fo-subgen-select, .date-picker__field) {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.e-permits-fo-grid__nested-toggle {
+  max-width: 100%;
+}
+
+.e-permits-fo-grid__nested-toggle > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.e-permits-fo-grid__cell-label,
+.e-permits-fo-grid__index-title,
+.e-permits-fo-grid__actions-full {
+  display: none;
+}
+
+.e-permits-fo-grid__index {
+  color: var(--color-text-base-tertiary, #757575);
+  width: var(--spacing-56, 56px);
+}
+
+
+.e-permits-fo-grid__actions {
+  text-align: right;
+  white-space: nowrap;
+  width: calc(var(--spacing-32, 32px) * 2 + var(--spacing-8, 8px) + var(--spacing-24, 24px));
+}
+
+.e-permits-fo-grid__actions-compact {
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-end;
+}
+
+/* a saved value: the whole cell is the click target of „click to edit” (US-35 AC-01) */
+.e-permits-fo-grid__value {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.e-permits-fo-grid__value.is-empty {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* the cell under the pointer is the click target: a soft pill around its value (no layout shift) */
+.e-permits-fo-grid__value:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+  box-shadow: 0 0 0 var(--spacing-4, 4px) var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-fo-grid__value:focus-visible {
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+  outline: none;
+}
+
+/* nested grid (US-38): label + chevron, opens the sub-grid in a detail row under the row */
+.e-permits-fo-grid__nested-toggle .icon {
+  transition: transform var(--motion-duration-md, 200ms) var(--motion-easing-standard, ease);
+}
+
+.e-permits-fo-grid__nested-toggle[aria-expanded="true"] .icon {
+  transform: rotate(180deg);
+}
+
+.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail > .table__body-cell,
+.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail:hover > .table__body-cell {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  height: auto;
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-grid__table > tbody > .e-permits-fo-grid__empty > .table__body-cell {
+  height: auto;
+  padding: 0;
+}
+
+.e-permits-fo-grid__foot {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-grid__limit {
+  margin: 0;
+}
+
+.e-permits-fo-grid__pager {
+  margin-left: auto;
+}
+
+.e-permits-fo-grid__pager .pagination__link {
+  appearance: none;
+  border: 0;
+  font-family: inherit;
+}
+
+.e-permits-fo-grid__pager .pagination__link:not(.pagination__link--active):not(:disabled):hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-grid__source,
+.e-permits-fo-grid__source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-grid__source {
+  flex-direction: column;
+}
+
+.e-permits-fo-grid__skeleton .e-permits-fo-skeleton--label {
+  display: block;
+  width: var(--spacing-24, 24px);
+}
+
+/* „Adaugă rând / alt …” at the maximum: the FO add button, disabled with its reason */
+.e-permits-fo-add-activity[aria-disabled="true"],
+.e-permits-fo-add-activity[aria-disabled="true"]:hover {
+  background: var(--color-background-base-default, #fff);
+  border-color: var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-tertiary, #757575);
+  cursor: not-allowed;
+}
+
+/* every row a card: label over value, labelled buttons (≥ 44 px targets on touch, US-39 AC-02).
+   `is-cards` = below 600 px of the grid's own width, or when its columns would not fit (layout()).
+   Scoped to this grid's own table (a nested grid decides for itself). */
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+/* no header row on cards: every value carries its own label */
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > thead {
+  display: none;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-20, 20px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .table__body-cell,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing):hover > .table__body-cell,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__empty > .table__body-cell,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail > .table__body-cell {
+  background: transparent;
+  border: 0;
+  display: block;
+  height: auto;
+  padding: 0;
+  width: auto;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__empty {
+  display: block;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__detail {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-16, 16px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > tr[hidden] {
+  display: none;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-num {
+  display: none;
+}
+
+/* the card title = the FO activity card title (#1 tag + name) */
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-title {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-title > strong {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__index-tag {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-24, 24px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: 0 var(--spacing-8, 8px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row:not(.is-editing) .e-permits-fo-grid__cell-label,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row.is-editing > [data-type="grid"] > .e-permits-fo-grid__cell-label {
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-bottom: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__value {
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: var(--spacing-4, 4px) 0;
+  white-space: normal;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__value:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell > .e-permits-fo-field > label,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell > .e-permits-fo-field > .e-permits-fo-field__label-counter,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell > fieldset > .e-permits-fo-choice__legend,
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__cell .e-permits-fo-consent > span:last-child {
+  clip: auto;
+  clip-path: none;
+  height: auto;
+  overflow: visible;
+  position: static;
+  white-space: normal;
+  width: auto;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row > .e-permits-fo-grid__actions {
+  text-align: left;
+  white-space: normal;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-compact {
+  display: none;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-full {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-full .btn {
+  position: relative;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__frame > .e-permits-fo-grid__table > tbody > .e-permits-fo-grid__row .e-permits-fo-grid__actions-full .btn::before {
+  content: "";
+  inset: calc(var(--spacing-2, 2px) * -1) 0;
+  position: absolute;
+}
+
+.e-permits-fo-grid.is-cards > .e-permits-fo-grid__foot > .e-permits-fo-grid__pager {
+  margin-left: 0;
+}
+
+/* error state of the multi-select and the CAEM combobox = the .e-permits-fo-select.is-error convention
+   (red border; red ring on hover / focus / open) — grid cells, block cards, Preview „Validează” */
+.e-permits-fo-subgen-select.is-error .e-permits-fo-subgen-select__button,
+.e-permits-fo-caem.is-error .e-permits-fo-caem__button {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-subgen-select.is-error .e-permits-fo-subgen-select__button:hover,
+.e-permits-fo-caem.is-error .e-permits-fo-caem__button:hover {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-subgen-select.is-error .e-permits-fo-subgen-select__button:focus-visible,
+.e-permits-fo-subgen-select.is-error.is-open .e-permits-fo-subgen-select__button,
+.e-permits-fo-caem.is-error .e-permits-fo-caem__button:focus-visible,
+.e-permits-fo-caem.is-error.is-open .e-permits-fo-caem__button {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+/* ===== Bloc repetabil — FO (batch 4; components.md „Repeatable block (FO)”): the FO activity card
+   per element + „Adaugă alt …” (the CAEM activities are its configured preset) ===== */
+.e-permits-fo-repeat {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20, 20px);
+  grid-column: 1 / -1;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-fo-repeat > .e-permits-fo-choice__legend {
+  margin-bottom: 0;
+}
+
+.e-permits-fo-repeat__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20, 20px);
+}
+
+.e-permits-fo-repeat__list:empty {
+  display: none;
+}
+
+.e-permits-fo-repeat__limit {
+  margin: calc(var(--spacing-12, 12px) * -1) 0 0;
+}
+
 /* ===== Builder chrome ===== */
 
 /* the editor never scrolls as a whole (scrollIntoView used to shift the topbar): clip, not hidden */
@@ -455,6 +912,202 @@
 /* Preview: every section keeps the FO bottom padding (the old preview had one section only) */
 .e-permits-builder__preview .e-permits-fo-form__section-body {
   padding-bottom: var(--spacing-32, 32px);
+}
+
+/* ===== 1:N containers on the canvas (batch 4): the band of columns / block fields ===== */
+.e-permits-builder__subs {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  padding-bottom: var(--spacing-12, 12px);
+  position: relative;
+}
+
+.e-permits-builder__subs-label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  margin-right: var(--spacing-4, 4px);
+}
+
+/* a child chip: the outlined step-chip geometry (32 high, 14/20 medium); selected = brand, error = red */
+.e-permits-builder__sub {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-default, #121212);
+  cursor: grab;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-20, 20px);
+  max-width: 100%;
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-builder__sub > span:not(.e-permits-fo-required) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-builder__sub > .icon:first-child {
+  flex: 0 0 auto;
+}
+
+.e-permits-builder__sub:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-builder__sub:focus-visible {
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+  outline: none;
+}
+
+.e-permits-builder__sub.is-selected {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-builder__sub.is-selected:hover {
+  background: var(--color-background-brand-secondary-hover, #d1e1f8);
+}
+
+.e-permits-builder__sub.has-issue {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-builder__sub.has-issue > .icon:last-child {
+  flex: 0 0 auto;
+}
+
+.e-permits-builder__sub.is-dragging {
+  opacity: 0.4;
+}
+
+/* „+ Coloană” / „+ Câmp”: the canvas dropzone look (dashed), at chip size; open = pressed */
+.e-permits-builder__sub-add {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: var(--border-width-1, 1px) dashed var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-4, 4px);
+  height: var(--spacing-32, 32px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
+}
+
+.e-permits-builder__sub-add:hover,
+.e-permits-builder__sub-add[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-builder__sub-add:focus-visible,
+.e-permits-builder__sub-add[aria-expanded="true"] {
+  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+  outline: none;
+}
+
+/* the band menu opens to the right of „+ Coloană” (the add-field menu centres under a full-width zone) */
+.e-permits-builder__sub-add-wrap .e-permits-builder__add-menu,
+.e-permits-builder__inline-actions > .e-permits-builder__add-menu {
+  left: 0;
+  max-height: min(420px, 60vh);
+  overflow-y: auto;
+  right: auto;
+  transform: none;
+}
+
+.e-permits-builder__inline-actions.e-permits-stack__menu-wrap {
+  position: relative;
+}
+
+/* menu group headings (Coloane simple · Coloane complexe · Copie a unui câmp) reuse the issues head */
+.e-permits-builder__add-menu .e-permits-builder__issues-head:not(:first-child) {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  margin-top: var(--spacing-4, 4px);
+}
+
+/* the back link from a column / block field to its grid / block */
+.e-permits-builder__back {
+  margin-left: calc(var(--spacing-8, 8px) * -1);
+}
+
+/* ===== Hover — every element of the editor shows one (memory „Hover everywhere”, 2026-10-13).
+   The older rules used `filter: brightness(.97)` (invisible) and a LIGHTER white veil on the mode
+   switch; tokens now: on grey (base tertiary) → tertiary-hover, on black (selected) → inverse-default-hover,
+   white cards → secondary border + the card elevation (shadow 200). ===== */
+.e-permits-builder__version:hover,
+.e-permits-builder__service-scope:hover,
+.e-permits-builder__publish:hover,
+.e-permits-builder__step-chip:hover,
+.e-permits-builder__step-chip:focus-visible {
+  filter: none;
+}
+
+.e-permits-builder__version:hover,
+.e-permits-builder__version[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-builder__mode button:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-builder__mode button:focus-visible {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-builder__mode button.is-active:hover {
+  background: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+.e-permits-builder__mode button.is-active:focus-visible {
+  background: var(--color-background-base-inverse, #1e1e1e);
+}
+
+.e-permits-builder__step-chip:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-builder__step-chip.is-active:hover {
+  background: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+.e-permits-builder__step-chip:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+/* a field card: a darker border + the card elevation; the selected one keeps its brand ring and lifts too */
+.e-permits-builder__field:hover {
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-builder__field.is-selected:hover {
+  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb), var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+/* a read-only value in the panel (the text can still be selected and copied) */
+.e-permits-builder__panel .e-permits-fo-input.is-readonly:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
 }
 
 /* ===== Topbar ===== */

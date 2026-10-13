@@ -19,6 +19,9 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ?fbframe=1: this page is the phone frame of a builder's Preview (Desktop / Mobil) — it shows
      only the Preview and draws whatever the parent posts (form, step, language) */
   const FRAME = new URLSearchParams(window.location.search).get("fbframe") === "1";
+  /* ?formular=<id>: open another form of the sandbox DB (e.g. form-sanitary-09: CAEM block + grids);
+     a view for demos and checks — it does not become the active form */
+  const FORM_PARAM = new URLSearchParams(window.location.search).get("formular") || "";
   const overlay = builder.closest("#form-builder-modal");
   if (overlay && overlay.parentElement !== document.body) document.body.appendChild(overlay);
 
@@ -130,8 +133,9 @@ document.addEventListener("DOMContentLoaded", () => {
     address: { label: "Adresă", icon: "icon-map-pin", category: "registry", desc: "Adresă structurată, cod cadastral", span: 12, tabs: CHOICE_TABS, defaults: () => ({ addressConfig: [] }) },
     contact: { label: "Persoana de contact", icon: "icon-contacts", category: "registry", desc: "Eu / altă persoană", span: 12, fixed: true, tabs: [T_GEN, T_DATA, T_LOGIC, T_ADV], defaults: () => ({ contactDefault: "self", contactParts: clone(CONTACT_PARTS_DEFAULT) }) },
     subdivision: { label: "Subdiviziune", icon: "icon-group", category: "registry", desc: "Subdiviziunea care examinează", span: 4, tabs: CHOICE_TABS, defaults: () => ({ subdivisionSource: "reg_subdiv_ansa", subdivisionMode: "derived", addressFieldId: "", subdivisionAuto: "" }) },
-    grid: { label: "Grilă editabilă", icon: "icon-dot-grid", category: "repeat", desc: "Tabel cu rânduri adăugate de solicitant", soon: 4 },
-    repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", soon: 4 },
+    /* batch 4 (1:N): a table of rows (US-33…39) and a card per element (the CAEM activities model) */
+    grid: { label: "Grilă editabilă", icon: "icon-dot-grid", category: "repeat", desc: "Tabel cu rânduri adăugate de solicitant", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => gridDefaults() },
+    repeat: { label: "Bloc repetabil", icon: "icon-page-add", category: "repeat", desc: "„Adaugă alt…” pentru obiecte repetate", span: 12, fixed: true, container: true, tabs: CHOICE_TABS, defaults: () => repeatDefaults() },
     file: { label: "Fișier", icon: "icon-attachment", category: "files", desc: "Încărcare PDF, imagini", span: 12, fixed: true, tabs: INPUT_TABS, defaults: () => ({ fileTypes: ["PDF", "JPG", "PNG"], maxSizeMb: 10, maxFiles: 1, validation: { message: i18n() } }) },
     mdocs: { label: "Document din MDocs", icon: "icon-cloud-upload", category: "files", desc: "Alege din MDocs sau încarcă", span: 12, fixed: true, tabs: CHOICE_TABS, defaults: () => ({ docType: "" }) },
     section: { label: "Secțiune", icon: "icon-templates", category: "structure", desc: "Grupează câmpurile, cu titlu", structural: true },
@@ -154,7 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ------------------------------------------- classifier registry (US-22, moved from the old builder) */
   const classifierRegistry = [
-    { id: "reg_caem", displayName: "Coduri CAEM", physicalTable: "GEAP_d_caem", visibility: "global", multilingual: true, searchable: true, rowCount: 2, availableColumns: ["code", "name"], treeKey: "code", parentColumns: ["parent_code"] },
+    { id: "reg_caem", displayName: "Coduri CAEM", physicalTable: "GEAP_d_caem", visibility: "global", multilingual: true, searchable: true, rowCount: 5, availableColumns: ["code", "name", "section"], treeKey: "code", parentColumns: ["parent_code"], groupColumn: "section" },
+    { id: "reg_caem_subgen", displayName: "Subgenuri de activitate", physicalTable: "GEAP_d_SubgenuriActivitate", visibility: "global", multilingual: true, searchable: true, rowCount: 11, availableColumns: ["code", "name", "caem_code"], parentColumns: ["caem_code"] },
     { id: "reg_raioane", displayName: "Raioane", physicalTable: "GEAP_d_raioane", visibility: "global", multilingual: true, searchable: false, rowCount: 43, availableColumns: ["code", "name"] },
     { id: "reg_localitati", displayName: "Localități", physicalTable: "GEAP_d_localitati", visibility: "global", multilingual: true, searchable: true, rowCount: 1843, availableColumns: ["code", "name"], parentColumns: ["raion_id"] },
     { id: "reg_tari", displayName: "Țări", physicalTable: "GEAP_d_tari", visibility: "global", multilingual: true, searchable: true, rowCount: 4, availableColumns: ["code", "name"] },
@@ -165,9 +170,11 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "reg_subdiv_ansp", displayName: "Subdiviziuni ANSP", physicalTable: "GEAP_d_Subdiviziuni_ANSP", visibility: "authority", multilingual: true, searchable: false, rowCount: 4, availableColumns: ["code", "name", "raion"], kind: "subdivisions" },
   ];
   const CLASSIFIER_ROWS = {
-    reg_caem: [{ code: "I 56.10", name: "Restaurante" }, { code: "I 56.30", name: "Baruri și alte activități de servire a băuturilor" }, { code: "G 47.11", name: "Comerț cu amănuntul în magazine nespecializate" }],
+    /* the codes in the service passport (the FO list of service 09) + one of another section; group = CAEM section */
+    reg_caem: [{ code: "I 56.10", name: "Restaurante", group: "I" }, { code: "I 56.21", name: "Activități de alimentație pentru evenimente", group: "I" }, { code: "I 56.30", name: "Baruri și alte activități de servire a băuturilor", group: "I" }, { code: "G 47.11", name: "Comerț cu amănuntul în magazine nespecializate", group: "G" }, { code: "P 85.20", name: "Învățământ primar", group: "P" }],
+    reg_caem_subgen: [{ code: "S01", name: "Restaurant clasic", parent: "I 56.10" }, { code: "S02", name: "Pizzerie", parent: "I 56.10" }, { code: "S03", name: "Bistrou", parent: "I 56.10" }, { code: "S04", name: "Cafenea cu meniu cald", parent: "I 56.10" }, { code: "S05", name: "Restaurant fastfood", parent: "I 56.10" }, { code: "S06", name: "Catering evenimente", parent: "I 56.21" }, { code: "S07", name: "Servire la locația clientului", parent: "I 56.21" }, { code: "S08", name: "Magazin alimentar", parent: "G 47.11" }, { code: "S09", name: "Minimarket", parent: "G 47.11" }, { code: "S10", name: "Clase primare", parent: "P 85.20" }, { code: "S11", name: "After-school", parent: "P 85.20" }],
     reg_raioane: [{ code: "01", name: "Chișinău" }, { code: "02", name: "Bălți" }, { code: "03", name: "Anenii Noi" }, { code: "04", name: "Cahul" }, { code: "05", name: "Orhei" }],
-    reg_localitati: [{ code: "0100", name: "mun. Chișinău" }, { code: "0200", name: "mun. Bălți" }],
+    reg_localitati: [{ code: "0100", name: "mun. Chișinău", parent: "01" }, { code: "0101", name: "or. Durlești", parent: "01" }, { code: "0200", name: "mun. Bălți", parent: "02" }, { code: "0301", name: "or. Anenii Noi", parent: "03" }, { code: "0401", name: "mun. Cahul", parent: "04" }, { code: "0501", name: "mun. Orhei", parent: "05" }],
     reg_tari: [{ code: "MD", name: "Republica Moldova" }, { code: "RO", name: "România" }, { code: "UA", name: "Ucraina" }],
     reg_strazi: [{ code: "101", name: "bd. Ștefan cel Mare și Sfânt" }, { code: "102", name: "str. Pușkin" }],
     reg_risc_comert: [{ code: "1", name: "Risc redus" }, { code: "2", name: "Risc sporit" }],
@@ -176,6 +183,8 @@ document.addEventListener("DOMContentLoaded", () => {
     reg_subdiv_ansp: [{ code: "AC", name: "Administrația centrală ANSP" }, { code: "CSP-CH", name: "CSP Chișinău" }, { code: "CSP-BL", name: "CSP Bălți" }, { code: "CSP-CA", name: "CSP Cahul" }],
   };
   const VISIBILITY_LABELS = { global: "Global", authority: "Autoritate", service: "Serviciu" };
+  /* group names shown in the group-rule guidance (US-36 AC-04 / US-40 AC-03) */
+  const GROUP_NAMES = { reg_caem: { I: "I — Activități de cazare și alimentație publică", G: "G — Comerț cu ridicata și cu amănuntul", P: "P — Învățământ" } };
   const getClassifier = (id) => classifierRegistry.find((item) => item.id === id) || null;
   const TEMPLATES = [["name", "Denumire"], ["code-name", "Cod • Denumire"], ["code-dash-name", "Cod — Denumire"]];
   const displayLabel = (row, template) => (template === "code-name" && row.code ? `${row.code} • ${row.name}` : template === "code-dash-name" && row.code ? `${row.code} — ${row.name}` : row.name);
@@ -275,6 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const findField = (id) => allFields().find((item) => item.field.id === id) || null;
   const selectedTarget = () => {
     if (state.sel.kind === "field") return findField(state.sel.id)?.field || null;
+    if (state.sel.kind === "child") return findChild(state.sel.id)?.child || null;
     if (state.sel.kind === "section") return findSection(state.sel.id)?.section || null;
     if (state.sel.kind === "step") return stepById(state.sel.id);
     return form;
@@ -283,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const activeSection = () => {
     if (state.sel.kind === "section") { const found = findSection(state.sel.id); if (found && found.step.id === activeStep().id) return found.section; }
     if (state.sel.kind === "field") { const found = findField(state.sel.id); if (found && found.step.id === activeStep().id) return found.section; }
+    if (state.sel.kind === "child") { const found = findChild(state.sel.id); if (found && found.step.id === activeStep().id) return found.section; }
     const list = activeStep().sections || [];
     return list[list.length - 1] || null;
   };
@@ -325,6 +336,101 @@ document.addEventListener("DOMContentLoaded", () => {
     return { id: uid("sec"), title: i18n(title), description: i18n(), showTitle: true, showSeparator: true, fields: [] };
   }
 
+  /* ------------------------------------------- 1:N containers (batch 4, spec § C.8, US-33…40)
+     A Grilă editabilă holds `columns`, a Bloc repetabil holds `fields`; both are field objects (same
+     panel, same FO renderer per cell / card). A column of type „grid” is a nested grid (≤ 3 levels,
+     US-38). Rules reference children by id (rowRules.keyColumn / groupColumn, cascade parents). */
+  const CONTAINERS = ["grid", "repeat"];
+  const MAX_GRID_LEVEL = 3;
+  /* US-34 simple column types (Dată și oră waits for batch 5) · US-37 complex ones · block fields */
+  const COLUMN_SIMPLE = ["text", "number", "money", "date", "checkbox", "radio"];
+  const COLUMN_COMPLEX = ["select", "multiselect", "grid"];
+  const BLOCK_TYPES = ["text", "textarea", "number", "money", "email", "phone", "date", "select", "multiselect", "radio", "checkbox", "checklist", "info"];
+  const COLUMN_WIDTHS = [["auto", "Auto"], ["s", "Îngustă"], ["m", "Medie"], ["l", "Lată"]];
+  const CHILD_LABELS = { text: "Text", textarea: "Descriere", number: "Număr", money: "Sumă", email: "Email", phone: "Telefon", date: "Dată", checkbox: "Bifat", radio: "Opțiune", select: "Listă", multiselect: "Selecție multiplă", checklist: "Opțiuni", grid: "Sub-grilă", info: "Notă" };
+  const isContainer = (field) => Boolean(field && CONTAINERS.includes(field.type));
+  const kidsOf = (field) => {
+    if (field?.type === "grid") { if (!Array.isArray(field.columns)) field.columns = []; return field.columns; }
+    if (field?.type === "repeat") { if (!Array.isArray(field.fields)) field.fields = []; return field.fields; }
+    return [];
+  };
+  function gridDefaults() {
+    return { columns: [], rowRules: { minRows: "", maxRows: "", defaultRows: 1, allowAdd: true, allowRemove: true, keyColumn: "", groupColumn: "", pageSize: 10 }, addLabel: i18n("Adaugă rând"), emptyText: i18n("Niciun rând. Apasă «Adaugă rând» pentru a începe."), rowTitle: i18n("Rând"), messages: { min: i18n(), max: i18n(), duplicate: i18n(), group: i18n() } };
+  }
+  function repeatDefaults() {
+    return { fields: [], itemTitle: i18n("Element"), addLabel: i18n("Adaugă alt element"), note: i18n(), labelHidden: false, rowRules: { minRows: 1, maxRows: "", defaultRows: 1, allowRemove: true, keyColumn: "", groupColumn: "" }, messages: { min: i18n(), max: i18n(), duplicate: i18n(), group: i18n() } };
+  }
+  /* every child of every container, with where it lives: level = the level of its container grid */
+  function allChildren() {
+    const out = [];
+    const walk = (base, container, chain, level) => kidsOf(container).forEach((child, index, list) => {
+      out.push({ ...base, container, chain, child, list, index, level });
+      if (child.type === "grid") walk(base, child, [...chain, child], level + 1);
+    });
+    allFields().forEach(({ step, section, field }) => { if (isContainer(field)) walk({ step, section, top: field }, field, [field], 1); });
+    return out;
+  }
+  const findChild = (id) => allChildren().find((item) => item.child.id === id) || null;
+  const fieldOrChild = (id) => findField(id)?.field || findChild(id)?.child || null;
+  /* the grid level of a container: a top-level grid is 1, a column grid one more than its parent */
+  const levelOf = (container) => { const found = findChild(container.id); return found ? found.level + 1 : 1; };
+  const containerOf = (id) => findChild(id)?.container || null;
+  const inGridColumn = (child) => containerOf(child.id)?.type === "grid";
+  const uniqueChildKey = (container, base, exceptId = "") => {
+    const taken = new Set(kidsOf(container).filter((child) => child.id !== exceptId).map((child) => child.key));
+    if (!taken.has(base)) return base;
+    for (let n = 2; ; n += 1) if (!taken.has(`${base}${n}`)) return `${base}${n}`;
+  };
+  /* may this type live in this container? (US-34 AC-06: complex columns after a simple one; US-38: ≤ 3) */
+  function childAllowed(container, type) {
+    if (container.type === "repeat") return BLOCK_TYPES.includes(type) ? "" : "Blocul primește câmpuri simple și liste (fără grile, adrese sau alte blocuri).";
+    if (COLUMN_SIMPLE.includes(type)) return "";
+    if (!COLUMN_COMPLEX.includes(type)) return type === "datetime" ? "În lucru — etapa 5 a constructorului." : "Tipul nu poate fi coloană de grilă.";
+    if (!kidsOf(container).some((child) => COLUMN_SIMPLE.includes(child.type))) return "Adaugă mai întâi o coloană simplă: coloanele complexe vin după configurația de bază (US-34).";
+    if (type === "grid" && levelOf(container) >= MAX_GRID_LEVEL) return "Se permit cel mult 3 niveluri de grile imbricate (US-38).";
+    return "";
+  }
+  function makeChild(type, container) {
+    const meta = comp(type);
+    const inGrid = container.type === "grid";
+    const child = {
+      id: uid(inGrid ? "col" : "bf"),
+      type,
+      key: "",
+      label: i18n(CHILD_LABELS[type] || meta.label),
+      help: i18n(),
+      placeholder: i18n(),
+      span: inGrid ? 12 : meta.span && meta.span < 12 ? 6 : 12,
+      required: false,
+      readOnly: false,
+      createdAt: localStamp(),
+      createdBy: currentUser(),
+      ...(meta.defaults ? meta.defaults() : {}),
+    };
+    if (inGrid) child.width = type === "checkbox" || type === "number" || type === "money" ? "s" : "auto";
+    if (type === "grid") { child.label = i18n("Sub-grilă"); child.rowRules.defaultRows = 0; child.span = 12; }
+    if (type === "radio" && inGrid) child.options = [{ value: "da", label: "Da" }, { value: "nu", label: "Nu" }];
+    if (type === "info") child.text = i18n("Notă pentru acest element.");
+    child.key = uniqueChildKey(container, camelKey(tr(child.label)));
+    return child;
+  }
+  /* a copy of a container gets new child ids; references (cascade parent, key / group column, rules) follow */
+  function reidChildren(field) {
+    const map = new Map();
+    const walk = (container) => kidsOf(container).forEach((child) => { const next = uid(container.type === "grid" ? "col" : "bf"); map.set(child.id, next); child.id = next; if (child.type === "grid") walk(child); });
+    walk(field);
+    const fix = (container) => {
+      ["keyColumn", "groupColumn"].forEach((prop) => { if (container.rowRules?.[prop] && map.has(container.rowRules[prop])) container.rowRules[prop] = map.get(container.rowRules[prop]); });
+      kidsOf(container).forEach((child) => {
+        if (child.dataSource?.parentFieldId && map.has(child.dataSource.parentFieldId)) child.dataSource.parentFieldId = map.get(child.dataSource.parentFieldId);
+        (child.rules || []).forEach((rule) => rule.conditions.forEach((c) => { if (map.has(c.field)) c.field = map.get(c.field); if (map.has(c.other)) c.other = map.get(c.other); }));
+        if (child.type === "grid") fix(child);
+      });
+    };
+    fix(field);
+    return map;
+  }
+
   /* ---------------------------------------------------------------- persistence */
   function readDb() {
     try { const raw = window.localStorage.getItem(DB_KEY); const parsed = raw ? JSON.parse(raw) : null; return parsed?.forms?.length ? parsed : null; } catch { return null; }
@@ -333,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!db || !form) return;
     const index = db.forms.findIndex((item) => item.id === form.id);
     if (index >= 0) db.forms[index] = form; else db.forms.push(form);
-    db.activeFormId = form.id;
+    if (!FORM_PARAM) db.activeFormId = form.id;
     try { window.localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch { /* private mode */ }
   }
   /* corrupt or old schema → a fresh form, never a crash (US-08) */
@@ -354,10 +460,28 @@ document.addEventListener("DOMContentLoaded", () => {
           field.validation = field.validation || {};
           field.validation.message = field.validation.message || i18n();
           if (!SPANS.includes(Number(field.span))) field.span = comp(field.type).span || 4;
+          sanitizeChildren(field);
         });
       });
     });
     return record;
+  }
+
+  function sanitizeChildren(container) {
+    if (!isContainer(container)) return;
+    const defaults = container.type === "grid" ? gridDefaults() : repeatDefaults();
+    container.rowRules = { ...defaults.rowRules, ...(container.rowRules || {}) };
+    container.messages = { ...defaults.messages, ...(container.messages || {}) };
+    ["addLabel", "emptyText", "rowTitle", "itemTitle", "note"].forEach((key) => { if (container[key] != null && typeof container[key] !== "object") container[key] = i18n(String(container[key])); });
+    kidsOf(container).forEach((child) => {
+      ["label", "help", "placeholder", "text", "noOptionsText"].forEach((key) => { if (child[key] != null && typeof child[key] !== "object") child[key] = i18n(String(child[key])); });
+      child.label = child.label || i18n();
+      child.help = child.help || i18n();
+      child.placeholder = child.placeholder || i18n();
+      child.validation = child.validation || {};
+      child.validation.message = child.validation.message || i18n();
+      sanitizeChildren(child);
+    });
   }
 
   /* ---------------------------------------------------------------- undo / redo */
@@ -394,71 +518,109 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ------------------------------------------------- validation summary (spec § E, F.8) */
+  /* the checks of one field — a form field, a grid column or a block field (keys = counts in its scope) */
+  function fieldChecks(field, push, keys) {
+    if (field.type === "info") { if (!tr(field.text).trim()) push(T_GEN, "text", "Completează textul notei."); return; }
+    if (field.type === "callout") { if (!tr(field.title).trim() && !tr(field.text).trim()) push(T_GEN, "text", "Completează titlul sau textul notei."); return; }
+    if (field.type === "separator") return;
+    if (!tr(field.label).trim()) push(T_GEN, "label", "Completează eticheta (RO).");
+    if (!field.key) push(T_GEN, "key", "Completează cheia câmpului.");
+    else if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(field.key) || field.key.length > 60) push(T_GEN, "key", "Cheia: litere latine și cifre, începe cu o literă, maximum 60.");
+    else if (keys.get(field.key) > 1) push(T_GEN, "key", "Cheia există deja în acest formular.");
+    const v = field.validation || {};
+    const minMax = (a, b, prop) => { if (a !== "" && b !== "" && a != null && b != null && Number(a) > Number(b)) push(T_VAL, prop, "Minimul nu poate fi mai mare decât maximul."); };
+    if (field.type === "text") {
+      if (v.preset === "regex" && !String(v.pattern || "").trim()) push(T_VAL, "validation.pattern", "Completează expresia regulată.");
+      else if (v.preset === "regex" && regexError(v.pattern)) push(T_VAL, "validation.pattern", "Expresia regulată nu este validă.");
+      minMax(v.minLength, field.maxLength, "validation.minLength");
+    }
+    if (field.type === "textarea") minMax(v.minLength, field.maxLength, "validation.minLength");
+    if (field.type === "number" || field.type === "money") minMax(v.min, v.max, "validation.max");
+    if (field.type === "checklist" || field.type === "multiselect") minMax(v.minSelected, v.maxSelected, "validation.maxSelected");
+    if (field.type === "date" && field.dateMin?.mode === "fixed" && field.dateMax?.mode === "fixed" && field.dateMin.value && field.dateMax.value && field.dateMin.value > field.dateMax.value) push(T_VAL, "dateMax", "Intervalul de date este gol: data minimă e după data maximă.");
+    if (usesSource(field.type)) {
+      const ds = field.dataSource;
+      if (!ds) push(T_DATA, "ds.mode", "Lista nu are sursă de opțiuni.", "error", "Sursă neconfigurată");
+      else if (ds.mode === "existing" && !ds.classifierId) push(T_DATA, "ds.classifier", "Alege clasificatorul.");
+      else if (ds.mode === "new" && !ds.saved) push(T_DATA, "ds.new", "Clasificatorul nou nu a fost creat.");
+      else if (ds.mode === "static" && !(ds.values || []).some((item) => item.isValid !== false && String(item.label || "").trim())) push(T_DATA, "ds.values", "Adaugă cel puțin o valoare activă.");
+    }
+    if (field.type === "date") (field.dateRules || []).forEach((rule, ri) => {
+      if (!rule.op) push(T_VAL, `dateRules.${ri}.op`, `Regula de dată ${ri + 1}: alege comparația.`);
+      else if (!rule.target) push(T_VAL, `dateRules.${ri}.target`, `Regula de dată ${ri + 1}: alege data cu care se compară.`);
+      else if (rule.target !== "today" && !findField(rule.target)) push(T_VAL, `dateRules.${ri}.target`, `Regula de dată ${ri + 1} se compară cu un câmp șters.`);
+      else if (rule.offset !== "" && rule.offset != null && !/^-?\d+$/.test(String(rule.offset))) push(T_VAL, `dateRules.${ri}.offset`, `Regula de dată ${ri + 1}: decalajul este un număr întreg.`);
+    });
+    if (field.type === "consent") {
+      if (!tr(field.text).trim()) push(T_GEN, "text", "Completează textul declarației (RO).");
+      else if (tr(field.linkText).trim() && !tr(field.text).includes(tr(field.linkText).trim())) push(T_GEN, "linkText", "Textul linkului nu apare în declarație.");
+      if (tr(field.linkText).trim() && !/^https:\/\/\S+$/.test(field.linkUrl || "")) push(T_GEN, "linkUrl", "Adresa trebuie să înceapă cu https://.");
+    }
+    if (field.type === "hidden") {
+      if (field.hiddenSource === "static" && !String(field.hiddenValue || "").trim()) push(T_DATA, "hiddenValue", "Completează valoarea câmpului ascuns.", "error", "Fără valoare");
+      if (field.hiddenSource === "rule" && !(field.rules || []).some((rule) => rule.action === "set")) push(T_LOGIC, "rules", "Nicio regulă nu setează valoarea câmpului ascuns.", "warning");
+    }
+    if (field.type === "subdivision") {
+      if (!getClassifier(field.subdivisionSource)) push(T_DATA, "subdivisionSource", "Alege clasificatorul subdiviziunilor.", "error", "Sursă neconfigurată");
+      else if ((field.subdivisionMode || "derived") === "derived" && !findField(field.addressFieldId)) push(T_DATA, "addressFieldId", "Alege câmpul Adresă din care se ia raionul.", "error", "Fără adresă");
+      else if (field.subdivisionMode === "auto" && !field.subdivisionAuto) push(T_DATA, "subdivisionAuto", "Alege subdiviziunea completată automat.");
+    }
+    if (field.type === "file") {
+      if (!(field.fileTypes || []).length) push(T_VAL, "fileTypes", "Bifează cel puțin un tip de fișier.");
+      const size = Number(field.maxSizeMb);
+      if (!size || size < 1 || size > 60) push(T_VAL, "maxSizeMb", "Mărimea maximă: între 1 și 60 MB.");
+    }
+    if (field.type === "contact" && !CONTACT_PARTS.some(([key]) => field.contactParts?.[key]?.visible)) push(T_DATA, "contactParts", "Arată cel puțin un câmp al persoanei de contact.");
+    if (field.type === "radio" || field.type === "checklist" || field.type === "segment") {
+      const options = field.options || [];
+      if (options.length < 2) push(T_DATA, "options", "Adaugă cel puțin două opțiuni.");
+      else if (field.type === "segment" && options.length > 5) push(T_DATA, "options", "Comutatorul are cel mult 5 opțiuni; pentru mai multe folosiți butoane radio.");
+      else if (options.some((option) => !String(option.label || "").trim())) push(T_DATA, "options", "O opțiune nu are text.");
+    }
+  }
+
+  /* a grid / block: children, rows (US-36), nesting (US-38); its children are checked like fields and
+     reported as „Grilă › Coloană” (kind child) */
+  function containerChecks(container, push, issues, where, level) {
+    const inGrid = container.type === "grid";
+    const list = kidsOf(container);
+    const r = container.rowRules || {};
+    if (!list.length) push(T_DATA, "children", inGrid ? "Grila nu are coloane." : "Blocul nu are câmpuri.", "error", inGrid ? "Fără coloane" : "Fără câmpuri");
+    if (inGrid && list.some((child) => COLUMN_COMPLEX.includes(child.type)) && !list.some((child) => COLUMN_SIMPLE.includes(child.type))) push(T_DATA, "children", "Coloanele complexe cer cel puțin o coloană simplă (configurația de bază, US-34).");
+    if (inGrid && level > MAX_GRID_LEVEL) push(T_DATA, "children", "Se permit cel mult 3 niveluri de grile imbricate (US-38).");
+    const num = (value) => (value === "" || value == null ? null : Number(value));
+    [["minRows", r.minRows], ["maxRows", r.maxRows], ["defaultRows", r.defaultRows]].forEach(([prop, value]) => { const n = num(value); if (n != null && (!Number.isInteger(n) || n < 0)) push(T_VAL, `rowRules.${prop}`, "Un număr întreg, 0 sau mai mare."); });
+    const min = num(r.minRows); const max = num(r.maxRows); const start = num(r.defaultRows);
+    if (min != null && max && min > max) push(T_VAL, "rowRules.maxRows", "Minimul nu poate fi mai mare decât maximul.");
+    if (start != null && max && start > max) push(T_VAL, "rowRules.defaultRows", `${inGrid ? "Rândurile" : "Elementele"} de la început depășesc maximul.`);
+    if (r.keyColumn && !list.some((child) => child.id === r.keyColumn)) push(T_VAL, "rowRules.keyColumn", `${inGrid ? "Coloana" : "Câmpul"}-cheie nu mai există.`);
+    if (r.groupColumn) {
+      const groupChild = list.find((child) => child.id === r.groupColumn);
+      if (!groupChild) push(T_VAL, "rowRules.groupColumn", `${inGrid ? "Coloana" : "Câmpul"} de grupare nu mai există.`);
+      else if (groupChild.type !== "select" || groupChild.dataSource?.mode !== "existing") push(T_VAL, "rowRules.groupColumn", "Gruparea cere o listă derulantă cu clasificator.");
+    }
+    if (!tr(container.addLabel).trim()) push(T_GEN, "addLabel", "Completează textul butonului de adăugare.");
+    if (!inGrid && !tr(container.itemTitle).trim()) push(T_GEN, "itemTitle", "Completează titlul elementului.");
+    const keys = new Map();
+    list.forEach((child) => { if (child.key) keys.set(child.key, (keys.get(child.key) || 0) + 1); });
+    list.forEach((child) => {
+      const pushChild = (tab, prop, message, lvl = "error", short = "") => issues.push({ level: lvl, kind: "child", id: child.id, tab, prop, name: `${fieldName(container)} › ${fieldName(child)}`, where, message, short });
+      fieldChecks(child, pushChild, keys);
+      const ds = child.dataSource;
+      if (ds?.cascade && ds.parentFieldId && !list.some((other) => other.id === ds.parentFieldId) && !findField(ds.parentFieldId)) pushChild(T_DATA, "dataSource.parentFieldId", "Câmpul părinte nu mai există.");
+      if (child.type === "grid") containerChecks(child, pushChild, issues, where, level + 1);
+    });
+  }
+
   function validate() {
     const issues = [];
     const keys = new Map();
     allFields().forEach(({ field }) => { if (field.key) keys.set(field.key, (keys.get(field.key) || 0) + 1); });
     allFields().forEach(({ step, section, field }) => {
       const where = `${tr(step.title)} › ${tr(section.title) || "Secțiune"}`;
-      const name = fieldName(field);
-      const push = (tab, prop, message, level = "error", short = "") => issues.push({ level, kind: "field", id: field.id, tab, prop, name, where, message, short });
-      if (field.type === "info") { if (!tr(field.text).trim()) push(T_GEN, "text", "Completează textul notei."); return; }
-      if (field.type === "callout") { if (!tr(field.title).trim() && !tr(field.text).trim()) push(T_GEN, "text", "Completează titlul sau textul notei."); return; }
-      if (field.type === "separator") return;
-      if (!tr(field.label).trim()) push(T_GEN, "label", "Completează eticheta (RO).");
-      if (!field.key) push(T_GEN, "key", "Completează cheia câmpului.");
-      else if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(field.key) || field.key.length > 60) push(T_GEN, "key", "Cheia: litere latine și cifre, începe cu o literă, maximum 60.");
-      else if (keys.get(field.key) > 1) push(T_GEN, "key", "Cheia există deja în acest formular.");
-      const v = field.validation || {};
-      const minMax = (a, b, prop) => { if (a !== "" && b !== "" && a != null && b != null && Number(a) > Number(b)) push(T_VAL, prop, "Minimul nu poate fi mai mare decât maximul."); };
-      if (field.type === "text") {
-        if (v.preset === "regex" && !String(v.pattern || "").trim()) push(T_VAL, "validation.pattern", "Completează expresia regulată.");
-        else if (v.preset === "regex" && regexError(v.pattern)) push(T_VAL, "validation.pattern", "Expresia regulată nu este validă.");
-        minMax(v.minLength, field.maxLength, "validation.minLength");
-      }
-      if (field.type === "textarea") minMax(v.minLength, field.maxLength, "validation.minLength");
-      if (field.type === "number" || field.type === "money") minMax(v.min, v.max, "validation.max");
-      if (field.type === "checklist" || field.type === "multiselect") minMax(v.minSelected, v.maxSelected, "validation.maxSelected");
-      if (field.type === "date" && field.dateMin?.mode === "fixed" && field.dateMax?.mode === "fixed" && field.dateMin.value && field.dateMax.value && field.dateMin.value > field.dateMax.value) push(T_VAL, "dateMax", "Intervalul de date este gol: data minimă e după data maximă.");
-      if (usesSource(field.type)) {
-        const ds = field.dataSource;
-        if (!ds) push(T_DATA, "ds.mode", "Lista nu are sursă de opțiuni.", "error", "Sursă neconfigurată");
-        else if (ds.mode === "existing" && !ds.classifierId) push(T_DATA, "ds.classifier", "Alege clasificatorul.");
-        else if (ds.mode === "new" && !ds.saved) push(T_DATA, "ds.new", "Clasificatorul nou nu a fost creat.");
-        else if (ds.mode === "static" && !(ds.values || []).some((item) => item.isValid !== false && String(item.label || "").trim())) push(T_DATA, "ds.values", "Adaugă cel puțin o valoare activă.");
-      }
-      if (field.type === "date") (field.dateRules || []).forEach((rule, ri) => {
-        if (!rule.op) push(T_VAL, `dateRules.${ri}.op`, `Regula de dată ${ri + 1}: alege comparația.`);
-        else if (!rule.target) push(T_VAL, `dateRules.${ri}.target`, `Regula de dată ${ri + 1}: alege data cu care se compară.`);
-        else if (rule.target !== "today" && !findField(rule.target)) push(T_VAL, `dateRules.${ri}.target`, `Regula de dată ${ri + 1} se compară cu un câmp șters.`);
-        else if (rule.offset !== "" && rule.offset != null && !/^-?\d+$/.test(String(rule.offset))) push(T_VAL, `dateRules.${ri}.offset`, `Regula de dată ${ri + 1}: decalajul este un număr întreg.`);
-      });
-      if (field.type === "consent") {
-        if (!tr(field.text).trim()) push(T_GEN, "text", "Completează textul declarației (RO).");
-        else if (tr(field.linkText).trim() && !tr(field.text).includes(tr(field.linkText).trim())) push(T_GEN, "linkText", "Textul linkului nu apare în declarație.");
-        if (tr(field.linkText).trim() && !/^https:\/\/\S+$/.test(field.linkUrl || "")) push(T_GEN, "linkUrl", "Adresa trebuie să înceapă cu https://.");
-      }
-      if (field.type === "hidden") {
-        if (field.hiddenSource === "static" && !String(field.hiddenValue || "").trim()) push(T_DATA, "hiddenValue", "Completează valoarea câmpului ascuns.", "error", "Fără valoare");
-        if (field.hiddenSource === "rule" && !(field.rules || []).some((rule) => rule.action === "set")) push(T_LOGIC, "rules", "Nicio regulă nu setează valoarea câmpului ascuns.", "warning");
-      }
-      if (field.type === "subdivision") {
-        if (!getClassifier(field.subdivisionSource)) push(T_DATA, "subdivisionSource", "Alege clasificatorul subdiviziunilor.", "error", "Sursă neconfigurată");
-        else if ((field.subdivisionMode || "derived") === "derived" && !findField(field.addressFieldId)) push(T_DATA, "addressFieldId", "Alege câmpul Adresă din care se ia raionul.", "error", "Fără adresă");
-        else if (field.subdivisionMode === "auto" && !field.subdivisionAuto) push(T_DATA, "subdivisionAuto", "Alege subdiviziunea completată automat.");
-      }
-      if (field.type === "file") {
-        if (!(field.fileTypes || []).length) push(T_VAL, "fileTypes", "Bifează cel puțin un tip de fișier.");
-        const size = Number(field.maxSizeMb);
-        if (!size || size < 1 || size > 60) push(T_VAL, "maxSizeMb", "Mărimea maximă: între 1 și 60 MB.");
-      }
-      if (field.type === "contact" && !CONTACT_PARTS.some(([key]) => field.contactParts?.[key]?.visible)) push(T_DATA, "contactParts", "Arată cel puțin un câmp al persoanei de contact.");
-      if (field.type === "radio" || field.type === "checklist" || field.type === "segment") {
-        const options = field.options || [];
-        if (options.length < 2) push(T_DATA, "options", "Adaugă cel puțin două opțiuni.");
-        else if (field.type === "segment" && options.length > 5) push(T_DATA, "options", "Comutatorul are cel mult 5 opțiuni; pentru mai multe folosiți butoane radio.");
-        else if (options.some((option) => !String(option.label || "").trim())) push(T_DATA, "options", "O opțiune nu are text.");
-      }
+      const push = (tab, prop, message, level = "error", short = "") => issues.push({ level, kind: "field", id: field.id, tab, prop, name: fieldName(field), where, message, short });
+      fieldChecks(field, push, keys);
+      if (isContainer(field)) containerChecks(field, push, issues, where, 1);
     });
     /* rules: complete conditions, sources that exist, no cycles */
     const checkRules = (target, kind, name, where) => (target.rules || []).forEach((rule, ri) => {
@@ -467,22 +629,24 @@ document.addEventListener("DOMContentLoaded", () => {
       const k = `${ri}.${ci}`;
       const push = (prop, message) => issues.push({ level: "error", kind, id: target.id, tab: T_LOGIC, prop, name, where, message });
       if (!c.field) push(`rules.${k}.field`, `Regula ${ri + 1}: alege câmpul condiției.`);
-      else if (!findField(c.field)) push(`rules.${k}.field`, `Regula ${ri + 1} citește un câmp șters.`);
+      else if (!fieldOrChild(c.field)) push(`rules.${k}.field`, `Regula ${ri + 1} citește un câmp șters.`);
       else if (!c.op) push(`rules.${k}.op`, `Regula ${ri + 1}: alege operatorul.`);
       else if (c.mode === "field" && !c.other) push(`rules.${k}.value`, `Regula ${ri + 1}: alege câmpul cu care se compară.`);
-      else if (c.mode === "field" && !findField(c.other)) push(`rules.${k}.value`, `Regula ${ri + 1} se compară cu un câmp șters.`);
+      else if (c.mode === "field" && !fieldOrChild(c.other)) push(`rules.${k}.value`, `Regula ${ri + 1} se compară cu un câmp șters.`);
       else if (c.mode !== "field" && !NO_VALUE_OPS.includes(c.op) && !String(c.value || "").trim()) push(`rules.${k}.value`, `Regula ${ri + 1}: completează valoarea.`);
       });
     });
     allFields().forEach(({ step, section, field }) => checkRules(field, "field", fieldName(field), `${tr(step.title)} › ${tr(section.title) || "Secțiune"}`));
     allSections().forEach(({ step, section }) => checkRules(section, "section", tr(section.title) || "Secțiune", tr(step.title)));
+    allChildren().forEach(({ step, section, container, child }) => checkRules(child, "child", `${fieldName(container)} › ${fieldName(child)}`, `${tr(step.title)} › ${tr(section.title) || "Secțiune"}`));
     dateRuleCycles().forEach((id) => {
       const found = findField(id);
       if (found) issues.push({ level: "error", kind: "field", id, tab: T_VAL, prop: "dateRules", name: fieldName(found.field), where: `${tr(found.step.title)} › ${tr(found.section.title) || "Secțiune"}`, message: "Regulile de dată formează un cerc: păstrați regula doar pe unul dintre câmpuri (cealaltă e reciprocă)." });
     });
     logicCycles().forEach((id) => {
-      const found = findField(id);
-      if (found) issues.push({ level: "error", kind: "field", id, tab: T_LOGIC, prop: "cycle", name: fieldName(found.field), where: `${tr(found.step.title)} › ${tr(found.section.title) || "Secțiune"}`, message: "Nu se poate salva: există o dependență circulară între câmpuri." });
+      const found = findField(id) || findChild(id);
+      const target = found?.field && found.field.id === id ? found.field : found?.child;
+      if (found && target) issues.push({ level: "error", kind: found.child ? "child" : "field", id, tab: T_LOGIC, prop: "cycle", name: fieldName(target), where: `${tr(found.step.title)} › ${tr(found.section.title) || "Secțiune"}`, message: "Nu se poate salva: există o dependență circulară între câmpuri." });
     });
     form.steps.forEach((step) => {
       if (step.locked) return;
@@ -503,11 +667,18 @@ document.addEventListener("DOMContentLoaded", () => {
   function translatable() {
     const list = [];
     const add = (obj) => { if (obj && typeof obj === "object") list.push({ ro: Boolean(String(obj.ro || "").trim()), value: (lang) => String(obj[lang] || "").trim() }); };
+    const addContainer = (container) => {
+      if (!isContainer(container)) return;
+      [container.addLabel, container.emptyText, container.rowTitle, container.itemTitle, container.note].forEach(add);
+      kidsOf(container).forEach((child) => { add(child.type === "info" ? child.text : child.label); add(child.help); addContainer(child); });
+    };
     add(form.title);
-    form.steps.forEach((step) => { add(step.title); (step.sections || []).forEach((section) => { add(section.title); section.fields.forEach((field) => { if (field.type === "separator" || field.type === "hidden") return; if (field.type === "callout") { add(field.title); add(field.text); return; } if (field.type === "consent") { add(field.text); add(field.linkText); return; } add(field.type === "info" ? field.text : field.label); add(field.help); if (field.type === "idno") add(field.companyLabel); }); }); });
+    form.steps.forEach((step) => { add(step.title); (step.sections || []).forEach((section) => { add(section.title); section.fields.forEach((field) => { if (field.type === "separator" || field.type === "hidden") return; if (field.type === "callout") { add(field.title); add(field.text); return; } if (field.type === "consent") { add(field.text); add(field.linkText); return; } add(field.type === "info" ? field.text : field.label); add(field.help); if (field.type === "idno") add(field.companyLabel); addContainer(field); }); }); });
     return list;
   }
-  const errorsOf = (kind, id) => state.issues.filter((issue) => issue.level === "error" && issue.kind === kind && issue.id === id);
+  const errorsOf = (kind, id) => state.issues.filter((issue) => issue.level === "error" && (issue.kind === kind || (kind === "field" && issue.kind === "child")) && issue.id === id);
+  /* the errors of every column / block field under a container (its card and step show them) */
+  const childErrorsOf = (container) => { const ids = new Set(allChildren().filter((item) => item.chain.includes(container)).map((item) => item.child.id)); return state.issues.filter((issue) => issue.level === "error" && issue.kind === "child" && ids.has(issue.id)); };
   const propError = (kind, id, prop) => errorsOf(kind, id).find((issue) => issue.prop === prop)?.message || "";
 
   /* ------------------------------------------- projection onto the FO schema (one renderer) */
@@ -519,6 +690,90 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!classifier) return [];
     return (CLASSIFIER_ROWS[classifier.id] || [{ code: "1", name: classifier.displayName }]).map((row) => displayLabel(row, ds.template));
   }
+  /* the options of a list with their codes, parents (cascade) and groups (group rule) */
+  function optionMeta(field) {
+    const ds = field.dataSource;
+    if (!ds) return [];
+    if (ds.mode === "static") return (ds.values || []).filter((item) => item.isValid !== false && String(item.label || "").trim()).map((item) => ({ label: String(item.label), code: String(item.label), name: String(item.label), parent: "", group: "" }));
+    const classifier = getClassifier(ds.classifierId);
+    if (!classifier) return [];
+    return (CLASSIFIER_ROWS[classifier.id] || [{ code: "1", name: classifier.displayName }]).map((row) => ({ label: displayLabel(row, ds.template), code: row.code, name: row.name, parent: row.parent || "", group: row.group || "" }));
+  }
+  /* a list column / block field filtered by its parent: a sibling (same row / element) or a form field */
+  function cascadeParentFo(child, container, { prefix }) {
+    const ds = child.dataSource;
+    if (!ds?.cascade || !ds.parentFieldId) return null;
+    const sibling = kidsOf(container).find((other) => other.id === ds.parentFieldId);
+    if (sibling) return { kind: "column", key: sibling.key, label: fieldName(sibling) };
+    const field = findField(ds.parentFieldId)?.field;
+    if (!field) return null;
+    return { kind: "field", domId: `fo-${prefix}-${field.id}`.replace(/[^a-z0-9_-]+/gi, "-").toLowerCase(), label: fieldName(field), meta: optionMeta(field) };
+  }
+  /* one column / block field for the FO grid or block (js/fo-grid.js draws it with the FO renderer) */
+  function childFo(child, container, opts, level) {
+    const text = (value) => tr(value, opts.lang) || tr(value, "ro");
+    const v = child.validation || {};
+    const base = { ref: child.id, key: child.key, type: child.type, label: text(child.label) || comp(child.type).label, required: Boolean(child.required), readOnly: Boolean(child.readOnly), width: child.width || "auto", span: container.type === "grid" ? 12 : Number(child.span) || 12, placeholder: text(child.placeholder), hint: text(child.help), message: text(v.message), defaultValue: child.defaultValue ?? "" };
+    switch (child.type) {
+      case "text": return { ...base, maxLength: Number(child.maxLength) || "", pattern: patternOf(child), patternMessage: presetOf(child).message || "", minLength: v.minLength || "", inputmode: presetOf(child).inputmode || "" };
+      case "textarea": return { ...base, rows: child.rows, maxLength: Number(child.maxLength) || "", counter: Boolean(child.counter), minLength: v.minLength || "" };
+      case "number": return { ...base, unit: child.unit || "", decimals: child.numberKind === "decimal" ? Number(child.decimals) || 1 : 0, min: v.min ?? "", max: v.max ?? "" };
+      case "money": return { ...base, unit: child.currency || "MDL", decimals: 2, min: v.min ?? "", max: v.max ?? "" };
+      case "date": return { ...base, dateMin: dateLimit(child.dateMin), dateMax: dateLimit(child.dateMax) };
+      case "radio": case "checklist": return { ...base, radio: (child.options || []).map((option) => ({ value: option.value, label: option.label })), orientation: child.orientation || "horizontal" };
+      case "checkbox": return { ...base, defaultValue: Boolean(child.defaultChecked) };
+      case "info": return { ...base, text: text(child.text), tone: child.tone || "neutral" };
+      case "select":
+      case "multiselect": {
+        const meta = optionMeta(child);
+        const ds = child.dataSource || {};
+        /* „Listă cu căutare” in a block + the multi-select that depends on it = the CAEM pair */
+        if (child.type === "select" && ds.search && ds.mode === "existing" && container.type === "repeat") {
+          const dep = kidsOf(container).find((other) => other.type === "multiselect" && other.dataSource?.cascade && other.dataSource.parentFieldId === child.id);
+          const depMeta = dep ? optionMeta(dep) : [];
+          return { ...base, type: "combobox", options: meta.map((m) => ({ code: m.code, label: m.name, group: m.group, subgenres: depMeta.filter((d) => d.parent === m.code).map((d) => d.label) })) };
+        }
+        return { ...base, options: meta.map((m) => m.label), meta, parent: cascadeParentFo(child, container, opts), minSelected: v.minSelected || "", maxSelected: v.maxSelected || "", emptyText: text(child.noOptionsText) };
+      }
+      case "grid": return { ...base, grid: gridFo(child, opts, level + 1) };
+      default: return base;
+    }
+  }
+  function containerTexts(field, text) {
+    const m = field.messages || {};
+    return { min: text(m.min), max: text(m.max), duplicate: text(m.duplicate), group: text(m.group) };
+  }
+  function containerRules(field) {
+    const r = field.rowRules || {};
+    const keyOf = (id) => kidsOf(field).find((child) => child.id === id)?.key || "";
+    return { min: r.minRows, max: r.maxRows, defaultRows: r.defaultRows, allowAdd: r.allowAdd !== false, allowRemove: r.allowRemove !== false, key: keyOf(r.keyColumn), group: keyOf(r.groupColumn), pageSize: r.pageSize };
+  }
+  const groupNamesOf = (field) => { const groupChild = kidsOf(field).find((child) => child.id === field.rowRules?.groupColumn); return (groupChild && GROUP_NAMES[groupChild.dataSource?.classifierId]) || {}; };
+  function gridFo(field, opts, level = 1) {
+    const text = (value) => tr(value, opts.lang) || tr(value, "ro");
+    const kids = kidsOf(field);
+    return {
+      id: `${opts.prefix}-${field.id}`, type: "grid", key: field.key, label: text(field.label), hint: text(field.help), required: Boolean(field.required), span: 12, level,
+      columns: kids.map((child) => childFo(child, field, opts, level)),
+      rules: containerRules(field),
+      texts: { add: text(field.addLabel) || "Adaugă rând", empty: text(field.emptyText), row: text(field.rowTitle) || "Rând", ...containerTexts(field, text) },
+      groupNames: groupNamesOf(field),
+      usesSource: kids.some((child) => child.dataSource?.mode === "existing"),
+    };
+  }
+  function repeatFo(field, opts) {
+    const text = (value) => tr(value, opts.lang) || tr(value, "ro");
+    const kids = kidsOf(field);
+    return {
+      id: `${opts.prefix}-${field.id}`, type: "repeat", key: field.key, label: text(field.label), hint: text(field.help), required: Boolean(field.required), span: 12, labelHidden: Boolean(field.labelHidden),
+      fields: kids.map((child) => childFo(child, field, opts, 1)),
+      rules: containerRules(field),
+      texts: { add: text(field.addLabel) || "Adaugă alt element", title: text(field.itemTitle) || "Element", note: text(field.note), ...containerTexts(field, text) },
+      groupNames: groupNamesOf(field),
+      usesSource: kids.some((child) => child.dataSource?.mode === "existing"),
+    };
+  }
+
   function dateLimit(limit) {
     if (!limit || limit.mode === "none") return "";
     if (limit.mode === "today") return R.localIsoDay();
@@ -549,7 +804,13 @@ document.addEventListener("DOMContentLoaded", () => {
       case "number": return { ...base, unit: field.unit || "", decimals: field.numberKind === "decimal" ? Number(field.decimals) || 1 : 0 };
       case "money": return { ...base, unit: field.currency || "MDL", decimals: 2 };
       case "date": return { ...base, value: field.dateDefault === "today" ? R.localIsoDay() : "", min: dateLimit(field.dateMin) };
-      case "select": return { ...base, value: "", placeholder: base.placeholder || "Selectează", options: selectOptions(field) };
+      case "select": {
+        /* „Listă cu căutare” (a classifier): the CAEM combobox */
+        if (field.dataSource?.search && field.dataSource.mode === "existing") return { ...base, type: "combobox", placeholder: base.placeholder || "Selectează", options: optionMeta(field).map((m) => ({ code: m.code, label: m.name, group: m.group, subgenres: [] })) };
+        return { ...base, value: "", placeholder: base.placeholder || "Selectează", options: selectOptions(field) };
+      }
+      case "grid": return gridFo(field, { prefix, lang }, 1);
+      case "repeat": return repeatFo(field, { prefix, lang });
       case "multiselect": return { ...base, value: [], options: selectOptions(field) };
       case "segment": return { ...base, value: "", options: (field.options || []).map((option) => ({ value: option.value, label: option.label })) };
       case "callout": return { ...base, title: text(field.title), text: text(field.text), tone: field.tone || "info" };
@@ -668,7 +929,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <h3 id="fb-lib-configured">Componente salvate</h3>
           ${saved.map((preset) => `
           <button class="e-permits-builder__library-item" type="button" draggable="true" data-builder-component="${preset.type}" data-fb-preset="${preset.id}">
-            <span>${icon(comp(preset.type).icon)}</span>
+            <span>${icon(preset.icon || comp(preset.type).icon)}</span>
             <strong>${esc(preset.name)}${preset.system ? "" : ui().renderTag?.(`v${preset.version}`, "neutral") || ""}</strong>
             <em>${esc(preset.desc || comp(preset.type).label)}</em>
           </button>`).join("")}
@@ -714,7 +975,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-builder__steps-group" role="tablist" aria-label="Pașii formularului">
         ${form.steps.map((step, index) => {
           const isActive = step.id === active.id;
-          const hasError = !step.locked && (errorsOf("step", step.id).length || (step.sections || []).some((section) => errorsOf("section", section.id).length || section.fields.some((field) => errorsOf("field", field.id).length)));
+          const hasError = !step.locked && (errorsOf("step", step.id).length || (step.sections || []).some((section) => errorsOf("section", section.id).length || section.fields.some((field) => errorsOf("field", field.id).length || (isContainer(field) && childErrorsOf(field).length))));
           return `
             <button class="e-permits-builder__step-chip${isActive ? " is-active" : ""}${step.locked ? " has-trailing-icon" : ""}${state.sel.kind === "step" && state.sel.id === step.id ? " is-selected" : ""}" type="button" role="tab" aria-selected="${isActive}" tabindex="${isActive ? "0" : "-1"}" data-fb-step="${step.id}" aria-label="Pasul ${index + 1}: ${esc(tr(step.title))}${step.locked ? " (generat de platformă)" : ""}${hasError ? " — are erori" : ""}">
               <span class="e-permits-builder__step-badge">${index + 1}</span>
@@ -745,10 +1006,52 @@ document.addEventListener("DOMContentLoaded", () => {
         <span title="${esc(tr(field.label) || "Câmp ascuns")} · ${esc(what)}">${esc(tr(field.label) || "Câmp ascuns")} · ${esc(what)}</span>
       </p>`;
   }
+  /* ---- 1:N containers on the canvas: the band of columns / block fields (US-34 „zonă de coloane”):
+     a chip per child (click = its properties, drag = reorder, Alt + ← / → or ↑ / ↓ = move, Delete),
+     palette types dropped on the band become children, „+ Coloană” opens the typed menu */
+  function addChildMenuHtml(container, where) {
+    const inGrid = container.type === "grid";
+    const item = (type) => {
+      const reason = childAllowed(container, type);
+      return `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem"${reason ? ` aria-disabled="true" data-tooltip-reason="${esc(reason)}"` : ""} data-fb-add-child="${type}" data-container="${container.id}">${icon(comp(type).icon)}<span>${esc(type === "grid" ? "Grilă imbricată" : comp(type).label)}</span></button></li>`;
+    };
+    const head = (text) => `<li role="none" class="e-permits-builder__issues-head">${esc(text)}</li>`;
+    const fromForm = allFields().map(({ field }) => field).filter((field) => !isContainer(field) && !childAllowed(container, field.type) && !(container.type === "grid" && COLUMN_COMPLEX.includes(field.type) && childAllowed(container, field.type)));
+    const groups = inGrid
+      ? `${head("Coloane simple")}${[...COLUMN_SIMPLE, "datetime"].map(item).join("")}${head("Coloane complexe")}${COLUMN_COMPLEX.map(item).join("")}`
+      : `${head("Câmpuri")}${BLOCK_TYPES.map(item).join("")}`;
+    const copies = fromForm.length ? `${head("Copie a unui câmp din formular")}${fromForm.map((field) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fb-add-child-from="${field.id}" data-container="${container.id}">${icon(comp(field.type).icon)}<span>${esc(fieldName(field))}</span></button></li>`).join("")}` : "";
+    return `<ul class="e-permits-fo-intent-menu e-permits-stack__menu e-permits-builder__add-menu" id="fb-addchild-${container.id}-${where}" role="menu" aria-label="${inGrid ? "Adaugă o coloană" : "Adaugă un câmp în bloc"}" hidden data-stack-menu>${groups}${copies}</ul>`;
+  }
+  const childHasIssue = (child) => errorsOf("child", child.id).length > 0 || (child.type === "grid" && childErrorsOf(child).length > 0);
+  function subsStripHtml(field) {
+    const inGrid = field.type === "grid";
+    const selected = state.sel.kind === "child" ? findChild(state.sel.id) : null;
+    return `
+      <div class="e-permits-builder__subs" data-fb-subs="${field.id}" role="group" aria-label="${inGrid ? "Coloanele grilei" : "Câmpurile blocului"} „${esc(fieldName(field))}”">
+        <span class="e-permits-builder__subs-label" aria-hidden="true">${inGrid ? "Coloane" : "Câmpuri"}</span>
+        ${kidsOf(field).map((child) => {
+          const bad = childHasIssue(child);
+          const on = Boolean(selected && (selected.child === child || selected.chain.includes(child)));
+          return `<button class="e-permits-builder__sub${on ? " is-selected" : ""}${bad ? " has-issue" : ""}" type="button" draggable="true" data-fb-child="${child.id}" aria-pressed="${on}" aria-describedby="fb-sub-kbd-hint" aria-label="${esc(`${child.type === "grid" ? "Grilă imbricată" : comp(child.type).label}: ${fieldName(child)}${child.required ? ", obligatoriu" : ""}${bad ? ", are erori" : ""}`)}" title="${esc(fieldName(child))}">${icon(comp(child.type).icon, 16)}<span>${esc(fieldName(child))}</span>${child.required ? requiredMark() : ""}${bad ? icon("icon-warning-filled", 16) : ""}</button>`;
+        }).join("")}
+        <div class="e-permits-stack__menu-wrap e-permits-builder__sub-add-wrap">
+          <button class="e-permits-builder__sub-add" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-addchild-${field.id}-cv" data-stack-menu-trigger>${icon("icon-plus-small", 16)}<span>${inGrid ? "Coloană" : "Câmp"}</span></button>
+          ${addChildMenuHtml(field, "cv")}
+        </div>
+      </div>`;
+  }
+  function emptyContainerHtml(field) {
+    const inGrid = field.type === "grid";
+    return window.GEAPEmptyState?.render({ title: inGrid ? "Grila nu are coloane" : "Blocul nu are câmpuri", text: inGrid ? "Trage un tip din bibliotecă pe banda „Coloane” sau apasă „+ Coloană”." : "Trage un câmp din bibliotecă pe banda „Câmpuri” sau apasă „+ Câmp”.", icon: inGrid ? "dot-grid" : "page-add", compact: true, bare: true }) || "";
+  }
+
   function fieldCardHtml(field, section, index, total) {
     const meta = comp(field.type);
-    const selected = state.sel.kind === "field" && state.sel.id === field.id;
-    const errors = errorsOf("field", field.id);
+    const selected = (state.sel.kind === "field" && state.sel.id === field.id) || (state.sel.kind === "child" && findChild(state.sel.id)?.top === field);
+    const ownErrors = errorsOf("field", field.id);
+    const kidErrors = isContainer(field) ? childErrorsOf(field) : [];
+    const errors = ownErrors.length ? ownErrors : kidErrors.length ? [{ message: `${kidErrors.length} ${kidErrors.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpurile blocului"}: ${kidErrors[0].message}`, short: `${kidErrors.length} ${kidErrors.length === 1 ? "problemă" : "probleme"} în ${field.type === "grid" ? "coloane" : "câmpuri"}` }] : [];
     const name = fieldName(field);
     const sectionsInStep = activeStep().sections || [];
     const moveItems = [
@@ -771,7 +1074,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ${ui().renderStackMenu?.(moveItems, name) || ""}
           </div>
         </div>
-        <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : foHtml(field, { prefix: "cv", inCard: true })}</div>
+        ${isContainer(field) ? subsStripHtml(field) : ""}
+        <div class="e-permits-builder__field-render" inert>${field.type === "hidden" ? hiddenMarkerHtml(field) : isContainer(field) && !kidsOf(field).length ? emptyContainerHtml(field) : foHtml(field, { prefix: "cv", inCard: true })}</div>
         ${NO_VALUE.includes(field.type) && !errors.length && !(field.rules || []).length && !field.preset ? "" : `
         <div class="e-permits-builder__field-foot">
           ${NO_VALUE.includes(field.type) ? "" : `<span class="e-permits-builder__field-key" title="${esc(field.key)}">${esc(field.key)}</span>`}
@@ -845,6 +1149,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.canvas.innerHTML = `${head}
       <p class="u-visually-hidden" id="${KBD_HINT_ID}">Alt + săgeată sus sau jos mută câmpul, Alt + săgeată stânga sau dreapta schimbă lățimea, Ctrl + D duplică, Delete șterge.</p>
       <p class="u-visually-hidden" id="fb-sec-kbd-hint">Alt + săgeată sus sau jos mută secțiunea.</p>
+      <p class="u-visually-hidden" id="fb-sub-kbd-hint">Alt + săgeată stânga sau dreapta (grilă) ori sus sau jos (bloc) mută elementul; Delete îl șterge.</p>
       ${sections.map((section, index) => sectionHtml(section, index, sections.length)).join("")}
       <div class="e-permits-builder__canvas-actions">
         <button class="btn btn-secondary btn-sm" type="button" data-fb-add-section>${icon("icon-plus-small", 16)}<span>Adaugă secțiune</span></button>
@@ -855,7 +1160,10 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (focusedSection) {
       el.canvas.querySelector(`[data-fb-select-section="${focusedSection}"]`)?.focus({ preventScroll: true });
     }
+    /* grids on the (inert) canvas: table or cards, by the room the card has */
+    window.GEAPFoRepeat?.layout(el.canvas);
   }
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => window.GEAPFoRepeat?.layout(el.canvas)).observe(el.canvas);
 
   /* --------------------------------------------------- properties panel (spec § D, E) */
   const pid = (prop) => `fb-p-${prop.replace(/[^a-z0-9]+/gi, "-")}`;
@@ -930,10 +1238,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const langNote = () => (state.lang === "ro" ? "" : `<p class="e-permits-fo-field__hint">Fără traducere, solicitantul vede textul în română.</p>`);
   const langLabel = (label) => `${label} (${state.lang.toUpperCase()})`;
 
-  function panelHead({ crumbs = [], title, chip = "", menu = "", subtitle = "" }) {
+  function panelHead({ crumbs = [], title, chip = "", menu = "", subtitle = "", back = null }) {
     return `
       <div class="e-permits-builder__panel-head e-permits-builder__panel-head--selected">
         ${crumbs.length ? `<p class="e-permits-builder__crumbs">${crumbs.map(esc).join('<span aria-hidden="true"> › </span>')}</p>` : ""}
+        ${back ? `<div><button class="btn btn-text-primary btn-sm e-permits-builder__back" type="button" data-fb-goto="${back.kind}:${back.id}:${T_DATA}">${icon("icon-arrow-left", 16)}<span>${esc(back.label)}</span></button></div>` : ""}
         <div class="e-permits-builder__panel-title-row">
           <h2 id="fb-panel-title">${esc(title)}</h2>
           ${menu}
@@ -953,6 +1262,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let html = "";
     if (state.sel.kind === "field") html = fieldPanelHtml(findField(state.sel.id));
+    else if (state.sel.kind === "child") html = childPanelHtml(findChild(state.sel.id));
     else if (state.sel.kind === "section") html = sectionPanelHtml(findSection(state.sel.id));
     else if (state.sel.kind === "step") html = stepPanelHtml(stepById(state.sel.id));
     else html = formPanelHtml();
@@ -1053,6 +1363,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div><dt>Reguli de dată</dt><dd>${allFields().reduce((n, { field }) => n + (field.dateRules || []).length, 0)}</dd></div>
             <div><dt>Surse externe</dt><dd>${allFields().filter(({ field }) => field.type === "address" || field.type === "subdivision" || field.type === "mdocs" || field.dataSource?.mode === "existing" || (field.type === "idno" && field.idnoSource !== "applicant") || (field.type === "idnp" && field.idnpSource === "rsp")).length}</dd></div>
             <div><dt>Componente salvate folosite</dt><dd>${allFields().filter(({ field }) => field.preset).length}</dd></div>
+            <div><dt>Grile și blocuri repetabile</dt><dd>${allFields().filter(({ field }) => isContainer(field)).length}</dd></div>
           </dl>
         `)}
       </div>`;
@@ -1153,7 +1464,7 @@ document.addEventListener("DOMContentLoaded", () => {
      `.e-permits-doc-rule`, sentence rows `.e-permits-doc-cond` (câmp · operator · valoare · ×),
      keywords as `code.e-permits-doc-kw`, „și ▾ / sau” as `.e-permits-doc-kwselect`. Same markup,
      builder hooks (data-fb-rule-* / data-fb-cond-*). Operators by family (spec § D.4). */
-  const FAMILY = { text: "text", textarea: "text", email: "text", phone: "text", number: "number", money: "number", date: "date", select: "choice", radio: "choice", segment: "choice", multiselect: "multi", checklist: "multi", checkbox: "bool", idnp: "text", idno: "text", hidden: "text", subdivision: "choice", consent: "bool" };
+  const FAMILY = { text: "text", textarea: "text", email: "text", phone: "text", number: "number", money: "number", date: "date", select: "choice", radio: "choice", segment: "choice", multiselect: "multi", checklist: "multi", checkbox: "bool", idnp: "text", idno: "text", hidden: "text", subdivision: "choice", consent: "bool", grid: "number", repeat: "number" };
   const OPS = { eq: "Este egal", ne: "Este diferit", contains: "Conține", in: "În listă", lt: "Mai mic", le: "Mai mic sau egal", gt: "Mai mare", ge: "Mai mare sau egal", empty: "Este gol", filled: "Este completat", checked: "Este bifat", unchecked: "Nu este bifat" };
   const OPS_BY_FAMILY = { text: ["eq", "ne", "contains", "empty", "filled"], number: ["eq", "ne", "lt", "le", "gt", "ge", "empty", "filled"], date: ["eq", "ne", "lt", "le", "gt", "ge", "empty", "filled"], choice: ["eq", "ne", "in", "empty", "filled"], multi: ["in", "empty", "filled"], bool: ["checked", "unchecked"] };
   const NO_VALUE_OPS = ["empty", "filled", "checked", "unchecked"];
@@ -1166,7 +1477,13 @@ document.addEventListener("DOMContentLoaded", () => {
     <option value=""${value ? "" : " selected"} disabled>${esc(placeholder)}</option>
     ${options.map(([v, text]) => `<option value="${esc(v)}"${String(v) === String(value) ? " selected" : ""}>${esc(text)}</option>`).join("")}` }) || "";
   /* fields a rule may read: every other field with a value family (grid columns: none yet) */
-  const ruleSources = (target) => allFields().filter(({ field }) => field.id !== target.id && FAMILY[field.type]).map(({ field }) => field);
+  /* a block field reads the fields of its own element; a grid column never takes part (US-42 AC-36) */
+  const ruleSources = (target) => {
+    const found = findChild(target.id);
+    if (found) return found.container.type === "repeat" ? kidsOf(found.container).filter((child) => child.id !== target.id && FAMILY[child.type]) : [];
+    return allFields().filter(({ field }) => field.id !== target.id && FAMILY[field.type]).map(({ field }) => field);
+  };
+  const sourceLabel = (field) => `${fieldName(field)} · ${field.type === "grid" ? "număr de rânduri" : field.type === "repeat" ? "număr de elemente" : comp(field.type).label}`;
   const optionChoices = (field) => (usesSource(field.type) ? selectOptions(field).map((value) => [value, value]) : (field.options || []).map((option) => [option.value, option.label]));
   const makeRule = (action = "show") => ({ id: uid("rule"), action, join: "and", conditions: [{ field: "", op: "", value: "" }], ...(action === "set" ? { setValue: "" } : {}) });
 
@@ -1198,7 +1515,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : `<div class="e-permits-doc-val${valueBad ? " is-error" : ""}${c.op === "in" ? " is-checks" : ""}">${canField ? `<div class="e-permits-doc-val__mode">${bareSelect(`fb-cm-${ri}-${ci}`, `data-fb-cond-mode="${k}"`, "Valoare", [["value", "Valoare"], ["field", "Alt câmp"]], c.mode === "field" ? "field" : "value", { label: "Compară cu" })}</div>` : ""}<div class="e-permits-doc-val__control">${input}</div></div>`;
     return `
       <li class="e-permits-doc-cond" data-fb-condition="${k}">
-        <div class="e-permits-doc-cond__cell">${bareSelect(`fb-cf-${ri}-${ci}`, `data-fb-cond-field="${k}"`, "Câmp din formular", sources.map((field) => [field.id, `${fieldName(field)} · ${comp(field.type).label}`]), c.field, { error: errors.some((issue) => issue.prop === `rules.${k}.field`), label: "Câmp din formular" })}</div>
+        <div class="e-permits-doc-cond__cell">${bareSelect(`fb-cf-${ri}-${ci}`, `data-fb-cond-field="${k}"`, "Câmp din formular", sources.map((field) => [field.id, sourceLabel(field)]), c.field, { error: errors.some((issue) => issue.prop === `rules.${k}.field`), label: "Câmp din formular" })}</div>
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${bareSelect(`fb-co-${ri}-${ci}`, `data-fb-cond-op="${k}"`, "Operator", ops.map((op) => [op, OPS[op]]), c.op, { error: errors.some((issue) => issue.prop === `rules.${k}.op`), disabled: !source, label: "Operator" })}</div>
         <div class="e-permits-doc-cond__cell">${value}</div>
         ${rule.conditions.length > 1
@@ -1231,6 +1548,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const list = [];
     const reads = (rule) => rule.conditions.some((c) => c.field === id || (c.mode === "field" && c.other === id));
     allFields().forEach(({ field }) => { if ((field.rules || []).some(reads)) list.push({ kind: "field", id: field.id, name: fieldName(field), what: comp(field.type).label }); });
+    allChildren().forEach(({ child }) => { if ((child.rules || []).some(reads)) list.push({ kind: "child", id: child.id, name: fieldName(child), what: comp(child.type).label }); });
+    allChildren().forEach(({ container, child }) => { if (child.dataSource?.cascade && child.dataSource.parentFieldId === id) list.push({ kind: "child", id: child.id, name: `${fieldName(container)} › ${fieldName(child)}`, what: "Listă dependentă" }); });
     allSections().forEach(({ section }) => { if ((section.rules || []).some(reads)) list.push({ kind: "section", id: section.id, name: tr(section.title) || "Secțiune", what: "Secțiune" }); });
     allFields().forEach(({ field }) => { if (field.type === "date" && (field.dateRules || []).some((rule) => rule.target === id)) list.push({ kind: "field", id: field.id, name: fieldName(field), what: "Regulă de dată" }); });
     return list;
@@ -1243,10 +1562,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (kind === "field" && target.type === "hidden" && target.hiddenSource !== "rule") {
       return group("Reguli de comportament", `${ui().renderInfoNote?.("Un câmp ascuns nu se afișează, deci nu are reguli de afișare. Ca regulile să-i seteze valoarea, alegeți Date › Sursa valorii = „Din regulă”.") || ""}<div><button class="btn btn-secondary btn-sm" type="button" data-builder-prop-tab="data">Deschide Date</button></div>`);
     }
-    const actions = content ? ACTIONS_VISIBILITY : target.type === "hidden" ? ACTIONS_SET : ACTIONS_INPUT;
+    const actions = content || kind === "child" ? ACTIONS_VISIBILITY : target.type === "hidden" ? ACTIONS_SET : ACTIONS_INPUT;
     const what = kind === "section" ? "această secțiune" : content ? "această notă" : "acest câmp";
     const errors = errorsOf(kind, target.id).filter((issue) => issue.tab === T_LOGIC);
-    const readers = kind === "field" ? usedIn(target.id) : [];
+    const readers = kind === "field" || kind === "child" ? usedIn(target.id) : [];
     return `
       ${group("Reguli de comportament", `
         <p class="e-permits-fo-field__hint">${target.type === "hidden" ? "Ultima regulă îndeplinită setează valoarea; fără una îndeplinită, câmpul rămâne gol." : rules.length
@@ -1254,16 +1573,17 @@ document.addEventListener("DOMContentLoaded", () => {
           : `Fără reguli, ${kind === "section" ? "secțiunea" : content ? "nota" : "câmpul"} se afișează mereu${content ? "" : " și urmează „Obligatoriu” din General"}.`}</p>
         ${errors.filter((issue) => issue.prop === "cycle").map((issue) => errorHtml(issue.message)).join("")}
         ${rules.length ? `<div class="e-permits-doc-rules">${rules.map((rule, ri) => ruleHtml(rule, ri, sources, actions, what, errors)).join("")}</div>` : ""}
-        <div><button class="btn btn-secondary btn-sm" type="button" data-fb-rule-add${sources.length ? "" : ' aria-disabled="true" data-tooltip-reason="Formularul nu are alte câmpuri."'}>${icon("icon-plus-large", 16)}<span>Adaugă regulă</span></button></div>
+        ${kind === "child" ? '<p class="e-permits-fo-field__hint">În bloc, regulile citesc câmpurile aceluiași card și afișează sau ascund câmpul în acel card.</p>' : ""}
+        <div><button class="btn btn-secondary btn-sm" type="button" data-fb-rule-add${sources.length ? "" : ` aria-disabled="true" data-tooltip-reason="${kind === "child" ? "Blocul nu are alte câmpuri." : "Formularul nu are alte câmpuri."}"`}>${icon("icon-plus-large", 16)}<span>Adaugă regulă</span></button></div>
       `)}
-      ${kind === "field" && !content ? group("Folosit în", readers.length ? `
+      ${(kind === "field" || kind === "child") && !content ? group("Folosit în", readers.length ? `
         <ul class="e-permits-builder__step-list">${readers.map((item) => `<li><button class="e-permits-builder__step-row" type="button" data-fb-goto="${item.kind}:${item.id}"><span>${esc(item.name)}</span><span class="e-permits-builder__step-row-meta">${esc(item.what)}</span></button></li>`).join("")}</ul>` : '<p class="e-permits-fo-field__hint">Nicio regulă din formular nu citește acest câmp.</p>') : ""}`;
   }
 
   /* cycles: field A shown by B and B by A → refused (US-42 AC-31) */
   function logicCycles() {
     const graph = new Map();
-    allFields().forEach(({ field }) => graph.set(field.id, new Set((field.rules || []).flatMap((rule) => rule.conditions.flatMap((c) => [c.field, c.mode === "field" ? c.other : ""])).filter(Boolean))));
+    [...allFields().map(({ field }) => field), ...allChildren().map(({ child }) => child)].forEach((field) => graph.set(field.id, new Set((field.rules || []).flatMap((rule) => rule.conditions.flatMap((c) => [c.field, c.mode === "field" ? c.other : ""])).filter(Boolean))));
     const inCycle = new Set();
     const visit = (id, path) => {
       if (path.includes(id)) { path.slice(path.indexOf(id)).forEach((item) => inCycle.add(item)); return; }
@@ -1302,6 +1622,123 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   }
 
+  /* ---- a column / block field selected → the same panel as a field (US-34 AC-03), without Logică
+     for grid columns (US-42 AC-36) and with a link back to its grid / block */
+  const childTabs = (found) => {
+    const tabs = comp(found.child.type).tabs || INPUT_TABS;
+    return found.container.type === "grid" ? tabs.filter((tab) => tab !== T_LOGIC) : tabs;
+  };
+  function childPanelHtml(found) {
+    if (!found) return formPanelHtml();
+    const { step, section, chain, container, child, index, list } = found;
+    const inGrid = container.type === "grid";
+    const tabs = childTabs(found);
+    if (!tabs.includes(state.tab)) state.tab = T_GEN;
+    const name = fieldName(child);
+    const items = [
+      { label: "Duplică", icon: "copy", attrs: `data-fb-child-act="duplicate" data-id="${child.id}"` },
+      ...(index > 0 ? [{ label: inGrid ? "Mută la stânga" : "Mută mai sus", icon: inGrid ? "arrow-left" : "arrow-up", attrs: `data-fb-child-act="up" data-id="${child.id}"` }] : []),
+      ...(index < list.length - 1 ? [{ label: inGrid ? "Mută la dreapta" : "Mută mai jos", icon: inGrid ? "arrow-right" : "arrow-down", attrs: `data-fb-child-act="down" data-id="${child.id}"` }] : []),
+      { label: inGrid ? "Șterge coloana" : "Șterge câmpul", icon: "delete", danger: true, attrs: `data-fb-child-act="delete" data-id="${child.id}"` },
+    ];
+    let body = "";
+    if (state.tab === T_GEN) body = generalTabHtml(child);
+    else if (state.tab === T_DATA) body = dataTabHtml(child);
+    else if (state.tab === T_VAL) body = validationTabHtml(child);
+    else if (state.tab === T_LOGIC) body = logicTabHtml(child, "child");
+    else body = childAdvancedHtml(found);
+    return `
+      ${panelHead({ crumbs: [tr(step.title), tr(section.title) || "Secțiune", ...chain.map((item) => fieldName(item))], title: name, chip: child.type === "info" ? "" : ui().renderTag?.(child.key || "fără cheie", "neutral") || "", menu: ui().renderStackMenu?.(items, name) || "", back: { kind: findChild(container.id) ? "child" : "field", id: container.id, label: `${inGrid ? (findChild(container.id) ? "Sub-grila" : "Grila") : "Blocul"} „${fieldName(container)}”` } })}
+      ${tabsHtml(tabs, "child", child.id)}
+      <div class="e-permits-builder__panel-scroll" id="fb-tabpanel" role="tabpanel" aria-labelledby="fb-tab-${state.tab}" data-fb-panel-scroll>
+        ${body}
+      </div>`;
+  }
+
+  /* Date of a grid / block: its columns or fields, in order, + „Adaugă coloană ▾” (US-34) */
+  function childrenEditorHtml(container) {
+    const inGrid = container.type === "grid";
+    const list = kidsOf(container);
+    const level = levelOf(container);
+    const err = propError("field", container.id, "children");
+    return `
+      ${group(inGrid ? "Coloane" : "Câmpurile blocului", `
+        <p class="e-permits-fo-field__hint">${inGrid ? `Ordinea de aici = ordinea coloanelor în tabel. Trage tipuri din bibliotecă pe banda „Coloane” a grilei sau adaugă-le de aici.${level > 1 ? ` Grilă de nivelul ${level} din ${MAX_GRID_LEVEL}.` : ""}` : "Câmpurile fiecărui card, în ordine. Trage tipuri din bibliotecă pe banda „Câmpuri” sau adaugă-le de aici."}</p>
+        ${err ? errorHtml(err) : ""}
+        ${list.length ? `<ol class="e-permits-builder__step-list" aria-label="${inGrid ? "Coloanele grilei" : "Câmpurile blocului"}">${list.map((child, i) => `
+          <li><button class="e-permits-builder__step-row" type="button" data-fb-child-row="${child.id}" aria-describedby="fb-sub-kbd-hint">
+            <span class="e-permits-builder__step-badge">${i + 1}</span>
+            <span>${esc(fieldName(child))}${child.required ? requiredMark() : ""}</span>
+            <span class="e-permits-builder__step-row-meta">${childHasIssue(child) ? `<em class="e-permits-builder__tag e-permits-builder__tag--warning">${icon("icon-warning-filled", 16)}Eroare</em>` : ""}${esc(child.type === "grid" ? `Grilă · ${kidsOf(child).length} col.` : comp(child.type).label)}</span>
+          </button></li>`).join("")}</ol>` : ui().renderInfoNote?.(inGrid ? "Grila începe fără coloane (US-34)." : "Blocul începe fără câmpuri.") || ""}
+        <div class="e-permits-stack__menu-wrap e-permits-builder__inline-actions">
+          <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-addchild-${container.id}-panel" data-stack-menu-trigger><span>${inGrid ? "Adaugă coloană" : "Adaugă câmp"}</span>${icon("icon-chevron-bottom", 16)}</button>
+          ${addChildMenuHtml(container, "panel")}
+        </div>
+        ${inGrid ? '<p class="e-permits-fo-field__hint">Coloanele complexe (listă, selecție multiplă, grilă imbricată) vin după cel puțin o coloană simplă (US-34 AC-06).</p>' : ""}
+      `)}
+      ${inGrid ? group("Mod de editare", sourceFacts([["Pe ecran mare", "Inline: clic pe celulă, Enter salvează, Esc anulează"], ["Pe telefon", "Un card pe rând, câmpuri pe toată lățimea"], ["Dialog, Formular inline", "În afara proiectului (Feature 88573)"]])) : ""}`;
+  }
+
+  /* Validare of a grid / block: rows (US-36), rules between rows, messages (RO · RU · EN) */
+  function rowRulesHtml(container) {
+    const inGrid = container.type === "grid";
+    const r = container.rowRules || {};
+    const m = container.messages || {};
+    const err = (prop) => propError("field", container.id, prop);
+    const list = kidsOf(container);
+    const noun = inGrid ? "rânduri" : "elemente";
+    const keyOptions = list.filter((child) => !["grid", "info", "checkbox", "checklist"].includes(child.type)).map((child) => [child.id, fieldName(child)]);
+    const groupOptions = list.filter((child) => child.type === "select" && child.dataSource?.mode === "existing").map((child) => [child.id, fieldName(child)]);
+    return `
+      ${group(inGrid ? "Rânduri" : "Elemente", `
+        ${grid(`
+          ${inputField({ prop: "rowRules.minRows", label: "Minimum", value: r.minRows ?? "", numeric: true, span: 6, error: err("rowRules.minRows"), hint: container.required ? "Obligatoriu = cel puțin 1." : "Gol = fără minim." })}
+          ${inputField({ prop: "rowRules.maxRows", label: "Maximum", value: r.maxRows ?? "", numeric: true, span: 6, error: err("rowRules.maxRows"), hint: "Gol = fără limită." })}
+          ${inputField({ prop: "rowRules.defaultRows", label: "La început", value: r.defaultRows ?? "", numeric: true, span: 6, error: err("rowRules.defaultRows"), hint: inGrid ? "Rânduri goale la deschidere." : "Carduri la deschidere." })}
+          ${inGrid ? selectField({ prop: "rowRules.pageSize", label: "Rânduri pe pagină", value: r.pageSize ?? 10, options: [[0, "Toate"], [5, "5"], [10, "10"], [20, "20"]], span: 6, hint: "Peste el apare paginarea (US-35 AC-06)." }) : ""}
+        `)}
+        <div class="e-permits-check-options e-permits-check-options--stack">
+          ${inGrid ? checkOption({ prop: "rowRules.allowAdd", label: "Solicitantul adaugă rânduri", checked: r.allowAdd !== false }) : ""}
+          ${checkOption({ prop: "rowRules.allowRemove", label: inGrid ? "Solicitantul șterge rânduri" : "Solicitantul șterge elemente", checked: r.allowRemove !== false })}
+        </div>`)}
+      ${group(`Reguli între ${noun}`, grid(`
+        ${selectField({ prop: "rowRules.keyColumn", label: inGrid ? "Coloana-cheie (fără duplicate)" : "Câmpul-cheie (fără duplicate)", value: r.keyColumn || "", options: [["", "Fără"], ...keyOptions], error: err("rowRules.keyColumn"), hint: `Aceeași valoare de două ori = mesaj; ${inGrid ? "rândul nu se salvează" : "valoarea nu se acceptă"} (US-36 AC-03).` })}
+        ${selectField({ prop: "rowRules.groupColumn", label: inGrid ? "Coloana de grupare" : "Câmpul de grupare", value: r.groupColumn || "", options: [["", "Fără"], ...groupOptions], error: err("rowRules.groupColumn"), hint: "Prima valoare fixează grupa; valorile din alte grupe se dezactivează, cu un mesaj permanent (US-36 AC-04)." })}
+      `))}
+      ${group("Mesaje", `
+        ${langSwitch([m.min, m.max, m.duplicate, m.group])}
+        ${grid(`
+          ${inputField({ prop: "messages.min", label: langLabel("Sub minim"), value: tr(m.min, state.lang), i18nProp: true, placeholder: inGrid ? "Trebuie cel puțin {min} rânduri." : "Adaugă cel puțin {min}." })}
+          ${inputField({ prop: "messages.max", label: langLabel("La maxim"), value: tr(m.max, state.lang), i18nProp: true, placeholder: inGrid ? "Maximum {max} rânduri." : "Maximum {max} elemente." })}
+          ${inputField({ prop: "messages.duplicate", label: langLabel("Valoare repetată"), value: tr(m.duplicate, state.lang), i18nProp: true, placeholder: "Dvstră ați înregistrat deja această valoare." })}
+          ${inputField({ prop: "messages.group", label: langLabel("Îndrumare la grupare"), value: tr(m.group, state.lang), i18nProp: true, placeholder: `Toate ${inGrid ? "rândurile" : "elementele"} au aceeași grupă la „{coloana}”: {grup}.`, hint: "{min}, {max}, {coloana} și {grup} se înlocuiesc. Gol = textul standard." })}
+        `)}`)}
+      ${group("Verificare la depunere", ui().renderInfoNote?.("Serverul repetă aceleași verificări pe rânduri (minim, duplicate, grupă, câmpuri), chiar dacă verificarea din browser e ocolită (US-36 AC-05).") || "")}`;
+  }
+
+  const SQL_TYPES = { text: (f) => `NVARCHAR(${f.maxLength || 100})`, textarea: (f) => (Number(f.maxLength) > 2000 ? "NVARCHAR(MAX)" : `NVARCHAR(${f.maxLength || 250})`), number: (f) => (f.numberKind === "decimal" ? `DECIMAL(18,${f.decimals || 1})` : "INT"), money: () => "DECIMAL(18,2)", email: () => "NVARCHAR(254)", phone: () => "NVARCHAR(20)", date: () => "DATE", period: () => "DATE × 2 (De la, Până la)", select: () => "INT (Id clasificator)", multiselect: () => "listă de Id-uri (tabel 1:N)", radio: () => "NVARCHAR(50)", segment: () => "NVARCHAR(50)", checkbox: () => "BIT", checklist: () => "NVARCHAR(MAX) (listă)", address: () => "INT (AddressId)", idnp: () => "CHAR(13)", idno: () => "CHAR(13) + denumire NVARCHAR(250)", contact: () => "INT (ContactId)", subdivision: () => "INT (Id subdiviziune)", file: () => "INT (FileId, tabel 1:N)", mdocs: () => "NVARCHAR(64) (Id document MDocs)", hidden: () => "NVARCHAR(100)", consent: () => "BIT", grid: () => "tabel copil (1:N)", repeat: () => "tabel copil (1:N)" };
+  const sqlTypeOf = (field) => (SQL_TYPES[field.type] ? SQL_TYPES[field.type](field) : "—");
+  /* the child table of a grid / block (US-33 AC-03/04): GEAP_Cases_{serviciu}_{Grilă}[_{Sub-grilă}] */
+  const tableOf = (chain) => `GEAP_Cases_${form.service?.rsspCode || "C00000"}_${chain.map((item) => item.key || "Grila").join("_")}`;
+
+  /* Avansat of a column / block field: where its value is stored */
+  function childAdvancedHtml(found) {
+    const { child, chain, container } = found;
+    const copy = (value, what) => R.copyValueHtml?.(value, { ariaLabel: `Copiază ${what} ${value}` }) || esc(value);
+    return `
+      ${group("Identificare", `
+        <dl class="e-permits-builder__facts">
+          <div><dt>Cheie</dt><dd>${child.key ? copy(child.key, "cheia") : "—"}</dd></div>
+          <div><dt>Identificator intern</dt><dd>${copy(child.id, "identificatorul")}</dd></div>
+          <div><dt>Tabel</dt><dd>${esc(tableOf(chain))}</dd></div>
+          <div><dt>Coloana</dt><dd>${esc(child.type === "grid" ? `tabel ${tableOf([...chain, child])}` : child.key || "—")}</dd></div>
+          <div><dt>Tip SQL</dt><dd>${esc(sqlTypeOf(child))}</dd></div>
+        </dl>
+        <p class="e-permits-fo-field__hint">Câte un rând în tabel pentru fiecare ${container.type === "grid" ? "rând al grilei" : "element al blocului"}, legat de ${chain.length > 1 ? "rândul-părinte (ParentRowId)" : "dosar (CaseId)"}, cu ordinea în SortOrder.</p>`)}
+      ${child.type === "info" ? "" : group("Date personale", `<div class="e-permits-check-options">${checkOption({ prop: "personalData", label: "Conține date cu caracter personal", checked: child.personalData })}</div>`)}`;
+  }
+
   function generalTabHtml(field) {
     const t = field.type;
     const err = (prop) => propError("field", field.id, prop);
@@ -1310,7 +1747,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const content = NO_VALUE.includes(t);
     const hasPlaceholder = ["text", "textarea", "number", "money", "email", "phone", "select", "multiselect"].includes(t) || (t === "subdivision" && field.subdivisionMode === "select");
-    const translatables = t === "info" ? [field.text] : t === "callout" ? [field.title, field.text] : t === "period" ? [field.label, field.help, field.fromLabel, field.toLabel]
+    const childInfo = findChild(field.id);
+    const column = childInfo?.container.type === "grid";
+    const containerKind = isContainer(field);
+    const translatables = containerKind ? [field.label, field.help, field.addLabel, t === "grid" ? field.emptyText : field.note, t === "grid" ? field.rowTitle : field.itemTitle] : t === "info" ? [field.text] : t === "callout" ? [field.title, field.text] : t === "period" ? [field.label, field.help, field.fromLabel, field.toLabel]
       : t === "consent" ? [field.text, field.linkText] : t === "hidden" ? [] : t === "idno" ? [field.label, field.help, field.companyLabel] : [field.label, field.help, field.placeholder];
     const keyLocked = Boolean(field.published);
     let labelBlock;
@@ -1332,6 +1772,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ${inputField({ prop: "linkText", label: langLabel("Textul linkului"), value: tr(field.linkText, state.lang), i18nProp: true, error: state.lang === "ro" ? err("linkText") : "", hint: "Exact cum apare în declarație; devine link spre textul legal." })}
         ${inputField({ prop: "linkUrl", label: "Adresa textului legal", value: field.linkUrl || "", placeholder: "https://www.legis.md/…", error: err("linkUrl"), hint: "Se deschide într-o filă nouă." })}
         ${inputField({ prop: "label", label: "Denumire internă", value: tr(field.label), required: true, maxlength: 150, error: err("label"), hint: "Solicitantul nu o vede; apare în reguli, rapoarte și în lista de erori." })}`;
+    } else if (containerKind) {
+      labelBlock = `
+        ${inputField({ prop: "label", label: langLabel("Etichetă"), value: tr(field.label, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 150, error: state.lang === "ro" ? err("label") : "" })}
+        ${langNote()}
+        ${textareaField({ prop: "help", label: langLabel("Text ajutător"), value: tr(field.help, state.lang), i18nProp: true, hint: "Apare sub etichetă. Spune ce se adaugă și câte." })}
+        ${t === "repeat" ? `<div class="e-permits-user-create__field"><div class="e-permits-check-options">${checkOption({ prop: "labelHidden", label: "Ascunde eticheta (titlul secțiunii o spune)", checked: field.labelHidden })}</div></div>` : ""}`;
     } else if (t === "hidden") {
       labelBlock = `
         ${inputField({ prop: "label", label: "Denumire internă", value: tr(field.label), required: true, maxlength: 150, error: err("label"), hint: "Solicitantul nu vede acest câmp; denumirea apare în constructor, reguli și Back Office." })}`;
@@ -1344,13 +1790,26 @@ document.addEventListener("DOMContentLoaded", () => {
         ${t === "period" ? `${inputField({ prop: "fromLabel", label: langLabel("Eticheta primei date"), value: tr(field.fromLabel, state.lang), i18nProp: true, span: 6 })}${inputField({ prop: "toLabel", label: langLabel("Eticheta celei de-a doua"), value: tr(field.toLabel, state.lang), i18nProp: true, span: 6 })}` : ""}
         ${t === "idno" ? inputField({ prop: "companyLabel", label: langLabel("Eticheta denumirii"), value: tr(field.companyLabel, state.lang), i18nProp: true, maxlength: 80, hint: "Câmpul completat din registru, lângă IDNO." }) : ""}`;
     }
+    const keyLabel = column ? "Cheie (coloana din tabelul grilei)" : childInfo ? "Cheie (coloana din tabelul blocului)" : containerKind ? "Cheie (numele tabelului 1:N)" : "Cheie (coloana din baza de date)";
+    const keyHint = keyLocked ? "Blocată după prima publicare: coloana există deja." : childInfo ? `Generată din eticheta RO; unică în ${column ? "grilă" : "bloc"}, litere latine și cifre (US-33 AC-04).` : containerKind ? `Tabelul ${tableOf([field])}; litere latine și cifre, maximum 60 (US-33 AC-04).` : "Generată din eticheta RO; litere latine și cifre, unică în formular.";
     const keyBlock = content ? "" : group("Cheie câmp", grid(`
-        ${inputField({ prop: "key", label: "Cheie (coloana din baza de date)", value: field.key, required: true, readonly: keyLocked, maxlength: 60, error: keyLocked ? "" : err("key"), hint: keyLocked ? "Blocată după prima publicare: coloana există deja." : "Generată din eticheta RO; litere latine și cifre, unică în formular." })}
+        ${inputField({ prop: "key", label: keyLabel, value: field.key, required: true, readonly: keyLocked, maxlength: 60, error: keyLocked ? "" : err("key"), hint: keyHint })}
       `));
+    const textsBlock = containerKind ? group(t === "grid" ? "Texte în grilă" : "Texte în bloc", grid(`
+        ${t === "repeat"
+          ? inputField({ prop: "itemTitle", label: langLabel("Titlul elementului"), value: tr(field.itemTitle, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 60, error: state.lang === "ro" ? err("itemTitle") : "", hint: "Pe fiecare card, după număr: „#1 Activitate”." })
+          : inputField({ prop: "rowTitle", label: langLabel("Numele rândului"), value: tr(field.rowTitle, state.lang), i18nProp: true, maxlength: 40, hint: "Pe telefon, fiecare rând e un card „#1 Rând”." })}
+        ${inputField({ prop: "addLabel", label: langLabel("Butonul de adăugare"), value: tr(field.addLabel, state.lang), required: state.lang === "ro", i18nProp: true, maxlength: 60, error: state.lang === "ro" ? err("addLabel") : "", hint: t === "grid" ? "Ex.: „Adaugă rând”, „Adaugă echipament”." : "Ex.: „Adaugă altă activitate”." })}
+        ${t === "grid"
+          ? textareaField({ prop: "emptyText", label: langLabel("Text fără rânduri"), value: tr(field.emptyText, state.lang), i18nProp: true, hint: "În grilă, cât nu e niciun rând (US-35 AC-05)." })
+          : textareaField({ prop: "note", label: langLabel("Notă permanentă"), value: tr(field.note, state.lang), i18nProp: true, hint: "Nota gri deasupra cardurilor (ex.: sursa codurilor CAEM, US-40 AC-05). Gol = fără notă." })}
+      `)) : "";
     const requiredBox = t === "consent"
       ? checkOption({ prop: "required", label: "Obligatoriu", checked: true, required: true, disabled: true, reason: "Un consimțământ este întotdeauna obligatoriu." })
       : checkOption({ prop: "required", label: "Obligatoriu", checked: field.required, required: true });
-    const behaviour = content || t === "hidden" ? "" : t === "contact" ? group("Comportament", `
+    const behaviour = content || t === "hidden" ? "" : containerKind ? group("Comportament", `
+        <div class="e-permits-check-options">${requiredBox}</div>
+        <p class="e-permits-fo-field__hint">Obligatoriu = cel puțin ${t === "grid" ? "un rând salvat" : "un element"}. Minimul și maximul sunt în Validare.</p>`) : t === "contact" ? group("Comportament", `
         <div class="e-permits-fo-field"><label id="fb-contact-default">Opțiunea aleasă la început</label>${segmented({ prop: "contactDefault", value: field.contactDefault || "self", options: [["self", "Eu"], ["other", "Altă persoană"]], labelledBy: "fb-contact-default" })}
         <p class="e-permits-fo-field__hint">„Eu” = telefonul și emailul solicitantului din MPass / MNotify, doar citire.</p></div>`) : group("Comportament", `
         <div class="e-permits-check-options">
@@ -1373,7 +1832,14 @@ document.addEventListener("DOMContentLoaded", () => {
       radio: `<div class="e-permits-fo-field"><label id="fb-orientation-label">Orientare</label>${segmented({ prop: "orientation", value: field.orientation || "vertical", options: [["vertical", "Verticală"], ["horizontal", "Orizontală"]], labelledBy: "fb-orientation-label" })}</div>`,
     }[t] || "";
     const counter = ["text", "textarea"].includes(t) ? `<div class="e-permits-check-options">${checkOption({ prop: "counter", label: "Contor de caractere", checked: field.counter })}</div>` : "";
-    const aspect = t === "hidden" ? "" : group("Aspect", `
+    const aspect = t === "hidden" ? "" : column ? group("Aspect", `
+        <div class="e-permits-fo-field">
+          <label id="fb-width-label">Lățime coloană</label>
+          ${segmented({ prop: "width", value: field.width || "auto", options: COLUMN_WIDTHS, labelledBy: "fb-width-label" })}
+          <p class="e-permits-fo-field__hint">Auto împarte spațiul rămas. Pe telefon rândul devine card, cu câmpurile pe toată lățimea.</p>
+        </div>
+        ${format}
+        ${counter}`) : group("Aspect", `
         ${isFixedWidth(field) ? `<dl class="e-permits-builder__facts"><div><dt>Lățime</dt><dd>12/12 · toată lățimea</dd></div></dl>
         <p class="e-permits-fo-field__hint">${t === "idnp" ? "Cu verificarea în RSP, IDNP-ul, numele și prenumele ocupă un rând întreg." : "Componenta ocupă mereu un rând întreg."}</p>` : `
         <div class="e-permits-fo-field">
@@ -1388,12 +1854,14 @@ document.addEventListener("DOMContentLoaded", () => {
       ${presetLinkHtml(field)}
       ${translatables.length ? langSwitch(translatables) : ""}
       ${group(content ? "Conținut" : t === "consent" ? "Declarație" : t === "hidden" ? "Denumire" : "Etichetă și ajutor", grid(labelBlock))}
+      ${textsBlock}
       ${keyBlock}
       ${behaviour}
       ${aspect}`;
   }
 
   function validationTabHtml(field) {
+    if (isContainer(field)) return rowRulesHtml(field);
     const t = field.type;
     const v = field.validation || {};
     const err = (prop) => propError("field", field.id, prop);
@@ -1463,7 +1931,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${limit("dateMax", "Cea mai târzie", field.dateMax)}
           ${propError("field", field.id, "dateMax") ? `<div class="e-permits-user-create__field">${errorHtml(propError("field", field.id, "dateMax"))}</div>` : ""}
         `))}
-        ${dateRulesHtml(field)}
+        ${findChild(field.id) ? "" : dateRulesHtml(field)}
         ${group("Format", ui().renderInfoNote?.("Format fix ZZ/LL/AAAA; data tastată se acceptă.") || "")}
         ${group("Mesaj", `${message("Data nu respectă regula.")}${order}`)}`;
     }
@@ -1618,6 +2086,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function dataTabHtml(field) {
+    if (isContainer(field)) return childrenEditorHtml(field);
     if (field.type === "radio" || field.type === "checklist" || field.type === "segment") {
       return group("Opțiuni", `${optionsEditor(field.options || [], { presetYesNo: field.type !== "checklist", error: propError("field", field.id, "options") })}${field.type === "segment" ? '<p class="e-permits-fo-field__hint">2–5 opțiuni scurte (un cuvânt sau două).</p>' : ""}`);
     }
@@ -1720,7 +2189,12 @@ document.addEventListener("DOMContentLoaded", () => {
     let body = "";
     if (mode === "existing") {
       const classifier = getClassifier(ds.classifierId);
-      const otherSelects = allFields().filter(({ field: other }) => other.id !== field.id && other.type === "select" && other.dataSource);
+      const siblingsOf = findChild(field.id);
+      const parentLabel = (other) => `${siblingsOf && kidsOf(siblingsOf.container).includes(other) ? (siblingsOf.container.type === "grid" ? "Coloana" : "Câmpul din bloc") : "Câmpul"} „${tr(other.label) || other.key}”`;
+      const otherSelects = [
+        ...(siblingsOf ? kidsOf(siblingsOf.container).filter((other) => other.id !== field.id && other.type === "select" && other.dataSource) : []),
+        ...allFields().map(({ field: other }) => other).filter((other) => other.id !== field.id && other.type === "select" && other.dataSource),
+      ].map((other) => ({ field: other }));
       body = `
         <div class="e-permits-fo-field">
           <label id="fb-classifier-label">Clasificator${requiredMark()}</label>
@@ -1737,13 +2211,15 @@ document.addEventListener("DOMContentLoaded", () => {
             ${err("ds.classifier") ? errorHtml(err("ds.classifier")) : ""}`}
         </div>
         ${classifier ? grid(selectField({ prop: "dataSource.template", label: "Șablon afișare", value: ds.template || "name", options: TEMPLATES, hint: `Exemplu: ${esc(displayLabel((CLASSIFIER_ROWS[classifier.id] || [{ code: "1", name: classifier.displayName }])[0], ds.template))}` })) : ""}
+        ${classifier && field.type === "select" && !(findChild(field.id)?.container.type === "grid") ? toggleField({ prop: "dataSource.search", label: "Listă cu căutare (cod și denumire)", description: "Pentru clasificatoare mari, ex. CAEM; într-un bloc, lista care depinde de ea apare dedesubt.", checked: ds.search }) : ""}
+        ${classifier?.id === "reg_caem" ? ui().renderInfoNote?.("Lista CAEM se filtrează după pașaportul serviciului (US-40 AC-05); RSUD devine sursa ulterior.") || "" : ""}
         ${classifier?.treeKey ? `
           ${toggleField({ prop: "dataSource.tree.enabled", label: "Selecție arborescentă", description: "Solicitantul alege pe niveluri (ex.: CAEM).", checked: ds.tree?.enabled })}
           ${ds.tree?.enabled ? grid(`${inputField({ prop: "dataSource.tree.maxLevels", label: "Nivel maxim", value: ds.tree.maxLevels ?? 0, numeric: true, span: 6, hint: "0 = nelimitat" })}${inputField({ prop: "dataSource.tree.minLevel", label: "Obligatoriu până la nivelul", value: ds.tree.minLevel ?? 0, numeric: true, span: 6, hint: "0 = orice nivel" })}`) : ""}` : ""}
         ${classifier && !ds.tree?.enabled ? `
           ${toggleField({ prop: "dataSource.cascade", label: "Câmp dependent", description: "Opțiunile se filtrează după alt câmp (ex.: Raion → Localitate).", checked: ds.cascade })}
           ${ds.cascade ? grid(`
-            ${selectField({ prop: "dataSource.parentFieldId", label: "Câmp părinte", value: ds.parentFieldId || "", placeholder: otherSelects.length ? "Alege câmpul" : "Nicio altă listă configurată", options: otherSelects.map(({ field: other }) => [other.id, tr(other.label) || other.key]) })}
+            ${selectField({ prop: "dataSource.parentFieldId", label: "Câmp părinte", value: ds.parentFieldId || "", placeholder: otherSelects.length ? "Alege câmpul" : "Nicio altă listă configurată", error: propError("field", field.id, "dataSource.parentFieldId"), options: otherSelects.map(({ field: other }) => [other.id, parentLabel(other)]), hint: siblingsOf ? "O listă din același rând / element sau un câmp al formularului (US-37 AC-02); schimbarea părintelui golește lista (AC-03)." : "" })}
             ${selectField({ prop: "dataSource.filterColumn", label: "Coloana de filtrare", value: ds.filterColumn || "", placeholder: "Alege coloana", options: (classifier.parentColumns || []).map((column) => [column, column]), hint: classifier.parentColumns?.length ? "Coloana clasificatorului care leagă valoarea de părinte." : "Clasificatorul nu are coloane de legătură." })}
           `) : ""}` : ""}`;
     } else if (mode === "new") {
@@ -1810,7 +2286,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const defaultApiKey = (field) => `${String(form.technical || "formular").replace(/^f_/, "")}.${field.key ? field.key.charAt(0).toLowerCase() + field.key.slice(1) : "camp"}`;
   function advancedTabHtml(field) {
     const t = field.type;
-    const sqlType = { text: `NVARCHAR(${field.maxLength || 100})`, textarea: Number(field.maxLength) > 2000 ? "NVARCHAR(MAX)" : `NVARCHAR(${field.maxLength || 250})`, number: field.numberKind === "decimal" ? `DECIMAL(18,${field.decimals || 1})` : "INT", money: "DECIMAL(18,2)", email: "NVARCHAR(254)", phone: "NVARCHAR(20)", date: "DATE", period: "DATE × 2 (De la, Până la)", select: "INT (Id clasificator)", multiselect: "listă de Id-uri (tabel 1:N)", radio: "NVARCHAR(50)", segment: "NVARCHAR(50)", checkbox: "BIT", checklist: "NVARCHAR(MAX) (listă)", address: "INT (AddressId)", idnp: "CHAR(13)", idno: "CHAR(13) + denumire NVARCHAR(250)", contact: "INT (ContactId)", subdivision: "INT (Id subdiviziune)", file: "INT (FileId, tabel 1:N)", mdocs: "NVARCHAR(64) (Id document MDocs)", hidden: "NVARCHAR(100)", consent: "BIT" }[t] || "—";
+    const sqlType = sqlTypeOf(field);
     const types = form.requestTypes || [];
     const editable = field.editableAt || types;
     const fod = ["text", "textarea", "email", "number", "money"].includes(t);
@@ -1824,6 +2300,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <div><dt>Tip SQL</dt><dd>${esc(sqlType)}</dd></div>
         </dl>
         <p class="e-permits-fo-field__hint">Cheia se schimbă din General; după prima publicare rămâne fixă (coloana există deja).</p>`)}
+      ${isContainer(field) ? group("Stocare 1:N (US-33)", `
+        <dl class="e-permits-builder__facts">
+          <div><dt>Tabel copil</dt><dd>${esc(tableOf([field]))}</dd></div>
+          <div><dt>Legătura</dt><dd>CaseId → dosarul (index pe CaseId)</dd></div>
+          <div><dt>Ordinea</dt><dd>SortOrder</dd></div>
+          <div><dt>${t === "grid" ? "Coloane" : "Câmpuri"}</dt><dd>${kidsOf(field).length}${kidsOf(field).some((child) => child.type === "grid") ? " · grilele imbricate au tabelul lor, legat de rândul-părinte" : ""}</dd></div>
+        </dl>
+        <p class="e-permits-fo-field__hint">Valoarea în cerere = o listă de rânduri (JSON); schema grilei se păstrează în SettingsJSON.</p>`) : ""}
       ${group("Integrare", grid(`
         ${inputField({ prop: "apiKey", label: "Cheie API / integrare", value: field.apiKey || "", placeholder: defaultApiKey(field), hint: `Numele valorii în API-ul cererii și în MConnect. Gol = „${esc(defaultApiKey(field))}”.` })}
         ${selectField({ prop: "boMapping", label: "Mapare în Back Office", value: field.boMapping || "", options: BO_MAPPING, hint: "Unde vede funcționarul valoarea în fișa dosarului." })}
@@ -1987,13 +2471,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ---- logic live in the Preview (US-42 AC-09): read the answers, show / hide, require */
   function previewCell(id) { return el.previewBody.querySelector(`[data-fb-field="${id}"]`); }
-  function previewValue(field) {
-    const cell = previewCell(field.id);
+  /* the answer of a field (cell = its element; for a block field, its element inside one card) */
+  function previewValue(field, cell = previewCell(field.id)) {
     if (!cell || cell.hidden) return field.type === "checkbox" ? false : field.type === "checklist" || field.type === "multiselect" ? [] : "";
     switch (field.type) {
       case "radio": return cell.querySelector("input[type='radio']:checked")?.value || "";
       case "segment": return cell.querySelector(".segment-item.is-selected")?.dataset.value || "";
-      case "select": { const value = cell.querySelector("[data-fo-select-value]"); return value && !value.classList.contains("e-permits-fo-select__value--placeholder") ? value.textContent.trim() : ""; }
+      case "select": {
+        const picked = cell.querySelector(".e-permits-fo-caem__option.is-selected");
+        if (cell.querySelector("[data-fo-caem]")) return picked ? displayLabel({ code: picked.dataset.code, name: picked.dataset.label }, field.dataSource?.template) : "";
+        const value = cell.querySelector("[data-fo-select-value]");
+        return value && !value.classList.contains("e-permits-fo-select__value--placeholder") ? value.textContent.trim() : "";
+      }
+      /* a grid / block as a rule source = its number of rows / elements (spec D.4, batch 4) */
+      case "grid":
+      case "repeat": { const n = window.GEAPFoRepeat?.count(cell) || 0; return n ? String(n) : ""; }
       case "checklist": return [...cell.querySelectorAll("input[type='checkbox']:checked")].map((box) => box.value);
       case "multiselect": return [...cell.querySelectorAll(".e-permits-fo-subgen-select__option.is-selected")].map((option) => option.dataset.value);
       case "checkbox":
@@ -2009,11 +2501,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   const toDateIso = (value) => { const m = String(value || "").match(/^(\d{2})[./](\d{2})[./](\d{4})$/); return m ? `${m[3]}-${m[2]}-${m[1]}` : String(value || ""); };
-  function conditionHolds(c) {
-    const source = findField(c.field)?.field;
+  /* scope = a block card: its own fields are read there (rules between the fields of one element) */
+  const valueFor = (field, scope) => (scope ? previewValue(field, scope.querySelector(`[data-fo-repeat-child="${field.id}"]`)) : previewValue(field));
+  function conditionHolds(c, scope = null) {
+    const source = fieldOrChild(c.field);
     if (!source || !c.op) return false;
     const family = FAMILY[source.type];
-    const v = previewValue(source);
+    const v = valueFor(source, scope);
     const isEmpty = Array.isArray(v) ? !v.length : v === "" || v === false;
     if (c.op === "empty") return isEmpty;
     if (c.op === "filled") return !isEmpty;
@@ -2022,9 +2516,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const list = String(c.value || "").split("|").filter(Boolean);
     if (c.op === "in") return Array.isArray(v) ? v.some((item) => list.includes(item)) : list.includes(String(v));
     /* „Alt câmp”: the other field's current answer (an empty one never matches) */
-    const other = c.mode === "field" ? findField(c.other)?.field : null;
+    const other = c.mode === "field" ? fieldOrChild(c.other) : null;
     if (c.mode === "field" && !other) return false;
-    const right = other ? previewValue(other) : c.value;
+    const right = other ? valueFor(other, scope) : c.value;
     if (other && (right === "" || right === false)) return false;
     if (c.op === "contains") return String(v).toLowerCase().includes(String(right || "").toLowerCase());
     if (family === "number" || family === "date") {
@@ -2037,18 +2531,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (c.op === "ne") return String(v) !== String(right);
     return false;
   }
-  const ruleHolds = (rule) => { const results = rule.conditions.map(conditionHolds); return rule.join === "or" ? results.some(Boolean) : results.every(Boolean); };
+  const ruleHolds = (rule, scope = null) => { const results = rule.conditions.map((c) => conditionHolds(c, scope)); return rule.join === "or" ? results.some(Boolean) : results.every(Boolean); };
   /* restrictive wins: Ascunde > Afișează; Obligatoriu > Opțional */
-  function outcome(target) {
+  function outcome(target, scope = null) {
     const rules = (target.rules || []).filter((rule) => rule.conditions.every((c) => c.field && c.op));
     const shows = rules.filter((rule) => rule.action === "show");
-    const hidden = rules.some((rule) => rule.action === "hide" && ruleHolds(rule)) || (shows.length > 0 && !shows.some(ruleHolds));
+    const hidden = rules.some((rule) => rule.action === "hide" && ruleHolds(rule, scope)) || (shows.length > 0 && !shows.some((rule) => ruleHolds(rule, scope)));
     let required = Boolean(target.required);
-    if (rules.some((rule) => rule.action === "optional" && ruleHolds(rule))) required = false;
-    if (rules.some((rule) => rule.action === "require" && ruleHolds(rule))) required = true;
+    if (rules.some((rule) => rule.action === "optional" && ruleHolds(rule, scope))) required = false;
+    if (rules.some((rule) => rule.action === "require" && ruleHolds(rule, scope))) required = true;
     return { hidden, required };
   }
   function clearCell(cell) {
+    /* a hidden grid / block loses its rows (US-42 AC-11: hidden = emptied) */
+    if (cell.matches?.("[data-fo-grid], [data-fo-repeat]")) { window.GEAPFoRepeat?.reset(cell); return; }
     cell.querySelectorAll("input[type='text'], input[type='email'], input[type='tel'], textarea").forEach((input) => { input.value = ""; });
     cell.querySelectorAll("input[type='radio'], input[type='checkbox']").forEach((input) => { input.checked = false; });
     cell.querySelectorAll(".segment-item.is-selected, .e-permits-fo-subgen-select__option.is-selected").forEach((item) => { item.classList.remove("is-selected"); item.setAttribute("aria-checked", "false"); item.setAttribute("aria-selected", "false"); });
@@ -2072,6 +2568,16 @@ document.addEventListener("DOMContentLoaded", () => {
           if (sectionEl.hidden !== hide) { sectionEl.hidden = hide; changed = true; if (hide) section.fields.forEach((field) => { const cell = previewCell(field.id); if (cell) clearCell(cell); }); }
         }
         section.fields.forEach((field) => {
+          /* rules between the fields of one block element, card by card */
+          if (field.type === "repeat") {
+            previewCell(field.id)?.querySelectorAll("[data-fo-repeat-item]").forEach((item) => kidsOf(field).forEach((child) => {
+              if (!child.rules?.length) return;
+              const node = item.querySelector(`[data-fo-repeat-child="${child.id}"]`);
+              if (!node) return;
+              const hide = outcome(child, item).hidden;
+              if (node.hidden !== hide) { node.hidden = hide; changed = true; if (hide) clearCell(node); }
+            }));
+          }
           if (!field.rules?.length) return;
           const cell = previewCell(field.id);
           if (!cell) return;
@@ -2203,6 +2709,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!cell) return;
         clearPreviewError(cell);
         if (sectionEl?.hidden || cell.hidden || NO_VALUE.includes(field.type) || field.type === "hidden" || field.type === "contact") return;
+        /* grid / block: rows being edited, cells, keys, min rows — marked by js/fo-grid.js */
+        if (isContainer(field)) { const result = window.GEAPFoRepeat?.validate(cell) || { count: 0 }; if (result.count) problems.push(result.first || cell); return; }
         const message = fieldProblem(field, cell);
         if (message) problems.push(markPreviewError(cell, message) || cell);
       });
@@ -2219,6 +2727,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   /* an error clears when its field is edited (as in the request form) */
   ["input", "change"].forEach((type) => el.previewBody.addEventListener(type, (event) => {
+    /* grids and blocks clear their own cell errors (js/fo-grid.js) */
+    if (event.target.closest?.("[data-fo-grid], [data-fo-repeat]")) return;
     const cell = event.target.closest?.("[data-fb-field]");
     if (cell && cell.querySelector("[data-fb-preview-error], [aria-invalid='true']")) clearPreviewError(cell);
   }));
@@ -2228,6 +2738,7 @@ document.addEventListener("DOMContentLoaded", () => {
     (activeStep().sections || []).forEach((section) => section.fields.forEach((field) => {
       const cell = previewCell(field.id);
       if (!cell || cell.hidden) return;
+      if (isContainer(field)) { window.GEAPFoRepeat?.fill(cell); return; }
       const input = cell.querySelector("input:not([type='radio']):not([type='checkbox']):not([type='search']), textarea");
       const sample = { text: tr(field.placeholder).replace(/^Ex\.:\s*/, "") || "Exemplu", textarea: "Text de test pentru acest câmp.", email: "ion.popescu@exemplu.md", phone: "69 123 456", number: String(field.validation?.min || 10), money: "150.00" }[field.type];
       if (sample && input) input.value = field.type === "text" && presetOf(field).sample ? presetOf(field).sample : sample;
@@ -2272,9 +2783,20 @@ document.addEventListener("DOMContentLoaded", () => {
         id: step.id, title: step.title, locked: Boolean(step.locked), platform: step.platform || undefined,
         sections: (step.sections || []).map((section) => ({
           id: section.id, title: section.title, description: section.description, showTitle: section.showTitle !== false, showSeparator: section.showSeparator !== false, rules: section.rules || [],
-          fields: section.fields.map((field) => { const { published, ...rest } = field; return rest; }),
+          fields: section.fields.map((field) => { const { published, ...rest } = field; return withStorage(rest, [field]); }),
         })),
       })),
+    };
+  }
+  /* grids / blocks carry where their rows live (US-33 AC-03; nested: own table, US-38 AC-02) */
+  function withStorage(field, chain) {
+    if (!isContainer(field)) return field;
+    const key = field.type === "grid" ? "columns" : "fields";
+    return {
+      ...field,
+      value: "rows[]",
+      storage: { table: tableOf(chain), parentKey: chain.length > 1 ? "ParentRowId" : "CaseId", order: "SortOrder" },
+      [key]: kidsOf(field).map((child) => (child.type === "grid" ? withStorage(child, [...chain, child]) : child)),
     };
   }
   function renderSchema() {
@@ -2288,6 +2810,17 @@ document.addEventListener("DOMContentLoaded", () => {
      source (version + 1; the other copies are offered the update) or be detached. */
   const SYSTEM_PRESETS = [
     { id: "preset-object-address", system: true, name: "Adresa obiectului", desc: "Adresă cu cod cadastral (SRRE)", type: "address", scope: "global", version: 1, field: { label: i18n("Adresa obiectului"), required: true, span: 12, addressConfig: [{ key: "cadastral", visible: true, required: false, defaultValue: "" }] } },
+    /* US-40: the FO activities (#1 Activitate · Codul CAEM · Subgen · „Adaugă altă activitate”) as a
+       configured repeatable block: key + group = the CAEM code (no duplicates, one section), min 1 */
+    { id: "preset-caem", system: true, name: "Activități CAEM", desc: "Cod CAEM + subgenuri, un card pe activitate", type: "repeat", icon: "icon-store", scope: "global", version: 1, field: {
+      label: i18n("Activitățile desfășurate"), labelHidden: true, required: true, span: 12,
+      itemTitle: i18n("Activitate"), addLabel: i18n("Adaugă altă activitate"), note: i18n("Codurile CAEM se prezintă în dependență de activitățile înregistrate în RSUD."),
+      rowRules: { minRows: 1, maxRows: "", defaultRows: 1, allowRemove: true, keyColumn: "bf-caem-code", groupColumn: "bf-caem-code" },
+      messages: { min: i18n("Adaugă cel puțin o activitate."), max: i18n(), duplicate: i18n("Dvstră ați înregistrat deja acest cod CAEM."), group: i18n("Într-o solicitare pot fi selectate doar coduri ale unei secțiuni: {grup}.") },
+      fields: [
+        { id: "bf-caem-code", type: "select", key: "CodCaem", label: i18n("Codul CAEM"), help: i18n(), placeholder: i18n("Selectează cod CAEM"), required: true, readOnly: false, span: 12, dataSource: { mode: "existing", classifierId: "reg_caem", template: "code-name", search: true } },
+        { id: "bf-caem-sub", type: "multiselect", key: "SubgenActivitate", label: i18n("Subgen de activitate"), help: i18n(), placeholder: i18n("Alege subgen de activitate"), required: true, readOnly: false, span: 12, noOptionsText: i18n("Niciun subgen disponibil pentru acest cod CAEM."), dataSource: { mode: "existing", classifierId: "reg_caem_subgen", template: "name", cascade: true, parentFieldId: "bf-caem-code", filterColumn: "caem_code" }, validation: { minSelected: 1, maxSelected: "", message: i18n() } },
+      ] } },
   ];
   const presets = () => [...SYSTEM_PRESETS, ...((db && db.presets) || [])];
   const presetById = (id) => presets().find((item) => item.id === id) || null;
@@ -2300,8 +2833,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const presetChanged = (field, preset) => {
     /* the same normalisation as a stored field (sanitize): empty help / placeholder / message */
     const norm = (obj) => { obj.help = obj.help || i18n(); obj.placeholder = obj.placeholder || i18n(); obj.validation = { ...(obj.validation || {}) }; obj.validation.message = obj.validation.message || i18n(); return obj; };
-    const mine = norm(presetSnapshot(field));
-    const source = norm({ ...makeFieldBase(preset), ...clone(preset.field) });
+    /* children: compared by position, not by their (re-generated) ids or audit stamps */
+    const byPosition = (obj) => {
+      const ids = [];
+      const walk = (container) => kidsOf(container).forEach((child) => { ids.push(child.id); ["createdAt", "createdBy", "editedAt", "editedBy", "changes"].forEach((key) => delete child[key]); if (child.type === "grid") walk(child); });
+      walk(obj);
+      let json = JSON.stringify(obj);
+      ids.forEach((id, i) => { json = json.split(`"${id}"`).join(`"#${i}"`); });
+      return JSON.parse(json);
+    };
+    const mine = byPosition(norm(presetSnapshot(field)));
+    const source = byPosition(norm({ ...makeFieldBase(preset), ...clone(preset.field) }));
+    if (isContainer(source)) sanitizeChildren(source);
     /* the label is the form's own text: a renamed copy is still „the same” component */
     delete mine.label; delete source.label;
     const keys = new Set([...Object.keys(mine), ...Object.keys(source)]);
@@ -2322,6 +2865,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const field = addField(preset.type, sectionId, index, { focus: false });
     if (!field) return null;
     Object.assign(field, clone(preset.field));
+    sanitizeChildren(field);
+    reidChildren(field);
     field.key = uniqueKey(camelKey(tr(field.label) || comp(field.type).label), field.id);
     field.preset = { id: preset.id, version: preset.version };
     commit();
@@ -2455,6 +3000,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const found = findSection(id);
       if (found) state.stepId = found.step.id;
       state.tab = tab || T_GEN;
+    } else if (kind === "child") {
+      const found = findChild(id);
+      if (found) state.stepId = found.step.id;
+      if (tab) state.tab = tab;
     } else if (kind === "step") {
       state.stepId = id;
     }
@@ -2556,6 +3105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const copy = clone(found.field);
     copy.id = uid("fld");
     copy.published = false;
+    if (isContainer(copy)) reidChildren(copy);
     copy.label = { ...copy.label, ro: `${tr(found.field.label)} (copie)` };
     copy.key = uniqueKey(found.field.key || camelKey(tr(copy.label)));
     found.section.fields.splice(found.index + 1, 0, copy);
@@ -2607,6 +3157,106 @@ document.addEventListener("DOMContentLoaded", () => {
       duration: document.documentElement.dataset.demoLink ? 0 : 8000,
       key: "fb-delete",
     });
+  }
+
+  /* ---- columns / block fields: add (a type, or a copy of a form field), move, duplicate, delete + undo */
+  function addChild(containerId, type, index = null, { focus = true, from = null } = {}) {
+    const container = fieldOrChild(containerId);
+    if (!isContainer(container)) return null;
+    const reason = childAllowed(container, from ? from.type : type);
+    if (reason) { ui().showShellToast?.(reason, "error"); announce(reason); return null; }
+    checkpoint();
+    const inGrid = container.type === "grid";
+    let child;
+    if (from) {
+      child = clone(from);
+      ["rules", "preset", "published", "keyEdited", "editedAt", "editedBy", "changes", "dateRules", "editableAt"].forEach((key) => delete child[key]);
+      child.id = uid(inGrid ? "col" : "bf");
+      child.key = uniqueChildKey(container, from.key || camelKey(tr(from.label)));
+      child.span = inGrid ? 12 : Number(from.span) || 12;
+      if (inGrid) child.width = "auto";
+      if (child.dataSource?.parentFieldId) child.dataSource.parentFieldId = "";
+    } else child = makeChild(type, container);
+    const list = kidsOf(container);
+    const at = index == null ? list.length : Math.max(0, Math.min(index, list.length));
+    list.splice(at, 0, child);
+    state.sel = { kind: "child", id: child.id };
+    state.tab = T_GEN;
+    commit();
+    announce(`${inGrid ? "Coloana" : "Câmpul"} „${fieldName(child)}” a fost adăugat${inGrid ? "ă" : ""} în „${fieldName(container)}”, poziția ${at + 1} din ${list.length}.`);
+    if (focus) focusPanel('[data-fb-prop="label"], [data-fb-prop="text"]');
+    return child;
+  }
+  function moveChild(id, delta, toIndex = null) {
+    const found = findChild(id);
+    if (!found) return false;
+    const { list, index, container } = found;
+    let to = toIndex == null ? index + delta : toIndex > index ? toIndex - 1 : toIndex;
+    to = Math.max(0, Math.min(to, list.length - 1));
+    if (to === index) { announce(delta < 0 ? "Este deja primul." : "Este deja ultimul."); return false; }
+    checkpoint();
+    const [child] = list.splice(index, 1);
+    list.splice(to, 0, child);
+    state.sel = { kind: "child", id };
+    commit();
+    announce(`„${fieldName(child)}” este acum pe poziția ${to + 1} din ${list.length} în „${fieldName(container)}”.`);
+    return true;
+  }
+  function duplicateChild(id) {
+    const found = findChild(id);
+    if (!found) return;
+    checkpoint();
+    const copy = clone(found.child);
+    copy.id = uid(found.container.type === "grid" ? "col" : "bf");
+    if (isContainer(copy)) reidChildren(copy);
+    copy.label = { ...copy.label, ro: `${tr(found.child.label)} (copie)` };
+    copy.key = uniqueChildKey(found.container, found.child.key || camelKey(tr(copy.label)));
+    found.list.splice(found.index + 1, 0, copy);
+    state.sel = { kind: "child", id: copy.id };
+    commit();
+    announce(`„${fieldName(found.child)}” duplicat pe poziția ${found.index + 2}.`);
+    focusChip(copy.id);
+  }
+  /* the field's delete pattern: no modal, „Anulează” in the toast (8 s); a rule that pointed at it
+     (key / group / parent) shows as an error until it is fixed or the delete is undone */
+  function deleteChild(id) {
+    const found = findChild(id);
+    if (!found) return;
+    const { container, list, index, child } = found;
+    const inGrid = container.type === "grid";
+    checkpoint();
+    const removed = clone(child);
+    list.splice(index, 1);
+    const next = list[index] || list[index - 1] || null;
+    state.sel = next ? { kind: "child", id: next.id } : findChild(container.id) ? { kind: "child", id: container.id } : { kind: "field", id: container.id };
+    if (!next) state.tab = T_DATA;
+    commit();
+    if (next) focusChip(next.id);
+    const name = fieldName(child);
+    announce(`${inGrid ? "Coloana" : "Câmpul"} „${name}” a fost ${inGrid ? "ștearsă" : "șters"}. Ctrl + Z ${inGrid ? "o" : "îl"} readuce.`);
+    window.GEAPToast?.show({
+      type: "info",
+      message: `${inGrid ? "Coloana" : "Câmpul"} „${name}” a fost ${inGrid ? "ștearsă" : "șters"}.`,
+      action: {
+        label: "Anulează",
+        onClick: () => {
+          if (findChild(id)) return;
+          const owner = fieldOrChild(container.id);
+          if (!owner) return;
+          checkpoint();
+          kidsOf(owner).splice(Math.min(index, kidsOf(owner).length), 0, removed);
+          state.sel = { kind: "child", id };
+          commit();
+          focusChip(id);
+          announce(`„${name}” a fost readus.`);
+        },
+      },
+      duration: document.documentElement.dataset.demoLink ? 0 : 8000,
+      key: "fb-delete",
+    });
+  }
+  function focusChip(id) {
+    window.setTimeout(() => (el.canvas.querySelector(`[data-fb-child="${id}"]`) || el.panel.querySelector(`[data-fb-child-row="${id}"]`))?.focus({ preventScroll: false }), 20);
   }
 
   /* move a field: within its section (delta) or to another section / index */
@@ -2771,6 +3421,10 @@ document.addEventListener("DOMContentLoaded", () => {
     /* Cheie câmp follows the RO label until it was edited or published */
     if (state.sel.kind === "field" && prop === "label" && state.lang === "ro" && !target.keyEdited && !target.published) {
       target.key = uniqueKey(camelKey(value || comp(target.type).label), target.id);
+    }
+    if (state.sel.kind === "child" && prop === "label" && state.lang === "ro" && !target.keyEdited) {
+      const container = containerOf(target.id);
+      if (container) target.key = uniqueChildKey(container, camelKey(value || comp(target.type).label), target.id);
     }
     if (prop === "key") target.keyEdited = true;
     if (prop === "validation.preset" && PRESETS[value]?.message && !tr(target.validation.message)) {
@@ -2987,6 +3641,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (stepRow) { select("step", stepRow.dataset.fbStepRow); return; }
     const sectionRow = event.target.closest("[data-fb-section-row]");
     if (sectionRow) { select("section", sectionRow.dataset.fbSectionRow); return; }
+    const childRow = event.target.closest("[data-fb-child-row]");
+    if (childRow) { select("child", childRow.dataset.fbChildRow); return; }
     runMenuAction(event);
   });
   el.panel.addEventListener("keydown", (event) => {
@@ -3011,6 +3667,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     if (event.key === "Enter" && event.target.matches("[data-fb-test-input]")) { event.preventDefault(); runTest(); }
+    const childRow = event.target.closest("[data-fb-child-row]");
+    /* the list of a grid / block: Alt + ↑ / ↓ moves the row, the container stays selected */
+    if (childRow && event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) {
+      event.preventDefault();
+      const id = childRow.dataset.fbChildRow;
+      const keep = { ...state.sel };
+      const tab = state.tab;
+      if (moveChild(id, event.key === "ArrowUp" ? -1 : 1)) { select(keep.kind, keep.id, { tab }); el.panel.querySelector(`[data-fb-child-row="${id}"]`)?.focus(); }
+      return;
+    }
+    if (childRow && (event.key === "Delete" || event.key === "Backspace")) { event.preventDefault(); deleteChild(childRow.dataset.fbChildRow); }
   });
 
   function addressToggle(key, updates) {
@@ -3210,6 +3877,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const add = event.target.closest("[data-fb-add-type]");
     if (add) { addField(add.dataset.fbAddType, add.dataset.section); return true; }
+    const addKid = event.target.closest("[data-fb-add-child]");
+    if (addKid) { if (addKid.getAttribute("aria-disabled") !== "true") addChild(addKid.dataset.container, addKid.dataset.fbAddChild); return true; }
+    const addFrom = event.target.closest("[data-fb-add-child-from]");
+    if (addFrom) { const source = findField(addFrom.dataset.fbAddChildFrom)?.field; if (source) addChild(addFrom.dataset.container, source.type, null, { from: source }); return true; }
+    const kidAct = event.target.closest("[data-fb-child-act]");
+    if (kidAct) {
+      const id = kidAct.dataset.id;
+      const act = kidAct.dataset.fbChildAct;
+      if (act === "duplicate") duplicateChild(id);
+      else if (act === "delete") deleteChild(id);
+      else if (act === "up" || act === "down") { if (moveChild(id, act === "up" ? -1 : 1)) focusChip(id); }
+      return true;
+    }
     return false;
   }
 
@@ -3218,6 +3898,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (runMenuAction(event)) return;
     if (event.target.closest("[data-stack-menu-trigger], [data-stack-menu]")) return;
     if (event.target.closest("[data-fb-add-section]")) { addSection(); return; }
+    const chip = event.target.closest("[data-fb-child]");
+    if (chip) { select("child", chip.dataset.fbChild); el.canvas.querySelector(`[data-fb-child="${chip.dataset.fbChild}"]`)?.focus({ preventScroll: true }); return; }
     const sectionButton = event.target.closest("[data-fb-select-section]");
     if (sectionButton) { select("section", sectionButton.dataset.fbSelectSection); sectionButton.isConnected || el.canvas.querySelector(`[data-fb-select-section="${sectionButton.dataset.fbSelectSection}"]`)?.focus(); return; }
     const card = event.target.closest("[data-builder-field]");
@@ -3262,6 +3944,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sectionButton && event.altKey && ["ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
       moveSection(sectionButton.dataset.fbSelectSection, event.key === "ArrowUp" ? -1 : 1);
+      return;
+    }
+    const chipEl = event.target.matches?.("[data-fb-child]") ? event.target : null;
+    if (chipEl) {
+      const childId = chipEl.dataset.fbChild;
+      const inGrid = containerOf(childId)?.type === "grid";
+      const back = inGrid ? "ArrowLeft" : "ArrowUp";
+      const forward = inGrid ? "ArrowRight" : "ArrowDown";
+      if (event.altKey && (event.key === back || event.key === forward)) { event.preventDefault(); if (moveChild(childId, event.key === back ? -1 : 1)) focusChip(childId); return; }
+      if (event.key === "Delete" || event.key === "Backspace") { event.preventDefault(); deleteChild(childId); }
       return;
     }
     const card = event.target.matches?.("[data-builder-field]") ? event.target : null;
@@ -3321,6 +4013,15 @@ document.addEventListener("DOMContentLoaded", () => {
     builder.classList.add("is-dragging-component");
   });
   el.canvas.addEventListener("dragstart", (event) => {
+    const chip = event.target.closest?.("[data-fb-child]");
+    if (chip) {
+      drag = { kind: "child", id: chip.dataset.fbChild, container: chip.closest("[data-fb-subs]")?.dataset.fbSubs || "" };
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", drag.id);
+      window.setTimeout(() => chip.classList.add("is-dragging"), 0);
+      builder.classList.add("is-dragging-component");
+      return;
+    }
     const card = event.target.closest?.("[data-builder-field]");
     if (!card) return;
     drag = { kind: "move", id: card.dataset.id, span: Number(card.dataset.span) };
@@ -3377,8 +4078,44 @@ document.addEventListener("DOMContentLoaded", () => {
     indicator.style.width = `${Math.round(width)}px`;
     indicator.style.height = `${Math.round(height)}px`;
   }
+  /* where a chip lands on a band: before the first chip (same line) whose middle is right of the pointer */
+  function stripTarget(strip, x, y) {
+    const chips = [...strip.querySelectorAll(":scope > [data-fb-child]")];
+    const rects = chips.map((chip) => chip.getBoundingClientRect());
+    const i = rects.findIndex((r) => y >= r.top - 6 && y <= r.bottom + 6 && x < r.left + r.width / 2);
+    if (i >= 0) return { index: i, rect: rects[i], edge: "before" };
+    const lastOnLine = rects.map((r, j) => ({ r, j })).filter(({ r }) => y >= r.top - 6 && y <= r.bottom + 6).pop();
+    if (lastOnLine) return { index: lastOnLine.j + 1, rect: lastOnLine.r, edge: "after" };
+    return chips.length ? { index: chips.length, rect: rects[rects.length - 1], edge: "after" } : { index: 0, rect: strip.querySelector(".e-permits-builder__sub-add")?.getBoundingClientRect(), edge: "before" };
+  }
+  function showStripIndicator(strip, target) {
+    const box = strip.getBoundingClientRect();
+    indicator.classList.remove("is-row");
+    if (indicator.parentElement !== strip) strip.appendChild(indicator);
+    const r = target.rect || box;
+    indicator.style.left = `${Math.round((target.edge === "before" ? r.left - box.left - 6 : r.right - box.left + 2))}px`;
+    indicator.style.top = `${Math.round(r.top - box.top)}px`;
+    indicator.style.width = "4px";
+    indicator.style.height = `${Math.round(r.height)}px`;
+  }
   el.canvas.addEventListener("dragover", (event) => {
     if (!drag) return;
+    const strip = event.target.closest("[data-fb-subs]");
+    if (drag.kind === "child" || (strip && drag.kind === "new")) {
+      const container = strip ? fieldOrChild(strip.dataset.fbSubs) : null;
+      const allowed = strip && (drag.kind === "child" ? strip.dataset.fbSubs === drag.container : !drag.preset && drag.type !== "section" && !childAllowed(container, drag.type));
+      if (!allowed) { event.dataTransfer.dropEffect = "none"; indicator.remove(); drag.target = null; return; }
+      event.preventDefault();
+      event.dataTransfer.dropEffect = drag.kind === "new" ? "copy" : "move";
+      const target = stripTarget(strip, event.clientX, event.clientY);
+      if (drag.kind === "child") {
+        const found = findChild(drag.id);
+        if (found && (target.index === found.index || target.index === found.index + 1)) { indicator.remove(); drag.target = null; return; }
+      }
+      drag.target = { strip: true, container: strip.dataset.fbSubs, index: target.index };
+      showStripIndicator(strip, target);
+      return;
+    }
     const sectionEl = event.target.closest("[data-builder-section]");
     const grid = sectionEl?.querySelector("[data-builder-grid]");
     el.canvas.querySelectorAll(".is-drop-active").forEach((node) => { if (node !== sectionEl) node.classList.remove("is-drop-active"); });
@@ -3405,6 +4142,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const sectionEl = event.target.closest("[data-builder-section]");
     const current = drag;
     endDrag();
+    if (current.target?.strip) {
+      if (current.kind === "new") addChild(current.target.container, current.type, current.target.index);
+      else if (current.kind === "child" && moveChild(current.id, 0, current.target.index)) focusChip(current.id);
+      return;
+    }
+    if (current.kind === "child") return;
     if (!sectionEl) return;
     if (current.kind === "new") {
       if (current.type === "section") { addSection(activeStep().id, sectionEl.dataset.sectionId); return; }
@@ -3470,8 +4213,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (kind === "form") { state.lang = "ro"; select("form"); }
     else if (kind === "step") select("step", id);
     else if (kind === "section") select("section", id, { tab: T_GEN });
+    else if (kind === "child") { state.lang = "ro"; select("child", id, { tab }); }
     else { state.lang = "ro"; select("field", id, { tab }); }
-    const card = el.canvas.querySelector(`[data-builder-field][data-id="${id}"], [data-section-id="${id}"]`);
+    const cardId = kind === "child" ? findChild(id)?.top.id : id;
+    const card = el.canvas.querySelector(`[data-builder-field][data-id="${cardId}"], [data-section-id="${id}"]`);
     card?.scrollIntoView({ block: "center" });
     window.setTimeout(() => {
       const target = el.panel.querySelector(`[data-fb-prop="${CSS.escape(prop)}"]`) || el.panel.querySelector(`#${CSS.escape(pid(prop))}`) || (prop === "options" ? el.panel.querySelector("[data-fb-option]") : null) || el.panel.querySelector('[data-fb-prop="dataSource.mode"]')?.closest("[data-fo-native-select]")?.querySelector("button");
@@ -3525,6 +4270,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!overlay?.classList.contains("is-active")) return;
     if (event.key === "Escape") {
       if (overlay.classList.contains("is-view-only")) return;
+      /* a grid row being edited in the Preview (or its delete dialog): Esc is the grid's (js/fo-grid.js) */
+      if (window.GEAPFoRepeat?.escape?.(event.target)) { event.preventDefault(); event.stopImmediatePropagation(); return; }
       if (registryModal && !registryModal.hidden) { event.preventDefault(); event.stopImmediatePropagation(); closeRegistry(); return; }
       const other = [...document.querySelectorAll(".modal-overlay.is-active")].filter((node) => node !== overlay && !node.contains(overlay)).pop();
       if (other) { event.preventDefault(); event.stopImmediatePropagation(); window.__modal?.close?.(`#${other.id}`); return; }
@@ -3588,14 +4335,19 @@ document.addEventListener("DOMContentLoaded", () => {
   /* =========================================================== start */
   async function load() {
     const stored = readDb();
-    if (stored) db = stored;
-    else {
+    if (stored) {
+      db = stored;
+      /* a sandbox saved before a seed form existed: take that form from the seed */
+      if (FORM_PARAM && !db.forms.some((item) => item.id === FORM_PARAM)) {
+        try { const seed = await (await fetch("data/form-builder-db.json", { cache: "no-store" })).json(); const extra = seed.forms?.find((item) => item.id === FORM_PARAM); if (extra) db.forms.push(extra); } catch { /* offline: the active form opens */ }
+      }
+    } else {
       try {
         const response = await fetch("data/form-builder-db.json", { cache: "no-store" });
         db = response.ok ? await response.json() : null;
       } catch { db = null; }
     }
-    form = sanitize(clone(db?.forms?.find((item) => item.id === db.activeFormId) || db?.forms?.[0]));
+    form = sanitize(clone((FORM_PARAM && db?.forms?.find((item) => item.id === FORM_PARAM)) || db?.forms?.find((item) => item.id === db.activeFormId) || db?.forms?.[0]));
     if (!form) {
       /* corrupt or missing: an empty form, never a crash (US-08) */
       form = { id: "form-new", schemaVersion: 2, technical: "f_formular_nou", code: "FRM-0000", service: { name: "Serviciu", rsspCode: "" }, title: i18n("Formular nou"), description: i18n(), access: "service", requestTypes: ["Eliberare"], version: "v0.1.0", status: "draft", editedAt: new Date().toISOString().slice(0, 16), editedBy: currentUser(), settings: { autosave: true, reviewSummary: true }, steps: [{ id: "st-applicant", platform: "applicant", locked: true, title: i18n("Date solicitant"), sections: [] }, { id: uid("st"), locked: false, title: i18n("Detalii cerere"), sections: [makeSection("Secțiune")] }] };

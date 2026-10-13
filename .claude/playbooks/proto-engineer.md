@@ -35,6 +35,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
    `node --experimental-websocket --no-warnings tools/persona-test/capture.mjs --states <ids> --out <scratch>`
    (desktop + mobile, console errors, overflow). Drawer content scrolls inside the drawer — use a
    scrolled screenshot when needed. Look at the PNGs.
+5b. **Hover audit — standing rule (2026-10-13, user: „hover is always broken”)**: every UI state you
+   build or touch goes through `node --experimental-websocket --no-warnings tools/ui-qa/hover-audit.mjs
+   --states <ids> --scope "<scope>" --max 200` until it reports 0 „no-hover” / 0 „covered” (selected
+   items need their own visible variant: on #F1F1F1 → tertiary-hover, on black → inverse-default-hover,
+   white cards → border secondary + `--shadow-200`). Never `filter: brightness()` (invisible) and never a
+   lighter veil. Triage what is left: an element that holds focus at the end of the state (focus look =
+   hover look), an open `aria-expanded` button (stays pressed by rule), and states with an open modal /
+   menu / toast (audit the dialog with its own scope) — prove each with a probe that blurs first. The
+   first run of the tool after a cold start can report „0 interactive”: run it again. Also check after a
+   real drag and after closing a menu that no `is-dragging*`, indicator or open menu stays behind.
 6. **QA**: run the `ui-qa-code` agent (states + scope). Fix majors, re-run. For bigger features
    run the persona review (`/persona-review` style: admin-platforma, spec-auditor,
    design-system-guardian, editor-romana, accesibilitate → verifier).
@@ -375,3 +385,53 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   state (fb-05 / fb-14) by (rule, last selector, text) — what is left is what the change added. Standing
   false positives again: `.u-visually-hidden` live regions, `e-permits-fo-copy-value`, fo-select chevron
   colour, FO doc-field buttons, address placeholders in narrow canvas cards.
+- 2026-10-13 · Form Builder batch 4 (grid, repeatable block, CAEM preset): a stateful FO component goes in its own
+  file (`js/fo-grid.js`, `window.GEAPFoRepeat`) that draws its cells / cards with the FO renderer passed in
+  (`setContext({ fieldHtml: stepFieldHtml, … })`) — shared-file edits stayed at ~70 lines. Its definitions live
+  in a Map keyed by DOM id (set at render, read at bind) instead of giant data attributes. An inert canvas is
+  never bound: the static HTML must already draw the rows (render once statically, `bind()` redraws).
+- 2026-10-13 · „Reuse the FO markup exactly” with new ids = extract the markup into a function whose defaults
+  are the old texts / ids (`caemFieldHtml` / `subgenHtml`), then PROVE it: worktree of HEAD on another port,
+  same state, compare the normalised innerHTML (was 5818 = 5818 bytes) + the old behaviour (index, disabled
+  codes). Never put the old data hooks on the new copies (`data-fo-activity-card` is counted document-wide).
+- 2026-10-13 · Table column widths without inline styles: percentages summing > 100 % squeeze `auto` columns to 0
+  (a button stuck out and a real click hit `<main>`). Use `colspan` units on a `table-layout: fixed` table and a
+  ResizeObserver that switches to cards (`is-cards`) when units × min-width don't fit — container queries can't
+  depend on the column count. Card mode: thead `display: none` (a visually-hidden thead still lays out its
+  cells → overflow), per-cell labels visible and NOT aria-hidden.
+- 2026-10-13 · Esc inside the builder: `modal.js` listens on document CAPTURE and the builder on window capture —
+  an early `return` in the builder handler lets modal.js close the whole editor. Route Esc to the inner
+  component instead (`GEAPFoRepeat.escape(target)` returns true when it handled it) and stop it there.
+- 2026-10-13 · The builder Preview's „an edit clears the error” listener cleared a whole grid's errors on a
+  blur `change` → components that manage their own errors must be skipped by page-level clearing.
+- 2026-10-13 · Romanian copy with an admin-written noun („Activitate”) can't take gendered past participles —
+  phrase around the action („Ai eliminat „Activitate #2”.”, „S-a adăugat …”); plurals: „cel puțin un rând”,
+  never „1 rânduri”.
+- 2026-10-13 · User (via coordinator): „hover doesn't work on any element”. Causes: `filter: brightness(.97)`
+  (invisible), a LIGHTER white veil on grey, selected items (black chip / segment, selected card) with no
+  variant, read-only inputs. Fixed with tokens (tertiary-hover, inverse-default-hover, border + `--shadow-200`)
+  and made hover-audit a standing step (5b above). Most leftovers after a fix are focus = hover (prove with
+  a blur-first probe) or `aria-expanded` buttons that stay pressed by rule.
+- 2026-10-13 · Project-wide hover fix (FO, EVO Cabinet, permits BO, eKYC; 75 states scanned). Real `covered` root
+  causes were never "a layer on the screen" you can see: (1) the mSupport widget's FIXED 344×180 box caught the
+  pointer in the gap between bubble and launcher, right over the FO „Înainte” → `pointer-events: none` on the box,
+  `auto` on its children; its entrance animations held `both`, which also killed the bubble's own `:hover`
+  transform (an animation overrides normal declarations); (2) registries with pinned columns: a scrolled-into-view /
+  focused cell stopped UNDER the sticky name column → `syncPinnedScrollPadding()` sets scroll-padding from the
+  sticky cells; th and td of the pinned column had the same z-index, so rows painted over the header on vertical
+  scroll; (3) the page-header tab strip scrolled a tab under its own ‹ › arrow → `scroll-padding-inline: 48px`.
+- 2026-10-13 · Most `no-hover` were SELECTED / CURRENT items whose rule zeroed the hover (`.active { background:
+  transparent }` after `:hover`, `:not(.is-active):hover`, library `--active:hover { same colour }`) and a dead
+  selector (`th:has(.th-content.is-sortable)` — the class sits on the th). A colour on the row never shows if the
+  label sets its own colour (FO stepper). Fix = one rule per component class in the round-3 block, table in
+  components.md › „Hover — shared rules per component class”.
+- 2026-10-13 · hover-audit false positives I fixed IN THE TOOL (not by CSS): coverage measured while the previous
+  element was still hovered; measured synchronously after `scrollIntoView` (scroll listeners that hide arrows had
+  not run → wait 150 ms); an element hidden since collection (0×0); `text-decoration-thickness/-color` and a
+  parent `::before` thumb not compared; links inside an option label deduped away. By-design cases (focused,
+  read-only, open `aria-expanded`, scrim, under a VISIBLE backdrop/menu/dialog) are listed as „not counted” — an
+  INVISIBLE cover (opacity 0) is still a finding. Drawer/modal states: always `--scope` the dialog.
+- 2026-10-13 · Another agent added hover rules to the same CSS file during my job (FO block near
+  `.segment-item.is-selected:hover`): `git diff` the file first, don't duplicate, put mine in a separate dated block.
+  `msupport/` stays untouched — its fixes are scoped overrides in our CSS (msupport.css loads AFTER our CSS, so
+  match its specificity + 1).

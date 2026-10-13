@@ -6900,6 +6900,46 @@
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
+/* the icon button already rests on tertiary: its hover goes one step darker (hover visible everywhere) */
+.e-permits-fo-icon-button:hover,
+.e-permits-fo-icon-button:focus-visible {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+/* the selected segment had no hover (the library hover is overridden by is-selected): the inverse
+   hover token, as a selected chip (hover visible everywhere, 2026-10-13) */
+.segment-item.is-selected:hover {
+  background-color: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+/* FO controls that had no hover (hover audit 2026-10-13): the current step row, the calendar icon
+   button, the phone prefix, a checkbox row, the selects inside the rule builder's value group */
+.e-permits-fo-stepper__item.is-active .e-permits-fo-stepper__row:hover {
+  background: var(--color-background-brand-secondary-hover, #d1e1f8);
+  box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-background-brand-secondary-hover, #d1e1f8);
+}
+
+.e-permits-fo-input__icon-button:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-phone__prefix--select:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.checkbox:hover .checkbox-input:not(:checked):not(:disabled) + .checkbox-custom {
+  border-color: var(--color-border-base-strong, #757575);
+}
+
+.checkbox:hover .checkbox-input:checked:not(:disabled) + .checkbox-custom {
+  background: var(--color-background-brand-default-hover, #004cb8);
+  border-color: var(--color-background-brand-default-hover, #004cb8);
+}
+
+.e-permits-doc-val .e-permits-fo-select .e-permits-fo-select__button:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
 .e-permits-fo-add-activity {
   align-items: center;
   align-self: flex-start;
@@ -25112,4 +25152,118 @@ a.btn:focus-visible {
     flex-wrap: wrap;
     row-gap: var(--spacing-8, 8px);
   }
+}
+
+/* ---- Hover audit, round 3 (2026-10-13, tools/ui-qa/hover-audit.mjs — real mouse) -----------
+   One rule per component class, so every screen that uses it inherits the fix. Values: the
+   library hover tokens (components.md › Hover). Selected / current items get a visible variant;
+   an open (aria-expanded) button keeps its pressed fill (rules above). */
+
+/* invisible layers that ate the hover: the mSupport widget box (344×180, fixed, bottom-right)
+   caught the pointer in the empty space between its bubble and the launcher — over the FO
+   „Înainte” / „Înapoi” buttons. Only its visible parts take the pointer. */
+.msup {
+  pointer-events: none;
+}
+
+.msup > * {
+  pointer-events: auto;
+}
+
+/* …and its entrance animations held their end state (`both`): the held transform overrode the
+   bubble's own `:hover { transform }` and kept a composited layer. Openings = `backwards`
+   (project rule); the panel's closing keeps `both` so it stays hidden until removed. */
+.msup :is(.msup-launcher__done, .msup-bubble, .msup-panel:not(.is-closing), .msup-state, .msup-context, .msup-context__edit, .msup-diag__panel, .msup-file),
+.msup .msup-state[data-msup-state] .msup-done > *:nth-child(n) {
+  animation-fill-mode: backwards;
+}
+
+/* sortable table headers: the cell fills (shell rule) and the label darkens; the old selector
+   `th:has(.…th-content.is-sortable)` never matched — is-sortable sits on the th */
+.e-permits-workplace__table th.is-sortable:hover .e-permits-workplace__th-content {
+  color: var(--color-text-base-default, #121212);
+}
+
+/* current language (Ro / Ru / En): already underlined → a thicker underline, as links do */
+.e-permits-shell__language-switcher a.is-active:hover,
+.e-permits-fo-auth__language a.is-active:hover {
+  text-decoration-thickness: var(--border-width-2, 2px);
+}
+
+/* covering layers inside components (found by hover-audit `covered`):
+   - the page-header tab strip scrolls under its own ‹ › arrows and the 48px fade: a tab brought
+     into view (keyboard focus, scrollIntoView) stopped under an arrow → keep 48px clear;
+   - registries with a pinned first column: th and td were both z-index 7, so on vertical scroll
+     the first body cell painted over the header cell → the header stays above (shell value 9). */
+.e-permits-page-header__tabs {
+  scroll-padding-inline: var(--spacing-48, 48px);
+}
+
+.e-permits-workplace[data-registry-kind] .e-permits-workplace__table thead th:nth-child(1) {
+  z-index: 9;
+}
+
+/* back-office side navigation: the current item gets the soft brand hover */
+.e-permits-shell__nav-link.is-active:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* page-header tabs: the active tab kept `background: transparent` over the hover fill */
+.e-permits-page-header__tabs .tab-button.active:hover {
+  background-color: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* current page in a pagination (BO registry + library pagination): the primary hover blue */
+.e-permits-workplace__pagination-item.is-active:hover,
+.pagination__link.pagination__link--active:hover {
+  background-color: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* animated segmented control: the sliding thumb carries the selected fill, so it takes the hover */
+.segmented-control.is-animated.is-ready:has(.segment-item.is-selected:hover)::before {
+  background-color: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+/* FO stepper: steps not reachable yet are not targets (no pointer); the reachable ones turn the
+   label brand blue (the label has its own colour, so the row colour alone never showed) */
+.e-permits-fo-stepper__row[aria-disabled="true"],
+.e-permits-fo-stepper__row[aria-disabled="true"] * {
+  cursor: default;
+}
+
+.e-permits-fo-stepper__item:not(.is-active) .e-permits-fo-stepper__row:not([aria-disabled="true"]):hover .e-permits-fo-stepper__label {
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+/* FO „Adaugă document” (brand outline): the secondary button hover fill */
+.e-permits-fo-add-doc-button:hover {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+/* checkbox in error: the FO error-field hover (red 2px look) */
+.checkbox.checkbox--error:hover .checkbox-input:not(:disabled) + .checkbox-custom {
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20);
+}
+
+/* a text link inside a checkbox / radio label (consent „legii nr. 133”): the link hover */
+.checkbox a:hover,
+.e-permits-fo-radio a:hover {
+  color: var(--color-text-brand-default, #0058d2);
+  text-decoration-thickness: var(--border-width-2, 2px);
+}
+
+/* focusable tooltip triggers in cells („+N” more roles, a shortened JSON value): the tooltip
+   takes ~600 ms, so the text underlines at once, like a text link */
+[data-cell-tooltip-always][tabindex="0"]:hover {
+  text-decoration: underline;
+  text-underline-position: from-font;
+}
+
+/* FO delivery options (Livrare): white card → tertiary; the selected brand tint → its hover step */
+.e-permits-fo-delivery-option:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-delivery-option--check.is-selected:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
 }

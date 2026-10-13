@@ -7,14 +7,14 @@
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=hover-v4">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tarife-v64">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tarife-v66">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v6">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
-  <link rel="stylesheet" href="css/form-builder.css?v=fb-v3">
+  <link rel="stylesheet" href="css/form-builder.css?v=fb-v4">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/empty-state.js?v=empty-v2"></script>
-  <script src="js/demo-states.js?v=tarife-v65"></script>
+  <script src="js/demo-states.js?v=tarife-v66"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=ekyc-v3"></script>
@@ -27,9 +27,11 @@
   <script src="js/table-cells.js?v=rule-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=fb-v3" defer></script>
+  <!-- Grilă editabilă + Bloc repetabil (FO side, before the FO renderer that dispatches to it) -->
+  <script src="js/fo-grid.js?v=fb-v4" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=fb-v4" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=fb-v3" defer></script>
+  <script src="js/form-builder.js?v=fb-v4" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v6" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
@@ -3559,7 +3561,7 @@
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=tarife-v65"></script>
+  <script src="js/e-permits-shell.js?v=tarife-v66"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
@@ -3602,6 +3604,28 @@
       <div class="e-permits-fo-instance-switch-modal__actions">
         <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-postprocess-cancel>Anulează</button>
         <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-postprocess-confirm>Confirm și continui</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grilă editabilă › Șterge rândul (US-35 AC-04): the same FO dialog component, destructive.
+       js/fo-grid.js fills the texts and moves it to the end of <body> (above the builder). -->
+  <div class="e-permits-fo-instance-switch-modal" data-fo-grid-confirm hidden aria-modal="true" role="alertdialog" aria-labelledby="fo-grid-confirm-title" aria-describedby="fo-grid-confirm-text">
+    <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
+      <div class="e-permits-fo-instance-switch-modal__body">
+        <div class="e-permits-fo-instance-switch-modal__icon e-permits-fo-instance-switch-modal__icon--danger" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>
+        </div>
+        <div class="e-permits-fo-instance-switch-modal__content">
+          <h2 id="fo-grid-confirm-title" data-fo-grid-confirm-title>Ștergi rândul?</h2>
+          <div class="e-permits-fo-instance-switch-modal__description">
+            <p id="fo-grid-confirm-text" data-fo-grid-confirm-text></p>
+          </div>
+        </div>
+      </div>
+      <div class="e-permits-fo-instance-switch-modal__actions">
+        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-grid-confirm-cancel>Anulează</button>
+        <button class="e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" type="button" data-fo-grid-confirm-ok>Șterge rândul</button>
       </div>
     </div>
   </div>

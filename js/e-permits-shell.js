@@ -2155,6 +2155,33 @@ document.addEventListener("DOMContentLoaded", () => {
     return `width:${value}px;min-width:${value}px;max-width:${value}px;`;
   };
 
+  /* Pinned (sticky-left) columns and the sticky header cover the cells that scroll under them.
+     A focused / scrolled-into-view cell (copy-code, row button) used to stop under the pinned
+     name column — hidden and unhoverable (hover audit 2026-10-13). scroll-padding keeps
+     scrollIntoView and keyboard focus scrolling clear of them. Geometry → inline, like the widths. */
+  const syncPinnedScrollPadding = () => {
+    const wrap = workplaceTable?.parentElement;
+    const headRow = workplaceTable?.querySelector("thead tr");
+    if (!wrap || !headRow) return;
+    const wrapLeft = wrap.getBoundingClientRect().left;
+    let pinnedEnd = 0;
+    let pinnedRight = 0;
+    [...headRow.children].forEach((cell) => {
+      const cs = getComputedStyle(cell);
+      if (cs.position !== "sticky") return;
+      if (cs.left !== "auto") {
+        pinnedEnd = Math.max(pinnedEnd, cell.getBoundingClientRect().right - wrapLeft + wrap.scrollLeft);
+      } else if (cs.right !== "auto") {
+        pinnedRight += cell.getBoundingClientRect().width;
+      }
+    });
+    /* on a narrow screen the pinned part may fill the view: then padding would only jam scrolling */
+    const fits = pinnedEnd + pinnedRight < wrap.clientWidth * 0.6;
+    wrap.style.scrollPaddingLeft = fits && pinnedEnd ? `${Math.round(pinnedEnd)}px` : "";
+    wrap.style.scrollPaddingRight = fits && pinnedRight ? `${Math.round(pinnedRight)}px` : "";
+    wrap.style.scrollPaddingTop = `${Math.round(headRow.getBoundingClientRect().height)}px`;
+  };
+
   const renderSortIcon = (column, direction = null) => {
     if (!column?.sortable) {
       return "";
@@ -6022,6 +6049,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const last = Math.min(startIndex + visibleRows.length, filteredRows.length);
 
     renderTableRows(visibleRows, view.columns, view, columnWidths);
+    syncPinnedScrollPadding();
     renderPagination(filteredRows.length, first, last);
     syncSelectAll(visibleRows);
 

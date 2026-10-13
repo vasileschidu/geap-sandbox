@@ -62,6 +62,1019 @@
         { "id": "st-payment", "platform": "payment", "locked": true, "title": { "ro": "Plată", "ru": "Оплата", "en": "Payment" }, "sections": [] },
         { "id": "st-finish", "platform": "finish", "locked": true, "title": { "ro": "Finalizare", "ru": "", "en": "" }, "sections": [] }
       ]
+    },
+    {
+      "id": "form-sanitary-09",
+      "schemaVersion": 2,
+      "technical": "f_autorizatie_sanitara",
+      "code": "FRM-0009",
+      "service": {
+        "code": "003000009",
+        "name": "09. Autorizația sanitară pentru funcționare",
+        "rsspCode": "C00009"
+      },
+      "title": {
+        "ro": "Cerere de eliberare a autorizației sanitare de funcționare",
+        "ru": "",
+        "en": ""
+      },
+      "description": {
+        "ro": "Activitățile, echipamentele și punctele de lucru ale unității.",
+        "ru": "",
+        "en": ""
+      },
+      "access": "service",
+      "requestTypes": [
+        "Eliberare",
+        "Reperfectare"
+      ],
+      "version": "v2.1.0",
+      "status": "published",
+      "editedAt": "2026-10-13T10:20:00",
+      "editedBy": "Vasile Schidu",
+      "settings": {
+        "autosave": true,
+        "reviewSummary": true
+      },
+      "steps": [
+        {
+          "id": "st-applicant",
+          "platform": "applicant",
+          "locked": true,
+          "title": {
+            "ro": "Date solicitant",
+            "ru": "Данные заявителя",
+            "en": "Applicant"
+          },
+          "sections": []
+        },
+        {
+          "id": "st-details",
+          "locked": false,
+          "title": {
+            "ro": "Detalii solicitare",
+            "ru": "",
+            "en": ""
+          },
+          "description": {
+            "ro": "",
+            "ru": "",
+            "en": ""
+          },
+          "requestTypes": [
+            "Eliberare",
+            "Reperfectare"
+          ],
+          "sections": [
+            {
+              "id": "sec-09-activity",
+              "title": {
+                "ro": "Activitatea desfășurată",
+                "ru": "",
+                "en": ""
+              },
+              "description": {
+                "ro": "",
+                "ru": "",
+                "en": ""
+              },
+              "showTitle": true,
+              "showSeparator": true,
+              "fields": [
+                {
+                  "id": "fld-caem",
+                  "type": "repeat",
+                  "key": "ActivitatileDesfasurate",
+                  "published": true,
+                  "label": {
+                    "ro": "Activitățile desfășurate",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "help": {
+                    "ro": "",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "placeholder": {
+                    "ro": "",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "labelHidden": true,
+                  "span": 12,
+                  "required": true,
+                  "preset": {
+                    "id": "preset-caem",
+                    "version": 1
+                  },
+                  "itemTitle": {
+                    "ro": "Activitate",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "addLabel": {
+                    "ro": "Adaugă altă activitate",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "note": {
+                    "ro": "Codurile CAEM se prezintă în dependență de activitățile înregistrate în RSUD.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowRules": {
+                    "minRows": 1,
+                    "maxRows": "",
+                    "defaultRows": 1,
+                    "allowRemove": true,
+                    "keyColumn": "bf-09-caem",
+                    "groupColumn": "bf-09-caem"
+                  },
+                  "messages": {
+                    "min": {
+                      "ro": "Adaugă cel puțin o activitate.",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "max": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "duplicate": {
+                      "ro": "Dvstră ați înregistrat deja acest cod CAEM.",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "group": {
+                      "ro": "Într-o solicitare pot fi selectate doar coduri ale unei secțiuni: {grup}.",
+                      "ru": "",
+                      "en": ""
+                    }
+                  },
+                  "fields": [
+                    {
+                      "id": "bf-09-caem",
+                      "type": "select",
+                      "key": "CodCaem",
+                      "label": {
+                        "ro": "Codul CAEM",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Selectează cod CAEM",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "dataSource": {
+                        "mode": "existing",
+                        "classifierId": "reg_caem",
+                        "template": "code-name",
+                        "search": true
+                      }
+                    },
+                    {
+                      "id": "bf-09-sub",
+                      "type": "multiselect",
+                      "key": "SubgenActivitate",
+                      "label": {
+                        "ro": "Subgen de activitate",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege subgen de activitate",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "minSelected": 1,
+                        "maxSelected": "",
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "noOptionsText": {
+                        "ro": "Niciun subgen disponibil pentru acest cod CAEM.",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "dataSource": {
+                        "mode": "existing",
+                        "classifierId": "reg_caem_subgen",
+                        "template": "name",
+                        "cascade": true,
+                        "parentFieldId": "bf-09-caem",
+                        "filterColumn": "caem_code"
+                      }
+                    }
+                  ],
+                  "validation": {
+                    "message": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "sec-09-equipment",
+              "title": {
+                "ro": "Echipamente",
+                "ru": "",
+                "en": ""
+              },
+              "description": {
+                "ro": "Echipamentele frigorifice folosite pentru produse alimentare.",
+                "ru": "",
+                "en": ""
+              },
+              "showTitle": true,
+              "showSeparator": true,
+              "fields": [
+                {
+                  "id": "fld-equipment",
+                  "type": "grid",
+                  "key": "Echipamente",
+                  "published": true,
+                  "label": {
+                    "ro": "Echipamente frigorifice",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "help": {
+                    "ro": "Câte un rând pentru fiecare echipament din unitate.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "placeholder": {
+                    "ro": "",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "span": 12,
+                  "required": true,
+                  "addLabel": {
+                    "ro": "Adaugă echipament",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "emptyText": {
+                    "ro": "Niciun echipament. Apasă «Adaugă echipament» pentru a începe.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowTitle": {
+                    "ro": "Echipament",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowRules": {
+                    "minRows": 1,
+                    "maxRows": 8,
+                    "defaultRows": 0,
+                    "allowAdd": true,
+                    "allowRemove": true,
+                    "keyColumn": "col-09-inv",
+                    "groupColumn": "",
+                    "pageSize": 5
+                  },
+                  "messages": {
+                    "min": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "max": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "duplicate": {
+                      "ro": "Acest număr de inventar este deja în grilă.",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "group": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  },
+                  "columns": [
+                    {
+                      "id": "col-09-inv",
+                      "type": "text",
+                      "key": "NrInventar",
+                      "label": {
+                        "ro": "Nr. inventar",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Ex.: INV-0012",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "preset": "none",
+                        "pattern": "",
+                        "minLength": "",
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "m",
+                      "maxLength": 20
+                    },
+                    {
+                      "id": "col-09-name",
+                      "type": "text",
+                      "key": "Denumire",
+                      "label": {
+                        "ro": "Denumire",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Ex.: Vitrină frigorifică Liebherr",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "preset": "none",
+                        "pattern": "",
+                        "minLength": "",
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "l",
+                      "maxLength": 120
+                    },
+                    {
+                      "id": "col-09-type",
+                      "type": "select",
+                      "key": "Tip",
+                      "label": {
+                        "ro": "Tip",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege tipul",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "m",
+                      "dataSource": {
+                        "mode": "static",
+                        "multilingual": false,
+                        "values": [
+                          {
+                            "id": 1,
+                            "label": "Frigider",
+                            "isValid": true
+                          },
+                          {
+                            "id": 2,
+                            "label": "Congelator",
+                            "isValid": true
+                          },
+                          {
+                            "id": 3,
+                            "label": "Vitrină frigorifică",
+                            "isValid": true
+                          },
+                          {
+                            "id": 4,
+                            "label": "Cameră frigorifică",
+                            "isValid": true
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "id": "col-09-cap",
+                      "type": "number",
+                      "key": "Capacitate",
+                      "label": {
+                        "ro": "Capacitate",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "min": 1,
+                        "max": "",
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "numberKind": "integer",
+                      "decimals": 0,
+                      "unit": "l"
+                    },
+                    {
+                      "id": "col-09-on",
+                      "type": "checkbox",
+                      "key": "InFunctiune",
+                      "label": {
+                        "ro": "În funcțiune",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "defaultChecked": true
+                    },
+                    {
+                      "id": "col-09-parts",
+                      "type": "grid",
+                      "key": "Componente",
+                      "label": {
+                        "ro": "Componente",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "auto",
+                      "columns": [
+                        {
+                          "id": "col-09-part",
+                          "type": "text",
+                          "key": "Componenta",
+                          "label": {
+                            "ro": "Componentă",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "Ex.: Compresor",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 12,
+                          "required": true,
+                          "readOnly": false,
+                          "validation": {
+                            "preset": "none",
+                            "pattern": "",
+                            "minLength": "",
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "maxLength": 80
+                        },
+                        {
+                          "id": "col-09-serial",
+                          "type": "text",
+                          "key": "NrSerie",
+                          "label": {
+                            "ro": "Nr. serie",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "help": {
+                            "ro": "",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "placeholder": {
+                            "ro": "Ex.: SN-55120",
+                            "ru": "",
+                            "en": ""
+                          },
+                          "span": 12,
+                          "required": false,
+                          "readOnly": false,
+                          "validation": {
+                            "preset": "none",
+                            "pattern": "",
+                            "minLength": "",
+                            "message": {
+                              "ro": "",
+                              "ru": "",
+                              "en": ""
+                            }
+                          },
+                          "width": "m",
+                          "maxLength": 40
+                        }
+                      ],
+                      "rowRules": {
+                        "minRows": "",
+                        "maxRows": "",
+                        "defaultRows": 0,
+                        "allowAdd": true,
+                        "allowRemove": true,
+                        "keyColumn": "",
+                        "groupColumn": "",
+                        "pageSize": 0
+                      },
+                      "addLabel": {
+                        "ro": "Adaugă componentă",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "emptyText": {
+                        "ro": "Nicio componentă.",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "rowTitle": {
+                        "ro": "Componentă",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "messages": {
+                        "min": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        },
+                        "max": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        },
+                        "duplicate": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        },
+                        "group": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      }
+                    }
+                  ],
+                  "validation": {
+                    "message": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "sec-09-points",
+              "title": {
+                "ro": "Puncte de lucru",
+                "ru": "",
+                "en": ""
+              },
+              "description": {
+                "ro": "",
+                "ru": "",
+                "en": ""
+              },
+              "showTitle": true,
+              "showSeparator": true,
+              "fields": [
+                {
+                  "id": "fld-points",
+                  "type": "grid",
+                  "key": "PuncteDeLucru",
+                  "published": true,
+                  "label": {
+                    "ro": "Adresele punctelor de lucru",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "help": {
+                    "ro": "Localitatea se alege după raion.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "placeholder": {
+                    "ro": "",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "span": 12,
+                  "required": false,
+                  "addLabel": {
+                    "ro": "Adaugă punct de lucru",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "emptyText": {
+                    "ro": "Niciun punct de lucru. Apasă «Adaugă punct de lucru» pentru a începe.",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowTitle": {
+                    "ro": "Punct de lucru",
+                    "ru": "",
+                    "en": ""
+                  },
+                  "rowRules": {
+                    "minRows": "",
+                    "maxRows": "",
+                    "defaultRows": 1,
+                    "allowAdd": true,
+                    "allowRemove": true,
+                    "keyColumn": "",
+                    "groupColumn": "",
+                    "pageSize": 10
+                  },
+                  "messages": {
+                    "min": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "max": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "duplicate": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    },
+                    "group": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  },
+                  "columns": [
+                    {
+                      "id": "col-09-raion",
+                      "type": "select",
+                      "key": "Raion",
+                      "label": {
+                        "ro": "Raion",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege raionul",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "m",
+                      "dataSource": {
+                        "mode": "existing",
+                        "classifierId": "reg_raioane",
+                        "template": "name"
+                      }
+                    },
+                    {
+                      "id": "col-09-loc",
+                      "type": "select",
+                      "key": "Localitate",
+                      "label": {
+                        "ro": "Localitate",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Alege localitatea",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "m",
+                      "dataSource": {
+                        "mode": "existing",
+                        "classifierId": "reg_localitati",
+                        "template": "name",
+                        "cascade": true,
+                        "parentFieldId": "col-09-raion",
+                        "filterColumn": "raion_id"
+                      }
+                    },
+                    {
+                      "id": "col-09-addr",
+                      "type": "text",
+                      "key": "Adresa",
+                      "label": {
+                        "ro": "Adresa",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "Ex.: str. Pușkin 22",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": true,
+                      "readOnly": false,
+                      "validation": {
+                        "preset": "none",
+                        "pattern": "",
+                        "minLength": "",
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "l",
+                      "maxLength": 150
+                    },
+                    {
+                      "id": "col-09-open",
+                      "type": "date",
+                      "key": "DataDeschiderii",
+                      "label": {
+                        "ro": "Data deschiderii",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "m",
+                      "dateDefault": "none",
+                      "dateMin": {
+                        "mode": "none",
+                        "value": ""
+                      },
+                      "dateMax": {
+                        "mode": "today",
+                        "value": ""
+                      }
+                    },
+                    {
+                      "id": "col-09-area",
+                      "type": "number",
+                      "key": "Suprafata",
+                      "label": {
+                        "ro": "Suprafața",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "help": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "placeholder": {
+                        "ro": "",
+                        "ru": "",
+                        "en": ""
+                      },
+                      "span": 12,
+                      "required": false,
+                      "readOnly": false,
+                      "validation": {
+                        "min": 1,
+                        "max": "",
+                        "message": {
+                          "ro": "",
+                          "ru": "",
+                          "en": ""
+                        }
+                      },
+                      "width": "s",
+                      "numberKind": "decimal",
+                      "decimals": 1,
+                      "unit": "m²"
+                    }
+                  ],
+                  "validation": {
+                    "message": {
+                      "ro": "",
+                      "ru": "",
+                      "en": ""
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "st-documents",
+          "platform": "documents",
+          "locked": true,
+          "title": {
+            "ro": "Documente",
+            "ru": "Документы",
+            "en": "Documents"
+          },
+          "sections": []
+        },
+        {
+          "id": "st-review",
+          "platform": "review",
+          "locked": true,
+          "title": {
+            "ro": "Verificare și semnare",
+            "ru": "",
+            "en": ""
+          },
+          "sections": []
+        },
+        {
+          "id": "st-payment",
+          "platform": "payment",
+          "locked": true,
+          "title": {
+            "ro": "Plată",
+            "ru": "Оплата",
+            "en": "Payment"
+          },
+          "sections": []
+        },
+        {
+          "id": "st-finish",
+          "platform": "finish",
+          "locked": true,
+          "title": {
+            "ro": "Finalizare",
+            "ru": "",
+            "en": ""
+          },
+          "sections": []
+        }
+      ]
     }
   ]
 }

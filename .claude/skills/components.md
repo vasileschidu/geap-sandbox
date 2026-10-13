@@ -172,6 +172,7 @@ but this doc previously described it wrongly, see the entry.
 
 | Component | Real base classes | Preview file | Status |
 |---|---|---|---|
+| Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` | `buttons.html` | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
 | Icon button | `.btn-icon`, `.btn-icon.clear` | — | app |
@@ -245,7 +246,7 @@ but this doc previously described it wrongly, see the entry.
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
 | Form Builder (Form Designer: palette · canvas · properties; one schema → one renderer) | `.e-permits-builder` workspace: `__library` (grouped palette `__library-section` / `__library-item`, „În curând” = `is-disabled` + reason) · `__stage` (`__service-header`, `__steps` chips, `__canvas` > `__step-section` > `__section-bar` + `__grid` > `__field` cards, `__drop-indicator`) · `__inspector` > `__panel` (`__panel-head--selected`, `.tabs.tabs--sm.e-permits-builder__tabs`, `__panel-scroll` of drawer sections) · topbar `__errors` + `__issues-menu` | `js/form-builder.js` (`COMPONENTS`, `toFo`, `window.GEAPFormBuilder`), `css/form-builder.css`, demo `fb-*` | app |
-| One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`, batch 3: `idnp`, `idno`, `file`, `mdocs`, `hidden`, `consent`, `contact-person` with `prefix`, `subdivision` with `mode`); `.bind(root)` = the FO interactions (+ contact, subdivision, digits, registry lookups); `.applicant()`, `.setFieldError()`, `.copyValueHtml()` | `js/e-permits-acte-permisive.js` | app |
+| One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`, batch 3: `idnp`, `idno`, `file`, `mdocs`, `hidden`, `consent`, `contact-person` with `prefix`, `subdivision` with `mode`; batch 4: `grid`, `repeat` → `window.GEAPFoRepeat` in `js/fo-grid.js`, `combobox` = the CAEM list alone); `.bind(root)` = the FO interactions (+ contact, subdivision, digits, registry lookups); `.applicant()`, `.setFieldError()`, `.copyValueHtml()` | `js/e-permits-acte-permisive.js` | app |
 | Choice field (labelled radio rows / checkbox list / period pair in a form) | `fieldset.e-permits-fo-choice.e-permits-fo-field--span-N` > `legend.e-permits-fo-choice__legend` + `.e-permits-fo-choice__group(--inline)` of `.e-permits-fo-radio--option` rows, or `.e-permits-fo-choice__checks` of `renderCheckOption({ plain: true })`, or `.e-permits-fo-choice__pair` (two date pickers, 6 + 6, one column ≤860) | `radioFieldHtml` / `checklistFieldHtml` / `periodFieldHtml` | app |
 | FO segmented field · multi-select field · callout field · separator field | `segmentFieldHtml` (`.segmented-control.is-animated[role=radiogroup][data-fo-segment]` + label id) · `multiselectFieldHtml` (the CAEM subgenre multi-select with `data-placeholder` / `data-count-one` / `data-count-many` / `data-remove-label`, chips in `[data-fo-subgen]`) · `calloutFieldHtml` (`.e-permits-callout--info/--warning`) · `separatorFieldHtml` (library `hr.separator`) | `js/e-permits-acte-permisive.js` | app |
 | Behaviour rules in the Form Builder (Logică) | the Documente rule builder markup (`.e-permits-doc-rule` / `.e-permits-doc-cond` / `.e-permits-doc-val` / `code.e-permits-doc-kw` / `.e-permits-doc-kwselect`) with builder hooks `data-fb-rule-*` / `data-fb-cond-*`; in the panel rows use the phone layout | `logicTabHtml` / `ruleHtml` / `applyLogic` (js/form-builder.js) | app |
@@ -253,6 +254,9 @@ but this doc previously described it wrongly, see the entry.
 | Registry lookup by a 13-digit code (IDNO → RSUD, IDNP → RSP) | ONE helper `createRegistryLookup({ input, hint, targets, find, … })` (+ `setRegistryValue`): hint → `__loading` message, targets → input skeleton (`is-srre-loading`), fill read-only with green check + `is-srre-new`, not found → FO field error. Markup hooks `[data-fo-registry-lookup][data-fo-registry=rsud|rsp]`, `[data-fo-registry-code]`, `[data-fo-registry-target=name|last|first]`, `[data-fo-digits]` + `[data-fo-digits-counter]` (n/13), `[data-fo-lookup-consent]` | guest IDNO (G1b/G3/G5) + Form Builder IDNO / IDNP; `?registru=asteptare` | app |
 | Boxed doc field with several files | `.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi` (button stays until `is-full`) + `data-fo-upload-only` (picker without MDocs), `data-fo-doc-accept`, `data-fo-doc-max`, `data-fo-doc-limits` (modal captions) | Form Builder „Fișier” | app |
 | Form Builder · hidden field marker | `p.e-permits-builder__hidden-marker` (dashed 1px border/base/default, r8, 40 high, `icon-data-access` + „Ascuns” + name · value, ellipsis + title) — Build canvas only; the FO renders `<input type="hidden" data-fo-hidden>` | „Câmp ascuns” card | app |
+| Editable grid (FO, US-33…39) — **library gap: no editable table in the library** | `.e-permits-fo-grid[data-fo-grid][data-units]` > `__label` · hint · group note (`renderInfoNote`) · `__frame` > library `table.table.table--subtle.e-permits-fo-grid__table` (explicit ARIA roles; `th`/`td` `colspan` = width units 2·3·4) > `tr.e-permits-fo-grid__row(.is-editing)` (`__index` · `__cell[data-col][data-type]` = `__cell-label` + `button.__value` or the FO field · `__actions` = `__actions-compact` icon buttons + `__actions-full` labelled) · `tr.__detail` (nested grid) · `tr.__empty` (`GEAPEmptyState`) · `__foot` (`.e-permits-fo-add-activity` + `__limit` + library `.pagination--compact`) · `.is-cards` (cards) | `GEAPFoRepeat.gridHtml` / `bind` / `validate` / `fill` / `layout` / `escape`; confirm `[data-fo-grid-confirm]` | app |
+| Repeatable block (FO, „Adaugă alt …”; CAEM = its preset) | `fieldset.e-permits-fo-repeat[data-fo-repeat]` > legend (`.e-permits-fo-choice__legend`, may be visually hidden) · note · group note · `__list` > `.e-permits-fo-activity-card.e-permits-fo-repeat__item[data-fo-repeat-item]` (header `#n` + title + `.e-permits-fo-icon-button[data-fo-repeat-remove]`; fields in `.e-permits-fo-field-group`, the CAEM pair as the FO activity markup) · `.e-permits-fo-add-activity[data-fo-repeat-add]` · `__limit` | `GEAPFoRepeat.blockHtml`, FO `caemFieldHtml` / `subgenHtml` | app |
+| Form Builder · band of columns / block fields | `.e-permits-builder__subs[data-fb-subs]` > `__subs-label` · `button.__sub[data-fb-child](.is-selected/.has-issue/.is-dragging)` · `.e-permits-builder__sub-add-wrap` (`__sub-add` dashed + typed stack menu with `__issues-head` groups, disabled items with reason) | `subsStripHtml` / `addChildMenuHtml` / `childPanelHtml` (js/form-builder.js) | app |
 | Form Builder · saved components | palette group `[data-fb-library-saved]` „Componente salvate” (system preset + saved, version `renderTag("vN")`), card foot tag „Salvată” (`icon-bookmark`), panel group „Componentă salvată” (facts + Actualizează din sursă / Salvează în sursă / Detașează), modal `#fb-preset-modal` (library `modal--md e-permits-passport__modal`) | `insertPreset` / `presetAction` / `openPresetModal` | app |
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
@@ -3023,8 +3027,8 @@ settings) → `steps[]` (service steps edit; `locked` platform steps: Date solic
 defaults; `soon: N` = listed in the palette as „În curând” (disabled, reason tooltip „În lucru — etapa N”)
 — never a faked component. Built: Text, Text multilinie, Număr, Sumă, Email, Telefon, Dată, Listă
 derulantă, Butoane radio, Casetă de bifare, Listă de bifare, Adresă, Secțiune, Text informativ (+ the
-configured preset „Adresa obiectului”); batch 2 and 3 below. Still „În curând”: Grilă editabilă, Bloc
-repetabil (4), Câmp calculat, Dată și oră (5), Arbore.
+configured preset „Adresa obiectului”); batches 2, 3 and 4 below. Still „În curând”: Câmp calculat, Dată și
+oră (5), Arbore.
 
 **One renderer.** `toFo(field, { prefix, inCard, lang })` projects a builder field onto the FO schema
 shape; the canvas card body, the Preview and the request form all call
@@ -3169,6 +3173,60 @@ lists no „În curând” for them any more.
 States `fb-30…fb-43` (palette, IDNP 31–31d, IDNO 32–32c, contact 33–33a, subdivision 34–34b, file 35–35d,
 MDocs 36–36a, hidden 37–37b, consent 38–38b, saved 39–39b, Avansat 40–40a, date rules 41–41c, Alt câmp 42,
 Validează 43–43a).
+
+**Batch 4 (2026-10-13) — 1:N: Grilă editabilă, Bloc repetabil, Activități CAEM.** One model, one
+renderer: a grid holds `columns`, a block holds `fields` (field objects; same panel tabs, same FO renderer
+per cell / card); rules point at children by id (`rowRules.keyColumn` / `groupColumn`, cascade
+`dataSource.parentFieldId`). Seed form `?formular=form-sanitary-09` (CAEM block, equipment grid with a nested
+grid, work points with Raion → Localitate).
+- **Builder.** Container card = tools + the **band** (chips of columns / fields; click = the child's panel,
+  drag = reorder, palette types dropped on the band = new children, Alt + ← / → (grid) or ↑ / ↓ (block) and
+  Delete on a chip, „+ Coloană / + Câmp” = typed menu: Coloane simple · Coloane complexe (locked with a reason
+  until one simple column exists — US-34 AC-06; Grilă imbricată locked at level 3 — US-38) · Copie a unui
+  câmp din formular) + the inert FO render (empty container = `GEAPEmptyState`). Child panel = the field
+  panel (crumbs to the column, back link `btn btn-text-primary btn-sm` to its grid / block), tabs without
+  Logică for grid columns (US-42 AC-36), Avansat = table / column / SQL type. Grid column Aspect =
+  „Lățime coloană” Auto · Îngustă · Medie · Lată. Container tabs: General (label, help, texts: row name /
+  item title, add label, empty text / permanent note, „Ascunde eticheta”), Date (ordered list
+  `__step-list` + „Adaugă coloană ▾”), Validare (min / max / at start / rows per page, add / delete allowed,
+  key, group, messages RO·RU·EN), Logică (the container as target; as a source = its number of rows),
+  Avansat (+ „Stocare 1:N”: `GEAP_Cases_{serviciu}_{Cheie}`, CaseId / ParentRowId, SortOrder). Delete of a
+  child = toast with „Anulează”. Validation summary: no columns / fields, complex without simple, depth > 3,
+  min > max, start > max, key / group / parent gone, group not a classifier list, missing texts, and every
+  child checked like a field (reported „Grilă › Coloană”, kind `child`).
+- **Editable grid (FO).** Library `.table.table--subtle`, scoped geometry (head 38, 12/16 medium on
+  secondary; cells 14/20, 8/12 inset, lines only, no zebra, last row no divider). Widths without inline
+  styles = `colspan` units (Îngustă 2, Auto / Medie 3, Lată 4, nested grid 4); `layout()` (ResizeObserver)
+  sets `is-cards` below 600 px or when units × 40 + 152 do not fit — never a sideways-scrolling table.
+  Row = view (`button.__value`, click = edit that cell) or edit (FO fields, labels visually hidden in the
+  table, visible on cards); Enter saves, Esc cancels (an open list / calendar closes first; inside the
+  builder its Esc handler forwards to `GEAPFoRepeat.escape`); delete = the FO confirm dialog, destructive.
+  Per-cell FO errors (`setFieldError` for inputs, `is-error` + inline message for lists / multi-select /
+  checkbox); duplicates on the key column; group rule disables other-group options (`aria-disabled`, the
+  fo-select ignores them) + permanent note; cascade from a column of the row or a form field (child empty
+  and disabled until the parent, reset on change); pagination (library, other pages kept hidden); nested
+  grid in a `__detail` row („N rânduri ▾”); source down (`?sursa=indisponibila`) = notice + Reîncearcă +
+  Introdu manual, rows locked; `?sursa=asteptare` = skeleton. Variants: default · hover (row tertiary,
+  value pill tertiary-hover) · active (editing row) · focus (value ring, FO field focus) · disabled (add at
+  the maximum: `.e-permits-fo-add-activity[aria-disabled]` grey + reason) · error (cell) · success (row
+  saved → view + live message). **Library gap:** the library has no editable table (FodTable is
+  read-only, US-35) — this is built from `.table` + FO fields and should go to the library.
+- **Repeatable block (FO).** The FO activity card per element and the FO add button (the CAEM preset
+  renders byte-identical markup to step 2 — the pair markup was extracted into `caemFieldHtml` /
+  `subgenHtml` with the old texts as defaults). Remove = immediate + toast „Ai eliminat „Activitate #2”.”
+  with „Anulează” (the node itself comes back); key = values taken elsewhere disabled; group = first value
+  fixes the group (CAEM section), others disabled + note; a code without sub-options shows its hint
+  (US-40 AC-04); min (first card has no ×) / max (button disabled + limit line); rules between the fields
+  of one card (Logică on a block field: Afișează / Ascunde, read per card in the Preview).
+- **Hover pass (same day, user: „hover doesn't work”):** topbar version / mode switch / step chips
+  (tertiary-hover, selected inverse-default-hover), field cards (border + `--shadow-200`, the selected one
+  keeps its ring), read-only panel inputs, the selected segment (`.segment-item.is-selected:hover`), FO
+  current step row, calendar icon button, phone prefix, checkbox rows, rule-builder value selects. Audited
+  with `tools/ui-qa/hover-audit.mjs`.
+
+States `fb-50…fb-63` (palette 50–50a, new grid 51–51a, columns 52–52b, rules 53–53a, nested 54–54a, FO grid
+55–55b, errors 56–56b, phone 57, CAEM 58–58b, block 59–59d, block validation 60, source down 61–61a, schema 62,
+summary 63).
 
 ### `rap-*` and `cab-*` — the two standalone pages
 
@@ -5857,6 +5915,53 @@ user sees no hover anywhere in the drawer. Applies to `.e-permits-user-create__d
 scrim, and to `.e-permits-doc-peek`. **Every library modal** also drops its layer once open
 (`.modal-overlay.is-active .modal { transform: none; will-change: auto }`, plus `will-change:
 auto` on the overlay), set in our stylesheet because `main.css` stays identical to the library. Closing animations keep `both`, so the panel stays hidden until it is removed.
+
+### Hover — shared rules per component class (2026-10-13)
+
+Every interactive element shows a visible hover (memory „Hover everywhere”). Hover is written
+**once per component class** in `css/e-permits-acte-permisive.css` (blocks „Hover audit” 2026-10-10,
+round 2, round 3 2026-10-13, + the FO block after `.segment-item.is-selected:hover`) — never per
+screen. `main.css` / `Components/*` stay untouched; override there, scoped to the class.
+
+| Component | Rest | Hover |
+|---|---|---|
+| Neutral / strict button | tertiary / none | `…-tertiary-hover` / tertiary (library); open (`aria-expanded` / `aria-pressed`) keeps `…-tertiary-active` |
+| Icon button resting on tertiary (`.e-permits-fo-icon-button`, close, clear, beta ×) | tertiary | `--color-background-base-tertiary-hover` |
+| Bare icon inside an input (`.e-permits-fo-input__icon-button` calendar) | transparent | `--color-background-base-tertiary` |
+| Chip / selected chip | library / inverse | library / `--color-background-base-inverse-default-hover` |
+| Segment / selected segment | — / inverse | library / inverse-hover; `.is-animated` → the thumb (`::before`) via `:has(.is-selected:hover)` |
+| Page-header tab / active tab | — / brand underline | tertiary fill / tertiary fill, brand text kept |
+| BO side nav / current item | white / `blue-sky-100` | tertiary / `--color-background-brand-secondary-hover` |
+| Pagination item / current page (BO + library) | — / brand | library / `--color-background-brand-default-hover` |
+| Sortable table header (`th.is-sortable`) | secondary | `…-secondary-hover` fill + label `--color-text-base-default` |
+| Text link (`.link-primary`, plain `a` in copy, inside a checkbox / radio label) | underline | `blue-sky-700` / brand + `text-decoration-thickness: 2px` |
+| Current language (Ro / Ru / En) | underlined | 2px underline |
+| FO stepper row (reachable) / current | label secondary / brand tint | label brand / `brand-secondary-hover`; not-yet-reachable rows (`aria-disabled`) = no pointer, no hover |
+| Option card (`.e-permits-fo-delivery-option`, radio option rows) | white / brand tint (selected) | tertiary / `brand-secondary-hover` |
+| Outline brand add button (`.e-permits-fo-add-doc-button`) | transparent | `--color-background-brand-secondary` |
+| Checkbox / checkbox in error | library | border strong · checked brand-hover / inset 1px danger (the FO error-field hover) |
+| Focusable tooltip trigger in a cell (`[data-cell-tooltip-always][tabindex="0"]`: „+N” roles, JSON) | text | underline |
+| Rows / clickable stack items / cards | white | BO row hover (tertiary) |
+
+**By design without hover:** the focused field (focus wins), read-only fields (`.is-readonly`),
+an open button (keeps its pressed fill), a drawer scrim, disabled items.
+
+**Layers that ate the hover (fixed at the source, 2026-10-13):**
+- `.msup` (mSupport widget, fixed 344×180) caught the pointer between its bubble and launcher —
+  over the FO „Înainte” → `.msup { pointer-events: none } .msup > * { pointer-events: auto }`; its
+  entrance animations held `both` (the bubble's own `:hover` transform never applied) → `backwards`.
+- Registries with pinned columns: a focused / scrolled-into-view cell stopped under the pinned
+  name column → `syncPinnedScrollPadding()` (shell) sets `scroll-padding-left/right/top` on
+  `.e-permits-workplace__table-wrap` from the sticky cells; the pinned header cell is z-index 9 (td
+  and th were both 7, so rows painted over it on vertical scroll).
+- Page-header tab strip: `scroll-padding-inline: 48px` keeps a focused tab out from under the ‹ ›
+  arrows and the fade.
+
+**QA:** every UI change runs `tools/ui-qa/hover-audit.mjs` on its demo states (`--scope` the
+drawer / modal for open-dialog states). `no-hover` and `covered` are major; the „not counted” lines
+list the by-design cases above. Then re-check after interactions (menu open → close, drawer /
+modal open → close, after a toast): no held `both`/`forwards` animation, no `will-change`, no
+invisible layer at the click point.
 
 ### Servicii › Documente — documents + „Reguli de solicitare” (US-225, 2026-10-12)
 

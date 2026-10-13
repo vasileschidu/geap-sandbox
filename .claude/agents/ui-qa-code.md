@@ -34,6 +34,9 @@ session can fix them.
    `no-hover` = the element looks the same under the mouse (selected / active items too — they
    need a visible variant); `covered` = an invisible layer sits on top and eats the hover.
    Both are **major** findings. Also re-check after a drag / menu close / modal close.
+   States with an open drawer / modal: pass `--scope` (the page behind is reported as „not
+   counted: under an open … backdrop”). „Not counted” lines (focused, read-only, open button,
+   scrim) are by design — components.md › „Hover — shared rules per component class”.
 3. Judge every measured finding — drop false positives (say why), keep the real ones.
 4. Look at the screenshots yourself (Read the PNGs) for what a script cannot measure:
    - alignment: label/control baselines, left edges of stacked blocks, icon vs text centring,

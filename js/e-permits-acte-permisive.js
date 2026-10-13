@@ -1008,7 +1008,7 @@
           <div class="e-permits-fo-select${addressPart ? " e-permits-fo-select--address" : ""}${field.disabled ? " is-disabled" : ""}" data-fo-select>
             <button class="e-permits-fo-select__button" id="${escapeFrontOfficeHtml(id)}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(listId)}" ${field.disabled ? "disabled" : ""}>
               ${field.flag ? `<span class="e-permits-fo-country-flag" aria-hidden="true">${escapeFrontOfficeHtml(field.flag)}</span>` : ""}
-              <span class="e-permits-fo-select__value${value ? "" : " e-permits-fo-select__value--placeholder"}" data-fo-select-value ${addressPart ? `data-fo-address-part="${escapeFrontOfficeHtml(field.id)}" data-placeholder="${escapeFrontOfficeHtml(placeholder)}"` : ""}>${escapeFrontOfficeHtml(value || placeholder)}</span>
+              <span class="e-permits-fo-select__value${value ? "" : " e-permits-fo-select__value--placeholder"}" title="${escapeFrontOfficeHtml(value || placeholder)}" data-fo-select-value ${addressPart ? `data-fo-address-part="${escapeFrontOfficeHtml(field.id)}" data-placeholder="${escapeFrontOfficeHtml(placeholder)}"` : ""}>${escapeFrontOfficeHtml(value || placeholder)}</span>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-select__list" id="${escapeFrontOfficeHtml(listId)}" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" hidden>
@@ -2106,50 +2106,68 @@
       return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span></li>`;
     }
 
-    function activityCardHtml(field) {
-      const options = field.caemOptions || [];
+    /* the CAEM pair of the FO activities — „Codul CAEM” combobox + „Subgen de activitate” under its
+       guide line. Extracted (2026-10-13, Form Builder batch 4) so the builder's „Activități CAEM”
+       preset (a repeatable block) draws the exact same markup; the defaults are the old texts and
+       ids, so step 2 renders as before. */
+    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [] } = {}) {
       return `
-        <div class="e-permits-fo-activity-card" data-fo-activity-card>
-          <div class="e-permits-fo-activity-card__header">
-            <div class="e-permits-fo-activity-card__title"><span data-fo-activity-index>#1</span><strong>Activitate</strong></div>
-          </div>
           <div class="e-permits-fo-field">
-            ${labelHtml("fo-caem-code", { label: "Codul CAEM", required: true })}
+            ${labelHtml(id, { label, required })}
             <div class="e-permits-fo-caem" data-fo-caem>
-              <button id="fo-caem-code" class="e-permits-fo-caem__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-caem-code-menu" data-fo-caem-button>
-                <span class="e-permits-fo-caem__value e-permits-fo-caem__value--placeholder" data-fo-caem-value>Selectează cod CAEM</span>
+              <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-caem__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-button>
+                <span class="e-permits-fo-caem__value e-permits-fo-caem__value--placeholder" data-fo-caem-value>${escapeFrontOfficeHtml(placeholder)}</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
               </button>
-              <div class="e-permits-fo-caem__menu" id="fo-caem-code-menu" data-fo-caem-menu hidden>
+              <div class="e-permits-fo-caem__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-menu hidden>
                 <div class="e-permits-fo-caem__search"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="Caută după cod sau descriere" aria-label="Caută după cod sau descriere" data-fo-caem-search></div>
-                <ul class="e-permits-fo-caem__list" id="fo-caem-code-list" role="listbox" aria-labelledby="fo-caem-code" data-fo-caem-list>${options.map(caemOptionHtml).join("")}</ul>
+                <ul class="e-permits-fo-caem__list" id="${escapeFrontOfficeHtml(id)}-list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" data-fo-caem-list>${options.map(caemOptionHtml).join("")}</ul>
                 <div class="e-permits-fo-caem__empty" data-fo-caem-empty hidden>Nu există rezultate pentru căutarea introdusă.</div>
               </div>
             </div>
-          </div>
+          </div>`;
+    }
+
+    function subgenHtml({ id = "fo-subgen-activity", menuId = "fo-subgen-menu", label = "Subgen de activitate", required = true, placeholder = "Alege subgen de activitate" } = {}) {
+      return `
           <div class="e-permits-fo-subgen" data-fo-subgen hidden>
             <div class="e-permits-fo-subgen__line" aria-hidden="true"></div>
             <div class="e-permits-fo-subgen__content">
               <div class="e-permits-fo-field">
-                ${labelHtml("fo-subgen-activity", { label: "Subgen de activitate", required: true })}
-                <div class="e-permits-fo-subgen-select" data-fo-subgen-select>
-                  <button id="fo-subgen-activity" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="fo-subgen-menu" data-fo-subgen-button>
-                    <span class="e-permits-fo-subgen-select__value e-permits-fo-subgen-select__value--placeholder" data-fo-subgen-value>Alege subgen de activitate</span>
+                ${labelHtml(id, { label, required })}
+                <div class="e-permits-fo-subgen-select" data-fo-subgen-select${placeholder !== "Alege subgen de activitate" ? ` data-placeholder="${escapeFrontOfficeHtml(placeholder)}"` : ""}>
+                  <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(menuId)}" data-fo-subgen-button>
+                    <span class="e-permits-fo-subgen-select__value e-permits-fo-subgen-select__value--placeholder" data-fo-subgen-value>${escapeFrontOfficeHtml(placeholder)}</span>
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
                   </button>
-                  <div class="e-permits-fo-subgen-select__menu" id="fo-subgen-menu" data-fo-subgen-menu hidden>
+                  <div class="e-permits-fo-subgen-select__menu" id="${escapeFrontOfficeHtml(menuId)}" data-fo-subgen-menu hidden>
                     <div class="e-permits-fo-subgen-select__search"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="Caută subgen" aria-label="Caută subgen" data-fo-subgen-search></div>
-                    <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-labelledby="fo-subgen-activity" aria-multiselectable="true" data-fo-subgen-list></ul>
+                    <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" aria-multiselectable="true" data-fo-subgen-list></ul>
                     <div class="e-permits-fo-subgen-select__footer"><span><strong data-fo-subgen-count>0</strong> <span data-fo-subgen-count-label>selectate</span></span><button class="e-permits-fo-subgen-select__confirm" type="button" data-fo-subgen-confirm>Confirmă</button></div>
                   </div>
                 </div>
               </div>
               <div class="e-permits-fo-subgen__chips" data-fo-subgen-chips hidden></div>
             </div>
-          </div>
+          </div>`;
+    }
+
+    function activityCardHtml(field) {
+      const options = field.caemOptions || [];
+      return `
+        <div class="e-permits-fo-activity-card" data-fo-activity-card>
+          <div class="e-permits-fo-activity-card__header">
+            <div class="e-permits-fo-activity-card__title"><span data-fo-activity-index>#1</span><strong>Activitate</strong></div>
+          </div>${caemFieldHtml({ options })}${subgenHtml()}
         </div>
         <button class="e-permits-fo-add-activity" type="button" data-fo-add-activity><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg><span>Adaugă altă activitate</span></button>
       `;
+    }
+
+    /* a searchable list (Listă derulantă with „Căutare”): the CAEM combobox on its own */
+    function comboboxFieldHtml(field) {
+      const html = caemFieldHtml({ id: fieldId(field.id), label: field.label || "", required: Boolean(field.required), placeholder: field.placeholder || "Selectează", options: field.options || [] });
+      return html.replace('<div class="e-permits-fo-field">', `<div class="${fieldClass(field)}">`);
     }
 
     /* ---- Form Builder field types in the request form (2026-10-13) ----------------------------
@@ -2546,6 +2564,10 @@
       if (field.type === "mdocs") return mdocsFieldHtml(field);
       if (field.type === "hidden") return hiddenFieldHtml(field);
       if (field.type === "consent") return consentFieldHtml(field);
+      /* batch 4 (1:N): editable grid · repeatable block (js/fo-grid.js) · searchable list */
+      if (field.type === "grid") return window.GEAPFoRepeat?.gridHtml(field) || "";
+      if (field.type === "repeat") return window.GEAPFoRepeat?.blockHtml(field) || "";
+      if (field.type === "combobox") return comboboxFieldHtml(field);
       return "";
     }
 
@@ -3396,6 +3418,7 @@
       root.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
       root.querySelectorAll("[data-fo-subdivision]").forEach(initSubdivisionField);
       root.querySelectorAll("[data-fo-char-counter]").forEach(initCharCounter);
+      window.GEAPFoRepeat?.bind(root);
       syncActivityCards();
     }
 
@@ -7189,12 +7212,15 @@
       }
 
       function selectOption(option) {
+        /* a disabled option (grid group rule, US-36 AC-04) is listed, not chosen */
+        if (!option || option.getAttribute("aria-disabled") === "true") return;
         options.forEach((item) => {
           const isSelected = item === option;
           item.classList.toggle("is-selected", isSelected);
           item.setAttribute("aria-selected", String(isSelected));
         });
         value.textContent = option.textContent.trim();
+        value.title = value.textContent;
         value.classList.remove("e-permits-fo-select__value--placeholder");
         activeIndex = options.indexOf(option);
         setOpen(false);
@@ -7379,6 +7405,7 @@
           item.setAttribute("aria-selected", String(isSelected));
         });
         value.textContent = `${option.dataset.code} • ${option.dataset.label}`;
+        value.title = value.textContent;
         value.classList.remove("e-permits-fo-caem__value--placeholder");
         activeIndex = Math.max(0, visibleOptions.indexOf(option));
         setOpen(false);
@@ -7400,6 +7427,7 @@
         }
         syncActivityCards();
         button.focus();
+        caemRoot.dispatchEvent(new Event("change", { bubbles: true }));
       }
 
       button.addEventListener("click", () => {
@@ -8121,6 +8149,7 @@
         root.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
         root.querySelectorAll("[data-fo-char-counter]").forEach(initCharCounter);
         root.querySelectorAll("[data-fo-subgen-select]").forEach(initSubgenMultiSelect);
+        root.querySelectorAll("[data-fo-caem]").forEach(initCaemCombobox);
         root.querySelectorAll("[data-fo-contact-person]").forEach(syncContactPersonGroup);
         root.querySelectorAll("[data-fo-subdivision]").forEach(initSubdivisionField);
         root.querySelectorAll("[data-fo-digits]").forEach(bindDigitsInput);
@@ -8140,6 +8169,8 @@
         });
         initAnimatedSegmentedControls(root);
         window.GEAPDatePicker?.init?.(root);
+        /* grids and blocks last: their cells / cards were bound above with the rest of the FO controls */
+        window.GEAPFoRepeat?.bind(root);
       },
       /* the service districts the cascade address lists (from the service schema) */
       districts: () => cascadeAddressFieldOfSchema(frontOfficeSchema)?.districts || [],
@@ -8152,6 +8183,8 @@
       setModalHidden: setMotionModalHidden,
       demoFlow
     };
+    /* js/fo-grid.js (grid + repeatable block) draws its cells / cards with these FO helpers */
+    window.GEAPFoRepeat?.setContext({ fieldHtml: stepFieldHtml, esc: escapeFrontOfficeHtml, setFieldError: setGuestFieldError, caemFieldHtml, subgenHtml, localIsoDay, setModalHidden: setMotionModalHidden });
 
     document.querySelectorAll(".permits-table__row[data-row-link]").forEach((row) => {
       row.addEventListener("click", (event) => {

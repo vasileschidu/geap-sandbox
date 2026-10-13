@@ -240,9 +240,9 @@ excluded and emptied (US-42 AC-11). Server re-validates everything (US-41 AC-41,
 
 | Component | Icon | FO render | Specific properties | Validare | FO behaviour |
 |---|---|---|---|---|---|
-| **Grilă editabilă** (RelatedRecords, US-33…39) | `icon-dot-grid` | ⚠ no FO editable table — library `.table` is read-only (US-35 constraint); desktop = table with inline cells, mobile = row cards (US-39) → build per §7 | Coloane (DnD editor reusing the field palette: Text, Număr, Dată, Dată și oră, Radio, Checkbox; then Dropdown, Dropdown dependent, Selecție multiplă, Grilă ≤ 3 niveluri) · Mod editare: Inline (Dialog / Formular inline = out of scope) · Rânduri min / max · Coloană-cheie (duplicate) · Coloană de grupare · Rânduri pe pagină · Text buton („+ Adaugă rând”) · Stare goală | „Trebuie cel puțin {min} rânduri”, „Maximum {max} rânduri”, „Dvstră ați înregistrat deja această valoare” | empty state „Niciun rând. Apăsați «Adaugă rând» pentru a începe.” |
-| **Activități CAEM** (preset of Grilă, US-40) — FO built as `activity-list` | `icon-store` | `activityCardHtml` (card per activity + „Adaugă altă activitate”) | Clasificator CAEM filtrat după pașaport · Subgenuri (dependent) · secțiune unică · min 1 | duplicate / one section / min 1 subgen | the reference „configured component” after Adresă |
-| **Bloc repetabil** (GOV.UK „Add another thing”) | `icon-page-add` | card per item (same shell as `activityCardHtml`) + „Adaugă alt …” `e-permits-fo-add-activity` | Câmpuri din bloc (nested palette, no Grilă inside) · Min / Max · Titlu element („Medicament {n}”) | min / max | for repeated objects with > 4 fields (vehicles, medicines, persons) |
+| **Grilă editabilă** (RelatedRecords, US-33…39) — **built (batch 4, `fb-51…57`)** | `icon-dot-grid` | ⚠ no FO editable table — library `.table` is read-only (US-35 constraint); desktop = table with inline cells, mobile = row cards (US-39) → build per §7 | Coloane (DnD editor reusing the field palette: Text, Număr, Dată, Dată și oră, Radio, Checkbox; then Dropdown, Dropdown dependent, Selecție multiplă, Grilă ≤ 3 niveluri) · Mod editare: Inline (Dialog / Formular inline = out of scope) · Rânduri min / max · Coloană-cheie (duplicate) · Coloană de grupare · Rânduri pe pagină · Text buton („+ Adaugă rând”) · Stare goală | „Trebuie cel puțin {min} rânduri”, „Maximum {max} rânduri”, „Dvstră ați înregistrat deja această valoare” | empty state „Niciun rând. Apăsați «Adaugă rând» pentru a începe.” |
+| **Activități CAEM** (preset, US-40) — FO built as `activity-list`; **saved component on Bloc repetabil (batch 4, `fb-58*`)** | `icon-store` | `activityCardHtml` (card per activity + „Adaugă altă activitate”) | Clasificator CAEM filtrat după pașaport · Subgenuri (dependent) · secțiune unică · min 1 | duplicate / one section / min 1 subgen | the reference „configured component” after Adresă |
+| **Bloc repetabil** (GOV.UK „Add another thing”) — **built (batch 4, `fb-59*`)** | `icon-page-add` | card per item (same shell as `activityCardHtml`) + „Adaugă alt …” `e-permits-fo-add-activity` | Câmpuri din bloc (nested palette, no Grilă inside) · Min / Max · Titlu element („Medicament {n}”) | min / max | for repeated objects with > 4 fields (vehicles, medicines, persons) |
 
 ### C.9 Calculat, ascuns, juridic
 
@@ -438,7 +438,7 @@ only what the BO uses — every field must be mapped or justified, warning if un
 | **1 · MVP palette** | categories + search + click-to-add; Text, Text multilinie, Email, Telefon, Număr, Sumă, Dată (date picker), Listă derulantă (exists), Butoane radio (+ Da/Nu), Casetă de bifare, Listă de bifare, Text informativ, Secțiune (multi-section), Adresă (exists); tabs General + Validare (presets + Testează); duplicate, delete + undo toast, `⋮ Mută în…`, keyboard moves; live `N erori` summary | `fb-03…fb-09`, `fb-11…fb-13` |
 | **2 · Logică + structure** | Logică tab (US-42 via `.e-permits-doc-rule`), section/step visibility, date rules (US-41), cascade already in Date; Selecție multiplă, Comutator segmentat, Perioadă, Notă cu titlu, Separator; step panel (add/rename/reorder service steps, locked platform steps); Preview toolbar (Desktop/Mobil, limbă, date de test) | `fb-10`, `fb-10a`, `fb-14`, `fb-14a`, `fb-20` |
 | **3 · Registre și context** — ✅ built 13 oct 2026 (+ batch-2 leftovers: reguli de dată US-41, „Alt câmp”, Preview „Validează”) | IDNP (RSP), IDNO (RSUD) lookups with read-only targets + skeleton/errors; Persoana de contact pattern; Subdiviziune; Câmp ascuns; Consimțământ; Fișier; Document din MDocs; „Componente configurate” save/insert; Avansat tab (Editabil la, RAP, tipar, GDPR) | `fb-15`, `fb-15a`, `fb-17`, `fb-19` |
-| **4 · Grilă** | Grilă editabilă (column editor US-34, rules US-36, complex columns US-37, ≤ 3 levels), Activități CAEM as a configured preset, Bloc repetabil; mobile row cards | `fb-16`, `fb-16a`, `fb-16b` |
+| **4 · Grilă** — ✅ built 13 oct 2026 | Grilă editabilă (column editor US-34, rules US-36, complex columns US-37, ≤ 3 levels), Activități CAEM as a configured preset, Bloc repetabil; mobile row cards | `fb-16`, `fb-16a`, `fb-16b` |
 | **5 · Form level** | Date generale (versions, languages, request types), publish with blockers, Istoric versiuni, Schema export/import, translations completeness view; P3: Câmp calculat, Dată și oră, outline tree, multi-select, `/` insert menu | `fb-18`, `fb-21`, `fb-22` |
 
 **Batch 3 status (13 oct 2026).** Built: IDNP (MPass / typed / RSP with declaration), IDNO (MPass /
@@ -452,6 +452,23 @@ rules with reciprocity (US-41), Logică „Alt câmp”, Preview „Validează�
 Not built / open: RSP manual entry when the registry is down (I-8), IDNO name for a PF applicant in
 „din MPass” mode (shows „—”), MDocs document type list from a real classifier, „CSS width override”
 (not in the spec → not built), field-level audit is session-only (no MLog backend).
+
+**Batch 4 status (13 oct 2026).** Built: Grilă editabilă (band of columns on the canvas + Date list,
+column panel = field panel, simple columns Text · Număr · Sumă · Dată · Casetă · Radio, complex Listă ·
+Selecție multiplă · Grilă imbricată after a simple one, ≤ 3 levels, widths Auto/Îngustă/Medie/Lată, row rules
+min / max / at start / per page / add / delete / key / group, messages RO·RU·EN; FO: inline row edit with
+Enter / Esc, per-cell errors, delete confirm, cascade from a column or a form field, group rule, pagination,
+nested detail rows, cards below 600 px, source down / skeleton), Bloc repetabil (FO activity card per element,
+remove + undo, key / group, min / max, rules between the fields of a card), Activități CAEM as a system saved
+component (repeatable block + CAEM combobox + dependent subgenres = the step-2 markup), schema `storage`
+(child tables), validation summary incl. children. Seed form `form-sanitary-09`. States `fb-50…fb-63`
+(the planned `fb-16/16a/16b` = `fb-51`, `fb-58`, `fb-53`).
+Deviations: US-40 calls CAEM „a grid” — built as the repeatable block (same 1:N model; subgenres don't fit a
+cell; the cards are the FO activities). „Saved configuration” (US-34 AC-06) = at least one simple column (the
+builder autosaves). Row delete = confirm (US-35 AC-04); block element delete = undo toast. Totals / summary
+row: in no story → not built. Dată și oră column waits for batch 5. Cascade with 1 parent (US-22 says 1..n).
+Not built / open: server-side validation and the child tables (backend), RU/EN classifier values (fallback
+RO), Introdu manual for the block (grid only), DnD inside the panel list (canvas band + keyboard + menus).
 
 **Demo states to add** (`js/demo-states.js`, `flow: "builder"`; scope selector `#form-builder-modal`):
 
