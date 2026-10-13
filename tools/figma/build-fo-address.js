@@ -73,10 +73,14 @@ const buildField = async (f, size) => {
     /* „Cod cadastral” since 2026-10-13: library search-input with the submit button (Button=True);
        Loading = inline spinner; submit Disabled until a code is typed; error = Input stroke border/danger/default
        (the library search-input has no error style) */
-    inst = V(C.search, { "State": f.loading ? "Loading" : f.focus ? "Focus" : f.value ? "Filled" : "Default", "Size": size, "Button": f.button === false ? "False" : "True" }).createInstance();
+    /* the library has no Default / Hover / Disabled with Button=True → an empty field = Filled + Button
+       with the Default variant's placeholder colour (token-bound) */
+    const btnOn = f.button !== false; const stt = f.loading ? "Loading" : f.focus ? "Focus" : (f.value || btnOn) ? "Filled" : "Default";
+    inst = V(C.search, { "State": stt, "Size": size, "Button": btnOn ? "True" : "False" }).createInstance();
     setP(inst, { "👁️ Label": true, "👁️ Mandatory Star": f.req, "👁️ Assistive Text": Boolean(f.message), "👁️ Clear Button": Boolean(f.clear), "⌨️ Placeholder": f.value || f.placeholder });
     const btn = inst.findOne((n) => n.type === "INSTANCE" && n.name === "button-filled-rectangular");
     if (btn) { const k = Object.keys(btn.componentProperties).find((x) => x.includes("State")); if (k) btn.setProperties({ [k]: f.submitDisabled ? "Disabled" : "Default" }); }
+    if (btnOn && !f.value && !f.loading) { const ph = inst.findOne((n) => n.type === "TEXT" && n.name === "Placeholder"); const ref = V(C.search, { "State": "Default", "Size": size, "Button": "False" }).findOne((n) => n.type === "TEXT" && n.name === "Placeholder"); if (ph && ref) ph.fills = JSON.parse(JSON.stringify(ref.fills)); }
     if (f.error) { const box = inst.findOne((n) => n.name === "Input"); const vD = await figma.variables.importVariableByKeyAsync("bc39b7f802d29cfe2fd078820b6f65ee3939fa45"); if (box) { box.strokes = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: { r: 0.85, g: 0.18, b: 0.13 } }, "color", vD)]; box.strokeWeight = 1; } }
   } else if (f.kind === "phone") {
     inst = V(C.phone, { "Style": "Default", "State": f.value ? "Filled" : "Default", "Size": size, "Type": "International" }).createInstance();

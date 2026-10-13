@@ -274,3 +274,13 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-13 · Requirements moved three times in one job (editable code → search-input with submit
   button). Build in this order: board scaffolding, docs, stage 01, template; hold every block that
   shows the changing control; ask for the demo states before rebuilding.
+- 2026-10-13 · User: „the section looks empty” — I parked freshly assembled blocks at x=24000, outside
+  the section, stacked on each other. Rule: a block goes into its stage column INSIDE the section in the
+  same call that builds it — keep a re-runnable layout pass (ordered column lists, 240 gaps, lane row
+  under the tallest column, section resized to content) and run it at the end of every build call.
+- 2026-10-13 · Library search-input has no Default/Hover/Disabled with Button=True → empty field =
+  Filled+Button with the Default variant's placeholder fill; submit state via the nested
+  button-filled-rectangular `🎚️ State` (Disabled until a code is typed). Suggestion rows: local
+  `.menu-item-selection` with 20/search for „Caută codul cadastral «…»”, home-line for saved codes.
+- 2026-10-13 · Connectors cannot start on context-skeleton elements that no longer exist (footer
+  „Înainte” became a Box) → start such jumps from the block; anchors only on real (address) controls.
