@@ -38,7 +38,10 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 6. **Arrows** from the clicked element to the next block: clone an existing connector
    (e.g. `10952:283686`), set `connectorStart.endpointNodeId` = the clicked instance (not a
    sublayer of an instance — ids with „;” can't be endpoints), `connectorEnd` = target block,
-   magnet RIGHT, label = the action.
+   magnet RIGHT, label = the action. **Never draw arrows as VECTOR paths / „Flow · …” groups.**
+   When the clicked control lives inside an instance (header button, tab, menu option, segment),
+   drop a local `Flow anchor` instance (`10438:120705`, transparent) over it in the screen frame
+   (ABSOLUTE, sized to the control, name `anchor · <label>`) and attach the connector to the anchor.
 7. **Whole column rule**: the same UI elsewhere in the column changes too (e.g. a new drawer tab
    goes into every drawer block of the column).
 8. **QA**: run the `ui-qa-figma` agent on the new / changed blocks (+ demo states). Fix the major
@@ -198,3 +201,17 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-13 · Setări error states: the section card with field errors gets a 1.5px
   border/danger/default stroke (02j1, 02h1, 02n1, 02s7a, 02p5) — mirrors `.has-error` in code.
   Hide the field's „Inline message” slot when it has no message (leftover placeholder).
+- 2026-10-13 · User: „why don't you use our dynamic arrows?” — the Servicii page still had 106 static
+  arrows (GROUP „Flow · …” = VECTOR „path” + label frame). Never draw arrows as vectors/groups;
+  always clone connector `10952:283686` (blue var stroke, 3px, ELBOWED, ARROW_LINES end, label;
+  load `tpl.text.fontName` before setting `c.text.characters`). Converted all 106 → connectors:
+  path vertices × vector `absoluteTransform` give absolute points (the vertex with the ARROW cap =
+  end); start magnet = first segment direction, end magnet = side the last segment enters
+  (moving left → RIGHT). Start node priority: label-text match within 45 px of the start point
+  (instance sublayer → `Flow anchor` overlay) → small node under the point → label match anywhere
+  in the block → instance under the point (modal) → the block. Paths go stale after restacks
+  (02 nav arrows landed one block off after 02s7a was inserted) → check every end block name
+  against the label and override by label; points off-block by < 800 px → nearest block. Dry-run
+  the whole page first (one compact row per arrow), then convert one section per call; delete the
+  group only after both endpoints are confirmed attached. Finish with a recount (0 „Flow” groups,
+  0 vectors with an ARROW cap) and a style-parity check of every connector vs the template.
