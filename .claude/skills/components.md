@@ -4263,7 +4263,8 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   while invalid. Demo `svc-10k1` (filled), `svc-10k2` (error). Figma 02s7 / 02s7a. RAP = rows checkbox + switch
   „Anonimizare” (IDNP / nume PF always anonymised, switch locked on).
 - Validation: „Câmpul este obligatoriu.” / „Introdu un număr întreg mai mare ca zero.” under the
-  field. Save logs one audit event per changed field („Secțiune · Câmp: vechi → nou”), the header
+  field. A section with ≥ 1 field error: its card (`[data-cfg2-body]`) gets `.has-error` = 1.5px
+  `--color-border-danger-default` border (user, 2026-10-13), in sync with the red nav dot (`cfg2Refresh`). Save logs one audit event per changed field („Secțiune · Câmp: vechi → nou”), the header
   shows „N modificări nepublicate”, the tab shows „Editat <dată> · <user>”. Interdependence
   removal = confirm „Elimină interdependența” (Anulează · Confirmă). Unsaved drawer → „Renunți la
   modificări?”.

@@ -17272,7 +17272,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <h2 class="e-permits-dosar-profil__section-title" id="cfg2-${key}-title" tabindex="-1">${escapeHtml(title)}</h2>
                 <p class="e-permits-cfg2__desc">${escapeHtml(CFG2_DESC[key])}</p>
               </div>
-              <div class="e-permits-ntpl-card e-permits-clas-create e-permits-cfg-form" data-cfg2-body="${key}">${cfg2SectionHtml(service, key)}</div>
+              <div class="e-permits-ntpl-card e-permits-clas-create e-permits-cfg-form${errs.has(key) ? " has-error" : ""}" data-cfg2-body="${key}">${cfg2SectionHtml(service, key)}</div>
             </section>`).join("")}
         </div>
         <div class="e-permits-cfg2__bar" role="region" aria-label="Modificări nesalvate" data-cfg2-bar${cfg2Changes(service).length ? "" : " hidden"}>${cfg2BarHtml(service)}</div>
@@ -17308,6 +17308,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!service || !root) return;
     const list = cfg2Changes(service), changed = new Set(list.map((x) => x.sec)), errs = cfg2ErrorSections();
     root.querySelectorAll("[data-cfg2-nav]").forEach((a) => { a.querySelector(".e-permits-cfg2__dot")?.remove(); a.insertAdjacentHTML("beforeend", cfg2NavDot(a.dataset.cfg2Nav, changed, errs)); });
+    /* a section with errors: its whole card turns red (user, 2026-10-13), as the nav dot */
+    root.querySelectorAll("[data-cfg2-body]").forEach((card) => card.classList.toggle("has-error", errs.has(card.dataset.cfg2Body)));
     const bar = root.querySelector("[data-cfg2-bar]");
     if (bar) { bar.hidden = !list.length; const focusIn = bar.contains(document.activeElement); if (!focusIn) bar.innerHTML = cfg2BarHtml(service); }
     if (list.length !== cfg2LastCount) { cfg2LastCount = list.length; renderServiceProfile({ headerOnly: true }); }

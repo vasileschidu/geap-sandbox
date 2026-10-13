@@ -23538,3 +23538,10 @@ a.btn:focus-visible {
   cursor: default;
   resize: none;
 }
+
+/* Setări: a section card with at least one field error gets the error border — the same
+   red as the fields, so the section that needs fixing is visible while scrolling */
+.e-permits-cfg2 .e-permits-cfg-form.has-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+  border-width: var(--border-width-1-5, 1.5px);
+}
