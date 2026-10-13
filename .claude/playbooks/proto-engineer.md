@@ -231,3 +231,36 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   neutral outline. The library `.banner__close` is `position: absolute` — don't flex-align it; place it
   (top/right = 16 − its 6px inset) and pad the card's right side (56) so text never runs under it;
   measure title-line centre = close centre = icon centre for 1- and 2-line titles.
+- 2026-10-13 · Guest requestor (Figma 633:7411 G1–G8): reaching the rest of the wizard without a
+  schema subject was cheap — synthesize a subject (`guestSubjectOf`) for the summary, render steps
+  3/5/7 from a **cloned schema variant** (`guestSchemaVariant`), guard drafts in
+  `saveFrontOfficeDraft`, re-sync footers in `setFrontOfficeStep`, and reset the mode in
+  `applyFrontOfficeSchema`. Declare a mode flag at the top of the IIFE (TDZ if a function used at
+  init reads a `let` declared further down). Real file uploads in demo states: `DataTransfer` +
+  `input.files` + `change`.
+- 2026-10-13 · `e-permits-shell.js` rewrites the FO hash to `#my-cases` on every FO state (pre-existing);
+  don't read the hash to judge a demo state — probe the visible screen.
+- 2026-10-13 · Self-made infinite loop: a MutationObserver on the control's subtree `class` + a
+  callback that adds `is-ready` to the control itself → the page hung (capture/CDP printed nothing).
+  Observe only the children, or filter `record.target`. A script that prints nothing = page hang.
+- 2026-10-13 · A ResizeObserver that „snaps” cancelled the slide: selecting a segment changes its
+  label weight → the control's width → RO → snap. Snap only on first show (0 → width) and window
+  resize. Prove an animation by sampling `getComputedStyle(el,"::before").transform` per rAF inside
+  the page — a CDP screenshot 90ms after the click already shows the end state.
+- 2026-10-13 · „Hover only after a click” (user): two held layers on the FO page — the library
+  `.info-box` entrance `message-slide-in … both` (MPass banner) and ~20 closed library
+  `.modal-overlay`s keeping `will-change: opacity` full-screen at opacity 0. Fixed in app CSS
+  (`.e-permits-front-office-page :is(.info-box,.message,.banner) { animation-fill-mode: backwards }`,
+  closed overlays `will-change: auto`). Scan any screen with the anim.mjs pattern: elements with a
+  running/held `both|forwards` animation or a non-auto `will-change`.
+- 2026-10-13 · User corrections this job: hover boxes must NOT stick out of the form column (no
+  negative inset) — pad the row and let it fill its grid column, then MEASURE its edges against the
+  inputs (same x/width); procură upload = its own dashed block (dropzone look) with the black
+  square Strict button. `btn btn-strict btn-sm` is the no-fill text button in this product → the
+  black one is `btn btn-strict btn-md` (40, r8). Segmented controls: library markup only
+  (`role=radiogroup` / `radio` + `aria-checked`, no `.tabs` wrapper, no icons, no scoped hex
+  overrides) + the opt-in `.is-animated` sliding thumb.
+- 2026-10-13 · CDP `Page.captureScreenshot` clip uses document coordinates: add `scrollY` to a
+  `getBoundingClientRect().y`, or the clip shows the wrong area (looked like „hover not painted”).
+- 2026-10-13 · Borders of 1.5px read as 1px at DPR 1 (`getComputedStyle` too) — check at DPR 2
+  before calling the error border wrong.

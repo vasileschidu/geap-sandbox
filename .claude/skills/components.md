@@ -235,6 +235,11 @@ but this doc previously described it wrongly, see the entry.
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
+| Guest requestor „Date solicitant” (no MPass; Figma FOD-Components-flow 633:7411, G1–G8) | `section[data-fo-screen="guest"]` > `form[data-fo-guest-form]`: MPass upsell `.e-permits-fo-guest__upsell` · „Soliciți în numele” `[data-fo-guest-type-section]` (animated segmented control) · `[data-fo-guest-company]` (IDNO → registry name) · `[data-fo-guest-person]` · „Pentru cine” radio option rows · `[data-fo-guest-represented]` (G4) / `[data-fo-guest-mandate]` (G5) with a boxed doc field · consent · „Înainte” never disabled; leave modal `[data-fo-guest-leave-modal]` | `showFrontOfficeGuest` / `setGuestType` / `validateGuest` / `enterGuestWizard` (`frontOfficeGuest`) / `guestSchemaVariant`, demo `fo-g*` | app |
+| Radio option row (hover + focus on the whole row) | `label.e-permits-fo-radio.e-permits-fo-radio--option` (row fills its grid column, padding 12/16; `::before` grey layer radius 12, opacity 0 → 1 + scale .97 → 1, 180ms decelerate; keyboard ring on the row) | „Pentru cine” (guest), `contactPersonHtml` (Persoana de contact) | app |
+| Boxed doc field (required attachment inside a form section) | `.e-permits-fo-doc-field.e-permits-fo-doc-field--boxed` (1px dashed border/base/default, radius 16, padding 20/16; empty = click target with the dropzone hover; `is-error` = 1.5px dashed danger + inline error in the description) + `btn btn-strict btn-md` with 20px `icon-upload` | guest procură / decizie de numire | app |
+| Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
+| FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -1083,6 +1088,90 @@ Datele se completează automat, actul în contul EVO”), a plain **„sau”** 
 form. Wording rule (GOV.UK / Baymard): name both options in the title, say "without an account"
 rather than "guest", the guest option is a full button of equal weight, never a text link. No logo lists,
 no tags. Services with `auth.required: true` keep the MPass gate. Logout returns here.
+
+#### Full flow — guest requestor, no account (2026-10-13)
+
+Figma FOD-Components-flow (`pvDAJPXKyUuJgz3P921Ye8`) section „Guest lane · without account”
+`633:7411`, blocks G1–G8 (US-12, US-16, US-18, US-21 · FOD #89525, #54850). Screen
+`[data-fo-screen="guest"]` (`#guest`), reached from „Continuă fără cont” (`#access`) or logout.
+Demo states `fo-g0` … `fo-g8`.
+
+**Variant** = `auth.availableFor`, overridden by `?guest=pf|pj|pfpj` (Configurare flux ›
+Eligibilitate also drives it): PF + PJ → „Soliciți în numele” segmented control (default
+Persoană fizică); PF only / PJ only → the form directly, no selector.
+
+| Case | Sections | Rules |
+|---|---|---|
+| G1 / G2 · PF, Pentru mine | Date personale (IDNP · Nume · Prenume · Telefon · Email) | all typed in; **names are never looked up from the IDNP** (privacy); act sent to the e-mail |
+| G4 · PF, Pentru altă persoană | + Persoana reprezentată (IDNP · Nume · Prenume) + boxed „Procură notarială *” | no MPower without MPass → notarial power of attorney only (US-12 AC-06); officer checks it in BO, the portal never blocks |
+| G1b / G3 / G5 · PJ | Date companie (IDNO → „Denumirea companiei” read-only from the public registry) · Date reprezentant (typed) · Dreptul de reprezentare + boxed „Procură sau decizia de numire *” | the document is **always** asked: without MPass the administrator role can't be confirmed (⚠ to confirm with PO) |
+
+- **„Pentru cine este acest serviciu?”** has two options (Pentru mine · Pentru altă persoană)
+  and shows only for PF. „În numele unei persoane juridice” is the **Persoană juridică** type
+  (one control, no duplicate choice); PF-only services never offer the company; PJ-only
+  services skip the question (the guest always represents the company → G5).
+- **IDNO lookup** (registry = the flow schema's PJ subjects in the prototype): at 13 digits;
+  the hint slot becomes the `__loading` message „Se caută compania în Registrul de Stat…”, the
+  company field shows the input skeleton (`is-srre-loading`), then fills read-only with the green
+  check + `is-srre-new` flash, or the IDNO gets „Nu am găsit o companie cu acest IDNO în Registrul
+  de Stat.”. Demo `?registru=asteptare` keeps it pending.
+- **G6 validation**: „Înainte” is never disabled; every check runs on click (US-12 AC-07/08):
+  empty → „Câmp obligatoriu”; IDNP / IDNO 13 digits; phone 8 digits after +373 (6–12 for other
+  codes); e-mail format; represented person + procură (G4) / mandate document (G5); consent
+  (library `checkbox--error` + message under it). Field error = the library inline error, hint
+  hidden; the doc field shows its error in the description line (`is-error` on the box). Focus
+  and scroll go to the first error; an error clears on edit.
+- **After „Înainte”** = the same wizard in guest mode (`frontOfficeGuest`): no draft and no
+  „Salvează ca schiță” (US-21); no role switcher; step 2 „Persoana de contact · Eu” = the typed
+  phone; Acte necesare: upload from the device only (doc modal opens on „Încarcă fișier”, tabs
+  hidden; no MDocs text) and, in G4 / G5, the procură first, carried over from step 1; Verificare:
+  Solicitant / Reprezentant from the typed data; Livrare: „Pe e-mail” + desk pick-up only (no
+  MDelivery, no EVO Cabinet — FOD #89525); Plată: MPay as usual; Finalizare: case number +
+  „trimise la <e-mail>”, „Rezultatul se trimite la”, no „Mergi la Solicitările mele”, an
+  invitation to sign in (the upsell banner) instead (FOD #54850). Signing stays „Semnează prin
+  msign” (⚠ to confirm: no EVO Sign session without MPass).
+- **G8 leaving**: logo / gov link with typed data → leave modal (FO dialog component,
+  „Părăsește cererea” · „Rămân în cerere”, MPass link in the text); closing the tab / browser back
+  → the browser's own `beforeunload` prompt. „Autentifică-te cu MPass” (banner, modal, finish)
+  keeps the typed values in `sessionStorage` (`e-permits-fo-guest-carry`, files excluded) and
+  restores them when the guest form opens again in that tab.
+
+##### Radio option row — `.e-permits-fo-radio--option` (2026-10-13)
+
+The whole row (radio + title + description) is the hover / focus target. The label fills its
+grid column, so the hover box has **the same left / right edges as the fields** above and below
+(measured: = phone / e-mail / input edges, desktop and 375); radio + text sit inside with
+padding 12 / 16. `::before` (inset 0, radius 12, `--color-background-base-tertiary`) goes from
+opacity 0 / scale .97 to 1 / 1 on hover — 180ms `--motion-easing-decelerate`; reduced motion →
+opacity only. Keyboard: the standard 2px white + 4px focus ring moves from the dot to the row.
+Checked = the radio only (no fill); disabled rows get no hover. Used by „Pentru cine” and
+„Persoana de contact” (`contactPersonHtml` + the static fallback).
+
+##### Boxed doc field — `.e-permits-fo-doc-field--boxed` (2026-10-13)
+
+A required attachment inside a form section reads as its own drop block: 1px **dashed**
+`--color-border-base-default`, radius 16, padding 20 (16 on phones, where text stacks over a
+full-width button). Action = the library black Strict button with square corners,
+`btn btn-strict btn-md` + 20px `icon-upload` (40 = FO control height) — **not** `btn-sm`, because
+`.btn.btn-sm.btn-strict` is the no-fill text button in this product. While empty, the whole block
+opens the upload and takes the dropzone hover (brand border on the PO hover grey). With a file,
+the file row sits inside and the button hides. Error: `is-error` → 1.5px dashed
+`--color-border-danger-default` (padding −.5px) + inline error in place of the description. The
+general Acte necesare rows are NOT boxed (same component, different context).
+
+##### Animated segmented control — `.segmented-control.is-animated` (2026-10-13)
+
+Opt-in enhancement of the library control (app CSS, never main.css). One `::before` thumb carries
+the selected fill (`--color-background-base-inverse-default` + `--shadow-100`) and slides
+(translateX + width, 220ms `--motion-easing-decelerate`); labels cross-fade colour over the same
+time; the library separator rule is unchanged. `initAnimatedSegmentedControls()` writes
+`--seg-x/-y/-w/-h` from the selected item, adds `is-ready` (before it the item keeps the library
+fill), snaps (`is-snap`) on first show and window resize — a width change from the selection
+itself (medium label) must NOT snap. Observe only the items' `class` (observing the control
+loops on its own `is-ready`). With `role="radiogroup"` it adds ←→↑↓ / Home / End (selection
+follows focus, roving tabindex, `aria-checked`). Items are label-only (the library item has no
+leading icon). „Soliciți în numele” hugs its segments on desktop and is full width with equal
+segments at ≤720px. Reduced motion → no slide.
 
 #### Back-office sizing rules (2026-09-30)
 

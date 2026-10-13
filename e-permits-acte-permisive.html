@@ -7,13 +7,13 @@
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=hover-v4">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tarife-v60">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=tarife-v61">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v6">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
   <script src="js/empty-state.js?v=empty-v2"></script>
-  <script src="js/demo-states.js?v=tarife-v60"></script>
+  <script src="js/demo-states.js?v=tarife-v61"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=ekyc-v2"></script>
@@ -25,7 +25,7 @@
   <script src="js/table-cells.js?v=rule-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="msupport/msupport.js?v=20260925-anon" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=sm-v4" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=guest-v1" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v6" defer></script>
 </head>
 <body class="e-permits-front-office-page" data-demo-flow="home" data-service-family="acte-permisive" data-service-flow="09-full-flow">
@@ -559,11 +559,11 @@
       <!-- Free-form / no-auth entry. Reached from the avatar menu's "Ieșire":
            logging out drops the MPass-resolved identity, and for a service
            that doesn't require authentication the citizen identifies
-           themselves by typing an IDNP here instead. Same field components
-           as the authenticated step 1 (.e-permits-fo-field / .e-permits-fo-input
-           / .e-permits-fo-phone / .e-permits-fo-radio); nothing new invented
-           except the IDNP-lookup loading state and the two-line radio copy,
-           both additive to existing classes. -->
+           themselves by typing their data here instead (never looked up from
+           the IDNP). Same field components as the authenticated step 1
+           (.e-permits-fo-field / .e-permits-fo-input / .e-permits-fo-phone /
+           .e-permits-fo-radio / .e-permits-fo-doc-field). Rules: components.md
+           › „Full flow — guest requestor”. -->
       <section class="e-permits-fo-request" aria-labelledby="fo-guest-title" data-fo-screen="guest" hidden>
         <div class="e-permits-fo-mobile-progress" aria-hidden="true">
           <div class="e-permits-fo-mobile-progress__row">
@@ -576,12 +576,10 @@
         </div>
 
         <div class="e-permits-fo-request__inner">
-          <!-- Static copy of the real wizard's stepper: this screen never
-               advances past "Date solicitant" on its own (see the note on
-               data-fo-guest-next below), so none of these items carry
-               data-fo-step — that attribute is queried unscoped elsewhere
-               (frontOfficeStepperItems) and would double-count against the
-               authenticated request screen's own stepper if reused here. -->
+          <!-- Static copy of the real wizard's stepper: „Înainte” continues in
+               the request screen's own stepper (guest mode), so none of these
+               items carry data-fo-step — that attribute is queried unscoped
+               (frontOfficeStepperItems) and would double-count. -->
           <aside class="e-permits-fo-request__sidebar" aria-label="Pașii cererii">
             <nav class="e-permits-fo-stepper" aria-label="Pași">
               <ol>
@@ -673,7 +671,7 @@
             </nav>
           </aside>
 
-          <form class="e-permits-fo-form">
+          <form class="e-permits-fo-form" novalidate data-fo-guest-form>
           <div class="e-permits-fo-step-panel">
           <header class="e-permits-fo-form__header">
             <h1 id="fo-guest-title" tabindex="-1">Date solicitant</h1>
@@ -704,55 +702,72 @@
             </button>
           </div>
 
-          <section class="e-permits-fo-form__section e-permits-fo-form__section--narrow" aria-labelledby="fo-guest-type-title">
-            <h2 id="fo-guest-type-title">Tipul solicitantului</h2>
-            <div class="tabs">
-              <div class="segmented-control" role="tablist" aria-label="Tipul solicitantului" data-fo-guest-type-group>
-                <button class="segment-item is-selected" type="button" role="tab" aria-selected="true" data-fo-guest-type="PF">
-                  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-person"></use></svg>
-                  <span>Persoană fizică</span>
-                </button>
-                <button class="segment-item" type="button" role="tab" aria-selected="false" data-fo-guest-type="PJ">
-                  <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-suitcase-2"></use></svg>
-                  <span>Persoană juridică</span>
-                </button>
-              </div>
+          <!-- Guest requestor (Figma FOD-Components-flow „Guest lane · without account” 633:7411,
+               G1–G8). auth.availableFor (or ?guest=pf|pj|pfpj) sets the variant: PF + PJ → this
+               type selector; PF only / PJ only → the form directly. Names are never looked up
+               from an IDNP (privacy); only the company name comes from the public registry. -->
+          <section class="e-permits-fo-form__section e-permits-fo-form__section--narrow" aria-labelledby="fo-guest-type-title" data-fo-guest-type-section>
+            <h2 id="fo-guest-type-title">Soliciți în numele</h2>
+            <div class="segmented-control is-animated" role="radiogroup" aria-labelledby="fo-guest-type-title" data-fo-guest-type-group>
+              <button class="segment-item is-selected" type="button" role="radio" aria-checked="true" tabindex="0" data-fo-guest-type="PF">Persoană fizică</button>
+              <button class="segment-item" type="button" role="radio" aria-checked="false" tabindex="-1" data-fo-guest-type="PJ">Persoană juridică</button>
             </div>
           </section>
 
-          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-personal-title">
-            <h2 id="fo-guest-personal-title">Date personale</h2>
-            <div class="e-permits-fo-form__section-body" data-fo-guest-personal-body>
+          <!-- G1b / G3 / G5: IDNO → „Denumirea companiei” from the public registry (read-only) -->
+          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-company-title" data-fo-guest-company hidden>
+            <h2 id="fo-guest-company-title">Date companie</h2>
+            <div class="e-permits-fo-form__section-body">
+              <div class="e-permits-fo-field e-permits-fo-field--span-4">
+                <div class="e-permits-fo-field__label-counter">
+                  <label for="fo-guest-idno">IDNO <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
+                  <span class="e-permits-fo-field__counter" data-fo-guest-counter>0/13</span>
+                </div>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-idno" type="text" inputmode="numeric" maxlength="13" placeholder="Introdu IDNO" autocomplete="off" aria-describedby="fo-guest-idno-hint" data-fo-guest-digits data-fo-guest-idno>
+                </div>
+                <p class="e-permits-fo-field__hint" id="fo-guest-idno-hint" data-fo-guest-hint>13 cifre</p>
+              </div>
+
+              <div class="e-permits-fo-field e-permits-fo-field--span-8">
+                <label for="fo-guest-company">Denumirea companiei</label>
+                <div class="e-permits-fo-input is-filled is-readonly">
+                  <input id="fo-guest-company" type="text" readonly tabindex="-1" placeholder="Se completează automat după IDNO" data-fo-guest-company-name>
+                </div>
+              </div>
+            </div>
+            <p class="u-visually-hidden" role="status" aria-live="polite" data-fo-guest-live></p>
+          </section>
+
+          <!-- PF: the guest's own data · PJ: the representative's. Typed in, never looked up. -->
+          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-personal-title" data-fo-guest-person>
+            <h2 id="fo-guest-personal-title" data-fo-guest-person-title>Date personale</h2>
+            <div class="e-permits-fo-form__section-body">
               <div class="e-permits-fo-field e-permits-fo-field--span-4">
                 <div class="e-permits-fo-field__label-counter">
                   <label for="fo-guest-idnp">IDNP <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
-                  <span class="e-permits-fo-field__counter" data-fo-guest-idnp-counter>0/13</span>
+                  <span class="e-permits-fo-field__counter" data-fo-guest-counter>0/13</span>
                 </div>
-                <div class="e-permits-fo-input" data-fo-guest-idnp-field>
-                  <input id="fo-guest-idnp" type="text" inputmode="numeric" maxlength="13" placeholder="Enter IDNP" autocomplete="off" data-fo-guest-idnp>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-idnp" type="text" inputmode="numeric" maxlength="13" placeholder="Introdu IDNP" autocomplete="off" aria-describedby="fo-guest-idnp-hint" data-fo-guest-digits data-fo-guest-idnp>
                 </div>
-                <p class="e-permits-fo-field__hint" data-fo-guest-idnp-hint>13 digits</p>
+                <p class="e-permits-fo-field__hint" id="fo-guest-idnp-hint" data-fo-guest-hint>13 cifre</p>
               </div>
 
               <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                <label for="fo-guest-surname">Surname</label>
-                <div class="e-permits-fo-input" data-fo-guest-surname-field>
-                  <input id="fo-guest-surname" type="text" placeholder="Enter surname" autocomplete="family-name" data-fo-guest-surname>
+                <label for="fo-guest-surname">Nume <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-surname" type="text" placeholder="Introdu numele" autocomplete="family-name" data-fo-guest-surname>
                 </div>
               </div>
 
               <div class="e-permits-fo-field e-permits-fo-field--span-4">
-                <label for="fo-guest-firstname">First name</label>
-                <div class="e-permits-fo-input" data-fo-guest-firstname-field>
-                  <input id="fo-guest-firstname" type="text" placeholder="Enter first name" autocomplete="given-name" data-fo-guest-firstname>
+                <label for="fo-guest-firstname">Prenume <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-firstname" type="text" placeholder="Introdu prenumele" autocomplete="given-name" data-fo-guest-firstname>
                 </div>
               </div>
-            </div>
-          </section>
 
-          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-contact-title">
-            <h2 id="fo-guest-contact-title">Date de contact</h2>
-            <div class="e-permits-fo-form__section-body">
               <div class="e-permits-fo-field e-permits-fo-field--span-6">
                 <label for="fo-guest-phone">Telefon <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
                 <div class="e-permits-fo-phone e-permits-fo-phone--editable" data-fo-phone-code>
@@ -761,9 +776,11 @@
                     <span data-fo-phone-code-value>+373</span>
                     <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
                   </button>
-                  <input id="fo-guest-phone" type="tel" placeholder="60 999 999" inputmode="tel" data-fo-guest-phone>
+                  <input id="fo-guest-phone" type="tel" placeholder="60 999 999" inputmode="tel" autocomplete="tel-national" data-fo-guest-phone>
                   <ul class="e-permits-fo-phone__code-list" id="fo-guest-phone-code-list" role="listbox" aria-label="Cod țară" data-fo-phone-code-list hidden>
                     <li class="e-permits-fo-phone__code-option is-selected" role="option" aria-selected="true" data-flag="🇲🇩" data-code="+373" tabindex="-1">🇲🇩 +373</li>
+                    <li class="e-permits-fo-phone__code-option" role="option" aria-selected="false" data-flag="🇷🇴" data-code="+40" tabindex="-1">🇷🇴 +40</li>
+                    <li class="e-permits-fo-phone__code-option" role="option" aria-selected="false" data-flag="🇺🇦" data-code="+380" tabindex="-1">🇺🇦 +380</li>
                   </ul>
                 </div>
               </div>
@@ -777,12 +794,14 @@
             </div>
           </section>
 
-          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-beneficiary-title">
+          <!-- PF only: for me (G1/G2) · for another person (G4). Acting for a company is the
+               „Persoană juridică” type above (G5), so it is not repeated here. -->
+          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-beneficiary-title" data-fo-guest-beneficiary-section>
             <h2 id="fo-guest-beneficiary-title">Pentru cine este acest serviciu?</h2>
             <div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">
               <fieldset class="e-permits-fo-radio-group" data-fo-guest-beneficiary>
                 <legend class="u-visually-hidden">Pentru cine este acest serviciu</legend>
-                <label class="e-permits-fo-radio e-permits-fo-radio--span-6">
+                <label class="e-permits-fo-radio e-permits-fo-radio--option e-permits-fo-radio--span-6">
                   <input type="radio" name="fo-guest-beneficiary" value="self" checked>
                   <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
                   <span class="e-permits-fo-radio__copy">
@@ -790,7 +809,7 @@
                     <span class="e-permits-fo-radio__copy-desc">Eu sunt beneficiarul acestui serviciu</span>
                   </span>
                 </label>
-                <label class="e-permits-fo-radio e-permits-fo-radio--span-6">
+                <label class="e-permits-fo-radio e-permits-fo-radio--option e-permits-fo-radio--span-6">
                   <input type="radio" name="fo-guest-beneficiary" value="other">
                   <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
                   <span class="e-permits-fo-radio__copy">
@@ -802,17 +821,101 @@
             </div>
           </section>
 
+          <!-- G4: without MPass there is no MPower — only a notarial power of attorney (US-12 AC-06).
+               The officer checks it in the back office; the portal never blocks on it. -->
+          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-represented-title" data-fo-guest-represented hidden>
+            <div class="e-permits-fo-section-header">
+              <h2 id="fo-guest-represented-title">Persoana reprezentată</h2>
+              <p class="e-permits-fo-section-header__desc">Ceri în numele altcuiva: completează datele persoanei și atașează procura notarială.</p>
+            </div>
+            <div class="e-permits-fo-form__section-body">
+              <div class="e-permits-fo-field e-permits-fo-field--span-4">
+                <div class="e-permits-fo-field__label-counter">
+                  <label for="fo-guest-rep-idnp">IDNP <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
+                  <span class="e-permits-fo-field__counter" data-fo-guest-counter>0/13</span>
+                </div>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-rep-idnp" type="text" inputmode="numeric" maxlength="13" placeholder="Introdu IDNP" autocomplete="off" aria-describedby="fo-guest-rep-idnp-hint" data-fo-guest-digits>
+                </div>
+                <p class="e-permits-fo-field__hint" id="fo-guest-rep-idnp-hint" data-fo-guest-hint>13 cifre</p>
+              </div>
+
+              <div class="e-permits-fo-field e-permits-fo-field--span-4">
+                <label for="fo-guest-rep-surname">Nume <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-rep-surname" type="text" placeholder="Introdu numele" autocomplete="off">
+                </div>
+              </div>
+
+              <div class="e-permits-fo-field e-permits-fo-field--span-4">
+                <label for="fo-guest-rep-firstname">Prenume <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></label>
+                <div class="e-permits-fo-input">
+                  <input id="fo-guest-rep-firstname" type="text" placeholder="Introdu prenumele" autocomplete="off">
+                </div>
+              </div>
+
+              <div class="e-permits-fo-field e-permits-fo-field--span-12">
+                <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed" data-fo-doc-field="guest-procura">
+                  <div class="e-permits-fo-doc-field__row">
+                    <div class="e-permits-fo-doc-field__info">
+                      <span class="e-permits-fo-doc-field__label">
+                        Procură notarială
+                        <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
+                      </span>
+                      <p class="e-permits-fo-doc-field__desc" data-fo-guest-hint>Obligatorie când ceri pentru altă persoană. Funcționarul o verifică în Back Office.</p>
+                    </div>
+                    <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="Procură notarială">
+                      <svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
+                      <span>Adaugă fișier</span>
+                    </button>
+                  </div>
+                  <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- G5: without MPass the administrator role cannot be confirmed, so the document that
+               gives the right to represent the company is always asked for -->
+          <section class="e-permits-fo-form__section" aria-labelledby="fo-guest-mandate-title" data-fo-guest-mandate hidden>
+            <div class="e-permits-fo-section-header">
+              <h2 id="fo-guest-mandate-title">Dreptul de reprezentare</h2>
+              <p class="e-permits-fo-section-header__desc">Fără MPass nu putem confirma că ești administratorul companiei — atașează documentul de reprezentare.</p>
+            </div>
+            <div class="e-permits-fo-form__section-body">
+              <div class="e-permits-fo-field e-permits-fo-field--span-12">
+                <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed" data-fo-doc-field="guest-mandat">
+                  <div class="e-permits-fo-doc-field__row">
+                    <div class="e-permits-fo-doc-field__info">
+                      <span class="e-permits-fo-doc-field__label">
+                        Procură sau decizia de numire
+                        <span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
+                      </span>
+                      <p class="e-permits-fo-doc-field__desc" data-fo-guest-hint>Documentul care îți dă dreptul să reprezinți compania. Funcționarul îl verifică în Back Office.</p>
+                    </div>
+                    <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="Procură sau decizia de numire">
+                      <svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
+                      <span>Adaugă fișier</span>
+                    </button>
+                  </div>
+                  <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <footer class="e-permits-fo-form__footer">
             <div class="e-permits-fo-form__consent-row">
               <label class="checkbox checkbox--medium e-permits-fo-consent">
-                <input class="checkbox-input" type="checkbox" data-fo-guest-consent>
+                <input class="checkbox-input" type="checkbox" aria-describedby="fo-guest-consent-error" data-fo-guest-consent>
                 <span class="checkbox-custom" aria-hidden="true"></span>
                 <span>În conformitate cu prevederile <a href="#">legii nr.133 din 08.07.2011</a> sunt de acord cu prelucrarea datelor mele cu caracter personal.</span>
               </label>
             </div>
 
+            <!-- G6: never disabled — every check runs on click (US-12 AC-07/08) -->
             <div class="e-permits-fo-form__actions">
-              <button class="e-permits-fo-next" type="button" disabled data-fo-guest-next>
+              <button class="e-permits-fo-next" type="button" data-fo-guest-next>
                 <span>Înainte</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true">
                   <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
@@ -1290,12 +1393,12 @@
                 <div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">
                   <fieldset class="e-permits-fo-radio-group e-permits-fo-radio-group--contact" data-fo-contact-person>
                     <legend class="u-visually-hidden">Alege persoana de contact</legend>
-                    <label class="e-permits-fo-radio">
+                    <label class="e-permits-fo-radio e-permits-fo-radio--option">
                       <input type="radio" name="fo-contact-person" value="self" checked>
                       <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
                       <span>Eu sunt persoana de contact</span>
                     </label>
-                    <label class="e-permits-fo-radio">
+                    <label class="e-permits-fo-radio e-permits-fo-radio--option">
                       <input type="radio" name="fo-contact-person" value="other">
                       <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
                       <span>Altă persoană</span>
@@ -4103,7 +4206,7 @@
   <script src="core/classifiers.js?v=clas-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/e-permits-shell.js?v=tarife-v60"></script>
+  <script src="js/e-permits-shell.js?v=tarife-v61"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">
@@ -4146,6 +4249,28 @@
       <div class="e-permits-fo-instance-switch-modal__actions">
         <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-postprocess-cancel>Anulează</button>
         <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-postprocess-confirm>Confirm și continui</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- G8 · leaving without an account: a guest has no draft (US-21), so the logo / closing
+       the page asks first. Same dialog component as the instance switch above. -->
+  <div class="e-permits-fo-instance-switch-modal" data-fo-guest-leave-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-guest-leave-title" aria-describedby="fo-guest-leave-description">
+    <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
+      <div class="e-permits-fo-instance-switch-modal__body">
+        <div class="e-permits-fo-instance-switch-modal__icon" aria-hidden="true">
+          <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg>
+        </div>
+        <div class="e-permits-fo-instance-switch-modal__content">
+          <h2 id="fo-guest-leave-title">Părăsești cererea?</h2>
+          <div id="fo-guest-leave-description" class="e-permits-fo-instance-switch-modal__description">
+            <p>Fără cont nu putem salva o ciornă — datele introduse se pierd. <a class="e-permits-fo-instance-switch-modal__link" href="#" data-fo-guest-authenticate>Autentifică-te cu MPass</a> ca să le păstrezi și să reiei cererea din EVO Cabinet.</p>
+          </div>
+        </div>
+      </div>
+      <div class="e-permits-fo-instance-switch-modal__actions">
+        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-guest-leave-confirm>Părăsește cererea</button>
+        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-guest-leave-cancel>Rămân în cerere</button>
       </div>
     </div>
   </div>

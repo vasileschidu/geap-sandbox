@@ -876,6 +876,77 @@
     "fo-08c": foReq(7),
     "fo-08d": foReq(7, { paid: "1" }, async (h) => { await h.click("[data-fo-finish-document]"); }),
     "fo-08e": foReq(7, { paid: "1", cert: "unavailable" }, async (h) => { await h.click("[data-fo-finish-document]"); await h.click("[data-fo-cert-download]"); }),
+    /* ---- Guest requestor, no account (fo-g): Figma FOD-Components-flow „Guest lane · without
+       account” 633:7411, G1–G8. #access / #guest open the screens; ?guest=pf|pj|pfpj = the
+       service's auth.availableFor (PF + PJ by default). Names are typed, never looked up. ---- */
+    ...(() => {
+      const G = "[data-fo-screen='guest']";
+      const guest = (params, run) => ({ page: PP_FO, flow: "full", params, hash: "#guest", ready: `${G} h1`, run });
+      const fill = (values) => async (h) => { for (const [selector, value] of Object.entries(values)) await h.fill(`${G} ${selector}`, value); };
+      const pj = async (h) => { await h.click(`${G} [data-fo-guest-type="PJ"]`); };
+      const other = async (h) => { await h.click(`${G} .e-permits-fo-radio:has(input[value="other"])`); };
+      const consent = async (h) => { await h.click(`${G} .e-permits-fo-consent`); };
+      const next = async (h) => { await h.click(`${G} [data-fo-guest-next]`); await h.wait(300); };
+      /* „Adaugă fișier” → the upload tab (no MDocs library for a guest) → a PDF from the device */
+      const attach = (key, name) => async (h) => {
+        await h.click(`${G} [data-fo-doc-field="${key}"] [data-fo-open-doc-modal]`);
+        const input = document.querySelector("[data-fo-doc-file-input]");
+        const files = new DataTransfer();
+        files.items.add(new File(["%PDF-1.4"], name, { type: "application/pdf" }));
+        input.files = files.files;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        await h.wait(200);
+        await h.click("[data-fo-doc-modal-submit]");
+      };
+      const me = fill({ "#fo-guest-idnp": "2004001234567", "#fo-guest-surname": "Popescu", "#fo-guest-firstname": "Ion", "#fo-guest-phone": "60999999", "#fo-guest-email": "ion.popescu@gmail.com" });
+      const represented = fill({ "#fo-guest-rep-idnp": "2990000000011", "#fo-guest-rep-surname": "Popescu", "#fo-guest-rep-firstname": "Maria" });
+      const idno = (value, ms = 1300) => async (h) => { await h.fill(`${G} #fo-guest-idno`, value); await h.wait(ms); };
+      /* G4 filled: me + the represented person + the notarial power of attorney */
+      const g4Filled = async (h) => { await other(h); await me(h); await represented(h); await attach("guest-procura", "procura-notariala.pdf")(h); };
+      const g5Filled = async (h) => { await idno("1012600000002")(h); await me(h); await attach("guest-mandat", "decizie-numire-administrator.pdf")(h); };
+      /* through the wizard in guest mode: 2 → 3 → 4 → 5 → 6 (MPay) → 7 */
+      const toStep = (step) => async (h) => {
+        const order = ["step-2", "step-3", "step-4", "step-5"];
+        for (let n = 2; n < Math.min(step, 6); n += 1) await h.click(`[data-fo-step-panel="${n}"] [data-fo-next="${order[n - 2]}"]`);
+        if (step === 7) { await h.click("[data-fo-payment-pay]"); await h.wait(1600); }
+      };
+      return {
+        /* „Autentifică-te sau continuă fără cont” and the guest form it opens (G1, PF + PJ) */
+        "fo-g0": { page: PP_FO, flow: "full", hash: "#access", ready: "[data-fo-screen='access'] h1" },
+        "fo-g1": { page: PP_FO, flow: "full", hash: "#access", ready: "[data-fo-access-guest]", run: async (h) => { await h.click("[data-fo-access-guest]"); } },
+        /* G1b: „Persoană juridică” — IDNO, the company name from the registry, representative typed */
+        "fo-g1b": guest({}, pj),
+        /* 1c the registry is being asked (skeleton + loading message) · 1d answered · 1e unknown IDNO */
+        "fo-g1c": guest({ registru: "asteptare" }, async (h) => { await pj(h); await idno("1012600000002", 300)(h); }),
+        "fo-g1d": guest({}, async (h) => { await pj(h); await idno("1012600000002")(h); }),
+        "fo-g1e": guest({}, async (h) => { await pj(h); await idno("1012600000099")(h); }),
+        /* G2 PF only · G3 PJ only: the form directly, no type selector */
+        "fo-g2": guest({ guest: "pf" }),
+        "fo-g3": guest({ guest: "pj" }),
+        /* G4: Pentru altă persoană — represented person + notarial power of attorney (empty / filled) */
+        "fo-g4": guest({}, async (h) => { await other(h); await h.scroll(`${G} [data-fo-guest-represented]`); }),
+        "fo-g4a": guest({}, async (h) => { await g4Filled(h); await h.scroll(`${G} [data-fo-guest-represented]`); }),
+        /* G5: on behalf of a company — IDNO + representative + procură / decizia de numire */
+        "fo-g5": guest({ guest: "pj" }, async (h) => { await g5Filled(h); await h.scroll(`${G} [data-fo-guest-mandate]`); }),
+        /* G6: „Înainte” with nothing typed (G4) · wrong formats (PF) · PJ with an unknown IDNO */
+        "fo-g6": guest({}, async (h) => { await other(h); await next(h); }),
+        "fo-g6a": guest({}, async (h) => {
+          await fill({ "#fo-guest-idnp": "20040012", "#fo-guest-surname": "Popescu", "#fo-guest-firstname": "Ion", "#fo-guest-phone": "6099", "#fo-guest-email": "ion.popescu@" })(h);
+          await consent(h); await next(h);
+        }),
+        "fo-g6b": guest({ guest: "pj" }, async (h) => { await idno("1012600000099")(h); await next(h); }),
+        /* after „Înainte” (valid): the same wizard in guest mode — 7 Detalii solicitare (no draft),
+           7a Acte necesare with the power of attorney carried over (G4), 7b Verificare, 7c Livrare by
+           e-mail / desk only, 7d Finalizare by e-mail + invitation to sign in */
+        "fo-g7": guest({}, async (h) => { await me(h); await consent(h); await next(h); await h.find("[data-fo-step-panel='2'] h1"); }),
+        "fo-g7a": guest({}, async (h) => { await g4Filled(h); await consent(h); await next(h); await toStep(3)(h); }),
+        "fo-g7b": guest({}, async (h) => { await g4Filled(h); await consent(h); await next(h); await toStep(4)(h); }),
+        "fo-g7c": guest({}, async (h) => { await me(h); await consent(h); await next(h); await toStep(5)(h); }),
+        "fo-g7d": guest({}, async (h) => { await me(h); await consent(h); await next(h); await toStep(7)(h); }),
+        /* G8: leaving without an account — the logo asks first (no draft for a guest) */
+        "fo-g8": guest({ guest: "pf" }, async (h) => { await me(h); await h.click(".e-permits-fo-auth__evo-logo"); }),
+      };
+    })(),
     "pp-01": ppCab(),
     "pp-01a": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); }),
     "pp-01b": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] [data-cab-menu-trigger]"); }),

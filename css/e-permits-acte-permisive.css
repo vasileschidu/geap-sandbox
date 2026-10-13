@@ -4930,22 +4930,86 @@
   border-bottom: none;
 }
 
-/* Tipul solicitantului's segmented control (node 2250-5008). Scoped rather
-   than edited on .segmented-control/.segment-item directly, since the
-   shared library rule has documented drift from Figma project-wide
-   (components.md: #f5f5f5 vs #f1f1f1 background, no selected weight/shadow)
-   — fixing it here only, not for every other segmented-control instance. */
-[data-fo-guest-type-group] {
-  background-color: #f1f1f1;
+/* Animated segmented control (opt-in `.segmented-control.is-animated`, 2026-10-13). The library
+   control, plus ONE sliding „thumb” (::before) that carries the selected look (inverse fill +
+   --shadow-100) from segment to segment: translateX + width over 220ms, decelerate easing; the
+   labels cross-fade their colour over the same time. JS (initAnimatedSegmentedControls) writes
+   --seg-x / --seg-y / --seg-w / --seg-h from the selected item, snaps without animation on first
+   paint and on resize (`is-snap`), and only then adds `is-ready` — before that the selected item
+   keeps the library fill. Separators stay the library rule (hidden next to the selected item). */
+.segmented-control.is-animated {
+  isolation: isolate;
+  position: relative;
 }
 
-[data-fo-guest-type-group] .segment-item {
-  gap: var(--spacing-6, 6px);
+.segmented-control.is-animated::before {
+  background-color: var(--color-background-base-inverse-default, #1e1e1e);
+  border-radius: var(--border-radius-full, 9999px);
+  box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
+  content: "";
+  height: var(--seg-h, 0);
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  top: var(--seg-y, 0);
+  transform: translateX(var(--seg-x, 0));
+  transition: transform 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), width 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  width: var(--seg-w, 0);
+  z-index: -1;
 }
 
-[data-fo-guest-type-group] .segment-item.is-selected {
-  font-weight: var(--font-weight-fw-medium, 500);
-  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.16);
+.segmented-control.is-animated.is-ready::before {
+  opacity: 1;
+}
+
+.segmented-control.is-animated.is-snap::before,
+.segmented-control.is-animated.is-snap .segment-item {
+  transition: none;
+}
+
+.segmented-control.is-animated .segment-item {
+  transition: background-color 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), color 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), box-shadow 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+}
+
+/* the thumb paints the selected fill; the item keeps only its label colour, weight and ring */
+.segmented-control.is-animated.is-ready .segment-item.is-selected {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.segmented-control.is-animated.is-ready .segment-item.is-selected:focus-visible {
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .segmented-control.is-animated::before,
+  .segmented-control.is-animated .segment-item {
+    transition: none;
+  }
+}
+
+/* „Soliciți în numele”: the control hugs its segments under the heading (the section is a flex
+   column, which would stretch it) */
+.e-permits-fo-form__section--narrow > .segmented-control {
+  align-self: flex-start;
+}
+
+/* „Soliciți în numele” on phones: the full-width library Mobile control, equal segments */
+@media (max-width: 720px) {
+  .e-permits-fo-form__section--narrow {
+    width: 100%;
+  }
+
+  .e-permits-fo-form__section--narrow > .segmented-control {
+    align-self: stretch;
+    display: flex;
+    width: 100%;
+  }
+
+  .e-permits-fo-form__section--narrow .segment-item {
+    flex: 1 1 0;
+  }
 }
 
 .e-permits-fo-form__section > h2 {
@@ -6436,6 +6500,82 @@
   box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
+/* Radio option row (2026-10-13): the whole row (radio + title + description) is the hover
+   target. The row fills its grid column (same left / right edges as the fields), padding 12 / 16;
+   a rounded grey layer (::before, inset 0, radius 12) fades in with a
+   barely visible zoom (0.97 → 1); keyboard focus puts the standard ring on the same layer.
+   The checked state is the radio itself — no extra fill. Used by „Pentru cine este acest
+   serviciu?” (guest) and „Persoana de contact” (contact-person). */
+.e-permits-fo-radio--option {
+  box-sizing: border-box;
+  isolation: isolate;
+  /* the row fills its grid column (= the fields' edges); radio + text sit 12 / 16 inside */
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  position: relative;
+}
+
+.e-permits-fo-radio--option::before {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-12, 12px);
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transform: scale(0.97);
+  transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)), transform 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  z-index: -1;
+}
+
+.e-permits-fo-radio--option:hover:not(:has(input:disabled))::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* keyboard: the ring moves from the dot to the row */
+.e-permits-fo-radio--option:has(input:focus-visible)::before {
+  background: transparent;
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+  opacity: 1;
+  transform: scale(1);
+}
+
+.e-permits-fo-radio--option:hover:has(input:focus-visible)::before {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-radio--option input:focus-visible + .e-permits-fo-radio__control {
+  box-shadow: none;
+  outline: none;
+}
+
+.e-permits-fo-radio--option:has(input:disabled) {
+  cursor: default;
+}
+
+/* „hover shows only after a click”: the library info-box / message entrance is
+   `message-slide-in … both`, which keeps a transform on the MPass banner of the guest screen and
+   GPU Chrome stops repainting :hover until something forces a repaint (a click). Entrances on the
+   FO page release their transform when done (project rule: `backwards`, never `both`). */
+.e-permits-front-office-page :is(.info-box, .message, .banner) {
+  animation-fill-mode: backwards;
+}
+
+/* the same page carries the back office's closed library modals: each kept a full-screen
+   `will-change: opacity` layer at opacity 0 over the form. Closed = no layer (the open state
+   already drops it, see „the same for every open modal”). */
+.e-permits-front-office-page .modal-overlay:not(.is-active),
+.e-permits-front-office-page .modal-overlay:not(.is-active) .modal {
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-radio--option::before {
+    transform: none;
+    transition: opacity 180ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  }
+}
+
 /* Title + description composition for a radio's trailing copy, used where a
    choice needs a one-line explanation ("Pentru cine este acest serviciu?").
    Token values match .e-permits-fo-selected-role__copy's identical role. */
@@ -6475,6 +6615,35 @@
 
 .e-permits-fo-guest__upsell .info-box__content {
   gap: var(--spacing-8, 8px);
+}
+
+/* the 24px under the banner belongs to the banner, so it holds when the „Soliciți în numele”
+   selector is hidden (PF only / PJ only, G2 / G3) */
+.e-permits-fo-step-panel > .e-permits-fo-guest__upsell {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-fo-guest__upsell + .e-permits-fo-form__section--narrow {
+  margin-top: var(--spacing-0, 0);
+}
+
+/* phones: icon + text on one row, the MPass button full width under them */
+@media (max-width: 720px) {
+  .e-permits-fo-guest__upsell {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: var(--spacing-12, 12px);
+  }
+
+  .e-permits-fo-guest__upsell .info-box__content {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .e-permits-fo-guest__upsell > .btn {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
 }
 
 /* .info-box__content p { margin-bottom: 6px } (main.css) has a type
@@ -6870,6 +7039,64 @@
 .e-permits-fo-doc-field__add .icon {
   height: 20px;
   width: 20px;
+}
+
+/* Boxed doc field (2026-10-13): a required attachment inside a form section (guest „Procură
+   notarială” / „Procură sau decizia de numire”) reads as its own drop block — 1px DASHED
+   border/base/default, radius 16 (FO cards), padding 20 (16 on phones). Its action is the
+   library black Strict button, square corners: `btn btn-strict btn-md` + 20px icon-upload (40 =
+   the FO control height, radius 8). Not `btn-sm`: in this product `.btn.btn-sm.btn-strict` is the
+   no-fill text button (Figma button-text-circular). While it
+   has no file the whole block opens the upload, with the library dropzone hover (brand border)
+   on the PO hover grey for white (--color-background-base-tertiary). Missing file → `is-error`: dashed 1.5px border/danger (padding −.5px, no shift) + the
+   inline error in the description line. The file row sits inside. */
+.e-permits-fo-doc-field--boxed {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  padding: var(--spacing-20, 20px);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.e-permits-fo-doc-field--boxed:not(:has(.e-permits-fo-file-item)) {
+  cursor: pointer;
+}
+
+.e-permits-fo-doc-field--boxed:not(:has(.e-permits-fo-file-item)):hover {
+  background-color: var(--color-background-base-tertiary, #f1f1f1);
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-fo-doc-field--boxed.is-error,
+.e-permits-fo-doc-field--boxed.is-error:hover {
+  border-color: var(--color-border-danger-default, #d92d20);
+  border-width: var(--border-width-1-5, 1.5px);
+  padding: calc(var(--spacing-20, 20px) - (var(--border-width-1-5, 1.5px) - var(--border-width-1, 1px)));
+}
+
+.e-permits-fo-doc-field--boxed:has([data-fo-doc-field-files]:not(:empty)) [data-fo-open-doc-modal] {
+  display: none;
+}
+
+.e-permits-fo-doc-field--boxed > .e-permits-fo-doc-field__files > :last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .e-permits-fo-doc-field--boxed {
+    padding: var(--spacing-16, 16px);
+  }
+
+  /* phones: text first, the button full width under it (beside it the text wrapped word by word) */
+  .e-permits-fo-doc-field--boxed .e-permits-fo-doc-field__row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .e-permits-fo-doc-field--boxed.is-error {
+    padding: calc(var(--spacing-16, 16px) - (var(--border-width-1-5, 1.5px) - var(--border-width-1, 1px)));
+  }
 }
 
 /* ===== Instance Switch Modal ===== */
@@ -18194,6 +18421,26 @@
   box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
 }
 
+/* the editable phone field takes the same error state (guest „Date solicitant”, G6) */
+.e-permits-fo-phone--editable.is-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-phone--editable.is-error:hover {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-fo-phone--editable.is-error:focus-within {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: inset 0 0 0 1px var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
+}
+
+/* consent not ticked (guest G6): the field error 8px under the checkbox, as under a control */
+.e-permits-fo-form__consent-row > .e-permits-fo-field__error {
+  margin-top: var(--spacing-8, 8px);
+}
+
 .e-permits-fo-field .message--inline[hidden] {
   display: none;
 }
@@ -24536,4 +24783,9 @@ a.btn:focus-visible {
   .e-permits-ekyc-locked__list .e-permits-ekyc-evidence__meta {
     display: none;
   }
+}
+
+/* US-54: „Cod cadastral” has no hint — its message slot only shows once there is a lookup message */
+[data-fo-cadastral-code-hint]:empty {
+  display: none;
 }

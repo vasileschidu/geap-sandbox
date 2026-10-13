@@ -50,7 +50,7 @@
     function currentDemoFlow() {
       const params = new URLSearchParams(window.location.search);
       const flow = normalizeDemoFlow(params.get("flow"));
-      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
+      if (flow === "full" && !["#choice", "#choice-authenticated", "#intent", "#access", "#guest"].includes(window.location.hash) && !frontOfficeStepFromHash()) {
         history.replaceState(null, "", window.location.pathname + window.location.search);
       }
       if (flow) return flow;
@@ -97,6 +97,9 @@
     let frontOfficeDraftInfoDismissed = false;
     let frontOfficeInstanceSwitchReturnFocus = null;
     let frontOfficePendingSubjectId = null;
+    /* guest mode (no MPass): set by „Înainte” on the guest „Date solicitant” — see the
+       „Guest requestor” block; null on the authenticated path */
+    let frontOfficeGuest = null;
     const dropdownMotionTimers = new WeakMap();
     const modalMotionTimers = new WeakMap();
 
@@ -250,6 +253,8 @@
     }
 
     function saveFrontOfficeDraft({ toast = false } = {}) {
+      /* US-21: drafts live in EVO Cabinet — a guest (no account) has none */
+      if (frontOfficeGuest) return;
       const isNewDraft = !frontOfficeDraftCreated;
       frontOfficeDraftCreated = true;
       frontOfficeDraftSavedAt = new Date();
@@ -1129,7 +1134,7 @@
          Button = True): the code is sent to SRRE only on the arrow button or Enter (user decision
          2026-10-13; editable — deviates from AC-13 „Doar citire”). btn-group: inline spinner (only
          while SRRE is asked, `.loading`), × (with a value; AC-16), submit (disabled while empty or
-         searching). Its own message slot holds the hint, then the lookup message. */
+         searching). Its own message slot stays empty (no hint — user 2026-10-13) until the lookup message. */
       const cadastralId = `${uid}-cadastral`;
       const cadastralFieldHtml = cadastralOn ? `
             <div class="e-permits-fo-field e-permits-fo-field--span-6" data-fo-cadastral-field>
@@ -1143,7 +1148,7 @@
                   <button type="button" class="btn btn-primary btn-search" aria-label="Caută adresa după codul cadastral" disabled data-fo-cadastral-submit><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
                 </div>
               </div>
-              <p class="e-permits-fo-field__hint" id="${cadastralId}-message" data-fo-cadastral-code-hint>Apăsați săgeata sau Enter pentru a căuta adresa în Registrul de Stat al Bunurilor Imobile.</p>
+              <p class="e-permits-fo-field__hint" id="${cadastralId}-message" data-fo-cadastral-code-hint></p>
             </div>` : "";
       /* „Caută adresa” = the library search input (search icon + × clear, js/search.js); its one
          message slot under it holds the hint, then the lookup message (loading / success / error /
@@ -2040,8 +2045,8 @@
       return `
         <fieldset class="e-permits-fo-radio-group e-permits-fo-radio-group--contact" data-fo-contact-person>
           <legend class="u-visually-hidden">Alege persoana de contact</legend>
-          <label class="e-permits-fo-radio"><input type="radio" name="fo-contact-person" value="self" ${field.default !== "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Eu sunt persoana de contact</span></label>
-          <label class="e-permits-fo-radio"><input type="radio" name="fo-contact-person" value="other" ${field.default === "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Altă persoană</span></label>
+          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="fo-contact-person" value="self" ${field.default !== "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Eu sunt persoana de contact</span></label>
+          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="fo-contact-person" value="other" ${field.default === "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Altă persoană</span></label>
         </fieldset>
         <div class="e-permits-fo-detail-card e-permits-fo-contact-card e-permits-fo-contact-card--self" data-fo-contact-self>
           <div class="e-permits-fo-contact-card__grid">${phoneFieldHtml(phoneField, { readonly: true })}</div>
@@ -2809,7 +2814,10 @@
       if (step.lead) step = { ...step, lead: { ...step.lead, href: solicitariHref } };
       if (step.action) step = { ...step, action: { ...step.action, label: "Mergi la Solicitările mele", href: solicitariHref } };
 
-      const lead = step.lead
+      /* guest (FOD #54850): the case number and the certificate go to the e-mail typed in */
+      const lead = step.guest
+        ? `<p class="e-permits-fo-finish__lead">Numărul dosarului și confirmarea au fost trimise la <strong>${esc(step.guest.email || "")}</strong>.</p>`
+        : step.lead
         ? `<p class="e-permits-fo-finish__lead">${esc(step.lead.text || "")} <a href="${esc(step.lead.href || "#")}">${esc(step.lead.link || "")}</a>.</p>`
         : "";
 
@@ -2849,7 +2857,7 @@
             <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
             <div class="e-permits-fo-finish-doc__copy">
               <p class="e-permits-fo-finish-doc__title">${esc(step.document.title || "")}</p>
-              <p class="e-permits-fo-finish-doc__text">${esc(step.document.text || "")} <a href="${esc(step.document.href || "#")}">${esc(step.document.link || "")}</a>.</p>
+              <p class="e-permits-fo-finish-doc__text">${esc(step.document.text || "")}${step.document.link ? ` <a href="${esc(step.document.href || "#")}">${esc(step.document.link)}</a>` : ""}.</p>
             </div>
             <button class="btn btn-outline-primary btn-sm e-permits-fo-finish-doc__action" type="button" data-fo-finish-document>
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
@@ -2900,6 +2908,25 @@
         `
         : "";
 
+      /* guest: no „Mergi la Solicitările mele” — an invitation to sign in (the guest upsell banner) */
+      const guestInvite = step.guest
+        ? `
+          <div class="info-box info-box--subtle info-box--info banner--info e-permits-fo-guest__upsell" role="note">
+            <span class="info-box__icon" aria-hidden="true">
+              <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-user-account-filled"></use></svg>
+            </span>
+            <div class="info-box__content">
+              <p class="e-permits-fo-guest__upsell-title">Urmărește dosarul în EVO Cabinet</p>
+              <p class="e-permits-fo-guest__upsell-desc">Autentifică-te cu MPass ca să vezi statutul dosarului și să primești actul și în contul tău.</p>
+            </div>
+            <button class="btn btn-badge btn-badge--primary btn-badge--mpass" type="button" data-fo-guest-authenticate>
+              <span class="btn-badge__logo" aria-hidden="true"><img src="assets/logos/m-platforms/m-pass.svg" alt=""></span>
+              <span class="btn-badge__label">Autentifică-te prin mpass</span>
+            </button>
+          </div>
+        `
+        : "";
+
       const action = step.action
         ? `
           <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only e-permits-fo-finish__footer">
@@ -2926,6 +2953,7 @@
           ${doc}
           ${summary}
           ${timeline}
+          ${guestInvite}
         </div>
         ${action}
       `;
@@ -3294,6 +3322,8 @@
 
     function applyFrontOfficeSchema(schema) {
       frontOfficeSchema = schema;
+      /* a re-applied schema (Configurare flux) starts over: no guest request in progress */
+      frontOfficeGuest = null;
       setServiceHeaderFromSchema(schema);
       setBetaBannerFromSchema(schema);
       setAuthFromSchema(schema);
@@ -3304,6 +3334,7 @@
       renderFrontOfficeStep5FromSchema(schema);
       renderFrontOfficeStep6FromSchema(schema);
       renderFrontOfficeStep7FromSchema(schema);
+      syncGuestWizardChrome();
       /* ?solicitant=<subject id> opens the request as another applicant (demo, e.g. US-54 adr-04) */
       selectFrontOfficeSubject(new URLSearchParams(window.location.search).get("solicitant") || schema.defaultSubjectId);
       updateFrontOfficeRequestHeaders();
@@ -3359,7 +3390,7 @@
       document.body.classList.toggle("is-fo-request-mode", isWizardLayout);
       if (frontOfficeAvatarMenu) {
         /* the intent screen already has an identity, so the header shows it */
-        const shouldShowRoleSwitcher = screen === "request" || screen === "intent";
+        const shouldShowRoleSwitcher = (screen === "request" && !frontOfficeGuest) || screen === "intent";
         frontOfficeAvatarMenu.hidden = !shouldShowRoleSwitcher;
         frontOfficeAvatarMenu.setAttribute("aria-hidden", String(!shouldShowRoleSwitcher));
         if (!shouldShowRoleSwitcher) setFrontOfficeAvatarMenuOpen(false);
@@ -3455,6 +3486,8 @@
       });
 
       updateFrontOfficeMobileProgress(step);
+      /* steps re-render their footers: a guest never gets „Salvează ca schiță” (US-21) */
+      syncGuestWizardChrome();
 
       if (focus) {
         frontOfficeRequestScreen?.querySelector("[data-fo-step-panel]:not([hidden]) h1")?.focus?.({ preventScroll: true });
@@ -3470,6 +3503,7 @@
     /* "Autentifică-te sau continuă fără cont" — for services available with and without MPass:
        sign in with MPass, or continue as a guest. */
     function showFrontOfficeAccess({ focus = true } = {}) {
+      if (window.location.hash !== "#access") history.replaceState(null, "", "#access");
       setFrontOfficeScreen("access", { focus });
     }
 
@@ -3479,8 +3513,7 @@
         return;
       }
       if (event.target.closest("[data-fo-access-guest]")) {
-        resetGuestScreen();
-        setFrontOfficeScreen("guest");
+        showFrontOfficeGuest();
       }
     });
 
@@ -3492,217 +3525,717 @@
       window.location.assign(testPage.href);
     }
 
+    /* Animated segmented control (`.segmented-control.is-animated`, components.md › Segmented
+       control — animated): one sliding thumb under the selected item, positioned from the item's
+       box (--seg-x/-y/-w/-h). Snaps on first paint / resize / becoming visible, slides on a
+       selection change. A `role="radiogroup"` control also gets the radio keys: ← → ↑ ↓ move the
+       selection (selection follows focus), Home / End jump to the ends. */
+    function initAnimatedSegmentedControls(root = document) {
+      root.querySelectorAll(".segmented-control.is-animated:not([data-seg-bound])").forEach((control) => {
+        control.dataset.segBound = "";
+        let snapTimer = 0;
+        const place = ({ snap = false } = {}) => {
+          const selected = control.querySelector(".segment-item.is-selected");
+          if (!selected || !control.getClientRects().length) return;
+          if (snap) control.classList.add("is-snap");
+          control.style.setProperty("--seg-x", `${selected.offsetLeft}px`);
+          control.style.setProperty("--seg-y", `${selected.offsetTop}px`);
+          control.style.setProperty("--seg-w", `${selected.offsetWidth}px`);
+          control.style.setProperty("--seg-h", `${selected.offsetHeight}px`);
+          control.classList.add("is-ready");
+          if (!snap) return;
+          void control.offsetWidth;
+          window.cancelAnimationFrame(snapTimer);
+          snapTimer = window.requestAnimationFrame(() => control.classList.remove("is-snap"));
+        };
+        place({ snap: true });
+        /* snap when it first shows (hidden screen → visible) or the window resizes; a width change
+           from the selection itself (the selected label is medium) must not cancel the slide */
+        let shownWidth = control.offsetWidth;
+        new ResizeObserver(() => {
+          const width = control.offsetWidth;
+          place({ snap: !shownWidth && width > 0 });
+          shownWidth = width;
+        }).observe(control);
+        window.addEventListener("resize", () => place({ snap: true }));
+        /* only the items' class (selection) — the control's own is-ready / is-snap would loop */
+        const selectionObserver = new MutationObserver((records) => {
+          if (records.some((record) => record.target !== control)) place();
+        });
+        control.querySelectorAll(".segment-item").forEach((item) => selectionObserver.observe(item, { attributes: true, attributeFilter: ["class"] }));
+        if (control.getAttribute("role") !== "radiogroup") return;
+        control.addEventListener("keydown", (event) => {
+          const items = [...control.querySelectorAll(".segment-item:not(:disabled)")];
+          const index = items.indexOf(document.activeElement);
+          if (index < 0) return;
+          const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[event.key];
+          let next = null;
+          if (step) next = items[(index + step + items.length) % items.length];
+          if (event.key === "Home") next = items[0];
+          if (event.key === "End") next = items[items.length - 1];
+          if (!next) return;
+          event.preventDefault();
+          next.focus();
+          next.click();
+        });
+      });
+    }
+
+    initAnimatedSegmentedControls();
+
     /* ===================================================================
-       Guest / no-auth entry — "Date solicitant" without MPass.
-       Reached by logging out ([data-fo-logout] in the avatar menu), which
-       simulates a service that does not require authentication: the
-       citizen identifies themselves by typing an IDNP directly, the same
-       way MPass would resolve an identity behind the scenes. Surname and
-       First name are pulled from the identity registry once 13 digits are
-       entered and become read-only, mirroring is-filled.is-readonly on
-       .e-permits-fo-input elsewhere in this file. Phone and email are not
-       looked up — they are the citizen's own contact details, not identity
-       data, same distinction the authenticated flow draws for the
-       representative's "Date de contact" section.
+       Guest requestor — „Date solicitant” without MPass. Figma FOD-Components-flow
+       „Guest lane · without account” (633:7411, G1–G8); rules in components.md ›
+       „Full flow — guest requestor”. Reached from „Continuă fără cont” (access screen),
+       #guest, or logging out of a service that does not require MPass.
+       - Variant: ?guest=pf|pj|pfpj, else auth.availableFor. PF + PJ → the „Soliciți în
+         numele” segmented control; one type → the form directly.
+       - PF: IDNP, Nume, Prenume typed in — NEVER looked up from the IDNP (anyone who knows
+         an IDNP could otherwise reveal a name). PJ: IDNO → „Denumirea companiei” from the
+         public registry; the representative's IDNP / names typed in.
+       - „Pentru cine?” (PF): Pentru mine · Pentru altă persoană (G4: represented person +
+         notarial power of attorney). PJ (G5): the representation document is always asked.
+       - „Înainte” is never disabled: every check runs on click (G6), focus → first error.
+       - Valid → the same wizard in guest mode (frontOfficeGuest): no draft (US-21), Acte
+         necesare from the device only (+ the power of attorney), Livrare without MDelivery /
+         EVO Cabinet, Finalizare by e-mail with an invitation to sign in (FOD #54850).
+       - G8: the logo / closing the page ask first; „Autentifică-te cu MPass” keeps the data.
        =================================================================== */
-    const GUEST_IDENTITY_URL = "data/e-permits-rssp-people.json";
-    const GUEST_LOOKUP_DELAY_MS = 1400; // "a loader time... like 1-2 s"
+    const GUEST_TYPE_PARAM = { pf: ["PF"], pj: ["PJ"], pfpj: ["PF", "PJ"] };
+    const guestTypeOverride = GUEST_TYPE_PARAM[(new URLSearchParams(window.location.search).get("guest") || "").toLowerCase()] || null;
+    const GUEST_LOOKUP_MS = 900;
+    /* demo: ?registru=asteptare keeps the registry answer pending (the loading state) */
+    const guestRegistryPending = new URLSearchParams(window.location.search).get("registru") === "asteptare";
+    const GUEST_CARRY_KEY = "e-permits-fo-guest-carry";
+    const GUEST_ERROR_ATTR = "data-fo-guest-error";
+    const GUEST_REQUIRED = "Câmp obligatoriu";
+    const GUEST_NOT_FOUND = "Nu am găsit o companie cu acest IDNO în Registrul de Stat.";
+    const GUEST_IDNO_HINT = "13 cifre";
 
-    const guestIdnpInput = document.querySelector("[data-fo-guest-idnp]");
-    const guestIdnpField = document.querySelector("[data-fo-guest-idnp-field]");
-    const guestIdnpCounter = document.querySelector("[data-fo-guest-idnp-counter]");
-    const guestIdnpHint = document.querySelector("[data-fo-guest-idnp-hint]");
-    const guestSurnameInput = document.querySelector("[data-fo-guest-surname]");
-    const guestSurnameField = document.querySelector("[data-fo-guest-surname-field]");
-    const guestFirstnameInput = document.querySelector("[data-fo-guest-firstname]");
-    const guestFirstnameField = document.querySelector("[data-fo-guest-firstname-field]");
-    const guestPhoneInput = document.querySelector("[data-fo-guest-phone]");
-    const guestEmailInput = document.querySelector("[data-fo-guest-email]");
-    const guestConsent = document.querySelector("[data-fo-guest-consent]");
-    const guestNextButton = document.querySelector("[data-fo-guest-next]");
-    const guestTypeGroup = document.querySelector("[data-fo-guest-type-group]");
-    const guestBeneficiaryGroup = document.querySelector("[data-fo-guest-beneficiary]");
+    const guestScreen = frontOfficeGuestScreen;
+    const guestEl = (selector) => guestScreen?.querySelector(selector) || null;
+    const guestForm = guestEl("[data-fo-guest-form]");
+    const guestTypeSection = guestEl("[data-fo-guest-type-section]");
+    const guestTypeGroup = guestEl("[data-fo-guest-type-group]");
+    const guestCompanySection = guestEl("[data-fo-guest-company]");
+    const guestPersonTitle = guestEl("[data-fo-guest-person-title]");
+    const guestBeneficiarySection = guestEl("[data-fo-guest-beneficiary-section]");
+    const guestBeneficiaryGroup = guestEl("[data-fo-guest-beneficiary]");
+    const guestRepresentedSection = guestEl("[data-fo-guest-represented]");
+    const guestMandateSection = guestEl("[data-fo-guest-mandate]");
+    const guestIdnoInput = guestEl("[data-fo-guest-idno]");
+    const guestIdnoHint = guestEl("#fo-guest-idno-hint");
+    const guestCompanyInput = guestEl("[data-fo-guest-company-name]");
+    const guestLive = guestEl("[data-fo-guest-live]");
+    const guestPhoneInput = guestEl("[data-fo-guest-phone]");
+    const guestEmailInput = guestEl("[data-fo-guest-email]");
+    const guestConsent = guestEl("[data-fo-guest-consent]");
+    const guestNextButton = guestEl("[data-fo-guest-next]");
+    const guestLeaveModal = document.querySelector("[data-fo-guest-leave-modal]");
 
-    let guestIdentityDb = null;
-    let guestIdentityLoadPromise = null;
-    let guestLookupToken = 0;
-    let guestLookupTimer = null;
-    let guestMatchedPerson = null;
+    let guestType = "PF";
+    const guestLookup = { token: 0, idno: "", company: null, pending: null };
+    let guestLeaveReturnFocus = null;
+    let guestUnloadAllowed = false;
 
-    function loadGuestIdentityDb() {
-      if (guestIdentityDb) return Promise.resolve(guestIdentityDb);
-      if (!guestIdentityLoadPromise) {
-        guestIdentityLoadPromise = fetch(GUEST_IDENTITY_URL, { cache: "no-store" })
-          .then((response) => (response.ok ? response.json() : Promise.reject(new Error(`Cannot load ${GUEST_IDENTITY_URL}: ${response.status}`))))
-          .then((db) => { guestIdentityDb = db; return db; })
-          .catch((error) => {
-            console.warn(error);
-            guestIdentityDb = { people: [] };
-            return guestIdentityDb;
-          });
-      }
-      return guestIdentityLoadPromise;
+    function guestAllowedTypes() {
+      return guestTypeOverride || frontOfficeAllowedTypes();
     }
 
-    function setGuestIdnpLoading(isLoading) {
-      guestIdnpField?.classList.toggle("is-loading", isLoading);
-      if (guestIdnpInput) guestIdnpInput.disabled = isLoading;
-      const existingSpinner = guestIdnpField?.querySelector(".spinner");
-      if (isLoading && guestIdnpField && !existingSpinner) {
-        const spinner = document.createElement("span");
-        spinner.className = "spinner spinner--small spinner--brand";
-        spinner.setAttribute("aria-hidden", "true");
-        guestIdnpField.appendChild(spinner);
-      } else if (!isLoading && existingSpinner) {
-        existingSpinner.remove();
-      }
+    function guestBeneficiary() {
+      return guestBeneficiaryGroup?.querySelector("input:checked")?.value || "self";
     }
 
-    function setGuestIdnpHint(text, isError = false) {
-      if (guestIdnpHint) guestIdnpHint.textContent = text;
-      guestIdnpField?.classList.toggle("is-error", isError);
+    /* self = G1 / G2 · other = G4 (power of attorney) · company = G1b / G3 / G5 */
+    function guestCase() {
+      if (guestType === "PJ") return "company";
+      return guestBeneficiary() === "other" ? "other" : "self";
     }
 
-    /* Same trailing checkmark used elsewhere on a resolved is-filled.is-readonly
-       field (e.g. the IDNO / Denumire companie fields) — .e-permits-fo-input
-       .is-readonly .icon is already coloured var(--color-icon-positive-default,
-       #039855), so no new CSS is needed, only the icon markup. */
-    function setFieldCheckmark(field, show) {
-      const existing = field?.querySelector(".icon");
-      if (show && field && !existing) {
-        field.insertAdjacentHTML(
-          "beforeend",
-          '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>'
-        );
-      } else if (!show && existing) {
-        existing.remove();
-      }
+    function syncGuestLayout() {
+      const isPj = guestType === "PJ";
+      if (guestCompanySection) guestCompanySection.hidden = !isPj;
+      if (guestPersonTitle) guestPersonTitle.textContent = isPj ? "Date reprezentant" : "Date personale";
+      if (guestBeneficiarySection) guestBeneficiarySection.hidden = isPj;
+      if (guestRepresentedSection) guestRepresentedSection.hidden = guestCase() !== "other";
+      if (guestMandateSection) guestMandateSection.hidden = !isPj;
     }
 
-    function setGuestNameFieldsEditable() {
-      guestMatchedPerson = null;
-      [guestSurnameField, guestFirstnameField].forEach((field) => {
-        field?.classList.remove("is-filled", "is-readonly");
-        setFieldCheckmark(field, false);
-      });
-      if (guestSurnameInput) { guestSurnameInput.value = ""; guestSurnameInput.disabled = false; }
-      if (guestFirstnameInput) { guestFirstnameInput.value = ""; guestFirstnameInput.disabled = false; }
-    }
-
-    function applyGuestPerson(person) {
-      guestMatchedPerson = person;
-      if (guestSurnameInput) { guestSurnameInput.value = person.lastName; guestSurnameInput.disabled = true; }
-      if (guestFirstnameInput) { guestFirstnameInput.value = person.firstName; guestFirstnameInput.disabled = true; }
-      [guestSurnameField, guestFirstnameField].forEach((field) => {
-        field?.classList.add("is-filled", "is-readonly");
-        setFieldCheckmark(field, true);
-      });
-    }
-
-    function runGuestIdnpLookup(idnp) {
-      const token = ++guestLookupToken;
-      setGuestIdnpLoading(true);
-      loadGuestIdentityDb().then((db) => {
-        if (token !== guestLookupToken) return; // superseded before the fetch even settled
-        guestLookupTimer = window.setTimeout(() => {
-          if (token !== guestLookupToken) return; // the IDNP changed again while we were "loading"
-          setGuestIdnpLoading(false);
-          const person = (db?.people || []).find((item) => item.idnp === idnp);
-          if (person) {
-            applyGuestPerson(person);
-            setGuestIdnpHint("13 digits", false);
-          } else {
-            setGuestNameFieldsEditable();
-            setGuestIdnpHint("Nu am găsit date pentru acest IDNP.", true);
-          }
-          updateGuestNextState();
-        }, GUEST_LOOKUP_DELAY_MS);
-      });
-    }
-
-    function handleGuestIdnpInput() {
-      if (!guestIdnpInput) return;
-      const digits = guestIdnpInput.value.replace(/\D/g, "").slice(0, 13);
-      if (digits !== guestIdnpInput.value) guestIdnpInput.value = digits;
-      if (guestIdnpCounter) guestIdnpCounter.textContent = `${digits.length}/13`;
-
-      guestLookupToken += 1; // cancels any lookup in flight for the previous value
-      if (guestLookupTimer) { window.clearTimeout(guestLookupTimer); guestLookupTimer = null; }
-      setGuestIdnpLoading(false);
-      setGuestIdnpHint("13 digits", false);
-
-      if (guestMatchedPerson && digits !== guestMatchedPerson.idnp) setGuestNameFieldsEditable();
-      updateGuestNextState();
-
-      if (digits.length === 13) runGuestIdnpLookup(digits);
-    }
-
-    function updateGuestNextState() {
-      if (!guestNextButton) return;
-      const idnpComplete = (guestIdnpInput?.value || "").length === 13;
-      const phoneFilled = (guestPhoneInput?.value || "").trim().length > 0;
-      const emailFilled = (guestEmailInput?.value || "").trim().length > 0;
-      const consented = !!guestConsent?.checked;
-      const notLoading = !guestIdnpField?.classList.contains("is-loading");
-      guestNextButton.disabled = !(idnpComplete && phoneFilled && emailFilled && consented && notLoading);
-    }
-
-    function resetGuestSubjectType() {
+    function setGuestType(type) {
+      const allowed = guestAllowedTypes();
+      guestType = allowed.includes(type) ? type : allowed[0];
+      if (guestTypeSection) guestTypeSection.hidden = allowed.length < 2;
       guestTypeGroup?.querySelectorAll("[data-fo-guest-type]").forEach((button) => {
-        const isPf = button.dataset.foGuestType === "PF";
-        button.classList.toggle("is-selected", isPf);
-        button.setAttribute("aria-selected", String(isPf));
+        const selected = button.dataset.foGuestType === guestType;
+        button.classList.toggle("is-selected", selected);
+        button.setAttribute("aria-checked", String(selected));
+        button.tabIndex = selected ? 0 : -1;
       });
+      syncGuestLayout();
+    }
+
+    /* ---- messages: the library inline error under the control (components.md › Field error
+       message); the hint hides while it shows and returns when the field is edited ---- */
+    function guestErrorHtml(message) {
+      return `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeFrontOfficeHtml(message)}</span>`;
+    }
+
+    function guestErrorNode(id) {
+      const node = document.createElement("span");
+      node.className = "message message--inline message--error e-permits-fo-field__error";
+      node.setAttribute(GUEST_ERROR_ATTR, "");
+      node.id = id;
+      return node;
+    }
+
+    function setGuestFieldError(input, message) {
+      const field = input?.closest(".e-permits-fo-field");
+      if (!field) return;
+      const control = field.querySelector(".e-permits-fo-input, .e-permits-fo-phone--editable");
+      const hint = field.querySelector("[data-fo-guest-hint]");
+      let error = field.querySelector(`[${GUEST_ERROR_ATTR}]`);
+      control?.classList.toggle("is-error", Boolean(message));
+      if (input.dataset.foDescribedby === undefined) input.dataset.foDescribedby = input.getAttribute("aria-describedby") || "";
+      if (!message) {
+        error?.remove();
+        if (hint) hint.hidden = false;
+        input.removeAttribute("aria-invalid");
+        if (input.dataset.foDescribedby) input.setAttribute("aria-describedby", input.dataset.foDescribedby);
+        else input.removeAttribute("aria-describedby");
+        return;
+      }
+      if (!error) {
+        error = guestErrorNode(`${input.id}-error`);
+        (hint || control)?.insertAdjacentElement("afterend", error);
+      }
+      error.innerHTML = guestErrorHtml(message);
+      if (hint) hint.hidden = true;
+      input.setAttribute("aria-invalid", "true");
+      input.setAttribute("aria-describedby", error.id);
+    }
+
+    /* the library file upload has no error variant yet: the missing document is flagged in its
+       description line (Figma G6) */
+    function setGuestDocError(docField, message) {
+      if (!docField) return;
+      const desc = docField.querySelector("[data-fo-guest-hint]");
+      const add = docField.querySelector("[data-fo-open-doc-modal]");
+      let error = docField.querySelector(`[${GUEST_ERROR_ATTR}]`);
+      docField.classList.toggle("is-error", Boolean(message));
+      if (!message) {
+        error?.remove();
+        if (desc) desc.hidden = false;
+        add?.removeAttribute("aria-describedby");
+        return;
+      }
+      if (!error) {
+        error = guestErrorNode(`fo-${docField.dataset.foDocField}-error`);
+        desc?.insertAdjacentElement("afterend", error);
+      }
+      error.innerHTML = guestErrorHtml(message);
+      if (desc) desc.hidden = true;
+      add?.setAttribute("aria-describedby", error.id);
+    }
+
+    function setGuestConsentError(message) {
+      const label = guestConsent?.closest(".checkbox");
+      const row = label?.parentElement;
+      if (!label || !row) return;
+      label.classList.toggle("checkbox--error", Boolean(message));
+      let error = row.querySelector(`[${GUEST_ERROR_ATTR}]`);
+      if (!message) {
+        error?.remove();
+        guestConsent.removeAttribute("aria-invalid");
+        return;
+      }
+      if (!error) {
+        error = guestErrorNode("fo-guest-consent-error");
+        row.appendChild(error);
+      }
+      error.innerHTML = guestErrorHtml(message);
+      guestConsent.setAttribute("aria-invalid", "true");
+    }
+
+    function clearGuestErrors() {
+      guestForm?.querySelectorAll("input[aria-invalid]").forEach((input) => {
+        if (input !== guestConsent) setGuestFieldError(input, "");
+      });
+      guestForm?.querySelectorAll("[data-fo-doc-field]").forEach((docField) => setGuestDocError(docField, ""));
+      setGuestConsentError("");
+    }
+
+    /* ---- 13-digit fields: digits only + counter; the IDNO also asks the registry ---- */
+    function setGuestIdnoLoading(on) {
+      const field = guestCompanyInput?.closest(".e-permits-fo-field");
+      field?.querySelector("[data-fo-srre-skeleton]")?.remove();
+      field?.classList.toggle("is-srre-loading", on);
+      if (on) field?.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-skeleton e-permits-fo-skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
+      if (!guestIdnoHint) return;
+      if (on) {
+        guestIdnoHint.className = "message message--inline e-permits-fo-field__error e-permits-fo-field__loading";
+        guestIdnoHint.innerHTML = '<span class="spinner spinner--small spinner--brand" aria-hidden="true"></span><span>Se caută compania în Registrul de Stat…</span>';
+      } else {
+        guestIdnoHint.className = "e-permits-fo-field__hint";
+        guestIdnoHint.textContent = GUEST_IDNO_HINT;
+      }
+    }
+
+    function setGuestCompany(name, { flash = false } = {}) {
+      const wrap = guestCompanyInput?.closest(".e-permits-fo-input");
+      if (!wrap) return;
+      guestCompanyInput.value = name || "";
+      wrap.querySelector(".icon")?.remove();
+      wrap.classList.remove("is-srre-new");
+      if (!name) return;
+      wrap.insertAdjacentHTML("beforeend", '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>');
+      if (flash) {
+        void wrap.offsetWidth;
+        wrap.classList.add("is-srre-new");
+        wrap.addEventListener("animationend", () => wrap.classList.remove("is-srre-new"), { once: true });
+      }
+    }
+
+    /* the public registry of the prototype = the companies the flow schema knows */
+    function guestRegistry() {
+      return (frontOfficeSchema?.subjects || [])
+        .filter((subject) => subject.type === "PJ" && subject.idValue)
+        .map((subject) => ({ idno: subject.idValue, name: subject.name }));
+    }
+
+    function cancelGuestCompanyLookup() {
+      guestLookup.token += 1;
+      guestLookup.pending = null;
+      guestLookup.idno = "";
+      guestLookup.company = null;
+      setGuestIdnoLoading(false);
+      setGuestCompany("");
+    }
+
+    function runGuestCompanyLookup(idno) {
+      cancelGuestCompanyLookup();
+      const token = guestLookup.token;
+      guestLookup.idno = idno;
+      setGuestFieldError(guestIdnoInput, "");
+      setGuestIdnoLoading(true);
+      if (guestLive) guestLive.textContent = "";
+      guestLookup.pending = new Promise((resolve) => { if (!guestRegistryPending) window.setTimeout(resolve, GUEST_LOOKUP_MS); }).then(() => {
+        if (token !== guestLookup.token) return;
+        guestLookup.pending = null;
+        setGuestIdnoLoading(false);
+        guestLookup.company = guestRegistry().find((company) => company.idno === idno) || null;
+        if (guestLookup.company) {
+          setGuestCompany(guestLookup.company.name, { flash: true });
+          if (guestLive) guestLive.textContent = `Denumirea companiei a fost preluată din Registrul de Stat: ${guestLookup.company.name}.`;
+        } else {
+          setGuestFieldError(guestIdnoInput, GUEST_NOT_FOUND);
+          if (guestLive) guestLive.textContent = GUEST_NOT_FOUND;
+        }
+      });
+    }
+
+    function handleGuestDigits(input) {
+      const digits = input.value.replace(/\D/g, "").slice(0, 13);
+      if (digits !== input.value) input.value = digits;
+      const counter = input.closest(".e-permits-fo-field")?.querySelector("[data-fo-guest-counter]");
+      if (counter) counter.textContent = `${digits.length}/13`;
+      if (input !== guestIdnoInput) return;
+      if (digits.length === 13) {
+        if (digits !== guestLookup.idno) runGuestCompanyLookup(digits);
+      } else if (guestLookup.idno) {
+        cancelGuestCompanyLookup();
+      }
+    }
+
+    /* ---- G6 · validation on „Înainte” (US-12 AC-07/08) ---- */
+    const GUEST_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const GUEST_13 = /^\d{13}$/;
+
+    function guestPhoneProblem(input) {
+      const raw = input?.value.trim() || "";
+      if (!raw) return GUEST_REQUIRED;
+      const code = input.closest(".e-permits-fo-phone")?.querySelector("[data-fo-phone-code-value]")?.textContent.trim() || "+373";
+      const digits = raw.replace(/[\s-]/g, "");
+      if (!/^\d+$/.test(digits)) return "Introdu doar cifrele numărului, fără prefixul țării.";
+      if (code === "+373") return digits.length === 8 ? "" : "Introdu un număr valid: 8 cifre după +373.";
+      return digits.length >= 6 && digits.length <= 12 ? "" : "Introdu un număr de telefon valid.";
+    }
+
+    function guestHasFile(docKey) {
+      return Boolean(guestEl(`[data-fo-doc-field='${docKey}'] .e-permits-fo-file-item, [data-fo-doc-field='${docKey}'] .e-permits-fo-mdocs__attachment`));
+    }
+
+    function guestChecks() {
+      const checks = [];
+      const field = (selector, rule) => {
+        const input = guestEl(selector);
+        if (!input) return;
+        checks.push({ target: input, set: (message) => setGuestFieldError(input, message), run: () => {
+          const value = input.value.trim();
+          if (!value) return GUEST_REQUIRED;
+          return rule ? rule(value) : "";
+        } });
+      };
+      const thirteen = (label) => (value) => (GUEST_13.test(value) ? "" : `${label}-ul trebuie să aibă 13 cifre.`);
+      const doc = (key, message) => {
+        const docField = guestEl(`[data-fo-doc-field='${key}']`);
+        if (!docField) return;
+        checks.push({ target: docField.querySelector("[data-fo-open-doc-modal]"), set: (text) => setGuestDocError(docField, text), run: () => (guestHasFile(key) ? "" : message) });
+      };
+      const mode = guestCase();
+      if (mode === "company") {
+        field("#fo-guest-idno", (value) => {
+          if (!GUEST_13.test(value)) return "IDNO-ul trebuie să aibă 13 cifre.";
+          return guestLookup.idno === value && !guestLookup.company ? GUEST_NOT_FOUND : "";
+        });
+      }
+      field("#fo-guest-idnp", thirteen("IDNP"));
+      field("#fo-guest-surname");
+      field("#fo-guest-firstname");
+      checks.push({ target: guestPhoneInput, set: (message) => setGuestFieldError(guestPhoneInput, message), run: () => guestPhoneProblem(guestPhoneInput) });
+      field("#fo-guest-email", (value) => (GUEST_EMAIL.test(value) ? "" : "Introdu o adresă de e-mail validă, de ex. nume@exemplu.md."));
+      if (mode === "other") {
+        field("#fo-guest-rep-idnp", thirteen("IDNP"));
+        field("#fo-guest-rep-surname");
+        field("#fo-guest-rep-firstname");
+        doc("guest-procura", "Câmp obligatoriu — atașează procura notarială.");
+      }
+      if (mode === "company") doc("guest-mandat", "Câmp obligatoriu — atașează procura sau decizia de numire.");
+      checks.push({ target: guestConsent, set: setGuestConsentError, run: () => (guestConsent?.checked ? "" : "Bifează acordul pentru prelucrarea datelor personale.") });
+      return checks;
+    }
+
+    /* every check runs; returns the first control in error (null = valid) */
+    async function validateGuest() {
+      const idno = guestIdnoInput?.value || "";
+      if (guestCase() === "company" && GUEST_13.test(idno) && guestLookup.idno !== idno) runGuestCompanyLookup(idno);
+      if (guestLookup.pending) await guestLookup.pending;
+      let first = null;
+      guestChecks().forEach((check) => {
+        const message = check.run();
+        check.set(message);
+        if (message && !first) first = check.target;
+      });
+      return first;
+    }
+
+    function focusGuestError(target) {
+      target.scrollIntoView({ block: "center" });
+      target.focus({ preventScroll: true });
+    }
+
+    function guestValue(selector) {
+      return guestEl(selector)?.value.trim() || "";
+    }
+
+    function guestFileName(docKey) {
+      return guestEl(`[data-fo-doc-field='${docKey}'] .e-permits-fo-file-item__name`)?.textContent.trim() || "";
+    }
+
+    function collectGuestData() {
+      const mode = guestCase();
+      const code = guestPhoneInput?.closest(".e-permits-fo-phone")?.querySelector("[data-fo-phone-code-value]")?.textContent.trim() || "+373";
+      const surname = guestValue("#fo-guest-surname");
+      const firstname = guestValue("#fo-guest-firstname");
+      return {
+        type: guestType,
+        mode,
+        idnp: guestValue("#fo-guest-idnp"),
+        name: [firstname, surname].filter(Boolean).join(" "),
+        phone: `${code} ${guestValue("#fo-guest-phone")}`,
+        email: guestValue("#fo-guest-email"),
+        company: mode === "company" ? guestLookup.company : null,
+        represented: mode === "other"
+          ? { idnp: guestValue("#fo-guest-rep-idnp"), name: [guestValue("#fo-guest-rep-firstname"), guestValue("#fo-guest-rep-surname")].filter(Boolean).join(" ") }
+          : null,
+        document: mode === "other" ? guestFileName("guest-procura") : mode === "company" ? guestFileName("guest-mandat") : "",
+      };
+    }
+
+    /* the subject the wizard's summary reads (Solicitant / Reprezentant / contact) */
+    function guestSubjectOf(data) {
+      const person = { name: data.name, idLabel: "IDNP", idValue: data.idnp };
+      const base = { id: "guest", scenario: "guest", contact: { phone: data.phone, email: data.email } };
+      if (data.mode === "company") return { ...base, type: "PJ", name: data.company.name, idLabel: "IDNO", idValue: data.company.idno, representative: person };
+      if (data.mode === "other") return { ...base, type: "PF", name: data.represented.name, idLabel: "IDNP", idValue: data.represented.idnp, representative: person };
+      return { ...base, type: "PF", ...person };
+    }
+
+    /* the flow schema, as a guest sees steps 3, 5 and 7 */
+    function guestSchemaVariant(schema, data) {
+      const next = JSON.parse(JSON.stringify(schema));
+      const step = (index) => (next.steps || []).find((item) => Number(item.index) === index);
+      const documents = step(3);
+      if (Array.isArray(documents?.documents)) {
+        /* no MDocs without MPass: upload from the device only */
+        documents.documents = documents.documents.map((doc) => ({
+          ...doc,
+          description: String(doc.description || "").replace(/\s*Se caută automat în MDocs[^.]*\./, "").trim() || "Încarcă documentul de pe dispozitiv.",
+        }));
+        if (data.mode !== "self") {
+          documents.documents.unshift({
+            id: "guest-procura-doc",
+            label: data.mode === "other" ? "Procură notarială" : "Procură sau decizia de numire",
+            description: "Atașată la „Date solicitant”. Funcționarul o verifică în Back Office.",
+            required: true,
+          });
+        }
+      }
+      const delivery = step(5);
+      if (delivery) {
+        /* MDelivery and the electronic result in EVO Cabinet need an account (FOD #89525) */
+        delivery.options = [{
+          id: "email",
+          title: "Pe e-mail",
+          description: `Actul semnat electronic se trimite la ${data.email}.`,
+          icon: "icon-envelope",
+          selected: true,
+          badges: [{ label: "Gratuit", tone: "outline" }],
+        }];
+        if (Array.isArray(delivery.paperCopy?.methods)) {
+          delivery.paperCopy.methods = delivery.paperCopy.methods.filter((method) => !method.address && !method.couriers);
+        }
+      }
+      const finish = step(7);
+      if (finish) {
+        /* FOD #54850: case number + certificate by e-mail; an invitation to sign in instead of
+           „Urmărește în EVO Cabinet” */
+        finish.guest = { email: data.email };
+        delete finish.lead;
+        delete finish.action;
+        if (finish.document) finish.document = { ...finish.document, text: `Dovada depunerii cererii. A fost trimisă și la ${data.email}`, link: "", href: "" };
+        if (Array.isArray(finish.summary?.rows)) finish.summary.rows.push({ label: "Rezultatul se trimite la", value: data.email });
+        const items = finish.timeline?.items || [];
+        const last = items[items.length - 1];
+        if (last) last.text = `Actul permisiv emis se trimite la ${data.email}.`;
+      }
+      return next;
+    }
+
+    function syncGuestWizardChrome() {
+      /* US-21: a draft lives only in EVO Cabinet — a guest has none */
+      frontOfficeRequestScreen?.querySelectorAll(".e-permits-fo-draft-button").forEach((button) => {
+        button.hidden = Boolean(frontOfficeGuest);
+      });
+    }
+
+    function attachGuestDocument(data) {
+      if (!data.document) return;
+      const files = document.querySelector("[data-fo-step-panel='3'] [data-fo-doc-field='guest-procura-doc'] [data-fo-doc-field-files]");
+      if (files && !files.querySelector(".e-permits-fo-file-item")) foDocAttachFileItem(files, data.document, "");
+    }
+
+    function enterGuestWizard(data) {
+      const firstTime = !frontOfficeGuest;
+      const modeChanged = !firstTime && frontOfficeGuest.mode !== data.mode;
+      frontOfficeGuest = { ...data, subject: guestSubjectOf(data) };
+      frontOfficeSelectedSubject = frontOfficeGuest.subject;
+      const schema = guestSchemaVariant(frontOfficeSchema, data);
+      if (firstTime) {
+        resetFrontOfficeDraftState();
+        renderFrontOfficeStep2FromSchema(schema);
+      }
+      if (firstTime || modeChanged) renderFrontOfficeStep3FromSchema(schema);
+      renderFrontOfficeStep5FromSchema(schema);
+      renderFrontOfficeStep7FromSchema(schema);
+      attachGuestDocument(data);
+      /* „Eu sunt persoana de contact” = the phone the guest typed (no MNotify) */
+      const selfPhone = document.querySelector("[data-fo-step-panel='2'] [data-fo-contact-self] .e-permits-fo-phone__value");
+      if (selfPhone) selfPhone.textContent = data.phone;
+      syncGuestWizardChrome();
+      history.replaceState(null, "", "#request-step-2");
+      showFrontOfficeRequest({ step: 2 });
+    }
+
+    function exitGuestWizard() {
+      if (!frontOfficeGuest) return;
+      frontOfficeGuest = null;
+      frontOfficeSelectedSubject = null;
+      if (frontOfficeSchema) {
+        renderFrontOfficeStep2FromSchema(frontOfficeSchema);
+        renderFrontOfficeStep3FromSchema(frontOfficeSchema);
+        renderFrontOfficeStep5FromSchema(frontOfficeSchema);
+        renderFrontOfficeStep7FromSchema(frontOfficeSchema);
+      }
+      syncGuestWizardChrome();
+    }
+
+    /* ---- G8 · switching to MPass keeps what was typed (this tab's session) ---- */
+    function saveGuestCarry() {
+      if (!guestForm) return;
+      const values = {};
+      guestForm.querySelectorAll("input[id]:not([readonly])").forEach((input) => {
+        if (input.type === "checkbox") values[input.id] = input.checked;
+        else if (input.value) values[input.id] = input.value;
+      });
+      try {
+        window.sessionStorage.setItem(GUEST_CARRY_KEY, JSON.stringify({ type: guestType, beneficiary: guestBeneficiary(), values }));
+      } catch (error) { /* private mode: nothing kept */ }
+    }
+
+    function restoreGuestCarry() {
+      let carry = null;
+      try {
+        carry = JSON.parse(window.sessionStorage.getItem(GUEST_CARRY_KEY) || "null");
+        window.sessionStorage.removeItem(GUEST_CARRY_KEY);
+      } catch (error) { carry = null; }
+      if (!carry || !guestForm) return;
+      setGuestType(carry.type);
+      const radio = guestBeneficiaryGroup?.querySelector(`input[value="${carry.beneficiary === "other" ? "other" : "self"}"]`);
+      if (radio) radio.checked = true;
+      Object.entries(carry.values || {}).forEach(([id, value]) => {
+        const input = guestForm.querySelector(`#${CSS.escape(id)}`);
+        if (!input) return;
+        if (input.type === "checkbox") input.checked = Boolean(value);
+        else input.value = value;
+        if (input.hasAttribute("data-fo-guest-digits")) handleGuestDigits(input);
+      });
+      syncGuestLayout();
+    }
+
+    function leaveGuestForMpass() {
+      saveGuestCarry();
+      guestUnloadAllowed = true;
+      openMpassTestPage();
     }
 
     function resetGuestScreen() {
-      guestLookupToken += 1;
-      if (guestLookupTimer) { window.clearTimeout(guestLookupTimer); guestLookupTimer = null; }
-      setGuestIdnpLoading(false);
-      if (guestIdnpInput) guestIdnpInput.value = "";
-      if (guestIdnpCounter) guestIdnpCounter.textContent = "0/13";
-      setGuestIdnpHint("13 digits", false);
-      setGuestNameFieldsEditable();
-      if (guestPhoneInput) guestPhoneInput.value = "";
-      if (guestEmailInput) guestEmailInput.value = "";
-      if (guestConsent) guestConsent.checked = false;
-      const selfRadio = guestBeneficiaryGroup?.querySelector('input[value="self"]');
-      if (selfRadio) selfRadio.checked = true;
-      resetGuestSubjectType();
-      updateGuestNextState();
+      exitGuestWizard();
+      cancelGuestCompanyLookup();
+      guestForm?.reset();
+      guestForm?.querySelectorAll("[data-fo-guest-counter]").forEach((counter) => { counter.textContent = "0/13"; });
+      guestForm?.querySelectorAll("[data-fo-doc-field] [data-fo-doc-field-files]").forEach((files) => { files.innerHTML = ""; });
+      clearGuestErrors();
+      if (guestLive) guestLive.textContent = "";
+      setGuestType(guestAllowedTypes()[0]);
+      restoreGuestCarry();
     }
 
-    guestIdnpInput?.addEventListener("input", handleGuestIdnpInput);
-    guestPhoneInput?.addEventListener("input", updateGuestNextState);
-    guestEmailInput?.addEventListener("input", updateGuestNextState);
-    guestConsent?.addEventListener("change", updateGuestNextState);
+    function showFrontOfficeGuest({ focus = true, reset = true } = {}) {
+      if (reset) resetGuestScreen();
+      if (window.location.hash !== "#guest") history.replaceState(null, "", "#guest");
+      setFrontOfficeScreen("guest", { focus });
+    }
+
+    /* G8: something typed or attached — leaving loses it */
+    function guestIsActive() {
+      return Boolean((guestScreen && !guestScreen.hidden) || (frontOfficeGuest && frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden));
+    }
+
+    function guestHasData() {
+      if (frontOfficeGuest) return true;
+      return Boolean(
+        [...(guestForm?.querySelectorAll("input[type='text'], input[type='tel'], input[type='email']") || [])].some((input) => !input.readOnly && input.value.trim())
+        || guestForm?.querySelector(".e-permits-fo-file-item")
+      );
+    }
+
+    function setGuestLeaveModalOpen(open) {
+      if (!guestLeaveModal) return;
+      if (open) guestLeaveReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setMotionModalHidden(guestLeaveModal, !open);
+      document.body.classList.toggle("is-fo-modal-open", open);
+      if (open) {
+        guestLeaveModal.querySelector("[data-fo-guest-leave-cancel]")?.focus({ preventScroll: true });
+      } else {
+        guestLeaveReturnFocus?.focus?.({ preventScroll: true });
+        guestLeaveReturnFocus = null;
+      }
+    }
+
+    /* the MSupport reporter while filling the guest form (anonymous until named) */
+    function frontOfficeGuestActor() {
+      const idnp = guestValue("#fo-guest-idnp");
+      const name = [guestValue("#fo-guest-firstname"), guestValue("#fo-guest-surname")].filter(Boolean).join(" ");
+      if (!name && idnp.length !== 13) return null;
+      return {
+        type: "citizen",
+        name: name || undefined,
+        idnp: idnp.length === 13 ? idnp : undefined,
+        email: guestValue("#fo-guest-email") || undefined,
+      };
+    }
+
+    guestForm?.addEventListener("input", (event) => {
+      const input = event.target;
+      if (!(input instanceof HTMLInputElement)) return;
+      if (input.hasAttribute("data-fo-guest-digits")) handleGuestDigits(input);
+      /* the error clears on edit; „Înainte” checks again */
+      if (input.getAttribute("aria-invalid") === "true" && input !== guestConsent) setGuestFieldError(input, "");
+    });
+
+    guestConsent?.addEventListener("change", () => { if (guestConsent.checked) setGuestConsentError(""); });
+
+    guestBeneficiaryGroup?.addEventListener("change", syncGuestLayout);
+
+    /* an attached document clears its „Câmp obligatoriu” */
+    guestForm?.querySelectorAll("[data-fo-doc-field]").forEach((docField) => {
+      const files = docField.querySelector("[data-fo-doc-field-files]");
+      if (!files) return;
+      new MutationObserver(() => {
+        if (files.querySelector(".e-permits-fo-file-item, .e-permits-fo-mdocs__attachment")) setGuestDocError(docField, "");
+      }).observe(files, { childList: true });
+    });
+
+    /* a boxed doc field without a file is one drop block: a click anywhere opens the upload */
+    document.addEventListener("click", (event) => {
+      const box = event.target.closest(".e-permits-fo-doc-field--boxed");
+      if (!box || box.querySelector(".e-permits-fo-file-item") || event.target.closest("button, a, input")) return;
+      box.querySelector("[data-fo-open-doc-modal]")?.click();
+    });
 
     guestTypeGroup?.addEventListener("click", (event) => {
       const button = event.target.closest("[data-fo-guest-type]");
       if (!button || button.classList.contains("is-selected")) return;
-      guestTypeGroup.querySelectorAll("[data-fo-guest-type]").forEach((item) => {
-        const selected = item === button;
-        item.classList.toggle("is-selected", selected);
-        item.setAttribute("aria-selected", String(selected));
-      });
-      /* Persoană juridică: no company registry fixture exists to look IDNO
-         up against (unlike the citizen identity registry used for PF), so
-         this deliberately stays a plain editable field rather than faking
-         an autofill. Only the PF/IDNP path pulls real data, as asked. */
+      setGuestType(button.dataset.foGuestType);
+    });
+
+    guestNextButton?.addEventListener("click", async () => {
+      if (guestNextButton.getAttribute("aria-busy") === "true") return;
+      guestNextButton.setAttribute("aria-busy", "true");
+      const first = await validateGuest();
+      guestNextButton.removeAttribute("aria-busy");
+      if (first) {
+        focusGuestError(first);
+        return;
+      }
+      enterGuestWizard(collectGuestData());
     });
 
     document.addEventListener("click", (event) => {
-      if (event.target.closest("[data-fo-guest-authenticate]")) openMpassTestPage();
+      if (event.target.closest("[data-fo-guest-authenticate]")) {
+        event.preventDefault();
+        setGuestLeaveModalOpen(false);
+        leaveGuestForMpass();
+        return;
+      }
+      if (event.target.closest("[data-fo-guest-leave-cancel]") || event.target === guestLeaveModal) {
+        setGuestLeaveModalOpen(false);
+        return;
+      }
+      if (event.target.closest("[data-fo-guest-leave-confirm]")) {
+        setGuestLeaveModalOpen(false);
+        resetGuestScreen();
+        history.replaceState(null, "", "#access");
+        showFrontOfficeAccess();
+        return;
+      }
+      /* G8: the logo asks first while a guest has typed something */
+      const home = event.target.closest(".e-permits-fo-auth__evo-logo, .e-permits-fo-auth__gov-link");
+      if (home && guestIsActive() && guestHasData()) {
+        event.preventDefault();
+        setGuestLeaveModalOpen(true);
+      }
     });
 
-    guestNextButton?.addEventListener("click", () => {
-      if (guestNextButton.disabled) return;
-      /* Deliberately does not continue into steps 2-6: those assume a
-         subject resolved from the schema's `subjects` list (role cards,
-         representative, authorization data). Synthesising a compatible
-         subject from freeform guest input is a separate, larger piece of
-         work than what was asked for here. */
-      showFrontOfficeToast("Datele au fost înregistrate.");
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && guestLeaveModal && !guestLeaveModal.hidden) setGuestLeaveModalOpen(false);
+    });
+
+    /* G8: closing the tab / the browser's back arrow — the browser's own prompt */
+    window.addEventListener("beforeunload", (event) => {
+      if (guestUnloadAllowed || !guestIsActive() || !guestHasData()) return;
+      event.preventDefault();
+      event.returnValue = "";
     });
 
     /* US-18 AC-03: Finalizare reached without payment → back on Plată with the reason */
@@ -4588,8 +5121,7 @@
       if (frontOfficeSchema?.auth?.required === false) {
         showFrontOfficeAccess();
       } else {
-        resetGuestScreen();
-        setFrontOfficeScreen("guest");
+        showFrontOfficeGuest();
       }
     });
 
@@ -4603,6 +5135,11 @@
       const targetStep = Number(step);
       const panel = document.querySelector(`[data-fo-step-panel="${targetStep}"]`);
       if (!panel || targetStep < 1) return false;
+      /* a guest's step 1 is the guest „Date solicitant” (typed data kept) */
+      if (frontOfficeGuest && targetStep === 1) {
+        showFrontOfficeGuest({ focus, reset: false });
+        return true;
+      }
 
       const currentStep = Number(document.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
       if (currentStep !== targetStep && currentStep >= 2) saveFrontOfficeDraft();
@@ -4671,16 +5208,7 @@
        msupport/index.html demo host uses. */
     if (demoFlow === "full" && typeof MSupport !== "undefined") {
       frontOfficeSchemaLoadPromise.then(() => {
-        const supportGuestActor = () => {
-          if (!guestMatchedPerson) return null;
-          const name = [guestFirstnameInput?.value, guestSurnameInput?.value].filter(Boolean).join(" ");
-          return {
-            type: "citizen",
-            name: name || undefined,
-            idnp: guestIdnpInput?.value || undefined,
-            email: guestEmailInput?.value || undefined,
-          };
-        };
+        const supportGuestActor = () => frontOfficeGuestActor();
 
         const supportContext = () => {
           const service = frontOfficeSchema?.service;
@@ -4692,7 +5220,7 @@
             || (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden)
             || (frontOfficeRequestScreen && !frontOfficeRequestScreen.hidden)
           );
-          const subject = signedIn ? frontOfficeSelectedSubject : null;
+          const subject = signedIn && !frontOfficeGuest ? frontOfficeSelectedSubject : null;
           const actor = subject
             ? { type: "citizen", name: subject.name, idnp: subject.idValue, email: subject.contact?.email }
             : supportGuestActor();
@@ -4734,6 +5262,17 @@
     const bootStep = frontOfficeStepFromHash();
     if (bootStep) {
       showFrontOfficeRequest({ focus: false, step: bootStep });
+    }
+
+    /* #access = „Autentifică-te sau continuă fără cont” · #guest = the guest „Date solicitant”
+       (nobody signed in; ?guest=pf|pj|pfpj sets the guest variant) */
+    if (window.location.hash === "#access" || window.location.hash === "#guest") {
+      const bootHash = window.location.hash;
+      frontOfficeSchemaLoadPromise.then(() => {
+        frontOfficeSelectedSubject = null;
+        if (bootHash === "#access") showFrontOfficeAccess({ focus: false });
+        else showFrontOfficeGuest({ focus: false });
+      });
     }
 
     if (window.location.hash === "#intent") {
@@ -5120,7 +5659,11 @@
       if (subtitleEl) subtitleEl.textContent = label || "";
       foDocRenderLibrary("");
       if (foDocSearchInput) foDocSearchInput.value = "";
-      foDocSwitchTab("library", { animate: false });
+      /* no MDocs library without MPass: a guest uploads from the device only */
+      const uploadOnly = Boolean(frontOfficeGuest || fieldEl?.closest("[data-fo-screen='guest']"));
+      const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__tabs");
+      if (tabs) tabs.hidden = uploadOnly;
+      foDocSwitchTab(uploadOnly ? "upload" : "library", { animate: false });
       setMotionModalHidden(foDocOverlay, false);
       document.body.style.overflow = "hidden";
     }
@@ -5144,7 +5687,7 @@
         </div>
         <div class="e-permits-fo-lib-item__content">
           <div class="e-permits-fo-lib-item__title-row">
-            <span class="e-permits-fo-lib-item__title e-permits-fo-file-item__name">${escapeFrontOfficeHtml(fileName)}</span>
+            <span class="e-permits-fo-lib-item__title e-permits-fo-file-item__name" title="${escapeFrontOfficeHtml(fileName)}">${escapeFrontOfficeHtml(fileName)}</span>
           </div>
           ${sizeLabel ? `<div class="e-permits-fo-lib-item__meta">${escapeFrontOfficeHtml(sizeLabel)}</div>` : ""}
         </div>
@@ -5355,7 +5898,7 @@
       if (unitEmailField?.value?.trim()) unitEmail = unitEmailField.value.trim();
 
       if (useSelf && selfCard) {
-        contactName = user ? (user.contactName || user.name) : "—";
+        contactName = frontOfficeGuest ? (frontOfficeGuest.name || "—") : user ? (user.contactName || user.name) : "—";
         const code = selfCard.querySelector("[data-fo-phone-code-value]")?.textContent?.trim() || "+373";
         const num = selfCard.querySelector(".e-permits-fo-phone__value")?.textContent?.trim() || "";
         const normalizedNum = num.replace(/\s+/g, "");
@@ -5579,6 +6122,10 @@
       if (!editButton) return;
       const step = Number(editButton.dataset.foEditStep);
       if (!step) return;
+      if (frontOfficeGuest && step === 1) {
+        showFrontOfficeGuest({ reset: false });
+        return;
+      }
       const hash = step === 1 ? "#request" : `#request-step-${step}`;
       if (window.location.hash !== hash) history.replaceState(null, "", hash);
       showFrontOfficeRequest({ step });
