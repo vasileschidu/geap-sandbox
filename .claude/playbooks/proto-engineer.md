@@ -348,3 +348,30 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   — the FO media queries apply; CSS container tricks would need the whole FO CSS rewritten.
 - 2026-10-13 · Reusing an FO control generically (the CAEM subgenre multi-select): move its hard-coded
   texts to data attributes with the old texts as defaults — the existing screens stay byte-identical.
+- 2026-10-13 · Form Builder batch 3: „reuse the guest IDNO lookup” meant extracting it — the guest code held
+  fixed element refs (`guestIdnoInput`, `guestCompanyInput`…), so the reusable part became a factory
+  `createRegistryLookup({ input, hint, targets, find, setError, … })` returning `{ run, cancel, onInput,
+  code, record, pending }`; the guest keeps one instance (rename `idno/company` → `code/record` at every
+  use, grep first) and the builder binds one per `[data-fo-registry-lookup]`. Prove the old flow with a DOM
+  probe (company value, hint text, `aria-invalid`) on fo-g1c / fo-g5 / fo-g6b, not just „state ok”.
+- 2026-10-13 · Two overlays with the same z-index (1000): DOM order decides. The builder overlay is moved to
+  the end of `<body>` at init, so any FO modal used inside its Preview (the document picker) opened UNDER it —
+  the capture showed nothing while `h.click` still „found” the submit. Append such overlays after the builder.
+- 2026-10-13 · FO renderers that return several top-level siblings (`contactPersonHtml`) break the builder's
+  first-tag tagging (`data-fb-field`) and rule hiding; shared FO markup with fixed ids / radio names collides
+  between canvas (`cv-`) and Preview (`pv-`). Pattern: an optional `prefix` that, when set, derives ids /
+  names AND wraps the parts in one `.e-permits-fo-field-group`; without it the FO output stays as it was.
+- 2026-10-13 · `setGuestFieldError` only hid `[data-fo-guest-hint]` hints → on other fields the hint stayed
+  under the new error. Generic FO error helpers must fall back to `:scope > .e-permits-fo-field__hint`.
+- 2026-10-13 · Field-card tools row: a span-3/4 card fits grip + type + span only; a third tag („Salvată”)
+  squeezed the type tag to one letter → metadata tags go in the card foot (next to key / rules / warning).
+- 2026-10-13 · „Is this copy still the same as its source?” must compare through the same normalisation the
+  loader applies (`sanitize` adds `validation.message`, `help`, `placeholder`) and ignore the copy's own
+  props (id, key, label, rules, audit stamps) — otherwise every reloaded copy reads „modificată”.
+- 2026-10-13 · A „Validează” demo focuses the first error (top of the form): the state must scroll to the
+  component it is about afterwards. Truncated fo-select values had no tooltip → `title` on the value span in
+  `renderFoSelectControl` + `chooseFoSelectOption` (shared shell edit, two exact replacements).
+- 2026-10-13 · QA triage that saved time: diff the audit findings against a baseline run of an untouched
+  state (fb-05 / fb-14) by (rule, last selector, text) — what is left is what the change added. Standing
+  false positives again: `.u-visually-hidden` live regions, `e-permits-fo-copy-value`, fo-select chevron
+  colour, FO doc-field buttons, address placeholders in narrow canvas cards.

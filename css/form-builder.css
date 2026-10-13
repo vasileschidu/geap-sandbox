@@ -16,6 +16,41 @@
   }
 }
 
+/* Field group (Form Builder batch 3, 2026-10-13): one component made of several FO fields — IDNO +
+   „Denumirea companiei”, consent + IDNP + Nume + Prenume (RSP), Persoana de contact. It takes the
+   whole row of the section and repeats the section's own 12-column grid (same gaps), so the inner
+   fields line up with the fields above and below; one column on phones like the section. */
+.e-permits-fo-field-group {
+  display: grid;
+  gap: var(--spacing-24, 24px) var(--spacing-32, 32px);
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  min-width: 0;
+}
+
+/* stacked parts (Persoana de contact: radio rows, then the card) — the FO „single” section rhythm */
+.e-permits-fo-field-group--stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-20, 20px);
+}
+
+@media (max-width: 860px) {
+  .e-permits-fo-field-group {
+    gap: var(--spacing-24, 24px);
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Fișier with more than one file: the button stays until the limit (`is-full`) */
+.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi:not(.is-full):has([data-fo-doc-field-files]:not(:empty)) [data-fo-open-doc-modal] {
+  display: inline-flex;
+}
+
+.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi:not(.is-full):has([data-fo-doc-field-files]:not(:empty)) .e-permits-fo-doc-field__files {
+  margin-top: var(--spacing-16, 16px);
+}
+
 /* Choice field: fieldset + legend that reads as the field label (radio rows, checkbox list) */
 .e-permits-fo-choice {
   border: 0;
@@ -281,6 +316,47 @@
   padding-top: var(--spacing-2, 2px);
   text-align: left;
   white-space: normal;
+}
+
+/* Câmp ascuns on the canvas (batch 3): the applicant never sees it, so the card body is a dashed
+   „Ascuns · valoare” marker instead of a rendered control — only in Build, never in Preview / FO */
+.e-permits-builder__hidden-marker {
+  align-items: center;
+  border: var(--border-width-1, 1px) dashed var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
+  box-sizing: border-box;
+  color: var(--color-text-base-secondary, #444);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-height: 40px;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-builder__hidden-marker strong {
+  color: var(--color-text-base-default, #121212);
+  flex: 0 0 auto;
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-builder__hidden-marker span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Reguli de dată: „± N | zile ▾” — the unit sits after the number, so the value group's divider moves
+   to the left of the select (same inset 8px line as `.e-permits-doc-val__mode`) */
+.e-permits-doc-val__mode--end {
+  flex-basis: var(--spacing-80, 80px);
+}
+
+.e-permits-doc-val__mode--end::after {
+  left: 0;
+  right: auto;
 }
 
 .e-permits-builder__grid-empty {

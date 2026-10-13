@@ -245,10 +245,16 @@ but this doc previously described it wrongly, see the entry.
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
 | Form Builder (Form Designer: palette · canvas · properties; one schema → one renderer) | `.e-permits-builder` workspace: `__library` (grouped palette `__library-section` / `__library-item`, „În curând” = `is-disabled` + reason) · `__stage` (`__service-header`, `__steps` chips, `__canvas` > `__step-section` > `__section-bar` + `__grid` > `__field` cards, `__drop-indicator`) · `__inspector` > `__panel` (`__panel-head--selected`, `.tabs.tabs--sm.e-permits-builder__tabs`, `__panel-scroll` of drawer sections) · topbar `__errors` + `__issues-menu` | `js/form-builder.js` (`COMPONENTS`, `toFo`, `window.GEAPFormBuilder`), `css/form-builder.css`, demo `fb-*` | app |
-| One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`); `.bind(root)` = the FO interactions | `js/e-permits-acte-permisive.js` | app |
+| One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`, batch 3: `idnp`, `idno`, `file`, `mdocs`, `hidden`, `consent`, `contact-person` with `prefix`, `subdivision` with `mode`); `.bind(root)` = the FO interactions (+ contact, subdivision, digits, registry lookups); `.applicant()`, `.setFieldError()`, `.copyValueHtml()` | `js/e-permits-acte-permisive.js` | app |
 | Choice field (labelled radio rows / checkbox list / period pair in a form) | `fieldset.e-permits-fo-choice.e-permits-fo-field--span-N` > `legend.e-permits-fo-choice__legend` + `.e-permits-fo-choice__group(--inline)` of `.e-permits-fo-radio--option` rows, or `.e-permits-fo-choice__checks` of `renderCheckOption({ plain: true })`, or `.e-permits-fo-choice__pair` (two date pickers, 6 + 6, one column ≤860) | `radioFieldHtml` / `checklistFieldHtml` / `periodFieldHtml` | app |
 | FO segmented field · multi-select field · callout field · separator field | `segmentFieldHtml` (`.segmented-control.is-animated[role=radiogroup][data-fo-segment]` + label id) · `multiselectFieldHtml` (the CAEM subgenre multi-select with `data-placeholder` / `data-count-one` / `data-count-many` / `data-remove-label`, chips in `[data-fo-subgen]`) · `calloutFieldHtml` (`.e-permits-callout--info/--warning`) · `separatorFieldHtml` (library `hr.separator`) | `js/e-permits-acte-permisive.js` | app |
 | Behaviour rules in the Form Builder (Logică) | the Documente rule builder markup (`.e-permits-doc-rule` / `.e-permits-doc-cond` / `.e-permits-doc-val` / `code.e-permits-doc-kw` / `.e-permits-doc-kwselect`) with builder hooks `data-fb-rule-*` / `data-fb-cond-*`; in the panel rows use the phone layout | `logicTabHtml` / `ruleHtml` / `applyLogic` (js/form-builder.js) | app |
+| FO field group (one component = several fields: IDNO + denumire, consent + IDNP + Nume + Prenume, Persoana de contact) | `.e-permits-fo-field-group` (whole row; the section's 12-col grid + gaps inside; 1 column ≤860) · `--stack` (flex column, gap 20 — contact) | `idnoFieldHtml`, `idnpFieldHtml` (rsp), `contactPersonHtml({ prefix })` | app |
+| Registry lookup by a 13-digit code (IDNO → RSUD, IDNP → RSP) | ONE helper `createRegistryLookup({ input, hint, targets, find, … })` (+ `setRegistryValue`): hint → `__loading` message, targets → input skeleton (`is-srre-loading`), fill read-only with green check + `is-srre-new`, not found → FO field error. Markup hooks `[data-fo-registry-lookup][data-fo-registry=rsud|rsp]`, `[data-fo-registry-code]`, `[data-fo-registry-target=name|last|first]`, `[data-fo-digits]` + `[data-fo-digits-counter]` (n/13), `[data-fo-lookup-consent]` | guest IDNO (G1b/G3/G5) + Form Builder IDNO / IDNP; `?registru=asteptare` | app |
+| Boxed doc field with several files | `.e-permits-fo-doc-field--boxed.e-permits-fo-doc-field--multi` (button stays until `is-full`) + `data-fo-upload-only` (picker without MDocs), `data-fo-doc-accept`, `data-fo-doc-max`, `data-fo-doc-limits` (modal captions) | Form Builder „Fișier” | app |
+| Form Builder · hidden field marker | `p.e-permits-builder__hidden-marker` (dashed 1px border/base/default, r8, 40 high, `icon-data-access` + „Ascuns” + name · value, ellipsis + title) — Build canvas only; the FO renders `<input type="hidden" data-fo-hidden>` | „Câmp ascuns” card | app |
+| Form Builder · saved components | palette group `[data-fb-library-saved]` „Componente salvate” (system preset + saved, version `renderTag("vN")`), card foot tag „Salvată” (`icon-bookmark`), panel group „Componentă salvată” (facts + Actualizează din sursă / Salvează în sursă / Detașează), modal `#fb-preset-modal` (library `modal--md e-permits-passport__modal`) | `insertPreset` / `presetAction` / `openPresetModal` | app |
+| Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
@@ -2998,7 +3004,7 @@ Contracts: `data-workplace-*` (`row`, `sort`, `page`, `page-size`, `select-row`,
 
 Note it styles bare `<th>` / `<td>` — there are no cell classes.
 
-### `e-permits-builder__*` — Form Builder (rebuilt 2026-10-13, batches 0–1)
+### `e-permits-builder__*` — Form Builder (rebuilt 2026-10-13, batches 0–3)
 
 Spec `tools/persona-test/specs/svc/form-builder.md`. Markup shell in `e-permits-acte-permisive.html`
 (`#form-builder-modal`), logic `js/form-builder.js`, CSS `css/form-builder.css` (on top of the older
@@ -3017,7 +3023,8 @@ settings) → `steps[]` (service steps edit; `locked` platform steps: Date solic
 defaults; `soon: N` = listed in the palette as „În curând” (disabled, reason tooltip „În lucru — etapa N”)
 — never a faked component. Built: Text, Text multilinie, Număr, Sumă, Email, Telefon, Dată, Listă
 derulantă, Butoane radio, Casetă de bifare, Listă de bifare, Adresă, Secțiune, Text informativ (+ the
-configured preset „Adresa obiectului”).
+configured preset „Adresa obiectului”); batch 2 and 3 below. Still „În curând”: Grilă editabilă, Bloc
+repetabil (4), Câmp calculat, Dată și oră (5), Arbore.
 
 **One renderer.** `toFo(field, { prefix, inCard, lang })` projects a builder field onto the FO schema
 shape; the canvas card body, the Preview and the request form all call
@@ -3096,6 +3103,72 @@ phone form. Service steps move with ⋮ Mută la stânga / dreapta or Alt+←/�
 stay).
 
 States `fb-01…fb-27` (see `js/demo-states.js`; QA scope `#form-builder-modal`).
+
+**Batch 3 (2026-10-13) — registre și context.** All nine render through `stepFieldHtml`; the registry
+lists no „În curând” for them any more.
+- **IDNP** — Date › „De unde vine IDNP-ul”: *Solicitantul — din MPass* (`readonlyFieldHtml` with id, hint
+  „Preluat din MPass.”, green check) · *Introdus de solicitant* (`codeInputHtml`: digits only + `n/13`
+  counter, format check only — **never a name lookup from a typed IDNP**, the guest privacy rule) ·
+  *Introdus și verificat în RSP* (US-48: `.e-permits-fo-field-group` = the post-process declaration
+  `label.checkbox.e-permits-fo-consent.e-permits-fo-pp-consent[data-fo-lookup-consent]`, the IDNP
+  disabled until it is ticked, then Nume + Prenume read-only targets; whole row). Validare: 13 digits +
+  message.
+- **IDNO** — always the pair IDNO (4) + „Denumirea companiei” (8, label editable): *Compania
+  solicitantului — din MPass* (both read-only) or *Introdus și căutat în Registrul de Stat* (the guest
+  lookup, now the shared `createRegistryLookup`: loading hint + skeleton → filled read-only + flash, or
+  „Nu am găsit o companie cu acest IDNO în Registrul de Stat.”).
+- **Persoana de contact** — `contactPersonHtml({ prefix, parts, label })`: radio option rows „Eu” /
+  „Altă persoană” (default in General), visible legend = the label; Date = parts Nume și prenume ·
+  Telefon · Email with Vizibil + Obligatoriu* (address-parts markup without details). „Eu” shows the
+  applicant's phone / email read-only (MPass / MNotify). The FO step (no `prefix`) is unchanged.
+- **Subdiviziune** — Date: the classifier (`kind: "subdivisions"`, e.g. Subdiviziuni ANSA) + Mod:
+  *Derivată din adresă* (pick the Adresă field; raion → subdivision mapping built from the classifier
+  names; `fo:raion-changed`, the applicant may change it) · *Aleasă de solicitant* (`data-fo-subdivision-mode="select"`,
+  no suggestion) · *Automat — o singură subdiviziune* (read-only value, US-48 „Autoselect”). Errors:
+  no classifier, no address field, no automatic value.
+- **Fișier** — the boxed doc field (guest procură): dashed block + black `btn btn-strict btn-md` „Adaugă
+  fișier” with `icon-upload`; description = help + „PDF, JPG, PNG · maximum 10 MB[ · până la N fișiere]”;
+  optional = `.e-permits-fo-optional-tag`. Validare: types (check options), max size 1–60 MB, count 1–10.
+  The picker opens on the upload tab only, with the field's accept list and captions.
+- **Document din MDocs** — the Acte necesare doc field (`postprocessDocFieldHtml`) → the picker with
+  „Caută în librărie” (MDocs) + „Încarcă fișier”; Date › „Tipul documentului în MDocs” fills the
+  description.
+- **Câmp ascuns** — never drawn for the applicant (`<input type="hidden" data-fo-hidden>`); the Build
+  card shows the dashed `__hidden-marker`. Date › Sursa valorii: Valoare fixă (required) · Din
+  precompletare (tip solicitare, tip solicitant, IDNP / IDNO solicitant, canal, cod serviciu) · Din
+  regulă → Logică offers only „Setează valoarea” (+ „Valoarea setată” input; the last rule that holds
+  wins). General = „Denumire internă” + key; no Aspect.
+- **Consimțământ** — the FO consent checkbox; „Textul declarației” + „Textul linkului” (must occur in the
+  text) + „Adresa textului legal” (https, new tab); Obligatoriu checked and disabled with the reason
+  „Un consimțământ este întotdeauna obligatoriu.”.
+- **Componente salvate** — ⋮ (card or panel) › „Salvează ca componentă” → `#fb-preset-modal`
+  (Denumire*, unique; Descriere; Cine o poate folosi). The configuration is saved (key and rules are
+  not); the field stays linked (`field.preset = { id, version }`, card foot tag „Salvată”). Palette group
+  „Componente salvate” (system „Adresa obiectului” + saved, `vN` tag); click / drag inserts a linked copy.
+  Panel group „Componentă salvată”: Sursa · Versiune · Stare + **Actualizează din sursă** (source newer;
+  keeps id, key, label, rules) · **Salvează în sursă** (copy changed; version + 1; asks first when other
+  copies use it; not for system presets) · **Detașează**.
+- **Avansat** (every input): Identificare (key + internal id as `.e-permits-fo-copy-value`, column, SQL
+  type) · Integrare (Cheie API / integrare, default `<form>.<key>`; Mapare în Back Office; Descriere
+  tehnică) · Editabil la tipurile de solicitare (check options per request type) · Afișat în (Verificare,
+  formular de tipar, RAP) · Date personale (+ Păstrare) · Proprietăți FOD (Clearable, Immediate — text
+  family) · Jurnal (added, last change, changes in session; MLog note).
+- **Reguli de dată** (Dată › Validare, US-41): rule cards „Această dată” + comparison (înainte de / cel
+  târziu la / după / cel mai devreme la) + Data curentă or another Dată + `± N | zile ▾` (value group with
+  a trailing unit); „Se citește: …” line; the other date lists the rule as **Reciprocă** (a row that opens
+  the owner); storing both directions = cycle error. Preview checks them on „Validează”.
+- **Logică „Alt câmp”**: text / number / date / choice conditions get the „Valoare / Alt câmp” mode in the
+  value group (as Servicii › Documente); the other field's answer is compared live; it counts for „Folosit
+  în” and the cycle check.
+- **Preview „Validează”** (`btn btn-secondary btn-sm`, first in the bar): the „Înainte” checks in runtime
+  order — Obligatoriu („Câmp obligatoriu” / „Alege o opțiune.” / „Bifează pentru a continua.” /
+  „Atașează documentul.”) → format → limits → date rules; FO field error (hint hidden), selects /
+  textareas `is-error`, checkboxes `checkbox--error`, doc fields in the description; focus + scroll to
+  the first error, an edit clears it; no error → toast „Pasul trece verificarea: nicio eroare.”.
+
+States `fb-30…fb-43` (palette, IDNP 31–31d, IDNO 32–32c, contact 33–33a, subdivision 34–34b, file 35–35d,
+MDocs 36–36a, hidden 37–37b, consent 38–38b, saved 39–39b, Avansat 40–40a, date rules 41–41c, Alt câmp 42,
+Validează 43–43a).
 
 ### `rap-*` and `cab-*` — the two standalone pages
 

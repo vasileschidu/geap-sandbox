@@ -386,7 +386,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-fo-select${disabled ? " is-disabled" : ""}${error ? " is-error" : ""}" data-fo-native-select>
         <select ${attrs} hidden tabindex="-1"${disabled ? " disabled" : ""}>${optionsHtml}</select>
         <button class="e-permits-fo-select__button" type="button" id="${escapeHtml(id)}" aria-haspopup="listbox" aria-expanded="false"${label ? ` aria-label="${escapeHtml(label)}"` : ""}${disabled ? " disabled" : ""}>
-          <span class="e-permits-fo-select__value${isPlaceholder ? " e-permits-fo-select__value--placeholder" : ""}">${escapeHtml(chosen?.textContent.trim() || "")}</span>
+          <span class="e-permits-fo-select__value${isPlaceholder ? " e-permits-fo-select__value--placeholder" : ""}" title="${escapeHtml(chosen?.textContent.trim() || "")}">${escapeHtml(chosen?.textContent.trim() || "")}</span>
           <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
         </button>
       </div>
@@ -505,6 +505,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const select = root.querySelector("select");
     const value = root.querySelector(".e-permits-fo-select__value");
     value.textContent = item.textContent;
+    /* a long option is truncated in the box: the full text as a tooltip (PO rule) */
+    value.title = item.textContent.trim();
     value.classList.remove("e-permits-fo-select__value--placeholder");
     root.classList.remove("is-error");
     closeFoSelect({ focus: true });

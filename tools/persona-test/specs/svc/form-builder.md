@@ -216,11 +216,11 @@ excluded and emptied (US-42 AC-11). Server re-validates everything (US-41 AC-41,
 
 | Component | Icon | FO render | Specific properties | Validare | FO behaviour |
 |---|---|---|---|---|---|
-| **IDNP (persoană)** — lookup RSP (US-48) | `icon-id-card` | `.e-permits-fo-input` + library `.search-input` submit pattern (as „Cod cadastral”) + filled read-only targets `is-filled is-readonly` + `.e-permits-fo-skeleton--input` | Registru: RSP (MConnect) · Câmpuri completate: Nume, Prenume, Data nașterii … (map to existing fields) · Afișează IDNP în cerere (Da/Nu, US-48 history) · Consimțământ cerut (checkbox before lookup, `.e-permits-fo-pp-consent`) | 13 cifre (IDNP preset) · „IDNP inexistent în RSP” | loading „Se caută în Registrul de Stat al Populației…”; error → manual entry allowed? (I-Q) ; audit each call |
-| **IDNO (companie)** — lookup RSUD (US-49, guest) | `icon-business` | same pattern; existing guest IDNO → registry name | Registru: RSUD · Completează: Denumire, Forma juridică, Adresa juridică · Autocompletare din solicitant când … (Logică) | 13 cifre (IDNO preset) | 62b: Da ⇒ IDNO + name of the applicant read-only; Nu ⇒ editable + RSUD lookup |
-| **Persoana de contact** (pattern, US-13 AC-11/12) — built in FO | `icon-contacts` | `contactPersonHtml` (radio option rows A „Eu sunt persoana de contact” / B „Altă persoană”) | câmpuri: Nume, Prenume, Telefon, Email (Vizibilitate / Obligatoriu per part, like Adresă) | as Telefon/Email | A = prefilled read-only from S3; B = editable |
+| **IDNP (persoană)** — lookup RSP (US-48) — **built (batch 3, `fb-31*`)** | `icon-id-card` | `.e-permits-fo-input` + library `.search-input` submit pattern (as „Cod cadastral”) + filled read-only targets `is-filled is-readonly` + `.e-permits-fo-skeleton--input` | Registru: RSP (MConnect) · Câmpuri completate: Nume, Prenume, Data nașterii … (map to existing fields) · Afișează IDNP în cerere (Da/Nu, US-48 history) · Consimțământ cerut (checkbox before lookup, `.e-permits-fo-pp-consent`) | 13 cifre (IDNP preset) · „IDNP inexistent în RSP” | loading „Se caută în Registrul de Stat al Populației…”; error → manual entry allowed? (I-Q) ; audit each call |
+| **IDNO (companie)** — lookup RSUD (US-49, guest) — **built (batch 3, `fb-32*`)** | `icon-business` | same pattern; existing guest IDNO → registry name | Registru: RSUD · Completează: Denumire, Forma juridică, Adresa juridică · Autocompletare din solicitant când … (Logică) | 13 cifre (IDNO preset) | 62b: Da ⇒ IDNO + name of the applicant read-only; Nu ⇒ editable + RSUD lookup |
+| **Persoana de contact** (pattern, US-13 AC-11/12) — built in FO; **builder component built (batch 3, `fb-33*`)** | `icon-contacts` | `contactPersonHtml` (radio option rows A „Eu sunt persoana de contact” / B „Altă persoană”) | câmpuri: Nume, Prenume, Telefon, Email (Vizibilitate / Obligatoriu per part, like Adresă) | as Telefon/Email | A = prefilled read-only from S3; B = editable |
 | **Date solicitant** (locked step, US-12) | `icon-identity` | existing step 1 renderer | none in builder (platform) — only „Câmpuri afișate” read-only list | — | shown as 🔒 step |
-| **Subdiviziune** (US-13 AC-05/06, US-48 „Autoselect”) — FO built | `icon-group` | `subdivisionFieldHtml` | Mod: Automat din pașaport (1 subdiviziune ⇒ ascuns / read-only) · Derivat din adresă (câmp Adresă → raion) · Selectat de solicitant | required | reset when the address changes |
+| **Subdiviziune** (US-13 AC-05/06, US-48 „Autoselect”) — FO built; **builder component built (batch 3, `fb-34*`)** | `icon-group` | `subdivisionFieldHtml` | Mod: Automat din pașaport (1 subdiviziune ⇒ ascuns / read-only) · Derivat din adresă (câmp Adresă → raion) · Selectat de solicitant | required | reset when the address changes |
 
 ### C.6 Adresă
 
@@ -232,8 +232,8 @@ excluded and emptied (US-42 AC-11). Server re-validates everything (US-41 AC-41,
 
 | Component | Icon | FO render | Specific properties | Validare | FO behaviour |
 |---|---|---|---|---|---|
-| **Fișier** (Attachment, 85693) | `icon-attachment` | `.e-permits-fo-doc-field` (+ `--boxed` inside a section) + `e-permits-fo-file-item` states uploading / uploaded / error | Tipuri permise (PDF, PNG, JPG, XLSX…) · Mărime max (MB) · Număr fișiere 1..n · Previzualizare | „Formatul fișierului nu este acceptat”, „Fișierul depășește {max} MB” | Success state missing in library (components.md File Input) |
-| **Document din MDocs** (prototype `mdocs`) | `icon-cloud-upload` | same doc field + MDocs picker | Tip document MDocs | as Fișier | pick from MDocs or upload |
+| **Fișier** (Attachment, 85693) — **built (batch 3, `fb-35*`)** | `icon-attachment` | `.e-permits-fo-doc-field` (+ `--boxed` inside a section) + `e-permits-fo-file-item` states uploading / uploaded / error | Tipuri permise (PDF, PNG, JPG, XLSX…) · Mărime max (MB) · Număr fișiere 1..n · Previzualizare | „Formatul fișierului nu este acceptat”, „Fișierul depășește {max} MB” | Success state missing in library (components.md File Input) |
+| **Document din MDocs** (prototype `mdocs`) — **built (batch 3, `fb-36*`)** | `icon-cloud-upload` | same doc field + MDocs picker | Tip document MDocs | as Fișier | pick from MDocs or upload |
 | **Documente însoțitoare** | — | platform step 4 (US-20 / US-225) | not a builder component; rules reference form fields (US-225 AC-17) | — | builder shows which fields are referenced (Avansat › „Folosit în”) |
 
 ### C.8 Repetitive (1:N)
@@ -248,9 +248,9 @@ excluded and emptied (US-42 AC-11). Server re-validates everything (US-41 AC-41,
 
 | Component | Icon | FO render | Specific properties | Validare | FO behaviour |
 |---|---|---|---|---|---|
-| **Câmp ascuns** (US-48 Autoselect, Typeform/Tally hidden fields) | `icon-data-access` | not rendered (Preview shows a dashed „Ascuns · valoare” chip only in Build) | Valoare: din pașaport · din solicitant (IDNP/IDNO, tip) · din context (tip solicitare, canal) · constantă | — | goes to BO / RAP; never shown to the applicant |
+| **Câmp ascuns** (US-48 Autoselect, Typeform/Tally hidden fields) — **built (batch 3, `fb-37*`)** | `icon-data-access` | not rendered (Preview shows a dashed „Ascuns · valoare” chip only in Build) | Valoare: din pașaport · din solicitant (IDNP/IDNO, tip) · din context (tip solicitare, canal) · constantă | — | goes to BO / RAP; never shown to the applicant |
 | **Câmp calculat** (Form.io calculated value, Tally /calc) — not in Azure | `icon-calculator` | read-only `.e-permits-fo-input.is-filled.is-readonly` | Formulă (câmpuri numerice/dată + − × ÷, zile între date) · Format | — | e.g. total suprafață, nr. de zile; **PO decision (I-Q)** |
-| **Consimțământ / Declarație** (GOV.UK declaration, FO post-process) | `icon-shield` | `label.checkbox.checkbox--medium.e-permits-fo-consent` | Text RO*/RU/EN (link allowed) · Obligatoriu (always on) | must be checked | e.g. „Declar pe proprie răspundere …” |
+| **Consimțământ / Declarație** (GOV.UK declaration, FO post-process) — **built (batch 3, `fb-38*`)** | `icon-shield` | `label.checkbox.checkbox--medium.e-permits-fo-consent` | Text RO*/RU/EN (link allowed) · Obligatoriu (always on) | must be checked | e.g. „Declar pe proprie răspundere …” |
 | **Semnătură** | `icon-signature` | platform step Verificare + MSign (US-14/15) | not a builder component | — | — |
 
 **Totals:** 9 categories, **40 entries** (6 structure, 7 text/number, 7 choice, 4 date/time,
@@ -437,9 +437,21 @@ only what the BO uses — every field must be mapped or justified, warning if un
 | **0 · Foundation** | component registry `FB_COMPONENTS`; Preview + canvas card + FO through one `renderFO` (extend `stepFieldHtml`, delete `previewFieldControl` heuristics); schema = steps → sections → fields; properties panel shell with library tabs + full-flow controls; Obligatoriu = checkbox option everywhere (incl. Address parts); RO labels for all builder chrome (Field library → „Bibliotecă”, Configured → „Componente configurate”, Data source → „Date”, Unconfigured → „Neconfigurat”, Search… → „Caută”) | `fb-01`, `fb-02` |
 | **1 · MVP palette** | categories + search + click-to-add; Text, Text multilinie, Email, Telefon, Număr, Sumă, Dată (date picker), Listă derulantă (exists), Butoane radio (+ Da/Nu), Casetă de bifare, Listă de bifare, Text informativ, Secțiune (multi-section), Adresă (exists); tabs General + Validare (presets + Testează); duplicate, delete + undo toast, `⋮ Mută în…`, keyboard moves; live `N erori` summary | `fb-03…fb-09`, `fb-11…fb-13` |
 | **2 · Logică + structure** | Logică tab (US-42 via `.e-permits-doc-rule`), section/step visibility, date rules (US-41), cascade already in Date; Selecție multiplă, Comutator segmentat, Perioadă, Notă cu titlu, Separator; step panel (add/rename/reorder service steps, locked platform steps); Preview toolbar (Desktop/Mobil, limbă, date de test) | `fb-10`, `fb-10a`, `fb-14`, `fb-14a`, `fb-20` |
-| **3 · Registre și context** | IDNP (RSP), IDNO (RSUD) lookups with read-only targets + skeleton/errors; Persoana de contact pattern; Subdiviziune; Câmp ascuns; Consimțământ; Fișier; Document din MDocs; „Componente configurate” save/insert; Avansat tab (Editabil la, RAP, tipar, GDPR) | `fb-15`, `fb-15a`, `fb-17`, `fb-19` |
+| **3 · Registre și context** — ✅ built 13 oct 2026 (+ batch-2 leftovers: reguli de dată US-41, „Alt câmp”, Preview „Validează”) | IDNP (RSP), IDNO (RSUD) lookups with read-only targets + skeleton/errors; Persoana de contact pattern; Subdiviziune; Câmp ascuns; Consimțământ; Fișier; Document din MDocs; „Componente configurate” save/insert; Avansat tab (Editabil la, RAP, tipar, GDPR) | `fb-15`, `fb-15a`, `fb-17`, `fb-19` |
 | **4 · Grilă** | Grilă editabilă (column editor US-34, rules US-36, complex columns US-37, ≤ 3 levels), Activități CAEM as a configured preset, Bloc repetabil; mobile row cards | `fb-16`, `fb-16a`, `fb-16b` |
 | **5 · Form level** | Date generale (versions, languages, request types), publish with blockers, Istoric versiuni, Schema export/import, translations completeness view; P3: Câmp calculat, Dată și oră, outline tree, multi-select, `/` insert menu | `fb-18`, `fb-21`, `fb-22` |
+
+**Batch 3 status (13 oct 2026).** Built: IDNP (MPass / typed / RSP with declaration), IDNO (MPass /
+RSUD via the shared guest lookup), Persoana de contact (parts), Subdiviziune (derived / chosen /
+automatic, classifier source), Fișier (boxed, types · size · count), Document din MDocs, Câmp ascuns
+(fixed / context / rule „Setează valoarea”), Consimțământ (linked legal text, always required),
+Componente salvate (save · insert · update from source · push to source · detach), Avansat (copy key / id,
+API key, BO mapping, editable per request type, shown in, GDPR + retention, FOD props, audit), date
+rules with reciprocity (US-41), Logică „Alt câmp”, Preview „Validează”. Demo states `fb-30…fb-43`
+(the planned `fb-15/15a/17/19` are covered by `fb-32/32b`, `fb-17` (unchanged), `fb-39`).
+Not built / open: RSP manual entry when the registry is down (I-8), IDNO name for a PF applicant in
+„din MPass” mode (shows „—”), MDocs document type list from a real classifier, „CSS width override”
+(not in the spec → not built), field-level audit is session-only (no MLog backend).
 
 **Demo states to add** (`js/demo-states.js`, `flow: "builder"`; scope selector `#form-builder-modal`):
 

@@ -1263,24 +1263,32 @@
       `;
     }
 
+    /* Subdiviziune (US-13 AC-05/06, US-48): derived from the address district (default), picked
+       by the applicant (`mode: "select"`) or — one subdivision only — filled read-only (`"auto"`) */
     function subdivisionFieldHtml(field) {
       const id = fieldId(field.id);
       const listId = `${id}-list`;
-      const mappingJson = escapeFrontOfficeHtml(JSON.stringify(field.mapping || {}));
       const options = Array.isArray(field.subdivisions) ? field.subdivisions : [];
+      if (field.mode === "auto") {
+        return readonlyFieldHtml({ id, label: field.label || "Subdiviziunea", value: options[0] || "—", span: field.span, required: field.required, hint: field.hint || "Completată automat: serviciul are o singură subdiviziune." });
+      }
+      const pick = field.mode === "select";
+      const mappingJson = escapeFrontOfficeHtml(JSON.stringify(field.mapping || {}));
+      const placeholder = pick ? field.placeholder || "Selectează subdiviziunea" : "Va fi sugerată după raion";
+      const hint = pick ? field.hint || "" : field.hint || "Selectați raionul pentru a sugera subdiviziunea automat.";
       return `
-        <div class="${fieldClass(field)} e-permits-fo-subdivision-field" data-fo-subdivision data-fo-subdivision-mapping="${mappingJson}">
+        <div class="${fieldClass(field)} e-permits-fo-subdivision-field" data-fo-subdivision${pick ? ' data-fo-subdivision-mode="select"' : ` data-fo-subdivision-mapping="${mappingJson}"`}>
           ${labelHtml(id, field)}
           <div class="e-permits-fo-select" data-fo-cascade-select data-fo-subdivision-select>
             <button class="e-permits-fo-select__button" id="${escapeFrontOfficeHtml(id)}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(listId)}">
-              <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>Va fi sugerată după raion</span>
+              <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>${escapeFrontOfficeHtml(placeholder)}</span>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-select__list" id="${escapeFrontOfficeHtml(listId)}" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" hidden>
               ${options.map((opt) => `<li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="${escapeFrontOfficeHtml(opt)}" tabindex="-1">${escapeFrontOfficeHtml(opt)}</li>`).join("")}
             </ul>
           </div>
-          <p class="e-permits-fo-field__hint" data-fo-subdivision-hint>Selectați raionul pentru a sugera subdiviziunea automat.</p>
+          ${hint ? `<p class="e-permits-fo-field__hint" data-fo-subdivision-hint>${escapeFrontOfficeHtml(hint)}</p>` : ""}
         </div>
       `;
     }
@@ -1908,7 +1916,10 @@
       const hint = root.querySelector("[data-fo-subdivision-hint]");
       let userOverride = false;
       const select = bindCascadeSelect(selectEl, { onChange: () => { userOverride = true; if (hint) hint.hidden = true; } });
+      /* picked by the applicant: no suggestion from the address */
+      if (root.dataset.foSubdivisionMode === "select") return;
       document.addEventListener("fo:raion-changed", (e) => {
+        if (!root.isConnected) return;
         if (userOverride) return;
         const raionValue = e.detail?.raion;
         const suggested = raionValue ? mapping[raionValue] : null;
@@ -2053,25 +2064,42 @@
       return readonlyPhoneHtml(value, { flag, code });
     }
 
+    /* Persoana de contact (US-13 AC-11/12): radio option rows „Eu” (prefilled, read-only) / „Altă
+       persoană” (typed). The FO step calls it with the schema field only (ids as always); the Form
+       Builder adds `prefix` (unique ids per surface), `parts` (name · phone · email: visible /
+       required, like the address parts), `label` (a visible legend) and one wrapper element. */
     function contactPersonHtml(field) {
-      const phoneField = { id: "contact-phone-self", label: "Telefon", span: 6, value: "60 999 999", countryCodes: [{ flag: "🇲🇩", code: "+373" }] };
-      return `
+      const prefix = field.prefix || "";
+      const pid = (id) => (prefix ? `${prefix}-${id}` : id);
+      const name = prefix ? `${fieldId(prefix)}-contact` : "fo-contact-person";
+      const parts = field.parts || null;
+      const shown = (key) => !parts || parts[key]?.visible !== false;
+      const required = (key, fallback) => (parts ? Boolean(parts[key]?.required) : fallback);
+      const phoneField = { id: pid("contact-phone-self"), label: "Telefon", span: 6, value: field.selfPhone || "60 999 999", countryCodes: [{ flag: "🇲🇩", code: "+373" }] };
+      const selfEmail = parts && shown("email") ? readonlyFieldHtml({ id: fieldId(pid("contact-email-self")), label: "Email", value: field.selfEmail || "—", span: 6 }) : "";
+      const otherEmail = parts && shown("email") ? textFieldHtml({ id: pid("contact-email"), type: "email", label: "Email", required: required("email", false), span: 6, placeholder: "nume@exemplu.md", autocomplete: "email" }) : "";
+      const legend = prefix && field.label
+        ? `<legend class="e-permits-fo-choice__legend">${escapeFrontOfficeHtml(field.label)}${field.required ? ` ${requiredMarkerHtml()}` : ""}</legend>`
+        : `<legend class="u-visually-hidden">Alege persoana de contact</legend>`;
+      const html = `
         <fieldset class="e-permits-fo-radio-group e-permits-fo-radio-group--contact" data-fo-contact-person>
-          <legend class="u-visually-hidden">Alege persoana de contact</legend>
-          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="fo-contact-person" value="self" ${field.default !== "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Eu sunt persoana de contact</span></label>
-          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="fo-contact-person" value="other" ${field.default === "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Altă persoană</span></label>
+          ${legend}
+          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="${name}" value="self" ${field.default !== "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Eu sunt persoana de contact</span></label>
+          <label class="e-permits-fo-radio e-permits-fo-radio--option"><input type="radio" name="${name}" value="other" ${field.default === "other" ? "checked" : ""}><span class="e-permits-fo-radio__control" aria-hidden="true"></span><span>Altă persoană</span></label>
         </fieldset>
         <div class="e-permits-fo-detail-card e-permits-fo-contact-card e-permits-fo-contact-card--self" data-fo-contact-self>
-          <div class="e-permits-fo-contact-card__grid">${phoneFieldHtml(phoneField, { readonly: true })}</div>
+          <div class="e-permits-fo-contact-card__grid">${shown("phone") ? phoneFieldHtml(phoneField, { readonly: true }) : ""}${selfEmail}</div>
         </div>
         <div class="e-permits-fo-detail-card e-permits-fo-contact-card" data-fo-contact-other hidden>
           <div class="e-permits-fo-contact-card__grid">
-            ${textFieldHtml({ id: "contact-first-name", label: "Nume", required: true, span: 6, placeholder: "Anastasia", autocomplete: "given-name" })}
-            ${textFieldHtml({ id: "contact-last-name", label: "Prenume", required: true, span: 6, placeholder: "Cojocaru", autocomplete: "family-name" })}
-            ${phoneFieldHtml({ id: "contact-phone", label: "Telefon", required: true, span: 6, placeholder: "60 999 999", countryCodes: [{ flag: "🇲🇩", code: "+373" }, { flag: "🇷🇴", code: "+40" }, { flag: "🇺🇦", code: "+380" }] })}
+            ${shown("name") ? textFieldHtml({ id: pid("contact-first-name"), label: "Nume", required: required("name", true), span: 6, placeholder: "Anastasia", autocomplete: "given-name" }) : ""}
+            ${shown("name") ? textFieldHtml({ id: pid("contact-last-name"), label: "Prenume", required: required("name", true), span: 6, placeholder: "Cojocaru", autocomplete: "family-name" }) : ""}
+            ${shown("phone") ? phoneFieldHtml({ id: pid("contact-phone"), label: "Telefon", required: required("phone", true), span: 6, placeholder: "60 999 999", countryCodes: [{ flag: "🇲🇩", code: "+373" }, { flag: "🇷🇴", code: "+40" }, { flag: "🇺🇦", code: "+380" }] }) : ""}
+            ${otherEmail}
           </div>
         </div>
       `;
+      return prefix ? `<div class="e-permits-fo-field-group e-permits-fo-field-group--stack">${html}</div>` : html;
     }
 
     function caemOptionHtml(option) {
@@ -2251,7 +2279,7 @@
           <label class="checkbox checkbox--medium e-permits-fo-consent" for="${escapeFrontOfficeHtml(id)}">
             <input class="checkbox-input" type="checkbox" id="${escapeFrontOfficeHtml(id)}"${field.value ? " checked" : ""}${field.readOnly ? " disabled" : ""}${field.required ? ' aria-required="true"' : ""}${fieldDescribedBy(id, field)}>
             <span class="checkbox-custom" aria-hidden="true"></span>
-            <span>${escapeFrontOfficeHtml(field.label || "")}${field.required ? ` ${requiredMarkerHtml()}` : ""}</span>
+            <span>${field.labelHtml || escapeFrontOfficeHtml(field.label || "")}${field.required ? ` ${requiredMarkerHtml()}` : ""}</span>
           </label>
           ${fieldHintHtml(id, field)}
         </div>
@@ -2369,6 +2397,128 @@
         </fieldset>`;
     }
 
+    /* ---- Form Builder batch 3: identity, registries, files, hidden, consent (2026-10-13) ---- */
+    const CHECK_ICON_HTML = '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>';
+
+    /* a 13-digit code input (IDNP / IDNO): digits only + the `n/13` counter (guest pattern); a
+       lookup group marks it `data-fo-registry-code`; `disabled` = waiting for the consent */
+    function codeInputHtml(field, { code = "IDNP", lookup = false, disabled = false } = {}) {
+      const id = fieldId(field.id);
+      const hint = field.hint || "13 cifre";
+      return `
+        <div class="${fieldClass(field)}">
+          <div class="e-permits-fo-field__label-counter">${labelHtml(id, field)}<span class="e-permits-fo-field__counter" data-fo-digits-counter>0/13</span></div>
+          <div class="e-permits-fo-input${disabled ? " is-disabled" : ""}">
+            <input id="${escapeFrontOfficeHtml(id)}" type="text" inputmode="numeric" maxlength="13" placeholder="Introdu ${code}" autocomplete="off" aria-describedby="${escapeFrontOfficeHtml(id)}-hint"${field.required ? ' aria-required="true"' : ""}${disabled ? " disabled" : ""} data-fo-digits${lookup ? " data-fo-registry-code" : ""}>
+          </div>
+          <p class="e-permits-fo-field__hint" id="${escapeFrontOfficeHtml(id)}-hint" data-fo-field-hint>${escapeFrontOfficeHtml(hint)}</p>
+        </div>`;
+    }
+
+    /* a read-only target filled by a registry lookup (empty until the answer arrives) */
+    function registryTargetHtml(id, label, key, span, placeholder) {
+      return `
+        <div class="${fieldClass({ span })}">
+          <label for="${escapeFrontOfficeHtml(id)}">${escapeFrontOfficeHtml(label)}</label>
+          <div class="e-permits-fo-input is-filled is-readonly">
+            <input id="${escapeFrontOfficeHtml(id)}" type="text" readonly tabindex="-1" placeholder="${escapeFrontOfficeHtml(placeholder)}" data-fo-registry-target="${key}">
+          </div>
+        </div>`;
+    }
+
+    /* IDNP (spec C.5). mode „applicant” = the signed-in person from MPass, read-only; „typed” = typed
+       in, format check only — never a name lookup (guest privacy rule: a typed IDNP must not reveal
+       who it is); „rsp” = US-48: a declaration of legal ground first, then RSP fills Nume + Prenume */
+    function idnpFieldHtml(field) {
+      const id = fieldId(field.id);
+      if (field.mode === "applicant") {
+        return readonlyFieldHtml({ id, label: field.label || "IDNP", value: field.value || "—", span: field.span, required: field.required, hint: field.hint || "Preluat din MPass." });
+      }
+      if (field.mode !== "rsp") return codeInputHtml(field, { code: "IDNP" });
+      const consent = field.consentText || "Declar pe proprie răspundere că dețin consimțământul sau temeiul legal pentru introducerea IDNP-ului și preluarea datelor prin platforma de interoperabilitate.";
+      return `
+        <div class="e-permits-fo-field-group" data-fo-registry="rsp" data-fo-registry-lookup>
+          <div class="${fieldClass({ span: 12 })}">
+            <label class="checkbox checkbox--medium e-permits-fo-consent e-permits-fo-pp-consent"><input class="checkbox-input" type="checkbox" data-fo-lookup-consent><span class="checkbox-custom" aria-hidden="true"></span><span>${escapeFrontOfficeHtml(consent)}</span></label>
+          </div>
+          ${codeInputHtml({ ...field, span: 4 }, { code: "IDNP", lookup: true, disabled: true })}
+          ${registryTargetHtml(`${id}-last`, "Nume", "last", 4, "Din RSP, după IDNP")}
+          ${registryTargetHtml(`${id}-first`, "Prenume", "first", 4, "Din RSP, după IDNP")}
+          <p class="u-visually-hidden" role="status" aria-live="polite" data-fo-registry-live></p>
+        </div>`;
+    }
+
+    /* IDNO (spec C.5, guest G1b): the code + „Denumirea companiei” read-only from the public registry
+       (the guest lookup); „applicant” = the company the user represents, both read-only */
+    function idnoFieldHtml(field) {
+      const id = fieldId(field.id);
+      const nameLabel = field.companyLabel || "Denumirea companiei";
+      if (field.mode === "applicant") {
+        return `
+          <div class="e-permits-fo-field-group">
+            ${readonlyFieldHtml({ id, label: field.label || "IDNO", value: field.value || "—", span: 4, required: field.required, hint: field.hint || "Preluat din MPass." })}
+            ${readonlyFieldHtml({ label: nameLabel, value: field.company || "—", span: 8 })}
+          </div>`;
+      }
+      return `
+        <div class="e-permits-fo-field-group" data-fo-registry="rsud" data-fo-registry-lookup>
+          ${codeInputHtml({ ...field, span: 4 }, { code: "IDNO", lookup: true })}
+          ${registryTargetHtml(`${id}-name`, nameLabel, "name", 8, "Se completează automat după IDNO")}
+          <p class="u-visually-hidden" role="status" aria-live="polite" data-fo-registry-live></p>
+        </div>`;
+    }
+
+    /* Fișier: the boxed doc field (guest procură) — dashed drop block + black Strict „Adaugă fișier”;
+       upload from the device only; types / size / count from the builder */
+    function fileFieldHtml(field) {
+      const id = fieldId(field.id);
+      const types = Array.isArray(field.types) && field.types.length ? field.types : ["PDF"];
+      const max = Math.max(1, Number(field.maxFiles) || 1);
+      const accept = types.flatMap((type) => FILE_TYPE_EXT[type] || []).join(",");
+      const limits = `${types.join(", ")} · maximum ${escapeFrontOfficeHtml(String(field.maxSizeMb || 10))} MB${max > 1 ? ` · până la ${max} fișiere` : ""}.`;
+      const label = escapeFrontOfficeHtml(field.label || "Fișier");
+      return `
+        <div class="${fieldClass(field)}">
+          <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed${max > 1 ? " e-permits-fo-doc-field--multi" : ""}" data-fo-doc-field="${escapeFrontOfficeHtml(id)}" data-fo-upload-only data-fo-doc-accept="${escapeFrontOfficeHtml(accept)}" data-fo-doc-max="${max}" data-fo-doc-limits="${escapeFrontOfficeHtml(`${types.join(", ")}|${field.maxSizeMb || 10} MB`)}">
+            <div class="e-permits-fo-doc-field__row">
+              <div class="e-permits-fo-doc-field__info">
+                <span class="e-permits-fo-doc-field__label">${label} ${field.required ? requiredMarkerHtml() : '<span class="e-permits-fo-optional-tag">Opțional</span>'}</span>
+                <p class="e-permits-fo-doc-field__desc" data-fo-guest-hint>${field.hint ? `${escapeFrontOfficeHtml(field.hint)} ` : ""}${limits}</p>
+              </div>
+              <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="${label}">
+                <svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
+                <span>Adaugă fișier</span>
+              </button>
+            </div>
+            <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+          </div>
+        </div>`;
+    }
+    const FILE_TYPE_EXT = { PDF: [".pdf"], JPG: [".jpg", ".jpeg"], PNG: [".png"], DOCX: [".docx"], XLSX: [".xls", ".xlsx"], ZIP: [".zip"] };
+
+    /* Document din MDocs: the Acte necesare doc field — „Adaugă fișier” opens the picker with the
+       MDocs library and the device upload */
+    function mdocsFieldHtml(field) {
+      const description = field.hint || (field.docType ? `Îl căutăm în MDocs: ${field.docType}. Îl poți încărca și de pe dispozitiv.` : "Alege-l din MDocs sau încarcă-l de pe dispozitiv.");
+      return `<div class="${fieldClass({ span: 12 })}">${postprocessDocFieldHtml({ id: fieldId(field.id), label: field.label || "Document", description, required: Boolean(field.required) })}</div>`;
+    }
+
+    /* Câmp ascuns: a value that travels with the request, never shown to the applicant */
+    function hiddenFieldHtml(field) {
+      return `<input type="hidden" id="${escapeFrontOfficeHtml(fieldId(field.id))}" name="${escapeFrontOfficeHtml(field.key || field.id)}" value="${escapeFrontOfficeHtml(field.value || "")}" data-fo-hidden>`;
+    }
+
+    /* Consimțământ: the FO consent checkbox; the first occurrence of `linkText` becomes the link to
+       the legal text (new tab) */
+    function consentFieldHtml(field) {
+      const text = escapeFrontOfficeHtml(field.text || field.label || "");
+      const link = escapeFrontOfficeHtml(field.linkText || "");
+      const at = link ? text.indexOf(link) : -1;
+      const labelHtml = at < 0 || !field.linkUrl ? text
+        : `${text.slice(0, at)}<a href="${escapeFrontOfficeHtml(field.linkUrl)}" target="_blank" rel="noopener">${link}</a>${text.slice(at + link.length)}`;
+      return checkboxFieldHtml({ ...field, span: 12, labelHtml });
+    }
+
     function stepFieldHtml(field) {
       if (field.type === "cascade-address") return cascadeAddressHtml(field);
       if (field.type === "subdivision") return subdivisionFieldHtml(field);
@@ -2390,6 +2540,12 @@
       if (field.type === "segment") return segmentFieldHtml(field);
       if (field.type === "multiselect") return multiselectFieldHtml(field);
       if (field.type === "period") return periodFieldHtml(field);
+      if (field.type === "idnp") return idnpFieldHtml(field);
+      if (field.type === "idno") return idnoFieldHtml(field);
+      if (field.type === "file") return fileFieldHtml(field);
+      if (field.type === "mdocs") return mdocsFieldHtml(field);
+      if (field.type === "hidden") return hiddenFieldHtml(field);
+      if (field.type === "consent") return consentFieldHtml(field);
       return "";
     }
 
@@ -3444,17 +3600,21 @@
       `;
     }
 
+    /* the FO Read Only field (prefilled from MPass / a registry): value + green check. Optional
+       `id` (the value can be read / described), `required` star and `hint` (Form Builder) */
     function readonlyFieldHtml(field) {
-      const span = [4, 6, 8, 12].includes(Number(field.span)) ? Number(field.span) : 4;
+      const span = [3, 4, 6, 8, 12].includes(Number(field.span)) ? Number(field.span) : 4;
+      const id = field.id ? escapeFrontOfficeHtml(field.id) : "";
       return `
         <div class="e-permits-fo-field e-permits-fo-field--span-${span}">
-          <label>${escapeFrontOfficeHtml(field.label)}</label>
+          <label${id ? ` id="${id}-label"` : ""}>${escapeFrontOfficeHtml(field.label)}${field.required ? ` ${requiredMarkerHtml()}` : ""}</label>
           <div class="e-permits-fo-input is-filled is-readonly">
-            <span class="e-permits-fo-input__value">${escapeFrontOfficeHtml(field.value)}</span>
+            <span class="e-permits-fo-input__value"${id ? ` id="${id}" role="textbox" aria-readonly="true" aria-labelledby="${id}-label" title="${escapeFrontOfficeHtml(field.value)}"${field.hint ? ` aria-describedby="${id}-hint"` : ""}` : ""}>${escapeFrontOfficeHtml(field.value)}</span>
             <svg class="icon" width="20" height="20" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
             </svg>
           </div>
+          ${id && field.hint ? fieldHintHtml(field.id, { hint: field.hint }) : ""}
         </div>
       `;
     }
@@ -3857,6 +4017,176 @@
 
     initAnimatedSegmentedControls();
 
+    /* ---- Registry lookup by a 13-digit code (2026-10-13) --------------------------------------
+       ONE implementation for the guest IDNO (G1b / G3 / G5) and the Form Builder IDNO / IDNP
+       components: at 13 digits the hint slot becomes the `__loading` message, every target field
+       shows the FO input skeleton (`is-srre-loading`), then the targets fill read-only (green check +
+       one `is-srre-new` flash) or the code field gets the not-found error (the caller's `setError`).
+       `?registru=asteptare` keeps the answer pending (demo). Mock registries: the flow schema's
+       subjects (PJ → RSUD, PF → RSP). */
+    const REGISTRY_LOOKUP_MS = 900;
+    const registryLookupPending = new URLSearchParams(window.location.search).get("registru") === "asteptare";
+
+    function setRegistryValue(input, value, { flash = false } = {}) {
+      const wrap = input?.closest(".e-permits-fo-input");
+      if (!wrap) return;
+      input.value = value || "";
+      wrap.querySelector(".icon")?.remove();
+      wrap.classList.remove("is-srre-new");
+      if (!value) return;
+      wrap.insertAdjacentHTML("beforeend", '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>');
+      if (flash) {
+        void wrap.offsetWidth;
+        wrap.classList.add("is-srre-new");
+        wrap.addEventListener("animationend", () => wrap.classList.remove("is-srre-new"), { once: true });
+      }
+    }
+
+    function createRegistryLookup({ input, hint, hintText = "13 cifre", targets = [], live = null, find, loadingText, notFound, foundText, setError }) {
+      const lookup = { token: 0, code: "", record: null, pending: null };
+      const setLoading = (on) => {
+        targets.forEach(({ input: target }) => {
+          const field = target?.closest(".e-permits-fo-field");
+          field?.querySelector("[data-fo-srre-skeleton]")?.remove();
+          field?.classList.toggle("is-srre-loading", on);
+          if (on) field?.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-skeleton e-permits-fo-skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
+        });
+        if (!hint) return;
+        if (on) {
+          hint.className = "message message--inline e-permits-fo-field__error e-permits-fo-field__loading";
+          hint.innerHTML = `<span class="spinner spinner--small spinner--brand" aria-hidden="true"></span><span>${escapeFrontOfficeHtml(loadingText)}</span>`;
+        } else {
+          hint.className = "e-permits-fo-field__hint";
+          hint.textContent = hintText;
+        }
+      };
+      const fill = (record, flash = false) => targets.forEach(({ input: target, value }) => setRegistryValue(target, record ? value(record) : "", { flash }));
+      lookup.cancel = () => {
+        lookup.token += 1;
+        lookup.pending = null;
+        lookup.code = "";
+        lookup.record = null;
+        setLoading(false);
+        fill(null);
+      };
+      lookup.run = (code) => {
+        lookup.cancel();
+        const token = lookup.token;
+        lookup.code = code;
+        setError?.(input, "");
+        setLoading(true);
+        if (live) live.textContent = "";
+        lookup.pending = new Promise((resolve) => { if (!registryLookupPending) window.setTimeout(resolve, REGISTRY_LOOKUP_MS); }).then(() => {
+          if (token !== lookup.token) return;
+          lookup.pending = null;
+          setLoading(false);
+          lookup.record = find(code) || null;
+          if (lookup.record) {
+            fill(lookup.record, true);
+            if (live) live.textContent = foundText(lookup.record);
+          } else {
+            setError?.(input, notFound);
+            if (live) live.textContent = notFound;
+          }
+        });
+      };
+      /* a full code asks the registry; a shorter one cancels the previous answer */
+      lookup.onInput = () => {
+        const digits = input.value.replace(/\D/g, "").slice(0, 13);
+        if (digits !== input.value) input.value = digits;
+        if (digits.length === 13) {
+          if (digits !== lookup.code) lookup.run(digits);
+        } else if (lookup.code) {
+          lookup.cancel();
+        }
+      };
+      return lookup;
+    }
+
+    const REGISTRY_COMPANY_NOT_FOUND = "Nu am găsit o companie cu acest IDNO în Registrul de Stat.";
+    const REGISTRY_PERSON_NOT_FOUND = "Nu am găsit o persoană cu acest IDNP în Registrul de Stat al Populației.";
+    function registryCompanies() {
+      return (frontOfficeSchema?.subjects || [])
+        .filter((subject) => subject.type === "PJ" && subject.idValue)
+        .map((subject) => ({ idno: subject.idValue, name: subject.name }));
+    }
+    /* first / last name: the subject's initials are first + last (e.g. „Vrabie Gheorghe” = GV) */
+    function splitPersonName(subject) {
+      const words = String(subject?.name || "").trim().split(/\s+/);
+      if (words.length < 2) return { first: words[0] || "", last: "" };
+      const firstFirst = !subject.initials || subject.initials[0] === words[0][0];
+      return firstFirst ? { first: words[0], last: words.slice(1).join(" ") } : { first: words[words.length - 1], last: words.slice(0, -1).join(" ") };
+    }
+    function registryPeople() {
+      const seen = new Set();
+      return (frontOfficeSchema?.subjects || []).flatMap((subject) => [subject, subject.representative].filter(Boolean))
+        .filter((person) => person.type === "PF" && person.idValue && !seen.has(person.idValue) && seen.add(person.idValue))
+        .map((person) => ({ idnp: person.idValue, ...splitPersonName(person) }));
+    }
+
+    /* the applicant of the request (MPass) — prefill for IDNP / IDNO / contact in the builder Preview */
+    function formApplicant() {
+      const subjects = frontOfficeSchema?.subjects || [];
+      const subject = frontOfficeSelectedSubject || subjects.find((item) => item.id === "pj-global-trader") || subjects[0] || {};
+      const person = subject.type === "PF" ? subject : subject.representative || subjects.find((item) => item.type === "PF") || {};
+      const company = subject.type === "PJ" ? subject : null;
+      return {
+        type: subject.type || "PF",
+        idnp: person.idValue || "", ...splitPersonName(person),
+        idno: company?.idValue || "", company: company?.name || "",
+        phone: subject.contact?.phone || "60 999 999",
+        email: subject.contact?.email || "",
+      };
+    }
+
+    /* builder / Preview: a lookup group (IDNO → RSUD, IDNP → RSP after the declaration) */
+    function bindRegistryLookup(group) {
+      if (group.foLookup) return;
+      const input = group.querySelector("[data-fo-registry-code]");
+      if (!input) return;
+      const person = group.dataset.foRegistry === "rsp";
+      const hint = group.querySelector("[data-fo-field-hint]");
+      const lookup = createRegistryLookup({
+        input,
+        hint,
+        hintText: hint?.textContent || "13 cifre",
+        targets: [...group.querySelectorAll("[data-fo-registry-target]")].map((target) => ({ input: target, value: (record) => record[target.dataset.foRegistryTarget] || "" })),
+        live: group.querySelector("[data-fo-registry-live]"),
+        find: (code) => (person ? registryPeople().find((item) => item.idnp === code) : registryCompanies().find((item) => item.idno === code)),
+        loadingText: person ? "Se caută persoana în Registrul de Stat al Populației…" : "Se caută compania în Registrul de Stat…",
+        notFound: person ? REGISTRY_PERSON_NOT_FOUND : REGISTRY_COMPANY_NOT_FOUND,
+        foundText: (record) => (person ? `Numele a fost preluat din Registrul de Stat al Populației: ${record.last} ${record.first}.` : `Denumirea companiei a fost preluată din Registrul de Stat: ${record.name}.`),
+        setError: setGuestFieldError,
+      });
+      group.foLookup = lookup;
+      input.addEventListener("input", () => {
+        if (input.getAttribute("aria-invalid") === "true") setGuestFieldError(input, "");
+        lookup.onInput();
+      });
+      const consent = group.querySelector("[data-fo-lookup-consent]");
+      consent?.addEventListener("change", () => {
+        input.disabled = !consent.checked;
+        input.closest(".e-permits-fo-input")?.classList.toggle("is-disabled", !consent.checked);
+        if (consent.checked) return;
+        input.value = "";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    }
+
+    /* 13-digit inputs: digits only + the `n/13` counter */
+    function bindDigitsInput(input) {
+      if (input.foDigits) return;
+      input.foDigits = true;
+      const counter = input.closest(".e-permits-fo-field")?.querySelector("[data-fo-digits-counter]");
+      const sync = () => {
+        const digits = input.value.replace(/\D/g, "").slice(0, 13);
+        if (digits !== input.value) input.value = digits;
+        if (counter) counter.textContent = `${digits.length}/13`;
+      };
+      input.addEventListener("input", sync);
+      sync();
+    }
+
     /* ===================================================================
        Guest requestor — „Date solicitant” without MPass. Figma FOD-Components-flow
        „Guest lane · without account” (633:7411, G1–G8); rules in components.md ›
@@ -3877,13 +4207,10 @@
        =================================================================== */
     const GUEST_TYPE_PARAM = { pf: ["PF"], pj: ["PJ"], pfpj: ["PF", "PJ"] };
     const guestTypeOverride = GUEST_TYPE_PARAM[(new URLSearchParams(window.location.search).get("guest") || "").toLowerCase()] || null;
-    const GUEST_LOOKUP_MS = 900;
-    /* demo: ?registru=asteptare keeps the registry answer pending (the loading state) */
-    const guestRegistryPending = new URLSearchParams(window.location.search).get("registru") === "asteptare";
     const GUEST_CARRY_KEY = "e-permits-fo-guest-carry";
     const GUEST_ERROR_ATTR = "data-fo-guest-error";
     const GUEST_REQUIRED = "Câmp obligatoriu";
-    const GUEST_NOT_FOUND = "Nu am găsit o companie cu acest IDNO în Registrul de Stat.";
+    const GUEST_NOT_FOUND = REGISTRY_COMPANY_NOT_FOUND;
     const GUEST_IDNO_HINT = "13 cifre";
 
     const guestScreen = frontOfficeGuestScreen;
@@ -3908,7 +4235,19 @@
     const guestLeaveModal = document.querySelector("[data-fo-guest-leave-modal]");
 
     let guestType = "PF";
-    const guestLookup = { token: 0, idno: "", company: null, pending: null };
+    /* IDNO → „Denumirea companiei”: the shared registry lookup (createRegistryLookup) */
+    const guestLookup = createRegistryLookup({
+      input: guestIdnoInput,
+      hint: guestIdnoHint,
+      hintText: GUEST_IDNO_HINT,
+      targets: guestCompanyInput ? [{ input: guestCompanyInput, value: (company) => company.name }] : [],
+      live: guestLive,
+      find: (idno) => registryCompanies().find((company) => company.idno === idno),
+      loadingText: "Se caută compania în Registrul de Stat…",
+      notFound: GUEST_NOT_FOUND,
+      foundText: (company) => `Denumirea companiei a fost preluată din Registrul de Stat: ${company.name}.`,
+      setError: (input, message) => setGuestFieldError(input, message),
+    });
     let guestLeaveReturnFocus = null;
     let guestUnloadAllowed = false;
 
@@ -3966,7 +4305,8 @@
       const field = input?.closest(".e-permits-fo-field");
       if (!field) return;
       const control = field.querySelector(".e-permits-fo-input, .e-permits-fo-phone--editable");
-      const hint = field.querySelector("[data-fo-guest-hint]");
+      /* also the Form Builder fields (registry lookups, Preview „Validează”) */
+      const hint = field.querySelector("[data-fo-guest-hint], [data-fo-field-hint]") || field.querySelector(":scope > .e-permits-fo-field__hint");
       let error = field.querySelector(`[${GUEST_ERROR_ATTR}]`);
       control?.classList.toggle("is-error", Boolean(message));
       if (input.dataset.foDescribedby === undefined) input.dataset.foDescribedby = input.getAttribute("aria-describedby") || "";
@@ -4039,85 +4379,12 @@
     }
 
     /* ---- 13-digit fields: digits only + counter; the IDNO also asks the registry ---- */
-    function setGuestIdnoLoading(on) {
-      const field = guestCompanyInput?.closest(".e-permits-fo-field");
-      field?.querySelector("[data-fo-srre-skeleton]")?.remove();
-      field?.classList.toggle("is-srre-loading", on);
-      if (on) field?.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-skeleton e-permits-fo-skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
-      if (!guestIdnoHint) return;
-      if (on) {
-        guestIdnoHint.className = "message message--inline e-permits-fo-field__error e-permits-fo-field__loading";
-        guestIdnoHint.innerHTML = '<span class="spinner spinner--small spinner--brand" aria-hidden="true"></span><span>Se caută compania în Registrul de Stat…</span>';
-      } else {
-        guestIdnoHint.className = "e-permits-fo-field__hint";
-        guestIdnoHint.textContent = GUEST_IDNO_HINT;
-      }
-    }
-
-    function setGuestCompany(name, { flash = false } = {}) {
-      const wrap = guestCompanyInput?.closest(".e-permits-fo-input");
-      if (!wrap) return;
-      guestCompanyInput.value = name || "";
-      wrap.querySelector(".icon")?.remove();
-      wrap.classList.remove("is-srre-new");
-      if (!name) return;
-      wrap.insertAdjacentHTML("beforeend", '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>');
-      if (flash) {
-        void wrap.offsetWidth;
-        wrap.classList.add("is-srre-new");
-        wrap.addEventListener("animationend", () => wrap.classList.remove("is-srre-new"), { once: true });
-      }
-    }
-
-    /* the public registry of the prototype = the companies the flow schema knows */
-    function guestRegistry() {
-      return (frontOfficeSchema?.subjects || [])
-        .filter((subject) => subject.type === "PJ" && subject.idValue)
-        .map((subject) => ({ idno: subject.idValue, name: subject.name }));
-    }
-
-    function cancelGuestCompanyLookup() {
-      guestLookup.token += 1;
-      guestLookup.pending = null;
-      guestLookup.idno = "";
-      guestLookup.company = null;
-      setGuestIdnoLoading(false);
-      setGuestCompany("");
-    }
-
-    function runGuestCompanyLookup(idno) {
-      cancelGuestCompanyLookup();
-      const token = guestLookup.token;
-      guestLookup.idno = idno;
-      setGuestFieldError(guestIdnoInput, "");
-      setGuestIdnoLoading(true);
-      if (guestLive) guestLive.textContent = "";
-      guestLookup.pending = new Promise((resolve) => { if (!guestRegistryPending) window.setTimeout(resolve, GUEST_LOOKUP_MS); }).then(() => {
-        if (token !== guestLookup.token) return;
-        guestLookup.pending = null;
-        setGuestIdnoLoading(false);
-        guestLookup.company = guestRegistry().find((company) => company.idno === idno) || null;
-        if (guestLookup.company) {
-          setGuestCompany(guestLookup.company.name, { flash: true });
-          if (guestLive) guestLive.textContent = `Denumirea companiei a fost preluată din Registrul de Stat: ${guestLookup.company.name}.`;
-        } else {
-          setGuestFieldError(guestIdnoInput, GUEST_NOT_FOUND);
-          if (guestLive) guestLive.textContent = GUEST_NOT_FOUND;
-        }
-      });
-    }
-
     function handleGuestDigits(input) {
       const digits = input.value.replace(/\D/g, "").slice(0, 13);
       if (digits !== input.value) input.value = digits;
       const counter = input.closest(".e-permits-fo-field")?.querySelector("[data-fo-guest-counter]");
       if (counter) counter.textContent = `${digits.length}/13`;
-      if (input !== guestIdnoInput) return;
-      if (digits.length === 13) {
-        if (digits !== guestLookup.idno) runGuestCompanyLookup(digits);
-      } else if (guestLookup.idno) {
-        cancelGuestCompanyLookup();
-      }
+      if (input === guestIdnoInput) guestLookup.onInput();
     }
 
     /* ---- G6 · validation on „Înainte” (US-12 AC-07/08) ---- */
@@ -4159,7 +4426,7 @@
       if (mode === "company") {
         field("#fo-guest-idno", (value) => {
           if (!GUEST_13.test(value)) return "IDNO-ul trebuie să aibă 13 cifre.";
-          return guestLookup.idno === value && !guestLookup.company ? GUEST_NOT_FOUND : "";
+          return guestLookup.code === value && !guestLookup.record ? GUEST_NOT_FOUND : "";
         });
       }
       field("#fo-guest-idnp", thirteen("IDNP"));
@@ -4181,7 +4448,7 @@
     /* every check runs; returns the first control in error (null = valid) */
     async function validateGuest() {
       const idno = guestIdnoInput?.value || "";
-      if (guestCase() === "company" && GUEST_13.test(idno) && guestLookup.idno !== idno) runGuestCompanyLookup(idno);
+      if (guestCase() === "company" && GUEST_13.test(idno) && guestLookup.code !== idno) guestLookup.run(idno);
       if (guestLookup.pending) await guestLookup.pending;
       let first = null;
       guestChecks().forEach((check) => {
@@ -4217,7 +4484,7 @@
         name: [firstname, surname].filter(Boolean).join(" "),
         phone: `${code} ${guestValue("#fo-guest-phone")}`,
         email: guestValue("#fo-guest-email"),
-        company: mode === "company" ? guestLookup.company : null,
+        company: mode === "company" ? guestLookup.record : null,
         represented: mode === "other"
           ? { idnp: guestValue("#fo-guest-rep-idnp"), name: [guestValue("#fo-guest-rep-firstname"), guestValue("#fo-guest-rep-surname")].filter(Boolean).join(" ") }
           : null,
@@ -4374,7 +4641,7 @@
 
     function resetGuestScreen() {
       exitGuestWizard();
-      cancelGuestCompanyLookup();
+      guestLookup.cancel();
       guestForm?.reset();
       guestForm?.querySelectorAll("[data-fo-guest-counter]").forEach((counter) => { counter.textContent = "0/13"; });
       guestForm?.querySelectorAll("[data-fo-doc-field] [data-fo-doc-field-files]").forEach((files) => { files.innerHTML = ""; });
@@ -5933,8 +6200,18 @@
       if (subtitleEl) subtitleEl.textContent = label || "";
       foDocRenderLibrary("");
       if (foDocSearchInput) foDocSearchInput.value = "";
-      /* no MDocs library without MPass: a guest uploads from the device only */
-      const uploadOnly = Boolean(frontOfficeGuest || fieldEl?.closest("[data-fo-screen='guest']"));
+      /* no MDocs library without MPass: a guest uploads from the device only; so does a Form
+         Builder „Fișier” (data-fo-upload-only), with its own types / size in the captions */
+      const uploadOnly = Boolean(frontOfficeGuest || fieldEl?.closest("[data-fo-screen='guest']") || fieldEl?.hasAttribute("data-fo-upload-only"));
+      if (foDocFileInput) {
+        foDocFileInput.dataset.foDefaultAccept ??= foDocFileInput.accept;
+        foDocFileInput.accept = fieldEl?.dataset.foDocAccept || foDocFileInput.dataset.foDefaultAccept;
+      }
+      const captions = foDocOverlay.querySelectorAll(".e-permits-fo-doc-modal__drop-captions > span");
+      captions.forEach((span) => { span.dataset.foDefault ??= span.textContent; });
+      const [types, size] = (fieldEl?.dataset.foDocLimits || "").split("|");
+      if (captions[0]) captions[0].textContent = types ? `${Number(fieldEl.dataset.foDocMax) > 1 ? `Până la ${fieldEl.dataset.foDocMax} fișiere` : "Un singur fișier"}: ${types}` : captions[0].dataset.foDefault;
+      if (captions[1]) captions[1].textContent = size ? `Mărime maximă: ${size}` : captions[1].dataset.foDefault;
       const tabs = foDocOverlay.querySelector(".e-permits-fo-doc-modal__tabs");
       if (tabs) tabs.hidden = uploadOnly;
       foDocSwitchTab(uploadOnly ? "upload" : "library", { animate: false });
@@ -5952,7 +6229,12 @@
     }
 
     function foDocAttachFileItem(container, fileName, sizeLabel) {
-      container.querySelectorAll(".e-permits-fo-file-item").forEach((el) => el.remove());
+      /* one file, unless the field allows more (Form Builder „Fișier”, data-fo-doc-max) */
+      const docField = container.closest("[data-fo-doc-field]");
+      const max = Number(docField?.dataset.foDocMax) || 1;
+      const existing = container.querySelectorAll(".e-permits-fo-file-item");
+      if (max === 1 || existing.length >= max) existing.forEach((el) => el.remove());
+      const syncFull = () => docField?.classList.toggle("is-full", container.querySelectorAll(".e-permits-fo-file-item").length >= max);
       const item = document.createElement("div");
       item.className = "e-permits-fo-file-item is-uploaded e-permits-fo-doc-attached-item";
       item.innerHTML = `
@@ -5968,8 +6250,9 @@
         <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
-      item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => item.remove());
+      item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => { item.remove(); syncFull(); });
       container.appendChild(item);
+      syncFull();
     }
 
     function foDocAttachMdocsItem(container, doc) {
@@ -6498,7 +6781,7 @@
       group.dataset.foContactBound = "true";
       const selfCard = group.parentElement?.querySelector("[data-fo-contact-self]");
       const otherCard = group.parentElement?.querySelector("[data-fo-contact-other]");
-      const radios = Array.from(group.querySelectorAll("input[type='radio'][name='fo-contact-person']"));
+      const radios = Array.from(group.querySelectorAll("input[type='radio']"));
       if (!selfCard || !otherCard || !radios.length) return;
 
       function syncContactPerson() {
@@ -7838,6 +8121,10 @@
         root.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
         root.querySelectorAll("[data-fo-char-counter]").forEach(initCharCounter);
         root.querySelectorAll("[data-fo-subgen-select]").forEach(initSubgenMultiSelect);
+        root.querySelectorAll("[data-fo-contact-person]").forEach(syncContactPersonGroup);
+        root.querySelectorAll("[data-fo-subdivision]").forEach(initSubdivisionField);
+        root.querySelectorAll("[data-fo-digits]").forEach(bindDigitsInput);
+        root.querySelectorAll("[data-fo-registry-lookup]").forEach(bindRegistryLookup);
         root.querySelectorAll("[data-fo-segment]").forEach((control) => {
           control.addEventListener("click", (event) => {
             const item = event.target.closest(".segment-item");
@@ -7856,6 +8143,11 @@
       },
       /* the service districts the cascade address lists (from the service schema) */
       districts: () => cascadeAddressFieldOfSchema(frontOfficeSchema)?.districts || [],
+      /* the applicant (MPass) for prefilled IDNP / IDNO / contact values */
+      applicant: formApplicant,
+      /* the FO field error (library inline message, hint hidden; "" clears) and the copy button */
+      setFieldError: setGuestFieldError,
+      copyValueHtml: copyValueButtonHtml,
       schemaReady: () => Promise.resolve(frontOfficeSchemaLoadPromise),
       setModalHidden: setMotionModalHidden,
       demoFlow

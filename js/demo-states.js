@@ -1091,7 +1091,7 @@
        palette · canvas · properties by selection; canvas cards and Preview = the FO renderer.
        Scope for QA: #form-builder-modal ---- */
     ...(() => {
-      const fb = (run) => ({ page: PP_FO, flow: "builder", ready: "[data-fb-ready]", run: async (h) => { if (run) await run(h); } });
+      const fb = (run, params) => ({ page: PP_FO, flow: "builder", ready: "[data-fb-ready]", ...(params ? { params } : {}), run: async (h) => { if (run) await run(h); } });
       const card = (id) => `[data-builder-field][data-id='${id}']`;
       const pick = (id) => async (h) => { await h.click(card(id)); };
       const tab = (name) => async (h) => { await h.click(`[data-builder-prop-tab='${name}']`); };
@@ -1236,7 +1236,182 @@
           await h.wait(2500);
         }),
         /* Preview: „Completează cu date de test” */
-        "fb-27": fb(async (h) => { await h.click("[data-builder-mode='preview']"); await h.click("[data-fb-preview-fill]"); })
+        "fb-27": fb(async (h) => { await h.click("[data-builder-mode='preview']"); await h.click("[data-fb-preview-fill]"); }),
+
+        /* ---- batch 3 (registre și context): one component per group of states — palette ·
+           configured panel · Preview / FO render · error. PV = the Preview grid. */
+        ...(() => {
+          const PV = "[data-builder-preview-grid]";
+          const preview = async (h) => { await h.click("[data-builder-mode='preview']"); await h.wait(300); };
+          const last = (type) => `[data-builder-field][data-type='${type}']`;
+          const validate = async (h) => { await h.click("[data-fb-preview-validate]"); await h.wait(300); };
+          const idnp = (source) => async (h) => { await lib("idnp")(h); await tab("data")(h); if (source) await h.choose("[data-fb-prop='idnpSource']", source); };
+          const idno = async (h) => { await lib("idno")(h); };
+          const attachTo = (selector, name) => async (h) => {
+            await h.click(`${selector} [data-fo-open-doc-modal]`);
+            const input = document.querySelector("[data-fo-doc-file-input]");
+            const files = new DataTransfer();
+            files.items.add(new File(["%PDF-1.4"], name, { type: "application/pdf" }));
+            input.files = files.files;
+            input.dispatchEvent(new Event("change", { bubbles: true }));
+            await h.wait(200);
+            await h.click("[data-fo-doc-modal-submit]");
+          };
+          /* two dates: „Data contractului” (≤ azi) and „Data specificației” (≥ the contract) — US-49 / US-41 */
+          const twoDates = async (h) => {
+            await lib("date")(h);
+            await h.fill("[data-fb-prop='label']", "Data contractului", { leave: false });
+            await lib("date")(h);
+            await h.fill("[data-fb-prop='label']", "Data specificației", { leave: false });
+            await tab("validation")(h);
+            await h.click("[data-fb-date-rule-add]");
+            await h.choose("[data-fb-date-rule-op='0']", "ge");
+            await chooseText(h, "[data-fb-date-rule-target='0']", "Data contractului");
+          };
+          return {
+            /* 30 palette: the registry group is usable (no „În curând”) */
+            "fb-30": fb(async (h) => { await h.scroll("#fb-lib-registry"); }),
+            "fb-30a": fb(async (h) => { await h.fill("[data-builder-library-search]", "fișier", { leave: false }); }),
+            /* 31 IDNP — Date: typed (privacy note) · 31a RSP (declaration first) · 31b applicant (MPass) */
+            "fb-31": fb(idnp("")),
+            "fb-31a": fb(idnp("rsp")),
+            "fb-31b": fb(async (h) => { await idnp("applicant")(h); await preview(h); await h.scroll(`${PV} [data-fb-field]`, "Preluat din MPass"); }),
+            /* 31c Preview RSP: declaration ticked, IDNP typed → Nume + Prenume read-only from RSP */
+            "fb-31c": fb(async (h) => {
+              await idnp("rsp")(h); await preview(h);
+              await h.click(`${PV} .e-permits-fo-pp-consent`);
+              await h.fill(`${PV} [data-fo-registry-code]`, "2990000000002");
+              await h.wait(1300);
+              await h.scroll(`${PV} [data-fo-registry='rsp']`);
+            }),
+            /* 31d error: a typed IDNP of 9 digits → „Validează” */
+            "fb-31d": fb(async (h) => {
+              await idnp("")(h); await h.click("[data-builder-prop-tab='general']"); await h.click("[data-fb-prop='required']");
+              await preview(h);
+              await h.fill(`${PV} [data-fo-digits]`, "200200123");
+              await validate(h);
+              await h.scroll(`${PV} [data-fo-digits]`);
+            }),
+            /* 32 IDNO — Date (RSUD) · 32a Preview pending · 32b found · 32c not found */
+            "fb-32": fb(async (h) => { await idno(h); await tab("data")(h); }),
+            "fb-32a": fb(async (h) => { await idno(h); await preview(h); await h.fill(`${PV} [data-fo-registry-code]`, "1012600000001"); await h.wait(400); await h.scroll(`${PV} [data-fo-registry='rsud']`); }, { registru: "asteptare" }),
+            "fb-32b": fb(async (h) => { await idno(h); await preview(h); await h.fill(`${PV} [data-fo-registry-code]`, "1012600000001"); await h.wait(1400); await h.scroll(`${PV} [data-fo-registry='rsud']`); }),
+            "fb-32c": fb(async (h) => { await idno(h); await preview(h); await h.fill(`${PV} [data-fo-registry-code]`, "1012600009999"); await h.wait(1400); await h.scroll(`${PV} [data-fo-registry='rsud']`); }),
+            /* 33 Persoana de contact — Date: parts (Email shown, optional) · 33a Preview „Altă persoană” */
+            "fb-33": fb(async (h) => { await lib("contact")(h); await tab("data")(h); await h.click("[data-contact-visible='email']"); }),
+            "fb-33a": fb(async (h) => {
+              await lib("contact")(h); await tab("data")(h); await h.click("[data-contact-visible='email']");
+              await preview(h);
+              await h.click(`${PV} [data-fo-contact-person] .e-permits-fo-radio:has(input[value='other'])`);
+              await h.scroll(`${PV} [data-fo-contact-other]`);
+            }),
+            /* 34 Subdiviziune — Date: derived from an address (no address yet → error) · 34a derived
+               from „Adresa obiectului” · 34b automat (one subdivision) in Preview */
+            "fb-34": fb(async (h) => { await lib("subdivision")(h); await tab("data")(h); }),
+            "fb-34a": fb(async (h) => {
+              await h.click("[data-fb-preset='preset-object-address']");
+              await lib("subdivision")(h); await tab("data")(h);
+              await chooseText(h, "[data-fb-prop='addressFieldId']", "Adresa obiectului");
+            }),
+            "fb-34b": fb(async (h) => {
+              await lib("subdivision")(h); await tab("data")(h);
+              await h.choose("[data-fb-prop='subdivisionMode']", "auto");
+              await chooseText(h, "[data-fb-prop='subdivisionAuto']", "Orhei");
+              await preview(h); await h.scroll(`${PV} [data-fb-field]`, "Subdiviziunea");
+            }),
+            /* 35 Fișier — Validare (types, size, count) · 35a Preview · 35b „Validează” without a file ·
+               35c upload modal (device only) · 35d two files of three */
+            "fb-35": fb(async (h) => { await lib("file")(h); await tab("validation")(h); }),
+            "fb-35a": fb(async (h) => { await lib("file")(h); await preview(h); await h.scroll(`${PV} .e-permits-fo-doc-field--boxed`); }),
+            "fb-35b": fb(async (h) => { await lib("file")(h); await h.click("[data-fb-prop='required']"); await preview(h); await validate(h); await h.scroll(`${PV} .e-permits-fo-doc-field--boxed`); }),
+            "fb-35c": fb(async (h) => { await lib("file")(h); await preview(h); await h.click(`${PV} .e-permits-fo-doc-field--boxed [data-fo-open-doc-modal]`); }),
+            "fb-35d": fb(async (h) => {
+              await lib("file")(h); await tab("validation")(h); await h.choose("[data-fb-prop='maxFiles']", "3");
+              await preview(h);
+              await attachTo(`${PV} .e-permits-fo-doc-field--boxed`, "planul-incaperilor.pdf")(h);
+              await attachTo(`${PV} .e-permits-fo-doc-field--boxed`, "fotografie-fatada.pdf")(h);
+              await h.scroll(`${PV} .e-permits-fo-doc-field--boxed`);
+            }),
+            /* 36 Document din MDocs — Date · 36a Preview: the picker with the MDocs library */
+            "fb-36": fb(async (h) => { await lib("mdocs")(h); await tab("data")(h); await h.choose("[data-fb-prop='docType']", "extras-rsud"); }),
+            "fb-36a": fb(async (h) => { await lib("mdocs")(h); await tab("data")(h); await h.choose("[data-fb-prop='docType']", "extras-rsud"); await preview(h); await h.click(`${PV} [data-fo-open-doc-modal]`); }),
+            /* 37 Câmp ascuns — canvas marker + Date (from the context) · 37a static value missing
+               (error) · 37b „Din regulă”: Logică › Setează valoarea */
+            "fb-37": fb(async (h) => { await lib("hidden")(h); await tab("data")(h); await h.choose("[data-fb-prop='hiddenSource']", "prefill"); await h.scroll(last("hidden")); }),
+            "fb-37a": fb(async (h) => { await lib("hidden")(h); await tab("data")(h); await h.scroll(last("hidden")); }),
+            "fb-37b": fb(async (h) => {
+              await lib("hidden")(h); await h.fill("[data-fb-prop='label']", "Categoria de risc", { leave: false });
+              await tab("data")(h); await h.choose("[data-fb-prop='hiddenSource']", "rule");
+              await tab("logic")(h); await h.click("[data-fb-rule-add]");
+              await h.choose("[data-fb-cond-field='0.0']", "fld-alcohol");
+              await h.choose("[data-fb-cond-op='0.0']", "eq");
+              await h.choose("[data-fb-cond-value='0.0']", "da");
+              await h.fill("[data-fb-rule-setvalue='0']", "risc-sporit", { leave: false });
+            }),
+            /* 38 Consimțământ — General (Obligatoriu locked) · 38a link text not in the text (error) ·
+               38b Preview „Validează” unticked */
+            "fb-38": fb(async (h) => { await lib("consent")(h); }),
+            "fb-38a": fb(async (h) => { await lib("consent")(h); await h.fill("[data-fb-prop='linkText']", "Legea nr. 133", { leave: false }); }),
+            "fb-38b": fb(async (h) => { await lib("consent")(h); await preview(h); await validate(h); await h.scroll(`${PV} [data-fb-field]`, "Legii nr. 133"); }),
+            /* 39 Componente salvate — „Salvează ca componentă” modal · 39a saved: palette group +
+               the linked copy · 39b the source moved on (v2) → „Actualizează din sursă” */
+            "fb-39": fb(async (h) => { await pick("fld-area")(h); await menu("fld-area")(h); await h.click("[data-fb-act='save-preset'][data-id='fld-area']"); }),
+            "fb-39a": fb(async (h) => {
+              await pick("fld-area")(h); await menu("fld-area")(h); await h.click("[data-fb-act='save-preset'][data-id='fld-area']");
+              await h.fill("[data-fb-prop='preset.name']", "Suprafață (m²)", { leave: false });
+              await h.click("[data-fb-preset-save]");
+              await h.click("[data-fb-preset]", "Suprafață (m²)");
+              await h.scroll("[data-fb-library-saved]");
+            }),
+            "fb-39b": fb(async (h) => {
+              await pick("fld-area")(h); await menu("fld-area")(h); await h.click("[data-fb-act='save-preset'][data-id='fld-area']");
+              await h.fill("[data-fb-prop='preset.name']", "Suprafață (m²)", { leave: false });
+              await h.click("[data-fb-preset-save]");
+              await h.click("[data-fb-preset]", "Suprafață (m²)");
+              const copy = window.GEAPFormBuilder.state.sel.id;
+              await pick("fld-area")(h);
+              await h.fill("[data-fb-prop='unit']", "ha", { leave: false });
+              await h.click("[data-fb-preset-act='push']");
+              await h.click("[data-service-confirm-ok]");
+              await pick(copy)(h);
+            }),
+            /* 40 Avansat: id + key copy, integration, editable per request type, shown in, GDPR, audit */
+            "fb-40": fb(async (h) => { await pick("fld-name")(h); await tab("advanced")(h); }),
+            "fb-40a": fb(async (h) => { await pick("fld-name")(h); await tab("advanced")(h); await h.scroll("[data-fb-editable-at]"); }),
+            /* 41 Reguli de dată (US-41): ≥ another date · 41a its reciprocal on the other date ·
+               41b both directions stored → cycle · 41c Preview „Validează” breaks the rule */
+            "fb-41": fb(twoDates),
+            "fb-41a": fb(async (h) => { await twoDates(h); const first = [...document.querySelectorAll(last("date"))].find((card) => card.textContent.includes("Data contractului")); first.click(); await h.wait(400); await tab("validation")(h); }),
+            "fb-41b": fb(async (h) => {
+              await twoDates(h);
+              const first = [...document.querySelectorAll(last("date"))].find((card) => card.textContent.includes("Data contractului")); first.click(); await h.wait(400);
+              await tab("validation")(h); await h.click("[data-fb-date-rule-add]");
+              await h.choose("[data-fb-date-rule-op='0']", "le");
+              await chooseText(h, "[data-fb-date-rule-target='0']", "Data specificației");
+            }),
+            "fb-41c": fb(async (h) => {
+              await twoDates(h); await preview(h);
+              const pickers = [...document.querySelectorAll(`${PV} [data-date-picker]`)].slice(-2);
+              const set = (picker, iso) => { picker.dataset.selected = iso; picker.querySelector("input").value = iso.split("-").reverse().join("/"); };
+              set(pickers[0], "2026-10-10"); set(pickers[1], "2026-10-01");
+              await validate(h);
+              await h.scroll(`${PV} [data-fb-field]`, "Data specificației");
+            }),
+            /* 42 Logică „Alt câmp”: show the licence number when „Data începerii” ≥ another date */
+            "fb-42": fb(async (h) => {
+              await lib("date")(h); await h.fill("[data-fb-prop='label']", "Data expirării licenței", { leave: false });
+              await licenceRule(h);
+              await h.click("[data-fb-cond-add='0']");
+              await h.choose("[data-fb-cond-field='0.1']", "fld-start");
+              await h.choose("[data-fb-cond-op='0.1']", "le");
+              await h.choose("[data-fb-cond-mode='0.1']", "field");
+              await chooseText(h, "[data-fb-cond-other='0.1']", "Data expirării licenței");
+            }),
+            /* 43 Preview „Validează” on the seed step: required + format errors, focus on the first */
+            "fb-43": fb(async (h) => { await preview(h); await h.fill(`${PV} input[type='email']`, "obiect@"); await validate(h); }),
+            "fb-43a": fb(async (h) => { await preview(h); await h.click("[data-fb-preview-fill]"); await validate(h); })
+          };
+        })()
       };
     })(),
 
