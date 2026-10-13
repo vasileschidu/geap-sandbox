@@ -14463,6 +14463,34 @@
   box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20), 0 0 0 4px var(--red-100, #fee4e2);
 }
 
+/* US-54 „Cod cadastral” = the library search input WITH its submit (Figma search-input-rectangular,
+   Button = True — allowed only for a search that sends a request to an external registry). It
+   takes the FO frame above (1px border on the box), so the action inset grows by that 1px to keep
+   the library's 6px from the outer edge (submit 28 at Medium, 36 at Large). The btn-group is always
+   shown: the submit is visible (disabled) while the field is empty; × with a value; the inline
+   spinner only while SRRE answers (`.loading`). The text never runs under the actions. */
+.e-permits-fo-field .search-input.e-permits-fo-cadastral-search {
+  --search-input-action-inset: calc(var(--spacing-4, 4px) + var(--border-width-1, 1px));
+  --search-input-action-size: calc(var(--search-input-height) - (var(--search-input-action-inset) * 2) - (var(--border-width-1, 1px) * 2));
+}
+
+/* the library's 4px submit radius (8 − 4), not 8 − the grown inset */
+.e-permits-fo-field .search-input.e-permits-fo-cadastral-search .btn-search {
+  border-radius: calc(var(--border-radius-8, 8px) - var(--spacing-4, 4px));
+}
+
+.e-permits-fo-field .search-input.e-permits-fo-cadastral-search .btn-group {
+  display: flex;
+}
+
+.e-permits-fo-field .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search:has(.icon-search) .input {
+  padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-12, 12px));
+}
+
+.e-permits-fo-field .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search.has-value:has(.icon-search) .input {
+  padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-20, 20px) + var(--spacing-8, 8px) + var(--spacing-12, 12px));
+}
+
 /* US-54 SRRE lookup in progress: the label stays, the control is swapped for the FO input
    skeleton (.e-permits-fo-skeleton--input, same 40px height — no layout shift) */
 .e-permits-fo-field.is-srre-loading > :not(label):not([data-fo-srre-skeleton]) {
@@ -15536,13 +15564,16 @@
   }
 
   /* „Caută adresa” (product search input, size Large here): FO mobile fields are 48 / 16px */
-  .e-permits-fo-cascade-address__search.e-permits-workplace__search {
+  .e-permits-fo-cascade-address__search.e-permits-workplace__search,
+  .e-permits-fo-cadastral-search.e-permits-workplace__search {
     height: var(--spacing-48, 48px);
     min-height: var(--spacing-48, 48px);
   }
 
   .e-permits-fo-cascade-address__search.e-permits-workplace__search .input,
-  .e-permits-fo-cascade-address__search.e-permits-workplace__search .input::placeholder {
+  .e-permits-fo-cascade-address__search.e-permits-workplace__search .input::placeholder,
+  .e-permits-fo-cadastral-search.e-permits-workplace__search .input,
+  .e-permits-fo-cadastral-search.e-permits-workplace__search .input::placeholder {
     font-size: var(--font-size-fs-16, 16px);
     line-height: var(--line-height-lh-24, 24px);
   }
@@ -23107,6 +23138,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 /* close / clear buttons whose rest is already tertiary: hover one step darker */
 .e-permits-user-create__close:hover,
 .search-input .btn-icon.clear:hover,
+.e-permits-fo-input .btn-icon.clear:hover,
 .date-picker__nav:hover:not(:disabled) {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
@@ -23697,11 +23729,28 @@ a.btn:focus-visible {
   fill: var(--color-background-base-default-active, #d9d9d9);
 }
 
-.e-permits-meter__fill--brand { fill: var(--color-background-brand-default, #0058d2); }
-.e-permits-meter__fill--success { fill: var(--color-background-positive-default, #039855); }
-.e-permits-meter__fill--danger { fill: var(--color-background-danger-default, #d92d20); }
-.e-permits-meter__fill--warning { fill: var(--color-background-warning-default, #f79009); }
-.e-permits-meter__fill--neutral { fill: var(--color-icon-base-tertiary, #757575); }
+/* the product's status colours: positive = green-600 (success tags, messages, toasts) */
+.e-permits-meter__fill--brand,
+.e-permits-chart__bar--brand { fill: var(--color-background-brand-default, #0058d2); }
+.e-permits-meter__fill--success,
+.e-permits-chart__bar--success { fill: var(--color-icon-positive-default, #039855); }
+.e-permits-meter__fill--danger,
+.e-permits-chart__bar--danger { fill: var(--color-icon-danger-default, #d92d20); }
+.e-permits-meter__fill--warning,
+.e-permits-chart__bar--warning { fill: var(--color-background-warning-default, #f79009); }
+.e-permits-meter__fill--neutral,
+.e-permits-chart__bar--neutral { fill: var(--color-icon-base-tertiary, #757575); }
+
+/* stacked meter: a taller bar (Structura deciziilor) with 2-pixel cuts between segments in the
+   card colour; the outer ends keep the wrapper's full radius */
+.e-permits-meter--lg {
+  height: var(--spacing-12, 12px);
+}
+
+.e-permits-meter__gap {
+  stroke: var(--color-background-base-default, #fff);
+  stroke-width: var(--border-width-2, 2px);
+}
 
 /* a meter with its value on the right (Progres 3/5, Contribuție 0,31) */
 .e-permits-ekyc-progress {
@@ -23747,6 +23796,14 @@ a.btn:focus-visible {
   color: var(--color-text-base-tertiary, #757575);
 }
 
+/* the legend inside a white chart card sits on a grey tray (the only grey in the card) */
+.e-permits-meter-legend--tray {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-8, 8px);
+  gap: var(--spacing-4, 4px) var(--spacing-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
 .e-permits-meter-legend__dot {
   border-radius: var(--border-radius-full, 999px);
   display: inline-block;
@@ -23756,8 +23813,8 @@ a.btn:focus-visible {
 }
 
 .e-permits-meter-legend__dot--brand { background: var(--color-background-brand-default, #0058d2); }
-.e-permits-meter-legend__dot--success { background: var(--color-background-positive-default, #039855); }
-.e-permits-meter-legend__dot--danger { background: var(--color-background-danger-default, #d92d20); }
+.e-permits-meter-legend__dot--success { background: var(--color-icon-positive-default, #039855); }
+.e-permits-meter-legend__dot--danger { background: var(--color-icon-danger-default, #d92d20); }
 .e-permits-meter-legend__dot--warning { background: var(--color-background-warning-default, #f79009); }
 .e-permits-meter-legend__dot--neutral { background: var(--color-icon-base-tertiary, #757575); }
 
@@ -23781,17 +23838,13 @@ a.btn:focus-visible {
   .e-permits-trajectory__steps--n7 { grid-template-columns: minmax(0, 1fr) repeat(5, minmax(0, 2fr)) minmax(0, 1fr); }
 }
 
-/* Decision callout on a historical session: the dominant element (US-UI-05) */
-.e-permits-ekyc-decision .e-permits-callout__title {
-  font-size: var(--font-size-fs-18, 18px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-26, 26px);
-}
-
 /* Descompunerea scorului: the registry table in a section, full width */
+/* a table inside a rounded card: the card clips its rows, so the header row gets the top
+   radius and the last row the bottom radius (no square corners on hover / fills) */
 .e-permits-ekyc-breakdown {
   border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+  border-radius: var(--border-radius-16, 16px);
+  overflow: auto; /* clips the rows to the radius and still scrolls sideways on phones */
 }
 
 .e-permits-ekyc-breakdown__table {
@@ -23830,8 +23883,34 @@ a.btn:focus-visible {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-16, 16px) var(--spacing-12, 12px);
+  gap: var(--spacing-12, 12px) var(--spacing-12, 12px);
+  justify-content: space-between;
   padding-bottom: var(--spacing-16, 16px);
+}
+
+/* the period control at the toolbar's 40px (= the selects): track inset 4, 32px pills
+   (12px sides, 14/20 text) — inner pill radius = full, as the track */
+.e-permits-ekyc-dash__filters .segmented-control.e-permits-ekyc-dash__period {
+  box-sizing: border-box;
+  gap: var(--spacing-4, 4px);
+  height: var(--spacing-40, 40px);
+  padding: var(--spacing-4, 4px);
+}
+
+.e-permits-ekyc-dash__period .segment-item {
+  height: var(--spacing-32, 32px);
+  padding: 0 var(--spacing-12, 12px);
+  box-sizing: border-box;
+}
+
+.e-permits-ekyc-dash__selects {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .e-permits-ekyc-dash__select {
@@ -23858,13 +23937,6 @@ a.btn:focus-visible {
   display: flex;
   flex-direction: column;
   min-width: 0;
-}
-
-.e-permits-ekyc-decisions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-20, 20px);
 }
 
 /* KPI cards: label · big value · one line of context (US-05-15 CA-1) */
@@ -23918,29 +23990,25 @@ a.btn:focus-visible {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-/* Column chart (Tendință sesiuni, US-05-15 CA-2): SVG bars in a grey card */
+/* Chart card (Tendință sesiuni, Structura deciziilor, Rapoarte): white, 1px border, the
+   dashboard radius (16 = KPI cards); grey only on the legend tray. Column chart = SVG bars
+   stacked by outcome, rounded tops (rx 4, see chartBars) */
 .e-permits-chart {
-  background: var(--color-background-base-secondary, #f5f5f5);
+  background: var(--color-background-base-default, #fff);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding: var(--spacing-20, 20px);
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-24, 24px);
 }
 
 .e-permits-chart__plot {
   border-bottom: 1px solid var(--color-border-base-default, #d9d9d9);
   display: block;
-  height: 120px;
+  height: calc(var(--spacing-40, 40px) * 4);
+  overflow: hidden;
   width: 100%;
-}
-
-.e-permits-chart__bar {
-  fill: var(--color-background-brand-default, #0058d2);
-}
-
-.e-permits-chart__bar--danger {
-  fill: var(--color-background-danger-default, #d92d20);
 }
 
 .e-permits-chart__axis {
@@ -23949,7 +24017,148 @@ a.btn:focus-visible {
   font-size: var(--font-size-fs-12, 12px);
   justify-content: space-between;
   line-height: var(--line-height-lh-16, 16px);
-  padding-bottom: var(--spacing-8, 8px);
+  margin-top: calc(var(--spacing-8, 8px) * -1);
+}
+
+/* the dashboard's grey info card (Top cazuri) takes the same radius as its KPI / chart cards */
+.e-permits-ekyc-page .e-permits-dosar-profil__card {
+  border-radius: var(--border-radius-16, 16px);
+}
+
+/* ---- Alerte active: one white card per alert, stacked like notifications (user, 2026-10-13) ----
+   card = the dashboard card (white, radius 16); severity is soft: a 1px outline in the severity's
+   secondary border token + a 3px left accent in the severity colour (inset shadows, no layout
+   shift); Informativ = the neutral outline only. Icon in the severity colour. Close = the library
+   banner close (20px icon, 32px hit area), on the title's first line on every card. With more than
+   two alerts, 1–2 narrower white „peek” layers with the same outline hang under the stack. */
+.e-permits-ekyc-alerts__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+[data-demo-flow="back-office"] .message.message--subtle.e-permits-ekyc-alert {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-16, 16px);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+  /* right 56: the text never runs under the close button (32 at 10 from the edge) */
+  padding: var(--spacing-16, 16px) var(--spacing-56, 56px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+  position: relative;
+  z-index: 1;
+}
+
+[data-demo-flow="back-office"] .message.message--subtle.e-permits-ekyc-alert--error {
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-secondary, #fecdca), inset var(--border-width-3, 3px) 0 0 0 var(--color-icon-danger-default, #d92d20);
+}
+
+[data-demo-flow="back-office"] .message.message--subtle.e-permits-ekyc-alert--warning {
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-warning-secondary, #fedf89), inset var(--border-width-3, 3px) 0 0 0 var(--color-icon-warning-default, #dc6803);
+}
+
+.e-permits-ekyc-alert--error .banner__icon { color: var(--color-icon-danger-default, #d92d20); }
+.e-permits-ekyc-alert--warning .banner__icon { color: var(--color-icon-warning-default, #dc6803); }
+.e-permits-ekyc-alert--info .banner__icon { color: var(--color-icon-base-tertiary, #757575); }
+
+.e-permits-ekyc-alert__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-ekyc-alert__meta {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: var(--spacing-4, 4px) 0 0;
+}
+
+.e-permits-ekyc-alert .banner__close.e-permits-ekyc-alert__close {
+  align-self: flex-start;
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-icon-base-default, #121212);
+  margin: 0;
+  padding: var(--spacing-6, 6px);
+  /* the library close is absolute: 10 + 6 inset = its 20px icon sits 16 from the top / right,
+     centred on the title's first line (16 + 20 / 2) on every card */
+  position: absolute;
+  right: calc(var(--spacing-16, 16px) - var(--spacing-6, 6px));
+  top: calc(var(--spacing-16, 16px) - var(--spacing-6, 6px));
+}
+
+.e-permits-ekyc-alert .banner__close.e-permits-ekyc-alert__close:hover {
+  background-color: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-ekyc-alert .banner__close.e-permits-ekyc-alert__close:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2), 0 0 0 var(--border-width-6, 6px) var(--blue-sky-200, #bfd4f4);
+  outline: none;
+}
+
+.e-permits-ekyc-alert__close .icon {
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-ekyc-alerts__peek {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.e-permits-ekyc-alerts__layer {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: 0 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px);
+  border-top: 0;
+  box-sizing: border-box;
+  display: block;
+  height: var(--spacing-8, 8px);
+  margin: 0 var(--spacing-12, 12px);
+}
+
+.e-permits-ekyc-alerts__layer + .e-permits-ekyc-alerts__layer {
+  margin: 0 var(--spacing-24, 24px);
+}
+
+.e-permits-ekyc-alerts__layer--error { border-color: var(--color-border-danger-secondary, #fecdca); }
+.e-permits-ekyc-alerts__layer--warning { border-color: var(--color-border-warning-secondary, #fedf89); }
+
+.e-permits-ekyc-alerts__more {
+  display: flex;
+  justify-content: center;
+  padding-top: var(--spacing-8, 8px);
+}
+
+/* after a dismiss the stack settles: cards slide up a little (fill-mode backwards) */
+.e-permits-ekyc-alerts.is-restacked .e-permits-ekyc-alert,
+.e-permits-ekyc-alerts.is-restacked .e-permits-ekyc-alerts__layer {
+  animation: e-permits-ekyc-restack 220ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.e-permits-ekyc-alerts.is-restacked .e-permits-ekyc-alert + .e-permits-ekyc-alert {
+  animation-delay: 40ms;
+}
+
+@keyframes e-permits-ekyc-restack {
+  from { opacity: 0.4; transform: translateY(var(--spacing-12, 12px)) scale(0.98); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-ekyc-alerts.is-restacked :is(.e-permits-ekyc-alert, .e-permits-ekyc-alerts__layer) { animation: none; }
+}
+
+/* the alerts modal: the same cards, scrolling inside the modal */
+.e-permits-ekyc-alerts__list--all {
+  padding-bottom: var(--spacing-16, 16px);
 }
 
 @media (max-width: 960px) {
@@ -23963,8 +24172,27 @@ a.btn:focus-visible {
     flex: 1 1 100%;
   }
 
-  .e-permits-ekyc-dash__filters .segmented-control {
+  .e-permits-ekyc-dash__selects {
+    flex: 1 1 100%;
+    margin-left: 0;
+  }
+
+  /* the FO mobile rule caps fields at 100vw − 32 (FO padding 16); the BO page pads 12 */
+  .e-permits-ekyc-dash__select .e-permits-fo-select {
+    width: 100%;
+  }
+
+  .e-permits-ekyc-dash__filters .segmented-control.e-permits-ekyc-dash__period {
+    display: flex;
+    flex: 1 1 100%;
+    height: var(--spacing-48, 48px);
     max-width: 100%;
+  }
+
+  .e-permits-ekyc-dash__period .segment-item {
+    flex: 1 1 0;
+    height: var(--spacing-40, 40px);
+    padding: 0 var(--spacing-8, 8px);
   }
 }
 
@@ -23980,4 +24208,332 @@ a.btn:focus-visible {
 
 .e-permits-trajectory__step.is-paused .e-permits-trajectory__label {
   background: var(--color-background-warning-secondary, #feefc6);
+}
+
+/* ==========================================================================
+   eKYC batch 2 (2026-10-13) — revizie manuală + audit (js/ekyc.js). Everything else is
+   the BO vocabulary (registry, page header, tabs, trajectory + callout, info cards,
+   stacked lists, sum list, notes, modal, segmented control, fo fields, empty states).
+   New: evidence tiles, locked evidence list, evidence viewer (zoom / rotate / frames),
+   RSP match rows, report tables. Documented in components.md › „eKYC back office”.
+   ========================================================================== */
+
+/* a note / strip on its own between sections (Dovezi access, Surse externe summary) */
+.e-permits-ekyc-strip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-ekyc-grant {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-ekyc-grant > .message {
+  flex: 1 1 auto;
+}
+
+/* Dovezi: tiles = thumbnail button (grey frame, image contained) + title + meta */
+.e-permits-ekyc-evidence {
+  display: grid;
+  gap: var(--spacing-16, 16px);
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--spacing-48, 48px) * 4), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-ekyc-evidence__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-ekyc-evidence__thumb {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  cursor: zoom-in;
+  display: flex;
+  height: calc(var(--spacing-40, 40px) * 4);
+  justify-content: center;
+  margin-bottom: var(--spacing-4, 4px);
+  overflow: hidden;
+  padding: var(--spacing-8, 8px);
+  position: relative;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.e-permits-ekyc-evidence__thumb:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-color: var(--color-border-base-strong, #b3b3b3);
+}
+
+.e-permits-ekyc-evidence__thumb:focus-visible {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 var(--border-width-4, 4px) var(--blue-sky-200, #bfd4f4);
+  outline: none;
+}
+
+.e-permits-ekyc-evidence__thumb img {
+  border-radius: var(--border-radius-6, 6px);
+  display: block;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.e-permits-ekyc-evidence__play {
+  align-items: center;
+  background: var(--color-background-base-inverse-default, #1e1e1e);
+  border-radius: var(--border-radius-full, 999px);
+  bottom: var(--spacing-8, 8px);
+  color: var(--color-text-base-inverse-default, #fff);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-4, 4px);
+  left: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-2, 2px) var(--spacing-8, 8px) var(--spacing-2, 2px) var(--spacing-4, 4px);
+  position: absolute;
+}
+
+.e-permits-ekyc-evidence__play .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-ekyc-evidence__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-ekyc-evidence__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* evidence behind an access request: note + the file list (no images) + the request button */
+.e-permits-ekyc-locked {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-ekyc-locked__list {
+  border: 1px solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0 var(--spacing-20, 20px);
+}
+
+.e-permits-ekyc-locked__list li {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-12, 12px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-12, 12px) 0;
+}
+
+.e-permits-ekyc-locked__list li + li {
+  border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-ekyc-locked__list .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: 0 0 auto;
+}
+
+.e-permits-ekyc-locked__list .e-permits-ekyc-evidence__meta {
+  margin-left: auto;
+}
+
+.e-permits-ekyc-locked__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* viewer (modal): stage clips the transformed image; zoom / rotation are data attributes */
+.e-permits-ekyc-modal--viewer.modal {
+  max-width: min(calc(var(--spacing-64, 64px) * 14), calc(100vw - var(--spacing-32, 32px)));
+  width: 100%;
+}
+
+.e-permits-ekyc-viewer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-ekyc-viewer__stage {
+  align-items: center;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  height: min(calc(var(--spacing-64, 64px) * 7), 56vh);
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.e-permits-ekyc-viewer__img {
+  --ekyc-zoom: 1;
+  --ekyc-rot: 0deg;
+  max-height: 90%;
+  max-width: 90%;
+  transform: rotate(var(--ekyc-rot)) scale(var(--ekyc-zoom));
+  transition: transform 160ms ease;
+}
+
+.e-permits-ekyc-viewer__img[data-zoom="50"] { --ekyc-zoom: 0.5; }
+.e-permits-ekyc-viewer__img[data-zoom="75"] { --ekyc-zoom: 0.75; }
+.e-permits-ekyc-viewer__img[data-zoom="125"] { --ekyc-zoom: 1.25; }
+.e-permits-ekyc-viewer__img[data-zoom="150"] { --ekyc-zoom: 1.5; }
+.e-permits-ekyc-viewer__img[data-zoom="200"] { --ekyc-zoom: 2; }
+.e-permits-ekyc-viewer__img[data-zoom="300"] { --ekyc-zoom: 3; }
+.e-permits-ekyc-viewer__img[data-rot="90"] { --ekyc-rot: 90deg; }
+.e-permits-ekyc-viewer__img[data-rot="180"] { --ekyc-rot: 180deg; }
+.e-permits-ekyc-viewer__img[data-rot="270"] { --ekyc-rot: 270deg; }
+
+/* audit watermark (US-07-05 CA-3): who looked, when, which session */
+.e-permits-ekyc-viewer__mark {
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-4, 4px);
+  bottom: var(--spacing-8, 8px);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  opacity: 0.85;
+  padding: var(--spacing-2, 2px) var(--spacing-6, 6px);
+  pointer-events: none;
+  position: absolute;
+  right: var(--spacing-8, 8px);
+}
+
+.e-permits-ekyc-viewer__tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-ekyc-viewer__readout {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: var(--spacing-48, 48px);
+  text-align: center;
+}
+
+.e-permits-ekyc-viewer__note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+/* Surse externe: the source tag next to the section title; value + Concordă / Diferă tag */
+.e-permits-ekyc-source-title {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-ekyc-match {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+}
+
+.e-permits-ekyc-match > span:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Decizii operatori: the aggregated decision in the sum-list tray */
+.e-permits-ekyc-aggregate strong {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+/* Rapoarte: the export menu at the end of the toolbar; the report tables size their columns */
+.e-permits-ekyc-export {
+  position: relative;
+}
+
+.e-permits-ekyc-export .e-permits-stack__menu {
+  min-width: calc(var(--spacing-64, 64px) * 4);
+}
+
+.e-permits-ekyc-report__table th:nth-child(n+2):nth-child(-n+4) {
+  width: calc(var(--spacing-48, 48px) * 2);
+}
+
+.e-permits-ekyc-report__table th:nth-child(5) {
+  width: 28%;
+}
+
+.e-permits-ekyc-report__table th:nth-child(6) {
+  width: calc(var(--spacing-64, 64px) * 2);
+}
+
+/* the dialog field label that is not a <label> (segmented control) */
+.e-permits-ekyc-field-label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-ekyc-modal .segmented-control {
+  align-self: flex-start;
+}
+
+/* the dashboard's stacked lists (Disponibilitate furnizori) take the dashboard radius */
+.e-permits-ekyc-page .e-permits-stack {
+  border-radius: var(--border-radius-16, 16px);
+}
+
+.e-permits-ekyc-page .e-permits-stack__group:first-child .e-permits-stack__group-label {
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+}
+
+@media (max-width: 760px) {
+  .e-permits-ekyc-grant {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .e-permits-ekyc-match {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-ekyc-evidence {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .e-permits-ekyc-evidence__thumb {
+    height: calc(var(--spacing-40, 40px) * 3);
+  }
+
+  .e-permits-ekyc-locked__list .e-permits-ekyc-evidence__meta {
+    display: none;
+  }
 }

@@ -19076,7 +19076,7 @@ document.addEventListener("DOMContentLoaded", () => {
     product.init({
       shell, escapeHtml, renderTag, renderDateTime, formatLongDate, formatStamp, formatTime,
       renderPageHeaderTop, renderPageHeaderMeta, renderPageHeaderTabCount, watchPageHeaderMeta,
-      renderInfoCard, renderEventTimeline, renderStackedList, renderStackMenu, renderRowActions,
+      renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions,
       renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,

@@ -2464,6 +2464,27 @@ body {
   -webkit-mask-size: 19.3633px 15.25px;
 }
 
+/* eKYC batch 2 (2026-10-13): revizie manuală, rapoarte, jurnal de acces */
+.e-permits-shell__nav--specialist [data-nav-id="ek-review"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/face-id.svg");
+  -webkit-mask-image: url("../assets/icons/face-id.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-review-all"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/people.svg");
+  -webkit-mask-image: url("../assets/icons/people.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-reports"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/page-text.svg");
+  -webkit-mask-image: url("../assets/icons/page-text.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-access-log"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/page-text-lock.svg");
+  -webkit-mask-image: url("../assets/icons/page-text-lock.svg");
+}
+
 .e-permits-shell__nav--specialist .e-permits-shell__nav-badge {
   display: none;
 }

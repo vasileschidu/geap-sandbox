@@ -223,14 +223,18 @@ but this doc previously described it wrongly, see the entry.
 | List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
 | Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"` | `js/ekyc.js`, see „eKYC back office” | app |
-| Meter (thin bar, one or stacked segments) | `span.e-permits-meter[role=meter\|img] > svg.e-permits-meter__svg > rect.__track + rect.__fill--{brand\|success\|danger\|warning\|neutral}`; value right = `.e-permits-ekyc-progress` + `__count`; legend `ul.e-permits-meter-legend` + `__dot--{tone}` | `meter(segments, { max, label })` in `js/ekyc.js` | app |
+| Meter (thin bar, one or stacked segments) | `span.e-permits-meter[role=meter\|img] (+ --lg 12px) > svg.e-permits-meter__svg > rect.__track + rect.__fill--{brand\|success\|danger\|warning\|neutral}` + `line.e-permits-meter__gap` (2px cuts between stacked segments); value right = `.e-permits-ekyc-progress` + `__count`; legend `ul.e-permits-meter-legend` (+ `--tray` = the grey legend strip inside a white chart card) + `__dot--{tone}` | `meter(segments, { max, label, size })`, `legend()` in `js/ekyc.js` | app |
 | KPI cards | `ul.e-permits-kpi-grid > li.e-permits-kpi` > `__label` · `__value` (+ `--warning\|--danger`) · `__meta` | `kpi()` in `js/ekyc.js` | app |
-| Column chart | `.e-permits-chart` > `svg.e-permits-chart__plot` (`rect.e-permits-chart__bar` + `--danger`) · `__axis` · `.e-permits-meter-legend` | `renderTrend()` in `js/ekyc.js` | app |
+| Chart card + column chart | `.e-permits-chart` (white, 1px border, radius 16) > `svg.e-permits-chart__plot` (`rect.e-permits-chart__bar--{tone}` stacked by outcome, rounded tops rx 4) · `__axis` · `.e-permits-meter-legend--tray` | `renderTrend()` / `chartBars()` / `renderDecisions()` in `js/ekyc.js` | app |
+| Alert stack (notification cards) | `ul.e-permits-ekyc-alerts__list > li.message.message--subtle.e-permits-ekyc-alert.e-permits-ekyc-alert--{error\|warning\|info}` (white card, soft severity outline + 3px left accent; icon · `__title` · `banner__text` · `__meta` tag + time · `banner__close.e-permits-ekyc-alert__close`) + `.e-permits-ekyc-alerts__peek > __layer--{tone}` + „Arată toate (N)” → modal | `renderAlerts()` / `alertCard()` / `openAlertsModal()` | app |
+| Evidence tiles + viewer | `ul.e-permits-ekyc-evidence > li.__item` > `button.__thumb(--doc)` (img, `__play` badge) · `__title` · `__meta`; viewer `.e-permits-ekyc-viewer` (`__stage` + `img[data-zoom][data-rot]` + `__mark` watermark · `__tools` toolbar · `__note`); locked = `.e-permits-ekyc-locked` (lock note · `__list` · `__actions`) | `renderEvidence()` / `viewerBody()` in `js/ekyc.js` | app |
+| Source match row | info card row value `.e-permits-ekyc-match` (value + „în document: …” meta + success/danger icon tag Concordă / Diferă); title with source tag `.e-permits-ekyc-source-title` | `renderExternal()` / `matchTag()` | app |
+| Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
-| Address by cadastral code (FO „Caută adresa” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + one message slot `[data-fo-cadastral-search-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
+| Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -406,8 +410,16 @@ selectors at least as specific as the block above.
 **Product rule (2026-10-02): every standalone search is this component — Figma
 `search-input-rectangular` (Components `933:29099`), Size Medium, `Button = False`.** We
 never use the circular shape (`933:29721`) and never the arrow submit button (the Figma
-`Button = True` axis, a 32px brand square with `arrow-right`): filtering is live, so there is
-nothing to submit. Product markup (registries, sections, drawers, modals, profile tabs):
+`Button = True` axis, a brand square with `arrow-right`): filtering is live, so there is
+nothing to submit. **Scoped exception (2026-10-13): `Button = True` (submit) is allowed only for
+searches that send a request to an external registry (e.g. the US-54 cadastral lookup → SRRE);
+live filtering never has a submit.** Such a search runs only on the submit or Enter (never on a
+typing pause / blur), shows no typing spinner (`js/search.js` skips `is-typing` when the field has
+a `.btn-search`), keeps the submit disabled while empty or while the request runs, and shows the
+inline spinner only during the request (`.loading`). Markup = the library preview: `.btn-group` >
+spinner + `.btn-icon.clear` + `button.btn.btn-primary.btn-search[aria-label]` with
+`svg.icon.medium > use #icon-arrow-left` (the library CSS rotates it 180° → arrow-right, as in Figma).
+Product markup for live filters (registries, sections, drawers, modals, profile tabs):
 
 ```html
 <div class="search-input medium rectangular e-permits-workplace__search e-permits-list-search">
@@ -2589,8 +2601,57 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 
 Extends the FO cascade address (`cascadeAddressHtml`, service 09 step 2 „Detalii solicitare”)
 when the schema field has `"cadastral": { "visible": true, "required": false }`
-(`data/acte-permisive.json`). No mode choice: „Caută adresa” takes a saved address **or** a
-cadastral code (digits and dots), and the address fields stay on screen.
+(`data/acte-permisive.json`). No mode choice: the search takes a saved address **or** a
+cadastral code (digits and dots), „Cod cadastral” takes a code, and the address fields stay on screen.
+
+**Two inputs for one code (user decision 2026-10-13 — DEVIATION from AC-13, PO to confirm):**
+AC-13 says „Cod cadastral” shows the chosen code „Doar citire”. The user made it the default,
+**editable** input: the code can be typed in „Cod cadastral” **or** in the search. Proposed AC-13
+wording for the PO: „«Cod cadastral» este un câmp de căutare editabil: introducerea unui cod și apăsarea
+butonului de căutare (sau Enter) solicită adresa din SRRE ca în «Caută adresa»; cele două câmpuri
+afișează același cod.” (AC-11/12/19/20/21
+then read „sub câmpul în care a fost introdus codul”, not only „sub «Caută adresa»”.)
+
+- **Label**: with „Cod cadastral” visible the search label + placeholder = „Caută adresa sau cod
+  cadastral”; hidden (AC-04) = „Caută adresa” (+ the US-32 hint). The builder preview keeps the
+  component label (`field.searchLabel`).
+- **„Cod cadastral” = the library search input with its submit** (user feedback 2026-10-13: „the
+  search should be integrated in the input as in the components; it must be clear when the request is
+  sent”) — Figma `search-input-rectangular`, Button = True, the § Search input scoped exception:
+  `div.search-input.{medium|large}.rectangular.e-permits-workplace__search.e-permits-list-search.e-permits-list-search--fill.e-permits-fo-cadastral-search[data-fo-search-size][data-fo-cadastral-box]`
+  > `span.icon-search` + `input.input[data-fo-cadastral-input]` (placeholder „Ex.: 0100510.123”,
+  maxlength 50, red star + `aria-required` when Obligatoriu) + `.btn-group` (always shown here):
+  `span.spinner.spinner--extra-small.spinner--brand` (only with `.loading`, while SRRE answers),
+  `button.btn-icon.clear[data-fo-cadastral-clear]` „Șterge codul cadastral” (with a value; js/search.js
+  empties + focuses + fires `input` → AC-16), `button.btn.btn-primary.btn-search[data-fo-cadastral-submit]`
+  aria-label „Caută adresa după codul cadastral” (`icon-arrow-left`, rotated by the library → arrow-right).
+  Span-6, first in the grid; same FO frame as „Caută adresa” (1px border on the box) → measured equal to
+  the selects in the column (desktop 488/368/40 r8, ≤720 16/343/48 r8). In that frame the action inset is
+  4 + 1px border (`--search-input-action-inset`) and `--search-input-action-size` subtracts a 1px border →
+  submit 28 (Medium) / 36 (Large), 6px from the outer edge, radius 4 — as the library. Text padding right
+  = submit + inset + 12 (+ × 20 + 8 with a value). Hint `p[data-fo-cadastral-code-hint]` „Apăsați
+  săgeata sau Enter pentru a căuta adresa în Registrul de Stat al Bunurilor Imobile.” Never readonly,
+  never a skeleton, no green check.
+- **Trigger = explicit only** (2026-10-13): the lookup runs on the submit or Enter (Enter → js/search.js
+  clicks `.btn-search`) — never on a typing pause or blur. Submit disabled while the field is empty and
+  while SRRE answers (no double submit; the `.loading` spinner replaces the ×). Not a code (letters,
+  other characters) → „Codul nu este valid, corectați.” at once, SRRE not asked. Editing the code after
+  a fill keeps the filled values (no auto re-run) and puts the hint back until the next submit; a
+  submit always re-runs (same code too). Emptying the field (× or delete) cancels a running request
+  and releases the fill (AC-16).
+- **In „Caută adresa sau cod cadastral”** a typed code is also never sent by itself: the suggestions
+  list opens with an explicit **first row** (same `.e-permits-fo-address-search__option`, `icon-search`)
+  title „Caută codul cadastral «<code>»”, meta „în Registrul de Stat al Bunurilor Imobile”, active by
+  default — click / Enter sends it and writes the code into „Cod cadastral”; the saved codes that start
+  with the typed digits follow. Enter with the list closed sends too. Saved codes still show on focus
+  (empty field). The search keeps its live-filter behaviour (no submit). Search hint: „Căutați o adresă
+  salvată sau introduceți un cod cadastral și alegeți „Caută codul cadastral” din listă.”
+- **Sync**: a code typed / chosen in one field is written into the other (search × class state
+  included); the search's × or a non-code address text empties the code; a saved address chosen
+  in the search drops the code (`root.foCadastralRelease`).
+- **Messages follow the source**: `setStatus(kind, from)` writes the loading / success / invalid /
+  unavailable message in the slot of the field the code was typed in (`search` | `code`), with
+  `is-error` + `aria-invalid` on that field only; the other field shows its hint again.
 `cascadeAddressHtml` is the **one render path** for the request form and the Form Designer preview.
 
 - **„Caută adresa” = the product search input** (§ Search input, product markup), never a
@@ -2624,8 +2685,7 @@ cadastral code (digits and dots), and the address fields stay on screen.
   outcome once (success / invalid / unavailable — not the loader). Reuse for any FO field lookup.
 - **No AC-14 note** (removed on user request 2026-10-13 — the grey/green read-only fields + the
   success message already say it; **deviates from AC-14 wording, PO to confirm**).
-- **Skeleton while SRRE answers**: every part SRRE will fill and the user can see (Cod cadastral,
-  Țară, Raion, Oraș, Sector when shown, Stradă, Cod poștal, Casă, Bloc, Apartament) gets
+- **Skeleton while SRRE answers**: every part SRRE will fill and the user can see (Țară, Raion, Oraș, Sector when shown, Stradă, Cod poștal, Casă, Bloc, Apartament) gets
   `.is-srre-loading` + an appended `span.e-permits-fo-skeleton.e-permits-fo-skeleton--input[data-fo-srre-skeleton]`;
   CSS hides the field's other children (label stays). Height = the input (40, 48 at ≤720) → no layout
   shift; grid `aria-busy`. Min 400 ms (`SRRE_SKELETON_MIN_MS`). Reduced motion = no shimmer, a static
@@ -2635,7 +2695,7 @@ cadastral code (digits and dots), and the address fields stay on screen.
   `[data-fo-srre-value]` read-only input box is inserted (Țară = 🇲🇩 „Republica Moldova”); text parts
   become `readonly`, `tabindex=-1`, empty ones show „—”. On arrival each box gets `.is-srre-new` once:
   800 ms `--color-background-brand-secondary` → Read Only grey, `animation-fill-mode: backwards`.
-  Focus stays in „Caută adresa”. „Cod cadastral” (span-6, first in the grid) is always read-only.
+  Focus stays in the field the code was typed in (search or „Cod cadastral”).
 - **Saved-codes list**: the FO address-search list (`.e-permits-fo-address-search__list` options,
   icon `icon-home-line`, title = code, meta = saved address); empty = `li.e-permits-fo-caem__empty`
   „Nu aveți coduri cadastrale salvate.”
@@ -2648,7 +2708,8 @@ cadastral code (digits and dots), and the address fields stay on screen.
   „Cod cadastral” row) + the service districts, then `initCascadeAddress` + `bindAddressSearch` —
   the same lookup (skeleton, messages, ×). Every builder change calls `renderPreviewAndSchema()`,
   so the preview is live. Other components already used the builder label / required / span.
-- Behaviour: lookup on pause (900 ms), Enter, `change`, or a list choice; mock MConnect =
+- Behaviour (both inputs): lookup only on request — „Cod cadastral” submit / Enter, the search list's
+  „Caută codul cadastral” row / Enter, or a saved code chosen in the list; mock MConnect =
   `data/srre-cadastral.json`, 1.4 s (Lent 3 s). Change → skeleton → refill; clear / non-code text →
   release (empty + editable, cascade reset). Review step adds a „Cod cadastral” row.
 - **Test config** (`foAddressDemo`): URL `?codcadastral=vizibil|ascuns|obligatoriu`,
@@ -2657,9 +2718,15 @@ cadastral code (digits and dots), and the address fields stay on screen.
   three segmented groups `adrField` (default = the service schema's `cadastral` config), `adrSrre`
   (Normal · Lent · Eroare · Invalid), `adrSaved` — a change redraws only step 2. The panel body
   scrolls (max-height = viewport − 96).
-- States `adr-01…adr-12a`: 03 skeleton (pending) · 03a skeleton over a previous fill · 04 success ·
-  06 cleared by typing · 06a cleared with × · 07 invalid · 08 unavailable · 11 config panel ·
-  12 / 12a builder → preview (Cod cadastral hidden / required).
+- States `adr-01…adr-17`: 03b code typed in the search → list with the „Caută codul cadastral «…»”
+  row (nothing sent) · 03 sent from that row, pending (search spinner + skeletons) · 03a skeleton over
+  a previous fill · 04 success (synced into „Cod cadastral”) · 06 cleared by typing · 06a cleared with
+  × · 07 invalid · 08 unavailable · 09 Cod cadastral hidden (label „Caută adresa”) · 09a required ·
+  11 config panel · 12 / 12a builder → preview (Cod cadastral hidden / required) · „Cod cadastral”:
+  13a typed, not sent (submit enabled; adr-02 = empty, submit disabled) · 13 submitted, pending
+  (inline spinner, submit disabled, skeletons) · 14 filled · 14b edited after a fill, not sent (values
+  kept, hint back) · 14a changed code submitted (skeleton over the fill) · 15 invalid · 15a not a code
+  (letters, SRRE not asked) · 16 unavailable · 17 cleared with its ×.
 
 ### `e-permits-shell__*` — back-office chrome
 
@@ -4869,8 +4936,8 @@ completedAt, durationSeconds, decision, finalScore (null without a decision), sc
   control (1 h / 24 h / 7 zile / 30 zile) + two fo-selects (Client, Caz de utilizare) + „Șterge
   filtrele” + the window caption; KPI grid (Sesiuni în fereastră, Active acum + Live tag, Rată de
   acceptare, Rată de eroare, Durata medie); two columns `.e-permits-ekyc-dash__cols`: Tendință
-  sesiuni (column chart) + Structura deciziilor (stacked meter + legend in the grey card) + Top
-  cazuri de utilizare (info card) | Alerte active (stacked list, severity tag, ✕ dismiss) +
+  sesiuni (column chart) + Structura deciziilor (stacked meter + legend, white chart card) + Top
+  cazuri de utilizare (info card) | Alerte active (notification stack, see „Dashboard polish”) +
   Disponibilitate furnizori (stacked list). Empty window → compact empty state.
 - *Sesiuni active / istorice* = the workplace registry (`kind: ekyc-active | ekyc-history`):
   status tabs (`ek:<statut>` / `dec:<decizie>` tokens), quick search, Filtrare avansată (Client,
@@ -4881,9 +4948,9 @@ completedAt, durationSeconds, decision, finalScore (null without a decision), sc
   First column pinned (`[data-registry-kind^="ekyc-"]`).
 - *Session profile* (`#sesiune/<id>/<tab>`) = the dosar profile panel + page header (crumbs
   Monitorizare › Sesiuni … › ID, title = client, meta row). Tabs: active — Date generale · Pași de
-  verificare · Dispozitiv · Jurnal; historical — + Scor și decizie. Date generale: (historical)
-  „Decizie” callout first and dominant (`.e-permits-ekyc-decision`, tone by decision) · „Plan de
-  verificare” = the dosar trajectory with N columns (`.e-permits-trajectory__steps--n3…n7`,
+  verificare · Dispozitiv · Jurnal; historical — + Scor și decizie. Date generale: „Plan de
+  verificare” (historical: the decision is its hanging callout, tone by decision — see „Dashboard
+  polish”) = the dosar trajectory with N columns (`.e-permits-trajectory__steps--n3…n7`,
   Inițiere · steps · Decizie) + the hanging „Acum / Urmează” callout · Sesiune · Identificatori ·
   Job de verificare. Pași = stacked list grouped Finalizați / Nereușiți / Pas curent / În
   așteptare (code as neutral tag). Scor și decizie = registry table `.e-permits-ekyc-breakdown`
@@ -4895,6 +4962,88 @@ completedAt, durationSeconds, decision, finalScore (null without a decision), sc
 **Demo states** `ek-00 … ek-07j` (js/demo-states.js): picker, login ×7, role landings ×4, role
 menu, collapsed menu, placeholder, dashboard ×6, active list ×10, active profile ×12, historical
 list ×6, historical profile ×10.
+
+#### Dashboard polish (user, 2026-10-13)
+- **One card radius on the dashboard = 16** (`--border-radius-16`, the KPI cards): chart cards,
+  alert cards, stacked lists and the info card (scoped `.e-permits-ekyc-page`).
+- **Chart cards are white** (`.e-permits-chart`: white, 1px border, padding 24, gap 16); grey only on
+  the legend tray `.e-permits-meter-legend--tray` (radius 8, padding 8/12). Bars: SVG, stacked by
+  outcome, top segment `rx=4` drawn first and extended under the baseline (the plot clips it), lower
+  segments square on top; plot height 160.
+- **Decision palette, everywhere decisions are coloured** (meter, bars, dots): Acceptat =
+  `--color-icon-positive-default` (green-600, the success tag/message green) · Respins = danger ·
+  Revizuire manuală = `--color-background-warning-default` · Fără decizie = neutral grey · În curs =
+  brand. Tags stay `renderTag`.
+- **Stacked meter** `--lg` (12px) with 2px `line.e-permits-meter__gap` cuts in the card colour and the
+  wrapper's full radius on the outer ends.
+- **Toolbar** = period segmented control left at the selects' height (40 desktop: track inset 4, 32px
+  pills; 48 mobile: full width, 40px pills) · filters right (`.e-permits-ekyc-dash__selects`, gap
+  8/12) · window caption under. Measured: control 40 = select 40 (desktop), 48 = 48 (mobile).
+- **Alerte active** = notification stack: one WHITE card per alert (user: full red / yellow fills were
+  „too much”) — radius 16, padding 16 / 56 right, severity = inset 1px outline in
+  `--color-border-{danger|warning}-secondary` + 3px left accent in the severity icon colour
+  (Informativ: neutral outline only, grey icon); title 14/20 semibold, meta = severity tag + time.
+  Close = library `banner__close` (absolute, 10 from top / right → 20px icon 16 in, centred on the
+  title's first line on every card, 32px hit, radius 6, hover tertiary-hover, brand focus ring;
+  measured: title-line centre = close centre = icon centre = 26 for 1- and 2-line titles). Critical
+  first. First 2 cards shown, the rest = 1–2 narrower white peek layers (8px, inset 12 / 24, same
+  outline) + „Arată toate (N)” (`btn-text-primary
+  btn-sm btn-rounded`) → the page modal with all cards (scrolls, each dismissable). Dismiss
+  re-stacks with `e-permits-ekyc-restack` (220 ms, `backwards`). Empty = compact empty state.
+- **Historical session: the decision hangs under „Plan de verificare”** — no separate Decizie section;
+  `trajectory()` renders the callout with the decision tone (Acceptat success · Respins danger ·
+  Revizuire manuală warning · Fără decizie / Eroare / Abandonată neutral), title „Acceptat · scor
+  final 0,91”, lines = threshold sentence + configuration. Same helper draws „Traseul reviziei”.
+- **Tables inside rounded cards** (`.e-permits-ekyc-breakdown`): radius 16 on all corners, `overflow:
+  auto` (clips rows to the radius, still scrolls sideways on phones), last row without divider.
+
+#### Batch 2 — revizie manuală + audit (2026-10-13)
+Azure eKYC: US-06-01 89252 · 06-02 89253 · 06-03 89255 · 06-04 89256 · 06-05 89258 · 06-06 89259 ·
+06-07 89261 · 06-08 89263 · US-07-03 89269 · 07-04 89271 · 07-05 89272 · 07-06 89274 · 07-07 89275.
+Figma reference (layout only): „Supervizor/Dosarele mele” 6559:102399 = a registry.
+- **Nav** (`data/ekyc-roles.json`): Operator — Dashboard · Revizie manuală › *Sesiunile mele de revizie*
+  (`ek-review`, default) · Monitorizare; Supervizor — *Coada de revizie* (`ek-review-all`, default) ·
+  Monitorizare; Auditor — Dashboard · Audit › Sesiuni istorice · *Rapoarte* (`ek-reports`) · *Jurnal de
+  acces* (`ek-access-log`), no Sesiuni active; Administrator — + Rapoarte under Monitorizare.
+- **Data** (seed, second random stream so batch-1 ids stay identical): `operators`, per session
+  `subject` (name, IDNP, birth date), `evidence` (items: document front/back, NFC photo, selfie,
+  liveness video; OCR document; storage), `external` (RSP · MConnect record or Indisponibil),
+  `review` (id, mode single | multi, rule, why, sentAt, allocation, allocatedAt, dueAt = +8 h,
+  status Nealocată | Alocată | În lucru | Finalizată, assignees[name, state, takenAt, decision,
+  reasonLabel, reason], notification, result, callback), `evidenceAccess`, top-level `accessLog`.
+  Placeholder images in `assets/ekyc/` (id-front, id-back, nfc, selfie, liveness-1…3).
+- **Queue** = registry `kind: ekyc-review` (views `mine` / `all`): Sesiune · Caz · Statut revizie
+  (operator: his own state — Alocată / În lucru / Decizie trimisă / Finalizată) · Tip revizie (+ „1 din
+  3 decizii”) · Scor automat · Operatori (supervisor) · Alocată la (date over „hh:mm · aleatoriu”) ·
+  Termen; sorted by deadline (unallocated first, finished last); tabs `rv:<statut>` / `rv-mode:multi`;
+  row action Revizuiește (operator) · Deschide + ⋮ Realocă / Alocă (supervisor).
+- **Review screen** `#revizie/<id>/<tab>` = the session profile panel in review mode: header actions
+  (operator: Preia revizia → `askConfirm`; then Respinge · Acceptă + ⋮ Eliberează revizia; supervisor:
+  Realocă / Alocă), caption = review id; tabs Revizie · Dovezi · Surse externe (danger count =
+  mismatches) · Pași · Dispozitiv · Jurnal. Revizie = `trajectory("Traseul reviziei")` (Trimisă ·
+  Alocată · Preluată / Evaluări · Decizie · Rezultat transmis) + callout · Decizii operatori (stack +
+  sum-list tray „Decizie agregată”; others' votes hidden from an operator until he votes) · Rezultat
+  automat · Notificări (applicant MNotify + client callback, „Retrimite” on failure) · Alocare.
+  An operator opening a session not allocated to him gets the lock empty state.
+- **Dialogs** reuse the page modal `#case-action-modal` (`openModal()`; footer `modal-buttons`):
+  decision (info note · Motivul deciziei select · Motivare detaliată textarea 30–1000 with counter;
+  Respinge = `btn-destructive`), (re)allocation (segmented Aleatorie / Alege operatorul; manual needs
+  operator + reason ≥ 10), evidence access (motiv select + referință; grants 15 min), alerts list,
+  evidence viewer (`--viewer`, wide).
+- **Evidence access** (US-07-03): operator = only his allocated sessions (logged once per session);
+  auditor / supervisor / admin = request with reason → 15-min grant strip with „Închide accesul”; every
+  open file is logged; viewer watermark = user · time · session.
+- **Auditor**: history registry adds *Subiect* (name over masked IDNP `2615•••••0252`), search by
+  name / IDNP, facets + Scor final band + Revizie manuală; detail is read-only (caption „Doar citire ·
+  accesul se jurnalizează”) with tabs + Dovezi · Surse externe · Revizie manuală · Acces la dovezi;
+  Scor și decizie adds „Cronologia deciziilor” (event timeline). Searches, detail views and exports are
+  logged → *Jurnal de acces* registry (`kind: ekyc-access`).
+- **Rapoarte**: same toolbar (no 1 h, default 30 zile) + „Exportă ▾” (CSV tabelar · JSON structurat,
+  no personal data, logged) · KPI grid · Volum sesiuni (finished only) · Structura deciziilor · tables
+  Pe client / Pe caz de utilizare / Pe nivel de asigurare (success-rate meter) · privacy note.
+- **Demo states** `ek-03f…03h` (alerts modal, after dismiss, empty), `ek-08…ek-16b` (queue, review per
+  tab, viewer, decisions + validation, multi-operator, supervisor allocation, auditor search / detail /
+  access, reports + export, access log, empty / error).
 
 ## 5. Removed from this document
 
@@ -5004,6 +5153,17 @@ Reuse it for any flow documented in Figma:
   The label sits at the arrow's midpoint (position and background are not settable via the
   Plugin API). The old chip component „Flow · etichetă săgeată” (`9790:700`) is retired.
   System events (MPay confirms, a case returns) start from the block. End on the target block.
+- **Pattern boards — context skeleton (2026-10-13, user, US-54 board `11224:39519`).** When a
+  board documents ONE pattern (e.g. the address block), every screen keeps its shell (header,
+  stepper, page + section titles) but everything that is not the pattern is neutral context:
+  fields → local „FO / Context · skeleton” `11258:17226` Type=Field (label bar 140 + input bar
+  40 / 48), text → Bar lines (12 px, gap 8, `background/base/tertiary`, radius 4), buttons /
+  stepper items / icons → 35 % opacity (arrows may still start on them). The pattern stays 100 %
+  real. Builder chrome around a properties panel → 35 % opacity. Script:
+  `tools/figma/deemphasize-context.js` (run it on the template block, so rebuilt blocks inherit it).
+  The board's „Cum se citește” says: „Elementele gri sunt doar context; detaliile sunt în blocul Adresă.”
+  Decisions = „Decision” cards, long jumps across bands = „Marker · → NN · ID” cards (no
+  board-wide connectors), BO configuration = a grey „Lane · Back office” behind its band.
 - **Numbered annotations:** local component **"Flow · adnotare"** (`9796:901`, 24px
   circle, brand fill, 2px white stroke), absolute in the screen, beside — never on top
   of — the element; the block's note lists ①…ⓝ. Screens made from captured frames often

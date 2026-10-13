@@ -1,5 +1,5 @@
 {
-  "_comment": "eKYC back office (US-UI-01 91104, US-05-10-B 89241): roles from MPass (US-03-10 CA-3) and the menu each one sees. Same schema as e-permits-roles.json; loaded by js/ekyc.js through the shell's product hook.",
+  "_comment": "eKYC back office (US-UI-01 91104, US-05-10-B 89241): roles from MPass (US-03-10 CA-3) and the menu each one sees. Same schema as e-permits-roles.json; loaded by js/ekyc.js through the shell's product hook. Batch 2 (2026-10-13): Revizie manuală (operator: Sesiunile mele de revizie, supervizor: Coada de revizie), Audit (auditor: Sesiuni istorice, Rapoarte, Jurnal de acces — fără Sesiuni active), Rapoarte also for the administrator (US-07-06).",
   "defaultAssignmentId": "ekyc-admin",
   "groups": [
     {
@@ -72,6 +72,11 @@
               "id": "ek-history",
               "label": "Sesiuni istorice",
               "shellView": "ekyc-history"
+            },
+            {
+              "id": "ek-reports",
+              "label": "Rapoarte",
+              "shellView": "ekyc-reports"
             }
           ]
         },
@@ -134,7 +139,7 @@
     },
     "ekyc-operator": {
       "ariaLabel": "Locul de muncă operator",
-      "defaultItemId": "ek-dashboard",
+      "defaultItemId": "ek-review",
       "groups": [
         {
           "label": "",
@@ -143,6 +148,16 @@
               "id": "ek-dashboard",
               "label": "Dashboard",
               "shellView": "ekyc-dashboard"
+            }
+          ]
+        },
+        {
+          "label": "Revizie manuală",
+          "items": [
+            {
+              "id": "ek-review",
+              "label": "Sesiunile mele de revizie",
+              "shellView": "ekyc-review"
             }
           ]
         },
@@ -165,7 +180,7 @@
     },
     "ekyc-supervisor": {
       "ariaLabel": "Locul de muncă supervizor",
-      "defaultItemId": "ek-dashboard",
+      "defaultItemId": "ek-review-all",
       "groups": [
         {
           "label": "",
@@ -174,6 +189,16 @@
               "id": "ek-dashboard",
               "label": "Dashboard",
               "shellView": "ekyc-dashboard"
+            }
+          ]
+        },
+        {
+          "label": "Revizie manuală",
+          "items": [
+            {
+              "id": "ek-review-all",
+              "label": "Coada de revizie",
+              "shellView": "ekyc-review-all"
             }
           ]
         },
@@ -209,17 +234,22 @@
           ]
         },
         {
-          "label": "Monitorizare",
+          "label": "Audit",
           "items": [
-            {
-              "id": "ek-active",
-              "label": "Sesiuni active",
-              "shellView": "ekyc-active"
-            },
             {
               "id": "ek-history",
               "label": "Sesiuni istorice",
               "shellView": "ekyc-history"
+            },
+            {
+              "id": "ek-reports",
+              "label": "Rapoarte",
+              "shellView": "ekyc-reports"
+            },
+            {
+              "id": "ek-access-log",
+              "label": "Jurnal de acces",
+              "shellView": "ekyc-access-log"
             }
           ]
         }

@@ -169,3 +169,65 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   panel's `apply()` (it re-routes the screen) — redraw just that step; give the panel body
   `overflow-y:auto` + a max-height once it grows past the viewport. capture.mjs `--hide ".msup-bubble"`
   shows the panel in a capture.
+- 2026-10-13 · US-54 — user decision (deviation from AC-13, recorded in components.md for the PO): „Cod
+  cadastral” became the default **editable** FO input; the code can be typed there OR in the search
+  (label „Caută adresa sau cod cadastral” when it is visible). Pattern for „two inputs, one lookup”:
+  one lookup with a `from` source (`setStatus(kind, from)` → messages + `is-error`/`aria-invalid` only
+  in that field's slot, the other back to its hint), values mirrored programmatically (no `input`
+  event, so no loops), the input being typed in is never a skeleton target, and `release()` must NOT
+  wipe the code the user typed (an invalid code is corrected, not retyped) — clear the code only on
+  ×/empty or when a saved address replaces it.
+- 2026-10-13 · `bindAddressSearch.resetAddressParts()` resets every `[data-fo-address-part]` in the field
+  on each search keystroke — a new part with that attribute (cadastralCode) is wiped too; re-sync it
+  after (or keep it out of the attribute).
+- 2026-10-13 · A × inside an FO input = the library `.btn-icon.clear` scoped as
+  `.e-permits-fo-input .btn-icon.clear` (main.css only styles it inside `.search-input`), shown by a
+  `has-value` class on the box; add its hover to the hover-audit list (`--color-background-base-tertiary-hover`).
+- 2026-10-13 · Real-typing test (CDP `Input.insertText` per char + Enter/blur) catches what `h.fill` hides:
+  h.fill fires `change` at once, so the 0.9 s pause trigger is never exercised by demo states (scratch
+  adr54/typing.mjs). The check script's screenshot offset must leave the field above under the sticky
+  FO header visible (top − 230).
+- 2026-10-13 · eKYC dashboard polish (user): every card on one page shares ONE radius (KPI = 16 →
+  charts, alert cards, stacked lists, info card scoped to the page); chart cards are WHITE with a border,
+  grey only on the legend tray; decision colours = the product status palette (positive = green-600
+  `--color-icon-positive-default`, NOT `--color-background-positive-default` = green-900); stacked meter
+  12px with 2px cuts (`<line>` in the card colour). Rounded bar tops without inline styles: draw the top
+  segment first with `rx` and height 100% (the plot clips it), the lower segments over it.
+- 2026-10-13 · „Alerte active” as a notification stack: one tinted card per alert = the subtle message
+  tones (`banner--error/--warning/--info`), library `banner__close` with a 20px icon, first 2 shown + 1–2
+  peek layers + „Arată toate (N)” → the page's existing modal. A decision shown as its own section above
+  a trajectory was rejected → the outcome is the trajectory's hanging callout with the decision tone
+  (one `trajectory()` helper for every plan / review path).
+- 2026-10-13 · Toolbar control heights: put the segmented control at the select height by scoping the
+  track (inset 4 + 32px pills = 40; mobile 48 = 4 + 40) and MEASURE both (probe.mjs pattern). The FO
+  mobile rule caps `.e-permits-fo-select` at `100vw − 32` (FO padding) → in a BO page (padding 12) scope
+  `width: 100%` or the select is 8px short of its neighbours.
+- 2026-10-13 · A table in a rounded card: `overflow: hidden` fixes the square corners but kills the
+  sideways scroll on phones → `overflow: auto` (clips to the radius AND scrolls).
+- 2026-10-13 · Seed generators that demo ids depend on: add new data with a SECOND random stream after
+  the old loop, then prove the old fields byte-identical (strip the new keys, compare). Also check
+  semantic consistency of seeded data (a session „in review between thresholds” had a 0,88 score).
+- 2026-10-13 · Product dialogs: reuse the page's simple modal `#case-action-modal` through one
+  `openModal({ title, subtitle, body, footer, kind })` (class modifier per kind, `data-case-close`
+  footers close through the shell) — decision, allocation, access request, alerts list and an image
+  viewer cost no new modal markup. Zoom / rotate without inline styles = `data-zoom` / `data-rot`
+  attributes mapped to CSS custom properties.
+- 2026-10-13 · Multi-agent tree: other agents bumped `?v=` and edited components.md / the playbook while I
+  worked — always re-read before bumping, edit shared files with exact-match single replacements only.
+- 2026-10-13 · US-54 trigger — user: „search integrated in the input as in the components; it must be
+  clear when the request is sent”. Auto-lookup on a 900 ms pause / blur was invisible → a search that
+  calls an external registry gets the library **submit** (`.btn-search`, Figma Button = True; scoped
+  exception in components.md § Search input) and runs ONLY on submit / Enter / an explicit list row
+  („Caută codul cadastral «…»” as the first suggestion). Submit disabled while empty or busy, inline
+  `.loading` spinner in the source box, edits after a fill keep the values until the next submit.
+  Gotchas: js/search.js (delegated, on document) adds `is-typing` AFTER an element listener → opt out
+  in search.js for fields with a `.btn-search`, never fight it with class removal; it already clicks
+  `.btn-search` on Enter (don't also handle Enter, just preventDefault). The library action size
+  subtracts a 2px border — inside the 1px FO frame set both `--search-input-action-inset` (4 + 1) and
+  `--search-input-action-size` (− 1px border) or the submit renders 26 instead of 28; measure it.
+  Library preview uses `icon-arrow-left` + CSS rotate(180°) = Figma arrow-right: copy the markup as is.
+- 2026-10-13 · User rejected full red / yellow tinted alert cards („too much”) → white dashboard cards with
+  a soft severity outline (`*-secondary` border token) + 3px left accent as inset shadows; Informativ =
+  neutral outline. The library `.banner__close` is `position: absolute` — don't flex-align it; place it
+  (top/right = 16 − its 6px inset) and pad the card's right side (56) so text never runs under it;
+  measure title-line centre = close centre = icon centre for 1- and 2-line titles.

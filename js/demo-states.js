@@ -211,6 +211,20 @@
   const ek = (hash, run, extra = {}) => ({ flow: "ekyc", as: EK_ADMIN, hash, ready: ".e-permits-ekyc-page:not([hidden]), tr[data-workplace-row], .e-permits-workplace__empty, .e-permits-dosar-profil:not([hidden]) .e-permits-dosar-profil__section", run, ...extra });
   const ekList = (hash, run) => ek(hash, run, { ready: "tr[data-workplace-row]" });
   const ekSes = (id, tab = "general", run) => ek(`#sesiune/${id}/${tab}`, run, { ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty" });
+  /* batch 2 (2026-10-13): roles + the review screen #revizie/<id>/<tab> */
+  const EK_OP = "ekyc-operator";
+  const EK_SUP = "ekyc-supervisor";
+  const EK_AUD = "ekyc-auditor";
+  const ekAs = (as, hash, run, extra = {}) => ek(hash, run, { as, ...extra });
+  const ekQueue = (as, hash, run, extra = {}) => ek(hash, run, { as, ready: "tr[data-workplace-row]", ...extra });
+  const ekRev = (as, id, tab = "revizie", run, extra = {}) => ek(`#revizie/${id}/${tab}`, run, { as, ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty", ...extra });
+  const ekAud = (id, tab = "general", run) => ek(`#sesiune/${id}/${tab}`, run, { as: EK_AUD, ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty" });
+  const ekDecide = (decision, reason, text) => async (h) => {
+    await h.click(`[data-ekyc-decide="${decision}"]`);
+    if (reason) await h.choose('[data-ekyc-field="reason"]', reason);
+    if (text) await h.fill("#ekyc-f-text", text);
+    await h.click("[data-ekyc-decide-submit]");
+  };
   const ekLogin = (params = {}) => ({ page: "bo-login.html", params: { product: "ekyc", ...params }, ready: "[data-bo-login] h1" });
 
   window.GEAP_DEMO_STATES = {
@@ -896,7 +910,19 @@
       const adr = (params, run) => foReq(2, params, async (h) => { await h.scroll(ADR); if (run) await run(h); });
       /* a background headless tab gets no focus event from el.focus(): send the one a click gives */
       const openList = async (h) => { const el = await h.focus(ADR); el.dispatchEvent(new FocusEvent("focus")); await h.wait(300); };
-      const code = (value) => async (h) => { await h.fill(ADR, value, { leave: false }); await h.wait(1900); };
+      /* nothing is sent while typing (2026-10-13): a code typed in the search opens the list whose
+         first row „Caută codul cadastral «…»” sends it; in „Cod cadastral” the arrow submit does */
+      const ACTION = "[data-fo-step-panel='2'] [data-fo-cascade-address] .e-permits-fo-address-search__option";
+      const typeCode = (value) => async (h) => { await h.fill(ADR, value, { leave: false }); await h.wait(200); };
+      const sendRow = async (h) => {
+        const row = await h.find(ACTION, "Caută codul cadastral");
+        row.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+      };
+      const code = (value, ms = 1900) => async (h) => { await typeCode(value)(h); await sendRow(h); await h.wait(ms); };
+      const COD = "[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-input]";
+      const SUBMIT = "[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-submit]";
+      const typeCod = (value) => async (h) => { await h.fill(COD, value, { leave: false }); };
+      const cod = (value, ms = 1900) => async (h) => { await typeCod(value)(h); await h.click(SUBMIT); await h.wait(Math.max(0, ms - 450)); };
       return {
         "adr-01": bld(expand),
         "adr-01a": bld(async (h) => { await h.click(".e-permits-builder__mini-check:has([data-address-visible='cadastral'])"); }),
@@ -904,13 +930,12 @@
         "adr-02": adr(),
         "adr-02a": adr({}, openList),
         "adr-02b": adr({ solicitant: "pj-vita-plant" }, openList),
-        /* SRRE request pending: skeletons in the parts it will fill + loading message (AC-11) */
-        "adr-03": adr({ srre: "asteptare" }, async (h) => { await h.fill(ADR, "0100510.123", { leave: false }); await h.wait(1200); }),
+        /* a code typed in the search: the list's first row „Caută codul cadastral «…»” (nothing sent yet) */
+        "adr-03b": adr({}, typeCode("0100510")),
+        /* sent from that row, SRRE pending: inline spinner + skeletons in the parts it fills + loading message (AC-11) */
+        "adr-03": adr({ srre: "asteptare" }, code("0100510.123", 1200)),
         /* a changed code after a fill (slow SRRE, 3 s): the filled parts turn back into skeletons */
-        "adr-03a": adr({ srre: "lent" }, async (h) => {
-          await h.fill(ADR, "0100510.123", { leave: false }); await h.wait(4200);
-          await h.fill(ADR, "1701102.330", { leave: false }); await h.wait(1300);
-        }),
+        "adr-03a": adr({ srre: "lent" }, async (h) => { await code("0100510.123", 4200)(h); await code("1701102.330", 1300)(h); }),
         "adr-04": adr({}, code("0100510.123")),
         "adr-04a": adr({}, async (h) => {
           await openList(h);
@@ -919,7 +944,7 @@
           await h.wait(1900);
         }),
         "adr-05": adr({}, async (h) => { await code("0100510.123")(h); await code("1701102.330")(h); }),
-        "adr-06": adr({}, async (h) => { await code("0100510.123")(h); await h.fill(ADR, "", { leave: false }); }),
+        "adr-06": adr({}, async (h) => { await code("0100510.123")(h); await h.fill(ADR, "", { leave: false }); (await h.find(ADR)).dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await h.wait(200); }),
         /* AC-16 with the × of the search input: fields empty + editable, focus back in the field */
         "adr-06a": adr({}, async (h) => {
           await code("0100510.123")(h);
@@ -950,6 +975,23 @@
           await h.click("[data-builder-mode='preview']");
           await h.scroll("[data-builder-preview-grid] [data-fo-cadastral-field]");
         }, { scroll: false }),
+        /* „Cod cadastral” = search input + arrow submit: 13a typed, not sent (submit enabled) ·
+           13 sent, pending (inline spinner, submit disabled, skeletons) · 14 filled · 14b code edited
+           after a fill, not sent (values kept, hint back) · 14a changed code sent (skeleton over the
+           fill) · 15 invalid · 15a not a code (letters, SRRE not asked) · 16 unavailable · 17 × (AC-16) */
+        "adr-13a": adr({}, typeCod("0100510.123")),
+        "adr-13": adr({ srre: "asteptare" }, cod("0100510.123", 1200)),
+        "adr-14": adr({}, cod("0100510.123")),
+        "adr-14b": adr({}, async (h) => { await cod("0100510.123")(h); await typeCod("1701102.330")(h); }),
+        "adr-14a": adr({ srre: "lent" }, async (h) => { await cod("0100510.123", 3600)(h); await cod("1701102.330", 1300)(h); }),
+        "adr-15": adr({}, cod("0100510.999")),
+        "adr-15a": adr({}, cod("01005A")),
+        "adr-16": adr({}, cod("0100999.777")),
+        "adr-17": adr({}, async (h) => {
+          await cod("0100510.123")(h);
+          await h.click("[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-cadastral-clear]");
+          await h.wait(300);
+        }),
         /* AC-18: Verificare și semnare shows the code with the address */
         "adr-10": adr({}, async (h) => {
           await code("0100510.123")(h);
@@ -1069,6 +1111,10 @@
     "ek-03c": ek("#ek-dashboard", null, { params: { ek: "eroare" }, ready: ".e-permits-ekyc-page .e-permits-empty" }),
     "ek-03d": ek("#ek-dashboard", null, { params: { ek: "incarcare" }, ready: ".e-permits-ekyc-page .e-permits-empty" }),
     "ek-03e": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-dismiss]"); }),
+    /* Alerte active (2026-10-13): stack of tinted cards + peek layers, „Arată toate” modal, empty */
+    "ek-03f": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); }),
+    "ek-03g": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click("#case-action-modal [data-ekyc-dismiss]"); }),
+    "ek-03h": ek("#ek-dashboard", null, { params: { ek: "fara-alerte" } }),
     "ek-04": ekList("#ek-active"),
     "ek-04a": ekList("#ek-active", async (h) => { await h.click('[data-workplace-tab="În revizie manuală"]'); }),
     "ek-04b": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
@@ -1108,6 +1154,68 @@
     "ek-07g": ekSes("KYC-47088", "scor"),
     "ek-07h": ekSes("KYC-46998"),
     "ek-07i": ekSes("KYC-47052"),
-    "ek-07j": ekSes("KYC-47292", "dispozitiv")
+    "ek-07j": ekSes("KYC-47292", "dispozitiv"),
+
+    /* ---- eKYC batch 2: revizie manuală (EPIC-06) ---- */
+    /* Operator (revizie): his queue, the review screen per tab, take, decide */
+    "ek-08": ekQueue(EK_OP, "#ek-review"),
+    "ek-08a": ekQueue(EK_OP, "#ek-review", async (h) => { await h.click('[data-workplace-tab="Alocată"]'); }),
+    "ek-08b": ekQueue(EK_OP, "#ek-review", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="statut"]'); }),
+    "ek-08c": ekAs(EK_OP, "#ek-review", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-08d": ekRev(EK_OP, "KYC-47073"),
+    "ek-09": ekRev(EK_OP, "KYC-48220"),
+    "ek-09a": ekRev(EK_OP, "KYC-48220", "revizie", async (h) => { await h.click("[data-ekyc-take]"); }),
+    "ek-09b": ekRev(EK_OP, "KYC-48220", "revizie", async (h) => { await h.click("[data-ekyc-take]"); await h.click("[data-service-confirm-ok]"); }),
+    "ek-09c": ekRev(EK_OP, "KYC-48221"),
+    "ek-09d": ekRev(EK_OP, "KYC-48221", "dovezi"),
+    "ek-09e": ekRev(EK_OP, "KYC-48221", "dovezi", async (h) => { await h.nth("[data-ekyc-evidence]", 0); await h.click('[data-ekyc-zoom="in"]'); await h.click('[data-ekyc-zoom="in"]'); await h.click("[data-ekyc-rotate]"); }),
+    "ek-09f": ekRev(EK_OP, "KYC-48221", "dovezi", async (h) => { await h.click("[data-ekyc-evidence][aria-label^='Redă']"); await h.click('[data-ekyc-frame="next"]'); }),
+    "ek-09g": ekRev(EK_OP, "KYC-48221", "surse"),
+    "ek-09h": ekRev(EK_OP, "KYC-48222", "surse"),
+    "ek-09i": ekRev(EK_OP, "KYC-48222", "surse", async (h) => { await h.click("[data-ekyc-rsp-retry]"); }),
+    "ek-09j": ekRev(EK_OP, "KYC-48221", "pasi"),
+    "ek-09k": ekRev(EK_OP, "KYC-48221", "jurnal"),
+    "ek-10": ekRev(EK_OP, "KYC-48221", "revizie", async (h) => { await h.click('[data-ekyc-decide="Acceptat"]'); }),
+    "ek-10a": ekRev(EK_OP, "KYC-48221", "revizie", ekDecide("Respins")),
+    "ek-10b": ekRev(EK_OP, "KYC-48221", "revizie", ekDecide("Respins", "face-mismatch", "Selfie diferit.")),
+    "ek-10c": ekRev(EK_OP, "KYC-48221", "revizie", ekDecide("Acceptat", "match-rsp", "Fotografia din document și selfie-ul corespund; adresa diferă doar prin mutarea recentă, confirmată în RSP.")),
+    "ek-10d": ekRev(EK_OP, "KYC-47085"),
+    "ek-10e": ekRev(EK_OP, "KYC-47085", "revizie", async (h) => { await h.click('[data-ekyc-retry-notify="client"]'); }),
+    /* multi-operator (US-06-08): independent votes, majority */
+    "ek-11": ekRev(EK_OP, "KYC-47076"),
+    "ek-11a": ekRev(EK_OP, "KYC-47076", "revizie", ekDecide("Acceptat", "manual-face", "Am comparat manual selfie-ul cu fotografia din cip; trăsăturile corespund, iar contestația clientului este întemeiată.")),
+    "ek-11b": ekRev(EK_SUP, "KYC-47082"),
+    /* Supervizor: the whole queue, (re)allocation, notifications */
+    "ek-12": ekQueue(EK_SUP, "#ek-review-all"),
+    "ek-12a": ekQueue(EK_SUP, "#ek-review-all", async (h) => { await h.click('[data-workplace-tab="Nealocată"]'); }),
+    "ek-12b": ekQueue(EK_SUP, "#ek-review-all", async (h) => { await h.click('[data-workplace-tab="multi"]'); }),
+    "ek-12c": ekQueue(EK_SUP, "#ek-review-all", async (h) => { await h.click('[data-workplace-tab="Nealocată"]'); await h.nth("[data-ekyc-assign]", 0); }),
+    "ek-12d": ekRev(EK_SUP, "KYC-47073", "revizie", async (h) => { await h.click("[data-ekyc-assign]"); await h.click('[data-ekyc-assign-mode="manual"]'); await h.click("[data-ekyc-assign-submit]"); }),
+    "ek-12e": ekRev(EK_SUP, "KYC-47073", "revizie", async (h) => { await h.click("[data-ekyc-assign]"); await h.click('[data-ekyc-assign-mode="manual"]'); await h.choose('[data-ekyc-field="operator"]', "Ana Grosu"); await h.fill("#ekyc-f-text", "Termen depășit; Mihai Rotaru este ocupat cu o contestație."); await h.click("[data-ekyc-assign-submit]"); }),
+    "ek-12f": ekRev(EK_SUP, "KYC-47079"),
+    "ek-12g": ekRev(EK_SUP, "KYC-47079", "revizie", async (h) => { await h.click('[data-ekyc-retry-notify="applicant"]'); }),
+    "ek-12h": ekRev(EK_SUP, "KYC-47070"),
+
+    /* ---- eKYC batch 2: audit (EPIC-07) — Auditor ---- */
+    "ek-13": ekQueue(EK_AUD, "#ek-history"),
+    "ek-13a": ekQueue(EK_AUD, "#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="scorBand"]'); }),
+    "ek-13b": ekQueue(EK_AUD, "#ek-history", async (h) => { await h.fill("[data-workplace-search]", "Rusu", { leave: false }); }),
+    "ek-14": ekAud("KYC-47088"),
+    "ek-14a": ekAud("KYC-47088", "dovezi"),
+    "ek-14b": ekAud("KYC-47088", "dovezi", async (h) => { await h.click("[data-ekyc-access-request]"); }),
+    "ek-14c": ekAud("KYC-47088", "dovezi", async (h) => { await h.click("[data-ekyc-access-request]"); await h.click("[data-ekyc-access-submit]"); }),
+    "ek-14d": ekAud("KYC-47088", "dovezi", async (h) => { await h.click("[data-ekyc-access-request]"); await h.choose('[data-ekyc-field="reason"]', "Contestație"); await h.fill("#ekyc-f-ref", "CONT-2026-114"); await h.click("[data-ekyc-access-submit]"); }),
+    "ek-14e": ekAud("KYC-47088", "dovezi", async (h) => { await h.click("[data-ekyc-access-request]"); await h.choose('[data-ekyc-field="reason"]', "Contestație"); await h.click("[data-ekyc-access-submit]"); await h.click('[data-ekyc-tab="acces"]'); }),
+    "ek-14f": ekAud("KYC-47082", "revizie"),
+    "ek-14g": ekAud("KYC-47082", "scor"),
+    "ek-14h": ekAud("KYC-47130", "surse"),
+    "ek-15": ekAs(EK_AUD, "#ek-reports"),
+    "ek-15a": ekAs(EK_AUD, "#ek-reports", async (h) => { await h.click(".e-permits-ekyc-export [data-stack-menu-trigger]"); }),
+    "ek-15b": ekAs(EK_AUD, "#ek-reports", null, { params: { ek: "gol" } }),
+    "ek-15c": ekAs(EK_AUD, "#ek-reports", null, { params: { ek: "eroare" }, ready: ".e-permits-ekyc-page .e-permits-empty" }),
+    "ek-15d": ek("#ek-reports", async (h) => { await h.click('[data-ekyc-period="30z"]'); }),
+    "ek-16": ekQueue(EK_AUD, "#ek-access-log"),
+    "ek-16a": ekQueue(EK_AUD, "#ek-access-log", async (h) => { await h.click('[data-workplace-tab="dovezi"]'); }),
+    "ek-16b": ekAs(EK_AUD, "#ek-access-log", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" })
   };
 })();

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 856 540" width="856" height="540" role="img" aria-label="Act de identitate — față (imagine demonstrativă)">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e3eef9"/><stop offset="1" stop-color="#d6ecdf"/></linearGradient>
+    <clipPath id="photo"><rect x="48" y="150" width="220" height="280" rx="12"/></clipPath>
+  </defs>
+  <rect width="856" height="540" rx="32" fill="url(#bg)"/>
+  <rect x="0" y="0" width="856" height="96" rx="32" fill="#0b4f9c"/>
+  <rect x="0" y="64" width="856" height="32" fill="#0b4f9c"/>
+  <text x="48" y="60" font-family="Onest, Arial, sans-serif" font-size="30" font-weight="600" fill="#ffffff">REPUBLICA MOLDOVA · BULETIN DE IDENTITATE</text>
+  <rect x="48" y="150" width="220" height="280" rx="12" fill="#c9d3dd"/>
+  <g clip-path="url(#photo)" fill="#8e9aa6"><circle cx="158" cy="250" r="62"/><ellipse cx="158" cy="430" rx="118" ry="96"/></g>
+  <g font-family="Onest, Arial, sans-serif" fill="#41505e">
+    <text x="312" y="160" font-size="18">Numele / Surname</text><rect x="312" y="172" width="300" height="22" rx="4" fill="#9fb0bf"/>
+    <text x="312" y="232" font-size="18">Prenumele / Given name</text><rect x="312" y="244" width="240" height="22" rx="4" fill="#9fb0bf"/>
+    <text x="312" y="304" font-size="18">Data nașterii</text><rect x="312" y="316" width="160" height="22" rx="4" fill="#9fb0bf"/>
+    <text x="520" y="304" font-size="18">Sexul</text><rect x="520" y="316" width="40" height="22" rx="4" fill="#9fb0bf"/>
+    <text x="312" y="376" font-size="18">Valabil până la</text><rect x="312" y="388" width="160" height="22" rx="4" fill="#9fb0bf"/>
+  </g>
+  <rect x="660" y="150" width="148" height="110" rx="10" fill="#c7d9b8" opacity="0.8"/>
+  <text x="428" y="500" text-anchor="middle" font-family="Onest, Arial, sans-serif" font-size="40" font-weight="700" fill="#0b4f9c" opacity="0.18" letter-spacing="12">SPECIMEN</text>
+</svg>

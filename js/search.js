@@ -3,6 +3,8 @@
      has-value  → shows .btn-group
      is-typing  → spinner while the user types (500ms)
      is-ready   → clear (x) button
+   A search with a submit (.btn-search, e.g. the cadastral lookup) skips is-typing; Enter in
+   it clicks the submit.
    The clear button empties the field, resets the state, keeps focus and fires an
    `input` event so the list that listens to the field filters again. */
 (() => {
@@ -23,6 +25,13 @@
 
     if (input.value.trim() === '') {
       reset(field);
+      return;
+    }
+
+    /* a search with a submit (.btn-search) is not a live filter: no typing spinner — its
+       spinner shows only while the request runs (`loading`, set by the page) */
+    if (field.querySelector('.btn-search')) {
+      field.classList.add('has-value', 'is-ready');
       return;
     }
 

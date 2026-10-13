@@ -215,3 +215,62 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   the whole page first (one compact row per arrow), then convert one section per call; delete the
   group only after both endpoints are confirmed attached. Finish with a recount (0 „Flow” groups,
   0 vectors with an ARROW cap) and a style-parity check of every connector vs the template.
+- 2026-10-13 · US-54 board (section `11224:39519`, ↳ Address Pattens). FO field grids are faster and
+  cleaner built from a **DOM spec** than captured + swapped: CDP extractor (label, star, kind
+  skeleton/readonly/select/text/phone, value/placeholder, flag, check, x/y/w, search message tone,
+  open list options) → stored builder `__build-fo-address` (text node `11231:6896`, repo
+  `tools/figma/build-fo-address.js`) → library instances in auto-layout rows (row gaps from x). Then
+  `__assemble-fo-block` (`11236:7947`, repo `tools/figma/assemble-fo-block.js`) clones the F3 block
+  template and swaps the „Main Frame” (desktop instance / mobile frame) for the built frame. Heights
+  matched the prototype to the pixel (740 / 668 / 648).
+- 2026-10-13 · Library ids found: phone-number-input key f2ba725d…, spinner key d38a117c…, checkbox
+  (box only) key e915a93e…, button-outlined-rectangular key 4ca8aa00…, segmented-control key eae5f7eb…
+  (`.segmented-control-item` Mode On/Off; set item text by override), home-line (central) key a5d81e73…,
+  trash (central) key b5e9b87b…, inline-message set `38:1973` (Default/Success/Error/Warning, `📍 Icon`),
+  local `.menu-item-selection` `1138:13821` (Icon + Description — saved-address rows), country flag
+  `2171:6978`. Import remote sets **by key inside the script** — a set imported in an earlier call is gone
+  (getNodeByIdAsync → null) unless an instance was kept.
+- 2026-10-13 · The library search-input has no error style → error state = text-input Destructive with
+  `🔄 Leading Icon: 20` = the search-input's own 20/search main component.
+- 2026-10-13 · Open dropdown lists drawn ABSOLUTE in their wrap paint UNDER later siblings → set
+  `itemReverseZIndex = true` on the column that holds the wrap (first child on top, = code z-index).
+- 2026-10-13 · Slimmed specs drop false keys → `setProperties` rejects `undefined` → coerce booleans to
+  false in the setter (check the property type).
+- 2026-10-13 · Replacing GRID children is fragile (positions / spans scramble, cells size to content and
+  collapse skeletons) → convert the GRID wrapper to HORIZONTAL / VERTICAL auto-layout first.
+- 2026-10-13 · User: on a pattern board, everything that is not the pattern is **context skeleton**
+  (fields → „FO / Context · skeleton” `11258:17226`, text → bars, buttons / stepper → 35 %), builder
+  chrome → 35 %; doc says „Elementele gri sunt doar context; detaliile sunt în blocul Adresă.” Script
+  `__deemphasize-context` (`11259:13239`, repo `tools/figma/deemphasize-context.js`); apply it to the
+  template block so rebuilt blocks inherit it. It once replaced a `Flow anchor` and Figma silently
+  deleted the attached connector → the script skips `anchor · …`; recount connectors after any pass.
+- 2026-10-13 · Never name connectors after their start node's full name — a later `findAll(/^Block · /)`
+  matched connectors as blocks (TOC lines got connector names). Name them „C04 → C06 · label”, and
+  filter blocks with `type === "FRAME"`.
+- 2026-10-13 · Long jumps across bands = Requestor-style „Marker · → NN · ID” cards (clone `9831:35799`)
+  + a short connector; board-wide elbow connectors cut through every column.
+- 2026-10-13 · `generate_figma_design` returns ~6 KB of instructions per id → ask only for the ids you
+  need; full-page builder captures (1440×900) are fine as context once their controls are swapped
+  (`tools/figma/swap-builder-address.js`) and de-emphasized. Capture tool got `--hide`, `--keep-focus`,
+  `--css` (unclip scrolling panels, keep the „Configurare flux” panel).
+- 2026-10-13 · Mid-job the PO changed US-54 („Cod cadastral” editable). Blocks built from the old code →
+  Status=Not aligned until the new adr- states land; keep the pipeline (spec → build → assemble →
+  de-emphasize) so a rebuild is one call per block. Rebuild template: page-level
+  `11260:255631` (context skeleton applied).
+- 2026-10-13 · User: context skeleton = the WHOLE non-subject block (section titles → Title bar,
+  labels / inputs → Field, radios → Round, buttons / chips → Box), only header + stepper + page title
+  + the subject stay real; then „nicer, with gradient”: `FO / Context · skeleton` `11258:17226` fill =
+  GRADIENT_LINEAR tertiary → secondary (45 %) → tertiary with **gradient stops bound to variables**
+  (`gradientStops[i].boundVariables.color = {type:"VARIABLE_ALIAS", id}` works), radius 6 bars / 8
+  inputs+boxes / full round; widths vary by a stable hash of the node id (titles 35–45 %, labels 25–35 %,
+  lines 60–80 %); title bars left-aligned (their container centred them).
+- 2026-10-13 · Never read a property of a node after `put()` removed it (Field branch read `n.width` →
+  „node does not exist”, whole call rolled back incl. the stored-script update) — capture values first.
+- 2026-10-13 · The builder capture's app shell is a CSS GRID (rows 72 / 828, columns 321 / fill / 382);
+  the skeleton pass's GRID→flex conversion collapsed it → restore the geometry explicitly (header FIXED
+  72 SPACE_BETWEEN, body FIXED 828, side panels FIXED). Next time pass the shell frames as keepIds.
+- 2026-10-13 · Before a pass that replaces nodes, move connector starts that live in the replaced area
+  onto Flow anchors (`anchor · …`, skipped by the pass); recount connectors after every pass.
+- 2026-10-13 · Requirements moved three times in one job (editable code → search-input with submit
+  button). Build in this order: board scaffolding, docs, stage 01, template; hold every block that
+  shows the changing control; ask for the demo states before rebuilding.

@@ -186,6 +186,176 @@ const providers = [
   { name: "ASP — Registrul de stat al populației", state: "Operațional", latency: 0.6 }
 ];
 
-const out = { now: iso(NOW), clients, useCases: useCases.map(({ clients: c, ...u }) => ({ ...u, clients: c })), providers, alerts, active, history };
+/* ---------- batch 2 (2026-10-13): manual review, evidence, external data, audit ----------
+   A SECOND random stream, so everything above (IDs, scores, dates — the batch 1 demo states)
+   stays byte-identical. Adds: operators, session.subject, session.evidence, session.external,
+   session.review (US-06-01…08), session.evidenceAccess and the audit log (US-07-03…05). */
+let seed2 = 20261014;
+const rnd2 = () => { seed2 = (seed2 * 1664525 + 1013904223) >>> 0; return seed2 / 4294967296; };
+const pick2 = (a) => a[Math.floor(rnd2() * a.length)];
+const digits = (n) => Array.from({ length: n }, () => Math.floor(rnd2() * 10)).join("");
+const ME = "Anastasia Cojocaru";
+const operators = [
+  { name: ME, state: "Disponibil" },
+  { name: "Elena Ciobanu", state: "Disponibil" },
+  { name: "Mihai Rotaru", state: "Ocupat" },
+  { name: "Ana Grosu", state: "Disponibil" },
+  { name: "Ion Bivol", state: "Absent" }
+];
+const AUDITORS = ["Victor Lungu", "Doina Cebotari"];
+const FIRST = ["Ion", "Maria", "Andrei", "Elena", "Vasile", "Natalia", "Sergiu", "Cristina", "Dumitru", "Olga", "Victor", "Tatiana", "Alexandru", "Irina", "Nicolae", "Ludmila"];
+const LAST = ["Popescu", "Rusu", "Ceban", "Munteanu", "Lungu", "Cojocaru", "Țurcan", "Bivol", "Moraru", "Guțu", "Sârbu", "Botnari", "Croitoru", "Melnic"];
+const STREETS = ["str. Ștefan cel Mare 12, ap. 4", "bd. Dacia 47, ap. 118", "str. Mihai Eminescu 5", "str. Alba Iulia 89, ap. 21", "str. Independenței 3, ap. 56", "bd. Moscova 14, ap. 9"];
+const CITIES = ["mun. Chișinău", "mun. Bălți", "or. Orhei", "or. Cahul", "or. Ungheni", "or. Comrat"];
+const fmtDate = (d) => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+const all = [...active, ...history];
+all.forEach((s) => {
+  const birth = new Date(1958 + Math.floor(rnd2() * 46), Math.floor(rnd2() * 12), 1 + Math.floor(rnd2() * 28));
+  const first = pick2(FIRST);
+  s.subject = { name: `${first} ${pick2(LAST)}`, idnp: `2${String(birth.getFullYear()).slice(2)}${digits(10)}`, birthDate: fmtDate(birth) };
+  const issued = new Date(2016 + Math.floor(rnd2() * 9), Math.floor(rnd2() * 12), 1 + Math.floor(rnd2() * 28));
+  const doc = { type: "Buletin de identitate", number: `B${digits(8)}`, issued: fmtDate(issued), expiry: fmtDate(new Date(issued.getFullYear() + 10, issued.getMonth(), issued.getDate())), address: `${pick2(STREETS)}, ${pick2(CITIES)}` };
+  const has = (code) => s.steps.some((x) => x.code === code && (x.status === "done" || x.status === "failed"));
+  const at = (code) => s.steps.find((x) => x.code === code)?.completedAt || s.startedAt;
+  const items = [];
+  if (has("document_scan")) {
+    items.push({ id: `${s.id}-doc-f`, kind: "document-front", label: "Act de identitate — față", format: "JPEG", size: `${(0.9 + rnd2()).toFixed(1).replace(".", ",")} MB`, at: at("document_scan"), step: "document_scan" });
+    items.push({ id: `${s.id}-doc-b`, kind: "document-back", label: "Act de identitate — verso", format: "JPEG", size: `${(0.8 + rnd2()).toFixed(1).replace(".", ",")} MB`, at: at("document_scan"), step: "document_scan" });
+  }
+  if (has("nfc_chip")) items.push({ id: `${s.id}-nfc`, kind: "nfc", label: "Fotografie din cipul NFC (DG2)", format: "JPEG 2000", size: "24 KB", at: at("nfc_chip"), step: "nfc_chip" });
+  if (has("face_match")) items.push({ id: `${s.id}-selfie`, kind: "selfie", label: "Selfie", format: "JPEG", size: `${(0.4 + rnd2() * 0.5).toFixed(1).replace(".", ",")} MB`, at: at("face_match"), step: "face_match" });
+  if (has("liveness")) items.push({ id: `${s.id}-live`, kind: "liveness", label: "Video liveness", format: "MP4", size: `${(2 + rnd2() * 3).toFixed(1).replace(".", ",")} MB`, at: at("liveness"), step: "liveness", seconds: Math.round(30 + rnd2() * 30) / 10 });
+  s.evidence = items.length ? { items, document: has("document_scan") ? doc : null, storage: { location: "MCloud · stocare criptată (AES-256)", retention: "5 ani de la încheierea sesiunii", hash: hex(16) } } : null;
+  /* RSP via MConnect: looked up by the IDNP read from the document */
+  if (has("document_scan")) {
+    const down = rnd2() < 0.08;
+    const diff = !down && rnd2() < 0.12 ? pick2(["address", "expiry"]) : "";
+    s.external = down
+      ? { source: "RSP · MConnect", state: "Indisponibil", at: iso(add(new Date(at("document_scan")), 4)), error: "RSP nu a răspuns prin MConnect în 10 s (3 încercări)." }
+      : { source: "RSP · MConnect", state: "Disponibil", at: iso(add(new Date(at("document_scan")), 3)), requestId: `mc-${hex(10)}`, ms: 300 + Math.floor(rnd2() * 900),
+        record: { name: s.subject.name, idnp: s.subject.idnp, birthDate: s.subject.birthDate, docNumber: doc.number, docState: diff === "expiry" ? "Declarat nevalabil (pierdut)" : "Valabil", expiry: doc.expiry, address: diff === "address" ? `${pick2(STREETS)}, ${pick2(CITIES)}` : doc.address } };
+  }
+});
+
+/* manual review — the sessions the scoring sent to an operator (US-06-01…08) */
+const PLAN = [
+  { mode: "single", status: "Alocată", who: [[ME, "Alocată"]] },
+  { mode: "single", status: "În lucru", who: [[ME, "Preluată"]], diff: "address" },
+  { mode: "single", status: "În lucru", who: [[ME, "Preluată"]], rspDown: true },
+  { mode: "single", status: "Alocată", who: [["Elena Ciobanu", "Alocată"]] },
+  { mode: "single", status: "Finalizată", who: [[ME, "Acceptat"]], callback: "Livrat" },
+  { mode: "single", status: "Finalizată", who: [[ME, "Respins"]], callback: "Eșuat" },
+  { mode: "multi", status: "Finalizată", who: [["Elena Ciobanu", "Acceptat"], ["Mihai Rotaru", "Respins"], ["Ana Grosu", "Acceptat"]], callback: "Livrat", why: "Risc ridicat: nivel de asigurare Ridicat" },
+  { mode: "single", status: "Nealocată", who: [], notify: "Eșuată" },
+  { mode: "multi", status: "În lucru", who: [[ME, "Preluată"], ["Elena Ciobanu", "Acceptat"], ["Mihai Rotaru", "Alocată"]], why: "Contestație a deciziei automate" },
+  { mode: "single", status: "În lucru", who: [["Mihai Rotaru", "Preluată"]] },
+  { mode: "multi", status: "În lucru", who: [["Ana Grosu", "Respins"], ["Ion Bivol", "Preluată"], ["Elena Ciobanu", "Alocată"]], why: "Risc ridicat: nivel de asigurare Ridicat" },
+  { mode: "single", status: "Alocată", who: [["Ion Bivol", "Alocată"]] },
+  { mode: "single", status: "Finalizată", who: [["Ana Grosu", "Respins"]], callback: "Livrat" },
+  { mode: "single", status: "În lucru", who: [["Ana Grosu", "Preluată"]] },
+  { mode: "single", status: "Nealocată", who: [] },
+  { mode: "single", status: "Alocată", who: [["Mihai Rotaru", "Alocată"]] }
+];
+const REASONS = {
+  Acceptat: [["match-rsp", "Dovezile concordă cu datele din RSP", "Fotografia din document, selfie-ul și datele din RSP concordă; diferența de scor vine din calitatea slabă a imaginii documentului."], ["manual-face", "Potrivire facială confirmată manual", "Am comparat manual selfie-ul cu fotografia din cip; trăsăturile corespund, iar scorul automat a fost afectat de iluminare."]],
+  Respins: [["face-mismatch", "Selfie-ul nu corespunde documentului", "Trăsăturile din selfie diferă de fotografia din document (forma feței, urechile); liveness-ul arată o a doua persoană în cadru."], ["rsp-mismatch", "Date neconcordante cu RSP", "Numărul documentului apare în RSP ca declarat nevalabil (pierdut); sesiunea nu poate fi acceptată."]]
+};
+const candidates = [...active.filter((s) => s.status === "În revizie manuală"), ...history.filter((s) => s.decision === "Revizuire manuală")];
+candidates.forEach((s, i) => {
+  const plan = PLAN[i % PLAN.length];
+  /* a live session in review has a weighted score between the two thresholds (that is why it
+     went to an operator): scale its step scores into that band */
+  if (active.includes(s)) {
+    const sc = useCases.find((u) => u.code === s.useCaseCode).scoring;
+    const done = s.steps.filter((x) => x.score != null);
+    const w = done.reduce((a, x) => a + x.weight, 0) || 1;
+    const avg = done.reduce((a, x) => a + x.score * x.weight, 0) / w;
+    const target = sc.reject + 0.06 + rnd2() * (sc.accept - sc.reject - 0.12);
+    done.forEach((x) => { x.score = r2(Math.min(0.99, x.score * target / avg)); });
+    s.events.forEach((e) => { const step = done.find((x) => e.type === `Pas finalizat: ${x.label}`); if (step) e.detail = `${step.provider} · scor ${step.score.toFixed(2).replace(".", ",")}`; });
+  }
+  const sentAt = new Date(s.completedAt || s.lastActivityAt);
+  /* finished reviews were allocated a minute or two after the scoring; open ones were picked
+     up from the backlog in the last hours (SLA: 8 h from allocation; one is overdue) */
+  const open = plan.status !== "Finalizată";
+  const backlog = Math.max(sentAt.getTime(), add(NOW, -(90 * 60 + (i % 5) * 40 * 60 + (i === 9 ? 8 * 3600 : 0))).getTime());
+  const live = active.includes(s);
+  const allocatedAt = !open ? add(sentAt, 60 + Math.floor(rnd2() * 120))
+    : live ? new Date(Math.min(add(sentAt, 10 + Math.floor(rnd2() * 50)).getTime(), add(NOW, -15).getTime()))
+      : new Date(Math.min(backlog, add(NOW, -75 * 60).getTime()));
+  const cap = (d, sec) => (open ? new Date(Math.min(d.getTime(), add(NOW, -sec).getTime())) : d);
+  const hist = history.includes(s);
+  const assignees = plan.who.map(([name, state], k) => {
+    const a = { name, allocatedAt: iso(add(allocatedAt, k * 7)), state: state === "Alocată" ? "Alocată" : state === "Preluată" ? "Preluată" : "Decizie înregistrată" };
+    if (a.state !== "Alocată") a.takenAt = iso(cap(add(allocatedAt, 300 + k * 240 + Math.floor(rnd2() * 600)), 600));
+    if (a.state === "Decizie înregistrată") {
+      const [code, label, text] = pick2(REASONS[state]);
+      Object.assign(a, { decision: state, decidedAt: iso(cap(add(new Date(a.takenAt), 600 + Math.floor(rnd2() * 1500)), 120)), reasonCode: code, reasonLabel: label, reason: text });
+    }
+    return a;
+  });
+  const review = {
+    id: `REV-2026-${String(4100 + i * 7).padStart(5, "0")}`, mode: plan.mode, rule: plan.mode === "multi" ? "Majoritate (2 din 3)" : "Un operator",
+    why: plan.why || "Scor între pragul de respingere și cel de acceptare", sentAt: iso(sentAt), dueAt: plan.status === "Nealocată" ? null : iso(add(allocatedAt, 8 * 3600)),
+    allocation: plan.status === "Nealocată" ? "În așteptare — niciun operator disponibil" : "Aleatorie", allocatedAt: plan.status === "Nealocată" ? null : iso(allocatedAt),
+    status: plan.status, assignees,
+    notification: { channel: "MNotify · SMS", to: `+373 6•• •• ${digits(3)}`, state: plan.notify || "Livrată", at: iso(add(sentAt, 20)), attempts: plan.notify ? 3 : 1 }
+  };
+  if (plan.status === "Finalizată") {
+    const votes = assignees.map((a) => a.decision);
+    const final = votes.filter((v) => v === "Acceptat").length * 2 > votes.length ? "Acceptat" : "Respins";
+    const last = assignees.map((a) => a.decidedAt).sort().pop();
+    review.result = { decision: final, at: last };
+    const failed = plan.callback === "Eșuat";
+    review.callback = { url: `https://api.${s.clientId}.md/ekyc/callback`, state: failed ? "Eșuat" : "Livrat", attempts: failed ? 3 : 1, at: iso(add(new Date(last), failed ? 900 : 2)), http: failed ? "503 Service Unavailable" : "200 OK", next: failed ? "Reîncercare automată epuizată — retrimitere manuală" : "" };
+    if (hist) s.decision = final;
+  }
+  if (plan.rspDown && s.external) s.external = { source: "RSP · MConnect", state: "Indisponibil", at: s.external.at, error: "RSP nu a răspuns prin MConnect în 10 s (3 încercări)." };
+  if (plan.diff && s.external?.record) s.external.record.address = "str. Calea Ieșilor 61, ap. 14, mun. Chișinău";
+  s.review = review;
+  /* MLog (US-06-02 CA-3): allocation, notification, operator actions, result, callback */
+  const ev = [];
+  if (review.allocatedAt) ev.push({ at: review.allocatedAt, type: plan.mode === "multi" ? "Revizie multi-operator alocată aleatoriu" : "Revizie alocată aleatoriu", status: "Reușit", detail: assignees.map((a) => a.name).join(", "), user: "Motor de alocare" });
+  ev.push({ at: review.notification.at, type: "Solicitant notificat: revizie manuală", status: review.notification.state === "Livrată" ? "Reușit" : "Eșuat", detail: `${review.notification.channel} · ${review.notification.to}${review.notification.state === "Livrată" ? "" : " · 3 încercări eșuate"}`, user: "Platforma eKYC" });
+  assignees.forEach((a) => {
+    if (a.takenAt) ev.push({ at: a.takenAt, type: "Revizie preluată", status: "Reușit", detail: review.id, user: a.name });
+    if (a.decidedAt) ev.push({ at: a.decidedAt, type: `Decizie operator: ${a.decision}`, status: a.decision === "Acceptat" ? "Reușit" : "Eșuat", detail: a.reasonLabel, user: a.name });
+  });
+  if (review.result) {
+    ev.push({ at: review.result.at, type: `Decizie finală: ${review.result.decision}`, status: review.result.decision === "Acceptat" ? "Reușit" : "Eșuat", detail: plan.mode === "multi" ? `${review.rule} · ${assignees.filter((a) => a.decision === review.result.decision).length} din ${assignees.length}` : "Decizia operatorului", user: "Platforma eKYC" });
+    ev.push({ at: review.callback.at, type: "Rezultat transmis clientului", status: review.callback.state === "Livrat" ? "Reușit" : "Eșuat", detail: `${review.callback.http} · ${review.callback.attempts} ${review.callback.attempts === 1 ? "încercare" : "încercări"}`, user: "Platforma eKYC" });
+  }
+  s.events = [...ev, ...s.events].sort((a, b) => (a.at < b.at ? 1 : -1));
+});
+
+/* who opened stored evidence (US-07-03 / US-07-05 CA-3) and the audit log (US-07-04 CA-3) */
+const ACCESS_REASONS = ["Investigație", "Contestație", "Audit periodic", "Solicitare a unei autorități"];
+const accessLog = [];
+history.filter(() => rnd2() < 0.18).forEach((s) => {
+  const who = pick2(AUDITORS);
+  const when = add(new Date(s.completedAt), 3600 * (2 + Math.floor(rnd2() * 40)));
+  if (when > NOW) return;
+  const entry = { at: iso(when), user: who, role: "Auditor", action: "Acces la dovezi", sessionId: s.id, reason: pick2(ACCESS_REASONS), ref: `INV-2026-${digits(3)}`, until: iso(add(when, 15 * 60)) };
+  s.evidenceAccess = [...(s.evidenceAccess || []), entry];
+  accessLog.push(entry);
+});
+candidates.forEach((s) => s.review.assignees.filter((a) => a.takenAt).forEach((a) => {
+  const entry = { at: iso(add(new Date(a.takenAt), 40)), user: a.name, role: "Operator (revizie)", action: "Acces la dovezi", sessionId: s.id, reason: "Revizie alocată", ref: s.review.id };
+  s.evidenceAccess = [...(s.evidenceAccess || []), entry];
+  accessLog.push(entry);
+}));
+for (let k = 0; k < 9; k += 1) {
+  const when = add(NOW, -Math.floor(3600 + rnd2() * 9 * 86400));
+  const kind = pick2(["search", "search", "export", "detail"]);
+  const s = pick2(history);
+  accessLog.push(kind === "search"
+    ? { at: iso(when), user: pick2(AUDITORS), role: "Auditor", action: "Căutare în sesiuni", sessionId: "", reason: pick2([`IDNP ${s.subject.idnp.slice(0, 4)}•••••••••`, `client ${s.clientId}`, "decizie: Respins · ultimele 30 de zile"]), ref: `${2 + Math.floor(rnd2() * 30)} rezultate` }
+    : kind === "export"
+      ? { at: iso(when), user: pick2(AUDITORS), role: "Auditor", action: "Export raport", sessionId: "", reason: pick2(["CSV · sesiuni", "JSON · raport statistic"]), ref: "fără date personale" }
+      : { at: iso(when), user: pick2(AUDITORS), role: "Auditor", action: "Vizualizare detalii sesiune", sessionId: s.id, reason: pick2(ACCESS_REASONS), ref: "" });
+}
+accessLog.sort((a, b) => (a.at < b.at ? 1 : -1));
+
+const out = { now: iso(NOW), clients, useCases: useCases.map(({ clients: c, ...u }) => ({ ...u, clients: c })), providers, alerts, operators, active, history, accessLog };
 fs.writeFileSync(process.argv[2], JSON.stringify(out, null, 1));
-console.log("active", active.length, "history", history.length);
+console.log("active", active.length, "history", history.length, "reviews", candidates.length, "access", accessLog.length);

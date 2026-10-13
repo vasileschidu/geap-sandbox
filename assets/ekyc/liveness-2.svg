@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 640" width="480" height="640" role="img" aria-label="Video liveness — cadrul 2 (imagine demonstrativă)">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dfe5ea"/><stop offset="1" stop-color="#c3ccd4"/></linearGradient></defs>
+  <rect width="480" height="640" fill="url(#bg)"/>
+  <g fill="#8e9aa6"><ellipse cx="240" cy="268" rx="96" ry="120"/><ellipse cx="240" cy="640" rx="200" ry="150"/></g>
+  <ellipse cx="240" cy="280" rx="150" ry="196" fill="none" stroke="#ffffff" stroke-width="6" stroke-dasharray="14 12" opacity="0.9"/>
+</svg>

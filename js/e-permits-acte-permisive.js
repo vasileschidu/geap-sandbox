@@ -1119,16 +1119,31 @@
       const cadastral = cadastralConfig(field.cadastral);
       const cadastralOn = Boolean(cadastral?.visible);
       const searchHint = cadastralOn
-        ? "Căutați o adresă salvată sau introduceți codul cadastral. La un cod cadastral, adresa se completează automat din Registrul de Stat al Bunurilor Imobile."
+        ? "Căutați o adresă salvată sau introduceți un cod cadastral și alegeți „Caută codul cadastral” din listă."
         : "Selectarea unei adrese existente pre-completează toate câmpurile";
       const searchId = `fo-casc-search-${uid}`;
-      const searchLabel = field.searchLabel || "Caută adresa";
+      /* with „Cod cadastral” on, the search takes a code too — its label / placeholder say so */
+      const searchText = cadastralOn ? "Caută adresa sau cod cadastral" : "Caută adresa";
+      const searchLabel = field.searchLabel || searchText;
+      /* „Cod cadastral” = the library search input WITH its submit (Figma search-input-rectangular,
+         Button = True): the code is sent to SRRE only on the arrow button or Enter (user decision
+         2026-10-13; editable — deviates from AC-13 „Doar citire”). btn-group: inline spinner (only
+         while SRRE is asked, `.loading`), × (with a value; AC-16), submit (disabled while empty or
+         searching). Its own message slot holds the hint, then the lookup message. */
+      const cadastralId = `${uid}-cadastral`;
       const cadastralFieldHtml = cadastralOn ? `
             <div class="e-permits-fo-field e-permits-fo-field--span-6" data-fo-cadastral-field>
-              <label for="${uid}-cadastral">Cod cadastral${cadastral.required ? ` ${requiredMarkerHtml()}` : ""}</label>
-              <div class="e-permits-fo-input is-filled is-readonly">
-                <input id="${uid}-cadastral" type="text" readonly tabindex="-1" maxlength="50" placeholder="Se completează din «Caută adresa»" data-fo-address-part="cadastralCode">
+              <label for="${cadastralId}">Cod cadastral${cadastral.required ? ` ${requiredMarkerHtml()}` : ""}</label>
+              <div class="search-input ${foSearchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cadastral-search" data-fo-search-size data-fo-cadastral-box>
+                <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
+                <input class="input" id="${cadastralId}" type="text" maxlength="50" autocomplete="off" spellcheck="false" placeholder="Ex.: 0100510.123" aria-describedby="${cadastralId}-message"${cadastral.required ? ' aria-required="true"' : ""} data-fo-address-part="cadastralCode" data-fo-cadastral-input>
+                <div class="btn-group">
+                  <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                  <button type="button" class="btn-icon clear" aria-label="Șterge codul cadastral" data-fo-cadastral-clear><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg></button>
+                  <button type="button" class="btn btn-primary btn-search" aria-label="Caută adresa după codul cadastral" disabled data-fo-cadastral-submit><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+                </div>
               </div>
+              <p class="e-permits-fo-field__hint" id="${cadastralId}-message" data-fo-cadastral-code-hint>Apăsați săgeata sau Enter pentru a căuta adresa în Registrul de Stat al Bunurilor Imobile.</p>
             </div>` : "";
       /* „Caută adresa” = the library search input (search icon + × clear, js/search.js); its one
          message slot under it holds the hint, then the lookup message (loading / success / error /
@@ -1137,7 +1152,7 @@
         <div class="${fieldClass(field)} e-permits-fo-cascade-address" data-fo-cascade-address data-fo-cascade-districts="${districtsJson}"${cadastralOn ? ' data-fo-cadastral="on"' : ""}>
           <div class="e-permits-fo-field e-permits-fo-field--span-12">
             <label for="${searchId}">${escapeFrontOfficeHtml(searchLabel)}${field.searchLabel && field.required ? ` ${requiredMarkerHtml()}` : ""}</label>
-            ${addressSearchInputHtml({ id: searchId, describedBy: `${searchId}-message` })}
+            ${addressSearchInputHtml({ id: searchId, placeholder: searchText, describedBy: `${searchId}-message` })}
             <p class="e-permits-fo-field__hint" id="${searchId}-message" data-fo-cadastral-search-hint>${escapeFrontOfficeHtml(searchHint)}</p>
             ${cadastralOn ? `<p class="u-visually-hidden" aria-live="polite" data-fo-cadastral-live></p>` : ""}
           </div>
@@ -1520,8 +1535,9 @@
        a valid code fills Țară · Raion · Oraș · Sector · Stradă · Cod poștal · Casă · Bloc ·
        Apartament read-only (the FO „Read Only” field: is-filled is-readonly + check) with a one-time
        highlight; Scară, Etaj, Telefon, Email stay editable. Change the code → skeleton → refill;
-       × / clear → those fields empty and editable. Every message sits in the search field's own
-       message slot. Demo: foAddressDemo (?srre=asteptare keeps the request pending). */
+       × / clear → those fields empty and editable. „Cod cadastral” is an editable input too (user
+       decision 2026-10-13): a code typed there runs the same lookup; the two fields stay in sync
+       and the messages sit in the message slot of the field the code was typed in. Demo: foAddressDemo (?srre=asteptare keeps the request pending). */
     const SRRE_URL = "data/srre-cadastral.json";
     const SRRE_DELAY_MS = { normal: 1400, lent: 3000 };
     const SRRE_SKELETON_MIN_MS = 400;
@@ -1550,9 +1566,17 @@
       const slot = root.querySelector("[data-fo-cadastral-search-hint]");
       const live = root.querySelector("[data-fo-cadastral-live]");
       const grid = root.querySelector(".e-permits-fo-cascade-address__grid");
-      const codeInput = root.querySelector("[data-fo-address-part='cadastralCode']");
+      const codeInput = root.querySelector("[data-fo-cadastral-input]");
+      const codeWrap = codeInput?.closest(".search-input");
+      const codeSubmit = root.querySelector("[data-fo-cadastral-submit]");
+      const codeSlot = root.querySelector("[data-fo-cadastral-code-hint]");
       if (!input || !slot) return;
-      const hintText = slot.textContent;
+      /* the two fields that take a code: „Caută adresa” and „Cod cadastral”. A lookup's messages
+         go under the one the code was typed in; the other shows its hint again */
+      const sources = {
+        search: { input, control, slot, hint: slot.textContent },
+        code: codeInput && codeSlot ? { input: codeInput, control: codeWrap, slot: codeSlot, hint: codeSlot.textContent } : null,
+      };
       const field = (selector) => root.querySelector(selector)?.closest(".e-permits-fo-field");
       const selectFields = {
         country: field("[data-fo-address-part='country']"),
@@ -1565,10 +1589,10 @@
       const textParts = ["postalCode", "house", "block", "apartment"].map(part).filter(Boolean);
       const isCode = (value) => /^[0-9.]+$/.test(value) && /[0-9]/.test(value);
       const wait = (ms) => new Promise((resolve) => window.setTimeout(resolve, ms));
-      let timer = null;
       let token = 0;
       let lastCode = "";
       let filled = false;
+      let busy = false;
       loadSrreDb();
 
       const MESSAGES = {
@@ -1578,10 +1602,44 @@
         unavailable: { tone: "message--warning e-permits-fo-field__warning", icon: "icon-warning-filled", text: "Adresă indisponibilă. Puteți completa adresa manual." },
       };
 
-      /* the parts SRRE fills, as the user sees them now (a hidden part / sector stays out) */
+      /* the two fields stay in sync: a code typed / chosen in one is written into the other */
+      function setSearchValue(value) {
+        input.value = value;
+        control?.classList.remove("is-typing");
+        control?.classList.toggle("has-value", Boolean(value));
+        control?.classList.toggle("is-ready", Boolean(value));
+      }
+
+      /* „Cod cadastral” box: × with a value (no typing spinner — it is not a live filter), the
+         submit enabled only with a value and while no lookup runs (no double submit) */
+      function syncCodeBox() {
+        if (!codeInput) return;
+        const has = Boolean(codeInput.value.trim());
+        codeWrap?.classList.remove("is-typing");
+        codeWrap?.classList.toggle("has-value", has);
+        codeWrap?.classList.toggle("is-ready", has);
+        if (codeSubmit) codeSubmit.disabled = !has || busy;
+      }
+
+      function setCodeValue(value) {
+        if (!codeInput) return;
+        codeInput.value = value;
+        syncCodeBox();
+      }
+
+      /* SRRE is being asked: the inline spinner in the box the request came from (library
+         `.loading` hides its ×); the submit stays disabled until the answer */
+      function setBusy(on, from = "search") {
+        busy = on;
+        control?.classList.toggle("loading", on && from === "search");
+        codeWrap?.classList.toggle("loading", on && from === "code");
+        syncCodeBox();
+      }
+
+      /* the parts SRRE fills, as the user sees them now (a hidden part / sector stays out;
+         „Cod cadastral” is an input, never a skeleton) */
       function skeletonFields() {
         return [
-          codeInput?.closest(".e-permits-fo-field"),
           ...Object.values(selectFields),
           ...textParts.map((el) => el.closest(".e-permits-fo-field")),
         ].filter((el) => el && !el.hidden && el.style.display !== "none");
@@ -1598,22 +1656,27 @@
         });
       }
 
-      /* one message slot: the hint by default, the lookup message in its place */
-      function setStatus(kind) {
+      /* one message slot per field: its hint by default, the lookup message in its place —
+         only in the field the code came from (`from`) */
+      function setStatus(kind, from = "search") {
         const message = kind ? MESSAGES[kind] : null;
-        control?.classList.toggle("is-error", kind === "invalid");
-        if (kind === "invalid") input.setAttribute("aria-invalid", "true");
-        else input.removeAttribute("aria-invalid");
-        setSkeleton(kind === "loading");
-        if (!message) {
-          slot.className = "e-permits-fo-field__hint";
-          slot.textContent = hintText;
-        } else {
-          slot.className = `message message--inline e-permits-fo-field__error ${message.tone}`;
-          slot.innerHTML = `${message.icon
+        Object.entries(sources).forEach(([key, source]) => {
+          if (!source) return;
+          const own = Boolean(message) && key === from;
+          source.control?.classList.toggle("is-error", own && kind === "invalid");
+          if (own && kind === "invalid") source.input.setAttribute("aria-invalid", "true");
+          else source.input.removeAttribute("aria-invalid");
+          if (!own) {
+            source.slot.className = "e-permits-fo-field__hint";
+            source.slot.textContent = source.hint;
+            return;
+          }
+          source.slot.className = `message message--inline e-permits-fo-field__error ${message.tone}`;
+          source.slot.innerHTML = `${message.icon
             ? `<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${message.icon}"></use></svg>`
             : '<span class="spinner spinner--small spinner--brand" aria-hidden="true"></span>'}<span>${escapeFrontOfficeHtml(message.text)}</span>`;
-        }
+        });
+        setSkeleton(kind === "loading");
         /* screen readers hear the outcome once (not the loader, not the hint) */
         if (live) live.textContent = kind && kind !== "loading" ? message.text : "";
       }
@@ -1672,7 +1735,8 @@
         wrap.querySelector(".icon")?.remove();
       }
 
-      /* clear the SRRE fill: fields empty and editable, the cascade back to its start */
+      /* clear the SRRE fill: fields empty and editable, the cascade back to its start. The code
+         itself stays where the user typed it (an invalid code is corrected, not retyped). */
       function release() {
         if (!filled) return;
         filled = false;
@@ -1687,16 +1751,20 @@
         api.hideSector();
         textParts.forEach(unlockInput);
         api.setPostalEnabled(false);
-        if (codeInput) {
-          codeInput.value = "";
-          codeInput.closest(".e-permits-fo-input")?.querySelector(".icon")?.remove();
-        }
       }
-      root.foCadastralRelease = release;
+      /* a saved address chosen in the search: the SRRE parts become editable, the code goes */
+      root.foCadastralRelease = () => {
+        token += 1;
+        setBusy(false);
+        lastCode = "";
+        release();
+        setCodeValue("");
+        setStatus(null);
+      };
 
       function fill(address, code, postalCode) {
         release();
-        const keepFocus = document.activeElement === input;
+        const focused = [input, codeInput].includes(document.activeElement) ? document.activeElement : null;
         api.raion?.setValue(address.district);
         api.localitate?.setValue(address.locality);
         const chisinau = api.isChisinauLocality(address.locality) && address.sector;
@@ -1712,69 +1780,98 @@
         lockInput(part("house"), address.house);
         lockInput(part("block"), address.block);
         lockInput(part("apartment"), address.apartment);
-        if (codeInput) {
-          codeInput.value = code;
-          const wrap = codeInput.closest(".e-permits-fo-input");
-          wrap?.querySelector(".icon")?.remove();
-          wrap?.insertAdjacentHTML("beforeend", checkHtml);
-          flash(wrap);
-        }
+        setCodeValue(code);
+        if (input.value.trim() !== code) setSearchValue(code);
         filled = true;
-        /* the cascade selects take focus when set: give it back to „Caută adresa” */
-        if (keepFocus) input.focus({ preventScroll: true });
+        /* the cascade selects take focus when set: give it back to the field being typed in */
+        if (focused) focused.focus({ preventScroll: true });
         else if (root.contains(document.activeElement)) document.activeElement.blur();
       }
 
-      async function lookup(code) {
-        window.clearTimeout(timer);
-        if (!code || code === lastCode) return;
+      /* an explicit request (submit / Enter / the list's „Caută codul cadastral” row) — never on
+         a typing pause or on blur. A submit re-runs even for the same code. */
+      async function lookup(code, from = "search") {
+        if (!code || busy) return;
         lastCode = code;
         const run = ++token;
         const mode = foAddressDemo.srre;
-        setStatus("loading");
+        setBusy(true, from);
+        setStatus("loading", from);
         const started = performance.now();
         const db = await loadSrreDb();
         if (mode === "asteptare") return;
         const delay = Math.max(SRRE_SKELETON_MIN_MS, SRRE_DELAY_MS[mode] || SRRE_DELAY_MS.normal);
         await wait(Math.max(0, delay - (performance.now() - started)));
         if (run !== token) return;
+        setBusy(false);
         const address = mode === "invalid" ? null : db.parcels?.[code];
-        if (mode === "indisponibil" || address?.unavailable) { release(); setStatus("unavailable"); return; }
-        if (!address) { release(); setStatus("invalid"); return; }
+        if (mode === "indisponibil" || address?.unavailable) { release(); setStatus("unavailable", from); return; }
+        if (!address) { release(); setStatus("invalid", from); return; }
         fill(address, code, db.postalCodes?.[address.locality] || "");
-        setStatus("success");
+        setStatus("success", from);
       }
 
-      /* typing: a message from the previous code goes away at once (AC-21); a code is looked up
-         when typing pauses, on Enter or on leaving the field; an emptied field (× included)
-         releases the fill */
-      function onInput(raw) {
-        window.clearTimeout(timer);
+      /* submit: a code is sent to SRRE; anything else (letters, other characters) cannot be a
+         cadastral code → „Codul nu este valid” at once, SRRE is not asked (AC-19) */
+      function submit(from) {
+        const value = sources[from]?.input.value.trim() || "";
+        if (!value || busy) return;
+        if (isCode(value)) { lookup(value, from); return; }
+        token += 1;
+        lastCode = value;
+        release();
+        setStatus("invalid", from);
+      }
+
+      /* typing in either field mirrors the code into the other and puts the hint back (AC-21);
+         nothing is sent. Values filled for an earlier code stay until the next submit. An emptied
+         field (× included) releases the fill and empties the other one (AC-16); address text
+         (not a code) in the search releases it too — it searches saved addresses instead. */
+      function onInput(raw, from = "search") {
         const value = String(raw || "").trim();
-        if (!value || !isCode(value)) {
+        if (from === "code") { setSearchValue(value); syncCodeBox(); }
+        else if (!value || isCode(value)) setCodeValue(value);
+        if (!value || (from === "search" && !isCode(value))) {
           token += 1;
+          setBusy(false);
           lastCode = "";
           release();
+          if (from === "search") setCodeValue("");
           setStatus(null);
           return;
         }
-        if (value === lastCode) return;
-        token += 1;
+        /* a code edited while SRRE answers: the running request finishes (submit is disabled) */
+        if (busy) return;
         setStatus(null);
-        timer = window.setTimeout(() => lookup(value), 900);
       }
 
-      input.addEventListener("change", () => { const value = input.value.trim(); if (isCode(value)) lookup(value); });
+      /* Enter in the search with its list closed = the same explicit request (with the list
+         open, Enter picks the active row — the „Caută codul cadastral” row comes first) */
       input.addEventListener("keydown", (event) => {
         if (event.key !== "Enter" || (list && !list.hidden)) return;
         const value = input.value.trim();
-        if (isCode(value)) { event.preventDefault(); lookup(value); }
+        if (isCode(value)) { event.preventDefault(); lookup(value, "search"); }
       });
+
+      if (codeInput) {
+        codeInput.addEventListener("input", () => onInput(codeInput.value, "code"));
+        /* Enter = the submit (js/search.js clicks .btn-search); only stop a form submit here */
+        codeInput.addEventListener("keydown", (event) => { if (event.key === "Enter") event.preventDefault(); });
+        codeSubmit?.addEventListener("click", (event) => {
+          event.preventDefault();
+          submit("code");
+        });
+        /* × = library clear (js/search.js empties, focuses and fires `input` → onInput, AC-16) */
+        syncCodeBox();
+      }
 
       searchRoot.foCadastral = {
         isCode,
-        onInput,
-        choose: (code) => lookup(code),
+        onInput: (raw) => onInput(raw, "search"),
+        isFilled: () => filled,
+        /* the list's „Caută codul cadastral «…»” row: the code goes into „Cod cadastral” and is sent */
+        search: (code) => { setCodeValue(code); lookup(code, "search"); },
+        choose: (code) => { setCodeValue(code); lookup(code, "search"); },
         savedCodes: () => (foAddressDemo.saved === "fara" ? [] : (srreDb?.savedCodes?.[frontOfficeSelectedSubject?.id] || [])).map((item) => ({
           cadastral: true,
           code: item.code,
@@ -5857,8 +5954,13 @@
           renderSuggestions(cadastral.savedCodes(), { empty: "Nu aveți coduri cadastrale salvate." });
           return;
         }
+        /* a code typed here is sent only on request: the first row says so explicitly
+           („Caută codul cadastral «…»”, Enter picks it), then the saved codes that match */
         if (cadastral && cadastral.isCode(raw)) {
-          renderSuggestions(cadastral.savedCodes().filter((item) => item.code.startsWith(raw) && item.code !== raw));
+          renderSuggestions([
+            { action: "cadastral-search", code: raw, title: `Caută codul cadastral «${raw}»`, meta: "în Registrul de Stat al Bunurilor Imobile", icon: "icon-search" },
+            ...cadastral.savedCodes().filter((item) => item.code.startsWith(raw) && item.code !== raw),
+          ]);
           return;
         }
         const query = raw.toLocaleLowerCase("ro");
@@ -5875,6 +5977,13 @@
       function chooseAddress(index) {
         const item = visibleAddresses[index];
         if (!item) return;
+        if (item.action === "cadastral-search") {
+          hasSelectedAddress = true;
+          setOpen(false);
+          input.removeAttribute("aria-activedescendant");
+          searchRoot.foCadastral?.search(item.code);
+          return;
+        }
         if (item.cadastral) {
           input.value = item.code;
           syncSearchValue();
@@ -5903,7 +6012,8 @@
       });
       input.addEventListener("input", () => {
         hasSelectedAddress = false;
-        resetAddressParts();
+        /* US-54: a code being typed keeps an earlier SRRE fill until the next request */
+        if (!searchRoot.foCadastral?.isCode(input.value.trim())) resetAddressParts();
         searchRoot.foCadastral?.onInput(input.value);
         filterAddresses();
       });
