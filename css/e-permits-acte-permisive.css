@@ -6608,13 +6608,20 @@
      the second wins project-wide. Not touching that shared duplicate; this
      scoped override just restores 12px for this one banner. */
   border-radius: var(--border-radius-12, 12px);
-  gap: var(--spacing-24, 24px);
+  /* icon → text = the library info-box gap (12); text → MPass button keeps 24 (12 + margin) */
+  gap: var(--spacing-12, 12px);
   min-height: 72px;
-  padding: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
 .e-permits-fo-guest__upsell .info-box__content {
+  flex: 1 1 0;
   gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-fo-guest__upsell > .btn {
+  margin-left: var(--spacing-12, 12px);
 }
 
 /* the 24px under the banner belongs to the banner, so it holds when the „Soliciți în numele”
@@ -6643,6 +6650,7 @@
   .e-permits-fo-guest__upsell > .btn {
     flex: 1 1 100%;
     justify-content: center;
+    margin-left: 0;
   }
 }
 
@@ -24788,4 +24796,18 @@ a.btn:focus-visible {
 /* US-54: „Cod cadastral” has no hint — its message slot only shows once there is a lookup message */
 [data-fo-cadastral-code-hint]:empty {
   display: none;
+}
+
+/* Radio option rows carry their own 12px hover padding, so the section body gives that back:
+   title → radio = 24 and radio → next section = 32, the same rhythm as sections with fields. */
+.e-permits-fo-form__section-body:has(> .e-permits-fo-radio-group .e-permits-fo-radio--option) {
+  padding-top: var(--spacing-12, 12px);
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+/* phones: option rows stack — their own 12px padding already separates them (24 between texts) */
+@media (max-width: 720px) {
+  .e-permits-fo-radio-group:has(> .e-permits-fo-radio--option) {
+    gap: var(--spacing-0, 0);
+  }
 }
