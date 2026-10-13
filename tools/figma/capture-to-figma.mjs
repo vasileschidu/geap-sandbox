@@ -59,6 +59,6 @@ const found = await evaluate(`Boolean(document.querySelector(${JSON.stringify(SE
 if (!found) { console.error(`selector not found: ${SEL}`); ws.close(); chrome.kill(); process.exit(1); }
 await evaluate(fs.readFileSync(CAPJS, "utf8"));
 await sleep(600);
-const res = await Promise.race([sleep(25000).then(() => "timeout (submitted?)"), evaluate(`(async () => { const r = await window.figma.captureForDesign({ captureId: ${JSON.stringify(CID)}, endpoint: "https://mcp.figma.com/mcp/capture/${CID}/submit?bindVariables=true", selector: ${JSON.stringify(SEL)} }); return JSON.stringify(r).slice(0, 200); })()`)]);
+const res = await Promise.race([sleep(Number(arg("wait", 25000))).then(() => "timeout (submitted?)"), evaluate(`(async () => { const r = await window.figma.captureForDesign({ captureId: ${JSON.stringify(CID)}, endpoint: "https://mcp.figma.com/mcp/capture/${CID}/submit?bindVariables=true", selector: ${JSON.stringify(SEL)} }); return JSON.stringify(r).slice(0, 200); })()`)]);
 console.log(STATE, st, res, errors.slice(0, 2));
 ws.close(); chrome.kill(); process.exit(0);

@@ -53,6 +53,8 @@ const isPlaceholder = (t) => { const c = fillC(t); return c && c.r > 0.4 && c.r 
 const inInst = (n) => { for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true; return false; };
 const inSkip = (n) => { for (let p = n; p; p = p.parent) if (/^(Navigation - Pași|Header)$/.test(p.name) || (p.name || "").startsWith("Opțiune radio")) return true; return false; };
 const R = (n) => (n.cornerRadius === figma.mixed ? n.topLeftRadius : n.cornerRadius || 0);
+/* checkbox box: 20×20, radius 4–6, stroke or blue fill; sometimes wrapped in „Text:margin” (G7c paper copy) */
+const cbox = (n) => { let c = n.children && n.children[0]; if (!c || c.type !== "FRAME") return null; if (c.name === "Text:margin" && c.children && c.children[0] && c.children[0].type === "FRAME") c = c.children[0]; return Math.round(c.width) === 20 && Math.round(c.height) === 20 && R(c) >= 3 && R(c) <= 7 && (((c.strokes || []).length) || isBlue(fillC(c))) ? c : null; };
 const place = (old, inst, w) => {
   const p = old.parent, i = p.children.indexOf(old); p.insertChild(i, inst);
   if (!p.layoutMode || p.layoutMode === "NONE") { inst.x = old.x; inst.y = old.y; }
@@ -61,6 +63,12 @@ const place = (old, inst, w) => {
   if (old.layoutPositioning === "ABSOLUTE") { inst.layoutPositioning = "ABSOLUTE"; inst.x = old.x; inst.y = old.y; }
   old.remove(); return inst;
 };
+/* mobile: the MPass upsell banner is a wrapped (NONE) row → VERTICAL: [icon + text] row, then the button FILL */
+const fixBanner = (c) => { const kids = c.children; const btn = kids.find((k) => k.type === "INSTANCE" && /^btn · /.test(k.name)); const ico = kids.find((k) => k.type === "FRAME" && Math.round(k.width) === 24 && Math.round(k.height) === 24); const txt = kids.find((k) => k !== btn && k !== ico && k.type === "FRAME"); if (!btn || !ico || !txt) return false;
+  const pl = Math.round(ico.x), pt = Math.round(ico.y), w = c.width; c.layoutMode = "VERTICAL"; c.itemSpacing = 12; c.paddingLeft = c.paddingRight = pl; c.paddingTop = c.paddingBottom = pt; c.primaryAxisSizingMode = "AUTO"; c.counterAxisSizingMode = "FIXED"; c.resize(w, c.height);
+  const row = figma.createAutoLayout("HORIZONTAL", { name: "Icon + text" }); row.fills = []; row.itemSpacing = 12; row.counterAxisAlignItems = "MIN"; c.insertChild(0, row); row.layoutSizingHorizontal = "FILL"; row.appendChild(ico); row.appendChild(txt); txt.layoutSizingHorizontal = "FILL"; c.appendChild(btn); btn.layoutSizingHorizontal = "FILL"; return true; };
+/* the library header-evo-mobile shows „Intră în cabinet” + search by default; the guest code shows logo + menu only */
+const hideHdrExtras = (h) => { for (const x of h.findAll((n) => n.name === "button-filled-circular")) x.visible = false; const act = h.findOne((n) => n.name === "Actions"); if (act && act.children.length > 1) act.children[0].visible = false; };
 const report = {};
 const ra = (root, pred) => root.findAll((n) => !n.removed && !inInst(n) && !inSkip(n) && pred(n));
 
@@ -68,15 +76,15 @@ const ra = (root, pred) => root.findAll((n) => !n.removed && !inInst(n) && !inSk
 const ungrid = (f) => {
   if (f.layoutMode !== "GRID") return false;
   const kids = f.children.filter((k) => k.layoutPositioning !== "ABSOLUTE").map((k) => ({ k, x: Math.round(k.x), y: Math.round(k.y), w: k.width, h: k.height }));
-  const ys = [...new Set(kids.map((k) => k.y))].sort((a, b) => a - b);
-  const rows = ys.map((y) => kids.filter((k) => k.y === y).sort((a, b) => a.x - b.x));
+  const ys = []; for (const y of kids.map((k) => k.y).sort((a, b) => a - b)) if (!ys.length || y - ys[ys.length - 1] > 8) ys.push(y); // same row = within 8px (mobile progress: label y8, count y10)
+  const rows = ys.map((y, i) => kids.filter((k) => k.y >= y && (i + 1 >= ys.length || k.y < ys[i + 1])).sort((a, b) => a.x - b.x));
   const pt = f.paddingTop, pb = f.paddingBottom, pl = f.paddingLeft, pr = f.paddingRight;
   const rowGap = rows.length > 1 ? Math.max(0, Math.round(rows[1][0].y - (rows[0][0].y + Math.max(...rows[0].map((k) => k.h))))) : 24;
   f.layoutMode = "VERTICAL"; f.itemSpacing = rowGap; f.paddingTop = pt; f.paddingBottom = pb; f.paddingLeft = pl; f.paddingRight = pr; f.counterAxisAlignItems = "MIN";
-  f.primaryAxisSizingMode = "AUTO";
+  f.primaryAxisSizingMode = "AUTO"; const W0 = kids.length ? Math.max(f.width, ...kids.map((k) => k.x + k.w)) + pr : f.width; f.counterAxisSizingMode = "FIXED"; f.resize(Math.max(f.width, W0), f.height); // a converted GRID must keep its width (HUG collapsed the address grid to 282)
   for (const [ri, row] of rows.entries()) {
     if (row.length === 1 && Math.abs(row[0].w - (f.width - pl - pr)) < 2) { f.appendChild(row[0].k); try { row[0].k.layoutSizingHorizontal = "FILL"; } catch (e) {} continue; }
-    const r = figma.createAutoLayout("HORIZONTAL", { name: "Rând " + (ri + 1) }); r.fills = []; r.clipsContent = false; r.counterAxisAlignItems = "MIN";
+    const r = figma.createAutoLayout("HORIZONTAL", { name: "Rând " + (ri + 1) }); r.fills = []; r.clipsContent = false; r.counterAxisAlignItems = row.some((k) => Math.abs(k.y - row[0].y) > 0) ? "CENTER" : "MIN";
     r.itemSpacing = row.length > 1 ? Math.max(0, Math.round(row[1].x - row[0].x - row[0].w)) : 32;
     f.appendChild(r); r.layoutSizingHorizontal = "FILL"; r.layoutSizingVertical = "HUG";
     for (const it of row) { r.appendChild(it.k); try { it.k.layoutSizingHorizontal = "FIXED"; it.k.resize(it.w, it.k.height); } catch (e) {} }
@@ -110,6 +118,7 @@ const boxKind = (b) => {
   const f0 = b.fills && b.fills !== figma.mixed && b.fills.find((p) => p.visible !== false);
   if (f0 && f0.type !== "SOLID" && !b.findOne((x) => x.type === "TEXT")) return "skeleton";
   if (!b.findOne((x) => x.type === "TEXT")) return null;
+  if (isGrey(fillC(b)) && !b.findOne((x) => /Combobox|Select|^Listbox/.test(x.name)) && !(b.children.length && b.children[b.children.length - 1].name === "Icon")) return "readonly"; // „+373 60999999” read-only beats phone
   if (b.findOne((x) => x.name === "Phone Input") || /\+373/.test(textOf(b))) return "phone";
   if (b.findOne((x) => /Search|Căutare/.test(x.name)) || (b.children[0] && b.children[0].name === "Icon" && /Caută|Ex\.:/.test(textOf(b)))) return "search";
   if (b.findOne((x) => /Combobox|Select|^Listbox/.test(x.name)) || (b.children.length && b.children[b.children.length - 1].name === "Icon" && !b.findOne((x) => /Input$/.test(x.name)))) return "select";
@@ -124,7 +133,7 @@ const msgOf = (p) => {
   return { tone, text };
 };
 const message = async (inst, m) => {
-  const im = inst.findOne((n) => n.type === "INSTANCE" && n.name === "inline-message"); if (!im || !m) return;
+  const im = inst.findOne((n) => n.type === "INSTANCE" && /^(inline-message|Assistive text)$/i.test(n.name)); if (!im || !m) return; // Destructive variants call the slot „Assistive text”
   setP(im, { "🖌️ Style": m.tone === "error" ? "Error" : "Default", "⌨️ Message": m.text, "📍 Icon": m.tone !== "hint" });
   if (m.tone === "loading") { const icn = im.children.find((c) => c.type === "INSTANCE"); if (icn) { const sp = V(C.spin, { "Size": "Extra Small", "Style": "Brand" }) || V(C.spin, { "Style": "Brand" }) || C.spin.children[0]; const s = icn.width; icn.swapComponent(sp); icn.resize(s, s); } }
   try { im.layoutSizingHorizontal = "FILL"; const tx = im.findOne((n) => n.type === "TEXT"); if (tx) { tx.layoutSizingHorizontal = "FILL"; tx.textAutoResize = "HEIGHT"; } } catch (e) {}
@@ -159,6 +168,11 @@ for (const rid of ROOTS) {
   const size = OPT.mobile ? "Large" : "Medium";
   // 0 · header
   const hdr = root.findOne((n) => n.name === "Header" && n.type === "FRAME" && n.width > 1000 && !inInst(n));
+  /* mobile header → header-evo-mobile (Default, Anonymous) + the captured service-title row; the raw logo / menu row is removed */
+  const mh = OPT.mobile ? root.findOne((n) => n.name === "Header" && n.type === "FRAME" && n.width <= 400 && !inInst(n)) : null;
+  if (mh) { const HM = await figma.importComponentSetByKeyAsync("e0e8b8368ae9c8967e1ddbfb27434abd0f894ecd"); const hv = HM.children.find((c) => c.name.includes("State=Default") && c.name.includes("User State=Anonymous")); const title = mh.children.find((c) => c.type === "FRAME" && c.findOne((t) => t.type === "TEXT" && t.characters.length > 15));
+    for (const k of [...mh.children]) if (k !== title) k.remove(); mh.layoutMode = "VERTICAL"; mh.itemSpacing = 0; mh.primaryAxisSizingMode = "AUTO"; mh.counterAxisSizingMode = "FIXED"; mh.paddingTop = mh.paddingBottom = mh.paddingLeft = mh.paddingRight = 0;
+    const hi = hv.createInstance(); hi.name = "header-evo-mobile"; hideHdrExtras(hi); mh.insertChild(0, hi); hi.layoutSizingHorizontal = "FILL"; if (title) { title.layoutPositioning = "AUTO"; title.layoutSizingHorizontal = "FILL"; } mh.name = "Antet mobil (EVO)"; push("m-header"); }
   if (hdr && HEADER && !OPT.mobile) { const h = HEADER.clone(); h.name = "Antet serviciu (EVO)"; place(hdr, h); try { h.layoutSizingHorizontal = "FILL"; } catch (e) {} push("header"); }
   // 1 · grids first (positions are read before anything moves)
   for (const f of ra(root, (n) => n.type === "FRAME" && n.layoutMode === "GRID")) if (ungrid(f)) push("grid");
@@ -199,8 +213,8 @@ for (const rid of ROOTS) {
     i.name = "radio-label"; const w = f.width; place(f, wrap, w); wrap.appendChild(i); i.layoutSizingHorizontal = "FILL"; push("radio");
   }
   // 5 · checkbox (box 20 + text) → checkbox-label Small
-  for (const f of ra(root, (n) => n.type === "FRAME" && n.children.length >= 2 && n.children[0].type === "FRAME" && Math.round(n.children[0].width) === 20 && Math.round(n.children[0].height) === 20 && Math.abs(R(n.children[0]) - 6) < 1 && (((n.children[0].strokes || []).length) || isBlue(fillC(n.children[0]))))) {
-    if (f.removed) continue; const box = f.children[0]; const tx = texts(f.children[1]);
+  for (const f of ra(root, (n) => n.type === "FRAME" && n.children.length >= 2 && cbox(n))) {
+    if (f.removed) continue; const box = cbox(f); const tx = texts(f.children[1]);
     const on = isBlue(fillC(box)); const err = isRed(strokeC(box));
     const p = f.parent, idx = p.children.indexOf(f); const nxt = p.children[idx + 1];
     const em = nxt && texts(nxt).length && isRed(fillC(texts(nxt)[0])) ? textOf(nxt) : null;
@@ -212,6 +226,7 @@ for (const rid of ROOTS) {
     if (lt && m) { await loadAll(lt); lt.setRangeTextDecoration(m.index, m.index + m[0].length, "UNDERLINE"); }
     i.name = "checkbox-label"; const keep = (f.paddingTop || f.paddingBottom) && f.layoutMode && f.layoutMode !== "NONE"; // keep the padded row (footer consent = 24 / 24)
     if (keep) { for (const k of [...f.children]) k.remove(); f.appendChild(i); f.name = "Checkbox · rând"; f.counterAxisAlignItems = "MIN"; try { i.layoutSizingHorizontal = "FILL"; } catch (e) {} } else { const w = f.width; place(f, i, w); try { i.layoutSizingHorizontal = "FILL"; } catch (e) {} }
+    for (const t of i.findAll((x) => x.type === "FRAME" && x.name === "Container")) { try { t.layoutSizingHorizontal = "FILL"; } catch (e) {} } // Error variant: text column HUG → narrow wrap
     for (const t of i.findAll((x) => x.type === "TEXT")) { try { t.layoutSizingHorizontal = "FILL"; t.textAutoResize = "HEIGHT"; } catch (e) {} } // long consent text wraps
     push("checkbox");
   }
@@ -241,7 +256,7 @@ for (const rid of ROOTS) {
       else if (isDark(fc)) { set = round ? C.circ : C.rect; style = "Strict"; }
       else if (isLightBlue(fc)) { set = round ? C.circ : C.rect; style = "Secondary"; }
       else if (isGrey(fc)) { set = round ? C.circ : C.rect; style = "Neutral"; }
-      else if (sc) { set = round ? C.outCirc : C.outRect; style = isBlue(sc) || isBlue(tc) ? "Primary" : "Neutral"; }
+      else if (sc) { set = round ? C.outCirc : C.outRect; style = isBlue(sc) || isBlue(tc) ? "Primary" : "Strict"; } // outlined sets have Primary / Strict / Destructive only
       else { set = C.textRect; style = isBlue(tc) ? "Primary" : "Strict"; }
       const mode = lead ? "Leading" : trail ? "Trailing" : "None";
       const v = V(set, { "Style": style, "Icon": mode, "Size": sz, "State": "Default" }) || V(set, { "Style": style, "Icon": "None", "Size": sz, "State": "Default" }) || V(set, { "Style": style, "Size": sz });
@@ -250,8 +265,9 @@ for (const rid of ROOTS) {
       const ik = /^Înainte|Continuă$|Trimite/.test(label) ? "right" : /^Adaugă fișier/.test(label) && style === "Strict" ? "upload" : /^Vezi/.test(label) ? "eye" : /^Înapoi/.test(label) ? "left" : null;
       if ((lead || trail) && ik) { const px = sz === "Small" ? "16" : "20"; const slot = prop(i, (lead ? "🔄 Leading Icon: " : "🔄 Trailing Icon: ") + px); if (slot) i.setProperties({ [slot]: (await ic(ik)).id }); }
     }
-    i.name = "btn · " + label.slice(0, 40); const fill = b.width > 400; place(b, i); if (fill) { try { i.layoutSizingHorizontal = "FILL"; } catch (e) {} } push("btn");
+    i.name = "btn · " + label.slice(0, 40); const fill = b.width > 400 || (OPT.mobile && b.width >= 280); // mobile CTAs are full width place(b, i); if (fill) { try { i.layoutSizingHorizontal = "FILL"; } catch (e) {} } push("btn");
   }
+  if (OPT.mobile) for (const c of ra(root, (n) => n.type === "FRAME" && (!n.layoutMode || n.layoutMode === "NONE") && n.children.some((k) => k.type === "INSTANCE" && /^btn · /.test(k.name)))) if (fixBanner(c)) push("m-banner");
   // 8 · small tags (Opțional, Gratuit, Acum, #1)
   for (const f of ra(root, (n) => n.type === "FRAME" && Math.abs(R(n) - 4) < 1 && n.height >= 16 && n.height <= 26 && n.width < 120 && texts(n).length === 1 && !n.findOne((x) => x.type === "FRAME" && x.width > 20 && x.height > 20))) {
     if (f.removed) continue; const label = textOf(f); const strong = isBlue(fillC(f));

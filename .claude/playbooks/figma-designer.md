@@ -325,3 +325,35 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-13 · Before adding a short connector (marker → section) check the straight path: the 04 marker → ⚡
   connector crossed „No permits issued” → keep the NODE link instead. A section placed under a column must clear the
   lane sections under it (Guest lane moved to y 10920 for ⚡ under 04; said so in the report).
+- 2026-10-13 · FOD Guest lane rebuild (633:7411, 20 blocks × desktop 1440 + mobile 375 = 40 captures). New builder
+  `tools/figma/swap-fo-guest.js` (stored hidden in Figma as text node „__swap-fo-guest” `691:7562`, run with
+  `new AsyncFunction("ROOTS","OPT", text)(ids, {header:"302:6020", mobile})`) swaps FO form captures by library KEY:
+  fields → text-input f035f115… / phone f2ba725d… / select 24351877… / search a27b4efa…, segmented eae5f7eb…,
+  radio-label 513e5610… (in a padded „Opțiune radio” row), checkbox-label 3cf40c11… (Size Small), button-badge-filled
+  a2f45475… (MPass / MSign), outlined rect 4ca8aa00… / circ d7a0779b… (styles Primary / Strict / Destructive only — no
+  Neutral), header = clone of the board's `.temp` EVO header 302:6020, mobile header = header-evo-mobile e0e8b836… with
+  „Intră în cabinet” + search hidden. Assembly: `tools/figma/assemble-guest-block.js` (desktop + mobile side by side,
+  gap 80, 3px outline radius 12, „Prototype ↗” link). Icons: 20/checkmark-small ebea9f11…, 20/upload e72e41aa…,
+  20/arrow-right d4bcc2d0…, 20/arrow-left f9c5634d…; tertiary bg var 7e60b930… (Foundations lk-e9e8).
+- 2026-10-13 · Builder bugs found on the way (all fixed in the repo + stored copy): a captured field's counter text was read
+  after `place()` removed it (read values first); Destructive inputs name their message slot „Assistive text”, not
+  „inline-message”; checkbox-label Error variant has a HUG text column → set „Container” FILL or it wraps at 318px;
+  replacing a padded wrapper with an instance loses its padding (consent row 24/24) → keep the wrapper; converting a GRID
+  must keep its width (HUG collapsed the address grid to 282) and group rows with an 8px y-tolerance (the mobile progress
+  label sat 2px higher and became its own 1px-high row → clipped); grey boxes = Read Only before the phone test
+  („+373 …” read-only); checkbox boxes can sit inside „Text:margin”.
+- 2026-10-13 · Mobile at 375 = capture the prototype at 375 (the code's own mobile layout) and swap with OPT.mobile
+  (Large inputs, full-width CTAs ≥ 280, MPass banner re-stacked icon+text / button FILL) — never reflow the desktop frame.
+  Coordinator asked mid-job for a mobile next to EVERY block, not just G1/G4: plan mobile for every state from the start.
+- 2026-10-13 · `generate_figma_design` captures of heavy pages can stay „pending” forever when capture-to-figma.mjs kills
+  Chrome after 25 s → new `--wait <ms>` flag (60000 fixed m-G7b / m-G7c). Poll every id; a pending one means re-capture.
+- 2026-10-13 · Layout for long-arrow-free flows: entry block alone in row 0, one row per stage, markers right next to the
+  block that jumps, rightward connectors start on the MOBILE screen (rightmost, free gap), leftward / downward ones on the
+  desktop screen or via the decision column. Connector endpoints can be raw capture frames (radio row, field wrapper) or
+  top-level instances (button, segmented-control); header logo = instance + `position`.
+- 2026-10-13 · Audit false positives here: wrapper names starting with „Button”/„Checkbox” (rename to „Acțiune:margin”,
+  „Rând · checkbox”), captured stepper links „Button - Deschide pasul …”, `fontName` mixed = Onest Regular + Medium.
+  Library gaps (report): FO vertical stepper (.step-desktop Vertical is 127px/step, not the 56px row with the blue current
+  pill) → raw captured stepper as on the rest of the board; dashed upload container, uploaded-file row, radio row hover,
+  IDNP 0/13 counter, MPass upsell banner (info-box Subtle is grey, code is light blue), FO progress tracker on Finalizare,
+  leave dialog (library modal has no slot) → raw captured frames with bound tokens.
