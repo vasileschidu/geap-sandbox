@@ -190,3 +190,11 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - 2026-10-13 · Dosare trajectory had drifted from code (grey filled card; callout 20/20, inset 24) →
   card = white + border/base/default 1px, r24, p20; „Dosar / Acum · callout” = p12/16, gap 12,
   r 0 0 24 24, title 14/20. Compare a block with the live state screenshot before calling it aligned.
+- 2026-10-13 · Every BO page starts with a section „Cum se citește · Cuprins” left of the content
+  (400 gap, tops aligned): the „How to read” note + „Cuprinsul paginii” = a wrapping grid of column
+  cards (340 wide, 5 per row); card title = band name + count (NODE link to the band), one line
+  per block (NODE link), brand text token. Rebuild it when blocks are added/renamed.
+- 2026-10-13 · All page sections have a white fill (background/base/default token).
+- 2026-10-13 · Setări error states: the section card with field errors gets a 1.5px
+  border/danger/default stroke (02j1, 02h1, 02n1, 02s7a, 02p5) — mirrors `.has-error` in code.
+  Hide the field's „Inline message” slot when it has no message (leftover placeholder).
