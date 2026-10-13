@@ -1,43 +1,66 @@
 {
-  "version": 1,
+  "version": 2,
   "activeFormId": "form-commerce-notification",
   "forms": [
     {
       "id": "form-commerce-notification",
-      "serviceCode": "C01394",
-      "title": "Cerere de notificare în comerț",
-      "stepTitle": "Detalii cerere",
-      "stepIndex": 2,
-      "totalSteps": 6,
+      "schemaVersion": 2,
+      "technical": "f_notificare_comert",
+      "code": "FRM-0023",
+      "service": { "code": "003000023", "name": "23. Notificare în comerț", "rsspCode": "C01394" },
+      "title": { "ro": "Cerere de notificare în comerț", "ru": "Уведомление о торговой деятельности", "en": "" },
+      "description": { "ro": "Notificarea privind inițierea activității de comerț.", "ru": "", "en": "" },
+      "access": "service",
+      "requestTypes": ["Eliberare", "Reperfectare"],
       "version": "v1.4.2",
-      "status": "draft",
-      "updatedAt": "2026-06-09T00:00:00.000Z",
-      "fields": [
+      "status": "published",
+      "editedAt": "2026-10-12T16:40:00",
+      "editedBy": "Vasile Schidu",
+      "settings": { "autosave": true, "reviewSummary": true },
+      "steps": [
+        { "id": "st-applicant", "platform": "applicant", "locked": true, "title": { "ro": "Date solicitant", "ru": "Данные заявителя", "en": "Applicant" }, "sections": [] },
         {
-          "id": "field-raion",
-          "type": "select",
-          "fieldId": "f_raion",
-          "label": "Raion",
-          "preview": "Selectează raion",
-          "span": 4,
-          "required": true,
-          "dataSource": {
-            "mode": "existing",
-            "classifierId": "reg_raioane",
-            "displayTemplate": [],
-            "parentPairs": []
-          }
+          "id": "st-details",
+          "locked": false,
+          "title": { "ro": "Detalii cerere", "ru": "Детали заявки", "en": "" },
+          "description": { "ro": "", "ru": "", "en": "" },
+          "requestTypes": ["Eliberare", "Reperfectare"],
+          "sections": [
+            {
+              "id": "sec-object",
+              "title": { "ro": "Obiectul comercial", "ru": "Торговый объект", "en": "" },
+              "description": { "ro": "", "ru": "", "en": "" },
+              "showTitle": true,
+              "showSeparator": true,
+              "fields": [
+                { "id": "fld-name", "type": "text", "key": "DenumireaObiectului", "published": true, "label": { "ro": "Denumirea obiectului comercial", "ru": "Наименование торгового объекта", "en": "" }, "help": { "ro": "Așa cum apare pe firmă sau în actele de proprietate.", "ru": "", "en": "" }, "placeholder": { "ro": "Ex.: Magazinul „La Izvor”", "ru": "", "en": "" }, "span": 8, "required": true, "maxLength": 150, "counter": true, "validation": { "preset": "none", "message": { "ro": "", "ru": "", "en": "" } } },
+                { "id": "fld-unit", "type": "select", "key": "TipulUnitatii", "published": true, "label": { "ro": "Tipul unității comerciale", "ru": "", "en": "" }, "placeholder": { "ro": "Selectează tipul", "ru": "", "en": "" }, "span": 4, "required": true, "dataSource": { "mode": "static", "multilingual": false, "values": [ { "id": 1, "label": "Magazin", "isValid": true }, { "id": 2, "label": "Chioșc", "isValid": true }, { "id": 3, "label": "Piață", "isValid": true }, { "id": 4, "label": "Comerț ambulant", "isValid": true } ] } },
+                { "id": "fld-raion", "type": "select", "key": "Raion", "published": true, "label": { "ro": "Raion", "ru": "Район", "en": "" }, "placeholder": { "ro": "Selectează raionul", "ru": "", "en": "" }, "span": 4, "required": true, "dataSource": { "mode": "existing", "classifierId": "reg_raioane", "template": "name" } },
+                { "id": "fld-authority", "type": "select", "key": "InstitutiaEmitenta", "published": true, "label": { "ro": "Instituția emitentă", "ru": "", "en": "" }, "placeholder": { "ro": "Alege instituția emitentă", "ru": "", "en": "" }, "span": 4, "required": true, "dataSource": null },
+                { "id": "fld-area", "type": "number", "key": "SuprafataComerciala", "published": true, "label": { "ro": "Suprafața comercială", "ru": "", "en": "" }, "span": 4, "required": false, "numberKind": "decimal", "decimals": 2, "unit": "m²", "validation": { "min": 1, "max": "", "message": { "ro": "", "ru": "", "en": "" } } }
+              ]
+            },
+            {
+              "id": "sec-activity",
+              "title": { "ro": "Activitatea", "ru": "", "en": "" },
+              "description": { "ro": "Datele despre activitatea pe care o notificați.", "ru": "", "en": "" },
+              "showTitle": true,
+              "showSeparator": true,
+              "fields": [
+                { "id": "fld-start", "type": "date", "key": "DataInceperii", "published": true, "label": { "ro": "Data începerii activității", "ru": "", "en": "" }, "span": 4, "required": true, "dateMin": { "mode": "today", "value": "" }, "dateMax": { "mode": "none", "value": "" }, "validation": { "message": { "ro": "", "ru": "", "en": "" } } },
+                { "id": "fld-alcohol", "type": "radio", "key": "ComertAlcool", "published": true, "label": { "ro": "Comercializați băuturi alcoolice?", "ru": "", "en": "" }, "span": 12, "required": true, "orientation": "horizontal", "options": [ { "value": "da", "label": "Da" }, { "value": "nu", "label": "Nu" } ] },
+                { "id": "fld-phone", "type": "phone", "key": "TelefonObiect", "published": true, "label": { "ro": "Telefonul obiectului", "ru": "", "en": "" }, "placeholder": { "ro": "60 999 999", "ru": "", "en": "" }, "span": 6, "required": false, "phoneKind": "any" },
+                { "id": "fld-email", "type": "email", "key": "EmailObiect", "published": true, "label": { "ro": "Email-ul obiectului", "ru": "", "en": "" }, "placeholder": { "ro": "obiect@exemplu.md", "ru": "", "en": "" }, "span": 6, "required": false },
+                { "id": "fld-note", "type": "info", "key": "NotaTermen", "published": true, "tone": "neutral", "text": { "ro": "Notificarea se depune cu cel puțin 5 zile lucrătoare înainte de începerea activității.", "ru": "", "en": "" }, "span": 12 },
+                { "id": "fld-declare", "type": "checkbox", "key": "DeclaratieCorectitudine", "published": true, "label": { "ro": "Confirm că datele introduse sunt corecte și complete.", "ru": "", "en": "" }, "span": 12, "required": true }
+              ]
+            }
+          ]
         },
-        {
-          "id": "field-institutia-emitenta",
-          "type": "select",
-          "fieldId": "f_dropdown",
-          "label": "Instituția emitentă",
-          "preview": "Alege instituția emitentă",
-          "span": 4,
-          "required": true,
-          "dataSource": null
-        }
+        { "id": "st-documents", "platform": "documents", "locked": true, "title": { "ro": "Documente", "ru": "Документы", "en": "Documents" }, "sections": [] },
+        { "id": "st-review", "platform": "review", "locked": true, "title": { "ro": "Verificare și semnare", "ru": "", "en": "" }, "sections": [] },
+        { "id": "st-payment", "platform": "payment", "locked": true, "title": { "ro": "Plată", "ru": "Оплата", "en": "Payment" }, "sections": [] },
+        { "id": "st-finish", "platform": "finish", "locked": true, "title": { "ro": "Finalizare", "ru": "", "en": "" }, "sections": [] }
       ]
     }
   ]

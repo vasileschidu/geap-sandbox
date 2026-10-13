@@ -24811,3 +24811,305 @@ a.btn:focus-visible {
     gap: var(--spacing-0, 0);
   }
 }
+
+/* ==========================================================================
+   eKYC batch 3 — Configurare + Administrare (js/ekyc-config.js, 2026-10-13).
+   The screens are the registry, the profile panel, the BO drawer and the Setări one-page
+   form; only the glue below is new (components.md › eKYC back office › Batch 3).
+   ========================================================================== */
+
+/* rows of inactive / unsupported / revoked records read tertiary — as the classifier grid's
+   inactive values (`.e-permits-clas-grid__table tr.is-inactive`); tags keep their colour */
+.e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table tr.is-inactive > td,
+.e-permits-ekyc-breakdown .e-permits-workplace__table tr.is-inactive > td,
+.e-permits-workplace[data-registry-kind^="ekyc-"] tr.is-inactive :is(.e-permits-workplace__role-name, .e-permits-passport__name, .e-permits-workplace__role-desc),
+.e-permits-ekyc-breakdown tr.is-inactive :is(.e-permits-workplace__role-name, .e-permits-workplace__role-desc) {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* editable lists in a form (Redirect URIs, IP whitelist, Scope-uri, credentials): one input
+   per row + its action, „Adaugă …” under the rows */
+.e-permits-ekcfg-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  min-width: 0;
+}
+
+.e-permits-ekcfg-list__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-ekcfg-list__row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-ekcfg-list__row > .e-permits-fo-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-permits-ekcfg-list__row > .btn {
+  flex: 0 0 auto;
+}
+
+/* the ordered fallback list (Furnizori de rezervă) in its error state */
+.e-permits-ekcfg-list > .e-permits-stack.is-error {
+  border-color: var(--color-border-danger-default, #d92d20);
+  border-width: var(--border-width-1-5, 1.5px);
+}
+
+/* a field label with an explanatory tooltip (US-UI-09): the info button sits right after it */
+.e-permits-ekcfg-label-row {
+  gap: var(--spacing-4, 4px);
+  justify-content: flex-start;
+}
+
+.e-permits-ekcfg-tip {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-icon-base-tertiary, #9e9e9e);
+  cursor: help;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  padding: 0;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-ekcfg-tip:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+  color: var(--color-icon-base-secondary, #616161);
+}
+
+.e-permits-ekcfg-tip:focus-visible {
+  box-shadow: 0 0 0 var(--spacing-2, 2px) var(--color-background-base-default, #fff), 0 0 0 var(--spacing-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* a short explanation under a table / beside an action: the field hint type */
+.e-permits-ekcfg-hint,
+.e-permits-ekcfg-text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-dosar-profil__section > .e-permits-ekcfg-hint {
+  margin-top: var(--spacing-12, 12px);
+}
+
+/* Pași de verificare (stacked list): lead = drag handle + position; ↑ ↓ (the keyboard
+   fallback) sit with the row actions */
+.e-permits-ekcfg-order {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-ekcfg-order__handle {
+  color: var(--color-icon-base-tertiary, #9e9e9e);
+  cursor: grab;
+  display: inline-flex;
+}
+
+.e-permits-ekcfg-order__n {
+  font-weight: var(--font-weight-fw-medium, 500);
+  min-width: var(--spacing-16, 16px);
+  text-align: center;
+}
+
+.e-permits-stack__item[data-ekcfg-step].is-dragging {
+  opacity: 0.5;
+}
+
+.e-permits-stack__item[data-ekcfg-step].is-drop-target {
+  box-shadow: inset 0 var(--spacing-2, 2px) 0 var(--color-border-brand-default, #0058d2);
+}
+
+/* Parametri: numbers align right in their column (US-UI-11) */
+.e-permits-ekcfg-num {
+  display: block;
+  text-align: right;
+}
+
+/* Furnizori: „Testează conexiunea” under the connection fields */
+.e-permits-ekcfg-test {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-ekcfg-test__row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-ekcfg-test__row > .e-permits-ekcfg-hint {
+  flex: 1 1 280px;
+}
+
+/* Banda de decizie (US-UI-10): the decisions meter + an SVG axis with the thresholds */
+.e-permits-ekyc-band__axis {
+  display: block;
+  height: calc(var(--spacing-48, 48px) - var(--spacing-4, 4px));
+  margin-top: calc(var(--spacing-8, 8px) * -1);
+  overflow: visible;
+  width: 100%;
+}
+
+.e-permits-ekyc-band__tick {
+  stroke: var(--color-border-base-default, #d9d9d9);
+  stroke-width: 1;
+}
+
+.e-permits-ekyc-band__label {
+  fill: var(--color-text-base-tertiary, #757575);
+  font-family: var(--font-family-primary-font, Onest);
+  font-size: var(--font-size-fs-12, 12px);
+}
+
+.e-permits-ekyc-band__label.is-threshold {
+  fill: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* the batch-3 tables in a card (Sesiuni de lucru, Pași, Reguli veto, Reguli de scoring) have
+   many columns: they size to their content (auto layout, one line per cell) and scroll
+   sideways inside the card when the panel is narrower; long texts truncate with a tooltip */
+.e-permits-ekyc-breakdown:is(.e-permits-ekcfg-veto, .e-permits-ekcfg-rules) .e-permits-ekyc-breakdown__table {
+  table-layout: auto;
+}
+
+.e-permits-ekyc-breakdown:is(.e-permits-ekcfg-veto, .e-permits-ekcfg-rules) .e-permits-ekyc-breakdown__table th {
+  width: auto;
+}
+
+.e-permits-ekyc-breakdown:is(.e-permits-ekcfg-veto, .e-permits-ekcfg-rules) :is(th, td) {
+  white-space: nowrap;
+}
+
+.e-permits-ekyc-breakdown:is(.e-permits-ekcfg-veto, .e-permits-ekcfg-rules) .e-permits-workplace__role-desc {
+  max-width: calc(var(--spacing-80, 80px) * 4);
+}
+
+/* one value per line inside an info-card row */
+.e-permits-ekcfg-lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+}
+
+/* Sesiuni de lucru: a revoked / expired token reads greyed in its group */
+.e-permits-stack__title .e-permits-ekcfg-muted {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+/* Reguli de scoring has 8 columns: the condition gives way first */
+.e-permits-ekyc-breakdown.e-permits-ekcfg-rules .e-permits-workplace__role-desc {
+  max-width: calc(var(--spacing-40, 40px) * 5);
+}
+
+/* eKYC on phones (≤760): the registry toolbar wraps (search on its own row, then filters,
+   tools and „+ Adaugă …”) instead of clipping the primary action; page-header actions and
+   section meta wrap; long values (emails, UUIDs) break; the page-form save bar wraps */
+@media (max-width: 760px) {
+  /* the workplace grid sized its one column to the toolbar's max-content (588–700px): pin it
+     to the viewport so the toolbar can wrap and the table scrolls inside its own wrap */
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* the pagination footer: summary on one row, the pages under it */
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__footer {
+    flex-basis: auto;
+    height: auto;
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__pagination {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__pagination-summary {
+    flex: 1 1 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  }
+
+  [data-product="ekyc"] .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__header {
+    grid-template-rows: auto auto;
+  }
+
+  [data-product="ekyc"] .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .e-permits-workplace__search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__table-tools {
+    flex: 0 0 auto;
+    margin-left: auto;
+    width: auto;
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__field-count,
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__tool-divider {
+    display: none;
+  }
+
+  [data-product="ekyc"] .e-permits-page-header__actions {
+    flex-wrap: wrap;
+  }
+
+  [data-product="ekyc"] .e-permits-page-header__meta-value,
+  [data-product="ekyc"] .e-permits-dosar-profil__row-value {
+    overflow-wrap: anywhere;
+  }
+
+  [data-product="ekyc"] .e-permits-dosar-profil__section-meta {
+    white-space: normal;
+  }
+
+  /* a section heading with meta + „Adaugă …”: the tools go under the title */
+  [data-product="ekyc"] .e-permits-dosar-profil .e-permits-dosar-profil__section-heading:has(> .e-permits-passport__heading-tools, > .e-permits-dosar-profil__section-meta) {
+    display: grid;
+    gap: var(--spacing-4, 4px);
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  [data-product="ekyc"] .e-permits-dosar-profil .e-permits-dosar-profil__section-heading > .e-permits-passport__heading-tools {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    justify-self: stretch;
+    margin-left: 0;
+    min-width: 0;
+    padding-left: var(--spacing-12, 12px);
+  }
+
+  [data-product="ekyc"] .e-permits-dosar-profil .e-permits-dosar-profil__section-heading > .e-permits-dosar-profil__section-meta {
+    padding-left: var(--spacing-12, 12px);
+  }
+
+  .e-permits-ekcfg-page .e-permits-cfg2__bar {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-8, 8px);
+  }
+}

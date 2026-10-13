@@ -1930,10 +1930,17 @@
     if (focusId) document.getElementById(focusId)?.focus();
   };
 
+  /* ---- extensions: batch 3 (js/ekyc-config.js) registers its views, registries, routes
+     and data through product.extend(); they share this file's helpers via product.shared ---- */
+  const extensions = [];
+  const extFor = (view) => extensions.find((x) => x.views.includes(view)) || null;
+
   /* ---- views ------------------------------------------------------------------- */
   function showView(view, item = {}) {
     ui.view = view;
     hideDash();
+    const ext = extFor(view);
+    if (ext) { ext.showView(view, item); return; }
     if (view === "ekyc-dashboard") {
       showPage("Dashboard", renderDashboard());
     } else if (view === "ekyc-active") {
@@ -1956,6 +1963,7 @@
 
   /* ---- data -------------------------------------------------------------------- */
   const load = async () => {
+    await Promise.all(extensions.map((x) => x.load?.()));
     try {
       const response = await fetch("data/ekyc-sessions.json", { cache: "no-store" });
       if (!response.ok) throw new Error(`eKYC data: ${response.status}`);
@@ -2186,6 +2194,7 @@
     }, 1000);
 
     syncBell();
+    extensions.forEach((x) => x.init?.());
   };
 
   const registries = {
@@ -2195,19 +2204,38 @@
     "ekyc-access": { renderCell: renderAccessCell, searchText: (row) => [row.utilizator, row.entry.role, row.actiune, row.sesiune, row.context].join(" "), sortValue: (row, key) => (key === "moment" ? Date.parse(row.moment) : row[key] ?? ""), filterToken: accessFilter, openRow: (id) => { const e = db.accessLog[Number(id.slice(4))]; if (e?.sessionId && findSession(e.sessionId)) openSession(e.sessionId); }, exportRows: exportAccess, emptyHtml: (state) => emptyHtml("jurnalul de acces")(state) || (state.query || state.filtered ? null : api.renderEmptyState({ title: "Jurnalul de acces este gol", text: "Aici apar accesările dovezilor, căutările și exporturile, cu cine, când și de ce.", icon: "page-text-lock", bare: true })) }
   };
 
+  /* what an extension may use from this file (read through getters: api / db arrive later) */
+  const shared = {
+    get api() { return api; }, get db() { return db; }, get failed() { return failed; },
+    DEMO, ui, esc: (v) => esc(v), num, icon, identity, meter, legend: (...a) => legend(...a), kpi: (...a) => kpi(...a),
+    role: () => role(), me: () => me(), now: () => now(), nowIso: () => nowIso(), ago: (iso) => ago(iso), shortStamp: (iso) => shortStamp(iso),
+    client: (id) => client(id), useCase: (code) => useCase(code), trajectory: (...a) => trajectory(...a),
+    openModal: (o) => openModal(o), closeModal: () => closeModal(), modalBody: () => modalBody(), modalEl: () => modalEl(), closeFooter,
+    fieldError: (m) => fieldError(m), requiredMark, showPage: (t, h) => showPage(t, h), hideDash: () => hideDash(), setBackLabel: (l) => setBackLabel(l),
+    showView: (v, item) => showView(v, item), logAccess: (e) => logAccess(e), emptyRows: () => emptyRows()
+  };
+
   window.GEAPShellProduct = {
     id: "ekyc",
+    shared,
+    /* product.extend({ views, registries, facets, load, init, showView, route, beforeNavigate }) */
+    extend: (x) => {
+      extensions.push(x);
+      Object.assign(window.GEAPShellProduct.registries, x.registries || {});
+      Object.assign(window.GEAPShellProduct.facets, x.facets || {});
+    },
     rolesUrl: "data/ekyc-roles.json",
     logoutUrl: "bo-login.html?product=ekyc&ended=logout",
     load: async () => { await load(); syncBell(); },
     init,
     facets,
     registries,
-    handles: (view) => VIEWS.includes(view),
+    handles: (view) => VIEWS.includes(view) || Boolean(extFor(view)),
     showView,
-    beforeNavigate: () => { ui.session = null; ui.mode = "session"; stopPlay(); hideDash(); },
+    beforeNavigate: () => { ui.session = null; ui.mode = "session"; stopPlay(); hideDash(); extensions.forEach((x) => x.beforeNavigate?.()); },
     route: (hash) => {
       if (!db) return false;
+      if (extensions.some((x) => x.route?.(hash))) return true;
       const review = hash.match(/^#revizie\/([^/]+)(?:\/([^/]+))?$/);
       if (review) { openReview(decodeURIComponent(review[1]), review[2] || "revizie"); return true; }
       const match = hash.match(/^#sesiune\/([^/]+)(?:\/([^/]+))?$/);

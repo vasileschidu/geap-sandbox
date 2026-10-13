@@ -959,7 +959,8 @@
     }
 
     function fieldClass(field, extra = "") {
-      const span = [4, 6, 8, 12].includes(Number(field?.span)) ? Number(field.span) : 12;
+      /* 3 = a quarter (Form Builder: Număr, Sumă, Dată — PO question I-4 still open) */
+      const span = [3, 4, 6, 8, 12].includes(Number(field?.span)) ? Number(field.span) : 12;
       return `e-permits-fo-field e-permits-fo-field--span-${span}${extra ? ` ${extra}` : ""}`;
     }
 
@@ -974,15 +975,25 @@
       const labelRow = hasCounter
         ? `<div class="e-permits-fo-field__label-counter">${labelHtml(id, field)}<span class="e-permits-fo-field__counter" data-fo-char-counter data-fo-char-max="${escapeFrontOfficeHtml(String(field.maxLength))}" hidden>0 / ${escapeFrontOfficeHtml(String(field.maxLength))}</span></div>`
         : labelHtml(id, field);
+      /* readOnly (Form Builder „Doar citire”) = the FO Read Only state; inputmode for digit codes */
       return `
         <div class="${fieldClass(field)}">
           ${labelRow}
-          <div class="e-permits-fo-input">
-            <input id="${escapeFrontOfficeHtml(id)}" type="${type}" ${field.value ? `value="${escapeFrontOfficeHtml(field.value)}"` : ""} placeholder="${escapeFrontOfficeHtml(field.placeholder || "")}" ${field.autocomplete ? `autocomplete="${escapeFrontOfficeHtml(field.autocomplete)}"` : ""} ${field.disabled ? "disabled" : ""} ${field.maxLength ? `maxlength="${escapeFrontOfficeHtml(String(field.maxLength))}"` : ""} ${hasCounter ? "data-fo-char-input" : ""}>
+          <div class="e-permits-fo-input${field.readOnly ? " is-filled is-readonly" : ""}">
+            <input id="${escapeFrontOfficeHtml(id)}" type="${type}" ${field.value ? `value="${escapeFrontOfficeHtml(field.value)}"` : ""} placeholder="${escapeFrontOfficeHtml(field.placeholder || "")}" ${field.autocomplete ? `autocomplete="${escapeFrontOfficeHtml(field.autocomplete)}"` : ""} ${field.inputmode ? `inputmode="${escapeFrontOfficeHtml(field.inputmode)}"` : ""} ${field.disabled ? "disabled" : ""} ${field.readOnly ? "readonly" : ""} ${field.required ? 'aria-required="true"' : ""} ${field.maxLength ? `maxlength="${escapeFrontOfficeHtml(String(field.maxLength))}"` : ""} ${hasCounter ? "data-fo-char-input" : ""}${fieldDescribedBy(id, field)}>
           </div>
-          ${field.hint ? `<p class="e-permits-fo-field__hint">${escapeFrontOfficeHtml(field.hint)}</p>` : ""}
+          ${fieldHintHtml(id, field)}
         </div>
       `;
+    }
+
+    /* the hint under a field, linked to its control (aria-describedby) */
+    function fieldHintHtml(id, field) {
+      return field.hint ? `<p class="e-permits-fo-field__hint" id="${escapeFrontOfficeHtml(id)}-hint">${escapeFrontOfficeHtml(field.hint)}</p>` : "";
+    }
+
+    function fieldDescribedBy(id, field) {
+      return field.hint ? ` aria-describedby="${escapeFrontOfficeHtml(id)}-hint"` : "";
     }
 
     function selectFieldHtml(field, { addressPart = false } = {}) {
@@ -1004,6 +1015,7 @@
               ${options.map((option) => `<li class="e-permits-fo-select__option${option === value ? " is-selected" : ""}" role="option" aria-selected="${option === value ? "true" : "false"}" data-value="${escapeFrontOfficeHtml(option)}" tabindex="-1">${escapeFrontOfficeHtml(option)}</li>`).join("")}
             </ul>
           </div>
+          ${addressPart ? "" : fieldHintHtml(id, field)}
         </div>
       `;
     }
@@ -1953,6 +1965,7 @@
               ${codes.map((item, index) => `<li class="e-permits-fo-phone__code-option${index === 0 ? " is-selected" : ""}" role="option" aria-selected="${index === 0 ? "true" : "false"}" data-flag="${escapeFrontOfficeHtml(item.flag)}" data-code="${escapeFrontOfficeHtml(item.code)}" tabindex="-1">${escapeFrontOfficeHtml(`${item.flag} ${item.code}`)}</li>`).join("")}
             </ul>
           </div>
+          ${fieldHintHtml(id, field)}
         </div>
       `;
     }
@@ -2111,6 +2124,251 @@
       `;
     }
 
+    /* ---- Form Builder field types in the request form (2026-10-13) ----------------------------
+       ONE renderer for the builder canvas, the builder Preview and the FO form: js/form-builder.js
+       projects its schema onto these FO field objects and calls stepFieldHtml through
+       window.GEAPFormRender — there is no second „preview” renderer (spec form-builder.md § C.0).
+       Field shape: { id, type, label, required, span, hint, placeholder, value, readOnly, … }. */
+    const foUi = () => window.GEAPUi || {};
+
+    function localIsoDay(offsetDays = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offsetDays);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    }
+
+    function textareaFieldHtml(field) {
+      const id = fieldId(field.id);
+      const max = Number(field.maxLength) || 0;
+      const counter = Boolean(field.charCounter && max);
+      const labelRow = counter
+        ? `<div class="e-permits-fo-field__label-counter">${labelHtml(id, field)}<span class="e-permits-fo-field__counter" data-fo-char-counter data-fo-char-max="${max}" hidden>0 / ${max}</span></div>`
+        : labelHtml(id, field);
+      const rows = Math.min(Math.max(Number(field.rows) || 2, 1), 20);
+      return `
+        <div class="${fieldClass(field)}">
+          ${labelRow}
+          <div class="e-permits-fo-textarea${field.readOnly ? " is-filled is-readonly" : ""}">
+            <textarea id="${escapeFrontOfficeHtml(id)}" rows="${rows}" placeholder="${escapeFrontOfficeHtml(field.placeholder || "")}" ${max ? `maxlength="${max}"` : ""} ${counter ? "data-fo-char-input" : ""} ${field.readOnly ? "readonly" : ""} ${field.required ? 'aria-required="true"' : ""}${fieldDescribedBy(id, field)}>${escapeFrontOfficeHtml(field.value || "")}</textarea>
+          </div>
+          ${fieldHintHtml(id, field)}
+        </div>
+      `;
+    }
+
+    /* Număr / Sumă: the FO input + the local unit suffix (components.md „Local unit suffix”);
+       the unit is repeated in the label for screen readers (the suffix is aria-hidden) */
+    function numberFieldHtml(field) {
+      const id = fieldId(field.id);
+      const unit = field.unit || "";
+      const label = `<label for="${escapeFrontOfficeHtml(id)}">${escapeFrontOfficeHtml(field.label || "")}${unit ? `<span class="u-visually-hidden"> (${escapeFrontOfficeHtml(unit)})</span>` : ""} ${field.required ? requiredMarkerHtml() : ""}</label>`;
+      return `
+        <div class="${fieldClass(field)}">
+          ${label}
+          <div class="e-permits-fo-input${field.readOnly ? " is-filled is-readonly" : ""}">
+            <input id="${escapeFrontOfficeHtml(id)}" type="text" inputmode="${Number(field.decimals) > 0 ? "decimal" : "numeric"}" autocomplete="off" ${field.value !== undefined && field.value !== "" ? `value="${escapeFrontOfficeHtml(field.value)}"` : ""} placeholder="${escapeFrontOfficeHtml(field.placeholder || "")}" ${field.readOnly ? "readonly" : ""} ${field.required ? 'aria-required="true"' : ""}${fieldDescribedBy(id, field)} data-fo-number>
+            ${unit ? `<label class="e-permits-fo-input__suffix" for="${escapeFrontOfficeHtml(id)}" aria-hidden="true">${escapeFrontOfficeHtml(unit)}</label>` : ""}
+          </div>
+          ${fieldHintHtml(id, field)}
+        </div>
+      `;
+    }
+
+    /* Dată: the library date picker in the FO field shell (components.md „Date field in app
+       forms”) — never type="date". data-min disables earlier days; a max is checked on input. */
+    function dateFieldHtml(field) {
+      const id = fieldId(field.id);
+      const iso = field.value || "";
+      const [y, m, day] = iso ? iso.split("-") : [];
+      const today = localIsoDay();
+      const view = (iso || today).split("-");
+      return `
+        <div class="${fieldClass(field)}">
+          ${labelHtml(id, field)}
+          <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${escapeFrontOfficeHtml(iso)}" data-today="${today}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}"${field.min ? ` data-min="${escapeFrontOfficeHtml(field.min)}"` : ""}>
+            <div class="e-permits-fo-input e-permits-fo-input--with-action${field.readOnly ? " is-filled is-readonly" : ""}">
+              <input id="${escapeFrontOfficeHtml(id)}" type="text" class="js-date-picker-input" value="${iso ? `${day}/${m}/${y}` : ""}" placeholder="${escapeFrontOfficeHtml(field.placeholder || "ZZ/LL/AAAA")}" autocomplete="off" ${field.readOnly ? "readonly" : ""} ${field.required ? 'aria-required="true"' : ""}${fieldDescribedBy(id, field)}>
+              <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data" aria-controls="${escapeFrontOfficeHtml(id)}-panel" aria-expanded="false"${field.readOnly ? " disabled" : ""}>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-calendar"></use></svg>
+              </button>
+            </div>
+            <div id="${escapeFrontOfficeHtml(id)}-panel" class="date-picker-panel" aria-hidden="true" hidden>
+              <div class="date-picker" role="dialog" aria-label="Alege data">
+                <div class="date-picker__header">
+                  <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-left"></use></svg></button>
+                  <div class="date-picker__month js-date-picker-label"></div>
+                  <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare"><svg class="icon medium" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg></button>
+                </div>
+                <div class="date-picker__grid date-picker__grid--days" data-view="day">
+                  <div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div>
+                  <div class="date-picker__days js-date-picker-days"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          ${fieldHintHtml(id, field)}
+        </div>
+      `;
+    }
+
+    /* a labelled group of choices (radio rows / checkbox list): fieldset + legend that reads as
+       the field label; the group fills its grid column (components.md „Choice field”) */
+    function choiceLegendHtml(field) {
+      return `<legend class="e-permits-fo-choice__legend">${escapeFrontOfficeHtml(field.label || "")}${field.required ? ` ${requiredMarkerHtml()}` : ""}</legend>`;
+    }
+
+    function choiceClass(field) {
+      const span = [3, 4, 6, 8, 12].includes(Number(field?.span)) ? Number(field.span) : 12;
+      return `e-permits-fo-choice e-permits-fo-field--span-${span}`;
+    }
+
+    /* Butoane radio: the radio option rows (`.e-permits-fo-radio--option`), stacked or in a row */
+    function radioFieldHtml(field) {
+      const id = fieldId(field.id);
+      const options = Array.isArray(field.options) ? field.options : [];
+      const inline = field.orientation === "horizontal";
+      return `
+        <fieldset class="${choiceClass(field)}"${fieldDescribedBy(id, field)}${field.required ? ' aria-required="true"' : ""}>
+          ${choiceLegendHtml(field)}
+          <div class="e-permits-fo-choice__group${inline ? " e-permits-fo-choice__group--inline" : ""}">
+            ${options.map((option) => `
+              <label class="e-permits-fo-radio e-permits-fo-radio--option">
+                <input type="radio" name="${escapeFrontOfficeHtml(id)}" value="${escapeFrontOfficeHtml(option.value)}"${option.value === field.value ? " checked" : ""}${field.readOnly ? " disabled" : ""}>
+                <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
+                <span>${escapeFrontOfficeHtml(option.label)}</span>
+              </label>`).join("")}
+          </div>
+          ${fieldHintHtml(id, field)}
+        </fieldset>
+      `;
+    }
+
+    /* Casetă de bifare (boolean): the library checkbox, as the FO consent row */
+    function checkboxFieldHtml(field) {
+      const id = fieldId(field.id);
+      return `
+        <div class="${fieldClass(field)}">
+          <label class="checkbox checkbox--medium e-permits-fo-consent" for="${escapeFrontOfficeHtml(id)}">
+            <input class="checkbox-input" type="checkbox" id="${escapeFrontOfficeHtml(id)}"${field.value ? " checked" : ""}${field.readOnly ? " disabled" : ""}${field.required ? ' aria-required="true"' : ""}${fieldDescribedBy(id, field)}>
+            <span class="checkbox-custom" aria-hidden="true"></span>
+            <span>${escapeFrontOfficeHtml(field.label || "")}${field.required ? ` ${requiredMarkerHtml()}` : ""}</span>
+          </label>
+          ${fieldHintHtml(id, field)}
+        </div>
+      `;
+    }
+
+    /* Listă de bifare: plain checkbox options (renderCheckOption({ plain: true })) under a legend */
+    function checklistFieldHtml(field) {
+      const id = fieldId(field.id);
+      const options = Array.isArray(field.options) ? field.options : [];
+      const values = Array.isArray(field.value) ? field.value : [];
+      const checkOption = foUi().renderCheckOption;
+      return `
+        <fieldset class="${choiceClass(field)}"${fieldDescribedBy(id, field)}>
+          ${choiceLegendHtml(field)}
+          <div class="e-permits-fo-choice__checks">
+            ${checkOption ? options.map((option) => checkOption({ label: option.label, plain: true, checked: values.includes(option.value), disabled: Boolean(field.readOnly), attrs: `name="${escapeFrontOfficeHtml(id)}" value="${escapeFrontOfficeHtml(option.value)}"` })).join("") : ""}
+          </div>
+          ${fieldHintHtml(id, field)}
+        </fieldset>
+      `;
+    }
+
+    /* Text informativ: the one inline note (grey renderInfoNote, or a tinted renderNotice) */
+    function infoFieldHtml(field) {
+      const text = escapeFrontOfficeHtml(field.text || "").replace(/\n/g, "<br>");
+      const tone = ["info", "warning", "success", "error"].includes(field.tone) ? field.tone : "neutral";
+      const note = tone === "neutral" ? foUi().renderInfoNote?.(text) : foUi().renderNotice?.(tone, text);
+      return `<div class="${fieldClass(field)}">${note || ""}</div>`;
+    }
+
+    /* Notă cu titlu: the tinted callout (components.md „Callout”), info or warning */
+    function calloutFieldHtml(field) {
+      const tone = field.tone === "warning" ? "warning" : "info";
+      const iconId = tone === "warning" ? "icon-warning-filled" : "icon-circle-info-filled";
+      const text = escapeFrontOfficeHtml(field.text || "").replace(/\n/g, "<br>");
+      return `
+        <div class="${fieldClass(field)}">
+          <div class="e-permits-callout e-permits-callout--${tone}" role="note">
+            <span class="e-permits-callout__icon" aria-hidden="true"><svg class="icon"><use href="assets/icons/sprite.svg#${iconId}"></use></svg></span>
+            <div class="e-permits-callout__content">
+              ${field.title ? `<p class="e-permits-callout__title">${escapeFrontOfficeHtml(field.title)}</p>` : ""}
+              ${text ? `<p class="e-permits-callout__text">${text}</p>` : ""}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    /* Separator: the library rule, full width */
+    function separatorFieldHtml(field) {
+      return `<div class="${fieldClass({ ...field, span: 12 })}"><hr class="separator separator--horizontal separator--thin separator--subtle"></div>`;
+    }
+
+    /* Comutator segmentat: the animated segmented control (role radiogroup); the label names it */
+    function segmentFieldHtml(field) {
+      const id = fieldId(field.id);
+      const options = Array.isArray(field.options) ? field.options : [];
+      return `
+        <div class="${fieldClass(field)}">
+          <label id="${escapeFrontOfficeHtml(id)}-label">${escapeFrontOfficeHtml(field.label || "")} ${field.required ? requiredMarkerHtml() : ""}</label>
+          <div class="segmented-control is-animated" role="radiogroup" aria-labelledby="${escapeFrontOfficeHtml(id)}-label"${fieldDescribedBy(id, field)} data-fo-segment>
+            ${options.map((option, index) => {
+              const on = option.value === field.value;
+              const focusable = on || (!field.value && index === 0);
+              return `<button class="segment-item${on ? " is-selected" : ""}" type="button" role="radio" aria-checked="${on}" tabindex="${focusable ? "0" : "-1"}" data-value="${escapeFrontOfficeHtml(option.value)}"${field.readOnly ? " disabled" : ""}>${escapeFrontOfficeHtml(option.label)}</button>`;
+            }).join("")}
+          </div>
+          ${fieldHintHtml(id, field)}
+        </div>`;
+    }
+
+    /* Selecție multiplă: the FO multi-select (search, checkbox list, „N selectate”, Confirmă) +
+       chips — the CAEM subgenre control with its texts from data attributes */
+    function multiselectFieldHtml(field) {
+      const id = fieldId(field.id);
+      const options = Array.isArray(field.options) ? field.options : [];
+      const placeholder = field.placeholder || "Alege opțiunile";
+      return `
+        <div class="${fieldClass(field)}" data-fo-subgen>
+          ${labelHtml(id, field)}
+          <div class="e-permits-fo-subgen-select" data-fo-subgen-select data-placeholder="${escapeFrontOfficeHtml(placeholder)}" data-count-one="opțiune selectată" data-count-many="opțiuni selectate" data-remove-label="Elimină opțiunea">
+            <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-subgen-select__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu"${field.readOnly ? " disabled" : ""} data-fo-subgen-button>
+              <span class="e-permits-fo-subgen-select__value e-permits-fo-subgen-select__value--placeholder" data-fo-subgen-value>${escapeFrontOfficeHtml(placeholder)}</span>
+              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+            </button>
+            <div class="e-permits-fo-subgen-select__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-subgen-menu hidden>
+              <div class="e-permits-fo-subgen-select__search"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="Caută" aria-label="Caută în opțiuni" data-fo-subgen-search></div>
+              <ul class="e-permits-fo-subgen-select__list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" aria-multiselectable="true" data-fo-subgen-list>
+                ${options.map((value) => `
+                  <li class="e-permits-fo-subgen-select__option" role="option" aria-selected="false" data-value="${escapeFrontOfficeHtml(value)}" tabindex="-1">
+                    <span class="checkbox checkbox--medium" aria-hidden="true"><input class="checkbox-input" type="checkbox" tabindex="-1"><span class="checkbox-custom"></span></span>
+                    <span>${escapeFrontOfficeHtml(value)}</span>
+                  </li>`).join("")}
+              </ul>
+              <div class="e-permits-fo-subgen-select__footer"><span><strong data-fo-subgen-count>0</strong> <span data-fo-subgen-count-label>selectate</span></span><button class="e-permits-fo-subgen-select__confirm" type="button" data-fo-subgen-confirm>Confirmă</button></div>
+            </div>
+          </div>
+          <div class="e-permits-fo-subgen__chips" data-fo-subgen-chips hidden></div>
+          ${fieldHintHtml(id, field)}
+        </div>`;
+    }
+
+    /* Perioadă: two date pickers „De la” / „Până la” under one legend (rule: Până la ≥ De la) */
+    function periodFieldHtml(field) {
+      const id = fieldId(field.id);
+      const part = (suffix, label, value) => dateFieldHtml({ id: `${field.id}-${suffix}`, label, required: field.required, span: 6, value, min: field.min, readOnly: field.readOnly });
+      return `
+        <fieldset class="${choiceClass(field)}"${fieldDescribedBy(id, field)} data-fo-period>
+          ${choiceLegendHtml(field)}
+          <div class="e-permits-fo-choice__pair">
+            ${part("from", field.fromLabel || "De la", field.value?.from || "")}
+            ${part("to", field.toLabel || "Până la", field.value?.to || "")}
+          </div>
+          ${fieldHintHtml(id, field)}
+        </fieldset>`;
+    }
+
     function stepFieldHtml(field) {
       if (field.type === "cascade-address") return cascadeAddressHtml(field);
       if (field.type === "subdivision") return subdivisionFieldHtml(field);
@@ -2119,6 +2377,19 @@
       if (field.type === "email" || field.type === "text") return textFieldHtml(field);
       if (field.type === "contact-person") return contactPersonHtml(field);
       if (field.type === "activity-list") return activityCardHtml(field);
+      if (field.type === "textarea") return textareaFieldHtml(field);
+      if (field.type === "number" || field.type === "money") return numberFieldHtml(field);
+      if (field.type === "date") return dateFieldHtml(field);
+      if (field.type === "select") return selectFieldHtml(field);
+      if (field.type === "radio") return radioFieldHtml(field);
+      if (field.type === "checkbox") return checkboxFieldHtml(field);
+      if (field.type === "checklist") return checklistFieldHtml(field);
+      if (field.type === "info") return infoFieldHtml(field);
+      if (field.type === "callout") return calloutFieldHtml(field);
+      if (field.type === "separator") return separatorFieldHtml(field);
+      if (field.type === "segment") return segmentFieldHtml(field);
+      if (field.type === "multiselect") return multiselectFieldHtml(field);
+      if (field.type === "period") return periodFieldHtml(field);
       return "";
     }
 
@@ -7205,7 +7476,10 @@
         const selected = selectedOptions();
         count.textContent = String(selected.length);
         countLabel.textContent = selected.length === 1 ? "selectat" : "selectate";
-        value.textContent = selected.length === 0 ? "Alege subgen de activitate" : `${selected.length} ${selected.length === 1 ? "subgen selectat" : "subgenuri selectate"}`;
+        /* texts from data attributes (Form Builder „Selecție multiplă”); defaults = CAEM subgenres */
+        const one = root.dataset.countOne || "subgen selectat";
+        const many = root.dataset.countMany || "subgenuri selectate";
+        value.textContent = selected.length === 0 ? (root.dataset.placeholder || "Alege subgen de activitate") : `${selected.length} ${selected.length === 1 ? one : many}`;
         value.classList.toggle("e-permits-fo-subgen-select__value--placeholder", selected.length === 0);
         chips.hidden = selected.length === 0;
         chips.innerHTML = "";
@@ -7215,7 +7489,7 @@
           chip.dataset.value = option.dataset.value || "";
           chip.innerHTML = `
             <span class="e-permits-fo-subgen-chip__label"></span>
-            <button class="e-permits-fo-subgen-chip__remove" type="button" aria-label="Elimină subgenul">
+            <button class="e-permits-fo-subgen-chip__remove" type="button" aria-label="${escapeFrontOfficeHtml(root.dataset.removeLabel || "Elimină subgenul")}">
               <svg class="icon" width="20" height="20" aria-hidden="true">
                 <use href="assets/icons/sprite.svg#icon-cross-small"></use>
               </svg>
@@ -7548,2757 +7822,44 @@
       }
     });
 
-    function initFormBuilder() {
-      const builder = document.querySelector(".e-permits-builder");
-      if (!builder) return;
-      const builderOverlay = builder.closest("#form-builder-modal");
-      if (builderOverlay && builderOverlay.parentElement !== document.body) {
-        document.body.appendChild(builderOverlay);
-      }
-
-      const canvas = builder.querySelector("[data-builder-grid]");
-      const dropzone = builder.querySelector("[data-builder-dropzone]");
-      const librarySearch = builder.querySelector("[data-builder-library-search]");
-      const libraryItems = Array.from(builder.querySelectorAll("[data-builder-component]"));
-      const propLabel = builder.querySelector("[data-builder-prop-label]");
-      const propPreview = builder.querySelector("[data-builder-prop-preview]");
-      const propFieldId = builder.querySelector("[data-builder-prop-field-id]");
-      const requiredInput = builder.querySelector("[data-builder-required]");
-      const inspectorTitle = builder.querySelector("[data-builder-inspector-title]");
-      const inspectorFieldId = builder.querySelector("[data-builder-inspector-field-id]");
-      const deleteButton = builder.querySelector("[data-builder-delete]");
-      const previewGrid = builder.querySelector("[data-builder-preview-grid]");
-      const previewStepper = builder.querySelector("[data-builder-preview-stepper]");
-      const previewStepMeta = builder.querySelector("[data-builder-preview-step-meta]");
-      const previewTitle = builder.querySelector("[data-builder-preview-title]");
-      const previewSectionTitle = builder.querySelector("[data-builder-preview-section-title]");
-      const previewSectionDescription = builder.querySelector("[data-builder-preview-section-description]");
-      const previewSectionSeparator = builder.querySelector("[data-builder-preview-section-separator]");
-      const schemaCode = builder.querySelector("[data-builder-schema-code]");
-      const previewPanel = builder.querySelector("[data-builder-preview]");
-      const schemaPanel = builder.querySelector("[data-builder-schema]");
-      const canvasSection = builder.querySelector("[data-builder-canvas]");
-      const gridToggle = builder.querySelector("[data-builder-grid-toggle]");
-      const workspace = builder.querySelector("[data-builder-workspace]");
-      const sourceEmpty = builder.querySelector("[data-builder-source-empty]");
-      const sourceContent = builder.querySelector("[data-builder-source-content]");
-      const sourceTab = builder.querySelector("[data-builder-source-tab]");
-      const sourceTabIcon = builder.querySelector("[data-builder-source-tab-icon]");
-      const sourceTabBadge = builder.querySelector("[data-builder-source-tab-badge]");
-      const sourceTabLabel = builder.querySelector("[data-builder-source-tab-label]");
-      const addressDataPanel = builder.querySelector("[data-builder-address-data]");
-      const addressDataList = builder.querySelector("[data-builder-address-data-list]");
-      const fieldSettingsPanel = builder.querySelector("[data-builder-field-settings]");
-      const formSettingsPanel = builder.querySelector("[data-builder-form-settings]");
-      const sectionSettingsPanel = builder.querySelector("[data-builder-section-settings]");
-      const sectionInspectorTitle = builder.querySelector("[data-builder-section-inspector-title]");
-      const sectionPropTitle = builder.querySelector("[data-builder-section-prop-title]");
-      const sectionPropDescription = builder.querySelector("[data-builder-section-prop-description]");
-      const registryModal = document.querySelector("#builder-classifier-registry");
-      const registryList = registryModal?.querySelector("[data-builder-registry-list]");
-      const registrySearch = registryModal?.querySelector("[data-builder-registry-search]");
-      const formSelect = builder.querySelector("[data-builder-form-select]");
-      const formNewButton = builder.querySelector("[data-builder-form-new]");
-      const formSaveButton = builder.querySelector("[data-builder-form-save]");
-      const formDeleteButton = builder.querySelector("[data-builder-form-delete]");
-      let registryFilter = "all";
-      if (!canvas || !dropzone || !propLabel || !propPreview || !requiredInput) return;
-
-      const componentMap = {
-        text: { label: "Câmp text", preview: "Introduceți valoarea", tag: "text", fieldId: "f_text", span: 4 },
-        select: { label: "Select", preview: "Alegeți o opțiune", tag: "dropdown", fieldId: "f_dropdown", span: 4 },
-        textarea: { label: "Descriere", preview: "Text multilinie", tag: "textarea", fieldId: "f_textarea", span: 8 },
-        address: { label: "Adresa unității economice", preview: "Țară, Raion, Localitate, Stradă, Bloc, Scară, Etaj, Apartament, Cod poștal", tag: "adresa-pattern", fieldId: "f_addr_1001", span: 12, required: false },
-        caem: { label: "Codul CAEM", preview: "I 56.10 • Restaurante", tag: "dropdown", fieldId: "f_caem", span: 4 },
-        mdocs: { label: "Document din MDocs", preview: "Caută și încarcă din MDocs", tag: "mdocs", fieldId: "f_mdocs", span: 4 },
-      };
-      const FIELD_SPANS = [4, 6, 8, 12];
-      const ADDRESS_PATTERN_PARTS = [
-        { key: "country", label: "Țară", type: "dropdown", required: true, visible: true, source: "GEAP_d_tari", rows: "117 țări", defaultValue: "Republica Moldova" },
-        { key: "district", label: "Raion/Municipiu", type: "dropdown", required: true, visible: true, source: "GEAP_d_raioane", rows: "43 raioane", parentLabel: "Țară" },
-        { key: "locality", label: "Orașul/Comuna", type: "dropdown", required: true, visible: true, source: "GEAP_d_localitati", rows: "1843 localități", parentLabel: "Raion/Municipiu" },
-        { key: "sector", label: "Sector", type: "dropdown", required: false, visible: false, parentLabel: "Orașul/Comuna", condition: "Orașul/Comuna = Chișinău" },
-        { key: "street", label: "Stradă", type: "dropdown", required: true, visible: true, source: "GEAP_d_strazi", rows: "493 străzi", parentLabel: "Orașul/Comuna" },
-        { key: "house", label: "Casă", type: "text", required: false, visible: true },
-        { key: "floor", label: "Etaj", type: "număr", required: false, visible: true },
-        { key: "block", label: "Bloc", type: "text", required: false, visible: true },
-        { key: "stair", label: "Scară", type: "text", required: false, visible: true },
-        { key: "apartment", label: "Apartament/Oficiu", type: "text", required: false, visible: true },
-        /* US-54: included by default; read-only in the request, filled from „Caută adresa” after
-           the SRRE (MConnect) check — so it has no default value */
-        { key: "cadastral", label: "Cod cadastral", type: "text", required: false, visible: true, source: "MConnect · SRRE", rows: "verificat în timp real", noDefault: true },
-      ];
-
-      function componentTitle(field) {
-        if (field?.dataset.type === "address") return "Address pattern";
-        const tag = field?.querySelector(".e-permits-builder__tag--strong")?.textContent.trim();
-        if (tag) return tag.charAt(0).toUpperCase() + tag.slice(1);
-        const type = field?.dataset.type || "field";
-        const template = componentMap[type];
-        return template?.tag ? template.tag.charAt(0).toUpperCase() + template.tag.slice(1) : "Field";
-      }
-
-      const classifierRegistry = [
-        {
-          id: "reg_caem",
-          displayName: "Coduri CAEM",
-          physicalTable: "GEAP_d_caem",
-          visibility: "global",
-          multilingual: true,
-          searchable: true,
-          rowCount: 2,
-          active: true,
-          availableColumns: ["code", "name", "name_en", "name_ru"],
-          previewRow: { code: "0111", name: "Cultivarea cerealelor" },
-          treeKey: "code",
-          parentColumns: ["parent_code"],
-        },
-        {
-          id: "reg_raioane",
-          displayName: "Raioane",
-          physicalTable: "GEAP_d_raioane",
-          visibility: "global",
-          multilingual: true,
-          searchable: false,
-          rowCount: 43,
-          active: true,
-          availableColumns: ["id", "name"],
-          previewRow: { id: "01", name: "Chișinău" },
-        },
-        {
-          id: "reg_localitati",
-          displayName: "Localități",
-          physicalTable: "GEAP_d_localitati",
-          visibility: "global",
-          multilingual: true,
-          searchable: true,
-          rowCount: 1843,
-          active: true,
-          availableColumns: ["code", "name", "raion_id"],
-          parentColumns: ["raion_id"],
-          previewRow: { code: "0100", name: "mun. Chișinău" },
-        },
-        {
-          id: "reg_tari",
-          displayName: "Țări",
-          physicalTable: "GEAP_d_tari",
-          visibility: "global",
-          multilingual: true,
-          searchable: true,
-          rowCount: 4,
-          active: true,
-          availableColumns: ["code", "name", "name_en", "name_ru"],
-          previewRow: { code: "MD", name: "Republica Moldova" },
-        },
-        {
-          id: "reg_strazi",
-          displayName: "Străzi",
-          physicalTable: "GEAP_d_strazi",
-          visibility: "global",
-          multilingual: false,
-          searchable: true,
-          rowCount: 493,
-          active: true,
-          availableColumns: ["id", "name", "locality_id"],
-          parentColumns: ["locality_id"],
-          previewRow: { id: "101", name: "bd. Ștefan cel Mare și Sfânt" },
-        },
-        {
-          id: "reg_risc_comert",
-          displayName: "Categorii risc comerț",
-          physicalTable: "GEAP_d_Service_C01394_CategoriiRisc",
-          visibility: "service",
-          multilingual: false,
-          searchable: false,
-          rowCount: 12,
-          active: true,
-          availableColumns: ["id", "name"],
-          previewRow: { id: "1", name: "Risc redus" },
-        },
-      ];
-
-      let selectedField = canvas.querySelector(".e-permits-builder__field.is-selected");
-      let selectedSection = null;
-      let draggedField = null;
-      let draggedComponentType = null;
-      let draggedFieldStartIndex = -1;
-      const BUILDER_DB_KEY = "geap.formBuilderSandboxDb.v1";
-      let sandboxDb = null;
-      let activeFormId = "";
-      let isApplyingFormRecord = false;
-      const dropPlaceholder = document.createElement("div");
-      dropPlaceholder.className = "e-permits-builder__field-placeholder";
-      dropPlaceholder.dataset.builderPlaceholder = "";
-      const dropGuideLayer = document.createElement("div");
-      dropGuideLayer.className = "e-permits-builder__drop-guides";
-      dropGuideLayer.setAttribute("aria-hidden", "true");
-      const resizeGuideLayer = document.createElement("div");
-      resizeGuideLayer.className = "e-permits-builder__resize-guides";
-      resizeGuideLayer.setAttribute("aria-hidden", "true");
-
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
-      }
-
-      function initPanelResize() {
-        if (!workspace) return;
-        const handles = Array.from(builder.querySelectorAll("[data-builder-resize-panel]"));
-        if (!handles.length) return;
-
-        handles.forEach((handle) => {
-          handle.addEventListener("pointerdown", (event) => {
-            if (event.button !== 0) return;
-            event.preventDefault();
-
-            const side = handle.dataset.builderResizePanel;
-            const startRect = workspace.getBoundingClientRect();
-            const startLeft = parseFloat(getComputedStyle(workspace).getPropertyValue("--builder-left-width")) || 322;
-            const startRight = parseFloat(getComputedStyle(workspace).getPropertyValue("--builder-right-width")) || 344;
-            const minCenter = 560;
-
-            handle.setPointerCapture?.(event.pointerId);
-            builder.classList.add("is-resizing");
-
-            function resize(pointerEvent) {
-              const workspaceRect = workspace.getBoundingClientRect();
-              if (side === "left") {
-                const maxLeft = Math.max(260, workspaceRect.width - startRight - minCenter);
-                const nextLeft = clamp(pointerEvent.clientX - workspaceRect.left, 260, maxLeft);
-                workspace.style.setProperty("--builder-left-width", `${Math.round(nextLeft)}px`);
-              } else {
-                const maxRight = Math.max(280, workspaceRect.width - startLeft - minCenter);
-                const nextRight = clamp(workspaceRect.right - pointerEvent.clientX, 280, maxRight);
-                workspace.style.setProperty("--builder-right-width", `${Math.round(nextRight)}px`);
-              }
-            }
-
-            function stopResize(pointerEvent) {
-              resize(pointerEvent);
-              builder.classList.remove("is-resizing");
-              handle.releasePointerCapture?.(pointerEvent.pointerId);
-              window.removeEventListener("pointermove", resize);
-              window.removeEventListener("pointerup", stopResize);
-              window.removeEventListener("pointercancel", stopResize);
-            }
-
-            window.addEventListener("pointermove", resize);
-            window.addEventListener("pointerup", stopResize);
-            window.addEventListener("pointercancel", stopResize);
-          });
-        });
-      }
-
-      function getFields() {
-        return Array.from(canvas.querySelectorAll("[data-builder-field]"));
-      }
-
-      function getSections() {
-        return Array.from(canvas.querySelectorAll("[data-builder-section]"));
-      }
-
-      function getActiveSection() {
-        return selectedSection || canvas.querySelector("[data-builder-section]");
-      }
-
-      function currentSectionTitle() {
-        return getActiveSection()?.querySelector("[data-builder-section-title]")?.value.trim()
-          || builder.querySelector("[data-builder-section-title]")?.value.trim()
-          || "Secțiune";
-      }
-
-      function sectionFlag(section, key, fallback = false) {
-        if (!section) return fallback;
-        const attr = `section${key}`;
-        if (section.dataset[attr] === undefined) return fallback;
-        return section.dataset[attr] !== "false";
-      }
-
-      function sectionDescription(section = getActiveSection()) {
-        return section?.dataset.sectionDescription
-          || section?.querySelector("[data-builder-section-description]")?.value.trim()
-          || "";
-      }
-
-      function sectionData(section = getActiveSection()) {
-        return {
-          title: section?.querySelector("[data-builder-section-title]")?.value.trim() || "Secțiune",
-          description: sectionDescription(section),
-          showTitle: sectionFlag(section, "ShowTitle", true),
-          showDescription: sectionFlag(section, "ShowDescription", false),
-          showSeparator: sectionFlag(section, "ShowSeparator", false),
-          openOptions: new Set((section?.dataset.sectionOpenOptions || "title").split(",").filter(Boolean)),
-        };
-      }
-
-      function syncSectionCanvas(section) {
-        if (!section) return;
-        const data = sectionData(section);
-        const titleWrap = section.querySelector("[data-builder-section-title-wrap]");
-        const descriptionInput = section.querySelector("[data-builder-section-description]");
-        const separator = section.querySelector("[data-builder-section-separator]");
-        if (titleWrap) titleWrap.hidden = !data.showTitle;
-        if (descriptionInput) {
-          descriptionInput.hidden = !data.showDescription;
-          if (descriptionInput.value !== data.description) descriptionInput.value = data.description;
-        }
-        if (separator) separator.hidden = !data.showSeparator;
-        section.classList.toggle("has-section-title", data.showTitle);
-        section.classList.toggle("has-section-description", data.showDescription);
-        section.classList.toggle("has-section-separator", data.showSeparator);
-      }
-
-      function syncSectionSettingsPanel() {
-        if (!selectedSection || !sectionSettingsPanel) return;
-        const data = sectionData(selectedSection);
-        if (sectionInspectorTitle) sectionInspectorTitle.textContent = data.title;
-        if (sectionPropTitle && sectionPropTitle.value !== data.title) sectionPropTitle.value = data.title;
-        if (sectionPropDescription && sectionPropDescription.value !== data.description) sectionPropDescription.value = data.description;
-
-        sectionSettingsPanel.querySelectorAll("[data-builder-section-option]").forEach((option) => {
-          const key = option.dataset.builderSectionOption;
-          const visible = key === "title" ? data.showTitle : key === "description" ? data.showDescription : data.showSeparator;
-          const isOpen = visible && data.openOptions.has(key);
-          const checkbox = option.querySelector(`[data-builder-section-visible="${key}"]`);
-          const body = option.querySelector(`[data-builder-section-option-body="${key}"]`);
-          const collapse = option.querySelector(".e-permits-builder__section-option-collapse");
-          option.classList.toggle("is-muted", !visible);
-          option.classList.toggle("is-open", isOpen);
-          if (checkbox) checkbox.checked = visible;
-          if (body) body.hidden = !isOpen;
-          if (collapse) {
-            collapse.setAttribute("aria-expanded", String(isOpen));
-            collapse.setAttribute("aria-label", `${isOpen ? "Restrânge" : "Extinde"} ${option.querySelector("strong")?.textContent || "opțiunea"}`);
-          }
-        });
-      }
-
-      function updateSection(section, updates = {}) {
-        if (!section) return;
-        if (updates.title !== undefined) {
-          const title = updates.title.trim() || "Secțiune";
-          const input = section.querySelector("[data-builder-section-title]");
-          if (input && input.value !== title) input.value = title;
-          section.setAttribute("aria-label", title);
-        }
-        if (updates.description !== undefined) {
-          const description = String(updates.description);
-          section.dataset.sectionDescription = description;
-          const input = section.querySelector("[data-builder-section-description]");
-          if (input && input.value !== description) input.value = description;
-        }
-        if (updates.showTitle !== undefined) section.dataset.sectionShowTitle = String(updates.showTitle);
-        if (updates.showDescription !== undefined) section.dataset.sectionShowDescription = String(updates.showDescription);
-        if (updates.showSeparator !== undefined) section.dataset.sectionShowSeparator = String(updates.showSeparator);
-        if (updates.openOptions) section.dataset.sectionOpenOptions = Array.from(updates.openOptions).join(",");
-        syncSectionCanvas(section);
-        if (section === selectedSection) syncSectionSettingsPanel();
-        renderPreviewAndSchema();
-      }
-
-      function setSectionTitle(section, title) {
-        if (!section) return;
-        const next = title.trim() || "Secțiune";
-        updateSection(section, { title: next });
-      }
-
-      function fieldData(field) {
-        const label =
-          field.querySelector(".e-permits-builder__field-label strong")?.childNodes?.[0]?.textContent.trim()
-          || field.querySelector(".e-permits-builder__field-label strong")?.textContent.replace("*", "").trim()
-          || field.querySelector(".e-permits-builder__field-head strong")?.childNodes?.[0]?.textContent.trim()
-          || field.querySelector(".e-permits-builder__field-head strong")?.textContent.replace("*", "").trim()
-          || "";
-        const fieldId =
-          field.querySelector(".e-permits-builder__field-label em")?.textContent.trim()
-          || "";
-        const addressPreview = field.dataset.type === "address"
-          ? addressConfigFor(field).filter((part) => part.visible).map((part) => part.label).join(", ")
-          : "";
-        const preview =
-          field.querySelector(".e-permits-builder__field-preview > span")?.textContent.trim()
-          || field.querySelector(".e-permits-builder__field-preview")?.textContent.trim()
-          || addressPreview
-          || "";
-        const record = {
-          id: field.dataset.id || "",
-          fieldId,
-          type: field.dataset.type || "text",
-          span: Number(field.dataset.span || 12),
-          required: field.dataset.required !== "false",
-          label,
-          preview,
-          dataSource: parseDataSource(field),
-        };
-        if (field.dataset.type === "address") {
-          record.addressConfig = addressConfigFor(field).map((part) => ({
-            key: part.key,
-            label: part.label,
-            type: part.type,
-            visible: part.visible,
-            required: part.required,
-            defaultValue: part.defaultValue || "",
-            source: part.source || "",
-            rows: part.rows || "",
-            parentLabel: part.parentLabel || "",
-          }));
-        }
-        return record;
-      }
-
-      function renderFieldLabel(labelNode, text, required) {
-        if (!labelNode) return;
-        labelNode.textContent = text || "Câmp fără titlu";
-        if (!required) return;
-        const star = document.createElement("span");
-        star.className = "e-permits-builder__required-mark";
-        star.setAttribute("aria-label", "obligatoriu");
-        star.innerHTML = `<svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg>`;
-        labelNode.append(star);
-      }
-
-      function defaultAddressConfig() {
-        return ADDRESS_PATTERN_PARTS.map((part) => ({ ...part }));
-      }
-
-      function addressConfigFor(source) {
-        const raw = source?.dataset ? source.dataset.addressConfig : source?.addressConfig;
-        let saved = [];
-        if (Array.isArray(raw)) {
-          saved = raw;
-        } else if (raw) {
-          try {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) saved = parsed;
-          } catch {
-            saved = [];
-          }
-        }
-        return ADDRESS_PATTERN_PARTS.map((part) => {
-          const override = saved.find((item) => item.key === part.key) || {};
-          return {
-            ...part,
-            ...override,
-            visible: override.visible !== undefined ? Boolean(override.visible) : part.visible !== false,
-            required: override.required !== undefined ? Boolean(override.required) : Boolean(part.required),
-            defaultValue: override.defaultValue ?? part.defaultValue ?? "",
-          };
-        });
-      }
-
-      function setAddressConfig(field, config) {
-        if (!field || field.dataset.type !== "address") return;
-        const normalized = addressConfigFor({ addressConfig: config });
-        field.dataset.addressConfig = JSON.stringify(normalized.map((item) => ({
-          key: item.key,
-          visible: item.visible,
-          required: item.required,
-          defaultValue: item.defaultValue || "",
-        })));
-        updateAddressPatternField(field);
-        renderAddressDataPanel();
-        renderPreviewAndSchema();
-        autosaveCurrentForm();
-      }
-
-      function updateAddressConfigPart(key, updates) {
-        if (!isAddressPatternField()) return;
-        const config = addressConfigFor(selectedField).map((part) => (
-          part.key === key ? { ...part, ...updates } : part
-        ));
-        setAddressConfig(selectedField, config);
-      }
-
-      function addressPatternPreviewHtml(field) {
-        const visibleParts = addressConfigFor(field).filter((part) => part.visible);
-        return `
-          <div class="e-permits-builder__address-pattern-preview">
-            ${visibleParts.map((part) => `
-              <span class="e-permits-builder__address-token">
-                ${escapeHtml(part.label)}
-                ${part.required ? '<span class="e-permits-builder__required-mark" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>' : ""}
-              </span>
-            `).join("")}
-          </div>
-        `;
-      }
-
-      function addressPatternBodyHtml(template, field) {
-        return `
-          <div class="e-permits-builder__field-body e-permits-builder__field-body--address-pattern">
-            <div class="e-permits-builder__field-label">
-              <strong>${template.label}</strong>
-              <em>${template.fieldId}</em>
-            </div>
-            ${addressPatternPreviewHtml(field)}
-          </div>
-        `;
-      }
-
-      function updateAddressPatternField(field) {
-        if (!field || field.dataset.type !== "address") return;
-        const preview = field.querySelector(".e-permits-builder__address-pattern-preview");
-        if (preview) preview.outerHTML = addressPatternPreviewHtml(field);
-      }
-
-      function parseDataSource(field) {
-        if (!field?.dataset.source) return null;
-        try {
-          return JSON.parse(field.dataset.source);
-        } catch {
-          return null;
-        }
-      }
-
-      function getClassifier(id) {
-        if (!id) return null;
-        return classifierRegistry.find((classifier) => classifier.id === id) || null;
-      }
-
-      function defaultDataSource() {
-        return {
-          mode: "existing",
-          classifierId: "",
-          displayTemplate: [],
-          parentPairs: [],
-        };
-      }
-
-      function initialDataSourceForMode(mode) {
-        if (mode === "existing") return defaultDataSource();
-        if (mode === "new") {
-          return {
-            mode: "new",
-            technicalName: "",
-            displayName: "",
-            visibility: "global",
-            multilingual: false,
-            searchable: false,
-            saved: false,
-            displayTemplate: [],
-          };
-        }
-        if (mode === "static") {
-          return {
-            mode: "static",
-            multilingual: false,
-            values: [],
-            displayTemplate: [],
-            parentFieldId: "",
-          };
-        }
-        return null;
-      }
-
-      function isSourceConfigured(dataSource) {
-        if (!dataSource) return false;
-        if (dataSource.mode === "existing") return Boolean(dataSource.classifierId || dataSource.displayTemplate?.length || dataSource.parentPairs?.length || dataSource.tree);
-        if (dataSource.mode === "new") return Boolean(dataSource.saved || dataSource.classifierId || dataSource.technicalName || dataSource.displayName);
-        if (dataSource.mode === "static") return Boolean(dataSource.values?.length || dataSource.displayTemplate?.length || dataSource.parentFieldId);
-        return false;
-      }
-
-      function physicalNameForClassifier(technicalName, visibility = "service") {
-        const clean = String(technicalName || "").replace(/[^A-Za-z0-9_]/g, "");
-        if (!clean) return "";
-        if (visibility === "service") return `GEAP_d_Service_C01394_${clean}`;
-        return `GEAP_d_${clean}`;
-      }
-
-      function validateTechnicalName(technicalName, visibility = "service") {
-        const name = String(technicalName || "").trim();
-        if (!name) return { ok: false, error: "Numele tehnic este obligatoriu.", physicalName: "" };
-        if (!/^[A-Za-z][A-Za-z0-9_]*$/.test(name)) {
-          return { ok: false, error: "Numele poate conține doar litere, cifre și underscore și trebuie să înceapă cu o literă.", physicalName: physicalNameForClassifier(name, visibility) };
-        }
-        const physicalName = physicalNameForClassifier(name, visibility);
-        if (physicalName.length > 100) {
-          return { ok: false, error: "Numele fizic depășește limita de 100 de caractere.", physicalName };
-        }
-        if (classifierRegistry.some((classifier) => classifier.physicalTable.toLowerCase() === physicalName.toLowerCase())) {
-          return { ok: false, error: "Există deja un clasificator cu acest nume fizic.", physicalName };
-        }
-        return { ok: true, error: "", physicalName };
-      }
-
-      function seedValuesForClassifier(classifier) {
-        if (!classifier) return [];
-        const seeds = {
-          reg_caem: [
-            { id: 1, code: "I 56.10", name: "Restaurante", parent_code: "", isValid: true },
-            { id: 2, code: "I 56.30", name: "Baruri și alte activități de servire a băuturilor", parent_code: "I", isValid: true },
-          ],
-          reg_raioane: [
-            { id: 1, code: "01", name: "Chișinău", isValid: true },
-            { id: 2, code: "02", name: "Bălți", isValid: true },
-          ],
-          reg_localitati: [
-            { id: 1, code: "0100", name: "mun. Chișinău", parents: { raion_id: 1 }, isValid: true },
-            { id: 2, code: "0200", name: "mun. Bălți", parents: { raion_id: 2 }, isValid: true },
-          ],
-          reg_risc_comert: [
-            { id: 1, name: "Risc redus", isValid: true },
-            { id: 2, name: "Risc sporit", isValid: true },
-          ],
-        };
-        return seeds[classifier.id] || [classifier.previewRow || { id: 1, name: "Opțiunea 1", isValid: true }];
-      }
-
-      function buildFallbackDatabase() {
-        const form = serializeCurrentForm();
-        return {
-          version: 1,
-          activeFormId: form.id,
-          forms: [form],
-        };
-      }
-
-      function readStoredDatabase() {
-        try {
-          const raw = window.localStorage.getItem(BUILDER_DB_KEY);
-          if (!raw) return null;
-          const parsed = JSON.parse(raw);
-          if (!parsed || !Array.isArray(parsed.forms)) return null;
-          return parsed;
-        } catch {
-          return null;
-        }
-      }
-
-      function persistDatabase() {
-        if (!sandboxDb) return;
-        window.localStorage.setItem(BUILDER_DB_KEY, JSON.stringify(sandboxDb, null, 2));
-      }
-
-      async function loadSandboxDatabase() {
-        const stored = readStoredDatabase();
-        if (stored) {
-          sandboxDb = stored;
-          activeFormId = stored.activeFormId || stored.forms[0]?.id || "";
-          return;
-        }
-        try {
-          const response = await fetch("data/form-builder-db.json", { cache: "no-store" });
-          if (!response.ok) throw new Error("Seed DB unavailable");
-          const seeded = await response.json();
-          sandboxDb = seeded?.forms?.length ? seeded : buildFallbackDatabase();
-        } catch {
-          sandboxDb = buildFallbackDatabase();
-        }
-        activeFormId = sandboxDb.activeFormId || sandboxDb.forms[0]?.id || "";
-        persistDatabase();
-      }
-
-      function uniqueFormId() {
-        return `form-${Date.now()}-${Math.round(Math.random() * 1000)}`;
-      }
-
-      function currentFormTitle() {
-        return builder.querySelector(".e-permits-builder__service-title-row h2")?.textContent.trim()
-          || builder.querySelector(".e-permits-builder__form-header h1")?.textContent.trim()
-          || "Formular nou";
-      }
-
-      function serializeCurrentForm() {
-        const title = currentFormTitle();
-        const section = sectionData(getActiveSection());
-        return {
-          id: activeFormId || "form-commerce-notification",
-          serviceCode: builder.querySelector(".e-permits-builder__mono")?.textContent.trim() || "C01394",
-          title,
-          stepTitle: builder.querySelector(".e-permits-builder__form-header h1")?.textContent.trim() || "Detalii cerere",
-          sectionTitle: section.title,
-          sectionDescription: section.description,
-          sectionShowTitle: section.showTitle,
-          sectionShowDescription: section.showDescription,
-          sectionShowSeparator: section.showSeparator,
-          sectionOpenOptions: Array.from(section.openOptions).join(","),
-          stepIndex: 2,
-          totalSteps: 6,
-          version: builder.querySelector(".e-permits-builder__version span")?.textContent.trim() || "v1.4.2",
-          status: "draft",
-          updatedAt: new Date().toISOString(),
-          fields: getFields().map(fieldData),
-        };
-      }
-
-      function applyFieldRecord(field, record) {
-        field.dataset.id = record.id || `field-${Date.now()}-${Math.round(Math.random() * 1000)}`;
-        field.dataset.type = record.type || "text";
-        field.dataset.required = String(record.type === "address" ? false : record.required !== false);
-        if (record.dataSource) field.dataset.source = JSON.stringify(record.dataSource);
-        else delete field.dataset.source;
-        if (record.type === "address" && record.addressConfig) field.dataset.addressConfig = JSON.stringify(record.addressConfig);
-        else delete field.dataset.addressConfig;
-        setFieldSpan(field, record.type === "address" ? 12 : record.span || 4);
-
-        const label = field.querySelector(".e-permits-builder__field-label strong") || field.querySelector(".e-permits-builder__field-head strong");
-        renderFieldLabel(label, record.label || "Câmp fără titlu", record.required !== false);
-        const fieldId = field.querySelector(".e-permits-builder__field-label em");
-        if (fieldId) fieldId.textContent = record.fieldId || record.id || "f_field";
-        const previewText = field.querySelector(".e-permits-builder__field-preview > span");
-        if (previewText) previewText.textContent = record.preview || "Preview câmp";
-        if (field.dataset.type === "address") {
-          field.classList.add("e-permits-builder__field--address-pattern");
-          const template = { ...componentMap.address, label: record.label || componentMap.address.label, fieldId: record.fieldId || componentMap.address.fieldId };
-          const existingBody = field.querySelector(".e-permits-builder__field-body");
-          if (existingBody) existingBody.outerHTML = addressPatternBodyHtml(template, field);
-        }
-        updateFieldSourceState(field);
-      }
-
-      function applyFormRecord(record) {
-        if (!record) return;
-        isApplyingFormRecord = true;
-        activeFormId = record.id;
-        getFields().forEach((field) => field.remove());
-        const serviceTitle = builder.querySelector(".e-permits-builder__service-title-row h2");
-        const formTitle = builder.querySelector(".e-permits-builder__form-header h1");
-        const sectionTitle = builder.querySelector("[data-builder-section-title]");
-        const section = canvas.querySelector("[data-builder-section]");
-        const sectionDescriptionInput = section?.querySelector("[data-builder-section-description]");
-        const versionLabel = builder.querySelector(".e-permits-builder__version span");
-        if (serviceTitle) serviceTitle.textContent = record.title || "Formular nou";
-        if (formTitle) formTitle.textContent = record.stepTitle || "Detalii cerere";
-        if (sectionTitle) sectionTitle.value = record.sectionTitle || "Tipul solicitantului";
-        if (section) {
-          section.dataset.sectionDescription = record.sectionDescription || "";
-          section.dataset.sectionShowTitle = String(record.sectionShowTitle !== false);
-          section.dataset.sectionShowDescription = String(record.sectionShowDescription === true);
-          section.dataset.sectionShowSeparator = String(record.sectionShowSeparator === true);
-          section.dataset.sectionOpenOptions = record.sectionOpenOptions || "title";
-          if (sectionDescriptionInput) sectionDescriptionInput.value = record.sectionDescription || "";
-          syncSectionCanvas(section);
-        }
-        if (versionLabel) versionLabel.textContent = record.version || "v1.0.0";
-        (record.fields || []).forEach((fieldRecord) => {
-          const field = makeField(fieldRecord.type || "text");
-          applyFieldRecord(field, fieldRecord);
-          canvas.insertBefore(field, dropzone);
-        });
-        renderFormSelector();
-        const firstField = getFields()[0] || null;
-        setSelected(firstField);
-        isApplyingFormRecord = false;
-        renderPreviewAndSchema();
-      }
-
-      function renderFormSelector() {
-        if (!formSelect || !sandboxDb) return;
-        formSelect.innerHTML = "";
-        sandboxDb.forms.forEach((form) => {
-          const option = document.createElement("option");
-          option.value = form.id;
-          option.textContent = form.title || form.id;
-          formSelect.append(option);
-        });
-        formSelect.value = activeFormId;
-      }
-
-      function saveCurrentForm() {
-        if (!sandboxDb) sandboxDb = buildFallbackDatabase();
-        const record = serializeCurrentForm();
-        const existingIndex = sandboxDb.forms.findIndex((form) => form.id === record.id);
-        if (existingIndex >= 0) sandboxDb.forms[existingIndex] = record;
-        else sandboxDb.forms.push(record);
-        sandboxDb.activeFormId = record.id;
-        activeFormId = record.id;
-        persistDatabase();
-        renderFormSelector();
-      }
-
-      function autosaveCurrentForm() {
-        if (!sandboxDb || !activeFormId || isApplyingFormRecord) return;
-        const record = serializeCurrentForm();
-        const existingIndex = sandboxDb.forms.findIndex((form) => form.id === activeFormId);
-        if (existingIndex >= 0) sandboxDb.forms[existingIndex] = record;
-        else sandboxDb.forms.push(record);
-        sandboxDb.activeFormId = activeFormId;
-        persistDatabase();
-      }
-
-      function createNewForm() {
-        if (!sandboxDb) sandboxDb = { version: 1, activeFormId: "", forms: [] };
-        const id = uniqueFormId();
-        const nextNumber = sandboxDb.forms.length + 1;
-        const record = {
-          id,
-          serviceCode: "C01394",
-          title: `Formular nou ${nextNumber}`,
-          stepTitle: "Detalii cerere",
-          stepIndex: 2,
-          totalSteps: 6,
-          version: "v1.0.0",
-          status: "draft",
-          updatedAt: new Date().toISOString(),
-          fields: [],
-        };
-        sandboxDb.forms.push(record);
-        sandboxDb.activeFormId = id;
-        persistDatabase();
-        applyFormRecord(record);
-      }
-
-      function deleteCurrentForm() {
-        if (!sandboxDb || !activeFormId) return;
-        const current = sandboxDb.forms.find((form) => form.id === activeFormId);
-        const confirmed = window.confirm(`Ștergi formularul "${current?.title || activeFormId}" din sandbox?`);
-        if (!confirmed) return;
-        sandboxDb.forms = sandboxDb.forms.filter((form) => form.id !== activeFormId);
-        if (!sandboxDb.forms.length) {
-          const fallback = buildFallbackDatabase().forms[0];
-          fallback.id = uniqueFormId();
-          fallback.title = "Formular nou";
-          fallback.fields = [];
-          sandboxDb.forms.push(fallback);
-        }
-        sandboxDb.activeFormId = sandboxDb.forms[0].id;
-        persistDatabase();
-        applyFormRecord(sandboxDb.forms[0]);
-      }
-
-      function getDisplayColumns(classifier, dataSource) {
-        if (dataSource?.mode === "static") return dataSource.multilingual ? ["name", "name_en", "name_ru"] : ["name"];
-        if (Array.isArray(classifier?.availableColumns) && classifier.availableColumns.length) return classifier.availableColumns;
-        return classifier?.multilingual ? ["name", "name_en", "name_ru"] : ["name"];
-      }
-
-      function renderDisplayLabel(row, template) {
-        if (!row) return "";
-        if (!Array.isArray(template) || template.length === 0) return row.name || "";
-        let output = "";
-        let pendingSeparator = "";
-        let lastWasValue = false;
-        template.forEach((part) => {
-          if (part.type === "separator") {
-            if (lastWasValue) pendingSeparator += part.value;
-            return;
-          }
-          if (part.type === "column") {
-            const value = row[part.value];
-            if (value !== null && value !== undefined && value !== "") {
-              output += pendingSeparator + String(value);
-              pendingSeparator = "";
-              lastWasValue = true;
-            }
-          }
-        });
-        return output || row.name || "";
-      }
-
-      function isDropdownField(field = selectedField) {
-        const tag = field?.querySelector(".e-permits-builder__tag--strong")?.textContent.trim().toLowerCase();
-        return field?.dataset.type === "select" || field?.dataset.type === "caem" || tag === "dropdown";
-      }
-
-      function isAddressPatternField(field = selectedField) {
-        return field?.dataset.type === "address";
-      }
-
-      function sourceStatus(dataSource) {
-        if (!dataSource) return { tone: "warning", label: "Source", text: "Unconfigured", badge: "!" };
-        if (dataSource.mode === "existing" && dataSource.classifierId) return { tone: "success", label: "Source", text: "Existent", badge: "✓" };
-        if (dataSource.mode === "existing") return { tone: "warning", label: "Source", text: "Unconfigured", badge: "!" };
-        if (dataSource.mode === "new") return { tone: dataSource.saved ? "success" : "warning", label: "Source", text: dataSource.saved ? "Nou · salvat" : "Nou · ciornă", badge: dataSource.saved ? "✓" : "!" };
-        if (dataSource.mode === "static") {
-          const activeCount = (dataSource.values || []).filter((value) => value.isValid !== false).length;
-          return { tone: activeCount > 0 ? "success" : "warning", label: "Source", text: activeCount > 0 ? `Static · ${activeCount} active` : "Static · fără valori", badge: activeCount > 0 ? "✓" : "!" };
-        }
-        return { tone: "warning", label: "Source", text: "Unconfigured", badge: "!" };
-      }
-
-      function updateFieldSourceState(field) {
-        const state = field?.querySelector(".e-permits-builder__field-state");
-        if (!state) return;
-        const status = sourceStatus(parseDataSource(field));
-        const isSuccess = status.tone === "success";
-        state.innerHTML = `
-          <em class="e-permits-builder__tag ${isSuccess ? "e-permits-builder__tag--success" : "e-permits-builder__tag--warning"}">
-            ${isSuccess ? "" : `<svg class="icon e-permits-builder__icon-warning" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg>`}
-            ${status.label}
-          </em>
-          <span>${status.text}</span>
-        `;
-      }
-
-      function setFieldDataSource(field, dataSource) {
-        if (!field) return;
-        if (dataSource) field.dataset.source = JSON.stringify(dataSource);
-        else delete field.dataset.source;
-        updateFieldSourceState(field);
-        renderSourcePanel();
-        renderPreviewAndSchema();
-      }
-
-      function escapeHtml(value) {
-        return String(value ?? "")
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;");
-      }
-
-      function labelForField(field) {
-        return field.querySelector(".e-permits-builder__field-label strong")?.textContent.replace("*", "").trim()
-          || field.querySelector(".e-permits-builder__field-head strong")?.textContent.replace("*", "").trim()
-          || field.dataset.id
-          || "Dropdown";
-      }
-
-      function getCascadeParentOptions() {
-        return getFields()
-          .filter((field) => field !== selectedField && isDropdownField(field) && parseDataSource(field))
-          .map((field) => ({ id: field.dataset.id || "", label: labelForField(field) }))
-          .filter((option) => option.id);
-      }
-
-      function renderCascadeControls(dataSource, classifier) {
-        const card = builder.querySelector("[data-builder-cascade-card]");
-        const parentSelect = builder.querySelector("[data-builder-cascade-parent]");
-        const columnSelect = builder.querySelector("[data-builder-cascade-column]");
-        if (!card || !parentSelect || !columnSelect) return;
-        const selected = Boolean(classifier);
-        card.hidden = !selected || Boolean(dataSource?.tree?.enabled);
-        if (card.hidden) return;
-
-        const pairs = Array.isArray(dataSource.parentPairs)
-          ? dataSource.parentPairs
-          : dataSource.parentFieldId
-            ? [{ parentFieldId: dataSource.parentFieldId, filterColumn: dataSource.filterColumn }]
-            : [];
-        const firstPair = pairs[0] || {};
-        const parents = getCascadeParentOptions();
-        parentSelect.innerHTML = `<option value="">— No parent (independent) —</option>${parents.map((option) => (
-          `<option value="${escapeHtml(option.id)}">${escapeHtml(option.label)} (${escapeHtml(option.id)})</option>`
-        )).join("")}`;
-        parentSelect.value = firstPair.parentFieldId || "";
-
-        const filterColumns = classifier?.parentColumns?.length ? classifier.parentColumns : [];
-        columnSelect.innerHTML = `<option value="">— Selectează coloana —</option>${filterColumns.map((column) => (
-          `<option value="${escapeHtml(column)}">${escapeHtml(column)}</option>`
-        )).join("")}`;
-        columnSelect.value = firstPair.filterColumn || dataSource.filterColumn || "";
-        columnSelect.disabled = !parentSelect.value;
-      }
-
-      function confirmSourceModeChange(currentMode, nextMode) {
-        const overlay = document.createElement("div");
-        overlay.className = "e-permits-builder__confirm-overlay";
-        overlay.innerHTML = `
-          <div class="e-permits-builder__confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="builder-source-confirm-title">
-            <h3 id="builder-source-confirm-title">Schimbi modul sursei de date?</h3>
-            <p>Trecerea din <strong>${currentMode}</strong> în <strong>${nextMode}</strong> va șterge configurația curentă a câmpului. Această acțiune nu poate fi anulată.</p>
-            <div>
-              <button type="button" data-confirm-cancel>Anulează</button>
-              <button type="button" data-confirm-accept>Da, schimbă modul</button>
-            </div>
-          </div>
-        `;
-        document.body.append(overlay);
-        return new Promise((resolve) => {
-          const close = (value) => {
-            overlay.remove();
-            resolve(value);
-          };
-          overlay.addEventListener("click", (event) => {
-            if (event.target === overlay || event.target.closest("[data-confirm-cancel]")) close(false);
-            if (event.target.closest("[data-confirm-accept]")) close(true);
-          });
-        });
-      }
-
-      function openStaticValuesEditor() {
-        const current = parseDataSource(selectedField);
-        if (current?.mode !== "static") return;
-        let values = [...(current.values || [])];
-        const overlay = document.createElement("div");
-        overlay.className = "e-permits-builder__confirm-overlay";
-        const renderRows = () => values.map((value, index) => `
-          <div class="e-permits-builder__static-editor-row" data-static-row="${index}">
-            <span>#${value.id}</span>
-            <input type="text" value="${String(value.name || "").replace(/"/g, "&quot;")}" placeholder="Nume valoare" data-static-name>
-            <label class="checkbox checkbox--medium e-permits-builder__mini-check"><input class="checkbox-input" type="checkbox" ${value.isValid !== false ? "checked" : ""} data-static-active><span class="checkbox-custom" aria-hidden="true"></span><span>Active</span></label>
-          </div>
-        `).join("");
-        const paint = () => {
-          overlay.innerHTML = `
-            <div class="e-permits-builder__static-editor" role="dialog" aria-modal="true">
-              <header>
-                <div>
-                  <h3>Valori statice</h3>
-                  <p>Valorile sunt salvate inline în FieldSchema, cu soft-delete prin Active.</p>
-                </div>
-                <button type="button" data-static-close>×</button>
-              </header>
-              <div class="e-permits-builder__static-editor-list">${renderRows() || "<p>Fără valori încă.</p>"}</div>
-              <footer>
-                <button type="button" data-static-add>+ Adaugă valoare</button>
-                <button type="button" data-static-save>Salvează valori</button>
-              </footer>
-            </div>
-          `;
-        };
-        const syncRows = () => {
-          overlay.querySelectorAll("[data-static-row]").forEach((row) => {
-            const index = Number(row.dataset.staticRow);
-            values[index] = {
-              ...values[index],
-              name: row.querySelector("[data-static-name]")?.value || "",
-              isValid: Boolean(row.querySelector("[data-static-active]")?.checked),
-            };
-          });
-        };
-        paint();
-        document.body.append(overlay);
-        overlay.addEventListener("click", (event) => {
-          if (event.target === overlay || event.target.closest("[data-static-close]")) overlay.remove();
-          if (event.target.closest("[data-static-add]")) {
-            syncRows();
-            values.push({ id: values.length ? Math.max(...values.map((value) => Number(value.id) || 0)) + 1 : 1, name: "", isValid: true, sortOrder: (values.length + 1) * 10 });
-            paint();
-          }
-          if (event.target.closest("[data-static-save]")) {
-            syncRows();
-            setFieldDataSource(selectedField, { ...current, values });
-            overlay.remove();
-          }
-        });
-      }
-
-      async function changeDataSourceMode(mode) {
-        if (!isDropdownField()) return;
-        closeSourceDropdown();
-        if (!mode) {
-          setFieldDataSource(selectedField, null);
-          return;
-        }
-        const current = parseDataSource(selectedField);
-        if (current?.mode === mode) return;
-        if (isSourceConfigured(current)) {
-          const allowed = await confirmSourceModeChange(current.mode || "neconfigurat", mode);
-          if (!allowed) {
-            renderSourcePanel();
-            return;
-          }
-        }
-        setFieldDataSource(selectedField, initialDataSourceForMode(mode));
-      }
-
-      const sourceModeLabels = {
-        existing: "Clasificator existent",
-        new: "Clasificator nou",
-        static: "Valori statice",
-      };
-
-      function closeSourceDropdown() {
-        const trigger = builder.querySelector("[data-builder-source-trigger]");
-        const menu = builder.querySelector("[data-builder-source-menu]");
-        if (trigger) {
-          trigger.classList.remove("is-open");
-          trigger.setAttribute("aria-expanded", "false");
-        }
-        setDropdownHidden(menu, true);
-      }
-
-      function toggleSourceDropdown() {
-        if (!isDropdownField()) return;
-        const trigger = builder.querySelector("[data-builder-source-trigger]");
-        const menu = builder.querySelector("[data-builder-source-menu]");
-        if (!trigger || !menu) return;
-        const willOpen = menu.hidden;
-        trigger.classList.toggle("is-open", willOpen);
-        trigger.setAttribute("aria-expanded", String(willOpen));
-        setDropdownHidden(menu, !willOpen);
-      }
-
-      function renderClassifierSummary(classifier) {
-        const card = builder.querySelector("[data-builder-selected-classifier]");
-        if (!card) return;
-        if (!classifier) {
-          card.classList.add("is-empty");
-          card.innerHTML = `
-            <button class="e-permits-builder__classifier-browse" type="button" data-builder-browse-classifiers>Browse registru...</button>
-          `;
-          card.querySelector("[data-builder-browse-classifiers]")?.addEventListener("click", openClassifierRegistry);
-          return;
-        }
-        card.classList.remove("is-empty");
-        card.innerHTML = `
-          <div class="e-permits-builder__classifier-content">
-            <div class="e-permits-builder__classifier-title">
-              <strong>${classifier.displayName}</strong>
-              <code>${classifier.physicalTable}</code>
-            </div>
-            <p>${classifierMetaHtml(classifier)}</p>
-          </div>
-          <button class="e-permits-builder__classifier-edit" type="button" data-builder-browse-classifiers aria-label="Schimbă clasificator">
-            <svg class="icon" width="16" height="16"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
-          </button>
-        `;
-        card.querySelector("[data-builder-browse-classifiers]")?.addEventListener("click", openClassifierRegistry);
-      }
-
-      function classifierMetaHtml(classifier) {
-        const parts = [
-          classifier.visibility === "global" ? "Global" : classifier.visibility,
-          classifier.multilingual ? "Multilingv" : "",
-          classifier.searchable ? "Search" : "",
-          `<b>${classifier.rowCount}</b> rows`,
-        ].filter(Boolean);
-        return parts.map((part, index) => `${index ? '<span aria-hidden="true">•</span>' : ""}<span>${part}</span>`).join("");
-      }
-
-      function renderTemplate(dataSource, classifier) {
-        const builderNode = builder.querySelector("[data-builder-template-builder]");
-        const preview = builder.querySelector("[data-builder-template-preview]");
-        if (!builderNode) return;
-        const template = dataSource?.displayTemplate || [];
-        const columns = getDisplayColumns(classifier, dataSource);
-        builderNode.innerHTML = "";
-        if (!template.length) {
-          const hint = document.createElement("em");
-          hint.className = "e-permits-builder__template-empty";
-          hint.innerHTML = "Adaugă o coloană pentru a începe construirea label-ului<br>Niciun template configurat — va folosi coloana name implicit.";
-          builderNode.append(hint);
-        }
-        template.forEach((part, index) => {
-          const chip = document.createElement("span");
-          chip.className = `e-permits-builder__template-chip ${part.type === "column" ? "is-column" : "is-separator"}`;
-          if (part.type === "column") {
-            const select = document.createElement("select");
-            select.setAttribute("aria-label", "Coloană template");
-            columns.forEach((column) => {
-              const option = document.createElement("option");
-              option.value = column;
-              option.textContent = column;
-              select.append(option);
+    /* ---- Form Builder: the FO renderer, shared (2026-10-13) ----------------------------------
+       The builder (js/form-builder.js) draws its canvas cards, its Preview and the request form
+       with the SAME renderer as the FO (stepFieldHtml) and binds the Preview with the FO
+       controls — one schema → one renderer → three surfaces (spec form-builder.md § C.0). */
+    window.GEAPFormRender = {
+      fieldHtml: stepFieldHtml,
+      escape: escapeFrontOfficeHtml,
+      localIsoDay,
+      /* the FO interactions for a rendered root (Preview): selects, phone, address, counters, dates */
+      bind(root) {
+        root.querySelectorAll("[data-fo-select]").forEach(bindFoSelect);
+        root.querySelectorAll("[data-fo-phone-code]").forEach(bindPhoneCode);
+        root.querySelectorAll("[data-fo-cascade-address]").forEach(initCascadeAddress);
+        root.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
+        root.querySelectorAll("[data-fo-char-counter]").forEach(initCharCounter);
+        root.querySelectorAll("[data-fo-subgen-select]").forEach(initSubgenMultiSelect);
+        root.querySelectorAll("[data-fo-segment]").forEach((control) => {
+          control.addEventListener("click", (event) => {
+            const item = event.target.closest(".segment-item");
+            if (!item || item.disabled) return;
+            control.querySelectorAll(".segment-item").forEach((other) => {
+              const on = other === item;
+              other.classList.toggle("is-selected", on);
+              other.setAttribute("aria-checked", String(on));
+              other.tabIndex = on ? 0 : -1;
             });
-            select.value = columns.includes(part.value) ? part.value : (columns[0] || "name");
-            select.addEventListener("change", (event) => {
-              const nextTemplate = template.map((item, itemIndex) => itemIndex === index ? { ...item, value: event.target.value } : item);
-              setFieldDataSource(selectedField, { ...dataSource, displayTemplate: nextTemplate });
-            });
-            chip.append(select);
-            const chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            chevron.setAttribute("class", "icon");
-            chevron.setAttribute("width", "20");
-            chevron.setAttribute("height", "20");
-            chevron.setAttribute("aria-hidden", "true");
-            chevron.innerHTML = `<use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>`;
-            chip.append(chevron);
-          } else {
-            const input = document.createElement("input");
-            input.type = "text";
-            input.value = part.value || "";
-            input.placeholder = "sep";
-            input.style.width = `${Math.max(String(part.value || "").length * 8 + 18, 34)}px`;
-            input.addEventListener("input", (event) => {
-              event.target.style.width = `${Math.max(event.target.value.length * 8 + 18, 34)}px`;
-              const nextTemplate = template.map((item, itemIndex) => itemIndex === index ? { ...item, value: event.target.value } : item);
-              const nextDataSource = { ...dataSource, displayTemplate: nextTemplate };
-              selectedField.dataset.source = JSON.stringify(nextDataSource);
-              const sample = classifier?.previewRow || (nextDataSource.mode === "static" ? (nextDataSource.values || []).find((value) => value.isValid !== false) : null);
-              if (preview) preview.textContent = sample ? renderDisplayLabel(sample, nextTemplate) : "";
-              updateFieldSourceState(selectedField);
-              renderPreviewAndSchema();
-            });
-            chip.append(input);
-          }
-          const remove = document.createElement("button");
-          remove.type = "button";
-          remove.setAttribute("aria-label", "Elimină element template");
-          remove.textContent = "×";
-          remove.addEventListener("click", () => {
-            const next = { ...dataSource, displayTemplate: template.filter((_, itemIndex) => itemIndex !== index) };
-            setFieldDataSource(selectedField, next);
-          });
-          chip.append(remove);
-          builderNode.append(chip);
-        });
-        const sample = classifier?.previewRow || (dataSource?.mode === "static" ? (dataSource.values || []).find((value) => value.isValid !== false) : null);
-        if (preview) preview.textContent = sample ? renderDisplayLabel(sample, template) : "";
-      }
-
-      function addressOpenKeys(field = selectedField) {
-        const raw = field?.dataset.addressOpenKeys;
-        if (!raw) return new Set();
-        return new Set(raw.split(",").filter(Boolean));
-      }
-
-      function setAddressOpenKeys(field, keys) {
-        if (!field) return;
-        field.dataset.addressOpenKeys = Array.from(keys).join(",");
-      }
-
-      function renderAddressDataPanel() {
-        if (!addressDataList) return;
-        if (!isAddressPatternField()) {
-          addressDataList.replaceChildren();
-          return;
-        }
-
-        const config = addressConfigFor(selectedField);
-        const openKeys = addressOpenKeys(selectedField);
-        addressDataList.innerHTML = config.map((part, index) => {
-          const isOpen = openKeys.has(part.key);
-          const sourceHtml = part.source ? `
-            <div class="e-permits-builder__address-data-box">
-              <span>Sursă de date</span>
-              <p><code>${escapeHtml(part.source)}</code><i aria-hidden="true">•</i>${escapeHtml(part.rows || "")}</p>
-            </div>
-          ` : "";
-          const cascadeHtml = part.parentLabel ? `
-            <div class="e-permits-builder__address-cascade">
-              <svg class="icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M4 3.5v4.25c0 2.35 1.9 4.25 4.25 4.25H12m0 0L9.5 9.5M12 12L9.5 14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              <span>după <strong>${escapeHtml(part.parentLabel)}</strong></span>
-            </div>
-          ` : "";
-          const defaultControl = part.noDefault ? "" : part.type === "dropdown" ? `
-            <label class="e-permits-builder__property e-permits-builder__address-default">
-              <span>Valoare implicită</span>
-              <select data-address-default="${escapeHtml(part.key)}">
-                <option value="">Nici una</option>
-                <option value="${escapeHtml(part.defaultValue || "Republica Moldova")}" ${part.defaultValue ? "selected" : ""}>${escapeHtml(part.defaultValue || "Republica Moldova")}</option>
-              </select>
-            </label>
-          ` : `
-            <label class="e-permits-builder__property e-permits-builder__address-default">
-              <span>Valoare implicită</span>
-              <input type="${part.type === "număr" ? "number" : "text"}" value="${escapeHtml(part.defaultValue || "")}" placeholder="Nici una" data-address-default="${escapeHtml(part.key)}">
-            </label>
-          `;
-          return `
-            <article class="e-permits-builder__address-data-item${part.visible ? "" : " is-muted"}${isOpen ? " is-open" : ""}" data-address-item="${escapeHtml(part.key)}" style="--address-z:${20 - index}">
-              <header class="e-permits-builder__address-data-head" data-address-toggle-section="${escapeHtml(part.key)}">
-                <div class="e-permits-builder__address-data-title">
-                  <span class="e-permits-builder__address-data-main">
-                    <strong>${escapeHtml(part.label)}</strong>
-                    <em class="e-permits-builder__tag e-permits-builder__tag--outlined">${escapeHtml(part.type)}</em>
-                  </span>
-                  ${cascadeHtml}
-                </div>
-                <div class="e-permits-builder__address-data-actions">
-                  <button class="e-permits-builder__required-chip${part.required ? " is-on" : ""}" type="button" aria-pressed="${String(part.required)}" data-address-required="${escapeHtml(part.key)}">
-                    <span aria-hidden="true"><svg class="icon" width="12" height="12"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>
-                  </button>
-                  <label class="checkbox checkbox--medium e-permits-builder__mini-check" aria-label="Vizibilitate">
-                    <input class="checkbox-input" type="checkbox" ${part.visible ? "checked" : ""} data-address-visible="${escapeHtml(part.key)}">
-                    <span class="checkbox-custom" aria-hidden="true"></span>
-                  </label>
-                  <button class="e-permits-builder__address-collapse" type="button" aria-expanded="${String(isOpen)}" data-address-toggle-section="${escapeHtml(part.key)}" aria-label="${isOpen ? "Restrânge" : "Extinde"} ${escapeHtml(part.label)}">
-                    <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-                  </button>
-                </div>
-              </header>
-              <div class="e-permits-builder__address-data-body" ${isOpen ? "" : "hidden"}>
-                ${sourceHtml}
-                <label class="e-permits-builder__behavior-row">
-                  <span><strong>Vizibilitate</strong></span>
-                  <span class="e-permits-builder__switch">
-                    <input type="checkbox" ${part.visible ? "checked" : ""} data-address-visible="${escapeHtml(part.key)}">
-                    <i></i>
-                  </span>
-                </label>
-                <label class="e-permits-builder__behavior-row">
-                  <span><strong>Obligatoriu</strong></span>
-                  <span class="e-permits-builder__switch">
-                    <input type="checkbox" ${part.required ? "checked" : ""} data-address-required-input="${escapeHtml(part.key)}">
-                    <i></i>
-                  </span>
-                </label>
-                ${defaultControl}
-              </div>
-            </article>
-          `;
-        }).join("");
-      }
-
-      function renderSourcePanel() {
-        const dropdown = isDropdownField();
-        const address = isAddressPatternField();
-        if (sourceTabLabel) sourceTabLabel.textContent = address ? "Data" : "Data source";
-        if (sourceEmpty) sourceEmpty.hidden = dropdown || address;
-        if (sourceContent) sourceContent.hidden = !dropdown;
-        if (addressDataPanel) addressDataPanel.hidden = !address;
-        if (address) renderAddressDataPanel();
-        const sourceStatusForTab = dropdown ? sourceStatus(parseDataSource(selectedField)) : { tone: "neutral" };
-        const sourceIsWarning = dropdown && sourceStatusForTab.tone === "warning";
-        if (sourceTab) sourceTab.classList.toggle("is-warning", sourceIsWarning);
-        if (sourceTabIcon) sourceTabIcon.hidden = !sourceIsWarning;
-        if (sourceTabBadge) {
-          const status = sourceStatusForTab;
-          sourceTabBadge.textContent = status.badge;
-          sourceTabBadge.classList.toggle("is-ok", status.tone === "success");
-        }
-        if (!dropdown) return;
-        const dataSource = parseDataSource(selectedField);
-        const classifier = dataSource?.mode === "existing" ? getClassifier(dataSource.classifierId) : null;
-        const sourceTrigger = builder.querySelector("[data-builder-source-trigger]");
-        const sourceValue = builder.querySelector("[data-builder-source-value]");
-        if (sourceTrigger && sourceValue) {
-          const label = dataSource?.mode ? sourceModeLabels[dataSource.mode] : "Selecteaza sursa de date";
-          sourceValue.textContent = label || "Selecteaza sursa de date";
-          sourceTrigger.classList.toggle("is-placeholder", !dataSource?.mode);
-        }
-        builder.querySelectorAll("[data-builder-source-option]").forEach((option) => {
-          const active = Boolean(dataSource?.mode) && option.dataset.builderSourceOption === dataSource.mode;
-          option.classList.toggle("is-active", active);
-          option.setAttribute("aria-selected", String(active));
-        });
-        const sourceWarning = builder.querySelector("[data-builder-source-warning]");
-        const sourceWarningWrap = builder.querySelector("[data-builder-source-warning-wrap]");
-        if (sourceWarning) sourceWarning.hidden = Boolean(dataSource);
-        if (sourceWarningWrap) sourceWarningWrap.hidden = Boolean(dataSource);
-        const newDisplay = builder.querySelector("[data-builder-new-display]");
-        const newTechnical = builder.querySelector("[data-builder-new-technical]");
-        const newMl = builder.querySelector("[data-builder-new-ml]");
-        const newSearch = builder.querySelector("[data-builder-new-search]");
-        if (newDisplay && dataSource?.mode === "new") newDisplay.value = dataSource.displayName || "";
-        if (newTechnical && dataSource?.mode === "new") newTechnical.value = dataSource.technicalName || "";
-        if (newMl && dataSource?.mode === "new") newMl.checked = Boolean(dataSource.multilingual);
-        if (newSearch && dataSource?.mode === "new") newSearch.checked = Boolean(dataSource.searchable);
-        if (dataSource?.mode === "new") {
-          builder.querySelectorAll("input[name='builder-new-visibility']").forEach((input) => {
-            input.checked = input.value === (dataSource.visibility || "global");
-          });
-        }
-        const staticMl = builder.querySelector("[data-builder-static-ml]");
-        if (staticMl && dataSource?.mode === "static") staticMl.checked = Boolean(dataSource.multilingual);
-        const treeEnabled = builder.querySelector("[data-builder-tree-enabled]");
-        const treeSettings = builder.querySelector("[data-builder-tree-settings]");
-        const treeMax = builder.querySelector("[data-builder-tree-max]");
-        const treeMin = builder.querySelector("[data-builder-tree-min]");
-        const isTreeEnabled = Boolean(dataSource?.tree?.enabled);
-        if (treeEnabled) treeEnabled.checked = isTreeEnabled;
-        if (treeSettings) treeSettings.hidden = !isTreeEnabled;
-        if (treeMax) treeMax.value = dataSource?.tree?.maxLevels ?? 0;
-        if (treeMin) treeMin.value = dataSource?.tree?.minLevel ?? 0;
-        const templateCard = builder.querySelector("[data-builder-template-card]");
-        const treeCard = builder.querySelector("[data-builder-tree-card]");
-        if (templateCard) templateCard.hidden = !dataSource || (dataSource.mode === "existing" && !classifier);
-        if (treeCard) treeCard.hidden = !dataSource || dataSource.mode !== "existing" || (!classifier?.treeKey);
-        const cascadeEnabled = builder.querySelector("[data-builder-cascade-enabled]");
-        const cascadeSettings = builder.querySelector("[data-builder-cascade-settings]");
-        const isCascadeEnabled = Boolean(dataSource?.cascade?.enabled || dataSource?.parentFieldId || dataSource?.parentPairs?.length);
-        if (cascadeEnabled) cascadeEnabled.checked = isCascadeEnabled;
-        if (cascadeSettings) cascadeSettings.hidden = !isCascadeEnabled;
-        builder.querySelectorAll("[data-builder-source-mode]").forEach((button) => {
-          const active = Boolean(dataSource) && button.dataset.builderSourceMode === dataSource.mode;
-          button.classList.toggle("is-active", active);
-        });
-        builder.querySelectorAll("[data-builder-source-pane]").forEach((pane) => {
-          pane.classList.toggle("is-active", Boolean(dataSource) && pane.dataset.builderSourcePane === dataSource.mode);
-        });
-        renderClassifierSummary(classifier);
-        renderTemplate(dataSource, classifier);
-        renderCascadeControls(dataSource, classifier);
-        renderNewClassifierValidation();
-        renderStaticSummary(dataSource);
-      }
-
-      function renderNewClassifierValidation(displayNameOverride, validationOverride) {
-        const box = builder.querySelector("[data-builder-new-validation]");
-        if (!box) return;
-        const displayName = displayNameOverride ?? builder.querySelector("[data-builder-new-display]")?.value.trim() ?? "";
-        const technicalName = builder.querySelector("[data-builder-new-technical]")?.value.trim() ?? "";
-        const visibility = builder.querySelector("input[name='builder-new-visibility']:checked")?.value || "service";
-        const validation = validationOverride || validateTechnicalName(technicalName, visibility);
-        if (!displayName || !technicalName || validation.ok) {
-          box.hidden = validation.ok && Boolean(displayName);
-          box.classList.toggle("is-success", validation.ok && Boolean(displayName));
-          box.textContent = validation.ok && displayName
-            ? `Tabela fizică: ${validation.physicalName}`
-            : "Display name și Technical name sunt obligatorii.";
-          return;
-        }
-        box.hidden = false;
-        box.classList.remove("is-success");
-        box.textContent = validation.error || "Configurația nu este validă.";
-      }
-
-      function renderStaticSummary(dataSource) {
-        const summary = builder.querySelector(".e-permits-builder__static-summary");
-        const list = builder.querySelector(".e-permits-builder__static-values");
-        if (!summary || !list) return;
-        const values = dataSource?.mode === "static" ? (dataSource.values || []) : [];
-        const active = values.filter((value) => value.isValid !== false);
-        const inactive = values.length - active.length;
-        summary.innerHTML = `<span>${values.length} total · ${active.length} active · ${inactive} inactive</span>${dataSource?.multilingual ? "<em>ML</em>" : ""}`;
-        list.innerHTML = active.slice(0, 3).map((value) => `<li>#${value.id} ${value.name || "Valoare fără nume"}${value.name_en || value.name_ru ? " <em>en · ru</em>" : ""}</li>`).join("");
-        if (!active.length) list.innerHTML = "<li>Fără valori încă</li>";
-      }
-
-      function setFieldSpan(field, span) {
-        const normalizedSpan = FIELD_SPANS.includes(Number(span))
-          ? Number(span)
-          : FIELD_SPANS.reduce((closest, value) => Math.abs(value - Number(span)) < Math.abs(closest - Number(span)) ? value : closest, 4);
-        field.dataset.span = String(normalizedSpan);
-        field.style.gridColumn = `span ${normalizedSpan}`;
-        const spanTag = field.querySelector(".e-permits-builder__tag--outlined");
-        if (spanTag) spanTag.textContent = `${normalizedSpan}/12`;
-      }
-
-      function syncSpanControl(field) {
-        const span = Number(field?.dataset.span || 4);
-        const widthPicker = builder.querySelector(".e-permits-builder__width-picker");
-        if (widthPicker) widthPicker.dataset.activeSpan = String(span);
-        builder.querySelectorAll("[data-builder-span]").forEach((button) => {
-          const buttonSpan = Number(button.dataset.builderSpan);
-          button.classList.toggle("is-active", buttonSpan === span);
-          button.classList.toggle("is-filled", buttonSpan <= span);
-        });
-        const widthValue = builder.querySelector("[data-builder-width-value]");
-        const widthLabel = builder.querySelector("[data-builder-width-label]");
-        const labels = {
-          4: "one third (3 per row)",
-          6: "half (2 per row)",
-          8: "two thirds",
-          12: "full width",
-        };
-        if (widthValue) widthValue.textContent = `${span}/12`;
-        if (widthLabel) widthLabel.textContent = labels[span] || "custom width";
-      }
-
-      function nearestFieldSpan(rawSpan) {
-        return FIELD_SPANS.reduce((closest, value) => (
-          Math.abs(value - rawSpan) < Math.abs(closest - rawSpan) ? value : closest
-        ), FIELD_SPANS[0]);
-      }
-
-      function gridColumnStep() {
-        const styles = getComputedStyle(canvas);
-        const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
-        return (canvas.clientWidth - gap * 11) / 12 + gap;
-      }
-
-      function renderResizeGuides(field) {
-        resizeGuideLayer.replaceChildren();
-        if (!field) return;
-        if (!resizeGuideLayer.isConnected) canvas.appendChild(resizeGuideLayer);
-        clearDropState();
-        canvas.classList.add("is-guiding-resize");
-
-        const canvasRect = canvas.getBoundingClientRect();
-        const fieldRect = field.getBoundingClientRect();
-        const styles = getComputedStyle(canvas);
-        const gap = parseFloat(styles.columnGap || styles.gap || "0") || 0;
-        const columnWidth = (canvas.clientWidth - gap * 11) / 12;
-        const step = columnWidth + gap;
-        const fieldLeft = fieldRect.left - canvasRect.left;
-        const startColumn = clamp(Math.round(fieldLeft / step), 0, 11);
-        const top = Math.round(fieldRect.top - canvasRect.top);
-        const height = Math.round(fieldRect.height);
-
-        FIELD_SPANS
-          .filter((span) => startColumn + span <= 12)
-          .forEach((span) => {
-            const guide = document.createElement("div");
-            guide.className = "e-permits-builder__resize-guide";
-            guide.classList.toggle("is-active", span === Number(field.dataset.span || 4));
-            guide.style.left = `${Math.round(fieldLeft)}px`;
-            guide.style.top = `${top}px`;
-            guide.style.width = `${Math.round(columnWidth * span + gap * (span - 1))}px`;
-            guide.style.height = `${height}px`;
-            resizeGuideLayer.appendChild(guide);
-          });
-      }
-
-      function clearResizeGuides() {
-        canvas.classList.remove("is-guiding-resize");
-        resizeGuideLayer.replaceChildren();
-      }
-
-      function ensureFieldResizeHandle(field) {
-        if (!field || field.querySelector("[data-builder-field-resize]")) return;
-        const handle = document.createElement("button");
-        handle.className = "e-permits-builder__field-resize";
-        handle.type = "button";
-        handle.setAttribute("aria-label", "Redimensionează câmpul");
-        handle.dataset.builderFieldResize = "";
-        handle.innerHTML = "<span></span>";
-        field.prepend(handle);
-      }
-
-      function bindFieldResize(field) {
-        ensureFieldResizeHandle(field);
-        const handle = field.querySelector("[data-builder-field-resize]");
-        if (!handle || handle.dataset.resizeBound === "true") return;
-        handle.dataset.resizeBound = "true";
-        handle.addEventListener("pointerdown", (event) => {
-          if (event.button !== 0) return;
-          event.preventDefault();
-          event.stopPropagation();
-
-          const startX = event.clientX;
-          const startSpan = Number(field.dataset.span || 4);
-          const columnStep = gridColumnStep();
-          const startDraggable = field.draggable;
-          field.draggable = false;
-          field.classList.add("is-resizing-field");
-          builder.classList.add("is-field-resizing");
-          handle.setPointerCapture?.(event.pointerId);
-          setSelected(field);
-          renderResizeGuides(field);
-
-          function resize(pointerEvent) {
-            const delta = pointerEvent.clientX - startX;
-            const rawSpan = startSpan + Math.round(delta / columnStep);
-            const nextSpan = nearestFieldSpan(Math.max(4, Math.min(12, rawSpan)));
-            if (Number(field.dataset.span || 4) !== nextSpan) {
-              setFieldSpan(field, nextSpan);
-              syncSpanControl(field);
-              renderResizeGuides(field);
-              renderPreviewAndSchema();
-            }
-          }
-
-          function stopResize(pointerEvent) {
-            resize(pointerEvent);
-            field.draggable = startDraggable;
-            field.classList.remove("is-resizing-field");
-            builder.classList.remove("is-field-resizing");
-            clearResizeGuides();
-            handle.releasePointerCapture?.(pointerEvent.pointerId);
-            window.removeEventListener("pointermove", resize);
-            window.removeEventListener("pointerup", stopResize);
-            window.removeEventListener("pointercancel", stopResize);
-          }
-
-          window.addEventListener("pointermove", resize);
-          window.addEventListener("pointerup", stopResize);
-          window.addEventListener("pointercancel", stopResize);
-        });
-      }
-
-      function activeDragSpan() {
-        if (draggedField) return Number(draggedField.dataset.span || 4);
-        const template = componentMap[draggedComponentType] || componentMap.text;
-        return template.span || 4;
-      }
-
-      function spanToFixedColumns(span) {
-        return span;
-      }
-
-      function fieldAfter(field) {
-        const items = Array.from(canvas.children).filter((item) => {
-          return item.matches?.("[data-builder-field], [data-builder-dropzone]") && item !== dropPlaceholder;
-        });
-        return items[items.indexOf(field) + 1] || dropzone;
-      }
-
-      function clearDropState() {
-        canvas.querySelectorAll(".is-drop-target").forEach((field) => field.classList.remove("is-drop-target"));
-        canvas.closest(".e-permits-builder__step-section")?.classList.remove("is-drop-active");
-        canvas.classList.remove("is-guiding-drop");
-        draggedField?.classList.remove("is-dragging-out-of-flow");
-        draggedFieldStartIndex = -1;
-        dropPlaceholder.remove();
-        dropGuideLayer.replaceChildren();
-      }
-
-      function setDropTarget(field) {
-        canvas.querySelectorAll(".is-drop-target").forEach((item) => item.classList.toggle("is-drop-target", item === field));
-      }
-
-      function isNewDropRow(before = dropzone) {
-        const orderedItems = Array.from(canvas.children).filter((item) => {
-          return item.matches?.("[data-builder-field], [data-builder-dropzone]")
-            && item !== draggedField
-            && item !== dropPlaceholder;
-        });
-        const targetIndex = orderedItems.indexOf(before || dropzone);
-        const previousItems = targetIndex < 0 ? orderedItems : orderedItems.slice(0, targetIndex);
-        const occupiedColumns = previousItems.reduce((total, item) => {
-          if (item.matches?.("[data-builder-dropzone]")) return total;
-          return total + Number(item.dataset.span || 4);
-        }, 0);
-        return occupiedColumns % 12 === 0;
-      }
-
-      function movePlaceholder(before = dropzone, options = {}) {
-        clearResizeGuides();
-        const span = activeDragSpan();
-        dropPlaceholder.style.gridColumn = `span ${spanToFixedColumns(span)}`;
-        dropPlaceholder.style.setProperty("--builder-drop-line-width", `${Math.round(canvas.clientWidth)}px`);
-        dropPlaceholder.classList.toggle("is-new-row", options.forceNewRow || isNewDropRow(before || dropzone));
-        canvas.insertBefore(dropPlaceholder, before || dropzone);
-        canvas.closest(".e-permits-builder__step-section")?.classList.add("is-drop-active");
-        renderDropGuides();
-      }
-
-      function renderDropGuides() {
-        dropGuideLayer.replaceChildren();
-        if (!dropPlaceholder.isConnected) return;
-        if (!dropGuideLayer.isConnected) canvas.appendChild(dropGuideLayer);
-        canvas.classList.add("is-guiding-drop");
-
-        const canvasRect = canvas.getBoundingClientRect();
-        const placeholderRect = dropPlaceholder.getBoundingClientRect();
-        const guide = document.createElement("div");
-        guide.className = "e-permits-builder__drop-guide is-active";
-        guide.style.left = `${Math.round(placeholderRect.left - canvasRect.left)}px`;
-        guide.style.top = `${Math.round(placeholderRect.top - canvasRect.top)}px`;
-        guide.style.width = `${Math.round(placeholderRect.width)}px`;
-        guide.style.height = `${Math.round(Math.max(placeholderRect.height, 164))}px`;
-        dropGuideLayer.appendChild(guide);
-      }
-
-      function orderedDropItems() {
-        return Array.from(canvas.children).filter((item) => {
-          return item.matches?.("[data-builder-field], [data-builder-dropzone]")
-            && item !== draggedField
-            && item !== dropPlaceholder;
-        });
-      }
-
-      function setSelected(field) {
-        if (!builder.classList.contains("is-field-resizing")) clearResizeGuides();
-        if (!draggedField && !draggedComponentType) clearDropState();
-        if (field) clearSectionSelection();
-        getFields().forEach((item) => item.classList.toggle("is-selected", item === field));
-        selectedField = field || null;
-        if (fieldSettingsPanel) fieldSettingsPanel.hidden = !selectedField;
-        if (formSettingsPanel) formSettingsPanel.hidden = Boolean(selectedField);
-        if (sectionSettingsPanel) sectionSettingsPanel.hidden = true;
-        builder.classList.toggle("has-selected-field", Boolean(selectedField));
-        if (!selectedField) {
-          renderSourcePanel();
-          renderPreviewAndSchema();
-          return;
-        }
-        const data = fieldData(field);
-        propLabel.value = data.label;
-        propPreview.value = data.preview;
-        if (propFieldId) propFieldId.value = data.fieldId || data.id || "f_field";
-        requiredInput.checked = data.required;
-        if (inspectorTitle) inspectorTitle.textContent = componentTitle(field);
-        if (inspectorFieldId) inspectorFieldId.textContent = data.fieldId || data.id || "f_field";
-        builder.querySelectorAll("[data-builder-span]").forEach((button) => {
-          button.classList.toggle("is-active", Number(button.dataset.builderSpan) === data.span);
-        });
-        syncSpanControl(field);
-        renderSourcePanel();
-      }
-
-      function clearSectionSelection() {
-        getSections().forEach((section) => section.classList.remove("is-section-selected"));
-        selectedSection = null;
-        builder.classList.remove("has-selected-section");
-        if (sectionSettingsPanel) sectionSettingsPanel.hidden = true;
-      }
-
-      function setSelectedSection(section) {
-        setSelected(null);
-        getSections().forEach((item) => item.classList.toggle("is-section-selected", item === section));
-        selectedSection = section || null;
-        builder.classList.toggle("has-selected-section", Boolean(selectedSection));
-        if (selectedSection) {
-          if (formSettingsPanel) formSettingsPanel.hidden = true;
-          if (fieldSettingsPanel) fieldSettingsPanel.hidden = true;
-          if (sectionSettingsPanel) sectionSettingsPanel.hidden = false;
-          syncSectionCanvas(selectedSection);
-          syncSectionSettingsPanel();
-        }
-      }
-
-      function clearSelected() {
-        setSelected(null);
-        clearSectionSelection();
-      }
-
-      function updateField(field, updates) {
-        if (!field) return;
-        const data = { ...fieldData(field), ...updates };
-        field.dataset.required = String(data.required);
-        const label = field.querySelector(".e-permits-builder__field-label strong") || field.querySelector(".e-permits-builder__field-head strong");
-        const preview = field.querySelector(".e-permits-builder__field-preview");
-        const previewText = preview?.querySelector("span");
-        renderFieldLabel(label, data.label, data.required);
-        if (previewText) previewText.textContent = data.preview;
-        else if (preview) preview.textContent = data.preview;
-        if (updates.span) setFieldSpan(field, updates.span);
-        setSelected(field);
-        renderPreviewAndSchema();
-      }
-
-      function makeField(type) {
-        const template = componentMap[type] || componentMap.text;
-        const field = document.createElement("article");
-        const isAddressPattern = type === "address";
-        field.className = `e-permits-builder__field${isAddressPattern ? " e-permits-builder__field--address-pattern" : ""}`;
-        field.draggable = true;
-        field.dataset.builderField = "";
-        field.dataset.type = type;
-        field.dataset.required = String(template.required !== false);
-        field.dataset.id = `field-${Date.now()}-${Math.round(Math.random() * 1000)}`;
-        setFieldSpan(field, template.span);
-        field.innerHTML = `
-          <button class="e-permits-builder__field-resize" type="button" aria-label="Redimensionează câmpul" data-builder-field-resize>
-            <span></span>
-          </button>
-          <div class="e-permits-builder__field-tools">
-            <div class="e-permits-builder__field-meta">
-              <button class="e-permits-builder__circle-action e-permits-builder__drag" type="button" aria-label="Mută câmpul">
-                <svg class="icon e-permits-builder__icon-drag" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-drag"></use></svg>
-              </button>
-              <em class="e-permits-builder__tag e-permits-builder__tag--strong">${template.tag}</em>
-              <em class="e-permits-builder__tag e-permits-builder__tag--outlined">${template.span}/12</em>
-            </div>
-            <div class="e-permits-builder__field-actions">
-              <button class="e-permits-builder__circle-action" type="button" aria-label="Copiază câmpul">
-                <svg class="icon e-permits-builder__icon-copy" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
-              </button>
-              <button class="e-permits-builder__circle-action" type="button" aria-label="Șterge câmpul" data-builder-field-delete>
-                <svg class="icon e-permits-builder__icon-delete" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>
-              </button>
-            </div>
-          </div>
-          ${isAddressPattern ? addressPatternBodyHtml(template, field) : `
-            <div class="e-permits-builder__field-body">
-              <div class="e-permits-builder__field-label">
-                <strong>${template.label}<span class="e-permits-builder__required-mark" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span></strong>
-                <em>${template.fieldId}</em>
-              </div>
-              <div class="e-permits-builder__field-preview">
-                <span>${template.preview}</span>
-                <svg class="icon e-permits-builder__icon-chevron" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-              </div>
-              <div class="e-permits-builder__field-state">
-                <em class="e-permits-builder__tag e-permits-builder__tag--warning">
-                  <svg class="icon e-permits-builder__icon-warning" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg>
-                  Source
-                </em>
-                <span>Unconfigured</span>
-              </div>
-            </div>
-          `}
-        `;
-        updateFieldSourceState(field);
-        bindField(field);
-        return field;
-      }
-
-      function insertField(field, before = dropzone) {
-        canvas.insertBefore(field, before || dropzone);
-        setSelected(field);
-        renderPreviewAndSchema();
-      }
-
-      function deleteField(field) {
-        if (!field) return;
-        const next = field.nextElementSibling?.matches("[data-builder-field]")
-          ? field.nextElementSibling
-          : field.previousElementSibling?.matches("[data-builder-field]")
-            ? field.previousElementSibling
-            : null;
-        const wasSelected = selectedField === field;
-        field.remove();
-        if (wasSelected) {
-          selectedField = null;
-          if (next) setSelected(next);
-          else setSelected(null);
-        }
-        renderPreviewAndSchema();
-      }
-
-      function getInsertionPoint(event) {
-        const fields = getFields().filter((field) => field !== draggedField);
-        const items = orderedDropItems();
-        const rows = [];
-        const dropzoneRect = dropzone.getBoundingClientRect();
-
-        if (event.clientY >= dropzoneRect.top) {
-          return { before: dropzone, hovered: null, forceNewRow: true };
-        }
-
-        fields.forEach((field) => {
-          const rect = field.getBoundingClientRect();
-          let row = rows.find((candidate) => Math.abs(candidate.top - rect.top) < 8);
-          if (!row) {
-            row = { top: rect.top, bottom: rect.bottom, fields: [] };
-            rows.push(row);
-          }
-          row.top = Math.min(row.top, rect.top);
-          row.bottom = Math.max(row.bottom, rect.bottom);
-          row.fields.push({ field, rect });
-        });
-
-        rows.sort((a, b) => a.top - b.top);
-        rows.forEach((row) => row.fields.sort((a, b) => a.rect.left - b.rect.left));
-
-        const hovered = fields.find((field) => {
-          const rect = field.getBoundingClientRect();
-          return event.clientX >= rect.left
-            && event.clientX <= rect.right
-            && event.clientY >= rect.top
-            && event.clientY <= rect.bottom;
-        }) || null;
-
-        if (!rows.length) return { before: dropzone, hovered, forceNewRow: true };
-
-        if (hovered) {
-          const hoveredIndex = items.indexOf(hovered);
-          const rect = hovered.getBoundingClientRect();
-          const insertAfterHovered = event.clientX >= rect.left + rect.width / 2;
-          const insertBefore = insertAfterHovered
-            ? items[hoveredIndex + 1] || dropzone
-            : hovered;
-          return { before: insertBefore, hovered, forceNewRow: false };
-        }
-
-        const matchingRow = rows.find((row) => event.clientY >= row.top && event.clientY <= row.bottom);
-        if (!matchingRow) {
-          const firstLowerRow = rows.find((row) => event.clientY < row.top);
-          return {
-            before: firstLowerRow?.fields[0]?.field || dropzone,
-            hovered,
-            forceNewRow: !firstLowerRow,
-          };
-        }
-
-        const insertionEdges = matchingRow.fields.flatMap(({ field, rect }) => {
-          const fieldIndex = items.indexOf(field);
-          return [
-            { x: rect.left, before: field },
-            { x: rect.right, before: items[fieldIndex + 1] || dropzone },
-          ];
-        });
-        const closestEdge = insertionEdges.reduce((closest, edge) => {
-          if (!closest) return edge;
-          return Math.abs(event.clientX - edge.x) < Math.abs(event.clientX - closest.x) ? edge : closest;
-        }, null);
-
-        return { before: closestEdge?.before || dropzone, hovered, forceNewRow: false };
-      }
-
-      function bindField(field) {
-        bindFieldResize(field);
-        field.addEventListener("click", (event) => {
-          if (event.target.closest(".e-permits-builder__drag, [data-builder-field-resize], [data-builder-field-delete]")) return;
-          setSelected(field);
-        });
-        field.querySelector("[data-builder-field-delete]")?.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          deleteField(field);
-        });
-
-        field.addEventListener("dragstart", (event) => {
-          draggedFieldStartIndex = orderedDropItems().indexOf(field);
-          draggedField = field;
-          draggedComponentType = null;
-          field.classList.add("is-dragging");
-          event.dataTransfer.effectAllowed = "move";
-          event.dataTransfer.setData("text/plain", field.dataset.id || "field");
-          movePlaceholder(fieldAfter(field), { forceNewRow: false });
-          window.setTimeout(() => {
-            if (draggedField === field) field.classList.add("is-dragging-out-of-flow");
-          }, 0);
-        });
-
-        field.addEventListener("dragend", () => {
-          field.classList.remove("is-dragging", "is-dragging-out-of-flow");
-          draggedField = null;
-          clearDropState();
-          renderPreviewAndSchema();
-        });
-      }
-
-      function bindSections() {
-        getSections().forEach((section) => {
-          if (section.dataset.sectionShowTitle === undefined) section.dataset.sectionShowTitle = "true";
-          if (section.dataset.sectionShowDescription === undefined) section.dataset.sectionShowDescription = "false";
-          if (section.dataset.sectionShowSeparator === undefined) section.dataset.sectionShowSeparator = "false";
-          if (section.dataset.sectionDescription === undefined) section.dataset.sectionDescription = "";
-          if (section.dataset.sectionOpenOptions === undefined) section.dataset.sectionOpenOptions = "title";
-          syncSectionCanvas(section);
-          section.addEventListener("click", (event) => {
-            if (event.target.closest("[data-builder-field], [data-builder-dropzone]")) return;
-            if (event.target.closest(".e-permits-builder__section-actions, .e-permits-builder__drag")) return;
-            setSelectedSection(section);
+            control.dispatchEvent(new Event("change", { bubbles: true }));
           });
         });
-
-        builder.querySelectorAll("[data-builder-section-title]").forEach((input) => {
-          input.addEventListener("focus", () => {
-            const section = input.closest("[data-builder-section]");
-            if (section) setSelectedSection(section);
-          });
-          input.addEventListener("input", () => {
-            const section = input.closest("[data-builder-section]");
-            if (section === selectedSection && sectionPropTitle && sectionPropTitle.value !== input.value) {
-              sectionPropTitle.value = input.value;
-            }
-            section?.setAttribute("aria-label", input.value.trim() || "Secțiune");
-            renderPreviewAndSchema();
-          });
-          input.addEventListener("blur", () => {
-            if (!input.value.trim()) input.value = "Secțiune";
-            setSectionTitle(input.closest("[data-builder-section]"), input.value);
-          });
-          input.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              input.blur();
-            }
-          });
-        });
-
-        builder.querySelectorAll("[data-builder-section-description]").forEach((input) => {
-          input.addEventListener("focus", () => {
-            const section = input.closest("[data-builder-section]");
-            if (section) setSelectedSection(section);
-          });
-          input.addEventListener("input", () => {
-            const section = input.closest("[data-builder-section]");
-            if (!section) return;
-            section.dataset.sectionDescription = input.value;
-            if (section === selectedSection && sectionPropDescription && sectionPropDescription.value !== input.value) {
-              sectionPropDescription.value = input.value;
-            }
-            renderPreviewAndSchema();
-          });
-          input.addEventListener("blur", () => {
-            const section = input.closest("[data-builder-section]");
-            if (section) updateSection(section, { description: input.value });
-          });
-        });
-      }
-
-      sectionPropTitle?.addEventListener("input", () => {
-        if (!selectedSection) return;
-        updateSection(selectedSection, { title: sectionPropTitle.value });
-      });
-
-      sectionPropTitle?.addEventListener("blur", () => {
-        if (!selectedSection) return;
-        setSectionTitle(selectedSection, sectionPropTitle.value);
-      });
-
-      sectionPropDescription?.addEventListener("input", () => {
-        if (!selectedSection) return;
-        updateSection(selectedSection, { description: sectionPropDescription.value });
-      });
-
-      sectionSettingsPanel?.addEventListener("click", (event) => {
-        if (event.target.closest("[data-builder-section-visible], .e-permits-builder__mini-check")) {
-          event.stopPropagation();
-          return;
-        }
-
-        const toggle = event.target.closest("[data-builder-section-option-toggle]");
-        if (!toggle || !selectedSection) return;
-        if (event.target.closest(".e-permits-builder__section-option-actions") && !event.target.closest(".e-permits-builder__section-option-collapse")) return;
-        const key = toggle.dataset.builderSectionOptionToggle;
-        const data = sectionData(selectedSection);
-        const visible = key === "title" ? data.showTitle : key === "description" ? data.showDescription : data.showSeparator;
-        if (!visible) return;
-        const openOptions = data.openOptions;
-        if (openOptions.has(key)) openOptions.delete(key);
-        else openOptions.add(key);
-        updateSection(selectedSection, { openOptions });
-      });
-
-      sectionSettingsPanel?.addEventListener("change", (event) => {
-        const checkbox = event.target.closest("[data-builder-section-visible]");
-        if (!checkbox || !selectedSection) return;
-        const key = checkbox.dataset.builderSectionVisible;
-        const checked = checkbox.checked;
-        const openOptions = sectionData(selectedSection).openOptions;
-        if (checked) openOptions.add(key);
-        else openOptions.delete(key);
-        updateSection(selectedSection, {
-          showTitle: key === "title" ? checked : undefined,
-          showDescription: key === "description" ? checked : undefined,
-          showSeparator: key === "separator" ? checked : undefined,
-          openOptions,
-        });
-      });
-
-      libraryItems.forEach((item) => {
-        item.addEventListener("click", () => insertField(makeField(item.dataset.builderComponent)));
-        item.addEventListener("dragstart", (event) => {
-          draggedComponentType = item.dataset.builderComponent;
-          draggedField = null;
-          event.dataTransfer.effectAllowed = "copy";
-          event.dataTransfer.setData("text/plain", draggedComponentType);
-        });
-        item.addEventListener("dragend", () => {
-          draggedComponentType = null;
-          clearDropState();
-        });
-      });
-
-      canvas.addEventListener("dragover", (event) => {
-        event.preventDefault();
-        dropzone.classList.add("is-over");
-        const insertionPoint = getInsertionPoint(event);
-        setDropTarget(insertionPoint.hovered);
-        movePlaceholder(insertionPoint.before || dropzone, { forceNewRow: insertionPoint.forceNewRow });
-      });
-
-      canvas.addEventListener("dragleave", (event) => {
-        if (!canvas.contains(event.relatedTarget)) {
-          dropzone.classList.remove("is-over");
-          clearDropState();
-        }
-      });
-
-      canvas.addEventListener("drop", (event) => {
-        event.preventDefault();
-        dropzone.classList.remove("is-over");
-        const insertionPoint = getInsertionPoint(event);
-        const target = dropPlaceholder.isConnected ? dropPlaceholder : (insertionPoint.before || dropzone);
-        if (draggedComponentType) insertField(makeField(draggedComponentType), target);
-        if (draggedField) {
-          canvas.insertBefore(draggedField, target);
-          setSelected(draggedField);
-        }
-        clearDropState();
-        draggedComponentType = null;
-        draggedField = null;
-        renderPreviewAndSchema();
-      });
-
-      builder.addEventListener("click", (event) => {
-        if (!selectedField && !selectedSection) return;
-        if (!event.target.closest("[data-builder-canvas]")) return;
-        if (event.target.closest("[data-builder-field], [data-builder-dropzone], [data-builder-section]")) return;
-        clearSelected();
-      });
-
-      propLabel.addEventListener("input", () => updateField(selectedField, { label: propLabel.value || "Câmp fără titlu" }));
-      propPreview.addEventListener("input", () => updateField(selectedField, { preview: propPreview.value || "Preview câmp" }));
-      propFieldId?.addEventListener("input", () => {
-        if (!selectedField) return;
-        const nextId = propFieldId.value.trim() || "f_field";
-        const fieldIdTag = selectedField.querySelector(".e-permits-builder__field-label em");
-        if (fieldIdTag) fieldIdTag.textContent = nextId;
-        if (inspectorFieldId) inspectorFieldId.textContent = nextId;
-        renderPreviewAndSchema();
-      });
-      requiredInput.addEventListener("change", () => updateField(selectedField, { required: requiredInput.checked }));
-
-      builder.querySelectorAll("[data-builder-span]").forEach((button) => {
-        button.addEventListener("click", () => updateField(selectedField, { span: Number(button.dataset.builderSpan) }));
-      });
-
-      deleteButton?.addEventListener("click", () => deleteField(selectedField));
-
-      formSelect?.addEventListener("change", () => {
-        const record = sandboxDb?.forms.find((form) => form.id === formSelect.value);
-        if (!record) return;
-        sandboxDb.activeFormId = record.id;
-        persistDatabase();
-        applyFormRecord(record);
-      });
-
-      formNewButton?.addEventListener("click", createNewForm);
-      formSaveButton?.addEventListener("click", () => {
-        saveCurrentForm();
-        formSaveButton.textContent = "Salvat";
-        window.setTimeout(() => {
-          formSaveButton.textContent = "Salvează";
-        }, 1200);
-      });
-      formDeleteButton?.addEventListener("click", deleteCurrentForm);
-
-      librarySearch?.addEventListener("input", () => {
-        const query = normalizeComboboxText(librarySearch.value);
-        libraryItems.forEach((item) => {
-          const text = normalizeComboboxText(item.textContent);
-          item.hidden = query && !text.includes(query);
-        });
-      });
-
-      builder.querySelectorAll("[data-builder-mode]").forEach((button) => {
-        button.addEventListener("click", () => {
-          setBuilderMode(button.dataset.builderMode);
-        });
-      });
-
-      function setBuilderMode(mode = "build") {
-        builder.dataset.mode = mode;
-        builder.querySelectorAll("[data-builder-mode]").forEach((item) => {
-          const isActive = item.dataset.builderMode === mode;
-          item.classList.toggle("is-active", isActive);
-          item.setAttribute("aria-selected", String(isActive));
-        });
-        canvasSection.hidden = mode !== "build";
-        previewPanel.hidden = mode !== "preview";
-        schemaPanel.hidden = mode !== "schema";
-        renderPreviewAndSchema();
-      }
-
-      previewStepper?.addEventListener("click", (event) => {
-        const stepButton = event.target.closest("[data-builder-preview-step]");
-        if (!stepButton) return;
-        const index = Number(stepButton.dataset.builderPreviewStep);
-        builder.querySelectorAll(".e-permits-builder__step-chip").forEach((chip, chipIndex) => {
-          const active = chipIndex === index;
-          chip.classList.toggle("is-active", active);
-          chip.setAttribute("aria-selected", String(active));
-        });
-        renderPreviewAndSchema();
-      });
-
-      builder.addEventListener("keydown", (event) => {
-        if (event.key !== "Escape" || builder.dataset.mode !== "preview") return;
-        event.preventDefault();
-        setBuilderMode("build");
-      });
-
-      gridToggle?.addEventListener("click", () => {
-        const isVisible = canvas.classList.toggle("is-visible");
-        gridToggle.classList.toggle("is-active", isVisible);
-        gridToggle.setAttribute("aria-pressed", String(isVisible));
-      });
-
-      builder.querySelector("[data-builder-add-step]")?.addEventListener("click", () => {
-        const steps = builder.querySelector(".e-permits-builder__steps-group");
-        const addButton = builder.querySelector("[data-builder-add-step]");
-        const step = document.createElement("button");
-        const count = steps.querySelectorAll(".e-permits-builder__step-chip").length + 1;
-        step.className = "e-permits-builder__step-chip";
-        step.type = "button";
-        step.setAttribute("role", "tab");
-        step.setAttribute("aria-selected", "false");
-        step.innerHTML = `<span class="e-permits-builder__step-badge">${count}</span><strong class="e-permits-builder__step-label">Pas nou</strong>`;
-        steps.insertBefore(step, addButton);
-      });
-
-      builder.querySelectorAll("[data-builder-prop-tab]").forEach((button) => {
-        button.addEventListener("click", () => {
-          const target = button.dataset.builderPropTab;
-          builder.querySelectorAll("[data-builder-prop-tab]").forEach((item) => {
-            const active = item === button;
-            item.classList.toggle("is-active", active);
-            item.setAttribute("aria-selected", String(active));
-          });
-          builder.querySelectorAll("[data-builder-prop-panel]").forEach((panel) => {
-            panel.classList.toggle("is-active", panel.dataset.builderPropPanel === target);
-          });
-        });
-      });
-
-      addressDataList?.addEventListener("click", (event) => {
-        const requiredButton = event.target.closest("[data-address-required]");
-        if (requiredButton) {
-          event.stopPropagation();
-          const key = requiredButton.dataset.addressRequired;
-          const current = addressConfigFor(selectedField).find((part) => part.key === key);
-          updateAddressConfigPart(key, { required: !current?.required });
-          return;
-        }
-        if (event.target.closest("[data-address-visible], .e-permits-builder__mini-check")) {
-          event.stopPropagation();
-          return;
-        }
-        const collapseButton = event.target.closest("[data-address-toggle-section]");
-        if (collapseButton) {
-          if (event.target.closest(".e-permits-builder__address-data-actions") && !event.target.closest(".e-permits-builder__address-collapse")) return;
-          const key = collapseButton.dataset.addressToggleSection;
-          const openKeys = addressOpenKeys(selectedField);
-          if (openKeys.has(key)) openKeys.delete(key);
-          else openKeys.add(key);
-          setAddressOpenKeys(selectedField, openKeys);
-          renderAddressDataPanel();
-        }
-      });
-
-      addressDataList?.addEventListener("change", (event) => {
-        const visibleInput = event.target.closest("[data-address-visible]");
-        if (visibleInput) {
-          updateAddressConfigPart(visibleInput.dataset.addressVisible, { visible: visibleInput.checked });
-          return;
-        }
-        const requiredInputPart = event.target.closest("[data-address-required-input]");
-        if (requiredInputPart) {
-          updateAddressConfigPart(requiredInputPart.dataset.addressRequiredInput, { required: requiredInputPart.checked });
-          return;
-        }
-        const defaultInput = event.target.closest("[data-address-default]");
-        if (defaultInput) {
-          updateAddressConfigPart(defaultInput.dataset.addressDefault, { defaultValue: defaultInput.value });
-        }
-      });
-
-      builder.querySelectorAll("[data-builder-source-mode]").forEach((button) => {
-        button.addEventListener("click", () => {
-          changeDataSourceMode(button.dataset.builderSourceMode);
-        });
-      });
-
-      builder.querySelector("[data-builder-source-trigger]")?.addEventListener("click", (event) => {
-        event.preventDefault();
-        toggleSourceDropdown();
-      });
-
-      builder.querySelectorAll("[data-builder-source-option]").forEach((option) => {
-        option.addEventListener("click", () => {
-          changeDataSourceMode(option.dataset.builderSourceOption);
-        });
-      });
-
-      builder.querySelector("[data-builder-source-trigger]")?.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") {
-          closeSourceDropdown();
-          return;
-        }
-        if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          toggleSourceDropdown();
-          builder.querySelector("[data-builder-source-option]")?.focus();
-        }
-      });
-
-      builder.querySelector("[data-builder-source-menu]")?.addEventListener("keydown", (event) => {
-        const options = Array.from(builder.querySelectorAll("[data-builder-source-option]"));
-        const index = options.indexOf(document.activeElement);
-        if (event.key === "Escape") {
-          closeSourceDropdown();
-          builder.querySelector("[data-builder-source-trigger]")?.focus();
-          return;
-        }
-        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-          event.preventDefault();
-          const direction = event.key === "ArrowDown" ? 1 : -1;
-          const next = options[(index + direction + options.length) % options.length] || options[0];
-          next?.focus();
-        }
-      });
-
-      document.addEventListener("click", (event) => {
-        const dropdown = builder.querySelector("[data-builder-source-dropdown]");
-        if (dropdown?.contains(event.target)) return;
-        closeSourceDropdown();
-      });
-
-      builder.querySelector("[data-builder-new-display]")?.addEventListener("input", (event) => {
-        const current = parseDataSource(selectedField);
-        if (current?.mode !== "new") return;
-        setFieldDataSource(selectedField, { ...current, displayName: event.target.value, saved: false, classifierId: "" });
-      });
-
-      builder.querySelector("[data-builder-new-technical]")?.addEventListener("input", (event) => {
-        const current = parseDataSource(selectedField);
-        if (current?.mode !== "new") return;
-        setFieldDataSource(selectedField, { ...current, technicalName: event.target.value, saved: false, classifierId: "" });
-      });
-
-      builder.querySelectorAll("input[name='builder-new-visibility']").forEach((input) => {
-        input.addEventListener("change", () => {
-          const current = parseDataSource(selectedField);
-          if (current?.mode !== "new") return;
-          setFieldDataSource(selectedField, { ...current, visibility: input.value, saved: false, classifierId: "" });
-        });
-      });
-
-      builder.querySelector("[data-builder-new-ml]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField);
-        if (current?.mode !== "new") return;
-        setFieldDataSource(selectedField, { ...current, multilingual: event.target.checked, saved: false, classifierId: "" });
-      });
-
-      builder.querySelector("[data-builder-new-search]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField);
-        if (current?.mode !== "new") return;
-        setFieldDataSource(selectedField, { ...current, searchable: event.target.checked, saved: false, classifierId: "" });
-      });
-
-      builder.querySelector("[data-builder-static-ml]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField);
-        if (current?.mode !== "static") return;
-        setFieldDataSource(selectedField, { ...current, multilingual: event.target.checked });
-      });
-
-      builder.querySelector("[data-builder-static-editor]")?.addEventListener("click", openStaticValuesEditor);
-
-      builder.querySelector("[data-builder-tree-enabled]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        if (current.mode !== "existing") return;
-        setFieldDataSource(selectedField, {
-          ...current,
-          tree: event.target.checked ? { enabled: true, maxLevels: 0, minLevel: 0 } : null,
-          cascade: event.target.checked ? { enabled: false } : current.cascade,
-          parentFieldId: event.target.checked ? null : current.parentFieldId,
-          filterColumn: event.target.checked ? null : current.filterColumn,
-          parentPairs: event.target.checked ? [] : (current.parentPairs || []),
-        });
-      });
-
-      builder.querySelector("[data-builder-tree-max]")?.addEventListener("input", (event) => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        if (current.mode !== "existing") return;
-        setFieldDataSource(selectedField, {
-          ...current,
-          tree: { ...(current.tree || { enabled: true, minLevel: 0 }), maxLevels: Number(event.target.value) || 0 },
-        });
-      });
-
-      builder.querySelector("[data-builder-tree-min]")?.addEventListener("input", (event) => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        if (current.mode !== "existing") return;
-        setFieldDataSource(selectedField, {
-          ...current,
-          tree: { ...(current.tree || { enabled: true, maxLevels: 0 }), minLevel: Number(event.target.value) || 0 },
-        });
-      });
-
-      builder.querySelector("[data-builder-cascade-enabled]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        if (current.mode !== "existing") return;
-        setFieldDataSource(selectedField, {
-          ...current,
-          tree: event.target.checked ? null : current.tree,
-          cascade: { enabled: event.target.checked },
-          parentFieldId: event.target.checked ? (current.parentFieldId || current.parentPairs?.[0]?.parentFieldId || null) : null,
-          filterColumn: event.target.checked ? (current.filterColumn || current.parentPairs?.[0]?.filterColumn || null) : null,
-          parentPairs: event.target.checked ? (current.parentPairs || []) : [],
-        });
-      });
-
-      builder.querySelector("[data-builder-cascade-parent]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        if (current.mode !== "existing") return;
-        const parentFieldId = event.target.value;
-        const classifier = getClassifier(current.classifierId);
-        const filterColumn = parentFieldId ? (current.filterColumn || classifier?.parentColumns?.[0] || "") : null;
-        setFieldDataSource(selectedField, {
-          ...current,
-          tree: null,
-          cascade: { enabled: true },
-          parentFieldId: parentFieldId || null,
-          filterColumn,
-          parentPairs: parentFieldId ? [{ parentFieldId, filterColumn }] : [],
-        });
-      });
-
-      builder.querySelector("[data-builder-cascade-column]")?.addEventListener("change", (event) => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        if (current.mode !== "existing") return;
-        const parentFieldId = current.parentPairs?.[0]?.parentFieldId || current.parentFieldId || "";
-        const filterColumn = event.target.value;
-        setFieldDataSource(selectedField, {
-          ...current,
-          tree: null,
-          cascade: { enabled: true },
-          parentFieldId: parentFieldId || null,
-          filterColumn: parentFieldId ? filterColumn : null,
-          parentPairs: parentFieldId ? [{ parentFieldId, filterColumn }] : [],
-        });
-      });
-
-      function renderRegistryList() {
-        if (!registryList) return;
-        const search = registrySearch?.value.trim().toLowerCase() || "";
-        const currentSource = parseDataSource(selectedField);
-        const selectedClassifierId = currentSource?.classifierId || "";
-        const items = classifierRegistry.filter((classifier) => {
-          const matchesFilter = registryFilter === "all" || classifier.visibility === registryFilter;
-          const haystack = `${classifier.displayName} ${classifier.physicalTable}`.toLowerCase();
-          return matchesFilter && (!search || haystack.includes(search));
-        });
-        registryList.innerHTML = "";
-        if (!items.length) {
-          /* the shared empty-state component (js/empty-state.js) */
-          registryList.innerHTML = window.GEAPEmptyState.noResults("Nu am găsit clasificatoare pentru căutarea curentă", { bare: true });
-          return;
-        }
-        items.forEach((classifier) => {
-          const item = document.createElement("button");
-          item.className = `e-permits-builder-registry__item${classifier.id === selectedClassifierId ? " is-active" : ""}`;
-          item.type = "button";
-          item.innerHTML = `
-            <span class="e-permits-builder-registry__item-body">
-              <span class="e-permits-builder-registry__item-title">
-                <strong>${classifier.displayName}</strong>
-                <code>${classifier.physicalTable}</code>
-              </span>
-              <span class="e-permits-builder-registry__item-meta">${classifierMetaHtml(classifier)}</span>
-            </span>
-            <span class="e-permits-builder-registry__action">
-              <span>Add to CRUD</span>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
-            </span>
-          `;
-          item.addEventListener("click", () => {
-            const current = parseDataSource(selectedField) || defaultDataSource();
-            setFieldDataSource(selectedField, {
-              ...current,
-              mode: "existing",
-              classifierId: classifier.id,
-              displayTemplate: current.displayTemplate || [],
-              tree: classifier.treeKey ? { enabled: false, maxLevels: 0, minLevel: 0 } : undefined,
-              parentPairs: current.parentPairs || [],
-            });
-            setMotionModalHidden(registryModal, true);
-            registryModal.setAttribute("aria-hidden", "true");
-            if (registrySearch) registrySearch.value = "";
-          });
-          registryList.append(item);
-        });
-      }
-
-      function openClassifierRegistry() {
-        if (!registryModal) return;
-        renderRegistryList();
-        setMotionModalHidden(registryModal, false);
-        registryModal.setAttribute("aria-hidden", "false");
-        registrySearch?.focus();
-      }
-
-      builder.querySelector("[data-builder-browse-classifiers]")?.addEventListener("click", openClassifierRegistry);
-
-      registryModal?.querySelector("[data-builder-classifier-close]")?.addEventListener("click", () => {
-        setMotionModalHidden(registryModal, true);
-        registryModal.setAttribute("aria-hidden", "true");
-      });
-
-      registryModal?.addEventListener("click", (event) => {
-        if (event.target === registryModal) {
-          setMotionModalHidden(registryModal, true);
-          registryModal.setAttribute("aria-hidden", "true");
-        }
-      });
-
-      registryModal?.querySelectorAll("[data-builder-registry-filter]").forEach((button) => {
-        button.addEventListener("click", () => {
-          registryFilter = button.dataset.builderRegistryFilter || "all";
-          registryModal.querySelectorAll("[data-builder-registry-filter]").forEach((item) => {
-            item.classList.toggle("is-active", item === button);
-          });
-          renderRegistryList();
-        });
-      });
-
-      registrySearch?.addEventListener("input", renderRegistryList);
-
-      builder.querySelector("[data-builder-template-add-column]")?.addEventListener("click", () => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        const classifier = current.mode === "existing" ? getClassifier(current.classifierId) : null;
-        const columns = getDisplayColumns(classifier, current);
-        const template = [...(current.displayTemplate || [])];
-        if (template.length > 0 && template[template.length - 1].type === "column") {
-          template.push({ type: "separator", value: " — " });
-        }
-        template.push({ type: "column", value: columns[0] || "name" });
-        setFieldDataSource(selectedField, {
-          ...current,
-          displayTemplate: template,
-        });
-      });
-
-      builder.querySelector("[data-builder-template-add-separator]")?.addEventListener("click", () => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        setFieldDataSource(selectedField, {
-          ...current,
-          displayTemplate: [...(current.displayTemplate || []), { type: "separator", value: " — " }],
-        });
-      });
-
-      builder.querySelector("[data-builder-template-reset]")?.addEventListener("click", () => {
-        const current = parseDataSource(selectedField) || defaultDataSource();
-        setFieldDataSource(selectedField, { ...current, displayTemplate: [] });
-      });
-
-      builder.querySelector("[data-builder-create-classifier]")?.addEventListener("click", () => {
-        if (!isDropdownField()) return;
-        const displayName = builder.querySelector("[data-builder-new-display]")?.value.trim() || "";
-        const technicalName = builder.querySelector("[data-builder-new-technical]")?.value.trim() || "";
-        const visibility = builder.querySelector("input[name='builder-new-visibility']:checked")?.value || "service";
-        const validation = validateTechnicalName(technicalName, visibility);
-        if (!displayName || !validation.ok) {
-          renderNewClassifierValidation(displayName, validation);
-          return;
-        }
-        const registryEntry = {
-          id: `reg_${technicalName.toLowerCase()}`,
-          displayName,
-          physicalTable: validation.physicalName,
-          visibility,
-          multilingual: Boolean(builder.querySelector("[data-builder-new-ml]")?.checked),
-          searchable: Boolean(builder.querySelector("[data-builder-new-search]")?.checked),
-          rowCount: 0,
-          active: true,
-          availableColumns: ["id", "name"],
-          previewRow: { id: "1", name: displayName },
-        };
-        classifierRegistry.push(registryEntry);
-        setFieldDataSource(selectedField, {
-          mode: "new",
-          technicalName,
-          displayName,
-          visibility,
-          multilingual: registryEntry.multilingual,
-          searchable: registryEntry.searchable,
-          saved: true,
-          classifierId: registryEntry.id,
-          displayTemplate: [],
-        });
-        renderNewClassifierValidation(displayName, { ok: true, physicalName: validation.physicalName });
-      });
-
-      function getPreviewSteps() {
-        const stepButtons = Array.from(builder.querySelectorAll(".e-permits-builder__step-chip"));
-        const steps = stepButtons.map((button, index) => ({
-          index: index + 1,
-          label: button.querySelector(".e-permits-builder__step-label")?.textContent.trim() || `Pasul ${index + 1}`,
-          active: button.classList.contains("is-active") || button.getAttribute("aria-selected") === "true",
-        }));
-        const activeIndex = steps.findIndex((step) => step.active);
-        return {
-          activeIndex: activeIndex >= 0 ? activeIndex : 0,
-          steps: steps.length ? steps : [
-            { index: 1, label: "Date solicitant", active: false },
-            { index: 2, label: "Detalii cerere", active: true },
-            { index: 3, label: "Documente însoțitoare", active: false },
-            { index: 4, label: "Verificare și semnare", active: false },
-            { index: 5, label: "Plată", active: false },
-            { index: 6, label: "Finalizare", active: false },
-          ],
-        };
-      }
-
-      function requiredMarkHtml() {
-        return `<span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>`;
-      }
-
-      function previewOptionsForField(field) {
-        const dataSource = field.dataSource;
-        if (field.type === "caem") {
-          return [
-            "I 56.10 • Restaurante",
-            "I 56.30 • Baruri și alte activități de servire a băuturilor",
-            "G 47.11 • Comerț cu amănuntul în magazine nespecializate",
-          ];
-        }
-        if (dataSource?.mode === "static") {
-          return (dataSource.values || [])
-            .filter((value) => value.isValid !== false)
-            .map((value) => renderDisplayLabel(value, dataSource.displayTemplate || []) || value.name || value.id)
-            .filter(Boolean);
-        }
-        const classifier = dataSource?.mode === "existing" ? getClassifier(dataSource.classifierId) : null;
-        if (classifier) {
-          return seedValuesForClassifier(classifier)
-            .filter((value) => value.isValid !== false)
-            .map((value) => renderDisplayLabel(value, dataSource.displayTemplate || []) || value.name || value.code || value.id)
-            .filter(Boolean);
-        }
-        return [
-          field.preview || "Alegeți o opțiune",
-          "Opțiunea 1",
-          "Opțiunea 2",
-        ];
-      }
-
-      function previewSelectHtml(field, inputId) {
-        const placeholder = escapeHtml(field.preview || "Alegeți o opțiune");
-        const optionValues = previewOptionsForField(field)
-          .filter((value, index, list) => value && list.indexOf(value) === index)
-          .slice(0, 8);
-        const options = optionValues
-          .map((value) => `<li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="${escapeHtml(value)}" tabindex="-1">${escapeHtml(value)}</li>`)
-          .join("");
-        const listId = `${inputId}-list`;
-        return `
-          <div class="e-permits-fo-select e-permits-fo-select--preview" data-fo-select>
-            <button class="e-permits-fo-select__button" id="${inputId}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${listId}">
-              <span class="e-permits-fo-select__value e-permits-fo-select__value--placeholder" data-fo-select-value>${placeholder}</span>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-            </button>
-            <ul class="e-permits-fo-select__list" id="${listId}" role="listbox" aria-labelledby="${inputId}" hidden>
-              ${options || `<li class="e-permits-fo-select__option" role="option" aria-selected="false" data-value="${placeholder}" tabindex="-1">${placeholder}</li>`}
-            </ul>
-          </div>
-        `;
-      }
-
-      function previewInputType(field) {
-        const text = `${field.label || ""} ${field.fieldId || ""} ${field.type || ""}`.toLowerCase();
-        if (text.includes("email") || text.includes("e-mail")) return "email";
-        if (text.includes("telefon") || text.includes("phone") || text.includes("tel")) return "tel";
-        if (text.includes("data") || text.includes("date")) return "date";
-        if (text.includes("număr") || text.includes("number") || text.includes("suma")) return "number";
-        return "text";
-      }
-
-      function previewFieldControl(field, inputId) {
-        const placeholder = escapeHtml(field.preview || "");
-        const commonInput = `<input id="${inputId}" type="${previewInputType(field)}" placeholder="${placeholder}">`;
-        if (field.type === "textarea") {
-          return `
-            <div class="e-permits-fo-textarea">
-              <textarea id="${inputId}" placeholder="${placeholder}" rows="2"></textarea>
-              <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-resize"></use></svg>
-            </div>
-          `;
-        }
-        if (field.type === "address") return builderAddressPreviewHtml(field);
-        if (field.type === "select" || field.type === "caem") {
-          return previewSelectHtml(field, inputId);
-        }
-        if (field.type === "mdocs") {
-          return `
-            <label class="e-permits-fo-file-drop">
-              <input id="${inputId}" type="file" accept=".pdf,.png">
-              <span class="e-permits-fo-file-drop__icon" aria-hidden="true">
-                <svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-cloud-upload"></use></svg>
-              </span>
-              <span class="e-permits-fo-file-drop__copy">
-                <span>Drag and drop or <strong>choose files</strong></span>
-                <small>Un singur fișier PDF, PNG • max 10 MB</small>
-              </span>
-            </label>
-          `;
-        }
-        return `<div class="e-permits-fo-input">${commonInput}</div>`;
-      }
-
-      /* the Address pattern in Preview = the request form's cascade address (cascadeAddressHtml),
-         fed by the builder's current config: Vizibilitate hides a part, Obligatoriu adds the star,
-         „Cod cadastral” brings the US-54 lookup (skeleton, messages, ×) — builder ↔ form never
-         diverge. The sector stays conditional (Orașul/Comuna = Chișinău). */
-      function builderAddressPreviewHtml(field) {
-        const config = Array.isArray(field.addressConfig) ? field.addressConfig : addressConfigFor({ addressConfig: [] });
-        const parts = {};
-        config.forEach((part) => {
-          if (part.key === "sector" || part.key === "cadastral") return;
-          parts[part.key] = { visible: part.visible !== false, required: Boolean(part.required) };
-        });
-        const cadastral = config.find((part) => part.key === "cadastral");
-        const label = field.label && field.label !== "Adresă pattern" ? field.label : "Adresa unității economice";
-        return cascadeAddressHtml({
-          id: field.fieldId || field.id || "address",
-          span: 12,
-          searchLabel: label,
-          required: field.required,
-          parts,
-          cadastral: cadastral ? { visible: cadastral.visible !== false, required: Boolean(cadastral.required) } : null,
-          districts: cascadeAddressFieldOfSchema(frontOfficeSchema)?.districts || [],
-        });
-      }
-
-      function renderCitizenPreview(fields) {
-        const previewSteps = getPreviewSteps();
-        const activeNumber = previewSteps.activeIndex + 1;
-        const stepTitle = builder.querySelector(".e-permits-builder__form-header h1")?.textContent.trim()
-          || previewSteps.steps[previewSteps.activeIndex]?.label
-          || "Detalii cerere";
-        const section = sectionData(getActiveSection());
-
-        if (previewStepper) {
-          previewStepper.innerHTML = previewSteps.steps.map((step, index) => {
-            const state = index < previewSteps.activeIndex ? " is-completed" : index === previewSteps.activeIndex ? " is-active" : "";
-            const current = index === previewSteps.activeIndex ? ' aria-current="step"' : "";
-            return `
-              <li class="e-permits-fo-stepper__item${state}"${current}>
-                <span class="e-permits-fo-stepper__connector" aria-hidden="true"></span>
-                <button class="e-permits-fo-stepper__row" type="button" data-builder-preview-step="${index}">
-                  <span class="e-permits-fo-stepper__number">
-                    <span class="e-permits-fo-stepper__number-text">${step.index}</span>
-                    <svg class="icon e-permits-fo-stepper__check" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>
-                  </span>
-                  <span class="e-permits-fo-stepper__label">${escapeHtml(step.label)}</span>
-                </button>
-              </li>
-            `;
-          }).join("");
-        }
-        if (previewStepMeta) previewStepMeta.textContent = `Step ${activeNumber} of ${previewSteps.steps.length}`;
-        if (previewTitle) previewTitle.textContent = stepTitle;
-        if (previewSectionTitle) {
-          previewSectionTitle.textContent = section.title;
-          previewSectionTitle.hidden = !section.showTitle;
-        }
-        if (previewSectionDescription) {
-          previewSectionDescription.textContent = section.description;
-          previewSectionDescription.hidden = !section.showDescription || !section.description;
-        }
-        if (previewSectionSeparator) previewSectionSeparator.hidden = !section.showSeparator;
-        if (!previewGrid) return;
-
-        previewGrid.innerHTML = "";
-        fields.forEach((field, index) => {
-          const node = document.createElement("div");
-          const span = FIELD_SPANS.includes(Number(field.span)) ? Number(field.span) : 12;
-          const inputId = `builder-preview-${field.fieldId || field.id || index}`.replace(/[^a-zA-Z0-9_-]/g, "-");
-          node.className = `e-permits-fo-field e-permits-fo-field--span-${span}`;
-          if (field.type === "address") {
-            previewGrid.insertAdjacentHTML("beforeend", builderAddressPreviewHtml(field));
-            return;
-          }
-          node.innerHTML = `
-            <label for="${inputId}">
-              ${escapeHtml(field.label || "Câmp fără titlu")}
-              ${field.required ? requiredMarkHtml() : ""}
-            </label>
-            ${previewFieldControl(field, inputId)}
-          `;
-          previewGrid.appendChild(node);
-        });
-        previewGrid.querySelectorAll("[data-fo-select]").forEach(bindFoSelect);
-        previewGrid.querySelectorAll("[data-fo-cascade-address]").forEach(initCascadeAddress);
-        previewGrid.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
-      }
-
-      function renderPreviewAndSchema() {
-        const fields = getFields().map(fieldData);
-        const stepTitle = builder.querySelector(".e-permits-builder__form-header h1")?.textContent.trim() || "Detalii cerere";
-        const section = sectionData(getActiveSection());
-        renderCitizenPreview(fields);
-        if (schemaCode) {
-          schemaCode.textContent = JSON.stringify({
-            form: "sanitary-operation-permit",
-            version: "draft",
-            grid: 12,
-          steps: [
-              {
-                id: "service-details",
-                title: stepTitle,
-                section: {
-                  title: section.title,
-                  description: section.description,
-                  showTitle: section.showTitle,
-                  showDescription: section.showDescription,
-                  showSeparator: section.showSeparator,
-                },
-                fields,
-              },
-            ],
-          }, null, 2);
-        }
-        autosaveCurrentForm();
-      }
-
-      initPanelResize();
-      getFields().forEach((field) => {
-        setFieldSpan(field, Number(field.dataset.span || 4));
-        bindField(field);
-      });
-      bindSections();
-      setSelected(selectedField || getFields()[0]);
-      renderPreviewAndSchema();
-      /* the preview's address lists (raioane, localități) come from the service schema */
-      Promise.resolve(frontOfficeSchemaLoadPromise).then(() => { if (frontOfficeSchema) renderCitizenPreview(getFields().map(fieldData)); });
-      loadSandboxDatabase().then(() => {
-        const record = sandboxDb?.forms.find((form) => form.id === activeFormId) || sandboxDb?.forms[0];
-        if (record) applyFormRecord(record);
-        else renderFormSelector();
-      });
-
-      if (demoFlow === "builder" || window.location.hash === "#builder") {
-        const shell = document.querySelector(".e-permits-shell");
-        if (shell) shell.style.display = "none";
-        window.__modal?.open?.("#form-builder-modal");
-        builder.focus({ preventScroll: true });
-      }
-    }
-
-    initFormBuilder();
+        initAnimatedSegmentedControls(root);
+        window.GEAPDatePicker?.init?.(root);
+      },
+      /* the service districts the cascade address lists (from the service schema) */
+      districts: () => cascadeAddressFieldOfSchema(frontOfficeSchema)?.districts || [],
+      schemaReady: () => Promise.resolve(frontOfficeSchemaLoadPromise),
+      setModalHidden: setMotionModalHidden,
+      demoFlow
+    };
 
     document.querySelectorAll(".permits-table__row[data-row-link]").forEach((row) => {
       row.addEventListener("click", (event) => {

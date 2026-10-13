@@ -5487,7 +5487,7 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   const renderDataRow = (row, columns, columnWidths, view = getView()) => `
-    <tr data-workplace-row="${escapeHtml(row.id)}">
+    <tr data-workplace-row="${escapeHtml(row.id)}"${productRegistry(workplaceDb?.kind)?.rowClass?.(row) ? ` class="${escapeHtml(productRegistry(workplaceDb.kind).rowClass(row))}"` : ""}>
       ${view?.selectable === false ? "" : `<td class="e-permits-workplace__select-cell">
         <label class="checkbox checkbox--medium">
           <input class="checkbox-input" type="checkbox" aria-label="Selectează rândul" data-workplace-select-row="${escapeHtml(row.id)}" ${workplaceState.selected.has(row.id) ? "checked" : ""}>
@@ -5979,6 +5979,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const workplaceAddClassifier = document.querySelector("[data-workplace-add-classifier]");
     if (workplaceAddClassifier) {
       workplaceAddClassifier.hidden = workplaceDb.kind !== "classifiers";
+    }
+
+    /* a product registry's „+ Adaugă …” (view.primaryAction = { id, label }); the product
+       handles the click on [data-workplace-add-product] */
+    const workplaceAddProduct = document.querySelector("[data-workplace-add-product]");
+    if (workplaceAddProduct) {
+      const action = productRegistry(workplaceDb.kind) ? view.primaryAction : null;
+      workplaceAddProduct.hidden = !action;
+      workplaceAddProduct.dataset.workplaceAddProduct = action?.id || "";
+      const label = workplaceAddProduct.querySelector("span");
+      if (label && action) label.textContent = action.label;
     }
 
     if (workplaceFieldCount) {
@@ -15985,6 +15996,14 @@ document.addEventListener("DOMContentLoaded", () => {
     run?.();
   });
 
+  /* the back-office component helpers for scripts outside this file (Form Builder,
+     js/form-builder.js; the FO renderer in js/e-permits-acte-permisive.js) — the same
+     markup, never a copy (components.md „Form Builder”) */
+  window.GEAPUi = {
+    renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl,
+    renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml
+  };
+
   /* tax lifecycle from the list: publish · activate · deactivate · delete, all confirmed */
   const runPaymentAction = (taxId, action) => {
     const service = getServiceByCode(serviceProfileState.code);
@@ -19079,6 +19098,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions,
       renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
+      renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,

@@ -225,6 +225,20 @@
     if (text) await h.fill("#ekyc-f-text", text);
     await h.click("[data-ekyc-decide-submit]");
   };
+  /* batch 3 (Configurare + Administrare, js/ekyc-config.js): detail pages, Setări-style page forms */
+  const ekDet = (hash, run, extra = {}) => ek(hash, run, { ready: "[data-ekcfg-tab], .e-permits-dosar-profil .e-permits-empty", ...extra });
+  const ekPage = (hash, run, extra = {}) => ek(hash, run, { ready: "[data-ekcfg-page]", ...extra });
+  const ekRow = (attr, id) => async (h) => { await h.click(`tr[data-workplace-row="${id}"] [data-stack-menu-trigger]`); await h.click(`[data-ekcfg="${attr}"][data-id="${id}"]`); };
+  const ekCert = (name) => async (h) => {
+    await h.click('[data-workplace-add-product]');
+    await h.find("[data-ekcfg-drawer] [data-ekcfg-file-pick]");
+    const input = document.querySelector("[data-ekcfg-file]");
+    const dt = new DataTransfer();
+    dt.items.add(new File(["-----BEGIN CERTIFICATE-----"], name, { type: "application/x-pem-file" }));
+    input.files = dt.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    await h.wait(400);
+  };
   const ekLogin = (params = {}) => ({ page: "bo-login.html", params: { product: "ekyc", ...params }, ready: "[data-bo-login] h1" });
 
   window.GEAP_DEMO_STATES = {
@@ -973,11 +987,11 @@
       const bld = (run, { scroll = true } = {}) => ({ page: PP_FO, flow: "builder", ready: "[data-builder-component='address']", run: async (h) => {
         await h.click("[data-builder-component='address']");
         await h.click("[data-type='address']");
-        await h.click("[data-builder-prop-tab='source']");
+        await h.click("[data-builder-prop-tab='data']");
         if (run) await run(h);
         if (scroll) await h.scroll("[data-address-item='cadastral']");
       } });
-      const expand = async (h) => { await h.click("header[data-address-toggle-section='cadastral']"); };
+      const expand = async (h) => { await h.click("[data-address-toggle-section='cadastral']"); };
       const adr = (params, run) => foReq(2, params, async (h) => { await h.scroll(ADR); if (run) await run(h); });
       /* a background headless tab gets no focus event from el.focus(): send the one a click gives */
       const openList = async (h) => { const el = await h.focus(ADR); el.dispatchEvent(new FocusEvent("focus")); await h.wait(300); };
@@ -996,7 +1010,7 @@
       const cod = (value, ms = 1900) => async (h) => { await typeCod(value)(h); await h.click(SUBMIT); await h.wait(Math.max(0, ms - 450)); };
       return {
         "adr-01": bld(expand),
-        "adr-01a": bld(async (h) => { await h.click(".e-permits-builder__mini-check:has([data-address-visible='cadastral'])"); }),
+        "adr-01a": bld(async (h) => { await h.click("[data-address-visible='cadastral']"); }),
         "adr-01b": bld(async (h) => { await h.click("[data-address-required='cadastral']"); await expand(h); }),
         "adr-02": adr(),
         "adr-02a": adr({}, openList),
@@ -1037,7 +1051,7 @@
         }),
         /* Form Designer: the Preview follows the builder — Cod cadastral hidden → absent; required → star */
         "adr-12": bld(async (h) => {
-          await h.click(".e-permits-builder__mini-check:has([data-address-visible='cadastral'])");
+          await h.click("[data-address-visible='cadastral']");
           await h.click("[data-builder-mode='preview']");
           await h.scroll("[data-builder-preview-grid] [data-fo-cascade-address]");
         }, { scroll: false }),
@@ -1070,6 +1084,159 @@
           await h.click("[data-fo-step-panel='3'] [data-fo-next]");
           await h.scroll(".e-permits-fo-summary-row", "Cod cadastral");
         })
+      };
+    })(),
+
+    /* ---- Form Builder (fb-, spec tools/persona-test/specs/svc/form-builder.md, batches 0–1):
+       palette · canvas · properties by selection; canvas cards and Preview = the FO renderer.
+       Scope for QA: #form-builder-modal ---- */
+    ...(() => {
+      const fb = (run) => ({ page: PP_FO, flow: "builder", ready: "[data-fb-ready]", run: async (h) => { if (run) await run(h); } });
+      const card = (id) => `[data-builder-field][data-id='${id}']`;
+      const pick = (id) => async (h) => { await h.click(card(id)); };
+      const tab = (name) => async (h) => { await h.click(`[data-builder-prop-tab='${name}']`); };
+      const lib = (type) => async (h) => { await h.click(`[data-builder-component='${type}']`); };
+      const key = (el, k, opts = {}) => el.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...opts }));
+      /* a drag in progress: the palette item's dragstart + a dragover on the target card (left half) */
+      const dragOver = (type, targetId) => async (h) => {
+        const item = await h.find(`[data-builder-component='${type}']`);
+        const dt = new DataTransfer();
+        item.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+        const target = await h.scroll(card(targetId));
+        const r = target.getBoundingClientRect();
+        target.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt, clientX: r.left + 20, clientY: r.top + r.height / 2 }));
+        await h.wait(200);
+      };
+      const menu = (id) => async (h) => { await h.click(`${card(id)} [data-stack-menu-trigger]`); };
+      /* a hidden native select behind a fo-select: pick the option whose text contains `text` */
+      const chooseText = async (h, selector, text) => {
+        for (let i = 0; i < 100 && !document.querySelector(selector); i += 1) await h.wait(100);
+        const select = document.querySelector(selector);
+        select.value = [...select.options].find((o) => o.textContent.includes(text))?.value || "";
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        await h.wait(450);
+      };
+      /* Logică: a new „Numărul licenței pentru alcool” shown only when „Comercializați băuturi alcoolice?” = Da */
+      const licenceRule = async (h) => {
+        await lib("text")(h);
+        await h.fill("[data-fb-prop='label']", "Numărul licenței pentru alcool", { leave: false });
+        await tab("logic")(h);
+        await h.click("[data-fb-rule-add]");
+        await h.choose("[data-fb-cond-field='0.0']", "fld-alcohol");
+        await h.choose("[data-fb-cond-op='0.0']", "eq");
+        await h.choose("[data-fb-cond-value='0.0']", "da");
+      };
+      return {
+        /* 01 empty service step (new step, one empty section), nothing selected → Date generale */
+        "fb-01": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click("[data-fb-select-form]"); }),
+        "fb-01a": fb(async (h) => { await h.fill("[data-builder-library-search]", "dat", { leave: false }); }),
+        "fb-01b": fb(async (h) => { await h.click("[data-fb-add-trigger='sec-object']"); }),
+        "fb-02": fb(async (h) => { await h.click("[data-fb-select-form]"); await h.scroll("[data-fb-group-languages]"); }),
+        "fb-03": fb(async (h) => { await h.click("[data-fb-step='st-details']"); }),
+        "fb-03a": fb(async (h) => { await h.click("[data-fb-step='st-payment']"); }),
+        "fb-04": fb(async (h) => { await h.click("[data-fb-select-section='sec-activity']"); }),
+        "fb-05": fb(async (h) => { await pick("fld-name")(h); await h.scroll("[data-fb-prop='required']"); }),
+        "fb-05a": fb(async (h) => {
+          await pick("fld-name")(h); await tab("validation")(h);
+          await h.choose("[data-fb-prop='validation.preset']", "phone");
+          await h.fill("[data-fb-test-input]", "069123456", { leave: false });
+          await h.click("[data-fb-test]");
+        }),
+        "fb-05b": fb(async (h) => {
+          await pick("fld-name")(h); await tab("validation")(h);
+          await h.choose("[data-fb-prop='validation.preset']", "regex");
+          await h.fill("[data-fb-prop='validation.pattern']", "[A-Z{2", { leave: false });
+        }),
+        "fb-05c": fb(async (h) => { await pick("fld-name")(h); await h.click("[data-fb-lang='ru']"); }),
+        "fb-06": fb(async (h) => { await lib("select")(h); await tab("data")(h); }),
+        "fb-06a": fb(async (h) => {
+          await lib("select")(h); await tab("data")(h);
+          await h.choose("[data-fb-prop='dataSource.mode']", "existing");
+          await h.click("[data-fb-browse]");
+          await h.click("[data-fb-pick-classifier='reg_localitati']");
+          await h.click("[data-fb-prop='dataSource.cascade']");
+          await h.choose("[data-fb-prop='dataSource.parentFieldId']", "fld-raion");
+        }),
+        "fb-06b": fb(async (h) => { await pick("fld-unit")(h); await tab("data")(h); }),
+        "fb-07": fb(async (h) => { await lib("radio")(h); await tab("data")(h); await h.click("[data-fb-option-yesno]"); }),
+        "fb-08": fb(async (h) => { await pick("fld-start")(h); await tab("validation")(h); }),
+        "fb-09": fb(async (h) => { await lib("money")(h); await tab("validation")(h); }),
+        "fb-09a": fb(async (h) => { await pick("fld-area")(h); await h.scroll("[data-fb-prop='unit']"); }),
+        /* drag in progress: the 4px insertion line before „Email-ul obiectului” */
+        "fb-11": fb(dragOver("date", "fld-email")),
+        /* the drag alternatives: ⋮ (Mută mai sus / mai jos / în altă secțiune) and Alt + ↑ */
+        "fb-11a": fb(async (h) => { await pick("fld-phone")(h); await menu("fld-phone")(h); }),
+        "fb-11b": fb(async (h) => { await pick("fld-email")(h); const el = await h.find(card("fld-email")); el.focus(); key(el, "ArrowUp", { altKey: true }); await h.wait(400); }),
+        /* delete without a modal → toast with „Anulează”; 12a = undone */
+        "fb-12": fb(async (h) => { await menu("fld-phone")(h); await h.click("[data-fb-act='delete'][data-id='fld-phone']"); }),
+        "fb-12a": fb(async (h) => { await menu("fld-phone")(h); await h.click("[data-fb-act='delete'][data-id='fld-phone']"); await h.click(".toast [data-toast-action]"); }),
+        /* validation summary: 3 errors + translation warnings; 13a = a row jumps to the field's tab */
+        "fb-13": fb(async (h) => {
+          await lib("select")(h);
+          await pick("fld-name")(h);
+          await h.fill("[data-fb-prop='label']", "", { leave: false });
+          await h.click("[data-fb-errors]");
+        }),
+        "fb-13a": fb(async (h) => {
+          await lib("select")(h);
+          await h.click("[data-fb-errors]");
+          await h.click("[data-fb-issue='field'][data-id='fld-authority']");
+        }),
+        /* Logică (batch 2): 10 rule „Afișează … Când Comercializați = Da” · 10a the reverse rule
+           on the radio → circular dependency, refused · 14 Preview: Da → the field appears */
+        "fb-10": fb(licenceRule),
+        "fb-10a": fb(async (h) => {
+          await licenceRule(h);
+          await pick("fld-alcohol")(h); await tab("logic")(h);
+          await h.click("[data-fb-rule-add]");
+          await chooseText(h, "[data-fb-cond-field='0.0']", "Numărul licenței");
+          await h.choose("[data-fb-cond-op='0.0']", "filled");
+        }),
+        "fb-14": fb(async (h) => {
+          await licenceRule(h);
+          await h.click("[data-builder-mode='preview']");
+          await h.click("[data-builder-preview-grid] input[type='radio'][value='da']");
+          await h.wait(200);
+          await h.scroll("[data-builder-preview-grid] [data-fb-field]", "Numărul licenței");
+        }),
+        /* live: an edit in the panel shows in Preview (label + Obligatoriu) */
+        "fb-14a": fb(async (h) => {
+          await pick("fld-email")(h);
+          await h.fill("[data-fb-prop='label']", "Email de contact", { leave: false });
+          await h.click("[data-fb-prop='required']");
+          await h.click("[data-builder-mode='preview']");
+          await h.scroll("[data-builder-preview-grid] input[type='email']");
+        }),
+        "fb-17": fb(async (h) => {
+          await lib("address")(h); await h.click("[data-type='address']"); await tab("data")(h);
+          await h.click("[data-address-toggle-section='cadastral']");
+          await h.scroll("[data-address-item='cadastral']");
+        }),
+        "fb-18": fb(async (h) => { await h.click("[data-builder-mode='schema']"); }),
+        /* Preview in Russian: untranslated texts fall back to Romanian */
+        "fb-20": fb(async (h) => { await h.click("[data-builder-mode='preview']"); await h.click("[data-fb-preview-lang='ru']"); }),
+        /* a new service step, its ⋮ (Mută la stânga / dreapta among service steps, Șterge) */
+        "fb-03b": fb(async (h) => { await h.click("[data-fb-add-step]"); await h.click(".e-permits-builder__panel-title-row [data-stack-menu-trigger]"); }),
+        /* batch-2 components: segmented control · multi-select · period · callout + separator */
+        "fb-23": fb(async (h) => { await lib("segment")(h); await tab("data")(h); await h.click("[data-fb-option-yesno]"); }),
+        "fb-24": fb(async (h) => {
+          await lib("multiselect")(h); await tab("data")(h);
+          await h.choose("[data-fb-prop='dataSource.mode']", "static");
+          await h.fill("[data-fb-option='0']", "Produse alimentare", { leave: false });
+          await h.click("[data-fb-option-add]");
+          await h.fill("[data-fb-option='1']", "Produse nealimentare", { leave: false });
+        }),
+        "fb-25": fb(async (h) => { await lib("period")(h); await tab("validation")(h); }),
+        "fb-26": fb(async (h) => { await lib("separator")(h); await lib("callout")(h); await h.scroll("[data-builder-field][data-type='callout']"); }),
+        /* Preview › Mobil: the page at 375 px in a frame, live (the licence rule + Da) */
+        "fb-14b": fb(async (h) => {
+          await licenceRule(h);
+          await h.click("[data-builder-mode='preview']");
+          await h.click("[data-fb-preview-device='mobile']");
+          await h.wait(2500);
+        }),
+        /* Preview: „Completează cu date de test” */
+        "fb-27": fb(async (h) => { await h.click("[data-builder-mode='preview']"); await h.click("[data-fb-preview-fill]"); })
       };
     })(),
 
@@ -1182,7 +1349,8 @@
     "ek-02d": ek("#ek-dashboard", async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); }),
     /* collapsed menu (desktop; ≤960px the sidebar has no collapse) */
     "ek-02e": ek("#ek-dashboard", async (h) => { const toggle = [...document.querySelectorAll("[data-shell-toggle]")].find((el) => el.getClientRects().length); toggle?.click(); await h.wait(450); }),
-    "ek-02f": ek("#ek-clients", null, { ready: ".e-permits-ekyc-page .e-permits-empty" }),
+    /* the „ecran în pregătire” placeholder is gone (batch 3 built every item); ek-02f = Clienți */
+    "ek-02f": ekList("#ek-clients"),
     "ek-03": ek("#ek-dashboard", async (h) => { await h.click('[data-ekyc-period="7z"]'); }),
     "ek-03a": ek("#ek-dashboard", async (h) => { await h.click('[data-ekyc-period="30z"]'); await h.choose('[data-ekyc-dash-filter="client"]', "maib-app"); }),
     "ek-03b": ek("#ek-dashboard", async (h) => { await h.click('[data-ekyc-period="1h"]'); await h.choose('[data-ekyc-dash-filter="client"]', "asito-online"); }),
@@ -1294,6 +1462,162 @@
     "ek-15d": ek("#ek-reports", async (h) => { await h.click('[data-ekyc-period="30z"]'); }),
     "ek-16": ekQueue(EK_AUD, "#ek-access-log"),
     "ek-16a": ekQueue(EK_AUD, "#ek-access-log", async (h) => { await h.click('[data-workplace-tab="dovezi"]'); }),
-    "ek-16b": ekAs(EK_AUD, "#ek-access-log", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" })
+    "ek-16b": ekAs(EK_AUD, "#ek-access-log", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+
+    /* ---- eKYC batch 3: Configurare + Administrare (Administrator platformă) ----
+       ?ek= gol | eroare | incarcare (lists, details) · sesiuni-eroare (user sessions table) ·
+       sectiune-eroare (steps / rules section) · test-lent (connection test stays running) ·
+       eroare-stergere (generic delete error, distinct from the 409) */
+    /* Utilizatori (US-UI-13) */
+    "ek-20": ekList("#ek-users"),
+    "ek-20a": ekList("#ek-users", async (h) => { await h.click('[data-workplace-tab="Blocat"]'); }),
+    "ek-20b": ekList("#ek-users", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="roluri"]'); }),
+    "ek-20c": ekList("#ek-users", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
+    "ek-20d": ek("#ek-users", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-20e": ek("#ek-users", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-20f": ek("#ek-users", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-20g": ekList("#ek-users", ekRow("user-suspend", "usr-06")),
+    "ek-21": ekDet("#ek-utilizator/usr-06/general"),
+    "ek-21a": ekDet("#ek-utilizator/usr-02/sesiuni"),
+    "ek-21b": ekDet("#ek-utilizator/usr-02/sesiuni", async (h) => { await h.click('[data-ekcfg="session-revoke"]'); }),
+    "ek-21c": ekDet("#ek-utilizator/usr-06/general", async (h) => { await h.click('[data-ekcfg="user-suspend"]'); }),
+    "ek-21d": ekDet("#ek-utilizator/usr-06/general", async (h) => { await h.click('[data-ekcfg="user-suspend"]'); await h.click("[data-service-confirm-ok]"); }),
+    "ek-21e": ekDet("#ek-utilizator/usr-10/general"),
+    "ek-21f": ekDet("#ek-utilizator/usr-10/general", async (h) => { await h.click('[data-ekcfg="user-reactivate"]'); }),
+    "ek-21g": ekDet("#ek-utilizator/usr-01/sesiuni"),
+    "ek-21h": ekDet("#ek-utilizator/usr-01/general", async (h) => { await h.hover('[data-ekcfg="user-suspend"]'); }),
+    "ek-21i": ekDet("#ek-utilizator/usr-11/sesiuni"),
+    "ek-21j": ekDet("#ek-utilizator/usr-02/sesiuni", null, { params: { ek: "sesiuni-eroare" } }),
+    "ek-21k": ekDet("#ek-utilizator/usr-03/sesiuni", async (h) => { await h.click('[data-ekcfg="user-revoke-all"]'); }),
+    "ek-21l": ekDet("#ek-utilizator/usr-03/jurnal"),
+    "ek-21m": ek("#ek-utilizator/usr-06/general", null, { params: { ek: "incarcare" }, ready: ".e-permits-dosar-profil .e-permits-empty" }),
+    /* Clienți (US-UI-07) */
+    "ek-22": ekList("#ek-clients"),
+    "ek-22a": ekList("#ek-clients", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
+    "ek-22b": ekList("#ek-clients", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="organizatie"]'); }),
+    "ek-22c": ek("#ek-clients", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-22d": ek("#ek-clients", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-22e": ek("#ek-clients", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-23": ekDet("#ek-client/maib-app/configuratie"),
+    "ek-23a": ekDet("#ek-client/maib-app/jurnal"),
+    "ek-23b": ekDet("#ek-client/maib-app/configuratie", async (h) => { await h.click('[data-ekcfg="client-toggle"]'); }),
+    "ek-23c": ekDet("#ek-client/moldtelecom-myaccount/configuratie"),
+    "ek-24": ekList("#ek-clients", async (h) => { await h.click("[data-workplace-add-product]"); await h.find("[data-ekcfg-page]"); }),
+    "ek-24a": ekPage("#ek-client-nou", async (h) => { await h.click("[data-ekcfg-submit]"); }),
+    "ek-24b": ekPage("#ek-client-nou", async (h) => {
+      await h.choose('[data-ekcfg-field="orgId"]', "org-moldtelecom");
+      await h.fill("#ekcfg-name", "Moldtelecom MyAccount 2");
+      await h.fill("#ekcfg-clientId", "maib-app");
+      await h.fill("#ekcfg-mpassClientId", "3f9c41e8-52d1-4a6b-9e0f-1c2d3e4f5a6b");
+      await h.fill("#ekcfg-redirectUris-0", "https://my.moldtelecom.md/ekyc/callback");
+      await h.click('[data-ekcfg-check="useCases"][value="TELCO_SIM_SUBSTANTIAL"]');
+      await h.choose('[data-ekcfg-field="scoringId"]', "scr-01");
+      await h.click("[data-ekcfg-submit]");
+    }),
+    "ek-24c": ekPage("#ek-client-nou", async (h) => {
+      await h.choose('[data-ekcfg-field="orgId"]', "org-moldtelecom");
+      await h.fill("#ekcfg-name", "Moldtelecom MyAccount 2");
+      await h.fill("#ekcfg-clientId", "moldtelecom-myaccount-2");
+      await h.fill("#ekcfg-mpassClientId", "3f9c41e8-52d1-4a6b-9e0f-1c2d3e4f5a6b");
+      await h.fill("#ekcfg-redirectUris-0", "https://my.moldtelecom.md/ekyc/callback");
+      await h.fill("#ekcfg-scopes", "ekyc.result"); await h.click('[data-ekcfg-chip-add="scopes"]');
+      await h.click('[data-ekcfg-check="useCases"][value="TELCO_SIM_SUBSTANTIAL"]');
+      await h.choose('[data-ekcfg-field="scoringId"]', "scr-01");
+      await h.click("[data-ekcfg-submit]");
+    }),
+    "ek-24d": ekDet("#ek-client/maib-app/configuratie", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="client-edit"]'); await h.find("[data-ekcfg-page]"); await h.click('[data-ekcfg-item-add="ipWhitelist"]'); await h.fill("#ekcfg-ipWhitelist-1", "185.181.228.300"); }),
+    "ek-24e": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.click('[data-ekcfg-item-add="ipWhitelist"]'); await h.fill("#ekcfg-ipWhitelist-1", "185.181.228.300"); await h.click('[data-ekcfg-chip-remove="scopes"][data-value="openid"]'); await h.click("[data-ekcfg-submit]"); }),
+    "ek-24f": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.fill("#ekcfg-maxSessions", "250"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-24g": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.fill("#ekcfg-maxSessions", "250"); await h.click("[data-ekcfg-page-cancel]"); }),
+    /* Cazuri de utilizare (US-UI-08) */
+    "ek-25": ekList("#ek-use-cases"),
+    "ek-25a": ekList("#ek-use-cases", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
+    "ek-25b": ek("#ek-use-cases", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-25c": ekList("#ek-use-cases", async (h) => { await h.click("[data-workplace-add-product]"); }),
+    "ek-25d": ekList("#ek-use-cases", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-name", "Onboarding bancar"); await h.fill("#ekcfg-code", "BANK_ONBOARDING_HIGH"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-25e": ekList("#ek-use-cases", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-name", "Deschidere cont de plăți"); await h.fill("#ekcfg-code", "PAYMENT_ACCOUNT_SUBST"); await h.choose('[data-ekcfg-field="ial"]', "Substanțial"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-26": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi"),
+    "ek-26a": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('[data-ekcfg="step-edit"][data-id="BANK_ONBOARDING_HIGH|bank_onboarding_high-s4"]'); }),
+    "ek-26b": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('[data-ekcfg="step-edit"][data-id="BANK_ONBOARDING_HIGH|bank_onboarding_high-s4"]'); await h.choose('[data-ekcfg-field="provider"]', "prv-innovatrics"); }),
+    "ek-26c": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('[data-ekcfg="step-down"][data-id="BANK_ONBOARDING_HIGH|bank_onboarding_high-s3"]'); }),
+    "ek-26d": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('[data-ekcfg-step="bank_onboarding_high-s2"] [data-stack-menu-trigger]'); await h.click('[data-ekcfg="step-delete"][data-id="BANK_ONBOARDING_HIGH|bank_onboarding_high-s2"]'); }),
+    "ek-26e": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/veto"),
+    "ek-26f": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/veto", async (h) => { await h.click('[data-ekcfg="veto-new"]'); await h.fill("#ekcfg-name", "Document deteriorat"); await h.fill("#ekcfg-condition", "document este deteriorat"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-26g": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/versiuni"),
+    "ek-26h": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('[data-ekcfg="step-down"][data-id="BANK_ONBOARDING_HIGH|bank_onboarding_high-s3"]'); await h.click('[data-ekcfg-tab="versiuni"]'); await h.click("#ekyc-panel [data-stack-menu-trigger]"); await h.click('[data-ekcfg="uc-revert"]'); }),
+    "ek-26i": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="uc-toggle"]'); }),
+    "ek-26j": ekDet("#ek-caz/PENSION_CONFIRM_SUBST/pasi"),
+    "ek-26k": ekDet("#ek-caz/PENSION_CONFIRM_SUBST/pasi", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="uc-toggle"]'); }),
+    "ek-26l": ekDet("#ek-caz/KYC_REFRESH_LOW/veto"),
+    "ek-26m": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="uc-edit"]'); }),
+    "ek-26n": ekDet("#ek-caz/BANK_ONBOARDING_HIGH/pasi", null, { params: { ek: "sectiune-eroare" } }),
+    "ek-26o": ekDet("#ek-caz/PENSION_CONFIRM_SUBST/pasi", async (h) => { await h.click('.e-permits-dosar-profil__panel [data-ekcfg="step-new"]'); }),
+    /* Parametri platformă (US-UI-11) */
+    "ek-27": ekList("#ek-parameters"),
+    "ek-27a": ekList("#ek-parameters", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="categorie"]'); }),
+    "ek-27b": ekList("#ek-parameters", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
+    "ek-27c": ek("#ek-parameters", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-27d": ek("#ek-parameters", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-27e": ek("#ek-parameters", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-27f": ekList("#ek-parameters", async (h) => { await h.fill("[data-workplace-search]", "session", { leave: false }); await h.click('[data-ekcfg="param-edit"][data-id="session.ttlMinutes"]'); }),
+    "ek-27g": ekList("#ek-parameters", async (h) => { await h.click('[data-ekcfg="param-edit"][data-id="features.webFallback"]'); }),
+    "ek-27h": ekList("#ek-parameters", async (h) => { await h.click('[data-ekcfg="param-edit"][data-id="alerts.channels"]'); await h.fill("#ekcfg-value", "{\"email\": [\"noc@egov.md\"], \"mnotify\": true,}"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-27i": ekList("#ek-parameters", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-key", "session.ttlMinutes"); await h.choose('[data-ekcfg-field="type"]', "string"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-27j": ekList("#ek-parameters", async (h) => { await h.click("[data-workplace-add-product]"); await h.choose('[data-ekcfg-field="type"]', "json"); }),
+    "ek-27k": ekList("#ek-parameters", ekRow("param-delete", "limits.maxUploadMb")),
+    /* Configurări scoring (US-UI-10) */
+    "ek-28": ekList("#ek-scoring"),
+    "ek-28a": ekDet("#ek-scoring/scr-02/reguli"),
+    "ek-28b": ekDet("#ek-scoring/scr-03/reguli"),
+    "ek-28c": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="scoring-edit"]'); }),
+    "ek-28d": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="scoring-edit"]'); await h.fill("#ekcfg-reject", "0,90"); }),
+    "ek-28e": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('[data-ekcfg="rule-new"]'); }),
+    "ek-28f": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('[data-ekcfg="rule-new"]'); await h.fill("#ekcfg-value", "1,5"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-28g": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="scoring-toggle"]'); }),
+    "ek-28h": ek("#ek-scoring", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-28i": ekDet("#ek-scoring/scr-02/reguli", null, { params: { ek: "sectiune-eroare" } }),
+    /* Furnizori de verificare (US-UI-09) */
+    "ek-29": ekList("#ek-providers"),
+    "ek-29a": ek("#ek-providers", async (h) => { await h.click('[data-ekcfg="provider-test"][data-id="prv-iproov"]'); }, { params: { ek: "test-lent" }, ready: "tr[data-workplace-row]" }),
+    "ek-29b": ekList("#ek-providers", async (h) => { await h.click('[data-ekcfg="provider-test"][data-id="prv-iproov"]'); await h.find("#case-action-modal.is-active .e-permits-callout"); }),
+    "ek-29c": ekList("#ek-providers", async (h) => { await h.click('[data-ekcfg="provider-test"][data-id="prv-vonage"]'); await h.find("#case-action-modal.is-active .e-permits-callout"); }),
+    "ek-29d": ekList("#ek-providers", ekRow("provider-toggle", "prv-facetec")),
+    "ek-29e": ekPage("#ek-furnizor/prv-facetec/editeaza"),
+    "ek-29f": ekPage("#ek-furnizor/prv-facetec/editeaza", async (h) => { await h.click("[data-ekcfg-secret-replace]"); await h.fill("#ekcfg-secret", "fx_live_8f2c41d0a9"); }),
+    "ek-29g": ekList("#ek-providers", async (h) => { await h.click("[data-workplace-add-product]"); await h.find("[data-ekcfg-page]"); await h.fill("#ekcfg-endpoint", "api.furnizor.md"); await h.fill("#ekcfg-timeoutMs", "500"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-29h": ekPage("#ek-furnizor/prv-facetec/editeaza", async (h) => { await h.click("[data-ekcfg-test-form]"); await h.find("#case-action-modal.is-active .e-permits-callout"); }),
+    "ek-29i": ek("#ek-providers", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-29j": ekPage("#ek-furnizor/prv-facetec/editeaza", async (h) => { await h.hover('[data-ekcfg-wrap="cbThreshold"] .e-permits-ekcfg-tip'); }),
+    /* Organizații (US-UI-06) */
+    "ek-30": ekList("#ek-organizations"),
+    "ek-30a": ekList("#ek-organizations", async (h) => { await h.click("[data-workplace-add-product]"); }),
+    "ek-30b": ekList("#ek-organizations", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-name", "Moldova Gaz SA"); await h.fill("#ekcfg-idno", "10026000"); await h.fill("#ekcfg-contactEmail", "contact@moldovagaz"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-30c": ekList("#ek-organizations", ekRow("org-delete", "org-microinvest")),
+    "ek-30d": ekList("#ek-organizations", async (h) => { await ekRow("org-delete", "org-maib")(h); await h.click("[data-service-confirm-ok]"); }),
+    "ek-30e": ekList("#ek-organizations", async (h) => { await ekRow("org-delete", "org-cnas")(h); await h.click("[data-service-confirm-ok]"); }, { params: { ek: "eroare-stergere" } }),
+    "ek-30f": ek("#ek-organizations", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-30g": ekList("#ek-organizations", async (h) => { await h.click('[data-ekcfg="org-edit"][data-id="org-orange"]'); }),
+    /* Versiuni SDK (US-UI-12) */
+    "ek-31": ekList("#ek-sdk"),
+    "ek-31a": ekList("#ek-sdk", async (h) => { await h.click("[data-workplace-add-product]"); }),
+    "ek-31b": ekList("#ek-sdk", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-version", "4.2.1"); await h.choose('[data-ekcfg-field="platform"]', "iOS"); await h.click("[data-ekcfg-submit]"); }),
+    "ek-31c": ekList("#ek-sdk", async (h) => { await h.click('[data-ekcfg="sdk-edit"][data-id="sdk-ios-420"]'); }),
+    "ek-31d": ekList("#ek-sdk", ekRow("sdk-delete", "sdk-android-385")),
+    "ek-31e": ekList("#ek-sdk", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
+    "ek-31f": ek("#ek-sdk", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    /* Certificate root CA (US-05-09-B) */
+    "ek-32": ekList("#ek-trusted-cas"),
+    "ek-32a": ekDet("#ek-certificat/ca-age-mtls-g2/general"),
+    "ek-32b": ekDet("#ek-certificat/ca-age-mtls-g1/general"),
+    "ek-32c": ekList("#ek-trusted-cas", async (h) => { await h.click("[data-workplace-add-product]"); }),
+    "ek-32d": ekList("#ek-trusted-cas", ekCert("BNM-Partner-Root-CA-2026.pem")),
+    "ek-32e": ekList("#ek-trusted-cas", ekCert("stisc-test-expirat.crt")),
+    "ek-32f": ekList("#ek-trusted-cas", ekCert("digicert-global-root-g2.cer")),
+    "ek-32g": ekList("#ek-trusted-cas", async (h) => { await ekCert("BNM-Partner-Root-CA-2026.pem")(h); await h.click("[data-ekcfg-submit]"); }),
+    "ek-32h": ekDet("#ek-certificat/ca-age-mtls-g2/general", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="ca-finish"]'); }),
+    "ek-32i": ekDet("#ek-certificat/ca-maib-partner/general", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="ca-rotate"]'); }),
+    "ek-32j": ekDet("#ek-certificat/ca-maib-partner/general", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="ca-toggle"]'); }),
+    "ek-32k": ek("#ek-trusted-cas", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-32l": ekDet("#ek-certificat/ca-age-mtls-g2/jurnal")
   };
 })();

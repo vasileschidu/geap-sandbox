@@ -1,0 +1,1052 @@
+/* Form Builder (Form Designer) — css for js/form-builder.js (2026-10-13).
+   Spec tools/persona-test/specs/svc/form-builder.md, components.md „Form Builder”.
+   Loaded after css/e-permits-acte-permisive.css (which holds the older e-permits-builder__*
+   rules this file builds on). Tokens only; library components keep their own CSS. */
+
+/* ===== FO field types added with the builder (one renderer for canvas, Preview and FO) ===== */
+
+/* span 3 = a quarter (Număr, Sumă, Dată; PO question I-4 open) */
+.e-permits-fo-field--span-3 {
+  grid-column: span 3;
+}
+
+@media (max-width: 860px) {
+  .e-permits-fo-field--span-3 {
+    grid-column: 1;
+  }
+}
+
+/* Choice field: fieldset + legend that reads as the field label (radio rows, checkbox list) */
+.e-permits-fo-choice {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-fo-choice__legend {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0 0 var(--spacing-8, 8px);
+  padding: 0;
+}
+
+/* radio option rows: stacked (the rows carry their own 12 / 16 inset) or side by side */
+.e-permits-fo-choice__group {
+  display: flex;
+  flex-direction: column;
+}
+
+.e-permits-fo-choice__group--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-fo-choice__checks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+/* Perioadă: the two date pickers side by side (one column on phones) */
+.e-permits-fo-choice__pair {
+  display: grid;
+  gap: var(--spacing-24, 24px) var(--spacing-32, 32px);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+@media (max-width: 860px) {
+  .e-permits-fo-choice__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ===== Builder chrome ===== */
+
+/* the editor never scrolls as a whole (scrollIntoView used to shift the topbar): clip, not hidden */
+.e-permits-builder {
+  overflow: clip;
+}
+
+.e-permits-builder__canvas {
+  margin: 0 auto;
+  max-width: 1024px;
+  min-width: 0;
+}
+
+.e-permits-builder__step-section {
+  min-width: 0;
+}
+
+/* section cards: grey canvas, white section (US-06) */
+.e-permits-builder__step-section.has-issue:not(.is-section-selected) {
+  border-color: var(--color-border-warning-secondary, #fedf89);
+}
+
+.e-permits-builder__section-bar {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.e-permits-builder__section-select {
+  align-items: flex-start;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  flex: 1 1 auto;
+  font-family: var(--font-family-primary-font, Onest);
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  text-align: left;
+}
+
+.e-permits-builder__section-select:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-builder__section-select:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-builder__section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+.e-permits-builder__section-heading strong {
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-26, 26px);
+}
+
+.e-permits-builder__section-heading strong.is-muted {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-builder__section-heading span {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__drag-grip {
+  align-items: center;
+  color: var(--color-icon-base-tertiary, #757575);
+  cursor: grab;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  width: var(--spacing-16, 16px);
+}
+
+/* the grip sits beside the header button (an affordance, not the button's icon) */
+.e-permits-builder__section-grip {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-builder__section-actions {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+/* field cards: span from the data attribute (no inline styles) */
+.e-permits-builder__grid > [data-span="3"] { grid-column: span 3; }
+.e-permits-builder__grid > [data-span="4"] { grid-column: span 4; }
+.e-permits-builder__grid > [data-span="6"] { grid-column: span 6; }
+.e-permits-builder__grid > [data-span="8"] { grid-column: span 8; }
+.e-permits-builder__grid > [data-span="12"] { grid-column: span 12; }
+
+.e-permits-builder__field {
+  gap: var(--spacing-8, 8px);
+  height: auto;
+}
+
+.e-permits-builder__field:hover {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+}
+
+.e-permits-builder__field.is-selected:hover {
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-builder__field:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-builder__field.is-selected:focus-visible {
+  box-shadow:
+    inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
+    0 0 0 2px var(--color-background-base-default, #fff),
+    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-builder__field.is-dragging {
+  opacity: 0.4;
+}
+
+/* an open ⋮ menu sits above the next cards */
+.e-permits-builder__field:has([data-stack-menu]:not([hidden])),
+.e-permits-builder__step-section:has(.e-permits-builder__section-actions [data-stack-menu]:not([hidden])) {
+  z-index: 20;
+}
+
+.e-permits-builder__step-section:has([data-stack-menu]:not([hidden])) {
+  overflow: visible;
+  position: relative;
+}
+
+.e-permits-builder__field-meta {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* a long component name truncates from the right (the tag centres its text by default) */
+.e-permits-builder__field-meta .e-permits-builder__tag--strong {
+  display: block;
+  flex: 0 1 auto;
+  line-height: var(--spacing-20, 20px);
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.e-permits-builder__field-actions {
+  position: relative;
+}
+
+/* the field drawn with the FO renderer, inert inside the card */
+.e-permits-builder__field-render {
+  cursor: pointer;
+  min-width: 0;
+}
+
+.e-permits-builder__field-render > * {
+  width: 100%;
+}
+
+.e-permits-builder__field-render .e-permits-fo-form__section-body {
+  padding: 0;
+}
+
+.e-permits-builder__field-foot {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  min-height: var(--spacing-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-builder__field-key {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-builder__field-foot .e-permits-builder__tag--warning {
+  align-items: flex-start;
+  flex: 0 1 auto;
+  min-width: 0;
+  height: auto;
+  justify-content: flex-start;
+  max-width: 100%;
+  min-height: var(--spacing-20, 20px);
+  padding-bottom: var(--spacing-2, 2px);
+  padding-top: var(--spacing-2, 2px);
+  text-align: left;
+  white-space: normal;
+}
+
+.e-permits-builder__grid-empty {
+  grid-column: 1 / -1;
+}
+
+.e-permits-builder__add-field {
+  grid-column: 1 / -1;
+  position: relative;
+}
+
+.e-permits-builder__add-field .e-permits-builder__dropzone {
+  width: 100%;
+}
+
+.e-permits-builder__dropzone:hover,
+.e-permits-builder__dropzone:focus-visible {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  outline: none;
+}
+
+.e-permits-builder__dropzone[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-active, #e7e7e7);
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-builder__add-menu {
+  left: 50%;
+  max-height: 360px;
+  overflow-y: auto;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+/* drop indicator: the 4px brand line where the component lands (US-05) */
+.e-permits-builder__drop-indicator {
+  background: var(--color-background-brand-default, #0058d2);
+  border-radius: var(--border-radius-full, 999px);
+  pointer-events: none;
+  position: absolute;
+  z-index: 6;
+}
+
+.e-permits-builder__step-section.is-drop-active {
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-builder.is-dragging-component .e-permits-builder__field-render,
+.e-permits-builder.is-dragging-component .e-permits-builder__field-foot {
+  pointer-events: none;
+}
+
+.e-permits-builder__canvas-actions {
+  display: flex;
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-builder__locked-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+/* service header: the form title opens „Date generale” */
+.e-permits-builder__title-button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6, 6px);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  margin: 0 calc(-1 * var(--spacing-4, 4px));
+  padding: 0 var(--spacing-4, 4px);
+  text-align: left;
+}
+
+.e-permits-builder__title-button:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-builder__title-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* step chips: the one selected for the panel gets the focus-ring look */
+.e-permits-builder__step-chip.is-selected {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-builder__step-chip .e-permits-tariff__tab-error {
+  margin-left: var(--spacing-2, 2px);
+}
+
+/* Preview: every section keeps the FO bottom padding (the old preview had one section only) */
+.e-permits-builder__preview .e-permits-fo-form__section-body {
+  padding-bottom: var(--spacing-32, 32px);
+}
+
+/* ===== Topbar ===== */
+.e-permits-builder__issues {
+  position: relative;
+}
+
+.e-permits-builder__errors {
+  align-items: center;
+  display: inline-flex;
+}
+
+.e-permits-builder__errors:hover {
+  background: var(--color-background-danger-secondary-hover, #fecdca);
+}
+
+.e-permits-builder__errors.is-clean {
+  background: var(--color-background-positive-secondary, #e6f5ee);
+  border-color: var(--color-icon-positive-default, #039855);
+  color: var(--color-text-positive-on-secondary, #027948);
+}
+
+.e-permits-builder__errors.is-clean:hover {
+  background: var(--color-background-positive-secondary-active, #d1fadf);
+}
+
+.e-permits-builder__errors.is-clean > span {
+  background: var(--color-border-positive-secondary, #a6f4c5);
+}
+
+/* positive = the product green (--color-icon-positive-default), not the green-900 background token */
+.e-permits-builder__errors.is-clean > span > i {
+  background: var(--color-icon-positive-default, #039855);
+}
+
+.e-permits-builder__errors[aria-expanded="true"],
+.e-permits-builder__errors:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-builder__service-scope:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-builder__publish:hover {
+  background: var(--color-background-brand-default-hover, #004cb8);
+}
+
+.e-permits-builder__publish[aria-disabled="true"] {
+  background: var(--color-background-disabled-default, #f1f1f1);
+  color: var(--color-text-disabled-on-disabled, #9e9e9e);
+  cursor: not-allowed;
+}
+
+.e-permits-builder__issues-menu {
+  max-height: min(480px, calc(100vh - 120px));
+  overflow-y: auto;
+  right: 0;
+  width: 380px;
+}
+
+.e-permits-builder__issues-head {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-4, 4px);
+}
+
+.e-permits-fo-intent-menu__item.e-permits-builder__issue {
+  align-items: flex-start;
+  height: auto;
+  text-align: left;
+}
+
+.e-permits-builder__issue-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-builder__issue-text strong {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__issue-text span {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: normal;
+}
+
+.e-permits-builder__issue-text .e-permits-builder__issue-where {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* ===== Palette ===== */
+.e-permits-builder__library-item strong {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-builder__library-item.is-disabled {
+  cursor: default;
+}
+
+.e-permits-builder__library-item.is-disabled:hover {
+  background: var(--color-background-base-default-hover, #f5f5f5);
+}
+
+.e-permits-builder__library-item.is-disabled > span {
+  color: var(--color-icon-base-tertiary, #757575);
+}
+
+.e-permits-builder__library-section:last-child {
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+/* ===== Properties panel ===== */
+.e-permits-builder__panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.e-permits-builder__panel-head--selected {
+  border-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px) var(--spacing-12, 12px);
+}
+
+.e-permits-builder__crumbs {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-builder__panel-title-row {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  position: relative;
+}
+
+.e-permits-builder__panel-title-row h2 {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-26, 26px);
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-builder__panel-meta {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* library small tabs, the drawer way (components.md Tariff drawer tabs) */
+.e-permits-builder__tabs {
+  flex: 0 0 auto;
+}
+
+.e-permits-builder__tabs .tab-buttons {
+  border-bottom-color: var(--color-border-base-default, #d9d9d9);
+  gap: 0;
+  padding: 0 var(--spacing-8, 8px);
+  width: auto;
+}
+
+.e-permits-builder__panel-scroll {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 0 var(--spacing-20, 20px) var(--spacing-32, 32px);
+}
+
+.e-permits-builder__panel-scroll > .e-permits-builder__group:first-child,
+.e-permits-builder__lang + .e-permits-builder__group {
+  margin-top: var(--spacing-4, 4px);
+}
+
+.e-permits-builder__panel-grid {
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-builder__panel-pad {
+  padding: var(--spacing-16, 16px) 0;
+}
+
+.e-permits-builder__lang {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  justify-content: space-between;
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-builder__lang-label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* read-only facts (label left, value right); last row without a divider */
+.e-permits-builder__facts {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.e-permits-builder__facts > div {
+  align-items: baseline;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+  padding: var(--spacing-8, 8px) 0;
+}
+
+.e-permits-builder__facts > div:last-child {
+  border-bottom: 0;
+}
+
+.e-permits-builder__facts dt {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__facts dd {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  text-align: right;
+}
+
+/* steps / sections listed in the panel */
+.e-permits-builder__step-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-builder__step-row {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font-family: var(--font-family-primary-font, Onest);
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-12, 12px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-builder__step-row:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-builder__step-row:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-builder__step-row > span:nth-last-child(2) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.e-permits-builder__step-row-meta {
+  align-items: center;
+  color: var(--color-text-base-tertiary, #757575);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.e-permits-builder__step-row-empty {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* classifier reference (Listă derulantă › Date) */
+.e-permits-builder__ref {
+  align-items: flex-start;
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-builder__ref-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-builder__ref-main strong {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__ref-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* options editor */
+.e-permits-builder__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-builder__option-row {
+  align-items: center;
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: var(--spacing-16, 16px) minmax(0, 1fr) auto;
+}
+
+.e-permits-builder__option-index {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  text-align: right;
+}
+
+.e-permits-builder__option-row.is-muted input {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-builder__inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-builder__test-row {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-builder__test-row .e-permits-fo-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* address parts — one row per part, last row without a divider */
+.e-permits-builder__parts {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-builder__part {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-12, 12px) 0;
+}
+
+.e-permits-builder__part:last-child {
+  border-bottom: 0;
+}
+
+.e-permits-builder__part-head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-builder__part-head strong {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-builder__part.is-muted .e-permits-builder__part-head strong {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-builder__part-toggle {
+  margin-left: auto;
+}
+
+.e-permits-builder__part-toggle .icon {
+  transition: transform 160ms var(--motion-easing-decelerate, ease-out);
+}
+
+.e-permits-builder__part-toggle[aria-expanded="true"] .icon {
+  transform: rotate(180deg);
+}
+
+.e-permits-builder__part-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding-top: var(--spacing-4, 4px);
+}
+
+.e-permits-builder__part-body[hidden] {
+  display: none;
+}
+
+.e-permits-builder__part-cascade {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+/* rule builder (Logică) in the narrow panel: the documented phone layout of the rule rows —
+   one column of cells, × on the right of the first; the rule type takes its own line */
+.e-permits-builder__panel .e-permits-doc-cond {
+  grid-template-columns: minmax(0, 1fr) var(--spacing-32, 32px);
+}
+
+.e-permits-builder__panel .e-permits-doc-cond__cell {
+  grid-column: 1;
+}
+
+.e-permits-builder__panel .e-permits-doc-cond__remove {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.e-permits-builder__panel .e-permits-doc-rule__head {
+  flex-wrap: wrap;
+}
+
+.e-permits-builder__panel .e-permits-doc-rule__type {
+  flex: 1 1 100%;
+}
+
+/* Preview toolbar: language + test data, above the applicant's form */
+.e-permits-builder__preview-bar {
+  align-items: center;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin: 0 auto var(--spacing-24, 24px);
+  max-width: 1280px;
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-builder__preview-bar .e-permits-builder__lang {
+  padding-top: 0;
+}
+
+/* Preview › Mobil: the page itself at 375 px in a frame (iframe width attribute), fed by
+   postMessage; the frame page shows only the Preview (?fbframe=1) */
+.e-permits-builder__device {
+  display: flex;
+  justify-content: center;
+}
+
+.e-permits-builder__device[hidden] {
+  display: none;
+}
+
+.e-permits-builder__device-frame {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-24, 24px);
+  box-shadow: var(--drop-shadow-400);
+  height: calc(100vh - 2 * var(--spacing-96, 96px));
+}
+
+.e-permits-builder.is-frame {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.e-permits-builder.is-frame .e-permits-builder__topbar,
+.is-fb-frame .msup-bubble,
+.is-fb-frame .e-permits-fo-testcfg {
+  display: none;
+}
+
+/* registry modal: physical table as the neutral tag (never monospace) */
+.e-permits-builder-registry__item-title {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+/* toast „Anulează” — a button in the library link slot (js/toast.js action) */
+.toast__action {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: var(--font-weight-fw-medium, 500);
+  padding: 0;
+  text-align: left;
+}
+
+/* ===== Small screens: editing needs the desktop; the Preview (applicant view) works at 375 ===== */
+@media (max-width: 960px) {
+  .e-permits-builder {
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .e-permits-builder__topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-builder__nav-left,
+  .e-permits-builder__service-scope,
+  .e-permits-builder__publish {
+    display: none;
+  }
+
+  .e-permits-builder__mode {
+    justify-self: start;
+  }
+
+  /* one scrolling column: canvas, then properties, then the palette (all reachable) */
+  .e-permits-builder__workspace {
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .e-permits-builder__stage {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .e-permits-builder__inspector,
+  .e-permits-builder__library {
+    max-height: none;
+  }
+
+  .e-permits-builder__inspector {
+    border-left: 0;
+    border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    flex: 0 0 auto;
+    order: 2;
+  }
+
+  .e-permits-builder__library {
+    border-right: 0;
+    border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    flex: 0 0 auto;
+    order: 3;
+  }
+
+  .e-permits-builder__canvas-scroll,
+  .e-permits-builder__panel-scroll,
+  .e-permits-builder__library-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .e-permits-builder__resize-handle {
+    display: none;
+  }
+
+  .e-permits-builder[data-mode="preview"] .e-permits-builder__stage {
+    flex: 1 1 auto;
+  }
+
+  .e-permits-builder__issues-menu {
+    width: min(380px, calc(100vw - 32px));
+  }
+}
+
+@media (max-width: 720px) {
+  /* icon-only modes on phones; the label stays the accessible name (visually hidden) */
+  .e-permits-builder__mode button {
+    min-width: 0;
+    padding: 0 var(--spacing-12, 12px);
+  }
+
+  .e-permits-builder__mode button span {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+
+  .e-permits-builder[data-mode="preview"] .e-permits-builder__canvas-scroll {
+    padding: var(--spacing-16, 16px);
+  }
+
+  /* phones: one card per row, as in the request form */
+  .e-permits-builder__grid > [data-span] {
+    grid-column: 1 / -1;
+  }
+
+  .e-permits-builder__canvas-scroll {
+    padding: var(--spacing-12, 12px);
+  }
+}
+
+/* classifier registry (a library modal overlay, opened with is-active): its own fade-in keyframes
+   stalled at 0 % next to the library opacity transition + will-change layer (overlay invisible,
+   2026-10-13) — the open state keeps only the library transition */
+.e-permits-builder-registry.is-active,
+.e-permits-builder-registry.is-active .e-permits-builder-registry__modal {
+  animation: none;
+}

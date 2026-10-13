@@ -9,6 +9,8 @@
  *     title: "Serviciu creat",    // optional → Figma "w/ Heading"; omit for text-only
  *     message: "…",               // plain text
  *     link: { href, label },      // optional underlined link under the text
+ *     action: { label, onClick }, // optional undo-style action (button in the link slot);
+ *                                 // clicking it runs onClick and closes the toast
  *     duration: 4000,             // ms; 0 keeps it until closed
  *     key: "draft-created"        // optional: replaces a toast with the same key
  *   });
@@ -83,6 +85,7 @@
         (opts.title ? '<p class="toast__title">' + esc(opts.title) + "</p>" : "") +
         (opts.message ? '<p class="toast__text">' + esc(opts.message) + "</p>" : "") +
         (opts.link && opts.link.href ? '<a class="toast__link" href="' + esc(opts.link.href) + '">' + esc(opts.link.label) + "</a>" : "") +
+        (opts.action && opts.action.label ? '<button class="toast__link toast__action" type="button" data-toast-action>' + esc(opts.action.label) + "</button>" : "") +
       "</div>" +
       (opts.showClose === false ? "" :
         '<button class="toast__close" type="button" aria-label="Închide notificarea">' +
@@ -91,6 +94,11 @@
 
     var close = toast.querySelector(".toast__close");
     if (close) close.addEventListener("click", function () { dismiss(toast); });
+    var action = toast.querySelector("[data-toast-action]");
+    if (action) action.addEventListener("click", function () {
+      dismiss(toast);
+      if (typeof opts.action.onClick === "function") opts.action.onClick();
+    });
 
     root.appendChild(toast);
 

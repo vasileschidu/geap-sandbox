@@ -277,3 +277,74 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-13 · Demo states on another page can be made from a helper + override:
   `{ ...ppIntent(run), params: {…} }`. For a cross-page link, verify the real click too (check.mjs
   „click” mode: open the cabinet page, click `[data-cat-request]`, probe the FO screen + subject).
+- 2026-10-13 · eKYC batch 3 (9 config/admin screens, ~2 000 lines in `js/ekyc-config.js`): a second product
+  module plugs in through `product.extend({ views, registries, facets, load, init, showView, route })` +
+  `product.shared` (getters for api/db) — never grow ekyc.js. Data that other screens show (clients, use
+  cases, scoring, providers) must be seeded FROM the existing seed (`seed-config.mjs` reads
+  `ekyc-sessions.json`), so names/ids match everywhere.
+- 2026-10-13 · Registry objects built at load time must not call `api.*` (api is null until init) — make
+  CTA html lazy (`cta: () => addBtn(…)`). Symptom: every state `:error` with „reading 'escapeHtml'”.
+- 2026-10-13 · Tables with 8–10 columns inside the 1 024px profile card overflow (actions hidden). The BO
+  profile convention is the **stacked list** — sessions, steps (with drag handle lead + ↑↓) and version
+  history fit, read better and need no new CSS. Keep tables only for ≤ 6 short columns (veto, rules).
+- 2026-10-13 · Long BO forms that a story calls „pagină separată, pe secțiuni” = the Setări one-page form
+  `.e-permits-cfg2` reused in the profile panel (section list + scroll spy, cards with `.has-error` red border,
+  sticky bar) — the 1.5px red section border comes for free. Set `--cfg2-stick` from the pinned header.
+- 2026-10-13 · Demo helpers: `ekList(hash, run)` takes 2 args — extras (`params`) passed as a 3rd arg are
+  silently dropped → use `ek(hash, run, { params, ready })`. `h.nth("[data-stack-menu-trigger]", 0)` hit
+  a hidden modal's trigger (form-builder) → scope the selector (`#ekyc-panel …`). Items on page 2 of a
+  registry (group sorted alphabetically) need a search first.
+- 2026-10-13 · `.e-permits-fo-field label` styles every `<label>` inside an FO field (20px, secondary) — a
+  `label.btn` file picker there renders as a squashed black bar → use a `<button>` that clicks the hidden
+  `input[type=file]`.
+- 2026-10-13 · Mobile BO registries: `.e-permits-workplace` has no grid columns → its one column takes the
+  toolbar's max-content (588–700px) and the toolbar/pagination clip. Product-scoped fix at ≤760:
+  `grid-template-columns: minmax(0,1fr)` + wrap toolbar / footer. BO section headings are flex rows of
+  fixed height 48 — at 375 switch them to a one-column grid (flex column + align-self fought other rules).
+  Overflow probes: status tabs / `.tab-buttons` are scroll containers (false positives).
+- 2026-10-13 · Romanian copy with names: „X este deconectat / sesiunile lui” breaks gender agreement for
+  women's names and „1 client … nu se mai pot” number agreement → phrase confirmations around the account /
+  the object („Suspenzi accesul pentru X?”, „Sesiunea de pe … se închide”), never „lui X”. User-facing
+  errors never show HTTP codes („409 ·”) — the treatment (on the field / its own dialog) says it.
+- 2026-10-13 · No sub-agent tool again → ran `tools/ui-qa/code-audit.mjs` myself: default scope `main`
+  misses drawers (appended to body) and modals → run again with `--scope "[data-ekcfg-drawer] aside"` and
+  `"#case-action-modal .modal"`. Untracked new files are not in `git diff` → grep them for hex/px/style="".
+- 2026-10-13 · Form Builder batches 0–1: the old builder was DOM-as-state (2750 lines reading labels back
+  out of cards) → rebuilt model-first in its own files (`js/form-builder.js`, `css/form-builder.css`) with
+  ONE renderer: the FO `stepFieldHtml` exported as `window.GEAPFormRender` and the shell helpers as
+  `window.GEAPUi` (one insertion after `askConfirm`). DCL order makes it work: shell.js (sync, body end)
+  registers first, then the deferred acte-permisive.js, then form-builder.js. A separate file kept the
+  shared-file edits small while another agent worked in the tree.
+- 2026-10-13 · Panel pattern that kept focus: re-render the whole properties panel on every input and
+  restore `activeElement` by id + `selectionStart/End` + the scroller's `scrollTop` — simpler than partial
+  updates and errors appear live. Delayed „focus the label” timers must check the selection did not
+  change meanwhile (fb-01 selected the form title after two quick clicks).
+- 2026-10-13 · `?flow=builder` hides `.e-permits-shell` (style.display, not `hidden` — author CSS
+  `display:grid` beats the attribute); any overlay that lives in the shell markup (the classifier
+  registry) must be moved to `<body>` or it renders 0×0. The registry also never showed in the old
+  builder: a library `.modal-overlay` needs `is-active` (opacity), and its own fade keyframes stalled at
+  0 % next to the library opacity transition — `animation: none` on the open state.
+- 2026-10-13 · `scrollIntoView` scrolls `overflow: hidden` ancestors too (demo `h.scroll` shifted the
+  builder topbar up 36px) → `overflow: clip` on the editor root.
+- 2026-10-13 · Real-input DnD test in headless Chrome: `Input.setInterceptDrags` → mouse press/move →
+  `Input.dragIntercepted` data → `Input.dispatchDragEvent` dragEnter/dragOver/drop (scratchpad fb/cdp.mjs
+  `drag()`); read BOTH coordinates before any `scrollIntoView` (my first reorder test dropped the wrong
+  card). A demo state of a drag in progress = synthetic `DragEvent("dragstart"/"dragover",
+  { dataTransfer: new DataTransfer(), clientX, clientY })`, never finished.
+- 2026-10-13 · Hiding the palette/panel on phones broke every build-mode demo state on mobile (clicks on
+  hidden targets) → small screens stack the columns (canvas, properties, palette) instead; old builder
+  CSS had `max-height: 260px` on both panels at ≤900 — reset it. Builder grid cards on phones = one
+  column, or 3/12 cards collapse to 12px tags (the QA's clipped-text count was the tell).
+- 2026-10-13 · Spans from data without inline styles: `[data-span="4"] { grid-column: span 4 }` rules;
+  only drag geometry (the drop indicator) sets style left/top/width/height.
+- 2026-10-13 · Form Builder batch 2: a rule builder that already exists bound to another drawer's state
+  (Documente `renderDocRule` reads `docDraft`) is reused by its MARKUP + classes with new data hooks, not by
+  calling it; in a narrow side panel apply the component's own documented phone layout (scoped selector).
+  Live logic in a rendered preview: tag each renderer top element (`data-fb-field`) with a regex on the
+  first tag, read answers from the DOM, debounce on input/change/click/mousedown, iterate to a fixed point
+  (a hidden field is emptied, which can flip other rules).
+- 2026-10-13 · A true phone preview inside a desktop editor = the same page in an iframe (`width="375"`
+  attribute, `?…&fbframe=1` frame mode that only shows the preview) fed by `postMessage` after every change
+  — the FO media queries apply; CSS container tricks would need the whole FO CSS rewritten.
+- 2026-10-13 · Reusing an FO control generically (the CAEM subgenre multi-select): move its hard-coded
+  texts to data attributes with the old texts as defaults — the existing screens stay byte-identical.

@@ -1,5 +1,5 @@
 {
-  "_comment": "eKYC back office (US-UI-01 91104, US-05-10-B 89241): roles from MPass (US-03-10 CA-3) and the menu each one sees. Same schema as e-permits-roles.json; loaded by js/ekyc.js through the shell's product hook. Batch 2 (2026-10-13): Revizie manuală (operator: Sesiunile mele de revizie, supervizor: Coada de revizie), Audit (auditor: Sesiuni istorice, Rapoarte, Jurnal de acces — fără Sesiuni active), Rapoarte also for the administrator (US-07-06).",
+  "_comment": "eKYC back office (US-UI-01 91104, US-05-10-B 89241): roles from MPass (US-03-10 CA-3) and the menu each one sees. Same schema as e-permits-roles.json; loaded by js/ekyc.js through the shell's product hook. Batch 2 (2026-10-13): Revizie manuală (operator: Sesiunile mele de revizie, supervizor: Coada de revizie), Audit (auditor: Sesiuni istorice, Rapoarte, Jurnal de acces — fără Sesiuni active), Rapoarte also for the administrator (US-07-06). Batch 3 (2026-10-13): Configurare (8 items) + Administrare › Utilizatori are real screens (js/ekyc-config.js, data/ekyc-config.json), Administrator platformă only.",
   "defaultAssignmentId": "ekyc-admin",
   "groups": [
     {
@@ -86,42 +86,42 @@
             {
               "id": "ek-organizations",
               "label": "Organizații",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-organizations"
             },
             {
               "id": "ek-clients",
               "label": "Clienți",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-clients"
             },
             {
               "id": "ek-use-cases",
               "label": "Cazuri de utilizare",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-use-cases"
             },
             {
               "id": "ek-providers",
               "label": "Furnizori de verificare",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-providers"
             },
             {
               "id": "ek-scoring",
               "label": "Configurări scoring",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-scoring"
             },
             {
               "id": "ek-parameters",
               "label": "Parametri platformă",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-parameters"
             },
             {
               "id": "ek-sdk",
               "label": "Versiuni SDK",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-sdk"
             },
             {
               "id": "ek-trusted-cas",
               "label": "Certificate root CA",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-trusted-cas"
             }
           ]
         },
@@ -131,7 +131,7 @@
             {
               "id": "ek-users",
               "label": "Utilizatori",
-              "shellView": "ekyc-placeholder"
+              "shellView": "ekyc-users"
             }
           ]
         }

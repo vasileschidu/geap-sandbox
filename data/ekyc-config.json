@@ -1,0 +1,3804 @@
+{
+  "now": "2026-10-13T14:52:00",
+  "organizations": [
+    {
+      "id": "org-age",
+      "name": "Agenția de Guvernare Electronică",
+      "idno": "1006601000094",
+      "contactName": "Victor Lungu",
+      "contactEmail": "victor.lungu@egov.md",
+      "contactPhone": "+373 22 820 015",
+      "active": true,
+      "createdAt": "2025-08-29T09:30:00",
+      "updatedAt": "2026-01-12T08:30:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "org-orange",
+      "name": "Orange Moldova SA",
+      "idno": "1002600002354",
+      "contactName": "Diana Popa",
+      "contactEmail": "diana.popa@orange.md",
+      "contactPhone": "+373 22 975 104",
+      "active": true,
+      "createdAt": "2025-09-28T09:30:00",
+      "updatedAt": "2026-02-01T08:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-maib",
+      "name": "maib SA",
+      "idno": "1002600003778",
+      "contactName": "Radu Ceban",
+      "contactEmail": "radu.ceban@maib.md",
+      "contactPhone": "+373 22 450 603",
+      "active": true,
+      "createdAt": "2025-10-07T09:30:00",
+      "updatedAt": "2026-02-07T08:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-micb",
+      "name": "Moldindconbank SA",
+      "idno": "1002600028291",
+      "contactName": "Irina Vasilache",
+      "contactEmail": "irina.vasilache@micb.md",
+      "contactPhone": "+373 22 576 782",
+      "active": true,
+      "createdAt": "2025-10-26T09:30:00",
+      "updatedAt": "2026-02-20T09:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-moldcell",
+      "name": "Moldcell SA",
+      "idno": "1002600047108",
+      "contactName": "Alexandru Gaina",
+      "contactEmail": "a.gaina@moldcell.md",
+      "contactPhone": "+373 22 206 206",
+      "active": true,
+      "createdAt": "2025-11-07T09:30:00",
+      "updatedAt": "2026-02-28T09:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-vb",
+      "name": "Victoriabank SA",
+      "idno": "1002600001338",
+      "contactName": "Elena Stratan",
+      "contactEmail": "elena.stratan@vb.md",
+      "contactPhone": "+373 22 576 100",
+      "active": true,
+      "createdAt": "2025-11-14T09:30:00",
+      "updatedAt": "2026-03-05T09:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-asito",
+      "name": "Asito SA",
+      "idno": "1003600043519",
+      "contactName": "Sergiu Rotari",
+      "contactEmail": "sergiu.rotari@asito.md",
+      "contactPhone": "+373 22 228 803",
+      "active": true,
+      "createdAt": "2025-12-27T09:30:00",
+      "updatedAt": "2026-04-02T10:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-iute",
+      "name": "Iute Credit Moldova SRL",
+      "idno": "1012600029087",
+      "contactName": "Mariana Cojocari",
+      "contactEmail": "mariana.cojocari@iutecredit.md",
+      "contactPhone": "+373 22 999 444",
+      "active": true,
+      "createdAt": "2026-01-22T09:30:00",
+      "updatedAt": "2026-04-20T10:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-moldtelecom",
+      "name": "Moldtelecom SA",
+      "idno": "1002600048013",
+      "contactName": "Vadim Bostan",
+      "contactEmail": "vadim.bostan@moldtelecom.md",
+      "contactPhone": "+373 22 570 570",
+      "active": true,
+      "createdAt": "2026-03-17T09:30:00",
+      "updatedAt": "2026-05-26T10:30:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "org-cnas",
+      "name": "Casa Națională de Asigurări Sociale",
+      "idno": "1003600156380",
+      "contactName": "Tatiana Lupu",
+      "contactEmail": "tatiana.lupu@cnas.gov.md",
+      "contactPhone": "+373 22 257 702",
+      "active": true,
+      "createdAt": "2026-08-10T09:30:00",
+      "updatedAt": "2026-08-31T09:30:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "org-microinvest",
+      "name": "OCN Microinvest SRL",
+      "idno": "1003600118102",
+      "contactName": "",
+      "contactEmail": "",
+      "contactPhone": "",
+      "active": false,
+      "createdAt": "2026-05-14T09:30:00",
+      "updatedAt": "2026-07-03T09:30:00",
+      "updatedBy": "Cristina Moraru"
+    }
+  ],
+  "clients": [
+    {
+      "id": "orange-selfcare",
+      "name": "Orange Self-Care",
+      "orgId": "org-orange",
+      "mpassClientId": "95ff5454-5d02-437d-9f32-e6c932924507",
+      "redirectUris": [
+        "https://selfcare.orange.md/ekyc/callback",
+        "md.orange.selfcare://ekyc/result"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.orange.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "195.22.224.0/24",
+        "195.22.224.200"
+      ],
+      "countries": [
+        "MDA",
+        "ROU"
+      ],
+      "maxSessions": 200,
+      "useCases": [
+        "TELCO_SIM_SUBSTANTIAL",
+        "KYC_REFRESH_LOW"
+      ],
+      "scoringId": "scr-01",
+      "active": true,
+      "createdAt": "2026-02-15T10:20:00",
+      "updatedAt": "2026-10-08T14:05:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-10-08T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-02-15T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-02-15T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "Orange Self-Care · orange-selfcare",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "maib-app",
+      "name": "MAIB App",
+      "orgId": "org-maib",
+      "mpassClientId": "f3d43f45-6297-4873-8b22-d07f69b75246",
+      "redirectUris": [
+        "https://online.maib.md/ekyc/callback",
+        "md.maib.app://ekyc/result"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.nfc",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.maib.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "185.181.228.0/24"
+      ],
+      "countries": [
+        "MDA",
+        "ROU",
+        "UKR"
+      ],
+      "maxSessions": 150,
+      "useCases": [
+        "BANK_ONBOARDING_HIGH",
+        "KYC_REFRESH_LOW"
+      ],
+      "scoringId": "scr-02",
+      "active": true,
+      "createdAt": "2026-03-04T10:20:00",
+      "updatedAt": "2026-10-02T14:05:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-02T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-03-04T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-03-04T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "MAIB App · maib-app",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "micb-web",
+      "name": "MICB Web Onboarding",
+      "orgId": "org-micb",
+      "mpassClientId": "4d4c8de2-01a9-4305-80e1-f80feb9a9093",
+      "redirectUris": [
+        "https://onboarding.micb.md/ekyc/callback"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.nfc",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.micb.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "89.28.18.32/28"
+      ],
+      "countries": [
+        "MDA",
+        "ROU"
+      ],
+      "maxSessions": 100,
+      "useCases": [
+        "BANK_ONBOARDING_HIGH",
+        "CREDIT_ONLINE_SUBST"
+      ],
+      "scoringId": "scr-02",
+      "active": true,
+      "createdAt": "2026-03-21T10:20:00",
+      "updatedAt": "2026-09-26T14:05:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-09-26T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-03-21T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-03-21T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "MICB Web Onboarding · micb-web",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "mpay-gov",
+      "name": "MPay — servicii publice",
+      "orgId": "org-age",
+      "mpassClientId": "f5ec1f40-108a-44f2-be09-5cf3b105f67c",
+      "redirectUris": [
+        "https://mpay.gov.md/ekyc/callback"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.nfc",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.mpay.gov.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "10.20.0.0/16",
+        "10.20.0.200"
+      ],
+      "countries": [
+        "MDA"
+      ],
+      "maxSessions": 500,
+      "useCases": [
+        "GOV_SERVICES_HIGH"
+      ],
+      "scoringId": "scr-04",
+      "active": true,
+      "createdAt": "2026-04-07T10:20:00",
+      "updatedAt": "2026-09-20T14:05:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-09-20T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-04-07T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-04-07T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "MPay — servicii publice · mpay-gov",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "moldcell-app",
+      "name": "Moldcell App",
+      "orgId": "org-moldcell",
+      "mpassClientId": "e3f64c24-6f8f-4dd0-b86d-a45200e1e942",
+      "redirectUris": [
+        "https://my.moldcell.md/ekyc/callback",
+        "md.moldcell.app://ekyc/result"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.moldcell.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "178.168.40.0/24"
+      ],
+      "countries": [
+        "MDA",
+        "ROU"
+      ],
+      "maxSessions": 200,
+      "useCases": [
+        "TELCO_SIM_SUBSTANTIAL"
+      ],
+      "scoringId": "scr-01",
+      "active": true,
+      "createdAt": "2026-04-24T10:20:00",
+      "updatedAt": "2026-09-14T14:05:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-09-14T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-04-24T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-04-24T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "Moldcell App · moldcell-app",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "victoriabank-online",
+      "name": "Victoriabank Online",
+      "orgId": "org-vb",
+      "mpassClientId": "33e924f7-6de7-4376-a706-c0ac3ba4239b",
+      "redirectUris": [
+        "https://online.victoriabank.md/ekyc/callback",
+        "md.victoriabank.mobile://ekyc/result"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.nfc",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.victoriabank.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "212.56.198.0/26"
+      ],
+      "countries": [
+        "MDA",
+        "ROU",
+        "UKR"
+      ],
+      "maxSessions": 150,
+      "useCases": [
+        "BANK_ONBOARDING_HIGH",
+        "KYC_REFRESH_LOW"
+      ],
+      "scoringId": "scr-02",
+      "active": true,
+      "createdAt": "2026-05-11T10:20:00",
+      "updatedAt": "2026-09-08T14:05:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-09-08T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-05-11T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-05-11T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "Victoriabank Online · victoriabank-online",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "asito-online",
+      "name": "Asito Online",
+      "orgId": "org-asito",
+      "mpassClientId": "55d641f3-73e3-488d-b853-3afeb487dcce",
+      "redirectUris": [
+        "https://online.asito.md/ekyc/callback"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.asito.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "92.115.140.12",
+        "92.115.140.200"
+      ],
+      "countries": [
+        "MDA",
+        "ROU"
+      ],
+      "maxSessions": 50,
+      "useCases": [
+        "INSURANCE_ONBOARDING_SUBST"
+      ],
+      "scoringId": "scr-05",
+      "active": true,
+      "createdAt": "2026-05-28T10:20:00",
+      "updatedAt": "2026-09-02T14:05:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-09-02T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-05-28T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-05-28T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "Asito Online · asito-online",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "iute-credit",
+      "name": "Iute Credit",
+      "orgId": "org-iute",
+      "mpassClientId": "0c49c3f6-c8ad-45b4-b0fc-75c0477f7f77",
+      "redirectUris": [
+        "https://iutecredit.md/ekyc/callback",
+        "md.iutecredit.app://ekyc/result"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.iutecredit.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "194.177.10.0/24"
+      ],
+      "countries": [
+        "MDA",
+        "ROU",
+        "UKR"
+      ],
+      "maxSessions": 80,
+      "useCases": [
+        "CREDIT_ONLINE_SUBST"
+      ],
+      "scoringId": "scr-06",
+      "active": true,
+      "createdAt": "2026-06-14T10:20:00",
+      "updatedAt": "2026-08-27T14:05:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-08-27T14:05:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-14T11:20:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-14T10:20:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "Iute Credit · iute-credit",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "moldtelecom-myaccount",
+      "name": "Moldtelecom MyAccount",
+      "orgId": "org-moldtelecom",
+      "mpassClientId": "801c739f-6d56-4eec-87d0-fe348062f704",
+      "redirectUris": [
+        "https://my.moldtelecom.md/ekyc/callback"
+      ],
+      "scopes": [
+        "openid",
+        "profile",
+        "ekyc.session",
+        "ekyc.result"
+      ],
+      "callbackUrl": "https://api.moldtelecom.md/webhooks/ekyc",
+      "ipWhitelist": [
+        "91.208.120.0/24"
+      ],
+      "countries": [
+        "MDA"
+      ],
+      "maxSessions": 100,
+      "useCases": [
+        "TELCO_SIM_SUBSTANTIAL"
+      ],
+      "scoringId": "scr-01",
+      "active": false,
+      "createdAt": "2026-06-15T09:45:00",
+      "updatedAt": "2026-09-10T17:10:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-09-10T17:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Redirect URIs · IP whitelist",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-09-10T17:10:00",
+          "type": "Client dezactivat",
+          "status": "Reușit",
+          "detail": "Integrarea a fost suspendată la cererea organizației.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-15T10:45:00",
+          "type": "Client activat",
+          "status": "Reușit",
+          "detail": "Primul test de integrare reușit.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-06-15T09:45:00",
+          "type": "Client creat",
+          "status": "Reușit",
+          "detail": "Moldtelecom MyAccount · moldtelecom-myaccount",
+          "user": "Cristina Moraru"
+        }
+      ]
+    }
+  ],
+  "useCases": [
+    {
+      "code": "TELCO_SIM_SUBSTANTIAL",
+      "name": "Activare SIM prepaid",
+      "description": "Identificarea abonatului la activarea unei cartele SIM prepaid, cerută de legea comunicațiilor electronice.",
+      "ial": "Substanțial",
+      "version": "4.2",
+      "active": true,
+      "steps": [
+        {
+          "id": "telco_sim_substantial-s1",
+          "type": "DOCUMENT_SCAN",
+          "label": "Scanare document",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-doc",
+          "fallbacks": [
+            "prv-veriff"
+          ],
+          "timeout": 45,
+          "retries": 2
+        },
+        {
+          "id": "telco_sim_substantial-s2",
+          "type": "LIVENESS",
+          "label": "Detecție liveness",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-iproov",
+          "fallbacks": [],
+          "timeout": 60,
+          "retries": 2
+        },
+        {
+          "id": "telco_sim_substantial-s3",
+          "type": "FACE_MATCH",
+          "label": "Potrivire facială",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-facetec",
+          "fallbacks": [
+            "prv-innovatrics"
+          ],
+          "timeout": 30,
+          "retries": 2
+        },
+        {
+          "id": "telco_sim_substantial-s4",
+          "type": "PHONE_VERIFICATION",
+          "label": "Verificare telefon",
+          "mandatory": false,
+          "async": true,
+          "provider": "prv-vonage",
+          "fallbacks": [],
+          "timeout": 120,
+          "retries": 3
+        }
+      ],
+      "veto": [
+        {
+          "id": "telco_sim_substantial-v1",
+          "name": "Document expirat",
+          "condition": "document.expiryDate < session.startedAt",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "telco_sim_substantial-v2",
+          "name": "Liveness eșuat",
+          "condition": "steps.LIVENESS.passed == false",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "telco_sim_substantial-v3",
+          "name": "Dispozitiv compromis",
+          "condition": "device.integrity == \"compromised\" && device.platform != \"Web\"",
+          "severity": "Avertisment",
+          "enabled": true
+        }
+      ],
+      "versions": [
+        {
+          "version": "4.2",
+          "at": "2026-10-05T11:15:00",
+          "by": "Cristina Moraru",
+          "change": "Prag liveness ajustat după pilot",
+          "current": true
+        },
+        {
+          "version": "4.1",
+          "at": "2026-08-29T12:15:00",
+          "by": "Cristina Moraru",
+          "change": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "current": false
+        },
+        {
+          "version": "4.0",
+          "at": "2026-07-23T13:15:00",
+          "by": "Cristina Moraru",
+          "change": "Regulă veto „Document expirat” adăugată",
+          "current": false
+        },
+        {
+          "version": "3.9",
+          "at": "2026-06-16T14:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Versiunea inițială a fluxului",
+          "current": false
+        }
+      ],
+      "createdAt": "2026-02-05T10:00:00",
+      "updatedAt": "2026-10-05T11:15:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-10-05T11:15:00",
+          "type": "Versiunea v4.2 publicată",
+          "status": "Reușit",
+          "detail": "Prag liveness ajustat după pilot",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-08-29T12:15:00",
+          "type": "Versiunea v4.1 publicată",
+          "status": "Reușit",
+          "detail": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-07-23T13:15:00",
+          "type": "Versiunea v4.0 publicată",
+          "status": "Reușit",
+          "detail": "Regulă veto „Document expirat” adăugată",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-16T14:15:00",
+          "type": "Versiunea v3.9 publicată",
+          "status": "Reușit",
+          "detail": "Versiunea inițială a fluxului",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "code": "BANK_ONBOARDING_HIGH",
+      "name": "Onboarding bancar la distanță",
+      "description": "Deschiderea unui cont bancar fără vizită la sucursală; nivel de asigurare ridicat, cu cipul NFC al actului.",
+      "ial": "Ridicat",
+      "version": "4.2",
+      "active": true,
+      "steps": [
+        {
+          "id": "bank_onboarding_high-s1",
+          "type": "DOCUMENT_SCAN",
+          "label": "Scanare document",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-doc",
+          "fallbacks": [
+            "prv-veriff"
+          ],
+          "timeout": 45,
+          "retries": 2
+        },
+        {
+          "id": "bank_onboarding_high-s2",
+          "type": "NFC_CHIP",
+          "label": "Citire cip NFC",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-nfc",
+          "fallbacks": [],
+          "timeout": 30,
+          "retries": 1
+        },
+        {
+          "id": "bank_onboarding_high-s3",
+          "type": "LIVENESS",
+          "label": "Detecție liveness",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-iproov",
+          "fallbacks": [],
+          "timeout": 60,
+          "retries": 2
+        },
+        {
+          "id": "bank_onboarding_high-s4",
+          "type": "FACE_MATCH",
+          "label": "Potrivire facială",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-facetec",
+          "fallbacks": [
+            "prv-innovatrics"
+          ],
+          "timeout": 30,
+          "retries": 2
+        },
+        {
+          "id": "bank_onboarding_high-s5",
+          "type": "REGISTRY_CHECK",
+          "label": "Verificare în RSP",
+          "mandatory": true,
+          "async": true,
+          "provider": "prv-asp-rsp",
+          "fallbacks": [],
+          "timeout": 15,
+          "retries": 2
+        }
+      ],
+      "veto": [
+        {
+          "id": "bank_onboarding_high-v1",
+          "name": "Document expirat",
+          "condition": "document.expiryDate < session.startedAt",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "bank_onboarding_high-v2",
+          "name": "Liveness eșuat",
+          "condition": "steps.LIVENESS.passed == false",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "bank_onboarding_high-v3",
+          "name": "Subiect minor",
+          "condition": "subject.age < 18",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "bank_onboarding_high-v4",
+          "name": "Țara documentului nu este permisă",
+          "condition": "document.issuingCountry not in client.allowedCountries",
+          "severity": "Avertisment",
+          "enabled": false
+        },
+        {
+          "id": "bank_onboarding_high-v5",
+          "name": "Persoană decedată în RSP",
+          "condition": "registry.person.status == \"DECEDAT\"",
+          "severity": "Critică",
+          "enabled": true
+        }
+      ],
+      "versions": [
+        {
+          "version": "4.2",
+          "at": "2026-10-03T11:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "current": true
+        },
+        {
+          "version": "4.1",
+          "at": "2026-08-27T12:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Regulă veto „Document expirat” adăugată",
+          "current": false
+        },
+        {
+          "version": "4.0",
+          "at": "2026-07-21T13:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "current": false
+        },
+        {
+          "version": "3.9",
+          "at": "2026-06-14T14:15:00",
+          "by": "Cristina Moraru",
+          "change": "Versiunea inițială a fluxului",
+          "current": false
+        }
+      ],
+      "createdAt": "2026-02-20T10:00:00",
+      "updatedAt": "2026-10-03T11:15:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-03T11:15:00",
+          "type": "Versiunea v4.2 publicată",
+          "status": "Reușit",
+          "detail": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-08-27T12:15:00",
+          "type": "Versiunea v4.1 publicată",
+          "status": "Reușit",
+          "detail": "Regulă veto „Document expirat” adăugată",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-07-21T13:15:00",
+          "type": "Versiunea v4.0 publicată",
+          "status": "Reușit",
+          "detail": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-06-14T14:15:00",
+          "type": "Versiunea v3.9 publicată",
+          "status": "Reușit",
+          "detail": "Versiunea inițială a fluxului",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "code": "KYC_REFRESH_LOW",
+      "name": "Reverificare periodică (KYC refresh)",
+      "description": "Reconfirmarea periodică a identității clienților existenți (selfie + liveness).",
+      "ial": "Scăzut",
+      "version": "3.9",
+      "active": true,
+      "steps": [
+        {
+          "id": "kyc_refresh_low-s1",
+          "type": "LIVENESS",
+          "label": "Detecție liveness",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-iproov",
+          "fallbacks": [],
+          "timeout": 60,
+          "retries": 2
+        },
+        {
+          "id": "kyc_refresh_low-s2",
+          "type": "FACE_MATCH",
+          "label": "Potrivire facială",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-facetec",
+          "fallbacks": [
+            "prv-innovatrics"
+          ],
+          "timeout": 30,
+          "retries": 2
+        }
+      ],
+      "veto": [],
+      "versions": [
+        {
+          "version": "3.9",
+          "at": "2026-10-01T11:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Regulă veto „Document expirat” adăugată",
+          "current": true
+        },
+        {
+          "version": "3.8",
+          "at": "2026-08-25T12:15:00",
+          "by": "Cristina Moraru",
+          "change": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "current": false
+        },
+        {
+          "version": "3.7",
+          "at": "2026-07-19T13:15:00",
+          "by": "Cristina Moraru",
+          "change": "Prag liveness ajustat după pilot",
+          "current": false
+        },
+        {
+          "version": "3.6",
+          "at": "2026-06-12T14:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Versiunea inițială a fluxului",
+          "current": false
+        }
+      ],
+      "createdAt": "2026-03-07T10:00:00",
+      "updatedAt": "2026-10-01T11:15:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-01T11:15:00",
+          "type": "Versiunea v3.9 publicată",
+          "status": "Reușit",
+          "detail": "Regulă veto „Document expirat” adăugată",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-08-25T12:15:00",
+          "type": "Versiunea v3.8 publicată",
+          "status": "Reușit",
+          "detail": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-07-19T13:15:00",
+          "type": "Versiunea v3.7 publicată",
+          "status": "Reușit",
+          "detail": "Prag liveness ajustat după pilot",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-12T14:15:00",
+          "type": "Versiunea v3.6 publicată",
+          "status": "Reușit",
+          "detail": "Versiunea inițială a fluxului",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "code": "GOV_SERVICES_HIGH",
+      "name": "Acces la servicii publice",
+      "description": "Accesul la serviciile publice care cer o identitate verificată la nivel ridicat.",
+      "ial": "Ridicat",
+      "version": "4.1",
+      "active": true,
+      "steps": [
+        {
+          "id": "gov_services_high-s1",
+          "type": "DOCUMENT_SCAN",
+          "label": "Scanare document",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-doc",
+          "fallbacks": [
+            "prv-veriff"
+          ],
+          "timeout": 45,
+          "retries": 2
+        },
+        {
+          "id": "gov_services_high-s2",
+          "type": "NFC_CHIP",
+          "label": "Citire cip NFC",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-nfc",
+          "fallbacks": [],
+          "timeout": 30,
+          "retries": 1
+        },
+        {
+          "id": "gov_services_high-s3",
+          "type": "LIVENESS",
+          "label": "Detecție liveness",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-iproov",
+          "fallbacks": [],
+          "timeout": 60,
+          "retries": 2
+        },
+        {
+          "id": "gov_services_high-s4",
+          "type": "FACE_MATCH",
+          "label": "Potrivire facială",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-facetec",
+          "fallbacks": [
+            "prv-innovatrics"
+          ],
+          "timeout": 30,
+          "retries": 2
+        }
+      ],
+      "veto": [
+        {
+          "id": "gov_services_high-v1",
+          "name": "Document expirat",
+          "condition": "document.expiryDate < session.startedAt",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "gov_services_high-v2",
+          "name": "Liveness eșuat",
+          "condition": "steps.LIVENESS.passed == false",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "gov_services_high-v3",
+          "name": "Țara documentului nu este permisă",
+          "condition": "document.issuingCountry not in client.allowedCountries",
+          "severity": "Avertisment",
+          "enabled": true
+        }
+      ],
+      "versions": [
+        {
+          "version": "4.1",
+          "at": "2026-09-29T11:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "current": true
+        },
+        {
+          "version": "4.0",
+          "at": "2026-08-23T12:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Prag liveness ajustat după pilot",
+          "current": false
+        },
+        {
+          "version": "3.9",
+          "at": "2026-07-17T13:15:00",
+          "by": "Cristina Moraru",
+          "change": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "current": false
+        },
+        {
+          "version": "3.8",
+          "at": "2026-06-10T14:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Versiunea inițială a fluxului",
+          "current": false
+        }
+      ],
+      "createdAt": "2026-03-22T10:00:00",
+      "updatedAt": "2026-09-29T11:15:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-09-29T11:15:00",
+          "type": "Versiunea v4.1 publicată",
+          "status": "Reușit",
+          "detail": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-08-23T12:15:00",
+          "type": "Versiunea v4.0 publicată",
+          "status": "Reușit",
+          "detail": "Prag liveness ajustat după pilot",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-07-17T13:15:00",
+          "type": "Versiunea v3.9 publicată",
+          "status": "Reușit",
+          "detail": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-10T14:15:00",
+          "type": "Versiunea v3.8 publicată",
+          "status": "Reușit",
+          "detail": "Versiunea inițială a fluxului",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "code": "INSURANCE_ONBOARDING_SUBST",
+      "name": "Onboarding asigurări",
+      "description": "Încheierea online a polițelor de asigurare.",
+      "ial": "Substanțial",
+      "version": "4.1",
+      "active": true,
+      "steps": [
+        {
+          "id": "insurance_onboarding_subst-s1",
+          "type": "DOCUMENT_SCAN",
+          "label": "Scanare document",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-doc",
+          "fallbacks": [
+            "prv-veriff"
+          ],
+          "timeout": 45,
+          "retries": 2
+        },
+        {
+          "id": "insurance_onboarding_subst-s2",
+          "type": "LIVENESS",
+          "label": "Detecție liveness",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-iproov",
+          "fallbacks": [],
+          "timeout": 60,
+          "retries": 2
+        },
+        {
+          "id": "insurance_onboarding_subst-s3",
+          "type": "FACE_MATCH",
+          "label": "Potrivire facială",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-facetec",
+          "fallbacks": [
+            "prv-innovatrics"
+          ],
+          "timeout": 30,
+          "retries": 2
+        }
+      ],
+      "veto": [
+        {
+          "id": "insurance_onboarding_subst-v1",
+          "name": "Document expirat",
+          "condition": "document.expiryDate < session.startedAt",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "insurance_onboarding_subst-v2",
+          "name": "Subiect minor",
+          "condition": "subject.age < 18",
+          "severity": "Critică",
+          "enabled": true
+        }
+      ],
+      "versions": [
+        {
+          "version": "4.1",
+          "at": "2026-09-27T11:15:00",
+          "by": "Cristina Moraru",
+          "change": "Prag liveness ajustat după pilot",
+          "current": true
+        },
+        {
+          "version": "4.0",
+          "at": "2026-08-21T12:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "current": false
+        },
+        {
+          "version": "3.9",
+          "at": "2026-07-15T13:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Regulă veto „Document expirat” adăugată",
+          "current": false
+        },
+        {
+          "version": "3.8",
+          "at": "2026-06-08T14:15:00",
+          "by": "Cristina Moraru",
+          "change": "Versiunea inițială a fluxului",
+          "current": false
+        }
+      ],
+      "createdAt": "2026-04-06T10:00:00",
+      "updatedAt": "2026-09-27T11:15:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-09-27T11:15:00",
+          "type": "Versiunea v4.1 publicată",
+          "status": "Reușit",
+          "detail": "Prag liveness ajustat după pilot",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-08-21T12:15:00",
+          "type": "Versiunea v4.0 publicată",
+          "status": "Reușit",
+          "detail": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-07-15T13:15:00",
+          "type": "Versiunea v3.9 publicată",
+          "status": "Reușit",
+          "detail": "Regulă veto „Document expirat” adăugată",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-06-08T14:15:00",
+          "type": "Versiunea v3.8 publicată",
+          "status": "Reușit",
+          "detail": "Versiunea inițială a fluxului",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "code": "CREDIT_ONLINE_SUBST",
+      "name": "Credit online",
+      "description": "Acordarea creditelor de consum online, cu verificare în RSP.",
+      "ial": "Substanțial",
+      "version": "4.2",
+      "active": true,
+      "steps": [
+        {
+          "id": "credit_online_subst-s1",
+          "type": "DOCUMENT_SCAN",
+          "label": "Scanare document",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-regula-doc",
+          "fallbacks": [
+            "prv-veriff"
+          ],
+          "timeout": 45,
+          "retries": 2
+        },
+        {
+          "id": "credit_online_subst-s2",
+          "type": "LIVENESS",
+          "label": "Detecție liveness",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-iproov",
+          "fallbacks": [],
+          "timeout": 60,
+          "retries": 2
+        },
+        {
+          "id": "credit_online_subst-s3",
+          "type": "FACE_MATCH",
+          "label": "Potrivire facială",
+          "mandatory": true,
+          "async": false,
+          "provider": "prv-facetec",
+          "fallbacks": [
+            "prv-innovatrics"
+          ],
+          "timeout": 30,
+          "retries": 2
+        },
+        {
+          "id": "credit_online_subst-s4",
+          "type": "REGISTRY_CHECK",
+          "label": "Verificare în RSP",
+          "mandatory": true,
+          "async": true,
+          "provider": "prv-asp-rsp",
+          "fallbacks": [],
+          "timeout": 15,
+          "retries": 2
+        }
+      ],
+      "veto": [
+        {
+          "id": "credit_online_subst-v1",
+          "name": "Document expirat",
+          "condition": "document.expiryDate < session.startedAt",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "credit_online_subst-v2",
+          "name": "Liveness eșuat",
+          "condition": "steps.LIVENESS.passed == false",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "credit_online_subst-v3",
+          "name": "Subiect minor",
+          "condition": "subject.age < 18",
+          "severity": "Critică",
+          "enabled": true
+        },
+        {
+          "id": "credit_online_subst-v4",
+          "name": "Persoană decedată în RSP",
+          "condition": "registry.person.status == \"DECEDAT\"",
+          "severity": "Critică",
+          "enabled": true
+        }
+      ],
+      "versions": [
+        {
+          "version": "4.2",
+          "at": "2026-09-25T11:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "current": true
+        },
+        {
+          "version": "4.1",
+          "at": "2026-08-19T12:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Regulă veto „Document expirat” adăugată",
+          "current": false
+        },
+        {
+          "version": "4.0",
+          "at": "2026-07-13T13:15:00",
+          "by": "Cristina Moraru",
+          "change": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "current": false
+        },
+        {
+          "version": "3.9",
+          "at": "2026-06-06T14:15:00",
+          "by": "Anastasia Cojocaru",
+          "change": "Versiunea inițială a fluxului",
+          "current": false
+        }
+      ],
+      "createdAt": "2026-04-21T10:00:00",
+      "updatedAt": "2026-09-25T11:15:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-09-25T11:15:00",
+          "type": "Versiunea v4.2 publicată",
+          "status": "Reușit",
+          "detail": "Furnizor de rezervă adăugat pentru potrivirea facială",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-08-19T12:15:00",
+          "type": "Versiunea v4.1 publicată",
+          "status": "Reușit",
+          "detail": "Regulă veto „Document expirat” adăugată",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-07-13T13:15:00",
+          "type": "Versiunea v4.0 publicată",
+          "status": "Reușit",
+          "detail": "Ordinea pașilor schimbată: liveness înainte de potrivire",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-06-06T14:15:00",
+          "type": "Versiunea v3.9 publicată",
+          "status": "Reușit",
+          "detail": "Versiunea inițială a fluxului",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "code": "PENSION_CONFIRM_SUBST",
+      "name": "Confirmarea identității pensionarilor",
+      "description": "Confirmarea anuală a identității beneficiarilor de pensii care locuiesc peste hotare (CNAS). Fluxul este în lucru.",
+      "ial": "Substanțial",
+      "version": "0.1",
+      "active": false,
+      "steps": [],
+      "veto": [],
+      "versions": [
+        {
+          "version": "0.1",
+          "at": "2026-10-10T10:40:00",
+          "by": "Cristina Moraru",
+          "change": "Caz de utilizare creat (fără pași)",
+          "current": true
+        }
+      ],
+      "createdAt": "2026-10-10T10:40:00",
+      "updatedAt": "2026-10-10T10:40:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-10-10T10:40:00",
+          "type": "Versiunea v0.1 publicată",
+          "status": "Reușit",
+          "detail": "Caz de utilizare creat (fără pași)",
+          "user": "Cristina Moraru"
+        }
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "id": "prv-regula-doc",
+      "name": "Regula Vision — Document AI",
+      "system": "Regula Forensics",
+      "type": "Verificare document",
+      "endpoint": "https://docreader.regula.ekyc.gov.md/api/v2/process",
+      "auth": "Cheie API",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-09-13T11:00:00",
+      "timeoutMs": 20000,
+      "retries": 2,
+      "cbThreshold": 5,
+      "cbReset": 60,
+      "priority": 1,
+      "health": "Operațional",
+      "latency": 1.1,
+      "lastHealthCheck": "2026-10-13T14:51:40",
+      "active": true,
+      "createdAt": "2025-12-17T10:00:00",
+      "updatedAt": "2026-10-07T15:10:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-10-13T14:51:40",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Operațional · 1,1 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-10-07T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2025-12-17T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "Regula Vision — Document AI",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-regula-nfc",
+      "name": "Regula — NFC eMRTD",
+      "system": "Regula Forensics",
+      "type": "Citire cip NFC",
+      "endpoint": "https://nfc.regula.ekyc.gov.md/api/v1/chip",
+      "auth": "Cheie API",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-09-02T11:00:00",
+      "timeoutMs": 15000,
+      "retries": 1,
+      "cbThreshold": 5,
+      "cbReset": 60,
+      "priority": 1,
+      "health": "Operațional",
+      "latency": 0.8,
+      "lastHealthCheck": "2026-10-13T14:51:33",
+      "active": true,
+      "createdAt": "2025-12-26T10:00:00",
+      "updatedAt": "2026-10-04T15:10:00",
+      "updatedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-10-13T14:51:33",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Operațional · 0,8 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-10-04T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2025-12-26T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "Regula — NFC eMRTD",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-iproov",
+      "name": "iProov — Liveness",
+      "system": "iProov",
+      "type": "Detecție liveness",
+      "endpoint": "https://eu.rp.secure.iproov.me/api/v2/claim/verify",
+      "auth": "OAuth 2.0 (client credentials)",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-08-22T11:00:00",
+      "timeoutMs": 30000,
+      "retries": 2,
+      "cbThreshold": 4,
+      "cbReset": 90,
+      "priority": 1,
+      "health": "Operațional",
+      "latency": 1.6,
+      "lastHealthCheck": "2026-10-13T14:51:26",
+      "active": true,
+      "createdAt": "2026-01-04T10:00:00",
+      "updatedAt": "2026-10-01T15:10:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-13T14:51:26",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Operațional · 1,6 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-10-01T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-01-04T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "iProov — Liveness",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-facetec",
+      "name": "FaceTec — 3D Face Match",
+      "system": "FaceTec",
+      "type": "Potrivire facială",
+      "endpoint": "https://facetec.ekyc.gov.md/match-3d-2d",
+      "auth": "Cheie API",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-08-11T11:00:00",
+      "timeoutMs": 25000,
+      "retries": 2,
+      "cbThreshold": 5,
+      "cbReset": 120,
+      "priority": 1,
+      "health": "Degradat",
+      "latency": 4.2,
+      "lastHealthCheck": "2026-10-13T14:51:19",
+      "active": true,
+      "createdAt": "2026-01-13T10:00:00",
+      "updatedAt": "2026-09-28T15:10:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-13T14:51:19",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Degradat · 4,2 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-09-28T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-01-13T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "FaceTec — 3D Face Match",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-vonage",
+      "name": "Vonage Verify — SMS OTP",
+      "system": "Vonage",
+      "type": "Verificare telefon",
+      "endpoint": "https://api.nexmo.com/v2/verify",
+      "auth": "Basic (utilizator + parolă)",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-07-31T11:00:00",
+      "timeoutMs": 10000,
+      "retries": 3,
+      "cbThreshold": 3,
+      "cbReset": 300,
+      "priority": 1,
+      "health": "Indisponibil",
+      "latency": null,
+      "lastHealthCheck": "2026-10-13T14:51:12",
+      "active": true,
+      "createdAt": "2026-01-22T10:00:00",
+      "updatedAt": "2026-09-25T15:10:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-13T14:51:12",
+          "type": "Verificare de sănătate",
+          "status": "Eșuat",
+          "detail": "Indisponibil · fără răspuns",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-09-25T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-01-22T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "Vonage Verify — SMS OTP",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-asp-rsp",
+      "name": "ASP — Registrul de stat al populației",
+      "system": "MConnect (AGE)",
+      "type": "Registru de stat",
+      "endpoint": "https://mconnect.gov.md/api/rsp/v3/person",
+      "auth": "mTLS (certificat client)",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-07-20T11:00:00",
+      "timeoutMs": 8000,
+      "retries": 2,
+      "cbThreshold": 10,
+      "cbReset": 60,
+      "priority": 1,
+      "health": "Operațional",
+      "latency": 0.6,
+      "lastHealthCheck": "2026-10-13T14:51:05",
+      "active": true,
+      "createdAt": "2026-01-31T10:00:00",
+      "updatedAt": "2026-09-22T15:10:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-13T14:51:05",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Operațional · 0,6 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-09-22T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-01-31T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "ASP — Registrul de stat al populației",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-veriff",
+      "name": "Veriff",
+      "system": "Veriff",
+      "type": "Verificare document",
+      "endpoint": "https://stationapi.veriff.com/v1/sessions",
+      "auth": "Cheie API + semnătură HMAC",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-07-09T11:00:00",
+      "timeoutMs": 30000,
+      "retries": 1,
+      "cbThreshold": 5,
+      "cbReset": 120,
+      "priority": 2,
+      "health": "Operațional",
+      "latency": 2.3,
+      "lastHealthCheck": "2026-10-13T14:50:58",
+      "active": true,
+      "createdAt": "2026-02-09T10:00:00",
+      "updatedAt": "2026-09-19T15:10:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-13T14:50:58",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Operațional · 2,3 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-09-19T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-02-09T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "Veriff",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "prv-innovatrics",
+      "name": "Innovatrics DOT",
+      "system": "Innovatrics",
+      "type": "Potrivire facială",
+      "endpoint": "https://dot.innovatrics.ekyc.gov.md/api/v1/face/match",
+      "auth": "Cheie API",
+      "credentialsSet": true,
+      "credentialsUpdatedAt": "2026-06-28T11:00:00",
+      "timeoutMs": 20000,
+      "retries": 1,
+      "cbThreshold": 5,
+      "cbReset": 120,
+      "priority": 2,
+      "health": "Operațional",
+      "latency": 1.4,
+      "lastHealthCheck": "2026-10-13T14:50:51",
+      "active": false,
+      "createdAt": "2026-02-18T10:00:00",
+      "updatedAt": "2026-09-16T15:10:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-13T14:50:51",
+          "type": "Verificare de sănătate",
+          "status": "Reușit",
+          "detail": "Operațional · 1,4 s",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-09-16T15:10:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Timeout · reîncercări",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-02-18T10:00:00",
+          "type": "Furnizor adăugat",
+          "status": "Reușit",
+          "detail": "Innovatrics DOT",
+          "user": "Cristina Moraru"
+        }
+      ]
+    }
+  ],
+  "scoring": [
+    {
+      "id": "scr-01",
+      "name": "Standard telecom",
+      "description": "Activarea cartelelor SIM prepaid: accent pe potrivirea facială, telefonul confirmat aduce un bonus mic.",
+      "accept": 0.8,
+      "reject": 0.45,
+      "minConfidence": 0.6,
+      "aggregation": "Medie ponderată",
+      "active": true,
+      "createdAt": "2026-01-26T10:00:00",
+      "updatedAt": "2026-10-04T16:00:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "rules": [
+        {
+          "id": "scr-01-r1",
+          "order": 1,
+          "name": "Pondere potrivire facială",
+          "stepType": "FACE_MATCH",
+          "ruleType": "Pondere",
+          "value": 0.35,
+          "condition": "",
+          "enabled": true
+        },
+        {
+          "id": "scr-01-r2",
+          "order": 2,
+          "name": "Penalizare document aproape expirat",
+          "stepType": "DOCUMENT_SCAN",
+          "ruleType": "Penalizare",
+          "value": 0.05,
+          "condition": "document.expiresInDays < 30",
+          "enabled": true
+        },
+        {
+          "id": "scr-01-r3",
+          "order": 3,
+          "name": "Bonus telefon confirmat",
+          "stepType": "PHONE_VERIFICATION",
+          "ruleType": "Bonus",
+          "value": 0.02,
+          "condition": "phone.verified == true",
+          "enabled": true
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-04T16:00:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,8 · prag respingere 0,45",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-01-26T10:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Standard telecom",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "scr-02",
+      "name": "Standard bancar — deschidere cont",
+      "description": "Deschiderea de conturi la distanță (nivel ridicat): documentul și potrivirea facială cântăresc cel mai mult, cipul NFC valid aduce bonus.",
+      "accept": 0.85,
+      "reject": 0.45,
+      "minConfidence": 0.6,
+      "aggregation": "Medie ponderată",
+      "active": true,
+      "createdAt": "2026-02-15T10:00:00",
+      "updatedAt": "2026-09-30T16:00:00",
+      "updatedBy": "Cristina Moraru",
+      "rules": [
+        {
+          "id": "scr-02-r1",
+          "order": 1,
+          "name": "Pondere document",
+          "stepType": "DOCUMENT_SCAN",
+          "ruleType": "Pondere",
+          "value": 0.3,
+          "condition": "",
+          "enabled": true
+        },
+        {
+          "id": "scr-02-r2",
+          "order": 2,
+          "name": "Pondere potrivire facială",
+          "stepType": "FACE_MATCH",
+          "ruleType": "Pondere",
+          "value": 0.35,
+          "condition": "",
+          "enabled": true
+        },
+        {
+          "id": "scr-02-r3",
+          "order": 3,
+          "name": "Bonus cip NFC valid",
+          "stepType": "NFC_CHIP",
+          "ruleType": "Bonus",
+          "value": 0.03,
+          "condition": "nfc.chipVerified == true && nfc.passiveAuth == \"OK\"",
+          "enabled": true
+        },
+        {
+          "id": "scr-02-r4",
+          "order": 4,
+          "name": "Penalizare dispozitiv nou",
+          "stepType": "",
+          "ruleType": "Penalizare",
+          "value": 0.04,
+          "condition": "device.firstSeenDays < 1",
+          "enabled": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-09-30T16:00:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,85 · prag respingere 0,45",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-02-15T10:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Standard bancar — deschidere cont",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "scr-03",
+      "name": "Reverificare simplă",
+      "description": "Reverificarea periodică a clienților existenți: doar liveness și potrivire facială, fără reguli suplimentare.",
+      "accept": 0.75,
+      "reject": 0.4,
+      "minConfidence": 0.5,
+      "aggregation": "Medie ponderată",
+      "active": true,
+      "createdAt": "2026-03-07T10:00:00",
+      "updatedAt": "2026-09-26T16:00:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "rules": [],
+      "events": [
+        {
+          "at": "2026-09-26T16:00:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,75 · prag respingere 0,4",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-03-07T10:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Reverificare simplă",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "scr-04",
+      "name": "Servicii publice — nivel ridicat",
+      "description": "Acces la servicii publice cu nivel de asigurare ridicat: praguri stricte, liveness la limită penalizat.",
+      "accept": 0.88,
+      "reject": 0.5,
+      "minConfidence": 0.7,
+      "aggregation": "Medie ponderată",
+      "active": true,
+      "createdAt": "2026-03-27T10:00:00",
+      "updatedAt": "2026-09-22T16:00:00",
+      "updatedBy": "Anastasia Cojocaru",
+      "rules": [
+        {
+          "id": "scr-04-r1",
+          "order": 1,
+          "name": "Pondere liveness",
+          "stepType": "LIVENESS",
+          "ruleType": "Pondere",
+          "value": 0.3,
+          "condition": "",
+          "enabled": true
+        },
+        {
+          "id": "scr-04-r2",
+          "order": 2,
+          "name": "Penalizare liveness la limită",
+          "stepType": "LIVENESS",
+          "ruleType": "Penalizare",
+          "value": 0.06,
+          "condition": "steps.LIVENESS.score < 0.8",
+          "enabled": true
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-09-22T16:00:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,88 · prag respingere 0,5",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-03-27T10:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Servicii publice — nivel ridicat",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "scr-05",
+      "name": "Asigurări — standard",
+      "description": "Încheierea polițelor de asigurare online.",
+      "accept": 0.8,
+      "reject": 0.45,
+      "minConfidence": 0.6,
+      "aggregation": "Medie ponderată",
+      "active": true,
+      "createdAt": "2026-04-16T10:00:00",
+      "updatedAt": "2026-09-18T16:00:00",
+      "updatedBy": "Cristina Moraru",
+      "rules": [
+        {
+          "id": "scr-05-r1",
+          "order": 1,
+          "name": "Pondere potrivire facială",
+          "stepType": "FACE_MATCH",
+          "ruleType": "Pondere",
+          "value": 0.35,
+          "condition": "",
+          "enabled": true
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-09-18T16:00:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,8 · prag respingere 0,45",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-04-16T10:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Asigurări — standard",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "scr-06",
+      "name": "Creditare — standard",
+      "description": "Credite online: neconcordanța cu RSP penalizează puternic scorul.",
+      "accept": 0.82,
+      "reject": 0.45,
+      "minConfidence": 0.6,
+      "aggregation": "Medie ponderată",
+      "active": true,
+      "createdAt": "2026-05-06T10:00:00",
+      "updatedAt": "2026-09-14T16:00:00",
+      "updatedBy": "Cristina Moraru",
+      "rules": [
+        {
+          "id": "scr-06-r1",
+          "order": 1,
+          "name": "Penalizare RSP neconcordant",
+          "stepType": "REGISTRY_CHECK",
+          "ruleType": "Penalizare",
+          "value": 0.1,
+          "condition": "registry.match == false",
+          "enabled": true
+        },
+        {
+          "id": "scr-06-r2",
+          "order": 2,
+          "name": "Bonus client existent",
+          "stepType": "",
+          "ruleType": "Bonus",
+          "value": 0.02,
+          "condition": "client.knownSubject == true",
+          "enabled": true
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-09-14T16:00:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,82 · prag respingere 0,45",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-05-06T10:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Creditare — standard",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "scr-07",
+      "name": "Bancar — strict (pilot)",
+      "description": "Variantă mai strictă pentru pilotul de credite ipotecare; nu este atribuită niciunui client.",
+      "accept": 0.9,
+      "reject": 0.55,
+      "minConfidence": 0.75,
+      "aggregation": "Minimul scorurilor",
+      "active": false,
+      "createdAt": "2026-09-03T11:00:00",
+      "updatedAt": "2026-10-01T14:20:00",
+      "updatedBy": "Cristina Moraru",
+      "rules": [],
+      "events": [
+        {
+          "at": "2026-10-01T14:20:00",
+          "type": "Configurație actualizată",
+          "status": "Reușit",
+          "detail": "Prag acceptare 0,9 · prag respingere 0,55",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-09-03T11:00:00",
+          "type": "Configurație creată",
+          "status": "Reușit",
+          "detail": "Bancar — strict (pilot)",
+          "user": "Cristina Moraru"
+        }
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "key": "session.ttlMinutes",
+      "name": "Durata maximă a unei sesiuni",
+      "description": "După acest interval fără decizie, sesiunea expiră (minute).",
+      "type": "number",
+      "value": "30",
+      "category": "Sesiuni",
+      "active": true,
+      "createdAt": "2025-12-17T10:00:00",
+      "updatedAt": "2026-10-11T09:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "session.idleTimeoutMinutes",
+      "name": "Expirare la inactivitate",
+      "description": "Minute fără nicio acțiune a utilizatorului până la închiderea fluxului.",
+      "type": "number",
+      "value": "10",
+      "category": "Sesiuni",
+      "active": true,
+      "createdAt": "2025-12-18T10:00:00",
+      "updatedAt": "2026-10-04T10:13:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "session.resumeAllowed",
+      "name": "Reluarea sesiunii întrerupte",
+      "description": "Utilizatorul poate relua fluxul din același dispozitiv, dacă sesiunea nu a expirat.",
+      "type": "boolean",
+      "value": "true",
+      "category": "Sesiuni",
+      "active": true,
+      "createdAt": "2025-12-19T10:00:00",
+      "updatedAt": "2026-09-27T11:26:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "session.maxAttemptsPerSubject",
+      "name": "Încercări pe subiect într-o zi",
+      "description": "Câte sesiuni poate porni aceeași persoană (după IDNP) în 24 de ore.",
+      "type": "number",
+      "value": "5",
+      "category": "Sesiuni",
+      "active": false,
+      "createdAt": "2025-12-20T10:00:00",
+      "updatedAt": "2026-09-20T12:39:00",
+      "updatedBy": "Sergiu Munteanu"
+    },
+    {
+      "key": "review.slaHours",
+      "name": "Termen de revizie",
+      "description": "Ore de la trimiterea în revizie până la termenul-limită al operatorului.",
+      "type": "number",
+      "value": "8",
+      "category": "Revizie manuală",
+      "active": true,
+      "createdAt": "2025-12-21T10:00:00",
+      "updatedAt": "2026-09-13T13:52:00",
+      "updatedBy": "Sergiu Munteanu"
+    },
+    {
+      "key": "review.multiOperatorRule",
+      "name": "Regula multi-operator",
+      "description": "Cum se agregă deciziile în revizia cu mai mulți operatori.",
+      "type": "string",
+      "value": "Majoritate (2 din 3)",
+      "category": "Revizie manuală",
+      "active": true,
+      "createdAt": "2025-12-22T10:00:00",
+      "updatedAt": "2026-09-06T14:05:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "review.evidenceAccessMinutes",
+      "name": "Durata accesului la dovezi",
+      "description": "Minute cât durează accesul acordat unui auditor sau supervizor la dovezile unei sesiuni.",
+      "type": "number",
+      "value": "15",
+      "category": "Revizie manuală",
+      "active": true,
+      "createdAt": "2025-12-23T10:00:00",
+      "updatedAt": "2026-08-30T15:18:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "alerts.errorRatePercent",
+      "name": "Prag alertă rată de eroare",
+      "description": "Peste acest procent de sesiuni cu eroare (fereastra de 1 h) apare o alertă critică.",
+      "type": "number",
+      "value": "5",
+      "category": "Alerte",
+      "active": true,
+      "createdAt": "2025-12-24T10:00:00",
+      "updatedAt": "2026-08-23T16:31:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "alerts.providerLatencyP95Seconds",
+      "name": "Prag alertă latență furnizor",
+      "description": "Latența p95 (secunde) peste care un furnizor este marcat „Degradat”.",
+      "type": "number",
+      "value": "3",
+      "category": "Alerte",
+      "active": true,
+      "createdAt": "2025-12-25T10:00:00",
+      "updatedAt": "2026-08-16T09:44:00",
+      "updatedBy": "Sergiu Munteanu"
+    },
+    {
+      "key": "alerts.channels",
+      "name": "Canale de notificare a alertelor",
+      "description": "Unde se trimit alertele critice: listă de e-mailuri și notificare MNotify.",
+      "type": "json",
+      "value": "{\"email\":[\"noc@egov.md\",\"ekyc-ops@egov.md\"],\"mnotify\":true,\"minSeverity\":\"Critică\"}",
+      "category": "Alerte",
+      "active": true,
+      "createdAt": "2025-12-26T10:00:00",
+      "updatedAt": "2026-10-08T10:57:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "limits.maxUploadMb",
+      "name": "Dimensiunea maximă a unei imagini",
+      "description": "Megaocteți pentru o fotografie de document sau un selfie trimis de SDK.",
+      "type": "number",
+      "value": "10",
+      "category": "Limite tehnice",
+      "active": true,
+      "createdAt": "2025-12-27T10:00:00",
+      "updatedAt": "2026-10-01T11:10:00",
+      "updatedBy": "Sergiu Munteanu"
+    },
+    {
+      "key": "limits.apiRatePerMinute",
+      "name": "Limită de apeluri API pe client",
+      "description": "Cereri pe minut acceptate de la un client înainte de răspunsul 429.",
+      "type": "number",
+      "value": "600",
+      "category": "Limite tehnice",
+      "active": true,
+      "createdAt": "2025-12-28T10:00:00",
+      "updatedAt": "2026-09-24T12:23:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "limits.retryBackoff",
+      "name": "Politica de reîncercare a joburilor",
+      "description": "Pauza inițială, factorul de creștere și pauza maximă între reîncercări (ms).",
+      "type": "json",
+      "value": "{\"initialMs\":500,\"factor\":2,\"maxMs\":8000}",
+      "category": "Limite tehnice",
+      "active": true,
+      "createdAt": "2025-12-29T10:00:00",
+      "updatedAt": "2026-09-17T13:36:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "features.nfcRequiredHigh",
+      "name": "NFC obligatoriu la nivel ridicat",
+      "description": "Cazurile de utilizare cu nivel ridicat cer citirea cipului actului.",
+      "type": "boolean",
+      "value": "true",
+      "category": "Funcționalități",
+      "active": true,
+      "createdAt": "2025-12-30T10:00:00",
+      "updatedAt": "2026-09-10T14:49:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "features.webFallback",
+      "name": "Continuare în browser",
+      "description": "Dacă aplicația nu are SDK-ul mobil, fluxul continuă în SDK-ul Web.",
+      "type": "boolean",
+      "value": "true",
+      "category": "Funcționalități",
+      "active": true,
+      "createdAt": "2025-12-31T10:00:00",
+      "updatedAt": "2026-09-03T15:02:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "features.videoArchive",
+      "name": "Arhivarea video-ului liveness",
+      "description": "Păstrează înregistrarea video completă, nu doar cadrele cheie.",
+      "type": "boolean",
+      "value": "false",
+      "category": "Funcționalități",
+      "active": false,
+      "createdAt": "2026-01-01T10:00:00",
+      "updatedAt": "2026-08-27T16:15:00",
+      "updatedBy": "Sergiu Munteanu"
+    },
+    {
+      "key": "integrations.mconnect.rspEndpoint",
+      "name": "Adresa RSP în MConnect",
+      "description": "Serviciul MConnect prin care se interoghează Registrul de stat al populației.",
+      "type": "string",
+      "value": "https://mconnect.gov.md/api/rsp/v3",
+      "category": "Integrări",
+      "active": true,
+      "createdAt": "2026-01-02T10:00:00",
+      "updatedAt": "2026-08-20T09:28:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "integrations.mnotify.templateReview",
+      "name": "Șablon MNotify — rezultat revizie",
+      "description": "Codul șablonului MNotify trimis solicitantului după revizia manuală.",
+      "type": "string",
+      "value": "EKYC_REVIEW_RESULT",
+      "category": "Integrări",
+      "active": true,
+      "createdAt": "2026-01-03T10:00:00",
+      "updatedAt": "2026-08-13T10:41:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "integrations.mlog.level",
+      "name": "Nivel de jurnalizare MLog",
+      "description": "Nivelul minim al evenimentelor trimise în MLog.",
+      "type": "string",
+      "value": "INFO",
+      "category": "Integrări",
+      "active": true,
+      "createdAt": "2026-01-04T10:00:00",
+      "updatedAt": "2026-10-05T11:54:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "key": "evidence.retentionDays",
+      "name": "Păstrarea dovezilor",
+      "description": "Zile cât se păstrează imaginile și video-ul unei sesiuni finalizate.",
+      "type": "number",
+      "value": "90",
+      "category": "Păstrarea datelor",
+      "active": true,
+      "createdAt": "2026-01-05T10:00:00",
+      "updatedAt": "2026-09-28T12:07:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "key": "audit.retentionDays",
+      "name": "Păstrarea jurnalului de audit",
+      "description": "Zile cât se păstrează jurnalul de acces și de audit.",
+      "type": "number",
+      "value": "1825",
+      "category": "Păstrarea datelor",
+      "active": true,
+      "createdAt": "2026-01-06T10:00:00",
+      "updatedAt": "2026-09-21T13:20:00",
+      "updatedBy": "Sergiu Munteanu"
+    }
+  ],
+  "sdk": [
+    {
+      "id": "sdk-ios-421",
+      "version": "4.2.1",
+      "platform": "iOS",
+      "description": "Remediere: blocarea camerei pe iPhone 12 la detecția liveness.",
+      "releaseDate": "2026-09-22",
+      "recommended": true,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/ios/4.2.1",
+      "createdAt": "2026-09-22T12:30:00",
+      "updatedAt": "2026-09-25T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "sdk-ios-420",
+      "version": "4.2.0",
+      "platform": "iOS",
+      "description": "Citire NFC mai rapidă pe iOS 18; ecran nou de consimțământ.",
+      "releaseDate": "2026-08-28",
+      "recommended": false,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/ios/4.2.0",
+      "createdAt": "2026-08-28T12:30:00",
+      "updatedAt": "2026-08-31T15:00:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "sdk-ios-418",
+      "version": "4.1.8",
+      "platform": "iOS",
+      "description": "Ultima versiune a ramurii 4.1; compatibilă cu iOS 16.",
+      "releaseDate": "2026-06-23",
+      "recommended": false,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/ios/4.1.8",
+      "createdAt": "2026-06-23T12:30:00",
+      "updatedAt": "2026-06-26T15:00:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "sdk-ios-403",
+      "version": "4.0.3",
+      "platform": "iOS",
+      "description": "Ramura 4.0, fără suport pentru documentele noi (2026).",
+      "releaseDate": "2026-01-26",
+      "recommended": false,
+      "supported": false,
+      "downloadUrl": "https://sdk.ekyc.gov.md/ios/4.0.3",
+      "createdAt": "2026-01-26T12:30:00",
+      "updatedAt": "2026-01-29T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "sdk-android-3120",
+      "version": "3.12.0",
+      "platform": "Android",
+      "description": "Suport pentru actul de identitate 2026; liveness pasiv.",
+      "releaseDate": "2026-09-25",
+      "recommended": true,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/android/3.12.0",
+      "createdAt": "2026-09-25T12:30:00",
+      "updatedAt": "2026-09-28T15:00:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "sdk-android-3112",
+      "version": "3.11.2",
+      "platform": "Android",
+      "description": "Remedieri NFC pe Samsung Galaxy A.",
+      "releaseDate": "2026-08-11",
+      "recommended": false,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/android/3.11.2",
+      "createdAt": "2026-08-11T12:30:00",
+      "updatedAt": "2026-08-14T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "sdk-android-3100",
+      "version": "3.10.0",
+      "platform": "Android",
+      "description": "Android 15; reîncercare automată la pierderea conexiunii.",
+      "releaseDate": "2026-05-26",
+      "recommended": false,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/android/3.10.0",
+      "createdAt": "2026-05-26T12:30:00",
+      "updatedAt": "2026-05-29T15:00:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "sdk-android-385",
+      "version": "3.8.5",
+      "platform": "Android",
+      "description": "Ramura 3.8, fără verificarea integrității dispozitivului.",
+      "releaseDate": "2025-12-17",
+      "recommended": false,
+      "supported": false,
+      "downloadUrl": "https://sdk.ekyc.gov.md/android/3.8.5",
+      "createdAt": "2025-12-17T12:30:00",
+      "updatedAt": "2025-12-20T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "sdk-web-250rc1",
+      "version": "2.5.0-rc.1",
+      "platform": "Web",
+      "description": "Versiune de test: captură document din webcam cu ghidaj nou.",
+      "releaseDate": "2026-10-09",
+      "recommended": false,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/web/2.5.0-rc.1",
+      "createdAt": "2026-10-09T12:30:00",
+      "updatedAt": "2026-10-12T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "sdk-web-240",
+      "version": "2.4.0",
+      "platform": "Web",
+      "description": "SDK Web pentru onboarding din browser (desktop și mobil).",
+      "releaseDate": "2026-09-08",
+      "recommended": true,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/web/2.4.0",
+      "createdAt": "2026-09-08T12:30:00",
+      "updatedAt": "2026-09-11T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    },
+    {
+      "id": "sdk-web-231",
+      "version": "2.3.1",
+      "platform": "Web",
+      "description": "Remediere: orientarea camerei pe Safari iOS.",
+      "releaseDate": "2026-07-07",
+      "recommended": false,
+      "supported": true,
+      "downloadUrl": "https://sdk.ekyc.gov.md/web/2.3.1",
+      "createdAt": "2026-07-07T12:30:00",
+      "updatedAt": "2026-07-10T15:00:00",
+      "updatedBy": "Cristina Moraru"
+    },
+    {
+      "id": "sdk-web-220",
+      "version": "2.2.0",
+      "platform": "Web",
+      "description": "Ramura 2.2, fără liveness pasiv.",
+      "releaseDate": "2026-03-17",
+      "recommended": false,
+      "supported": false,
+      "downloadUrl": "https://sdk.ekyc.gov.md/web/2.2.0",
+      "createdAt": "2026-03-17T12:30:00",
+      "updatedAt": "2026-03-20T15:00:00",
+      "updatedBy": "Anastasia Cojocaru"
+    }
+  ],
+  "trustedCas": [
+    {
+      "id": "ca-moldsign-2021",
+      "name": "MoldSign Root CA 2021",
+      "subject": "CN=MoldSign Root CA 2021, O=STISC, C=MD",
+      "issuer": "CN=MoldSign Root CA 2021, O=STISC, C=MD",
+      "serial": "BAD820DB6E393844",
+      "thumbprint": "17:04:46:22:08:D5:08:CD:34:C5:B0:D8:1B:FD:3C:93",
+      "keyAlgorithm": "RSA 4096",
+      "validFrom": "2021-11-28",
+      "validTo": "2041-11-28",
+      "status": "Activ",
+      "rotation": null,
+      "usedBy": [
+        "mpay-gov"
+      ],
+      "uploadedAt": "2025-09-08T12:00:00",
+      "uploadedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2025-09-08T12:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "MoldSign Root CA 2021 · amprentă SHA-256 verificată",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "ca-age-mtls-g1",
+      "name": "AGE Clients mTLS CA G1",
+      "subject": "CN=AGE Clients mTLS CA G1, O=Agenția de Guvernare Electronică, C=MD",
+      "issuer": "CN=MoldSign Root CA 2021, O=STISC, C=MD",
+      "serial": "BA27D7AC9BCD9D16",
+      "thumbprint": "AC:07:47:F4:9D:10:44:16:8A:FE:11:E2:E8:A7:2A:62",
+      "keyAlgorithm": "RSA 3072",
+      "validFrom": "2022-10-24",
+      "validTo": "2026-11-30",
+      "status": "Activ",
+      "rotation": {
+        "role": "old",
+        "partner": "ca-age-mtls-g2",
+        "startedAt": "2026-10-07T10:05:00",
+        "until": "2026-11-06T13:52:00"
+      },
+      "usedBy": [
+        "orange-selfcare",
+        "moldcell-app",
+        "asito-online"
+      ],
+      "uploadedAt": "2025-10-18T12:00:00",
+      "uploadedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-07T10:05:00",
+          "type": "Rotație inițiată",
+          "status": "Reușit",
+          "detail": "Va fi înlocuit de „AGE Clients mTLS CA G2”.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2025-10-18T12:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "AGE Clients mTLS CA G1 · amprentă SHA-256 verificată",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "ca-age-mtls-g2",
+      "name": "AGE Clients mTLS CA G2",
+      "subject": "CN=AGE Clients mTLS CA G2, O=Agenția de Guvernare Electronică, C=MD",
+      "issuer": "CN=MoldSign Root CA 2021, O=STISC, C=MD",
+      "serial": "75FC71DA84218960",
+      "thumbprint": "DB:50:BC:76:24:EC:B6:30:1A:C0:10:12:97:DC:BB:51",
+      "keyAlgorithm": "ECDSA P-384",
+      "validFrom": "2026-10-05",
+      "validTo": "2036-10-04",
+      "status": "Activ",
+      "rotation": {
+        "role": "new",
+        "partner": "ca-age-mtls-g1",
+        "startedAt": "2026-10-07T10:05:00",
+        "until": "2026-11-06T13:52:00"
+      },
+      "usedBy": [],
+      "uploadedAt": "2026-10-05T03:00:00",
+      "uploadedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-10-07T10:05:00",
+          "type": "Rotație inițiată",
+          "status": "Reușit",
+          "detail": "Înlocuiește „AGE Clients mTLS CA G1”; ambele certificate sunt acceptate până la finalul tranziției.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-10-05T03:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "AGE Clients mTLS CA G2 · amprentă SHA-256 verificată",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "ca-maib-partner",
+      "name": "maib Partner Root CA",
+      "subject": "CN=maib Partner Root CA, O=maib SA, C=MD",
+      "issuer": "CN=maib Partner Root CA, O=maib SA, C=MD",
+      "serial": "BB9E0808003B3205",
+      "thumbprint": "0A:99:BA:5A:2F:E8:2E:0C:41:5D:75:F7:C4:BB:68:F5",
+      "keyAlgorithm": "RSA 4096",
+      "validFrom": "2024-04-26",
+      "validTo": "2034-04-26",
+      "status": "Activ",
+      "rotation": null,
+      "usedBy": [
+        "maib-app"
+      ],
+      "uploadedAt": "2026-01-06T12:00:00",
+      "uploadedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-01-06T12:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "maib Partner Root CA · amprentă SHA-256 verificată",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "ca-digicert-g2",
+      "name": "DigiCert Global Root G2",
+      "subject": "CN=DigiCert Global Root G2, OU=www.digicert.com, O=DigiCert Inc, C=US",
+      "issuer": "CN=DigiCert Global Root G2, OU=www.digicert.com, O=DigiCert Inc, C=US",
+      "serial": "8CC2995B0BCEEC74",
+      "thumbprint": "AD:AC:74:D3:AB:0E:CC:D0:6B:54:66:6F:27:B6:FE:15",
+      "keyAlgorithm": "RSA 2048",
+      "validFrom": "2013-08-01",
+      "validTo": "2038-01-15",
+      "status": "Activ",
+      "rotation": null,
+      "usedBy": [
+        "micb-web",
+        "victoriabank-online",
+        "iute-credit"
+      ],
+      "uploadedAt": "2026-02-15T12:00:00",
+      "uploadedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-02-15T12:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "DigiCert Global Root G2 · amprentă SHA-256 verificată",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    },
+    {
+      "id": "ca-orange-2019",
+      "name": "Orange Moldova Issuing CA 2019",
+      "subject": "CN=Orange Moldova Issuing CA 2019, O=Orange Moldova SA, C=MD",
+      "issuer": "CN=Orange Moldova Root CA, O=Orange Moldova SA, C=MD",
+      "serial": "418C3AAE03221156",
+      "thumbprint": "4C:FC:26:E0:FC:97:8E:BF:DC:69:1C:34:D0:2D:FD:3E",
+      "keyAlgorithm": "RSA 2048",
+      "validFrom": "2020-03-18",
+      "validTo": "2027-05-11",
+      "status": "Inactiv",
+      "rotation": null,
+      "usedBy": [],
+      "uploadedAt": "2026-03-27T12:00:00",
+      "uploadedBy": "Cristina Moraru",
+      "events": [
+        {
+          "at": "2026-07-05T12:00:00",
+          "type": "Certificat dezactivat",
+          "status": "Reușit",
+          "detail": "Organizația a trecut pe certificatul AGE.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-03-27T12:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "Orange Moldova Issuing CA 2019 · amprentă SHA-256 verificată",
+          "user": "Cristina Moraru"
+        }
+      ]
+    },
+    {
+      "id": "ca-stisc-test-2020",
+      "name": "STISC Test CA 2020",
+      "subject": "CN=STISC Test CA 2020, O=STISC, C=MD",
+      "issuer": "CN=STISC Test CA 2020, O=STISC, C=MD",
+      "serial": "30182934ADD4A8E7",
+      "thumbprint": "FF:74:37:E9:A3:F3:53:69:B4:D3:36:AC:5F:55:96:4E",
+      "keyAlgorithm": "RSA 2048",
+      "validFrom": "2021-01-12",
+      "validTo": "2026-04-16",
+      "status": "Inactiv",
+      "rotation": null,
+      "usedBy": [],
+      "uploadedAt": "2026-05-06T12:00:00",
+      "uploadedBy": "Anastasia Cojocaru",
+      "events": [
+        {
+          "at": "2026-07-15T12:00:00",
+          "type": "Certificat dezactivat",
+          "status": "Reușit",
+          "detail": "Certificat de test, expirat.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-05-06T12:00:00",
+          "type": "Certificat înregistrat",
+          "status": "Reușit",
+          "detail": "STISC Test CA 2020 · amprentă SHA-256 verificată",
+          "user": "Anastasia Cojocaru"
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "usr-01",
+      "name": "Anastasia Cojocaru",
+      "email": "anastasia.cojocaru@egov.md",
+      "mpassId": "3b7c0d30-58b1-4c7e-8253-aae52397fc74",
+      "roles": [
+        "Administrator platformă",
+        "Operator (revizie)",
+        "Supervizor",
+        "Auditor"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-13T14:42:00",
+      "createdAt": "2025-08-19T09:10:00",
+      "sessions": [
+        {
+          "id": "usr-01-t1",
+          "ip": "172.16.170.144",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-13T14:42:00",
+          "expiresAt": "2026-10-13T15:50:57",
+          "absoluteExpiresAt": "2026-10-14T02:42:00",
+          "lastActivityAt": "2026-10-13T14:46:51",
+          "revoked": false,
+          "revokedReason": "",
+          "current": true
+        },
+        {
+          "id": "usr-01-t2",
+          "ip": "172.16.27.75",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-13T13:12:00",
+          "expiresAt": "2026-10-13T15:26:28",
+          "absoluteExpiresAt": "2026-10-14T01:12:00",
+          "lastActivityAt": "2026-10-13T14:50:37",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-01-t3",
+          "ip": "10.16.39.104",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-13T11:42:00",
+          "expiresAt": "2026-10-13T15:31:39",
+          "absoluteExpiresAt": "2026-10-13T23:42:00",
+          "lastActivityAt": "2026-10-13T14:50:44",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-01-t4",
+          "ip": "10.16.169.98",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T11:38:11",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-01-t5",
+          "ip": "172.16.104.24",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-09-30T12:20:00",
+          "expiresAt": "2026-09-30T13:20:00",
+          "absoluteExpiresAt": "2026-10-01T00:20:00",
+          "lastActivityAt": "2026-09-30T13:03:52",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2025-08-19T09:10:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Administrator platformă, Operator (revizie), Supervizor, Auditor",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-02",
+      "name": "Cristina Moraru",
+      "email": "cristina.moraru@egov.md",
+      "mpassId": "1f16c1c0-0505-42ae-87a2-92fe02d39bbc",
+      "roles": [
+        "Administrator platformă"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-13T14:13:40",
+      "createdAt": "2025-09-13T09:11:00",
+      "sessions": [
+        {
+          "id": "usr-02-t1",
+          "ip": "172.17.111.178",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-13T14:13:40",
+          "expiresAt": "2026-10-13T15:33:16",
+          "absoluteExpiresAt": "2026-10-14T02:13:40",
+          "lastActivityAt": "2026-10-13T14:49:46",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-02-t2",
+          "ip": "172.17.72.164",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-13T12:43:40",
+          "expiresAt": "2026-10-13T15:26:00",
+          "absoluteExpiresAt": "2026-10-14T00:43:40",
+          "lastActivityAt": "2026-10-13T14:47:56",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-02-t3",
+          "ip": "10.17.136.189",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:58:38",
+          "revoked": true,
+          "revokedReason": "Revocată de administrator",
+          "current": false
+        },
+        {
+          "id": "usr-02-t4",
+          "ip": "10.17.39.4",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T11:29:18",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-02-t5",
+          "ip": "172.17.154.184",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-09-30T12:20:00",
+          "expiresAt": "2026-09-30T13:20:00",
+          "absoluteExpiresAt": "2026-10-01T00:20:00",
+          "lastActivityAt": "2026-09-30T12:56:40",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2025-09-13T09:11:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Administrator platformă",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-03",
+      "name": "Sergiu Munteanu",
+      "email": "sergiu.munteanu@egov.md",
+      "mpassId": "aa2d127c-7235-45d9-9425-67950d0dc3e6",
+      "roles": [
+        "Supervizor"
+      ],
+      "status": "Activ",
+      "failedLogins": 1,
+      "lastLoginAt": "2026-10-13T13:45:20",
+      "createdAt": "2025-12-17T09:12:00",
+      "sessions": [
+        {
+          "id": "usr-03-t1",
+          "ip": "172.18.187.28",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-13T13:45:20",
+          "expiresAt": "2026-10-13T15:35:47",
+          "absoluteExpiresAt": "2026-10-14T01:45:20",
+          "lastActivityAt": "2026-10-13T14:44:36",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-03-t2",
+          "ip": "10.18.175.192",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-13T12:15:20",
+          "expiresAt": "2026-10-13T15:43:02",
+          "absoluteExpiresAt": "2026-10-14T00:15:20",
+          "lastActivityAt": "2026-10-13T14:49:06",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-03-t3",
+          "ip": "10.18.179.38",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:57:07",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-03-t4",
+          "ip": "10.18.217.174",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T11:55:24",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-03-t5",
+          "ip": "172.18.181.241",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-09-30T12:20:00",
+          "expiresAt": "2026-09-30T13:20:00",
+          "absoluteExpiresAt": "2026-10-01T00:20:00",
+          "lastActivityAt": "2026-09-30T12:58:31",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-03-t6",
+          "ip": "10.18.12.142",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-09-27T13:20:00",
+          "expiresAt": "2026-09-27T14:20:00",
+          "absoluteExpiresAt": "2026-09-28T01:20:00",
+          "lastActivityAt": "2026-09-27T13:51:52",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2025-12-17T09:12:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Supervizor",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-04",
+      "name": "Olga Bejan",
+      "email": "olga.bejan@egov.md",
+      "mpassId": "45bf9598-31da-4b99-a2d2-1785a36e8cc1",
+      "roles": [
+        "Supervizor",
+        "Auditor"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-13T13:17:00",
+      "createdAt": "2026-02-05T09:13:00",
+      "sessions": [
+        {
+          "id": "usr-04-t1",
+          "ip": "10.19.205.90",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-13T13:17:00",
+          "expiresAt": "2026-10-13T15:44:05",
+          "absoluteExpiresAt": "2026-10-14T01:17:00",
+          "lastActivityAt": "2026-10-13T14:47:33",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-04-t2",
+          "ip": "10.19.17.63",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-09T09:20:00",
+          "expiresAt": "2026-10-09T10:20:00",
+          "absoluteExpiresAt": "2026-10-09T21:20:00",
+          "lastActivityAt": "2026-10-09T10:04:38",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-04-t3",
+          "ip": "172.19.218.170",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:42:13",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-04-t4",
+          "ip": "172.19.116.201",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T11:49:56",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-04-t5",
+          "ip": "10.19.190.64",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-09-30T12:20:00",
+          "expiresAt": "2026-09-30T13:20:00",
+          "absoluteExpiresAt": "2026-10-01T00:20:00",
+          "lastActivityAt": "2026-09-30T12:56:31",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-04-t6",
+          "ip": "172.19.58.4",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-09-27T13:20:00",
+          "expiresAt": "2026-09-27T14:20:00",
+          "absoluteExpiresAt": "2026-09-28T01:20:00",
+          "lastActivityAt": "2026-09-27T14:01:01",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-02-05T09:13:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Supervizor, Auditor",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-05",
+      "name": "Elena Ciobanu",
+      "email": "elena.ciobanu@egov.md",
+      "mpassId": "13315888-b737-4107-a0c0-0765a5bee5a1",
+      "roles": [
+        "Operator (revizie)"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-13T12:48:40",
+      "createdAt": "2026-01-06T09:14:00",
+      "sessions": [
+        {
+          "id": "usr-05-t1",
+          "ip": "172.20.62.58",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-13T12:48:40",
+          "expiresAt": "2026-10-13T15:23:42",
+          "absoluteExpiresAt": "2026-10-14T00:48:40",
+          "lastActivityAt": "2026-10-13T14:50:05",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-05-t2",
+          "ip": "10.20.52.148",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-13T11:18:40",
+          "expiresAt": "2026-10-13T15:23:05",
+          "absoluteExpiresAt": "2026-10-13T23:18:40",
+          "lastActivityAt": "2026-10-13T14:50:24",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-05-t3",
+          "ip": "10.20.224.124",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:25:26",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-05-t4",
+          "ip": "10.20.0.127",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T11:39:06",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-01-06T09:14:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Operator (revizie)",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-06",
+      "name": "Mihai Rotaru",
+      "email": "mihai.rotaru@egov.md",
+      "mpassId": "4498bc4d-3f41-4710-81c0-30c2d6f68bf8",
+      "roles": [
+        "Operator (revizie)"
+      ],
+      "status": "Activ",
+      "failedLogins": 2,
+      "lastLoginAt": "2026-10-13T12:20:20",
+      "createdAt": "2026-01-11T09:15:00",
+      "sessions": [
+        {
+          "id": "usr-06-t1",
+          "ip": "10.21.233.35",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-13T12:20:20",
+          "expiresAt": "2026-10-13T15:43:58",
+          "absoluteExpiresAt": "2026-10-14T00:20:20",
+          "lastActivityAt": "2026-10-13T14:49:54",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-06-t2",
+          "ip": "172.21.75.68",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-09T09:20:00",
+          "expiresAt": "2026-10-09T10:20:00",
+          "absoluteExpiresAt": "2026-10-09T21:20:00",
+          "lastActivityAt": "2026-10-09T09:36:41",
+          "revoked": true,
+          "revokedReason": "Revocată de administrator",
+          "current": false
+        },
+        {
+          "id": "usr-06-t3",
+          "ip": "10.21.233.235",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:41:41",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-06-t4",
+          "ip": "10.21.104.161",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T12:03:05",
+          "revoked": true,
+          "revokedReason": "Revocată de administrator",
+          "current": false
+        },
+        {
+          "id": "usr-06-t5",
+          "ip": "10.21.173.204",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-09-30T12:20:00",
+          "expiresAt": "2026-09-30T13:20:00",
+          "absoluteExpiresAt": "2026-10-01T00:20:00",
+          "lastActivityAt": "2026-09-30T12:37:16",
+          "revoked": true,
+          "revokedReason": "Revocată de administrator",
+          "current": false
+        },
+        {
+          "id": "usr-06-t6",
+          "ip": "10.21.127.127",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-09-27T13:20:00",
+          "expiresAt": "2026-09-27T14:20:00",
+          "absoluteExpiresAt": "2026-09-28T01:20:00",
+          "lastActivityAt": "2026-09-27T13:41:13",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-06-t7",
+          "ip": "172.21.115.248",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-09-24T14:20:00",
+          "expiresAt": "2026-09-24T15:20:00",
+          "absoluteExpiresAt": "2026-09-25T02:20:00",
+          "lastActivityAt": "2026-09-24T14:42:50",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-01-11T09:15:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Operator (revizie)",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-07",
+      "name": "Ana Grosu",
+      "email": "ana.grosu@egov.md",
+      "mpassId": "ddb195f4-251b-4a58-b37b-85ca27951334",
+      "roles": [
+        "Operator (revizie)"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-13T11:52:00",
+      "createdAt": "2026-04-06T09:16:00",
+      "sessions": [
+        {
+          "id": "usr-07-t1",
+          "ip": "172.22.122.4",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-13T11:52:00",
+          "expiresAt": "2026-10-13T15:47:50",
+          "absoluteExpiresAt": "2026-10-13T23:52:00",
+          "lastActivityAt": "2026-10-13T14:46:32",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-07-t2",
+          "ip": "10.22.61.27",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-09T09:20:00",
+          "expiresAt": "2026-10-09T10:20:00",
+          "absoluteExpiresAt": "2026-10-09T21:20:00",
+          "lastActivityAt": "2026-10-09T09:28:17",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-07-t3",
+          "ip": "10.22.167.130",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:55:44",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-04-06T09:16:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Operator (revizie)",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-08",
+      "name": "Ion Bivol",
+      "email": "ion.bivol@egov.md",
+      "mpassId": "f4591eef-5b60-4027-ad42-4355eb38fcb6",
+      "roles": [
+        "Operator (revizie)"
+      ],
+      "status": "Suspendat",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-02T09:12:00",
+      "createdAt": "2026-01-26T09:17:00",
+      "sessions": [
+        {
+          "id": "usr-08-t1",
+          "ip": "172.23.186.201",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-10-12T08:20:00",
+          "expiresAt": "2026-10-12T09:20:00",
+          "absoluteExpiresAt": "2026-10-12T20:20:00",
+          "lastActivityAt": "2026-10-12T09:04:39",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-08-t2",
+          "ip": "172.23.170.175",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-09T09:20:00",
+          "expiresAt": "2026-10-09T10:20:00",
+          "absoluteExpiresAt": "2026-10-09T21:20:00",
+          "lastActivityAt": "2026-10-09T09:50:30",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-08-t3",
+          "ip": "172.23.200.152",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:31:14",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-10-10T16:40:00",
+          "type": "Cont suspendat",
+          "status": "Reușit",
+          "detail": "Concediu de lungă durată; accesul se reactivează la revenire.",
+          "user": "Cristina Moraru"
+        },
+        {
+          "at": "2026-01-26T09:17:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Operator (revizie)",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-09",
+      "name": "Natalia Popescu",
+      "email": "natalia.popescu@cna.md",
+      "mpassId": "d21f0d73-7740-4d5d-a348-fd6e5756917a",
+      "roles": [
+        "Auditor"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": "2026-10-13T10:55:20",
+      "createdAt": "2026-06-15T09:18:00",
+      "sessions": [
+        {
+          "id": "usr-09-t1",
+          "ip": "172.16.152.102",
+          "browser": "Safari 18, macOS",
+          "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Safari/605.1.15",
+          "issuedAt": "2026-10-13T10:55:20",
+          "expiresAt": "2026-10-13T15:33:02",
+          "absoluteExpiresAt": "2026-10-13T22:55:20",
+          "lastActivityAt": "2026-10-13T14:44:00",
+          "revoked": false,
+          "revokedReason": "",
+          "current": false
+        },
+        {
+          "id": "usr-09-t2",
+          "ip": "172.16.38.62",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-09T09:20:00",
+          "expiresAt": "2026-10-09T10:20:00",
+          "absoluteExpiresAt": "2026-10-09T21:20:00",
+          "lastActivityAt": "2026-10-09T09:35:36",
+          "revoked": true,
+          "revokedReason": "Revocată de administrator",
+          "current": false
+        },
+        {
+          "id": "usr-09-t3",
+          "ip": "172.16.6.47",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:39:55",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-09-t4",
+          "ip": "10.16.98.115",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-03T11:20:00",
+          "expiresAt": "2026-10-03T12:20:00",
+          "absoluteExpiresAt": "2026-10-03T23:20:00",
+          "lastActivityAt": "2026-10-03T11:41:42",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-09-t5",
+          "ip": "10.16.121.117",
+          "browser": "Firefox 143, Ubuntu",
+          "userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:143.0) Gecko/20100101 Firefox/143.0",
+          "issuedAt": "2026-09-30T12:20:00",
+          "expiresAt": "2026-09-30T13:20:00",
+          "absoluteExpiresAt": "2026-10-01T00:20:00",
+          "lastActivityAt": "2026-09-30T12:36:24",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-06-15T09:18:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Auditor",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-10",
+      "name": "Dorin Ceban",
+      "email": "dorin.ceban@egov.md",
+      "mpassId": "d3af52ff-19c3-4b32-babd-55fb75529133",
+      "roles": [
+        "Auditor"
+      ],
+      "status": "Blocat",
+      "failedLogins": 5,
+      "lastLoginAt": "2026-09-30T09:12:00",
+      "createdAt": "2026-07-07T09:19:00",
+      "sessions": [
+        {
+          "id": "usr-10-t1",
+          "ip": "172.17.116.64",
+          "browser": "Safari, iPhone (iOS 18)",
+          "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1",
+          "issuedAt": "2026-10-12T08:20:00",
+          "expiresAt": "2026-10-12T09:20:00",
+          "absoluteExpiresAt": "2026-10-12T20:20:00",
+          "lastActivityAt": "2026-10-12T08:35:13",
+          "revoked": true,
+          "revokedReason": "Deconectare de pe toate dispozitivele",
+          "current": false
+        },
+        {
+          "id": "usr-10-t2",
+          "ip": "172.17.182.165",
+          "browser": "Chrome 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.7390.66 Safari/537.36",
+          "issuedAt": "2026-10-09T09:20:00",
+          "expiresAt": "2026-10-09T10:20:00",
+          "absoluteExpiresAt": "2026-10-09T21:20:00",
+          "lastActivityAt": "2026-10-09T09:36:48",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        },
+        {
+          "id": "usr-10-t3",
+          "ip": "10.17.214.11",
+          "browser": "Edge 141, Windows 11",
+          "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.3537.57",
+          "issuedAt": "2026-10-06T10:20:00",
+          "expiresAt": "2026-10-06T11:20:00",
+          "absoluteExpiresAt": "2026-10-06T22:20:00",
+          "lastActivityAt": "2026-10-06T10:31:21",
+          "revoked": true,
+          "revokedReason": "Expirată",
+          "current": false
+        }
+      ],
+      "events": [
+        {
+          "at": "2026-10-12T08:55:00",
+          "type": "Cont blocat automat",
+          "status": "Eșuat",
+          "detail": "5 autentificări eșuate consecutive.",
+          "user": "Platforma eKYC"
+        },
+        {
+          "at": "2026-10-11T13:05:00",
+          "type": "Sesiune de lucru revocată",
+          "status": "Reușit",
+          "detail": "Sesiune rămasă deschisă pe un calculator partajat.",
+          "user": "Anastasia Cojocaru"
+        },
+        {
+          "at": "2026-07-07T09:19:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Auditor",
+          "user": "MPass"
+        }
+      ]
+    },
+    {
+      "id": "usr-11",
+      "name": "Andrei Țurcanu",
+      "email": "andrei.turcanu@egov.md",
+      "mpassId": "51c68490-ffd2-488e-b15b-821075abda23",
+      "roles": [
+        "Operator (revizie)"
+      ],
+      "status": "Activ",
+      "failedLogins": 0,
+      "lastLoginAt": null,
+      "createdAt": "2026-10-11T09:20:00",
+      "sessions": [],
+      "events": [
+        {
+          "at": "2026-10-11T09:20:00",
+          "type": "Cont creat la prima autentificare MPass",
+          "status": "Reușit",
+          "detail": "Roluri din MPass: Operator (revizie)",
+          "user": "MPass"
+        }
+      ]
+    }
+  ]
+}

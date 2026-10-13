@@ -222,7 +222,11 @@ but this doc previously described it wrongly, see the entry.
 | Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + `__primary--danger` | `openConfirm({ danger: true })` (solicitari.js) | app |
 | List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
-| Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"` | `js/ekyc.js`, see „eKYC back office” | app |
+| Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"`; a product module plugs in with `product.extend({ views, registries, facets, load, init, showView, route, beforeNavigate })` and reads helpers from `product.shared` | `js/ekyc.js` + `js/ekyc-config.js`, see „eKYC back office” | app |
+| Product registry „+ Adaugă …” + muted rows | toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-add-product]` (label from `view.primaryAction = { id, label }`); `registries[kind].rowClass(row)` → `tr.is-inactive` (text tertiary, tags keep colour) | `js/ekyc-config.js` | app |
+| Editable value list in a form (URIs, IP-uri, scope chips, secret row) | `.e-permits-ekcfg-list` > `.e-permits-ekcfg-list__item` > `.e-permits-ekcfg-list__row` (`.e-permits-fo-input` grows + `btn btn-text-destructive btn-sm` „Elimină”) + inline error; „Adaugă …” = `btn btn-neutral btn-sm` + plus in `.e-permits-tax-cond__add`; chips = full-flow `.e-permits-fo-subgen-chip` | `rowsField` / `chipsField` in `js/ekyc-config.js` | app |
+| Field label with an info tooltip | `.e-permits-fo-field__label-row.e-permits-ekcfg-label-row` > `label` + `button.e-permits-ekcfg-tip` (20px, `icon-circle-info` 16, tertiary → secondary on hover, focus ring, `data-tooltip-label`) | `field(…, { tip })` | app |
+| Decision band 0–1 (scoring thresholds) | `.e-permits-chart.e-permits-ekyc-band` > stacked meter `--lg` (danger · warning · success) + `svg.e-permits-ekyc-band__axis` (`line.__tick`, `text.__label` / `.is-threshold`) + legend tray | `band()` in `js/ekyc-config.js` | app |
 | Meter (thin bar, one or stacked segments) | `span.e-permits-meter[role=meter\|img] (+ --lg 12px) > svg.e-permits-meter__svg > rect.__track + rect.__fill--{brand\|success\|danger\|warning\|neutral}` + `line.e-permits-meter__gap` (2px cuts between stacked segments); value right = `.e-permits-ekyc-progress` + `__count`; legend `ul.e-permits-meter-legend` (+ `--tray` = the grey legend strip inside a white chart card) + `__dot--{tone}` | `meter(segments, { max, label, size })`, `legend()` in `js/ekyc.js` | app |
 | KPI cards | `ul.e-permits-kpi-grid > li.e-permits-kpi` > `__label` · `__value` (+ `--warning\|--danger`) · `__meta` | `kpi()` in `js/ekyc.js` | app |
 | Chart card + column chart | `.e-permits-chart` (white, 1px border, radius 16) > `svg.e-permits-chart__plot` (`rect.e-permits-chart__bar--{tone}` stacked by outcome, rounded tops rx 4) · `__axis` · `.e-permits-meter-legend--tray` | `renderTrend()` / `chartBars()` / `renderDecisions()` in `js/ekyc.js` | app |
@@ -240,6 +244,13 @@ but this doc previously described it wrongly, see the entry.
 | Boxed doc field (required attachment inside a form section) | `.e-permits-fo-doc-field.e-permits-fo-doc-field--boxed` (1px dashed border/base/default, radius 16, padding 20/16; empty = click target with the dropzone hover; `is-error` = 1.5px dashed danger + inline error in the description) + `btn btn-strict btn-md` with 20px `icon-upload` | guest procură / decizie de numire | app |
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
+| Form Builder (Form Designer: palette · canvas · properties; one schema → one renderer) | `.e-permits-builder` workspace: `__library` (grouped palette `__library-section` / `__library-item`, „În curând” = `is-disabled` + reason) · `__stage` (`__service-header`, `__steps` chips, `__canvas` > `__step-section` > `__section-bar` + `__grid` > `__field` cards, `__drop-indicator`) · `__inspector` > `__panel` (`__panel-head--selected`, `.tabs.tabs--sm.e-permits-builder__tabs`, `__panel-scroll` of drawer sections) · topbar `__errors` + `__issues-menu` | `js/form-builder.js` (`COMPONENTS`, `toFo`, `window.GEAPFormBuilder`), `css/form-builder.css`, demo `fb-*` | app |
+| One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`); `.bind(root)` = the FO interactions | `js/e-permits-acte-permisive.js` | app |
+| Choice field (labelled radio rows / checkbox list / period pair in a form) | `fieldset.e-permits-fo-choice.e-permits-fo-field--span-N` > `legend.e-permits-fo-choice__legend` + `.e-permits-fo-choice__group(--inline)` of `.e-permits-fo-radio--option` rows, or `.e-permits-fo-choice__checks` of `renderCheckOption({ plain: true })`, or `.e-permits-fo-choice__pair` (two date pickers, 6 + 6, one column ≤860) | `radioFieldHtml` / `checklistFieldHtml` / `periodFieldHtml` | app |
+| FO segmented field · multi-select field · callout field · separator field | `segmentFieldHtml` (`.segmented-control.is-animated[role=radiogroup][data-fo-segment]` + label id) · `multiselectFieldHtml` (the CAEM subgenre multi-select with `data-placeholder` / `data-count-one` / `data-count-many` / `data-remove-label`, chips in `[data-fo-subgen]`) · `calloutFieldHtml` (`.e-permits-callout--info/--warning`) · `separatorFieldHtml` (library `hr.separator`) | `js/e-permits-acte-permisive.js` | app |
+| Behaviour rules in the Form Builder (Logică) | the Documente rule builder markup (`.e-permits-doc-rule` / `.e-permits-doc-cond` / `.e-permits-doc-val` / `code.e-permits-doc-kw` / `.e-permits-doc-kwselect`) with builder hooks `data-fb-rule-*` / `data-fb-cond-*`; in the panel rows use the phone layout | `logicTabHtml` / `ruleHtml` / `applyLogic` (js/form-builder.js) | app |
+| Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
+| Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -2792,11 +2803,10 @@ then read „sub câmpul în care a fost introdus codul”, not only „sub «Ca
   `visible: false` → the field gets `hidden data-fo-part-hidden` (CSS `display:none`), `required` →
   red star. The sector stays conditional (Chișinău). `field.searchLabel` (+ `field.required` star)
   replaces the „Caută adresa” label — used by the preview for the component label.
-- **Form Designer Preview** (`builderAddressPreviewHtml`): the Address pattern renders through
-  `cascadeAddressHtml` from the builder's current `addressConfig` (Vizibilitate, Obligatoriu,
-  „Cod cadastral” row) + the service districts, then `initCascadeAddress` + `bindAddressSearch` —
-  the same lookup (skeleton, messages, ×). Every builder change calls `renderPreviewAndSchema()`,
-  so the preview is live. Other components already used the builder label / required / span.
+- **Form Builder** (2026-10-13): the Adresă component's canvas card AND Preview render through
+  `cascadeAddressHtml` (via `toFo` → `GEAPFormRender.fieldHtml`) from its `addressConfig` (Vizibil,
+  Obligatoriu — both check options, „Cod cadastral” row) + the service districts; the Preview binds the
+  same lookup (skeleton, messages, ×). Every change re-renders, so the Preview is live.
 - Behaviour (both inputs): lookup only on request — „Cod cadastral” submit / Enter, the search list's
   „Caută codul cadastral” row / Enter, or a saved code chosen in the list; mock MConnect =
   `data/srre-cadastral.json`, 1.4 s (Lent 3 s). Change → skeleton → refill; clear / non-code text →
@@ -2892,6 +2902,8 @@ kept identical); JS `js/toast.js`:
 ```js
 GEAPToast.show({ type: "success", title: "Serviciu creat", message: "…",
                  link: { href, label }, duration: 4000, key: "dedupe-key" });
+/* undo (2026-10-13, Form Builder delete): a button in the link slot, closes the toast */
+GEAPToast.show({ type: "info", message: "Câmpul „X” a fost șters.", action: { label: "Anulează", onClick }, duration: 8000 });
 ```
 
 `type` info (brand) · success (`--green-600` — see token note) · warning · error
@@ -2986,13 +2998,104 @@ Contracts: `data-workplace-*` (`row`, `sort`, `page`, `page-size`, `select-row`,
 
 Note it styles bare `<th>` / `<td>` — there are no cell classes.
 
-### `e-permits-builder__*` — form builder
+### `e-permits-builder__*` — Form Builder (rebuilt 2026-10-13, batches 0–1)
 
-~110 classes and ~90 `data-builder-*` attributes; the largest family in the repo.
-Entry points: `__workspace`, `__library`, `__stage`, `__canvas`, `__field` (`is-selected`),
-`__field-tools`, `__inspector`, `__prop-panel` (`is-active`), `__step-chip`
-(`is-active`, `has-trailing-icon`), `__tag` (+ `--strong/--outlined/--success/--warning`),
-`__switch`, `__mini-check`. Mode switch: `data-builder-mode="build|preview|schema"`.
+Spec `tools/persona-test/specs/svc/form-builder.md`. Markup shell in `e-permits-acte-permisive.html`
+(`#form-builder-modal`), logic `js/form-builder.js`, CSS `css/form-builder.css` (on top of the older
+`e-permits-builder__*` rules in `e-permits-acte-permisive.css`). Opens full page on `?flow=builder`, as a
+sheet from Pașaport › Formulare (`is-sheet`), view-only for Previzualizează (`is-view-only`).
+
+**Model** (sandbox DB `geap.formBuilderSandboxDb.v2`, seed `data/form-builder-db.json`, schema v2):
+`form` (technical, code, service, title/description RO·RU·EN, access, requestTypes, version, status,
+settings) → `steps[]` (service steps edit; `locked` platform steps: Date solicitant, Documente, Verificare
+și semnare, Plată, Finalizare) → `sections[]` (title/description i18n, showTitle, showSeparator) →
+`fields[]` (`id`, `type`, `key`, `label`/`help`/`placeholder` i18n, `span` 3·4·6·8·12, `required`,
+`readOnly`, `defaultValue`, `validation`, per-type props, `dataSource` for lists, `addressConfig`,
+`published` = key locked). Corrupt / old DB → fresh form, never a crash (US-08).
+
+**Registry** `COMPONENTS[type]` = label, icon (sprite id), category, palette line, default span, tabs,
+defaults; `soon: N` = listed in the palette as „În curând” (disabled, reason tooltip „În lucru — etapa N”)
+— never a faked component. Built: Text, Text multilinie, Număr, Sumă, Email, Telefon, Dată, Listă
+derulantă, Butoane radio, Casetă de bifare, Listă de bifare, Adresă, Secțiune, Text informativ (+ the
+configured preset „Adresa obiectului”).
+
+**One renderer.** `toFo(field, { prefix, inCard, lang })` projects a builder field onto the FO schema
+shape; the canvas card body, the Preview and the request form all call
+`window.GEAPFormRender.fieldHtml` (= `stepFieldHtml`). Card body = `.e-permits-builder__field-render[inert]`
+(span 12 inside the card; ids `cv-…` vs Preview `pv-…`). The old `previewFieldControl` (label
+guessing, `type="date"`) is deleted. Preview binds with `GEAPFormRender.bind(root)`.
+
+**Canvas.** Grey stage; step chips (`__step-chip`, `is-active` = on canvas, `is-selected` = panel; lock
+icon on platform steps; red dot = errors inside); section card `__step-section` > `__section-bar`
+(grip + `button.__section-select` heading + ⋮ `renderStackMenu`) + `__grid` (12 columns; cards span by
+`[data-span]` attribute — no inline styles; one column ≤720px). Field card `article.__field[tabindex=0]
+[draggable]`: tools (grip, type tag `__tag--strong` with `title`, span tag, ⋮ Duplică / Mută mai sus /
+mai jos / Mută în „…” / Șterge) · rendered field · foot (`__field-key` 12/16 tertiary + first issue as
+`__tag--warning`). Empty section = `GEAPEmptyState.render({ compact, bare })`. „Adaugă câmp” =
+`__dropzone` as a stack-menu trigger → `__add-menu` of the usable components. „Adaugă secțiune” =
+`btn btn-secondary btn-sm`.
+
+**Interactions.** Click a palette item = add at the end of the active section (keeps focus in the
+palette); drag a palette item / a card (HTML5 DnD) → `__drop-indicator` (4px brand line, vertical
+between cards, horizontal for a new row; never at the card's own position; outside a section =
+`dropEffect: none`); drop focuses the new field's label (US-05 / 85698). Resize = drag the card's right
+edge (snaps 3·4·6·8·12). Keyboard on a focused card (WCAG 2.5.7): Alt+↑/↓ move (crosses sections),
+Alt+←/→ width, Ctrl/Cmd+D duplicate, Delete delete, Enter select; Alt+↑/↓ on a section header moves the
+section; Esc = deselect (never closes the editor); Ctrl/Cmd+Z / Shift+Z undo / redo (outside text
+inputs). A polite live region `[data-fb-live]` announces moves („… mutat pe poziția 3 din 7 în …”).
+Delete = no modal, toast „Câmpul «X» a fost șters.” + „Anulează” (8 s; stays on demo links). Section
+delete = `askConfirm` red (US-43 text); the last section / last service step are refused with a toast.
+
+**Properties panel** (by selection): nothing → „Date generale formular” (Identificare read-only + Titlu
+/ Descriere i18n, Utilizare: request-type tags + Vizibilitate și acces, Versiune facts, Limbi n/total,
+Pași list, Setări completare toggles, Statistici); step → „Pas · titlu” (titlu/descriere, „Afișat la
+tipurile de solicitare” check options, Secțiuni list + Adaugă, ⋮ Șterge pasul; platform steps read-only
+with a note); section → „Secțiune · titlu” (tabs General · Logică); field → crumbs `Pas › Secțiune ›
+tip`, title = label, key tag, ⋮, library small tabs **General · Date · Validare · Logică · Avansat**
+(per component; a tab with an error shows the red tab dot `.e-permits-ntpl-dot.e-permits-tariff__tab-error`).
+Every group = the drawer section (`.e-permits-user-create__section` + `__section-title` + `__section-content`,
+grid gap 24 `__panel-grid`); every control = full-flow (`.e-permits-fo-field` + input / textarea /
+`renderFoSelectControl` / the date picker), modes = `.segmented-control`, „Doar citire” = `renderToggle`,
+**„Obligatoriu” = `renderCheckOption({ required: true })`** (fields and address parts — no switch, no
+chip). Language segmented **RO · RU · EN** (`__lang`, warning dot = missing translation, the ntpl
+pattern) switches every translatable input; non-RO shows „Fără traducere, solicitantul vede textul în
+română.” Read-only facts = `dl.__facts` (label left, value right, last row without divider). Option
+editor `__options` (`__option-row`: index · input · delete, or „Activă” for classifier static values —
+never deleted). Address parts `__parts` > `__part` (title + kind tag + chevron toggle, check options
+Vizibil + Obligatoriu*, details: source note, „Se filtrează după …”, default value). Classifier
+reference `__ref` + registry modal `#builder-classifier-registry` (Romanian; filter = library segmented
+control; physical table = neutral tag, never monospace). The panel re-renders on every change and
+restores focus + caret + scroll.
+
+**Validation summary.** `validate()` → issues `{ level, kind, id, tab, prop, message, short }`: missing RO
+label / text, key empty / invalid / duplicate, unconfigured list source (card tag „Sursă neconfigurată”),
+static list without active values, < 2 options, invalid regex, min > max, empty date interval, step /
+section without title; warnings = one per language with missing translations. Topbar `__errors`
+(red „N erori” / green `is-clean` „Fără erori”, focus ring while open) opens `__issues-menu` (stack menu;
+groups „N erori blochează publicarea” · „Avertismente”; a row selects the object, opens its tab and
+focuses the property). „Publică” is `aria-disabled` + reason while errors > 0.
+
+**Small screens** (≤960): one scrolling column (canvas, properties, palette); ≤720 icon-only mode
+buttons (labels visually hidden). The Preview at 375 is the real mobile request form.
+
+**Batch 2 (2026-10-13).** Components Selecție multiplă (data source as the list), Comutator
+segmentat (2–5 options), Perioadă (two date pickers, „Până la ≥ De la”, durată maximă), Notă cu titlu
+(callout info / warning), Separator. **Logică** on fields, notes and sections: rules `{ action:
+show|hide|require|optional, join: and|or, conditions: [{ field, op, value }] }`, operators by family
+(text: = ≠ conține gol completat · număr/dată: = ≠ < ≤ > ≥ gol completat · alegere: = ≠ în listă · multi:
+în listă · casetă: bifat / nebifat); notes and sections only Afișează / Ascunde; „Ascunde” shows the US-42
+warning; „Folosit în” lists the readers; incomplete rule, deleted source and **circular dependency**
+(„Nu se poate salva: există o dependență circulară între câmpuri.”) are errors; deleting a field that
+rules read asks first (red). Cards show „N reguli”. **Preview** runs the rules live (restrictive wins:
+Ascunde > Afișează, Obligatoriu > Opțional; a hidden field is emptied; the star follows the rule) and
+has a toolbar `__preview-bar`: Limba formularului RO · RU · EN (fallback RO), Ecran Desktop · Mobil, „Completează
+cu date de test”, „Golește”. **Mobil** = the same page in an iframe (`width="375"`, `?flow=builder&fbframe=1`,
+class `is-frame` / `html.is-fb-frame`) that only shows the Preview and redraws on `postMessage({ type:
+"fb-preview", form, stepId, lang })` after every change — the FO media queries apply, so it is the real
+phone form. Service steps move with ⋮ Mută la stânga / dreapta or Alt+←/→ on the chip (platform steps
+stay).
+
+States `fb-01…fb-27` (see `js/demo-states.js`; QA scope `#form-builder-modal`).
 
 ### `rap-*` and `cab-*` — the two standalone pages
 
@@ -5019,8 +5122,9 @@ and header (`brand()`), the login says „EVO eKYC · Consolă de administrare�
 
 **Nav and roles** (`data/ekyc-roles.json`, MPass roles, US-03-10 CA-3): Administrator platformă —
 Dashboard · Monitorizare (Sesiuni active, Sesiuni istorice) · Configurare (8 items) · Administrare
-(Utilizatori); Operator (revizie), Supervizor, Auditor — Dashboard + Monitorizare. Config items are
-the BO placeholder pattern (`ekyc-placeholder` → empty state „… — ecran în pregătire”) until batch 3.
+(Utilizatori); Operator (revizie), Supervizor, Auditor — Dashboard + Monitorizare. Since batch 3 every
+Configurare / Administrare item is a real screen (`js/ekyc-config.js`, see „Batch 3”); the
+`ekyc-placeholder` view stays in ekyc.js but no menu item uses it.
 Icons = 20px masks per `data-nav-id` (`ek-*`) in `css/e-permits-shell.css`. The bell shows the
 active-alert count and opens the Dashboard alerts.
 
@@ -5146,6 +5250,87 @@ Figma reference (layout only): „Supervizor/Dosarele mele” 6559:102399 = a re
 - **Demo states** `ek-03f…03h` (alerts modal, after dismiss, empty), `ek-08…ek-16b` (queue, review per
   tab, viewer, decisions + validation, multi-operator, supervisor allocation, auditor search / detail /
   access, reports + export, access log, empty / error).
+
+#### Batch 3 — Configurare + Administrare (2026-10-13)
+Azure eKYC: US-UI-06 91125 Organizații · US-UI-07 91127 Clienți · US-UI-08 91128 Cazuri de utilizare ·
+US-UI-09 91130 Furnizori · US-UI-10 91131 Configurări scoring · US-UI-11 91132 Parametri · US-UI-12 91133
+Versiuni SDK · US-UI-13 91134 Utilizatori · US-05-09-B 89238 Certificate root CA (+ functional US-05-04-B,
+05-05-B, 05-06-B, 05-07-B, 05-08-B, 05-10-B, 05-12-B, 05-13). Figma: no node ids for these screens (layout
+reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json`).
+- **Code**: `js/ekyc-config.js` (loaded after `js/ekyc.js`, `product.extend`), data `data/ekyc-config.json`
+  (deterministic, `node tools/ekyc/seed-config.mjs data/ekyc-config.json`; reads `ekyc-sessions.json` so
+  clients, use cases, scoring names and providers match the monitoring screens). Shell hooks added:
+  `view.primaryAction` (toolbar „+ Adaugă …”), `registries[kind].rowClass`, and `renderToggle`,
+  `renderCheckOption`, `requiredMark`, `renderPassportBlock`, `renderSumList`, `renderUserRoles`,
+  `renderHeaderStatus` in the product API.
+- **Reuse map** (no new UI): lists = registry engine (status tabs Toate / Active / Inactive as
+  `f:<field>=<value>` tokens, quick search, Filtrare avansată facets, sort, pagination, CSV export); Parametri
+  group by `categorie` (`view.groupBy`, the registry group row); details = dosar profile panel (page header +
+  actions, meta, tabs, info cards, stacked lists, event timeline „Jurnal”); short forms = the BO right drawer
+  (markup of the classifier value drawer, `[data-ekcfg-drawer]` injected once; sections, 12-col grid, fo
+  inputs / fo-select / textarea with counter / `renderToggle` / `renderCheckOption` lists / date picker; lock
+  read-only box + hint „Nu se modifică după creare” for keys fixed after creation; footer summary +
+  Anulează · verb; closing with changes → „Renunți la modificări?”); long forms (Clienți, Furnizori — the
+  stories ask for „pagină separată, pe secțiuni”) = the **Setări one-page form** `.e-permits-cfg2` inside the
+  profile panel (section list with scroll spy + error dots, white section cards with the 1.5px red border on
+  errors, sticky save bar „● N modificări nesalvate · N câmpuri de corectat” + Anulează · Salvează); every
+  activate / deactivate / delete / revoke = `askConfirm` with the consequence (destructive red); result /
+  impact dialogs = the page modal `#case-action-modal` (`openModal`).
+- **Utilizatori** (`#ek-users`, `#ek-utilizator/<id>/<tab>`): no add / edit (MPass); cells = BO user identity
+  (avatar + name over role / „Contul tău”), roles as wrapping chips max 2 + „+N”, status Activ success ·
+  Suspendat warning · Blocat danger, failed logins > 0 = danger tag; ⋮ Suspendă / Reactivează / Deblochează.
+  Profile: actions Revocă toate sesiunile · Suspendă contul (own account: suspend aria-disabled with reason,
+  „Revocă celelalte sesiuni” keeps the current one); tabs Date generale (MPass provenance notice, KPI grid
+  Sesiuni active / Login-uri eșuate / Ultima autentificare, „Cont” info card) · Sesiuni de lucru (stacked list
+  grouped Active / Revocate sau expirate; title = parsed browser, raw user agent as its tooltip via
+  `data-tooltip-reason`; revoked greyed `.e-permits-ekcfg-muted`; „Revocă” only on active, not on your own
+  current session) · Jurnal.
+- **Clienți** (`#ek-clients`, `#ek-client/<id>/configuratie|jurnal`, `#ek-client-nou`, `#ek-client/<id>/editeaza`):
+  Client ID copy code, use cases chips max 2 + „+N”, facets Organizație / Caz / Scoring; detail = info cards
+  Date generale · Integrare · Restricții · Verificare · Audit; page form 4 sections; validation: OIDC redirect
+  (HTTPS or app scheme), scope „openid” required, IPv4 / CIDR, UUID, 1–10 000 sessions, duplicate Client ID
+  on the field; Organizație locked on edit.
+- **Cazuri de utilizare** (`#ek-caz/<code>/pasi|veto|versiuni`): create / edit = drawer (4 fields, Cod locked on
+  edit), create → detail; 0 steps = warning icon tag „0 · flux incomplet” in the list, prominent empty state
+  in the detail, „Activează” blocked by a dialog. Pași = stacked list (the session profile's „Pași de
+  verificare”) with lead = drag handle + position, tags type / Obligatoriu or Opțional / Async, meta
+  „Furnizor principal · rezervă: 1. … → 2. …”, ↑ ↓ (keyboard fallback for drag & drop) + Editează + ⋮ Șterge.
+  Step drawer: Tip · Denumire · Ordine · Obligatoriu / Async toggles · Furnizor principal · ordered fallback
+  stacked list (↑ ↓ Elimină, „Adaugă furnizor de rezervă” fo-select; principal ∈ rezervă = red list + error)
+  · Timeout · Reîncercări. Reguli veto = table in a card with an in-row toggle (no confirm, story) ·
+  Versiuni = stacked list, ⋮ „Restaurează această versiune”. Every change bumps the version (`bumpVersion`).
+- **Parametri** (`#ek-parameters`): grouped by category; value per type (boolean Da/Nu tag, number right
+  aligned, JSON shortened + tooltip, text); drawer: Cheie locked on edit, Tip date switches the value control
+  (input · numeric input · toggle Da/Nu · JSON textarea with syntax check on save); delete = page modal with
+  the impact warning + „Dezactivează în schimb” (secondary) + „Șterge parametrul” (destructive); search
+  without results ≠ empty list.
+- **Configurări scoring** (`#ek-scoring/<id>/reguli|jurnal`): detail = decision band (above) + rules table
+  (#, Tip pas or „toți pașii”, ±value, condition truncated, Activată Da/Nu) + rule drawer; edit drawer has
+  three numeric inputs + live band preview, cross-validation on input (reject < accept) — **no slider**
+  (no library component; see PO question); deactivation of an assigned configuration warns with the clients.
+- **Furnizori** (`#ek-providers`, `#ek-furnizor-nou`, `#ek-furnizor/<id>/editeaza`): Sănătate = icon tag
+  (`icon-signal`) in its own column ≠ Status plain tag at the end; row primary „Testează conexiunea” (spinner
+  `btn-loading`, disabled while running) → result modal (callout success / danger, Latență · Mesaj · Testat la ·
+  Configurație testată, „Testează din nou”); page form 2 sections, Tip furnizor locked on edit, credentials
+  „••••• setate” + „Înlocuiește credențialele” (masked input + Afișează / Ascunde + „Anulează înlocuirea”),
+  in-form test line says saved vs new values; resilience fields with info tooltips; deactivation warns about
+  active steps using the provider (hot-swap, sessions not interrupted).
+- **Organizații** (`#ek-organizations`): drawer (Denumire*, IDNO* 13 digits, contact; email / phone checks);
+  delete = confirm → 409 dialog „Organizația are clienți asociați și nu poate fi ștearsă” (warning notice +
+  the clients as a stacked list + „Dezactivează organizația”), distinct from the generic error dialog.
+- **Versiuni SDK** (`#ek-sdk`): platform = icon tag (phone / phone-1 / globe), Recomandată = brand tag with
+  award icon vs Suportată success / Nesuportată neutral, unsupported rows muted; tabs Suportate /
+  Nesuportate, facet Platformă; drawer with semver check, Platformă locked on edit, date picker, Recomandată
+  toggle only on edit (API), duplicate version + platform on the field; ⋮ Retrage din suport / Șterge.
+- **Certificate root CA** (`#ek-trusted-cas`, `#ek-certificat/<id>/general|jurnal`): status Activ / Inactiv /
+  Expirat / În rotație; upload drawer = FO boxed doc field (`.e-permits-fo-doc-field--boxed`) + parsed details
+  info card before „Înregistrează” (CA-1); expired / duplicate rejected with the reason (CA-2); activate /
+  deactivate with the mTLS clients in the consequence (CA-3/4); „Rotește certificatul” = same drawer + transition
+  period → both certificates „În rotație”, warning callout on both details „ambele certificate sunt acceptate
+  până la …” (CA-5/6), „Finalizează rotația” deactivates the old one.
+- **States** `?ek=` gol · eroare · incarcare (lists and details) · sesiuni-eroare · sectiune-eroare ·
+  test-lent · eroare-stergere. **Demo states** `ek-20 … ek-32l` (122): per screen list, tabs, filters, search
+  without results, empty / error / loading, detail tabs, drawers, validation, 409, confirmations, results.
 
 ## 5. Removed from this document
 
