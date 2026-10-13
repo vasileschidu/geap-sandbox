@@ -173,3 +173,17 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   from the page while the map frame stayed at page level — not done by any of my calls. When a
   node id suddenly returns null: stop, list the page, report; don't rebuild blindly. Restore = Figma
   version history.
+- 2026-10-13 · Servicii 08a/08b carried a captured raw „Shell header” (different alert/notification
+  icons, pill avatar) → the BO header is always the standard „Main Navigation” (button-text-circular
+  back + 2 `.header-action` + `.role-switch-item/general`); clone it from a good block (02s7
+  `10666:73777`). Scan the page for `Shell header` frames after any clone/capture.
+- 2026-10-13 · Captured reading columns (1024) sat left in a 1662 panel → panel counterAxisAlign
+  CENTER + column FIXED 1024, as in code. Swapped inputs in a HUG parent shrink → set FILL on input
+  and parent.
+- 2026-10-13 · 13 sidebar instances had the Tarife icon overridden to brand blue while unselected →
+  scan every page: per nav item (one text + its icon instance), icon blue ≠ label colour = bad
+  override; reset the vector fills to the main component's bound paint. Same check after copying
+  sidebars from a screen where another item was selected.
+- 2026-10-13 · Big page sections split per column (user): one SECTION per band („Servicii · NN ·
+  …”), members by band x-range, absolute positions kept, flow groups left of a band belong to that
+  band (check overlaps), then sections re-spaced 400 apart, tops aligned; connectors stay attached.
