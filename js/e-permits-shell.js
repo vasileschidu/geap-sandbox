@@ -62,6 +62,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let roleAdminDb = null;
   let activeRegistry = "dossiers";
 
+  /* ---- Product mode: another back office on this engine (eKYC, 2026-10-13) -------
+     A product script loaded before this file (js/ekyc.js on ?flow=ekyc) sets
+     window.GEAPShellProduct = { id, rolesUrl, logoutUrl, load(), init(api), handles(view),
+     showView(view, item), beforeNavigate(), route(hash), facets: { kind: [...] },
+     registries: { kind: { renderCell, searchText, sortValue, filterToken, openRow,
+     exportRows, emptyHtml } } }. The shell keeps the chrome, roles, nav, registry engine,
+     page header and profile panel; the product only adds its data, cells and pages.
+     Without a product the permits back office runs unchanged. */
+  const product = window.GEAPShellProduct || null;
+  const productRegistry = (kind) => product?.registries?.[kind] || null;
+
   /* ---- routing: every page has its own address ---------------------------------
      #<nav-id> for a menu page (pushed, so Back works), #dosar/… #serviciu/…
      #utilizator/… #rol/… for profiles (replaced). A refresh or Back re-reads the
@@ -1131,8 +1142,8 @@ document.addEventListener("DOMContentLoaded", () => {
     shellNav.setAttribute("aria-label", profile.ariaLabel || "Navigare principală");
 
     shellNav.innerHTML = (profile.groups || []).map((group, groupIndex) => `
-      <div class="e-permits-shell__nav-group${groupIndex === 0 ? " e-permits-shell__nav-group--workplace" : ""}${group.label === "Configurare" ? " e-permits-shell__nav-group--config" : ""}">
-        <p class="e-permits-shell__group-label">${escapeHtml(group.label)}</p>
+      <div class="e-permits-shell__nav-group${groupIndex === 0 ? " e-permits-shell__nav-group--workplace" : ""}${group.label === "Configurare" && !product ? " e-permits-shell__nav-group--config" : ""}">
+        ${group.label ? `<p class="e-permits-shell__group-label">${escapeHtml(group.label)}</p>` : ""}
         <ul class="e-permits-shell__nav-list">
           ${(group.items || []).map((item) => {
             const isActive = item.id === profile.defaultItemId;
@@ -1210,7 +1221,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const defaultItem = renderShellNav(assignment.menuProfile);
     renderRoleGroups();
 
-    if (defaultItem?.workplaceView && dossierDb) {
+    if (defaultItem && product?.handles?.(defaultItem.shellView)) {
+      product.showView(defaultItem.shellView, defaultItem);
+    } else if (defaultItem?.workplaceView && dossierDb) {
       if (workplaceRefresh) {
         workplaceRefresh.hidden = false;
       }
@@ -1235,7 +1248,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const response = await fetch("data/e-permits-roles.json", { cache: "no-store" });
+      if (product?.load) await product.load();
+      const response = await fetch(product?.rolesUrl || "data/e-permits-roles.json", { cache: "no-store" });
 
       if (!response.ok) {
         throw new Error(`Cannot load roles DB: ${response.status}`);
@@ -1648,6 +1662,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return true;
     }
 
+    const productKind = productRegistry(workplaceDb?.kind);
+    if (productKind?.filterToken) {
+      return productKind.filterToken(row, filterToken);
+    }
+
     if (filterToken === "activeWork") {
       return ["inExaminare", "asteaptaPlata", "spreCoordonare"].includes(row.status);
     }
@@ -1675,6 +1694,11 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceState.rows.filter((row) => filterByView(row, view));
 
   const getSortValue = (row, key) => {
+    const productValue = productRegistry(workplaceDb?.kind)?.sortValue?.(row, key);
+    if (productValue !== undefined) {
+      return productValue;
+    }
+
     switch (key) {
       /* Configurări servicii › Sursă externă sorts by the sync date */
       case "sursaExterna":
@@ -1736,6 +1760,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getSearchHaystack = (row) => {
+    const productKind = productRegistry(workplaceDb?.kind);
+    if (productKind?.searchText) {
+      return productKind.searchText(row).toLocaleLowerCase("ro");
+    }
+
     /* US-202 AC-05: Denumire (RO/RU/EN) and Temei legal at once (the code too) */
     if (workplaceDb?.kind === "tariffs") {
       return [row.denumire, row.nameRu, row.nameEn, row.temei, row.cod].filter(Boolean).join(" ").toLocaleLowerCase("ro");
@@ -1887,6 +1916,7 @@ document.addEventListener("DOMContentLoaded", () => {
       { key: "utilizare", label: "Utilizare", get: (r) => r.utilizare }
     ]
   };
+  if (product?.facets) Object.assign(FILTER_FACETS, product.facets);
   const filterStore = {};
   const filterStorageKey = (kind) => `e-permits-filters:${kind}`;
   const getFilterState = (kind = registryKindOf()) => {
@@ -5367,6 +5397,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const renderCell = (row, key) => {
+    const productKind = productRegistry(workplaceDb?.kind);
+    if (productKind?.renderCell) {
+      return productKind.renderCell(row, key);
+    }
+
     if (workplaceDb?.kind === "users") {
       return renderUserCell(row, key);
     }
@@ -5473,9 +5508,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!rows.length) {
       const colSpan = columns.length + (view?.selectable === false ? 0 : 1);
+      const productEmpty = productRegistry(workplaceDb?.kind)?.emptyHtml?.({ query: workplaceState.query.trim(), filtered: appliedEntries().length > 0 });
       workplaceRows.innerHTML = `
         <tr>
-          <td class="e-permits-workplace__empty" colspan="${colSpan}">${workplaceDb?.kind === "tariffs"
+          <td class="e-permits-workplace__empty" colspan="${colSpan}">${productEmpty ? productEmpty : workplaceDb?.kind === "tariffs"
             /* US-202 AC-04 / AC-05: the exact messages */
             ? (workplaceState.query.trim()
               ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumire (RO/RU/EN) sau temei legal.", bare: true })
@@ -5628,6 +5664,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const filterPending = () => !sameSelection(draftOf(), getFilterState().applied);
   const facetTone = (facet, value) => {
+    /* a facet may name its own tag tone per value (eKYC Decizie, Nivel asigurare) */
+    if (facet.tone) return facet.tone(value);
     if (!/^(statut|status)$/.test(facet.key)) return null;
     const fromDb = Object.values(workplaceDb.statuses || {}).find((st) => st.label === value)?.tone;
     return fromDb || { Activ: "success", Activă: "success", Publicat: "success", Inactiv: "neutral", Schiță: "warning", Nepublicat: "warning" }[value] || "neutral";
@@ -5910,13 +5948,11 @@ document.addEventListener("DOMContentLoaded", () => {
     shell.classList.toggle("is-users-registry", isUsersRegistry);
     workplaceToolbar?.setAttribute(
       "aria-label",
-      workplaceDb.kind === "users" ? "Filtrare utilizatori" : "Filtrare dosare"
+      view.toolbarLabel || (workplaceDb.kind === "users" ? "Filtrare utilizatori" : "Filtrare dosare")
     );
 
     if (workplaceSearch) {
-      workplaceSearch.placeholder = workplaceDb.kind === "users"
-        ? "Căutare rapidă după denumire, cod sau instituție"
-        : "Căutare rapidă după denumire, cod sau instituție";
+      workplaceSearch.placeholder = view.searchPlaceholder || "Căutare rapidă după denumire, cod sau instituție";
       workplaceSearch.value = workplaceState.query;
     }
 
@@ -16078,7 +16114,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logout = event.target.closest(".e-permits-shell__profile-logout");
     if (!logout) return;
     event.preventDefault();
-    window.location.assign("bo-login.html?ended=logout");
+    window.location.assign(product?.logoutUrl || "bo-login.html?ended=logout");
   });
 
   /* stacked-list overflow menus: one open at a time, Esc / outside click close */
@@ -17885,7 +17921,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.querySelector("[data-workplace-add-tariff]")?.addEventListener("click", () => openTariffDrawer(null, "global"));
   document.querySelector("[data-workplace-export]")?.addEventListener("click", () => {
-    if (workplaceDb?.kind === "tariffs") {
+    const productKind = productRegistry(workplaceDb?.kind);
+    if (productKind?.exportRows) {
+      productKind.exportRows(getVisibleRows());
+    } else if (workplaceDb?.kind === "tariffs") {
       /* the rows in the order shown, with the tab, search and filters applied */
       const byId = new Map((servicesStore.tariffs || []).map((t) => [t.id, t]));
       exportTariffs(getVisibleRows().map((row) => byId.get(row.id)).filter(Boolean), "tarife-globale.csv");
@@ -17927,6 +17966,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const initWorkplace = async () => {
     if (!workplacePanel) {
+      return;
+    }
+
+    /* a product brings its own data (loaded with the roles) — no dossiers to fetch */
+    if (product) {
+      routeFromHash();
       return;
     }
 
@@ -18014,6 +18059,9 @@ document.addEventListener("DOMContentLoaded", () => {
     routingFromHash = true;
     try {
       const hash = window.location.hash;
+      if (product?.route?.(hash)) {
+        return;
+      }
       let match = hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
       const linkedRow = match && getDosarById(match[1]);
       if (linkedRow) {
@@ -18195,6 +18243,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (ntplProfileState.draft) ntplProfileState.draft.dirty = false;
       hideNtplProfile();
+      product?.beforeNavigate?.();
 
       document.querySelectorAll("[data-nav-item]").forEach((link) => {
         const isActive = link === item;
@@ -18245,6 +18294,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (item.dataset.shellView === "role-placeholder") {
         showRolePlaceholder(item.dataset.navLabel || item.textContent.trim());
+      }
+
+      if (product?.handles?.(item.dataset.shellView)) {
+        product.showView(item.dataset.shellView, { id: item.dataset.navId, label: item.dataset.navLabel || item.textContent.trim() });
       }
 
       if (item.dataset.navId) {
@@ -18574,6 +18627,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const serviceRowEl = event.target.closest("tr[data-workplace-row]");
+
+      if (serviceRowEl && productRegistry(activeRegistry)?.openRow) {
+        productRegistry(activeRegistry).openRow(serviceRowEl.dataset.workplaceRow);
+        return;
+      }
 
       if (serviceRowEl && activeRegistry === "services") {
         openServiceProfile(serviceRowEl.dataset.workplaceRow);
@@ -18981,6 +19039,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
     syncExpandedState();
   });
+
+  /* the engine a product page builds on (see „Product mode” at the top) */
+  if (product?.init) {
+    const showProductRegistry = (db, { viewKey = null, sortKey = null, sortDirection = "desc" } = {}) => {
+      hideProfilePanels();
+      if (permitsProfilePanel) permitsProfilePanel.hidden = true;
+      activeRegistry = db.kind;
+      workplaceDb = db;
+      workplaceState.rows = db.runtimeRows || [];
+      workplaceState.viewKey = viewKey || Object.keys(db.views || {})[0];
+      workplaceState.tabKey = null;
+      workplaceState.query = "";
+      workplaceState.page = 1;
+      workplaceState.pageSize = 16;
+      workplaceState.sortKey = sortKey;
+      workplaceState.sortDirection = sortDirection;
+      workplaceState.selected.clear();
+      if (workplaceSearch) workplaceSearch.value = "";
+      if (workplacePanel) workplacePanel.hidden = false;
+      if (workplaceRefresh) workplaceRefresh.hidden = false;
+      renderWorkplace();
+    };
+    const hideShellPages = () => {
+      hideProfilePanels();
+      if (workplacePanel) workplacePanel.hidden = true;
+      if (permitsProfilePanel) permitsProfilePanel.hidden = true;
+    };
+    const openProfilePanel = () => {
+      hideShellPages();
+      dosarProfilState.returnTo = "dossiers";
+      if (dosarProfilPanel) dosarProfilPanel.hidden = false;
+      if (dosarProfilBackShell) dosarProfilBackShell.hidden = false;
+      shell.classList.add("is-dosar-profile-open");
+    };
+    product.init({
+      shell, escapeHtml, renderTag, renderDateTime, formatLongDate, formatStamp, formatTime,
+      renderPageHeaderTop, renderPageHeaderMeta, renderPageHeaderTabCount, watchPageHeaderMeta,
+      renderInfoCard, renderEventTimeline, renderStackedList, renderStackMenu, renderRowActions,
+      renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode,
+      renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
+      setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
+      showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
+      currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
+      els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody, dosarProfilBackShell }
+    });
+  }
 
   setupNavTooltips();
   void (async () => {

@@ -23687,12 +23687,14 @@ a.btn:focus-visible {
 }
 
 /* Trajectory with a variable number of steps (Plan de verificare: Inițiere · pași · Decizie);
-   first and last column half width, as the 6-step dosar trajectory */
-.e-permits-trajectory__steps--n3 { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
-.e-permits-trajectory__steps--n4 { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 2fr)) minmax(0, 1fr); }
-.e-permits-trajectory__steps--n5 { grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 2fr)) minmax(0, 1fr); }
-.e-permits-trajectory__steps--n6 { grid-template-columns: minmax(0, 1fr) repeat(4, minmax(0, 2fr)) minmax(0, 1fr); }
-.e-permits-trajectory__steps--n7 { grid-template-columns: minmax(0, 1fr) repeat(5, minmax(0, 2fr)) minmax(0, 1fr); }
+   first and last column half width, as the 6-step dosar trajectory; ≤760px it stacks as the dosar one */
+@media (min-width: 761px) {
+  .e-permits-trajectory__steps--n3 { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr); }
+  .e-permits-trajectory__steps--n4 { grid-template-columns: minmax(0, 1fr) repeat(2, minmax(0, 2fr)) minmax(0, 1fr); }
+  .e-permits-trajectory__steps--n5 { grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 2fr)) minmax(0, 1fr); }
+  .e-permits-trajectory__steps--n6 { grid-template-columns: minmax(0, 1fr) repeat(4, minmax(0, 2fr)) minmax(0, 1fr); }
+  .e-permits-trajectory__steps--n7 { grid-template-columns: minmax(0, 1fr) repeat(5, minmax(0, 2fr)) minmax(0, 1fr); }
+}
 
 /* Decision callout on a historical session: the dominant element (US-UI-05) */
 .e-permits-ekyc-decision .e-permits-callout__title {
@@ -23708,6 +23710,7 @@ a.btn:focus-visible {
 }
 
 .e-permits-ekyc-breakdown__table {
+  min-width: calc(var(--spacing-80, 80px) * 6);
   table-layout: fixed;
   width: 100%;
 }
@@ -23723,6 +23726,13 @@ a.btn:focus-visible {
 
 .e-permits-ekyc-breakdown__table tbody tr:last-child td {
   border-bottom: 0;
+}
+
+/* a plain table in a section: none of the registry's pinned columns */
+.e-permits-ekyc-breakdown__table :is(th, td):is(:nth-child(1), :nth-child(2)) {
+  border-right: 0;
+  left: auto;
+  position: static;
 }
 
 /* ---- Dashboard ---- */

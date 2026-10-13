@@ -524,6 +524,7 @@
                   "id": "cascade-address",
                   "type": "cascade-address",
                   "span": 12,
+                  "cadastral": { "visible": true, "required": false },
                   "districts": [
                     { "value": "Municipiul Chișinău", "localities": [
                       { "value": "Chișinău", "sectors": ["Centru", "Buiucani", "Botanica", "Ciocana", "Rîșcani"], "streets": ["bd. Ștefan cel Mare și Sfânt", "str. Calea Ieșilor", "str. București", "str. Alexandru cel Bun", "bd. Dacia", "str. Albișoara", "str. Armenească"] },
@@ -538,7 +539,8 @@
                       { "value": "Nisporeni", "streets": ["str. Trandafirilor", "str. Victoriei"] }
                     ]},
                     { "value": "Raionul Orhei", "localities": [
-                      { "value": "Orhei", "streets": ["str. Alecu Russo", "str. Vasile Lupu", "str. Mihai Eminescu"] }
+                      { "value": "Orhei", "streets": ["str. Alecu Russo", "str. Vasile Lupu", "str. Mihai Eminescu"] },
+                      { "value": "Peresecina", "streets": ["str. Ștefan cel Mare", "str. Mihai Viteazul"] }
                     ]},
                     { "value": "Raionul Cahul", "localities": [
                       { "value": "Cahul", "streets": ["str. Mihai Eminescu", "str. Republicii", "bd. Independenței"] }

@@ -2397,6 +2397,73 @@ body {
   -webkit-mask-size: 20px 20px;
 }
 
+/* eKYC back office menu (US-UI-01, 2026-10-13): one 20px mask per item, as above */
+.e-permits-shell__nav--specialist [data-nav-id="ek-dashboard"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/chart.svg");
+  -webkit-mask-image: url("../assets/icons/chart.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-active"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/admin-folder-open.svg");
+  mask-size: 17.2623px 14.4167px;
+  -webkit-mask-image: url("../assets/icons/admin-folder-open.svg");
+  -webkit-mask-size: 17.2623px 14.4167px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-history"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/history.svg");
+  -webkit-mask-image: url("../assets/icons/history.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-organizations"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/admin-authority.svg");
+  mask-size: 18.5833px 13.5833px;
+  -webkit-mask-image: url("../assets/icons/admin-authority.svg");
+  -webkit-mask-size: 18.5833px 13.5833px;
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-clients"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/suitcase.svg");
+  -webkit-mask-image: url("../assets/icons/suitcase.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-use-cases"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/direction.svg");
+  -webkit-mask-image: url("../assets/icons/direction.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-providers"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/shield.svg");
+  -webkit-mask-image: url("../assets/icons/shield.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-scoring"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/signal.svg");
+  -webkit-mask-image: url("../assets/icons/signal.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-parameters"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/settings.svg");
+  -webkit-mask-image: url("../assets/icons/settings.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-sdk"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/data-access.svg");
+  -webkit-mask-image: url("../assets/icons/data-access.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-trusted-cas"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/shield-keyhole.svg");
+  -webkit-mask-image: url("../assets/icons/shield-keyhole.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="ek-users"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/admin-users.svg");
+  mask-size: 19.3633px 15.25px;
+  -webkit-mask-image: url("../assets/icons/admin-users.svg");
+  -webkit-mask-size: 19.3633px 15.25px;
+}
+
 .e-permits-shell__nav--specialist .e-permits-shell__nav-badge {
   display: none;
 }

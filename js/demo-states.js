@@ -206,6 +206,13 @@
     await h.click(".e-permits-fo-select__option", value);
   };
 
+  /* eKYC (ek-): the console on the permits shell, the login on bo-login.html */
+  const EK_ADMIN = "ekyc-admin";
+  const ek = (hash, run, extra = {}) => ({ flow: "ekyc", as: EK_ADMIN, hash, ready: ".e-permits-ekyc-page:not([hidden]), tr[data-workplace-row], .e-permits-workplace__empty, .e-permits-dosar-profil:not([hidden]) .e-permits-dosar-profil__section", run, ...extra });
+  const ekList = (hash, run) => ek(hash, run, { ready: "tr[data-workplace-row]" });
+  const ekSes = (id, tab = "general", run) => ek(`#sesiune/${id}/${tab}`, run, { ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty" });
+  const ekLogin = (params = {}) => ({ page: "bo-login.html", params: { product: "ekyc", ...params }, ready: "[data-bo-login] h1" });
+
   window.GEAP_DEMO_STATES = {
     /* ---- Utilizatori › profil (Figma page "BO -> Utilizatori") ---- */
     "usr-01": { flow: "back-office", as: ADMIN, hash: "#utilizator/user-1/general" },
@@ -874,6 +881,53 @@
       await h.click("[data-fo-avatar-role][data-fo-subject-id='mpower-pj-nord-agro']");
       await h.find("[data-fo-intent-empty]");
     }),
+    /* ---- US-54 Adresă prin cod cadastral (adr-): Form Designer › Address pattern › Data
+       („Cod cadastral” row) and the request form, service 09 step 2 „Detalii solicitare” ---- */
+    ...(() => {
+      const ADR = "[data-fo-step-panel='2'] [data-fo-cascade-address] [data-fo-address-input]";
+      const bld = (run) => ({ page: PP_FO, flow: "builder", ready: "[data-builder-component='address']", run: async (h) => {
+        await h.click("[data-builder-component='address']");
+        await h.click("[data-type='address']");
+        await h.click("[data-builder-prop-tab='source']");
+        if (run) await run(h);
+        await h.scroll("[data-address-item='cadastral']");
+      } });
+      const expand = async (h) => { await h.click("header[data-address-toggle-section='cadastral']"); };
+      const adr = (params, run) => foReq(2, params, async (h) => { await h.scroll(ADR); if (run) await run(h); });
+      /* a background headless tab gets no focus event from el.focus(): send the one a click gives */
+      const openList = async (h) => { const el = await h.focus(ADR); el.dispatchEvent(new FocusEvent("focus")); await h.wait(300); };
+      const code = (value) => async (h) => { await h.fill(ADR, value, { leave: false }); await h.wait(1900); };
+      return {
+        "adr-01": bld(expand),
+        "adr-01a": bld(async (h) => { await h.click(".e-permits-builder__mini-check:has([data-address-visible='cadastral'])"); }),
+        "adr-01b": bld(async (h) => { await h.click("[data-address-required='cadastral']"); await expand(h); }),
+        "adr-02": adr(),
+        "adr-02a": adr({}, openList),
+        "adr-02b": adr({ solicitant: "pj-vita-plant" }, openList),
+        "adr-03": adr({ srre: "asteptare" }, async (h) => { await h.fill(ADR, "0100510.123", { leave: false }); }),
+        "adr-04": adr({}, code("0100510.123")),
+        "adr-04a": adr({}, async (h) => {
+          await openList(h);
+          const option = await h.find(".e-permits-fo-address-search__option", "6401213.112");
+          option.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+          await h.wait(1900);
+        }),
+        "adr-05": adr({}, async (h) => { await code("0100510.123")(h); await code("1701102.330")(h); }),
+        "adr-06": adr({}, async (h) => { await code("0100510.123")(h); await h.fill(ADR, "", { leave: false }); }),
+        "adr-07": adr({}, code("0100510.999")),
+        "adr-08": adr({}, code("0100999.777")),
+        "adr-09": adr({ codcadastral: "ascuns" }),
+        "adr-09a": adr({ codcadastral: "obligatoriu" }),
+        /* AC-18: Verificare și semnare shows the code with the address */
+        "adr-10": adr({}, async (h) => {
+          await code("0100510.123")(h);
+          await h.click("[data-fo-step-panel='2'] [data-fo-next]");
+          await h.click("[data-fo-step-panel='3'] [data-fo-next]");
+          await h.scroll(".e-permits-fo-summary-row", "Cod cadastral");
+        })
+      };
+    })(),
+
     /* ---- EVO Cabinet › Solicitările mele (US-19, US-158, US-161, US-29, US-24, US-135, US-159) ---- */
     "sm-01": sm(),
     "sm-01a": sm(async (h) => { await h.click('[data-sm-chip="atentie"]'); }),
@@ -955,6 +1009,73 @@
     "pp-15": ppFo("suspendare", "act-licenta-demo", 2),
     "pp-15a": ppFo("suspendare", "act-licenta-demo", 2, async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
     "pp-16": ppFo("reluare", "act-licenta-susp", 2),
-    "pp-16a": ppFo("reluare", "act-licenta-susp", 7)
+    "pp-16a": ppFo("reluare", "act-licenta-susp", 7),
+
+    /* ---- eKYC back office (ek-, js/ekyc.js, 2026-10-13) ----
+       login on bo-login.html?product=ekyc; the console = ?flow=ekyc; ?ek= gol | eroare |
+       incarcare | incheiata are the data demos (empty / API error / loading / ended meanwhile) */
+    /* the flow picker (first page) with the „EVO eKYC · Back office” item */
+    "ek-00": { page: "e-permits-acte-permisive.html", ready: "[data-flow-home] h1", run: async (h) => { await h.hover('a[href="bo-login.html?product=ekyc"]'); } },
+    "ek-01": ekLogin(),
+    "ek-01a": ekLogin({ view: "redirecting" }),
+    "ek-01b": ekLogin({ view: "processing" }),
+    "ek-01c": ekLogin({ mpass: "ok", as: "fara-cont" }),
+    "ek-01d": ekLogin({ ended: "expired" }),
+    "ek-01e": ekLogin({ ended: "logout" }),
+    "ek-01f": ekLogin({ view: "unavailable" }),
+    "ek-02": ek("#ek-dashboard"),
+    "ek-02a": ek("#ek-dashboard", null, { as: "ekyc-operator" }),
+    "ek-02b": ek("#ek-dashboard", null, { as: "ekyc-supervisor" }),
+    "ek-02c": ek("#ek-dashboard", null, { as: "ekyc-auditor" }),
+    "ek-02d": ek("#ek-dashboard", async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); }),
+    /* collapsed menu (desktop; ≤960px the sidebar has no collapse) */
+    "ek-02e": ek("#ek-dashboard", async (h) => { const toggle = [...document.querySelectorAll("[data-shell-toggle]")].find((el) => el.getClientRects().length); toggle?.click(); await h.wait(450); }),
+    "ek-02f": ek("#ek-clients", null, { ready: ".e-permits-ekyc-page .e-permits-empty" }),
+    "ek-03": ek("#ek-dashboard", async (h) => { await h.click('[data-ekyc-period="7z"]'); }),
+    "ek-03a": ek("#ek-dashboard", async (h) => { await h.click('[data-ekyc-period="30z"]'); await h.choose('[data-ekyc-dash-filter="client"]', "maib-app"); }),
+    "ek-03b": ek("#ek-dashboard", async (h) => { await h.click('[data-ekyc-period="1h"]'); await h.choose('[data-ekyc-dash-filter="client"]', "asito-online"); }),
+    "ek-03c": ek("#ek-dashboard", null, { params: { ek: "eroare" }, ready: ".e-permits-ekyc-page .e-permits-empty" }),
+    "ek-03d": ek("#ek-dashboard", null, { params: { ek: "incarcare" }, ready: ".e-permits-ekyc-page .e-permits-empty" }),
+    "ek-03e": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-dismiss]"); }),
+    "ek-04": ekList("#ek-active"),
+    "ek-04a": ekList("#ek-active", async (h) => { await h.click('[data-workplace-tab="În revizie manuală"]'); }),
+    "ek-04b": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
+    "ek-04c": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); }),
+    "ek-04d": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); await h.nth("[data-filter-option]", 0); await h.click("[data-filter-confirm]"); await h.click("[data-filter-commit]"); }),
+    "ek-04e": ekList("#ek-active", async (h) => { await h.fill("[data-workplace-search]", "Orange", { leave: false }); }),
+    "ek-04f": ekList("#ek-active", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
+    "ek-04g": ek("#ek-active", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-04h": ek("#ek-active", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-04i": ek("#ek-active", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-05": ekSes("KYC-48192"),
+    "ek-05a": ekSes("KYC-48192", "pasi"),
+    "ek-05b": ekSes("KYC-48192", "dispozitiv"),
+    "ek-05c": ekSes("KYC-48192", "jurnal"),
+    "ek-05d": ekSes("KYC-48205"),
+    "ek-05e": ekSes("KYC-48213", "pasi"),
+    "ek-05f": ekSes("KYC-48220"),
+    "ek-05g": ekSes("KYC-48225"),
+    "ek-05h": ekSes("KYC-48211", "dispozitiv"),
+    "ek-05i": ek("#ek-active", async (h) => { await h.nth("[data-ekyc-open]", 0); }, { params: { ek: "incheiata" }, ready: "tr[data-workplace-row]" }),
+    "ek-05j": ekSes("KYC-00000"),
+    "ek-05k": ek("#sesiune/KYC-48192/general", null, { params: { ek: "incarcare" }, ready: ".e-permits-dosar-profil .e-permits-empty" }),
+    "ek-06": ekList("#ek-history"),
+    "ek-06a": ekList("#ek-history", async (h) => { await h.click('[data-workplace-tab="Respins"]'); }),
+    "ek-06b": ekList("#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="perioada"]'); }),
+    "ek-06c": ekList("#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="decizie"]'); }),
+    "ek-06d": ekList("#ek-history", async (h) => { await h.click("[data-workplace-export]"); }),
+    "ek-06e": ek("#ek-history", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-06f": ek("#ek-history", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-07": ekSes("KYC-47325"),
+    "ek-07a": ekSes("KYC-47325", "scor"),
+    "ek-07b": ekSes("KYC-47325", "pasi"),
+    "ek-07c": ekSes("KYC-47325", "dispozitiv"),
+    "ek-07d": ekSes("KYC-47325", "jurnal"),
+    "ek-07e": ekSes("KYC-47118"),
+    "ek-07f": ekSes("KYC-47118", "scor"),
+    "ek-07g": ekSes("KYC-47088", "scor"),
+    "ek-07h": ekSes("KYC-46998"),
+    "ek-07i": ekSes("KYC-47052"),
+    "ek-07j": ekSes("KYC-47292", "dispozitiv")
   };
 })();

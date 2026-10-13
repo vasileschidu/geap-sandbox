@@ -109,3 +109,39 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-12 · `<a class="btn">` underlined on hover (library global `a:hover`) → `a.btn` never
   underlines. Cabinet dropdowns = BO buttons (`btn-neutral btn-sm`, 16 icon, chevron), menus =
   `.e-permits-stack__menu` size, ⋮ = `btn-strict btn-sm btn-icon-only` (32, radius 6).
+- 2026-10-13 · US-54 (address by cadastral code): the FO „Detalii solicitare” address is the JS
+  `cascadeAddressHtml` (label „Caută adresa”), not the static HTML block — and it is step 2 = `fo-03`
+  (fo-04 is Acte necesare). Schema flags on the field (`cadastral`) + `?param` demo overrides kept
+  the change local; `postprocessSectionHtml` spreads the same field, so post-process 10 inherits it.
+- 2026-10-13 · `el.focus()` in a background headless tab fires NO focus event → focus-driven lists
+  never opened in demo states (they did in a real browser). Demo runs dispatch
+  `new FocusEvent("focus")` after `h.focus`. Also list options listen to `mousedown`, so a demo
+  must dispatch `mousedown` (h.click sends only click).
+- 2026-10-13 · capture.mjs prints „ok” even for `id:error` — always run a scratch checker reading
+  `dataset.demoState` + probing the DOM (scratchpad check.mjs pattern) before trusting a capture.
+- 2026-10-13 · `bindCascadeSelect.setValue()` focuses the select button → a programmatic fill steals
+  focus from the field the user is typing in; give focus back (or blur) after filling.
+- 2026-10-13 · Registry-filled FO fields = `.e-permits-fo-input.is-filled.is-readonly` + green
+  `icon-checkmark-small` (the FO Read Only state), never a lock. For selects: hide the select, insert a
+  read-only input box; one full-width `renderInfoNote` explains them (a hint under one span-6 field
+  wrapped to 3 lines and broke the row). New field-message tones `__warning` / `__loading` live next to
+  `__success`. Another agent bumped `?v=` mid-job (v51→v53): re-read before bumping.
+- 2026-10-13 · eKYC back office = a **product mode** of the BO page, not a copy: `?flow=ekyc` maps to the
+  back-office flow (all `[data-demo-flow="back-office"]` CSS applies), `js/ekyc.js` in `<head>` sets
+  `window.GEAPShellProduct`, the shell exposes its engine through `product.init(api)` and ~15 small
+  hooks (roles URL, nav dispatch, renderCell / search / sort / filterToken / facets / openRow / export /
+  emptyHtml, route, logout). A whole new back office (shell, 2 registries, profile with 5 tabs,
+  dashboard) cost ~900 lines of product JS + ~300 lines of CSS. Next product: copy this pattern.
+- 2026-10-13 · BO traps a product hits: `.e-permits-shell__nav-group--config` is `display:none` (legacy) →
+  gate it with `!product`; registries without a checkbox column inherit the pinned „column 2 +
+  divider” rule → add the kind to the „no checkbox column” selector lists; a plain table inside a
+  section needs the same unpinning; a modifier that changes `grid-template-columns` (trajectory
+  `--nN`) overrides the ≤760px stacking unless wrapped in `@media (min-width: 761px)` — the QA's
+  clipped-text on mobile was the tell.
+- 2026-10-13 · Data-driven widths without inline styles: SVG `<rect width="62%">` (meter, chart) —
+  attributes, not `style=""`. Onest tabular-nums renders „1 1:44” with a visible gap → don't use it.
+- 2026-10-13 · Several mobile `:error` states (trf-01, srv-01) are pre-existing: the nav click target
+  is hidden ≤960px. Proved it against HEAD in a `git worktree` served on another port (never stash
+  while another agent edits the tree).
+- 2026-10-13 · Generator gotcha: `arr.find((c) => c.id === pick(list))` calls the random pick per
+  element → undefined; pick once, then find. Undecided sessions must have `finalScore: null`.

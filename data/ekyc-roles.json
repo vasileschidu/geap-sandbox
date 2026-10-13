@@ -1,0 +1,229 @@
+{
+  "_comment": "eKYC back office (US-UI-01 91104, US-05-10-B 89241): roles from MPass (US-03-10 CA-3) and the menu each one sees. Same schema as e-permits-roles.json; loaded by js/ekyc.js through the shell's product hook.",
+  "defaultAssignmentId": "ekyc-admin",
+  "groups": [
+    {
+      "id": "ekyc",
+      "label": "Platforma eKYC · AGE",
+      "assignments": [
+        {
+          "id": "ekyc-admin",
+          "roleId": "admin",
+          "roleLabel": "Administrator platformă",
+          "instanceLabel": "Platforma eKYC",
+          "headerMeta": "Administrator platformă",
+          "menuProfile": "ekyc-admin",
+          "icon": "shield-user"
+        },
+        {
+          "id": "ekyc-operator",
+          "roleId": "operator",
+          "roleLabel": "Operator (revizie)",
+          "instanceLabel": "Revizie manuală",
+          "headerMeta": "Operator (revizie)",
+          "menuProfile": "ekyc-operator",
+          "icon": "face-id"
+        },
+        {
+          "id": "ekyc-supervisor",
+          "roleId": "supervisor",
+          "roleLabel": "Supervizor",
+          "instanceLabel": "Revizie manuală",
+          "headerMeta": "Supervizor",
+          "menuProfile": "ekyc-supervisor",
+          "icon": "people"
+        },
+        {
+          "id": "ekyc-auditor",
+          "roleId": "auditor",
+          "roleLabel": "Auditor",
+          "instanceLabel": "Doar citire",
+          "headerMeta": "Auditor",
+          "menuProfile": "ekyc-auditor",
+          "icon": "eye-open"
+        }
+      ]
+    }
+  ],
+  "menus": {
+    "ekyc-admin": {
+      "ariaLabel": "Administrare platformă eKYC",
+      "defaultItemId": "ek-dashboard",
+      "groups": [
+        {
+          "label": "",
+          "items": [
+            {
+              "id": "ek-dashboard",
+              "label": "Dashboard",
+              "shellView": "ekyc-dashboard"
+            }
+          ]
+        },
+        {
+          "label": "Monitorizare",
+          "items": [
+            {
+              "id": "ek-active",
+              "label": "Sesiuni active",
+              "shellView": "ekyc-active"
+            },
+            {
+              "id": "ek-history",
+              "label": "Sesiuni istorice",
+              "shellView": "ekyc-history"
+            }
+          ]
+        },
+        {
+          "label": "Configurare",
+          "items": [
+            {
+              "id": "ek-organizations",
+              "label": "Organizații",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-clients",
+              "label": "Clienți",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-use-cases",
+              "label": "Cazuri de utilizare",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-providers",
+              "label": "Furnizori de verificare",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-scoring",
+              "label": "Configurări scoring",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-parameters",
+              "label": "Parametri platformă",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-sdk",
+              "label": "Versiuni SDK",
+              "shellView": "ekyc-placeholder"
+            },
+            {
+              "id": "ek-trusted-cas",
+              "label": "Certificate root CA",
+              "shellView": "ekyc-placeholder"
+            }
+          ]
+        },
+        {
+          "label": "Administrare",
+          "items": [
+            {
+              "id": "ek-users",
+              "label": "Utilizatori",
+              "shellView": "ekyc-placeholder"
+            }
+          ]
+        }
+      ]
+    },
+    "ekyc-operator": {
+      "ariaLabel": "Locul de muncă operator",
+      "defaultItemId": "ek-dashboard",
+      "groups": [
+        {
+          "label": "",
+          "items": [
+            {
+              "id": "ek-dashboard",
+              "label": "Dashboard",
+              "shellView": "ekyc-dashboard"
+            }
+          ]
+        },
+        {
+          "label": "Monitorizare",
+          "items": [
+            {
+              "id": "ek-active",
+              "label": "Sesiuni active",
+              "shellView": "ekyc-active"
+            },
+            {
+              "id": "ek-history",
+              "label": "Sesiuni istorice",
+              "shellView": "ekyc-history"
+            }
+          ]
+        }
+      ]
+    },
+    "ekyc-supervisor": {
+      "ariaLabel": "Locul de muncă supervizor",
+      "defaultItemId": "ek-dashboard",
+      "groups": [
+        {
+          "label": "",
+          "items": [
+            {
+              "id": "ek-dashboard",
+              "label": "Dashboard",
+              "shellView": "ekyc-dashboard"
+            }
+          ]
+        },
+        {
+          "label": "Monitorizare",
+          "items": [
+            {
+              "id": "ek-active",
+              "label": "Sesiuni active",
+              "shellView": "ekyc-active"
+            },
+            {
+              "id": "ek-history",
+              "label": "Sesiuni istorice",
+              "shellView": "ekyc-history"
+            }
+          ]
+        }
+      ]
+    },
+    "ekyc-auditor": {
+      "ariaLabel": "Audit",
+      "defaultItemId": "ek-dashboard",
+      "groups": [
+        {
+          "label": "",
+          "items": [
+            {
+              "id": "ek-dashboard",
+              "label": "Dashboard",
+              "shellView": "ekyc-dashboard"
+            }
+          ]
+        },
+        {
+          "label": "Monitorizare",
+          "items": [
+            {
+              "id": "ek-active",
+              "label": "Sesiuni active",
+              "shellView": "ekyc-active"
+            },
+            {
+              "id": "ek-history",
+              "label": "Sesiuni istorice",
+              "shellView": "ekyc-history"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

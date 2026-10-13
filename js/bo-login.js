@@ -11,10 +11,21 @@
   if (!card) return;
 
   const portal = params.get("portal") === "admin" ? "admin" : "bo";
-  const PRODUCT = { bo: "Back Office", admin: "Admin Portal" }[portal];
-  const HOME = portal === "admin"
+  /* ?product=ekyc → EVO eKYC console (US-UI-02 91107, US-03-10 89193), same page and states */
+  const EKYC = params.get("product") === "ekyc";
+  const BRAND = EKYC ? "EVO eKYC" : "SIA GEAP";
+  const PRODUCT = EKYC ? "Consolă de administrare" : { bo: "Back Office", admin: "Admin Portal" }[portal];
+  const HOME = EKYC
+    ? "e-permits-acte-permisive.html?flow=ekyc"
+    : portal === "admin"
     ? "e-permits-acte-permisive.html?flow=back-office#users"
     : "e-permits-acte-permisive.html?flow=back-office";
+  /* the parameters that keep the product / portal across MPass and logout */
+  const keep = (url) => {
+    if (portal === "admin") url.searchParams.set("portal", "admin");
+    if (EKYC) url.searchParams.set("product", "ekyc");
+    return url;
+  };
   /* MPass test identities: an active GEAP account and one without an account (US-74) */
   const IDENTITIES = {
     activ: { name: "Anastasia Cojocaru", idnp: "2990000000001" },
@@ -23,7 +34,8 @@
   const RETRIES = 3;
 
   document.querySelector("[data-bo-product]").textContent = PRODUCT;
-  document.title = `Autentificare · SIA GEAP ${PRODUCT}`;
+  document.querySelector("[data-bo-brand]").textContent = BRAND;
+  document.title = `Autentificare · ${BRAND} ${PRODUCT}`;
   /* the shared inline-note geometry is scoped to the back office */
   card.dataset.demoFlow = "back-office";
 
@@ -53,12 +65,26 @@
         ${ENDED[params.get("ended")] || ""}
         <div class="e-permits-fo-auth__title-group">
           <svg class="e-permits-fo-auth__lock icon" width="36" height="36" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg>
-          <h1 id="bo-login-title">Intră în ${PRODUCT}</h1>
+          <h1 id="bo-login-title">${EKYC ? "Platforma națională de verificare a identității" : `Intră în ${PRODUCT}`}</h1>
         </div>
-        <p class="e-permits-fo-auth__description">Autentificarea în SIA GEAP se face exclusiv prin MPass, cu identitatea ta guvernamentală.</p>
+        <p class="e-permits-fo-auth__description">${EKYC
+          ? "Accesul se face exclusiv prin MPass, serviciul guvernamental de autentificare. Consola nu are credențiale proprii și nu stochează parole."
+          : "Autentificarea în SIA GEAP se face exclusiv prin MPass, cu identitatea ta guvernamentală."}</p>
         ${mpassButton(busy ? { busy, label: "Se deschide MPass…" } : {})}
         <div class="e-permits-fo-auth__separator" aria-hidden="true"></div>
-        <p class="bo-login__help">Accesul este acordat doar utilizatorilor cu cont activ în SIA GEAP. Nu ai acces? Contactează administratorul local al autorității tale.</p>
+        <p class="bo-login__help">${EKYC
+          ? "Vei fi redirecționat către mpass.gov.md și readus înapoi automat. Conexiunea este securizată, iar sesiunile sunt jurnalizate conform politicii de audit."
+          : "Accesul este acordat doar utilizatorilor cu cont activ în SIA GEAP. Nu ai acces? Contactează administratorul local al autorității tale."}</p>
+      </div>`,
+
+    /* US-UI-02: after the return from MPass — full-card loading while the role is checked */
+    processing: () => `
+      <div class="e-permits-fo-auth__content">
+        <div class="e-permits-fo-auth__title-group">
+          <span class="spinner spinner--large spinner--brand bo-login__spinner" aria-hidden="true"></span>
+          <h1 id="bo-login-title">Se procesează autentificarea…</h1>
+        </div>
+        <p class="e-permits-fo-auth__description">MPass ți-a confirmat identitatea. Verificăm rolul tău în ${BRAND} și deschidem consola.</p>
       </div>`,
 
     /* US-109 AC-02: automatic retries while MPass does not answer */
@@ -78,7 +104,7 @@
           <span class="bo-login__state-icon bo-login__state-icon--warning">${icon("warning-filled", 36)}</span>
           <h1 id="bo-login-title">MPass este temporar indisponibil</h1>
         </div>
-        <p class="e-permits-fo-auth__description">Nu ne-am putut conecta la serviciul de autentificare după ${RETRIES} încercări. Fără MPass nu se poate intra în SIA GEAP. Reîncearcă peste câteva minute.</p>
+        <p class="e-permits-fo-auth__description">Nu ne-am putut conecta la serviciul de autentificare după ${RETRIES} încercări. Fără MPass nu se poate intra în ${BRAND}. Reîncearcă peste câteva minute.</p>
         <button class="btn btn-primary btn-rounded" type="button" data-bo-retry>
           ${icon("rotate-arrow")}
           <span>Reîncearcă</span>
@@ -94,7 +120,9 @@
           <span class="bo-login__state-icon bo-login__state-icon--danger">${icon("lock", 36)}</span>
           <h1 id="bo-login-title">Aveți nevoie de permisiune de acces</h1>
         </div>
-        <p class="e-permits-fo-auth__description">Nu aveți un cont activ în cadrul SIA GEAP. Pentru acordarea drepturilor de acces, vă rugăm să contactați administratorul local.</p>
+        <p class="e-permits-fo-auth__description">${EKYC
+          ? "Contul dumneavoastră MPass nu are un rol în EVO eKYC. Pentru acces, contactați administratorul platformei la suport.ekyc@egov.md."
+          : "Nu aveți un cont activ în cadrul SIA GEAP. Pentru acordarea drepturilor de acces, vă rugăm să contactați administratorul local."}</p>
         <div class="bo-login__identity">
           <span class="bo-login__identity-label">Autentificat în MPass ca</span>
           <span class="bo-login__identity-value">${who.name} · IDNP ${masked(who.idnp)}</span>
@@ -127,7 +155,7 @@
     back.hash = "";
     back.searchParams.set("mpass", "ok");
     back.searchParams.set("as", "activ");
-    if (portal === "admin") back.searchParams.set("portal", "admin");
+    keep(back);
     const target = new URL("mpass-test.html", window.location.href);
     target.searchParams.set("return", `${back.pathname}${back.search}`);
     window.setTimeout(() => window.location.assign(target.href), 600);
@@ -141,7 +169,7 @@
       const next = new URL(window.location.href);
       next.search = "";
       next.searchParams.set("ended", "logout");
-      if (portal === "admin") next.searchParams.set("portal", "admin");
+      keep(next);
       window.location.assign(next.href);
     }
   });
@@ -150,18 +178,25 @@
   const view = params.get("view");
   const mpass = params.get("mpass");
   if (view === "redirecting") show("login", { busy: true });
+  else if (view === "processing") show("processing");
   else if (view === "retrying") show("retrying", 2);
   else if (view === "unavailable") show("unavailable");
   else if (mpass === "down") runRetries(1);
   else if (mpass === "ok" && params.get("as") === "fara-cont") show("denied");
   else if (mpass === "ok") {
-    /* US-105 AC-09: an active account lands in the workplace of its first role */
-    show("login", { busy: true });
-    window.location.replace(HOME);
+    /* US-105 AC-09: an active account lands in the workplace of its first role
+       (eKYC: the processing screen first, then the Dashboard — US-UI-02) */
+    if (EKYC) {
+      show("processing");
+      window.setTimeout(() => window.location.replace(HOME), 900);
+    } else {
+      show("login", { busy: true });
+      window.location.replace(HOME);
+    }
   } else show("login");
 
   if (params.get("ended") === "logout" && !view && !mpass) {
-    window.GEAPToast?.show({ type: "info", title: "Te-ai deconectat", message: "Sesiunea în SIA GEAP și sesiunea MPass au fost încheiate.", key: "bo-logout" });
+    window.GEAPToast?.show({ type: "info", title: "Te-ai deconectat", message: `Sesiunea în ${BRAND} și sesiunea MPass au fost încheiate.`, key: "bo-logout" });
   }
 
   document.documentElement.dataset.boLoginReady = "true";

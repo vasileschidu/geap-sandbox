@@ -1,0 +1,26 @@
+{
+  "_comment": "Mock SRRE (Registrul de Stat al Bunurilor Imobile) answers through MConnect for US-54 (address by cadastral code). parcels: code -> address, or { unavailable: true } = SRRE returns no address / error. savedCodes: the cadastral codes each applicant (FO subject id) saved before. postalCodes: Cod poștal derived from the locality.",
+  "parcels": {
+    "0100510.123": { "district": "Municipiul Chișinău", "locality": "Chișinău", "sector": "Centru", "street": "str. Armenească", "house": "25", "block": "", "apartment": "3" },
+    "0101213.045": { "district": "Municipiul Chișinău", "locality": "Chișinău", "sector": "Buiucani", "street": "str. Calea Ieșilor", "house": "10", "block": "2", "apartment": "47" },
+    "0301205054.01": { "district": "Municipiul Bălți", "locality": "Bălți", "street": "str. Independenței", "house": "14", "block": "", "apartment": "" },
+    "6401213.112": { "district": "Raionul Orhei", "locality": "Peresecina", "street": "str. Ștefan cel Mare", "house": "37", "block": "", "apartment": "" },
+    "9201304.019": { "district": "Raionul Ungheni", "locality": "Ungheni", "street": "str. Națională", "house": "6", "block": "", "apartment": "" },
+    "1701102.330": { "district": "Raionul Cahul", "locality": "Cahul", "street": "str. Republicii", "house": "12", "block": "A", "apartment": "8" },
+    "0100999.777": { "unavailable": true }
+  },
+  "postalCodes": {
+    "Chișinău": "MD-2001",
+    "Bălți": "MD-3100",
+    "Peresecina": "MD-3533",
+    "Ungheni": "MD-3601",
+    "Cahul": "MD-3909"
+  },
+  "savedCodes": {
+    "pj-global-trader": [
+      { "code": "0100510.123", "label": "str. Armenească 25, ap. 3, mun. Chișinău" },
+      { "code": "0301205054.01", "label": "str. Independenței 14, mun. Bălți" },
+      { "code": "6401213.112", "label": "str. Ștefan cel Mare 37, s. Peresecina, r-nul Orhei" }
+    ]
+  }
+}

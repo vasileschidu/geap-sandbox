@@ -222,9 +222,15 @@ but this doc previously described it wrongly, see the entry.
 | Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + `__primary--danger` | `openConfirm({ danger: true })` (solicitari.js) | app |
 | List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
+| Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"` | `js/ekyc.js`, see „eKYC back office” | app |
+| Meter (thin bar, one or stacked segments) | `span.e-permits-meter[role=meter\|img] > svg.e-permits-meter__svg > rect.__track + rect.__fill--{brand\|success\|danger\|warning\|neutral}`; value right = `.e-permits-ekyc-progress` + `__count`; legend `ul.e-permits-meter-legend` + `__dot--{tone}` | `meter(segments, { max, label })` in `js/ekyc.js` | app |
+| KPI cards | `ul.e-permits-kpi-grid > li.e-permits-kpi` > `__label` · `__value` (+ `--warning\|--danger`) · `__meta` | `kpi()` in `js/ekyc.js` | app |
+| Column chart | `.e-permits-chart` > `svg.e-permits-chart__plot` (`rect.e-permits-chart__bar` + `--danger`) · `__axis` · `.e-permits-meter-legend` | `renderTrend()` in `js/ekyc.js` | app |
+| Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
+| Address by cadastral code (FO „Caută adresa” + SRRE fill, read-only parts) | cascade address + `[data-fo-cadastral-status]` field message (`e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + `.e-permits-fo-cascade-address__note` | `cadastralConfig` / `initCadastralLookup` (e-permits-acte-permisive.js), demo `adr-*` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -2578,6 +2584,46 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Notices | `e-permits-fo-infobox`, `e-permits-fo-mnotify-info`, `e-permits-fo-notice--skeleton` | | |
 | Skeletons | `e-permits-fo-skeleton` + `--input/--label/--notice-*` | | |
 
+### Address by cadastral code — US-54 (2026-10-13)
+
+Extends the FO cascade address (`cascadeAddressHtml`, service 09 step 2 „Detalii solicitare”)
+when the schema field has `"cadastral": { "visible": true, "required": false }`
+(`data/acte-permisive.json`). No mode choice: „Caută adresa” takes a saved address **or** a
+cadastral code (digits and dots), and the address fields stay on screen.
+
+- **Form Designer** (`?flow=builder` › Address pattern › Data): the part `cadastral` in
+  `ADDRESS_PATTERN_PARTS` — same row as the other parts (asterisk chip = Obligatoriu, checkbox =
+  Vizibilitate, expanded body with the two switches + „Sursă de date: MConnect · SRRE”), visible
+  by default, `noDefault: true` (no „Valoare implicită”). The canvas token row shows/hides it.
+- **Search hint** (`[data-fo-cadastral-search-hint]`) = the AC-06 text when the code is on, the
+  US-32 text otherwise. A field message replaces the hint while it shows (shell convention).
+- **Field messages** under „Caută adresa” — `[data-fo-cadastral-status]` (`aria-live="polite"`)
+  holds one `p.message.message--inline.e-permits-fo-field__error` + tone:
+  loading = `e-permits-fo-field__loading` + library `spinner spinner--small spinner--brand` in the
+  20px icon slot (2px margin), secondary text · success = `message--success e-permits-fo-field__success`
+  + `icon-circle-checkmark-filled` · invalid = `message--error` + `icon-circle-error-filled` and the
+  input `.e-permits-fo-input.is-error` + `aria-invalid` · unavailable = `message--warning
+  e-permits-fo-field__warning` (text `--color-text-warning-default`, icon `--color-icon-warning-default`)
+  + `icon-warning-filled`. Reuse these modifiers for any FO field lookup.
+- **Saved-codes list**: the same `.e-permits-fo-address-search__list` options, icon
+  `icon-home-line`, title = code, meta = saved address; empty = one
+  `li.e-permits-fo-caem__empty` „Nu aveți coduri cadastrale salvate.” (the FO combobox empty row).
+  Options carry `title` (full text when the meta is cut on mobile).
+- **SRRE-filled parts = the FO Read Only field**, never a lock: `.e-permits-fo-input.is-filled.is-readonly`
+  + green `icon-checkmark-small` (as `verifiedValueHtml`). Selects (Țară, Raion, Oraș, Sector,
+  Stradă) are hidden and a `[data-fo-srre-value]` read-only input box is inserted (Țară =
+  🇲🇩 „Republica Moldova”); text parts (Cod poștal, Casă, Bloc, Apartament) become `readonly`,
+  `tabindex=-1`, empty ones show „—”. Scară, Etaj, Telefon, Email stay editable. „Cod cadastral”
+  (span-6, first in the grid) is always read-only, placeholder „Se completează din «Caută adresa»”.
+- **AC-14 note**: one `renderInfoNote` markup inside `.e-permits-fo-cascade-address__note`
+  (spans the whole grid, every breakpoint), shown only while filled from SRRE.
+- Behaviour: lookup on pause (900 ms), Enter, `change`, or a list choice; mock MConnect =
+  `data/srre-cadastral.json` (`parcels`, `postalCodes` by locality, `savedCodes` by FO subject id),
+  1.4 s. Change → refill; clear / non-code text → release (empty + editable, cascade reset); a
+  saved address chosen after a fill releases first. Review step adds a „Cod cadastral” row.
+- Demo params: `?codcadastral=ascuns|obligatoriu` (builder config), `?srre=asteptare` (loader
+  stays), `?solicitant=<subject id>` (another applicant). States `adr-01…adr-10`.
+
 ### `e-permits-shell__*` — back-office chrome
 
 Topbar, header, brand, `__icon-button` (+ `--notification`, `__notification-dot`),
@@ -4733,6 +4779,85 @@ indisponibil). Page `bo-login.html` + `js/bo-login.js` + `css/bo-login.css`; Fig
   `bo-login.html?ended=logout`.
 - `?portal=admin` = Admin Portal (product name only; landing = Utilizatori — de confirmat).
 - Demo states `auth-01 … auth-06` (`page`-based, incl. `mpass-test.html`).
+
+### eKYC back office — a product on the permits back-office engine (added 2026-10-13)
+
+Azure project „eKYC” (read-only). Batch 1: US-UI-01 91104 shell & nav · US-UI-02 91107 login ·
+US-03-10 89193 MPass · US-05-10-B 89241 roles · US-UI-03 91108 + US-05-14 89248 + US-05-15 89249
+dashboard · US-UI-04 91109 Sesiuni active · US-UI-05 91110 Sesiuni istorice. Figma (layout only):
+eKYC file `SqMGpRKEppJLcvn7HMzOPR` — Shell 8443:121911, Login 10077:46089, Dashboard 10077:39036,
+Sesiuni active 6637:144392, Sesiuni istorice 10040:23230.
+
+**Architecture (decision).** eKYC is not a copy of the back office: it is a *product mode* of the
+same page and engine. `e-permits-acte-permisive.html?flow=ekyc` → `js/e-permits-acte-permisive.js`
+maps `ekyc` to the `back-office` flow (all BO CSS keeps applying), and `js/ekyc.js` (loaded in
+`<head>`, before the shell) sets `window.GEAPShellProduct`. The shell (`js/e-permits-shell.js`,
+„Product mode” at the top) then:
+- loads `rolesUrl` (`data/ekyc-roles.json`, same schema as `e-permits-roles.json`: groups →
+  assignments → `menuProfile`; `menus` → groups → items with `shellView`) after `product.load()`;
+- dispatches `shellView`s the product `handles()` to `product.showView(view, item)`; groups with an
+  empty `label` render without a heading; a „Configurare” group stays visible in a product;
+- runs the registry engine for product kinds: `product.registries[kind]` = `renderCell`,
+  `searchText`, `sortValue`, `filterToken`, `openRow`, `exportRows`, `emptyHtml`;
+  `product.facets[kind]` are merged into `FILTER_FACETS` (a facet may carry `tone(value)`);
+  views may set `searchPlaceholder` / `toolbarLabel`;
+- routes `product.route(hash)` first, uses `product.logoutUrl`, skips the dossier data, and gives
+  `product.init(api)` the engine: the render helpers (tags, dates, page header, info card,
+  stacked list, timeline, empty states, copy codes, row actions, fo-select), `showShellToast`,
+  `askConfirm`, `exportCsv`, `showRegistry(db, { sortKey })`, `hideShellPages`,
+  `openProfilePanel` / `closeProfile` (the dosar profile panel and its „Înapoi la …” button) and
+  the panel elements.
+Without a product nothing changes for permits (checked: svc-07a, dos-01, trf-01, usr-01, srv-01,
+auth-01, auth-03, clf-01 — identical to HEAD). Brand: „EVO eKYC” / „Back Office” in the sidebar
+and header (`brand()`), the login says „EVO eKYC · Consolă de administrare”.
+
+**Nav and roles** (`data/ekyc-roles.json`, MPass roles, US-03-10 CA-3): Administrator platformă —
+Dashboard · Monitorizare (Sesiuni active, Sesiuni istorice) · Configurare (8 items) · Administrare
+(Utilizatori); Operator (revizie), Supervizor, Auditor — Dashboard + Monitorizare. Config items are
+the BO placeholder pattern (`ekyc-placeholder` → empty state „… — ecran în pregătire”) until batch 3.
+Icons = 20px masks per `data-nav-id` (`ek-*`) in `css/e-permits-shell.css`. The bell shows the
+active-alert count and opens the Dashboard alerts.
+
+**Data** `data/ekyc-sessions.json` (deterministic seed, regenerate with `node tools/ekyc/seed-sessions.mjs data/ekyc-sessions.json` — demo-state IDs depend on it): `clients` (Relying Parties), `useCases`
+(code, IAL, steps, scoring), `providers`, `alerts`, `active[]`, `history[]`. A session = id,
+correlationId, clientId, useCaseCode, status, ial, startedAt, lastActivityAt, flowVersion,
+`steps[]` (code, label, provider, fallback, threshold, weight, optional, status done | current |
+pending | failed, score, completedAt, error), `device` (or null), `events[]`; history adds
+completedAt, durationSeconds, decision, finalScore (null without a decision), scoring, job, review.
+
+**Screens**
+- *Login* = `bo-login.html?product=ekyc` (same card; states login · redirecting · processing (new,
+  after the MPass return) · denied 403 · unavailable · expired · logout toast).
+- *Dashboard* (`#ek-dashboard`): filter row `.e-permits-ekyc-dash__filters` = library segmented
+  control (1 h / 24 h / 7 zile / 30 zile) + two fo-selects (Client, Caz de utilizare) + „Șterge
+  filtrele” + the window caption; KPI grid (Sesiuni în fereastră, Active acum + Live tag, Rată de
+  acceptare, Rată de eroare, Durata medie); two columns `.e-permits-ekyc-dash__cols`: Tendință
+  sesiuni (column chart) + Structura deciziilor (stacked meter + legend in the grey card) + Top
+  cazuri de utilizare (info card) | Alerte active (stacked list, severity tag, ✕ dismiss) +
+  Disponibilitate furnizori (stacked list). Empty window → compact empty state.
+- *Sesiuni active / istorice* = the workplace registry (`kind: ekyc-active | ekyc-history`):
+  status tabs (`ek:<statut>` / `dec:<decizie>` tokens), quick search, Filtrare avansată (Client,
+  Caz de utilizare, Statut, Nivel asigurare, Pas curent, Furnizor / Perioadă, Decizie), sort,
+  pagination, export CSV of what is shown. Cells: name over ID (`role-identity`), tags, live timer
+  `[data-ekyc-elapsed]` (text-only tick each second), Progres = meter + „3/5”, dates via
+  `renderDateTime` (Ultima activitate: „hh:mm · acum N min”), row action „Vezi detalii”.
+  First column pinned (`[data-registry-kind^="ekyc-"]`).
+- *Session profile* (`#sesiune/<id>/<tab>`) = the dosar profile panel + page header (crumbs
+  Monitorizare › Sesiuni … › ID, title = client, meta row). Tabs: active — Date generale · Pași de
+  verificare · Dispozitiv · Jurnal; historical — + Scor și decizie. Date generale: (historical)
+  „Decizie” callout first and dominant (`.e-permits-ekyc-decision`, tone by decision) · „Plan de
+  verificare” = the dosar trajectory with N columns (`.e-permits-trajectory__steps--n3…n7`,
+  Inițiere · steps · Decizie) + the hanging „Acum / Urmează” callout · Sesiune · Identificatori ·
+  Job de verificare. Pași = stacked list grouped Finalizați / Nereușiți / Pas curent / În
+  așteptare (code as neutral tag). Scor și decizie = registry table `.e-permits-ekyc-breakdown`
+  (Tip pas · Scor · Pondere · Contribuție meter) + sum-list total „Scor final” + scoring config.
+  Missing device / job / session = `renderPassportEmpty` / empty state.
+- *States* `?ek=gol | eroare | incarcare | incheiata` (empty, API error with „Reîncearcă”, loading,
+  an active session that ended meanwhile → toast + its historical profile, US-UI-04 AC).
+
+**Demo states** `ek-00 … ek-07j` (js/demo-states.js): picker, login ×7, role landings ×4, role
+menu, collapsed menu, placeholder, dashboard ×6, active list ×10, active profile ×12, historical
+list ×6, historical profile ×10.
 
 ## 5. Removed from this document
 
