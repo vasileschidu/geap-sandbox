@@ -28,6 +28,12 @@ session can fix them.
    `clipped-text-no-tooltip`, `button-not-library`, `button-icon-colour-differs`,
    `controls-overlap`, `page-horizontal-overflow`, plus static `hex-outside-token` /
    `px-outside-token` in the changed files.
+2b. Run the hover check — a REAL mouse on every interactive element (static screenshots never
+   catch broken hover; this is why hover kept breaking, 2026-10-13):
+   `node --experimental-websocket --no-warnings tools/ui-qa/hover-audit.mjs --states <ids> [--scope "<css>"]`
+   `no-hover` = the element looks the same under the mouse (selected / active items too — they
+   need a visible variant); `covered` = an invisible layer sits on top and eats the hover.
+   Both are **major** findings. Also re-check after a drag / menu close / modal close.
 3. Judge every measured finding — drop false positives (say why), keep the real ones.
 4. Look at the screenshots yourself (Read the PNGs) for what a script cannot measure:
    - alignment: label/control baselines, left edges of stacked blocks, icon vs text centring,
