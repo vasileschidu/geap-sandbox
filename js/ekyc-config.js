@@ -957,7 +957,8 @@
           sel("type", "Tip pas", STEP_TYPES.map(([t, l]) => [t, `${t} — ${l}`]), { required: true, placeholder: "Alege tipul", span: 6, hint: "Valori ilustrative, de confirmat cu backend-ul." }),
           inp("label", "Denumire", { span: 6, placeholder: "ex. Scanare document", hint: "Eticheta afișată utilizatorului final." }),
           inp("order", "Ordine", { span: 6, inputmode: "numeric", max: 2, hint: `Poziția în flux (1–${u.steps.length + (f.mode === "create" ? 1 : 0)}).` }),
-          tog("mandatory", "Obligatoriu", "Un pas opțional eșuat nu blochează fluxul."),
+          /* „Obligatoriu” = the checkbox option with the red star (product rule), never a switch */
+          `<div class="e-permits-user-create__field e-permits-user-create__field--12"><div class="e-permits-check-options">${A.renderCheckOption({ label: "Obligatoriu", required: true, checked: Boolean(F.v.mandatory), attrs: 'data-ekcfg-field="mandatory"' })}</div><p class="e-permits-fo-field__hint">Un pas opțional eșuat nu blochează fluxul.</p></div>`,
           tog("async", "Async", "Rulează în fundal, fără să blocheze pașii următori.")))}
         ${dSection("Furnizori", grid(
           sel("provider", "Furnizor principal", cfg.providers.map((p) => [p.id, `${p.name}${p.active ? "" : " (inactiv)"}`]), { required: true, placeholder: "Alege furnizorul", span: 12 }),
