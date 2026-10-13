@@ -357,3 +357,39 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   pill) → raw captured stepper as on the rest of the board; dashed upload container, uploaded-file row, radio row hover,
   IDNP 0/13 counter, MPass upsell banner (info-box Subtle is grey, code is light blue), FO progress tracker on Finalizare,
   leave dialog (library modal has no slot) → raw captured frames with bound tokens.
+- 2026-10-13 · eKYC BO (file SqMGpRKEppJLcvn7HMzOPR, 4 pages, ~130 screens) — pipeline that scaled: capture-to-figma.mjs
+  `--fit` (grows the viewport until the scroll containers stop scrolling; prints „fit height”) + it sets
+  `document.title = "cap · <state>"` so the capture root is named after its state → the builder maps roots by name, never
+  by order. Builders live as hidden text nodes and run with `new AF("ROOTS","OPT", text)(ids, opt)`: __swap-ekyc 10161:916
+  (= tokenize.js + tools/figma/swap-ekyc.js), __fix-ekyc 10261:24458 (tools/figma/fix-ekyc.js), __board-ekyc 10169:964
+  (tools/figma/board-ekyc.js, MODE block / layout + TOC), __audit 10240:11068. Repo copies synced at the end of the job.
+- 2026-10-13 · Stored code patched in place is reformatted by QuickJS (`fn.toString()`), so patch anchors must be
+  whitespace-tolerant: escape the anchor, `\s+` → `\s*`, add `\s*` after `; , { } ( )`. Text you insert yourself keeps its
+  form — later patches can anchor on it verbatim. To export a stored script, return it in ≤ 19 000-char chunks tagged
+  `{k:"CHUNK"}` and pull them from the session transcript (tool_result JSON) with python instead of retyping them.
+  JS slices count UTF-16 units (emoji = 2), Python counts code points — concatenate, don't re-slice.
+- 2026-10-13 · Captures: `cap.sh` runs ≤ 3 in parallel; the „timeout (submitted?)” line is the waiter, not the upload —
+  check the page for `cap · …` roots instead of polling every id. One parallel batch produced a root titled ek-21h with
+  ek-21i content → after every batch verify the screen heading against the state (heading + active tab + modal name).
+  Popover / menu / hover states must be captured WITHOUT --fit (the viewport resize closes the popover: ek-04c lost its
+  facet popover). Hover tooltips are never captured → add the library tooltip 3ca9d2a8… (Size Small, arrow) by hand.
+  Building 6 screens in one use_figma call sometimes drops the transport → build 3 per call, or one per call with
+  try/catch per capture so a crash names the culprit.
+- 2026-10-13 · `cornerRadius` can be `figma.mixed` (a Symbol) — every `n.cornerRadius >= 999` predicate inside findAll must
+  guard it, or the whole findAll throws „cannot convert symbol to number”.
+- 2026-10-13 · Classify captured dialogs: right-anchored and ≥ 500 high = drawer (Overlay scrim + raw drawer stretched),
+  no close button = popover (stays absolute), else local Modal (Confirmare when the body is one paragraph, Conținut with a
+  „Modal conținut / <state>” component). Modal footer buttons come from the footer's direct children only (findAll
+  over the whole modal picked buttons in the content). Instances freshly created: walk `.children`, `findOne` is flaky.
+- 2026-10-13 · Field patterns the generic swap missed: label row with an i button (`Button - Despre …`) → field + absolute
+  16/circle-info c85edce9… next to the label (library text-input has no info slot — gap); grey input with a lock →
+  text-input State „Read Only” (that variant has no lock icon — gap); input + button(s) in a row → field FILL + „btn-wrap”
+  with paddingTop 32; „Alege data” rows → date-input 4449e61e… (Trailing Icon on); Afișează → trailing eye; long hints
+  wrap only after `inline-message.layoutSizingHorizontal = "FILL"`; repeatable bare inputs (Redirect URIs, IP) →
+  text-input without label; 44×24 pill toggles → switch 5a669ca2…; GRID rows → HUG (never ungrid).
+- 2026-10-13 · Local icons made from captured SVGs keep a white-filled wrapper frame and their own vector colour → audit
+  „icon ≠ label”. Clear every inner frame fill when creating the component, bind vectors to icon/base/default, and in the
+  fix pass copy the button label's paint onto the local icon vectors.
+- 2026-10-13 · Existing pages: don't redraw over them. Dashboard / Sesiuni got new „(din cod)” sections below the old ones
+  (layout `x0/y0` = old section x, bottom + 400) with the discrepancies listed in the report; the old sections stay as
+  reference until the PO decides.
