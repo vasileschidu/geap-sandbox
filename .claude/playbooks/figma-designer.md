@@ -509,3 +509,14 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     it and get the first-column right divider (border/base/default, 1 px) on header + body, as in the code.
   - Library variables not yet in the file: `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()` →
     `getVariablesInLibraryCollectionAsync(key)` → find by name → `importVariableByKeyAsync`.
+- 2026-10-14 · QA round 5:
+  - `maxWidth` 1024 sections come from `max-width + margin-inline: auto` → set their VERTICAL parent counterAxisAlignItems
+    CENTER (1440 and 1920 detail screens alike). Check centring numerically (left gap = right gap).
+  - Header cells: required width = paddingL + Header (label + sort icon, HUG) + paddingR; include it with the body
+    one-line needs when rebalancing columns (donors keep max(body need, header need, 64 / 200 for long text)).
+  - Empty GRID rows can sit in the MIDDLE (filter-chip row lists): compact rows (setGridChildPosition in order) then
+    `gridRowCount = used`.
+  - Modal-background lists: the absolute scroll-content height = table bottom + 1 (pager right under it), parent FIXED to
+    match; re-centre modals in the overlay and re-place flow anchors afterwards.
+  - Raw cell dividers must use the library cell's stroke paint and weight (0.5) so a row has one divider weight.
+  - sweep.js (repo) now also checks: header cell fit, empty GRID rows, pager gap, centred 1024 bodies. Run it last.

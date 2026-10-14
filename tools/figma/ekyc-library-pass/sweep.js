@@ -1,14 +1,22 @@
-// eKYC library pass round 3/4 (2026-10-14) · READ-ONLY table sweep: column-track sum ≤ table inner width (round 4), resizers > 0, squeezed Cell Container, text outside its cell, rows misaligned, table wider than its container.
+// eKYC library pass round 3/4 (2026-10-14) · READ-ONLY table sweep (round 5: + header cell fit, empty GRID rows, pagination gap, centred 1024 bodies): column-track sum ≤ table inner width (round 4), resizers > 0, squeezed Cell Container, text outside its cell, rows misaligned, table wider than its container.
 // Run on the current page: new AF(code)()
 const inI = (n) => { for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true; return false; };
-const r = { tables: 0, cells: 0, resizer: 0, squeezed: 0, textCut: 0, rowMisaligned: 0, tableOverflow: 0, colSumOver: 0, ex: [] };
+const r = { tables: 0, cells: 0, resizer: 0, squeezed: 0, textCut: 0, rowMisaligned: 0, tableOverflow: 0, colSumOver: 0, headerOver: 0, emptyGridRows: 0, pagerGap: 0, bodyNotCentred: 0, ex: [] };
 for (const t of figma.currentPage.findAll(n => n.type === "FRAME" && n.layoutMode === "GRID" && !inI(n) && /^Table/.test(n.name))) {
   r.tables++; const p = t.parent; const avail = /scroll-content/.test(p.name) ? p.width : p.width - (p.paddingLeft || 0) - (p.paddingRight || 0); if (t.width > avail + 1) { r.tableOverflow++; if (r.ex.length < 12) r.ex.push("overflow " + t.id); }
   const cs = t.gridColumnSizes; if (cs.every(c => c.type === "FIXED")) { const sum = cs.reduce((a, c) => a + c.value, 0) + (t.gridColumnGap || 0) * (cs.length - 1); const inner = t.width - (t.paddingLeft || 0) - (t.paddingRight || 0); if (sum > inner + 0.5) { r.colSumOver++; if (r.ex.length < 12) r.ex.push("colsum " + t.id + " " + Math.round(sum) + ">" + Math.round(inner)); } }
   const rows = {};
   for (const c of t.children) { r.cells++; if ((c.gridRowSpan || 1) === 1) (rows[c.gridRowAnchorIndex] = rows[c.gridRowAnchorIndex] || []).push(c);
     const cb = c.absoluteBoundingBox;
+    if (c.gridRowAnchorIndex === 0) { const kids = c.findAll(n => n.visible && (n.type === "TEXT" || (n.type === "INSTANCE" && n !== c))); for (const k of kids) { const b = k.absoluteBoundingBox; if (b && (b.x + b.width > cb.x + cb.width + 0.5 || b.x < cb.x - 0.5)) { r.headerOver++; if (r.ex.length < 12) r.ex.push("header " + c.id); break; } } }
     if (c.type === "INSTANCE") { if (c.children.some(k => /Resizer/.test(k.name) && k.height > 0.5)) r.resizer++; const cc = c.findOne(n => n.name === "Cell Container"); if (cc) { const kids = cc.children.filter(k => k.visible); const need = kids.reduce((m, k) => Math.max(m, k.height), 0) + cc.paddingTop + cc.paddingBottom; if (cc.height + 1 < need) { r.squeezed++; if (r.ex.length < 12) r.ex.push("squeezed " + c.id); } } }
     for (const x of c.findAll(n => n.type === "TEXT" && n.visible)) { const b = x.absoluteRenderBounds || x.absoluteBoundingBox; if (!b) continue; if (b.y + b.height > cb.y + cb.height + 1 || b.y < cb.y - 1 || b.x + b.width > cb.x + cb.width + 1) { r.textCut++; if (r.ex.length < 12) r.ex.push("cut " + c.id + " " + x.characters.slice(0, 16)); break; } } }
   for (const cells of Object.values(rows)) { const hs = cells.map(c => Math.round(c.height)), ys = cells.map(c => Math.round(c.y)); if (Math.max(...hs) - Math.min(...hs) > 1 || Math.max(...ys) - Math.min(...ys) > 1) r.rowMisaligned++; } }
+// list headers: GRID wrappers without empty rows; pagination footer starts right under the table; 1024 bodies centred
+for (const g of figma.currentPage.findAll(n => n.type === "FRAME" && n.layoutMode === "GRID" && !inI(n) && !/^Table/.test(n.name))) { const used = new Set(); for (const c of g.children) for (let k = c.gridRowAnchorIndex; k < c.gridRowAnchorIndex + (c.gridRowSpan || 1); k++) used.add(k); if (used.size < g.gridRowCount) { r.emptyGridRows++; if (r.ex.length < 12) r.ex.push("emptyrow " + g.id); } }
+for (const s of figma.currentPage.findAll(n => n.type === "FRAME" && /^Ecran · /.test(n.name))) {
+  const t = s.findOne(n => n.type === "FRAME" && n.layoutMode === "GRID" && /^Table - /.test(n.name)); const sh = t && s.findOne(n => n.type === "TEXT" && /^Showing/.test(n.characters));
+  if (t && sh) { let f = sh; while (f && f.name !== "Footer") f = f.parent; if (f) { const gap = f.absoluteBoundingBox.y - (t.absoluteBoundingBox.y + t.absoluteBoundingBox.height); if (gap < -0.5 || gap > 1.5) { r.pagerGap++; if (r.ex.length < 12) r.ex.push("pager " + s.id + " " + Math.round(gap)); } } }
+  const main = s.findOne(n => n.name === "Main" && n.type === "FRAME"); if (!main) continue;
+  for (const b of s.findAll(n => n.type === "FRAME" && !inI(n) && n.maxWidth && Math.abs(n.maxWidth - 1024) < 1)) { const mb = b.parent.absoluteBoundingBox, bb = b.absoluteBoundingBox; const l = bb.x - mb.x, rr = mb.x + mb.width - bb.x - bb.width; if (Math.abs(l - rr) > 2) { r.bodyNotCentred++; if (r.ex.length < 12) r.ex.push("body " + b.id); } } }
 return r;
