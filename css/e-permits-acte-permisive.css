@@ -23943,6 +23943,11 @@ button.e-permits-steps-strip__cell:hover,
   color: var(--color-background-danger-default, #d92d20);
 }
 
+/* warning confirm (data will be lost, e.g. G8 „Părăsești cererea?”): amber icon, same tile */
+.e-permits-fo-instance-switch-modal__icon--warning {
+  color: var(--color-icon-warning-default, #dc6803);
+}
+
 .e-permits-fo-instance-switch-modal__primary--danger {
   background: var(--color-background-danger-default, #d92d20);
 }
