@@ -1,0 +1,174 @@
+{
+ "_about": "eKYC icon pass (2026-10-14). Code sprite id (assets/icons/sprite.svg, js/ekyc.js / js/empty-state.js) + rendered size → Foundations (lk-e9e8…) component key. Used by rawicons.js (captured h2d-svg icons → library instances, matched by path signature, verified per instance against collect-code-icons.mjs) and emptystates.js (captured .e-permits-empty → local „Stare goală (gap bibliotecă)” 10698:119653).",
+ "library": "Foundations lk-e9e8106bd63c1880699b1c7b4c2d9a474b73bbf708bb58185a8d85931f828b65975ebec3a95ee78d98928a96f5a727ad695fd6e124c57376ea0b431d30052577",
+ "glyphs": {
+  "circle-checkmark-filled": {
+   "16": "c48c4b3bd2f115de210c923a89499c67ea0ba6d9",
+   "20": "ff518847b70fb94f111242a9523b4848e965af5c",
+   "24": "f98b44ac147c39fbb99d970b2bf6287f8ebb764f"
+  },
+  "circle-error-filled": {
+   "16": "2b8e7e387ad9773a2d597e3cfe447fa86a516a96",
+   "20": "ae3f9cd6cc340d546acbcbde01ababc2204bf229",
+   "24": "06664bf958f02f739d361f7b0c86e97682349da2"
+  },
+  "circle-info-filled": {
+   "20": "5713c4821c4a98b9bf70bd9447642f86a593d53f",
+   "24": "c643272f5370c1b90659d66de162d2ec7e222020"
+  },
+  "time-filled": {
+   "16": "5ddab07603b9cc27870e6cd271fc6272190407d8",
+   "20": "58132270ce68edabcc43389d2410144726ba36ab"
+  },
+  "time": {
+   "16": "0c1fa876fe12e72dc2bc2841c8ac83d44d937d4e"
+  },
+  "pause": {
+   "20": "3db9e42c1922d440a45fd45e29b7de6419f7a681"
+  },
+  "lock": {
+   "24": "fbeb6d2d8c3e69de17f8bd7272cfaee829cf2ed2"
+  },
+  "asterisk": {
+   "12": "c2122c1a0abaaf69da3dacd041b8f092b26f7c64"
+  },
+  "drag": {
+   "24": "18332790aa9790a465e1c6440647d6ad77b936a9"
+  },
+  "rotate-arrow": {
+   "20": "8cdf3361fae3b611bc79a0ff4be5e664909d1ea5",
+   "24": "bc246977fd0bae99b85550d5f43c6fe062b9ef02"
+  },
+  "id-card": {
+   "20": "dbdbf94c5aefe0567de34d96355a57092b81d75d",
+   "24": "d93f43def8fbd4d98ff3dbc381606cbdb5b24057"
+  },
+  "person": {
+   "20": "4559c5554720e8594551a8bef25d9982aa3f9f76",
+   "24": "8a645affff4a43aa3141ad910f043957ed6a68c3"
+  },
+  "face-id": {
+   "24": "ba314bfd9f58f1f9acc568506511b6d916a20a2c"
+  },
+  "search": {
+   "16": "7a1e21578d7c557bf4b0263c46b71be6ef406baa",
+   "20": "e0e0159cf2a72d132f613b33d183287e05fb0e5d",
+   "24": "2ade55700102fbdb99f3d00cc239f1292cb985e8"
+  },
+  "warning-filled": {
+   "16": "f0fd12f9274960c8f03a9818bde28167380f2b26",
+   "20": "43efb3c5b856ba22f1d24d6c44bfd74a07c95019",
+   "24": "4ba09911c05ad2e20105580d242b32b1db83b42c"
+  },
+  "phone": {
+   "24": "2c3be8b841ccfe2a2bca6b9b5e5f46918c70be6a"
+  },
+  "chart": {
+   "20": "00471b4faabb4c1d791c5a39d869f141451c82ff",
+   "24": "241d8607d800334577d6bb5e08357e140c26b8c7"
+  },
+  "page-text": {
+   "20": "09d6b2a320b8eb226c9f39b76db062daf4c18845",
+   "24": "205898cfa8147389ae89332a559a3a9cfdd00d34"
+  },
+  "page-text-lock": {
+   "24": "742999362b0affd335bc672d4ec370a0988cf817"
+  },
+  "settings": {
+   "20": "ee36462d693e2b0bc822c45dfcf46ee091d0b844",
+   "24": "0a8a1b9472effd73b59fb78ffa945d225ee53c94"
+  },
+  "business": {
+   "20": "13c704752d82ff4667a4a021d2f4b93fa9168ec6",
+   "24": "b135d6dcb6dab0384a09075067785932030ef967"
+  },
+  "shield": {
+   "20": "56a6470f06c73f19b34a5124033455c9d680821f",
+   "24": "70e7361e4533f0208a7f7931e25ac550a8e7e9c8"
+  },
+  "shield-keyhole": {
+   "24": "edad9128c03a5b29bb5350067cb02d6a88f57d77"
+  },
+  "signal": {
+   "20": "56740247169b62107fa91c7629f2f00f6e14ac21",
+   "24": "4a0539c4f9b26170839e94dd586206c255c83b7f"
+  },
+  "people": {
+   "24": "c1dd8806d9f0880b97d69c3b0a27b990745f8054"
+  },
+  "history": {
+   "24": "cd5eafc1130f317f15be54d20a4b5862ddbd060b"
+  },
+  "play": {
+   "16": "1f49ecca87b96fa4523ad3fa0d5e9e07868fd8ac",
+   "24": "1f49ecca87b96fa4523ad3fa0d5e9e07868fd8ac"
+  }
+ },
+ "sizeGaps": {
+  "time-filled@24": "Foundations has 16/20 only → 20/time-filled scaled to 24 (trajectory „în curs” marker)",
+  "lock@20": "Foundations has 24/lock only → scaled to 20 (banner „Acces în contextul reviziei”, „Date biometrice protejate”)",
+  "time@24": "Foundations has 16/time only (the code's icon-time is a 16-grid glyph) → scaled to 24 (empty state)",
+  "pause@24": "Foundations „pause” is one 20 px component → scaled to 24 (trajectory „în așteptare” marker)"
+ },
+ "signatures": {
+  "_about": "captured path-signature (djb2 of vectorPaths + sizes of the raw wrapper) → code sprite id; every instance re-verified against the rendered prototype (state + step label / context).",
+  "ido5wg": "circle-checkmark-filled",
+  "1cjdl15": "circle-checkmark-filled",
+  "94y0bv": "circle-checkmark-filled",
+  "1ehh6k0": "circle-error-filled",
+  "i2fjoh": "circle-error-filled",
+  "joxslk": "circle-error-filled",
+  "131ctmm": "time-filled",
+  "xbzhjn": "time-filled",
+  "bn929x": "time-filled",
+  "if7z48": "pause",
+  "kf4til": "pause",
+  "cqpz66": "circle-info-filled",
+  "1f473zn": "lock",
+  "188kgag": "asterisk",
+  "1fy2ryx": "drag",
+  "ct9kc9": "id-card",
+  "1wy4u37": "id-card",
+  "imiuf3": "person",
+  "6ftudh": "face-id",
+  "xhi6cx": "rotate-arrow"
+ },
+ "emptyStateSignatures": [
+  "bci7wb",
+  "1ebkwij",
+  "1ctb1ep",
+  "4hd3y0",
+  "1hwbl5i",
+  "g1whow",
+  "hslksm",
+  "2xhrg1",
+  "11wmoew",
+  "1ck28qk",
+  "j6x3f9",
+  "1a66xu7",
+  "195a77o",
+  "hmiuv4",
+  "6ftudh@48"
+ ],
+ "emptyStateComponent": {
+  "set": "10698:119653",
+  "variants": {
+   "": "Casetă",
+   "e-permits-empty--compact": "Compactă",
+   "e-permits-empty--bare": "Fără chenar"
+  },
+  "props": [
+   "Titlu",
+   "Text",
+   "Arată text",
+   "Acțiune",
+   "Iconiță"
+  ],
+  "exposedButton": "Acțiune"
+ },
+ "centralIcons": {
+  "_about": "central icon system (lk-f0e5…) — used where Foundations has no glyph",
+  "play": "set 67d2707e6c3ebc3ec9bf02016d94f59028cb94f1 · variant filled=on, stroke=2, radius=1, join=round = 1f49ecca87b96fa4523ad3fa0d5e9e07868fd8ac (code svgPlay: video thumbnails R02d-f, „Redă” button; replaced the local „Icon / eKYC / Redă”)"
+ },
+ "menuButtons": "„Exportă” (and every labelled menu button) = label + trailing chevron: the library button holds one icon, the code shows export + chevron → user rule keeps the chevron (glyph-map allows both)."
+}

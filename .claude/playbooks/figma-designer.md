@@ -788,3 +788,31 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     Cabinet 983:2727 still said „gol de bibliotecă”). Search texts per page and read the descriptions of every copy.
   - A read-only scan over ALL pages of GEAP timed out (987 s). One page per call, findAllWithCriteria({types:["TEXT"]}).
   - No ui-qa-figma agent tool in this session again → ran figma-audit.js (ROOTS) + sweep-lite myself.
+
+- 2026-10-14 · eKYC library-only icon pass (file SqMGpRKEppJLcvn7HMzOPR, 355 raw h2d-svg icons → 0):
+  - Deterministic mapping beats per-icon guessing: hash each raw icon's vectorPaths (+ sizes) → 34 path signatures; resolve
+    each signature to the code's sprite id by probing the rendered prototype (tools/figma/ekyc-library-pass/collect-code-icons.mjs:
+    every `<use>` icon per state with size, colour, context text), then re-verify EVERY instance by state + context. Context
+    drifts: demo dates are relative (captured 13 oct, code 14 oct) and markers carry sr-only words („— finalizat”) → match on
+    the label before the first digit; drag handles match on the number only. Table: icon-map.json (sprite id × size → key).
+  - Replace the captured `Icon` frame (= the code's `<svg>` box, already at code size: 24 trajectory, 20 callout, 16 timeline,
+    12 asterisk) with the library instance; keep the code-mirroring wrapper; bind vector fills to the variable the captured
+    vector used (= code colour). rawicons.js; 305 swaps, 0 connector changes. A raw icon can hold two signatures (id-card clip
+    group) → dedupe by the svg box.
+  - Foundations size gaps (scaled + declared): time-filled 24 (20), lock 20 (24), time 24 (16, code icon-time is a 16 grid),
+    pause 24 (one 20 component), eye-open 16 (20). Play exists only in the central icon set („play, go” filled=on r1) — it
+    replaced the last local icon („Icon / eKYC / Redă”, deleted at 0 instances).
+  - Empty states → ONE local set „Stare goală (gap bibliotecă)” 10698:119653 (Tip Casetă 40/24 dashed / Compactă 24/20 dashed /
+    Fără chenar 24/16 + 4 px text margin; Arată text, Acțiune with an exposed button, Iconiță swap). Built by combining the old
+    compact component with two clones (combineAsVariants keeps its instances). Content filled from the CODE probe, not the
+    capture — that fixed stale copy (S01h/S01i/S02f showed „Nu sunt dosare pentru filtrul curent”; code: „Niciun rezultat…”,
+    „Nicio sesiune activă” (time), „Nicio sesiune încheiată” (history); R01c lacked its text). Heights matched code (152/182/224/254).
+    An instance swap does not keep the slot's fill override → re-bind the swapped glyph to icon/base/tertiary.
+  - sweep's rawSvgIcons only sees `h2d-svg` names — the audit found raw play glyphs named „Icon”. Also scan every VECTOR in screens
+    outside instances (charts / meter bars / logo tiles are fine, glyph-sized vectors are not).
+  - Rule 4 drift was board-wide, not just S02: 252 „Vezi detalii” (S01, S02, R05, C08, A01) + 2 bare „Detalii” → „Detalii” + eye
+    (Icon=Leading, 20/eye-open in the 16 slot). Fresh-instance check: icon var = icon/base/default like a new instance.
+  - glyph-map false positive: labelled menu buttons („Exportă”) = label + chevron by user rule (library button holds one icon) →
+    glyph-map allows both. Hand-trimming G for a sweep run hides/creates mismatches — always pass the full glyph-map.json.
+  - Adding a sentence to TOC „How to read” notes pushed the „Cuprinsul paginii” grid into overlap on 8 pages → restack TOC
+    frames (gap 40) + section bottom 80 after any TOC text change.
