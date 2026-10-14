@@ -658,3 +658,28 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - Cloned 04e modal rows: the second row carried a tag box („Format: PDF”) → rebuild every row from a plain row clone.
 
 - 2026-10-14 · Captured modal-content components kept the captured FIXED widths of their content, so text / fields / lists ran 12–32px past the component edge and the component clip cut them (16 of 17 eKYC „Modal conținut” components); one also had a leftover maxHeight (651) and viewer watermarks sat 59px past the stage. After turning any capture into a component: padding L/R 32, every child FILL in vertical auto-layout, text FILL + HEIGHT, images scaled to the inner width, height HUG, maxHeight/minHeight cleared, absolute overlays (watermarks) anchored inside the stage. Check with a deep "descendant past nearest clipping ancestor" walk, not just the component's direct children. Also: lay out local component sections as a grid — never stack components at near-identical x/y.
+
+- 2026-10-14 · eKYC (SqMGpRKEppJLcvn7HMzOPR) segmented 40 + sidebar separator:
+  - Library size gap → LOCAL copy, never instance overrides: the library segmented-control is 52 high and its item has a min
+    68×40 that instances can't override. Built from DETACHED library variants (`variant.createInstance().detachInstance()` →
+    `createComponentFromNode`) so fills / text styles / effect styles stay bound: „Segmented · 40 · item (gap bibliotecă)”
+    10666:1848 (Mode On/Off × State Default/Hover/Focus as the library; props ⌨️ Label / 👁️ Separator / Leading Icon re-added
+    with `addComponentProperty` + `componentPropertyReferences`; detach drops the old references) and „Segmented · 40 (gap
+    bibliotecă)” 10666:2009 (🧮 Segment Count=2/3/4; track padding 4, gap 4, items 32 h, padding 0/12; nested items
+    `isExposedInstance = true` so labels / mode are set on the screen instance). Separator rule: item i shows it when
+    i < n−1 and neither i nor i+1 is selected; separator x = item width + 2 (middle of the 4 px gap).
+  - Measure EVERY occurrence in code before applying a „make it like the code” request: the dashboard / report period
+    control is 40 (`.e-permits-ekyc-dash__period`), but the allocation modal's „Aleatorie / Alege operatorul”
+    (`.e-permits-ekyc-modal .segmented-control`) is the library default 52 (6/6, items 40, 10/16). Those got their old
+    padding overrides reset to the library instead of the 40 set — say so in the report.
+  - Reset only the size overrides on an instance: record nested componentProperties + nested fill overrides, `resetOverrides()`,
+    re-apply both, set layoutSizingHorizontal HUG (a FILL that came with the override) — labels / modes / icon colours survive.
+  - A frame stroke that „isn't there”: Sidebar · eKYC already had a 1 px right stroke bound to border/base/default, but OUTSIDE —
+    the Main sibling paints over it. Fix at the component: strokeAlign INSIDE + strokesIncludedInLayout (FILL children → 255).
+    Check `strokeAlign` before adding strokes; outside strokes on side-by-side layout children are invisible.
+  - Snapshot / diff without long returns: store the pre-snapshot per page with `page.setSharedPluginData("geapqa", key, json)`
+    (connectors with both ends + magnets, anchor boxes, button label → glyph counts, section + block boxes), diff in a later
+    call, then clear the keys. Replacing an instance: re-point connectors whose endpointNodeId = old id before removing it.
+  - Height changes inside blocks (filter row 48 → 40) only showed up where screens hug (R06 −8); fixed-height screens kept
+    their size. Always diff block boxes, then restack only the columns that moved.
+  - swap-ekyc.js segSwap now maps captured ≤ 44 px tracks to the local 40 set.
