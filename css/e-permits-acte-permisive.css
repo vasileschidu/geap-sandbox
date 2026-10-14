@@ -24439,9 +24439,10 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
   -webkit-line-clamp: 2;
   color: var(--color-text-base-tertiary, #757575);
   display: -webkit-box;
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
+  /* user 2026-10-14: description 12px, a clear gap under the title / time line */
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: var(--spacing-6, 6px) 0 0;
   overflow: hidden;
 }
 
