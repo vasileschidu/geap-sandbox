@@ -435,3 +435,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `.segment-item.is-selected:hover`): `git diff` the file first, don't duplicate, put mine in a separate dated block.
   `msupport/` stays untouched — its fixes are scoped overrides in our CSS (msupport.css loads AFTER our CSS, so
   match its specificity + 1).
+- 2026-10-14 · Dossier tabs by capability (Figma comment A. Pascalov 9709:2052, user: „do it first in
+  code”): the BO dossiers (`e-permits-workplace.json`, names + generic `tipDosar`) and the service
+  passport (`e-permits-services.json`, codes + request types) were NOT linked — bridge with an explicit
+  map (`serviceCodes`) + the RSSP sub-service `type` (Eliberare → „Emitere primară”), fall back to the
+  whole service when the request type is missing, and keep the old rule for anything unlinked. Before
+  switching a „show when content” rule to „show when possible”, simulate the seed generator in node
+  (extract `buildDosare` with sed into a .cjs) and list every (service, type, status, alert) combo: the
+  seed config must not contradict seeded content (a free sub-service with `asteaptaPlata` rows, an RT
+  without avizare whose row has an `inAvizare` alert) — fix the seed, and never hide content a case
+  already has. Hide the matching case-flow operation too, or the tab reappears after the action.
+  Baseline every `dos-*` state's tab strip before / after (probe `[data-dosar-tab]` + aria-selected)
+  and diff — it showed dos-02c / dos-03 had silently fallen back to Date generale before the change.

@@ -1260,7 +1260,7 @@
               "unit": "zile lucrătoare"
             },
             "price": {
-              "amount": 0,
+              "amount": 560,
               "currency": "MDL"
             }
           },
@@ -1272,7 +1272,7 @@
               "unit": "zile lucrătoare"
             },
             "price": {
-              "amount": 0,
+              "amount": 460,
               "currency": "MDL"
             }
           }
@@ -1312,7 +1312,11 @@
               "value": 10,
               "unit": "zile lucrătoare"
             },
-            "actions": {}
+            "actions": {},
+            "avizare": {
+              "needs": false,
+              "items": []
+            }
           }
         ],
         "forms": [],

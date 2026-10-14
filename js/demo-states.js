@@ -14,6 +14,8 @@
   const SPEC = "ansp-specialist-chisinau", SUP = "ansp-supervisor-chisinau", DIR = "ansp-director-chisinau", LOCAL = "ansp-local-admin";
   const DOS = "D-2026-004575";
   const dos = (as, stare, tab = "general", extra = {}, run) => ({ flow: "back-office", as, params: { stare, ...extra }, hash: `#dosar/${DOS}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
+  /* another dossier, in its own seeded status (no ?stare=) */
+  const dosOf = (id, as, tab = "general") => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section" });
   const dosList = (as) => ({ flow: "back-office", as, ready: "tr[data-workplace-row], .e-permits-workplace" });
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
@@ -731,6 +733,12 @@
     "dos-01f": dos(SPEC, "semnat"),
     "dos-01g": dos(SPEC, "eliberat"),
     "dos-01h": dos(SPEC, "respins", "general", { decizia: "respingere" }),
+    /* one tab set for every dossier (propunere A. Pascalov, 14.10): Taxe / Avize are there as soon
+       as the request type can produce them — empty until the step that generates them */
+    "dos-01i": dos(SPEC, "depus", "taxe"),
+    "dos-01j": dos(SPEC, "depus", "avize"),
+    /* Autorizație sanitară · Prelungire: the request type has „Necesită avizare” off → no Avize tab */
+    "dos-01k": dosOf("D-2026-004498", SPEC, "taxe"),
     /* 02 acțiuni pe rol */
     "dos-02": dos(SUP, "depus"),
     "dos-02a": dos(SPEC, "inExaminare"),

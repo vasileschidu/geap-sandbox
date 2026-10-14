@@ -183,6 +183,10 @@
     "Autorizație sanitară de funcționare",
     "Autorizație de comerț cu produse alcoolice"
   ],
+  "serviceCodes": {
+    "Autorizație sanitară de funcționare": "003000118",
+    "Autorizație de comerț cu produse alcoolice": "003000207"
+  },
   "subdiviziuni": [
     "CSP Chișinău",
     "CSP Bălți",

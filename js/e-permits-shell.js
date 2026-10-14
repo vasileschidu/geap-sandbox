@@ -2460,13 +2460,74 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "jurnal", label: "Jurnalul activităților" }
   ];
 
-  /* US-115 §10: which tabs a case shows — by its content and by the viewer's role */
+  /* US-115 §10: which tabs a case shows — by what its service can produce and by the viewer's role.
+     One tab set and order for every case (2026-10-14, propunere Alexandr Pascalov, comentariu Figma
+     14.10 — de confirmat în Feature 90263): „Taxe și plăți” and „Avize” appear when the case's
+     service / request type CAN produce them per the service passport — fees: active taxes of the
+     request type (Taxe și tarife) or an RSSP sub-service price; avize: „Necesită avizare” in the
+     request type's Avizare tab (US-222), or, while that tab was never saved, a flow with the
+     avizare branch. Until there is content the tab shows an empty state saying at which step it
+     comes. A tab never hides what the case already has (the passport may change after the case
+     started). Cases outside the passport and ex-officio drafts (no case flow) keep the old rule:
+     only with content. Act/Decizie keeps it too (every case ends in one; the tab comes with it). */
   const DOSAR_TAB_ROLES = { expert: ["avize"], "operator-ghiseu": ["general", "solicitare"] };
+  /* the case's passport service + request type (tipDosar = the RSSP sub-service type, e.g.
+     Eliberare → „Emitere primară”); an unknown request type → the whole service decides */
+  const dosarPassportOf = (row) => {
+    if (!row || row.sursa === "OFICIU" || row.status === "schita") return null;
+    const service = getServiceByCode(dossierDb?.serviceCodes?.[row.serviciu]);
+    if (!service?.geap) return null;
+    const sub = (service.rssp?.subServices || []).find((item) => item.type === row.tipDosar || item.title === row.tipDosar);
+    const requestType = service.geap.requestTypes.find((rt) => rt.name === row.tipDosar || rt.name === sub?.title) || null;
+    return { service, requestType };
+  };
+  /* when a request type charges: the moments of its active taxes, else „La examinare” for an RSSP price */
+  const rtFeeMoments = (service, rt) => {
+    const taxes = serviceTaxes(service).filter((tax) => tax.requestType === rt.name && tax.state === "Publicat" && tax.active);
+    const sub = (service.rssp?.subServices || []).find((item) => item.title === rt.name);
+    return taxes.length ? taxes.map((tax) => tax.moment || RT_MOMENTS[0]) : Number(sub?.price?.amount) > 0 ? ["La examinare"] : [];
+  };
+  const rtCanAviz = (rt) => {
+    const branch = flowHasAvizare(getFlowById(rt.flow));
+    return rt.avizare ? branch && Boolean(rt.avizare.needs) : branch;
+  };
+  const dosarTabSetup = (row) => {
+    const link = dosarPassportOf(row);
+    if (!link) return null;
+    const rts = link.requestType ? [link.requestType] : link.service.geap.requestTypes;
+    const moments = rts.flatMap((rt) => rtFeeMoments(link.service, rt));
+    return {
+      fees: moments.length ? { moment: RT_MOMENTS.find((moment) => moments.includes(moment)) || moments[0] } : null,
+      avize: rts.some(rtCanAviz)
+    };
+  };
+  /* the empty Taxe / Avize tab: when the content comes, named after the case-flow step */
+  const caseFlowStepName = (row, test) => {
+    const flow = caseFlowOf(row)?.flow;
+    const id = (flow?.order || []).find((key) => flow.nodes[key] && test(flow.nodes[key]));
+    return id ? flow.nodes[id].name : "";
+  };
+  const isAvizStep = (node) => (node.operations || []).some((op) => op.category === "avizare");
+  const FEE_MOMENT_STEPS = { "La examinare": (node) => node.form === "taxa", "La avizare": isAvizStep, "La luarea deciziei": (node) => node.form === "act" };
+  const FEE_MOMENT_TEXT = { "La inițierea solicitării": "la depunerea cererii", "După semnare act": "după semnarea actului", "După emitere act": "după eliberarea actului" };
+  const DOSAR_PAST_EXAMINATION = ["spreCoordonare", "spreSemnare", "semnat", "eliberat", "respins", "arhivat"];
+  const dosarTabEmpty = (row, kind) => {
+    const setup = dosarTabSetup(row);
+    const past = DOSAR_PAST_EXAMINATION.includes(row.status);
+    if (kind === "taxe") {
+      if (past || !setup?.fees) return "Nicio taxă. Pentru acest dosar nu s-au generat taxe.";
+      const step = FEE_MOMENT_STEPS[setup.fees.moment] ? caseFlowStepName(row, FEE_MOMENT_STEPS[setup.fees.moment]) : "";
+      return `Nicio taxă încă. Taxele se generează ${FEE_MOMENT_TEXT[setup.fees.moment] || (step ? `la examinare, la pasul „${step}”` : "la examinare")}.`;
+    }
+    if (past || !setup?.avize) return "Niciun aviz. Pentru acest dosar nu s-au solicitat avize.";
+    const step = caseFlowStepName(row, isAvizStep);
+    return `Niciun aviz solicitat încă. Avizele se solicită la examinare${step ? `, la pasul „${step}”` : ""}.`;
+  };
   const dosarTabVisible = (tab, profile, row) => {
     const allowed = DOSAR_TAB_ROLES[currentEngineRole()];
     if (allowed && !allowed.includes(tab.id)) return false;
-    if (tab.id === "taxe") return profile.taxe.length > 0;
-    if (tab.id === "avize") return profile.avize.length > 0;
+    if (tab.id === "taxe") return profile.taxe.length > 0 || Boolean(dosarTabSetup(row)?.fees);
+    if (tab.id === "avize") return profile.avize.length > 0 || Boolean(dosarTabSetup(row)?.avize);
     if (tab.id === "decizie") return profile.acte.length > 0;
     if (tab.id === "jurnal") return Boolean(caseFlowOf(row));
     return true;
@@ -2531,7 +2592,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasReviewAlert = row.alerte.some((alert) => ["inAvizare", "neavizatTermen"].includes(alert));
     const hasFailedNotification = row.alerte.includes("notificareEsuata");
     const hasDecisionStage = statusIndex >= DOSAR_STATUS_ORDER.indexOf("spreCoordonare");
-    const needsReviews = hasReviewAlert || row.serviciu.toLowerCase().includes("alcoolice") || hash % 5 === 0;
+    /* what the passport lets this case have (null = not in the passport: anything goes) */
+    const setup = dosarTabSetup(row);
+    /* avize are asked at examination („Verificarea datelor dosarului”), never at submission */
+    const needsReviews = hasReviewAlert || (statusIndex >= DOSAR_STATUS_ORDER.indexOf("inExaminare") && (setup ? setup.avize : true)
+      && (row.serviciu.toLowerCase().includes("alcoolice") || hash % 5 === 0));
     const applicantId = `2${String(hash % 1000000000000).padStart(12, "0")}`;
     const companyId = row.companie ? `1${String((hash * 13) % 1000000000000).padStart(12, "0")}` : null;
     const representationType = !isOficiu && row.companie
@@ -2549,9 +2614,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       : null;
     /* fees: generated by the specialist after verification (never at submission) */
-    const feesGenerated = row.status === "asteaptaPlata"
+    const feesGenerated = (!setup || Boolean(setup.fees)) && (row.status === "asteaptaPlata"
       || ["spreCoordonare", "spreSemnare", "semnat", "eliberat"].includes(row.status)
-      || (row.status === "arhivat" && row.decizia === "aprobare");
+      || (row.status === "arhivat" && row.decizia === "aprobare"));
     const feesPaid = feesGenerated && row.status !== "asteaptaPlata";
     const verificatLa = toIsoDate(addDays(parseIsoDate(row.dataDepunerii), 2 + (hash % 3)));
     const taxaTermen = toIsoDate(addDays(parseIsoDate(verificatLa), 5));
@@ -3092,7 +3157,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return renderStackedList("Taxe și plăți", groupBy(items, (item) => item.group, ["În așteptare", "Achitate"]), {
       meta: `Total ${sumMdl(profile.taxe)} · achitat ${sumMdl(paid)}`,
-      empty: "Dosarul nu are taxe."
+      empty: dosarTabEmpty(row, "taxe"),
+      icon: "receipt-bill"
     });
   };
 
@@ -3123,7 +3189,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return renderStackedList("Avize", groupBy(items, (item) => item.group, ["Active", "Termen depășit", "Finalizate"]), {
       meta: plural(profile.avize.length, "aviz solicitat", "avize solicitate"),
-      empty: "Nu au fost solicitate avize."
+      empty: dosarTabEmpty(row, "avize"),
+      icon: "share-android"
     });
   };
 
@@ -3447,6 +3514,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!cf) return null;
     const blockers = caseBlockers(row);
     const avail = caseFlow.available(cf.flow, cf.state, { role: currentEngineRole(), vars: cf.state.vars, ...blockers });
+    /* a request type that can never have avize / fees (passport) offers no such operation — same
+       rule as the Avize / Taxe și plăți tabs (dosarTabSetup) */
+    const setup = dosarTabSetup(row);
+    if (setup) avail.items = avail.items.filter((item) => !(item.id === "aviz" && !setup.avize) && !(item.id === "taxaExaminare" && !setup.fees));
     /* the Asistent tehnic has no back-office role in this prototype: its automatic step
        (US-156, nothing editable) gets a demo stand-in so the case can move on */
     const lane = caseFlow.laneOf(cf.flow, cf.state.stateId);
@@ -7117,7 +7188,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = groups.reduce((sum, group) => sum + group.items.length, 0);
 
     if (!total) {
-      return renderPassportEmpty(title, options.empty || "Nu există înregistrări pentru această secțiune.", options.actionHtml || "");
+      return renderPassportEmpty(title, options.empty || "Nu există înregistrări pentru această secțiune.", options.actionHtml || "", options.icon);
     }
 
     return `

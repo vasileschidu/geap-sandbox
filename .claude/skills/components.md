@@ -3428,6 +3428,8 @@ nou, șablon nou, …) uses it — never a frame-built strip. Code: `renderStepS
   the service — today, a request type **without a flow**. The tab then carries
   `data-tooltip-reason` saying what. „Fără formular” is a grey tag (`requestTypeState`
   tone `neutral`): a request without an electronic form is not blocked.
+- **Empty list:** `renderStackedList(title, groups, { empty, icon })` → `renderPassportEmpty` (the
+  shared empty state; `icon` = sprite id, default `page-text`; 2026-10-14).
 - **Section heading action:** `renderStackedList(title, groups, { meta, actionHtml })` puts
   meta + action together in `.e-permits-passport__heading-tools` (right side). Add buttons
   are `btn btn-secondary btn-sm` with `icon-plus-large`, like „Atașează șablon”.
@@ -3577,7 +3579,9 @@ flows (Complex, Simplified), and node ids stay local to each.
   - "Simulează achitarea taxelor", "Simulează răspunsul la avize"
   - "Reia examinarea" (the info-supplement sub-process)
 - **Tabs (§10):**
-  - Taxe, Avize and Act/Decizie show only when they have content.
+  - One tab set and order for every case; Taxe și plăți / Avize follow what the service can
+    produce (see „Dosar profile — which tabs” below, 2026-10-14). Act/Decizie shows only when
+    it has content.
   - Expert sees only Avize; Specialist ghișeu sees only Date generale and Detalii
     solicitare.
   - New tab: **Jurnalul activităților** (`renderEventTimeline` over `flowState.log`).
@@ -3585,6 +3589,50 @@ flows (Complex, Simplified), and node ids stay local to each.
   visited = check, current = clock, not reached = the `--upcoming` ring.
 - **Roles:** a Director assignment (`ansp-director-chisinau`) was added for the signing
   steps.
+
+### Dosar profile — which tabs (2026-10-14)
+
+**Propunere Alexandr Pascalov, comentariu Figma 14.10 (GEAP 2.0 `9709:2052`, „Block · 01 · Depus ·
+nerepartizat”) — de confirmat în Feature 90263.** The feature text still says the tabs appear only
+with content; the prototype now does this (user decision, „first in code”):
+- **One tab set, one order** for every case: Date generale · Detalii solicitare · Taxe și plăți ·
+  Avize · Act/Decizie · Documente generate · Notificări · Jurnalul activităților
+  (`DOSAR_PROFIL_TABS`).
+- **Taxe și plăți / Avize = what the case's service / request type CAN produce**, read from the
+  service passport (`dosarTabSetup(row)`), not whether this case already has one:
+  - link: `dossierDb.serviceCodes[row.serviciu]` → passport service; `row.tipDosar` = the RSSP
+    sub-service `type` (Eliberare → „Emitere primară”) or the request type name. Request type not in
+    the passport → the whole service decides (any of its request types).
+  - fees: active published taxes of the request type (Taxe și tarife, their `moment`), else an RSSP
+    sub-service price > 0 (→ „La examinare”).
+  - avize: „Necesită avizare” in the request type's Avizare tab (US-222, `rt.avizare.needs`, only
+    with a flow that has the avizare branch); while that tab was never saved
+    (`rt.avizare` absent), a flow with the avizare branch (`flowHasAvizare`).
+  - never: the tab is absent, and the case-actions menu drops the matching operation („Avize
+    interinstituționale” / „Taxă de examinare”).
+- **Empty until there is content** — the shared empty state through
+  `renderStackedList(…, { empty, icon })` (title = first sentence): Taxe `receipt-bill`, Avize
+  `share-android` (the icons of the case-flow operations). The line names the real case-flow step
+  (`core/case-flow.js`):
+  - before / during examination: „Nicio taxă încă” · „Taxele se generează la examinare, la pasul
+    „Setarea taxei”.” (moment „La inițierea solicitării” → „la depunerea cererii”, after signing /
+    issuing → „după semnarea / eliberarea actului”); „Niciun aviz solicitat încă” · „Avizele se
+    solicită la examinare, la pasul „Verificarea datelor dosarului”.”
+  - past examination (spre coordonare … arhivat, respins): „Nicio taxă” · „Pentru acest dosar nu
+    s-au generat taxe.” / „Niciun aviz” · „Pentru acest dosar nu s-au solicitat avize.”
+- **Count badge only when count > 0** (`renderPageHeaderTabCount`, unchanged); the signal tone
+  (warning / danger) as before.
+- **Never hide content:** a case that already has a fee / an aviz shows the tab even if the passport
+  changed since. Cases outside the passport and ex-officio drafts (no case flow) keep the old rule
+  (tab only with content).
+- **Act/Decizie keeps „only with content”**: every case ends in an act or a decision, so a
+  capability rule would show it on every case as an empty tab for the whole examination; the
+  decision is already announced by the trajectory and the „Decizie și act” card in Date generale.
+- **Role filter unchanged** (`DOSAR_TAB_ROLES`: expert → Avize only; operator ghișeu → Date
+  generale + Detalii solicitare).
+- Seed: avize are asked at examination (none at Depus). Demo states: `dos-01i` (Depus · Taxe empty),
+  `dos-01j` (Depus · Avize empty), `dos-01k` (Autorizație sanitară · Prelungire, „Necesită
+  avizare” off → no Avize tab, Taxe empty); populated: `dos-03a`, `dos-04a`, `dos-04c`.
 
 ### Dosar profile tabs — stacked lists (updated 2026-10-01)
 
@@ -4293,8 +4341,8 @@ Descarcă (download icon) · `btn-primary` Închide.
 then generates the fee(s) — `confirmaTaxa` at "Setarea taxei" or `taxaExaminare` during
 "Verificarea datelor". MPay issues the payment note and the citizen is **notified
 automatically** (e-mail + MNotify: "Notă de plată emisă — de achitat"); the case waits for
-payment, then continues. Rejected cases never get fees. The Taxe și plăți tab appears only
-once a fee exists.
+payment, then continues. Rejected cases never get fees. The Taxe și plăți tab is there whenever
+the request type can charge (2026-10-14, „Dosar profile — which tabs”), empty until the first fee.
 
 Seed data follows it: draft / submitted / in examination → no fees; `asteaptaPlata` (seed
 rows with the overdue-payment alert) → 2 generated, unpaid, overdue; coordination, signing,
