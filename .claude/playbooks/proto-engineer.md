@@ -621,3 +621,38 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Measure padding per CONTEXT (scratch docm/pad.mjs: computed padding + first/last leaf inset per container at
   1440 and 375) instead of trusting the component's own rule; a class shared by an older row can override it.
   Real HEAD baselines from a worktree on :8936 (a „before” captured after editing CSS is not a before).
+- 2026-10-14 · Process Designer batches 2–4 (configuration, lifecycle, premium) in one job: model-first again — every new
+  operation (lane reorder / resize / remove, edge split, auto-layout, case path, guard checks) went into
+  `core/process-model.js` with a Node check in `roundtrip.mjs` BEFORE any UI (14 → 33 checks, all byte-exact). The UI then
+  only calls the model inside one `edit(fn)` helper (checkpoint → mutate → reindex → commit), which kept 60+ panel actions
+  consistent and undoable.
+- 2026-10-14 · Byte-identical round trip has a second trap after „delete emptied keys”: a key the edit deleted and the reverse
+  re-adds lands at the END of the object. Fix = `PM.putKey / setKey(obj, key, value, kind)` with the export's key order per
+  object kind (root / state / properties / transition / lane / condition / term); test it by deleting every optional key of
+  every transition of the seed and re-adding them in a scrambled order. My first tests also failed because the seed already
+  had the keys I „added” (node6 has StatusId and a formName) — read the seed object before writing an edit + reverse test.
+- 2026-10-14 · Absolutely positioned children of a TRANSFORMED parent can never paint above the next sibling (the transform
+  makes a stacking context; `z-index` stays inside it): the lane-height strips on each lane's bottom edge were under the
+  next lane, `elementsFromPoint` showed it. Render such handles as siblings after all lanes, positioned from the model.
+- 2026-10-14 · A module can plug a registry into the BO workplace engine with ONE shell line: `productRegistry(kind)` also reads
+  `window.GEAPShellRegistries[kind]` (renderCell / searchText / sortValue / filterToken / openRow / emptyHtml / exportRows +
+  `build()`), plus the nav dispatch and the column-width kind list. The nav icon is a CSS mask per `data-nav-id` (an
+  `iconAsset` alone renders as a filled square in the specialist nav) — add the mask rule. A registry built before its
+  async data exists must load and redraw itself (`build()` schedules `ensureDb().then(refresh)`), else the state times out.
+- 2026-10-14 · Cross-module live refresh (designer publish → request-type drawer) = a tiny shell hook
+  `window.GEAPShellFlows.upsert({ id, name, version, definition })` that queues calls made before the services load and
+  re-renders an open drawer; other tabs follow via the `storage` event. Gate the start-up sync on an EXISTING sandbox DB, so
+  a fresh profile (every demo state, every regression run) changes nothing.
+- 2026-10-14 · Below 720 the spec replaced the canvas with the list view → every canvas-only demo step (`h.click(node)`) broke
+  at 375; demo helpers now fall back to the list (`pick` clicks `[data-pd-list-node]`). Floating cards that sit over the
+  canvas (the case-trace card) must hide when the list shows — put their content in the list head instead.
+- 2026-10-14 · Publish modal: a warning that matters (W3 „avizare lost”) was below the fold behind four „unused variable”
+  notes — order warnings by consequence and keep housekeeping notes in the issues menu only. Visual check of every modal
+  state, not just „state ok”.
+- 2026-10-14 · QA finds of this job: (1) a row ⋮ menu inside a registry TABLE is clipped by the table scroller — the shell
+  already has `data-stack-menu-fixed` (opens fixed under the trigger); raising the cell's z-index did nothing. (2) A panel
+  that re-renders on focusout rebuilt the „open” trigger of a picker modal as closed (`aria-expanded` lost) — render open
+  state from the picker's own state, not from a class set once. (3) A state-coloured node (case trace) overrode its own
+  hover (same specificity, later rule) — every new „state” class needs its `:hover` twin. (4) hover-audit „no-hover” on
+  canvas items again = off-screen elements (46 of 46 here, filter by the reported x / y before fixing). No sub-agent tool
+  → ran hover-audit / code-audit / regression (405 svc / fb / dos / fo states + 82 pd states) myself.

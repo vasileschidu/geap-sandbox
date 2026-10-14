@@ -138,4 +138,166 @@ check("a flow known only by its steps becomes Start → steps → Sfârșit", ()
   });
 });
 
+console.log("Batch 2 — configuration keys (edit + reverse = same bytes)");
+const reversible = (name, edit, reverse) => check(name, () => {
+  const def = pm.parse(seedText);
+  edit(def);
+  const edited = pm.serialize(def);
+  assert.notEqual(edited, seedText, "the edit changed nothing");
+  same(edited, pm.serialize(pm.parse(edited)), "edited re-save");
+  reverse(def);
+  same(seedText, pm.serialize(def), "after the reverse edit");
+});
+const st = (def, id) => def.states.find((s) => s.id === id);
+reversible("decision guard: add a condition (AND) and an OR group, then remove them", (def) => {
+  const g = st(def, "node3").transitions[0].guard;
+  g.groups[0].conditions.push({ sourceField: "WithPayment", operator: "isFalse", valueKind: "static" });
+  g.groups.push({ conditions: [{ sourceField: "CaseDecisionId", operator: "eq", valueKind: "static", value: "1" }] });
+}, (def) => { const g = st(def, "node3").transitions[0].guard; g.groups.pop(); g.groups[0].conditions.pop(); });
+reversible("decision: default branch toggled (guard removed / restored)", (def) => {
+  const t = st(def, "node3").transitions[0];
+  def.__g = t.guard; delete t.guard;
+}, (def) => {
+  /* the guard goes back in its export place (before sourcePort): PM.putKey */
+  pm.putKey(st(def, "node3").transitions[0], "guard", def.__g, "transition");
+  delete def.__g;
+});
+reversible("connection colour + width (US-51 AC-06), then back to implicit", (def) => {
+  Object.assign(st(def, "node6").transitions[0], { color: "brand", width: 3 });
+}, (def) => { const t = st(def, "node6").transitions[0]; delete t.color; delete t.width; });
+reversible("activity: own roles, field assignment, a term, a form on an action", (def) => {
+  const n = st(def, "node6");
+  n.roles.push("0c849b78-8e11-4763-bf9f-dc36ed598f9f");
+  n.fieldAssignments.push({ name: "TeamId", value: "T-01" });
+  n.properties.terms.push({ term: "RaspunsSolicitant", action: "pause" });
+  pm.setKey(n.transitions[0], "formName", "", "transition");
+  pm.setKey(n, "description", "", "state");
+}, (def) => {
+  const n = st(def, "node6");
+  n.roles.pop(); n.fieldAssignments.pop(); n.properties.terms.pop();
+  pm.setKey(n.transitions[0], "formName", "SuspendareTermen", "transition");
+  pm.setKey(n, "description", "Verifică date", "state");
+});
+reversible("every key the panels remove comes back in its export place (putKey)", (def) => {
+  def.__saved = def.states.map((s) => s.transitions.map((t) => ({ ...t })));
+  def.states.forEach((s) => s.transitions.forEach((t) => ["guard", "formName", "labelDx", "labelDy", "sourcePort", "targetPort", "waypoints"].forEach((k) => delete t[k])));
+}, (def) => {
+  def.states.forEach((s, si) => s.transitions.forEach((t, ti) => {
+    const was = def.__saved[si][ti];
+    ["targetPort", "guard", "waypoints", "sourcePort", "labelDy", "formName", "labelDx"].forEach((k) => { if (k in was) pm.putKey(t, k, was[k], "transition"); });
+  }));
+  delete def.__saved;
+});
+reversible("event: processor parameters (templates, audit code, object type, moment)", (def) => {
+  st(def, "node41").properties.templateCodes.push("Case.Coordinated");
+  st(def, "node29").properties.auditCode = "GEAP.CASE.CLOSED";
+  st(def, "RecordState2").properties.objectType = "Permit";
+}, (def) => {
+  st(def, "node41").properties.templateCodes.pop();
+  st(def, "node29").properties.auditCode = "GEAP.CASE.DISTRIBUTED";
+  st(def, "RecordState2").properties.objectType = "Case";
+});
+reversible("lanes: reorder, then the original order", (def) => pm.reorderLanes(def, ["lane2", "lane1", ...def.lanes.slice(2).map((l) => l.id)]), (def) => pm.reorderLanes(def, ["lane1", "lane2", ...def.lanes.slice(2).map((l) => l.id)]));
+reversible("lanes: resize +40, then −40 (nodes below follow)", (def) => pm.resizeLane(def, "lane2", 240), (def) => pm.resizeLane(def, "lane2", 200));
+check("lane resize never cuts a node out of its lane; reorder keeps every node in its lane", () => {
+  const def = pm.parse(seedText);
+  const h = pm.resizeLane(def, "lane5", 120);
+  assert.ok(h >= pm.laneMinHeight(def, "lane5"));
+  pm.reorderLanes(def, [...def.lanes.map((l) => l.id)].reverse());
+  const wrong = def.states.filter((s) => pm.laneAt(def, pm.center(pm.box(s, def)).y)?.id !== s.properties.laneId).map((s) => s.id);
+  assert.deepEqual(wrong, []);
+});
+check("lane remove with move-to: nodes land in the target lane, lanes below move up, nothing else changes", () => {
+  const def = pm.parse(seedText);
+  const moved = def.states.filter((s) => s.properties.laneId === "lane3").map((s) => s.id);
+  pm.removeLane(def, "lane3", "lane2");
+  assert.equal(def.lanes.length, 6);
+  moved.forEach((id) => assert.equal(st(def, id).properties.laneId, "lane2"));
+  const wrong = def.states.filter((s) => pm.laneAt(def, pm.center(pm.box(s, def)).y)?.id !== s.properties.laneId).map((s) => s.id);
+  assert.deepEqual(wrong, []);
+});
+check("split a connection with an event (US-188 AC-02): A → E → B, label / guard / port stay on the first part, undo = same bytes", () => {
+  const def = pm.parse(seedText);
+  const snap = JSON.stringify(def);
+  const before = { ...st(def, "node3").transitions[0] };
+  pm.splitEdge(def, "node3", 0, { id: "eveniment_1", title: "Notificare", kind: "Server", roles: [], transitions: [], properties: { x: 0, y: 0, elementType: "eveniment", laneId: "lane2" } });
+  const t = st(def, "node3").transitions[0];
+  assert.equal(t.target, "eveniment_1");
+  assert.equal(t.event, before.event);
+  assert.deepEqual(t.guard, before.guard);
+  assert.equal(st(def, "eveniment_1").transitions[0].target, before.target);
+  same(pm.serialize(def), pm.serialize(pm.parse(pm.serialize(def))), "split re-save");
+  same(seedText, pm.serialize(JSON.parse(snap)), "undo");
+});
+check("validation: incomplete condition / undeclared variable (E8), draft sub-process (E9, publish), unknown template (W2), lost avizare + notification step (W3)", () => {
+  const def = pm.parse(seedText);
+  const base = pm.parse(seedText);
+  st(def, "node3").transitions[0].guard.groups[0].conditions.push({ sourceField: "", operator: "", valueKind: "static" });
+  st(def, "node7").transitions[0].guard.groups[0].conditions[0].sourceField = "NuExista";
+  def.states = def.states.filter((s) => s.id !== "node27" && s.id !== "node13");
+  def.states.forEach((s) => { s.transitions = (s.transitions || []).filter((t) => t.target !== "node27" && t.target !== "node13" && !/aviz/i.test(t.event)); s.title = String(s.title).replace(/aviz/ig, "x"); });
+  const refs = def.states.map((s) => s.properties?.processRef).filter(Boolean);
+  const issues = pm.validate(def, { processes: [def.name, ...refs], self: def.name, published: [], templates: ["Case.Assigned"], base, usedBy: 2 });
+  const has = (code, re) => assert.ok(issues.some((i) => i.code === code && re.test(i.message)), `${code} ${re}`);
+  has("E8", /nu are câmp/); has("E8", /nu este în Variabilele/); has("E9", /nu este publicat/); has("W2", /Șablonul/); has("W3", /avizare/); has("W3", /notificare/);
+  assert.ok(issues.filter((i) => i.code === "E9").every((i) => i.blocks === "publish"));
+});
+check("the seed with the catalogues: no errors; warnings = the unknown template Permit.ToPrint and the 2 unused variables", () => {
+  const def = pm.parse(seedText);
+  const services = JSON.parse(fs.readFileSync(path.join(ROOT, "data/e-permits-services.json"), "utf8"));
+  const refs = def.states.map((s) => s.properties?.processRef).filter(Boolean);
+  const issues = pm.validate(def, { processes: [def.name, ...refs], published: refs, self: def.name, templates: services.notificationTemplates.map((t) => t.code), forms: [...services.processForms.map((f) => f.id), ...def.states.flatMap((s) => s.transitions.map((t) => t.formName).filter(Boolean))], base: pm.parse(seedText) });
+  assert.deepEqual(issues.filter((i) => i.level === "error").map((i) => i.message), []);
+  assert.deepEqual(issues.filter((i) => i.code !== "W1").map((i) => i.code + " " + i.message).sort(), [
+    "W2 Variabila de context «SecondaryApproval» nu este folosită în nicio condiție.",
+    "W2 Variabila de context «WithPayment» nu este folosită în nicio condiție.",
+    "W2 Șablonul «Permit.ToPrint» nu există sau este inactiv — notificarea nu se trimite.",
+  ]);
+});
+
+console.log("Batch 3 — JSON export / import");
+check("export → import → export is byte-identical (the file the designer downloads)", () => {
+  const exported = pm.serialize(pm.parse(seedText));
+  same(exported, pm.serialize(pm.parse(exported)), "import of the export");
+});
+check("a minified / reordered import is normalised to the GEAP layout once, then stable", () => {
+  const min = JSON.stringify(JSON.parse(seedText));
+  const once = pm.serialize(pm.parse(min));
+  same(seedText, once, "minified import → GEAP layout");
+  same(once, pm.serialize(pm.parse(once)), "second pass");
+});
+check("an import that is not a process is refused with a readable message", () => {
+  assert.throws(() => pm.parse("[1,2]"), /nu este un obiect/);
+  assert.throws(() => pm.parse("{ nope"));
+});
+
+console.log("Batch 4 — auto-layout, case path");
+check("auto-layout: only x / y, lane heights and waypoints change; every node inside its lane; no two shapes overlap", () => {
+  const def = pm.parse(seedText);
+  const strip = (d) => JSON.stringify({ ...d, lanes: d.lanes.map(({ height, ...l }) => l), states: d.states.map((s) => ({ ...s, transitions: s.transitions.map(({ waypoints, ...t }) => t), properties: { ...s.properties, x: 0, y: 0, laneId: s.properties.laneId } })) });
+  const before = strip(def);
+  pm.autoLayout(def);
+  assert.equal(strip(def), before);
+  const wrong = def.states.filter((s) => pm.laneAt(def, pm.center(pm.box(s, def)).y)?.id !== s.properties.laneId).map((s) => s.id);
+  assert.deepEqual(wrong, []);
+  const boxes = def.states.map((s) => ({ id: s.id, ...pm.box(s, def) }));
+  const hits = [];
+  boxes.forEach((a, i) => boxes.slice(i + 1).forEach((b) => { if (a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y) hits.push(`${a.id}×${b.id}`); }));
+  assert.deepEqual(hits, []);
+  const text = pm.serialize(def);
+  same(text, pm.serialize(pm.parse(text)), "laid-out re-save");
+});
+check("auto-layout is idempotent (a second run changes nothing)", () => {
+  const def = pm.autoLayout(pm.parse(seedText));
+  const once = pm.serialize(def);
+  same(once, pm.serialize(pm.autoLayout(pm.parse(once))), "second layout");
+});
+check("case path: Start → … through the visited steps to the current one, as connected edges", () => {
+  const def = pm.parse(seedText);
+  const p = pm.pathThrough(def, ["node5", "node6"]);
+  assert.equal(p.nodes[0], "start");
+  assert.equal(p.nodes.at(-1), "node6");
+  p.edges.forEach((k) => { const [src, i] = k.split(":"); assert.ok(st(def, src).transitions[Number(i)], k); });
+});
+
 console.log(`\n${passed} checks passed`);

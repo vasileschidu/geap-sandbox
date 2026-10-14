@@ -213,6 +213,12 @@
               "shellView": "services-registry"
             },
             {
+              "id": "workflows",
+              "label": "Fluxuri de lucru",
+              "iconAsset": "assets/icons/tree.svg",
+              "shellView": "flows-registry"
+            },
+            {
               "id": "tariffs",
               "label": "Tarife",
               "iconAsset": "assets/icons/coins.svg",

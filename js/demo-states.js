@@ -1173,7 +1173,10 @@
       const node = (id) => `[data-pd-node='${id}']`;
       /* the view a person reaches with zoom + pan, centred on one element */
       const at = (id, z = 1) => async (h) => { PDX().zoomToNode(id, z); await h.wait(500); };
-      const pick = (id) => async (h) => { await at(id)(h); await h.click(node(id)); };
+      /* below 720 the list replaces the canvas (spec E.7): the same element is picked from the list */
+      const listShown = () => Boolean(document.querySelector("[data-pd-list]:not([hidden])"));
+      const pick = (id) => async (h) => { if (listShown()) { await h.click(`[data-pd-list-node='${id}']`); return; } await at(id)(h); await h.click(node(id)); };
+      const listOn = async (h) => { if (!listShown()) await h.click("[data-pd-list-toggle]"); };
       const center = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
       /* a gesture as a mouse sends it (pointer events; the designer uses no HTML5 drag) */
       const pointer = (type, target, x, y, buttons = 1) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse", isPrimary: true, button: type === "pointermove" ? -1 : 0, buttons, clientX: x, clientY: y }));
@@ -1196,6 +1199,22 @@
         await h.wait(300);
       };
       const nudge = async (h) => { await pick("node6")(h); key(document.querySelector(node("node6")), "ArrowRight"); await h.wait(300); };
+      const tab = (name) => async (h) => { await h.click(`[data-pd-props] [data-pd-tab='${name}']`); };
+      const closeToasts = () => document.querySelectorAll(".toast .toast__close").forEach((b) => b.click());
+      /* a pointer gesture from one element to another (the palette, an endpoint handle); `release` drops it */
+      const dragFrom = (fromSel, toSel, { release = false, dx = 0 } = {}) => async (h) => {
+        const from = await h.find(fromSel);
+        const [x, y] = center(from);
+        pointer("pointerdown", from, x, y);
+        const [tx0, ty] = center(await h.find(toSel));
+        const tx = tx0 + dx;
+        for (let i = 1; i <= 10; i += 1) { pointer("pointermove", window, x + (tx - x) * i / 10, y + (ty - y) * i / 10); await h.wait(40); }
+        await h.wait(200);
+        if (release) { pointer("pointerup", window, tx, ty, 0); await h.wait(400); }
+      };
+      const dragPalette = (type, toSel, o = {}) => dragFrom(`[data-pd-palette-item='${type}']`, toSel, { dx: -30, ...o });
+      /* Administrator Central › Fluxuri de lucru */
+      const reg = (run) => ({ flow: "back-office", as: ADMIN, hash: "#workflows", ready: "[data-registry-kind='flows'] tr[data-workplace-row]", run: async (h) => { if (run) await run(h); } });
       return {
         /* batch 0 — view */
         "pd-01": pd(),
@@ -1232,6 +1251,100 @@
         "pd-28": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); }),
         "pd-28a": pd(async (h) => { await brokenBits(h); await h.click("[data-pd-save]"); await h.wait(300); }),
         "pd-21": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); await h.click("[data-pd-version]"); }),
+
+        /* batch 2 — configuration (tabs, decisions, processors, connections, sub-processes, lanes) */
+        "pd-30": pd(async (h) => { await pick("node6")(h); await tab("actions")(h); }),
+        "pd-31": pd(async (h) => { await pick("node6")(h); await tab("roles")(h); }),
+        /* E5: the lane loses its role → the human steps in it have none (publish error on the tab) */
+        "pd-31a": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); await h.choose("[data-pd-prop='lane.role']", ""); await h.click(node("node6")); await tab("roles")(h); }),
+        "pd-32": pd(async (h) => { await pick("node16")(h); await tab("terms")(h); }),
+        "pd-33": pd(async (h) => { await pick("node6")(h); await tab("advanced")(h); await h.click("[data-pd-act='assign-add']"); }),
+        "pd-08": pd(async (h) => { await pick("node3")(h); await tab("exits")(h); }),
+        /* an OR group with an empty condition (E8 on the row) */
+        "pd-08a": pd(async (h) => { await pick("node3")(h); await tab("exits")(h); await h.click("[data-pd-act='group-add'][data-i='0']"); await h.wait(300); await h.scroll("[data-pd-cond='exit.0.cond.1.0']"); }),
+        /* N exits (TC 89977): Avizare / Aprobare / Respingere, no default → W1 */
+        "pd-08b": pd(async (h) => { await pick("node12")(h); await tab("exits")(h); }),
+        /* a new decision after Verifică date with the Da / Nu preset */
+        "pd-08c": pd(async (h) => { await pick("node6")(h); await h.click("[data-pd-palette-item='decision']"); await tab("exits")(h); await h.click("[data-pd-act='exit-preset']"); }),
+        "pd-09": pd(async (h) => { await pick("node41")(h); await tab("processor")(h); }),
+        "pd-09b": pd(async (h) => { await pick("node41")(h); await tab("processor")(h); await h.click("[data-pd-tpl-open]"); await h.wait(300); }),
+        "pd-09c": pd(async (h) => { await pick("node29")(h); await tab("processor")(h); }),
+        "pd-09d": pd(async (h) => { await pick("RecordState2")(h); await tab("processor")(h); }),
+        /* a notification step without templates: the save-blocking error on the field (US-188 AC-06) */
+        "pd-09e": pd(async (h) => { await pick("node41")(h); await tab("processor")(h); await h.click("[data-pd-act='tpl-remove'][data-code='Case.Assigned']"); await h.click("[data-pd-act='tpl-remove'][data-code='Case.InProgress']"); await h.wait(300); }),
+        /* drag Eveniment intermediar over a connection (the connection highlights), then drop = split */
+        "pd-09a": pd(async (h) => { await at("node6")(h); await dragPalette("event", "[data-pd-edge-label='node6:0']", { release: false })(h); }),
+        "pd-09f": pd(async (h) => { await at("node6")(h); await dragPalette("event", "[data-pd-edge-label='node6:0']", { release: true })(h); }),
+        "pd-07b": pd(async (h) => { await at("node6")(h); await h.click("[data-pd-edge-label='node6:0']"); await h.choose("[data-pd-prop='edge.color']", "brand"); await h.click("[data-pd-seg='edge.width'][data-value='3']"); }),
+        /* re-connect: the target handle dragged towards Creează proiectul deciziei de respingere */
+        "pd-07c": pd(async (h) => { PDX().zoomToNodes(["node6", "node14"], 1); await h.wait(500); PDX().selectEdge("node6:0"); await h.wait(300); await dragFrom(".e-permits-pd__edge-end--target", node("node14"))(h); }),
+        "pd-10": pd(async (h) => { await pick("node13")(h); }),
+        "pd-10a": pd(async (h) => { await pick("node13")(h); await h.click("[data-pd-act='new-sub']"); }),
+        /* drill-in: the card's „Deschide sub-procesul” → the called process, breadcrumb back */
+        "pd-22": pd(async (h) => { await at("node13")(h); const ic = await h.find(`${node("node13")} [data-pd-open-sub]`); const [x, y] = center(ic); pointer("pointerdown", ic, x, y); await h.wait(900); await h.find("[data-pd-crumbs]:not([hidden])"); }),
+        "pd-11": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); }),
+        "pd-11a": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane3']"); await h.click("[data-pd-props] [data-stack-menu-trigger]"); await h.click("[data-pd-props] [data-pd-act='lane-delete']"); await h.wait(300); }),
+        "pd-11b": pd(async (h) => { PDX().fit(); await h.wait(400); await h.click("[data-pd-pool-select]"); }),
+        /* the lane-height handle under the pointer (Specialist Ghișeu) */
+        "pd-11c": pd(async (h) => { await at("node5", 0.75)(h); await h.click("[data-pd-lane-select='lane2']"); }),
+        "pd-26": pd(async (h) => { for (let i = 0; i < 8; i += 1) { PDX().selectPool(); await h.wait(60); await h.click("[data-pd-props] [data-pd-act='lane-add']"); } PDX().fit(); await h.wait(500); await h.click("[data-pd-pool-select]"); }),
+        "pd-34": pd(async (h) => { await pick("node41")(h); await h.fill("[data-pd-prop='id']", "node6"); }),
+
+        /* batch 3 — lifecycle (settings, JSON, versions, publish, registry, passport refresh) */
+        "pd-19a": pd(async (h) => { await h.click("[data-pd-settings]"); await h.scroll("[data-pd-props] .e-permits-user-create__section-title", "Utilizare"); }),
+        "pd-18a": pd(async (h) => { await h.click("[data-pd-mode='json']"); const text = PDX().serialize().replace('"title": "Flux Simplificat Fara Supervizor"', '"title": "Flux Simplificat (importat)"'); PDX().importText(text, "ProcesFluxSimplificatFaraSupervizor_v1.0.1.json"); await h.wait(500); }),
+        /* publish blocked: E5 errors (lane without role) — the modal lists them, Publică disabled */
+        "pd-20": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); await h.choose("[data-pd-prop='lane.role']", ""); await h.click("[data-pd-publish]"); await h.wait(400); }),
+        /* publish ready: saved draft, effect on request types, change note */
+        "pd-20a": pd(async (h) => { await nudge(h); await h.click("[data-pd-publish]"); await h.wait(400); await h.fill("[data-pd-publish-note]", "Verifică date mutat lângă Distribuire.", { leave: false }); }),
+        "pd-20b": pd(async (h) => { await nudge(h); await h.click("[data-pd-publish]"); await h.wait(400); await h.click("[data-pd-publish-confirm]"); await h.wait(300); await h.click("[data-pd-version]"); }),
+        /* a past version opened view-only → „Restaurează ca schiță”; then restored */
+        "pd-21a": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); closeToasts(); await h.click("[data-pd-version]"); await h.click("[data-pd-open-version='1.0.0']"); await h.wait(600); }),
+        "pd-21b": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); closeToasts(); await h.click("[data-pd-version]"); await h.click("[data-pd-open-version='1.0.0']"); await h.wait(600); await h.click("[data-pd-restore]"); }),
+        /* registry „Fluxuri de lucru” (US-50): Administrator Central › Fluxuri de lucru */
+        "pd-35": reg(),
+        "pd-35a": reg(async (h) => { await h.click("[data-workplace-add-product='pd-new']"); }),
+        "pd-35b": reg(async (h) => { await h.click("[data-workplace-add-product='pd-new']"); await h.fill("[data-pd-df='name']", "Proces nou 2"); await h.click("[data-pd-drawer-submit]"); }),
+        "pd-35c": reg(async (h) => { const row = await h.find("tr[data-workplace-row='flux-simplificat-fara-supervizor']"); row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); }),
+        "pd-35d": reg(async (h) => { const row = await h.find("tr[data-workplace-row='flux-simplificat-fara-supervizor']"); row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); await h.click("[data-pd-reg-dup='flux-simplificat-fara-supervizor']"); }),
+        /* published without the avizare branch → the request type's Avizare tab locks (US-222 AC-46) live */
+        "pd-36": svc("request-types", async (h) => {
+          await h.find('[data-passport-configure-rt="rt-1"]');
+          await PDX().open("flux-simplificat-fara-supervizor");
+          await h.find("[data-pd-ready='true']");
+          PDX().deleteNodes(["node31", "node13"]);
+          PDX().select("node12");
+          await h.fill("[data-pd-props] [data-pd-prop='title']", "Decizie examinare");
+          await h.click("[data-pd-publish]"); await h.wait(400);
+          await h.click("[data-pd-publish-confirm]"); await h.wait(300);
+          PDX().close({ force: true }); await h.wait(400);
+          await h.click('[data-passport-configure-rt="rt-1"]'); await h.click('[data-rt-tab="avizare"]');
+        }),
+        /* the same publish, the modal before confirming: W3 (avizare lost) + the request types it reaches */
+        "pd-36a": svc("request-types", async (h) => {
+          await h.find('[data-passport-configure-rt="rt-1"]');
+          await PDX().open("flux-simplificat-fara-supervizor");
+          await h.find("[data-pd-ready='true']");
+          PDX().deleteNodes(["node31", "node13"]);
+          PDX().select("node12");
+          await h.fill("[data-pd-props] [data-pd-prop='title']", "Decizie examinare");
+          await h.click("[data-pd-publish]"); await h.wait(400);
+        }),
+
+        /* batch 4 — list view, auto-layout, arrange / copy, case trace */
+        "pd-23": pd(async (h) => { await listOn(h); }),
+        "pd-23a": pd(async (h) => { await listOn(h); await h.click("[data-pd-list-edge='node6:1']"); }, { vizualizare: "1" }),
+        /* auto-layout: the confirm (the seed has manual routes), then the tidy result with its undo toast */
+        "pd-29a": pd(async (h) => { await h.click("[data-pd-autolayout]"); await h.wait(300); }),
+        "pd-29": pd(async (h) => { await h.click("[data-pd-autolayout]"); await h.wait(300); await h.click("[data-service-confirm-ok]"); await h.wait(600); }),
+        "pd-37": pd(async (h) => { await at("node6", 0.75)(h); PDX().select(["node5", "node6", "node41"]); await h.wait(200); }),
+        "pd-37a": pd(async (h) => { await at("node6", 0.75)(h); PDX().select(["node5", "node6", "node41"]); await h.wait(200); await h.click("[data-pd-act='align-top']"); }),
+        "pd-38": pd(async (h) => { await pick("node6")(h); PDX().select(["node6", "node41"]); await h.wait(150); key(document.querySelector("[data-pd-stage]"), "d", { metaKey: true }); await h.wait(300); }),
+        /* a case's path (Dosar › Vezi fluxul › Vezi schema fluxului): visited green, current step brand */
+        "pd-24": { flow: "back-office", as: "ansp-specialist-chisinau", params: { stare: "spreSemnare" }, hash: "#dosar/D-2026-004575/general", ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run: async (h) => {
+          await h.click(".e-permits-case-actions__trigger"); await h.click("[data-case-flow-view]"); await h.click("[data-case-flow-schema]");
+          await h.find("[data-pd-ready='true']"); await h.wait(600);
+        } },
       };
     })(),
 

@@ -1018,6 +1018,25 @@
   border-color: var(--color-icon-brand-default, #0058d2);
 }
 
+/* Start / Sfârșit (list view rows): the circles of the canvas, small */
+.e-permits-pd__glyph--start i,
+.e-permits-pd__glyph--end i {
+  border-radius: var(--border-radius-full, 999px);
+  border-width: var(--border-width-2, 2px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__glyph--start i {
+  background: var(--color-background-positive-secondary, #dcfae6);
+  border-color: var(--color-border-positive-default, #079455);
+}
+
+.e-permits-pd__glyph--end i {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
 .e-permits-pd__glyph--decision i {
   border-color: var(--color-icon-warning-default, #dc6803);
   border-radius: var(--spacing-2, 2px);
@@ -1375,6 +1394,652 @@
   flex-wrap: wrap;
 }
 
+/* ===================================================================== batches 2–4 (2026-10-14)
+   panels with tabs, lanes (order / height / delete), split, re-connect, drill-in, list view,
+   case trace, publish modal, registry. Tokens only; no will-change; animations `backwards`. */
+
+/* ---- topbar: drill-in breadcrumb, restore a past version */
+.e-permits-pd__crumbs {
+  min-width: 0;
+}
+
+.e-permits-pd__crumbs[hidden],
+.e-permits-pd__title[hidden],
+.e-permits-pd__restore[hidden],
+.e-permits-pd__list[hidden],
+.e-permits-pd__trace[hidden] {
+  display: none;
+}
+
+.e-permits-pd__crumbs .breadcrumbs__list {
+  flex-wrap: nowrap;
+}
+
+/* ---- pool head = a button (selects the pool) */
+.e-permits-pd__pool-head .e-permits-pd__pool-select {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-8, 8px);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: var(--spacing-12, 12px);
+  margin-left: calc(var(--spacing-8, 8px) * -1);
+  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+.e-permits-pd__pool-select:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-pd__pool-select:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.e-permits-pd__pool-head.is-selected .e-permits-pd__pool-select {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-pd__pool-head.is-selected .e-permits-pd__pool-select:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-pd__pool-head.is-selected .e-permits-pd__pool-title {
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+/* ---- lane height: a strip on the bottom edge (row-resize), the Figma pill in the rail */
+.e-permits-pd__pool > .e-permits-pd__lane-resize {
+  cursor: row-resize;
+  z-index: 1;
+}
+
+.e-permits-pd__lane-resize i {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
+  display: block;
+  height: var(--spacing-8, 8px);
+  left: var(--spacing-6, 6px);
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity 120ms var(--motion-easing-standard, ease), background-color 120ms var(--motion-easing-standard, ease);
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-pd__lane-resize.is-selected i {
+  opacity: 1;
+}
+
+.e-permits-pd__lane-resize:hover {
+  background: color-mix(in srgb, var(--color-background-brand-secondary, #e8f0fb) 70%, transparent);
+}
+
+.e-permits-pd__lane-resize:hover i {
+  background: var(--color-background-brand-default, #0058d2);
+  border-color: var(--color-background-brand-default, #0058d2);
+  opacity: 1;
+}
+
+.e-permits-pd__stage.is-lane-resizing,
+.e-permits-pd__stage.is-lane-resizing * {
+  cursor: row-resize;
+}
+
+.e-permits-pd__stage.is-lane-dragging,
+.e-permits-pd__stage.is-lane-dragging * {
+  cursor: grabbing;
+}
+
+.e-permits-pd__lane-rail {
+  cursor: grab;
+}
+
+.is-view-only .e-permits-pd__lane-rail {
+  cursor: pointer;
+}
+
+.e-permits-pd__drop-line {
+  fill: none;
+  stroke: var(--color-border-brand-default, #0058d2);
+  stroke-dasharray: 6 4;
+  stroke-width: 3;
+}
+
+/* ---- split: the connection under a dragged event / activity */
+.e-permits-pd__edge.is-split-target .e-permits-pd__edge-hit {
+  stroke: var(--color-background-brand-secondary-hover, #ccdef6);
+  stroke-width: 10;
+}
+
+.e-permits-pd__edge.is-split-target :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) {
+  stroke: var(--color-icon-brand-default, #0058d2);
+  stroke-width: 2.5;
+}
+
+.e-permits-pd__ghost.is-splitting .e-permits-pd__shape {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 4px var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* visited path of a case (trace) */
+.e-permits-pd__edge.is-visited :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) {
+  stroke: var(--color-icon-positive-default, #079455);
+  stroke-width: 2;
+}
+
+/* ---- re-connect: the two endpoint handles of the selected connection */
+.e-permits-pd__edge-end {
+  background: var(--color-background-brand-default, #0058d2);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
+  box-sizing: border-box;
+  cursor: grab;
+  height: var(--spacing-12, 12px);
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  transition: width 120ms var(--motion-easing-standard, ease), height 120ms var(--motion-easing-standard, ease);
+  width: var(--spacing-12, 12px);
+  z-index: 4;
+}
+
+.e-permits-pd__edge-end:hover {
+  background: var(--color-background-brand-default-hover, #004bb3);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__stage.is-connecting .e-permits-pd__edge-end {
+  pointer-events: none;
+}
+
+/* ---- sub-process: „Deschide sub-procesul” on the card (pointer twin of the panel button) */
+.e-permits-pd__open-sub {
+  align-items: center;
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-icon-base-secondary, #444);
+  cursor: pointer;
+  display: inline-flex;
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  margin-left: auto;
+  pointer-events: auto;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-pd__open-sub:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-icon-brand-default, #0058d2);
+}
+
+/* ---- case trace (spec F.16): visited = positive, current = brand ring + „Pas curent”, the rest faded */
+.e-permits-pd__current-tag {
+  display: none;
+}
+
+.e-permits-pd__node.is-current .e-permits-pd__current-tag {
+  bottom: calc(100% + var(--spacing-6, 6px));
+  display: inline-flex;
+  left: 50%;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.e-permits-pd__node.is-visited .e-permits-pd__shape {
+  border-color: var(--color-border-positive-default, #079455);
+  box-shadow: 0 0 0 1px var(--color-border-positive-default, #079455);
+}
+
+.e-permits-pd__node.is-current .e-permits-pd__shape {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2), 0 0 0 7px var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* their hover keeps the trace colour and adds the card elevation (a visited / current node must still answer the pointer) */
+.e-permits-pd__node.is-visited:hover .e-permits-pd__shape {
+  border-color: var(--color-border-positive-default, #079455);
+  box-shadow: 0 0 0 2px var(--color-border-positive-default, #079455), var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-pd__node.is-current:hover .e-permits-pd__shape {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2), 0 0 0 7px var(--color-background-brand-secondary-active, #99bced), var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-pd__stage.has-trace .e-permits-pd__node:not(.is-visited):not(.is-current):not(:hover) {
+  opacity: 0.4;
+}
+
+.e-permits-pd__stage.has-trace .e-permits-pd__edge:not(.is-visited):not(:hover) {
+  opacity: 0.35;
+}
+
+.e-permits-pd__trace {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  left: var(--spacing-16, 16px);
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+  position: absolute;
+  top: var(--spacing-16, 16px);
+  width: calc(var(--spacing-80, 80px) * 3 + var(--spacing-40, 40px));
+  z-index: 5;
+}
+
+.e-permits-pd__trace-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.e-permits-pd__trace-case {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-pd__trace-legend {
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-4, 4px) var(--spacing-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-pd__trace-legend li {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-6, 6px);
+}
+
+.e-permits-pd__trace-legend i {
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-4, 4px);
+  height: var(--spacing-12, 12px);
+  opacity: 0.6;
+  width: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__trace-legend i.is-visited {
+  border-color: var(--color-border-positive-default, #079455);
+  opacity: 1;
+}
+
+.e-permits-pd__trace-legend i.is-current {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 2px var(--color-background-brand-secondary-hover, #ccdef6);
+  opacity: 1;
+}
+
+/* ---- properties panel: cards (action / exit / term) = the rule builder card; its narrow-panel layout (FB) */
+.e-permits-pd__float--right .e-permits-doc-cond {
+  grid-template-columns: minmax(0, 1fr) var(--spacing-32, 32px);
+}
+
+.e-permits-pd__float--right .e-permits-doc-cond__cell {
+  grid-column: 1;
+}
+
+.e-permits-pd__float--right .e-permits-doc-cond__remove {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.e-permits-pd__card-block.e-permits-doc-rule {
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__card-block .e-permits-doc-rule__head {
+  justify-content: space-between;
+}
+
+.e-permits-pd__card-block .e-permits-doc-rule__target {
+  align-items: center;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-pd__card-block .e-permits-user-create__grid {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__warn {
+  color: var(--color-text-warning-default, #b54708);
+}
+
+.e-permits-pd__ro {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-8, 8px) 0;
+}
+
+.e-permits-pd__pair {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.e-permits-pd__checks {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+}
+
+/* a segmented control in the narrow panel takes the column and shares it */
+.e-permits-pd__float--right .segmented-control {
+  box-sizing: border-box;
+  display: flex;
+  max-width: 100%;
+  width: 100%;
+}
+
+.e-permits-pd__float--right .segmented-control .segment-item {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.e-permits-pd__route {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-4, 4px) var(--spacing-12, 12px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-pd__vars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-pd__var {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+}
+
+.e-permits-pd__var .checkbox {
+  margin-bottom: 0;
+}
+
+.e-permits-pd__var-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding-left: calc(var(--spacing-20, 20px) + var(--spacing-8, 8px));
+}
+
+.e-permits-pd__lane-order {
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-pd__lane-order-row {
+  align-items: center;
+  display: grid;
+  gap: var(--spacing-4, 4px);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.e-permits-pd__node-json.e-permits-builder__schema {
+  max-height: calc(var(--spacing-80, 80px) * 3);
+  overflow: auto;
+}
+
+/* ---- list view (spec E.5): the outline replaces the canvas; keyboard-first */
+.e-permits-builder--process.is-list .e-permits-pd__world,
+.e-permits-builder--process.is-list .e-permits-pd__minimap,
+.e-permits-builder--process.is-list .e-permits-pd__float--left,
+.e-permits-builder--process.is-list [data-pd-autolayout],
+.e-permits-builder--process.is-list .e-permits-pd__toolgroup:has([data-pd-tool]),
+.e-permits-builder--process.is-list .e-permits-pd__toolgroup:has([data-pd-zoom-in]),
+.e-permits-builder--process.is-list [data-pd-fit],
+.e-permits-builder--process.is-list [data-pd-minimap-toggle],
+.e-permits-builder--process.is-list .e-permits-pd__toolsep {
+  display: none;
+}
+
+.e-permits-builder--process.is-list .e-permits-pd__stage {
+  background-image: none;
+}
+
+.e-permits-pd__list {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  bottom: calc(var(--spacing-16, 16px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  box-sizing: border-box;
+  left: var(--spacing-16, 16px);
+  overflow: auto;
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px) var(--spacing-20, 20px);
+  position: absolute;
+  right: calc(min(var(--builder-right-width, 382px), 100% - var(--spacing-32, 32px)) + var(--spacing-32, 32px));
+  top: var(--spacing-16, 16px);
+  z-index: 4;
+}
+
+.e-permits-builder--process:not(:has(.e-permits-pd__float--right:not([hidden]))) .e-permits-pd__list {
+  right: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__list-head {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  justify-content: space-between;
+  margin-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__list-trace {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-pd__list-keys {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-pd__list-role {
+  color: var(--color-text-base-tertiary, #757575);
+  font-weight: var(--font-weight-fw-regular, 400);
+  margin-left: var(--spacing-4, 4px);
+}
+
+.e-permits-pd__list-lead {
+  align-items: center;
+  display: inline-flex;
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-pd__list-item.is-selected {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.e-permits-pd__list-item.is-selected:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-pd__list-name {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: 0;
+  text-align: left;
+}
+
+.e-permits-pd__list-name:hover {
+  color: var(--color-text-brand-default, #0058d2);
+  text-decoration: underline;
+}
+
+.e-permits-pd__list-name:focus-visible,
+.e-permits-pd__list-edge:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.e-permits-pd__list-edges {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: var(--spacing-2, 2px) 0 0;
+  padding: 0;
+}
+
+.e-permits-pd__list-edge {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-6, 6px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-left: calc(var(--spacing-4, 4px) * -1);
+  padding: var(--spacing-2, 2px) var(--spacing-4, 4px);
+  text-align: left;
+}
+
+.e-permits-pd__list-edge:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-text-base-default, #121212);
+}
+
+.e-permits-pd__list-edge.is-selected {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-pd__list-edge.is-selected:hover {
+  background: var(--color-background-brand-secondary-active, #99bced);
+}
+
+.e-permits-pd__list-edge .icon {
+  color: currentColor;
+  flex: none;
+}
+
+.e-permits-pd__list-edge-label,
+.e-permits-pd__list-none {
+  color: var(--color-text-base-tertiary, #757575);
+}
+
+.e-permits-pd__list-none {
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* ---- publish modal */
+.e-permits-pd__publish .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__publish .e-permits-passport__lead,
+.e-permits-pd__publish .e-permits-user-create__section-title {
+  margin: 0;
+}
+
+.e-permits-pd__publish-errors .icon {
+  color: var(--color-icon-danger-default, #d92d20);
+  flex: none;
+}
+
+.e-permits-pd__publish-usage {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+}
+
+/* the menu item (the shell draws nav icons as 20px masks per nav id) */
+.e-permits-shell__nav--specialist [data-nav-id="workflows"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/tree.svg");
+  -webkit-mask-image: url("../assets/icons/tree.svg");
+}
+
+/* ---- registry „Fluxuri de lucru”: no checkbox column — the pinned name carries the divider (Servicii) */
+.e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+/* identifiers are long single words (SubProcessSuplinireInformaiiFrontOffice): they wrap inside the copy code
+   (two lines fit the row) instead of running into the next column */
+.e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__copy-code {
+  max-width: 100%;
+  text-align: left;
+}
+
+.e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__copy-code > span:first-child {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
 /* ===== Reduced motion ===== */
 @media (prefers-reduced-motion: reduce) {
   .e-permits-pd__float--left,
@@ -1457,9 +2122,50 @@
   .e-permits-pd__json {
     padding: var(--spacing-16, 16px);
   }
+
+  /* below 720 the list replaces the canvas (spec E.7) */
+  .e-permits-pd__list {
+    border-radius: 0;
+    border-width: 0;
+    bottom: 0;
+    box-shadow: none;
+    left: 0;
+    padding: var(--spacing-16, 16px) var(--spacing-12, 12px) calc(var(--spacing-48, 48px) + var(--spacing-32, 32px));
+    right: 0;
+    top: 0;
+  }
+
+  .e-permits-builder--process:not(:has(.e-permits-pd__float--right:not([hidden]))) .e-permits-pd__list {
+    right: 0;
+  }
+
+  .e-permits-builder--process.is-list .e-permits-pd__toolbar [data-pd-list-toggle],
+  .e-permits-builder--process.is-list .e-permits-pd__toolbar [data-pd-panels-toggle],
+  .e-permits-builder--process.is-list .e-permits-pd__toolsep {
+    display: none;
+  }
+
+  .e-permits-pd__list-item.e-permits-stack__item.has-lead {
+    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr);
+  }
+
+  .e-permits-pd__trace {
+    left: var(--spacing-12, 12px);
+    right: var(--spacing-12, 12px);
+    width: auto;
+  }
 }
 
 /* ?flow=proces: the designer is the page (the demo home / FO / shell underneath stay hidden) */
 .e-permits-front-office-page.is-pd-page :is(.e-permits-flow-home, .e-permits-fo-auth, .e-permits-shell) {
   display: none !important;
+}
+
+/* card titles in the panel (Acțiunea / Ieșirea / Termenul N) — Onest, not the mono keyword token
+   (no-monospace rule; only Când / și / sau stay keywords) */
+.e-permits-pd-card-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
 }

@@ -71,7 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
      page header and profile panel; the product only adds its data, cells and pages.
      Without a product the permits back office runs unchanged. */
   const product = window.GEAPShellProduct || null;
-  const productRegistry = (kind) => product?.registries?.[kind] || null;
+  /* a module may plug a registry into the same engine (Fluxuri de lucru: js/process-designer.js) */
+  const productRegistry = (kind) => product?.registries?.[kind] || window.GEAPShellRegistries?.[kind] || null;
 
   /* ---- routing: every page has its own address ---------------------------------
      #<nav-id> for a menu page (pushed, so Back works), #dosar/… #serviciu/…
@@ -2111,7 +2112,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getNaturalColumnWidth = (key, rows) => {
-    if (["users", "services", "authorities", "tariffs", "ntpl"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
+    if (["users", "services", "authorities", "tariffs", "ntpl", "flows"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
       return workplaceDb.columns[key].width;
     }
 
@@ -4324,7 +4325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     caseDrawer.querySelector("[data-case-subtitle]").textContent = `${row.nrDosar} · ${row.serviciu}`;
     caseDrawerBody.innerHTML = renderCaseFlowView(row);
     caseDrawer.querySelector("[data-case-summary]").textContent = "";
-    caseDrawer.querySelector("[data-case-buttons]").innerHTML = '<button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>';
+    caseDrawer.querySelector("[data-case-buttons]").innerHTML = `${window.GEAPProcessDesigner ? `<button class="btn btn-secondary btn-rounded" type="button" data-case-flow-schema="${escapeHtml(row.id)}">Vezi schema fluxului</button>` : ""}<button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>`;
     caseDrawer.hidden = false;
     document.body.classList.add("is-user-create-open");
     requestAnimationFrame(() => caseDrawer.querySelector("[data-case-close]")?.focus());
@@ -4332,6 +4333,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   caseDrawer?.addEventListener("click", (event) => {
     if (event.target.closest("[data-case-close]")) closeCaseDrawer();
+    /* the case's path on the BPMN diagram (Process Designer, view-only): visited + current step */
+    const schema = event.target.closest("[data-case-flow-schema]");
+    const row = schema && getDosarById(schema.dataset.caseFlowSchema);
+    const cf = row && caseFlowOf(row);
+    if (cf) {
+      closeCaseDrawer();
+      window.GEAPProcessDesigner?.openCase({ flowId: "flux-simplificat-fara-supervizor", label: `${row.nrDosar} · ${row.serviciu}`, visited: cf.state.visited || [], current: cf.state.stateId, suspended: Boolean(cf.state.suspended) });
+    }
   });
 
   caseModal?.addEventListener("click", (event) => {
@@ -6717,6 +6726,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
   };
 
+  /* the Process Designer publishes here (US-222 AC-09/11/16/19/46): the flow select, the actions,
+     the outputs, the payment moments and the avizare lock read the new definition at once; an
+     open request-type drawer redraws. Calls before the services load are kept and applied after. */
+  const pendingFlowUpserts = [];
+  const applyFlowUpsert = ({ id, name, version, definition }) => {
+    if (!servicesStore) { pendingFlowUpserts.push({ id, name, version, definition }); return; }
+    let flow = getFlowById(id);
+    if (!flow) { flow = { id }; servicesStore.flows.push(flow); }
+    Object.assign(flow, { name, version, definition, steps: passport.stepsFromDefinition(definition), paymentMoments: passport.momentsFromDefinition(definition) });
+    passport.definitionForms(definition).forEach((form) => {
+      if (!servicesStore.processForms.some((f) => f.id === form)) servicesStore.processForms.push({ id: form, name: form });
+    });
+    if (rtDraft && rtDrawer && !rtDrawer.hidden && rtDraft.flow === id) renderRtDrawer();
+  };
+  window.GEAPShellFlows = { upsert: applyFlowUpsert };
+
   const serviceRow = (service) => ({
     id: service.code,
     cod: service.code,
@@ -7015,7 +7040,7 @@ document.addEventListener("DOMContentLoaded", () => {
       authoritiesDb = buildAuthoritiesDb();
     }
 
-    const db = kind === "services" ? servicesDb : kind === "tariffs" ? buildTariffsDb() : kind === "ntpl" ? buildNtplDb() : authoritiesDb;
+    const db = kind === "services" ? servicesDb : kind === "tariffs" ? buildTariffsDb() : kind === "ntpl" ? buildNtplDb() : window.GEAPShellRegistries?.[kind]?.build?.() || authoritiesDb;
     activeRegistry = kind;
     workplaceDb = db;
     workplaceState.rows = db.runtimeRows;
@@ -7025,7 +7050,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workplaceState.page = 1;
     workplaceState.pageSize = 16;
     /* Configurări servicii opens sorted by „Modificat în GEAP”, newest first (US-230 AC-09) */
-    workplaceState.sortKey = kind === "services" ? "actualizat" : null;
+    workplaceState.sortKey = kind === "services" ? "actualizat" : db.defaultSort || null;
     workplaceState.sortDirection = "desc";
     workplaceState.selected.clear();
     serviceProfileState.code = null;
@@ -16410,7 +16435,8 @@ document.addEventListener("DOMContentLoaded", () => {
      markup, never a copy (components.md „Form Builder”) */
   window.GEAPUi = {
     renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl,
-    renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml
+    renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml,
+    renderBreadcrumbs, renderRowActions, renderCopyCode, renderDateTime
   };
 
   /* tax lifecycle from the list: publish · activate · deactivate · delete, all confirmed */
@@ -18442,6 +18468,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (servicesResponse.ok && passport) {
           servicesStore = await servicesResponse.json();
           await loadFlowDefinitions();
+          pendingFlowUpserts.splice(0).forEach(applyFlowUpsert);
           servicesDb = buildServicesDb();
           authoritiesDb = buildAuthoritiesDb();
         }
@@ -18707,6 +18734,11 @@ document.addEventListener("DOMContentLoaded", () => {
         showServiceRegistry("tariffs", item.dataset.navLabel || "Tarife");
       }
 
+      /* Fluxuri de lucru (US-50): the registry js/process-designer.js plugs in */
+      if (item.dataset.shellView === "flows-registry") {
+        showServiceRegistry("flows", item.dataset.navLabel || "Fluxuri de lucru");
+        return;
+      }
       if (item.dataset.shellView === "ntpl-registry") {
         showServiceRegistry("ntpl", item.dataset.navLabel || "Șabloane de notificare");
       }
