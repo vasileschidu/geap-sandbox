@@ -594,3 +594,16 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - One track set per table family (base screen's tracks; when a sibling needs more for a whole value, use the widest
     sibling's set for the whole family).
   - Step names (Pas curent) are names: whole; only their meta line (provider) may ellipsize.
+- 2026-10-14 · QA round 10:
+  - Captured FIXED widths inside rows (dashboard select group 775 in a 1024 row) overflow after library swaps change
+    child sizes. Code `flex: 1; justify-content: flex-end` → FILL + primaryAxisAlignItems MAX; check the right edge
+    against the sibling rows (KPI row) numerically.
+  - Overflow check (sweep childOverflow): visible, content-bearing FLOW children past their auto-layout parent.
+    ABSOLUTE decorations (timeline / stepper lines, ::before-style separators) and clipped parents are intentional.
+    Fix order that worked (1,295 raw → 0): text child → FILL + HEIGHT only when long (> 30 chars); FIXED parent → HUG on
+    that axis; meta rows of HUG items → layoutWrap WRAP (code flex-wrap); squeezed FILL wrappers of short texts → HUG;
+    re-run until 0, then restack. Never HUG a GRID item (stepper columns): widen the grid track instead.
+  - Glyph check skips button instances inside COMPONENT / COMPONENT_SET definitions (a header main's default label is
+    not what any screen shows).
+  - Loading buttons keep the sibling width (FIXED) so row actions stay aligned; note slow operations in the block note.
+  - Connector magnets: start on the side facing the flow (RIGHT for every block here), never across the source screen.
