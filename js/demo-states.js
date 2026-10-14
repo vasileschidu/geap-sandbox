@@ -766,6 +766,8 @@
     "dos-01j": dos(SPEC, "depus", "avize"),
     /* Autorizație sanitară · Prelungire: the request type has „Necesită avizare” off → no Avize tab */
     "dos-01k": dosOf("D-2026-004498", SPEC, "taxe"),
+    /* Respins → Taxe: „Nicio taxă · Pentru acest dosar nu s-au generat taxe.” (Figma 01l) */
+    "dos-01l": dos(SPEC, "respins", "taxe", { decizia: "respingere" }),
     /* 02 acțiuni pe rol */
     "dos-02": dos(SUP, "depus"),
     "dos-02a": dos(SPEC, "inExaminare"),

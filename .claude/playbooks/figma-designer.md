@@ -754,3 +754,37 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     screens stays as rendered.
   - Captured legend trays (`.e-permits-meter-legend--tray`) had padding 0/0/0/12 and the stacked meter frame was FILL
     (28 px instead of 12) — check captured paddings against the computed CSS, not only colours.
+
+- 2026-10-14 · QA docs-1 fixes (GEAP Dosare + FOD guest lane + Cabinet):
+  - Captured FO screens: `Main Content` is FILL with a captured minHeight inside a HUG Body, so it NEVER grows when content is
+    swapped in (G7b lost the footer and the msign button: desktop 488 px, mobile 355 px). Fix = Main Content HUG (keep minHeight
+    as the viewport floor), and on desktop also the HORIZONTAL `Section` + `Container` HUG (a FILL Section in a HUG chain stays at
+    the old height). Then run a lane-wide pass: every auto-layout frame whose content > its height and is FILL vertically → HUG.
+    The same bug sat silently in G4a / G5 / G7a / G7c (8–34 px, often only padding). After it, desktop G7b = 1707 vs code 1702.
+  - Deep cut check = walk every descendant against the NEAREST clipping ancestor (absoluteRenderBounds), skipping absolutes; plus
+    „content sum > frame height” per auto-layout frame. figma-audit only sees direct children of clipping frames. Repo:
+    tools/figma/documents/sweep-lite.js (sweep.js keys on `Ecran · ` screens and finds nothing on block boards).
+  - Guest lane rows: next row = tallest block of the row + 396. Restack by row bands (shift everything in the band: markers,
+    decision cards), then section bottom 80.
+  - Column restack must not „fix” intentional outliers: 01l sits at y 20860 aligned with its source 01h, and my per-column 240 pass
+    moved it to the top. Before restacking a column, list blocks whose gap ≠ 240 and decide per block.
+  - Dosare board column gap = 240 everywhere (was 160/240 mix). Re-map column x's in order (x0, +2160 …), widen the section by the
+    delta, check page siblings to the right; connectors follow.
+  - Radius tokens: library variables `border-radius/radius-12` 1f226805…, `radius-24` 79848dbe… (Foundations › 3. Sizes) — import
+    by key, check the collection id matches the already-bound radius-16, bind all four corners. Dosare: Stack = 12, profile Card = 24.
+  - Fonts overridden on a nested instance text (copy-block number in JetBrains Mono): `setTextStyleIdAsync(main text's style)` on the
+    main component's nested text, then sweep the page for detached copies with the same pattern (D-2026-…) — 12 more found.
+  - Connectors from buttons inside a row instance: `connectorStart = {endpointNodeId: row, position: {x: button centre, y: row
+    centre}}` (⋮ = 986/36, Detalii = 920/36 on a 1022 row) — also separates arrows that shared the row edge. Do NOT do this for tab
+    connectors in the dossier header: a start at the tab centre draws the line across the whole header; keep x = header width.
+  - New A4 document page = clone the nearest `Dosar / Pagină document · …` (Cerere) and rewrite from renderDosarDocPreview in
+    js/e-permits-shell.js (h1, p, table rows, paragraph, signature); then modal.js with the modalrows.mjs rows of the state.
+  - Check the CODE before acting on a QA layout finding: the FO meta row is `flex-wrap` with separate 4 px dot items, so the code
+    itself ends / starts lines with a dot at 375 (DOC-11) — Figma already matched; no change.
+  - The FO finish card (`.e-permits-fo-finish-doc`, „Vezi documentul”) uses document-illustration.svg = the same blue tile as
+    document-generated.svg → published document-icon Type=System Generated, not Foundations 24/document-filled. The permit-picker
+    avatars (`.e-permits-fo-intent-act`, sprite icon-document) are not documents — leave them.
+  - Gap statements live in 4 places: board rule notes, block notes, TOC gap lists AND component descriptions (FOD 762:10435,
+    Cabinet 983:2727 still said „gol de bibliotecă”). Search texts per page and read the descriptions of every copy.
+  - A read-only scan over ALL pages of GEAP timed out (987 s). One page per call, findAllWithCriteria({types:["TEXT"]}).
+  - No ui-qa-figma agent tool in this session again → ran figma-audit.js (ROOTS) + sweep-lite myself.
