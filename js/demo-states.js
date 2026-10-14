@@ -619,6 +619,9 @@
     }),
     "svc-08k": svc("templates", async (h) => { await rowMenu("[data-dtpl-list]")(h); await h.click("[data-dtpl-delete]"); }),
     "svc-09": svc("notifications"),
+    /* empty states with the actions inside (service without own templates) */
+    "svc-09m": svc("notifications", null, "003000118"),
+    "svc-08m": svc("templates", null, "003000118"),
     "svc-09a": svc("notifications", rowMenu("[data-ntpl-svc-list]")),
     "svc-09b": svc("notifications", async (h) => { await ntplClone(h); await h.click("#ntpl-clone-source"); }),
     "svc-09c": svc("notifications", async (h) => { await ntplClone(h); await h.click("[data-ntpl-clone-save]"); }),

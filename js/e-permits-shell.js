@@ -8705,6 +8705,18 @@ document.addEventListener("DOMContentLoaded", () => {
     ? `${tpl.rules.length === 1 ? "1 regulă" : `${tpl.rules.length} reguli`}: ${tpl.rules.map((rule) => rule.recipient).join(", ")}`
     : "Fără reguli";
 
+  /* Clonează + Șablon nou — in the toolbar, or inside the empty state while the service has no
+     template of its own (same rule as Șabloane de tipar, user 2026-10-14) */
+  const ntplSvcActionsHtml = () => `
+              <button class="btn btn-neutral btn-sm" type="button" data-ntpl-clone>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
+                <span>Clonează</span>
+              </button>
+              <button class="btn btn-secondary btn-sm" type="button" data-ntpl-new>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                <span>Șablon nou</span>
+              </button>`;
+
   const renderServiceNotifications = (service) => {
     const tpl = serviceProfileState.templateCode ? serviceTemplates(service).find((item) => item.code === serviceProfileState.templateCode) : null;
     if (tpl) return renderTemplateDetail(service, tpl);
@@ -8722,16 +8734,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${renderSearchActions()}
               </div>` : ""}
           <div class="e-permits-pay__tools">
-            ${admin ? `
-              <button class="btn btn-neutral btn-sm" type="button" data-ntpl-clone>
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
-                <span>Clonează</span>
-              </button>
-              <button class="btn btn-secondary btn-sm" type="button" data-ntpl-new>
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-                <span>Șablon nou</span>
-              </button>
-            ` : ""}
+            ${admin && list.length ? ntplSvcActionsHtml() : ""}
           </div>
         </div>
         <div class="e-permits-sum-list">
@@ -8753,7 +8756,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: escapeHtml(item.name),
       badges: [renderTag(item.active ? "Activ" : "Inactiv", item.active ? "success" : "neutral")],
       meta: [renderTag(item.code, "neutral"), `Obiect: ${escapeHtml(item.object || item.dataSource || "—")}`, escapeHtml(templateRulesLabel(item))],
-      action: { label: admin ? "Editează" : "Vezi", attrs: `data-ntpl-open="${escapeHtml(item.code)}"` },
+      action: { label: admin ? "Editează" : "Detalii", attrs: `data-ntpl-open="${escapeHtml(item.code)}"` },
       menu: admin ? [
         { label: item.active === false ? "Activează" : "Dezactivează", icon: item.active === false ? "checkmark-large" : "pause", attrs: `data-ntpl-row-toggle="${escapeHtml(item.code)}"` },
         { label: "Șterge", icon: "delete", danger: true, attrs: `data-ntpl-row-delete="${escapeHtml(item.code)}"` }
@@ -8768,7 +8771,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     ` : all.length
       ? renderNoResults("Niciun șablon nu corespunde căutării")
-      : renderEmptyState({ title: "Niciun șablon de notificare propriu", text: "Creează unul nou sau clonează un șablon de sistem." });
+      : renderEmptyState({ title: "Niciun șablon de notificare propriu", text: "Creează unul nou sau clonează un șablon de sistem.", actionHtml: admin ? ntplSvcActionsHtml() : "" });
   };
 
   /* =====================================================================
@@ -8919,7 +8922,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const all = serviceDocTemplates(service);
     const q = clasCore.normName(dtplQuery.trim());
     const rows = q ? all.filter((t) => clasCore.normName(`${t.name} ${t.code} ${t.type || ""}`).includes(q)) : all;
-    if (!all.length) return renderEmptyState({ title: "Serviciul nu are șabloane de tipar", text: "Creează unul nou sau importă-l din MDocs." });
+    if (!all.length) return renderEmptyState({ title: "Serviciul nu are șabloane de tipar", text: "Creează unul nou sau importă-l din MDocs.", actionHtml: isCentralAdmin() ? dtplActionsHtml() : "" });
     if (!rows.length) return renderNoResults("Niciun șablon nu corespunde căutării");
     return `
       <div class="e-permits-stack">
@@ -8945,6 +8948,18 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>`;
   };
 
+  /* Importă din MDocs (upload: arrow up over the tray) + Șablon nou — in the toolbar, or inside the
+     empty state when the service has no template yet (user 2026-10-14) */
+  const dtplActionsHtml = () => `
+              <button class="btn btn-neutral btn-sm" type="button" data-dtpl-import>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
+                <span>Importă din MDocs</span>
+              </button>
+              <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" aria-controls="dtpl-new-modal" aria-expanded="false" data-dtpl-new>
+                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+                <span>Șablon nou</span>
+              </button>`;
+
   const renderServiceDocTemplates = (service) => {
     const admin = isCentralAdmin();
     const all = serviceDocTemplates(service);
@@ -8959,15 +8974,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 ${renderSearchActions()}
               </div>` : ""}
           <div class="e-permits-pay__tools">
-            ${admin ? `
-              <button class="btn btn-neutral btn-sm" type="button" data-dtpl-import>
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg>
-                <span>Importă din MDocs</span>
-              </button>
-              <button class="btn btn-secondary btn-sm" type="button" aria-haspopup="dialog" aria-controls="dtpl-new-modal" aria-expanded="false" data-dtpl-new>
-                <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-                <span>Șablon nou</span>
-              </button>` : ""}
+            ${admin && all.length ? dtplActionsHtml() : ""}
           </div>
         </div>
         <div class="e-permits-sum-list">
