@@ -719,3 +719,38 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - Rule 4 bulk: 52 „Configurează” buttons (Icon None) on Servicii → Icon=Leading + 20/settings in the size's slot; lone
     „Detalii” Neutral buttons → Icon=Leading + eye. Filter by `mainComponent.parent.name` + label; connectors unchanged.
   - Transport drops / 1000 s timeouts happened on 3-job rebuilds but the work had completed — always check state first.
+
+- 2026-10-14 · eKYC alerts + „+N” pass (file SqMGpRKEppJLcvn7HMzOPR, code 8493a239 + 95ceed02):
+  - Local components now live on their own page „🧩 Componente locale” (10687:2071, first in the page list, same name as
+    GEAP 2.0), section „Componente · eKYC BO (local)” 10158:671 — MOVED with `page.appendChild(section)` (ids + 827
+    instance links kept, 0 missing). Grid: one H5 „Grup · …” text per group, padding 80, gap 80, rows wrap at 3600.
+  - New local sets (library gaps): „Alertă · eKYC (gap bibliotecă)” 10678:2177 (Severitate Critică/Avertisment/Informativ ×
+    Stare Default/Hover/Focus × Acțiune on/off; TEXT props Titlu / Text / Timp / Acțiune), „Alertă · eKYC · straturi peek”
+    10678:2186 (Straturi=1/2), „Stare goală · compactă (gap bibliotecă)” 10678:2187 (GEAPEmptyState compact; props Titlu,
+    Text, Iconiță). Library ids used: Foundations 20/circle-error-filled ae3f9cd6…, 20/warning-filled 43efb3c5…,
+    20/circle-info-filled 5713c482…, 24/notification f73ebe40…, 16/chevron-bottom a9d10e06…, effect Focus Ring/Medium
+    97cdddcd… (= code 2 white + 3 ring), text styles Body/Small 500 057521fd…, Body/Small 1f355410…, Caption/Medium
+    8d8e3878…, H5 75e7dfdc…; tooltip set 3ca9d2a8…. No 14 semibold text style exists → titles use Small 500 (declared).
+  - Figma gotcha: setting `textTruncation` AFTER `maxLines` resets maxLines to 1 → set truncation first, then maxLines.
+    Text nodes with autoRename take the new characters as their name when a text style/characters change — rename back
+    („Text”) if scripts find layers by name.
+  - Card geometry check: code border is outside the padding (box-sizing border-box, border 1 + padding 12 = 13 from the
+    edge); a Figma INSIDE stroke with padding 12 is 2 px shorter — compare heights with the measured card, not the CSS.
+  - Rendered code can disagree with its own CSS: 95ceed02 adds `margin-top: 6px` on the alert text but the computed margin
+    is 0 (overridden) → Figma follows the user's intent (6 px) and the drift is reported to proto-engineer.
+  - Clone-from-another-block gotcha: `d2.clone()` + `d2.parent.appendChild` put the new D01m block in the D02 SECTION; the
+    restack by x then hid it in the wrong column. Append clones to the TARGET section explicitly.
+  - Landing blocks for flows (alert → screen) = clones of the existing area blocks (diff the code innerText of the landing
+    state vs the block's state first: identical → clone + note; filtered rows → delete / add rows in the GRID, compacting
+    with setGridChildPosition in ascending order, then gridRowCount).
+  - Connectors from items inside a modal instance: start = the modal instance with `position {x: modal.width, y: card
+    centre}`; re-place them after any change of card heights (they don't follow).
+  - „+N” tag cells: measure with the exact „+N” width (a „+9” placeholder lost a whole tag by 1 px). Widening a GRID track
+    does not resize FIXED cells — set cells FILL / resize them to the track.
+  - Doubled icons: 100 captured `h2d-svg` wrappers sat on top of library instances (search fields, buttons) → deleted;
+    sweep.js now reports rawSvgIcons / rawSvgOverInstance. 367 other raw svg icons (timeline steps, empty-state 48 px,
+    status icons) are still raw — they need a glyph map from the code before swapping.
+  - User rule: never write „din cod” in Figma names / annotations (sections, bands, TOC, notes) — product copy inside
+    screens stays as rendered.
+  - Captured legend trays (`.e-permits-meter-legend--tray`) had padding 0/0/0/12 and the stacked meter frame was FILL
+    (28 px instead of 12) — check captured paddings against the computed CSS, not only colours.

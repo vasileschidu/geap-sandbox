@@ -24442,8 +24442,13 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
   /* user 2026-10-14: description 12px, a clear gap under the title / time line */
   font-size: var(--font-size-fs-12, 12px);
   line-height: var(--line-height-lh-16, 16px);
-  margin: var(--spacing-6, 6px) 0 0;
+  margin: 0;
   overflow: hidden;
+}
+
+/* the 6px gap under the title line — scoped to the card so `.e-permits-dosar-profil p { margin: 0 }` doesn't win */
+.e-permits-ekyc-alert .e-permits-ekyc-alert__text {
+  margin-top: var(--spacing-6, 6px);
 }
 
 /* the action = brand text with the arrow inside the label („Deschide furnizorul →”, nbsp before →);
