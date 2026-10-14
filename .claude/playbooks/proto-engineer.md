@@ -575,3 +575,27 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   list too (shared helper). No sub-agent tool → ran code-audit + hover-audit myself; leftovers were standing FPs
   (`.u-visually-hidden`, section heading 11/11, th sort buttons, copy-code) and ek-03e (focus on the next × = hover
   look by design).
+- 2026-10-14 · Process Designer batches 0–1 (`js/process-designer.js`, `core/process-model.js`, `css/process-designer.css`):
+  building the WHOLE overlay in JS (appended to `<body>`) kept shared-file edits to 2 lines of `<head>` + 2 guards in the
+  shell + one demo-states block, while another agent edited the tree. „Open → save byte-identical” = reproduce the
+  export's layout rules in `serialize()` (depth-based inline vs multiline) and prove it with a Node test
+  (`tools/process-designer/roundtrip.mjs`) before writing UI; delete emptied optional keys so edit + reverse = same bytes.
+- 2026-10-14 · Canvas traps: (1) the shell's document click handler closes every `[data-stack-menu]` → a menu opened on
+  pointerup (connect released on empty canvas, the „+” handle) must open in `setTimeout(0)`, after the click; (2) a hash
+  route the shell does not know (`#flux/…`) is rewritten by `writeHash` / `restorePageHash` — guard it in the shell AND
+  read `location.hash` at the top of the deferred script; (3) `aria-pressed` / `aria-expanded` on `.btn` = permanent
+  focus ring (product rule) → tool choices are `role=radio` + `aria-checked`; a collapse button inside its own panel gets
+  neither; (4) library `.btn.btn-sm.btn-strict` (0,3,0) beats a single-class pressed rule — scope with the toolbar;
+  (5) programmatic / AT clicks have `detail === 0` — add click handlers for them next to pointer-only gestures, then demo
+  states can use `h.click` on canvas nodes / palette items; (6) hover-audit „no-hover” on canvas items is often an
+  element outside the viewport (probe `getBoundingClientRect` + `elementFromPoint` before fixing CSS).
+- 2026-10-14 · User direction mid-job: canvas nodes in the GEAP **site-map card** language (white card r16, strong type tag
+  in the element colour, grey id chip, semibold title; thin grey elbows; calm diamond / circles with the colour on the
+  icon only; floating cards white + border + r16). The export's coordinates are dense (events 70 px apart), so the drawn
+  box (`PM.VIEW`, 184×94 cards) is centred on the export's anchor box (`PM.SIZE`) — stored x / y keep their meaning;
+  run an overlap check over the seed before choosing a card size (200 wide touched a neighbour, 184 does not). The
+  description note of the site-map card did not fit that density → it lives in the panel (deviation, reported).
+- 2026-10-14 · Perf proof that convinced: rAF frame deltas recorded in the page during REAL CDP input (middle-drag pan,
+  ctrl+wheel zoom, node drag) + a `longtask` PerformanceObserver: 16.7 ms p95, no long task; `performance.measure` from
+  open() to the fitted frame (103 ms). A regression worker can stall silently — when a log stops growing, kill it and
+  re-run only the states not reported.

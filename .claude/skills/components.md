@@ -250,6 +250,8 @@ but this doc previously described it wrongly, see the entry.
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
 | Form Builder (Form Designer: palette · canvas · properties; one schema → one renderer) | `.e-permits-builder` workspace: `__library` (grouped palette `__library-section` / `__library-item`, „În curând” = `is-disabled` + reason) · `__stage` (`__service-header`, `__steps` chips, `__canvas` > `__step-section` > `__section-bar` + `__grid` > `__field` cards, `__drop-indicator`) · `__inspector` > `__panel` (`__panel-head--selected`, `.tabs.tabs--sm.e-permits-builder__tabs`, `__panel-scroll` of drawer sections) · topbar `__errors` + `__issues-menu` | `js/form-builder.js` (`COMPONENTS`, `toFo`, `window.GEAPFormBuilder`), `css/form-builder.css`, demo `fb-*` | app |
+| Process Designer (Fluxuri de lucru: full-bleed canvas + floating cards; one flow JSON) | `.e-permits-builder.e-permits-builder--process` (FB topbar + `.modal--footer.e-permits-pd__footer`) > `main.e-permits-pd__stage` (dot grid) > `.e-permits-pd__world` (ONE transform) > `__lanes` (`__pool` / `__pool-head` / `__lane` + `button.__lane-rail` / `__lane-add` = FB dropzone) · `svg.__edges` (`g.__edge` > `__edge-hit` / `__edge-line` / `__edge-arrow`) · `__labels` (`button.__edge-label`) · `__nodes` (`button.__node.__node--{start\|end\|activity\|decision\|event\|subprocess}` > `__shape` · `__name` / `__caption` · `__port` · `__plus` · `__dot`) · `svg.__overlay`; floating `aside.__float--left` (palette = FB `__library-item` + `__glyph--*`, `.is-rail`) / `aside.__float--right` (FB panel) · `__toolbar` · `__minimap` · `__add-menu` („Continuă cu”) · `__json` | `js/process-designer.js` (`window.GEAPProcessDesigner`), `core/process-model.js` (`GEAP.processModel`), `css/process-designer.css`, demo `pd-*`; section „Process Designer” | app |
+| Floating card (panel over a canvas) | `.e-permits-pd__float` (white, 1 px border base-default, radius 16, `--shadow-200`, inset 16, `max-height: 100% − 32`, 160ms slide-in `backwards`) + `__card-head` / `__card-title`; hidden with `[hidden]`; toolbar and minimap use the same card (radius 16) | Process Designer palette / properties | app |
 | One FO renderer for builder + Preview + request form | `window.GEAPFormRender.fieldHtml` = `stepFieldHtml` (+ `textarea`, `number`/`money`, `date`, `select`, `radio`, `checkbox`, `checklist`, `info`, batch 3: `idnp`, `idno`, `file`, `mdocs`, `hidden`, `consent`, `contact-person` with `prefix`, `subdivision` with `mode`; batch 4: `grid`, `repeat` → `window.GEAPFoRepeat` in `js/fo-grid.js`, `combobox` = the CAEM list alone); `.bind(root)` = the FO interactions (+ contact, subdivision, digits, registry lookups); `.applicant()`, `.setFieldError()`, `.copyValueHtml()` | `js/e-permits-acte-permisive.js` | app |
 | Choice field (labelled radio rows / checkbox list / period pair in a form) | `fieldset.e-permits-fo-choice.e-permits-fo-field--span-N` > `legend.e-permits-fo-choice__legend` + `.e-permits-fo-choice__group(--inline)` of `.e-permits-fo-radio--option` rows, or `.e-permits-fo-choice__checks` of `renderCheckOption({ plain: true })`, or `.e-permits-fo-choice__pair` (two date pickers, 6 + 6, one column ≤860) | `radioFieldHtml` / `checklistFieldHtml` / `periodFieldHtml` | app |
 | FO segmented field · multi-select field · callout field · separator field | `segmentFieldHtml` (`.segmented-control.is-animated[role=radiogroup][data-fo-segment]` + label id) · `multiselectFieldHtml` (the CAEM subgenre multi-select with `data-placeholder` / `data-count-one` / `data-count-many` / `data-remove-label`, chips in `[data-fo-subgen]`) · `calloutFieldHtml` (`.e-permits-callout--info/--warning`) · `separatorFieldHtml` (library `hr.separator`) | `js/e-permits-acte-permisive.js` | app |
@@ -3301,6 +3303,77 @@ value, options: [[value, cols, label, aria]], total, label, caption, disabled, r
 Click / keys call `setSpan` (card re-renders: the card's `data-fb-span-tag` „6/12” and its aria-label follow;
 announced „Lățime 6 din 12.”) or `setPath(…, "width")` for a grid column. Demo states: fb-05w (8/12),
 fb-05x (set to 6/12), fb-05y (locked), fb-52w (grid column).
+
+### `e-permits-pd__*` — Process Designer (2026-10-14, batches 0–1)
+
+Spec `tools/persona-test/specs/svc/process-designer.md` (Feature 89397 · US-50/51/52). Code `js/process-designer.js`
+(the whole overlay is built in JS and appended to `<body>` — no HTML block), model `core/process-model.js` (pure, Node-
+testable), CSS `css/process-designer.css` (on top of the builder CSS: topbar, palette item, panel, facts, issues menu are
+the Form Builder's). Round-trip test: `node tools/process-designer/roundtrip.mjs`.
+
+**Entry.** `?flow=proces` (`&proces=<flow id>`, `&vizualizare=1`, `&nou=1`) = the designer is the page (`body.is-pd-page`
+hides the demo home / FO / shell); `#flux/<flow id>` on any flow (the request-type drawer's „Vezi schema fluxului”) opens
+it above the page, **forced view-only** (toggle disabled with the reason). The shell's `writeHash` / `routeFromHash`
+leave `#flux/…` alone; closing removes the hash.
+
+**Model = the export.** The flow JSON (`data/flows/*.json`) is the working object; `serialize()` reproduces the GEAP
+export layout byte for byte, unknown keys stay where they were. Optional texts are deleted when emptied (so an edit and
+its reverse write the same bytes). Sizes come from `PM.SIZE` (Start/Sfârșit 64, Activitate 140×56, Sub-proces 160×56,
+Decizie 44 turned 45°, Eveniment 40) and are written as `style` transform / width / height from JS — geometry is data,
+not CSS. Positions snap the **centre** to the 20 grid (the seed's nodes sit centred on 20 rows). Routing: 16 px stubs
+out of the ports + the cheapest straight / L / Z / detour shape that avoids other shapes; stored `waypoints` win;
+rounded corners 8; label on the longest segment (`labelDx/Dy` of the old designer applied only when ≤ 48 px).
+
+**Layers / performance.** Pan / zoom write ONE transform on `__world` + 3 custom properties on the stage (dot grid);
+pointermove only stores the pointer, one `requestAnimationFrame` applies it; a node drag reroutes only its edges; nodes /
+edges are keyed and patched (signature per node), full redraw only on undo / load. Validation runs 120 ms after the last
+change, the minimap on the next frame. Measured on the seed (50 nodes / 64 edges): open → fitted 103 ms, pan / zoom /
+drag 60 fps with no long task, full redraw 8 ms.
+
+| Part | Look | States |
+|---|---|---|
+| Node `button.__node--*` | **site-map card** (user 2026-10-14, Figma 🗂️ Site map 8346:1839) for Activitate / Sub-proces: `__shape.__card` 184×94 white, 1 px border base-default, radius 16, padding 12 > `__card-top` (library `status-tag … is-strong status-tag--small` `__type`: Activitate brand, Sub-proces violet `--purple-600` · `__chip` grey r6 `hashtag` + id, Onest · `__error-tag` red, shown instead of the chip on `has-error`) + `__name` 14/20 semibold, 2 lines. Start green / Sfârșit red circles 64 (border 3) · Decizie white diamond (border base-secondary) + amber `bubble-question` icon + question `__caption--decision` (white r8) · Eveniment white circle 40 (1.5 base-secondary + inner ring) + processor icon, `badge--md badge--solid-neutral` = templates, `__caption` when `showName`. The drawn box (`PM.VIEW`) is centred on the export's anchor box (`PM.SIZE`), so stored x / y never change meaning | hover (`:hover` / demo `.is-hovered`): border base-secondary (+ tertiary on diamond / circle) + `--shadow-200` + ports · selected: 2 px brand ring (border + 1 px) · selected + hover: + 5 px `brand-secondary-hover` halo + shadow · focus-visible: focus ring · `is-target` brand halo 6 · `is-target-invalid` danger · `has-error`: danger border + red tag (cards) / red `__dot` · view-only path: others `opacity .4` (hover restores) |
+| Port `__port` | 12 brand dot, white 1.5 ring, `--shadow-100`; 16 under the pointer; shown on hover / selection / as a target | drag = connect (dashed brand line in `__overlay`, release on a node or within 24 px of a port; on empty canvas → „Continuă cu” at the drop point) |
+| `__plus` | 20 white circle, brand border + icon, right of the right port (decision: right vertex) | hover / menu open = brand fill; click = „Continuă cu” |
+| Edge `g.__edge` | thin grey elbow (site map): 1.5 `--color-border-base-secondary`, rounded corners 8, small open chevron 8 | hover brand 2 · selected brand 2 + 8 px `brand-secondary-hover` halo (hit path) · `has-error` / `is-broken` dashed danger · `is-{brand,positive,danger,warning,neutral}` / `is-w1..3` |
+| Edge label `button.__edge-label` | small tag on the line: white, 1 px border, r6, 12/16 medium secondary, ellipsis at 160 + tooltip | hover brand border + text · selected brand-secondary fill · hidden below 75 % unless selected (LOD) |
+| Pool / lane | pool r12 border base-default, head 48 white (title 16 medium + „N benzi · N elemente”); lane = rail 40 white (vertical title 14 medium) + transparent body over the grid, 1 px dividers | rail hover tertiary · selected rail brand-secondary + inset brand ring · `is-target` (drop / move) brand-secondary 55 % |
+| Palette (left card) | FB `__library-item` (36 tile with `__glyph--{activity,decision,event,subprocess,lanes}` CSS glyphs — the sprite has no node icons) + hint line; `.is-rail` = 56 wide, glyph icon buttons | click = add after the selected node (connected) or in the visible centre; drag = ghost of the real shape at the current zoom, lane highlight, `is-invalid` outside the pool |
+| Properties (right card) | FB panel head + `.tabs--sm` „General” + drawer sections; nothing selected = `.is-compact` (hugs) with `GEAPEmptyState` compact bare + facts; exits = FB `__step-list` rows | below 960 it is a bottom card that appears only with a selection |
+| Toolbar `__toolbar` | white r16, 1 px border, `--shadow-200`, padding 4, `btn btn-strict btn-sm btn-icon-only` + tooltips; tools = `role=radio` (`aria-checked` = pressed fill, no ring); zoom % = stack-menu trigger opening upwards; Hartă / panels = `aria-pressed` (ring by rule) | − / + disabled at 50 / 200 % with the reason in the tooltip; centred in the area the cards leave free (`--pd-toolbar-x`) |
+| Minimap `__minimap` | white r16 card (1 px border), `<canvas>` 200×136: lanes, nodes coloured by type, viewport brand 1.5 + brand-secondary 40 % | click / drag = centre there, arrows pan 10 %; on by default ≥ 1440; the properties card stops above it |
+
+**Keyboard** (stage or a node focused; never inside inputs): Tab / Shift+Tab next / previous node in flow order (BFS from
+Start; leaves the diagram after the last) · Enter select + panel · F2 rename · arrows nudge 20 (Shift 100) · Delete /
+Backspace delete (toast „Elementul «X» a fost șters.” + Anulează 8 s; Start / Sfârșit refused with an info toast) ·
+Ctrl/Cmd+Enter „Continuă cu” · C connect mode (arrows / Tab cycle targets, announced; Enter links, Esc cancels) ·
+Ctrl/Cmd+Z / Shift+Z / Y · Ctrl/Cmd+A · Ctrl/Cmd+\ both panels, `[` / `]` one · V / H tools · Space + drag pan · 1 fit,
+2 fit selection · Ctrl/Cmd + − 0 zoom · M minimap · Esc: menu → connect / drag → mode → deselect (never closes).
+A click without a pointer (screen reader, Enter on a palette item) selects / adds. Live region `[data-pd-live]`.
+
+**Doar vizualizare** (`renderToggle`, label visible ≥ 1280): hides palette, footer, issues, Publică, undo / tools,
+ports and „+”; the panel is read-only (`is-readonly` inputs, selects shown as read-only inputs); a selected node
+highlights its edges and fades the rest. Forced (toggle disabled + reason) from `#flux/…`, for a past version and below
+960 px.
+
+**Validation** (`PM.validate`, spec F.13 codes, Azure wording): E1 unconnected, E2 decision exit without target, E3
+unknown sub-process, E4 required (Denumire / Întrebare / processRef / templates / audit code / payment moment), E5
+human step without a role (publish), E6 unreachable / E7 no way to Sfârșit (publish), E8 decision exits / labels, E9
+sub-process calls itself, E10 duplicates / edge into Start / out of Sfârșit / > 15 lanes, W1 default branch. Topbar
+`__errors` + `__issues-menu` (heads „N erori blochează salvarea / publicarea” · „Avertismente”; row = select + zoom to
+the element + focus the property). Salvează is blocked by `blocks: "save"` errors (error toast + the menu opens).
+
+**Save / versions.** Salvează = patch + 1, Schiță, toast „Schița v1.0.1 a fost salvată. Serviciile folosesc în
+continuare v1.0.0.”; Anulează = red confirm, back to the saved bytes; × with changes = `#pd-close-modal` (Rămâi ·
+Închide fără salvare · Salvează și închide). The FB `__version` button opens a stack menu of versions (`__version-row`:
+version + status tag + „date, hh:mm · who”); a past version opens view-only. Publică = `askConfirm` (status Publicat,
+version unchanged). Sandbox DB `geap.processDesignerDb.v1` (seeded from `e-permits-services.json › flows` + the
+definitions; the 5 sub-processes the seed calls are seeded as published processes), UI prefs `geap.processDesigner.ui`.
+
+States `pd-01…pd-28a` (see `js/demo-states.js`; QA scope `#process-designer-modal`). Editing states are desktop-only
+(below 960 the designer is view-only by spec E.7). Not built yet: Decizie Ieșiri / condition builder, Acțiuni / Roluri /
+Termene / Avansat tabs, Procesor tab, drop-on-connection split, drill-in, lane resize / reorder / delete, connection
+colour / thickness UI, endpoint re-connect, alignment guides, list view (batch 2–4).
 
 ### `rap-*` and `cab-*` — the two standalone pages
 

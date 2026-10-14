@@ -82,6 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const writeHash = (hash, { push = false } = {}) => {
     const url = `${window.location.pathname}${window.location.search}${hash}`;
     if (window.location.hash === hash) return;
+    /* #flux/<id> belongs to the Process Designer (js/process-designer.js), open above the page */
+    if (/^#flux\//.test(window.location.hash)) return;
     if (push && !routingFromHash) history.pushState(null, "", url);
     else history.replaceState(null, "", url);
   };
@@ -18480,6 +18482,8 @@ document.addEventListener("DOMContentLoaded", () => {
       if (product?.route?.(hash)) {
         return;
       }
+      /* „Vezi schema fluxului” (#flux/<id>): the Process Designer opens it view-only */
+      if (/^#flux\//.test(hash)) return;
       let match = hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
       const linkedRow = match && getDosarById(match[1]);
       if (linkedRow) {

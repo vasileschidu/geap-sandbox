@@ -1,0 +1,1465 @@
+/* Process Designer — css for js/process-designer.js (2026-10-14, spec
+   tools/persona-test/specs/svc/process-designer.md, batches 0–1). On top of the Form Builder CSS
+   (topbar, palette items, panel, facts, issues menu are the builder's). Tokens only; node
+   positions / sizes come from the model (style transform / width / height, never CSS literals). */
+
+/* ===== Shell ===== */
+.e-permits-builder.e-permits-builder--process {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.e-permits-builder--process .e-permits-builder__topbar {
+  min-height: var(--spacing-72, 72px);
+}
+
+.e-permits-builder--process .e-permits-pd__nav-left {
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-builder--process .e-permits-pd__title {
+  color: var(--color-text-base-default, #121212);
+  display: block;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-pd__status {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.e-permits-pd__version-wrap {
+  flex: 0 0 auto;
+}
+
+.e-permits-pd__versions.e-permits-stack__menu {
+  left: 0;
+  right: auto;
+  width: 320px;
+}
+
+.e-permits-pd__version-row.e-permits-fo-intent-menu__item {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  height: auto;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+}
+
+.e-permits-pd__version-row.is-current {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-pd__version-row.is-current:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-pd__version-main {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-pd__version-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* „Setări generale” is a panel, not a mode: pressed while the process panel shows */
+.e-permits-builder__mode [data-pd-settings].is-active {
+  background: var(--color-background-base-default, #fff);
+  box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-builder__mode [data-pd-settings].is-active:hover {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+.e-permits-pd__viewonly {
+  flex: 0 0 auto;
+}
+
+.e-permits-pd__viewonly .e-permits-toggle__label {
+  white-space: nowrap;
+}
+
+.e-permits-builder--process.is-view-only [data-pd-edit-only] {
+  display: none;
+}
+
+/* ===== Stage: full bleed, dot grid 20 px × zoom (a background, not DOM) ===== */
+.e-permits-pd__stage {
+  background-color: var(--color-background-base-secondary, #f5f5f5);
+  background-image: radial-gradient(circle at 1px 1px, var(--color-border-base-secondary, #b2b2b2) 1px, transparent 1.5px);
+  background-position: var(--pd-gx, 0) var(--pd-gy, 0);
+  background-size: var(--pd-grid, 20px) var(--pd-grid, 20px);
+  contain: strict;
+  cursor: default;
+  min-height: 0;
+  outline: none;
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  user-select: none;
+}
+
+.e-permits-pd__stage.is-lod {
+  background-image: radial-gradient(circle at 1px 1px, var(--color-border-base-default, #d9d9d9) 1px, transparent 1.5px);
+}
+
+.e-permits-pd__stage:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-pd__stage[data-tool="pan"],
+.e-permits-pd__stage.is-space,
+.is-view-only .e-permits-pd__stage {
+  cursor: grab;
+}
+
+.e-permits-pd__stage.is-panning,
+.e-permits-pd__stage.is-panning * {
+  cursor: grabbing;
+}
+
+.e-permits-pd__stage.is-connecting,
+.e-permits-pd__stage.is-connecting * {
+  cursor: crosshair;
+}
+
+.e-permits-pd__stage.is-connect-invalid,
+.e-permits-pd__stage.is-connect-invalid *,
+.e-permits-pd__stage.is-invalid-drop {
+  cursor: not-allowed;
+}
+
+.e-permits-pd__stage.is-moving,
+.e-permits-pd__stage.is-moving *,
+.e-permits-pd__stage.is-adding,
+.e-permits-pd__stage.is-adding * {
+  cursor: grabbing;
+}
+
+/* ONE transformed layer: pan / zoom write only its transform */
+.e-permits-pd__world {
+  height: 0;
+  left: 0;
+  position: absolute;
+  top: 0;
+  transform-origin: 0 0;
+  width: 0;
+}
+
+.e-permits-pd__lanes,
+.e-permits-pd__labels,
+.e-permits-pd__nodes {
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.e-permits-pd__edges,
+.e-permits-pd__overlay {
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+}
+
+/* ===== Pool + lanes (Figma `.step` 5678:55000) ===== */
+.e-permits-pd__pool {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  left: 0;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+}
+
+.e-permits-pd__pool > * {
+  box-sizing: border-box;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.e-permits-pd__pool > .e-permits-pd__pool-head {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  height: var(--spacing-48, 48px);
+  padding: 0 var(--spacing-16, 16px);
+  right: 0;
+}
+
+.e-permits-pd__pool-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  white-space: nowrap;
+}
+
+.e-permits-pd__pool-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  white-space: nowrap;
+}
+
+/* a lane: the rail (vertical title) + a transparent body over the grid; 1px divider above */
+.e-permits-pd__lane {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  transition: background-color 120ms var(--motion-easing-standard, ease);
+}
+
+.e-permits-pd__pool-head + .e-permits-pd__lane {
+  border-top: 0;
+}
+
+.e-permits-pd__lane.is-target {
+  background: color-mix(in srgb, var(--color-background-brand-secondary, #e8f0fb) 55%, transparent);
+}
+
+.e-permits-pd__lane.is-selected {
+  box-shadow: inset 0 0 0 var(--border-width-1-5, 1.5px) var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-pd__lane-rail {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-base-default, #fff);
+  border: 0;
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  bottom: 0;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  justify-content: center;
+  left: 0;
+  padding: var(--spacing-8, 8px) 0;
+  position: absolute;
+  top: 0;
+  width: var(--spacing-40, 40px);
+}
+
+.e-permits-pd__lane-rail:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-pd__lane-rail:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+.e-permits-pd__lane.is-selected .e-permits-pd__lane-rail {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-pd__lane.is-selected .e-permits-pd__lane-rail:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-pd__lane-title {
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  max-height: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+}
+
+/* „+ Adaugă bandă” = the builder dropzone, full width under the last lane (Figma) */
+.e-permits-pd__pool > .e-permits-pd__lane-add {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: center;
+  margin: 0;
+  min-height: 0;
+}
+
+/* ===== Nodes (spec C.3 / B.2) ===== */
+.e-permits-pd__node {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  font: inherit;
+  left: 0;
+  margin: 0;
+  outline: none;
+  padding: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity 120ms var(--motion-easing-standard, ease);
+}
+
+.e-permits-pd__shape {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+  transition: box-shadow 120ms var(--motion-easing-standard, ease), border-color 120ms var(--motion-easing-standard, ease);
+}
+
+.e-permits-pd__name {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+/* Start / Sfârșit: circle 64, border 3 */
+.e-permits-pd__node--start .e-permits-pd__shape,
+.e-permits-pd__node--end .e-permits-pd__shape {
+  border-radius: var(--border-radius-full, 999px);
+  border-width: var(--border-width-3, 3px);
+}
+
+.e-permits-pd__node--start .e-permits-pd__shape {
+  background: var(--color-background-positive-secondary, #dcfae6);
+  border-color: var(--color-border-positive-default, #079455);
+  color: var(--color-text-positive-default, #067647);
+}
+
+.e-permits-pd__node--end .e-permits-pd__shape {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  border-color: var(--color-border-danger-default, #d92d20);
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+/* Activitate / Sub-proces = the site-map card (Figma 🗂️ Site map 8346:1839, user 2026-10-14): white, 1px
+   border, radius 16, padding 12 · row of the type tag (library status tag Small, strong, the element's
+   colour: Activitate brand, Sub-proces violet) + the id chip (grey, Onest) · title 14/20 semibold, 2 lines */
+.e-permits-pd__card.e-permits-pd__shape {
+  align-items: stretch;
+  border-radius: var(--border-radius-16, 16px);
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-start;
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__card-top {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-20, 20px);
+  min-width: 0;
+}
+
+.e-permits-pd__card-top .status-tag {
+  max-height: var(--spacing-20, 20px);
+}
+
+.e-permits-pd__type.status-tag {
+  flex: 0 0 auto;
+  text-transform: none;
+}
+
+.e-permits-pd__type.status-tag--violet.is-strong {
+  background: var(--purple-600, #7f56d9);
+  border-color: var(--purple-600, #7f56d9);
+  color: var(--color-text-base-inverse-on-color, #fff);
+}
+
+.e-permits-pd__chip {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-4, 4px);
+  height: var(--spacing-20, 20px);
+  line-height: var(--line-height-lh-16, 16px);
+  min-width: 0;
+  padding: 0 var(--spacing-6, 6px);
+}
+
+.e-permits-pd__chip > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-pd__chip .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: 0 0 auto;
+  height: var(--spacing-12, 12px);
+  width: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__error-tag.status-tag {
+  display: none;
+  text-transform: none;
+}
+
+.e-permits-pd__node.has-error .e-permits-pd__error-tag {
+  display: inline-flex;
+}
+
+.e-permits-pd__node.has-error .e-permits-pd__chip {
+  display: none;
+}
+
+.e-permits-pd__card .e-permits-pd__name {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  text-align: left;
+}
+
+
+
+/* Decizie: a 44 square turned 45° (vertices 31 from the centre) + the question tag under it */
+/* calm like the site map: white diamond, thin border; the amber accent is the icon only */
+.e-permits-pd__node--decision .e-permits-pd__shape {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-6, 6px);
+  transform: rotate(45deg);
+}
+
+.e-permits-pd__decision-icon {
+  align-items: center;
+  color: var(--color-icon-warning-default, #dc6803);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+}
+
+.e-permits-pd__caption {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  left: 50%;
+  line-height: var(--line-height-lh-16, 16px);
+  max-width: calc(var(--spacing-80, 80px) * 2);
+  overflow: hidden;
+  padding: var(--spacing-2, 2px) var(--spacing-6, 6px);
+  position: absolute;
+  text-align: center;
+  text-overflow: ellipsis;
+  top: calc(100% + var(--spacing-6, 6px));
+  transform: translateX(-50%);
+  white-space: nowrap;
+  width: max-content;
+}
+
+.e-permits-pd__caption--decision {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-text-base-default, #121212);
+  display: -webkit-box;
+  top: calc(100% + var(--spacing-16, 16px));
+  white-space: normal;
+}
+
+/* Eveniment intermediar: circle 40, double ring (BPMN intermediate), processor icon */
+.e-permits-pd__node--event .e-permits-pd__shape {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+  border-radius: var(--border-radius-full, 999px);
+  border-width: var(--border-width-1-5, 1.5px);
+  color: var(--color-icon-base-default, #121212);
+}
+
+.e-permits-pd__node--event .e-permits-pd__shape::before {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  inset: var(--spacing-2, 2px);
+  position: absolute;
+}
+
+.e-permits-pd__node--event .e-permits-pd__shape .icon {
+  height: var(--spacing-16, 16px);
+  position: relative;
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__badge {
+  pointer-events: none;
+  position: absolute;
+  right: calc(var(--spacing-8, 8px) * -1);
+  top: calc(var(--spacing-6, 6px) * -1);
+}
+
+/* hover: the card elevation + darker border; ports show. `.is-hovered` = the same look set by a demo
+   state (a capture cannot hold a real pointer) */
+.e-permits-pd__node:is(:hover, .is-hovered) .e-permits-pd__shape {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-pd__node--start:hover .e-permits-pd__shape {
+  border-color: var(--color-border-positive-default, #079455);
+}
+
+.e-permits-pd__node--end:hover .e-permits-pd__shape {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-pd__node--decision:is(:hover, .is-hovered) .e-permits-pd__shape,
+.e-permits-pd__node--event:is(:hover, .is-hovered) .e-permits-pd__shape {
+  border-color: var(--color-border-base-tertiary, #444);
+}
+
+/* error: danger border (+ the red tag on cards, the red dot on the small shapes) */
+.e-permits-pd__node.has-error .e-permits-pd__shape {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+/* selected = the builder card ring (brand border + halo); selected + hover = stronger (FB rule) */
+/* selected = a 2px brand ring (border + 1px outside) + the ports */
+.e-permits-pd__node.is-selected .e-permits-pd__shape {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2);
+}
+
+.e-permits-pd__node.is-selected:hover .e-permits-pd__shape {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow:
+    0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
+    0 0 0 5px var(--color-background-brand-secondary-hover, #ccdef6),
+    var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-pd__node:focus-visible .e-permits-pd__shape {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-pd__node.is-selected:focus-visible .e-permits-pd__shape {
+  box-shadow:
+    0 0 0 var(--border-width-1, 1px) var(--color-border-brand-default, #0058d2),
+    0 0 0 2px var(--color-background-base-default, #fff),
+    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+/* connecting: a valid target gets the brand halo, an invalid one the danger border */
+.e-permits-pd__node.is-target .e-permits-pd__shape {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 6px var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-pd__node.is-target-invalid .e-permits-pd__shape {
+  border-color: var(--color-border-danger-default, #d92d20);
+  box-shadow: 0 0 0 6px var(--color-background-danger-secondary, #fee4e2);
+}
+
+/* error: a red dot top-right */
+.e-permits-pd__dot {
+  background: var(--color-background-danger-default, #d92d20);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff);
+  display: none;
+  height: var(--spacing-8, 8px);
+  pointer-events: none;
+  position: absolute;
+  right: calc(var(--spacing-2, 2px) * -1);
+  top: calc(var(--spacing-2, 2px) * -1);
+  width: var(--spacing-8, 8px);
+}
+
+.e-permits-pd__node.has-error .e-permits-pd__dot {
+  display: block;
+}
+
+.e-permits-pd__node--decision .e-permits-pd__dot {
+  right: calc(var(--spacing-8, 8px) * -1);
+  top: calc(var(--spacing-8, 8px) * -1);
+}
+
+/* ports (Figma `Dot` 5669:52261): 12, 16 under the pointer; shown on hover / selection / as a target */
+.e-permits-pd__port,
+.e-permits-pd__plus {
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.e-permits-pd__port {
+  background: var(--color-background-brand-default, #0058d2);
+  border: var(--border-width-1-5, 1.5px) solid var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
+  box-sizing: border-box;
+  cursor: crosshair;
+  height: var(--spacing-12, 12px);
+  opacity: 0;
+  transition: opacity 120ms var(--motion-easing-standard, ease), width 120ms var(--motion-easing-standard, ease), height 120ms var(--motion-easing-standard, ease);
+  width: var(--spacing-12, 12px);
+  z-index: 2;
+}
+
+.e-permits-pd__node:is(:hover, .is-hovered) .e-permits-pd__port,
+.e-permits-pd__node.is-selected .e-permits-pd__port,
+.e-permits-pd__node.is-target .e-permits-pd__port,
+.e-permits-pd__node:focus-visible .e-permits-pd__port {
+  opacity: 1;
+}
+
+.e-permits-pd__port:hover {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__stage.is-moving .e-permits-pd__port,
+.e-permits-pd__stage.is-moving .e-permits-pd__plus {
+  opacity: 0;
+}
+
+/* „+” = „Continuă cu” (Figma 5669:52373): a handle right of the right port */
+.e-permits-pd__plus {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  height: var(--spacing-32, 32px);
+  justify-content: flex-end;
+  opacity: 0;
+  transition: opacity 120ms var(--motion-easing-standard, ease);
+  width: var(--spacing-40, 40px);
+  z-index: 1;
+}
+
+.e-permits-pd__plus .icon {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-brand-default, #0058d2);
+  border-radius: var(--border-radius-full, 999px);
+  box-shadow: var(--shadow-100, 0 1px 3px rgba(0, 0, 0, 0.16), 0 0 0.5px rgba(0, 0, 0, 0.3));
+  box-sizing: border-box;
+  color: var(--color-icon-brand-default, #0058d2);
+  height: var(--spacing-20, 20px);
+  transition: background-color 120ms var(--motion-easing-standard, ease), color 120ms var(--motion-easing-standard, ease);
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-pd__plus:hover .icon,
+.e-permits-pd__node.is-menu-open .e-permits-pd__plus .icon {
+  background: var(--color-background-brand-default, #0058d2);
+  color: var(--color-icon-base-inverse-on-color, #fff);
+}
+
+.e-permits-pd__node:is(:hover, .is-hovered) .e-permits-pd__plus,
+.e-permits-pd__node.is-selected .e-permits-pd__plus,
+.e-permits-pd__node.is-menu-open .e-permits-pd__plus {
+  opacity: 1;
+}
+
+.e-permits-pd__stage.is-connecting .e-permits-pd__plus {
+  opacity: 0;
+}
+
+/* palette drag ghost: the real shape at the current zoom, semi-transparent */
+.e-permits-pd__ghost {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.e-permits-pd__ghost .e-permits-pd__shape {
+  border-color: var(--color-border-brand-default, #0058d2);
+  border-style: dashed;
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+}
+
+.e-permits-pd__node--event.e-permits-pd__ghost .e-permits-pd__shape,
+.e-permits-pd__node--start.e-permits-pd__ghost .e-permits-pd__shape {
+  border-radius: var(--border-radius-full, 999px);
+}
+
+.e-permits-pd__ghost.is-invalid .e-permits-pd__shape {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+/* ===== Connections (one SVG) ===== */
+.e-permits-pd__edge-hit {
+  fill: none;
+  pointer-events: stroke;
+  stroke: transparent;
+  stroke-width: 12;
+  cursor: pointer;
+}
+
+/* thin grey elbows with rounded corners (site map); colour only on hover / selection / error */
+.e-permits-pd__edge-line,
+.e-permits-pd__edge-arrow {
+  fill: none;
+  stroke: var(--color-border-base-secondary, #b2b2b2);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+  transition: stroke 120ms var(--motion-easing-standard, ease);
+}
+
+.e-permits-pd__edge.is-brand :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) { stroke: var(--color-icon-brand-default, #0058d2); }
+.e-permits-pd__edge.is-positive :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) { stroke: var(--color-icon-positive-default, #079455); }
+.e-permits-pd__edge.is-danger :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) { stroke: var(--color-icon-danger-default, #d92d20); }
+.e-permits-pd__edge.is-warning :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) { stroke: var(--color-icon-warning-default, #dc6803); }
+.e-permits-pd__edge.is-neutral :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) { stroke: var(--color-icon-base-tertiary, #757575); }
+.e-permits-pd__edge.is-w1 .e-permits-pd__edge-line { stroke-width: 1; }
+.e-permits-pd__edge.is-w2 .e-permits-pd__edge-line { stroke-width: 2; }
+.e-permits-pd__edge.is-w3 .e-permits-pd__edge-line { stroke-width: 3; }
+
+.e-permits-pd__edge:hover :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) {
+  stroke: var(--color-icon-brand-default, #0058d2);
+}
+
+.e-permits-pd__edge:hover .e-permits-pd__edge-line {
+  stroke-width: 2;
+}
+
+.e-permits-pd__edge.is-selected .e-permits-pd__edge-hit {
+  stroke: var(--color-background-brand-secondary-hover, #ccdef6);
+  stroke-width: 8;
+}
+
+.e-permits-pd__edge.is-selected :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) {
+  stroke: var(--color-icon-brand-default, #0058d2);
+  stroke-width: 2;
+}
+
+.e-permits-pd__edge.is-selected:hover .e-permits-pd__edge-hit {
+  stroke: var(--color-background-brand-secondary-active, #99bced);
+}
+
+.e-permits-pd__edge.has-error .e-permits-pd__edge-line,
+.e-permits-pd__edge.is-broken .e-permits-pd__edge-line {
+  stroke: var(--color-icon-danger-default, #d92d20);
+  stroke-dasharray: 4 4;
+}
+
+.e-permits-pd__edge.has-error .e-permits-pd__edge-arrow,
+.e-permits-pd__edge.is-broken .e-permits-pd__edge-arrow {
+  stroke: var(--color-icon-danger-default, #d92d20);
+}
+
+/* edge labels: a pill on the middle of the longest segment */
+.e-permits-pd__edge-label {
+  appearance: none;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-secondary, #383838);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  left: 0;
+  line-height: var(--line-height-lh-16, 16px);
+  max-width: calc(var(--spacing-80, 80px) * 2);
+  overflow: hidden;
+  padding: var(--spacing-2, 2px) var(--spacing-6, 6px);
+  position: absolute;
+  text-overflow: ellipsis;
+  top: 0;
+  transition: border-color 120ms var(--motion-easing-standard, ease), color 120ms var(--motion-easing-standard, ease);
+  white-space: nowrap;
+}
+
+.e-permits-pd__edge-label:hover {
+  border-color: var(--color-border-brand-default, #0058d2);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-pd__edge-label.is-selected {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-pd__edge-label.is-selected:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+.e-permits-pd__edge-label:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.e-permits-pd__edge-label[hidden] {
+  display: none;
+}
+
+/* level of detail below 75 %: labels only for the selection (spec H) */
+.e-permits-pd__stage.is-lod .e-permits-pd__edge-label:not(.is-selected) {
+  display: none;
+}
+
+/* view-only path highlight: the selected node's edges stay, the rest fades */
+.e-permits-pd__stage.has-focus-path .e-permits-pd__edge:not(.is-related):not(.is-selected),
+.e-permits-pd__stage.has-focus-path .e-permits-pd__node:not(.is-selected):not(.is-related) {
+  opacity: 0.4;
+}
+
+/* a faded node under the pointer comes back (its hover must show) */
+.e-permits-pd__stage.has-focus-path .e-permits-pd__node:hover,
+.e-permits-pd__stage.has-focus-path .e-permits-pd__edge:hover {
+  opacity: 1;
+}
+
+.e-permits-pd__stage.has-focus-path .e-permits-pd__edge.is-related :is(.e-permits-pd__edge-line, .e-permits-pd__edge-arrow) {
+  stroke: var(--color-icon-brand-default, #0058d2);
+  stroke-width: 2;
+}
+
+/* overlay: connect line (dashed brand), marquee */
+.e-permits-pd__connect-line {
+  fill: none;
+  stroke: var(--color-icon-brand-default, #0058d2);
+  stroke-dasharray: 4 4;
+  stroke-width: 1.5;
+}
+
+.e-permits-pd__stage.is-connect-invalid .e-permits-pd__connect-line {
+  stroke: var(--color-icon-danger-default, #d92d20);
+}
+
+.e-permits-pd__marquee {
+  fill: color-mix(in srgb, var(--color-background-brand-secondary, #e8f0fb) 50%, transparent);
+  stroke: var(--color-border-brand-default, #0058d2);
+  stroke-width: 1;
+}
+
+/* ===== Floating cards (spec E.1): inset 16, radius 16, shadow 400 ===== */
+@keyframes e-permits-pd-float-left {
+  from { opacity: 0; transform: translateX(calc(var(--spacing-8, 8px) * -1)); }
+}
+
+@keyframes e-permits-pd-float-right {
+  from { opacity: 0; transform: translateX(var(--spacing-8, 8px)); }
+}
+
+.e-permits-pd__float {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - var(--spacing-16, 16px) * 2);
+  overflow: hidden;
+  position: absolute;
+  top: var(--spacing-16, 16px);
+  z-index: 5;
+}
+
+.e-permits-pd__float[hidden],
+.e-permits-pd__minimap[hidden],
+.e-permits-pd__pill[hidden],
+.e-permits-pd__json[hidden] {
+  display: none;
+}
+
+.e-permits-pd__float--left {
+  animation: e-permits-pd-float-left 160ms var(--motion-easing-standard, ease) backwards;
+  left: var(--spacing-16, 16px);
+  width: calc(var(--spacing-80, 80px) * 3);
+}
+
+.e-permits-pd__float--left.is-rail {
+  width: var(--spacing-56, 56px);
+}
+
+.e-permits-pd__float--right {
+  animation: e-permits-pd-float-right 160ms var(--motion-easing-standard, ease) backwards;
+  bottom: var(--spacing-16, 16px);
+  right: var(--spacing-16, 16px);
+  width: min(var(--builder-right-width, 382px), calc(100% - var(--spacing-16, 16px) * 2));
+}
+
+/* nothing selected: the card hugs its content */
+.e-permits-pd__float--right.is-compact {
+  bottom: auto;
+}
+
+/* with the minimap on, the properties card stops above it (gap 8) */
+.e-permits-pd__stage:has(.e-permits-pd__minimap:not([hidden])) .e-permits-pd__float--right:not(.is-compact) {
+  bottom: calc(var(--spacing-16, 16px) + var(--pd-minimap-h, 136px) + var(--spacing-8, 8px) + var(--spacing-8, 8px));
+}
+
+.e-permits-pd__card-head {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+.e-permits-pd__card-title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: 0;
+}
+
+.e-permits-pd__palette-list {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 var(--spacing-8, 8px) var(--spacing-8, 8px);
+}
+
+.e-permits-pd__palette-item.e-permits-builder__library-item {
+  cursor: grab;
+}
+
+.e-permits-pd__palette-item.e-permits-builder__library-item > span {
+  background: var(--color-background-base-default, #fff);
+  color: var(--color-icon-base-default, #121212);
+}
+
+.e-permits-pd__palette-item.e-permits-builder__library-item:hover > span {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+}
+
+.e-permits-pd__palette-sep {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: block;
+  margin: var(--spacing-6, 6px) var(--spacing-8, 8px);
+}
+
+.e-permits-pd__palette-hint {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+}
+
+/* collapsed palette: a 56 rail of glyph buttons */
+.e-permits-pd__rail {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  padding: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__railsep {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: block;
+  margin: var(--spacing-4, 4px) 0;
+  width: 100%;
+}
+
+.e-permits-pd__rail-item[aria-disabled="true"] {
+  opacity: 0.5;
+}
+
+/* palette glyphs (Figma draws simple outlines; the sprite has no node icons — spec C.5) */
+.e-permits-pd__glyph {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  width: var(--spacing-20, 20px);
+}
+
+.e-permits-pd__glyph i {
+  border: var(--border-width-1-5, 1.5px) solid currentColor;
+  box-sizing: border-box;
+  display: block;
+  position: relative;
+}
+
+.e-permits-pd__glyph--activity i,
+.e-permits-pd__glyph--subprocess i {
+  border-radius: var(--border-radius-4, 4px);
+  height: var(--spacing-12, 12px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__glyph--subprocess i {
+  border-left: var(--spacing-4, 4px) solid var(--purple-600, #7f56d9);
+}
+
+.e-permits-pd__glyph--activity i {
+  border-color: var(--color-icon-brand-default, #0058d2);
+}
+
+.e-permits-pd__glyph--decision i {
+  border-color: var(--color-icon-warning-default, #dc6803);
+  border-radius: var(--spacing-2, 2px);
+  height: var(--spacing-12, 12px);
+  transform: rotate(45deg);
+  width: var(--spacing-12, 12px);
+}
+
+.e-permits-pd__glyph--event i {
+  border-radius: var(--border-radius-full, 999px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__glyph--event i::after {
+  border: var(--border-width-1, 1px) solid currentColor;
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  inset: var(--spacing-2, 2px);
+  position: absolute;
+}
+
+.e-permits-pd__glyph--lanes i {
+  border-radius: var(--spacing-2, 2px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__glyph--lanes i::before,
+.e-permits-pd__glyph--lanes i::after {
+  background: currentColor;
+  content: "";
+  position: absolute;
+}
+
+.e-permits-pd__glyph--lanes i::before {
+  bottom: 0;
+  left: var(--spacing-2, 2px);
+  top: 0;
+  width: var(--border-width-1-5, 1.5px);
+}
+
+.e-permits-pd__glyph--lanes i::after {
+  height: var(--border-width-1-5, 1.5px);
+  left: var(--spacing-2, 2px);
+  right: 0;
+  top: calc(50% - 0.75px);
+}
+
+/* properties card */
+.e-permits-pd__float--right .e-permits-builder__panel-head {
+  border-bottom: 0;
+}
+
+.e-permits-pd__panel-head .e-permits-builder__panel-title-row h2 {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  display: -webkit-box;
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  overflow: hidden;
+}
+
+.e-permits-pd__head-tools {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-pd__panel-scroll.e-permits-builder__panel-scroll {
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-pd__float--right.is-compact .e-permits-pd__panel-scroll {
+  padding-bottom: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__panel-issues {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding-top: var(--spacing-16, 16px);
+}
+
+.e-permits-pd__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-pd__copy {
+  display: flex;
+  min-width: 0;
+}
+
+.e-permits-pd__ends {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-pd__end {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-pd__missing {
+  color: var(--color-text-danger-default, #d92d20);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-pd__link {
+  appearance: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.e-permits-pd__panel-actions {
+  display: flex;
+  padding-top: var(--spacing-16, 16px);
+}
+
+/* the actions / exits of a node = the builder step list; an exit with a problem names it in red */
+.e-permits-pd__action-text {
+  overflow-wrap: anywhere;
+}
+
+.e-permits-pd__action-text strong {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+.e-permits-pd__actions .e-permits-builder__step-row.has-error .e-permits-builder__step-row-meta {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+.e-permits-pd__actions .e-permits-builder__step-row.has-error .e-permits-builder__step-row-meta .icon {
+  color: var(--color-icon-danger-default, #d92d20);
+}
+
+.e-permits-pd__pill {
+  position: absolute;
+  right: var(--spacing-16, 16px);
+  top: var(--spacing-16, 16px);
+  z-index: 5;
+}
+
+/* ===== Bottom toolbar + minimap (spec E.5) ===== */
+.e-permits-pd__toolbar {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  bottom: var(--spacing-16, 16px);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  left: var(--pd-toolbar-x, 50%);
+  padding: var(--spacing-4, 4px);
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 6;
+}
+
+.e-permits-pd__toolgroup {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-2, 2px);
+}
+
+.e-permits-pd__toolsep {
+  background: var(--color-border-base-default, #d9d9d9);
+  display: block;
+  height: var(--spacing-20, 20px);
+  width: var(--border-width-1, 1px);
+}
+
+/* the active tool (radio) = the pressed fill, no ring (the ring is for buttons that own something open) */
+.e-permits-pd__toolbar .btn.e-permits-pd__tool[aria-checked="true"] {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+}
+
+.e-permits-pd__toolbar .btn.e-permits-pd__tool[aria-checked="true"]:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e7e7e7);
+}
+
+/* the select tool glyph: the sprite's „direction” arrow mirrored into a cursor */
+.e-permits-pd__tool[data-pd-tool="select"] .icon {
+  transform: scaleX(-1);
+}
+
+.e-permits-pd__zoom.btn {
+  justify-content: center;
+  min-width: var(--spacing-56, 56px);
+  padding: 0 var(--spacing-8, 8px);
+}
+
+.e-permits-pd__zoom-wrap > .e-permits-pd__zoom-menu.e-permits-stack__menu {
+  bottom: calc(100% + var(--spacing-12, 12px));
+  left: calc(var(--spacing-48, 48px) * -1);
+  right: auto;
+  top: auto;
+  width: 240px;
+}
+
+.e-permits-pd__kbd {
+  color: var(--color-text-base-tertiary, #757575);
+  font-family: inherit;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin-left: auto;
+}
+
+.e-permits-pd__minimap {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  bottom: var(--spacing-16, 16px);
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  display: flex;
+  padding: var(--spacing-4, 4px);
+  position: absolute;
+  right: var(--spacing-16, 16px);
+  z-index: 5;
+}
+
+.e-permits-pd__minimap-canvas {
+  border-radius: var(--border-radius-12, 12px);
+  cursor: pointer;
+  display: block;
+  height: var(--pd-minimap-h, 136px);
+  width: calc(var(--spacing-80, 80px) * 2.5);
+}
+
+.e-permits-pd__minimap:hover {
+  border-color: var(--color-border-base-secondary, #b2b2b2);
+}
+
+.e-permits-pd__minimap-canvas:hover {
+  background-color: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-pd__minimap-canvas:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* „Continuă cu” (Figma 5669:52463): the stack menu at the node */
+.e-permits-pd__add-menu.e-permits-stack__menu {
+  position: absolute;
+  right: auto;
+  top: 0;
+  width: 280px;
+  z-index: 30;
+}
+
+.e-permits-pd__add-item .e-permits-pd__glyph {
+  color: var(--color-icon-base-default, #121212);
+}
+
+.e-permits-pd__add-item--connect {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-brand-default, #0058d2);
+}
+
+.e-permits-pd__add-item--connect .icon {
+  color: var(--color-icon-brand-default, #0058d2);
+}
+
+/* ===== JSON view (Schemă JSON) ===== */
+.e-permits-pd__json {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  inset: 0;
+  overflow: auto;
+  padding: var(--spacing-24, 24px);
+  position: absolute;
+  user-select: text;
+  z-index: 8;
+}
+
+.e-permits-pd__json-head {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1024px;
+  width: 100%;
+}
+
+.e-permits-pd__json-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-pd__json-actions {
+  display: flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-pd__json-code.e-permits-builder__schema {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: 1024px;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.e-permits-builder--process[data-mode="json"] :is(.e-permits-pd__float, .e-permits-pd__toolbar, .e-permits-pd__minimap, .e-permits-pd__pill) {
+  display: none;
+}
+
+/* ===== Footer: Anulează · Salvează (US-50 AC-12, Figma 5307:57645) ===== */
+.e-permits-pd__footer.modal--footer {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  padding: var(--spacing-12, 12px) var(--spacing-24, 24px);
+}
+
+.e-permits-pd__footer-note {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-builder--process.is-dirty .e-permits-pd__footer-note {
+  color: var(--color-text-warning-default, #b54708);
+}
+
+.e-permits-builder--process.is-view-only .e-permits-pd__footer {
+  display: none;
+}
+
+.e-permits-pd__close-buttons {
+  flex-wrap: wrap;
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-pd__float--left,
+  .e-permits-pd__float--right {
+    animation: none;
+  }
+
+  .e-permits-pd__node,
+  .e-permits-pd__shape,
+  .e-permits-pd__port,
+  .e-permits-pd__plus,
+  .e-permits-pd__lane,
+  .e-permits-pd__edge-line,
+  .e-permits-pd__edge-label {
+    transition: none;
+  }
+}
+
+/* ===== Responsive (spec E.7) ===== */
+@media (max-width: 1279px) {
+  .e-permits-pd__viewonly .e-permits-toggle__label {
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+}
+
+@media (max-width: 960px) {
+  .e-permits-builder--process .e-permits-builder__topbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-8, 8px) var(--spacing-12, 12px);
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-builder--process .e-permits-builder__nav-left.e-permits-pd__nav-left {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    order: 1;
+  }
+
+  .e-permits-builder--process .e-permits-builder__nav-actions {
+    order: 2;
+  }
+
+  .e-permits-builder--process .e-permits-builder__mode {
+    flex: 1 1 100%;
+    justify-content: center;
+    order: 3;
+  }
+
+  .e-permits-pd__float--right,
+  .e-permits-pd__float--right.is-compact {
+    bottom: calc(var(--spacing-16, 16px) + var(--spacing-48, 48px) + var(--spacing-8, 8px));
+    left: var(--spacing-16, 16px);
+    max-height: 45%;
+    top: auto;
+    width: auto;
+  }
+
+  .e-permits-pd__minimap {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .e-permits-pd__version-wrap,
+  .e-permits-pd__status {
+    display: none;
+  }
+
+  .e-permits-pd__toolbar [data-pd-minimap-toggle] {
+    display: none;
+  }
+
+  .e-permits-pd__json {
+    padding: var(--spacing-16, 16px);
+  }
+}
+
+/* ?flow=proces: the designer is the page (the demo home / FO / shell underneath stay hidden) */
+.e-permits-front-office-page.is-pd-page :is(.e-permits-flow-home, .e-permits-fo-auth, .e-permits-shell) {
+  display: none !important;
+}

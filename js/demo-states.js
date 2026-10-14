@@ -1159,6 +1159,77 @@
       };
     })(),
 
+    /* ---- Process Designer (pd-, spec tools/persona-test/specs/svc/process-designer.md, batches 0–1):
+       a full-bleed canvas under floating cards (palette, properties, zoom bar, minimap); one JSON
+       definition (data/flows/*.json). Scope for QA: #process-designer-modal ---- */
+    ...(() => {
+      const PDX = () => window.GEAPProcessDesigner;
+      const pd = (run, params) => ({ page: PP_FO, flow: "proces", ready: "[data-pd-ready='true']", ...(params ? { params } : {}), run: async (h) => { if (run) await run(h); } });
+      const node = (id) => `[data-pd-node='${id}']`;
+      /* the view a person reaches with zoom + pan, centred on one element */
+      const at = (id, z = 1) => async (h) => { PDX().zoomToNode(id, z); await h.wait(500); };
+      const pick = (id) => async (h) => { await at(id)(h); await h.click(node(id)); };
+      const center = (el) => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+      /* a gesture as a mouse sends it (pointer events; the designer uses no HTML5 drag) */
+      const pointer = (type, target, x, y, buttons = 1) => target.dispatchEvent(new PointerEvent(type, { bubbles: true, cancelable: true, pointerId: 1, pointerType: "mouse", isPrimary: true, button: type === "pointermove" ? -1 : 0, buttons, clientX: x, clientY: y }));
+      const key = (target, k, opts = {}) => target.dispatchEvent(new KeyboardEvent("keydown", { key: k, bubbles: true, cancelable: true, ...opts }));
+      /* press a port dot and move towards `to` (a node id or [x, y]); `release` ends it there */
+      const connecting = (from, port, to, { toPort = "", release = false } = {}) => async (h) => {
+        const p = await h.find(`${node(from)} [data-pd-port='${port}']`);
+        const [x, y] = center(p);
+        pointer("pointerdown", p, x, y);
+        const t = Array.isArray(to) ? null : document.querySelector(node(to));
+        const [tx, ty] = t ? center(toPort ? t.querySelector(`[data-pd-port='${toPort}']`) : t) : [x + to[0], y + to[1]];
+        for (let i = 1; i <= 8; i += 1) { pointer("pointermove", window, x + (tx - x) * i / 8, y + (ty - y) * i / 8); await h.wait(40); }
+        await h.wait(200);
+        if (release) { pointer("pointerup", window, tx, ty, 0); await h.wait(300); }
+      };
+      /* errors to show: an unconnected Activitate + a Decizie after it with one exit */
+      const brokenBits = async (h) => {
+        await h.click("[data-pd-palette-item='activity']");
+        await h.click("[data-pd-palette-item='decision']");
+        await h.wait(300);
+      };
+      const nudge = async (h) => { await pick("node6")(h); key(document.querySelector(node("node6")), "ArrowRight"); await h.wait(300); };
+      return {
+        /* batch 0 — view */
+        "pd-01": pd(),
+        "pd-01a": { flow: "back-office", as: ADMIN, hash: "#flux/flux-simplificat-fara-supervizor", ready: "[data-pd-ready='true']" },
+        "pd-01b": pd(null, { proces: "flux-standard-v3" }),
+        "pd-02": pd(null, { nou: "1" }),
+        "pd-03": pd(async (h) => { await at("node6")(h); document.querySelector(node("node6")).classList.add("is-hovered"); }),
+        "pd-12": pd(async (h) => { key(document.querySelector("[data-pd-stage]"), "\\", { ctrlKey: true }); await h.wait(300); }),
+        "pd-13": pd(async (h) => { await pick("node6")(h); }, { vizualizare: "1" }),
+        "pd-13a": pd(null, { vizualizare: "1" }),
+        "pd-14": pd(async (h) => { await h.click("[data-pd-rail-toggle]"); }),
+        "pd-15": pd(async (h) => { await h.click("[data-pd-zoom-label]"); await h.click("[data-pd-zoom-to='0.5']"); }),
+        "pd-15a": pd(async (h) => { await h.click("[data-pd-zoom-label]"); }),
+        "pd-18": pd(async (h) => { await h.click("[data-pd-mode='json']"); }),
+        "pd-19": pd(async (h) => { await h.click("[data-pd-settings]"); }),
+        "pd-25": pd(async (h) => { await pick("node12")(h); }, { vizualizare: "1" }),
+        /* batch 1 — editing */
+        "pd-04": pd(pick("node6")),
+        "pd-04a": pd(async (h) => { await at("node6", 0.75)(h); PDX().select(["node6", "node7", "node12", "node41"]); await h.wait(200); }),
+        "pd-04b": pd(pick("node12")),
+        "pd-04c": pd(pick("node41")),
+        "pd-04d": pd(pick("node13")),
+        "pd-04e": pd(async (h) => { await pick("start")(h); await h.click("[data-pd-props] [data-stack-menu-trigger]"); }),
+        "pd-05": pd(async (h) => { await at("start")(h); const plus = document.querySelector(`${node("start")} [data-pd-plus]`); const [x, y] = center(plus); pointer("pointerdown", plus, x, y); await h.wait(400); }),
+        "pd-05a": pd(async (h) => { await pick("node16")(h); key(document.querySelector(node("node16")), "Enter", { ctrlKey: true }); await h.wait(300); await h.click("[data-pd-add-type='activity']"); }),
+        "pd-06": pd(async (h) => { await at("node6")(h); await connecting("node6", "bottom-right", "node14", { toPort: "top" })(h); }),
+        "pd-06a": pd(async (h) => { PDX().zoomToNodes(["node9", "node15"], 1); await h.wait(500); await connecting("node9", "top", "node15")(h); }),
+        "pd-06b": pd(async (h) => { await at("node6")(h); await connecting("node6", "top-right", [60, -90], { release: true })(h); }),
+        "pd-07": pd(async (h) => { await at("node6")(h); await h.click("[data-pd-edge-label='node6:0']"); }),
+        "pd-07a": pd(async (h) => { await at("node6", 0.75)(h); await h.click("[data-pd-lane-select='lane5']"); }),
+        "pd-16": pd(async (h) => { await brokenBits(h); PDX().fit(); await h.wait(400); await h.click("[data-pd-errors]"); }),
+        "pd-17": pd(async (h) => { await pick("node9")(h); key(document.querySelector(node("node9")), "Delete"); await h.wait(300); }),
+        "pd-27": pd(async (h) => { await nudge(h); await h.click("[data-pd-close]"); }),
+        "pd-28": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); }),
+        "pd-28a": pd(async (h) => { await brokenBits(h); await h.click("[data-pd-save]"); await h.wait(300); }),
+        "pd-21": pd(async (h) => { await nudge(h); await h.click("[data-pd-save]"); await h.click("[data-pd-version]"); }),
+      };
+    })(),
+
     /* ---- Form Builder (fb-, spec tools/persona-test/specs/svc/form-builder.md, batches 0–1):
        palette · canvas · properties by selection; canvas cards and Preview = the FO renderer.
        Scope for QA: #form-builder-modal ---- */
