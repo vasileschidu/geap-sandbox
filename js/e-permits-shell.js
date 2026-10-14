@@ -6767,7 +6767,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <span class="e-permits-workplace__row-actions">
             ${renderRowActions({
-              preview: `data-tariff-view="${escapeHtml(row.id)}"`,
+              preview: `data-tariff-view="${escapeHtml(row.id)}"`, previewLabel: "Vezi tariful",
               primary: isCentralAdmin() ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(row.id)}" aria-label="Editează tariful ${escapeHtml(row.denumire)}"` } : null,
               label: row.denumire
             })}
@@ -7300,7 +7300,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* „Editează” always carries the pen (user, 2026-10-09); other labels stay text */
   /* labelled row actions always carry their icon (user 2026-10-14): Editează = pen,
      Configurează = settings, Previzualizează = eye */
-  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open", "Vezi detalii": "eye-open" };
+  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open", "Vezi detalii": "eye-open", "Vezi documentul": "eye-open", "Vezi formularul": "eye-open", "Vezi tariful": "eye-open" };
   const actionLabelHtml = (label) => ACTION_ICONS[label]
     ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${ACTION_ICONS[label]}"></use></svg><span>${escapeHtml(label)}</span>`
     : escapeHtml(label);
@@ -7314,8 +7314,9 @@ document.addEventListener("DOMContentLoaded", () => {
      · [⋮ everything else, destructive last]. Never an icon-only primary, never two text buttons. */
   /* one action besides ⋮ (user 2026-10-14): it is never icon-only — the eye becomes the
      labelled grey „Previzualizează” (icon + label, btn-neutral, like Editează / Configurează) */
-  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "" }) => !primary && preview ? `
-    <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" ${preview}>${actionLabelHtml("Previzualizează")}</button>
+  /* short label (user 2026-10-14: „Previzualizează” is too long) — „Vezi documentul” etc. */
+  const renderRowActions = ({ preview = null, previewLabel = "Vezi documentul", primary = null, menu = [], label = "" }) => !primary && preview ? `
+    <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="${escapeHtml(previewLabel)}: ${escapeHtml(label)}" ${preview}>${actionLabelHtml(previewLabel)}</button>
     ${menu.length ? renderStackMenu(menu, label) : ""}` : `
     ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
     ${primary ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" ${primary.attrs}>${actionLabelHtml(primary.label)}</button>` : ""}
@@ -7731,7 +7732,7 @@ document.addEventListener("DOMContentLoaded", () => {
         meta: [renderTag(form.technical, "neutral"), `${form.fields} câmpuri`, escapeHtml(form.version), whoWhen("Editat", form.editedAt, form.editedBy)],
         meta2: [`Folosit în ${used.length ? `<span class="e-permits-passport__tag-list">${used.map((rt) => renderTag(rt.name, "neutral")).join("")}</span>` : '<span class="e-permits-passport__muted">niciun tip de solicitare</span>'}`],
         actionsHtml: renderRowActions({
-          preview: `aria-haspopup="dialog" data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="preview"`,
+          preview: `aria-haspopup="dialog" data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="preview"`, previewLabel: "Vezi formularul",
           primary: admin ? { label: "Editează", attrs: "data-passport-open-builder" } : null,
           menu: admin ? [
             { label: "Duplică", icon: "copy", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="duplicate"` },
@@ -8290,7 +8291,7 @@ document.addEventListener("DOMContentLoaded", () => {
           whoWhen("Modificat", t.modifiedAt, t.modifiedBy)
         ],
         actionsHtml: renderRowActions({
-          preview: `data-tariff-view="${escapeHtml(t.id)}"`,
+          preview: `data-tariff-view="${escapeHtml(t.id)}"`, previewLabel: "Vezi tariful",
           primary: admin ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(t.id)}" aria-label="Editează tariful ${escapeHtml(t.name)}"` } : null,
           label: t.name
         })
