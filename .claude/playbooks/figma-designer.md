@@ -520,3 +520,22 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     match; re-centre modals in the overlay and re-place flow anchors afterwards.
   - Raw cell dividers must use the library cell's stroke paint and weight (0.5) so a row has one divider weight.
   - sweep.js (repo) now also checks: header cell fit, empty GRID rows, pager gap, centred 1024 bodies. Run it last.
+- 2026-10-14 · QA round 6:
+  - Column width = what the cell CONTAINS, not just its text: natural width of every child (buttons, tags, icons,
+    nested auto-layout frames: sum + gaps + padding) + cell padding. Measuring text only left „⋮” / „Testează
+    conexiunea” cut by 9–10 px in 47 cells. balance.js v3 (repo) splits the need: HARD = non-text content + header
+    label (always met, taken from soft slack → 80 % of one-line width → hard floor), SOFT = one-line text (met
+    when there is room; otherwise those body texts become FILL + HEIGHT and wrap — never cut). Long text (> 40 chars)
+    keeps ≥ 170, Descriere ≥ 200; URLs / JSON may wrap; generic floor 40 (64 made the # column eat the action width).
+    Check the code's CSS before forcing one line: `.e-permits-workplace__role-name/-meta` wrap, `__role-desc` ellipsis.
+  - Same column family = same tracks (C04/C04a/b/c/i): after balancing, copy one table's widths to the siblings when
+    the sum matches (here 3 px drift between variants). Modal-background lists copy the base list's tracks (A01f ← A01).
+  - Modals: ONE rule — centred in the 900 px viewport: y = max(32, (900 − h) / 2), x = (W − w) / 2, also on tall
+    screens. Anchors on modal buttons move with the modal (shift by the same dy; check centre vs the button).
+  - Modal-background lists: when rows grow, the absolute scroll-content (and its FIXED parent) = table height + 1,
+    otherwise the clip hides rows (C06g lost 279 px). Then restack blocks (gap 240) and grow the SECTION (80 bottom).
+  - Open facet menu screens: clone an existing popover (S02e) under the facet (x − 10, y + 48), options =
+    checkbox-label Small; search only when options > 7 (code `many`).
+  - Library gaps go into the block note in the note's language (Romanian here), naming the local component.
+  - sweep.js now also checks: body-cell content (texts + top-level instances) inside the cell's padding box
+    (contentOver) and modal centring (modalOffCentre). Pager gap 0 after any row change on modal backgrounds.
