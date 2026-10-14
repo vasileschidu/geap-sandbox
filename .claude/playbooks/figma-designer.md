@@ -816,3 +816,33 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     glyph-map allows both. Hand-trimming G for a sweep run hides/creates mismatches — always pass the full glyph-map.json.
   - Adding a sentence to TOC „How to read” notes pushed the „Cuprinsul paginii” grid into overlap on 8 pages → restack TOC
     frames (gap 40) + section bottom 80 after any TOC text change.
+
+- 2026-10-14 · Documents on mobile + separators (code e9858260) — `Document · card` GEAP 11364:7441 / FOD 762:10435 / Cabinet
+  983:2727 and `Document · rând` 11362:7113; scripts tools/figma/documents/card-mobile.js, row-separators.js,
+  field-header-mobile(.js|-raw.js), finish-card-mobile.js:
+  - „No dot at a line start / end” in Figma = each meta item is a „Parte” (HUG) with an ABSOLUTE dot at x −10 (gap 6 · dot 4 · 6;
+    BO 8 · 2 · 8 = 18) inside a clipping Meta: the part that starts a line has its dot left of Meta → clipped (= the code's
+    clip-path). Negative item spacing / padding do NOT work: Figma clamps children at the padding edge (tested).
+  - Logical meta lines: a hug line FRAME whose children are all hidden keeps its last height (a phantom 20px line), and
+    „file OR size” can't be expressed with booleans → one WRAP row with forced breaks („Rând nou”, FIXED 1000 × 0.01, empty;
+    the number break bound to „Arată număr”) = the code's zero-height 100% `__break`.
+  - Reparenting a layer inside a component DROPS its componentPropertyReferences (texts showed the main's defaults in every
+    instance) → snapshot refs by node id before restructuring, re-apply after. Binding a „visible” ref to a new/visible layer
+    REWRITES the boolean property's default (Arată număr false → true: every instance without an override showed the number) →
+    snapshot `componentPropertyDefinitions` defaults and restore them with `editComponentProperty` at the end.
+  - Switching layoutMode VERTICAL ↔ HORIZONTAL swaps the axes: a hug height becomes FIXED (Rânduri stayed 80) and a FILL width
+    becomes HUG (FOD field row shrank to 141) → re-set both layoutSizing values right after any layoutMode change.
+  - maxWidth can't be overridden on instances and differs by context (card 343 → content 239; boxed field 309 → 205): set
+    maxWidth for the common width on the main, then a per-instance fit pass (Parte + text FILL / HEIGHT where the text is wider
+    than Meta) — sizing overrides on nested layers ARE allowed, as are counterAxisAlignItems / layoutWrap / padding.
+  - × centred on the title line: card padding stays 12, × ABSOLUTE (constraints MAX/MIN) at y 8, content paddingTop 2 and
+    paddingRight 44 (= × 32 + gap 12, off the spacing scale on purpose — QA flags it; declared). Check / selected: y padTop + 2.
+  - Wrapped labels in a library text-input: the star can't follow the last word; best = label FILL + Input Label / Label row
+    counterAxis MAX (star on the last line, right edge, 6 px low). Bottom padding moves the text too; an instance text with
+    textAutoResize NONE snaps back to the main's height (resize ignored) — don't try those again. One-line labels: text HUG.
+  - Data drift found while comparing at 375: F5 „Extras Registru…” was in the Număr slot (place-cards took a name without an
+    extension for a number) → moved to Fișier; FOD G4a/G5 lacked the „8 B” size the code shows. Compare every card's meta lines
+    with the code, not only the layout.
+  - `Document · rând` has no mobile usage in GEAP (141 instances, all ≥ 500 wide); Post-procese 10c / 10d have NO mobile screens
+    (desktop only) — say so instead of inventing them.
+  - Agent tool not available again → figma-audit.js + sweep-lite run by hand; remaining findings: off-scale 44 / 18 (declared).
