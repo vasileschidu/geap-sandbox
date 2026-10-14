@@ -686,19 +686,23 @@
   const TAG_TONES = { neutral: "status-tag--neutral is-subtle", strong: "status-tag--neutral is-strong", success: "status-tag--success is-subtle", danger: "status-tag--danger is-subtle" };
   /* signed = the blue Small tag with the signature icon (the FO / BO badge) */
   const signedTagHtml = () => `<span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag">${icon("icon-signature")}Semnat electronic</span>`;
-  function docMetaParts(doc) {
-    return [
-      doc.nr ? `<span>${escape(doc.nr)}</span>` : "",
-      doc.fisier && doc.fisier !== doc.tip ? `<span>${escape(doc.fisier)}</span>` : "",
-      doc.size ? `<span>${escape(doc.size)}</span>` : "",
-      doc.at ? `<span>${escape(doc.verb || DOC_SOURCES[doc.sursa]?.tag || "Încărcat")} ${escape(doc.at)}</span>` : "",
-      doc.de ? `<span>de ${escape(doc.de)}</span>` : "",
-      doc.note ? `<span>${escape(doc.note)}</span>` : "",
+  /* meta in logical lines (the FO foDocMetaLines, 2026-10-14): [number] · [file · size] · [date · by whom · note];
+     one row on desktop, one line each on phones; dots are CSS ::before (never orphaned at a wrap) */
+  function docMetaLines(doc) {
+    const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? ` title="${escape(text)}"` : ""}>${escape(text)}</span>`;
+    const file = doc.fisier && doc.fisier !== doc.tip ? doc.fisier : "";
+    const head = [file ? part(file, "file") : "", doc.size ? part(doc.size) : ""].filter(Boolean);
+    const stamp = [
+      doc.at ? part(`${doc.verb || DOC_SOURCES[doc.sursa]?.tag || "Încărcat"} ${doc.at}`) : "",
+      doc.de ? part(`de ${doc.de}`) : "",
+      doc.note ? part(doc.note) : "",
     ].filter(Boolean);
+    /* a number gets its own line next to a file name, else it leads the size */
+    return (file ? [doc.nr ? [part(doc.nr)] : [], head, stamp] : [[doc.nr ? part(doc.nr) : "", ...head].filter(Boolean), stamp]).filter((line) => line.length);
   }
   function docContentHtml(doc) {
     const source = DOC_SOURCES[doc.sursa];
-    const parts = docMetaParts(doc);
+    const lines = docMetaLines(doc);
     return `
       <div class="e-permits-fo-lib-item__content">
         <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
@@ -707,7 +711,7 @@
           ${doc.semnat ? signedTagHtml() : ""}
           ${(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`).join("")}
         </div>
-        ${parts.length ? `<div class="e-permits-fo-lib-item__meta">${parts.join('<span class="e-permits-fo-lib-item__dot" aria-hidden="true"></span>')}</div>` : ""}
+        ${lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : ""}
       </div>`;
   }
   /* key: opens / downloads it (data-cab-doc…); downloadAttrs: the page's own download hook */

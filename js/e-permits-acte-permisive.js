@@ -6105,20 +6105,25 @@
       const now = new Date();
       return `${now.toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric" })}, ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     }
-    function foDocMetaParts(doc) {
+    /* meta in logical lines (2026-10-14, phones): [number] · [file · size] · [date · by whom]. On desktop the
+       lines flow as one row (display: contents); on phones each is its own line. The separator dot is each
+       part's ::before, so a wrapped line never starts or ends with a dot (see CSS „document meta”). */
+    function foDocMetaLines(doc) {
       const esc = escapeFrontOfficeHtml;
-      return [
-        doc.nr ? `<span>${esc(doc.nr)}</span>` : "",
-        doc.fisier && doc.fisier !== doc.tip && doc.fisier !== `${doc.nr}.pdf` ? `<span>${esc(doc.fisier)}</span>` : "",
-        doc.size ? `<span>${esc(doc.size)}</span>` : "",
-        doc.at ? `<span>${esc(doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat"))} ${esc(doc.at)}</span>` : "",
-        doc.de ? `<span>de ${esc(doc.de)}</span>` : ""
-      ].filter(Boolean);
+      const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? ` title="${esc(text)}"` : ""}>${esc(text)}</span>`;
+      const file = doc.fisier && doc.fisier !== doc.tip && doc.fisier !== `${doc.nr}.pdf` ? doc.fisier : "";
+      const head = [file ? part(file, "file") : "", doc.size ? part(doc.size) : ""].filter(Boolean);
+      const stamp = [doc.at ? part(`${doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat")} ${doc.at}`) : "", doc.de ? part(`de ${doc.de}`) : ""].filter(Boolean);
+      /* a number gets its own line next to a file name (the file would ellipsize to nothing), else it leads the size */
+      return (file ? [doc.nr ? [part(doc.nr)] : [], head, stamp] : [[doc.nr ? part(doc.nr) : "", ...head].filter(Boolean), stamp]).filter((line) => line.length);
+    }
+    function foDocMetaHtml(lines) {
+      return lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : "";
     }
     /* the content block (title row + meta) — inside any FO document card */
     function foDocContentHtml(doc, { titleClass = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
-      const parts = foDocMetaParts(doc);
+      const lines = foDocMetaLines(doc);
       return `
         <div class="e-permits-fo-lib-item__content">
           <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
@@ -6127,7 +6132,7 @@
             ${doc.semnat ? FO_DOC_SIGNED_TAG : ""}
             ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""}
           </div>
-          ${parts.length ? `<div class="e-permits-fo-lib-item__meta">${parts.join('<span class="e-permits-fo-lib-item__dot" aria-hidden="true"></span>')}</div>` : ""}
+          ${foDocMetaHtml(lines)}
         </div>`;
     }
     /* the document type a field asks for (its label without the required / optional marks) */

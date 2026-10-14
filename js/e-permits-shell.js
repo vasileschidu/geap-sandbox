@@ -3284,6 +3284,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderDosarDocItem = (doc, kind) => {
     const nr = docNumber(doc);
     const key = `${kind}|${doc.id}`;
+    const file = doc.fisier && doc.fisier !== `${nr}.pdf` ? doc.fisier : "";
+    /* phones: the meta breaks into logical lines — [number] / [file · size] / [date · by whom · signer];
+       without a file name the number leads the size (metaBreaks = indices that start a line; one row on desktop) */
+    const fileAt = nr && file ? 1 : -1;
+    const stampAt = (nr ? 1 : 0) + (file ? 1 : 0) + 1;
     return {
       group: doc.group,
       plainTitle: doc.tip,
@@ -3292,13 +3297,14 @@ document.addEventListener("DOMContentLoaded", () => {
       badges: [renderTag(docSource(doc).tag, "neutral"), ...(doc.semnat ? [SIGNED_TAG_HTML] : []), ...(doc.tags || []).map(([label, tone]) => renderTag(label, tone))],
       meta: [
         ...(nr ? [renderCopyCode(nr, `Copiază ${nr}`)] : []),
-        /* the file name, unless it is just the number again */
-        ...(doc.fisier && doc.fisier !== `${nr}.pdf` ? [escapeHtml(doc.fisier)] : []),
+        /* the file name, unless it is just the number again (ellipsizes on phones, full name in the tooltip) */
+        ...(file ? [`<span class="e-permits-stack__file" title="${escapeHtml(file)}">${escapeHtml(file)}</span>`] : []),
         fileSizeLabel(doc.kb),
         escapeHtml(insotitorAddedLabel(doc)),
         ...(doc.de ? [`de ${escapeHtml(doc.de.nume)}`] : []),
         ...(docOtherSigner(doc) ? [`semnat de ${escapeHtml(docOtherSigner(doc))}`] : [])
       ],
+      metaBreaks: [fileAt, stampAt],
       rowAttrs: `data-dosar-detail-row="${escapeHtml(key)}"`,
       actionsHtml: renderRowActions({
         preview: `data-dosar-detail="${escapeHtml(key)}" aria-haspopup="dialog"`,
@@ -7388,9 +7394,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <p class="e-permits-stack__title">${item.title}</p>
           ${(item.badges || []).join("")}
         </div>
-        ${[item.meta, item.meta2].filter((line) => line && line.length).map((line) => `
+        ${[item.meta, item.meta2].filter((line) => line && line.length).map((line, lineIndex) => `
           <div class="e-permits-stack__meta">
-            ${line.map((part) => `<span class="e-permits-stack__part">${part}</span>`).join("")}
+            ${line.map((part, index) => `${!lineIndex && item.metaBreaks?.includes(index) ? '<span class="e-permits-stack__break" aria-hidden="true"></span>' : ""}<span class="e-permits-stack__part">${part}</span>`).join("")}
           </div>
         `).join("")}
       </div>

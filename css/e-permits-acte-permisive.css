@@ -7124,10 +7124,29 @@
     padding: var(--spacing-16, 16px);
   }
 
-  /* phones: text first, the button full width under it (beside it the text wrapped word by word) */
-  .e-permits-fo-doc-field--boxed .e-permits-fo-doc-field__row {
+  /* phones: text first, the button full width under it (beside it the text wrapped word by word) —
+     every document field (2026-10-14; was the boxed one only) */
+  .e-permits-fo-doc-field__row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  /* the label flows as text so the red star stays on the line of the last word: the star adds no width
+     to the line (margins 2 + −14 cancel its 12), the label keeps 18 of room for it as right padding */
+  .e-permits-fo-doc-field__label {
+    display: block;
+    padding-right: calc(var(--spacing-12, 12px) + var(--spacing-6, 6px));
+  }
+
+  .e-permits-fo-doc-field__label > .e-permits-fo-required {
+    margin-left: var(--spacing-2, 2px);
+    margin-right: calc((var(--spacing-12, 12px) + var(--spacing-2, 2px)) * -1);
+    vertical-align: middle;
+  }
+
+  .e-permits-fo-doc-field__label > .e-permits-fo-optional-tag {
+    margin-left: var(--spacing-2, 2px);
+    vertical-align: middle;
   }
 
   .e-permits-fo-doc-field--boxed.is-error {
@@ -7834,6 +7853,15 @@
   min-height: 70px;
   padding: var(--spacing-16, 16px);
   width: 100%;
+}
+
+/* a file row that shows the shared document content (field value `foDocAttachFileItem`, the picker's
+   upload preview) is a document card, not the 48px upload row: `.e-permits-fo-file-item` (defined later,
+   height 48 + padding 0 16 + overflow hidden) clipped it to 48 with no top / bottom padding (2026-10-14) */
+.e-permits-fo-file-item:has(> .e-permits-fo-lib-item__content) {
+  height: auto;
+  min-height: 70px;
+  padding: var(--spacing-16, 16px);
 }
 
 .e-permits-fo-doc-attached-item__remove {
@@ -9350,6 +9378,119 @@
 
 .e-permits-fo-doc-title-row .e-permits-fo-lib-item__title {
   max-width: 100%;
+}
+
+/* document meta (FO + Cabinet, 2026-10-14): logical lines [number] / [file · size] / [date · by whom];
+   on desktop the lines flow as one row (display: contents) with the old geometry (text · 6 · dot 4 ·
+   6 · text). The dot is each part's ::before, drawn in its 16 left padding; the meta box starts 16
+   left of the text and clips that strip, so the part that starts a line (first one, or one that
+   wrapped) never shows a dot, and no line ends with one — at any width. */
+.e-permits-fo-doc-meta {
+  clip-path: inset(0 0 0 var(--spacing-16, 16px));
+  column-gap: 0;
+  margin-left: calc(var(--spacing-16, 16px) * -1);
+}
+
+.e-permits-fo-doc-meta__line {
+  display: contents;
+}
+
+.e-permits-fo-doc-meta__part {
+  min-width: 0;
+  padding-left: var(--spacing-16, 16px);
+  position: relative;
+}
+
+.e-permits-fo-doc-meta__part::before {
+  background: var(--color-text-base-tertiary, #757575);
+  border-radius: var(--border-radius-full, 999px);
+  content: "";
+  height: var(--spacing-4, 4px);
+  left: var(--spacing-6, 6px);
+  position: absolute;
+  /* centre of the first text line (a part that wraps keeps its dot on its first line) */
+  top: calc(var(--line-height-lh-20, 20px) / 2 - var(--spacing-2, 2px));
+  width: var(--spacing-4, 4px);
+}
+
+/* phones (≤720): every FO / Cabinet document card — padding 12, icon 24 top-aligned with the first
+   title line, × top-right on the title line, title up to 2 lines (full text in the tooltip), tags in
+   one wrapping row under it (gap 4), meta one line per logical group, the file name ellipsized. */
+@media (max-width: 720px) {
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content) {
+    align-items: flex-start;
+    gap: var(--spacing-12, 12px);
+    min-height: 0;
+    padding: var(--spacing-12, 12px);
+  }
+
+  /* the 20px title line sits 2px lower so its centre meets the 24px icon's (both at 24 from the top) */
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item, .e-permits-fo-confirm-file--doc) > .e-permits-fo-lib-item__content {
+    padding-top: var(--spacing-2, 2px);
+  }
+
+  /* × (32) and the picker's check (20): centred on the title line too */
+  :is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment) > .e-permits-fo-document-remove {
+    margin-top: calc(var(--spacing-4, 4px) * -1);
+  }
+
+  .e-permits-fo-lib-item > .e-permits-fo-lib-item__check {
+    margin-top: var(--spacing-2, 2px);
+  }
+
+  /* a labelled action (post-process previous act „Descarcă”) goes under the text, as in Cabinet / BO rows */
+  .e-permits-fo-mdocs__attachment:has(> .btn) {
+    flex-wrap: wrap;
+  }
+
+  .e-permits-fo-mdocs__attachment:has(> .btn) > .e-permits-fo-lib-item__content {
+    flex-basis: calc(100% - var(--spacing-24, 24px) - var(--spacing-12, 12px));
+  }
+
+  .e-permits-fo-mdocs__attachment > .btn {
+    margin-left: calc(var(--spacing-24, 24px) + var(--spacing-12, 12px));
+  }
+
+  .e-permits-fo-doc-title-row {
+    column-gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-fo-doc-title-row .e-permits-fo-lib-item__title {
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    flex: 0 0 100%;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .e-permits-fo-doc-meta {
+    display: block;
+  }
+
+  .e-permits-fo-doc-meta__line {
+    display: flex;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  /* the file line never wraps: the name gives way (ellipsis, title tooltip), the size stays */
+  .e-permits-fo-doc-meta__line:has(> .e-permits-fo-doc-meta__part--file) {
+    flex-wrap: nowrap;
+  }
+
+  .e-permits-fo-doc-meta__line:has(> .e-permits-fo-doc-meta__part--file) > .e-permits-fo-doc-meta__part {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .e-permits-fo-doc-meta__line:has(> .e-permits-fo-doc-meta__part--file) > .e-permits-fo-doc-meta__part--file {
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .e-permits-fo-confirm-file__icon {
@@ -17020,7 +17161,9 @@
   gap: var(--spacing-12, 12px);
   min-height: 70px;
   overflow: hidden;
-  padding: 0 var(--spacing-12, 12px);
+  /* 12 all round (was 0 12: the text touched the edges once the card wrapped on phones); desktop
+     stays 70 tall — 46 of content + 2 × 12 */
+  padding: var(--spacing-12, 12px);
 }
 
 .e-permits-fo-finish-doc__icon {
@@ -17201,13 +17344,25 @@
     font-size: var(--font-size-fs-12, 12px);
   }
 
+  /* the document-card phone layout (2026-10-14): icon 24 · text, the title line centred on the icon,
+     the action under the text (a wrapping flex row left the icon alone on the first line and the
+     action's indent lost to `.e-permits-fo-finish-doc__action.btn`) */
   .e-permits-fo-finish-doc {
-    align-items: flex-start;
-    flex-wrap: wrap;
+    align-items: start;
+    column-gap: var(--spacing-12, 12px);
+    display: grid;
+    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr);
+    row-gap: var(--spacing-12, 12px);
   }
 
-  .e-permits-fo-finish-doc__action {
-    margin-left: calc(24px + var(--spacing-12, 12px));
+  .e-permits-fo-finish-doc__copy {
+    padding-top: var(--spacing-2, 2px);
+  }
+
+  .e-permits-fo-finish-doc__action.btn {
+    grid-column: 2;
+    justify-self: start;
+    margin-left: 0;
   }
 
   .e-permits-fo-finish__cta {
@@ -18712,7 +18867,7 @@
 }
 
 /* 2px dot centred in the 18px gap before each part; none at a line start */
-.e-permits-stack__part + .e-permits-stack__part::before {
+:is(.e-permits-stack__part, .e-permits-stack__break) + .e-permits-stack__part::before {
   background: currentColor;
   border-radius: var(--border-radius-full, 999px);
   content: "";
@@ -18726,6 +18881,12 @@
 
 .e-permits-stack__part.is-row-start::before {
   content: none;
+}
+
+/* logical line break inside a meta row (item.metaBreaks — dossier documents): hidden on desktop, a
+   zero-height full-width flex item on phones; the part after it is a row start (no dot) */
+.e-permits-stack__break {
+  display: none;
 }
 
 .e-permits-stack__meta .e-permits-workplace__copy-code {
@@ -18826,6 +18987,34 @@
   .e-permits-stack__item.has-lead .e-permits-stack__actions {
     grid-column: 2;
     margin-left: 0;
+  }
+
+  /* documents (2026-10-14): title on its own row, tags in one wrapping row under it (gap 4) */
+  .e-permits-stack__item.has-lead .e-permits-stack__title-row {
+    row-gap: var(--spacing-4, 4px);
+  }
+
+  .e-permits-stack__item.has-lead .e-permits-stack__title {
+    flex: 0 0 100%;
+  }
+
+  .e-permits-stack__break {
+    display: block;
+    flex-basis: 100%;
+    height: 0;
+  }
+
+  /* the file name gives way to its size on the same line (ellipsis, title tooltip) */
+  .e-permits-stack__part:has(> .e-permits-stack__file) {
+    display: flex;
+    max-width: calc(100% - var(--spacing-64, 64px));
+  }
+
+  .e-permits-stack__file {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

@@ -599,3 +599,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   ctrl+wheel zoom, node drag) + a `longtask` PerformanceObserver: 16.7 ms p95, no long task; `performance.measure` from
   open() to the fitted frame (103 ms). A regression worker can stall silently — when a log stops growing, kill it and
   re-run only the states not reported.
+- 2026-10-14 · Document cards on phones („optimize for mobile”): separators as ELEMENTS between parts always leave
+  an orphan dot at a wrap (end of a line in FO, start of the next with ::before). CSS-only fix that works at any
+  width: each part `padding-left: 16` + `::before` dot inside that padding, the meta box `margin-left: -16` +
+  `clip-path: inset(0 0 0 16)` → the dot of whichever part starts a line is clipped. Logical lines are
+  `display: contents` on desktop (zero pixel change; proved by diffing card / icon / title / action geometry
+  from before/after probes + crops — byte diffs are useless when upload stamps show the current time) and flex
+  rows on phones. Keep the dot INSIDE the part's padding box, or `overflow: hidden` for the file ellipsis clips it.
+- 2026-10-14 · Traps this job: (1) my `.line > .part--file { flex: 0 1 auto }` lost to a `.line:has(…) > .part
+  { flex: none }` rule (`:has()` adds its argument's specificity) → nothing ellipsized, the size was cut; repeat
+  the `:has()` in the winning rule. (2) A number + file + size in one nowrap line ellipsizes the file to nothing →
+  number on its own line when a file name exists, else „number · size”. (3) Flex label with a text node + star
+  = the text becomes one anonymous flex item, the star drops to its own line; `display: block` + a star with
+  zero advance (margins 2 / −14 for a 12 icon) + 18 right padding keeps it on the last word at 320–720 (probe
+  with Range rects of the text node). (4) Labelled buttons beside the text on phones squeeze titles to 2 lines
+  → under the text, like Cabinet / BO.
+- 2026-10-14 · „Cards have no top/bottom padding” (user, Finalizare certificate): two source bugs — the finish
+  card was `padding: 0 12` relying on `min-height: 70` + centring (fine on desktop, glued to the edges once it
+  wraps), and the uploaded field value carries BOTH `.e-permits-fo-doc-attached-item` and the later
+  `.e-permits-fo-file-item` (`height: 48; padding: 0 16; overflow: hidden`) → a 2-line value was clipped.
+  Measure padding per CONTEXT (scratch docm/pad.mjs: computed padding + first/last leaf inset per container at
+  1440 and 375) instead of trusting the component's own rule; a class shared by an older row can override it.
+  Real HEAD baselines from a worktree on :8936 (a „before” captured after editing CSS is not a before).
