@@ -198,7 +198,7 @@
   });
 
   const rowActions = (row) => `<span class="e-permits-workplace__row-actions">${api.renderRowActions({
-    primary: { label: "Vezi detalii", attrs: `data-ekyc-open="${esc(row.id)}" aria-label="Vezi detaliile sesiunii ${esc(row.id)}"` },
+    primary: { label: "Detalii", attrs: `data-ekyc-open="${esc(row.id)}" aria-label="Detalii: sesiunea ${esc(row.id)}"` },
     label: row.id
   })}</span>`;
 

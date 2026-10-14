@@ -490,3 +490,34 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (would fill) + `option:hover ~ option bar.is-filled` (would empty). Open menu triggers in the builder now get
   a hover too (open = tertiary-hover + ring, hover = tertiary-active) — mind specificity: my scoped open rule
   tied the shell `:hover` rule and won by order until I added its own `:hover`.
+- 2026-10-14 · „One document pattern everywhere” (BO dossier însoțitoare / generate / Act-Decizie, passport types,
+  FO picker / field values / Verificare / post-process act, Cabinet dossier + catalog) + „lone view action = 👁 Detalii”.
+  What worked: define ONE data shape first (`sursa, tip, nr, fisier, size, verb, at, de, semnat, tags`), then one
+  renderer per product (BO `renderDosarDocItem`, FO `foDocContentHtml`, Cabinet `CabEvo.docRowHtml`) and one modal
+  branch for every doc kind. FO field values carry their shape in `data-fo-doc` so the Verificare summary renders from
+  data instead of scraping `.__name` / `.__size` text. Seed: catalogue-driven builders (`documenteGenerate` in the
+  workplace JSON) re-used by the flow's end step (`profile.acte = buildDosarActe(row, true)`) — never a second literal.
+- 2026-10-14 · Traps: (1) the Verificare summary queried step 3 with `!el.closest("[hidden]")` — the step-3 PANEL is
+  hidden while step 4 shows → empty list; filter hidden fields, not hidden ancestors. (2) Reusing `.e-permits-fo-file-
+  item__name` on a meta span made the file name bold (the class has its own type) — keep hook classes off meta parts.
+  (3) The seed paid fees AFTER „today” (verificatLa + n days) — new documents with dates made it visible; cap seeded
+  dates at `dossierDb.today`. (4) `?stare=semnat|eliberat` changed the status but not `dataSemnarii` / `nrActEmis` →
+  signed cases showed „Proiect”; the demo handler now syncs them and resets `row.profil`. (5) „de MPay · Semnat
+  electronic de MPay” — drop the signer when it is the producer.
+- 2026-10-14 · Row hover „cut off” (user): the stacked list had `padding: 0 20px` on the LIST → every row fill stopped
+  20px short. Fix in the shared component: inset on the row, divider as an inset `::before` (rest look unchanged,
+  hides around the band), `--stack-radius − 1px` on the outer rows, keep the band while ⋮ is open / focus-visible.
+  After that the grey „Detalii” melted into the grey band → white button on the band. Check with real-mouse crops of
+  first / middle / last rows (scratch rowhover.mjs: measures row x vs card x, bg, radius) — hover-audit only says
+  „changed”. A row class that set its own negative margins (`.e-permits-rt__action.is-previewing`) had to follow.
+- 2026-10-14 · No sub-agent tool again → ran code-audit + hover-audit myself. Standing FPs unchanged (A4 page mm
+  padding, info-card 11/7, FO-specific buttons, copy-code, `.u-visually-hidden`, FO timeline grey). Real finds fixed:
+  px literals in a mobile rule (→ spacing tokens), the selected picker card had no hover (pre-existing).
+- 2026-10-14 · „Semnat electronic” = a blue Small tag with `icon-signature` next to the title, never meta text (user).
+  The library `.status-tag:has(svg)` padding (3/8/3/6) beats `--small` by specificity → a Small tag with an icon is
+  22 high next to 20-high tags; scope `padding: 1px 6px 1px 4px` (16 icon + 2 + the subtle 1px border = 20) and
+  MEASURE heights side by side. Also: a renderer edit mid-regression left one state with a SyntaxError (duplicate
+  `const`) — re-run states captured while the file was broken before calling them regressions.
+- 2026-10-14 · Phones: stacked rows become flex columns at ≤760, so a lead icon sat alone above the title — rows with a
+  lead are a 2-column grid there (icon · text, actions under the text). Long section-heading metas clip at 375 → keep
+  them short („6 documente · 6 semnate”).

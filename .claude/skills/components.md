@@ -172,6 +172,7 @@ but this doc previously described it wrongly, see the entry.
 
 | Component | Real base classes | Preview file | Status |
 |---|---|---|---|
+| Stacked-list row hover (full width) | `.e-permits-stack__item.is-clickable` — side inset 20 on the ROW (list padding 0), inset divider = `::before`, fill `--color-background-base-tertiary` edge to edge, outer rows take `calc(var(--stack-radius) − 1px)`, dividers around the hovered row hide, kept while its ⋮ is open / a control has focus-visible, 140ms standard easing (off for reduced motion); the grey „Detalii” turns white on the band | section „Stacked-list row hover — full width” | app |
 | Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` | `buttons.html` | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
@@ -213,6 +214,7 @@ but this doc previously described it wrongly, see the entry.
 | Copy value | `.e-permits-fo-copy-value` | — | app |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
+| **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” + ⋮ Descarcă → document modal with the A4 page preview | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
 | Dosar › Documente însoțitoare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · `renderRowActions` eye + ⋮ Descarcă; modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Documente însoțitoare” | app |
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
@@ -3709,8 +3711,8 @@ The old `renderProfileTable` / `renderProfileDocList` helpers are removed.
 |---|---|---|
 | Taxe și plăți | În așteptare · Achitate | name, Neachitat/Achitat tag · **amount**, MPAY id (copy), issued, due date (+ days left) or paid date. Meta: "Total … · achitat …" |
 | Avize | Active · Termen depășit · Finalizate | institution, status tag · id (copy), requested, deadline, result |
-| Act/Decizie | — | title, Aprobare/Respingere tag · issued, source · "Vezi documentul" |
-| Documente generate | — | name, file-type tag · issued, author · "Vezi documentul" |
+| Act/Decizie | — | the document row (see „Documents — one pattern everywhere”): blue icon, Act permisiv / Decizie de respingere, `Generat` + signed badge + Aprobare/Respingere (+ `Proiect` until signed) · act / dossier no. · file · size · Emis … · de specialist · semnat de <conducător> · „👁 Detalii” + ⋮ Descarcă |
+| Documente generate | by flow step (Inițierea procedurii · Depunerea cererii · Plata taxelor · Decizie și act) | the document row: blue icon, type, `Generat` + signed badge (+ `Proiect`) · number · file · size · Generat … · de SIA GEAP / MPower / MPay / specialist · semnat de … · „👁 Detalii” + ⋮ Descarcă; heading meta „N documente · M semnate electronic” |
 | Detalii solicitare › Documente însoțitoare | Obligatorii · Opționale | lead icon, type, source tag · file / act no., size, added at, by, signed · eye + ⋮ (see „Dosar › Documente însoțitoare”) |
 | Notificări | by channel (Email, MNotify) | event, Livrată/Livrare eșuată tag · recipient, sent at |
 
@@ -4692,10 +4694,16 @@ deciziei” under Suspendare (Figma comments, Olesea Luchian, 2026-10-09).
 3. ⋮ (`renderStackMenu`) for everything else — constructive first (Publică, Activează, Aplică ca
    atare), destructive red last.
 4. **Only one action besides ⋮ (user 2026-10-14):** it is never icon-only — it is the labelled grey
-   `btn-neutral btn-sm` with its leading 16px icon, like „Editează”. So a row with just a preview
-   shows „👁 Vezi documentul” / „Vezi formularul” / „Vezi tariful” (short label, never „Previzualizează” — too long; not the strict eye), „Detalii” / „Vezi detalii” also carry the eye.
+   `btn-neutral btn-sm` with its leading 16px icon, like „Editează”. **The single view action is
+   always „👁 Detalii”** (user, same day: „eye and Detalii as here … change everywhere just Detalii and
+   eye”) — no „Vezi documentul / formularul / tariful / detalii”, never „Previzualizează” (too long),
+   never the strict eye. `renderRowActions({ preview })` without a primary renders it (aria-label
+   „Detalii: <name>”; the `previewLabel` option is gone); rows with `action: { label: "Detalii" }`,
+   eKYC primaries and Cabinet ⋮ items use the same word. Navigation to ANOTHER object keeps its own
+   label (page-level / card links: „Vezi actul”, „Vezi solicitarea”, „Vezi sesiunea”, „Vezi
+   documentele” → tab, the FO finish card „Vezi documentul”).
    Every labelled action has its icon: Editează = `edit`, **Configurează = `settings`**,
-   Vezi … / Previzualizează / Detalii = `eye-open` (`ACTION_ICONS` + `actionLabelHtml` in
+   Previzualizează / Detalii = `eye-open` (`ACTION_ICONS` + `actionLabelHtml` in
    js/e-permits-shell.js). The strict icon-only eye stays only next to a labelled primary.
 Why: NN/g — labelled actions are understood, icons alone rarely are; Carbon — secondary actions
 in the overflow, destructive separated and last. Tables (registries) keep their icon-only ✎.
@@ -6185,8 +6193,9 @@ modal, layout as the latest version, with date of upload and other details”). 
   `Încărcat` (neutral Small); meta = file name (the act: its number as copy code) · size
   (`fileSizeLabel`: „640 KB”, „2.4 MB”, as the FO) · „Încărcat / Atașat / Preluat automat 8 iulie 2026,
   08:32” (`formatStamp`) · „de Victor Grosu” · „Semnat electronic”. Actions = `renderRowActions`:
-  eye „Previzualizează” (`data-dosar-detail="insotitoare|fN"`, `aria-haspopup="dialog"`) + ⋮
-  „Descarcă” (`data-dosar-file-download`); the whole row opens the modal too. No Obligatoriu tag —
+  „👁 Detalii” (`data-dosar-detail="insotitoare|fN"`, `aria-haspopup="dialog"`) + ⋮
+  „Descarcă” (`data-dosar-file-download="insotitoare|fN"`); the whole row opens the modal too.
+  Since 2026-10-14 the row is `renderDosarDocItem`, shared with Documente generate and Act/Decizie. No Obligatoriu tag —
   the groups say it. Wrapped meta lines drop their leading dot (`syncStackMetaRows` now observes the
   dossier panel too).
 - **Groups / meta:** Obligatorii · Opționale (count badges); heading meta „4 documente · 3
@@ -6203,6 +6212,87 @@ modal, layout as the latest version, with date of upload and other details”). 
 - Demo: `dos-04` / `dos-04g` list (story dossier = Duplicat → previous act), `dos-04h` modal on an
   upload, `dos-04i` modal on the previous act, `dos-04j` ⋮ open, `dos-04k` / `dos-04l` a first-issue
   dossier (D-2026-004559, MDocs extract), `dos-04m` empty (`&documente=0`, demo only).
+
+### Documents — one pattern everywhere (2026-10-14)
+
+User: „Documente generate also the same layout; eye and Detalii as here … the document icons are missing;
+do the same data architecture … change all documents in the whole system” (+ the FO full flow).
+**One data shape, one renderer per product** — never a per-screen document row.
+
+- **Shape:** `{ sursa: "upload" | "mdocs" | "generat", tip, nr?, fisier?, size? / kb?, verb?, at?, de?,
+  semnat?, tags?: [[label, tone]], group? }` (+ `obligatoriu`, `act`, `emitent`, `automat` on the
+  dossier's însoțitoare; `genId`, `nrLabel`, `registru`, `decizie` on generated / acts). No `sursa` = a
+  document TYPE (catalog „Documente necesare”): grey icon, no source tag.
+- **Look:** lead icon 24 by source — grey `assets/icons/document-uploaded.svg` (from the device / RSSP
+  types), blue `document-generated.svg` (MDocs and anything a system generated); title = the document
+  TYPE (a fresh FO upload inside its own field is titled by its file name — the field label above
+  already says the type); source tag neutral Small `Încărcat` / `MDocs` / `Generat` (+ status tags:
+  `Proiect` until signed, `Aprobare` / `Respingere`, `Obligatoriu` / `Opțional` for types, FO validity
+  badge `Activă`); meta in this order: number (BO: copy code) · file name (dropped when it is just the
+  number) · size · „<Verb> <8 iulie 2026, 08:32>” (Încărcat / Atașat / Preluat automat / Emis / Generat)
+  · „de <who>” · „semnat de <signer>” (only when someone other than the producer signed: the applicant,
+  the head of the authority).
+- **Signed badge (user 2026-10-14):** „Semnat electronic” is never meta text — it is a blue Small tag with
+  the 16px `icon-signature` (icon = label colour), right after the source tag. BO: `SIGNED_TAG_HTML` =
+  `.e-permits-workplace__tag.e-permits-workplace__tag--brand.e-permits-workplace__tag--icon`; FO / Cabinet:
+  library `status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag` + svg
+  (`FO_DOC_SIGNED_TAG`, `CabEvo.signedTagHtml()`), padded `1px 6px 1px 4px` so it stays 20 high like the
+  other Small tags (the library `:has(svg)` padding makes 22). In the modal the „Semnătură” row shows the
+  badge + „MSign · <signer> · <date, time>” (`.e-permits-passport__row-note`). FO / Cabinet title rows
+  wrap (`.e-permits-fo-doc-title-row`) so tags go under a long type instead of squeezing it.
+- **Phones (≤760):** a stacked row with a lead icon is a 2-column grid (icon 24 · text), actions under the
+  text — the icon never sits alone on a line.
+- **Actions:** „👁 Detalii” (`btn-neutral btn-sm` + eye, the row-actions rule 4) + ⋮ „Descarcă”; the whole
+  row / card opens the document modal. Read-only review lists (FO Verificare) and type lists have no
+  actions; form field values keep their × remove.
+- **Modal:** the A4 page preview (grey `.e-permits-doc-peek__canvas` + `.e-permits-dtpl__page`, zoomed
+  to the width) over „Date generale” rows: Tip document · Statutul (tags) · Număr … · Pasul din flux
+  (generated) · Fișier · Dimensiune · <Verb> la · <Verb> de · Sursă / Obligatoriu (însoțitoare) ·
+  Registru (acts) · Semnătură · Număr dosar; footer Descarcă · Închide.
+
+| Product | Renderer | Where it is used |
+|---|---|---|
+| BO shell | `renderDosarDocItem(doc, kind)` → stacked-list item; `dosarDocsOf(profile, kind)`; modal `openDosarDetail(kind, id)` (one branch for `insotitoare` / `documente` / `acte`) + `renderDosarDocPreview`; data `buildDosarActe`, `buildDosarGenerate` from `e-permits-workplace.json › documenteGenerate` (`tipuri` by `pas`, `acte`, `conducator`) | Dosar › Detalii solicitare › Documente însoțitoare (groups Obligatorii / Opționale), **Documente generate** (groups = flow step), **Act/Decizie** |
+| BO shell (types) | `renderServiceDocuments` stacked list (grey icon, type, RSSP / SIA GEAP tag, meta type · applicants · Obligatoriu · rules), whole row opens the document drawer (`data-doc-row`) | Serviciu › Documente (admin „Editează” + ⋮; others „👁 Detalii”) |
+| FO | `foDocIconHtml(doc)`, `foDocContentHtml(doc)` (lib-item content: title row + `.e-permits-fo-doc-tag` + meta with dots), `foDocFromLibrary`, `foSummaryDocsHtml(panel)`; every attached value carries its shape in `data-fo-doc` | picker modal „Adaugă fișier” (`.e-permits-fo-lib-item` card per document — layout kept), field values (`foDocAttachFileItem` / `foDocAttachMdocsItem`, step 3, guest procură, Form Builder Fișier preview), „Document din MDocs” combobox value, post-process previous act (`postprocessPrevActDoc`, + Descarcă), Verificare și semnare › Documente însoțitoare (`.e-permits-fo-confirm-file--doc`, titled by the field's type) for the request and the post-processes |
+| EVO Cabinet | `CabEvo.docRowHtml(doc, { key, downloadAttrs })` (FO summary card + „Detalii” + ⋮), `CabEvo.openDocModal({ title, subtitle, doc, pageHtml, rowsHtml })` (FO doc-modal shell, `.cab-doc-modal`) | Solicitările mele › dosar › Documente însoțitoare (certificat constatator generated + uploads), Catalog › serviciu › Documente necesare (types) |
+
+**Kept on purpose (different pattern, reason):** FO upload rows while uploading (`.e-permits-fo-file-item`
+with progress — a form input; only the icon became the grey document), the MDocs combobox *options*
+(a listbox, not cards), Pași care generează documente in the request-type drawer (`rtOverrideRow` —
+a step → template setting, not a document), Șabloane / Formulare lists (templates, not documents),
+eKYC Dovezi (image / video evidence thumbnails with a viewer), Cabinet act section / act profile and the
+FO intent act list (act records with their own actions, not files), the FO finish card „Certificatul
+constatator · Vezi documentul” (one card, navigation to the certificate).
+Demo: `dos-04g…04m` (însoțitoare), `dos-04n` (Documente generate), `dos-04o` / `dos-04p` (modal: cerere,
+plată), `dos-04q` (⋮), `dos-04r` (draft act, `Proiect`), `dos-04s` / `dos-04t` (Act/Decizie modal),
+`svc-06a` (passport types), `fo-04d` / `fo-04e` / `fo-04f` (picker, selected, attached), `fo-05d`
+(Verificare), `pp-10c` / `pp-10d` (previous act, summary), `sm-05e…05h` (Cabinet list, modal, ⋮),
+`cat-02` (Documente necesare).
+
+### Stacked-list row hover — full width (2026-10-14)
+
+User: „the hover on document rows looks cut off and ugly … at least full width”. Cause: the list had
+`padding: 0 20px`, so a row (and its fill) stopped 20px short of the card on both sides, and nothing
+followed the card corners. Rule, for every `.e-permits-stack` (all stacked lists):
+- `.e-permits-stack__list { padding: 0 }`, `.e-permits-stack__item { padding: 12px 20px; position:
+  relative }` — the inset moved from the list to the row; the divider stays inset (20/20) as
+  `.e-permits-stack__item + .e-permits-stack__item::before` (1px border/base/default), so rest looks the same.
+- `.is-clickable` rows: fill `--color-background-base-tertiary` on `:hover`, while its ⋮ is open
+  (`:has([aria-expanded="true"])`) and while one of its controls has `:focus-visible` (the row itself is
+  not a tab stop — its „Detalii” is); `transition: background-color 140ms var(--motion-easing-standard)`,
+  none under `prefers-reduced-motion`.
+- Dividers above and below the band hide (`border-top-color: transparent` on its `::before` and on the
+  next row's) — one clean band; the last row still has no divider.
+- Corners: `.e-permits-stack` sets `--stack-radius` (12; eKYC dashboard 16); the first row of the first
+  group without a group label and the last row of the last group take `calc(var(--stack-radius) - 1px)`.
+- On the band the grey `btn-neutral` „Detalii” turns white until it is hovered itself (grey on grey
+  does not read as a button). Same on the Cabinet grey document card (`.cab-doc__actions > .btn-neutral`),
+  whose own hover is `--color-background-base-tertiary-hover`.
+- Rows with their own band follow the same shape: `.e-permits-rt__action.is-previewing` (brand-secondary,
+  full width, dividers hidden). `.sm-list` (separate boxes) switches the `::before` divider off.
+- Check: hover-audit + real-mouse crops of the first / middle / last row (scratch rowhover.mjs: row x =
+  card x + 1, right gap 1 = the card border).
 
 ### Documente însoțitoare (RSSP) in a service — document tiles, not label/value rows (2026-10-03)
 

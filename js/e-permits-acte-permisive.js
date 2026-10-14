@@ -2670,16 +2670,6 @@
               <div class="e-permits-fo-mdocs__empty" hidden data-fo-mdocs-empty>${window.GEAPEmptyState.noResults("Nu am găsit documente în MDocs", { text: "Verifică denumirea sau numărul documentului.", bare: true })}</div>
             </div>
             <div class="e-permits-fo-mdocs__attachment" hidden data-fo-mdocs-attachment>
-              <span class="e-permits-fo-mdocs__attachment-avatar" aria-hidden="true">
-                <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg>
-              </span>
-              <span class="e-permits-fo-mdocs__attachment-content">
-                <span class="e-permits-fo-mdocs__attachment-title-row">
-                  <span class="e-permits-fo-mdocs__attachment-title" data-fo-mdocs-attachment-title></span>
-                  <span class="e-permits-fo-mdocs__status-tag">Activă</span>
-                </span>
-                <span class="e-permits-fo-mdocs__attachment-meta" data-fo-mdocs-attachment-meta></span>
-              </span>
               <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
                 <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
               </button>
@@ -5317,18 +5307,22 @@
        download (the citizen doesn't upload it); reperfectare adds the
        documents confirming the change; suspendare / reluare accept optional
        ones (placeholder, de confirmat) */
+    /* the act a post-process starts from, in the shared document shape (taken from MDocs) */
+    function postprocessPrevActDoc({ act, service }) {
+      return { sursa: "mdocs", tip: "Actul permisiv emis anterior", nr: act.number, fisier: `${act.number}.pdf`, verb: "Emis", at: foDocLongDate(act.issued || ""), de: service.authority || "", semnat: true };
+    }
+
     function renderPostprocessStep3(ctx = frontOfficePostprocess) {
       const panel = document.querySelector("[data-fo-step-panel='3']");
       if (!panel || !ctx) return;
       const { act, pp, service } = ctx;
       const esc = escapeFrontOfficeHtml;
+      /* the previous act = the shared FO document card (MDocs, blue icon) + Descarcă */
+      const prevActDoc = postprocessPrevActDoc(ctx);
       const prevAct = `
-        <div class="e-permits-fo-mdocs__attachment" data-fo-pp-prev-act>
-          <span class="e-permits-fo-mdocs__attachment-avatar" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg></span>
-          <span class="e-permits-fo-mdocs__attachment-content">
-            <span class="e-permits-fo-mdocs__attachment-title-row"><span class="e-permits-fo-mdocs__attachment-title">${esc(act.number)} · ${esc(service.shortTitle || service.title || "")}</span></span>
-            <span class="e-permits-fo-mdocs__attachment-meta">Emis ${esc(act.issued || "")} · ${esc(service.authority || "")} · PDF</span>
-          </span>
+        <div class="e-permits-fo-mdocs__attachment" data-fo-pp-prev-act data-fo-doc="${esc(JSON.stringify(prevActDoc))}">
+          ${foDocIconHtml(prevActDoc)}
+          ${foDocContentHtml(prevActDoc)}
           <a class="btn btn-neutral btn-sm" href="#" download data-fo-pp-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg><span>Descarcă</span></a>
         </div>`;
       const extra = {
@@ -5461,7 +5455,7 @@
         </div>
         <div class="e-permits-fo-summary-section">
           <div class="e-permits-fo-summary-section__header"><h2 class="e-permits-fo-summary-section__heading">Documente însoțitoare</h2>${summaryEditButton(3, "Editează documentele însoțitoare")}</div>
-          <div class="e-permits-fo-summary-card">${summaryRow("Actul permisiv emis anterior", [esc(`${ctx.act.number} · PDF`)])}</div>
+          <div class="e-permits-fo-summary-docs">${foSummaryDocsHtml(document.querySelector("[data-fo-step-panel='3']"))}</div>
         </div>`;
     }
 
@@ -6092,15 +6086,102 @@
     }
 
     // ===== Document picker modal =====
+    /* ===== FO documents — ONE data shape + ONE renderer (2026-10-14, user: „the same data architecture
+       everywhere”) =====
+       doc = { sursa: "upload" | "mdocs" | "generat", tip (title = document type), nr?, fisier?, size? (label),
+               verb? („Încărcat” / „Emis” / „Generat”…), at? (label „12 martie 2026, 10:14”), de?, semnat?,
+               badge? (validity, e.g. „Activă”) }.
+       Icon by source (grey uploaded / blue MDocs or generated), title + source tag (+ badge), meta
+       number · file · size · „<Verb> <date>” · „de …” · „Semnat electronic”. Used by the picker modal
+       cards, the field values (step 3, guest, Form Builder Fișier / Document din MDocs), the post-process
+       previous act and the Verificare summary; the BO shell (renderDosarDocItem) and the EVO Cabinet
+       (docRowHtml) draw the same shape. */
+    const FO_DOC_SOURCES = {
+      upload: { tag: "Încărcat", icon: "document-uploaded.svg" },
+      mdocs: { tag: "MDocs", icon: "document-generated.svg" },
+      generat: { tag: "Generat", icon: "document-generated.svg" }
+    };
+    /* signed = a blue Small tag with the signature icon, next to the title (user 2026-10-14) */
+    const FO_DOC_SIGNED_TAG = '<span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-signature"></use></svg>Semnat electronic</span>';
+    function foDocSource(doc) { return FO_DOC_SOURCES[doc?.sursa] || FO_DOC_SOURCES.upload; }
+    function foDocIconHtml(doc, className = "e-permits-fo-lib-item__icon") {
+      return `<img class="${className}" src="assets/icons/${foDocSource(doc).icon}" width="24" height="24" alt="">`;
+    }
+    function foDocStampNow() {
+      const now = new Date();
+      return `${now.toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric" })}, ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+    }
+    function foDocMetaParts(doc) {
+      const esc = escapeFrontOfficeHtml;
+      return [
+        doc.nr ? `<span>${esc(doc.nr)}</span>` : "",
+        doc.fisier && doc.fisier !== doc.tip && doc.fisier !== `${doc.nr}.pdf` ? `<span>${esc(doc.fisier)}</span>` : "",
+        doc.size ? `<span>${esc(doc.size)}</span>` : "",
+        doc.at ? `<span>${esc(doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat"))} ${esc(doc.at)}</span>` : "",
+        doc.de ? `<span>de ${esc(doc.de)}</span>` : ""
+      ].filter(Boolean);
+    }
+    /* the content block (title row + meta) — inside any FO document card */
+    function foDocContentHtml(doc, { titleClass = "" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      const parts = foDocMetaParts(doc);
+      return `
+        <div class="e-permits-fo-lib-item__content">
+          <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
+            <span class="e-permits-fo-lib-item__title${titleClass ? ` ${titleClass}` : ""}" title="${esc(doc.tip)}">${esc(doc.tip)}</span>
+            <span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource(doc).tag)}</span>
+            ${doc.semnat ? FO_DOC_SIGNED_TAG : ""}
+            ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""}
+          </div>
+          ${parts.length ? `<div class="e-permits-fo-lib-item__meta">${parts.join('<span class="e-permits-fo-lib-item__dot" aria-hidden="true"></span>')}</div>` : ""}
+        </div>`;
+    }
+    /* the document type a field asks for (its label without the required / optional marks) */
+    function foDocFieldTitle(el) {
+      const field = el?.closest?.("[data-fo-doc-field]");
+      const label = field?.querySelector(".e-permits-fo-doc-field__label, .e-permits-fo-field__label, label");
+      if (!label) return el?.closest?.("[data-fo-other-doc-list]") ? "Document suplimentar" : "";
+      const copy = label.cloneNode(true);
+      copy.querySelectorAll(".e-permits-fo-required, .e-permits-fo-optional-tag, .u-visually-hidden").forEach((x) => x.remove());
+      return copy.textContent.replace(/\s+/g, " ").trim();
+    }
+    /* „12.03.2026” → „12 martie 2026” (product date format) */
+    function foDocLongDate(value) {
+      const m = String(value || "").match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+      return m ? new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1])).toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric" }) : value;
+    }
+    /* Verificare și semnare › Documente însoțitoare: every document attached at step 3, in DOM order,
+       as the shared card titled by the TYPE the field asks for (file name in the meta) */
+    function foSummaryDocsHtml(panel) {
+      if (!panel) return "";
+      /* the step panel itself is hidden while the summary shows: skip only hidden documents / fields */
+      return [...panel.querySelectorAll("[data-fo-doc]")].filter((el) => !el.hidden && !el.closest("[data-fo-doc-field][hidden], .e-permits-fo-field[hidden], [data-fb-field][hidden]")).map((el) => {
+        const doc = foDocDataOf(el);
+        if (!doc) return "";
+        const type = foDocFieldTitle(el);
+        const shown = type && type !== doc.tip ? { ...doc, tip: type, fisier: doc.fisier || doc.tip } : doc;
+        return `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--${shown.sursa === "upload" ? "uploaded" : "system"}">${foDocIconHtml(shown, "e-permits-fo-confirm-file__icon")}${foDocContentHtml(shown)}</div>`;
+      }).join("");
+    }
+    function foDocDataOf(el) {
+      try { return JSON.parse(el?.dataset.foDoc || "null"); } catch { return null; }
+    }
+
     const FO_DOC_LIBRARY = [
-      { type: "emis", title: 'Extras Registru de Stat - "Vita-Plant" SRL', badge: "Activă", emis: "12.03.2026", authority: "ASP" },
-      { type: "emis", title: 'Extras Registru de Stat - "Eco-Farm" SRL', emis: "15.05.2025", authority: "ASP" },
-      { type: "emis", title: 'Aviz sanitar - "Global Trader" SRL', emis: "18.05.2025", authority: "ANSP" },
-      { type: "emis", title: 'Autorizație sanitară de funcționare - "Global Trader" SRL', emis: "06.04.2024", authority: "ANSP" },
-      { type: "uploaded", fileName: "copia-actului-de-proprietate.pdf", size: "1.8 MB" },
-      { type: "uploaded", fileName: "planul-incaperilor.pdf", size: "2.7 MB" },
-      { type: "uploaded", fileName: "design-architectural.docx", size: "1.5 MB" },
+      { type: "emis", sursa: "mdocs", title: 'Extras Registru de Stat - "Vita-Plant" SRL', badge: "Activă", emis: "12.03.2026", authority: "ASP", fisier: "extras-registru-vita-plant.pdf", size: "310 KB", at: "12 martie 2026, 10:14", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Extras Registru de Stat - "Eco-Farm" SRL', emis: "15.05.2025", authority: "ASP", fisier: "extras-registru-eco-farm.pdf", size: "296 KB", at: "15 mai 2025, 09:02", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Aviz sanitar - "Global Trader" SRL', emis: "18.05.2025", authority: "ANSP", fisier: "aviz-sanitar-global-trader.pdf", size: "412 KB", at: "18 mai 2025, 14:40", semnat: true },
+      { type: "emis", sursa: "mdocs", title: 'Autorizație sanitară de funcționare - "Global Trader" SRL', emis: "06.04.2024", authority: "ANSP", fisier: "autorizatie-sanitara-global-trader.pdf", size: "538 KB", at: "6 aprilie 2024, 11:25", semnat: true },
+      { type: "uploaded", sursa: "upload", tip: "Copia actului de proprietate", fileName: "copia-actului-de-proprietate.pdf", size: "1.8 MB", at: "2 martie 2026, 16:08" },
+      { type: "uploaded", sursa: "upload", tip: "Planul încăperilor", fileName: "planul-incaperilor.pdf", size: "2.7 MB", at: "2 martie 2026, 16:11" },
+      { type: "uploaded", sursa: "upload", tip: "Design arhitectural", fileName: "design-architectural.docx", size: "1.5 MB", at: "28 februarie 2026, 12:47" },
     ];
+    /* a picker entry in the shared shape */
+    function foDocFromLibrary(doc) {
+      return doc.type === "uploaded"
+        ? { sursa: "upload", tip: doc.tip || doc.fileName, fisier: doc.fileName, size: doc.size, at: doc.at, verb: "Încărcat" }
+        : { sursa: doc.sursa || "mdocs", tip: doc.title, fisier: doc.fisier, size: doc.size, at: doc.at || foDocLongDate(doc.emis), verb: "Emis", de: doc.authority, semnat: doc.semnat, badge: doc.badge };
+    }
 
     let foDocModalField = null;
     let foDocModalSelectedLib = null;
@@ -6113,32 +6194,13 @@
     const foDocUploadPreview = foDocOverlay?.querySelector("[data-fo-doc-upload-preview]");
     const foDocFileInput = foDocOverlay?.querySelector("[data-fo-doc-file-input]");
 
+    /* the picker keeps its own card per document (user: „a separate card for each document”); its
+       info is the shared document content */
     function foDocLibItemHTML(doc) {
-      if (doc.type === "uploaded") {
-        return `<button class="e-permits-fo-lib-item" type="button">
-          <img class="e-permits-fo-lib-item__icon" src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">
-          <div class="e-permits-fo-lib-item__content">
-            <div class="e-permits-fo-lib-item__title-row">
-              <span class="e-permits-fo-lib-item__title">${escapeFrontOfficeHtml(doc.fileName)}</span>
-              ${doc.size ? `<span class="e-permits-fo-lib-item__size"><span class="e-permits-fo-lib-item__size-dot">•</span>${escapeFrontOfficeHtml(doc.size)}</span>` : ""}
-            </div>
-          </div>
-          <svg class="icon e-permits-fo-lib-item__check" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>
-        </button>`;
-      }
+      const shape = foDocFromLibrary(doc);
       return `<button class="e-permits-fo-lib-item" type="button">
-        <img class="e-permits-fo-lib-item__icon" src="assets/icons/document-generated.svg" width="24" height="24" alt="">
-        <div class="e-permits-fo-lib-item__content">
-          <div class="e-permits-fo-lib-item__title-row">
-            <span class="e-permits-fo-lib-item__title">${escapeFrontOfficeHtml(doc.title)}</span>
-            ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${escapeFrontOfficeHtml(doc.badge)}</span>` : ""}
-          </div>
-          ${doc.emis || doc.authority ? `<div class="e-permits-fo-lib-item__meta">
-            <span>Emis <strong>${escapeFrontOfficeHtml(doc.emis || "")}</strong></span>
-            <span class="e-permits-fo-lib-item__dot" aria-hidden="true"></span>
-            <span>${escapeFrontOfficeHtml(doc.authority || "")}</span>
-          </div>` : ""}
-        </div>
+        ${foDocIconHtml(shape)}
+        ${foDocContentHtml(shape)}
         <svg class="icon e-permits-fo-lib-item__check" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>
       </button>`;
     }
@@ -6148,8 +6210,8 @@
       const q = (filter || "").toLowerCase().trim();
       const filtered = q ? FO_DOC_LIBRARY.filter((d) => {
         const text = d.type === "uploaded"
-          ? (d.fileName || "")
-          : `${d.title || ""} ${d.authority || ""}`;
+          ? `${d.tip || ""} ${d.fileName || ""}`
+          : `${d.title || ""} ${d.authority || ""} ${d.fisier || ""}`;
         return text.toLowerCase().includes(q);
       }) : FO_DOC_LIBRARY;
       if (!filtered.length) {
@@ -6251,51 +6313,43 @@
       foDocModalPendingFile = null;
     }
 
-    function foDocAttachFileItem(container, fileName, sizeLabel) {
+    /* a field's value = the shared document card; the card keeps its shape in data-fo-doc (the
+       Verificare summary reads it). A fresh upload is titled by its file name (the field label above
+       already says the type); a document from the library keeps its type. */
+    function foDocAttachFileItem(container, fileName, sizeLabel, extra = {}) {
       /* one file, unless the field allows more (Form Builder „Fișier”, data-fo-doc-max) */
       const docField = container.closest("[data-fo-doc-field]");
       const max = Number(docField?.dataset.foDocMax) || 1;
       const existing = container.querySelectorAll(".e-permits-fo-file-item");
       if (max === 1 || existing.length >= max) existing.forEach((el) => el.remove());
       const syncFull = () => docField?.classList.toggle("is-full", container.querySelectorAll(".e-permits-fo-file-item").length >= max);
+      const doc = { sursa: "upload", tip: extra.tip || fileName, fisier: fileName, size: sizeLabel || extra.size || "", at: extra.at || foDocStampNow(), verb: "Încărcat" };
       const item = document.createElement("div");
       item.className = "e-permits-fo-file-item is-uploaded e-permits-fo-doc-attached-item";
+      item.dataset.foDoc = JSON.stringify(doc);
       item.innerHTML = `
-        <div class="e-permits-fo-lib-item__icon">
-          <img src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">
-        </div>
-        <div class="e-permits-fo-lib-item__content">
-          <div class="e-permits-fo-lib-item__title-row">
-            <span class="e-permits-fo-lib-item__title e-permits-fo-file-item__name" title="${escapeFrontOfficeHtml(fileName)}">${escapeFrontOfficeHtml(fileName)}</span>
-          </div>
-          ${sizeLabel ? `<div class="e-permits-fo-lib-item__meta">${escapeFrontOfficeHtml(sizeLabel)}</div>` : ""}
-        </div>
-        <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină">
+        ${foDocIconHtml(doc)}
+        ${foDocContentHtml({ ...doc, fisier: doc.tip === fileName ? "" : fileName })}
+        <button class="e-permits-fo-document-remove e-permits-fo-doc-attached-item__remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(fileName)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
+      /* the guest flow reads the file name back */
+      if (doc.tip === fileName) item.querySelector(".e-permits-fo-lib-item__title")?.classList.add("e-permits-fo-file-item__name");
       item.querySelector(".e-permits-fo-doc-attached-item__remove").addEventListener("click", () => { item.remove(); syncFull(); });
       container.appendChild(item);
       syncFull();
     }
 
-    function foDocAttachMdocsItem(container, doc) {
+    function foDocAttachMdocsItem(container, libDoc) {
       container.querySelectorAll(".e-permits-fo-mdocs__attachment").forEach((el) => el.remove());
+      const doc = libDoc.sursa && !libDoc.type ? libDoc : foDocFromLibrary(libDoc.type ? libDoc : { type: "emis", ...libDoc });
       const att = document.createElement("div");
       att.className = "e-permits-fo-mdocs__attachment";
-      const metaText = doc.emis ? `Emis ${doc.emis} · ${doc.authority || ""}` : (doc.authority || "");
+      att.dataset.foDoc = JSON.stringify(doc);
       att.innerHTML = `
-        <div class="e-permits-fo-lib-item__icon">
-          <img src="assets/icons/document-generated.svg" width="24" height="24" alt="">
-        </div>
-        <div class="e-permits-fo-lib-item__content">
-          <div class="e-permits-fo-lib-item__title-row">
-            <span class="e-permits-fo-lib-item__title e-permits-fo-mdocs__attachment-title">${escapeFrontOfficeHtml(doc.title)}</span>
-            ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${escapeFrontOfficeHtml(doc.badge)}</span>` : ""}
-          </div>
-          ${doc.emis || doc.authority ? `<div class="e-permits-fo-lib-item__meta">Emis <strong>${escapeFrontOfficeHtml(doc.emis || "")}</strong><span class="e-permits-fo-lib-item__dot"></span>${escapeFrontOfficeHtml(doc.authority || "")}</div>` : ""}
-          <span class="e-permits-fo-mdocs__attachment-meta" hidden>${escapeFrontOfficeHtml(metaText)}</span>
-        </div>
-        <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină">
+        ${foDocIconHtml(doc)}
+        ${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title" })}
+        <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină ${escapeFrontOfficeHtml(doc.tip)}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
         </button>`;
       att.querySelector(".e-permits-fo-mdocs__attachment-remove").addEventListener("click", () => att.remove());
@@ -6323,7 +6377,8 @@
         foDocModalPendingFile = file;
         if (foDocUploadPreview) {
           foDocUploadPreview.hidden = false;
-          foDocUploadPreview.innerHTML = `<div class="e-permits-fo-file-item is-uploaded e-permits-fo-doc-modal__preview-item"><img src="assets/icons/document-uploaded.svg" width="24" height="24" alt=""><span class="e-permits-fo-file-item__name">${escapeFrontOfficeHtml(file.name)}</span></div>`;
+          const preview = { sursa: "upload", tip: file.name, size: formatFoFileSize(file.size) };
+          foDocUploadPreview.innerHTML = `<div class="e-permits-fo-file-item is-uploaded e-permits-fo-doc-modal__preview-item">${foDocIconHtml(preview)}${foDocContentHtml(preview, { titleClass: "e-permits-fo-file-item__name" })}</div>`;
         }
         foDocUpdateSubmit();
       });
@@ -6336,7 +6391,7 @@
         if (activePanel?.dataset.foDocPanel === "library" && foDocModalSelectedLib) {
           foDocAttachMdocsItem(filesContainer, foDocModalSelectedLib);
         } else if (activePanel?.dataset.foDocPanel === "upload" && foDocModalPendingFile) {
-          foDocAttachFileItem(filesContainer, foDocModalPendingFile.name, "");
+          foDocAttachFileItem(filesContainer, foDocModalPendingFile.name, formatFoFileSize(foDocModalPendingFile.size));
         }
         foDocCloseModal();
       });
@@ -6398,7 +6453,7 @@
         }
         const floorFiles = step3Panel.querySelector("[data-fo-doc-field='floor-plan'] [data-fo-doc-field-files]");
         if (floorFiles && !floorFiles.querySelector(".e-permits-fo-file-item")) {
-          foDocAttachFileItem(floorFiles, "planul-incaperilor", "1.8 MB");
+          foDocAttachFileItem(floorFiles, "planul-incaperilor.pdf", "2.7 MB");
         }
         const extrasFiles = step3Panel.querySelector("[data-fo-doc-field='state-registry-extract'] [data-fo-doc-field-files], [data-fo-doc-field='extras-registru'] [data-fo-doc-field-files]");
         if (extrasFiles && !extrasFiles.querySelector(".e-permits-fo-mdocs__attachment")) {
@@ -6406,7 +6461,7 @@
         }
         const hygieneFiles = step3Panel.querySelector("[data-fo-doc-field='hygiene-certificates'] [data-fo-doc-field-files], [data-fo-doc-field='hygiene-cert'] [data-fo-doc-field-files]");
         if (hygieneFiles && !hygieneFiles.querySelector(".e-permits-fo-file-item")) {
-          foDocAttachFileItem(hygieneFiles, "planul-incaperilor-etajului-subsol", "1.8 MB");
+          foDocAttachFileItem(hygieneFiles, "certificate-instruire-igienica.pdf", "940 KB");
         }
       }
     }
@@ -6539,24 +6594,7 @@
       }
 
       // --- Documents ---
-      const uploadedItems = Array.from(document.querySelectorAll("[data-fo-step-panel='3'] .e-permits-fo-file-item.is-uploaded"));
-      const mdocsAttachments = Array.from(document.querySelectorAll("[data-fo-step-panel='3'] .e-permits-fo-mdocs__attachment"));
-
-      let docsHtml = uploadedItems
-        .map((item) => {
-          const name = item.querySelector(".e-permits-fo-file-item__name")?.textContent?.trim() || "";
-          const size = item.querySelector(".e-permits-fo-file-item__size")?.textContent?.trim() || "";
-          return `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--uploaded"><img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="assets/icons/document-uploaded.svg" alt=""><div class="e-permits-fo-confirm-file__name-group"><span class="e-permits-fo-confirm-file__name">${escapeFrontOfficeHtml(name)}</span>${size ? `<span class="e-permits-fo-confirm-file__sep">•</span><span class="e-permits-fo-confirm-file__size">${escapeFrontOfficeHtml(size)}</span>` : ""}</div></div>`;
-        })
-        .join("");
-
-      mdocsAttachments.forEach((att) => {
-        if (att.hidden) return;
-        const titleEl = att.querySelector(".e-permits-fo-mdocs__attachment-title");
-        if (!titleEl || !titleEl.textContent.trim()) return;
-        const metaEl = att.querySelector(".e-permits-fo-mdocs__attachment-meta");
-        docsHtml += `<div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--system"><img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="assets/icons/document-generated.svg" alt=""><div class="e-permits-fo-confirm-file__column"><div class="e-permits-fo-confirm-file__title-row"><span class="e-permits-fo-confirm-file__name">${titleEl.innerHTML}</span></div>${metaEl ? `<div class="e-permits-fo-confirm-file__meta">${metaEl.innerHTML}</div>` : ""}</div></div>`;
-      });
+      let docsHtml = foSummaryDocsHtml(document.querySelector("[data-fo-step-panel='3']"));
 
       if (!docsHtml) {
         docsHtml = window.GEAPEmptyState.render({ title: "Nu au fost adăugate documente", text: "Le poți încărca la pasul Documente însoțitoare.", icon: "document", compact: true });
@@ -7551,7 +7589,7 @@
         item.className = "e-permits-fo-file-item is-uploading";
         item.innerHTML = `
           <div class="e-permits-fo-file-item__content">
-            <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-document"></use></svg>
+            ${foDocIconHtml({ sursa: "upload" })}
             <div class="e-permits-fo-file-item__name-group">
               <span class="e-permits-fo-file-item__name">${escapeFrontOfficeHtml(file.name)}</span>
               <span class="e-permits-fo-file-item__sep">•</span>
@@ -7589,8 +7627,6 @@
       const clearSearch = root.querySelector("[data-fo-mdocs-clear]");
       const empty = root.querySelector("[data-fo-mdocs-empty]");
       const attachment = root.querySelector("[data-fo-mdocs-attachment]");
-      const attachmentTitle = root.querySelector("[data-fo-mdocs-attachment-title]");
-      const attachmentMeta = root.querySelector("[data-fo-mdocs-attachment-meta]");
       const removeButton = root.querySelector("[data-fo-mdocs-remove]");
       const options = Array.from(root.querySelectorAll(".e-permits-fo-mdocs__option"));
       if (!button || !value || !menu || !search || !options.length) return;
@@ -7658,26 +7694,13 @@
         value.classList.remove("e-permits-fo-mdocs__value--placeholder");
         setOpen(false, { focusSearch: false });
 
-        if (attachment && attachmentTitle && attachmentMeta) {
+        if (attachment) {
+          /* the chosen document = the shared FO document card (icon, type + MDocs tag, Emis … · de …) */
           const [issuedLabel = "", issuer = ""] = meta.split("·").map((part) => part.trim());
-          attachmentTitle.textContent = title;
-          attachmentMeta.replaceChildren();
-          if (issuedLabel) {
-            const issued = document.createElement("span");
-            const issuedDate = document.createElement("strong");
-            issued.append("Emis ");
-            issuedDate.textContent = issuedLabel.replace(/^Emis\s+/i, "");
-            issued.append(issuedDate);
-            attachmentMeta.append(issued);
-          }
-          if (issuer) {
-            const dot = document.createElement("span");
-            dot.setAttribute("aria-hidden", "true");
-            dot.textContent = "•";
-            const source = document.createElement("span");
-            source.textContent = issuer;
-            attachmentMeta.append(dot, source);
-          }
+          const doc = { sursa: "mdocs", tip: title, verb: "Emis", at: foDocLongDate(issuedLabel.replace(/^Emis\s+/i, "")), de: issuer, semnat: true, badge: "Activă" };
+          attachment.dataset.foDoc = JSON.stringify(doc);
+          attachment.querySelectorAll(":scope > :not([data-fo-mdocs-remove])").forEach((el) => el.remove());
+          removeButton?.insertAdjacentHTML("beforebegin", `${foDocIconHtml(doc)}${foDocContentHtml(doc, { titleClass: "e-permits-fo-mdocs__attachment-title" })}`);
           button.hidden = true;
           setDropdownHidden(menu, true);
           attachment.hidden = false;
@@ -7697,9 +7720,7 @@
         root.classList.remove("is-open");
         button.setAttribute("aria-expanded", "false");
         button.hidden = false;
-        if (attachment) attachment.hidden = true;
-        if (attachmentTitle) attachmentTitle.textContent = "";
-        if (attachmentMeta) attachmentMeta.textContent = "";
+        if (attachment) { attachment.hidden = true; delete attachment.dataset.foDoc; attachment.querySelectorAll(":scope > :not([data-fo-mdocs-remove])").forEach((el) => el.remove()); }
         button.focus({ preventScroll: true });
       }
 

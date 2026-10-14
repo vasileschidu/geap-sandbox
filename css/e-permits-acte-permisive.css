@@ -7570,6 +7570,11 @@
   box-shadow: inset 0 0 0 1px var(--color-border-brand-default, #0058d2);
 }
 
+/* the selected card keeps its ring and still answers the pointer (hover rule: one step darker) */
+.e-permits-fo-lib-item.is-selected:hover {
+  background: var(--color-background-base-tertiary-hover, #e8e8e8);
+}
+
 .e-permits-fo-lib-item__icon {
   flex-shrink: 0;
   height: 24px;
@@ -9327,6 +9332,41 @@
   align-items: center;
   min-height: 70px;
   padding: 0 var(--spacing-8, 8px) 0 var(--spacing-12, 12px);
+}
+
+/* a document row of the Verificare summary (shared FO document content: type + source tag, meta) */
+.e-permits-fo-confirm-file--doc {
+  min-height: 70px;
+  padding: var(--spacing-12, 12px);
+}
+
+/* the source tag of every FO document card (MDocs / Încărcat / Generat): sentence case, never squeezed */
+.e-permits-fo-doc-tag {
+  flex-shrink: 0;
+  text-transform: none;
+}
+
+/* the signed badge: Small with a 16px leading icon (icon = label colour), same 20px height as the
+   other Small tags: 16 icon + 2 × 1 padding + the subtle tag's 1px border (library :has(svg) = 22) */
+.status-tag.e-permits-fo-doc-tag:has(svg) {
+  padding: var(--border-width-1, 1px) var(--spacing-6, 6px) var(--border-width-1, 1px) var(--spacing-4, 4px);
+}
+
+.e-permits-fo-doc-tag .icon {
+  color: currentColor;
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+/* type + source tag + signed badge: tags wrap under a long type instead of squeezing it */
+.e-permits-fo-doc-title-row {
+  flex-wrap: wrap;
+  row-gap: var(--spacing-4, 4px);
+}
+
+.e-permits-fo-doc-title-row .e-permits-fo-lib-item__title {
+  max-width: 100%;
 }
 
 .e-permits-fo-confirm-file__icon {
@@ -18619,9 +18659,10 @@
    .select-dropdown menu (same as the help menu).
    ========================================================================== */
 .e-permits-stack {
+  --stack-radius: var(--border-radius-12, 12px);
   background: var(--color-background-base-default, #fff);
   border: 1px solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
+  border-radius: var(--stack-radius);
 }
 
 .e-permits-stack__group + .e-permits-stack__group {
@@ -18652,10 +18693,12 @@
   flex: 0 0 auto;
 }
 
+/* the 20px side inset lives on the ROW (not the list) so a row's hover fill runs edge to edge
+   inside the card (user 2026-10-14: „hover looks cut off”) */
 .e-permits-stack__list {
   list-style: none;
   margin: 0;
-  padding: 0 var(--spacing-20, 20px);
+  padding: 0;
 }
 
 /* 12px top/bottom: the product table-cell rhythm, not Tailwind's py-5 */
@@ -18664,12 +18707,20 @@
   display: flex;
   gap: var(--spacing-24, 24px);
   justify-content: space-between;
-  padding: var(--spacing-12, 12px) 0;
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
+  position: relative;
 }
 
-/* same divider as the detail-section rows (.e-permits-dosar-profil__row) */
-.e-permits-stack__item + .e-permits-stack__item {
+/* same divider as the detail-section rows (.e-permits-dosar-profil__row): inset 20 like the
+   text, drawn as a line so it can hide under a hovered row */
+.e-permits-stack__item + .e-permits-stack__item::before {
   border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+  content: "";
+  left: var(--spacing-20, 20px);
+  pointer-events: none;
+  position: absolute;
+  right: var(--spacing-20, 20px);
+  top: 0;
 }
 
 .e-permits-stack__main {
@@ -18832,6 +18883,23 @@
     align-items: flex-start;
     flex-direction: column;
     gap: var(--spacing-12, 12px);
+  }
+}
+
+/* phones: a row with a lead icon keeps the icon beside the text (not alone on a line); the actions go
+   under the text */
+@media (max-width: 760px) {
+  .e-permits-stack__item.has-lead {
+    align-items: start;
+    column-gap: var(--spacing-12, 12px);
+    display: grid;
+    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr);
+    row-gap: var(--spacing-12, 12px);
+  }
+
+  .e-permits-stack__item.has-lead .e-permits-stack__actions {
+    grid-column: 2;
+    margin-left: 0;
   }
 }
 
@@ -21274,8 +21342,43 @@ button.e-permits-steps-strip__cell:focus-visible {
   cursor: default;
 }
 
-.e-permits-stack__item.is-clickable:hover {
+/* Row hover — ONE rule for every stacked list (2026-10-14, user: „hover on document rows looks cut
+   off … at least full width”): the fill covers the row edge to edge inside the card, follows the
+   card's inner corners on the first / last row, the dividers above and below the hovered row hide
+   (one clean band), and a row whose ⋮ is open — or whose control has keyboard focus — keeps it. */
+.e-permits-stack__item.is-clickable {
+  transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) {
   background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible))::before,
+.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) + .e-permits-stack__item::before {
+  border-top-color: transparent;
+}
+
+/* on the grey band the grey „Detalii” would melt into it → white until the pointer is on it */
+.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) .btn-neutral.e-permits-stack__action:not(:hover, :active) {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* the fill takes the card's inner radius (card radius − its 1px border) on the outer rows */
+.e-permits-stack__group:first-child > .e-permits-stack__list:first-child > .e-permits-stack__item:first-child {
+  border-top-left-radius: calc(var(--stack-radius, 12px) - 1px);
+  border-top-right-radius: calc(var(--stack-radius, 12px) - 1px);
+}
+
+.e-permits-stack__group:last-child > .e-permits-stack__list:last-child > .e-permits-stack__item:last-child {
+  border-bottom-left-radius: calc(var(--stack-radius, 12px) - 1px);
+  border-bottom-right-radius: calc(var(--stack-radius, 12px) - 1px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-stack__item.is-clickable {
+    transition: none;
+  }
 }
 
 /* detail modal (payment note, approval, act, document): passport card + read-only note */
@@ -22353,13 +22456,14 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   margin-left: var(--spacing-4, 4px);
 }
 
-/* the row being previewed */
+/* the row being previewed: a full-width band like the row hover (rows carry their own 20 inset) */
 .e-permits-rt__action.is-previewing {
   background: var(--color-background-brand-secondary, #eef4ff);
-  border-radius: var(--border-radius-8, 8px);
-  margin: 0 calc(-1 * var(--spacing-8, 8px));
-  padding-left: var(--spacing-8, 8px);
-  padding-right: var(--spacing-8, 8px);
+}
+
+.e-permits-rt__action.is-previewing::before,
+.e-permits-rt__action.is-previewing + .e-permits-stack__item::before {
+  border-top-color: transparent;
 }
 
 @media (max-width: 760px) {
@@ -24760,6 +24864,7 @@ a.btn:focus-visible {
 
 /* the dashboard's stacked lists (Disponibilitate furnizori) take the dashboard radius */
 .e-permits-ekyc-page .e-permits-stack {
+  --stack-radius: var(--border-radius-16, 16px);
   border-radius: var(--border-radius-16, 16px);
 }
 

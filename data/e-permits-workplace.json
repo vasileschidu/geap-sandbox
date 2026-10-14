@@ -398,6 +398,25 @@
       }
     ]
   },
+  "documenteGenerate": {
+    "_comment": "Documente generate (dossier tab) + Act/Decizie: what the system produces along the case flow, grouped by flow step (pas). cand: when the document exists (depus = filed by the applicant / ghișeu, oficiu = ex-officio, mpower = representative with an MPower mandate, achitat = one per paid fee, decizie = once the case reaches the decision stage, act = the issued act / decision). numar: which registry number it carries (dosar, mpower, mpay, act). de: who produced it (sistem = SIA GEAP, specialist, initiator, MPower, MPay). semnat: who signs it electronically (solicitant, sistem = SIA GEAP seal, conducator = after the case is signed). {nr} in fisier = the number.",
+    "pasi": ["Inițierea procedurii", "Depunerea cererii", "Plata taxelor", "Decizie și act"],
+    "conducator": { "nume": "Dumitru Rotaru", "rol": "Conducătorul autorității" },
+    "tipuri": [
+      { "id": "nota-initiere", "tip": "Nota de inițiere", "pas": "Inițierea procedurii", "fisier": "nota-initiere-{nr}.pdf", "kb": 214, "numar": "dosar", "de": "initiator", "semnat": "initiator", "cand": "oficiu" },
+      { "id": "cerere", "tip": "Cererea depusă", "pas": "Depunerea cererii", "fisier": "cerere-{nr}.pdf", "kb": 312, "numar": "dosar", "de": "sistem", "semnat": "solicitant", "cand": "depus" },
+      { "id": "certificat", "tip": "Certificat constatator", "pas": "Depunerea cererii", "fisier": "certificat-constatator-{nr}.pdf", "kb": 96, "numar": "dosar", "de": "sistem", "semnat": "sistem", "cand": "depus" },
+      { "id": "extras-mpower", "tip": "Extras MPower", "pas": "Depunerea cererii", "fisier": "extras-mpower-{nr}.pdf", "kb": 140, "numar": "mpower", "de": "MPower", "semnat": "sistem", "cand": "mpower" },
+      { "id": "confirmare-plata", "tip": "Confirmarea achitării taxei", "pas": "Plata taxelor", "fisier": "confirmare-plata-{nr}.pdf", "kb": 88, "numar": "mpay", "de": "MPay", "semnat": "sistem", "cand": "achitat" },
+      { "id": "proiect-act", "tip": "Proiectul actului permisiv", "pas": "Decizie și act", "fisier": "proiect-act-permisiv-{nr}.pdf", "kb": 436, "numar": "dosar", "de": "specialist", "semnat": "conducator", "cand": "decizie-aprobare" },
+      { "id": "proiect-respingere", "tip": "Decizia de respingere", "pas": "Decizie și act", "fisier": "decizie-respingere-{nr}.pdf", "kb": 268, "numar": "dosar", "de": "specialist", "semnat": "conducator", "cand": "decizie-respingere" }
+    ],
+    "acte": {
+      "aprobare": { "tip": "Act permisiv", "fisier": "act-permisiv-{nr}.pdf", "kb": 512, "numar": "act", "registru": "ASP" },
+      "respingere": { "tip": "Decizie de respingere", "fisier": "decizie-respingere-{nr}.pdf", "kb": 268, "numar": "dosar", "registru": "ASP" },
+      "decizie": { "tip": "Decizie de aprobare", "fisier": "decizie-aprobare-{nr}.pdf", "kb": 244, "numar": "dosar", "registru": "ASP" }
+    }
+  },
   "subdiviziuni": [
     "CSP Chișinău",
     "CSP Bălți",

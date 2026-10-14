@@ -172,7 +172,7 @@
     const locked = Boolean(permit.pending);
     return `
       <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(permit.title)}" hidden>
-        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-open="${escape(permit.id)}">${icon("icon-eye-open", "medium")}<span>Vezi detalii</span></button></li>
+        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-open="${escape(permit.id)}">${icon("icon-eye-open", "medium")}<span>Detalii</span></button></li>
         <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-download="${escape(permit.id)}">${icon("icon-download")}<span>Descarcă actul (MDocs)</span></button></li>
         ${items.length ? `<li role="separator" class="cab-menu__separator"></li><li role="none" class="cab-menu__label">Postprocese</li>` : ""}
         ${items.map((pp) => `
@@ -656,10 +656,126 @@
   }
   window.addEventListener("resize", syncHeaderMeta);
 
+  /* ---------- documents — the FO / BO document shape and card (2026-10-14) ----------
+     doc = { sursa: upload | mdocs | generat (none = a document TYPE), tip, nr?, fisier?, size?, verb?, at?,
+     de?, semnat?, tags?: [[label, tone]], note? }. Card = the FO summary row (.e-permits-fo-confirm-file--doc)
+     with the shared content (icon by source, type + source tag, meta number · file · size · „<Verb> <date>” ·
+     „de …” · „Semnat electronic”); with a key: „Detalii” (eye) + ⋮ Descarcă, the whole card opens the
+     document modal (page preview + details). */
+  const DOC_SOURCES = {
+    upload: { tag: "Încărcat", icon: "document-uploaded.svg" },
+    mdocs: { tag: "MDocs", icon: "document-generated.svg" },
+    generat: { tag: "Generat", icon: "document-generated.svg" },
+  };
+  const TAG_TONES = { neutral: "status-tag--neutral is-subtle", strong: "status-tag--neutral is-strong", success: "status-tag--success is-subtle", danger: "status-tag--danger is-subtle" };
+  /* signed = the blue Small tag with the signature icon (the FO / BO badge) */
+  const signedTagHtml = () => `<span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag">${icon("icon-signature")}Semnat electronic</span>`;
+  function docMetaParts(doc) {
+    return [
+      doc.nr ? `<span>${escape(doc.nr)}</span>` : "",
+      doc.fisier && doc.fisier !== doc.tip ? `<span>${escape(doc.fisier)}</span>` : "",
+      doc.size ? `<span>${escape(doc.size)}</span>` : "",
+      doc.at ? `<span>${escape(doc.verb || DOC_SOURCES[doc.sursa]?.tag || "Încărcat")} ${escape(doc.at)}</span>` : "",
+      doc.de ? `<span>de ${escape(doc.de)}</span>` : "",
+      doc.note ? `<span>${escape(doc.note)}</span>` : "",
+    ].filter(Boolean);
+  }
+  function docContentHtml(doc) {
+    const source = DOC_SOURCES[doc.sursa];
+    const parts = docMetaParts(doc);
+    return `
+      <div class="e-permits-fo-lib-item__content">
+        <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
+          <span class="e-permits-fo-lib-item__title" title="${escape(doc.tip)}">${escape(doc.tip)}</span>
+          ${source ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${escape(source.tag)}</span>` : ""}
+          ${doc.semnat ? signedTagHtml() : ""}
+          ${(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`).join("")}
+        </div>
+        ${parts.length ? `<div class="e-permits-fo-lib-item__meta">${parts.join('<span class="e-permits-fo-lib-item__dot" aria-hidden="true"></span>')}</div>` : ""}
+      </div>`;
+  }
+  /* key: opens / downloads it (data-cab-doc…); downloadAttrs: the page's own download hook */
+  function docRowHtml(doc, { key = "", downloadAttrs = "" } = {}) {
+    const source = DOC_SOURCES[doc.sursa] || DOC_SOURCES.upload;
+    const menuId = key ? `cab-doc-menu-${key.replace(/[^\w-]/g, "-")}` : "";
+    return `
+      <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc cab-doc${key ? " is-clickable" : ""}"${key ? ` data-cab-doc="${escape(key)}"` : ""}>
+        <img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="../assets/icons/${source.icon}" alt="">
+        ${docContentHtml(doc)}
+        ${key ? `
+        <div class="cab-doc__actions">
+          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-label="Detalii: ${escape(doc.tip)}" data-cab-doc-open="${escape(key)}">${icon("icon-eye-open")}<span>Detalii</span></button>
+          <div class="e-permits-fo-intent-act__action cab-card__actions">
+            <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(doc.tip)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(doc.tip)}" hidden>
+              <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" ${downloadAttrs}>${icon("icon-download", "medium")}<span>Descarcă</span></button></li>
+            </ul>
+          </div>
+        </div>` : ""}
+      </div>`;
+  }
+  /* the document modal: FO doc-modal shell, the A4 page preview (grey canvas, zoomed to the width),
+     „Date generale” rows, footer Descarcă · Închide */
+  let docModalOpener = null;
+  function fitDocPreview() {
+    const canvas = document.querySelector("[data-cab-doc-modal]:not([hidden]) [data-cab-doc-canvas]");
+    const page = canvas?.querySelector(".e-permits-doc-peek__page");
+    if (page && canvas.clientWidth) page.style.zoom = String(Math.min(1, (canvas.clientWidth - 48) / 794));
+  }
+  function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "" }) {
+    let overlay = document.querySelector("[data-cab-doc-modal]");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "e-permits-fo-doc-modal-overlay cab-filter-modal cab-doc-modal";
+      overlay.dataset.cabDocModal = "";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-labelledby", "cab-doc-title");
+      document.body.appendChild(overlay);
+      overlay.addEventListener("click", (event) => {
+        if (event.target === overlay || event.target.closest("[data-cab-doc-close]")) closeDocModal();
+      });
+      if ("ResizeObserver" in window) new ResizeObserver(fitDocPreview).observe(overlay);
+    }
+    docModalOpener = document.activeElement;
+    overlay.innerHTML = `
+      <div class="e-permits-fo-doc-modal">
+        <div class="e-permits-fo-doc-modal__header">
+          <div class="e-permits-fo-doc-modal__header-text">
+            <h2 id="cab-doc-title" class="e-permits-fo-doc-modal__title">${escape(title)}</h2>
+            ${subtitle ? `<p class="e-permits-fo-doc-modal__subtitle">${escape(subtitle)}</p>` : ""}
+          </div>
+          <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-cab-doc-close>${icon("icon-cross-large")}</button>
+        </div>
+        <div class="cab-filter__body cab-doc-modal__body">
+          <div class="e-permits-doc-peek__canvas cab-doc-modal__preview" data-cab-doc-canvas role="img" aria-label="Previzualizare: ${escape(doc.tip)}${doc.fisier ? `, ${escape(doc.fisier)}` : ""}">
+            <div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${pageHtml}</div></div>
+          </div>
+          <h3 class="e-permits-fo-finish__section-title">Date generale</h3>
+          ${rowsHtml}
+        </div>
+        <div class="e-permits-fo-doc-modal__footer">
+          <button class="e-permits-fo-doc-modal__cancel" type="button" ${downloadAttrs}>${icon("icon-download")}<span>Descarcă</span></button>
+          <button class="e-permits-fo-doc-modal__submit" type="button" data-cab-doc-close>Închide</button>
+        </div>
+      </div>`;
+    overlay.hidden = false;
+    fitDocPreview();
+    overlay.querySelector("[data-cab-doc-close]")?.focus();
+  }
+  function closeDocModal() {
+    const overlay = document.querySelector("[data-cab-doc-modal]");
+    if (!overlay || overlay.hidden) return;
+    overlay.hidden = true;
+    if (docModalOpener?.isConnected) docModalOpener.focus();
+  }
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeDocModal(); });
+
   /* ---------- shared with solicitari.js and catalog.js ---------- */
   window.CabEvo = {
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle,
+    docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
     pageHeader, syncHeaderMeta,
     els,
   };

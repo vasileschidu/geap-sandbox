@@ -818,9 +818,78 @@
   gap: var(--spacing-8, 8px);
 }
 
-.btn.cab-docs__download {
+/* document card (C.docRowHtml, 2026-10-14): the FO summary row + „Detalii” + ⋮; the whole card opens
+   the document modal. Grey card on white → hover one step darker (hover rule) */
+.cab-doc .e-permits-fo-lib-item__content {
+  flex: 1 1 auto;
+}
+
+.cab-doc__actions {
+  align-items: center;
+  display: flex;
   flex: none;
+  gap: var(--spacing-8, 8px);
   margin-left: auto;
+}
+
+.cab-doc.is-clickable {
+  cursor: pointer;
+  overflow: visible;
+  transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.cab-doc.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) {
+  background: var(--color-background-base-tertiary-hover, #e8e8e8);
+}
+
+/* a grey button on the grey card would not read as a button → white until hovered */
+.cab-doc__actions > .btn-neutral:not(:hover, :active) {
+  background: var(--color-background-base-default, #fff);
+}
+
+.cab-doc .cab-menu {
+  cursor: default;
+}
+
+.cab-doc-modal .e-permits-fo-doc-modal {
+  width: 640px;
+}
+
+.cab-doc-modal .e-permits-fo-doc-modal__cancel {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-8, 8px);
+}
+
+.cab-doc-modal__body {
+  gap: var(--spacing-16, 16px);
+}
+
+.cab-doc-modal__preview {
+  border-radius: var(--border-radius-8, 8px);
+  flex: none;
+  max-height: 40vh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cab-doc.is-clickable {
+    transition: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .cab-doc {
+    flex-wrap: wrap;
+  }
+
+  .cab-doc .e-permits-fo-lib-item__content {
+    flex-basis: calc(100% - var(--spacing-24, 24px) - var(--spacing-12, 12px));
+  }
+
+  .cab-doc__actions {
+    /* under the text: icon 24 + gap 12 */
+    margin-left: calc(var(--spacing-24, 24px) + var(--spacing-12, 12px));
+  }
 }
 
 .cab-roles.e-permits-fo-form__roles {
@@ -1224,6 +1293,11 @@
 
 .sm-list .e-permits-stack__item + .e-permits-stack__item {
   border-top: 1px solid var(--color-border-base-default, #d9d9d9);
+}
+
+/* separate boxes have their own border — no shared inset divider line */
+.sm-list .e-permits-stack__item + .e-permits-stack__item::before {
+  content: none;
 }
 
 .sm-list .e-permits-stack__item.is-clickable:hover {

@@ -174,7 +174,7 @@
 
   /* contextual actions per status (US-19, US-29, US-24, US-135, Feature 90817) */
   function menuItems(dosar) {
-    const items = [{ action: "open", icon: "icon-eye-open", label: "Vezi detalii" }];
+    const items = [{ action: "open", icon: "icon-eye-open", label: "Detalii" }];
     if (dosar.status === "schita") {
       items.push({ action: "continue", icon: "icon-edit", label: "Continuă schița", href: foUrl(dosar, "draft") });
       items.push({ separator: true });
@@ -694,35 +694,64 @@
       </div>`;
   }
 
-  function documentsHtml(dosar) {
-    const download = (kind, name) => `<button class="btn btn-text-primary btn-sm cab-docs__download" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}" aria-label="Descarcă ${escape(name)}">${icon("icon-download")}<span>Descarcă</span></button>`;
+  /* Documente însoțitoare = the shared document cards (C.docRowHtml): the system certificate (generated)
+     + what the applicant attached, each with „Detalii” → the document modal and ⋮ Descarcă */
+  const DOC_TYPE_GUESS = [[/locat|contract/i, "Contract de locațiune"], [/plan/i, "Planul încăperilor"], [/proprietate/i, "Actul de proprietate"], [/identitate|buletin/i, "Copia actului de identitate"], [/extras/i, "Extras din registru"]];
+  function dosarDocs(dosar) {
     const files = dosar.documents || (dosar.status === "schita" ? [] : [
-      { name: "Contract-locatiune.pdf", size: "1,2 MB" },
-      { name: "Planul-incaperilor.pdf", size: "3,4 MB" },
+      { name: "Contract-locatiune.pdf", size: "1,2 MB", tip: "Contract de locațiune" },
+      { name: "Planul-incaperilor.pdf", size: "3,4 MB", tip: "Planul încăperilor" },
     ]);
-    const parts = [];
+    const docs = [];
     /* US-161 AC-14: the system certificate, once the request was filed */
     if (dosar.status !== "schita") {
-      parts.push(`
-        <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--system">
-          <img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="../assets/icons/document-generated.svg" alt="">
-          <div class="e-permits-fo-confirm-file__column">
-            <div class="e-permits-fo-confirm-file__title-row"><span class="e-permits-fo-confirm-file__name">Certificat constatator</span></div>
-            <div class="e-permits-fo-confirm-file__meta">Emis ${escape(longDate(dosar.submitted))} · SIA GEAP</div>
-          </div>
-          ${download("certificat", "Certificatul constatator")}
-        </div>`);
+      docs.push({ id: "certificat", sursa: "generat", tip: "Certificat constatator", nr: dosar.nr, fisier: `certificat-constatator-${String(dosar.nr).toLowerCase()}.pdf`, size: "96 KB", verb: "Generat", at: longDateTime(dosar.submitted), de: "SIA GEAP", semnat: true, kind: "certificat" });
     }
-    files.forEach((file) => parts.push(`
-      <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--uploaded">
-        <img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="../assets/icons/document-uploaded.svg" alt="">
-        <div class="e-permits-fo-confirm-file__name-group"><span class="e-permits-fo-confirm-file__name" title="${escape(file.name)}">${escape(file.name)}</span><span class="e-permits-fo-confirm-file__sep">•</span><span class="e-permits-fo-confirm-file__size">${escape(file.size)}</span></div>
-        ${download("fisier", file.name)}
-      </div>`));
-    if (!parts.length) {
+    files.forEach((file, index) => docs.push({
+      id: `f${index + 1}`, sursa: file.sursa || "upload", tip: file.tip || (DOC_TYPE_GUESS.find(([re]) => re.test(file.name)) || [null, "Document însoțitor"])[1],
+      fisier: file.name, size: file.size, verb: "Încărcat", at: dosar.submitted ? longDateTime(dosar.submitted) : longDateTime(dosar.created),
+      de: state.user?.name || "", kind: "fisier",
+    }));
+    return docs;
+  }
+  function documentsHtml(dosar) {
+    const docs = dosarDocs(dosar);
+    if (!docs.length) {
       return fixAssets(window.GEAPEmptyState.render({ title: "Nu au fost încărcate documente", text: "Le puteți adăuga după ce continuați schița.", icon: "document", compact: true }));
     }
-    return `<div class="cab-docs">${parts.join("")}</div>`;
+    return `<div class="cab-docs">${docs.map((doc) => C.docRowHtml(doc, {
+      key: `${dosar.id}|${doc.id}`,
+      downloadAttrs: `data-sm-action="download" data-sm-kind="${doc.kind}" data-sm-id="${escape(dosar.id)}"`,
+    })).join("")}</div>`;
+  }
+  /* the document modal: a demo A4 page + the details */
+  function openDosarDoc(key) {
+    const [dosarId, docId] = key.split("|");
+    const dosar = state.dosare.find((item) => item.id === dosarId);
+    const doc = dosar && dosarDocs(dosar).find((item) => item.id === docId);
+    if (!doc) return;
+    const service = serviceOf(dosar);
+    const holder = state.subject ? `${state.subject.name} · ${state.subject.idLabel} ${state.subject.idValue}` : "";
+    const table = (pairs) => `<table><tbody>${pairs.filter(([, value]) => value).map(([label, value]) => `<tr><td>${escape(label)}</td><td>${escape(value)}</td></tr>`).join("")}</tbody></table>`;
+    const pageHtml = doc.kind === "certificat"
+      ? `<h1>Certificat constatator</h1><p>Confirmă depunerea cererii în SIA GEAP.</p>${table([["Numărul dosarului", dosar.nr], ["Serviciul", service.title || ""], ["Solicitant", holder], ["Data depunerii", longDateTime(dosar.submitted)]])}<p>Semnat electronic · SIA GEAP · ${escape(longDate(dosar.submitted))}</p>`
+      : `<h1>${escape(doc.tip)}</h1><p>Anexă la cererea ${escape(dosar.nr)} · ${escape(service.title || "")}</p>${table([["Obiectul", dosar.object || ""], ["Adresa", dosar.address || ""], ["Solicitant", holder]])}`;
+    C.openDocModal({
+      title: doc.kind === "certificat" ? "Document generat" : "Document însoțitor",
+      subtitle: doc.tip,
+      doc,
+      pageHtml,
+      rowsHtml: rows([
+        row("Tip document", escape(doc.tip)),
+        doc.nr ? row("Numărul dosarului", escape(doc.nr)) : "",
+        row("Fișier", escape(doc.fisier)),
+        row("Dimensiune", escape(doc.size)),
+        row(`${doc.verb} la`, escape(doc.at)),
+        doc.de ? row(`${doc.verb} de`, escape(doc.de)) : "",
+        row("Semnătură", doc.semnat ? `${C.signedTagHtml()} ${escape(`MSign · ${doc.de} · ${doc.at}`)}` : "Fără semnătură electronică"),
+      ]),
+      downloadAttrs: `data-cab-doc-download="${escape(key)}"`,
+    });
   }
 
   function historyHtml(dosar) {
@@ -1208,6 +1237,10 @@
       if (filterOpen) { openFilters(filterOpen); return; }
       if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
       if (target.closest("[data-sm-tip]")) { event.stopPropagation(); showTip(target.closest("[data-sm-tip]")); return; }
+
+      /* documents: „Detalii” or the card itself → the document modal (not from the ⋮ menu) */
+      const docOpen = target.closest("[data-cab-doc-open]") || (!target.closest("button, a, .cab-card__actions, [data-fo-copy-value]") && target.closest(".cab-doc[data-cab-doc]"));
+      if (docOpen) { C.closeMenus(); openDosarDoc(docOpen.dataset.cabDocOpen || docOpen.dataset.cabDoc); return; }
 
       const action = target.closest("[data-sm-action]");
       if (action) {

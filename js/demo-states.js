@@ -16,10 +16,15 @@
   const dos = (as, stare, tab = "general", extra = {}, run) => ({ flow: "back-office", as, params: { stare, ...extra }, hash: `#dosar/${DOS}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
   /* another dossier, in its own seeded status (no ?stare=) */
   const dosOf = (id, as, tab = "general") => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section" });
-  /* Documente însoțitoare: the eye „Previzualizează” of the row whose title contains `text` */
-  const docEye = (text) => async (h) => {
-    const row = await h.scroll('.e-permits-stack__item[data-dosar-detail-row^="insotitoare"]', text);
-    row.querySelector('[data-dosar-detail^="insotitoare"]').click(); await h.wait(500);
+  /* any dossier document list (insotitoare | documente | acte): „👁 Detalii” of the row whose title
+     contains `text`; docKebab opens its ⋮ */
+  const docEye = (text, kind = "insotitoare") => async (h) => {
+    const row = await h.scroll(`.e-permits-stack__item[data-dosar-detail-row^="${kind}"]`, text);
+    row.querySelector(`[data-dosar-detail^="${kind}"]`).click(); await h.wait(500);
+  };
+  const docKebab = (text, kind) => async (h) => {
+    const row = await h.scroll(`.e-permits-stack__item[data-dosar-detail-row^="${kind}"]`, text);
+    row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300);
   };
   const dosList = (as) => ({ flow: "back-office", as, ready: "tr[data-workplace-row], .e-permits-workplace" });
   /* Setări: jump to a section from the section list */
@@ -785,6 +790,16 @@
     "dos-04k": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await h.scroll(".e-permits-stack-section"); } },
     "dos-04l": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await docEye("Extras din Registrul")(h); } },
     "dos-04m": dos(SPEC, "inExaminare", "solicitare", { documente: "0" }, async (h) => { await h.scroll(".e-permits-dosar-profil__section", "Documente însoțitoare"); }),
+    /* 04n–04t Documente generate + Act/Decizie = the însoțitoare pattern (2026-10-14): grouped by flow step,
+       blue icon + „Generat”, number · file · size · Generat … · de … · Semnat electronic de …; „👁 Detalii” →
+       the same document modal with the page preview; ⋮ Descarcă; a signed act; a draft („Proiect”) */
+    "dos-04n": dos(SPEC, "eliberat", "documente"),
+    "dos-04o": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); }),
+    "dos-04p": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Confirmarea achitării", "documente")(h); }),
+    "dos-04q": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docKebab("Proiectul actului", "documente")(h); }),
+    "dos-04r": dos(SPEC, "spreSemnare", "documente", {}, async (h) => { await docEye("Proiectul actului", "documente")(h); }),
+    "dos-04s": dos(SPEC, "eliberat", "decizie", {}, async (h) => { await docEye("Act permisiv", "acte")(h); }),
+    "dos-04t": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); }),
     /* 05 liste pe rol */
     "dos-05": dosList(SPEC),
     "dos-05a": dosList(SUP),
@@ -908,6 +923,13 @@
     "fo-03": foReq(2),
     "fo-04": foReq(3),
     "fo-05": foReq(4),
+    /* 2026-10-14 · one document shape in the FO: the picker keeps a card per document (type + source tag,
+       file · size · Emis / Încărcat … · de … · Semnat electronic); the Verificare summary lists the attached
+       documents titled by type */
+    "fo-04d": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(400); }),
+    "fo-04e": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); }),
+    "fo-04f": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); }),
+    "fo-05d": foReq(4, {}, async (h) => { await h.scroll(".e-permits-fo-summary-docs"); }),
     "fo-06": foReq(5),
     "fo-07": foReq(6),
     "fo-08": foReq(7, { paid: "1" }),
@@ -1619,6 +1641,11 @@
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
     "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] .cab-detail__actions [data-sm-action="download"]'); }, { descarcare: "eroare" }),
+    /* 2026-10-14 · Documente însoțitoare = the shared document cards: „Detalii” → document modal, ⋮ Descarcă */
+    "sm-05e": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); }),
+    "sm-05f": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),
+    "sm-05g": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-menu-trigger]"); }),
+    "sm-05h": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
     "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: ".cab-detail__head", run: null },
     "sm-06": sm(null, { eroare: "lista" }),
     "sm-06a": sm(async (h) => { await h.fill("[data-sm-search]", "Bălți", { leave: false }); }, { eroare: "cautare" }),

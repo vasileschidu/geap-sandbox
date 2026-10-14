@@ -2547,6 +2547,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (params.get("suspendat") === "1") row.alerte.push("suspendat");
     if (stare !== "depus" && !row.specialist) { row.specialist = workplaceState.rows.find((r) => r.specialist)?.specialist || null; row.nedistribuit = false; }
     if (stare === "depus") { row.nedistribuit = true; }
+    /* a signed / issued case has its signing day and (approved) its act number — the documents
+       (Act/Decizie, Documente generate) read them */
+    if (["semnat", "eliberat"].includes(stare)) {
+      row.dataSemnarii = row.dataSemnarii || dosarDecisionDay({ ...row, dataSemnarii: null });
+      if (row.decizia !== "respingere" && !row.nrActEmis) row.nrActEmis = `AUT-2026-${row.nrDosar.slice(-6)}`;
+    }
+    row.profil = null;
     /* &documente=0: a dossier whose applicant attached nothing (Documente însoțitoare empty state) */
     if (params.get("documente") === "0") { row.demoFaraDocumente = true; row.profil = null; }
     delete row.flowState;
@@ -2580,6 +2587,77 @@ document.addEventListener("DOMContentLoaded", () => {
       <use href="assets/icons/sprite.svg#icon-${name}"></use>
     </svg>
   `;
+
+  /* ---- Dosar documents: ONE model for Documente însoțitoare, Documente generate and Act/Decizie
+     (user 2026-10-14: „Documente generate also the same layout … same data architecture”).
+     A document = { id, tip, sursa: upload | mdocs | generat, nr?, fisier, kb, at, verb?, de?: { nume, rol },
+     semnat?: true | { nume, rol }, tags?: [[label, tone]], group?, … }. Generated ones come from
+     e-permits-workplace.json › documenteGenerate (by flow step), acts from its `acte`. */
+  const docSlug = (value) => String(value || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const docStamp = (day, minutes) => `${day}T${String(8 + Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:00`;
+  const docCatalog = () => dossierDb?.documenteGenerate || { pasi: [], tipuri: [], acte: {} };
+  const docSigner = () => docCatalog().conducator || { nume: "Conducătorul autorității", rol: "Conducătorul autorității" };
+  const SIA_GEAP = { nume: "SIA GEAP", rol: "Sistem" };
+  /* past signing: the act / decision is final even when the seed has no signing day */
+  const DOSAR_DECIDED = ["semnat", "eliberat", "respins", "arhivat"];
+  /* the act / decision day: signed → that day; otherwise the examination deadline, never in the future */
+  const dosarDecisionDay = (row) => row.dataSemnarii || ((row.termenExaminare && row.termenExaminare < (dossierDb?.today || "9999")) ? row.termenExaminare : dossierDb?.today || row.termenExaminare);
+  const buildDosarActe = (row, hasDecisionStage) => {
+    if (!hasDecisionStage) return [];
+    const hash = hashValue(`${row.id}act`);
+    const key = row.decizia === "respingere" ? "respingere" : row.nrActEmis ? "aprobare" : "decizie";
+    const spec = docCatalog().acte?.[key] || { tip: key === "respingere" ? "Decizie de respingere" : "Act permisiv", kb: 400, numar: "dosar", registru: "ASP" };
+    const nr = spec.numar === "act" ? row.nrActEmis : row.nrDosar;
+    const signed = Boolean(row.dataSemnarii) || DOSAR_DECIDED.includes(row.status);
+    return [{
+      id: "a1", tip: spec.tip, sursa: "generat", nr, nrLabel: spec.numar === "act" ? "Număr act" : "Număr dosar",
+      fisier: (spec.fisier || "act.pdf").replace("{nr}", docSlug(nr)), kb: spec.kb + (hash % 90),
+      at: docStamp(dosarDecisionDay(row), 6 * 60 + (hash % 50)), verb: "Emis",
+      de: row.specialist ? { nume: row.specialist.nume, rol: "Specialist" } : null,
+      semnat: signed ? docSigner() : null,
+      tags: [[key === "respingere" ? "Respingere" : "Aprobare", key === "respingere" ? "danger" : "success"], ...(signed ? [] : [["Proiect", "neutral"]])],
+      registru: spec.registru || "ASP", decizie: key
+    }];
+  };
+  const buildDosarGenerate = (row, { isOficiu, representative, taxe, hasDecisionStage }) => {
+    const catalog = docCatalog();
+    const hash = hashValue(`${row.id}gen`);
+    const filedDay = isOficiu ? row.dataInitierii || row.dataDepunerii : row.dataDepunerii;
+    const paid = (taxe || []).filter((taxa) => taxa.status !== "neachitat");
+    const decision = hasDecisionStage ? (row.decizia === "respingere" ? "decizie-respingere" : "decizie-aprobare") : "";
+    const signedDecision = Boolean(row.dataSemnarii) || DOSAR_DECIDED.includes(row.status);
+    const draftDay = signedDecision ? toIsoDate(addDays(parseIsoDate(row.dataSemnarii), -1)) : dosarDecisionDay(row);
+    const who = (code) => ({
+      sistem: SIA_GEAP,
+      specialist: row.specialist ? { nume: row.specialist.nume, rol: "Specialist" } : { nume: dossierDb?.myAutoritate || "Autoritatea emitentă", rol: "Autoritate" },
+      initiator: { nume: row.initiatDe?.nume || "Autoritatea emitentă", rol: "Specialist" },
+      solicitant: { nume: row.numeSolicitant, rol: row.companie ? "Reprezentant" : "Solicitant" },
+      conducator: docSigner()
+    }[code] || { nume: code, rol: "Sistem" });
+    const docs = [];
+    const add = (spec, extra) => {
+      const nr = extra.nr;
+      const de = who(spec.de);
+      const signer = spec.semnat === "solicitant" && row.sursa !== "FO" ? null : spec.semnat === "sistem" ? de : spec.semnat === "conducator" ? (signedDecision ? who("conducator") : null) : spec.semnat ? who(spec.semnat) : null;
+      docs.push({
+        id: `g${docs.length + 1}`, genId: spec.id, tip: spec.tip, sursa: "generat", group: spec.pas,
+        nr, nrLabel: { dosar: "Număr dosar", mpower: "Număr împuternicire", mpay: "Număr notă de plată" }[spec.numar] || "Număr",
+        fisier: spec.fisier.replace("{nr}", docSlug(extra.slug || nr)), kb: spec.kb + (hash % 40),
+        at: extra.at, verb: "Generat", de, semnat: signer,
+        tags: spec.semnat === "conducator" && !signedDecision ? [["Proiect", "neutral"]] : []
+      });
+    };
+    (catalog.tipuri || []).forEach((spec, index) => {
+      const minute = 30 + index * 2 + (hash % 3);
+      if (spec.cand === "oficiu" && isOficiu) add(spec, { nr: row.nrDosar, at: docStamp(filedDay, minute) });
+      if (spec.cand === "depus" && !isOficiu) add(spec, { nr: row.nrDosar, at: docStamp(filedDay, 30 + (hash % 20) + index) });
+      if (spec.cand === "mpower" && representative?.type === "mpower") add(spec, { nr: representative.numar, at: docStamp(filedDay, 30 + (hash % 20) + index) });
+      if (spec.cand === "achitat") paid.forEach((taxa, i) => add(spec, { nr: taxa.id, slug: taxa.denumire.replace(/^Taxă de /i, ""), at: docStamp(taxa.achitare || taxa.termen, 4 * 60 + (hash % 30) + i) }));
+      if (spec.cand === decision) add(spec, { nr: row.nrDosar, at: docStamp(draftDay, 7 * 60 + (hash % 40)) });
+    });
+    const order = catalog.pasi || [];
+    return docs.sort((a, b) => (order.indexOf(a.group) - order.indexOf(b.group)) || a.at.localeCompare(b.at));
+  };
 
   const buildDosarProfile = (row) => {
     if (row.profil) {
@@ -2620,9 +2698,10 @@ document.addEventListener("DOMContentLoaded", () => {
       || ["spreCoordonare", "spreSemnare", "semnat", "eliberat"].includes(row.status)
       || (row.status === "arhivat" && row.decizia === "aprobare"));
     const feesPaid = feesGenerated && row.status !== "asteaptaPlata";
-    const verificatLa = toIsoDate(addDays(parseIsoDate(row.dataDepunerii), 2 + (hash % 3)));
+    const verificatLa = [toIsoDate(addDays(parseIsoDate(row.dataDepunerii), 2 + (hash % 3))), dossierDb?.today || "9999-12-31"].sort()[0];
     const taxaTermen = toIsoDate(addDays(parseIsoDate(verificatLa), 5));
-    const taxaAchitatDate = toIsoDate(addDays(parseIsoDate(verificatLa), 1 + (hash % 3)));
+    /* a payment is never later than „today” (the seed could put it in the future) */
+    const taxaAchitatDate = [toIsoDate(addDays(parseIsoDate(verificatLa), 1 + (hash % 3))), dossierDb?.today || "9999-12-31"].sort()[0];
     const paymentState = feesPaid ? "achitata" : feesGenerated ? (hasPaymentAlert ? "expirata" : "emisa") : "fara";
     const paymentDate = feesPaid ? taxaAchitatDate : null;
     const paymentDueDate = toIsoDate(addDays(parseIsoDate(row.dataDepunerii), 5));
@@ -2638,32 +2717,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
         ]
       : [];
-    const documente = [
-      {
-        nume: isOficiu ? "Nota de inițiere" : "Cererea depusă",
-        tip: "PDF",
-        data: formatDate(isOficiu ? row.dataInitierii : row.dataDepunerii),
-        autor: isOficiu ? row.initiatDe?.nume || "Autoritatea emitentă" : row.numeSolicitant
-      },
-      ...(representative?.type === "mpower" ? [{
-        nume: "Extras MPower",
-        tip: "PDF",
-        data: formatDate(row.dataDepunerii),
-        autor: "MPower"
-      }] : []),
-      ...(paymentState === "achitata" ? [{
-        nume: "Confirmarea achitării taxei",
-        tip: "PDF",
-        data: formatDate(paymentDate),
-        autor: "MPay"
-      }] : []),
-      ...(hasDecisionStage ? [{
-        nume: row.decizia === "respingere" ? "Decizia de respingere" : "Proiectul actului permisiv",
-        tip: "PDF",
-        data: formatDate(row.dataSemnarii || row.termenExaminare),
-        autor: row.specialist?.nume || workplaceDb.myAutoritate
-      }] : [])
-    ];
     const notificari = [
       {
         canal: "Email",
@@ -2703,16 +2756,8 @@ document.addEventListener("DOMContentLoaded", () => {
       { id: `MPAY-${taxaBaseNr + 1}`, denumire: "Taxă de eliberare a actului", suma: 460, status: feesPaid ? "achitat" : "neachitat", emitere: verificatLa, termen: taxaTermen, achitare: feesPaid ? taxaAchitatDate : null }
     ] : [];
 
-    const acteSursa = "ASP";
-    const acte = hasDecisionStage
-      ? Array.from({ length: row.decizia === "respingere" ? 2 : 1 }, () => ({
-          titlu: row.decizia === "respingere"
-            ? "Decizie de respingere"
-            : row.nrActEmis ? `Act permisiv ${row.nrActEmis}` : "Decizie de aprobare",
-          emis: formatDate(row.dataSemnarii || row.termenExaminare),
-          sursa: acteSursa
-        }))
-      : [];
+    const acte = buildDosarActe(row, hasDecisionStage);
+    const documente = buildDosarGenerate(row, { isOficiu, representative, taxe, hasDecisionStage });
 
     /* Documente însoțitoare (Detalii solicitare): what the applicant attached at submission —
        the catalogue in e-permits-workplace.json › documenteInsotitoare (request type; Eliberare per
@@ -3208,47 +3253,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderDosarProfilDecizie = (row) => {
     const profile = buildDosarProfile(row);
-    const items = profile.acte.map((act, index) => ({
-      plainTitle: act.titlu,
-      title: escapeHtml(act.titlu),
-      badges: [renderTag(/respingere/i.test(act.titlu) ? "Respingere" : "Aprobare", /respingere/i.test(act.titlu) ? "danger" : "success")],
-      meta: [`Emis ${escapeHtml(act.emis)}`, escapeHtml(act.sursa)],
-      rowAttrs: `data-dosar-detail-row="acte|${index}"`,
-      action: { label: "Detalii", attrs: `data-dosar-detail="acte|${index}" aria-label="Detalii: ${escapeHtml(act.titlu)}"` }
-    }));
-
-    return renderStackedList("Acte și decizii", [{ label: "", items }], { empty: "Nu există acte sau decizii emise." });
+    return renderStackedList("Acte și decizii", [{ label: "", items: profile.acte.map((doc) => renderDosarDocItem(doc, "acte")) }], {
+      empty: "Nu există acte sau decizii emise.",
+      icon: "document"
+    });
   };
 
-  /* Documente însoțitoare (Detalii solicitare) — the Documente generate stacked list with a lead
-     icon (grey = uploaded from the device, blue = taken from MDocs, as in the FO summary), the
-     source tag, a dot-separated meta line, eye „Previzualizează” (→ the document modal) and ⋮
-     Descarcă. Groups Obligatorii / Opționale. */
+  /* ONE document row for every dossier document list (Documente însoțitoare, Documente generate,
+     Act/Decizie — user 2026-10-14): lead icon by source (grey = uploaded from the device, blue = MDocs /
+     generated by a system, as the FO summary), title = document type, source tag (+ status tags), meta
+     number (copy) · file · size · „<Verb> <date, time>” · „de <who>” · „Semnat electronic de …”;
+     „👁 Detalii” (→ the document modal with the page preview) + ⋮ Descarcă; the whole row opens it too. */
   const fileSizeLabel = (kb) => (kb < 1024 ? `${kb} KB` : `${(kb / 1024).toFixed(1)} MB`);
-  const insotitorAddedLabel = (doc) => `${doc.automat ? "Preluat automat" : doc.sursa === "mdocs" ? "Atașat" : "Încărcat"} ${formatStamp(doc.at)}`;
-  const renderDosarInsotitoare = (row, profile = buildDosarProfile(row)) => {
-    const docs = profile.insotitoare || [];
-    const required = docs.filter((doc) => doc.obligatoriu).length;
-    const items = docs.map((doc) => ({
-      group: doc.obligatoriu ? "Obligatorii" : "Opționale",
+  const DOC_SOURCES = {
+    upload: { tag: "Încărcat", icon: "document-uploaded.svg" },
+    mdocs: { tag: "MDocs", icon: "document-generated.svg" },
+    generat: { tag: "Generat", icon: "document-generated.svg" }
+  };
+  const docSource = (doc) => DOC_SOURCES[doc.sursa] || DOC_SOURCES.upload;
+  const docNumber = (doc) => doc.nr || doc.act?.nr || "";
+  const docVerb = (doc) => doc.verb || (doc.automat ? "Preluat automat" : doc.sursa === "mdocs" ? "Atașat" : doc.sursa === "generat" ? "Generat" : "Încărcat");
+  /* signed = a blue badge with the signature icon next to the title (user 2026-10-14); the signer goes in
+     the meta only when it is not the producer (a system seal needs no name) */
+  const SIGNED_TAG_HTML = '<span class="e-permits-workplace__tag e-permits-workplace__tag--brand e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-signature"></use></svg>Semnat electronic</span>';
+  const docOtherSigner = (doc) => (doc.semnat?.nume && doc.semnat.nume !== doc.de?.nume ? doc.semnat.nume : "");
+  const docSignedLabel = (doc) => (!doc.semnat ? "" : docOtherSigner(doc) ? `Semnat electronic de ${docOtherSigner(doc)}` : "Semnat electronic");
+  const insotitorAddedLabel = (doc) => `${docVerb(doc)} ${formatStamp(doc.at)}`;
+  const renderDosarDocItem = (doc, kind) => {
+    const nr = docNumber(doc);
+    const key = `${kind}|${doc.id}`;
+    return {
+      group: doc.group,
       plainTitle: doc.tip,
       title: escapeHtml(doc.tip),
-      leadHtml: `<img class="e-permits-fo-lib-item__icon" src="assets/icons/${doc.sursa === "mdocs" ? "document-generated.svg" : "document-uploaded.svg"}" width="24" height="24" alt="">`,
-      badges: [renderTag(doc.sursa === "mdocs" ? "MDocs" : "Încărcat", "neutral")],
+      leadHtml: `<img class="e-permits-fo-lib-item__icon" src="assets/icons/${docSource(doc).icon}" width="24" height="24" alt="">`,
+      badges: [renderTag(docSource(doc).tag, "neutral"), ...(doc.semnat ? [SIGNED_TAG_HTML] : []), ...(doc.tags || []).map(([label, tone]) => renderTag(label, tone))],
       meta: [
-        doc.act ? renderCopyCode(doc.act.nr, `Copiază ${doc.act.nr}`) : escapeHtml(doc.fisier),
+        ...(nr ? [renderCopyCode(nr, `Copiază ${nr}`)] : []),
+        /* the file name, unless it is just the number again */
+        ...(doc.fisier && doc.fisier !== `${nr}.pdf` ? [escapeHtml(doc.fisier)] : []),
         fileSizeLabel(doc.kb),
         escapeHtml(insotitorAddedLabel(doc)),
         ...(doc.de ? [`de ${escapeHtml(doc.de.nume)}`] : []),
-        ...(doc.semnat ? ["Semnat electronic"] : [])
+        ...(docOtherSigner(doc) ? [`semnat de ${escapeHtml(docOtherSigner(doc))}`] : [])
       ],
-      rowAttrs: `data-dosar-detail-row="insotitoare|${doc.id}"`,
+      rowAttrs: `data-dosar-detail-row="${escapeHtml(key)}"`,
       actionsHtml: renderRowActions({
-        preview: `data-dosar-detail="insotitoare|${doc.id}" aria-haspopup="dialog"`,
-        menu: [{ label: "Descarcă", icon: "download", attrs: `data-dosar-file-download="${doc.id}"` }],
+        preview: `data-dosar-detail="${escapeHtml(key)}" aria-haspopup="dialog"`,
+        menu: [{ label: "Descarcă", icon: "download", attrs: `data-dosar-file-download="${escapeHtml(key)}"` }],
         label: doc.tip
       })
-    }));
+    };
+  };
+  const dosarDocsOf = (profile, kind) => ({ insotitoare: profile.insotitoare, documente: profile.documente, acte: profile.acte }[kind] || []);
+
+  /* Documente însoțitoare (Detalii solicitare): groups Obligatorii / Opționale */
+  const renderDosarInsotitoare = (row, profile = buildDosarProfile(row)) => {
+    const docs = profile.insotitoare || [];
+    const required = docs.filter((doc) => doc.obligatoriu).length;
+    const items = docs.map((doc) => ({ ...renderDosarDocItem(doc, "insotitoare"), group: doc.obligatoriu ? "Obligatorii" : "Opționale" }));
 
     return renderStackedList("Documente însoțitoare", groupBy(items, (item) => item.group, ["Obligatorii", "Opționale"]), {
       meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}`,
@@ -3257,20 +3320,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  /* Documente generate: grouped by the flow step that produced them */
   const renderDosarProfilDocumente = (row) => {
     const profile = buildDosarProfile(row);
-    const items = profile.documente.map((document, index) => ({
-      plainTitle: document.nume,
-      title: escapeHtml(document.nume),
-      badges: [renderTag(document.tip || "PDF", "neutral")],
-      meta: [`Emis ${escapeHtml(document.data)}`, escapeHtml(document.autor)],
-      rowAttrs: `data-dosar-detail-row="documente|${index}"`,
-      action: { label: "Detalii", attrs: `data-dosar-detail="documente|${index}" aria-label="Detalii: ${escapeHtml(document.nume)}"` }
-    }));
+    const docs = profile.documente || [];
+    const signed = docs.filter((doc) => doc.semnat).length;
+    const items = docs.map((doc) => renderDosarDocItem(doc, "documente"));
 
-    return renderStackedList("Documente generate", [{ label: "", items }], {
-      meta: "Generate în timpul examinării",
-      empty: "Nu există documente generate."
+    return renderStackedList("Documente generate", groupBy(items, (item) => item.group, docCatalog().pasi || []), {
+      meta: `${plural(docs.length, "document", "documente")} · ${signed} ${signed === 1 ? "semnat" : "semnate"}`,
+      empty: "Nu există documente generate.",
+      icon: "document"
     });
   };
 
@@ -3331,7 +3391,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const address = "mun. Chișinău, str. Alba Iulia 20";
     const table = (pairs) => `<table><tbody>${pairs.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`).join("")}</tbody></table>`;
     let body;
-    if (doc.act) {
+    const nr = docNumber(doc);
+    const day = formatLongDate(doc.at);
+    const taxa = doc.genId === "confirmare-plata" ? (profile.taxe || []).find((t) => t.id === nr) : null;
+    if (doc.decizie === "respingere" || doc.genId === "proiect-respingere") {
+      body = `<h1>Decizie de respingere</h1><p>nr. ${escapeHtml(row.nrDosar)} din ${escapeHtml(day)}</p>
+        ${table([["Solicitant", holder], ["Cod de identificare", holderId], ["Serviciul", row.serviciu], ["Emitent", dossierDb?.myAutoritate || ""]])}
+        <p>În urma examinării dosarului ${escapeHtml(row.nrDosar)}, autoritatea respinge cererea pentru motivele indicate în dosar. Decizia poate fi contestată în termen de 30 de zile.</p>`;
+    } else if (doc.decizie || doc.genId === "proiect-act") {
+      body = `<h1>${escapeHtml(row.serviciu)}</h1><p>${row.nrActEmis ? `nr. ${escapeHtml(row.nrActEmis)} din ${escapeHtml(day)}` : `Proiect · dosarul ${escapeHtml(row.nrDosar)}`}</p>
+        ${table([["Titular", holder], ["Cod de identificare", holderId], ["Adresa obiectului", address], ["Emitent", dossierDb?.myAutoritate || ""]])}
+        <p>Actul permisiv se eliberează pentru desfășurarea activității la adresa indicată, în condițiile legii.</p>`;
+    } else if (doc.genId === "cerere" || doc.genId === "nota-initiere") {
+      body = `<h1>${escapeHtml(doc.genId === "cerere" ? "Cerere" : "Notă de inițiere")}</h1><p>nr. ${escapeHtml(row.nrDosar)} din ${escapeHtml(day)}</p>
+        ${table([["Serviciul", row.serviciu], ["Tipul solicitării", row.tipDosar || "Eliberare"], [doc.genId === "cerere" ? "Solicitant" : "Titular", holder], ["Cod de identificare", holderId], ["Adresa obiectului", address]])}
+        <p>${doc.genId === "cerere" ? "Solicit eliberarea actului permisiv în condițiile legii. Documentele însoțitoare sunt anexate la cerere." : "Procedura se inițiază din oficiu, în temeiul atribuțiilor autorității."}</p>`;
+    } else if (doc.genId === "certificat") {
+      body = `<h1>Certificat constatator</h1><p>Confirmă depunerea cererii în SIA GEAP.</p>
+        ${table([["Numărul dosarului", row.nrDosar], ["Serviciul", row.serviciu], ["Solicitant", holder], ["Data depunerii", formatStamp(doc.at)]])}`;
+    } else if (doc.genId === "extras-mpower") {
+      body = `<h1>Extras MPower</h1><p>Împuternicirea nr. ${escapeHtml(nr)}</p>
+        ${table([["Reprezentant", row.numeSolicitant], ["Persoana reprezentată", holder], ["Scopul", profile.representative?.scop || "Reprezentarea cererii"], ["Valabilă până la", formatLongDate(profile.representative?.valabilaPanaLa)]])}`;
+    } else if (taxa) {
+      body = `<h1>Confirmarea achitării</h1><p>Nota de plată ${escapeHtml(taxa.id)}</p>
+        ${table([["Plătitor", holder], ["Destinația plății", taxa.denumire], ["Suma", `${taxa.suma} MDL`], ["Data achitării", formatLongDate(taxa.achitare)], ["Metoda de plată", "MPay · card bancar"]])}`;
+    } else if (doc.act) {
       body = `<h1>${escapeHtml(row.serviciu)}</h1><p>nr. ${escapeHtml(doc.act.nr)} din ${escapeHtml(formatLongDate(doc.act.emis))}</p>
         ${table([["Titular", holder], ["Cod de identificare", holderId], ["Adresa obiectului", address], ["Emitent", doc.emitent || workplaceDb.myAutoritate]])}
         <p>Actul permisiv se eliberează pentru desfășurarea activității la adresa indicată, în condițiile legii.</p>`;
@@ -3353,10 +3437,11 @@ document.addEventListener("DOMContentLoaded", () => {
       body = `<h1>${escapeHtml(doc.tip)}</h1><p>Anexă la cererea ${escapeHtml(row.nrDosar)} · ${escapeHtml(row.serviciu)}</p>${table([["Solicitant", holder], ["Cod de identificare", holderId]])}`;
     }
     const signature = doc.semnat
-      ? `<p>Semnat electronic · MSign · ${escapeHtml(formatLongDate(doc.act ? doc.act.emis : doc.at))}</p>`
-      : `<p>Semnătura: ${escapeHtml(row.numeSolicitant)}</p>`;
+      ? `<p>Semnat electronic · MSign${doc.semnat.nume ? ` · ${escapeHtml(doc.semnat.nume)}` : ""} · ${escapeHtml(formatLongDate(doc.act ? doc.act.emis : doc.at))}</p>`
+      : (doc.tags || []).some(([label]) => label === "Proiect") ? "<p>Proiect — urmează semnarea</p>"
+      : doc.sursa === "generat" ? "" : `<p>Semnătura: ${escapeHtml(row.numeSolicitant)}</p>`;
     return `
-      <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas role="img" aria-label="Previzualizare: ${escapeHtml(doc.fisier)}">
+      <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas role="img" aria-label="Previzualizare: ${escapeHtml(doc.tip)}, ${escapeHtml(doc.fisier)}">
         <div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${body}${signature}</div></div>
       </div>`;
   };
@@ -3413,48 +3498,34 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Număr dosar", escapeHtml(row.nrDosar)]
       ];
       file = a.status === "favorabil" ? `aviz-${a.id}` : "";
-    } else if (kind === "acte" || kind === "documente") {
-      const list = kind === "acte" ? profile.acte : profile.documente;
-      const d = list[Number(key)]; if (!d) return;
-      const name = kind === "acte" ? d.titlu : d.nume;
-      const rejectedAct = /respingere/i.test(name);
-      title = kind === "acte" ? (rejectedAct ? "Decizie" : "Act permisiv") : "Document";
-      subtitle = name;
-      rows = kind === "acte" ? [
-        ["Denumirea", escapeHtml(name)],
-        ["Tipul", renderTag(rejectedAct ? "Respingere" : "Aprobare", rejectedAct ? "danger" : "success")],
-        ...(row.nrActEmis && !rejectedAct ? [["Număr act", renderCopyCode(row.nrActEmis, `Copiază ${row.nrActEmis}`)]] : []),
-        ["Emis la", escapeHtml(d.emis)],
-        ["Emitent", escapeHtml(workplaceDb.myAutoritate)],
-        ["Registru", escapeHtml(d.sursa)],
-        ["Semnat electronic", row.dataSemnarii ? "Da · MSign" : "Nu — proiect"],
-        ["Număr dosar", escapeHtml(row.nrDosar)]
-      ] : [
-        ["Denumirea", escapeHtml(name)],
-        ["Format", renderTag(d.tip || "PDF", "neutral")],
-        ["Emis la", escapeHtml(d.data)],
-        ["Autor / emitent", escapeHtml(d.autor)],
-        ["Dimensiune", `${(0.2 + (hashValue(name + row.id) % 18) / 10).toFixed(1)} MB`],
-        ["Număr dosar", escapeHtml(row.nrDosar)]
-      ];
-      file = clasSnake(name) || "document";
-    } else if (kind === "insotitoare") {
-      const d = (profile.insotitoare || []).find((x) => x.id === key); if (!d) return;
+    } else if (["insotitoare", "documente", "acte"].includes(kind)) {
+      /* one document modal for every dossier document (însoțitoare, generate, act/decizie):
+         the page preview, then „Date generale” */
+      const d = dosarDocsOf(profile, kind).find((x) => x.id === key); if (!d) return;
       const mdocs = d.sursa === "mdocs";
-      title = d.act ? "Act permisiv emis anterior" : "Document însoțitor"; subtitle = d.act ? `${d.act.nr} · ${row.serviciu}` : d.tip;
+      const nr = docNumber(d);
+      const verb = docVerb(d);
+      const verbAt = d.automat ? "Preluat" : verb;
+      title = kind === "acte" ? (/decizie/i.test(d.tip) ? "Decizie" : "Act permisiv")
+        : kind === "documente" ? "Document generat"
+        : d.act ? "Act permisiv emis anterior" : "Document însoțitor";
+      subtitle = d.act ? `${d.act.nr} · ${row.serviciu}` : kind === "acte" && nr ? `${nr} · ${row.serviciu}` : d.tip;
       rows = [
         ["Tip document", escapeHtml(d.tip)],
-        ...(d.act ? [
-          ["Număr act", renderCopyCode(d.act.nr, `Copiază ${d.act.nr}`)],
-          ["Emis la", escapeHtml(formatLongDate(d.act.emis))]
-        ] : []),
+        ...((d.tags || []).length ? [["Statutul", d.tags.map(([label, tone]) => renderTag(label, tone)).join(" ")]] : []),
+        ...(nr ? [[d.nrLabel || "Număr act", renderCopyCode(nr, `Copiază ${nr}`)]] : []),
+        ...(d.act ? [["Emis la", escapeHtml(formatLongDate(d.act.emis))]] : []),
+        ...(d.group && kind === "documente" ? [["Pasul din flux", escapeHtml(d.group)]] : []),
         ["Fișier", escapeHtml(d.fisier)],
         ["Dimensiune", escapeHtml(fileSizeLabel(d.kb))],
-        [d.automat ? "Preluat la" : mdocs ? "Atașat la" : "Încărcat la", escapeHtml(formatStamp(d.at))],
-        ...(d.de ? [[mdocs ? "Atașat de" : "Încărcat de", `${escapeHtml(d.de.nume)} · ${escapeHtml(d.de.rol)}`]] : []),
-        ["Sursă", d.automat ? "MDocs · preluat automat la depunerea cererii" : mdocs ? `MDocs${d.emitent ? ` · emis de ${escapeHtml(d.emitent)}` : ""}` : d.de?.rol === "Operator ghișeu" ? "Încărcat la ghișeu" : "Încărcat de pe dispozitiv"],
-        ["Obligatoriu", yesNo(d.obligatoriu)],
-        ["Semnătură", d.semnat ? "Semnat electronic · MSign" : "Fără semnătură electronică"],
+        [`${verbAt} la`, escapeHtml(formatStamp(d.at))],
+        ...(d.de ? [[`${verbAt} de`, `${escapeHtml(d.de.nume)} · ${escapeHtml(d.de.rol)}`]] : []),
+        ...(kind === "insotitoare" ? [
+          ["Sursă", d.automat ? "MDocs · preluat automat la depunerea cererii" : mdocs ? `MDocs${d.emitent ? ` · emis de ${escapeHtml(d.emitent)}` : ""}` : d.de?.rol === "Operator ghișeu" ? "Încărcat la ghișeu" : "Încărcat de pe dispozitiv"],
+          ["Obligatoriu", yesNo(d.obligatoriu)]
+        ] : []),
+        ...(d.registru ? [["Registru", escapeHtml(d.registru)]] : []),
+        ["Semnătură", d.semnat ? `${SIGNED_TAG_HTML} <span class="e-permits-passport__row-note">MSign · ${escapeHtml(d.semnat.nume || d.de?.nume || row.numeSolicitant)} · ${escapeHtml(formatStamp(d.at))}</span>` : (d.tags || []).some(([label]) => label === "Proiect") ? "Nesemnat — proiect" : "Fără semnătură electronică"],
         ["Număr dosar", escapeHtml(row.nrDosar)]
       ];
       file = d.fisier.replace(/\.[a-z0-9]+$/i, "");
@@ -3526,12 +3597,13 @@ document.addEventListener("DOMContentLoaded", () => {
     downloadTextFile(dosarDetailFile.name, dosarDetailFile.text);
   });
   dosarProfilPanelBody?.addEventListener("click", (event) => {
-    /* Documente însoțitoare › ⋮ Descarcă */
+    /* any dossier document › ⋮ Descarcă (kind|id) */
     const fileDownload = event.target.closest("[data-dosar-file-download]");
     if (fileDownload) {
       const row = getDosarById(dosarProfilState.rowId);
-      const doc = row && (buildDosarProfile(row).insotitoare || []).find((x) => x.id === fileDownload.dataset.dosarFileDownload);
-      if (doc) downloadTextFile(doc.fisier.replace(/\.[a-z0-9]+$/i, ""), [doc.tip, doc.fisier, fileSizeLabel(doc.kb), insotitorAddedLabel(doc), `Dosar ${row.nrDosar}`].join("\n"));
+      const [docKind, docId] = fileDownload.dataset.dosarFileDownload.split("|");
+      const doc = row && dosarDocsOf(buildDosarProfile(row), docKind).find((x) => x.id === docId);
+      if (doc) downloadTextFile(doc.fisier.replace(/\.[a-z0-9]+$/i, ""), [doc.tip, docNumber(doc), doc.fisier, fileSizeLabel(doc.kb), insotitorAddedLabel(doc), docSignedLabel(doc), `Dosar ${row.nrDosar}`].filter(Boolean).join("\n"));
       return;
     }
     const trigger = event.target.closest("[data-dosar-detail]") || (!event.target.closest("button, a, input, label, .e-permits-stack__menu-wrap") && event.target.closest(".e-permits-stack__item[data-dosar-detail-row]"));
@@ -4153,7 +4225,8 @@ document.addEventListener("DOMContentLoaded", () => {
       row.dataSemnarii = today;
       row.nrActEmis = row.decizia === "aprobare" ? `AUT-2026-${row.nrDosar.slice(-6)}` : null;
       profile.hasDecisionStage = true;
-      profile.acte = [{ titlu: row.decizia === "respingere" ? "Decizie de respingere" : `Act permisiv ${row.nrActEmis}`, emis: formatDate(today), sursa: "ASP" }];
+      profile.acte = buildDosarActe(row, true);
+      profile.documente = buildDosarGenerate(row, { isOficiu: profile.isOficiu, representative: profile.representative, taxe: profile.taxe, hasDecisionStage: true });
     }
 
     const landed = flow.nodes[state.stateId];
@@ -6767,7 +6840,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <span class="e-permits-workplace__row-actions">
             ${renderRowActions({
-              preview: `data-tariff-view="${escapeHtml(row.id)}"`, previewLabel: "Vezi tariful",
+              preview: `data-tariff-view="${escapeHtml(row.id)}"`,
               primary: isCentralAdmin() ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(row.id)}" aria-label="Editează tariful ${escapeHtml(row.denumire)}"` } : null,
               label: row.denumire
             })}
@@ -7096,6 +7169,8 @@ document.addEventListener("DOMContentLoaded", () => {
         leadHtml: '<img class="e-permits-fo-lib-item__icon" src="assets/icons/document-uploaded.svg" width="24" height="24" alt="">',
         badges: [renderTag(doc.source, doc.source === "RSSP" ? "neutral" : "brand"), ...(doc.state === "Inactiv" ? [renderTag("Inactiv", "neutral")] : []), ...(doc.published ? [] : [renderTag("Nepublicat", "warning")])],
         meta: [escapeHtml(doc.docType), escapeHtml(doc.applicantTypes.join(", ")), doc.required ? "Obligatoriu" : "Opțional", docRulesLabel(doc)],
+        /* the whole row opens the document (as every document list), the buttons keep their own */
+        rowAttrs: `data-doc-row="${doc.id}"`,
         actionsHtml: renderRowActions({
           preview: admin ? null : `data-doc-open="${doc.id}"`,
           primary: admin ? { label: "Editează", attrs: `data-doc-open="${doc.id}"` } : null,
@@ -7300,7 +7375,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* „Editează” always carries the pen (user, 2026-10-09); other labels stay text */
   /* labelled row actions always carry their icon (user 2026-10-14): Editează = pen,
      Configurează = settings, Previzualizează = eye */
-  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open", "Vezi detalii": "eye-open", "Vezi documentul": "eye-open", "Vezi formularul": "eye-open", "Vezi tariful": "eye-open" };
+  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open" };
   const actionLabelHtml = (label) => ACTION_ICONS[label]
     ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${ACTION_ICONS[label]}"></use></svg><span>${escapeHtml(label)}</span>`
     : escapeHtml(label);
@@ -7314,9 +7389,10 @@ document.addEventListener("DOMContentLoaded", () => {
      · [⋮ everything else, destructive last]. Never an icon-only primary, never two text buttons. */
   /* one action besides ⋮ (user 2026-10-14): it is never icon-only — the eye becomes the
      labelled grey „Previzualizează” (icon + label, btn-neutral, like Editează / Configurează) */
-  /* short label (user 2026-10-14: „Previzualizează” is too long) — „Vezi documentul” etc. */
-  const renderRowActions = ({ preview = null, previewLabel = "Vezi documentul", primary = null, menu = [], label = "" }) => !primary && preview ? `
-    <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="${escapeHtml(previewLabel)}: ${escapeHtml(label)}" ${preview}>${actionLabelHtml(previewLabel)}</button>
+  /* the lone view action is ALWAYS „Detalii” with the eye (user 2026-10-14: „eye and Detalii as
+     here … change everywhere”) — never „Previzualizează” / „Vez …” labels */
+  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "" }) => !primary && preview ? `
+    <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Detalii: ${escapeHtml(label)}" ${preview}>${actionLabelHtml("Detalii")}</button>
     ${menu.length ? renderStackMenu(menu, label) : ""}` : `
     ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
     ${primary ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" ${primary.attrs}>${actionLabelHtml(primary.label)}</button>` : ""}
@@ -7732,7 +7808,7 @@ document.addEventListener("DOMContentLoaded", () => {
         meta: [renderTag(form.technical, "neutral"), `${form.fields} câmpuri`, escapeHtml(form.version), whoWhen("Editat", form.editedAt, form.editedBy)],
         meta2: [`Folosit în ${used.length ? `<span class="e-permits-passport__tag-list">${used.map((rt) => renderTag(rt.name, "neutral")).join("")}</span>` : '<span class="e-permits-passport__muted">niciun tip de solicitare</span>'}`],
         actionsHtml: renderRowActions({
-          preview: `aria-haspopup="dialog" data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="preview"`, previewLabel: "Vezi formularul",
+          preview: `aria-haspopup="dialog" data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="preview"`,
           primary: admin ? { label: "Editează", attrs: "data-passport-open-builder" } : null,
           menu: admin ? [
             { label: "Duplică", icon: "copy", attrs: `data-passport-form="${escapeHtml(form.id)}" data-passport-form-action="duplicate"` },
@@ -8291,7 +8367,7 @@ document.addEventListener("DOMContentLoaded", () => {
           whoWhen("Modificat", t.modifiedAt, t.modifiedBy)
         ],
         actionsHtml: renderRowActions({
-          preview: `data-tariff-view="${escapeHtml(t.id)}"`, previewLabel: "Vezi tariful",
+          preview: `data-tariff-view="${escapeHtml(t.id)}"`,
           primary: admin ? { label: "Editează", attrs: `data-tariff-edit="${escapeHtml(t.id)}" aria-label="Editează tariful ${escapeHtml(t.name)}"` } : null,
           label: t.name
         })
@@ -16972,6 +17048,8 @@ document.addEventListener("DOMContentLoaded", () => {
   permitsProfilePanel?.addEventListener("click", (event) => {
     const open = event.target.closest("[data-doc-open]");
     if (open) { openDocDrawer(open.dataset.docOpen); return; }
+    const docRow = !event.target.closest("button, a, input, label, .e-permits-stack__menu-wrap") && event.target.closest("[data-doc-row]");
+    if (docRow) { openDocDrawer(docRow.dataset.docRow); return; }
     if (event.target.closest("[data-doc-add]")) { openDocDrawer(null); return; }
     const act = event.target.closest("[data-doc-action]");
     if (!act) return;

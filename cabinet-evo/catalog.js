@@ -156,8 +156,10 @@
         </section>
         <section class="cab-section" aria-labelledby="cat-sec-docs">
           <h2 class="e-permits-fo-finish__section-title" id="cat-sec-docs">Documente necesare</h2>
-          <div class="e-permits-fo-summary-card cab-detail__card">
-            ${service.documents.map((doc) => row(doc.title, `<span class="status-tag ${doc.required ? "status-tag--neutral is-strong" : "status-tag--neutral is-subtle"} status-tag--small">${doc.required ? "Obligatoriu" : "Opțional"}</span>${doc.note ? ` <span class="cab-detail__muted">${escape(doc.note)}</span>` : ""}`)).join("")}
+          <!-- document TYPES the applicant will attach: the shared document card (grey icon, type,
+               Obligatoriu / Opțional, note) — no file yet, so no actions -->
+          <div class="cab-docs">
+            ${service.documents.map((doc) => C.docRowHtml({ tip: doc.title, tags: [[doc.required ? "Obligatoriu" : "Opțional", doc.required ? "strong" : "neutral"]], note: doc.note })).join("")}
           </div>
         </section>
       </article>`;

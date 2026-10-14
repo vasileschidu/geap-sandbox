@@ -501,7 +501,7 @@
       case "ultimaAutentificare": return r.ultimaAutentificare ? A.renderDateTime(r.ultimaAutentificare, S.ago(r.ultimaAutentificare)) : '<span class="e-permits-workplace__date-meta">Nu s-a autentificat încă</span>';
       case "esuate": return r.esuate ? T(String(r.esuate), "danger") : "0";
       case "creat": return A.renderDateTime(r.creat);
-      case "actiuni": return rowActions({ label: "Vezi detalii", attrs: `${act("user-open", r.id)} aria-label="Vezi detaliile contului ${esc(r.nume)}"` },
+      case "actiuni": return rowActions({ label: "Detalii", attrs: `${act("user-open", r.id)} aria-label="Detalii: contul ${esc(r.nume)}"` },
         r.self ? [] : [r.status === "Activ"
           ? { label: "Suspendă contul", icon: "pause", attrs: act("user-suspend", r.id), danger: true }
           : { label: r.status === "Blocat" ? "Deblochează contul" : "Reactivează contul", icon: "rotate-arrow", attrs: act("user-reactivate", r.id) }], r.nume);
@@ -657,7 +657,7 @@
       case "activ": return statusTag(r.activ);
       case "creat": return A.renderDateTime(r.creat);
       case "actiuni": return rowActions({ label: "Editează", attrs: act("client-edit", r.id) }, [
-        { label: "Vezi detalii", icon: "eye-open", attrs: act("client-open", r.id) },
+        { label: "Detalii", icon: "eye-open", attrs: act("client-open", r.id) },
         r.activ ? { label: "Dezactivează", icon: "pause", attrs: act("client-toggle", r.id), danger: true } : { label: "Activează", icon: "rotate-arrow", attrs: act("client-toggle", r.id) }
       ], r.denumire);
       default: return esc(r[key] ?? "—");
@@ -799,7 +799,7 @@
       case "activ": return statusTag(r.activ);
       case "updatedAt": return updatedCell(r);
       case "actiuni": return rowActions({ label: "Editează", attrs: act("uc-edit", r.id) }, [
-        { label: "Vezi detalii", icon: "eye-open", attrs: act("uc-open", r.id) },
+        { label: "Detalii", icon: "eye-open", attrs: act("uc-open", r.id) },
         r.activ ? { label: "Dezactivează", icon: "pause", attrs: act("uc-toggle", r.id), danger: true } : { label: "Activează", icon: "rotate-arrow", attrs: act("uc-toggle", r.id) }
       ], r.denumire);
       default: return esc(r[key] ?? "—");
@@ -1234,7 +1234,7 @@
       case "reguli": return String(r.reguli);
       case "activ": return statusTag(r.activ);
       case "actiuni": return rowActions({ label: "Editează", attrs: act("scoring-edit", r.id) }, [
-        { label: "Vezi detalii", icon: "eye-open", attrs: act("scoring-open", r.id) },
+        { label: "Detalii", icon: "eye-open", attrs: act("scoring-open", r.id) },
         r.activ ? { label: "Dezactivează", icon: "pause", attrs: act("scoring-toggle", r.id), danger: true } : { label: "Activează", icon: "rotate-arrow", attrs: act("scoring-toggle", r.id) }
       ], r.denumire);
       default: return esc(r[key] ?? "—");
@@ -1859,7 +1859,7 @@
       case "valabilDeLa": return esc(longDate(r.valabilDeLa));
       case "valabilPana": { const d = daysTo(r.valabilPana); return `<span class="e-permits-workplace__date-stack"><span>${esc(longDate(r.valabilPana))}</span><span class="e-permits-workplace__date-meta">${d < 0 ? `expirat de ${-d} zile` : d <= 60 ? `expiră în ${d} zile` : `încă ${Math.round(d / 365)} ani`}</span></span>`; }
       case "stare": return T(r.stare, CA_TONES[r.stare]);
-      case "actiuni": return rowActions({ label: "Vezi detalii", attrs: act("ca-open", r.id) }, caMenu(r.c), r.denumire);
+      case "actiuni": return rowActions({ label: "Detalii", attrs: `${act("ca-open", r.id)} aria-label="Detalii: ${esc(r.denumire)}"` }, caMenu(r.c), r.denumire);
       default: return esc(r[key] ?? "—");
     }
   };
