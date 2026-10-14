@@ -6,6 +6,7 @@
 //      --state svc-02h --capture <id> [--selector "[data-rt-drawer] .e-permits-tariff__panel"] [--full] [--height 1024] [--width 1440] [--page cabinet-evo/index.html]
 //    --hide "<css>"  elements to hide (default ".e-permits-fo-testcfg,.msup-bubble"; pass ".msup-bubble" to keep the config panel)
 //    --css "<css>"   extra CSS injected before the capture (unclip scrolling panels)
+//    --settle <ms>   wait after the demo state is ready (default 900; 2000 for states that open a modal)
 //    --keep-focus    do not blur the focused element (open lists / focus rings, e.g. adr-02a)
 //    --full     lets drawers grow to their content (no inner scroll → nothing clipped in Figma)
 //    --fit      grows the viewport height until the inner scrollers (--fit-sel, default: BO canvas, table wrap,
@@ -56,7 +57,7 @@ await send("Page.navigate", { url: `${BASE}/${PAGE}?state=${STATE}` });
 for (let i = 0; i < 100; i++) { await sleep(150); if (await evaluate("document.documentElement.dataset.demoState")) break; }
 const st = await evaluate("document.documentElement.dataset.demoState");
 if (String(st).endsWith(":error")) console.error(`demo state ${STATE} stopped with an error — check js/demo-states.js`);
-await sleep(900);
+await sleep(Number(arg("settle", 900)));   // --settle <ms>: wait longer for demo runs that open a modal / menu (dos-04h)
 await evaluate(`(() => { const s = document.head.appendChild(document.createElement("style")); s.textContent = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important} ${HIDE}{display:none!important} ${CSS.replace(/"/g, '\\"')}${FULL ? " .e-permits-user-create__drawer{height:auto!important;max-height:none!important} .e-permits-user-create__body{overflow:visible!important;flex:none!important;max-height:none!important}" : ""}"; ${KEEP_FOCUS ? "" : "document.activeElement?.blur?.();"} })()`);
 await sleep(300);
 if (FIT) for (let k = 0; k < 4; k++) {

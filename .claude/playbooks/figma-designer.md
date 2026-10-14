@@ -626,3 +626,33 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   their trigger (code gap). Wrapper frames with clip must HUG their content (Acțiuni tabel 130 → 131).
 
 - 2026-10-14 · Screen frame rule (user): every screen in a block clips content, radius 16 (mobile ≤430: 24), 4px OUTSIDE border bound to border/base/default. Apply to the block's direct screen child or the children of an „Ecrane · desktop + mobil” wrapper only — a screen that contains a full-size Overlay/Drawer/Body frame is still ONE screen (a „≥ 2 big child frames = wrapper” heuristic wrongly bordered 123 inner layers once). Check content fits before enabling clip.
+
+- 2026-10-14 · Dosare board (9696:526) — dossier tab rule + Documente însoțitoare:
+  - Tab bars live in the local `Dosar / Header` (9706:6955; 02-series blocks have detached copies). Sync them from CODE, not from
+    memory: a CDP extractor reads `[data-dosar-tab]` (label, `.e-permits-page-header__tab-count`, `--warning` tone, active) per
+    dos-* state → one spec → one idempotent setter (visibility, Type, Badge, numbered-badge Counter Value; warning = Style Accent).
+    Re-run the same script as the read-only verifier afterwards.
+  - `figma.skipInvisibleInstanceChildren` is TRUE by default here: hidden instance sublayers (a hidden tab) are invisible to
+    `.children` / findAll → the setter reported „MISSING”. Set it to false in every script that toggles visibility in instances.
+  - Code headers drift too: column 04 showed „Eliberat / Dosar finalizat” while dos-04* are În examinare / Semnat, 03e În examinare
+    vs Spre coordonare. When syncing anything per state, also survey header status + button per block (cheap, read-only) and swap
+    the header from a block with the right status, then re-apply the tab spec.
+  - A Body FILL inside a HUG screen never grows: Main clipped 400 px of new content silently (block heights did not change —
+    that was the tell). Body HUG + minHeight 992, Main HUG. Check `sum(children) > main.height` after every content change.
+  - Items inside instances (tabs, rows of a header) cannot be connector ends; anchors + magnets run through the screen. Use the
+    container instance with `position: {x: width, y: item centre}` (the arrow leaves the screen edge at the tab row) — the
+    menu-item technique works for tabs too. Re-check existing connectors after opening a column: three 01→02 arrows started
+    crossing the new column → replaced by „Marker · → …” NODE-link texts in the source label.
+  - New column next to an existing one = shift every section child with x ≥ new x by 1920+240 first (connectors follow), clone a
+    band header, give the band an ID that does not collide with block ids (01b already existed → „01+”, „04+”).
+  - Library has no empty state → local „Stare goală · casetă” 11311:6217 (boxed, Iconiță swap prop). Match the RENDERED code, not
+    the doc: border 1px (doc says 1.5), no 4px gap under the title (margin reset in the profile) → 182/202 px exactly.
+  - svc/stack-item got an optional `Show lead` slot (library `document-icon`, Type User Uploaded / System Generated), hidden by
+    default — added to the main after counting instances (69, heights unchanged). Last row of each group: Row strokeBottomWeight 0.
+    The component is 85 px per row vs the code's 72 (padding 16/gap 8 vs 12/4) — board-wide, reported, not changed.
+  - CSS-zoomed content (A4 preview pages, zoom 0.632) captures BROKEN: texts keep unzoomed sizes and overflow. Build the page as a
+    local component at real size with Desktop text styles (`Dosar / Pagină document · …` 11328:16559/16563/16589) and place a
+    `rescale(0.632)` instance — styles stay attached. Embedding screenshots as base64 is impractical (≥14 KB per image).
+  - capture-to-figma.mjs: new `--settle <ms>` (wait after the demo state before capturing; states that open a modal need 5000+).
+    Parallel captures of modal states failed („selector not found”) — run them one at a time.
+  - Cloned 04e modal rows: the second row carried a tag box („Format: PDF”) → rebuild every row from a plain row clone.
