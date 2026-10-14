@@ -4691,6 +4691,12 @@ deciziei” under Suspendare (Figma comments, Olesea Luchian, 2026-10-09).
    „Configurat”). Never an icon-only primary (the old ✎ on taxes), never two text buttons.
 3. ⋮ (`renderStackMenu`) for everything else — constructive first (Publică, Activează, Aplică ca
    atare), destructive red last.
+4. **Only one action besides ⋮ (user 2026-10-14):** it is never icon-only — it is the labelled grey
+   `btn-neutral btn-sm` with its leading 16px icon, like „Editează”. So a row with just a preview
+   shows „👁 Previzualizează” (not the strict eye), „Detalii” / „Vezi detalii” also carry the eye.
+   Every labelled action has its icon: Editează = `edit`, **Configurează = `settings`**,
+   Previzualizează / Detalii = `eye-open` (`ACTION_ICONS` + `actionLabelHtml` in
+   js/e-permits-shell.js). The strict icon-only eye stays only next to a labelled primary.
 Why: NN/g — labelled actions are understood, icons alone rarely are; Carbon — secondary actions
 in the overflow, destructive separated and last. Tables (registries) keep their icon-only ✎.
 **Figma (2026-10-09, GEAP 2.0 › Servicii, all blocks):** svc/stack-item `9521:8751` — „Edit” is

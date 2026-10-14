@@ -7298,17 +7298,25 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* „Editează” always carries the pen (user, 2026-10-09); other labels stay text */
-  const actionLabelHtml = (label) => label === "Editează"
-    ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg><span>Editează</span>`
+  /* labelled row actions always carry their icon (user 2026-10-14): Editează = pen,
+     Configurează = settings, Previzualizează = eye */
+  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open", "Vezi detalii": "eye-open" };
+  const actionLabelHtml = (label) => ACTION_ICONS[label]
+    ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${ACTION_ICONS[label]}"></use></svg><span>${escapeHtml(label)}</span>`
     : escapeHtml(label);
   const EDIT_LABEL_HTML = actionLabelHtml("Editează");
 
   /* Row actions — one rule for every list in the service profile (2026-10-09; NN/g: labelled
      actions beat icons; Carbon: secondary actions in the overflow, destructive last):
-     [eye „Previzualizează” — icon-only, strict, tooltip, only where a view-only preview exists]
+     [eye „Previzualizează” — icon-only, strict, tooltip, only next to a labelled primary; when it is
+      the only action besides ⋮ it is the labelled grey button instead]
      · [one labelled primary: „Editează”, or „Configurează” for what is not configured yet]
      · [⋮ everything else, destructive last]. Never an icon-only primary, never two text buttons. */
-  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "" }) => `
+  /* one action besides ⋮ (user 2026-10-14): it is never icon-only — the eye becomes the
+     labelled grey „Previzualizează” (icon + label, btn-neutral, like Editează / Configurează) */
+  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "" }) => !primary && preview ? `
+    <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" ${preview}>${actionLabelHtml("Previzualizează")}</button>
+    ${menu.length ? renderStackMenu(menu, label) : ""}` : `
     ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
     ${primary ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" ${primary.attrs}>${actionLabelHtml(primary.label)}</button>` : ""}
     ${menu.length ? renderStackMenu(menu, label) : ""}`;
