@@ -90,6 +90,9 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - Desktop = mobile content. Last row in a card/list has no divider. Hover/open states drawn when
   the flow shows them. Arrows from the clicked element.
 - Figma = source of truth for design; prototype code = source for behaviour; they must match.
+- No IMAGE fills for icons (captured `<img>` SVGs) — library icon instances only; sweep `iconImageFills` = 0 (2026-10-14).
+- Documents = one pattern: BO `Document · rând` 11362:7113, FO / Cabinet `Document · card` 11364:7441, modal content
+  11366:6892 (GEAP local); lone view action = „👁 Detalii”, Configurează = settings icon, Editează = pen.
 
 ## Plugin API gotchas
 - `await figma.setCurrentPageAsync(page)` before `findAll` on another page; once per call.
@@ -683,3 +686,36 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - Height changes inside blocks (filter row 48 → 40) only showed up where screens hug (R06 −8); fixed-height screens kept
     their size. Always diff block boxes, then restack only the columns that moved.
   - swap-ekyc.js segSwap now maps captured ≤ 44 px tracks to the local 40 set.
+
+- 2026-10-14 · Documents — one pattern (code 76fc9aeb) → Figma components + swaps in GEAP 2.0, FOD, EVO Cabinet:
+  - Components (GEAP › 🧩 Componente locale › 11361:6350): `Document · rând` 11362:7113 (Source × State × Acțiune, 33 variants,
+    bools Semnat / Etichetă stare 1-2 / Linie sus / Arată număr|fișier|de|semnat de), `Document · card` 11364:7441 (Context
+    Selector|Selectat|Valoare câmp|Act anterior|Rezumat|Cabinet × Source × State × Ecran Desktop|Mobil), `Modal conținut /
+    Document · detalii` 11366:6892 (A4 page INSTANCE_SWAP „Pagină” + 12 generic svc/field-row slots + Doar citire) used in the
+    local Modal Tip=Conținut. New A4 pages: Cerere 11364:25452, Confirmarea achitării 11364:25498, Decizie de respingere 11364:25544.
+    Files don't share local components → copies: FOD `Document · card` 762:10435, Cabinet 983:2727 (built from library keys).
+  - Pipeline that worked: CDP extractors (tools/figma/documents/*.mjs: rows, modal rows, FO cards, header tabs) → one JSON spec per
+    state → idempotent builders (rebuild-stack.js, modal.js, swap-raw-rows.js, place-cards.js). Specs inline as small JS builders
+    (R(icon,title,tags,parts)) keep the use_figma code < 20 KB.
+  - `resize()` after setting `counterAxisSizingMode = "AUTO"` silently makes the component FIXED height (72) → every instance
+    clipped / overlapped on mobile. Set sizing modes AFTER resize, then verify instance `layoutSizingVertical === "HUG"`.
+  - Cloning a variant INSIDE a component set drops its componentPropertyReferences (title / meta stayed default text) → after
+    cloning, copy references by layer name from the source variant (own layers only: `!id.includes(";")`), or build variants
+    standalone and combine once.
+  - Instance overrides cannot set maxWidth/minWidth („max-size cannot be overridden”) → put maxWidth on the component (mobile
+    meta texts WIDTH_AND_HEIGHT + maxWidth = content width so long file names wrap like the code) and make a Mobil variant
+    (title on its own ellipsized line, tags in a wrap row; Cabinet actions under the text) instead of per-instance hacks.
+  - A FILL title in a WRAP row takes only the remaining space (squeezed to „Extra…”), it never forces a new line.
+  - Nested instances inside other instances (FO file-upload fields) can be converted with `swapComponent` + setProperties on
+    the nested node — no need to detach the host.
+  - Header drift again: blocks cloned from 04c/04d carried another dossier (Autorizație sanitară, other user). Before cloning a
+    block as template, compare its header title/user with the code; replace the Dosar / Header instance from a correct block and
+    re-apply status / button / tabs (spec from hdrspec.mjs).
+  - User/coordinator: NO image fills for icons anywhere. Captured `<img>` SVG icons (document-uploaded / -generated) land as
+    IMAGE fills → replace with library icons (Foundations 24/document-filled, tinted icon/base/tertiary (Încărcat) or
+    icon/brand/default (MDocs, Generat); shape gap: code = filled tile with lines). Sweep: tools/figma/documents/imgsweep.js +
+    imgicons.js (by image hash); sweep.js now reports `iconImageFills` (top-level, non-instance, non-logo) — must be 0. Keep
+    real photos / logos / library-internal images (country flags in phone inputs, avatar photos, courier logos) and list them.
+  - Rule 4 bulk: 52 „Configurează” buttons (Icon None) on Servicii → Icon=Leading + 20/settings in the size's slot; lone
+    „Detalii” Neutral buttons → Icon=Leading + eye. Filter by `mainComponent.parent.name` + label; connectors unchanged.
+  - Transport drops / 1000 s timeouts happened on 3-job rebuilds but the work had completed — always check state first.

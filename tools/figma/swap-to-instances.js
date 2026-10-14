@@ -18,6 +18,10 @@
 //   topbar.js   raw gov bar „header-evo-desktop” → library .top-section
 //   modal.js    local Modal → library modal (content-slot Text / swapped content)
 //   side.js / orphans.js / icons.js / btnrebuild.js — sidebar items, orphaned local copies, captured icons, button icons
+// Document rows / cards / document modal (2026-10-14): tools/figma/documents/ (swap-raw-rows.js for captured
+// „List Item” doc rows with a 24px „Image” lead → local „Document · rând” 11362:7113; place-cards.js for FO / Cabinet
+// doc cards → „Document · card” 11364:7441; imgicons.js for icon-sized IMAGE fills → library icons). Never keep a
+// captured <img> icon as an image fill.
 const ROOTS = ["PUT:CAPTURE-ROOT-IDS"];
 const g = (id) => figma.getNodeByIdAsync(id);
 const C = {
