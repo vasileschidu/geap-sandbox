@@ -3526,7 +3526,8 @@ document.addEventListener("DOMContentLoaded", () => {
         ] : []),
         ...(d.registru ? [["Registru", escapeHtml(d.registru)]] : []),
         ["Semnătură", d.semnat ? `${SIGNED_TAG_HTML} <span class="e-permits-passport__row-note">MSign · ${escapeHtml(d.semnat.nume || d.de?.nume || row.numeSolicitant)} · ${escapeHtml(formatStamp(d.at))}</span>` : (d.tags || []).some(([label]) => label === "Proiect") ? "Nesemnat — proiect" : "Fără semnătură electronică"],
-        ["Număr dosar", escapeHtml(row.nrDosar)]
+        /* the document's own number is already the dossier number → no second „Număr dosar” row */
+        ...(nr && d.nrLabel === "Număr dosar" ? [] : [["Număr dosar", escapeHtml(row.nrDosar)]])
       ];
       file = d.fisier.replace(/\.[a-z0-9]+$/i, "");
       preview = renderDosarDocPreview(d, row, profile);

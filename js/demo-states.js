@@ -789,7 +789,7 @@
     "dos-04b": dos(SPEC, "inExaminare", "avize"),
     "dos-04c": dos(SPEC, "semnat", "decizie"),
     "dos-04d": dos(SPEC, "semnat", "documente"),
-    "dos-04e": dos(SPEC, "semnat", "documente"),
+    "dos-04e": dos(SPEC, "semnat", "documente", {}, async (h) => { await docEye("Extras MPower", "documente")(h); }),
     "dos-04f": dos(SPEC, "inExaminare", "jurnal"),
     /* 04g–04m Detalii solicitare › Documente însoțitoare (2026-10-14): the story dossier is a Duplicat
        (post-process) → the previous act from MDocs first; eye → the document modal (page preview +
