@@ -494,3 +494,18 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - Short cell values (≤ 34 chars: dates, „hh:mm · acum …”, numbers like „+0,0 / 3”, codes) get their measured one-line
     width; take it from columns with slack (long-text columns keep ≥ 200 px).
   - Keep scripts in the repo only — no script-source text nodes in the Figma file.
+- 2026-10-14 · QA round 4:
+  - Compare COLUMN TRACKS, not frame widths: a GRID table can be 1,022 px wide while its tracks add up to 1,073 and the card
+    clips the rest. sweep.js now checks sum(gridColumnSizes) + gaps ≤ table inner width; fix by taking the excess from the
+    widest columns.
+  - Detail headers at 1920: the header row is a HUG horizontal frame (≥ 900 px) inside a vertical container → set FILL so
+    the actions end at W − 16. Body sections keep the code's max-width (captured `maxWidth` 1024 = CSS max-width) —
+    don't stretch those.
+  - Captured GRID wrappers can carry an empty extra row (list Header: 3 rows, 2 children → a 49 px band). Set
+    `gridRowCount` to the used rows on every GRID (also trailing empty table rows).
+  - Loading / empty states inside a table: one raw row cell spanning all columns (`gridColumnSpan = gridColumnCount`),
+    centred, library spinner (d38a117c, Medium Brand) + texts copied with their text styles; note the gap.
+  - Card tables (name „Table”) drop the last row's bottom divider (strokeBottomWeight 0); registry lists („Table - …”) keep
+    it and get the first-column right divider (border/base/default, 1 px) on header + body, as in the code.
+  - Library variables not yet in the file: `figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()` →
+    `getVariablesInLibraryCollectionAsync(key)` → find by name → `importVariableByKeyAsync`.
