@@ -620,3 +620,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     short ≤ 16 px texts whose one-line width exceeds the box; headings may wrap as in the code), wrapWithRoom and
     tocOverlap. Always run the WHOLE sweep after a fix pass — each targeted pass broke something the old checks
     did not cover. Split the run into page groups if the transport drops.
+- 2026-10-14 · QA round 12: a single FILL item inside a meta row (R02j „ASP — Registrul…”) pushes the rest of the row
+  far right — meta items are HUG + auto-width text, always. Menu icons follow the code per option (js/ekyc.js); a glyph
+  that exists only at 24 px goes in the 20 slot via the swap property, resized, and is declared. Menus sit 8 px under
+  their trigger (code gap). Wrapper frames with clip must HUG their content (Acțiuni tabel 130 → 131).
