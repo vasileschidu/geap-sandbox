@@ -562,3 +562,19 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     library defaults (icon/* vs text/* variables differ by design in every instance).
   - sweep.js adds multiLine, tallRows (> 56), drawerShort. Order after any column change: balance → one-line pass →
     rows → scroll-content refit (modal backgrounds) → restack (240) → section fit (80) → anchors → sweep.
+- 2026-10-14 · QA round 8 — what may be ellipsized:
+  - Figma table cells pad 16 per side, the code 12 → a copied code width has 8 px less room. balance.js v5: non-prose
+    columns (ids, codes / keys, names incl. Denumire, dates, tags, numbers) = max(whole one-line content, hard content,
+    max(128, configured min from the column defs)) and are NEVER ellipsized; prose columns (Descriere, Valoare,
+    Pas curent, Operatori, Motiv, Ultima activitate, Condiție, Endpoint) start at code + 8, take the extra width and are
+    the only donors; description lines (> 48 chars under a name, `.e-permits-workplace__role-desc`) are prose wherever
+    they sit. minrepair.js then lifts any column below its minimum from columns above theirs.
+  - When the sum of minimums + Figma padding exceeds the table (S01 −9, C02 / D02e −8, C05 Descriere 272), say so in
+    the TOC „Library gaps / constraints” list instead of cutting a name or a date.
+  - Button icon colour: `resetOverrides` on a swapped icon leaves the swapped component's own colour
+    (icon/base/default = black on Primary). Figma's swap keeps a „fills” override with the variant's icon token — that is
+    native, not a hand override. Correct fix = fresh instance of the same variant + set the icon through the instance-swap
+    PROPERTY (16 px glyph in Small buttons, as the code renders 16 px); keep the default glyph when it matches (no
+    override at all). Compare with a fresh instance's icon variable, not with the label variable (icon/* vs text/*).
+  - sweep.js adds cutIdent (ellipsis outside prose / descriptions, button labels excluded) and belowMin (registry
+    columns vs max(128, configured min); run with MINS).
