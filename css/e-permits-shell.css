@@ -3526,12 +3526,6 @@ button.e-permits-workplace__th-content:focus-visible {
   border-radius: var(--border-radius-full, 999px);
 }
 
-/* the table's empty row holds the empty-state component (bare) */
-.e-permits-workplace__empty {
-  padding: var(--spacing-16, 16px) !important;
-  text-align: center !important;
-}
-
 .e-permits-workplace__footer {
   min-height: 64px;
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
@@ -4283,13 +4277,6 @@ body.is-user-create-open {
 .e-permits-workplace__filter-option-label {
   min-width: 0;
   overflow-wrap: anywhere;
-}
-
-.e-permits-workplace__filter-empty {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
 .e-permits-workplace__filter-footer {

@@ -770,22 +770,15 @@
           .map((type) => (schema?.subjectTypes?.[type] || frontOfficeSubjectTypeMeta(type)).label)
           .join(" sau ");
         const proxyIsWayOut = Boolean(schema?.proxyOption?.visibleWhenAnyOf?.some((type) => allowed.includes(type)));
-        roleList.innerHTML = `
-          <div class="e-permits-fo-auth__role-empty" role="status">
-            <span class="e-permits-fo-auth__role-empty-icon" aria-hidden="true">
-              <svg class="icon" width="24" height="24">
-                <use href="assets/icons/sprite.svg#icon-circle-info"></use>
-              </svg>
-            </span>
-            <div class="e-permits-fo-auth__role-empty-copy">
-              <strong>Nu ai nicio identitate eligibilă pentru acest serviciu</strong>
-              <p>Serviciul este disponibil doar pentru ${escapeFrontOfficeHtml(typeLabels)}, iar contul tău nu are o astfel de identitate ${escapeFrontOfficeHtml(proxyIsWayOut ? "adăugată." : "adăugată sau împuternicită prin MPower.")}</p>
-              ${proxyIsWayOut
-                ? "<p>Poți continua cu o procură notarială, folosind opțiunea de mai jos.</p>"
-                : "<p>Pentru a continua, ai nevoie de o împuternicire MPower din partea unei organizații eligibile.</p>"}
-            </div>
-          </div>
-        `;
+        /* the shared empty state (2026-10-14): what is missing + the way out */
+        roleList.innerHTML = window.GEAPEmptyState.render({
+          title: "Nu ai nicio identitate eligibilă pentru acest serviciu",
+          text: `Serviciul este disponibil doar pentru ${typeLabels}. ${proxyIsWayOut
+            ? "Poți continua cu o procură notarială, folosind opțiunea de mai jos."
+            : "Pentru a continua, ai nevoie de o împuternicire MPower din partea unei organizații eligibile."}`,
+          icon: "user-account",
+          compact: true
+        });
       }
 
       const proxy = schema?.proxyOption;
@@ -2110,6 +2103,11 @@
        guide line. Extracted (2026-10-13, Form Builder batch 4) so the builder's „Activități CAEM”
        preset (a repeatable block) draws the exact same markup; the defaults are the old texts and
        ids, so step 2 renders as before. */
+    /* the CAEM list's „no match” = the shared empty state, bare + compact (inside a list) */
+    function caemEmptyHtml() {
+      return window.GEAPEmptyState.noResults("Niciun cod CAEM găsit", { text: "Caută după cod sau după descriere.", bare: true, compact: true });
+    }
+
     function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [] } = {}) {
       return `
           <div class="e-permits-fo-field">
@@ -2122,7 +2120,7 @@
               <div class="e-permits-fo-caem__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-menu hidden>
                 <div class="e-permits-fo-caem__search"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="Caută după cod sau descriere" aria-label="Caută după cod sau descriere" data-fo-caem-search></div>
                 <ul class="e-permits-fo-caem__list" id="${escapeFrontOfficeHtml(id)}-list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" data-fo-caem-list>${options.map(caemOptionHtml).join("")}</ul>
-                <div class="e-permits-fo-caem__empty" data-fo-caem-empty hidden>Nu există rezultate pentru căutarea introdusă.</div>
+                <div data-fo-caem-empty hidden>${caemEmptyHtml()}</div>
               </div>
             </div>
           </div>`;
@@ -2667,7 +2665,7 @@
                 </button>
               </label>
               <ul class="e-permits-fo-mdocs__list" role="listbox" aria-label="Documente MDocs">${suggestions}</ul>
-              <div class="e-permits-fo-mdocs__empty" hidden data-fo-mdocs-empty>${window.GEAPEmptyState.noResults("Nu am găsit documente în MDocs", { text: "Verifică denumirea sau numărul documentului.", bare: true })}</div>
+              <div hidden data-fo-mdocs-empty>${window.GEAPEmptyState.noResults("Nu am găsit documente în MDocs", { text: "Verifică denumirea sau numărul documentului.", bare: true })}</div>
             </div>
             <div class="e-permits-fo-mdocs__attachment" hidden data-fo-mdocs-attachment>
               <button class="e-permits-fo-document-remove e-permits-fo-mdocs__attachment-remove" type="button" aria-label="Elimină documentul din MDocs" data-fo-mdocs-remove>
@@ -5021,11 +5019,7 @@
           <p class="e-permits-fo-intent__acts-title" id="fo-intent-acts-title">${esc(config.actsTitle)}</p>
           ${acts.length
             ? `<ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>`
-            : `<div class="e-permits-fo-infobox e-permits-fo-intent__empty" role="note" data-fo-intent-empty>
-                <div class="e-permits-fo-infobox__bone" aria-hidden="true"></div>
-                <div class="e-permits-fo-infobox__icon" aria-hidden="true"><svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-circle-info-filled"></use></svg></div>
-                <div class="e-permits-fo-infobox__body"><p>${esc(config.emptyText || "Dumneavoastră nu aveți acte emise pentru serviciul dat.")}</p></div>
-              </div>`}
+            : `<div data-fo-intent-empty>${window.GEAPEmptyState.render({ title: String(config.emptyText || "Dumneavoastră nu aveți acte emise pentru serviciul dat.").replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "page-text" })}</div>`}
         </section>
       `;
     }
@@ -7056,7 +7050,7 @@
         if (!items.length) {
           /* US-54 AC-08: the saved-codes list says so when there are none */
           if (empty) {
-            list.innerHTML = `<li class="e-permits-fo-caem__empty" role="option" aria-disabled="true">${escapeFrontOfficeHtml(empty)}</li>`;
+            list.innerHTML = `<li role="presentation">${window.GEAPEmptyState.render({ text: empty, icon: "home-line", bare: true, compact: true })}</li>`;
             input.removeAttribute("aria-activedescendant");
             setOpen(true);
             return;
@@ -7116,7 +7110,7 @@
         const cadastral = searchRoot.foCadastral;
         const raw = input.value.trim();
         if (cadastral && !raw) {
-          renderSuggestions(cadastral.savedCodes(), { empty: "Nu aveți coduri cadastrale salvate." });
+          renderSuggestions(cadastral.savedCodes(), { empty: "Nu aveți coduri cadastrale salvate. Codurile folosite în cererile dvs. apar aici." });
           return;
         }
         /* a code typed here is sent only on request: the first row says so explicitly
@@ -7359,6 +7353,7 @@
       const menu = caemRoot.querySelector("[data-fo-caem-menu]");
       const search = caemRoot.querySelector("[data-fo-caem-search]");
       const empty = caemRoot.querySelector("[data-fo-caem-empty]");
+      if (empty && !empty.querySelector(".e-permits-empty")) empty.innerHTML = caemEmptyHtml();
       const options = Array.from(caemRoot.querySelectorAll(".e-permits-fo-caem__option"));
       if (!button || !value || !menu || !search || !options.length) return;
 

@@ -265,10 +265,13 @@
   const openRow = (id) => openSession(id);
 
   /* list states: loading / API error / nothing yet (US-UI-04/05 „Empty/loading/error”) */
-  const emptyHtml = (label) => ({ query, filtered }) => {
+  const emptyHtml = (label, nothing = null) => ({ query, filtered }) => {
     if (DEMO === "incarcare") return api.renderEmptyState({ title: `Se încarcă ${label}…`, text: "Datele vin din serviciul de monitorizare.", loading: true, bare: true });
     if (failed) return api.renderEmptyState({ title: `Nu am putut încărca ${label}`, text: "Serviciul de monitorizare nu a răspuns. Reîncearcă peste câteva secunde.", icon: "warning-filled", bare: true, actionHtml: `<button class="btn btn-neutral btn-sm" type="button" data-ekyc-retry>${icon("rotate-arrow", 16)}<span>Reîncearcă</span></button>` });
     if (query || filtered) return null;
+    /* nothing yet (the whole list is empty) vs. an empty status tab — never the BO „dosare” fallback */
+    if (nothing && emptyRows()) return api.renderEmptyState({ ...nothing, bare: true });
+    if (nothing) return api.renderEmptyState({ title: "Nicio sesiune în acest tab", text: "Alege alt tab sau caută altceva.", icon: "search", bare: true });
     return null;
   };
 
@@ -2198,8 +2201,8 @@
   };
 
   const registries = {
-    "ekyc-active": { renderCell: renderActiveCell, searchText, sortValue, filterToken, openRow, exportRows: exportActive, emptyHtml: emptyHtml("sesiunile active") },
-    "ekyc-history": { renderCell: renderHistoryCell, searchText, sortValue, filterToken, openRow, exportRows: exportHistory, emptyHtml: emptyHtml("sesiunile istorice") },
+    "ekyc-active": { renderCell: renderActiveCell, searchText, sortValue, filterToken, openRow, exportRows: exportActive, emptyHtml: emptyHtml("sesiunile active", { title: "Nicio sesiune activă", text: "Sesiunile apar aici imediat ce un client pornește o verificare.", icon: "time" }) },
+    "ekyc-history": { renderCell: renderHistoryCell, searchText, sortValue, filterToken, openRow, exportRows: exportHistory, emptyHtml: emptyHtml("sesiunile istorice", { title: "Nicio sesiune încheiată", text: "Sesiunile apar aici după ce se încheie sau expiră.", icon: "history" }) },
     "ekyc-review": { renderCell: renderReviewCell, searchText: reviewSearch, sortValue: reviewSort, filterToken: reviewFilter, openRow: (id) => openReview(id), exportRows: exportReview, emptyHtml: reviewEmpty },
     "ekyc-access": { renderCell: renderAccessCell, searchText: (row) => [row.utilizator, row.entry.role, row.actiune, row.sesiune, row.context].join(" "), sortValue: (row, key) => (key === "moment" ? Date.parse(row.moment) : row[key] ?? ""), filterToken: accessFilter, openRow: (id) => { const e = db.accessLog[Number(id.slice(4))]; if (e?.sessionId && findSession(e.sessionId)) openSession(e.sessionId); }, exportRows: exportAccess, emptyHtml: (state) => emptyHtml("jurnalul de acces")(state) || (state.query || state.filtered ? null : api.renderEmptyState({ title: "Jurnalul de acces este gol", text: "Aici apar accesările dovezilor, căutările și exporturile, cu cine, când și de ce.", icon: "page-text-lock", bare: true })) }
   };

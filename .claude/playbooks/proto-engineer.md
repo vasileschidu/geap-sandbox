@@ -521,3 +521,29 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-14 · Phones: stacked rows become flex columns at ≤760, so a lead icon sat alone above the title — rows with a
   lead are a 2-column grid there (icon · text, actions under the text). Long section-heading metas clip at 375 → keep
   them short („6 documente · 6 semnate”).
+- 2026-10-14 · „One empty state everywhere” (user, on „Configurează tipul de solicitare”): ~30 bespoke empties
+  (hint `<p>`s, `__empty` classes, grey cards, FO infobox, `.cab-empty`, `.rap-empty-state`) → `GEAPEmptyState` only,
+  variant by CONTAINER (normal page · compact drawer/modal/panel · bare table/list · bare + compact menu/popover).
+  What paid off: (1) a desktop sweep of ~890 states in 4 parallel headless workers (scratch empty/check.mjs +
+  probe listing visible `.e-permits-empty` titles + variant) gave the „where is each one shown” inventory and
+  the regression check in one go; (2) the component resolves its sprite path from `document.currentScript.src`,
+  so sub-pages no longer need `fixAssets`; (3) `[hidden]` on the component + `tableRow()` removed the need for
+  per-screen wrappers. When a list's „Adaugă …” sits right under its own empty state, move it INTO the empty
+  state while empty (one button, never two). Reset labels follow the page's own control („Șterge filtrele” in
+  BO, „Resetează filtrele” in Cabinet / RAP) — not a new word.
+- 2026-10-14 · Demo-state trap: I added `svc-04t1` without grepping — the id already existed further down, the
+  later key silently won and my „new” state never ran (three „why does the filter not apply” rounds). Always
+  `grep -c '"<id>"'` before adding, and check `uniq -d` on all ids after. Also: a passport list's filter bar is
+  OPEN when a default filter is applied — clicking `[data-sf-toggle]` closes it; facet picks need the popover's
+  „Confirmă” before „Aplică filtrele”.
+- 2026-10-14 · Action from inside a drawer that needs another drawer (rt › Taxe › „Adaugă taxă”): reuse the
+  project's hand-over pattern (pay → tariff): park the first drawer (`hidden`, draft kept, `parked` flag), open
+  the second prefilled, and on its close resume the first on the same tab. Two stacked drawers looked unfinished
+  (the lower one is not dimmed).
+- 2026-10-14 · Empty-state job, other finds: the rt / tariff drawer tab row had `overflow: visible` on phones, so
+  focusing a tab near the end scrolled the WHOLE drawer body sideways (content cut on the left) — fixed with
+  `overflow-x: auto` on `.e-permits-tariff__tabs .tab-buttons` ≤768; probe `scrollLeft` of the drawer body on 375.
+  The registry fallback said „Nu sunt dosare pentru filtrul curent” for a search in ANY registry (eKYC sessions) —
+  a product `emptyHtml` returning null falls through to BO wording; give products their own nothing-yet. No
+  sub-agent tool → ran code-audit / hover-audit myself; leftovers were standing FPs (library search × overlap,
+  steps-strip check icon, fo-select chevron) and a pre-existing „Anonimizează” checkbox without hover (svc-10l1).

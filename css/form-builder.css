@@ -1486,12 +1486,6 @@
   line-height: var(--line-height-lh-16, 16px);
 }
 
-.e-permits-builder__step-row-empty {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
 /* classifier reference (Listă derulantă › Date) */
 .e-permits-builder__ref {
   align-items: flex-start;

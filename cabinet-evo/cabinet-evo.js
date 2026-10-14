@@ -254,6 +254,13 @@
     const permits = visiblePermits();
     els.list.innerHTML = permits.map(cardMarkup).join("");
     els.empty.hidden = permits.length > 0;
+    /* the shared empty state: no acts at all vs. nothing matches the chips / search */
+    els.empty.innerHTML = permits.length ? "" : state.permits.length
+      ? window.GEAPEmptyState.noResults("Niciun act permisiv nu corespunde căutării", {
+        text: state.query.trim() ? "Verificați ortografia sau încercați alți termeni." : "Alegeți altă stare sau resetați filtrele.",
+        actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-cab-reset>Resetează filtrele</button>'
+      })
+      : window.GEAPEmptyState.render({ title: "Nu aveți acte permisive", text: "Actele emise pe numele dvs. apar aici.", icon: "page-text" });
     syncSearchState();
     renderChips();
   }
@@ -388,6 +395,15 @@
       els.search.value = "";
       els.search.focus();
       render();
+    });
+
+    els.empty.addEventListener("click", (event) => {
+      if (!event.target.closest("[data-cab-reset]")) return;
+      state.query = "";
+      state.active = "toate";
+      els.search.value = "";
+      render();
+      els.search.focus();
     });
 
     bindAvatarMenu();
@@ -831,6 +847,6 @@
   init().catch((error) => {
     console.error(error);
     els.empty.hidden = false;
-    els.empty.textContent = error.message;
+    els.empty.innerHTML = window.GEAPEmptyState.render({ title: "A apărut o eroare", text: "Actele permisive nu au fost încărcate. Încercați din nou.", icon: "circle-error" });
   });
 })();

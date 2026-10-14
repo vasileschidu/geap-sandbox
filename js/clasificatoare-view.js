@@ -124,7 +124,8 @@
         '<div class="message__content"><div class="message__text">' + esc(s.error) + "</div></div></div>";
     }
     if (s.loading || !s.catalog || !s.compartment) {
-      return '<div class="clas-page__empty"><span class="spinner spinner--medium spinner--brand"></span></div>';
+      /* loading = the shared empty state with the spinner */
+      return window.GEAPEmptyState.render({ title: "Se încarcă clasificatoarele", loading: true, bare: true });
     }
 
     var comp = s.compartment;

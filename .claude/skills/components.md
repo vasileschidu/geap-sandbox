@@ -200,7 +200,7 @@ but this doc previously described it wrongly, see the entry.
 | Pagination | `.pagination .pagination__item .pagination__link` | `pagination.html` | library |
 | Accordion | `.accordion__trigger[aria-expanded]` | `accordion.html` | library (partial) |
 | Avatar | `.avatar` + type + size | `avatar.html` | library |
-| Empty state | `.e-permits-empty` (+ `--compact` / `--bare`) via `GEAPEmptyState.render / .noResults` | `js/empty-state.js`, `css/empty-state.css` | product |
+| Empty state — **the only one** (every product; „no other empty states”) | `.e-permits-empty` (normal = page section · `--compact` = drawer / modal / side panel · `--bare` = table row / bordered list / modal list · bare + compact = menu / popover / combobox) via `GEAPEmptyState.render / .noResults / .tableRow` (`td.e-permits-empty-cell`) | `js/empty-state.js`, `css/empty-state.css`; section „Empty state — one component everywhere” | product |
 | Breadcrumb | `.breadcrumbs .breadcrumbs__list .breadcrumbs__item` + `--trailing/--truncate/--mobile`; JS `renderBreadcrumbs()` | `breadcrumbs.html` | app (every page) |
 | Progress tracker | `.progress-tracker .progress-step--*` | `progress-tracker.html` | library (partial) |
 | Sidebar | `.sidebar .sidebar__link--active` | `sidebar.html` | library (partial) |
@@ -2974,7 +2974,7 @@ The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are remove
   groups is the **full-flow suggestion search** — `.e-permits-fo-address-search` >
   `.e-permits-fo-input.e-permits-fo-input--with-action` (40px, trailing search icon) +
   `.e-permits-fo-address-search__list` options (`__option` / `__copy` / `__title` /
-  `__meta`) with a library checkbox in the icon slot; empty = `.e-permits-fo-caem__empty`.
+  `__meta`) with a library checkbox in the icon slot; empty = the shared empty state (`noResults`).
   Typing refreshes only the list (`syncPermSearchMenu`) — never re-render the panel
   per keystroke, it drops characters. Ticking an option patches it in place and swaps
   only the heading + groups (`patchPermissionsTab`) so the open list keeps its scroll
@@ -3304,7 +3304,7 @@ fb-05x (set to 6/12), fb-05y (locked), fb-52w (grid column).
 | Filter surface | `.rap-filter-panel` (`is-open`, `is-drawer`) + `__scrim/__surface/__body/__footer` | — (none) |
 | Options | `.rap-filter-option` (`is-checked`) + `__box/__label` | — |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
-| Empty state | `.rap-empty-state` + `__icon` (dashed box) | `.cab-empty` (bare `<p>`) |
+| Empty state | shared `GEAPEmptyState` in `.rap-state` (2026-10-14) | shared `GEAPEmptyState` in `.cab-state` (2026-10-14) |
 | Pagination | `.rap-pagination`, `.rap-page-button` (`is-active`) | — |
 | Tooltip / toast | `.rap-tooltip` (`is-visible`), `.rap-toast` | — |
 
@@ -4503,35 +4503,126 @@ vX · sincronizat …”; else „Publicat {stamp} · sincronizat …”.
   status inline before the buttons, Body Small 500. Flow: Servicii blocks **01e** (pending header) → **01f** Publică serviciul →
   **01g** comment missing (Destructive textarea) and **01h** Istoric versiuni.
 
-### Empty state — one component everywhere (2026-10-04)
+### Empty state — one component everywhere (2026-10-04, unified 2026-10-14)
 
-Tailwind "simple" empty state on our tokens. **Never** a bare grey card with a sentence, a
-dashed div with an `<img>`, or plain text in an empty table row.
-- Markup: `.e-permits-empty` (role=status) › `__icon` (48px circle, `background-base-secondary`,
-  24px sprite icon in `icon-base-tertiary`) · `__title` (14/20 semibold, default text) ·
-  `__text` (14/20 tertiary, max 440, 4 under) · `__actions` (20 under, centred, gap 8).
-  Box: 1.5px dashed `border-base-default`, radius 16, padding 40 24.
-  `--compact` = padding 24 20 (drawers, modals) · `--bare` = no box, padding 24 16 (inside a
-  table row, a bordered list, a modal list).
-- API (`js/empty-state.js`, loaded before the page scripts; CSS `css/empty-state.css`):
-  `GEAPEmptyState.render({ title, text, icon, actionHtml, compact, bare })` — without a title,
-  the first sentence of `text` is the title and the rest the line;
-  `GEAPEmptyState.noResults(title, { text, … })` — search icon, default line „Verifică
-  ortografia sau încearcă alți termeni.” The shell wraps them as `renderEmptyState`,
-  `renderNoResults`, and `renderPassportEmpty(title, message, actionHtml, icon)` (section
-  heading + empty state).
-- Two kinds: **nothing yet** (context icon: `page-text`, `user-account`, `receipt-check`,
-  `list-bullets`, `document`; title says what is missing, line says how it gets filled; the
-  add button in `__actions` only when the toolbar does not already have it, e.g. the user
-  create drawer, an empty classifier) and **no results** (search / filter: `noResults`; a
-  filter empty state carries „Șterge filtrele” as `btn-neutral btn-sm`).
-- Used by: passport / profile tabs (`renderStackedList`, `renderEventTimeline` `empty`), Taxe,
-  Șabloane, Notificări, Jurnal search, case actions filter, destination rules, user
-  combinations + create drawer, Delegări, registry tables (`.e-permits-workplace__empty`, bare),
-  classifier values grid (bare), fee lists modal (bare), front-office MDocs search and review,
-  form-builder classifier registry, Clasificatoare page.
-- Not this component: dropdown / picker „no match” lines inside an open list (CAEM, field
-  picker) and inline „Fără subiect” placeholders in previews.
+User (2026-10-14, on „Configurează tipul de solicitare”): „every empty state should have the same
+empty state, simple as we already use in other places; uniformize all as components.”
+**Rule: there is exactly one empty-state component — `GEAPEmptyState`. No other empty-state
+markup exists** in any product (BO shell, FO, Form Builder, Clasificatoare page, EVO Cabinet,
+RAP, eKYC). Never a bare grey card with a sentence, a hint `<p>` saying „Nicio …”, a dashed div
+with an `<img>`, plain text in an empty table row or list item, or a per-screen `__empty` class.
+
+- **Markup** (generated, never hand-written): `.e-permits-empty` (role=status) › `__icon` (48px
+  circle, `background-base-secondary`, 24px sprite icon in `icon-base-tertiary`; `loading` = brand
+  spinner) · `__title` (14/20 semibold, default text) · `__text` (14/20 tertiary, max 440, 4 under) ·
+  `__actions` (20 under, centred, gap 8). `[hidden]` hides it.
+- **API** (`js/empty-state.js`, loaded before the page scripts; CSS `css/empty-state.css`; the
+  sprite path resolves from the script URL, so `cabinet-evo/` and `rap-evo/` need no rewriting):
+  - `GEAPEmptyState.render({ title, text, icon, actionHtml, compact, bare, loading })` — without a
+    title, the first sentence of `text` is the title and the rest the line;
+  - `GEAPEmptyState.noResults(title, { text, actionHtml, compact, bare })` — search icon, default
+    line „Verifică ortografia sau încearcă alți termeni.”;
+  - `GEAPEmptyState.tableRow(colSpan, html)` → `tr.e-permits-empty-row > td.e-permits-empty-cell`
+    (padding 16, centred, wraps) for an empty table body.
+  - Shell wrappers (same component): `renderEmptyState`, `renderNoResults`,
+    `renderPassportEmpty(title, message, actionHtml, icon)` (section heading + empty state), and
+    `renderStackedList` / `renderEventTimeline` `{ empty, icon }`.
+
+| Variant | Options | Box | Where |
+|---|---|---|---|
+| Normal | — | 1.5px dashed `border-base-default`, r16, padding 40 24 | page sections: passport / profile tabs, Setări cards, FO intent „Acte emise”, Cabinet / RAP lists, Clasificatoare page |
+| Compact | `compact` | same box, padding 24 20 | drawers, modals, side panels: every tab of „Configurează tipul de solicitare”, Taxă / Tarif / Clasificator nou drawers, document preview panel, Form Builder properties panel, FO auth role list, FO Verificare docs |
+| Bare | `bare` | no box, padding 24 16 | inside a table row (`tableRow`), a bordered list, a modal list: registries, classifier values grid, fee lists modal, subdivision / RAP field pickers, FO MDocs search, mail / SMS preview panes |
+| Bare + compact | `bare, compact` | no box, padding 16 12 | inside a menu, popover or combobox list: „Filtrare avansată” option lists (registry + passport), Inserează câmp / variabilă, template-builder Câmpuri, CAEM, saved cadastral codes, RAP filter options, builder component search |
+
+**Content rules**
+- Title = what is missing, short, no final period („Nicio taxă pentru acest tip de solicitare”,
+  „Niciun aviz adăugat”). Line = one sentence saying when content will appear or what to do
+  („Pașii fluxului apar aici după ce îl alegi în tabul General.”). Keep story-mandated wording
+  (US-202 tariffs, US-230 services, FO `emptyText`) as the title.
+- Icon from the sprite by subject: `page-text` (documents / acts), `document`, `notification`,
+  `receipt-check` (taxes), `coins` (tariffs), `checklist` (flow not chosen), `stamp` (avize),
+  `link` (interdependencies, „Folosit în”), `list-bullets` (values, columns), `templates`
+  (sections), `user-account` (people, roles, identities), `envelope` / `phone` (mail / SMS
+  preview), `home-line` (addresses), `search` (no results), `circle-error` / `warning-filled`
+  (load error), `time-filled` (journals).
+- **Action only where the user can act**, with the existing button rules: add = `btn btn-secondary
+  btn-sm` + `icon-plus-large` (blue Secondary), navigation / reset = `btn btn-neutral btn-sm`. When
+  a list's add button would sit right under its own empty state, the button moves INTO the empty
+  state while the list is empty and back under the list once it has rows (Interdependențe, Avizare,
+  Coloane suplimentare, Builder › Secțiuni). A toolbar add button (passport lists) is not repeated.
+- Rights: the action and the line follow the role (Taxe tab: admin gets „Adaugă taxă” + „…până
+  adaugi o taxă”, others „Taxele le adaugă administratorul serviciului.”).
+
+**No results ≠ nothing yet.** After a search or filter use `noResults` (search icon). Where the
+page has filters, it carries the page's own reset action with the SAME label as the page's reset
+control: BO „Șterge filtrele” (`data-filter-clear-all`, passport lists `data-sf-clear="<id>"` via
+`sfClearButton(id)`), Cabinet / RAP „Resetează filtrele” (their filter panels say „Resetează”),
+request-type actions „Arată toate” (`data-rt-filter="all"`). A list with zero items overall gets the
+„nothing yet” empty state, never „Nicio … nu corespunde”.
+
+**Inventory — where each converted empty state lives (2026-10-14)**
+
+| Place | Before | After |
+|---|---|---|
+| Request-type drawer › Formulare / Documente generate / Notificări (no flow) | `fo-field__hint` „Alege întâi fluxul…” | compact, `checklist`, „Alege fluxul” → General + focus on Flux |
+| › Documente generate / Notificări (flow without steps) | `fo-field__hint` „Fluxul ales nu are pași…” | compact, `document` / `notification` |
+| › Formulare (search / filter / no actions) | `noResults` normal | compact; filter → „Arată toate”; flow without actions → nothing-yet |
+| › Avizare (needs on, no aviz) | add button only | compact, `stamp`, „Adaugă aviz” inside |
+| › Taxe | `fo-field__hint` „Nicio taxă…” | compact, `receipt-check`, admin „Adaugă taxă” (parks the drawer, opens Taxă nouă with the request type, returns to Taxe) |
+| › document preview panel (no template) | `fo-field__hint` | compact, `page-text` |
+| › notification preview (template missing) | `.e-permits-ntpl-preview__empty` | compact, `envelope` |
+| Notification preview › SMS / body empty | `.e-permits-ntpl-preview__empty` | bare + compact, `phone` / `envelope` |
+| Registry tables (all BO + eKYC registries) | `td.e-permits-workplace__empty` | `td.e-permits-empty-cell` (component cell) |
+| Classifier values grid | `tr.e-permits-clas-grid__empty-row` | `GEAPEmptyState.tableRow`; filter-only → „Nicio valoare în acest filtru” |
+| Filtrare avansată option lists (registry + passport) | `li.e-permits-workplace__filter-empty` | bare + compact `noResults` |
+| Inserează câmp / Inserează variabilă menus | `li.e-permits-ntpl-picker__empty` | bare + compact `noResults` |
+| Template builder › Câmpuri | `p.e-permits-dtpl-fields__empty` | bare + compact `noResults` |
+| Fee lists modal | `li.e-permits-fee-accounts__empty` wrapper | plain `li` + bare `noResults` |
+| Subdiviziuni / Publicare în RAP pickers | `div.e-permits-subdiv__empty` wrapper (normal box) | bare `noResults` |
+| Setări › Interdependențe | `p.e-permits-cfg2__empty` + add below | compact, `link`, „Adaugă interdependență” inside |
+| Clasificator nou › Coloane suplimentare | `p.e-permits-clas-create__muted` | compact, `list-bullets`, „Adaugă coloană” inside |
+| Form Builder › Pas › Secțiuni | `li.e-permits-builder__step-row-empty` „Nicio secțiune.” | compact, `templates`, „Adaugă secțiune” inside |
+| Form Builder › câmp › Folosit în | `fo-field__hint` | compact, `link` |
+| FO › CAEM search | `div.e-permits-fo-caem__empty` (text) | bare + compact `noResults` (filled at init into `[data-fo-caem-empty]`) |
+| FO › saved cadastral codes (US-54 AC-08) | `li.e-permits-fo-caem__empty` | bare + compact, `home-line` |
+| FO › intent „Acte emise” none | FO infobox `.e-permits-fo-intent__empty` | normal, `page-text` |
+| FO › auth role list, no eligible identity | `.e-permits-fo-auth__role-empty` (grey card) | compact, `user-account` |
+| FO › MDocs search | wrapper `.e-permits-fo-mdocs__empty` | wrapper is `[data-fo-mdocs-empty]` only |
+| Clasificatoare page loading | `.clas-page__empty` + spinner | `render({ loading: true, bare: true })` |
+| Cabinet › Actele mele (no match / none / load error) | `p.cab-empty` | normal `noResults` + „Resetează filtrele” / nothing-yet / error |
+| RAP register (no results / load error) + filter options | `.rap-empty-state` box, `p.rap-filter-option__empty` | normal `noResults` (+ „Resetează filtrele” when filters) / error; options bare + compact |
+
+Removed CSS: `.e-permits-workplace__empty`, `__filter-empty`, `.e-permits-fo-caem__empty`,
+`.e-permits-fo-mdocs__empty`, `.e-permits-fo-auth__role-empty*`, `.e-permits-fee-accounts__empty`,
+`.e-permits-ntpl-picker__empty`, `.e-permits-clas-grid__empty-row`, `.e-permits-dtpl-fields__empty`,
+`.e-permits-fo-intent__empty`, `.e-permits-subdiv__empty`, `.e-permits-cfg2__empty`,
+`.e-permits-builder__step-row-empty`, dead `.e-permits-builder__source-empty` / `__template-empty`,
+`.clas-page__empty`, `.cab-empty`, `.rap-empty-state*`, `.rap-filter-option__empty`.
+
+**Not an empty state (kept on purpose):** inline value placeholders — „Fără subiect” in the mail
+preview header (`.e-permits-ntpl-preview__empty`, a field value), `.cell__empty` „—” / „neutilizat
+încă” in table cells, „Fără valoare” / „Fără setări” / „Fără reguli” meta, „—” rows in key–value
+cards („Nicio taxă · —”, „Acest tarif nu are versiuni anterioare.”); field-level hints that explain a
+disabled control (pay „Se aplică” without classifiers, „Formula nu are variabile.”, Setări „Acte
+solicitate” when the source service has none); the Cabinet act „Nu există postprocese disponibile…”
+line (explains a missing button in an action row); the Form Builder issues header „Fără erori” (a
+validation result); layout-only wrappers (`.e-permits-builder__grid-empty` = grid-column span,
+`[data-fo-*-empty]` visibility hooks, `tr.e-permits-fo-grid__empty` = the fo-grid table row that
+already holds the component).
+
+**Demo states:** request-type drawer `svc-02l` (no flow), `svc-02l1` („Alege fluxul” → General),
+`svc-02m` / `svc-02m1` (no document / notification steps), `svc-02n` (Taxe, admin), `svc-02n1`
+(Adaugă taxă hand-over), `svc-02o` (Avizare without aviz), `svc-02p` (Formulare search); lists in
+modals / menus / popovers `svc-04p1`, `svc-10w3`, `svc-08b1`, `ntpl-02c1`, `trf-02e1`, `ek-04c1`;
+previews `ntpl-02b1` (SMS empty); Setări `svc-10l1` (Interdependențe); classifiers `clf-02h`
+(Coloane), `clf-02i` (Valori, „Adaugă prima valoare”); FO `fo-03e` (CAEM), `adr-02b` (saved codes),
+`pp-02c` (no acts); builder `fb-10` (Folosit în), `fb-01` (Secțiune goală); dossier tabs `dos-01i` /
+`dos-01j` / `dos-04m`; users `usr-04`, `usr-u05d`; registries `ek-04f` (search), `ek-04g` / `ek-06e`
+(nothing yet), `ek-04h` (error), `ek-04i` (loading), `trf-01b`; Cabinet `sm-05i`, `sm-01e`, `cat-01c`;
+RAP `rap-evo/index.html` + a search with no match. Not demoed (data never produces them; code
+path only): the request-type document preview without a template, the FO auth list without an
+eligible identity, Builder › Pas › Secțiuni (a step always keeps ≥ 1 section).
 
 ### Profile tabs — read-only vs actionable (2026-10-04)
 
@@ -5187,7 +5278,7 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
 „Solicitare nouă” is always there; under it the acts of the current service with ≥1 post-process.
 - Locked act: `.e-permits-fo-intent-act.is-locked` + `.e-permits-fo-intent-act__pending`
   (`icon-time`, „Post-proces în curs · GEAP-…”) and a disabled trigger.
-- No acts: `[data-fo-intent-empty]` `.e-permits-fo-intent__empty` (inline info note)
+- No acts: `[data-fo-intent-empty]` holding the shared empty state (title = config `emptyText`, line „Un act apare aici după ce este emis…”, `page-text`)
   „Dumneavoastră nu aveți acte emise pentru serviciul dat.”
 
 **The wizard** (`body[data-fo-postprocess]`, `startFrontOfficePostprocess(act, pp)`; Solicitare nouă

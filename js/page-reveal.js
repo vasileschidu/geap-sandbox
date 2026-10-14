@@ -108,7 +108,7 @@
         ".rap-main__container > .rap-toolbar",
         ".rap-main__container > .rap-company-summary",
         ".rap-main__container > .rap-register",
-        ".rap-main__container > .rap-empty-state"
+        ".rap-main__container > .rap-state"
       ].join(",")));
     }
 

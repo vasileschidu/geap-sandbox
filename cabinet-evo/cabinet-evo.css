@@ -421,14 +421,6 @@
   margin: 0;
 }
 
-/* ---------- empty state ---------- */
-
-.cab-empty {
-  color: var(--color-text-base-tertiary, #757575);
-  margin: var(--spacing-32, 32px) 0 0;
-  text-align: center;
-}
-
 /* ---------- responsive ---------- */
 
 @media (max-width: 900px) {

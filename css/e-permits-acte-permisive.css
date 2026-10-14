@@ -5687,18 +5687,6 @@
   white-space: nowrap;
 }
 
-.e-permits-fo-caem__empty {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-fo-caem__empty[hidden] {
-  display: none;
-}
-
 /* Figma puts the connector rule flush with the CAEM field and indents the
    subgen select 16px from it — the 1px rule eats one of those pixels */
 .e-permits-fo-subgen {
@@ -8282,11 +8270,6 @@
   height: 20px;
   line-height: var(--line-height-lh-20, 20px);
   padding: 0 var(--spacing-8, 8px);
-}
-
-/* wrapper of the shared empty state (bare) under the MDocs search */
-.e-permits-fo-mdocs__empty[hidden] {
-  display: none;
 }
 
 .e-permits-fo-mdocs__attachment {
@@ -12925,8 +12908,7 @@
 .e-permits-builder__source,
 .e-permits-builder__source-content,
 .e-permits-builder__source-pane,
-.e-permits-builder__source-card,
-.e-permits-builder__source-empty {
+.e-permits-builder__source-card {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -12944,13 +12926,6 @@
   margin: calc(var(--spacing-12, 12px) * -1);
 }
 
-.e-permits-builder__source-empty {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  gap: var(--spacing-4, 4px);
-  padding: var(--spacing-16, 16px);
-}
-
-.e-permits-builder__source-empty[hidden],
 .e-permits-builder__source-content[hidden],
 .e-permits-builder__source-warning-wrap[hidden],
 .e-permits-builder__source-warning[hidden] {
@@ -13014,7 +12989,6 @@
   margin: 0;
 }
 
-.e-permits-builder__source-empty strong,
 .e-permits-builder__source-card > strong,
 .e-permits-builder__source-card-head strong {
   color: var(--color-text-base-default, #121212);
@@ -13025,7 +12999,6 @@
   line-height: var(--line-height-lh-26, 26px);
 }
 
-.e-permits-builder__source-empty p,
 .e-permits-builder__source-card p {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-12, 12px);
@@ -13681,15 +13654,6 @@
   min-height: 84px;
   padding: var(--spacing-16, 16px);
   width: 100%;
-}
-
-.e-permits-builder__template-empty {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  font-style: normal;
-  line-height: var(--line-height-lh-16, 16px);
-  max-width: 260px;
-  text-align: center;
 }
 
 .e-permits-builder__template-chip {
@@ -16758,44 +16722,6 @@
   height: auto;
 }
 
-.e-permits-fo-auth__role-empty {
-  align-items: flex-start;
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-12, 12px);
-  display: flex;
-  gap: var(--spacing-12, 12px);
-  padding: var(--spacing-16, 16px);
-  text-align: left;
-}
-
-.e-permits-fo-auth__role-empty-icon .icon {
-  color: var(--color-icon-base-tertiary, #757575);
-  flex: none;
-  height: 24px;
-  width: 24px;
-}
-
-.e-permits-fo-auth__role-empty-copy {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
-  min-width: 0;
-}
-
-.e-permits-fo-auth__role-empty-copy strong {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-fo-auth__role-empty-copy p {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-}
-
 /* ==========================================================================
    Test configuration panel — full flow only.
    A prototyping aid, not product UI. Bottom-left so it never collides with
@@ -19749,10 +19675,6 @@
   line-height: var(--line-height-lh-16, 16px);
 }
 
-.e-permits-fee-accounts__empty {
-  list-style: none;
-}
-
 /* Dosar — process actions (core/case-flow.js; Figma 6675:158399).
    Trigger: library btn-primary btn-md with the current step's name and a chevron.
    Menu: the stack-menu component; items carry a second line (where the action leads,
@@ -20298,12 +20220,6 @@
   line-height: var(--line-height-lh-16, 16px);
 }
 
-.e-permits-ntpl-picker__empty {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  padding: var(--spacing-8, 8px);
-}
-
 /* SMS counter: hint left, count right; red when over one SMS */
 .e-permits-ntpl-count {
   display: flex;
@@ -20687,12 +20603,6 @@
 
 .e-permits-clas-grid__table tbody tr.is-selected td {
   background: var(--color-background-brand-secondary, #e8f0fb);
-}
-
-.e-permits-clas-grid__empty-row td {
-  height: auto;
-  padding: var(--spacing-16, 16px);
-  white-space: normal;
 }
 
 .e-permits-clas-grid__footer {
@@ -21862,8 +21772,7 @@ body.is-ntpl-sheet-open {
   margin: 0;
 }
 
-.e-permits-dtpl-fields__hint,
-.e-permits-dtpl-fields__empty {
+.e-permits-dtpl-fields__hint {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-12, 12px);
   line-height: var(--line-height-lh-16, 16px);
@@ -22264,10 +22173,6 @@ body.is-ntpl-sheet-open {
   margin-top: 2px;
 }
 
-.e-permits-fo-intent__empty {
-  margin-top: var(--spacing-8, 8px);
-}
-
 /* the applicant of a post-process is the act's holder — no identity switch */
 body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role__change {
   display: none;
@@ -22298,6 +22203,15 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   padding: 0 var(--spacing-20, 20px);
   width: auto;
+}
+
+/* phones: the tab row scrolls inside itself — without this the whole drawer body scrolled
+   sideways when a tab near the end was focused (request-type / tariff drawers, 2026-10-14) */
+@media (max-width: 768px) {
+  .e-permits-tariff__tabs .tab-buttons {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
 }
 
 /* tabs straight under the drawer header: the header's bottom border is the row's top
@@ -22916,10 +22830,6 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   padding: 0 0 var(--spacing-12, 12px) calc(var(--spacing-20, 20px) + var(--spacing-8, 8px));
 }
 
-.e-permits-subdiv__empty {
-  padding: var(--spacing-24, 24px);
-}
-
 .e-permits-subdiv__footer {
   align-items: center;
   display: flex;
@@ -23307,16 +23217,11 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   outline: none;
 }
 
-.e-permits-cfg2__desc,
-.e-permits-cfg2__empty {
+.e-permits-cfg2__desc {
   color: var(--color-text-base-secondary);
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
-}
-
-.e-permits-cfg2__empty {
-  margin-bottom: var(--spacing-16, 16px);
 }
 
 .e-permits-cfg2 .e-permits-cfg-form > .e-permits-user-create__grid:only-child,

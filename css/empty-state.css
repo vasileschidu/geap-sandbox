@@ -2,7 +2,8 @@
    Empty state — one component (js/empty-state.js: GEAPEmptyState.render / .noResults).
    Tailwind "simple" empty state on our tokens: dashed box, 48px soft circle with a 24px
    tertiary icon, title 14/20 semibold, one tertiary line (max 440), actions 20 below.
-   --compact: less padding (drawers, modals) · --bare: no box (inside a table / list).
+   --compact: less padding (drawers, modals, side panels) · --bare: no box (inside a table
+   row, a bordered list, a modal list) · bare + compact: inside a menu / popover / combobox.
    ========================================================================== */
 .e-permits-empty {
   align-items: center;
@@ -23,6 +24,28 @@
 .e-permits-empty--bare {
   border: 0;
   padding: var(--spacing-24, 24px) var(--spacing-16, 16px);
+}
+
+/* bare + compact = inside a menu, popover or combobox list (the „no match” line) */
+.e-permits-empty--bare.e-permits-empty--compact {
+  padding: var(--spacing-16, 16px) var(--spacing-12, 12px);
+}
+
+.e-permits-empty[hidden] {
+  display: none;
+}
+
+/* an empty table body: GEAPEmptyState.tableRow(colSpan, html) */
+.e-permits-empty-cell {
+  height: auto !important;
+  padding: var(--spacing-16, 16px) !important;
+  text-align: center !important;
+  white-space: normal !important;
+}
+
+/* list items that only hold an empty state carry no row look */
+li:has(> .e-permits-empty:only-child) {
+  list-style: none;
 }
 
 .e-permits-empty__icon {

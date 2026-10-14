@@ -1438,6 +1438,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const serviceCount = serviceSteps().length;
     const neighbour = (delta) => form.steps[form.steps.indexOf(step) + delta];
+    const addSection = `<button class="btn btn-secondary btn-sm" type="button" data-fb-step-act="add-section" data-id="${step.id}">${icon("icon-plus-small", 16)}<span>Adaugă secțiune</span></button>`;
     const menu = ui().renderStackMenu?.([
       { label: "Adaugă secțiune", icon: "plus-small", attrs: `data-fb-step-act="add-section" data-id="${step.id}"` },
       ...(neighbour(-1) && !neighbour(-1).locked ? [{ label: "Mută la stânga", icon: "arrow-left", attrs: `data-fb-step-act="left" data-id="${step.id}"` }] : []),
@@ -1459,13 +1460,13 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <p class="e-permits-fo-field__hint">Pasul lipsește din cererile de alt tip.</p>
         `)}
-        ${group("Secțiuni", `
+        ${group("Secțiuni", (step.sections || []).length ? `
           <ol class="e-permits-builder__step-list">
-            ${(step.sections || []).map((section) => `
-              <li><button class="e-permits-builder__step-row" type="button" data-fb-section-row="${section.id}"><span>${esc(tr(section.title) || "Secțiune fără titlu")}</span><span class="e-permits-builder__step-row-meta">${section.fields.length} câmpuri</span></button></li>`).join("") || `<li class="e-permits-builder__step-row-empty">Nicio secțiune.</li>`}
+            ${step.sections.map((section) => `
+              <li><button class="e-permits-builder__step-row" type="button" data-fb-section-row="${section.id}"><span>${esc(tr(section.title) || "Secțiune fără titlu")}</span><span class="e-permits-builder__step-row-meta">${section.fields.length} câmpuri</span></button></li>`).join("")}
           </ol>
-          <div><button class="btn btn-secondary btn-sm" type="button" data-fb-step-act="add-section" data-id="${step.id}">${icon("icon-plus-small", 16)}<span>Adaugă secțiune</span></button></div>
-        `)}
+          <div>${addSection}</div>
+        ` : window.GEAPEmptyState.render({ title: "Nicio secțiune", text: "Câmpurile pasului stau în secțiuni. Adaugă prima secțiune.", icon: "templates", compact: true, actionHtml: addSection }))}
         ${group("Poziție", `
           <dl class="e-permits-builder__facts">
             <div><dt>Poziție</dt><dd>${index} din ${form.steps.length}</dd></div>
@@ -1627,7 +1628,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div><button class="btn btn-secondary btn-sm" type="button" data-fb-rule-add${sources.length ? "" : ` aria-disabled="true" data-tooltip-reason="${kind === "child" ? "Blocul nu are alte câmpuri." : "Formularul nu are alte câmpuri."}"`}>${icon("icon-plus-large", 16)}<span>Adaugă regulă</span></button></div>
       `)}
       ${(kind === "field" || kind === "child") && !content ? group("Folosit în", readers.length ? `
-        <ul class="e-permits-builder__step-list">${readers.map((item) => `<li><button class="e-permits-builder__step-row" type="button" data-fb-goto="${item.kind}:${item.id}"><span>${esc(item.name)}</span><span class="e-permits-builder__step-row-meta">${esc(item.what)}</span></button></li>`).join("")}</ul>` : '<p class="e-permits-fo-field__hint">Nicio regulă din formular nu citește acest câmp.</p>') : ""}`;
+        <ul class="e-permits-builder__step-list">${readers.map((item) => `<li><button class="e-permits-builder__step-row" type="button" data-fb-goto="${item.kind}:${item.id}"><span>${esc(item.name)}</span><span class="e-permits-builder__step-row-meta">${esc(item.what)}</span></button></li>`).join("")}</ul>` : window.GEAPEmptyState.render({ title: "Nu e folosit în reguli", text: "Nicio regulă din formular nu citește acest câmp.", icon: "link", compact: true })) : ""}`;
   }
 
   /* cycles: field A shown by B and B by A → refused (US-42 AC-31) */

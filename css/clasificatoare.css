@@ -72,12 +72,6 @@
   font-size: var(--text-caption-md-font-size, 12px);
 }
 
-.clas-page__empty {
-  padding: var(--spacing-48, 48px) var(--spacing-24, 24px);
-  text-align: center;
-  color: var(--color-text-base-secondary, #4b4b4b);
-}
-
 /* Detail dialog content. Layout only. */
 .clas-detail__meta {
   display: flex;

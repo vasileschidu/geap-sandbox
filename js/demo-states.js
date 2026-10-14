@@ -220,7 +220,7 @@
 
   /* eKYC (ek-): the console on the permits shell, the login on bo-login.html */
   const EK_ADMIN = "ekyc-admin";
-  const ek = (hash, run, extra = {}) => ({ flow: "ekyc", as: EK_ADMIN, hash, ready: ".e-permits-ekyc-page:not([hidden]), tr[data-workplace-row], .e-permits-workplace__empty, .e-permits-dosar-profil:not([hidden]) .e-permits-dosar-profil__section", run, ...extra });
+  const ek = (hash, run, extra = {}) => ({ flow: "ekyc", as: EK_ADMIN, hash, ready: ".e-permits-ekyc-page:not([hidden]), tr[data-workplace-row], .e-permits-empty-cell, .e-permits-dosar-profil:not([hidden]) .e-permits-dosar-profil__section", run, ...extra });
   const ekList = (hash, run) => ek(hash, run, { ready: "tr[data-workplace-row]" });
   const ekSes = (id, tab = "general", run) => ek(`#sesiune/${id}/${tab}`, run, { ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty" });
   /* batch 2 (2026-10-13): roles + the review screen #revizie/<id>/<tab> */
@@ -404,6 +404,7 @@
     "svc-04r": svc("fees", async (h) => { await h.click('[data-fee-list-all="tariffs"]'); }),
     "svc-04o": svc("fees", async (h) => { await h.click('[data-fee-list-all="accounts"]'); }),
     "svc-04p": svc("fees", async (h) => { await h.click('[data-fee-list-all="accounts"]'); await h.fill("[data-fee-accounts-search]", "Cahul", { leave: false }); }),
+    "svc-04p1": svc("fees", async (h) => { await h.click('[data-fee-list-all="accounts"]'); await h.fill("[data-fee-accounts-search]", "zzz", { leave: false }); }),
     "svc-04a": svc("fees", async (h) => { await h.click('[data-passport-body] [aria-label="Mai multe acțiuni: taxe"]'); }),
     /* Taxe / Tarife stay stacked lists (2026-10-10): „Filtrare avansată” on a list (US-199 /
        US-203 AC-06), a facet popover, a filter applied, a search with no match; Tarife:
@@ -557,6 +558,17 @@
     /* Documente generate › Previzualizează: the document of a step, read-only, left of the drawer */
     "svc-02d1": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="documents"]'); await h.click("[data-rt-doc-peek]"); }),
     "svc-02d2": svc("request-types", async (h) => { await h.click("[data-passport-configure-rt]"); await h.click('[data-rt-tab="notifications"]'); await h.click("[data-rt-doc-peek]"); }),
+    /* Empty states — one component everywhere (2026-10-14): every tab of „Configurează tipul de
+       solicitare” with nothing to show = the shared empty state, compact in the drawer.
+       rt-4 has no flow yet, rt-2 / rt-3 have flows without document / notification steps and no taxes */
+    "svc-02l": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-4"]'); await h.click('[data-rt-tab="documents"]'); }),
+    "svc-02l1": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-4"]'); await h.click('[data-rt-tab="forms"]'); await h.click("[data-rt-goto-flow]"); }),
+    "svc-02m": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-2"]'); await h.click('[data-rt-tab="documents"]'); }),
+    "svc-02m1": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-2"]'); await h.click('[data-rt-tab="notifications"]'); }),
+    "svc-02n": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-3"]'); await h.click('[data-rt-tab="taxes"]'); }),
+    "svc-02n1": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-3"]'); await h.click('[data-rt-tab="taxes"]'); await h.click("[data-rt-tax-add]"); await h.wait(300); }),
+    "svc-02o": svc("request-types", async (h) => { await rtAviz("rt-2")(h); await h.click('[data-rt-aviz-remove="0"]'); }),
+    "svc-02p": svc("request-types", async (h) => { await h.click('[data-passport-configure-rt="rt-1"]'); await h.click('[data-rt-tab="forms"]'); await h.fill("[data-rt-search]", "zzz", { leave: false }); }),
     "svc-07": svc("classifiers"),
     /* US-226: a specific classifier opens its values (+ Adaugă valoare / Import); a global one opens read-only */
     "svc-07a": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); }),
@@ -578,6 +590,8 @@
     "svc-08d": svc("templates", async (h) => { await h.click("[data-dtpl-import]"); await h.click("[data-dtpl-import-save]"); }),
     "svc-08e": svc("templates", dtplBuilder),
     "svc-08f": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="test"]'); }),
+    /* builder › Câmpuri: a search with no match = the shared empty state (bare + compact) */
+    "svc-08b1": svc("templates", async (h) => { await dtplBuilder(h); await h.fill("[data-dtpl-field-search]", "zzz", { leave: false }); }),
     /* JSON test data: a syntax error, then the preview warns it uses the last valid data */
     "svc-08f1": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="test"]'); const t = await h.find("[data-dtpl-json]"); await h.fill("[data-dtpl-json]", t.value.replace(/,\s*$/m, "").replace(/"\s*\n\s*"/, '"\n  ')); }),
     "svc-08f2": svc("templates", async (h) => { await dtplBuilder(h); await h.click('[data-dtpl-view="test"]'); const t = await h.find("[data-dtpl-json]"); await h.fill("[data-dtpl-json]", t.value.replace(/,(\s*\n\s*"[^"]+":)/, "$1")); await h.click('[data-dtpl-view="preview"]'); }),
@@ -819,6 +833,7 @@
     "trf-02c": trf(async (h) => { await tariffStep2(h); await h.click("[data-tariff-formula]"); }),
     /* formula field: typed numbers and + − × ÷ ( ); variables only from „Inserează variabilă” */
     "trf-02e": trf(async (h) => { await tariffStep2(h); await h.click("[data-tariff-formula]"); await h.click('[aria-controls="tariff-var-picker"]'); }),
+    "trf-02e1": trf(async (h) => { await tariffStep2(h); await h.click("[data-tariff-formula]"); await h.click('[aria-controls="tariff-var-picker"]'); await h.fill("[data-tariff-var-search]", "zzz", { leave: false }); }),
     "trf-02f": trf(async (h) => {
       await tariffStep2(h); await h.click("[data-tariff-formula]");
       await h.click('[aria-controls="tariff-var-picker"]'); await h.click('[data-tariff-var="suprafata_m2"]');
@@ -851,7 +866,10 @@
     "ntpl-02": ntpl("content"),
     "ntpl-02a": ntpl("content", async (h) => { await h.click('[data-ntplp-mode="html"]'); }),
     "ntpl-02b": ntpl("content", async (h) => { await h.click('[data-ntplp-preview="mobile"]'); }),
+    /* the SMS text emptied → the phone preview shows the shared empty state (bare + compact) */
+    "ntpl-02b1": ntpl("content", async (h) => { await h.click('[data-ntplp-preview="mobile"]'); await h.fill('[data-ntplp-text="plain"]', "", { leave: false }); }),
     "ntpl-02c": ntpl("content", async (h) => { await h.click('[aria-controls="ntpl-field-picker"]'); }),
+    "ntpl-02c1": ntpl("content", async (h) => { await h.click('[aria-controls="ntpl-field-picker"]'); await h.fill("[data-ntplp-field-search]", "zzz", { leave: false }); }),
     "ntpl-02d": ntpl("content", ntplEdit),
     /* a template with nothing pending (AprobareNIAC has an unpublished draft in the demo data) */
     "ntpl-02e": { flow: "back-office", as: ADMIN, hash: "#sablon/Case.Registered/content", run: async (h) => { await h.hover("[data-ntpl-publish]"); } },
@@ -880,6 +898,10 @@
     "clf-01b": clf("#classifiers", null, LOCAL_ADMIN),
     "clf-02": clf("#classifiers", clfNew),
     "clf-02a": clf("#classifiers", async (h) => { await clfNew(h); await h.click("[data-clas-create-next]"); }),
+    /* Structură without extra columns: the shared empty state with „Adaugă coloană” inside */
+    "clf-02h": clf("#classifiers", clfStep(2)),
+    /* created with „Fără valori acum” → Valori = the shared empty state with „Adaugă prima valoare” */
+    "clf-02i": clf("#classifiers", async (h) => { await clfStep(4)(h); await h.click("[data-clas-create-done]"); await h.wait(600); }),
     "clf-02b": clf("#classifiers", async (h) => { await clfStep1(h); await h.click('[data-clas-create-choice="start"][data-value="copy"]'); await h.choose('select[data-clas-create="copiatDinId"]', "cl-motive"); }),
     "clf-02c": clf("#classifiers", async (h) => { await clfStep(2)(h); await h.click("[data-clas-x-add]"); await h.fill('[data-clas-drawer] .e-permits-clas-create__col-row input[type="text"]', "Termen de examinare (zile)"); }),
     "clf-02d": clf("#classifiers", async (h) => { await clfStep(3)(h); await h.click('[data-clas-create-values][value="csv"]'); }),
@@ -921,6 +943,8 @@
     "fo-01": { page: PP_FO, flow: "full", ready: "h1" },
     "fo-02": foReq(1),
     "fo-03": foReq(2),
+    /* CAEM search with no match = the shared empty state inside the list (bare + compact) */
+    "fo-03e": foReq(2, {}, async (h) => { await h.click("#fo-caem-code"); await h.fill("[data-fo-caem-search]", "zzz", { leave: false }); document.querySelector("[data-fo-caem-menu]")?.scrollIntoView({ block: "center" }); await h.wait(200); }),
     "fo-04": foReq(3),
     "fo-05": foReq(4),
     /* 2026-10-14 · one document shape in the FO: the picker keeps a card per document (type + source tag,
@@ -1647,6 +1671,8 @@
     "sm-05g": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-menu-trigger]"); }),
     "sm-05h": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
     "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: ".cab-detail__head", run: null },
+    /* Actele mele: nothing matches the search → the shared empty state + „Resetează filtrele” */
+    "sm-05i": { page: CAB, params: { view: "acte" }, ready: "[data-cab-list] > *", run: async (h) => { await h.fill("[data-cab-search]", "zzz", { leave: false }); } },
     "sm-06": sm(null, { eroare: "lista" }),
     "sm-06a": sm(async (h) => { await h.fill("[data-sm-search]", "Bălți", { leave: false }); }, { eroare: "cautare" }),
     "sm-07": sm(null, { as: "pj-vita-plant" }),
@@ -1736,12 +1762,13 @@
     "ek-04a": ekList("#ek-active", async (h) => { await h.click('[data-workplace-tab="În revizie manuală"]'); }),
     "ek-04b": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
     "ek-04c": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); }),
+    "ek-04c1": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); await h.fill("[data-filter-search]", "zzz", { leave: false }); }),
     "ek-04d": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); await h.nth("[data-filter-option]", 0); await h.click("[data-filter-confirm]"); await h.click("[data-filter-commit]"); }),
     "ek-04e": ekList("#ek-active", async (h) => { await h.fill("[data-workplace-search]", "Orange", { leave: false }); }),
     "ek-04f": ekList("#ek-active", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
-    "ek-04g": ek("#ek-active", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
-    "ek-04h": ek("#ek-active", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
-    "ek-04i": ek("#ek-active", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-04g": ek("#ek-active", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
+    "ek-04h": ek("#ek-active", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
+    "ek-04i": ek("#ek-active", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
     "ek-05": ekSes("KYC-48192"),
     "ek-05a": ekSes("KYC-48192", "pasi"),
     "ek-05b": ekSes("KYC-48192", "dispozitiv"),
@@ -1759,8 +1786,8 @@
     "ek-06b": ekList("#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="perioada"]'); }),
     "ek-06c": ekList("#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="decizie"]'); }),
     "ek-06d": ekList("#ek-history", async (h) => { await h.click("[data-workplace-export]"); }),
-    "ek-06e": ek("#ek-history", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
-    "ek-06f": ek("#ek-history", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-06e": ek("#ek-history", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
+    "ek-06f": ek("#ek-history", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-07": ekSes("KYC-47325"),
     "ek-07a": ekSes("KYC-47325", "scor"),
     "ek-07b": ekSes("KYC-47325", "pasi"),
@@ -1778,7 +1805,7 @@
     "ek-08": ekQueue(EK_OP, "#ek-review"),
     "ek-08a": ekQueue(EK_OP, "#ek-review", async (h) => { await h.click('[data-workplace-tab="Alocată"]'); }),
     "ek-08b": ekQueue(EK_OP, "#ek-review", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="statut"]'); }),
-    "ek-08c": ekAs(EK_OP, "#ek-review", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-08c": ekAs(EK_OP, "#ek-review", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-08d": ekRev(EK_OP, "KYC-47073"),
     "ek-09": ekRev(EK_OP, "KYC-48220"),
     "ek-09a": ekRev(EK_OP, "KYC-48220", "revizie", async (h) => { await h.click("[data-ekyc-take]"); }),
@@ -1833,7 +1860,7 @@
     "ek-15d": ek("#ek-reports", async (h) => { await h.click('[data-ekyc-period="30z"]'); }),
     "ek-16": ekQueue(EK_AUD, "#ek-access-log"),
     "ek-16a": ekQueue(EK_AUD, "#ek-access-log", async (h) => { await h.click('[data-workplace-tab="dovezi"]'); }),
-    "ek-16b": ekAs(EK_AUD, "#ek-access-log", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-16b": ekAs(EK_AUD, "#ek-access-log", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
 
     /* ---- eKYC batch 3: Configurare + Administrare (Administrator platformă) ----
        ?ek= gol | eroare | incarcare (lists, details) · sesiuni-eroare (user sessions table) ·
@@ -1844,9 +1871,9 @@
     "ek-20a": ekList("#ek-users", async (h) => { await h.click('[data-workplace-tab="Blocat"]'); }),
     "ek-20b": ekList("#ek-users", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="roluri"]'); }),
     "ek-20c": ekList("#ek-users", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
-    "ek-20d": ek("#ek-users", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
-    "ek-20e": ek("#ek-users", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
-    "ek-20f": ek("#ek-users", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-20d": ek("#ek-users", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
+    "ek-20e": ek("#ek-users", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
+    "ek-20f": ek("#ek-users", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
     "ek-20g": ekList("#ek-users", ekRow("user-suspend", "usr-06")),
     "ek-21": ekDet("#ek-utilizator/usr-06/general"),
     "ek-21a": ekDet("#ek-utilizator/usr-02/sesiuni"),
@@ -1866,9 +1893,9 @@
     "ek-22": ekList("#ek-clients"),
     "ek-22a": ekList("#ek-clients", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
     "ek-22b": ekList("#ek-clients", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="organizatie"]'); }),
-    "ek-22c": ek("#ek-clients", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
-    "ek-22d": ek("#ek-clients", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
-    "ek-22e": ek("#ek-clients", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-22c": ek("#ek-clients", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
+    "ek-22d": ek("#ek-clients", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
+    "ek-22e": ek("#ek-clients", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
     "ek-23": ekDet("#ek-client/maib-app/configuratie"),
     "ek-23a": ekDet("#ek-client/maib-app/jurnal"),
     "ek-23b": ekDet("#ek-client/maib-app/configuratie", async (h) => { await h.click('[data-ekcfg="client-toggle"]'); }),
@@ -1903,7 +1930,7 @@
     /* Cazuri de utilizare (US-UI-08) */
     "ek-25": ekList("#ek-use-cases"),
     "ek-25a": ekList("#ek-use-cases", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
-    "ek-25b": ek("#ek-use-cases", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-25b": ek("#ek-use-cases", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-25c": ekList("#ek-use-cases", async (h) => { await h.click("[data-workplace-add-product]"); }),
     "ek-25d": ekList("#ek-use-cases", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-name", "Onboarding bancar"); await h.fill("#ekcfg-code", "BANK_ONBOARDING_HIGH"); await h.click("[data-ekcfg-submit]"); }),
     "ek-25e": ekList("#ek-use-cases", async (h) => { await h.click("[data-workplace-add-product]"); await h.fill("#ekcfg-name", "Deschidere cont de plăți"); await h.fill("#ekcfg-code", "PAYMENT_ACCOUNT_SUBST"); await h.choose('[data-ekcfg-field="ial"]', "Substanțial"); await h.click("[data-ekcfg-submit]"); }),
@@ -1927,9 +1954,9 @@
     "ek-27": ekList("#ek-parameters"),
     "ek-27a": ekList("#ek-parameters", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="categorie"]'); }),
     "ek-27b": ekList("#ek-parameters", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
-    "ek-27c": ek("#ek-parameters", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
-    "ek-27d": ek("#ek-parameters", null, { params: { ek: "incarcare" }, ready: ".e-permits-workplace__empty" }),
-    "ek-27e": ek("#ek-parameters", null, { params: { ek: "eroare" }, ready: ".e-permits-workplace__empty" }),
+    "ek-27c": ek("#ek-parameters", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
+    "ek-27d": ek("#ek-parameters", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
+    "ek-27e": ek("#ek-parameters", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-27f": ekList("#ek-parameters", async (h) => { await h.fill("[data-workplace-search]", "session", { leave: false }); await h.click('[data-ekcfg="param-edit"][data-id="session.ttlMinutes"]'); }),
     "ek-27g": ekList("#ek-parameters", async (h) => { await h.click('[data-ekcfg="param-edit"][data-id="features.webFallback"]'); }),
     "ek-27h": ekList("#ek-parameters", async (h) => { await h.click('[data-ekcfg="param-edit"][data-id="alerts.channels"]'); await h.fill("#ekcfg-value", "{\"email\": [\"noc@egov.md\"], \"mnotify\": true,}"); await h.click("[data-ekcfg-submit]"); }),
@@ -1945,7 +1972,7 @@
     "ek-28e": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('[data-ekcfg="rule-new"]'); }),
     "ek-28f": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('[data-ekcfg="rule-new"]'); await h.fill("#ekcfg-value", "1,5"); await h.click("[data-ekcfg-submit]"); }),
     "ek-28g": ekDet("#ek-scoring/scr-02/reguli", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="scoring-toggle"]'); }),
-    "ek-28h": ek("#ek-scoring", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-28h": ek("#ek-scoring", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-28i": ekDet("#ek-scoring/scr-02/reguli", null, { params: { ek: "sectiune-eroare" } }),
     /* Furnizori de verificare (US-UI-09) */
     "ek-29": ekList("#ek-providers"),
@@ -1957,7 +1984,7 @@
     "ek-29f": ekPage("#ek-furnizor/prv-facetec/editeaza", async (h) => { await h.click("[data-ekcfg-secret-replace]"); await h.fill("#ekcfg-secret", "fx_live_8f2c41d0a9"); }),
     "ek-29g": ekList("#ek-providers", async (h) => { await h.click("[data-workplace-add-product]"); await h.find("[data-ekcfg-page]"); await h.fill("#ekcfg-endpoint", "api.furnizor.md"); await h.fill("#ekcfg-timeoutMs", "500"); await h.click("[data-ekcfg-submit]"); }),
     "ek-29h": ekPage("#ek-furnizor/prv-facetec/editeaza", async (h) => { await h.click("[data-ekcfg-test-form]"); await h.find("#case-action-modal.is-active .e-permits-callout"); }),
-    "ek-29i": ek("#ek-providers", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-29i": ek("#ek-providers", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-29j": ekPage("#ek-furnizor/prv-facetec/editeaza", async (h) => { await h.hover('[data-ekcfg-wrap="cbThreshold"] .e-permits-ekcfg-tip'); }),
     /* Organizații (US-UI-06) */
     "ek-30": ekList("#ek-organizations"),
@@ -1966,7 +1993,7 @@
     "ek-30c": ekList("#ek-organizations", ekRow("org-delete", "org-microinvest")),
     "ek-30d": ekList("#ek-organizations", async (h) => { await ekRow("org-delete", "org-maib")(h); await h.click("[data-service-confirm-ok]"); }),
     "ek-30e": ekList("#ek-organizations", async (h) => { await ekRow("org-delete", "org-cnas")(h); await h.click("[data-service-confirm-ok]"); }, { params: { ek: "eroare-stergere" } }),
-    "ek-30f": ek("#ek-organizations", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-30f": ek("#ek-organizations", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-30g": ekList("#ek-organizations", async (h) => { await h.click('[data-ekcfg="org-edit"][data-id="org-orange"]'); }),
     /* Versiuni SDK (US-UI-12) */
     "ek-31": ekList("#ek-sdk"),
@@ -1975,7 +2002,7 @@
     "ek-31c": ekList("#ek-sdk", async (h) => { await h.click('[data-ekcfg="sdk-edit"][data-id="sdk-ios-420"]'); }),
     "ek-31d": ekList("#ek-sdk", ekRow("sdk-delete", "sdk-android-385")),
     "ek-31e": ekList("#ek-sdk", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
-    "ek-31f": ek("#ek-sdk", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-31f": ek("#ek-sdk", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     /* Certificate root CA (US-05-09-B) */
     "ek-32": ekList("#ek-trusted-cas"),
     "ek-32a": ekDet("#ek-certificat/ca-age-mtls-g2/general"),
@@ -1988,7 +2015,7 @@
     "ek-32h": ekDet("#ek-certificat/ca-age-mtls-g2/general", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="ca-finish"]'); }),
     "ek-32i": ekDet("#ek-certificat/ca-maib-partner/general", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="ca-rotate"]'); }),
     "ek-32j": ekDet("#ek-certificat/ca-maib-partner/general", async (h) => { await h.click('.e-permits-page-header [data-ekcfg="ca-toggle"]'); }),
-    "ek-32k": ek("#ek-trusted-cas", null, { params: { ek: "gol" }, ready: ".e-permits-workplace__empty" }),
+    "ek-32k": ek("#ek-trusted-cas", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-32l": ekDet("#ek-certificat/ca-age-mtls-g2/jurnal")
   };
 })();

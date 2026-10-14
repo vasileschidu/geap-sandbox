@@ -505,6 +505,12 @@
 
     if (rows.length === 0) {
       elements.resultsSummary.textContent = "Nu există rezultate";
+      /* the shared empty state (js/empty-state.js); filters applied → „Resetează filtrele” */
+      const filters = totalActiveFilters();
+      elements.empty.innerHTML = window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", {
+        text: filters ? "Modificați căutarea sau resetați filtrele aplicate." : "Verificați ortografia sau încercați alți termeni.",
+        actionHtml: filters ? '<button class="btn btn-neutral btn-sm" type="button" data-rap-empty-reset>Resetează filtrele</button>' : ""
+      });
     }
 
     if (rows.length > 0) {
@@ -599,7 +605,7 @@
           <span class="rap-filter-option__label">${escapeHtml(option.label)}</span>
         </label>
       `).join("")
-      : `<p class="rap-filter-option__empty">Niciun rezultat.</p>`;
+      : window.GEAPEmptyState.noResults("Niciun rezultat", { text: "Încercați alți termeni.", bare: true, compact: true });
     list.scrollTop = 0;
     window.requestAnimationFrame(() => syncFilterListBoundary(list));
   };
@@ -985,6 +991,9 @@
     }));
 
     elements.resetAll.addEventListener("click", resetAllFilters);
+    elements.empty.addEventListener("click", (event) => {
+      if (event.target.closest("[data-rap-empty-reset]")) resetAllFilters();
+    });
     elements.applyFilter.addEventListener("click", applyDraftFilters);
     elements.resetFilter.addEventListener("click", resetDraftFilters);
 
@@ -1217,7 +1226,7 @@
     } catch (error) {
       console.error(error);
       elements.empty.hidden = false;
-      elements.empty.querySelector("p").textContent = "Datele nu au putut fi încărcate. Reîncearcă.";
+      elements.empty.innerHTML = window.GEAPEmptyState.render({ title: "Datele nu au putut fi încărcate", text: "Reîncărcați pagina sau încercați mai târziu.", icon: "circle-error" });
       document.querySelector(".rap-register").hidden = true;
     }
   };

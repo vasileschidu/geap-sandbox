@@ -6,11 +6,13 @@
   <title>Registrul actelor permisive · EVO</title>
   <link rel="stylesheet" href="../assets/fonts/Onest.css">
   <link rel="stylesheet" href="../css/main.css?v=crumbs-v2">
-  <link rel="stylesheet" href="rap-evo.css?v=crumbs-v1">
-  <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v6">
+  <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
+  <link rel="stylesheet" href="rap-evo.css?v=empty-v1">
+  <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v7">
   <script src="../js/toast.js?v=toast-v2" defer></script>
-  <script src="rap-evo.js?v=crumbs-v1" defer></script>
-  <script src="../js/page-reveal.js?v=soft-reveal-v6" defer></script>
+  <script src="../js/empty-state.js?v=empty-v3" defer></script>
+  <script src="rap-evo.js?v=empty-v1" defer></script>
+  <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
 <body class="rap-page">
   <header class="rap-header">
@@ -177,12 +179,7 @@
         </div>
       </section>
 
-      <div class="rap-empty-state" data-rap-empty hidden>
-        <span class="rap-empty-state__icon" aria-hidden="true">
-          <svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg>
-        </span>
-        <p>Ne pare rău, nu am găsit niciun rezultat.</p>
-      </div>
+      <div class="rap-state" data-rap-empty hidden></div>
     </div>
   </main>
 

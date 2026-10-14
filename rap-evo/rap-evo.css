@@ -926,41 +926,9 @@ a {
   width: 20px;
 }
 
-.rap-empty-state {
-  align-items: center;
-  border: 1px dashed var(--rap-border);
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 16px;
-  min-height: 148px;
-  padding: 40px;
-  text-align: center;
-}
-
-.rap-empty-state__icon {
-  align-items: center;
-  background: var(--rap-hover);
-  border-radius: 6px;
-  color: var(--rap-text-tertiary);
-  display: inline-flex;
-  height: 36px;
-  justify-content: center;
-  width: 36px;
-}
-
-.rap-empty-state__icon .icon {
-  height: 24px;
-  width: 24px;
-}
-
-.rap-empty-state p {
-  color: var(--rap-text-secondary);
-  font-size: 16px;
-  line-height: 24px;
-  margin: 0;
+/* holds the shared empty state (css/empty-state.css) */
+.rap-state {
+  margin-top: var(--spacing-16, 16px);
 }
 
 .rap-tooltip {
@@ -2221,13 +2189,6 @@ a {
   white-space: nowrap;
 }
 
-.rap-filter-option__empty {
-  color: var(--rap-text-tertiary);
-  font-size: 14px;
-  line-height: 20px;
-  margin: 0;
-  padding: 8px 12px;
-}
 
 .rap-filter-chips {
   display: flex;

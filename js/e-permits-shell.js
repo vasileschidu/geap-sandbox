@@ -5812,8 +5812,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const colSpan = columns.length + (view?.selectable === false ? 0 : 1);
       const productEmpty = productRegistry(workplaceDb?.kind)?.emptyHtml?.({ query: workplaceState.query.trim(), filtered: appliedEntries().length > 0 });
       workplaceRows.innerHTML = `
-        <tr>
-          <td class="e-permits-workplace__empty" colspan="${colSpan}">${productEmpty ? productEmpty : workplaceDb?.kind === "tariffs"
+        <tr class="e-permits-empty-row">
+          <td class="e-permits-empty-cell" colspan="${colSpan}">${productEmpty ? productEmpty : workplaceDb?.kind === "tariffs"
             /* US-202 AC-04 / AC-05: the exact messages */
             ? (workplaceState.query.trim()
               ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumire (RO/RU/EN) sau temei legal.", bare: true })
@@ -5823,6 +5823,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ? renderNoResults("Nu au fost găsite servicii.", { text: "Caută după denumire, cod sau instituție ori schimbă filtrele.", bare: true, actionHtml: appliedEntries().length ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : "" })
             : appliedEntries().length
             ? renderNoResults("Niciun rezultat pentru filtrele aplicate", { text: "Schimbă filtrele sau șterge-le ca să vezi toată lista.", bare: true, actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' })
+            : workplaceState.query.trim()
+            ? renderNoResults("Niciun rezultat nu corespunde căutării", { bare: true })
             : renderNoResults(view?.emptyMessage || ({ tariffs: "Nu există tarife pentru filtrul curent.", ntpl: "Nu există șabloane pentru filtrul curent.", services: "Nu există servicii pentru filtrul curent.", users: "Nu există utilizatori pentru filtrul curent.", roles: "Nu există roluri pentru filtrul curent.", authorities: "Nu există autorități pentru filtrul curent." })[workplaceDb?.kind] || "Nu sunt dosare pentru filtrul curent.", { text: "Alege alt tab sau caută altceva.", bare: true })}</td>
         </tr>
       `;
@@ -6076,7 +6078,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </label>
         </li>
       `;
-    }).join("") : '<li class="e-permits-workplace__filter-empty">Nicio valoare nu corespunde.</li>';
+    }).join("") : `<li>${renderNoResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
   };
 
   const openFilterPopover = (key, anchor) => {
@@ -8042,7 +8044,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return taxes.length || unconfiguredServiceTariffs(service).length
         ? payListState.query.trim()
           ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumirea taxei (RO, RU, EN), cod sau tip de solicitare." })
-          : renderNoResults("Nu există taxe înregistrate", { text: "Alege alt filtru sau șterge filtrele." })
+          : renderNoResults("Nu există taxe înregistrate", { text: "Schimbă filtrele sau șterge-le ca să vezi toată lista.", actionHtml: sfClearButton("taxe") })
         : renderEmptyState({ title: "Serviciul nu are taxe", text: "Sincronizează tarifele din RSSP / eAPL sau adaugă o taxă.", icon: "receipt-check" });
     }
 
@@ -8160,6 +8162,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const sfState = (id) => sfStates[id] || (sfStates[id] = { open: false, applied: {}, draft: null });
   const sfDraft = (id) => { const st = sfState(id); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
   const sfPending = (id) => { const st = sfState(id); return Boolean(st.draft) && JSON.stringify(st.draft) !== JSON.stringify(st.applied); };
+  /* a filtered passport list that came out empty offers the bar's own „Șterge filtrele” */
+  const sfClearButton = (id) => (sfAppliedCount(id) ? `<button class="btn btn-neutral btn-sm" type="button" data-sf-clear="${id}">Șterge filtrele</button>` : "");
   const sfAppliedCount = (id) => Object.values(sfState(id).applied).reduce((n, v) => n + (v?.length || 0), 0);
   const sfMatchesWith = (id, applied, except = null) => (row) => Object.entries(applied).every(([key, values]) =>
     key === except || !values?.length || values.some((v) => asList(row[key]).includes(v)));
@@ -8234,7 +8238,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${sfEdit.values.has(o.value) ? " checked" : ""} data-sf-option><span class="checkbox-custom" aria-hidden="true"></span></span>
           <span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>
         </label>
-      </li>`).join("") : '<li class="e-permits-workplace__filter-empty">Nicio valoare nu corespunde.</li>';
+      </li>`).join("") : `<li>${renderNoResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
   };
   const openSfPop = (id, key) => {
     const facet = SF_LISTS[id].facets.find((f) => f.key === key);
@@ -8348,7 +8352,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!all.length) return renderEmptyState({ title: "Nu există tarife înregistrate", text: "Tarifele serviciului vin din RSSP / eAPL la sincronizare sau se adaugă manual.", icon: "coins" });
       return trfListState.query.trim()
         ? renderNoResults("Nicio înregistrare nu corespunde criteriului de căutare", { text: "Caută după denumire (RO, RU, EN) sau temei legal." })
-        : renderNoResults("Nu există tarife înregistrate", { text: "Alege alt filtru sau șterge filtrele." });
+        : renderNoResults("Nu există tarife înregistrate", { text: "Schimbă filtrele sau șterge-le ca să vezi toată lista.", actionHtml: sfClearButton("tarife") });
     }
     const items = visible.map((t) => {
       const status = tariffStatus(t);
@@ -9212,7 +9216,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <span class="e-permits-ntpl-picker__token">{{${escapeHtml(token)}}}</span>
             </button></li>`).join("")}</ul>` : ""}
         </section>`;
-    }).join("") : '<p class="e-permits-dtpl-fields__empty">Niciun câmp nu corespunde căutării.</p>';
+    }).join("") : renderNoResults("Niciun câmp nu corespunde căutării", { text: "Caută după denumire sau după cod, ex. {{nume}}.", bare: true, compact: true });
   };
 
   const renderDtplTemplateView = () => {
@@ -9605,7 +9609,7 @@ document.addEventListener("DOMContentLoaded", () => {
               })).join("")}</ul>
             </div>
           </div>
-        ` : renderEmptyState({ title: "Fără reguli de destinatari", text: "Se adaugă la editare (US-184).", icon: "user-account" })
+        ` : renderEmptyState({ title: "Fără reguli de destinatari", text: "Destinatarii se adaugă la editarea șablonului.", icon: "user-account" })
       : view === "details"
         ? renderPassportSection("Detalii", [
           ["Cod", renderTag(tpl.code, "neutral")],
@@ -10058,9 +10062,9 @@ document.addEventListener("DOMContentLoaded", () => {
         </td>` : ""}
       </tr>`;
     const colSpan = cols.length + (editable ? 1 : 0);
-    const body = rows.length ? rows.map(row).join("") : `<tr class="e-permits-clas-grid__empty-row"><td colspan="${colSpan}">${q || clasState.activity !== "all"
-      ? renderNoResults("Nicio valoare nu corespunde căutării", { bare: true })
-      : renderEmptyState({ title: "Clasificatorul nu are încă valori", text: editable ? "Adaugă prima valoare sau importă-le dintr-un fișier CSV." : "Valorile apar aici după ce sunt adăugate.", icon: "list-bullets", bare: true, actionHtml: editable ? '<button class="btn btn-secondary btn-sm" type="button" data-clas-grid-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă prima valoare</span></button>' : "" })}</td></tr>`;
+    const body = rows.length ? rows.map(row).join("") : window.GEAPEmptyState.tableRow(colSpan, `${q || clasState.activity !== "all"
+      ? (q ? renderNoResults("Nicio valoare nu corespunde căutării", { bare: true }) : renderNoResults("Nicio valoare în acest filtru", { text: "Alege alt filtru de activitate.", bare: true }))
+      : renderEmptyState({ title: "Clasificatorul nu are încă valori", text: editable ? "Adaugă prima valoare sau importă-le dintr-un fișier CSV." : "Valorile apar aici după ce sunt adăugate.", icon: "list-bullets", bare: true, actionHtml: editable ? '<button class="btn btn-secondary btn-sm" type="button" data-clas-grid-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă prima valoare</span></button>' : "" })}`);
     const sample = (c.nrValori || 0) > all.length;
     const note = clasReadOnlyReason(c) ? "" : c.sursa === "mconnect" ? clasLockNotice("<strong>Valorile nu se editează manual.</strong> Vin din MConnect și se actualizează prin sincronizare; valorile care lipsesc din răspuns se dezactivează automat.") : c.sursa === "api" ? clasLockNotice("<strong>Valorile nu se editează manual.</strong> Vin din API-ul extern și se actualizează prin sincronizare.") : "";
     return `
@@ -10599,6 +10603,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const standard = classifiersStore.fieldTypes.defaults.fields;
     const parents = clasList().filter((c) => c.status !== "archived" && clasVisible(c));
     const types = classifiersStore.fieldTypes.fieldTypes;
+    const addCol = '<button class="btn btn-secondary btn-sm" type="button" data-clas-x-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă coloană</span></button>';
     const rows = d.extras.map((x, i) => `
       <div class="e-permits-clas-create__col-row">
         <div class="e-permits-fo-field"><div class="e-permits-fo-input${e[`x${i}label`] ? " is-error" : ""}"><input type="text" value="${escapeHtml(x.label)}" placeholder="Ex. Termen de examinare (zile)" aria-label="Denumirea coloanei ${i + 1}" data-clas-x="label" data-index="${i}" autocomplete="off"></div>${clasFieldError(e, `x${i}label`)}</div>
@@ -10613,8 +10618,8 @@ document.addEventListener("DOMContentLoaded", () => {
         <p class="e-permits-clas-create__label">Standard <span class="e-permits-clas-create__muted">· au toate clasificatoarele, nu se pot elimina</span></p>
         <div class="e-permits-clas-create__tags">${standard.map((f) => renderTag(`${f.label}${f.obligatoriu || f.id === "cod" ? " *" : ""}`, "neutral")).join("")}${d.parintId ? renderTag("Valoare-părinte", "info") : ""}</div>
         <p class="e-permits-clas-create__label">Suplimentare <span class="e-permits-clas-create__muted">· apar în tabelul de valori, pentru fiecare valoare</span></p>
-        ${d.extras.length ? `<div class="e-permits-clas-create__cols"><div class="e-permits-clas-create__col-row e-permits-clas-create__col-head" aria-hidden="true"><span>Denumire coloană</span><span>Tip</span><span>Setări</span><span></span></div>${rows}</div>` : '<p class="e-permits-clas-create__muted">Nicio coloană suplimentară. Adaugă doar ce trebuie păstrat la fiecare valoare (ex. termen, frecvență, cod extern).</p>'}
-        <div><button class="btn btn-secondary btn-sm" type="button" data-clas-x-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă coloană</span></button></div>`)}
+        ${d.extras.length ? `<div class="e-permits-clas-create__cols"><div class="e-permits-clas-create__col-row e-permits-clas-create__col-head" aria-hidden="true"><span>Denumire coloană</span><span>Tip</span><span>Setări</span><span></span></div>${rows}</div>` : renderEmptyState({ title: "Nicio coloană suplimentară", text: "Adaugă doar ce trebuie păstrat la fiecare valoare (ex. termen, frecvență, cod extern).", icon: "list-bullets", compact: true, actionHtml: addCol })}
+        ${d.extras.length ? `<div>${addCol}</div>` : ""}`)}
       ${clasCreateSection("Format și ierarhie", `<div class="e-permits-user-create__grid">
         ${clasSegmented("idFormat", "Format cod", [["INT", "Număr (INT)"], ["UID", "Cod unic (UID)"]], d.idFormat, { hint: d.idFormat === "INT" ? "Codurile sunt numere: 1, 2, 1001." : "Codurile pot conține litere și cifre: MD, R1, A-01." })}
         <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--12"><label for="clas-c-parent">Clasificator-părinte</label>${renderFoSelectControl({ id: "clas-c-parent", attrs: 'data-clas-create="parintId"', optionsHtml: [["", "Fără părinte"], ...parents.map((c) => [c.id, c.denumire])].map(([v, l]) => `<option value="${escapeHtml(v)}"${(d.parintId || "") === v ? " selected" : ""}>${escapeHtml(l)}</option>`).join("") })}<p class="e-permits-fo-field__hint">Opțional. Legătură vie: fiecare valoare va indica o valoare din clasificatorul-părinte.</p></div>
@@ -11372,7 +11377,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-ntpl-picker__token">{{${escapeHtml(token)}}}</span>
         </button>
       </li>
-    `).join("") : '<li role="none" class="e-permits-ntpl-picker__empty">Niciun câmp nu corespunde.</li>';
+    `).join("") : `<li role="none">${renderNoResults("Niciun câmp nu corespunde", { text: "Caută după denumire sau după cod.", bare: true, compact: true })}</li>`;
   };
 
   const renderNtplFieldPicker = () => `
@@ -11414,7 +11419,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-ntpl-preview__time">Mesaj text · Azi 09:41</span>
           ${sms
             ? `<div class="e-permits-ntpl-preview__sms">${fillNtplSample(sms)}</div>`
-            : '<p class="e-permits-ntpl-preview__empty">Fără mesaj scurt în această limbă.</p>'}
+            : renderEmptyState({ title: "Fără mesaj scurt", text: "Șablonul nu are încă text SMS în această limbă.", icon: "phone", bare: true, compact: true })}
         </div>
       `;
     }
@@ -11423,7 +11428,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <span class="e-permits-ntpl-preview__from">SIA GEAP · noreply@geap.gov.md</span>
         <p class="e-permits-ntpl-preview__subject">${text.subject?.trim() ? fillNtplSample(text.subject) : '<span class="e-permits-ntpl-preview__empty">Fără subiect</span>'}</p>
       </div>
-      <div class="e-permits-ntpl-preview__mail-body">${plainText(text.body) ? fillNtplSample(text.body, { html: true }) : '<p class="e-permits-ntpl-preview__empty">Corpul mesajului este gol.</p>'}</div>
+      <div class="e-permits-ntpl-preview__mail-body">${plainText(text.body) ? fillNtplSample(text.body, { html: true }) : renderEmptyState({ title: "Corpul mesajului este gol", text: "Șablonul nu are încă text de e-mail în această limbă.", icon: "envelope", bare: true, compact: true })}</div>
     `;
   };
 
@@ -12691,7 +12696,7 @@ document.addEventListener("DOMContentLoaded", () => {
     feeAccountsModal.querySelector("[data-fee-accounts-count]").textContent = q ? `${clasNumber(rows.length)} din ${clasNumber(all.length)} ${list.noun}` : `${clasNumber(all.length)} ${list.noun}`;
     feeAccountsModal.querySelector("[data-fee-accounts-list]").innerHTML = rows.length
       ? rows.map(list.row).join("")
-      : `<li class="e-permits-fee-accounts__empty">${renderNoResults("Niciun rezultat nu corespunde căutării", { bare: true })}</li>`;
+      : `<li>${renderNoResults("Niciun rezultat nu corespunde căutării", { bare: true })}</li>`;
   };
   const openFeeAccounts = (kind = "accounts") => {
     const list = FEE_LISTS[kind];
@@ -13874,7 +13879,10 @@ document.addEventListener("DOMContentLoaded", () => {
     })).filter((group) => group.rows.length);
 
     if (!groups.length) {
-      return renderNoResults("Nicio acțiune nu corespunde filtrului");
+      if (!rows.length) return renderEmptyState({ title: "Fluxul nu are acțiuni", text: "Fluxul ales nu are acțiuni care deschid un formular.", icon: "page-text", compact: true });
+      return String(rtDraft.query || "").trim()
+        ? renderNoResults("Nicio acțiune nu corespunde căutării", { text: "Caută după pas sau după acțiune.", compact: true })
+        : renderNoResults("Nicio acțiune în acest filtru", { text: "Alege alt filtru.", compact: true, actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-rt-filter="all">Arată toate</button>' });
     }
 
     return `
@@ -13906,10 +13914,11 @@ document.addEventListener("DOMContentLoaded", () => {
     <a class="link link-primary link-sm e-permits-passport__tab-link" href="e-permits-acte-permisive.html?flow=back-office#flux/${encodeURIComponent(rtDraft.flow)}" target="_blank" rel="noopener">Vezi schema fluxului în Fluxuri de lucru →</a>
   ` : "";
 
+  /* empty tabs = the shared empty state, compact in a drawer (2026-10-14) */
+  const rtNeedFlow = (what) => renderEmptyState({ title: "Alege întâi fluxul de procesare", text: `${what} fluxului apar aici după ce îl alegi în tabul General.`, icon: "checklist", compact: true, actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-rt-goto-flow>Alege fluxul</button>' });
+
   const renderRtActionsSection = () => {
-    if (!rtDraft.flow) {
-      return `<p class="e-permits-fo-field__hint">Alege întâi fluxul de procesare — acțiunile lui apar aici.</p>`;
-    }
+    if (!rtDraft.flow) return rtNeedFlow("Acțiunile");
 
     const rows = rtActionRows();
 
@@ -13978,7 +13987,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const own = serviceTemplates(service);
     const noteOptions = [...own, ...((servicesStore?.notificationTemplates || []).filter((t) => !own.some((o) => o.code === t.code)))].map((t) => ({ value: t.code, label: `${t.code} · ${t.name}` }));
     const blue = '<img class="e-permits-fo-lib-item__icon" src="assets/icons/document-generated.svg" width="24" height="24" alt="">';
-    const needFlow = '<p class="e-permits-fo-field__hint">Alege întâi fluxul de procesare (tabul General) — pașii lui apar aici.</p>';
+    const needFlow = rtNeedFlow("Pașii");
     const changedDocs = docSteps.filter((st) => rtDraft.docOverrides[st.key]).length;
     const changedNotes = noteSteps.filter((st) => rtDraft.notifyOverrides[st.key]).length;
     const group = (label, count, changed, rows) => `
@@ -14000,7 +14009,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${!flow ? needFlow : docSteps.length ? group("Pași care generează documente", docSteps.length, changedDocs, docSteps.map((st) => {
             const def = serviceDocTemplates(service).find((t) => t.type === st.docType);
             return rtOverrideRow({ key: st.key, attr: "doc", lead: blue, title: st.stepName, meta: [renderTag(st.docType, "neutral")], defaultLabel: def ? def.name : "șablonul procesului", defaultTag: "Implicit", current: rtDraft.docOverrides[st.key] || "", options: docOptions });
-          }).join("")) : '<p class="e-permits-fo-field__hint">Fluxul ales nu are pași care generează documente.</p>'}
+          }).join("")) : renderEmptyState({ title: "Niciun document generat", text: "Fluxul ales nu are pași care generează documente. Dacă tipul trebuie să emită un act, alege în General un flux cu pas de generare.", icon: "document", compact: true })}
         </div>
       </section>`,
       notifications: `
@@ -14008,7 +14017,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <h3 class="e-permits-user-create__section-title">Notificări</h3>
         <div class="e-permits-user-create__section-content">
           <p class="e-permits-fo-field__hint">Pașii de notificare ai fluxului, câte un rând pe eveniment. Implicit se trimite șablonul din proces; îl poți înlocui pentru acest tip de solicitare.</p>
-          ${!flow ? needFlow : noteSteps.length ? group("Pași de notificare", noteSteps.length, changedNotes, noteSteps.map((st) => rtOverrideRow({ key: st.key, attr: "notify", title: st.stepName, meta: [renderTag(st.event, "neutral")], defaultLabel: st.event, defaultTag: "Din proces", current: rtDraft.notifyOverrides[st.key] || "", options: noteOptions })).join("")) : '<p class="e-permits-fo-field__hint">Fluxul ales nu are pași de notificare.</p>'}
+          ${!flow ? needFlow : noteSteps.length ? group("Pași de notificare", noteSteps.length, changedNotes, noteSteps.map((st) => rtOverrideRow({ key: st.key, attr: "notify", title: st.stepName, meta: [renderTag(st.event, "neutral")], defaultLabel: st.event, defaultTag: "Din proces", current: rtDraft.notifyOverrides[st.key] || "", options: noteOptions })).join("")) : renderEmptyState({ title: "Nicio notificare", text: "Fluxul ales nu are pași de notificare, deci solicitantul nu primește mesaje pentru acest tip.", icon: "notification", compact: true })}
         </div>
       </section>`,
       taxes: `
@@ -14032,7 +14041,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 </li>`;
               }).join("")}</ul>
             </div>`;
-          }).join("")}</div>` : '<p class="e-permits-fo-field__hint">Nicio taxă pentru acest tip de solicitare.</p>'}
+          }).join("")}</div>` : renderEmptyState({ title: "Nicio taxă pentru acest tip de solicitare", text: isCentralAdmin() ? "Solicitarea este gratuită până adaugi o taxă pentru acest tip." : "Solicitarea este gratuită. Taxele le adaugă administratorul serviciului.", icon: "receipt-check", compact: true, actionHtml: isCentralAdmin() ? '<button class="btn btn-secondary btn-sm" type="button" data-rt-tax-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă taxă</span></button>' : "" })}
         </div>
       </section>`
     };
@@ -14064,6 +14073,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const a = rtDraft.aviz, needs = branch && a.needs;
     const unit = rtDraft.termUnit || "zile lucrătoare";
     const auths = avizAuthorities();
+    const addAviz = '<button class="btn btn-secondary btn-sm" type="button" data-rt-aviz-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă aviz</span></button>';
     const item = (x, i) => {
       const auth = auths.find((y) => y.id === x.authority);
       return `
@@ -14111,9 +14121,9 @@ document.addEventListener("DOMContentLoaded", () => {
           ${!branch ? renderInfoNote(`„Necesită avizare” rămâne „Nu”: fluxul ${flow ? `„${escapeHtml(flow.name)} · ${escapeHtml(flow.version)}”` : "ales"} nu are ramura de avizare. Pentru avize, alege în General un flux cu avizare (ex. „Flux cu avizare · v2”).`) : ""}
           ${needs ? `
             <p class="e-permits-fo-field__hint">Un aviz = o singură subdiviziune avizatoare; pentru altă subdiviziune a aceleiași autorități adaugă un aviz separat.</p>
-            ${a.items.length ? `<div class="e-permits-tax-cond__list">${a.items.map(item).join("")}</div>` : ""}
+            ${a.items.length ? `<div class="e-permits-tax-cond__list">${a.items.map(item).join("")}</div>` : renderEmptyState({ title: "Niciun aviz adăugat", text: "Adaugă autoritatea și subdiviziunea care avizează dosarele.", icon: "stamp", compact: true, actionHtml: addAviz })}
             ${rtDraft.avizErrors.none ? `<span class="message message--inline message--error e-permits-fo-field__error"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg><span>${escapeHtml(rtDraft.avizErrors.none)}</span></span>` : ""}
-            <div><button class="btn btn-secondary btn-sm" type="button" data-rt-aviz-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă aviz</span></button></div>` : ""}
+            ${a.items.length ? `<div>${addAviz}</div>` : ""}` : ""}
         </div>
       </section>`;
   };
@@ -14178,7 +14188,7 @@ document.addEventListener("DOMContentLoaded", () => {
     canvasEl.classList.remove("is-mail");
     canvasEl.innerHTML = tpl
       ? `<div class="e-permits-dtpl__page e-permits-doc-peek__page"${tpl.background ? ` style="background-image:url('${tpl.background}')"` : ""}><div class="e-permits-dtpl__surface">${dtplFill(tpl.html, tpl.testData || {})}</div></div>`
-      : `<p class="e-permits-fo-field__hint">Serviciul nu are încă un șablon pentru ${escapeHtml(st.docType)}.</p>`;
+      : renderEmptyState({ title: "Nimic de previzualizat", text: `Serviciul nu are încă un șablon pentru ${st.docType}. Creează-l în tabul Șabloane de tipar.`, icon: "page-text", compact: true });
     rtPeek.hidden = false;
     fitRtPeek();
     /* another template in the same panel: a short cross-fade instead of a jump */
@@ -14206,7 +14216,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="segmented-control" role="radiogroup" aria-label="Previzualizare pe">
           ${[["email", "E-mail"], ["mobile", "Mobil"]].map(([v, l]) => `<button class="segment-item${mode === v ? " is-selected" : ""}" type="button" role="radio" aria-checked="${mode === v}" data-rt-peek-mode="${v}">${l}</button>`).join("")}
         </div>
-        <div class="e-permits-ntpl-preview e-permits-doc-peek__page" aria-live="polite">${tpl ? renderNtplPreviewOf((tpl.texts || {}).ro || {}, mode) : '<p class="e-permits-ntpl-preview__empty">Șablonul nu a fost găsit.</p>'}</div>
+        <div class="e-permits-ntpl-preview e-permits-doc-peek__page" aria-live="polite">${tpl ? renderNtplPreviewOf((tpl.texts || {}).ro || {}, mode) : renderEmptyState({ title: "Șablonul nu a fost găsit", text: "Pasul trimite un șablon care nu mai există în sistem. Alege alt șablon pentru acest pas.", icon: "envelope", compact: true })}</div>
       </div>`;
     rtPeek.hidden = false;
     fitRtPeek();
@@ -14613,6 +14623,29 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target.closest("[data-rt-peek-close]")) {
       const key = rtDraft.peek; rtDraft.peek = null; renderRtDrawer();
       rtDrawerBody.querySelector(`[data-rt-doc-peek="${CSS.escape(key || "")}"]`)?.focus();
+      return;
+    }
+
+    if (event.target.closest("[data-rt-goto-flow]")) {
+      closeFoSelect();
+      rtDraft.tab = "general";
+      renderRtDrawer();
+      rtDrawerBody.querySelector("#rt-flow")?.focus();
+      return;
+    }
+
+    /* „Adaugă taxă” from the Taxe tab: park this drawer (draft kept), open Taxă nouă with the
+       request type filled in, come back to Taxe when it closes — the pay → tariff hand-over pattern */
+    if (event.target.closest("[data-rt-tax-add]")) {
+      const rt = rtCurrent(getServiceByCode(rtDraft.serviceCode));
+      closeFoSelect();
+      rtDraft.parked = true;
+      rtDrawer.classList.add("is-closing");
+      window.setTimeout(() => {
+        rtDrawer.hidden = true;
+        rtDrawer.classList.remove("is-closing");
+        openPaymentDrawer(null, { requestType: rt?.name || "" });
+      }, 120);
       return;
     }
 
@@ -15050,7 +15083,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* open: an existing tax, a new one, or a new one for a tariff to configure */
-  const openPaymentDrawer = (taxId = null, { tariffId = null } = {}) => {
+  const openPaymentDrawer = (taxId = null, { tariffId = null, requestType = "" } = {}) => {
     const service = getServiceByCode(serviceProfileState.code);
     const tax = taxId ? serviceTaxes(service || { geap: {} }).find((item) => item.id === taxId) : null;
 
@@ -15064,7 +15097,7 @@ document.addEventListener("DOMContentLoaded", () => {
       serviceCode: service.code,
       id: tax?.id || null,
       tariffId: base?.tariffId || "",
-      requestType: base?.requestType || "",
+      requestType: base?.requestType || requestType || "",
       moment: base?.moment || "",
       generation: base?.generation || "Automat",
       conditions: base && passport.taxConditions(base).length ? passport.taxConditions(base).map((c) => ({ classifier: c.classifier, values: [...c.values] })) : null,
@@ -15101,6 +15134,15 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.remove("is-user-create-open");
         payDraft = null;
         payReturnFocus?.focus?.();
+        /* opened from „Configurează tipul de solicitare › Taxe”: back to that drawer, on Taxe */
+        if (rtDraft?.parked && rtDrawer) {
+          rtDraft.parked = false;
+          rtDraft.tab = "taxes";
+          renderRtDrawer();
+          rtDrawer.hidden = false;
+          document.body.classList.add("is-user-create-open");
+          requestAnimationFrame(() => rtDrawerBody.querySelector('[data-rt-tab="taxes"]')?.focus());
+        }
       }
     }, 120);
   };
@@ -15589,7 +15631,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderTariffFormulaVarItems = (query = "") => {
     const q = query.trim().toLocaleLowerCase("ro");
     const vars = (servicesStore.formulaVariables || []).filter((v) => !q || `${v.label} ${v.key} ${v.source}`.toLocaleLowerCase("ro").includes(q));
-    if (!vars.length) return '<li role="none" class="e-permits-ntpl-picker__empty">Nicio variabilă nu corespunde.</li>';
+    if (!vars.length) return `<li role="none">${renderNoResults("Nicio variabilă nu corespunde", { text: "Caută după denumire, cod sau sursă.", bare: true, compact: true })}</li>`;
     const groups = [...new Set(vars.map((v) => v.source))];
     return groups.map((group) => `
       <li role="none"><p class="e-permits-ntpl-picker__group">${escapeHtml(group)}</p></li>
@@ -17614,15 +17656,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (key === "deps") {
       const deps = cfg2.v.deps;
       const isNew = (d) => !serviceConfig(service).deps.some((x) => x.id === d.id);
+      const addDep = '<button class="btn btn-secondary btn-sm" type="button" data-cfg2-dep-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă interdependență</span></button>';
       return `
         ${deps.length ? `<div class="e-permits-tax-cond__list">${deps.map((dep, i) => `
           <div class="e-permits-tax-cond" data-cfg2-dep="${escapeHtml(dep.id)}">
             <div class="e-permits-tax-cond__head"><label>Interdependența ${i + 1}${isNew(dep) ? ` ${renderTag("Nouă", "brand")}` : ""}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg2-dep-remove="${escapeHtml(dep.id)}">Elimină</button></div>
             <div data-cfg2-dep-body>${cfgWith(cfg2DepCtx(dep, null), () => renderCfgForm(service))}</div>
-          </div>`).join("")}</div>` : `<p class="e-permits-cfg2__empty">Serviciul nu are interdependențe cu alte servicii sau surse externe.</p>`}
-        <div class="e-permits-tax-cond__add">
-          <button class="btn btn-secondary btn-sm" type="button" data-cfg2-dep-add><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>Adaugă interdependență</span></button>
-        </div>`;
+          </div>`).join("")}</div>
+        <div class="e-permits-tax-cond__add">${addDep}</div>` : renderEmptyState({ title: "Nicio interdependență", text: "Serviciul nu depinde de alte servicii sau de surse externe. Adaugă una dacă cererea are nevoie de un act sau de date din altă parte.", icon: "link", compact: true, actionHtml: addDep })}`;
     }
     return cfgWith(cfg2SectionCtx(service, key, null), () => renderCfgForm(service));
   };
@@ -17836,7 +17877,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <ul class="e-permits-subdiv__items" role="list">${shown.map((x) => `<li>${renderCheckOption({ label: x.value, plain: true, checked: cfgSubdiv.sel.has(x.value), attrs: `value="${escapeHtml(x.value)}" data-cfg-subdiv-item` })}</li>`).join("")}</ul>
         </section>`;
     }).join("");
-    return html || `<div class="e-permits-subdiv__empty">${renderNoResults(cfgSubdiv.query.trim() ? "Nicio subdiviziune nu corespunde căutării" : "Nicio subdiviziune în acest filtru", { text: "Schimbă filtrul sau caută altceva." })}</div>`;
+    return html || renderNoResults(cfgSubdiv.query.trim() ? "Nicio subdiviziune nu corespunde căutării" : "Nicio subdiviziune în acest filtru", { text: "Schimbă filtrul sau caută altceva.", bare: true });
   };
   /* everything around the list: chips, bulk action, total, group heads */
   const cfgSubdivSync = () => {
@@ -17970,7 +18011,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <ul class="e-permits-cfg-rap e-permits-subdiv__rap" role="list">${rows}</ul>
         </section>`;
     }).join("");
-    return html || `<div class="e-permits-subdiv__empty">${renderNoResults(cfgRap.query.trim() ? "Niciun câmp nu corespunde căutării" : "Niciun câmp în acest filtru", { text: "Schimbă filtrul sau caută altceva." })}</div>`;
+    return html || renderNoResults(cfgRap.query.trim() ? "Niciun câmp nu corespunde căutării" : "Niciun câmp în acest filtru", { text: "Schimbă filtrul sau caută altceva.", bare: true });
   };
   const cfgRapSync = () => {
     const all = cfgRapAll(), n = all.filter((x) => cfgRap.sel.has(x.field)).length, a = all.filter(cfgRapIsAnon).length;
@@ -18375,7 +18416,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.warn(error);
       workplaceRows.innerHTML = `
         <tr>
-          <td class="e-permits-workplace__empty" colspan="12">${renderEmptyState({ title: "Nu am putut încărca dosarele", text: "Baza locală nu a răspuns. Reîncarcă pagina.", icon: "warning-filled", bare: true })}</td>
+          <td class="e-permits-empty-cell" colspan="12">${renderEmptyState({ title: "Nu am putut încărca dosarele", text: "Baza locală nu a răspuns. Reîncarcă pagina.", icon: "warning-filled", bare: true })}</td>
         </tr>
       `;
       return;

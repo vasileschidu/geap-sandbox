@@ -117,7 +117,8 @@
     return FO;
   }
 
-  /* empty-state.js builds root-relative sprite paths; this page lives one level down */
+  /* FO / shell markup reused here uses root-relative asset paths; this page lives one level
+     down (empty-state.js resolves its own sprite path since 2026-10-14) */
   const fixAssets = (html) => html.replaceAll('href="assets/', 'href="../assets/').replaceAll('src="assets/', 'src="../assets/');
 
   function copyValue(value, label) {
