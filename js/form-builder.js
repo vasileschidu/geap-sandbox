@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* ------------------------------------------------- component registry (spec § C) */
   const SPANS = [3, 4, 6, 8, 12];
-  const SPAN_TEXT = { 3: "un sfert — 4 pe rând", 4: "o treime — 3 pe rând", 6: "jumătate — 2 pe rând", 8: "două treimi", 12: "toată lățimea" };
+  const SPAN_TEXT = { 3: "un sfert", 4: "o treime", 6: "jumătate", 8: "două treimi", 12: "tot rândul" };
   const CATEGORIES = [
     ["basic", "Câmpuri de bază"],
     ["choice", "Alegere"],
@@ -346,7 +346,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const COLUMN_SIMPLE = ["text", "number", "money", "date", "checkbox", "radio"];
   const COLUMN_COMPLEX = ["select", "multiselect", "grid"];
   const BLOCK_TYPES = ["text", "textarea", "number", "money", "email", "phone", "date", "select", "multiselect", "radio", "checkbox", "checklist", "info"];
-  const COLUMN_WIDTHS = [["auto", "Auto"], ["s", "Îngustă"], ["m", "Medie"], ["l", "Lată"]];
   const CHILD_LABELS = { text: "Text", textarea: "Descriere", number: "Număr", money: "Sumă", email: "Email", phone: "Telefon", date: "Dată", checkbox: "Bifat", radio: "Opțiune", select: "Listă", multiselect: "Selecție multiplă", checklist: "Opțiuni", grid: "Sub-grilă", info: "Notă" };
   const isContainer = (field) => Boolean(field && CONTAINERS.includes(field.type));
   const kidsOf = (field) => {
@@ -1063,7 +1062,7 @@ document.addEventListener("DOMContentLoaded", () => {
       { label: "Șterge", icon: "delete", danger: true, attrs: `data-fb-act="delete" data-id="${field.id}"` },
     ];
     return `
-      <article class="e-permits-builder__field${selected ? " is-selected" : ""}${errors.length ? " has-issue" : ""}" data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" tabindex="0" draggable="true" aria-label="${esc(meta.label)}: ${esc(name)}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}" aria-describedby="${KBD_HINT_ID}">
+      <article class="e-permits-builder__field${selected ? " is-selected" : ""}${errors.length ? " has-issue" : ""}" data-builder-field data-id="${field.id}" data-type="${field.type}" data-span="${spanOf(field)}" tabindex="0" aria-label="${esc(meta.label)}: ${esc(name)}, lățime ${spanOf(field)} din 12${field.required ? ", obligatoriu" : ""}${field.type === "hidden" ? ", ascuns pentru solicitant" : ""}" aria-describedby="${KBD_HINT_ID}">
         <div class="e-permits-builder__field-tools">
           <div class="e-permits-builder__field-meta">
             <span class="e-permits-builder__drag-grip" aria-hidden="true">${icon("icon-drag", 16)}</span>
@@ -1213,6 +1212,57 @@ document.addEventListener("DOMContentLoaded", () => {
         ${options.map(([v, text, aria]) => `<button class="segment-item${String(v) === String(value) ? " is-selected" : ""}" type="button" role="radio" aria-checked="${String(v) === String(value)}"${aria ? ` aria-label="${esc(aria)}"` : ""} data-fb-seg="${prop}" data-value="${esc(v)}">${text}</button>`).join("")}
       </div>`;
   }
+  /* „Lățime” (2026-10-14, user: „a line with real columns”): a row of equal column bars, one radio per
+     allowed width covering its own columns; bars up to the value are filled. Hover previews the change
+     (CSS only: bars that would fill / empty turn lighter). Reuses the `data-fb-seg` click + arrow keys.
+     options = [[value, cols, label, aria]] in order; `total` = number of bars. */
+  function widthPicker({ prop, value, options, total, label, caption, disabled = false, reason = "" }) {
+    const index = options.findIndex(([v]) => String(v) === String(value));
+    const filled = index >= 0 ? options.slice(0, index + 1).reduce((n, [, cols]) => n + cols, 0) : 0;
+    let col = 0;
+    const captionId = `fb-width-cap-${prop.replace(/[^a-z0-9]+/gi, "-")}`;
+    return `
+      <div class="e-permits-builder__width${disabled ? " is-disabled" : ""}">
+        <div class="e-permits-builder__width-picker" role="radiogroup" aria-label="${esc(label)}" aria-describedby="${captionId}" data-total="${total}"${disabled ? ' aria-disabled="true"' : ""}>
+          ${options.map(([v, cols, , aria], i) => {
+            const on = i === index;
+            const bars = Array.from({ length: cols }, () => { col += 1; return `<span class="e-permits-builder__width-bar${col <= filled ? " is-filled" : ""}"></span>`; }).join("");
+            return `<button class="e-permits-builder__width-option" type="button" role="radio" aria-checked="${on}" aria-label="${esc(aria)}" data-cols="${cols}" data-fb-seg="${prop}" data-value="${esc(v)}" tabindex="${on || (index < 0 && i === 0) ? 0 : -1}"${disabled ? " disabled" : ""}>${bars}</button>`;
+          }).join("")}
+        </div>
+        <p class="e-permits-builder__width-caption" id="${captionId}">${caption}</p>
+        ${reason ? `<p class="e-permits-fo-field__hint">${esc(reason)}</p>` : ""}
+      </div>`;
+  }
+  /* a field's span on the 12-column grid */
+  const spanPicker = (field, { fixed = false, reason = "" } = {}) => {
+    const span = fixed ? 12 : Number(field.span) || 12;
+    return widthPicker({
+      prop: "span",
+      value: span,
+      total: 12,
+      options: SPANS.map((value, i) => [value, value - (SPANS[i - 1] || 0), `${value}/12`, `${value} din 12 coloane — ${SPAN_TEXT[value]}`]),
+      label: `Lățime: ${span} din 12 coloane`,
+      caption: `<strong>${span}/12</strong> · ${SPAN_TEXT[span] || ""}`,
+      disabled: fixed,
+      reason,
+    });
+  };
+  /* a grid column's share of the table row: parts (Îngustă 2 · Medie 3 · Lată 4); „auto” = Medie */
+  const COLUMN_PARTS = [["s", 2, "Îngustă"], ["m", 3, "Medie"], ["l", 4, "Lată"]];
+  const columnPicker = (field) => {
+    const value = !field.width || field.width === "auto" ? "m" : field.width;
+    const [, parts, name] = COLUMN_PARTS.find(([v]) => v === value) || COLUMN_PARTS[1];
+    return widthPicker({
+      prop: "width",
+      value,
+      total: 4,
+      options: COLUMN_PARTS.map(([v, p, n], i) => [v, p - (COLUMN_PARTS[i - 1]?.[1] || 0), n, `${n} — ${p} părți din 4`]),
+      label: `Lățime coloană: ${name}, ${parts} părți din 4`,
+      caption: `<strong>${name}</strong> · ${parts} părți${!field.width || field.width === "auto" ? " (implicită)" : ""}`,
+    });
+  };
+
   /* a titled group of the panel = the drawer section (components.md drawers) */
   const group = (title, body, { id = "" } = {}) => `
     <section class="e-permits-user-create__section e-permits-builder__group"${id ? ` data-fb-group="${id}"` : ""}>
@@ -1821,7 +1871,6 @@ document.addEventListener("DOMContentLoaded", () => {
         ${t === "checkbox" ? `<div class="e-permits-check-options">${checkOption({ prop: "defaultChecked", label: "Bifată implicit", checked: field.defaultChecked })}</div>` : ""}
         ${t === "segment" || t === "radio" ? grid(selectField({ prop: "defaultValue", label: "Valoare implicită", value: field.defaultValue || "", placeholder: "Nicio opțiune aleasă", options: (field.options || []).map((option) => [option.value, option.label]) })) : ""}
       `);
-    const spanOptions = SPANS.map((span) => [span, String(span), `${span} din 12`]);
     const format = {
       number: grid(`
         ${selectField({ prop: "numberKind", label: "Tip număr", value: field.numberKind || "integer", options: [["integer", "Întreg"], ["decimal", "Zecimal"]], span: 6 })}
@@ -1834,19 +1883,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const counter = ["text", "textarea"].includes(t) ? `<div class="e-permits-check-options">${checkOption({ prop: "counter", label: "Contor de caractere", checked: field.counter })}</div>` : "";
     const aspect = t === "hidden" ? "" : column ? group("Aspect", `
         <div class="e-permits-fo-field">
-          <label id="fb-width-label">Lățime coloană</label>
-          ${segmented({ prop: "width", value: field.width || "auto", options: COLUMN_WIDTHS, labelledBy: "fb-width-label" })}
-          <p class="e-permits-fo-field__hint">Auto împarte spațiul rămas. Pe telefon rândul devine card, cu câmpurile pe toată lățimea.</p>
+          <span class="e-permits-builder__width-label" aria-hidden="true">Lățime coloană</span>
+          ${columnPicker(field)}
+          <p class="e-permits-fo-field__hint">Coloanele își împart rândul tabelului după părți. Pe telefon rândul devine card, cu câmpurile pe toată lățimea.</p>
         </div>
         ${format}
         ${counter}`) : group("Aspect", `
-        ${isFixedWidth(field) ? `<dl class="e-permits-builder__facts"><div><dt>Lățime</dt><dd>12/12 · toată lățimea</dd></div></dl>
-        <p class="e-permits-fo-field__hint">${t === "idnp" ? "Cu verificarea în RSP, IDNP-ul, numele și prenumele ocupă un rând întreg." : "Componenta ocupă mereu un rând întreg."}</p>` : `
         <div class="e-permits-fo-field">
-          <label id="fb-span-label">Lățime</label>
-          ${segmented({ prop: "span", value: field.span, options: spanOptions, labelledBy: "fb-span-label" })}
-          <p class="e-permits-fo-field__hint">${field.span}/12 · ${SPAN_TEXT[field.span] || ""}. Pe telefon, toată lățimea.</p>
-        </div>`}
+          <span class="e-permits-builder__width-label" aria-hidden="true">Lățime</span>
+          ${isFixedWidth(field)
+            ? spanPicker(field, { fixed: true, reason: t === "idnp" ? "Cu verificarea în RSP, IDNP-ul, numele și prenumele ocupă tot rândul." : "Componenta ocupă mereu tot rândul." })
+            : spanPicker(field, { reason: "Pe telefon, toată lățimea." })}
+        </div>
         ${format}
         ${counter}
       `);
@@ -3659,9 +3707,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     const seg = event.target.closest("[data-fb-seg], [data-fb-lang]");
-    if (seg && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
-      const items = [...seg.parentElement.children];
-      const next = items[(items.indexOf(seg) + (event.key === "ArrowRight" ? 1 : -1) + items.length) % items.length];
+    if (seg && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
+      const items = [...seg.parentElement.children].filter((item) => !item.disabled);
+      if (!items.length) return;
+      const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
+      const next = items[(items.indexOf(seg) + (forward ? 1 : -1) + items.length) % items.length];
       event.preventDefault();
       next.click();
       return;
@@ -3999,45 +4049,102 @@ document.addEventListener("DOMContentLoaded", () => {
   el.search?.closest(".search-input")?.querySelector(".btn-icon.clear")?.addEventListener("click", () => { state.query = ""; window.setTimeout(renderLibrary, 0); });
 
   /* ======================================================= drag and drop */
+  /* 2026-10-14 (user: „when I select an element hover breaks”): a click with a few px of movement on a
+     draggable card started a NATIVE drag session — the click was swallowed and, on a real Mac, the OS
+     drag loop ate the mouseup and Chrome kept hover frozen until the next click. A dragend on a source
+     that a drop had re-rendered (detached) also never reached the canvas listener. Now:
+     - a card drags only from its tools row (grip + tags); its body is a plain click (select);
+     - chips and palette items are their own handle: a „drag” shorter than DRAG_SLOP that changed
+       nothing is handled as the click it was;
+     - the drag ends from every path: dragend on the source itself (fires even when detached), drop
+       anywhere (document, capture), a pointer move with no button held, Escape, window blur. */
+  const DRAG_SLOP = 10;
   let drag = null;
+  let press = null;
   const indicator = document.createElement("div");
   indicator.className = "e-permits-builder__drop-indicator";
   indicator.setAttribute("aria-hidden", "true");
 
-  el.library.addEventListener("dragstart", (event) => {
-    const item = event.target.closest("[data-builder-component]");
-    if (!item || item.getAttribute("aria-disabled") === "true") { event.preventDefault(); return; }
-    drag = { kind: "new", type: item.dataset.builderComponent, preset: item.dataset.fbPreset || "" };
-    event.dataTransfer.effectAllowed = "copy";
-    event.dataTransfer.setData("text/plain", drag.type);
-    builder.classList.add("is-dragging-component");
-  });
-  el.canvas.addEventListener("dragstart", (event) => {
-    const chip = event.target.closest?.("[data-fb-child]");
-    if (chip) {
-      drag = { kind: "child", id: chip.dataset.fbChild, container: chip.closest("[data-fb-subs]")?.dataset.fbSubs || "" };
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", drag.id);
-      window.setTimeout(() => chip.classList.add("is-dragging"), 0);
-      builder.classList.add("is-dragging-component");
-      return;
-    }
-    const card = event.target.closest?.("[data-builder-field]");
-    if (!card) return;
-    drag = { kind: "move", id: card.dataset.id, span: Number(card.dataset.span) };
-    event.dataTransfer.effectAllowed = "move";
-    event.dataTransfer.setData("text/plain", card.dataset.id);
-    window.setTimeout(() => card.classList.add("is-dragging"), 0);
-    builder.classList.add("is-dragging-component");
-  });
   const endDrag = () => {
     drag = null;
     indicator.remove();
     builder.classList.remove("is-dragging-component");
-    el.canvas.querySelectorAll(".is-dragging, .is-drop-active").forEach((node) => node.classList.remove("is-dragging", "is-drop-active"));
+    builder.querySelectorAll(".is-dragging, .is-drop-active").forEach((node) => node.classList.remove("is-dragging", "is-drop-active"));
+    el.canvas.querySelectorAll('[data-builder-field][draggable="true"]').forEach((card) => { card.draggable = false; });
   };
-  el.library.addEventListener("dragend", endDrag);
-  el.canvas.addEventListener("dragend", endDrag);
+  /* a drag that moved less than DRAG_SLOP and changed nothing = the click the user meant */
+  const tinyDragAsClick = (record, event) => {
+    if (!record || record.acted || !press) return;
+    const x = event.clientX || 0;
+    const y = event.clientY || 0;
+    if ((x || y) && Math.hypot(x - press.x, y - press.y) > DRAG_SLOP) return;
+    if (record.kind === "new") {
+      const item = record.source.isConnected ? record.source : el.library.querySelector(`[data-builder-component="${record.type}"]${record.preset ? `[data-fb-preset="${record.preset}"]` : ":not([data-fb-preset])"}`);
+      item?.click();
+    } else if (record.kind === "child") {
+      select("child", record.id);
+      el.canvas.querySelector(`[data-fb-child="${record.id}"]`)?.focus({ preventScroll: true });
+    } else if (record.kind === "move") {
+      if (!(state.sel.kind === "field" && state.sel.id === record.id)) select("field", record.id);
+      focusCard(record.id);
+    }
+  };
+  const beginDrag = (record) => {
+    drag = record;
+    builder.classList.add("is-dragging-component");
+    /* the source's own listener: it fires even when a drop has re-rendered (detached) the source */
+    record.source.addEventListener("dragend", (event) => {
+      const done = drag === record || !drag ? record : null;
+      if (drag === record || !drag) endDrag();
+      tinyDragAsClick(done, event);
+    }, { once: true });
+  };
+  document.addEventListener("pointerdown", (event) => {
+    press = { x: event.clientX, y: event.clientY };
+    if (drag) endDrag();
+  }, true);
+  /* arm the card's native drag only from its tools row (never from a menu / button in it) */
+  el.canvas.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    const card = event.target.closest?.("[data-builder-field]");
+    if (!card) return;
+    card.draggable = Boolean(event.target.closest(".e-permits-builder__field-tools") && !event.target.closest("button, a, [data-stack-menu]"));
+  }, true);
+  /* no native drag reports pointer events: one arriving with no button held means the drag is over */
+  document.addEventListener("pointermove", (event) => { if (drag && event.buttons === 0 && event.isTrusted) endDrag(); }, true);
+  document.addEventListener("pointerup", () => {
+    if (drag && !drag.native) endDrag();
+    el.canvas.querySelectorAll('[data-builder-field][draggable="true"]').forEach((card) => { if (!drag) card.draggable = false; });
+  }, true);
+  document.addEventListener("drop", (event) => { if (drag && !el.canvas.contains(event.target)) endDrag(); }, true);
+  document.addEventListener("keydown", (event) => { if (drag && event.key === "Escape") endDrag(); }, true);
+  window.addEventListener("blur", () => { if (drag?.native) return; if (drag) endDrag(); });
+
+  el.library.addEventListener("dragstart", (event) => {
+    const item = event.target.closest("[data-builder-component]");
+    if (!item || item.getAttribute("aria-disabled") === "true") { event.preventDefault(); return; }
+    beginDrag({ kind: "new", type: item.dataset.builderComponent, preset: item.dataset.fbPreset || "", source: item, native: event.isTrusted });
+    event.dataTransfer.effectAllowed = "copy";
+    event.dataTransfer.setData("text/plain", drag.type);
+  });
+  el.canvas.addEventListener("dragstart", (event) => {
+    const chip = event.target.closest?.("[data-fb-child]");
+    if (chip) {
+      const record = { kind: "child", id: chip.dataset.fbChild, container: chip.closest("[data-fb-subs]")?.dataset.fbSubs || "", source: chip, native: event.isTrusted };
+      beginDrag(record);
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", record.id);
+      window.setTimeout(() => { if (drag === record) chip.classList.add("is-dragging"); }, 0);
+      return;
+    }
+    const card = event.target.closest?.("[data-builder-field]");
+    if (!card || !card.draggable) { event.preventDefault(); return; }
+    const record = { kind: "move", id: card.dataset.id, span: Number(card.dataset.span), source: card, native: event.isTrusted };
+    beginDrag(record);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", card.dataset.id);
+    window.setTimeout(() => { if (drag === record) card.classList.add("is-dragging"); }, 0);
+  });
 
   /* where a drop lands in a section grid: index among the cards, by rows (pointer inside a card →
      before / after its middle; in a row's empty end → after the row; below → end) */
@@ -4142,6 +4249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sectionEl = event.target.closest("[data-builder-section]");
     const current = drag;
     endDrag();
+    if (current.target?.strip || current.target || current.kind === "new") current.acted = true;
     if (current.target?.strip) {
       if (current.kind === "new") addChild(current.target.container, current.type, current.target.index);
       else if (current.kind === "child" && moveChild(current.id, 0, current.target.index)) focusChip(current.id);
@@ -4179,7 +4287,8 @@ document.addEventListener("DOMContentLoaded", () => {
     card.draggable = false;
     card.classList.add("is-resizing-field");
     builder.classList.add("is-field-resizing");
-    handle.setPointerCapture?.(event.pointerId);
+    const pointerId = event.pointerId;
+    try { handle.setPointerCapture?.(pointerId); } catch { /* the pointer is already gone */ }
     const move = (e) => {
       const raw = startSpan + Math.round((e.clientX - startX) / step);
       const next = SPANS.reduce((best, value) => (Math.abs(value - raw) < Math.abs(best - raw) ? value : best), SPANS[0]);
@@ -4190,18 +4299,26 @@ document.addEventListener("DOMContentLoaded", () => {
         if (tag) tag.textContent = `${span}/12`;
       }
     };
+    /* ends on pointerup / pointercancel / a lost capture / window blur — once, capture released */
+    let stopped = false;
     const stop = () => {
+      if (stopped) return;
+      stopped = true;
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
       window.removeEventListener("pointercancel", stop);
+      window.removeEventListener("blur", stop);
+      handle.removeEventListener("lostpointercapture", stop);
+      try { if (handle.hasPointerCapture?.(pointerId)) handle.releasePointerCapture(pointerId); } catch { /* released */ }
       builder.classList.remove("is-field-resizing");
       card.classList.remove("is-resizing-field");
-      card.draggable = true;
       if (span !== startSpan) { state.sel = { kind: "field", id }; setSpan(id, span); } else select("field", id);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", stop);
     window.addEventListener("pointercancel", stop);
+    window.addEventListener("blur", stop);
+    handle.addEventListener("lostpointercapture", stop);
   });
 
   /* ---- topbar: issues list → select + open the tab; publish blocked with a reason */
@@ -4315,20 +4432,32 @@ document.addEventListener("DOMContentLoaded", () => {
       const styles = getComputedStyle(el.workspace);
       const startLeft = parseFloat(styles.getPropertyValue("--builder-left-width")) || 322;
       const startRight = parseFloat(styles.getPropertyValue("--builder-right-width")) || 382;
-      handle.setPointerCapture?.(event.pointerId);
+      const pointerId = event.pointerId;
+      try { handle.setPointerCapture?.(pointerId); } catch { /* the pointer is already gone */ }
       builder.classList.add("is-resizing");
       const resize = (e) => {
         const box = el.workspace.getBoundingClientRect();
         if (side === "left") el.workspace.style.setProperty("--builder-left-width", `${Math.round(Math.min(Math.max(e.clientX - box.left, 260), Math.max(260, box.width - startRight - 560)))}px`);
         else el.workspace.style.setProperty("--builder-right-width", `${Math.round(Math.min(Math.max(box.right - e.clientX, 320), Math.max(320, box.width - startLeft - 560)))}px`);
       };
+      /* ends on pointerup / pointercancel / a lost capture / window blur — once, capture released */
+      let stopped = false;
       const stop = () => {
+        if (stopped) return;
+        stopped = true;
         builder.classList.remove("is-resizing");
         window.removeEventListener("pointermove", resize);
         window.removeEventListener("pointerup", stop);
+        window.removeEventListener("pointercancel", stop);
+        window.removeEventListener("blur", stop);
+        handle.removeEventListener("lostpointercapture", stop);
+        try { if (handle.hasPointerCapture?.(pointerId)) handle.releasePointerCapture(pointerId); } catch { /* released */ }
       };
       window.addEventListener("pointermove", resize);
       window.addEventListener("pointerup", stop);
+      window.addEventListener("pointercancel", stop);
+      window.addEventListener("blur", stop);
+      handle.addEventListener("lostpointercapture", stop);
     });
   });
 

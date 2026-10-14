@@ -2547,6 +2547,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (params.get("suspendat") === "1") row.alerte.push("suspendat");
     if (stare !== "depus" && !row.specialist) { row.specialist = workplaceState.rows.find((r) => r.specialist)?.specialist || null; row.nedistribuit = false; }
     if (stare === "depus") { row.nedistribuit = true; }
+    /* &documente=0: a dossier whose applicant attached nothing (Documente însoțitoare empty state) */
+    if (params.get("documente") === "0") { row.demoFaraDocumente = true; row.profil = null; }
     delete row.flowState;
   };
 
@@ -2712,6 +2714,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }))
       : [];
 
+    /* Documente însoțitoare (Detalii solicitare): what the applicant attached at submission —
+       the catalogue in e-permits-workplace.json › documenteInsotitoare (request type; Eliberare per
+       service). Required ones are always there, optional ones vary per dossier; a post-process
+       starts with the previous act, taken from MDocs automatically (as in the FO step 3).
+       Ex-officio dossiers have none. Generated / system files belong to Documente generate. */
+    const insotitoare = (() => {
+      if (isOficiu || row.demoFaraDocumente) return [];
+      const catalog = dossierDb?.documenteInsotitoare || {};
+      const byType = catalog[row.tipDosar] || catalog.Eliberare || [];
+      const list = Array.isArray(byType) ? byType : (byType[row.serviciu] || byType["*"] || []);
+      const fromFo = row.sursa === "FO";
+      const uploader = fromFo
+        ? { nume: row.numeSolicitant, rol: row.companie ? "Reprezentant" : "Solicitant" }
+        : { nume: (dossierDb?.specialisti || [])[hash % Math.max(1, (dossierDb?.specialisti || []).length)]?.nume || "Operator ghișeu", rol: "Operator ghișeu" };
+      const day = row.dataDepunerii;
+      const stamp = (minutes) => `${day}T${String(8 + Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:00`;
+      const docs = [];
+      if (row.tipDosar && row.tipDosar !== "Eliberare") {
+        const nr = `AUT-2025-${String(hash % 1000000).padStart(6, "0")}`;
+        docs.push({
+          tip: "Actul permisiv emis anterior", fisier: `${nr}.pdf`, kb: 420 + (hash % 300), obligatoriu: true, sursa: "mdocs", semnat: true,
+          emitent: workplaceDb.myAutoritate, act: { nr, emis: toIsoDate(addDays(parseIsoDate(day), -(240 + (hash % 500)))) },
+          at: stamp(58), automat: true
+        });
+      }
+      list.filter((doc) => !doc.pj || row.companie).forEach((doc, index) => {
+        if (!doc.obligatoriu && ((hash >> index) & 1) === 0 && index % 2 === 0) return;
+        docs.push({ ...doc, sursa: doc.sursa || "upload", semnat: Boolean(doc.semnat), at: stamp(30 + index * 4 + (hash % 3)) });
+      });
+      return docs.map((doc, index) => ({ ...doc, id: `f${index + 1}`, de: doc.automat ? null : uploader }));
+    })();
+
     row.profil = {
       isOficiu,
       rolPersoana: isOficiu ? "titular" : "solicitant",
@@ -2723,6 +2757,7 @@ document.addEventListener("DOMContentLoaded", () => {
       avize,
       acte,
       documente,
+      insotitoare,
       notificari
     };
 
@@ -2855,19 +2890,6 @@ document.addEventListener("DOMContentLoaded", () => {
         `).join("")}
       </div>
     </section>
-  `;
-
-  const renderProfileFile = (file) => `
-    <div class="e-permits-dosar-profil__file${file.system ? " e-permits-dosar-profil__file--system" : ""}">
-      <img class="e-permits-dosar-profil__file-icon" src="assets/icons/${file.system ? "document-generated.svg" : "document-uploaded.svg"}" width="24" height="24" alt="">
-      <div class="e-permits-dosar-profil__file-copy">
-        <div class="e-permits-dosar-profil__file-title-row">
-          <span class="e-permits-dosar-profil__file-title">${escapeHtml(file.name)}</span>
-          ${file.size ? `<span class="e-permits-dosar-profil__file-dot" aria-hidden="true">•</span><span class="e-permits-dosar-profil__file-size">${escapeHtml(file.size)}</span>` : ""}
-        </div>
-        ${file.system ? `<div class="e-permits-dosar-profil__file-meta"><span>Emis <strong>${escapeHtml(file.issuedAt)}</strong></span><span class="e-permits-dosar-profil__file-dot" aria-hidden="true">•</span><span>${escapeHtml(file.issuer)}</span></div>` : ""}
-      </div>
-    </div>
   `;
 
   const renderProfileCopyCode = (value, label = value) => {
@@ -3086,13 +3108,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const representativeId = profile.representative?.idnp || profile.applicantId;
     const deliverySelected = row.modLivrare === "Ghișeu" ? "Ridicare de la ghișeu" : row.modLivrare;
     const deliveryCost = ["Poștă", "MDelivery"].includes(row.modLivrare) ? "25 MDL" : "Gratuit";
-    const files = [
-      { name: "copia-actului-de-proprietate.pdf", size: "1.8 MB" },
-      { name: "planul-incaperilor", size: "1.8 MB" },
-      { name: `Extras Registru de Stat - ”${row.companie || applicantName}”`, system: true, issuedAt: formatDate(row.dataDepunerii), issuer: "ASP" },
-      { name: "planul-incaperilor-etajului-subsol", size: "1.8 MB" }
-    ];
-
     return `
       <div class="e-permits-dosar-profil__details-grid">
         ${renderInfoCard("Date solicitant", [
@@ -3114,10 +3129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Telefon", "+37322000000"],
         ["Email", escapeHtml(email)]
       ])}
-      <section class="e-permits-dosar-profil__section e-permits-dosar-profil__section--files">
-        <h2 class="e-permits-dosar-profil__section-title">Documente însoțitoare</h2>
-        <div class="e-permits-dosar-profil__files">${files.map(renderProfileFile).join("")}</div>
-      </section>
+      ${renderDosarInsotitoare(row, profile)}
       ${renderInfoCard("Livrarea", [
         ["Modalitate implicită", "Ridicare de la ghișeu"],
         ["Modalitate selectată", escapeHtml(deliverySelected)],
@@ -3208,6 +3220,43 @@ document.addEventListener("DOMContentLoaded", () => {
     return renderStackedList("Acte și decizii", [{ label: "", items }], { empty: "Nu există acte sau decizii emise." });
   };
 
+  /* Documente însoțitoare (Detalii solicitare) — the Documente generate stacked list with a lead
+     icon (grey = uploaded from the device, blue = taken from MDocs, as in the FO summary), the
+     source tag, a dot-separated meta line, eye „Previzualizează” (→ the document modal) and ⋮
+     Descarcă. Groups Obligatorii / Opționale. */
+  const fileSizeLabel = (kb) => (kb < 1024 ? `${kb} KB` : `${(kb / 1024).toFixed(1)} MB`);
+  const insotitorAddedLabel = (doc) => `${doc.automat ? "Preluat automat" : doc.sursa === "mdocs" ? "Atașat" : "Încărcat"} ${formatStamp(doc.at)}`;
+  const renderDosarInsotitoare = (row, profile = buildDosarProfile(row)) => {
+    const docs = profile.insotitoare || [];
+    const required = docs.filter((doc) => doc.obligatoriu).length;
+    const items = docs.map((doc) => ({
+      group: doc.obligatoriu ? "Obligatorii" : "Opționale",
+      plainTitle: doc.tip,
+      title: escapeHtml(doc.tip),
+      leadHtml: `<img class="e-permits-fo-lib-item__icon" src="assets/icons/${doc.sursa === "mdocs" ? "document-generated.svg" : "document-uploaded.svg"}" width="24" height="24" alt="">`,
+      badges: [renderTag(doc.sursa === "mdocs" ? "MDocs" : "Încărcat", "neutral")],
+      meta: [
+        doc.act ? renderCopyCode(doc.act.nr, `Copiază ${doc.act.nr}`) : escapeHtml(doc.fisier),
+        fileSizeLabel(doc.kb),
+        escapeHtml(insotitorAddedLabel(doc)),
+        ...(doc.de ? [`de ${escapeHtml(doc.de.nume)}`] : []),
+        ...(doc.semnat ? ["Semnat electronic"] : [])
+      ],
+      rowAttrs: `data-dosar-detail-row="insotitoare|${doc.id}"`,
+      actionsHtml: renderRowActions({
+        preview: `data-dosar-detail="insotitoare|${doc.id}" aria-haspopup="dialog"`,
+        menu: [{ label: "Descarcă", icon: "download", attrs: `data-dosar-file-download="${doc.id}"` }],
+        label: doc.tip
+      })
+    }));
+
+    return renderStackedList("Documente însoțitoare", groupBy(items, (item) => item.group, ["Obligatorii", "Opționale"]), {
+      meta: `${plural(docs.length, "document", "documente")} · ${required} ${required === 1 ? "obligatoriu" : "obligatorii"}`,
+      empty: "Niciun document însoțitor. Solicitantul nu a anexat documente la cerere.",
+      icon: "document"
+    });
+  };
+
   const renderDosarProfilDocumente = (row) => {
     const profile = buildDosarProfile(row);
     const items = profile.documente.map((document, index) => ({
@@ -3273,6 +3322,56 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="info-box__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-lock"></use></svg></span>
       <div class="info-box__content"><p>Doar citire</p></div>
     </div>`;
+  /* Documente însoțitoare › the document itself: the A4 page of the template previews
+     (.e-permits-dtpl__page in the grey .e-permits-doc-peek__canvas), scaled to the modal's width;
+     demo content built from the dossier's data */
+  const renderDosarDocPreview = (doc, row, profile) => {
+    const holder = row.companie || row.numeSolicitant;
+    const holderId = profile.companyId ? `IDNO ${profile.companyId}` : `IDNP ${profile.applicantId}`;
+    const address = "mun. Chișinău, str. Alba Iulia 20";
+    const table = (pairs) => `<table><tbody>${pairs.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`).join("")}</tbody></table>`;
+    let body;
+    if (doc.act) {
+      body = `<h1>${escapeHtml(row.serviciu)}</h1><p>nr. ${escapeHtml(doc.act.nr)} din ${escapeHtml(formatLongDate(doc.act.emis))}</p>
+        ${table([["Titular", holder], ["Cod de identificare", holderId], ["Adresa obiectului", address], ["Emitent", doc.emitent || workplaceDb.myAutoritate]])}
+        <p>Actul permisiv se eliberează pentru desfășurarea activității la adresa indicată, în condițiile legii.</p>`;
+    } else if (/identitate/i.test(doc.tip)) {
+      body = `<h1>Buletin de identitate</h1>${table([["Nume, prenume", row.numeSolicitant], ["IDNP", profile.applicantId], ["Eliberat de", "Agenția Servicii Publice"], ["Valabil până la", "12 martie 2031"]])}`;
+    } else if (/locațiune/i.test(doc.tip)) {
+      body = `<h1>Contract de locațiune nr. 14/2026</h1><p>${escapeHtml(address)}</p>
+        <p>Locatorul, SRL Imobil Invest, și locatarul, ${escapeHtml(holder)}, au încheiat prezentul contract privind spațiul nelocuibil din ${escapeHtml(address)}, cu suprafața de 86 m².</p>
+        ${table([["Termenul locațiunii", "5 ani"], ["Chiria lunară", "12 000 MDL"], ["Destinația spațiului", "activitate comercială"]])}`;
+    } else if (/planul/i.test(doc.tip)) {
+      body = `<h1>${escapeHtml(doc.tip)}</h1><p>Obiectul: ${escapeHtml(address)}</p>
+        ${table([["Sala de servire", "52 m²"], ["Bucătărie", "18 m²"], ["Depozit", "9 m²"], ["Grup sanitar", "7 m²"]])}`;
+    } else if (/registrul de stat/i.test(doc.tip)) {
+      body = `<h1>${escapeHtml(doc.tip)}</h1>${table([["Denumirea", holder], ["Cod de identificare", holderId], ["Sediul", address], ["Administrator", row.numeSolicitant]])}`;
+    } else if (/declara/i.test(doc.tip)) {
+      body = `<h1>${escapeHtml(doc.tip)}</h1>
+        <p>Subsemnatul(a), ${escapeHtml(row.numeSolicitant)}, IDNP ${escapeHtml(profile.applicantId)}${row.companie ? `, în numele ${escapeHtml(row.companie)}` : ""}, declar pe propria răspundere că datele prezentate în cererea ${escapeHtml(row.nrDosar)} sunt veridice.</p>`;
+    } else {
+      body = `<h1>${escapeHtml(doc.tip)}</h1><p>Anexă la cererea ${escapeHtml(row.nrDosar)} · ${escapeHtml(row.serviciu)}</p>${table([["Solicitant", holder], ["Cod de identificare", holderId]])}`;
+    }
+    const signature = doc.semnat
+      ? `<p>Semnat electronic · MSign · ${escapeHtml(formatLongDate(doc.act ? doc.act.emis : doc.at))}</p>`
+      : `<p>Semnătura: ${escapeHtml(row.numeSolicitant)}</p>`;
+    return `
+      <div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas role="img" aria-label="Previzualizare: ${escapeHtml(doc.fisier)}">
+        <div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${body}${signature}</div></div>
+      </div>`;
+  };
+  /* the page keeps its A4 layout and is zoomed to the canvas (as the template previews) */
+  const fitDosarDocPreview = () => {
+    const canvas = dosarDetailModal?.querySelector("[data-dosar-doc-canvas]");
+    const page = canvas?.querySelector(".e-permits-doc-peek__page");
+    if (page && canvas.clientWidth) page.style.zoom = String(Math.min(1, (canvas.clientWidth - 48) / 794));
+  };
+  if (dosarDetailModal && "ResizeObserver" in window) new ResizeObserver(fitDosarDocPreview).observe(dosarDetailModal.querySelector("[data-dosar-detail-body]"));
+  const downloadTextFile = (name, text) => {
+    const blob = new Blob([`\ufeff${text}\n`], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${name}.txt`; link.click(); URL.revokeObjectURL(link.href);
+  };
+
   const openDosarDetail = (kind, key) => {
     dosarDetailAfterClose = null;
     const row = getDosarById(dosarProfilState.rowId);
@@ -3280,7 +3379,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
     const dash = '<span class="e-permits-workplace__dash">—</span>';
     const today = workplaceDb.today;
-    let title = "", subtitle = "", rows = [], file = "";
+    let title = "", subtitle = "", rows = [], file = "", preview = "";
     if (kind === "taxe") {
       const t = profile.taxe.find((x) => x.id === key); if (!t) return;
       const paid = t.status !== "neachitat";
@@ -3339,10 +3438,32 @@ document.addEventListener("DOMContentLoaded", () => {
         ["Număr dosar", escapeHtml(row.nrDosar)]
       ];
       file = clasSnake(name) || "document";
+    } else if (kind === "insotitoare") {
+      const d = (profile.insotitoare || []).find((x) => x.id === key); if (!d) return;
+      const mdocs = d.sursa === "mdocs";
+      title = d.act ? "Act permisiv emis anterior" : "Document însoțitor"; subtitle = d.act ? `${d.act.nr} · ${row.serviciu}` : d.tip;
+      rows = [
+        ["Tip document", escapeHtml(d.tip)],
+        ...(d.act ? [
+          ["Număr act", renderCopyCode(d.act.nr, `Copiază ${d.act.nr}`)],
+          ["Emis la", escapeHtml(formatLongDate(d.act.emis))]
+        ] : []),
+        ["Fișier", escapeHtml(d.fisier)],
+        ["Dimensiune", escapeHtml(fileSizeLabel(d.kb))],
+        [d.automat ? "Preluat la" : mdocs ? "Atașat la" : "Încărcat la", escapeHtml(formatStamp(d.at))],
+        ...(d.de ? [[mdocs ? "Atașat de" : "Încărcat de", `${escapeHtml(d.de.nume)} · ${escapeHtml(d.de.rol)}`]] : []),
+        ["Sursă", d.automat ? "MDocs · preluat automat la depunerea cererii" : mdocs ? `MDocs${d.emitent ? ` · emis de ${escapeHtml(d.emitent)}` : ""}` : d.de?.rol === "Operator ghișeu" ? "Încărcat la ghișeu" : "Încărcat de pe dispozitiv"],
+        ["Obligatoriu", yesNo(d.obligatoriu)],
+        ["Semnătură", d.semnat ? "Semnat electronic · MSign" : "Fără semnătură electronică"],
+        ["Număr dosar", escapeHtml(row.nrDosar)]
+      ];
+      file = d.fisier.replace(/\.[a-z0-9]+$/i, "");
+      preview = renderDosarDocPreview(d, row, profile);
     } else return;
     dosarDetailModal.querySelector("[data-dosar-detail-title]").textContent = title;
     dosarDetailModal.querySelector("[data-dosar-detail-subtitle]").textContent = subtitle;
     dosarDetailModal.querySelector("[data-dosar-detail-body]").innerHTML = `
+      ${preview}
       ${renderInfoCard("Date generale", rows)}
       ${renderReadOnlyNote()}`;
     dosarDetailFile.name = file;
@@ -3351,6 +3472,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${file ? '<button class="btn btn-neutral btn-rounded" type="button" data-dosar-detail-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg><span>Descarcă</span></button>' : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>`;
     window.__modal?.open?.("#dosar-detail-modal");
+    fitDosarDocPreview();
   };
   /* a one-shot action after the modal closes (any way: button, ×, overlay, Esc) */
   let dosarDetailAfterClose = null;
@@ -3401,11 +3523,18 @@ document.addEventListener("DOMContentLoaded", () => {
   dosarDetailModal?.addEventListener("click", (event) => {
     if (event.target.closest("[data-dosar-detail-close]")) { window.__modal?.close?.("#dosar-detail-modal"); return; }
     if (!event.target.closest("[data-dosar-detail-download]")) return;
-    const blob = new Blob([`﻿${dosarDetailFile.text}\n`], { type: "text/plain;charset=utf-8" });
-    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `${dosarDetailFile.name}.txt`; link.click(); URL.revokeObjectURL(link.href);
+    downloadTextFile(dosarDetailFile.name, dosarDetailFile.text);
   });
   dosarProfilPanelBody?.addEventListener("click", (event) => {
-    const trigger = event.target.closest("[data-dosar-detail]") || (!event.target.closest("button, a, input, label") && event.target.closest(".e-permits-stack__item[data-dosar-detail-row]"));
+    /* Documente însoțitoare › ⋮ Descarcă */
+    const fileDownload = event.target.closest("[data-dosar-file-download]");
+    if (fileDownload) {
+      const row = getDosarById(dosarProfilState.rowId);
+      const doc = row && (buildDosarProfile(row).insotitoare || []).find((x) => x.id === fileDownload.dataset.dosarFileDownload);
+      if (doc) downloadTextFile(doc.fisier.replace(/\.[a-z0-9]+$/i, ""), [doc.tip, doc.fisier, fileSizeLabel(doc.kb), insotitorAddedLabel(doc), `Dosar ${row.nrDosar}`].join("\n"));
+      return;
+    }
+    const trigger = event.target.closest("[data-dosar-detail]") || (!event.target.closest("button, a, input, label, .e-permits-stack__menu-wrap") && event.target.closest(".e-permits-stack__item[data-dosar-detail-row]"));
     if (!trigger) return;
     const [kind, key] = (trigger.dataset.dosarDetail || trigger.dataset.dosarDetailRow).split("|");
     openDosarDetail(kind, key);
@@ -16227,6 +16356,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (passportBodyEl) {
     passportBodyObserver?.observe(passportBodyEl);
+  }
+  /* the dossier tabs use the same stacked lists (Documente însoțitoare, Taxe, Avize…) */
+  if (dosarProfilPanelBody && "ResizeObserver" in window) {
+    new ResizeObserver(() => syncStackMetaRows(dosarProfilPanelBody)).observe(dosarProfilPanelBody);
   }
 
   /* „Ieșire” (US-110): ends the session (SIA GEAP + MPass SLO) and lands on the login page */

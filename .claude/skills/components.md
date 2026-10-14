@@ -213,6 +213,7 @@ but this doc previously described it wrongly, see the entry.
 | Copy value | `.e-permits-fo-copy-value` | — | app |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
+| Dosar › Documente însoțitoare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · `renderRowActions` eye + ⋮ Descarcă; modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Documente însoțitoare” | app |
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
@@ -258,6 +259,7 @@ but this doc previously described it wrongly, see the entry.
 | Editable grid (FO, US-33…39) — **library gap: no editable table in the library** | `.e-permits-fo-grid[data-fo-grid][data-units]` > `__label` · hint · group note (`renderInfoNote`) · `__frame` > library `table.table.table--subtle.e-permits-fo-grid__table` (explicit ARIA roles; `th`/`td` `colspan` = width units 2·3·4) > `tr.e-permits-fo-grid__row(.is-editing)` (`__index` · `__cell[data-col][data-type]` = `__cell-label` + `button.__value` or the FO field · `__actions` = `__actions-compact` icon buttons + `__actions-full` labelled) · `tr.__detail` (nested grid) · `tr.__empty` (`GEAPEmptyState`) · `__foot` (`.e-permits-fo-add-activity` + `__limit` + library `.pagination--compact`) · `.is-cards` (cards) | `GEAPFoRepeat.gridHtml` / `bind` / `validate` / `fill` / `layout` / `escape`; confirm `[data-fo-grid-confirm]` | app |
 | Repeatable block (FO, „Adaugă alt …”; CAEM = its preset) | `fieldset.e-permits-fo-repeat[data-fo-repeat]` > legend (`.e-permits-fo-choice__legend`, may be visually hidden) · note · group note · `__list` > `.e-permits-fo-activity-card.e-permits-fo-repeat__item[data-fo-repeat-item]` (header `#n` + title + `.e-permits-fo-icon-button[data-fo-repeat-remove]`; fields in `.e-permits-fo-field-group`, the CAEM pair as the FO activity markup) · `.e-permits-fo-add-activity[data-fo-repeat-add]` · `__limit` | `GEAPFoRepeat.blockHtml`, FO `caemFieldHtml` / `subgenHtml` | app |
 | Form Builder · band of columns / block fields | `.e-permits-builder__subs[data-fb-subs]` > `__subs-label` · `button.__sub[data-fb-child](.is-selected/.has-issue/.is-dragging)` · `.e-permits-builder__sub-add-wrap` (`__sub-add` dashed + typed stack menu with `__issues-head` groups, disabled items with reason) | `subsStripHtml` / `addChildMenuHtml` / `childPanelHtml` (js/form-builder.js) | app |
+| Form Builder · „Lățime” (a row of real columns) | `.e-permits-builder__width(.is-disabled)` > `.e-permits-builder__width-picker[role=radiogroup][data-total=12\|4]` > `button.__width-option[role=radio][aria-checked][data-cols][data-fb-seg][data-value]` > `span.__width-bar(.is-filled)` + `p.__width-caption` (`<strong>6/12</strong> · jumătate`) + hint; label `span.__width-label` | `widthPicker` / `spanPicker` / `columnPicker` (js/form-builder.js), section „Form Builder › Lățime” | app |
 | Form Builder · saved components | palette group `[data-fb-library-saved]` „Componente salvate” (system preset + saved, version `renderTag("vN")`), card foot tag „Salvată” (`icon-bookmark`), panel group „Componentă salvată” (facts + Actualizează din sursă / Salvează în sursă / Detașează), modal `#fb-preset-modal` (library `modal--md e-permits-passport__modal`) | `insertPreset` / `presetAction` / `openPresetModal` | app |
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
@@ -3040,8 +3042,8 @@ guessing, `type="date"`) is deleted. Preview binds with `GEAPFormRender.bind(roo
 **Canvas.** Grey stage; step chips (`__step-chip`, `is-active` = on canvas, `is-selected` = panel; lock
 icon on platform steps; red dot = errors inside); section card `__step-section` > `__section-bar`
 (grip + `button.__section-select` heading + ⋮ `renderStackMenu`) + `__grid` (12 columns; cards span by
-`[data-span]` attribute — no inline styles; one column ≤720px). Field card `article.__field[tabindex=0]
-[draggable]`: tools (grip, type tag `__tag--strong` with `title`, span tag, ⋮ Duplică / Mută mai sus /
+`[data-span]` attribute — no inline styles; one column ≤720px). Field card `article.__field[tabindex=0]`
+(`draggable` is ARMED only by a pointerdown on its tools row — see „Drag sessions”): tools (grip, type tag `__tag--strong` with `title`, span tag, ⋮ Duplică / Mută mai sus /
 mai jos / Mută în „…” / Șterge) · rendered field · foot (`__field-key` 12/16 tertiary + first issue as
 `__tag--warning`). Empty section = `GEAPEmptyState.render({ compact, bare })`. „Adaugă câmp” =
 `__dropzone` as a stack-menu trigger → `__add-menu` of the usable components. „Adaugă secțiune” =
@@ -3051,7 +3053,21 @@ mai jos / Mută în „…” / Șterge) · rendered field · foot (`__field-key
 palette); drag a palette item / a card (HTML5 DnD) → `__drop-indicator` (4px brand line, vertical
 between cards, horizontal for a new row; never at the card's own position; outside a section =
 `dropEffect: none`); drop focuses the new field's label (US-05 / 85698). Resize = drag the card's right
-edge (snaps 3·4·6·8·12). Keyboard on a focused card (WCAG 2.5.7): Alt+↑/↓ move (crosses sections),
+edge (snaps 3·4·6·8·12).
+
+**Drag sessions (2026-10-14, user: „when I select an element the hover breaks”).** A click with a few px of
+movement on a `draggable` element starts a NATIVE drag: the click is swallowed and on a real Mac the OS drag
+loop eats the mouseup, leaving Chrome's hover frozen until the next click (CDP input cannot reproduce it).
+Rules: a card is not `draggable` in the markup — a pointerdown on its tools row (grip + tags, `cursor: grab`,
+never on its ⋮) arms it, any other pointerdown disarms it, so selecting a card never starts a drag. Chips
+and palette items are their own handle; a „drag” shorter than 10px that changed nothing runs as the click it
+was (`tinyDragAsClick`). The drag ends from every path — `dragend` on the source itself (fires even when a
+drop has re-rendered and detached it; the canvas listener never saw it), `drop` anywhere (document,
+capture), a trusted pointermove with no button held, Escape, window blur — and `endDrag` clears
+`is-dragging-component`, every `.is-dragging` / `.is-drop-active`, the indicator and armed cards. The
+delayed `.is-dragging` class is only added if that drag is still the current one. Pointer-capture resizes
+(card width, panel edges) stop once on pointerup / pointercancel / `lostpointercapture` / window blur and
+release the capture. Keyboard on a focused card (WCAG 2.5.7): Alt+↑/↓ move (crosses sections),
 Alt+←/→ width, Ctrl/Cmd+D duplicate, Delete delete, Enter select; Alt+↑/↓ on a section header moves the
 section; Esc = deselect (never closes the editor); Ctrl/Cmd+Z / Shift+Z undo / redo (outside text
 inputs). A polite live region `[data-fb-live]` announces moves („… mutat pe poziția 3 din 7 în …”).
@@ -3187,7 +3203,8 @@ grid, work points with Raion → Localitate).
   câmp din formular) + the inert FO render (empty container = `GEAPEmptyState`). Child panel = the field
   panel (crumbs to the column, back link `btn btn-text-primary btn-sm` to its grid / block), tabs without
   Logică for grid columns (US-42 AC-36), Avansat = table / column / SQL type. Grid column Aspect =
-  „Lățime coloană” Auto · Îngustă · Medie · Lată. Container tabs: General (label, help, texts: row name /
+  „Lățime coloană” = the „Lățime” bar row on 4 parts (Îngustă 2 · Medie 3 · Lată 4; `auto` renders as Medie
+  „(implicită)” — fo-grid weighs auto = 3). Container tabs: General (label, help, texts: row name /
   item title, add label, empty text / permanent note, „Ascunde eticheta”), Date (ordered list
   `__step-list` + „Adaugă coloană ▾”), Validare (min / max / at start / rows per page, add / delete allowed,
   key, group, messages RO·RU·EN), Logică (the container as target; as a source = its number of rows),
@@ -3228,6 +3245,52 @@ grid, work points with Raion → Localitate).
 States `fb-50…fb-63` (palette 50–50a, new grid 51–51a, columns 52–52b, rules 53–53a, nested 54–54a, FO grid
 55–55b, errors 56–56b, phone 57, CAEM 58–58b, block 59–59d, block validation 60, source down 61–61a, schema 62,
 summary 63).
+
+#### Form Builder › Lățime (2026-10-14 — user: „a line with real columns, not the 3 · 4 · 6 · 8 · 12 segmented”)
+
+Restores the old builder's width picker (31a333b3) on the 12-column grid. One helper `widthPicker({ prop,
+value, options: [[value, cols, label, aria]], total, label, caption, disabled, reason })`; `spanPicker(field)`
+(fields and block fields, `prop: "span"`, 3 · 4 · 6 · 8 · 12 → options covering 3 · 1 · 2 · 2 · 4 bars) and
+`columnPicker(field)` (grid columns, `prop: "width"`, 4 bars = parts: Îngustă 2 · Medie 3 · Lată 4).
+
+```html
+<div class="e-permits-fo-field">
+  <span class="e-permits-builder__width-label" aria-hidden="true">Lățime</span>
+  <div class="e-permits-builder__width">
+    <div class="e-permits-builder__width-picker" role="radiogroup" aria-label="Lățime: 6 din 12 coloane"
+         aria-describedby="fb-width-cap-span" data-total="12">
+      <button class="e-permits-builder__width-option" type="button" role="radio" aria-checked="false"
+              aria-label="3 din 12 coloane — un sfert" data-cols="3" data-fb-seg="span" data-value="3" tabindex="-1">
+        <span class="e-permits-builder__width-bar is-filled"></span>×3
+      </button>
+      … one option per allowed width, each holding its own columns …
+    </div>
+    <p class="e-permits-builder__width-caption" id="fb-width-cap-span"><strong>6/12</strong> · jumătate</p>
+    <p class="e-permits-fo-field__hint">Pe telefon, toată lățimea.</p>
+  </div>
+</div>
+```
+
+- Geometry: picker = grid of `total` equal columns, column-gap 6; an option spans `data-cols` columns and
+  lays its bars out with the same gap 6, so all bars are equal (23px in the 382px panel). Option 40 high
+  (4 + 32 bar + 4), radius 8; bar radius 6.
+- Captions: 3 = un sfert, 4 = o treime, 6 = jumătate, 8 = două treimi, 12 = tot rândul (`SPAN_TEXT`).
+  Grid column: „Îngustă · 2 părți”, „Medie · 3 părți (implicită)” when the value is `auto`.
+
+| State | Look |
+|---|---|
+| default | bars `--color-background-base-tertiary`; bars up to the value `--color-background-base-inverse-default` |
+| hover (another width) | option pad `--color-background-base-tertiary-hover`; bars that would fill (grow) or empty (shrink) → `--color-background-base-tertiary-active` — CSS only (`:has(~ option:hover)` / `option:hover ~ option`) |
+| hover (the selected width) | pad + its filled bars `--color-background-base-inverse-default-hover` |
+| active / selected | `aria-checked="true"`, roving `tabindex` (only the selected option is in the tab order) |
+| focus-visible | the option: `0 0 0 2px` white + `0 0 0 5px var(--focus-ring)` |
+| keyboard | ← → ↑ ↓ move to the next allowed width and apply it (the panel's `[data-fb-seg]` handler); disabled options skipped |
+| disabled (fixed width: Persoana de contact, IDNP with RSP check …) | `.is-disabled`, `aria-disabled` on the group, options `disabled` (`cursor: not-allowed`, no hover), all 12 bars `tertiary-active`, caption „12/12 · tot rândul”, reason as the hint („Componenta ocupă mereu tot rândul.”) |
+| error / success | n/a — a width is always valid |
+
+Click / keys call `setSpan` (card re-renders: the card's `data-fb-span-tag` „6/12” and its aria-label follow;
+announced „Lățime 6 din 12.”) or `setPath(…, "width")` for a grid column. Demo states: fb-05w (8/12),
+fb-05x (set to 6/12), fb-05y (locked), fb-52w (grid column).
 
 ### `rap-*` and `cab-*` — the two standalone pages
 
@@ -3648,6 +3711,7 @@ The old `renderProfileTable` / `renderProfileDocList` helpers are removed.
 | Avize | Active · Termen depășit · Finalizate | institution, status tag · id (copy), requested, deadline, result |
 | Act/Decizie | — | title, Aprobare/Respingere tag · issued, source · "Vezi documentul" |
 | Documente generate | — | name, file-type tag · issued, author · "Vezi documentul" |
+| Detalii solicitare › Documente însoțitoare | Obligatorii · Opționale | lead icon, type, source tag · file / act no., size, added at, by, signed · eye + ⋮ (see „Dosar › Documente însoțitoare”) |
 | Notificări | by channel (Email, MNotify) | event, Livrată/Livrare eșuată tag · recipient, sent at |
 
 ### Passport Notificări — service notification templates, US-187 (added 2026-10-01)
@@ -4333,6 +4397,9 @@ Descarcă (download icon) · `btn-primary` Închide.
   Aviz = Număr aviz, Instituția, Statutul, Solicitat la / de, Termen, Rezultat, Număr dosar.
   Act = Denumirea, Tipul, Număr act, Emis la, Emitent, Registru, Semnat electronic.
   Document = Denumirea, Format, Emis la, Autor, Dimensiune.
+  Document însoțitor (2026-10-14) = page preview on top + Tip document, [Număr act, Emis la],
+  Fișier, Dimensiune, Încărcat / Atașat / Preluat la, Încărcat de (name · role), Sursă,
+  Obligatoriu (`yesNo`), Semnătură, Număr dosar — see „Dosar › Documente însoțitoare”.
 - Injected footer buttons close through their own handler (`modal.js` binds `data-close`
   only at load).
 
@@ -5991,6 +6058,9 @@ screen. `main.css` / `Components/*` stay untouched; override there, scoped to th
 | Checkbox / checkbox in error | library | border strong · checked brand-hover / inset 1px danger (the FO error-field hover) |
 | Focusable tooltip trigger in a cell (`[data-cell-tooltip-always][tabindex="0"]`: „+N” roles, JSON) | text | underline |
 | Rows / clickable stack items / cards | white | BO row hover (tertiary) |
+| Form Builder field card / selected card | white, border default / brand border + inset ring + 4px `brand-secondary-hover` halo | border tertiary + `--shadow-200` / ring kept, halo `brand-secondary-active` + `--shadow-200` (stronger, never lighter); focus-visible + hover keeps the focus ring + shadow |
+| Open menu trigger in the builder (`.btn-strict` / `.btn-neutral` `[aria-expanded=true]`, `__version`, `__sub-add`, `__dropzone`) | pressed one step lighter (`tertiary-hover`) + focus ring | `tertiary-active` (the shell rule); `__sub-add` open tertiary → hover tertiary-hover; `__dropzone` open → border tertiary; an open `.e-permits-fo-select__button` in the builder → halo `brand-secondary-active` |
+| „Lățime” option / selected option | bars grey / filled inverse | option pad `tertiary-hover`; bars that would fill or empty → `tertiary-active`; the selected option's bars → `inverse-default-hover` |
 
 **By design without hover:** the focused field (focus wins), read-only fields (`.is-readonly`),
 an open button (keeps its pressed fill), a drawer scrim, disabled items.
@@ -6091,7 +6161,47 @@ following A. Pascalov's comment 1961221538 and the PO's screenshot of the „Log
   2 conditions with Sau), `06e` (Alt câmp), `06f` (new), `06g` (validation), `06h` (new,
   filled), `06i` (Dezactivează), `01i` (Activează → pending changes).
 
+### Dosar › Documente însoțitoare — stacked list + document modal (2026-10-14)
+
+Detalii solicitare › **Documente însoțitoare** = what the applicant attached (user: „visible in a
+modal, layout as the latest version, with date of upload and other details”). It is the
+**Documente generate** stacked list (no own pattern), `renderDosarInsotitoare(row)`:
+- **Data:** `buildDosarProfile(row).insotitoare`, from `e-permits-workplace.json ›
+  documenteInsotitoare` (by request type; Eliberare per service, `"*"` fallback). Item
+  `{ tip, fisier, kb, obligatoriu, sursa: upload|mdocs, semnat, pj, emitent }`; required ones always,
+  optional ones vary per dossier; `pj` only for companies. A **post-process** (any `tipDosar` other
+  than Eliberare) starts with **„Actul permisiv emis anterior”** taken from MDocs automatically (as
+  FO step 3) — `act { nr, emis }`, no uploader. Ex-officio dossiers: none (their tab has no list).
+  Generated / system files (Extras MPower, Cererea depusă…) stay in Documente generate. Uploader =
+  the applicant / representative (FO) or an operator (BO ghișeu); times on the submission day.
+- **Row:** lead icon 24 — grey `document-uploaded.svg` (from the device) or blue
+  `document-generated.svg` (MDocs, as the FO summary); title = document type; tag `MDocs` /
+  `Încărcat` (neutral Small); meta = file name (the act: its number as copy code) · size
+  (`fileSizeLabel`: „640 KB”, „2.4 MB”, as the FO) · „Încărcat / Atașat / Preluat automat 8 iulie 2026,
+  08:32” (`formatStamp`) · „de Victor Grosu” · „Semnat electronic”. Actions = `renderRowActions`:
+  eye „Previzualizează” (`data-dosar-detail="insotitoare|fN"`, `aria-haspopup="dialog"`) + ⋮
+  „Descarcă” (`data-dosar-file-download`); the whole row opens the modal too. No Obligatoriu tag —
+  the groups say it. Wrapped meta lines drop their leading dot (`syncStackMetaRows` now observes the
+  dossier panel too).
+- **Groups / meta:** Obligatorii · Opționale (count badges); heading meta „4 documente · 3
+  obligatorii”. **Empty:** library empty state, icon `document`, „Niciun document însoțitor.
+  Solicitantul nu a anexat documente la cerere.”
+- **Modal** = `#dosar-detail-modal` (Figma 04e „Document · detalii”) with one addition, the page
+  preview on top: the template previews' grey `.e-permits-doc-peek__canvas` (+
+  `.e-permits-detail-modal__preview`: radius 8, `flex: none`, max 40vh, scrolls) holding the A4
+  `.e-permits-dtpl__page.e-permits-doc-peek__page` zoomed to the canvas width (`fitDosarDocPreview`,
+  ResizeObserver on the modal body). Demo content from the dossier (`renderDosarDocPreview`: act,
+  identity card, lease, floor plan, registry extract, declaration, fallback). Title „Document
+  însoțitor” (act: „Act permisiv emis anterior”, subtitle number · service), then the „Date
+  generale” card, „Doar citire”, footer Descarcă · Închide.
+- Demo: `dos-04` / `dos-04g` list (story dossier = Duplicat → previous act), `dos-04h` modal on an
+  upload, `dos-04i` modal on the previous act, `dos-04j` ⋮ open, `dos-04k` / `dos-04l` a first-issue
+  dossier (D-2026-004559, MDocs extract), `dos-04m` empty (`&documente=0`, demo only).
+
 ### Documente însoțitoare (RSSP) in a service — document tiles, not label/value rows (2026-10-03)
+
+(Superseded: since 2026-10-14 no screen renders these tiles — the passport moved its documents
+to the Documente tab and the dosar profile to the stacked list above; the `__file*` CSS is unused.)
 
 Date generale › **Documente însoțitoare** (`renderPassportDocuments`) uses the **Dosar profile's
 document tiles** (`.e-permits-dosar-profil__files` / `__file`, `document.svg` icon), not the

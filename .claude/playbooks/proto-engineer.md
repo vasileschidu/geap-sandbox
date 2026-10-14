@@ -447,3 +447,46 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   already has. Hide the matching case-flow operation too, or the tab reappears after the action.
   Baseline every `dos-*` state's tab strip before / after (probe `[data-dosar-tab]` + aria-selected)
   and diff — it showed dos-02c / dos-03 had silently fallen back to Date generale before the change.
+- 2026-10-14 · Dosar › Documente însoțitoare (stacked list + document modal): „the latest version” = the
+  Documente generate list + `#dosar-detail-modal` — a new `kind` in `openDosarDetail` and a list renderer cost
+  ~150 lines, zero new components. The „preview area” the brief asked for was NOT in Figma 04e → reused the
+  template previews' grey `.e-permits-doc-peek__canvas` + A4 `.e-permits-dtpl__page` zoomed in JS (one small
+  CSS modifier). Traps: (1) my single-class modifier lost to `.e-permits-doc-peek__canvas { flex: 1 1 auto;
+  min-height: 0 }` defined LATER in the file → the canvas collapsed to 48px; scope it (`.e-permits-detail-modal
+  .x`) and measure clientHeight; (2) `syncStackMetaRows` (no leading dot on wrapped meta lines) only observed
+  the passport panel → every dossier stacked list showed „· …” at line starts on phones; now it also observes
+  `[data-dosar-profil-panel]`; (3) a ⋮ menu inside an `is-clickable` row inherits `cursor: pointer` → the
+  hover audit counted its `li` as interactive („no-hover”) → `cursor: default` on the menu. Seed realism: the
+  passport docs are 1 per service, so the dossier catalogue lives in e-permits-workplace.json by request type
+  (post-processes add the previous act from MDocs, as the FO step 3); the story dossier D-2026-004575 is a
+  **Duplicat** of the alcohol licence in the seed (not Eliberare, as the Figma header suggests). Empty state
+  via a demo-only `&documente=0` (resets `row.profil`). No sub-agent tool → ran hover-audit / code-audit
+  myself; leftovers = A4 page mm padding + info-card 11/7 rhythm + copy-code (pre-existing FPs).
+- 2026-10-14 · Builder „when I select an element hover breaks” (real browser only). CDP — headless, intercepted
+  drags, even headed Chrome — never froze hover; what I found and fixed: (1) VISIBLE: the selected card's
+  `:hover` dropped its inset ring and lightened the halo — the cursor sits on the card right after the click, so
+  „hover” read as „deselected”. A selected item's hover must be STRONGER than its rest (ring kept, halo
+  `brand-secondary-active`, `--shadow-200`), and focus-visible + hover keeps the ring. Look at rest/hover crops
+  of every SELECTED item (pairs.mjs pattern) — the hover audit only says „changed”, not „changed the right way”.
+  (2) Native DnD on a whole card: a click with 3–5 px of movement = a drag session (click swallowed; on a real
+  Mac the OS drag loop eats the mouseup and Chrome keeps hover frozen — CDP input skips that loop). Cards now
+  arm `draggable` only from their tools row; chips / palette items keep it but a drag < 10 px that changed
+  nothing runs as the click (6 px was too tight). (3) `dragend` after a drop that re-renders the source fires on
+  a DETACHED node — no ancestor/document listener sees it; listen on the source itself
+  (`addEventListener("dragend", …, { once: true })` at dragstart). Proved with a synthetic probe on a HEAD
+  worktree (:8936): mid-drag re-render left `is-dragging-component` → `pointer-events: none` on every card's
+  render/foot; fixed tree clean. (4) Delayed `setTimeout(() => add("is-dragging"))` must check the drag is
+  still current; pointer-capture resizes stop once on pointerup/cancel/`lostpointercapture`/blur + release.
+- 2026-10-14 · Headed-Chrome CDP traps: `Page.captureScreenshot` RESETS `:hover` (pixel hover checks only work
+  headless); an off-screen headed window gets throttled (clicks „don't select”, transitions never advance →
+  fake NOVISUAL) → launch with `--disable-backgrounding-occluded-windows --disable-renderer-backgrounding
+  --disable-background-timer-throttling`. Headed native drag works with plain press/move/release (no
+  `setInterceptDrags`). Scratch harness: scratchpad/hovsel/{cdp.mjs (HEADED=1), repro.mjs, detached.mjs}.
+- 2026-10-14 · User: „Lățime = a line with real columns, not the 3·4·6·8·12 segmented” → `widthPicker()` (12 equal
+  bars, one radio per allowed width covering its columns; grid column = 4 parts, `auto` ≡ Medie since fo-grid
+  weighs it 3). The OLD picker's CSS was still alive in e-permits-acte-permisive.css and silently overrode the
+  new one (button height 32 / centred caption) — before reusing an old class name, grep every CSS file for it
+  and delete dead rules. Hover preview with no JS: `option:is(:hover, :has(~ option:hover)) bar:not(.is-filled)`
+  (would fill) + `option:hover ~ option bar.is-filled` (would empty). Open menu triggers in the builder now get
+  a hover too (open = tertiary-hover + ring, hover = tertiary-active) — mind specificity: my scoped open rule
+  tied the shell `:hover` rule and won by order until I added its own `:hover`.

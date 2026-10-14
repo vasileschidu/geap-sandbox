@@ -16,6 +16,11 @@
   const dos = (as, stare, tab = "general", extra = {}, run) => ({ flow: "back-office", as, params: { stare, ...extra }, hash: `#dosar/${DOS}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section", run });
   /* another dossier, in its own seeded status (no ?stare=) */
   const dosOf = (id, as, tab = "general") => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section" });
+  /* Documente însoțitoare: the eye „Previzualizează” of the row whose title contains `text` */
+  const docEye = (text) => async (h) => {
+    const row = await h.scroll('.e-permits-stack__item[data-dosar-detail-row^="insotitoare"]', text);
+    row.querySelector('[data-dosar-detail^="insotitoare"]').click(); await h.wait(500);
+  };
   const dosList = (as) => ({ flow: "back-office", as, ready: "tr[data-workplace-row], .e-permits-workplace" });
   /* Setări: jump to a section from the section list */
   const cfgNav = (key) => async (h) => { await h.click(`[data-cfg2-nav="${key}"]`); await h.wait(500); };
@@ -767,6 +772,19 @@
     "dos-04d": dos(SPEC, "semnat", "documente"),
     "dos-04e": dos(SPEC, "semnat", "documente"),
     "dos-04f": dos(SPEC, "inExaminare", "jurnal"),
+    /* 04g–04m Detalii solicitare › Documente însoțitoare (2026-10-14): the story dossier is a Duplicat
+       (post-process) → the previous act from MDocs first; eye → the document modal (page preview +
+       details); ⋮ Descarcă; a first issue (Eliberare) dossier; the empty state (&documente=0) */
+    "dos-04g": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await h.scroll(".e-permits-stack-section"); }),
+    "dos-04h": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Declarație")(h); }),
+    "dos-04i": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Actul permisiv emis anterior")(h); }),
+    "dos-04j": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => {
+      const row = await h.scroll('.e-permits-stack__item[data-dosar-detail-row^="insotitoare"]', "Declarație");
+      row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300);
+    }),
+    "dos-04k": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await h.scroll(".e-permits-stack-section"); } },
+    "dos-04l": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await docEye("Extras din Registrul")(h); } },
+    "dos-04m": dos(SPEC, "inExaminare", "solicitare", { documente: "0" }, async (h) => { await h.scroll(".e-permits-dosar-profil__section", "Documente însoțitoare"); }),
     /* 05 liste pe rol */
     "dos-05": dosList(SPEC),
     "dos-05a": dosList(SUP),
@@ -1156,6 +1174,11 @@
           await h.fill("[data-fb-prop='validation.pattern']", "[A-Z{2", { leave: false });
         }),
         "fb-05c": fb(async (h) => { await pick("fld-name")(h); await h.click("[data-fb-lang='ru']"); }),
+        /* 05w „Lățime” = a row of 12 real columns (fld-name 8/12) · 05x set to 6/12 (card tag follows)
+           · 05y locked width (Persoana de contact: tot rândul, disabled + reason) */
+        "fb-05w": fb(async (h) => { await pick("fld-name")(h); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }),
+        "fb-05x": fb(async (h) => { await pick("fld-name")(h); await h.click("[data-fb-seg='span'][data-value='6']"); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }),
+        "fb-05y": fb(async (h) => { await lib("contact")(h); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }),
         "fb-06": fb(async (h) => { await lib("select")(h); await tab("data")(h); }),
         "fb-06a": fb(async (h) => {
           await lib("select")(h); await tab("data")(h);
@@ -1464,6 +1487,8 @@
                · 52b a palette type dragged over the band (insertion line) */
             "fb-52": fb(async (h) => { await h.click("[data-builder-field][data-id='fld-equipment']"); await h.click("[data-builder-prop-tab='data']"); await h.scroll("[data-builder-field][data-id='fld-equipment']"); }, F09),
             "fb-52a": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); }, F09),
+            /* 52w a grid column's „Lățime coloană”: parts on a 4-bar row (Îngustă 2 · Medie 3 · Lată 4) */
+            "fb-52w": fb(async (h) => { await h.scroll("[data-builder-field][data-id='fld-equipment']"); await h.click(chip("col-09-name")); await h.scroll(".e-permits-builder__panel .e-permits-builder__width-picker"); }, F09),
             "fb-52b": fb(async (h) => {
               const target = await h.scroll(chip("col-09-cap"));
               const item = await h.find("[data-builder-component='date']");

@@ -12712,67 +12712,7 @@
   min-height: 58px;
 }
 
-.e-permits-builder__width-picker {
-  display: grid;
-  gap: var(--spacing-6, 6px);
-  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
-  width: 100%;
-}
-
-.e-permits-builder__width-picker button {
-  align-items: stretch;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  display: flex;
-  gap: var(--spacing-6, 6px);
-  height: 32px;
-  min-width: 0;
-  padding: 0;
-}
-
-.e-permits-builder__width-picker button span {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: var(--border-radius-6, 6px);
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.e-permits-builder__width-picker button.is-filled span,
-.e-permits-builder__width-picker button.is-active span {
-  background: var(--color-background-base-inverse-default, #1e1e1e);
-}
-
-.e-permits-builder__width-picker[data-active-span="4"] button:nth-child(-n+1) span,
-.e-permits-builder__width-picker[data-active-span="6"] button:nth-child(-n+2) span,
-.e-permits-builder__width-picker[data-active-span="8"] button:nth-child(-n+3) span,
-.e-permits-builder__width-picker[data-active-span="12"] button:nth-child(-n+4) span {
-  background: var(--color-background-base-inverse-default, #1e1e1e);
-}
-
-.e-permits-builder__width-picker button:focus-visible span {
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-  outline: none;
-}
-
-.e-permits-builder__width-caption {
-  align-items: center;
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-4, 4px);
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  margin: var(--spacing-10, 10px) 0 0;
-  text-align: center;
-  width: 100%;
-}
-
-.e-permits-builder__width-caption strong {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
+/* 2026-10-14 · the old builder's width picker rules moved to css/form-builder.css („Lățime”) */
 
 .e-permits-builder__behavior-row {
   align-items: flex-start;
@@ -21329,6 +21269,11 @@ button.e-permits-steps-strip__cell:focus-visible {
   cursor: pointer;
 }
 
+/* an open ⋮ menu inside a clickable row is not part of the row's click target */
+.e-permits-stack__item.is-clickable .e-permits-stack__menu {
+  cursor: default;
+}
+
 .e-permits-stack__item.is-clickable:hover {
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
@@ -21342,6 +21287,15 @@ button.e-permits-steps-strip__cell:focus-visible {
 
 .e-permits-detail-modal .e-permits-dosar-profil__section {
   margin: 0;
+}
+
+/* Documente însoțitoare › the document's page above its details (2026-10-14): the template
+   previews' grey canvas + A4 page (zoomed to fit in JS), a window of 40% of the screen height
+   that scrolls the page */
+.e-permits-detail-modal .e-permits-detail-modal__preview {
+  border-radius: var(--border-radius-8, 8px);
+  flex: 0 0 auto;
+  max-height: 40vh;
 }
 
 .e-permits-readonly-note .icon {

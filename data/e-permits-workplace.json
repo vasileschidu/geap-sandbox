@@ -187,6 +187,217 @@
     "Autorizație sanitară de funcționare": "003000118",
     "Autorizație de comerț cu produse alcoolice": "003000207"
   },
+  "documenteInsotitoare": {
+    "_comment": "Documente însoțitoare (Detalii solicitare): what the applicant attached — by request type; Eliberare per service. sursa: upload (default) | mdocs; pj = only for companies; required ones are always there, optional ones vary per dossier. Post-processes also get the previous act (MDocs) first.",
+    "Eliberare": {
+      "Autorizație sanitară de funcționare": [
+        {
+          "tip": "Copia actului de identitate",
+          "fisier": "copia-buletin-identitate.pdf",
+          "kb": 640,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Contract de locațiune",
+          "fisier": "contract-locatiune-nr-14-2026.pdf",
+          "kb": 2458,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Planul încăperilor",
+          "fisier": "planul-incaperilor.pdf",
+          "kb": 1843,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Extras din Registrul de stat al persoanelor juridice",
+          "fisier": "extras-rspj.pdf",
+          "kb": 310,
+          "obligatoriu": true,
+          "sursa": "mdocs",
+          "pj": true,
+          "emitent": "Agenția Servicii Publice",
+          "semnat": true
+        },
+        {
+          "tip": "Declarație pe propria răspundere",
+          "fisier": "declaratie-propria-raspundere.pdf",
+          "kb": 182,
+          "obligatoriu": false,
+          "semnat": true
+        },
+        {
+          "tip": "Planul încăperilor de la subsol",
+          "fisier": "planul-incaperilor-subsol.pdf",
+          "kb": 1229,
+          "obligatoriu": false
+        }
+      ],
+      "Autorizație de comerț cu produse alcoolice": [
+        {
+          "tip": "Copia actului de identitate",
+          "fisier": "copia-buletin-identitate.pdf",
+          "kb": 640,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Contract de locațiune",
+          "fisier": "contract-locatiune-spatiu-comercial.pdf",
+          "kb": 2150,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Autorizație sanitară de funcționare",
+          "fisier": "autorizatie-sanitara-functionare.pdf",
+          "kb": 420,
+          "obligatoriu": true,
+          "sursa": "mdocs",
+          "emitent": "Agenția Națională pentru Sănătate Publică",
+          "semnat": true
+        },
+        {
+          "tip": "Extras din Registrul de stat al persoanelor juridice",
+          "fisier": "extras-rspj.pdf",
+          "kb": 310,
+          "obligatoriu": true,
+          "sursa": "mdocs",
+          "pj": true,
+          "emitent": "Agenția Servicii Publice",
+          "semnat": true
+        },
+        {
+          "tip": "Certificat privind lipsa datoriilor",
+          "fisier": "certificat-lipsa-datorii.pdf",
+          "kb": 205,
+          "obligatoriu": false,
+          "sursa": "mdocs",
+          "emitent": "Serviciul Fiscal de Stat",
+          "semnat": true
+        },
+        {
+          "tip": "Declarație privind distanța față de instituțiile de învățământ",
+          "fisier": "declaratie-distanta-institutii.pdf",
+          "kb": 164,
+          "obligatoriu": false,
+          "semnat": true
+        }
+      ],
+      "*": [
+        {
+          "tip": "Copia actului de identitate",
+          "fisier": "copia-buletin-identitate.pdf",
+          "kb": 640,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Contract de locațiune",
+          "fisier": "contract-locatiune.pdf",
+          "kb": 2048,
+          "obligatoriu": true
+        },
+        {
+          "tip": "Planul încăperilor",
+          "fisier": "planul-incaperilor.pdf",
+          "kb": 1843,
+          "obligatoriu": true
+        }
+      ]
+    },
+    "Prelungire": [
+      {
+        "tip": "Copia actului de identitate",
+        "fisier": "copia-buletin-identitate.pdf",
+        "kb": 640,
+        "obligatoriu": true
+      },
+      {
+        "tip": "Declarație privind menținerea condițiilor de funcționare",
+        "fisier": "declaratie-mentinere-conditii.pdf",
+        "kb": 176,
+        "obligatoriu": true,
+        "semnat": true
+      },
+      {
+        "tip": "Contract de locațiune actualizat",
+        "fisier": "contract-locatiune-actualizat.pdf",
+        "kb": 2304,
+        "obligatoriu": false
+      }
+    ],
+    "Reperfectare": [
+      {
+        "tip": "Copia actului de identitate",
+        "fisier": "copia-buletin-identitate.pdf",
+        "kb": 640,
+        "obligatoriu": true
+      },
+      {
+        "tip": "Documentele care confirmă modificările intervenite",
+        "fisier": "decizia-asociatului-modificare-date.pdf",
+        "kb": 512,
+        "obligatoriu": true
+      },
+      {
+        "tip": "Extras din Registrul de stat al persoanelor juridice",
+        "fisier": "extras-rspj.pdf",
+        "kb": 310,
+        "obligatoriu": false,
+        "sursa": "mdocs",
+        "pj": true,
+        "emitent": "Agenția Servicii Publice",
+        "semnat": true
+      }
+    ],
+    "Duplicat": [
+      {
+        "tip": "Copia actului de identitate",
+        "fisier": "copia-buletin-identitate.pdf",
+        "kb": 640,
+        "obligatoriu": true
+      },
+      {
+        "tip": "Declarație privind pierderea sau deteriorarea actului",
+        "fisier": "declaratie-pierdere-act.pdf",
+        "kb": 158,
+        "obligatoriu": true,
+        "semnat": true
+      },
+      {
+        "tip": "Dovada publicării anunțului în Monitorul Oficial",
+        "fisier": "anunt-monitorul-oficial.pdf",
+        "kb": 734,
+        "obligatoriu": false
+      }
+    ],
+    "Suspendare": [
+      {
+        "tip": "Copia actului de identitate",
+        "fisier": "copia-buletin-identitate.pdf",
+        "kb": 640,
+        "obligatoriu": true
+      },
+      {
+        "tip": "Documente care justifică suspendarea",
+        "fisier": "justificare-suspendare.pdf",
+        "kb": 389,
+        "obligatoriu": false
+      }
+    ],
+    "Anulare": [
+      {
+        "tip": "Copia actului de identitate",
+        "fisier": "copia-buletin-identitate.pdf",
+        "kb": 640,
+        "obligatoriu": true
+      },
+      {
+        "tip": "Decizia de încetare a activității",
+        "fisier": "decizie-incetare-activitate.pdf",
+        "kb": 276,
+        "obligatoriu": false
+      }
+    ]
+  },
   "subdiviziuni": [
     "CSP Chișinău",
     "CSP Bălți",
