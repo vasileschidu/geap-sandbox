@@ -607,3 +607,16 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     not what any screen shows).
   - Loading buttons keep the sibling width (FIXED) so row actions stay aligned; note slow operations in the block note.
   - Connector magnets: start on the side facing the flow (RIGHT for every block here), never across the source screen.
+- 2026-10-14 · QA round 11:
+  - Wrap is not a fix for a too-narrow column: the round-10 WRAP on 41 meta rows broke one-line rows the code shows on
+    one line. Right fix = the FIXED text column (captured width, 2–8 px short in Figma) → FILL in its horizontal list
+    item, row NO_WRAP. Only wrap where the code wraps (flex-wrap AND it actually wraps at that width).
+  - Every new content in a TOC card (e.g. the „Library gaps / constraints” list) → re-stack the section's frames
+    (gap 40, section bottom 80) and check overlaps. TOC column titles: non-breaking spaces in „ · N ecrane”, columns
+    sized to the one-line title (420 default; longer titles get their own width, the row wraps).
+  - Non-auto-layout single-child wrappers (Exportă) keep captured widths → auto-layout HUG. Library menus
+    (contextual-menu): width = max one-line option (min 256), right edge aligned to the trigger.
+  - sweep.js now also checks oneLineWrap (buttons / tags / chips / menus / segmented / tabs / TOC titles / meta rows,
+    short ≤ 16 px texts whose one-line width exceeds the box; headings may wrap as in the code), wrapWithRoom and
+    tocOverlap. Always run the WHOLE sweep after a fix pass — each targeted pass broke something the old checks
+    did not cover. Split the run into page groups if the transport drops.
