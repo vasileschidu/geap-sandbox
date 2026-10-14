@@ -539,3 +539,26 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - Library gaps go into the block note in the note's language (Romanian here), naming the local component.
   - sweep.js now also checks: body-cell content (texts + top-level instances) inside the cell's padding box
     (contentOver) and modal centring (modalOffCentre). Pager gap 0 after any row change on modal backgrounds.
+- 2026-10-14 · QA round 7 — TABLE RULE (replaces the round-6 wrap approach):
+  - The code never wraps a table cell: `.e-permits-workplace__table td { white-space: nowrap; text-overflow: ellipsis;
+    height: 50px }`, columns = clamp(one-line content, max(128, def.width), fill ? ∞ : 220), extra width → fill
+    columns, otherwise the table scrolls. In Figma: every body text ONE line; overflow = ending ellipsis
+    (FILL chain from the cell down to the text, `textAutoResize HEIGHT`, `textTruncation ENDING`, `maxLines 1`);
+    rows = natural one-line height (50, 56 with name + meta; spanning empty / loading rows exempt).
+  - Don't guess widths from the column defs — MEASURE the rendered code: tools/figma/ekyc-library-pass/
+    measure-code-tables.mjs (headless Chrome, per demo state: header labels + th widths + row heights). balance.js v4
+    copies those tracks by header label, keeps hard content (buttons, tags) whole, fits the sum to the Figma table:
+    excess comes first from columns wider than their content, never takes Descriere / Caz de utilizare / Motiv below
+    280 (code min), then down to hard needs. Code tables wider than the viewport (S01 1781, C06 1756) scroll in code —
+    in Figma they fit 1664 by truncating the columns that have slack (open question to the PO if they want the scroll).
+  - Check the code's DOM before changing a cell layout: roles tags are inline (A01), client „Cazuri de utilizare”
+    tags are stacked (C02 / D02e) — captured layouts were right in one place and wrong in the other.
+  - Drawers fill the screen height: Overlay (NONE) children → constraints vertical STRETCH, and set height = screen
+    once; sweep `drawerShort`.
+  - Open facet = trigger State=Active (button-filled-circular), popover left = trigger left, popover name =
+    „Popover · Dialog - Filtru: <trigger label>” (cloned popovers kept the source name).
+  - Icon colour overrides on tags / buttons: copy the label's fills (paint with boundVariables survives
+    JSON clone) so icon = label variable; find them via `instance.overrides` (fills on VECTOR), not by comparing
+    library defaults (icon/* vs text/* variables differ by design in every instance).
+  - sweep.js adds multiLine, tallRows (> 56), drawerShort. Order after any column change: balance → one-line pass →
+    rows → scroll-content refit (modal backgrounds) → restack (240) → section fit (80) → anchors → sweep.
