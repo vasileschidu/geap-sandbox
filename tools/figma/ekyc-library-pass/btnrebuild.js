@@ -7,7 +7,7 @@ const VC = {}; const rv = async (node) => { const p = node.fills && node.fills[0
 const same = (a, b) => Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) < 0.06;
 const bad = async (b) => { const l = b.findOne(k => k.type === "TEXT" && k.visible); const ic = b.findOne(k => k.type === "INSTANCE" && k.visible); const v = ic && ic.findOne(k => (k.type === "VECTOR" || k.type === "BOOLEAN_OPERATION") && k.visible && k.fills && k.fills.length && k.fills[0].type === "SOLID"); if (!l || !v) return false; const a = await rv(l), c = await rv(v); return a && c && !same(a, c); };
 const conns = figma.currentPage.findAll(n => n.type === "CONNECTOR");
-const res = { rebuilt: 0, nested: 0, still: 0, ids: [] };
+const res = { rebuilt: 0, nested: 0, still: 0, ids: [], lostConnectors: 0, connectorsBefore: conns.length };
 const list = figma.currentPage.findAll(isBtn).slice(FROM, FROM + COUNT);
 for (const b of list) {
   if (b.removed || /MPass/.test(b.mainComponent ? b.mainComponent.name : "")) continue;
@@ -28,7 +28,10 @@ for (const b of list) {
   else if (auto) { try { n.layoutSizingHorizontal = st.h; n.layoutSizingVertical = st.v; if (st.h === "FIXED" || st.v === "FIXED") n.resize(st.w, st.hh); n.layoutGrow = st.grow; n.layoutAlign = st.align; } catch (e) {} }
   else if (!grid) { n.x = st.x; n.y = st.y; if (st.h === "FIXED") n.resize(st.w, st.hh); }
   n.name = st.name; n.visible = st.vis;
-  for (const c of conns) { if (c.connectorStart.endpointNodeId === b.id) c.connectorStart = { endpointNodeId: n.id, magnet: c.connectorStart.magnet }; if (c.connectorEnd.endpointNodeId === b.id) c.connectorEnd = { endpointNodeId: n.id, magnet: c.connectorEnd.magnet }; }
-  b.remove(); res.rebuilt++; if (await bad(n)) { res.still++; if (res.ids.length < 6) res.ids.push(n.id + " " + n.name.slice(0, 24)); }
+  // round 9: snapshot EVERY connector end touching b (magnet or position) BEFORE removing it, re-attach the same way, verify after
+  const ends = []; for (const c of conns) for (const side of ["connectorStart", "connectorEnd"]) { const e = c[side]; if (e && e.endpointNodeId === b.id) ends.push({ c, side, e: JSON.parse(JSON.stringify(e)) }); }
+  for (const { c, side, e } of ends) { const ne = { endpointNodeId: n.id }; if (e.position) ne.position = e.position; else ne.magnet = e.magnet || "AUTO"; c[side] = ne; }
+  b.remove();
+  for (const { c, side } of ends) if (c.removed || c[side].endpointNodeId !== n.id) res.lostConnectors = (res.lostConnectors || 0) + 1; res.rebuilt++; if (await bad(n)) { res.still++; if (res.ids.length < 6) res.ids.push(n.id + " " + n.name.slice(0, 24)); }
 }
-return res;
+res.connectorsAfter = figma.currentPage.findAll(n => n.type === "CONNECTOR").length; return res;

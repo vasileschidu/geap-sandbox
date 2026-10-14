@@ -578,3 +578,19 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     override at all). Compare with a fresh instance's icon variable, not with the label variable (icon/* vs text/*).
   - sweep.js adds cutIdent (ellipsis outside prose / descriptions, button labels excluded) and belowMin (registry
     columns vs max(128, configured min); run with MINS).
+- 2026-10-14 · QA round 9 — PROCESS RULE (mandatory from now on): before ANY destructive or bulk operation (recreate,
+  reset, swap, variant change) 1) snapshot the affected nodes' connectors (both ends: node, magnet / position),
+  flow anchors and glyphs (label → icon), 2) run the operation, 3) diff: same connectors attached, connector count per
+  page not lower, same glyph per label as the code (glyph-map.json). Round 8 broke this twice: recreating buttons
+  deleted 7 connectors attached to them, and the icon reset hit the shared header component „Antet · eKYC” — 240
+  header buttons lost their rotate-arrow / arrow-left glyphs.
+  - Edits on a LOCAL COMPONENT propagate to every instance: never run label- or icon-driven bulk fixes on main
+    components without listing their instance count first (a „Înapoi la sesiuni” fix would have hit 122 headers).
+  - Buttons whose variant exposes no icon-swap property (the header's text-circular Small): swap the nested icon
+    (swapComponent) and copy the previous vector paint so the variant colour stays.
+  - btnrebuild.js now snapshots every connector end on the old node and re-attaches by position or magnet, and
+    reports lostConnectors / connectorsBefore / connectorsAfter. collect-code-glyphs.mjs builds glyph-map.json from
+    the rendered prototype; sweep.js checks glyphMismatch and connector counts (pass G and PREV_CONNECTORS).
+  - One track set per table family (base screen's tracks; when a sibling needs more for a whole value, use the widest
+    sibling's set for the whole family).
+  - Step names (Pas curent) are names: whole; only their meta line (provider) may ellipsize.
