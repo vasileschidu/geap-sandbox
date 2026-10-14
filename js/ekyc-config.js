@@ -645,7 +645,8 @@
   });
   /* chips: max 2 visible + „+N” with the rest in a tooltip (the users-registry roles pattern);
      long codes wrap to a second line instead of being clipped (passport tag list) */
-  const chips = (items, what) => (items.length ? `<span class="e-permits-passport__tag-list">${items.slice(0, 2).map((c) => T(c)).join("")}${items.length > 2 ? `<span class="e-permits-workplace__user-role-more" tabindex="0" data-cell-tooltip="${esc(items.slice(2).join(", "))}" data-cell-tooltip-always aria-label="${esc(`${what}: ${items.join(", ")}`)}">+${items.length - 2}</span>` : ""}</span>` : dash);
+  /* multi-value tag cells = the BO user-roles cell (one line, 2 tags + „+N” with a tooltip) */
+  const chips = (items, what) => (items.length ? A.renderUserRoles(items, { label: what }) : dash);
   const ucChips = (codes) => chips(codes, "Toate cazurile");
   const clientCell = (r, key) => {
     switch (key) {

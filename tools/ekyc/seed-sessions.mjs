@@ -169,12 +169,16 @@ for (const [kind, count] of HIST) {
   }
 }
 
+/* each alert names what it is about (kind + ref) — the dashboard card opens the screen where
+   it can be acted on (js/ekyc.js ALERT_TARGETS); the ids match data/ekyc-config.json */
 const alerts = [
-  { id: "al-1", severity: "Critică", title: "Furnizor indisponibil: Vonage Verify — SMS OTP", text: "8 verificări de disponibilitate eșuate consecutiv. Pasul „Verificare telefon” este omis în TELCO_SIM_SUBSTANTIAL.", at: iso(add(NOW, -11 * 60)), link: "Deschide furnizorul" },
-  { id: "al-2", severity: "Avertisment", title: "Furnizor degradat: FaceTec — 3D Face Match", text: "Latența p95 a depășit 4,2 s față de pragul de 2,5 s în ultimele 30 de minute.", at: iso(add(NOW, -44 * 60)), link: "Deschide furnizorul" },
-  { id: "al-3", severity: "Avertisment", title: "Rată de respingere peste prag — MICB Web Onboarding", text: "38% respingeri în ultima oră, peste pragul configurat de 35% (alerts.rejection.rate.threshold).", at: iso(add(NOW, -50 * 60)) },
-  { id: "al-4", severity: "Informativ", title: "Flux fără pași configurați: Verificare comerciant (pilot)", text: "Cazul de utilizare MERCHANT_PILOT are 0 pași. Nu poate fi rulat de niciun client.", at: iso(add(NOW, -3 * 3600)) },
-  { id: "al-5", severity: "Informativ", title: "Versiuni SDK ieșite din suport încă în uz", text: "3.9.4 (iOS) și 2.3.0 (Web) au generat 41 de sesiuni în ultimele 7 zile.", at: iso(add(NOW, -5 * 3600)) }
+  { id: "al-1", severity: "Critică", kind: "provider", ref: "prv-vonage", title: "Furnizor indisponibil: Vonage Verify — SMS OTP", text: "8 verificări de disponibilitate eșuate consecutiv. Pasul „Verificare telefon” este omis în TELCO_SIM_SUBSTANTIAL.", at: iso(add(NOW, -11 * 60)) },
+  { id: "al-2", severity: "Avertisment", kind: "provider", ref: "prv-facetec", title: "Furnizor degradat: FaceTec — 3D Face Match", text: "Latența p95 a depășit 4,2 s față de pragul de 2,5 s în ultimele 30 de minute.", at: iso(add(NOW, -44 * 60)) },
+  { id: "al-3", severity: "Avertisment", kind: "rejection", ref: "micb-web", title: "Rată de respingere peste prag — MICB Web Onboarding", text: "22% respingeri în ultimele 7 zile (2 din 9 decizii), peste pragul de 20% configurat pentru client.", at: iso(add(NOW, -50 * 60)) },
+  { id: "al-6", severity: "Avertisment", kind: "review-overdue", ref: "KYC-47073", title: "Revizie manuală peste termen: KYC-47073", text: "Termenul de 8 ore a expirat azi la 10:42, iar sesiunea este încă în lucru. Alte 2 sesiuni așteaptă alocarea.", at: iso(add(NOW, -4 * 3600 - 10 * 60)) },
+  { id: "al-7", severity: "Avertisment", kind: "root-ca", ref: "ca-age-mtls-g1", title: "Certificat root CA expiră în 48 de zile: AGE Clients mTLS CA G1", text: "Valabil până la 30 noiembrie 2026. După expirare, clienții cu mTLS emis de G1 nu se mai pot conecta.", at: iso(add(NOW, -6 * 3600)) },
+  { id: "al-4", severity: "Informativ", kind: "use-case", ref: "PENSION_CONFIRM_SUBST", title: "Flux fără pași configurați: Confirmarea identității pensionarilor", text: "Cazul de utilizare PENSION_CONFIRM_SUBST are 0 pași. Nu poate fi rulat de niciun client.", at: iso(add(NOW, -3 * 3600)) },
+  { id: "al-5", severity: "Informativ", kind: "sdk", ref: "unsupported", title: "Versiuni SDK ieșite din suport încă în uz", text: "4.0.3 (iOS), 3.8.5 (Android) și 2.2.0 (Web) au generat 41 de sesiuni în ultimele 7 zile.", at: iso(add(NOW, -5 * 3600)) }
 ];
 
 const providers = [

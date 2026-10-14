@@ -3400,6 +3400,16 @@ button.e-permits-workplace__th-content:focus-visible {
   white-space: nowrap;
 }
 
+/* values that do not fit (fitTagRows) live only in the „+N” tooltip */
+.e-permits-workplace__user-roles > [hidden] {
+  display: none;
+}
+
+/* fitTagRows() reads each tag's natural width with shrinking off, for one frame-less moment */
+.e-permits-workplace__user-roles.is-measuring > * {
+  flex-shrink: 0;
+}
+
 .e-permits-workplace__user-role-more {
   flex: 0 0 auto;
   color: var(--color-text-base-default, #121212);

@@ -24,13 +24,12 @@
   let db = null;
   let loadedAt = Date.now();
   let failed = DEMO === "eroare";
-  const ui = { period: "24h", client: "", useCase: "", view: "", session: null, tab: "general", dismissed: new Set(DEMO === "fara-alerte" ? ["al-1", "al-2", "al-3", "al-4", "al-5"] : []), restack: false, modal: "", mode: "session", grants: {}, touched: new Set(), draft: null, viewer: null };
+  const ui = { period: "24h", client: "", useCase: "", view: "", session: null, tab: "general", dismissed: new Set(), pulsed: new Set(), restack: false, modal: "", mode: "session", grants: {}, touched: new Set(), draft: null, viewer: null };
 
   /* ---- vocabulary -------------------------------------------------------------- */
   const ACTIVE_TONES = { "Inițiată": "neutral", "În desfășurare": "info", "Așteaptă utilizatorul": "warning", "Așteaptă furnizorul": "violet", "În revizie manuală": "brand" };
   const FINAL_TONES = { "Finalizată": "success", "Abandonată": "neutral", "Expirată": "warning", "Eroare": "danger" };
   const DECISION_TONES = { Acceptat: "success", Respins: "danger", "Revizuire manuală": "warning", "Fără decizie": "neutral" };
-  const ALERT_TONES = { "Critică": "danger", Avertisment: "warning", Informativ: "neutral" };
   const PROVIDER_TONES = { "Operațional": "success", Degradat: "warning", Indisponibil: "danger" };
   const PERIODS = [["1h", "1 h", 3600], ["24h", "24 h", 86400], ["7z", "7 zile", 7 * 86400], ["30z", "30 zile", 30 * 86400]];
   const VIEWS = ["ekyc-dashboard", "ekyc-active", "ekyc-history", "ekyc-placeholder", "ekyc-review", "ekyc-review-all", "ekyc-reports", "ekyc-access-log"];
@@ -1767,27 +1766,82 @@
       ${top && data.top.length ? api.renderInfoCard("Top cazuri de utilizare", data.top.map(([code, count]) => [useCase(code).name, `<span class="e-permits-ekyc-score">${count}</span>`])) : ""}`;
   };
 
-  /* Alerte active — one WHITE card per alert (the dashboard card), severity shown softly by a
-     thin outline + a slim left accent (Critică = danger, Avertisment = warning, Informativ =
-     neutral outline only) and the icon colour; stacked like notifications:
-     the first two in full, the rest as 1–2 thinner „peek” layers under them and
-     „Arată toate (N)” → the alerts modal. */
+  /* Alerte active — one quiet white card per alert (redesign 2026-10-14): a 32px severity tile
+     (Critică = danger tint, Avertisment = warning tint, Informativ = neutral grey; the critical one
+     pulses once on first render), the title on one line with the time on the right, the
+     description clamped to 2 lines. The severity is spoken, not tagged („Critică: …” hidden prefix).
+     Every alert leads to the screen where it can be acted on (ALERT_TARGETS): the whole card is
+     the link + a short brand action line; the × (shown on hover / focus, always on touch) only
+     dismisses. A role whose menu lacks the target screen gets a plain card without the action.
+     Stacked like notifications: the first two in full, the rest as 1–2 neutral „peek” layers
+     and „Arată toate (N)” → the alerts modal (same cards). */
   const ALERT_STYLE = { "Critică": ["error", "circle-error-filled"], Avertisment: ["warning", "warning-filled"], Informativ: ["info", "circle-info-filled"] };
   const ALERTS_SHOWN = 2;
   const SEVERITY_ORDER = ["Critică", "Avertisment", "Informativ"];
   const activeAlerts = () => db.alerts.filter((a) => !ui.dismissed.has(a.id)).sort((a, b) => SEVERITY_ORDER.indexOf(a.severity) - SEVERITY_ORDER.indexOf(b.severity));
-  const alertCard = (a) => {
+  /* where each kind of alert is acted on: nav item (= the permission: the role's menu has it),
+     then a detail hash, a list tab, applied filters or a row to point at */
+  const ALERT_TARGETS = {
+    provider: () => ({ label: "Deschide furnizorul", nav: "ek-providers", row: (a) => a.ref, focus: '[data-ekcfg="provider-test"]' }),
+    rejection: () => ({ label: "Vezi sesiunile", nav: "ek-history", kind: "ekyc-history", filters: (a) => ({ client: [client(a.ref).name], decizie: ["Respins"], perioada: ["Ultimele 7 zile"] }) }),
+    "use-case": () => ({ label: "Vezi cazul", nav: "ek-use-cases", hash: (a) => `#ek-caz/${encodeURIComponent(a.ref)}/pasi` }),
+    sdk: () => ({ label: "Vezi versiunile", nav: "ek-sdk", tab: "off" }),
+    "review-overdue": () => (role() === "supervisor" ? { label: "Vezi coada", nav: "ek-review-all", tab: "În lucru", row: (a) => a.ref, focus: "button" }
+      : role() === "operator" ? { label: "Vezi sesiunile mele", nav: "ek-review", row: (a) => a.ref, focus: "button" } : null),
+    "root-ca": () => ({ label: "Vezi certificatul", nav: "ek-trusted-cas", hash: (a) => `#ek-certificat/${encodeURIComponent(a.ref)}/general` })
+  };
+  const navItem = (id) => document.querySelector(`[data-nav-item][data-nav-id="${id}"]`);
+  const alertTarget = (a) => {
+    const t = ALERT_TARGETS[a.kind]?.();
+    return t && navItem(t.nav) ? t : null;
+  };
+  const goToAlert = (id) => {
+    const a = db.alerts.find((x) => x.id === id);
+    const t = a && alertTarget(a);
+    if (!t) return;
+    if (ui.modal) closeModal();
+    if (t.filters) api.setRegistryFilters(t.kind, t.filters(a));
+    navItem(t.nav).click();
+    if (t.hash) {
+      window.GEAPShellProduct.route(t.hash(a));
+      const h1 = api.els.dosarProfilTitleRow?.querySelector("h1, h2");
+      if (h1) { h1.tabIndex = -1; h1.focus({ preventScroll: true }); }
+      return;
+    }
+    if (t.tab) { api.workplaceState.tabKey = t.tab; api.renderWorkplace(); }
+    const tr = t.row ? document.querySelector(`tr[data-workplace-row="${CSS.escape(t.row(a))}"]`) : null;
+    if (tr) {
+      tr.scrollIntoView({ block: "center" });
+      tr.classList.add("is-flash");
+      window.setTimeout(() => tr.classList.remove("is-flash"), 1900);
+      (tr.querySelector(t.focus) || tr.querySelector("a, button"))?.focus({ preventScroll: true });
+      return;
+    }
+    const title = api.els.workplaceTitle;
+    if (title) { title.tabIndex = -1; title.focus({ preventScroll: true }); }
+  };
+  const alertCard = (a, where = "dash") => {
     const [tone, ic] = ALERT_STYLE[a.severity] || ALERT_STYLE.Informativ;
+    const t = alertTarget(a);
+    const textId = `ekyc-alert-${where}-${a.id}-text`;
+    /* the critical tile pulses once, the first time the card is drawn */
+    const pulse = tone === "error" && !ui.pulsed.has(`${where}:${a.id}`);
+    ui.pulsed.add(`${where}:${a.id}`);
+    const titleInner = `<span class="u-visually-hidden">${esc(a.severity)}: </span>${esc(a.title)}${t ? `<span class="u-visually-hidden"> — ${esc(t.label)}</span>` : ""}`;
     return `
-      <li class="message message--subtle e-permits-ekyc-alert e-permits-ekyc-alert--${tone}" data-ekyc-alert="${esc(a.id)}">
-        <span class="banner__icon">${icon(ic)}</span>
-        <div class="banner__content">
-          <p class="e-permits-ekyc-alert__title">${esc(a.title)}</p>
-          <p class="banner__text">${esc(a.text)}</p>
-          <p class="e-permits-ekyc-alert__meta">${api.renderTag(a.severity, ALERT_TONES[a.severity])}<span>${esc(ago(a.at))}</span></p>
+      <li class="e-permits-ekyc-alert e-permits-ekyc-alert--${tone}${t ? " is-actionable" : ""}" data-ekyc-alert="${esc(a.id)}"${t ? ` data-ekyc-alert-go="${esc(a.id)}"` : ""}>
+        <span class="e-permits-ekyc-alert__tile${pulse ? " is-pulsing" : ""}" aria-hidden="true">${icon(ic)}</span>
+        <div class="e-permits-ekyc-alert__body">
+          <div class="e-permits-ekyc-alert__head">
+            ${t ? `<a class="e-permits-ekyc-alert__title" href="${esc(t.hash ? t.hash(a) : `#${t.nav}`)}" aria-describedby="${textId}" data-cell-tooltip="${esc(a.title)}">${titleInner}</a>`
+              : `<p class="e-permits-ekyc-alert__title" data-cell-tooltip="${esc(a.title)}">${titleInner}</p>`}
+            <span class="e-permits-ekyc-alert__time">${esc(ago(a.at))}</span>
+          </div>
+          <p class="e-permits-ekyc-alert__text" id="${textId}" data-cell-tooltip="${esc(a.text)}">${esc(a.text)}</p>
+          ${t ? `<span class="e-permits-ekyc-alert__action" aria-hidden="true">${esc(t.label)}&nbsp;→</span>` : ""}
         </div>
-        <button class="banner__close e-permits-ekyc-alert__close" type="button" aria-label="Închide alerta: ${esc(a.title)}" data-tooltip-label="Închide alerta" data-ekyc-dismiss="${esc(a.id)}">
-          <span class="d-inline-flex">${icon("cross-large")}</span>
+        <button class="btn btn-strict btn-sm btn-icon-only e-permits-ekyc-alert__close" type="button" aria-label="Închide alerta: ${esc(a.title)}" data-tooltip-label="Închide alerta" data-ekyc-dismiss="${esc(a.id)}">
+          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </li>`;
   };
@@ -1797,8 +1851,8 @@
     const rest = alerts.length - ALERTS_SHOWN;
     const body = alerts.length ? `
       <div class="e-permits-ekyc-alerts${ui.restack ? " is-restacked" : ""}">
-        <ul class="e-permits-ekyc-alerts__list" role="list">${alerts.slice(0, ALERTS_SHOWN).map(alertCard).join("")}</ul>
-        ${rest > 0 ? `<div class="e-permits-ekyc-alerts__peek" aria-hidden="true">${alerts.slice(ALERTS_SHOWN, ALERTS_SHOWN + 2).map((a) => `<span class="e-permits-ekyc-alerts__layer e-permits-ekyc-alerts__layer--${(ALERT_STYLE[a.severity] || ALERT_STYLE.Informativ)[0]}"></span>`).join("")}</div>` : ""}
+        <ul class="e-permits-ekyc-alerts__list" role="list">${alerts.slice(0, ALERTS_SHOWN).map((a) => alertCard(a)).join("")}</ul>
+        ${rest > 0 ? `<div class="e-permits-ekyc-alerts__peek" aria-hidden="true">${alerts.slice(ALERTS_SHOWN, ALERTS_SHOWN + 2).map(() => '<span class="e-permits-ekyc-alerts__layer"></span>').join("")}</div>` : ""}
       </div>
       ${rest > 0 ? `<div class="e-permits-ekyc-alerts__more"><button class="btn btn-text-primary btn-sm btn-rounded" type="button" aria-haspopup="dialog" data-ekyc-alerts-all>Arată toate (${alerts.length})</button></div>` : ""}`
       : api.renderEmptyState({ title: "Nicio alertă activă", text: "Platforma și furnizorii funcționează normal.", icon: "notification", compact: true });
@@ -1839,7 +1893,7 @@
   const renderAlertsModalBody = () => {
     const alerts = activeAlerts();
     return alerts.length
-      ? `<ul class="e-permits-ekyc-alerts__list e-permits-ekyc-alerts__list--all" role="list">${alerts.map(alertCard).join("")}</ul>`
+      ? `<ul class="e-permits-ekyc-alerts__list e-permits-ekyc-alerts__list--all" role="list">${alerts.map((a) => alertCard(a, "modal")).join("")}</ul>`
       : api.renderEmptyState({ title: "Nicio alertă activă", text: "Platforma și furnizorii funcționează normal.", icon: "notification", compact: true });
   };
   const openAlertsModal = () => {
@@ -1977,6 +2031,10 @@
       failed = true;
     }
     loadedAt = Date.now();
+    /* demo: every alert already dismissed (empty „Alerte active”) */
+    if (DEMO === "fara-alerte") db.alerts.forEach((a) => ui.dismissed.add(a.id));
+    /* demo: one alert per severity (Critică · Avertisment · Informativ) */
+    if (DEMO === "trei-severitati") db.alerts.filter((a) => !["al-1", "al-2", "al-4"].includes(a.id)).forEach((a) => ui.dismissed.add(a.id));
     /* demo: the first active session finished while the list was open */
     if (DEMO === "incheiata" && db.active.length) {
       const s = db.active[0];
@@ -2140,6 +2198,9 @@
         return;
       }
       if (event.target.closest("[data-ekyc-alerts-all]")) { openAlertsModal(); return; }
+      /* an alert card = a link to where it is acted on (the × above returned first) */
+      const alertGo = event.target.closest("[data-ekyc-alert-go]");
+      if (alertGo && !event.defaultPrevented && !(event.target.closest("a[href]") && (event.metaKey || event.ctrlKey || event.shiftKey))) { event.preventDefault(); goToAlert(alertGo.dataset.ekycAlertGo); return; }
       /* the bell = the active alerts on the Dashboard (US-UI-01) */
       if (event.target.closest(".e-permits-shell__icon-button--notification")) {
         document.querySelector('[data-nav-id="ek-dashboard"]')?.click();

@@ -24288,12 +24288,13 @@ a.btn:focus-visible {
   border-radius: var(--border-radius-16, 16px);
 }
 
-/* ---- Alerte active: one white card per alert, stacked like notifications (user, 2026-10-13) ----
-   card = the dashboard card (white, radius 16); severity is soft: a 1px outline in the severity's
-   secondary border token + a 3px left accent in the severity colour (inset shadows, no layout
-   shift); Informativ = the neutral outline only. Icon in the severity colour. Close = the library
-   banner close (20px icon, 32px hit area), on the title's first line on every card. With more than
-   two alerts, 1–2 narrower white „peek” layers with the same outline hang under the stack. */
+/* ---- Alerte active: one quiet white card per alert, stacked like notifications (redesign 2026-10-14) ----
+   card = white, 1px base border, radius 12, padding 12/16 — no severity outline or stripe; the severity
+   lives in a 32px tinted tile (radius 8, 20px icon; the critical one pulses once). Line 1 = title
+   (ellipsis) + time; line 2 = description (2 lines); an actionable card adds a brand action line and
+   is one big link (focus ring on the card). The × (library icon-only Strict, 32) takes the time's
+   place on hover / focus-within — always shown on touch screens. Peek layers are neutral.
+   `[data-demo-hover]` = the hover look for a demo state (a script cannot set :hover). */
 .e-permits-ekyc-alerts__list {
   display: flex;
   flex-direction: column;
@@ -24303,74 +24304,248 @@ a.btn:focus-visible {
   padding: 0;
 }
 
-[data-demo-flow="back-office"] .message.message--subtle.e-permits-ekyc-alert {
+.e-permits-ekyc-alert {
+  align-items: flex-start;
   background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-16, 16px);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
-  /* right 56: the text never runs under the close button (32 at 10 from the edge) */
-  padding: var(--spacing-16, 16px) var(--spacing-56, 56px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
   position: relative;
+  transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
   z-index: 1;
 }
 
-[data-demo-flow="back-office"] .message.message--subtle.e-permits-ekyc-alert--error {
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-secondary, #fecdca), inset var(--border-width-3, 3px) 0 0 0 var(--color-icon-danger-default, #d92d20);
+.e-permits-ekyc-alert:is(:hover, :focus-within, [data-demo-hover]) {
+  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
-[data-demo-flow="back-office"] .message.message--subtle.e-permits-ekyc-alert--warning {
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-warning-secondary, #fedf89), inset var(--border-width-3, 3px) 0 0 0 var(--color-icon-warning-default, #dc6803);
+.e-permits-ekyc-alert.is-actionable {
+  cursor: pointer;
 }
 
-.e-permits-ekyc-alert--error .banner__icon { color: var(--color-icon-danger-default, #d92d20); }
-.e-permits-ekyc-alert--warning .banner__icon { color: var(--color-icon-warning-default, #dc6803); }
-.e-permits-ekyc-alert--info .banner__icon { color: var(--color-icon-base-tertiary, #757575); }
-
-.e-permits-ekyc-alert__title {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
+/* the card is the link: its keyboard focus shows on the whole card */
+.e-permits-ekyc-alert.is-actionable:has(.e-permits-ekyc-alert__title:focus-visible) {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--focus-ring, var(--blue-sky-500, #3379db));
 }
 
-.e-permits-ekyc-alert__meta {
+/* severity tile */
+.e-permits-ekyc-alert__tile {
   align-items: center;
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  flex-wrap: wrap;
-  font-size: var(--font-size-fs-12, 12px);
-  gap: var(--spacing-8, 8px);
-  line-height: var(--line-height-lh-16, 16px);
-  margin: var(--spacing-4, 4px) 0 0;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-8, 8px);
+  color: var(--color-icon-base-tertiary, #757575);
+  display: inline-flex;
+  flex: none;
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  position: relative;
+  transition: background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  width: var(--spacing-32, 32px);
 }
 
-.e-permits-ekyc-alert .banner__close.e-permits-ekyc-alert__close {
-  align-self: flex-start;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-icon-base-default, #121212);
-  margin: 0;
-  padding: var(--spacing-6, 6px);
-  /* the library close is absolute: 10 + 6 inset = its 20px icon sits 16 from the top / right,
-     centred on the title's first line (16 + 20 / 2) on every card */
-  position: absolute;
-  right: calc(var(--spacing-16, 16px) - var(--spacing-6, 6px));
-  top: calc(var(--spacing-16, 16px) - var(--spacing-6, 6px));
+.e-permits-ekyc-alert--info:is(:hover, :focus-within, [data-demo-hover]) .e-permits-ekyc-alert__tile {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
 }
 
-.e-permits-ekyc-alert .banner__close.e-permits-ekyc-alert__close:hover {
-  background-color: var(--color-background-base-tertiary-hover, #d9d9d9);
+.e-permits-ekyc-alert--error .e-permits-ekyc-alert__tile {
+  background: var(--color-background-danger-secondary, #fee4e2);
+  color: var(--color-icon-danger-default, #d92d20);
 }
 
-.e-permits-ekyc-alert .banner__close.e-permits-ekyc-alert__close:focus-visible {
-  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-border-brand-default, #0058d2), 0 0 0 var(--border-width-6, 6px) var(--blue-sky-200, #bfd4f4);
-  outline: none;
+.e-permits-ekyc-alert--warning .e-permits-ekyc-alert__tile {
+  background: var(--color-background-warning-secondary, #fef0c7);
+  color: var(--color-icon-warning-default, #dc6803);
 }
 
-.e-permits-ekyc-alert__close .icon {
+.e-permits-ekyc-alert__tile .icon {
   height: var(--spacing-20, 20px);
   width: var(--spacing-20, 20px);
 }
 
+/* Critică: one soft ring on first render (never infinite; fill-mode backwards — project rule) */
+.e-permits-ekyc-alert__tile.is-pulsing::after {
+  animation: e-permits-ekyc-pulse 1400ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)) 300ms 1 backwards;
+  border-radius: inherit;
+  content: "";
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+@keyframes e-permits-ekyc-pulse {
+  from { box-shadow: 0 0 0 0 var(--color-icon-danger-default, #d92d20); opacity: 0.45; }
+  to { box-shadow: 0 0 0 var(--spacing-8, 8px) var(--color-icon-danger-default, #d92d20); opacity: 0; }
+}
+
+/* text: line 1 is centred on the 32px tile (padding 6 = (32 − 20) / 2) */
+.e-permits-ekyc-alert__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  padding-top: var(--spacing-6, 6px);
+}
+
+.e-permits-ekyc-alert__head {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-ekyc-alert__title {
+  color: var(--color-text-base-default, #121212);
+  display: block;
+  flex: 1 1 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.e-permits-ekyc-alert__title,
+a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
+  color: var(--color-text-base-default, #121212);
+  outline: none;
+  text-decoration: none;
+}
+
+/* hovering an actionable card underlines its title: the card reads as one link */
+.e-permits-ekyc-alert.is-actionable:is(:hover, [data-demo-hover]) a.e-permits-ekyc-alert__title {
+  text-decoration: underline;
+  text-decoration-thickness: var(--border-width-1, 1px);
+  text-underline-offset: var(--spacing-2, 2px);
+}
+
+.e-permits-ekyc-alert__time {
+  color: var(--color-text-base-tertiary, #757575);
+  flex: none;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  transition: opacity 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  white-space: nowrap;
+}
+
+.e-permits-ekyc-alert__text {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--color-text-base-tertiary, #757575);
+  display: -webkit-box;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow: hidden;
+}
+
+/* the action = brand text with the arrow inside the label („Deschide furnizorul →”, nbsp before →);
+   the whole line is aria-hidden — the link's hidden suffix already says it */
+.e-permits-ekyc-alert__action {
+  align-self: flex-start;
+  color: var(--color-text-brand-default, #0058d2);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  margin-top: var(--spacing-4, 4px);
+  white-space: nowrap;
+}
+
+/* × = library icon-only Strict (32, radius 6, 16 icon), centred on line 1 (12 + 16 = 6 + 10 + 12),
+   hidden until the card is hovered or holds focus; it then takes the time's place */
+.e-permits-ekyc-alert .btn.btn-sm.e-permits-ekyc-alert__close {
+  opacity: 0;
+  position: absolute;
+  right: var(--spacing-12, 12px);
+  top: var(--spacing-12, 12px);
+  transition: opacity 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1)), background-color 140ms var(--motion-easing-standard, cubic-bezier(0.4, 0, 0.2, 1));
+  z-index: 1;
+}
+
+.e-permits-ekyc-alert:is(:hover, :focus-within, [data-demo-hover]) .btn.btn-sm.e-permits-ekyc-alert__close {
+  opacity: 1;
+}
+
+.e-permits-ekyc-alert:is(:hover, :focus-within, [data-demo-hover]) .e-permits-ekyc-alert__time {
+  opacity: 0;
+}
+
+/* touch: no hover → the × stays, the time keeps its own place left of it */
+@media (hover: none) {
+  .e-permits-ekyc-alert .btn.btn-sm.e-permits-ekyc-alert__close {
+    opacity: 1;
+  }
+
+  .e-permits-ekyc-alert__head {
+    padding-right: calc(var(--spacing-32, 32px) + var(--spacing-4, 4px));
+  }
+
+  .e-permits-ekyc-alert:is(:hover, :focus-within, [data-demo-hover]) .e-permits-ekyc-alert__time {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-ekyc-alert,
+  .e-permits-ekyc-alert__tile,
+  .e-permits-ekyc-alert__time,
+  .e-permits-ekyc-alert .btn.btn-sm.e-permits-ekyc-alert__close {
+    transition: none;
+  }
+
+  .e-permits-ekyc-alert__tile.is-pulsing::after {
+    animation: none;
+  }
+}
+
+/* phones: one line cut the title to a few words and touch has no tooltip → the title takes the
+   whole line (up to 2 lines, room kept for the ×) and the time moves to the action line, right */
+@media (max-width: 760px) {
+  .e-permits-ekyc-alert__body {
+    column-gap: var(--spacing-8, 8px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .e-permits-ekyc-alert__head {
+    display: contents;
+  }
+
+  .e-permits-ekyc-alert__title {
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    grid-column: 1 / -1;
+    margin-right: calc(var(--spacing-32, 32px) + var(--spacing-4, 4px));
+    white-space: normal;
+  }
+
+  .e-permits-ekyc-alert__text {
+    grid-column: 1 / -1;
+  }
+
+  .e-permits-ekyc-alert__action {
+    grid-column: 1;
+  }
+
+  .e-permits-ekyc-alert__time,
+  .e-permits-ekyc-alert:is(:hover, :focus-within, [data-demo-hover]) .e-permits-ekyc-alert__time {
+    align-self: end;
+    grid-column: 2;
+    grid-row: 3;
+    line-height: var(--line-height-lh-20, 20px);
+    margin-top: var(--spacing-4, 4px);
+    opacity: 1;
+  }
+}
+
+/* peek layers: neutral, narrower, the card's radius */
 .e-permits-ekyc-alerts__peek {
   display: flex;
   flex-direction: column;
@@ -24391,9 +24566,6 @@ a.btn:focus-visible {
 .e-permits-ekyc-alerts__layer + .e-permits-ekyc-alerts__layer {
   margin: 0 var(--spacing-24, 24px);
 }
-
-.e-permits-ekyc-alerts__layer--error { border-color: var(--color-border-danger-secondary, #fecdca); }
-.e-permits-ekyc-alerts__layer--warning { border-color: var(--color-border-warning-secondary, #fedf89); }
 
 .e-permits-ekyc-alerts__more {
   display: flex;

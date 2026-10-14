@@ -235,7 +235,7 @@ but this doc previously described it wrongly, see the entry.
 | Meter (thin bar, one or stacked segments) | `span.e-permits-meter[role=meter\|img] (+ --lg 12px) > svg.e-permits-meter__svg > rect.__track + rect.__fill--{brand\|success\|danger\|warning\|neutral}` + `line.e-permits-meter__gap` (2px cuts between stacked segments); value right = `.e-permits-ekyc-progress` + `__count`; legend `ul.e-permits-meter-legend` (+ `--tray` = the grey legend strip inside a white chart card) + `__dot--{tone}` | `meter(segments, { max, label, size })`, `legend()` in `js/ekyc.js` | app |
 | KPI cards | `ul.e-permits-kpi-grid > li.e-permits-kpi` > `__label` · `__value` (+ `--warning\|--danger`) · `__meta` | `kpi()` in `js/ekyc.js` | app |
 | Chart card + column chart | `.e-permits-chart` (white, 1px border, radius 16) > `svg.e-permits-chart__plot` (`rect.e-permits-chart__bar--{tone}` stacked by outcome, rounded tops rx 4) · `__axis` · `.e-permits-meter-legend--tray` | `renderTrend()` / `chartBars()` / `renderDecisions()` in `js/ekyc.js` | app |
-| Alert stack (notification cards) | `ul.e-permits-ekyc-alerts__list > li.message.message--subtle.e-permits-ekyc-alert.e-permits-ekyc-alert--{error\|warning\|info}` (white card, soft severity outline + 3px left accent; icon · `__title` · `banner__text` · `__meta` tag + time · `banner__close.e-permits-ekyc-alert__close`) + `.e-permits-ekyc-alerts__peek > __layer--{tone}` + „Arată toate (N)” → modal | `renderAlerts()` / `alertCard()` / `openAlertsModal()` | app |
+| Alert stack (notification cards) | `ul.e-permits-ekyc-alerts__list > li.e-permits-ekyc-alert.e-permits-ekyc-alert--{error\|warning\|info}[.is-actionable]` (white card, 1px base border, radius 16 (same as the grey dashboard cards — user rule), padding 12/16; `__tile` 32px tinted severity tile (+ `.is-pulsing` once on Critică) · `__body` > `__head` (`a.__title` link or `p.__title` + `__time`) · `__text` (2-line clamp) · `__action` „Deschide furnizorul →” · `btn btn-strict btn-sm btn-icon-only __close` shown on hover / focus-within) + `.e-permits-ekyc-alerts__peek > __layer` (neutral) + „Arată toate (N)” → modal; every alert leads to its screen (`ALERT_TARGETS`, role-gated by the nav) | `renderAlerts()` / `alertCard()` / `goToAlert()` / `openAlertsModal()` | app |
 | Evidence tiles + viewer | `ul.e-permits-ekyc-evidence > li.__item` > `button.__thumb(--doc)` (img, `__play` badge) · `__title` · `__meta`; viewer `.e-permits-ekyc-viewer` (`__stage` + `img[data-zoom][data-rot]` + `__mark` watermark · `__tools` toolbar · `__note`); locked = `.e-permits-ekyc-locked` (lock note · `__list` · `__actions`) | `renderEvidence()` / `viewerBody()` in `js/ekyc.js` | app |
 | Source match row | info card row value `.e-permits-ekyc-match` (value + „în document: …” meta + success/danger icon tag Concordă / Diferă); title with source tag `.e-permits-ekyc-source-title` | `renderExternal()` / `matchTag()` | app |
 | Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
@@ -1704,6 +1704,14 @@ native `title`:
   separated>"` + **`data-cell-tooltip-always`**, which shows it even though nothing is
   clipped. It also has `tabindex="0"` and an `aria-label` "Toate rolurile: …", so a
   keyboard reaches it. Every future "+N" uses the same pattern.
+- **Measured fit (2026-10-14)**: `renderUserRoles(values, { label })` renders EVERY value; `fitTagRows()`
+  (shell, after each table render, on resize and via a ResizeObserver on the table for tables drawn while
+  hidden) keeps as many WHOLE tags as fit the cell on one line and moves the rest into „+N” (at least one
+  tag stays, ellipsised if even it does not fit). It measures with `.is-measuring` (flex-shrink 0) —
+  shrunk tags under-report `scrollWidth`. Before the first fit the old rule shows (2 tags + „+N”). `label`
+  = the aria-label noun („Toate rolurile” default, „Toate cazurile” in eKYC Clienți). Used by BO
+  Utilizatori › Roluri, eKYC Utilizatori › Roluri, eKYC Clienți › Cazuri de utilizare (the local eKYC
+  `chips()` copy that wrapped into 2 lines is gone). Demo: ek-22, ek-22f (tooltip open), ek-20.
 
 **Three deliberate behaviours, each fixing a flaw in what it replaces:**
 
@@ -5537,17 +5545,42 @@ list ×6, historical profile ×10.
 - **Toolbar** = period segmented control left at the selects' height (40 desktop: track inset 4, 32px
   pills; 48 mobile: full width, 40px pills) · filters right (`.e-permits-ekyc-dash__selects`, gap
   8/12) · window caption under. Measured: control 40 = select 40 (desktop), 48 = 48 (mobile).
-- **Alerte active** = notification stack: one WHITE card per alert (user: full red / yellow fills were
-  „too much”) — radius 16, padding 16 / 56 right, severity = inset 1px outline in
-  `--color-border-{danger|warning}-secondary` + 3px left accent in the severity icon colour
-  (Informativ: neutral outline only, grey icon); title 14/20 semibold, meta = severity tag + time.
-  Close = library `banner__close` (absolute, 10 from top / right → 20px icon 16 in, centred on the
-  title's first line on every card, 32px hit, radius 6, hover tertiary-hover, brand focus ring;
-  measured: title-line centre = close centre = icon centre = 26 for 1- and 2-line titles). Critical
-  first. First 2 cards shown, the rest = 1–2 narrower white peek layers (8px, inset 12 / 24, same
-  outline) + „Arată toate (N)” (`btn-text-primary
-  btn-sm btn-rounded`) → the page modal with all cards (scrolls, each dismissable). Dismiss
-  re-stacks with `e-permits-ekyc-restack` (220 ms, `backwards`). Empty = compact empty state.
+- **Alerte active** = notification stack — **redesigned 2026-10-14** („cooler and simpler” than Figma
+  10372:692; supersedes the 2026-10-13 outline + left-accent card):
+  - *Card* `li.e-permits-ekyc-alert--{error|warning|info}`: white `--color-background-base-default`, 1px
+    `--color-border-base-default`, radius 12 (deliberately not the page's 16 — approved brief), padding 12/16,
+    gap 12, no severity outline / stripe. Hover + focus-within = `--color-background-base-tertiary`, 140 ms.
+  - *Severity tile* `__tile` 32×32, radius 8, 20px filled icon: Critică danger-secondary bg + danger icon ·
+    Avertisment warning-secondary + warning icon · Informativ base-tertiary + tertiary icon (tertiary-hover
+    while the card is hovered, so it never melts in). Critică pulses ONCE on first render (`.is-pulsing::after`,
+    1.4 s, `backwards`, tracked in `ui.pulsed` so re-renders do not replay it; none under reduced motion).
+  - *Text*: `__body` padding-top 6 so line 1 is centred on the tile; line 1 = `__title` 14/20 semibold one
+    line + ellipsis + `data-cell-tooltip` (full title) and `__time` 12/16 tertiary right, no wrap; line 2 =
+    `__text` 14/20 tertiary, 2-line clamp + `data-cell-tooltip`. No severity tag — the severity is the
+    title's visually hidden prefix („Critică: …”).
+  - *Action*: an alert with a target is one big link — `a.__title` (href = the target hash) + a card click
+    handler (`[data-ekyc-alert-go]`, ctrl/⌘ click keeps the browser default) + `__action` line 14/20 medium
+    brand with the arrow INSIDE the label (`Deschide furnizorul&nbsp;→`, user: no icon, chevrons / svg
+    arrows looked too big), aria-hidden (the link carries „ — Deschide furnizorul” visually hidden). Focus
+    ring on the card (`:has(__title:focus-visible)`, 2 white + 3 focus-ring); title underlines while an
+    actionable card is hovered.
+  - *×* = library `btn btn-strict btn-sm btn-icon-only` (16 icon), absolute 12/12 → centred on line 1
+    (measured: title / tile / × centres = 29 from the card top); opacity 0 until hover / focus-within, then it
+    takes the time's place (time fades out); `@media (hover: none)` = always visible and the head keeps 36px
+    for it. Dismiss never navigates (its branch returns first).
+  - *Phones (≤760)*: `__body` becomes a 2-col grid (`__head` `display: contents`): the title takes the whole
+    line (2-line clamp, 36px kept for the ×) and the time moves to the action line, right.
+  - *Targets* (`ALERT_TARGETS` by `alert.kind` + `alert.ref` from the seed): provider → Furnizori, row flashed
+    + focus on its „Testează conexiunea” · rejection → Sesiuni istorice with filters Client + Decizie Respins +
+    Perioadă (shell `api.setRegistryFilters(kind, applied)`) · use-case → `#ek-caz/<code>/pasi` · sdk → Versiuni
+    SDK tab „Nesuportate” · review-overdue → Coada de revizie tab „În lucru” + row (supervisor) / Sesiunile mele
+    (operator) · root-ca → `#ek-certificat/<id>/general`. **Permission = the role's menu has the target nav
+    item**; otherwise the card is plain (no link, no action line). Navigating closes the „Arată toate” modal
+    and focuses the landing (row action, or the page title).
+  - First 2 cards shown, the rest = 1–2 neutral peek layers (8px, inset 12 / 24, radius 0 0 12 12) + „Arată
+    toate (N)” (`btn-text-primary btn-sm btn-rounded`) → the page modal with all cards (same renderer,
+    ids prefixed `modal`). Dismiss re-stacks with `e-permits-ekyc-restack` (220 ms, `backwards`). Empty =
+    compact `GEAPEmptyState`. Demo hook `[data-demo-hover]` = the hover look for a demo state.
 - **Historical session: the decision hangs under „Plan de verificare”** — no separate Decizie section;
   `trajectory()` renders the callout with the decision tone (Acceptat success · Respins danger ·
   Revizuire manuală warning · Fără decizie / Eroare / Abandonată neutral), title „Acceptat · scor
@@ -5599,7 +5632,7 @@ Figma reference (layout only): „Supervizor/Dosarele mele” 6559:102399 = a re
 - **Rapoarte**: same toolbar (no 1 h, default 30 zile) + „Exportă ▾” (CSV tabelar · JSON structurat,
   no personal data, logged) · KPI grid · Volum sesiuni (finished only) · Structura deciziilor · tables
   Pe client / Pe caz de utilizare / Pe nivel de asigurare (success-rate meter) · privacy note.
-- **Demo states** `ek-03f…03h` (alerts modal, after dismiss, empty), `ek-08…ek-16b` (queue, review per
+- **Demo states** `ek-03f…03h` (alerts modal, after dismiss, empty), `ek-03i…03s` (alert hover, one per severity, card focus, operator without targets, landing per alert kind), `ek-08…ek-16b` (queue, review per
   tab, viewer, decisions + validation, multi-operator, supervisor allocation, auditor search / detail /
   access, reports + export, access log, empty / error).
 
@@ -5629,7 +5662,7 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
   activate / deactivate / delete / revoke = `askConfirm` with the consequence (destructive red); result /
   impact dialogs = the page modal `#case-action-modal` (`openModal`).
 - **Utilizatori** (`#ek-users`, `#ek-utilizator/<id>/<tab>`): no add / edit (MPass); cells = BO user identity
-  (avatar + name over role / „Contul tău”), roles as wrapping chips max 2 + „+N”, status Activ success ·
+  (avatar + name over role / „Contul tău”), roles = one line of tags + „+N” (`renderUserRoles`, measured fit), status Activ success ·
   Suspendat warning · Blocat danger, failed logins > 0 = danger tag; ⋮ Suspendă / Reactivează / Deblochează.
   Profile: actions Revocă toate sesiunile · Suspendă contul (own account: suspend aria-disabled with reason,
   „Revocă celelalte sesiuni” keeps the current one); tabs Date generale (MPass provenance notice, KPI grid
@@ -5638,7 +5671,7 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
   `data-tooltip-reason`; revoked greyed `.e-permits-ekcfg-muted`; „Revocă” only on active, not on your own
   current session) · Jurnal.
 - **Clienți** (`#ek-clients`, `#ek-client/<id>/configuratie|jurnal`, `#ek-client-nou`, `#ek-client/<id>/editeaza`):
-  Client ID copy code, use cases chips max 2 + „+N”, facets Organizație / Caz / Scoring; detail = info cards
+  Client ID copy code, use cases = one line of tags + „+N” (`renderUserRoles`, measured fit), facets Organizație / Caz / Scoring; detail = info cards
   Date generale · Integrare · Restricții · Verificare · Audit; page form 4 sections; validation: OIDC redirect
   (HTTPS or app scheme), scope „openid” required, IPv4 / CIDR, UUID, 1–10 000 sessions, duplicate Client ID
   on the field; Organizație locked on edit.

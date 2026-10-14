@@ -547,3 +547,31 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   a product `emptyHtml` returning null falls through to BO wording; give products their own nothing-yet. No
   sub-agent tool → ran code-audit / hover-audit myself; leftovers were standing FPs (library search × overlap,
   steps-strip check icon, fo-select chevron) and a pre-existing „Anonimizează” checkbox without hover (svc-10l1).
+- 2026-10-14 · eKYC „Alerte active” redesign (Figma 10372:692 „cooler and simpler”): tile + one-line title / time +
+  2-line text, no severity tag (hidden „Critică: ” prefix), × = library icon-only Strict revealed on hover /
+  focus-within and taking the time's place (`@media (hover: none)` keeps both). User corrections mid-job: the action
+  chevron, then the 16px svg arrow, were „too big” → the arrow is a CHARACTER inside the label (`Deschide
+  furnizorul&nbsp;→`), no icon. „Every alert must take you somewhere” → `ALERT_TARGETS` by seed `kind`/`ref`; the
+  permission test is simply „does the role's nav have the target item” (`[data-nav-item][data-nav-id]`), navigation =
+  `navItem.click()` (runs the shell's beforeNavigate) then a product route / tab / row flash. Filters on landing
+  needed ONE shell hook (`api.setRegistryFilters`). Card-as-link = real `<a>` on the title + a card click handler
+  (not a stretched `::after`, which would steal the text tooltips from the description); focus ring via `:has()`.
+- 2026-10-14 · Seed text must match what the landing shows: the old alerts named a use case (MERCHANT_PILOT) and SDK
+  versions that do not exist, and a „38% in the last hour” that the history seed contradicts (0 rejections in 24 h)
+  → reworded from the data; regenerated and proved every other top-level key byte-identical.
+- 2026-10-14 · Demo traps again: a script cannot set `:hover` → a `[data-demo-hover]` hook in the same selectors;
+  `el.focus()` in headless = no focus events (tooltip demo needs a dispatched `focusin`) and no `:focus-visible`
+  (prove the ring with real CDP Tab presses); the clip script's `scrollIntoView` hides scroll-sensitive tooltips —
+  use a viewport shot. Hover-audit flagged the title link „no-hover” (only the CARD changed) → underline the title
+  while an actionable card is hovered. Code-audit „controls-overlap” on phones = padding-right kept for the × made
+  the link box run under it → margin instead.
+- 2026-10-14 · Phones: a one-line title next to time + × kept 3 words („Furnizor indisponibil: V…”) and touch has no
+  tooltip → at ≤760 `__head` `display: contents` + body grid: title full width (2 lines), time on the action line.
+- 2026-10-14 · „+N” tag cells: the shared `renderUserRoles` always showed 2 shrunk tags (both ellipsised) and eKYC had a
+  wrapping copy (`chips()` with `passport__tag-list` → 2-line cells). Now ONE helper renders every value and
+  `fitTagRows()` keeps the whole tags that fit + „+N”. Traps: shrunk flex items under-report `scrollWidth` (measure
+  with `flex-shrink: 0` for a moment); a table drawn while hidden measures 0 → ResizeObserver on the table; author
+  `display` beats the `[hidden]` attribute → scope `> [hidden] { display: none }`. Checked the permits BO Utilizatori
+  list too (shared helper). No sub-agent tool → ran code-audit + hover-audit myself; leftovers were standing FPs
+  (`.u-visually-hidden`, section heading 11/11, th sort buttons, copy-code) and ek-03e (focus on the next × = hover
+  look by design).

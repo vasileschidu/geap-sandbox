@@ -1758,6 +1758,20 @@
     "ek-03f": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); }),
     "ek-03g": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click("#case-action-modal [data-ekyc-dismiss]"); }),
     "ek-03h": ek("#ek-dashboard", null, { params: { ek: "fara-alerte" } }),
+    /* Alerte active redesign (2026-10-14): hover look (× in the time's place), keyboard focus on
+       the card-link, one card per severity, a role without the target screens, and the landing of
+       each alert kind after a click on its card */
+    "ek-03i": ek("#ek-dashboard", async (h) => { (await h.find('#ekyc-alerts [data-ekyc-alert="al-1"]')).setAttribute("data-demo-hover", ""); await h.wait(300); }),
+    "ek-03j": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); }, { params: { ek: "trei-severitati" } }),
+    "ek-03k": ek("#ek-dashboard", async (h) => { await h.focus('#ekyc-alerts [data-ekyc-alert="al-1"] .e-permits-ekyc-alert__title'); }),
+    "ek-03l": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); }, { as: "ekyc-operator" }),
+    "ek-03m": ek("#ek-dashboard", async (h) => { await h.click('#ekyc-alerts [data-ekyc-alert-go="al-1"] .e-permits-ekyc-alert__text'); await h.find('tr[data-workplace-row="prv-vonage"]'); }),
+    "ek-03n": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-3"] .e-permits-ekyc-alert__title'); await h.find('[data-registry-kind="ekyc-history"] tr[data-workplace-row]'); }),
+    "ek-03o": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-4"] .e-permits-ekyc-alert__title'); await h.find('[data-ekcfg-tab="pasi"][aria-selected="true"]'); }),
+    "ek-03p": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-5"] .e-permits-ekyc-alert__title'); await h.find('[data-registry-kind="ekyc-sdk"] tr[data-workplace-row]'); }),
+    "ek-03q": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-6"] .e-permits-ekyc-alert__title'); await h.find('tr[data-workplace-row="KYC-47073"]'); }, { as: "ekyc-supervisor" }),
+    "ek-03r": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-6"] .e-permits-ekyc-alert__title'); await h.find('[data-registry-kind="ekyc-review"] tr[data-workplace-row], [data-registry-kind="ekyc-review"] .e-permits-empty'); }, { as: "ekyc-operator" }),
+    "ek-03s": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-7"] .e-permits-ekyc-alert__title'); await h.find('[data-ekcfg-tab="general"][aria-selected="true"]'); }),
     "ek-04": ekList("#ek-active"),
     "ek-04a": ekList("#ek-active", async (h) => { await h.click('[data-workplace-tab="În revizie manuală"]'); }),
     "ek-04b": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
@@ -1896,6 +1910,8 @@
     "ek-22c": ek("#ek-clients", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-22d": ek("#ek-clients", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-22e": ek("#ek-clients", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
+    /* multi-value tag cell: one line, „+N” with every value in the tooltip (focus shows it at once) */
+    "ek-22f": ekList("#ek-clients", async (h) => { const el = await h.focus('tr[data-workplace-row="maib-app"] .e-permits-workplace__user-role-more:not([hidden])'); el.dispatchEvent(new FocusEvent("focusin", { bubbles: true })); await h.wait(300); }),
     "ek-23": ekDet("#ek-client/maib-app/configuratie"),
     "ek-23a": ekDet("#ek-client/maib-app/jurnal"),
     "ek-23b": ekDet("#ek-client/maib-app/configuratie", async (h) => { await h.click('[data-ekcfg="client-toggle"]'); }),

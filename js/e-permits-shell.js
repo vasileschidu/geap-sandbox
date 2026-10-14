@@ -5587,17 +5587,52 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
 
-  const renderUserRoles = (roles = []) => {
-    const visibleRoles = roles.slice(0, 2);
-    const remaining = Math.max(0, roles.length - visibleRoles.length);
+  /* one line of tags + „+N” (tooltip and aria-label with every value) — the user roles cell, reused
+     by any multi-value tag cell (eKYC Clienți › Cazuri de utilizare: label „Toate cazurile”) */
+  const renderUserRoles = (roles = [], { label = "Toate rolurile" } = {}) => {
+    /* every value is rendered; until fitTagRows() measures the cell, the first 2 show (the old rule) */
+    const remaining = Math.max(0, roles.length - 2);
 
     return `
-      <div class="e-permits-workplace__user-roles">
-        ${visibleRoles.map((role) => renderTag(role, "neutral")).join("")}
-        ${remaining ? `<span class="e-permits-workplace__user-role-more" tabindex="0" data-cell-tooltip="${escapeHtml(roles.join(", "))}" data-cell-tooltip-always aria-label="${escapeHtml(`Toate rolurile: ${roles.join(", ")}`)}">+${remaining}</span>` : ""}
+      <div class="e-permits-workplace__user-roles" data-tag-fit>
+        ${roles.map((role, i) => (i < 2 ? renderTag(role, "neutral") : renderTag(role, "neutral").replace(/^(\s*<\w+)/, "$1 hidden"))).join("")}
+        ${roles.length > 1 ? `<span class="e-permits-workplace__user-role-more" tabindex="0" data-cell-tooltip="${escapeHtml(roles.join(", "))}" data-cell-tooltip-always aria-label="${escapeHtml(`${label}: ${roles.join(", ")}`)}"${remaining ? "" : " hidden"}>+${remaining}</span>` : ""}
       </div>
     `;
   };
+
+  /* one line of tags: keep as many WHOLE tags as fit the cell, the rest go into „+N” (at least one
+     tag stays, ellipsised when even it does not fit). Runs after every table render and on resize. */
+  const fitTagRows = (root = document) => {
+    root.querySelectorAll("[data-tag-fit]").forEach((box) => {
+      const avail = box.clientWidth;
+      if (!avail) return;
+      const more = box.querySelector(".e-permits-workplace__user-role-more");
+      const tags = [...box.children].filter((el) => el !== more);
+      if (!more || tags.length < 2) return;
+      const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
+      tags.forEach((t) => { t.hidden = false; });
+      more.hidden = false;
+      more.textContent = `+${tags.length - 1}`;
+      box.classList.add("is-measuring");
+      const widths = tags.map((t) => t.getBoundingClientRect().width);
+      const badge = more.getBoundingClientRect().width;
+      box.classList.remove("is-measuring");
+      let keep = 1;
+      for (let k = tags.length; k >= 1; k -= 1) {
+        const used = widths.slice(0, k).reduce((sum, w) => sum + w, 0) + gap * (k - 1) + (k < tags.length ? gap + badge : 0);
+        if (used <= avail + 0.5) { keep = k; break; }
+      }
+      tags.forEach((t, i) => { t.hidden = i >= keep; });
+      more.hidden = keep === tags.length;
+      more.textContent = `+${tags.length - keep}`;
+    });
+  };
+  let fitTagFrame = 0;
+  window.addEventListener("resize", () => { cancelAnimationFrame(fitTagFrame); fitTagFrame = requestAnimationFrame(() => fitTagRows()); });
+  document.fonts?.ready?.then(() => fitTagRows());
+  /* a table drawn while its panel was hidden (width 0) fits once it gets a size */
+  if (workplaceTable && "ResizeObserver" in window) new ResizeObserver(() => fitTagRows(workplaceTable)).observe(workplaceTable);
 
   const renderUserCell = (row, key) => {
     switch (key) {
@@ -6324,6 +6359,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const last = Math.min(startIndex + visibleRows.length, filteredRows.length);
 
     renderTableRows(visibleRows, view.columns, view, columnWidths);
+    fitTagRows(workplaceTable);
     syncPinnedScrollPadding();
     renderPagination(filteredRows.length, first, last);
     syncSelectAll(visibleRows);
@@ -19463,6 +19499,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
+      /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */
+      setRegistryFilters: (kind, applied) => { getFilterState(kind).applied = { ...applied }; saveFilterState(kind); },
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
       els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody, dosarProfilBackShell }
     });
