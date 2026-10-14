@@ -1,4 +1,5 @@
 // eKYC library pass round 2 (2026-10-14) · after any width / column change: fit-tables v2 (stored __fit-ekyc) + Resizer reset + row equalise + unclip (stored __unclip-ekyc). Run on the current page: new AF(code)()
+// NOTE (round 3): the stored Figma script nodes were deleted (QA o06). Paste fit-tables-v2.js and unclip.js inline instead of reading them by node id.
 const AF = Object.getPrototypeOf(async function () {}).constructor;
 const fit = (await figma.getNodeByIdAsync("10508:269")).characters, unclip = (await figma.getNodeByIdAsync("10513:242")).characters;
 const inI = (n) => { for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true; return false; };

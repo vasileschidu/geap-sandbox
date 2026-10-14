@@ -480,3 +480,17 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     neutral icon token (good for the Read Only lock — the Read Only text-input's only icon is a nested 20/checkmark-small,
     not the trailing slot; swap it directly).
   - numbered-badge (68a3732b) Large Neutral for heading counters; library modal content inset = header title inset (32).
+- 2026-10-14 · QA round 3 (regressions of the width pass) — root causes and the rules that prevent them:
+  - Table-cell Resizers regrew because my „unclip” pass walked INTO instances (Resizer = clipping frame with a 16 px
+    child) and set them HUG. Every page-wide script that changes sizing MUST skip nodes inside instances (`inI`).
+    Order for every table operation: column changes → rows (natural height, min 50) → Cell Container FILL → Resizers
+    FIXED 0 LAST → read-only sweep (resizers, squeezed containers, text outside cell, misaligned rows, overflow).
+  - Before any instance-wide reset/variant change: filter by `mainComponent.parent.name` AND list label → glyph against
+    the code first (the 778-button pass also hit filter-chip, whose leading icon fell back to map-pin).
+  - Widening a screen is not enough: on 1920 list screens the wide FIXED containers (and single-column GRID wrappers)
+    must FILL so toolbar / tabs / table / pagination share one right edge; extra table width goes to the
+    description-like column. Measure right edges numerically after the pass.
+  - Flow anchors are absolute: re-place them (absoluteBoundingBox of the button, error 0) after every resize/restack.
+  - Short cell values (≤ 34 chars: dates, „hh:mm · acum …”, numbers like „+0,0 / 3”, codes) get their measured one-line
+    width; take it from columns with slack (long-text columns keep ≥ 200 px).
+  - Keep scripts in the repo only — no script-source text nodes in the Figma file.

@@ -1,10 +1,11 @@
-// eKYC library pass (2026-10-14) · screens: frames whose content outgrew a fixed height → HUG; screen grows; overlays follow.
-// Stored copy: text node „__unclip-ekyc” in „Componente · eKYC BO (local)” (eKYC file SqMGpRKEppJLcvn7HMzOPR).
-// Run: new AF((none), code)(…) on the current page.
+// eKYC library pass round 3 (2026-10-14) · screens: frames whose content outgrew a fixed height → HUG. Skips layers INSIDE instances (round-3 root cause: it HUG-ed table-cell Resizers).
+// Run on the current page: new AF(code)()
+const inI = (n) => { for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true; return false; };
+
 const list = [];
 for (const scr of figma.currentPage.findAll(n => n.type === "FRAME" && /^Ecran · /.test(n.name))) {
   let changed = false;
-  const cands = scr.findAll(n => n.type === "FRAME" && n.clipsContent && n.layoutMode && n.layoutMode !== "NONE" && n.layoutMode !== "GRID" && n.layoutSizingVertical !== "HUG" && n.layoutPositioning !== "ABSOLUTE" && !/scroll-content|Overlay|Drawer|Modal/.test(n.name));
+  const cands = scr.findAll(n => n.type === "FRAME" && !inI(n) && n.clipsContent && n.layoutMode && n.layoutMode !== "NONE" && n.layoutMode !== "GRID" && n.layoutSizingVertical !== "HUG" && n.layoutPositioning !== "ABSOLUTE" && !/scroll-content|Overlay|Drawer|Modal/.test(n.name));
   for (const f of cands.reverse()) {
     let inOv = false; for (let p = f; p && p !== scr; p = p.parent) if (/Overlay/.test(p.name)) { inOv = true; break; } if (inOv) continue;
     const kids = f.children.filter(k => k.visible && k.layoutPositioning !== "ABSOLUTE"); if (!kids.length) continue;
