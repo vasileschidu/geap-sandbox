@@ -91,8 +91,12 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   the flow shows them. Arrows from the clicked element.
 - Figma = source of truth for design; prototype code = source for behaviour; they must match.
 - No IMAGE fills for icons (captured `<img>` SVGs) — library icon instances only; sweep `iconImageFills` = 0 (2026-10-14).
-- Documents = one pattern: BO `Document · rând` 11362:7113, FO / Cabinet `Document · card` 11364:7441, modal content
-  11366:6892 (GEAP local); lone view action = „👁 Detalii”, Configurează = settings icon, Editează = pen.
+- Documents = one pattern: BO `Document · row` (was „Document · rând”) 11362:7113, FO / Cabinet `Document · card` 11364:7441,
+  modal content `Modal content / Document · details` 11366:6892 (GEAP local); lone view action = „👁 Detalii”, Configurează =
+  settings icon, Editează = pen.
+- All Figma NAMES are English (user, 2026-10-15): components, sets, variant properties / values, component properties,
+  sections, frames, layers, pages. Visible text stays Romanian. Glossary: tools/figma/naming-glossary.json. Names quoted in
+  this playbook before 2026-10-15 are the old Romanian ones — look them up in tools/figma/naming-map.json.
 
 ## Plugin API gotchas
 - `await figma.setCurrentPageAsync(page)` before `findAll` on another page; once per call.
@@ -846,3 +850,66 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - `Document · rând` has no mobile usage in GEAP (141 instances, all ≥ 500 wide); Post-procese 10c / 10d have NO mobile screens
     (desktop only) — say so instead of inventing them.
   - Agent tool not available again → figma-audit.js + sweep-lite run by hand; remaining findings: off-scale 44 / 18 (declared).
+
+- 2026-10-15 · English names in 4 files (GEAP 16,820 renames + 205 variant names + 85 component properties; eKYC 10,800 + 29 + 9;
+  FOD 1,154 + 12 + 10; EVO Cabinet 269 + 6 + 10). Tools: tools/figma/rename-to-english.js (dry / apply, PAGE_IDS / ROOT_IDS),
+  rename-to-english-store.mjs, naming-glossary.json (2,496 segments + rules), naming-map.json (old → new per file). What worked:
+  - Export every distinct local name read-only (skip instance internals, library-default instance names, auto-named text,
+    BEM layer names) in ≤ 400-name chunks returned as {tag, chunk}; pull them from the session transcript with python, never
+    retype. Translate SEGMENTS (split on " · ", " — ", " → ", " / ", "(", „”, "=" …), not whole names: 10,400 names → ~2,500
+    glossary entries; rules for dates / "Head 12" / "C07 head" / "C02·head".
+  - English detection: /usr/share/dict/words has no plurals / inflections → stem -s/-es/-ed/-ing, but stemming makes Romanian
+    look English („respins” → respin). Review the ambiguous list by hand (Date, solicitant, Termen, Extras, Automat, Formular).
+  - Port the translator to JS and diff it against the Python map in node BEFORE touching Figma (0 differences on 10,402 names).
+  - use_figma has no fetch and code ≤ 50 KB → store the per-file glossary subset in root shared plugin data (≤ 35 KB per call),
+    verify with a djb2 hash of the stored string, run small dry / apply calls that read it, clear the keys at the end.
+  - editComponentProperty works for VARIANT keys too (Tip → Type renames the key on every variant); values go through the
+    variant names; TEXT / BOOLEAN / INSTANCE_SWAP keep their #id so overrides survive. Verified on 121 instances: same variant
+    component id, same text overrides. Check value collisions first (Selectat / Selectate → Selected in one property).
+  - Instances INHERIT shared plugin data from their main component: an „old” snapshot on a variant showed up on 11 instances and
+    would have blocked their own snapshot. Mains use a separate key („oldMain”); an instance's „old” counts only when it differs
+    from its main's. Default-named instances follow a renamed main by themselves (fewer renames than the dry run — expected).
+  - Apply calls with many component-property edits dropped the transport (atomic rollback, nothing written): run the components
+    page alone first, then the other pages in groups; dry runs are cheap (8–30 s per file). After a drop, re-run the dry run /
+    a snapshot count before retrying.
+  - Text layers named after a component property (kind „pT”: Număr, Fișier, Titlu, De…) were missed by a text map built from
+    kind „T” only → 189 follow-up renames. Residual scans by diacritics alone miss Romanian without diacritics (Titlu, Termen).
+  - Names are API: builders look layers up by name. Updated board-ekyc.js, assemble-guest-block.js, assemble-fo-block.js
+    („Link · prototip” → „Link · prototype”, „Titlu notă” → „Note title”, „Text notă” → „Note text”, „Titlu pagină” → „Page title”,
+    „Ecrane · desktop + mobil” → „Screens · desktop + mobile”) and ui-qa/figma-audit.js (code-token context „Combinarea” →
+    also „Combining”). STILL on old names (update before re-running them): documents/card-mobile.js + row-separators.js
+    („Rânduri”, „Rând nou · …”, „Parte · ”), swap-ekyc.js + ekyc-alerts/swap-alerts.js („Modal conținut / ”, „Antet · eKYC”),
+    swap-cabinet*.js („Tip=…”, „Marcaj”, „Cabinet / Antet”, „Componente · EVO Cabinet (local)”), ekyc-library-pass/emptystates.js
+    („Stare goală · ”, „Tip=”, „Iconiță”). New layers must get English names from now on.
+  - Kept on purpose: people / companies / places (Chișinău, Bălți, Maria Țurcan), quoted register word „dumneavoastră”, text
+    layers that copy their content, BEM layer names captured from the prototype, library names.
+  - No agent tool in this session again → ran figma-audit.js on 10132:764 myself (1 pre-existing unbound fill) and compared the
+    before / after screenshot: byte-identical PNG (same SHA-1) — the cheapest proof that only names changed.
+
+
+- 2026-10-15 · User: „a lot of these containers have 1 px padding — remove and check everywhere” + „use tokens for radius, padding,
+  gaps — change all to tokens”. Root cause + fixes (scripts: tools/figma/border-padding.js, bind-spacing-tokens.js,
+  bind-spacing-tokens.dry.js; figma-audit.js got `border-padding` + `spacing-unbound` rules and no longer treats 1 as on-scale):
+  - html→Figma captures turn a CSS border into an INSIDE stroke with `strokesIncludedInLayout` (= border-box) AND add the border
+    width to the padding → content sits 1 px too far in (stack 1/1/1/1, items 13 vs 12, group label 9 vs 8). Fix per side:
+    p − strokeWeight when p is off-scale and p − w is on it (A). Older hand-built blocks did the same on purpose: padding bound to
+    `border-width/border-1` + strokesIncludedInLayout false (C → inc true + p − w, visually identical); after the 4 px OUTSIDE
+    screen frame was added those screens kept the 1 px padding → a 1 px ring inside every screen (D → 0). A 1 px padding with an
+    INVISIBLE stroke is a transparent CSS border (fo-selected-role__change) — real geometry, keep it. Odd paddings with no stroke
+    (section-title 11/12 at 48 px, UA button 1/6) are real CSS — check the CSS before „fixing” any odd value.
+  - Totals: GEAP 2.0 428 frames on 9 pages (Servicii 267, Tarife 58, Componente locale 36, Post-procese 34, Shell 11, Filtrare 10,
+    Incidente 6, Workplace 5, Dosare 1); FOD / eKYC / EVO Cabinet had 0 (their builders already pad = CSS padding). Block heights
+    did not move (screens are fixed / minHeight) — only inner stacks shrank 1–7 px.
+  - Token binding: Foundations › 3. Sizes has spacings 0 2 4 6 8 12 16 20 24 32 40 48 56 64 80 96 120 and radius 0 4 6 8 12 16 24
+    32 full(999) — no 10 / 14 / 18 / 28. Bind with `importVariableByKeyAsync` (keys in the script) — never local variables.
+    Binding equal values is render-identical (screenshot byte-identical). Zeros left unbound by default (OPT.zeros).
+    Colours: map hex → the one NON-state token with the right scope (fills: background/*, strokes: border/*); #d9d9d9 as a fill
+    matches only state tokens (…-active / -hover / disabled) → report, don't guess. Scrims (#121212 @40/36 %, #000 @40 %) don't
+    match overlay-dark (@25 %) → PO decision.
+  - Off-scale is never snapped: biggest groups are `gap 10` (Figma's default gap on new frames, ~5,000 across files, often on
+    single-child frames), radius 5, gap 18 (meta-dot pattern 8·2·8), padding 11 (section titles), A4 page 60/84, scaled pages
+    with fractional values. Listed for the user.
+  - Process: a compact dry counter (3 KB) per page first, then the full binder (9 KB) per page in parallel batches of 3–6; the
+    binder is idempotent (already-bound counted) so a dropped transport = just re-run. Snapshots: page sharedPluginData
+    `geapqa/borderpad-20261015` and `geapqa/bindtok-20261015-N` (both scripts have a revert mode).
+  - Something else renamed screens to English mid-job („01 · Tarife” → „01 · Tariffs”) — not this job; mention concurrent edits.

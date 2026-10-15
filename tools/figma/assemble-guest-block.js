@@ -19,7 +19,7 @@ for (const it of B) {
   const [lab, oldScreen, note] = b.children;
   const outline = oldScreen.strokes && oldScreen.strokes.length ? JSON.parse(JSON.stringify(oldScreen.strokes)) : null;
   // screens row
-  const row = figma.createAutoLayout("HORIZONTAL", { name: `Ecrane · desktop + mobil · ${it.id}` }); row.fills = []; row.clipsContent = false; row.counterAxisAlignItems = "MIN";
+  const row = figma.createAutoLayout("HORIZONTAL", { name: `Screens · desktop + mobile · ${it.id}` }); row.fills = []; row.clipsContent = false; row.counterAxisAlignItems = "MIN";
   row.itemSpacing = 80; row.setBoundVariable("itemSpacing", sp80);
   b.insertChild(1, row); oldScreen.remove();
   for (const [id, nm] of [[it.desk, `Desktop · ${it.id}`], [it.mob, `Mobil · ${it.id}`]]) {
@@ -30,9 +30,9 @@ for (const it of B) {
   // label
   lab.name = `Screen label · ${it.id}`;
   await setT(lab.children.find((c) => c.name === "ID").findOne((n) => n.type === "TEXT"), it.id);
-  const title = lab.children.find((c) => c.type === "TEXT" && c.name !== "Link · prototip"); await setT(title, it.title); title.name = it.title;
-  let link = lab.children.find((c) => c.name === "Link · prototip");
-  if (!link) { link = figma.createText(); await figma.loadFontAsync({ family: "Onest", style: "Medium" }); link.fontName = { family: "Onest", style: "Medium" }; link.fontSize = 16; link.name = "Link · prototip"; lab.appendChild(link); }
+  const title = lab.children.find((c) => c.type === "TEXT" && c.name !== "Link · prototype"); await setT(title, it.title); title.name = it.title;
+  let link = lab.children.find((c) => c.name === "Link · prototype");
+  if (!link) { link = figma.createText(); await figma.loadFontAsync({ family: "Onest", style: "Medium" }); link.fontName = { family: "Onest", style: "Medium" }; link.fontSize = 16; link.name = "Link · prototype"; lab.appendChild(link); }
   await setT(link, "Prototype ↗"); link.fills = [figma.variables.setBoundVariableForPaint({ type: "SOLID", color: { r: 0, g: 0.35, b: 0.82 } }, "color", brand)];
   link.setRangeHyperlink(0, link.characters.length, { type: "URL", value: SANDBOX + it.state }); link.setRangeTextDecoration(0, link.characters.length, "UNDERLINE");
   lab.counterAxisAlignItems = "CENTER";

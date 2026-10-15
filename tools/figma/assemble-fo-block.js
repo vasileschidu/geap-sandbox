@@ -13,9 +13,9 @@ const b = tpl.clone(); sec.appendChild(b); b.x = B.x; b.y = B.y; b.name = `Block
 // label
 const lab = b.children[0]; lab.name = `Screen label · ${B.id}`;
 await setT(lab.findOne((n) => n.name === "ID").findOne((n) => n.type === "TEXT"), B.id);
-const ttl = lab.children.find((n) => n.type === "TEXT" && n.name !== "Link · prototip"); await setT(ttl, B.title); ttl.name = B.title;
+const ttl = lab.children.find((n) => n.type === "TEXT" && n.name !== "Link · prototype"); await setT(ttl, B.title); ttl.name = B.title;
 const st = lab.findOne((n) => n.type === "INSTANCE" && n.name === "Status"); st.swapComponent(st.mainComponent.parent.children.find((c) => c.name === "Status=" + (B.status || "Figma aligned")));
-const link = lab.findOne((n) => n.name === "Link · prototip"); await loadAll(link);
+const link = lab.findOne((n) => n.name === "Link · prototype"); await loadAll(link);
 link.hyperlink = { type: "URL", value: "https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=" + B.state };
 // screens
 const ecr = b.children[1];

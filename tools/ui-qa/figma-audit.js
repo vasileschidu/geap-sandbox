@@ -16,8 +16,13 @@
 //  sibling-overlap      two siblings overlap in a frame without auto-layout
 //  icon-colour-override an icon inside a button instance whose fill differs from the label's
 //  field-label-outside  a select / text-input with its label off and a hand-built label beside it
+//  border-padding       (2026-10-15) padding = CSS padding + border width under an INSIDE stroke included in layout
+//                       (13 / 9 / 1) — fix with tools/figma/border-padding.js
+//  spacing-unbound      (2026-10-15, minor) padding / gap on the token scale but not bound to spacings/* — fix with
+//                       tools/figma/bind-spacing-tokens.js
 const ROOTS = ["PUT:NODE-IDS-HERE"];
-const SPACING = [0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120, 160, 200, 240];
+const SPACING = [0, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120, 160, 200, 240]; // 1 removed 2026-10-15: 1 px padding = border artifact
+const TOKENS = [2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 120]; // Foundations › 3. Sizes spacings/*
 const RADIUS = [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 999, 9999];
 const onScale = (v, s) => s.some((x) => Math.abs(v - x) < 0.6);
 const CONTROL = /^(Button\b|Button - |Text Input|Input\b|Select\b|Checkbox|Tag$|Chip\b|Tab$|Badge\b)/;
@@ -44,6 +49,11 @@ for (const rid of ROOTS) {
         for (const k of ["paddingTop", "paddingRight", "paddingBottom", "paddingLeft", "itemSpacing"]) {
           if (k === "itemSpacing" && n.primaryAxisAlignItems === "SPACE_BETWEEN") continue;
           const v = n[k]; if (typeof v === "number" && v && !onScale(v, SPACING) && !(n.boundVariables && n.boundVariables[k])) add("spacing-off-scale", n, `${k} ${v}`);
+          if (typeof v === "number" && v && TOKENS.includes(v) && !(n.boundVariables && n.boundVariables[k])) add("spacing-unbound", n, `${k} ${v}`);
+        }
+        const ins = Array.isArray(n.strokes) && n.strokes.some((s) => s.visible !== false) && n.strokeAlign === "INSIDE" && n.strokesIncludedInLayout;
+        if (ins) for (const [k, w] of [["paddingTop", "strokeTopWeight"], ["paddingRight", "strokeRightWeight"], ["paddingBottom", "strokeBottomWeight"], ["paddingLeft", "strokeLeftWeight"]]) {
+          const v = n[k], sw = n[w] || 0; if (sw > 0 && v >= sw && !onScale(v, SPACING) && onScale(v - sw, SPACING)) add("border-padding", n, `${k} ${v} = ${v - sw} + ${sw}px stroke`);
         }
       } else if ("children" in n && n.children.length > 1 && n.parent && n.parent.type !== "SECTION" && n.parent.type !== "PAGE" && !/^(Overlay|Block|Screen)/.test(n.name)) {
         add("not-auto-layout", n, `${n.children.length} children positioned absolutely`);
@@ -67,7 +77,7 @@ for (const rid of ROOTS) {
     if (n.type === "TEXT" && !inInst) {
       if (!n.textStyleId && !(n.boundVariables && n.boundVariables.fontSize)) add("no-text-style", n, `"${n.characters.slice(0, 30)}"`);
       const fam = n.fontName === figma.mixed ? "mixed" : n.fontName.family;
-      const codeCtx = (() => { for (let p = n.parent, i = 0; p && i < 4; p = p.parent, i++) if (/code|kw|token|Combinarea/i.test(p.name)) return true; return false; })();
+      const codeCtx = (() => { for (let p = n.parent, i = 0; p && i < 4; p = p.parent, i++) if (/code|kw|token|Combinarea|Combining/i.test(p.name)) return true; return false; })();
       if (fam !== "Onest" && !(fam === "JetBrains Mono" && codeCtx)) add("font-not-onest", n, fam);
     }
     /* a field instance (select-input / text-input) with its own label switched off and a

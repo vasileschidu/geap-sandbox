@@ -32,18 +32,18 @@
           chip.appendChild(await txt(it.id, "bs5", "inv", it.id));
           lab.appendChild(await txt(it.title, "h4", "text", "Titlu"));
           const stv = STATUS.children.find((c) => c.name === "Status=" + (it.status || "In development")) || STATUS.children[0];const si = stv.createInstance();si.name = "Status";lab.appendChild(si);
-          const link = await txt("Prototype ↗", "bs", "text3", "Link · prototip");lab.appendChild(link);
+          const link = await txt("Prototype ↗", "bs", "text3", "Link · prototype");lab.appendChild(link);
           const note = figma.createAutoLayout("VERTICAL", { name: "Note · " + it.id });note.fills = [paint(V.bg2)];note.cornerRadius = 16;note.paddingTop = note.paddingBottom = note.paddingLeft = note.paddingRight = 24;note.itemSpacing = 12;
           const tg = TAG.children.find((c) => /Type=Strong/.test(c.name) && /Style=Neutral/.test(c.name) && /Icon=None/.test(c.name) && /Size=Medium/.test(c.name)).createInstance();tg.setProperties({ [Object.keys(tg.componentProperties).find((k) => k.startsWith("⌨️ Label"))]: "NOTE DEV / PM" });note.appendChild(tg);
-          const nt = await txt(it.id + " · " + it.title, "h4", "text", "Titlu notă");note.appendChild(nt);nt.layoutSizingHorizontal = "FILL";nt.textAutoResize = "HEIGHT";
-          const nb = await txt(it.note || "", "bs", "text2", "Text notă");note.appendChild(nb);nb.layoutSizingHorizontal = "FILL";nb.textAutoResize = "HEIGHT";
+          const nt = await txt(it.id + " · " + it.title, "h4", "text", "Note title");note.appendChild(nt);nt.layoutSizingHorizontal = "FILL";nt.textAutoResize = "HEIGHT";
+          const nb = await txt(it.note || "", "bs", "text2", "Note text");note.appendChild(nb);nb.layoutSizingHorizontal = "FILL";nb.textAutoResize = "HEIGHT";
           blk.appendChild(note);
         }
         const lab = blk.children[0];const note = blk.children[blk.children.length - 1];
         const tt = lab.findOne((n) => n.name === "Titlu");tt.characters = it.title;const idt = lab.findOne((n) => n.parent && n.parent.name === "ID" && n.type === "TEXT");idt.characters = it.id;
-        const link = lab.findOne((n) => n.name === "Link · prototip");link.hyperlink = { type: "URL", value: URL(it.state) };
+        const link = lab.findOne((n) => n.name === "Link · prototype");link.hyperlink = { type: "URL", value: URL(it.state) };
         const si = lab.findOne((n) => n.name === "Status");const stv = STATUS.children.find((c) => c.name === "Status=" + (it.status || "In development"));if (stv && si.mainComponent !== stv) si.swapComponent(stv);
-        note.findOne((n) => n.name === "Titlu notă").characters = it.id + " · " + it.title;note.findOne((n) => n.name === "Text notă").characters = it.note || "";
+        note.findOne((n) => n.name === "Note title").characters = it.id + " · " + it.title;note.findOne((n) => n.name === "Note text").characters = it.note || "";
         blk.insertChild(1, scr);scr.name = "Ecran · " + it.id + " · " + it.state;scr.layoutPositioning = "AUTO";
         note.layoutSizingHorizontal = "FIXED";note.resize(scr.width, note.height);
         blk.name = "Block · " + it.id + " · " + it.title;
@@ -76,7 +76,7 @@
       let ts = page.children.find((n) => n.type === "SECTION" && n.name === "Cum se citește · Cuprins");if (!ts) {ts = figma.createSection();page.appendChild(ts);ts.name = "Cum se citește · Cuprins";}
       ts.fills = [paint(V.bg)];for (const k of [...ts.children]) k.remove();
       const how = figma.createAutoLayout("VERTICAL", { name: "How to read" });how.fills = [paint(V.bg)];how.strokes = [paint(V.border)];how.strokeWeight = 1;how.cornerRadius = 16;how.paddingTop = how.paddingBottom = 24;how.paddingLeft = how.paddingRight = 32;how.itemSpacing = 8;ts.appendChild(how);
-      if (ARG.title) how.appendChild(await txt(ARG.title, "h2", "text", "Titlu pagină")); if (ARG.stories) how.appendChild(await txt("Stories acoperite: " + ARG.stories, "bd5", "tbrand", "Stories")); how.appendChild(await txt("Cum se citește", "h4", "text"));const ht = await txt(ARG.how || "", "bd", "text2");how.appendChild(ht);
+      if (ARG.title) how.appendChild(await txt(ARG.title, "h2", "text", "Page title")); if (ARG.stories) how.appendChild(await txt("Stories acoperite: " + ARG.stories, "bd5", "tbrand", "Stories")); how.appendChild(await txt("Cum se citește", "h4", "text"));const ht = await txt(ARG.how || "", "bd", "text2");how.appendChild(ht);
       const cup = figma.createAutoLayout("VERTICAL", { name: "Cuprinsul paginii" });cup.fills = [paint(V.bg)];cup.strokes = [paint(V.border)];cup.strokeWeight = 1;cup.cornerRadius = 16;cup.paddingTop = cup.paddingBottom = cup.paddingLeft = cup.paddingRight = 24;cup.itemSpacing = 24;ts.appendChild(cup);
       cup.appendChild(await txt("Cuprinsul paginii", "h4", "text"));cup.appendChild(await txt("Clic pe o coloană sau pe un ecran ca să ajungi direct la el. Coloanele sunt în ordinea fluxului.", "bd", "text2"));
       const cols = figma.createAutoLayout("HORIZONTAL", { name: "Coloane" });cols.fills = [];cols.layoutWrap = "WRAP";cols.itemSpacing = 32;cols.counterAxisSpacing = 32;cup.appendChild(cols);
