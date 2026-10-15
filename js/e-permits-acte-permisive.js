@@ -231,6 +231,45 @@
       `;
     }
 
+    /* the FO step footer (fo-02 … fo-06 markup, as a renderer for other hosts — the Ghișeu request window):
+       „Salvează ca schiță” on the left, the round back arrow + the primary „Înainte →” on the right.
+       draftAttrs / backAttrs / nextAttrs: the host's hooks (never data-fo-*: the FO listens on the document) */
+    function foStepFooterHtml({ draftAttrs = "", backAttrs = "", backLabel = "Înapoi", nextLabel = "Înainte", nextAttrs = "", nextDisabled = false, nextArrow = true, customHtml = "" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      if (customHtml) {
+        return `<footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only"><div class="e-permits-fo-form__actions e-permits-fo-form__actions--confirmation">${customHtml}</div></footer>`;
+      }
+      return `
+        <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
+          <div class="e-permits-fo-form__actions${draftAttrs ? " e-permits-fo-form__actions--with-draft" : ""}">
+            ${draftAttrs ? `<button class="e-permits-fo-draft-button" type="button" ${draftAttrs}>
+              <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg>
+              <span>Salvează ca schiță</span>
+            </button>` : ""}
+            <div class="e-permits-fo-form__actions-primary">
+              ${backAttrs ? `<button class="e-permits-fo-back-button" type="button" aria-label="${esc(backLabel)}" ${backAttrs}>
+                <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
+              </button>` : ""}
+              ${nextLabel ? `<button class="e-permits-fo-next" type="button" ${nextAttrs}${nextDisabled ? " disabled" : ""}>
+                <span>${esc(nextLabel)}</span>
+                ${nextArrow ? '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>' : ""}
+              </button>` : ""}
+            </div>
+          </div>
+        </footer>`;
+    }
+    /* the FO header draft status („Salvat ca schiță · 14:32”), for other hosts; extraHtml after the time */
+    function foDraftStatusHtml({ time = "", datetime = "", extraHtml = "" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <span class="e-permits-fo-draft-status__saved">
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-success"></use></svg>
+          <span class="e-permits-fo-draft-status__label">Salvat ca schiță</span>
+        </span>
+        ${time ? `<span class="e-permits-fo-draft-status__dot" aria-hidden="true"></span><time class="e-permits-fo-draft-status__time" datetime="${esc(datetime)}">${esc(time)}</time>` : ""}
+        ${extraHtml}`;
+    }
+
     function requestHeaderHtml({ id, title }) {
       return `
         <h1 id="${escapeFrontOfficeHtml(id)}" tabindex="-1">${escapeFrontOfficeHtml(title)}</h1>
@@ -2096,7 +2135,7 @@
     }
 
     function caemOptionHtml(option) {
-      return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span></li>`;
+      return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" title="${escapeFrontOfficeHtml(option.label)}" data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span></li>`;
     }
 
     /* the CAEM pair of the FO activities — „Codul CAEM” combobox + „Subgen de activitate” under its
@@ -2110,11 +2149,11 @@
 
     /* emptyTitle / emptyText / searchLabel: a searchable list of something else (the desk's
        „Denumirea serviciului”, js/ghiseu.js); the defaults keep the CAEM markup byte-identical */
-    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [], emptyTitle, emptyText, searchLabel = "Caută după cod sau descriere" } = {}) {
+    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [], emptyTitle, emptyText, searchLabel = "Caută după cod sau descriere", float = false } = {}) {
       return `
           <div class="e-permits-fo-field">
             ${labelHtml(id, { label, required })}
-            <div class="e-permits-fo-caem" data-fo-caem>
+            <div class="e-permits-fo-caem" data-fo-caem${float ? " data-fo-float" : ""}>
               <button id="${escapeFrontOfficeHtml(id)}" class="e-permits-fo-caem__button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-button>
                 <span class="e-permits-fo-caem__value e-permits-fo-caem__value--placeholder" data-fo-caem-value>${escapeFrontOfficeHtml(placeholder)}</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
@@ -2166,7 +2205,7 @@
 
     /* a searchable list (Listă derulantă with „Căutare”): the CAEM combobox on its own */
     function comboboxFieldHtml(field) {
-      const html = caemFieldHtml({ id: fieldId(field.id), label: field.label || "", required: Boolean(field.required), placeholder: field.placeholder || "Selectează", options: field.options || [], emptyTitle: field.emptyTitle, emptyText: field.emptyText, searchLabel: field.searchLabel });
+      const html = caemFieldHtml({ id: fieldId(field.id), label: field.label || "", required: Boolean(field.required), placeholder: field.placeholder || "Selectează", options: field.options || [], emptyTitle: field.emptyTitle, emptyText: field.emptyText, searchLabel: field.searchLabel, float: Boolean(field.float) });
       return html.replace('<div class="e-permits-fo-field">', `<div class="${fieldClass(field)}">`);
     }
 
@@ -3451,7 +3490,8 @@
       `;
     }
 
-    function selectedRoleHtml(subject, { changeable = false } = {}) {
+    /* changeAttrs / extraHtml: other hosts of the card (Ghișeu: „Schimbă” reopens its modal, a tag in the meta) */
+    function selectedRoleHtml(subject, { changeable = false, changeAttrs = "data-fo-back-choice", extraHtml = "" } = {}) {
       const idLabel = subject?.idLabel || frontOfficeSubjectTypeMeta(subject?.type).idLabel || "";
       const idValue = subject?.idValue || "";
       const idCopy = idLabel && idValue ? `
@@ -3470,10 +3510,11 @@
             <strong>${escapeFrontOfficeHtml(subject.name)}</strong>
             <span class="e-permits-fo-selected-role__meta">
               ${idCopy}
+              ${extraHtml}
             </span>
           </span>
           ${changeable ? `
-            <button class="e-permits-fo-selected-role__change" type="button" data-fo-back-choice>
+            <button class="e-permits-fo-selected-role__change" type="button" ${changeAttrs}>
               <svg class="icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M2.38052 12.2289C1.88586 11.7342 1.88585 10.9322 2.38052 10.4375L4.57578 8.24226C4.8101 8.00794 5.19 8.00794 5.42431 8.24226C5.65862 8.47657 5.65862 8.85647 5.42431 9.09078L3.78191 10.7332H13.3334C13.6648 10.7332 13.9334 11.0018 13.9334 11.3332C13.9334 11.6646 13.6648 11.9332 13.3334 11.9332H3.78191L5.42431 13.5756C5.65862 13.8099 5.65862 14.1898 5.42431 14.4241C5.19 14.6584 4.8101 14.6584 4.57578 14.4241L2.38052 12.2289L2.80478 11.8046L2.38052 12.2289ZM2.06671 4.66652C2.06671 4.33515 2.33534 4.06652 2.66671 4.06652H12.2182L10.5758 2.42412C10.3415 2.1898 10.3415 1.8099 10.5758 1.57559C10.8101 1.34128 11.19 1.34128 11.4243 1.57559L13.6196 3.77085C14.1142 4.26551 14.1142 5.06752 13.6196 5.56219L11.4243 7.75745C11.19 7.99177 10.8101 7.99177 10.5758 7.75745C10.3415 7.52314 10.3415 7.14324 10.5758 6.90892L12.2182 5.26652H2.66671C2.33534 5.26652 2.06671 4.99789 2.06671 4.66652Z" fill="currentColor"/>
               </svg>
@@ -4317,7 +4358,7 @@
     function setGuestFieldError(input, message) {
       const field = input?.closest(".e-permits-fo-field");
       if (!field) return;
-      const control = field.querySelector(".e-permits-fo-input, .e-permits-fo-phone--editable");
+      const control = field.querySelector(".e-permits-fo-input, .e-permits-fo-phone--editable, .search-input.e-permits-workplace__search");
       /* also the Form Builder fields (registry lookups, Preview „Validează”) */
       const hint = field.querySelector("[data-fo-guest-hint], [data-fo-field-hint]") || field.querySelector(":scope > .e-permits-fo-field__hint");
       let error = field.querySelector(`[${GUEST_ERROR_ATTR}]`);
@@ -5036,49 +5077,108 @@
         .filter((act) => act.postProcesses.length > 0);
     }
 
-    const INTENT_TAG_TONE = { valabil: "status-tag--success", suspendat: "status-tag--accent" };
-
-    function intentActHtml(act, index) {
+    /* ===== the act row + the „Solicitare nouă” card (2026-10-15, user): ONE renderer for the FO
+       „Ce vrei să soliciți?” (#intent) and the Ghișeu picker („Dosar nou”, js/ghiseu.js). The row is
+       the shared document card (.e-permits-fo-lib-item: padding 12, radius 12, hover) with the blue
+       „System Generated” document icon, the title + a Small status tag, the 12px meta with the 2px dots
+       (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” pill menu.
+       act = { id, name, number, status, statusLabel, validUntil (dd.mm.yyyy | ISO | long), subdivision,
+       meta (parts, replaces the default) }; opts = { menuId, actionLabel, items [{ id, label, icon,
+       disabled, reason }], pendingText (locked row), menuClass — the BO desk passes e-permits-stack__menu: the BO menu size }. Status tones = Cabinet (cabinet-evo.js STATUS_TAG), Small + subtle. */
+    const ACT_ROW_TONE = { valabil: "success", suspendat: "accent", expirat: "neutral", anulat: "danger", retras: "danger", respins: "danger" };
+    function foActValidText(value) {
+      if (!value) return "";
+      const iso = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      const long = iso ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric" }) : foDocLongDate(value);
+      return `valabil până la ${long}`;
+    }
+    function foActRowHtml(act, { menuId = `fo-act-menu-${act.id}`, actionLabel = "Inițiază un postproces", items = [], pendingText = "", menuClass = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
-      const menuId = `fo-intent-menu-${index}`;
-      const tone = INTENT_TAG_TONE[act.status] || "status-tag--neutral";
-      const pending = act.pending;
-      const pendingLabel = pending ? (frontOfficeIntentConfig()?.postProcesses?.[pending.type]?.label || pending.type) : "";
+      const tone = ACT_ROW_TONE[act.status] || "neutral";
+      const meta = (act.meta || [act.number, foActValidText(act.validUntil), act.subdivision]).filter(Boolean);
+      const locked = Boolean(pendingText);
       return `
-        <li class="e-permits-fo-intent-act${pending ? " is-locked" : ""}" data-fo-intent-act="${esc(act.id)}">
-          <span class="e-permits-fo-auth__role-avatar e-permits-fo-intent-act__avatar" aria-hidden="true">
-            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg>
-          </span>
-          <div class="e-permits-fo-intent-act__copy">
-            <div class="e-permits-fo-intent-act__heading">
-              <span class="e-permits-fo-intent-act__name">${esc(act.name)}</span>
-              <span class="status-tag ${tone} is-subtle e-permits-fo-intent-act__tag">${esc(act.statusLabel || act.status)}</span>
+        <li class="e-permits-fo-lib-item e-permits-fo-intent-act${locked ? " is-locked" : ""}" data-fo-intent-act="${esc(act.id)}">
+          <img class="e-permits-fo-lib-item__icon" src="assets/icons/document-generated.svg" width="24" height="24" alt="">
+          <div class="e-permits-fo-lib-item__content">
+            <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
+              <span class="e-permits-fo-lib-item__title" title="${esc(act.name)}">${esc(act.name)}</span>
+              <span class="status-tag status-tag--${tone} is-subtle status-tag--small e-permits-fo-doc-tag">${esc(act.statusLabel || act.status)}</span>
             </div>
-            <div class="e-permits-fo-intent-act__meta">
-              <span class="e-permits-fo-intent-act__number">${esc(act.number)}</span>
-              <span class="e-permits-fo-intent-act__dot" aria-hidden="true"></span>
-              <span>valabil până la ${esc(act.validUntil)}</span>
-            </div>
-            ${pending ? `<p class="e-permits-fo-intent-act__pending"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg><span>${esc(pendingLabel)} în curs · dosar ${esc(act.pending.dossier)}. Poți iniția un alt postproces după finalizarea acestuia.</span></p>` : ""}
+            ${meta.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${meta.map((part) => `<span class="e-permits-fo-doc-meta__part">${esc(part)}</span>`).join("")}</span></div>` : ""}
+            ${locked ? `<p class="e-permits-fo-intent-act__pending"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg><span>${esc(pendingText)}</span></p>` : ""}
           </div>
-          <div class="e-permits-fo-intent-act__action">
-            <button class="btn btn-neutral btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-fo-intent-trigger ${pending ? "disabled" : ""}>
-              <span>${esc(frontOfficeIntentConfig()?.actionLabel || "Inițiază un postproces")}</span>
+          <div class="cab-doc__actions e-permits-fo-intent-act__action">
+            <button class="btn btn-neutral btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" data-fo-intent-trigger${locked ? " disabled" : ""}>
+              <span>${esc(actionLabel)}</span>
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
-            <ul class="e-permits-fo-intent-menu" id="${menuId}" role="menu" aria-label="Postprocese pentru ${esc(act.name)}" hidden>
-              ${act.postProcesses.map((pp) => `
+            <ul class="e-permits-fo-intent-menu${menuClass ? ` ${menuClass}` : ""}" id="${esc(menuId)}" role="menu" aria-label="Postprocese pentru ${esc(act.name)}" hidden>
+              ${items.map((pp) => `
                 <li role="none">
-                  <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fo-intent-postprocess="${esc(pp.id)}">
+                  <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fo-intent-postprocess="${esc(pp.id)}"${pp.disabled ? ` aria-disabled="true" data-tooltip-reason="${esc(pp.reason || "")}" aria-description="${esc(pp.reason || "")}"` : ""}>
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${esc(pp.icon || "icon-edit")}"></use></svg>
                     <span>${esc(pp.label)}</span>
                   </button>
-                </li>
-              `).join("")}
+                </li>`).join("")}
             </ul>
           </div>
-        </li>
-      `;
+        </li>`;
+    }
+    /* „Solicitare nouă”: a link-like card (arrow) — choosing it starts the request at once */
+    function foIntentNewHtml({ title = "Solicitare nouă", text = "Depui o cerere pentru un act nou", attrs = "data-fo-intent-new" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <button class="e-permits-fo-intent-new" type="button" ${attrs}>
+          <span class="e-permits-fo-intent-new__avatar" aria-hidden="true">
+            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
+          </span>
+          <span class="e-permits-fo-intent-new__copy">
+            <span class="e-permits-fo-intent-new__title">${esc(title)}</span>
+            <span class="e-permits-fo-intent-new__text">${esc(text)}</span>
+          </span>
+          <svg class="icon e-permits-fo-intent-new__arrow" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
+        </button>`;
+    }
+    /* the whole „Ce vrei să soliciți?” screen body — FO #intent and the Ghișeu request window (2026-10-15):
+       header (title + „<label> <name> · Schimbă”), optional notice, „Solicitare nouă”, „sau”, the acts list
+       (rows from foActRowHtml) or the shared empty state */
+    function foIntentHtml({ title = "Ce vrei să soliciți?", titleId = "fo-intent-title", subjectLabel = "Solicitant", subjectName = "", subjectMeta = "", changeAttrs = "data-fo-back-choice", noticeHtml = "", newRequest = {}, newAttrs = "data-fo-intent-new", separator = "sau", actsTitle = "Acte emise pentru acest serviciu", actsId = "fo-intent-acts-title", rowsHtml = "", emptyTitle = "Dumneavoastră nu aveți acte emise pentru serviciul dat", emptyAttrs = "data-fo-intent-empty" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <header class="e-permits-fo-intent__header">
+          <h1 id="${esc(titleId)}" tabindex="-1">${esc(title)}</h1>
+          <p class="e-permits-fo-intent__subject">
+            <span class="e-permits-fo-intent__subject-label">${esc(subjectLabel)}</span>
+            <span class="e-permits-fo-intent__subject-name">${esc(subjectName)}</span>
+            ${subjectMeta ? `<span class="e-permits-fo-intent__subject-label">${esc(subjectMeta)}</span>` : ""}
+            <button class="e-permits-fo-selected-role__change e-permits-fo-intent__change" type="button" ${changeAttrs}>
+              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-reorder"></use></svg>
+              <span>Schimbă</span>
+            </button>
+          </p>
+        </header>
+        ${noticeHtml}
+        ${foIntentNewHtml({ title: newRequest.title || "Solicitare nouă", text: newRequest.text || "", attrs: newAttrs })}
+        <div class="e-permits-fo-intent__separator" role="separator"><span>${esc(separator)}</span></div>
+        <section class="e-permits-fo-intent__acts" aria-labelledby="${esc(actsId)}">
+          <p class="e-permits-fo-intent__acts-title" id="${esc(actsId)}">${esc(actsTitle)}</p>
+          ${rowsHtml
+            ? `<ul class="e-permits-fo-intent__list">${rowsHtml}</ul>`
+            : `<div ${emptyAttrs}>${window.GEAPEmptyState.render({ title: String(emptyTitle).replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "page-text" })}</div>`}
+        </section>`;
+    }
+
+    function intentActHtml(act, index) {
+      const config = frontOfficeIntentConfig();
+      const pending = act.pending;
+      const pendingLabel = pending ? (config?.postProcesses?.[pending.type]?.label || pending.type) : "";
+      return foActRowHtml(act, {
+        menuId: `fo-intent-menu-${index}`,
+        actionLabel: config?.actionLabel || "Inițiază un postproces",
+        items: act.postProcesses,
+        pendingText: pending ? `${pendingLabel} în curs · dosar ${pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` : ""
+      });
     }
 
     function renderFrontOfficeIntent() {
@@ -5086,42 +5186,18 @@
       const config = frontOfficeIntentConfig();
       const subject = frontOfficeSelectedSubject;
       if (!body || !config || !subject) return;
-      const esc = escapeFrontOfficeHtml;
       const acts = intentActs(subject, config);
 
-      body.innerHTML = `
-        <header class="e-permits-fo-intent__header">
-          <h1 id="fo-intent-title" tabindex="-1">${esc(config.title)}</h1>
-          <p class="e-permits-fo-intent__subject">
-            <span class="e-permits-fo-intent__subject-label">${esc(config.subjectLabel || "Solicitant")}</span>
-            <span class="e-permits-fo-intent__subject-name">${esc(subject.name)}</span>
-            <button class="e-permits-fo-selected-role__change e-permits-fo-intent__change" type="button" data-fo-back-choice>
-              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-reorder"></use></svg>
-              <span>Schimbă</span>
-            </button>
-          </p>
-        </header>
-
-        <button class="e-permits-fo-intent-new" type="button" data-fo-intent-new>
-          <span class="e-permits-fo-intent-new__avatar" aria-hidden="true">
-            <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
-          </span>
-          <span class="e-permits-fo-intent-new__copy">
-            <span class="e-permits-fo-intent-new__title">${esc(config.newRequest?.title || "Solicitare nouă")}</span>
-            <span class="e-permits-fo-intent-new__text">${esc(config.newRequest?.text || "")}</span>
-          </span>
-          <svg class="icon e-permits-fo-intent-new__arrow" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-right"></use></svg>
-        </button>
-
-        <div class="e-permits-fo-intent__separator" role="separator"><span>${esc(config.separator || "sau")}</span></div>
-
-        <section class="e-permits-fo-intent__acts" aria-labelledby="fo-intent-acts-title">
-          <p class="e-permits-fo-intent__acts-title" id="fo-intent-acts-title">${esc(config.actsTitle)}</p>
-          ${acts.length
-            ? `<ul class="e-permits-fo-intent__list">${acts.map(intentActHtml).join("")}</ul>`
-            : `<div data-fo-intent-empty>${window.GEAPEmptyState.render({ title: String(config.emptyText || "Dumneavoastră nu aveți acte emise pentru serviciul dat.").replace(/\.$/, ""), text: "Un act apare aici după ce este emis. Pentru un act nou, alegeți „Solicitare nouă”.", icon: "page-text" })}</div>`}
-        </section>
-      `;
+      body.innerHTML = foIntentHtml({
+        title: config.title,
+        subjectLabel: config.subjectLabel || "Solicitant",
+        subjectName: subject.name,
+        newRequest: config.newRequest || {},
+        separator: config.separator || "sau",
+        actsTitle: config.actsTitle,
+        rowsHtml: acts.map(intentActHtml).join(""),
+        emptyTitle: config.emptyText || "Dumneavoastră nu aveți acte emise pentru serviciul dat."
+      });
     }
 
     function showFrontOfficeIntent({ focus = true } = {}) {
@@ -7735,8 +7811,18 @@
         option.dataset.searchCompact = compactComboboxText(searchableText);
       });
 
+      /* data-fo-float (a list inside a dialog / scroll container): the FO selects' fixed layer —
+         flips up when there is no room below, max-height = the room, follows scroll and resize */
+      const floats = caemRoot.hasAttribute("data-fo-float");
+      const syncFloating = () => { if (!menu.hidden) positionFloatingSelectList(button, menu, caemRoot); };
       function positionMenu() {
         setDropdownHidden(menu, false);
+        if (floats) {
+          positionFloatingSelectList(button, menu, caemRoot);
+          window.addEventListener("resize", syncFloating);
+          document.addEventListener("scroll", syncFloating, true);
+          return;
+        }
         caemRoot.classList.remove("is-open-up");
         const rootRect = caemRoot.getBoundingClientRect();
         const menuHeight = Math.min(menu.scrollHeight, 472);
@@ -7790,6 +7876,11 @@
         } else {
           setDropdownHidden(menu, true);
           caemRoot.classList.remove("is-open-up");
+          if (floats) {
+            resetFloatingSelectList(menu, caemRoot);
+            window.removeEventListener("resize", syncFloating);
+            document.removeEventListener("scroll", syncFloating, true);
+          }
           search.value = "";
           if (empty) empty.hidden = true;
           options.forEach((option) => {
@@ -8568,6 +8659,22 @@
       createRegistryLookup,
       setRegistryValue,
       docIconHtml: foDocIconHtml,
+      /* the act row + „Solicitare nouă” card shared by FO #intent and the Ghișeu picker */
+      actRowHtml: foActRowHtml,
+      intentNewHtml: foIntentNewHtml,
+      intentHtml: foIntentHtml,
+      /* the FO identity card of „Date solicitant” (fo-01/02) and its group title — shared with Ghișeu */
+      roleCardHtml: (subject, opts = {}) => `<div class="e-permits-fo-selected-role${opts.changeable ? " e-permits-fo-selected-role--changeable" : ""}">${selectedRoleHtml(subject, opts)}</div>`,
+      roleGroupTitleHtml,
+      /* Verificare summary row and the delivery option card (Ghișeu reuses them as-is) */
+      summaryRowHtml: summaryRow,
+      /* „Date de contact” pieces of fo-01: the verified phone / value (read-only + check) and the MNotify notice */
+      verifiedPhoneHtml,
+      stepFooterHtml: foStepFooterHtml,
+      draftStatusHtml: foDraftStatusHtml,
+      verifiedValueHtml,
+      mnotifyInfoHtml,
+      deliveryOptionHtml: deliveryOptionRow,
       docContentHtml: foDocContentHtml,
       summaryDocsHtml: foSummaryDocsHtml,
       attachFileItem: foDocAttachFileItem,

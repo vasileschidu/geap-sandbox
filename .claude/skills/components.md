@@ -268,7 +268,8 @@ but this doc previously described it wrongly, see the entry.
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
-| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | picker `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` (1 service · 2 applicant · 3 process with eligibility · 4 permit + post-process; bottom sheet ≤680); request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
+| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680; the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
+| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker, one renderer) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision, `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” + `ul.e-permits-fo-intent-menu` [`.e-permits-stack__menu` in the BO]); states `is-locked` (+ `__pending`, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPFormRender.actRowHtml(act, opts)` / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -5435,6 +5436,10 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
 
 **Entry 2 — „Ce vrei să soliciți?” (US-191)** — never skipped (unless notarial proxy).
 „Solicitare nouă” is always there; under it the acts of the current service with ≥1 post-process.
+- The screen body = `GEAPFormRender.intentHtml` and the act rows = `GEAPFormRender.actRowHtml` (2026-10-15: one renderer with the Ghișeu request window — the document card
+  `.e-permits-fo-lib-item`: padding 12, radius 12, hover, blue document icon, title + Small status tag, 12px meta
+  number · „valabil până la 15 septembrie 2028” · subdivision, pill menu). The FO lists only the allowed
+  post-processes; „Solicitare nouă” = `intentNewHtml()` (arrow, goes on).
 - Locked act: `.e-permits-fo-intent-act.is-locked` + `.e-permits-fo-intent-act__pending`
   (`icon-time`, „Post-proces în curs · GEAP-…”) and a disabled trigger.
 - No acts: `[data-fo-intent-empty]` holding the shared empty state (title = config `emptyText`, line „Un act apare aici după ce este emis…”, `page-text`)
@@ -5871,7 +5876,7 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
 ### Ghișeu — depunere la ghișeu (Feature 95768, 2026-10-15)
 
 Specialist ghișeu files a request on behalf of the applicant: **Dosare noi** (US-241) → **Dosar nou**
-→ Inițiere (US-233) · Date solicitant (US-234) · Detalii serviciu (US-235) · Documente însoțitoare
+→ Inițiere (US-233: small modal + „Ce se solicită?”) · Date solicitant (US-233 representation + US-234 contact) · Detalii serviciu (US-235) · Documente însoțitoare
 (US-20) · Verificare + cererea pe hârtie + MSign (US-236) · Livrare (US-16) · Notă de plată (US-237,
 hidden when nothing is paid) · Confirmarea depunerii (US-238). Drafts: save / resume / remove /
 automatic removal (US-239/240), expired note regeneration (US-256).
@@ -5890,57 +5895,82 @@ added for modules (all generic, reuse them for the next BO module):
   draws an in-page view; Ghișeu itself now uses dialogs).
 
 **Two dialogs (user, 2026-10-15), the list stays behind:**
-- **Picker** „Dosar nou” (3rd round, user 2026-10-15; research in the job report: Dynamics / Salesforce /
-  ServiceNow quick-create = who → what → which process, eligibility before continuing) = library `modal--lg`
-  (`#gh-start-modal`, 720 so IDNO + company / IDNP + names fit one row; ≤680 the standard bottom sheet).
-  Numbered quiet headings (`.e-permits-gh-start__num`, 24 circle, tertiary): **1 Serviciul** (FO searchable list,
-  autofocus) → **2 Solicitantul** (Tip persoană segmented, never empty: PF by default, PJ when the service allows
-  only PJ — then a read-only value; IDNP, or IDNO + the IDNP of the person filing, with the FO registry lookup:
-  skeleton while MConnect answers, read-only names + one flash = the result card, no layout jump; not found /
-  registry down / „IDNP-ul are 13 cifre.” on Enter) → **3 Procesul** (FO radio option rows; Postproces shows the
-  live count „3 acte permisive · 1 decizie”, or is disabled with the reason — before identification „Identificați
-  solicitantul…”, without permits „Solicitantul nu are acte permisive pentru acest serviciu. Continuați cu
-  „Emitere primară”.”) → **4 Actul** (Postproces: the holder's permits as a compact bordered stack list, ~5 rows
-  then scroll, „✓ Alege”; then the post-processes in two columns of option rows, ineligible ones disabled with the
-  reason in the tooltip). Sections 2–4 appear when their input exists (`.e-permits-gh__reveal`, 220ms, off for
-  reduced motion). A new holder clears the permit + post-process (info notice). Footer Anulează · Continuă
-  (disabled until service + identity + process [+ permit + post-process]); errors live under the fields.
-  Continuă = first save (nr + UID) → the sheet at „Solicitant”.
-- **First step „Solicitant”** (design decision, US-233 split: identity in the picker, representation in the
-  flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
+- **Small modal** „Dosar nou” (5th round, user 2026-10-15) = library `modal--lg` (`#gh-start-modal`; ≤680 the
+  standard bottom sheet, footer buttons side by side), **one screen, no stepper**: Serviciul (FO searchable list
+  with `float: true` → the FO fixed list layer, never cut by the dialog, flips up) + Solicitantul (Tip persoană
+  never empty: PF default, a PJ-only service = read-only value; IDNP, or IDNO + the IDNP of the person filing).
+  Footer Anulează · **Continuă** (always enabled; a click validates, errors under the fields; Enter in an answered
+  field = Continuă). The dialog **hugs its content** up to `100dvh − 2 × 24` (sheet `− 24`); beyond that only the
+  body scrolls; a height change glides from the old height (`animateStartHeight`, Web Animations 220ms, off for
+  reduced motion). **One rhythm** (stacks with gap, no per-element margins): body 24 top / bottom, 20 sides (= the
+  header gutter) · section → section 24 · section title → first field 12 (no title padding / divider here) · field
+  → field 16 (rows and columns, the lookup group too) · label → input 8 and input → status = the FO field's own.
+  - **Lookup fields** (IDNP / IDNO, the PJ filer's IDNP, the flow's representative IDNP) = the „Cod cadastral”
+    component: `.search-input.{medium|large}.rectangular.e-permits-workplace__search.e-permits-list-search
+    .e-permits-list-search--fill.e-permits-fo-cadastral-search` without the leading `.icon-search` (plain code inputs) + `.btn-group` (spinner · submit
+    `btn btn-primary btn-search` arrow „Caută IDNP-ul / IDNO-ul în registru”, disabled until 13 digits). Explicit
+    only: the arrow or Enter (js/search.js); never on typing or blur. While MConnect answers: `.loading` spinner,
+    skeleton names, loading status. Found → read-only code + the search clear × alone („Schimbă IDNP-ul”), names
+    filled with a flash. Not found (9999999999999) / registry down / „…are 13 cifre.” / „Căutați IDNP-ul în
+    registru.” (Continuă before searching) = the FO inline error, box `is-error`. Under a code only status lines
+    — no helper hints (an empty hint takes no room). Layout: code span-6 + Nume / Prenume span-3 (company name
+    span-6) on one row; one column ≤860.
+  - **Continuă** = first save (nr + UID) → the request window on **„Ce se solicită?”** (step `intent`, no
+    stepper, no footer — as FO #intent): `GEAPFormRender.intentHtml` with „Solicitant <name> IDNO … · Schimbă”
+    (reopens the small modal), „Solicitare nouă”, „sau”, „Acte emise pentru acest serviciu” = the shared act rows
+    with the BO-size menus (every post-process of the service; the ones the status / term does not allow
+    `aria-disabled` + reason tooltip; a row with a post-process „în curs” locked); no acts → the shared empty
+    state „Solicitantul nu are acte emise pentru acest serviciu”. The menu opens up when the body has no room
+    below; Esc closes only the menu. **A choice starts the request at once** (no selected state): the stepper
+    appears, the header meta shows the process („Emitere primară” / „Reperfectare · ASF-2026-04521”), first step
+    „Solicitant și reprezentare” (no Înapoi there). Header ⋮ **„Schimbă procesul”** → back to the intent screen;
+    form, documents and verification are cleared, with a destructive confirm when there are any; disabled with a
+    reason once the note is paid. A new service / holder clears the process (info notice on the intent screen).
+    A draft can exist before the process („—” in the list); resuming it opens the intent screen.
+- **First step „Date solicitant”** (identity in the small modal; representation and contact in the flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
   „Persoana care depune” for PJ, then „Reprezentantul” (PF check option + IDNP lookup) / „Temeiul reprezentării”
-  (RSUD / MPower / Prin procură with the live AC-21 error). A chosen post-process shows as a note; a missing one
-  falls back to the permits list here.
+  (RSUD / MPower / Prin procură with the live AC-21 error). The process lives in the header meta. The cards and
+  group titles are the FO ones (`GEAPFormRender.roleCardHtml` = `selectedRoleHtml` with `changeAttrs` /
+  `extraHtml`, `roleGroupTitleHtml`) — never rebuilt.
 - **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top
-  24, modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners (the Form Builder sheet radius;
-  there is no 24 token), scrim behind. Header = title (service, one line) · meta parts (nr · solicitant ·
-  tip · Ghișeu; dot-in-padding + clip trick, so a wrapped line never starts with „·”) + status tags ·
-  „Salvat la …” · „Salvează schița” (`btn-neutral btn-sm`, cloud icon) · ⋮ (Istoricul cererii, Elimină
-  schița) · library `.modal-close`. Body scrolls (FO stepper sticky; ≤960 the FO mobile progress). Footer =
-  `.modal-buttons` Înapoi (left) · hint · Continuă / Confirmă depunerea; after submission Înapoi la Dosare
-  noi · Dosar nou. One divider under the header and one over the footer (library scroll hairlines off).
-  × / Esc / scrim with unsaved data → „Salvați schița înainte de a închide?” (Rămâi în cerere · Închide
-  fără salvare · Salvează și închide). Library dialogs (confirm, document modal, previews) open above it
+  24, modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners, scrim behind. Window chrome only:
+  header = title (service) · meta parts (nr · solicitant · process · Ghișeu) + status tags · the FO draft status
+  (`GEAPFormRender.draftStatusHtml`: „Salvat ca schiță · <date, time>” + „eliminare automată la …”) · ⋮
+  (Schimbă procesul, Istoricul cererii, Elimină schița) · `.modal-close`. **No window footer.** The body is the FO
+  request page as is: FO page width / sidebar / gutter (no overrides), FO stepper sticky (≤960 the FO mobile
+  progress), FO step header `h1` 32/40 with no lead (desk notes = FO info note under it), FO sections, and the FO
+  step footer at the end of the step (`GEAPFormRender.stepFooterHtml`: „Salvează ca schiță” left, round back
+  arrow + „Înainte →” right; the first step has no back; „Confirmă depunerea” without the arrow; after
+  submission Înapoi la Dosare noi · Dosar nou). Measured against fo-02 / fo-03 / fo-05 at 1440: stepper x 120 /
+  w 280, content x 488 / w 768, h1 32/40, section h2 18 + 12/12 + divider, section body 24 / 32, row gap 24,
+  column gap 32, „Înainte” 118 × 48 flush right, draft button 48 flush left — identical.
+  × / Esc / scrim with unsaved data → „Salvați schița înainte de a închide?”. Library dialogs open above it
   (sheet overlay z 990 < 1000). A draft opened from the list or a link opens the sheet at its saved step.
-- Steps use FO markup with own hooks: stepper items `[data-gh-step]`, rows `[data-gh-goto]` — never
-  `data-fo-step` (the FO listens for it on the document); step header `h2` 24/32.
+- **Steps** (user 2026-10-15): Date solicitant (identity cards + representation / basis + „Date de contact” on ONE
+  page, as fo-02) · Detalii serviciu · Documente însoțitoare · Verificare · Livrare · (Notă de plată) · Confirmarea
+  depunerii. „Date de contact” = fo-02's: MNotify values = `verifiedPhoneHtml` / `verifiedValueHtml` + the FO
+  MNotify notice (`mnotifyInfoHtml`); a missing value = the FO editable field with the guest-form placeholder, no
+  hint. Steps use FO markup with own hooks: `[data-gh-step]`, `[data-gh-goto]`, `data-gh-next|prev|save` — never
+  `data-fo-*` (the FO listens on the document).
 
 **Reused components (no copies):** FO renderer `GEAPFormRender.fieldHtml` (searchable list = CAEM combobox
 with new optional `emptyTitle` / `emptyText` / `searchLabel`; segment; select; phone; textarea;
 cascade address), `createRegistryLookup` (exported: skeleton → read-only fill + flash; not found / MConnect
 down = field error, names editable + „Introdus manual”), FO role cards (`e-permits-fo-selected-role`),
-check options (Prin procură, reprezentant, reduceri), radio option rows (proces, livrare), FO doc fields +
+check options (Prin procură, reprezentant, reduceri), FO delivery option cards (`deliveryOptionHtml` = `deliveryOptionRow`, Livrare), FO summary rows
+(`summaryRowHtml`), the FO intent screen
+(`intentHtml` / `actRowHtml` / `intentNewHtml`, exported), FO doc fields +
 the FO document modal + `attachFileItem` / `attachMdocsItem` / `docIconHtml` / `docContentHtml`
 (exported), FO boxed doc field (Cererea semnată olograf), FO summary cards (Verificare, edit pen =
 `[data-gh-goto]`), FO invoice card (elements = name + `__fee-meta` lines account / reductions), FO
-finish hero / finish doc / summary rows (confirmation), BO stacked list + ⋮ (acts and decisions of the
-holder, post-process menu), `#case-action-modal` (remove with required reason, export Excel/CSV,
+finish hero / finish doc / summary rows (confirmation), `#case-action-modal` (remove with required reason, export Excel/CSV,
 MSign, history), `#dosar-detail-modal` A4 preview (paper request, signed JSON, certificate).
 
 **New glue (css/ghiseu.css):** `.e-permits-gh__inner` (FO layout vars), `__step-header`, `__lead`,
-`__basis`, `__acts` (bordered stack r16), `__doc` / `__doc-actions` (doc card + „👁 Detalii”),
+`__basis`, `__doc` / `__doc-actions` (doc card + „👁 Detalii”),
 `__sign`, `__retry`, `__pay-actions`, `__fee-name` / `__fee-meta`, `__finish`, `__progress`,
 `.e-permits-gh-sheet__header|__title|__meta|__saved|__actions|__buttons|__hint`, `.e-permits-gh-start__body`,
+`.e-permits-gh-start__form` (the modal rhythm), `.e-permits-gh-intent__screen` (intent screen in the sheet), `.e-permits-gh-sheet__footer[hidden]`,
 date-meta tones `.e-permits-gh__meta--warning|danger` in registry cells, nav masks for `dosare-noi`,
 `dosare-suspendate`, `acte-spre-eliberare`, `toate-dosarele`, phone registry layout for kind `ghiseu`.
 
@@ -5952,7 +5982,14 @@ field (selects, lists and check options get `is-error`).
 
 **Demo** (`gh-*`, as `ansp-ghiseu-chisinau`): params `mconnect=0`, `registru=asteptare`, `mdocs=0`,
 `msign=0|1`, `olograf=0|1`, `cert=0|1`, `msignerr=1`, `taxa=incompleta`, `depunere=eroare`,
-`certerr=1`, `gol=1`, `ghseed=1`. Drafts are kept in `localStorage["e-permits-ghiseu-v1"]` (cleared by
+`certerr=1`, `gol=1`, `ghseed=1`.
+**Demo data rule** (user 2026-10-15; top comment of `js/ghiseu.js`): any valid 13-digit IDNP / IDNO is found —
+the seed person / company, else a deterministic fake (first / last name from a 10-name pool by the last two
+digits; „SRL Demo <last 4>”); **9999999999999 = not found**; `?mconnect=0` = registry down; fewer than 13
+digits = „…are 13 cifre.”. Acts for the chosen service: a code starting with **0 has none**; any other code has
+the seed acts when defined for the service, else 2–3 generated (valabil, suspendat, + a „Decizie de respingere”
+within the appeal term when the last digit is even; numbers from the code). FO lookups (`fo-g*`) keep their
+own data. Drafts are kept in `localStorage["e-permits-ghiseu-v1"]` (cleared by
 demo links). `window.GEAPGhiseu` = state, route, go(step), fill(step), paid(), expire().
 
 ## 5. Removed from this document

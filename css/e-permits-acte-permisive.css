@@ -5100,6 +5100,11 @@
   padding: 0;
 }
 
+/* span-3: a quarter (Ghișeu: IDNP 6 + Nume 3 + Prenume 3 on one row, 2026-10-15) */
+.e-permits-fo-field--span-3 {
+  grid-column: span 3;
+}
+
 .e-permits-fo-field--span-4 {
   grid-column: span 4;
 }
@@ -5581,6 +5586,17 @@
 
 .e-permits-fo-caem__menu[hidden] {
   display: none;
+}
+
+/* a floating combobox menu (data-fo-float, fixed layer of the FO selects): the list shrinks to the room
+   the menu was given and scrolls inside */
+.e-permits-fo-caem__menu.is-floating {
+  margin-top: var(--spacing-0, 0);
+}
+
+.e-permits-fo-caem__menu.is-floating .e-permits-fo-caem__list {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .e-permits-fo-caem.is-open-up .e-permits-fo-caem__menu {
@@ -14914,6 +14930,18 @@
   padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-20, 20px) + var(--spacing-8, 8px) + var(--spacing-12, 12px));
 }
 
+/* the same lookup box without the leading magnifier (Ghișeu IDNP / IDNO, user 2026-10-15: plain code
+   inputs) — the text starts at the FO input padding (12, the library medium rule assumes the icon);
+   on the right: the submit, or the search clear × alone once the code is answered (.is-locked) */
+.e-permits-fo-field .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search:not(:has(.icon-search)) .input {
+  padding-left: var(--spacing-12, 12px);
+  padding-right: calc(var(--search-input-action-size) + var(--search-input-action-inset) + var(--spacing-12, 12px));
+}
+
+.e-permits-fo-field .e-permits-workplace__search.search-input.e-permits-fo-cadastral-search.is-locked:not(:has(.icon-search)) .input {
+  padding-right: calc(var(--spacing-20, 20px) + var(--search-input-action-inset) + var(--spacing-12, 12px));
+}
+
 /* US-54 SRRE lookup in progress: the label stays, the control is swapped for the FO input
    skeleton (.e-permits-fo-skeleton--input, same 40px height — no layout shift) */
 .e-permits-fo-field.is-srre-loading > :not(label):not([data-fo-srre-skeleton]) {
@@ -15578,6 +15606,7 @@
     grid-column: 1;
   }
 
+  .e-permits-fo-field--span-3,
   .e-permits-fo-field--span-4,
   .e-permits-fo-field--span-6,
   .e-permits-fo-field--span-8,
@@ -17628,88 +17657,20 @@
   padding: 0;
 }
 
-.e-permits-fo-intent-act {
-  align-items: center;
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  box-sizing: border-box;
-  display: flex;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-16, 16px);
-  position: relative;
+/* the act row = the shared document card (.e-permits-fo-lib-item: padding 12, radius 12, hover; grid
+   icon | title + tags / meta | action) — one renderer for FO #intent and the Ghișeu picker
+   (foActRowHtml, 2026-10-15). The row itself is not a button: no pointer; the selected row (a
+   post-process chosen at the desk) = the library card's brand ring. A locked row (post-process in
+   progress) shows the note under the meta. */
+.e-permits-fo-lib-item.e-permits-fo-intent-act {
+  cursor: default;
 }
 
-.e-permits-fo-auth__role-avatar.e-permits-fo-intent-act__avatar {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  color: var(--color-icon-base-secondary, #444);
+.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+  grid-column: 2;
+  grid-row: 3;
 }
 
-.e-permits-fo-intent-act__copy {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
-}
-
-.e-permits-fo-intent-act__heading {
-  align-items: center;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  min-width: 0;
-}
-
-.e-permits-fo-intent-act__name {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-24, 24px);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Figma's medium tag: 24px tall, 8px side padding */
-.status-tag.e-permits-fo-intent-act__tag {
-  flex: 0 0 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  height: 24px;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-8, 8px);
-}
-
-.e-permits-fo-intent-act__meta {
-  align-items: center;
-  color: var(--color-text-base-tertiary, #757575);
-  display: flex;
-  flex-wrap: wrap;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.e-permits-fo-intent-act__number {
-  color: var(--color-text-base-secondary, #383838);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
-.e-permits-fo-intent-act__dot {
-  align-items: center;
-  display: inline-flex;
-  height: 8px;
-  justify-content: center;
-  width: 8px;
-}
-
-.e-permits-fo-intent-act__dot::before {
-  background: currentColor;
-  border-radius: var(--border-radius-full, 999px);
-  content: "";
-  height: 3px;
-  width: 3px;
-}
 
 .e-permits-fo-intent-act__action {
   flex: 0 0 auto;
@@ -17800,61 +17761,34 @@
   outline: none;
 }
 
+/* opens above the trigger when the scrolling box has no room below (Ghișeu picker) */
+.e-permits-fo-intent-menu.is-open-up {
+  bottom: calc(100% + var(--spacing-6, 6px));
+  top: auto;
+}
+
+/* a post-process the act's status / term does not allow (Ghișeu): stays in place, greyed, focusable
+   — the tooltip says why; it keeps the hover band (hover rule) */
+.e-permits-fo-intent-menu__item[aria-disabled="true"],
+.e-permits-fo-intent-menu__item[aria-disabled="true"] .icon {
+  color: var(--color-text-disabled-default, #bfbfbf);
+  cursor: not-allowed;
+}
+
 /* ---- mobile (Figma 9290:42502) ---- */
 @media (max-width: 720px) {
   .e-permits-fo-intent {
     padding: 0 var(--spacing-16, 16px);
   }
 
-  /* icon + tag share the top row, then name, meta and a full-width button */
-  .e-permits-fo-intent-act {
-    display: grid;
-    gap: 0;
-    grid-template-areas:
-      "avatar tag"
-      "name name"
-      "meta meta"
-      "action action";
-    grid-template-columns: 1fr auto;
-  }
-
-  .e-permits-fo-intent-act__copy,
-  .e-permits-fo-intent-act__heading {
-    display: contents;
-  }
-
-  .e-permits-fo-intent-act__avatar { grid-area: avatar; }
-
-  .status-tag.e-permits-fo-intent-act__tag {
-    align-self: center;
-    grid-area: tag;
-  }
-
-  .e-permits-fo-intent-act__name {
-    grid-area: name;
-    margin-top: var(--spacing-12, 12px);
-    white-space: normal;
-  }
-
-  .e-permits-fo-intent-act__meta {
-    grid-area: meta;
-    margin-top: var(--spacing-8, 8px);
-  }
-
-  .e-permits-fo-intent-act__action {
-    grid-area: action;
-    margin-top: var(--spacing-12, 12px);
-  }
-
-  .btn.e-permits-fo-intent-act__trigger {
-    justify-content: center;
-    width: 100%;
+  /* phones: the document card puts the action under the text; a locked row's note comes first */
+  .e-permits-fo-intent-act.is-locked > .cab-doc__actions {
+    grid-row: 4;
   }
 
   .e-permits-fo-intent-menu {
     left: 0;
-    right: 0;
-    width: auto;
+    right: auto;
   }
 }
 

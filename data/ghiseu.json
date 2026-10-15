@@ -27,6 +27,7 @@
     "1012600000002": [
       { "id": "act-izvoras", "kind": "act", "service": "003000118", "name": "Cafeneaua „Izvoraș”, mun. Bălți", "nr": "ASF-2026-04521", "status": "valabil", "emis": "2025-09-15", "valabilPana": "2028-09-15", "subdiviziune": "CSP Bălți", "object": { "name": "Cafeneaua „Izvoraș”", "district": "Municipiul Bălți", "locality": "Bălți", "street": "str. Independenței", "house": "12", "postalCode": "MD-3100" } },
       { "id": "act-piata-mare", "kind": "act", "service": "003000118", "name": "Restaurantul „Piața Mare”, mun. Chișinău", "nr": "ASF-2025-11873", "status": "suspendat", "emis": "2025-04-02", "valabilPana": "2028-04-02", "subdiviziune": "CSP Chișinău", "object": { "name": "Restaurantul „Piața Mare”", "district": "Municipiul Chișinău", "locality": "Chișinău", "street": "str. Mitropolit Varlaam", "house": "63", "postalCode": "MD-2001" } },
+      { "id": "act-depozit", "kind": "act", "service": "003000118", "name": "Depozitul alimentar „Nord”, mun. Bălți", "nr": "ASF-2025-07734", "status": "valabil", "emis": "2025-07-10", "valabilPana": "2028-07-10", "subdiviziune": "CSP Bălți", "pending": { "type": "Reperfectare", "dossier": "C-2026-004733" } },
       { "id": "act-bistro", "kind": "act", "service": "003000118", "name": "Bistro „Colț”, or. Orhei", "nr": "ASF-2021-01877", "status": "expirat", "emis": "2021-03-02", "valabilPana": "2024-03-02", "subdiviziune": "CSP Orhei" },
       { "id": "dec-terasa", "kind": "decizie", "service": "003000118", "name": "Terasa „Parcul Central”, mun. Chișinău", "nr": "DR-2026-00412", "status": "respins", "emisZileInUrma": 12, "subdiviziune": "CSP Chișinău", "decizie": "Decizie de respingere" }
     ],
@@ -98,6 +99,7 @@
   },
   "mdelivery": { "name": "Livrare prin MDelivery", "amount": 50, "account": "MD52TR000000022500012345" },
   "drafts": [
+    { "id": "gh-4818", "nr": "C-2026-004818", "service": "003000118", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 1, "createdDays": 0, "createdTime": "08:40", "updatedHours": -0.5, "by": "self" },
     { "id": "gh-4812", "nr": "C-2026-004812", "service": "003000118", "requestType": "Emitere primară", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 3, "createdDays": -2, "createdTime": "09:40", "updatedHours": -1, "by": "self" },
     { "id": "gh-4790", "nr": "C-2026-004790", "service": "003000118", "requestType": "Prelungire", "act": "act-izvoras", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 5, "createdDays": -6, "createdTime": "11:05", "updatedHours": -26, "by": "self" },
     { "id": "gh-4771", "nr": "C-2026-004771", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2001002003004", "step": 7, "payment": "Emisă", "paymentDueDays": 5, "createdDays": -9, "createdTime": "14:20", "updatedHours": -50, "by": "self" },

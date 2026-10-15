@@ -781,3 +781,56 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   markup. „Tip persoană” is never empty (user rule): normalize the value from the service, never validate it. The
   FO hides `.e-permits-fo-selected-role__change` ≤ 720 (its identity changes from the avatar menu) — any reuse outside
   the FO must bring it back, or a phone demo state fails with „not found” (capture's DEMO-ERROR caught it).
+- 2026-10-15 · A list inside a dialog (the FO searchable list / CAEM combobox) is cut by the modal body: give the field
+  `float: true` → `data-fo-float` → the FO fixed list layer `positionFloatingSelectList` (flips up, follows scroll /
+  resize, reset on close). Never raise z-index or unclip the modal. A × inside an FO input = copy the library search
+  clear exactly (`.btn-group > .btn-icon.clear`, 20 round tertiary, inset 4) — an unstyled `.btn-icon` is a 40px blob.
+- 2026-10-15 · Ghișeu picker round 4 (user): 2 steps in the create-drawer step strip (`renderStepStrip`, now exported
+  on `GEAPShellApi`) — „copy the stepper” means the same strip with its own padding and the header [divider] strip
+  [divider] body structure; the library modal header has no divider, so the strip draws the top one. Dialog height
+  = hug the content up to `100dvh − 2 × 24`; a height change glides with `el.animate()` from the measured old height
+  (nothing left inline; skip with reduced motion) — a fixed height was rejected. Under lookup fields keep only status
+  lines (found / manual / errors), never helper hints; hide `:empty` hints so they take no room.
+- 2026-10-15 · Same UI in two places = one renderer, exported: the act row (FO #intent + Ghișeu) is the document card
+  `.e-permits-fo-lib-item` + pill menu via `GEAPFormRender.actRowHtml(act, opts)`; the FO-only card CSS was deleted
+  (the old `.e-permits-fo-intent-act` card rules came later in the file and would have overridden the doc card's
+  padding / radius — when you re-skin with an existing component, delete the old rules, don't stack them). BO
+  callers pass `menuClass: "e-permits-stack__menu"` for the BO menu size. When a menu lives in a scrolling dialog,
+  open it up if the scroll box has no room below; catch Esc in a window capture listener (js/modal.js listens on the
+  document in capture and would close the whole dialog).
+- 2026-10-15 · Demo data rule (user): any 13 digits answer (seed or a deterministic fake from the digits), one
+  reserved not-found code (9999999999999), first digit 0 = no acts. States that relied on „random code = not found”
+  had to move to the reserved code — grep the demo states for every code when a lookup rule changes.
+- 2026-10-15 · REJECTED designs (same day, user): (a) the 2-step „Dosar nou” modal with the drawer step strip, (b) a
+  selected state on the act row with a „Postproces ales” band + ×. Final: the small modal is ONE screen (service +
+  applicant); Continuă opens the request window on the FO intent screen (shared `GEAPFormRender.intentHtml`), and a
+  choice there STARTS the request (no intermediate selected state; „Schimbă procesul” in ⋮ with a confirm). Lesson:
+  when the FO already has a screen for a decision, reuse the screen and its behaviour (choice = go on) instead of
+  inventing a picker-with-selection; ask „does the FO do this?” before building a selection state. Keep risky global
+  changes (the shared strip's colours) out until the design settles — they were reverted with the stepper.
+- 2026-10-15 · Lookups = the „Cod cadastral” search input with its submit (explicit search, disabled until 13 digits,
+  `.loading` spinner, then the search clear ×). `setGuestFieldError` now also marks a `.search-input` box `is-error`.
+  A 13-digit code + search icon + submit needs ≥ span-6 in a 720 modal (span-4 clipped the digits) → code 6 + names
+  3 / 3 (`.e-permits-fo-field--span-3` added to the FO grid). The modal rhythm = flex/grid gaps only (24 / 12 / 16),
+  FO section title padding + divider and body padding switched off inside the modal.
+- 2026-10-15 · BUG (user): „Solicitare nouă” on the intent screen reopened the small modal — its hook `data-gh-new` was
+  also the registry's „Dosar nou” hook, caught by a document-level listener. Never reuse a data-attribute name for a
+  second meaning in the same module; grep the hook before naming it. Test the real click path with a probe
+  (fill → Continuă → choice → close → reopen), not only the demo states (the demo for this path used the same
+  attribute and still „passed” at the wrong screen until the ready selector caught it).
+- 2026-10-15 · Rule (user: „just take from full flow, those should be components anyway”): every Ghișeu piece that
+  exists in the FO calls the FO renderer — export it from `GEAPFormRender` with small options (changeAttrs /
+  extraHtml) instead of copying markup. Done: intent screen, act rows, role card + group title, summary row,
+  delivery option card, fields, documents. FO pieces still inline inside bigger FO functions (invoice card, finish
+  hero / finish doc, summary section header) need extracting in the FO first — then swap the Ghișeu copies.
+- 2026-10-15 · A search-input box without the leading icon still gets the library's medium `padding-left: 40`
+  (it assumes the icon): add the `:not(:has(.icon-search))` variant with the FO input padding (12).
+- 2026-10-15 · Ghișeu window = the FO step page inside a modal (user): FO h1 header without a lead, FO page width /
+  sidebar / gutter untouched (custom `--fo-page-width` / `--fo-sidebar-width` / `--fo-page-gutter` moved the column
+  20px), the FO step footer at the end of the step (exported `stepFooterHtml`) instead of a sticky window footer,
+  the FO draft status in the header (`draftStatusHtml`), identity + representation + contact on one step like fo-02.
+  Verify with a geometry probe against fo-02/03/05 (stepper x/w, content x/w, h1, section h2, body gaps, footer
+  buttons) — the numbers make „looks like FO” checkable.
+- 2026-10-15 · CSS cut by start/end markers in a long file removed ~290 lines (the end marker existed only far below
+  after an earlier edit moved things). Before cutting by markers, print the span (line numbers) and check its size;
+  after any cut, diff the removed selectors against HEAD.

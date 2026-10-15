@@ -50,43 +50,13 @@
 
 /* ---- the request sheet: the FO request layout inside the full-screen modal ---- */
 .e-permits-gh .e-permits-gh__inner {
-  --fo-page-width: 1120px;
-  --fo-sidebar-width: 240px;
+  /* the FO page width, sidebar and gutter as they are (fo-02…); only the FO sticky header is absent */
   --fo-header-height: var(--spacing-0, 0);
-  --fo-page-gutter: var(--spacing-16, 16px);
   padding-top: var(--spacing-8, 8px);
 }
 
 .e-permits-gh .e-permits-gh__form {
   padding-top: var(--spacing-32, 32px);
-}
-
-.e-permits-gh .e-permits-gh__step-header h2 {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-24, 24px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-32, 32px);
-}
-
-.e-permits-gh .e-permits-gh__step-header h2:focus {
-  outline: none;
-}
-
-.e-permits-gh__lead {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-/* every section after another: the FO rhythm (the FO puts the gap in the section body) */
-.e-permits-gh .e-permits-fo-form__section + .e-permits-fo-form__section,
-.e-permits-gh .e-permits-fo-form__section + .e-permits-fo-form__roles,
-.e-permits-gh [data-gh-block] + [data-gh-block] {
-  margin-top: var(--spacing-8, 8px);
-}
-
-.e-permits-gh .e-permits-fo-form__roles {
-  margin-bottom: var(--spacing-24, 24px);
 }
 
 .e-permits-gh .e-permits-fo-form__section > .e-permits-info-note,
@@ -109,11 +79,6 @@
   display: contents;
 }
 
-.e-permits-gh .e-permits-gh__acts {
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-}
-
 /* the service list in error (the FO searchable list mirrors the FO select) */
 .e-permits-gh .e-permits-fo-caem.is-error .e-permits-fo-caem__button {
   border-color: var(--color-border-danger-default, #d92d20);
@@ -121,11 +86,6 @@
 
 .e-permits-gh .e-permits-check-options.is-error .e-permits-check-option {
   box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20);
-}
-
-/* the × that resets an identified code: the clear button's own colour, not the read-only green check */
-.e-permits-gh .e-permits-fo-input.is-readonly .btn-icon.clear .icon {
-  color: var(--color-icon-base-secondary, #383838);
 }
 
 /* Verificare: notes, documents with their actions, sign row, retry */
@@ -301,17 +261,49 @@
 }
 
 /* ---- the two dialogs (user, 2026-10-15) --------------------------------------------------
-   Picker (#gh-start-modal) = library modal--lg (720: IDNO + company / IDNP + names on one row): service, applicant, process, permit; on phones the standard bottom sheet.
+   Picker (#gh-start-modal) = library modal--lg (720: IDNO + company / IDNP + names on one row): service +
+   applicant on one screen; on phones the standard bottom sheet.
    Request (#gh-request-modal) = library modal--fullscreen as a sheet: 24 from the top, full
    width, rounded top corners (radius 16 = the Form Builder sheet), header · scrolling body ·
    sticky footer. It sits under the library dialogs (z 990 < 1000) so confirmations, the
    document modal and previews open above it. */
-.e-permits-gh-start__body .e-permits-fo-form__section:first-child > h2 {
-  padding-top: var(--spacing-0, 0);
+/* the picker's one rhythm (user 2026-10-15, „Tailwind style” — stacks with gap, no per-element margins):
+   body 24 top/bottom (the full-height modals' body) · 20 sides (= the header gutter);
+   section → section 24 · section title → first field 12 · field → field 16 (rows and columns);
+   label → input 8 and input → hint / error stay the FO field's own rule. The FO section's title
+   padding + divider and its body padding (24 / 32) are the full-page form's rhythm: off here. */
+.e-permits-gh-start__modal .e-permits-gh-start__body {
+  padding: var(--spacing-24, 24px) var(--spacing-20, 20px);
 }
 
-.e-permits-gh-start__body .e-permits-fo-form__section-body {
-  padding-bottom: var(--spacing-24, 24px);
+.e-permits-gh-start__form,
+.e-permits-gh-start__form > [data-gh-block] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+}
+
+.e-permits-gh-start__form > [data-gh-block][hidden] {
+  display: none;
+}
+
+.e-permits-gh-start__form .e-permits-fo-form__section {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-gh-start__form .e-permits-fo-form__section > h2 {
+  border-bottom: 0;
+  padding: var(--spacing-0, 0);
+}
+
+.e-permits-gh-start__form .e-permits-fo-form__section-body {
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-0, 0);
+}
+
+/* a lookup group repeats the section grid: same 16 */
+.e-permits-gh-start__form .e-permits-fo-field-group {
+  gap: var(--spacing-16, 16px);
 }
 
 .e-permits-gh-sheet-overlay {
@@ -386,23 +378,6 @@
   gap: var(--spacing-8, 8px);
 }
 
-.e-permits-gh-sheet__buttons {
-  align-items: center;
-}
-
-.e-permits-gh-sheet__buttons [data-gh-prev],
-.e-permits-gh-sheet__buttons [data-gh-goto],
-.e-permits-gh-sheet__buttons [data-gh-close-sheet] {
-  margin-right: auto;
-}
-
-.e-permits-gh-sheet__hint {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-}
-
 @media (max-width: 680px) {
   /* the picker = the standard mobile bottom sheet */
   .e-permits-gh-start {
@@ -428,36 +403,12 @@
     padding: var(--spacing-16, 16px) var(--spacing-56, 56px) var(--spacing-12, 12px) var(--spacing-16, 16px);
   }
 
-  /* footer buttons stay side by side in the sheet (the library stacks them ≤680) */
-  .e-permits-gh-sheet .e-permits-gh-sheet__buttons {
-    flex-direction: row;
-  }
-
-  .e-permits-gh-sheet .e-permits-gh-sheet__buttons .btn {
-    flex: 1 1 0;
-    width: auto;
-  }
-
-  .e-permits-gh-sheet__hint {
-    display: none;
-  }
 }
 
-/* the sheet keeps one divider under the header and one above the footer at all times: the
-   library scroll hairlines on the body and the fullscreen buttons' own border would double them */
+/* one divider under the header: the library scroll hairlines on the body would double it */
 .modal.e-permits-gh-sheet .e-permits-gh-sheet__body {
   border-bottom-width: 0;
   border-top-width: 0;
-}
-
-.modal.e-permits-gh-sheet .e-permits-gh-sheet__footer {
-  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-}
-
-.modal.e-permits-gh-sheet .e-permits-gh-sheet__buttons {
-  border-top: 0;
-  padding: var(--spacing-0, 0);
-  position: static;
 }
 
 /* header meta: each part carries its dot in its own left padding; the row is shifted left and
@@ -491,27 +442,6 @@
   row-gap: var(--spacing-4, 4px);
 }
 
-/* the post-process choice under the permits list (Solicitant step) */
-.e-permits-gh .e-permits-gh__pp {
-  margin-top: var(--spacing-8, 8px);
-}
-
-/* a post-process the permit's status does not allow: disabled option row, the reason in its
-   description and in the tooltip (no hover band: the FO rule already skips disabled inputs) */
-.e-permits-gh .e-permits-fo-radio--option.is-disabled {
-  cursor: not-allowed;
-}
-
-.e-permits-gh .e-permits-fo-radio--option.is-disabled strong,
-.e-permits-gh .e-permits-fo-radio--option.is-disabled .e-permits-fo-radio__copy-desc {
-  color: var(--color-text-base-disabled, #b2b2b2);
-}
-
-.e-permits-gh .e-permits-fo-radio--option.is-disabled .e-permits-fo-radio__control {
-  background: var(--color-background-base-disabled, #f1f1f1);
-  border-color: var(--color-border-base-disabled, #d9d9d9);
-}
-
 /* scrollIntoView (a focused error, a hovered option) must scroll the body, never the dialog box itself:
    the library modal is overflow: hidden, which is still scrollable by script — clip instead */
 .modal.e-permits-gh-sheet,
@@ -519,30 +449,7 @@
   overflow: clip;
 }
 
-/* a disabled option still answers the pointer (it carries the reason tooltip): the FO grey band */
-.e-permits-gh .e-permits-fo-radio--option.is-disabled:hover::before {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* ---- „Dosar nou” picker, 3rd round (user 2026-10-15): 1 Serviciul · 2 Solicitantul · 3 Procesul · 4 Actul
-   — quiet numbered headings (the FO stepper number look), the next section revealed once its input exists */
-.e-permits-gh-start__num {
-  align-items: center;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: var(--border-radius-full, 9999px);
-  color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  height: var(--spacing-24, 24px);
-  justify-content: center;
-  line-height: var(--line-height-lh-16, 16px);
-  margin-right: var(--spacing-8, 8px);
-  vertical-align: text-bottom;
-  width: var(--spacing-24, 24px);
-}
-
+/* a block that appears (the identification once the service is chosen) slides in */
 .e-permits-gh__reveal {
   animation: e-permits-gh-reveal 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)) backwards;
 }
@@ -560,28 +467,48 @@
   }
 }
 
-/* the holder's permits in the picker: compact, about five rows, the rest scrolls */
-.e-permits-gh-start__body .e-permits-gh__acts {
-  max-height: calc(var(--spacing-80, 80px) * 5);
-  overflow-y: auto;
-}
-
-/* the post-process options: two columns of compact option rows (the FO radio group keeps 32 between
-   the big „Pentru cine” cards) */
-.e-permits-gh .e-permits-gh__pp-options {
-  gap: var(--spacing-4, 4px) var(--spacing-16, 16px);
-}
-
-@media (max-width: 680px) {
-  .e-permits-gh .e-permits-gh__pp-options .e-permits-fo-radio--span-6 {
-    grid-column: span 12;
-  }
-}
-
 /* the FO hides „Schimbă” on phones (its identity switches from the avatar menu); at the desk it is the
    only way back to the picker's identity, so it stays */
 @media (max-width: 760px) {
   .e-permits-gh .e-permits-fo-selected-role__change {
     display: inline-flex;
+  }
+}
+
+/* ---- „Dosar nou” = one screen (user 2026-10-15): header · scrolling body · footer. The dialog hugs
+   its content up to 24 from the viewport's top and bottom; beyond that only the body scrolls (header
+   and footer stay). A height change (a block appears) animates from the old height (ghiseu.js
+   animateStartHeight; none with reduced motion). */
+.modal.e-permits-gh-start__modal {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--spacing-24, 24px) * 2);
+}
+
+.e-permits-gh-start__modal .e-permits-gh-start__body {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* the lookup fields keep only status lines (found / manual / errors): an empty hint takes no room */
+.e-permits-gh .e-permits-fo-field__hint:empty {
+  display: none;
+}
+
+@media (max-width: 680px) {
+  .modal.e-permits-gh-start__modal {
+    max-height: calc(100dvh - var(--spacing-24, 24px));
+  }
+
+  /* footer buttons side by side (as in the request sheet): the list keeps its room */
+  .e-permits-gh-start__modal .modal-buttons {
+    flex-direction: row;
+  }
+
+  .e-permits-gh-start__modal .modal-buttons .btn {
+    flex: 1 1 0;
+    width: auto;
   }
 }
