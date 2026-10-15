@@ -76,6 +76,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | date-input / checkbox-label | `244:20250` / `1228:33646` | date: Label + Assistive Text props; checkbox: Mode Checked/Unchecked |
 | Modal (local) | `10136:657` | Tip=Confirmare (Titlu, Mesaj, 2 btns) · Tip=Conținut (Titlu, Subtitlu, `Conținut` INSTANCE_SWAP) |
 | EVO Cabinet local components | frame `11100:288632` on FO Full Flows 09 | `Cabinet / Antet` 11100:289066 · `Cabinet / Antet mobil` 11153:262259 · `Cabinet / Dosar card` 11100:289564 (+ mobil 11155:50155, static 11152:303548) · `Cabinet / Serviciu card` 11105:290265 · `Cabinet / Marcaj` 11100:289209 · `Cabinet / Meniu acțiuni` 11118:297930 · `Cabinet / Meniu · Sortează` 11118:293504 · `Modal conținut / Filtre solicitări · …` 11152:303710 / 304028 |
+| Instance switcher (local, 2026-10-15) | GEAP set `11536:8013`, menu `11535:6128` | header trigger FO/BO × Desktop/Mobile × Default/Hover/Open; menu = native SLOT „Content”; items profile `11532:7890` / role `11532:8016` / more `11532:8125`; FOD set 839:11429, Cabinet 1014:7391; builders tools/figma/instance-switcher/ |
 | Icons (Foundations keys) | — | 20/download e6dd0e97… · 20/arrow-left f9c5634d… · 20/external-link 8df5d4b1… · 20/edit bef76865… · 20/credit-card aca711a4… · EVO 20/refresh caca3c5f… · central sets: trash b5e9b87b…, file-text 032cdf84…, user-circle 7f8dfe57… |
 
 ## Rules (from the user — never break)
@@ -973,3 +974,38 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     2-line identifiers as rendered. At 375 the toolbar overflows (Creează proces off-screen) — BO mobile is not designed.
   - No Agent tool in this session → ran figma-audit.js on W01 / W01a myself; leftovers are the shared gov-bar clone (egov-logo
     absolute, #000 text with no token) and intentional mobile scroll clips.
+
+- 2026-10-15 · Header instance switcher as a component with a native slot (code 34867704; fo-01s / sm-01s / auth-05) — scripts
+  tools/figma/instance-switcher/* (README lists run order + ids). GEAP: `Instance switcher` 11536:8013 (Context FO/BO × Type
+  Desktop/Mobile × State Default/Hover/Open, props Name / Detail / Show menu, exposed Avatar + Menu), `Instance switcher · menu`
+  11535:6128 (SLOT „Content”), `… · profile` 11532:7890, `… · role` 11532:8016, `… · more` 11532:8125; copies in FOD (set 839:11429)
+  and EVO Cabinet (set 1014:7391). Swapped: GEAP 493 old-trigger instances + `.temp` main (116+ headers) + 36 raw BO
+  `shell__user-trigger` frames + `Header` mobile main (71); FOD 20 headers; Cabinet 13 triggers + 10 mobile headers; open screens
+  FO F1d/F1e/F1f/F2f/F2g/F2i (+ mobiles), Requestor S1/S2, BO Shell 02a/02b/02c/04, Workplace 05/05a, FOD S1/S2.
+  - **Native slots work through nesting**: `component.createSlot()` → a SLOT property; an instance of the menu nested (exposed) in
+    the trigger, nested again in a header instance, still exposes the SLOT node — `slot.appendChild()` / child `remove()` on the
+    screen fill it. `setProperties` can't touch SLOT props. Test the mechanic on a scratch component first (5 lines, then delete).
+  - **Shadow spread (the focus ring) renders only on frames that clip content.** A trigger whose Open menu hangs outside can't
+    clip → root = transparent unclipped frame, the visible button = inner clipping „Trigger” frame with the fill / radius / ring.
+    Old GEAP Focus variants had the ring style but never showed it for this reason.
+  - Open menus inside a header need: no clipping on the header branch AND the branch painting above the content after it
+    (`itemReverseZIndex = true` on the vertical stack when the header is its first VISIBLE flow child — hidden captured header
+    layers before it fooled a „first child” test on F2f). Both are overridable on instances of remote headers (FOD `.temp`).
+  - **`resetOverrides()` on a NESTED instance also removes its instance-swap override** — the 20 FOD header swaps silently
+    reverted (GEAP survived only because the `.temp` main was swapped too). Reset only top-level instances (`!id.includes(";")`).
+  - `getInstancesAsync()` returns instances nested in other instances too (FO Full Flows: 63, not the 1 the first census showed),
+    and in FOD / Cabinet it also returns the instance inside a REMOTE main's cached definition (read-only — leave it).
+  - FOD and EVO Cabinet consume GEAP's PUBLISHED `.temp`, `.role-switch-item/general` and mobile `Header` (same keys) → swaps there
+    are per-instance overrides on remote instances; they persist when GEAP publishes. Local components still have to be copied.
+  - Mobile Figma headers (library header-evo-mobile) have no menu button, the avatar sits at the content edge → Type=Mobile Open
+    menu right edge = trigger right (16 from the screen at 375), unlike the code (+40 button +16 gap). Library avatar inside a
+    remote header can't be replaced → closed/open switcher placed ABSOLUTE in the screen (or the local header main) over it, avatar
+    hidden. Old „full-page” mobile menus were rebuilt from the closed mobile page of the same step (clone → overlay), then the
+    column restacked (F2f mobile 812 → 1021 pushed F2g/F2h/F2i +177).
+  - Measure the code DOM before building (`menu-dom.mjs`): BO trigger is 54 high with a 12/16 role line, FO 52 with 14/20 → a
+    Context variant, not overrides. Accepted gaps (in descriptions): BO role cards 56 vs 58 (code pads 9/13 for the selected 2px
+    border), avatar-stack overlap −8 (no negative token), logout / settings icons 20 vs 24, BO role icons = person for all roles.
+  - Long builders: keep the shared prelude in `figma.root` shared plugin data during the job (`isw/lib`, run with AsyncFunction),
+    clear it at the end; `const page` in the prelude collides with a caller's `page` (rename to `fpage`).
+  - Agent tool not available again → figma-audit.js on the components (only holder paddings + the −8 overlap) and a geometry
+    check on every open screen (menu right Δ0, gap 8, menu inside the screen).
