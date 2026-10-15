@@ -1937,7 +1937,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const st = getFilterState(kind);
     try { window.sessionStorage.setItem(filterStorageKey(kind), JSON.stringify({ open: st.open, applied: st.applied })); } catch { /* private mode: session only */ }
   };
-  const facetsOf = () => FILTER_FACETS[registryKindOf()] || [];
+  /* a registry a module plugs in (window.GEAPShellRegistries[kind].facets) brings its own facets */
+  const facetsOf = () => FILTER_FACETS[registryKindOf()] || productRegistry(registryKindOf())?.facets || [];
   const appliedEntries = () => Object.entries(getFilterState().applied).filter(([, values]) => values?.length);
   const matchesFacets = (row, except = null) => appliedEntries().every(([key, values]) => {
     if (key === except) return true;
@@ -7021,6 +7022,9 @@ document.addEventListener("DOMContentLoaded", () => {
     shell.classList.remove("is-user-profile-open", "is-dosar-profile-open", "is-role-profile-open", "is-users-registry", "is-service-profile-open", "is-ntpl-profile-open");
     document.querySelectorAll("[data-ntpl-profile], [data-ntpl-profile-back-shell], [data-clas-profile], [data-clas-profile-back-shell]").forEach((panel) => { panel.hidden = true; });
     shell.classList.remove("is-clas-profile-open");
+    /* pages a module draws into the workspace (js/ghiseu.js) */
+    document.querySelectorAll("[data-shell-module-page]").forEach((page) => { page.hidden = true; });
+    shell.classList.remove("is-module-page-open");
 
     if (serviceProfileBackShell) {
       serviceProfileBackShell.hidden = true;
@@ -7447,7 +7451,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* „Editează” always carries the pen (user, 2026-10-09); other labels stay text */
   /* labelled row actions always carry their icon (user 2026-10-14): Editează = pen,
      Configurează = settings, Previzualizează = eye */
-  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open" };
+  const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open", "Continuă": "edit" };
   const actionLabelHtml = (label) => ACTION_ICONS[label]
     ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${ACTION_ICONS[label]}"></use></svg><span>${escapeHtml(label)}</span>`
     : escapeHtml(label);
@@ -18524,6 +18528,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       /* „Vezi schema fluxului” (#flux/<id>): the Process Designer opens it view-only */
       if (/^#flux\//.test(hash)) return;
+      /* pages a module owns (#ghiseu/… — js/ghiseu.js): each route returns true when it handled the hash */
+      if ((window.GEAPShellRoutes || []).some((route) => route(hash))) return;
       let match = hash.match(/^#dosar\/([^/]+)(?:\/([^/]+))?$/);
       const linkedRow = match && getDosarById(match[1]);
       if (linkedRow) {
@@ -18741,6 +18747,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (item.dataset.shellView === "ntpl-registry") {
         showServiceRegistry("ntpl", item.dataset.navLabel || "Șabloane de notificare");
+      }
+      /* any other registry a module plugs in (Dosare noi — js/ghiseu.js): shellView "<kind>-registry" */
+      const pluginKind = /^(.+)-registry$/.exec(item.dataset.shellView || "")?.[1];
+      if (pluginKind && pluginKind !== "flows" && window.GEAPShellRegistries?.[pluginKind]?.build) {
+        showServiceRegistry(pluginKind, item.dataset.navLabel || item.textContent.trim());
       }
 
       if (item.dataset.shellView === "classifiers-registry") {
@@ -19507,8 +19518,9 @@ document.addEventListener("DOMContentLoaded", () => {
     syncExpandedState();
   });
 
-  /* the engine a product page builds on (see „Product mode” at the top) */
-  if (product?.init) {
+  /* the engine a product page builds on (see „Product mode” at the top); modules read the
+     same object as window.GEAPShellApi (js/ghiseu.js) */
+  {
     const showProductRegistry = (db, { viewKey = null, sortKey = null, sortDirection = "desc" } = {}) => {
       hideProfilePanels();
       if (permitsProfilePanel) permitsProfilePanel.hidden = true;
@@ -19540,7 +19552,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dosarProfilBackShell) dosarProfilBackShell.hidden = false;
       shell.classList.add("is-dosar-profile-open");
     };
-    product.init({
+    const shellApi = {
       shell, escapeHtml, renderTag, renderDateTime, formatLongDate, formatStamp, formatTime,
       renderPageHeaderTop, renderPageHeaderMeta, renderPageHeaderTabCount, watchPageHeaderMeta,
       renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions,
@@ -19552,8 +19564,12 @@ document.addEventListener("DOMContentLoaded", () => {
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */
       setRegistryFilters: (kind, applied) => { getFilterState(kind).applied = { ...applied }; saveFilterState(kind); },
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
-      els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody, dosarProfilBackShell }
-    });
+      els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody, dosarProfilBackShell },
+      /* for modules: the service passport and its settings (US-221), the signed-in user */
+      getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs
+    };
+    if (product?.init) product.init(shellApi);
+    window.GEAPShellApi = shellApi;
   }
 
   setupNavTooltips();

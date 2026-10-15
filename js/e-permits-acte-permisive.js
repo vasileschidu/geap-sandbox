@@ -2104,11 +2104,13 @@
        preset (a repeatable block) draws the exact same markup; the defaults are the old texts and
        ids, so step 2 renders as before. */
     /* the CAEM list's „no match” = the shared empty state, bare + compact (inside a list) */
-    function caemEmptyHtml() {
-      return window.GEAPEmptyState.noResults("Niciun cod CAEM găsit", { text: "Caută după cod sau după descriere.", bare: true, compact: true });
+    function caemEmptyHtml(title = "Niciun cod CAEM găsit", text = "Caută după cod sau după descriere.") {
+      return window.GEAPEmptyState.noResults(title, { text, bare: true, compact: true });
     }
 
-    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [] } = {}) {
+    /* emptyTitle / emptyText / searchLabel: a searchable list of something else (the desk's
+       „Denumirea serviciului”, js/ghiseu.js); the defaults keep the CAEM markup byte-identical */
+    function caemFieldHtml({ id = "fo-caem-code", label = "Codul CAEM", required = true, placeholder = "Selectează cod CAEM", options = [], emptyTitle, emptyText, searchLabel = "Caută după cod sau descriere" } = {}) {
       return `
           <div class="e-permits-fo-field">
             ${labelHtml(id, { label, required })}
@@ -2118,9 +2120,9 @@
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
               </button>
               <div class="e-permits-fo-caem__menu" id="${escapeFrontOfficeHtml(id)}-menu" data-fo-caem-menu hidden>
-                <div class="e-permits-fo-caem__search"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="Caută după cod sau descriere" aria-label="Caută după cod sau descriere" data-fo-caem-search></div>
+                <div class="e-permits-fo-caem__search"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg><input type="search" placeholder="${escapeFrontOfficeHtml(searchLabel)}" aria-label="${escapeFrontOfficeHtml(searchLabel)}" data-fo-caem-search></div>
                 <ul class="e-permits-fo-caem__list" id="${escapeFrontOfficeHtml(id)}-list" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" data-fo-caem-list>${options.map(caemOptionHtml).join("")}</ul>
-                <div data-fo-caem-empty hidden>${caemEmptyHtml()}</div>
+                <div data-fo-caem-empty hidden>${caemEmptyHtml(emptyTitle, emptyText)}</div>
               </div>
             </div>
           </div>`;
@@ -2164,7 +2166,7 @@
 
     /* a searchable list (Listă derulantă with „Căutare”): the CAEM combobox on its own */
     function comboboxFieldHtml(field) {
-      const html = caemFieldHtml({ id: fieldId(field.id), label: field.label || "", required: Boolean(field.required), placeholder: field.placeholder || "Selectează", options: field.options || [] });
+      const html = caemFieldHtml({ id: fieldId(field.id), label: field.label || "", required: Boolean(field.required), placeholder: field.placeholder || "Selectează", options: field.options || [], emptyTitle: field.emptyTitle, emptyText: field.emptyText, searchLabel: field.searchLabel });
       return html.replace('<div class="e-permits-fo-field">', `<div class="${fieldClass(field)}">`);
     }
 
@@ -8562,6 +8564,14 @@
       /* the FO field error (library inline message, hint hidden; "" clears) and the copy button */
       setFieldError: setGuestFieldError,
       copyValueHtml: copyValueButtonHtml,
+      /* the desk wizard (js/ghiseu.js): the same registry lookup and document cards as the FO */
+      createRegistryLookup,
+      setRegistryValue,
+      docIconHtml: foDocIconHtml,
+      docContentHtml: foDocContentHtml,
+      summaryDocsHtml: foSummaryDocsHtml,
+      attachFileItem: foDocAttachFileItem,
+      attachMdocsItem: foDocAttachMdocsItem,
       schemaReady: () => Promise.resolve(frontOfficeSchemaLoadPromise),
       setModalHidden: setMotionModalHidden,
       demoFlow

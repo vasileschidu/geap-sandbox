@@ -24,6 +24,15 @@
           "iconAsset": "assets/icons/sidebar-folder-shared.svg"
         },
         {
+          "id": "ansp-ghiseu-chisinau",
+          "roleId": "operator-ghiseu",
+          "roleLabel": "Specialist ghișeu",
+          "instanceLabel": "CSP Chișinău",
+          "headerMeta": "Specialist ghișeu • Chișinău",
+          "menuProfile": "ghiseu",
+          "iconAsset": "assets/icons/sidebar-folder-shared.svg"
+        },
+        {
           "id": "ansp-supervisor-chisinau",
           "roleId": "supervisor",
           "roleLabel": "Supervizor",
@@ -146,6 +155,38 @@
         }
       ]
     },
+    "ghiseu": {
+      "ariaLabel": "Locul de muncă specialist ghișeu",
+      "defaultItemId": "dosare-noi",
+      "groups": [
+        {
+          "label": "Locul de muncă",
+          "items": [
+            {
+              "id": "dosare-noi",
+              "label": "Dosare noi",
+              "shellView": "ghiseu-registry",
+              "badge": 0
+            },
+            {
+              "id": "dosare-suspendate",
+              "label": "Dosare suspendate",
+              "shellView": "role-placeholder"
+            },
+            {
+              "id": "acte-spre-eliberare",
+              "label": "Acte spre eliberare",
+              "shellView": "role-placeholder"
+            },
+            {
+              "id": "toate-dosarele",
+              "label": "Toate dosarele",
+              "shellView": "role-placeholder"
+            }
+          ]
+        }
+      ]
+    },
     "central-admin": {
       "ariaLabel": "Administrare centrală",
       "defaultItemId": "users",
@@ -153,6 +194,12 @@
         {
           "label": "Locul de muncă",
           "items": [
+            {
+              "id": "dosare-noi",
+              "label": "Dosare noi",
+              "shellView": "ghiseu-registry",
+              "badge": 0
+            },
             {
               "id": "work-in-progress",
               "label": "Dosarele în lucru",
