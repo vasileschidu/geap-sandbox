@@ -683,3 +683,5 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-15 · No sub-agent tool → ran code-audit + hover-audit myself (scoped: FO page, doc modal, dossier panel,
   rt drawer, Cabinet). Leftovers = standing FPs (FO-specific buttons, copy-code, 18px composite gap — the reference
   stack meta is flagged for the same 18, label `padding-right: 18` from 2026-10-14).
+
+- 2026-10-15 (user, repeated many times): every „Exportă …” action (table toolbar, menus, JSON export in builders) uses the sprite `icon-export` (arrow over tray, central „arrow-inbox, download”), never `download`. Grep for `Exportă` + `download` before shipping any export button.
