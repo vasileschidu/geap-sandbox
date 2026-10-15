@@ -716,3 +716,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   desktop shot alone looked right. Hover-audit on the open menu found the selected role and „Ieșire” with no hover
   (hover = rest colour) → option-card rule (brand-secondary-hover) / tertiary-hover. Concurrent px→token agent in
   the same CSS: kept my edits as asserted (old → new) pairs in one script and staged HEAD + those pairs.
+- 2026-10-15 · „Configurare flux resets the flow” (user): the panel's `apply()` called `applyFrontOfficeSchema`
+  (redraws every step + `frontOfficeGuest = null`) and then routed to the picker / gate — every option wiped the
+  answers and sent the user to the start. Fix = ONE router in the panel: read the position (screen + step), patch
+  only the schema keys the panel owns on the LIVE schema (no step redraw), then route back: same step → last step
+  before it → first; configurations without a wizard for this user PARK the step and the next allowing change
+  resumes it. Mode switches (MPass ⇄ guest) redraw only the steps that differ (3 / 5 / 7) through
+  `rerenderFoStepsKeeping` (moves the attached-file DOM nodes, restores radios / checkboxes / text by
+  name+value or id). Test panels must mirror the page's real state (`syncFromPage`): a guest reached via #guest
+  while the panel said „Autentificat / Necesară” was signed in / sent to the gate by an unrelated option.
+- 2026-10-15 · Redrawing one block inside a step: `initFrontOfficeDynamicControls(root)` only matches
+  descendants (`root.querySelectorAll`) — for a replaced block call the binders on the node itself
+  (`initCascadeAddress(node)`) and refill through the component's own API (`searchRoot.foCascadeAddressFill`),
+  never by copying select texts. Probe scripts with injected EVAL: declare helpers (`w`, `pick`) BEFORE they are
+  used in the pasted string (TDZ error came back as `{}`); wrap in try/catch returning `e.stack`.
+- 2026-10-15 · The Verificare demo fill (`populateFrontOfficeStep4`) attached an MDocs document for guests too →
+  gated with `!frontOfficeGuest`. Hidden-on-phone targets (FO stepper) break mobile demo states — dispatch the
+  delegated click on the element directly. No sub-agent tool → ran code-audit / hover-audit myself: panel 0 / 0;
+  wizard after the switch = same counts as the untouched baseline (fo-04g), standing FPs only.

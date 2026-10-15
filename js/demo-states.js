@@ -189,6 +189,26 @@
     run: async (h) => { await clearToasts(h); if (run) await run(h); }
   });
   /* primary request, service 09 (Figma FO · 09, columns F0–F8) */
+  /* „Configurare flux” (FO test panel): pick a value, opening the panel first */
+  const cfgPick = async (h, group, value) => {
+    if (document.querySelector("[data-fo-testcfg-panel]")?.hidden) await h.click("[data-fo-testcfg-toggle]");
+    await h.click(`[data-fo-testcfg-group='${group}'] [data-fo-testcfg-value='${value}']`);
+    await h.wait(1600);
+  };
+  /* step 3 with an MDocs document (field 1), an uploaded PDF (field 2) and a typed step-2 answer */
+  const cfgDocs = async (h) => {
+    const name = document.querySelector("[data-fo-step-panel='2'] #fo-object-name");
+    if (name) name.value = "Cafeneaua „La Izvor”";
+    await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+    await h.click("[data-fo-step-panel='3'] [data-fo-doc-field]:nth-of-type(2) [data-fo-open-doc-modal]"); await h.wait(300);
+    await h.click('[data-fo-doc-tab="upload"]');
+    const input = document.querySelector("[data-fo-doc-file-input]");
+    const files = new DataTransfer();
+    files.items.add(new File(["%PDF-1.4"], "planul-incaperilor-parter.pdf", { type: "application/pdf" }));
+    input.files = files.files;
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+  };
   const foReq = (step, params = {}, run) => ({
     page: PP_FO, flow: "full", params,
     hash: step === 1 ? "#request" : `#request-step-${step}`,
@@ -973,6 +993,21 @@
       await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
       await h.scroll("[data-fo-step-panel='3'] .e-permits-fo-mdocs__attachment");
     }),
+    /* „Configurare flux” keeps the step (2026-10-15): step 3 with an MDocs document + an uploaded PDF and
+       a typed step-2 answer, then Stare utilizator → Neautentificat (Autentificare Opțională): still step 3,
+       as a guest — the upload stays, MDocs goes (account-bound) · -a back to Autentificat: both documents ·
+       -gate MPass required: the gate, step 3 kept for the way back · -1 the guest's step 1 (demo identity)
+       · -5 Livrare switched (guest = e-mail only) · capture with --hide .msup-bubble */
+    "fo-cfg-auth": foReq(3, {}, async (h) => { await cfgDocs(h); await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no"); }),
+    "fo-cfg-auth-a": foReq(3, {}, async (h) => { await cfgDocs(h); await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no"); await cfgPick(h, "authenticated", "yes"); }),
+    "fo-cfg-auth-gate": foReq(3, {}, async (h) => { await cfgDocs(h); await cfgPick(h, "authenticated", "no"); }),
+    "fo-cfg-auth-1": foReq(3, {}, async (h) => {
+      await cfgDocs(h); await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no");
+      await h.click("[data-fo-testcfg-close]");
+      /* the stepper is hidden on phones: the same row click, dispatched directly */
+      document.querySelector("[data-fo-screen='request'] [data-fo-step='1'] .e-permits-fo-stepper__row").click(); await h.wait(300);
+    }),
+    "fo-cfg-auth-5": foReq(5, {}, async (h) => { await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no"); }),
     "fo-05d": foReq(4, {}, async (h) => { await h.scroll(".e-permits-fo-summary-docs"); }),
     "fo-06": foReq(5),
     "fo-07": foReq(6),

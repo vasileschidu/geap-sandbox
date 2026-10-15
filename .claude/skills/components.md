@@ -2857,8 +2857,29 @@ then read „sub câmpul în care a fost introdus codul”, not only „sub «Ca
   `?srre=lent|indisponibil|invalid|asteptare` (asteptare = never answers, skeleton screenshot),
   `?coduri=fara`, `?solicitant=<subject id>`; live in „Configurare flux” (`.e-permits-fo-testcfg`):
   three segmented groups `adrField` (default = the service schema's `cadastral` config), `adrSrre`
-  (Normal · Lent · Eroare · Invalid), `adrSaved` — a change redraws only step 2. The panel body
-  scrolls (max-height = viewport − 96).
+  (Normal · Lent · Eroare · Invalid), `adrSaved` — SRRE / saved codes are read live; `adrField` redraws
+  only the address block of step 2 and refills it with the address the user had (other step-2 answers
+  untouched). The panel body scrolls (max-height = viewport − 96).
+- **„Configurare flux” never restarts the flow (user, 2026-10-15).** Every option goes through one router
+  in the panel (`apply(key)`): read the position (screen + wizard step), patch only `auth`, `intent`,
+  `defaultSubjectId` on the live schema (steps are not redrawn), then put the user back:
+  - step mapping: the same step if the configuration still has it, else the last step before it, else
+    the first (`wizardStepFor`); steps are identified by their index, so id = index here;
+  - Stare utilizator Autentificat ⇄ Neautentificat with Autentificare Opțională: same step, MPass user ⇄
+    guest. Header avatar / switcher ⇄ none; step 1 = the MPass „Date solicitant” ⇄ the guest form
+    (empty guest fields get the fo-g demo person; a PJ guest gets the company the user was signed in
+    as); steps 3 / 5 / 7 redrawn as the guest variant through `rerenderFoStepsKeeping` — uploads move
+    over (same DOM nodes), MDocs documents are set aside for the guest and come back on sign-in, radios /
+    checkboxes / text kept by name+value or id; the MPass draft (header „Salvat ca schiță”) is hidden for
+    the guest and restored after;
+  - no wizard for this user (MPass Necesară + Neautentificat, or no eligible identity): the gate / the
+    picker, with the step PARKED — the next change that allows the wizard resumes it with the data;
+  - eligibility: the identity stays if still eligible, else the previous / default eligible one (step 1
+    reloads, same step); intent / acts: only the „Ce vrei să soliciți?” screen reacts;
+  - the panel mirrors the page (a guest via #guest = Neautentificat + Opțională), so other options
+    never sign anyone in or out. No option reloads the page, none needs „Repornește fluxul” today.
+  States `fo-cfg-auth` (step 3 → guest), `-a` (and back), `-gate` (MPass required → gate, parked),
+  `-1` (the guest's step 1), `-5` (Livrare).
 - States `adr-01…adr-17`: 03b code typed in the search → list with the „Caută codul cadastral «…»”
   row (nothing sent) · 03 sent from that row, pending (search spinner + skeletons) · 03a skeleton over
   a previous fill · 04 success (synced into „Cod cadastral”) · 06 cleared by typing · 06a cleared with

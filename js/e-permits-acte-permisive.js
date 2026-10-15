@@ -4611,6 +4611,104 @@
       syncGuestWizardChrome();
     }
 
+    /* ---- Configurare flux › Stare utilizator: switching mode mid-flow (2026-10-15) ----
+       The steps that differ between a guest and an MPass user (3 Acte, 5 Livrare, 7 Finalizare —
+       see guestSchemaVariant) are drawn again, and what the user entered moves over:
+       attached documents (the same DOM nodes, listeners kept) into the field with the same key,
+       „Alte documente” cards, and radios / checkboxes / text by name+value or id. `keepDoc`
+       drops identity-bound documents (MDocs belongs to the MPass account). */
+    function foControlKey(el) {
+      if (el.type === "radio") return el.name ? `r:${el.name}:${el.value}` : "";
+      if (el.type === "checkbox") return el.id ? `c:#${el.id}` : el.name ? `c:${el.name}:${el.value}` : "";
+      return el.id ? `t:#${el.id}` : "";
+    }
+
+    function rerenderFoStepsKeeping(steps, render, { keepDoc = () => true } = {}) {
+      const carried = steps.map((step) => {
+        const panel = frontOfficeRequestScreen?.querySelector(`[data-fo-step-panel='${step}']`);
+        if (!panel) return null;
+        const docs = new Map();
+        panel.querySelectorAll("[data-fo-doc-field]").forEach((field) => {
+          const items = [...(field.querySelector("[data-fo-doc-field-files]")?.children || [])].filter((node) => keepDoc(node, field.dataset.foDocField));
+          if (items.length) docs.set(field.dataset.foDocField, items);
+        });
+        const others = [...(panel.querySelector("[data-fo-other-doc-list]")?.children || [])];
+        const controls = [...panel.querySelectorAll("input:not([type='file']), textarea")]
+          .filter((el) => !el.closest("[data-fo-doc-field-files], [data-fo-other-doc-list]"))
+          .map((el) => ({ key: foControlKey(el), checkable: el.type === "radio" || el.type === "checkbox", checked: el.checked, value: el.value }))
+          .filter((item) => item.key);
+        return { panel, docs, others, controls };
+      });
+      render();
+      carried.forEach((item) => {
+        if (!item) return;
+        const { panel } = item;
+        item.docs.forEach((nodes, key) => {
+          const field = panel.querySelector(`[data-fo-doc-field='${CSS.escape(key)}']`);
+          const files = field?.querySelector("[data-fo-doc-field-files]");
+          if (!files) return;
+          files.replaceChildren(...nodes);
+          field.classList.toggle("is-full", files.querySelectorAll(".e-permits-fo-file-item").length >= (Number(field.dataset.foDocMax) || 1));
+        });
+        const list = panel.querySelector("[data-fo-other-doc-list]");
+        if (list && item.others.length) list.replaceChildren(...item.others);
+        const byKey = new Map();
+        panel.querySelectorAll("input:not([type='file']), textarea").forEach((el) => {
+          const key = foControlKey(el);
+          if (key && !byKey.has(key)) byKey.set(key, el);
+        });
+        item.controls.forEach((saved) => {
+          const el = byKey.get(saved.key);
+          if (!el || el.disabled) return;
+          if (saved.checkable) {
+            /* a radio is restored by checking the saved one; the group's change handler syncs the rest */
+            if (el.checked === saved.checked || (el.type === "radio" && !saved.checked)) return;
+            el.checked = saved.checked;
+            el.dispatchEvent(new Event("change", { bubbles: true }));
+            return;
+          }
+          if (el.value === saved.value || el.readOnly) return;
+          el.value = saved.value;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+      });
+    }
+
+    /* a visitor mid-flow needs a guest identity: the empty fields of the guest „Date solicitant”
+       get the demo person (the fo-g* demo data) — for a company, the one the user was signed in
+       as (`preferredIdno`); whatever the visitor typed stays */
+    async function fillGuestDemoIdentity(preferredType, preferredIdno = "") {
+      if (!guestForm) return;
+      const allowed = guestAllowedTypes();
+      const typed = ["#fo-guest-idnp", "#fo-guest-surname", "#fo-guest-firstname", "#fo-guest-idno"].some((selector) => guestValue(selector));
+      if (!typed && allowed.includes(preferredType)) setGuestType(preferredType);
+      else if (!allowed.includes(guestType)) setGuestType(allowed[0]);
+      const demo = {
+        "#fo-guest-idnp": "2004001234567",
+        "#fo-guest-surname": "Popescu",
+        "#fo-guest-firstname": "Ion",
+        "#fo-guest-email": "ion.popescu@gmail.com",
+      };
+      if (guestCase() === "other") Object.assign(demo, { "#fo-guest-rep-idnp": "2990000000011", "#fo-guest-rep-surname": "Popescu", "#fo-guest-rep-firstname": "Maria" });
+      Object.entries(demo).forEach(([selector, value]) => {
+        const input = guestEl(selector);
+        if (!input || input.value.trim()) return;
+        input.value = value;
+        if (input.hasAttribute("data-fo-guest-digits")) handleGuestDigits(input);
+      });
+      if (guestPhoneInput && !guestPhoneInput.value.trim()) guestPhoneInput.value = "60999999";
+      if (guestConsent) guestConsent.checked = true;
+      if (guestType === "PJ" && guestIdnoInput) {
+        if (!guestIdnoInput.value.trim()) {
+          guestIdnoInput.value = registryCompanies().find((company) => company.idno === preferredIdno)?.idno || registryCompanies()[0]?.idno || "";
+          handleGuestDigits(guestIdnoInput);
+        }
+        if (guestLookup.code !== guestIdnoInput.value) guestLookup.run(guestIdnoInput.value);
+        if (guestLookup.pending) await guestLookup.pending;
+      }
+      clearGuestErrors();
+    }
+
     /* ---- G8 · switching to MPass keeps what was typed (this tab's session) ---- */
     function saveGuestCarry() {
       if (!guestForm) return;
@@ -5879,13 +5977,59 @@
           adrSaved: foAddressDemo.saved,
         };
 
-        /* Adresă · cod cadastral: only the request form's step 2 is drawn again (no screen change) */
-        function applyAddressDemo() {
+        /* Adresă · cod cadastral: the SRRE answer and the saved codes are read live; only the
+           „Cod cadastral” mode changes markup, and then only the address field of step 2 is drawn
+           again, with the address the user had (the other step-2 answers are not touched) */
+        function applyAddressDemo(key) {
           foAddressDemo.field = cfg.adrField;
           foAddressDemo.srre = cfg.adrSrre;
           foAddressDemo.saved = cfg.adrSaved;
-          if (frontOfficeSchema) renderFrontOfficeStep2FromSchema(frontOfficeSchema);
-          syncButtons();
+          if (key === "adrField") redrawStep2Address();
+        }
+
+        function redrawStep2Address() {
+          const panel = frontOfficeRequestScreen?.querySelector("[data-fo-step-panel='2']");
+          const old = panel?.querySelector("[data-fo-cascade-address]");
+          const field = (frontOfficeSchema?.steps || []).find((item) => Number(item.index) === 2)?.sections
+            ?.flatMap((section) => section.fields || []).find((item) => item?.type === "cascade-address");
+          if (!old || !field) return;
+          const selectText = (selector) => {
+            const value = old.querySelector(`${selector} [data-fo-select-value]`);
+            return value && !value.classList.contains("e-permits-fo-select__value--placeholder") ? value.textContent.trim() : "";
+          };
+          const part = (key) => old.querySelector(`[data-fo-address-part='${key}']`)?.value || "";
+          const address = {
+            district: selectText("[data-fo-cascade-raion]"),
+            locality: selectText("[data-fo-cascade-localitate]"),
+            sector: selectText("[data-fo-cascade-sector]"),
+            street: selectText("[data-fo-cascade-strada]"),
+            postalCode: part("postalCode"),
+            house: part("house"), block: part("block"), stair: part("stair"), floor: part("floor"), apartment: part("apartment"),
+          };
+          const code = part("cadastralCode");
+          /* fields with stable ids inside the address block (phone, e-mail) */
+          const typed = [...old.querySelectorAll("input[id]:not([data-fo-address-part])")].filter((input) => input.value && !input.closest("[data-fo-address-search]"));
+          const typedValues = typed.map((input) => [input.id, input.value]);
+          const template = document.createElement("template");
+          template.innerHTML = cascadeAddressHtml(field).trim();
+          const node = template.content.firstElementChild;
+          old.replaceWith(node);
+          /* initFrontOfficeDynamicControls, for this one block (its own node included) */
+          node.querySelectorAll("[data-fo-select]").forEach(bindFoSelect);
+          node.querySelectorAll("[data-fo-phone-code]").forEach(bindPhoneCode);
+          initCascadeAddress(node);
+          node.querySelectorAll("[data-fo-address-search]").forEach(bindAddressSearch);
+          node.querySelectorAll("[data-fo-char-counter]").forEach(initCharCounter);
+          if (address.district) node.querySelector("[data-fo-address-search]")?.foCascadeAddressFill?.(address);
+          typedValues.forEach(([id, value]) => {
+            const input = node.querySelector(`#${CSS.escape(id)}`);
+            if (input && !input.value) input.value = value;
+          });
+          const codeInput = node.querySelector("[data-fo-cadastral-input]");
+          if (codeInput && code) {
+            codeInput.value = code;
+            codeInput.dispatchEvent(new Event("input", { bubbles: true }));
+          }
         }
 
         const allowedFor = () => (cfg.eligibility === "BOTH" ? ["PF", "PJ"] : [cfg.eligibility]);
@@ -5901,87 +6045,298 @@
           });
         }
 
-        function describe(schema) {
-          const allowed = allowedFor();
-          const eligible = (schema.subjects || []).filter((s) => allowed.includes(s.type));
-          const selectable = eligible.filter((s) => s.selectable !== false);
-          if (cfg.authenticated === "no" && cfg.requiresAuth === "yes") {
-            return `<strong>Ecran: poarta de autentificare</strong>Serviciul cere MPass. Badge-urile „Disponibil pentru” arată ${allowed.join(" + ")}.`;
+        /* ---- where the user is, and how a config change keeps them there (2026-10-15) ----
+           User: „changing autentificat ⇄ neautentificat must not reset the flow”. Every option is
+           routed through ONE place: read the position (screen + wizard step), patch only the
+           schema keys the panel owns (auth, intent, defaultSubjectId — the steps are never drawn
+           again for them), then put the user back on the same step:
+           - step mapping: the same step if the new configuration still has it, else the last step
+             before it, else the first one (wizardStepFor);
+           - Autentificat ⇄ Neautentificat (auth optional): the same step as an MPass user ⇄ a
+             guest; only the identity-bound parts change (header, step 1, the guest variant of
+             steps 3 / 5 / 7), answers and uploaded files stay (rerenderFoStepsKeeping);
+           - a configuration with no wizard for this user (MPass required + not signed in, no
+             eligible identity) shows its gate and PARKS the step; the next change that allows
+             the wizard again resumes it with the data. Nothing here reloads the page. */
+        let parked = null;
+        let lastSignedSubjectId = null;
+        let signedDraft = null;
+        /* MDocs documents the guest could not keep — back in their fields when signed in again */
+        let signedDocs = new Map();
+        const visible = (node) => Boolean(node && !node.hidden);
+
+        function position() {
+          const step = Number(frontOfficeRequestScreen?.querySelector("[data-fo-step].is-active")?.dataset.foStep) || 1;
+          if (visible(frontOfficeRequestScreen)) return { screen: "request", step };
+          if (visible(frontOfficeGuestScreen)) return frontOfficeGuest ? { screen: "request", step: 1 } : { screen: "guest" };
+          if (visible(frontOfficeIntentScreen)) return { screen: "intent" };
+          if (visible(frontOfficeChoiceScreen)) return { screen: "choice" };
+          if (visible(frontOfficeAccessScreen)) return { screen: "access" };
+          return { screen: "auth" };
+        }
+
+        function wizardStepFor(step) {
+          const steps = [...frontOfficeStepperItems]
+            .map((item) => Number(item.dataset.foStep))
+            .filter((n) => frontOfficeRequestScreen?.querySelector(`[data-fo-step-panel='${n}']`))
+            .sort((a, b) => a - b);
+          if (!steps.length || steps.includes(step)) return step;
+          const before = steps.filter((n) => n < step);
+          return before.length ? before[before.length - 1] : steps[0];
+        }
+
+        function stepLabel(step) {
+          return frontOfficeRequestScreen?.querySelector(`[data-fo-step='${step}'] .e-permits-fo-stepper__label`)?.textContent.trim() || `Pasul ${step}`;
+        }
+
+        function goToStep(step, { keepScroll = false } = {}) {
+          const target = wizardStepFor(step);
+          const scroller = document.scrollingElement || document.documentElement;
+          const top = scroller.scrollTop;
+          if (frontOfficeGuest && target === 1) {
+            showFrontOfficeGuest({ focus: false, reset: false });
+          } else {
+            if (target === 4) populateFrontOfficeStep4();
+            history.replaceState(null, "", frontOfficeStepHash(target));
+            showFrontOfficeRequest({ focus: false, step: target });
           }
-          if (cfg.authenticated === "no") {
+          /* same screen, same step: the page does not jump to the top */
+          if (keepScroll && target === step && target !== 1) window.requestAnimationFrame(() => window.requestAnimationFrame(() => { scroller.scrollTop = top; }));
+          return target;
+        }
+
+        function park(step, onto) {
+          parked = { step, onto };
+        }
+
+        function contactSelfPhone(schema) {
+          const field = (schema?.steps || []).flatMap((item) => item.sections || []).flatMap((section) => section.fields || []).find((item) => item?.type === "contact-person");
+          return field?.selfPhone || "60 999 999";
+        }
+
+        function setContactSelfPhone(value) {
+          const node = frontOfficeRequestScreen?.querySelector("[data-fo-step-panel='2'] [data-fo-contact-self] .e-permits-fo-phone__value");
+          if (node) node.textContent = value;
+        }
+
+        /* the MPass draft belongs to the account: hidden while a guest, back when signed in again */
+        function keepSignedDraft() {
+          signedDraft = { created: frontOfficeDraftCreated, savedAt: frontOfficeDraftSavedAt, toast: frontOfficeDraftToastShown, info: frontOfficeDraftInfoDismissed };
+        }
+        function restoreSignedDraft() {
+          if (!signedDraft) return;
+          frontOfficeDraftCreated = signedDraft.created;
+          frontOfficeDraftSavedAt = signedDraft.savedAt;
+          frontOfficeDraftToastShown = signedDraft.toast;
+          frontOfficeDraftInfoDismissed = signedDraft.info;
+          signedDraft = null;
+          updateFrontOfficeRequestHeaders();
+        }
+
+        const uploadedOnly = (node, key) => {
+          let upload = false;
+          try { upload = JSON.parse(node.dataset.foDoc || "{}").sursa === "upload"; } catch (error) { upload = false; }
+          if (!upload) signedDocs.set(key, [...(signedDocs.get(key) || []), node]);
+          return upload;
+        };
+
+        async function asGuestAt(step, keepScroll) {
+          const wasGuest = Boolean(frontOfficeGuest);
+          if (!wasGuest) {
+            if (frontOfficeSelectedSubject) lastSignedSubjectId = frontOfficeSelectedSubject.id;
+            keepSignedDraft();
+          }
+          const signed = (frontOfficeSchema?.subjects || []).find((s) => s.id === lastSignedSubjectId);
+          await fillGuestDemoIdentity(frontOfficeGuest?.type || signed?.type, signed?.type === "PJ" ? signed.idValue : "");
+          const data = collectGuestData();
+          frontOfficeGuest = { ...data, subject: guestSubjectOf(data) };
+          frontOfficeSelectedSubject = frontOfficeGuest.subject;
+          if (!wasGuest) resetFrontOfficeDraftState();
+          const schema = guestSchemaVariant(frontOfficeSchema, data);
+          rerenderFoStepsKeeping([3, 5], () => {
+            renderFrontOfficeStep3FromSchema(schema);
+            renderFrontOfficeStep5FromSchema(schema);
+          }, { keepDoc: uploadedOnly });
+          renderFrontOfficeStep7FromSchema(schema);
+          attachGuestDocument(data);
+          setContactSelfPhone(data.phone);
+          syncGuestWizardChrome();
+          return goToStep(step, { keepScroll });
+        }
+
+        function asSignedAt(step, keepScroll) {
+          const wasGuest = Boolean(frontOfficeGuest);
+          if (wasGuest) frontOfficeGuest = null;
+          const current = frontOfficeSelectedSubject;
+          const eligible = (id) => frontOfficeSelectableSubjects(frontOfficeSchema).some((s) => s.id === id && s.selectable !== false);
+          let subject = current && !wasGuest && eligible(current.id) ? current : null;
+          if (!subject) {
+            /* the identity the user had before, else the service default / first eligible one */
+            frontOfficeIntentApplying = true;
+            subject = selectFrontOfficeSubject(eligible(lastSignedSubjectId) ? lastSignedSubjectId : frontOfficeSchema.defaultSubjectId);
+            frontOfficeIntentApplying = false;
+          }
+          if (!subject) return 0;
+          lastSignedSubjectId = subject.id;
+          if (wasGuest) {
+            rerenderFoStepsKeeping([3, 5], () => {
+              renderFrontOfficeStep3FromSchema(frontOfficeSchema);
+              renderFrontOfficeStep5FromSchema(frontOfficeSchema);
+            });
+            renderFrontOfficeStep7FromSchema(frontOfficeSchema);
+            signedDocs.forEach((nodes, key) => {
+              const files = frontOfficeRequestScreen?.querySelector(`[data-fo-step-panel='3'] [data-fo-doc-field='${CSS.escape(key)}'] [data-fo-doc-field-files]`);
+              if (files && !files.children.length) files.append(...nodes);
+            });
+            signedDocs = new Map();
+            setContactSelfPhone(contactSelfPhone(frontOfficeSchema));
+            restoreSignedDraft();
+          }
+          syncGuestWizardChrome();
+          return goToStep(step, { keepScroll });
+        }
+
+        function describe() {
+          const pos = position();
+          const allowed = allowedFor();
+          if (pos.screen === "request") {
+            const who = frontOfficeGuest
+              ? "Fără cont (vizitator): identitatea e cea introdusă în „Date solicitant”, documentele doar de pe dispozitiv."
+              : `Autentificat ca ${frontOfficeSelectedSubject?.name || "—"}.`;
+            return `<strong>Ecran: pasul ${pos.step} · ${escapeFrontOfficeHtml(stepLabel(pos.step))}</strong>${escapeFrontOfficeHtml(who)} Schimbările din panou păstrează pasul și datele introduse.`;
+          }
+          const resume = parked ? ` Pasul ${parked.step} și datele rămân păstrate: revin la „Autentificat”${pos.screen === "auth" ? " sau la Autentificare „Opțională”" : ""}.` : "";
+          if (pos.screen === "auth") {
+            return `<strong>Ecran: poarta de autentificare</strong>Serviciul cere MPass. Badge-urile „Disponibil pentru” arată ${allowed.join(" + ")}.${resume}`;
+          }
+          if (pos.screen === "access") {
             return "<strong>Ecran: Autentifică-te sau continuă fără cont</strong>Serviciul merge și fără MPass: autentificare prin MPass sau „Continuă fără cont” (formularul liber).";
+          }
+          if (pos.screen === "guest") {
+            return "<strong>Ecran: Date solicitant (fără cont)</strong>Formularul liber al vizitatorului; ce ai completat rămâne.";
+          }
+          if (pos.screen === "intent") {
+            return "<strong>Ecran: Ce vrei să soliciți?</strong>Solicitare nouă sau un postproces pe unul din actele emise identității alese.";
+          }
+          const selectable = frontOfficeSelectableSubjects(frontOfficeSchema).filter((s) => s.selectable !== false && s.scenario !== "notarial-proxy");
+          if (!selectable.length) {
+            return `<strong>Ecran: selectorul de instanțe</strong>Nicio identitate ${allowed.join(" + ")} eligibilă; rămâne doar procura notarială.${resume}`;
           }
           const next = cfg.intent === "yes" && cfg.acts === "yes"
             ? " După alegere urmează „Ce vrei să soliciți?” pentru identitățile cu acte (SRL Global Trader, «Vita-Plant» SRL); celelalte merg direct la cerere."
             : " După alegere se deschide direct cererea.";
-          if (frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden) {
-            return "<strong>Ecran: Ce vrei să soliciți?</strong>Solicitare nouă sau un postproces pe unul din actele emise identității alese.";
-          }
-          if (!selectable.length) {
-            return `<strong>Ecran: selectorul de instanțe</strong>Nicio identitate ${allowed.join(" + ")} eligibilă; rămâne doar procura notarială.`;
-          }
           return `<strong>Ecran: selectorul de instanțe</strong>${selectable.length} ${selectable.length === 1 ? "instanță" : "instanțe"} ${allowed.join(" + ")} disponibile.${next}`;
         }
 
-        function apply({ focus = false } = {}) {
+        /* the panel shows the page's real state (a guest reached through „Continuă fără cont” or
+           #guest, the gate at load) — other options never sign anyone in or out: a guest or the
+           access screen means MPass is optional, whatever the schema said */
+        function syncFromPage(key) {
+          const pos = position();
+          const signedOut = Boolean(frontOfficeGuest) || ["auth", "access", "guest"].includes(pos.screen);
+          if (key !== "authenticated") cfg.authenticated = signedOut ? "no" : "yes";
+          if (key !== "requiresAuth" && (frontOfficeGuest || ["access", "guest"].includes(pos.screen))) cfg.requiresAuth = "no";
+        }
+
+        async function apply(key) {
+          syncFromPage(key);
+          const pos = position();
+          if (pos.screen === "request" && !frontOfficeGuest && frontOfficeSelectedSubject) lastSignedSubjectId = frontOfficeSelectedSubject.id;
+
+          /* only the keys the panel owns change; the steps (and what the user entered) stay */
           const next = JSON.parse(JSON.stringify(pristine));
           next.auth = next.auth || {};
           next.auth.required = cfg.requiresAuth === "yes";
           next.auth.availableFor = allowedFor();
-
-          /* "Ce vrei să soliciți?": dropping schema.intent switches the step
-             off; emptying acts has the same visible effect, since the step
-             is only shown when the identity has an act to post-process */
+          /* "Ce vrei să soliciți?": dropping schema.intent switches the step off; emptying acts has
+             the same visible effect, since the step is only shown when the identity has an act */
           if (cfg.intent === "no") delete next.intent;
           else if (next.intent && cfg.acts === "no") next.intent.acts = {};
-
-          /* the default has to be one that survived the type filter, or the
-             picker opens with nothing selected */
+          /* the default has to be one that survived the type filter, or the picker opens empty */
           const allowed = allowedFor();
-          const firstUsable = (next.subjects || []).find(
-            (s) => allowed.includes(s.type) && s.selectable !== false
-          );
-          next.defaultSubjectId = firstUsable ? firstUsable.id : null;
+          const firstUsable = (next.subjects || []).find((s) => allowed.includes(s.type) && s.selectable !== false);
+          frontOfficeSchema.auth = next.auth;
+          frontOfficeSchema.defaultSubjectId = firstUsable ? firstUsable.id : null;
+          if (next.intent) frontOfficeSchema.intent = next.intent;
+          else delete frontOfficeSchema.intent;
+          setAuthFromSchema(frontOfficeSchema);
+          renderRolesFromSchema(frontOfficeSchema);
+          renderFrontOfficeAvatarMenuFromSchema(frontOfficeSchema);
+          /* the guest form follows the eligibility (what was typed stays) */
+          if (!frontOfficeGuest) setGuestType(guestType);
 
-          const wasOnIntent = Boolean(frontOfficeIntentScreen && !frontOfficeIntentScreen.hidden);
-          const previousSubjectId = frontOfficeSelectedSubject?.id;
+          /* the wizard step to keep: the current one, or the one parked on this very screen */
+          const wizardStep = pos.screen === "request" ? pos.step : parked && parked.onto === pos.screen ? parked.step : 0;
+          const keepScroll = pos.screen === "request";
+          parked = null;
 
-          frontOfficeIntentApplying = true;
-          applyFrontOfficeSchema(next);
-          frontOfficeIntentApplying = false;
-
-          const previousStillEligible = Boolean(
-            previousSubjectId
-            && frontOfficeSelectableSubjects(next).some((s) => s.id === previousSubjectId && s.selectable !== false)
-          );
-
-          if (cfg.authenticated === "yes" && wasOnIntent && previousStillEligible) {
-            /* same identity still eligible: keep it, and show the step only
-               if it still has acts — otherwise continue to the request form */
-            const kept = selectFrontOfficeSubject(previousSubjectId);
-            if (frontOfficeShouldShowIntent(kept)) {
-              showFrontOfficeIntent({ focus });
-            } else {
-              history.replaceState(null, "", "#request");
-              showFrontOfficeRequest({ focus, step: 1 });
+          if (wizardStep) {
+            const signedOut = cfg.authenticated === "no";
+            if (!signedOut) {
+              if (asSignedAt(wizardStep, keepScroll)) return;
+              /* no identity can start the request (only the proxy row is left): the picker */
+              park(wizardStep, "choice");
+              frontOfficeSelectedSubject = null;
+              setFrontOfficeScreen("choice", { focus: false });
+              return;
             }
-          } else if (cfg.authenticated === "yes") {
-            setFrontOfficeScreen("choice", { focus });
-          } else {
-            /* applyFrontOfficeSchema seeds a subject from defaultSubjectId;
-               drop it again so the header and MSupport's actor context both
-               agree that nobody is signed in */
-            frontOfficeSelectedSubject = null;
-            if (cfg.requiresAuth === "yes") {
-              setFrontOfficeScreen("auth", { focus });
-            } else {
-              /* available with and without MPass: explain the benefits first */
-              showFrontOfficeAccess({ focus });
+            if (cfg.requiresAuth === "yes" || frontOfficePostprocess) {
+              /* a visitor cannot be here: the gate, with the step kept for the way back */
+              if (!frontOfficeGuest && frontOfficeSelectedSubject) lastSignedSubjectId = frontOfficeSelectedSubject.id;
+              park(wizardStep, cfg.requiresAuth === "yes" ? "auth" : "access");
+              if (cfg.requiresAuth === "yes") {
+                history.replaceState(null, "", window.location.pathname + window.location.search);
+                setFrontOfficeScreen("auth", { focus: false });
+              } else {
+                showFrontOfficeAccess({ focus: false });
+              }
+              return;
             }
+            await asGuestAt(wizardStep, keepScroll);
+            return;
           }
 
-          if (outcome) outcome.innerHTML = describe(next);
-          syncButtons();
+          /* outside the wizard: the screen this configuration starts on */
+          const previousSubjectId = frontOfficeSelectedSubject?.id;
+          const previousStillEligible = Boolean(
+            previousSubjectId
+            && frontOfficeSelectableSubjects(frontOfficeSchema).some((s) => s.id === previousSubjectId && s.selectable !== false)
+          );
+          if (cfg.authenticated === "yes" && pos.screen === "intent" && previousStillEligible) {
+            /* same identity still eligible: keep it, and show the step only if it still has acts */
+            frontOfficeIntentApplying = true;
+            const kept = selectFrontOfficeSubject(previousSubjectId);
+            frontOfficeIntentApplying = false;
+            if (frontOfficeShouldShowIntent(kept)) {
+              showFrontOfficeIntent({ focus: false });
+            } else {
+              history.replaceState(null, "", "#request");
+              showFrontOfficeRequest({ focus: false, step: 1 });
+            }
+          } else if (cfg.authenticated === "yes") {
+            setFrontOfficeScreen("choice", { focus: false });
+          } else {
+            /* nobody is signed in: the header and MSupport's actor context agree */
+            frontOfficeSelectedSubject = null;
+            if (cfg.requiresAuth === "yes") {
+              setFrontOfficeScreen("auth", { focus: false });
+            } else if (pos.screen === "guest") {
+              /* the guest form stays as typed */
+              setFrontOfficeScreen("guest", { focus: false });
+            } else {
+              /* available with and without MPass: explain the benefits first */
+              showFrontOfficeAccess({ focus: false });
+            }
+          }
+        }
+
+        let applying = Promise.resolve();
+        function run(change) {
+          applying = applying.then(change).catch((error) => console.warn(error)).then(() => {
+            if (outcome) outcome.innerHTML = describe();
+            syncButtons();
+          });
+          return applying;
         }
 
         function setPanelOpen(open) {
@@ -5991,7 +6346,13 @@
 
         root.addEventListener("click", (event) => {
           if (event.target.closest("[data-fo-testcfg-toggle]")) {
-            setPanelOpen(panel?.hidden !== false);
+            const open = panel?.hidden !== false;
+            if (open) {
+              syncFromPage("");
+              syncButtons();
+              if (outcome) outcome.innerHTML = describe();
+            }
+            setPanelOpen(open);
             return;
           }
           if (event.target.closest("[data-fo-testcfg-close]")) {
@@ -6003,8 +6364,8 @@
           const key = choice.closest("[data-fo-testcfg-group]")?.dataset.foTestcfgGroup;
           if (!key || cfg[key] === choice.dataset.foTestcfgValue) return;
           cfg[key] = choice.dataset.foTestcfgValue;
-          if (key.startsWith("adr")) applyAddressDemo();
-          else apply();
+          if (key.startsWith("adr")) run(() => applyAddressDemo(key));
+          else run(() => apply(key));
         });
 
         document.addEventListener("keydown", (event) => {
@@ -6013,7 +6374,7 @@
 
         root.hidden = false;
         syncButtons();
-        if (outcome) outcome.innerHTML = describe(frontOfficeSchema || pristine);
+        if (outcome) outcome.innerHTML = describe();
       });
     }
 
@@ -6455,7 +6816,8 @@
           foDocAttachFileItem(floorFiles, "planul-incaperilor.pdf", "2.7 MB");
         }
         const extrasFiles = step3Panel.querySelector("[data-fo-doc-field='state-registry-extract'] [data-fo-doc-field-files], [data-fo-doc-field='extras-registru'] [data-fo-doc-field-files]");
-        if (extrasFiles && !extrasFiles.querySelector(".e-permits-fo-mdocs__attachment")) {
+        /* MDocs needs an account: a guest's demo fill has no MDocs document */
+        if (extrasFiles && !frontOfficeGuest && !extrasFiles.querySelector(".e-permits-fo-mdocs__attachment")) {
           foDocAttachMdocsItem(extrasFiles, { title: 'Extras Registru de Stat - "Global Trader" SRL', emis: "12.03.2026", authority: "ASP" });
         }
         const hygieneFiles = step3Panel.querySelector("[data-fo-doc-field='hygiene-certificates'] [data-fo-doc-field-files], [data-fo-doc-field='hygiene-cert'] [data-fo-doc-field-files]");
