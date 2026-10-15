@@ -1,0 +1,111 @@
+{
+  "_comment": "Ghișeu (Feature 95768, js/ghiseu.js): what the desk wizard needs besides the service passport (data/e-permits-services.json). people = RSP, companies = RSUD (with administrators), mpower = mandates, mnotify = contacts, acts = the holders' permits and decisions, services = the desk settings per service code (US-221 settings that the passport does not carry yet: olograf, certificat, terms, reductions, examination subdivisions, fees), drafts = the seeded Dosare noi (dates as day offsets from today, so the list always looks current).",
+  "people": [
+    { "idnp": "2990000000001", "nume": "Cojocaru", "prenume": "Anastasia" },
+    { "idnp": "2004001234567", "nume": "Rusu", "prenume": "Ion" },
+    { "idnp": "2001002003004", "nume": "Ceban", "prenume": "Maria" },
+    { "idnp": "2985001122334", "nume": "Bejan", "prenume": "Radu" },
+    { "idnp": "2002005006007", "nume": "Munteanu", "prenume": "Tatiana" },
+    { "idnp": "2003007008009", "nume": "Plămădeală", "prenume": "Sergiu" }
+  ],
+  "companies": [
+    { "idno": "1012600000002", "denumire": "SRL Global Trader", "administratori": ["2002005006007"] },
+    { "idno": "1003600012345", "denumire": "SRL EcoServ", "administratori": ["2985001122334"] },
+    { "idno": "1014600099887", "denumire": "SA Apă-Canal", "administratori": ["2003007008009"] }
+  ],
+  "mpower": [
+    { "from": "1003600012345", "to": "2004001234567", "nr": "MP-2026-008823", "valabilPana": "2026-11-30" },
+    { "from": "2001002003004", "to": "2004001234567", "nr": "MP-2026-010412", "valabilPana": "2027-03-31" }
+  ],
+  "mnotify": {
+    "2002005006007": { "phone": "60999999", "email": "tatiana.munteanu@mnotify.gov.md" },
+    "1012600000002": { "phone": "60999999", "email": "office@globaltrader.md" },
+    "2004001234567": { "phone": "69123456" },
+    "1003600012345": { "phone": "22445566", "email": "contact@ecoserv.md" }
+  },
+  "acts": {
+    "1012600000002": [
+      { "id": "act-izvoras", "kind": "act", "service": "003000118", "name": "Cafeneaua „Izvoraș”, mun. Bălți", "nr": "ASF-2026-04521", "status": "valabil", "emis": "2025-09-15", "valabilPana": "2028-09-15", "subdiviziune": "CSP Bălți", "object": { "name": "Cafeneaua „Izvoraș”", "district": "Municipiul Bălți", "locality": "Bălți", "street": "str. Independenței", "house": "12", "postalCode": "MD-3100" } },
+      { "id": "act-piata-mare", "kind": "act", "service": "003000118", "name": "Restaurantul „Piața Mare”, mun. Chișinău", "nr": "ASF-2025-11873", "status": "suspendat", "emis": "2025-04-02", "valabilPana": "2028-04-02", "subdiviziune": "CSP Chișinău", "object": { "name": "Restaurantul „Piața Mare”", "district": "Municipiul Chișinău", "locality": "Chișinău", "street": "str. Mitropolit Varlaam", "house": "63", "postalCode": "MD-2001" } },
+      { "id": "act-bistro", "kind": "act", "service": "003000118", "name": "Bistro „Colț”, or. Orhei", "nr": "ASF-2021-01877", "status": "expirat", "emis": "2021-03-02", "valabilPana": "2024-03-02", "subdiviziune": "CSP Orhei" },
+      { "id": "dec-terasa", "kind": "decizie", "service": "003000118", "name": "Terasa „Parcul Central”, mun. Chișinău", "nr": "DR-2026-00412", "status": "respins", "emisZileInUrma": 12, "subdiviziune": "CSP Chișinău", "decizie": "Decizie de respingere" }
+    ],
+    "1003600012345": [
+      { "id": "act-biocid-eco", "kind": "act", "service": "003000519", "name": "Dezinfectant „EcoClean 5L”", "nr": "BIO-2025-00318", "status": "valabil", "emis": "2025-06-20", "valabilPana": "2030-06-20", "subdiviziune": "Direcția autorizare produse biocide", "object": { "name": "Dezinfectant „EcoClean 5L”" } }
+    ]
+  },
+  "services": {
+    "003000118": {
+      "olograf": true,
+      "certificat": true,
+      "form": "obiect",
+      "subdiviziuni": [
+        { "name": "CSP Chișinău", "raioane": ["Municipiul Chișinău"] },
+        { "name": "CSP Bălți", "raioane": ["Municipiul Bălți"] },
+        { "name": "CSP Orhei", "raioane": ["Raionul Orhei"] }
+      ],
+      "postprocese": {
+        "valabil": ["Prelungire", "Reperfectare", "Emitere duplicat", "Suspendare valabilitate", "Retragere"],
+        "suspendat": ["Reluarea valabilității", "Retragere"],
+        "expirat": []
+      },
+      "contestabil": true,
+      "termenContestare": 30,
+      "requestTypes": {
+        "Emitere primară": {
+          "terms": [
+            { "id": "standard", "label": "15 zile lucrătoare", "fees": ["taxa-stat", "verificare"] },
+            { "id": "urgent", "label": "5 zile lucrătoare · regim de urgență", "fees": ["taxa-stat", "verificare", "urgenta"] }
+          ]
+        },
+        "Prelungire": { "terms": [{ "id": "standard", "label": "10 zile lucrătoare", "fees": [] }] },
+        "Reperfectare": { "terms": [{ "id": "standard", "label": "10 zile lucrătoare", "fees": ["reperfectare"] }] },
+        "Emitere duplicat": { "terms": [{ "id": "standard", "label": "5 zile lucrătoare", "fees": ["duplicat"] }] },
+        "Suspendare valabilitate": { "terms": [{ "id": "standard", "label": "5 zile lucrătoare", "fees": [] }] },
+        "Reluarea valabilității": { "terms": [{ "id": "standard", "label": "5 zile lucrătoare", "fees": [] }] },
+        "Retragere": { "terms": [{ "id": "standard", "label": "5 zile lucrătoare", "fees": [] }] },
+        "Contestație": { "terms": [{ "id": "standard", "label": "30 de zile", "fees": [] }] }
+      },
+      "fees": {
+        "taxa-stat": { "name": "Taxa de stat — examinarea cererii", "amount": 500, "account": "MD13TR000000022544556677" },
+        "verificare": { "name": "Taxă pentru verificare epidemiologică în teren", "amount": 200, "account": "MD13TR000000022544556677" },
+        "urgenta": { "name": "Examinare în regim de urgență", "amount": 150, "account": "MD13TR000000022544556677" },
+        "reperfectare": { "name": "Reperfectarea autorizației", "amount": 120, "account": "MD13TR000000022544556677" },
+        "duplicat": { "name": "Eliberare duplicat", "amount": 80, "account": "MD13TR000000022544556677" }
+      },
+      "reductions": [
+        { "id": "imm", "label": "Întreprindere mică sau mijlocie (IMM)", "fee": "taxa-stat", "type": "procent", "value": 50 },
+        { "id": "debut", "label": "Program „Start pentru tineri”", "fee": "verificare", "type": "suma", "value": 100 }
+      ]
+    },
+    "003000519": {
+      "olograf": true,
+      "certificat": false,
+      "form": "biocid",
+      "subdiviziuni": [{ "name": "Direcția autorizare produse biocide", "raioane": [] }],
+      "postprocese": { "valabil": ["Reperfectare"], "suspendat": [], "expirat": [] },
+      "contestabil": false,
+      "requestTypes": {
+        "Emitere primară": { "terms": [{ "id": "standard", "label": "30 de zile lucrătoare", "fees": ["bio"] }] },
+        "Reperfectare": { "terms": [{ "id": "standard", "label": "15 zile lucrătoare", "fees": ["bio-rep"] }] }
+      },
+      "fees": {
+        "bio": { "name": "Autorizarea produselor biocide", "amount": 9252, "account": "MD13TR000000022544556677" },
+        "bio-rep": { "name": "Reperfectarea autorizației produsului biocid", "amount": 7743, "account": "MD13TR000000022544556677" }
+      },
+      "reductions": []
+    }
+  },
+  "mdelivery": { "name": "Livrare prin MDelivery", "amount": 50, "account": "MD52TR000000022500012345" },
+  "drafts": [
+    { "id": "gh-4812", "nr": "C-2026-004812", "service": "003000118", "requestType": "Emitere primară", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 2, "createdDays": -2, "createdTime": "09:40", "updatedHours": -1, "by": "self" },
+    { "id": "gh-4790", "nr": "C-2026-004790", "service": "003000118", "requestType": "Prelungire", "act": "act-izvoras", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 4, "createdDays": -6, "createdTime": "11:05", "updatedHours": -26, "by": "self" },
+    { "id": "gh-4771", "nr": "C-2026-004771", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2001002003004", "step": 6, "payment": "Emisă", "paymentDueDays": 5, "createdDays": -9, "createdTime": "14:20", "updatedHours": -50, "by": "self" },
+    { "id": "gh-4765", "nr": "C-2026-004765", "service": "003000519", "requestType": "Emitere primară", "personType": "PJ", "company": "1003600012345", "applicant": "2004001234567", "step": 6, "payment": "Achitată", "paymentDueDays": 12, "createdDays": -11, "createdTime": "10:12", "updatedHours": -3, "by": "Victor Grosu" },
+    { "id": "gh-4702", "nr": "C-2026-004702", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2004001234567", "step": 6, "payment": "Expirată", "paymentDueDays": -2, "createdDays": -40, "createdTime": "15:47", "updatedHours": -48, "by": "self" },
+    { "id": "gh-4799", "nr": "C-2026-004799", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2003007008009", "step": 1, "createdDays": -3, "createdTime": "16:30", "updatedHours": -70, "by": "Victor Grosu" },
+    { "id": "gh-4688", "nr": "C-2026-004688", "service": "003000519", "requestType": "Emitere primară", "personType": "PJ", "company": "1014600099887", "applicant": "2002005006007", "step": 1, "createdDays": -86, "createdTime": "08:55", "updatedHours": -2000, "by": "self" },
+    { "id": "gh-4650", "nr": "C-2026-004650", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2001002003004", "step": 2, "createdDays": -95, "createdTime": "12:00", "updatedHours": -2200, "by": "self" },
+    { "id": "gh-4805", "nr": "C-2026-004805", "service": "003000118", "requestType": "Emitere primară", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 7, "submittedDays": -1, "submittedTime": "15:12", "createdDays": -1, "createdTime": "13:40", "updatedHours": -24, "by": "self" }
+  ]
+}

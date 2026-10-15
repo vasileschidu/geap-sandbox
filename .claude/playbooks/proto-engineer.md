@@ -734,3 +734,35 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   gated with `!frontOfficeGuest`. Hidden-on-phone targets (FO stepper) break mobile demo states — dispatch the
   delegated click on the element directly. No sub-agent tool → ran code-audit / hover-audit myself: panel 0 / 0;
   wizard after the switch = same counts as the untouched baseline (fo-04g), standing FPs only.
+- 2026-10-15 · Ghișeu (Feature 95768, 9 stories) as a BO **module**, not a product: four generic shell hooks made it a
+  ~2 400-line `js/ghiseu.js` with ~40 lines of shell edits — `GEAPShellRegistries[kind].facets`, a menu item
+  `shellView: "<kind>-registry"` (no per-module nav code), `window.GEAPShellRoutes` (asked first by routeFromHash),
+  `window.GEAPShellApi` (the product api, now built always) and `[data-shell-module-page]` (hidden by
+  hideProfilePanels). Next BO module: reuse these, don't add per-module branches to the shell.
+- 2026-10-15 · Reusing the FO wizard inside the BO: the FO listens on the DOCUMENT for `[data-fo-step]`,
+  `.e-permits-fo-draft-button` (shows „Schița a fost salvată.”), `[data-fo-edit-step]`, `[data-fo-open-doc-modal]` —
+  use your own data hooks on FO classes (`data-gh-step`, `data-gh-goto`) and `stopPropagation` on the draft button;
+  keep the doc modal hook (delegated, it is the reuse). Export FO helpers through `GEAPFormRender` instead of copying
+  (`createRegistryLookup`, doc card / attach helpers); give FO renderers optional texts with the old defaults.
+- 2026-10-15 · Cascade address: the raion / localitate hooks sit on the `.e-permits-fo-select` root
+  (`[data-fo-cascade-raion] .e-permits-fo-select__value`), not on a `[data-fo-select-value]` child — read the DOM
+  with a probe before writing a reader. Fill it with `searchRoot.foCascadeAddressFill(parts)`.
+- 2026-10-15 · Demo links clear only `e-permits-*` / `geap.*` storage keys — name a module's store `e-permits-…` or
+  every state starts from the previous run. Seed dates as day offsets from today so the list never looks stale.
+- 2026-10-15 · The no-cache server fails fetches („Failed to fetch” on roles / services) when several headless Chromes
+  load it in parallel — run state checks sequentially (one worker) on a busy machine. I also ran `pkill -f persona-cdp`
+  to stop my stale capture: that pattern matches EVERY agent's capture Chrome — kill by your own PID / user-data-dir only.
+- 2026-10-15 · CDP viewport shots taken right after a big re-render can miss sprite icons (paint lag) — re-shoot before
+  „fixing” missing icons. The scratchpad can be wiped by a session restart: keep spec / scripts recreatable.
+- 2026-10-15 · Ghișeu container change (user, mid-job): in-page wizard → „Dosar nou” picker = library `modal--lg`
+  (bottom sheet ≤680) + the request in a library `modal--fullscreen` used as a sheet (24 from the top, radius 16
+  top corners = the Form Builder sheet radius; no 24 token exists). Cheap because every step returned HTML and
+  the container was one `render()`: the steps' footers became data (`footerHtml(d, opts)` stores options, the
+  sheet draws `.modal-buttons`). Traps: js/modal.js binds `[data-close]` / overlay clicks only at init — dynamic
+  overlays need their own close wiring (picker: `__modal.open/close` + an aria-hidden observer; sheet: own
+  open/close so Esc can ask „Salvați schița?”); the fullscreen `.modal-buttons` brings its own border + sticky
+  padding and the shell adds scroll hairlines on `.modal-content` → doubled dividers; put the sheet overlay
+  under the library dialogs (z 990) so confirms / the FO document modal / previews stack above it; a toast in
+  the top-right covers the sheet's × (hover-audit „covered”) — no toast when the result shows in place.
+- 2026-10-15 · Stacked-list meta inside dialogs: syncStackMetaRows does not watch them → leading „·” on wrapped
+  lines; `clip-path` on the meta box's left edge hides the row-start dot (it sits 10px left of the part).

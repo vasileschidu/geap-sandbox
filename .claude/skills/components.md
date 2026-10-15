@@ -268,6 +268,7 @@ but this doc previously described it wrongly, see the entry.
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
+| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | picker `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` (bottom sheet ≤680); request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -5866,6 +5867,78 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
 - **States** `?ek=` gol · eroare · incarcare (lists and details) · sesiuni-eroare · sectiune-eroare ·
   test-lent · eroare-stergere. **Demo states** `ek-20 … ek-32l` (122): per screen list, tabs, filters, search
   without results, empty / error / loading, detail tabs, drawers, validation, 409, confirmations, results.
+
+### Ghișeu — depunere la ghișeu (Feature 95768, 2026-10-15)
+
+Specialist ghișeu files a request on behalf of the applicant: **Dosare noi** (US-241) → **Dosar nou**
+→ Inițiere (US-233) · Date solicitant (US-234) · Detalii serviciu (US-235) · Documente însoțitoare
+(US-20) · Verificare + cererea pe hârtie + MSign (US-236) · Livrare (US-16) · Notă de plată (US-237,
+hidden when nothing is paid) · Confirmarea depunerii (US-238). Drafts: save / resume / remove /
+automatic removal (US-239/240), expired note regeneration (US-256).
+
+**Plug-in, not product mode.** `js/ghiseu.js` (deferred, after the FO script) uses four shell hooks
+added for modules (all generic, reuse them for the next BO module):
+- `window.GEAPShellRegistries[kind]` — `build()` (db with `views`, `columns`, `runtimeRows`,
+  `primaryAction`, `searchPlaceholder`), `renderCell`, `searchText`, `sortValue`, `filterToken`,
+  `openRow`, `emptyHtml`, `exportRows`, **`facets`** (new: Filtrare avansată for a module registry);
+  a menu item with `shellView: "<kind>-registry"` shows it (no shell edit per module).
+- `window.GEAPShellRoutes = [(hash) => boolean]` — `routeFromHash` asks them first (`#ghiseu/…`).
+- `window.GEAPShellApi` — the object products get in `init(api)` (page header, stacked list, row
+  actions, confirms, toasts, `hideShellPages`, `setActiveNav`, `currentAssignment`) + `getServiceByCode`,
+  `serviceConfig` (Setări US-221), `getAuthorityById`, `servicesStore()`, `currentUserName`.
+- `[data-shell-module-page]` — any element with it is hidden by `hideProfilePanels` (for a module that
+  draws an in-page view; Ghișeu itself now uses dialogs).
+
+**Two dialogs (user, 2026-10-15), the list stays behind:**
+- **Picker** „Dosar nou” = library `modal--lg` (`#gh-start-modal`; 720 so IDNO + company / IDNP + names
+  fit one row; ≤680 the standard bottom sheet: full width, radius 16 top, `100dvh − 24`). Body = US-233
+  (service, Tip persoană, lookups, reprezentant + temei, Prin procură, Emitere primară / Postproces + acts
+  list with ⋮ `data-stack-menu-fixed`). Footer Anulează · **Continuă** (`disabled` until the choices are
+  complete; errors live under the fields, AC-21 shows at once). Continuă = first save (nr + UID) → sheet.
+  Reopened from the sheet (Înapoi on step 1) as „Inițiere cerere · <nr>”; Anulează returns to the sheet.
+- **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top
+  24, modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners (the Form Builder sheet radius;
+  there is no 24 token), scrim behind. Header = title (service, one line) · meta parts (nr · solicitant ·
+  tip · Ghișeu; dot-in-padding + clip trick, so a wrapped line never starts with „·”) + status tags ·
+  „Salvat la …” · „Salvează schița” (`btn-neutral btn-sm`, cloud icon) · ⋮ (Istoricul cererii, Elimină
+  schița) · library `.modal-close`. Body scrolls (FO stepper sticky; ≤960 the FO mobile progress). Footer =
+  `.modal-buttons` Înapoi (left) · hint · Continuă / Confirmă depunerea; after submission Înapoi la Dosare
+  noi · Dosar nou. One divider under the header and one over the footer (library scroll hairlines off).
+  × / Esc / scrim with unsaved data → „Salvați schița înainte de a închide?” (Rămâi în cerere · Închide
+  fără salvare · Salvează și închide). Library dialogs (confirm, document modal, previews) open above it
+  (sheet overlay z 990 < 1000). A draft opened from the list or a link opens the sheet at its saved step.
+- Steps use FO markup with own hooks: stepper items `[data-gh-step]`, rows `[data-gh-goto]` — never
+  `data-fo-step` (the FO listens for it on the document); step header `h2` 24/32.
+
+**Reused components (no copies):** FO renderer `GEAPFormRender.fieldHtml` (searchable list = CAEM combobox
+with new optional `emptyTitle` / `emptyText` / `searchLabel`; segment; select; phone; textarea;
+cascade address), `createRegistryLookup` (exported: skeleton → read-only fill + flash; not found / MConnect
+down = field error, names editable + „Introdus manual”), FO role cards (`e-permits-fo-selected-role`),
+check options (Prin procură, reprezentant, reduceri), radio option rows (proces, livrare), FO doc fields +
+the FO document modal + `attachFileItem` / `attachMdocsItem` / `docIconHtml` / `docContentHtml`
+(exported), FO boxed doc field (Cererea semnată olograf), FO summary cards (Verificare, edit pen =
+`[data-gh-goto]`), FO invoice card (elements = name + `__fee-meta` lines account / reductions), FO
+finish hero / finish doc / summary rows (confirmation), BO stacked list + ⋮ (acts and decisions of the
+holder, post-process menu), `#case-action-modal` (remove with required reason, export Excel/CSV,
+MSign, history), `#dosar-detail-modal` A4 preview (paper request, signed JSON, certificate).
+
+**New glue (css/ghiseu.css):** `.e-permits-gh__inner` (FO layout vars), `__step-header`, `__lead`,
+`__basis`, `__acts` (bordered stack r16), `__doc` / `__doc-actions` (doc card + „👁 Detalii”),
+`__sign`, `__retry`, `__pay-actions`, `__fee-name` / `__fee-meta`, `__finish`, `__progress`,
+`.e-permits-gh-sheet__header|__title|__meta|__saved|__actions|__buttons|__hint`, `.e-permits-gh-start__body`,
+date-meta tones `.e-permits-gh__meta--warning|danger` in registry cells, nav masks for `dosare-noi`,
+`dosare-suspendate`, `acte-spre-eliberare`, `toate-dosarele`, phone registry layout for kind `ghiseu`.
+
+**Rules kept:** Prin procură = check option with the red star; one labelled primary per row („Continuă”
+pen) + ⋮ (Elimină schița, disabled with a reason when the note is paid); lone view = „👁 Detalii”;
+export = `icon-export`; dates „8 iulie 2026” over „hh:mm · who”; tables one line + tooltips; no toast for
+toggles (only for save / remove / export / regenerate / submit). Errors = FO inline message under the
+field (selects, lists and check options get `is-error`).
+
+**Demo** (`gh-*`, as `ansp-ghiseu-chisinau`): params `mconnect=0`, `registru=asteptare`, `mdocs=0`,
+`msign=0|1`, `olograf=0|1`, `cert=0|1`, `msignerr=1`, `taxa=incompleta`, `depunere=eroare`,
+`certerr=1`, `gol=1`, `ghseed=1`. Drafts are kept in `localStorage["e-permits-ghiseu-v1"]` (cleared by
+demo links). `window.GEAPGhiseu` = state, route, go(step), fill(step), paid(), expire().
 
 ## 5. Removed from this document
 

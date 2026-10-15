@@ -1,0 +1,492 @@
+/* =====================================================================================
+   Ghișeu — depunere la ghișeu (Feature 95768, js/ghiseu.js, 2026-10-15)
+   Page glue only: the wizard reuses the FO request layout (stepper, form, fields, document
+   fields + cards, summary cards, invoice, finish hero) inside the BO page; the list is the BO
+   registry. components.md › „Ghișeu — depunere la ghișeu”.
+   ===================================================================================== */
+
+/* menu icons of the Specialist ghișeu workplace (the shell draws nav icons as 20px masks) */
+.e-permits-shell__nav--specialist [data-nav-id="dosare-noi"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/page-add.svg");
+  -webkit-mask-image: url("../assets/icons/page-add.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="dosare-suspendate"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/sidebar-folder-download.svg");
+  -webkit-mask-image: url("../assets/icons/sidebar-folder-download.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="acte-spre-eliberare"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/stamp.svg");
+  -webkit-mask-image: url("../assets/icons/stamp.svg");
+}
+
+.e-permits-shell__nav--specialist [data-nav-id="toate-dosarele"] .e-permits-shell__nav-icon::before {
+  mask-image: url("../assets/icons/sidebar-folder-shared.svg");
+  -webkit-mask-image: url("../assets/icons/sidebar-folder-shared.svg");
+}
+
+/* registry „Dosare noi”: no checkbox column — the pinned number carries the divider (as Fluxuri de lucru) */
+.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(1),
+.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table td:nth-child(1) {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 7;
+}
+
+.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(1) {
+  z-index: 9;
+}
+
+/* a date that is close (payment due, automatic removal) */
+.e-permits-workplace__date-meta.e-permits-gh__meta--warning {
+  color: var(--color-text-warning-default, #b54708);
+}
+
+.e-permits-workplace__date-meta.e-permits-gh__meta--danger {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+/* ---- the request sheet: the FO request layout inside the full-screen modal ---- */
+.e-permits-gh .e-permits-gh__inner {
+  --fo-page-width: 1120px;
+  --fo-sidebar-width: 240px;
+  --fo-header-height: var(--spacing-0, 0);
+  --fo-page-gutter: var(--spacing-16, 16px);
+  padding-top: var(--spacing-8, 8px);
+}
+
+.e-permits-gh .e-permits-gh__form {
+  padding-top: var(--spacing-32, 32px);
+}
+
+.e-permits-gh .e-permits-gh__step-header h2 {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-32, 32px);
+}
+
+.e-permits-gh .e-permits-gh__step-header h2:focus {
+  outline: none;
+}
+
+.e-permits-gh__lead {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* every section after another: the FO rhythm (the FO puts the gap in the section body) */
+.e-permits-gh .e-permits-fo-form__section + .e-permits-fo-form__section,
+.e-permits-gh .e-permits-fo-form__section + .e-permits-fo-form__roles,
+.e-permits-gh [data-gh-block] + [data-gh-block] {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-gh .e-permits-fo-form__roles {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-gh .e-permits-fo-form__section > .e-permits-info-note,
+.e-permits-gh .e-permits-fo-form__section > .message {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-gh__basis {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  padding-bottom: var(--spacing-32, 32px);
+}
+
+.e-permits-gh__basis[hidden] {
+  display: none;
+}
+
+.e-permits-gh__block {
+  display: contents;
+}
+
+.e-permits-gh .e-permits-gh__acts {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+}
+
+/* the service list in error (the FO searchable list mirrors the FO select) */
+.e-permits-gh .e-permits-fo-caem.is-error .e-permits-fo-caem__button {
+  border-color: var(--color-border-danger-default, #d92d20);
+}
+
+.e-permits-gh .e-permits-check-options.is-error .e-permits-check-option {
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-default, #d92d20);
+}
+
+/* the × that resets an identified code: the clear button's own colour, not the read-only green check */
+.e-permits-gh .e-permits-fo-input.is-readonly .btn-icon.clear .icon {
+  color: var(--color-icon-base-secondary, #383838);
+}
+
+/* Verificare: notes, documents with their actions, sign row, retry */
+.e-permits-gh .e-permits-info-note + .e-permits-gh__notices,
+.e-permits-gh .e-permits-info-note + .e-permits-gh__review,
+.e-permits-gh .e-permits-gh__notices + .e-permits-gh__review {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-gh__notices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-gh__review {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  margin-bottom: var(--spacing-32, 32px);
+}
+
+.e-permits-gh .e-permits-gh__doc {
+  align-items: center;
+}
+
+.e-permits-gh__doc-actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+  margin-left: auto;
+}
+
+.e-permits-gh__sign,
+.e-permits-gh__retry {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.e-permits-gh__sign .e-permits-fo-doc-field__desc {
+  flex: 1 1 280px;
+}
+
+.e-permits-gh__retry .message {
+  flex: 1 1 320px;
+}
+
+.e-permits-gh .e-permits-gh__pay-actions {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-gh .e-permits-fo-payment-summary + .e-permits-fo-payment-invoice,
+.e-permits-gh .message + .e-permits-fo-payment-summary {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.e-permits-gh__delivery-address {
+  padding-top: var(--spacing-8, 8px);
+}
+
+.e-permits-gh__tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4, 4px);
+}
+
+.e-permits-gh__finish .e-permits-fo-finish__header h2 {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-32, 32px);
+}
+
+/* the mobile progress (the stepper hides with the FO rules ≤ 960) */
+.e-permits-gh__progress-fill {
+  fill: var(--color-background-brand-default, #0058d2);
+}
+
+.e-permits-gh__progress-bar {
+  display: block;
+}
+
+@media (max-width: 960px) {
+  .e-permits-gh .e-permits-gh__progress {
+    display: block;
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px) 0;
+  }
+
+  .e-permits-gh .e-permits-gh__sidebar {
+    display: none;
+  }
+
+  .e-permits-gh .e-permits-gh__form {
+    padding-top: var(--spacing-16, 16px);
+  }
+}
+
+/* a payment element: name, then the frozen bank account and the reductions (US-237 AC-04) */
+.e-permits-gh__fee-name,
+.e-permits-gh__fee-meta {
+  display: block;
+}
+
+.e-permits-gh__fee-meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin-top: var(--spacing-2, 2px);
+}
+
+/* phones (≤760): the registry toolbar wraps instead of clipping „Dosar nou” (the eKYC pattern,
+   scoped to this registry); the step progress stays in the flow (the FO pins it under its own header) */
+@media (max-width: 760px) {
+  .e-permits-workplace[data-registry-kind="ghiseu"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__footer {
+    flex-basis: auto;
+    height: auto;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__pagination {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__pagination-summary {
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+    min-width: 0;
+  }
+
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__header {
+    grid-template-rows: auto auto;
+  }
+
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__toolbar {
+    flex-wrap: wrap;
+    height: auto;
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__toolbar .e-permits-workplace__search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table-tools {
+    flex: 0 0 auto;
+    margin-left: auto;
+    width: auto;
+  }
+
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__field-count,
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__tool-divider {
+    display: none;
+  }
+
+  .e-permits-gh .e-permits-gh__progress {
+    position: static;
+  }
+
+  .e-permits-gh .e-permits-page-header__meta-value {
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ---- the two dialogs (user, 2026-10-15) --------------------------------------------------
+   Picker (#gh-start-modal) = library modal--lg (720: IDNO + company / IDNP + names in one row); on phones the standard bottom sheet.
+   Request (#gh-request-modal) = library modal--fullscreen as a sheet: 24 from the top, full
+   width, rounded top corners (radius 16 = the Form Builder sheet), header · scrolling body ·
+   sticky footer. It sits under the library dialogs (z 990 < 1000) so confirmations, the
+   document modal and previews open above it. */
+.e-permits-gh-start__body .e-permits-fo-form__section:first-child > h2 {
+  padding-top: var(--spacing-0, 0);
+}
+
+.e-permits-gh-start__body .e-permits-fo-form__section-body {
+  padding-bottom: var(--spacing-24, 24px);
+}
+
+.e-permits-gh-sheet-overlay {
+  align-items: flex-end;
+  padding-top: var(--spacing-24, 24px);
+  z-index: 990;
+}
+
+.modal.e-permits-gh-sheet {
+  border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+  box-shadow: var(--drop-shadow-400);
+  height: calc(100dvh - var(--spacing-24, 24px));
+  max-width: none;
+  width: 100%;
+}
+
+.e-permits-gh-sheet .e-permits-gh-sheet__body {
+  flex: 1 1 auto;
+  max-height: none;
+  overflow-y: auto;
+  padding: var(--spacing-0, 0);
+}
+
+.e-permits-gh-sheet .e-permits-gh-sheet__header {
+  align-items: flex-start;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  padding: var(--spacing-20, 20px) var(--spacing-64, 64px) var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-gh-sheet__title {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.e-permits-gh-sheet__title .modal--header-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-gh-sheet__meta {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: var(--font-size-fs-14, 14px);
+  gap: var(--spacing-4, 4px) var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-gh-sheet__meta-part + .e-permits-gh-sheet__meta-part::before {
+  content: "·";
+  margin-right: var(--spacing-8, 8px);
+}
+
+.e-permits-gh-sheet__saved {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin: 0;
+}
+
+.e-permits-gh-sheet__actions {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-8, 8px);
+}
+
+.e-permits-gh-sheet__buttons {
+  align-items: center;
+}
+
+.e-permits-gh-sheet__buttons [data-gh-prev],
+.e-permits-gh-sheet__buttons [data-gh-goto],
+.e-permits-gh-sheet__buttons [data-gh-close-sheet] {
+  margin-right: auto;
+}
+
+.e-permits-gh-sheet__hint {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+@media (max-width: 680px) {
+  /* the picker = the standard mobile bottom sheet */
+  .e-permits-gh-start {
+    align-items: flex-end;
+  }
+
+  .modal.e-permits-gh-start__modal {
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - var(--spacing-24, 24px));
+    max-width: none;
+    width: 100%;
+  }
+
+  .e-permits-gh-start__modal .e-permits-gh-start__body {
+    flex: 1 1 auto;
+    max-height: none;
+  }
+
+  .e-permits-gh-sheet .e-permits-gh-sheet__header {
+    flex-wrap: wrap;
+    padding: var(--spacing-16, 16px) var(--spacing-56, 56px) var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  /* footer buttons stay side by side in the sheet (the library stacks them ≤680) */
+  .e-permits-gh-sheet .e-permits-gh-sheet__buttons {
+    flex-direction: row;
+  }
+
+  .e-permits-gh-sheet .e-permits-gh-sheet__buttons .btn {
+    flex: 1 1 0;
+    width: auto;
+  }
+
+  .e-permits-gh-sheet__hint {
+    display: none;
+  }
+}
+
+/* the sheet keeps one divider under the header and one above the footer at all times: the
+   library scroll hairlines on the body and the fullscreen buttons' own border would double them */
+.modal.e-permits-gh-sheet .e-permits-gh-sheet__body {
+  border-bottom-width: 0;
+  border-top-width: 0;
+}
+
+.modal.e-permits-gh-sheet .e-permits-gh-sheet__footer {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.modal.e-permits-gh-sheet .e-permits-gh-sheet__buttons {
+  border-top: 0;
+  padding: var(--spacing-0, 0);
+  position: static;
+}
+
+/* header meta: each part carries its dot in its own left padding; the row is shifted left and
+   clipped by the same width, so a wrapped line never starts with a dot (the FO document-meta trick) */
+.e-permits-gh-sheet__meta {
+  clip-path: inset(0 0 0 var(--spacing-16, 16px));
+  column-gap: var(--spacing-0, 0);
+  margin-left: calc(var(--spacing-16, 16px) * -1);
+}
+
+.e-permits-gh-sheet__meta > * {
+  padding-left: var(--spacing-16, 16px);
+  position: relative;
+}
+
+.e-permits-gh-sheet__meta-part + .e-permits-gh-sheet__meta-part::before {
+  left: var(--spacing-6, 6px);
+  margin-right: var(--spacing-0, 0);
+  position: absolute;
+}
+
+/* stacked-list meta inside the dialogs: the dot of a part that starts a wrapped line sits left of the
+   meta box (syncStackMetaRows only watches the BO panels) — clip the box's left edge */
+.e-permits-gh .e-permits-stack__meta {
+  clip-path: inset(calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-4, 4px) * -1) 0);
+}
+
+/* role cards: the basis tag wraps under the IDNP on narrow sheets instead of being cut */
+.e-permits-gh .e-permits-fo-selected-role__meta {
+  flex-wrap: wrap;
+  row-gap: var(--spacing-4, 4px);
+}
