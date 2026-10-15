@@ -2298,7 +2298,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="e-permits-pd__json-actions">
           <button class="btn btn-secondary btn-sm" type="button" data-pd-json-copy>${icon("copy", 20)}<span>Copiază</span></button>
-          <button class="btn btn-secondary btn-sm" type="button" data-pd-json-export>${icon("download", 20)}<span>Exportă JSON</span></button>
+          <button class="btn btn-secondary btn-sm" type="button" data-pd-json-export>${icon("export", 20)}<span>Exportă JSON</span></button>
           ${S.viewOnly ? "" : `<button class="btn btn-secondary btn-sm" type="button" data-pd-json-import>${icon("upload", 20)}<span>Importă JSON</span></button>`}
         </div>
       </div>
@@ -4020,7 +4020,7 @@ document.addEventListener("DOMContentLoaded", () => {
       defaultSort: "actualizat",
       columns: {
         denumire: { label: "Denumire", width: 236, fill: true, sortable: true },
-        identificator: { label: "Identificator", width: 252, sortable: true },
+        identificator: { label: "Identificator", width: 252, fill: true, sortable: true },
         statut: { label: "Stare", width: 100, sortable: true },
         versiune: { label: "Versiune", width: 100, sortable: true },
         folosit: { label: "Folosit de", width: 124, sortable: true },
@@ -4084,7 +4084,7 @@ document.addEventListener("DOMContentLoaded", () => {
             menu: [
               { label: "Vezi schema", icon: "eye-open", attrs: `data-pd-reg-view="${esc(row.id)}"` },
               { label: "Duplică", icon: "copy", attrs: `data-pd-reg-dup="${esc(row.id)}"` },
-              { label: "Exportă JSON", icon: "download", attrs: `data-pd-reg-export="${esc(row.id)}"` },
+              { label: "Exportă JSON", icon: "export", attrs: `data-pd-reg-export="${esc(row.id)}"` },
               { label: "Șterge", icon: "delete", danger: true, attrs: `data-pd-reg-delete="${esc(row.id)}"${canDelete ? "" : ` aria-disabled="true" data-tooltip-reason="${row.folosit ? "Procesul este folosit de tipuri de solicitare." : "Doar o schiță nepublicată se poate șterge."}"`}` },
             ],
             label: row.denumire,
