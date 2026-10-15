@@ -869,18 +869,12 @@
   }
 }
 
-@media (max-width: 600px) {
-  .cab-doc {
-    flex-wrap: wrap;
-  }
-
-  .cab-doc .e-permits-fo-lib-item__content {
-    flex-basis: calc(100% - var(--spacing-24, 24px) - var(--spacing-12, 12px));
-  }
-
+/* phones: the shared FO document-card grid (e-permits-acte-permisive.css ≤720) puts „Detalii” + ⋮
+   under icon · title at the full card width (2026-10-15) */
+@media (max-width: 720px) {
   .cab-doc__actions {
-    /* under the text: icon 24 + gap 12 */
-    margin-left: calc(var(--spacing-24, 24px) + var(--spacing-12, 12px));
+    justify-self: start;
+    margin-left: 0;
   }
 }
 

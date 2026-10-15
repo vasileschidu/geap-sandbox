@@ -656,3 +656,30 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   hover (same specificity, later rule) — every new „state” class needs its `:hover` twin. (4) hover-audit „no-hover” on
   canvas items again = off-screen elements (46 of 46 here, filter by the reported x / y before fixing). No sub-agent tool
   → ran hover-audit / code-audit / regression (405 svc / fb / dos / fo states + 82 pd states) myself.
+- 2026-10-15 · Document cards = stack meta + one surface + one layout (6 user rounds in one job). Final: meta 12 / 20
+  tertiary, 2px `currentColor` dot, 8 · 2 · 8 (clip trick re-numbered: part `padding-left` 18 = `8 × 2 + 2`, dot at 8,
+  box `margin-left: −18` + `clip-path: inset(0 0 0 18)`); card grid `24 | 1fr | auto` with the content block
+  `display: contents`, icon `grid-row: 1 / -1` centred; title `flex: 1 1 64px; max-width: max-content` = tags RIGHT
+  after the title, title truncates first, tags wrap only below 64 of title (no JS, no DOM change). Rejected on the
+  way: meta/tags at the full card width under the icon, tags + meta in one inline row, tags pushed to the right.
+  Lesson: when a brief keeps moving, keep each layout in ONE replaceable CSS block (grep-able comment header) so a
+  new direction is one block swap, and re-measure with the same probes after each swap.
+- 2026-10-15 · „The small tag is too small on phones”: the library `.status-tag--small` reads the RESPONSIVE token
+  `--text-caption-md-font-size` (main.css drops it to 10 at ≤720). Fix without touching main.css: re-declare the
+  token on the component class (`.e-permits-fo-doc-tag { --text-caption-md-font-size: var(--font-size-fs-12) }`).
+  Grep main.css `@media` token overrides before blaming a product rule.
+- 2026-10-15 · Different surface on two variants of „the same” card = a later generic rule of equal specificity
+  (`.e-permits-fo-file-item` bg tertiary / r8) overriding the variant (`.e-permits-fo-doc-attached-item` secondary /
+  r12) — second time this class pair bit us. Put the shared surface in ONE `:is(...):has(> content)` rule (higher
+  specificity) and delete the per-variant surface declarations.
+- 2026-10-15 · Probes for `display: contents` boxes: a contents element has a 0×0 rect, so „visible?” checks on
+  the meta skipped it and „gaps []” looked like success — test visibility on the children and read the clip from
+  the nearest boxed ancestor. Ellipsized file names add up to a character of slack before the next dot (16–19
+  instead of 8): expected, the BO stack has it too.
+- 2026-10-15 · Truncating a title that used to wrap (BO stack rows) needs a tooltip in the SAME change — the code
+  audit's `clipped-text-no-tooltip` caught it; `renderStackItem` now sets `title` from `item.plainTitle` for rows
+  with a lead. HEAD baselines from a worktree on :8936 again (python http.server) made the before/after tables
+  honest; desktop geometry diff (edges probe) proved „desktop unchanged” before the user widened the scope.
+- 2026-10-15 · No sub-agent tool → ran code-audit + hover-audit myself (scoped: FO page, doc modal, dossier panel,
+  rt drawer, Cabinet). Leftovers = standing FPs (FO-specific buttons, copy-code, 18px composite gap — the reference
+  stack meta is flagged for the same 18, label `padding-right: 18` from 2026-10-14).

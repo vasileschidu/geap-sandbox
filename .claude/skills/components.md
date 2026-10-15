@@ -214,7 +214,7 @@ but this doc previously described it wrongly, see the entry.
 | Copy value | `.e-permits-fo-copy-value` | — | app |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
-| **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” + ⋮ Descarcă → document modal with the A4 page preview | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
+| **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” + ⋮ Descarcă → document modal with the A4 page preview · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
 | Dosar › Documente însoțitoare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · `renderRowActions` eye + ⋮ Descarcă; modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Documente însoțitoare” | app |
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
@@ -3161,7 +3161,7 @@ lists no „În curând” for them any more.
   no classifier, no address field, no automatic value.
 - **Fișier** — the boxed doc field (guest procură): dashed block + black `btn btn-strict btn-md` „Adaugă
   fișier” with `icon-upload`; description = help + „PDF, JPG, PNG · maximum 10 MB[ · până la N fișiere]”;
-  optional = `.e-permits-fo-optional-tag`. Validare: types (check options), max size 1–60 MB, count 1–10.
+  optional = the bordered Small tag (`status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag`). Validare: types (check options), max size 1–60 MB, count 1–10.
   The picker opens on the upload tab only, with the field's accept list and captions.
 - **Document din MDocs** — the Acte necesare doc field (`postprocessDocFieldHtml`) → the picker with
   „Caută în librărie” (MDocs) + „Încarcă fișier”; Date › „Tipul documentului în MDocs” fills the
@@ -6474,48 +6474,66 @@ do the same data architecture … change all documents in the whole system” (+
   library `status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag` + svg
   (`FO_DOC_SIGNED_TAG`, `CabEvo.signedTagHtml()`), padded `1px 6px 1px 4px` so it stays 20 high like the
   other Small tags (the library `:has(svg)` padding makes 22). In the modal the „Semnătură” row shows the
-  badge + „MSign · <signer> · <date, time>” (`.e-permits-passport__row-note`). FO / Cabinet title rows
-  wrap (`.e-permits-fo-doc-title-row`) so tags go under a long type instead of squeezing it.
-- **Meta lines + separators (2026-10-14, every width):** the meta is built in logical lines —
-  `[number]` / `[file · size]` / `[<Verb> <date> · de <who> (· semnat de …)]`; without a file name the
-  number leads the size (`[number · size]`). FO / Cabinet markup: `.e-permits-fo-lib-item__meta.e-permits-fo-doc-meta`
-  > `span.e-permits-fo-doc-meta__line` > `span.e-permits-fo-doc-meta__part` (`--file` on the file name, with
-  `title`); helpers `foDocMetaLines` / `foDocMetaHtml` (FO), `docMetaLines` (Cabinet). The dot is never an
-  element: each part has `padding-left: 16` and a 4px `::before` dot at `left: 6`, `top: 8` (centre of
-  its first 20px line); the meta box has `margin-left: -16` + `clip-path: inset(0 0 0 16)`, so whichever
-  part starts a line (first, or wrapped) has its dot clipped — no line ever starts or ends with a dot.
-  Desktop: lines are `display: contents` → one flowing row, same geometry as before (text · 6 · dot 4 ·
-  6 · text). BO stacked rows: `item.metaBreaks` (indices) inserts `span.e-permits-stack__break` (hidden on
-  desktop; ≤760 a zero-height 100% flex item) and the file name is `span.e-permits-stack__file` (title);
-  the existing `syncStackMetaRows` hides the dot of a wrapped part (`is-row-start`), and the dot rule is
-  `:is(.e-permits-stack__part, .e-permits-stack__break) + .e-permits-stack__part::before`.
-- **Phones (≤720 FO / Cabinet; ≤760 BO stacked rows) — verified at 375:**
-  - card padding **12** (desktop unchanged), `align-items: flex-start`, `min-height: 0`, gap 12;
-  - icon 24 at the top; the content gets `padding-top: 2` so the first 20px title line is centred on the
-    icon (both centres 24 from the card top); the × (32) gets `margin-top: -4` → same centre; the
-    picker's check (20) `margin-top: 2`;
-  - title `flex: 0 0 100%`, `-webkit-line-clamp: 2` (`white-space: normal`, `overflow-wrap: anywhere`),
-    full text in its `title` tooltip; tags in one wrapping row under it, `column-gap: 4` / `row-gap: 4`
-    (BO: title row `row-gap: 4`, title `flex: 0 0 100%`; BO titles wrap fully, no clamp);
-  - meta `display: block`, each line `display: flex; flex-wrap: wrap`; the file line `nowrap`: parts
-    `flex: none`, the file part `flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis` (BO: the file
-    part `max-width: calc(100% - 64)` so its size fits beside it);
-  - labelled actions go under the text (indent 24 + 12): Cabinet `.cab-doc__actions` (≤600), BO
-    `.e-permits-stack__actions` (grid column 2), the post-process previous act „Descarcă”
-    (`.e-permits-fo-mdocs__attachment:has(> .btn)` wraps, content `flex-basis: calc(100% − 36)`);
-  - Finalizare „Certificatul Constatator” (`.e-permits-fo-finish-doc`): grid `24 · 1fr`, gaps 12,
-    copy `padding-top: 2`, action column 2 (`justify-self: start; margin-left: 0`).
-- **Vertical padding — one source per container (2026-10-14, user: „cards have no top / bottom
-  padding”):** picker `.e-permits-fo-lib-item` 12 (+1 border) · field value upload
-  `.e-permits-fo-file-item:has(> .e-permits-fo-lib-item__content)` 16 (min 70, `height: auto` — the 48px
-  upload-row rule clipped it) · field value MDocs / previous act `.e-permits-fo-mdocs__attachment` 16 ·
-  Verificare `.e-permits-fo-confirm-file--doc` 12 · Finalizare `.e-permits-fo-finish-doc` 12 (was `0 12`,
-  min 70 kept the desktop look) · Cabinet `.cab-doc` 12 · BO rows 12 / 20. All of them **12 on phones**.
+  badge + „MSign · <signer> · <date, time>” (`.e-permits-passport__row-note`). Title row layout: see
+  „Card layout” below.
+- **Meta = the stack meta (2026-10-15, user: „description and dots as in Tipuri solicitări”):** FO / Cabinet
+  `.e-permits-fo-doc-meta` has exactly the `.e-permits-stack__meta` type and geometry — 12 / lh 20,
+  `--color-text-base-tertiary`, text · 8 · **2px round dot** (`currentColor`) · 8 · text, `gap: 0` (no extra
+  space between wrapped lines). Markup `.e-permits-fo-lib-item__meta.e-permits-fo-doc-meta` >
+  `span.e-permits-fo-doc-meta__line` (always `display: contents`) > `span.e-permits-fo-doc-meta__part`
+  (`--file` on the file name, with `title`); helpers `foDocMetaLines` / `foDocMetaHtml` (FO), `docMetaLines`
+  (Cabinet). The dot is never an element: each part has `padding-left: --fo-doc-meta-sep` (= `8 × 2 + 2` = 18)
+  and a 2px `::before` dot at `left: 8`, `top: 10 − 1` (centre of its first 20px line); the meta box has
+  `margin-left: −18` + `clip-path: inset(0 0 0 18)`, so whichever part starts a line (first, or wrapped) has
+  its dot clipped — no line ever starts or ends with a dot, at any width. Parts never break inside
+  (`flex: none; white-space: nowrap; max-width: 100%`); only a file name too long for a whole line gives
+  way (`flex: 0 1 auto`, ellipsis, tooltip). The meta flows and wraps naturally — no forced logical lines.
+  BO stacked rows keep the stack meta itself (`column-gap: 18`, dot `left: −10`, `syncStackMetaRows` →
+  `is-row-start`); on phones document rows hide `span.e-permits-stack__break` (no forced lines either).
+- **Card layout (2026-10-15, user — every width; FO / Cabinet grid, BO the stacked row):**
+  ```
+  [icon] [title… [tag] [tag]            ] [× / check | actions]
+         [meta 12 · flows · wraps       ]
+  ```
+  `:is(.e-permits-fo-file-item, .e-permits-fo-mdocs__attachment, .e-permits-fo-lib-item,
+  .e-permits-fo-confirm-file--doc):has(> .e-permits-fo-lib-item__content)` = grid `24 | minmax(0,1fr)`
+  (`| auto` when there is a ×, check, `.cab-doc__actions` or a `.btn`), column gap 12, row gap 4; the content
+  block is `display: contents`. Icon `grid-row: 1 / -1; align-self: center` (centred on title + meta).
+  Title row (column 2): title `flex: 1 1 64; max-width: max-content; min-width: 0` + one-line ellipsis +
+  `title` tooltip → the tags sit **right after the title text** (gap 8, 4 between tags, `flex: none`), the
+  title truncates first, and the tags wrap under it only when not even 64 of it would stay (an MDocs value
+  with MDocs + Semnat electronic + Activă at 375). Meta `grid-column: 2 / -1` (under the title, may run under
+  the ×). × (32) on the title line (`margin-block: (20 − 32) / 2`), picker check (20) column 3 row 1. Labelled
+  actions (Cabinet „Detalii” + ⋮, post-process „Descarcă”): desktop column 3 across both rows, centred; ≤720
+  row 3 in the text column (`margin-top: 8` → 12 under the meta), the icon stays centred on rows 1–2.
+  BO document rows (`.e-permits-stack__item.has-lead:has(> .e-permits-fo-lib-item__icon)`, ≤760): icon
+  `align-self: center`, title the same `flex: 1 1 64; max-width: max-content` one-line ellipsis (tooltip =
+  `title` from `item.plainTitle`, set by `renderStackItem` for rows with a lead), tags `flex: none`.
+  Rejected on the way (user, same day): tags + meta in one inline row; meta / tags at the full card width
+  under the icon; tags pushed to the right edge.
+- **One card surface (2026-10-15, user: „why do the blue documents have a different grey and corners?”):**
+  every card that shows the shared content — field values (MDocs / uploaded), upload preview, post-process
+  previous act, Verificare, Cabinet — = `--color-background-base-secondary` + `--border-radius-12`,
+  padding **12** all round at every width, icon gap 12 (one rule; it was MDocs secondary / r12 / 16 vs
+  uploaded + Verificare + Cabinet tertiary / r8 — the later `.e-permits-fo-file-item` /
+  `.e-permits-fo-confirm-file` base rules overrode the attached item). Cabinet hover stays
+  `tertiary-hover`. The picker modal options stay white + 1px border + r12 / 12 (selectable options with a
+  selected state). Finalizare (`.e-permits-fo-finish-doc`) keeps its green card. BO rows 12 / 20.
+- **Tags keep one size (2026-10-15):** the library `.status-tag--small` reads `--text-caption-md-font-size`,
+  which main.css drops to 10 at ≤720 — `.e-permits-fo-doc-tag` pins it to `--font-size-fs-12` → 12 / 14,
+  20 high, at 375 / 390 / 720 / 1440 (BO `.e-permits-workplace__tag` is 12 / 20 already).
+- **× size:** the smallest documented icon-only button is 32 × 32 with a 16 icon (`btn-sm btn-icon-only`,
+  and `.e-permits-fo-document-remove` is the same box); nothing smaller exists (`.btn-icon.clear` 20 is the
+  search-input clear only) — do not hand-roll a smaller one.
 - **Document field header on phones (≤720):** `.e-permits-fo-doc-field__row` is a column (text, then
   „Adaugă fișier” / Încarcă full width — every doc field, not only `--boxed`); the label
   `display: block` + `padding-right: 18`, the red star `margin-left: 2; margin-right: -14;
   vertical-align: middle` (zero advance → it always stays on the last word's line), the „Opțional” tag
   `margin-left: 2; vertical-align: middle`. Desktop keeps the flex label.
+- **„Opțional” (2026-10-15, user):** the bordered Small tag of the document cards —
+  `span.status-tag.status-tag--neutral.is-subtle.status-tag--small.e-permits-fo-doc-tag.e-permits-fo-optional-tag`
+  (the last class is only a hook: `vertical-align: middle`, stripped from label copies); the old grey pill
+  is gone.
 - **Actions:** „👁 Detalii” (`btn-neutral btn-sm` + eye, the row-actions rule 4) + ⋮ „Descarcă”; the whole
   row / card opens the document modal. Read-only review lists (FO Verificare) and type lists have no
   actions; form field values keep their × remove.

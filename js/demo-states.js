@@ -958,6 +958,19 @@
     "fo-04d": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(400); }),
     "fo-04e": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); }),
     "fo-04f": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300); }),
+    /* Acte necesare with both document kinds side by side: MDocs (blue) in the first field, an uploaded PDF (grey) in the second — one card surface (2026-10-15) */
+    "fo-04g": foReq(3, {}, async (h) => {
+      await h.click("[data-fo-step-panel='3'] [data-fo-open-doc-modal]"); await h.wait(300); await h.click("[data-fo-doc-modal-list] .e-permits-fo-lib-item"); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+      await h.click("[data-fo-step-panel='3'] [data-fo-doc-field]:nth-of-type(2) [data-fo-open-doc-modal]"); await h.wait(300);
+      await h.click('[data-fo-doc-tab="upload"]');
+      const input = document.querySelector("[data-fo-doc-file-input]");
+      const files = new DataTransfer();
+      files.items.add(new File(["%PDF-1.4"], "planul-incaperilor-parter.pdf", { type: "application/pdf" }));
+      input.files = files.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(300);
+      await h.scroll("[data-fo-step-panel='3'] .e-permits-fo-mdocs__attachment");
+    }),
     "fo-05d": foReq(4, {}, async (h) => { await h.scroll(".e-permits-fo-summary-docs"); }),
     "fo-06": foReq(5),
     "fo-07": foReq(6),

@@ -2498,7 +2498,7 @@
           <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed${max > 1 ? " e-permits-fo-doc-field--multi" : ""}" data-fo-doc-field="${escapeFrontOfficeHtml(id)}" data-fo-upload-only data-fo-doc-accept="${escapeFrontOfficeHtml(accept)}" data-fo-doc-max="${max}" data-fo-doc-limits="${escapeFrontOfficeHtml(`${types.join(", ")}|${field.maxSizeMb || 10} MB`)}">
             <div class="e-permits-fo-doc-field__row">
               <div class="e-permits-fo-doc-field__info">
-                <span class="e-permits-fo-doc-field__label">${label} ${field.required ? requiredMarkerHtml() : '<span class="e-permits-fo-optional-tag">Opțional</span>'}</span>
+                <span class="e-permits-fo-doc-field__label">${label} ${field.required ? requiredMarkerHtml() : '<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>'}</span>
                 <p class="e-permits-fo-doc-field__desc" data-fo-guest-hint>${field.hint ? `${escapeFrontOfficeHtml(field.hint)} ` : ""}${limits}</p>
               </div>
               <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="${label}">
@@ -2679,7 +2679,7 @@
       function documentItemHtml(doc) {
         const requiredHtml = doc.required
           ? `<span class="e-permits-fo-required" aria-label="obligatoriu"><svg class="icon" width="12" height="12" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-asterisk"></use></svg></span>`
-          : `<span class="e-permits-fo-optional-tag">Opțional</span>`;
+          : `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>`;
         const fieldId = (doc.id || "").replace(/[^a-z0-9-]/gi, "-");
         return `
           ${doc.separator ? `<hr class="e-permits-fo-documents__separator">` : ""}
@@ -2712,7 +2712,7 @@
             <div class="e-permits-fo-other-docs__header">
               <div class="e-permits-fo-other-docs__heading-row">
                 <h2 class="e-permits-fo-other-docs__heading">Alte documente</h2>
-                <span class="e-permits-fo-optional-tag">Opțional</span>
+                <span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>
               </div>
               <p class="e-permits-fo-other-docs__desc">Opțional — adaugă orice document suplimentar relevant pentru cerere.</p>
             </div>
@@ -5283,7 +5283,7 @@
     function postprocessDocFieldHtml({ id, label, description = "", required = true, filesHtml = "", addable = true }) {
       const req = required
         ? requiredMarkerHtml()
-        : `<span class="e-permits-fo-optional-tag">Opțional</span>`;
+        : `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag e-permits-fo-optional-tag">Opțional</span>`;
       return `
         <div class="e-permits-fo-doc-field" data-fo-doc-field="${escapeFrontOfficeHtml(id)}">
           <div class="e-permits-fo-doc-field__row">

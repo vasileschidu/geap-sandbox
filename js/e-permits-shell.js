@@ -7416,7 +7416,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${item.leadHtml || ""}
       <div class="e-permits-stack__main">
         <div class="e-permits-stack__title-row">
-          <p class="e-permits-stack__title">${item.title}</p>
+          <p class="e-permits-stack__title"${item.leadHtml && item.plainTitle ? ` title="${escapeHtml(item.plainTitle)}"` : ""}>${item.title}</p>
           ${(item.badges || []).join("")}
         </div>
         ${[item.meta, item.meta2].filter((line) => line && line.length).map((line, lineIndex) => `
@@ -14033,7 +14033,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${lead || ""}
         <div class="e-permits-stack__main">
           <div class="e-permits-stack__title-row">
-            <p class="e-permits-stack__title">${escapeHtml(title)}</p>
+            <p class="e-permits-stack__title"${lead ? ` title="${escapeHtml(title)}"` : ""}>${escapeHtml(title)}</p>
             ${overridden ? renderTag("Personalizat", "brand") : renderTag(defaultTag, "neutral")}
           </div>
           <div class="e-permits-stack__meta">
