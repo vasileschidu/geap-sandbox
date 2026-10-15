@@ -319,8 +319,19 @@ body {
   background: var(--color-background-base-secondary, var(--gray-100));
   box-shadow:
     0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
-    0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379db));
+    0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
+}
+
+.e-permits-shell__user-trigger[aria-expanded="true"]:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* phones: the 364 menu stays right-aligned with the trigger but never leaves the screen */
+@media (max-width: 720px) {
+  .e-permits-shell__profile-menu {
+    max-width: calc(100vw - 2 * var(--spacing-16, 16px));
+  }
 }
 
 .e-permits-shell__user-avatar {
@@ -595,7 +606,7 @@ body {
 }
 
 .e-permits-shell__role-card.is-active:hover {
-  background: var(--color-background-brand-secondary, #e8f0fb);
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
 }
 
 .e-permits-shell__role-card-icon {

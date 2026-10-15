@@ -707,3 +707,12 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-15 · Doc card (sm-05e): labelled actions hold column 3 on ALL rows on desktop, so meta at `2 / -1` ran under
   „Detalii” → at ≥721 a card with `> :is(.cab-doc__actions, .btn)` keeps the meta in column 2 (× / check and phones keep
   2 / -1). Probe meta right edge vs actions left before calling it done.
+- 2026-10-15 · Header instance switcher („focus state when open + align the menu”, FOD 756:25276): the open ring
+  already existed but in THREE idioms (FO 3+5 via `.is-open`, BO 2+4, `.btn` 2+5) → one canonical ring on
+  `[aria-expanded="true"]` for both triggers. „Aligned” was fine at 1440 / 1024 (right edges equal) but the gap was
+  13 (container 54 vs trigger 52 + `100% + 12`) and at 375 the FO / Cabinet menu sat flush with the SCREEN edge
+  (offset counted the menu button gap twice) UNDER the sticky mobile progress (z 20 > header z 10); the BO menu
+  ran 5px off-screen. Lesson: measure trigger vs menu rects at 1440 / 1024 / 375 (scratch sw/probe.mjs) — the
+  desktop shot alone looked right. Hover-audit on the open menu found the selected role and „Ieșire” with no hover
+  (hover = rest colour) → option-card rule (brand-secondary-hover) / tertiary-hover. Concurrent px→token agent in
+  the same CSS: kept my edits as asserted (old → new) pairs in one script and staged HEAD + those pairs.

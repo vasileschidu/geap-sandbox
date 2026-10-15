@@ -946,6 +946,8 @@
        "Ce vrei să soliciți?" and the FOD2 post-process wizard per type */
     /* US-18 and the primary request flow (Figma FO · 09 bands F0–F8) */
     "fo-01": { page: PP_FO, flow: "full", ready: "h1" },
+    /* header instance switcher open (FOD 756:25276): trigger keeps the focus ring, menu right-aligned under it */
+    "fo-01s": foReq(1, {}, async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "fo-02": foReq(1),
     "fo-03": foReq(2),
     /* CAEM search with no match = the shared empty state inside the list (bare + compact) */
@@ -1834,6 +1836,7 @@
 
     /* ---- EVO Cabinet › Solicitările mele (US-19, US-158, US-161, US-29, US-24, US-135, US-159) ---- */
     "sm-01": sm(),
+    "sm-01s": sm(async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "sm-01a": sm(async (h) => { await h.click('[data-sm-chip="atentie"]'); }),
     "sm-01b": sm(async (h) => { await h.click('[data-sm-chip="schita"]'); }),
     "sm-01c": sm(async (h) => { await h.click('[data-sm-chip="finalizat"]'); }),

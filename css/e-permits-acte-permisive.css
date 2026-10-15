@@ -2188,7 +2188,8 @@
   align-items: center;
   display: inline-flex;
   flex: 0 0 256px;
-  height: 54px;
+  /* = the trigger height, so the menu offset is measured from the trigger itself */
+  height: 52px;
   position: relative;
   width: 256px;
 }
@@ -2352,16 +2353,27 @@
   background: var(--color-background-base-secondary-active, #e5e5e5);
 }
 
+/* keyboard focus and an open menu = the canonical Focus Ring/Medium (2 white + 3 ring, like
+   `.btn[aria-expanded="true"]`) — the switcher stays in its Focus state while the menu is open */
 .e-permits-fo-auth__avatar:focus-visible,
-.e-permits-fo-auth__profile.is-open .e-permits-fo-auth__avatar {
+.e-permits-fo-auth__avatar[aria-expanded="true"] {
   background: var(--color-background-base-secondary, #f5f5f5);
   box-shadow:
-    0 0 0 3px var(--color-background-base-default, #fff),
+    0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff),
     0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
   outline: none;
 }
 
-.e-permits-fo-auth__profile.is-open .e-permits-fo-auth__avatar-chevron {
+.e-permits-fo-auth__avatar[aria-expanded="true"]:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+/* while the menu is open the header paints above the sticky mobile progress (z 20) */
+.e-permits-fo-auth__header:has(.e-permits-fo-auth__avatar[aria-expanded="true"]) {
+  z-index: 30;
+}
+
+.e-permits-fo-auth__avatar[aria-expanded="true"] .e-permits-fo-auth__avatar-chevron {
   transform: rotate(180deg);
 }
 
@@ -2379,8 +2391,9 @@
   max-height: calc(100vh - 120px);
   overflow: hidden;
   position: absolute;
+  /* aligned with the switcher: same right edge, standard menu offset under the trigger */
   right: 0;
-  top: calc(100% + var(--spacing-12, 12px));
+  top: calc(100% + var(--spacing-8, 8px));
   width: 364px;
   z-index: 1000;
 }
@@ -2660,6 +2673,11 @@
   background: var(--color-background-brand-secondary, #e8f0fb);
   border-color: var(--color-border-brand-default, #0058d2);
   border-width: var(--border-width-1-5, 1.5px);
+}
+
+/* the selected role keeps its brand tint on hover, one step darker (option card rule) */
+.e-permits-fo-avatar-menu__role.is-selected:hover {
+  background: var(--color-background-brand-secondary-hover, #ccdef6);
 }
 
 .e-permits-fo-avatar-menu__role-avatar {
@@ -3010,7 +3028,8 @@
 
 .e-permits-fo-avatar-menu__logout:hover,
 .e-permits-fo-avatar-menu__logout:focus-visible {
-  background: var(--color-background-base-tertiary, #f1f1f1);
+  /* rests on tertiary → hover one step darker (hover rules table) */
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
   outline: none;
 }
 
@@ -15276,7 +15295,9 @@
 
   .e-permits-fo-avatar-menu {
     max-width: calc(100vw - 32px);
-    right: calc((var(--spacing-16, 16px) + 40px + var(--spacing-16, 16px)) * -1);
+    /* phones: the trigger sits left of the 40px menu button (gap 16) → the menu's right edge
+       = the header content edge (16 from the screen), never the screen edge */
+    right: calc((var(--spacing-16, 16px) + 40px) * -1);
     top: calc(100% + var(--spacing-8, 8px));
     width: 364px;
   }

@@ -1273,9 +1273,26 @@ kept on hover; hover only fills the inside `--color-background-base-secondary`; 
 (`.is-active`) = brand border + 1px inner brand line (2px total) on brand-secondary;
 focus = 2px `--color-background-base-default` gap + 4px `--focus-ring` ring
 (`box-shadow`, `outline: none`, `z-index: 1` so neighbours don't cover it). The header
-profile trigger (`.e-permits-shell__user-trigger`) shows the same ring on `:focus-visible`
+profile trigger (`.e-permits-shell__user-trigger`) shows the system ring on `:focus-visible`
 **and while its menu is open** (`[aria-expanded="true"]`) — open dropdown = Focus state. Under the user's name,
 the role line `__user-meta` ("Specialist • Chișinău") is 12/16 regular, `--color-text-base-secondary`.
+
+**Header instance switcher — open state + alignment (2026-10-15, user, FOD 756:25276).** Both header
+switchers — BO `.e-permits-shell__user-trigger` + `.e-permits-shell__profile-menu`, FO / Cabinet EVO
+`.e-permits-fo-auth__avatar` + `.e-permits-fo-avatar-menu` (same markup on both pages) — use ONE look:
+- **Open = Focus state**, driven by `[aria-expanded="true"]` (the JS setters toggle it on every open /
+  close path): bg `--color-background-base-secondary` + the canonical Focus Ring/Medium
+  `0 0 0 var(--border-width-2) white, 0 0 0 5px var(--focus-ring)` (= `.btn[aria-expanded="true"]`);
+  hovered while open → `--color-background-base-tertiary`. Chevron rotates 180°.
+- **Menu**: right edge = the trigger's right edge, top = trigger bottom + `--spacing-8` (the FO
+  `.e-permits-fo-auth__profile` box is 52 = the trigger, so `100%` is the trigger bottom), width 364
+  (≥ the 256 trigger). Phones (≤720): FO menu `calc(100vw − 32)` wide, right edge = header content
+  edge (16 from the screen; the 40px menu button + 16 gap sit right of the trigger); BO menu capped at
+  `calc(100vw − 2 × --spacing-16)`. While the FO menu is open the sticky header goes to z 30 so the
+  sticky mobile progress (z 20) never paints over it.
+- **Items**: role card hover tertiary; selected role (`.is-selected` / BO `.is-active`) hover
+  `--color-background-brand-secondary-hover`; FO „Ieșire” (rests on tertiary) hover `…-tertiary-hover`.
+- Demo states: `fo-01s` (FO request), `sm-01s` (Cabinet EVO), `auth-05` (BO).
 
 **Role switcher groups = institutions; > 3 roles → collapsible (2026-10-02).** `renderRoleGroups()`
 in `js/e-permits-shell.js` renders one `.e-permits-shell__role-group` per institution
