@@ -3079,6 +3079,15 @@ button.e-permits-workplace__th-content:focus-visible {
   cursor: pointer;
 }
 
+/* one line per cell text (table rule 2026-10-15): names and sources ellipsize instead of
+   being cut or broken mid-word; the full text is in the cell tooltip */
+.e-permits-workplace__case-cell > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .e-permits-workplace__table td:has(.e-permits-workplace__copy-code) {
   overflow: visible;
 }

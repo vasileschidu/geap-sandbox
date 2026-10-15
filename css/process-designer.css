@@ -2020,16 +2020,17 @@
   z-index: 7;
 }
 
-/* identifiers are long single words (SubProcessSuplinireInformaiiFrontOffice): they wrap inside the copy code
-   (two lines fit the row) instead of running into the next column */
+/* identifiers are long single words (SubProcessSuplinireInformaiiFrontOffice): one line with an ellipsis
+   (table rule — never broken mid-word); Identificator shares the spare width, the copy code keeps the value */
 .e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__copy-code {
   max-width: 100%;
   text-align: left;
 }
 
 .e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__copy-code > span:first-child {
-  overflow-wrap: anywhere;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .e-permits-workplace[data-registry-kind="flows"] .e-permits-workplace__table th:nth-child(2),
