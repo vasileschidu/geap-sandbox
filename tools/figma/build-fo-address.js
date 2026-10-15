@@ -5,7 +5,7 @@
 //    [--root "<css>"] → JSON { rootW, search{…}, fields[{label, req, x, y, w, kind, value, …}] }.
 // 2. Paste this file as the `code` of mcp__figma-a__use_figma after replacing the SPECS line with
 //    [{ name, parent?: "<frame id>", spec }] (several specs per call are fine, ~3 KB each).
-// 3. Returns the created frame ids („Adresă · câmpuri · <name>”, VERTICAL auto-layout, rows = HORIZONTAL).
+// 3. Returns the created frame ids („Address · fields · <name>”, VERTICAL auto-layout, rows = HORIZONTAL).
 //
 // Mapping (components.md › Address by cadastral code — US-54):
 //   „Caută adresa”      → search-input-rectangular 9285:37474 (State Default/Focus/Filled, Size, Label,
@@ -20,6 +20,9 @@
 //   text parts / email   → text-input 6490:68585 · phone → phone-number-input (lib key f2ba725d…, International)
 const SPECS = ["PUT:SPECS"];
 const g = (id) => figma.getNodeByIdAsync(id);
+/* English layer names (2026-10-15): labels stay Romanian on screen, layer names are English */
+const EN_MAP = { "Cod cadastral": "Cadastral code", "Țara": "Country", "Raionul/Municipiul": "District/Municipality", "Orașul/Comuna": "City/Commune", "Sector": "Sector", "Strada": "Street", "Codul Poștal": "Postal code", "Casa": "House", "Blocul": "Block", "Scara": "Staircase", "Etajul": "Floor", "Apartamentul": "Apartment", "Telefonul unității": "Unit phone", "Email unității": "Unit email" };
+const EN = (l) => EN_MAP[l] || l;
 const C = { search: await g("9285:37474"), text: await g("6490:68585"), select: await g("8344:81663"), phone: await figma.importComponentSetByKeyAsync("f2ba725de62bbecd5bd84870a1e6b7bb1eb5adfe"),
   item: await g("1138:13821"), skel: await g("11229:290552"), home: await figma.importComponentSetByKeyAsync("a5d81e73003c9eb1ac7779d8433e470ab438f371"), spin: await figma.importComponentSetByKeyAsync("d38a117c520f1f18cf1e41292733a77a29b8148e"), flag: await g("2171:6978"),
   menuTpl: await g("2623:45122") };
@@ -51,7 +54,7 @@ const buildSearch = async (s, size) => {
   await message(inst, s.message);
   /* long hints wrap to the field width, as in code */
   const imx = inst.findOne((n) => n.type === "INSTANCE" && n.name === "inline-message"); if (imx && imx.visible) { try { imx.layoutSizingHorizontal = "FILL"; const tx = imx.findOne((n) => n.type === "TEXT"); if (tx) { tx.layoutSizingHorizontal = "FILL"; tx.textAutoResize = "HEIGHT"; } } catch (e) {} }
-  inst.name = "Caută adresa · " + (s.error ? "eroare" : s.focus ? "focus" : s.value ? "completat" : "implicit");
+  inst.name = "Search address · " + (s.error ? "error" : s.focus ? "focus" : s.value ? "filled" : "default");
   return inst;
 };
 const flagIn = (inst, size) => {
@@ -60,7 +63,7 @@ const flagIn = (inst, size) => {
 };
 const buildField = async (f, size) => {
   let inst;
-  if (f.kind === "skeleton") { inst = V(C.skel, { "Size": size }).createInstance(); setP(inst, { "Label": f.label, "Star": f.req }); inst.name = "skeleton · " + f.label; return inst; }
+  if (f.kind === "skeleton") { inst = V(C.skel, { "Size": size }).createInstance(); setP(inst, { "Label": f.label, "Star": f.req }); inst.name = "skeleton · " + EN(f.label); return inst; }
   if (f.kind === "readonly") {
     inst = V(C.text, { "Style": "Default", "State": "Read Only", "Size": size }).createInstance();
     setP(inst, { "👁️ Label": true, "👁️ Mandatory Star": f.req, "👁️ Assistive Text": false, "👁️ Clear Button": false, "👁️ Trailing Icon": Boolean(f.check), "👁️ Leading Icon": Boolean(f.flag), "⌨️ Placeholder": f.value || f.placeholder || "—" });
@@ -92,18 +95,18 @@ const buildField = async (f, size) => {
   }
   await setText(inst, "Label", f.label);
   if (f.message) { await message(inst, f.message); const imx = inst.findOne((n) => n.type === "INSTANCE" && n.name === "inline-message"); if (imx && imx.visible) { try { imx.layoutSizingHorizontal = "FILL"; const tx = imx.findOne((n) => n.type === "TEXT"); if (tx) { tx.layoutSizingHorizontal = "FILL"; tx.textAutoResize = "HEIGHT"; } } catch (e) {} } }
-  inst.name = f.kind + " · " + f.label;
+  inst.name = f.kind + " · " + EN(f.label);
   return inst;
 };
 const buildMenu = async (opts, width) => {
-  const menu = C.menuTpl.clone(); menu.name = "selection-menu · coduri salvate";
+  const menu = C.menuTpl.clone(); menu.name = "selection-menu · saved codes";
   for (const k of [...menu.children]) k.remove();
   menu.layoutSizingHorizontal = "FIXED"; menu.resize(width, menu.height); menu.primaryAxisSizingMode = "AUTO";
   for (const [i, o] of opts.entries()) {
     const it = V(C.item, { "State": o.empty ? "Disabled" : o.hl ? "Hover" : "Default" }).createInstance();
     setP(it, { "Option Label": o.title, "Description": o.meta || "", "Icon": !o.empty, "Supporting text": Boolean(o.meta) && !o.empty, "Badge": false });
     if (!o.empty) { const ic = it.findOne((n) => n.type === "INSTANCE" && /plus|home/.test(n.name)); if (ic) { const srch = o.icon === "search"; ic.swapComponent(srch ? searchIcon : homeIcon); ic.resize(20, 20); ic.name = srch ? "20/search" : "home-line"; } }
-    it.name = o.empty ? "gol · " + o.title : (o.icon === "search" ? "caută · " : "cod · ") + o.title;
+    it.name = o.empty ? "empty · " + o.title : (o.icon === "search" ? "search · " : "code · ") + o.title;
     menu.appendChild(it); it.layoutSizingHorizontal = "FILL"; it.layoutSizingVertical = "HUG";
   }
   return menu;
@@ -111,12 +114,12 @@ const buildMenu = async (opts, width) => {
 const out = [];
 for (const { name, parent, spec, mobile } of SPECS) {
   const size = spec.search.size || (mobile ? "Large" : "Medium");
-  const root = figma.createAutoLayout("VERTICAL", { name: "Adresă · câmpuri · " + name }); root.fills = []; root.clipsContent = false;
+  const root = figma.createAutoLayout("VERTICAL", { name: "Address · fields · " + name }); root.fills = []; root.clipsContent = false;
   await gap(root, 24); root.itemReverseZIndex = true; // the open list paints over the rows below (code: absolute dropdown)
   (parent ? await g(parent) : figma.currentPage).appendChild(root);
   root.layoutSizingHorizontal = "FIXED"; root.resize(spec.rootW, root.height); root.counterAxisSizingMode = "FIXED";
   // „Caută adresa” (+ open list, absolute like the code's dropdown)
-  const wrap = figma.createAutoLayout("VERTICAL", { name: "Dropdown wrap · Caută adresa" }); wrap.fills = []; wrap.clipsContent = false;
+  const wrap = figma.createAutoLayout("VERTICAL", { name: "Dropdown wrap · Search address" }); wrap.fills = []; wrap.clipsContent = false;
   root.appendChild(wrap); wrap.layoutSizingHorizontal = "FILL";
   const si = await buildSearch(spec.search, size); wrap.appendChild(si); si.layoutSizingHorizontal = "FILL";
   if (spec.search.listOpen && spec.search.options.length) {
@@ -130,7 +133,7 @@ for (const { name, parent, spec, mobile } of SPECS) {
   let ri = 0;
   for (const y of Object.keys(rows).map(Number).sort((a, b) => a - b)) {
     const fs = rows[y].sort((a, b) => a.x - b.x); ri++;
-    const row = figma.createAutoLayout("HORIZONTAL", { name: "Rând " + ri }); row.fills = []; row.clipsContent = false;
+    const row = figma.createAutoLayout("HORIZONTAL", { name: "Row " + ri }); row.fills = []; row.clipsContent = false;
     root.appendChild(row); row.layoutSizingHorizontal = "FILL";
     await gap(row, fs.length > 1 ? Math.round(fs[1].x - fs[0].x - fs[0].w) : (mobile ? 16 : 32));
     for (const f of fs) { const inst = await buildField(f, size); row.appendChild(inst); inst.layoutSizingHorizontal = "FIXED"; inst.resize(f.w, inst.height); }

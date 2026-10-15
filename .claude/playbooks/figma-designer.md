@@ -1009,3 +1009,33 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     clear it at the end; `const page` in the prelude collides with a caller's `page` (rename to `fpage`).
   - Agent tool not available again → figma-audit.js on the components (only holder paddings + the −8 overlap) and a geometry
     check on every open screen (menu right Δ0, gap 8, menu inside the screen).
+
+- 2026-10-15 · US-54 mobiles (20 blocks, board 11224:39519) + US-18 F8c (10815:25411):
+  - Adding mobiles to desktop-only address blocks = `tools/figma/add-fo-address-mobile.js`: clone the REAL step-2 mobile
+    (`Mobile · C04` 11276:13017, context skeleton included), rebuild only its „Address · fields” from the 375 DOM spec
+    (`extract-fo-address.mjs <state> 375`), append it to the block's „Screens · desktop + mobile”. 4 blocks per call with
+    compact specs (~1.7 KB each). Python's „drop falsy keys” also drops `x: 0` → the script defaults x to 0.
+  - Reusing a long builder across calls without re-pasting: define it as `const RUN = async (JOBS) => {…}`, store
+    `RUN.toString()` in `figma.root` shared plugin data on the first call, later calls run
+    `new Function("return " + stored)()` — clear the key at the end.
+  - 375 side-by-side parts (Casa/Blocul/Scara, Etaj/Apartament) = all FILL + gap 16 (code 1fr columns; the captured
+    x-gaps were 15/16 and 15 is off-scale).
+  - Before trusting „desktop done”: diff a whole board against the current code. The Cod cadastral hint „Apăsați săgeata…”
+    was removed in code (d8a7384e) but 21 field instances still showed it → hidden board-wide, then restack (heights −20).
+  - Desktop/mobile parity check that worked: per block, map field instance name → variant State/Style + visible texts for
+    desktop and mobile „Address · fields”, report diffs (only leftover Romanian names „· implicit” differed → renamed).
+  - Widening blocks by a mobile (1447 → 1942) needs a column shift: shift every section child right of each widened column
+    (+495 per widened column), widen the stage headers / lane frame / page header, then re-run the vertical restack (upper
+    columns 240, lane = tallest upper column + 440, lane blocks + 200, lane decisions moved by the lane dy). A decision that
+    sat in the gap between two lane columns no longer fit → moved under its source block (right-aligned, end magnet TOP).
+  - Connectors that started on desktop controls and went right now crossed the new mobiles → re-anchor to the SAME control in
+    the mobile (top-level field instance, magnet RIGHT; anchors over nested buttons → the field instance). Downward /
+    leftward ones → start on the block's LEFT edge (`position {x: 0, y: control centre}`), end magnet LEFT (below) or RIGHT
+    (column to the left).
+  - figma-audit false positive: captured wrappers named „Button Container” → renamed „Footer · actions” (24).
+  - F8 column drift vs code found while drawing F8c: finish button „Urmărește statutul în EVO Cabinet” → code „Mergi la
+    Solicitările mele”; mobile timeline „→ Fișierele mele” → „Solicitările mele” — fixed on F8, F8b, F8c, F8d, F8e. Header
+    persona (code: SRL Global Trader PJ, Figma: Anastasia PF) and the Beta feedback bar are board-wide — reported, not changed.
+  - US-18 AC-02 (no fee → Finalizare after Livrare): the primary request has no no-fee demo state (code always gates step 7 on
+    `?paid=1`; only post-processes skip Plată) → not drawn, reported to proto-engineer. Never invent a state.
+  - No Agent tool in this session again → ran figma-audit.js on the 21 new roots myself (0 majors after the rename).
