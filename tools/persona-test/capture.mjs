@@ -87,10 +87,12 @@ for (const st of states) {
     const dir = path.join(OUT, st); fs.mkdirSync(dir, { recursive: true });
     const png = path.join(dir, vp.name + ".png");
     if (shot.data) fs.writeFileSync(png, Buffer.from(shot.data, "base64"));
-    const rec = { state: st, viewport: vp.name, ready, consoleErrors, screenshot: png, ...info };
+    // the demo runner sets `<id>:error` when a step failed — „ready” alone does not tell
+    const demoState = await evaluate("document.documentElement.dataset.demoState || \"\"");
+    const rec = { state: st, viewport: vp.name, ready, demoState, demoError: /:error/.test(demoState || ""), consoleErrors, screenshot: png, ...info };
     fs.writeFileSync(path.join(dir, vp.name + ".json"), JSON.stringify(rec, null, 1));
     index.push({ state: st, viewport: vp.name, ready, title: info?.headings?.[0] || "", errors: consoleErrors.length, unnamed: info?.unnamedControls?.length || 0, overflow: info?.horizontalOverflow?.length || 0, screenshot: png });
-    console.log(`${st} ${vp.name} ${ready ? "ok" : "NOT READY"} errors=${consoleErrors.length} overflow=${info?.horizontalOverflow?.length ?? "?"} unnamed=${info?.unnamedControls?.length ?? "?"}`);
+    console.log(`${st} ${vp.name} ${ready ? (rec.demoError ? "DEMO-ERROR" : "ok") : "NOT READY"} errors=${consoleErrors.length} overflow=${info?.horizontalOverflow?.length ?? "?"} unnamed=${info?.unnamedControls?.length ?? "?"}`);
   }
 }
 fs.writeFileSync(path.join(OUT, "index.json"), JSON.stringify({ base: BASE, page: PAGE, captured: new Date().toISOString(), states, items: index }, null, 1));

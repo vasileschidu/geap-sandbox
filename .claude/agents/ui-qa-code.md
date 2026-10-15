@@ -37,6 +37,16 @@ session can fix them.
    States with an open drawer / modal: pass `--scope` (the page behind is reported as „not
    counted: under an open … backdrop”). „Not counted” lines (focused, read-only, open button,
    scrim) are by design — components.md › „Hover — shared rules per component class”.
+2c. Run the raw-px check on the project CSS (static, no browser, 2026-10-15):
+   `node tools/ui-qa/raw-px-audit.mjs [--list] [--family spacing,radius] [files…]`
+   It lists every px written outside `var(--token, fallback)` per property family. In the fixed
+   families (padding / margin / gap, border-radius, border width, font-size, line-height) a px
+   with an exact token (`t` count > 0, `--strict` exits 1) is a **major** finding: write
+   `var(--spacing-N, Npx)` / `var(--border-radius-N, Npx)` / `var(--border-width-N, Npx)` /
+   `var(--font-size-fs-N, Npx)` / `var(--line-height-lh-N, Npx)`, negatives as
+   `calc(var(--spacing-N, Npx) * -1)`, 1px border compensations as `var(--border-width-1, 1px)`.
+   Off-scale values (10, 11, 14, 18, 28…) are reported for the PO, never snapped silently.
+   Layout dimensions (width / height / top / left / max-width) and box-shadow are counted only.
 3. Judge every measured finding — drop false positives (say why), keep the real ones.
 4. Look at the screenshots yourself (Read the PNGs) for what a script cannot measure:
    - alignment: label/control baselines, left edges of stacked blocks, icon vs text centring,

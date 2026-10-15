@@ -685,3 +685,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   stack meta is flagged for the same 18, label `padding-right: 18` from 2026-10-14).
 
 - 2026-10-15 (user, repeated many times): every „Exportă …” action (table toolbar, menus, JSON export in builders) uses the sprite `icon-export` (arrow over tray, central „arrow-inbox, download”), never `download`. Grep for `Exportă` + `download` before shipping any export button.
+- 2026-10-15 · Token audit („why no tokens for radius / padding / gaps”): `tools/ui-qa/raw-px-audit.mjs` lists every px
+  outside `var(--token, fallback)` per family; padding / margin / gap / radius / border width / font-size / line-height
+  must stay at 0 token-able px (`--strict`). 990 replacements by a script (masked parser: comments, strings, url() and
+  `var(…)` blanked, offsets kept; replace back-to-front; negatives `calc(var(--spacing-N, Npx) * -1)`; 1 / 1.5px in
+  spacing and inside a radius `calc()` → `--border-width-*`). Off-scale values (10, 11, 28, 24 radius…) stay raw and are
+  listed for the PO; only ±1 border compensations that a comment documents became `calc(token ± --border-width-1)`.
+- 2026-10-15 · Proving „no visual change”: before/after from a HEAD `git worktree` on :8936 (no-cache python server),
+  never from the shared tree. Headless pixel captures are NOT deterministic across runs (GPU raster: ±1 grey on
+  shadow / curve edges, 27 px in a state with identical CSS; HEAD-vs-HEAD differed in 125 of 254 shots): classify a
+  state as identical when ANY HEAD capture equals ANY after capture, recapture the rest side by side, and for states
+  that are flaky on HEAD itself compare computed styles + rects of every element (scratch probe.mjs / cmpstyles.cjs).
+  `--border-radius-full` is 9999px in main.css while old fallbacks say 999px — the computed radius changes, the render
+  does not (normalise it in style diffs). capture.mjs now records `demoState` + prints DEMO-ERROR (an `:error` state
+  printed „ok” before); 61 mobile BO states are `:error` on HEAD too (nav hidden ≤960). Don't run > 8 capture workers:
+  „Chrome did not start” under load — re-run the missing ones.
+- 2026-10-15 · Parallel agents edited the same two CSS files during the job → staged my result as index blobs built
+  from HEAD + the same deterministic script (`git hash-object -w` + `git update-index --cacheinfo`), leaving their hunks
+  unstaged. A coordinator „rule body is empty” report was a transient state of the other agent's edit — read the file
+  before „restoring” anything.
+- 2026-10-15 · Doc card (sm-05e): labelled actions hold column 3 on ALL rows on desktop, so meta at `2 / -1` ran under
+  „Detalii” → at ≥721 a card with `> :is(.cab-doc__actions, .btn)` keeps the meta in column 2 (× / check and phones keep
+  2 / -1). Probe meta right edge vs actions left before calling it done.

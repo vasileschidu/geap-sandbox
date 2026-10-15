@@ -359,9 +359,11 @@ A linear scale based on a 4px base unit. Use `--spacing-{n}` custom properties i
 | `--spacing-20` | 20px | `--spacing-20` |
 | `--spacing-24` | 24px | `--spacing-24` |
 | `--spacing-32` | 32px | `--spacing-32` |
+| `--spacing-40` | 40px | `--spacing-40` (main.css) |
 | `--spacing-48` | 48px | `--spacing-48` |
 | `--spacing-56` | 56px | `--spacing-56` ᶠ |
 | `--spacing-64` | 64px | `--spacing-64` |
+| `--spacing-72` | 72px | `--spacing-72` (main.css) |
 | `--spacing-80` | 80px | `--spacing-80` ᶠ |
 
 > Use 4, 8, 16, 24, 32 as the most common steps. Skip steps 2 and 6 unless in dense/compact contexts.
@@ -377,7 +379,8 @@ A linear scale based on a 4px base unit. Use `--spacing-{n}` custom properties i
 | `--border-radius-8` | 8px | Default cards, buttons |
 | `--border-radius-12` | 12px | Large cards, modals |
 | `--border-radius-16` | 16px | Panels, drawers |
-| `--border-radius-full` | 999px | Pills, avatars, circular buttons |
+| `--border-radius-32` | 32px | main.css only — not used by the product yet |
+| `--border-radius-full` | 9999px (main.css; old fallbacks say 999px, same render) | Pills, avatars, circular buttons |
 
 ---
 
@@ -389,6 +392,18 @@ A linear scale based on a 4px base unit. Use `--spacing-{n}` custom properties i
 | `--border-width-1.5` | 1.5px | Focus rings, emphasis borders |
 | `--border-width-2` | 2px | Strong borders, selected states |
 | `--border-width-3` | 3px | Maximum emphasis |
+| `--border-width-4` / `-6` / `-8` | 4 / 6 / 8px | main.css (rings, thick rules) |
+
+### Writing tokens in CSS (2026-10-15)
+
+Every padding / margin / gap, border-radius, border width, font-size and line-height is a token with
+its px fallback — never a bare px: `var(--spacing-16, 16px)`, `var(--border-radius-8, 8px)`,
+`var(--border-width-1, 1px) solid …`, `var(--font-size-fs-14, 14px)`, `var(--line-height-lh-20, 20px)`
+(the `lh` tokens are not defined in main.css yet — the fallback carries them). Negatives:
+`calc(var(--spacing-16, 16px) * -1)`. A 1px border compensation: `calc(var(--spacing-12, 12px) -
+var(--border-width-1, 1px))`. Off-scale values (10, 11, 14, 18, 28…) stay raw until the PO decides — they
+are listed by `node tools/ui-qa/raw-px-audit.mjs --list`. Layout sizes (width / height / top / max-width)
+and shadows are not tokenised.
 
 ---
 

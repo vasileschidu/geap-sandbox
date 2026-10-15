@@ -20,19 +20,19 @@
 
 .sbx-panel {
   background: #fff;
-  border-right: 1px solid var(--gray-250, #d9d9d9);
+  border-right: var(--border-width-1, 1px) solid var(--gray-250, #d9d9d9);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--spacing-24, 24px);
   overflow-y: auto;
-  padding: 24px;
+  padding: var(--spacing-24, 24px);
 }
 
 .sbx-panel__head h1 {
-  font-size: 20px;
+  font-size: var(--font-size-fs-20, 20px);
   font-weight: 600;
   letter-spacing: -0.01em;
-  line-height: 28px;
+  line-height: var(--line-height-lh-28, 28px);
   margin: 0;
 }
 
@@ -40,15 +40,15 @@
   color: var(--gray-600, #757575);
   font-size: 13px;
   line-height: 19px;
-  margin: 6px 0 0;
+  margin: var(--spacing-6, 6px) 0 0;
 }
 
 .sbx-panel__head code {
   background: var(--gray-100, #f5f5f5);
-  border-radius: 4px;
+  border-radius: var(--border-radius-4, 4px);
   font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 11px;
-  padding: 1px 4px;
+  padding: var(--border-width-1, 1px) var(--spacing-4, 4px);
 }
 
 .sbx-section__title {
@@ -65,19 +65,19 @@
 .sbx-presets {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--spacing-6, 6px);
 }
 
 .sbx-preset {
   background: var(--gray-100, #f5f5f5);
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--border-radius-8, 8px);
   color: var(--black, #121212);
   cursor: pointer;
   font-family: inherit;
   font-size: 13px;
   line-height: 18px;
-  padding: 9px 12px;
+  padding: 9px var(--spacing-12, 12px);
   text-align: left;
   transition: background-color 0.15s ease;
 }
@@ -97,19 +97,19 @@
 .sbx-toggle__head {
   align-items: baseline;
   display: flex;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: var(--spacing-8, 8px);
+  margin-bottom: var(--spacing-6, 6px);
 }
 
 .sbx-toggle__index {
   background: var(--gray-200, #ececec);
-  border-radius: 999px;
+  border-radius: var(--border-radius-full, 999px);
   color: var(--gray-600, #757575);
   flex: none;
   font-size: 10px;
   font-weight: 600;
   height: 16px;
-  line-height: 16px;
+  line-height: var(--line-height-lh-16, 16px);
   text-align: center;
   width: 16px;
 }
@@ -133,24 +133,24 @@
 
 .sbx-seg {
   background: var(--gray-100, #f5f5f5);
-  border-radius: 8px;
+  border-radius: var(--border-radius-8, 8px);
   display: flex;
-  gap: 2px;
-  padding: 2px;
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-2, 2px);
 }
 
 .sbx-seg__btn {
   background: transparent;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--border-radius-6, 6px);
   color: var(--gray-600, #757575);
   cursor: pointer;
   flex: 1 1 0;
   font-family: inherit;
-  font-size: 12px;
+  font-size: var(--font-size-fs-12, 12px);
   font-weight: 500;
-  line-height: 16px;
-  padding: 6px 4px;
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-6, 6px) var(--spacing-4, 4px);
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -170,8 +170,8 @@
   color: var(--blue-sky-600, #0058d2);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
-  margin-top: 12px;
+  font-size: var(--font-size-fs-12, 12px);
+  margin-top: var(--spacing-12, 12px);
   padding: 0;
 }
 
@@ -181,7 +181,7 @@
 
 .sbx-schema {
   background: var(--gray-100, #f5f5f5);
-  border-radius: 8px;
+  border-radius: var(--border-radius-8, 8px);
   color: var(--gray-700, #444);
   font-family: var(--font-family-primary-font, Onest), sans-serif;
   font-size: 10.5px;
@@ -189,7 +189,7 @@
   margin: 0;
   max-height: 260px;
   overflow: auto;
-  padding: 12px;
+  padding: var(--spacing-12, 12px);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -199,20 +199,20 @@
 .sbx-stage {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-12, 12px);
   min-width: 0;
-  padding: 16px;
+  padding: var(--spacing-16, 16px);
 }
 
 .sbx-outcome {
   align-items: baseline;
   background: #fff;
-  border-left: 3px solid var(--gray-300, #d9d9d9);
-  border-radius: 8px;
+  border-left: var(--border-width-3, 3px) solid var(--gray-300, #d9d9d9);
+  border-radius: var(--border-radius-8, 8px);
   display: flex;
   flex: none;
   flex-wrap: wrap;
-  gap: 4px 10px;
+  gap: var(--spacing-4, 4px) 10px;
   padding: 10px 14px;
 }
 
@@ -225,7 +225,7 @@
 
 .sbx-frame-wrap {
   background: #fff;
-  border-radius: 12px;
+  border-radius: var(--border-radius-12, 12px);
   box-shadow: 0 1px 3px rgb(0 0 0 / 8%);
   flex: 1 1 auto;
   min-height: 0;
@@ -247,7 +247,7 @@
   }
 
   .sbx-panel {
-    border-bottom: 1px solid var(--gray-250, #d9d9d9);
+    border-bottom: var(--border-width-1, 1px) solid var(--gray-250, #d9d9d9);
     border-right: 0;
   }
 
