@@ -301,7 +301,7 @@
 }
 
 /* ---- the two dialogs (user, 2026-10-15) --------------------------------------------------
-   Picker (#gh-start-modal) = library modal--lg (720: IDNO + company / IDNP + names in one row); on phones the standard bottom sheet.
+   Picker (#gh-start-modal) = library modal--md (590, like the other pickers): service + process only; on phones the standard bottom sheet.
    Request (#gh-request-modal) = library modal--fullscreen as a sheet: 24 from the top, full
    width, rounded top corners (radius 16 = the Form Builder sheet), header · scrolling body ·
    sticky footer. It sits under the library dialogs (z 990 < 1000) so confirmations, the
@@ -489,4 +489,38 @@
 .e-permits-gh .e-permits-fo-selected-role__meta {
   flex-wrap: wrap;
   row-gap: var(--spacing-4, 4px);
+}
+
+/* the post-process choice under the permits list (Solicitant step) */
+.e-permits-gh .e-permits-gh__pp {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* a post-process the permit's status does not allow: disabled option row, the reason in its
+   description and in the tooltip (no hover band: the FO rule already skips disabled inputs) */
+.e-permits-gh .e-permits-fo-radio--option.is-disabled {
+  cursor: not-allowed;
+}
+
+.e-permits-gh .e-permits-fo-radio--option.is-disabled strong,
+.e-permits-gh .e-permits-fo-radio--option.is-disabled .e-permits-fo-radio__copy-desc {
+  color: var(--color-text-base-disabled, #b2b2b2);
+}
+
+.e-permits-gh .e-permits-fo-radio--option.is-disabled .e-permits-fo-radio__control {
+  background: var(--color-background-base-disabled, #f1f1f1);
+  border-color: var(--color-border-base-disabled, #d9d9d9);
+}
+
+/* scrollIntoView (a focused error, a hovered option) must scroll the body, never the dialog box itself:
+   the library modal is overflow: hidden, which is still scrollable by script — clip instead */
+.modal.e-permits-gh-sheet,
+.modal.e-permits-gh-start__modal {
+  overflow: clip;
+}
+
+/* a disabled option still answers the pointer (it carries the reason tooltip): the FO grey band */
+.e-permits-gh .e-permits-fo-radio--option.is-disabled:hover::before {
+  opacity: 1;
+  transform: scale(1);
 }

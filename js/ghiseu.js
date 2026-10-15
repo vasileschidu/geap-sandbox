@@ -34,7 +34,10 @@
   /* the steps, in the order of the stories (Feature 95768 § User Flow) */
   const STEPS = [
     { id: "initiere", label: "Inițiere cerere" },
-    { id: "solicitant", label: "Date solicitant" },
+    /* design decision (user, 2026-10-15): US-233 is split — the picker holds service + process, the
+       request's first step identifies the applicant (and, for a post-process, the permit) */
+    { id: "identificare", label: "Solicitant" },
+    { id: "solicitant", label: "Date de contact" },
     { id: "detalii", label: "Detalii serviciu" },
     { id: "documente", label: "Documente însoțitoare" },
     { id: "verificare", label: "Verificare" },
@@ -281,8 +284,10 @@
     d.createdAt = dayAt(seed.createdDays, seed.createdTime);
     const upd = new Date(Date.now() + seed.updatedHours * 3600000);
     d.updatedAt = isoOf(upd < new Date(d.createdAt) ? new Date(d.createdAt) : upd);
-    const p = person(seed.applicant);
-    d.applicant = { idnp: seed.applicant, nume: p?.nume || "", prenume: p?.prenume || "", state: "found" };
+    /* a draft can exist before identification (the picker saved it; „—” in the list) */
+    const p = seed.applicant ? person(seed.applicant) : null;
+    if (seed.applicant) d.applicant = { idnp: seed.applicant, nume: p?.nume || "", prenume: p?.prenume || "", state: "found" };
+    d.personType = seed.personType || (applicantTypesOf(seed.service).length === 1 ? applicantTypesOf(seed.service)[0] : "");
     if (seed.personType === "PJ") { const c = company(seed.company); d.company = { idno: seed.company, denumire: c?.denumire || "", state: "found" }; }
     if (needsProcura(d)) d.procura = true;
     d.step = Math.min(seed.step, STEP_INDEX.plata);
@@ -381,7 +386,7 @@
     id: d.id,
     nr: d.nr,
     serviciu: serviceOf(d.service)?.title || d.service,
-    tip: d.requestType,
+    tip: d.requestType || (d.process === "post" ? "Postproces" : ""),
     solicitant: filerName(d) || holderName(d),
     reprezentant: d.personType === "PF" && d.rep.on ? fullName(d.applicant) : "",
     companie: d.personType === "PJ" ? d.company.denumire : "",
@@ -463,7 +468,7 @@
             <span class="e-permits-workplace__source"><span>${esc(row.tip)}</span></span>
           </div>`;
         case "serviciu": return `<span data-cell-tooltip="${esc(row.serviciu)}">${esc(row.serviciu)}</span>`;
-        case "solicitant": return `
+        case "solicitant": return !row.solicitant ? '<span class="e-permits-workplace__dash">—</span>' : `
           <div class="e-permits-workplace__case-cell">
             <span data-cell-tooltip="${esc(row.solicitant)}">${esc(row.solicitant)}</span>
             ${row.reprezentant ? `<span class="e-permits-workplace__source"><span data-cell-tooltip="${esc(`pentru ${row.reprezentant}`)}">pentru ${esc(row.reprezentant)}</span></span>` : ""}
@@ -587,7 +592,7 @@
     if (ov) return ov;
     document.body.insertAdjacentHTML("beforeend", `
       <div class="modal-overlay e-permits-gh-start" id="${START_ID}" aria-hidden="true">
-        <div class="modal modal--lg e-permits-passport__modal e-permits-gh e-permits-gh-start__modal" role="dialog" aria-modal="true" aria-labelledby="gh-start-title" tabindex="-1">
+        <div class="modal modal--md e-permits-passport__modal e-permits-gh e-permits-gh-start__modal" role="dialog" aria-modal="true" aria-labelledby="gh-start-title" tabindex="-1">
           <button type="button" class="modal-close" aria-label="Închide" data-gh-start-cancel><span class="d-inline-flex">${icon("cross-large", 20, "icon small")}</span></button>
           <div class="modal--header">
             <h2 class="modal--header-title" id="gh-start-title" data-gh-start-title>Dosar nou</h2>
@@ -865,7 +870,7 @@
     ov.querySelector("[data-gh-start-title]").textContent = d.id ? `Inițiere cerere · ${d.nr}` : "Dosar nou";
     const sub = ov.querySelector("[data-gh-start-subtitle]");
     sub.hidden = false;
-    sub.textContent = d.id ? "Solicitantul, reprezentantul și procesul se modifică doar aici." : "Alegeți serviciul, identificați solicitantul și procesul. Cererea se deschide după „Continuă”.";
+    sub.textContent = d.id ? "Serviciul și procesul cererii. Solicitantul se identifică în primul pas al cererii." : "Alegeți serviciul și procesul. Solicitantul se identifică în cerere, după „Continuă”.";
     ov.querySelector("[data-gh-start-body]").innerHTML = `<div class="e-permits-gh-start__form" data-gh-panel="initiere">${STEP_RENDER.initiere(d)}</div>`;
     ov.querySelector("[data-gh-start-footer]").innerHTML = '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-gh-start-cancel>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-gh-start-next disabled>Continuă</button></div>';
     if (!ov.classList.contains("is-active")) { S.startHandled = false; window.__modal?.open?.(`#${START_ID}`); }
@@ -878,11 +883,10 @@
     if (S.step !== 0 || !S.cur) return;
     const btn = document.querySelector(`#${START_ID} [data-gh-start-next]`);
     if (!btn) return;
-    collectInitiere();
-    btn.disabled = dataCheckInitiere(S.cur).length > 0;
+    btn.disabled = checkPicker(S.cur).length > 0;
   }
   function continueStart() {
-    const errs = validateInitiere();
+    const errs = checkPicker(S.cur);
     if (errs.length) { showErrors(errs); return; }
     voidIfChanged();
     S.startHandled = true;
@@ -1009,46 +1013,32 @@
           ${basisHtml(d)}`, { id: "gh-applicant-title", desc: d.personType === "PJ" ? "Verificați actul de identitate al persoanei care depune. Datele se preiau din RSUD și RSP prin MConnect." : d.personType ? "Verificați actul de identitate al solicitantului. Datele se preiau din RSP prin MConnect." : "" })}
       </div>`;
   }
-  const PP_ICONS = { "Prelungire": "rotate-arrow", "Reperfectare": "edit", "Emitere duplicat": "copy", "Suspendare valabilitate": "pause", "Reluarea valabilității": "rotate-arrow", "Retragere": "cross-small", "Contestație": "flag" };
+  /* every post-process the service knows (Setări › Postprocese pe acte permisive + Contestație) */
+  function serviceTypes(d) {
+    const desk = deskOf(d.service) || {};
+    const all = [...new Set(Object.values(desk.postprocese || {}).flat())];
+    if (desk.contestabil) all.push("Contestație");
+    return all;
+  }
+  /* why a post-process is not offered for this permit (tooltip of the disabled option, AC-28/31/32) */
+  function ineligibleReason(d, act, type) {
+    const desk = deskOf(d.service) || {};
+    if (type === "Contestație") {
+      if (!desk.contestabil) return "Serviciul nu este contestabil.";
+      if (act.kind === "act" && act.status !== "valabil") return "Contestația se inițiază din decizie sau din actul valabil.";
+      return `Termenul admisibil de contestare (${desk.termenContestare} de zile) a expirat.`;
+    }
+    if (act.kind === "decizie") return "Din decizie se inițiază doar contestația.";
+    return `Nu se inițiază pentru un act cu statutul „${(ACT_TONE[act.status] || [act.status])[0]}”.`;
+  }
+  /* the picker: Emitere primară / Postproces only (the permit and the post-process come in the request) */
   function processBlockHtml(d) {
-    const identified = d.service && d.personType && (d.personType === "PJ" ? d.company.state : d.applicant.state);
     const radio = (value, title, descText) => `
       <label class="e-permits-fo-radio e-permits-fo-radio--option e-permits-fo-radio--span-6">
         <input type="radio" name="gh-proces" value="${value}"${d.process === value ? " checked" : ""} data-gh-process>
         <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
         <span class="e-permits-fo-radio__copy"><strong>${esc(title)}</strong><span class="e-permits-fo-radio__copy-desc">${esc(descText)}</span></span>
       </label>`;
-    let list = "";
-    if (d.process === "post") {
-      if (!identified) list = U().renderInfoNote?.("Identificați solicitantul: lista arată actele permisive și deciziile titularului pentru serviciul ales.") || "";
-      else {
-        const acts = actsOf(d);
-        list = acts.length ? `
-          <div class="e-permits-stack e-permits-gh__acts">
-            <ul class="e-permits-stack__list" role="list" aria-label="Actele permisive și deciziile titularului">
-              ${acts.map((act) => {
-                const [label, tone] = ACT_TONE[act.status] || [act.status, "neutral"];
-                const chosen = d.act === act.id;
-                const pps = postprocessesOf(d, act);
-                const meta = act.kind === "decizie"
-                  ? [esc(act.nr), `${esc(act.decizie)} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`, esc(act.subdiviziune)]
-                  : [esc(act.nr), `valabil până la ${esc(longDate(act.valabilPana))}`, esc(act.subdiviziune)];
-                return A().renderStackItem?.({
-                  leadHtml: R().docIconHtml?.({ sursa: "mdocs" }, "e-permits-fo-lib-item__icon") || "",
-                  title: esc(act.name),
-                  plainTitle: act.name,
-                  badges: [tagHtml(label, tone), chosen ? tagHtml(`Ales: ${d.requestType}`, "brand") : ""].filter(Boolean),
-                  meta: [...meta, pps.length ? "" : "fără postprocese disponibile"].filter(Boolean),
-                  actionsHtml: pps.length ? (A().renderStackMenu?.(pps.map((pp) => ({ label: pp, icon: PP_ICONS[pp] || "arrow-right", attrs: `data-gh-pp="${esc(act.id)}" data-gh-pp-type="${esc(pp)}"` })), `postprocese ${act.nr}`) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>") : ""
-                }) || "";
-              }).join("")}
-            </ul>
-          </div>
-          ${errSlot("act")}
-          ${d.act ? U().renderInfoNote?.(`Tipul solicitării: <strong>${esc(d.requestType)}</strong> · ${esc(actById(d, d.act)?.nr || "")}. Datele actului se precompletează în „Detalii serviciu”.`) || "" : ""}`
-          : `${window.GEAPEmptyState?.render({ title: "Titularul nu are acte permisive sau decizii pentru acest serviciu.", text: "Alegeți „Emitere primară” sau verificați serviciul și codul titularului.", icon: "page-text", compact: true }) || ""}${errSlot("act")}`;
-      }
-    }
     return `
       <div data-gh-block="process">
         ${section("Procesul", `
@@ -1058,8 +1048,73 @@
               ${radio("primar", "Emitere primară", "Cerere pentru un act permisiv nou")}
               ${radio("post", "Postproces", "Pe un act permisiv sau o decizie a titularului")}
             </fieldset>
-            ${list}
+            ${d.process === "post" ? U().renderInfoNote?.("Actul permisiv sau decizia și postprocesul se aleg în cerere, după identificarea titularului.") || "" : ""}
           </div>`, { id: "gh-process-title" })}
+      </div>`;
+  }
+  /* the request's first step, Postproces: the holder's permits + decisions (AC-26/27/30), then the
+     post-process eligible for the chosen one (AC-28/31/32; the others disabled with the reason) */
+  function actsBlockHtml(d) {
+    if (d.process !== "post") return '<div data-gh-block="acts" hidden></div>';
+    const identified = d.personType && (d.personType === "PJ" ? d.company.state : d.applicant.state);
+    let body;
+    if (!identified) body = U().renderInfoNote?.("Identificați solicitantul: aici apar actele lui permisive și deciziile pentru serviciul ales.") || "";
+    else {
+      const acts = actsOf(d);
+      const cleared = S.actCleared ? U().renderNotice?.("info", "Solicitantul s-a schimbat: actul și postprocesul alese au fost anulate. Alegeți-le din nou.") || "" : "";
+      if (!acts.length) {
+        body = `${cleared}${window.GEAPEmptyState?.render({
+          title: "Solicitantul nu are acte permisive pentru acest serviciu",
+          text: "Nici decizii din care să se inițieze o contestație. Puteți continua cu emiterea primară sau alege alt serviciu.",
+          icon: "page-text", compact: true,
+          actionHtml: '<button class="btn btn-primary btn-sm" type="button" data-gh-switch-primar>Schimbă în Emitere primară</button><button class="btn btn-neutral btn-sm" type="button" data-gh-change-service>Schimbă serviciul</button>'
+        }) || ""}${errSlot("act")}`;
+      } else {
+        const chosen = d.act ? actById(d, d.act) : null;
+        const list = acts.map((act) => {
+          const [label, tone] = ACT_TONE[act.status] || [act.status, "neutral"];
+          const isChosen = d.act === act.id;
+          const meta = act.kind === "decizie"
+            ? [esc(act.nr), `${esc(act.decizie)} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`, esc(act.subdiviziune)]
+            : [esc(act.nr), `valabil până la ${esc(longDate(act.valabilPana))}`, esc(act.subdiviziune)];
+          return A().renderStackItem?.({
+            leadHtml: R().docIconHtml?.({ sursa: "mdocs" }, "e-permits-fo-lib-item__icon") || "",
+            title: esc(act.name),
+            plainTitle: act.name,
+            badges: [tagHtml(label, tone), isChosen ? tagHtml("Ales", "brand") : ""].filter(Boolean),
+            meta,
+            actionsHtml: isChosen ? "" : `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Alege ${esc(act.nr)}" data-gh-act="${esc(act.id)}">${icon("checkmark-small", 20, "icon small")}<span>Alege</span></button>`
+          }) || "";
+        }).join("");
+        const types = chosen ? serviceTypes(d) : [];
+        const allowed = chosen ? postprocessesOf(d, chosen) : [];
+        const pp = chosen ? `
+          <fieldset class="e-permits-fo-choice e-permits-gh__pp" aria-describedby="gh-err-pp">
+            <legend class="e-permits-fo-choice__legend">Postprocesul pentru ${esc(chosen.nr)} ${req()}</legend>
+            <div class="e-permits-fo-choice__group">
+              ${types.map((t) => {
+                const ok = allowed.includes(t);
+                return `
+                  <label class="e-permits-fo-radio e-permits-fo-radio--option${ok ? "" : " is-disabled"}"${ok ? "" : ` data-tooltip-reason="${esc(ineligibleReason(d, chosen, t))}"`}>
+                    <input type="radio" name="gh-pp" value="${esc(t)}"${d.requestType === t && ok ? " checked" : ""}${ok ? "" : " disabled"} data-gh-pp-choice>
+                    <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
+                    <span class="e-permits-fo-radio__copy"><strong>${esc(t)}</strong>${ok ? "" : `<span class="e-permits-fo-radio__copy-desc">${esc(ineligibleReason(d, chosen, t))}</span>`}</span>
+                  </label>`;
+              }).join("")}
+            </div>
+            ${errSlot("pp")}
+          </fieldset>` : "";
+        body = `${cleared}
+          <div class="e-permits-stack e-permits-gh__acts">
+            <ul class="e-permits-stack__list" role="list" aria-label="Actele permisive și deciziile titularului">${list}</ul>
+          </div>
+          ${errSlot("act")}
+          ${pp}`;
+      }
+    }
+    return `
+      <div data-gh-block="acts">
+        ${section("Actul permisiv sau decizia", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${body}</div>`, { id: "gh-acts-title", desc: "Postprocesul se inițiază pe un act permisiv sau pe o decizie a titularului, pentru serviciul ales." })}
       </div>`;
   }
   function stepInitiere(d) {
@@ -1072,9 +1127,31 @@
     });
     return `
       ${section("Serviciul", `<div class="e-permits-fo-form__section-body" data-gh-service>${svcField}${errSlot("serviciu")}</div>`, { id: "gh-service-title" })}
-      ${applicantBlockHtml(d)}
       ${processBlockHtml(d)}
       ${footerHtml(d)}`;
+  }
+  /* the request's first step „Solicitant” (US-233 identification part) */
+  function stepIdentificare(d) {
+    const types = applicantTypesOf(d.service);
+    if (types.length === 1) d.personType = types[0];
+    else if (d.personType && !types.includes(d.personType)) d.personType = "";
+    return `
+      ${stepHeader("Solicitant")}
+      ${applicantBlockHtml(d)}
+      ${actsBlockHtml(d)}
+      ${footerHtml(d)}`;
+  }
+  function bindIdentificare(panel) {
+    BLOCK_BIND.applicant(panel.querySelector('[data-gh-block="applicant"]'));
+  }
+  /* a new holder voids the permit + post-process chosen for the previous one */
+  function holderTouched(kind) {
+    const d = S.cur;
+    const holderKind = d.personType === "PJ" ? "company" : "applicant";
+    if (kind !== holderKind && kind !== "type") return;
+    if (d.act || (d.process === "post" && d.requestType)) S.actCleared = true;
+    d.act = null;
+    if (d.process === "post") d.requestType = "";
   }
   function bindInitiere(panel) {
     const d = S.cur;
@@ -1091,19 +1168,18 @@
     root?.addEventListener("change", () => {
       const code = root.querySelector(".e-permits-fo-caem__option.is-selected")?.dataset.code || "";
       if (code === d.service) return;
-      collectInitiere();
       d.service = code;
       const types = applicantTypesOf(code);
       if (types.length === 1) d.personType = types[0];
       else if (!types.includes(d.personType)) d.personType = "";
-      if (d.process === "post") { d.act = null; d.requestType = "Emitere primară"; }
+      d.act = null;
+      if (d.process === "post") d.requestType = "";
       clearErr("serviciu");
       S.dirty = true;
-      redrawBlock("applicant"); redrawBlock("process"); refreshChrome();
+      redrawBlock("process");
     });
-    BLOCK_BIND.applicant(panel.querySelector('[data-gh-block="applicant"]'));
   }
-  const BLOCK_RENDER = { applicant: applicantBlockHtml, process: processBlockHtml, basis: basisHtml };
+  const BLOCK_RENDER = { applicant: applicantBlockHtml, process: processBlockHtml, basis: basisHtml, acts: actsBlockHtml };
   const BLOCK_BIND = {
     applicant(block) {
       if (!block) return;
@@ -1113,9 +1189,9 @@
         if (v === S.cur.personType) return;
         collectInitiere();
         S.cur.personType = v; S.cur.rep.on = false; S.cur.procura = false;
-        if (S.cur.process === "post") { S.cur.act = null; S.cur.requestType = "Emitere primară"; }
+        holderTouched("type");
         S.dirty = true;
-        redrawBlock("applicant"); redrawBlock("process"); refreshChrome();
+        redrawBlock("applicant"); redrawBlock("acts"); refreshChrome();
         S.page.querySelector("[data-gh-type] .segment-item.is-selected")?.focus();
       });
     }
@@ -1159,6 +1235,7 @@
     const d = S.cur;
     const slot = kind === "company" ? d.company : kind === "rep" ? d.rep : d.applicant;
     if (kind === "company") slot.idno = lookup.code; else slot.idnp = lookup.code;
+    holderTouched(kind);
     if (lookup.record) {
       slot.state = "found";
       if (kind === "company") slot.denumire = lookup.record.name;
@@ -1173,7 +1250,7 @@
     if (needsProcura(d) === false) d.procura = false;
     /* lock the code (and open the names when the registry did not answer) */
     redrawBlock("applicant");
-    redrawBlock("process");
+    redrawBlock("acts");
     refreshChrome();
     if (slot.state === "found") {
       const group = S.page.querySelector(`[data-gh-lookup="${kind}"]`);
@@ -1201,8 +1278,7 @@
     collectInitiere();
     const d = S.cur;
     const errs = [];
-    if (!d.service) errs.push({ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED });
-    else {
+    {
       if (!d.personType) errs.push({ key: "tip", focus: "[data-gh-type] .segment-item", msg: REQUIRED });
       const codeErr = (kind, value, state, len = 13) => {
         if (!value) return REQUIRED;
@@ -1222,7 +1298,8 @@
       if (d.personType === "PF") { check("applicant", d.applicant, d.applicant.idnp); if (d.rep.on) check("rep", d.rep, d.rep.idnp); }
       /* AC-21: no electronic link and no „Prin procură” */
       if (!errs.length && needsProcura(d) && !d.procura) errs.push({ key: "procura", focus: "[data-gh-procura]", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
-      if (d.process === "post" && !d.act) errs.push({ key: "act", focus: ".e-permits-gh__acts [data-stack-menu-trigger]", msg: "Alegeți actul permisiv sau decizia și postprocesul din meniul «⋮»." });
+      if (d.process === "post" && !d.act) errs.push({ key: "act", focus: "[data-gh-act], [data-gh-switch-primar]", msg: "Alegeți actul permisiv sau decizia." });
+      else if (d.process === "post" && !d.requestType) errs.push({ key: "pp", focus: "[data-gh-pp-choice]:not(:disabled)", msg: "Alegeți postprocesul." });
     }
     return errs;
   }
@@ -1557,10 +1634,10 @@
     ].join("");
     return `
       <div class="e-permits-fo-review-sections e-permits-gh__review">
-        ${summarySection("Date generale ale solicitării", general, 0)}
-        ${summarySection("Date despre solicitant", applicant, 1)}
-        ${summarySection("Date despre cerere", request, 2)}
-        ${summarySection("Atașamente", attachments, 3)}
+        ${summarySection("Date generale ale solicitării", general, STEP_INDEX.identificare)}
+        ${summarySection("Date despre solicitant", applicant, STEP_INDEX.solicitant)}
+        ${summarySection("Date despre cerere", request, STEP_INDEX.detalii)}
+        ${summarySection("Atașamente", attachments, STEP_INDEX.documente)}
       </div>`;
   }
   function stepVerificare(d) {
@@ -1799,7 +1876,7 @@
   /* ================================================================ step 8 · Confirmarea depunerii (US-238) */
   function readiness(d) {
     const st = settingsOf(d.service);
-    const all = [0, 1, 2, 3].flatMap((i) => CHECK[i](d));
+    const all = STEPS.filter((s, i) => i < STEP_INDEX.verificare).flatMap((s) => CHECKS[s.id](d));
     return [
       { label: "Datele cererii sunt validate", ok: !all.length },
       st.olograf ? { label: "Cererea semnată olograf este atașată", ok: Boolean(d.review.olograf) } : null,
@@ -1880,28 +1957,24 @@
     render();
   }
 
-  const STEP_RENDER = { initiere: stepInitiere, solicitant: stepSolicitant, detalii: stepDetalii, documente: stepDocumente, verificare: stepVerificare, livrare: stepLivrare, plata: stepPlata, confirmare: stepConfirmare };
-  const STEP_BIND = { initiere: bindInitiere, detalii: bindDetalii, documente: bindDocumente, verificare: bindVerificare, livrare: bindLivrare };
-  const COLLECT = { initiere: collectInitiere, solicitant: collectSolicitant, detalii: collectDetalii, documente: collectDocumente, livrare: collectLivrare };
+  const STEP_RENDER = { initiere: stepInitiere, identificare: stepIdentificare, solicitant: stepSolicitant, detalii: stepDetalii, documente: stepDocumente, verificare: stepVerificare, livrare: stepLivrare, plata: stepPlata, confirmare: stepConfirmare };
+  const STEP_BIND = { initiere: bindInitiere, identificare: bindIdentificare, detalii: bindDetalii, documente: bindDocumente, verificare: bindVerificare, livrare: bindLivrare };
+  const COLLECT = { identificare: collectInitiere, solicitant: collectSolicitant, detalii: collectDetalii, documente: collectDocumente, livrare: collectLivrare };
   /* data checks per step index (validate = collect + check) */
-  const CHECK = [
-    (d) => { const keep = S.page; return dataCheckInitiere(d, keep); },
-    (d) => checkContact(d),
-    checkDetalii,
-    checkDocumente,
-    checkVerificare,
-    checkLivrare,
-    () => [],
-    () => []
-  ];
+  const CHECKS = { initiere: (d) => checkPicker(d), identificare: (d) => dataCheckInitiere(d), solicitant: (d) => checkContact(d), detalii: checkDetalii, documente: checkDocumente, verificare: checkVerificare, livrare: checkLivrare, plata: () => [], confirmare: () => [] };
+  const CHECK = STEPS.map((step) => CHECKS[step.id]);
+  /* the picker: a service, and a process (Emitere primară is preselected) */
+  function checkPicker(d) {
+    return d.service ? [] : [{ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED }];
+  }
   function dataCheckInitiere(d) {
     const errs = [];
-    if (!d.service) errs.push({ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED });
     if (!d.personType || !(d.personType === "PJ" ? d.company.state && d.applicant.state : d.applicant.state && (!d.rep.on || d.rep.state))) errs.push({ key: "tip", msg: "Identificați solicitantul.", step: 0 });
     const manualEmpty = (slot, keys) => slot.state === "manual" && keys.some((k) => !slot[k]);
     if (manualEmpty(d.company, ["denumire"]) || manualEmpty(d.applicant, ["nume", "prenume"]) || (d.rep.on && manualEmpty(d.rep, ["nume", "prenume"]))) errs.push({ key: "tip", msg: REQUIRED });
     if (needsProcura(d) && !d.procura) errs.push({ key: "procura", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
-    if (d.process === "post" && !d.act) errs.push({ key: "act", msg: "Alegeți actul permisiv sau decizia și postprocesul din meniul «⋮»." });
+    if (d.process === "post" && !d.act) errs.push({ key: "act", msg: "Alegeți actul permisiv sau decizia." });
+    else if (d.process === "post" && !d.requestType) errs.push({ key: "pp", msg: "Alegeți postprocesul." });
     return errs;
   }
   function checkContact(d) {
@@ -1912,7 +1985,8 @@
   /* the current step: collect + full checks (the DOM-level validators of steps 1–2) */
   function validateStep(i) {
     const id = STEPS[i].id;
-    if (id === "initiere") return validateInitiere();
+    if (id === "initiere") return checkPicker(S.cur);
+    if (id === "identificare") return validateInitiere();
     if (id === "solicitant") return validateSolicitant();
     COLLECT[id]?.();
     return CHECK[i](S.cur);
@@ -1977,7 +2051,7 @@
     if (validate && target > from) {
       const errs = validateStep(from);
       if (errs.length) { showErrors(errs); return; }
-    } else if (STEPS[from].id === "initiere") collectInitiere();
+    } else if (STEPS[from].id === "identificare") collectInitiere();
     else if (STEPS[from].id === "solicitant") collectSolicitant();
     else COLLECT[STEPS[from].id]?.();
     voidIfChanged();
@@ -2106,22 +2180,34 @@
       const slot = kind === "company" ? d.company : kind === "rep" ? d.rep : d.applicant;
       Object.assign(slot, kind === "company" ? { idno: "", denumire: "", state: "" } : { idnp: "", nume: "", prenume: "", state: "" });
       d.procura = false;
-      if (d.process === "post") { d.act = null; d.requestType = "Emitere primară"; }
+      holderTouched(kind);
       S.dirty = true;
-      redrawBlock("applicant"); redrawBlock("process"); refreshChrome();
+      redrawBlock("applicant"); redrawBlock("acts"); refreshChrome();
       S.page.querySelector(`[data-gh-code="${kind}"]`)?.focus();
       return;
     }
-    const pp = t.closest("[data-gh-pp]");
-    if (pp) {
-      closeMenus();
-      d.process = "post"; d.act = pp.dataset.ghPp; d.requestType = pp.dataset.ghPpType;
+    const actBtn = t.closest("[data-gh-act]");
+    if (actBtn) {
+      d.act = actBtn.dataset.ghAct;
+      d.requestType = "";
       d.details.addressChanged = false;
+      S.actCleared = false;
       S.dirty = true;
-      redrawBlock("process"); refreshChrome();
-      S.page.querySelector('[data-gh-block="process"] .e-permits-info-note')?.scrollIntoView({ block: "nearest" });
+      clearErr("act");
+      redrawBlock("acts"); refreshChrome();
+      S.page.querySelector("[data-gh-pp-choice]:not(:disabled)")?.focus();
       return;
     }
+    /* no permits: switch the process in place (step and data kept) or go back to the service */
+    if (t.closest("[data-gh-switch-primar]")) {
+      d.process = "primar"; d.requestType = "Emitere primară"; d.act = null;
+      S.dirty = true; S.actCleared = false;
+      redrawBlock("acts"); refreshChrome();
+      S.page.querySelector('[data-gh-block="applicant"] h2')?.scrollIntoView({ block: "nearest" });
+      U().showShellToast?.("Procesul a fost schimbat în „Emitere primară”.", "success");
+      return;
+    }
+    if (t.closest("[data-gh-change-service]")) { go(0); return; }
     if (t.closest("[data-gh-paper]")) { generatePaper(); return; }
     const preview = t.closest("[data-gh-preview]");
     if (preview) { openPreview(preview.dataset.ghPreview, preview); return; }
@@ -2155,15 +2241,16 @@
       return;
     }
     if (t.matches("[data-gh-process]")) {
-      collectInitiere();
       d.process = t.value;
-      if (t.value === "primar") { d.act = null; d.requestType = "Emitere primară"; }
+      d.act = null;
+      d.requestType = t.value === "primar" ? "Emitere primară" : "";
       S.dirty = true;
       redrawBlock("process"); refreshChrome();
       S.page.querySelector(`[data-gh-process][value="${t.value}"]`)?.focus();
       return;
     }
     if (t.matches("[data-gh-reduction]")) { collectDetalii(); S.dirty = true; return; }
+    if (t.matches("[data-gh-pp-choice]")) { d.requestType = t.value; S.dirty = true; clearErr("pp"); refreshChrome(); S.page.querySelector(`[data-gh-pp-choice][value="${t.value}"]`)?.focus(); return; }
     if (t.matches("[data-gh-delivery]")) {
       collectLivrare();
       S.dirty = true;

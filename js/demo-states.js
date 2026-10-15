@@ -2293,11 +2293,15 @@
     const type = (v) => async (h) => { await h.click(`[data-gh-type] .segment-item[data-value="${v}"]`); };
     const code = (kind, value) => async (h) => { await h.fill(`[data-gh-code="${kind}"]`, value, { leave: false }); await h.wait(1300); };
     const seq = (...steps) => async (h) => { for (const step of steps) await step(h); };
-    const pjAdmin = seq(service("003000118"), type("PJ"), code("company", "1012600000002"), code("applicant", "2002005006007"));
-    const pjNoLink = seq(service("003000118"), type("PJ"), code("company", "1014600099887"), code("applicant", "2002005006007"));
     const next = async (h) => { await h.click("[data-gh-next]"); await h.wait(500); };
-    /* the picker's „Continuă”: creates the draft and opens the request sheet */
+    /* the picker's „Continuă”: creates the draft and opens the request at „Solicitant” */
     const cont = async (h) => { await h.click("[data-gh-start-next]"); await h.find("#gh-request-modal.is-active [data-gh-panel]"); await h.wait(400); };
+    const post = async (h) => { await h.click('[data-gh-process][value="post"]'); };
+    /* the picker filled: a service (+ Postproces) and Continuă */
+    const start = (svc = "003000118", isPost = false) => seq(service(svc), ...(isPost ? [post] : []), cont);
+    const pjAdmin = seq(type("PJ"), code("company", "1012600000002"), code("applicant", "2002005006007"));
+    const pjNoLink = seq(type("PJ"), code("company", "1014600099887"), code("applicant", "2002005006007"));
+    const pjMpower = seq(type("PJ"), code("company", "1003600012345"), code("applicant", "2004001234567"));
     const menu = (sel) => async (h) => { (await h.find(sel)).closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); };
     /* a real file into a document field: the FO document modal, „Încarcă” tab */
     const ghUpload = (fieldSel, name, size = 1200000) => async (h) => {
@@ -2317,8 +2321,10 @@
       await ghUpload("[data-gh-olograf]", "cerere-C-2026-004790-semnata.pdf")(h);
       await h.click("[data-gh-msign]"); await h.click("[data-gh-msign-ok]"); await h.wait(400);
     };
+    const hoverReason = async (h) => { await h.hover("[data-gh-panel] .e-permits-gh__pp .is-disabled"); };
+    const toActs = async (h) => { await h.scroll('#gh-request-modal [data-gh-block="acts"] .e-permits-fo-form__section-body'); };
     return {
-      /* US-241 Dosare noi */
+      /* US-241 Dosare noi (gh-01h: a draft saved before identification shows „—”) */
       "gh-01": ghList(),
       "gh-01a": ghList(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(500); }),
       "gh-01b": ghList(null, { gol: "1" }),
@@ -2327,76 +2333,90 @@
       "gh-01e": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); }),
       "gh-01f": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); }),
       "gh-01g": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: "#gh-start-modal.is-active .e-permits-empty" },
-      /* US-233 Inițiere */
+      "gh-01h": ghList(async (h) => { await h.fill("[data-workplace-search]", "004815"); await h.wait(500); }),
+      /* US-233 picker: service + process only */
       "gh-02": gh("#ghiseu/nou"),
       "gh-02a": gh("#ghiseu/nou", async (h) => { await h.click("#fo-gh-serviciu"); await h.fill("[data-fo-caem-search]", "zzz", { leave: false }); }),
-      "gh-02b": gh("#ghiseu/nou", pjAdmin),
-      "gh-02c": gh("#ghiseu/nou", pjNoLink),
-      "gh-02d": gh("#ghiseu/nou", seq(service("003000118"), type("PJ"), code("company", "1003600012345"), code("applicant", "2004001234567"))),
-      "gh-02e": gh("#ghiseu/nou", seq(service("003000118"), type("PF"), code("applicant", "2001002003004"), async (h) => { await h.click("[data-gh-rep-toggle]"); }, code("rep", "2004001234567"))),
-      "gh-02f": gh("#ghiseu/nou", seq(service("003000118"), type("PF"), code("applicant", "2009999999999"))),
-      "gh-02g": gh("#ghiseu/nou", seq(service("003000118"), type("PF"), code("applicant", "2001002003004")), { mconnect: "0" }),
-      "gh-02h": gh("#ghiseu/nou", seq(service("003000118"), type("PJ"), async (h) => { await h.fill('[data-gh-code="company"]', "1012600000002", { leave: false }); await h.wait(300); }), { registru: "asteptare" }),
-      "gh-02i": gh("#ghiseu/nou", seq(pjAdmin, async (h) => { await h.click('[data-gh-process][value="post"]'); }, menu(".e-permits-gh__acts .e-permits-stack__item"))),
-      "gh-02j": gh("#ghiseu/nou", seq(pjAdmin, async (h) => { await h.click('[data-gh-process][value="post"]'); }, menu(".e-permits-gh__acts .e-permits-stack__item"), async (h) => { await h.click('[data-gh-pp="act-izvoras"][data-gh-pp-type="Prelungire"]'); })),
-      "gh-02k": gh("#ghiseu/nou", seq(service("003000118"), type("PJ"), code("company", "1003600012345"), code("applicant", "2004001234567"), async (h) => { await h.click('[data-gh-process][value="post"]'); })),
-      "gh-02l": gh("#ghiseu/nou", seq(service("003000118"), type("PJ"), code("company", "1012600000002"))),
-      "gh-02m": gh("#ghiseu/nou", seq(service("003000519"))),
-      "gh-02n": gh("#ghiseu/nou", seq(pjNoLink, async (h) => { await h.click("[data-gh-procura]"); }, cont)),
-      /* the sheet: × with unsaved changes asks first; Înapoi from Date solicitant reopens the picker */
+      "gh-02b": gh("#ghiseu/nou", service("003000118")),
+      "gh-02c": gh("#ghiseu/nou", seq(service("003000118"), post)),
+      /* the sheet: × with unsaved changes asks first; Înapoi from „Solicitant” reopens the picker */
       "gh-02o": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Cafeneaua „La Izvor”", { leave: false }); await h.click("[data-gh-sheet-close]"); })),
-      "gh-02p": gh("#ghiseu/gh-4812/solicitant", async (h) => { await h.click('#gh-request-modal [data-gh-goto="0"]'); await h.find("#gh-start-modal.is-active [data-gh-panel]"); }),
-      /* US-234 Date solicitant */
-      "gh-03": gh("#ghiseu/gh-4812/solicitant"),
-      "gh-03a": gh("#ghiseu/nou", seq(service("003000118"), type("PF"), code("applicant", "2001002003004"), cont, async (h) => { await h.fill("#fo-gh-phone", "123", { leave: false }); await h.fill("#fo-gh-email", "maria.ceban@mail.ru", { leave: false }); }, next)),
-      "gh-03b": gh("#ghiseu/nou", seq(service("003000118"), type("PF"), code("applicant", "2004001234567"), cont)),
+      "gh-02p": gh("#ghiseu/gh-4812/identificare", async (h) => { await h.click('#gh-request-modal [data-gh-goto="0"]'); await h.find("#gh-start-modal.is-active [data-gh-panel]"); }),
+      /* US-233 identification — the request's first step „Solicitant” */
+      "gh-03": gh("#ghiseu/nou", start()),
+      "gh-03a": gh("#ghiseu/nou", seq(start(), pjAdmin)),
+      "gh-03b": gh("#ghiseu/nou", seq(start(), pjNoLink)),
+      "gh-03c": gh("#ghiseu/nou", seq(start(), pjMpower)),
+      "gh-03d": gh("#ghiseu/nou", seq(start(), type("PF"), code("applicant", "2001002003004"), async (h) => { await h.click("[data-gh-rep-toggle]"); }, code("rep", "2004001234567"))),
+      "gh-03e": gh("#ghiseu/nou", seq(start(), type("PF"), code("applicant", "2009999999999"))),
+      "gh-03f": gh("#ghiseu/nou", seq(start(), type("PF"), code("applicant", "2001002003004")), { mconnect: "0" }),
+      "gh-03g": gh("#ghiseu/nou", seq(start(), type("PJ"), async (h) => { await h.fill('[data-gh-code="company"]', "1012600000002", { leave: false }); await h.wait(300); }), { registru: "asteptare" }),
+      "gh-03h": gh("#ghiseu/nou", seq(start(), next)),
+      "gh-03i": gh("#ghiseu/nou", seq(start(), pjNoLink, next)),
+      "gh-03j": gh("#ghiseu/nou", start("003000519")),
+      "gh-03k": gh("#ghiseu/nou", seq(start(), pjNoLink, async (h) => { await h.click("[data-gh-procura]"); }, async (h) => { await h.click("#gh-request-modal [data-gh-save]"); })),
+      /* Postproces: permits list → permit chosen → post-process (ineligible ones disabled + tooltip) */
+      "gh-03l": gh("#ghiseu/nou", seq(start("003000118", true), pjAdmin, toActs)),
+      "gh-03m": gh("#ghiseu/nou", seq(start("003000118", true), pjAdmin, async (h) => { await h.click('[data-gh-act="act-piata-mare"]'); }, hoverReason)),
+      "gh-03n": gh("#ghiseu/nou", seq(start("003000118", true), pjAdmin, async (h) => { await h.click('[data-gh-act="act-izvoras"]'); await h.click('[data-gh-pp-choice][value="Prelungire"]'); }, async (h) => { await h.scroll("#gh-request-modal .e-permits-gh__pp"); })),
+      "gh-03o": gh("#ghiseu/nou", seq(start("003000118", true), pjAdmin, next, toActs)),
+      /* no permits for this service: empty state → „Schimbă în Emitere primară” in place */
+      "gh-03p": gh("#ghiseu/nou", seq(start("003000118", true), pjMpower, toActs)),
+      "gh-03q": gh("#ghiseu/nou", seq(start("003000118", true), pjMpower, async (h) => { await h.click("[data-gh-switch-primar]"); })),
+      /* changing the holder after a permit was chosen clears the choice (notice) */
+      "gh-03r": gh("#ghiseu/nou", seq(start("003000118", true), pjAdmin, async (h) => { await h.click('[data-gh-act="act-izvoras"]'); }, async (h) => { await h.click('[data-gh-reset="company"]'); }, code("company", "1014600099887"), toActs)),
+      "gh-03s": gh("#ghiseu/nou", seq(start(), pjNoLink, async (h) => { await h.click("[data-gh-procura]"); }, async (h) => { await h.click("#gh-request-modal [data-gh-save]"); await h.wait(300); }, async (h) => { await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.click("[data-gh-history]"); })),
+      "gh-03t": gh("#ghiseu/gh-4815"),
+      /* US-234 Date de contact */
+      "gh-04": gh("#ghiseu/gh-4812/solicitant"),
+      "gh-04a": gh("#ghiseu/nou", seq(start(), type("PF"), code("applicant", "2001002003004"), next, async (h) => { await h.fill("#fo-gh-phone", "123", { leave: false }); await h.fill("#fo-gh-email", "maria.ceban@mail.ru", { leave: false }); }, next)),
+      "gh-04b": gh("#ghiseu/nou", seq(start(), type("PF"), code("applicant", "2004001234567"), next)),
       /* US-235 Detalii serviciu */
-      "gh-04": gh("#ghiseu/gh-4812/detalii"),
-      "gh-04a": gh("#ghiseu/gh-4812/detalii", next),
-      "gh-04b": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Patiseria „Dulce Cahul”", { leave: false }); document.querySelector("[data-gh-panel] [data-fo-address-search]").foCascadeAddressFill({ district: "Raionul Cahul", locality: "Cahul" }); await h.wait(500); })),
-      "gh-04c": gh("#ghiseu/gh-4790/detalii"),
-      "gh-04d": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.click("#fo-gh-term"); await h.click("#fo-gh-term-list .e-permits-fo-select__option", "urgență"); await h.click('[data-gh-reduction="imm"]'); })),
+      "gh-05": gh("#ghiseu/gh-4812/detalii"),
+      "gh-05a": gh("#ghiseu/gh-4812/detalii", next),
+      "gh-05b": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.fill("#fo-gh-obiect", "Patiseria „Dulce Cahul”", { leave: false }); document.querySelector("[data-gh-panel] [data-fo-address-search]").foCascadeAddressFill({ district: "Raionul Cahul", locality: "Cahul" }); await h.wait(500); })),
+      "gh-05c": gh("#ghiseu/gh-4790/detalii"),
+      "gh-05d": gh("#ghiseu/gh-4812/detalii", seq(async (h) => { await h.click("#fo-gh-term"); await h.click("#fo-gh-term-list .e-permits-fo-select__option", "urgență"); await h.click('[data-gh-reduction="imm"]'); })),
       /* US-20 Documente însoțitoare */
-      "gh-05": gh("#ghiseu/gh-4790/documente"),
-      "gh-05a": gh("#ghiseu/gh-4812/detalii", seq(async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next, next)),
-      "gh-05b": gh("#ghiseu/nou", seq(pjNoLink, async (h) => { await h.click("[data-gh-procura]"); }, cont, next, async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next)),
+      "gh-06": gh("#ghiseu/gh-4790/documente"),
+      "gh-06a": gh("#ghiseu/gh-4812/detalii", seq(async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next, next)),
+      "gh-06b": gh("#ghiseu/nou", seq(start(), pjNoLink, async (h) => { await h.click("[data-gh-procura]"); }, next, next, async () => { window.GEAPGhiseu.fill("detalii"); }, (h) => h.wait(600), next)),
       /* US-236 Verificare */
-      "gh-06": gh("#ghiseu/gh-4790/verificare"),
-      "gh-06a": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
-      "gh-06b": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); })),
-      "gh-06c": gh("#ghiseu/gh-4790/verificare", ghReady),
-      "gh-06d": gh("#ghiseu/gh-4790/verificare", next),
+      "gh-07": gh("#ghiseu/gh-4790/verificare"),
+      "gh-07a": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
+      "gh-07b": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); })),
+      "gh-07c": gh("#ghiseu/gh-4790/verificare", ghReady),
+      "gh-07d": gh("#ghiseu/gh-4790/verificare", next),
       /* back with the footer (the stepper is hidden on phones), edit, forward again: signature + scan voided */
-      "gh-06e": gh("#ghiseu/gh-4790/verificare", seq(ghReady, async (h) => { await h.click("[data-gh-prev]"); await h.click("[data-gh-prev]"); await h.fill("#fo-gh-obiect", "Cafeneaua „Izvoraș” (terasă nouă)", { leave: false }); await h.click("[data-gh-next]"); await h.click("[data-gh-next]"); })),
-      "gh-06f": gh("#ghiseu/gh-4790/verificare", null, { msign: "0", olograf: "0" }),
-      "gh-06g": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); }, { mdocs: "0" }),
-      "gh-06h": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); }, ghUpload("[data-gh-olograf]", "cerere-semnata.docx", 240000))),
-      "gh-06i": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); }), { msignerr: "1" }),
+      "gh-07e": gh("#ghiseu/gh-4790/verificare", seq(ghReady, async (h) => { await h.click("[data-gh-prev]"); await h.click("[data-gh-prev]"); await h.fill("#fo-gh-obiect", "Cafeneaua „Izvoraș” (terasă nouă)", { leave: false }); await h.click("[data-gh-next]"); await h.click("[data-gh-next]"); })),
+      "gh-07f": gh("#ghiseu/gh-4790/verificare", null, { msign: "0", olograf: "0" }),
+      "gh-07g": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); }, { mdocs: "0" }),
+      "gh-07h": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); }, ghUpload("[data-gh-olograf]", "cerere-semnata.docx", 240000))),
+      "gh-07i": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); }), { msignerr: "1" }),
       /* US-16 Livrare */
-      "gh-07": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next)),
-      "gh-07a": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next, async (h) => { await h.click('[data-gh-delivery][value="mdelivery"]'); document.querySelector("[data-gh-delivery-address] [data-fo-address-search]").foCascadeAddressFill({ district: "Municipiul Bălți", locality: "Bălți", street: "str. Independenței", house: "12", postalCode: "MD-3100" }); await h.wait(400); })),
+      "gh-08": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next)),
+      "gh-08a": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next, async (h) => { await h.click('[data-gh-delivery][value="mdelivery"]'); document.querySelector("[data-gh-delivery-address] [data-fo-address-search]").foCascadeAddressFill({ district: "Municipiul Bălți", locality: "Bălți", street: "str. Independenței", house: "12", postalCode: "MD-3100" }); await h.wait(400); })),
       /* US-237 Notă de plată (+ US-256 regenerare) */
-      "gh-08": gh("#ghiseu/gh-4771/plata"),
-      "gh-08a": gh("#ghiseu/gh-4771/plata", async (h) => { await h.click("[data-gh-mpay]"); }),
-      "gh-08b": gh("#ghiseu/gh-4702/plata"),
-      "gh-08c": gh("#ghiseu/gh-4702/plata", async (h) => { await h.click("[data-gh-regenerate]"); }),
-      "gh-08d": gh("#ghiseu/gh-4771/livrare", seq(async (h) => { await h.click('[data-gh-delivery][value="mdelivery"]'); document.querySelector("[data-gh-delivery-address] [data-fo-address-search]").foCascadeAddressFill({ district: "Municipiul Chișinău", locality: "Chișinău", street: "str. București", house: "7", postalCode: "MD-2012" }); await h.wait(400); }, next), { taxa: "incompleta" }),
+      "gh-09": gh("#ghiseu/gh-4771/plata"),
+      "gh-09a": gh("#ghiseu/gh-4771/plata", async (h) => { await h.click("[data-gh-mpay]"); }),
+      "gh-09b": gh("#ghiseu/gh-4702/plata"),
+      "gh-09c": gh("#ghiseu/gh-4702/plata", async (h) => { await h.click("[data-gh-regenerate]"); }),
+      "gh-09d": gh("#ghiseu/gh-4771/livrare", seq(async (h) => { await h.click('[data-gh-delivery][value="mdelivery"]'); document.querySelector("[data-gh-delivery-address] [data-fo-address-search]").foCascadeAddressFill({ district: "Municipiul Chișinău", locality: "Chișinău", street: "str. București", house: "7", postalCode: "MD-2012" }); await h.wait(400); }, next), { taxa: "incompleta" }),
       /* US-238 Confirmare */
-      "gh-09": gh("#ghiseu/gh-4765/plata", next),
-      "gh-09a": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); })),
-      "gh-09b": gh("#ghiseu/gh-4765/plata", seq(next, async (h) => { await h.click("[data-gh-submit]"); }), { depunere: "eroare" }),
-      "gh-09c": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }), { certerr: "1" }),
-      "gh-09d": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }, async (h) => { await h.click('[data-gh-preview="cert"]'); })),
-      "gh-09e": gh("#ghiseu/gh-4805"),
+      "gh-10": gh("#ghiseu/gh-4765/plata", next),
+      "gh-10a": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); })),
+      "gh-10b": gh("#ghiseu/gh-4765/plata", seq(next, async (h) => { await h.click("[data-gh-submit]"); }), { depunere: "eroare" }),
+      "gh-10c": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }), { certerr: "1" }),
+      "gh-10d": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }, async (h) => { await h.click('[data-gh-preview="cert"]'); })),
+      "gh-10e": gh("#ghiseu/gh-4805"),
       /* US-240 Eliminare + US-239 reluare / eliminare automată */
-      "gh-10": ghList(seq(menu("tr[data-workplace-row='gh-4812'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); })),
-      "gh-10a": ghList(seq(menu("tr[data-workplace-row='gh-4771'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4771"]'); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
-      "gh-10b": ghList(seq(menu("tr[data-workplace-row='gh-4812'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); }, async (h) => { await h.fill("#fo-gh-remove-reason", "Solicitantul a renunțat la cerere."); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
-      "gh-10c": ghList(menu("tr[data-workplace-row='gh-4765'] [data-gh-open]")),
-      "gh-10d": ghList(menu("tr[data-workplace-row='gh-4702'] [data-gh-open]")),
-      "gh-11": gh("#ghiseu/gh-4650"),
-      "gh-12": ghList(async (h) => { await h.click("tr[data-workplace-row='gh-4790'] [data-gh-open]"); await h.find("[data-gh-panel='verificare']"); }),
-      "gh-13": gh("#ghiseu/nou", seq(pjNoLink, async (h) => { await h.click("[data-gh-procura]"); }, cont, async (h) => { await h.click("#gh-request-modal [data-gh-save]"); await h.wait(300); }, async (h) => { await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.click("[data-gh-history]"); }))
+      "gh-11": ghList(seq(menu("tr[data-workplace-row='gh-4812'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); })),
+      "gh-11a": ghList(seq(menu("tr[data-workplace-row='gh-4771'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4771"]'); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
+      "gh-11b": ghList(seq(menu("tr[data-workplace-row='gh-4812'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); }, async (h) => { await h.fill("#fo-gh-remove-reason", "Solicitantul a renunțat la cerere."); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
+      "gh-11c": ghList(menu("tr[data-workplace-row='gh-4765'] [data-gh-open]")),
+      "gh-11d": ghList(menu("tr[data-workplace-row='gh-4702'] [data-gh-open]")),
+      "gh-12": gh("#ghiseu/gh-4650"),
+      "gh-13": ghList(async (h) => { await h.click("tr[data-workplace-row='gh-4790'] [data-gh-open]"); await h.find("[data-gh-panel='verificare']"); })
     };
   }
 })();

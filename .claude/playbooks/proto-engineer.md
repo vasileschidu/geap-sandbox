@@ -766,3 +766,10 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   the top-right covers the sheet's × (hover-audit „covered”) — no toast when the result shows in place.
 - 2026-10-15 · Stacked-list meta inside dialogs: syncStackMetaRows does not watch them → leading „·” on wrapped
   lines; `clip-path` on the meta box's left edge hides the row-start dot (it sits 10px left of the part).
+- 2026-10-15 · Ghișeu split (user, two rounds): the picker holds only service + process; identification, the
+  representative and — for Postproces — the holder's permit + the post-process eligible for its status live in the
+  request's first step „Solicitant” (the eligible post-processes depend on the permits, so they cannot be picked in
+  the modal). Keep step logic keyed by step ID (`CHECKS[id]`, `STEP_INDEX.x`), never by position: inserting a step
+  then only shifted the seed `step` numbers (done by a regex over the JSON) and the demo ids. Disabled options that
+  carry a reason tooltip still need a hover (hover-audit „no-hover”); the library `.modal` is `overflow: hidden`, so a
+  demo `h.hover` / error `scrollIntoView` scrolled the dialog box itself — `overflow: clip` (third time this bit).
