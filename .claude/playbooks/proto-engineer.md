@@ -773,3 +773,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   then only shifted the seed `step` numbers (done by a regex over the JSON) and the demo ids. Disabled options that
   carry a reason tooltip still need a hover (hover-audit „no-hover”); the library `.modal` is `overflow: hidden`, so a
   demo `h.hover` / error `scrollIntoView` scrolled the dialog box itself — `overflow: clip` (third time this bit).
+- 2026-10-15 · Ghișeu picker, round 3 (user: „put back the IDNP in the modal … the process must react to it”): the
+  picker is Serviciu → Solicitant → Procesul → Actul (quick-create order of Dynamics / Salesforce / ServiceNow: who →
+  what → which process; eligibility shown on the option as a count or a disabled reason). Lesson from three rounds
+  in one day: render each picker part as its own `data-gh-block` with ONE renderer that branches on the container
+  (`S.step === 0` picker vs flow) — moving identification between modal and flow cost only block wiring, never new
+  markup. „Tip persoană” is never empty (user rule): normalize the value from the service, never validate it. The
+  FO hides `.e-permits-fo-selected-role__change` ≤ 720 (its identity changes from the avatar menu) — any reuse outside
+  the FO must bring it back, or a phone demo state fails with „not found” (capture's DEMO-ERROR caught it).

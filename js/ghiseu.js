@@ -265,7 +265,7 @@
     return {
       id: "", nr: "", uid: "", tmp: `tmp-${Date.now().toString(36)}`, status: "Schiță", substatus: "Schiță", channel: "Ghișeu", step: 0, maxStep: 0,
       service: "", requestType: "Emitere primară", process: "primar", act: null,
-      personType: "", applicant: { idnp: "", nume: "", prenume: "", state: "" }, company: { idno: "", denumire: "", state: "" },
+      personType: "PF", applicant: { idnp: "", nume: "", prenume: "", state: "" }, company: { idno: "", denumire: "", state: "" },
       rep: { on: false, idnp: "", nume: "", prenume: "", state: "" }, procura: false,
       contact: { phone: "", email: "", phoneSrc: "", emailSrc: "" },
       details: { values: {}, address: {}, subdivision: "", term: "", reductions: [] },
@@ -538,10 +538,10 @@
   const errSlot = (key) => `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-${key}" data-gh-err="${key}" hidden></span>`;
   const req = () => U().requiredMark?.() || "";
   const roleTitle = (label) => `<div class="e-permits-fo-form__role-title"><h2>${esc(label)}</h2></div>`;
-  const roleCard = ({ name, idLabel, idValue, pj = false, tag = "" }) => {
+  const roleCard = ({ name, idLabel, idValue, pj = false, tag = "", change = "" }) => {
     const initials = name.split(/\s+/).filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
     return `
-      <div class="e-permits-fo-selected-role">
+      <div class="e-permits-fo-selected-role${change ? " e-permits-fo-selected-role--changeable" : ""}">
         <span class="e-permits-fo-selected-role__inner">
           ${pj
             ? `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon e-permits-fo-selected-role__avatar--brand" aria-hidden="true">${icon("suitcase-2")}</span>`
@@ -556,6 +556,7 @@
               ${tag}
             </span>
           </span>
+          ${change ? `<button class="e-permits-fo-selected-role__change" type="button" ${change}>${icon("rotate-arrow", 16)}<span>Schimbă</span></button>` : ""}
         </span>
       </div>`;
   };
@@ -568,11 +569,14 @@
       </div>
       ${hint ? `<p class="e-permits-fo-field__hint"${id ? ` id="${id}-hint"` : ""}>${esc(hint)}</p>` : ""}
     </div>`;
-  const section = (title, body, { id = "", desc = "", attrs = "" } = {}) => `
-    <section class="e-permits-fo-form__section"${id ? ` aria-labelledby="${id}"` : ""} ${attrs}>
-      ${desc ? `<div class="e-permits-fo-section-header"><h2${id ? ` id="${id}"` : ""}>${esc(title)}</h2><p class="e-permits-fo-section-header__desc">${desc}</p></div>` : `<h2${id ? ` id="${id}"` : ""}>${esc(title)}</h2>`}
+  const section = (title, body, { id = "", desc = "", attrs = "", num = "" } = {}) => {
+    const h = `<h2${id ? ` id="${id}"` : ""}>${num ? `<span class="e-permits-gh-start__num" aria-hidden="true">${num}</span>` : ""}${esc(title)}</h2>`;
+    return `
+    <section class="e-permits-fo-form__section${num ? " e-permits-gh-start__section" : ""}"${id ? ` aria-labelledby="${id}"` : ""} ${attrs}>
+      ${desc ? `<div class="e-permits-fo-section-header">${h}<p class="e-permits-fo-section-header__desc">${desc}</p></div>` : h}
       ${body}
     </section>`;
+  };
 
   /* ---- the two containers (user, 2026-10-15): „Dosar nou” opens the PICKER (library modal--md,
      #gh-start-modal — US-233's choices; a bottom sheet on phones); „Continuă” opens the REQUEST in a
@@ -592,7 +596,7 @@
     if (ov) return ov;
     document.body.insertAdjacentHTML("beforeend", `
       <div class="modal-overlay e-permits-gh-start" id="${START_ID}" aria-hidden="true">
-        <div class="modal modal--md e-permits-passport__modal e-permits-gh e-permits-gh-start__modal" role="dialog" aria-modal="true" aria-labelledby="gh-start-title" tabindex="-1">
+        <div class="modal modal--lg e-permits-passport__modal e-permits-gh e-permits-gh-start__modal" role="dialog" aria-modal="true" aria-labelledby="gh-start-title" tabindex="-1">
           <button type="button" class="modal-close" aria-label="Închide" data-gh-start-cancel><span class="d-inline-flex">${icon("cross-large", 20, "icon small")}</span></button>
           <div class="modal--header">
             <h2 class="modal--header-title" id="gh-start-title" data-gh-start-title>Dosar nou</h2>
@@ -870,23 +874,26 @@
     ov.querySelector("[data-gh-start-title]").textContent = d.id ? `Inițiere cerere · ${d.nr}` : "Dosar nou";
     const sub = ov.querySelector("[data-gh-start-subtitle]");
     sub.hidden = false;
-    sub.textContent = d.id ? "Serviciul și procesul cererii. Solicitantul se identifică în primul pas al cererii." : "Alegeți serviciul și procesul. Solicitantul se identifică în cerere, după „Continuă”.";
+    sub.textContent = "Serviciul, solicitantul și procesul. Restul datelor se completează în cerere.";
     ov.querySelector("[data-gh-start-body]").innerHTML = `<div class="e-permits-gh-start__form" data-gh-panel="initiere">${STEP_RENDER.initiere(d)}</div>`;
     ov.querySelector("[data-gh-start-footer]").innerHTML = '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-gh-start-cancel>Anulează</button><button class="btn btn-primary btn-rounded" type="button" data-gh-start-next disabled>Continuă</button></div>';
     if (!ov.classList.contains("is-active")) { S.startHandled = false; window.__modal?.open?.(`#${START_ID}`); }
     bindPanel();
     syncStart();
     setHash(d.id ? `#ghiseu/${encodeURIComponent(d.id)}/initiere` : "#ghiseu/nou");
+    /* keyboard-first at the counter: the first empty choice gets the focus */
+    requestAnimationFrame(() => (d.service ? ov.querySelector("[data-gh-code]:not([readonly])") : ov.querySelector("#fo-gh-serviciu"))?.focus());
   }
   /* Continuă is enabled once US-233's choices are complete (the errors sit under the fields) */
   function syncStart() {
     if (S.step !== 0 || !S.cur) return;
     const btn = document.querySelector(`#${START_ID} [data-gh-start-next]`);
     if (!btn) return;
+    collectInitiere();
     btn.disabled = checkPicker(S.cur).length > 0;
   }
   function continueStart() {
-    const errs = checkPicker(S.cur);
+    const errs = validateInitiere({ picker: true });
     if (errs.length) { showErrors(errs); return; }
     voidIfChanged();
     S.startHandled = true;
@@ -903,6 +910,7 @@
     const holder = document.createElement("div");
     holder.innerHTML = html;
     const next = holder.firstElementChild;
+    if (block.hidden && !next.hidden) next.classList.add("e-permits-gh__reveal");
     block.replaceWith(next);
     R().bind?.(next);
     BLOCK_BIND[name]?.(next);
@@ -965,7 +973,7 @@
       </div>`;
   }
   function basisHtml(d) {
-    const b = basisOf(d);
+    const b = S.step === 0 ? null : basisOf(d);
     if (!b || b.kind === "self") return '<div data-gh-block="basis" class="e-permits-gh__basis" hidden></div>';
     const filer = d.personType === "PJ" ? fullName(d.applicant) : fullName(d.rep);
     const holder = holderName(d);
@@ -985,32 +993,53 @@
     }
     return `<div data-gh-block="basis" class="e-permits-gh__basis">${body}</div>`;
   }
+  /* user rule: „Tip persoană” is never empty — PF by default, else what the service allows */
+  function normalizeType(d) {
+    const types = applicantTypesOf(d.service);
+    if (!types.includes(d.personType)) d.personType = types.includes("PF") ? "PF" : types[0] || "PF";
+  }
+  const filled = (slot, keys) => Boolean(slot.state) && (slot.state !== "manual" || keys.every((k) => slot[k]));
+  const isIdentified = (d) => (d.personType === "PJ" ? filled(d.company, ["denumire"]) && filled(d.applicant, ["nume", "prenume"]) : filled(d.applicant, ["nume", "prenume"]));
   function applicantBlockHtml(d) {
-    if (!d.service) {
-      return `<div data-gh-block="applicant">${section("Solicitantul", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${U().renderInfoNote?.("Alegeți serviciul: tipul de persoană și actele titularului depind de el.") || ""}</div>`, { id: "gh-applicant-title" })}</div>`;
-    }
+    return S.step === 0 ? applicantPickerHtml(d) : applicantFlowHtml(d);
+  }
+  /* the picker: who (US-233 AC-07…14) — type, then the codes with the inline MConnect lookup; the
+     FO lookup row is the result card (skeleton while MConnect answers, read-only names, one flash) */
+  function applicantPickerHtml(d) {
+    if (!d.service) return '<div data-gh-block="applicant" hidden></div>';
+    normalizeType(d);
     const types = applicantTypesOf(d.service);
     const typeField = types.length > 1
-      ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", required: true, span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică" }, { value: "PJ", label: "Persoană juridică" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type") + errSlot("tip")
+      ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică" }, { value: "PJ", label: "Persoană juridică" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
       : readonlyField({ id: "gh-tip-fix", label: "Tip persoană", value: types[0] === "PJ" ? "Persoană juridică" : "Persoană fizică", span: 6, hint: "Singurul tip de solicitant configurat pentru serviciu." });
-    let rows = "";
-    if (d.personType === "PJ") {
-      rows = `${codeGroupHtml("company", d)}${codeGroupHtml("applicant", d)}`;
-    } else if (d.personType === "PF") {
-      rows = `${codeGroupHtml("applicant", d)}
+    const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d)}${codeGroupHtml("applicant", d)}` : codeGroupHtml("applicant", d);
+    return `
+      <div data-gh-block="applicant">
+        ${section("Solicitantul", `<div class="e-permits-fo-form__section-body">${typeField}${rows}</div>`, { id: "gh-applicant-title", num: "2", desc: d.personType === "PJ" ? "IDNO-ul companiei și IDNP-ul persoanei care depune. Datele vin din RSUD și RSP prin MConnect." : "IDNP-ul solicitantului. Numele vine din RSP prin MConnect." })}
+      </div>`;
+  }
+  /* the request's first step: the identity as FO role cards („Schimbă” = the picker), the representative
+     and the basis (AC-15…22) */
+  function applicantFlowHtml(d) {
+    const manualTag = (slot) => (slot.state === "manual" ? tagHtml("Introdus manual", "warning") : "");
+    const holder = d.personType === "PJ"
+      ? roleCard({ name: d.company.denumire, idLabel: "IDNO", idValue: d.company.idno, pj: true, tag: manualTag(d.company), change: 'data-gh-goto="0" aria-label="Schimbă solicitantul"' })
+      : roleCard({ name: fullName(d.applicant), idLabel: "IDNP", idValue: d.applicant.idnp, tag: manualTag(d.applicant), change: 'data-gh-goto="0" aria-label="Schimbă solicitantul"' });
+    const filer = d.personType === "PJ" ? roleCard({ name: fullName(d.applicant), idLabel: "IDNP", idValue: d.applicant.idnp, tag: manualTag(d.applicant) }) : "";
+    const rep = d.personType === "PF" ? `
+      <div class="e-permits-fo-form__section-body">
         <div class="e-permits-fo-field e-permits-fo-field--span-12">
           <div class="e-permits-check-options">${U().renderCheckOption?.({ label: "Cererea se depune de un reprezentant", checked: d.rep.on, attrs: "data-gh-rep-toggle" }) || ""}</div>
         </div>
-        ${d.rep.on ? codeGroupHtml("rep", d) : ""}`;
-    }
+        ${d.rep.on ? codeGroupHtml("rep", d) : ""}
+      </div>` : "";
     return `
       <div data-gh-block="applicant">
-        ${section("Solicitantul", `
-          <div class="e-permits-fo-form__section-body">
-            ${typeField}
-            ${rows}
-          </div>
-          ${basisHtml(d)}`, { id: "gh-applicant-title", desc: d.personType === "PJ" ? "Verificați actul de identitate al persoanei care depune. Datele se preiau din RSUD și RSP prin MConnect." : d.personType ? "Verificați actul de identitate al solicitantului. Datele se preiau din RSP prin MConnect." : "" })}
+        <section class="e-permits-fo-form__roles" aria-label="Solicitant">
+          <div class="e-permits-fo-form__role-group">${roleTitle("Solicitant")}${holder}</div>
+          ${filer ? `<div class="e-permits-fo-form__role-group">${roleTitle("Persoana care depune")}${filer}</div>` : ""}
+        </section>
+        ${section(d.personType === "PJ" ? "Temeiul reprezentării" : "Reprezentantul", `${rep}${basisHtml(d)}`, { id: "gh-rep-title", desc: d.personType === "PJ" ? "Legătura dintre persoana care depune și companie: RSUD, MPower sau procură verificată la ghișeu." : "Doar dacă cererea se depune printr-un reprezentant al solicitantului." })}
       </div>`;
   }
   /* every post-process the service knows (Setări › Postprocese pe acte permisive + Contestație) */
@@ -1031,11 +1060,26 @@
     if (act.kind === "decizie") return "Din decizie se inițiază doar contestația.";
     return `Nu se inițiază pentru un act cu statutul „${(ACT_TONE[act.status] || [act.status])[0]}”.`;
   }
-  /* the picker: Emitere primară / Postproces only (the permit and the post-process come in the request) */
+  /* Postproces only when the identified holder has permits / decisions for the service (research: show
+     eligibility before continuing — the count, or the reason) */
+  function postState(d) {
+    if (!isIdentified(d)) return { ok: false, text: "Identificați solicitantul pentru a vedea actele." };
+    const acts = actsOf(d);
+    if (!acts.length) return { ok: false, text: "Solicitantul nu are acte permisive pentru acest serviciu. Continuați cu „Emitere primară”." };
+    const nAct = acts.filter((a) => a.kind === "act").length;
+    const nDec = acts.length - nAct;
+    return { ok: true, text: [nAct ? plural(nAct, "act permisiv", "acte permisive") : "", nDec ? plural(nDec, "decizie", "decizii") : ""].filter(Boolean).join(" · ") };
+  }
+  function normalizeProcess(d) {
+    if (d.process === "post" && !postState(d).ok) { d.process = "primar"; d.requestType = "Emitere primară"; d.act = null; }
+  }
   function processBlockHtml(d) {
-    const radio = (value, title, descText) => `
-      <label class="e-permits-fo-radio e-permits-fo-radio--option e-permits-fo-radio--span-6">
-        <input type="radio" name="gh-proces" value="${value}"${d.process === value ? " checked" : ""} data-gh-process>
+    if (!d.service) return '<div data-gh-block="process" hidden></div>';
+    normalizeProcess(d);
+    const post = postState(d);
+    const radio = (value, title, descText, disabled = false) => `
+      <label class="e-permits-fo-radio e-permits-fo-radio--option e-permits-fo-radio--span-6${disabled ? " is-disabled" : ""}"${disabled ? ` data-tooltip-reason="${esc(descText)}"` : ""}>
+        <input type="radio" name="gh-proces" value="${value}"${d.process === value ? " checked" : ""}${disabled ? " disabled" : ""} data-gh-process>
         <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
         <span class="e-permits-fo-radio__copy"><strong>${esc(title)}</strong><span class="e-permits-fo-radio__copy-desc">${esc(descText)}</span></span>
       </label>`;
@@ -1046,16 +1090,22 @@
             <fieldset class="e-permits-fo-radio-group">
               <legend class="u-visually-hidden">Procesul</legend>
               ${radio("primar", "Emitere primară", "Cerere pentru un act permisiv nou")}
-              ${radio("post", "Postproces", "Pe un act permisiv sau o decizie a titularului")}
+              ${radio("post", "Postproces", post.ok ? `Pe un act al titularului: ${post.text}` : post.text, !post.ok)}
             </fieldset>
-            ${d.process === "post" ? U().renderInfoNote?.("Actul permisiv sau decizia și postprocesul se aleg în cerere, după identificarea titularului.") || "" : ""}
-          </div>`, { id: "gh-process-title" })}
+          </div>`, { id: "gh-process-title", num: "3" })}
       </div>`;
   }
   /* the request's first step, Postproces: the holder's permits + decisions (AC-26/27/30), then the
      post-process eligible for the chosen one (AC-28/31/32; the others disabled with the reason) */
   function actsBlockHtml(d) {
-    if (d.process !== "post") return '<div data-gh-block="acts" hidden></div>';
+    const picker = S.step === 0;
+    if (d.process !== "post" || (picker && !postState(d).ok) || (!picker && d.act && d.requestType && !S.actCleared)) {
+      if (!picker && d.process === "post" && d.act) {
+        const act = actById(d, d.act);
+        return `<div data-gh-block="acts">${U().renderInfoNote?.(`Postproces „${esc(d.requestType)}” pe ${esc(act?.nr || "")} · ${esc(act?.name || "")}. Actul și postprocesul se schimbă în „Inițiere cerere”.`) || ""}</div>`;
+      }
+      return '<div data-gh-block="acts" hidden></div>';
+    }
     const identified = d.personType && (d.personType === "PJ" ? d.company.state : d.applicant.state);
     let body;
     if (!identified) body = U().renderInfoNote?.("Identificați solicitantul: aici apar actele lui permisive și deciziile pentru serviciul ales.") || "";
@@ -1091,14 +1141,14 @@
         const pp = chosen ? `
           <fieldset class="e-permits-fo-choice e-permits-gh__pp" aria-describedby="gh-err-pp">
             <legend class="e-permits-fo-choice__legend">Postprocesul pentru ${esc(chosen.nr)} ${req()}</legend>
-            <div class="e-permits-fo-choice__group">
+            <div class="e-permits-fo-radio-group e-permits-gh__pp-options">
               ${types.map((t) => {
                 const ok = allowed.includes(t);
                 return `
-                  <label class="e-permits-fo-radio e-permits-fo-radio--option${ok ? "" : " is-disabled"}"${ok ? "" : ` data-tooltip-reason="${esc(ineligibleReason(d, chosen, t))}"`}>
-                    <input type="radio" name="gh-pp" value="${esc(t)}"${d.requestType === t && ok ? " checked" : ""}${ok ? "" : " disabled"} data-gh-pp-choice>
+                  <label class="e-permits-fo-radio e-permits-fo-radio--option e-permits-fo-radio--span-6${ok ? "" : " is-disabled"}"${ok ? "" : ` data-tooltip-reason="${esc(ineligibleReason(d, chosen, t))}"`}>
+                    <input type="radio" name="gh-pp" value="${esc(t)}"${d.requestType === t && ok ? " checked" : ""}${ok ? "" : ` disabled aria-description="${esc(ineligibleReason(d, chosen, t))}"`} data-gh-pp-choice>
                     <span class="e-permits-fo-radio__control" aria-hidden="true"></span>
-                    <span class="e-permits-fo-radio__copy"><strong>${esc(t)}</strong>${ok ? "" : `<span class="e-permits-fo-radio__copy-desc">${esc(ineligibleReason(d, chosen, t))}</span>`}</span>
+                    <span class="e-permits-fo-radio__copy"><strong>${esc(t)}</strong>${ok || S.step === 0 ? "" : `<span class="e-permits-fo-radio__copy-desc">${esc(ineligibleReason(d, chosen, t))}</span>`}</span>
                   </label>`;
               }).join("")}
             </div>
@@ -1114,7 +1164,7 @@
     }
     return `
       <div data-gh-block="acts">
-        ${section("Actul permisiv sau decizia", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${body}</div>`, { id: "gh-acts-title", desc: "Postprocesul se inițiază pe un act permisiv sau pe o decizie a titularului, pentru serviciul ales." })}
+        ${section("Actul permisiv sau decizia", `<div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">${body}</div>`, { id: "gh-acts-title", num: picker ? "4" : "", desc: "Alegeți actul, apoi postprocesul permis de statutul lui." })}
       </div>`;
   }
   function stepInitiere(d) {
@@ -1126,17 +1176,17 @@
       options: services.map((s) => ({ code: s.code, label: s.title }))
     });
     return `
-      ${section("Serviciul", `<div class="e-permits-fo-form__section-body" data-gh-service>${svcField}${errSlot("serviciu")}</div>`, { id: "gh-service-title" })}
+      ${section("Serviciul", `<div class="e-permits-fo-form__section-body" data-gh-service>${svcField}${errSlot("serviciu")}</div>`, { id: "gh-service-title", num: "1" })}
+      ${applicantBlockHtml(d)}
       ${processBlockHtml(d)}
+      ${actsBlockHtml(d)}
       ${footerHtml(d)}`;
   }
   /* the request's first step „Solicitant” (US-233 identification part) */
   function stepIdentificare(d) {
-    const types = applicantTypesOf(d.service);
-    if (types.length === 1) d.personType = types[0];
-    else if (d.personType && !types.includes(d.personType)) d.personType = "";
+    normalizeType(d);
     return `
-      ${stepHeader("Solicitant")}
+      ${stepHeader("Solicitant și reprezentare")}
       ${applicantBlockHtml(d)}
       ${actsBlockHtml(d)}
       ${footerHtml(d)}`;
@@ -1169,14 +1219,13 @@
       const code = root.querySelector(".e-permits-fo-caem__option.is-selected")?.dataset.code || "";
       if (code === d.service) return;
       d.service = code;
-      const types = applicantTypesOf(code);
-      if (types.length === 1) d.personType = types[0];
-      else if (!types.includes(d.personType)) d.personType = "";
+      normalizeType(d);
       d.act = null;
       if (d.process === "post") d.requestType = "";
       clearErr("serviciu");
       S.dirty = true;
-      redrawBlock("process");
+      redrawBlock("applicant"); redrawBlock("process"); redrawBlock("acts");
+      requestAnimationFrame(() => S.page.querySelector('[data-gh-block="applicant"] [data-gh-code]:not([readonly])')?.focus());
     });
   }
   const BLOCK_RENDER = { applicant: applicantBlockHtml, process: processBlockHtml, basis: basisHtml, acts: actsBlockHtml };
@@ -1191,7 +1240,7 @@
         S.cur.personType = v; S.cur.rep.on = false; S.cur.procura = false;
         holderTouched("type");
         S.dirty = true;
-        redrawBlock("applicant"); redrawBlock("acts"); refreshChrome();
+        redrawBlock("applicant"); redrawBlock("process"); redrawBlock("acts"); refreshChrome();
         S.page.querySelector("[data-gh-type] .segment-item.is-selected")?.focus();
       });
     }
@@ -1250,6 +1299,7 @@
     if (needsProcura(d) === false) d.procura = false;
     /* lock the code (and open the names when the registry did not answer) */
     redrawBlock("applicant");
+    redrawBlock("process");
     redrawBlock("acts");
     refreshChrome();
     if (slot.state === "found") {
@@ -1274,12 +1324,12 @@
       }
     });
   }
-  function validateInitiere() {
+  function validateInitiere({ picker = S.step === 0 } = {}) {
     collectInitiere();
     const d = S.cur;
     const errs = [];
+    if (picker && !d.service) errs.push({ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED });
     {
-      if (!d.personType) errs.push({ key: "tip", focus: "[data-gh-type] .segment-item", msg: REQUIRED });
       const codeErr = (kind, value, state, len = 13) => {
         if (!value) return REQUIRED;
         if (value.length !== len) return `${kind === "company" ? "IDNO" : "IDNP"}-ul are 13 cifre.`;
@@ -1294,10 +1344,13 @@
           keys.forEach(([key, v]) => { if (!v) errs.push({ input: `[data-gh-target="${kind}:${key}"]`, msg: REQUIRED }); });
         }
       };
-      if (d.personType === "PJ") { check("company", d.company, d.company.idno); check("applicant", d.applicant, d.applicant.idnp); }
-      if (d.personType === "PF") { check("applicant", d.applicant, d.applicant.idnp); if (d.rep.on) check("rep", d.rep, d.rep.idnp); }
-      /* AC-21: no electronic link and no „Prin procură” */
-      if (!errs.length && needsProcura(d) && !d.procura) errs.push({ key: "procura", focus: "[data-gh-procura]", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
+      if (picker && d.service) {
+        if (d.personType === "PJ") { check("company", d.company, d.company.idno); check("applicant", d.applicant, d.applicant.idnp); }
+        else check("applicant", d.applicant, d.applicant.idnp);
+      }
+      if (!picker && d.personType === "PF" && d.rep.on) check("rep", d.rep, d.rep.idnp);
+      /* AC-21: no electronic link and no „Prin procură” (in the request's first step) */
+      if (!picker && !errs.length && needsProcura(d) && !d.procura) errs.push({ key: "procura", focus: "[data-gh-procura]", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
       if (d.process === "post" && !d.act) errs.push({ key: "act", focus: "[data-gh-act], [data-gh-switch-primar]", msg: "Alegeți actul permisiv sau decizia." });
       else if (d.process === "post" && !d.requestType) errs.push({ key: "pp", focus: "[data-gh-pp-choice]:not(:disabled)", msg: "Alegeți postprocesul." });
     }
@@ -1965,13 +2018,17 @@
   const CHECK = STEPS.map((step) => CHECKS[step.id]);
   /* the picker: a service, and a process (Emitere primară is preselected) */
   function checkPicker(d) {
-    return d.service ? [] : [{ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED }];
+    const errs = [];
+    if (!d.service) return [{ key: "serviciu", focus: "#fo-gh-serviciu", msg: REQUIRED }];
+    if (!isIdentified(d)) errs.push({ input: '[data-gh-code]:not([readonly])', msg: REQUIRED });
+    if (d.process === "post" && !d.act) errs.push({ key: "act", msg: "Alegeți actul permisiv sau decizia." });
+    else if (d.process === "post" && !d.requestType) errs.push({ key: "pp", msg: "Alegeți postprocesul." });
+    return errs;
   }
   function dataCheckInitiere(d) {
     const errs = [];
-    if (!d.personType || !(d.personType === "PJ" ? d.company.state && d.applicant.state : d.applicant.state && (!d.rep.on || d.rep.state))) errs.push({ key: "tip", msg: "Identificați solicitantul.", step: 0 });
-    const manualEmpty = (slot, keys) => slot.state === "manual" && keys.some((k) => !slot[k]);
-    if (manualEmpty(d.company, ["denumire"]) || manualEmpty(d.applicant, ["nume", "prenume"]) || (d.rep.on && manualEmpty(d.rep, ["nume", "prenume"]))) errs.push({ key: "tip", msg: REQUIRED });
+    if (!isIdentified(d)) errs.push({ key: "act", msg: "Identificați solicitantul în „Inițiere cerere”." });
+    if (d.rep.on && d.personType === "PF" && !filled(d.rep, ["nume", "prenume"])) errs.push({ input: '[data-gh-code="rep"]', msg: REQUIRED });
     if (needsProcura(d) && !d.procura) errs.push({ key: "procura", msg: "Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie." });
     if (d.process === "post" && !d.act) errs.push({ key: "act", msg: "Alegeți actul permisiv sau decizia." });
     else if (d.process === "post" && !d.requestType) errs.push({ key: "pp", msg: "Alegeți postprocesul." });
@@ -1985,7 +2042,7 @@
   /* the current step: collect + full checks (the DOM-level validators of steps 1–2) */
   function validateStep(i) {
     const id = STEPS[i].id;
-    if (id === "initiere") return checkPicker(S.cur);
+    if (id === "initiere") return validateInitiere({ picker: true });
     if (id === "identificare") return validateInitiere();
     if (id === "solicitant") return validateSolicitant();
     COLLECT[id]?.();
@@ -2182,7 +2239,7 @@
       d.procura = false;
       holderTouched(kind);
       S.dirty = true;
-      redrawBlock("applicant"); redrawBlock("acts"); refreshChrome();
+      redrawBlock("applicant"); redrawBlock("process"); redrawBlock("acts"); refreshChrome();
       S.page.querySelector(`[data-gh-code="${kind}"]`)?.focus();
       return;
     }
@@ -2245,12 +2302,12 @@
       d.act = null;
       d.requestType = t.value === "primar" ? "Emitere primară" : "";
       S.dirty = true;
-      redrawBlock("process"); refreshChrome();
+      redrawBlock("process"); redrawBlock("acts"); refreshChrome();
       S.page.querySelector(`[data-gh-process][value="${t.value}"]`)?.focus();
       return;
     }
     if (t.matches("[data-gh-reduction]")) { collectDetalii(); S.dirty = true; return; }
-    if (t.matches("[data-gh-pp-choice]")) { d.requestType = t.value; S.dirty = true; clearErr("pp"); refreshChrome(); S.page.querySelector(`[data-gh-pp-choice][value="${t.value}"]`)?.focus(); return; }
+    if (t.matches("[data-gh-pp-choice]")) { d.requestType = t.value; S.dirty = true; clearErr("pp"); refreshChrome(); syncStart(); S.page.querySelector(`[data-gh-pp-choice][value="${t.value}"]`)?.focus(); return; }
     if (t.matches("[data-gh-delivery]")) {
       collectLivrare();
       S.dirty = true;
@@ -2265,6 +2322,12 @@
     if (t.getAttribute?.("aria-invalid") === "true" && !t.matches("[data-fo-registry-code]")) R().setFieldError?.(t, "");
   }
   function onKeydown(event) {
+    if (event.key === "Enter" && event.target.matches?.("[data-gh-code]")) {
+      event.preventDefault();
+      const v = event.target.value.replace(/\D/g, "");
+      if (v.length && v.length < 13) R().setFieldError?.(event.target, `${event.target.dataset.ghCode === "company" ? "IDNO" : "IDNP"}-ul are 13 cifre.`);
+      return;
+    }
     if ((event.key === "Enter" || event.key === " ") && event.target.matches?.("[data-gh-goto][role=button]")) { event.preventDefault(); event.target.click(); }
   }
 

@@ -106,7 +106,6 @@
     { "id": "gh-4799", "nr": "C-2026-004799", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2003007008009", "step": 2, "createdDays": -3, "createdTime": "16:30", "updatedHours": -70, "by": "Victor Grosu" },
     { "id": "gh-4688", "nr": "C-2026-004688", "service": "003000519", "requestType": "Emitere primară", "personType": "PJ", "company": "1014600099887", "applicant": "2002005006007", "step": 2, "createdDays": -86, "createdTime": "08:55", "updatedHours": -2000, "by": "self" },
     { "id": "gh-4650", "nr": "C-2026-004650", "service": "003000118", "requestType": "Emitere primară", "personType": "PF", "applicant": "2001002003004", "step": 3, "createdDays": -95, "createdTime": "12:00", "updatedHours": -2200, "by": "self" },
-    { "id": "gh-4815", "nr": "C-2026-004815", "service": "003000118", "requestType": "Emitere primară", "step": 1, "createdDays": 0, "createdTime": "09:10", "updatedHours": -1, "by": "self" },
     { "id": "gh-4805", "nr": "C-2026-004805", "service": "003000118", "requestType": "Emitere primară", "personType": "PJ", "company": "1012600000002", "applicant": "2002005006007", "step": 8, "submittedDays": -1, "submittedTime": "15:12", "createdDays": -1, "createdTime": "13:40", "updatedHours": -24, "by": "self" }
   ]
 }

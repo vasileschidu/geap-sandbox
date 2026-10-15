@@ -268,7 +268,7 @@ but this doc previously described it wrongly, see the entry.
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
-| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | picker `#gh-start-modal.modal-overlay > .modal.modal--md.e-permits-passport__modal.e-permits-gh` (service + process only; bottom sheet ≤680); request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
+| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | picker `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` (1 service · 2 applicant · 3 process with eligibility · 4 permit + post-process; bottom sheet ≤680); request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -5890,22 +5890,27 @@ added for modules (all generic, reuse them for the next BO module):
   draws an in-page view; Ghișeu itself now uses dialogs).
 
 **Two dialogs (user, 2026-10-15), the list stays behind:**
-- **Picker** „Dosar nou” = library `modal--md` (`#gh-start-modal`, 590 like the other pickers; ≤680 the standard
-  bottom sheet: full width, radius 16 top, `100dvh − 24`). Holds ONLY „Denumirea serviciului” (FO searchable
-  list) + the radio rows Emitere primară / Postproces (user, 2026-10-15). Footer Anulează · **Continuă**
-  (`disabled` until a service is chosen). Continuă = first save (nr + UID, the draft exists before
-  identification — „—” for the applicant in the list) → sheet at „Solicitant”. Reopened from the sheet
-  (Înapoi on step 1, „Schimbă serviciul”) as „Inițiere cerere · <nr>”; Anulează returns to the sheet.
-- **First step „Solicitant”** (design decision: US-233 split between picker and flow): Tip persoană
-  (segmented / read-only), IDNO + IDNP lookups (FO registry lookup, × to change), reprezentant check option +
-  IDNP, the basis notice (RSUD / MPower / Prin procură with the live AC-21 error). Postproces continues under
-  the identity: the holder's permits + decisions as a bordered stacked list (`.e-permits-gh__acts`, doc icon,
-  status tag, „✓ Alege” `btn-neutral btn-sm`, chosen = „Ales” brand tag), then `fieldset.e-permits-fo-choice
-  .e-permits-gh__pp` of FO radio option rows with every post-process of the service — the ones the permit's
-  status does not allow are `is-disabled` with the reason as description + `data-tooltip-reason`. No permits
-  → the shared empty state „Solicitantul nu are acte permisive pentru acest serviciu” with „Schimbă în
-  Emitere primară” (switches in place, step and data kept) · „Schimbă serviciul” (the picker). A new holder
-  clears the permit + post-process with an info notice. Continuă needs identity (+ permit + post-process).
+- **Picker** „Dosar nou” (3rd round, user 2026-10-15; research in the job report: Dynamics / Salesforce /
+  ServiceNow quick-create = who → what → which process, eligibility before continuing) = library `modal--lg`
+  (`#gh-start-modal`, 720 so IDNO + company / IDNP + names fit one row; ≤680 the standard bottom sheet).
+  Numbered quiet headings (`.e-permits-gh-start__num`, 24 circle, tertiary): **1 Serviciul** (FO searchable list,
+  autofocus) → **2 Solicitantul** (Tip persoană segmented, never empty: PF by default, PJ when the service allows
+  only PJ — then a read-only value; IDNP, or IDNO + the IDNP of the person filing, with the FO registry lookup:
+  skeleton while MConnect answers, read-only names + one flash = the result card, no layout jump; not found /
+  registry down / „IDNP-ul are 13 cifre.” on Enter) → **3 Procesul** (FO radio option rows; Postproces shows the
+  live count „3 acte permisive · 1 decizie”, or is disabled with the reason — before identification „Identificați
+  solicitantul…”, without permits „Solicitantul nu are acte permisive pentru acest serviciu. Continuați cu
+  „Emitere primară”.”) → **4 Actul** (Postproces: the holder's permits as a compact bordered stack list, ~5 rows
+  then scroll, „✓ Alege”; then the post-processes in two columns of option rows, ineligible ones disabled with the
+  reason in the tooltip). Sections 2–4 appear when their input exists (`.e-permits-gh__reveal`, 220ms, off for
+  reduced motion). A new holder clears the permit + post-process (info notice). Footer Anulează · Continuă
+  (disabled until service + identity + process [+ permit + post-process]); errors live under the fields.
+  Continuă = first save (nr + UID) → the sheet at „Solicitant”.
+- **First step „Solicitant”** (design decision, US-233 split: identity in the picker, representation in the
+  flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
+  „Persoana care depune” for PJ, then „Reprezentantul” (PF check option + IDNP lookup) / „Temeiul reprezentării”
+  (RSUD / MPower / Prin procură with the live AC-21 error). A chosen post-process shows as a note; a missing one
+  falls back to the permits list here.
 - **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top
   24, modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners (the Form Builder sheet radius;
   there is no 24 token), scrim behind. Header = title (service, one line) · meta parts (nr · solicitant ·

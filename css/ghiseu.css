@@ -301,7 +301,7 @@
 }
 
 /* ---- the two dialogs (user, 2026-10-15) --------------------------------------------------
-   Picker (#gh-start-modal) = library modal--md (590, like the other pickers): service + process only; on phones the standard bottom sheet.
+   Picker (#gh-start-modal) = library modal--lg (720: IDNO + company / IDNP + names on one row): service, applicant, process, permit; on phones the standard bottom sheet.
    Request (#gh-request-modal) = library modal--fullscreen as a sheet: 24 from the top, full
    width, rounded top corners (radius 16 = the Form Builder sheet), header · scrolling body ·
    sticky footer. It sits under the library dialogs (z 990 < 1000) so confirmations, the
@@ -523,4 +523,65 @@
 .e-permits-gh .e-permits-fo-radio--option.is-disabled:hover::before {
   opacity: 1;
   transform: scale(1);
+}
+
+/* ---- „Dosar nou” picker, 3rd round (user 2026-10-15): 1 Serviciul · 2 Solicitantul · 3 Procesul · 4 Actul
+   — quiet numbered headings (the FO stepper number look), the next section revealed once its input exists */
+.e-permits-gh-start__num {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-full, 9999px);
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  height: var(--spacing-24, 24px);
+  justify-content: center;
+  line-height: var(--line-height-lh-16, 16px);
+  margin-right: var(--spacing-8, 8px);
+  vertical-align: text-bottom;
+  width: var(--spacing-24, 24px);
+}
+
+.e-permits-gh__reveal {
+  animation: e-permits-gh-reveal 220ms var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)) backwards;
+}
+
+@keyframes e-permits-gh-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(var(--spacing-8, 8px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-gh__reveal {
+    animation: none;
+  }
+}
+
+/* the holder's permits in the picker: compact, about five rows, the rest scrolls */
+.e-permits-gh-start__body .e-permits-gh__acts {
+  max-height: calc(var(--spacing-80, 80px) * 5);
+  overflow-y: auto;
+}
+
+/* the post-process options: two columns of compact option rows (the FO radio group keeps 32 between
+   the big „Pentru cine” cards) */
+.e-permits-gh .e-permits-gh__pp-options {
+  gap: var(--spacing-4, 4px) var(--spacing-16, 16px);
+}
+
+@media (max-width: 680px) {
+  .e-permits-gh .e-permits-gh__pp-options .e-permits-fo-radio--span-6 {
+    grid-column: span 12;
+  }
+}
+
+/* the FO hides „Schimbă” on phones (its identity switches from the avatar menu); at the desk it is the
+   only way back to the picker's identity, so it stays */
+@media (max-width: 760px) {
+  .e-permits-gh .e-permits-fo-selected-role__change {
+    display: inline-flex;
+  }
 }
