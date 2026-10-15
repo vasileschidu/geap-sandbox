@@ -22,6 +22,9 @@
 // „List Item” doc rows with a 24px „Image” lead → local „Document · rând” 11362:7113; place-cards.js for FO / Cabinet
 // doc cards → „Document · card” 11364:7441; imgicons.js for icon-sized IMAGE fills → library icons). Never keep a
 // captured <img> icon as an image fill.
+// BO workplace registries (2026-10-15, `.e-permits-workplace`: toolbar search / Filtrare avansată / export / primary,
+// status tabs, sortable headers, status tags, „Editează” + ⋮, pager, rows-per-page, mobile avatar):
+// tools/figma/swap-workplace-registry.js (protos from the Classifiers board; export = local 20/export 10784:265036).
 const ROOTS = ["PUT:CAPTURE-ROOT-IDS"];
 const g = (id) => figma.getNodeByIdAsync(id);
 const C = {

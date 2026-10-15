@@ -913,3 +913,63 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     binder is idempotent (already-bound counted) so a dropped transport = just re-run. Snapshots: page sharedPluginData
     `geapqa/borderpad-20261015` and `geapqa/bindtok-20261015-N` (both scripts have a revert mode).
   - Something else renamed screens to English mid-job („01 · Tarife” → „01 · Tariffs”) — not this job; mention concurrent edits.
+
+- 2026-10-15 · Document cards v3 (code 9804960e) — `Document · card` GEAP 11364:7441 (54 variants) / FOD 762:10435 (12) / Cabinet
+  983:2727 (6), `Document · row` 11362:7113 (33); scripts tools/figma/documents/card-v3.js, row-v3.js, card-fit.js, card-qa.js
+  (README lists them; card-mobile.js / row-separators.js are superseded and still use pre-rename names — don't re-run):
+  - **Instance sublayers ignore `resize()`** (text AND frames): the width snaps back to the main's (a „FIXED 179” title stayed 185 =
+    the main's default text width). Only sizing MODES override. Code `flex: 1 1 64; max-width: max-content` = per instance: title
+    HUG when title + tags fit, else „Title box” FILL + title FILL (ellipsis) — the tags then sit right after the truncated title.
+    In a WRAP title row a FILL box needs `minWidth` on the MAIN (68 = 64 + 4 pad, Mobile only) or Figma squeezes it to ~40 and keeps
+    every tag on line 1; with the min, tags that don't fit beside 68 wrap under the title exactly like the code at 375.
+  - Gap 8 title→tag but 4 tag→tag in ONE wrap row: row gap 4 + „Title box” paddingRight 4 (tags stay direct children so they can
+    wrap one by one).
+  - `textTruncation = "ENDING"` flips `textAutoResize` to TRUNCATE (fixed size); text with layoutSizingVertical FILL in a HUG
+    horizontal frame keeps a 2-line layout height (box 40 tall, tags at y 10) → always set the title vertical HUG after truncation.
+    Reads right after layout changes can be stale — verify geometry in a SECOND call (or a screenshot) before concluding.
+  - `setBoundVariableForPaint` with a placeholder colour renders the placeholder in screenshots / thumbnails (cards went 50 % grey):
+    pass the variable's `resolveForConsumer(node).value` as the raw colour.
+  - 20 px meta lines with a 12/16 text style: keep Desktop/Caption/Medium (no 12/20 style exists) and pad each Part 2/0/2/0
+    (spacing-2) → lines 20 apart, dot at y 9 — no line-height override, the style stays attached.
+  - × on the title line = ABSOLUTE (MAX/MIN) at y 6 with the title row paddingRight 44 (meta runs under the ×, like the code);
+    check y 12 / pad 32 (spacing-32). Mobile cards with labelled actions = VERTICAL [Top (icon + content, CENTER) / Actions
+    paddingLeft 36] so the icon stays centred on title + meta only.
+  - Before a structural change check the copies: Cabinet desktop wrapped Content in a „Column” (left empty after moving) and its
+    variants have no State prop (`vp.State` undefined broke the „Default” surface test); FOD Meta was WRAP itself.
+  - Agent tool not available again → ran figma-audit (components) + card-qa.js (every instance, 3 files) by hand.
+
+- 2026-10-15 · Export icon sweep (commit 08e09f2d) + „Fluxuri de lucru” registry (pd-35 / pd-35c) + sidebar item:
+  - Export icon = central „arrow-inbox, download” (set key 80dbbcd5…). GEAP has a LOCAL wrapper `20/export` 10784:265036
+    (filled=off, stroke=1.5, radius=2, join=round = code `icon-export`; description says so) — use it in GEAP buttons (Icon=Only,
+    `🔄 Leading Icon: 16`) and menu items. eKYC uses the central variant directly (filled=on, stroke=2, radius=2 — same glyph,
+    fill follows the button colour). FOD / EVO Cabinet have no export actions (only „Descarcă” = 20/download, correct).
+    Sweep method that worked in 4 files: per page (≤ 8 pages per call, read-only) aggregate INSTANCES named `NN/download|NN/export|
+    arrow-inbox…` by host set + label + parent AND every TEXT starting with „Export…” by host + icon; one row per pattern with a
+    sample id. Result today: 0 wrong export icons in all 4 files (GEAP 94 icon-only + 2 menu items, eKYC 98 icon-only).
+    Labelled „Exportă” menu buttons (eKYC R06) still show chevron only — the library button holds one icon (known gap).
+  - Not export, but found: GEAP Services „Importă din MDocs” (17×) still uses 20/download — code 58d922f4 says upload icon.
+  - New tool `tools/figma/swap-workplace-registry.js` (BO workplace registry capture → instances: search, Filtrare avansată
+    (Disabled when the captured label is light), export, primary, tab-item-s status tabs (key 0294516b…, 40 px, Badge), sort
+    chevrons, status tags, „Editează”, ⋮, pager arrows (button-text-circular Strict Medium Disabled), page item, rows-per-page
+    select, mobile initials → avatar Initials Medium). Protos = Classifiers board instances. Cells stay raw (as on Classifiers).
+  - Block = clone the Classifiers block 10177:1919 (shell: gov bar, sidebar, shell header), drop its „Page”, insert the captured
+    content. At 1440 the clone keeps Body minHeight 990 from the 1920 board → clear it (Body HUG, sidebar FILL) or the screen
+    stays 1024. Shell title frame is FIXED 128 → HUG or „Fluxuri de lu…”.
+  - Read every property of a captured node BEFORE put() removes it (opacity read after removal rolled the whole call back).
+  - sidebar-public-services (local 8993:35379, 345 instances) got „Fluxuri de lucru” (code fdce2978, data/e-permits-roles.json)
+    after Configurări servicii. Its items' icons are NESTED SWAPS — the `🔄 Icon` property does not drive the visible icon, and
+    `resetOverrides()` on the nested icon reverts it to folder-paper. Swapping a Foundations FILL icon into a slot that held a
+    central STROKE icon carries `fills: []` → invisible glyph. Right way: `swapComponent` to the central STROKE variant
+    (filled=off, stroke=1.5, radius=2, round — same family as the siblings: list-sparkle etc.) in the main AND in any instance
+    that already had an override; Active colour then comes from the variant (border/brand/default). Count instances first,
+    check the ones whose height ≈ content (two sidebars grew 562/580 → 598 inside HUG bodies, blocks unchanged).
+  - Onest has no „⋮” glyph (renders „:”) — write „Mai multe acțiuni” in notes, titles and connector labels.
+  - A section created with fills copied from another section came out black (the source fill was unbound / transparent) → set
+    the section fill to background/base/default (white) explicitly.
+  - Connector from a row ⋮ in the desktop screen to the next block crossed the mobile screen → start on the block with
+    `position {x: block.width, y: row centre}` (leaves the block edge at the row height).
+  - Code findings for proto-engineer: at 1440 the registry clips Denumire without an ellipsis (`text-overflow: clip`) and wraps
+    long Identificator values (`overflow-wrap: anywhere`); Figma uses the table rule (one line + ellipsis) for names and keeps the
+    2-line identifiers as rendered. At 375 the toolbar overflows (Creează proces off-screen) — BO mobile is not designed.
+  - No Agent tool in this session → ran figma-audit.js on W01 / W01a myself; leftovers are the shared gov-bar clone (egov-logo
+    absolute, #000 text with no token) and intentional mobile scroll clips.

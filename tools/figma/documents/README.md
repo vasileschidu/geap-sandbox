@@ -25,3 +25,14 @@ Mobile + separators (code e9858260, 2026-10-14):
 - `field-header-mobile.js` (library text-input headers) / `field-header-mobile-raw.js` (captured FOD headers) — doc-field header
   on phones: star / „Opțional” after a one-line label, bottom-aligned at the right edge of a wrapped one; „Adaugă fișier” FILL.
 - `finish-card-mobile.js` — FO Finalizare „Certificatul Constatator” card on phones (icon 24 · column [text, Small button]).
+
+Card v3 — code 9804960e (2026-10-15) — SUPERSEDES `card-mobile.js` and `row-separators.js` (do not re-run those: they use the
+pre-rename Romanian layer names and rebuild the old forced-break meta):
+- `card-v3.js` — `Document · card` (any file: SET_ID, K = library keys, ONLY = ids or null): one surface (secondary, r12, p12, gap
+  12), icon centred on title + meta (mobile cards with actions = VERTICAL [Top / Actions indented 36]), title line = WRAP row
+  [Title box (pad-right 4, min 68 on Mobile) · tags 4 apart], × ABSOLUTE y 6 / check y 12, meta = stack meta (Caption/Medium 12,
+  text/base/tertiary, parts padded 2/0 → 20 px lines, 2px dot at −10 / 9, Rows WRAP gap 18 / 0, Meta clips). Idempotent; restores
+  componentPropertyReferences + defaults.
+- `row-v3.js` — `Document · row`: title→tags gap 8 (tags 4), title one line, meta parts 20 px lines, dot centred.
+- `card-fit.js` — per-instance fit (cards + rows): title HUG when it fits, else Title box + title FILL (instance resize() is
+  ignored by Figma — only sizing modes override); meta text FILL when wider than Meta; root HUG.
