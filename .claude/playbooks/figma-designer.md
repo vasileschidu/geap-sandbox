@@ -79,6 +79,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Instance switcher (local, 2026-10-15) | GEAP set `11536:8013`, menu `11535:6128` | header trigger FO/BO × Desktop/Mobile × Default/Hover/Open; menu = native SLOT „Content”; items profile `11532:7890` / role `11532:8016` / more `11532:8125`; FOD set 839:11429, Cabinet 1014:7391; builders tools/figma/instance-switcher/ |
 | Effect style „dropdown-effect” (2026-10-16) | GEAP local `S:fc1dad56be71b69894b7f3586befb682c9a2f5fc,` | every menu / dropdown / popover surface; NOT published → FOD + EVO Cabinet use it by id `S:fc1dad56…,5088:9` (getStyleByIdAsync; importStyleByKeyAsync fails); eKYC has a local copy `S:2c6b167d…,` (same effects). Radius tokens: radius-12 1f226805…, radius-16 5e0761c5… |
 | Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
+| Act row family (local, 2026-10-16) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 · `New request card` 11848:340913 (holder 11844:198504) | foActRowHtml / foIntentNewHtml. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile; TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544, Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | Icons (Foundations keys) | — | 20/download e6dd0e97… · 20/arrow-left f9c5634d… · 20/external-link 8df5d4b1… · 20/edit bef76865… · 20/credit-card aca711a4… · EVO 20/refresh caca3c5f… · central sets: trash b5e9b87b…, file-text 032cdf84…, user-circle 7f8dfe57… |
 
@@ -1186,3 +1187,34 @@ Every capture leaves image-fill icons. A capture is NOT done until the icon swap
 ### HARD RULE (user, 2026-10-16): whole pixels only
 No fractional sizes or positions (e.g. 74.4 px) on frames / instances / text. Auto-layout: hug labels and buttons,
 fill only real columns, keep containers whole-pixel so fills don't split into fractions. figma-audit flags fractions.
+
+- 2026-10-16 · Act row job (user on 11678:11643: „what's that? redo it — auto-layout and components”; captured row with a PNG
+  doc icon and an orphan leading meta dot). Built `Act row` / `Post-process menu (· item)` / `New request card` (ids in the table),
+  swapped 25 Ghișeu rows (gh-02i/j/t/x/u/n), 6 FO Post-processes rows (02/02a/02b) + 4 cards + 4 „sau” dividers + 4 hand-built
+  „Schimbă”, F1c 4 rows (desktop + mobile) + 2 cards, FOD P1/P2 4 rows + 2 cards (copies built from library keys). Lessons:
+  - Measure the code first (tools/figma/act-row/measure-act-rows.mjs: row box, paddings, tag class, meta parts, pending, trigger,
+    open menu items + disabled + reason; per state and width) and generate the swap SPEC from it (build-spec.py) — the instances
+    carry code data, not whatever the old capture had (FO 02 still showed „15.09.2028”, FOD P2 an old 5-item menu).
+  - A code agent changed the locked notice + menu size mid-job: read `git status` / `git diff` too, not only `git log` — the change
+    was live in the working tree (and on the dev server) before its commit landed.
+  - Figma DELETES a connector when its endpoint node is removed → re-point connectors (anchor / instance + position) BEFORE
+    `old.remove()`. A failed use_figma call also rolls back any root shared-plugin-data store done in it.
+  - Instance children can't be moved (`x` / rotation = relative-transform overrides fail). Anything that must follow a resized
+    nested instance (a menu right-aligned to its pill) goes in an auto-layout wrapper in the MAIN: absolute „Menu layer” spanning
+    the row (STRETCH), primaryAxisAlign MAX (desktop) / MIN + padding (mobile); the menu inside it is a flow child — reparenting
+    keeps `layoutPositioning = ABSOLUTE`, reset it to AUTO. The open chevron = swap the button's `🔄 Trailing Icon: 16` (20/chevron-top
+    keeps the 16 slot size), not a rotation.
+  - Menu widths: the code hugs the longest item (max-content); Figma text runs a few px wider → item labels WIDTH_AND_HEIGHT and the
+    menu width = max(code width, measured need, 180). FILL + HEIGHT labels silently wrap („Suspendare / valabilitate”).
+  - Setting `textAutoResize` after `textTruncation` resets the truncation (main stayed DISABLED). Per instance when the title must
+    ellipsize: FILL → textTruncation ENDING → maxLines 1 → vertical HUG (mobile „Piața Mare” row grew 134 → 154 without it).
+  - Exposed nested instances: `isExposedInstance = true` only after the instance is inside the component (throws otherwise).
+  - `findOne(INSTANCE)` on a fresh library avatar returned the hidden Notification badge first → pick nested layers by name.
+  - `.menu-item-action` in GEAP comes from the older library copy (key 8eee001b…) that FOD doesn't have → reach the right variant
+    through the file's library contextual-menu (eca4c78b…) instance children. Local GEAP-only pieces (Message · subtle) need a copy.
+  - Row hover = #F1F1F1 = the pill's own fill → the pill disappears on row hover — in the CODE too (reported, Figma mirrors code).
+  - Coordination: another agent built its own „Intent card · new request (FO)” 11849:7127 for the Ghișeu board during this job →
+    two components for one pattern; Ghișeu left as is (coordinator: only act rows there), reported for a merge decision.
+  - No Agent tool in this session → ran figma-audit.js (+ act-row extras: visible line-start dots, image fills, non-auto-layout,
+    wrapped titles, menu effect) per page myself; left: meta gap 18 (Document · card pattern, declared).
+

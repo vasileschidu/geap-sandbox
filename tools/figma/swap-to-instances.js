@@ -22,6 +22,11 @@
 // „List Item” doc rows with a 24px „Image” lead → local „Document · rând” 11362:7113; place-cards.js for FO / Cabinet
 // doc cards → „Document · card” 11364:7441; imgicons.js for icon-sized IMAGE fills → library icons). Never keep a
 // captured <img> icon as an image fill.
+// Act rows + „Solicitare nouă” (2026-10-16, FO „Ce vrei să soliciți?” / Ghișeu „Ce se solicită?”, foActRowHtml): captured
+// „List Item” / „fo-intent-act” / „.role-switch-item” cards with an „Inițiază un postproces” pill → local „Act row” 11846:340996
+// (+ „Post-process menu” 11844:340693, „New request card” 11848:340913) via tools/figma/act-row/ (measure-act-rows.mjs →
+// build-spec.py → swap-act-rows.js; intent-surroundings.js for the card / „sau” divider / text styles; build-act-row-copy.js
+// rebuilds the family in FOD / EVO Cabinet from library keys). Never leave the captured 24px „Image” doc icon (PNG fill).
 // BO workplace registries (2026-10-15, `.e-permits-workplace`: toolbar search / Filtrare avansată / export / primary,
 // status tabs, sortable headers, status tags, „Editează” + ⋮, pager, rows-per-page, mobile avatar):
 // tools/figma/swap-workplace-registry.js (protos from the Classifiers board; export = local 20/export 10784:265036).
