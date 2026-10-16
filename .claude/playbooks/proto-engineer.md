@@ -937,3 +937,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   inside `--workplace-view-width`; (4) a registry without a checkbox column must unpin nth-child(2) (the base rule pins
   it at left 43) and phones keep one pinned column only (number 144 + actions 168 left 63px of 375). One-line
   headers set the floor: „Data expirării notei de plată” needs 212, so 10 columns can't fit 1184 — scroll stays.
+- 2026-10-16 · Act row locked note → full-width Mesaj · subtil warning (user, GEAP 11678:11710) + one post-process menu.
+  (1) The same renderer looked different on the FO and in the Ghișeu because the Inline-note geometry is scoped to
+  `[data-demo-flow="back-office"]` — the FO got the library's 16/24 message. Widen the scope with
+  `:is([data-demo-flow="back-office"], .<component>)` (same specificity) instead of a per-screen copy. (2) Full width in
+  the doc-card grid = `grid-column: 1 / -1` in an IMPLICIT row: the icon / action `1 / -1` end at the explicit rows,
+  so they stay centred on title + meta for free. The BO inline-note rule sets `margin: 0` at (0,4,0) later in the file
+  → the notice's own margin needed (0,5,0) (`.is-locked`). (3) „Menu bigger in the FO”: the Ghișeu caller passed
+  `menuClass: "e-permits-stack__menu"`, the FO didn't — an option that decides the look per caller is a fork; the
+  renderer now always adds it and the FO-only disabled rule (duplicate) went. (4) No FO state had a locked row → a
+  demo-only param (`?incurs=<act id>`, pp-02d) instead of seed data that Cabinet also reads. (5) Another agent had
+  uncommitted hunks in ghiseu.js / acte-permisive.js → staged HEAD + my asserted replacements as index blobs.

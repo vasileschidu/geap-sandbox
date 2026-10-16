@@ -17700,14 +17700,25 @@
    icon | title + tags / meta | action) — one renderer for FO #intent and the Ghișeu picker
    (foActRowHtml, 2026-10-15). The row itself is not a button: no pointer; the selected row (a
    post-process chosen at the desk) = the library card's brand ring. A locked row (post-process in
-   progress) shows the note under the meta. */
+   progress, 2026-10-16 user) shows the subtle warning notice (Mesaj · subtil, icon-time) across the
+   FULL card width (column 1 / -1, from the card padding to the card padding) in its own row under
+   icon + title + meta + action: 12 above it (row gap 4 + 8). The icon and the action stay centred on
+   title + meta (their `1 / -1` ends at the explicit rows; the notice sits in an implicit row). */
 .e-permits-fo-lib-item.e-permits-fo-intent-act {
   cursor: default;
 }
 
-.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
-  grid-column: 2;
+.e-permits-fo-lib-item.e-permits-fo-intent-act.is-locked > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+  grid-column: 1 / -1;
   grid-row: 3;
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* phones: title · meta · action (row 3, 12 above) · notice (row 4, 12 above) */
+@media (max-width: 720px) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act.is-locked > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+    grid-row: 4;
+  }
 }
 
 
@@ -17803,13 +17814,8 @@
   top: auto;
 }
 
-/* a post-process the act's status / term does not allow (Ghișeu): stays in place, greyed, focusable
-   — the tooltip says why; it keeps the hover band (hover rule) */
-.e-permits-fo-intent-menu__item[aria-disabled="true"],
-.e-permits-fo-intent-menu__item[aria-disabled="true"] .icon {
-  color: var(--color-text-disabled-default, #bfbfbf);
-  cursor: not-allowed;
-}
+/* the act row's menu is always also .e-permits-stack__menu (one size in FO, Ghișeu, Cabinet — item
+   size, disabled-with-reason items: see „back-office size of the post-process menu”) */
 
 /* ---- mobile (Figma 9290:42502) ---- */
 @media (max-width: 720px) {
@@ -17817,10 +17823,8 @@
     padding: 0 var(--spacing-16, 16px);
   }
 
-  /* phones: the document card puts the action under the text; a locked row's note comes first */
-  .e-permits-fo-intent-act.is-locked > .cab-doc__actions {
-    grid-row: 4;
-  }
+  /* phones: the document card puts the action under the text (row 3); a locked row's notice
+     follows in row 4 (see the act row block) */
 
   .e-permits-fo-intent-menu {
     left: 0;
@@ -21813,8 +21817,10 @@ button.e-permits-steps-strip__cell:focus-visible {
    radius 12, icon 20 top-aligned, 12px icon–text gap, text 14/20 regular in the default
    text colour (bold = medium) — in pages, drawers and modals alike (the modal's own
    paragraph size must not leak in). Colour comes only from the tone. The dismissible
-   page banner (.e-permits-ntpl-banner, Figma 8230:2388) is the one exception. */
-[data-demo-flow="back-office"] :is(.info-box.e-permits-info-note, .message.message--subtle:not(.e-permits-ntpl-banner)) {
+   page banner (.e-permits-ntpl-banner, Figma 8230:2388) is the one exception. The FO act row's locked
+   notice (.e-permits-fo-intent-act__pending, shared with the Ghișeu) takes the same geometry on the FO
+   page (2026-10-16) so both products draw one notice. */
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.e-permits-ntpl-banner)) {
   align-items: flex-start;
   animation: none;
   border-radius: var(--border-radius-12, 12px);
@@ -21825,7 +21831,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-[data-demo-flow="back-office"] :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.e-permits-ntpl-banner) .banner__icon) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.e-permits-ntpl-banner) .banner__icon) {
   align-items: center;
   display: inline-flex;
   flex: 0 0 20px;
@@ -21835,12 +21841,12 @@ button.e-permits-steps-strip__cell:focus-visible {
   width: 20px;
 }
 
-[data-demo-flow="back-office"] :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.e-permits-ntpl-banner) .banner__icon) .icon {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.e-permits-ntpl-banner) .banner__icon) .icon {
   height: 20px;
   width: 20px;
 }
 
-[data-demo-flow="back-office"] .message--subtle:not(.e-permits-ntpl-banner) .banner__content {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) .message--subtle:not(.e-permits-ntpl-banner) .banner__content {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -21849,7 +21855,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: 0;
 }
 
-[data-demo-flow="back-office"] :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.e-permits-ntpl-banner) .banner__text) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.e-permits-ntpl-banner) .banner__text) {
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-14, 14px);
@@ -21858,7 +21864,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   margin: 0;
 }
 
-[data-demo-flow="back-office"] :is(.e-permits-info-note, .message--subtle:not(.e-permits-ntpl-banner)) strong {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note, .message--subtle:not(.e-permits-ntpl-banner)) strong {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
@@ -22425,22 +22431,6 @@ body.is-ntpl-sheet-open {
 
 .e-permits-fo-pp-consent {
   align-items: flex-start;
-}
-
-.e-permits-fo-intent-act__pending {
-  align-items: flex-start;
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: var(--spacing-4, 4px) 0 0;
-}
-
-.e-permits-fo-intent-act__pending .icon {
-  color: var(--color-icon-warning-default, #dc6803);
-  flex: 0 0 16px;
-  margin-top: var(--spacing-2, 2px);
 }
 
 /* the applicant of a post-process is the act's holder — no identity switch */

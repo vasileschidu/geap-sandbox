@@ -271,7 +271,7 @@ but this doc previously described it wrongly, see the entry.
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680; the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
-| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker, one renderer) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision, `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” + `ul.e-permits-fo-intent-menu` [`.e-permits-stack__menu` in the BO]); states `is-locked` (+ `__pending`, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPFormRender.actRowHtml(act, opts)` / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x` | app |
+| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker, one renderer) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision, `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` — always the BO menu size, FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPFormRender.actRowHtml(act, opts)` / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -5565,8 +5565,22 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
   `.e-permits-fo-lib-item`: padding 12, radius 12, hover, blue document icon, title + Small status tag, 12px meta
   number · „valabil până la 15 septembrie 2028” · subdivision, pill menu). The FO lists only the allowed
   post-processes; „Solicitare nouă” = `intentNewHtml()` (arrow, goes on).
-- Locked act: `.e-permits-fo-intent-act.is-locked` + `.e-permits-fo-intent-act__pending`
-  (`icon-time`, „Post-proces în curs · GEAP-…”) and a disabled trigger.
+- Locked act (2026-10-16, user: „full width, in a nice container”): `.e-permits-fo-intent-act.is-locked`, the
+  trigger `disabled`, and `__pending` = the inline note **Mesaj · subtil warning**
+  (`div.message.message--subtle.banner--warning.e-permits-fo-intent-act__pending` > `.banner__icon` `icon-time`
+  + `.banner__content > p.banner__text` „**Reperfectare în curs** · dosar C-2026-004733. Un alt postproces se
+  inițiază după finalizarea acestuia.”) — options `pendingTitle` (bold) + `pendingText`. Geometry = the Inline
+  note (padding 12/16, radius 12, icon 20 in the tone colour, gap 12, text 14/20 default, bold 500), also on the
+  FO page (the inline-note rule is scoped to `:is([data-demo-flow="back-office"], .e-permits-fo-intent-act)`).
+  Placement: grid `1 / -1`, its own row under icon + title + meta + action — full card width (13 from the card's
+  outer edge = 1 border + 12 padding, both sides and the bottom), **12** above it (row gap 4 + margin 8); icon and
+  pill stay centred on title + meta. Phones (≤720): title · meta · pill (row 3) · notice (row 4, 12 above),
+  still full width. Demo: FO `pp-02d` (`?incurs=<act id>`), Ghișeu `gh-02t`.
+- The post-process menu (2026-10-16, user: „one menu”): the renderer always adds `.e-permits-stack__menu` →
+  padding 4, item gap 2, items 32 high, 14/20 medium, 16 icon, icon–label 8, padding 0 12 0 8, radius 6, width
+  = longest item (min 180), 6 under the trigger, right-aligned (left-aligned ≤720), dropdown-effect surface;
+  disabled-with-reason items greyed (`--color-text-disabled-default`, not-allowed). The FO-only 270-wide /
+  48-high / 16-24 size is gone.
 - No acts: `[data-fo-intent-empty]` holding the shared empty state (title = config `emptyText`, line „Un act apare aici după ce este emis…”, `page-text`)
   „Dumneavoastră nu aveți acte emise pentru serviciul dat.”
 

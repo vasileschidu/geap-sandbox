@@ -1110,6 +1110,8 @@
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']"); }),
+    /* a locked act row (post-process in progress): the full-width subtle warning notice under the row */
+    "pp-02d": { ...ppIntent(), params: { incurs: "act-izvoras" } },
     "pp-02c": ppIntent(async (h) => {
       await h.click("[data-fo-avatar-trigger]");
       await h.click("[data-fo-avatar-proxy-toggle]");

@@ -5089,7 +5089,9 @@
        (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” pill menu.
        act = { id, name, number, status, statusLabel, validUntil (dd.mm.yyyy | ISO | long), subdivision,
        meta (parts, replaces the default) }; opts = { menuId, actionLabel, items [{ id, label, icon,
-       disabled, reason }], pendingText (locked row), menuClass — the BO desk passes e-permits-stack__menu: the BO menu size }. Status tones = Cabinet (cabinet-evo.js STATUS_TAG), Small + subtle. */
+       disabled, reason }], pendingTitle + pendingText (locked row: the subtle warning notice, full card width under
+       the row — bold title „Reperfectare în curs” + the text), menuClass — extra classes }. ONE menu size everywhere (2026-10-16, user): the menu is always
+       .e-permits-stack__menu (32px items, 14/20, 16 icons, radius 6, hugs the longest item) — FO, Ghișeu, Cabinet. Status tones = Cabinet (cabinet-evo.js STATUS_TAG), Small + subtle. */
     const ACT_ROW_TONE = { valabil: "success", suspendat: "accent", expirat: "neutral", anulat: "danger", retras: "danger", respins: "danger" };
     function foActValidText(value) {
       if (!value) return "";
@@ -5097,11 +5099,11 @@
       const long = iso ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3])).toLocaleDateString("ro-RO", { day: "numeric", month: "long", year: "numeric" }) : foDocLongDate(value);
       return `valabil până la ${long}`;
     }
-    function foActRowHtml(act, { menuId = `fo-act-menu-${act.id}`, actionLabel = "Inițiază un postproces", items = [], pendingText = "", menuClass = "" } = {}) {
+    function foActRowHtml(act, { menuId = `fo-act-menu-${act.id}`, actionLabel = "Inițiază un postproces", items = [], pendingTitle = "", pendingText = "", menuClass = "" } = {}) {
       const esc = escapeFrontOfficeHtml;
       const tone = ACT_ROW_TONE[act.status] || "neutral";
       const meta = (act.meta || [act.number, foActValidText(act.validUntil), act.subdivision]).filter(Boolean);
-      const locked = Boolean(pendingText);
+      const locked = Boolean(pendingTitle || pendingText);
       return `
         <li class="e-permits-fo-lib-item e-permits-fo-intent-act${locked ? " is-locked" : ""}" data-fo-intent-act="${esc(act.id)}">
           <img class="e-permits-fo-lib-item__icon" src="assets/icons/document-generated.svg" width="24" height="24" alt="">
@@ -5111,14 +5113,14 @@
               <span class="status-tag status-tag--${tone} is-subtle status-tag--small e-permits-fo-doc-tag">${esc(act.statusLabel || act.status)}</span>
             </div>
             ${meta.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${meta.map((part) => `<span class="e-permits-fo-doc-meta__part">${esc(part)}</span>`).join("")}</span></div>` : ""}
-            ${locked ? `<p class="e-permits-fo-intent-act__pending"><svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg><span>${esc(pendingText)}</span></p>` : ""}
+            ${locked ? `<div class="message message--subtle banner--warning e-permits-fo-intent-act__pending"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time"></use></svg></span><div class="banner__content"><p class="banner__text">${pendingTitle ? `<strong>${esc(pendingTitle)}</strong> ` : ""}${esc(pendingText)}</p></div></div>` : ""}
           </div>
           <div class="cab-doc__actions e-permits-fo-intent-act__action">
             <button class="btn btn-neutral btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" data-fo-intent-trigger${locked ? " disabled" : ""}>
               <span>${esc(actionLabel)}</span>
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
-            <ul class="e-permits-fo-intent-menu${menuClass ? ` ${menuClass}` : ""}" id="${esc(menuId)}" role="menu" aria-label="Postprocese pentru ${esc(act.name)}" hidden>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu${menuClass && menuClass !== "e-permits-stack__menu" ? ` ${menuClass}` : ""}" id="${esc(menuId)}" role="menu" aria-label="Postprocese pentru ${esc(act.name)}" hidden>
               ${items.map((pp) => `
                 <li role="none">
                   <button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-fo-intent-postprocess="${esc(pp.id)}"${pp.disabled ? ` aria-disabled="true" data-tooltip-reason="${esc(pp.reason || "")}" aria-description="${esc(pp.reason || "")}"` : ""}>
@@ -5174,15 +5176,18 @@
         </section>`;
     }
 
+    /* demo: `?incurs=<act id>` shows that act locked by a reperfectare in progress (US-191 AC locked row) */
+    const intentDemoPendingAct = new URLSearchParams(window.location.search).get("incurs") || "";
     function intentActHtml(act, index) {
       const config = frontOfficeIntentConfig();
-      const pending = act.pending;
+      const pending = act.pending || (intentDemoPendingAct && act.id === intentDemoPendingAct ? { type: "reperfectare", dossier: "GEAP-2026-009-01142" } : null);
       const pendingLabel = pending ? (config?.postProcesses?.[pending.type]?.label || pending.type) : "";
       return foActRowHtml(act, {
         menuId: `fo-intent-menu-${index}`,
         actionLabel: config?.actionLabel || "Inițiază un postproces",
         items: act.postProcesses,
-        pendingText: pending ? `${pendingLabel} în curs · dosar ${pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` : ""
+        pendingTitle: pending ? `${pendingLabel} în curs` : "",
+        pendingText: pending ? `· dosar ${pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` : ""
       });
     }
 

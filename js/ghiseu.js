@@ -1221,8 +1221,9 @@
       validUntil: act.valabilPana, subdivision: act.subdiviziune,
       meta: act.kind === "decizie" ? [act.nr, `${act.decizie} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`, act.subdiviziune] : undefined
     }, {
-      menuId: `gh-act-menu-${act.id}`, items, menuClass: "e-permits-stack__menu",
-      pendingText: act.pending ? `${act.pending.type} în curs · dosar ${act.pending.dossier}. Un alt postproces se inițiază după finalizarea acestuia.` : ""
+      menuId: `gh-act-menu-${act.id}`, items,
+      pendingTitle: act.pending ? `${act.pending.type} în curs` : "",
+      pendingText: act.pending ? `· dosar ${act.pending.dossier}. Un alt postproces se inițiază după finalizarea acestuia.` : ""
     }) || "";
   }
   /* the request window's first screen (US-233 AC-24…32, user 2026-10-15) = the FO „Ce vrei să soliciți?”
