@@ -65,3 +65,5 @@ capture / board build and as a periodic sweep of all four files).
   (`ui-qa-code` / `ui-qa-figma`).
 - Shared Figma tools: `tools/figma/capture-to-figma.mjs` (prototype state/element → Figma),
   `tools/figma/swap-to-instances.js` (raw capture → library instances).
+
+**Figma starting points (2026-10-16):** boards = one Section per column, plus a „Start here” section (contents with links, block counts, PO questions). Every Figma change also updates that board's „Start here” and the file-level index / cover. Not done until both are current.

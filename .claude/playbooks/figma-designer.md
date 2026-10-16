@@ -1309,3 +1309,8 @@ fill only real columns, keep containers whole-pixel so fills don't split into fr
 component variant → reset the icon overrides (the variant colours it); outside (avatar glyphs, standalone ⓘ, status
 icons) → bind the fill to the colour the CODE renders there (measure the svg's computed colour). The old audit only
 compared icons with a sibling label, so label-less icons slipped through — run `icon-colour-vs-code` before reporting.
+
+### HARD RULE (user, 2026-10-16): keep the starting points current
+Every Figma change ends by updating the starting points: (1) the board's own „Start here” / contents section (lists and
+links every column section, block counts, PO questions) and (2) the file-level index / cover / site map (entry + link
+for every page / board touched). One SECTION per column on boards. Not done until both are updated.
