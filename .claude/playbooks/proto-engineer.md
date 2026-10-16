@@ -967,3 +967,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   phones only because it HIDES „Schimbă” there; the desk brings „Schimbă” back, so its grid must stack
   (`.e-permits-gh .e-permits-fo-form__roles-grid` 1 column ≤720). When reusing an FO block, re-check the FO's phone
   assumptions for every piece you un-hide.
+- 2026-10-16 · Act row hover ate the „Inițiază un postproces” pill (row hover = tertiary #F1F1F1 = the pill's fill). Fix =
+  the project's grey-on-grey rule (`.cab-doc__actions > .btn-neutral`, stack „Detalii” on its band): on
+  `.e-permits-fo-intent-act:is(:hover, .is-selected)` the pill is white until `:enabled:hover` / `:enabled:active` /
+  `[aria-expanded="true"]`; open = pressed `secondary-active` + ring (before, open kept #F1F1F1 → only the ring showed on
+  a hovered row). Write the exclusions as `:not(:enabled:hover)` — `:not(:hover)` would let a DISABLED pill on a hovered
+  locked row fall back to grey and vanish. Whenever a card gets a hover fill, grep its inner `btn-neutral`s for the same
+  fill. hover-audit can't see this (it hovers the pill, not the row) → probe: mouse on the row at x+40, read the pill's
+  computed background, crop the row (scratch rowhover.mjs). „Solicitare nouă” = one button, nothing inside to lift.

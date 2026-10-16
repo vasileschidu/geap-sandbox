@@ -17745,8 +17745,24 @@
   border-color: var(--color-background-base-secondary-active, #d9d9d9);
 }
 
+/* open = pressed (secondary-active) + the focus ring, also on a hovered row */
 .btn.e-permits-fo-intent-act__trigger[aria-expanded="true"] {
+  background: var(--color-background-base-secondary-active, #d9d9d9);
+  border-color: var(--color-background-base-secondary-active, #d9d9d9);
   box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--blue-sky-500, #3379db);
+}
+
+/* a grey pill on the grey row (hover = tertiary, selected = secondary) would not read as a button →
+   white until it is hovered / pressed / open itself (= .cab-doc__actions > .btn-neutral, the stack
+   „Detalii” on its band); a disabled pill (locked row) stays white too */
+.e-permits-fo-lib-item.e-permits-fo-intent-act:is(:hover, .is-selected) .btn.e-permits-fo-intent-act__trigger:not([aria-expanded="true"]):not(:enabled:hover):not(:enabled:active) {
+  background: var(--color-background-base-default, #fff);
+  border-color: var(--color-background-base-default, #fff);
+}
+
+.btn.e-permits-fo-intent-act__trigger:active:not(:disabled) {
+  background: var(--color-background-base-secondary-active, #d9d9d9);
+  border-color: var(--color-background-base-secondary-active, #d9d9d9);
 }
 
 .e-permits-fo-intent-act__trigger .icon {
