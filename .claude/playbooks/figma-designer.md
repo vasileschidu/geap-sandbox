@@ -63,6 +63,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | button-filled-circular | `8382:91415` | footer Large (Anulează Neutral, Salvează Primary, destructive confirm Destructive) |
 | switch | `2009:19057` | inside `svc/switch-label` `9563:18803` (Label `Label#9563:0`, `Supporting Text#9563:1`, `Show supporting text#9563:2`) |
 | info note | `9624:13362` | `svc/info-note`, text `Text#9624:0` |
+| Message · subtle (local set) | `9845:17951` | every in-page notice (renderNotice): Tone Success `9845:17935` / Info `:17939` / Warning `:17943` / Error `:17947`; `Text#9845:5`; 12/16, r12, 20 icon, 14/20; bold lead = range style Desktop/Body/Small 500 (057521fd…); no × |
 | tab-item-s | (instances in drawers) | `⌨️ Label#382:21`, `🎚️ Type` Selected/Unselected |
 | selection-menu | main of `10571:216146` | open dropdown list; items `.menu-item-selection` `9625:34931` (`Option Label#400:63`) |
 | Modal „Tip=Selecție” | `10704:158854` | close pinned right |
@@ -1355,3 +1356,25 @@ for every page / board touched). One SECTION per column on boards. Not done unti
   - Toasts on the board were raw captured frames (green fill, default dark icon) → library `toast` Text-only, tone from the
     captured fill. The section snapshot lived on the removed section's plugin data — store snapshots on figma.root or in the
     repo, never on a node a later step deletes.
+
+- 2026-10-16 · Compact „Modificări nepublicate” notice (code 8dff3f94; the 16/24 dismissible banner 8230:2388 is gone). Notification
+  templates page 9628:8241: 14 library info-box (Warning, Close) instances → `Message · subtle` Tone=Warning (9845:17943) on
+  02–02d, 03–03c, 04, 04a, 05–05b; Services 442:17492: 10f5 + 10h5 swapped, 8 stale captured banners removed (10e, 10f, 10f1–f4,
+  10f6, 10g — the code shows no notice in svc-09e/f/f1–f4/f6/g: nothing pending); Classifiers 8309:67735: 3 raw captured
+  „Ciornă nepublicată” frames (03g, 05, 05c) → the same instance. RSSP notices on Services 01l/01p were already instances (HUG).
+  - Recipe for a notice with a bold lead: `createInstance()` of the variant, insert at the old index, FILL × HUG, set `Text#9845:5`,
+    then `setRangeTextStyleIdAsync(0, lead, <Desktop/Body/Small 500 key 057521fd…>)` — the lead keeps a text style (the Ghișeu
+    notices used setRangeFontName → textStyleId "" on both segments). Never touch the icon: it takes the variant colour.
+  - Before swapping a banner in every block, check the CODE per demo state (measure.mjs `.message.message--subtle` at 1920):
+    stale captures carried a banner in 8 states where the code shows none. A whole-column replace would have kept the drift.
+  - The code can show the wrong copy: svc-09h5 (new template) renders „Modificări nepublicate … versiunea — …” because the wizard
+    sets `version: "—"` (js/e-permits-shell.js:12005, truthy) → Figma keeps the intended „Șablonul nu a fost publicat încă.” and
+    the bug goes to proto-engineer.
+  - Editing a note text can wrap it (+20 px) → re-check the column gaps (NT 02 → 02a dropped to 220) and restack.
+  - The file index (Start here 10164:1759) had pre-rename page names and a stale count (NT 17 vs 18 blocks) — update the cards
+    of every page you touch (count blocks + Status values on the page, keep the range hyperlink when replacing text).
+  - swap-to-instances.js now maps captured `message` (banner__icon + banner__content) → Message · subtle (tone by icon, lead → Small
+    500) and lists leftover raw notices as unmapped.
+  - No Agent tool in this session → figma-audit.js (14 NT notices + parent stacks: 0 findings on the notices; pre-existing: Preview
+    frame r28, mixed-font template body, section-header-over-card gap 0) + an instance check on all 19 (main, FILL × HUG, 44 high,
+    whole px, icon = variant default, lead styled, no ×, 24 to the next section).

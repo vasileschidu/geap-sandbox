@@ -41,7 +41,9 @@ const C = {
   textCirc: await g("5919:31320"),      // button-text-circular (text buttons: Elimină, Adaugă condiție)
   circ: await g("8382:91415"),          // button-filled-circular (drawer/modal footer Large)
   sw: await g("2009:19057"),            // switch (inner of svc/switch-label)
+  msg: await g("9845:17951"),           // Message · subtle (Tone Success/Info/Warning/Error; Text#9845:5) — every in-page notice
 };
+const SMALL_500 = await figma.importStyleByKeyAsync("057521fde838188af42abf69eb3789f676421047"); // Desktop/Body/Small 500 (bold lead)
 const P = {
   edit: await g("10317:33373"),         // „Editează” Neutral Small with pen
   menu: await g("10317:33419"),         // ⋮ Strict Icon-only Small (also × after icon swap)
@@ -110,6 +112,21 @@ for (const rid of ROOTS) {
     if (name === "Container" && f.children?.length === 2 && f.children[0].name === "Icon" && f.fills?.length && txt.length > 20) {
       const i = P.infoNote.createInstance(); i.setProperties({ "Text#9624:0": txt }); i.name = "info-note"; place(f, i, true); done.push("info-note"); continue;
     }
+    // in-page notice (renderNotice: `.message.message--subtle` = „message” > banner__icon + banner__content [+ banner__close])
+    // → Message · subtle, tone from the captured icon, bold lead (<strong>, captured as Onest Medium) → Body/Small 500.
+    // FILL × HUG, icon colour from the variant (never override). The library notice has no × (code has none since 2026-10-16).
+    if (name === "message" && f.children?.some((c) => c.name === "banner__icon") && f.children?.some((c) => c.name === "banner__content")) {
+      const ic = (f.findOne((x) => x.type === "INSTANCE" && /^\d+\//.test(x.name)) || {}).name || "";
+      const tone = /warning/.test(ic) ? "Warning" : /error|danger/.test(ic) ? "Error" : /check|success/.test(ic) ? "Success" : "Info";
+      const tn = f.children.find((c) => c.name === "banner__content").findOne((x) => x.type === "TEXT");
+      const body = tn ? tn.characters : txt;
+      const lead = tn ? tn.getStyledTextSegments(["fontName"]).find((s) => s.start === 0 && /Medium|Semi|Bold/.test(s.fontName.style)) : null;
+      const i = V(C.msg, { "Tone": tone }).createInstance();
+      i.setProperties({ "Text#9845:5": body }); i.name = "notice · " + body.slice(0, 30); place(f, i, true);
+      try { i.layoutSizingVertical = "HUG"; } catch (e) {}
+      if (lead) { const t = i.children.find((c) => c.type === "TEXT"); await t.setRangeTextStyleIdAsync(0, lead.end, SMALL_500.id); }
+      done.push("notice"); continue;
+    }
     // selects (40px, chevron) — named by accessible name or plain "Button" with an Icon
     if ((/^Button - (Tipul regulii|Câmp din cerere|Operator)/.test(name) || (name === "Button" && f.findOne((x) => x.name === "Icon"))) && h === 40 && !/^(Anulează|Salvează|Adaugă|Închide)/.test(txt)) {
       const placeholder = /^(Câmp din cerere|Operator|Tipul regulii|Alege)/.test(txt);
@@ -151,7 +168,7 @@ for (const rid of ROOTS) {
   for (const i of fields) await absorbField(i);
   // code tokens: the capture brings the system mono font → the design system's JetBrains Mono
   for (const t of root.findAll((x) => x.type === "TEXT")) { const segs = t.getStyledTextSegments(["fontName"]); if (segs.some((s) => /Mono|Menlo|Consolas/.test(s.fontName.family) && s.fontName.family !== "JetBrains Mono")) { t.fontName = { family: "JetBrains Mono", style: "Regular" }; done.push("mono"); } }
-  const left = root.findAll((n) => n.type === "FRAME" && /^(Button\b|Button - |Text Input)/.test(n.name)).map((n) => `${n.name.slice(0, 40)} (${n.id})`);
+  const left = root.findAll((n) => n.type === "FRAME" && (/^(Button\b|Button - |Text Input)/.test(n.name) || (n.name === "message" && n.findOne((x) => x.name === "banner__icon")))).map((n) => `${n.name.slice(0, 40)} (${n.id})`);
   const counts = {}; done.forEach((d) => { counts[d] = (counts[d] || 0) + 1; });
   report[rid] = { counts, unmapped: left.slice(0, 20) };
 }
