@@ -27,7 +27,9 @@ no remove). The main session fixes what you report.
    script as the `code` of `mcp__figma-a__use_figma` (skillNames `resource:figma-use`). It returns
    counts per rule + findings with node ids: `raw-control`, `unbound-colour`, `no-text-style`,
    `font-not-onest`, `spacing-off-scale`, `radius-off-scale`, `not-auto-layout`,
-   `clipped-content`, `sibling-overlap`, `icon-colour-override`.
+   `clipped-content`, `sibling-overlap`, `icon-colour-override`, `dropdown-effect` (menu-like surface without the
+   „dropdown-effect” style, clip, radius token, or with a border stroke — major for local frames / components, minor for
+   „library main” instances).
    For large blocks run it per screen / overlay to stay under the 20 KB result limit.
 2. Judge each finding — captured layout wrappers (`Container`, `:margin`) are fine when they
    carry auto-layout; a raw frame that IS a control (button, input, select, checkbox, tag, close

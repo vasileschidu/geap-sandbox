@@ -20,12 +20,21 @@
 //                       (13 / 9 / 1) — fix with tools/figma/border-padding.js
 //  spacing-unbound      (2026-10-15, minor) padding / gap on the token scale but not bound to spacings/* — fix with
 //                       tools/figma/bind-spacing-tokens.js
+//  dropdown-effect      (2026-10-16) a menu-like surface (menu / dropdown / popover / listbox / picker / selection- or
+//                       contextual-menu: white, shadowed or absolute, ≤ 1100 wide) without the „dropdown-effect” effect style,
+//                       without clip content, with an unbound radius or with a border stroke (the effect's 1 px ring is
+//                       the border). Library instances whose main lacks it are reported as „(library main)” — minor.
+//                       Fix with tools/figma/dropdown-effect/dropdown-effect.js
 const ROOTS = ["PUT:NODE-IDS-HERE"];
 const SPACING = [0, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120, 160, 200, 240]; // 1 removed 2026-10-15: 1 px padding = border artifact
 const TOKENS = [2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 120]; // Foundations › 3. Sizes spacings/*
 const RADIUS = [0, 2, 4, 6, 8, 12, 16, 20, 24, 32, 999, 9999];
 const onScale = (v, s) => s.some((x) => Math.abs(v - x) < 0.6);
 const CONTROL = /^(Button\b|Button - |Text Input|Input\b|Select\b|Checkbox|Tag$|Chip\b|Tab$|Badge\b)/;
+const MENU_RX = /(\bmenu\b|dropdown|drop-down|popover|listbox|list ?box|\boptions\b|select list|combobox|picker|flyout|suggestions?\b|autocomplete|contextual-menu|selection-menu)/i;
+const MENU_EXCL = /(menu[ -]?item|\bitems?\b|· action|button|btn|trigger|anchor|show menu|\bicon|chevron|caret|label|wrap\b|wrapper|\btabs?\b|sidebar|navigation|\bnav\b|header|\boption\b|· (profile|role|more)( \/|$)|kbd|badge|separator|divider|title|tooltip|toast|modal|drawer|scrim|overlay|backdrop|\bscreen|\bblock\b|\bnote\b|stage|flow|connector|arrow|marker|search|input|cell|container|collapsed|expanded)/i;
+const styleNames = {};
+const effectStyleName = async (id) => { if (!id || typeof id !== "string") return ""; if (!(id in styleNames)) { const st = await figma.getStyleByIdAsync(id); styleNames[id] = st ? st.name : ""; } return styleNames[id]; };
 const findings = [];
 const counts = {};
 const add = (rule, n, detail) => { counts[rule] = (counts[rule] || 0) + 1; if (findings.length < 60) findings.push({ rule, id: n.id, name: n.name.slice(0, 50), detail }); };
@@ -73,6 +82,22 @@ for (const rid of ROOTS) {
     if (!inInst && "fills" in n && n.type !== "INSTANCE" && n.type !== "SECTION") {
       if (!paintBound(n, "fills")) add("unbound-colour", n, "fill");
       if ("strokes" in n && n.strokes.length && !paintBound(n, "strokes")) add("unbound-colour", n, "stroke");
+    }
+    if ((n.type === "FRAME" || n.type === "COMPONENT" || n.type === "INSTANCE") && MENU_RX.test(n.name) && !MENU_EXCL.test(n.name.replace(MENU_RX, "")) &&
+        n.width <= 1100 && n.width >= 80 && n.height <= 1200 && "children" in n && n.children.some((k) => k.visible !== false)) {
+      const white = Array.isArray(n.fills) && n.fills.some((p) => p.visible !== false && p.type === "SOLID" && p.color.r > 0.96 && p.color.g > 0.96 && p.color.b > 0.96);
+      const shadowed = !!n.effectStyleId || n.effects.some((e) => e.visible !== false);
+      if ((n.type === "INSTANCE" && shadowed) || (n.type !== "INSTANCE" && white && (shadowed || n.layoutPositioning === "ABSOLUTE" || n.type === "COMPONENT"))) {
+        const miss = [];
+        if ((await effectStyleName(n.effectStyleId)) !== "dropdown-effect") miss.push(n.effectStyleId ? `effect „${await effectStyleName(n.effectStyleId)}”` : n.effects.length ? "raw effects" : "no effect");
+        if (!n.clipsContent) miss.push("clip off");
+        if (!(n.boundVariables && n.boundVariables.topLeftRadius)) miss.push(`radius ${typeof n.cornerRadius === "number" ? n.cornerRadius : "mixed"} unbound`);
+        if (Array.isArray(n.strokes) && n.strokes.some((p) => p.visible !== false)) miss.push("border stroke");
+        if (miss.length) {
+          let lib = false; if (n.type === "INSTANCE") { const m = await n.getMainComponentAsync(); lib = !!(m && m.remote && (await effectStyleName(m.effectStyleId)) !== "dropdown-effect"); }
+          add("dropdown-effect", n, miss.join(", ") + (lib ? " (library main — report, don't detach)" : ""));
+        }
+      }
     }
     if (n.type === "TEXT" && !inInst) {
       if (!n.textStyleId && !(n.boundVariables && n.boundVariables.fontSize)) add("no-text-style", n, `"${n.characters.slice(0, 30)}"`);

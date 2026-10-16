@@ -1,0 +1,33 @@
+{
+  "_": "Compact pre-change snapshot of the 2026-10-16 dropdown-effect pass. Row = [node id, old effectStyleId key prefix ('' = raw effects), effects count, clipsContent, cornerRadius, radius bound, visible strokes]. Full rows (effects + strokes JSON) live in each page's shared plugin data geapqa / dropfx-20261016; dropdown-effect.js mode \"revert\" restores them. Style key prefixes: 2fb2f9a8 = Foundations Drop Shadow/300, 1d4dc2d7 = Foundations (lk-e9e8) Drop Shadow/300 copy, 0f8db7d3 = Foundations Drop Shadow/400.",
+  "aHgwVwiNCOSOqbMhMjjUOj": {
+    "10566:10080 Local components": [["11535:6128","2fb2f9a8",3,true,16,true,0]],
+    "42:1430 Incidents": [["244:16112","1d4dc2d7",3,true,16,true,0],["244:15994","1d4dc2d7",3,true,16,true,0],["244:20070","1d4dc2d7",3,true,16,true,0],["245:23548","1d4dc2d7",3,false,16,true,0],["275:17870","1d4dc2d7",3,true,16,true,0],["275:17844","1d4dc2d7",3,true,16,true,0]],
+    "8440:119159 FO -> Post-processes": [["10272:7991","0f8db7d3",3,false,16,true,0]],
+    "9643:5280 BO -> Advanced filtering": [["9646:3680","1d4dc2d7",3,true,16,true,0],["9646:5100","1d4dc2d7",3,true,16,true,0]],
+    "9696:526 BO -> Dossiers": [["9716:6208","",3,true,12,true,0],["9716:7367","",3,true,12,true,0],["9716:8560","",3,true,12,true,0],["9716:9731","",3,true,12,true,0],["9716:10889","",3,true,12,true,0],["9717:8075","",3,true,12,true,0],["9717:9245","",3,true,12,true,0],["9717:10402","",3,true,12,true,0],["9717:11559","",3,true,12,true,0],["9717:12727","",3,true,12,true,0],["9717:13895","",3,true,12,true,0],["9717:15044","",3,true,12,true,0]],
+    "9618:13362 BO -> Tariffs": [["10397:10986","0f8db7d3",3,true,12,true,0]],
+    "442:17492 BO -> Services": [["10030:2516","1d4dc2d7",3,true,16,true,0],["10744:184579","1d4dc2d7",3,true,16,true,0]],
+    "3164:28119 FOD Pattern -> Address": [["2623:45331","1d4dc2d7",3,true,16,true,0],["2623:45122","1d4dc2d7",3,true,16,true,0],["2623:45209","1d4dc2d7",3,true,16,true,0],["3621:64987","1d4dc2d7",3,true,16,true,0],["3739:25639","1d4dc2d7",3,true,16,true,0],["11274:9648","1d4dc2d7",3,true,16,true,0],["11571:11552","1d4dc2d7",3,true,16,true,0],["11274:9904","1d4dc2d7",3,true,16,true,0],["11571:11978","1d4dc2d7",3,true,16,true,0],["11275:10174","1d4dc2d7",3,true,16,true,0],["11275:10483","1d4dc2d7",3,true,16,true,0]],
+    "2389:45909 FO -> Full Flows - 09": [["2566:23856","1d4dc2d7",3,true,16,true,1],["10841:33948","1d4dc2d7",3,true,16,true,1],["2566:24421","1d4dc2d7",3,true,16,true,1],["10841:34965","1d4dc2d7",3,true,16,true,1]],
+    "2206:22475 FOD Pattern -> Requestor": [["11350:129212","",3,true,16,true,0]],
+    "6774:7367 BO -> User Management": [["6829:35014","1d4dc2d7",3,true,16,true,1],["6829:35229","1d4dc2d7",3,true,16,true,1],["7037:83666","1d4dc2d7",3,true,16,true,1],["7037:84194","1d4dc2d7",3,true,16,true,1]]
+  },
+  "SqMGpRKEppJLcvn7HMzOPR": {
+    "6245:43756 Monitoring · Sessions": [["10386:5821","",3,true,16,true,0],["10428:9178","",3,true,16,true,0],["10430:12920","",3,true,16,true,0]],
+    "10151:2 Review": [["10170:1994","",3,true,16,true,0]],
+    "10480:302 Audit & Reports": [["10563:63747","",3,true,16,true,0]],
+    "10242:107 Configuration · Clients": [["10447:25041","",3,true,16,true,0]],
+    "10480:304 Configuration · Providers": [["10563:63707","",3,true,16,true,0]],
+    "10343:41640 Administration": [["10346:834","",3,true,16,true,0]],
+    "10392:2 Archive": [["10036:21223","1d4dc2d7",3,true,16,true,0]],
+    "581:37261 Drafts": [["4288:22741","1d4dc2d7",3,true,16,true,1]]
+  },
+  "pvDAJPXKyUuJgz3P921Ye8": {
+    "530:4069 Apostile": [["573:6771","1d4dc2d7",3,true,16,true,0],["603:17803","1d4dc2d7",3,true,16,true,0],["573:6813","1d4dc2d7",3,true,16,true,0]],
+    "265:14041 Requestor": [["756:24308","",3,true,16,true,0],["839:10597","2fb2f9a8",3,true,16,true,0]]
+  },
+  "iitScYOwMYjDayuyrm3750": {
+    "10:19047 My requests": [["1014:6580","2fb2f9a8",3,true,16,true,0]]
+  }
+}
