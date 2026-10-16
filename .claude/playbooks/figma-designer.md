@@ -1182,3 +1182,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 Every capture leaves image-fill icons. A capture is NOT done until the icon swap has run: document icons → the published
 „document-icon” set (System Generated e0b9de2b… / User Uploaded b467bfaa…), every other icon → the library icon instance
 (icon-map, as in the eKYC „0 raw captured icons” job). Final QA must report image-fill icons = 0 on every touched block.
+
+### HARD RULE (user, 2026-10-16): whole pixels only
+No fractional sizes or positions (e.g. 74.4 px) on frames / instances / text. Auto-layout: hug labels and buttons,
+fill only real columns, keep containers whole-pixel so fills don't split into fractions. figma-audit flags fractions.
