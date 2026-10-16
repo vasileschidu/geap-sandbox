@@ -77,6 +77,9 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Modal (local) | `10136:657` | Tip=Confirmare (Titlu, Mesaj, 2 btns) · Tip=Conținut (Titlu, Subtitlu, `Conținut` INSTANCE_SWAP) |
 | EVO Cabinet local components | frame `11100:288632` on FO Full Flows 09 | `Cabinet / Antet` 11100:289066 · `Cabinet / Antet mobil` 11153:262259 · `Cabinet / Dosar card` 11100:289564 (+ mobil 11155:50155, static 11152:303548) · `Cabinet / Serviciu card` 11105:290265 · `Cabinet / Marcaj` 11100:289209 · `Cabinet / Meniu acțiuni` 11118:297930 · `Cabinet / Meniu · Sortează` 11118:293504 · `Modal conținut / Filtre solicitări · …` 11152:303710 / 304028 |
 | Instance switcher (local, 2026-10-15) | GEAP set `11536:8013`, menu `11535:6128` | header trigger FO/BO × Desktop/Mobile × Default/Hover/Open; menu = native SLOT „Content”; items profile `11532:7890` / role `11532:8016` / more `11532:8125`; FOD set 839:11429, Cabinet 1014:7391; builders tools/figma/instance-switcher/ |
+| Effect style „dropdown-effect” (2026-10-16) | GEAP local `S:fc1dad56be71b69894b7f3586befb682c9a2f5fc,` | every menu / dropdown / popover surface; NOT published → FOD + EVO Cabinet use it by id `S:fc1dad56…,5088:9` (getStyleByIdAsync; importStyleByKeyAsync fails); eKYC has a local copy `S:2c6b167d…,` (same effects). Radius tokens: radius-12 1f226805…, radius-16 5e0761c5… |
+| Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
+| Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | Icons (Foundations keys) | — | 20/download e6dd0e97… · 20/arrow-left f9c5634d… · 20/external-link 8df5d4b1… · 20/edit bef76865… · 20/credit-card aca711a4… · EVO 20/refresh caca3c5f… · central sets: trash b5e9b87b…, file-text 032cdf84…, user-circle 7f8dfe57… |
 
 ## Rules (from the user — never break)
@@ -95,6 +98,9 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - Documents = one pattern: BO `Document · row` (was „Document · rând”) 11362:7113, FO / Cabinet `Document · card` 11364:7441,
   modal content `Modal content / Document · details` 11366:6892 (GEAP local); lone view action = „👁 Detalii”, Configurează =
   settings icon, Editează = pen.
+- Dropdown surfaces (user, 2026-10-16): every menu / ⋮ menu / dropdown / popover / listbox / picker / switcher menu = effect
+  style „dropdown-effect” + clip content ON + radius bound to its token (12 BO stack menus, 16 FO intent / profile menus — as
+  the code) + NO border stroke (the effect's 1 px ring is the border). Tool: tools/figma/dropdown-effect/; audit rule `dropdown-effect`.
 - All Figma NAMES are English (user, 2026-10-15): components, sets, variant properties / values, component properties,
   sections, frames, layers, pages. Visible text stays Romanian. Glossary: tools/figma/naming-glossary.json. Names quoted in
   this playbook before 2026-10-15 are the old Romanian ones — look them up in tools/figma/naming-map.json.
@@ -1079,3 +1085,66 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - No Agent tool again → figma-audit.js on the lane myself: 0 overlaps (lane + page), 40 screens keep clip + radius +
     4 px border, 0 unstyled header texts; leftovers pre-existing (Mobile · G8 Body cut by the 812 viewport, 4 non-Onest).
 
+- 2026-10-16 · Dropdown-effect audit, 4 files (user: „all dropdown menus: dropdown-effect + clip content, as in 9632:3226”). Tool
+  tools/figma/dropdown-effect/dropdown-effect.js (dry → apply → revert; snapshot in page shared plugin data geapqa/dropfx-20261016 +
+  snapshot-20261016.json); figma-audit.js got the `dropdown-effect` rule. Result: GEAP 52 fixed (+3 instances via the switcher
+  main, 45 nested FO Full Flows menus via their Address-page source frames), eKYC 10, FOD 5, Cabinet 1 (+3 via main); skipped 1
+  (Incidents contextual-menu 245:20652 holds an open date-picker hanging outside → clip would cut it); library mains lacking
+  it reported only (contextual-menu, selection-menu, date-picker, eKYC role-switch: all Foundations Drop Shadow/300).
+  - Read the reference's style first: „dropdown-effect” = 0 0 0 1 @8 % ring + 0 4 6 −2 @5 % + 0 10 15 −3 @10 % — exactly the code's
+    menu box-shadow. The ring is the border → remove 1 px border strokes on menus (9 had one = double border).
+  - The style is LOCAL and unpublished in GEAP: importStyleByKeyAsync fails in other files, search_design_system finds nothing. But
+    files that received copied GEAP nodes already hold it as a remote style: find the id from a consumer node
+    (`S:<key>,<nodeId>`), then `getStyleByIdAsync(id)` resolves even in a file with no consumer yet (FOD). Prefer that over
+    making local copies; eKYC already had its own local copy (kept, same effects).
+  - Radius „as the reference” ≠ force 12: the code uses 12 (BO stack menus) and 16 (FO intent / profile menus). Bind the menu's own
+    on-scale value to its token. All 70 targets were already token-bound.
+  - Heuristics that held: name regex (menu / dropdown / popover / listbox / options / picker / selection- / contextual-menu) minus an
+    exclusion list (items, buttons, triggers, wraps, headers, blocks, screens, search, container, „· action”, „· profile|role|more”
+    item names — anchored to „( /|$)” because variant names come as „Set / Prop=…”, and „· role-switch” IS a menu), + white fill,
+    + (effects or ABSOLUTE or COMPONENT), ≤ 1100 wide. Instances need a menu-named main or effects („Menu Container” was a title).
+    Dry-run each exclusion against a name census (distinct names × type × white × fx) — the first pass lost the reference itself
+    („Field picker” hit `field`) and every „⋮ row” menu (`row`).
+  - `dropdown-effect` was also applied to non-menus (MSupport avatars, chat bubbles) — a style-based finder would „fix” those;
+    detect by name + structure, never by style alone.
+  - Frames nested in instances (`I…;2623:45122`): fix the SOURCE node (last id segment) — 45 instances on FO Full Flows followed
+    their Address-page frames; only then override what still differs. Fix order: local components page → source pages → the rest.
+  - Clip safety: check every visible descendant's absoluteBoundingBox against the surface before turning clip on; a child outside
+    (open submenu / date-picker) = skip + report.
+  - No Agent tool in this session → ran figma-audit.js on a sample myself: 0 dropdown-effect findings on fixed nodes; the 3 left
+    are the skipped overflow case and library mains (expected).
+
+
+- 2026-10-16 · Section header with an action + tab strip hugs (code a89b5c0b; GEAP + eKYC). Tools: tools/figma/section-heading-action.js
+  (dry / apply / revert, per page), tools/figma/tab-strip-hug.js (JOBS per container). 101 header rows normalised (GEAP NT 13,
+  Services 59, Users 8, Classifiers 4; eKYC 17), svc/section-heading main 9521:7915 fixed (437 instances), new local set
+  „svc/section-heading + action” 11745:301869 (Desktop / Mobile), Profile / Tabs (39 instances), sheet header 10008:1624 (10),
+  17 ntpl tab strips, passport Main Navigation line (167). Lessons:
+  - The „wrapper” the coordinator called a component was a FRAME cloned into every block, and the same pattern existed in
+    5 different captured shapes (svc wrapper, `dosar-profil__section-heading` 48 / 50 high, `Container` + `Heading 2`, NT
+    „Heading” with a bare TEXT title). Census first by geometry (title text 18/20 ≥ 500 → nearest HORIZONTAL ancestor 36–64
+    high with a button / link / segmented instance), group by shape, then one normaliser for all shapes. Replacing them
+    with instances would have moved the buttons into instance sublayers → connectors can't attach; normalise in place
+    and ship a documented component for new work.
+  - Code first, then decide scope: „Ultimele modificări” puts a link straight into the heading (flush right in code too) and
+    `.e-permits-pay__toolbar` is the list toolbar — both excluded; old loose frames outside `Block · …` skipped.
+  - Title height without off-scale padding: title frame padding 0 / 12, minHeight 48 bound to spacings/48, counter CENTER
+    → text at y 11 = the code's 11px padding, no `11` in the file. A 52 segmented control in a 48 row: row FIXED 48,
+    clip off, the control overflows ±2 exactly like the code.
+  - **A frame's stroke paints ABOVE its children** (tested with a scratch frame): a bottom stroke on a tab container cuts
+    1px off the active tab's 2px underline. Full-width track line = an absolute „Track line” child at index 0 (under the
+    tabs), constraints STRETCH / MAX, 1px top stroke bound to border/base/default. Then zero ancestor bottom strokes that
+    coincide with it (the header components carried one → a second, full-width line in the 24-inset sheet).
+  - `getInstancesAsync` + child lookups on nested instances return only part of the set unless
+    `figma.skipInvisibleInstanceChildren = false` (4 of 39 Profile / Tabs instances the first time).
+  - swapComponent from button-text-rectangular to button-filled-rectangular kept the text button's icon fill → dark plus on a
+    Secondary button even though its bound variable matched a fresh instance's. The screenshot is the test: fresh
+    `createInstance()` + label, re-point connectors (1 here), remove the old one.
+  - Capturing the code at 375 found a doc / code drift (mobile button → content 24, doc 12): Figma follows the doc, the
+    drift goes to the report — measure the rendered mobile before drawing the Mobile variant.
+  - Found while comparing: 14 Users screens had Body HUG without minHeight (sidebar stopped at 602 of 1024) → Body
+    minHeight = screen − header (992). Run the „Body shorter than screen” check on any page you touch.
+  - Agent tool not available again → figma-audit.js on all changed roots (one multi-page call: wrap the audit body in
+    `audit(ROOTS)` and loop pages with roots found by snapshot keys); only finding = 31 unstyled captured meta texts →
+    Desktop/Caption/Medium. Instances inherit shared plugin data, so a key on a main matches its 167 instance copies in
+    a page-wide findAll — filter by `!id.includes(";")` before reverting.
