@@ -644,7 +644,7 @@
     elements.profileView.hidden = false;
     document.body.classList.add("rap-page--profile");
     document.title = `${record.permit.name} · EVO`;
-    closeFilterPanel({ immediate: true, restoreFocus: false });
+    facetFilter?.close(false);
     hideTooltip();
     if (updateHistory) {
       updateProfileUrl(record.id);
