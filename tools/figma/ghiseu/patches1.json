@@ -1,0 +1,8 @@
+[
+ ["c.b > 0.9 && c.r > 0.85 && c.r < 0.95;", "c.b > 0.9 && c.r > 0.85 && c.r < 0.95 && c.b - c.r > 0.03;"],
+ ["if (b.findOne((x) => /^Button - Caută /.test(x.name))) return \"lookup\";", "if (b.findOne((x) => /^Button - Caută /.test(x.name))) return \"lookup\";\n  const greenCheck = b.findOne((x) => x.type === \"VECTOR\" && (() => { const c = fillC(x) || strokeC(x); return c && c.g > 0.45 && c.r < 0.3 && c.b < 0.5; })()); if (isGrey(fillC(b)) && greenCheck) return \"readonly\";"],
+ ["/Vezi|Previzual|Detalii despre/.test(a) ? \"eye\"", "/Detalii despre/.test(a) ? \"info\" : /Vezi|Previzual/.test(a) ? \"eye\""],
+ ["check: \"ebea9f11db46308470d328092590727874dbec88\" };", "check: \"ebea9f11db46308470d328092590727874dbec88\", info: \"d896f991e4a2c724279ad692e990e1b74de0ebeb\", ext: \"8df5d4b1610d9e9457096f9f2f5bc2ec864c5275\" };"],
+ ["[/^Copiază/, \"copy\"]];", "[/^Copiază/, \"copy\"], [/^Modifică datele/, \"ext\"], [/^Mergi la /, \"right\"]];"],
+ ["if (isRed(fc)) { set = round ? C.circ : C.rect; style = \"Destructive\"; }", "if (/^Schimbă$|^Modifică datele|^Mergi la /.test(label)) { set = C.textRect; style = \"Primary\"; }\n  else if (isRed(fc)) { set = round ? C.circ : C.rect; style = \"Destructive\"; }"]
+]

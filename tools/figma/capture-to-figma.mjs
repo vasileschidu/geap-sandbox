@@ -6,6 +6,7 @@
 //      --state svc-02h --capture <id> [--selector "[data-rt-drawer] .e-permits-tariff__panel"] [--full] [--height 1024] [--width 1440] [--page cabinet-evo/index.html]
 //    --hide "<css>"  elements to hide (default ".e-permits-fo-testcfg,.msup-bubble"; pass ".msup-bubble" to keep the config panel)
 //    --css "<css>"   extra CSS injected before the capture (unclip scrolling panels)
+//    --eval "<js>" page script run after the state (e.g. scroll the table, reopen a row menu)
 //    --settle <ms>   wait after the demo state is ready (default 900; 2000 for states that open a modal)
 //    --keep-focus    do not blur the focused element (open lists / focus rings, e.g. adr-02a)
 //    --full     lets drawers grow to their content (no inner scroll → nothing clipped in Figma)
@@ -28,7 +29,8 @@ const SEL = arg("selector", "body");
 const FULL = Boolean(arg("full", false));
 const HIDE = arg("hide", ".e-permits-fo-testcfg,.msup-bubble");   // --hide ".msup-bubble" keeps the „Configurare flux” panel (adr-11)
 const KEEP_FOCUS = Boolean(arg("keep-focus", false));                 // keep the focused field (open lists, focus rings: adr-02a…)
-const CSS = arg("css", "");                                           // extra CSS, e.g. unclip a scrolling panel
+const CSS = arg("css", "");
+const EVAL = arg("eval", "");                                         // --eval "<js>" runs after the demo state (scroll a table, reopen a menu) — Ghișeu row menus 2026-10-16                                           // extra CSS, e.g. unclip a scrolling panel
 let H = Number(arg("height", 1024));
 const FIT = Boolean(arg("fit", false));
 const FIT_SEL = arg("fit-sel", ".e-permits-shell__canvas-surface,.e-permits-workplace__table-wrap,.modal-content,.e-permits-user-create__body,.e-permits-shell__nav");
@@ -58,6 +60,7 @@ for (let i = 0; i < 100; i++) { await sleep(150); if (await evaluate("document.d
 const st = await evaluate("document.documentElement.dataset.demoState");
 if (String(st).endsWith(":error")) console.error(`demo state ${STATE} stopped with an error — check js/demo-states.js`);
 await sleep(Number(arg("settle", 900)));   // --settle <ms>: wait longer for demo runs that open a modal / menu (dos-04h)
+if (EVAL) { await evaluate(EVAL); await sleep(500); }
 await evaluate(`(() => { const s = document.head.appendChild(document.createElement("style")); s.textContent = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important} ${HIDE}{display:none!important} ${CSS.replace(/"/g, '\\"')}${FULL ? " .e-permits-user-create__drawer{height:auto!important;max-height:none!important} .e-permits-user-create__body{overflow:visible!important;flex:none!important;max-height:none!important}" : ""}"; ${KEEP_FOCUS ? "" : "document.activeElement?.blur?.();"} })()`);
 await sleep(300);
 if (FIT) for (let k = 0; k < 4; k++) {

@@ -123,6 +123,9 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - `setSharedPluginData`, not `setPluginData`.
 
 ## Board layout rules (all boards — derived 2026-10-16 from Requestor auth lane, US-54, FOD guest lane)
+- DEFAULT for GEAP boards = VERTICAL COLUMN BOARD (user 2026-10-16: „till now arrangement was vertical”): one column
+  per stage with a „Stage NN” bar on top, flow left → right across columns, variants / errors stacked top → bottom in
+  the column (default → filled → errors). Row lanes are ONLY for lanes that already are rows (FOD Requestor lanes).
 - Section padding 80; title at (80, 80); first row / first block at y 440; sections 80 apart, left edges aligned
   with the page's column grid (Requestor: x 18394 = „How to read” / 01 Entry).
 - Grid: columns = block width + 240 gap (1440 desktop-only, 1895 desktop+mobile, 1942 US-54 mobiles); every item of a
@@ -1148,3 +1151,29 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     `audit(ROOTS)` and loop pages with roots found by snapshot keys); only finding = 31 unstyled captured meta texts →
     Desktop/Caption/Medium. Instances inherit shared plugin data, so a key on a main matches its 167 instance copies in
     a page-wide findAll — filter by `!id.includes(";")` before reverting.
+
+- 2026-10-16 · Ghișeu (BO desk filing, page ↳ BO -> Ghișeu · Desk filing 11589:327039, section 11818:21092): 85 gh-* states,
+  desktop only (user: no mobile for desk filing), 11 stage columns, 56 arrows. Tools: tools/figma/ghiseu/ (cap.sh, compose.js,
+  swap-ghiseu.js, blocks.config.js, build-blocks.js, column-layout.js) + board-layout/ghiseu-board.config.js (row variant, superseded).
+  - **GEAP boards are COLUMN boards** (user correction): one column per stage with a column-wide `Stage NN` bar, flow left → right,
+    variants stacked top → bottom (default → filled → errors), 240 apart. The row-lane layout + row-lane-layout.js is only for the
+    FOD lanes. Ask / check the neighbouring boards of the SAME file before choosing a layout.
+  - Desk filing = desktop only → block = label → desktop → note (note FILL = 1440), column 1440 + 240.
+  - Captures: `cap.sh` prints „timeout (submitted?)” for every job, yet every capture lands — always poll; a capture can still be
+    „processing” when the compose runner already sees its root, check the composed screenshot.
+  - Compose runner (ALL) with MAX 3 dropped the MCP transport twice („response lost”) → MAX 2, check page state after a drop
+    (the work had partly happened).
+  - Table row menus off-screen at 1440 (the actions column is not sticky): capture with `ROW=<rowid>` (scroll the table wrap right,
+    reopen the row menu via --eval). The registry swap set EVERY ⋮ to State=Focus → reset to Default except the open row's.
+  - Arrow endpoints: never take the first text / instance match — sheets keep the registry behind them (clipped at x > 1440), so
+    „Continuă” / „More actions” matched the background rows. Filter candidates to the screen's visible bounds.
+  - Connector labels need the label font loaded first (`c.text.fontName`) — setting `c.text.characters` silently failed in a
+    try/catch and every arrow kept the template's „Dosar nou”.
+  - Arrow routing that never crosses blocks on a column board: next column → control RIGHT → target (0, 120); same column adjacent
+    → BOTTOM/TOP; same column further → control LEFT → target LEFT (0, 200 + 32k). A BOTTOM→TOP arrow into a block that is HIGHER
+    in another column routes under the source and crosses its neighbours — use RIGHT → (0,120) instead. Bbox overlap checks give
+    false positives for L-shaped connectors; screenshot the connector node to see the real route.
+  - Big stored builders: put the code once in `figma.root` shared plugin data with String.raw (no backticks / `${` in the source),
+    then call it per slice — saved ~40 KB of repeated pastes (binder run in 4 slices of the section's children).
+  - Audit (figma-audit.js on the section): stepper links „Button - Deschide pasul N” (211) and `fontName` mixed = known false
+    positives / library gap (no FO vertical stepper component); remaining real minors listed in the report.

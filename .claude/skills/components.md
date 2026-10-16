@@ -2994,6 +2994,11 @@ rol, act permisiv. Do not build another hero; render through the helpers in
 (`.e-permits-page-header__tabs`, a 1px `--color-border-base-default` content-box background, so a
 wrapper with inline padding — the template sheet, 24 — keeps the line inset). Measured: Șabloane de
 notificare strip 1184 → 358 (4 tabs), Utilizatori 1184 → 681, passport unchanged (it overflows).
+Figma (2026-10-16): the strip frame is HUG with no stroke; the container draws the line as a „Track
+line” child (absolute, index 0 under the tabs, STRETCH, 1px top stroke border/base/default) — never a
+frame stroke, which Figma paints above the children (it cut the active underline). `Profile / Tabs`
+10132:2285, `Notification template / Header` 10008:1624 (inset 24), ntpl „Service Tabs”; tool
+`tools/figma/tab-strip-hug.js`.
 
 Measured against Figma: 16px inset, top row 60, meta row 68, tabs 48 with no
 inter-tab gap, 14/20 regular (active 500 brand + 2px). Actions are library `.btn`
@@ -3762,9 +3767,12 @@ segmented control, meta + button) is the same markup:
   Previzualizare, Utilizatori › Combinații de roluri) use the same wrapper.
 - Not this pattern: `.e-permits-pay__toolbar` (title + search + filters + add + ⋮ — the list
   toolbar) and drawer sections (`.e-permits-user-create__section`).
-- Figma: `svc/section-heading + action` wrappers (e.g. 9629:2853 › 10003:77164) still draw the
-  action flush right (x 886 + 138 = 1024) and the old 2 / 14 offset — follow-up: right padding 12,
-  action centred.
+- Figma (aligned 2026-10-16): local set `svc/section-heading + action` 11745:301869 (Breakpoint
+  Desktop / Mobile) documents the pattern; `svc/section-heading` 9521:7915 = H5 18/26, min height
+  48, title → tag 16, meta 12/16. The 101 existing header rows (GEAP 84, eKYC 17) were normalised in
+  place by `tools/figma/section-heading-action.js` (right padding 12, action centred 8 / 8, meta →
+  action 12, 0 gap below). Known code drift: at ≤760 the heading's base `padding-bottom: 12` stacks
+  on the tools' 12 → 24 between the button and the content (doc: 12); Figma Mobile follows the doc.
 - **Tipuri solicitări:** „Adaugă tip solicitare” is a stack-menu button
   (`data-stack-menu-trigger`, menu `#passport-add-rt-menu`) listing the eligible
   post-processes (`RT_POST_PROCESS_TYPES`) the service does not have yet, matched by

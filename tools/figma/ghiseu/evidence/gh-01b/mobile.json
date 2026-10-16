@@ -1,0 +1,49 @@
+{
+ "state": "gh-01b",
+ "viewport": 375,
+ "ready": true,
+ "demoState": "gh-01b",
+ "demoError": false,
+ "consoleErrors": [],
+ "screenshot": "tools/figma/ghiseu/evidence/gh-01b/mobile.png",
+ "url": "http://localhost:8935/e-permits-acte-permisive.html?flow=back-office&gol=1#dosare-noi",
+ "title": "09 · Autorizația sanitară pentru funcționare",
+ "lang": "ro",
+ "headings": [
+  "H1 Dosare noi"
+ ],
+ "messages": [
+  "Nu sunt schițe înregistrate. Cererile începute la ghișeu apar aici până la confirmarea depunerii. Dosar nou"
+ ],
+ "dialogs": [],
+ "unnamedControls": [],
+ "tabOrder": [
+  "a: Guvernul Republicii Moldova",
+  "a: Ro",
+  "a: Ru",
+  "a: En",
+  "button: Actualizează",
+  "button: Meniu utilizator",
+  "input: Caută după numărul cererii, solicitant sau companie",
+  "button: Filtrare avansată",
+  "button: Exportă",
+  "button: Dosar nou",
+  "button: Schițe 0",
+  "button: Dosare nedistribuite 0",
+  "button: Sortează după Număr cerere",
+  "button: Sortează după Denumirea serviciului",
+  "button: Sortează după Nume solicitant",
+  "button: Sortează după Compania",
+  "button: Sortează după Substatut",
+  "button: Sortează după Data creării",
+  "button: Sortează după Data ultimei modificări",
+  "button: Sortează după Data expirării notei de plată",
+  "button: Sortează după Data eliminării automate",
+  "button: Dosar nou",
+  "select: Rows per page",
+  "button: 1"
+ ],
+ "horizontalOverflow": [],
+ "pageWidth": 375,
+ "text": "Ro\nRu\nEn\nDosare noi\nActualizează\nFiltrare avansată\nDosar nou\nSchițe\n0\nDosare nedistribuite\n0\nNumăr cerere\nDenumirea serviciului\nNume solicitant\nCompania\nSubstatut\nData creării\nData ultimei modificări\nData expirării notei de plată\nData eliminării automate\nNu sunt schițe înregistrate.\nCererile începute la ghișeu apar aici până la confirmarea depunerii.\nDosar nou\nShowing 0 to 0 of 0 results\nRows per page:\nPrevious\n1\nNext"
+}
