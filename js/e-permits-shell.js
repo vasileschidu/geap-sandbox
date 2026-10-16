@@ -6804,7 +6804,7 @@ document.addEventListener("DOMContentLoaded", () => {
       sursaExterna: { label: "Statut în registru", width: 220, sortable: true },
       versiune: { label: "Versiune", width: 100, sortable: true },
       actualizat: { label: "Modificat în GEAP", width: 184, sortable: true },
-      actiuni: { label: "", width: 104 }
+      actiuni: { label: "", width: 104, pin: "end" }
     },
     views: {
       services: {
@@ -6883,7 +6883,7 @@ document.addEventListener("DOMContentLoaded", () => {
       versiune: { label: "Nr. versiune", width: 112, sortable: true },
       valabil: { label: "Valabil de la/până la", width: 196, sortable: true },
       actualizat: { label: "Modificat", width: 180, sortable: true },
-      actiuni: { label: "", width: 168 }
+      actiuni: { label: "", width: 168, pin: "end" }
     },
     views: {
       tariffs: {
