@@ -6012,6 +6012,14 @@ added for modules (all generic, reuse them for the next BO module):
   `primaryAction`, `searchPlaceholder`), `renderCell`, `searchText`, `sortValue`, `filterToken`,
   `openRow`, `emptyHtml`, `exportRows`, **`facets`** (new: Filtrare avansată for a module registry);
   a menu item with `shellView: "<kind>-registry"` shows it (no shell edit per module).
+  Column config: `{ label, width, sortable, fill, pin }` — add the kind to the config-width list in
+  `getNaturalColumnWidth` so `width` is exact; **`pin: "end"`** (2026-10-16) puts the shared sticky
+  `.e-permits-workplace__actions-cell` on that column's th / td (pinned right, left divider, its own
+  config width — the fixed 55 applies only to cells without `data-column`, i.e. the classifier grid ⋮).
+  A registry without a checkbox column also unpins `nth-child(2)` (flows / ghiseu pattern) and, at
+  ≤760, keeps only the actions pinned. Widths = the one-line header (label + sort icon + 24) or the
+  longest date; names ellipsize with the cell tooltip. An open row menu lifts its actions cell
+  (`:has([data-stack-menu]:not([hidden]))` → z 8) so the rows below don't paint over it.
 - `window.GEAPShellRoutes = [(hash) => boolean]` — `routeFromHash` asks them first (`#ghiseu/…`).
 - `window.GEAPShellApi` — the object products get in `init(api)` (page header, stacked list, row
   actions, confirms, toasts, `hideShellPages`, `setActiveNav`, `currentAssignment`) + `getServiceByCode`,
@@ -6651,6 +6659,9 @@ an open button (keeps its pressed fill), a drawer scrim, disabled items.
   name column → `syncPinnedScrollPadding()` (shell) sets `scroll-padding-left/right/top` on
   `.e-permits-workplace__table-wrap` from the sticky cells; the pinned header cell is z-index 9 (td
   and th were both 7, so rows painted over it on vertical scroll).
+- Registry row actions off-screen (Ghișeu „Dosare noi”, 2026-10-16): the table is wider than its view at
+  1440, so „Continuă” / ⋮ need `pin: "end"` (above). An empty state in such a table is sticky inside
+  the visible width (`--workplace-view-width`, set on the table wrap by a ResizeObserver in the shell).
 - Page-header tab strip: `scroll-padding-inline: 48px` keeps a focused tab out from under the ‹ ›
   arrows and the fade.
 

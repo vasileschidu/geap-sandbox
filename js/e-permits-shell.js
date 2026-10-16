@@ -2113,7 +2113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getNaturalColumnWidth = (key, rows) => {
-    if (["users", "services", "authorities", "tariffs", "ntpl", "flows"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
+    if (["users", "services", "authorities", "tariffs", "ntpl", "flows", "ghiseu"].includes(workplaceDb?.kind) && workplaceDb.columns[key]?.width) {
       return workplaceDb.columns[key].width;
     }
 
@@ -2219,9 +2219,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const sortDirection = isSorted ? workplaceState.sortDirection : null;
         const ariaSort = isSorted ? (sortDirection === "asc" ? "ascending" : "descending") : "none";
         const label = escapeHtml(column.label);
+        /* `pin: "end"` = the row actions stay visible at the right edge (shared sticky actions cell) */
+        const thClass = [sortable ? `is-sortable${isSorted ? " is-sorted" : ""}` : "", column?.pin === "end" ? "e-permits-workplace__actions-cell" : ""].filter(Boolean).join(" ");
 
         return `
-          <th scope="col" style="${setColumnWidth(column, columnWidths[key])}" data-column="${escapeHtml(key)}"${sortable ? ` aria-sort="${ariaSort}"` : ""} class="${sortable ? `is-sortable${isSorted ? " is-sorted" : ""}` : ""}">
+          <th scope="col" style="${setColumnWidth(column, columnWidths[key])}" data-column="${escapeHtml(key)}"${sortable ? ` aria-sort="${ariaSort}"` : ""} class="${thClass}">
             ${sortable ? `
               <button class="e-permits-workplace__th-content" type="button" data-workplace-sort="${escapeHtml(key)}" aria-label="Sortează după ${label}">
                 <span>${label}</span>${renderSortIcon(column, sortDirection)}
@@ -5654,6 +5656,11 @@ document.addEventListener("DOMContentLoaded", () => {
   document.fonts?.ready?.then(() => fitTagRows());
   /* a table drawn while its panel was hidden (width 0) fits once it gets a size */
   if (workplaceTable && "ResizeObserver" in window) new ResizeObserver(() => fitTagRows(workplaceTable)).observe(workplaceTable);
+  /* the visible width of the table scroller (geometry, like the column widths): an empty state in a
+     table wider than its view stays centred in what the user sees */
+  if (workplaceTable?.parentElement && "ResizeObserver" in window) {
+    new ResizeObserver(([entry]) => entry.target.style.setProperty("--workplace-view-width", `${Math.round(entry.target.clientWidth)}px`)).observe(workplaceTable.parentElement);
+  }
 
   const renderUserCell = (row, key) => {
     switch (key) {
@@ -5854,7 +5861,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </td>`}
       ${columns.map((key) => {
         const column = workplaceDb.columns[key];
-        return `<td style="${setColumnWidth(column, columnWidths[key])}" data-column="${escapeHtml(key)}">${renderCell(row, key)}</td>`;
+        return `<td style="${setColumnWidth(column, columnWidths[key])}" data-column="${escapeHtml(key)}"${column?.pin === "end" ? ' class="e-permits-workplace__actions-cell"' : ""}>${renderCell(row, key)}</td>`;
       }).join("")}
     </tr>
   `;

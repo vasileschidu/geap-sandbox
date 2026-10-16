@@ -2966,10 +2966,15 @@ body {
   z-index: 8 !important;
 }
 
-.e-permits-workplace__actions-cell {
+/* the pinned row-actions column. The icon-only ⋮ cell (classifier grid) is 55 wide; a registry
+   column with `pin: "end"` (data-column) keeps the width from its registry config */
+.e-permits-workplace__actions-cell:not([data-column]) {
   width: 55px !important;
   min-width: 55px !important;
   max-width: 55px !important;
+}
+
+.e-permits-workplace__actions-cell {
   position: sticky;
   right: 0;
   z-index: 6;
@@ -2983,6 +2988,19 @@ body {
 .e-permits-workplace__table th.e-permits-workplace__actions-cell {
   background: var(--color-background-base-secondary, #f5f5f5);
   z-index: 9;
+}
+
+/* an open row menu paints over the pinned actions cells of the rows below it */
+.e-permits-workplace__table td.e-permits-workplace__actions-cell:has([data-stack-menu]:not([hidden])) {
+  z-index: 8;
+}
+
+/* an empty table wider than its view: the empty state stays in the visible part
+   (--workplace-view-width = the scroller's width, set by the shell) */
+.e-permits-workplace__table .e-permits-empty-cell > .e-permits-empty {
+  left: var(--spacing-16, 16px);
+  max-width: calc(var(--workplace-view-width, 100%) - 2 * var(--spacing-16, 16px));
+  position: sticky;
 }
 
 .e-permits-workplace__th-content {

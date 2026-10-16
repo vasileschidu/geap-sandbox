@@ -39,6 +39,15 @@
   z-index: 9;
 }
 
+/* …and the second column is not pinned (the shell rule is built for checkbox + name) */
+.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(2),
+.e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table td:nth-child(2) {
+  border-right: 0;
+  left: auto;
+  position: static;
+  z-index: auto;
+}
+
 /* a date that is close (payment due, automatic removal) */
 .e-permits-workplace__date-meta.e-permits-gh__meta--warning {
   color: var(--color-text-warning-default, #b54708);
@@ -174,6 +183,15 @@
   .e-permits-workplace[data-registry-kind="ghiseu"] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  /* one pinned column only: the row actions stay at the right edge, the number scrolls with the row */
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table th:nth-child(1),
+  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__table td:nth-child(1) {
+    border-right: 0;
+    left: auto;
+    position: static;
+    z-index: auto;
   }
 
   .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__footer {

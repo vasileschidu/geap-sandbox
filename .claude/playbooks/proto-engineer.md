@@ -924,3 +924,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   tooltip (`clipped-text-no-tooltip` skips text in table cells on pages that load table-cells.js, and
   `[data-cell-tooltip]`) and nav labels (tight-gap FP). A CDP checker without a global timeout hung 11 min on one
   state — every scratch runner gets `setTimeout(exit)` + per-call `Promise.race` timeouts.
+- 2026-10-16 · Ghișeu „Dosare noi” actions off-screen at 1440: the brief said Servicii / Fluxuri / Utilizatori pin
+  their actions via a shared sticky rule — MEASURED, none did (srv-01 table 1344 in a 1184 view, trf-01 1376, actions
+  hidden there too; flows only „works” because it fits). The shared sticky class existed only for the classifier grid
+  (`.e-permits-workplace__actions-cell`, fixed 55 !important). Fix = a generic column flag `pin: "end"` (shell adds the
+  class to th/td) + the 55 width limited to `:not([data-column])`; reported Servicii / Tarife as one-flag follow-ups.
+  Measure the „reference” registries before copying them (probe: table vs wrap width, buttons' rects vs wrap +
+  elementFromPoint). Traps found by looking at the shots: (1) a ⋮ menu opened inside a sticky td is painted over by
+  the NEXT row's sticky td (same z-index, later in DOM) → lift the cell while its menu is open (`:has(menu:not([hidden]))`);
+  (2) the action cell's content (144) wider than the config width − padding pushed ⋮ past the edge — width =
+  content + 24; (3) a colspan empty state in a scrolled table centres in the TABLE width (off-screen at 375) → sticky
+  inside `--workplace-view-width`; (4) a registry without a checkbox column must unpin nth-child(2) (the base rule pins
+  it at left 43) and phones keep one pinned column only (number 144 + actions 168 left 63px of 375). One-line
+  headers set the floor: „Data expirării notei de plată” needs 212, so 10 columns can't fit 1184 — scroll stays.

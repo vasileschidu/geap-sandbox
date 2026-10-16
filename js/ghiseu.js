@@ -462,16 +462,18 @@
       fieldCount: 9,
       defaultSort: "modificat",
       columns: {
-        nr: { label: "Număr cerere", width: 168, sortable: true },
-        serviciu: { label: "Denumirea serviciului", width: 240, fill: true, sortable: true },
-        solicitant: { label: "Nume solicitant", width: 180, sortable: true },
-        companie: { label: "Compania", width: 168, sortable: true },
-        substatut: { label: "Substatut", width: 136, sortable: true },
-        creat: { label: "Data creării", width: 168, sortable: true },
-        modificat: { label: "Data ultimei modificări", width: 184, sortable: true },
-        expirareNota: { label: "Data expirării notei de plată", width: 196, sortable: true },
-        eliminare: { label: "Data eliminării automate", width: 184, sortable: true },
-        actiuni: { label: "", width: 152 }
+        /* widths = the one-line header (label + sort icon) or the longest date; names ellipsize with a
+           tooltip; the actions („Continuă” + ⋮) stay pinned right while the dates scroll */
+        nr: { label: "Număr cerere", width: 144, sortable: true },
+        serviciu: { label: "Denumirea serviciului", width: 184, fill: true, sortable: true },
+        solicitant: { label: "Nume solicitant", width: 152, sortable: true },
+        companie: { label: "Compania", width: 144, sortable: true },
+        substatut: { label: "Substatut", width: 120, sortable: true },
+        creat: { label: "Data creării", width: 152, sortable: true },
+        modificat: { label: "Data ultimei modificări", width: 180, sortable: true },
+        expirareNota: { label: "Data expirării notei de plată", width: 212, sortable: true },
+        eliminare: { label: "Data eliminării automate", width: 192, sortable: true },
+        actiuni: { label: "", width: 168, pin: "end" }
       },
       views: {
         ghiseu: {
