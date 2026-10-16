@@ -3530,10 +3530,13 @@
       `;
     }
 
+    /* the representation basis card of „Date solicitant” (MPower). Shared with the Ghișeu
+       (GEAPFormRender.authorizationCardHtml, 2026-10-16): `details` [{ label, value, copy }] replaces the
+       MPower meta and `icon` the identity icon — the RSUD administrator card uses both. */
     function authorizationCardHtml(subject) {
       const auth = subject?.authorization;
       if (!auth) return "";
-      const detailItems = [
+      const detailItems = Array.isArray(auth.details) ? auth.details.filter((item) => item && item.value) : [
         auth.grantedBy ? { label: "Acordată de", value: auth.grantedBy } : null,
         auth.validUntil ? { label: "Valabilă până la", value: auth.validUntil } : null,
         auth.code ? { label: "Cod", value: auth.code, copy: true } : null,
@@ -3542,7 +3545,7 @@
         <div class="e-permits-fo-authorization-card">
           <span class="e-permits-fo-authorization-card__icon" aria-hidden="true">
             <svg class="icon" width="20" height="20">
-              <use href="assets/icons/sprite.svg#icon-identity"></use>
+              <use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(auth.icon || "icon-identity")}"></use>
             </svg>
           </span>
           <span class="e-permits-fo-authorization-card__copy">
@@ -8759,6 +8762,9 @@
       /* the FO identity card of „Date solicitant” (fo-01/02) and its group title — shared with Ghișeu */
       roleCardHtml: (subject, opts = {}) => `<div class="e-permits-fo-selected-role${opts.changeable ? " e-permits-fo-selected-role--changeable" : ""}">${selectedRoleHtml(subject, opts)}</div>`,
       roleGroupTitleHtml,
+      /* the representation basis card (MPower / RSUD) of „Date solicitant”: auth = { title, status, grantedBy,
+         validUntil, code } or { title, status, icon, details } */
+      authorizationCardHtml: (auth) => authorizationCardHtml({ authorization: auth }),
       /* Verificare summary row and the delivery option card (Ghișeu reuses them as-is) */
       summaryRowHtml: summaryRow,
       /* „Date de contact” pieces of fo-01: the verified phone / value (read-only + check) and the MNotify notice */

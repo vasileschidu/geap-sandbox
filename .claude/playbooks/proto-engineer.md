@@ -948,3 +948,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   renderer now always adds it and the FO-only disabled rule (duplicate) went. (4) No FO state had a locked row → a
   demo-only param (`?incurs=<act id>`, pp-02d) instead of seed data that Cabinet also reads. (5) Another agent had
   uncommitted hunks in ghiseu.js / acte-permisive.js → staged HEAD + my asserted replacements as index blobs.
+- 2026-10-16 · Ghișeu „Temeiul reprezentării” → FO full-flow layouts (user: „for MPower we use a specific type of layout”):
+  success / info notices replaced by the FO renderers themselves — MPower = `authorizationCardHtml` exported as
+  `GEAPFormRender.authorizationCardHtml(auth)` (optional `details` / `icon` with the old output as default, so fo-02 /
+  cat-04 are untouched), RSUD = the same card with RSUD details (FO has no RSUD card — say so, don't invent one),
+  Procură = the guest boxed upload wired like the Verificare olograf box (MutationObserver on the files box →
+  `d.docs.procura`, the same key Documente însoțitoare reads, so the doc shows there already attached). Check the AC
+  wording before moving an upload: US-233 says the copy is REQUIRED at Documente — attaching earlier is fine as long
+  as that step keeps the check. Traps: (1) a card under a section header had 0 gap — the header → alert rule lists
+  alert classes only; add the new block to the generic rule, not a per-screen margin; (2) the demo prefill skipped
+  ALL documents once `d.docs` had any key (procura attached at step 1) — make „already filled” checks per document;
+  (3) a phone demo that clicks the hidden stepper (`h.find` waits for visible) → dispatch `.click()` on the element.
+- 2026-10-16 · „Too much space around the checkbox” (Figma 11685:12997, 64.5 frame around a bare 20 instance): measured
+  the code first — the FO check option is 32 (6 / 8 own padding), 24 under the header (FO section-body top padding),
+  24 to the next field group (FO grid row gap). Code was right; the Figma capture lost the option's padding and kept
+  a tall wrapper. Report numbers, don't shave FO rhythm to match a capture.
+- 2026-10-16 · Side find: Ghișeu role cards at 375 squeezed the company name to nothing — the FO keeps 2 columns on
+  phones only because it HIDES „Schimbă” there; the desk brings „Schimbă” back, so its grid must stack
+  (`.e-permits-gh .e-permits-fo-form__roles-grid` 1 column ≤720). When reusing an FO block, re-check the FO's phone
+  assumptions for every piece you un-hide.

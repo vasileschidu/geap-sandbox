@@ -2397,6 +2397,11 @@
       "gh-03g": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, async (h) => { await h.click("#gh-request-modal [data-gh-save]"); await h.wait(300); }, async (h) => { await h.click("#gh-request-modal .e-permits-gh-sheet__actions [data-stack-menu-trigger]"); await h.click("[data-gh-history]"); })),
       "gh-03h": gh("#ghiseu/nou", start(pjAdmin, "003000118", chooseAct("act-izvoras", "Prelungire"))),
       "gh-03i": gh("#ghiseu/nou", start(pjAdmin, "003000519")),
+      /* „Prin procură” ticked: the FO boxed procură upload (empty · attached here · then Documente însoțitoare
+         shows it already attached, without the „atașați copia” notice) — 2026-10-16 */
+      "gh-03j": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); await h.scroll("[data-gh-procura-doc]"); })),
+      "gh-03k": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, ghUpload("[data-gh-procura-doc]", "procura-scan.pdf", 640000), async (h) => { await h.scroll("[data-gh-procura-doc]"); })),
+      "gh-03l": gh("#ghiseu/nou", seq(start(pjNoLink), async (h) => { await h.click("[data-gh-procura]"); }, ghUpload("[data-gh-procura-doc]", "procura-scan.pdf", 640000), async (h) => { /* the stepper is hidden on phones: dispatch the row's click directly */ document.querySelector('#gh-request-modal [data-gh-step="4"] [data-gh-goto]').click(); await h.wait(400); await h.find('[data-gh-doc="procura"] [data-fo-doc]'); })),
       /* US-234 „Date de contact” on the same step: seed draft (scrolled to the contact), wrong phone / .ru email, MNotify missing values */
       "gh-04": gh("#ghiseu/gh-4812/identificare", async (h) => { await h.scroll("#gh-contact-title"); }),
       "gh-04a": gh("#ghiseu/nou", seq(start(pf("2001002003004")), async (h) => { await h.fill("#fo-gh-phone", "123", { leave: false }); await h.fill("#fo-gh-email", "maria.ceban@mail.ru", { leave: false }); }, next)),

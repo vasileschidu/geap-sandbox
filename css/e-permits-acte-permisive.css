@@ -23794,9 +23794,10 @@ button.e-permits-steps-strip__cell:hover,
 /* Section rule (2026-10-16, user, whole project): an alert / notice (banner .message, .info-box, the FO
    notice / infobox) right under a section header with a divider — directly, or as the first child of a block
    that is not the section body — keeps the divider and gets the section's normal header → content gap (24 =
-   the FO section body's top padding; the BO drawer content already has its own 16). */
-:is(.e-permits-fo-form__section > h2, .e-permits-fo-section-header) + :is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox),
-:is(.e-permits-fo-form__section > h2, .e-permits-fo-section-header) + :not(.e-permits-fo-form__section-body) > :is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox):first-child {
+   the FO section body's top padding; the BO drawer content already has its own 16). The FO authorization
+   card (MPower / RSUD basis, Ghișeu „Temeiul reprezentării”, 2026-10-16) takes the same gap. */
+:is(.e-permits-fo-form__section > h2, .e-permits-fo-section-header) + :is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-authorization-card),
+:is(.e-permits-fo-form__section > h2, .e-permits-fo-section-header) + :not(.e-permits-fo-form__section-body) > :is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-authorization-card):first-child {
   margin-top: var(--spacing-24, 24px);
 }
 

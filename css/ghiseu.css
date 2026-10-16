@@ -520,3 +520,12 @@
 .e-permits-gh :is(h1, h2)[tabindex="-1"]:focus {
   outline: none;
 }
+
+/* phones (2026-10-16): the FO keeps Solicitant + Reprezentant side by side at 375 because it hides
+   „Schimbă” there; the desk keeps „Schimbă” (it is the way back to the picker), which squeezed the
+   company name out of the card → the identity cards stack */
+@media (max-width: 720px) {
+  .e-permits-gh .e-permits-fo-form__roles-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

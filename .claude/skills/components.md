@@ -248,6 +248,7 @@ but this doc previously described it wrongly, see the entry.
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
 | Guest requestor „Date solicitant” (no MPass; Figma FOD-Components-flow 633:7411, G1–G8) | `section[data-fo-screen="guest"]` > `form[data-fo-guest-form]`: MPass upsell `.e-permits-fo-guest__upsell` · „Soliciți în numele” `[data-fo-guest-type-section]` (animated segmented control) · `[data-fo-guest-company]` (IDNO → registry name) · `[data-fo-guest-person]` · „Pentru cine” radio option rows · `[data-fo-guest-represented]` (G4) / `[data-fo-guest-mandate]` (G5) with a boxed doc field · consent · „Înainte” never disabled; leave modal `[data-fo-guest-leave-modal]` | `showFrontOfficeGuest` / `setGuestType` / `validateGuest` / `enterGuestWizard` (`frontOfficeGuest`) / `guestSchemaVariant`, demo `fo-g*` | app |
 | Radio option row (hover + focus on the whole row) | `label.e-permits-fo-radio.e-permits-fo-radio--option` (row fills its grid column, padding 12/16; `::before` grey layer radius 12, opacity 0 → 1 + scale .97 → 1, 180ms decelerate; keyboard ring on the row) | „Pentru cine” (guest), `contactPersonHtml` (Persoana de contact) | app |
+| Authorization / representation basis card | `.e-permits-fo-authorization-card` (grey r12 card, 32 round icon, title + green outline status, meta parts with dots, copy code) via `authorizationCardHtml(subject)` / `GEAPFormRender.authorizationCardHtml({ title, status, grantedBy, validUntil, code })` or `{ title, status, icon, details: [{ label, value, copy }] }` | FO fo-02 / cat-04 MPower; Ghișeu „Temeiul reprezentării” MPower + RSUD | app |
 | Boxed doc field (required attachment inside a form section) | `.e-permits-fo-doc-field.e-permits-fo-doc-field--boxed` (1px dashed border/base/default, radius 16, padding 20/16; empty = click target with the dropzone hover; `is-error` = 1.5px dashed danger + inline error in the description) + `btn btn-strict btn-md` with 20px `icon-upload` | guest procură / decizie de numire | app |
 | Animated segmented control (sliding selected thumb) | `.segmented-control.is-animated` (+ `role="radiogroup"` > `button.segment-item[role=radio][aria-checked]`, roving tabindex) — `::before` thumb from `--seg-x/-y/-w/-h`, `is-ready` / `is-snap` | `initAnimatedSegmentedControls()` | app |
 | FO phone error state | `.e-permits-fo-phone--editable.is-error` (mirrors `.e-permits-fo-input.is-error`) | guest validation | app |
@@ -3712,7 +3713,7 @@ Caption / Version texts. Scheduled-publication blocks: 01f1, 01f2, 01h1, 01j, 01
 
 **Section header + alert (2026-10-16, user, whole project):** a section header keeps its bottom divider; an
 alert / notice right under it (banner `.message`, `.info-box`, `.e-permits-fo-notice`, `.e-permits-fo-infobox` —
-directly, or first child of a block that is not the section body) gets the section's normal header → content gap
+directly, or first child of a block that is not the section body; also the FO authorization card) gets the section's normal header → content gap
 (24 = the FO section body's top padding; BO drawer content already has 16). One generic rule in
 css/e-permits-acte-permisive.css („Section rule (2026-10-16)”). Applies today to Ghișeu „Temeiul reprezentării”
 (gh-03, 03a, 03b, 03e, 03f); every other header + alert pair already sits in a section body.
@@ -6081,12 +6082,21 @@ added for modules (all generic, reuse them for the next BO module):
 - **First step „Date solicitant”** (identity in the small modal; representation and contact in the flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
   „Persoana care depune” for PJ, then „Reprezentantul” (PF check option + IDNP lookup) / „Temeiul reprezentării”
   (RSUD / MPower / Prin procură with the live AC-21 error — the FO way: the message under the group and only
-  the checkbox control in the library `checkbox--error` style, no border around the option). Every basis outcome is a library
-  notice with a bold title (user 2026-10-16): RSUD → success „Temeiul reprezentării: administrator în RSUD.” +
-  „Sursa: RSUD prin MConnect.”; MPower → success with the number and validity; Procură → info „…se atașează la
-  pasul «Documente însoțitoare».” + the alert action link „Mergi la Documente însoțitoare →” (library
-  `link link-primary link-sm`, the arrow as a character) only when that step was already reached — a first pass
-  must finish the steps in between, so the link is omitted. The process lives in the header meta. The cards and
+  the checkbox control in the library `checkbox--error` style, no border around the option). Basis outcomes use the
+  **FO full-flow layouts** (user 2026-10-16, Figma 11685:13047; replaced the success / info notices — one
+  representation, not both): MPower → the FO „Împuternicire MPower aplicată” card (`GEAPFormRender.authorizationCardHtml`
+  = the fo-02 / cat-04 renderer: identity icon, title + „Activă”, meta „Acordată de <holder> · Valabilă până la <date> ·
+  Cod <nr> [copy]”); RSUD administrator → the same card with `icon: "icon-suitcase-2"`, title „Administrator în RSUD” +
+  „Confirmat”, `details` „Administrator al <company> · Sursa RSUD prin MConnect” (the FO has no RSUD card — an MPass
+  administrator files as himself); no electronic link → the warning notice + „Prin procură” check option, and once
+  ticked the FO **boxed procură upload** of the guest „pentru altcineva” flow (`.e-permits-fo-doc-field--boxed`,
+  `data-gh-procura-doc`, upload only, JPG/PNG/PDF): label „Procură (copia scanată)” + star, „Atașați-o aici sau la
+  pasul «Documente însoțitoare».”, black `btn btn-strict btn-md` „Adaugă fișier”. The file is `d.docs.procura` — the
+  same document as Documente însoțitoare › „Procură (copia scanată)”, which shows it already attached (its
+  „atașați copia” notice only while missing) and stays the required check (US-233 Assumptions / Model de date
+  „Prin procură”: „procura se atașează la documentele însoțitoare”). States gh-03 (RSUD), 03b / 03c (MPower PJ / PF),
+  03a / 03e (warning + error), 03j / 03k (procură box empty / attached), 03l (Documente with it attached). The
+  process lives in the header meta. The cards and
   group titles are the FO ones (`GEAPFormRender.roleCardHtml` = `selectedRoleHtml` with `changeAttrs` /
   `extraHtml`, `roleGroupTitleHtml`) — never rebuilt — in the FO identity row `.e-permits-fo-form__roles >
   .e-permits-fo-form__roles-grid` (fo-02: Solicitant | Persoana care depune side by side; `is-single` = one card;

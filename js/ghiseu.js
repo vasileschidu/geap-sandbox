@@ -377,9 +377,9 @@
       d.details.subdivision = act ? act.subdiviziune : subdivisionFor(d) || desk.subdiviziuni?.[0]?.name || "";
       d.details.term = termsOf(d)[0]?.id || "";
     }
-    if (upTo > STEP_INDEX.documente && !Object.keys(d.docs).length) {
+    if (upTo > STEP_INDEX.documente && !Object.keys(d.docs).filter((key) => key !== "procura").length) {
       const at = stamp(d.createdAt);
-      docsOf(d).filter((doc) => doc.required).forEach((doc, i) => {
+      docsOf(d).filter((doc) => doc.required && !(d.docs[doc.id] || []).length).forEach((doc, i) => {
         d.docs[doc.id] = [doc.id === "state-registry-extract"
           ? { sursa: "mdocs", tip: doc.label, fisier: `extras-registru-${d.company.idno}.pdf`, size: "310 KB", at: "12 martie 2026, 10:14", verb: "Emis", de: "ASP", semnat: true }
           : { sursa: "upload", tip: doc.label, fisier: ["contract-locatiune-scan.pdf", "planul-incaperilor.pdf", "procura-scan.pdf", "fisa-tehnica.pdf", "fisa-securitate.pdf"][i % 5], size: ["1.8 MB", "2.7 MB", "640 KB", "1.1 MB", "820 KB"][i % 5], at, verb: "Încărcat" }];
@@ -1116,11 +1116,15 @@
     const filer = d.personType === "PJ" ? fullName(d.applicant) : fullName(d.rep);
     const holder = holderName(d);
     let body = "";
-    /* one notice per outcome (user 2026-10-16): title + text in the library notice; RSUD / MPower = success,
-       Procură = info */
-    if (b.kind === "rsud") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: administrator în RSUD.</strong> ${esc(filer)} este administratorul ${esc(holder)}, fără procură. Sursa: RSUD prin MConnect.`) || "";
-    else if (b.kind === "mpower") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: împuternicire MPower.</strong> Nr. ${esc(b.nr)}, valabilă până la ${esc(longDate(b.until))}. ${esc(filer)} reprezintă ${esc(holder)}, fără procură.`) || "";
-    else {
+    /* the FO full-flow layouts (user 2026-10-16, Figma 11685:13047): MPower = the FO „Împuternicire MPower
+       aplicată” card (fo-02, the same renderer); RSUD administrator = the same card (the FO has no RSUD
+       card: an MPass administrator files as himself) with the RSUD source; Procură = the warning + the
+       FO check option, and once ticked the FO boxed procură upload of the guest „pentru altcineva” flow */
+    if (b.kind === "rsud") {
+      body = R().authorizationCardHtml?.({ title: "Administrator în RSUD", status: "Confirmat", icon: "icon-suitcase-2", details: [{ label: "Administrator al", value: holder }, { label: "Sursa", value: "RSUD prin MConnect" }] }) || "";
+    } else if (b.kind === "mpower") {
+      body = R().authorizationCardHtml?.({ title: "Împuternicire MPower aplicată", status: "Activă", grantedBy: holder, validUntil: longDate(b.until), code: b.nr }) || "";
+    } else {
       /* AC-21 error = the FO way: message under the group, only the checkbox control in the library error
          style (checkbox--error) — no border around the option */
       const option = U().renderCheckOption?.({ label: "Prin procură", required: true, checked: d.procura, attrs: 'data-gh-procura aria-describedby="gh-err-procura"' }) || "";
@@ -1133,9 +1137,42 @@
           ${procuraOption}
         </div>
         ${d.procura ? errSlot("procura") : `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-procura" data-gh-err="procura" role="alert">${ERR_ICON}<span>Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie.</span></span>`}
-        ${d.procura ? U().renderNotice?.("info", `<strong>Temeiul reprezentării: Procură.</strong> Copia scanată a procurii se atașează la pasul «Documente însoțitoare».${(d.maxStep || 0) >= STEP_INDEX.documente ? ` <a class="link link-primary link-sm" href="#" data-gh-goto="${STEP_INDEX.documente}">Mergi la Documente însoțitoare&nbsp;→</a>` : ""}`) || "" : ""}`;
+        ${d.procura ? procuraUploadHtml() : ""}`;
     }
     return `<div data-gh-block="basis" class="e-permits-gh__basis">${body}</div>`;
+  }
+  /* „Prin procură” ticked: the scanned copy can be attached right here — the FO boxed upload of the guest
+     „pentru altcineva” flow (dashed block, black Strict „Adaugă fișier”). It is the same document as
+     Documente însoțitoare › „Procură (copia scanată)” (d.docs.procura), which stays the required check
+     (US-233: „procura se atașează la documentele însoțitoare”). */
+  function procuraUploadHtml() {
+    return `
+      <div class="e-permits-fo-doc-field e-permits-fo-doc-field--boxed" data-fo-doc-field="gh-procura-basis" data-gh-procura-doc data-fo-upload-only data-fo-doc-accept=".jpg,.jpeg,.png,.pdf" data-fo-doc-max="1" data-fo-doc-limits="JPG, PNG, PDF|60 MB">
+        <div class="e-permits-fo-doc-field__row">
+          <div class="e-permits-fo-doc-field__info">
+            <span class="e-permits-fo-doc-field__label">${esc(PROCURA_DOC.label)} ${req()}</span>
+            <p class="e-permits-fo-doc-field__desc">Atașați-o aici sau la pasul «Documente însoțitoare».</p>
+          </div>
+          <button class="btn btn-strict btn-md" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(PROCURA_DOC.label)}">${icon("upload", 20, "icon medium")}<span>Adaugă fișier</span></button>
+        </div>
+        <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
+      </div>`;
+  }
+  function bindProcuraDoc(root) {
+    const field = root?.querySelector("[data-gh-procura-doc]");
+    if (!field) return;
+    const box = field.querySelector("[data-fo-doc-field-files]");
+    (S.cur.docs.procura || []).slice(0, 1).forEach((doc) => attachTo(box, doc));
+    new MutationObserver(() => {
+      const el = box.querySelector("[data-fo-doc]");
+      let doc = null;
+      try { doc = el ? JSON.parse(el.dataset.foDoc) : null; } catch { doc = null; }
+      const next = doc ? [{ ...doc, tip: PROCURA_DOC.label }] : [];
+      if (JSON.stringify(next) === JSON.stringify(S.cur.docs.procura || [])) return;
+      if (next.length) S.cur.docs.procura = next; else delete S.cur.docs.procura;
+      S.dirty = true;
+      clearErr("doc-procura");
+    }).observe(box, { childList: true, subtree: true });
   }
   /* user rule: „Tip persoană” is never empty — PF by default, else what the service allows */
   function normalizeType(d) {
@@ -1317,8 +1354,10 @@
   }
   const BLOCK_RENDER = { applicant: applicantBlockHtml, basis: basisHtml };
   const BLOCK_BIND = {
+    basis: bindProcuraDoc,
     applicant(block) {
       if (!block) return;
+      bindProcuraDoc(block);
       block.querySelectorAll("[data-gh-lookup]").forEach((group) => bindLookup(group));
       block.querySelector("[data-gh-type]")?.addEventListener("change", (event) => {
         const v = event.currentTarget.querySelector(".segment-item.is-selected")?.dataset.value || "";
@@ -1648,7 +1687,7 @@
           </div>
           <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(doc.label)}">${icon("plus-large")}Adaugă fișier</button>
         </div>
-        ${doc.id === "procura" ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașați copia ei scanată.") || "" : ""}
+        ${doc.id === "procura" && !(S.cur?.docs?.procura || []).length ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașați copia ei scanată.") || "" : ""}
         <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
       </div>`;
   }
