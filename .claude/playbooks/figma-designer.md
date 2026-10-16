@@ -116,6 +116,27 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - Connectors can't attach to instance sublayers; connector `text` needs its font loaded.
 - `setSharedPluginData`, not `setPluginData`.
 
+## Board layout rules (all boards — derived 2026-10-16 from Requestor auth lane, US-54, FOD guest lane)
+- Section padding 80; title at (80, 80); first row / first block at y 440; sections 80 apart, left edges aligned
+  with the page's column grid (Requestor: x 18394 = „How to read” / 01 Entry).
+- Grid: columns = block width + 240 gap (1440 desktop-only, 1895 desktop+mobile, 1942 US-54 mobiles); every item of a
+  row shares the row top; blocks never float off-grid. Column boards: stacked blocks 240 (US-54) / 396 (Requestor)
+  apart; row lanes: next row top = tallest item of the row + 396.
+- Block = `Screen label` → `Screens · desktop + mobile` (gap 80) → `Note · <id>` at the bottom, all inside the block
+  (VERTICAL, gap 16). Notes never float beside blocks.
+- Stage headers: column boards = the `Stage NN · …` bar (ID chip + title + one line) at the column top, width = the
+  columns it covers, blocks 244 below. Row lanes = a narrow `Row header · …` (clone of a stage header, 560 wide, HUG)
+  at the top of a 720 GUTTER left of the grid; the row's decision / doc cards sit under it (240 gap), right-aligned to
+  the gutter edge (240 from the first column). The strip right of the headers (x 640–800) stays free for arrows.
+- Markers (jump cards, 400 wide) = next free grid column of their source block, y = source.y + 44 (screen top).
+- Arrows: same row → leave the MOBILE control's RIGHT, end on the target's LEFT edge at the SAME y (straight);
+  downward → leave the block's LEFT edge at the control's y and enter the next row's block LEFT edge (gap strip), or
+  the RIGHT side when the left gap already carries the row's incoming arrow; into a gutter decision → TOP at
+  position x 400 (right of the row headers). Skipping a column → BOTTOM/BOTTOM route under the row. Long labels wrap
+  in the 240 gap — keep them short.
+- Tool: tools/figma/board-layout/row-lane-layout.js (+ a per-board config, e.g. fod-guest-lane.config.js) — re-runnable,
+  snapshot first (shared plugin data on the section + repo JSON), revert-snapshot.js to undo.
+
 ## Lessons (append — newest last)
 - 2026-10-12 · Captures land as raw frames; swapping by accessible layer name works well. The
   sidebar icons of a full-page capture break → capture elements, not pages, and reuse the block shell.
@@ -1039,3 +1060,22 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   - US-18 AC-02 (no fee → Finalizare after Livrare): the primary request has no no-fee demo state (code always gates step 7 on
     `?paid=1`; only post-processes skip Plată) → not drawn, reported to proto-engineer. Never invent a state.
   - No Agent tool in this session again → ran figma-audit.js on the 21 new roots myself (0 majors after the rename).
+
+- 2026-10-16 · FOD guest lane relayout (756:25760, „arrange the guest lane as the other boards”): 6 stage rows (Access ·
+  Who can apply · IDNO lookup · For another person · Validation and leaving · Guest wizard), 20 blocks on a 1895 + 240
+  grid, 6 new `Row header · …` (clone of `Stage 05` 756:25262), decisions / doc right-aligned in a 720 gutter, markers at
+  source.y + 44, section moved to x 18394 and fitted (13235 × 16062 → 12195 × 16042). 35 moves, 18 connector ends.
+  Rules promoted to „Board layout rules” above. Lessons:
+  - Row headers ABOVE the rows (full-width bars) would be crossed by every inter-row arrow → put them in the gutter,
+    narrow (560), and keep a free strip for vertical arrows (x 640–800) and the gap between gutter and grid.
+  - G1c sits under its trigger G1b (k1) instead of k0 → the „IDNO complete” arrow is a short vertical, not a diagonal
+    over G1. Place a row's first block under the block that leads to it, even if column 0 stays empty.
+  - „Straight” end = the target's LEFT edge at the start's absolute y (position {x: 0, y}) when it lands 60 px inside
+    the target; otherwise fall back to magnet LEFT (G7 → G7a, G7b → G7c: buttons at the bottom of tall mobiles).
+  - A connector's absoluteBoundingBox includes its label: a 524-high box was a wrapped label in the 240 gap, not a jog.
+  - get_screenshot of an empty helper frame renders nothing under it; screenshot a page-level connector node instead to
+    see its route over the canvas.
+  - Text width changes need the font loaded too (`textAutoResize` threw „unloaded font” — the call rolled back).
+  - No Agent tool again → figma-audit.js on the lane myself: 0 overlaps (lane + page), 40 screens keep clip + radius +
+    4 px border, 0 unstyled header texts; leftovers pre-existing (Mobile · G8 Body cut by the 812 viewport, 4 non-Onest).
+
