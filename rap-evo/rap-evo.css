@@ -775,44 +775,6 @@ a {
   white-space: nowrap;
 }
 
-.rap-status {
-  align-items: center;
-  border-radius: var(--border-radius-4, 4px);
-  display: inline-flex;
-  font-family: "Onest", system-ui, sans-serif;
-  font-size: var(--font-size-fs-12, 12px);
-  font-style: normal;
-  font-weight: 500;
-  height: 20px;
-  justify-content: center;
-  letter-spacing: 0;
-  line-height: var(--line-height-lh-16, 16px);
-  max-width: 100%;
-  padding: 0 var(--spacing-6, 6px);
-  white-space: nowrap;
-}
-
-.rap-status--valid {
-  background: #e6f5ee;
-  color: #027948;
-}
-
-.rap-status--suspended {
-  background: #feefc6;
-  color: #b54708;
-}
-
-.rap-status--expired {
-  background: var(--rap-surface-subtle);
-  color: var(--rap-text);
-}
-
-.rap-status--cancelled,
-.rap-status--withdrawn {
-  background: #fee4e2;
-  color: #b32318;
-}
-
 .rap-row-action {
   align-items: center;
   display: flex;
@@ -961,8 +923,23 @@ a {
   visibility: visible;
 }
 
+/* the header's own top padding (BO page header: 16) is the only gap above the breadcrumb */
 .rap-profile {
-  padding: var(--spacing-32, 32px) var(--spacing-24, 24px) var(--spacing-64, 64px);
+  padding: 0 var(--spacing-24, 24px) var(--spacing-64, 64px);
+}
+
+/* BO page header + sections (css/bo-profile-parts.css); horizontally the header keeps the
+   sections' 12 inset so the breadcrumb, the title and the section titles share one edge */
+.rap-profile__header .e-permits-page-header__body {
+  padding-inline: var(--spacing-12, 12px);
+}
+
+.rap-profile__title-row > .e-permits-page-header__title {
+  flex: 0 1 auto;
+}
+
+.rap-profile__title-row > .e-permits-workplace__tag {
+  flex: 0 0 auto;
 }
 
 .rap-profile__container {
@@ -971,75 +948,10 @@ a {
   width: 100%;
 }
 
-.rap-profile__hero {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-  padding: var(--spacing-24, 24px) var(--spacing-12, 12px);
-}
-
 .rap-profile__title-row {
   align-items: center;
   display: flex;
   gap: var(--spacing-8, 8px);
-  min-width: 0;
-}
-
-.rap-profile__title-row h1 {
-  color: var(--rap-text);
-  font-size: var(--font-size-fs-24, 24px);
-  font-weight: 600;
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
-  margin: 0;
-  min-width: 0;
-}
-
-.rap-profile__status {
-  flex: 0 0 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  height: 24px;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-8, 8px);
-}
-
-.rap-profile__summary {
-  align-items: stretch;
-  display: grid;
-  grid-template-columns: 1.08fr 2.35fr 1fr 1fr;
-  min-width: 0;
-}
-
-.rap-profile__summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6, 6px);
-  min-width: 0;
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) var(--spacing-12, 12px) 0;
-}
-
-.rap-profile__summary-item + .rap-profile__summary-item {
-  border-left: var(--border-width-1, 1px) solid var(--rap-border);
-  padding-left: var(--spacing-24, 24px);
-}
-
-.rap-profile__summary-item:last-child {
-  padding-right: 0;
-}
-
-.rap-profile__summary-label {
-  color: var(--rap-text-tertiary);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: 400;
-  letter-spacing: -0.14px;
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.rap-profile__summary-value {
-  color: var(--rap-text);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: 500;
-  line-height: var(--line-height-lh-20, 20px);
   min-width: 0;
 }
 
@@ -1055,6 +967,7 @@ a {
   justify-content: center;
   line-height: var(--line-height-lh-20, 20px);
   padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
+  margin-top: var(--spacing-8, 8px);
 }
 
 .rap-profile__document-button .icon {
@@ -1062,22 +975,7 @@ a {
   width: 20px;
 }
 
-.rap-profile__section {
-  padding-bottom: var(--spacing-24, 24px);
-}
-
-.rap-profile__section h2 {
-  color: var(--rap-text);
-  font-size: var(--font-size-fs-18, 18px);
-  font-weight: 600;
-  letter-spacing: -0.18px;
-  line-height: var(--line-height-lh-26, 26px);
-  margin: 0;
-  padding: var(--spacing-12, 12px);
-}
-
 .rap-profile__beneficiary-card,
-.rap-profile__details,
 .rap-profile__timeline,
 .rap-profile__support-card {
   background: var(--rap-hover);
@@ -1294,42 +1192,6 @@ a {
 
 .rap-company-summary__metric--inactive strong {
   color: #b54708;
-}
-
-.rap-profile__details {
-  margin: 0;
-  padding: var(--spacing-20, 20px);
-}
-
-.rap-profile__detail-row {
-  align-items: center;
-  border-bottom: var(--border-width-1, 1px) solid var(--rap-border);
-  display: grid;
-  gap: var(--spacing-24, 24px);
-  grid-template-columns: 256px minmax(0, 1fr);
-  min-height: 40px;
-}
-
-.rap-profile__detail-row:last-child {
-  border-bottom: 0;
-}
-
-.rap-profile__detail-row dt,
-.rap-profile__detail-row dd {
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-  min-width: 0;
-}
-
-.rap-profile__detail-row dt {
-  color: var(--rap-text-secondary);
-  font-weight: 400;
-}
-
-.rap-profile__detail-row dd {
-  color: var(--rap-text);
-  font-weight: 500;
 }
 
 .rap-profile__copy {
@@ -1581,10 +1443,6 @@ a {
   line-height: var(--line-height-lh-16, 16px);
 }
 
-.rap-profile__section--support {
-  padding-bottom: 0;
-}
-
 .rap-profile__support-card {
   display: flex;
   flex-direction: column;
@@ -1710,7 +1568,7 @@ a {
   }
 
   .rap-profile {
-    padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
+    padding: 0 var(--spacing-16, 16px) var(--spacing-48, 48px);
   }
 
   .rap-profile__breadcrumbs {
@@ -1719,60 +1577,19 @@ a {
     white-space: nowrap;
   }
 
-  .rap-profile__hero {
-    padding: var(--spacing-24, 24px) 0;
-  }
-
   .rap-profile__title-row {
     align-items: flex-start;
     flex-wrap: wrap;
-  }
-
-  .rap-profile__title-row h1 {
-    font-size: 22px;
-    line-height: 30px;
-  }
-
-  .rap-profile__summary {
-    grid-template-columns: 1fr;
-  }
-
-  .rap-profile__summary-item,
-  .rap-profile__summary-item + .rap-profile__summary-item {
-    border-bottom: var(--border-width-1, 1px) solid var(--rap-border);
-    border-left: 0;
-    padding: var(--spacing-12, 12px) 0;
-  }
-
-  .rap-profile__summary-item:last-child {
-    border-bottom: 0;
   }
 
   .rap-profile__document-button.btn {
     align-self: stretch;
   }
 
-  .rap-profile__section h2 {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
   .rap-profile__beneficiary-card,
-  .rap-profile__details,
   .rap-profile__timeline,
   .rap-profile__support-card {
     border-radius: var(--border-radius-16, 16px);
-  }
-
-  .rap-profile__details {
-    padding: var(--spacing-16, 16px);
-  }
-
-  .rap-profile__detail-row {
-    align-items: flex-start;
-    gap: var(--spacing-2, 2px);
-    grid-template-columns: 1fr;
-    padding: 10px 0;
   }
 
   .rap-profile__support-links {
@@ -1854,4 +1671,26 @@ a {
   .rap-filters.e-permits-workplace__filters {
     flex-wrap: wrap;
   }
+}
+
+/* the act name in the list is a real link (?act=<id>): row look, link underline on hover */
+.rap-act-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.rap-act-link:hover,
+tr:hover .rap-act-link {
+  text-decoration: underline;
+}
+
+/* a copy value in a details row never breaks inside the code (the BO copy code is nowrap too) */
+.e-permits-dosar-profil__row-value > .rap-profile__copy {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+/* the not-found screen keeps the list's distance to the site header */
+.rap-profile__container.rap-state {
+  padding-top: var(--spacing-32, 32px);
 }

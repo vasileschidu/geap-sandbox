@@ -1010,3 +1010,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   ≤ the BO specificity. Latent BO bug seen on the way: at 375 the bar keeps chips + „N rezultate · Șterge filtrele” on one
   row and a long first chip runs under the meta (RAP wraps them, scoped; BO left as is — report it). Another agent
   committed mid-job and bumped `?v=` on the same line → stage with a regex on the version, not the literal.
+- 2026-10-16 · BUG I shipped in the filter commit: `openProfile` still called the removed `closeFilterPanel` — my leftover
+  grep was case-sensitive (`filterPanel` ≠ `closeFilterPanel`) and no demo state opened a profile, so capture stayed green.
+  After removing a feature: `grep -i` every removed function name, and run one state through EVERY screen of the page
+  (list, profile, empty) — add the missing demo states first. Hot-fixed in its own commit (85fe69c5).
+- 2026-10-16 · RAP act profile = BO page header + BO sections on a page that doesn't load the BO CSS: BO markup / class
+  names in the renderer, their CSS for this page in `css/bo-profile-parts.css` written from the BO COMPUTED values
+  (dos-01 / svc-01 / ntpl-03 probes — the base `.e-permits-dosar-profil__*` rules differ from the back-office-scoped ones,
+  so read computed styles, not the first rule you grep). Proof = the same probe on both pages (gaps bc→title 8, title→meta
+  0 + meta 12/8, header→first section 20, h2 48 · 11/12 · 18/26, card 8/20 r24 (r16 ≤760), rows 40 · 8/7 + 1, label 14/20
+  #383838, value 14/20 500, tag 20 · 12/16 · inset tone border). A copy button inside a phone column row shrank to
+  min-content (row-value `overflow-wrap: anywhere`) → `flex: 0 0 auto; white-space: nowrap` on the copy, scoped.

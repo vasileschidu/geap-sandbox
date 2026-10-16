@@ -1968,7 +1968,13 @@
         }),
         "rap-01d": rap(async (h) => {
           await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await h.click("[data-filter-commit]");
-        })
+        }),
+        /* act profile (?act=): BO page header, sections over grey cards, Small status tags */
+        "rap-02": { page: RAP, params: { act: "rap-0002" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        "rap-02a": { page: RAP, params: { act: "rap-0001" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        "rap-02b": { page: RAP, params: { act: "rap-0003" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        /* US-142 AC-16: unknown act */
+        "rap-02c": { page: RAP, params: { act: "rap-9999" }, ready: "[data-rap-profile-view]:not([hidden]) .e-permits-empty" }
       };
     })(),
     "cat-03b": ppIntent(),

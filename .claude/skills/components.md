@@ -3526,7 +3526,8 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 
 | Concern | rap-evo | cabinet-evo |
 |---|---|---|
-| Status | `.rap-status--valid/--suspended/--expired/--withdrawn/--cancelled` | library `.status-tag` |
+| Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--neutral/--danger` (Valabil / Suspendat / Expirat / Retras·Anulat) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | library `.status-tag` |
+| Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | — |
 | Copy | `.rap-copy--id/--act/--masked`, `.rap-profile__copy` (`is-copied`, 1600 ms) | library `.e-permits-fo-copy-value` |
 | Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block, wraps ≤760) via `GEAPFacetFilter` — see „Advanced filter”. The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |

@@ -76,13 +76,15 @@
     });
   };
 
-  const statusClass = (status) => ({
-    "Valabil": "valid",
-    "Suspendat": "suspended",
-    "Expirat": "expired",
-    "Retras": "withdrawn",
-    "Anulat": "cancelled"
-  }[status] || "expired");
+  const statusTone = (status) => ({
+    "Valabil": "success",
+    "Suspendat": "warning",
+    "Expirat": "neutral",
+    "Retras": "danger",
+    "Anulat": "danger"
+  }[status] || "neutral");
+  /* the BO renderTag markup (Tag · Small, css/bo-profile-parts.css) */
+  const statusTag = (status) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${statusTone(status)}">${escapeHtml(status)}</span>`;
 
   const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-${name}"></use></svg>
@@ -148,19 +150,32 @@
     };
   };
 
+  /* BO renderPageHeaderMeta item */
   const renderProfileSummaryItem = (label, value, { copy = false } = {}) => `
-    <div class="rap-profile__summary-item">
-      <span class="rap-profile__summary-label">${escapeHtml(label)}</span>
-      <span class="rap-profile__summary-value">${copy ? copyValue(value) : escapeHtml(value)}</span>
+    <div class="e-permits-page-header__meta-item">
+      <span class="e-permits-page-header__meta-label">${escapeHtml(label)}</span>
+      <span class="e-permits-page-header__meta-value">${copy ? copyValue(value) : escapeHtml(value)}</span>
     </div>
   `;
 
-  const renderProfileDetailRow = (label, value, { copy = false } = {}) => `
-    <div class="rap-profile__detail-row">
-      <dt>${escapeHtml(label)}</dt>
-      <dd>${copy ? copyValue(value) : escapeHtml(value)}</dd>
+  /* BO Date generale row (.e-permits-dosar-profil__row); html = a value already rendered */
+  const renderProfileDetailRow = (label, value, { copy = false, html = false } = {}) => `
+    <div class="e-permits-dosar-profil__row">
+      <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+      <span class="e-permits-dosar-profil__row-value">${html ? value : copy ? copyValue(value) : escapeHtml(value)}</span>
     </div>
   `;
+
+  /* BO syncPageHeaderMetaRows: an item that starts a line draws no separator */
+  const syncMetaRows = (meta) => {
+    let previousTop = null;
+    meta.querySelectorAll(":scope > .e-permits-page-header__meta-item").forEach((item) => {
+      const top = item.offsetTop;
+      item.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
+      previousTop = top;
+    });
+  };
+  const metaObserver = "ResizeObserver" in window ? new ResizeObserver((entries) => entries.forEach((entry) => syncMetaRows(entry.target))) : null;
 
   const renderTimeline = (timeline) => timeline.map((item) => `
     <li class="rap-profile__timeline-item rap-profile__timeline-item--${escapeHtml(item.state)}">
@@ -181,6 +196,7 @@
     const authorityWithOffice = [record.authority.name, profile.office].filter(Boolean).join(" — ");
     const details = [
       ["Denumire act permisiv", record.permit.name],
+      ["Stare", statusTag(record.status), false, true],
       ["Numărul actului permisiv", record.permit.number, true],
       ["Numărul dosarului electronic", record.permit.paperNumber, true],
       ["Seria și nr. documentului tipărit", profile.printedDocumentNumber, true],
@@ -201,33 +217,39 @@
 
     elements.profileView.innerHTML = `
       <div class="rap-profile__container">
-        <nav class="breadcrumbs breadcrumbs--trailing rap-breadcrumbs rap-profile__breadcrumbs" aria-label="Breadcrumb">
-          <ol class="breadcrumbs__list">
-            <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="../index.html">Acasă</a></li>
-            <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="#">Resurse utile</a></li>
-            <li class="breadcrumbs__item"><button class="breadcrumbs__link" type="button" data-rap-profile-back>Registrul actelor permisive</button></li>
-          </ol>
-        </nav>
-
-        <section class="rap-profile__hero" aria-labelledby="rap-profile-title">
-          <div class="rap-profile__title-row">
-            <h1 id="rap-profile-title">${escapeHtml(record.permit.name)}</h1>
-            <span class="rap-status rap-status--${statusClass(record.status)} rap-profile__status">${escapeHtml(record.status)}</span>
+        <header class="e-permits-page-header rap-profile__header">
+          <div class="e-permits-page-header__body">
+            <div class="e-permits-page-header__top">
+              <div class="e-permits-page-header__heading">
+                <nav class="breadcrumbs breadcrumbs--trailing rap-breadcrumbs rap-profile__breadcrumbs" aria-label="Breadcrumb">
+                  <ol class="breadcrumbs__list">
+                    <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="../index.html">Acasă</a></li>
+                    <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="#">Resurse utile</a></li>
+                    <li class="breadcrumbs__item"><button class="breadcrumbs__link" type="button" data-rap-profile-back>Registrul actelor permisive</button></li>
+                  </ol>
+                </nav>
+                <div class="rap-profile__title-row">
+                  <h1 class="e-permits-page-header__title" id="rap-profile-title" title="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</h1>
+                  ${statusTag(record.status)}
+                </div>
+              </div>
+            </div>
+            <div class="e-permits-page-header__meta" data-rap-profile-meta>
+              ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
+              ${renderProfileSummaryItem("Autoritatea emitentă", authorityWithOffice)}
+              ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
+              ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
+            </div>
+            <button class="btn btn-primary rap-profile__document-button" type="button" data-rap-view-document>
+              ${icon("eye-open")}
+              <span>Vizualizare actul</span>
+            </button>
           </div>
-          <div class="rap-profile__summary">
-            ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
-            ${renderProfileSummaryItem("Autoritatea emitentă", authorityWithOffice)}
-            ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
-            ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
-          </div>
-          <button class="btn btn-primary rap-profile__document-button" type="button" data-rap-view-document>
-            ${icon("eye-open")}
-            <span>Vizualizare actul</span>
-          </button>
-        </section>
+        </header>
 
-        <section class="rap-profile__section" aria-labelledby="rap-beneficiary-title">
-          <h2 id="rap-beneficiary-title">Beneficiar</h2>
+        <div class="e-permits-dosar-profil__panel">
+        <section class="e-permits-dosar-profil__section" aria-labelledby="rap-beneficiary-title">
+          <h2 class="e-permits-dosar-profil__section-title" id="rap-beneficiary-title">Beneficiar</h2>
           <div class="rap-profile__beneficiary-card">
             <span class="rap-profile__beneficiary-avatar" aria-hidden="true">${icon(beneficiaryIcon)}</span>
             <span class="rap-profile__beneficiary-copy">
@@ -241,20 +263,20 @@
           </div>
         </section>
 
-        <section class="rap-profile__section" aria-labelledby="rap-details-title">
-          <h2 id="rap-details-title">Detalii act</h2>
-          <dl class="rap-profile__details">
-            ${details.map(([label, value, copy]) => renderProfileDetailRow(label, value, { copy })).join("")}
-          </dl>
+        <section class="e-permits-dosar-profil__section" aria-labelledby="rap-details-title">
+          <h2 class="e-permits-dosar-profil__section-title" id="rap-details-title">Detalii act</h2>
+          <div class="e-permits-dosar-profil__card">
+            ${details.map(([label, value, copy, html]) => renderProfileDetailRow(label, value, { copy, html })).join("")}
+          </div>
         </section>
 
-        <section class="rap-profile__section" aria-labelledby="rap-history-title">
-          <h2 id="rap-history-title">Istoric complet</h2>
+        <section class="e-permits-dosar-profil__section" aria-labelledby="rap-history-title">
+          <h2 class="e-permits-dosar-profil__section-title" id="rap-history-title">Istoric complet</h2>
           <ol class="rap-profile__timeline">${renderTimeline(profile.timeline)}</ol>
         </section>
 
-        <section class="rap-profile__section rap-profile__section--support" aria-labelledby="rap-support-title">
-          <h2 id="rap-support-title">Ai nevoie de ajutor?</h2>
+        <section class="e-permits-dosar-profil__section rap-profile__section--support" aria-labelledby="rap-support-title">
+          <h2 class="e-permits-dosar-profil__section-title" id="rap-support-title">Ai nevoie de ajutor?</h2>
           <div class="rap-profile__support-card">
             <strong>${escapeHtml(profile.support.authority || "")}</strong>
             <div class="rap-profile__support-links">
@@ -263,6 +285,19 @@
             </div>
           </div>
         </section>
+        </div>
+      </div>
+    `;
+    const meta = elements.profileView.querySelector("[data-rap-profile-meta]");
+    syncMetaRows(meta);
+    metaObserver?.observe(meta);
+  };
+
+  /* US-142 AC-16: an unknown ?act= says so, with a way back to the list */
+  const renderProfileNotFound = () => {
+    elements.profileView.innerHTML = `
+      <div class="rap-profile__container rap-state">
+        ${window.GEAPEmptyState.render({ title: "Actul nu a fost găsit", text: "Linkul nu mai este valabil sau actul nu există în registru.", icon: "search", actionHtml: '<a class="btn btn-neutral btn-sm" href="?">Înapoi la registru</a>' })}
       </div>
     `;
   };
@@ -286,7 +321,7 @@
     <tr tabindex="0" data-record-id="${escapeHtml(record.id)}" aria-label="Deschide ${escapeHtml(record.permit.name)} pentru ${escapeHtml(record.beneficiary.name)}">
       <td>${renderBeneficiary(record)}</td>
       <td>
-        <span class="rap-ellipsis" data-tooltip="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</span>
+        <a class="rap-ellipsis rap-act-link" href="?act=${encodeURIComponent(record.id)}" tabindex="-1" data-tooltip="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</a>
       </td>
       <td>
         <span class="rap-cell-stack">
@@ -306,7 +341,7 @@
           <span class="rap-cell-stack__secondary">${escapeHtml(record.permit.issuedAt)}</span>
         </span>
       </td>
-      <td><span class="rap-status rap-status--${statusClass(record.status)}">${escapeHtml(record.status)}</span></td>
+      <td>${statusTag(record.status)}</td>
       <td>
         <span class="rap-row-action" aria-hidden="true">
           <svg class="icon"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg>
@@ -493,7 +528,7 @@
       allFacets: () => FACETS,
       options: facetOptions,
       /* status values read as the table's status tags */
-      tag: (value, facet) => (facet.key === "status" ? `<span class="rap-status rap-status--${statusClass(value)}">${escapeHtml(value)}</span>` : null),
+      tag: (value, facet) => (facet.key === "status" ? statusTag(value) : null),
       total: () => state.filteredRecords.length,
       apply: () => { state.page = 1; applyFilters(); },
       scrollers: [elements.tableScroller]
@@ -672,6 +707,15 @@
     if (recordId && openProfile(recordId, { updateHistory: false })) {
       return;
     }
+    if (recordId) {
+      state.activeRecord = null;
+      renderProfileNotFound();
+      elements.listView.hidden = true;
+      elements.profileView.hidden = false;
+      document.body.classList.add("rap-page--profile");
+      document.title = "Actul nu a fost găsit · EVO";
+      return;
+    }
     const companyIdno = params.get("idno");
     const companyRecord = companyIdno
       ? state.records.find((record) => record.beneficiary.type === "company" && record.beneficiary.identifier === companyIdno)
@@ -729,8 +773,13 @@
         return;
       }
 
+      const link = event.target.closest(".rap-act-link");
+      if (link && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) {
+        return;
+      }
       const row = event.target.closest("[data-record-id]");
       if (row) {
+        event.preventDefault();
         openProfile(row.dataset.recordId);
       }
     });
