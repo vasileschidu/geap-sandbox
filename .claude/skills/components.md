@@ -3528,9 +3528,7 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 |---|---|---|
 | Status | `.rap-status--valid/--suspended/--expired/--withdrawn/--cancelled` | library `.status-tag` |
 | Copy | `.rap-copy--id/--act/--masked`, `.rap-profile__copy` (`is-copied`, 1600 ms) | library `.e-permits-fo-copy-value` |
-| Filter chip | `.rap-filter-chip` (`is-active`) + `__count` | library `.chip` + `.chip__badge--accent` |
-| Filter surface | `.rap-filter-panel` (`is-open`, `is-drawer`) + `__scrim/__surface/__body/__footer` | — (none) |
-| Options | `.rap-filter-option` (`is-checked`) + `__box/__label` | — |
+| Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block, wraps ≤760) via `GEAPFacetFilter` — see „Advanced filter”. The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
 | Empty state | shared `GEAPEmptyState` in `.rap-state` (2026-10-14) | shared `GEAPEmptyState` in `.cab-state` (2026-10-14) |
 | Pagination | `.rap-pagination`, `.rap-page-button` (`is-active`) | — |
@@ -4211,10 +4209,18 @@ library `.switch` in the back office: template "Șablon activ", the rule modal s
 ### Advanced filter — faceted chips, one master apply (added 2026-10-01)
 
 Figma: GEAP 2.0 `244:14333` (filter-chip + numbered badge + contextual-menu). The
-pattern is Azure DevOps / Linear. The code is in `e-permits-shell.js` (`FILTER_FACETS`,
-`renderFilterBar`, `openFilterPopover`, `commitFilters`) and `e-permits-shell.css`
-(`.e-permits-workplace__filter*`). It works on every table in the shared workplace
-panel: dossiers, sarcini, users, roles, services, authorities, tariffs, ntpl.
+pattern is Azure DevOps / Linear. **One implementation (2026-10-16):** bar, popover, „Mai
+multe”, draft / commit / clear, keyboard and focus live in `js/facet-filter.js`
+(`GEAPFacetFilter.create({ bar, toggle, count, state, save, facets, allFacets, options, tag,
+total, apply, pageKey, onPageChange, scrollers, sprite })` → `{ render, close, clearAll }`)
+and `css/facet-filter.css` (`.e-permits-workplace__filter*`, `__advanced`; loaded right after
+e-permits-shell.css). The page keeps its data: the shell gives `FILTER_FACETS`,
+`getFilterState`, `facetOptions`, `renderWorkplace` — every table in the shared workplace
+panel (dossiers, sarcini, users, roles, services, authorities, tariffs, ntpl, modules); the
+public RAP list (`rap-evo/`) gives its records (Statut · Denumire act · Autoritate · Tip
+beneficiar, status values as its `.rap-status` tags), label „Filtru”. Demo states rap-01…01d.
+The passport stacked lists (`SF_LISTS`, `data-sf-*`) still have their own copy — next to
+migrate. Never write a third one.
 
 - **Quick search:** the same width on every table, the Utilizatori size: `flex: 0 1 400px`,
   min 200, max 400 (2026-10-01).

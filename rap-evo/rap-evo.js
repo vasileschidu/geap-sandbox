@@ -2,39 +2,21 @@
   "use strict";
 
   const DATA_URL = "../data/rap-evo.json";
-  const FILTER_KEYS = ["authority", "subdivision", "denumire", "status", "marking"];
-  const emptyDates = () => ({
-    issuedFrom: "",
-    issuedTo: "",
-    issuedSingle: false,
-    expiresFrom: "",
-    expiresTo: "",
-    expiresSingle: false
-  });
+  /* „Filtru” = the BO advanced filter (js/facet-filter.js): one facet per column that
+     makes sense to filter, values read from the records (no new data) */
+  const beneficiaryType = (record) => (record.beneficiary.type === "person" ? "Persoană fizică" : "Persoană juridică");
+  const FACETS = [
+    { key: "status", label: "Statut", get: (record) => record.status },
+    { key: "denumire", label: "Denumire act", get: (record) => record.permit.name },
+    { key: "autoritate", label: "Autoritate", get: (record) => record.authority.name },
+    { key: "beneficiar", label: "Tip beneficiar", get: beneficiaryType }
+  ];
   const state = {
     config: null,
     records: [],
     filteredRecords: [],
     search: "",
-    denumiriOptions: [],
-    filters: {
-      authority: new Set(),
-      subdivision: new Set(),
-      denumire: new Set(),
-      status: new Set(),
-      marking: new Set()
-    },
-    draft: {
-      authority: new Set(),
-      subdivision: new Set(),
-      denumire: new Set(),
-      status: new Set(),
-      marking: new Set()
-    },
-    dates: emptyDates(),
-    draftDates: emptyDates(),
-    sectionSearch: { authority: "", subdivision: "", denumire: "" },
-    collapsedSections: new Set(),
+    filter: { open: false, applied: {}, draft: null },
     page: 1,
     pageSize: 16,
     activeRecord: null,
@@ -52,13 +34,9 @@
     pageSize: document.querySelector("[data-rap-page-size]"),
     pagination: document.querySelector("[data-rap-pagination]"),
     empty: document.querySelector("[data-rap-empty]"),
-    triggers: [...document.querySelectorAll("[data-rap-filter-trigger]")],
-    filterPanel: document.querySelector("[data-rap-filter-panel]"),
-    filterPanelBody: document.querySelector(".rap-filter-panel__body"),
-    applyFilter: document.querySelector("[data-rap-filter-apply]"),
-    resetFilter: document.querySelector("[data-rap-filter-reset]"),
-    resetAll: document.querySelector("[data-rap-filter-reset-all]"),
-    filterCounts: [...document.querySelectorAll("[data-rap-filter-count]")],
+    filterToggle: document.querySelector("[data-rap-filter-toggle]"),
+    filterBar: document.querySelector("[data-rap-filters]"),
+    filterCount: document.querySelector("[data-rap-filter-count]"),
     tooltip: document.querySelector("[data-rap-tooltip]"),
     listView: document.querySelector("[data-rap-list-view]"),
     profileView: document.querySelector("[data-rap-profile-view]"),
@@ -66,8 +44,7 @@
   };
 
   let searchTimer;
-  let filterPanelTimer;
-  let filterPanelMode = null;
+  let facetFilter = null;
 
   const escapeHtml = (value) => String(value)
     .replaceAll("&", "&amp;")
@@ -80,44 +57,6 @@
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("ro");
-
-  const romanianMonths = {
-    ianuarie: "01",
-    februarie: "02",
-    martie: "03",
-    aprilie: "04",
-    mai: "05",
-    iunie: "06",
-    iulie: "07",
-    august: "08",
-    septembrie: "09",
-    octombrie: "10",
-    noiembrie: "11",
-    decembrie: "12"
-  };
-
-  const toIsoDate = (value) => {
-    const cleaned = normalize(value).replace(/^emis\s+/, "").trim();
-    const match = cleaned.match(/^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/);
-    if (!match || !romanianMonths[match[2]]) {
-      return "";
-    }
-    return `${match[3]}-${romanianMonths[match[2]]}-${match[1].padStart(2, "0")}`;
-  };
-
-  const matchesDateRange = (value, from, to, single) => {
-    if (!from && !to) {
-      return true;
-    }
-    const iso = toIsoDate(value);
-    if (!iso) {
-      return false;
-    }
-    if (single && from) {
-      return iso === from;
-    }
-    return (!from || iso >= from) && (!to || iso <= to);
-  };
 
   const expandRecords = (seedRecords, total) => {
     if (seedRecords.length >= total) {
@@ -376,13 +315,13 @@
     </tr>
   `;
 
-  const totalActiveFilters = () => {
-    const selections = FILTER_KEYS.reduce((total, key) => total + state.filters[key].size, 0);
-    const dates = Object.entries(state.dates).reduce((total, [key, value]) => (
-      key.endsWith("Single") ? total + Number(Boolean(value)) : total + Number(Boolean(value))
-    ), 0);
-    return selections + dates;
-  };
+  const totalActiveFilters = () => Object.values(state.filter.applied).reduce((total, values) => total + (values?.length || 0), 0);
+  const facetValues = (facet, record) => [].concat(facet.get(record) ?? []).filter(Boolean);
+  const matchesFacets = (record, except = null) => Object.entries(state.filter.applied).every(([key, values]) => {
+    if (key === except || !values?.length) return true;
+    const facet = FACETS.find((f) => f.key === key);
+    return !facet || facetValues(facet, record).some((value) => values.includes(value));
+  });
 
   const renderCompanySummary = () => {
     const company = state.companyFilter;
@@ -427,69 +366,27 @@
     elements.companySummary.hidden = false;
   };
 
-  const updateFilterCount = () => {
-    const count = totalActiveFilters();
-    elements.filterCounts.forEach((badge) => {
-      badge.textContent = String(count);
-      badge.hidden = count === 0;
-    });
-    elements.triggers.forEach((trigger) => trigger.classList.toggle("is-active", count > 0));
-    elements.resetAll.hidden = count === 0;
+  /* the search + company view, before the facets (the facet options are counted on it) */
+  const matchesSearch = (record) => {
+    const query = normalize(state.search);
+    const searchable = normalize([
+      record.beneficiary.name,
+      record.beneficiary.identifier,
+      record.permit.name,
+      record.permit.number,
+      record.permit.paperNumber,
+      record.authority.code,
+      record.authority.name,
+      record.status
+    ].join(" "));
+    /* the company view lists the company's own (seed) records only */
+    return (!query || searchable.includes(query))
+      && (!state.companyFilter || (record.beneficiary.identifier === state.companyFilter.identifier
+        && state.config.records.some((seed) => seed.id === record.id)));
   };
 
   const applyFilters = () => {
-    const query = normalize(state.search);
-    const { authority, subdivision, denumire, status, marking } = state.filters;
-    const sourceRecordIds = state.companyFilter
-      ? new Set(state.config.records.map((record) => record.id))
-      : null;
-    const selectedSubdivisionCodes = new Set(
-      (state.config.filters.subdivisions || [])
-        .filter((item) => subdivision.has(item.name))
-        .flatMap((item) => item.authorityCodes || [])
-    );
-    state.filteredRecords = state.records.filter((record) => {
-      const searchable = normalize([
-        record.beneficiary.name,
-        record.beneficiary.identifier,
-        record.permit.name,
-        record.permit.number,
-        record.permit.paperNumber,
-        record.authority.code,
-        record.authority.name,
-        record.status
-      ].join(" "));
-      const matchesSearch = !query || searchable.includes(query);
-      const matchesCompanyRecord = !state.companyFilter
-        || (record.beneficiary.identifier === state.companyFilter.identifier && sourceRecordIds.has(record.id));
-      const matchesAuthority = authority.size === 0 || authority.has(record.authority.code);
-      const matchesSubdivision = subdivision.size === 0 || selectedSubdivisionCodes.has(record.authority.code);
-      const matchesDenumire = denumire.size === 0 || denumire.has(record.permit.name);
-      const matchesStatus = status.size === 0 || status.has(record.status);
-      const matchesMarking = marking.size === 0
-        || (record.markings || []).some((item) => marking.has(item));
-      const matchesIssuedDate = matchesDateRange(
-        record.permit.issuedAt,
-        state.dates.issuedFrom,
-        state.dates.issuedTo,
-        state.dates.issuedSingle
-      );
-      const matchesExpiryDate = matchesDateRange(
-        record.permit.validThrough,
-        state.dates.expiresFrom,
-        state.dates.expiresTo,
-        state.dates.expiresSingle
-      );
-      return matchesSearch
-        && matchesCompanyRecord
-        && matchesAuthority
-        && matchesSubdivision
-        && matchesDenumire
-        && matchesStatus
-        && matchesMarking
-        && matchesIssuedDate
-        && matchesExpiryDate;
-    });
+    state.filteredRecords = state.records.filter((record) => matchesSearch(record) && matchesFacets(record));
 
     const totalPages = Math.max(1, Math.ceil(state.filteredRecords.length / state.pageSize));
     state.page = Math.min(state.page, totalPages);
@@ -505,11 +402,11 @@
 
     if (rows.length === 0) {
       elements.resultsSummary.textContent = "Nu există rezultate";
-      /* the shared empty state (js/empty-state.js); filters applied → „Resetează filtrele” */
+      /* the shared empty state (js/empty-state.js); filters applied → the bar's „Șterge filtrele” */
       const filters = totalActiveFilters();
       elements.empty.innerHTML = window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", {
-        text: filters ? "Modificați căutarea sau resetați filtrele aplicate." : "Verificați ortografia sau încercați alți termeni.",
-        actionHtml: filters ? '<button class="btn btn-neutral btn-sm" type="button" data-rap-empty-reset>Resetează filtrele</button>' : ""
+        text: filters ? "Modificați căutarea sau ștergeți filtrele aplicate." : "Verificați ortografia sau încercați alți termeni.",
+        actionHtml: filters ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : ""
       });
     }
 
@@ -564,216 +461,43 @@
     renderCompanySummary();
     renderTable();
     renderPagination();
-    updateFilterCount();
+    facetFilter?.render();
   };
 
-  const sectionOptions = (key) => {
-    if (key === "authority") {
-      return state.config.filters.authorities.map((authority) => ({
-        value: authority.code,
-        label: `${authority.code} - ${authority.name}`
-      }));
+  const facetOptions = (facet) => {
+    const counts = new Map();
+    for (const record of state.records) {
+      if (!matchesSearch(record) || !matchesFacets(record, facet.key)) continue;
+      for (const value of new Set(facetValues(facet, record))) counts.set(value, (counts.get(value) || 0) + 1);
     }
-    if (key === "subdivision") {
-      return (state.config.filters.subdivisions || []).map((subdivision) => ({
-        value: subdivision.name,
-        label: subdivision.name
-      }));
-    }
-    return state.denumiriOptions.map((name) => ({ value: name, label: name }));
+    for (const value of state.filter.applied[facet.key] || []) if (!counts.has(value)) counts.set(value, 0);
+    return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro", { numeric: true }));
   };
 
-  const syncFilterListBoundary = (list) => {
-    const isScrollable = list.scrollHeight > list.clientHeight + 1;
-    list.classList.toggle("is-scrollable", isScrollable);
-    list.classList.toggle("is-scrolled", isScrollable && list.scrollTop > 0);
-  };
+  /* a facet is offered when the registry has at least two values for it (as in the BO) */
+  const availableFacets = () => FACETS.filter((facet) => {
+    if (state.filter.applied[facet.key]?.length) return true;
+    const seen = new Set();
+    for (const record of state.records) { for (const value of facetValues(facet, record)) seen.add(value); if (seen.size > 1) return true; }
+    return false;
+  });
 
-  const renderSectionList = (key) => {
-    const list = elements.filterPanel.querySelector(`[data-rap-section-list="${key}"]`);
-    if (!list) {
-      return;
-    }
-    const query = normalize(state.sectionSearch[key]);
-    const draft = state.draft[key];
-    const options = sectionOptions(key).filter((option) => !query || normalize(option.label).includes(query));
-    list.innerHTML = options.length
-      ? options.map((option) => `
-        <label class="checkbox checkbox--medium rap-filter-option${draft.has(option.value) ? " is-checked" : ""}">
-          <input class="checkbox-input" type="checkbox" value="${escapeHtml(option.value)}" data-rap-option="${key}" ${draft.has(option.value) ? "checked" : ""}>
-          <span class="checkbox-custom" aria-hidden="true"></span>
-          <span class="rap-filter-option__label">${escapeHtml(option.label)}</span>
-        </label>
-      `).join("")
-      : window.GEAPEmptyState.noResults("Niciun rezultat", { text: "Încercați alți termeni.", bare: true, compact: true });
-    list.scrollTop = 0;
-    window.requestAnimationFrame(() => syncFilterListBoundary(list));
-  };
-
-  const renderFilterChips = (key, values) => {
-    const wrap = elements.filterPanel.querySelector(`[data-rap-section-chips="${key}"]`);
-    if (!wrap) {
-      return;
-    }
-    wrap.innerHTML = values.map((value) => {
-      const active = state.draft[key].has(value);
-      return `
-        <button class="rap-filter-toggle${active ? " is-active" : ""}" type="button" data-rap-chip="${key}" data-value="${escapeHtml(value)}">
-          ${active ? icon("circle-checkmark-filled") : ""}
-          <span>${escapeHtml(value)}</span>
-        </button>
-      `;
-    }).join("");
-  };
-
-  const sectionSelectionCount = (key) => key === "status"
-    ? state.draft.status.size + state.draft.marking.size
-    : state.draft[key].size;
-
-  const renderSectionHeader = (key) => {
-    const section = elements.filterPanel.querySelector(`[data-rap-filter-section="${key}"]`);
-    if (!section) {
-      return;
-    }
-    const collapsed = state.collapsedSections.has(key);
-    const count = sectionSelectionCount(key);
-    const countBadge = section.querySelector(`[data-rap-section-count="${key}"]`);
-    const toggle = section.querySelector(`[data-rap-section-toggle="${key}"]`);
-    const content = section.querySelector(`[data-rap-section-content="${key}"]`);
-    const title = section.querySelector(".rap-filter-section__heading")?.textContent.trim() || "secțiunea";
-
-    countBadge.hidden = count === 0;
-    countBadge.textContent = `${count} ${count === 1 ? "selectat" : "selectate"}`;
-    section.classList.toggle("is-collapsed", collapsed);
-    content.hidden = collapsed;
-    toggle.setAttribute("aria-expanded", String(!collapsed));
-    toggle.setAttribute("aria-label", `${collapsed ? "Extinde" : "Restrânge"} ${title}`);
-  };
-
-  const renderSectionHeaders = () => {
-    ["authority", "subdivision", "denumire", "status"].forEach(renderSectionHeader);
-  };
-
-  const syncDraftDateControls = () => {
-    elements.filterPanel.querySelectorAll("[data-rap-date]").forEach((input) => {
-      input.value = state.draftDates[input.dataset.rapDate] || "";
+  const initFacetFilter = () => {
+    facetFilter = window.GEAPFacetFilter.create({
+      bar: elements.filterBar,
+      toggle: elements.filterToggle,
+      count: elements.filterCount,
+      sprite: "../assets/icons/sprite.svg",
+      state: () => state.filter,
+      facets: availableFacets,
+      allFacets: () => FACETS,
+      options: facetOptions,
+      /* status values read as the table's status tags */
+      tag: (value, facet) => (facet.key === "status" ? `<span class="rap-status rap-status--${statusClass(value)}">${escapeHtml(value)}</span>` : null),
+      total: () => state.filteredRecords.length,
+      apply: () => { state.page = 1; applyFilters(); },
+      scrollers: [elements.tableScroller]
     });
-    ["issued", "expires"].forEach((prefix) => {
-      const checkbox = elements.filterPanel.querySelector(`[data-rap-date-single="${prefix}"]`);
-      const toInput = elements.filterPanel.querySelector(`[data-rap-date="${prefix}To"]`);
-      checkbox.checked = Boolean(state.draftDates[`${prefix}Single`]);
-      toInput.disabled = checkbox.checked;
-    });
-  };
-
-  const renderFilterPanel = () => {
-    renderSectionList("authority");
-    renderSectionList("subdivision");
-    renderSectionList("denumire");
-    renderFilterChips("status", state.config.filters.statuses);
-    renderFilterChips("marking", state.config.filters.markings || []);
-    renderSectionHeaders();
-    syncDraftDateControls();
-  };
-
-  const placeFilterPanelInline = () => {
-    document.querySelector(".rap-toolbar")?.after(elements.filterPanel);
-  };
-
-  const syncFilterTriggerState = (openMode = null) => {
-    elements.triggers.forEach((trigger) => {
-      trigger.setAttribute("aria-expanded", String(trigger.dataset.rapFilterTrigger === openMode));
-    });
-  };
-
-  const configureFilterPresentation = (mode) => {
-    const surface = elements.filterPanel.querySelector(".rap-filter-panel__surface");
-    elements.filterPanel.classList.toggle("is-drawer", mode === "drawer");
-    document.body.classList.toggle("rap-filter-drawer-open", mode === "drawer");
-
-    if (mode === "drawer") {
-      document.body.append(elements.filterPanel);
-      surface.setAttribute("role", "dialog");
-      surface.setAttribute("aria-modal", "true");
-    } else {
-      placeFilterPanelInline();
-      surface.setAttribute("role", "region");
-      surface.removeAttribute("aria-modal");
-    }
-  };
-
-  const openFilterPanel = (mode = "inline") => {
-    window.clearTimeout(filterPanelTimer);
-    if (elements.filterPanel.classList.contains("is-open") && filterPanelMode !== mode) {
-      elements.filterPanel.classList.remove("is-open");
-    }
-    filterPanelMode = mode;
-    configureFilterPresentation(mode);
-    FILTER_KEYS.forEach((key) => {
-      state.draft[key] = new Set(state.filters[key]);
-    });
-    state.draftDates = { ...state.dates };
-    state.sectionSearch = { authority: "", subdivision: "", denumire: "" };
-    elements.filterPanel.querySelectorAll("[data-rap-section-search]").forEach((input) => { input.value = ""; });
-    elements.filterPanel.hidden = false;
-    syncFilterTriggerState(mode);
-    renderFilterPanel();
-    window.requestAnimationFrame(() => elements.filterPanel.classList.add("is-open"));
-    if (mode === "drawer") {
-      window.requestAnimationFrame(() => elements.filterPanel.querySelector(".rap-filter-panel__close")?.focus());
-    }
-  };
-
-  const closeFilterPanel = ({ immediate = false, restoreFocus = true } = {}) => {
-    window.clearTimeout(filterPanelTimer);
-    const activeTrigger = elements.triggers.find((trigger) => trigger.dataset.rapFilterTrigger === filterPanelMode);
-    elements.filterPanel.classList.remove("is-open");
-    syncFilterTriggerState();
-    const finishClose = () => {
-      elements.filterPanel.hidden = true;
-      elements.filterPanel.classList.remove("is-drawer");
-      document.body.classList.remove("rap-filter-drawer-open");
-      const surface = elements.filterPanel.querySelector(".rap-filter-panel__surface");
-      surface.setAttribute("role", "region");
-      surface.removeAttribute("aria-modal");
-      placeFilterPanelInline();
-      filterPanelMode = null;
-    };
-    if (immediate) {
-      finishClose();
-    } else {
-      filterPanelTimer = window.setTimeout(finishClose, 160);
-    }
-    if (restoreFocus && activeTrigger) {
-      activeTrigger.focus({ preventScroll: true });
-    }
-  };
-
-  const applyDraftFilters = () => {
-    FILTER_KEYS.forEach((key) => {
-      state.filters[key] = new Set(state.draft[key]);
-    });
-    state.dates = { ...state.draftDates };
-    state.page = 1;
-    closeFilterPanel();
-    applyFilters();
-  };
-
-  const resetDraftFilters = () => {
-    FILTER_KEYS.forEach((key) => state.draft[key].clear());
-    state.draftDates = emptyDates();
-    renderFilterPanel();
-  };
-
-  const resetAllFilters = () => {
-    FILTER_KEYS.forEach((key) => {
-      state.filters[key].clear();
-      state.draft[key].clear();
-    });
-    state.dates = emptyDates();
-    state.draftDates = emptyDates();
-    state.page = 1;
-    applyFilters();
   };
 
   const renderPageSizeOptions = () => {
@@ -980,129 +704,6 @@
 
     elements.searchClear.addEventListener("click", clearSearch);
 
-    elements.triggers.forEach((trigger) => trigger.addEventListener("click", () => {
-      const mode = trigger.dataset.rapFilterTrigger;
-      const isSameOpenMode = elements.filterPanel.classList.contains("is-open") && filterPanelMode === mode;
-      if (isSameOpenMode) {
-        closeFilterPanel();
-        return;
-      }
-      openFilterPanel(mode);
-    }));
-
-    elements.resetAll.addEventListener("click", resetAllFilters);
-    elements.empty.addEventListener("click", (event) => {
-      if (event.target.closest("[data-rap-empty-reset]")) resetAllFilters();
-    });
-    elements.applyFilter.addEventListener("click", applyDraftFilters);
-    elements.resetFilter.addEventListener("click", resetDraftFilters);
-
-    elements.filterPanel.querySelectorAll("[data-rap-filter-close]").forEach((el) => {
-      el.addEventListener("click", () => closeFilterPanel());
-    });
-
-    elements.filterPanel.querySelectorAll("[data-rap-section-search]").forEach((input) => {
-      input.addEventListener("input", () => {
-        const key = input.dataset.rapSectionSearch;
-        state.sectionSearch[key] = input.value.trim();
-        renderSectionList(key);
-      });
-    });
-
-    elements.filterPanel.querySelectorAll("[data-rap-section-list]").forEach((list) => {
-      list.addEventListener("scroll", () => syncFilterListBoundary(list), { passive: true });
-      if (window.ResizeObserver) {
-        const observer = new ResizeObserver(() => syncFilterListBoundary(list));
-        observer.observe(list);
-      }
-    });
-
-    elements.filterPanelBody.addEventListener("change", (event) => {
-      const option = event.target.closest("[data-rap-option]");
-      if (!option) {
-        return;
-      }
-      const key = option.dataset.rapOption;
-      if (option.checked) {
-        state.draft[key].add(option.value);
-      } else {
-        state.draft[key].delete(option.value);
-      }
-      option.closest(".rap-filter-option")?.classList.toggle("is-checked", option.checked);
-      renderSectionHeader(key);
-    });
-
-    elements.filterPanelBody.addEventListener("click", (event) => {
-      const sectionToggle = event.target.closest("[data-rap-section-toggle]");
-      if (sectionToggle) {
-        const key = sectionToggle.dataset.rapSectionToggle;
-        if (state.collapsedSections.has(key)) {
-          state.collapsedSections.delete(key);
-        } else {
-          state.collapsedSections.add(key);
-        }
-        renderSectionHeader(key);
-        return;
-      }
-
-      const chip = event.target.closest("[data-rap-chip]");
-      if (!chip) {
-        return;
-      }
-      const key = chip.dataset.rapChip;
-      const value = chip.dataset.value;
-      if (state.draft[key].has(value)) {
-        state.draft[key].delete(value);
-      } else {
-        state.draft[key].add(value);
-      }
-      renderFilterChips(key, key === "status" ? state.config.filters.statuses : state.config.filters.markings || []);
-      renderSectionHeader(key === "marking" ? "status" : key);
-    });
-
-    elements.filterPanelBody.addEventListener("input", (event) => {
-      const dateInput = event.target.closest("[data-rap-date]");
-      if (dateInput) {
-        state.draftDates[dateInput.dataset.rapDate] = dateInput.value;
-      }
-    });
-
-    elements.filterPanelBody.addEventListener("change", (event) => {
-      const single = event.target.closest("[data-rap-date-single]");
-      if (!single) {
-        return;
-      }
-      const prefix = single.dataset.rapDateSingle;
-      state.draftDates[`${prefix}Single`] = single.checked;
-      if (single.checked) {
-        state.draftDates[`${prefix}To`] = "";
-      }
-      syncDraftDateControls();
-    });
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && elements.filterPanel.classList.contains("is-open")) {
-        closeFilterPanel();
-        return;
-      }
-      if (event.key === "Tab" && filterPanelMode === "drawer" && elements.filterPanel.classList.contains("is-open")) {
-        const focusable = [...elements.filterPanel.querySelectorAll("button:not(:disabled):not([tabindex='-1']), input:not(:disabled)")]
-          .filter((element) => element.offsetParent !== null);
-        if (!focusable.length) {
-          return;
-        }
-        const first = focusable[0];
-        const last = focusable.at(-1);
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    });
-
     elements.pageSize.addEventListener("change", () => {
       state.pageSize = Number(elements.pageSize.value);
       state.page = 1;
@@ -1203,7 +804,6 @@
 
   const init = async () => {
     try {
-      placeFilterPanelInline();
       const response = await fetch(DATA_URL);
       if (!response.ok) {
         throw new Error(`Datele RAP nu au putut fi încărcate (${response.status}).`);
@@ -1211,14 +811,12 @@
 
       state.config = await response.json();
       state.records = expandRecords(state.config.records, state.config.meta.totalResults);
-      state.denumiriOptions = state.config.filters.denumiri
-        || [...new Set(state.records.map((record) => record.permit.name))].sort((a, b) => a.localeCompare(b, "ro"));
       state.page = state.config.pagination.initialPage;
       state.pageSize = state.config.pagination.defaultPageSize;
       elements.title.textContent = state.config.page.title;
       elements.subtitle.textContent = state.config.page.subtitle;
       elements.search.placeholder = state.config.page.searchPlaceholder;
-      renderFilterPanel();
+      initFacetFilter();
       renderPageSizeOptions();
       bindEvents();
       applyFilters();

@@ -6012,24 +6012,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ---- Advanced filter: bar + popover (Figma GEAP 244:14333) ----
-     Two layers, so one table query covers many choices:
-     - a facet popover edits the bar's DRAFT ("Confirmă" keeps it, Esc / outside click
-       drops it) — no query;
-     - "Aplică filtrele" in the bar commits the whole draft at once — one query. */
-  const filterBar = document.querySelector("[data-workplace-filters]");
-  const filterToggle = document.querySelector("[data-workplace-filter-toggle]");
-  const filterCount = document.querySelector("[data-workplace-filter-count]");
-  const FILTER_INLINE_MAX = 4;
-  let filterPopover = null;
-  let filterEdit = null; /* { key, values:Set, query, anchor } while a facet popover is open */
-  let filterMoreOpen = false;
-
-  const draftOf = () => { const st = getFilterState(); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
-  const sameSelection = (a = {}, b = {}) => {
-    const norm = (o) => JSON.stringify(Object.keys(o).filter((k) => o[k]?.length).sort().map((k) => [k, [...o[k]].sort()]));
-    return norm(a) === norm(b);
-  };
-  const filterPending = () => !sameSelection(draftOf(), getFilterState().applied);
+     The bar, the facet popover, keyboard and focus live in js/facet-filter.js (shared with
+     the public RAP list); the registry gives it its state, facets, counts and re-render. */
   const facetTone = (facet, value) => {
     /* a facet may name its own tag tone per value (eKYC Decizie, Nivel asigurare) */
     if (facet.tone) return facet.tone(value);
@@ -6037,258 +6021,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const fromDb = Object.values(workplaceDb.statuses || {}).find((st) => st.label === value)?.tone;
     return fromDb || { Activ: "success", Activă: "success", Publicat: "success", Inactiv: "neutral", Schiță: "warning", Nepublicat: "warning" }[value] || "neutral";
   };
-
-  let filterBarKind = null;
-  const renderFilterBar = () => {
-    if (!filterBar) return;
-    const state = getFilterState();
-    /* arriving on another table: its bar starts closed and an unapplied draft is dropped */
-    const page = `${registryKindOf()}:${workplaceState.viewKey || ""}`;
-    if (filterBarKind !== page) {
-      Object.values(filterStore).forEach((st) => { st.open = false; st.draft = null; });
-      filterBarKind = page;
-    }
-    const draft = draftOf();
-    const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
-    if (filterCount) { filterCount.hidden = !appliedCount; filterCount.textContent = String(appliedCount); }
-    const facets = availableFacets();
-    /* the chips show only after "Filtrare avansată" is clicked; the button's badge
-       keeps telling how many values are applied while the bar is closed */
-    const show = (state.open || filterPending()) && facets.length > 0;
-    filterBar.hidden = !show;
-    if (filterToggle) {
-      const none = !facets.length;
-      filterToggle.setAttribute("aria-expanded", String(show));
-      if (none) { filterToggle.setAttribute("aria-disabled", "true"); filterToggle.dataset.tooltipReason = "Lista nu are încă valori după care să filtrezi."; }
-      else { filterToggle.removeAttribute("aria-disabled"); delete filterToggle.dataset.tooltipReason; }
-    }
-    if (!show) { filterBar.innerHTML = ""; return; }
-    /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
-    const inline = facets.filter((f, i) => i < FILTER_INLINE_MAX || draft[f.key]?.length);
-    const more = facets.filter((f) => !inline.includes(f));
-    const chip = (facet) => {
-      const n = draft[facet.key]?.length || 0;
-      const open = filterEdit?.key === facet.key;
-      return `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
-        <span class="chip__label">${escapeHtml(facet.label)}</span>
-        ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
-        <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
-      </button>`;
-    };
-    const pending = filterPending();
-    const total = getVisibleRows().length;
-    filterBar.innerHTML = `
-      <div class="e-permits-workplace__filter-chips">
-        ${inline.map(chip).join("")}
-        ${more.length ? `<button class="chip e-permits-workplace__filter-chip" type="button" aria-haspopup="menu" aria-expanded="${filterMoreOpen}" data-filter-more>
-          <span class="chip__label">Mai multe</span>
-          <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-${filterMoreOpen ? "top" : "bottom"}"></use></svg>
-        </button>` : ""}
-      </div>
-      <div class="e-permits-workplace__filter-meta" aria-live="polite">
-        ${pending ? `
-          <span class="e-permits-workplace__filter-hint">Filtre neaplicate</span>
-          <button class="btn btn-text-neutral btn-sm" type="button" data-filter-discard>Renunță</button>
-          <button class="btn btn-primary btn-sm" type="button" data-filter-commit>Aplică filtrele</button>
-        ` : appliedCount ? `
-          <span class="e-permits-workplace__filter-result">${total === 1 ? "1 rezultat" : `${total} rezultate`}</span>
-          <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>
-        ` : '<span class="e-permits-workplace__filter-hint">Alege valorile, apoi aplică filtrele.</span>'}
-      </div>
-    `;
-  };
-
-  const ensureFilterPopover = () => {
-    if (filterPopover) return;
-    filterPopover = document.createElement("div");
-    filterPopover.className = "e-permits-fo-intent-menu e-permits-workplace__filter-pop";
-    filterPopover.hidden = true;
-    document.body.appendChild(filterPopover);
-    wireFilterPopover();
-  };
-
-  const placeFilterPopover = (anchor) => {
-    const r = anchor.getBoundingClientRect();
-    const width = filterPopover.offsetWidth;
-    filterPopover.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - width - 8))}px`;
-    filterPopover.style.top = `${r.bottom + 8}px`;
-  };
-
-  const closeFilterPopover = (restoreFocus = true) => {
-    if (!filterPopover || filterPopover.hidden) return;
-    const key = filterEdit?.key;
-    const wasMore = filterMoreOpen;
-    filterPopover.hidden = true;
-    filterEdit = null;
-    filterMoreOpen = false;
-    renderFilterBar();
-    if (!restoreFocus) return;
-    const back = (key && filterBar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)) || ((wasMore || key) && filterBar?.querySelector("[data-filter-more]"));
-    back?.focus();
-  };
-
-  const renderFilterOptions = () => {
-    const facet = facetsOf().find((f) => f.key === filterEdit.key);
-    const q = filterEdit.query.trim().toLocaleLowerCase("ro");
-    const options = facetOptions(facet).filter((o) => !q || o.value.toLocaleLowerCase("ro").includes(q));
-    return options.length ? options.map((o) => {
-      const tone = facetTone(facet, o.value);
-      return `
-        <li>
-          <label class="e-permits-workplace__filter-option">
-            <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${filterEdit.values.has(o.value) ? " checked" : ""} data-filter-option><span class="checkbox-custom" aria-hidden="true"></span></span>
-            ${tone ? renderTag(o.value, tone) : `<span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>`}
-          </label>
-        </li>
-      `;
-    }).join("") : `<li>${renderNoResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
-  };
-
-  const openFilterPopover = (key, anchor) => {
-    const facet = facetsOf().find((f) => f.key === key);
-    if (!facet) return;
-    ensureFilterPopover();
-    filterMoreOpen = false;
-    filterEdit = { key, values: new Set(draftOf()[key] || []), query: "", anchor };
-    const many = facetOptions(facet).length > 7;
-    filterPopover.setAttribute("role", "dialog");
-    filterPopover.setAttribute("aria-label", `Filtru: ${facet.label}`);
-    filterPopover.innerHTML = `
-      ${many ? `
-        <div class="e-permits-workplace__filter-head">
-          <div class="search-input medium rectangular e-permits-workplace__search">
-            <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-search"></use></svg></span>
-            <input class="input" type="search" placeholder="Caută în ${escapeHtml(facet.label.toLocaleLowerCase("ro"))}" aria-label="Caută în ${escapeHtml(facet.label)}" data-filter-search>
-            ${renderSearchActions()}
-          </div>
-        </div>` : ""}
-      <ul class="e-permits-workplace__filter-list" role="list" data-filter-list>${renderFilterOptions()}</ul>
-      <div class="e-permits-workplace__filter-footer">
-        <button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
-        <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
-          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
-          <span>Șterge</span>
-        </button>
-      </div>
-    `;
-    filterPopover.hidden = false;
-    renderFilterBar();
-    placeFilterPopover(filterBar.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) || filterBar.querySelector("[data-filter-more]") || anchor);
-    requestAnimationFrame(() => (filterPopover.querySelector("[data-filter-search]") || filterPopover.querySelector("[data-filter-option]") || filterPopover.querySelector("[data-filter-confirm]"))?.focus());
-  };
-
-  const openMoreMenu = (anchor) => {
-    ensureFilterPopover();
-    filterEdit = null;
-    filterMoreOpen = true;
-    const facets = availableFacets();
-    const draft = draftOf();
-    const inline = facets.filter((f, i) => i < FILTER_INLINE_MAX || draft[f.key]?.length);
-    filterPopover.setAttribute("role", "menu");
-    filterPopover.setAttribute("aria-label", "Mai multe filtre");
-    filterPopover.innerHTML = `<div class="e-permits-workplace__filter-list">${facets.filter((f) => !inline.includes(f)).map((f) => `
-      <button class="e-permits-workplace__filter-more-item" type="button" role="menuitem" data-filter-more-facet="${escapeHtml(f.key)}">${escapeHtml(f.label)}</button>`).join("")}</div>`;
-    filterPopover.hidden = false;
-    renderFilterBar();
-    placeFilterPopover(filterBar.querySelector("[data-filter-more]") || anchor);
-    requestAnimationFrame(() => filterPopover.querySelector("[data-filter-more-facet]")?.focus());
-  };
-
-  /* popover "Confirmă": the facet goes into the draft; nothing is queried yet */
-  const confirmFacetEdit = () => {
-    const draft = draftOf();
-    const values = [...filterEdit.values];
-    if (values.length) draft[filterEdit.key] = values; else delete draft[filterEdit.key];
-    closeFilterPopover();
-  };
-
-  /* bar "Aplică filtrele": one query for everything that changed */
-  const commitFilters = () => {
-    const state = getFilterState();
-    state.applied = JSON.parse(JSON.stringify(draftOf()));
-    Object.keys(state.applied).forEach((k) => { if (!state.applied[k]?.length) delete state.applied[k]; });
-    state.draft = null;
-    saveFilterState();
-    workplaceState.page = 1;
-    renderWorkplace();
-    filterBar?.querySelector("[data-filter-clear-all], [data-filter-facet]")?.focus();
-  };
-
-  const discardFilterDraft = () => { getFilterState().draft = null; renderFilterBar(); };
-
-  const clearAllFilters = () => {
-    const state = getFilterState();
-    state.applied = {};
-    state.draft = null;
-    saveFilterState();
-    workplaceState.page = 1;
-    renderWorkplace();
-  };
-
-  function wireFilterPopover() {
-    filterPopover.addEventListener("change", (event) => {
-      const box = event.target.closest("[data-filter-option]");
-      if (!box || !filterEdit) return;
-      if (box.checked) filterEdit.values.add(box.value); else filterEdit.values.delete(box.value);
-    });
-    filterPopover.addEventListener("input", (event) => {
-      if (!event.target.closest("[data-filter-search]") || !filterEdit) return;
-      filterEdit.query = event.target.value;
-      filterPopover.querySelector("[data-filter-list]").innerHTML = renderFilterOptions();
-    });
-    filterPopover.addEventListener("click", (event) => {
-      const moreFacet = event.target.closest("[data-filter-more-facet]");
-      if (moreFacet) { openFilterPopover(moreFacet.dataset.filterMoreFacet, filterBar.querySelector("[data-filter-more]")); return; }
-      if (!filterEdit) return;
-      if (event.target.closest("[data-filter-confirm]")) { confirmFacetEdit(); return; }
-      if (event.target.closest("[data-filter-reset]")) {
-        filterEdit.values.clear();
-        filterPopover.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
-      }
-    });
-    filterPopover.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") { event.preventDefault(); closeFilterPopover(); return; }
-      if (event.key === "Enter" && filterEdit && !event.target.closest("button")) { event.preventDefault(); confirmFacetEdit(); }
-    });
-  }
-
-  filterToggle?.addEventListener("click", () => {
-    if (filterToggle.getAttribute("aria-disabled") === "true") return;
-    const state = getFilterState();
-    const visible = !filterBar.hidden;
-    if (visible && filterPending()) { filterBar.querySelector("[data-filter-commit]")?.focus(); return; }
-    state.open = !visible;
-    saveFilterState();
-    renderFilterBar();
-    if (state.open) filterBar.querySelector("[data-filter-facet]")?.focus();
+  const workplaceFilter = window.GEAPFacetFilter.create({
+    bar: document.querySelector("[data-workplace-filters]"),
+    toggle: document.querySelector("[data-workplace-filter-toggle]"),
+    count: document.querySelector("[data-workplace-filter-count]"),
+    state: () => getFilterState(),
+    save: () => saveFilterState(),
+    facets: availableFacets,
+    allFacets: facetsOf,
+    options: facetOptions,
+    tag: (value, facet) => { const tone = facetTone(facet, value); return tone ? renderTag(value, tone) : null; },
+    total: () => getVisibleRows().length,
+    apply: () => { workplaceState.page = 1; renderWorkplace(); },
+    pageKey: () => `${registryKindOf()}:${workplaceState.viewKey || ""}`,
+    onPageChange: () => Object.values(filterStore).forEach((st) => { st.open = false; st.draft = null; }),
+    scrollers: [document.querySelector(".e-permits-workplace__table-wrap")]
   });
-
-  filterBar?.addEventListener("click", (event) => {
-    if (event.target.closest("[data-filter-clear-all]")) { clearAllFilters(); return; }
-    if (event.target.closest("[data-filter-commit]")) { commitFilters(); return; }
-    if (event.target.closest("[data-filter-discard]")) { discardFilterDraft(); return; }
-    const more = event.target.closest("[data-filter-more]");
-    if (more) { if (filterMoreOpen) closeFilterPopover(); else openMoreMenu(more); return; }
-    const chip = event.target.closest("[data-filter-facet]");
-    if (!chip) return;
-    if (filterEdit?.key === chip.dataset.filterFacet) { closeFilterPopover(); return; }
-    openFilterPopover(chip.dataset.filterFacet, chip);
-  });
-
-  /* the empty-table "Șterge filtrele" lives in the table body */
-  document.addEventListener("click", (event) => {
-    const clear = event.target.closest("[data-filter-clear-all]");
-    if (clear && !filterBar?.contains(clear)) { event.stopPropagation(); clearAllFilters(); }
-  });
-
-  /* outside click / resize / table scroll cancel the open popover (the draft stays) */
-  document.addEventListener("pointerdown", (event) => {
-    if (!filterPopover || filterPopover.hidden) return;
-    if (filterPopover.contains(event.target) || event.target.closest("[data-filter-facet], [data-filter-more]")) return;
-    closeFilterPopover(false);
-  });
-  window.addEventListener("resize", () => closeFilterPopover(false));
-  document.querySelector(".e-permits-workplace__table-wrap")?.addEventListener("scroll", () => closeFilterPopover(false), { passive: true });
+  const renderFilterBar = () => workplaceFilter.render();
 
   const renderWorkplace = () => {
     if (!workplaceDb || !workplaceTable) {

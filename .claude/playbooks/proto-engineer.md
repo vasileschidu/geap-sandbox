@@ -998,3 +998,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   option to `statusTag()` for the summary row only), and `--small` drops to 10 px at ≤720 → pin
   `--text-caption-md-font-size: 12` on the value (as `.e-permits-fo-doc-tag`). No sub-agent tool → ran
   code-audit + hover-audit myself (only standing FPs: copy-value, toast-covered header in svc-09h5).
+- 2026-10-16 · RAP „Filtru” = the BO advanced filter: „reuse, no second implementation” for a page that does not load
+  the shell → MOVE the controller into its own file (`js/facet-filter.js`, `GEAPFacetFilter.create` with hooks for state /
+  facets / options / tag / total / apply / pageKey) and its CSS into `css/facet-filter.css` loaded right AFTER
+  e-permits-shell.css and BEFORE e-permits-acte-permisive.css (keeps every tie in the cascade as it was). Proof that the BO
+  is identical: a behaviour probe (scratch ff/bo.mjs: click path toggle → chip → option → Confirmă → Aplică → Esc / outside
+  / Mai multe / clear, snapshotting bar + popover HTML, focus, counts and computed styles of ~20 filter elements) on a HEAD
+  worktree (:8937) vs the tree: 40 snapshots × 2 viewports byte-equal. Standalone pages miss BO-generic rules the
+  component silently relies on: the menu base + dropdown surface (restated under `:where()` = zero specificity, same
+  values), the open-button ring, the selected-chip hover (hover-audit caught it) — restate them scoped to the component at
+  ≤ the BO specificity. Latent BO bug seen on the way: at 375 the bar keeps chips + „N rezultate · Șterge filtrele” on one
+  row and a long first chip runs under the meta (RAP wraps them, scoped; BO left as is — report it). Another agent
+  committed mid-job and bumped `?v=` on the same line → stage with a regex on the version, not the literal.

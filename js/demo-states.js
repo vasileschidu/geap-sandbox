@@ -1947,6 +1947,30 @@
     /* where „Solicită online” lands: MPass (no session), S3 instance, „Ce vrei să soliciți?” */
     "cat-03": { page: PP_FO, flow: "full", ready: "[data-fo-screen='auth']:not([hidden]) h1" },
     "cat-03a": { page: PP_FO, flow: "full", hash: "#choice-authenticated", ready: "[data-fo-screen='choice']:not([hidden]) h1", delay: 1900 },
+    /* Registrul actelor permisive (public RAP list): „Filtru” = the BO advanced filter
+       (js/facet-filter.js) — bar of facet chips, checklist popover, applied chips, empty result */
+    ...(() => {
+      const RAP = "rap-evo/index.html";
+      const rap = (run) => ({ page: RAP, ready: "tr[data-record-id]", run });
+      const pick = (facet, values) => async (h) => {
+        await h.click(`[data-filter-facet="${facet}"]`);
+        for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
+        await h.click("[data-filter-confirm]");
+      };
+      const open = async (h) => { await h.click("[data-rap-filter-toggle]"); };
+      return {
+        "rap-01": rap(null),
+        "rap-01a": rap(open),
+        "rap-01b": rap(async (h) => { await open(h); await h.click('[data-filter-facet="status"]'); await h.click('[data-filter-option][value="Valabil"]'); }),
+        "rap-01c": rap(async (h) => {
+          await open(h); await pick("status", ["Valabil"])(h); await pick("denumire", ["Notificare unitate comercială"])(h);
+          await pick("beneficiar", ["Persoană juridică"])(h); await h.click("[data-filter-commit]");
+        }),
+        "rap-01d": rap(async (h) => {
+          await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await h.click("[data-filter-commit]");
+        })
+      };
+    })(),
     "cat-03b": ppIntent(),
     /* EVO → service hand-over (user rule 2026-10-13): signed in to EVO, „Solicită online” carries
        the cabinet instance (?as → ?solicitant) — no instance choice, the request opens as it */

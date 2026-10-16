@@ -7,11 +7,16 @@
   <link rel="stylesheet" href="../assets/fonts/Onest.css">
   <link rel="stylesheet" href="../css/main.css?v=crumbs-v2">
   <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
-  <link rel="stylesheet" href="rap-evo.css?v=tokens-v2">
+  <link rel="stylesheet" href="../css/facet-filter.css?v=facet-v1">
+  <link rel="stylesheet" href="rap-evo.css?v=facet-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
+  <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
+  <script src="../js/demo-states.js?v=facet-v1"></script>
+  <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=toast-v2" defer></script>
   <script src="../js/empty-state.js?v=empty-v3" defer></script>
-  <script src="rap-evo.js?v=empty-v1" defer></script>
+  <script src="../js/facet-filter.js?v=facet-v1" defer></script>
+  <script src="rap-evo.js?v=facet-v1" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
 <body class="rap-page">
@@ -104,36 +109,15 @@
           </div>
         </div>
 
-        <div class="rap-toolbar__filters">
-          <button
-            class="rap-filter-chip"
-            type="button"
-            aria-expanded="false"
-            aria-controls="rap-filter-panel"
-            data-rap-filter-trigger="inline"
-          >
-            <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-2"></use></svg>
-            <span>Filtre</span>
-            <span class="rap-filter-chip__count" data-rap-filter-count hidden>0</span>
-          </button>
-          <button
-            class="rap-filter-chip"
-            type="button"
-            aria-haspopup="dialog"
-            aria-expanded="false"
-            aria-controls="rap-filter-panel"
-            data-rap-filter-trigger="drawer"
-          >
-            <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-2"></use></svg>
-            <span>Filtre modal</span>
-            <span class="rap-filter-chip__count" data-rap-filter-count hidden>0</span>
-          </button>
-          <button class="rap-filter-reset" type="button" data-rap-filter-reset-all hidden>
-            <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-cross-small"></use></svg>
-            <span>Resetează</span>
-          </button>
-        </div>
+        <!-- the BO advanced filter (js/facet-filter.js): button → bar of facet chips → checklist popover -->
+        <button class="btn btn-neutral btn-sm e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="rap-filters" data-rap-filter-toggle>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg>
+          <span>Filtru</span>
+          <span class="badge badge--lg badge--solid-light" data-rap-filter-count hidden></span>
+        </button>
       </div>
+
+      <div class="e-permits-workplace__filters rap-filters" id="rap-filters" role="group" aria-label="Filtre" data-rap-filters hidden></div>
 
       <section class="rap-company-summary" data-rap-company-summary hidden aria-live="polite"></section>
 
@@ -184,146 +168,6 @@
   </main>
 
   <main class="rap-profile" data-rap-profile-view hidden></main>
-
-  <section class="rap-filter-panel" id="rap-filter-panel" data-rap-filter-panel hidden aria-labelledby="rap-filter-title">
-    <button class="rap-filter-panel__scrim" type="button" tabindex="-1" aria-label="Închide filtrele" data-rap-filter-close></button>
-    <div class="rap-filter-panel__overflow">
-      <div class="rap-filter-panel__surface" role="region" aria-labelledby="rap-filter-title">
-      <header class="rap-filter-panel__header">
-        <h2 id="rap-filter-title">Filtrare avansată</h2>
-        <button class="rap-icon-button rap-filter-panel__close" type="button" aria-label="Închide filtrele" data-rap-filter-close>
-          <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-cross-large-16"></use></svg>
-        </button>
-      </header>
-      <div class="rap-filter-panel__body">
-        <section class="rap-filter-section" data-rap-filter-section="authority">
-          <button class="rap-filter-section__head" type="button" aria-expanded="true" aria-controls="rap-filter-section-authority" data-rap-section-toggle="authority">
-            <span class="rap-filter-section__title">
-              <span class="rap-filter-section__heading" role="heading" aria-level="3">Autoritatea emitentă</span>
-              <span class="rap-filter-section__count" data-rap-section-count="authority" hidden></span>
-            </span>
-            <span class="rap-filter-section__action" aria-hidden="true">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-top-16"></use></svg>
-            </span>
-          </button>
-          <div class="rap-filter-section__content" id="rap-filter-section-authority" data-rap-section-content="authority">
-            <label class="search-input medium rectangular rap-filter-section__search">
-              <span class="icon-search" aria-hidden="true"><svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau denumire" aria-label="Caută autoritate" data-rap-section-search="authority">
-            </label>
-            <div class="rap-filter-section__list" data-rap-section-list="authority"></div>
-          </div>
-        </section>
-
-        <section class="rap-filter-section" data-rap-filter-section="subdivision">
-          <button class="rap-filter-section__head" type="button" aria-expanded="true" aria-controls="rap-filter-section-subdivision" data-rap-section-toggle="subdivision">
-            <span class="rap-filter-section__title">
-              <span class="rap-filter-section__heading" role="heading" aria-level="3">Subdiviziunea</span>
-              <span class="rap-filter-section__count" data-rap-section-count="subdivision" hidden></span>
-            </span>
-            <span class="rap-filter-section__action" aria-hidden="true">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-top-16"></use></svg>
-            </span>
-          </button>
-          <div class="rap-filter-section__content" id="rap-filter-section-subdivision" data-rap-section-content="subdivision">
-            <label class="search-input medium rectangular rap-filter-section__search">
-              <span class="icon-search" aria-hidden="true"><svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau denumire" aria-label="Caută subdiviziune" data-rap-section-search="subdivision">
-            </label>
-            <div class="rap-filter-section__list" data-rap-section-list="subdivision"></div>
-          </div>
-        </section>
-
-        <section class="rap-filter-section" data-rap-filter-section="denumire">
-          <button class="rap-filter-section__head" type="button" aria-expanded="true" aria-controls="rap-filter-section-denumire" data-rap-section-toggle="denumire">
-            <span class="rap-filter-section__title">
-              <span class="rap-filter-section__heading" role="heading" aria-level="3">Denumire act</span>
-              <span class="rap-filter-section__count" data-rap-section-count="denumire" hidden></span>
-            </span>
-            <span class="rap-filter-section__action" aria-hidden="true">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-top-16"></use></svg>
-            </span>
-          </button>
-          <div class="rap-filter-section__content" id="rap-filter-section-denumire" data-rap-section-content="denumire">
-            <label class="search-input medium rectangular rap-filter-section__search">
-              <span class="icon-search" aria-hidden="true"><svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg></span>
-              <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau denumire" aria-label="Caută denumire act" data-rap-section-search="denumire">
-            </label>
-            <div class="rap-filter-section__list" data-rap-section-list="denumire"></div>
-          </div>
-        </section>
-
-        <section class="rap-filter-section rap-filter-section--status" data-rap-filter-section="status">
-          <button class="rap-filter-section__head" type="button" aria-expanded="true" aria-controls="rap-filter-section-status" data-rap-section-toggle="status">
-            <span class="rap-filter-section__title">
-              <span class="rap-filter-section__heading" role="heading" aria-level="3">Statut</span>
-              <span class="rap-filter-section__count" data-rap-section-count="status" hidden></span>
-            </span>
-            <span class="rap-filter-section__action" aria-hidden="true">
-              <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-top-16"></use></svg>
-            </span>
-          </button>
-          <div class="rap-filter-section__content" id="rap-filter-section-status" data-rap-section-content="status">
-            <div class="rap-filter-chips" data-rap-section-chips="status"></div>
-            <div class="rap-filter-marking">
-              <span>Marcaj</span>
-              <div class="rap-filter-chips" data-rap-section-chips="marking"></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="rap-filter-dates" aria-label="Intervale de dată">
-          <div class="rap-filter-date-row">
-            <label class="rap-filter-date-field">
-              <span>Data emiterii</span>
-              <span class="search-input medium rectangular rap-filter-date-input">
-                <input class="input" type="date" data-rap-date="issuedFrom" aria-label="Data emiterii de la">
-                <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-calendar"></use></svg>
-              </span>
-            </label>
-            <svg class="icon rap-filter-date-row__arrow" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-            <div class="rap-filter-date-end">
-              <label class="checkbox checkbox--medium rap-filter-inline-check">
-                <input class="checkbox-input" type="checkbox" data-rap-date-single="issued">
-                <span class="checkbox-custom" aria-hidden="true"></span>
-                <span>Fără interval</span>
-              </label>
-              <label class="search-input medium rectangular rap-filter-date-input">
-                <input class="input" type="date" data-rap-date="issuedTo" aria-label="Data emiterii până la">
-                <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-calendar"></use></svg>
-              </label>
-            </div>
-          </div>
-          <div class="rap-filter-date-row">
-            <label class="rap-filter-date-field">
-              <span>Data expirării</span>
-              <span class="search-input medium rectangular rap-filter-date-input">
-                <input class="input" type="date" data-rap-date="expiresFrom" aria-label="Data expirării de la">
-                <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-calendar"></use></svg>
-              </span>
-            </label>
-            <svg class="icon rap-filter-date-row__arrow" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-arrow-right"></use></svg>
-            <div class="rap-filter-date-end">
-              <label class="checkbox checkbox--medium rap-filter-inline-check">
-                <input class="checkbox-input" type="checkbox" data-rap-date-single="expires">
-                <span class="checkbox-custom" aria-hidden="true"></span>
-                <span>Fără interval</span>
-              </label>
-              <label class="search-input medium rectangular rap-filter-date-input">
-                <input class="input" type="date" data-rap-date="expiresTo" aria-label="Data expirării până la">
-                <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-calendar"></use></svg>
-              </label>
-            </div>
-          </div>
-        </section>
-      </div>
-      <footer class="rap-filter-panel__footer">
-        <button class="btn btn-text-strict btn-pill rap-filter-panel__reset" type="button" data-rap-filter-reset>Resetează</button>
-        <button class="btn btn-primary btn-pill rap-filter-panel__apply" type="button" data-rap-filter-apply>Aplică filtre</button>
-      </footer>
-      </div>
-    </div>
-  </section>
 
   <div class="rap-tooltip" role="tooltip" data-rap-tooltip hidden></div>
 </body>
