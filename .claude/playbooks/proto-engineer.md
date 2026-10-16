@@ -862,3 +862,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (`[data-fo-step-panel="4"] .e-permits-fo-summary-card` = radius 24 / padding 8): give the scope a reusable class
   (`.e-permits-fo-review`) and put it on the host, then measure computed radius / padding / gaps against the FO
   state. Never „label: Da / Nu” tags — show the thing itself (document card) or a real-word status.
+- 2026-10-16 · „Make X exactly like the reference” when the reference has the same bug: the user named svc-02
+  „Tipuri solicitări” as the model for a button with right padding, but MEASURED it was flush too (button right
+  inset 0, and 2 / 14 off-centre from the base `heading-tools` padding-bottom 12 meant for the non-BO heading).
+  Measure the reference before copying it; fix the shared component (one BO rule: tools padding-right 12,
+  padding-bottom 0, meta inside tools no extra padding) and route bare buttons through the same wrapper, then
+  report the difference so Figma follows. A 676-state DOM sweep (scratch sh/sweep.mjs + hprobe.js: every visible
+  title whose parent row holds a .btn / segmented, with insets and gap to next) gave the inventory and the
+  before / after diff in one go — filter rowH ≤ 60 to drop drawer sections that merely contain buttons.
+- 2026-10-16 · Phones: BO section headings are a fixed 48 row; the base ≤760 `flex-direction: column` + the ≤640
+  `flex-wrap` sent the tools into a SECOND COLUMN off-screen (svc-02 button at x 474 on 375, pre-existing on HEAD).
+  The eKYC product already had the fix (grid: title row, tools under) — generalise a product's fix to the BO
+  instead of writing a new one; check a HEAD worktree (:8936) to know if a phone bug is yours.
+- 2026-10-16 · „Tab strip too wide”: the page-header `.tab-buttons` had `width: 100%` (overriding the library
+  `fit-content`) to draw a full-width track line. Hug the strip (`max-content`) and draw the line on the `.tabs`
+  wrapper as a content-box background (a box-shadow would ignore the wrapper's inline padding — the template
+  sheet's line would have gone full-bleed). Figma's `Profile / Tabs` also has a full-width `tab-buttons` frame —
+  report it for the Figma follow-up. Without the Figma screen id (figma-a only lists the open page; parent ids
+  can't be walked from a child), say so instead of guessing ids.

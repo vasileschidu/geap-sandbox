@@ -16599,6 +16599,41 @@
   flex: 1;
 }
 
+/* Section header with an action — ONE pattern (2026-10-16, user: „the button touches the edge”):
+   title + .e-permits-passport__heading-tools (meta? + button / menu / segmented). The tools mirror
+   the title's 12px inset on the right and sit centred in the 48px row (the base padding-bottom 12
+   belongs to the non-BO heading, whose title has a 12px bottom padding); the meta inside the tools
+   is spaced by the tools' 12px gap only. */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading > .e-permits-passport__heading-tools {
+  padding-bottom: 0;
+  padding-right: var(--spacing-12, 12px);
+}
+
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-passport__heading-tools > .e-permits-dosar-profil__section-meta {
+  padding-right: 0;
+}
+
+/* phones: the 48px row cannot hold title + tools (the column-wrap fallback pushed the button off
+   screen) → the eKYC layout for every BO heading with tools: title row, then the tools under it,
+   12 inset on both sides and 12 above the content */
+@media (max-width: 760px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading:has(> .e-permits-passport__heading-tools) {
+    display: grid;
+    gap: var(--spacing-4, 4px);
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading > .e-permits-passport__heading-tools {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    justify-self: stretch;
+    margin-left: 0;
+    min-width: 0;
+    padding: 0 var(--spacing-12, 12px) var(--spacing-12, 12px);
+  }
+}
+
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-meta {
   color: var(--color-text-base-tertiary, #757575);
   font: 400 12px/16px var(--font-family-primary-font, Onest), sans-serif;
@@ -18188,17 +18223,24 @@
   display: none;
 }
 
-/* Figma 8993:39381: the track line sits inside the tab row, so the active tab's
-   2px underline covers it. Back office = the small tab (tab-item-s): 40px, px12, 14/20. */
+/* Figma 8993:39381: the track line runs the full header width under the tabs, and the
+   active tab's 2px underline covers it. Back office = the small tab (tab-item-s): 40px, px12,
+   14/20. The strip itself hugs its tabs (library `.tabs .tab-buttons` = fit-content; user
+   2026-10-16) — the line is drawn by the `.tabs` wrapper, not by a stretched strip. */
+.e-permits-page-header__tabs {
+  /* content-box: the line keeps the wrapper's inline padding (template sheet: 24) */
+  background: linear-gradient(var(--color-border-base-default, #d9d9d9), var(--color-border-base-default, #d9d9d9)) bottom / 100% var(--border-width-1, 1px) no-repeat content-box;
+}
+
 .e-permits-page-header__tabs .tab-buttons {
   align-items: stretch;
   border-bottom: 0;
-  box-shadow: inset 0 -1px 0 var(--color-border-base-default, #d9d9d9);
+  box-shadow: none;
   display: flex;
   gap: 0;
   height: 40px;
   min-width: max-content;
-  width: 100%;
+  width: max-content;
 }
 
 .e-permits-page-header__tabs .tab-button {

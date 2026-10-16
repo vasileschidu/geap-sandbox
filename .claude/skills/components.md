@@ -213,6 +213,7 @@ but this doc previously described it wrongly, see the entry.
 | Tag | `.tag-item` (a layout row, not a pill) | `tags.html` | library (partial) |
 | Copy value | `.e-permits-fo-copy-value` | — | app |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
+| **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
 | **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” + ⋮ Descarcă → document modal with the A4 page preview · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
 | Dosar › Documente însoțitoare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · `renderRowActions` eye + ⋮ Descarcă; modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Documente însoțitoare” | app |
@@ -2933,6 +2934,12 @@ rol, act permisiv. Do not build another hero; render through the helpers in
 </header>
 ```
 
+**Tab strip hugs its tabs (2026-10-16, user):** `.tab-buttons` is `width: max-content` (the library
+`fit-content`), never `width: 100%`; the full-width track line is drawn by the `.tabs` wrapper
+(`.e-permits-page-header__tabs`, a 1px `--color-border-base-default` content-box background, so a
+wrapper with inline padding — the template sheet, 24 — keeps the line inset). Measured: Șabloane de
+notificare strip 1184 → 358 (4 tabs), Utilizatori 1184 → 681, passport unchanged (it overflows).
+
 Measured against Figma: 16px inset, top row 60, meta row 68, tabs 48 with no
 inter-tab gap, 14/20 regular (active 500 brand + 2px). Actions are library `.btn`
 + `.btn-sm`, scoped to Figma's Small (32px, radius 6, 8px icon-side padding),
@@ -3666,6 +3673,37 @@ nou, șablon nou, …) uses it — never a frame-built strip. Code: `renderStepS
 - **Section heading action:** `renderStackedList(title, groups, { meta, actionHtml })` puts
   meta + action together in `.e-permits-passport__heading-tools` (right side). Add buttons
   are `btn btn-secondary btn-sm` with `icon-plus-large`, like „Atașează șablon”.
+
+**Section header with an action — one pattern (2026-10-16, user: „the button touches the
+container edge”).** Every BO section header that carries an action (button, ⋮ stack-menu button,
+segmented control, meta + button) is the same markup:
+
+```html
+<div class="e-permits-dosar-profil__section-heading">
+  <h2 class="e-permits-dosar-profil__section-title">Reguli de destinatari</h2>
+  <div class="e-permits-passport__heading-tools">
+    <!-- optional: <span class="e-permits-dosar-profil__section-meta">2 din 4 configurate</span> -->
+    <button class="btn btn-secondary btn-sm" type="button">+ Adaugă regulă</button>
+  </div>
+</div>
+<!-- then the stack / card / table, 0 gap -->
+```
+
+- Desktop (measured, 1440): row 48; title 18/26 semibold, padding 11/12 → text 12 from the left;
+  tools 12 from the right (mirror of the title inset), button centred (8 above / 8 below); meta →
+  button = the tools' 12 gap (meta's own right padding is only for a meta-only heading); 0 gap to
+  the stack / card under it. Never put the button straight into the heading (it then touches the
+  edge) — the `heading-tools` wrapper carries the inset.
+- Phones (≤760): title row 48, the tools under it (grid, gap 4), inset 12 left / right, 12 above
+  the content, left-aligned (the eKYC layout, now BO-wide).
+- Renderers: `renderStackedList`, `renderPassportBlock`, the classifier `clasSection`, the eKYC
+  `sectionHead`; hand-written headers (Șabloane de notificare › Reguli de destinatari and
+  Previzualizare, Utilizatori › Combinații de roluri) use the same wrapper.
+- Not this pattern: `.e-permits-pay__toolbar` (title + search + filters + add + ⋮ — the list
+  toolbar) and drawer sections (`.e-permits-user-create__section`).
+- Figma: `svc/section-heading + action` wrappers (e.g. 9629:2853 › 10003:77164) still draw the
+  action flush right (x 886 + 138 = 1024) and the old 2 / 14 offset — follow-up: right padding 12,
+  action centred.
 - **Tipuri solicitări:** „Adaugă tip solicitare” is a stack-menu button
   (`data-stack-menu-trigger`, menu `#passport-add-rt-menu`) listing the eligible
   post-processes (`RT_POST_PROCESS_TYPES`) the service does not have yet, matched by

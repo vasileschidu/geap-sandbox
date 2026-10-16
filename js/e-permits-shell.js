@@ -4754,10 +4754,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <!-- title and the one action on the same row (no toolbar: there is nothing to search) -->
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title">Combinații de roluri</h2>
-          <button class="btn btn-secondary btn-sm" type="button" data-combo-add-open>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-            <span>Adaugă combinație</span>
-          </button>
+          <div class="e-permits-passport__heading-tools">
+            <button class="btn btn-secondary btn-sm" type="button" data-combo-add-open>
+              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+              <span>Adaugă combinație</span>
+            </button>
+          </div>
         </div>
         <div class="e-permits-sum-list">
           ${items.length ? `
@@ -11588,8 +11590,10 @@ document.addEventListener("DOMContentLoaded", () => {
         <aside class="e-permits-ntpl-content__preview" aria-labelledby="ntpl-preview-title">
           <div class="e-permits-dosar-profil__section-heading">
             <h2 class="e-permits-dosar-profil__section-title" id="ntpl-preview-title">Previzualizare</h2>
-            <div class="segmented-control" role="radiogroup" aria-label="Previzualizare pe">
-              ${[["email", "E-mail"], ["mobile", "Mobil"]].map(([value, label]) => `<button class="segment-item${ntplProfileState.preview === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${ntplProfileState.preview === value ? "true" : "false"}" data-ntplp-preview="${value}">${label}</button>`).join("")}
+            <div class="e-permits-passport__heading-tools">
+              <div class="segmented-control" role="radiogroup" aria-label="Previzualizare pe">
+                ${[["email", "E-mail"], ["mobile", "Mobil"]].map(([value, label]) => `<button class="segment-item${ntplProfileState.preview === value ? " is-selected" : ""}" type="button" role="radio" aria-checked="${ntplProfileState.preview === value ? "true" : "false"}" data-ntplp-preview="${value}">${label}</button>`).join("")}
+              </div>
             </div>
           </div>
           <div class="e-permits-ntpl-preview" aria-live="polite" data-ntpl-preview>${renderNtplPreviewBody()}</div>
@@ -11621,10 +11625,12 @@ document.addEventListener("DOMContentLoaded", () => {
       <section class="e-permits-dosar-profil__section e-permits-stack-section">
         <div class="e-permits-dosar-profil__section-heading">
           <h2 class="e-permits-dosar-profil__section-title">Reguli de destinatari</h2>
-          <button class="btn btn-secondary btn-sm" type="button" data-ntpl-rule-add>
-            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
-            <span>Adaugă regulă</span>
-          </button>
+          <div class="e-permits-passport__heading-tools">
+            <button class="btn btn-secondary btn-sm" type="button" data-ntpl-rule-add>
+              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
+              <span>Adaugă regulă</span>
+            </button>
+          </div>
         </div>
         ${items.length ? `
           <div class="e-permits-stack">
