@@ -49,6 +49,13 @@ Every UI change is checked by a QA agent before it is reported as done:
   icon = label colour, and compares with the prototype.
 Fix the major findings, re-run the agent, then report. Code first, then Figma.
 
+**Figma quality gate (2026-10-16) — every Figma screen, no exceptions:** only component instances (no invented /
+captured buttons, inputs, selects…; missing ones become local components built from the code), auto-layout everywhere,
+tokens + text styles, whole pixels, no image-fill icons, the code's spacing rhythm (nothing < 8px), menus with
+„dropdown-effect” and never cut, matches the code. The gate is listed in `.claude/agents/ui-qa-figma.md`; any FAIL =
+not done. Whole pages / files are brought to the gate by the **`figma-quality-sweep`** agent (run it after every
+capture / board build and as a periodic sweep of all four files).
+
 ## Builder agents that learn (2026-10-12)
 - **`proto-engineer`** builds UI in code; **`figma-designer`** draws it in Figma from the prototype
   (capture → library instances → block). Order: code first, then Figma.

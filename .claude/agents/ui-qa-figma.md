@@ -42,6 +42,20 @@ no remove). The main session fixes what you report.
    (needs `http://localhost:8935`) and compare texts, states, components (content must match;
    pixel offsets ≤ 4px are fine).
 
+## Quality gate — a block PASSES only with ZERO of these (user rule 2026-10-16: „all Figma screens must meet a high standard”)
+- `raw-control`: every button / input / select / search / segmented / checkbox / radio / switch / tag / tab / menu /
+  modal / notice / table cell / pagination / breadcrumb / avatar is a library or local component instance — no
+  invented or captured controls;
+- `not-auto-layout`: every UI container is auto-layout (only code-floated overlays — menus, tooltips, modals over a
+  scrim — are positioned absolutely);
+- image-fill icons (document icon = the published „document-icon” set; all others = library icon instances);
+- `unbound-colour`, spacing / radius not bound to tokens, `no-text-style`, `font-not-onest`;
+- fractional sizes / positions (whole pixels only);
+- tight gaps (< 8px between text / notices / cards and neighbours) and off-rhythm block gaps vs the code;
+- `dropdown-effect` (menus: style + clip + radius token, no border), cut / clipped content or menus;
+- differences from the code capture (content, states, components, layout).
+Report PASS / FAIL per block. Any FAIL = not done.
+
 ## Output
 Write `tools/ui-qa/out/figma/qa.json` — an array of
 `{ "id", "node": "<node id>", "block": "<block name>", "severity": "major|minor", "rule",
