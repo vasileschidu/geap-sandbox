@@ -4087,7 +4087,9 @@ see it as the recipient will, choose who gets it, then publish.
 **Unpublished notice (2026-10-16):** the compact Inline note —
 `renderNotice("warning", "<strong>Modificări nepublicate.</strong> Destinatarii primesc încă
 versiunea vX până la publicare.", { className: "e-permits-ntpl__unpublished" })` (never
-published: „**Șablonul nu a fost publicat încă.** …”), first in every tab's panel, 24 above the
+published: „**Șablonul nu a fost publicat încă.** …” — „never published” = `ntplVersion(tpl)` is null:
+a new template stores `version: null`, and „—” / empty from older data count as none; „—” is only
+rendered (header Versiune), the first publish is `— → v1.0.0`), first in every tab's panel, 24 above the
 tab content. No close button (the inline note has none): it shows while the template has
 unpublished changes. The old 16/24 dismissible banner (`.e-permits-ntpl-banner`, Figma
 8230:2388) is gone — the user found it too big.
@@ -6898,6 +6900,12 @@ do the same data architecture … change all documents in the whole system” (+
 - **Tags keep one size (2026-10-15):** the library `.status-tag--small` reads `--text-caption-md-font-size`,
   which main.css drops to 10 at ≤720 — `.e-permits-fo-doc-tag` pins it to `--font-size-fs-12` → 12 / 14,
   20 high, at 375 / 390 / 720 / 1440 (BO `.e-permits-workplace__tag` is 12 / 20 already).
+- **Tags inside summary rows (2026-10-16, Figma QA):** a value of `.e-permits-fo-summary-row__value` may hold a
+  tag — always the Small one (`status-tag … status-tag--small`, e.g. Cabinet „Statutul dosarului” / „Statutul
+  notei”). The value text rule is `.e-permits-fo-summary-row__value span:where(:not(.status-tag, .status-tag *))`
+  (14 / 20 medium, default colour) so it never reaches a tag (it used to make them 14 px with the text colour),
+  and the value pins `--text-caption-md-font-size` to 12 → the tag is 12 / 20 high at 1440 and 375. Same
+  exclusion on the Cabinet `.cab-detail__card … __value span` flex rule (the tag keeps its own gap 4).
 - **× size:** the smallest documented icon-only button is 32 × 32 with a 16 icon (`btn-sm btn-icon-only`,
   and `.e-permits-fo-document-remove` is the same box); nothing smaller exists (`.btn-icon.clear` 20 is the
   search-input clear only) — do not hand-roll a smaller one.

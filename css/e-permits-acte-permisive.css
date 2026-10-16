@@ -8868,12 +8868,16 @@
 }
 
 .e-permits-fo-summary-row__value {
+  /* Small tags in a value stay 12 / 20 on phones too (main.css drops the caption token to 10 at
+     ≤720; same pin as .e-permits-fo-doc-tag, 2026-10-15 user rule) */
+  --text-caption-md-font-size: var(--font-size-fs-12, 12px);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6, 6px);
 }
 
-.e-permits-fo-summary-row__value span {
+/* plain value text only: tags inside a value keep the library tag type (Small = 12 / 20) */
+.e-permits-fo-summary-row__value span:where(:not(.status-tag, .status-tag *)) {
   color: var(--color-text-base-default, #121212);
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
@@ -9305,7 +9309,7 @@
 }
 
 .e-permits-fo-summary-row__label,
-.e-permits-fo-summary-row__value span,
+.e-permits-fo-summary-row__value span:where(:not(.status-tag, .status-tag *)),
 .e-permits-fo-summary-caem__entry-label,
 .e-permits-fo-summary-caem__entry-value {
   font-size: var(--font-size-fs-14, 14px);

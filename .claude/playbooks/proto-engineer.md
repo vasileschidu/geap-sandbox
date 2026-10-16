@@ -985,3 +985,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   off-geometry signature. Only the template banner was off; passport „inactiv în RSSP” and classifier „Ciornă nepublicată”
   were already compact (the latter hand-written → routed through `renderNotice`). Known, left alone: eKYC titled callouts
   (20 pad, 16/24 — the Callout component) and cfg-card info notes at radius 8 (user rule 2026-10-09).
+- 2026-10-16 · Figma QA bugs. (1) A new notification template stored `version: "—"` → the dash was truthy, so the
+  unpublished notice read „Destinatarii primesc încă versiunea —” and the first publish became `vNaN..1`. Store
+  null, read it through ONE helper (`ntplVersion(tpl)`: null for „—” / empty, because the sandbox DB keeps old
+  data) and render „—” only at display time; grep every reader (`tpl.version` in header meta, publish subtitle,
+  bump) — never let a display placeholder become data. (2) `.e-permits-fo-summary-row__value span` (text rule)
+  hit the `span.status-tag` inside values → tags 14 px, text colour, cabinet flex gap 8. Fix with
+  `span:where(:not(.status-tag, .status-tag *))` — `:where` keeps the old specificity, so no later override flips.
+  The QA named FO Verificare / gh-07 / dossier cards, but a probe over fo-05…08, gh-07*, dos-*, sm-*, pp-* found
+  tags in summary rows ONLY in Cabinet „Solicitările mele” (sm-03/04/05/07a) — probe before trusting the list of
+  places. Two more traps the probe showed: the status tag there was not `--small` at all (added a `small`
+  option to `statusTag()` for the summary row only), and `--small` drops to 10 px at ≤720 → pin
+  `--text-caption-md-font-size: 12` on the value (as `.e-permits-fo-doc-tag`). No sub-agent tool → ran
+  code-audit + hover-audit myself (only standing FPs: copy-value, toast-covered header in svc-09h5).

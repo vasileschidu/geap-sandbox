@@ -133,9 +133,10 @@
       </div>`;
   }
 
-  function statusTag(dosar) {
+  /* small = the library Small tag, used inside summary rows (12 / 20 high) */
+  function statusTag(dosar, { small = false } = {}) {
     const status = statusOf(dosar);
-    return `<span class="status-tag ${status.tag}">${escape(status.label)}</span>`;
+    return `<span class="status-tag ${status.tag}${small ? " status-tag--small" : ""}">${escape(status.label)}</span>`;
   }
 
   /* Aprobat / Respins (US-19 AC-16) and „Disponibilă aprobarea tacită” (AC-15) */
@@ -847,7 +848,7 @@
       dosar.submitted ? row("Data depunerii", escape(longDateTime(dosar.submitted))) : "",
       dosar.suspended ? row("Data suspendării", escape(longDate(dosar.suspended))) : "",
       dosar.examTerm && dosar.status !== "info" ? row("Termenul de examinare", `${escape(longDate(dosar.examTerm))}${dosar.tacit ? ` ${marksHtml(dosar)}` : ""}`) : "",
-      row("Statutul dosarului", `${statusTag(dosar)}${dosar.result ? ` ${marksHtml(dosar)}` : ""}`),
+      row("Statutul dosarului", `${statusTag(dosar, { small: true })}${dosar.result ? ` ${marksHtml(dosar)}` : ""}`),
       row("Autoritatea", escape(service.authorityName || service.authority || "")),
       row("Subdiviziunea de procesare", escape(dosar.subdivision)),
       dosar.actNr ? row("Nr. actului generat", copyValue(dosar.actNr, `Copiază numărul actului ${dosar.actNr}`)) : "",

@@ -11390,7 +11390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     ntplProfileSummary.innerHTML = renderPageHeaderMeta([
       ["Cod", renderProfileCopyCode(tpl.code, `Copiază ${tpl.code}`)],
-      ["Versiune", escapeHtml(tpl.version || "—")],
+      ["Versiune", escapeHtml(ntplVersion(tpl) || "—")],
       ["Stare", renderTag(inactive ? "Inactiv" : "Activ", inactive ? "neutral" : "success")],
       ["Obiect", escapeHtml(tpl.object || tpl.dataSource || "—")],
       service
@@ -11413,8 +11413,16 @@ document.addEventListener("DOMContentLoaded", () => {
   /* unpublished changes — the compact in-page notice (renderNotice, as the Ghișeu notices,
      Figma 11881:272146): bold lead sentence, no close button (2026-10-16, user: the old
      16/24 dismissible banner was too big) */
-  const renderNtplUnpublishedBanner = (tpl) => tpl.unpublished ? renderNotice("warning", tpl.version
-    ? `<strong>Modificări nepublicate.</strong> Destinatarii primesc încă versiunea ${escapeHtml(tpl.version)} până la publicare.`
+  /* the published version of a template, or null when it was never published ("—" / empty
+     come from older data and the sandbox DB; "—" is only ever rendered, never stored) */
+  const ntplVersion = (tpl) => {
+    const version = String(tpl?.version ?? "").trim();
+    return version && version !== "—" ? version : null;
+  };
+  const ntplNextVersion = (tpl) => ntplVersion(tpl) ? bumpVersion(ntplVersion(tpl)) : "v1.0.0";
+
+  const renderNtplUnpublishedBanner = (tpl) => tpl.unpublished ? renderNotice("warning", ntplVersion(tpl)
+    ? `<strong>Modificări nepublicate.</strong> Destinatarii primesc încă versiunea ${escapeHtml(ntplVersion(tpl))} până la publicare.`
     : "<strong>Șablonul nu a fost publicat încă.</strong> Destinatarii nu primesc nimic până la publicare.", { className: "e-permits-ntpl__unpublished" }) : "";
 
   const ntplField = (key, label, control, { required = false, span = 12, hint = "" } = {}) => `
@@ -12002,7 +12010,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const tpl = {
       code: d.code.trim(), name: d.name.trim(), object: d.dataSource, dataSource: d.dataSource, priority: d.priority, description: d.description.trim(),
       rules: d.rules.map((r) => ({ recipient: r.recipient, delivery: r.delivery, channels: NTPL_DELIVERY_CHANNELS[r.delivery] || ["Email"], separate: false, active: true })),
-      texts, version: "—", updatedAt: localIsoNow(), updatedBy: currentUserName(), origin: "Personalizat", active: true, unpublished: true, history: []
+      texts, version: null, updatedAt: localIsoNow(), updatedBy: currentUserName(), origin: "Personalizat", active: true, unpublished: true, history: []
     };
     c.dirty = false;
     if (c.service) {
@@ -12252,7 +12260,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (confirmBtn) confirmBtn.textContent = target?.confirmLabel || "Publică";
     ntplPublishModal.querySelector("[data-ntpl-publish-subtitle]").textContent = target
       ? `${target.from} → ${target.to} · ${when === "scheduled" ? (date ? `intră în vigoare pe ${formatLongDate(date)}.` : "intră în vigoare la data aleasă.") : target.now}`
-      : `${tpl.version || "v1.0.0"} → ${bumpVersion(tpl.version)} · ${when === "scheduled" ? (date ? `intră în vigoare pe ${formatLongDate(date)}.` : "intră în vigoare la data aleasă.") : "destinatarii primesc noua versiune imediat."}`;
+      : `${ntplVersion(tpl) || "—"} → ${ntplNextVersion(tpl)} · ${when === "scheduled" ? (date ? `intră în vigoare pe ${formatLongDate(date)}.` : "intră în vigoare la data aleasă.") : "destinatarii primesc noua versiune imediat."}`;
     ntplPublishBody.innerHTML = `
       <div class="e-permits-case-form">
         ${target?.notice ? caseNotice(escapeHtml(target.notice)) : ""}
@@ -12373,7 +12381,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const at = localIsoNow();
     const by = currentUserName();
     const changes = ntplPublishDraft.changes.map((row) => `${row.area}${row.detail ? ` (${row.detail})` : ""}`);
-    tpl.version = bumpVersion(tpl.version);
+    tpl.version = ntplNextVersion(tpl);
     tpl.updatedAt = at;
     tpl.updatedBy = by;
     tpl.unpublished = false;

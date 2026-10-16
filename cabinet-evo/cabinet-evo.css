@@ -797,7 +797,8 @@
   white-space: normal;
 }
 
-.cab-detail__card .e-permits-fo-summary-row__value span {
+/* value wrappers only — a tag inside keeps the library tag box (gap 4) */
+.cab-detail__card .e-permits-fo-summary-row__value span:where(:not(.status-tag, .status-tag *)) {
   align-items: center;
   display: inline-flex;
   flex-wrap: wrap;
