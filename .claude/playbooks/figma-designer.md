@@ -78,6 +78,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | EVO Cabinet local components | frame `11100:288632` on FO Full Flows 09 | `Cabinet / Antet` 11100:289066 · `Cabinet / Antet mobil` 11153:262259 · `Cabinet / Dosar card` 11100:289564 (+ mobil 11155:50155, static 11152:303548) · `Cabinet / Serviciu card` 11105:290265 · `Cabinet / Marcaj` 11100:289209 · `Cabinet / Meniu acțiuni` 11118:297930 · `Cabinet / Meniu · Sortează` 11118:293504 · `Modal conținut / Filtre solicitări · …` 11152:303710 / 304028 |
 | Instance switcher (local, 2026-10-15) | GEAP set `11536:8013`, menu `11535:6128` | header trigger FO/BO × Desktop/Mobile × Default/Hover/Open; menu = native SLOT „Content”; items profile `11532:7890` / role `11532:8016` / more `11532:8125`; FOD set 839:11429, Cabinet 1014:7391; builders tools/figma/instance-switcher/ |
 | Effect style „dropdown-effect” (2026-10-16) | GEAP local `S:fc1dad56be71b69894b7f3586befb682c9a2f5fc,` | every menu / dropdown / popover surface; NOT published → FOD + EVO Cabinet use it by id `S:fc1dad56…,5088:9` (getStyleByIdAsync; importStyleByKeyAsync fails); eKYC has a local copy `S:2c6b167d…,` (same effects). Radius tokens: radius-12 1f226805…, radius-16 5e0761c5… |
+| eKYC library-gap pieces (local, 2026-10-16) | eKYC `10775:1049` / `:1055` / `:1059` / `:1063` | Switch · label (code A.renderToggle) · Filter option · tag (status facets) · Media badge · duration (video thumbnails) · Field label (label + 12/asterisk + hint for non-field controls). Exposed nested switch / checkbox / tag. Builders: tools/figma/ekyc-qa/ |
 | Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
 | Act row family (local, 2026-10-16) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 · `New request card` 11848:340913 (holder 11844:198504) | foActRowHtml / foIntentNewHtml. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile; TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544, Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
@@ -1218,3 +1219,45 @@ fill only real columns, keep containers whole-pixel so fills don't split into fr
   - No Agent tool in this session → ran figma-audit.js (+ act-row extras: visible line-start dots, image fills, non-auto-layout,
     wrapped titles, menu effect) per page myself; left: meta gap 18 (Document · card pattern, declared).
 
+- 2026-10-16 · eKYC BO QA + fix (all 9 BO pages, 253 screens; tools/figma/ekyc-qa/, README lists the run order). Before → after:
+  fractional 2,447 → 0 (FIXED / absolute) + 1,592 stroke-shifted positions fixed; not-auto-layout 172 → 0; sibling overlap
+  488 → 0; clipped 211 → 0; raw glyph vectors 375 → 0; raw controls 40 → 0 and control-like raw frames 111 → 2 (a legend tray and a row card — not controls); 74 negative-margin wrappers
+  → 0; 150 meters + 20 charts + 9 band axes → auto-layout. Lessons:
+  - **The shared figma-audit missed most of it**: it has no image-fill / fractional / tight-gap / absolute-children checks and
+    compares icon colours raw. Write a page-level audit that walks screens WITHOUT descending into instances (fast: a 43-screen
+    page in one call), plus three censuses: control-like raw frames (painted + rounded + ≤ 64 high + short text), hand-built
+    control + label combos, and ABSOLUTE children grouped by parent — the last one found the „…:margin” pattern that
+    not-auto-layout can't see (the wrapper HAS auto-layout; its only child is absolute at −8 / −4).
+  - **html→Figma negative margins**: `margin-left: −8px` / `margin-top: −4 / −8px` become a flow wrapper „X:margin” with the
+    element ABSOLUTE at the negative offset. Fix = previous sibling + element in one auto-layout group with gap = parent gap −
+    margin (tags 12 − 8 = 4, chart axis 16 − 8 = 8, hint 8 − 4 = 4) + the wrapper's leftover as trailing padding — geometry
+    identical. Runs of margin items join the same group.
+  - **Captured SVG data graphics** (meters, column charts, threshold axes) are absolute vectors. Rebuild them as auto-layout
+    from the vector boxes: meter = HORIZONTAL frame, segments FIXED (stacked: gap 2 = the code's card-colour cut lines, each
+    inner side −1 px; single: frame fill = track); chart = buckets with cumulative-rounded widths (n = round(0.56·W / bar)),
+    bars bottom-aligned, head segment radius-4 top; axis = tick groups (odd width when centred) between FIXED spacers. Data
+    widths can't be component overrides — **nested FIXED sizes on instances snap back** (re-tested), so graphics stay frames.
+  - Colour names of captured vectors are hex-matched, not the code's: track = background/base/default-active (captured
+    background/disabled/secondary), positive = icon/positive/default. Keep the captured warning (accent #fec84b = the rendered
+    code apricot-400; Figma's background/warning/default is #fdb022 — token drift).
+  - **Fractions**: (1) captured FIXED widths (998.98) and absolute 1 px dividers at x −24.5 → round, texts round UP; (2) FLEX /
+    FIXED grid tracks with fractions → whole FIXED tracks by cumulative rounding; (3) the big hidden one: 0.5 px cell dividers
+    and 1 px borders with strokesIncludedInLayout → every centred child sits at .25 / .5. Toggle includedInLayout off when that
+    makes the children whole (the INSIDE stroke still paints on the edge). Residual (~250): centred / space-between labels whose
+    odd free space comes from text widths — same family as hug labels, left.
+  - `resize()` on an auto-layout child resets BOTH sizing modes — restore HUG / FILL on the untouched axis right after.
+  - Replacing a node in a **GRID** parent: insert, remove the old one, THEN `setGridChildPosition(row, col)` + span — inserting
+    first auto-places the instance in a 1-column cell (a switch row became 34 px wide with one-letter lines). pieces.js does it.
+  - A captured screen can be a **scrolled viewport** (scroll-content at y −1512): sticky elements (section nav, header) were
+    captured at the scroll position. Re-laying them out at y 0 scrolls them out of view — keep the offset with a FIXED
+    „Spacer · scroll offset” in a column. Check scroll-content y before moving anything inside it.
+  - When a wrapper that held FIXED children becomes FILL-based (band card HUG → content FILL), the HUG ancestor collapses to the
+    text widths (1024 → 593). After any conversion, check the ancestor's sizing and screenshot.
+  - Hand-built designer frames (L01: „Frame 1261…”, gap 10, fingerprint brand row, lower-case „mpass”) are not captures —
+    never „fix” them toward the code; report the divergence for the PO.
+  - Flagged „icon-colour-override” on 23 Primary buttons = Figma's record of the swapped icon's own variant colour; resolved
+    colours were identical (white on white). The audit now compares resolved values.
+  - Concurrent edits: another job extended tools/ui-qa/figma-audit.js (fractional / tight-gap / image-fill-icon) while this ran.
+    Its tight-gap flags „section header directly on a card” (gap 0 by the user's section-over-card rule) and its fractional
+    counts hug text metrics — keep the rule set coherent before trusting raw counts.
+  - No Agent tool in this session → ran tools/ui-qa/figma-audit.js + the eKYC audit myself on the changed screens; 0 majors.

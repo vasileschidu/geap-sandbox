@@ -25,6 +25,15 @@
 //                       without clip content, with an unbound radius or with a border stroke (the effect's 1 px ring is
 //                       the border). Library instances whose main lacks it are reported as „(library main)” — minor.
 //                       Fix with tools/figma/dropdown-effect/dropdown-effect.js
+//  fractional           (2026-10-16) a frame / instance / text (outside instances) with a non-whole x, y, width or height
+//                       (user rule: whole pixels only) — fix the cause (odd centring space, FILL split, captured fractions)
+//  tight-gap            (2026-10-16) a vertical auto-layout gap < 8 next to a block-like child (notice / message / card /
+//                       field / document / identity / authorization card, or a filled / stroked frame with radius ≥ 8)
+//  image-fill-icon      (2026-10-16) an IMAGE fill on an icon-sized node (≤ 64 px) or a captured raw h2d-svg icon — must be 0
+//  image-fill-photo     (2026-10-16, minor) an IMAGE fill larger than 64 px outside instances — real photos / document
+//                       scans are allowed; listed with their size so they can be confirmed (icon-sized ones = image-fill-icon)
+//  icon-colour-override compares the RESOLVED colours (variable value for the node) of the label and the icon — Figma
+//                       records a swapped icon's own variant colour as a „fills” override, so raw / override checks lie
 const ROOTS = ["PUT:NODE-IDS-HERE"];
 const SPACING = [0, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96, 120, 160, 200, 240]; // 1 removed 2026-10-15: 1 px padding = border artifact
 const TOKENS = [2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 56, 64, 80, 96, 120]; // Foundations › 3. Sizes spacings/*
@@ -38,6 +47,7 @@ const effectStyleName = async (id) => { if (!id || typeof id !== "string") retur
 const findings = [];
 const counts = {};
 const add = (rule, n, detail) => { counts[rule] = (counts[rule] || 0) + 1; if (findings.length < 60) findings.push({ rule, id: n.id, name: n.name.slice(0, 50), detail }); };
+const rgbOf = async (node, p) => { if (!p || p.type !== "SOLID") return null; let c = p.color; const bv = p.boundVariables && p.boundVariables.color; if (bv) { const v = await figma.variables.getVariableByIdAsync(bv.id); if (v) c = v.resolveForConsumer(node).value; } return [c.r, c.g, c.b].map((x) => Math.round(x * 255)).join(","); };
 const insideInstance = (n) => { for (let p = n.parent; p; p = p.parent) if (p.type === "INSTANCE") return true; return false; };
 const paintBound = (n, key) => {
   const paints = n[key];
@@ -79,6 +89,16 @@ for (const rid of ROOTS) {
       }
       const r = n.cornerRadius; if (typeof r === "number" && r && !onScale(r, RADIUS) && !(n.boundVariables && n.boundVariables.topLeftRadius)) add("radius-off-scale", n, `radius ${r}`);
     }
+    // whole pixels (2026-10-16)
+    if (!inInst && (n.type === "FRAME" || n.type === "INSTANCE" || n.type === "TEXT") && ["x", "y", "width", "height"].some((k) => Math.abs(n[k] - Math.round(n[k])) > 0.01)) add("fractional", n, ["x", "y", "width", "height"].map((k) => Math.round(n[k] * 100) / 100).join(","));
+    // tight gap next to a block-like child (2026-10-16)
+    if (!inInst && n.type === "FRAME" && n.layoutMode === "VERTICAL" && n.itemSpacing < 8 && n.primaryAxisAlignItems !== "SPACE_BETWEEN") {
+      const kids = n.children.filter((k) => k.visible !== false && k.layoutPositioning !== "ABSOLUTE");
+      const blocky = (k) => (k.type === "INSTANCE" && /message|info-note|inline-message|Document|Identity card|Authorization card|New request|Act row|lookup|select|text-input|search/i.test(k.name)) || (k.type === "FRAME" && typeof k.cornerRadius === "number" && k.cornerRadius >= 8 && ((Array.isArray(k.fills) && k.fills.some((p) => p.visible !== false)) || (Array.isArray(k.strokes) && k.strokes.some((p) => p.visible !== false))));
+      if (kids.length > 1 && kids.some(blocky)) add("tight-gap", n, `gap ${n.itemSpacing} [${kids.map((k) => k.name.slice(0, 14)).join(", ").slice(0, 80)}]`);
+    }
+    // icons as images / raw captured svg (2026-10-16)
+    if (!inInst && ((n.type === "FRAME" && /^h2d-svg/.test(n.name)) || ("fills" in n && Array.isArray(n.fills) && n.width <= 64 && n.height <= 64 && n.fills.some((p) => p.type === "IMAGE" && p.visible !== false)))) add("image-fill-icon", n, n.type);
     if (!inInst && "fills" in n && n.type !== "INSTANCE" && n.type !== "SECTION") {
       if (!paintBound(n, "fills")) add("unbound-colour", n, "fill");
       if ("strokes" in n && n.strokes.length && !paintBound(n, "strokes")) add("unbound-colour", n, "stroke");
@@ -99,6 +119,7 @@ for (const rid of ROOTS) {
         }
       }
     }
+    if (!inInst && "fills" in n && Array.isArray(n.fills) && (n.width > 64 || n.height > 64) && n.fills.some((p) => p.type === "IMAGE" && p.visible !== false)) add("image-fill-photo", n, `${Math.round(n.width)}×${Math.round(n.height)} — photo / scan? confirm`);
     if (n.type === "TEXT" && !inInst) {
       if (!n.textStyleId && !(n.boundVariables && n.boundVariables.fontSize)) add("no-text-style", n, `"${n.characters.slice(0, 30)}"`);
       const fam = n.fontName === figma.mixed ? "mixed" : n.fontName.family;
@@ -117,8 +138,8 @@ for (const rid of ROOTS) {
       const icon = n.findOne((k) => k.type === "INSTANCE" && /^\d+\//.test(k.name) && k.visible !== false);
       const vec = icon && icon.findOne((k) => "fills" in k && Array.isArray(k.fills) && k.fills.length && k.fills[0].type === "SOLID");
       if (label && vec && Array.isArray(label.fills) && label.fills[0] && label.fills[0].type === "SOLID") {
-        const a = label.fills[0].color, b = vec.fills[0].color;
-        if (Math.abs(a.r - b.r) + Math.abs(a.g - b.g) + Math.abs(a.b - b.b) > 0.05) add("icon-colour-override", n, "icon fill ≠ label fill");
+        const a = await rgbOf(label, label.fills[0]), b = await rgbOf(vec, vec.fills[0]);
+        if (a && b && a !== b) add("icon-colour-override", n, `icon ${b} ≠ label ${a} (resolved)`);
       }
     }
   }
