@@ -313,8 +313,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* tinted inline alert — the one component for info / success / warning / error notes
      inside content (geometry in CSS "Inline note"); icon follows the tone */
   const NOTICE_ICONS = { info: "circle-info-filled", success: "circle-checkmark-filled", warning: "warning-filled", error: "circle-error-filled" };
-  const renderNotice = (tone, html, { icon = NOTICE_ICONS[tone] || "circle-info-filled", role = "status" } = {}) => `
-    <div class="message message--subtle banner--${tone}" role="${role}">
+  const renderNotice = (tone, html, { icon = NOTICE_ICONS[tone] || "circle-info-filled", role = "status", className = "" } = {}) => `
+    <div class="message message--subtle banner--${tone}${className ? ` ${className}` : ""}" role="${role}">
       <span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg></span>
       <div class="banner__content"><p class="banner__text">${html}</p></div>
     </div>
@@ -10051,7 +10051,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (c.status === "draft" && c.publishedSnapshot) {
       const ch = clasCore.draftChanges(c);
       const parts = [ch.added && plural(ch.added, "valoare nouă", "valori noi"), ch.changed && plural(ch.changed, "modificată", "modificate"), ch.deactivated && plural(ch.deactivated, "dezactivată", "dezactivate"), ch.structure && "structură modificată"].filter(Boolean);
-      return `<div class="message message--subtle banner--warning e-permits-clas-banner"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span><div class="banner__content"><p class="banner__text"><strong>Ciornă nepublicată.</strong> Consumatorii văd încă v${escapeHtml(c.publishedSnapshot.versiune)}${parts.length ? ` · ${parts.join(", ")}` : ""}.</p></div></div>`;
+      return renderNotice("warning", `<strong>Ciornă nepublicată.</strong> Consumatorii văd încă v${escapeHtml(c.publishedSnapshot.versiune)}${parts.length ? ` · ${parts.join(", ")}` : ""}.`, { className: "e-permits-clas-banner" });
     }
     if (c.status === "draft") return renderInfoNote("Ciornă — clasificatorul nu este disponibil consumatorilor până la prima publicare.");
     return "";
@@ -11410,21 +11410,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   };
 
-  /* library info-box, Strong · Warning, with its Close option (Figma 8230:2388);
-     closed, it stays closed for this template for the session */
-  const ntplBannerKey = (tpl) => `e-permits-ntpl-banner-closed:${tpl.code}`;
-  const ntplBannerClosed = (tpl) => { try { return window.sessionStorage.getItem(ntplBannerKey(tpl)) === "1"; } catch { return false; } };
-  const renderNtplUnpublishedBanner = (tpl) => tpl.unpublished && !ntplBannerClosed(tpl) ? `
-    <div class="message message--subtle banner--warning e-permits-ntpl-banner" role="status">
-      <span class="banner__icon"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg></span>
-      <div class="banner__content">
-        <p class="banner__text">${tpl.version ? `Modificări nepublicate. Destinatarii primesc încă versiunea ${escapeHtml(tpl.version)} până la publicare.` : "Șablonul nu a fost publicat încă. Destinatarii nu primesc nimic până la publicare."}</p>
-      </div>
-      <button class="banner__close" type="button" aria-label="Închide mesajul" data-ntpl-banner-close>
-        <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></span>
-      </button>
-    </div>
-  ` : "";
+  /* unpublished changes — the compact in-page notice (renderNotice, as the Ghișeu notices,
+     Figma 11881:272146): bold lead sentence, no close button (2026-10-16, user: the old
+     16/24 dismissible banner was too big) */
+  const renderNtplUnpublishedBanner = (tpl) => tpl.unpublished ? renderNotice("warning", tpl.version
+    ? `<strong>Modificări nepublicate.</strong> Destinatarii primesc încă versiunea ${escapeHtml(tpl.version)} până la publicare.`
+    : "<strong>Șablonul nu a fost publicat încă.</strong> Destinatarii nu primesc nimic până la publicare.", { className: "e-permits-ntpl__unpublished" }) : "";
 
   const ntplField = (key, label, control, { required = false, span = 12, hint = "" } = {}) => `
     <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--${span}">
@@ -12590,11 +12581,6 @@ document.addEventListener("DOMContentLoaded", () => {
       syncNtplBody();
       refreshNtplPreview();
       closeStackMenus();
-      return;
-    }
-    if (event.target.closest("[data-ntpl-banner-close]")) {
-      try { window.sessionStorage.setItem(ntplBannerKey(tpl), "1"); } catch { /* private mode: closes until re-render */ }
-      event.target.closest(".e-permits-ntpl-banner")?.remove();
       return;
     }
     if (event.target.closest("[data-ntpl-rule-add]")) { openNtplRuleModal(); return; }

@@ -975,3 +975,13 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   locked row fall back to grey and vanish. Whenever a card gets a hover fill, grep its inner `btn-neutral`s for the same
   fill. hover-audit can't see this (it hovers the pill, not the row) → probe: mouse on the row at x+40, read the pill's
   computed background, crop the row (scratch rowhover.mjs). „Solicitare nouă” = one button, nothing inside to lift.
+- 2026-10-16 · „Unpublished banner too big” (user, ref Ghișeu notice GEAP 11881:272146): the template banner was a
+  documented EXCEPTION to the inline note (16/24, 24 icon, × close, 72 tall) → now `renderNotice("warning", "<strong>…</strong> …",
+  { className })` (44 tall on desktop, 64 on 375). `renderNotice` got an optional `className` placement hook; the × went
+  (the note has no close slot — say so, don't bolt one on). Removing a `:not(.x)` exclusion from shared selectors LOWERS their
+  specificity by (0,1,0) and can flip overrides elsewhere → swap it for an equivalent `:not(.message--inline)`. Sweep method
+  that answered „are there other big banners?” in one go: a probe listing every visible alert's padding / radius / text size /
+  icon / close, run over all 1 008 BO states on a HEAD worktree (:8936, 4 workers ≈ 35 min — start it FIRST), grouped by
+  off-geometry signature. Only the template banner was off; passport „inactiv în RSSP” and classifier „Ciornă nepublicată”
+  were already compact (the latter hand-written → routed through `renderNotice`). Known, left alone: eKYC titled callouts
+  (20 pad, 16/24 — the Callout component) and cfg-card info notes at radius 8 (user rule 2026-10-09).

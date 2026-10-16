@@ -4084,9 +4084,13 @@ see it as the recipient will, choose who gets it, then publish.
 - Tabs: **Conținut · Destinatari (count) · Setări · Istoric (count)**.
 - Leaving with unsaved edits asks first: crumb, shell back, menu, `beforeunload`.
 
-**Unpublished notice:** the Figma info-box, Strong · Warning with Close
-(`.e-permits-ntpl-banner`; see the banner notes above). Closing it is remembered per
-template for the session.
+**Unpublished notice (2026-10-16):** the compact Inline note —
+`renderNotice("warning", "<strong>Modificări nepublicate.</strong> Destinatarii primesc încă
+versiunea vX până la publicare.", { className: "e-permits-ntpl__unpublished" })` (never
+published: „**Șablonul nu a fost publicat încă.** …”), first in every tab's panel, 24 above the
+tab content. No close button (the inline note has none): it shows while the template has
+unpublished changes. The old 16/24 dismissible banner (`.e-permits-ntpl-banner`, Figma
+8230:2388) is gone — the user found it too big.
 
 **Conținut** (`.e-permits-ntpl-content`): the editor and a sticky **Previzualizare**,
 split **7fr / 5fr** (the preview is at least 360px). The preview heading keeps 12px
@@ -4284,7 +4288,7 @@ per screen — no local padding, radius, font or icon size.
 | Use | Helper | Markup |
 |---|---|---|
 | neutral explanation (grey, "i") | `renderInfoNote(html)` | `.info-box.info-box--neutral.e-permits-info-note` > `.info-box__icon` + `.info-box__content > p` |
-| info / success / warning / error | `renderNotice(tone, html, { icon })` | `.message.message--subtle.banner--{tone}` > `.banner__icon` + `.banner__content > p.banner__text` |
+| info / success / warning / error | `renderNotice(tone, html, { icon, role, className })` | `.message.message--subtle.banner--{tone}` > `.banner__icon` + `.banner__content > p.banner__text` |
 | read-only / restricted | `renderNotice("warning", html, { icon: "lock" })` (classifiers: `clasLockNotice`) | same as above |
 
 Geometry (CSS "Inline note", scoped to `[data-demo-flow="back-office"]`): padding **12/16**,
@@ -4307,8 +4311,17 @@ Default icons: info `circle-info-filled`, success `circle-checkmark-filled`, war
   the library `.modal-content` (16) and `.e-permits-fo-payment__body` (32). A new gap-spaced parent
   that can hold two notices goes in that list. `code-audit` `tight-gap` reports „alert + alert”
   under 8.
-- The **only** exception is the dismissible page banner `.e-permits-ntpl-banner`
-  (Figma 8230:2388, 24px padding, 16/24 text, close button) — page-level, not inline.
+- **One notice size for in-page banners too (2026-10-16, user):** page-level state banners
+  (template „Modificări nepublicate”, classifier „Ciornă nepublicată”, passport „Serviciul este
+  inactiv în RSSP” / „activ din nou…”) are this same note — `renderNotice` with a bold lead
+  sentence, 12/16 padding, 14/20 text, 20 icon, radius 12 (Figma Ghișeu notice 11881:272146).
+  No 16/24 banners, no 24px icons, no close ×. Placement is the only per-screen CSS
+  (`className` → a margin when the parent is a block, e.g. `.e-permits-ntpl__unpublished`
+  margin-bottom 24). Above a section it keeps the section rhythm; under a section header the
+  header → alert gap applies; two in a row = 12 (Alert stack).
+- `className` (optional) adds a placement hook to the `.message`; the inline-note geometry
+  selectors use `:not(.message--inline)` (kept for specificity) — never style the note itself
+  through that class.
 - A bigger, titled message (icon + title + text) is a **Callout** (`.e-permits-callout`), not a note.
 - A pointer/explanation **under a list or card** (e.g. "Tarifele globale … se gestionează în
   Administrare → Tarife" under the passport Tarife list) is this grey note, never a bare hint

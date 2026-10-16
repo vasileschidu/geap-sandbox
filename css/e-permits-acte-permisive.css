@@ -20197,6 +20197,12 @@
   margin-bottom: var(--spacing-16, 16px);
 }
 
+/* „Modificări nepublicate” at the top of every template tab: the compact notice
+   (Inline note geometry) with the section gap under it — the panel is a block */
+[data-demo-flow="back-office"] .e-permits-user-profile__panel > .message.message--subtle.e-permits-ntpl__unpublished {
+  margin-bottom: var(--spacing-24, 24px);
+}
+
 .e-permits-ntpl__tabs {
   align-self: flex-start;
 }
@@ -20316,64 +20322,6 @@
 /* HTML mode is the plain text-area component, tall enough for a template */
 .e-permits-fo-textarea.e-permits-ntpl-html {
   min-height: 240px;
-}
-
-/* unpublished-changes notice — the Figma info-box geometry (Strong · Warning +
-   Close, 8230:2388) on the library message block: radius 8, an 8px "bone" + 8px
-   before the 24px icon, text 16/24 regular secondary with 24px top/bottom, the 16px
-   close in a 16 / 16 / 16 / 8 padded box */
-.message.e-permits-ntpl-banner {
-  align-items: flex-start;
-  animation: none;
-  background: var(--color-background-warning-secondary, #feefc6);
-  border-radius: var(--border-radius-8, 8px);
-  gap: 0;
-  margin-bottom: var(--spacing-24, 24px);
-  padding: 0 0 0 var(--spacing-8, 8px);
-}
-
-.e-permits-ntpl-banner .banner__icon {
-  align-self: stretch;
-  align-items: flex-start;
-  color: var(--color-icon-warning-default, #dc6803);
-  padding: var(--spacing-24, 24px) 0 var(--spacing-16, 16px) var(--spacing-8, 8px);
-}
-
-.e-permits-ntpl-banner .banner__icon .icon {
-  height: var(--spacing-24, 24px);
-  width: var(--spacing-24, 24px);
-}
-
-.e-permits-ntpl-banner .banner__content {
-  padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-24, 24px) var(--spacing-12, 12px);
-}
-
-.e-permits-ntpl-banner .banner__text {
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-24, 24px);
-}
-
-.e-permits-ntpl-banner .banner__close {
-  align-items: flex-start;
-  align-self: stretch;
-  border-radius: 0 var(--border-radius-8, 8px) var(--border-radius-8, 8px) 0;
-  color: var(--color-icon-base-default, #121212);
-  margin-left: 0;
-  padding: var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-16, 16px) var(--spacing-8, 8px);
-}
-
-.e-permits-ntpl-banner .banner__close > span {
-  align-items: center;
-  height: var(--spacing-20, 20px);
-  justify-content: center;
-  width: var(--spacing-20, 20px);
-}
-
-.e-permits-ntpl-banner .banner__close .icon {
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
 }
 
 .e-permits-ntpl-card--stack {
@@ -21832,11 +21780,11 @@ button.e-permits-steps-strip__cell:focus-visible {
    banner, CSV warnings, "Taxe generate", passport notices…) share: padding 12/16,
    radius 12, icon 20 top-aligned, 12px icon–text gap, text 14/20 regular in the default
    text colour (bold = medium) — in pages, drawers and modals alike (the modal's own
-   paragraph size must not leak in). Colour comes only from the tone. The dismissible
-   page banner (.e-permits-ntpl-banner, Figma 8230:2388) is the one exception. The FO act row's locked
+   paragraph size must not leak in). Colour comes only from the tone. No exception: page-level
+   banners (template „Modificări nepublicate”) are this notice too (2026-10-16). The FO act row's locked
    notice (.e-permits-fo-intent-act__pending, shared with the Ghișeu) takes the same geometry on the FO
    page (2026-10-16) so both products draw one notice. */
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.e-permits-ntpl-banner)) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.info-box.e-permits-info-note, .message.message--subtle:not(.message--inline)) {
   align-items: flex-start;
   animation: none;
   border-radius: var(--border-radius-12, 12px);
@@ -21847,7 +21795,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.e-permits-ntpl-banner) .banner__icon) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) {
   align-items: center;
   display: inline-flex;
   flex: 0 0 20px;
@@ -21857,12 +21805,12 @@ button.e-permits-steps-strip__cell:focus-visible {
   width: 20px;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.e-permits-ntpl-banner) .banner__icon) .icon {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__icon, .message--subtle:not(.message--inline) .banner__icon) .icon {
   height: 20px;
   width: 20px;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) .message--subtle:not(.e-permits-ntpl-banner) .banner__content {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) .message--subtle:not(.message--inline) .banner__content {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
@@ -21871,7 +21819,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   padding: 0;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.e-permits-ntpl-banner) .banner__text) {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note .info-box__content, .e-permits-info-note .info-box__content p, .message--subtle:not(.message--inline) .banner__text) {
   color: var(--color-text-base-default, #121212);
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-14, 14px);
@@ -21880,7 +21828,7 @@ button.e-permits-steps-strip__cell:focus-visible {
   margin: 0;
 }
 
-:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note, .message--subtle:not(.e-permits-ntpl-banner)) strong {
+:is([data-demo-flow="back-office"], .e-permits-fo-intent-act) :is(.e-permits-info-note, .message--subtle:not(.message--inline)) strong {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
