@@ -1065,10 +1065,11 @@
      2026-10-15: plain code inputs, not search fields): the arrow asks
      MConnect (disabled until 13 digits; Enter = the arrow, js/search.js), the spinner while it answers,
      then the search clear × alone (= change the code). Never on typing or blur. */
-  function codeGroupHtml(kind, d) {
+  /* col: PJ — company and the person filing side by side, each a column: label, code, the result under it */
+  function codeGroupHtml(kind, d, { col = false } = {}) {
     const conf = {
-      company: { code: "IDNO", value: d.company.idno, state: d.company.state, targets: [["name", "Denumirea companiei", 6, d.company.denumire, "Se completează din RSUD după IDNO"]] },
-      applicant: { code: "IDNP", value: d.applicant.idnp, state: d.applicant.state, targets: [["last", "Nume", 3, d.applicant.nume, "Din RSP, după IDNP"], ["first", "Prenume", 3, d.applicant.prenume, "Din RSP, după IDNP"]] },
+      company: { code: "IDNO", value: d.company.idno, state: d.company.state, targets: [["name", "Denumirea companiei", col ? 12 : 6, d.company.denumire, "Se completează din RSUD după IDNO"]] },
+      applicant: { code: "IDNP", value: d.applicant.idnp, state: d.applicant.state, targets: [["last", "Nume", col ? 6 : 3, d.applicant.nume, "Din RSP, după IDNP"], ["first", "Prenume", col ? 6 : 3, d.applicant.prenume, "Din RSP, după IDNP"]] },
       rep: { code: "IDNP", value: d.rep.idnp, state: d.rep.state, targets: [["last", "Nume reprezentant", 3, d.rep.nume, "Din RSP, după IDNP"], ["first", "Prenume reprezentant", 3, d.rep.prenume, "Din RSP, după IDNP"]] }
     }[kind];
     const id = `gh-${kind}`;
@@ -1077,8 +1078,8 @@
     const manual = conf.state === "manual";
     const codeLocked = found || manual;
     return `
-      <div class="e-permits-fo-field-group" data-gh-lookup="${kind}">
-        <div class="e-permits-fo-field e-permits-fo-field--span-6">
+      <div class="e-permits-fo-field-group${col ? " e-permits-gh-lookup-col" : ""}" data-gh-lookup="${kind}">
+        <div class="e-permits-fo-field e-permits-fo-field--span-${col ? 12 : 6}">
           <div class="e-permits-fo-field__label-counter"><label for="${id}">${esc(label)} ${req()}</label><span class="e-permits-fo-field__counter" data-fo-digits-counter>${(conf.value || "").length}/13</span></div>
           <div class="search-input ${searchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cadastral-search e-permits-gh-lookup${codeLocked ? " has-value is-ready is-locked" : ""}" data-fo-search-size data-gh-lookup-box>
             <input class="input" id="${id}" type="text" inputmode="numeric" maxlength="13" placeholder="Introdu ${conf.code}" autocomplete="off" aria-describedby="${id}-hint" aria-required="true" value="${esc(conf.value || "")}"${codeLocked ? " readonly" : ""} data-fo-digits data-fo-registry-code data-gh-code="${kind}">
@@ -1112,12 +1113,16 @@
     if (b.kind === "rsud") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: Administrator în RSUD.</strong> ${esc(filer)} este administratorul ${esc(holder)}, fără procură.`) || "";
     else if (b.kind === "mpower") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: Împuternicire MPower</strong> nr. ${esc(b.nr)}, valabilă până la ${esc(longDate(b.until))}. ${esc(filer)} reprezintă ${esc(holder)}, fără procură.`) || "";
     else {
+      /* AC-21 error = the FO way: message under the group, only the checkbox control in the library error
+         style (checkbox--error) — no border around the option */
+      const option = U().renderCheckOption?.({ label: "Prin procură", required: true, checked: d.procura, attrs: 'data-gh-procura aria-describedby="gh-err-procura"' }) || "";
+      const procuraOption = d.procura ? option : option.replace('class="checkbox ', 'class="checkbox checkbox--error ');
       body = `
         ${U().renderNotice?.("warning", b.manual
           ? "<strong>Legătura nu se poate confirma electronic</strong> cât timp registrul de stat nu răspunde. Verificați procura pe hârtie prezentată de reprezentant."
           : `<strong>Legătura nu este confirmată electronic.</strong> ${esc(filer)} nu este ${d.personType === "PJ" ? "administrator în RSUD și nu are" : "împuternicit în MPower de"} ${d.personType === "PJ" ? `împuternicire MPower pentru ${esc(holder)}` : esc(holder)}. Verificați procura pe hârtie prezentată de reprezentant.`) || ""}
         <div class="e-permits-check-options e-permits-gh__procura">
-          ${U().renderCheckOption?.({ label: "Prin procură", required: true, checked: d.procura, attrs: 'data-gh-procura aria-describedby="gh-err-procura"' }) || ""}
+          ${procuraOption}
         </div>
         ${d.procura ? errSlot("procura") : `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-procura" data-gh-err="procura" role="alert">${ERR_ICON}<span>Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie.</span></span>`}
         ${d.procura ? `<p class="e-permits-fo-field__hint">Temeiul reprezentării: Procură. Copia scanată a procurii se atașează la pasul „Documente însoțitoare”.</p>` : ""}`;
@@ -1141,9 +1146,9 @@
     normalizeType(d);
     const types = applicantTypesOf(d.service);
     const typeField = types.length > 1
-      ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică" }, { value: "PJ", label: "Persoană juridică" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
+      ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică", icon: "icon-person-filled" }, { value: "PJ", label: "Persoană juridică", icon: "icon-suitcase-filled" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
       : readonlyField({ id: "gh-tip-fix", label: "Tip persoană", value: types[0] === "PJ" ? "Persoană juridică" : "Persoană fizică", span: 6, hint: "Singurul tip de solicitant configurat pentru serviciu." });
-    const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d)}${codeGroupHtml("applicant", d)}` : codeGroupHtml("applicant", d);
+    const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d, { col: true })}${codeGroupHtml("applicant", d, { col: true })}` : codeGroupHtml("applicant", d);
     return `
       <div data-gh-block="applicant">
         ${section("Solicitantul", `<div class="e-permits-fo-form__section-body">${typeField}${rows}</div>`, { id: "gh-applicant-title" })}

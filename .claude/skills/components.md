@@ -5913,8 +5913,13 @@ added for modules (all generic, reuse them for the next BO module):
     skeleton names, loading status. Found → read-only code + the search clear × alone („Schimbă IDNP-ul”), names
     filled with a flash. Not found (9999999999999) / registry down / „…are 13 cifre.” / „Căutați IDNP-ul în
     registru.” (Continuă before searching) = the FO inline error, box `is-error`. Under a code only status lines
-    — no helper hints (an empty hint takes no room). Layout: code span-6 + Nume / Prenume span-3 (company name
-    span-6) on one row; one column ≤860.
+    — no helper hints (an empty hint takes no room). Layout: PF = IDNP span-6 + Nume / Prenume span-3 on one
+    row; PJ = two columns side by side (`.e-permits-gh-lookup-col`, span-6 each): IDNO → Denumirea companiei
+    under it | IDNP reprezentant → Nume + Prenume under it (the FO has no side-by-side PJ layout — its guest
+    form uses two sections; this is the FO 12-column grid). One column ≤860 (where the FO grid collapses).
+  - **Tip persoană** = the FO segmented control with the registry applicant icons in each segment
+    (`icon-person-filled` / `icon-suitcase-filled`, 16, gap 8, currentColor = the label colour per state; the
+    `segment` field option `icon`). The FO guest „Soliciți în numele” control carries the same icons.
   - **Continuă** = first save (nr + UID) → the request window on **„Ce se solicită?”** (step `intent`, no
     stepper, no footer — as FO #intent): `GEAPFormRender.intentHtml` with „Solicitant <name> IDNO … · Schimbă”
     (reopens the small modal), „Solicitare nouă”, „sau”, „Acte emise pentru acest serviciu” = the shared act rows
@@ -5929,7 +5934,8 @@ added for modules (all generic, reuse them for the next BO module):
     A draft can exist before the process („—” in the list); resuming it opens the intent screen.
 - **First step „Date solicitant”** (identity in the small modal; representation and contact in the flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
   „Persoana care depune” for PJ, then „Reprezentantul” (PF check option + IDNP lookup) / „Temeiul reprezentării”
-  (RSUD / MPower / Prin procură with the live AC-21 error). The process lives in the header meta. The cards and
+  (RSUD / MPower / Prin procură with the live AC-21 error — the FO way: the message under the group and only
+  the checkbox control in the library `checkbox--error` style, no border around the option). The process lives in the header meta. The cards and
   group titles are the FO ones (`GEAPFormRender.roleCardHtml` = `selectedRoleHtml` with `changeAttrs` /
   `extraHtml`, `roleGroupTitleHtml`) — never rebuilt.
 - **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top

@@ -4956,6 +4956,19 @@
    --seg-x / --seg-y / --seg-w / --seg-h from the selected item, snaps without animation on first
    paint and on resize (`is-snap`), and only then adds `is-ready` — before that the selected item
    keeps the library fill. Separators stay the library rule (hidden next to the selected item). */
+/* a segment with a leading icon (PF / PJ: person-filled / suitcase-filled, the registry applicant icons,
+   2026-10-16): 16px, 8 before the label, currentColor = the label colour in every state */
+.segment-item:has(> .icon) {
+  gap: var(--spacing-8, 8px);
+}
+
+.segment-item > .icon {
+  color: currentColor;
+  flex: none;
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
 .segmented-control.is-animated {
   isolation: isolate;
   position: relative;

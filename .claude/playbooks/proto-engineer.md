@@ -834,3 +834,7 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-15 · CSS cut by start/end markers in a long file removed ~290 lines (the end marker existed only far below
   after an earlier edit moved things). Before cutting by markers, print the span (line numbers) and check its size;
   after any cut, diff the removed selectors against HEAD.
+- 2026-10-16 · The library segmented control has no icon slot (a coordinator note said it had): an icon inside
+  `.segment-item` + `:has(> .icon)` gap 8 and `currentColor` keeps the label colour in every state; check the
+  library before trusting a „the component supports X”. Option-group errors = message under the group + the
+  library `checkbox--error` on the control only — never a red border around the option (user).

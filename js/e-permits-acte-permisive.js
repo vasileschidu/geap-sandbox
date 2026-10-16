@@ -2401,7 +2401,7 @@
             ${options.map((option, index) => {
               const on = option.value === field.value;
               const focusable = on || (!field.value && index === 0);
-              return `<button class="segment-item${on ? " is-selected" : ""}" type="button" role="radio" aria-checked="${on}" tabindex="${focusable ? "0" : "-1"}" data-value="${escapeFrontOfficeHtml(option.value)}"${field.readOnly ? " disabled" : ""}>${escapeFrontOfficeHtml(option.label)}</button>`;
+              return `<button class="segment-item${on ? " is-selected" : ""}" type="button" role="radio" aria-checked="${on}" tabindex="${focusable ? "0" : "-1"}" data-value="${escapeFrontOfficeHtml(option.value)}"${field.readOnly ? " disabled" : ""}>${option.icon ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(option.icon)}"></use></svg>` : ""}${escapeFrontOfficeHtml(option.label)}</button>`;
             }).join("")}
           </div>
           ${fieldHintHtml(id, field)}
