@@ -174,6 +174,7 @@ but this doc previously described it wrongly, see the entry.
 |---|---|---|---|
 | Stacked-list row hover (full width) | `.e-permits-stack__item.is-clickable` — side inset 20 on the ROW (list padding 0), inset divider = `::before`, fill `--color-background-base-tertiary` edge to edge, outer rows take `calc(var(--stack-radius) − 1px)`, dividers around the hovered row hide, kept while its ⋮ is open / a control has focus-visible, 140ms standard easing (off for reduced motion); the grey „Detalii” turns white on the band | section „Stacked-list row hover — full width” | app |
 | Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
+| Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` | `buttons.html` | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
 | Icon button | `.btn-icon`, `.btn-icon.clear` | — | app |
@@ -1831,6 +1832,60 @@ diverges on nearly every value:
 
 **Gaps** — no contextual menu, no Leading Element axis (checkbox / radio / icon), no
 Hover/Active/Focus/Disabled item states, no mobile bottom-sheet.
+
+### Dropdown surface — one look for every menu (rule, 2026-10-16)
+
+User: „audit all dropdown menus — they should have the dropdown effect applied, and clip content
+checked so the effect applies”. Reference: GEAP 2.0 `9632:3226` „Field picker” (white, radius 12,
+soft shadow, no border, search on top, group label, rows title + 12px meta, hover row grey inside
+the rounded corners). Its effect is the GEAP 2.0 effect style **„dropdown-effect”** = 3 drop shadows
+`0 0 0 1 @8 %` (the ring is the border) · `0 4 6 −2 @5 %` · `0 10 15 −3 @10 %` — the box-shadow the FO
+intent menu / instance switchers already had (Figma side: `tools/figma/dropdown-effect/`). **There is no
+CSS token for it**: main.css has only `--drop-shadow-100…600` (the library `.date-picker` /
+`.profile-dropdown` use `--drop-shadow-300`, a softer 0.5px edge), and the `--shadow-100…400` names in
+design-system.md are not defined in main.css at all. The value is written ONCE, in the rule below
+(PO / design-system: add a `--shadow-dropdown` token and swap it there).
+
+| Property | Value |
+|---|---|
+| background | `--color-background-base-default` |
+| border | none (the effect's 1px @8 % ring draws the edge) |
+| radius | `--border-radius-12` (reference + library date picker + BO stack menus; the Figma library `selection-menu` / `contextual-menu`, `.profile-dropdown` and the Figma FO intent menu / instance switcher say 16 — one token in the rule if the PO picks 16) |
+| shadow | „dropdown-effect”: `0 0 0 1px rgba(0,0,0,.08), 0 4px 6px -2px rgba(0,0,0,.05), 0 10px 15px -3px rgba(0,0,0,.1)` (no token) |
+| clip | `overflow: clip` (hover / selected row fills and the scrollbar stay inside the corners; not a scroll box, so `scrollIntoView` never shifts the menu) |
+| rows | keep their own inset + radius: BO size 4 inset / radius 6 (32px rows), FO size 8 inset / radius 8 |
+| cursor | `default` on the surface (a menu inside a clickable card / row no longer inherits `pointer`; items keep theirs) |
+
+**One rule, zero specificity** — `:where(…)` at the end of `css/e-permits-acte-permisive.css`
+(comment header „Dropdown surface”), plus two real selectors in the same rule for library classes that
+style themselves (`.date-picker-panel > .date-picker`, `.select-dropdown.e-permits-shell__help-menu`). Covered surfaces: `.e-permits-fo-intent-menu` (base of every ⋮
+row menu `renderStackMenu`, BO header / export / sort / column / schedule / „Adaugă tip” menus,
+`.cab-menu`, `.e-permits-case-actions__menu`, eKYC menus, Form Builder `__add-menu` / `__issues-menu`,
+Process Designer zoom / versions / „Continuă cu”, Ghișeu row + act menus, the filter popover
+`.e-permits-workplace__filter-pop`, the notification field picker `.e-permits-ntpl-picker`),
+`.e-permits-fo-select__list` (incl. the floating `data-fo-float` list in dialogs), `__caem__menu`,
+`__subgen-select__menu`, `__address-search__list`, `__phone__code-list`, `__mdocs__menu`,
+`.e-permits-builder__source-menu` (no markup uses it today), the header instance switchers `.e-permits-fo-avatar-menu` /
+`.e-permits-shell__profile-menu`, `.e-permits-shell__help-menu`, the library `.date-picker`.
+Restated (same values) only where that file is not loaded: `.e-permits-shell__help-menu` /
+`__profile-menu` in `e-permits-shell.css` (standalone `e-permits-shell.html`; the help menu also
+sits on the library `.select-dropdown`, which beats `:where`). Not dropdowns (left as they are): the
+RAP EVO filter (`.rap-filter-panel`, an inline panel / drawer; `.rap-filter__panel` in rap-evo.css is
+dead CSS), the template hover preview `.e-permits-doc-peek` (a preview card, `--drop-shadow-400`, r16),
+Process Designer floating cards / toolbar / minimap (canvas panels, `--shadow-200`, r16).
+
+Rules:
+- A surface never redeclares background / border / radius / shadow — reuse the class and delete
+  them (a phone bottom-sheet variant may override, as the library date picker does at ≤ 720).
+- A surface that scrolls declares its own `overflow-y: auto` (beats `:where`, clips too); a menu
+  with a search + list keeps the scroll on the inner list (`flex: 1 1 auto; min-height: 0`).
+- Nothing inside a menu may need to paint outside it: tooltips (`data-tooltip-label`,
+  `data-tooltip-reason` on disabled items) are portals on `<body>` (icon-tooltip.js / tooltip.js);
+  no menu has a nested flyout — a future submenu opens as its own surface, never inside the clip.
+- New dropdown → class `e-permits-dropdown` on the surface (or `.e-permits-fo-intent-menu`).
+- QA: `tools/ui-qa/code-audit.mjs` reports `dropdown-surface` for an open `role=menu` /
+  `role=listbox` whose floating surface lacks the „dropdown-effect” shadow, radius 12, border 0, a background or a
+  non-visible overflow.
 
 ---
 
@@ -4170,7 +4225,7 @@ panel: dossiers, sarcini, users, roles, services, authorities, tariffs, ntpl.
   - **Count badge:** the same `badge badge--lg badge--solid-light` as everywhere else.
   - **"Mai multe":** the first 4 facets are chips; the rest sit in "Mai multe" (a menu)
     until they hold a value.
-- **Popover** (Figma contextual-menu: 270 wide, radius 16, Drop Shadow/300):
+- **Popover** (Figma contextual-menu: 270 wide; surface = the „Dropdown surface” rule: „dropdown-effect”, radius 12, 2026-10-16):
   - **Options:** compact: padding 8 / 12, gap 10, no gap between rows (~36–40px
     tall; user 2026-10-01), a library checkbox, then the value.
     **Status values render as their tag** (`renderTag` with the registry tone); other

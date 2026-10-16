@@ -1161,8 +1161,13 @@
   cursor: grab;
 }
 
-.e-permits-builder__field-tools :is(button, [data-stack-menu]) {
+.e-permits-builder__field-tools button {
   cursor: pointer;
+}
+
+/* the ⋮ menu is not a grab handle and not an action itself (only its items are) — 2026-10-16 */
+.e-permits-builder__field-tools [data-stack-menu] {
+  cursor: default;
 }
 
 /* a read-only value in the panel (the text can still be selected and copied) */

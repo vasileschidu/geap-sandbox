@@ -2378,18 +2378,11 @@
 }
 
 .e-permits-fo-avatar-menu {
-  background: var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow:
-    0 0 0 1px rgb(0 0 0 / 8%),
-    0 4px 6px -2px rgb(0 0 0 / 5%),
-    0 10px 15px -3px rgb(0 0 0 / 10%);
   box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 120px);
-  overflow: hidden;
   position: absolute;
   /* aligned with the switcher: same right edge, standard menu offset under the trigger */
   right: 0;
@@ -5455,9 +5448,6 @@
 }
 
 .e-permits-fo-select__list {
-  background: var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0px 0px 0.5px 0px rgba(0, 0, 0, 0.15), 0px 5px 12px 0px rgba(0, 0, 0, 0.08), 0px 1px 3px 0px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   left: 0;
   list-style: none;
@@ -5580,17 +5570,12 @@
 }
 
 .e-permits-fo-caem__menu {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 5px 12px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   left: 0;
   margin-top: var(--spacing-4, 4px);
   max-height: 472px;
-  overflow: hidden;
   position: absolute;
   top: 100%;
   width: min(100%, 756px);
@@ -5835,16 +5820,11 @@
 }
 
 .e-permits-fo-subgen-select__menu {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
   bottom: calc(100% + 4px);
-  box-shadow: 0 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 5px 12px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   left: 0;
-  overflow: hidden;
   position: absolute;
   width: 100%;
   z-index: 45;
@@ -6062,10 +6042,6 @@
 }
 
 .e-permits-fo-address-search__list {
-  background: var(--color-background-base-default, #fff);
-  border: 0;
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 5px 12px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -6347,10 +6323,6 @@
 }
 
 .e-permits-fo-phone__code-list {
-  background: var(--color-background-base-default, #fff);
-  border: 0;
-  border-radius: var(--border-radius-12, 12px);
-  box-shadow: 0 0 0.5px 0 rgba(0, 0, 0, 0.15), 0 5px 12px 0 rgba(0, 0, 0, 0.08), 0 1px 3px 0 rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -8167,14 +8139,9 @@
 }
 
 .e-permits-fo-mdocs__menu {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15), 0 5px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   left: 0;
   margin-top: var(--spacing-4, 4px);
-  overflow: hidden;
   position: absolute;
   top: 100%;
   width: 100%;
@@ -13334,15 +13301,11 @@
 }
 
 .e-permits-builder__source-menu {
-  background: var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 0 0.5px rgba(0, 0, 0, 0.15), 0 5px 12px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4, 4px);
   left: 0;
-  overflow: hidden;
   padding: var(--spacing-8, 8px);
   position: absolute;
   right: 0;
@@ -17769,11 +17732,8 @@
   transform: rotate(180deg);
 }
 
-/* ---- post-process menu ---- */
+/* ---- post-process menu (surface: „Dropdown surface” rule) ---- */
 .e-permits-fo-intent-menu {
-  background: var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-16, 16px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -18998,7 +18958,6 @@
   padding: var(--spacing-4, 4px);
   width: max-content;
   min-width: 180px;
-  border-radius: var(--border-radius-12, 12px);
 }
 
 .e-permits-stack__menu .e-permits-fo-intent-menu__item {
@@ -20455,7 +20414,6 @@
 /* field picker (stack-menu) — search + list */
 .e-permits-ntpl-picker {
   max-height: 420px;
-  overflow: hidden;
   padding: var(--spacing-8, 8px);
   width: 320px;
 }
@@ -25730,4 +25688,61 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
 
 .e-permits-fo-delivery-option--check.is-selected:hover {
   background: var(--color-background-brand-secondary-hover, #ccdef6);
+}
+
+/* ==========================================================================
+   Dropdown surface — one look for every menu, list and picker that floats over the page
+   (2026-10-16, user: „audit all dropdown menus … dropdown-effect, clip content”; reference GEAP 2.0
+   9632:3226 „Field picker”). Figma effect style „dropdown-effect” = 3 drop shadows: 0 0 0 1 @8 % (the
+   ring IS the border), 0 4 6 −2 @5 %, 0 10 15 −3 @10 % — there is NO CSS token for it (main.css has
+   only --drop-shadow-100…600), so the value lives here once. White, no border, radius 12.
+   `overflow: clip` keeps the hover / selected row backgrounds and the scrollbar inside the rounded
+   corners without making the menu a scroll box (scrollIntoView never shifts it).
+   :where() = zero specificity on purpose:
+   - a surface that SCROLLS keeps its own `overflow(-y): auto` (it clips to the corners too);
+   - a surface never redeclares background / border / radius / shadow — delete them when you
+     reuse a class; a phone bottom-sheet variant may (the library date picker does).
+   New dropdown → add `e-permits-dropdown` to its surface (or reuse .e-permits-fo-intent-menu).
+   Tooltips inside menus are portals (icon-tooltip.js / tooltip.js append to <body>), and no
+   menu has a nested flyout, so the clip cuts nothing that should show.
+   ========================================================================== */
+:where(
+  .e-permits-dropdown,
+  .e-permits-fo-intent-menu,
+  .e-permits-fo-select__list,
+  .e-permits-fo-caem__menu,
+  .e-permits-fo-subgen-select__menu,
+  .e-permits-fo-address-search__list,
+  .e-permits-fo-phone__code-list,
+  .e-permits-fo-mdocs__menu,
+  .e-permits-builder__source-menu,
+  .e-permits-fo-avatar-menu,
+  .e-permits-shell__profile-menu,
+  .e-permits-shell__help-menu,
+  .date-picker
+),
+/* library surfaces with their own look (main.css, 0-1-0) need a real selector to take the effect */
+.date-picker-panel > .date-picker,
+.select-dropdown.e-permits-shell__help-menu {
+  background-color: var(--color-background-base-default, #fff);
+  border: 0;
+  border-radius: var(--border-radius-12, 12px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  /* a menu inside a clickable card / row must not inherit its pointer: only the items are actions */
+  cursor: default;
+  overflow: clip;
+}
+
+/* the selected day of the date picker had no hover (hover-audit, trf-02d): one step deeper */
+.date-picker__day:is(.is-selected, .is-range-start, .is-range-end):hover:not(:disabled) {
+  background: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* CAEM subgenre menu (fo-03s): the keyboard-active / selected row and „Confirmă” had no hover */
+.e-permits-fo-subgen-select__option:is(.is-active, .is-selected):hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-fo-subgen-select__confirm:hover:not(:disabled) {
+  background: var(--color-background-brand-default-hover, #0046a8);
 }

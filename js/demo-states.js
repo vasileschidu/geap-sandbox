@@ -348,6 +348,8 @@
       await h.find("[data-service-sync-body] .e-permits-passport__sync-summary", null, 15000);
     } }])),
     "svc-01": svc("general"),
+    /* 2026-10-16 · dropdown audit: the BO header help menu open */
+    "svc-00h": svc("general", async (h) => { await h.click('[aria-controls="shell-help-menu"]'); }),
     "svc-01a": svc("general", async (h) => { await h.click("[data-passport-top] [data-stack-menu-trigger]"); }),
     "svc-01b": svc("general", async (h) => { await h.click("[data-passport-top] [data-stack-menu-trigger]"); await h.click('[data-sync-source="RSSP"]'); }),
     "svc-01c": svc("general", async (h) => {
@@ -972,6 +974,13 @@
     "fo-03": foReq(2),
     /* CAEM search with no match = the shared empty state inside the list (bare + compact) */
     "fo-03e": foReq(2, {}, async (h) => { await h.click("#fo-caem-code"); await h.fill("[data-fo-caem-search]", "zzz", { leave: false }); document.querySelector("[data-fo-caem-menu]")?.scrollIntoView({ block: "center" }); await h.wait(200); }),
+    /* 2026-10-16 · dropdown audit: the phone country-code list and the CAEM subgenre menu open (dropdown surface) */
+    "fo-02p": foReq(1, {}, async (h) => { await h.click("[data-fo-phone-code-button]"); await h.wait(200); }),
+    "fo-03s": foReq(2, {}, async (h) => {
+      const code = await h.find("#fo-caem-code"); code.click(); code.dispatchEvent(new FocusEvent("focus")); await h.wait(300);
+      const opt = await h.find("[data-fo-caem-menu] [role=option]"); opt.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); opt.click(); await h.wait(300);
+      await h.click("[data-fo-subgen-button]"); await h.wait(200);
+    }),
     "fo-04": foReq(3),
     "fo-05": foReq(4),
     /* 2026-10-14 · one document shape in the FO: the picker keeps a card per document (type + source tag,

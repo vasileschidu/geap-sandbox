@@ -1,7 +1,8 @@
 // UI QA — code. Opens demo states in headless Chrome and measures what the browser renders:
 // spacing / radius / font-size off the token scale, colours that are not design tokens, non-Onest
 // fonts, clipped text without a tooltip, overlapping controls, button icons that differ from
-// their label colour, buttons that are not library buttons, and horizontal overflow.
+// their label colour, buttons that are not library buttons, open menus / listboxes without the dropdown
+// surface (shadow, radius 12, clip), and horizontal overflow.
 // Also scans the given source files for hard-coded hex / px outside var().
 //
 // Usage: node --experimental-websocket --no-warnings tools/ui-qa/code-audit.mjs \
@@ -144,6 +145,34 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
       }
       const gap = (dir < 0 ? r.top - q.bottom : q.top - r.bottom) + inset;
       if (gap > -0.5 && gap < 7.5) add("tight-gap", el, `${Math.round(gap)}px ${dir < 0 ? "below" : "above"} ${sel(nb)}`);
+    }
+  }
+  /* dropdown-surface (2026-10-16, user: „all dropdown menus get the dropdown effect + clip content”): every
+     open role=menu / role=listbox / known dropdown surface class (filter popovers are role=dialog) that floats (itself or a positioned ancestor up to 3 levels = its surface) must
+     have the dropdown surface of components.md › „Dropdown surface”: the „dropdown-effect” shadow, radius 12, no border,
+     a painted background and a non-visible overflow (clip / hidden / auto), so row backgrounds and the scrollbar
+     stay inside the rounded corners. Checked document-wide (menus are often appended to <body> / fixed). */
+  {
+    const probe = document.body.appendChild(document.createElement("div"));
+    /* Figma effect style „dropdown-effect” (no CSS token exists — the value lives once in the „Dropdown surface” rule) */
+    probe.style.boxShadow = "0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1)";
+    const WANT = getComputedStyle(probe).boxShadow; probe.remove();
+    const seen = new Set();
+    for (const list of document.querySelectorAll("[role=menu], [role=listbox], .e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-caem__menu, .e-permits-fo-subgen-select__menu, .e-permits-fo-mdocs__menu, .date-picker-panel .date-picker")) {
+      if (!vis(list)) continue;
+      if (list.closest(".date-picker__field.is-mobile")) continue; /* phones: the library date picker is a bottom sheet */
+      /* a known surface class is its own surface (the date picker sits in an unpainted positioned panel) */
+      let surface = list.matches(".e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-caem__menu, .e-permits-fo-subgen-select__menu, .e-permits-fo-mdocs__menu, .date-picker") ? list : null;
+      for (let n = list, d = 0; !surface && n && n !== document.body && d < 4; n = n.parentElement, d += 1) { if (/absolute|fixed/.test(getComputedStyle(n).position)) { surface = n; break; } }
+      if (!surface || seen.has(surface)) continue;
+      seen.add(surface);
+      const c = getComputedStyle(surface), bad = [];
+      if (c.boxShadow !== WANT) bad.push(`shadow ${c.boxShadow.slice(0, 60)}`);
+      if (Math.abs(parseFloat(c.borderTopLeftRadius) - 12) > 0.5) bad.push(`radius ${c.borderTopLeftRadius}`);
+      if (parseFloat(c.borderTopWidth) > 0) bad.push(`border ${c.borderTopWidth}`);
+      if (c.overflowX === "visible" || c.overflowY === "visible") bad.push(`overflow ${c.overflowX}/${c.overflowY}`);
+      if (c.backgroundColor === "rgba(0, 0, 0, 0)") bad.push("no background");
+      if (bad.length) add("dropdown-surface", surface, bad.join(" · "));
     }
   }
   // horizontal overflow of the page

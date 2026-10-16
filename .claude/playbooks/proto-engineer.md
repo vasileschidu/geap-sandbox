@@ -880,3 +880,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   sheet's line would have gone full-bleed). Figma's `Profile / Tabs` also has a full-width `tab-buttons` frame —
   report it for the Figma follow-up. Without the Figma screen id (figma-a only lists the open page; parent ids
   can't be walked from a child), say so instead of guessing ids.
+- 2026-10-16 · Dropdown audit (user: „all dropdown menus get the dropdown effect + clip content”, ref GEAP 2.0 9632:3226):
+  „dropdown-effect” is a GEAP 2.0 Figma effect STYLE (0 0 0 1 @8 % ring · 0 4 6 −2 @5 % · 0 10 15 −3 @10 %), with NO CSS
+  token (main.css has `--drop-shadow-100…600`; the `--shadow-100…400` of design-system.md are not defined at all). I first
+  mapped it to `--drop-shadow-300` (the library dropdowns use it) and only found the truth in a parallel figma-designer
+  commit (`tools/figma/dropdown-effect/`) — when the brief names a Figma style, `git log` / grep tools/figma for it
+  BEFORE choosing a token. ONE rule `:where(<surface list>)` at the end of e-permits-acte-permisive.css (white, no border,
+  r12, the effect as a literal once, `overflow: clip`, `cursor: default`): zero specificity, so scrolling lists keep their own `overflow: auto` and
+  phone sheets keep their radius — but every per-menu background / border / radius / shadow had to be DELETED
+  (11 rules), and library classes (`.select-dropdown`) and pages that don't load the file (e-permits-shell.html)
+  need the values restated (or a real selector in the same rule list — per-selector specificity). Measure the Figma
+  reference from the PNG (tiny zlib PNG reader, no PIL here): edge pixel 235 = a 1px @8 % ring, ~20px below = 0 10 15 −3.
+- 2026-10-16 · Inventory method that worked: a probe listing every visible absolute/fixed painted surface + its
+  descendants outside its rect, run over ALL 1 096 demo states (3 workers ≈ 60 min — start it first, in the
+  background, and edit meanwhile). It found the surfaces greps missed and the dead ones (`.rap-filter__panel`,
+  `.e-permits-builder__source-menu` have no markup — I edited rap-evo.css before checking and had to revert).
+  Grep the markup for a class before touching its CSS. Then the new code-audit rule `dropdown-surface` proved
+  before (HEAD worktree on :8936 flags every menu) / after (0 on 82 states × 2 viewports).
+- 2026-10-16 · Side finds of the audit: the Cabinet act card ⋮ menu opened 71px off-screen left at 375 (right-anchored
+  menu next to a left-side trigger → `left: 0; right: auto` on phones); hover gaps inside menus (selected date-picker
+  day, CAEM subgenre active row + „Confirmă”); a builder rule `:is(button, [data-stack-menu]) { cursor: pointer }`
+  made the whole menu a pointer → hover-audit counted its `li`s. Always measure open menus' rects at 375.

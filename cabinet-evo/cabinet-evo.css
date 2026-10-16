@@ -1339,3 +1339,12 @@
 .cab-page-header .e-permits-page-header__meta .e-permits-fo-copy-value {
   padding: 0;
 }
+
+/* 2026-10-16 · dropdown audit: on phones the act card's ⋮ sits next to the status tag (x ≈ 107), so the
+   right-anchored menu opened 71px off the left screen edge (pp-01a at 375) → open it rightwards there */
+@media (max-width: 720px) {
+  .cab-card__tags .cab-menu.e-permits-fo-intent-menu {
+    left: 0;
+    right: auto;
+  }
+}
