@@ -1303,3 +1303,9 @@ fill only real columns, keep containers whole-pixel so fills don't split into fr
   - Onest has no „⋮” — texts with it render „:” (13 board texts fixed). Full-page screenshots of an 18,400 × 30,800 section fail
     („unexpected error”) — screenshot per block instead.
   - No Agent tool in this session again → ran figma-audit.js (stored „ghs/audit”) myself; before/after in the report.
+
+### HARD RULE (user, 2026-10-16): icon colour after every swap
+`swapComponent()` / imported icon instances bring the icon's DEFAULT fill (≈ black). After any icon swap: inside a
+component variant → reset the icon overrides (the variant colours it); outside (avatar glyphs, standalone ⓘ, status
+icons) → bind the fill to the colour the CODE renders there (measure the svg's computed colour). The old audit only
+compared icons with a sibling label, so label-less icons slipped through — run `icon-colour-vs-code` before reporting.
