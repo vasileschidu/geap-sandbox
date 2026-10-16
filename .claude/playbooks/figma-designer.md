@@ -1177,3 +1177,8 @@ gets better; never delete a lesson, rewrite it if it was wrong.
     then call it per slice — saved ~40 KB of repeated pastes (binder run in 4 slices of the section's children).
   - Audit (figma-audit.js on the section): stepper links „Button - Deschide pasul N” (211) and `fontName` mixed = known false
     positives / library gap (no FO vertical stepper component); remaining real minors listed in the report.
+
+### HARD RULE (user, 2026-10-16, repeated): no PNG / image-fill icons — ever
+Every capture leaves image-fill icons. A capture is NOT done until the icon swap has run: document icons → the published
+„document-icon” set (System Generated e0b9de2b… / User Uploaded b467bfaa…), every other icon → the library icon instance
+(icon-map, as in the eKYC „0 raw captured icons” job). Final QA must report image-fill icons = 0 on every touched block.
