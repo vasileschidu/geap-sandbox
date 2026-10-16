@@ -1,6 +1,6 @@
 // Section header with an action — ONE pattern (code a89b5c0b, components.md „Section header with an action”).
 // Normalises every BO section-heading row that carries an action (button / ⋮ menu button / segmented, ± meta) on one page:
-//   row      HORIZONTAL, padding 0 / 12 (right, spacings/12) / 0 / 0, gap 12, counter CENTER, height = the title's 48
+//   row      HORIZONTAL, padding 0 / 12 (right, spacings/12) / 4 (bottom, spacings/4 — 2026-10-16, code 3bfd4ebf) / 0, gap 12, counter CENTER, height 48 + 4
 //            (rows with a 52 segmented control: FIXED 48, the control overflows ±2 like the code)
 //   title    frame: padding 0 / 12 / 0 / 12, minHeight 48 (spacings/48), text = Desktop/Heading/H5 (18/26 600)
 //            svc/section-heading instance: the main carries minHeight 48 + H5 (fixed 2026-10-16)
@@ -12,7 +12,7 @@
 // Run: use_figma with OPT = { page: "<page id>", mode: "dry" | "apply" | "revert", file: "geap" | "ekyc" }.
 const OPT = { page: "PAGE_ID", mode: "dry" };
 const KEY = "sh-20261016";
-const SP = { 0: "09bbd3605451b3c79ea224d8e2e42a6830817f77", 12: "ee4801fea560b76dffab59bd8ee6e31e3b636570", 48: "2a030f2d03121ff975816aa58b5b51e550b62df9" };
+const SP = { 0: "09bbd3605451b3c79ea224d8e2e42a6830817f77", 4: "983c5b4d9a4e5fa988f0154c9bf4290c7aec9635", 12: "ee4801fea560b76dffab59bd8ee6e31e3b636570", 48: "2a030f2d03121ff975816aa58b5b51e550b62df9" };
 const H5 = "75e7dfdca13a793cb25b8e6cb5949ad59c850c85";
 const pg = await figma.getNodeByIdAsync(OPT.page); await figma.setCurrentPageAsync(pg);
 const V = {}; for (const k of Object.keys(SP)) V[k] = await figma.variables.importVariableByKeyAsync(SP[k]);
@@ -72,7 +72,7 @@ for (const { row, text } of rows.values()) {
   const snapNodes = [row, T.type === "FRAME" ? T : null, ...tools, ...tools.flatMap((f) => f.children.filter((c) => c.type === "FRAME"))].filter(Boolean);
   row.setSharedPluginData("geapqa", KEY, JSON.stringify({ nodes: snapNodes.map(snapOf), texts: [{ id: text.id, style: text.textStyleId }] }));
   // row
-  bind(row, "paddingTop", 0); bind(row, "paddingBottom", 0); bind(row, "paddingRight", 12);
+  bind(row, "paddingTop", 0); bind(row, "paddingBottom", 4); bind(row, "paddingRight", 12); // code 3bfd4ebf: +4 below the 48 row → the action keeps 12 to the card under it
   bind(row, "paddingLeft", T.type === "TEXT" ? 12 : 0);
   const metaInHeading = T.type === "INSTANCE" && Object.entries(T.componentProperties).some(([k, v]) => /^Show meta/.test(k) && v.value === true);
   bind(row, "itemSpacing", metaInHeading ? 0 : 12);

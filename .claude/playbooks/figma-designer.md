@@ -1261,3 +1261,45 @@ fill only real columns, keep containers whole-pixel so fills don't split into fr
     Its tight-gap flags „section header directly on a card” (gap 0 by the user's section-over-card rule) and its fractional
     counts hug text metrics — keep the rule set coherent before trusting raw counts.
   - No Agent tool in this session → ran tools/ui-qa/figma-audit.js + the eKYC audit myself on the changed screens; 0 majors.
+
+- 2026-10-16 · Ghișeu board finish (section 11818:21092; library pass, recaptures, markers, whole pixels). Tools (repo):
+  tools/figma/ghiseu/library-pass.js (raw → instances per screen: identity card, copy-block, stepper, notices → Message · subtle /
+  svc/info-note, New request card, IDNP/IDNO lookup → search-input Button=True, menus → .menu-item-action surfaces, Corectează /
+  Detalii, protos-by-label), collect-icons.mjs (code sprite + <img>/mask icons per state, with x/y), measure.mjs (computed DOM
+  boxes for any selector — use it before every „make it like the code”). Stored builders in figma.root „ghs”: libpass, iconpass,
+  authpass, docpass, post (= lib + auth + icons + docs + ⋮ focus reset + FILL-in-HUG → HUG), replace (swap a block's screen and
+  re-attach connectors by name + position), layout / cols, pix / pix2 / par (whole pixels), audit (figma-audit + new rules).
+  - New local components (GEAP › Local components › „Ghișeu · FO local components”): Identity card · selected (FO) 11848:340972
+    (Changeable / Static; code .e-permits-fo-selected-role — the code border does not take space: strokesIncludedInLayout false),
+    FO stepper · step (vertical) 11849:7107 (Completed / Active / Default, Show connector, Number, Label), Authorization card (FO)
+    11861:7142 (MPower 24/identity, RSUD 24/suitcase-2), Board marker · jump 11881:355015. Shared from the Act row job: New request
+    card 11848:340913 (my Intent card duplicate was swapped and deleted — check the coordinator's components before building one),
+    Act row 11846:340996, Post-process menu 11844:340693. FO check option = `Document option · checkbox` 10507:44447 (p6/12/6/8 r8,
+    32 high); copy value = local `copy-block` 1053:10780 (hide its icon in table cells — the code shows it on hover only).
+  - Icons from captures: map by POSITION, not by guess — export every raw h2d-svg / IMAGE-fill node with its screen-relative x/y and
+    a vector-path hash, probe the code icons per state (collect-icons.mjs), nearest match within 40 px → one glyph per signature
+    (47 signatures, 374 raw + 88 image fills → 0). Documents → published document-icon (System Generated e0b9de2b… / User
+    Uploaded b467bfaa…), EVO logo images → library evo-logo instance; code sprite ids not in Foundations (cloud-upload-success /
+    -draft) → nearest Foundations glyph, declared.
+  - Raw captured error lines next to a field = the field's own Destructive + Assistive Text (remove the row); free error lines =
+    library inline-message Error. Notices: the tone is the captured fill variable (blue-sky/100 Info, green/100 Success,
+    apricot/100 Warning, red/100 Error, base/secondary = svc/info-note); copy the bold lead with setRangeFontName.
+  - Open lists / menus inside a clipping dialog: move the surface to the SCREEN root as ABSOLUTE at its absolute position
+    (dropdown-effect + clip + r12 token + no stroke), right edge = trigger right, 8 below. Library .menu-item-action is 44 high
+    (code 32) and library menus are 256 wide — re-align to the trigger after the swap or the menu runs off the 1440 screen.
+  - Code changed under the board twice (sticky actions 086ca562, representation basis 05d98041): recapture whole COLUMNS with the
+    pipeline (cap.sh → ALL compose → POST → REPLACE), not patch blocks. REPLACE re-attaches connectors by endpoint name + offset;
+    one connector still died when I replaced a raw row that was its endpoint inside a list — snapshot connector ids first and diff
+    after every pass (geapqa/ghs-snap-20261016b).
+  - Whole pixels: 11,162 fractional nodes → 79. The causes were (1) centring in odd space: table cells 50 with a 1 px bottom
+    stroke INCLUDED in layout (inner 49 → y 6.5) — toggle strokesIncludedInLayout when the stroke sum is odd (8,000 nodes fixed
+    without moving anything visibly), the same for the 66 shell header; (2) FIXED captured fractions → round; (3) FILL siblings
+    splitting an odd width → FIXED rounded widths that sum exactly. Leftover: absolute-centred empty states and a few HUG texts.
+  - Section header + action (code 3bfd4ebf): the set's Desktop variant and 92 normalised rows got paddingBottom 4 (spacings/4) →
+    52 high; tall segmented rows on NT stay 48 (code exception). Adjacent notices: only Services 01p had a pair (wrapped in a
+    „Notices” stack gap 12); the Ghișeu pair sits in the FO payment body (gap 32) — the code excludes it.
+  - tight-gap by itemSpacing alone is mostly false positives (captured spacing lives in child paddings / :margin wrappers) →
+    measure visual gaps with absoluteRenderBounds; the 26 real < 8 pairs all match the code (measure.mjs), so none were changed.
+  - Onest has no „⋮” — texts with it render „:” (13 board texts fixed). Full-page screenshots of an 18,400 × 30,800 section fail
+    („unexpected error”) — screenshot per block instead.
+  - No Agent tool in this session again → ran figma-audit.js (stored „ghs/audit”) myself; before/after in the report.
