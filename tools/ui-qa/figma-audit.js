@@ -32,6 +32,12 @@
 //  image-fill-icon      (2026-10-16) an IMAGE fill on an icon-sized node (≤ 64 px) or a captured raw h2d-svg icon — must be 0
 //  image-fill-photo     (2026-10-16, minor) an IMAGE fill larger than 64 px outside instances — real photos / document
 //                       scans are allowed; listed with their size so they can be confirmed (icon-sized ones = image-fill-icon)
+//  message-fixed-height (2026-10-16) a message / notice / alert / info-note / inline-message / toast / banner instance (or its
+//                       parent stack) with a FIXED height — must HUG its text (FILL width + auto height), never clip or leave blank
+//  icon-colour-vs-code  (2026-10-16) an icon („NN/…” instance) whose resolved fill differs from its context: (a) nested in a
+//                       component instance and ≠ the slot's default in the governing variant (= a fill override → reset it);
+//                       (b) a glyph inside an avatar / tile with a saturated or dark fill whose colour is not light (code: white
+//                       on-colour). Loose icons elsewhere: compare with the code (tools/figma/quality-sweep/icon-colours.js)
 //  icon-colour-override compares the RESOLVED colours (variable value for the node) of the label and the icon — Figma
 //                       records a swapped icon's own variant colour as a „fills” override, so raw / override checks lie
 const ROOTS = ["PUT:NODE-IDS-HERE"];
@@ -120,6 +126,22 @@ for (const rid of ROOTS) {
       }
     }
     if (!inInst && "fills" in n && Array.isArray(n.fills) && (n.width > 64 || n.height > 64) && n.fills.some((p) => p.type === "IMAGE" && p.visible !== false)) add("image-fill-photo", n, `${Math.round(n.width)}×${Math.round(n.height)} — photo / scan? confirm`);
+    if (n.type === "INSTANCE" && !inInst && /message|notice|alert|info-note|inline-message|toast|banner|info-box/i.test(n.name) && n.layoutSizingVertical === "FIXED") add("message-fixed-height", n, `${Math.round(n.height)} high, FIXED — set HUG`);
+    if (n.type === "INSTANCE" && /^\d+\//.test(n.name) && n.visible !== false) {
+      const vec = n.findOne((k) => (k.type === "VECTOR" || k.type === "BOOLEAN_OPERATION") && Array.isArray(k.fills) && k.fills.length && k.fills[0].type === "SOLID");
+      if (vec) {
+        const got = await rgbOf(vec, vec.fills[0]);
+        if (n.id.startsWith("I")) {
+          const slot = await figma.getNodeByIdAsync(n.id.split(";").pop());
+          const sv = slot && "findOne" in slot && slot.findOne((k) => (k.type === "VECTOR" || k.type === "BOOLEAN_OPERATION") && Array.isArray(k.fills) && k.fills.length && k.fills[0].type === "SOLID");
+          const want = sv && (await rgbOf(sv, sv.fills[0]));
+          if (want && got && want !== got && !/^Avatar$/i.test(n.parent.name)) add("icon-colour-vs-code", n, `icon ${got} ≠ variant default ${want} — reset the override`);
+        }
+        const host = n.parent && /avatar|icon tile|tile/i.test(n.parent.name) ? n.parent : null;
+        const hf = host && Array.isArray(host.fills) && host.fills.find((p) => p.type === "SOLID" && p.visible !== false);
+        if (hf) { const bg = (await rgbOf(host, hf)).split(",").map(Number), fg = got.split(",").map(Number); const L = (c) => 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]; const sat = Math.max(...bg) - Math.min(...bg); if ((sat > 80 || L(bg) < 110) && L(fg) < 170) add("icon-colour-vs-code", n, `dark glyph ${got} on filled ${host.name} ${bg.join(",")} — code: white on-colour`); }
+      }
+    }
     if (n.type === "TEXT" && !inInst) {
       if (!n.textStyleId && !(n.boundVariables && n.boundVariables.fontSize)) add("no-text-style", n, `"${n.characters.slice(0, 30)}"`);
       const fam = n.fontName === figma.mixed ? "mixed" : n.fontName.family;

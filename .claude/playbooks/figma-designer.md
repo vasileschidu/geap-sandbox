@@ -1314,3 +1314,44 @@ compared icons with a sibling label, so label-less icons slipped through — run
 Every Figma change ends by updating the starting points: (1) the board's own „Start here” / contents section (lists and
 links every column section, block counts, PO questions) and (2) the file-level index / cover / site map (entry + link
 for every page / board touched). One SECTION per column on boards. Not done until both are updated.
+
+- 2026-10-16 · Ghișeu quality sweep (figma-quality-sweep; tools/figma/quality-sweep/: gate-audit.js, shell-components.js,
+  modal-hug.js, background-list.js, list-states.js, spacing-rhythm.js, whole-pixels.js, icon-colours.js, restack.js,
+  split-sections.js). Board is now 12 sections (00 · How to read · Contents 11933:28964 + 01…11 column sections
+  11933:28965…28975), connectors on the page (59). Lessons:
+  - **Verify the builder's counts with a per-BLOCK audit that does not descend into instances** (gate-audit.js, stored in
+    figma.root „qsweep/audit”): 88 blocks in 3 calls (~16 s / 8 blocks). Numbers matched, but the builder's „raw controls 0”
+    missed a captured segmented control (gh-01e Excel / CSV) and 88 captured shell bars + headers — census repeated frames by
+    texts + instance names, not only by control names.
+  - **Shell chrome as local components** (Shell / Gov bar (desktop) 11903:7111, Shell / Header (BO desktop) 11903:7155):
+    library `.top-section` is the FO max-width variant (1280 centred, no border) — measure the code before swapping. Code
+    gov bar = 32 high with the border inside; the capture made it 34 (1 px stroke all round), so every screen was 902, not 900.
+    Read text / props from the old node BEFORE removing it (the swap crashed reading a removed text).
+  - **Modals hug** (user, 2026-10-16): small modals = HUG content, centred in the 900 viewport at whole pixels (absolute in
+    the scrim); scrolled state only when taller than 900 − 48; full-window sheets keep their place and the SCREEN grows.
+    Dialog content clipped by a FIXED dialog was invisible in the audit — compare body content height with the body box.
+  - Library field defaults leak: search-input instances showed the default „Inline message” helper (Assistive Text on with
+    no code message) → sweep visible default texts („Inline message”, „Label”, „Button”…) after every swap. One focus ring per
+    screen: an open select keeps the ring, the search inside its list does not. search-input has no „Default + Button=True”
+    variant: use Filled + placeholder colour token (library gap).
+  - Background under dialogs = clone of the recaptured list page (gh-01) instead of a recapture per block (no html→Figma tool
+    in this session); list states with other content (filters open, empty, 2nd tab) = gh-01's table + their own cells;
+    an empty state in a scrolled table is centred in the VISIBLE width (wrap 1184 − 2×16), as the code.
+  - **Arrows on hidden background nodes**: 5 connectors started on background rows / pagination behind dialogs and sheets
+    (rows-per-page select, table cells, „Prelungire”). Before replacing a background, list connector endpoints whose ancestor
+    chain contains `Page · …` and re-anchor them to the real control.
+  - Off-scale spacing came from capture artefacts, not the code: heading padding 11 (→ 0 + minHeight 48), stack meta gap 18 =
+    8 + lost 2 px ::before dot + 8 (→ gap 8 + Dot frames), tag pairs separated by a space (→ 4). Keep code values that are
+    print units (A4 page padding 18mm 16mm = 68/60) and list them.
+  - Fractions: centred content in odd heights (min-heights 21 / 71), stacked dialogs centred in odd overlays, a 1.58 px (mm)
+    cell stroke included in layout, hug labels 146.27 wide. **Never apply text-width fixes with findAll inside instances** —
+    my rule hit badge digits / stepper numbers / avatar initials (fixed width → „TM” wrapped). Filter `!id.startsWith("I")`.
+  - **Icon colours**: swapping raw icons to library icons brings the icon's default fill. Nested icons are governed by the
+    variant (compare with the slot = last id segment); loose icons and glyphs on filled hosts need the code colour (measure the
+    svg `color`). The identity card's PJ avatar = library avatar Type=Icon whose glyph is secondary grey on the brand fill the
+    card overrides → per-instance white on-colour + 24/suitcase-2 (code). Info ⓘ triggers are not Strict buttons: local
+    „Info trigger (tooltip)” 11931:41990 (24, r6, tertiary icon). figma-audit.js now has `icon-colour-vs-code` and
+    `message-fixed-height`.
+  - Toasts on the board were raw captured frames (green fill, default dark icon) → library `toast` Text-only, tone from the
+    captured fill. The section snapshot lived on the removed section's plugin data — store snapshots on figma.root or in the
+    repo, never on a node a later step deletes.
