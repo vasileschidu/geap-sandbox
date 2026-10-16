@@ -55,7 +55,9 @@ for (const f of FILES) {
 const AUDIT = (scope, SPACING, RADIUS, FONT) => {
   const vis = (el) => { const cs = getComputedStyle(el); if (cs.display === "none" || cs.visibility === "hidden" || +cs.opacity === 0) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0; };
   /* the first VISIBLE match of the scope list (a hidden drawer earlier in the DOM is skipped) */
-  const root = (scope && [...document.querySelectorAll(scope)].find((n) => vis(n))) || document.querySelector("main") || document.body;
+  /* no scope: the first VISIBLE <main> (2026-10-16: the hidden flow-home <main> comes first in the DOM and made
+     every unscoped run measure nothing — „{}” on every state) */
+  const root = (scope && [...document.querySelectorAll(scope)].find((n) => vis(n))) || [...document.querySelectorAll("main")].find((n) => vis(n)) || document.body;
   const sel = (el) => { const parts = []; let n = el; for (let i = 0; n && n !== document.body && i < 4; i++, n = n.parentElement) { let s = n.tagName.toLowerCase(); const c = [...n.classList].filter((x) => !/^is-|^has-/.test(x)).slice(0, 2).join("."); if (c) s += "." + c; parts.unshift(s); } return parts.join(" > "); };
   const txt = (el) => (el.innerText || el.getAttribute("aria-label") || "").trim().replace(/\s+/g, " ").slice(0, 40);
   // the token colours actually defined on :root
@@ -75,7 +77,9 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
       if (!fam.includes("onest") && !el.closest("code.e-permits-doc-kw, .e-permits-doc-kwselect")) add("font-not-onest", el, cs.fontFamily.slice(0, 60));
       if (tokens.size && !tokens.has(cs.color.replace(/\s/g, ""))) add("text-colour-not-token", el, cs.color);
       // clipped text without a way to read it
-      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[title]")) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
+      /* js/table-cells.js shows the full text of ANY clipped text inside a table cell (and data-cell-tooltip overrides it) */
+      const cellTip = el.closest("[data-cell-tooltip]") || (el.closest("td, th, [role=cell], [role=gridcell]") && document.querySelector("script[src*='table-cells.js']"));
+      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[title]") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
     }
     const bg = cs.backgroundColor; if (bg && bg !== "rgba(0, 0, 0, 0)" && tokens.size && !tokens.has(bg.replace(/\s/g, ""))) add("background-not-token", el, bg);
     if (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none" && !/rgba\([^)]*,\s*0\)$/.test(cs.borderTopColor) && tokens.size && !tokens.has(cs.borderTopColor.replace(/\s/g, ""))) add("border-not-token", el, cs.borderTopColor);
@@ -114,7 +118,7 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
      first / last child of a wrapper without its own padding or border. Field hints / errors under their control
      (the FO field rule, 4) and text inside components (titles, meta, descriptions) are not counted. */
   const BOXES = ".message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-info-note";
-  const looseText = (el) => (el.matches(BOXES) && !el.matches(".message--inline")) || (el.tagName === "P" && !el.closest(BOXES) && !el.matches(".e-permits-fo-field__hint, .e-permits-fo-field__error, .u-visually-hidden, [class*='__meta'], [class*='__desc'], [class*='__text'], [class*='__title'], [class*='__label'], [class*='__saved'], [class*='__status']") && !el.parentElement?.closest(".e-permits-fo-field, label, button, .e-permits-fo-lib-item, .e-permits-stack__item, table, header, .modal--header, [class*='__copy'], [class*='__content']"));
+  const looseText = (el) => (el.matches(BOXES) && !el.matches(".message--inline")) || (el.tagName === "P" && !el.closest(BOXES) && !el.matches(".e-permits-fo-field__hint, .e-permits-fo-field__error, .u-visually-hidden, [class*='__meta'], [class*='__desc'], [class*='__text'], [class*='__title'], [class*='__label'], [class*='__saved'], [class*='__status']") && !el.parentElement?.closest(".e-permits-fo-field, label, button, .e-permits-fo-lib-item, .e-permits-stack__item, table, header, nav, .modal--header, [class*='__copy'], [class*='__content']"));
   const flat = (n) => { const c = getComputedStyle(n); return !parseFloat(c.paddingTop) && !parseFloat(c.paddingBottom) && !parseFloat(c.borderTopWidth) && !parseFloat(c.borderBottomWidth); };
   const neighbour = (el, dir) => {
     for (let n = el, depth = 0; n && n !== root && depth < 3; n = n.parentElement, depth += 1) {
@@ -144,7 +148,9 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
         n = c;
       }
       const gap = (dir < 0 ? r.top - q.bottom : q.top - r.bottom) + inset;
-      if (gap > -0.5 && gap < 7.5) add("tight-gap", el, `${Math.round(gap)}px ${dir < 0 ? "below" : "above"} ${sel(nb)}`);
+      /* alert + alert (2026-10-16): two notices in a row must not touch — the generic „Alert stack” rule gives 12 */
+      const stack = nb.matches(BOXES) && !nb.matches(".message--inline") ? "alert + alert: " : "";
+      if (gap > -0.5 && gap < 7.5 && !(stack && dir < 0)) add("tight-gap", el, `${stack}${Math.round(gap)}px ${dir < 0 ? "below" : "above"} ${sel(nb)}`);
     }
   }
   /* dropdown-surface (2026-10-16, user: „all dropdown menus get the dropdown effect + clip content”): every

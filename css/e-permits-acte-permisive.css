@@ -16572,6 +16572,18 @@
   padding-right: var(--spacing-12, 12px);
 }
 
+/* the button needs air above the container it belongs to (user 2026-10-16: „still too close”):
+   the 48 row stays as it is (title + action centred, 8 / 8) and the heading adds 4 below it →
+   the action keeps 8 + 4 = 12 to the card / list border under it; the title does not move */
+@media (min-width: 761px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading:has(> .e-permits-passport__heading-tools :is(.btn, .segmented-control)) {
+    box-sizing: border-box;
+    height: auto;
+    min-height: calc(var(--spacing-48, 48px) + var(--spacing-4, 4px));
+    padding-bottom: var(--spacing-4, 4px);
+  }
+}
+
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-passport__heading-tools > .e-permits-dosar-profil__section-meta {
   padding-right: 0;
 }
@@ -16585,6 +16597,8 @@
     gap: var(--spacing-4, 4px);
     grid-template-columns: minmax(0, 1fr);
     height: auto;
+    /* the tools' 12 below is the whole gap (the base ≤760 heading padding-bottom 12 doubled it to 24) */
+    padding-bottom: 0;
   }
 
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__section-heading > .e-permits-passport__heading-tools {
@@ -20484,6 +20498,18 @@
 /* the E-mail / SMS switch is taller than the title: keep air above the preview */
 .e-permits-ntpl-content__preview > .e-permits-dosar-profil__section-heading {
   margin-bottom: var(--spacing-12, 12px);
+}
+
+/* desktop: the E-mail / SMS switch (52 high) overflows the 48 row by 2 each side; the generic „heading with an action”
+   bottom pad would centre it in 52 and drop this title 2px below the E-mail title next to it → keep the
+   48 row and give the air as margin (switch → preview 16 − 2 = 14) */
+@media (min-width: 761px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-ntpl-content__preview > .e-permits-dosar-profil__section-heading:has(> .e-permits-passport__heading-tools) {
+    height: var(--spacing-48, 48px);
+    margin-bottom: var(--spacing-16, 16px);
+    min-height: 0;
+    padding-bottom: 0;
+  }
 }
 
 /* concentric corners: outer radius = inner card radius (12) + the padding between (16) */
@@ -25745,4 +25771,16 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
 
 .e-permits-fo-subgen-select__confirm:hover:not(:disabled) {
   background: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* Alert stack (2026-10-16, user, whole project): two alerts / notices in a row never touch — the second
+   one sits 12 below the first (the block gap between notices). The inline-note rule says „margin 0, the
+   parent's gap spaces it”, but gap-0 parents (the service passport panel: „Serviciul este inactiv…” over
+   „Secțiunile marcate RSSP…”) stacked them edge to edge. Adjacent siblings only; at the end of the file
+   so it beats the inline note's `margin: 0`. CSS cannot read a parent's gap, so the parents that already
+   space their children with one are left out (the margin would add to it): dedicated notice stacks
+   (`…__notices`, Ghișeu gap 12), the library `.modal-content` (16), the FO payment body (32).
+   code-audit `tight-gap` flags alert + alert < 8. */
+:not([class*="__notices"], .modal-content, .e-permits-fo-payment__body) > :is(.message:not(.message--inline), .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-callout) + :is(.message:not(.message--inline), .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-callout) {
+  margin-top: var(--spacing-12, 12px);
 }

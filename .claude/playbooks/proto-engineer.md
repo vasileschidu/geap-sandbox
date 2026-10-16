@@ -901,3 +901,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   menu next to a left-side trigger → `left: 0; right: auto` on phones); hover gaps inside menus (selected date-picker
   day, CAEM subgenre active row + „Confirmă”); a builder rule `:is(button, [data-stack-menu]) { cursor: pointer }`
   made the whole menu a pointer → hover-audit counted its `li`s. Always measure open menus' rects at 375.
+- 2026-10-16 · „Section header action still too close” (user): growing the heading to 56 (min-height 48 + 8, pad 4)
+  gave 14 but dropped every title 2px (centred in 52). Better: keep the 48 row and add only a 4px bottom pad
+  (`min-height: 48 + 4; padding-bottom: 4; box-sizing: border-box`) → button 8/8 in the row, 12 to the card, title
+  unchanged; scope it to tools that hold a `.btn` / segmented (tag-only tools stay 48). A heading that already had
+  its own margin for a taller control (ntpl Previzualizare, 52px switch) needs its own override, or the generic pad
+  stacks on it. Phones: the base ≤760 heading `padding-bottom: 12` + the tools' 12 made 24 — zero the heading's own.
+- 2026-10-16 · Table names „not truncated”: the cell stacks (`__role-identity` inline-flex, `__date-stack`) had no
+  width cap, so the text ran UNDER the next (pinned) column; the td's own `text-overflow` never reaches text inside
+  a nested flex box. Fix once for every stack in a `td`: container `max-width: 100%`, each line nowrap + hidden +
+  ellipsis; an `inline-flex` meta line must become `block` (its text is an anonymous flex item → no ellipsis).
+  js/table-cells.js then shows the tooltip with no attribute. Probe trap: a „clipped?” check that stops at the first
+  ancestor with `text-overflow: ellipsis` (the td) says „fine” — only an ancestor holding the text in its OWN inline
+  flow counts. The tables only clip below the column width — test 1280 / 1024, not just 1440.
+- 2026-10-16 · Generic alert + alert gap: an adjacent-sibling margin ADDS to a parent's flex/grid gap and CSS can't
+  read the gap → a sweep of ~900 states found the gap-spaced parents (Ghișeu `__notices` 12, library `.modal-content`
+  16, FO payment body 32) and they are excluded by name in the rule. Run the pair sweep (al.js: adjacent alert
+  pairs + parent display/gap + margins) before shipping any „generic sibling margin”.
+- 2026-10-16 · code-audit measured NOTHING on unscoped runs („{}” for every state): its root was the first `<main>`
+  in the DOM — the hidden flow-home `<main>`. Now the first VISIBLE main. A clean audit with zero standing false
+  positives is a red flag: run the same state on HEAD (:8936) and expect known findings. Also taught it the cell
+  tooltip (`clipped-text-no-tooltip` skips text in table cells on pages that load table-cells.js, and
+  `[data-cell-tooltip]`) and nav labels (tight-gap FP). A CDP checker without a global timeout hung 11 min on one
+  state — every scratch runner gets `setTimeout(exit)` + per-call `Promise.race` timeouts.

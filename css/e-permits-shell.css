@@ -3081,12 +3081,29 @@ button.e-permits-workplace__th-content:focus-visible {
 }
 
 /* one line per cell text (table rule 2026-10-15): names and sources ellipsize instead of
-   being cut or broken mid-word; the full text is in the cell tooltip */
-.e-permits-workplace__case-cell > span {
+   being cut or broken mid-word; the full text is in the cell tooltip (js/table-cells.js).
+   2026-10-16 (user: „Aviz sanitar-veterinar pentru unitățile de producție” ran under the next
+   column): every two-line stack in a table cell — `__case-cell`, the name-over-meta
+   `__role-identity` (Configurări servicii, Roluri, eKYC registries) and `__date-stack` (dates,
+   Fluxuri „Folosit de”) — is capped at the cell width and each of its lines ellipsizes. A meta
+   line holding a copy-code stays unclipped (its hover pill / „Copiat” feedback) */
+td :is(.e-permits-workplace__case-cell, .e-permits-workplace__role-identity, .e-permits-workplace__date-stack) {
   max-width: 100%;
+}
+
+.e-permits-workplace__case-cell > span,
+td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > span:not(:has(.e-permits-workplace__copy-code)) {
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* the meta line is inline-flex (for the danger dot): its text is an anonymous flex item that can't
+   ellipsize → a plain block when it has no dot (same 16px line) */
+td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.e-permits-workplace__date-dot)) {
+  display: block;
 }
 
 .e-permits-workplace__table td:has(.e-permits-workplace__copy-code) {

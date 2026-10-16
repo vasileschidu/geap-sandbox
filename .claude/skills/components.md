@@ -3747,10 +3747,16 @@ segmented control, meta + button) is the same markup:
 - Desktop (measured, 1440): row 48; title 18/26 semibold, padding 11/12 → text 12 from the left;
   tools 12 from the right (mirror of the title inset), button centred (8 above / 8 below); meta →
   button = the tools' 12 gap (meta's own right padding is only for a meta-only heading); 0 gap to
-  the stack / card under it. Never put the button straight into the heading (it then touches the
+  the stack / card under it. **Air under the action (2026-10-16, user: „still too close”):** when
+  the tools hold a `.btn` / segmented control the heading adds a 4px bottom pad (row 48 + 4 = 52)
+  → button → card / list border = **12** (was 8); the title does not move (text 13 from the heading
+  top, as in headings without tools). Measured ntpl-03, svc-02, svc-03, usr-02, ek-26, svc-01
+  (Resincronizează). Exception: Șabloane › Previzualizare (52px E-mail / SMS switch) keeps the 48
+  row + a 16 margin (switch → preview 14). Never put the button straight into the heading (it then touches the
   edge) — the `heading-tools` wrapper carries the inset.
 - Phones (≤760): title row 48, the tools under it (grid, gap 4), inset 12 left / right, 12 above
-  the content, left-aligned (the eKYC layout, now BO-wide).
+  the content, left-aligned (the eKYC layout, now BO-wide). Measured 12 since 2026-10-16 (the base
+  ≤760 heading `padding-bottom: 12` is zeroed for headings with tools — it made 24).
 - Renderers: `renderStackedList`, `renderPassportBlock`, the classifier `clasSection`, the eKYC
   `sectionHead`; hand-written headers (Șabloane de notificare › Reguli de destinatari and
   Previzualizare, Utilizatori › Combinații de roluri) use the same wrapper.
@@ -4281,6 +4287,17 @@ Default icons: info `circle-info-filled`, success `circle-checkmark-filled`, war
 `warning-filled`, error `circle-error-filled`.
 - Copy: one or two sentences; lead with a bold phrase when it states a restriction
   ("**Doar consultare.** …").
+- **Two notes in a row = 12 between them** (2026-10-16, user: the passport's „Serviciul este
+  inactiv…” warning touched the „Secțiunile marcate RSSP…” info). Generic „Alert stack” rule at
+  the end of css/e-permits-acte-permisive.css: any alert / notice (`.message` except
+  `--inline`, `.info-box`, `.e-permits-fo-notice`, `.e-permits-fo-infobox`,
+  `.e-permits-fo-mnotify-info`, `.e-permits-callout`) directly followed by another gets
+  `margin-top: var(--spacing-12)` — FO, BO, Cabinet, eKYC, Ghișeu. Parents that already space
+  their children with a `gap` are left out (CSS can't read the gap; the margin would add to it):
+  dedicated notice stacks (class containing `__notices`, e.g. Ghișeu `.e-permits-gh__notices`, 12),
+  the library `.modal-content` (16) and `.e-permits-fo-payment__body` (32). A new gap-spaced parent
+  that can hold two notices goes in that list. `code-audit` `tight-gap` reports „alert + alert”
+  under 8.
 - The **only** exception is the dismissible page banner `.e-permits-ntpl-banner`
   (Figma 8230:2388, 24px padding, 16/24 text, close button) — page-level, not inline.
 - A bigger, titled message (icon + title + text) is a **Callout** (`.e-permits-callout`), not a note.
@@ -7136,6 +7153,14 @@ load `main.css`. Whether it should be brought into the design system is an open 
   `__role-name` + `__role-meta` (12/16 regular tertiary). A copyable value in the meta line keeps
   that type and gets a rounded `--color-background-base-tertiary-hover` pill on hover/focus
   (Configurări servicii › Serviciu: name over the RSSP code).
+- **Every line of a cell stack is one line with an ellipsis** (2026-10-16, user: „Aviz
+  sanitar-veterinar pentru unitățile de producție” ran under the next column): in any `td`,
+  `__case-cell`, `__role-identity` and `__date-stack` are capped at the cell width
+  (`max-width: 100%`) and each child line is `nowrap` + `overflow: hidden` + `text-overflow:
+  ellipsis` (a dot-less `__date-meta` becomes a block so its text can ellipsize; a meta line
+  holding a copy-code stays unclipped). One rule in css/e-permits-shell.css („one line per cell
+  text”); the tooltip comes from `js/table-cells.js`. Covered: Configurări servicii, Roluri, eKYC
+  registries, Fluxuri de lucru („Folosit de”), Clasificatoare / every „date over hh:mm · who”.
 
 ### US-226 Clasificatoare specifice în pașaport (2026-10-10)
 
