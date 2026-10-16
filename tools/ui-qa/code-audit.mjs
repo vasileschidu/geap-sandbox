@@ -108,6 +108,44 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
     const ox = Math.min(ra.right, rb.right) - Math.max(ra.left, rb.left), oy = Math.min(ra.bottom, rb.bottom) - Math.max(ra.top, rb.top);
     if (ox > 2 && oy > 2) add("controls-overlap", a, `overlaps ${sel(b)} by ${Math.round(ox)}×${Math.round(oy)}`);
   }
+  /* tight-gap (2026-10-16, user: „leave nice space”): an alert / notice / loose explanatory paragraph closer than
+     8px (vertically) to the block above or below it — a sibling, or the parent's sibling when the box is the
+     first / last child of a wrapper without its own padding or border. Field hints / errors under their control
+     (the FO field rule, 4) and text inside components (titles, meta, descriptions) are not counted. */
+  const BOXES = ".message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-info-note";
+  const looseText = (el) => (el.matches(BOXES) && !el.matches(".message--inline")) || (el.tagName === "P" && !el.closest(BOXES) && !el.matches(".e-permits-fo-field__hint, .e-permits-fo-field__error, .u-visually-hidden, [class*='__meta'], [class*='__desc'], [class*='__text'], [class*='__title'], [class*='__label'], [class*='__saved'], [class*='__status']") && !el.parentElement?.closest(".e-permits-fo-field, label, button, .e-permits-fo-lib-item, .e-permits-stack__item, table, header, .modal--header, [class*='__copy'], [class*='__content']"));
+  const flat = (n) => { const c = getComputedStyle(n); return !parseFloat(c.paddingTop) && !parseFloat(c.paddingBottom) && !parseFloat(c.borderTopWidth) && !parseFloat(c.borderBottomWidth); };
+  const neighbour = (el, dir) => {
+    for (let n = el, depth = 0; n && n !== root && depth < 3; n = n.parentElement, depth += 1) {
+      let s = dir < 0 ? n.previousElementSibling : n.nextElementSibling;
+      while (s && !vis(s)) s = dir < 0 ? s.previousElementSibling : s.nextElementSibling;
+      if (s) return s;
+      if (!n.parentElement || !flat(n.parentElement)) return null;
+    }
+    return null;
+  };
+  for (const el of els.filter(looseText)) {
+    const r = el.getBoundingClientRect();
+    for (const dir of [-1, 1]) {
+      const nb = neighbour(el, dir); if (!nb || el.contains(nb) || nb.contains(el)) continue;
+      const q = nb.getBoundingClientRect();
+      if (Math.min(r.right, q.right) - Math.max(r.left, q.left) < 8) continue;
+      /* the visible distance: a neighbour without a border / background on the facing side starts at its padding */
+      const side = dir < 0 ? "Bottom" : "Top";
+      /* unpainted wrappers on the facing side count their padding, down to the first painted box (3 levels) */
+      let inset = 0;
+      for (let n = nb, depth = 0; n && depth < 4; depth += 1) {
+        const nc = getComputedStyle(n);
+        if (parseFloat(nc[`border${side}Width`]) > 0 || (nc.backgroundColor !== "rgba(0, 0, 0, 0)" && nc.backgroundColor !== "transparent")) break;
+        inset += parseFloat(nc[`padding${side}`]) || 0;
+        let c = dir < 0 ? n.lastElementChild : n.firstElementChild;
+        while (c && !vis(c)) c = dir < 0 ? c.previousElementSibling : c.nextElementSibling;
+        n = c;
+      }
+      const gap = (dir < 0 ? r.top - q.bottom : q.top - r.bottom) + inset;
+      if (gap > -0.5 && gap < 7.5) add("tight-gap", el, `${Math.round(gap)}px ${dir < 0 ? "below" : "above"} ${sel(nb)}`);
+    }
+  }
   // horizontal overflow of the page
   if (document.documentElement.scrollWidth > window.innerWidth + 1) findings.push({ rule: "page-horizontal-overflow", el: "html", text: "", detail: `${document.documentElement.scrollWidth} > ${window.innerWidth}` });
   // summarise: same rule + same element pattern once, with a count

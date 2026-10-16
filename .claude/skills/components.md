@@ -3643,6 +3643,13 @@ Caption / Version texts. Scheduled-publication blocks: 01f1, 01f2, 01h1, 01j, 01
   routing script re-lanes all arrows, widens the gaps and moves the columns).
 - When replacing a drawer inside an „Overlay” frame, keep its `user-create__scrim` (08l lost it once).
 
+**Section header + alert (2026-10-16, user, whole project):** a section header keeps its bottom divider; an
+alert / notice right under it (banner `.message`, `.info-box`, `.e-permits-fo-notice`, `.e-permits-fo-infobox` —
+directly, or first child of a block that is not the section body) gets the section's normal header → content gap
+(24 = the FO section body's top padding; BO drawer content already has 16). One generic rule in
+css/e-permits-acte-permisive.css („Section rule (2026-10-16)”). Applies today to Ghișeu „Temeiul reprezentării”
+(gh-03, 03a, 03b, 03e, 03f); every other header + alert pair already sits in a section body.
+
 **Stepper (Figma) = local component „Stepper · drawer” (`10421:197819`, page ↳ BO ->
 Servicii)** — strip (padding 16/20, bottom border) with 4 `.step-desktop` instances
 (Horizontal). Per use: set each step's Step Label + State (Completed / Current /
@@ -5913,10 +5920,9 @@ added for modules (all generic, reuse them for the next BO module):
     skeleton names, loading status. Found → read-only code + the search clear × alone („Schimbă IDNP-ul”), names
     filled with a flash. Not found (9999999999999) / registry down / „…are 13 cifre.” / „Căutați IDNP-ul în
     registru.” (Continuă before searching) = the FO inline error, box `is-error`. Under a code only status lines
-    — no helper hints (an empty hint takes no room). Layout: PF = IDNP span-6 + Nume / Prenume span-3 on one
-    row; PJ = two columns side by side (`.e-permits-gh-lookup-col`, span-6 each): IDNO → Denumirea companiei
-    under it | IDNP reprezentant → Nume + Prenume under it (the FO has no side-by-side PJ layout — its guest
-    form uses two sections; this is the FO 12-column grid). One column ≤860 (where the FO grid collapses).
+    — no helper hints (an empty hint takes no room). Layout: one row per code (IDNO span-6 + Denumirea
+    companiei span-6; IDNP span-6 + Nume / Prenume span-3), PJ = the company row, then the person-filing row
+    (stacked, user 2026-10-16 — the side-by-side variant was a misrouted request); one column ≤860.
   - **Tip persoană** = the FO segmented control with the registry applicant icons in each segment
     (`icon-person-filled` / `icon-suitcase-filled`, 16, gap 8, currentColor = the label colour per state; the
     `segment` field option `icon`). The FO guest „Soliciți în numele” control carries the same icons.
@@ -5935,23 +5941,47 @@ added for modules (all generic, reuse them for the next BO module):
 - **First step „Date solicitant”** (identity in the small modal; representation and contact in the flow): the identity as FO role cards (`e-permits-fo-selected-role--changeable` + „Schimbă” = the picker),
   „Persoana care depune” for PJ, then „Reprezentantul” (PF check option + IDNP lookup) / „Temeiul reprezentării”
   (RSUD / MPower / Prin procură with the live AC-21 error — the FO way: the message under the group and only
-  the checkbox control in the library `checkbox--error` style, no border around the option). The process lives in the header meta. The cards and
+  the checkbox control in the library `checkbox--error` style, no border around the option). Every basis outcome is a library
+  notice with a bold title (user 2026-10-16): RSUD → success „Temeiul reprezentării: administrator în RSUD.” +
+  „Sursa: RSUD prin MConnect.”; MPower → success with the number and validity; Procură → info „…se atașează la
+  pasul «Documente însoțitoare».” + the alert action link „Mergi la Documente însoțitoare →” (library
+  `link link-primary link-sm`, the arrow as a character) only when that step was already reached — a first pass
+  must finish the steps in between, so the link is omitted. The process lives in the header meta. The cards and
   group titles are the FO ones (`GEAPFormRender.roleCardHtml` = `selectedRoleHtml` with `changeAttrs` /
-  `extraHtml`, `roleGroupTitleHtml`) — never rebuilt.
+  `extraHtml`, `roleGroupTitleHtml`) — never rebuilt — in the FO identity row `.e-permits-fo-form__roles >
+  .e-permits-fo-form__roles-grid` (fo-02: Solicitant | Persoana care depune side by side; `is-single` = one card;
+  one column where the FO grid collapses). Representation / basis and contact stay full width below.
 - **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top
   24, modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners, scrim behind. Window chrome only:
   header = title (service) · meta parts (nr · solicitant · process · Ghișeu) + status tags · the FO draft status
-  (`GEAPFormRender.draftStatusHtml`: „Salvat ca schiță · <date, time>” + „eliminare automată la …”) · ⋮
+  (`GEAPFormRender.draftStatusHtml`: „Salvat ca schiță · <date, time>” + „eliminare automată la …”, wraps on
+  phones) · „Salvează schița” (`btn btn-neutral btn-sm`, cloud icon; ≤680 icon-only 32 with the label as
+  tooltip / aria-label; user 2026-10-16: back in the header, next to ⋮) · ⋮
   (Schimbă procesul, Istoricul cererii, Elimină schița) · `.modal-close`. **No window footer.** The body is the FO
   request page as is: FO page width / sidebar / gutter (no overrides), FO stepper sticky (≤960 the FO mobile
   progress), FO step header `h1` 32/40 with no lead (desk notes = FO info note under it), FO sections, and the FO
-  step footer at the end of the step (`GEAPFormRender.stepFooterHtml`: „Salvează ca schiță” left, round back
-  arrow + „Înainte →” right; the first step has no back; „Confirmă depunerea” without the arrow; after
+  step footer at the end of the step (`GEAPFormRender.stepFooterHtml`: round back arrow + „Înainte →” right —
+  no draft button there; the first step has no back; „Confirmă depunerea” without the arrow; after
   submission Înapoi la Dosare noi · Dosar nou). Measured against fo-02 / fo-03 / fo-05 at 1440: stepper x 120 /
   w 280, content x 488 / w 768, h1 32/40, section h2 18 + 12/12 + divider, section body 24 / 32, row gap 24,
   column gap 32, „Înainte” 118 × 48 flush right, draft button 48 flush left — identical.
   × / Esc / scrim with unsaved data → „Salvați schița înainte de a închide?”. Library dialogs open above it
   (sheet overlay z 990 < 1000). A draft opened from the list or a link opens the sheet at its saved step.
+- **Every step body is an FO renderer** (user 2026-10-16, „just take from full flow”): Livrare =
+  `deliveryStepHtml` + `renderDeliveryStep` (fo-06 as is: EVO Cabinet card, „copie pe hârtie” with the desk's
+  methods — ridicare la ghișeul autorității, MDelivery with the FO courier address card; geometry identical to
+  fo-06); Notă de plată = `paymentStepBodyHtml` (fo-07 summary + note card + actions; element detail lines =
+  `item.metaHtml` → `.e-permits-fo-payment-table__meta`) inside `.e-permits-fo-payment__body`, desk parts as notices
+  (MPay status, expired note + Regenerează US-256, incomplete fee setup, earlier notes); Verificare sections =
+  `summarySectionHtml` inside `.e-permits-fo-review` (the FO Verificare look for any host: section title 11/12
+  inset over the card, card radius 24, padding 8/20, gray-50, sections 32 apart — measured identical to fo-05 at
+  1440 and 375); „Atașamente” = the shared document cards titled by the requested type (no „Atașat: Da/Nu”
+  badges; missing required types = one warning notice); Confirmare = `finishHeroHtml` + `finishDocHtml`; read-only values = `readonlyFieldHtml`.
+  Still Ghișeu-only (no FO equivalent): the small modal, the window chrome, the paper request + olograf upload +
+  MSign at the desk, the MPay status / regenerate actions, „Condițiile depunerii”, the basis notices.
+- **Rhythm checks** (2026-10-16): `tools/ui-qa/code-audit.mjs` `tight-gap` = an alert / notice / loose paragraph
+  whose visible distance to its neighbour is < 8px (a neighbour without a border / background counts from its
+  padding). Generic FO rules: alert → next section 16; a step body ending at the step footer keeps 32.
 - **Steps** (user 2026-10-15): Date solicitant (identity cards + representation / basis + „Date de contact” on ONE
   page, as fo-02) · Detalii serviciu · Documente însoțitoare · Verificare · Livrare · (Notă de plată) · Confirmarea
   depunerii. „Date de contact” = fo-02's: MNotify values = `verifiedPhoneHtml` / `verifiedValueHtml` + the FO
@@ -5986,7 +6016,13 @@ export = `icon-export`; dates „8 iulie 2026” over „hh:mm · who”; tables
 toggles (only for save / remove / export / regenerate / submit). Errors = FO inline message under the
 field (selects, lists and check options get `is-error`).
 
-**Demo** (`gh-*`, as `ansp-ghiseu-chisinau`): params `mconnect=0`, `registru=asteptare`, `mdocs=0`,
+**Demo navigation + prefill** (user 2026-10-16, as the FO): every stepper row opens its step, forward or back
+(`data-gh-goto` + `data-gh-free` = no validation, no Verificare gate; „Înainte” still validates); a step shows
+the vertical-stepper check when it was reached and its checks pass; values live in the draft and re-render on
+every visit. A request started from „Ce se solicită?” is prefilled (contact from MNotify, the service details,
+the required documents) so „Înainte” passes up to Verificare; paper request, olograf, MSign and the payment are one
+click each; `?prefill=0` starts empty. Demo `gh-07j` = a new prefilled request jumped to Verificare.
+**Demo** (`gh-*`, as `ansp-ghiseu-chisinau`): params `mconnect=0`, `registru=asteptare`, `prefill=0`, `mdocs=0`,
 `msign=0|1`, `olograf=0|1`, `cert=0|1`, `msignerr=1`, `taxa=incompleta`, `depunere=eroare`,
 `certerr=1`, `gol=1`, `ghseed=1`.
 **Demo data rule** (user 2026-10-15; top comment of `js/ghiseu.js`): any valid 13-digit IDNP / IDNO is found —
@@ -5995,7 +6031,12 @@ digits; „SRL Demo <last 4>”); **9999999999999 = not found**; `?mconnect=0` =
 digits = „…are 13 cifre.”. Acts for the chosen service: a code starting with **0 has none**; any other code has
 the seed acts when defined for the service, else 2–3 generated (valabil, suspendat, + a „Decizie de respingere”
 within the appeal term when the last digit is even; numbers from the code). FO lookups (`fo-g*`) keep their
-own data. Drafts are kept in `localStorage["e-permits-ghiseu-v1"]` (cleared by
+own data. **Demo contact rule** (2026-10-16): any phone with ≥ 6 digits passes (spaces, +, -, ()
+ignored; no +373 format, no MNotify match); empty / non-numeric = „Introdu un număr de telefon valid.”; no phone
+OTP at the desk. The FO guest form keeps its own validator (`guestPhoneProblem`). **Phone as you type** (FO phone component,
+`bindPhoneCode` → `bindPhoneFormat` / `formatFoPhoneDigits`, every FO phone field incl. the guest form and Ghișeu):
++373 = „60 999 999” (other codes: groups of 3); a pasted „+37360999999” / „060999999” / „60 999 999” normalises
+the same; the caret keeps its digit position (typing, mid-edit, backspace over a space); stored value = digits. Drafts are kept in `localStorage["e-permits-ghiseu-v1"]` (cleared by
 demo links). `window.GEAPGhiseu` = state, route, go(step), fill(step), paid(), expire().
 
 ## 5. Removed from this document

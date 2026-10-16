@@ -2406,6 +2406,13 @@
       "gh-07b": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); })),
       "gh-07c": gh("#ghiseu/gh-4790/verificare", ghReady),
       "gh-07d": gh("#ghiseu/gh-4790/verificare", next),
+      /* a new request (demo prefill) jumped to Verificare from the stepper: every earlier step completed */
+      "gh-07j": gh("#ghiseu/nou", seq(start(pjAdmin), async (h) => {
+        /* the stepper row (desktop); phones hide the stepper (FO ≤960) — the same jump through the demo API */
+        const row = document.querySelector('#gh-request-modal [data-gh-step] [data-gh-goto="5"][data-gh-free]');
+        if (row && row.offsetParent) await h.click('#gh-request-modal [data-gh-step] [data-gh-goto="5"][data-gh-free]'); else window.GEAPGhiseu.go("verificare");
+        await h.find('[data-gh-panel="verificare"]'); await h.wait(300);
+      })),
       /* back with the footer (the stepper is hidden on phones), edit, forward again: signature + scan voided */
       "gh-07e": gh("#ghiseu/gh-4790/verificare", seq(ghReady, async (h) => { await h.click("[data-gh-prev]"); await h.click("[data-gh-prev]"); await h.fill("#fo-gh-obiect", "Cafeneaua „Izvoraș” (terasă nouă)", { leave: false }); await h.click("[data-gh-next]"); await h.click("[data-gh-next]"); })),
       "gh-07f": gh("#ghiseu/gh-4790/verificare", null, { msign: "0", olograf: "0" }),
@@ -2414,13 +2421,13 @@
       "gh-07i": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); }), { msignerr: "1" }),
       /* US-16 Livrare */
       "gh-08": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next)),
-      "gh-08a": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next, async (h) => { await h.click('.e-permits-fo-delivery-option:has(input[name="gh-livrare"][value="mdelivery"])'); document.querySelector("[data-gh-delivery-address] [data-fo-address-search]").foCascadeAddressFill({ district: "Municipiul Bălți", locality: "Bălți", street: "str. Independenței", house: "12", postalCode: "MD-3100" }); await h.wait(400); })),
+      "gh-08a": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next, async (h) => { await h.click("#gh-request-modal .e-permits-fo-delivery-paper"); await h.wait(300); await h.click('#gh-request-modal .e-permits-fo-delivery-option:has(input[value="courier"])'); await h.wait(400); })),
       /* US-237 Notă de plată (+ US-256 regenerare) */
       "gh-09": gh("#ghiseu/gh-4771/plata"),
       "gh-09a": gh("#ghiseu/gh-4771/plata", async (h) => { await h.click("[data-gh-mpay]"); }),
       "gh-09b": gh("#ghiseu/gh-4702/plata"),
       "gh-09c": gh("#ghiseu/gh-4702/plata", async (h) => { await h.click("[data-gh-regenerate]"); }),
-      "gh-09d": gh("#ghiseu/gh-4771/livrare", seq(async (h) => { await h.click('.e-permits-fo-delivery-option:has(input[name="gh-livrare"][value="mdelivery"])'); document.querySelector("[data-gh-delivery-address] [data-fo-address-search]").foCascadeAddressFill({ district: "Municipiul Chișinău", locality: "Chișinău", street: "str. București", house: "7", postalCode: "MD-2012" }); await h.wait(400); }, next), { taxa: "incompleta" }),
+      "gh-09d": gh("#ghiseu/gh-4771/livrare", seq(async (h) => { await h.click("#gh-request-modal .e-permits-fo-delivery-paper"); await h.wait(300); await h.click('#gh-request-modal .e-permits-fo-delivery-option:has(input[value="courier"])'); await h.wait(400); }, next), { taxa: "incompleta" }),
       /* US-238 Confirmare */
       "gh-10": gh("#ghiseu/gh-4765/plata", next),
       "gh-10a": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); })),

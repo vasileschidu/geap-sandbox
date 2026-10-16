@@ -838,3 +838,27 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `.segment-item` + `:has(> .icon)` gap 8 and `currentColor` keeps the label colour in every state; check the
   library before trusting a „the component supports X”. Option-group errors = message under the group + the
   library `checkbox--error` on the control only — never a red border around the option (user).
+- 2026-10-16 · Section header + alert (user, whole project): keep the header divider; the alert right under it gets
+  the section's content gap (24 in FO sections) — one generic adjacency rule, not per screen. A first version that
+  removed the divider was revised by the user within minutes: for spacing complaints, fix the gap, not the divider.
+  Find the affected places with a probe that lists matching pairs per state (only Ghișeu „Temeiul reprezentării”).
+- 2026-10-16 · Misrouted request (user): a 2-column layout meant for the request window's identity cards was first
+  applied to the small modal. When a layout request names „the FO full flow”, it is about a FO-mirroring surface
+  (the window), not the picker — confirm the target screen before building.
+- 2026-10-16 · „Salvează schița” went header → FO footer → header again (user): in the BO window the draft action
+  is a window action (next to ⋮), the step footer is navigation only. On phones the header button goes icon-only
+  (tooltip shows only for buttons without visible text — icon-tooltip.js), and the FO draft status must wrap.
+  Demo validation for testers: accept any plausible value (phone ≥ 6 digits) — strict formats block demos.
+- 2026-10-16 · Testers need to move freely (user): stepper rows open any step without validation (as the FO
+  demo), „Înainte” validates, completed = reached + checks pass, and new requests are prefilled with the seed
+  `fillDemo` up to the step that needs a real action (Verificare), with `?prefill=0` for the empty path. Prefill
+  the data the tester would type, never the demo actions themselves (they must stay one click to try).
+- 2026-10-16 · RECURRING user complaint — cramped text. No loose explanatory text between controls: an explanation
+  is a notice (`renderNotice` with a bold title) placed in the rhythm (8 label → control, 16 between blocks, 24
+  between sections, the header → alert gap), inside the block it explains (e.g. the procura note inside the procura
+  document field: label row → 16 → notice → 16 → files). `tools/ui-qa/code-audit.mjs` now reports `tight-gap`
+  (an alert / notice / loose paragraph < 8px from its neighbour) — run it on every touched state before a commit.
+- 2026-10-16 · Reusing an FO renderer is not enough when the FO look is scoped to its panel
+  (`[data-fo-step-panel="4"] .e-permits-fo-summary-card` = radius 24 / padding 8): give the scope a reusable class
+  (`.e-permits-fo-review`) and put it on the host, then measure computed radius / padding / gaps against the FO
+  state. Never „label: Da / Nu” tags — show the thing itself (document card) or a real-word status.

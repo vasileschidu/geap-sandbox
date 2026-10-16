@@ -9247,7 +9247,8 @@
   width: 20px;
 }
 
-/* Figma confirmation/review state */
+/* Figma confirmation/review state — the FO Verificare panel, and any host that renders the same review
+   (`.e-permits-fo-review` on its sections wrapper: the Ghișeu Verificare, 2026-10-16) */
 .e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-form__header {
   padding-bottom: var(--spacing-24, 24px);
 }
@@ -9273,17 +9274,20 @@
   padding: var(--spacing-11, 11px) 0;
 }
 
-.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-section__header {
+.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-section__header,
+.e-permits-fo-review .e-permits-fo-summary-section__header {
   min-height: 48px;
 }
 
-.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-section__heading {
+.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-section__heading,
+.e-permits-fo-review .e-permits-fo-summary-section__heading {
   box-sizing: border-box;
   min-height: 48px;
   padding: var(--spacing-11, 11px) var(--spacing-12, 12px);
 }
 
-.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-section__heading:first-child {
+.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-section__heading:first-child,
+.e-permits-fo-review .e-permits-fo-summary-section__heading:first-child {
   flex: 1 1 auto;
 }
 
@@ -9319,7 +9323,8 @@
   padding: var(--spacing-6, 6px) var(--spacing-20, 20px);
 }
 
-.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-card {
+.e-permits-fo-step-panel[data-fo-step-panel="4"] .e-permits-fo-summary-card,
+.e-permits-fo-review .e-permits-fo-summary-card {
   background: var(--gray-50, #f7f7f7);
   border-radius: var(--border-radius-24, 24px);
   padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
@@ -10335,6 +10340,15 @@
 }
 
 /* ===== Plată ===== */
+
+/* a payment element's detail lines under its name (bank account, reductions — US-237 AC-04; Ghișeu) */
+.e-permits-fo-payment-table__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  display: block;
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  margin-top: var(--spacing-4, 4px);
+}
 
 .e-permits-fo-payment__body {
   display: flex;
@@ -23759,6 +23773,37 @@ button.e-permits-steps-strip__cell:hover,
 
 .e-permits-user-create__section-content:has(> .e-permits-dosar-profil__card:first-child) {
   padding-top: 0;
+}
+
+/* Section rule (2026-10-16, user, whole project): an alert / notice (banner .message, .info-box, the FO
+   notice / infobox) right under a section header with a divider — directly, or as the first child of a block
+   that is not the section body — keeps the divider and gets the section's normal header → content gap (24 =
+   the FO section body's top padding; the BO drawer content already has its own 16). */
+:is(.e-permits-fo-form__section > h2, .e-permits-fo-section-header) + :is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox),
+:is(.e-permits-fo-form__section > h2, .e-permits-fo-section-header) + :not(.e-permits-fo-form__section-body) > :is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox):first-child {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* rhythm around step-level alerts (2026-10-16, tight-gap sweep): an alert / notice right before a section gets
+   16 above that section's title band; a step body that ends right above the step footer keeps the FO section
+   bottom (32) before the footer divider */
+:is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox) + :is(.e-permits-fo-form__section, .e-permits-fo-documents) {
+  margin-top: var(--spacing-16, 16px);
+}
+
+/* an alert that ends a step sits 32 above the step footer (the FO section bottom) */
+:is(.message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox) + .e-permits-fo-form__footer {
+  margin-top: var(--spacing-32, 32px);
+}
+
+/* an alert closing a list of cards (summary documents) sits 16 below the last card (the list gap is 8) */
+.e-permits-fo-summary-docs > :is(.message, .info-box):not(:first-child) {
+  margin-top: var(--spacing-8, 8px);
+}
+
+:is(.e-permits-fo-payment__body, .e-permits-fo-finish__content):has(+ .e-permits-fo-form__footer),
+:has(> .e-permits-fo-finish__content):has(+ .e-permits-fo-form__footer) > .e-permits-fo-finish__content {
+  padding-bottom: var(--spacing-32, 32px);
 }
 
 /* US-18: certificate card error state + the certificate preview in its modal */

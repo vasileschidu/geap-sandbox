@@ -2904,7 +2904,39 @@
       const panel = document.querySelector("[data-fo-step-panel='5']");
       const step = schema?.steps?.find((item) => item.id === "delivery" || Number(item.index) === 5);
       if (!panel || !step) return;
+      /* the request-data step already carries the district tree — reuse it so
+         the delivery editor offers the same localities, no duplicated data */
+      const districts =
+        step.paperCopy?.methods?.find((item) => item.address)?.address?.form?.districts ||
+        schema?.steps
+          ?.flatMap((item) => item.sections || [])
+          .flatMap((section) => section.fields || [])
+          .find((field) => field?.type === "cascade-address" && Array.isArray(field.districts))?.districts ||
+        [];
+      renderDeliveryStep(panel, step, { districts });
+    }
 
+    /* the FO „Livrare” step body (fo-06) for any host: the header + section skeleton (deliveryStepHtml) and the
+       options / paper copy / courier address render (renderDeliveryStep) from a step config of the schema shape
+       ({ title, sectionTitle, options[], paperCopy{ label, description, selected, methods[] } }). The Ghișeu
+       request window calls both with its draft (2026-10-16, user: „exactly the FO Livrare”). */
+    function deliveryStepHtml({ title = "Livrare", sectionTitle = "Cum primești rezultatul?", titleId = "fo-delivery-step-title", headingId = "fo-delivery-step-heading" } = {}) {
+      const esc = escapeFrontOfficeHtml;
+      return `
+        <div class="e-permits-fo-delivery">
+          <header class="e-permits-fo-form__header">
+            <h1 id="${esc(titleId)}" tabindex="-1" data-fo-delivery-title>${esc(title)}</h1>
+          </header>
+          <section class="e-permits-fo-delivery__section" aria-labelledby="${esc(headingId)}">
+            <h2 class="e-permits-fo-delivery__heading" id="${esc(headingId)}" data-fo-delivery-heading>${esc(sectionTitle)}</h2>
+            <div data-fo-delivery-options></div>
+            <div data-fo-delivery-paper></div>
+          </section>
+        </div>`;
+    }
+
+    function renderDeliveryStep(panel, step, { districts = [] } = {}) {
+      if (!panel || !step) return;
       const title = panel.querySelector("[data-fo-delivery-title]");
       const heading = panel.querySelector("[data-fo-delivery-heading]");
       const optionsRoot = panel.querySelector("[data-fo-delivery-options]");
@@ -2935,15 +2967,6 @@
       const address = courier?.address || null;
       const couriers = courier?.couriers || null;
       const courierItems = Array.isArray(couriers?.items) ? couriers.items : [];
-      /* the request-data step already carries the district tree — reuse it so
-         the delivery editor offers the same localities, no duplicated data */
-      const districts =
-        address?.form?.districts ||
-        schema?.steps
-          ?.flatMap((item) => item.sections || [])
-          .flatMap((section) => section.fields || [])
-          .find((field) => field?.type === "cascade-address" && Array.isArray(field.districts))?.districts ||
-        [];
 
       const addressSectionHtml = address
         ? `
@@ -3117,16 +3140,14 @@
       `;
     }
 
-    function renderFrontOfficeStep6FromSchema(schema) {
-      const panel = document.querySelector("[data-fo-step-panel='6']");
-      const step = schema?.steps?.find((item) => item.id === "payment" || Number(item.index) === 6);
-      if (!panel || !step) return;
-
-      const title = panel.querySelector("[data-fo-payment-title]");
-      const body = panel.querySelector("[data-fo-payment-body]");
-      if (title) title.textContent = step.title || step.label || "Plată";
-      if (!body) return;
-
+    /* the FO „Plată” body (fo-07): request summary rows, the note-of-payment card (invoice table + totals, torn
+       edge) and the actions — for any host (Ghișeu „Notă de plată”, 2026-10-16). step = { summary.rows[],
+       invoice{ label, status{label,tone}, amount, columns[], items[{ description, quantity, unitPrice, total,
+       span, metaHtml[] }], totals[] }, actions{ download, pay } }; the host passes its own button hooks
+       (never data-fo-*, the FO listens on the document) and extra actions after the FO ones. item.metaHtml =
+       small tertiary lines under an element (bank account, reductions — US-237 AC-04). */
+    function paymentStepBodyHtml(step, { downloadAttrs = "data-fo-payment-download", payAttrs = "data-fo-payment-pay", extraActionsHtml = "", summaryLabel = "Detaliile cererii" } = {}) {
+      const metaHtml = (item) => (Array.isArray(item.metaHtml) ? item.metaHtml.map((line) => `<span class="e-permits-fo-payment-table__meta">${line}</span>`).join("") : "");
       const summaryRows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
       const invoice = step.invoice || {};
       const columns = Array.isArray(invoice.columns) ? invoice.columns : [];
@@ -3136,7 +3157,7 @@
 
       const summaryHtml = summaryRows.length
         ? `
-          <section class="e-permits-fo-payment-summary" aria-label="Detaliile cererii">
+          <section class="e-permits-fo-payment-summary" aria-label="${escapeFrontOfficeHtml(summaryLabel)}">
             ${summaryRows
               .map(
                 (row) => `
@@ -3157,14 +3178,14 @@
           if (item.span) {
             return `
               <tr class="e-permits-fo-payment-table__row e-permits-fo-payment-table__row--span">
-                <td colspan="${Math.max(1, columns.length - 1)}">${escapeFrontOfficeHtml(item.description || "")}</td>
+                <td colspan="${Math.max(1, columns.length - 1)}">${escapeFrontOfficeHtml(item.description || "")}${metaHtml(item)}</td>
                 <td class="e-permits-fo-payment-table__amount">${escapeFrontOfficeHtml(item.total || "")}</td>
               </tr>
             `;
           }
           return `
             <tr class="e-permits-fo-payment-table__row">
-              <td>${escapeFrontOfficeHtml(item.description || "")}</td>
+              <td>${escapeFrontOfficeHtml(item.description || "")}${metaHtml(item)}</td>
               <td>${escapeFrontOfficeHtml(item.quantity || "")}</td>
               <td>${escapeFrontOfficeHtml(item.unitPrice || "")}</td>
               <td class="e-permits-fo-payment-table__amount">${escapeFrontOfficeHtml(item.total || "")}</td>
@@ -3235,7 +3256,7 @@
         <div class="e-permits-fo-payment-actions">
           ${
             actions.download
-              ? `<button class="btn btn-outline-primary e-permits-fo-payment-actions__download" type="button" data-fo-payment-download>
+              ? `<button class="btn btn-outline-primary e-permits-fo-payment-actions__download" type="button" ${downloadAttrs}>
                    <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(actions.download.icon || "icon-page-download")}"></use></svg>
                    <span>${escapeFrontOfficeHtml(actions.download.label || "Descarcă nota de plată")}</span>
                  </button>`
@@ -3243,16 +3264,30 @@
           }
           ${
             actions.pay
-              ? `<button class="btn btn-badge btn-badge--primary e-permits-fo-payment-actions__pay" type="button" data-fo-payment-pay>
+              ? `<button class="btn btn-badge btn-badge--primary e-permits-fo-payment-actions__pay" type="button" ${payAttrs}>
                    <span class="btn-badge__logo" aria-hidden="true"><img src="${escapeFrontOfficeHtml(actions.pay.logo || "assets/logos/m-platforms/m-pay.svg")}" alt=""></span>
                    <span class="btn-badge__label">${escapeFrontOfficeHtml(actions.pay.label || "")}</span>
                  </button>`
               : ""
           }
+          ${extraActionsHtml}
         </div>
       `;
 
-      body.innerHTML = summaryHtml + invoiceHtml + actionsHtml;
+      return summaryHtml + invoiceHtml + actionsHtml;
+    }
+
+    function renderFrontOfficeStep6FromSchema(schema) {
+      const panel = document.querySelector("[data-fo-step-panel='6']");
+      const step = schema?.steps?.find((item) => item.id === "payment" || Number(item.index) === 6);
+      if (!panel || !step) return;
+
+      const title = panel.querySelector("[data-fo-payment-title]");
+      const body = panel.querySelector("[data-fo-payment-body]");
+      if (title) title.textContent = step.title || step.label || "Plată";
+      if (!body) return;
+
+      body.innerHTML = paymentStepBodyHtml(step);
       /* US-18 AC-03: kept across re-renders once Finalizare was refused for an unpaid fee */
       if (frontOfficePaymentNoticeShown) { frontOfficePaymentNoticeShown = false; showFrontOfficePaymentNotice(); frontOfficePaymentNoticeShown = true; }
     }
@@ -3316,33 +3351,9 @@
          a failed generation shows the error + „Reîncercați” (?cert=error) */
       const certMode = new URLSearchParams(location.search).get("cert") || "";
       const doc = step.document && certMode === "none" ? "" : step.document && certMode === "error" && !frontOfficeCertRetried
-        ? `
-          <div class="e-permits-fo-finish-doc is-error" role="alert">
-            <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
-            <div class="e-permits-fo-finish-doc__copy">
-              <p class="e-permits-fo-finish-doc__title">${esc(step.document.title || "")}</p>
-              <p class="e-permits-fo-finish-doc__text e-permits-fo-finish-doc__error">Certificatul Constatator nu a putut fi generat.</p>
-            </div>
-            <button class="btn btn-neutral btn-sm e-permits-fo-finish-doc__action" type="button" data-fo-finish-document-retry>
-              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
-              <span>Reîncercați</span>
-            </button>
-          </div>
-        `
+        ? foFinishDocHtml({ title: step.document.title || "", error: "Certificatul Constatator nu a putut fi generat.", actionAttrs: "data-fo-finish-document-retry" })
         : step.document
-        ? `
-          <div class="e-permits-fo-finish-doc">
-            <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
-            <div class="e-permits-fo-finish-doc__copy">
-              <p class="e-permits-fo-finish-doc__title">${esc(step.document.title || "")}</p>
-              <p class="e-permits-fo-finish-doc__text">${esc(step.document.text || "")}${step.document.link ? ` <a href="${esc(step.document.href || "#")}">${esc(step.document.link)}</a>` : ""}.</p>
-            </div>
-            <button class="btn btn-outline-primary btn-sm e-permits-fo-finish-doc__action" type="button" data-fo-finish-document>
-              <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
-              <span>${esc(step.document.action || "Vezi documentul")}</span>
-            </button>
-          </div>
-        `
+        ? foFinishDocHtml({ title: step.document.title || "", textHtml: `${esc(step.document.text || "")}${step.document.link ? ` <a href="${esc(step.document.href || "#")}">${esc(step.document.link)}</a>` : ""}.`, actionLabel: step.document.action || "Vezi documentul", actionAttrs: "data-fo-finish-document" })
         : "";
 
       const rows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
@@ -3419,13 +3430,7 @@
         : "";
 
       body.innerHTML = `
-        <header class="e-permits-fo-finish__hero">
-          <svg class="icon e-permits-fo-finish__hero-icon" width="32" height="32" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>
-          <div class="e-permits-fo-form__header e-permits-fo-finish__header">
-            <h1 id="fo-request-step-7-title" tabindex="-1">${esc(step.title || step.label || "Finalizare")}</h1>
-          </div>
-          ${lead}
-        </header>
+        ${foFinishHeroHtml({ title: step.title || step.label || "Finalizare", titleId: "fo-request-step-7-title", leadHtml: lead })}
         <div class="e-permits-fo-finish__content">
           ${tracker}
           ${doc}
@@ -6510,6 +6515,57 @@
       return `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${escapeFrontOfficeHtml(label)}</span><div class="e-permits-fo-summary-row__value">${valuesHtml}</div></div>`;
     }
 
+    /* a Verificare summary section (fo-05): heading + the edit pen (the host's button) + the gray card of rows,
+       or the documents list (docs) — for any host (Ghișeu Verificare) */
+    function foSummarySectionHtml({ title, editHtml = "", bodyHtml = "", docs = false, extraClass = "" }) {
+      return `
+        <div class="e-permits-fo-summary-section${extraClass ? ` ${extraClass}` : ""}">
+          <div class="e-permits-fo-summary-section__header">
+            <h2 class="e-permits-fo-summary-section__heading">${escapeFrontOfficeHtml(title)}</h2>
+            ${editHtml}
+          </div>
+          <div class="${docs ? "e-permits-fo-summary-docs" : "e-permits-fo-summary-card"}">${bodyHtml}</div>
+        </div>`;
+    }
+    /* the Finalizare hero (fo-08): check icon + h1 + lead, and the proof-of-filing document card (or its error with
+       the retry) — for any host (Ghișeu Confirmare); actionAttrs = the host's hook */
+    function foFinishHeroHtml({ title, titleId = "", leadHtml = "" }) {
+      return `
+        <header class="e-permits-fo-finish__hero">
+          <svg class="icon e-permits-fo-finish__hero-icon" width="32" height="32" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>
+          <div class="e-permits-fo-form__header e-permits-fo-finish__header">
+            <h1${titleId ? ` id="${escapeFrontOfficeHtml(titleId)}"` : ""} tabindex="-1">${escapeFrontOfficeHtml(title)}</h1>
+          </div>
+          ${leadHtml}
+        </header>`;
+    }
+    function foFinishDocHtml({ title, textHtml = "", error = "", actionLabel = "Vezi documentul", actionAttrs = "" }) {
+      const esc = escapeFrontOfficeHtml;
+      return error ? `
+        <div class="e-permits-fo-finish-doc is-error" role="alert">
+          <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
+          <div class="e-permits-fo-finish-doc__copy">
+            <p class="e-permits-fo-finish-doc__title">${esc(title)}</p>
+            <p class="e-permits-fo-finish-doc__text e-permits-fo-finish-doc__error">${esc(error)}</p>
+          </div>
+          <button class="btn btn-neutral btn-sm e-permits-fo-finish-doc__action" type="button" ${actionAttrs}>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
+            <span>Reîncercați</span>
+          </button>
+        </div>` : `
+        <div class="e-permits-fo-finish-doc">
+          <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
+          <div class="e-permits-fo-finish-doc__copy">
+            <p class="e-permits-fo-finish-doc__title">${esc(title)}</p>
+            <p class="e-permits-fo-finish-doc__text">${textHtml}</p>
+          </div>
+          <button class="btn btn-outline-primary btn-sm e-permits-fo-finish-doc__action" type="button" ${actionAttrs}>
+            <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg>
+            <span>${esc(actionLabel)}</span>
+          </button>
+        </div>`;
+    }
+
     function summaryEditButton(step, label) {
       return `
         <button class="e-permits-fo-summary-section__edit" type="button" aria-label="${escapeFrontOfficeHtml(label)}" data-fo-edit-step="${escapeFrontOfficeHtml(step)}">
@@ -7040,26 +7096,9 @@
       }
 
       container.innerHTML = `
-        <div class="e-permits-fo-summary-section e-permits-fo-summary-section--applicant">
-          <div class="e-permits-fo-summary-section__header">
-            <h2 class="e-permits-fo-summary-section__heading">Date solicitant</h2>
-          </div>
-          <div class="e-permits-fo-summary-card">${applicantRows}</div>
-        </div>
-        <div class="e-permits-fo-summary-section">
-          <div class="e-permits-fo-summary-section__header">
-            <h2 class="e-permits-fo-summary-section__heading">Detalii serviciu</h2>
-            ${summaryEditButton(2, "Editează detaliile serviciului")}
-          </div>
-          <div class="e-permits-fo-summary-card">${serviceRows}${caemHtml}</div>
-        </div>
-        <div class="e-permits-fo-summary-section">
-          <div class="e-permits-fo-summary-section__header">
-            <h2 class="e-permits-fo-summary-section__heading">Documente însoțitoare</h2>
-            ${summaryEditButton(3, "Editează documentele însoțitoare")}
-          </div>
-          <div class="e-permits-fo-summary-docs">${docsHtml}</div>
-        </div>
+        ${foSummarySectionHtml({ title: "Date solicitant", bodyHtml: applicantRows, extraClass: "e-permits-fo-summary-section--applicant" })}
+        ${foSummarySectionHtml({ title: "Detalii serviciu", editHtml: summaryEditButton(2, "Editează detaliile serviciului"), bodyHtml: `${serviceRows}${caemHtml}` })}
+        ${foSummarySectionHtml({ title: "Documente însoțitoare", editHtml: summaryEditButton(3, "Editează documentele însoțitoare"), bodyHtml: docsHtml, docs: true })}
       `;
 
       const footer = panel.querySelector(".e-permits-fo-form__footer");
@@ -7307,7 +7346,56 @@
       control.focus();
     });
 
+    /* the FO phone number as you type (2026-10-16, user): digits grouped like the placeholder — +373: „60 999 999”,
+       other codes: groups of 3; a pasted „+37360999999” / „060999999” / „60 999 999” normalises to the same; the
+       caret keeps its place among the digits (typing, editing in the middle, backspace over a space) */
+    function formatFoPhoneDigits(raw, code = "+373") {
+      let digits = String(raw || "").replace(/\D/g, "");
+      if (code === "+373") {
+        if (digits.startsWith("373") && digits.length > 8) digits = digits.slice(3);
+        if (digits.startsWith("0") && digits.length === 9) digits = digits.slice(1);
+        digits = digits.slice(0, 8);
+        return [digits.slice(0, 2), digits.slice(2, 5), digits.slice(5)].filter(Boolean).join(" ");
+      }
+      return digits.slice(0, 12).replace(/(\d{3})(?=\d)/g, "$1 ");
+    }
+    function bindPhoneFormat(phoneRoot) {
+      const input = phoneRoot?.querySelector("input[type='tel']");
+      if (!input || input.dataset.foPhoneFormat === "true") return;
+      input.dataset.foPhoneFormat = "true";
+      const codeOf = () => phoneRoot.querySelector("[data-fo-phone-code-value]")?.textContent.trim() || "+373";
+      const apply = () => {
+        const before = input.value;
+        const caret = input.selectionStart ?? before.length;
+        const digitsBefore = before.slice(0, caret).replace(/\D/g, "").length;
+        const formatted = formatFoPhoneDigits(before, codeOf());
+        if (formatted === before) return;
+        /* a pasted country prefix / leading 0 is dropped: shift the caret by what was removed */
+        const dropped = before.replace(/\D/g, "").length - formatted.replace(/\D/g, "").length;
+        let target = Math.max(0, digitsBefore - (caret >= before.length ? dropped : 0));
+        input.value = formatted;
+        let pos = 0;
+        while (target > 0 && pos < formatted.length) { if (/\d/.test(formatted[pos])) target -= 1; pos += 1; }
+        if (document.activeElement === input) input.setSelectionRange(pos, pos);
+      };
+      /* backspace right after a space removes the digit before it */
+      input.addEventListener("keydown", (event) => {
+        if (event.key !== "Backspace" || input.selectionStart !== input.selectionEnd) return;
+        const at = input.selectionStart;
+        if (at > 0 && input.value[at - 1] === " ") {
+          event.preventDefault();
+          input.value = input.value.slice(0, at - 2) + input.value.slice(at - 1);
+          input.setSelectionRange(at - 2, at - 2);
+          apply();
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
+      input.addEventListener("input", apply);
+      apply();
+    }
+
     function bindPhoneCode(phoneRoot) {
+      bindPhoneFormat(phoneRoot);
       if (!phoneRoot || phoneRoot.dataset.foPhoneCodeBound === "true") return;
       phoneRoot.dataset.foPhoneCodeBound = "true";
       const button = phoneRoot.querySelector("[data-fo-phone-code-button]");
@@ -8675,6 +8763,13 @@
       verifiedValueHtml,
       mnotifyInfoHtml,
       deliveryOptionHtml: deliveryOptionRow,
+      deliveryStepHtml,
+      paymentStepBodyHtml,
+      summarySectionHtml: foSummarySectionHtml,
+      finishHeroHtml: foFinishHeroHtml,
+      finishDocHtml: foFinishDocHtml,
+      readonlyFieldHtml,
+      renderDeliveryStep,
       docContentHtml: foDocContentHtml,
       summaryDocsHtml: foSummaryDocsHtml,
       attachFileItem: foDocAttachFileItem,

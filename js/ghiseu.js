@@ -19,6 +19,11 @@
    `?ghseed=1` restores the seed. Demo switches: ?mconnect=0 (registries down), ?mdocs=0
    (paper request fails), ?msign=0|1 / ?olograf=0|1 / ?cert=0|1 (service settings),
    ?msignerr=1 (MSign down), ?taxa=incompleta, ?depunere=eroare, ?certerr=1, ?gol=1 (no drafts).
+   Demo prefill (user, 2026-10-16): a request started from „Ce se solicită?” comes with the contact, the
+   service details and the required documents filled (?prefill=0 = empty); the stepper opens any step.
+   Demo contact rule (user, 2026-10-16): any phone with ≥ 6 digits passes (spaces, +, -, () ignored; no +373
+   format, no MNotify match); empty / non-numeric = „Introdu un număr de telefon valid.”. There is no phone
+   OTP step at the desk.
    Demo data rule (user, 2026-10-15) — RSP / RSUD lookups in the picker and the flow:
      · any valid 13-digit IDNP / IDNO is found: the seed person / company when it exists, else a
        deterministic fake (name from a small pool indexed by the last two digits; „SRL Demo <last 4>”);
@@ -588,15 +593,8 @@
     { name, type: pj ? "PJ" : "PF", idLabel, idValue },
     { changeable: Boolean(change), changeAttrs: change, extraHtml: tag }
   ) || "";
-  const readonlyField = ({ id = "", label, value, span = 6, hint = "", required = false, check = true }) => `
-    <div class="e-permits-fo-field e-permits-fo-field--span-${span}">
-      <label${id ? ` id="${id}-label"` : ""}>${esc(label)}${required ? ` ${req()}` : ""}</label>
-      <div class="e-permits-fo-input is-filled is-readonly">
-        <span class="e-permits-fo-input__value"${id ? ` id="${id}" role="textbox" aria-readonly="true" aria-labelledby="${id}-label"` : ""} title="${esc(value)}">${esc(value)}</span>
-        ${check ? icon("checkmark-small") : ""}
-      </div>
-      ${hint ? `<p class="e-permits-fo-field__hint"${id ? ` id="${id}-hint"` : ""}>${esc(hint)}</p>` : ""}
-    </div>`;
+  /* the FO read-only field (GEAPFormRender.readonlyFieldHtml: value + green check, optional hint) */
+  const readonlyField = ({ id = "", label, value, span = 6, hint = "", required = false }) => R().readonlyFieldHtml?.({ id, label, value, span, hint, required }) || "";
   const section = (title, body, { id = "", desc = "", attrs = "", num = "" } = {}) => {
     const h = `<h2${id ? ` id="${id}"` : ""}>${num ? `<span class="e-permits-gh-start__num" aria-hidden="true">${num}</span>` : ""}${esc(title)}</h2>`;
     return `
@@ -824,6 +822,7 @@
         <p class="e-permits-fo-draft-status e-permits-gh-sheet__saved" aria-live="polite">${savedHtml}</p>
       </div>
       <div class="e-permits-gh-sheet__actions">
+        ${isSubmitted(d) || isPaid(d) ? "" : `<button class="btn btn-neutral btn-sm e-permits-gh-sheet__save" type="button" aria-label="Salvează schița" data-tooltip-label="Salvează schița" data-gh-save><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg><span class="e-permits-gh-sheet__save-label">Salvează schița</span></button>`}
         ${menu}
       </div>`;
   }
@@ -836,13 +835,15 @@
           ${steps.map((step, n) => {
             const i = STEP_INDEX[step.id];
             const active = i === S.step;
-            const done = !active && (i < S.step || i < reach);
-            /* US-237 AC-14: once paid, the request's fields are closed — only the note and the confirmation stay open */
-            const open = !active && i <= reach && !isSubmitted(d) && !(isPaid(d) && i < STEP_INDEX.plata);
+            /* completed = reached and its checks pass (the FO vertical stepper check) */
+            const done = !active && i <= reach && !CHECK[i](d).length;
+            /* demo (user 2026-10-16, as the FO): every step is reachable from the stepper, forward or back —
+               validation shows on „Înainte”; US-237 AC-14: once paid, only the note and the confirmation stay open */
+            const open = !active && !isSubmitted(d) && !(isPaid(d) && i < STEP_INDEX.plata);
             return `
               <li class="e-permits-fo-stepper__item${active ? " is-active" : ""}${done || (isSubmitted(d) && !active) ? " is-completed" : ""}"${active ? ' aria-current="step"' : ""} data-gh-step="${i}">
                 <span class="e-permits-fo-stepper__connector" aria-hidden="true"></span>
-                <span class="e-permits-fo-stepper__row" ${open ? `role="button" tabindex="0" aria-label="Deschide pasul ${n + 1}: ${esc(step.label)}" data-gh-goto="${i}"` : 'aria-disabled="true"'}>
+                <span class="e-permits-fo-stepper__row" ${open ? `role="button" tabindex="0" aria-label="Deschide pasul ${n + 1}: ${esc(step.label)}" data-gh-goto="${i}" data-gh-free` : 'aria-disabled="true"'}>
                   <span class="e-permits-fo-stepper__number">
                     <span class="e-permits-fo-stepper__number-text">${n + 1}</span>
                     ${icon("checkmark-small", 16, "icon e-permits-fo-stepper__check")}
@@ -877,7 +878,7 @@
     return `
       ${hint ? U().renderInfoNote?.(esc(hint)) || "" : ""}
       ${R().stepFooterHtml?.({
-        draftAttrs: locked(d) || isSubmitted(d) ? "" : "data-gh-save",
+        /* „Salvează schița” lives in the window header (user 2026-10-16): the footer is back + „Înainte →” */
         backAttrs: prev ? "data-gh-prev" : "",
         backLabel: prev ? `Înapoi la ${prev.label}` : "",
         nextLabel: next, nextAttrs, nextDisabled, nextArrow: next === "Înainte"
@@ -980,6 +981,10 @@
     d.process = process; d.act = actId; d.requestType = type;
     d.details.addressChanged = false;
     S.actCleared = false; S.dirty = true;
+    /* demo prefill (user 2026-10-16): contact from MNotify, the service details, the required documents — the
+       tester clicks „Înainte” up to Verificare (paper, olograf, MSign and the payment are one click each);
+       ?prefill=0 starts empty */
+    if (params.get("prefill") !== "0") fillDemo(d, STEP_INDEX.verificare);
     audit("Alegerea procesului", d, process === "post" ? `${type} · ${actById(d, actId)?.nr || ""}` : type);
     S.step = STEP_INDEX.identificare;
     persist();
@@ -1065,11 +1070,10 @@
      2026-10-15: plain code inputs, not search fields): the arrow asks
      MConnect (disabled until 13 digits; Enter = the arrow, js/search.js), the spinner while it answers,
      then the search clear × alone (= change the code). Never on typing or blur. */
-  /* col: PJ — company and the person filing side by side, each a column: label, code, the result under it */
-  function codeGroupHtml(kind, d, { col = false } = {}) {
+  function codeGroupHtml(kind, d) {
     const conf = {
-      company: { code: "IDNO", value: d.company.idno, state: d.company.state, targets: [["name", "Denumirea companiei", col ? 12 : 6, d.company.denumire, "Se completează din RSUD după IDNO"]] },
-      applicant: { code: "IDNP", value: d.applicant.idnp, state: d.applicant.state, targets: [["last", "Nume", col ? 6 : 3, d.applicant.nume, "Din RSP, după IDNP"], ["first", "Prenume", col ? 6 : 3, d.applicant.prenume, "Din RSP, după IDNP"]] },
+      company: { code: "IDNO", value: d.company.idno, state: d.company.state, targets: [["name", "Denumirea companiei", 6, d.company.denumire, "Se completează din RSUD după IDNO"]] },
+      applicant: { code: "IDNP", value: d.applicant.idnp, state: d.applicant.state, targets: [["last", "Nume", 3, d.applicant.nume, "Din RSP, după IDNP"], ["first", "Prenume", 3, d.applicant.prenume, "Din RSP, după IDNP"]] },
       rep: { code: "IDNP", value: d.rep.idnp, state: d.rep.state, targets: [["last", "Nume reprezentant", 3, d.rep.nume, "Din RSP, după IDNP"], ["first", "Prenume reprezentant", 3, d.rep.prenume, "Din RSP, după IDNP"]] }
     }[kind];
     const id = `gh-${kind}`;
@@ -1078,8 +1082,8 @@
     const manual = conf.state === "manual";
     const codeLocked = found || manual;
     return `
-      <div class="e-permits-fo-field-group${col ? " e-permits-gh-lookup-col" : ""}" data-gh-lookup="${kind}">
-        <div class="e-permits-fo-field e-permits-fo-field--span-${col ? 12 : 6}">
+      <div class="e-permits-fo-field-group" data-gh-lookup="${kind}">
+        <div class="e-permits-fo-field e-permits-fo-field--span-6">
           <div class="e-permits-fo-field__label-counter"><label for="${id}">${esc(label)} ${req()}</label><span class="e-permits-fo-field__counter" data-fo-digits-counter>${(conf.value || "").length}/13</span></div>
           <div class="search-input ${searchSize()} rectangular e-permits-workplace__search e-permits-list-search e-permits-list-search--fill e-permits-fo-cadastral-search e-permits-gh-lookup${codeLocked ? " has-value is-ready is-locked" : ""}" data-fo-search-size data-gh-lookup-box>
             <input class="input" id="${id}" type="text" inputmode="numeric" maxlength="13" placeholder="Introdu ${conf.code}" autocomplete="off" aria-describedby="${id}-hint" aria-required="true" value="${esc(conf.value || "")}"${codeLocked ? " readonly" : ""} data-fo-digits data-fo-registry-code data-gh-code="${kind}">
@@ -1110,8 +1114,10 @@
     const filer = d.personType === "PJ" ? fullName(d.applicant) : fullName(d.rep);
     const holder = holderName(d);
     let body = "";
-    if (b.kind === "rsud") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: Administrator în RSUD.</strong> ${esc(filer)} este administratorul ${esc(holder)}, fără procură.`) || "";
-    else if (b.kind === "mpower") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: Împuternicire MPower</strong> nr. ${esc(b.nr)}, valabilă până la ${esc(longDate(b.until))}. ${esc(filer)} reprezintă ${esc(holder)}, fără procură.`) || "";
+    /* one notice per outcome (user 2026-10-16): title + text in the library notice; RSUD / MPower = success,
+       Procură = info */
+    if (b.kind === "rsud") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: administrator în RSUD.</strong> ${esc(filer)} este administratorul ${esc(holder)}, fără procură. Sursa: RSUD prin MConnect.`) || "";
+    else if (b.kind === "mpower") body = U().renderNotice?.("success", `<strong>Temeiul reprezentării: împuternicire MPower.</strong> Nr. ${esc(b.nr)}, valabilă până la ${esc(longDate(b.until))}. ${esc(filer)} reprezintă ${esc(holder)}, fără procură.`) || "";
     else {
       /* AC-21 error = the FO way: message under the group, only the checkbox control in the library error
          style (checkbox--error) — no border around the option */
@@ -1125,7 +1131,7 @@
           ${procuraOption}
         </div>
         ${d.procura ? errSlot("procura") : `<span class="message message--inline message--error e-permits-fo-field__error" id="gh-err-procura" data-gh-err="procura" role="alert">${ERR_ICON}<span>Legătura nu este confirmată electronic. Bifați «Prin procură», după verificarea procurii pe hârtie.</span></span>`}
-        ${d.procura ? `<p class="e-permits-fo-field__hint">Temeiul reprezentării: Procură. Copia scanată a procurii se atașează la pasul „Documente însoțitoare”.</p>` : ""}`;
+        ${d.procura ? U().renderNotice?.("info", `<strong>Temeiul reprezentării: Procură.</strong> Copia scanată a procurii se atașează la pasul «Documente însoțitoare».${(d.maxStep || 0) >= STEP_INDEX.documente ? ` <a class="link link-primary link-sm" href="#" data-gh-goto="${STEP_INDEX.documente}">Mergi la Documente însoțitoare&nbsp;→</a>` : ""}`) || "" : ""}`;
     }
     return `<div data-gh-block="basis" class="e-permits-gh__basis">${body}</div>`;
   }
@@ -1148,7 +1154,7 @@
     const typeField = types.length > 1
       ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică", icon: "icon-person-filled" }, { value: "PJ", label: "Persoană juridică", icon: "icon-suitcase-filled" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
       : readonlyField({ id: "gh-tip-fix", label: "Tip persoană", value: types[0] === "PJ" ? "Persoană juridică" : "Persoană fizică", span: 6, hint: "Singurul tip de solicitant configurat pentru serviciu." });
-    const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d, { col: true })}${codeGroupHtml("applicant", d, { col: true })}` : codeGroupHtml("applicant", d);
+    const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d)}${codeGroupHtml("applicant", d)}` : codeGroupHtml("applicant", d);
     return `
       <div data-gh-block="applicant">
         ${section("Solicitantul", `<div class="e-permits-fo-form__section-body">${typeField}${rows}</div>`, { id: "gh-applicant-title" })}
@@ -1171,9 +1177,11 @@
       </div>` : "";
     return `
       <div data-gh-block="applicant">
-        <section class="e-permits-fo-form__roles" aria-label="Solicitant">
-          <div class="e-permits-fo-form__role-group">${roleTitle("Solicitant")}${holder}</div>
-          ${filer ? `<div class="e-permits-fo-form__role-group">${roleTitle("Persoana care depune")}${filer}</div>` : ""}
+        <section class="e-permits-fo-form__roles${filer ? "" : " is-single"}" aria-label="Solicitant">
+          <div class="e-permits-fo-form__roles-grid">
+            <div class="e-permits-fo-form__role-group">${roleTitle("Solicitant")}${holder}</div>
+            ${filer ? `<div class="e-permits-fo-form__role-group">${roleTitle("Persoana care depune")}${filer}</div>` : ""}
+          </div>
         </section>
         ${section(d.personType === "PJ" ? "Temeiul reprezentării" : "Reprezentantul", `${rep}${basisHtml(d)}`, { id: "gh-rep-title", desc: d.personType === "PJ" ? "Legătura dintre persoana care depune și companie: RSUD, MPower sau procură verificată la ghișeu." : "Doar dacă cererea se depune printr-un reprezentant al solicitantului." })}
       </div>`;
@@ -1473,7 +1481,7 @@
   function collectSolicitant() {
     const d = S.cur;
     const before = JSON.stringify(d.contact);
-    if (d.contact.phoneSrc !== "mnotify") { const v = S.page.querySelector("#fo-gh-phone")?.value || ""; d.contact.phone = v.replace(/\s+/g, ""); d.contact.phoneSrc = "manual"; }
+    if (d.contact.phoneSrc !== "mnotify") { const v = S.page.querySelector("#fo-gh-phone")?.value || ""; d.contact.phone = v.replace(/\D/g, ""); d.contact.phoneSrc = "manual"; }
     if (d.contact.emailSrc !== "mnotify") { d.contact.email = (S.page.querySelector("#fo-gh-email")?.value || "").trim(); d.contact.emailSrc = "manual"; }
     if (JSON.stringify(d.contact) !== before) audit("Modificare date de contact", d, "Telefon / email pentru notificări");
   }
@@ -1482,9 +1490,12 @@
     const d = S.cur;
     const errs = [];
     if (d.contact.phoneSrc !== "mnotify") {
-      const digits = d.contact.phone.replace(/\D/g, "").replace(/^373/, "");
-      if (!digits) errs.push({ input: "#fo-gh-phone", msg: REQUIRED });
-      else if (!/^(6|7)\d{7}$|^2\d{7}$/.test(digits)) errs.push({ input: "#fo-gh-phone", msg: "Se va indica număr telefon mobil +37300000000 sau fix +373(cod regiune)000000." });
+      /* demo rule (user 2026-10-16, easy testing): any number with ≥ 6 digits passes (spaces, +, -, () ignored);
+         empty or non-numeric = the FO error */
+      const raw = d.contact.phone.trim();
+      const digits = raw.replace(/[\s+\-()]/g, "");
+      if (!raw) errs.push({ input: "#fo-gh-phone", msg: REQUIRED });
+      else if (!/^\d{6,}$/.test(digits)) errs.push({ input: "#fo-gh-phone", msg: "Introdu un număr de telefon valid." });
     }
     if (d.contact.emailSrc !== "mnotify" && d.contact.email) {
       if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(d.contact.email)) errs.push({ input: "#fo-gh-email", msg: "Adresa email nu este validă." });
@@ -1634,12 +1645,13 @@
           </div>
           <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(doc.label)}">${icon("plus-large")}Adaugă fișier</button>
         </div>
+        ${doc.id === "procura" ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașați copia ei scanată.") || "" : ""}
         <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
       </div>`;
   }
   function stepDocumente(d) {
     return `
-      ${stepHeader("Documente însoțitoare")}${d.procura ? U().renderInfoNote?.("Procura pe hârtie a fost verificată la inițiere: atașați copia ei scanată.") || "" : ""}
+      ${stepHeader("Documente însoțitoare")}
       <section class="e-permits-fo-documents" aria-label="Documente însoțitoare" data-gh-docs>
         ${docsOf(d).map(docFieldHtml).join("")}
         <hr class="e-permits-fo-documents__separator">
@@ -1715,14 +1727,11 @@
 
   /* ================================================================ step 5 · Verificare (US-236) */
   const summaryRow = (label, values) => R().summaryRowHtml?.(label, values) || "";
-  const summarySection = (title, rowsHtml, step = null, extraClass = "") => `
-    <div class="e-permits-fo-summary-section${extraClass}">
-      <div class="e-permits-fo-summary-section__header">
-        <h3 class="e-permits-fo-summary-section__heading">${esc(title)}</h3>
-        ${step != null && !locked(S.cur) ? `<button class="e-permits-fo-summary-section__edit" type="button" aria-label="Corectează: ${esc(title)}" data-tooltip-label="Corectează" data-gh-goto="${step}">${icon("edit")}</button>` : ""}
-      </div>
-      <div class="e-permits-fo-summary-card">${rowsHtml}</div>
-    </div>`;
+  /* the FO Verificare summary section (GEAPFormRender.summarySectionHtml) with the desk's edit pen */
+  const summarySection = (title, rowsHtml, step = null, extraClass = "") => R().summarySectionHtml?.({
+    title, bodyHtml: rowsHtml, extraClass: extraClass.trim(),
+    editHtml: step != null && !locked(S.cur) ? `<button class="e-permits-fo-summary-section__edit" type="button" aria-label="Corectează: ${esc(title)}" data-tooltip-label="Corectează" data-gh-goto="${step}">${icon("edit")}</button>` : ""
+  }) || "";
   const addressText = (a) => [a?.street && a?.house ? `${a.street} ${a.house}` : a?.street, a?.locality, a?.district, a?.postalCode].filter(Boolean).join(", ");
   const paperDoc = (d) => ({ sursa: "generat", tip: "Cererea pe hârtie", nr: d.nr, fisier: `cerere-${d.nr}.pdf`, size: "184 KB", at: stamp(d.review.paper.at), verb: "Generat", de: "MDocs" });
   const signedDoc = (d) => ({ sursa: "generat", tip: "Cererea semnată MSign", nr: d.nr, fisier: `cerere-${d.nr}.json`, size: "6 KB", at: stamp(d.review.signed.at), verb: "Semnat", de: d.review.signed.by, semnat: true });
@@ -1758,20 +1767,20 @@
       form.address ? summaryRow("Adresa obiectului", [esc(addressText(d.details.address) || "—")]) : "",
       reductionsOf(d).length ? summaryRow("Reduceri aplicate", d.details.reductions.length ? reductionsOf(d).filter((r) => d.details.reductions.includes(r.id)).map((r) => esc(r.label)) : ["Fără reduceri"]) : ""
     ].join("");
-    /* AC-04: the predefined documents with Atașat Da / Nu; extras only when attached */
-    const attachments = [
-      ...docsOf(d).map((doc) => {
-        const files = d.docs[doc.id] || [];
-        return summaryRow(doc.label, [files.length ? `${tagHtml("Atașat: Da", "success")} ${esc(files.map((f) => f.fisier || f.tip).join(", "))}` : tagHtml(`Atașat: Nu${doc.required ? " · obligatoriu" : ""}`, doc.required ? "danger" : "neutral")]);
-      }),
-      ...(d.docs.alte || []).map((f) => summaryRow("Document suplimentar", [`${tagHtml("Atașat: Da", "success")} ${esc(f.fisier || f.tip)}`]))
+    /* AC-04 (user 2026-10-16: no „Atașat: Da” badge): every attached document as the shared document card titled by
+       the type it was asked as (the FO Verificare list); missing required types = one warning notice under it */
+    const attachedCards = [
+      ...docsOf(d).flatMap((doc) => (d.docs[doc.id] || []).map((f) => docCard({ ...f, tip: doc.label, fisier: f.fisier || f.tip }))),
+      ...(d.docs.alte || []).map((f) => docCard({ ...f, tip: "Document suplimentar", fisier: f.fisier || f.tip }))
     ].join("");
+    const missing = docsOf(d).filter((doc) => doc.required && !(d.docs[doc.id] || []).length).map((doc) => doc.label);
+    const attachments = `${attachedCards || window.GEAPEmptyState?.render({ title: "Nu au fost atașate documente", text: "Se atașează la pasul „Documente însoțitoare”.", icon: "document", compact: true }) || ""}${missing.length ? U().renderNotice?.("warning", `<strong>Lipsesc documente obligatorii.</strong> ${missing.map(esc).join("; ")}.`) || "" : ""}`;
     return `
-      <div class="e-permits-fo-review-sections e-permits-gh__review">
+      <div class="e-permits-fo-review e-permits-gh__review">
         ${summarySection("Date generale ale solicitării", general, STEP_INDEX.identificare)}
         ${summarySection("Date despre solicitant", applicant, STEP_INDEX.identificare)}
         ${summarySection("Date despre cerere", request, STEP_INDEX.detalii)}
-        ${summarySection("Atașamente", attachments, STEP_INDEX.documente)}
+        ${R().summarySectionHtml?.({ title: "Atașamente", bodyHtml: attachments, docs: true, editHtml: locked(d) ? "" : `<button class="e-permits-fo-summary-section__edit" type="button" aria-label="Corectează: Atașamente" data-tooltip-label="Corectează" data-gh-goto="${STEP_INDEX.documente}">${icon("edit")}</button>` }) || ""}
       </div>`;
   }
   function stepVerificare(d) {
@@ -1864,50 +1873,58 @@
   }
 
   /* ================================================================ step 6 · Livrare (US-16) */
-  function stepLivrare(d) {
+  /* the FO „Livrare” step (fo-06) as is (GEAPFormRender.deliveryStepHtml + renderDeliveryStep): EVO Cabinet
+     always; „copie pe hârtie” with the desk's methods — at the authority's desk (paperRelease) and MDelivery
+     (mdelivery: the FO courier address card, fee on the note). mode: evo · ghiseu · mdelivery */
+  const DELIVERY_METHOD = { ghiseu: "pickup", mdelivery: "courier" };
+  function deliveryConfig(d) {
     const st = settingsOf(d.service);
-    const options = [
-      { id: "evo", title: "Livrare electronică (EVO Cabinet)", description: "Actul semnat electronic apare în EVO Cabinet al solicitantului. Implicit, fără date suplimentare.", logo: "assets/logos/evo-logo.svg" },
-      st.paperRelease ? { id: "ghiseu", title: "Pe hârtie la instituția emitentă", description: "Solicitantul ridică actul pe hârtie de la ghișeul autorității.", icon: "icon-store" } : null,
-      st.mdelivery ? { id: "mdelivery", title: "Pe hârtie prin MDelivery", description: `Actul se livrează la adresa indicată. Taxa MDelivery (${mdl(S.data.mdelivery.amount)}) se adaugă pe nota de plată.`, icon: "icon-car" } : null
+    const methods = [
+      st.paperRelease ? { id: "pickup", title: "Ridicare de la ghișeul autorității", description: "Solicitantul ridică actul pe hârtie de la ghișeul autorității emitente.", icon: "icon-store", selected: d.delivery.mode === "ghiseu", badges: [{ label: "Gratuit", tone: "outline" }] } : null,
+      st.mdelivery ? {
+        id: "courier", title: "Livrare prin MDelivery", description: `Actul pe hârtie se livrează la adresa indicată. Taxa MDelivery (${mdl(S.data.mdelivery.amount)}) se adaugă pe nota de plată.`, icon: "icon-car", selected: d.delivery.mode === "mdelivery", badges: [{ label: "Cu plată", tone: "warning" }],
+        address: { title: "Adresa livrării", required: true, icon: "icon-map-pin", label: "Adresa de livrare", value: d.delivery.address || addressText(d.details.address) || "Adăugați adresa livrării", editLabel: "Editează adresa livrării", cancelLabel: "Anulează", saveLabel: "Salvează", form: { id: "gh-delivery-address", type: "cascade-address", span: 12, cadastral: { visible: false } } }
+      } : null
     ].filter(Boolean);
-    const address = d.delivery.mode === "mdelivery" ? `
-      <div class="e-permits-gh__delivery-address" data-gh-delivery-address>
-        ${R().fieldHtml({ id: "gh-livrare-adresa", type: "cascade-address", span: 12, districts: R().districts?.() || [], cadastral: { visible: false } })}
-        ${errSlot("livrare")}
-      </div>` : "";
+    return {
+      title: "Livrare",
+      sectionTitle: "Cum primește solicitantul rezultatul?",
+      options: [{ id: "evo-cabinet", title: "Livrare electronică (EVO Cabinet)", description: "Actul semnat electronic apare în EVO Cabinet al solicitantului.", logo: "assets/logos/evo-logo.svg", selected: true, badges: [{ label: "Gratuit", tone: "outline" }, { label: "100% digital", tone: "positive" }] }],
+      paperCopy: methods.length ? { label: "Solicitantul are nevoie și de o copie pe hârtie", description: "Opțional. Varianta electronică are aceeași valoare juridică.", selected: d.delivery.mode !== "evo", methods } : null
+    };
+  }
+  function stepLivrare(d) {
     return `
-      ${stepHeader("Livrare")}
-      ${section("Modul de livrare", `
-        <div class="e-permits-fo-form__section-body e-permits-fo-form__section-body--single">
-          <div role="radiogroup" aria-label="Modul de livrare">
-            ${options.map((option, index) => R().deliveryOptionHtml?.(option, { name: "gh-livrare", index, selected: d.delivery.mode === option.id }) || "").join("")}
-          </div>
-          ${address}
-        </div>`, { id: "gh-delivery-title" })}
+      ${R().deliveryStepHtml?.({ title: "Livrare", sectionTitle: deliveryConfig(d).sectionTitle, titleId: "gh-delivery-title", headingId: "gh-delivery-heading" }) || ""}
+      ${errSlot("livrare")}
       ${footerHtml(d)}`;
   }
   function bindLivrare(panel) {
-    const cascade = panel.querySelector("[data-gh-delivery-address] [data-fo-cascade-address]");
+    const cfg = deliveryConfig(S.cur);
+    if (!cfg.paperCopy) cfg.paperCopy = { methods: [] };
+    R().renderDeliveryStep?.(panel.querySelector(".e-permits-fo-delivery"), cfg, { districts: R().districts?.() || [] });
+    if (!deliveryConfig(S.cur).paperCopy) panel.querySelector("[data-fo-delivery-paper]")?.replaceChildren();
+    const cascade = panel.querySelector("#gh-delivery-address, [data-fo-delivery-address] [data-fo-cascade-address]");
     const a = S.cur.delivery.addressParts;
-    if (cascade && a?.district) requestAnimationFrame(() => cascade.querySelector("[data-fo-address-search]")?.foCascadeAddressFill?.(a));
+    if (cascade && a?.district) requestAnimationFrame(() => cascade.querySelector?.("[data-fo-address-search]")?.foCascadeAddressFill?.(a));
   }
   function collectLivrare() {
     const d = S.cur;
-    const mode = S.page.querySelector('input[name="gh-livrare"]:checked')?.value;
-    if (mode) d.delivery.mode = mode;
-    const cascade = S.page.querySelector("[data-gh-delivery-address] [data-fo-cascade-address]");
-    if (cascade) { d.delivery.addressParts = readAddress(cascade); d.delivery.address = addressText(d.delivery.addressParts); }
+    const root = S.page.querySelector('[data-gh-panel="livrare"]');
+    if (!root) return;
+    const paper = root.querySelector("[data-fo-delivery-paper-toggle]")?.checked;
+    const method = root.querySelector("input[name='fo-delivery-paper-method']:checked")?.value;
+    d.delivery.mode = paper && method === "pickup" ? "ghiseu" : paper && method === "courier" ? "mdelivery" : "evo";
+    const value = root.querySelector("[data-fo-delivery-address-value]")?.textContent.trim() || "";
+    d.delivery.address = value && value !== "Adăugați adresa livrării" ? value : "";
+    const cascade = root.querySelector("[data-fo-delivery-address] [data-fo-cascade-address]");
+    const parts = cascade ? readAddress(cascade) : null;
+    if (parts?.district) d.delivery.addressParts = parts;
     refreshPayment(d);
   }
   function checkLivrare(d) {
-    if (d.delivery.mode !== "mdelivery") return [];
-    const a = d.delivery.addressParts || {};
-    if (!a.district) return [{ input: "[data-gh-delivery-address] [data-fo-cascade-raion] .e-permits-fo-select__button", select: true, msg: REQUIRED }];
-    if (!a.locality) return [{ input: "[data-gh-delivery-address] [data-fo-cascade-localitate] .e-permits-fo-select__button", select: true, msg: REQUIRED }];
-    if (!a.postalCode) return [{ input: "[data-gh-delivery-address] [data-fo-address-part='postalCode']", msg: REQUIRED }];
-    if (!/^MD-\d{4}$/.test(a.postalCode)) return [{ input: "[data-gh-delivery-address] [data-fo-address-part='postalCode']", msg: "Codul poștal are formatul MD-0000." }];
-    return [];
+    if (d.delivery.mode !== "mdelivery" || d.delivery.address) return [];
+    return [{ key: "livrare", focus: "[data-fo-delivery-address-edit]", msg: "Adăugați adresa livrării MDelivery." }];
   }
 
   /* ================================================================ step 7 · Notă de plată (US-237) */
@@ -1921,74 +1938,54 @@
     syncSubstatus(d);
     persist({ silent: true });
   }
-  function invoiceHtml(p) {
-    const incomplete = p.lines.some((l) => !l.account);
-    return `
-      <section class="e-permits-fo-payment-invoice" aria-label="Notă de plată ${esc(p.nr)}">
-        <div class="e-permits-fo-payment-invoice__card">
-          <header class="e-permits-fo-payment-invoice__header">
-            <div class="e-permits-fo-payment-invoice__caption">
-              <span class="e-permits-fo-payment-invoice__label">Notă de plată ${esc(p.nr)}</span>
-              <span class="status-tag status-tag--${NOTE_TONE[p.status] === "warning" ? "accent" : NOTE_TONE[p.status] || "neutral"} is-strong e-permits-fo-payment-invoice__status">${esc(p.status)}</span>
-            </div>
-            <p class="e-permits-fo-payment-invoice__amount">${esc(mdl(p.total))}</p>
-          </header>
-          <div class="e-permits-fo-payment-table">
-            <table>
-              <thead><tr><th scope="col">Element de plată</th><th class="e-permits-fo-payment-table__amount" scope="col">Sumă</th></tr></thead>
-              <tbody>
-                ${p.lines.map((l) => `
-                  <tr class="e-permits-fo-payment-table__row">
-                    <td>
-                      <span class="e-permits-gh__fee-name">${esc(l.name)}</span>
-                      <span class="e-permits-gh__fee-meta">Cont bancar ${l.account ? esc(l.account) : `${tagHtml("Lipsește", "danger")}`}</span>
-                      ${l.reductions.length ? `<span class="e-permits-gh__fee-meta">Reduceri: ${l.reductions.map(esc).join("; ")} · tarif ${esc(mdl(l.base))}</span>` : ""}
-                    </td>
-                    <td class="e-permits-fo-payment-table__amount">${esc(mdl(l.amount))}</td>
-                  </tr>`).join("")}
-              </tbody>
-            </table>
-          </div>
-          <div class="e-permits-fo-payment-totals"><table><tbody><tr class="is-strong"><th scope="row">Total de plată</th><td class="e-permits-fo-payment-table__amount">${esc(mdl(p.total))}</td></tr></tbody></table></div>
-        </div>
-        <div class="e-permits-fo-payment-invoice__edge" aria-hidden="true"></div>
-      </section>
-      ${incomplete ? U().renderNotice?.("error", "Configurarea taxei este incompletă. Pentru asistență, contactați autoritatea emitentă.", { role: "alert" }) || "" : ""}`;
-  }
+  /* „Notă de plată” = the FO „Plată” body (GEAPFormRender.paymentStepBodyHtml: summary rows, the note card,
+     the actions) inside the FO body column (32 between blocks); desk-only parts are notices in that rhythm: the
+     MPay status (US-237), the expired note + „Regenerează” (US-256), an incomplete fee setup, earlier notes */
+  const NOTE_TAG = { "Emisă": "accent", "Achitată": "success", "Expirată": "danger", "Anulată": "neutral" };
   function stepPlata(d) {
     const p = d.payment;
-    if (!p) return `${stepHeader("Notă de plată")}${U().renderInfoNote?.("Cererea nu are taxe de achitat: treceți la confirmarea depunerii.") || ""}${footerHtml(d)}`;
+    if (!p) return `${stepHeader("Notă de plată")}<div class="e-permits-fo-payment__body">${U().renderNotice?.("info", "<strong>Cererea nu are taxe de achitat.</strong> Treceți la confirmarea depunerii.") || ""}</div>${footerHtml(d)}`;
     const svc = serviceOf(d.service);
-    const summary = `
-      <section class="e-permits-fo-payment-summary" aria-label="Detaliile notei de plată">
-        ${summaryRow("Numărul cererii", [esc(d.nr)])}
-        ${summaryRow("Serviciul", [esc(svc?.title || "")])}
-        ${summaryRow("Data emiterii", [esc(longDate(p.issued))])}
-        ${summaryRow("Termen de achitare", [esc(longDate(p.due))])}
-        ${p.paid ? summaryRow("Achitată", [esc(stamp(p.paid)), esc(`ID tranzacție MPay ${p.txn}`)]) : ""}
-      </section>`;
+    const incomplete = p.lines.some((l) => !l.account);
+    const step = {
+      summary: { rows: [
+        { label: "Numărul cererii", value: d.nr, copy: true },
+        { label: "Serviciul", value: svc?.title || "" },
+        { label: "Data emiterii", value: longDate(p.issued) },
+        { label: "Termen de achitare", value: longDate(p.due) },
+        p.paid ? { label: "Achitată", value: `${stamp(p.paid)} · ID tranzacție MPay ${p.txn}` } : null
+      ].filter(Boolean) },
+      invoice: {
+        label: `Notă de plată ${p.nr}`, status: { label: p.status, tone: NOTE_TAG[p.status] || "neutral" }, amount: mdl(p.total),
+        columns: ["Element de plată", "Sumă"],
+        items: p.lines.map((l) => ({ span: true, description: l.name, total: mdl(l.amount), metaHtml: [
+          `Cont bancar ${l.account ? esc(l.account) : tagHtml("Lipsește", "danger")}`,
+          ...(l.reductions.length ? [`Reduceri: ${l.reductions.map(esc).join("; ")} · tarif ${esc(mdl(l.base))}`] : [])
+        ] })),
+        totals: [{ label: "Total de plată", value: mdl(p.total), strong: true }]
+      },
+      actions: { download: { label: "Descarcă nota de plată", icon: "icon-page-download" } }
+    };
     const state = p.status === "Achitată"
-      ? U().renderNotice?.("success", `<strong>Nota de plată a fost achitată</strong> prin MPay la ${esc(stamp(p.paid))}. Câmpurile cererii nu se mai pot modifica, iar schița nu se mai poate elimina.`)
+      ? U().renderNotice?.("success", `<strong>Nota de plată a fost achitată.</strong> Prin MPay la ${esc(stamp(p.paid))}. Câmpurile cererii nu se mai pot modifica, iar schița nu se mai poate elimina.`)
       : p.status === "Expirată"
-      ? `${U().renderNotice?.("error", `<strong>Nota de plată a expirat</strong> la ${esc(longDate(p.due))}. Cererea are statutul „Respins formal”, substatutul „Plată expirată”, și nu se poate depune până la regenerarea notei.`, { role: "alert" })}`
-      : U().renderNotice?.("info", `Solicitantul achită nota prin MPay: linkul de achitare a fost trimis prin MNotify${d.contact.email ? ` la ${esc(d.contact.email)}` : ""} și în EVO Cabinet. Statutul se actualizează automat după confirmarea MPay.`);
+      ? U().renderNotice?.("error", `<strong>Nota de plată a expirat.</strong> Termenul a fost ${esc(longDate(p.due))}. Cererea are statutul „Respins formal”, substatutul „Plată expirată”, și nu se poate depune până la regenerarea notei.`, { role: "alert" })
+      : U().renderNotice?.("info", `<strong>Solicitantul achită nota prin MPay.</strong> Linkul de achitare a fost trimis prin MNotify${d.contact.email ? ` la ${esc(d.contact.email)}` : ""} și în EVO Cabinet. Statutul se actualizează automat după confirmarea MPay.`);
+    const extra = p.status === "Expirată"
+      ? `<button class="btn btn-primary" type="button" data-gh-regenerate>${icon("rotate-arrow")}<span>Regenerează nota de plată</span></button>`
+      : p.status === "Emisă" ? `<button class="btn btn-neutral" type="button" data-gh-mpay>${icon("rotate-arrow")}<span>Verifică achitarea în MPay</span></button>` : "";
     const history = (p.history || []).filter((h) => h.nr).map((h) => summaryRow(`Nota ${h.nr}`, [tagHtml(h.status, NOTE_TONE[h.status] || "neutral"), esc(mdl(h.total))])).join("");
-    const actions = `
-      <div class="e-permits-fo-payment-actions e-permits-gh__pay-actions">
-        <button class="btn btn-outline-primary e-permits-fo-payment-actions__download" type="button" data-gh-download="note">${icon("page-download")}<span>Descarcă nota de plată</span></button>
-        ${p.status === "Expirată"
-          ? `<button class="btn btn-primary" type="button" data-gh-regenerate>${icon("rotate-arrow")}<span>Regenerează nota de plată</span></button>`
-          : p.status === "Emisă" ? `<button class="btn btn-neutral" type="button" data-gh-mpay>${icon("rotate-arrow")}<span>Verifică achitarea în MPay</span></button>` : ""}
-      </div>`;
-    const blocked = p.status !== "Achitată" || p.lines.some((l) => !l.account);
+    const blocked = p.status !== "Achitată" || incomplete;
     return `
       ${stepHeader("Notă de plată")}
-      ${state}
-      ${summary}
-      ${invoiceHtml(p)}
-      ${history ? summarySection("Note de plată anterioare", history) : ""}
-      ${actions}
-      ${footerHtml(d, { nextDisabled: blocked, back: !isPaid(d), hint: blocked ? "Confirmarea se deblochează după statutul „Achitată”." : "" })}`;
+      <div class="e-permits-fo-payment__body">
+        ${state || ""}
+        ${incomplete ? U().renderNotice?.("error", "<strong>Configurarea taxei este incompletă.</strong> Pentru asistență, contactați autoritatea emitentă.", { role: "alert" }) || "" : ""}
+        ${R().paymentStepBodyHtml?.(step, { downloadAttrs: 'data-gh-download="note"', extraActionsHtml: extra, summaryLabel: "Detaliile notei de plată" }) || ""}
+        ${history ? summarySection("Note de plată anterioare", history) : ""}
+        ${blocked ? U().renderNotice?.("info", "<strong>Confirmarea depunerii se deblochează după statutul „Achitată”.</strong>") || "" : ""}
+      </div>
+      ${footerHtml(d, { nextDisabled: blocked, back: !isPaid(d) })}`;
   }
   function regeneratePayment(d) {
     const old = d.payment;
@@ -2032,23 +2029,11 @@
   function confirmedHtml(d) {
     const st = settingsOf(d.service);
     const cert = !st.certificat ? "" : d.certError
-      ? `<div class="e-permits-fo-finish-doc is-error" role="alert">
-          <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
-          <div class="e-permits-fo-finish-doc__copy"><p class="e-permits-fo-finish-doc__title">Certificatul constatator</p><p class="e-permits-fo-finish-doc__text e-permits-fo-finish-doc__error">Certificatul constatator nu a putut fi generat.</p></div>
-          <button class="btn btn-neutral btn-sm e-permits-fo-finish-doc__action" type="button" data-gh-cert-retry>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button>
-        </div>`
-      : `<div class="e-permits-fo-finish-doc">
-          <span class="e-permits-fo-finish-doc__icon" aria-hidden="true"><img src="assets/images/document-illustration.svg" alt=""></span>
-          <div class="e-permits-fo-finish-doc__copy"><p class="e-permits-fo-finish-doc__title">Certificatul constatator</p><p class="e-permits-fo-finish-doc__text">Dovada depunerii, pentru solicitant. Disponibil și în EVO Cabinet.</p></div>
-          <button class="btn btn-outline-primary btn-sm e-permits-fo-finish-doc__action" type="button" data-gh-preview="cert">${icon("eye-open", 20, "icon small")}<span>Vezi documentul</span></button>
-        </div>`;
+      ? R().finishDocHtml?.({ title: "Certificatul constatator", error: "Certificatul constatator nu a putut fi generat.", actionAttrs: "data-gh-cert-retry" }) || ""
+      : R().finishDocHtml?.({ title: "Certificatul constatator", textHtml: "Dovada depunerii, pentru solicitant. Disponibil și în EVO Cabinet.", actionAttrs: 'data-gh-preview="cert"' }) || "";
     return `
       <div class="e-permits-gh__finish">
-        <header class="e-permits-fo-finish__hero">
-          ${icon("circle-checkmark-filled", 32, "icon e-permits-fo-finish__hero-icon")}
-          <div class="e-permits-fo-form__header e-permits-fo-finish__header"><h2 tabindex="-1">Dosarul a fost depus cu succes.</h2></div>
-          <p class="e-permits-fo-finish__lead">Solicitantul îl urmărește în EVO Cabinet → Solicitările mele și a primit notificarea de depunere prin MNotify.</p>
-        </header>
+        ${R().finishHeroHtml?.({ title: "Dosarul a fost depus cu succes.", leadHtml: '<p class="e-permits-fo-finish__lead">Solicitantul îl urmărește în EVO Cabinet → Solicitările mele și a primit notificarea de depunere prin MNotify.</p>' }) || ""}
         <div class="e-permits-fo-finish__content">
           ${cert}
           <section class="e-permits-fo-payment-summary" aria-label="Dosarul depus">
@@ -2058,7 +2043,7 @@
             ${summaryRow("Statut", [`${tagHtml("În procesare", "info")} ${tagHtml("Spre distribuire", "info")}`])}
             ${summaryRow("Canal de depunere", ["Ghișeu"])}
           </section>
-          ${U().renderInfoNote?.("Dosarul a fost trimis la distribuire și apare în „Dosare noi” › „Dosare nedistribuite”. Evenimentul depunerii a fost publicat în MConnect Event Bus.") || ""}
+          ${U().renderNotice?.("info", "<strong>Dosarul a fost trimis la distribuire.</strong> Apare în „Dosare noi” › „Dosare nedistribuite”; evenimentul depunerii a fost publicat în MConnect Event Bus.") || ""}
         </div>
       </div>${footerHtml(d, { custom: `<button class="btn btn-neutral btn-rounded" type="button" data-gh-close-sheet>Înapoi la Dosare noi</button><button class="btn btn-primary btn-rounded" type="button" data-gh-new>${icon("plus-small", 20, "icon small")}<span>Dosar nou</span></button>` })}`;
   }
@@ -2109,8 +2094,8 @@
   }
   function checkContact(d) {
     if (d.contact.phoneSrc === "mnotify") return [];
-    const digits = String(d.contact.phone || "").replace(/\D/g, "").replace(/^373/, "");
-    return digits && /^(6|7)\d{7}$|^2\d{7}$/.test(digits) ? [] : [{ input: "#fo-gh-phone", msg: REQUIRED }];
+    const digits = String(d.contact.phone || "").replace(/[\s+\-()]/g, "");
+    return /^\d{6,}$/.test(digits) ? [] : [{ input: "#fo-gh-phone", msg: digits ? "Introdu un număr de telefon valid." : REQUIRED }];
   }
   /* the current step: collect + full checks (the DOM-level validators of steps 1–2) */
   function validateStep(i) {
@@ -2184,7 +2169,7 @@
     else COLLECT[STEPS[from].id]?.();
     voidIfChanged();
     /* AC-08 / AC-09: Verificare (and after) only with every earlier step valid */
-    if (target >= STEP_INDEX.verificare) {
+    if (validate && target >= STEP_INDEX.verificare) {
       for (let i = 0; i < STEP_INDEX.verificare; i += 1) {
         const errs = i === from ? [] : CHECK[i](d);
         if (errs.length) {
@@ -2228,7 +2213,7 @@
     slot.closest(".e-permits-fo-doc-field")?.classList.remove("is-error");
     S.page.querySelector(key === "serviciu" ? "[data-gh-service] .e-permits-fo-caem" : key === "procura" ? ".e-permits-gh__procura" : "x-none")?.classList.remove("is-error");
   }
-  const ERR_FIELD = { serviciu: "[data-gh-service] .e-permits-fo-caem", procura: ".e-permits-gh__procura", tip: "[data-gh-type]", subdiv: "#fo-gh-subdiv", term: "#fo-gh-term" };
+  const ERR_FIELD = { livrare: "[data-fo-delivery-address-card]", serviciu: "[data-gh-service] .e-permits-fo-caem", procura: ".e-permits-gh__procura", tip: "[data-gh-type]", subdiv: "#fo-gh-subdiv", term: "#fo-gh-term" };
   function showErrors(errs, { focus = true } = {}) {
     clearErrors();
     errs.forEach((e) => {
@@ -2298,7 +2283,7 @@
     if (t.closest("[data-gh-next]")) { go(nextStepIndex(d, S.step)); return; }
     if (t.closest("[data-gh-prev]")) { go(prevStepIndex(d, S.step), { validate: false }); return; }
     const goto = t.closest("[data-gh-goto]");
-    if (goto) { event.preventDefault(); const target = Number(goto.dataset.ghGoto); go(target, { validate: target > S.step }); return; }
+    if (goto) { event.preventDefault(); const target = Number(goto.dataset.ghGoto); go(target, { validate: !goto.hasAttribute("data-gh-free") && target > S.step }); return; }
     if (t.closest("[data-gh-save]")) {
       /* the FO listens for its draft button on the document — this one is the desk's */
       event.stopPropagation();
