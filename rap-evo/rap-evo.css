@@ -1048,28 +1048,38 @@ a {
   width: 8px;
 }
 
+/* a plain text link (user 2026-10-17: „simple link, not the hover-padding background one”):
+   brand colour, underline on hover, the standard focus ring */
 .rap-profile__company-permits button {
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-4, 4px);
-  color: var(--rap-brand);
+  color: var(--color-text-brand-default, var(--rap-brand));
   cursor: pointer;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: 400;
-  line-height: var(--line-height-lh-20, 20px);
-  margin: calc(var(--spacing-2, 2px) * -1) 0;
-  /* air on both sides so the hover fill doesn't hug the text (user 2026-10-17) */
-  padding: var(--spacing-2, 2px) var(--spacing-8, 8px);
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  padding: 0;
   text-align: left;
+  text-underline-offset: var(--spacing-2, 2px);
 }
 
 .rap-profile__company-permits button:hover {
-  background: #e8f0fb;
+  text-decoration: underline;
 }
 
 .rap-profile__company-permits button:focus-visible {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--rap-brand);
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--rap-brand);
   outline: 0;
+}
+
+/* phones: the link on its own line, left, without the dot */
+@media (max-width: 760px) {
+  .rap-profile__company-permits {
+    flex-basis: 100%;
+  }
+
+  .rap-profile__company-permits-separator {
+    display: none;
+  }
 }
 
 .rap-company-summary {
@@ -1982,15 +1992,16 @@ tr:hover .rap-act-link {
 }
 
 /* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
-   separator, not 8 — and „Vezi act permisiv” is a full-width 48px touch target */
+   separator, not 8 — and „Vezi act permisiv” is full width at the medium button size */
 @media (max-width: 760px) {
   .rap-profile__header .e-permits-page-header__meta {
     --e-permits-page-header-meta-gap: var(--spacing-16, 16px);
   }
 
+  /* the library medium size (.btn.btn-md: 8/16 padding, 16/24 text ≈ 40 high) */
   .rap-profile__document-button.btn {
     font-size: var(--font-size-fs-16, 16px);
     line-height: var(--line-height-lh-24, 24px);
-    min-height: var(--spacing-48, 48px);
+    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
   }
 }
