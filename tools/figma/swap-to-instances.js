@@ -51,7 +51,7 @@ const P = {
   cross: await g("242:12038"),          // 20/cross-small
   switchLabel: await g("9563:18803"),   // svc/switch-label
   infoNote: await g("9624:13362"),      // svc/info-note
-  person: "6502:74649", suitcase: "10641:1308",
+  person: "6502:74649", suitcase: "11972:38938", // PJ glyph = Foundations 24/business-filled (c477fc69…), 2026-10-17 — never the luggage / suitcase-2 glyphs
 };
 const V = (set, want) => set.children.find((c) => Object.entries(want).every(([k, v]) => c.name.includes(`${k}=${v}`)));
 for (const f of [["Onest", "Regular"], ["Onest", "Medium"], ["JetBrains Mono", "Regular"]]) await figma.loadFontAsync({ family: f[0], style: f[1] }).catch(() => {});

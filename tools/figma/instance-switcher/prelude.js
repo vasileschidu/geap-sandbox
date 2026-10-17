@@ -30,7 +30,7 @@ const K = {
          btnFilledCirc: "fcf938f6ce9e31ae7f0f11838ee889335b4b7728", btnOutlinedCirc: "d7a0779b1fb70ccfc95c66ab762d577273913015",
          btnFilledRect: "2cbe2c350e7c6b3948dc449660ede8355511c384" },
   // .menu-item-action is not published on its own: take it from contextual-menu (component key eca4c78b40aec0ddac890e7f006907d81868c1ab)
-  icon: { suitcase20: "0e94d9c836777dcf92b6f63b9cb60df4d1610e2c", suitcase24: "346d12c1c0389b5f098a3da215a8d6c707e0ff10",
+  icon: { suitcase20: "13c704752d82ff4667a4a021d2f4b93fa9168ec6" /* PJ = 20/business (2026-10-17) */, suitcase24: "b135d6dcb6dab0384a09075067785932030ef967" /* PJ = 24/business */,
           settings20: "ee36462d693e2b0bc822c45dfcf46ee091d0b844", logout20: "832a84dbc3632827096e73dcc7557d1b08527461",
           check20: "ebea9f11db46308470d328092590727874dbec88", chevB20: "ec31e2fd59c87fcf1bb6eb4ccfdde10307f56ce0",
           chevT20: "0e1e17107763411570b607bddc5de7061afdcb15", chevB16: "a9d10e062692212dde688d564b091a62be22d2f7" },

@@ -29,7 +29,7 @@ const styleAvatar = async (av, a) => {
   } else {
     const ic = av.children.find(c => c.type === "INSTANCE" && /^\d+\//.test(c.name));
     if (ic) {
-      if (tone !== "soft" && !/suitcase/.test(ic.name)) { const w = ic.width; ic.swapComponent(w >= 24 ? ICON.suitcase24 : ICON.suitcase20); ic.resize(w, w); }
+      if (tone !== "soft" && !/business/.test(ic.name)) { const w = ic.width; ic.swapComponent(w >= 24 ? ICON.suitcase24 : ICON.suitcase20); ic.resize(w, w); }
       recolorVectors(ic, tone === "soft" ? "iconBrand" : "iconOnColor");
     }
   }

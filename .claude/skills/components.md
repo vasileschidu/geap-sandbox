@@ -117,6 +117,14 @@ Path is relative to the page (`../assets/…` from `cabinet-evo/` and `rap-evo/`
 Sprite ids are `#icon-<name>`. There is no `.icon-leading` / `.icon-trailing` — an icon
 is a **bare child** of the button.
 
+**PF / PJ icons (user, 2026-10-17 — one glyph family everywhere):** PJ (legal entity / company) =
+`icon-business` (outline: avatars, identity cards, header / instance switcher, RSUD authorization card,
+Cabinet) and `icon-business-filled` (filled contexts: „Persoană juridică” tags, „Tip persoană” segmented,
+checkbox glyphs, RAP rows / profile / company summary). PF = `icon-person` / `icon-person-filled`.
+Never `icon-suitcase`, `icon-suitcase-2` or `icon-suitcase-filled` for PJ. Figma: Foundations 20/business
+`13c70475…` (24/business `b135d6dc…`, 16/business `931f741c…`), filled = 24/business-filled `c477fc69…`;
+glyph 20 in avatars 32 / 40 (24 only in the 48 profile avatar), white on brand / apricot avatars.
+
 ### 0.5 Utility classes are effectively unused
 
 Across every shipped screen, the only utilities in use are `.d-inline-flex`,
@@ -5218,7 +5226,7 @@ pen; configured request types „Editează”, unconfigured „Configurează” 
 20/eye-open) + Editează + ⋮; drawer peek eyes are the same strict eye (Focus kept on the open
 one). Open menus follow code: Formulare = Duplică · Versiuni · Exportă setări (JSON) · Elimină;
 inactive tax = Activează · Șterge (red, last). Applicant tags (Persoană fizică / juridică) carry
-the filled person / suitcase icon (central icon system, filled=on, 16) everywhere; no Medium
+the filled person / business icon (`icon-person-filled` / `icon-business-filled`, 16) everywhere; no Medium
 product tags left (only the NOTĂ DEV / PM annotation tags are Medium).
 
 **„Editează” always carries the pen** (`icon-edit`, small, before the label — same markup as
@@ -5234,7 +5242,7 @@ Components file `doJ7tDY0PlQ0PqMgbpFVIC` › Tag `22:80`, 2026-10-09): Neutral /
 `border/{positive,warning,danger,brand}/secondary` (light 200, dark 800; code: `--color-border-<tone>-secondary`
 in e-permits-shell.css until main.css is re-synced); inside, so sizes do not change. Code: inset
 `box-shadow` on `.e-permits-workplace__tag--{tone}`. PF / PJ tags lead with a filled icon
-(`icon-person-filled` / `icon-suitcase-filled`, central icon system) via `applicantTags`.
+(`icon-person-filled` / `icon-business-filled`) via `applicantTags`.
 
 ### Servicii › Setări — US-221 (Azure 95229), 2026-10-09
 
@@ -5249,7 +5257,7 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   svc-10q opens Interdependențe.
 - RSSP values: value left + plain caption „Din RSSP” at the row's right end (`.e-permits-cfg-value--rssp` + `.e-permits-cfg-source`, 12/16 tertiary like the header „sincronizat …”; no tag), also inside the drawer's grey read-only box, read-only for everyone; MPower,
 - **Tip solicitant** (read view, drawer, v2) = `applicantTags` with the full names („Persoană fizică” / „Persoană juridică”, never PF / PJ) and the
-  filled person / suitcase icon, never plain „PF, PJ” text.
+  filled person / business icon, never plain „PF, PJ” text.
 - **Setări (one page; was „Setări v2”, `renderServiceSettingsV2`, states svc-10…10o, svc-10v…10v4):**
   the same sections on one page, edited inline, no drawers / modals. Layout `.e-permits-cfg2`:
   sticky section list left (220px, `__nav-link` 14/20 secondary; hover base-secondary; current
@@ -6191,7 +6199,7 @@ added for modules (all generic, reuse them for the next BO module):
     companiei span-6; IDNP span-6 + Nume / Prenume span-3), PJ = the company row, then the person-filing row
     (stacked, user 2026-10-16 — the side-by-side variant was a misrouted request); one column ≤860.
   - **Tip persoană** = the FO segmented control with the registry applicant icons in each segment
-    (`icon-person-filled` / `icon-suitcase-filled`, 16, gap 8, currentColor = the label colour per state; the
+    (`icon-person-filled` / `icon-business-filled`, 16, gap 8, currentColor = the label colour per state; the
     `segment` field option `icon`). The FO guest „Soliciți în numele” control carries the same icons.
   - **Continuă** = first save (nr + UID) → the request window on **„Ce se solicită?”** (step `intent`, no
     stepper, no footer — as FO #intent): `GEAPFormRender.intentHtml` with „Solicitant <name> IDNO … · Schimbă”
@@ -6212,7 +6220,7 @@ added for modules (all generic, reuse them for the next BO module):
   **FO full-flow layouts** (user 2026-10-16, Figma 11685:13047; replaced the success / info notices — one
   representation, not both): MPower → the FO „Împuternicire MPower aplicată” card (`GEAPFormRender.authorizationCardHtml`
   = the fo-02 / cat-04 renderer: identity icon, title + „Activă”, meta „Acordată de <holder> · Valabilă până la <date> ·
-  Cod <nr> [copy]”); RSUD administrator → the same card with `icon: "icon-suitcase-2"`, title „Administrator în RSUD” +
+  Cod <nr> [copy]”); RSUD administrator → the same card with `icon: "icon-business"`, title „Administrator în RSUD” +
   „Confirmat”, `details` „Administrator al <company> · Sursa RSUD prin MConnect” (the FO has no RSUD card — an MPass
   administrator files as himself); no electronic link → the warning notice + „Prin procură” check option, and once
   ticked the FO **boxed procură upload** of the guest „pentru altcineva” flow (`.e-permits-fo-doc-field--boxed`,
@@ -6846,7 +6854,7 @@ following A. Pascalov's comment 1961221538 and the PO's screenshot of the „Log
   - **Date document:** read-only `.e-permits-cfg-ro` for RSSP documents (plus an info note).
     For SIA GEAP documents, inputs, and check options for Tip solicitare / Tip solicitant.
     **Applicant types are always shown with the icon and the full name when there is room**
-    (person-filled / suitcase-filled, „Persoană fizică”, „Persoană juridică străină”…):
+    (person-filled / business-filled, „Persoană fizică”, „Persoană juridică străină”…):
     `renderCheckOption({ icon })` in forms, `applicantTags()` in read-only views. **Not in the
     stacked list:** there the meta line keeps the plain codes („PF, PJ”), no badges (user,
     2026-10-12). The stored values stay the codes PF / PJ / PF Străin / PJ Străin

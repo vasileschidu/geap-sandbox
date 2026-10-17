@@ -197,7 +197,7 @@ for (const rid of ROOTS) {
     const v = V(C.seg, { "Segment Count": String(segs.length), "Breakpoint": OPT.mobile ? "Mobile" : "Desktop" }); const i = v.createInstance();
     const ctrls = i.children.filter((c) => c.type === "INSTANCE");
     for (const [k, s] of segs.entries()) { const c = ctrls[k]; if (!c) continue; const t = texts(s)[0]; setP(c, { "⌨️ Label": t.characters, "🎚️ Mode": isWhite(fillC(t)) ? "On" : "Off", "Leading Icon": true });
-      const ico = c.findOne((x) => x.type === "INSTANCE"); if (ico) { const pj = /juridic|PJ/.test(t.characters); const m = await g(pj ? "10641:1308" : "6502:74649"); const w = ico.width; ico.swapComponent(m); ico.resize(16, 16); } }
+      const ico = c.findOne((x) => x.type === "INSTANCE"); if (ico) { const pj = /juridic|PJ/.test(t.characters); const m = await g(pj ? "11972:38938" : "6502:74649"); const w = ico.width; ico.swapComponent(m); ico.resize(16, 16); } }
     i.name = "segmented-control · Tip persoană"; place(f, i); push("segmented");
   }
   // checkbox (box 20 + text) → checkbox-label Small

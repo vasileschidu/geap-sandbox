@@ -55,7 +55,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 |---|---|---|
 | select-input (set) | `8344:81663` | Style Default/Destructive × State Default/Hover/Focus/Filled/Disabled × Size; props Label `👁️ Label#132:24`, star `👁️ Mandatory Star#316:0`, hint `👁️ Assistive Text#143:22`, text `⌨️ Placeholder#215:38`. Destructive+Disabled has NO assistive slot |
 | text-input (set) | `6490:68585` | same props as select |
-| checkbox option „Opțiune document · checkbox” | `10507:44447` | Label `Label#10507:0`, star `Asterisc#10507:9`, glyph `Iconiță#11007:0` + `Iconiță · glif#11007:9` (person `6502:74649`, suitcase `10641:1308`) |
+| checkbox option „Opțiune document · checkbox” | `10507:44447` | Label `Label#10507:0`, star `Asterisc#10507:9`, glyph `Iconiță#11007:0` + `Iconiță · glif#11007:9` (person `6502:74649`, PJ = 24/business-filled `11972:38938` — 2026-10-17, was suitcase 10641:1308) |
 | tag-filled | `10602:106194` | always Size=Small; label `⌨️ Label#387:32`; icon `🔄 Leading Icon: 16#12870:6793` |
 | button-filled-rectangular | `5611:63230` | „Editează” proto `10317:33373`, „Adaugă …” proto `10316:33412` |
 | button-text-rectangular | `5749:34743` | ⋮ / × proto `10317:33419` (swap inner icon: 20/more-vertical `9521:7912`, 20/cross-small `242:12038`) |
@@ -83,6 +83,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
 | Act row family (local, 2026-10-16) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 · `New request card` 11848:340913 (holder 11844:198504) | foActRowHtml / foIntentNewHtml. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile; TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544, Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
+| PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Icons (Foundations keys) | — | 20/download e6dd0e97… · 20/arrow-left f9c5634d… · 20/external-link 8df5d4b1… · 20/edit bef76865… · 20/credit-card aca711a4… · EVO 20/refresh caca3c5f… · central sets: trash b5e9b87b…, file-text 032cdf84…, user-circle 7f8dfe57… |
 
 ## Rules (from the user — never break)
@@ -211,7 +212,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
   1117:10830 / `.step-mobile` 1630:53322 rows (state from the captured icon colour). Callouts →
   local `Cabinet / Callout` (5 tones, icon = swappable instance, icons deduped by SVG hash in shared
   plugin data); one-line page messages → local `Mesaj · subtil` 9845:17951. Role-card avatars →
-  library avatar 5383:28521 (Small; PJ = Icon + suitcase 10641:1308). Never set a doc-row icon
+  library avatar 5383:28521 (Small; PJ = Icon + 20/business — 2026-10-17, was suitcase 10641:1308). Never set a doc-row icon
   wrapper to FILL when fixing truncation — only the text column / title fill.
 - 2026-10-12 · Mid-job the whole section 11067:34873 (all 53 blocks + local components) disappeared
   from the page while the map frame stayed at page level — not done by any of my calls. When a
@@ -1378,3 +1379,27 @@ for every page / board touched). One SECTION per column on boards. Not done unti
   - No Agent tool in this session → figma-audit.js (14 NT notices + parent stacks: 0 findings on the notices; pre-existing: Preview
     frame r28, mixed-font template body, section-header-over-card gap 0) + an instance check on all 19 (main, FILL × HUG, 44 high,
     whole px, icon = variant default, lead styled, no ×, 24 to the next section).
+
+- 2026-10-17 · PJ icon unified (user on GEAP 11875:272586: „use everywhere the icon for PJ we used till now, not this one”).
+  Census: the original FO header `.role-switch-item` (Type=Business, 2009:35824 / 5384:49488, July) + library header-with-avatar /
+  sidebar + code static markup = **business**; the Instance switcher (10-15) brought 20/suitcase-2 from the FO data
+  (`avatarIcon: icon-suitcase-2`), the quality sweep 24/suitcase-2, the registry tags the central „suitcase, luggage, case”,
+  Ghișeu segmented „suitcase-work” filled, RAP 24/suitcase-filled. Swapped: GEAP 7 mains/local + 2 + 14 + 33 + 5 + 14 + 28 +
+  22 + 86 (Local, Post-processes, Patterns, Address, Requestor, FO 09, Ghișeu, Services) and 18 oversized 24 → 20; FOD 16;
+  EVO Cabinet 14; RAP board (EVO-WEB-3.0) 65; eKYC 0 (its „Clienți” nav suitcase = API clients). Lessons:
+  - „The icon used till now” = the OLDEST design-system usage (library / header component), not the raw majority — the
+    newest component (instance switcher) had multiplied the wrong glyph into 119 nested copies.
+  - **Traversal is not reliable**: findAllWithCriteria returned 634 vs findAll 1,146 small instances in EVO Cabinet, and
+    the reverse in GEAP; neither reached glyphs nested in 32 px avatar instances consistently. For a file-wide census use an
+    explicit recursive walk through `.children` (descend into every instance that is not the target glyph) — 30,991 small
+    instances in 28 s on 8 GEAP pages.
+  - Swap order: direct nodes (mains) first, then nested overrides (ids with „;”); keep the old size (resize back) and copy the
+    old fill only when the resolved colour changed. A stroke-based old glyph (central outline) leaves `fills: []` + a stroke
+    override on the new fill-based glyph → `resetOverrides()` then bind the code colour.
+  - Size from the code, not the sweep: identity card avatar 32 + svg 20, header avatar 40 + svg 20, RSUD tile 32 + svg 20
+    (measure.mjs) — the sweep's 24 glyph in 32 avatars was oversized. MPower tile still has a 24/identity glyph (code 20; not PJ, open).
+  - Update the builders too (swap-to-instances.js `P.suitcase`, instance-switcher prelude / compose guard, ghiseu library-pass /
+    swap-ghiseu, rap/lib.js, stored `ghs/libpass` + `ghs/swap`) and the checkbox option's glyph preferredValues, or the next
+    run brings the old glyph back. Snapshots: figma.root plugin data `pjicon/*` in each file.
+  - No Agent tool in this session → QA by the explicit walk (0 old glyphs; 296 business glyphs, all fills token-bound, white on
+    brand / apricot / dark, #444 / #121212 = label colour on grey, whole pixels) + screenshots.

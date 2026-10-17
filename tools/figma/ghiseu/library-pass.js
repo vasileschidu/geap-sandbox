@@ -47,7 +47,7 @@ const LIBPASS = async (ROOTS, OPT) => {
     avatar: await g("5383:28521"), fRect: await g("5611:63230"), tRect: await g("5749:34743"),
   };
   const icon = async (k) => figma.importComponentByKeyAsync(k);
-  const ICON = { suitcase20: "0e94d9c836777dcf92b6f63b9cb60df4d1610e2c", edit20: "bef76865a142fa255aebe7a98f7a0411943e8c29", eye20: "faa2ea508755b47b8354bf6bb7d659776a525294",
+  const ICON = { suitcase20: "13c704752d82ff4667a4a021d2f4b93fa9168ec6" /* PJ = 20/business (2026-10-17) */, edit20: "bef76865a142fa255aebe7a98f7a0411943e8c29", eye20: "faa2ea508755b47b8354bf6bb7d659776a525294",
     trash20: "c4be563fbf9791c2c506e3834143eed94b1b6d7d", rotate20: "8cdf3361fae3b611bc79a0ff4be5e664909d1ea5", copy20: "89c577ec6b8f893a92741093af50a237eb383016",
     pause: "3db9e42c1922d440a45fd45e29b7de6419f7a681", cross20: "3ccb9372951f0b3c922b004d8966a680404cd11f", flag20: "74d5fd818c70fb62cb47c276e710570948800897",
     history20: null };
