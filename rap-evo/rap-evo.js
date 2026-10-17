@@ -193,7 +193,6 @@
   const renderProfile = (record) => {
     const profile = normalizeProfile(record);
     const beneficiaryIcon = record.beneficiary.type === "person" ? "person-filled" : "suitcase-filled";
-    const authorityWithOffice = [record.authority.name, profile.office].filter(Boolean).join(" — ");
     const details = [
       ["Denumire act permisiv", record.permit.name],
       ["Stare", statusTag(record.status), false, true],
@@ -236,7 +235,6 @@
             <div class="e-permits-page-header__meta" data-rap-profile-meta>
               ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
               ${renderProfileSummaryItem("Stare", statusTag(record.status), { html: true })}
-              ${renderProfileSummaryItem("Autoritatea emitentă", authorityWithOffice)}
               ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
@@ -398,8 +396,8 @@
         ? window.GEAPEmptyState.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs pregătește actul. Poate dura câteva secunde." })
         : window.GEAPEmptyState.render({ bare: true, icon: "circle-error", text: MDOCS_ERRORS[view] || MDOCS_UNAVAILABLE })}</div>`;
     footer.innerHTML = `
-      ${ready ? `<button class="e-permits-fo-doc-modal__cancel rap-act-modal__print" type="button" data-rap-act-print>${PRINT_ICON}<span>Imprimă</span></button>` : ""}
-      <button class="e-permits-fo-doc-modal__submit" type="button" data-rap-act-close>Închide</button>`;
+      ${ready ? `<button class="btn btn-neutral btn-rounded rap-act-modal__print" type="button" data-rap-act-print>${PRINT_ICON}<span>Imprimă</span></button>` : ""}
+      <button class="btn btn-primary btn-rounded" type="button" data-rap-act-close>Închide</button>`;
     if (ready) fitActPage();
   };
 
