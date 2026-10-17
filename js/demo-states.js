@@ -1902,7 +1902,7 @@
     "sm-02d": sm(async (h) => { await h.click('[data-sm-chip="finalizat"]'); await smMenu("d-izvoras")(h); }),
     "sm-02e": sm(smMenu("d-nota")),
     "sm-03": smDosar("d-spicul"),
-    "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] .cab-detail__actions [data-sm-action="delete"]'); }),
+    "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); }),
     "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await h.click('[data-sm-card="d-spicul"] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }),
     "sm-03c": smDosar("d-izvoras-reperf"),
     "sm-04": smDosar("d-fresh"),
@@ -1915,7 +1915,7 @@
     "sm-05": smDosar("d-izvoras"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
-    "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] .cab-detail__actions [data-sm-action="download"]'); }, { descarcare: "eroare" }),
+    "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
     /* 2026-10-14 · Documente însoțitoare = the shared document cards: „Detalii” → document modal, ⋮ Descarcă */
     "sm-05e": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); }),
     "sm-05f": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),

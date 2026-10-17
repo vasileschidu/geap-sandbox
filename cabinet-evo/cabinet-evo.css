@@ -1094,6 +1094,109 @@
   margin: 0;
 }
 
+/* Beneficiar / Solicitant = the FO identity cards under BO section titles (18/26 semibold in a 48 row,
+   8/12 inset, no gap to the card — the section-over-card rule); 16 between the two columns, as the
+   section rhythm */
+.cab-roles .e-permits-fo-form__roles-grid {
+  column-gap: var(--spacing-16, 16px);
+}
+
+.cab-roles .e-permits-fo-form__role-group {
+  align-items: stretch;
+  gap: 0;
+}
+
+.cab-roles .e-permits-fo-form__role-title {
+  box-sizing: border-box;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  height: var(--spacing-48, 48px);
+  padding: 11px var(--spacing-12, 12px);
+}
+
+.cab-roles .e-permits-fo-form__role-group h2 {
+  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-18, 18px) / var(--line-height-lh-26, 26px) var(--font-family-primary-font, Onest), sans-serif;
+  letter-spacing: -0.18px;
+}
+
+.cab-roles.e-permits-fo-form__roles {
+  gap: var(--spacing-16, 16px);
+}
+
+/* „Stadiul solicitării” (2026-10-17): ONE bordered card (1px border token, the BO card radius 24 /
+   16 on phones, white) = the status block (Small tags · 16/24 status sentence · 14/20 explanation ·
+   the actions) over a hairline, then the request timeline (the FO finish timeline without its grey
+   fill); the current step reads in the default colour + semibold. */
+.cab-status {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-24, 24px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+}
+
+.cab-status__now {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  padding: var(--spacing-20, 20px);
+}
+
+.cab-status__tags {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+}
+
+.cab-status__title {
+  color: var(--color-text-base-default, #121212);
+  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+}
+
+.cab-status__text {
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+}
+
+.cab-status__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-12, 12px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+.cab-status__now > .cab-message {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.cab-status__timeline.e-permits-fo-finish-timeline {
+  background: transparent;
+  border-radius: 0;
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.cab-status__timeline .is-now .e-permits-fo-finish-timeline__title {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-semibold, 600);
+}
+
+@media (max-width: 760px) {
+  .cab-status {
+    border-radius: var(--border-radius-16, 16px);
+  }
+
+  .cab-status__now,
+  .cab-status__timeline.e-permits-fo-finish-timeline {
+    padding: var(--spacing-16, 16px);
+  }
+}
+
 /* „Aprobare tacită” on a request is a button (it carries the explanation tooltip): the blue Small tag
    with the tag box restored over the old text-mark reset, one step darker on hover */
 .e-permits-workplace__tag--info.cab-mark {

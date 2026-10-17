@@ -466,100 +466,118 @@
   const rows = (list) => C.detailCard(list);
   const section = (id, title, body, { scope = false } = {}) => C.profileSection(`sm-sec-${id}`, title, body, { attrs: scope ? "data-sm-dl-scope" : "" });
 
-  function markerHtml(stateName) {
-    const icons = { done: "icon-circle-checkmark-filled", current: "icon-time-filled", attention: "icon-warning-filled", rejected: "icon-circle-error-filled" };
-    if (!icons[stateName]) return `<span class="e-permits-fo-finish-marker e-permits-fo-finish-marker--todo" aria-hidden="true"></span>`;
-    return `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--${stateName}" width="24" height="24" aria-hidden="true"><use href="${SPRITE}#${icons[stateName]}"></use></svg>`;
+  /* ---------- „Stadiul solicitării” (2026-10-17): ONE bordered card = the current status on top
+     (Small tags + the status sentence / next step + the action that exists) · hairline · the timeline
+     of the request (the FO finish timeline: done steps with their dates, the current one highlighted,
+     the next ones dashed). Replaces the stepper + callout + loose action row + „Istoric complet”. */
+  const STEP_STATE_TEXT = { done: "finalizat", current: "etapa curentă", attention: "necesită acțiunea dumneavoastră", rejected: "respins", todo: "urmează" };
+
+  function statusNow(dosar) {
+    const service = serviceOf(dosar);
+    const where = [service.authority, dosar.subdivision].filter(Boolean).join(" — ");
+    switch (dosar.status) {
+      case "schita":
+        return {
+          title: `Schiță nedepusă · se elimină automat pe ${longDate(dosar.draft?.expires)}`,
+          text: `Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}”; datele completate sunt salvate. Continuați completarea ca să depuneți solicitarea.`,
+        };
+      case "info":
+        return {
+          title: `Necesită informații suplimentare · până la ${longDate(dosar.info?.until)}`,
+          text: `${dosar.info?.reason ? `${dosar.info.reason} ` : ""}Examinarea este suspendată până transmiteți informațiile; apoi continuă.`,
+        };
+      case "achitare":
+        return {
+          title: `Spre achitare · ${money(dosar.payment?.amount)} până la ${longDate(dosar.payment?.due)}`,
+          text: "Nota de plată se achită prin MPay pentru ca dosarul să continue examinarea. După achitare, starea se actualizează automat.",
+        };
+      case "derulare":
+        return dosar.tacit
+          ? { title: `În examinare · termenul a expirat pe ${longDate(dosar.examTerm)}`, text: `Autoritatea (${where}) nu s-a pronunțat în termen, așa că solicitarea se consideră aprobată tacit; vă anunțăm imediat ce decizia este emisă.` }
+          : { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Dosarul este la ${where}. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` };
+      case "finalizat":
+        if (dosar.result === "respins") {
+          return {
+            title: `Respinsă pe ${longDate(dosar.finalized)}`,
+            text: canAppeal(dosar)
+              ? `Motivul și recomandările autorității sunt în secțiunea Decizie. Puteți depune o contestație până la ${longDate(appealUntil(dosar))}.`
+              : "Motivul și recomandările autorității sunt în secțiunea Decizie.",
+          };
+        }
+        if (dosar.decisionOnly) return { title: `Aprobată pe ${longDate(dosar.finalized)}`, text: dosar.decision?.text || "" };
+        return { title: `Aprobată pe ${longDate(dosar.finalized)} · actul este disponibil`, text: "Actul permisiv emis este și în „Actele mele permisive”, de unde îl puteți vizualiza și descărca oricând." };
+      default:
+        return { title: statusOf(dosar).label, text: "" };
+    }
   }
 
-  const STEP_STATE_TEXT = { done: "finalizat", current: "în curs", attention: "necesită acțiunea dumneavoastră", rejected: "respins", todo: "urmează" };
+  /* the request's steps: what happened (dates, who) + what comes next (dashed, no date) */
+  function timelineEvents(dosar) {
+    const by = state.perspective?.mpower ? `${state.user?.name} în baza împuternicirii MPower` : state.user?.name || "solicitant";
+    const where = `${serviceOf(dosar).authority} — ${dosar.subdivision}`;
+    const events = [];
+    if (dosar.status === "schita") {
+      events.push({ state: "done", title: "Schiță creată", when: longDateTime(dosar.created), text: "Salvată automat." });
+      events.push({ state: "current", title: "Completarea cererii", when: "", text: `Pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}” · până la ${longDate(dosar.draft?.expires)}` });
+      events.push({ state: "todo", title: "Depunere și semnare", when: "", text: "" });
+      events.push({ state: "todo", title: "Examinare și decizie", when: "", text: "" });
+      return events;
+    }
+    const paidAtFiling = dosar.payment?.paid && !dosar.feeDuringExam ? ` Taxa de ${money(dosar.payment.amount)} a fost achitată prin MPay.` : "";
+    events.push({ state: "done", title: "Solicitare depusă", when: longDateTime(dosar.submitted), text: `Semnată prin MSign de ${by}.${paidAtFiling}` });
+    const examining = dosar.status === "derulare";
+    events.push({ state: examining ? "current" : "done", title: "În examinare la autoritate", when: `din ${longDate(addDays(dosar.submitted, 1))}`, text: examining && dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
+    if (dosar.status === "info") events.push({ state: "attention", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: `Examinarea este suspendată · trimiteți-le până la ${longDate(dosar.info?.until)}.` });
+    if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: `${money(dosar.payment?.amount)} · de achitat până la ${longDate(dosar.payment?.due)}.` });
+    if (dosar.status === "finalizat") {
+      const rejected = dosar.result === "respins";
+      events.push({ state: rejected ? "rejected" : "done", title: rejected ? "Solicitare respinsă" : "Solicitare aprobată", when: longDate(dosar.finalized), text: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis." });
+    } else {
+      events.push({ state: "todo", title: "Decizia autorității", when: "", text: dosar.examTerm && dosar.status !== "info" ? `Termen: ${longDate(dosar.examTerm)}` : "" });
+      events.push({ state: "todo", title: "Act emis", when: "", text: "Livrat în EVO Cabinet." });
+    }
+    return events;
+  }
 
-  /* Depusă · Verificare · (Plată) · Decizie · Finalizat — Figma profile stepper */
-  function trackerHtml(dosar) {
-    if (dosar.status === "schita") return "";
-    const steps = [{ label: "Depusă" }, { label: "Verificare" }];
-    if (dosar.feeDuringExam) steps.push({ label: "Plată" });
-    steps.push({ label: "Decizie" }, { label: dosar.result === "respins" ? "Respins" : "Finalizat" });
-    const set = (states) => steps.forEach((step, index) => { step.state = states[index] || "todo"; });
-    if (dosar.status === "derulare") set(dosar.feeDuringExam ? ["done", "done", "done", "current"] : ["done", "current"]);
-    if (dosar.status === "info") set(["done", "attention"]);
-    if (dosar.status === "achitare") set(["done", "done", "attention"]);
-    if (dosar.status === "finalizat") set(steps.map((step, index) => (index === steps.length - 1 && dosar.result === "respins" ? "rejected" : "done")));
+  function timelineHtml(dosar) {
+    const icons = { done: "icon-circle-checkmark-filled", current: "icon-time-filled", attention: "icon-warning-filled", rejected: "icon-circle-error-filled" };
+    const marker = (stateName) => (stateName === "todo"
+      ? `<span class="e-permits-fo-finish-marker e-permits-fo-finish-marker--todo e-permits-fo-finish-marker--sm" aria-hidden="true"></span>`
+      : `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--${stateName}" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#${icons[stateName]}"></use></svg>`);
+    const events = timelineEvents(dosar);
     return `
-      <ol class="e-permits-fo-finish-tracker cab-tracker" aria-label="Progresul dosarului">
-        ${steps.map((step) => `
-          <li class="e-permits-fo-finish-tracker__item is-${step.state}"${["current", "attention"].includes(step.state) ? ' aria-current="step"' : ""}>
-            <span class="e-permits-fo-finish-tracker__marker">${markerHtml(step.state)}</span>
-            <span class="e-permits-fo-finish-tracker__label">${escape(step.label)}<span class="u-visually-hidden"> — ${STEP_STATE_TEXT[step.state]}</span></span>
-          </li>`).join("")}
+      <ol class="e-permits-fo-finish-timeline cab-status__timeline" aria-label="Etapele solicitării">
+        ${events.map((event, index) => {
+          const now = event.state === "current" || event.state === "attention" || (event.state === "rejected" && index === events.length - 1);
+          const done = event.state === "done" || (event.state === "rejected");
+          return `
+          <li class="e-permits-fo-finish-timeline__item is-${done && !now ? "done" : now ? "current" : "todo"}${now ? " is-now" : ""}"${now ? ' aria-current="step"' : ""}>
+            <span class="e-permits-fo-finish-timeline__rail" aria-hidden="true">
+              <span class="e-permits-fo-finish-timeline__marker">${marker(event.state)}</span>
+              <span class="e-permits-fo-finish-timeline__line"></span>
+            </span>
+            <div class="e-permits-fo-finish-timeline__copy">
+              <p class="e-permits-fo-finish-timeline__title"><span>${escape(event.title)}</span><span class="u-visually-hidden"> — ${STEP_STATE_TEXT[event.state]}</span></p>
+              ${[event.when, event.text].filter(Boolean).length ? `<p class="e-permits-fo-finish-timeline__text">${escape([event.when, event.text].filter(Boolean).join(" · "))}</p>` : ""}
+            </div>
+          </li>`;
+        }).join("")}
       </ol>`;
   }
 
-  function calloutHtml(dosar) {
-    const service = serviceOf(dosar);
-    const where = `${service.authority} — ${dosar.subdivision}`;
-    let tone = "info";
-    let iconId = "icon-time-filled";
-    let title = "";
-    let text = "";
-    switch (dosar.status) {
-      case "schita":
-        tone = "neutral";
-        title = `Continuați completarea — schița se elimină automat pe ${longDate(dosar.draft?.expires)}`;
-        text = `Solicitarea nu a fost încă transmisă. Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}”; datele completate sunt salvate.`;
-        break;
-      case "info":
-        tone = "warning";
-        iconId = "icon-warning-filled";
-        title = `Trimiteți informațiile cerute până la ${longDate(dosar.info?.until)}`;
-        text = `${dosar.info?.reason || ""} Completarea se face prin acțiunea „Suplinire informații”; după transmitere, examinarea continuă.`;
-        break;
-      case "achitare":
-        tone = "warning";
-        iconId = "icon-warning-filled";
-        title = `Achitați ${money(dosar.payment?.amount)} până la ${longDate(dosar.payment?.due)}`;
-        text = "Nota de plată se achită prin MPay pentru ca dosarul să continue examinarea. După achitare, statutul se actualizează automat.";
-        break;
-      case "derulare":
-        if (dosar.tacit) {
-          title = `Termenul de examinare a expirat pe ${longDate(dosar.examTerm)}`;
-          text = `Dosarul este în examinare la ${where}. Autoritatea nu s-a pronunțat în termen, așa că solicitarea se consideră aprobată tacit; vă anunțăm imediat ce decizia este emisă.`;
-        } else {
-          title = `Răspuns până la ${longDate(dosar.examTerm)}`;
-          text = `Dosarul este în examinare la ${where}. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.`;
-        }
-        break;
-      case "finalizat":
-        if (dosar.result === "respins") {
-          tone = "danger";
-          iconId = "icon-circle-error-filled";
-          title = `Solicitarea a fost respinsă pe ${longDate(dosar.finalized)}`;
-          text = canAppeal(dosar)
-            ? `Motivul și recomandările autorității sunt în secțiunea Decizie. Puteți depune o contestație până la ${longDate(appealUntil(dosar))}.`
-            : "Motivul și recomandările autorității sunt în secțiunea Decizie.";
-        } else if (dosar.decisionOnly) {
-          tone = "success";
-          iconId = "icon-circle-checkmark-filled";
-          title = `Solicitarea a fost aprobată pe ${longDate(dosar.finalized)}`;
-          text = dosar.decision?.text || "";
-        } else {
-          tone = "success";
-          iconId = "icon-circle-checkmark-filled";
-          title = `Act disponibil din ${longDate(dosar.finalized)} — îl puteți descărca`;
-          text = "Actul permisiv emis este disponibil și în „Actele mele permisive”, de unde îl puteți descărca oricând.";
-        }
-        break;
-      default:
-        return "";
-    }
-    return `
-      <div class="e-permits-callout e-permits-callout--${tone}" role="status">
-        <span class="e-permits-callout__icon" aria-hidden="true">${icon(iconId, "medium")}</span>
-        <div class="e-permits-callout__content">
-          <p class="e-permits-callout__title">${escape(title)}</p>
-          ${text ? `<p class="e-permits-callout__text">${escape(text)}</p>` : ""}
+  function statusCardHtml(dosar) {
+    const now = statusNow(dosar);
+    const actions = profileActions(dosar);
+    return section("stadiu", "Stadiul solicitării", `
+      <div class="cab-status" data-sm-status>
+        <div class="cab-status__now">
+          <div class="cab-status__tags">${statusTag(dosar)}${marksHtml(dosar)}</div>
+          <p class="cab-status__title">${escape(now.title)}</p>
+          ${now.text ? `<p class="cab-status__text">${escape(now.text)}</p>` : ""}
+          ${actions}
         </div>
-      </div>`;
+        ${timelineHtml(dosar)}
+      </div>`);
   }
 
   function profileActions(dosar) {
@@ -572,7 +590,7 @@
         buttons.push(`<button class="btn btn-neutral btn-md btn-rounded" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
         break;
       case "info":
-        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinire informații</span></a>`);
+        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
         break;
       case "achitare":
         buttons.push(`
@@ -580,9 +598,6 @@
             <span class="btn-badge__logo" aria-hidden="true"><img src="../assets/logos/m-platforms/m-pay.svg" alt=""></span>
             <span class="btn-badge__label">Achită ${escape(money(dosar.payment?.amount))} cu mpay</span>
           </button>`);
-        break;
-      case "derulare":
-        buttons.push(download("certificat", "Descarcă certificatul constatator"));
         break;
       case "finalizat":
         if (dosar.result === "aprobat" && dosar.actId) {
@@ -598,7 +613,7 @@
       default:
         break;
     }
-    return buttons.length ? `<div class="cab-detail__actions" data-sm-dl-scope>${buttons.join("")}</div>` : "";
+    return buttons.length ? `<div class="cab-status__actions" data-sm-dl-scope>${buttons.join("")}</div>` : "";
   }
 
   /* BO page-header meta: nr (copy) · tip · statut (+ marks) · the dates of the status */
@@ -746,43 +761,6 @@
     });
   }
 
-  function historyHtml(dosar) {
-    const by = state.perspective?.mpower ? `${state.user?.name} în baza împuternicirii MPower` : state.user?.name || "solicitant";
-    const events = [];
-    if (dosar.status === "schita") {
-      events.push({ state: "done", title: "Schiță creată", when: longDateTime(dosar.created), text: `Salvată automat la pasul „${dosar.draft?.stepLabel || ""}”.` });
-      events.push({ state: "todo", title: "Depunere", when: "", text: `Continuați până la ${longDate(dosar.draft?.expires)} ca solicitarea să nu fie eliminată.` });
-    } else {
-      const paidAtFiling = dosar.payment?.paid && !dosar.feeDuringExam ? ` Taxa de ${money(dosar.payment.amount)} a fost achitată prin MPay.` : "";
-      events.push({ state: "done", title: "Solicitare depusă", when: longDateTime(dosar.submitted), text: `Semnată prin MSign de ${by}.${paidAtFiling}` });
-      events.push({ state: dosar.status === "finalizat" ? "done" : "current", title: "În examinare la autoritate", when: longDate(addDays(dosar.submitted, 1)), text: `${serviceOf(dosar).authority} — ${dosar.subdivision}` });
-      if (dosar.status === "info") events.push({ state: "attention", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: "Examinarea este suspendată până la transmiterea informațiilor." });
-      if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: `${money(dosar.payment?.amount)} — de achitat până la ${longDate(dosar.payment?.due)}.` });
-      if (dosar.status === "finalizat") {
-        events.push({ state: dosar.result === "respins" ? "rejected" : "done", title: dosar.result === "respins" ? "Solicitare respinsă" : "Solicitare aprobată", when: longDate(dosar.finalized), text: dosar.result === "respins" ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; statutul actului a fost actualizat." : "Actul permisiv a fost semnat și emis." });
-      }
-    }
-    const marker = (stateName) => {
-      if (stateName === "todo") return `<span class="e-permits-fo-finish-marker e-permits-fo-finish-marker--todo e-permits-fo-finish-marker--sm" aria-hidden="true"></span>`;
-      const icons = { done: "icon-circle-checkmark-filled", current: "icon-time-filled", attention: "icon-warning-filled", rejected: "icon-circle-error-filled" };
-      return `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--${stateName}" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#${icons[stateName]}"></use></svg>`;
-    };
-    return `
-      <ol class="e-permits-fo-finish-timeline">
-        ${events.map((event) => `
-          <li class="e-permits-fo-finish-timeline__item is-${event.state === "attention" || event.state === "rejected" ? "current" : event.state}">
-            <span class="e-permits-fo-finish-timeline__rail" aria-hidden="true">
-              <span class="e-permits-fo-finish-timeline__marker">${marker(event.state)}</span>
-              <span class="e-permits-fo-finish-timeline__line"></span>
-            </span>
-            <div class="e-permits-fo-finish-timeline__copy">
-              <p class="e-permits-fo-finish-timeline__title"><span>${escape(event.title)}</span></p>
-              <p class="e-permits-fo-finish-timeline__text">${escape([event.when, event.text].filter(Boolean).join(" · "))}</p>
-            </div>
-          </li>`).join("")}
-      </ol>`;
-  }
-
   function actSection(dosar) {
     if (dosar.status !== "finalizat") return "";
     const service = serviceOf(dosar);
@@ -881,7 +859,6 @@
       payment.due && payment.status !== "Achitat" ? row("Termen de achitare", escape(longDate(payment.due))) : "",
     ])) : "";
 
-    const history = section("istoric", "Istoric complet", historyHtml(dosar));
     const helpSection = section("ajutor", "Ai nevoie de ajutor?", rows([
       row("Autoritatea", escape(help.name || service.authorityName || "")),
       help.phone ? row("Telefon", `<a class="link link-primary" href="tel:${escape(help.phone.replace(/\s/g, ""))}">${escape(help.phone)}</a>`) : "",
@@ -897,11 +874,7 @@
           meta: headerMeta(dosar),
         })}
         <div class="e-permits-dosar-profil__panel">
-          <div class="cab-profile__lead">
-            ${trackerHtml(dosar)}
-            ${calloutHtml(dosar)}
-            ${profileActions(dosar)}
-          </div>
+          ${statusCardHtml(dosar)}
           ${general}
           ${roles}
           ${details}
@@ -910,7 +883,6 @@
           ${delivery}
           ${taxes}
           ${actSection(dosar)}
-          ${history}
           ${helpSection}
         </div>
       </article>`;
@@ -1161,10 +1133,10 @@
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
     if (params.get("descarcare") !== "eroare") return;
-    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".sm-item") || root.querySelector(".cab-detail__actions");
+    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".sm-item") || root.querySelector(".cab-status__actions");
     const html = message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert", attrs: "data-sm-download-error" });
     if (scope?.classList.contains("sm-item")) scope.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
-    else if (scope?.classList.contains("cab-detail__actions")) scope.insertAdjacentHTML("afterend", html);
+    else if (scope?.matches(".cab-status__actions, .cab-detail__actions")) scope.insertAdjacentHTML("afterend", html);
     else scope?.insertAdjacentHTML("beforeend", html);
     root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
   }
