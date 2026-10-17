@@ -1,0 +1,412 @@
+{
+ "about": "RAP act profile (rap-02 / rap-02a) vs the BO originals: page header meta (svc-01), Date generale card (svc-01), dossier cards (dos-01). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b rap-02 --spec tools/ui-qa/specs/rap-profile-vs-bo.json (rows: a one-line row on both sides — „Data eliberării” on the RAP; the act name can wrap)",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--line-height-",
+  "--spacing-",
+  "--border-",
+  "--text-"
+ ],
+ "pairs": [
+  {
+   "name": "header title",
+   "a": ".e-permits-page-header__title",
+   "b": ".e-permits-page-header__title",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "white-space",
+    "overflow-x",
+    "text-overflow",
+    "flex-grow",
+    "flex-shrink",
+    "max-width"
+   ]
+  },
+  {
+   "name": "meta",
+   "a": ".e-permits-page-header__meta",
+   "b": ".e-permits-page-header__meta",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "meta item",
+   "a": ".e-permits-page-header__meta-item",
+   "b": ".e-permits-page-header__meta-item",
+   "nth": 1,
+   "rel": "meta",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "meta divider",
+   "a": ".e-permits-page-header__meta-item",
+   "b": ".e-permits-page-header__meta-item",
+   "nth": 1,
+   "pseudo": "::before",
+   "props": [
+    "background-color",
+    "width",
+    "height",
+    "left",
+    "top",
+    "transform",
+    "position"
+   ]
+  },
+  {
+   "name": "meta label",
+   "a": ".e-permits-page-header__meta-label",
+   "b": ".e-permits-page-header__meta-label",
+   "nth": 1,
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "meta value",
+   "a": ".e-permits-page-header__meta-value",
+   "b": ".e-permits-page-header__meta-value",
+   "nth": 1,
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "meta copy",
+   "a": ".e-permits-page-header__meta .e-permits-workplace__copy-code",
+   "b": ".e-permits-page-header__meta .rap-profile__copy",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "meta copy text",
+   "a": ".e-permits-page-header__meta .e-permits-workplace__copy-code > span:first-child",
+   "b": ".e-permits-page-header__meta .rap-profile__copy > span:first-child",
+   "rel": "meta copy",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "meta copy icon",
+   "a": ".e-permits-page-header__meta .e-permits-workplace__copy-code > .icon",
+   "b": ".e-permits-page-header__meta .rap-profile__copy > .icon",
+   "rel": "meta copy",
+   "ignore": [
+    "rect.x"
+   ]
+  },
+  {
+   "name": "meta tag",
+   "a": ".e-permits-page-header__meta .e-permits-workplace__tag",
+   "b": ".e-permits-page-header__meta .e-permits-workplace__tag",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "section",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__section",
+   "nthA": 1,
+   "b": ".e-permits-dosar-profil__section:has(> #rap-details-title)",
+   "ignore": [
+    "rect.height"
+   ]
+  },
+  {
+   "name": "section title",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__section-title",
+   "nthA": 1,
+   "b": "#rap-details-title",
+   "rel": "section",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "card",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__card",
+   "b": "#rap-details-title + .e-permits-dosar-profil__card",
+   "ignore": [
+    "rect.height"
+   ]
+  },
+  {
+   "name": "card (passport)",
+   "a": ".e-permits-passport__panel .e-permits-dosar-profil__card",
+   "b": "#rap-details-title + .e-permits-dosar-profil__card",
+   "ignore": [
+    "rect.height"
+   ]
+  },
+  {
+   "name": "row",
+   "a": ".e-permits-passport__panel .e-permits-dosar-profil__card > .e-permits-dosar-profil__row",
+   "nthA": 1,
+   "b": "#rap-details-title + .e-permits-dosar-profil__card > .e-permits-dosar-profil__row",
+   "nthB": 7,
+   "rel": "card (passport)",
+   "ignore": [
+    "rect.y"
+   ]
+  },
+  {
+   "name": "row (last)",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__card > .e-permits-dosar-profil__row:last-child",
+   "b": "#rap-details-title + .e-permits-dosar-profil__card > .e-permits-dosar-profil__row:last-child",
+   "rel": "card",
+   "ignore": [
+    "rect.y"
+   ]
+  },
+  {
+   "name": "row label",
+   "a": ".e-permits-passport__panel .e-permits-dosar-profil__card .e-permits-dosar-profil__row-label",
+   "nthA": 1,
+   "b": "#rap-details-title + .e-permits-dosar-profil__card .e-permits-dosar-profil__row-label",
+   "nthB": 7,
+   "rel": "row",
+   "ignore": [
+    "rect.y",
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "row value",
+   "a": ".e-permits-passport__panel .e-permits-dosar-profil__card .e-permits-dosar-profil__row-value",
+   "nthA": 1,
+   "b": "#rap-details-title + .e-permits-dosar-profil__card .e-permits-dosar-profil__row-value",
+   "nthB": 7,
+   "rel": "row",
+   "ignore": [
+    "rect.y",
+    "rect.height",
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "copy row value",
+   "a": ".e-permits-passport__panel .e-permits-dosar-profil__card .e-permits-dosar-profil__row-value",
+   "b": "#rap-details-title + .e-permits-dosar-profil__card .e-permits-dosar-profil__row-value",
+   "nthA": 0,
+   "nthB": 2,
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "copy",
+   "a": ".e-permits-dosar-profil__card .e-permits-dosar-profil__copy-code",
+   "b": ".e-permits-dosar-profil__card .rap-profile__copy",
+   "rel": "copy row value",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "copy text",
+   "a": ".e-permits-dosar-profil__card .e-permits-dosar-profil__copy-code > span:first-child",
+   "b": ".e-permits-dosar-profil__card .rap-profile__copy > span:first-child",
+   "rel": "copy",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "copy icon",
+   "a": ".e-permits-dosar-profil__card .e-permits-dosar-profil__copy-code > .icon",
+   "b": ".e-permits-dosar-profil__card .rap-profile__copy > .icon",
+   "rel": "copy",
+   "ignore": [
+    "rect.x"
+   ]
+  },
+  {
+   "name": "row tag",
+   "a": ".e-permits-dosar-profil__card .e-permits-workplace__tag",
+   "b": ".e-permits-dosar-profil__card .e-permits-workplace__tag",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "beneficiary card",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__card",
+   "b": ".rap-profile__beneficiary-card",
+   "props": [
+    "background-color",
+    "border-top-left-radius",
+    "border-bottom-right-radius",
+    "box-shadow",
+    "border-top-width",
+    "padding-left",
+    "padding-right"
+   ]
+  },
+  {
+   "name": "beneficiary id label",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__row-label",
+   "b": ".rap-profile__beneficiary-meta > span:first-child",
+   "props": [
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ]
+  },
+  {
+   "name": "beneficiary id value",
+   "a": ".e-permits-dosar-profil__row-value",
+   "b": ".rap-profile__beneficiary-meta > code",
+   "props": [
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ],
+   "states": {
+    "a": "dos-01"
+   }
+  },
+  {
+   "name": "support card",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__card",
+   "b": ".rap-profile__support-card",
+   "props": [
+    "background-color",
+    "border-top-left-radius",
+    "border-bottom-right-radius",
+    "box-shadow",
+    "border-top-width",
+    "padding-left",
+    "padding-right"
+   ]
+  },
+  {
+   "name": "beneficiary name (BO value type, own size)",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__row-value",
+   "b": ".rap-profile__beneficiary-copy > strong",
+   "props": [
+    "font-family",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ]
+  },
+  {
+   "name": "support name (BO value type, own size)",
+   "states": {
+    "a": "dos-01"
+   },
+   "a": ".e-permits-dosar-profil__row-value",
+   "b": ".rap-profile__support-card > strong",
+   "props": [
+    "font-family",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ]
+  }
+ ],
+ "expected": [
+  {
+   "viewport": 375,
+   "name": "section",
+   "prop": "rect.width",
+   "why": "page gutter: the public RAP page keeps its own 16px phone gutter (site header, list, footer); the BO shell's is 12 — the card / rows inside are identical"
+  },
+  {
+   "viewport": 375,
+   "name": "card",
+   "prop": "rect.width",
+   "why": "page gutter: the public RAP page keeps its own 16px phone gutter (site header, list, footer); the BO shell's is 12 — the card / rows inside are identical"
+  },
+  {
+   "viewport": 375,
+   "name": "card (passport)",
+   "prop": "rect.width",
+   "why": "page gutter: the public RAP page keeps its own 16px phone gutter (site header, list, footer); the BO shell's is 12 — the card / rows inside are identical"
+  },
+  {
+   "viewport": 375,
+   "name": "row",
+   "prop": "rect.width",
+   "why": "page gutter: the public RAP page keeps its own 16px phone gutter (site header, list, footer); the BO shell's is 12 — the card / rows inside are identical"
+  },
+  {
+   "viewport": 375,
+   "name": "row (last)",
+   "prop": "rect.width",
+   "why": "page gutter: the public RAP page keeps its own 16px phone gutter (site header, list, footer); the BO shell's is 12 — the card / rows inside are identical"
+  },
+  {
+   "viewport": 375,
+   "name": "meta",
+   "prop": "grid-template-columns",
+   "why": "same 2-column grid; the columns follow the 16 vs 12 page gutter"
+  },
+  {
+   "viewport": 375,
+   "name": "meta",
+   "prop": "rect.height",
+   "why": "content: RAP shows 5 meta items with a long authority name, svc-01 shows 4"
+  }
+ ]
+}

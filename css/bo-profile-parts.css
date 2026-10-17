@@ -6,9 +6,41 @@
    computed values of the BO screens (dos-01 Identificare, svc-01 Date generale, ntpl-03
    header, 2026-10-16), written with the same tokens. Never load this file on a BO page:
    there the originals apply. Change a value in the BO first, then here.
+   Why a copy and not the BO files: e-permits-shell.css + e-permits-acte-permisive.css are
+   ~45 000 lines of page-level rules (body 100dvh / overflow hidden, global button / input
+   rules, shell grid) that would restyle the whole public page. Each block names its source.
+   Proof (2026-10-17): tools/ui-qa/compare-styles.mjs --a svc-01 --b rap-02
+   --spec tools/ui-qa/specs/rap-profile-vs-bo.json → 0 differences at 1440 and 375.
    ========================================================================== */
 
-/* ---- Page header (e-permits-acte-permisive.css „Back-office page header”) ---- */
+/* ---- Base text: the BO page body (.e-permits-front-office-page, e-permits-acte-permisive.css
+   :1681) — everything inside the BO parts inherits it (font stack, 14/20, antialiased,
+   geometricPrecision, kerning). Without it the RAP body (16/22.4, subpixel smoothing, no
+   synthesis) leaked into every row, the cards and the copy buttons. ---- */
+:is(.e-permits-page-header, .e-permits-dosar-profil__panel) {
+  color: var(--color-text-base-default, #121212);
+  -webkit-font-smoothing: antialiased;
+  font-family: var(--font-family-primary-font, "Onest"), var(--font-family-base, "Onest", sans-serif);
+  font-kerning: normal;
+  font-size: var(--font-size-fs-14, 14px);
+  font-style: normal;
+  font-synthesis: initial;
+  font-weight: var(--font-weight-fw-regular, 400);
+  letter-spacing: 0;
+  line-height: var(--line-height-lh-20, 20px);
+  text-rendering: geometricPrecision;
+}
+
+/* BO form controls inherit the text (e-permits-acte-permisive.css:1977) — the copy code's own
+   -0.14px letter-spacing loses to this, as in the BO */
+:is(.e-permits-page-header, .e-permits-dosar-profil__panel) :is(button, input, select, textarea) {
+  font-family: inherit;
+  font-kerning: inherit;
+  letter-spacing: inherit;
+}
+
+/* ---- Page header (e-permits-acte-permisive.css „Back-office page header” :17864–18210,
+   phones :18323–18390) ---- */
 .e-permits-page-header {
   box-sizing: border-box;
   display: flex;
@@ -107,7 +139,8 @@
   white-space: nowrap;
 }
 
-/* ---- Detail sections (Figma 8993:39453): 20 under the header, 48 heading over the grey card ---- */
+/* ---- Detail sections (Figma 8993:39453): 20 under the header, 48 heading over the grey card.
+   Source: the back-office scoped rules, e-permits-acte-permisive.css :16496–16670 ---- */
 .e-permits-page-header ~ .e-permits-dosar-profil__panel {
   padding-top: var(--spacing-20, 20px);
 }
@@ -185,7 +218,15 @@
   overflow-wrap: anywhere;
 }
 
-/* ---- Tag · Small (renderTag): 20 high, 12/16 medium, subtle fill + 1px tone border ---- */
+/* long values wrap as whole items, never mid-word (passport Date generale,
+   e-permits-acte-permisive.css:18545; its row-gap 6 loses to the scoped `gap: 8` there, so the
+   computed gap stays 8) — a copy code keeps its width on phones */
+.e-permits-dosar-profil__row-value {
+  flex-wrap: wrap;
+}
+
+/* ---- Tag · Small (renderTag): 20 high, 12/16 medium, subtle fill + 1px tone border
+   (e-permits-shell.css :3228 + tone borders :4200) ---- */
 .e-permits-workplace__tag {
   align-items: center;
   border-radius: var(--border-radius-4, 4px);
@@ -226,7 +267,7 @@
   color: var(--color-text-base-default, #121212);
 }
 
-/* ---- phones (BO ≤760) ---- */
+/* ---- phones (BO ≤760, e-permits-acte-permisive.css :18323 header, :16932 sections) ---- */
 @media (max-width: 760px) {
   .e-permits-page-header__top {
     align-items: stretch;

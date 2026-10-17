@@ -1032,3 +1032,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `Emulation.setEmulatedMedia({ media: "print" })` (scratch tools/shot.mjs PRINT=1) — listed visible body children.
   Demo errors via `?mdocs=` keys mapped to the AC texts; the loading state never resolves with `incarcare`.
   Another agent committed rap-evo.css (`?v=w1024`) mid-job → bump versions with a regex, not the literal.
+- 2026-10-17 · „RAP profile still differs from the BO” after a value-by-value copy: the copy matched every rule I had
+  copied, but the INHERITED text setup was the RAP body's — 16/22.4, `-webkit-font-smoothing: auto` (subpixel = heavier
+  text), `text-rendering: auto`, `font-synthesis: none` vs the BO body (`.e-permits-front-office-page`: 14/20, antialiased,
+  geometricPrecision, kerning normal) + the BO `button { font-family / font-kerning / letter-spacing: inherit }` that makes
+  the copy-code's −0.14px compute to `normal`. A page that hosts BO parts must restate the BO BODY on the parts' roots
+  (`:is(.e-permits-page-header, .e-permits-dosar-profil__panel)` in css/bo-profile-parts.css). Also: the `font:` shorthand
+  resets `font-kerning` to auto — texts meant to match a BO `font:` rule must use the shorthand too.
+- 2026-10-17 · New tool: `tools/ui-qa/compare-styles.mjs` — two demo states + a JSON spec of selector pairs
+  (`tools/ui-qa/specs/rap-profile-vs-bo.json`) → table of every computed property / box (incl. insets via `rel`) that
+  differs, ±0.5px, plus `:root` token values; `expected` entries (with a reason) list page-level differences apart;
+  `--dump <sel>` prints a DOM tree to pick selectors, `--trace <sel> --props …` shows where an inherited value comes from.
+  Use it whenever „make X exactly like Y”: before (HEAD worktree via `--base http://localhost:8936`) 280 → after 0.
+  The list of compared props must include the inherited rendering ones (smoothing, text-rendering, kerning, synthesis)
+  — my first run without them showed only 25 differences and missed the main visible one.
+- 2026-10-17 · `git worktree add -f <dir>` on an EXISTING scratch dir silently kept an old worktree (a months-old
+  checkout, no rap states → „not ready”). Always `git -C <dir> log -1` before trusting a HEAD baseline; use a new dir.
