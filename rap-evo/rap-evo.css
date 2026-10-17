@@ -934,8 +934,13 @@ a {
   padding-inline: var(--spacing-12, 12px);
 }
 
+/* the act's full name is never truncated on its own page (user 2026-10-17): the title wraps */
 .rap-profile__title-row > .e-permits-page-header__title {
   flex: 0 1 auto;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .rap-profile__title-row > .e-permits-workplace__tag {

@@ -270,10 +270,8 @@
           </div>
         </section>
 
-        <section class="e-permits-dosar-profil__section" aria-labelledby="rap-history-title">
-          <h2 class="e-permits-dosar-profil__section-title" id="rap-history-title">Istoric complet</h2>
-          <ol class="rap-profile__timeline">${renderTimeline(profile.timeline)}</ol>
-        </section>
+        <!-- no „Istoric complet” on the public registry page (user 2026-10-17): a dossier timeline
+             (Cerere depusă → Dosar în examinare) means nothing for an issued act seen by the public -->
 
         <section class="e-permits-dosar-profil__section rap-profile__section--support" aria-labelledby="rap-support-title">
           <h2 class="e-permits-dosar-profil__section-title" id="rap-support-title">Ai nevoie de ajutor?</h2>
