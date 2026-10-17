@@ -2463,8 +2463,10 @@
       await h.wait(200); await h.click("[data-fo-doc-modal-submit]"); await h.wait(500);
     };
     /* Verificare done: paper request generated, signed scan attached, signed in MSign */
+    /* „Generează cererea pe hârtie”: MDocs answers after ~0.9 s in the preview, which is then closed */
+    const ghPaper = async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); };
     const ghReady = async (h) => {
-      await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400);
+      await ghPaper(h);
       await ghUpload("[data-gh-olograf]", "cerere-C-2026-004790-semnata.pdf")(h);
       await h.click("[data-gh-msign]"); await h.click("[data-gh-msign-ok]"); await h.wait(400);
     };
@@ -2546,7 +2548,7 @@
       /* US-236 Verificare */
       "gh-07": gh("#ghiseu/gh-4790/verificare"),
       "gh-07a": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); }),
-      "gh-07b": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); })),
+      "gh-07b": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await ghPaper(h); await h.click("[data-gh-msign]"); })),
       "gh-07c": gh("#ghiseu/gh-4790/verificare", ghReady),
       "gh-07d": gh("#ghiseu/gh-4790/verificare", next),
       /* a new request (demo prefill) jumped to Verificare from the stepper: every earlier step completed */
@@ -2559,9 +2561,15 @@
       /* back with the footer (the stepper is hidden on phones), edit, forward again: signature + scan voided */
       "gh-07e": gh("#ghiseu/gh-4790/verificare", seq(ghReady, async (h) => { await h.click("[data-gh-prev]"); await h.click("[data-gh-prev]"); await h.fill("#fo-gh-obiect", "Cafeneaua „Izvoraș” (terasă nouă)", { leave: false }); await h.click("[data-gh-next]"); await h.click("[data-gh-next]"); })),
       "gh-07f": gh("#ghiseu/gh-4790/verificare", null, { msign: "0", olograf: "0" }),
-      "gh-07g": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); }, { mdocs: "0" }),
-      "gh-07h": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); }, ghUpload("[data-gh-olograf]", "cerere-semnata.docx", 240000))),
-      "gh-07i": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await h.click("[data-gh-paper]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); await h.click("[data-gh-msign]"); }), { msignerr: "1" }),
+      "gh-07g": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-gh-paper-retry]"); }, { mdocs: "0" }),
+      /* document preview (2026-10-17): MDocs generating · the error closed (inline retry in the step) · page 2 of the
+         paper request · the signed request (MSign JSON) */
+      "gh-07g1": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active [data-gh-paper-retry]"); document.querySelector("#dosar-detail-modal [data-close]")?.click(); await h.wait(400); }, { mdocs: "0" }),
+      "gh-07a1": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); await h.find("#dosar-detail-modal.is-active .e-permits-empty"); }, { mdocs: "incarcare" }),
+      "gh-07a2": gh("#ghiseu/gh-4790/verificare", async (h) => { await h.click("[data-gh-paper]"); const canvas = await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); await h.wait(200); const pages = canvas.querySelectorAll(".e-permits-doc-page"); canvas.scrollTop += pages[pages.length - 1].getBoundingClientRect().top - canvas.getBoundingClientRect().top - 16; }),
+      "gh-07a3": gh("#ghiseu/gh-4790/verificare", seq(ghReady, async (h) => { await h.click('[data-gh-preview="signed"]'); await h.find("#dosar-detail-modal.is-active [data-dosar-doc-canvas]"); })),
+      "gh-07h": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await ghPaper(h); }, ghUpload("[data-gh-olograf]", "cerere-semnata.docx", 240000))),
+      "gh-07i": gh("#ghiseu/gh-4790/verificare", seq(async (h) => { await ghPaper(h); await h.click("[data-gh-msign]"); }), { msignerr: "1" }),
       /* US-16 Livrare */
       "gh-08": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next)),
       "gh-08a": gh("#ghiseu/gh-4790/verificare", seq(ghReady, next, async (h) => { await h.click("#gh-request-modal .e-permits-fo-delivery-paper"); await h.wait(300); await h.click('#gh-request-modal .e-permits-fo-delivery-option:has(input[value="courier"])'); await h.wait(400); })),

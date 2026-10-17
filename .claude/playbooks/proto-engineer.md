@@ -1115,3 +1115,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   data still has Expirat acts with a 2030 „Valabil până la” — data inconsistency, not touched. Parity specs stay 0 / 0
   because they read rap-02 / rap-03 (Valabil acts) — new rows on other statuses only add one off-scale count per row
   (the BO 8/7 row padding, standing). No sub-agent tool → code-audit + hover-audit run directly.
+- 2026-10-17 · Ghișeu „Cererea pe hârtie” preview („do this nicer” + print icon): two private copies of the A4 viewer
+  existed (BO `fitDosarDocPreview` with a hard 48, RAP `paginateActDoc` / `fitActPage` / print CSS) → ONE module
+  `js/doc-preview.js` (`GEAPDocPreview.paginate / fit / print / printIcon`) + `css/doc-preview.css`; RAP and the BO
+  dossier modal now call it, Ghișeu uses it in `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`
+  (MutationObserver puts `modal--md` back on close — the shell's other detail views share the dialog). Proof of
+  „no change” for RAP / dossier = a geometry probe (pages rect, zoom, row counts, column widths, footer text/y) on a
+  HEAD worktree (:8947) vs the tree → identical; print = CDP `Emulation.setEmulatedMedia({ media: "print" })`
+  after `GEAPDocPreview.print` with `window.print` stubbed (only the dialog visible, pages 794×1123).
+  Traps: (1) `table-layout: fixed` takes column widths from the FIRST row — a table starting with a heading row
+  (`th colspan=2`) split 50/50 while page 2 was 40/60 → `<colgroup>` cloned onto continuation pages; (2) a
+  generic print rule needs no per-page class: mark the canvas + its top-level `<body>` child, hide
+  `body > :not(root)` and `root :not(:has(canvas), canvas, canvas *)`, flatten the chain (static, no
+  max-height/overflow/transform) — works for the library modal and the FO doc-modal alike; (3) making
+  generation async (MDocs loading state) broke 4 demo states that clicked „Generează” and closed the dialog at
+  once → one `ghPaper` helper that waits for the canvas; grep every state using the trigger before adding a
+  delay. Coordinator rule (user): no request number in a document dialog's subtitle — „Generată prin MDocs ·
+  date”; the number stays on the page. No sub-agent tool → ran code-audit / hover-audit directly (findings only
+  inside the A4 page: mm padding + zoomed paragraph gaps, standing FPs).

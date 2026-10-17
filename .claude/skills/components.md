@@ -237,6 +237,7 @@ but this doc previously described it wrongly, see the entry.
 | Warning confirm (FO, data loss) | `.e-permits-fo-instance-switch-modal__icon--warning` (amber `--color-icon-warning-default`, warning-filled icon); primary stays brand (the safe action) | G8 guest leave dialog | app |
 | List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
 | Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
+| Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (download) · `btn-primary` „Închide”); groups `.rap-act-data__group` (heading row), > 10 fields → `.is-collapsed` + `.rap-act-data__more-row` + `.rap-act-data__toggle` (`btn-text-primary btn-sm btn-rounded` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `rap-evo.css` | `openActData` / `renderActData` / `actSpecificGroups` in `rap-evo/rap-evo.js`; demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
@@ -7066,6 +7067,38 @@ plată), `dos-04q` (⋮), `dos-04r` (draft act, `Proiect`), `dos-04s` / `dos-04t
 (uploaded field value), `fo-08` / `fo-g7d` (Finalizare certificate), `fo-05d` / `fo-g7b`
 (Verificare), `pp-10c` / `pp-10d` (previous act, summary), `sm-05e…05h` (Cabinet list, modal, ⋮),
 `cat-02` (Documente necesare).
+
+### Document preview — one A4 viewer (2026-10-17)
+
+User (Ghișeu „Cererea pe hârtie”, Figma GEAP 11728:279186): „do this nicer, and «Printează» also with a print
+icon”. The paper-request preview had a 40vh window, an unfitted page and no print icon; RAP had the good viewer
+(pagination, fit, print) as private code. Now there is ONE implementation:
+
+- **JS** `js/doc-preview.js` → `window.GEAPDocPreview`:
+  `paginate(canvas, { repeat, tail })` (measured unzoomed; table rows that do not fit move to continuation
+  pages with the `data-doc-cont` line on top, the closing parts (`tail`, default `.e-permits-doc-page__tail`)
+  go to the last page with ≥ 2 rows, a heading row never ends a page, „Pagina k din n” in every
+  `[data-doc-page-label]`); `fit(canvas)` (every page zoomed to the canvas width minus its COMPUTED padding,
+  never > 1); `print(canvas)` (marks the canvas + its top-level `<body>` child; `@media print` hides the rest
+  and prints the pages at A4, one per sheet); `printIcon(cls = "icon small")` (the nav printer, stroke =
+  label colour — the sprite has none).
+- **CSS** `css/doc-preview.css` (BO page + RAP page): page parts, fixed 2-column table (label 40 % in
+  `--color-text-base-secondary`, values wrap with `overflow-wrap: anywhere`), heading rows, continuation line,
+  footer (pushed to the page bottom; RAP pins its own under the signature block), page gap 24, measuring pass,
+  state canvas, print. The base page / canvas / surface rules stay in the „A4 page” + doc-peek canvas CSS.
+- **BO dialog for a document-only preview** (Ghișeu): `#dosar-detail-modal` with `modal--lg
+  e-permits-detail-modal--doc` (height = screen − 2 × 48, the canvas fills the body; back to `modal--md` on
+  close). Header = title + subtitle „<what produced it> · <date>” — **no request number in the subtitle**
+  (user 2026-10-17: the number is on the page). Footer: „Printează” `btn btn-neutral btn-rounded` + print icon
+  (paper request only) · „Descarcă” `btn btn-primary btn-rounded` + `icon-export`. While MDocs works:
+  subtitle „Formularul de tipar al cererii”, `GEAPEmptyState` loading („Se generează cererea”), footer
+  „Închide”; MDocs error: `circle-error` + „Reîncercați” (`btn btn-strict btn-sm` + `icon-rotate-arrow`) in
+  the empty state; the step keeps its inline retry after the dialog is closed.
+- The BO dossier document modal (preview above the details, 40vh window) uses `fit` only; RAP passes
+  `{ repeat: ".rap-act-doc__watermark", tail: ".rap-act-doc__closing, .rap-act-doc__foot" }`.
+
+Demo: `gh-07a` (2 pages), `gh-07a1` (`?mdocs=incarcare`), `gh-07a2` (page 2), `gh-07a3` (signed request),
+`gh-07g` (MDocs error), `gh-07g1` (error closed → inline retry), `gh-10d` (certificate); `rap-03k` (3 pages).
 
 ### Stacked-list row hover — full width (2026-10-14)
 

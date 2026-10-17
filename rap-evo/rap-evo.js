@@ -381,8 +381,6 @@
     sablon: MDOCS_UNAVAILABLE,
     date: "Datele actului nu sunt disponibile momentan. Vă rugăm să încercați mai târziu."
   };
-  /* the printer of the product nav (assets/icons/sidebar-printer-print.svg), stroke = label colour */
-  const PRINT_ICON = '<svg class="icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.70833 8.95833H5.625M14.375 11.4583V14.375H16.0417C16.9621 14.375 17.7083 13.6288 17.7083 12.7083V7.29167C17.7083 6.37119 16.9621 5.625 16.0417 5.625H3.95833C3.03786 5.625 2.29167 6.37119 2.29167 7.29167V12.7083C2.29167 13.6288 3.03786 14.375 3.95833 14.375H5.625V11.4583H14.375V16.0417C14.375 16.9621 13.6288 17.7083 12.7083 17.7083H7.29167C6.37119 17.7083 5.625 16.9621 5.625 16.0417V11.4583M7.29167 2.29167H12.7083C13.6288 2.29167 14.375 3.03786 14.375 3.95833V5.625H5.625V3.95833C5.625 3.03786 6.37119 2.29167 7.29167 2.29167Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const actModal = { overlay: null, opener: null, run: 0 };
 
   const longStamp = (date) => `${new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(date)}, ${new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit" }).format(date)}`;
@@ -411,7 +409,7 @@
     const row = ([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
     const rowsHtml = [
       ...[["Beneficiar", record.beneficiary.name], ...(person ? [] : [[record.beneficiary.identifierType, record.beneficiary.identifier]])].map(row),
-      ...actSpecificGroups(record).map((group) => `${group.title ? `<tr class="rap-act-doc__group"><th colspan="2" scope="colgroup">${escapeHtml(group.title)}</th></tr>` : ""}${group.rows.map(row).join("")}`),
+      ...actSpecificGroups(record).map((group) => `${group.title ? `<tr class="e-permits-doc-page__group"><th colspan="2" scope="colgroup">${escapeHtml(group.title)}</th></tr>` : ""}${group.rows.map(row).join("")}`),
       ...[
         ...(isTacit(record) && profile.tacitDate ? [["Data aprobării tacite", profile.tacitDate]] : []),
         ["Valabil din data", profile.validFrom],
@@ -427,9 +425,9 @@
       ? `<span class="rap-act-doc__watermark rap-act-doc__watermark--${tone}" aria-hidden="true"><span>${escapeHtml(record.status.toLocaleUpperCase("ro"))}</span></span>`
       : "";
     return `
-      <div class="e-permits-dtpl__page e-permits-doc-peek__page rap-act-doc" data-rap-act-cont="${escapeHtml(`${record.permit.name} · nr. ${record.permit.number} · continuare`)}">
+      <div class="e-permits-dtpl__page e-permits-doc-peek__page e-permits-doc-page rap-act-doc" data-doc-cont="${escapeHtml(`${record.permit.name} · nr. ${record.permit.number} · continuare`)}">
         ${watermark}
-        <div class="e-permits-dtpl__surface rap-act-doc__surface">
+        <div class="e-permits-dtpl__surface e-permits-doc-page__surface rap-act-doc__surface">
           <header class="rap-act-doc__head">
             <span class="rap-act-doc__arms" aria-hidden="true"><img src="../assets/logos/gov.svg" alt=""></span>
             <p class="rap-act-doc__country">Republica Moldova</p>
@@ -454,7 +452,7 @@
               </span>
             </div>
           </div>
-          <p class="rap-act-doc__footer">Generat prin MDocs la ${escapeHtml(longStamp(new Date()))} · Registrul actelor permisive · <span data-rap-act-page>Pagina 1 din 1</span></p>
+          <p class="e-permits-doc-page__footer rap-act-doc__footer">Generat prin MDocs la ${escapeHtml(longStamp(new Date()))} · Registrul actelor permisive · <span data-doc-page-label>Pagina 1 din 1</span></p>
         </div>
       </div>
     `;
@@ -463,56 +461,12 @@
   /* A4 pages (Figma comment A. 1968940910 — many configured fields): the act is rendered on one
      page, measured unzoomed, and the table rows that do not fit move to continuation pages
      (same shell + watermark, „… · continuare” line, the closing text + signature on the last page,
-     „Pagina k din n” in every footer). A section heading never ends a page. */
-  const paginateActDoc = (canvas) => {
-    const first = canvas.querySelector(".rap-act-doc");
-    if (!first) return;
-    const style = window.getComputedStyle(first);
-    const room = parseFloat(style.minHeight) - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
-    const fits = (page) => {
-      page.classList.add("is-measuring");
-      const height = page.querySelector(".rap-act-doc__surface").scrollHeight;
-      page.classList.remove("is-measuring");
-      return height <= room + 1;
-    };
-    const continuation = (from) => {
-      const page = document.createElement("div");
-      page.className = from.className;
-      const watermark = from.querySelector(".rap-act-doc__watermark");
-      if (watermark) page.append(watermark.cloneNode(true));
-      const surface = document.createElement("div");
-      surface.className = from.querySelector(".rap-act-doc__surface").className;
-      surface.innerHTML = `<p class="rap-act-doc__cont">${escapeHtml(first.dataset.rapActCont || "")}</p><table><tbody></tbody></table>`;
-      surface.append(...from.querySelectorAll(".rap-act-doc__closing, .rap-act-doc__foot"), from.querySelector(".rap-act-doc__footer").cloneNode(true));
-      page.append(surface);
-      return page;
-    };
-    let page = first;
-    for (let guard = 0; guard < 24 && !fits(page); guard += 1) {
-      const next = continuation(page);
-      page.after(next);
-      const body = page.querySelector("tbody");
-      const nextBody = next.querySelector("tbody");
-      while (!fits(page) && body.rows.length > 1) nextBody.prepend(body.lastElementChild);
-      /* the signature never stands alone: the last page keeps at least two rows of the table */
-      while (nextBody.rows.length < 2 && body.rows.length > 2) nextBody.prepend(body.lastElementChild);
-      if (body.lastElementChild?.classList.contains("rap-act-doc__group")) nextBody.prepend(body.lastElementChild);
-      if (!nextBody.rows.length) nextBody.closest("table").remove();
-      page = next;
-    }
-    const pages = canvas.querySelectorAll(".rap-act-doc");
-    pages.forEach((item, index) => { item.querySelector("[data-rap-act-page]").textContent = `Pagina ${index + 1} din ${pages.length}`; });
-  };
+     „Pagina k din n” in every footer). A section heading never ends a page. = the shared
+     GEAPDocPreview (js/doc-preview.js, css/doc-preview.css — also the Ghișeu / BO previews) */
+  const paginateActDoc = (canvas) => window.GEAPDocPreview?.paginate(canvas, { repeat: ".rap-act-doc__watermark", tail: ".rap-act-doc__closing, .rap-act-doc__foot" });
 
-  const fitActPage = () => {
-    const canvas = actModal.overlay?.querySelector("[data-rap-act-canvas]");
-    const pages = canvas?.querySelectorAll(".e-permits-doc-peek__page");
-    if (!pages?.length || !canvas.clientWidth) return;
-    /* the canvas padding is 24 (16 on phones): fit the 794px page into what is left */
-    const style = window.getComputedStyle(canvas);
-    const room = canvas.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-    pages.forEach((page) => { page.style.zoom = String(Math.min(1, room / 794)); });
-  };
+  /* fit the 794px page into the canvas minus its computed padding (24, 16 on phones) */
+  const fitActPage = () => window.GEAPDocPreview?.fit(actModal.overlay?.querySelector("[data-rap-act-canvas]"));
 
   /* view = loading | ready | <error key> */
   const renderActModalBody = (record, view) => {
@@ -522,11 +476,11 @@
     body.setAttribute("aria-busy", String(view === "loading"));
     body.innerHTML = ready
       ? `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas" data-rap-act-canvas role="document" aria-label="${escapeHtml(record.permit.name)}, nr. ${escapeHtml(record.permit.number)}">${renderActPage(record)}</div>`
-      : `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas rap-act-modal__canvas--state">${view === "loading"
+      : `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas e-permits-doc-peek__canvas--state">${view === "loading"
         ? window.GEAPEmptyState.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs pregătește actul. Poate dura câteva secunde." })
         : window.GEAPEmptyState.render({ bare: true, icon: "circle-error", text: MDOCS_ERRORS[view] || MDOCS_UNAVAILABLE })}</div>`;
     footer.innerHTML = `
-      ${ready ? `<button class="btn btn-neutral btn-rounded rap-act-modal__print" type="button" data-rap-act-print>${PRINT_ICON}<span>Imprimă</span></button>` : ""}
+      ${ready ? `<button class="btn btn-neutral btn-rounded rap-act-modal__print" type="button" data-rap-act-print>${window.GEAPDocPreview?.printIcon("icon") || ""}<span>Imprimă</span></button>` : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-rap-act-close>Închide</button>`;
     if (ready) {
       paginateActDoc(body.querySelector("[data-rap-act-canvas]"));
@@ -565,7 +519,7 @@
         closeActDocument();
         return;
       }
-      if (event.target.closest("[data-rap-act-print]")) window.print();
+      if (event.target.closest("[data-rap-act-print]")) window.GEAPDocPreview?.print(overlay.querySelector("[data-rap-act-canvas]"));
       const copyButton = event.target.closest("[data-rap-copy]");
       if (copyButton) handleCopyButton(copyButton);
       const clamp = event.target.closest("[data-rap-clamp-toggle]");

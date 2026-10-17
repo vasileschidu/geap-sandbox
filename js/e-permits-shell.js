@@ -3457,12 +3457,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${body}${signature}</div></div>
       </div>`;
   };
-  /* the page keeps its A4 layout and is zoomed to the canvas (as the template previews) */
-  const fitDosarDocPreview = () => {
-    const canvas = dosarDetailModal?.querySelector("[data-dosar-doc-canvas]");
-    const page = canvas?.querySelector(".e-permits-doc-peek__page");
-    if (page && canvas.clientWidth) page.style.zoom = String(Math.min(1, (canvas.clientWidth - 48) / 794));
-  };
+  /* the page keeps its A4 layout and is zoomed to the canvas = the shared document preview
+     (js/doc-preview.js: canvas width minus its computed padding; every page — Ghișeu previews too) */
+  const fitDosarDocPreview = () => window.GEAPDocPreview?.fit(dosarDetailModal?.querySelector("[data-dosar-doc-canvas]"));
   if (dosarDetailModal && "ResizeObserver" in window) new ResizeObserver(fitDosarDocPreview).observe(dosarDetailModal.querySelector("[data-dosar-detail-body]"));
   const downloadTextFile = (name, text) => {
     const blob = new Blob([`\ufeff${text}\n`], { type: "text/plain;charset=utf-8" });

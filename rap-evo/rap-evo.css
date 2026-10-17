@@ -1732,36 +1732,17 @@ tr:hover .rap-act-link {
   border-radius: var(--border-radius-8, 8px);
 }
 
-.rap-act-modal__canvas--state {
-  align-items: center;
-  display: flex;
-  justify-content: center;
-}
-
 .rap-act-modal__print {
   gap: var(--spacing-8, 8px);
 }
 
-/* a stroked icon: the library .icon fills with currentColor */
+/* the shared printer icon (GEAPDocPreview.printIcon, fill: none in css/doc-preview.css) at 20 */
 .rap-act-modal__print .icon {
-  fill: none;
   height: var(--icon-size-medium, 20px);
   width: var(--icon-size-medium, 20px);
 }
 
-/* ---- the act page (MDocs output) ---- */
-.rap-act-doc {
-  overflow: hidden;
-  position: relative;
-}
-
-.rap-act-doc__surface {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(297mm - 36mm);
-  position: relative;
-}
-
+/* ---- the act page (MDocs output); the paginated page itself = .e-permits-doc-page (css/doc-preview.css) ---- */
 .rap-act-doc__head {
   align-items: center;
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
@@ -1817,11 +1798,6 @@ tr:hover .rap-act-link {
   color: var(--color-text-base-secondary, #383838);
   margin-bottom: var(--spacing-16, 16px);
   text-align: center;
-}
-
-.rap-act-doc__surface td:first-child {
-  color: var(--color-text-base-secondary, #383838);
-  width: 40%;
 }
 
 .rap-act-doc__foot {
@@ -1898,14 +1874,9 @@ tr:hover .rap-act-link {
   overflow-wrap: anywhere;
 }
 
+/* the shared footer (css/doc-preview.css) sits right under the signature block, which takes the free space */
 .rap-act-doc__surface .rap-act-doc__footer {
-  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
   margin: var(--spacing-16, 16px) 0 0;
-  padding-top: var(--spacing-8, 8px);
-  text-align: center;
 }
 
 /* AC-14: a status other than „Valabil” = the status word across the page, behind the text,
@@ -1943,32 +1914,8 @@ tr:hover .rap-act-link {
   color: var(--color-text-base-tertiary, #757575);
 }
 
-/* ---- A4 pages (2026-10-17): a section heading row of the act's specific fields, the line on top of a
-   continuation page, the gap between pages in the canvas, the unzoomed measuring pass ---- */
-.rap-act-doc__surface .rap-act-doc__group th {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
-  text-align: left;
-}
-
-.rap-act-doc__surface .rap-act-doc__cont {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
-  padding-bottom: var(--spacing-8, 8px);
-}
-
-.rap-act-doc + .rap-act-doc {
-  margin-top: var(--spacing-24, 24px);
-}
-
-.rap-act-doc.is-measuring .rap-act-doc__surface {
-  min-height: 0;
-}
-
+/* A4 pages (2026-10-17): heading rows, the continuation line, the page gap and the measuring pass are the
+   shared document preview (css/doc-preview.css) */
 
 /* ---- Long act names in a dialog subtitle (rap-act-subtitle): number + copy whole, the name clamped
    to 1 line (2 on phones); when it overflows, the name is a toggle button with „Mai mult” ---- */
@@ -2138,58 +2085,7 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
   }
 }
 
-/* AC-09 „Imprimă”: only the A4 page, at its real size */
-@media print {
-  @page {
-    margin: 0;
-    size: A4;
-  }
-
-  body.rap-page--act-open > :not(.rap-act-modal) {
-    display: none !important;
-  }
-
-  body.rap-page--act-open .rap-act-modal {
-    animation: none;
-    background: none;
-    display: block;
-    position: static;
-  }
-
-  .rap-act-modal .rap-act-modal__dialog {
-    animation: none;
-    border-radius: 0;
-    box-shadow: none;
-    display: block;
-    height: auto;
-    max-height: none;
-    max-width: none;
-    overflow: visible;
-    width: auto;
-  }
-
-  .rap-act-modal :is(.e-permits-fo-doc-modal__header, .e-permits-fo-doc-modal__footer) {
-    display: none;
-  }
-
-  .rap-act-modal .rap-act-modal__body,
-  .rap-act-modal .rap-act-modal__canvas {
-    background: none;
-    border-radius: 0;
-    overflow: visible;
-    padding: 0;
-  }
-
-  .rap-act-modal .rap-act-doc {
-    box-shadow: none;
-    margin: 0;
-    zoom: 1 !important;
-  }
-
-  .rap-act-modal .rap-act-doc:not(:last-child) {
-    break-after: page;
-  }
-}
+/* AC-09 „Imprimă”: only the A4 page(s), at their real size = GEAPDocPreview.print (css/doc-preview.css) */
 
 /* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
    separator, not 8 — („Vezi act permisiv” = the plain library btn-primary btn-md, hugging, on every width) */
