@@ -50,7 +50,7 @@
         {
           "id": "d-nistru", "nr": "GEAP-2026-009-04466", "service": "09", "tip": "Eliberare",
           "object": "Terasa „Nistru”, or. Soroca", "address": "or. Soroca, str. Independenței 3", "caem": "I 56.30 Baruri",
-          "subdivision": "CSP Soroca", "status": "info", "submitted": "2026-09-24T10:05", "suspended": "2026-10-07",
+          "subdivision": "CSP Soroca", "status": "info", "submitted": "2026-09-24T10:05", "suspended": "2026-10-07", "examTerm": "2026-11-04",
           "info": { "until": "2026-10-21", "reason": "Planul încăperilor anexat nu este lizibil și nu indică destinația spațiilor de depozitare. Încărcați planul la o rezoluție mai bună, cu legenda încăperilor." },
           "payment": { "nr": "NP-20260924-4466", "amount": 500, "status": "Achitat", "created": "2026-09-24T10:03", "paid": "2026-09-24T10:04" }
         },

@@ -1163,3 +1163,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   a hairline; next steps as dashed items without dates make „the current step” visible without the old tracker. It
   replaced four blocks (tracker, callout, loose action row, „Istoric complet”) — grep demo states for selectors of
   removed blocks (`.cab-detail__actions` in sm-03a / sm-05c) before deleting them.
+- 2026-10-17 · Cabinet Azure gaps (expired-MPower leak, acts „Filtre”, Anulare, expired note, redirect error,
+  estimated / exam dates). (1) The leak was a FALLBACK: `state.permits = geap.acts.length ? geap.acts :
+  data.permits` showed 6 legacy demo permits (incl. „Retras” + „Anulat — contestație”) for ANY subject without
+  acts — grep every `? … : data.<legacy>` fallback when a perspective change „shows someone else's data”; an
+  unknown subject gets the shared empty state, a restricted one ONLY the notice. The perspective's access data
+  lived in the requests JSON → load it BEFORE the first render of the other view. (2) Wiring the shared facet
+  filter on a third page cost ~60 lines: FACETS + options / availableFacets / preview copied from RAP's
+  contract, placement CSS restated per page (`.cab-filters` = `.rap-filters`), one status filter only (the
+  status chips went — two status filters contradict). Demo helpers must branch desktop (toggle → chip →
+  option → `[data-filter-confirm]` → `[data-filter-commit]`) vs phone (chip → sheet → `[data-sheet-apply]`).
+  (3) Moving a private renderer (the requests pager) into `CabEvo` with a `prefix` for its data hooks kept the
+  old page byte-identical. (4) Replacing `disabled` by `aria-disabled` + `data-tooltip-reason` (to show the
+  reason) re-enables the click — guard the handler on `aria-disabled` in the same change. (5) Capture
+  overflow on phones showed a ⋮ menu 40px off-screen when the trigger sits after two tags (pre-existing for the
+  tacit act): menus that anchor to one side need a measured flip (`fitMenu` → `.is-end` / `.is-start`), a
+  fixed per-breakpoint side is wrong for some rows. A demo-only param (`?acte=multe`, `?nota=expirata`,
+  `?redirectionare=eroare`) kept seed data — and every other state — unchanged.

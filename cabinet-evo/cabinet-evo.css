@@ -1395,3 +1395,82 @@
     right: auto;
   }
 }
+
+/* ===== Actele mele permisive · „Filtre” = the shared facet filter (2026-10-17) =====
+   css/facet-filter.css + js/facet-filter.js, placed as on RAP (rap-evo.css › .rap-filters): outside a
+   table card the bar is its own bordered block 16 under the toolbar; phones (≤760) use the phone
+   mode — the search takes the toolbar row, „Filtre” is the first chip of ONE scrolling chip row 12
+   under it, running to the screen edges. The pager is the Solicitările mele one (CabEvo.pagerHtml). */
+.cab-toolbar[hidden],
+.cab-list[hidden],
+.cab-restriction[hidden] {
+  display: none;
+}
+
+.cab-filters.e-permits-workplace__filters {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  margin-top: var(--spacing-16, 16px);
+}
+
+/* the restriction notice keeps the intro → content distance */
+.cab-restriction > .cab-callout {
+  margin-top: var(--spacing-24, 24px);
+}
+
+@media (max-width: 760px) {
+  .cab-filters.e-permits-workplace__filters {
+    flex-wrap: wrap;
+  }
+
+  .cab-filters.e-permits-workplace__filters.is-sheets {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    flex-wrap: nowrap;
+    margin-top: var(--spacing-12, 12px);
+    padding: var(--spacing-0, 0px);
+  }
+
+  .cab-filters.is-sheets .e-permits-workplace__filter-chips {
+    margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-16, 16px) * -1) var(--spacing-0, 0px);
+    padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
+    scroll-padding-inline: var(--spacing-16, 16px);
+  }
+
+  /* the „Filtre” chip replaces the toolbar button: the search takes the row */
+  .cab-toolbar:has(> .cab-filter[hidden]) .cab-search {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+/* US-24 AC-04 · an action that failed and can be retried = the error notice + „Reîncercați” (library
+   btn-strict btn-sm) on one row, wrapping under it when narrow (the Ghișeu .e-permits-gh__retry) */
+.cab-retry {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+}
+
+.cab-retry > .cab-message {
+  flex: 1 1 320px;
+}
+
+.cab-status__now > .cab-retry,
+.e-permits-stack__main > .cab-retry {
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* fitMenu(): a menu that would leave the screen opens towards the other side */
+:is(.cab-card__tags, .e-permits-fo-intent-act__action) .cab-menu.e-permits-fo-intent-menu.is-end {
+  left: auto;
+  right: 0;
+}
+
+:is(.cab-card__tags, .e-permits-fo-intent-act__action) .cab-menu.e-permits-fo-intent-menu.is-start {
+  left: 0;
+  right: auto;
+}

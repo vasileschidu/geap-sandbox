@@ -235,7 +235,9 @@ but this doc previously described it wrongly, see the entry.
 | Tracker step needing the applicant / refused | `.e-permits-fo-finish-tracker__item.is-{attention\|rejected}` + `.e-permits-fo-finish-marker--{attention\|rejected}`; 16px todo = `--todo.e-permits-fo-finish-marker--sm` | `trackerHtml` / `historyHtml` | app |
 | Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + `__primary--danger` | `openConfirm({ danger: true })` (solicitari.js) | app |
 | Warning confirm (FO, data loss) | `.e-permits-fo-instance-switch-modal__icon--warning` (amber `--color-icon-warning-default`, warning-filled icon); primary stays brand (the safe action) | G8 guest leave dialog | app |
-| List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
+| List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact`; none up to 10 rows | `CabEvo.pagerHtml({ total, page, perPage, prefix, label, sizeLabel })` (hooks `data-<prefix>-page` / `-per-page`; Solicitările mele `sm`, Actele mele `cab`); demo sm-01*, pp-01t | page-app |
+| Access restriction notice (EVO Cabinet, MPower expired / revoked) | `.e-permits-callout.e-permits-callout--neutral.cab-callout` (lock icon, title „Împuternicirea MPower a expirat / fost revocată pe <data>”, text) — requests: above the read-only history (US-159 AC-06); acts: ALONE in `[data-cab-restriction]`, no toolbar / list / actions (Feature 90818 §4) | `CabEvo.restrictionHtml(readOnly, text)`; demo sm-07b, pp-01v | page-app |
+| Retry notice (EVO Cabinet) | `.cab-retry` = `.cab-message` error notice + `btn btn-strict btn-sm` „Reîncercați” (`icon-rotate-arrow`) on one row, wrapping ≤ 320 of notice (= Ghișeu `.e-permits-gh__retry`) | `solicitari.js redirectError` (US-24 AC-04); demo sm-04h, sm-04h1 | page-app |
 | Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
 | Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (download) · `btn-primary` „Închide”); groups `.rap-act-data__group` (heading row), > 10 fields → `.is-collapsed` + `.rap-act-data__more-row` + `.rap-act-data__toggle` (`btn-text-primary btn-sm btn-rounded` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
@@ -5688,10 +5690,26 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
 (`act.pending`) → the act is locked.
 
 **Entry 1 — EVO Cabinet /permits** (`cabinet-evo/index.html?as=<subject>`):
+- List (2026-10-17): search „Caută după nr. act sau denumire” (matches the act number, the object name and
+  the act type, diacritic-insensitive) + „Filtre” = the shared facet filter (`GEAPFacetFilter`, as RAP:
+  `.e-permits-workplace__advanced.cab-filter` button + `.e-permits-workplace__filters.cab-filters` bordered bar
+  16 under the toolbar; phones = `mobileSheets` chip row + bottom sheets) with facets Statut (values as Small
+  tags), Denumire act, Autoritate, Subdiviziune (offered when ≥ 2 values). The old status chips are gone (one
+  status filter). > 10 acts → `CabEvo.pagerHtml` (prefix `cab`). Only the subject's own acts: an unknown subject
+  / one without acts gets the shared empty state (the legacy `permits` demo list was removed); an MPower that
+  expired / was revoked → `CabEvo.restrictionHtml` alone (no data, no actions). Demo pp-01h (Statut = Expirat),
+  pp-01s (bar / sheet open), pp-01t (`?acte=multe` → pager), pp-01u (search by number), pp-01v (restriction),
+  pp-01w (no acts).
 - Act card: `.cab-card__heading` (title + status tag) over `.cab-card__service`; ⋮ = library
   `btn-icon` → `.e-permits-fo-intent-menu.cab-menu` with Vezi detalii / Descarcă /
   `.cab-menu__separator` / `.cab-menu__label` „Postprocese” / one item per post-process.
-  A locked act's items are disabled (`.cab-menu__item[disabled]`).
+  A locked act's items are `aria-disabled` + `data-tooltip-reason` „Un alt postproces este în curs pentru acest
+  act.” (US-55 AC-14; pp-01r). A menu that would leave the screen flips side (`CabEvo.fitMenu` → `.is-end` /
+  `.is-start`).
+- „Anulare” (US-55 AC-09 / AC-10, 2026-10-17): `postProcesses.anulare` in `data/acte-permisive.json`, available
+  from Valabil and Suspendat, offered where the service passport allows it (now the DEMO service); consequential
+  (the confirmation), FO step 2 = „Motivul anulării” + note; demo pp-01p (Valabil), pp-01q (Suspendat, profile
+  menu), pp-17 / pp-17a (FO).
 - Act profile (2026-10-17 = the RAP act profile seen by the owner): `article.cab-profile.cab-act-profile`
   › public BO header (‹ Actele mele permisive; meta Numărul actului · Stare (+ „Aprobare tacită”) · Valabil
   din data | Suspendat până la | Retras la · Data expirării; actions „Vezi act permisiv” (primary → the shared
@@ -5753,7 +5771,7 @@ calls `stopFrontOfficePostprocess`). It reuses the primary FO wizard; only conte
 **Demo states** (`js/demo-states.js`): `pp-01…01i` Cabinet, `pp-02…02c` intent (02c = MPower subject
 with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp-11` reperfectare 10,
 `pp-12/12a` prelungire, `pp-13…13b` duplicat, `pp-14…14b` retragere, `pp-15/15a` suspendare,
-`pp-16/16a` reluare.
+`pp-16/16a` reluare, `pp-17/17a` anulare.
 
 ### EVO Cabinet › Solicitările mele + Catalog (added 2026-10-12)
 
@@ -5823,14 +5841,25 @@ Spre achitare / Informații suplimentare warning, Finalizat success; marks Aprob
 danger, „Aprobare tacită” = the blue tag as a `button.cab-mark` (tooltip with the explanation; the
 code-audit `button-not-library` on it is intended).
 Download error (US-19 AC-14) = `message banner--error` after the clicked scope (`[data-sm-dl-scope]`).
+Expired payment note (US-135 AC-14, 2026-10-17; demo `?nota=expirata`, sm-04g / sm-04g1): status unchanged
+(„Spre achitare”, the mapping is a pending PO decision — MCabinet 95895), no „Achitare” / MPay badge / ⋮ pay
+item; the status card shows „Spre achitare · termenul notei de plată a expirat pe …” + the error `.cab-message`
+„Taxa a expirat. Achitarea nu mai este posibilă.” in place of the button; the row's deadline line says it; Taxe ›
+Starea notei = red „Expirat”. Failed redirect to the suplinire form (US-24 AC-04, demo `?redirectionare=eroare`,
+sm-04h profile / sm-04h1 row) = `.cab-retry` (error notice + btn-strict „Reîncercați”) under the action.
+„Data estimată de finalizare” (US-19 AC-02): `estimatedEnd` = the examination term while open (Informații
+suplimentare too) and the finish date after; rows show „Finalizare estimată …” / „Finalizată …” where the
+deadline line does not already carry the date. „Termenul de examinare” stays visible in Informații suplimentare
+(US-161 AC-06: shown whenever it has a value — Date generale row + header meta).
 
 **Modals**: Elimină schița = FO confirm modal with `--danger`; MPay stand-in = the same modal (note
 data pre-filled, „Achită” → `?achitat=<id>`, „Anulează plata” = status unchanged); Filtre = FO doc
 modal shell with authority checkboxes and two date-range pickers (AC-11 inline error).
 
-**Representative after MPower expiry** (US-159): neutral callout with lock icon on top, cards
-`.cab-card--static` with only nr, serviciu, data depunerii, statut; no ⋮, no profile, search /
-chips / sort still work.
+**Representative after MPower expiry** (US-159): neutral callout with lock icon on top
+(`CabEvo.restrictionHtml`), cards `.cab-card--static` with only nr, serviciu, data depunerii, statut; no ⋮,
+no profile, search / chips / sort still work. On Actele mele permisive the same notice stands ALONE — no
+list, no search, no actions (Feature 90818: the representative's access is restricted completely).
 
 **Returns** read by the list: `depus=<nr>&obiect=&pp=&act=&subdiviziune=` (FOD2 S11), `schita=1&pas=`
 (draft saved), `achitat=<id>` / `plata=anulata` (MPay). Demo errors: `eroare=lista|cautare|mpower`,

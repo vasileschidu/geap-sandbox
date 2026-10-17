@@ -920,6 +920,13 @@
             "kind": "consequential",
             "requestType": "Retragere",
             "consequence": "Actul permisiv va fi retras definitiv și nu mai poate fi reactivat. Pentru a relua activitatea va trebui să depui o cerere nouă."
+          },
+          "anulare": {
+            "label": "Anulare",
+            "icon": "icon-circle-error",
+            "kind": "consequential",
+            "requestType": "Anulare",
+            "consequence": "Actul permisiv va fi anulat și nu mai poate fi reactivat. Pentru a desfășura din nou activitatea va trebui să depui o cerere nouă."
           }
         },
         "availability": {
@@ -928,11 +935,13 @@
             "prelungire",
             "duplicat",
             "suspendare",
-            "retragere"
+            "retragere",
+            "anulare"
           ],
           "suspendat": [
             "reluare",
-            "retragere"
+            "retragere",
+            "anulare"
           ],
           "expirat": [],
           "retras": [],
@@ -987,12 +996,14 @@
             "allows": [
               "suspendare",
               "reluare",
-              "retragere"
+              "retragere",
+              "anulare"
             ],
             "terms": {
               "suspendare": 5,
               "reluare": 5,
-              "retragere": 1
+              "retragere": 1,
+              "anulare": 1
             },
             "delivery": [
               "Livrare electronică (EVO Cabinet)"
@@ -1027,6 +1038,11 @@
           "reluare": [
             "Reluarea activității",
             "Înlăturarea cauzelor suspendării",
+            "Alte"
+          ],
+          "anulare": [
+            "Încetarea activității",
+            "Act emis în baza unor date eronate",
             "Alte"
           ]
         },

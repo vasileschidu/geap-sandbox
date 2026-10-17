@@ -83,12 +83,18 @@
     return days > 1 ? `peste ${days} zile` : "";
   };
 
-  /* estimated completion (US-19 column „Data estimată de finalizare”) */
+  /* estimated completion (US-19 AC-02 column „Data estimată de finalizare”): the examination term while the
+     request is open (also in „Informații suplimentare”, US-161 AC-06), the date it was finished after */
   function estimatedEnd(dosar) {
     if (dosar.status === "finalizat") return dosar.finalized || "";
-    if (dosar.status === "derulare" || dosar.status === "achitare") return dosar.examTerm || "";
+    if (dosar.status === "derulare" || dosar.status === "achitare" || dosar.status === "info") return dosar.examTerm || "";
     return "";
   }
+
+  /* US-135 AC-14: a payment note past its term can no longer be paid (the request status stays as it
+     is — the expired-note status mapping is a pending PO decision, MCabinet 95895) */
+  const paymentExpired = (dosar) => dosar.status === "achitare" && Boolean(dosar.payment?.due) && dosar.payment.due < TODAY;
+  const PAYMENT_EXPIRED_TEXT = "Taxa a expirat. Achitarea nu mai este posibilă.";
 
   const appealUntil = (dosar) => (dosar.status === "finalizat" && dosar.finalized ? addDays(dosar.finalized, state.data.appealDays || 30) : "");
   const canAppeal = (dosar) => Boolean(appealUntil(dosar)) && appealUntil(dosar) >= TODAY;
@@ -164,6 +170,7 @@
       case "info":
         return message("banner--warning", "icon-warning-filled", `Trimiteți informațiile cerute până la <strong>${escape(longDate(dosar.info?.until))}</strong>`);
       case "achitare":
+        if (paymentExpired(dosar)) return message("banner--error", "icon-circle-error-filled", escape(PAYMENT_EXPIRED_TEXT));
         return message("banner--warning", "icon-credit-card", `Achitați taxa până la <strong>${escape(longDate(dosar.payment?.due))}</strong>`);
       case "derulare":
         if (dosar.tacit) return message("banner--info", "icon-time-filled", `Termenul de examinare a expirat pe <strong>${escape(longDate(dosar.examTerm))}</strong>`);
@@ -182,7 +189,7 @@
       items.push({ action: "delete", icon: "icon-delete", label: "Elimină schița" });
     }
     if (dosar.status === "info" && dosar.info?.until >= TODAY) items.push({ action: "supplement", icon: "icon-page-upload", label: "Suplinire informații", href: foUrl(dosar, "supplement") });
-    if (dosar.status === "achitare") items.push({ action: "pay", icon: "icon-credit-card", label: `Achită ${money(dosar.payment?.amount)}` });
+    if (dosar.status === "achitare" && !paymentExpired(dosar)) items.push({ action: "pay", icon: "icon-credit-card", label: `Achită ${money(dosar.payment?.amount)}` });
     if (dosar.status === "derulare" || dosar.status === "info" || dosar.status === "achitare") items.push({ action: "download", kind: "certificat", icon: "icon-export", label: "Descarcă certificatul constatator" });
     if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) {
       items.push({ action: "act", icon: "icon-page-text", label: "Vezi actul", href: cabUrl("acte", { act: dosar.actId }) });
@@ -219,7 +226,7 @@
   function primaryAction(dosar) {
     if (dosar.status === "schita") return `<a class="btn btn-neutral btn-sm" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue" data-sm-id="${escape(dosar.id)}">Continuă</a>`;
     if (dosar.status === "info" && dosar.info?.until >= TODAY) return `<a class="btn btn-neutral btn-sm" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement" data-sm-id="${escape(dosar.id)}">Suplinire informații</a>`;
-    if (dosar.status === "achitare") return `<button class="btn btn-neutral btn-sm" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">Achitare</button>`;
+    if (dosar.status === "achitare" && !paymentExpired(dosar)) return `<button class="btn btn-neutral btn-sm" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">Achitare</button>`;
     if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) return `<a class="btn btn-neutral btn-sm" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act" data-sm-id="${escape(dosar.id)}">Vezi actul</a>`;
     return "";
   }
@@ -231,7 +238,9 @@
     switch (dosar.status) {
       case "schita": return line("warning", "icon-time", `Schița se elimină automat pe <strong>${escape(longDate(dosar.draft?.expires))}</strong>`);
       case "info": return line("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la <strong>${escape(longDate(dosar.info?.until))}</strong>`);
-      case "achitare": return line("warning", "icon-credit-card", `Achitați taxa până la <strong>${escape(longDate(dosar.payment?.due))}</strong>`);
+      case "achitare": return paymentExpired(dosar)
+        ? line("warning", "icon-circle-error-filled", `Taxa a expirat pe <strong>${escape(longDate(dosar.payment?.due))}</strong>. Achitarea nu mai este posibilă.`)
+        : line("warning", "icon-credit-card", `Achitați taxa până la <strong>${escape(longDate(dosar.payment?.due))}</strong>`);
       case "derulare": return dosar.tacit
         ? line("info", "icon-time-filled", `Termenul de examinare a expirat pe <strong>${escape(longDate(dosar.examTerm))}</strong>`)
         : line("info", "icon-time-filled", `Răspuns până la <strong>${escape(longDate(dosar.examTerm))}</strong>`);
@@ -256,6 +265,9 @@
         </li>`;
     }
     const dateText = dosar.status === "schita" ? `Creată ${longDate(dosar.created)}` : `Depusă ${longDate(dosar.submitted)}`;
+    /* US-19 AC-02 „Data estimată de finalizare” — finished requests too (derulare: the deadline line says it) */
+    const end = estimatedEnd(dosar);
+    const endText = !end || dosar.status === "derulare" ? "" : dosar.status === "finalizat" ? `Finalizată ${longDate(end)}` : `Finalizare estimată ${longDate(end)}`;
     const primary = primaryAction(dosar);
     return `
       <li class="e-permits-stack__item sm-item is-clickable${dosar.justAdded ? " is-new" : ""}" tabindex="0" aria-label="${escape(`${dosar.object} — ${statusOf(dosar).label}`)}" data-sm-card="${escape(dosar.id)}">
@@ -265,7 +277,7 @@
             <span class="sm-item__tags">${statusTag(dosar)}${marksHtml(dosar)}</span>
           </div>
           <div class="e-permits-stack__meta">${part(escape(dosar.tip))}${part(escape(service.title || ""))}</div>
-          <div class="e-permits-stack__meta">${part(escape(authorityLabel(dosar)))}${part(escape(dateText))}${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}</div>
+          <div class="e-permits-stack__meta">${part(escape(authorityLabel(dosar)))}${part(escape(dateText))}${endText ? part(escape(endText)) : ""}${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}</div>
           ${deadlineHtml(dosar)}
         </div>
         <div class="e-permits-stack__actions cab-card__actions">
@@ -333,44 +345,14 @@
     }).join("");
   }
 
-  function pagerHtml(total) {
-    /* US-158: no pagination below the smallest page size */
-    if (total <= PER_PAGE[0]) return "";
-    const pages = Math.max(1, Math.ceil(total / state.perPage));
-    const first = (state.page - 1) * state.perPage + 1;
-    const last = Math.min(total, state.page * state.perPage);
-    const link = (page, label, { disabled = false, active = false, aria = "" } = {}) => `
-      <span class="pagination__item">
-        <button class="pagination__link${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-sm-page="${page}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${aria}"` : ""}>${label}</button>
-      </span>`;
-    return `
-      <div class="cab-pager">
-        <p class="cab-pager__range">${first}–${last} din ${total}</p>
-        <nav class="pagination" aria-label="Paginarea solicitărilor">
-          ${link(state.page - 1, icon("icon-chevron-left-small", "medium"), { disabled: state.page === 1, aria: "Pagina anterioară" })}
-          ${Array.from({ length: pages }, (_, index) => link(index + 1, String(index + 1), { active: index + 1 === state.page, aria: `Pagina ${index + 1}` })).join("")}
-          ${link(state.page + 1, icon("icon-chevron-right-small", "medium"), { disabled: state.page === pages, aria: "Pagina următoare" })}
-        </nav>
-        <div class="e-permits-fo-intent-act__action">
-          <button class="btn btn-text-neutral btn-sm cab-pager__size" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-per-page" data-cab-menu-trigger><span>${state.perPage} pe pagină</span><svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg></button>
-          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--compact" id="sm-per-page" role="menu" aria-label="Dosare pe pagină" hidden>
-            ${PER_PAGE.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === state.perPage}" data-sm-per-page="${size}"><span>${size} pe pagină</span>${size === state.perPage ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("")}
-          </ul>
-        </div>
-      </div>`;
-  }
+  /* the shared Cabinet pager (CabEvo.pagerHtml, also on Actele mele permisive) */
+  const pagerHtml = (total) => C.pagerHtml({ total, page: state.page, perPage: state.perPage, sizes: PER_PAGE, prefix: "sm", label: "Paginarea solicitărilor", sizeLabel: "Dosare pe pagină" });
 
+  /* US-159: the read-only history after the MPower expired / was revoked (the acts side shows the same
+     notice with no data — CabEvo.restrictionHtml) */
   function readOnlyBanner() {
-    const ro = state.perspective.readOnly;
     const name = state.subject?.name || "beneficiar";
-    return `
-      <div class="e-permits-callout e-permits-callout--neutral cab-callout" role="status">
-        <span class="e-permits-callout__icon" aria-hidden="true">${icon("icon-lock", "medium")}</span>
-        <div class="e-permits-callout__content">
-          <p class="e-permits-callout__title">Împuternicirea MPower a ${ro.reason === "revocat" ? "fost revocată" : "expirat"} pe ${escape(longDate(ro.since))}</p>
-          <p class="e-permits-callout__text">Vedeți doar istoricul solicitărilor depuse pentru ${escape(name)}, cu statutul de la acea dată. Datele nu se mai actualizează, iar acțiunile nu sunt disponibile. Pentru acces complet, cereți beneficiarului o împuternicire nouă în MPower.</p>
-        </div>
-      </div>`;
+    return C.restrictionHtml(state.perspective.readOnly, `Vedeți doar istoricul solicitărilor depuse pentru ${name}, cu statutul de la acea dată. Datele nu se mai actualizează, iar acțiunile nu sunt disponibile. Pentru acces complet, cereți beneficiarului o împuternicire nouă în MPower.`);
   }
 
   function errorHtml(text, retry = "data-sm-retry") {
@@ -487,6 +469,12 @@
           text: `${dosar.info?.reason ? `${dosar.info.reason} ` : ""}Examinarea este suspendată până transmiteți informațiile; apoi continuă.`,
         };
       case "achitare":
+        if (paymentExpired(dosar)) {
+          return {
+            title: `Spre achitare · termenul notei de plată a expirat pe ${longDate(dosar.payment?.due)}`,
+            text: `Nota de plată de ${money(dosar.payment?.amount)} nu a fost achitată în termen.`,
+          };
+        }
         return {
           title: `Spre achitare · ${money(dosar.payment?.amount)} până la ${longDate(dosar.payment?.due)}`,
           text: "Nota de plată se achită prin MPay pentru ca dosarul să continue examinarea. După achitare, starea se actualizează automat.",
@@ -528,7 +516,7 @@
     const examining = dosar.status === "derulare";
     events.push({ state: examining ? "current" : "done", title: "În examinare la autoritate", when: `din ${longDate(addDays(dosar.submitted, 1))}`, text: examining && dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
     if (dosar.status === "info") events.push({ state: "attention", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: `Examinarea este suspendată · trimiteți-le până la ${longDate(dosar.info?.until)}.` });
-    if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: `${money(dosar.payment?.amount)} · de achitat până la ${longDate(dosar.payment?.due)}.` });
+    if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: paymentExpired(dosar) ? `${money(dosar.payment?.amount)} · termenul de achitare a expirat pe ${longDate(dosar.payment?.due)}.` : `${money(dosar.payment?.amount)} · de achitat până la ${longDate(dosar.payment?.due)}.` });
     if (dosar.status === "finalizat") {
       const rejected = dosar.result === "respins";
       events.push({ state: rejected ? "rejected" : "done", title: rejected ? "Solicitare respinsă" : "Solicitare aprobată", when: longDate(dosar.finalized), text: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis." });
@@ -593,6 +581,8 @@
         if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
         break;
       case "achitare":
+        /* US-135 AC-14: no redirect to MPay for an expired note — the message instead of the button */
+        if (paymentExpired(dosar)) return message("banner--error", "icon-circle-error-filled", escape(PAYMENT_EXPIRED_TEXT), { role: "status", attrs: "data-sm-payment-expired" });
         buttons.push(`
           <button class="btn btn-badge btn-badge--primary" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">
             <span class="btn-badge__logo" aria-hidden="true"><img src="../assets/logos/m-platforms/m-pay.svg" alt=""></span>
@@ -629,7 +619,8 @@
       meta.push(["Data depunerii", escape(longDate(dosar.submitted))]);
       if (dosar.status === "finalizat") meta.push(["Data finalizării", escape(longDate(dosar.finalized))]);
       else if (dosar.status === "info") meta.push(["Suspendat din", escape(longDate(dosar.suspended))]);
-      else if (dosar.examTerm) meta.push(["Termen de examinare", escape(longDate(dosar.examTerm))]);
+      /* US-161 AC-06: the term stays visible in „Informații suplimentare” too */
+      if (dosar.status !== "finalizat" && dosar.examTerm) meta.push(["Termen de examinare", escape(longDate(dosar.examTerm))]);
     }
     return meta;
   }
@@ -778,7 +769,7 @@
       row("Denumirea serviciului", escape(service.title || "")),
       dosar.submitted ? row("Data depunerii", escape(longDateTime(dosar.submitted))) : "",
       dosar.suspended ? row("Data suspendării", escape(longDate(dosar.suspended))) : "",
-      dosar.examTerm && dosar.status !== "info" ? row("Termenul de examinare", `<span>${escape(longDate(dosar.examTerm))}</span>${dosar.tacit ? marksHtml(dosar) : ""}`) : "",
+      dosar.examTerm ? row("Termenul de examinare", `<span>${escape(longDate(dosar.examTerm))}</span>${dosar.tacit ? marksHtml(dosar) : ""}`) : "",
       row("Stare", `${statusTag(dosar)}${dosar.result ? marksHtml(dosar) : ""}`),
       row("Autoritatea", escape(service.authorityName || service.authority || "")),
       row("Subdiviziunea de procesare", escape(dosar.subdivision)),
@@ -815,7 +806,7 @@
     /* US-161 AC-18…20: only when a payment note exists; Data achitării only when paid */
     const taxes = payment ? section("taxe", "Taxe", rows([
       row("Numărul notei de plată", copyValue(payment.nr, `Copiază numărul notei de plată ${payment.nr}`)),
-      row("Starea notei", C.tagHtml(payment.status, payment.status === "Achitat" ? "success" : "warning")),
+      row("Starea notei", C.tagHtml(payment.status, payment.status === "Achitat" ? "success" : payment.status === "Expirat" || payment.status === "Anulat" ? "danger" : "warning")),
       row("Suma totală", escape(money(payment.amount))),
       row("Data creării", escape(longDateTime(payment.created))),
       payment.status === "Achitat" && payment.paid ? row("Data achitării", escape(longDateTime(payment.paid))) : "",
@@ -1104,6 +1095,21 @@
     root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
   }
 
+  /* US-24 AC-04: the error notice with „Reîncercați” (btn-strict) under the action that failed — in the
+     status card on the profile, in the row on the list */
+  function redirectError(action) {
+    root.querySelectorAll("[data-sm-redirect-error]").forEach((node) => node.remove());
+    const html = `
+      <div class="cab-retry" data-sm-redirect-error>
+        ${message("banner--error", "icon-circle-error-filled", "Formularul de suplinire nu s-a deschis. Datele dosarului nu s-au pierdut.", { role: "alert" })}
+        <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
+      </div>`;
+    const item = action.closest(".sm-item");
+    if (item) item.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
+    else (action.closest(".cab-status__actions") || action).insertAdjacentHTML("afterend", html);
+    root.querySelector("[data-sm-redirect-retry]")?.focus();
+  }
+
   /* ---------- tooltip for „Disponibilă aprobarea tacită” (library .tooltip) ---------- */
 
   let tip = null;
@@ -1155,6 +1161,8 @@
         return;
       }
       if (target.closest("[data-sm-retry]")) { window.location.assign(cabUrl("solicitari")); return; }
+      const redirectRetry = target.closest("[data-sm-redirect-retry]");
+      if (redirectRetry) { window.location.assign(redirectRetry.dataset.smRedirectRetry); return; }
       if (target.closest("[data-sm-search-retry]")) { state.searchFailed = false; renderList(); return; }
       const chip = target.closest("[data-sm-chip]");
       if (chip) { state.filter = chip.dataset.smChip; state.page = 1; renderList(); root.querySelector(`[data-sm-chip="${state.filter}"]`)?.focus(); return; }
@@ -1176,6 +1184,14 @@
       const action = target.closest("[data-sm-action]");
       if (action) {
         const dosar = state.dosare.find((item) => item.id === (action.dataset.smId || root.querySelector("[data-sm-profile]")?.dataset.smProfile));
+        /* US-24 AC-04 (demo ?redirectionare=eroare): the redirect to the suplinire form fails → the error
+           notice + „Reîncercați” in place, nothing navigates */
+        if (action.dataset.smAction === "supplement" && params.get("redirectionare") === "eroare") {
+          event.preventDefault();
+          C.closeMenus();
+          redirectError(action);
+          return;
+        }
         if (action.tagName === "A") { C.closeMenus(); return; } /* links navigate (FOD2, act profile) */
         event.preventDefault();
         C.closeMenus();
@@ -1238,7 +1254,7 @@
   function applyReturns() {
     const service09 = state.data.services["09"];
     const pp = params.get("pp");
-    const ppLabel = { reperfectare: "Reperfectare", prelungire: "Prelungire", duplicat: "Emitere duplicat", retragere: "Retragere", suspendare: "Suspendarea valabilității", reluare: "Reluarea valabilității" }[pp];
+    const ppLabel = { reperfectare: "Reperfectare", prelungire: "Prelungire", duplicat: "Emitere duplicat", retragere: "Retragere", suspendare: "Suspendarea valabilității", reluare: "Reluarea valabilității", anulare: "Anulare" }[pp];
     const object = params.get("obiect") || "Solicitare nouă";
     const filed = params.get("depus");
     if (filed && !state.dosare.some((dosar) => dosar.nr === filed)) {
@@ -1267,6 +1283,11 @@
       paid.examTerm = addWorkdays(TODAY, 10);
       paid.justAdded = true;
       state.notice = { tone: "banner--success", icon: "icon-circle-checkmark-filled", html: `Plata de ${escape(money(paid.payment.amount))} pentru dosarul <strong>${escape(paid.nr)}</strong> a fost confirmată. Dosarul a revenit în examinare.` };
+    }
+    if (params.get("nota") === "expirata") {
+      state.dosare.filter((dosar) => dosar.status === "achitare" && dosar.payment).forEach((dosar) => {
+        dosar.payment = { ...dosar.payment, status: "Expirat", due: addDays(TODAY, -2) };
+      });
     }
     if (params.get("plata") === "anulata") {
       state.notice = { tone: "banner--warning", icon: "icon-warning-filled", html: "Plata nu a fost finalizată. Statutul dosarului nu s-a modificat — puteți reîncerca din „Achitare” până la expirarea notei de plată." };

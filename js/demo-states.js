@@ -179,6 +179,19 @@
      FOD2 wizard opened straight on a step (?pp=<type>&act=<id>) */
   const PP_FO = "e-permits-acte-permisive.html";
   const ppCab = (run) => ({ page: "cabinet-evo/index.html", ready: "[data-cab-card]", run });
+  /* the acts list „Filtre” (js/facet-filter.js): desktop = button → bar → popover → Confirmă → Aplică;
+     phones (≤760) = chip → bottom sheet → „Arată N rezultate” (the RAP helpers) */
+  const cabPhone = () => window.matchMedia("(max-width: 760px)").matches;
+  const cabOpen = async (h) => { if (!cabPhone()) await h.click("[data-cab-filter-toggle]"); };
+  const cabPick = (facet, values) => async (h) => {
+    await cabOpen(h);
+    await h.click(`[data-filter-facet="${facet}"]`);
+    if (cabPhone()) await h.wait(400);
+    for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
+    await h.click(cabPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
+    if (cabPhone()) await h.wait(400);
+  };
+  const cabCommit = async (h) => { if (!cabPhone()) await h.click("[data-filter-commit]"); };
   const ppIntent = (run) => ({ page: PP_FO, flow: "full", hash: "#intent", ready: "[data-fo-intent-act], [data-fo-intent-empty]", run });
   const ppFo = (type, act, step = 1, run) => ({
     page: PP_FO,
@@ -1105,7 +1118,8 @@
     "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .cab-card__title"); }),
     "pp-01f": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cofetaria']"); }),
     "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']"); }),
-    "pp-01h": ppCab(async (h) => { await h.click("[data-cab-chip='expirat']"); }),
+    /* „Filtre” = the shared facet filter (2026-10-17): Statut = Expirat applied (desktop bar / phone sheet) */
+    "pp-01h": ppCab(async (h) => { await cabPick("status", ["Expirat"])(h); await cabCommit(h); }),
     "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .cab-card__title"); }),
     /* act profile = the RAP act profile (2026-10-17): AC-17 dates, tacit badge, the shared act dialogs */
     "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .cab-card__title"); }),
@@ -1114,6 +1128,20 @@
     "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .cab-card__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .modal-content"); }),
     "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .cab-card__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    /* US-55 AC-09 / AC-10: „Anulare” from Valabil and from Suspendat (DEMO service), same rules as Retragere */
+    "pp-01p": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
+    "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .cab-card__title"); await h.click("[data-cab-detail] [data-cab-menu-trigger]"); }),
+    /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
+    "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.click("[data-cab-card='act-lab-10'] [data-cab-menu-trigger]"); }),
+    /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
+    "pp-01s": ppCab(async (h) => { await cabOpen(h); await h.click('[data-filter-facet="status"]'); if (cabPhone()) await h.wait(400); }),
+    /* search by act number + more than 10 acts → the Cabinet pager (demo ?acte=multe) */
+    "pp-01t": { ...ppCab(null), params: { acte: "multe" } },
+    "pp-01u": ppCab(async (h) => { await h.fill("[data-cab-search]", "ASF-2025", { leave: false }); }),
+    /* Feature 90818 / US-159: an expired MPower → full restriction (notice, no data, no actions) */
+    "pp-01v": { page: "cabinet-evo/index.html", params: { as: "mpower-pj-lumina" }, ready: "[data-cab-restriction]:not([hidden]) .cab-callout", run: null },
+    /* a subject without acts → the shared empty state (no legacy demo permits) */
+    "pp-01w": { page: "cabinet-evo/index.html", params: { as: "mpower-pf-vrabie" }, ready: "[data-cab-empty]:not([hidden]) .e-permits-empty", run: null },
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']"); }),
@@ -1919,6 +1947,12 @@
     "sm-04d": smDosar("d-sud", async (h) => { await h.click('[data-sm-profile] [data-sm-action="pay"]'); }),
     "sm-04e": sm(null, { achitat: "d-sud" }),
     "sm-04f": sm(null, { plata: "anulata" }),
+    /* US-135 AC-14: the payment note expired (demo ?nota=expirata) — the message, no pay button (status unchanged) */
+    "sm-04g": smDosar("d-sud", null, { nota: "expirata" }),
+    "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
+    /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
+    "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
+    "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-stack__actions > [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-05": smDosar("d-izvoras"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
@@ -2111,6 +2145,9 @@
     "pp-15a": ppFo("suspendare", "act-licenta-demo", 2, async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
     "pp-16": ppFo("reluare", "act-licenta-susp", 2),
     "pp-16a": ppFo("reluare", "act-licenta-susp", 7),
+    /* US-55 AC-09/10: Anulare (DEMO service) — Detalii solicitare (reason) and the finish screen */
+    "pp-17": ppFo("anulare", "act-licenta-susp", 2),
+    "pp-17a": ppFo("anulare", "act-licenta-demo", 7),
 
     /* ---- eKYC back office (ek-, js/ekyc.js, 2026-10-13) ----
        login on bo-login.html?product=ekyc; the console = ?flow=ekyc; ?ek= gol | eroare |

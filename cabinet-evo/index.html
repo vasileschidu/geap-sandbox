@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="../assets/fonts/Onest.css">
   <link rel="stylesheet" href="../css/main.css?v=border200-v1">
   <!-- brings the JetBrains Mono @font-face + .e-permits-fo-copy-value component -->
+  <!-- the shared facet filter (BO bar + RAP phone sheets), before the FO stylesheet as on the BO pages -->
+  <link rel="stylesheet" href="../css/facet-filter.css?v=facet-v2">
   <link rel="stylesheet" href="../css/e-permits-acte-permisive.css?v=summary-tag-v1">
   <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
   <!-- the BO page header / sections / Small tags with their BO values (the BO scope is not on this page) -->
@@ -14,10 +16,10 @@
   <!-- the act's „Vizualizare act” / „Forma de tipar” dialogs, shared with RAP (js/act-view.js) -->
   <link rel="stylesheet" href="../css/doc-preview.css?v=docpv-v1">
   <link rel="stylesheet" href="../css/act-view.css?v=act-view-v1">
-  <link rel="stylesheet" href="cabinet-evo.css?v=cab-align-v1">
+  <link rel="stylesheet" href="cabinet-evo.css?v=cab-gaps-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=cab-align-v1"></script>
+  <script src="../js/demo-states.js?v=cab-gaps-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=sm-v1" defer></script>
   <script src="../js/empty-state.js?v=empty-v3" defer></script>
@@ -25,8 +27,9 @@
   <script src="../js/input-date-picker.js?v=sm-v1" defer></script>
   <script src="../js/doc-preview.js?v=docpv-v1" defer></script>
   <script src="../js/act-view.js?v=act-view-v1" defer></script>
-  <script src="cabinet-evo.js?v=cab-align-v1" defer></script>
-  <script src="solicitari.js?v=cab-align-v1" defer></script>
+  <script src="../js/facet-filter.js?v=facet-v2" defer></script>
+  <script src="cabinet-evo.js?v=cab-gaps-v1" defer></script>
+  <script src="solicitari.js?v=cab-gaps-v1" defer></script>
   <script src="catalog.js?v=cab-align-v1" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
@@ -241,7 +244,10 @@
         <p class="text-body-sm" data-cab-subtitle>Actele emise pe numele tău ca rezultat al solicitărilor — vizualizare, descărcare și acțiuni ulterioare.</p>
       </section>
 
-      <div class="cab-toolbar">
+      <!-- Feature 90818: an expired / revoked MPower restricts the acts completely (cabinet-evo.js) -->
+      <div class="cab-restriction" data-cab-restriction hidden></div>
+
+      <div class="cab-toolbar" data-cab-toolbar>
         <div class="search-input medium rectangular cab-search">
           <span class="icon-search" aria-hidden="true">
             <svg class="icon"><use href="../assets/icons/sprite.svg#icon-search"></use></svg>
@@ -250,8 +256,8 @@
             class="input"
             type="search"
             autocomplete="off"
-            placeholder="Caută după nr. dosar sau denumire"
-            aria-label="Caută în actele permisive"
+            placeholder="Caută după nr. act sau denumire"
+            aria-label="Caută în actele permisive după numărul sau denumirea actului"
             data-cab-search
           >
           <div class="btn-group cab-search__actions">
@@ -261,15 +267,20 @@
           </div>
         </div>
 
-        <button type="button" class="btn btn-neutral btn-sm cab-filter" data-cab-filter-trigger>
-          <svg class="icon small" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg>
+        <!-- the shared facet filter (js/facet-filter.js, as RAP): button → bar of facet chips → popover;
+             phones: one chip row („Filtre” first) + bottom sheets -->
+        <button class="btn btn-neutral btn-sm e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="cab-filters" data-cab-filter-toggle>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg>
           <span>Filtre</span>
+          <span class="badge badge--lg badge--solid-light" data-cab-filter-count hidden></span>
         </button>
       </div>
 
-      <div class="cab-chips" role="tablist" aria-label="Filtrează după stare" data-cab-chips></div>
+      <div class="e-permits-workplace__filters cab-filters" id="cab-filters" role="group" aria-label="Filtre" data-cab-filters hidden></div>
 
       <section class="cab-list" aria-label="Lista actelor permisive" data-cab-list></section>
+
+      <div data-cab-pager hidden></div>
 
       <div class="cab-state" data-cab-empty hidden></div>
       </div>

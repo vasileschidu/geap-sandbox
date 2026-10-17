@@ -5396,6 +5396,11 @@
         return `${code === "09" ? postprocessSectionHtml("subdivision", "Subdiviziunea de procesare", postprocessReadonly("Subdiviziunea de procesare", act.subdivision, 12), { desc: "Subdiviziunea care a emis actul." }) : ""}
           ${postprocessReasonHtml("Motivul retragerii", reasons.retragere || [])}`;
       }
+      /* US-55 AC-09/10: Anulare (Valabil + Suspendat) — no per-type story yet: the reason, as Retragere */
+      if (pp.id === "anulare") {
+        return `${postprocessReasonHtml("Motivul anulării", reasons.anulare || [])}
+          ${postprocessNoteHtml("La aprobare, actul permisiv devine „Anulat” din data semnării deciziei.")}`;
+      }
       if (pp.id === "suspendare") {
         return `${postprocessReasonHtml("Motivul suspendării", reasons.suspendare || [])}
           ${postprocessSectionHtml("period", "Perioada suspendării", `
@@ -5538,6 +5543,7 @@
       if (pp.id === "suspendare") return "La aprobare, actul devine „Suspendat” din data semnării deciziei.";
       if (pp.id === "reluare") return "La aprobare, actul redevine „Valabil” din data semnării deciziei.";
       if (pp.id === "retragere") return "La aprobare, actul devine „Retras” și nu mai poate fi post-procesat.";
+      if (pp.id === "anulare") return "La aprobare, actul devine „Anulat” și nu mai poate fi post-procesat.";
       return "";
     }
 

@@ -36,7 +36,12 @@
 
   const els = {
     list: document.querySelector("[data-cab-list]"),
-    chips: document.querySelector("[data-cab-chips]"),
+    pager: document.querySelector("[data-cab-pager]"),
+    toolbar: document.querySelector("[data-cab-toolbar]"),
+    restriction: document.querySelector("[data-cab-restriction]"),
+    filterToggle: document.querySelector("[data-cab-filter-toggle]"),
+    filterBar: document.querySelector("[data-cab-filters]"),
+    filterCount: document.querySelector("[data-cab-filter-count]"),
     empty: document.querySelector("[data-cab-empty]"),
     search: document.querySelector("[data-cab-search]"),
     searchClear: document.querySelector("[data-cab-search-clear]"),
@@ -50,7 +55,16 @@
     avatarPanel: document.querySelector("[data-fo-avatar-dropdown]"),
   };
 
-  const state = { permits: [], filters: [], active: "toate", query: "", geap: null, detail: null, dosarByAct: {}, dosarNrByAct: {}, actProfiles: {}, help: {} };
+  const state = {
+    permits: [], query: "", geap: null, detail: null, dosarByAct: {}, dosarNrByAct: {}, actProfiles: {}, help: {},
+    /* the shared facet filter (js/facet-filter.js) — applied values per facet, the bar's draft */
+    filter: { open: false, applied: {}, draft: null },
+    page: 1,
+    perPage: 10,
+    /* Feature 90818 / US-159: a representative whose MPower expired or was revoked sees no act */
+    restriction: null,
+  };
+  const PER_PAGE = [10, 25, 50, 100];
 
   /* ---------- compartments ----------
      One page, three views (?view=): Solicitările mele (solicitari.js), Actele mele
@@ -115,6 +129,9 @@
     document.title = `${title} · EVO Cabinet`;
   }
 
+  /* case- and diacritic-insensitive search (US-158 AC-02 rule, shared with Solicitările mele) */
+  const fold = (text) => String(text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   const icon = (id, size = "small") =>
     `<svg class="icon ${size}" aria-hidden="true"><use href="${SPRITE}#${id}"></use></svg>`;
 
@@ -146,31 +163,60 @@
 
   /* ---------- rendering ---------- */
 
-  function countFor(id) {
-    return id === "toate"
-      ? state.permits.length
-      : state.permits.filter((permit) => permit.status === id).length;
-  }
-
-  function renderChips() {
-    els.chips.innerHTML = state.filters
-      .map((filter) => {
-        const count = countFor(filter.id);
-        const accent = ACCENT_STATES.includes(filter.id) && count > 0;
-        return `
-          <button
-            class="chip${filter.id === state.active ? " is-selected" : ""}"
-            type="button"
-            role="tab"
-            aria-selected="${filter.id === state.active}"
-            aria-pressed="${filter.id === state.active}"
-            data-cab-chip="${escape(filter.id)}"
-          >
-            <span class="chip__label">${escape(filter.label)}</span>
-            <span class="chip__badge${accent ? " chip__badge--accent" : ""}">${count}</span>
-          </button>`;
-      })
-      .join("");
+  /* „Filtre” = the shared facet filter (js/facet-filter.js, as on RAP): the BO bar + popovers on
+     desktop, the RAP phone mode (chip row + bottom sheets) ≤760. OR inside a facet, AND across
+     facets and with the search. Values come from the acts themselves (no new data). */
+  const FACETS = [
+    { key: "status", label: "Statut", get: (permit) => permit.statusLabel },
+    { key: "denumire", label: "Denumire act", get: (permit) => permit.serviceTitle },
+    { key: "autoritate", label: "Autoritate", get: (permit) => state.help[permit.service?.authority]?.name || permit.service?.authority },
+    { key: "subdiviziune", label: "Subdiviziune", get: (permit) => permit.subdivision },
+  ];
+  const facetValues = (facet, permit) => [].concat(facet.get(permit) ?? []).filter(Boolean);
+  const matchesFacets = (permit, except = null, selection = state.filter.applied) => Object.entries(selection).every(([key, values]) => {
+    if (key === except || !values?.length) return true;
+    const facet = FACETS.find((f) => f.key === key);
+    return !facet || facetValues(facet, permit).some((value) => values.includes(value));
+  });
+  /* US-55 AC-06 / the placeholder: the act number and the act name (object + act type) */
+  const matchesSearch = (permit) => {
+    const query = fold(state.query.trim());
+    return !query || fold([permit.number || permit.dossier, permit.title, permit.serviceTitle].join(" ")).includes(query);
+  };
+  const facetOptions = (facet, selection = state.filter.applied) => {
+    const counts = new Map();
+    state.permits.forEach((permit) => {
+      if (!matchesSearch(permit) || !matchesFacets(permit, facet.key, selection)) return;
+      new Set(facetValues(facet, permit)).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+    });
+    (selection[facet.key] || []).forEach((value) => { if (!counts.has(value)) counts.set(value, 0); });
+    return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro", { numeric: true }));
+  };
+  /* a facet is offered when the acts have at least two values for it (BO / RAP rule) */
+  const availableFacets = () => FACETS.filter((facet) => {
+    if (state.filter.applied[facet.key]?.length) return true;
+    return new Set(state.permits.flatMap((permit) => facetValues(facet, permit))).size > 1;
+  });
+  const STATUS_BY_LABEL = () => Object.fromEntries(state.permits.map((permit) => [permit.statusLabel, permit.status]));
+  let facetFilter = null;
+  function initFacetFilter() {
+    if (!window.GEAPFacetFilter || !els.filterBar) return;
+    facetFilter = window.GEAPFacetFilter.create({
+      bar: els.filterBar,
+      toggle: els.filterToggle,
+      count: els.filterCount,
+      sprite: SPRITE,
+      state: () => state.filter,
+      facets: availableFacets,
+      allFacets: () => FACETS,
+      options: facetOptions,
+      /* status values read as the cards' Small tags */
+      tag: (value, facet) => (facet.key === "status" ? tagHtml(value, ACT_TONE[STATUS_BY_LABEL()[value]] || "neutral") : null),
+      total: () => visiblePermits().length,
+      mobileSheets: true,
+      preview: (selection) => state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit, null, selection)).length,
+      apply: () => { state.page = 1; render(); },
+    });
   }
 
   function postprocessMenuHtml(permit, menuId) {
@@ -182,7 +228,7 @@
         <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-download="${escape(permit.id)}">${icon("icon-export")}<span>Descarcă actul (MDocs)</span></button></li>
         ${items.length ? `<li role="separator" class="cab-menu__separator"></li><li role="none" class="cab-menu__label">Postprocese</li>` : ""}
         ${items.map((pp) => `
-          <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}" ${locked ? "disabled aria-disabled=\"true\"" : ""}>${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
+          <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}" ${locked ? `aria-disabled="true" data-tooltip-reason="${escape(LOCKED_REASON)}" aria-description="${escape(LOCKED_REASON)}"` : ""}>${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
       </ul>`;
   }
 
@@ -234,15 +280,7 @@
   }
 
   function visiblePermits() {
-    const query = state.query.trim().toLowerCase();
-    return state.permits.filter((permit) => {
-      if (state.active !== "toate" && permit.status !== state.active) return false;
-      if (!query) return true;
-      return [permit.title, permit.dossier, permit.authority]
-        .join(" ")
-        .toLowerCase()
-        .includes(query);
-    });
+    return state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit));
   }
 
   /* same contract as rap-evo: main.css reveals .btn-icon.clear on is-ready */
@@ -255,18 +293,76 @@
   }
 
   function render() {
+    if (state.restriction) { renderRestriction(); return; }
     const permits = visiblePermits();
-    els.list.innerHTML = permits.map(cardMarkup).join("");
+    const pages = Math.max(1, Math.ceil(permits.length / state.perPage));
+    state.page = Math.min(state.page, pages);
+    const pageItems = permits.slice((state.page - 1) * state.perPage, state.page * state.perPage);
+    els.list.innerHTML = pageItems.map(cardMarkup).join("");
+    els.list.hidden = !pageItems.length;
+    els.pager.innerHTML = pagerHtml({ total: permits.length, page: state.page, perPage: state.perPage, prefix: "cab", label: "Paginarea actelor permisive", sizeLabel: "Acte pe pagină" });
+    els.pager.hidden = !els.pager.innerHTML.trim();
     els.empty.hidden = permits.length > 0;
-    /* the shared empty state: no acts at all vs. nothing matches the chips / search */
+    /* the shared empty state: no acts at all (an unknown subject too) vs. nothing matches the
+       search / filters */
     els.empty.innerHTML = permits.length ? "" : state.permits.length
       ? window.GEAPEmptyState.noResults("Niciun act permisiv nu corespunde căutării", {
-        text: state.query.trim() ? "Verificați ortografia sau încercați alți termeni." : "Alegeți altă stare sau resetați filtrele.",
+        text: state.query.trim() ? "Verificați ortografia sau încercați alți termeni." : "Alegeți alte valori sau resetați filtrele.",
         actionHtml: '<button class="btn btn-neutral btn-sm" type="button" data-cab-reset>Resetează filtrele</button>'
       })
       : window.GEAPEmptyState.render({ title: "Nu aveți acte permisive", text: "Actele emise pe numele dvs. apar aici.", icon: "page-text" });
+    /* no acts at all: nothing to search or filter */
+    if (els.toolbar) els.toolbar.hidden = !state.permits.length;
     syncSearchState();
-    renderChips();
+    facetFilter?.render();
+  }
+
+  /* Feature 90818 (§4, AC) + US-159: when the representative's MPower expired or was revoked the
+     access is restricted COMPLETELY on the acts side — no list, no search, no actions, only the
+     restriction notice (the requests side keeps the read-only history, US-159 AC-06) */
+  function restrictionHtml(ro, text) {
+    return `
+      <div class="e-permits-callout e-permits-callout--neutral cab-callout" role="status">
+        <span class="e-permits-callout__icon" aria-hidden="true">${icon("icon-lock", "medium")}</span>
+        <div class="e-permits-callout__content">
+          <p class="e-permits-callout__title">Împuternicirea MPower a ${ro.reason === "revocat" ? "fost revocată" : "expirat"} pe ${escape(longDate(ro.since))}</p>
+          <p class="e-permits-callout__text">${escape(text)}</p>
+        </div>
+      </div>`;
+  }
+  function renderRestriction() {
+    const name = state.geap?.subject?.name || "beneficiar";
+    [els.toolbar, els.filterBar, els.list, els.pager, els.empty].forEach((el) => { if (el) el.hidden = true; });
+    els.restriction.hidden = false;
+    els.restriction.innerHTML = restrictionHtml(state.restriction, `Actele permisive ale ${name} nu mai sunt disponibile pentru dumneavoastră: vizualizarea, descărcarea formularului și postprocesele rămân doar la beneficiar. Pentru acces, cereți beneficiarului o împuternicire nouă în MPower.`);
+  }
+
+  /* the Cabinet pager (Solicitările mele, Actele mele permisive): „1–10 din 23” · pages · „10 pe pagină ▾”;
+     none up to the smallest page size. prefix names the data hooks (data-<prefix>-page / -per-page) */
+  function pagerHtml({ total, page, perPage, prefix, label, sizeLabel, sizes = PER_PAGE }) {
+    if (total <= sizes[0]) return "";
+    const pages = Math.max(1, Math.ceil(total / perPage));
+    const first = (page - 1) * perPage + 1;
+    const last = Math.min(total, page * perPage);
+    const link = (target, text, { disabled = false, active = false, aria = "" } = {}) => `
+      <span class="pagination__item">
+        <button class="pagination__link${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-${prefix}-page="${target}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${aria}"` : ""}>${text}</button>
+      </span>`;
+    return `
+      <div class="cab-pager">
+        <p class="cab-pager__range">${first}–${last} din ${total}</p>
+        <nav class="pagination" aria-label="${escape(label)}">
+          ${link(page - 1, icon("icon-chevron-left-small", "medium"), { disabled: page === 1, aria: "Pagina anterioară" })}
+          ${Array.from({ length: pages }, (_, index) => link(index + 1, String(index + 1), { active: index + 1 === page, aria: `Pagina ${index + 1}` })).join("")}
+          ${link(page + 1, icon("icon-chevron-right-small", "medium"), { disabled: page === pages, aria: "Pagina următoare" })}
+        </nav>
+        <div class="e-permits-fo-intent-act__action">
+          <button class="btn btn-text-neutral btn-sm cab-pager__size" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${prefix}-per-page" data-cab-menu-trigger><span>${perPage} pe pagină</span><svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg></button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--compact" id="${prefix}-per-page" role="menu" aria-label="${escape(sizeLabel)}" hidden>
+            ${sizes.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === perPage}" data-${prefix}-per-page="${size}"><span>${size} pe pagină</span>${size === perPage ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("")}
+          </ul>
+        </div>
+      </div>`;
   }
 
   /* ---------- header role switcher ----------
@@ -382,20 +478,15 @@
   /* ---------- interaction ---------- */
 
   function bind() {
-    els.chips.addEventListener("click", (event) => {
-      const chip = event.target.closest("[data-cab-chip]");
-      if (!chip) return;
-      state.active = chip.dataset.cabChip;
-      render();
-    });
-
     els.search.addEventListener("input", (event) => {
       state.query = event.target.value;
+      state.page = 1;
       render();
     });
 
     els.searchClear.addEventListener("click", () => {
       state.query = "";
+      state.page = 1;
       els.search.value = "";
       els.search.focus();
       render();
@@ -404,10 +495,19 @@
     els.empty.addEventListener("click", (event) => {
       if (!event.target.closest("[data-cab-reset]")) return;
       state.query = "";
-      state.active = "toate";
+      state.filter.applied = {};
+      state.filter.draft = null;
+      state.page = 1;
       els.search.value = "";
       render();
       els.search.focus();
+    });
+
+    els.pager.addEventListener("click", (event) => {
+      const size = event.target.closest("[data-cab-per-page]");
+      if (size) { state.perPage = Number(size.dataset.cabPerPage); state.page = 1; closeMenus(); render(); return; }
+      const page = event.target.closest("[data-cab-page]");
+      if (page && !page.disabled) { state.page = Number(page.dataset.cabPage); render(); document.querySelector("#cab-title")?.scrollIntoView({ block: "start" }); }
     });
 
     bindAvatarMenu();
@@ -435,6 +535,8 @@
   /* ---------- GEAP acts (post-processes) ---------- */
 
   const PENDING_TEXT = (label, dossier) => `${label} în curs · dosar ${dossier}. Poți iniția un alt postproces după finalizarea acestuia.`;
+  /* US-55 AC-14: an unavailable post-process stays visible, disabled, with the reason as its tooltip */
+  const LOCKED_REASON = "Un alt postproces este în curs pentru acest act.";
 
   async function loadGeapActs() {
     const response = await fetch(GEAP_URL);
@@ -442,7 +544,12 @@
     const data = await response.json();
     const config = data.frontOfficeFlows?.[0]?.intent || {};
     const subjectId = SUBJECT;
-    const acts = (config.acts?.[subjectId] || []).map((act) => {
+    /* demo only (?acte=multe): the subject's acts + numbered copies, so the list paginates (> 10) */
+    const own = config.acts?.[subjectId] || [];
+    const source = params.get("acte") === "multe"
+      ? [...own, ...own.flatMap((act, round) => [1, 2].map((n) => ({ ...act, id: `${act.id}-${n}`, number: `${act.number}/${n}`, name: act.name.replace(/,/, ` ${n + 1},`), pending: null, ...(round + n) % 3 ? {} : { status: "expirat", statusLabel: "Expirat" } })))]
+      : own;
+    const acts = source.map((act) => {
       const service = config.services?.[act.service] || {};
       const allowed = service.allows || [];
       const postProcesses = act.paper ? [] : (config.availability?.[act.status] || [])
@@ -469,6 +576,16 @@
     });
     const subject = (data.frontOfficeFlows?.[0]?.subjects || []).find((item) => item.id === subjectId);
     return { acts, config, subjectId, subject };
+  }
+
+  /* a menu that would run past the screen edge opens towards the other side (phones: a ⋮ after
+     two tags sits far right, the left-anchored menu ran 40px off-screen) */
+  function fitMenu(menu) {
+    menu.classList.remove("is-end", "is-start");
+    const rect = menu.getBoundingClientRect();
+    const edge = document.documentElement.clientWidth;
+    if (rect.right > edge) menu.classList.add("is-end");
+    else if (rect.left < 0) menu.classList.add("is-start");
   }
 
   function closeMenus(except = null) {
@@ -600,14 +717,14 @@
       panel.setAttribute("aria-labelledby", "cab-act-title");
       els.list.insertAdjacentElement("afterend", panel);
     }
-    const listParts = [document.querySelector(".cab-intro"), document.querySelector(".cab-toolbar"), els.chips, els.list, els.empty];
+    const listParts = [document.querySelector(".cab-intro"), els.toolbar, els.filterBar, els.list, els.pager, els.empty];
     if (!act) {
       actViewInstance?.closeDocument({ toData: false });
       actViewInstance?.closeData({ restoreFocus: false });
       panel.hidden = true;
-      listParts.forEach((el) => { if (el) el.hidden = el === els.empty ? els.empty.hidden : false; });
+      document.querySelector(".cab-intro").hidden = false;
       state.detail = null;
-      return;
+      return; /* the caller re-renders the list (render() sets the list parts' visibility) */
     }
     state.detail = act.id;
     listParts.forEach((el) => { if (el) el.hidden = true; });
@@ -711,6 +828,7 @@
         closeMenus(menu);
         if (menu) menu.hidden = !open;
         trigger.setAttribute("aria-expanded", String(open));
+        if (menu && open) fitMenu(menu);
         return;
       }
       const openBtn = event.target.closest("[data-cab-open]");
@@ -735,6 +853,7 @@
         if (act) actView().openData(toActView(act), viewAct);
         return;
       }
+      if (ppBtn && ppBtn.getAttribute("aria-disabled") === "true") { event.stopPropagation(); return; }
       if (ppBtn && !ppBtn.disabled) {
         event.stopPropagation();
         closeMenus();
@@ -945,7 +1064,7 @@
   /* ---------- shared with solicitari.js and catalog.js ---------- */
   window.CabEvo = {
     VIEW, AUTH, SUBJECT, SPRITE, params,
-    icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle,
+    icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
     pageHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
@@ -958,10 +1077,10 @@
     if (!response.ok) throw new Error(`Nu am putut încărca datele (${response.status})`);
     const data = await response.json();
 
-    state.filters = data.filters || [];
     state.actProfiles = data.actProfiles || {};
     state.geap = await loadGeapActs();
-    state.permits = state.geap.acts.length ? state.geap.acts : data.permits || [];
+    /* only the subject's own acts: an unknown subject / one without acts gets the shared empty state */
+    state.permits = state.geap.acts;
 
     if (data.page) {
       els.title.textContent = data.page.title;
@@ -975,7 +1094,9 @@
         .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
         .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) { state.dosarByAct[dosar.actId] = dosar.id; state.dosarNrByAct[dosar.actId] = dosar.nr; } });
       state.help = sm.help || {};
+      state.restriction = sm.perspectives?.[SUBJECT]?.readOnly || null;
     } catch { /* the act profile simply has no link */ }
+    if (state.restriction) state.permits = [];
 
     if (data.user) {
       els.name.textContent = data.user.name;
@@ -994,6 +1115,7 @@
 
     bind();
     bindGeap();
+    initFacetFilter();
     render();
     /* ?act=<id> opens the act profile (from a dosar's „Vezi actul”) */
     const deepAct = VIEW === "acte" && state.permits.find((permit) => permit.id === params.get("act"));
