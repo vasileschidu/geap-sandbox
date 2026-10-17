@@ -240,7 +240,7 @@
               ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
-            <button class="btn btn-primary rap-profile__document-button" type="button" data-rap-view-document>
+            <button class="btn btn-primary rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
               ${icon("eye-open")}
               <span>Vizualizare actul</span>
             </button>
@@ -298,6 +298,186 @@
         ${window.GEAPEmptyState.render({ title: "Actul nu a fost găsit", text: "Linkul nu mai este valabil sau actul nu există în registru.", icon: "search", actionHtml: '<a class="btn btn-neutral btn-sm" href="?">Înapoi la registru</a>' })}
       </div>
     `;
+  };
+
+  /* ---- „Vizualizare actul” (US-143 · US-162 AC-12): MDocs generates the act on demand and it opens
+     in the EVO document modal — the Cabinet / FO doc-modal shell + grey canvas + A4 page
+     (css/doc-modal-parts.css), zoomed to the canvas width as in Cabinet / BO. Loading = the shared
+     empty state with the spinner (AC-03); errors = the AC texts (AC-10 / AC-11 / AC-12); a status
+     other than „Valabil” = a diagonal watermark (AC-14); „Imprimă” prints the page only (AC-09).
+     Demo: ?mdocs=incarcare (stays loading) · indisponibil (AC-10) · date (AC-11) · sablon (AC-12). */
+  const MDOCS_DELAY = 900;
+  const MDOCS_UNAVAILABLE = "Documentul nu poate fi generat momentan. Vă rugăm să încercați mai târziu.";
+  const MDOCS_ERRORS = {
+    indisponibil: MDOCS_UNAVAILABLE,
+    sablon: MDOCS_UNAVAILABLE,
+    date: "Datele actului nu sunt disponibile momentan. Vă rugăm să încercați mai târziu."
+  };
+  /* the printer of the product nav (assets/icons/sidebar-printer-print.svg), stroke = label colour */
+  const PRINT_ICON = '<svg class="icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.70833 8.95833H5.625M14.375 11.4583V14.375H16.0417C16.9621 14.375 17.7083 13.6288 17.7083 12.7083V7.29167C17.7083 6.37119 16.9621 5.625 16.0417 5.625H3.95833C3.03786 5.625 2.29167 6.37119 2.29167 7.29167V12.7083C2.29167 13.6288 3.03786 14.375 3.95833 14.375H5.625V11.4583H14.375V16.0417C14.375 16.9621 13.6288 17.7083 12.7083 17.7083H7.29167C6.37119 17.7083 5.625 16.9621 5.625 16.0417V11.4583M7.29167 2.29167H12.7083C13.6288 2.29167 14.375 3.03786 14.375 3.95833V5.625H5.625V3.95833C5.625 3.03786 6.37119 2.29167 7.29167 2.29167Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const actModal = { overlay: null, opener: null, run: 0 };
+
+  const longStamp = (date) => `${new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(date)}, ${new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit" }).format(date)}`;
+  const permanentUrl = (record) => `${window.location.origin}${window.location.pathname}?act=${encodeURIComponent(record.id)}`;
+
+  /* the MDocs page: arms + authority, title, number, the public fields + the act's dynamic fields
+     (PF: the anonymised name only, never an IDNP — US-145), signature, QR, footer */
+  const renderActPage = (record) => {
+    const profile = normalizeProfile(record);
+    const doc = profile.document || {};
+    const person = record.beneficiary.type === "person";
+    const rows = [
+      ["Beneficiar", record.beneficiary.name],
+      ...(person ? [] : [[record.beneficiary.identifierType, record.beneficiary.identifier]]),
+      ["Adresa obiectului", doc.address],
+      ["Genul de activitate", doc.activity],
+      ...(doc.fields || []),
+      ["Valabil din data", profile.validFrom],
+      ["Data expirării", profile.validUntil],
+      ["Numărul dosarului electronic", record.permit.paperNumber],
+      ["Seria și nr. documentului tipărit", profile.printedDocumentNumber]
+    ].filter(([, value]) => value);
+    const url = permanentUrl(record);
+    const tone = statusTone(record.status);
+    const watermark = record.status !== "Valabil"
+      ? `<span class="rap-act-doc__watermark rap-act-doc__watermark--${tone}" aria-hidden="true"><span>${escapeHtml(record.status.toLocaleUpperCase("ro"))}</span></span>`
+      : "";
+    return `
+      <div class="e-permits-dtpl__page e-permits-doc-peek__page rap-act-doc">
+        ${watermark}
+        <div class="e-permits-dtpl__surface rap-act-doc__surface">
+          <header class="rap-act-doc__head">
+            <span class="rap-act-doc__arms" aria-hidden="true"><img src="../assets/logos/gov.svg" alt=""></span>
+            <p class="rap-act-doc__country">Republica Moldova</p>
+            <p class="rap-act-doc__authority">${escapeHtml(record.authority.name)}</p>
+            ${profile.office ? `<p class="rap-act-doc__office">${escapeHtml(profile.office)}</p>` : ""}
+          </header>
+          <h1>${escapeHtml(record.permit.name)}</h1>
+          <p class="rap-act-doc__number">nr. ${escapeHtml(record.permit.number)} din ${escapeHtml(profile.issuedDate)}</p>
+          <table><tbody>${rows.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`).join("")}</tbody></table>
+          <p>Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>
+          <div class="rap-act-doc__foot">
+            <div class="rap-act-doc__sign">
+              <p class="rap-act-doc__label">Autoritatea emitentă</p>
+              <p class="rap-act-doc__strong">${escapeHtml(record.authority.name)}</p>
+              <p class="rap-act-doc__signed">${icon("signature")}<span>Semnat electronic · MSign · ${escapeHtml(profile.issuedDate)}</span></p>
+            </div>
+            <div class="rap-act-doc__qr">
+              <span class="rap-act-doc__qr-code" aria-hidden="true">${icon("qr-code")}</span>
+              <span class="rap-act-doc__qr-text">
+                <strong>Verificați autenticitatea</strong>
+                <span>${escapeHtml(url.replace(/^https?:\/\//, ""))}</span>
+              </span>
+            </div>
+          </div>
+          <p class="rap-act-doc__footer">Generat prin MDocs la ${escapeHtml(longStamp(new Date()))} · Registrul actelor permisive · Pagina 1 din 1</p>
+        </div>
+      </div>
+    `;
+  };
+
+  const fitActPage = () => {
+    const canvas = actModal.overlay?.querySelector("[data-rap-act-canvas]");
+    const page = canvas?.querySelector(".e-permits-doc-peek__page");
+    if (!page || !canvas.clientWidth) return;
+    /* the canvas padding is 24 (16 on phones): fit the 794px page into what is left */
+    const style = window.getComputedStyle(canvas);
+    const room = canvas.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+    page.style.zoom = String(Math.min(1, room / 794));
+  };
+
+  /* view = loading | ready | <error key> */
+  const renderActModalBody = (record, view) => {
+    const body = actModal.overlay.querySelector("[data-rap-act-body]");
+    const footer = actModal.overlay.querySelector("[data-rap-act-footer]");
+    const ready = view === "ready";
+    body.setAttribute("aria-busy", String(view === "loading"));
+    body.innerHTML = ready
+      ? `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas" data-rap-act-canvas role="document" aria-label="${escapeHtml(record.permit.name)}, nr. ${escapeHtml(record.permit.number)}">${renderActPage(record)}</div>`
+      : `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas rap-act-modal__canvas--state">${view === "loading"
+        ? window.GEAPEmptyState.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs pregătește actul. Poate dura câteva secunde." })
+        : window.GEAPEmptyState.render({ bare: true, icon: "circle-error", text: MDOCS_ERRORS[view] || MDOCS_UNAVAILABLE })}</div>`;
+    footer.innerHTML = `
+      ${ready ? `<button class="e-permits-fo-doc-modal__cancel rap-act-modal__print" type="button" data-rap-act-print>${PRINT_ICON}<span>Imprimă</span></button>` : ""}
+      <button class="e-permits-fo-doc-modal__submit" type="button" data-rap-act-close>Închide</button>`;
+    if (ready) fitActPage();
+  };
+
+  const closeActDocument = () => {
+    if (!actModal.overlay || actModal.overlay.hidden) return;
+    actModal.run += 1;
+    actModal.overlay.hidden = true;
+    document.body.classList.remove("rap-page--act-open");
+    elements.profileView.querySelector("[data-rap-view-document]")?.removeAttribute("aria-disabled");
+    if (actModal.opener?.isConnected) actModal.opener.focus();
+  };
+
+  const ensureActModal = () => {
+    if (actModal.overlay) return actModal.overlay;
+    const overlay = document.createElement("div");
+    overlay.className = "e-permits-fo-doc-modal-overlay rap-act-modal";
+    overlay.hidden = true;
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-labelledby", "rap-act-modal-title");
+    overlay.dataset.rapActModal = "";
+    document.body.append(overlay);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay || event.target.closest("[data-rap-act-close]")) {
+        closeActDocument();
+        return;
+      }
+      if (event.target.closest("[data-rap-act-print]")) window.print();
+    });
+    overlay.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeActDocument();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      /* keep the focus inside the dialog */
+      const focusables = [...overlay.querySelectorAll("button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])")].filter((el) => el.offsetParent);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    if ("ResizeObserver" in window) new ResizeObserver(fitActPage).observe(overlay);
+    actModal.overlay = overlay;
+    return overlay;
+  };
+
+  const openActDocument = (record, opener) => {
+    const overlay = ensureActModal();
+    actModal.opener = opener || document.activeElement;
+    const run = ++actModal.run;
+    overlay.innerHTML = `
+      <div class="e-permits-fo-doc-modal rap-act-modal__dialog">
+        <div class="e-permits-fo-doc-modal__header">
+          <div class="e-permits-fo-doc-modal__header-text">
+            <h2 class="e-permits-fo-doc-modal__title" id="rap-act-modal-title">Act permisiv</h2>
+            <p class="e-permits-fo-doc-modal__subtitle" title="${escapeHtml(`${record.permit.number} · ${record.permit.name}`)}">${escapeHtml(record.permit.number)} · ${escapeHtml(record.permit.name)}</p>
+          </div>
+          <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-rap-act-close>${icon("cross-large")}</button>
+        </div>
+        <div class="rap-act-modal__body" data-rap-act-body aria-live="polite"></div>
+        <div class="e-permits-fo-doc-modal__footer" data-rap-act-footer></div>
+      </div>`;
+    renderActModalBody(record, "loading");
+    overlay.hidden = false;
+    document.body.classList.add("rap-page--act-open");
+    /* AC-03: no second request while MDocs works (the dialog covers the page; the button says so too) */
+    opener?.setAttribute("aria-disabled", "true");
+    overlay.querySelector(".e-permits-fo-doc-modal__close").focus();
+    const demo = new URLSearchParams(window.location.search).get("mdocs");
+    if (demo === "incarcare") return;
+    window.setTimeout(() => {
+      if (run !== actModal.run) return;
+      renderActModalBody(record, demo && MDOCS_ERRORS[demo] ? demo : "ready");
+      opener?.removeAttribute("aria-disabled");
+    }, MDOCS_DELAY);
   };
 
   const renderBeneficiary = (record) => {
@@ -671,6 +851,7 @@
       return false;
     }
 
+    closeActDocument();
     state.activeRecord = record;
     renderProfile(record);
     elements.listView.hidden = true;
@@ -687,6 +868,7 @@
   };
 
   const closeProfile = ({ updateHistory = true } = {}) => {
+    closeActDocument();
     state.activeRecord = null;
     elements.profileView.hidden = true;
     elements.listView.hidden = false;
@@ -811,8 +993,9 @@
         return;
       }
 
-      if (event.target.closest("[data-rap-view-document]")) {
-        showToast("Actul permisiv este pregătit pentru vizualizare.");
+      const viewButton = event.target.closest("[data-rap-view-document]");
+      if (viewButton && state.activeRecord && viewButton.getAttribute("aria-disabled") !== "true") {
+        openActDocument(state.activeRecord, viewButton);
       }
     });
 

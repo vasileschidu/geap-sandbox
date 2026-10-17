@@ -130,6 +130,15 @@
       "profile": {
         "source": "RAP",
         "profileAvailable": true,
+        "document": {
+          "address": "r-nul Hîncești, s. Lăpușna, str. Ștefan cel Mare 41",
+          "activity": "Fabricarea berii (CAEM 11.05)",
+          "fields": [
+            ["Capacitatea de producție", "120 000 dal / an"],
+            ["Tipul producției", "Bere și băuturi pe bază de bere"],
+            ["Depozit autorizat", "r-nul Hîncești, s. Lăpușna, str. Ștefan cel Mare 41/1"]
+          ]
+        },
         "office": "mun. Hîncești",
         "printedDocumentNumber": "A MMIV 034743",
         "issuedDate": "4 iulie 2026",
@@ -159,7 +168,17 @@
       "status": "Valabil",
       "profile": {
         "source": "RAP",
-        "profileAvailable": true
+        "profileAvailable": true,
+        "document": {
+          "address": "mun. Chișinău, str. Alba Iulia 20",
+          "activity": "Comerț cu amănuntul în magazine nespecializate (CAEM 47.11)",
+          "fields": [
+            ["Tipul unității comerciale", "Magazin"],
+            ["Suprafața comercială", "86 m²"],
+            ["Orarul de funcționare", "Luni – Duminică, 08:00 – 22:00"],
+            ["Grupe de produse", "Produse alimentare, băuturi nealcoolice, produse nealimentare"]
+          ]
+        }
       }
     },
     {
@@ -184,7 +203,16 @@
       "status": "Suspendat",
       "profile": {
         "source": "RAP",
-        "profileAvailable": true
+        "profileAvailable": true,
+        "document": {
+          "address": "mun. Chișinău, bd. Dacia 47",
+          "activity": "Comerț cu amănuntul în magazine nespecializate (CAEM 47.11)",
+          "fields": [
+            ["Tipul unității comerciale", "Magazin"],
+            ["Suprafața comercială", "142 m²"],
+            ["Orarul de funcționare", "Luni – Sâmbătă, 08:00 – 21:00"]
+          ]
+        }
       }
     },
     {

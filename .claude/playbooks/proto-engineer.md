@@ -1021,3 +1021,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   0 + meta 12/8, header→first section 20, h2 48 · 11/12 · 18/26, card 8/20 r24 (r16 ≤760), rows 40 · 8/7 + 1, label 14/20
   #383838, value 14/20 500, tag 20 · 12/16 · inset tone border). A copy button inside a phone column row shrank to
   min-content (row-value `overflow-wrap: anywhere`) → `flex: 0 0 auto; white-space: nowrap` on the copy, scoped.
+- 2026-10-17 · RAP „Vizualizare actul” (US-143) = the Cabinet document modal on a page without the FO CSS: same markup
+  (FO doc-modal shell + `.e-permits-doc-peek__canvas` + A4 `.e-permits-dtpl__page`), CSS restated in a separate
+  `css/doc-modal-parts.css` (the bo-profile-parts contract: never load where the originals load; FO hex literals →
+  matching tokens). Traps: (1) a stroked inline svg with `class="icon"` renders as a black blob — the library `.icon`
+  sets `fill: currentColor` → `fill: none` on that icon; (2) `--icon-size-default` is 24, the 20 one is
+  `--icon-size-medium`; (3) fit-to-width zoom must subtract the canvas's COMPUTED padding (24 desktop / 16 sheet), not
+  a hard 48; (4) a dialog whose page is the content: `height: 100%` on the dialog = the base `max-height` (no new px).
+  Print = `body.<open-class> > :not(overlay) { display: none }` + zoom 1 !important on the page; verify with CDP
+  `Emulation.setEmulatedMedia({ media: "print" })` (scratch tools/shot.mjs PRINT=1) — listed visible body children.
+  Demo errors via `?mdocs=` keys mapped to the AC texts; the loading state never resolves with `incarcare`.
+  Another agent committed rap-evo.css (`?v=w1024`) mid-job → bump versions with a regex, not the literal.

@@ -1974,7 +1974,24 @@
         "rap-02a": { page: RAP, params: { act: "rap-0001" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
         "rap-02b": { page: RAP, params: { act: "rap-0003" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
         /* US-142 AC-16: unknown act */
-        "rap-02c": { page: RAP, params: { act: "rap-9999" }, ready: "[data-rap-profile-view]:not([hidden]) .e-permits-empty" }
+        "rap-02c": { page: RAP, params: { act: "rap-9999" }, ready: "[data-rap-profile-view]:not([hidden]) .e-permits-empty" },
+        /* „Vizualizare actul” (US-143): MDocs act in the document modal — valid PJ act, loading,
+           Suspendat watermark, MDocs down (AC-10), RAP API down (AC-11), PF anonymised, Retras */
+        ...(() => {
+          const view = (act, params = {}, wait = ".rap-act-doc") => ({
+            page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
+            run: async (h) => { await h.click("[data-rap-view-document]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300); }
+          });
+          return {
+            "rap-03": view("rap-0002"),
+            "rap-03a": view("rap-0002", { mdocs: "incarcare" }, ".spinner"),
+            "rap-03b": view("rap-0003"),
+            "rap-03c": view("rap-0002", { mdocs: "indisponibil" }, ".e-permits-empty"),
+            "rap-03d": view("rap-0002", { mdocs: "date" }, ".e-permits-empty"),
+            "rap-03e": view("rap-0001"),
+            "rap-03f": view("rap-0005")
+          };
+        })()
       };
     })(),
     "cat-03b": ppIntent(),

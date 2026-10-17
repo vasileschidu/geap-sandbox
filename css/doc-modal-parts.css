@@ -1,0 +1,252 @@
+/* ==========================================================================
+   Document modal parts for pages that do NOT load e-permits-acte-permisive.css — today only the
+   public RAP act page (rap-evo/, „Vizualizare actul”, US-143).
+   The markup and class names are the FO / EVO Cabinet document modal (CabEvo.openDocModal):
+   FO doc-modal shell `.e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal` (header ·
+   body · footer) + the grey `.e-permits-doc-peek__canvas` holding the A4
+   `.e-permits-dtpl__page.e-permits-doc-peek__page > .e-permits-dtpl__surface`, zoomed to the
+   canvas width in JS. Values = the originals in e-permits-acte-permisive.css („Document Picker
+   Modal”, „A4 page”, doc-peek canvas, 2026-10-17); their few hex literals are written here with
+   the matching tokens (close hover = tertiary-hover, submit hover = brand-default-hover).
+   Never load this file on a page that loads e-permits-acte-permisive.css: there the originals
+   apply. Change a value there first, then here.
+   ========================================================================== */
+
+@keyframes e-permits-fo-modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes e-permits-fo-modal-card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+/* ---- Shell (e-permits-acte-permisive.css „Document Picker Modal”) ---- */
+.e-permits-fo-doc-modal-overlay {
+  align-items: center;
+  animation: e-permits-fo-modal-fade-in 150ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  background: rgba(0, 0, 0, 0.4);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 1000;
+}
+
+.e-permits-fo-doc-modal-overlay[hidden] {
+  display: none;
+}
+
+.e-permits-fo-doc-modal {
+  animation: e-permits-fo-modal-card-in 160ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  background: var(--color-background-base-default, #fff);
+  border-radius: var(--border-radius-12, 12px);
+  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.12), 0 10px 24px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  max-height: min(800px, 90vh);
+  overflow: hidden;
+  transform-origin: center;
+  width: 720px;
+}
+
+.e-permits-fo-doc-modal__header {
+  align-items: flex-start;
+  box-sizing: border-box;
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--spacing-12, 12px);
+  justify-content: center;
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-fo-doc-modal__header-text {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.e-permits-fo-doc-modal__title {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-24, 24px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  letter-spacing: -0.24px;
+  line-height: var(--line-height-lh-32, 32px);
+  margin: 0;
+}
+
+.e-permits-fo-doc-modal__subtitle {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-fo-doc-modal__close {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border: none;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  flex-shrink: 0;
+  height: 32px;
+  justify-content: center;
+  padding: var(--spacing-8, 8px);
+  width: 32px;
+}
+
+.e-permits-fo-doc-modal__close:hover {
+  background: var(--color-background-base-tertiary-hover, #e8e8e8);
+}
+
+.e-permits-fo-doc-modal__close .icon {
+  height: 16px;
+  width: 16px;
+}
+
+.e-permits-fo-doc-modal__footer {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-end;
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px) var(--spacing-24, 24px);
+}
+
+.e-permits-fo-doc-modal__cancel {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-strong, #121212);
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 48px;
+  justify-content: center;
+  line-height: var(--line-height-lh-24, 24px);
+  min-width: 72px;
+  padding: 0 var(--spacing-20, 20px);
+}
+
+.e-permits-fo-doc-modal__cancel:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-doc-modal__submit {
+  align-items: center;
+  appearance: none;
+  background: var(--color-background-brand-default, #0058d2);
+  border: none;
+  border-radius: var(--border-radius-full, 999px);
+  color: var(--color-text-base-default-on-color, #fff);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 48px;
+  justify-content: center;
+  line-height: var(--line-height-lh-24, 24px);
+  min-width: 72px;
+  padding: 0 var(--spacing-20, 20px);
+}
+
+.e-permits-fo-doc-modal__submit:hover:not(:disabled) {
+  background: var(--color-background-brand-default-hover, #004ab3);
+}
+
+/* the library button focus ring (main.css .btn-primary:focus-visible) */
+:is(.e-permits-fo-doc-modal__close, .e-permits-fo-doc-modal__cancel, .e-permits-fo-doc-modal__submit):focus-visible {
+  box-shadow: 0 0 0 2px var(--white, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+/* ---- Grey canvas + A4 page (doc-peek canvas, „A4 page”) ---- */
+.e-permits-doc-peek__canvas {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--spacing-24, 24px);
+}
+
+.e-permits-dtpl__page {
+  background-color: var(--color-background-base-default, #fff);
+  background-position: center;
+  background-size: cover;
+  box-shadow: var(--shadow-200, 0 1px 3px rgba(0, 0, 0, 0.08), 0 3px 8px rgba(0, 0, 0, 0.08), 0 0 0.5px rgba(0, 0, 0, 0.18));
+  box-sizing: border-box;
+  margin: 0 auto;
+  min-height: 297mm;
+  padding: 18mm 16mm;
+  width: min(100%, 210mm);
+}
+
+.e-permits-doc-peek__page {
+  width: 210mm;
+}
+
+.e-permits-dtpl__surface {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: 200px;
+  outline: none;
+}
+
+.e-permits-dtpl__surface h1 {
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-24, 24px);
+  margin: var(--spacing-16, 16px) 0 var(--spacing-8, 8px);
+  text-align: center;
+}
+
+.e-permits-dtpl__surface p {
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+.e-permits-dtpl__surface table {
+  border-collapse: collapse;
+  margin: var(--spacing-12, 12px) 0;
+  width: 100%;
+}
+
+.e-permits-dtpl__surface td {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+  vertical-align: top;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-fo-doc-modal-overlay,
+  .e-permits-fo-doc-modal {
+    animation-duration: 0.01ms !important;
+  }
+}
