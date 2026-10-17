@@ -136,15 +136,21 @@
     }
   };
 
+  /* the profile writes the full month („4 ianuarie 2025”, the project date rule), the data has
+     „4 ian. 2025” */
+  const FULL_MONTH = { ian: "ianuarie", feb: "februarie", mar: "martie", apr: "aprilie", mai: "mai", iun: "iunie", iul: "iulie", aug: "august", sep: "septembrie", sept: "septembrie", oct: "octombrie", nov: "noiembrie", noi: "noiembrie", dec: "decembrie" };
+  const fullMonthDate = (value) => String(value || "").replace(/\b(\d{1,2})\s+([a-zăâîșț]{3,4})\.?\s+(\d{4})\b/giu,
+    (match, day, month, year) => (FULL_MONTH[month.toLowerCase()] ? `${day} ${FULL_MONTH[month.toLowerCase()]} ${year}` : match));
+
   const normalizeProfile = (record) => {
     const defaults = state.config.profileDefaults || {};
     const profile = { ...defaults, ...(record.profile || {}) };
-    const issuedDate = profile.issuedDate || record.permit.issuedAt.replace(/^emis\s+/i, "");
+    const issuedDate = fullMonthDate(profile.issuedDate || record.permit.issuedAt.replace(/^emis\s+/i, ""));
     return {
       ...profile,
       issuedDate,
-      validFrom: profile.validFrom || issuedDate,
-      validUntil: profile.validUntil || record.permit.validThrough,
+      validFrom: fullMonthDate(profile.validFrom) || issuedDate,
+      validUntil: fullMonthDate(profile.validUntil || record.permit.validThrough),
       timeline: record.profile?.timeline || defaults.timeline || [],
       support: { ...(defaults.support || {}), ...(record.profile?.support || {}) }
     };
@@ -199,19 +205,19 @@
       ["Numărul actului permisiv", record.permit.number, true],
       ["Numărul dosarului electronic", record.permit.paperNumber, true],
       ["Seria și nr. documentului tipărit", profile.printedDocumentNumber, true],
-      ["Autoritatea emitentă", record.authority.name],
-      ["Oficiul", profile.office],
       ["Data eliberării", profile.issuedDate],
       ["Valabil din data", profile.validFrom],
       ["Data expirării", profile.validUntil]
     ];
-    const companyPermitsAction = record.beneficiary.type === "company" ? `
-      <span class="rap-profile__company-permits">
-        <span class="rap-profile__company-permits-separator" aria-hidden="true">•</span>
-        <button type="button" data-rap-company-permits="${escapeHtml(record.beneficiary.identifier)}">
-          Toate actele companiei <span aria-hidden="true">→</span>
-        </button>
-      </span>
+    /* „Toate actele (N) →” (user 2026-10-17, research: a count gives the link information scent;
+       the name stays plain because the target is a filtered list, not a company page) */
+    const companyActsCount = record.beneficiary.type === "company"
+      ? state.records.filter((item) => item.beneficiary.type === "company" && item.beneficiary.identifier === record.beneficiary.identifier).length
+      : 0;
+    const companyPermitsAction = companyActsCount > 1 ? `
+      <button class="rap-profile__company-permits" type="button" data-rap-company-permits="${escapeHtml(record.beneficiary.identifier)}" aria-label="Toate actele companiei ${escapeHtml(record.beneficiary.name)} (${companyActsCount})">
+        Toate actele (${companyActsCount}) <span aria-hidden="true">→</span>
+      </button>
     ` : "";
 
     elements.profileView.innerHTML = `
@@ -251,11 +257,13 @@
           <div class="rap-profile__beneficiary-card">
             <span class="rap-profile__beneficiary-avatar" aria-hidden="true">${icon(beneficiaryIcon)}</span>
             <span class="rap-profile__beneficiary-copy">
-              <strong>${escapeHtml(record.beneficiary.name)}</strong>
+              <span class="rap-profile__beneficiary-name-row">
+                <strong>${escapeHtml(record.beneficiary.name)}</strong>
+                ${companyPermitsAction}
+              </span>
               <span class="rap-profile__beneficiary-meta">
                 <span>${escapeHtml(record.beneficiary.identifierType)}</span>
                 ${isMaskedValue(record.beneficiary.identifier) ? `<code>${escapeHtml(record.beneficiary.identifier)}</code>` : copyValue(record.beneficiary.identifier)}
-                ${companyPermitsAction}
               </span>
             </span>
           </div>
@@ -271,14 +279,19 @@
         <!-- no „Istoric complet” on the public registry page (user 2026-10-17): a dossier timeline
              (Cerere depusă → Dosar în examinare) means nothing for an issued act seen by the public -->
 
+        <!-- „Autoritatea emitentă” (user 2026-10-17) instead of „Ai nevoie de ajutor?” with a fixed ANTA
+             contact: the act's own authority + office; phone / e-mail only when the data has them -->
         <section class="e-permits-dosar-profil__section rap-profile__section--support" aria-labelledby="rap-support-title">
-          <h2 class="e-permits-dosar-profil__section-title" id="rap-support-title">Ai nevoie de ajutor?</h2>
-          <div class="rap-profile__support-card">
-            <strong>${escapeHtml(profile.support.authority || "")}</strong>
-            <div class="rap-profile__support-links">
-              <a class="btn btn-text-neutral btn-sm btn-pill" href="tel:${escapeHtml((profile.support.phone || "").replaceAll(" ", ""))}">${icon("phone")}<span>${escapeHtml(profile.support.phone || "")}</span></a>
-              <a class="btn btn-text-neutral btn-sm btn-pill" href="mailto:${escapeHtml(profile.support.email || "")}">${icon("envelope")}<span>${escapeHtml(profile.support.email || "")}</span></a>
-            </div>
+          <h2 class="e-permits-dosar-profil__section-title" id="rap-support-title">Autoritatea emitentă</h2>
+          <div class="e-permits-dosar-profil__card">
+            ${[["Denumire", record.authority.name], ["Cod", record.authority.code], ["Oficiul", profile.office]]
+              .filter(([, value]) => value)
+              .map(([label, value]) => renderProfileDetailRow(label, value, {})).join("")}
+            ${record.authority.phone || record.authority.email ? `
+              <div class="rap-profile__support-links">
+                ${record.authority.phone ? `<a class="btn btn-text-neutral btn-sm btn-pill" href="tel:${escapeHtml(record.authority.phone.replaceAll(" ", ""))}">${icon("phone")}<span>${escapeHtml(record.authority.phone)}</span></a>` : ""}
+                ${record.authority.email ? `<a class="btn btn-text-neutral btn-sm btn-pill" href="mailto:${escapeHtml(record.authority.email)}">${icon("envelope")}<span>${escapeHtml(record.authority.email)}</span></a>` : ""}
+              </div>` : ""}
           </div>
         </section>
         </div>

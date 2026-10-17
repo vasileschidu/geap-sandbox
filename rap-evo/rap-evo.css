@@ -1031,26 +1031,23 @@ a {
   letter-spacing: 0;
 }
 
-.rap-profile__company-permits {
+/* name row: the company name + „Toate actele (N) →” on the right (desktop); under it on phones */
+.rap-profile__beneficiary-name-row {
   align-items: baseline;
-  display: inline-flex;
-  gap: var(--spacing-4, 4px);
+  align-self: stretch;
+  display: flex;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  min-width: 0;
 }
 
-.rap-profile__company-permits-separator {
-  align-items: center;
-  color: var(--rap-text-tertiary);
-  display: inline-flex;
-  flex: 0 0 8px;
-  height: 8px;
-  justify-content: center;
-  line-height: 8px;
-  width: 8px;
+.rap-profile__beneficiary-copy {
+  flex: 1 1 auto;
 }
 
 /* a plain text link (user 2026-10-17: „simple link, not the hover-padding background one”):
    brand colour, underline on hover, the standard focus ring */
-.rap-profile__company-permits button {
+.rap-profile__company-permits {
   background: transparent;
   border: 0;
   border-radius: var(--border-radius-4, 4px);
@@ -1062,23 +1059,21 @@ a {
   text-underline-offset: var(--spacing-2, 2px);
 }
 
-.rap-profile__company-permits button:hover {
+.rap-profile__company-permits:hover {
   text-decoration: underline;
 }
 
-.rap-profile__company-permits button:focus-visible {
+.rap-profile__company-permits:focus-visible {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--rap-brand);
   outline: 0;
 }
 
 /* phones: the link on its own line, left, without the dot */
 @media (max-width: 760px) {
-  .rap-profile__company-permits {
-    flex-basis: 100%;
-  }
-
-  .rap-profile__company-permits-separator {
-    display: none;
+  .rap-profile__beneficiary-name-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
   }
 }
 
