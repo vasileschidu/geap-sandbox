@@ -1991,12 +1991,15 @@ tr:hover .rap-act-link {
 /* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
    separator, not 8 — („Vezi act permisiv” = the plain library btn-primary btn-md, hugging, on every width) */
 @media (max-width: 760px) {
-  /* 2 rows of 2 (user 2026-10-17): the columns are as wide as their widest item, so the
-     separator sits 16 after column 1's widest value and 16 before column 2 — an even gap */
+  /* 2 rows of 2, equal columns, no separators (user 2026-10-17) */
   .rap-profile__header .e-permits-page-header__meta {
-    --e-permits-page-header-meta-gap: var(--spacing-16, 16px);
+    column-gap: var(--spacing-16, 16px);
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, max-content));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rap-profile__header .e-permits-page-header__meta-item::before {
+    content: none;
   }
 
 
@@ -2018,5 +2021,41 @@ tr:hover .rap-act-link {
   /* the first column keeps the page's 16 edge, so the table lines up with the search above */
   .rap-table :is(th, td):first-child {
     padding-left: var(--spacing-16, 16px);
+  }
+}
+
+/* phones (user 2026-10-17): search + „Filtru” on one row — the search fills the row, the filter
+   is an icon-only button (label kept for screen readers) with its count badge */
+@media (max-width: 760px) {
+  .rap-toolbar {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .rap-search {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+  }
+
+  .rap-toolbar .e-permits-workplace__advanced {
+    align-self: center;
+    flex: 0 0 auto;
+    gap: var(--spacing-4, 4px);
+    min-height: var(--spacing-40, 40px);
+    min-width: var(--spacing-40, 40px);
+    padding-inline: var(--spacing-8, 8px);
+    justify-content: center;
+  }
+
+  .rap-toolbar .e-permits-workplace__advanced > span:not(.badge) {
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
   }
 }
