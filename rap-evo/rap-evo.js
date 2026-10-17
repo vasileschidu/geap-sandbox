@@ -238,9 +238,9 @@
               ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
-            <button class="btn btn-primary rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
-              ${icon("eye-open")}
-              <span>Vizualizare actul</span>
+            <button class="btn btn-primary btn-sm rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
+              ${icon("eye-open", "icon small")}
+              <span>Vezi act permisiv</span>
             </button>
           </div>
         </header>
@@ -254,7 +254,7 @@
               <strong>${escapeHtml(record.beneficiary.name)}</strong>
               <span class="rap-profile__beneficiary-meta">
                 <span>${escapeHtml(record.beneficiary.identifierType)}</span>
-                <code>${escapeHtml(record.beneficiary.identifier)}</code>
+                ${isMaskedValue(record.beneficiary.identifier) ? `<code>${escapeHtml(record.beneficiary.identifier)}</code>` : copyValue(record.beneficiary.identifier)}
                 ${companyPermitsAction}
               </span>
             </span>
