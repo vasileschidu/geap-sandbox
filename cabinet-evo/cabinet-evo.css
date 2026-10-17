@@ -50,9 +50,10 @@
   margin: 0;
 }
 
+/* 8 under the page title (the tight-gap rule: no loose text closer than 8, 2026-10-17) */
 .cab-intro p {
   color: var(--color-text-base-tertiary, #757575);
-  margin: var(--spacing-6, 6px) 0 0;
+  margin: var(--spacing-8, 8px) 0 0;
 }
 
 /* ---------- toolbar ---------- */
@@ -291,37 +292,9 @@
   gap: var(--spacing-8, 8px);
 }
 
-.cab-card__tags .status-tag,
+/* status / „Aprobare tacită” tags = the BO Tag · Small (css/bo-profile-parts.css, 2026-10-17) */
 .cab-card__tags .cab-mark {
   white-space: nowrap;
-}
-
-/* Figma "tag-filled": h24, min-w32, padding 0 8, radius 4, Body/Small 500.
-   .status-tag--small would force 12px, so the size is pinned here instead. */
-.cab-card__tags .status-tag {
-  border-radius: var(--border-radius-4, 4px);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: 24px;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 32px;
-  padding: 0 var(--spacing-8, 8px);
-}
-
-/* "Aprobat tacit" — green text + check, no fill and no border, per Figma */
-.cab-card__tacit {
-  align-items: center;
-  color: var(--color-text-positive-on-secondary, #027948);
-  display: inline-flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-20, 20px);
-  white-space: nowrap;
-}
-
-.cab-card__tacit .icon {
-  color: var(--color-icon-positive-on-secondary, #027948);
 }
 
 /* Figma "Form Field" */
@@ -500,28 +473,6 @@
   cursor: not-allowed;
 }
 
-.cab-detail {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-24, 24px);
-}
-
-.cab-detail__back {
-  align-self: flex-start;
-}
-
-.cab-detail__head {
-  align-items: flex-start;
-  display: flex;
-  gap: var(--spacing-16, 16px);
-  justify-content: space-between;
-}
-
-.cab-detail__head h1 {
-  margin: 0;
-}
-
-.cab-detail__service,
 .cab-detail__muted {
   color: var(--color-text-base-tertiary, #757575);
   margin: var(--spacing-4, 4px) 0 0;
@@ -621,12 +572,6 @@
 
 .cab-card--static:hover {
   background: var(--color-background-base-default, #fff);
-}
-
-/* Respins — the „Aprobat” mark in red */
-.cab-card__tacit--danger,
-.cab-card__tacit--danger .icon {
-  color: var(--color-text-danger-on-secondary, #b32318);
 }
 
 /* „Disponibilă aprobarea tacită” is a button: it carries the explanatory tooltip */
@@ -739,75 +684,9 @@
 
 /* ---------- profile (dosar + catalog service) ---------- */
 
-/* key facts row: label over value, vertical dividers (Figma profile header) */
-.cab-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-16, 16px) 0;
-  margin: 0;
-}
-
-.cab-facts__item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6, 6px);
-  min-width: 0;
-  padding: 0 var(--spacing-24, 24px);
-}
-
-.cab-facts__item:first-child {
-  padding-left: 0;
-}
-
-.cab-facts__item + .cab-facts__item {
-  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-}
-
-.cab-facts dt {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.cab-facts dd {
-  align-items: center;
-  color: var(--color-text-base-default, #121212);
-  display: flex;
-  flex-wrap: wrap;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-8, 8px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-}
-
-.cab-facts .e-permits-fo-copy-value,
-.cab-detail__card .e-permits-fo-copy-value {
-  gap: var(--spacing-4, 4px);
-  padding: 0;
-}
-
-.cab-tracker {
-  padding: var(--spacing-8, 8px) 0;
-}
-
 .cab-section {
   display: flex;
   flex-direction: column;
-}
-
-/* long labels (document names, „Recomandări pentru îmbunătățire”) wrap instead of truncating */
-.cab-detail__card .e-permits-fo-summary-row__label {
-  overflow: visible;
-  white-space: normal;
-}
-
-/* value wrappers only — a tag inside keeps the library tag box (gap 4) */
-.cab-detail__card .e-permits-fo-summary-row__value span:where(:not(.status-tag, .status-tag *)) {
-  align-items: center;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
 }
 
 .cab-docs {
@@ -984,29 +863,6 @@
     align-items: flex-start;
   }
 
-  .cab-detail__head {
-    flex-direction: column;
-    gap: var(--spacing-12, 12px);
-  }
-
-  .cab-facts {
-    flex-direction: column;
-    gap: var(--spacing-12, 12px);
-  }
-
-  .cab-facts__item {
-    padding: 0;
-  }
-
-  .cab-facts__item + .cab-facts__item {
-    border-left: 0;
-  }
-
-  .cab-detail__actions > .btn {
-    justify-content: center;
-    width: 100%;
-  }
-
   .cab-pager {
     justify-content: center;
   }
@@ -1088,6 +944,12 @@
   display: none;
 }
 
+/* loose text in the lead (catalog description / request hint) on the section titles' 12 inset */
+.cab-profile__lead > p {
+  margin: 0;
+  padding-inline: var(--spacing-12, 12px);
+}
+
 /* a list / card block under a BO section title (documents, identity cards) starts at the card edge */
 .cab-section > .cab-docs,
 .cab-section > .cab-roles {
@@ -1121,6 +983,18 @@
 
 .cab-roles.e-permits-fo-form__roles {
   gap: var(--spacing-16, 16px);
+}
+
+/* act profile: the header's post-process menu opens rightwards from its button; the remaining-days
+   note after „Data expirării” is the tertiary meta voice */
+.e-permits-page-header__action-row .cab-menu.e-permits-fo-intent-menu {
+  left: 0;
+  right: auto;
+}
+
+.e-permits-dosar-profil__row-value > .cab-detail__muted {
+  font-weight: var(--font-weight-fw-regular, 400);
+  margin: 0;
 }
 
 /* „Stadiul solicitării” (2026-10-17): ONE bordered card (1px border token, the BO card radius 24 /
@@ -1285,17 +1159,6 @@
   display: inline-flex;
   flex-wrap: wrap;
   gap: var(--spacing-8, 8px);
-}
-
-.sm-item__tags .status-tag {
-  border-radius: var(--border-radius-4, 4px);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: 24px;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 32px;
-  padding: 0 var(--spacing-8, 8px);
-  white-space: nowrap;
 }
 
 .sm-item__deadline {

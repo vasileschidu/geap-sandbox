@@ -129,17 +129,15 @@
             ["Cost", escape(service.cost)],
             ["Disponibil", onlineTag(service)],
           ],
+          /* the primary action = the library btn-primary btn-md in the header (RAP / BO public header) */
+          actions: service.online ? `<a class="btn btn-primary btn-md e-permits-page-header__action" href="${escape(target.href)}" aria-describedby="cat-request-hint" data-cat-request>${icon("icon-external-link")}<span>Solicită online</span></a>` : "",
         })}
         <div class="e-permits-dosar-profil__panel">
         <div class="cab-profile__lead">
+        ${service.online ? `<p class="text-body-sm cab-detail__muted" id="cat-request-hint" data-cat-request-hint>${escape(target.hint)}</p>` : ""}
         <p class="cab-lead">${escape(service.description)}</p>
         ${service.online
-          ? `<div class="cab-cta">
-               <div class="cab-detail__actions">
-                 <a class="btn btn-primary btn-md btn-rounded" href="${escape(target.href)}" data-cat-request>${icon("icon-external-link")}<span>Solicită online</span></a>
-               </div>
-               <p class="text-body-sm cab-detail__muted" data-cat-request-hint>${escape(target.hint)}</p>
-             </div>`
+          ? ""
           : `<div class="message message--subtle banner--info message--small cab-message" role="note">
                <span class="banner__icon">${icon("icon-circle-info-filled", "medium")}</span>
                <div class="banner__content"><p>Serviciul nu poate fi solicitat încă online. Cererea se depune la ghișeul autorității.</p></div>

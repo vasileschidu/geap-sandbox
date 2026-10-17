@@ -50,7 +50,7 @@
     avatarPanel: document.querySelector("[data-fo-avatar-dropdown]"),
   };
 
-  const state = { permits: [], filters: [], active: "toate", query: "", geap: null, detail: null, dosarByAct: {} };
+  const state = { permits: [], filters: [], active: "toate", query: "", geap: null, detail: null, dosarByAct: {}, dosarNrByAct: {}, actProfiles: {}, help: {} };
 
   /* ---------- compartments ----------
      One page, three views (?view=): Solicitările mele (solicitari.js), Actele mele
@@ -196,7 +196,7 @@
   }
 
   function cardMarkup(permit) {
-    const tacit = permit.tacit && permit.status === "valabil" ? tacitTagHtml() : "";
+    const tacit = (permit.tacit || state.actProfiles[permit.id]?.tacitApprovalDate) && permit.status === "valabil" ? tacitTagHtml() : "";
 
     const notice = permit.notice
       ? `<div class="message message--subtle ${NOTICE_CLASS[permit.notice.tone] || "banner--info"} message--small">
@@ -214,8 +214,8 @@
             ${permit.serviceTitle ? `<p class="cab-card__service">${escape(permit.serviceTitle)}</p>` : ""}
           </div>
           <div class="cab-card__tags">
-            ${tacit}
             ${tagHtml(permit.statusLabel, ACT_TONE[permit.status])}
+            ${tacit}
             ${permit.geap ? actionsHtml(permit) : ""}
           </div>
         </div>
@@ -523,21 +523,87 @@
     modal.querySelector("[data-cab-pp-cancel]")?.focus();
   }
 
-  function detailRow(label, value) {
-    return `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${escape(label)}</span><div class="e-permits-fo-summary-row__value"><span>${value}</span></div></div>`;
+  /* ---------- act profile = the RAP act profile seen by the owner (2026-10-17 alignment) ----------
+     The public BO header (Numărul actului · Stare · the status date · Data expirării; „Vezi act
+     permisiv” = the primary, then „Inițiază un postproces ▾” and „Vezi solicitarea”), the paper /
+     pending notice, then BO sections: Beneficiar (the FO identity card), Detalii act (US-162 AC-17:
+     „Data suspendării actului permisiv” + „Suspendat până la data de” only for Suspendat, „Data
+     retragerii actului permisiv” only for Retras, „Data aprobării tacite” + the blue badge for a tacit
+     act), Autoritatea emitentă. „Vezi act permisiv” → the RAP „Vizualizare act” data modal, its
+     „Descarcă” → „Forma de tipar a actului” (MDocs A4) = the shared GEAPActView (js/act-view.js). */
+  const actProfileOf = (act) => state.actProfiles[act.id] || {};
+  const isTacitAct = (act) => Boolean(actProfileOf(act).tacitApprovalDate);
+  function actStatusDates(act) {
+    const profile = actProfileOf(act);
+    return [
+      ...(act.status === "suspendat" ? [["Data suspendării actului permisiv", longDate(profile.suspensionDate)], ["Suspendat până la data de", longDate(profile.suspendedUntil)]] : []),
+      ...(act.status === "retras" ? [["Data retragerii actului permisiv", longDate(profile.withdrawalDate)]] : []),
+    ].filter(([, value]) => value);
   }
+  /* the header item beside Stare: a suspended act shows when the suspension ends, a withdrawn one when it
+     was withdrawn, otherwise „Valabil din data” (the RAP headerDateItem) */
+  function actHeaderDate(act) {
+    const profile = actProfileOf(act);
+    if (act.status === "suspendat" && profile.suspendedUntil) return ["Suspendat până la", longDate(profile.suspendedUntil)];
+    if (act.status === "retras" && profile.withdrawalDate) return ["Retras la", longDate(profile.withdrawalDate)];
+    return ["Valabil din data", longDate(act.validFrom || act.issued)];
+  }
+  const actAuthority = (act) => state.help[act.service?.authority] || {};
+  /* the act's public, service-configured fields (the RAP „Câmpuri specifice actului”) from the act data */
+  function actGroups(act) {
+    const object = act.object || {};
+    const address = [[object.strada, object.house].filter(Boolean).join(" "), object.sector ? `sect. ${object.sector}` : "", object.localitate, object.raion].filter(Boolean).join(", ");
+    const groups = [];
+    const place = [["Denumirea obiectului", act.title], ["Tipul obiectului", object.name], ["Adresa obiectului", address], ["Activitatea (CAEM)", object.caem]].filter(([, value]) => value);
+    if (object.name || address) groups.push({ title: "Obiectul activității", rows: place });
+    if (act.activityType) groups.push({ title: null, rows: [["Genul de activitate", act.activityType]] });
+    return groups;
+  }
+  function toActView(act) {
+    const subject = state.geap.subject || {};
+    const profile = actProfileOf(act);
+    return {
+      id: act.id,
+      name: act.service.title || act.title,
+      number: act.number,
+      status: act.statusLabel,
+      tone: ACT_TONE[act.status] || "neutral",
+      watermark: act.status !== "valabil",
+      authority: actAuthority(act).name || act.service.authority || "",
+      office: act.subdivision || "",
+      beneficiary: { name: subject.name || "", person: subject.type === "PF", idType: subject.idLabel || "", id: subject.idValue || "" },
+      tacitDate: isTacitAct(act) ? longDate(profile.tacitApprovalDate) : "",
+      tacitBadge: isTacitAct(act) && act.status === "valabil",
+      issuedDate: longDate(act.issued),
+      validFrom: longDate(act.validFrom || act.issued),
+      statusDates: actStatusDates(act),
+      validUntil: longDate(act.validUntil),
+      paperNumber: state.dosarNrByAct[act.id] || "",
+      printedNumber: profile.printedDocumentNumber || "",
+      groups: actGroups(act),
+      url: `${window.location.origin}${window.location.pathname}?view=acte&act=${encodeURIComponent(act.id)}`,
+      source: "EVO Cabinet",
+    };
+  }
+  let actViewInstance = null;
+  const actView = () => {
+    actViewInstance ||= window.GEAPActView.create({ sprite: SPRITE, copyHtml: (value) => copyValueHtml(value).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(value)}"`), copySelector: "[data-fo-copy-value]", onCopy: () => {} });
+    return actViewInstance;
+  };
 
-  /* act profile (Feature 90818 step 3): data, download, post-processes */
   function renderDetail(act) {
     let panel = document.querySelector("[data-cab-detail]");
     if (!panel) {
-      panel = document.createElement("section");
-      panel.className = "cab-detail";
+      panel = document.createElement("article");
+      panel.className = "cab-profile cab-act-profile";
       panel.dataset.cabDetail = "";
+      panel.setAttribute("aria-labelledby", "cab-act-title");
       els.list.insertAdjacentElement("afterend", panel);
     }
     const listParts = [document.querySelector(".cab-intro"), document.querySelector(".cab-toolbar"), els.chips, els.list, els.empty];
     if (!act) {
+      actViewInstance?.closeDocument({ toData: false });
+      actViewInstance?.closeData({ restoreFocus: false });
       panel.hidden = true;
       listParts.forEach((el) => { if (el) el.hidden = el === els.empty ? els.empty.hidden : false; });
       state.detail = null;
@@ -546,41 +612,86 @@
     state.detail = act.id;
     listParts.forEach((el) => { if (el) el.hidden = true; });
     const remaining = act.status === "valabil" ? daysUntil(act.validUntil) : null;
+    const tacit = isTacitAct(act);
+    const [dateLabel, dateValue] = actHeaderDate(act);
+    const authority = actAuthority(act);
+    const subject = state.geap.subject;
+    const dosarNr = state.dosarNrByAct[act.id];
+    const actions = [
+      `<button class="btn btn-primary btn-md e-permits-page-header__action" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
+      act.postProcesses.length ? `
+        <div class="e-permits-fo-intent-act__action">
+          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Inițiază un postproces</span>${icon("icon-chevron-bottom")}</button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
+            ${act.postProcesses.map((pp) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}">${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
+          </ul>
+        </div>` : "",
+      state.dosarByAct[act.id] ? `<a class="btn btn-neutral btn-md" href="${escape(cabUrl("solicitari", {}, `#dosar/${state.dosarByAct[act.id]}`))}" data-cab-see-dosar>${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
+    ].filter(Boolean).join("");
+    const details = [
+      detailRow("Denumire act permisiv", escape(act.service.title || "")),
+      detailRow("Stare", tagHtml(act.statusLabel, ACT_TONE[act.status])),
+      detailRow("Numărul actului permisiv", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)),
+      dosarNr ? detailRow("Numărul dosarului electronic", copyValueHtml(dosarNr)) : "",
+      actProfileOf(act).printedDocumentNumber ? detailRow("Seria și nr. documentului tipărit", escape(actProfileOf(act).printedDocumentNumber)) : "",
+      tacit ? detailRow("Data aprobării tacite", `<span>${escape(longDate(actProfileOf(act).tacitApprovalDate))}</span>${act.status === "valabil" ? tacitTagHtml() : ""}`) : "",
+      detailRow("Data eliberării", escape(longDate(act.issued))),
+      detailRow("Valabil din data", escape(longDate(act.validFrom || act.issued))),
+      ...actStatusDates(act).map(([label, value]) => detailRow(label, escape(value))),
+      detailRow("Data expirării", `<span>${escape(longDate(act.validUntil))}</span>${remaining !== null ? `<span class="cab-detail__muted">· ${remaining} zile rămase</span>` : ""}`),
+    ];
+    const link = (href, text) => `<a class="e-permits-dosar-profil__link" href="${escape(href)}">${escape(text)}</a>`;
     panel.hidden = false;
     panel.innerHTML = `
       ${pageHeader({
         back: { label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" },
         title: act.title,
+        titleId: "cab-act-title",
         meta: [
           ["Numărul actului", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)],
-          ["Stare", tagHtml(act.statusLabel, ACT_TONE[act.status])],
-          ["Emis la", escape(longDate(act.issued) || "—")],
-          [act.status === "expirat" ? "A expirat la" : "Valabil până la", escape(longDate(act.validUntil) || "—")],
-          ["Autoritatea emitentă", escape(act.authority)],
+          ["Stare", `${tagHtml(act.statusLabel, ACT_TONE[act.status])}${tacit && act.status === "valabil" ? tacitTagHtml() : ""}`],
+          [dateLabel, escape(dateValue || "—")],
+          ["Data expirării", escape(longDate(act.validUntil) || "—")],
         ],
+        actions,
       })}
-      ${act.notice ? `<div class="message message--subtle ${NOTICE_CLASS[act.notice.tone] || "banner--info"} message--small"><span class="banner__icon">${icon(act.notice.icon, "medium")}</span><div class="banner__content"><p>${escape(act.notice.text)}</p></div></div>` : ""}
-      <div class="e-permits-fo-summary-card cab-detail__card">
-        ${detailRow("Numărul actului permisiv", escape(act.number))}
-        ${detailRow("Serviciul", escape(act.service.title || ""))}
-        ${detailRow("Autoritatea emitentă", escape(act.authority))}
-        ${detailRow("Data emiterii", escape(longDate(act.issued) || "—"))}
-        ${detailRow(act.status === "expirat" ? "A expirat la" : "Valabil până la", escape(longDate(act.validUntil) || "—") + (remaining !== null ? ` <span class="cab-detail__muted">· ${remaining} zile rămase</span>` : ""))}
-        ${detailRow("Statutul", escape(act.statusLabel))}
-      </div>
-      <div class="cab-detail__actions">
-        <button class="btn btn-neutral btn-md btn-rounded" type="button" data-cab-download="${escape(act.id)}">${icon("icon-export")}<span>Descarcă actul</span></button>
-        ${state.dosarByAct[act.id] ? `<a class="btn btn-neutral btn-md btn-rounded" href="${escape(cabUrl("solicitari", {}, `#dosar/${state.dosarByAct[act.id]}`))}" data-cab-see-dosar>${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : ""}
-        ${act.postProcesses.length ? `
-          <div class="e-permits-fo-intent-act__action">
-            <button class="btn btn-primary btn-md btn-rounded" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Inițiază un postproces</span>${icon("icon-chevron-bottom")}</button>
-            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
-              ${act.postProcesses.map((pp) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}">${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
-            </ul>
-          </div>` : (act.paper ? "" : `<p class="text-body-sm cab-detail__muted">Nu există postprocese disponibile pentru statutul „${escape(act.statusLabel)}”.</p>`)}
+      <div class="e-permits-dosar-profil__panel">
+        ${act.notice ? `<div class="cab-profile__lead"><div class="message message--subtle ${NOTICE_CLASS[act.notice.tone] || "banner--info"} message--small cab-message"><span class="banner__icon">${icon(act.notice.icon, "medium")}</span><div class="banner__content"><p>${escape(act.notice.text)}</p></div></div></div>` : ""}
+        ${subject ? profileSection("cab-act-beneficiary", "Beneficiar", identityCardHtml({ ...subject, initials: subject.initials || subject.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2) })) : ""}
+        ${profileSection("cab-act-details", "Detalii act", detailCard(details))}
+        ${profileSection("cab-act-authority", "Autoritatea emitentă", detailCard([
+          detailRow("Denumire", escape(authority.name || act.service.authority || "")),
+          act.service.authority ? detailRow("Cod", escape(act.service.authority)) : "",
+          act.subdivision ? detailRow("Subdiviziunea", escape(act.subdivision)) : "",
+          authority.phone ? detailRow("Telefon", link(`tel:${authority.phone.replace(/\s/g, "")}`, authority.phone)) : "",
+          authority.email ? detailRow("E-mail", link(`mailto:${authority.email}`, authority.email)) : "",
+        ]))}
       </div>`;
     syncHeaderMeta();
     window.scrollTo(0, 0);
+  }
+
+  /* the FO identity card (e-permits-fo-selected-role, read-only): PF = initials, PJ = icon-business */
+  function identityCardHtml(person) {
+    const isCompany = person.type === "PJ";
+    const avatar = isCompany
+      ? `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon" aria-hidden="true">${icon("icon-business", "medium")}</span>`
+      : `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials" aria-hidden="true">${escape(person.initials || "")}</span>`;
+    return `
+      <div class="e-permits-fo-selected-role">
+        <span class="e-permits-fo-selected-role__inner">
+          ${avatar}
+          <span class="e-permits-fo-selected-role__copy">
+            <strong>${escape(person.name)}</strong>
+            <span class="e-permits-fo-selected-role__meta">
+              <span class="e-permits-fo-selected-role__id">
+                <span class="e-permits-fo-selected-role__id-label">${escape(person.idLabel)}</span>
+                <span class="e-permits-fo-copy-value e-permits-fo-copy-value--static e-permits-fo-selected-role__copy-id"><span>${escape(person.idValue)}</span></span>
+              </span>
+            </span>
+          </span>
+        </span>
+      </div>`;
   }
 
   function daysUntil(ddmmyyyy) {
@@ -610,7 +721,20 @@
       const card = event.target.closest("[data-cab-card]");
       if (cancel) { document.querySelector("[data-cab-pp-modal]").hidden = true; return; }
       if (back) { event.preventDefault(); renderDetail(null); render(); return; }
-      if (download) { event.stopPropagation(); closeMenus(); return; }
+      /* „Descarcă actul (MDocs)” → the printable form (the RAP „Forma de tipar a actului”) */
+      if (download) {
+        event.stopPropagation();
+        closeMenus();
+        const act = state.permits.find((p) => p.id === download.dataset.cabDownload);
+        if (act?.geap) actView().openDocument(toActView(act), download.closest(".cab-card")?.querySelector("[data-cab-menu-trigger]") || download);
+        return;
+      }
+      const viewAct = event.target.closest("[data-cab-view-act]");
+      if (viewAct) {
+        const act = state.permits.find((p) => p.id === viewAct.dataset.cabViewAct);
+        if (act) actView().openData(toActView(act), viewAct);
+        return;
+      }
       if (ppBtn && !ppBtn.disabled) {
         event.stopPropagation();
         closeMenus();
@@ -763,10 +887,11 @@
   /* the document modal: FO doc-modal shell, the A4 page preview (grey canvas, zoomed to the width),
      „Date generale” rows, footer Descarcă · Închide */
   let docModalOpener = null;
+  /* the shared A4 viewer (js/doc-preview.js): the page zoomed to the canvas width minus its COMPUTED
+     padding (was a private copy with a hard 48) */
   function fitDocPreview() {
     const canvas = document.querySelector("[data-cab-doc-modal]:not([hidden]) [data-cab-doc-canvas]");
-    const page = canvas?.querySelector(".e-permits-doc-peek__page");
-    if (page && canvas.clientWidth) page.style.zoom = String(Math.min(1, (canvas.clientWidth - 48) / 794));
+    if (canvas) window.GEAPDocPreview?.fit(canvas);
   }
   function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "" }) {
     let overlay = document.querySelector("[data-cab-doc-modal]");
@@ -822,7 +947,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    pageHeader, syncHeaderMeta, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    pageHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 
@@ -834,6 +959,7 @@
     const data = await response.json();
 
     state.filters = data.filters || [];
+    state.actProfiles = data.actProfiles || {};
     state.geap = await loadGeapActs();
     state.permits = state.geap.acts.length ? state.geap.acts : data.permits || [];
 
@@ -847,7 +973,8 @@
       const sm = await (await fetch("../data/cabinet-evo-solicitari.json")).json();
       (sm.perspectives?.[SUBJECT]?.dosare || [])
         .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
-        .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) state.dosarByAct[dosar.actId] = dosar.id; });
+        .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) { state.dosarByAct[dosar.actId] = dosar.id; state.dosarNrByAct[dosar.actId] = dosar.nr; } });
+      state.help = sm.help || {};
     } catch { /* the act profile simply has no link */ }
 
     if (data.user) {

@@ -116,9 +116,10 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
   /* tight-gap (2026-10-16, user: „leave nice space”): an alert / notice / loose explanatory paragraph closer than
      8px (vertically) to the block above or below it — a sibling, or the parent's sibling when the box is the
      first / last child of a wrapper without its own padding or border. Field hints / errors under their control
-     (the FO field rule, 4) and text inside components (titles, meta, descriptions) are not counted. */
+     (the FO field rule, 4) and text inside components (titles, meta, descriptions, a card's `__heading` group:
+     title + subtitle, 2026-10-17) are not counted. */
   const BOXES = ".message, .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-info-note";
-  const looseText = (el) => (el.matches(BOXES) && !el.matches(".message--inline")) || (el.tagName === "P" && !el.closest(BOXES) && !el.matches(".e-permits-fo-field__hint, .e-permits-fo-field__error, .u-visually-hidden, [class*='__meta'], [class*='__desc'], [class*='__text'], [class*='__title'], [class*='__label'], [class*='__saved'], [class*='__status']") && !el.parentElement?.closest(".e-permits-fo-field, label, button, .e-permits-fo-lib-item, .e-permits-stack__item, table, header, nav, .modal--header, [class*='__copy'], [class*='__content']"));
+  const looseText = (el) => (el.matches(BOXES) && !el.matches(".message--inline")) || (el.tagName === "P" && !el.closest(BOXES) && !el.matches(".e-permits-fo-field__hint, .e-permits-fo-field__error, .u-visually-hidden, [class*='__meta'], [class*='__desc'], [class*='__text'], [class*='__title'], [class*='__label'], [class*='__saved'], [class*='__status']") && !el.parentElement?.closest(".e-permits-fo-field, label, button, .e-permits-fo-lib-item, .e-permits-stack__item, table, header, nav, .modal--header, [class*='__copy'], [class*='__content'], [class*='__heading']"));
   const flat = (n) => { const c = getComputedStyle(n); return !parseFloat(c.paddingTop) && !parseFloat(c.paddingBottom) && !parseFloat(c.borderTopWidth) && !parseFloat(c.borderBottomWidth); };
   const neighbour = (el, dir) => {
     for (let n = el, depth = 0; n && n !== root && depth < 3; n = n.parentElement, depth += 1) {

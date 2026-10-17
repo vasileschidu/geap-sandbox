@@ -230,6 +230,24 @@
   flex-wrap: wrap;
 }
 
+/* contact values in a detail row (RAP / Cabinet „Autoritatea emitentă”, „Ai nevoie de ajutor?”): plain
+   brand links in the row's value type (tap to call / write), underline on hover — moved from rap-evo.css */
+:is(.rap-profile__contact-link, .e-permits-dosar-profil__link) {
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-brand-default, var(--rap-brand, #0058d2));
+  text-decoration: none;
+  text-underline-offset: var(--spacing-2, 2px);
+}
+
+:is(.rap-profile__contact-link, .e-permits-dosar-profil__link):hover {
+  text-decoration: underline;
+}
+
+:is(.rap-profile__contact-link, .e-permits-dosar-profil__link):focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--rap-brand, var(--color-border-brand-default, #0058d2));
+  outline: 0;
+}
+
 /* ---- Tag · Small (renderTag): 20 high, 12/16 medium, subtle fill + 1px tone border
    (e-permits-shell.css :3228 + tone borders :4200) ---- */
 .e-permits-workplace__tag {
@@ -384,6 +402,10 @@
 .e-permits-page-header--public .e-permits-page-header__action.btn {
   align-self: flex-start;
   margin-top: var(--spacing-8, 8px);
+}
+
+.e-permits-page-header--public .e-permits-page-header__action-row > .e-permits-page-header__action.btn {
+  margin-top: 0;
 }
 
 /* several actions (EVO Cabinet: primary + a neutral one) = one hugging row, 8 apart */

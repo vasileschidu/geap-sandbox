@@ -238,7 +238,9 @@ but this doc previously described it wrongly, see the entry.
 | List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact` | `pagerHtml` | page-app |
 | Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
 | Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
-| Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (download) · `btn-primary` „Închide”); groups `.rap-act-data__group` (heading row), > 10 fields → `.is-collapsed` + `.rap-act-data__more-row` + `.rap-act-data__toggle` (`btn-text-primary btn-sm btn-rounded` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `rap-evo.css` | `openActData` / `renderActData` / `actSpecificGroups` in `rap-evo/rap-evo.js`; demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
+| Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (download) · `btn-primary` „Închide”); groups `.rap-act-data__group` (heading row), > 10 fields → `.is-collapsed` + `.rap-act-data__more-row` + `.rap-act-data__toggle` (`btn-text-primary btn-sm btn-rounded` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
+| Public profile header (RAP act profile + every EVO Cabinet profile, 2026-10-17) | `header.e-permits-page-header.e-permits-page-header--public` › `__body` (16 top, 12 inset) › `__top` › `__heading` (gap 16): `nav.breadcrumbs.breadcrumbs--trailing` (desktop: the parent trail + trailing chevron, no current crumb / no number) + `nav.breadcrumbs.breadcrumbs--mobile` (≤760: `li.breadcrumbs__item--back` › `.e-permits-page-header__crumb-label`) + `h1.__title` (wraps, never truncated) · `__meta` items (label 12/16 tertiary, value 14/20 medium, dividers; ≤760 = 2 equal columns, no dividers, column gap 16) · the primary `btn btn-primary btn-md .e-permits-page-header__action` (hugging, 8 under the meta) or `.e-permits-page-header__action-row` (primary + neutral `btn-md`, gap 8). The status = a „Stare” meta item with the Tag · Small | `css/bo-profile-parts.css`; renderers `rap-evo.js renderProfile`, `CabEvo.pageHeader({ back, title, titleId, meta, actions })`; parity `tools/ui-qa/specs/rap-profile-vs-bo.json` (svc-01 ↔ rap-02 = 0), `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05 = 0) | page-app |
+| Request status card „Stadiul solicitării” (EVO Cabinet, 2026-10-17) | BO section title over `.cab-status` (white, 1px `--color-border-base-default`, radius 24 / 16 ≤760, clip) › `.cab-status__now` (20 / 16 inset, gap 8: `.cab-status__tags` Tag · Small status + marks · `p.cab-status__title` 16/24 semibold = the status sentence / next step · `p.cab-status__text` 14/20 secondary · `.cab-status__actions[data-sm-dl-scope]` the action that exists: Continuă schița + Elimină, Suplinește informații, Achită (MPay badge), Vezi actul + Descarcă, Depune contestație) · hairline · `ol.e-permits-fo-finish-timeline.cab-status__timeline` (the FO timeline without its grey fill: done steps with full-month dates, the current one `.is-now` = default colour + semibold + `aria-current="step"`, next steps dashed without dates) | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `timelineEvents` / `timelineHtml`; demo sm-03 (Schiță), sm-04 (În derulare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c (Spre achitare), sm-05 / 05a / 05b (Finalizat aprobat / respins / decizie) | page-app |
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
 | Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"`; a product module plugs in with `product.extend({ views, registries, facets, load, init, showView, route, beforeNavigate })` and reads helpers from `product.shared` | `js/ekyc.js` + `js/ekyc-config.js`, see „eKYC back office” | app |
@@ -3545,9 +3547,9 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 
 | Concern | rap-evo | cabinet-evo |
 |---|---|---|
-| Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--danger` (Valabil / Suspendat / Expirat·Retras·Anulat — Expirat red since 2026-10-17 per US-162 AC-07; the BO story US-196 says grey, PO to align) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | library `.status-tag` |
+| Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--danger` (Valabil / Suspendat / Expirat·Retras·Anulat — Expirat red since 2026-10-17 per US-162 AC-07; the BO story US-196 says grey, PO to align) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | the same BO Tag · Small tones (2026-10-17: cards, header, rows; `CabEvo.tagHtml` + `ACT_TONE`) |
 | Status dates (2026-10-17, US-162 AC-17) | `statusDateRows(record, profile)`: Suspendat → „Data suspendării actului permisiv” + „Suspendat până la data de”, Retras → „Data retragerii actului permisiv”, never for other statuses; data `profile.suspensionDate / suspendedUntil / withdrawalDate`. Same rows in Detalii act, the modal Date generale and the A4 form, in date order: [Data aprobării tacite] → Data eliberării → Valabil din data → suspension / withdrawal → Suspendat până la → Data expirării (kept = original end). Header meta beside Stare (`headerDateItem`): „Suspendat până la” / „Retras la” instead of „Valabil din data”. Demo rap-02b, rap-02h, rap-03n, rap-03o | — |
-| Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | — |
+| Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | the same header + sections + dialogs (`?view=acte&act=<id>`, 2026-10-17), see „Entry 1” below |
 | Copy | `.rap-copy--id/--act/--masked`, `.rap-profile__copy` (`is-copied`, 1600 ms) | library `.e-permits-fo-copy-value` |
 | Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), chip row edge to edge („Filtre” first → all filters, then a chip per facet) + bottom sheets (rap-04…04d). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
@@ -5690,7 +5692,16 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
   `btn-icon` → `.e-permits-fo-intent-menu.cab-menu` with Vezi detalii / Descarcă /
   `.cab-menu__separator` / `.cab-menu__label` „Postprocese” / one item per post-process.
   A locked act's items are disabled (`.cab-menu__item[disabled]`).
-- Act detail `.cab-detail*`: back link, notice (paper / pending), summary card, Descarcă, the same menu.
+- Act profile (2026-10-17 = the RAP act profile seen by the owner): `article.cab-profile.cab-act-profile`
+  › public BO header (‹ Actele mele permisive; meta Numărul actului · Stare (+ „Aprobare tacită”) · Valabil
+  din data | Suspendat până la | Retras la · Data expirării; actions „Vezi act permisiv” (primary → the shared
+  „Vizualizare act” data modal, its Descarcă → „Forma de tipar a actului”) · „Inițiază un postproces ▾”
+  (neutral btn-md, the same menu) · „Vezi solicitarea”) › notice (paper / pending) › BO sections Beneficiar
+  (identity card), Detalii act (US-162 AC-17 status dates, tacit row + badge, „N zile rămase”), Autoritatea
+  emitentă. Extras per act in `data/cabinet-evo.json › actProfiles` (suspension / withdrawal / tacit dates,
+  printed series). Card ⋮ „Descarcă actul (MDocs)” opens „Forma de tipar”. Demo pp-01d (Valabil), pp-01j
+  (Suspendat), pp-01k (Retras), pp-01l (tacit), pp-01i (Expirat), pp-01m (data modal), pp-01n (A4 form
+  from the modal), pp-01o (A4 form from ⋮).
 - Suspendare / Retragere first open `[data-cab-pp-modal]` (consequence + Continuă). **UX proposal** —
   the spec does not ask for it; keep it labelled as such in Figma.
 - Every action redirects to `e-permits-acte-permisive.html?flow=full&pp=<type>&act=<id>#request`.
@@ -5797,17 +5808,20 @@ Depune contestație (30 days after the decision). FOD2 targets (all carry the ca
 [&pp&act]#request-step-<last step>`, suplinire → `&suplinire=<nr>#request-step-2`, contestație →
 `&contestatie=<nr>#request` (was `#choice-authenticated`; the instance is not chosen twice).
 
-**Profile** (`#dosar/<id>`) = the act profile shell (`.cab-detail`, back button, `.cab-detail__head`)
-+ `.cab-facts` + FO finish tracker (Depusă · Verificare · [Plată] · Decizie · Finalizat/Respins;
-none for Schiță) + callout (neutral Schiță, warning Info/Achitare, info În derulare, success
-Aprobat, danger Respins) + `.cab-detail__actions` + sections (`.cab-section` > h2
-`.e-permits-fo-finish__section-title` > `.e-permits-fo-summary-card.cab-detail__card` rows):
-Date generale (conditional rows hidden when empty — US-161 AC-05…08), roles
-(`.e-permits-fo-form__roles.cab-roles` Beneficiar + Solicitant „Eu”, MPower card when
-representative), Date solicitare, Contacte, Documente însoțitoare (`.cab-docs` of
-`.e-permits-fo-confirm-file` rows + `btn-text-primary btn-sm` Descarcă), Livrare, Taxe (only with a
-payment note; Data achitării only when Achitat), Act permisiv / Decizie (only Finalizat),
-Istoric complet (`.e-permits-fo-finish-timeline`), Ai nevoie de ajutor?.
+**Profile** (`#dosar/<id>`, aligned with RAP / BO 2026-10-17) = `article.cab-profile` › the public BO
+page header (`CabEvo.pageHeader`: ‹ Solicitările mele, the object as title, meta Numărul dosarului ·
+Tipul solicitării · Stare (Tag · Small + marks) · the status dates) › `.e-permits-dosar-profil__panel`
+of BO sections (`CabEvo.profileSection` / `detailCard` / `detailRow`, css/bo-profile-parts.css):
+**Stadiul solicitării** (the request status card above — replaces the old FO tracker, callout, loose
+action row and the separate „Istoric complet”), Date generale (conditional rows hidden when empty —
+US-161 AC-05…08), Beneficiar + Solicitant „Eu” (FO identity cards `CabEvo.identityCardHtml` under BO
+section titles, MPower card when representative), Date solicitare, Contacte, Documente însoțitoare
+(`.cab-docs` of the shared Document · card `CabEvo.docRowHtml`), Livrare, Taxe (only with a payment
+note; Data achitării only when Achitat), Act permisiv / Decizie (only Finalizat), Ai nevoie de
+ajutor? (contacts = `a.e-permits-dosar-profil__link`). Tags: Schiță neutral, În derulare info,
+Spre achitare / Informații suplimentare warning, Finalizat success; marks Aprobat success, Respins
+danger, „Aprobare tacită” = the blue tag as a `button.cab-mark` (tooltip with the explanation; the
+code-audit `button-not-library` on it is intended).
 Download error (US-19 AC-14) = `message banner--error` after the clicked scope (`[data-sm-dl-scope]`).
 
 **Modals**: Elimină schița = FO confirm modal with `--danger`; MPay stand-in = the same modal (note
@@ -5826,8 +5840,9 @@ instance-switch text link).
 
 **Catalog** (`?view=catalog`, `#serviciu/<id>`): search (name, code, institution — diacritic
 insensitive) + category chips + `.cab-card` per service (act type · term · cost meta, „Online” tag);
-service page = `.cab-detail` + `.cab-facts` (Tip · Termen · Cost) + `.cab-lead` + `.cab-cta`
-(„Solicită online” + hint) + Despre serviciu / Documente necesare cards. Target (`requestTarget()`):
+service page = `.cab-profile` › public BO header (meta Instituția · Tipul actului · Termen · Cost ·
+Disponibil; primary „Solicită online”) › panel: lead (hint + `.cab-lead`, 12 inset) + BO sections Despre
+serviciu / Documente necesare (2026-10-17). Target (`requestTarget()`):
 visitor → FO MPass (`?flow=full`). **EVO → service hand-over** (user rule 2026-10-13, ⚠ de confirmat
 cu PO / tech): signed in to EVO, the MPass session AND the instance the person acts as in the
 cabinet (`?as` = own PF / own PJ / MPower entity, the identity in the cabinet header) go to the
@@ -5843,11 +5858,15 @@ goes to `#choice-authenticated`. A fresh MPass login with no EVO instance (`mpas
 **Page glue classes** (cabinet-evo.css, no visual identity of their own): `.cab-view` (view
 container), `.cab-login`, `.cab-message` (the static notice strip outside cards), `.cab-notice` /
 `.cab-callout` / `.cab-state` (24 above), `.cab-section`, `.cab-docs` / `.cab-docs__download`,
-`.cab-roles`, `.cab-tracker`, `.cab-lead`, `.cab-cta`, `.cab-applicants` / `.cab-applicant`
+`.cab-roles`, `.cab-profile` / `.cab-profile__lead` (profile shell + the blocks above the first section),
+`.cab-status*` (request status card), `.cab-lead`, `.cab-applicants` / `.cab-applicant`
 (PF/PJ icon + full name), `.cab-tooltip` (max 320), `.cab-sort` / `.cab-sort__trigger`;
 `.sm-profile` / `.cat-service` are hooks only. Open buttons/chips keep the focus ring here too
 (`.cab-page .btn[aria-expanded="true"]`, the shell rule — this page does not load
-e-permits-shell.css). Summary-row labels wrap inside `.cab-detail__card` (no truncation).
+e-permits-shell.css). Container = 1024 fixed, fills below; gutters 24 / 16 ≤760 (= RAP). Copy values in
+the header meta / detail rows = the BO copy code look (`:is(.e-permits-page-header__meta,
+.e-permits-dosar-profil__card) .e-permits-fo-copy-value`); on phones the copy-number meta item spans
+both columns.
 
 **Demo states**: `sm-01…01l` list (chips, search, empty, sort, filters, validation, applied,
 page 2, tooltip, per page), `sm-02…02e` ⋮ per status, `sm-03…03c` Schiță (profile, confirm,
@@ -7052,7 +7071,7 @@ do the same data architecture … change all documents in the whole system” (+
 | BO shell (types) | `renderServiceDocuments` stacked list (grey icon, type, RSSP / SIA GEAP tag, meta type · applicants · Obligatoriu · rules), whole row opens the document drawer (`data-doc-row`) | Serviciu › Documente (admin „Editează” + ⋮; others „👁 Detalii”) |
 | FO | `foDocIconHtml(doc)`, `foDocContentHtml(doc)` (lib-item content: title row + `.e-permits-fo-doc-tag` + meta with dots), `foDocFromLibrary`, `foSummaryDocsHtml(panel)`; every attached value carries its shape in `data-fo-doc` | picker modal „Adaugă fișier” (`.e-permits-fo-lib-item` card per document — layout kept), field values (`foDocAttachFileItem` / `foDocAttachMdocsItem`, step 3, guest procură, Form Builder Fișier preview), „Document din MDocs” combobox value, post-process previous act (`postprocessPrevActDoc`, + Descarcă), Verificare și semnare › Documente însoțitoare (`.e-permits-fo-confirm-file--doc`, titled by the field's type) for the request and the post-processes |
 | EVO Cabinet | `CabEvo.docRowHtml(doc, { key, downloadAttrs })` (FO summary card + „Detalii” + ⋮), `CabEvo.openDocModal({ title, subtitle, doc, pageHtml, rowsHtml })` (FO doc-modal shell, `.cab-doc-modal`) | Solicitările mele › dosar › Documente însoțitoare (certificat constatator generated + uploads), Catalog › serviciu › Documente necesare (types) |
-| RAP (EVO public) | `openActDocument(record, opener)` — the same FO doc-modal shell + canvas + A4 page as Cabinet, page only (no „Date generale”: the act page shows them), footer Imprimă · Închide; CSS from `css/doc-modal-parts.css` (values of the FO originals, never loaded where e-permits-acte-permisive.css is) | Act profile › „Vizualizare actul” (US-143, US-162 AC-12) |
+| RAP (EVO public) | `GEAPActView.openDocument(act)` (js/act-view.js, 2026-10-17: also the Cabinet act profile and its ⋮ „Descarcă actul (MDocs)”) — the same FO doc-modal shell + canvas + A4 page as Cabinet, page only (no „Date generale”: the act page shows them), footer Imprimă · Închide; CSS from `css/act-view.css` + `css/doc-modal-parts.css` (values of the FO originals, never loaded where e-permits-acte-permisive.css is) | Act profile › „Vizualizare actul” (US-143, US-162 AC-12) |
 
 **Kept on purpose (different pattern, reason):** FO upload rows while uploading (`.e-permits-fo-file-item`
 with progress — a form input; only the icon became the grey document), the MDocs combobox *options*

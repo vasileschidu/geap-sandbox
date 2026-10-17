@@ -106,5 +106,29 @@
         "text": "Anulat — poți depune o contestație"
       }
     }
-  ]
+  ],
+  "actProfiles": {
+    "_note": "Act profile extras by act id (2026-10-17, RAP alignment — US-162 AC-17 status dates, tacit approval, printed series); demo values",
+    "act-izvoras": {
+      "printedDocumentNumber": "ASF 0045213"
+    },
+    "act-piata-mare": {
+      "suspensionDate": "2026-09-08",
+      "suspendedUntil": "2026-12-08",
+      "printedDocumentNumber": "ASF 0031187"
+    },
+    "act-cantina": {
+      "withdrawalDate": "2026-10-02"
+    },
+    "act-licenta-demo": {
+      "tacitApprovalDate": "2025-06-03"
+    },
+    "act-licenta-susp": {
+      "suspensionDate": "2026-08-20",
+      "suspendedUntil": "2026-11-20"
+    },
+    "act-depozit-10": {
+      "printedDocumentNumber": "AMDM 0001182"
+    }
+  }
 }

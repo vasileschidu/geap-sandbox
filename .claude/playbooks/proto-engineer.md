@@ -1133,3 +1133,33 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   delay. Coordinator rule (user): no request number in a document dialog's subtitle — „Generată prin MDocs ·
   date”; the number stays on the page. No sub-agent tool → ran code-audit / hover-audit directly (findings only
   inside the A4 page: mm padding + zoomed paragraph gaps, standing FPs).
+- 2026-10-17 · EVO Cabinet ↔ RAP / BO alignment (audit + 4 batches). What made it cheap: the BO parts file
+  (`css/bo-profile-parts.css`) already existed for RAP — loading it on the Cabinet (after the FO stylesheet,
+  which carries only the UNSCOPED BO base rules) plus 3 renderer helpers on `CabEvo` (`pageHeader`,
+  `profileSection` / `detailCard` / `detailRow`, `tagHtml`) turned 3 profiles into BO profiles; compare-styles
+  with a copied spec (svc-01 ↔ sm-05) went 84 → 0 in three rounds. Traps the spec found: the unscoped base
+  `.e-permits-dosar-profil__card { max-width: 780px }` from the FO stylesheet (restate `max-width: none` in the
+  parts file), the FO copy value inside BO rows (25 high, inset 4, −0.14 tracking — restate the BO copy-code look
+  scoped to meta / rows), a too-wide `flex: none` on all tags (RAP only pins them in flex rows).
+- 2026-10-17 · „The same dialogs in two products” = MOVE the code, then prove the old page unchanged: the RAP act
+  dialogs became `js/act-view.js` (`GEAPActView.create`) + `css/act-view.css` behind a neutral view model; each page
+  maps its own record (`toActView`). Proof = scratch dlg.mjs (normalised outerHTML + computed styles of every visible
+  element of both dialogs) on a HEAD worktree (:8941) vs the tree, 11 states × 2 widths → identical except the host
+  in the QR URL and one spinner animation frame. Keep the old class names / data hooks in the moved code (demo
+  states, specs and Figma tools grep them); add options with the old value as default (`act.source`).
+- 2026-10-17 · Batch scripts that slice the source by markers (`src.index(...)`) must read from the root being
+  patched (`EDIT_ROOT`) and `apply.py` must write after EACH batch — otherwise staging „HEAD + my batches” later
+  re-reads the tree (where the block is already gone) and fails. A regex-based „delete dead CSS rules” script
+  merged comments into selectors and split `:where(a, b)` lists → reverted; delete dead rules as exact text pairs.
+- 2026-10-17 · `.cab-main:has([data-cab-profile-header]:not([hidden] *))` = page padding that depends on the view
+  without JS (the act profile panel stays in the DOM, hidden, after „back”).
+- 2026-10-17 · code-audit `tight-gap` flagged a card subtitle 2px under its title (`.cab-card__service` inside
+  `.cab-card__heading`): component text, not loose text → the tool now skips P inside `[class*='__heading']`; the
+  page intro under the h1 went 6 → 8 instead (real). Standing FPs this job: BO 11 / 7 / 18 rhythm,
+  `u-visually-hidden` step states, FO copy icon #444, the tacit `button.cab-mark` (intended), gaps inside the zoomed
+  A4 page (same on rap-03l). No sub-agent tool → ran code-audit / hover-audit / compare-styles directly.
+- 2026-10-17 · Timeline + status in one bordered card („Stadiul solicitării”): the status block on top (Small tags ·
+  16/24 sentence · 14/20 explanation · the action that exists) and the FO finish timeline without its grey fill under
+  a hairline; next steps as dashed items without dates make „the current step” visible without the old tracker. It
+  replaced four blocks (tracker, callout, loose action row, „Istoric complet”) — grep demo states for selectors of
+  removed blocks (`.cab-detail__actions` in sm-03a / sm-05c) before deleting them.

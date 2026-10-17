@@ -634,44 +634,7 @@
     return meta;
   }
 
-  function factsHtml(dosar) {
-    const items = [{ label: "Numărul dosarului", html: copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`) }];
-    if (dosar.status === "schita") {
-      items.push({ label: "Creată", html: escape(longDateTime(dosar.created)) });
-      items.push({ label: "Se elimină automat", html: escape(longDate(dosar.draft?.expires)) });
-    } else {
-      items.push({ label: "Data depunerii", html: escape(longDateTime(dosar.submitted)) });
-      if (dosar.status === "finalizat") items.push({ label: "Data finalizării", html: escape(longDate(dosar.finalized)) });
-      else if (dosar.status === "info") items.push({ label: "Suspendat din", html: escape(longDate(dosar.suspended)) });
-      else if (dosar.examTerm) items.push({ label: "Termen de examinare", html: `${escape(longDate(dosar.examTerm))}${dosar.tacit ? ` ${marksHtml(dosar)}` : ""}` });
-    }
-    return `
-      <dl class="cab-facts">
-        ${items.map((item) => `<div class="cab-facts__item"><dt>${escape(item.label)}</dt><dd>${item.html}</dd></div>`).join("")}
-      </dl>`;
-  }
-
-  function personHtml(person) {
-    const isCompany = person.type === "PJ";
-    const avatar = isCompany
-      ? `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon" aria-hidden="true">${icon("icon-business", "medium")}</span>`
-      : `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials" aria-hidden="true">${escape(person.initials || "")}</span>`;
-    return `
-      <div class="e-permits-fo-selected-role">
-        <span class="e-permits-fo-selected-role__inner">
-          ${avatar}
-          <span class="e-permits-fo-selected-role__copy">
-            <strong>${escape(person.name)}</strong>
-            <span class="e-permits-fo-selected-role__meta">
-              <span class="e-permits-fo-selected-role__id">
-                <span class="e-permits-fo-selected-role__id-label">${escape(person.idLabel)}</span>
-                <span class="e-permits-fo-copy-value e-permits-fo-copy-value--static e-permits-fo-selected-role__copy-id"><span>${escape(person.idValue)}</span></span>
-              </span>
-            </span>
-          </span>
-        </span>
-      </div>`;
-  }
+  const personHtml = (person) => C.identityCardHtml(person);
 
   function roleGroup(title, person, { me = false } = {}) {
     return `
@@ -861,8 +824,8 @@
 
     const helpSection = section("ajutor", "Ai nevoie de ajutor?", rows([
       row("Autoritatea", escape(help.name || service.authorityName || "")),
-      help.phone ? row("Telefon", `<a class="link link-primary" href="tel:${escape(help.phone.replace(/\s/g, ""))}">${escape(help.phone)}</a>`) : "",
-      help.email ? row("Email", `<a class="link link-primary" href="mailto:${escape(help.email)}">${escape(help.email)}</a>`) : "",
+      help.phone ? row("Telefon", `<a class="e-permits-dosar-profil__link" href="tel:${escape(help.phone.replace(/\s/g, ""))}">${escape(help.phone)}</a>`) : "",
+      help.email ? row("E-mail", `<a class="e-permits-dosar-profil__link" href="mailto:${escape(help.email)}">${escape(help.email)}</a>`) : "",
     ]));
 
     root.innerHTML = `

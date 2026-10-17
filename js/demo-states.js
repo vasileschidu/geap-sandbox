@@ -1107,6 +1107,13 @@
     "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']"); }),
     "pp-01h": ppCab(async (h) => { await h.click("[data-cab-chip='expirat']"); }),
     "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .cab-card__title"); }),
+    /* act profile = the RAP act profile (2026-10-17): AC-17 dates, tacit badge, the shared act dialogs */
+    "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .cab-card__title"); }),
+    "pp-01k": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cantina']"); await h.click("[data-cab-card='act-cantina'] .cab-card__title"); }),
+    "pp-01l": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] .cab-card__title"); }),
+    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .cab-card__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .modal-content"); }),
+    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .cab-card__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']"); }),
@@ -1921,7 +1928,7 @@
     "sm-05f": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),
     "sm-05g": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-menu-trigger]"); }),
     "sm-05h": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
-    "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: ".cab-detail__head", run: null },
+    "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: "[data-cab-detail] h1", run: null },
     /* Actele mele: nothing matches the search → the shared empty state + „Resetează filtrele” */
     "sm-05i": { page: CAB, params: { view: "acte" }, ready: "[data-cab-list] > *", run: async (h) => { await h.fill("[data-cab-search]", "zzz", { leave: false }); } },
     "sm-06": sm(null, { eroare: "lista" }),
