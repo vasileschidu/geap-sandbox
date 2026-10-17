@@ -219,7 +219,7 @@
 
   const renderProfile = (record) => {
     const profile = normalizeProfile(record);
-    const beneficiaryIcon = record.beneficiary.type === "person" ? "person-filled" : "suitcase-filled";
+    const beneficiaryIcon = record.beneficiary.type === "person" ? "person-filled" : "business-filled";
     const details = [
       ["Denumire act permisiv", record.permit.name],
       ["Stare", statusTag(record.status), false, true],
@@ -817,7 +817,7 @@
   };
 
   const renderBeneficiary = (record) => {
-    const icon = record.beneficiary.type === "person" ? "person-filled" : "suitcase-filled";
+    const icon = record.beneficiary.type === "person" ? "person-filled" : "business-filled";
     return `
       <div class="rap-beneficiary">
         <span class="rap-beneficiary__avatar" aria-hidden="true">
@@ -888,7 +888,7 @@
     const inactiveCount = companyRecords.length - activeCount;
     elements.companySummary.innerHTML = `
       <div class="rap-company-summary__inner">
-        <span class="rap-company-summary__avatar" aria-hidden="true">${icon("suitcase-filled")}</span>
+        <span class="rap-company-summary__avatar" aria-hidden="true">${icon("business-filled")}</span>
         <span class="rap-company-summary__identity">
           <strong>${escapeHtml(company.name)}</strong>
           <span class="rap-company-summary__id">

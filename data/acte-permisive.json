@@ -42,7 +42,7 @@
         },
         "PJ": {
           "label": "Persoană juridică",
-          "icon": "icon-suitcase-2",
+          "icon": "icon-business",
           "idLabel": "IDNO"
         }
       },
@@ -87,7 +87,7 @@
           "idLabel": "IDNO",
           "idValue": "1012600000001",
           "avatarTone": "apricot",
-          "avatarIcon": "icon-suitcase-2",
+          "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
           "badge": {
             "label": "Împuternicire",
@@ -131,7 +131,7 @@
           "idLabel": "IDNO",
           "idValue": "1012600000002",
           "avatarTone": "brand",
-          "avatarIcon": "icon-suitcase-2",
+          "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
           "selectable": true,
           "requestData": {
@@ -192,7 +192,7 @@
           "idLabel": "IDNO",
           "idValue": "1012600000003",
           "avatarTone": "apricot",
-          "avatarIcon": "icon-suitcase-2",
+          "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
           "badge": { "label": "Împuternicire", "icon": "icon-identity" },
           "representative": {
@@ -267,7 +267,7 @@
           "idLabel": "IDNO",
           "idValue": "1012600000005",
           "avatarTone": "apricot",
-          "avatarIcon": "icon-suitcase-2",
+          "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
           "badge": { "label": "Împuternicire", "icon": "icon-identity" },
           "representative": {
@@ -342,7 +342,7 @@
           "idLabel": "IDNO",
           "idValue": "1012600000007",
           "avatarTone": "apricot",
-          "avatarIcon": "icon-suitcase-2",
+          "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
           "badge": { "label": "Împuternicire", "icon": "icon-identity" },
           "representative": {
@@ -417,7 +417,7 @@
           "idLabel": "IDNO",
           "idValue": "1012600000009",
           "avatarTone": "apricot",
-          "avatarIcon": "icon-suitcase-2",
+          "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
           "badge": { "label": "Împuternicire", "icon": "icon-identity" },
           "representative": {

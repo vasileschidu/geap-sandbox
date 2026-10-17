@@ -1121,7 +1121,7 @@
        card: an MPass administrator files as himself) with the RSUD source; Procură = the warning + the
        FO check option, and once ticked the FO boxed procură upload of the guest „pentru altcineva” flow */
     if (b.kind === "rsud") {
-      body = R().authorizationCardHtml?.({ title: "Administrator în RSUD", status: "Confirmat", icon: "icon-suitcase-2", details: [{ label: "Administrator al", value: holder }, { label: "Sursa", value: "RSUD prin MConnect" }] }) || "";
+      body = R().authorizationCardHtml?.({ title: "Administrator în RSUD", status: "Confirmat", icon: "icon-business", details: [{ label: "Administrator al", value: holder }, { label: "Sursa", value: "RSUD prin MConnect" }] }) || "";
     } else if (b.kind === "mpower") {
       body = R().authorizationCardHtml?.({ title: "Împuternicire MPower aplicată", status: "Activă", grantedBy: holder, validUntil: longDate(b.until), code: b.nr }) || "";
     } else {
@@ -1191,7 +1191,7 @@
     normalizeType(d);
     const types = applicantTypesOf(d.service);
     const typeField = types.length > 1
-      ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică", icon: "icon-person-filled" }, { value: "PJ", label: "Persoană juridică", icon: "icon-suitcase-filled" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
+      ? R().fieldHtml({ id: "gh-tip", type: "segment", label: "Tip persoană", span: 12, value: d.personType, options: [{ value: "PF", label: "Persoană fizică", icon: "icon-person-filled" }, { value: "PJ", label: "Persoană juridică", icon: "icon-business-filled" }] }).replace("data-fo-segment", "data-fo-segment data-gh-type")
       : readonlyField({ id: "gh-tip-fix", label: "Tip persoană", value: types[0] === "PJ" ? "Persoană juridică" : "Persoană fizică", span: 6, hint: "Singurul tip de solicitant configurat pentru serviciu." });
     const rows = d.personType === "PJ" ? `${codeGroupHtml("company", d)}${codeGroupHtml("applicant", d)}` : codeGroupHtml("applicant", d);
     return `

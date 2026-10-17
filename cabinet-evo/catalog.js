@@ -21,7 +21,7 @@
   const FO = "../e-permits-acte-permisive.html";
   const APPLICANT = {
     PF: { icon: "icon-person", label: "Persoană fizică" },
-    PJ: { icon: "icon-suitcase-2", label: "Persoană juridică" },
+    PJ: { icon: "icon-business", label: "Persoană juridică" },
   };
   const state = { data: null, acts: [], subject: null, category: "toate", query: "" };
 

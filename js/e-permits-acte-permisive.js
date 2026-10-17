@@ -515,7 +515,7 @@
     function subjectAvatarGlyphHtml(subject) {
       const meta = frontOfficeSubjectTypeMeta(subject?.type);
       if (subject?.type === "PJ") {
-        const icon = subject.avatarIcon || meta.icon || "icon-suitcase-2";
+        const icon = subject.avatarIcon || meta.icon || "icon-business";
         return `
           <svg class="icon" width="20" height="20">
             <use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(icon)}"></use>

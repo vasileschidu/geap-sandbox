@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
      Anonimizează); group several in .e-permits-check-options. plain: the same box + tick
      without the grey container and with a regular label — for checkbox lists (a group of
      options under a title), so every checkbox on a screen looks the same. */
-  /* icon: an optional leading glyph in the label (PF / PJ: person / suitcase, filled) */
+  /* icon: an optional leading glyph in the label (PF / PJ: person-filled / business-filled) */
   const renderCheckOption = ({ label, checked = false, disabled = false, required = false, attrs = "", reason = "", plain = false, icon = "" }) => `
     <label class="checkbox checkbox--medium e-permits-check-option${plain ? " e-permits-check-option--plain" : ""}${disabled ? " is-disabled" : ""}" data-tooltip-reason="${disabled && reason ? escapeHtml(reason) : ""}">
       <input class="checkbox-input" type="checkbox"${checked ? " checked" : ""}${disabled ? " disabled" : ""} ${attrs}>
@@ -6900,8 +6900,8 @@ document.addEventListener("DOMContentLoaded", () => {
     : renderTag("Nu", "neutral"));
 
   /* applicant types get a filled icon so PF / PJ read at a glance (user, 2026-10-09):
-     person = persoană fizică, suitcase = persoană juridică (central icon system, filled) */
-  const applicantIcon = (label) => /fizic|^PF/i.test(label) ? "person-filled" : /juridic|^PJ/i.test(label) ? "suitcase-filled" : "";
+     person-filled = persoană fizică, business-filled = persoană juridică (the PJ glyph = business, filled in tags / checks) */
+  const applicantIcon = (label) => /fizic|^PF/i.test(label) ? "person-filled" : /juridic|^PJ/i.test(label) ? "business-filled" : "";
   const applicantTags = (items) => (items?.length
     ? `<span class="e-permits-passport__tag-list">${items.map((item) => { const icon = applicantIcon(item); return icon
       ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg>${escapeHtml(item)}</span>`
@@ -6920,7 +6920,7 @@ document.addEventListener("DOMContentLoaded", () => {
      document required when its rule holds. No rules = asked at every request of its types.
      Model: service.geap.docs (built once from rssp.documents). */
   const DOC_APPLICANT_TYPES = ["PF", "PJ", "PF Străin", "PJ Străin"];
-  /* stored as the US-225 codes; shown with the full name + person / suitcase icon */
+  /* stored as the US-225 codes; shown with the full name + person-filled / business-filled icon */
   const DOC_APPLICANT_LABEL = { "PF": "Persoană fizică", "PJ": "Persoană juridică", "PF Străin": "Persoană fizică străină", "PJ Străin": "Persoană juridică străină" };
   const docApplicantLabel = (code) => DOC_APPLICANT_LABEL[code] || code;
   const DOC_RULE_TYPES = [["show", "Afișează"], ["require", "Setează ca obligatoriu"]];
