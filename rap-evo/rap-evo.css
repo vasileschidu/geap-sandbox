@@ -1980,3 +1980,17 @@ tr:hover .rap-act-link {
     zoom: 1 !important;
   }
 }
+
+/* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
+   separator, not 8 — and „Vezi act permisiv” is a full-width 48px touch target */
+@media (max-width: 760px) {
+  .rap-profile__header .e-permits-page-header__meta {
+    --e-permits-page-header-meta-gap: var(--spacing-16, 16px);
+  }
+
+  .rap-profile__document-button.btn {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-48, 48px);
+  }
+}
