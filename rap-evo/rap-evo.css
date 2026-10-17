@@ -1994,8 +1994,12 @@ tr:hover .rap-act-link {
 /* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
    separator, not 8 — and „Vezi act permisiv” is full width at the medium button size */
 @media (max-width: 760px) {
+  /* items hug (like desktop), 16 on each side of the separator; a wrapped line starts without
+     one (syncMetaRows) — an even gap instead of a 2-column grid with uneven space */
   .rap-profile__header .e-permits-page-header__meta {
     --e-permits-page-header-meta-gap: var(--spacing-16, 16px);
+    display: flex;
+    flex-wrap: wrap;
   }
 
   /* the library medium size (.btn.btn-md: 8/16 padding, 16/24 text ≈ 40 high) */
