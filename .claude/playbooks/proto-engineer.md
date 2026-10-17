@@ -1101,3 +1101,10 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   actually computes; the 375 compare caught it.
 - 2026-10-17 · Two scratch CDP scripts started in parallel picked the same random debugging port and drove ONE Chrome
   (srv-01 suddenly showed the RAP page) → run compare scripts sequentially or give them disjoint port ranges.
+- 2026-10-17 (user) · Download = export icon everywhere: every „Descarcă …” action / ⋮ item / icon-only „Descarcă” uses
+  `icon-export` (arrow into the curved tray), never `icon-download` / `page-download` / `external-link`; import / upload =
+  `icon-upload`. Grep `icon-download|page-download|circle-download|"download"` in js / html AND `data/*.json` — the FO
+  payment-note icon came from `data/acte-permisive.json`, not the renderer default (the first probe still showed it).
+  Probe method: list every button / menuitem whose label matches /Descarc|Export/ with its `use` href (hidden menus too).
+  BUG I made: a patch script that wrote each file right after replacing aborted on a failed assert AFTER `open(p,"w")`
+  → the file was truncated to 0 lines. Compute every new text first, assert all, then write.

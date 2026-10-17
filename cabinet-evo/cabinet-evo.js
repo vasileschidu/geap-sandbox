@@ -173,7 +173,7 @@
     return `
       <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(permit.title)}" hidden>
         <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-open="${escape(permit.id)}">${icon("icon-eye-open", "medium")}<span>Detalii</span></button></li>
-        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-download="${escape(permit.id)}">${icon("icon-download")}<span>Descarcă actul (MDocs)</span></button></li>
+        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-download="${escape(permit.id)}">${icon("icon-export")}<span>Descarcă actul (MDocs)</span></button></li>
         ${items.length ? `<li role="separator" class="cab-menu__separator"></li><li role="none" class="cab-menu__label">Postprocese</li>` : ""}
         ${items.map((pp) => `
           <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}" ${locked ? "disabled aria-disabled=\"true\"" : ""}>${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
@@ -565,7 +565,7 @@
         ${detailRow("Statutul", escape(act.statusLabel))}
       </div>
       <div class="cab-detail__actions">
-        <button class="btn btn-neutral btn-md btn-rounded" type="button" data-cab-download="${escape(act.id)}">${icon("icon-download")}<span>Descarcă actul</span></button>
+        <button class="btn btn-neutral btn-md btn-rounded" type="button" data-cab-download="${escape(act.id)}">${icon("icon-export")}<span>Descarcă actul</span></button>
         ${state.dosarByAct[act.id] ? `<a class="btn btn-neutral btn-md btn-rounded" href="${escape(cabUrl("solicitari", {}, `#dosar/${state.dosarByAct[act.id]}`))}" data-cab-see-dosar>${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : ""}
         ${act.postProcesses.length ? `
           <div class="e-permits-fo-intent-act__action">
@@ -728,7 +728,7 @@
           <div class="e-permits-fo-intent-act__action cab-card__actions">
             <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(doc.tip)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(doc.tip)}" hidden>
-              <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" ${downloadAttrs}>${icon("icon-download", "medium")}<span>Descarcă</span></button></li>
+              <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" ${downloadAttrs}>${icon("icon-export", "medium")}<span>Descarcă</span></button></li>
             </ul>
           </div>
         </div>` : ""}
@@ -775,7 +775,7 @@
           ${rowsHtml}
         </div>
         <div class="e-permits-fo-doc-modal__footer">
-          <button class="e-permits-fo-doc-modal__cancel" type="button" ${downloadAttrs}>${icon("icon-download")}<span>Descarcă</span></button>
+          <button class="e-permits-fo-doc-modal__cancel" type="button" ${downloadAttrs}>${icon("icon-export")}<span>Descarcă</span></button>
           <button class="e-permits-fo-doc-modal__submit" type="button" data-cab-doc-close>Închide</button>
         </div>
       </div>`;

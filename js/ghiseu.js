@@ -1861,7 +1861,7 @@
         </div>
       </div>` : "";
     const sign = st.msign ? (d.review.signed
-      ? `${U().renderNotice?.("success", "Cererea a fost semnată.") || ""}${docCard(signedDoc(d), `${detailsBtn("data-gh-preview=\"signed\"", "Cererea semnată MSign")}${A().renderStackMenu?.([{ label: "Descarcă", icon: "page-download", attrs: "data-gh-download=\"signed\"" }], "Cererea semnată MSign") || ""}`)}`
+      ? `${U().renderNotice?.("success", "Cererea a fost semnată.") || ""}${docCard(signedDoc(d), `${detailsBtn("data-gh-preview=\"signed\"", "Cererea semnată MSign")}${A().renderStackMenu?.([{ label: "Descarcă", icon: "export", attrs: "data-gh-download=\"signed\"" }], "Cererea semnată MSign") || ""}`)}`
       : `${S.notice === "msign-error" ? `${U().renderNotice?.("error", "<strong>MSign nu răspunde acum.</strong> Cererea nu a fost semnată, datele ei rămân neschimbate.", { role: "alert" }) || ""}` : S.notice === "msign-cancel" ? U().renderNotice?.("warning", "Semnarea a fost anulată în MSign: cererea rămâne nesemnată.") || "" : ""}
         <div class="e-permits-gh__sign">
           <p class="e-permits-fo-doc-field__desc">Semnați cererea validată cu semnătura dvs., în numele solicitantului. MSign semnează documentul cererii în format JSON.</p>
@@ -2006,7 +2006,7 @@
         ] })),
         totals: [{ label: "Total de plată", value: mdl(p.total), strong: true }]
       },
-      actions: { download: { label: "Descarcă nota de plată", icon: "icon-page-download" } }
+      actions: { download: { label: "Descarcă nota de plată", icon: "icon-export" } }
     };
     const state = p.status === "Achitată"
       ? U().renderNotice?.("success", `<strong>Nota de plată a fost achitată.</strong> Prin MPay la ${esc(stamp(p.paid))}. Câmpurile cererii nu se mai pot modifica, iar schița nu se mai poate elimina.`)
@@ -2668,7 +2668,7 @@
       </div>`;
     m.querySelector("[data-dosar-detail-buttons]").innerHTML = `
       ${kind === "paper" ? '<button class="btn btn-neutral btn-rounded" type="button" data-gh-print>Printează</button>' : ""}
-      <button class="btn btn-primary btn-rounded" type="button" data-gh-download="${kind}">${icon("page-download", 20, "icon small")}<span>Descarcă</span></button>`;
+      <button class="btn btn-primary btn-rounded" type="button" data-gh-download="${kind}">${icon("export", 20, "icon small")}<span>Descarcă</span></button>`;
     if (!m.dataset.ghBound) {
       m.dataset.ghBound = "1";
       m.addEventListener("click", (event) => {

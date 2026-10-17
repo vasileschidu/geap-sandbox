@@ -3312,7 +3312,7 @@ document.addEventListener("DOMContentLoaded", () => {
       rowAttrs: `data-dosar-detail-row="${escapeHtml(key)}"`,
       actionsHtml: renderRowActions({
         preview: `data-dosar-detail="${escapeHtml(key)}" aria-haspopup="dialog"`,
-        menu: [{ label: "Descarcă", icon: "download", attrs: `data-dosar-file-download="${escapeHtml(key)}"` }],
+        menu: [{ label: "Descarcă", icon: "export", attrs: `data-dosar-file-download="${escapeHtml(key)}"` }],
         label: doc.tip
       })
     };
@@ -3553,7 +3553,7 @@ document.addEventListener("DOMContentLoaded", () => {
     dosarDetailFile.name = file;
     dosarDetailFile.text = [title, subtitle, "", ...rows.map(([label, html]) => { const tmp = document.createElement("div"); tmp.innerHTML = html; return `${label}: ${tmp.textContent.replace(/\s*Copiază\s*$/, "").trim() || "—"}`; })].join("\n");
     dosarDetailModal.querySelector("[data-dosar-detail-buttons]").innerHTML = `
-      ${file ? '<button class="btn btn-neutral btn-rounded" type="button" data-dosar-detail-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg><span>Descarcă</span></button>' : ""}
+      ${file ? '<button class="btn btn-neutral btn-rounded" type="button" data-dosar-detail-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-export"></use></svg><span>Descarcă</span></button>' : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-dosar-detail-close>Închide</button>`;
     window.__modal?.open?.("#dosar-detail-modal");
     fitDosarDocPreview();
@@ -9183,7 +9183,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="banner__content">
             <p class="banner__text"><strong>Modificat în MDocs de altcineva</strong> — ${escapeHtml(formatStamp(tpl.mdocsChange.at))} · ${escapeHtml(tpl.mdocsChange.by)}. Descarcă versiunea din MDocs înainte să publici, ca să nu o suprascrii.</p>
           </div>
-          <button class="btn btn-text-primary btn-sm" type="button" data-dtpl-pull><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg><span>Descarcă din MDocs</span></button>
+          <button class="btn btn-text-primary btn-sm" type="button" data-dtpl-pull><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg><span>Descarcă din MDocs</span></button>
         </div>` : ""}
       <div class="e-permits-dtpl__body" data-dtpl-body-view="${view}">
         ${view === "template" ? renderDtplTemplateView() : view === "test" ? renderDtplTestView() : renderDtplPreviewView()}

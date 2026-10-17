@@ -3257,7 +3257,7 @@
           ${
             actions.download
               ? `<button class="btn btn-outline-primary e-permits-fo-payment-actions__download" type="button" ${downloadAttrs}>
-                   <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(actions.download.icon || "icon-page-download")}"></use></svg>
+                   <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(actions.download.icon || "icon-export")}"></use></svg>
                    <span>${escapeFrontOfficeHtml(actions.download.label || "Descarcă nota de plată")}</span>
                  </button>`
               : ""
@@ -5506,7 +5506,7 @@
         <div class="e-permits-fo-mdocs__attachment" data-fo-pp-prev-act data-fo-doc="${esc(JSON.stringify(prevActDoc))}">
           ${foDocIconHtml(prevActDoc)}
           ${foDocContentHtml(prevActDoc)}
-          <a class="btn btn-neutral btn-sm" href="#" download data-fo-pp-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-download"></use></svg><span>Descarcă</span></a>
+          <a class="btn btn-neutral btn-sm" href="#" download data-fo-pp-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-export"></use></svg><span>Descarcă</span></a>
         </div>`;
       const extra = {
         reperfectare: { id: "pp-change-docs", label: "Documentele care confirmă modificările intervenite", description: "Documentele sau copiile acestora, cu prezentarea ulterioară a originalelor pentru verificare.", required: true },

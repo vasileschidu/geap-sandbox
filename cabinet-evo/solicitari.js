@@ -184,12 +184,12 @@
     }
     if (dosar.status === "info" && dosar.info?.until >= TODAY) items.push({ action: "supplement", icon: "icon-page-upload", label: "Suplinire informații", href: foUrl(dosar, "supplement") });
     if (dosar.status === "achitare") items.push({ action: "pay", icon: "icon-credit-card", label: `Achită ${money(dosar.payment?.amount)}` });
-    if (dosar.status === "derulare" || dosar.status === "info" || dosar.status === "achitare") items.push({ action: "download", kind: "certificat", icon: "icon-download", label: "Descarcă certificatul constatator" });
+    if (dosar.status === "derulare" || dosar.status === "info" || dosar.status === "achitare") items.push({ action: "download", kind: "certificat", icon: "icon-export", label: "Descarcă certificatul constatator" });
     if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) {
       items.push({ action: "act", icon: "icon-page-text", label: "Vezi actul", href: cabUrl("acte", { act: dosar.actId }) });
-      items.push({ action: "download", kind: dosar.decisionOnly ? "decizie" : "act", icon: "icon-download", label: dosar.decisionOnly ? "Descarcă decizia (MDocs)" : "Descarcă actul (MDocs)" });
+      items.push({ action: "download", kind: dosar.decisionOnly ? "decizie" : "act", icon: "icon-export", label: dosar.decisionOnly ? "Descarcă decizia (MDocs)" : "Descarcă actul (MDocs)" });
     }
-    if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-download", label: "Descarcă decizia (MDocs)" });
+    if (dosar.status === "finalizat" && dosar.result === "respins") items.push({ action: "download", kind: "decizie", icon: "icon-export", label: "Descarcă decizia (MDocs)" });
     if (canAppeal(dosar)) items.push({ action: "appeal", icon: "icon-judge-gavel", label: "Depune contestație", href: foUrl(dosar, "appeal") });
     return items;
   }
@@ -574,7 +574,7 @@
 
   function profileActions(dosar) {
     const buttons = [];
-    const download = (kind, label, variant = "btn-neutral") => `<button class="btn ${variant} btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-download")}<span>${escape(label)}</span></button>`;
+    const download = (kind, label, variant = "btn-neutral") => `<button class="btn ${variant} btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
     const appeal = (variant) => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
     switch (dosar.status) {
       case "schita":
@@ -797,7 +797,7 @@
     if (dosar.status !== "finalizat") return "";
     const service = serviceOf(dosar);
     const beneficiary = state.subject ? `${state.subject.name} · ${state.subject.idLabel} ${state.subject.idValue}` : "";
-    const downloadButton = (kind, label) => `<div class="cab-detail__actions"><button class="btn btn-neutral btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-download")}<span>${escape(label)}</span></button></div>`;
+    const downloadButton = (kind, label) => `<div class="cab-detail__actions"><button class="btn btn-neutral btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button></div>`;
     /* US-161 AC-31…35: a refusal shows the Decizie instead of the Act */
     if (dosar.result === "respins" || dosar.decisionOnly) {
       const decision = dosar.decision || {};

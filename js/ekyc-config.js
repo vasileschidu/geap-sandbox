@@ -1744,7 +1744,7 @@
          different looks so the two columns scan apart (US-UI-12 AC) */
       case "recomandata": return r.recomandata ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--brand e-permits-workplace__tag--icon">${icon("award", 16)}Recomandată</span>` : dash;
       case "suportata": return r.suportata ? T("Suportată", "success") : T("Nesuportată", "neutral");
-      case "descarcare": return `<a class="btn btn-strict btn-sm btn-icon-only" href="${esc(r.descarcare)}" target="_blank" rel="noopener" aria-label="Descarcă ${esc(r.platforma)} ${esc(r.versiune)} (se deschide în altă filă)" data-tooltip-label="Descarcă">${icon("external-link", 16)}</a>`;
+      case "descarcare": return `<a class="btn btn-strict btn-sm btn-icon-only" href="${esc(r.descarcare)}" target="_blank" rel="noopener" aria-label="Descarcă ${esc(r.platforma)} ${esc(r.versiune)} (se deschide în altă filă)" data-tooltip-label="Descarcă">${icon("export", 16)}</a>`;
       case "actiuni": return rowActions({ label: "Editează", attrs: act("sdk-edit", r.id) }, [
         r.suportata ? { label: "Retrage din suport", icon: "pause", attrs: act("sdk-support", r.id) } : { label: "Repune în suport", icon: "rotate-arrow", attrs: act("sdk-support", r.id) },
         { label: "Șterge", icon: "delete", attrs: act("sdk-delete", r.id), danger: true }

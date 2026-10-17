@@ -7384,7 +7384,7 @@ the Date generale inset — padding 8 / 12 — so the title lines up with the ro
 **Menu-button rule:** a labelled button that opens a menu is label + chevron (library Icon=Trailing, one
 icon only) — „Sincronizare ▾”, „Sincronizează ▾” (multi-source), „Adaugă tip solicitare ▾”, „Inserează
 câmp ▾”, „Programat · … ▾”. Registry: both syncs live under „Sincronizare ▾”.
-**Export icon:** `icon-export` / Figma `20/export` = central „arrow-inbox, download” (arrow over a tray).
+**Export icon:** `icon-export` / Figma `20/export` = central „arrow-inbox, download” (arrow over a tray) — also every „Descarcă” download action (2026-10-17).
 
 **Last-row rule (2026-10-10, user, whole project):** a row that is the last one in its card / list /
 modal never draws its bottom divider (`.e-permits-dosar-profil__row:last-child`, `svc/field-row`, info
@@ -7441,8 +7441,16 @@ Secondary, icon fill bound to the brand variable (no gray override).
 
 **Export icon rule (2026-10-10, user):** every „Exportă…” action (⋮ menu item or icon-only table button)
 uses the download arrow over a curved tray: code `icon-export`, Figma local `20/export` (central icon
-pack „arrow-inbox, download”, stroke 1.5, radius 2). `icon-download` stays only for „Descarcă…”
-(download a file) and „Importă din MDocs”.
+pack „arrow-inbox, download”, stroke 1.5, radius 2).
+**Download icon rule (2026-10-17, user — supersedes the old `icon-download` exception):** every
+download action uses the SAME `icon-export` — „Descarcă …” buttons (act / decizie / certificat / nota de
+plată / post-process / RAP „Vizualizare act” → Descarcă / BO dossier document / eKYC SDK), ⋮ menu items
+„Descarcă” (`renderStackMenu` / Cabinet / Ghișeu: `icon: "export"`), icon-only buttons with aria-label
+„Descarcă”. Never `icon-download` (plain arrow), `icon-page-download` or `circle-download` on an action;
+keep the button's size class and colour (icon = label colour). Import / upload = `icon-upload`
+(„Importă din MDocs”, „Descarcă din MDocs” in the template builder = a pull INTO GEAP). Nav icons
+(„Dosare spre printare”) are not actions and keep their glyph. Data-driven icons too
+(`data/acte-permisive.json` payment `actions.download.icon`).
 
 ### US-230 Lista de servicii — Configurări servicii (2026-10-10)
 

@@ -800,7 +800,7 @@
             ]
           },
           "actions": {
-            "download": { "label": "Descarcă nota de plată", "icon": "icon-page-download" },
+            "download": { "label": "Descarcă nota de plată", "icon": "icon-export" },
             "pay": { "label": "Plătește 755 MDL cu mpay", "logo": "assets/logos/m-platforms/m-pay.svg" }
           }
         },

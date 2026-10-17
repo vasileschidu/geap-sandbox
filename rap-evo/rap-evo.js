@@ -745,7 +745,7 @@
         <div class="modal-content" data-rap-data-body></div>
         <div class="modal--footer">
           <div class="modal-buttons">
-            <button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-download>${icon("download", "icon small")}<span>Descarcă</span></button>
+            <button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-download>${icon("export", "icon small")}<span>Descarcă</span></button>
             <button class="btn btn-primary btn-rounded" type="button" data-rap-data-close>Închide</button>
           </div>
         </div>
