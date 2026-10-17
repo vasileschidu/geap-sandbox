@@ -278,8 +278,8 @@
           <div class="rap-profile__support-card">
             <strong>${escapeHtml(profile.support.authority || "")}</strong>
             <div class="rap-profile__support-links">
-              <a href="tel:${escapeHtml((profile.support.phone || "").replaceAll(" ", ""))}">${icon("phone")}<span>${escapeHtml(profile.support.phone || "")}</span></a>
-              <a href="mailto:${escapeHtml(profile.support.email || "")}">${icon("envelope")}<span>${escapeHtml(profile.support.email || "")}</span></a>
+              <a class="btn btn-text-neutral btn-sm btn-pill" href="tel:${escapeHtml((profile.support.phone || "").replaceAll(" ", ""))}">${icon("phone")}<span>${escapeHtml(profile.support.phone || "")}</span></a>
+              <a class="btn btn-text-neutral btn-sm btn-pill" href="mailto:${escapeHtml(profile.support.email || "")}">${icon("envelope")}<span>${escapeHtml(profile.support.email || "")}</span></a>
             </div>
           </div>
         </section>
