@@ -1048,3 +1048,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   — my first run without them showed only 25 differences and missed the main visible one.
 - 2026-10-17 · `git worktree add -f <dir>` on an EXISTING scratch dir silently kept an old worktree (a months-old
   checkout, no rap states → „not ready”). Always `git -C <dir> log -1` before trusting a HEAD baseline; use a new dir.
+- 2026-10-17 · RAP Figma comments (long names, many fields, tacit approval). Course corrections arrived mid-job (4×): the
+  „Date publicate” profile section was dropped before it was built because US-162 (GEAP 2) puts the act's specific fields
+  behind „Vizualizează act” (US-142, GEAP 1, said the opposite) — read EVERY story the brief names, and when two versions
+  of a story disagree, the newer GEAP 2 one wins; say so. The act modal became the BO detail modal (`#dosar-detail-modal`
+  markup) on the RAP page: library `.modal` + BO classes, the BO additions restated in bo-profile-parts.css from a new
+  compare-styles spec (dos-04s ↔ rap-03: 146 → 0 differences in two passes — inherited body text, scroll hairlines,
+  the 12/16 grey note). The old A4 viewer stayed as „Descarcă” (park the data modal, come back on close).
+- 2026-10-17 · Traps: (1) a 1-line `-webkit-line-clamp` ellipsis cuts at a WORD boundary → a gap before a trailing
+  „Mai mult”; use nowrap + text-overflow for one line, line-clamp only for 2+. (2) A Small tag in a flex column shrank
+  below its text (cell content 87 < tag 100) and its centred text ran over the left padding — the user saw „no left
+  padding”. Tags in flex rows get `flex: none`; MEASURE the natural width (mine was 100, I guessed 88) before sizing a
+  column. (3) The blue tag tone did not exist on the RAP page (bo-profile-parts had only success / warning / danger /
+  neutral) → the first capture showed plain blue text; check every tone you use is defined on THIS page. (4) A4
+  pagination: measure unzoomed (render → paginate → zoom), keep ≥ 2 rows with the signature, never end a page on a
+  group heading. (5) compare-styles failed with „dos-04s:error” twice under load, then passed — re-run before debugging.
+  (6) The profile parity spec had drifted with another agent's committed changes (support card gone, last-row index) —
+  a spec must be updated with the page it measures; keep page-level decisions in `expected`.
+- 2026-10-17 · Shared tree with 3 agents (coordinator hunks in rap-evo.*, a third agent in facet-filter.* + rap-04 states
+  + page `?v=` bumps): every edit of mine was an asserted (file, old, new) pair in scratch `edits/p*.py`, applied to the
+  tree AND later to the HEAD blobs to stage only my hunks (+ the hunks the coordinator asked me to include).

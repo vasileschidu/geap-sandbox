@@ -145,6 +145,8 @@
         "Aprobat tacit"
       ],
       "profile": {
+        "_comment": "tacitApprovalDate = the date of the Act de constatare a aprobării tacite (US-162 / US-142 AC-08)",
+        "tacitApprovalDate": "1 iulie 2026",
         "source": "RAP",
         "profileAvailable": true,
         "document": {
@@ -535,6 +537,126 @@
       "profile": {
         "source": "RAP",
         "profileAvailable": true
+      }
+    },
+    {
+      "id": "rap-0015",
+      "beneficiary": {
+        "type": "company",
+        "name": "ECOFRIG TEHNOLOGII S.R.L.",
+        "identifierType": "IDNO",
+        "identifier": "1012600034567"
+      },
+      "permit": {
+        "name": "Autorizația pentru importul, exportul sau reexportul substanțelor care distrug stratul de ozon, al produselor și al echipamentului care conțin asemenea substanțe",
+        "number": "P-9015/2026",
+        "paperNumber": "C384410/2026",
+        "validThrough": "11 aug. 2027",
+        "issuedAt": "emis 12 aug. 2026"
+      },
+      "authority": {
+        "code": "AM",
+        "name": "Agenția de Mediu"
+      },
+      "status": "Valabil",
+      "profile": {
+        "source": "RAP",
+        "profileAvailable": true,
+        "office": "Direcția Calitatea Aerului și Schimbări Climatice",
+        "printedDocumentNumber": "A MMIV 041208",
+        "issuedDate": "12 august 2026",
+        "validFrom": "12 august 2026",
+        "validUntil": "11 august 2027",
+        "document": {
+          "address": "mun. Chișinău, str. Uzinelor 19/3",
+          "activity": "Comerț cu ridicata al echipamentelor frigorifice (CAEM 46.69)",
+          "fields": [
+            ["Operațiunea autorizată", "Import"],
+            ["Substanța / amestecul", "R-404A (HFC-125, HFC-143a, HFC-134a) — agent frigorific pentru echipamentele de refrigerare comerciale și industriale"],
+            ["Cantitatea autorizată", "1 200 kg"],
+            ["Țara de origine", "Republica Federală Germania"]
+          ]
+        }
+      }
+    },
+    {
+      "id": "rap-0016",
+      "beneficiary": {
+        "type": "company",
+        "name": "FARMACIA FAMILIEI S.R.L.",
+        "identifierType": "IDNO",
+        "identifier": "1003600122384"
+      },
+      "permit": {
+        "name": "Autorizație sanitară de funcționare",
+        "number": "P-9031/2026",
+        "paperNumber": "C384702/2026",
+        "validThrough": "20 aug. 2031",
+        "issuedAt": "emis 21 aug. 2026"
+      },
+      "authority": {
+        "code": "ANSP",
+        "name": "Agenția Națională pentru Sănătate Publică"
+      },
+      "status": "Valabil",
+      "profile": {
+        "source": "RAP",
+        "profileAvailable": true,
+        "office": "Centrul de Sănătate Publică Chișinău",
+        "printedDocumentNumber": "A MMIV 041377",
+        "issuedDate": "21 august 2026",
+        "validFrom": "21 august 2026",
+        "validUntil": "20 august 2031",
+        "document": {
+          "_comment": "US-163 (Autorizație sanitară de funcționare): the service's form sections with the fields marked public in Setări › Publicare în RAP (US-221), in form order",
+          "sections": [
+            {
+              "title": "Datele economice ale unității",
+              "fields": [
+                ["Obiectul autorizat", "Farmacia „Familia” nr. 3"],
+                ["Tipul unității", "Farmacie comunitară"],
+                ["Raionul", "mun. Chișinău"],
+                ["Localitatea", "or. Chișinău, sect. Botanica"],
+                ["Adresa desfășurării activității", "bd. Dacia 27/1, MD-2038"],
+                ["Codul cadastral", "0100313.142.01.004"],
+                ["Forma de proprietate", "Privată"],
+                ["Regimul de lucru", "Luni – Duminică, 08:00 – 21:00"],
+                ["Data controlului de stat", "2 august 2026"],
+                ["Numărul procesului-verbal de control", "PV-ANSP-2026/1187"],
+                ["Rezultatul controlului", "Conform cerințelor sanitare"],
+                ["Persoana responsabilă de unitate", "Farmacist-diriginte"]
+              ]
+            },
+            {
+              "title": "Genul de activitate",
+              "fields": [
+                ["Codul CAEM (1)", "47.73 — Comerț cu amănuntul al produselor farmaceutice, în magazine specializate"],
+                ["Subgenul de activitate (1)", "Comercializarea medicamentelor cu și fără prescripție medicală"],
+                ["Codul CAEM (2)", "47.74 — Comerț cu amănuntul al articolelor medicale și ortopedice"],
+                ["Subgenul de activitate (2)", "Articole ortopedice și dispozitive medicale de uz individual"],
+                ["Codul CAEM (3)", "47.75 — Comerț cu amănuntul al produselor cosmetice și de toaletă"],
+                ["Subgenul de activitate (3)", "Produse cosmetice și de igienă personală"],
+                ["Prepararea medicamentelor magistrale", "Da"],
+                ["Substanțe stupefiante și psihotrope", "Nu"],
+                ["Comercializare la distanță", "Nu"],
+                ["Livrare la domiciliu", "Da"]
+              ]
+            },
+            {
+              "title": "Suprafața/Volumul/Capacitatea",
+              "fields": [
+                ["Suprafața totală/Volumul", "142,5"],
+                ["Unități de măsură", "m²"],
+                ["Suprafața sălii de deservire", "64 m²"],
+                ["Suprafața depozitului", "38 m²"],
+                ["Capacitatea (nr. locuri de lucru, nr. copii, etc.)", "6 locuri de lucru"],
+                ["Numărul de angajați", "9"],
+                ["Numărul caselor de marcat", "3"],
+                ["Spații frigorifice", "2 frigidere farmaceutice, 1 200 l"]
+              ]
+            }
+          ]
+        }
       }
     }
   ],

@@ -645,9 +645,14 @@ a {
   width: 1280px;
 }
 
-.rap-table__col--beneficiary,
-.rap-table__col--permit {
+.rap-table__col--beneficiary {
   width: 313px;
+}
+
+/* 14px of „Denumire act” went to „Statut” (2026-10-17): the blue „Aprobare tacită” Small tag is 100 wide
+   and the status cell's content box was 87 (111 − 2 × 12) */
+.rap-table__col--permit {
+  width: 299px;
 }
 
 .rap-table__col--authority {
@@ -663,7 +668,7 @@ a {
 }
 
 .rap-table__col--status {
-  width: 111px;
+  width: 125px;
 }
 
 .rap-table__col--action {
@@ -1102,20 +1107,33 @@ a {
   }
 }
 
+/* the company view (user 2026-10-17): the company and its act counts are two separate grey cards */
 .rap-company-summary {
-  background: var(--rap-hover);
-  border-radius: 24px;
+  align-items: stretch;
+  display: flex;
+  gap: var(--spacing-8, 8px);
   margin-top: var(--spacing-16, 16px);
-  overflow: hidden;
-  padding: var(--spacing-16, 16px) var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-16, 16px);
+}
+
+.rap-company-summary[hidden] {
+  display: none;
+}
+
+.rap-company-summary__inner,
+.rap-company-summary__metrics {
+  background: var(--color-background-base-secondary, var(--rap-hover));
+  border-radius: var(--border-radius-24, 24px);
+  padding: var(--spacing-16, 16px) var(--spacing-24, 24px);
 }
 
 .rap-company-summary__inner {
   align-items: center;
   display: flex;
+  flex: 1 1 auto;
   gap: var(--spacing-16, 16px);
   min-height: 50px;
-  width: 100%;
+  min-width: 0;
+  padding-left: var(--spacing-16, 16px);
 }
 
 .rap-company-summary__avatar {
@@ -1207,11 +1225,11 @@ a {
 }
 
 .rap-company-summary__metric--active strong {
-  color: #039855;
+  color: var(--color-text-positive-default, #039855);
 }
 
 .rap-company-summary__metric--inactive strong {
-  color: #b54708;
+  color: var(--color-text-warning-default, #b54708);
 }
 
 /* the BO copy code (.e-permits-workplace__copy-code, e-permits-shell.css:3063 + :3124 / :3129,
@@ -1546,25 +1564,18 @@ a {
   }
 
   .rap-company-summary {
+    flex-direction: column;
+  }
+
+  .rap-company-summary__inner,
+  .rap-company-summary__metrics {
     border-radius: var(--border-radius-16, 16px);
     padding: var(--spacing-16, 16px);
   }
 
-  .rap-company-summary__inner {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .rap-company-summary__identity {
-    flex-basis: calc(100% - 56px);
-  }
-
   .rap-company-summary__metrics {
-    border-top: var(--border-width-1, 1px) solid var(--rap-border);
     gap: var(--spacing-16, 16px);
-    justify-content: space-between;
-    padding-top: var(--spacing-12, 12px);
-    width: 100%;
+    justify-content: space-around;
   }
 
   .rap-header__button {
@@ -1932,6 +1943,174 @@ tr:hover .rap-act-link {
   color: var(--color-text-base-tertiary, #757575);
 }
 
+/* ---- A4 pages (2026-10-17): a section heading row of the act's specific fields, the line on top of a
+   continuation page, the gap between pages in the canvas, the unzoomed measuring pass ---- */
+.rap-act-doc__surface .rap-act-doc__group th {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+  text-align: left;
+}
+
+.rap-act-doc__surface .rap-act-doc__cont {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+.rap-act-doc + .rap-act-doc {
+  margin-top: var(--spacing-24, 24px);
+}
+
+.rap-act-doc.is-measuring .rap-act-doc__surface {
+  min-height: 0;
+}
+
+
+/* ---- Long act names in a dialog subtitle (rap-act-subtitle): number + copy whole, the name clamped
+   to 1 line (2 on phones); when it overflows, the name is a toggle button with „Mai mult” ---- */
+.rap-act-subtitle {
+  align-items: baseline;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+}
+
+.rap-act-subtitle__number {
+  flex: 0 0 auto;
+}
+
+.rap-act-subtitle__name {
+  align-items: baseline;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: inherit;
+  display: flex;
+  flex: 1 1 auto;
+  font: inherit;
+  gap: var(--spacing-4, 4px);
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+/* 1 line: nowrap + ellipsis (a 1-line line-clamp cuts at a word boundary and leaves a gap before
+   „Mai mult”); phones: line-clamp 2 */
+.rap-act-subtitle__text {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button.rap-act-subtitle__name {
+  cursor: pointer;
+}
+
+button.rap-act-subtitle__name:hover .rap-act-subtitle__text {
+  color: var(--color-text-base-default, #121212);
+}
+
+button.rap-act-subtitle__name:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--rap-brand);
+  outline-offset: var(--spacing-2, 2px);
+}
+
+.rap-act-subtitle__more {
+  color: var(--color-text-brand-default, #0058d2);
+  flex: 0 0 auto;
+  font-weight: var(--font-weight-fw-medium, 500);
+  white-space: nowrap;
+}
+
+button.rap-act-subtitle__name:hover .rap-act-subtitle__more {
+  text-decoration: underline;
+}
+
+/* expanded: the whole name, „Mai puțin” right after its last word */
+button.rap-act-subtitle__name[aria-expanded="true"] {
+  display: block;
+}
+
+button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__text {
+  display: inline;
+  -webkit-line-clamp: none;
+  line-clamp: none;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
+  margin-left: var(--spacing-4, 4px);
+}
+
+.rap-act-subtitle__name.is-measuring .rap-act-subtitle__more {
+  display: none;
+}
+
+/* the A4 viewer's header text column may grow with the name */
+.rap-act-modal .e-permits-fo-doc-modal__subtitle.rap-act-subtitle {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* ---- „Vizualizare act” data modal: specific fields grouped by form section, first 8 + toggle ---- */
+.rap-act-data__group {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  padding: var(--spacing-16, 16px) 0 calc(var(--spacing-8, 8px) - var(--border-width-1, 1px));
+}
+
+.e-permits-dosar-profil__card > .rap-act-data__group:first-child {
+  padding-top: var(--spacing-8, 8px);
+}
+
+.e-permits-dosar-profil__card.is-collapsed > .rap-act-data__more-row {
+  display: none;
+}
+
+.rap-act-data__toggle {
+  display: flex;
+  padding: var(--spacing-8, 8px) 0;
+}
+
+/* the text button starts on the row text (its own 12 inline padding) */
+.rap-act-data__toggle > .btn {
+  margin-left: calc(var(--spacing-12, 12px) * -1);
+}
+
+@media (max-width: 760px) {
+  .rap-act-subtitle {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--spacing-2, 2px);
+  }
+
+  .rap-act-subtitle__name {
+    flex-direction: column;
+    gap: var(--spacing-2, 2px);
+    width: 100%;
+  }
+
+  .rap-act-subtitle__text {
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+  }
+}
+
 /* phones: a full-height sheet (24 from the top, radius 16 top corners — the Ghișeu request sheet) */
 @media (max-width: 600px) {
   .rap-act-modal.e-permits-fo-doc-modal-overlay {
@@ -2005,6 +2184,10 @@ tr:hover .rap-act-link {
     box-shadow: none;
     margin: 0;
     zoom: 1 !important;
+  }
+
+  .rap-act-modal .rap-act-doc:not(:last-child) {
+    break-after: page;
   }
 }
 
@@ -2097,8 +2280,3 @@ tr:hover .rap-act-link {
   outline: 0;
 }
 
-/* breadcrumb → title: the same 16 as on the RAP list page (user 2026-10-17: „too close in the
-   profile”); the BO header keeps its own 8 */
-.rap-profile__header .e-permits-page-header__heading {
-  gap: var(--spacing-16, 16px);
-}

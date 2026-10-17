@@ -1,0 +1,226 @@
+{
+ "about": "RAP „Vizualizare act” data modal (rap-03) vs the BO detail modal (dos-04s, #dosar-detail-modal). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a dos-04s --b rap-03 --spec tools/ui-qa/specs/rap-act-modal-vs-bo.json. The BO state shows a document preview above „Date generale”, so section / note y are ignored; the RAP subtitle is a flex row (number + copy + clamped name) — only its text is compared. Rows: BO „Tip document” (nth 0) vs RAP „Subdiviziunea” (nth 1) — one-line rows on both sides.",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--line-height-",
+  "--spacing-",
+  "--border-",
+  "--text-"
+ ],
+ "pairs": [
+  {
+   "name": "modal",
+   "a": "#dosar-detail-modal .modal",
+   "b": "[data-rap-act-data] .modal",
+   "ignore": [
+    "rect.height",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "close",
+   "a": "#dosar-detail-modal .modal-close",
+   "b": "[data-rap-act-data] .modal-close",
+   "rel": "modal"
+  },
+  {
+   "name": "close icon",
+   "a": "#dosar-detail-modal .modal-close .icon",
+   "b": "[data-rap-act-data] .modal-close .icon",
+   "rel": "close"
+  },
+  {
+   "name": "header",
+   "a": "#dosar-detail-modal .modal--header",
+   "b": "[data-rap-act-data] .modal--header",
+   "rel": "modal",
+   "ignore": [
+    "rect.height"
+   ]
+  },
+  {
+   "name": "title",
+   "a": "#dosar-detail-modal .modal--header-title",
+   "b": "[data-rap-act-data] .modal--header-title",
+   "rel": "header",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "subtitle text",
+   "a": "#dosar-detail-modal .e-permits-passport__modal-subtitle",
+   "b": "[data-rap-act-data] .e-permits-passport__modal-subtitle",
+   "props": [
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "margin-top",
+    "margin-bottom",
+    "margin-left",
+    "margin-right"
+   ]
+  },
+  {
+   "name": "content",
+   "a": "#dosar-detail-modal .modal-content",
+   "b": "[data-rap-act-data] .modal-content",
+   "rel": "modal",
+   "ignore": [
+    "rect.height",
+    "rect.y",
+    "max-height"
+   ]
+  },
+  {
+   "name": "section",
+   "a": "#dosar-detail-modal .e-permits-dosar-profil__section",
+   "b": "[data-rap-act-data] .e-permits-dosar-profil__section",
+   "rel": "content",
+   "ignore": [
+    "rect.height",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "section title",
+   "a": "#dosar-detail-modal .e-permits-dosar-profil__section-title",
+   "b": "[data-rap-act-data] .e-permits-dosar-profil__section-title",
+   "rel": "section",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "card",
+   "a": "#dosar-detail-modal .e-permits-dosar-profil__card",
+   "b": "[data-rap-act-data] .e-permits-dosar-profil__card",
+   "rel": "section",
+   "ignore": [
+    "rect.height"
+   ]
+  },
+  {
+   "name": "row",
+   "a": "#dosar-detail-modal .e-permits-dosar-profil__row",
+   "b": "[data-rap-act-data] .e-permits-dosar-profil__row",
+   "rel": "card",
+   "ignore": [
+    "rect.y"
+   ],
+   "nthA": 0,
+   "nthB": 1
+  },
+  {
+   "name": "row label",
+   "a": "#dosar-detail-modal .e-permits-dosar-profil__row-label",
+   "b": "[data-rap-act-data] .e-permits-dosar-profil__row-label",
+   "rel": "row",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ],
+   "nthA": 0,
+   "nthB": 1
+  },
+  {
+   "name": "row value",
+   "a": "#dosar-detail-modal .e-permits-dosar-profil__row-value",
+   "b": "[data-rap-act-data] .e-permits-dosar-profil__row-value",
+   "rel": "row",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ],
+   "nthA": 0,
+   "nthB": 1
+  },
+  {
+   "name": "note",
+   "a": "#dosar-detail-modal .e-permits-readonly-note",
+   "b": "[data-rap-act-data] .e-permits-readonly-note",
+   "rel": "content",
+   "ignore": [
+    "rect.y",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "note icon",
+   "a": "#dosar-detail-modal .e-permits-readonly-note .info-box__icon .icon",
+   "b": "[data-rap-act-data] .e-permits-readonly-note .info-box__icon .icon",
+   "rel": "note"
+  },
+  {
+   "name": "note text",
+   "a": "#dosar-detail-modal .e-permits-readonly-note .info-box__content p",
+   "b": "[data-rap-act-data] .e-permits-readonly-note .info-box__content p",
+   "ignore": [
+    "rect.width",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "footer",
+   "a": "#dosar-detail-modal .modal--footer",
+   "b": "[data-rap-act-data] .modal--footer",
+   "rel": "modal",
+   "ignore": [
+    "rect.y"
+   ]
+  },
+  {
+   "name": "buttons",
+   "a": "#dosar-detail-modal .modal-buttons",
+   "b": "[data-rap-act-data] .modal-buttons",
+   "rel": "footer",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "btn download",
+   "a": "#dosar-detail-modal .modal-buttons .btn-neutral",
+   "b": "[data-rap-act-data] .modal-buttons .btn-neutral",
+   "rel": "footer",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "btn download icon",
+   "a": "#dosar-detail-modal .modal-buttons .btn-neutral .icon",
+   "b": "[data-rap-act-data] .modal-buttons .btn-neutral .icon",
+   "rel": "btn download"
+  },
+  {
+   "name": "btn close",
+   "a": "#dosar-detail-modal .modal-buttons .btn-primary",
+   "b": "[data-rap-act-data] .modal-buttons .btn-primary",
+   "rel": "footer"
+  }
+ ],
+ "expected": [
+  {
+   "viewport": 1440,
+   "name": "btn download icon",
+   "prop": "rect.right",
+   "why": "same label „Descarcă”, every computed text property equal; the advance differs by 0.6px (sub-pixel glyph advance), not a style difference"
+  },
+  {
+   "viewport": 375,
+   "name": "btn download icon",
+   "prop": "rect.right",
+   "why": "same label „Descarcă”, every computed text property equal; the advance differs by 0.6px (sub-pixel glyph advance), not a style difference"
+  }
+ ]
+}

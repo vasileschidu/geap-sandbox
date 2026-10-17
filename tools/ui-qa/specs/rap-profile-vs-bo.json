@@ -1,5 +1,5 @@
 {
- "about": "RAP act profile (rap-02 / rap-02a) vs the BO originals: page header meta (svc-01), Date generale card (svc-01), dossier cards (dos-01). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b rap-02 --spec tools/ui-qa/specs/rap-profile-vs-bo.json (rows: a one-line row on both sides — „Data eliberării” on the RAP; the act name can wrap)",
+ "about": "RAP act profile (rap-02 / rap-02a) vs the BO originals: page header meta (svc-01), Date generale card (svc-01), dossier cards (dos-01). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b rap-02 --spec tools/ui-qa/specs/rap-profile-vs-bo.json (rows: a one-line row on both sides — „Data eliberării” on the RAP; the act name can wrap) 2026-10-17: support-card pairs dropped (the section became „Autoritatea emitentă” rows, user decision); row = „Valabil din data” (nth 6, not the last row); the PF masked id is read on rap-02a.",
  "tokens": [
   "--color-",
   "--font-",
@@ -162,7 +162,7 @@
    "a": ".e-permits-passport__panel .e-permits-dosar-profil__card > .e-permits-dosar-profil__row",
    "nthA": 1,
    "b": "#rap-details-title + .e-permits-dosar-profil__card > .e-permits-dosar-profil__row",
-   "nthB": 7,
+   "nthB": 6,
    "rel": "card (passport)",
    "ignore": [
     "rect.y"
@@ -308,25 +308,9 @@
     "font-synthesis"
    ],
    "states": {
-    "a": "dos-01"
+    "a": "dos-01",
+    "b": "rap-02a"
    }
-  },
-  {
-   "name": "support card",
-   "states": {
-    "a": "dos-01"
-   },
-   "a": ".e-permits-dosar-profil__card",
-   "b": ".rap-profile__support-card",
-   "props": [
-    "background-color",
-    "border-top-left-radius",
-    "border-bottom-right-radius",
-    "box-shadow",
-    "border-top-width",
-    "padding-left",
-    "padding-right"
-   ]
   },
   {
    "name": "beneficiary name (BO value type, own size)",
@@ -335,24 +319,6 @@
    },
    "a": ".e-permits-dosar-profil__row-value",
    "b": ".rap-profile__beneficiary-copy > strong",
-   "props": [
-    "font-family",
-    "font-weight",
-    "letter-spacing",
-    "color",
-    "-webkit-font-smoothing",
-    "text-rendering",
-    "font-kerning",
-    "font-synthesis"
-   ]
-  },
-  {
-   "name": "support name (BO value type, own size)",
-   "states": {
-    "a": "dos-01"
-   },
-   "a": ".e-permits-dosar-profil__row-value",
-   "b": ".rap-profile__support-card > strong",
    "props": [
     "font-family",
     "font-weight",
@@ -407,6 +373,18 @@
    "name": "meta",
    "prop": "rect.height",
    "why": "content: RAP shows 5 meta items with a long authority name, svc-01 shows 4"
+  },
+  {
+   "viewport": 375,
+   "name": "meta divider",
+   "prop": "top",
+   "why": "user 2026-10-17: on phones the RAP header meta is 2 equal columns WITHOUT separators (the ::before is content: none)"
+  },
+  {
+   "viewport": 375,
+   "name": "meta divider",
+   "prop": "transform",
+   "why": "user 2026-10-17: on phones the RAP header meta is 2 equal columns WITHOUT separators (the ::before is content: none)"
   }
  ]
 }

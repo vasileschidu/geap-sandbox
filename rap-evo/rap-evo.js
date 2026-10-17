@@ -1,12 +1,14 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/rap-evo.json?v=contacts-v1";
+  const DATA_URL = "../data/rap-evo.json?v=acts-v2";
   /* „Filtru” = the BO advanced filter (js/facet-filter.js): one facet per column that
      makes sense to filter, values read from the records (no new data) */
   const beneficiaryType = (record) => (record.beneficiary.type === "person" ? "Persoană fizică" : "Persoană juridică");
+  /* „Aprobat tacit” in the Statut facet (US-141): a pseudo-status = acts with Aprobare tacită = true,
+     whatever their status */
   const FACETS = [
-    { key: "status", label: "Statut", get: (record) => record.status },
+    { key: "status", label: "Statut", get: (record) => [record.status, ...((record.markings || []).includes("Aprobat tacit") ? ["Aprobat tacit"] : [])] },
     { key: "denumire", label: "Denumire act", get: (record) => record.permit.name },
     { key: "autoritate", label: "Autoritate", get: (record) => record.authority.name },
     { key: "beneficiar", label: "Tip beneficiar", get: beneficiaryType }
@@ -85,6 +87,24 @@
   }[status] || "neutral");
   /* the BO renderTag markup (Tag · Small, css/bo-profile-parts.css) */
   const statusTag = (status) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${statusTone(status)}">${escapeHtml(status)}</span>`;
+  /* tacit approval (Figma comment G. 1868591457; US-139 AC-02, US-142 / US-162 AC-08): an act with
+     Aprobare tacită = true (the RAP marking „Aprobat tacit”) shows the blue Small badge „Aprobare
+     tacită” beside its status tag — only while it is Valabil (US-139) — and the field „Data aprobării
+     tacite” right above „Data eliberării” wherever the act's details are listed */
+  const TACIT_MARK = "Aprobat tacit";
+  const isTacit = (record) => (record.markings || []).includes(TACIT_MARK);
+  const showTacitBadge = (record) => isTacit(record) && record.status === "Valabil";
+  const tacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită</span>';
+  const statusTags = (record) => `${statusTag(record.status)}${showTacitBadge(record) ? tacitTag() : ""}`;
+  /* the LIST shows only the blue badge for a tacitly approved act (user 2026-10-17, to save space: the
+     badge exists only for Valabil acts, so it implies the status); screen readers hear „Valabil, Aprobare
+     tacită”. Deviation from US-139 AC-02 („alături de Status”) — to confirm with the PO */
+  const listTacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info"><span class="visually-hidden">Valabil, </span>Aprobare tacită</span>';
+  /* details (user 2026-10-17): ONE row, in date order before „Data eliberării” — the date of the tacit
+     approval with the badge after it; the Stare row keeps the status only */
+  const tacitDateRow = (record, profile) => (isTacit(record) && profile.tacitDate
+    ? [["Data aprobării tacite", `<span>${escapeHtml(profile.tacitDate)}</span>${showTacitBadge(record) ? tacitTag() : ""}`]]
+    : []);
 
   const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-${name}"></use></svg>
@@ -151,6 +171,7 @@
       issuedDate,
       validFrom: fullMonthDate(profile.validFrom) || issuedDate,
       validUntil: fullMonthDate(profile.validUntil || record.permit.validThrough),
+      tacitDate: fullMonthDate(profile.tacitApprovalDate),
       timeline: record.profile?.timeline || defaults.timeline || [],
       support: { ...(defaults.support || {}), ...(record.profile?.support || {}) }
     };
@@ -205,6 +226,7 @@
       ["Numărul actului permisiv", record.permit.number, true],
       ["Numărul dosarului electronic", record.permit.paperNumber, true],
       ["Seria și nr. documentului tipărit", profile.printedDocumentNumber, true],
+      ...tacitDateRow(record, profile).map(([label, value]) => [label, value, false, true]),
       ["Data eliberării", profile.issuedDate],
       ["Valabil din data", profile.validFrom],
       ["Data expirării", profile.validUntil]
@@ -249,7 +271,7 @@
             </div>
             <div class="e-permits-page-header__meta" data-rap-profile-meta>
               ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
-              ${renderProfileSummaryItem("Stare", statusTag(record.status), { html: true })}
+              ${renderProfileSummaryItem("Stare", statusTags(record), { html: true })}
               ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
@@ -342,30 +364,45 @@
   const longStamp = (date) => `${new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(date)}, ${new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit" }).format(date)}`;
   const permanentUrl = (record) => `${window.location.origin}${window.location.pathname}?act=${encodeURIComponent(record.id)}`;
 
+  /* „Câmpuri specifice actului” (US-162 / US-163 · US-221 „Câmpuri transmise în RAP”): the act's
+     service-configured public fields, in form order, grouped by the form's sections when the data has
+     them (document.sections); older records carry a flat list (address, activity, fields) */
+  const actSpecificGroups = (record) => {
+    const doc = normalizeProfile(record).document || {};
+    if (doc.sections?.length) {
+      return doc.sections
+        .map((section) => ({ title: section.title, rows: (section.fields || []).filter(([, value]) => value) }))
+        .filter((group) => group.rows.length);
+    }
+    const rows = [["Adresa obiectului", doc.address], ["Genul de activitate", doc.activity], ...(doc.fields || [])].filter(([, value]) => value);
+    return rows.length ? [{ title: null, rows }] : [];
+  };
+
   /* the MDocs page: arms + authority, title, number, the public fields + the act's dynamic fields
-     (PF: the anonymised name only, never an IDNP — US-145), signature, QR, footer */
+     (PF: the anonymised name only, never an IDNP — US-145), signature, QR, footer; a long act
+     continues on more A4 pages (paginateActDoc) */
   const renderActPage = (record) => {
     const profile = normalizeProfile(record);
-    const doc = profile.document || {};
     const person = record.beneficiary.type === "person";
-    const rows = [
-      ["Beneficiar", record.beneficiary.name],
-      ...(person ? [] : [[record.beneficiary.identifierType, record.beneficiary.identifier]]),
-      ["Adresa obiectului", doc.address],
-      ["Genul de activitate", doc.activity],
-      ...(doc.fields || []),
-      ["Valabil din data", profile.validFrom],
-      ["Data expirării", profile.validUntil],
-      ["Numărul dosarului electronic", record.permit.paperNumber],
-      ["Seria și nr. documentului tipărit", profile.printedDocumentNumber]
-    ].filter(([, value]) => value);
+    const row = ([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
+    const rowsHtml = [
+      ...[["Beneficiar", record.beneficiary.name], ...(person ? [] : [[record.beneficiary.identifierType, record.beneficiary.identifier]])].map(row),
+      ...actSpecificGroups(record).map((group) => `${group.title ? `<tr class="rap-act-doc__group"><th colspan="2" scope="colgroup">${escapeHtml(group.title)}</th></tr>` : ""}${group.rows.map(row).join("")}`),
+      ...[
+        ...(isTacit(record) && profile.tacitDate ? [["Data aprobării tacite", profile.tacitDate]] : []),
+        ["Valabil din data", profile.validFrom],
+        ["Data expirării", profile.validUntil],
+        ["Numărul dosarului electronic", record.permit.paperNumber],
+        ["Seria și nr. documentului tipărit", profile.printedDocumentNumber]
+      ].filter(([, value]) => value).map(row)
+    ].join("");
     const url = permanentUrl(record);
     const tone = statusTone(record.status);
     const watermark = record.status !== "Valabil"
       ? `<span class="rap-act-doc__watermark rap-act-doc__watermark--${tone}" aria-hidden="true"><span>${escapeHtml(record.status.toLocaleUpperCase("ro"))}</span></span>`
       : "";
     return `
-      <div class="e-permits-dtpl__page e-permits-doc-peek__page rap-act-doc">
+      <div class="e-permits-dtpl__page e-permits-doc-peek__page rap-act-doc" data-rap-act-cont="${escapeHtml(`${record.permit.name} · nr. ${record.permit.number} · continuare`)}">
         ${watermark}
         <div class="e-permits-dtpl__surface rap-act-doc__surface">
           <header class="rap-act-doc__head">
@@ -376,8 +413,8 @@
           </header>
           <h1>${escapeHtml(record.permit.name)}</h1>
           <p class="rap-act-doc__number">nr. ${escapeHtml(record.permit.number)} din ${escapeHtml(profile.issuedDate)}</p>
-          <table><tbody>${rows.map(([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`).join("")}</tbody></table>
-          <p>Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>
+          <table><tbody>${rowsHtml}</tbody></table>
+          <p class="rap-act-doc__closing">Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>
           <div class="rap-act-doc__foot">
             <div class="rap-act-doc__sign">
               <p class="rap-act-doc__label">Autoritatea emitentă</p>
@@ -392,20 +429,64 @@
               </span>
             </div>
           </div>
-          <p class="rap-act-doc__footer">Generat prin MDocs la ${escapeHtml(longStamp(new Date()))} · Registrul actelor permisive · Pagina 1 din 1</p>
+          <p class="rap-act-doc__footer">Generat prin MDocs la ${escapeHtml(longStamp(new Date()))} · Registrul actelor permisive · <span data-rap-act-page>Pagina 1 din 1</span></p>
         </div>
       </div>
     `;
   };
 
+  /* A4 pages (Figma comment A. 1968940910 — many configured fields): the act is rendered on one
+     page, measured unzoomed, and the table rows that do not fit move to continuation pages
+     (same shell + watermark, „… · continuare” line, the closing text + signature on the last page,
+     „Pagina k din n” in every footer). A section heading never ends a page. */
+  const paginateActDoc = (canvas) => {
+    const first = canvas.querySelector(".rap-act-doc");
+    if (!first) return;
+    const style = window.getComputedStyle(first);
+    const room = parseFloat(style.minHeight) - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    const fits = (page) => {
+      page.classList.add("is-measuring");
+      const height = page.querySelector(".rap-act-doc__surface").scrollHeight;
+      page.classList.remove("is-measuring");
+      return height <= room + 1;
+    };
+    const continuation = (from) => {
+      const page = document.createElement("div");
+      page.className = from.className;
+      const watermark = from.querySelector(".rap-act-doc__watermark");
+      if (watermark) page.append(watermark.cloneNode(true));
+      const surface = document.createElement("div");
+      surface.className = from.querySelector(".rap-act-doc__surface").className;
+      surface.innerHTML = `<p class="rap-act-doc__cont">${escapeHtml(first.dataset.rapActCont || "")}</p><table><tbody></tbody></table>`;
+      surface.append(...from.querySelectorAll(".rap-act-doc__closing, .rap-act-doc__foot"), from.querySelector(".rap-act-doc__footer").cloneNode(true));
+      page.append(surface);
+      return page;
+    };
+    let page = first;
+    for (let guard = 0; guard < 24 && !fits(page); guard += 1) {
+      const next = continuation(page);
+      page.after(next);
+      const body = page.querySelector("tbody");
+      const nextBody = next.querySelector("tbody");
+      while (!fits(page) && body.rows.length > 1) nextBody.prepend(body.lastElementChild);
+      /* the signature never stands alone: the last page keeps at least two rows of the table */
+      while (nextBody.rows.length < 2 && body.rows.length > 2) nextBody.prepend(body.lastElementChild);
+      if (body.lastElementChild?.classList.contains("rap-act-doc__group")) nextBody.prepend(body.lastElementChild);
+      if (!nextBody.rows.length) nextBody.closest("table").remove();
+      page = next;
+    }
+    const pages = canvas.querySelectorAll(".rap-act-doc");
+    pages.forEach((item, index) => { item.querySelector("[data-rap-act-page]").textContent = `Pagina ${index + 1} din ${pages.length}`; });
+  };
+
   const fitActPage = () => {
     const canvas = actModal.overlay?.querySelector("[data-rap-act-canvas]");
-    const page = canvas?.querySelector(".e-permits-doc-peek__page");
-    if (!page || !canvas.clientWidth) return;
+    const pages = canvas?.querySelectorAll(".e-permits-doc-peek__page");
+    if (!pages?.length || !canvas.clientWidth) return;
     /* the canvas padding is 24 (16 on phones): fit the 794px page into what is left */
     const style = window.getComputedStyle(canvas);
     const room = canvas.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-    page.style.zoom = String(Math.min(1, room / 794));
+    pages.forEach((page) => { page.style.zoom = String(Math.min(1, room / 794)); });
   };
 
   /* view = loading | ready | <error key> */
@@ -422,15 +503,25 @@
     footer.innerHTML = `
       ${ready ? `<button class="btn btn-neutral btn-rounded rap-act-modal__print" type="button" data-rap-act-print>${PRINT_ICON}<span>Imprimă</span></button>` : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-rap-act-close>Închide</button>`;
-    if (ready) fitActPage();
+    if (ready) {
+      paginateActDoc(body.querySelector("[data-rap-act-canvas]"));
+      fitActPage();
+    }
   };
 
-  const closeActDocument = () => {
+  /* toData: opened from „Vizualizare act” › Descarcă → closing goes back to that dialog */
+  const closeActDocument = ({ toData = true } = {}) => {
     if (!actModal.overlay || actModal.overlay.hidden) return;
     actModal.run += 1;
     actModal.overlay.hidden = true;
     document.body.classList.remove("rap-page--act-open");
-    elements.profileView.querySelector("[data-rap-view-document]")?.removeAttribute("aria-disabled");
+    actModal.opener?.removeAttribute("aria-disabled");
+    if (toData && actData.parked) {
+      showActData();
+      if (actModal.opener?.isConnected) actModal.opener.focus();
+      return;
+    }
+    actData.parked = false;
     if (actModal.opener?.isConnected) actModal.opener.focus();
   };
 
@@ -450,6 +541,10 @@
         return;
       }
       if (event.target.closest("[data-rap-act-print]")) window.print();
+      const copyButton = event.target.closest("[data-rap-copy]");
+      if (copyButton) handleCopyButton(copyButton);
+      const clamp = event.target.closest("[data-rap-clamp-toggle]");
+      if (clamp) toggleClamp(clamp);
     });
     overlay.addEventListener("keydown", (event) => {
       if (event.key === "Escape") {
@@ -466,7 +561,7 @@
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     });
-    if ("ResizeObserver" in window) new ResizeObserver(fitActPage).observe(overlay);
+    if ("ResizeObserver" in window) new ResizeObserver(() => { fitActPage(); syncClamps(overlay); }).observe(overlay);
     actModal.overlay = overlay;
     return overlay;
   };
@@ -479,8 +574,8 @@
       <div class="e-permits-fo-doc-modal rap-act-modal__dialog">
         <div class="e-permits-fo-doc-modal__header">
           <div class="e-permits-fo-doc-modal__header-text">
-            <h2 class="e-permits-fo-doc-modal__title" id="rap-act-modal-title">Act permisiv</h2>
-            <p class="e-permits-fo-doc-modal__subtitle" title="${escapeHtml(`${record.permit.number} · ${record.permit.name}`)}">${escapeHtml(record.permit.number)} · ${escapeHtml(record.permit.name)}</p>
+            <h2 class="e-permits-fo-doc-modal__title" id="rap-act-modal-title">Forma de tipar a actului</h2>
+            ${actSubtitleHtml(record, "e-permits-fo-doc-modal__subtitle")}
           </div>
           <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-rap-act-close>${icon("cross-large")}</button>
         </div>
@@ -490,6 +585,7 @@
     renderActModalBody(record, "loading");
     overlay.hidden = false;
     document.body.classList.add("rap-page--act-open");
+    syncClamps(overlay);
     /* AC-03: no second request while MDocs works (the dialog covers the page; the button says so too) */
     opener?.setAttribute("aria-disabled", "true");
     overlay.querySelector(".e-permits-fo-doc-modal__close").focus();
@@ -500,6 +596,224 @@
       renderActModalBody(record, demo && MDOCS_ERRORS[demo] ? demo : "ready");
       opener?.removeAttribute("aria-disabled");
     }, MDOCS_DELAY);
+  };
+
+  /* ---- Long names in a dialog subtitle (coordinator 2026-10-17; research: Material „expandable
+     text”, App Store / Google Play „more”, GOV.UK Details — an explicit word reveals the rest; an
+     ellipsis alone does not read as clickable (NN/g), and a hover tooltip would be a second, mouse-only
+     way to the same text). The act number + copy stay whole; the name is clamped to 1 line (2 on
+     phones) and, only when it really overflows, becomes ONE toggle button: the clamped name + „Mai
+     mult” / „Mai puțin”, aria-expanded, Enter / Space / click; the header grows, the body scrolls. ---- */
+  const actSubtitleHtml = (record, className) => `
+    <p class="${className} rap-act-subtitle" data-rap-subtitle>
+      <span class="rap-act-subtitle__number">${copyValue(record.permit.number)}</span>
+      <span class="rap-act-subtitle__name"><span class="rap-act-subtitle__text">${escapeHtml(record.permit.name)}</span></span>
+    </p>`;
+
+  const syncClamps = (root) => {
+    root?.querySelectorAll("[data-rap-subtitle]").forEach((subtitle) => {
+      const name = subtitle.querySelector(".rap-act-subtitle__name");
+      if (!name || name.getAttribute("aria-expanded") === "true" || !name.offsetParent) return;
+      const text = name.querySelector(".rap-act-subtitle__text");
+      name.classList.add("is-measuring");
+      const overflows = text.scrollHeight > text.clientHeight + 1 || text.scrollWidth > text.clientWidth + 1;
+      name.classList.remove("is-measuring");
+      const isToggle = name.tagName === "BUTTON";
+      if (overflows === isToggle) return;
+      const next = document.createElement(overflows ? "button" : "span");
+      next.className = "rap-act-subtitle__name";
+      next.append(text);
+      if (overflows) {
+        next.type = "button";
+        next.dataset.rapClampToggle = "";
+        next.setAttribute("aria-expanded", "false");
+        next.insertAdjacentHTML("beforeend", '<span class="rap-act-subtitle__more" aria-hidden="true">Mai mult</span>');
+      }
+      name.replaceWith(next);
+    });
+  };
+
+  const toggleClamp = (button) => {
+    const open = button.getAttribute("aria-expanded") !== "true";
+    button.setAttribute("aria-expanded", String(open));
+    button.querySelector(".rap-act-subtitle__more").textContent = open ? "Mai puțin" : "Mai mult";
+    if (!open) syncClamps(button.closest("[data-rap-subtitle]").parentElement);
+  };
+
+  /* ---- „Vizualizare act” (US-162 AC-12 / Assumptions: the act's specific fields are reached through
+     this button, not shown on the details page · US-163 the fields by form section · Figma
+     EVO-WEB-3.0 20607:34846): the BO detail modal (#dosar-detail-modal: library modal--md, title +
+     subtitle, „Date generale” card, read-only note, Descarcă · Închide) on the RAP page. „Câmpuri
+     specifice actului” = BO detail rows; more than ACT_FIELDS_SHOWN + 2 → the first ACT_FIELDS_SHOWN,
+     then „Arată toate câmpurile (N)”. Descarcă → the MDocs printable A4 form (US-143), opened in the
+     document modal above; closing it comes back here. ---- */
+  const ACT_FIELDS_SHOWN = 8;
+  const actData = { overlay: null, record: null, opener: null, parked: false };
+
+  const actDataRow = (label, valueHtml, extra = "") => `
+    <div class="e-permits-dosar-profil__row${extra}">
+      <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+      <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
+    </div>`;
+
+  const renderActData = (record) => {
+    const profile = normalizeProfile(record);
+    const general = [
+      ["Autoritatea emitentă", escapeHtml(record.authority.name)],
+      ["Subdiviziunea", profile.office ? escapeHtml(profile.office) : ""],
+      ["Beneficiar", escapeHtml(record.beneficiary.name)],
+      ["Numărul actului permisiv", copyValue(record.permit.number)],
+      ["Stare", statusTag(record.status)],
+      ...tacitDateRow(record, profile),
+      ["Data eliberării", escapeHtml(profile.issuedDate)],
+      ["Valabil din data", escapeHtml(profile.validFrom)],
+      ["Data expirării", profile.validUntil ? escapeHtml(profile.validUntil) : ""]
+    ].filter(([, value]) => value);
+    const groups = actSpecificGroups(record);
+    const total = groups.reduce((sum, group) => sum + group.rows.length, 0);
+    const collapsible = total > ACT_FIELDS_SHOWN + 2;
+    let index = 0;
+    const more = " rap-act-data__more-row";
+    const fieldsHtml = groups.map((group) => {
+      const startsHidden = collapsible && index >= ACT_FIELDS_SHOWN;
+      const rows = group.rows.map(([label, value]) => {
+        index += 1;
+        return actDataRow(label, escapeHtml(value), collapsible && index > ACT_FIELDS_SHOWN ? more : "");
+      }).join("");
+      return `${group.title ? `<div class="rap-act-data__group${startsHidden ? more : ""}" role="heading" aria-level="3">${escapeHtml(group.title)}</div>` : ""}${rows}`;
+    }).join("");
+    return `
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">Date generale</h2>
+        <div class="e-permits-dosar-profil__card">${general.map(([label, value]) => actDataRow(label, value)).join("")}</div>
+      </section>
+      ${total ? `
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">Câmpuri specifice actului</h2>
+        <div class="e-permits-dosar-profil__card${collapsible ? " is-collapsed" : ""}" id="rap-act-data-fields" data-rap-data-fields>
+          ${fieldsHtml}
+          ${collapsible ? `<div class="rap-act-data__toggle"><button class="btn btn-text-primary btn-sm btn-rounded" type="button" aria-controls="rap-act-data-fields" data-rap-data-more data-total="${total}">Arată toate câmpurile (${total})</button></div>` : ""}
+        </div>
+      </section>` : ""}
+      <div class="info-box info-box--neutral e-permits-info-note e-permits-readonly-note">
+        <span class="info-box__icon">${icon("shield")}</span>
+        <div class="info-box__content"><p>Datele personale sunt mascate conform legislației. Sunt afișate doar câmpurile publice ale actului.</p></div>
+      </div>`;
+  };
+
+  /* the BO syncModalScrollEdges: a hairline under the header / over the footer while the body scrolls */
+  const syncActDataEdges = () => {
+    const modal = actData.overlay?.querySelector(".modal");
+    const content = modal?.querySelector(".modal-content");
+    if (!content) return;
+    const scrollable = content.scrollHeight > content.clientHeight + 1;
+    modal.classList.toggle("has-scroll-above", scrollable && content.scrollTop > 0);
+    modal.classList.toggle("has-scroll-below", scrollable && content.scrollTop + content.clientHeight < content.scrollHeight - 1);
+  };
+
+  const showActData = () => {
+    const overlay = actData.overlay;
+    actData.parked = false;
+    overlay.classList.add("is-active");
+    overlay.querySelector(".modal").classList.add("is-active");
+    overlay.setAttribute("aria-hidden", "false");
+    syncActDataEdges();
+  };
+
+  const closeActData = ({ restoreFocus = true } = {}) => {
+    const overlay = actData.overlay;
+    actData.parked = false;
+    if (!overlay?.classList.contains("is-active")) return;
+    overlay.classList.remove("is-active");
+    overlay.querySelector(".modal").classList.remove("is-active");
+    overlay.setAttribute("aria-hidden", "true");
+    if (restoreFocus && actData.opener?.isConnected) actData.opener.focus();
+  };
+
+  const ensureActData = () => {
+    if (actData.overlay) return actData.overlay;
+    const overlay = document.createElement("div");
+    overlay.className = "modal-overlay rap-act-data";
+    overlay.setAttribute("aria-hidden", "true");
+    overlay.dataset.rapActData = "";
+    overlay.innerHTML = `
+      <div class="modal modal--md e-permits-passport__modal e-permits-case-modal e-permits-detail-modal" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="rap-act-data-title">
+        <button type="button" class="modal-close" aria-label="Închide" data-rap-data-close>
+          <span class="d-inline-flex">${icon("cross-large", "icon small")}</span>
+        </button>
+        <div class="modal--header" data-rap-data-header></div>
+        <div class="modal-content" data-rap-data-body></div>
+        <div class="modal--footer">
+          <div class="modal-buttons">
+            <button class="btn btn-neutral btn-rounded" type="button" aria-haspopup="dialog" data-rap-data-download>${icon("download", "icon small")}<span>Descarcă</span></button>
+            <button class="btn btn-primary btn-rounded" type="button" data-rap-data-close>Închide</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.append(overlay);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay || event.target.closest("[data-rap-data-close]")) {
+        closeActData();
+        return;
+      }
+      const copyButton = event.target.closest("[data-rap-copy]");
+      if (copyButton) {
+        handleCopyButton(copyButton);
+        return;
+      }
+      const clamp = event.target.closest("[data-rap-clamp-toggle]");
+      if (clamp) {
+        toggleClamp(clamp);
+        syncActDataEdges();
+        return;
+      }
+      const moreButton = event.target.closest("[data-rap-data-more]");
+      if (moreButton) {
+        const card = overlay.querySelector("[data-rap-data-fields]");
+        const collapsed = card.classList.toggle("is-collapsed");
+        moreButton.textContent = collapsed ? `Arată toate câmpurile (${moreButton.dataset.total})` : "Arată mai puține câmpuri";
+        syncActDataEdges();
+        return;
+      }
+      const download = event.target.closest("[data-rap-data-download]");
+      if (download && actData.record && download.getAttribute("aria-disabled") !== "true") {
+        closeActData({ restoreFocus: false });
+        actData.parked = true;
+        openActDocument(actData.record, download);
+      }
+    });
+    overlay.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeActData();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusables = [...overlay.querySelectorAll("button:not([disabled]), [href], [tabindex]:not([tabindex='-1'])")].filter((el) => el.offsetParent);
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    });
+    overlay.querySelector(".modal-content").addEventListener("scroll", syncActDataEdges, { passive: true });
+    if ("ResizeObserver" in window) new ResizeObserver(() => { syncClamps(overlay); syncActDataEdges(); }).observe(overlay.querySelector(".modal"));
+    actData.overlay = overlay;
+    return overlay;
+  };
+
+  const openActData = (record, opener) => {
+    const overlay = ensureActData();
+    actData.record = record;
+    actData.opener = opener || document.activeElement;
+    overlay.querySelector("[data-rap-data-header]").innerHTML = `
+      <h2 class="modal--header-title" id="rap-act-data-title">Vizualizare act</h2>
+      ${actSubtitleHtml(record, "e-permits-passport__modal-subtitle")}`;
+    overlay.querySelector("[data-rap-data-body]").innerHTML = renderActData(record);
+    overlay.querySelector("[data-rap-data-body]").scrollTop = 0;
+    showActData();
+    syncClamps(overlay);
+    overlay.querySelector(".modal").focus();
   };
 
   const renderBeneficiary = (record) => {
@@ -541,7 +855,7 @@
           <span class="rap-cell-stack__secondary">${escapeHtml(record.permit.issuedAt)}</span>
         </span>
       </td>
-      <td>${statusTag(record.status)}</td>
+      <td>${showTacitBadge(record) ? listTacitTag() : statusTag(record.status)}</td>
       <td>
         <span class="rap-row-action" aria-hidden="true">
           <svg class="icon"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg>
@@ -582,7 +896,8 @@
             <code>${escapeHtml(company.identifier)}</code>
           </span>
         </span>
-        <span class="rap-company-summary__metrics" aria-label="Statistica actelor companiei">
+      </div>
+      <div class="rap-company-summary__metrics" role="group" aria-label="Statistica actelor companiei">
           <span class="rap-company-summary__metric">
             <strong>${companyRecords.length}</strong>
             <span>Total acte</span>
@@ -595,7 +910,6 @@
             <strong>${inactiveCount}</strong>
             <span>Inactive</span>
           </span>
-        </span>
       </div>
     `;
     elements.companySummary.hidden = false;
@@ -728,7 +1042,8 @@
       allFacets: () => FACETS,
       options: facetOptions,
       /* status values read as the table's status tags */
-      tag: (value, facet) => (facet.key === "status" ? statusTag(value) : null),
+      tag: (value, facet) => (facet.key !== "status" ? null : value === TACIT_MARK
+        ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--info">${TACIT_MARK}</span>` : statusTag(value)),
       total: () => state.filteredRecords.length,
       apply: () => { state.page = 1; applyFilters(); },
       scrollers: [elements.tableScroller]
@@ -873,7 +1188,8 @@
       return false;
     }
 
-    closeActDocument();
+    closeActDocument({ toData: false });
+    closeActData({ restoreFocus: false });
     state.activeRecord = record;
     renderProfile(record);
     elements.listView.hidden = true;
@@ -890,7 +1206,8 @@
   };
 
   const closeProfile = ({ updateHistory = true } = {}) => {
-    closeActDocument();
+    closeActDocument({ toData: false });
+    closeActData({ restoreFocus: false });
     state.activeRecord = null;
     elements.profileView.hidden = true;
     elements.listView.hidden = false;
@@ -1016,8 +1333,8 @@
       }
 
       const viewButton = event.target.closest("[data-rap-view-document]");
-      if (viewButton && state.activeRecord && viewButton.getAttribute("aria-disabled") !== "true") {
-        openActDocument(state.activeRecord, viewButton);
+      if (viewButton && state.activeRecord) {
+        openActData(state.activeRecord, viewButton);
       }
     });
 

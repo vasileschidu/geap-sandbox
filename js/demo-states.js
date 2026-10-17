@@ -1966,8 +1966,24 @@
           await open(h); await pick("status", ["Valabil"])(h); await pick("denumire", ["Notificare unitate comercială"])(h);
           await pick("beneficiar", ["Persoană juridică"])(h); await h.click("[data-filter-commit]");
         }),
+        "rap-01g": rap(async (h) => { await h.click('[data-record-id="rap-0002"] a'); await h.wait(300); await h.click("[data-rap-company-permits]"); await h.wait(300); }),
+        /* company view („Vezi toate (N)”): the company card + the act counts in a separate grey card */
         "rap-01d": rap(async (h) => {
           await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await h.click("[data-filter-commit]");
+        }),
+        /* a very long act name (Figma comment A. 1968942771): one line + ellipsis, the full name in the
+           shared tooltip on hover · a tacitly approved act: only the blue „Aprobare tacită” badge in Statut */
+        "rap-01e": rap(async (h) => { await h.scroll('tr[data-record-id="rap-0015"]'); await h.hover('tr[data-record-id="rap-0015"] .rap-act-link'); await h.wait(300); }),
+        "rap-01f": rap(async (h) => { await h.hover('tr[data-record-id="rap-0001"] .e-permits-workplace__tag--info'); }),
+        /* US-141: „Aprobat tacit” as a value of the Statut facet (acts with Aprobare tacită = true) */
+        "rap-01h": rap(async (h) => {
+          if (window.matchMedia("(max-width: 760px)").matches) {
+            /* phones: the facet's bottom sheet (facet filter phone mode) */
+            await h.click('[data-filter-facet="status"]'); await h.find('.e-permits-filter-sheet[aria-hidden="false"] .bottom-sheet__panel'); await h.wait(400);
+            await h.click('[data-filter-option][value="Aprobat tacit"]'); await h.click("[data-sheet-apply]"); await h.wait(400);
+            return;
+          }
+          await open(h); await pick("status", ["Aprobat tacit"])(h); await h.click("[data-filter-commit]");
         }),
         /* act profile (?act=): BO page header, sections over grey cards, Small status tags */
         "rap-02": { page: RAP, params: { act: "rap-0002" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
@@ -1975,21 +1991,44 @@
         "rap-02b": { page: RAP, params: { act: "rap-0003" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
         /* US-142 AC-16: unknown act */
         "rap-02c": { page: RAP, params: { act: "rap-9999" }, ready: "[data-rap-profile-view]:not([hidden]) .e-permits-empty" },
-        /* „Vizualizare actul” (US-143): MDocs act in the document modal — valid PJ act, loading,
+        /* the long ozone-substances act (title wraps); tacit approval: tag next to Stare + the
+           „Aprobare tacită” row above „Data eliberării” */
+        "rap-02d": { page: RAP, params: { act: "rap-0015" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        "rap-02g": { page: RAP, params: { act: "rap-0001" }, ready: "[data-rap-profile-view]:not([hidden]) h1", run: async (h) => { await h.scroll("#rap-details-title"); } },
+        /* „Vizualizare act” (US-162 AC-12, Figma 20607:34846): the data modal — Date generale +
+           Câmpuri specifice actului + note; Descarcă → the MDocs A4 form (US-143): loading,
            Suspendat watermark, MDocs down (AC-10), RAP API down (AC-11), PF anonymised, Retras */
         ...(() => {
+          const data = (act, run) => ({
+            page: RAP, params: { act }, ready: "[data-rap-profile-view]:not([hidden]) h1",
+            run: async (h) => { await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active .e-permits-dosar-profil__card"); await h.wait(250); if (run) await run(h); }
+          });
           const view = (act, params = {}, wait = ".rap-act-doc") => ({
             page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
-            run: async (h) => { await h.click("[data-rap-view-document]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300); }
+            run: async (h) => {
+              await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-download]"); await h.wait(250);
+              await h.click("[data-rap-act-data].is-active [data-rap-data-download]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300);
+            }
           });
           return {
-            "rap-03": view("rap-0002"),
+            "rap-03": data("rap-0002"),
             "rap-03a": view("rap-0002", { mdocs: "incarcare" }, ".spinner"),
             "rap-03b": view("rap-0003"),
             "rap-03c": view("rap-0002", { mdocs: "indisponibil" }, ".e-permits-empty"),
             "rap-03d": view("rap-0002", { mdocs: "date" }, ".e-permits-empty"),
             "rap-03e": view("rap-0001"),
-            "rap-03f": view("rap-0005")
+            "rap-03f": view("rap-0005"),
+            /* long act name: clamped + „Mai mult” (collapsed) / the whole name (expanded) */
+            "rap-03g": data("rap-0015"),
+            "rap-03h": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] [data-rap-clamp-toggle]"); }),
+            /* 30 service-configured fields in 3 form sections: first 8 + „Arată toate câmpurile (30)” / all */
+            "rap-03i": data("rap-0016", async (h) => { await h.scroll("[data-rap-act-data] [data-rap-data-more]"); }),
+            "rap-03j": data("rap-0016", async (h) => { await h.click("[data-rap-act-data] [data-rap-data-more]"); await h.scroll("[data-rap-act-data] .rap-act-data__group", "Genul de activitate"); }),
+            /* their A4 form: 2 pages */
+            "rap-03k": view("rap-0016"),
+            "rap-03l": view("rap-0002"),
+            /* tacit approval + PF beneficiary in the data modal */
+            "rap-03m": data("rap-0001")
           };
         })()
       };
