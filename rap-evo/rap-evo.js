@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/rap-evo.json";
+  const DATA_URL = "../data/rap-evo.json?v=contacts-v1";
   /* „Filtru” = the BO advanced filter (js/facet-filter.js): one facet per column that
      makes sense to filter, values read from the records (no new data) */
   const beneficiaryType = (record) => (record.beneficiary.type === "person" ? "Persoană fizică" : "Persoană juridică");
@@ -211,12 +211,16 @@
     ];
     /* „Toate actele (N) →” (user 2026-10-17, research: a count gives the link information scent;
        the name stays plain because the target is a filtered list, not a company page) */
+    /* the real number of the company's acts: distinct acts in the registry data (not the demo
+       padding that repeats the seed rows) — the same list „Toate actele” opens */
     const companyActsCount = record.beneficiary.type === "company"
-      ? state.records.filter((item) => item.beneficiary.type === "company" && item.beneficiary.identifier === record.beneficiary.identifier).length
+      ? new Set(state.config.records
+        .filter((item) => item.beneficiary.type === "company" && item.beneficiary.identifier === record.beneficiary.identifier)
+        .map((item) => item.permit.number)).size
       : 0;
     const companyPermitsAction = companyActsCount > 1 ? `
-      <button class="rap-profile__company-permits" type="button" data-rap-company-permits="${escapeHtml(record.beneficiary.identifier)}" aria-label="Toate actele companiei ${escapeHtml(record.beneficiary.name)} (${companyActsCount})">
-        Toate actele (${companyActsCount}) <span aria-hidden="true">→</span>
+      <button class="rap-profile__company-permits" type="button" data-rap-company-permits="${escapeHtml(record.beneficiary.identifier)}" aria-label="Vezi toate actele companiei ${escapeHtml(record.beneficiary.name)} (${companyActsCount})">
+        Vezi toate (${companyActsCount}) <span aria-hidden="true">→</span>
       </button>
     ` : "";
 
@@ -257,15 +261,13 @@
           <div class="rap-profile__beneficiary-card">
             <span class="rap-profile__beneficiary-avatar" aria-hidden="true">${icon(beneficiaryIcon)}</span>
             <span class="rap-profile__beneficiary-copy">
-              <span class="rap-profile__beneficiary-name-row">
-                <strong>${escapeHtml(record.beneficiary.name)}</strong>
-                ${companyPermitsAction}
-              </span>
+              <strong>${escapeHtml(record.beneficiary.name)}</strong>
               <span class="rap-profile__beneficiary-meta">
                 <span>${escapeHtml(record.beneficiary.identifierType)}</span>
                 ${isMaskedValue(record.beneficiary.identifier) ? `<code>${escapeHtml(record.beneficiary.identifier)}</code>` : copyValue(record.beneficiary.identifier)}
               </span>
             </span>
+            ${companyPermitsAction}
           </div>
         </section>
 
@@ -284,14 +286,18 @@
         <section class="e-permits-dosar-profil__section rap-profile__section--support" aria-labelledby="rap-support-title">
           <h2 class="e-permits-dosar-profil__section-title" id="rap-support-title">Autoritatea emitentă</h2>
           <div class="e-permits-dosar-profil__card">
-            ${[["Denumire", record.authority.name], ["Cod", record.authority.code], ["Oficiul", profile.office]]
-              .filter(([, value]) => value)
-              .map(([label, value]) => renderProfileDetailRow(label, value, {})).join("")}
-            ${record.authority.phone || record.authority.email ? `
-              <div class="rap-profile__support-links">
-                ${record.authority.phone ? `<a class="btn btn-text-neutral btn-sm btn-pill" href="tel:${escapeHtml(record.authority.phone.replaceAll(" ", ""))}">${icon("phone")}<span>${escapeHtml(record.authority.phone)}</span></a>` : ""}
-                ${record.authority.email ? `<a class="btn btn-text-neutral btn-sm btn-pill" href="mailto:${escapeHtml(record.authority.email)}">${icon("envelope")}<span>${escapeHtml(record.authority.email)}</span></a>` : ""}
-              </div>` : ""}
+            ${(() => {
+              const contact = { ...(state.config.authorityContacts?.[record.authority.code] || {}), ...record.authority };
+              const link = (href, text) => `<a class="rap-profile__contact-link" href="${escapeHtml(href)}">${escapeHtml(text)}</a>`;
+              return [
+                ["Denumire", escapeHtml(record.authority.name)],
+                ["Cod", escapeHtml(record.authority.code)],
+                ["Oficiul", profile.office ? escapeHtml(profile.office) : ""],
+                ["Telefon", contact.phone ? link(`tel:${contact.phone.replaceAll(" ", "")}`, contact.phone) : ""],
+                ["E-mail", contact.email ? link(`mailto:${contact.email}`, contact.email) : ""]
+              ].filter(([, value]) => value)
+                .map(([label, value]) => renderProfileDetailRow(label, value, { html: true })).join("");
+            })()}
           </div>
         </section>
         </div>

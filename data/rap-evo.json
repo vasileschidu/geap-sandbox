@@ -55,23 +55,38 @@
     "subdivisions": [
       {
         "name": "Direcția teritorială Centru",
-        "authorityCodes": ["ASP", "ANSP"]
+        "authorityCodes": [
+          "ASP",
+          "ANSP"
+        ]
       },
       {
         "name": "Direcția teritorială Nord",
-        "authorityCodes": ["ANRE", "CNA"]
+        "authorityCodes": [
+          "ANRE",
+          "CNA"
+        ]
       },
       {
         "name": "Direcția teritorială Sud",
-        "authorityCodes": ["CNP", "ANAF"]
+        "authorityCodes": [
+          "CNP",
+          "ANAF"
+        ]
       },
       {
         "name": "Direcția teritorială Est",
-        "authorityCodes": ["BCR", "ASP"]
+        "authorityCodes": [
+          "BCR",
+          "ASP"
+        ]
       },
       {
         "name": "Direcția teritorială Vest",
-        "authorityCodes": ["ANSP", "ANRE"]
+        "authorityCodes": [
+          "ANSP",
+          "ANRE"
+        ]
       }
     ],
     "authorities": [
@@ -126,7 +141,9 @@
         "name": "Agenția Servicii Publice"
       },
       "status": "Valabil",
-      "markings": ["Aprobat tacit"],
+      "markings": [
+        "Aprobat tacit"
+      ],
       "profile": {
         "source": "RAP",
         "profileAvailable": true,
@@ -134,9 +151,18 @@
           "address": "r-nul Hîncești, s. Lăpușna, str. Ștefan cel Mare 41",
           "activity": "Fabricarea berii (CAEM 11.05)",
           "fields": [
-            ["Capacitatea de producție", "120 000 dal / an"],
-            ["Tipul producției", "Bere și băuturi pe bază de bere"],
-            ["Depozit autorizat", "r-nul Hîncești, s. Lăpușna, str. Ștefan cel Mare 41/1"]
+            [
+              "Capacitatea de producție",
+              "120 000 dal / an"
+            ],
+            [
+              "Tipul producției",
+              "Bere și băuturi pe bază de bere"
+            ],
+            [
+              "Depozit autorizat",
+              "r-nul Hîncești, s. Lăpușna, str. Ștefan cel Mare 41/1"
+            ]
           ]
         },
         "office": "mun. Hîncești",
@@ -173,10 +199,22 @@
           "address": "mun. Chișinău, str. Alba Iulia 20",
           "activity": "Comerț cu amănuntul în magazine nespecializate (CAEM 47.11)",
           "fields": [
-            ["Tipul unității comerciale", "Magazin"],
-            ["Suprafața comercială", "86 m²"],
-            ["Orarul de funcționare", "Luni – Duminică, 08:00 – 22:00"],
-            ["Grupe de produse", "Produse alimentare, băuturi nealcoolice, produse nealimentare"]
+            [
+              "Tipul unității comerciale",
+              "Magazin"
+            ],
+            [
+              "Suprafața comercială",
+              "86 m²"
+            ],
+            [
+              "Orarul de funcționare",
+              "Luni – Duminică, 08:00 – 22:00"
+            ],
+            [
+              "Grupe de produse",
+              "Produse alimentare, băuturi nealcoolice, produse nealimentare"
+            ]
           ]
         }
       }
@@ -208,9 +246,18 @@
           "address": "mun. Chișinău, bd. Dacia 47",
           "activity": "Comerț cu amănuntul în magazine nespecializate (CAEM 47.11)",
           "fields": [
-            ["Tipul unității comerciale", "Magazin"],
-            ["Suprafața comercială", "142 m²"],
-            ["Orarul de funcționare", "Luni – Sâmbătă, 08:00 – 21:00"]
+            [
+              "Tipul unității comerciale",
+              "Magazin"
+            ],
+            [
+              "Suprafața comercială",
+              "142 m²"
+            ],
+            [
+              "Orarul de funcționare",
+              "Luni – Sâmbătă, 08:00 – 21:00"
+            ]
           ]
         }
       }
@@ -490,5 +537,36 @@
         "profileAvailable": true
       }
     }
-  ]
+  ],
+  "authorityContacts": {
+    "_comment": "DEMO contacts for the prototype only — not the authorities' real phone numbers / e-mails; replace with RSSP / RAP API data",
+    "ASP": {
+      "phone": "022 000 101",
+      "email": "contact@asp.demo.gov.md"
+    },
+    "ANSP": {
+      "phone": "022 000 102",
+      "email": "contact@ansp.demo.gov.md"
+    },
+    "ANRE": {
+      "phone": "022 000 103",
+      "email": "contact@anre.demo.gov.md"
+    },
+    "CNA": {
+      "phone": "022 000 104",
+      "email": "contact@cna.demo.gov.md"
+    },
+    "CNP": {
+      "phone": "022 000 105",
+      "email": "contact@cnp.demo.gov.md"
+    },
+    "ANAF": {
+      "phone": "022 000 106",
+      "email": "contact@anaf.demo.gov.md"
+    },
+    "BCR": {
+      "phone": "022 000 107",
+      "email": "contact@bcr.demo.md"
+    }
+  }
 }

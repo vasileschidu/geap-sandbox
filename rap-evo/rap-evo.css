@@ -1031,18 +1031,15 @@ a {
   letter-spacing: 0;
 }
 
-/* name row: the company name + „Toate actele (N) →” on the right (desktop); under it on phones */
-.rap-profile__beneficiary-name-row {
-  align-items: baseline;
-  align-self: stretch;
-  display: flex;
-  gap: var(--spacing-16, 16px);
-  justify-content: space-between;
-  min-width: 0;
-}
-
+/* „Toate actele (N) →” sits at the card's right edge, vertically centred on name + IDNO (desktop);
+   on phones it goes under the text, aligned with it */
 .rap-profile__beneficiary-copy {
   flex: 1 1 auto;
+}
+
+.rap-profile__beneficiary-card > .rap-profile__company-permits {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 /* a plain text link (user 2026-10-17: „simple link, not the hover-padding background one”):
@@ -1070,10 +1067,14 @@ a {
 
 /* phones: the link on its own line, left, without the dot */
 @media (max-width: 760px) {
-  .rap-profile__beneficiary-name-row {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: var(--spacing-4, 4px);
+  .rap-profile__beneficiary-card:has(> .rap-profile__company-permits) {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-4, 4px);
+  }
+
+  .rap-profile__beneficiary-card > .rap-profile__company-permits {
+    flex-basis: 100%;
+    margin-left: calc(var(--spacing-40, 40px) + var(--spacing-16, 16px));
   }
 }
 
@@ -2053,4 +2054,21 @@ tr:hover .rap-act-link {
     white-space: nowrap;
     width: 1px;
   }
+}
+
+/* „Autoritatea emitentă” contacts: values as plain brand links (tap to call / write), underline on hover */
+.rap-profile__contact-link {
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-brand-default, var(--rap-brand));
+  text-decoration: none;
+  text-underline-offset: var(--spacing-2, 2px);
+}
+
+.rap-profile__contact-link:hover {
+  text-decoration: underline;
+}
+
+.rap-profile__contact-link:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--rap-brand);
+  outline: 0;
 }
