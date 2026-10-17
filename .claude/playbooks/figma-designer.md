@@ -84,6 +84,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Act row family (local, 2026-10-16) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 · `New request card` 11848:340913 (holder 11844:198504) | foActRowHtml / foIntentNewHtml. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile; TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544, Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
+| Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
 | Icons (Foundations keys) | — | 20/download e6dd0e97… · 20/arrow-left f9c5634d… · 20/external-link 8df5d4b1… · 20/edit bef76865… · 20/credit-card aca711a4… · EVO 20/refresh caca3c5f… · central sets: trash b5e9b87b…, file-text 032cdf84…, user-circle 7f8dfe57… |
 
 ## Rules (from the user — never break)
@@ -1479,3 +1480,43 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     rows/tables and on screens that cut the page behind a modal / sheet at viewport height (matches code);
     `fractional` on rescaled A4 page previews.
   - No Agent tool in this session → QA = figma-audit.js per section + connector audit + screenshots.
+
+- 2026-10-17 · Code → Figma sync (download icon b523060e + document preview 496e4de1 + small commits). Scripts: tools/figma/sync/
+  (download-icons-census.js, download-labels-census.js, download-icons-apply.js + snapshot-download-icons-20261017.md,
+  doc-pages-spec.mjs + doc-pages-build.js + doc-pages-spec-20261017.json).
+  - **Download / export glyph in Figma = central „arrow-inbox, download” `filled=on, stroke=1.5, radius=2, join=round`
+    (key e41040cad8f8622843fba350661894ea6c4823d6)** set through the button's instance-swap property. The GEAP local
+    `20/export` (10784:265036) wraps the STROKE variant → on a Primary / coloured button its icon stays icon/base/default
+    (dark): the button variant only recolours FILL glyphs swapped straight into the slot. Keep 20/export for the existing
+    Neutral icon-only Exportă; use the filled=on variant for every new swap (eKYC keeps its own filled=on stroke=2 export
+    glyph — same family). Printer = central „printer, print” filled=off 1.5 r2 (f519c646…), Neutral buttons only.
+  - **Census by icon name AND by label**: icon-name census finds wrong glyphs; the label census („Descarcă / Exportă /
+    Importă …” texts → the icon next to them) finds labelled buttons with NO icon (FO certificate modal „Descarcă” was
+    Icon=None) and app-store links that are not actions. Small buttons show the `🔄 Leading Icon: 16` slot — when the
+    20 slot holds the same old glyph the first swap changed the hidden slot only; swap EVERY slot whose value = the old id.
+  - Counts: GEAP 41 → export (Document · card mains 6 + their instances, Dossiers 14, Ghișeu 8, FO Full Flows 11, + 2
+    certificate buttons given an icon) and 23 Importă / Descarcă din MDocs → 20/upload; FOD 1; EVO Cabinet 4; eKYC 66 SDK
+    cells (external-link → export). Drafts / Archive pages untouched.
+  - **A4 document pages = local components at real size** („Components · Document preview pages (A4)” 12001:7122 on
+    Local components: Paper request p1 12001:7123 / p2 12001:8162, Signed request 12001:8186, Certificate 12001:8247),
+    built from a DOM spec read with the page zoom forced to 1 (captures of the zoomed page keep unzoomed text = broken).
+    Placed in the canvas as instances `rescale(632/794)`; page heights 893.87 are fractional by nature (declared).
+    Scrolled view (page 2 at the top): canvas clip + both pages ABSOLUTE (p1 at y −914) — an absolute auto-layout
+    wrapper of the pages rendered NOTHING (1×1 screenshot), plain absolute instances render.
+  - The board's stored passes (figma.root „ghs”: libpass, iconpass, pix, pix2, par, replace, layout) still point at the
+    pre-split section 11818:21092 → patch the id to the COLUMN section per call (libpass_col / iconpass_col), and the
+    stored base screen 11595:321749 still carries the raw gov bar / shell header → run SWAP_SHELL
+    (quality-sweep/shell-components.js) on every new block, then RHYTHM (heading 11 → minHeight 48) — skip instance
+    internals (`!id.startsWith("I")`) or insertChild throws and the call rolls back.
+  - findOne(„frame with Container:margin children”) picked the INNER margin wrapper in one capture → identify the canvas
+    by its fill / name, never by a child-name heuristic; verify with a screenshot of the canvas node.
+  - Transparent CSS borders (modal-content 1 px top / bottom, the scroll hairlines) stay as strokes at opacity 0 —
+    `setBoundVariableForPaint` drops the paint opacity: set `opacity = 0` again after binding or a grey line appears.
+  - Pinned actions column (code 2f1eb71d / 086ca562): the sticky cell has a 1 px left border → last column frame of the
+    Servicii / Tarife registries gets strokeLeft 1 (border/base/default, not in layout); 16 tables (3 Tarife via mains).
+  - Act row Hover variant: pill = background/base/default (white on the grey row), Menu open = background/base/secondary-active
+    + Focus ring (code 93dccc56) — GEAP 11846:340996 and FOD 892:11656; fill override on the button instance only, never
+    on its icon / label.
+  - Fluxuri de lucru identifiers (bc35b464): one line + ellipsis (FILL → textTruncation ENDING → maxLines 1 → vertical HUG).
+  - No Agent tool in this session → ran figma-audit rules myself on the 7 preview blocks + the A4 components (remaining =
+    the board baseline: background list texts without style, raw 40 % scrims, A4 print paddings 68 / 60).

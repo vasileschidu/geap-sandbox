@@ -45,7 +45,7 @@
     const C = {};for (const [k, key] of Object.entries(KS)) C[k] = await figma.importComponentSetByKeyAsync(key);
     C.tabmd = await g(L.tabmd);C.nbadge = await g(L.nbadge);C.chip = await g(L.chip);
     const MENU = await figma.importComponentByKeyAsync("eca4c78b40aec0ddac890e7f006907d81868c1ab");
-    const IK = { filter: "d7ef1839769646e2b2d27b2a54d4b38787bcd775", more: "8eeb6ea4a1096422cb88f9859ed243e6ec189d4d", download: "e6dd0e9760c7ba23fc5b98fd6153954b6fbbbf3e",
+    const IK = { filter: "d7ef1839769646e2b2d27b2a54d4b38787bcd775", more: "8eeb6ea4a1096422cb88f9859ed243e6ec189d4d", download: "e41040cad8f8622843fba350661894ea6c4823d6" /* 2026-10-17: download = arrow-inbox (export) glyph */,
       cross: "3ccb9372951f0b3c922b004d8966a680404cd11f", left: "ab64d0faf05f5d237524e6d64a20387f826382b5", right: "d5d6c61279d8018dd0bd8c4015a52d2a394d5324",
       arrowLeft: "f9c5634defdccc7ae2468696b4dc02438da46658", check: "ebea9f11db46308470d328092590727874dbec88", refresh: "8cdf3361fae3b611bc79a0ff4be5e664909d1ea5",
       eye: "faa2ea508755b47b8354bf6bb7d659776a525294", edit: "bef76865a142fa255aebe7a98f7a0411943e8c29", plus: "b270f954e420ff6e2abdedbaf9ce0834e7eb428d",

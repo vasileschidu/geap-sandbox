@@ -18,12 +18,14 @@ const IK = { right: "d4bcc2d06aae1f996b75052e41d3755a1c1e4978", left: "f9c5634de
   more: "8eeb6ea4a1096422cb88f9859ed243e6ec189d4d", cloud: "3bb5a1c5474e5d56ba94ac947efbeda648098ae5", refresh: "8cdf3361fae3b611bc79a0ff4be5e664909d1ea5", download: "e6dd0e9760c7ba23fc5b98fd6153954b6fbbbf3e",
   pagedl: "e3e697ed3e9c62e2f019121e9fe64c0ceff99730", chev: "ec31e2fd59c87fcf1bb6eb4ccfdde10307f56ce0", plus: "b270f954e420ff6e2abdedbaf9ce0834e7eb428d", plusL: "52d7f8d8fc6f085581c901fdf6ca49b994735246",
   trash: "c4be563fbf9791c2c506e3834143eed94b1b6d7d", page: "09d6b2a320b8eb226c9f39b76db062daf4c18845", swap: "d21b8aced86e79e7b2d09fb38dfb564542bf595c", flag: "74d5fd818c70fb62cb47c276e710570948800897",
-  check: "ebea9f11db46308470d328092590727874dbec88", info: "d896f991e4a2c724279ad692e990e1b74de0ebeb", ext: "8df5d4b1610d9e9457096f9f2f5bc2ec864c5275" };
+  check: "ebea9f11db46308470d328092590727874dbec88", info: "d896f991e4a2c724279ad692e990e1b74de0ebeb", ext: "8df5d4b1610d9e9457096f9f2f5bc2ec864c5275",
+  /* 2026-10-17: download / export = central „arrow-inbox, download” filled=on stroke 1.5 r2 (follows the button colour); print = central „printer, print” filled=off stroke 1.5 r2 */
+  export: "e41040cad8f8622843fba350661894ea6c4823d6", print: "f519c646b673822c2c07d0b279efefb62ac08840" };
 const ICC = {}; const ic = async (k) => (ICC[k] ||= await figma.importComponentByKeyAsync(IK[k]));
 /* label → icon (leading unless noted) — from tools/figma/ghiseu/buttons.json (code icons per label) */
 const ICON_BY_LABEL = [[/^Înainte|^Continuă$|^Caută /, "right"], [/^Înapoi/, "left"], [/^Salvează schița/, "cloud"], [/^Inițiază un postproces/, "chev"], [/^Schimbă$/, "swap"],
-  [/^Detalii$|^Vezi /, "eye"], [/^Adaugă fișier/, "upload"], [/^Descarcă/, "pagedl"], [/^Verifică achitarea|^Reîncercați$|^Regenerează/, "refresh"], [/^Generează cererea/, "page"],
-  [/^Elimină schița/, "trash"], [/^Dosar nou/, "plus"], [/^Adaugă document/, "plus"], [/^Exportă/, "download"], [/^Copiază/, "copy"], [/^Modifică datele/, "ext"], [/^Mergi la /, "right"]];
+  [/^Detalii$|^Vezi /, "eye"], [/^Adaugă fișier/, "upload"], [/^Descarcă din MDocs|^Importă/, "upload"], [/^Descarcă/, "export"], [/^Printează/, "print"], [/^Verifică achitarea|^Reîncercați$|^Regenerează/, "refresh"], [/^Generează cererea/, "page"],
+  [/^Elimină schița/, "trash"], [/^Dosar nou/, "plus"], [/^Adaugă document/, "plus"], [/^Exportă/, "export"], [/^Copiază/, "copy"], [/^Modifică datele/, "ext"], [/^Mergi la /, "right"]];
 const iconFor = (label) => { for (const [re, k] of ICON_BY_LABEL) if (re.test(label)) return k; return null; };
 const V = (set, want) => set.children.find((c) => Object.entries(want).every(([k, v]) => c.name.includes(`${k}=${v}`)));
 const prop = (i, s) => Object.keys(i.componentProperties).find((k) => k.startsWith(s));

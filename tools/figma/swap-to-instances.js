@@ -155,6 +155,16 @@ for (const rid of ROOTS) {
       const st = /^(Anulează|Închide|Renunță)$/.test(txt) ? "Neutral" : /^(Dezactivează|Elimină)$/.test(txt) ? "Destructive" : "Primary";
       const i = V(C.circ, { "Style": st, "Icon": "None", "Size": "Large", "State": "Default" }).createInstance(); setLabel(i, txt); i.name = "btn · " + txt; place(f, i); done.push("btn-footer"); continue;
     }
+    // 2026-10-17 · footer „Descarcă …” / „Exportă …” (export glyph = central „arrow-inbox, download” filled=on stroke 1.5 r2,
+    // follows the button colour) and „Printează” (central „printer, print” filled=off stroke 1.5 r2) — never Icon=None, never
+    // 20/download / page-download. Neutral when the captured fill is grey, Primary otherwise. „Descarcă din MDocs” = an import → 20/upload.
+    if (name === "Button" && h === 40 && /^(Descarcă|Exportă|Printează)/.test(txt)) {
+      const grey = f.fills?.[0]?.type === "SOLID" && f.fills[0].color.r > 0.85 && f.fills[0].color.r < 0.99;
+      const i = V(C.circ, { "Style": /^Printează/.test(txt) || grey ? "Neutral" : "Primary", "Icon": "Leading", "Size": "Large", "State": "Default" }).createInstance(); setLabel(i, txt);
+      const glyph = await figma.importComponentByKeyAsync(/^Printează/.test(txt) ? "f519c646b673822c2c07d0b279efefb62ac08840" : /din MDocs/.test(txt) ? "e72e41aa51a34c586d0e3e31309dc738551e1ba8" : "e41040cad8f8622843fba350661894ea6c4823d6");
+      const pr = i.componentProperties; for (const k of Object.keys(pr).filter((k) => /Leading Icon/.test(k))) i.setProperties({ [k]: glyph.id });
+      i.name = "btn · " + txt; place(f, i); done.push("btn-footer-icon"); continue;
+    }
     // parameter tokens ({NR:4}, {YYYY}…) = Neutral Small button with a code (mono) label
     if (/^Button - Inserează/.test(name)) { const i = V(C.rect, { "Style": "Neutral", "Icon": "None", "Size": "Small", "State": "Default" }).createInstance(); setLabel(i, txt); for (const t of i.findAll((x) => x.type === "TEXT")) { await figma.loadFontAsync(t.fontName); t.fontName = { family: "JetBrains Mono", style: "Regular" }; } i.name = "btn · " + txt; place(f, i); done.push("btn-token"); continue; }
     if (name === "Button" && txt === "Elimină" && h <= 32) { const i = V(C.textCirc, { "Style": "Destructive", "Icon": "None", "Size": "Small", "State": "Default" }).createInstance(); setLabel(i, txt); i.name = "btn · Elimină"; place(f, i); done.push("btn-remove"); continue; }
