@@ -3536,7 +3536,8 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 
 | Concern | rap-evo | cabinet-evo |
 |---|---|---|
-| Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--neutral/--danger` (Valabil / Suspendat / Expirat / Retras·Anulat) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | library `.status-tag` |
+| Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--danger` (Valabil / Suspendat / Expirat·Retras·Anulat — Expirat red since 2026-10-17 per US-162 AC-07; the BO story US-196 says grey, PO to align) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | library `.status-tag` |
+| Status dates (2026-10-17, US-162 AC-17) | `statusDateRows(record, profile)`: Suspendat → „Data suspendării actului permisiv” + „Suspendat până la data de”, Retras → „Data retragerii actului permisiv”, never for other statuses; data `profile.suspensionDate / suspendedUntil / withdrawalDate`. Same rows in Detalii act, the modal Date generale and the A4 form, in date order: [Data aprobării tacite] → Data eliberării → Valabil din data → suspension / withdrawal → Suspendat până la → Data expirării (kept = original end). Header meta beside Stare (`headerDateItem`): „Suspendat până la” / „Retras la” instead of „Valabil din data”. Demo rap-02b, rap-02h, rap-03n, rap-03o | — |
 | Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | — |
 | Copy | `.rap-copy--id/--act/--masked`, `.rap-profile__copy` (`is-copied`, 1600 ms) | library `.e-permits-fo-copy-value` |
 | Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), chip row edge to edge („Filtre” first → all filters, then a chip per facet) + bottom sheets (rap-04…04d). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
@@ -3556,7 +3557,8 @@ page: `openActData`), and its „Descarcă” opens the **MDocs A4 form** (US-14
 (US-163 form sections, fields marked public in Setări › Publicare în RAP, US-221) or the older flat
 `address / activity / fields`. Rules:
 - „Date generale”: Autoritatea emitentă, Subdiviziunea (office), Beneficiar, Numărul actului permisiv (copy),
-  Stare, [Data aprobării tacite + badge], Data eliberării, Valabil din data, Data expirării.
+  Stare, [Data aprobării tacite + badge], Data eliberării, Valabil din data, [Data suspendării actului permisiv +
+  Suspendat până la data de | Data retragerii actului permisiv], Data expirării.
 - „Câmpuri specifice actului”: BO rows; a section heading row per form section; more than 10 fields → the first
   8 + „Arată toate câmpurile (N)” (expands in place, the body scrolls; hairlines under the header / over the footer).
 - Long values wrap (never truncated); long labels follow the BO row (one line + `title`).

@@ -2022,7 +2022,11 @@
         /* act profile (?act=): BO page header, sections over grey cards, Small status tags */
         "rap-02": { page: RAP, params: { act: "rap-0002" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
         "rap-02a": { page: RAP, params: { act: "rap-0001" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        /* US-162 AC-17: Suspendat — header „Suspendat până la”, details „Data suspendării actului
+           permisiv” + „Suspendat până la data de” (rap-02b); Retras — „Retras la” + „Data retragerii
+           actului permisiv” (rap-02h) */
         "rap-02b": { page: RAP, params: { act: "rap-0003" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
+        "rap-02h": { page: RAP, params: { act: "rap-0005" }, ready: "[data-rap-profile-view]:not([hidden]) h1" },
         /* US-142 AC-16: unknown act */
         "rap-02c": { page: RAP, params: { act: "rap-9999" }, ready: "[data-rap-profile-view]:not([hidden]) .e-permits-empty" },
         /* the long ozone-substances act (title wraps); tacit approval: tag next to Stare + the
@@ -2062,7 +2066,10 @@
             "rap-03k": view("rap-0016"),
             "rap-03l": view("rap-0002"),
             /* tacit approval + PF beneficiary in the data modal */
-            "rap-03m": data("rap-0001")
+            "rap-03m": data("rap-0001"),
+            /* US-162 AC-17 in the data modal: Suspendat (suspension dates) / Retras (withdrawal date) */
+            "rap-03n": data("rap-0003"),
+            "rap-03o": data("rap-0005")
           };
         })()
       };

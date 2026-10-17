@@ -1108,3 +1108,10 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Probe method: list every button / menuitem whose label matches /Descarc|Export/ with its `use` href (hidden menus too).
   BUG I made: a patch script that wrote each file right after replacing aborted on a failed assert AFTER `open(p,"w")`
   → the file was truncated to 0 lines. Compute every new text first, assert all, then write.
+- 2026-10-17 · RAP US-162 AC-17 (status-dependent dates): ONE helper `statusDateRows(record, profile)` feeds all three
+  places that list the act's dates (Detalii act, modal Date generale, A4 form) + `headerDateItem` for the header meta —
+  grep every list of „Valabil din data” before adding a date row (there were 4: details, header, modal, A4). AC-07 vs the
+  shipped tones: Expirat was neutral, the story says red → changed on RAP only and flagged (BO US-196 says grey). The demo
+  data still has Expirat acts with a 2030 „Valabil până la” — data inconsistency, not touched. Parity specs stay 0 / 0
+  because they read rap-02 / rap-03 (Valabil acts) — new rows on other statuses only add one off-scale count per row
+  (the BO 8/7 row padding, standing). No sub-agent tool → code-audit + hover-audit run directly.

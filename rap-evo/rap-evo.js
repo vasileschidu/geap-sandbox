@@ -81,7 +81,8 @@
   const statusTone = (status) => ({
     "Valabil": "success",
     "Suspendat": "warning",
-    "Expirat": "neutral",
+    /* US-162 AC-07: Expirat, Retras, Anulat = red (the BO list, US-196, keeps Expirat grey — PO to align) */
+    "Expirat": "danger",
     "Retras": "danger",
     "Anulat": "danger"
   }[status] || "neutral");
@@ -105,6 +106,24 @@
   const tacitDateRow = (record, profile) => (isTacit(record) && profile.tacitDate
     ? [["Data aprobării tacite", `<span>${escapeHtml(profile.tacitDate)}</span>${showTacitBadge(record) ? tacitTag() : ""}`]]
     : []);
+
+  /* US-162 AC-17: status-dependent dates — „Data suspendării actului permisiv” (the suspension decision
+     was signed) + „Suspendat până la data de” ONLY for Suspendat, „Data retragerii actului permisiv”
+     ONLY for Retras; listed in date order after „Valabil din data”, before „Data expirării” (the
+     original validity end, kept) */
+  const statusDateRows = (record, profile) => [
+    ...(record.status === "Suspendat"
+      ? [["Data suspendării actului permisiv", profile.suspendedOn], ["Suspendat până la data de", profile.suspendedUntil]]
+      : []),
+    ...(record.status === "Retras" ? [["Data retragerii actului permisiv", profile.withdrawnOn]] : [])
+  ].filter(([, value]) => value);
+  /* the header meta beside Stare: a suspended act shows when the suspension ends, a withdrawn one when
+     it was withdrawn — never „Valabil din data”, which read as „valid until the expiry date” */
+  const headerDateItem = (record, profile) => {
+    if (record.status === "Suspendat" && profile.suspendedUntil) return ["Suspendat până la", profile.suspendedUntil];
+    if (record.status === "Retras" && profile.withdrawnOn) return ["Retras la", profile.withdrawnOn];
+    return ["Valabil din data", profile.validFrom];
+  };
 
   const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-${name}"></use></svg>
@@ -172,6 +191,9 @@
       validFrom: fullMonthDate(profile.validFrom) || issuedDate,
       validUntil: fullMonthDate(profile.validUntil || record.permit.validThrough),
       tacitDate: fullMonthDate(profile.tacitApprovalDate),
+      suspendedOn: fullMonthDate(profile.suspensionDate),
+      suspendedUntil: fullMonthDate(profile.suspendedUntil),
+      withdrawnOn: fullMonthDate(profile.withdrawalDate),
       timeline: record.profile?.timeline || defaults.timeline || [],
       support: { ...(defaults.support || {}), ...(record.profile?.support || {}) }
     };
@@ -229,8 +251,10 @@
       ...tacitDateRow(record, profile).map(([label, value]) => [label, value, false, true]),
       ["Data eliberării", profile.issuedDate],
       ["Valabil din data", profile.validFrom],
+      ...statusDateRows(record, profile),
       ["Data expirării", profile.validUntil]
     ];
+    const [headerDateLabel, headerDateValue] = headerDateItem(record, profile);
     /* „Toate actele (N) →” (user 2026-10-17, research: a count gives the link information scent;
        the name stays plain because the target is a filtered list, not a company page) */
     /* the real number of the company's acts: distinct acts in the registry data (not the demo
@@ -272,7 +296,7 @@
             <div class="e-permits-page-header__meta" data-rap-profile-meta>
               ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
               ${renderProfileSummaryItem("Stare", statusTags(record), { html: true })}
-              ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
+              ${renderProfileSummaryItem(headerDateLabel, headerDateValue)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
             <button class="btn btn-primary btn-md rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
@@ -391,6 +415,7 @@
       ...[
         ...(isTacit(record) && profile.tacitDate ? [["Data aprobării tacite", profile.tacitDate]] : []),
         ["Valabil din data", profile.validFrom],
+        ...statusDateRows(record, profile),
         ["Data expirării", profile.validUntil],
         ["Numărul dosarului electronic", record.permit.paperNumber],
         ["Seria și nr. documentului tipărit", profile.printedDocumentNumber]
@@ -667,6 +692,7 @@
       ...tacitDateRow(record, profile),
       ["Data eliberării", escapeHtml(profile.issuedDate)],
       ["Valabil din data", escapeHtml(profile.validFrom)],
+      ...statusDateRows(record, profile).map(([label, value]) => [label, escapeHtml(value)]),
       ["Data expirării", profile.validUntil ? escapeHtml(profile.validUntil) : ""]
     ].filter(([, value]) => value);
     const groups = actSpecificGroups(record);

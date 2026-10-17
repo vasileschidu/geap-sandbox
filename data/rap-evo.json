@@ -244,6 +244,8 @@
       "profile": {
         "source": "RAP",
         "profileAvailable": true,
+        "suspensionDate": "18 septembrie 2026",
+        "suspendedUntil": "18 decembrie 2026",
         "document": {
           "address": "mun. Chișinău, bd. Dacia 47",
           "activity": "Comerț cu amănuntul în magazine nespecializate (CAEM 47.11)",
@@ -311,7 +313,8 @@
       "status": "Retras",
       "profile": {
         "source": "RAP",
-        "profileAvailable": true
+        "profileAvailable": true,
+        "withdrawalDate": "2 septembrie 2026"
       }
     },
     {
