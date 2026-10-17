@@ -7239,6 +7239,39 @@ screen: `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.ht
 - **Check before linking:** every state must end with `data-demo-state="<id>"` (no `:error`);
   sweep all ids headless after changing a flow.
 
+### RAP — public registry: Figma board (2026-10-17)
+
+File EVO-WEB-3.0 (ecosystem) `YrIzksVgFqtPqDd5z9zY5h`, page „↳ Registrul actelor permisive” `20304:64765`, right of the
+existing PF/PJ profile sections (those, incl. the data-modal reference `20607:34846`, are untouched). Code: `rap-evo/`
+(sandbox `…/geap-sandbox/rap-evo/index.html?state=<id>`). Builders: `tools/figma/rap/` (spec.mjs → compact.py →
+payload*.py → lib/screens/blocks/modals.js, stored in figma.root plugin data `rap/*`), connector audit
+`tools/figma/rap/connector-audit.js`.
+
+- **Board = one page-level Section per column** (like the GEAP Ghișeu board), from x 10989 / y −103, 80 apart; column =
+  80 | block 1895 (desktop 1440 + 80 + phone 375) | 320 gutter for jump markers:
+  `00 · Start here · Contents` 22069:11258 (contents with links, how to read, flow, rules, PO questions, not built, code
+  findings) · `01 · Registry list` 22069:11259 (rap-01, 01q, 01e, 01f) · `02 · Filter` 22101:35849 (rap-01a, 01b, 01c,
+  01h, 01d; phone-only rap-04…04d) · `03 · Act profile` 22069:11260 (rap-02, 02a, 02g, 02d, 02b, 02h, 02c) ·
+  `04 · Act modal + printable form` 22069:11262 (rap-03, 03g, 03h, 03i, 03j, 03m, 03n, 03o; 03a, 03l, 03k, 03b, 03f,
+  03e, 03c, 03d) · `05 · Company acts` 22069:11261 (rap-01g). 38 blocks: 33 desktop + 38 phone screens.
+- **Block** = `Board / Block label` (id · title · „Figma aligned”) → desktop + phone 80 apart → `Board / Note` (state,
+  Azure US-139 91135 … US-162 91373, „Prototype ↗”). Column header = `Board / Stage header` (ID / Title / Line).
+- **Arrows**: same-column connectors live inside their section (side lanes); next-column connectors run straight at the
+  trigger's height (Filtru → rap-01a, Vezi act permisiv → rap-03). Backward / column-skipping / long-jog jumps =
+  `Board / Jump marker` 22102:5678 (label + NODE hyperlink) at block x 1911, centred on the trigger.
+- **Local components** (page „🧱 Local Components”, section „RAP · Public registry components (2026-10-17)” 22060:2438):
+  RAP / Status tag 22060:5051 (Small + 1 px tone ring; Info tone 22069:11263), RAP / Copy value 22060:5068,
+  RAP / Beneficiary avatar 22062:122386, RAP / Table header 22063:5069, RAP / Table row 22063:5326, Empty state 22064:6863,
+  Facet filter · option 22064:6908, Facet filter · popover 22068:187098 (+ per-facet), Filter button (advanced filter)
+  22068:187089, Profile / Header meta item 22066:5465 + separator 22066:5466, Profile / Section title 22066:5467,
+  Profile / Details row 22066:5558, Profile / Beneficiary card 22066:184323, Read-only note 22087:27741, A4 act page · row
+  22089:211456 + A4 act page sets, Document modal (MDocs act) 22089:209155 (INSTANCE_SWAP „Canvas” = Doc canvas · <state>),
+  Data modal content · <state> (slot of the library modal Medium), Filter sheet content · <state> (slot of the library
+  Bottom Sheet), Board / Block label 22060:5083, Board / Note 22060:5084, Board / Stage header 22069:2601,
+  Board / Jump marker 22102:5678.
+- **Modal headers** (code 5b15f948): „Vizualizare act” and „Forma de tipar a actului” subtitles = the act name only
+  (clamp + „Mai mult” when long); the act number lives in Date generale / the A4 page.
+
 ## 8. Known issues and open questions
 
 **Off-scale font values still raw (2026-10-02, need a design decision):**

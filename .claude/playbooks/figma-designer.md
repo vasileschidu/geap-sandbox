@@ -1380,6 +1380,48 @@ for every page / board touched). One SECTION per column on boards. Not done unti
     frame r28, mixed-font template body, section-header-over-card gap 0) + an instance check on all 19 (main, FILL × HUG, 44 high,
     whole px, icon = variant default, lead styled, no ×, 24 to the next section).
 
+### Research source (2026-10-17): Mobbin MCP
+For any „research how other products do it” step, search Mobbin (mcp__mobbin__*) for real screens and flows first; cite the apps and screens. If the tools are not available (not authenticated), say so and use documented guidance (Baymard, NN/g, Material, HIG).
+
+- 2026-10-17 · Ghișeu arrows after the section split (user on 01: „what is the mess with the arrows here?”). Tools:
+  tools/figma/ghiseu/arrows/ (fix-arrows.js steps 1–4, connector-audit.js — also stored in figma.root „ghconn/audit”,
+  run with `new Function("figma", src + "\nreturn CONNECTOR_AUDIT;")(figma)("<page id>")`; snapshot
+  snapshot-2026-10-17-before.json + figma.root „ghconn/snap-20261017”). 59 connectors → 53; 9 markers → 15.
+  - **Cause**: split-sections.js moved the connectors to the PAGE with `page.appendChild(c)`; Figma kept their cached
+    geometry in the old section space and did NOT re-route them → 45 same-column arrows rendered at page x 0–1400
+    (under / over „00 · How to read”), columns 01–11 showed none of their own arrows. Endpoints were all still attached —
+    the ids looked fine, only the drawing was stale. Re-assigning the same endpoint does nothing; **flip the end to
+    another magnet and back** (`c.connectorEnd = {…, magnet:"BOTTOM"}; c.connectorEnd = real`) to force a re-route.
+  - **Prevent**: after ANY plugin move of endpoint nodes (section split, restack, appendChild into another parent,
+    section re-spacing) → put same-column connectors INSIDE their column section (section screenshots then show them
+    and moves carry them), keep only cross-column ones on the page, force-re-route every connector, then run the
+    connector audit (stale-route = connector box not touching its start / end blocks).
+  - get_screenshot of a SECTION does not render page-level connectors — one more reason to keep them in the section.
+  - **Position endpoints on a block edge have no outward stub**: Figma drew the lane ON the screen border, and a LEFT start
+    on a right-side control struck through the whole table row. Column-board rule now: same column = trigger's nearest
+    side (centre x < 720 → LEFT else RIGHT) → the target block's SAME side MAGNET (32 px stub = a real lane outside the
+    screen); next column = control RIGHT → target LEFT at the trigger's height (straight; clamp [120, h−120]); jog > ~650
+    or target above the source → „Board marker · jump” chip (hyperlink NODE → target block) instead of a connector.
+  - Markers: block-relative x 1512 (screen + 72, clear of the right lane at +32), y = trigger centre − 14, chips on one
+    row stack 36 apart. Column section = 80 | 1440 | 280 gutter → 1800 wide, pitch 1880 (was 1600 / 1680 — chips at
+    x 1460 ran 91 px past the section edge). Build-assets section follows the last column.
+  - BOTTOM→TOP arrows rot when blocks are inserted between (gh-03a → gh-03e crossed the new gh-03j / gh-03k) — the audit's
+    crossing check catches it; side lanes don't have this problem.
+  - Lane labels sit at the middle of the lane segment: two arrows in the same lane with similar mid-points collide → move one
+    to the other side lane (audit rule label-overlap, also label × marker).
+
+- 2026-10-17 · Retry buttons „Reîncercați” → library Strict (user on gh-10c 11781:30239: „do this a Strict button”; code
+  cf7f7ed8 = `btn btn-strict btn-sm`). Strict = button-filled-rectangular `🖌️ Style=Strict, Icon=Leading, Size=Small,
+  State=Default` **11607:4195** (black fill, white label + icon). Small buttons use the `🔄 Leading Icon: 16#12863:703` slot
+  (the 20 slot is ignored) → 20/rotate-arrow **367:16380** (Foundations; the FO copies had a central stroke icon 7187:48426).
+  - Fresh `createInstance()` + `setProperties` + insert at the old index: the variant is FIXED 32 high with 0 vertical padding,
+    so `layoutSizingVertical = "HUG"` collapsed it to 20 → keep it FIXED and `resize(w, 32)`.
+  - A button nested in a local component instance (system-files-item 10821:38839) can't be replaced: `swapComponent` + props
+    left the icon `icon/base/default` (black on black). Fix = copy the vector `fills` from a fresh Strict instance's icon
+    (icon/base-inverse/default — the same „fills” override Figma writes on a fresh instance), then check resolved colours.
+  - Not the same kind (left alone): footer „Reîncercați” after a failed submit (gh-10b, Primary Large) and the certificate
+    modal primary (F8e, button-filled-circular Primary Large).
+
 - 2026-10-17 · PJ icon unified (user on GEAP 11875:272586: „use everywhere the icon for PJ we used till now, not this one”).
   Census: the original FO header `.role-switch-item` (Type=Business, 2009:35824 / 5384:49488, July) + library header-with-avatar /
   sidebar + code static markup = **business**; the Instance switcher (10-15) brought 20/suitcase-2 from the FO data
@@ -1403,3 +1445,37 @@ for every page / board touched). One SECTION per column on boards. Not done unti
     run brings the old glyph back. Snapshots: figma.root plugin data `pjicon/*` in each file.
   - No Agent tool in this session → QA by the explicit walk (0 old glyphs; 296 business glyphs, all fills token-bound, white on
     brand / apricot / dark, #444 / #121212 = label colour on grey, whole pixels) + screenshots.
+
+- 2026-10-17 · RAP public registry board (EVO-WEB-3.0 `YrIzksVgFqtPqDd5z9zY5h`, page 20304:64765; 38 blocks, 33 desktop +
+  38 phone screens; ids in components.md §7a „RAP — public registry: Figma board”). Lessons:
+  - **Spec-driven build beats capture for whole flows**: a CDP extractor of the rendered prototype (`tools/figma/rap/spec.mjs`,
+    run with `node --experimental-websocket` on Node 20) → `compact.py` → `payload*.py` → stored runners. Serve the
+    COMMITTED code from a git worktree (`git worktree` at /private/tmp/…/rap-head, `python3 -m http.server` as a background
+    task — `nohup` died) so half-edited working-tree code never leaks into Figma; `git checkout --detach <sha>` there to follow
+    new commits. Give every CDP eval a timeout and write the spec incrementally (one hung state lost a whole run).
+  - **Store builders in `figma.root` shared plugin data** and run them with `new AsyncFunction(...)`. A failed `use_figma` call
+    rolls back plugin-data writes made in that call too → store big builders in their own call, in chunks.
+  - **One heavy block per call**: three A4 document blocks in one call hit the 965 s timeout (they were built — check state
+    before retrying).
+  - Local „slot” pattern: library modal / Bottom Sheet keep their content slot; the slot is swapped to a local
+    `… content · <state>` component (INSTANCE_SWAP prop or swapComponent) — never detach the library modal.
+  - `findOne` reaches instance sublayers first → filter own nodes with `!n.id.startsWith("I")`.
+  - Strokes on auto-layout rows: `strokesIncludedInLayout = false`, or tags grow to 22 and rows to 57.
+  - `resize()` after an AUTO sizing mode makes the frame FIXED → set sizing modes after resize.
+  - Two FILL siblings in an odd width give .5 px widths (meta 2×2 grid, mobile footer buttons): set all but the last FILL
+    child to FIXED floor(width). Centred texts with odd free space: text FILL + centre alignment.
+  - Remove a header field in ALL modal blocks by editing the local content components (Data modal content · <state>,
+    Document modal variants) — 18 removals propagated to 32 screens; also patch the stored builder + repo builder + notes.
+  - **Board split** (user, via coordinator: one Section per column, like Ghișeu): don't nest column sections in a wrapper
+    section — page-level sections `00 · Start here`, `01 · …` in flow order, 80 apart. When splitting: move nodes with
+    absolute coordinates kept, re-route every connector (toggle the end magnet and back), same-column connectors INTO
+    their section, cross-column ones on the page; a jump that skips a column, goes backwards or jogs > ~650 px becomes a
+    `Board / Jump marker` chip (NODE hyperlink) in a 320 px right gutter at block x 1911, centred on the trigger;
+    adjacent-column arrows end at `position {x: 0, y: trigger height}` so they run straight. Adapted audit
+    `tools/figma/rap/connector-audit.js` (filters connectors named „RAP · ”; the page has older unrelated connectors) → 0.
+    Then update the Start here contents (column titles link to the sections) and every note that names a column number.
+  - figma-audit false positives on this board: `font-not-onest` „mixed” = Onest 400 + 500 in one text; `tight-gap` on
+    section title + grey card (section-over-card rule) and on BO detail cards; `clipped-content` on phone horizontal-scroll
+    rows/tables and on screens that cut the page behind a modal / sheet at viewport height (matches code);
+    `fractional` on rescaled A4 page previews.
+  - No Agent tool in this session → QA = figma-audit.js per section + connector audit + screenshots.
