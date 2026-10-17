@@ -47,9 +47,15 @@
     sort: "submitted-desc",
     page: 1,
     perPage: 10,
-    panel: { authorities: [], subFrom: "", subTo: "", endFrom: "", endTo: "" },
+    /* US-158 AC-06 / 07: the date ranges („Perioadă” dialog); Statut + Autoritatea emitentă = the facet filter */
+    panel: { subFrom: "", subTo: "", endFrom: "", endTo: "" },
+    filter: { open: false, applied: {}, draft: null },
     notice: null,
     searchFailed: false,
+    /* US-161: the profile section shown (Date generale by default, AC-03) */
+    tab: "general",
+    /* the issued acts (data/acte-permisive.json › intent.acts) — the act's service-specific fields (AC-29) */
+    acts: [],
   };
 
   /* ---------- helpers ---------- */
@@ -159,6 +165,55 @@
     return "";
   }
 
+  /* US-19 AC-15 in the list: the icon + „Disponibilă aprobarea tacită” (a button: it carries the explanation tooltip) */
+  function tacitListMark(dosar) {
+    if (readOnly() || !(dosar.tacit && dosar.status === "derulare")) return "";
+    return `<button class="sm-tacit" type="button" data-sm-tip="${escape(tacitNote(dosar))}" aria-label="Disponibilă aprobarea tacită. ${escape(tacitNote(dosar))}">${icon("icon-circle-checkmark-filled")}<span>Disponibilă aprobarea tacită</span></button>`;
+  }
+  /* the result marks of the list (AC-16) — the tacit one has its own list form */
+  const resultMarks = (dosar) => (dosar.status === "finalizat" ? marksHtml(dosar) : "");
+
+  /* US-19 AC-05…08: the live countdown to the deadline of the status (the end of the deadline day, demo „now” =
+     today's date of the data at the current time of day); refreshed every minute */
+  function deadlineOf(dosar) {
+    if (readOnly()) return "";
+    if (dosar.status === "schita") return dosar.draft?.expires || "";
+    if (dosar.status === "info") return dosar.info?.until || "";
+    if (dosar.status === "achitare") return paymentExpired(dosar) ? "" : dosar.payment?.due || "";
+    if (dosar.status === "derulare" && !dosar.tacit) return dosar.examTerm || "";
+    return "";
+  }
+  function demoNow() {
+    const now = new Date();
+    const [y, m, d] = TODAY.split("-").map(Number);
+    return new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds());
+  }
+  /* the table's short form: „28 de zile, 3 ore” (the words „Timp rămas:” stay for screen readers) */
+  const shortCountdown = (text) => text.replace(/^mai (sunt|este) /, "").replace(" și ", ", ");
+  function countdownText(iso) {
+    const [y, m, d] = isoDay(iso).split("-").map(Number);
+    const left = new Date(y, m - 1, d, 23, 59, 59) - demoNow();
+    if (left <= 0) return "termenul a expirat";
+    const days = Math.floor(left / 86400000);
+    const hours = Math.floor((left % 86400000) / 3600000);
+    const unit = (n, one, many) => (n === 1 ? `1 ${one}` : `${n}${n >= 20 ? " de" : ""} ${many}`);
+    if (!days) return `mai ${hours === 1 ? "este" : "sunt"} ${hours ? unit(hours, "oră", "ore") : "mai puțin de o oră"}`.replace("mai sunt mai puțin", "mai este mai puțin");
+    return `mai ${days === 1 && !hours ? "este" : "sunt"} ${unit(days, "zi", "zile")}${hours ? ` și ${unit(hours, "oră", "ore")}` : ""}`;
+  }
+  /* AC-09: Schiță / Spre achitare / Informații suplimentare wait for the applicant → warning tone, În derulare info */
+  function countdownHtml(dosar) {
+    const iso = deadlineOf(dosar);
+    if (!iso) return "";
+    const tone = dosar.status === "derulare" ? "info" : "warning";
+    return `<span class="sm-countdown sm-countdown--${tone}">${icon(tone === "info" ? "icon-time" : "icon-time-filled")}<span class="u-visually-hidden">Timp rămas: </span><span data-sm-countdown="${escape(isoDay(iso))}" data-sm-countdown-short>${escape(shortCountdown(countdownText(iso)))}</span></span>`;
+  }
+  window.setInterval(() => {
+    document.querySelectorAll("[data-sm-countdown]").forEach((node) => {
+      const text = countdownText(node.dataset.smCountdown);
+      node.textContent = node.hasAttribute("data-sm-countdown-short") ? shortCountdown(text) : text;
+    });
+  }, 60000);
+
   const tacitNote = (dosar) => `Autoritatea nu a emis o decizie până la termenul de examinare (${longDate(dosar.examTerm)}). Solicitarea se consideră aprobată tacit, iar dumneavoastră puteți desfășura activitatea conform legii.`;
 
   /* the coloured deadline strip of a card (Figma 508:9600) */
@@ -234,7 +289,8 @@
   /* the deadline of the row: one 14/20 line, icon in the status tone, date in medium */
   function deadlineHtml(dosar) {
     if (readOnly()) return "";
-    const line = (tone, iconId, html) => `<p class="sm-item__deadline sm-item__deadline--${tone}">${icon(iconId)}<span>${html}</span></p>`;
+    const timer = deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "";
+    const line = (tone, iconId, html) => `<p class="sm-item__deadline sm-item__deadline--${tone}">${icon(iconId)}<span>${html}${timer}</span></p>`;
     switch (dosar.status) {
       case "schita": return line("warning", "icon-time", `Schița se elimină automat pe <strong>${escape(longDate(dosar.draft?.expires))}</strong>`);
       case "info": return line("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la <strong>${escape(longDate(dosar.info?.until))}</strong>`);
@@ -274,7 +330,7 @@
         <div class="e-permits-stack__main">
           <div class="e-permits-stack__title-row">
             <h2 class="e-permits-stack__title">${escape(dosar.object)}</h2>
-            <span class="sm-item__tags">${statusTag(dosar)}${marksHtml(dosar)}</span>
+            <span class="sm-item__tags">${statusTag(dosar)}${resultMarks(dosar)}${tacitListMark(dosar)}</span>
           </div>
           <div class="e-permits-stack__meta">${part(escape(dosar.tip))}${part(escape(service.title || ""))}</div>
           <div class="e-permits-stack__meta">${part(escape(authorityLabel(dosar)))}${part(escape(dateText))}${endText ? part(escape(endText)) : ""}${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}</div>
@@ -287,33 +343,81 @@
       </li>`;
   }
 
-  function inFilter(dosar, filterId) {
-    const filter = state.data.filters.find((item) => item.id === filterId);
-    return !filter?.statuses || filter.statuses.includes(dosar.status);
-  }
-
   function panelActive() {
     const panel = state.panel;
-    return panel.authorities.length + [panel.subFrom, panel.subTo, panel.endFrom, panel.endTo].filter(Boolean).length;
+    return [panel.subFrom, panel.subTo, panel.endFrom, panel.endTo].filter(Boolean).length;
+  }
+
+  /* US-158 AC-04 / 05: Statut and Autoritatea emitentă = multi-select facets of the shared facet filter
+     (js/facet-filter.js — the BO bar + popovers, the RAP phone sheets); OR inside a facet, AND across (AC-08) */
+  const authorityValue = (dosar) => {
+    const code = serviceOf(dosar).authority;
+    return code ? `${code} · ${state.data.help[code]?.name || serviceOf(dosar).authorityName || ""}`.replace(/ · $/, "") : "";
+  };
+  const FACETS = [
+    { key: "status", label: "Statut", get: (dosar) => statusOf(dosar).label },
+    { key: "autoritate", label: "Autoritatea emitentă", get: authorityValue },
+  ];
+  const facetValues = (facet, dosar) => [].concat(facet.get(dosar) ?? []).filter(Boolean);
+  function matchesFacets(dosar, except = null, selection = state.filter.applied) {
+    return Object.entries(selection).every(([key, values]) => {
+      if (key === except || !values?.length) return true;
+      const facet = FACETS.find((f) => f.key === key);
+      return !facet || facetValues(facet, dosar).some((value) => values.includes(value));
+    });
+  }
+  /* search (AC-02) + the date ranges (AC-06 / 07) — everything but the facets */
+  function matchesBase(dosar) {
+    const query = fold(state.query.trim());
+    const panel = state.panel;
+    if (query && !fold([dosar.nr, serviceOf(dosar).title, dosar.object].join(" ")).includes(query)) return false;
+    const submitted = isoDay(dosar.submitted);
+    if (panel.subFrom && (!submitted || submitted < panel.subFrom)) return false;
+    if (panel.subTo && (!submitted || submitted > panel.subTo)) return false;
+    const end = isoDay(estimatedEnd(dosar));
+    if (panel.endFrom && (!end || end < panel.endFrom)) return false;
+    if (panel.endTo && (!end || end > panel.endTo)) return false;
+    return true;
+  }
+  function facetOptions(facet, selection = state.filter.applied) {
+    const counts = new Map();
+    state.dosare.forEach((dosar) => {
+      if (!matchesBase(dosar) || !matchesFacets(dosar, facet.key, selection)) return;
+      new Set(facetValues(facet, dosar)).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+    });
+    (selection[facet.key] || []).forEach((value) => { if (!counts.has(value)) counts.set(value, 0); });
+    const order = facet.key === "status" ? (value) => STATUS_ORDER.findIndex((id) => state.data.statuses[id]?.label === value) : null;
+    return [...counts.entries()].map(([value, count]) => ({ value, count }))
+      .sort((a, b) => (order ? order(a.value) - order(b.value) : a.value.localeCompare(b.value, "ro", { numeric: true })));
+  }
+  const availableFacets = () => FACETS.filter((facet) => state.filter.applied[facet.key]?.length || new Set(state.dosare.flatMap((dosar) => facetValues(facet, dosar))).size > 1);
+  let facetFilter = null;
+  function initFacetFilter() {
+    facetFilter = window.GEAPFacetFilter?.create({
+      bar: root.querySelector("[data-sm-filters]"),
+      toggle: root.querySelector("[data-sm-filter-toggle]"),
+      count: root.querySelector("[data-sm-filter-count]"),
+      sprite: SPRITE,
+      state: () => state.filter,
+      facets: availableFacets,
+      allFacets: () => FACETS,
+      options: facetOptions,
+      tag: (value, facet) => {
+        if (facet.key !== "status") return null;
+        const id = Object.keys(state.data.statuses).find((key) => state.data.statuses[key].label === value);
+        return C.tagHtml(value, STATUS_TONE[id] || "neutral");
+      },
+      total: () => filtered().length,
+      mobileSheets: true,
+      preview: (selection) => state.dosare.filter((dosar) => matchesBase(dosar) && matchesFacets(dosar, null, selection)).length,
+      apply: () => { state.page = 1; renderList(); },
+    }) || null;
   }
 
   /* search (US-158 AC-02: partial, case- and diacritic-insensitive) AND panel filters
      (AC-04/06/07) AND the status chip, then the sort (AC-08) */
-  function filtered({ ignoreChip = false } = {}) {
-    const query = fold(state.query.trim());
-    const panel = state.panel;
-    return state.dosare.filter((dosar) => {
-      if (!ignoreChip && !inFilter(dosar, state.filter)) return false;
-      if (query && !fold([dosar.nr, serviceOf(dosar).title, dosar.object].join(" ")).includes(query)) return false;
-      if (panel.authorities.length && !panel.authorities.includes(serviceOf(dosar).authority)) return false;
-      const submitted = isoDay(dosar.submitted);
-      if (panel.subFrom && (!submitted || submitted < panel.subFrom)) return false;
-      if (panel.subTo && (!submitted || submitted > panel.subTo)) return false;
-      const end = isoDay(estimatedEnd(dosar));
-      if (panel.endFrom && (!end || end < panel.endFrom)) return false;
-      if (panel.endTo && (!end || end > panel.endTo)) return false;
-      return true;
-    });
+  function filtered() {
+    return state.dosare.filter((dosar) => matchesBase(dosar) && matchesFacets(dosar));
   }
 
   function sorted(list) {
@@ -330,19 +434,6 @@
       const result = value(a) < value(b) ? -1 : value(a) > value(b) ? 1 : 0;
       return dir === "desc" ? -result : result;
     });
-  }
-
-  function chipsHtml() {
-    const base = filtered({ ignoreChip: true });
-    return state.data.filters.map((filter) => {
-      const count = base.filter((dosar) => inFilter(dosar, filter.id)).length;
-      const selected = filter.id === state.filter;
-      return `
-        <button class="chip${selected ? " is-selected" : ""}" type="button" role="tab" aria-selected="${selected}" aria-pressed="${selected}" data-sm-chip="${escape(filter.id)}">
-          <span class="chip__label">${escape(filter.label)}</span>
-          <span class="chip__badge${filter.accent && count > 0 && !readOnly() ? " chip__badge--accent" : ""}">${count}</span>
-        </button>`;
-    }).join("");
   }
 
   /* the shared Cabinet pager (CabEvo.pagerHtml, also on Actele mele permisive) */
@@ -364,20 +455,145 @@
     }));
   }
 
+  /* US-19 AC-02 / AC-03, US-158 AC-09: desktop = a table with the AC columns; each sortable header toggles
+     ascending / descending (aria-sort + the BO sort chevron); the row opens the profile, the actions column is
+     pinned. Phones (≤760) = the stacked cards + the „Sortează” menu (no headers to click). */
+  const phoneQuery = window.matchMedia("(max-width: 760px)");
+  /* the AC-02 columns; order = what decides the next step first (Statut + Data estimată visible in the 1024
+     column, Data depunerii + Autoritatea after a sideways scroll; Nr and Acțiuni pinned — the BO registry) */
+  const COLUMNS = [
+    { key: "nr", label: "Numărul dosarului", sort: "nr" },
+    { key: "service", label: "Serviciul solicitat", sort: "service" },
+    { key: "status", label: "Statut", sort: "status" },
+    { key: "end", label: "Data estimată de finalizare", sort: "end" },
+    { key: "submitted", label: "Data depunerii", sort: "submitted" },
+    { key: "authority", label: "Autoritatea emitentă", sort: "authority" },
+    { key: "actions", label: "Acțiuni" },
+  ];
+  /* US-159 AC-06: the read-only history keeps nr, serviciul, data depunerii and the status */
+  const READ_ONLY_COLUMNS = ["nr", "service", "submitted", "status"];
+  const DEFAULT_DIR = { nr: "asc", service: "asc", authority: "asc", submitted: "desc", end: "asc", status: "asc" };
+
+  function sortHeaderHtml(column) {
+    const [key, dir] = state.sort.split("-");
+    if (!column.sort) return `<th scope="col" class="sm-table__th--${column.key}"><span class="sm-table__th-content"><span title="${escape(column.label)}">${escape(column.label)}</span></span></th>`;
+    const on = key === column.sort;
+    const ariaSort = on ? (dir === "asc" ? "ascending" : "descending") : "none";
+    return `
+      <th scope="col" class="sm-table__th--${column.key} is-sortable${on ? " is-sorted" : ""}" aria-sort="${ariaSort}">
+        <button class="sm-table__th-content" type="button" data-sm-sort-col="${column.sort}">
+          <span title="${escape(column.label)}">${escape(column.label)}</span>
+          <span class="sm-table__sort${on ? ` is-${dir}` : ""}" aria-hidden="true">${icon("icon-chevron-bottom")}</span>
+        </button>
+      </th>`;
+  }
+
+  function cellStack(primary, secondary = "", { primaryTitle = primary, strong = false } = {}) {
+    return `<span class="sm-table__stack"><span class="sm-table__primary${strong ? " is-strong" : ""}" title="${escape(primaryTitle)}">${escape(primary)}</span>${secondary ? `<span class="sm-table__secondary" title="${escape(secondary)}">${escape(secondary)}</span>` : ""}</span>`;
+  }
+
+  function rowHtml(dosar) {
+    const service = serviceOf(dosar);
+    const end = estimatedEnd(dosar);
+    const columns = readOnly() ? COLUMNS.filter((column) => READ_ONLY_COLUMNS.includes(column.key)) : COLUMNS;
+    const cell = {
+      nr: `<td class="sm-table__nr">${copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)}</td>`,
+      service: `<td>${cellStack(service.title || "", readOnly() ? "" : `${dosar.tip} · ${dosar.object}`)}</td>`,
+      authority: `<td>${cellStack(service.authority || "", dosar.subdivision || "", { primaryTitle: service.authorityName || service.authority || "" })}</td>`,
+      submitted: `<td>${dosar.submitted ? cellStack(longDate(dosar.submitted)) : cellStack("—", `Creată ${longDate(dosar.created)}`)}</td>`,
+      end: `<td>${end ? cellStack(longDate(end), dosar.status === "finalizat" ? "finalizat" : "") : cellStack("—")}</td>`,
+      status: `<td><span class="sm-table__status"><span class="sm-item__tags">${statusTag(dosar)}${resultMarks(dosar)}</span>${tacitListMark(dosar)}${countdownHtml(dosar)}${paymentExpired(dosar) ? `<span class="sm-countdown sm-countdown--warning">${icon("icon-circle-error-filled")}<span>Taxa a expirat</span></span>` : ""}</span></td>`,
+      actions: `<td class="sm-table__actions"><span class="sm-table__actions-inner cab-card__actions">${primaryAction(dosar)}${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}</span></td>`,
+    };
+    const clickable = !readOnly();
+    return `<tr class="sm-row${clickable ? " is-clickable" : " is-static"}${dosar.justAdded ? " is-new" : ""}"${clickable ? ` tabindex="0" aria-label="${escape(`${dosar.nr} — ${service.title || ""} — ${statusOf(dosar).label}`)}"` : ""} data-sm-card="${escape(dosar.id)}">${columns.map((column) => cell[column.key]).join("")}</tr>`;
+  }
+
+  function tableHtml(items) {
+    const columns = readOnly() ? COLUMNS.filter((column) => READ_ONLY_COLUMNS.includes(column.key)) : COLUMNS;
+    return `
+      <div class="sm-table-scroller" data-sm-table-scroller>
+        <table class="sm-table${readOnly() ? " is-read-only" : ""}">
+          <caption class="u-visually-hidden">Solicitările mele</caption>
+          <colgroup>${columns.map((column) => `<col class="sm-table__col--${column.key}">`).join("")}</colgroup>
+          <thead><tr>${columns.map(sortHeaderHtml).join("")}</tr></thead>
+          <tbody>${items.map(rowHtml).join("")}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function sortMenuHtml() {
+    return SORTS.map((sort) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${sort.id === state.sort}" data-sm-sort="${sort.id}"><span>${escape(sort.label)}</span>${sort.id === state.sort ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("");
+  }
+
+  /* the list shell is built once (search, „Filtre”, „Perioadă”, the facet bar keep their DOM / focus); only the
+     lead (read-only notice, return notices) and the results are redrawn */
+  function ensureListShell() {
+    let view = root.querySelector("[data-sm-list-view]");
+    if (view) return view;
+    root.innerHTML = `
+      <div class="sm-list-view" data-sm-list-view>
+        <section class="cab-intro" aria-labelledby="sm-title">
+          <h1 class="text-heading-h2" id="sm-title" tabindex="-1">Solicitările mele</h1>
+          <p class="text-body-sm">Urmăriți dosarele depuse, reacționați la evenimente și inițiați acțiunile disponibile — fără să contactați direct autoritatea.</p>
+        </section>
+        <div class="sm-list-view__lead" data-sm-lead></div>
+        <div class="cab-toolbar" data-sm-toolbar>
+          <div class="search-input medium rectangular cab-search">
+            <span class="icon-search" aria-hidden="true">${icon("icon-search", "")}</span>
+            <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau serviciu" aria-label="Caută în solicitări după numărul dosarului sau serviciu" data-sm-search>
+            <div class="btn-group cab-search__actions">
+              <button class="btn-icon clear cab-search__clear" type="button" aria-label="Șterge căutarea" data-sm-search-clear disabled>
+                <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-cross-small"></use></svg>
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-neutral btn-sm e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="sm-filters" data-sm-filter-toggle>
+            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
+            <span>Filtre</span>
+            <span class="badge badge--lg badge--solid-light" data-sm-filter-count hidden></span>
+          </button>
+          <button type="button" class="btn btn-neutral btn-sm cab-filter cab-period" aria-haspopup="dialog" aria-expanded="false" data-sm-filter-open>
+            <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-calendar"></use></svg>
+            <span>Perioadă</span>
+            <span class="badge badge--lg badge--solid-light" data-sm-period-count hidden></span>
+          </button>
+          <div class="e-permits-fo-intent-act__action cab-sort">
+            <button type="button" class="btn btn-neutral btn-sm cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
+              <span>Sortează</span>
+              <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
+            </button>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
+          </div>
+        </div>
+        <div class="e-permits-workplace__filters cab-filters" id="sm-filters" role="group" aria-label="Filtre" data-sm-filters hidden></div>
+        <div class="sm-results" data-sm-results></div>
+      </div>
+      <div class="sm-profile-view" data-sm-profile-view hidden></div>`;
+    initFacetFilter();
+    return root.querySelector("[data-sm-list-view]");
+  }
+
   function renderList() {
     C.setHeaderTitle("Solicitările mele");
-    const intro = `
-      <section class="cab-intro" aria-labelledby="sm-title">
-        <h1 class="text-heading-h2" id="sm-title" tabindex="-1">Solicitările mele</h1>
-        <p class="text-body-sm">Urmăriți dosarele depuse, reacționați la evenimente și inițiați acțiunile disponibile — fără să contactați direct autoritatea.</p>
-      </section>`;
+    const view = ensureListShell();
+    view.hidden = false;
+    const profileView = root.querySelector("[data-sm-profile-view]");
+    profileView.hidden = true;
+    profileView.innerHTML = "";
+    const toolbar = view.querySelector("[data-sm-toolbar]");
+    const results = view.querySelector("[data-sm-results]");
+    const lead = view.querySelector("[data-sm-lead]");
 
     /* US-19 AC-13 / US-159 AC-10 */
     if (params.get("eroare") === "lista" || (params.get("eroare") === "mpower" && state.perspective?.mpower)) {
       const text = params.get("eroare") === "mpower"
         ? "Verificarea drepturilor de reprezentare nu a putut fi efectuată. Încercați din nou."
         : "Lista solicitărilor nu a fost încărcată. Încercați din nou.";
-      root.innerHTML = `${intro}<div class="cab-state" role="alert">${errorHtml(text)}</div>`;
+      toolbar.hidden = true;
+      view.querySelector("[data-sm-filters]").hidden = true;
+      lead.innerHTML = "";
+      results.innerHTML = `<div class="cab-state" role="alert">${errorHtml(text)}</div>`;
       return;
     }
 
@@ -385,47 +601,30 @@
     const pages = Math.max(1, Math.ceil(all.length / state.perPage));
     state.page = Math.min(state.page, pages);
     const pageItems = all.slice((state.page - 1) * state.perPage, state.page * state.perPage);
-    const filterCount = panelActive();
-    const searchValue = escape(state.query);
 
-    root.innerHTML = `
-      ${intro}
-      ${readOnly() ? readOnlyBanner() : ""}
-      ${state.notice ? `<div class="cab-notice">${message(state.notice.tone, state.notice.icon, state.notice.html, { role: "status" })}</div>` : ""}
-      <div class="cab-toolbar">
-        <div class="search-input medium rectangular cab-search${state.query ? " has-value is-ready" : ""}">
-          <span class="icon-search" aria-hidden="true">${icon("icon-search", "")}</span>
-          <input class="input" type="search" autocomplete="off" placeholder="Caută după nr. dosar sau serviciu" aria-label="Caută în solicitări după numărul dosarului sau serviciu" value="${searchValue}" data-sm-search>
-          <div class="btn-group cab-search__actions">
-            <button class="btn-icon clear cab-search__clear" type="button" aria-label="Șterge căutarea" data-sm-search-clear${state.query ? "" : " disabled"}>
-              <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-cross-small"></use></svg>
-            </button>
-          </div>
-        </div>
-        <button type="button" class="btn btn-neutral btn-sm cab-filter" aria-haspopup="dialog" aria-expanded="false" data-sm-filter-open>
-          <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
-          <span>Filtre</span>
-          ${filterCount ? `<span class="badge badge--lg badge--solid-light">${filterCount}</span>` : ""}
-        </button>
-        <div class="e-permits-fo-intent-act__action cab-sort">
-          <button type="button" class="btn btn-neutral btn-sm cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
-            <span>Sortează</span>
-            <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
-          </button>
-          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden>
-            ${SORTS.map((sort) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${sort.id === state.sort}" data-sm-sort="${sort.id}"><span>${escape(sort.label)}</span>${sort.id === state.sort ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("")}
-          </ul>
-        </div>
-      </div>
-      <div class="cab-chips" role="tablist" aria-label="Filtrează după statut">${chipsHtml()}</div>
-      ${state.searchFailed
-        ? `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a putut fi actualizată. Încercați din nou.", "data-sm-search-retry")}</div>`
-        : pageItems.length
-          ? `<section class="e-permits-stack sm-list" aria-label="Lista solicitărilor"><ul class="e-permits-stack__list" role="list">${pageItems.map(cardHtml).join("")}</ul></section>${pagerHtml(all.length)}`
-          : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile selectate.", { text: "Modificați căutarea sau filtrele aplicate." }))}</div>`}
-    `;
+    lead.innerHTML = `${readOnly() ? readOnlyBanner() : ""}${state.notice ? `<div class="cab-notice">${message(state.notice.tone, state.notice.icon, state.notice.html, { role: "status" })}</div>` : ""}`;
+    const search = view.querySelector("[data-sm-search]");
+    if (search.value !== state.query) search.value = state.query;
+    search.closest(".search-input").classList.toggle("has-value", Boolean(state.query));
+    search.closest(".search-input").classList.toggle("is-ready", Boolean(state.query));
+    view.querySelector("[data-sm-search-clear]").disabled = !state.query;
+    const periodCount = panelActive();
+    const badge = view.querySelector("[data-sm-period-count]");
+    badge.hidden = !periodCount;
+    badge.textContent = String(periodCount);
+    view.querySelector("[data-sm-sort-menu]").innerHTML = sortMenuHtml();
+
+    results.innerHTML = state.searchFailed
+      ? `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a putut fi actualizată. Încercați din nou.", "data-sm-search-retry")}</div>`
+      : pageItems.length
+        ? `${phoneQuery.matches
+          ? `<section class="e-permits-stack sm-list" aria-label="Lista solicitărilor"><ul class="e-permits-stack__list" role="list">${pageItems.map(cardHtml).join("")}</ul></section>`
+          : tableHtml(pageItems)}${pagerHtml(all.length)}`
+        : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile selectate.", { text: "Modificați căutarea sau filtrele aplicate." }))}</div>`;
+    facetFilter?.render();
     syncMetaRows();
   }
+  phoneQuery.addEventListener("change", () => { if (!root.querySelector("[data-sm-list-view]")?.hidden) renderList(); });
 
   /* a meta line that wraps must not start with a dot (same rule as the app's
      stacked lists): parts that begin a new line get .is-row-start */
@@ -736,6 +935,9 @@
         ${downloadButton("decizie", "Descarcă decizia (MDocs)")}`, { scope: true });
     }
     const until = service.validityYears ? addDays(dosar.finalized, Math.round(service.validityYears * 365.25)) : "";
+    /* AC-29: the act's service-specific fields (as configured per service — the same groups the act profile shows) */
+    const act = state.acts.find((item) => item.id === dosar.actId);
+    const specific = act ? C.actGroups({ ...act, title: act.name }) : [];
     return section("act", "Act permisiv", `
       ${rows([
         row("Titlul actului", escape(service.actTitle || service.title || "")),
@@ -748,7 +950,54 @@
         dosar.issuedBy ? row("Emisă de", escape(dosar.issuedBy)) : "",
         row("Subdiviziunea de examinare", escape(dosar.subdivision)),
       ])}
-      ${downloadButton("act", "Descarcă actul (MDocs)")}`, { scope: true });
+      ${downloadButton("act", "Descarcă actul (MDocs)")}`, { scope: true })
+      + specific.map((group, index) => section(`act-specific-${index}`, group.title || "Date specifice actului", rows(group.rows.map(([label, value]) => row(label, escape(value)))))).join("");
+  }
+
+  /* US-161 (AC-03, AC-04, AC-18, AC-22, AC-31, AC-36): the profile's sections as tabs under „Stadiul solicitării”
+     — Date generale (default) · Date solicitare (always) · Taxe (only with a payment note) · Act / Decizie (only
+     once finished). The BO page-header tab strip (.tabs.e-permits-page-header__tabs: 40 high, 14/20, brand 2px
+     underline, track line) — switching shows another panel in place (no reload) and keeps #dosar/<id>/<tab>. */
+  const PROFILE_TABS = [
+    { id: "general", label: "Date generale" },
+    { id: "solicitare", label: "Date solicitare" },
+    { id: "taxe", label: "Taxe" },
+    { id: "act", label: "Act" },
+  ];
+  function profileTabsOf(dosar, panels) {
+    return PROFILE_TABS.filter((tab) => panels[tab.id])
+      .map((tab) => (tab.id === "act" && (dosar.result === "respins" || dosar.decisionOnly) ? { ...tab, label: "Decizie" } : tab));
+  }
+  function profileTabsHtml(dosar, panels) {
+    const tabs = profileTabsOf(dosar, panels);
+    if (!tabs.some((tab) => tab.id === state.tab)) state.tab = "general";
+    return `
+      <div class="cab-profile-tabs" data-sm-tabs>
+        <div class="tabs e-permits-page-header__tabs">
+          <div class="tab-buttons" role="tablist" aria-label="Secțiunile dosarului">
+            ${tabs.map((tab) => {
+              const on = tab.id === state.tab;
+              return `<button class="tab-button${on ? " active" : ""}" type="button" role="tab" id="sm-tab-${tab.id}" aria-selected="${on}" aria-controls="sm-panel-${tab.id}" tabindex="${on ? 0 : -1}" data-sm-tab="${tab.id}">${escape(tab.label)}</button>`;
+            }).join("")}
+          </div>
+        </div>
+        ${tabs.map((tab) => `<div class="cab-profile-tabs__panel" role="tabpanel" id="sm-panel-${tab.id}" aria-labelledby="sm-tab-${tab.id}" data-sm-panel="${tab.id}"${tab.id === state.tab ? "" : " hidden"}>${panels[tab.id]}</div>`).join("")}
+      </div>`;
+  }
+  function selectTab(id, { focus = false } = {}) {
+    const box = root.querySelector("[data-sm-tabs]");
+    if (!box || !box.querySelector(`[data-sm-tab="${id}"]`)) return;
+    state.tab = id;
+    box.querySelectorAll("[data-sm-tab]").forEach((button) => {
+      const on = button.dataset.smTab === id;
+      button.classList.toggle("active", on);
+      button.setAttribute("aria-selected", String(on));
+      button.tabIndex = on ? 0 : -1;
+      if (on && focus) button.focus();
+    });
+    box.querySelectorAll("[data-sm-panel]").forEach((panel) => { panel.hidden = panel.dataset.smPanel !== id; });
+    const dosarId = root.querySelector("[data-sm-profile]")?.dataset.smProfile;
+    if (dosarId) history.replaceState(null, "", `${window.location.pathname}${window.location.search}#dosar/${dosarId}${id === "general" ? "" : `/${id}`}`);
   }
 
   function renderProfile(dosar) {
@@ -770,7 +1019,7 @@
       dosar.submitted ? row("Data depunerii", escape(longDateTime(dosar.submitted))) : "",
       dosar.suspended ? row("Data suspendării", escape(longDate(dosar.suspended))) : "",
       dosar.examTerm ? row("Termenul de examinare", `<span>${escape(longDate(dosar.examTerm))}</span>${dosar.tacit ? marksHtml(dosar) : ""}`) : "",
-      row("Stare", `${statusTag(dosar)}${dosar.result ? marksHtml(dosar) : ""}`),
+      row("Statutul dosarului", `${statusTag(dosar)}${dosar.result ? marksHtml(dosar) : ""}`),
       row("Autoritatea", escape(service.authorityName || service.authority || "")),
       row("Subdiviziunea de procesare", escape(dosar.subdivision)),
       dosar.actNr ? row("Nr. actului generat", copyValue(dosar.actNr, `Copiază numărul actului ${dosar.actNr}`)) : "",
@@ -806,11 +1055,21 @@
     /* US-161 AC-18…20: only when a payment note exists; Data achitării only when paid */
     const taxes = payment ? section("taxe", "Taxe", rows([
       row("Numărul notei de plată", copyValue(payment.nr, `Copiază numărul notei de plată ${payment.nr}`)),
-      row("Starea notei", C.tagHtml(payment.status, payment.status === "Achitat" ? "success" : payment.status === "Expirat" || payment.status === "Anulat" ? "danger" : "warning")),
+      row("Numărul dosarului", escape(dosar.nr)),
+      row("Statutul notei", C.tagHtml(payment.status, payment.status === "Achitat" ? "success" : payment.status === "Expirat" || payment.status === "Anulat" ? "danger" : "warning")),
       row("Suma totală", escape(money(payment.amount))),
       row("Data creării", escape(longDateTime(payment.created))),
       payment.status === "Achitat" && payment.paid ? row("Data achitării", escape(longDateTime(payment.paid))) : "",
       payment.due && payment.status !== "Achitat" ? row("Termen de achitare", escape(longDate(payment.due))) : "",
+    ])) : "";
+
+    /* US-161 AC-15: the „Taxe” subsection of Date solicitare — only when the service charges a fee when the
+       request is filed (not for fees issued later, during the examination) */
+    const initialFee = service.fee > 0 && payment && !dosar.feeDuringExam ? section("taxe-depunere", "Taxe", rows([
+      row("Denumire", escape(`Taxa pentru ${service.actTitle ? service.actTitle.charAt(0).toLowerCase() + service.actTitle.slice(1) : "serviciu"}`)),
+      row("Sumă", escape(money(payment.amount))),
+      row("Statut", C.tagHtml(payment.status, payment.status === "Achitat" ? "success" : payment.status === "Expirat" || payment.status === "Anulat" ? "danger" : "warning")),
+      payment.status === "Achitat" && payment.paid ? row("Data achitării", escape(longDateTime(payment.paid))) : "",
     ])) : "";
 
     const helpSection = section("ajutor", "Ai nevoie de ajutor?", rows([
@@ -819,7 +1078,10 @@
       help.email ? row("E-mail", `<a class="e-permits-dosar-profil__link" href="mailto:${escape(help.email)}">${escape(help.email)}</a>`) : "",
     ]));
 
-    root.innerHTML = `
+    ensureListShell().hidden = true;
+    const profileView = root.querySelector("[data-sm-profile-view]");
+    profileView.hidden = false;
+    profileView.innerHTML = `
       <article class="cab-profile sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
         ${C.pageHeader({
           back: { label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" },
@@ -829,14 +1091,12 @@
         })}
         <div class="e-permits-dosar-profil__panel">
           ${statusCardHtml(dosar)}
-          ${general}
-          ${roles}
-          ${details}
-          ${contacts}
-          ${documents}
-          ${delivery}
-          ${taxes}
-          ${actSection(dosar)}
+          ${profileTabsHtml(dosar, {
+            general,
+            solicitare: `${roles}${details}${contacts}${documents}${delivery}${initialFee}`,
+            taxe: taxes,
+            act: actSection(dosar),
+          })}
           ${helpSection}
         </div>
       </article>`;
@@ -850,8 +1110,9 @@
 
   function route() {
     hideTip();
-    const match = /^#dosar\/([\w-]+)$/.exec(window.location.hash);
+    const match = /^#dosar\/([\w-]+)(?:\/(\w+))?$/.exec(window.location.hash);
     const dosar = match && !readOnly() && state.dosare.find((item) => item.id === match[1]);
+    state.tab = match?.[2] || "general";
     if (dosar) renderProfile(dosar);
     else renderList();
   }
@@ -988,28 +1249,16 @@
     modalOpener = opener;
     opener?.setAttribute("aria-expanded", "true");
     const panel = state.panel;
-    const authorities = [...new Set(state.dosare.map((dosar) => serviceOf(dosar).authority).filter(Boolean))];
     overlay.innerHTML = `
       <div class="e-permits-fo-doc-modal">
         <div class="e-permits-fo-doc-modal__header">
           <div class="e-permits-fo-doc-modal__header-text">
-            <h2 id="sm-filter-title" class="e-permits-fo-doc-modal__title">Filtre</h2>
-            <p class="e-permits-fo-doc-modal__subtitle">Criteriile se aplică împreună cu căutarea și statutul ales.</p>
+            <h2 id="sm-filter-title" class="e-permits-fo-doc-modal__title">Perioadă</h2>
+            <p class="e-permits-fo-doc-modal__subtitle">Intervalele se aplică împreună cu căutarea și filtrele alese.</p>
           </div>
           <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-sm-filter-close>${icon("icon-cross-large")}</button>
         </div>
         <div class="cab-filter__body">
-          <fieldset class="cab-filter__group">
-            <legend class="cab-filter__legend">Autoritatea emitentă</legend>
-            <div class="cab-filter__options">
-              ${authorities.map((authority) => `
-                <label class="checkbox checkbox--medium">
-                  <input type="checkbox" class="checkbox-input" value="${escape(authority)}" data-sm-filter-authority${panel.authorities.includes(authority) ? " checked" : ""}>
-                  <span class="checkbox-custom"></span>
-                  <span class="checkbox-texts"><span class="checkbox-label">${escape(authority)} · ${escape(state.data.help[authority]?.name || "")}</span></span>
-                </label>`).join("")}
-            </div>
-          </fieldset>
           <fieldset class="cab-filter__group">
             <legend class="cab-filter__legend">Data depunerii</legend>
             <div class="cab-filter__range" data-sm-range="sub">
@@ -1070,7 +1319,6 @@
       return;
     }
     state.panel = {
-      authorities: [...overlay.querySelectorAll("[data-sm-filter-authority]:checked")].map((box) => box.value),
       subFrom: pickerValue(overlay, "sm-sub-from"),
       subTo: pickerValue(overlay, "sm-sub-to"),
       endFrom: pickerValue(overlay, "sm-end-from"),
@@ -1087,6 +1335,11 @@
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
     if (params.get("descarcare") !== "eroare") return;
+    if (button.closest("tr.sm-row")) {
+      root.querySelector("[data-sm-lead]")?.insertAdjacentHTML("beforeend", `<div class="cab-notice" data-sm-download-error>${message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert" })}</div>`);
+      root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
+      return;
+    }
     const scope = button.closest("[data-sm-dl-scope]") || button.closest(".sm-item") || root.querySelector(".cab-status__actions");
     const html = message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert", attrs: "data-sm-download-error" });
     if (scope?.classList.contains("sm-item")) scope.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
@@ -1105,7 +1358,8 @@
         <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
       </div>`;
     const item = action.closest(".sm-item");
-    if (item) item.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
+    if (action.closest("tr.sm-row")) root.querySelector("[data-sm-lead]")?.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-notice"'));
+    else if (item) item.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
     else (action.closest(".cab-status__actions") || action).insertAdjacentHTML("afterend", html);
     root.querySelector("[data-sm-redirect-retry]")?.focus();
   }
@@ -1144,11 +1398,7 @@
       state.page = 1;
       /* US-158 AC-14 demo: the first refresh fails */
       if (params.get("eroare") === "cautare" && state.query) state.searchFailed = true;
-      const caret = event.target.selectionStart;
       renderList();
-      const input = root.querySelector("[data-sm-search]");
-      input?.focus();
-      input?.setSelectionRange(caret, caret);
     });
 
     root.addEventListener("click", (event) => {
@@ -1164,14 +1414,25 @@
       const redirectRetry = target.closest("[data-sm-redirect-retry]");
       if (redirectRetry) { window.location.assign(redirectRetry.dataset.smRedirectRetry); return; }
       if (target.closest("[data-sm-search-retry]")) { state.searchFailed = false; renderList(); return; }
-      const chip = target.closest("[data-sm-chip]");
-      if (chip) { state.filter = chip.dataset.smChip; state.page = 1; renderList(); root.querySelector(`[data-sm-chip="${state.filter}"]`)?.focus(); return; }
+      /* AC-03 / AC-09: a header toggles its direction; another column starts in its natural direction */
+      const sortCol = target.closest("[data-sm-sort-col]");
+      if (sortCol) {
+        const [key, dir] = state.sort.split("-");
+        const col = sortCol.dataset.smSortCol;
+        state.sort = `${col}-${key === col ? (dir === "asc" ? "desc" : "asc") : DEFAULT_DIR[col] || "asc"}`;
+        state.page = 1;
+        renderList();
+        root.querySelector(`[data-sm-sort-col="${col}"]`)?.focus();
+        return;
+      }
       const sort = target.closest("[data-sm-sort]");
       if (sort) { state.sort = sort.dataset.smSort; state.page = 1; C.closeMenus(); renderList(); root.querySelector(".cab-sort__trigger")?.focus(); return; }
       const size = target.closest("[data-sm-per-page]");
       if (size) { state.perPage = Number(size.dataset.smPerPage); state.page = 1; C.closeMenus(); renderList(); return; }
       const page = target.closest("[data-sm-page]");
       if (page && !page.disabled) { state.page = Number(page.dataset.smPage); renderList(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
+      const tab = target.closest("[data-sm-tab]");
+      if (tab) { selectTab(tab.dataset.smTab); return; }
       const filterOpen = target.closest("[data-sm-filter-open]");
       if (filterOpen) { openFilters(filterOpen); return; }
       if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
@@ -1204,12 +1465,22 @@
       }
 
       const card = target.closest("[data-sm-card]");
-      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark")) {
+      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark, .sm-tacit")) {
         window.location.hash = `#dosar/${card.dataset.smCard}`;
       }
     });
 
     root.addEventListener("keydown", (event) => {
+      /* ARIA tabs: ←/→ / Home / End move between the tabs and show them */
+      const tabButton = event.target.closest?.("[data-sm-tab]");
+      if (tabButton && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) {
+        const all = [...root.querySelectorAll("[data-sm-tab]")];
+        const index = all.indexOf(tabButton);
+        const next = event.key === "Home" ? 0 : event.key === "End" ? all.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + all.length) % all.length;
+        event.preventDefault();
+        selectTab(all[next].dataset.smTab, { focus: true });
+        return;
+      }
       const card = event.target.matches?.("[data-sm-card]") ? event.target : null;
       if (card && (event.key === "Enter" || event.key === " ") && !card.classList.contains("is-static")) {
         event.preventDefault();
@@ -1228,7 +1499,7 @@
       if (!overlay) return;
       if (event.target === overlay || event.target.closest("[data-sm-filter-close]")) { closeFilters(); return; }
       if (event.target.closest("[data-sm-filter-reset]")) {
-        state.panel = { authorities: [], subFrom: "", subTo: "", endFrom: "", endTo: "" };
+        state.panel = { subFrom: "", subTo: "", endFrom: "", endTo: "" };
         state.page = 1;
         closeFilters();
         renderList();
@@ -1305,6 +1576,7 @@
       state.subjects = flow.subjects || [];
       state.user = flow.authenticatedUser || null;
       state.subject = state.subjects.find((subject) => subject.id === C.SUBJECT) || null;
+      state.acts = Object.values(flow.intent?.acts || {}).flat();
       state.perspective = data.perspectives[C.SUBJECT] || { dosare: [] };
       let deleted = [];
       try { deleted = JSON.parse(sessionStorage.getItem(DELETED_KEY) || "[]"); } catch { deleted = []; }
@@ -1312,6 +1584,9 @@
       applyReturns();
       bind();
       route();
+      /* from a payment notification (US-135 AC-02 / AC-11 / AC-14): ?achita=<id> opens MPay, or the expired-fee message */
+      const toPay = state.dosare.find((dosar) => dosar.id === params.get("achita") && dosar.status === "achitare");
+      if (toPay && !paymentExpired(toPay)) openPayment(toPay);
     } catch (error) {
       console.warn("[solicitari]", error);
       root.innerHTML = `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a fost încărcată. Încercați din nou.")}</div>`;

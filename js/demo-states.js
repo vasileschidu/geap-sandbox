@@ -236,6 +236,17 @@
   const smDosar = (id, run, params = {}) => sm(run, params, `#dosar/${id}`);
   const smMenu = (id) => async (h) => { await h.scroll(`[data-sm-card="${id}"]`); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
   const smFilters = async (h) => { await h.click("[data-sm-filter-open]"); };
+  /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
+     phones chip → sheet → „Arată N rezultate” */
+  const smPhone = () => window.matchMedia("(max-width: 760px)").matches;
+  const smPick = (facet, values) => async (h) => {
+    if (!smPhone() && document.querySelector("[data-sm-filters]")?.hidden) await h.click("[data-sm-filter-toggle]");
+    await h.click(`[data-filter-facet="${facet}"]`);
+    if (smPhone()) await h.wait(400);
+    for (const value of values) await h.click(`[data-filter-option]${value.endsWith("*") ? `[value^="${value.slice(0, -1)}"]` : `[value="${value}"]`}`);
+    await h.click(smPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
+    if (smPhone()) await h.wait(400); else await h.click("[data-filter-commit]");
+  };
   const smDate = async (h, id, iso) => {
     const input = await h.find(`#${id}`);
     const [y, m, d] = iso.split("-");
@@ -1918,15 +1929,19 @@
     /* ---- EVO Cabinet › Solicitările mele (US-19, US-158, US-161, US-29, US-24, US-135, US-159) ---- */
     "sm-01": sm(),
     "sm-01s": sm(async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
-    "sm-01a": sm(async (h) => { await h.click('[data-sm-chip="atentie"]'); }),
-    "sm-01b": sm(async (h) => { await h.click('[data-sm-chip="schita"]'); }),
-    "sm-01c": sm(async (h) => { await h.click('[data-sm-chip="finalizat"]'); }),
+    "sm-01a": sm(smPick("status", ["Spre achitare", "Informații suplimentare"])),
+    "sm-01b": sm(smPick("status", ["Schiță"])),
+    "sm-01c": sm(smPick("status", ["Finalizat"])),
     "sm-01d": sm(async (h) => { await h.fill("[data-sm-search]", "04466", { leave: false }); }),
     "sm-01e": sm(async (h) => { await h.fill("[data-sm-search]", "autorizatie stupefiante xyz", { leave: false }); }),
-    "sm-01f": sm(async (h) => { await h.click(".cab-sort__trigger"); }),
+    /* sort: desktop = the column header (AC-03 / AC-09: Data estimată, ascending); phones = the „Sortează” menu */
+    "sm-01f": sm(async (h) => { if (smPhone()) await h.click(".cab-sort__trigger"); else await h.click('[data-sm-sort-col="end"]'); }),
+    "sm-01m": sm(async (h) => { if (smPhone()) { await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort="service-asc"]'); } else { await h.click('[data-sm-sort-col="service"]'); await h.click('[data-sm-sort-col="service"]'); } }),
+    /* the facet bar open (desktop) / the Statut sheet (phones) */
+    "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await h.click('[data-filter-facet="status"]'); if (smPhone()) await h.wait(400); }),
     "sm-01g": sm(smFilters),
     "sm-01h": sm(async (h) => { await smFilters(h); await smDate(h, "sm-sub-from", "2026-10-01"); await smDate(h, "sm-sub-to", "2026-09-01"); await h.click("[data-sm-filter-apply]"); }),
-    "sm-01i": sm(async (h) => { await smFilters(h); await h.click('[data-sm-filter-authority][value="AMDM"]'); await h.click("[data-sm-filter-apply]"); }),
+    "sm-01i": sm(smPick("autoritate", ["AMDM*"])),
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
     "sm-01k": sm(async (h) => { await h.hover("[data-sm-tip]"); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
@@ -1934,7 +1949,7 @@
     "sm-02a": sm(smMenu("d-fresh")),
     "sm-02b": sm(smMenu("d-sud")),
     "sm-02c": sm(smMenu("d-nistru")),
-    "sm-02d": sm(async (h) => { await h.click('[data-sm-chip="finalizat"]'); await smMenu("d-izvoras")(h); }),
+    "sm-02d": sm(async (h) => { await smPick("status", ["Finalizat"])(h); await smMenu("d-izvoras")(h); }),
     "sm-02e": sm(smMenu("d-nota")),
     "sm-03": smDosar("d-spicul"),
     "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); }),
@@ -1952,21 +1967,34 @@
     "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
     /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
     "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
-    "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-stack__actions > [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
+    "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .cab-card__actions > [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-05": smDosar("d-izvoras"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
     "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
     /* 2026-10-14 · Documente însoțitoare = the shared document cards: „Detalii” → document modal, ⋮ Descarcă */
-    "sm-05e": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); }),
-    "sm-05f": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),
-    "sm-05g": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-menu-trigger]"); }),
-    "sm-05h": smDosar("d-izvoras", async (h) => { await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
+    /* US-161 tabs (2026-10-17): documents live in „Date solicitare” */
+    "sm-05e": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); }),
+    "sm-05f": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),
+    "sm-05g": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-menu-trigger]"); }),
+    "sm-05h": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
+    /* US-161 tabs: Date solicitare (applicant, request data, documents, delivery, the initial fee — AC-15),
+       Taxe (AC-18…20), Act (+ the service-specific fields, AC-29), Decizie (AC-31…34) */
+    "sm-05j": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); }),
+    "sm-05k": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="taxe"]'); }),
+    "sm-05l": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="act"]'); }),
+    "sm-05m": smDosar("d-nota", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: "[data-cab-detail] h1", run: null },
     /* Actele mele: nothing matches the search → the shared empty state + „Resetează filtrele” */
     "sm-05i": { page: CAB, params: { view: "acte" }, ready: "[data-cab-list] > *", run: async (h) => { await h.fill("[data-cab-search]", "zzz", { leave: false }); } },
     "sm-06": sm(null, { eroare: "lista" }),
     "sm-06a": sm(async (h) => { await h.fill("[data-sm-search]", "Bălți", { leave: false }); }, { eroare: "cautare" }),
+    /* Notificări (minimal EVO compartment): the GEAP events with their action; an expired fee (?nota=expirata) →
+       „Taxa a expirat…” on „Achitare” (US-135 AC-14); MPower expired → only the older ones, no actions */
+    "nt-01": { page: CAB, params: { view: "notificari" }, ready: ".nt-item, .cab-state", run: null },
+    "nt-01a": { page: CAB, params: { view: "notificari", nota: "expirata" }, ready: ".nt-item", run: async (h) => { await h.click("[data-nt-pay]"); } },
+    "nt-01b": { page: CAB, params: { view: "notificari", as: "mpower-pj-lumina" }, ready: ".nt-item, .cab-state", run: null },
+    "nt-01c": sm(null, { achita: "d-sud" }),
     "sm-07": sm(null, { as: "pj-vita-plant" }),
     "sm-07a": smDosar("d-vita-reperf", null, { as: "pj-vita-plant" }),
     "sm-07b": sm(null, { as: "mpower-pj-lumina" }),

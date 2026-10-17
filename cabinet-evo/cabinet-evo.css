@@ -1445,6 +1445,390 @@
   }
 }
 
+/* ===== Solicitările mele · the list as a TABLE on desktop (US-19 AC-02 / 03, US-158 AC-09, 2026-10-17) =====
+   The BO registry table values (e-permits-shell.css › .e-permits-workplace__table, restated: this page does not
+   load the shell CSS): a bordered r12 scroller (the RAP placement), header 38 · secondary fill · 12/16 medium
+   secondary, sortable headers = a button with the BO chevron (rotated when ascending, default colour when
+   sorted, secondary-hover fill on hover), rows 14/20 with a 1px divider (none under the last), hover
+   secondary-hover, focus ring inset; cells are one line + ellipsis with a title tooltip, two-line stacks
+   (primary 14/20 default · secondary 12/16 tertiary); the actions column is pinned to the right edge (BO
+   `pin: "end"`). Phones keep the stacked cards. */
+.sm-table-scroller {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  margin-top: var(--spacing-16, 16px);
+  overflow: auto;
+  /* a cell scrolled into view never stops under the pinned Nr / Acțiuni columns */
+  scroll-padding-inline: var(--sm-col-nr) var(--sm-col-actions);
+  --sm-col-nr: 216px;
+  --sm-col-service: 210px;
+  --sm-col-status: 184px;
+  --sm-col-end: 196px;
+  --sm-col-submitted: 152px;
+  --sm-col-authority: 176px;
+  --sm-col-actions: 216px;
+}
+
+.sm-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-width: 100%;
+  table-layout: fixed;
+  /* = the sum of the columns (a max-content table grew with its one-line cells) */
+  width: calc(var(--sm-col-nr) + var(--sm-col-service) + var(--sm-col-status) + var(--sm-col-end) + var(--sm-col-submitted) + var(--sm-col-authority) + var(--sm-col-actions));
+  /* nr + service + status + end + actions = the 1022 inside the 1024 column; the rest scrolls in */
+}
+
+/* the read-only history (US-159 AC-06): 4 columns fill the width */
+.sm-table.is-read-only {
+  width: 100%;
+}
+
+.sm-table__col--nr { width: var(--sm-col-nr); }
+.sm-table__col--service { width: var(--sm-col-service); }
+.sm-table__col--status { width: var(--sm-col-status); }
+.sm-table__col--end { width: var(--sm-col-end); }
+.sm-table__col--submitted { width: var(--sm-col-submitted); }
+.sm-table__col--authority { width: var(--sm-col-authority); }
+.sm-table__col--actions { width: var(--sm-col-actions); }
+.sm-table.is-read-only col { width: auto; }
+
+/* Numărul dosarului pinned on the left (the BO registry's first column), with its divider */
+.sm-table :is(th, td):first-child {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 2;
+}
+
+.sm-table :is(th, td) {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  height: 56px;
+  overflow: hidden;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* the row paints the fill; cells inherit it (the pinned ones stay opaque over the scrolled cells) */
+.sm-table tbody tr {
+  background: var(--color-background-base-default, #fff);
+}
+
+.sm-table td {
+  background: inherit;
+}
+
+.sm-table th {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 38px;
+  line-height: var(--line-height-lh-16, 16px);
+  padding-block: 0;
+}
+
+.sm-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.sm-table__th-content {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--spacing-6, 6px);
+  height: var(--spacing-24, 24px);
+  max-width: 100%;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.sm-table__th-content > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button.sm-table__th-content {
+  cursor: pointer;
+}
+
+button.sm-table__th-content:focus-visible {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 3px var(--blue-sky-200, #ccdef6);
+  outline: 0;
+}
+
+.sm-table th.is-sortable {
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.sm-table th.is-sortable:hover {
+  background: var(--color-background-base-secondary-hover, #e7e7e7);
+}
+
+/* the chevron = the label colour (button icon rule) */
+.sm-table__sort {
+  align-items: center;
+  color: currentColor;
+  display: inline-flex;
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  justify-content: center;
+  width: var(--spacing-16, 16px);
+}
+
+.sm-table__sort .icon {
+  height: var(--spacing-16, 16px);
+  transition: transform 120ms ease;
+  width: var(--spacing-16, 16px);
+}
+
+.sm-table th.is-sorted {
+  color: var(--color-text-base-default, #121212);
+}
+
+/* the sorted header is already in the default colour → its label underlines on hover (visible everywhere) */
+.sm-table button.sm-table__th-content:hover > span:first-child {
+  text-decoration: underline;
+}
+
+.sm-table__sort.is-asc .icon {
+  transform: rotate(180deg);
+}
+
+.sm-table tbody tr.is-clickable {
+  cursor: pointer;
+  outline: none;
+}
+
+.sm-table tbody tr.is-clickable:hover,
+.sm-table tbody tr.is-clickable:focus-visible {
+  background: var(--color-background-base-secondary-hover, #e7e7e7);
+}
+
+.sm-table tbody tr.is-clickable:focus-visible td {
+  box-shadow: inset 0 2px 0 var(--color-border-brand-default, #0058d2), inset 0 -2px 0 var(--color-border-brand-default, #0058d2);
+}
+
+.sm-table tbody tr.is-new {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+}
+
+.sm-table__stack {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.sm-table__primary,
+.sm-table__secondary {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sm-table__primary {
+  color: var(--color-text-base-default, #121212);
+}
+
+.sm-table__secondary {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-12, 12px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.sm-table__nr .e-permits-fo-copy-value {
+  max-width: 100%;
+}
+
+.sm-table__status {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+/* the pinned actions column (the BO `pin: "end"` cell): a divider on its left, it follows the row hover */
+.sm-table :is(th, td).sm-table__th--actions,
+.sm-table td.sm-table__actions {
+  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  overflow: visible;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+
+.sm-table td.sm-table__actions:has(.cab-menu:not([hidden])) {
+  z-index: 4;
+}
+
+.sm-table__actions-inner {
+  align-items: center;
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  justify-content: flex-end;
+}
+
+/* the white „Detalii”-style button on a hovered grey row (grey-on-grey rule) */
+.sm-table tbody tr:hover .sm-table__actions-inner > .btn-neutral:not(:hover):not(:active) {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* US-19 AC-15: the tacit approval mark of the list = icon + „Disponibilă aprobarea tacită” (tooltip) */
+.sm-tacit {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-4, 4px);
+  color: var(--color-text-brand-default, #0058d2);
+  cursor: help;
+  display: inline-flex;
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-12, 12px) / var(--line-height-lh-16, 16px) var(--font-family-primary-font, Onest), sans-serif;
+  gap: var(--spacing-4, 4px);
+  padding: 0;
+}
+
+.sm-tacit span {
+  text-align: left;
+  white-space: normal;
+}
+
+.sm-tacit .icon {
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.sm-tacit:hover span {
+  text-decoration: underline;
+}
+
+.sm-tacit:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
+/* US-19 AC-05…08: the countdown under the status (warning = the applicant has to act, AC-09; info = examination) */
+.sm-countdown {
+  align-items: center;
+  color: var(--color-text-base-secondary, #383838);
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  gap: var(--spacing-4, 4px);
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+.sm-countdown .icon {
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.sm-countdown--warning .icon {
+  color: var(--color-icon-warning-default, #dc6803);
+}
+
+.sm-countdown--info .icon {
+  color: var(--color-icon-brand-default, #0058d2);
+}
+
+.sm-list-view[hidden],
+.sm-profile-view[hidden] {
+  display: none;
+}
+
+/* the „Sortează” menu only on phones (the table headers sort on desktop) */
+@media (min-width: 761px) {
+  [data-sm-list-view] .cab-sort {
+    display: none;
+  }
+}
+
+/* Notificări (minimal stand-in of the EVO compartment): the Solicitările mele stacked rows with a lead icon in
+   the event tone (20 in a 32 circle, the BO stack lead), the text 14/20 secondary, one labelled action */
+.nt-list .nt-item {
+  align-items: flex-start;
+  gap: var(--spacing-12, 12px);
+}
+
+.nt-item__icon {
+  align-items: center;
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  border-radius: var(--border-radius-full, 999px);
+  display: inline-flex;
+  flex: 0 0 var(--spacing-32, 32px);
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  width: var(--spacing-32, 32px);
+}
+
+.nt-item__icon--success { color: var(--color-icon-positive-default, #079455); }
+.nt-item__icon--warning { color: var(--color-icon-warning-default, #dc6803); }
+.nt-item__icon--danger { color: var(--color-icon-danger-default, #d92d20); }
+.nt-item__icon--neutral { color: var(--color-icon-base-tertiary, #757575); }
+
+.nt-item__text {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.nt-item .cab-message {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.cab-view[data-cab-view="notificari"] > .cab-callout + .nt-lead:empty + .nt-list,
+.cab-view[data-cab-view="notificari"] > .nt-lead:empty + .nt-list {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* US-161 · the request profile's sections as tabs (the BO page-header tab strip, css/e-permits-acte-permisive.css)
+   under „Stadiul solicitării” (16 under it = the section rhythm); the panel's first section title starts 8 under
+   the track line; sections keep their own 16 bottom padding */
+.cab-profile-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+}
+
+.cab-profile-tabs__panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cab-profile-tabs__panel[hidden] {
+  display: none;
+}
+
+.cab-profile-tabs__panel:focus {
+  outline: none;
+}
+
+.cab-profile-tabs__panel:focus-visible {
+  border-radius: var(--border-radius-8, 8px);
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+}
+
 /* US-24 AC-04 · an action that failed and can be retried = the error notice + „Reîncercați” (library
    btn-strict btn-sm) on one row, wrapping under it when narrow (the Ghișeu .e-permits-gh__retry) */
 .cab-retry {

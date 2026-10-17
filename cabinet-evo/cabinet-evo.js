@@ -75,6 +75,8 @@
     solicitari: { title: "Solicitările mele" },
     acte: { title: "Actele mele permisive" },
     catalog: { title: "Catalogul serviciilor" },
+    /* minimal stand-in of the EVO „Notificări” compartment (notificari.js) — the GEAP events of US-19 AC-20 / US-135 */
+    notificari: { title: "Notificări" },
   };
   const VIEW = VIEWS[params.get("view")] ? params.get("view") : "acte";
   const AUTH = params.get("auth") !== "0";
@@ -1066,7 +1068,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    pageHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    actGroups, pageHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 

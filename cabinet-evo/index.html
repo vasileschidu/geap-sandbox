@@ -16,10 +16,10 @@
   <!-- the act's „Vizualizare act” / „Forma de tipar” dialogs, shared with RAP (js/act-view.js) -->
   <link rel="stylesheet" href="../css/doc-preview.css?v=docpv-v1">
   <link rel="stylesheet" href="../css/act-view.css?v=act-view-v1">
-  <link rel="stylesheet" href="cabinet-evo.css?v=cab-gaps-v1">
+  <link rel="stylesheet" href="cabinet-evo.css?v=cab-gaps-v2">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=cab-gaps-v1"></script>
+  <script src="../js/demo-states.js?v=cab-gaps-v2"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=sm-v1" defer></script>
   <script src="../js/empty-state.js?v=empty-v3" defer></script>
@@ -28,8 +28,9 @@
   <script src="../js/doc-preview.js?v=docpv-v1" defer></script>
   <script src="../js/act-view.js?v=act-view-v1" defer></script>
   <script src="../js/facet-filter.js?v=facet-v2" defer></script>
-  <script src="cabinet-evo.js?v=cab-gaps-v1" defer></script>
-  <script src="solicitari.js?v=cab-gaps-v1" defer></script>
+  <script src="cabinet-evo.js?v=cab-gaps-v2" defer></script>
+  <script src="solicitari.js?v=cab-gaps-v2" defer></script>
+  <script src="notificari.js?v=cab-gaps-v2" defer></script>
   <script src="catalog.js?v=cab-align-v1" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
@@ -92,6 +93,12 @@
                 </div>
                 <div class="e-permits-fo-avatar-menu__actions">
                   <a class="e-permits-fo-avatar-menu__cabinet" href="#" role="menuitem">Cabinetul Personal</a>
+                  <!-- the EVO „Notificări” compartment (minimal stand-in: cabinet-evo/notificari.js) -->
+                  <a class="e-permits-fo-avatar-menu__settings" href="?view=notificari" aria-label="Notificări" role="menuitem" data-cab-nav-item="notificari">
+                    <svg class="icon" width="20" height="20" aria-hidden="true">
+                      <use href="../assets/icons/sprite.svg#icon-notification"></use>
+                    </svg>
+                  </a>
                   <button class="e-permits-fo-avatar-menu__settings" type="button" aria-label="Setări" role="menuitem">
                     <svg class="icon" width="20" height="20" aria-hidden="true">
                       <use href="../assets/icons/sprite.svg#icon-settings"></use>
@@ -287,6 +294,9 @@
 
       <!-- Solicitările mele — rendered by solicitari.js -->
       <div class="cab-view" data-cab-view="solicitari" hidden></div>
+
+      <!-- Notificări — rendered by notificari.js -->
+      <div class="cab-view" data-cab-view="notificari" hidden></div>
 
       <!-- Catalogul serviciilor — rendered by catalog.js -->
       <div class="cab-view" data-cab-view="catalog" hidden></div>

@@ -1180,3 +1180,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   tacit act): menus that anchor to one side need a measured flip (`fitMenu` → `.is-end` / `.is-start`), a
   fixed per-breakpoint side is wrong for some rows. A demo-only param (`?acte=multe`, `?nota=expirata`,
   `?redirectionare=eroare`) kept seed data — and every other state — unchanged.
+- 2026-10-17 · Cabinet „Azure stories = the spec” batch (US-161 tabs, US-19 table + countdown, US-158 facets,
+  notifications). (1) A facet filter binds its bar / toggle ONCE at `create` → a page that re-renders its whole
+  root on every keystroke must build a persistent list shell (`ensureListShell`: intro, toolbar, bar) and redraw
+  only the results; the profile went into a sibling container. Bonus: the search no longer needs the
+  re-focus + caret hack. (2) `table-layout: fixed` + `width: max-content` grew the table to 1 897 (one-line cells
+  feed max-content) → width = calc(sum of the column custom properties). Seven AC columns with „8 iulie 2026”
+  dates never fit the 1024 Cabinet column: pin the first + actions (BO) and ORDER columns by what decides the next
+  step (Statut, Data estimată visible; the rest scroll in) — report the order as a deviation. Shorten repeated
+  text in cells („28 de zile, 3 ore”, „Timp rămas:” visually hidden) instead of widening. (3) A tab switch
+  without re-render (`selectTab` toggles `hidden` + replaceState `#dosar/<id>/<tab>`) kept the route deep-linkable
+  for demo states; states that scrolled to moved sections (sm-05e…h) had to click the tab first. (4) Prepare the
+  next batch as patch scripts against a scratch COPY (EDIT_ROOT) while a long regression runs on the tree — the
+  regression stays honest and the scripts apply in seconds afterwards.
