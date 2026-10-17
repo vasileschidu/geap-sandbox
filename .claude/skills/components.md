@@ -246,6 +246,7 @@ but this doc previously described it wrongly, see the entry.
 | Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
+| Facet filter · phone sheets (2026-10-17) | `GEAPFacetFilter.create({ mobileSheets: true, preview })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = one scrolling chip row („Filtre” `[data-filter-all]` first, the toolbar button hidden) + „N de rezultate · Șterge filtrele”; sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`; section „Advanced filter › Phone mode” | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
@@ -2382,6 +2383,12 @@ dismiss; tap the dimmed background to dismiss; dismiss via an action inside the 
 and — the subtle one — when content scrolls, a swipe on the *content* scrolls it while
 the same gesture on the *header/indicator* dismisses or expands the sheet.
 
+**First product use (2026-10-17): the facet filter's phone sheets** (`.bottom-sheet.e-permits-filter-sheet`,
+see „Advanced filter › Phone mode”). Product overrides, scoped: hug the content (`min-height: 0`),
+`max-height: 90dvh`, top radius 24 on every width, × = library `.modal-close` (the bare
+`__close` is a text „×”), sticky `__footer` with a top border. Swipe-to-dismiss is not built —
+scrim tap, ×, Esc and the sheet's own action close it (the handle is decorative).
+
 ---
 
 ### Breadcrumb
@@ -3532,7 +3539,7 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 | Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--neutral/--danger` (Valabil / Suspendat / Expirat / Retras·Anulat) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | library `.status-tag` |
 | Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | — |
 | Copy | `.rap-copy--id/--act/--masked`, `.rap-profile__copy` (`is-copied`, 1600 ms) | library `.e-permits-fo-copy-value` |
-| Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block, wraps ≤760) via `GEAPFacetFilter` — see „Advanced filter”. The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
+| Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), chip row edge to edge („Filtre” first → all filters, then a chip per facet) + bottom sheets (rap-04…04d). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
 | Empty state | shared `GEAPEmptyState` in `.rap-state` (2026-10-14) | shared `GEAPEmptyState` in `.cab-state` (2026-10-14) |
 | Pagination | `.rap-pagination`, `.rap-page-button` (`is-active`) | — |
@@ -4313,6 +4320,76 @@ migrate. Never write a third one.
   and closes whenever you arrive on another page (registry kind + view); an unapplied
   draft is dropped. Applied filters persist per registry and show as the count badge on
   "Filtrare avansată" while the bar is closed.
+
+#### Phone mode — chip row + bottom sheets (2026-10-17, RAP; opt-in)
+
+`GEAPFacetFilter.create({ …, mobileSheets: true, preview(selection) → rows })`. Active only
+≤760px (matchMedia; crossing the breakpoint closes any sheet / popover and re-renders). Pages
+that don't opt in (every BO registry) are byte-identical — proved on srv-01 / dos-05 and
+rap-01…01d at 1440 + 375 (bar / popover outerHTML + computed styles, HEAD vs tree).
+Research (Baymard mobile filtering, NN/g bottom sheets + mobile faceted search, Material 3
+bottom sheets / filter chips, Apple HIG sheets, Google Shopping / Zalando / Amazon / Airbnb /
+GOV.UK): hybrid = promoted facet chips + one „all filters” sheet, live count on the apply
+button, sticky apply at the thumb, search in long facets.
+
+- **One entry point (user, 2026-10-17):** the toolbar button is hidden on phones (`toggle.hidden`,
+  `.e-permits-workplace__advanced[hidden]`), the search takes the whole row; the FIRST chip is
+  **„Filtre”** (`[data-filter-all]`, `.e-permits-workplace__filter-chip--all`: library `.chip__icon`
+  with `icon-filter-lines` 20, padding 0 16 0 12 (12 right with the badge), no chevron, black +
+  total count badge when filters are applied) → the all-filters sheet (Google Shopping / Airbnb /
+  Zalando).
+- **Bar** (`.is-sheets`): always visible while there are facets (no toggle), ONE line —
+  „Filtre” then the facet chips (same `chipHtml` as desktop: count badge, selected = black) that scrolls
+  sideways (`flex-wrap: nowrap; overflow-x: auto`, scrollbar hidden); the page bleeds it to
+  the screen edges so the last chip is cut (scroll hint) — RAP: `margin: -4 -16 0`, padding
+  4 / 16, 12 under the toolbar, no border. Applied → „N de rezultate · Șterge filtrele” under
+  the row (correct Romanian plural `resultsLabel`; the desktop bar keeps „N rezultate”). No
+  „Mai multe”, no draft, no „Aplică filtrele” on phones.
+- **Search in the popover / sheets** = the library `.search-input medium rectangular` +
+  `.e-permits-workplace__search` with the library × / spinner states. The BO look comes from
+  e-permits-shell.css, so facet-filter.css restates it for `:is(.e-permits-workplace__filter-pop,
+  .e-permits-filter-sheet)` with the SAME values (40 box, 2px transparent border + 1px inset line,
+  icon at 12, text at 40 / 12 (40 with a value), hover 2px tertiary, focus brand + 4px
+  blue-sky-200, placeholder 14/20, × hover tertiary-hover). The input's size stays the library
+  body-sm (14; 12 on phones — as the BO computes it). On pages without js/search.js (RAP) the
+  facet filter sets has-value / is-typing / is-ready itself (opt-in pages only). Before
+  (2026-10-17) the RAP popover search had the text at 48, a 16px placeholder and no ×.
+- **Sheet** = the library `.bottom-sheet` (scrim `__overlay`, `__panel` `role=dialog`
+  `aria-modal` `aria-labelledby`, decorative `__handle` `aria-hidden`, `__header`,
+  `__content`, `__footer`), created once and appended to `<body>`. Overrides
+  (`.e-permits-filter-sheet`): `min-height: 0` (hugs, the library 45vh left empty space),
+  `max-height: 90dvh`, top radius 24 on every width (the library squares it ≤768), `.is-all`
+  = `height: 90dvh` (sections open without the sheet moving). Header: title (flex 1) ·
+  **„Resetează”** `btn btn-text-neutral btn-sm` (disabled when nothing is ticked) · × = library
+  `.modal-close` (static). Content: search `.e-permits-filter-sheet__search` (4 / 16 / 8 — the 4
+  keeps the focus ring) when the facet has > 7 values (the popover rule), the popover's
+  checklist markup in `.e-permits-filter-sheet__list` with 44px rows (padding 12 / 8, label
+  margin 0 — the library `label` adds 6). Long values wrap. Footer (sticky, top border):
+  **„Arată N rezultate”** `btn btn-primary btn-lg` full width, `nowrap`, live count via
+  `preview(selection)` on every tick (0 allowed: „Arată 0 rezultate”), safe-area bottom.
+  „Resetează” sat in the footer first: at 375 „Arată 1567 de rezultate” wrapped to 2 lines →
+  moved to the header (Zalando / Amazon / iOS sheets).
+- **All filters** (`.is-all`, title „Filtre”): one section per facet —
+  `h3.__section-head > button.__section-trigger[aria-expanded][aria-controls]` (56 min, 8 / 16,
+  label 16/24 medium, summary of ticked values 14/20 tertiary with ellipsis + `title`, 20px
+  chevron) and `__section-panel` (`role=group`, search + list, rendered when opened). Sections
+  holding a value start open; none → the first. Divider between sections, none after the
+  last. The trigger is an accordion row (as the library `.accordion__trigger`), not a `.btn`
+  — the code audit's `button-not-library` on it is expected.
+- **Commit model:** a sheet commits on „Arată” (one query, page 1); ×, scrim tap and Esc
+  close WITHOUT applying. „Resetează” clears the facet (facet sheet) or everything (all
+  filters) inside the sheet only — still applied by „Arată”. Removing one filter = open its
+  chip, untick, „Arată”; everything = „Șterge filtrele”.
+- **A11y:** focus moves to the panel on open, Tab / Shift+Tab cycle inside it, Esc closes,
+  focus returns to the chip (facet) or the button (all); `html.is-filter-sheet-open` locks the
+  page scroll; `prefers-reduced-motion` drops the slide. Android Back is not wired (RAP uses
+  pushState routing; follow-up).
+- **Empty result on phones:** the sheets list only values that still have rows (no dead ends),
+  so rap-01d on phones = one filter + a search with no match.
+- **Hooks for a page:** `options(facet, selection)` must accept the sheet selection (counts
+  under a selection not applied yet); `preview(selection)` returns the row count. Demo states
+  rap-04 (row) · 04a (Statut) · 04b (Autoritate + search) · 04c (all filters) · 04d (applied);
+  on desktop the same ids run the BO bar / popover path.
 
 ### Inline note — info and alerts inside content (rule, updated 2026-10-02)
 

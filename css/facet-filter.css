@@ -220,3 +220,298 @@
   background-color: var(--color-background-base-inverse-default-hover, #383838);
   border-color: var(--color-background-base-inverse-default-hover, #383838);
 }
+
+/* ==========================================================================
+   Phone mode (`mobileSheets: true`, ≤760px; RAP opts in, the BO does not) — 2026-10-17.
+   Research (Baymard mobile filtering, NN/g bottom sheets + mobile faceted search, Material 3
+   bottom sheets / filter chips, Apple HIG sheets): promoted facet chips on ONE scrolling line,
+   each opening a bottom sheet; „all filters” = the same sheet with every facet as a section;
+   sticky „Resetează” · „Arată N rezultate” (live count) at the thumb.
+   ========================================================================== */
+@media (max-width: 760px) {
+  .e-permits-workplace__filters.is-sheets {
+    align-items: stretch;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+  }
+
+  /* one line that scrolls sideways (no wrap); the page cuts the last chip = scroll hint */
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip {
+    flex: 0 0 auto;
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-meta {
+    min-height: var(--spacing-32, 32px);
+  }
+}
+
+/* the sheet = the library .bottom-sheet (scrim, handle, header, content, footer); here only:
+   height hugs the content up to 90dvh (the library's 45vh minimum left empty space), top
+   corners 24 on every width (the library squares them ≤768), × = the library modal close */
+html.is-filter-sheet-open {
+  overflow: hidden;
+}
+
+.e-permits-filter-sheet[hidden] {
+  display: none;
+}
+
+.e-permits-filter-sheet .bottom-sheet__panel {
+  border-radius: var(--border-radius-24, 24px) var(--border-radius-24, 24px) 0 0;
+  max-height: 90dvh;
+  min-height: 0;
+  overflow: clip;
+}
+
+/* all filters: full height, so opening a section does not move the sheet */
+.e-permits-filter-sheet.is-all .bottom-sheet__panel {
+  height: 90dvh;
+}
+
+.e-permits-filter-sheet .bottom-sheet__header {
+  gap: var(--spacing-12, 12px);
+}
+
+.e-permits-filter-sheet .bottom-sheet__header .modal-close {
+  flex: 0 0 auto;
+  position: static;
+}
+
+.e-permits-filter-sheet .bottom-sheet__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overscroll-behavior: contain;
+  padding-top: var(--spacing-0, 0px);
+}
+
+/* 4 on top keeps the field's focus ring inside the scrolling content */
+.e-permits-filter-sheet__search {
+  padding: var(--spacing-4, 4px) var(--spacing-16, 16px) var(--spacing-8, 8px);
+}
+
+.e-permits-workplace__filter-list.e-permits-filter-sheet__list {
+  overflow: visible;
+  padding: var(--spacing-0, 0px) var(--spacing-8, 8px);
+}
+
+/* 44px rows (touch), the value on the sheet's 16 inset */
+.e-permits-filter-sheet__list .e-permits-workplace__filter-option {
+  margin: var(--spacing-0, 0px); /* the library label's 6px bottom margin */
+  min-height: calc(var(--spacing-40, 40px) + var(--spacing-4, 4px));
+  padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
+}
+
+/* header: title · „Resetează” (text) · ×; sticky footer: „Arată N rezultate” (primary, full width —
+   next to „Resetează” a 4-digit count wrapped to 2 lines at 375) */
+.e-permits-filter-sheet .bottom-sheet__header--title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bottom-sheet__footer.e-permits-filter-sheet__footer {
+  align-items: center;
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-12, 12px);
+  margin-top: var(--spacing-0, 0px);
+  padding-bottom: max(var(--spacing-16, 16px), env(safe-area-inset-bottom, 0px));
+}
+
+.btn.e-permits-filter-sheet__apply {
+  flex: 1 1 auto;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* all filters: one section per facet (row 56: label + summary of the ticked values, chevron) */
+.e-permits-filter-sheet__section + .e-permits-filter-sheet__section {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+}
+
+.e-permits-filter-sheet__section-head {
+  font: inherit;
+  margin: 0;
+}
+
+.e-permits-filter-sheet__section-trigger {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: 0;
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: var(--spacing-12, 12px);
+  min-height: var(--spacing-56, 56px);
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-filter-sheet__section-trigger:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-filter-sheet__section-trigger:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
+}
+
+.e-permits-filter-sheet__section-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.e-permits-filter-sheet__section-label {
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-filter-sheet__section-summary {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-filter-sheet__section-summary[hidden],
+.e-permits-filter-sheet__section-panel[hidden] {
+  display: none;
+}
+
+.e-permits-filter-sheet__section-panel {
+  padding-bottom: var(--spacing-8, 8px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .e-permits-filter-sheet .bottom-sheet__overlay,
+  .e-permits-filter-sheet .bottom-sheet__panel {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   Facet search (popover + phone sheets) = the library .search-input medium with the BO
+   workplace-search values (e-permits-shell.css „.e-permits-workplace__search”), restated here
+   for pages that don't load the shell CSS (RAP, 2026-10-17 — the library alone indents the
+   text 48 and uses body-sm). Same values as the BO rules, so the BO computes the same.
+   The × / typing spinner are the library states (has-value / is-typing / is-ready) set by
+   js/search.js — or by js/facet-filter.js on pages without it.
+   ========================================================================== */
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-2, 2px) solid transparent;
+  border-radius: var(--border-radius-8, 8px);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+  color: var(--color-icon-base-tertiary, #757575);
+  display: flex;
+  gap: var(--spacing-8, 8px);
+  height: var(--spacing-40, 40px);
+  max-width: none;
+  min-height: var(--spacing-40, 40px);
+  min-width: 0;
+  padding: var(--spacing-0, 0px);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+  width: 100%;
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input:hover:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-base-tertiary, #b2b2b2);
+  box-shadow: none;
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input:focus-within:has(.input:not(:disabled):not([readonly])) {
+  border-color: var(--color-border-brand-default, #0058d2);
+  box-shadow: 0 0 0 var(--spacing-4, 4px) var(--blue-sky-200, #ccdef6);
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search .icon-search {
+  color: var(--color-icon-base-tertiary, #757575);
+  height: var(--spacing-20, 20px);
+  left: var(--spacing-12, 12px);
+  width: var(--spacing-20, 20px);
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input .input {
+  background: transparent;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  font-family: inherit;
+  font-weight: inherit;
+  line-height: var(--line-height-lh-20, 20px); /* size = the library body-sm (12 on phones), as in the BO */
+  min-width: 0;
+  outline: 0;
+  width: 100%;
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input:has(.icon-search) .input {
+  padding-left: var(--spacing-40, 40px);
+  padding-right: var(--spacing-12, 12px);
+}
+
+/* with a value the library clear (×) shows at the right: keep the text clear of it */
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search.search-input.has-value .input {
+  padding-right: var(--spacing-40, 40px);
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .e-permits-workplace__search .input::placeholder {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* typing spinner and × share one 20px slot; one clear button only (never the browser's) */
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .search-input .btn-group .spinner {
+  box-sizing: border-box;
+  height: var(--spacing-16, 16px);
+  margin: var(--spacing-2, 2px);
+  width: var(--spacing-16, 16px);
+}
+
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .search-input .input::-webkit-search-cancel-button,
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .search-input .input::-webkit-search-decoration {
+  appearance: none;
+  display: none;
+}
+
+/* phone mode: the toolbar button is hidden (the „Filtre” chip is the one entry point) — the
+   library .btn display would beat the [hidden] attribute */
+.e-permits-workplace__advanced[hidden] {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  /* „Filtre” chip: library chip with a leading icon (12 on the icon side), no chevron */
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all {
+    padding: var(--spacing-0, 0px) var(--spacing-16, 16px) var(--spacing-0, 0px) var(--spacing-12, 12px);
+  }
+
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all:has(.badge) {
+    padding-right: var(--spacing-12, 12px);
+  }
+}
+
+/* × hover one step darker — the BO rule (e-permits-acte-permisive.css „.search-input .btn-icon.clear:hover”),
+   restated for pages without that file; same value */
+:is(.e-permits-workplace__filter-pop, .e-permits-filter-sheet) .search-input .btn-icon.clear:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}

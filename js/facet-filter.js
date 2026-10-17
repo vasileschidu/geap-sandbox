@@ -23,7 +23,21 @@
      onPageChange()                 reset hook for pages that keep several states
      scrollers: [el]                scrolling an element closes the popover
      sprite                         icon sprite URL (sub-pages: "../assets/icons/sprite.svg")
-   }) → { render, close, clearAll } */
+     mobileSheets                   phone mode (≤760, opt-in, RAP — 2026-10-17): see below
+     preview(selection)             rows matching a selection that is not applied yet (the
+                                    sheets' live „Arată N rezultate”; falls back to total())
+   }) → { render, close, clearAll }
+
+   Phone mode (`mobileSheets: true`, ≤760px only; the BO does not opt in): the bar is always
+   visible as ONE horizontally scrolling row: „Filtre” (filter icon + total badge → the all-filters
+   sheet; the toolbar button is hidden — one entry point), then the facet chips (count badge per chip) + „N
+   rezultate · Șterge filtrele”; a chip opens a BOTTOM SHEET for its facet (library .bottom-sheet:
+   handle, title + „Resetează” + ×, search when > 7 values (as the popover), 44px checklist rows,
+   sticky footer „Arată N rezultate” with the live count — full width: with „Resetează” beside it a
+   4-digit count wrapped at 375); the button opens the same sheet with every facet as an
+   accordion section. A sheet commits on „Arată” (one query); ×, the scrim and Esc drop the changes.
+   No draft layer on phones. Research: scratchpad rap-mobile-filter-research.md (Baymard, NN/g,
+   Material 3, Apple HIG). */
 (function () {
   const escapeHtml = (value) =>
     String(value ?? "")
@@ -35,7 +49,40 @@
 
   const INLINE_MAX = 4;
 
+  /* The facet search is the library .search-input: its × / typing spinner follow the library
+     states (has-value → is-typing → is-ready) that js/search.js sets. Opted-in pages without that
+     file (RAP) get the same states from here — wired once, only for the filter's own fields. */
+  let searchStatesWired = false;
+  const wireSearchStates = () => {
+    if (searchStatesWired || document.querySelector('script[src*="js/search.js"]')) return;
+    searchStatesWired = true;
+    const timers = new WeakMap();
+    const SCOPE = ".e-permits-workplace__filter-pop .search-input, .e-permits-filter-sheet .search-input";
+    const reset = (field) => { field.classList.remove("has-value", "is-typing", "is-ready"); clearTimeout(timers.get(field)); };
+    document.addEventListener("input", (event) => {
+      const field = event.target.closest?.(SCOPE);
+      if (!field || !event.target.matches("input")) return;
+      if (!event.target.value.trim()) { reset(field); return; }
+      field.classList.add("has-value", "is-typing");
+      field.classList.remove("is-ready");
+      clearTimeout(timers.get(field));
+      timers.set(field, setTimeout(() => { field.classList.remove("is-typing"); field.classList.add("is-ready"); }, 500));
+    });
+    document.addEventListener("click", (event) => {
+      const clear = event.target.closest?.(".btn-icon.clear");
+      const field = clear?.closest(SCOPE);
+      if (!field) return;
+      event.preventDefault();
+      const input = field.querySelector("input");
+      input.value = "";
+      reset(field);
+      input.focus();
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  };
+
   function create(cfg) {
+    if (cfg.mobileSheets) wireSearchStates(); /* opt-in pages only: the others stay as they were */
     const bar = cfg.bar;
     const toggle = cfg.toggle;
     const count = cfg.count;
@@ -57,6 +104,12 @@
     /* library .search-input actions: spinner while typing + clear (×) — js/search.js */
     const searchActions = () => `<div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button></div>`;
 
+    const chipHtml = (facet, n, open) => `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
+        <span class="chip__label">${escapeHtml(facet.label)}</span>
+        ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
+        <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
+      </button>`;
+
     const render = () => {
       if (!bar) return;
       const state = cfg.state();
@@ -66,6 +119,8 @@
         if (cfg.onPageChange) cfg.onPageChange(); else { state.open = false; state.draft = null; }
         barPage = page;
       }
+      if (isPhone()) { renderPhone(); return; }
+      if (cfg.mobileSheets) { bar.classList.remove("is-sheets"); if (toggle) { toggle.hidden = false; toggle.removeAttribute("aria-haspopup"); } }
       const draft = draftOf();
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
@@ -84,15 +139,7 @@
       /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
       const inline = facets.filter((f, i) => i < INLINE_MAX || draft[f.key]?.length);
       const more = facets.filter((f) => !inline.includes(f));
-      const chip = (facet) => {
-        const n = draft[facet.key]?.length || 0;
-        const open = edit?.key === facet.key;
-        return `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
-        <span class="chip__label">${escapeHtml(facet.label)}</span>
-        ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
-        <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
-      </button>`;
-      };
+      const chip = (facet) => chipHtml(facet, draft[facet.key]?.length || 0, edit?.key === facet.key);
       const isPending = pending();
       const total = cfg.total();
       bar.innerHTML = `
@@ -116,6 +163,269 @@
     `;
     };
 
+    /* ---- phone mode (mobileSheets): chip row + bottom sheets ---- */
+    const phoneQuery = cfg.mobileSheets ? window.matchMedia("(max-width: 760px)") : null;
+    const isPhone = () => !!phoneQuery?.matches;
+    const SHEET_SEARCH_MIN = 8; /* search inside a facet with 8+ values (the popover's rule: > 7) */
+    let sheetEl = null;
+    let sheet = null; /* { kind: "facet" | "all", key, sel: { key: [values] }, query: { key }, expanded: Set, opener } */
+    let sheetTimer = 0;
+    const resultsLabel = (n) => {
+      const rest = n % 100;
+      return n === 1 ? "1 rezultat" : `${n}${n >= 20 && (rest === 0 || rest >= 20) ? " de" : ""} rezultate`;
+    };
+    const copySel = (sel) => Object.fromEntries(Object.entries(sel || {}).filter(([, v]) => v?.length).map(([k, v]) => [k, [...v]]));
+    const selCount = (sel) => Object.values(sel).reduce((sum, v) => sum + (v?.length || 0), 0);
+
+    const renderPhone = () => {
+      const state = cfg.state();
+      state.draft = null;
+      const applied = state.applied;
+      const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
+      if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
+      const facets = cfg.facets();
+      bar.classList.add("is-sheets");
+      bar.hidden = !facets.length;
+      if (toggle) {
+        /* one entry point on phones: the „Filtre” chip replaces the toolbar button */
+        toggle.hidden = true;
+        toggle.setAttribute("aria-haspopup", "dialog");
+        toggle.setAttribute("aria-expanded", String(sheet?.kind === "all"));
+        if (!facets.length) { toggle.setAttribute("aria-disabled", "true"); toggle.dataset.tooltipReason = "Lista nu are încă valori după care să filtrezi."; }
+        else { toggle.removeAttribute("aria-disabled"); delete toggle.dataset.tooltipReason; }
+      }
+      if (!facets.length) { bar.innerHTML = ""; return; }
+      const total = cfg.total();
+      bar.innerHTML = `
+      <div class="e-permits-workplace__filter-chips">
+        <button class="chip${appliedCount ? " is-selected" : ""} e-permits-workplace__filter-chip e-permits-workplace__filter-chip--all" type="button" aria-haspopup="dialog" aria-expanded="${sheet?.kind === "all"}" data-filter-all${appliedCount ? ` aria-label="Filtre: ${appliedCount} ${appliedCount === 1 ? "valoare aplicată" : "valori aplicate"}"` : ""}>
+          <span class="chip__icon"><svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtre</span>
+          ${appliedCount ? `<span class="badge badge--lg badge--solid-light">${appliedCount}</span>` : ""}
+        </button>
+        ${facets.map((f) => chipHtml(f, applied[f.key]?.length || 0, sheet?.kind === "facet" && sheet.key === f.key)).join("")}
+      </div>
+      ${appliedCount ? `<div class="e-permits-workplace__filter-meta" aria-live="polite">
+        <span class="e-permits-workplace__filter-result">${resultsLabel(total)}</span>
+        <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>
+      </div>` : ""}
+    `;
+    };
+
+    const sheetOptionsHtml = (facet) => {
+      const values = new Set(sheet.sel[facet.key] || []);
+      const q = (sheet.query[facet.key] || "").trim().toLocaleLowerCase("ro");
+      const all = cfg.options(facet, sheet.sel);
+      /* values ticked in the sheet stay listed even when the other facets leave them no rows */
+      values.forEach((v) => { if (!all.some((o) => o.value === v)) all.push({ value: v, count: 0 }); });
+      const options = all.filter((o) => !q || o.value.toLocaleLowerCase("ro").includes(q));
+      return options.length ? options.map((o) => {
+        const tag = tagOf(o.value, facet);
+        return `
+        <li>
+          <label class="e-permits-workplace__filter-option">
+            <span class="checkbox checkbox--medium"><input class="checkbox-input" type="checkbox" value="${escapeHtml(o.value)}"${values.has(o.value) ? " checked" : ""} data-filter-option data-sheet-facet="${escapeHtml(facet.key)}"><span class="checkbox-custom" aria-hidden="true"></span></span>
+            ${tag || `<span class="e-permits-workplace__filter-option-label">${escapeHtml(o.value)}</span>`}
+          </label>
+        </li>`;
+      }).join("") : `<li>${window.GEAPEmptyState.noResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
+    };
+
+    const sheetFacetHtml = (facet) => {
+      const many = cfg.options(facet, sheet.sel).length >= SHEET_SEARCH_MIN;
+      return `
+      ${many ? `
+        <div class="e-permits-filter-sheet__search">
+          <div class="search-input medium rectangular e-permits-workplace__search${sheet.query[facet.key] ? " has-value is-ready" : ""}">
+            <span class="icon-search" aria-hidden="true"><svg class="icon" width="20" height="20"><use href="${sprite}#icon-search"></use></svg></span>
+            <input class="input" type="search" placeholder="Caută în ${escapeHtml(facet.label.toLocaleLowerCase("ro"))}" aria-label="Caută în ${escapeHtml(facet.label)}" value="${escapeHtml(sheet.query[facet.key] || "")}" data-filter-search data-sheet-facet="${escapeHtml(facet.key)}">
+            ${searchActions()}
+          </div>
+        </div>` : ""}
+      <ul class="e-permits-workplace__filter-list e-permits-filter-sheet__list" role="list" data-sheet-list="${escapeHtml(facet.key)}">${sheetOptionsHtml(facet)}</ul>`;
+    };
+
+    const sectionSummary = (facet) => (sheet.sel[facet.key] || []).join(", ");
+    const sectionHtml = (facet) => {
+      const open = sheet.expanded.has(facet.key);
+      const id = `geap-filter-sheet-${facet.key.replace(/[^a-z0-9_-]/gi, "")}`;
+      const summary = sectionSummary(facet);
+      return `
+      <section class="e-permits-filter-sheet__section" data-sheet-section="${escapeHtml(facet.key)}">
+        <h3 class="e-permits-filter-sheet__section-head">
+          <button class="e-permits-filter-sheet__section-trigger" type="button" aria-expanded="${open}" aria-controls="${id}" data-sheet-toggle="${escapeHtml(facet.key)}">
+            <span class="e-permits-filter-sheet__section-text">
+              <span class="e-permits-filter-sheet__section-label">${escapeHtml(facet.label)}</span>
+              <span class="e-permits-filter-sheet__section-summary" title="${escapeHtml(summary)}" data-sheet-summary${summary ? "" : " hidden"}>${escapeHtml(summary)}</span>
+            </span>
+            <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
+          </button>
+        </h3>
+        <div class="e-permits-filter-sheet__section-panel" id="${id}" role="group" aria-label="${escapeHtml(facet.label)}"${open ? "" : " hidden"}>${open ? sheetFacetHtml(facet) : ""}</div>
+      </section>`;
+    };
+
+    const syncSheetFooter = () => {
+      if (!sheetEl || !sheet) return;
+      const n = cfg.preview ? cfg.preview(copySel(sheet.sel)) : cfg.total();
+      sheetEl.querySelector("[data-sheet-apply]").textContent = `Arată ${resultsLabel(n)}`;
+      const empty = sheet.kind === "facet" ? !(sheet.sel[sheet.key] || []).length : !selCount(sheet.sel);
+      sheetEl.querySelector("[data-sheet-reset]").disabled = empty;
+    };
+
+    const renderSheetBody = () => {
+      const body = sheetEl.querySelector("[data-sheet-body]");
+      if (sheet.kind === "facet") body.innerHTML = sheetFacetHtml(cfg.allFacets().find((f) => f.key === sheet.key));
+      else body.innerHTML = `<div class="e-permits-filter-sheet__sections">${cfg.facets().map(sectionHtml).join("")}</div>`;
+      syncSheetFooter();
+    };
+
+    const ensureSheet = () => {
+      if (sheetEl) return;
+      sheetEl = document.createElement("div");
+      sheetEl.className = "bottom-sheet e-permits-filter-sheet";
+      sheetEl.setAttribute("aria-hidden", "true");
+      sheetEl.hidden = true;
+      sheetEl.innerHTML = `
+      <div class="bottom-sheet__overlay" data-sheet-close></div>
+      <div class="bottom-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="geap-filter-sheet-title" tabindex="-1">
+        <div class="bottom-sheet__handle" aria-hidden="true"></div>
+        <div class="bottom-sheet__header">
+          <h2 class="bottom-sheet__header--title" id="geap-filter-sheet-title" data-sheet-title></h2>
+          <button class="btn btn-text-neutral btn-sm" type="button" data-sheet-reset>Resetează</button>
+          <button type="button" class="modal-close" aria-label="Închide" data-sheet-close>
+            <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg></span>
+          </button>
+        </div>
+        <div class="bottom-sheet__content" data-sheet-body></div>
+        <div class="bottom-sheet__footer e-permits-filter-sheet__footer">
+          <button class="btn btn-primary btn-lg e-permits-filter-sheet__apply" type="button" data-sheet-apply></button>
+        </div>
+      </div>`;
+      document.body.appendChild(sheetEl);
+      wireSheet();
+    };
+
+    const openSheet = (kind, key, opener) => {
+      if (!isPhone()) return;
+      ensureSheet();
+      const applied = cfg.state().applied;
+      const facets = cfg.facets();
+      sheet = {
+        kind, key, opener, sel: copySel(applied), query: {},
+        /* all filters: the sections that hold a value start open; none → the first one */
+        expanded: new Set(kind === "all" ? facets.filter((f) => applied[f.key]?.length).map((f) => f.key) : [])
+      };
+      if (kind === "all" && !sheet.expanded.size && facets[0]) sheet.expanded.add(facets[0].key);
+      const facet = kind === "facet" ? cfg.allFacets().find((f) => f.key === key) : null;
+      sheetEl.querySelector("[data-sheet-title]").textContent = facet ? facet.label : "Filtre";
+      sheetEl.classList.toggle("is-all", kind === "all");
+      renderSheetBody();
+      window.clearTimeout(sheetTimer);
+      sheetEl.hidden = false;
+      void sheetEl.offsetHeight; /* the slide-in starts from the closed position */
+      sheetEl.setAttribute("aria-hidden", "false");
+      document.documentElement.classList.add("is-filter-sheet-open");
+      render();
+      requestAnimationFrame(() => sheetEl.querySelector(".bottom-sheet__panel").focus());
+    };
+
+    const closeSheet = (restoreFocus = true) => {
+      if (!sheet) return;
+      const { kind, key, opener } = sheet;
+      sheet = null;
+      sheetEl.setAttribute("aria-hidden", "true");
+      document.documentElement.classList.remove("is-filter-sheet-open");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      sheetTimer = window.setTimeout(() => { if (!sheet) sheetEl.hidden = true; }, reduce ? 0 : 300);
+      render();
+      if (!restoreFocus) return;
+      const back = kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : bar?.querySelector("[data-filter-all]");
+      (back || opener)?.focus();
+    };
+
+    /* „Arată N rezultate”: the sheet's selection becomes the applied filter (one query) */
+    const applySheet = () => {
+      const state = cfg.state();
+      state.applied = copySel(sheet.sel);
+      state.draft = null;
+      save();
+      const { kind, key } = sheet;
+      sheet = null;
+      sheetEl.setAttribute("aria-hidden", "true");
+      document.documentElement.classList.remove("is-filter-sheet-open");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      sheetTimer = window.setTimeout(() => { if (!sheet) sheetEl.hidden = true; }, reduce ? 0 : 300);
+      cfg.apply();
+      bar?.querySelector(kind === "facet" ? `[data-filter-facet="${CSS.escape(key)}"]` : "[data-filter-all]")?.focus();
+    };
+
+    function wireSheet() {
+      sheetEl.addEventListener("click", (event) => {
+        if (!sheet) return;
+        if (event.target.closest("[data-sheet-close]")) { closeSheet(); return; }
+        if (event.target.closest("[data-sheet-apply]")) { applySheet(); return; }
+        if (event.target.closest("[data-sheet-reset]")) {
+          if (sheet.kind === "facet") delete sheet.sel[sheet.key]; else sheet.sel = {};
+          sheetEl.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
+          sheetEl.querySelectorAll("[data-sheet-summary]").forEach((el) => { el.textContent = ""; el.hidden = true; });
+          syncSheetFooter();
+          sheetEl.querySelector("[data-sheet-apply]").focus();
+          return;
+        }
+        const toggleBtn = event.target.closest("[data-sheet-toggle]");
+        if (toggleBtn) {
+          const key = toggleBtn.dataset.sheetToggle;
+          const facet = cfg.allFacets().find((f) => f.key === key);
+          const panel = sheetEl.querySelector(`#${CSS.escape(toggleBtn.getAttribute("aria-controls"))}`);
+          const open = !sheet.expanded.has(key);
+          if (open) sheet.expanded.add(key); else sheet.expanded.delete(key);
+          toggleBtn.setAttribute("aria-expanded", String(open));
+          toggleBtn.querySelector(".e-permits-workplace__filter-caret use").setAttribute("href", `${sprite}#icon-chevron-${open ? "top" : "bottom"}`);
+          panel.innerHTML = open ? sheetFacetHtml(facet) : "";
+          panel.hidden = !open;
+        }
+      });
+      sheetEl.addEventListener("change", (event) => {
+        const box = event.target.closest("[data-filter-option]");
+        if (!box || !sheet) return;
+        const key = box.dataset.sheetFacet;
+        const values = new Set(sheet.sel[key] || []);
+        if (box.checked) values.add(box.value); else values.delete(box.value);
+        if (values.size) sheet.sel[key] = [...values]; else delete sheet.sel[key];
+        const summary = sheetEl.querySelector(`[data-sheet-section="${CSS.escape(key)}"] [data-sheet-summary]`);
+        if (summary) { summary.textContent = sectionSummary({ key }); summary.title = summary.textContent; summary.hidden = !summary.textContent; }
+        syncSheetFooter();
+      });
+      sheetEl.addEventListener("input", (event) => {
+        const field = event.target.closest("[data-filter-search]");
+        if (!field || !sheet) return;
+        const key = field.dataset.sheetFacet;
+        sheet.query[key] = field.value;
+        const facet = cfg.allFacets().find((f) => f.key === key);
+        sheetEl.querySelector(`[data-sheet-list="${CSS.escape(key)}"]`).innerHTML = sheetOptionsHtml(facet);
+      });
+      /* Esc closes without applying; Tab stays inside the sheet (aria-modal) */
+      sheetEl.addEventListener("keydown", (event) => {
+        if (!sheet) return;
+        if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSheet(); return; }
+        if (event.key !== "Tab") return;
+        const items = [...sheetEl.querySelectorAll(".bottom-sheet__panel :is(button, input, [href], [tabindex]:not([tabindex='-1'])):not(:disabled)")].filter((el) => el.offsetParent || el.getClientRects().length);
+        if (!items.length) return;
+        const first = items[0];
+        const last = items[items.length - 1];
+        const active = document.activeElement;
+        if (event.shiftKey && (active === first || !sheetEl.contains(active) || active.classList.contains("bottom-sheet__panel"))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+      });
+    }
+
+    phoneQuery?.addEventListener("change", () => {
+      closeSheet(false);
+      cfg.state().draft = null;
+      if (popover && !popover.hidden) close(false); else render();
+    });
+
     const ensurePopover = () => {
       if (popover) return;
       popover = document.createElement("div");
@@ -133,6 +443,7 @@
     };
 
     const close = (restoreFocus = true) => {
+      if (sheet) closeSheet(restoreFocus);
       if (!popover || popover.hidden) return;
       const key = edit?.key;
       const wasMore = moreOpen;
@@ -270,6 +581,7 @@
 
     toggle?.addEventListener("click", () => {
       if (toggle.getAttribute("aria-disabled") === "true") return;
+      if (isPhone()) { openSheet("all", null, toggle); return; }
       const state = cfg.state();
       const visible = !bar.hidden;
       if (visible && pending()) { bar.querySelector("[data-filter-commit]")?.focus(); return; }
@@ -285,8 +597,11 @@
       if (event.target.closest("[data-filter-discard]")) { discard(); return; }
       const more = event.target.closest("[data-filter-more]");
       if (more) { if (moreOpen) close(); else openMore(more); return; }
+      const all = event.target.closest("[data-filter-all]");
+      if (all) { openSheet("all", null, all); return; }
       const chip = event.target.closest("[data-filter-facet]");
       if (!chip) return;
+      if (isPhone()) { openSheet("facet", chip.dataset.filterFacet, chip); return; }
       if (edit?.key === chip.dataset.filterFacet) { close(); return; }
       openFacet(chip.dataset.filterFacet, chip);
     });

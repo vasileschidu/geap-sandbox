@@ -1068,3 +1068,36 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-17 · Shared tree with 3 agents (coordinator hunks in rap-evo.*, a third agent in facet-filter.* + rap-04 states
   + page `?v=` bumps): every edit of mine was an asserted (file, old, new) pair in scratch `edits/p*.py`, applied to the
   tree AND later to the HEAD blobs to stage only my hunks (+ the hunks the coordinator asked me to include).
+- 2026-10-17 · RAP phone filter (research → build): the facet filter got an OPT-IN phone mode (`mobileSheets`, ≤760) in
+  the shared file — the BO stays byte-identical because every phone line sits behind `isPhone()` and the shared chip
+  markup became one `chipHtml(facet, n, open)` used by both paths. Proof = scratch bocmp.mjs (toggle → chip → option →
+  Confirmă → Aplică, snapshotting bar / popover outerHTML + computed styles) on srv-01 / dos-05 / rap-01…01d at 1440
+  and 375, HEAD worktree vs tree: all SAME. RAP desktop first differed only because the other agent's uncommitted
+  data was in the tree → copy their files into the HEAD worktree and reverse MY hunks there; then compare.
+- 2026-10-17 · BUG I made: a new config hook `count(selection)` collided with the existing `count` key (the badge
+  element) — the later object key silently won, the badge never showed and nothing errored. Grep the config's
+  existing keys (and the page's call) before naming a hook (→ `preview`).
+- 2026-10-17 · A sticky footer „Resetează” + „Arată 1567 de rezultate” wrapped the primary to 2 lines at 375 (it
+  cannot fit at 320 at all) → the primary takes the footer, the reset moves to the sheet header (Zalando / Amazon /
+  iOS). Measure a live-count label with 4 digits at 320 before putting anything beside it. Romanian plural: ≥ 20
+  with last two digits 00 or ≥ 20 takes „de” (`resultsLabel`).
+- 2026-10-17 · Library traps: `label { margin-bottom: 6px }` makes checklist rows 6 taller (44 → 50 in the sheet;
+  the desktop popover is 42 everywhere, BO included); the library `.bottom-sheet__panel` has `min-height: 45vh` and
+  squares its corners ≤768; its bare `__close` is a text „×” → use `.modal-close` static. A brief's threshold („search
+  when > 8 values”) met data with exactly 8 values → reuse the component's existing rule (> 7) so the asked demo works.
+- 2026-10-17 · QA at phone widths: hover-audit is fixed at 1440 (sheets never render there) → run a temporary copy
+  with the width from an env var (700, mouse) and delete it. A behaviour probe clicked `[data-sheet-close]` = the
+  SCRIM (first in DOM), whose centre lay on the panel → a false „× doesn't close”; probe selectors must be the exact
+  element. Mobbin MCP (playbook research note) was not available in this session — said so in the research.
+- 2026-10-17 · User corrections mid-job: (1) phones showed BOTH the icon-only „Filtru” button and the chip row → ONE
+  entry point: the search takes the row, the first chip „Filtre” (filter icon + total badge) opens all filters (Google
+  Shopping / Airbnb / Zalando). When a mode adds an entry point, remove the old one in that mode. (2) „the search in
+  the Autoritate sheet is not the library one”: the markup WAS the library `.search-input`, but its BO look lives in
+  e-permits-shell.css and the × states in js/search.js — neither loads on RAP, so the library defaults showed (text
+  at 48, 16px placeholder, no ×). The RAP DESKTOP popover had the same bug since 2026-10-16. A shared component on a
+  page without the shell must restate its BO values (same values, scoped) and its JS states — measure the field on
+  both pages (scratch srch.mjs: box / input / placeholder / icon) before saying „it is the library one”. Restating
+  font-size flipped the BO phone input (library body-sm 12 beats the shell's 14 there) → restate only what the BO
+  actually computes; the 375 compare caught it.
+- 2026-10-17 · Two scratch CDP scripts started in parallel picked the same random debugging port and drove ONE Chrome
+  (srv-01 suddenly showed the RAP page) → run compare scripts sequentially or give them disjoint port ranges.

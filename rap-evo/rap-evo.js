@@ -866,7 +866,7 @@
 
   const totalActiveFilters = () => Object.values(state.filter.applied).reduce((total, values) => total + (values?.length || 0), 0);
   const facetValues = (facet, record) => [].concat(facet.get(record) ?? []).filter(Boolean);
-  const matchesFacets = (record, except = null) => Object.entries(state.filter.applied).every(([key, values]) => {
+  const matchesFacets = (record, except = null, selection = state.filter.applied) => Object.entries(selection).every(([key, values]) => {
     if (key === except || !values?.length) return true;
     const facet = FACETS.find((f) => f.key === key);
     return !facet || facetValues(facet, record).some((value) => values.includes(value));
@@ -1013,13 +1013,14 @@
     facetFilter?.render();
   };
 
-  const facetOptions = (facet) => {
+  /* selection: the phone sheets ask for the options / counts of a selection not applied yet */
+  const facetOptions = (facet, selection = state.filter.applied) => {
     const counts = new Map();
     for (const record of state.records) {
-      if (!matchesSearch(record) || !matchesFacets(record, facet.key)) continue;
+      if (!matchesSearch(record) || !matchesFacets(record, facet.key, selection)) continue;
       for (const value of new Set(facetValues(facet, record))) counts.set(value, (counts.get(value) || 0) + 1);
     }
-    for (const value of state.filter.applied[facet.key] || []) if (!counts.has(value)) counts.set(value, 0);
+    for (const value of selection[facet.key] || []) if (!counts.has(value)) counts.set(value, 0);
     return [...counts.entries()].map(([value, count]) => ({ value, count })).sort((a, b) => a.value.localeCompare(b.value, "ro", { numeric: true }));
   };
 
@@ -1045,6 +1046,9 @@
       tag: (value, facet) => (facet.key !== "status" ? null : value === TACIT_MARK
         ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--info">${TACIT_MARK}</span>` : statusTag(value)),
       total: () => state.filteredRecords.length,
+      /* phones: one scrolling chip row + bottom sheets with a live „Arată N rezultate” */
+      mobileSheets: true,
+      preview: (selection) => state.records.filter((record) => matchesSearch(record) && matchesFacets(record, null, selection)).length,
       apply: () => { state.page = 1; applyFilters(); },
       scrollers: [elements.tableScroller]
     });

@@ -1952,25 +1952,59 @@
     ...(() => {
       const RAP = "rap-evo/index.html";
       const rap = (run) => ({ page: RAP, ready: "tr[data-record-id]", run });
+      /* phones (≤760, facet filter phone mode): no toolbar button, a chip opens its bottom sheet and
+         „Arată N rezultate” applies it — no „Confirmă” / „Aplică filtrele” */
+      const phone = () => window.matchMedia("(max-width: 760px)").matches;
       const pick = (facet, values) => async (h) => {
         await h.click(`[data-filter-facet="${facet}"]`);
         for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
-        await h.click("[data-filter-confirm]");
+        await h.click(phone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
+        if (phone()) await h.wait(400);
       };
-      const open = async (h) => { await h.click("[data-rap-filter-toggle]"); };
+      const open = async (h) => { if (!phone()) await h.click("[data-rap-filter-toggle]"); };
+      const commit = async (h) => { if (!phone()) await h.click("[data-filter-commit]"); };
       return {
         "rap-01": rap(null),
         "rap-01a": rap(open),
         "rap-01b": rap(async (h) => { await open(h); await h.click('[data-filter-facet="status"]'); await h.click('[data-filter-option][value="Valabil"]'); }),
         "rap-01c": rap(async (h) => {
           await open(h); await pick("status", ["Valabil"])(h); await pick("denumire", ["Notificare unitate comercială"])(h);
-          await pick("beneficiar", ["Persoană juridică"])(h); await h.click("[data-filter-commit]");
+          await pick("beneficiar", ["Persoană juridică"])(h); await commit(h);
         }),
         "rap-01g": rap(async (h) => { await h.click('[data-record-id="rap-0002"] a'); await h.wait(300); await h.click("[data-rap-company-permits]"); await h.wait(300); }),
         /* company view („Vezi toate (N)”): the company card + the act counts in a separate grey card */
         "rap-01d": rap(async (h) => {
-          await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await h.click("[data-filter-commit]");
+          /* phones: the sheet lists only values that still have rows (no dead ends), so the empty
+             result comes from one filter + a search that matches nothing */
+          if (phone()) { await pick("beneficiar", ["Persoană fizică"])(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600); return; }
+          await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h);
         }),
+        /* phones (≤760): the facet filter's phone mode — ONE scrolling chip row („Filtre” first = all
+           filters, then a chip per facet), a bottom sheet per facet (search when > 7 values), the
+           all-filters sheet, applied chips with counts. On desktop the same ids run the BO bar /
+           popover path (desktop unchanged) */
+        ...(() => {
+          const sheetReady = async (h) => { await h.find('.e-permits-filter-sheet[aria-hidden="false"] .bottom-sheet__panel'); await h.wait(400); };
+          const chipSheet = (facet, run) => async (h) => {
+            if (!phone()) await open(h);
+            await h.click(`[data-filter-facet="${facet}"]`);
+            if (phone()) await sheetReady(h);
+            if (run) await run(h);
+          };
+          return {
+            "rap-04": rap(null),
+            "rap-04a": rap(chipSheet("status", async (h) => { await h.click('[data-filter-option][value="Valabil"]'); })),
+            "rap-04b": rap(chipSheet("autoritate", async (h) => { await h.fill("[data-filter-search]", "agen", { leave: false }); await h.wait(700); })),
+            "rap-04c": rap(async (h) => {
+              if (!phone()) { await open(h); return; }
+              await h.click("[data-filter-all]"); await sheetReady(h);
+              await h.click('[data-filter-option][data-sheet-facet="status"][value="Valabil"]');
+            }),
+            "rap-04d": rap(async (h) => {
+              await open(h); await pick("status", ["Valabil", "Suspendat"])(h); await pick("beneficiar", ["Persoană juridică"])(h); await commit(h);
+            }),
+          };
+        })(),
         /* a very long act name (Figma comment A. 1968942771): one line + ellipsis, the full name in the
            shared tooltip on hover · a tacitly approved act: only the blue „Aprobare tacită” badge in Statut */
         "rap-01e": rap(async (h) => { await h.scroll('tr[data-record-id="rap-0015"]'); await h.hover('tr[data-record-id="rap-0015"] .rap-act-link'); await h.wait(300); }),
