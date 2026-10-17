@@ -901,7 +901,7 @@
     root.innerHTML = `
       <article class="cab-detail sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
         ${C.pageHeader({
-          crumbs: [{ label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" }, { label: service.title || "" }, { label: dosar.nr }],
+          back: { label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" },
           title: dosar.object,
           titleId: "sm-profile-title",
           meta: headerMeta(dosar),

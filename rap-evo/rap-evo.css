@@ -957,21 +957,9 @@ a {
   padding: 0 var(--spacing-24, 24px) var(--spacing-64, 64px);
 }
 
-/* BO page header + sections (css/bo-profile-parts.css); horizontally the header keeps the
-   sections' 12 inset so the breadcrumb, the title and the section titles share one edge */
-.rap-profile__header .e-permits-page-header__body {
-  padding-inline: var(--spacing-12, 12px);
-}
-
-/* the act's full name is never truncated on its own page (user 2026-10-17): the title wraps */
-.rap-profile__title-row > .e-permits-page-header__title {
-  flex: 0 1 auto;
-  overflow: visible;
-  overflow-wrap: break-word;
-  text-overflow: clip;
-  white-space: normal;
-}
-
+/* BO page header + sections (css/bo-profile-parts.css, the public header modifier
+   .e-permits-page-header--public: 12 inset, 16 breadcrumb → title, wrapping title, the action
+   under the meta, the phone meta grid) */
 .rap-profile__title-row > .e-permits-workplace__tag {
   flex: 0 0 auto;
 }
@@ -987,12 +975,6 @@ a {
   display: flex;
   gap: var(--spacing-8, 8px);
   min-width: 0;
-}
-
-/* the library primary button (btn btn-primary btn-md) — only its place in the header here */
-.rap-profile__document-button.btn {
-  align-self: flex-start;
-  margin-top: var(--spacing-8, 8px);
 }
 
 .rap-profile__beneficiary-card,
@@ -2087,22 +2069,6 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
 
 /* AC-09 „Imprimă”: only the A4 page(s), at their real size = GEAPDocPreview.print (css/doc-preview.css) */
 
-/* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
-   separator, not 8 — („Vezi act permisiv” = the plain library btn-primary btn-md, hugging, on every width) */
-@media (max-width: 760px) {
-  /* 2 rows of 2, equal columns, no separators (user 2026-10-17) */
-  .rap-profile__header .e-permits-page-header__meta {
-    column-gap: var(--spacing-16, 16px);
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .rap-profile__header .e-permits-page-header__meta-item::before {
-    content: none;
-  }
-
-
-}
 
 /* phones (user 2026-10-17): the table runs edge to edge — out of the 16px page gutter, no rounded
    corners, no side borders (top / bottom lines only), so every column gets the full width */
@@ -2197,8 +2163,4 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
   }
 }
 
-/* breadcrumb → title: the same 16 as on the RAP list page (user 2026-10-17: „too close in the
-   profile”); the BO header keeps its own 8 */
-.rap-profile__header .e-permits-page-header__heading {
-  gap: var(--spacing-16, 16px);
-}
+/* breadcrumb → title 16: css/bo-profile-parts.css (.e-permits-page-header--public) */

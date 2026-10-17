@@ -272,7 +272,7 @@
 
     elements.profileView.innerHTML = `
       <div class="rap-profile__container">
-        <header class="e-permits-page-header rap-profile__header">
+        <header class="e-permits-page-header e-permits-page-header--public rap-profile__header">
           <div class="e-permits-page-header__body">
             <div class="e-permits-page-header__top">
               <div class="e-permits-page-header__heading">
@@ -299,7 +299,7 @@
               ${renderProfileSummaryItem(headerDateLabel, headerDateValue)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
-            <button class="btn btn-primary btn-md rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
+            <button class="btn btn-primary btn-md e-permits-page-header__action rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
               ${icon("eye-open", "icon small")}
               <span>Vezi act permisiv</span>
             </button>

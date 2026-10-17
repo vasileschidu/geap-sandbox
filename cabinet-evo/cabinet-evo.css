@@ -30,7 +30,8 @@
   --color-text-base-inverse-on-color: #ffffff;
 
   --cab-shell-width: 1248px;
-  --cab-content-width: 860px;
+  /* = the RAP profile column (user 2026-10-17): 1024 fixed, fills below it */
+  --cab-content-width: 1024px;
 }
 
 /* ---------- layout ---------- */
@@ -433,10 +434,14 @@
   }
 }
 
-@media (max-width: 600px) {
+/* phones: the RAP gutters (16 from 760 down, 24 above) */
+@media (max-width: 760px) {
   .cab-main {
     padding: var(--spacing-24, 24px) var(--spacing-16, 16px) var(--spacing-48, 48px);
   }
+}
+
+@media (max-width: 600px) {
 
   .cab-card__head {
     align-items: flex-start;
@@ -1325,16 +1330,15 @@
   justify-content: space-between;
 }
 
-/* profiles (dosar, act, catalog service) open with the BO detail header at the page
-   column width (user, 2026-10-12): no 16px inset (the column already has its gutter),
-   then 24 to the first block */
-.cab-page-header .e-permits-page-header__body {
-  padding: 0;
+/* profiles (request, act, catalog service) = the RAP profile: the public BO header
+   (css/bo-profile-parts.css, 16 top · 12 inset) starts right under the top bar — the list's 32
+   (24 on phones) top padding is not added above it (2026-10-17) */
+.cab-main:has([data-cab-profile-header]:not([hidden] *)) {
+  padding-top: 0;
 }
 
 .cab-page-header {
   background: transparent;
-  margin-bottom: var(--spacing-24, 24px);
 }
 
 .cab-page-header .e-permits-page-header__meta .e-permits-fo-copy-value {

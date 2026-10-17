@@ -1,6 +1,9 @@
 /* ==========================================================================
    BO profile parts for pages that do NOT load the BO stylesheets (e-permits-shell.css /
-   e-permits-acte-permisive.css) — today only the public RAP act profile (rap-evo/).
+   e-permits-acte-permisive.css) — the public RAP act profile (rap-evo/) and the EVO Cabinet
+   profiles (cabinet-evo/: request, act, catalog service — 2026-10-17). The Cabinet page loads
+   e-permits-acte-permisive.css for the FO parts, but NOT the BO scope ([data-demo-flow=back-office]),
+   so the scoped BO values come from here (loaded after it).
    The markup and class names are the BO ones (renderPageHeaderTop / renderPageHeaderMeta,
    .e-permits-dosar-profil__section / __card / __row, renderTag); the values are the
    computed values of the BO screens (dos-01 Identificare, svc-01 Date generale, ntpl-03
@@ -350,6 +353,82 @@
   font-weight: var(--font-weight-fw-regular, 400);
   line-height: var(--line-height-lh-20, 20px);
   margin: 0;
+}
+
+/* ---- Public profile header (`.e-permits-page-header--public`, 2026-10-17): the BO page header on a
+   public page — RAP act profile and every EVO Cabinet profile. One block for both, moved from
+   rap-evo.css (user 2026-10-17: breadcrumb → title 16 „as on the list page”, the full name wraps,
+   the primary action = the library btn-primary btn-md, hugging, under the meta). Markup:
+   header.e-permits-page-header.e-permits-page-header--public > __body > __top > __heading
+   (nav.breadcrumbs.breadcrumbs--trailing [desktop trail] + nav.breadcrumbs.breadcrumbs--mobile
+   [‹ parent], h1.__title) · __meta · .btn.btn-primary.btn-md.__action. ---- */
+.e-permits-page-header--public .e-permits-page-header__body {
+  padding-inline: var(--spacing-12, 12px);
+}
+
+.e-permits-page-header--public .e-permits-page-header__heading {
+  gap: var(--spacing-16, 16px);
+}
+
+/* the full name is never truncated on its own page: the title wraps */
+.e-permits-page-header--public .e-permits-page-header__title {
+  flex: 0 1 auto;
+  overflow: visible;
+  overflow-wrap: break-word;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.e-permits-page-header--public .e-permits-page-header__action.btn {
+  align-self: flex-start;
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* several actions (EVO Cabinet: primary + a neutral one) = one hugging row, 8 apart */
+.e-permits-page-header__action-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8, 8px);
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* breadcrumbs (Figma breadcrumbs 📏 Breakpoint): Desktop = the trail with a trailing chevron;
+   Mobile (≤760) = the library .breadcrumbs--mobile — ‹ + the parent level only, one line */
+.e-permits-page-header--public .breadcrumbs {
+  min-height: var(--spacing-20, 20px);
+}
+
+.e-permits-page-header--public .breadcrumbs--mobile {
+  display: none;
+}
+
+.e-permits-page-header__crumb-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .e-permits-page-header--public .breadcrumbs:not(.breadcrumbs--mobile) {
+    display: none;
+  }
+
+  .e-permits-page-header--public .breadcrumbs--mobile {
+    display: flex;
+  }
+
+  /* 2 rows of 2, equal columns, no separators, 16 between the columns (user 2026-10-17) */
+  .e-permits-page-header--public .e-permits-page-header__meta {
+    column-gap: var(--spacing-16, 16px);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .e-permits-page-header--public .e-permits-page-header__meta-item::before {
+    content: none;
+  }
 }
 
 /* ---- phones (BO ≤760, e-permits-acte-permisive.css :18323 header, :16932 sections) ---- */

@@ -545,7 +545,7 @@
     panel.hidden = false;
     panel.innerHTML = `
       ${pageHeader({
-        crumbs: [{ label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" }, { label: act.service.title || "" }, { label: act.number }],
+        back: { label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" },
         title: act.title,
         meta: [
           ["Numărul actului", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)],
@@ -632,29 +632,32 @@
   }
 
 
-  /* the back-office detail header (.e-permits-page-header, Figma 8993:37914), used by every
-     cabinet profile (dosar, act, catalog service) at the page column width: breadcrumbs
-     (links carry their data-* hook) over the 24/32 title, an optional aside (tags), then the
-     meta row of label / value pairs split by vertical separators (user, 2026-10-12) */
-  function pageHeader({ crumbs = [], title = "", titleId = "", aside = "", meta = [] }) {
-    const trail = crumbs.map((crumb, index) => index < crumbs.length - 1
-      ? `<li class="breadcrumbs__item"><a class="breadcrumbs__link" href="${escape(crumb.href || "#")}" ${crumb.attr || ""}>${escape(crumb.label)}</a></li>`
-      : `<li class="breadcrumbs__item is-selected"><span class="breadcrumbs__current" aria-current="page">${escape(crumb.label)}</span></li>`).join("");
+  /* every Cabinet profile (request, act, catalog service) opens with the RAP / BO public page header
+     (.e-permits-page-header--public, css/bo-profile-parts.css — 2026-10-17 alignment): desktop = the
+     parent trail with a trailing chevron, phones = „‹ parent” (library breadcrumbs Breakpoint=Mobile);
+     16 to the title, which wraps (never truncated); the meta row (label 12/16 · value 14/20 medium,
+     dividers; 2 equal columns without dividers on phones); `actions` = the primary library
+     btn-primary btn-md (hugging) + optional neutral btn-md, under the meta. No current-page crumb and
+     no number in the trail: the title is the page. back = { label, href, attr } (the list). */
+  function pageHeader({ back = null, title = "", titleId = "", meta = [], actions = "" }) {
+    const link = (crumb, inner) => `<a class="breadcrumbs__link" href="${escape(crumb.href || "#")}" ${crumb.attr || ""}>${inner}</a>`;
     return `
-      <header class="e-permits-page-header cab-page-header">
+      <header class="e-permits-page-header e-permits-page-header--public cab-page-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
           <div class="e-permits-page-header__top">
             <div class="e-permits-page-header__heading">
-              <nav class="breadcrumbs breadcrumbs--truncate" aria-label="Navigare"><ol class="breadcrumbs__list">${trail}</ol></nav>
-              <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""} title="${escape(title)}">${escape(title)}</h1>
+              ${back ? `
+              <nav class="breadcrumbs breadcrumbs--trailing" aria-label="Breadcrumb"><ol class="breadcrumbs__list"><li class="breadcrumbs__item">${link(back, escape(back.label))}</li></ol></nav>
+              <nav class="breadcrumbs breadcrumbs--mobile" aria-label="Breadcrumb"><ol class="breadcrumbs__list"><li class="breadcrumbs__item breadcrumbs__item--back">${link(back, `<span class="e-permits-page-header__crumb-label">${escape(back.label)}</span>`)}</li></ol></nav>` : ""}
+              <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""}>${escape(title)}</h1>
             </div>
-            ${aside ? `<div class="e-permits-page-header__aside"><div class="e-permits-page-header__actions">${aside}</div></div>` : ""}
           </div>
           ${meta.length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${meta.filter(Boolean).map(([label, html]) => `
             <div class="e-permits-page-header__meta-item">
               <span class="e-permits-page-header__meta-label">${escape(label)}</span>
               <span class="e-permits-page-header__meta-value">${html}</span>
             </div>`).join("")}</div>` : ""}
+          ${actions ? `<div class="e-permits-page-header__action-row">${actions}</div>` : ""}
         </div>
       </header>`;
   }

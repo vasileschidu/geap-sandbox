@@ -119,7 +119,7 @@
     root.innerHTML = `
       <article class="cab-detail cat-service" aria-labelledby="cat-service-title" data-cat-service="${escape(service.id)}">
         ${C.pageHeader({
-          crumbs: [{ label: "Catalogul serviciilor", href: C.cabUrl("catalog"), attr: "data-cat-back" }, { label: service.title }],
+          back: { label: "Catalogul serviciilor", href: C.cabUrl("catalog"), attr: "data-cat-back" },
           title: service.title,
           titleId: "cat-service-title",
           meta: [
