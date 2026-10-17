@@ -949,7 +949,7 @@ a {
 
 .rap-profile__container {
   margin: 0 auto;
-  max-width: 876px;
+  max-width: 1024px; /* fixed 1024 reading width; fills below it (user 2026-10-17) */
   width: 100%;
 }
 
