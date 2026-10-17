@@ -238,7 +238,7 @@
               ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
             </div>
-            <button class="btn btn-primary btn-sm rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
+            <button class="btn btn-primary btn-md rap-profile__document-button" type="button" aria-haspopup="dialog" data-rap-view-document>
               ${icon("eye-open", "icon small")}
               <span>Vezi act permisiv</span>
             </button>

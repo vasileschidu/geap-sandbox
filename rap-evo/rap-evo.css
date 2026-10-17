@@ -960,7 +960,7 @@ a {
   min-width: 0;
 }
 
-/* the library primary button (btn btn-primary btn-rounded) — only its place in the header here */
+/* the library primary button (btn btn-primary btn-md) — only its place in the header here */
 .rap-profile__document-button.btn {
   align-self: flex-start;
   margin-top: var(--spacing-8, 8px);
@@ -1570,9 +1570,6 @@ a {
     flex-wrap: wrap;
   }
 
-  .rap-profile__document-button.btn {
-    align-self: stretch;
-  }
 
   .rap-profile__beneficiary-card,
   .rap-profile__timeline,
@@ -1992,7 +1989,7 @@ tr:hover .rap-act-link {
 }
 
 /* phones (user 2026-10-17): the 2-column header meta gets an even gap — 16 on each side of the
-   separator, not 8 — and „Vezi act permisiv” is full width at the medium button size */
+   separator, not 8 — („Vezi act permisiv” = the plain library btn-primary btn-md, hugging, on every width) */
 @media (max-width: 760px) {
   /* 2 rows of 2 (user 2026-10-17): the columns are as wide as their widest item, so the
      separator sits 16 after column 1's widest value and 16 before column 2 — an even gap */
@@ -2002,10 +1999,5 @@ tr:hover .rap-act-link {
     grid-template-columns: repeat(2, minmax(0, max-content));
   }
 
-  /* the library medium size (.btn.btn-md: 8/16 padding, 16/24 text ≈ 40 high) */
-  .rap-profile__document-button.btn {
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
-    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
-  }
+
 }
