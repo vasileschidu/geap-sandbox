@@ -221,64 +221,40 @@
     });
   }
 
-  function postprocessMenuHtml(permit, menuId) {
-    const items = permit.postProcesses || [];
-    const locked = Boolean(permit.pending);
-    return `
-      <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(permit.title)}" hidden>
-        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-open="${escape(permit.id)}">${icon("icon-eye-open", "medium")}<span>Detalii</span></button></li>
-        <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-download="${escape(permit.id)}">${icon("icon-export")}<span>Descarcă actul (MDocs)</span></button></li>
-        ${items.length ? `<li role="separator" class="cab-menu__separator"></li><li role="none" class="cab-menu__label">Postprocese</li>` : ""}
-        ${items.map((pp) => `
-          <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}" ${locked ? `aria-disabled="true" data-tooltip-reason="${escape(LOCKED_REASON)}" aria-description="${escape(LOCKED_REASON)}"` : ""}>${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
-      </ul>`;
-  }
-
-  function actionsHtml(permit) {
-    const menuId = `cab-menu-${permit.id}`;
-    return `
-      <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
-        ${postprocessMenuHtml(permit, menuId)}
-      </div>`;
-  }
-
+  /* the acts list = the FO „Ce vrei să soliciți?” act rows (user 2026-10-17: „as we show for the cum vrei să
+     soliciți flow screen”) — the SAME renderer as FO #intent and the Ghișeu (js/act-row.js, GEAPActRow.html):
+     blue document icon · title + the Cabinet Small tag (+ „Aprobare tacită”) · meta number · validity ·
+     authority · subdivision (text, no institution icon) · the „Inițiază un postproces ⌄” pill when a
+     post-process is available. Cabinet extras: the whole row opens the act profile (row hook + keyboard); a
+     locked act = the FO locked notice (pill disabled); a paper act = the same notice slot in the info tone; no
+     pill when nothing can be started (expired / withdrawn / paper). The old ⋮ („Detalii” = the row click,
+     „Descarcă actul (MDocs)” = the profile's „Vezi act permisiv” → Descarcă) is gone. */
   function cardMarkup(permit) {
     const tacit = (permit.tacit || state.actProfiles[permit.id]?.tacitApprovalDate) && permit.status === "valabil" ? tacitTagHtml() : "";
-
-    const notice = permit.notice
-      ? `<div class="message message--subtle ${NOTICE_CLASS[permit.notice.tone] || "banner--info"} message--small">
-           <span class="banner__icon">${icon(permit.notice.icon, "medium")}</span>
-           <div class="banner__content"><p>${escape(permit.notice.text)}</p></div>
-         </div>`
-      : "";
-
-    return `
-      <article class="cab-card" tabindex="0" data-cab-card="${escape(permit.id)}">
-        <div class="cab-card__container">
-        <div class="cab-card__head">
-          <div class="cab-card__heading">
-            <h2 class="cab-card__title">${escape(permit.title)}</h2>
-            ${permit.serviceTitle ? `<p class="cab-card__service">${escape(permit.serviceTitle)}</p>` : ""}
-          </div>
-          <div class="cab-card__tags">
-            ${tagHtml(permit.statusLabel, ACT_TONE[permit.status])}
-            ${tacit}
-            ${permit.geap ? actionsHtml(permit) : ""}
-          </div>
-        </div>
-
-        <div class="cab-card__meta">
-          <span class="cab-card__meta-item"><span class="icon medium cab-card__authority-icon" aria-hidden="true"></span>${escape(permit.authority)}</span>
-          <span class="cab-card__dot" aria-hidden="true"></span>
-          ${copyValueHtml(permit.dossier)}
-          <span class="cab-card__dot" aria-hidden="true"></span>
-          <span class="cab-card__meta-item">${icon(permit.dateIcon || "icon-calendar", "medium")}${escape(permit.date)}</span>
-        </div>
-
-        ${notice}
-        </div>
-      </article>`;
+    const validity = permit.status === "expirat" ? `expirat la ${longDate(permit.validUntil)}` : `valabil până la ${longDate(permit.validUntil)}`;
+    const pending = permit.pending ? { title: `${permit.pendingLabel} în curs`, text: `· dosar ${permit.pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` } : null;
+    return window.GEAPActRow.html({
+      id: permit.id,
+      name: permit.title,
+      status: permit.status,
+      statusLabel: permit.statusLabel,
+      meta: [permit.number, validity, permit.service?.authority, permit.subdivision],
+    }, {
+      menuId: `cab-menu-${permit.id}`,
+      items: permit.postProcesses,
+      assets: "../assets/",
+      attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.title} — ${permit.statusLabel}`)}"`,
+      tagHtml: tagHtml(permit.statusLabel, ACT_TONE[permit.status]),
+      extraTagsHtml: tacit,
+      triggerAttrs: "data-cab-menu-trigger",
+      itemAttrs: (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}"`,
+      pendingTitle: pending ? pending.title : "",
+      pendingText: pending ? pending.text : permit.paper ? PAPER_TEXT : "",
+      noticeTone: pending ? "warning" : "info",
+      noticeIcon: pending ? "icon-time" : "icon-circle-info-filled",
+      noticeLocks: Boolean(pending),
+      hideEmptyAction: true,
+    });
   }
 
   function visiblePermits() {
@@ -300,7 +276,7 @@
     const pages = Math.max(1, Math.ceil(permits.length / state.perPage));
     state.page = Math.min(state.page, pages);
     const pageItems = permits.slice((state.page - 1) * state.perPage, state.page * state.perPage);
-    els.list.innerHTML = pageItems.map(cardMarkup).join("");
+    els.list.innerHTML = pageItems.length ? `<ul class="e-permits-fo-intent__list cab-act-list">${pageItems.map(cardMarkup).join("")}</ul>` : "";
     els.list.hidden = !pageItems.length;
     els.pager.innerHTML = pagerHtml({ total: permits.length, page: state.page, perPage: state.perPage, prefix: "cab", label: "Paginarea actelor permisive", sizeLabel: "Acte pe pagină" });
     els.pager.hidden = !els.pager.innerHTML.trim();
@@ -537,8 +513,7 @@
   /* ---------- GEAP acts (post-processes) ---------- */
 
   const PENDING_TEXT = (label, dossier) => `${label} în curs · dosar ${dossier}. Poți iniția un alt postproces după finalizarea acestuia.`;
-  /* US-55 AC-14: an unavailable post-process stays visible, disabled, with the reason as its tooltip */
-  const LOCKED_REASON = "Un alt postproces este în curs pentru acest act.";
+  const PAPER_TEXT = "Act emis pe hârtie, în afara GEAP. Postprocesele sunt disponibile doar la ghișeul autorității emitente.";
 
   async function loadGeapActs() {
     const response = await fetch(GEAP_URL);
@@ -559,7 +534,7 @@
         .map((id) => ({ id, ...config.postProcesses[id] }));
       const pendingLabel = act.pending ? config.postProcesses?.[act.pending.type]?.label || act.pending.type : "";
       let notice = null;
-      if (act.paper) notice = { tone: "info", icon: "icon-circle-info-filled", text: "Act emis pe hârtie, în afara GEAP. Postprocesele sunt disponibile doar la ghișeul autorității emitente." };
+      if (act.paper) notice = { tone: "info", icon: "icon-circle-info-filled", text: PAPER_TEXT };
       else if (act.pending) notice = { tone: "warning", icon: "icon-time", text: PENDING_TEXT(pendingLabel, act.pending.dossier) };
       return {
         ...act,
@@ -573,6 +548,7 @@
         date: act.status === "expirat" ? `expirat la ${longDate(act.validUntil)}` : `valabil până la ${longDate(act.validUntil)}`,
         dateIcon: "icon-calendar",
         postProcesses,
+        pendingLabel,
         notice,
       };
     });
@@ -865,7 +841,7 @@
         return;
       }
       if (openBtn) { closeMenus(); renderDetail(state.permits.find((p) => p.id === openBtn.dataset.cabOpen)); return; }
-      if (card && !event.target.closest(".cab-card__actions, [data-fo-copy-value]")) {
+      if (card && !event.target.closest(".cab-card__actions, .e-permits-fo-intent-act__action, [data-fo-copy-value]")) {
         const act = state.permits.find((p) => p.id === card.dataset.cabCard);
         if (act?.geap) renderDetail(act);
         return;
@@ -873,6 +849,13 @@
       if (!event.target.closest(".cab-menu")) closeMenus();
     });
     document.addEventListener("keydown", (event) => {
+      const row = event.target.matches?.("[data-cab-card]") ? event.target : null;
+      if (row && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        const act = state.permits.find((p) => p.id === row.dataset.cabCard);
+        if (act?.geap) renderDetail(act);
+        return;
+      }
       if (event.key !== "Escape") return;
       closeMenus();
       const modal = document.querySelector("[data-cab-pp-modal]");

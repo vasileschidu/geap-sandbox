@@ -17712,7 +17712,7 @@
   cursor: default;
 }
 
-.e-permits-fo-lib-item.e-permits-fo-intent-act.is-locked > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+.e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
   grid-column: 1 / -1;
   grid-row: 3;
   margin-top: var(--spacing-8, 8px);
@@ -17720,7 +17720,7 @@
 
 /* phones: title · meta · action (row 3, 12 above) · notice (row 4, 12 above) */
 @media (max-width: 720px) {
-  .e-permits-fo-lib-item.e-permits-fo-intent-act.is-locked > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
     grid-row: 4;
   }
 }

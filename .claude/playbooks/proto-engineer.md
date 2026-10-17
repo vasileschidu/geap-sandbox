@@ -1193,3 +1193,10 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   for demo states; states that scrolled to moved sections (sm-05e…h) had to click the tab first. (4) Prepare the
   next batch as patch scripts against a scratch COPY (EDIT_ROOT) while a long regression runs on the tree — the
   regression stays honest and the scripts apply in seconds afterwards.
+- 2026-10-17 · Cabinet acts list → the FO „Ce vrei să soliciți?” act rows (user, corrected mid-job from „BO stacked
+  list” to „as on the cum vrei să soliciți screen” — confirm WHICH existing list before building). The renderer
+  lived inside the 9 000-line FO IIFE → MOVED it to `js/act-row.js` (GEAPActRow) with option defaults = the old
+  markup, FO keeps `GEAPFormRender.actRowHtml` as a one-line delegate. Proof without a second server: extract the
+  HEAD function with sed into a .cjs, run old vs new on every seed act × 6 option sets (78 cases, 0 differences),
+  then the pp-* / gh-02* regression. A CSS selector widened with `:is(.is-locked, .has-notice)` keeps the old
+  specificity. Cabinet-only needs (row hook, data attrs, tones, info notice, no pill) became options, never a fork.

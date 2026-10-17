@@ -1848,6 +1848,21 @@ button.sm-table__th-content:focus-visible {
   margin-top: var(--spacing-8, 8px);
 }
 
+/* Actele mele permisive = the FO act rows (js/act-row.js); the Cabinet row is clickable as a whole (→ the act
+   profile): pointer + the focus ring of the stack rows; 16 under the toolbar / filter bar */
+.cab-list > .cab-act-list {
+  margin: 0;
+}
+
+.cab-act-list .e-permits-fo-lib-item.e-permits-fo-intent-act {
+  cursor: pointer;
+}
+
+.cab-act-list .e-permits-fo-intent-act:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-border-brand-default, #0058d2);
+  outline: none;
+}
+
 /* fitMenu(): a menu that would leave the screen opens towards the other side */
 :is(.cab-card__tags, .e-permits-fo-intent-act__action) .cab-menu.e-permits-fo-intent-menu.is-end {
   left: auto;

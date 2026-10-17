@@ -1125,25 +1125,26 @@
     "pp-01a": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); }),
     "pp-01b": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] [data-cab-menu-trigger]"); }),
     "pp-01c": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] [data-cab-menu-trigger]"); }),
-    "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .cab-card__title"); }),
-    "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .cab-card__title"); }),
+    "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); }),
+    "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .e-permits-fo-lib-item__title"); }),
     "pp-01f": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cofetaria']"); }),
     "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']"); }),
     /* „Filtre” = the shared facet filter (2026-10-17): Statut = Expirat applied (desktop bar / phone sheet) */
     "pp-01h": ppCab(async (h) => { await cabPick("status", ["Expirat"])(h); await cabCommit(h); }),
-    "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .cab-card__title"); }),
+    "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .e-permits-fo-lib-item__title"); }),
     /* act profile = the RAP act profile (2026-10-17): AC-17 dates, tacit badge, the shared act dialogs */
-    "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .cab-card__title"); }),
-    "pp-01k": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cantina']"); await h.click("[data-cab-card='act-cantina'] .cab-card__title"); }),
-    "pp-01l": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] .cab-card__title"); }),
-    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .cab-card__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .modal-content"); }),
-    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .cab-card__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
-    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); }),
+    "pp-01k": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cantina']"); await h.click("[data-cab-card='act-cantina'] .e-permits-fo-lib-item__title"); }),
+    "pp-01l": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] .e-permits-fo-lib-item__title"); }),
+    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .modal-content"); }),
+    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    /* the act rows = the FO intent rows (2026-10-17): „Descarcă actul (MDocs)” lives in the profile (Vezi act permisiv → Descarcă) */
+    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     /* US-55 AC-09 / AC-10: „Anulare” from Valabil and from Suspendat (DEMO service), same rules as Retragere */
     "pp-01p": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
-    "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .cab-card__title"); await h.click("[data-cab-detail] [data-cab-menu-trigger]"); }),
+    "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-detail] [data-cab-menu-trigger]"); }),
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
-    "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.click("[data-cab-card='act-lab-10'] [data-cab-menu-trigger]"); }),
+    "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
     "pp-01s": ppCab(async (h) => { await cabOpen(h); await h.click('[data-filter-facet="status"]'); if (cabPhone()) await h.wait(400); }),
     /* search by act number + more than 10 acts → the Cabinet pager (demo ?acte=multe) */
