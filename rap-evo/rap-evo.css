@@ -296,6 +296,30 @@ a {
   min-height: 20px;
 }
 
+/* Figma breadcrumbs 📏 Breakpoint: Desktop = the full trail; Mobile (≤760) = the
+   library .breadcrumbs--mobile — chevron-left-small + the previous level only, one
+   line, a long label cut with an ellipsis */
+.rap-breadcrumbs.breadcrumbs--mobile {
+  display: none;
+}
+
+.rap-breadcrumbs__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .rap-breadcrumbs:not(.breadcrumbs--mobile) {
+    display: none;
+  }
+
+  .rap-breadcrumbs.breadcrumbs--mobile {
+    display: flex;
+  }
+}
+
 .rap-intro {
   margin-top: var(--spacing-16, 16px);
   max-width: 756px;

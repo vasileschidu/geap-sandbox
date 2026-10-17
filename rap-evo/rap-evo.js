@@ -237,6 +237,11 @@
                     <li class="breadcrumbs__item"><button class="breadcrumbs__link" type="button" data-rap-profile-back>Registrul actelor permisive</button></li>
                   </ol>
                 </nav>
+                <nav class="breadcrumbs breadcrumbs--mobile rap-breadcrumbs" aria-label="Breadcrumb">
+                  <ol class="breadcrumbs__list">
+                    <li class="breadcrumbs__item breadcrumbs__item--back"><button class="breadcrumbs__link" type="button" data-rap-profile-back><span class="rap-breadcrumbs__label">Registrul actelor permisive</span></button></li>
+                  </ol>
+                </nav>
                 <div class="rap-profile__title-row">
                   <h1 class="e-permits-page-header__title" id="rap-profile-title" title="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</h1>
                 </div>
