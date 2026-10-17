@@ -2001,3 +2001,22 @@ tr:hover .rap-act-link {
 
 
 }
+
+/* phones (user 2026-10-17): the table runs edge to edge — out of the 16px page gutter, no rounded
+   corners, no side borders (top / bottom lines only), so every column gets the full width */
+@media (max-width: 760px) {
+  .rap-register {
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
+  }
+
+  .rap-table-scroller {
+    border-left: 0;
+    border-radius: 0;
+    border-right: 0;
+  }
+
+  /* the first column keeps the page's 16 edge, so the table lines up with the search above */
+  .rap-table :is(th, td):first-child {
+    padding-left: var(--spacing-16, 16px);
+  }
+}
