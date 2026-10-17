@@ -1835,7 +1835,7 @@
     const paper = d.review.paper
       ? docCard(paperDoc(d), detailsBtn("data-gh-preview=\"paper\"", "Cererea pe hârtie"))
       : S.notice === "mdocs-error"
-      ? `<div class="e-permits-gh__retry">${U().renderNotice?.("error", "<strong>Nu s-a putut genera formularul.</strong> MDocs nu a răspuns; datele cererii nu s-au pierdut.", { role: "alert" })}<button class="btn btn-neutral btn-sm" type="button" data-gh-paper>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button></div>`
+      ? `<div class="e-permits-gh__retry">${U().renderNotice?.("error", "<strong>Nu s-a putut genera formularul.</strong> MDocs nu a răspuns; datele cererii nu s-au pierdut.", { role: "alert" })}<button class="btn btn-strict btn-sm" type="button" data-gh-paper>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button></div>`
       : `<div class="e-permits-fo-doc-field">
           <div class="e-permits-fo-doc-field__row">
             <div class="e-permits-fo-doc-field__info">

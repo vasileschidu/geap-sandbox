@@ -6556,7 +6556,7 @@
             <p class="e-permits-fo-finish-doc__title">${esc(title)}</p>
             <p class="e-permits-fo-finish-doc__text e-permits-fo-finish-doc__error">${esc(error)}</p>
           </div>
-          <button class="btn btn-neutral btn-sm e-permits-fo-finish-doc__action" type="button" ${actionAttrs}>
+          <button class="btn btn-strict btn-sm e-permits-fo-finish-doc__action" type="button" ${actionAttrs}>
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
             <span>Reîncercați</span>
           </button>
