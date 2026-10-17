@@ -151,10 +151,10 @@
   };
 
   /* BO renderPageHeaderMeta item */
-  const renderProfileSummaryItem = (label, value, { copy = false } = {}) => `
+  const renderProfileSummaryItem = (label, value, { copy = false, html = false } = {}) => `
     <div class="e-permits-page-header__meta-item">
       <span class="e-permits-page-header__meta-label">${escapeHtml(label)}</span>
-      <span class="e-permits-page-header__meta-value">${copy ? copyValue(value) : escapeHtml(value)}</span>
+      <span class="e-permits-page-header__meta-value">${html ? value : copy ? copyValue(value) : escapeHtml(value)}</span>
     </div>
   `;
 
@@ -230,12 +230,12 @@
                 </nav>
                 <div class="rap-profile__title-row">
                   <h1 class="e-permits-page-header__title" id="rap-profile-title" title="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</h1>
-                  ${statusTag(record.status)}
                 </div>
               </div>
             </div>
             <div class="e-permits-page-header__meta" data-rap-profile-meta>
               ${renderProfileSummaryItem("Numărul actului", record.permit.number, { copy: true })}
+              ${renderProfileSummaryItem("Stare", statusTag(record.status), { html: true })}
               ${renderProfileSummaryItem("Autoritatea emitentă", authorityWithOffice)}
               ${renderProfileSummaryItem("Valabil din data", profile.validFrom)}
               ${renderProfileSummaryItem("Data expirării", profile.validUntil)}
