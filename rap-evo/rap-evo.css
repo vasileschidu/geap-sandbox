@@ -2096,3 +2096,9 @@ tr:hover .rap-act-link {
   box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 4px var(--rap-brand);
   outline: 0;
 }
+
+/* breadcrumb → title: the same 16 as on the RAP list page (user 2026-10-17: „too close in the
+   profile”); the BO header keeps its own 8 */
+.rap-profile__header .e-permits-page-header__heading {
+  gap: var(--spacing-16, 16px);
+}
