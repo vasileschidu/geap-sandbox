@@ -585,7 +585,6 @@
      mult” / „Mai puțin”, aria-expanded, Enter / Space / click; the header grows, the body scrolls. ---- */
   const actSubtitleHtml = (record, className) => `
     <p class="${className} rap-act-subtitle" data-rap-subtitle>
-      <span class="rap-act-subtitle__number">${copyValue(record.permit.number)}</span>
       <span class="rap-act-subtitle__name"><span class="rap-act-subtitle__text">${escapeHtml(record.permit.name)}</span></span>
     </p>`;
 
