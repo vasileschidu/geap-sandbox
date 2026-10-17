@@ -6,14 +6,20 @@
   /* Figma marks only the suspended count with the accent badge */
   const ACCENT_STATES = ["suspendat"];
 
-  /* status → library .status-tag variant */
-  const STATUS_TAG = {
-    valabil: "status-tag--success is-subtle",
-    expirat: "status-tag--neutral is-subtle",
-    suspendat: "status-tag--accent is-strong",
-    anulat: "status-tag--danger is-strong",
-    retras: "status-tag--danger is-subtle",
+  /* act status → the BO / RAP Tag · Small tone (bordered, css/bo-profile-parts.css; US-162 AC-07:
+     Valabil green, Suspendat warning, Expirat / Retras / Anulat red — 2026-10-17 alignment with RAP) */
+  const ACT_TONE = {
+    valabil: "success",
+    suspendat: "warning",
+    expirat: "danger",
+    retras: "danger",
+    anulat: "danger",
   };
+  /* the BO renderTag markup (Tag · Small) — every status / result tag in the Cabinet */
+  const tagHtml = (label, tone = "neutral", extra = "") =>
+    `<span class="e-permits-workplace__tag e-permits-workplace__tag--${tone}"${extra}>${String(label).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch])}</span>`;
+  /* „Aprobare tacită” (RAP / US-139): the blue Small tag beside the status */
+  const tacitTagHtml = () => tagHtml("Aprobare tacită", "info");
 
   /* Feature 90818 / 89533 — GEAP acts come from the same data the front
      office uses (acte-permisive.json → intent): status × post-process
@@ -190,9 +196,7 @@
   }
 
   function cardMarkup(permit) {
-    const tacit = permit.tacit
-      ? `<span class="cab-card__tacit">${icon("icon-checkmark-small")}${escape(permit.tacit)}</span>`
-      : "";
+    const tacit = permit.tacit && permit.status === "valabil" ? tacitTagHtml() : "";
 
     const notice = permit.notice
       ? `<div class="message message--subtle ${NOTICE_CLASS[permit.notice.tone] || "banner--info"} message--small">
@@ -211,7 +215,7 @@
           </div>
           <div class="cab-card__tags">
             ${tacit}
-            <span class="status-tag ${STATUS_TAG[permit.status] || "status-tag--neutral is-subtle"}">${escape(permit.statusLabel)}</span>
+            ${tagHtml(permit.statusLabel, ACT_TONE[permit.status])}
             ${permit.geap ? actionsHtml(permit) : ""}
           </div>
         </div>
@@ -549,7 +553,7 @@
         title: act.title,
         meta: [
           ["Numărul actului", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)],
-          ["Statutul", `<span class="status-tag ${STATUS_TAG[act.status] || "status-tag--neutral is-subtle"}">${escape(act.statusLabel)}</span>`],
+          ["Stare", tagHtml(act.statusLabel, ACT_TONE[act.status])],
           ["Emis la", escape(longDate(act.issued) || "—")],
           [act.status === "expirat" ? "A expirat la" : "Valabil până la", escape(longDate(act.validUntil) || "—")],
           ["Autoritatea emitentă", escape(act.authority)],
@@ -660,6 +664,25 @@
           ${actions ? `<div class="e-permits-page-header__action-row">${actions}</div>` : ""}
         </div>
       </header>`;
+  }
+
+  /* BO profile sections (css/bo-profile-parts.css, = RAP / BO dos-01 · svc-01): the 18/26 title in a
+     48 row over the grey card (no gap, 8/12 inset), rows 40 · label 14/20 secondary · value 14/20
+     medium · dividers, none under the last row. The panel follows the header (20 to the first one). */
+  function detailRow(label, valueHtml) {
+    return `
+      <div class="e-permits-dosar-profil__row">
+        <span class="e-permits-dosar-profil__row-label" title="${escape(label)}">${escape(label)}</span>
+        <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
+      </div>`;
+  }
+  const detailCard = (rowsHtml) => `<div class="e-permits-dosar-profil__card">${[].concat(rowsHtml).filter(Boolean).join("")}</div>`;
+  function profileSection(id, title, body, { attrs = "" } = {}) {
+    return `
+      <section class="e-permits-dosar-profil__section cab-section" aria-labelledby="${id}"${attrs ? ` ${attrs}` : ""}>
+        <h2 class="e-permits-dosar-profil__section-title" id="${id}">${escape(title)}</h2>
+        ${body}
+      </section>`;
   }
 
   /* a wrapped meta row never starts with a separator (BO syncPageHeaderMetaRows) */
@@ -799,7 +822,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    pageHeader, syncHeaderMeta,
+    pageHeader, syncHeaderMeta, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 

@@ -53,7 +53,7 @@
   }
 
   function onlineTag(service) {
-    return service.online ? `<span class="status-tag status-tag--success is-subtle">Online</span>` : "";
+    return service.online ? C.tagHtml("Online", "success") : "";
   }
 
   function cardHtml(service) {
@@ -110,14 +110,14 @@
         : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Niciun serviciu nu corespunde căutării"))}</div>`}`;
   }
 
-  const row = (label, valueHtml) => `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${escape(label)}</span><div class="e-permits-fo-summary-row__value"><span>${valueHtml}</span></div></div>`;
+  const row = (label, valueHtml) => C.detailRow(label, valueHtml);
 
   function renderService(service) {
     C.setHeaderTitle("Catalogul serviciilor");
     const target = requestTarget(service);
     const applicants = (service.applicants || []).map((type) => `<span class="cab-applicant">${icon(APPLICANT[type].icon, "medium")}${escape(APPLICANT[type].label)}</span>`).join("");
     root.innerHTML = `
-      <article class="cab-detail cat-service" aria-labelledby="cat-service-title" data-cat-service="${escape(service.id)}">
+      <article class="cab-profile cat-service" aria-labelledby="cat-service-title" data-cat-service="${escape(service.id)}">
         ${C.pageHeader({
           back: { label: "Catalogul serviciilor", href: C.cabUrl("catalog"), attr: "data-cat-back" },
           title: service.title,
@@ -130,6 +130,8 @@
             ["Disponibil", onlineTag(service)],
           ],
         })}
+        <div class="e-permits-dosar-profil__panel">
+        <div class="cab-profile__lead">
         <p class="cab-lead">${escape(service.description)}</p>
         ${service.online
           ? `<div class="cab-cta">
@@ -142,9 +144,10 @@
                <span class="banner__icon">${icon("icon-circle-info-filled", "medium")}</span>
                <div class="banner__content"><p>Serviciul nu poate fi solicitat încă online. Cererea se depune la ghișeul autorității.</p></div>
              </div>`}
-        <section class="cab-section" aria-labelledby="cat-sec-about">
-          <h2 class="e-permits-fo-finish__section-title" id="cat-sec-about">Despre serviciu</h2>
-          <div class="e-permits-fo-summary-card cab-detail__card">
+        </div>
+        <section class="e-permits-dosar-profil__section cab-section" aria-labelledby="cat-sec-about">
+          <h2 class="e-permits-dosar-profil__section-title" id="cat-sec-about">Despre serviciu</h2>
+          <div class="e-permits-dosar-profil__card">
             ${row("Instituția", escape(service.authority))}
             ${row("Tipul actului permisiv", escape(service.actType))}
             ${row("Termenul de examinare", escape(service.term))}
@@ -154,14 +157,15 @@
             ${service.code ? row("Codul serviciului (RSSP)", escape(service.code)) : ""}
           </div>
         </section>
-        <section class="cab-section" aria-labelledby="cat-sec-docs">
-          <h2 class="e-permits-fo-finish__section-title" id="cat-sec-docs">Documente necesare</h2>
+        <section class="e-permits-dosar-profil__section cab-section" aria-labelledby="cat-sec-docs">
+          <h2 class="e-permits-dosar-profil__section-title" id="cat-sec-docs">Documente necesare</h2>
           <!-- document TYPES the applicant will attach: the shared document card (grey icon, type,
                Obligatoriu / Opțional, note) — no file yet, so no actions -->
           <div class="cab-docs">
             ${service.documents.map((doc) => C.docRowHtml({ tip: doc.title, tags: [[doc.required ? "Obligatoriu" : "Opțional", doc.required ? "strong" : "neutral"]], note: doc.note })).join("")}
           </div>
         </section>
+        </div>
       </article>`;
     C.syncHeaderMeta();
     root.querySelector("#cat-service-title")?.focus({ preventScroll: true });

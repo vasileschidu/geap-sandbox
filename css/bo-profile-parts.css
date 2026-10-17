@@ -181,6 +181,8 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  /* the unscoped base rule in e-permits-acte-permisive.css caps it at 780 (EVO Cabinet loads it) */
+  max-width: none;
   padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
   width: 100%;
 }

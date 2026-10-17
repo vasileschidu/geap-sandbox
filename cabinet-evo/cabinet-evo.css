@@ -1068,6 +1068,52 @@
   margin-top: 0;
 }
 
+/* ===== Profiles = the RAP / BO profile (2026-10-17 alignment) =====
+   article.cab-profile > header.e-permits-page-header--public + .e-permits-dosar-profil__panel (BO
+   sections, css/bo-profile-parts.css). Blocks that are not sections (the lead: description, status,
+   notices) sit at the top of the panel and keep the section rhythm (16 under them). */
+.cab-profile {
+  display: flex;
+  flex-direction: column;
+}
+
+.cab-profile__lead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16, 16px);
+  padding: 0 0 var(--spacing-16, 16px);
+}
+
+.cab-profile__lead:empty {
+  display: none;
+}
+
+/* a list / card block under a BO section title (documents, identity cards) starts at the card edge */
+.cab-section > .cab-docs,
+.cab-section > .cab-roles {
+  margin: 0;
+}
+
+/* „Aprobare tacită” on a request is a button (it carries the explanation tooltip): the blue Small tag
+   with the tag box restored over the old text-mark reset, one step darker on hover */
+.e-permits-workplace__tag--info.cab-mark {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border: 0;
+  cursor: help;
+  font-family: inherit;
+  padding: 0 var(--spacing-6, 6px);
+  text-decoration: none;
+}
+
+.e-permits-workplace__tag--info.cab-mark:hover {
+  background: var(--color-background-brand-secondary-hover, #d6e4f7);
+}
+
+/* tags in the list rows never shrink below their text */
+:is(.sm-item__tags, .cab-card__tags) > .e-permits-workplace__tag {
+  flex: none;
+}
+
 /* open button keeps the focus ring while its menu is open (the shell rule; this page
    does not load e-permits-shell.css) */
 .cab-page .btn[aria-expanded="true"]:not(:disabled),
@@ -1337,12 +1383,42 @@
   padding-top: 0;
 }
 
-.cab-page-header {
-  background: transparent;
+
+/* a copy value in the header meta / a detail row = the BO copy code (e-permits-shell.css :3063,
+   = RAP .rap-profile__copy): 20 high, no inset, 4 to a 20 icon, tertiary fill on hover; the FO
+   copy keeps its own Copiază / Copiat tooltip (proof: compare-styles cabinet-profile-vs-bo.json) */
+:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value {
+  align-items: center;
+  border-radius: var(--border-radius-4, 4px);
+  gap: var(--spacing-4, 4px);
+  justify-content: normal;
+  max-width: 100%;
+  padding: 0;
 }
 
-.cab-page-header .e-permits-page-header__meta .e-permits-fo-copy-value {
-  padding: 0;
+:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value:is(:hover, :focus-visible) {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value > span:first-child {
+  letter-spacing: normal;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: inherit;
+}
+
+/* phones: a GEAP number + its copy icon (≈ 170) does not fit half of 343 — the number item takes the
+   whole first meta row instead of breaking the number at its hyphens; the rest stay 2 equal columns */
+@media (max-width: 760px) {
+  .cab-page-header .e-permits-page-header__meta-item:first-child:has(.e-permits-fo-copy-value) {
+    grid-column: 1 / -1;
+  }
+}
+
+:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value > .icon {
+  flex: 0 0 var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  width: var(--spacing-20, 20px);
 }
 
 /* 2026-10-16 · dropdown audit: on phones the act card's ⋮ sits next to the status tag (x ≈ 107), so the

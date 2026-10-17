@@ -133,23 +133,22 @@
       </div>`;
   }
 
-  /* small = the library Small tag, used inside summary rows (12 / 20 high) */
-  function statusTag(dosar, { small = false } = {}) {
-    const status = statusOf(dosar);
-    return `<span class="status-tag ${status.tag}${small ? " status-tag--small" : ""}">${escape(status.label)}</span>`;
+  /* request status → the BO / RAP Tag · Small tone (bordered; 2026-10-17 alignment): Schiță neutral,
+     În derulare blue, Spre achitare / Informații suplimentare warning (they wait for the applicant),
+     Finalizat green */
+  const STATUS_TONE = { schita: "neutral", derulare: "info", achitare: "warning", info: "warning", finalizat: "success" };
+  function statusTag(dosar) {
+    return C.tagHtml(statusOf(dosar).label, STATUS_TONE[dosar.status] || "neutral");
   }
 
-  /* Aprobat / Respins (US-19 AC-16) and „Disponibilă aprobarea tacită” (AC-15) */
+  /* Aprobat / Respins (US-19 AC-16) = green / red Small tags; the tacit approval (AC-15) = the blue
+     „Aprobare tacită” tag of RAP — a button here, because it carries the explanation (tooltip) */
   function marksHtml(dosar) {
     if (readOnly()) return "";
-    if (dosar.status === "finalizat" && dosar.result === "aprobat") {
-      return `<span class="cab-card__tacit">${icon("icon-checkmark-small")}Aprobat</span>`;
-    }
-    if (dosar.status === "finalizat" && dosar.result === "respins") {
-      return `<span class="cab-card__tacit cab-card__tacit--danger">${icon("icon-cross-small")}Respins</span>`;
-    }
+    if (dosar.status === "finalizat" && dosar.result === "aprobat") return C.tagHtml("Aprobat", "success");
+    if (dosar.status === "finalizat" && dosar.result === "respins") return C.tagHtml("Respins", "danger");
     if (dosar.tacit && dosar.status === "derulare") {
-      return `<button class="cab-card__tacit cab-mark" type="button" data-sm-tip="${escape(tacitNote(dosar))}" aria-label="Disponibilă aprobarea tacită. ${escape(tacitNote(dosar))}">${icon("icon-checkmark-small")}Disponibilă aprobarea tacită</button>`;
+      return `<button class="e-permits-workplace__tag e-permits-workplace__tag--info cab-mark" type="button" data-sm-tip="${escape(tacitNote(dosar))}" aria-label="Aprobare tacită disponibilă. ${escape(tacitNote(dosar))}">Aprobare tacită</button>`;
     }
     return "";
   }
@@ -462,19 +461,10 @@
 
   /* ---------- profile (US-161) ---------- */
 
-  function row(label, valueHtml) {
-    return `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${escape(label)}</span><div class="e-permits-fo-summary-row__value"><span>${valueHtml}</span></div></div>`;
-  }
-
-  const rows = (list) => `<div class="e-permits-fo-summary-card cab-detail__card">${list.filter(Boolean).join("")}</div>`;
-
-  function section(id, title, body, { scope = false } = {}) {
-    return `
-      <section class="cab-section" aria-labelledby="sm-sec-${id}"${scope ? " data-sm-dl-scope" : ""}>
-        <h2 class="e-permits-fo-finish__section-title" id="sm-sec-${id}">${escape(title)}</h2>
-        ${body}
-      </section>`;
-  }
+  /* BO detail rows / card / section (CabEvo, css/bo-profile-parts.css) */
+  const row = (label, valueHtml) => C.detailRow(label, valueHtml);
+  const rows = (list) => C.detailCard(list);
+  const section = (id, title, body, { scope = false } = {}) => C.profileSection(`sm-sec-${id}`, title, body, { attrs: scope ? "data-sm-dl-scope" : "" });
 
   function markerHtml(stateName) {
     const icons = { done: "icon-circle-checkmark-filled", current: "icon-time-filled", attention: "icon-warning-filled", rejected: "icon-circle-error-filled" };
@@ -616,7 +606,7 @@
     const meta = [
       ["Numărul dosarului", copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)],
       ["Tipul solicitării", escape(dosar.tip)],
-      ["Statutul", `${statusTag(dosar)}${marksHtml(dosar)}`],
+      ["Stare", `${statusTag(dosar)}${marksHtml(dosar)}`],
     ];
     if (dosar.status === "schita") {
       meta.push(["Creată", escape(longDate(dosar.created))], ["Se elimină automat", escape(longDate(dosar.draft?.expires))]);
@@ -847,8 +837,8 @@
       row("Denumirea serviciului", escape(service.title || "")),
       dosar.submitted ? row("Data depunerii", escape(longDateTime(dosar.submitted))) : "",
       dosar.suspended ? row("Data suspendării", escape(longDate(dosar.suspended))) : "",
-      dosar.examTerm && dosar.status !== "info" ? row("Termenul de examinare", `${escape(longDate(dosar.examTerm))}${dosar.tacit ? ` ${marksHtml(dosar)}` : ""}`) : "",
-      row("Statutul dosarului", `${statusTag(dosar, { small: true })}${dosar.result ? ` ${marksHtml(dosar)}` : ""}`),
+      dosar.examTerm && dosar.status !== "info" ? row("Termenul de examinare", `<span>${escape(longDate(dosar.examTerm))}</span>${dosar.tacit ? marksHtml(dosar) : ""}`) : "",
+      row("Stare", `${statusTag(dosar)}${dosar.result ? marksHtml(dosar) : ""}`),
       row("Autoritatea", escape(service.authorityName || service.authority || "")),
       row("Subdiviziunea de procesare", escape(dosar.subdivision)),
       dosar.actNr ? row("Nr. actului generat", copyValue(dosar.actNr, `Copiază numărul actului ${dosar.actNr}`)) : "",
@@ -856,7 +846,7 @@
     ]));
 
     const roles = beneficiary && applicant ? `
-      <section class="cab-section" aria-label="Beneficiar și solicitant">
+      <section class="e-permits-dosar-profil__section cab-section" aria-label="Beneficiar și solicitant">
         <div class="e-permits-fo-form__roles cab-roles${sameperson ? " is-single" : ""}">
           <div class="e-permits-fo-form__roles-grid">
             ${sameperson ? roleGroup("Solicitant", applicant, { me: true }) : `${roleGroup("Beneficiar", beneficiary)}${roleGroup("Solicitant", applicant, { me: true })}`}
@@ -884,7 +874,7 @@
     /* US-161 AC-18…20: only when a payment note exists; Data achitării only when paid */
     const taxes = payment ? section("taxe", "Taxe", rows([
       row("Numărul notei de plată", copyValue(payment.nr, `Copiază numărul notei de plată ${payment.nr}`)),
-      row("Statutul notei", `<span class="status-tag ${payment.status === "Achitat" ? "status-tag--success" : "status-tag--accent"} is-subtle status-tag--small">${escape(payment.status)}</span>`),
+      row("Starea notei", C.tagHtml(payment.status, payment.status === "Achitat" ? "success" : "warning")),
       row("Suma totală", escape(money(payment.amount))),
       row("Data creării", escape(longDateTime(payment.created))),
       payment.status === "Achitat" && payment.paid ? row("Data achitării", escape(longDateTime(payment.paid))) : "",
@@ -899,26 +889,30 @@
     ]));
 
     root.innerHTML = `
-      <article class="cab-detail sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
+      <article class="cab-profile sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
         ${C.pageHeader({
           back: { label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" },
           title: dosar.object,
           titleId: "sm-profile-title",
           meta: headerMeta(dosar),
         })}
-        ${trackerHtml(dosar)}
-        ${calloutHtml(dosar)}
-        ${profileActions(dosar)}
-        ${general}
-        ${roles}
-        ${details}
-        ${contacts}
-        ${documents}
-        ${delivery}
-        ${taxes}
-        ${actSection(dosar)}
-        ${history}
-        ${helpSection}
+        <div class="e-permits-dosar-profil__panel">
+          <div class="cab-profile__lead">
+            ${trackerHtml(dosar)}
+            ${calloutHtml(dosar)}
+            ${profileActions(dosar)}
+          </div>
+          ${general}
+          ${roles}
+          ${details}
+          ${contacts}
+          ${documents}
+          ${delivery}
+          ${taxes}
+          ${actSection(dosar)}
+          ${history}
+          ${helpSection}
+        </div>
       </article>`;
     C.syncHeaderMeta();
     root.querySelector("#sm-profile-title")?.focus({ preventScroll: true });
