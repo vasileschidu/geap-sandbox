@@ -1789,4 +1789,20 @@ tr:hover .rap-act-link {
     font-size: var(--font-size-fs-16, 16px);
     line-height: var(--line-height-lh-24, 24px);
   }
+
+  /* 2026-10-18 (component audit): a 48 field takes the library Large search icon — 24 at 16, text from 48 */
+  .rap-search.search-input.medium .icon-search {
+    height: var(--icon-size-default, 24px);
+    left: var(--spacing-16, 16px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .rap-search.search-input.medium .icon-search .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .rap-search.search-input.medium .input {
+    padding-left: var(--spacing-48, 48px);
+  }
 }

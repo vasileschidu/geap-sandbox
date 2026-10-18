@@ -1214,3 +1214,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   there (48 rows), my own probe without touch emulation showed 40 at 375 — use `pointer: coarse` for touch sizing and
   verify with the emulation on. Mobbin MCP not available again → documented guidance (M3, HIG, WCAG 2.5.5/2.5.8,
   NN/g, GOV.UK/USWDS). No sub-agent tool → code-audit + hover-audit run directly: only standing FPs.
+- 2026-10-18 · Components-only audit (user: „Telefon input too small, check too small … use only components, I need an
+  agent to verify”). New tool `tools/ui-qa/component-audit.mjs` + spec `tools/ui-qa/specs/component-audit.json` + agent
+  `component-auditor` (runs with ui-qa-code, CLAUDE.md). Allow-list = library selectors + product roots + every class
+  in the components.md INVENTORY (auto-parsed, modifiers document their block) + BEM parts of a listed block; ancestor
+  matching only for native fields, menu items and class-less parts (else any button inside a product card „passes”).
+  Run it with `--viewports desktop,mobile,edge` — the 760 edge found 196 FO size majors that 375 never shows.
+- 2026-10-18 · The read-only phone was 48 high at 375 all along; what the user saw as „smaller” was the 14/20 value and
+  the 20 check from `.e-permits-fo-phone--readonly …` rules (0,2,0) beating the ≤720 phone block (0,1,0). „Looks
+  small” = measure text + icon, not just the box. And the FO field sizes lived in `@media (max-width: 720px)` while
+  the rule (and Cabinet / RAP) is ≤760 → split the block IN PLACE (close 720, open 760 with the field rules, reopen
+  720) so the cascade order stays byte-identical and only the range changes.
+- 2026-10-18 · Field box detection traps: a borderless `<input>` keeps the UA white background, so „first painted
+  ancestor” stopped at the input (20 high) — find the FRAME (border on any side or inset ring) first, paint second;
+  a menu's search row has only a bottom border; `aria-hidden` on decorative svgs must not hide them from an icon
+  check. Library sizes: 48 field → icon 24 at 16 from the edge, text from 48; 40 → 20 at 12, text from 40.
+- 2026-10-18 · Non-library controls that have a near library equivalent but differ (FO „Înainte” 48 · 16/24 · 0 16 0
+  20 vs `btn-lg` 18/24.75 · 12/24) are DESIGN decisions → reported as PO questions, not swapped. No sub-agent tool
+  again → ran component-audit, code-audit, hover-audit directly; HEAD baseline from a worktree on :8946.

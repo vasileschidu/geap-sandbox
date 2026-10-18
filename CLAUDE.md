@@ -47,6 +47,10 @@ Every UI change is checked by a QA agent before it is reported as done:
   (+ the matching demo states). It audits read-only (`tools/ui-qa/figma-audit.js`): instances
   vs raw frames, token-bound colours, text styles, spacing/radius scale, auto-layout, clipping,
   icon = label colour, and compares with the prototype.
+- **Components only (2026-10-18)**: the `component-auditor` agent runs together with `ui-qa-code` on every UI
+  change (`tools/ui-qa/component-audit.mjs`, allow-list `tools/ui-qa/specs/component-audit.json`): every control
+  is a library / documented component, fields are 40 on desktop and 48 with 16/24 text on phones (≤760), icons
+  inside fields at the library size. Non-library controls and wrong phone sizes are major findings.
 Fix the major findings, re-run the agent, then report. Code first, then Figma.
 
 **Figma quality gate (2026-10-16) — every Figma screen, no exceptions:** only component instances (no invented /

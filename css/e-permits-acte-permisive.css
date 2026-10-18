@@ -15949,7 +15949,12 @@
     height: var(--line-height-lh-20, 20px);
     min-height: 0;
   }
+}
 
+/* Phones (user rule 2026-10-18: inputs 40 on desktop, ALWAYS 48 with 16/24 on phones ≤760): the FO field
+   sizes below were ≤720, so 721–760 still showed 40. Only the media range changed — same place in the
+   cascade (the ≤720 block continues after them). */
+@media (max-width: 760px) {
   .e-permits-fo-input,
   .e-permits-fo-phone,
   .e-permits-fo-select__button,
@@ -16004,7 +16009,9 @@
     height: 24px;
     width: 24px;
   }
+}
 
+@media (max-width: 720px) {
   .e-permits-fo-notice {
     align-items: flex-start;
     border-radius: var(--border-radius-8, 8px);
@@ -16012,6 +16019,9 @@
     padding: var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-12, 12px) var(--spacing-16, 16px);
   }
 
+}
+
+@media (max-width: 760px) {
   /* „Caută adresa” (product search input, size Large here): FO mobile fields are 48 / 16px */
   .e-permits-fo-cascade-address__search.e-permits-workplace__search,
   .e-permits-fo-cadastral-search.e-permits-workplace__search {
@@ -16031,7 +16041,9 @@
   .e-permits-fo-field.is-srre-loading > .e-permits-fo-skeleton--input {
     height: var(--spacing-48, 48px);
   }
+}
 
+@media (max-width: 720px) {
   .e-permits-fo-form__footer {
     padding-top: var(--spacing-24, 24px);
   }
@@ -25869,5 +25881,75 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
   .e-permits-fo-avatar-menu:not([hidden]),
   .e-permits-fo-avatar-menu.is-closing {
     animation: none;
+  }
+}
+
+
+/* ── Phones: fields at the library default size (2026-10-18, user: „Telefon input seems too small and the check
+   is also too small”; rule: desktop 40, phones ALWAYS 48 with 16/24 text, icons inside a field at the library
+   icon size of that size: 48 → --icon-size-default 24). Found by tools/ui-qa/component-audit.mjs. ── */
+@media (max-width: 760px) {
+  /* read-only phone („Date de contact” › Telefon): its value / check kept their own 14/20 · 20 rules (0,2,0) */
+  .e-permits-fo-phone--readonly .e-permits-fo-phone__value {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-24, 24px);
+  }
+
+  .e-permits-fo-phone--readonly > .icon {
+    flex-basis: var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  /* the search row on top of the CAEM / subgenre lists is an input too: 48, 16/24, icon 24 */
+  .e-permits-fo-caem__search,
+  .e-permits-fo-subgen-select__search {
+    height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-fo-caem__search .icon,
+  .e-permits-fo-subgen-select__search .icon {
+    flex-basis: var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .e-permits-fo-caem__search input,
+  .e-permits-fo-caem__search input::placeholder,
+  .e-permits-fo-subgen-select__search input,
+  .e-permits-fo-subgen-select__search input::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  /* the document picker search („Caută fișier”, library Medium on desktop) = the library default size here */
+  .e-permits-fo-doc-modal__search-wrap .e-permits-workplace__search.search-input {
+    --search-input-height: var(--spacing-48, 48px);
+    height: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .e-permits-fo-doc-modal__search-wrap .e-permits-workplace__search.search-input .input,
+  .e-permits-fo-doc-modal__search-wrap .e-permits-workplace__search.search-input .input::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  /* FO product searches at 48 (address, cadastral code, document picker): the library Large icon — 24 at 16,
+     text from 48 (the BO search keeps its Medium 20 at 12 / 40) */
+  :is(.e-permits-fo-field, .e-permits-fo-address-search, .e-permits-fo-doc-modal__search-wrap) .e-permits-workplace__search.search-input .icon-search {
+    height: var(--icon-size-default, 24px);
+    left: var(--spacing-16, 16px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  :is(.e-permits-fo-field, .e-permits-fo-address-search, .e-permits-fo-doc-modal__search-wrap) .e-permits-workplace__search.search-input .icon-search .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  :is(.e-permits-fo-field, .e-permits-fo-address-search, .e-permits-fo-doc-modal__search-wrap) .e-permits-workplace__search.search-input:has(.icon-search) .input {
+    padding-left: var(--spacing-48, 48px);
   }
 }

@@ -182,6 +182,7 @@ but this doc previously described it wrongly, see the entry.
 |---|---|---|---|
 | Stacked-list row hover (full width) | `.e-permits-stack__item.is-clickable` — side inset 20 on the ROW (list padding 0), inset divider = `::before`, fill `--color-background-base-tertiary` edge to edge, outer rows take `calc(var(--stack-radius) − 1px)`, dividers around the hovered row hide, kept while its ⋮ is open / a control has focus-visible, 140ms standard easing (off for reduced motion); the grey „Detalii” turns white on the band | section „Stacked-list row hover — full width” | app |
 | Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
+| Field sizes (all products, user rule 2026-10-18) | desktop = library Medium (40, `.input--medium` / `.search-input.medium`, FO fields 40); phones ≤760 = library default (48, text 16/24 `--font-size-fs-16` / `--line-height-lh-24`), icons inside a field at the library size of that field (48 → `--icon-size-default` 24 at 16 from the edge, text from 48; 40 → `--icon-size-medium` 20). FO: the field-size rules live in a `@media (max-width: 760px)` block (was 720); read-only phone, CAEM / subgenre list search rows, document-picker search, FO / Cabinet / RAP phone searches follow it. Check with `tools/ui-qa/component-audit.mjs` (agent `component-auditor`) | `Components/input-preview.html` | app |
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` | `buttons.html` | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
@@ -1544,6 +1545,7 @@ should be increased to **32px**"* (pointer) and *"**40px**"* (touch). `.switch-w
 ```
 
 - Default height is **48px**. `.input--medium` is the **40px smaller** variant — it is not the default.
+- **Product rule (2026-10-18):** desktop uses the 40 (`.input--medium`), phones (≤760) the 48 default with 16/24 text and 24 icons (read-only check included) — see the inventory row „Field sizes”.
 - The wrapper is **`.input-wrapper`**; `.input-group` is only `max-width: 285px`.
 - `.input-icon` is the **icon span**, positioned with `.left` / `.right` / `.checkmark`.
   Padding compensation comes from `.input-wrapper.has-leading` / `.has-trailing`.
