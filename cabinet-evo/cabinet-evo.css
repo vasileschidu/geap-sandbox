@@ -1909,7 +1909,17 @@ button.sm-table__th-content:focus-visible {
   }
 }
 
+/* phones: inputs are the bigger size (user: „desktop small, mobile medium always”) — 48 high, as on RAP */
 @media (max-width: 760px) {
+  .cab-search.search-input.medium {
+    height: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .cab-search.search-input.medium .input {
+    height: var(--spacing-48, 48px);
+  }
+
   .cab-search.search-input.medium .input,
   .cab-search.search-input.medium .input::placeholder {
     font-size: var(--font-size-fs-16, 16px);
