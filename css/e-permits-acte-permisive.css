@@ -25800,3 +25800,74 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
 :not([class*="__notices"], .modal-content, .e-permits-fo-payment__body) > :is(.message:not(.message--inline), .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-callout) + :is(.message:not(.message--inline), .info-box, .e-permits-fo-notice, .e-permits-fo-infobox, .e-permits-fo-mnotify-info, .e-permits-callout) {
   margin-top: var(--spacing-12, 12px);
 }
+
+/* ===== Phones: the instance switcher (avatar menu) = a bottom sheet (user 2026-10-18: „on mobile do modal from
+   down with a bit of padding top”). FO + EVO Cabinet (same markup). The library bottom-sheet look: white, top
+   radius 16, the 40% scrim (main.css .bottom-sheet literal), slides up; at most the screen minus 24 at the top,
+   the content scrolls inside (the footer „Ieșire” stays); the page under it does not scroll. The scrim is
+   body::after under the sheet, so a tap on it is an outside click (the menu closes) and never hits the page. */
+@media (max-width: 720px) {
+  .e-permits-fo-avatar-menu {
+    border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
+    bottom: 0;
+    left: 0;
+    max-height: calc(100dvh - var(--spacing-24, 24px));
+    max-width: none;
+    position: fixed;
+    right: 0;
+    top: auto;
+    width: auto;
+    z-index: 1001;
+  }
+
+  .e-permits-fo-avatar-menu:not([hidden]) {
+    animation: e-permits-ntpl-sheet-in 220ms var(--motion-dropdown-ease, ease-out) backwards;
+    transform-origin: bottom center;
+  }
+
+  .e-permits-fo-avatar-menu.is-closing {
+    animation: e-permits-ntpl-sheet-out 140ms ease-in both;
+  }
+
+  .e-permits-fo-avatar-menu .e-permits-fo-avatar-menu__footer {
+    padding-bottom: max(var(--spacing-16, 16px), env(safe-area-inset-bottom));
+  }
+
+  body:has(.e-permits-fo-avatar-menu:not([hidden]):not(.is-closing)) {
+    overflow: hidden;
+  }
+
+  body:has(.e-permits-fo-avatar-menu:not([hidden]):not(.is-closing))::after {
+    background: rgba(18, 18, 18, 0.4);
+    content: "";
+    inset: 0;
+    position: fixed;
+    z-index: 1000;
+  }
+
+  /* the sticky header (z 30) holds the sheet → while it is open the header rises above the page scrim and
+     dims itself with the same scrim, under the sheet */
+  .e-permits-fo-auth__header:has(.e-permits-fo-avatar-menu:not([hidden]):not(.is-closing)) {
+    z-index: 1001;
+  }
+
+  .e-permits-fo-auth__header:has(.e-permits-fo-avatar-menu:not([hidden]):not(.is-closing))::after {
+    background: rgba(18, 18, 18, 0.4);
+    content: "";
+    inset: 0;
+    position: absolute;
+    z-index: 1000;
+  }
+
+  /* the MSupport launcher (fixed, z 1200) would float over „Ieșire” */
+  body:has(.e-permits-fo-avatar-menu:not([hidden]):not(.is-closing)) .msup {
+    display: none;
+  }
+}
+
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+  .e-permits-fo-avatar-menu:not([hidden]),
+  .e-permits-fo-avatar-menu.is-closing {
+    animation: none;
+  }
+}
