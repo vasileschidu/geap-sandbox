@@ -5776,6 +5776,12 @@
         if (q("[data-fo-postprocess-title]")) q("[data-fo-postprocess-title]").textContent = pp.label;
         if (q("[data-fo-postprocess-consequence]")) q("[data-fo-postprocess-consequence]").textContent = pp.consequence || "";
         if (q("[data-fo-postprocess-act]")) q("[data-fo-postprocess-act]").textContent = `${act.name} · ${act.number}`;
+        /* tone = the consequence (2026-10-18): Suspendare amber icon, Retragere / Anulare red icon; red confirm for all */
+        const ppTone = pp.id === "suspendare" || pp.requestType === "Suspendare valabilitate" ? "warning" : "danger";
+        const ppIcon = q(".e-permits-fo-instance-switch-modal__icon");
+        ppIcon?.classList.toggle("e-permits-fo-instance-switch-modal__icon--warning", ppTone === "warning");
+        ppIcon?.classList.toggle("e-permits-fo-instance-switch-modal__icon--danger", ppTone === "danger");
+        q("[data-fo-postprocess-confirm]")?.classList.add("e-permits-fo-instance-switch-modal__primary--danger");
         setFrontOfficePostprocessModalOpen(true);
         return;
       }

@@ -535,7 +535,6 @@
       <div class="sm-list-view" data-sm-list-view>
         <section class="cab-intro" aria-labelledby="sm-title">
           <h1 class="text-heading-h2" id="sm-title" tabindex="-1">Solicitările mele</h1>
-          <p class="text-body-sm">Urmăriți dosarele depuse, reacționați la evenimente și inițiați acțiunile disponibile — fără să contactați direct autoritatea.</p>
         </section>
         <div class="sm-list-view__lead" data-sm-lead></div>
         <div class="cab-toolbar" data-sm-toolbar>

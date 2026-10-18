@@ -47,7 +47,6 @@
     searchClear: document.querySelector("[data-cab-search-clear]"),
     title: document.querySelector("[data-cab-title]"),
     headerTitle: document.querySelector("[data-cab-header-title]"),
-    subtitle: document.querySelector("[data-cab-subtitle]"),
     name: document.querySelector("[data-cab-name]"),
     role: document.querySelector("[data-cab-role]"),
     avatarMenu: document.querySelector("[data-fo-avatar-menu]"),
@@ -597,10 +596,13 @@
       modal.setAttribute("aria-labelledby", "cab-pp-title");
       document.body.appendChild(modal);
     }
+    /* tone = the consequence (user 2026-10-18: „retrage with amber or red, not blue”): Suspendare (reversible) =
+       amber icon, Retragere / Anulare (definitive) = red icon; the confirm is the red danger button for all three */
+    const tone = pp.id === "suspendare" ? "warning" : "danger";
     modal.innerHTML = `
       <div class="e-permits-fo-instance-switch-modal__card" tabindex="-1">
         <div class="e-permits-fo-instance-switch-modal__body">
-          <div class="e-permits-fo-instance-switch-modal__icon" aria-hidden="true">${icon("icon-warning-filled", "medium")}</div>
+          <div class="e-permits-fo-instance-switch-modal__icon e-permits-fo-instance-switch-modal__icon--${tone}" aria-hidden="true">${icon("icon-warning-filled", "medium")}</div>
           <div class="e-permits-fo-instance-switch-modal__content">
             <h2 id="cab-pp-title">${escape(pp.label)}</h2>
             <div class="e-permits-fo-instance-switch-modal__description">
@@ -611,7 +613,7 @@
         </div>
         <div class="e-permits-fo-instance-switch-modal__actions">
           <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-cab-pp-cancel>Anulează</button>
-          <a class="e-permits-fo-instance-switch-modal__primary" href="${escape(foUrl(act, pp))}" data-cab-pp-confirm>Confirm și continui</a>
+          <a class="e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" href="${escape(foUrl(act, pp))}" data-cab-pp-confirm>Confirm și continui</a>
         </div>
       </div>`;
     modal.hidden = false;
@@ -1069,7 +1071,6 @@
 
     if (data.page) {
       els.title.textContent = data.page.title;
-      els.subtitle.textContent = data.page.subtitle;
     }
     applyView();
     /* Finalizat-Aprobat dosare ↔ their act („Vezi solicitarea” / „Vezi actul”) */

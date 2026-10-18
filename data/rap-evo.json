@@ -2,7 +2,6 @@
   "schemaVersion": "1.0.0",
   "page": {
     "title": "Registrul actelor permisive",
-    "subtitle": "Urmărește dosarele depuse pentru acte permisive și interacționează cu autoritățile.",
     "searchPlaceholder": "Caută după nr. dosar sau denumire"
   },
   "meta": {

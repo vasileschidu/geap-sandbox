@@ -85,7 +85,6 @@
     root.innerHTML = `
       <section class="cab-intro" aria-labelledby="cat-title">
         <h1 class="text-heading-h2" id="cat-title" tabindex="-1">Catalogul serviciilor</h1>
-        <p class="text-body-sm">Găsiți serviciul de care aveți nevoie, citiți condițiile și depuneți cererea online.</p>
       </section>
       <div class="cab-toolbar">
         <div class="search-input medium rectangular cab-search${state.query ? " has-value is-ready" : ""}">

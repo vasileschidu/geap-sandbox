@@ -27,7 +27,6 @@
 
   const elements = {
     title: document.querySelector("[data-rap-title]"),
-    subtitle: document.querySelector("[data-rap-subtitle]"),
     search: document.querySelector("[data-rap-search]"),
     searchClear: document.querySelector("[data-rap-search-clear]"),
     tableBody: document.querySelector("[data-rap-table-body]"),
@@ -987,7 +986,6 @@
       state.page = state.config.pagination.initialPage;
       state.pageSize = state.config.pagination.defaultPageSize;
       elements.title.textContent = state.config.page.title;
-      elements.subtitle.textContent = state.config.page.subtitle;
       elements.search.placeholder = state.config.page.searchPlaceholder;
       initFacetFilter();
       renderPageSizeOptions();
