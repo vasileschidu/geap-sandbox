@@ -46,6 +46,23 @@
   width: 100%;
 }
 
+/* list page titles = the RAP list title (32/40 semibold; 28/36 on phones), not the 44 h2 (user 2026-10-18:
+   „title kinda huge”) — Actele mele permisive, Solicitările mele, Catalogul serviciilor, Notificări */
+.cab-main h1.text-heading-h2 {
+  font-size: var(--font-size-fs-32, 32px);
+  font-weight: 600;
+  letter-spacing: -0.32px;
+  line-height: var(--line-height-lh-40, 40px);
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .cab-main h1.text-heading-h2 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}
+
 .cab-intro h1 {
   margin: 0;
 }
@@ -720,7 +737,7 @@
 }
 
 /* a grey button on the grey card would not read as a button → white until hovered */
-.cab-doc__actions > .btn-neutral:not(:hover, :active) {
+.cab-doc__actions > .btn-neutral:not(.e-permits-fo-intent-act__trigger):not(:hover, :active) {
   background: var(--color-background-base-default, #fff);
 }
 
