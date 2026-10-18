@@ -15806,8 +15806,9 @@
     padding-bottom: var(--spacing-32, 32px);
   }
 
+  /* Solicitant over Reprezentant on phones (user 2026-10-18: „stacked”; side by side cut both names) */
   .e-permits-fo-form__roles-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .e-permits-fo-form__role-group {
