@@ -867,8 +867,9 @@
 @media (max-width: 600px) {
 
 
+  /* 16 = the phone control rhythm (search · Perioadă / Sortează · chips), 2026-10-18 */
   .cab-toolbar {
-    gap: var(--spacing-12, 12px);
+    gap: var(--spacing-16, 16px);
   }
 
   .cab-search {
@@ -1243,7 +1244,7 @@
 }
 
 .sm-list {
-  margin-top: var(--spacing-20, 20px);
+  margin-top: var(--spacing-24, 24px);
 }
 
 /* the dosar number reads as meta (tertiary, regular), copy icon on the text line */
@@ -1445,12 +1446,14 @@
     border: 0;
     border-radius: 0;
     flex-wrap: nowrap;
-    margin-top: var(--spacing-12, 12px);
+    margin-top: var(--spacing-16, 16px);
     padding: var(--spacing-0, 0px);
   }
 
+  /* even phone rhythm (user 2026-10-18, „even nice gaps, tailwind style”): title 8 description · 24 search ·
+     16 chips · 24 list — the chip row's 4px focus-ring room is cancelled on both sides so it adds no gap */
   .cab-filters.is-sheets .e-permits-workplace__filter-chips {
-    margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-16, 16px) * -1) var(--spacing-0, 0px);
+    margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-16, 16px) * -1);
     padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
     scroll-padding-inline: var(--spacing-16, 16px);
   }
@@ -1475,7 +1478,7 @@
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
   border-radius: var(--border-radius-12, 12px);
   box-sizing: border-box;
-  margin-top: var(--spacing-16, 16px);
+  margin-top: var(--spacing-24, 24px);
   overflow: auto;
   /* a cell scrolled into view never stops under the pinned Nr / Acțiuni columns */
   scroll-padding-inline: var(--sm-col-nr) var(--sm-col-actions);
