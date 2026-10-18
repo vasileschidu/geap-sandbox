@@ -17748,10 +17748,9 @@
   position: relative;
 }
 
-/* the grey neutral pill at the library MEDIUM size (2026-10-18, user: „buttons for post procese medium”):
-   markup `btn btn-neutral btn-md btn-pill` → main.css `.btn.btn-md` = 8/16 padding, 16 / 1.375 (22) medium,
-   gap 4, `icon small` 16 chevron, 40 high (= the act profile header's „Inițiază un postproces”). Only the
-   colours are ours (the FO grey pill, tertiary); no size overrides here. */
+/* the grey neutral pill at the library SMALL size (2026-10-18, user: medium tried, then „use small buttons
+   better”): markup `btn btn-neutral btn-sm btn-pill` → main.css `.btn.btn-sm` = 32 high, 14/20, 0 12
+   padding, gap 6. Only the colours are ours (the FO grey pill, tertiary); no size overrides here. */
 .btn.e-permits-fo-intent-act__trigger {
   background: var(--color-background-base-tertiary, #f1f1f1);
   border-color: var(--color-background-base-tertiary, #f1f1f1);

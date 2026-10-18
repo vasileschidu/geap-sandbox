@@ -6,8 +6,8 @@
 
    The row = the shared document card (.e-permits-fo-lib-item: padding 12, radius 12, hover) with the blue
    „System Generated” document icon, the title + a Small status tag, the 14/20 secondary meta with the 2px dots
-   (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” pill = the library medium
-   button (btn-md, 2026-10-18) with its menu (.e-permits-stack__menu + the act-menu size: 40px items, 48 on
+   (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” pill = the library small
+   button (btn-sm, 2026-10-18) with its menu (.e-permits-stack__menu + the act-menu size: 40px items, 48 on
    touch, 16/24, 20 icon — components.md „Act row”). A locked act = the subtle notice, full card width under the row.
 
    GEAPActRow.html(act, opts)
@@ -60,7 +60,7 @@
     const itemHook = itemAttrs || ((pp) => `data-fo-intent-postprocess="${esc(pp.id)}"`);
     const action = hideEmptyAction && !items.length ? "" : `
           <div class="cab-doc__actions e-permits-fo-intent-act__action">
-            <button class="btn btn-neutral btn-md btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" ${triggerAttrs}${locked ? " disabled" : ""}>
+            <button class="btn btn-neutral btn-sm btn-pill e-permits-fo-intent-act__trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" ${triggerAttrs}${locked ? " disabled" : ""}>
               <span>${esc(actionLabel)}</span>
               <svg class="icon small" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
