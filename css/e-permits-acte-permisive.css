@@ -17712,6 +17712,23 @@
   cursor: default;
 }
 
+/* no 12px text in the act row (2026-10-18, user): the meta (number · valabil până la · authority ·
+   subdivision) = 14/20 secondary, the body-text size of the row (the 2px dots / 18 clip stay — they are
+   computed from the 20 line). Other document cards keep the shared 12/20 tertiary meta. The Tag · Small
+   (12/16) is the library tag and stays as it is (rule „tags Small everywhere”). */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* at 14 a long part (an authority name: „Comitetul permanent de control asupra drogurilor” = 341 in a 299
+   phone column) no longer fits one line → it wraps inside itself instead of running under the meta's clip
+   (cut text + page overflow). A part still starts on its own line first (flex: none, max-width 100%). */
+.e-permits-fo-lib-item.e-permits-fo-intent-act .e-permits-fo-doc-meta__part {
+  white-space: normal;
+}
+
 .e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
   grid-column: 1 / -1;
   grid-row: 3;
@@ -17731,16 +17748,14 @@
   position: relative;
 }
 
-/* Figma button-filled-circular (neutral): 36px, 12/8 side padding */
+/* the grey neutral pill at the library MEDIUM size (2026-10-18, user: „buttons for post procese medium”):
+   markup `btn btn-neutral btn-md btn-pill` → main.css `.btn.btn-md` = 8/16 padding, 16 / 1.375 (22) medium,
+   gap 4, `icon small` 16 chevron, 40 high (= the act profile header's „Inițiază un postproces”). Only the
+   colours are ours (the FO grey pill, tertiary); no size overrides here. */
 .btn.e-permits-fo-intent-act__trigger {
   background: var(--color-background-base-tertiary, #f1f1f1);
   border-color: var(--color-background-base-tertiary, #f1f1f1);
   color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-6, 6px);
-  height: 36px;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-8, 8px) 0 var(--spacing-12, 12px);
   white-space: nowrap;
 }
 
@@ -19028,6 +19043,48 @@
 
 .e-permits-stack__menu .e-permits-fo-intent-menu__item[aria-disabled="true"]:hover {
   background: transparent;
+}
+
+/* ---- the post-process menu of an act (act row pill + the Cabinet act profile header), 2026-10-18 ----
+   User: „the dropdown items kinda small, do best practice”. Research (components.md „Act row” › menu
+   size): Material 3 menu items 48dp on touch / 40 dense on desktop (Carbon md 40), Apple HIG 44pt and
+   WCAG 2.5.5 44 for touch, WCAG 2.5.8 ≥ 24; label = the trigger's 16 (GOV.UK / USWDS body ≥ 16), icon 20
+   with a 12 gap; menu at least as wide as its button; long labels wrap, never cut. The library Figma
+   Menu (159:1025) gives the surface rhythm: padding 8, gap 4, item radius 8, gap 12.
+   Scoped to `.e-permits-fo-intent-act__action > menu` (0,2,0 / 0,3,0 / 0,4,0) so it beats the BO
+   `.e-permits-stack__menu` size (32 rows) only here — every other ⋮ / BO menu keeps 32. Colours (danger,
+   aria-disabled grey, no hover on disabled) still come from the stack-menu rules above. */
+.e-permits-fo-intent-act__action > .e-permits-fo-intent-menu {
+  gap: var(--spacing-4, 4px);
+  max-width: calc(100vw - var(--spacing-32, 32px));
+  min-width: 100%;
+  padding: var(--spacing-8, 8px);
+  width: max-content;
+}
+
+.e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
+  border-radius: var(--border-radius-8, 8px);
+  font-size: var(--font-size-fs-16, 16px);
+  gap: var(--spacing-12, 12px);
+  height: auto;
+  line-height: var(--line-height-lh-24, 24px);
+  min-height: var(--spacing-40, 40px);
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-8, 8px) var(--spacing-12, 12px);
+  white-space: normal;
+}
+
+.e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item .icon {
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+/* touch (phones, tablets): 48 rows (Material 48dp, ≥ HIG 44pt / WCAG 2.5.5) */
+@media (pointer: coarse) {
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
+    min-height: var(--spacing-48, 48px);
+    padding-block: var(--spacing-12, 12px);
+  }
 }
 
 @media (max-width: 760px) {

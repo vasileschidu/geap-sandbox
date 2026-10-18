@@ -294,7 +294,7 @@ but this doc previously described it wrongly, see the entry.
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680; the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
-| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision, `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` — always the BO menu size, FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
+| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision — in the act row 14/20 `--color-text-base-secondary`, long parts wrap inside (2026-10-18: no 12px text in the row; only the library Tag · Small stays 12), `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” = `btn btn-neutral btn-md btn-pill` (library MEDIUM, 40 · 8/16 · 16/22 · gap 4 · 16 chevron; 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the act-menu size (40 rows, 48 on `pointer: coarse`, 16/24, 20 icon — § „Act post-process menu — size”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -957,6 +957,8 @@ Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/
 
 **One back-office button**: `.btn` + variant + `.btn-sm` = 32px, radius 6, transparent
 border — page header, list rows, toolbars. No `btn-md` / `btn-lg`, no hand-rolled buttons.
+Exception (user, 2026-10-18): the act row's „Inițiază un postproces ⌄” pill is `btn-md` everywhere
+(FO, Ghișeu, Cabinet) — the same size as the Cabinet act profile header's trigger.
 
 **Modal AND drawer footers** (Figma EVO WEB 3.0 `20612:37263`): buttons sit in the
 library `.modal-buttons` group → **40px pill**, 14/20 medium, 20px sides (12/16 with a
@@ -1909,6 +1911,38 @@ Rules:
 - QA: `tools/ui-qa/code-audit.mjs` reports `dropdown-surface` for an open `role=menu` /
   `role=listbox` whose floating surface lacks the „dropdown-effect” shadow, radius 12, border 0, a background or a
   non-visible overflow.
+
+### Act post-process menu — size (2026-10-18)
+
+User (Cabinet pp-01): „the dropdown items kinda small, do best practice, research”. Applies to the menu
+of „Inițiază un postproces ⌄” only — act rows (FO #intent, Ghișeu, Cabinet list) and the Cabinet act
+profile header (both sit in `.e-permits-fo-intent-act__action`). Every other ⋮ / BO menu keeps the BO
+32px rows of `.e-permits-stack__menu`.
+
+Research (Mobbin MCP was not available in that session — documented guidance only):
+- Material 3 menus: list item 48dp; dense desktop lists 40 (Carbon menu md = 40, lg = 48; Fluent 32 is
+  for dense app chrome). Label 14–16, leading icon 20–24 with a 12 gap.
+- Apple HIG: 44 × 44 pt minimum hit target on touch. WCAG 2.2: 2.5.8 (AA) ≥ 24 × 24 CSS px, 2.5.5 (AAA)
+  44 × 44. NN/g: touch targets ≥ 1 cm (≈ 44–48 px); Fitts — larger, closer targets are faster.
+- GOV.UK / USWDS: body text ≥ 16 (19 GOV.UK), 44 px targets; disabled options stay visible and say
+  why (NN/g „disabled controls”: explain, don't hide).
+- Menu width: at least the trigger (Material: the menu opens from its anchor, min 112, max 280);
+  labels never truncated — wrap instead.
+
+| | Before | After |
+|---|---|---|
+| trigger | 36 high, 0 8 0 12, 14/20, gap 6 | library `btn-md`: 40, 8/16, 16/22 medium, gap 4, 16 chevron |
+| menu | padding 4, gap 2, min-width 180 | padding 8, gap 4 (library Figma Menu 159:1025), `min-width: 100%` (≥ the pill), `max-width: 100vw − 32`, `width: max-content` |
+| item (pointer) | 32 high, 0 12 0 8, 14/20 medium, radius 6, nowrap | min-height 40, 8 16 8 12, 16/24 medium, radius 8, gap 12, wraps |
+| item (`pointer: coarse`) | 32 | min-height 48, 12 16 12 12 |
+| icon | 16 | 20 (`--icon-size-medium`) |
+| disabled | grey + `aria-disabled` + `data-tooltip-reason` | unchanged (only the Ghișeu — desktop-only — has disabled items; a touch surface would need the reason as a visible second line, not a tooltip) |
+
+CSS: block „the post-process menu of an act” after the stack-menu rules in
+`css/e-permits-acte-permisive.css`, scoped `.e-permits-fo-intent-act__action > .e-permits-fo-intent-menu`
+(beats the stack size only there; danger / disabled colours still come from the stack rules). Surface,
+flip (`is-open-up`, `CabEvo.fitMenu` `.is-end` / `.is-start`) and the dropdown effect unchanged.
+Demo: pp-01a / pp-02a (list menu open), pp-01q (profile header menu), gh-02j (Ghișeu, disabled items).
 
 ---
 

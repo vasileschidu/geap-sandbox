@@ -1200,3 +1200,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   HEAD function with sed into a .cjs, run old vs new on every seed act × 6 option sets (78 cases, 0 differences),
   then the pp-* / gh-02* regression. A CSS selector widened with `:is(.is-locked, .has-notice)` keeps the old
   specificity. Cabinet-only needs (row hook, data attrs, tones, info notice, no pill) became options, never a fork.
+- 2026-10-18 · Act row „no 12px, medium pill, bigger menu” (user, pp-01). (1) Sizing a library button = add its size
+  class (`btn-md`) and DELETE the product's size overrides (height / padding / font / gap) — keep only the colours;
+  measure against a place that already uses the class (the Cabinet profile header trigger: 40 · 8/16 · 16/22 · gap 4).
+  (2) Growing a meta font 12 → 14 made one nowrap part (an authority name) wider than the phone column; the meta's
+  `clip-path` HID the overflow (text silently cut) and only the page scrollWidth (388 vs 375) told — an element scan
+  found nothing because the overflowing thing was a text node. After any font-size bump, probe
+  `part.scrollWidth > clientWidth` at 375; fix = `white-space: normal` on the parts (flex: none + max-width 100% still
+  keeps whole parts on one line until one is longer than a line). (3) A menu that gets its size from a generic class
+  (`.e-permits-stack__menu`, 32 rows everywhere in the BO) is resized by a SCOPED parent selector
+  (`.e-permits-fo-intent-act__action > menu`) — both the list rows and the Cabinet profile header already sat in that
+  wrapper, so one block covered all four places. (4) capture.mjs mobile = touch emulation → `(pointer: coarse)` matches
+  there (48 rows), my own probe without touch emulation showed 40 at 375 — use `pointer: coarse` for touch sizing and
+  verify with the emulation on. Mobbin MCP not available again → documented guidance (M3, HIG, WCAG 2.5.5/2.5.8,
+  NN/g, GOV.UK/USWDS). No sub-agent tool → code-audit + hover-audit run directly: only standing FPs.

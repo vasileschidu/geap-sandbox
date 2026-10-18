@@ -5088,8 +5088,9 @@
     /* ===== the act row + the „Solicitare nouă” card (2026-10-15, user): ONE renderer for the FO
        „Ce vrei să soliciți?” (#intent) and the Ghișeu picker („Dosar nou”, js/ghiseu.js). The row is
        the shared document card (.e-permits-fo-lib-item: padding 12, radius 12, hover) with the blue
-       „System Generated” document icon, the title + a Small status tag, the 12px meta with the 2px dots
-       (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” pill menu.
+       „System Generated” document icon, the title + a Small status tag, the 14/20 meta with the 2px dots
+       (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” medium pill menu
+       (since 2026-10-17 the renderer lives in js/act-row.js; this is its delegate).
        act = { id, name, number, status, statusLabel, validUntil (dd.mm.yyyy | ISO | long), subdivision,
        meta (parts, replaces the default) }; opts = { menuId, actionLabel, items [{ id, label, icon,
        disabled, reason }], pendingTitle + pendingText (locked row: the subtle warning notice, full card width under
