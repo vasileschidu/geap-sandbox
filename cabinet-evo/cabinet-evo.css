@@ -1890,3 +1890,10 @@ button.sm-table__th-content:focus-visible {
   left: 0;
   right: auto;
 }
+
+/* no section name in the top bar (user 2026-10-18: „repetition with the one in the header, hide in header”):
+   list pages carry it as their own h1, profiles in the breadcrumb (‹ Actele mele permisive). Only the logo stays;
+   setHeaderTitle() still names the tab (document.title). On phones this also removes the extra title row. */
+.e-permits-fo-auth__service-title-wrap:has([data-cab-header-title]) {
+  display: none;
+}
