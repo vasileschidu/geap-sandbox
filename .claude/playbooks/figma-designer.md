@@ -1589,3 +1589,38 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - The eKYC file has no file-level index / cover contents — only per-page „How to read · Contents” (updated on all 8 pages).
   - No Agent tool in this session → ran the figma-audit rules myself on the 8 components and 6 blocks; fixed spacing binds,
     .5 header centring and a cut empty state; remaining = library deltas (chip label 16/24, tab gap 8 vs 6, option gap 10).
+
+- 2026-10-19 · RAP configured act fields — groups + tables (EVO-WEB-3.0, column 04 22069:11262; code 135c5d05; comment
+  1968940910). Updated in place (same ids): rap-03g 22088:28501, 03h 22088:29587, 03i 22088:205185, 03j 22088:206895
+  (their „Data modal content · <id>” components rebuilt in place → instances follow); new rap-03q 22145:226053, 03r
+  22145:227537, 03s 22145:230778, 03t 22145:232827. Builder: tools/figma/rap/act-fields.js (stored „rap”/„af”, ids in
+  „rap”/„afids”, payloads „af:D15” / „af:D16” / „af:tables” / „af:pages15”). Lessons:
+  - **Rebuild a slot component IN PLACE** (remove its children, refill) instead of the stored upsert (delete + create) —
+    every screen keeps its instance, only the screens' heights need a refit (H = max(viewport, modal + 64), overlay = H).
+  - **`resize()` after setting an AUTO sizing mode makes it FIXED — hit 4 times in one job** (card line, row card, A4 grid
+    row, grid label): rows silently stopped growing and text spilled over the next row. Always: set layoutMode →
+    resize → THEN primary/counterAxisSizingMode = "AUTO"; instances already placed keep the FIXED height → set
+    `layoutSizingVertical = "HUG"` on them too. Screenshot every new component once before using it.
+  - BO table look from library cells: table-header 658ba90a (Subtle → fill background/base/secondary, 38 min, 8/12, text
+    Caption/Medium secondary, Sort Icon off, Header/Title FILL so long headers wrap) + table-cell 86cc7c40 (Text; min 50,
+    Cell Container HUG 8/12, text Body/Small secondary, numbers RIGHT, pinned first column strokeRightWeight 1, last row
+    bottom 0). Row = HORIZONTAL HUG, every cell FILL vertically → equal heights. The box (white, border, r12, clip) =
+    the code's own sideways scroll; set `strokesIncludedInLayout = true` on bordered boxes / cards (CSS border-box: 317 /
+    222 px like the code instead of 2 px short) — that is not the forbidden 13 px padding hack.
+  - Chrome breaks after a hyphen before a digit („dicloro-1,1,1…”), Figma does not (UAX#14 HY × NU) → one cell wrapped to 3
+    lines instead of 2. A zero-width space after the hyphen restores the code's break (data stored with it).
+  - A swapped NONE-layout component inside a nested slot keeps the slot's old 100 px size and `resize()` on that nested
+    instance is ignored → scrolled canvases = VERTICAL HUG wrapper + a fixed clipped „Viewport (scrolled)” frame holding
+    the absolute pages at the code's scroll offsets.
+  - `clone()` of a block on a page-level section puts the clone on the PAGE, not in the section → appendChild into the
+    section before restacking (layout() only sees section children; it reported 16 of 20).
+  - Code finding (reported, not hacked): number headers are `white-space: nowrap`, so „Potențial de distrugere a ozonului
+    (ODP)” overflows its 160 px span; Figma draws the intended 2-line header (48 instead of 38).
+  - Coordinator side task: „Subdiviziune” → „Subdiviziunea autorității” filter labels — census by explicit walk found 0
+    (the designer's „Table and Filtering” already reads „Subdiviziunea autorității” ×3; the RAP facets are Statut / Denumire
+    act / Autoritate / Tip beneficiar); detail rows „Subdiviziunea” left alone as asked. findAllWithCriteria returned 0 texts
+    containing it while the walk found 29 → census with a walk, always.
+  - No Agent tool in this session → QA = the stored figma-audit („rap”/„audit”, run as `new AF("R", src)(roots)`) on the 8
+    blocks + 20 components: only the board baseline (section-over-card / BO-row tight-gap, profile behind the modal cut at
+    viewport height, rescaled A4 pages fractional, scrolled viewport clip); fixed the one real finding (A4 head texts at .5
+    → FILL + centre). Screens compared with the code captures (persona-test/capture.mjs + a CDP DOM spec per state × width).
