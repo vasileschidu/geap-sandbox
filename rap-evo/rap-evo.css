@@ -990,8 +990,8 @@ a {
   display: flex;
   gap: var(--spacing-16, 16px);
   min-height: 82px;
-  /* the BO card's 20 side inset: the avatar lines up with the „Detalii act” labels */
-  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+  /* 16 on every side, as the Figma component „Profile / Beneficiary card” (EVO-WEB 22066:184323), user 2026-10-19 */
+  padding: var(--spacing-16, 16px);
 }
 
 .rap-profile__beneficiary-avatar {
