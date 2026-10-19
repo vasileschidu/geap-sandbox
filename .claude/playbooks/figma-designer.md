@@ -81,7 +81,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Effect style „dropdown-effect” (2026-10-16) | GEAP local `S:fc1dad56be71b69894b7f3586befb682c9a2f5fc,` | every menu / dropdown / popover surface; NOT published → FOD + EVO Cabinet use it by id `S:fc1dad56…,5088:9` (getStyleByIdAsync; importStyleByKeyAsync fails); eKYC has a local copy `S:2c6b167d…,` (same effects). Radius tokens: radius-12 1f226805…, radius-16 5e0761c5… |
 | eKYC library-gap pieces (local, 2026-10-16) | eKYC `10775:1049` / `:1055` / `:1059` / `:1063` | Switch · label (code A.renderToggle) · Filter option · tag (status facets) · Media badge · duration (video thumbnails) · Field label (label + 12/asterisk + hint for non-field controls). Exposed nested switch / checkbox / tag. Builders: tools/figma/ekyc-qa/ |
 | Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
-| Act row family (local, 2026-10-16) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 · `New request card` 11848:340913 (holder 11844:198504) | foActRowHtml / foIntentNewHtml. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile; TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544, Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
+| Act row family (local, 2026-10-16; sizes 2026-10-19) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 (State × **Size Desktop 40 / Touch 48**; Touch variants 12041:2547/2551/2555) · `New request card` 11848:340913 (holder 11844:198504) | GEAPActRow.html. Meta = Desktop/Body/Small 1f355410 + text/base/secondary 5d1a031c; pill = library button-filled-circular Neutral Small, paddingRight overridden to spacings/12 (code 0 12); menu p8 g4 r12, HUG width, minWidth = pill (191), items FILL, label Desktop/Body/Default 500 e069d3c3 text/base/default, 20 px icons. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile (Mobile menus use Size=Touch); TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544 (Touch 920:433/437/441), Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -1524,3 +1524,36 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-10-19 · Block status badge = the GEAP „Status” component everywhere (In development blue · Not aligned red · Figma aligned green, each a library tag-filled Subtle Small). GEAP's set (10169:188209) is not published, so other files rebuild it 1:1 from the same tag keys (91a965b4… brand, f3ab9255… danger, ea2a973c… success) — EVO-WEB: „Status” 22117:37664 in 🧱 Local Components, used inside „Board / Block label” (22060:5083). Lesson: `clone()` of a variant inside a component set DROPS the text nodes' componentPropertyReferences → every instance switched to that variant shows the default ID / Title; re-bind (`t.componentPropertyReferences = { characters: "<prop id>" }`) and check every instance's text = its property value before reporting.
 
 - 2026-10-19 · eKYC collapsed sidebar (Application Shell 10001:87050 / 87426 + detached frame 8443:123814): the 60px sidebars were the EXPANDED component „sidebar-public-services” (10001:87049, 256 wide) squeezed narrow → labels showed as „D…”. Fix = instance overrides on the narrow uses only (Primary Label hidden, item padding 0, centred), like the code's `.is-collapsed` (icon-only, label in the hover tooltip); the main component stays expanded. Lessons: (1) check a component's own width before editing it from a narrow instance; (2) the MCP runs with `figma.skipInvisibleInstanceChildren = true` — hidden instance layers vanish from `children`/`findOne`; set it to false before restoring hidden layers; (3) a script that throws is rolled back — read the state again before assuming a partial write.
+
+- 2026-10-19 · Act row sync to code (meta 14/20, Small pill, act-menu size 40 / 48) — GEAP 11846:340996 / 11844:340693 /
+  11844:198541 and FOD 892:11656 / 890:11545 / 890:11544, screens follow through instances (GEAP 35 rows: Ghișeu 25, FO 09
+  F1c 4, Post-processes 6; FOD Requestor P1 / P2 4). EVO Cabinet has NO act row (its Permits page 444:9934 is the older
+  table + profile design) → reported, not redrawn. Lessons:
+  - **Measure first, with the measure tool of the component** (tools/figma/act-row/measure-act-rows.mjs): it gave every target
+    number (row 70 / 154, menu 249×100, items 40, pill 195.2) in one run at 1440 + 375. Headless `mobile: true` is NOT
+    `pointer: coarse` → the 48 touch rows don't show in that capture; take them from the CSS.
+  - A density change = a new VARIANT property (`Size` Desktop / Touch) on the item set, not per-instance padding: rename the
+    variants („State=X, Size=Desktop”), `clone()` each into the set, then copy `componentPropertyReferences` from the source
+    children (clone drops them; only direct children — nested instance layers throw). Mobile act row variants set their
+    nested items to Touch.
+  - `setProperties({Size})` on a HIDDEN nested instance made it visible (all 7 menu slots appeared in the mobile variant) →
+    re-apply the visibility pattern after any variant change on nested slots.
+  - Menu width that follows its items: menu HUG + items FILL works (Figma hugs the widest child) ONLY when the item label is
+    HUG / WIDTH_AND_HEIGHT — a FILL label inside the item gives the item no intrinsic width and the menu keeps its old width.
+    Fix the label sizing in the item main AND on every instance (old instances carried a FILL override). minWidth = pill.
+  - Item icons 16 → 20: change the set's INSTANCE_SWAP default (`editComponentProperty(defaultValue)`), then map every
+    instance override 16/x → 20/x through the property (keys: 20/edit bef76865, 20/cross-small 3ccb9372, 20/copy 89c577ec);
+    glyphs without a size prefix (central „pause”) are resized to 20. Icon colour then comes from the variant (no overrides).
+  - Variables: `getAvailableLibraryVariableCollectionsAsync` does not list every enabled Foundations collection (the
+    lk-e9e8 semantic colours were missing in FOD) → import colours by KEY (text/base/default c37576ba…, text/base/secondary
+    5d1a031c…); for sizes pick the collection of a variable already bound on the node (radius-full on the library button
+    lives in ANOTHER Sizes collection — comparing against it failed).
+  - Section „fit to content” with `absoluteBoundingBox` of the children inflated two sections (FOD 866 → 7742, GEAP 4407):
+    use the direct children's relative `y + height` + 80. Check section heights after every Start-here text edit.
+  - Edge case to declare, not hack: the browser pill is 195.2 (1 px transparent .btn border each side + 2 px wider text) vs
+    Figma 191, so the code's meta box is 4 px narrower and the Ghișeu „Terasa” meta (502 px) wraps in code (row 90) but
+    fits one line in Figma (row 70).
+  - The item labels in both files were text/base/secondary (#383838) while the code is text/base/default (#121212) — check
+    colours of every text you touch against the measured computed colour, not only sizes.
+  - No Agent tool in this session → ran the figma-audit rules myself on the 3 components per file: 0 findings except the
+    declared meta-dot gap 18.
