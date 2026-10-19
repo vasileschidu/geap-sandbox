@@ -1679,3 +1679,43 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     still links fo-02, which is the PJ state — open.
   - No Agent tool in this session → figma-audit rules run by hand on the card set, the 3 groups and the 4 mobiles: fixed
     gap 3 → 4 + binds; left: `tight-gap` on the mobile screen roots (header + content, gap 0, pre-existing).
+
+- 2026-10-19 · EVO Cabinet „Actele mele permisive” rebuilt from the code (file iitScYOwMYjDayuyrm3750, page ↳ Permits
+  444:9934; 18 blocks × desktop 1440 + phone 375 in 5 column sections + `00 · Start here`; old designs moved into
+  `Archive · before 2026-10` 1060:1053; 38 local components on the new page „🧱 Local components” 1050:2252; builders
+  tools/figma/cabinet/ + README). „Solicitările mele” + Notificări NOT rebuilt yet (page ↳ My requests unchanged). Lessons:
+  - **Spec-driven build beats capture for a board that shares the RAP / GEAP patterns**: CDP spec (spec.mjs) + a stored
+    prelude (`cab`/`lib`, = rap/lib.js) + stored builders (`cab`/`screens`) → one block (desktop + phone) per call, 30–90 s.
+    Measure each new pattern once with a CSS outline (m2-style: box, padding, gap, radius, bg, font) before building its
+    component — heights then matched the code to the pixel (rows 70 / 126 / 154, profile 1246, confirm 356 / 528).
+  - Files don't share local components: the Act row family was rebuilt 1:1 from a read-only DUMP of the FOD copy
+    (892:11656 — sizes, paddings, bound variable names, text styles) instead of the outdated build-act-row-copy.js.
+    Cabinet additions: Desktop 1024, 4th meta part „Subdivision”, `Show extra tag` (Aprobare tacită), `Show action`
+    (rows with nothing to start have no pill), State=Paper (Info notice, no pill), `Break before subdivision`.
+  - **Forced line break in a WRAP row**: a FILL item does NOT start a new line (it shares the line's leftover); a hidden-by-
+    default FIXED-wide (1200) ~0-high frame before the item does — then the item FILL takes the whole next line and its
+    text wraps (code: long subdivision on phones). Height can't be 0 (floor 0.0001 → screens 1946.0002, declared).
+  - Long titles in hugging rows: after the instance is placed, measure title + tags vs the row; only then title FILL +
+    ENDING + maxLines 1 + vertical HUG (fitRow). Sizing overrides on instance sublayers work; `resize()` does not.
+  - tag-filled has NO `Warning` style: amber = `Accent` (styles Neutral / Muted / Accent / Success / Brand / Danger).
+  - `figma.createConnector()` is FigJam-only — in design files clone an existing connector (archived 456:3490 here) and
+    restyle (brand variable stroke 3, ELBOWED, ARROW_LINES). Same-column arrows in the section (side lanes), cross-column
+    ones on the page, column skips = local `Board / Jump marker` with a NODE hyperlink.
+  - Library pieces that needed care: pagination arrows = button-text-rectangular; `Icon=Only` keeps the old FIXED width →
+    set HUG (the icon-only variant is 20 wide, nested width can't be raised to the code's 44 — declared). Breadcrumbs
+    Mobile has no Label prop → set the visible TEXT. Library modal: header title only (subtitle goes first in the
+    swapped content component, indented 12 to the title), `.content-slot` swapComponent → local „Act view content · <id>”,
+    footer `Actions=Horizontal Stack` then swap the nested „Secondary/Primary Button” to button-filled-circular.
+    `.top-section` set is not importable by key → reach it through a header-evo-desktop instance's nested main.
+  - Avatar Icon instance: `findOne(INSTANCE)` returned the hidden Notification Badge and I swapped IT to the PJ glyph →
+    pick the glyph by name (/person|20\//) among `children`.
+  - Icons can't be `isExposedInstance` (no nested props) → use an INSTANCE_SWAP component property.
+  - A failed call rolls back plugin-data stores too: store long builders in their own call, then run them (I lost one
+    11 KB store to a test that threw in the same call).
+  - Tall dialogs: never clip — the overlay helper grows the screen (`minHeight = dialog.y + h + 32`) and resizes the scrim;
+    the A4 viewer keeps its scroll viewport (pages are complete components, scaled 0.79 in a clipped canvas = the code).
+  - Concurrent code: css/modal-phone.css (phone dialogs → bottom sheets, 16 top gap) appeared in the working tree, not yet
+    wired into cabinet-evo → phone modals drawn as the committed code (centred 338 card / confirm bottom card); revisit.
+  - No Agent tool in this session → ran the quality-sweep gate audit (gate-audit.js rules) on the 18 blocks: fixed
+    „Chip row…” names (raw-control false positive) and two .5 pager positions; left = intentional clips (chip rows that
+    scroll, phone viewport behind sheets / dialogs). Components check: 0 unbound colours, 0 unstyled texts after fix.
