@@ -252,6 +252,7 @@ but this doc previously described it wrongly, see the entry.
 | Request status card „Stadiul solicitării” (EVO Cabinet, 2026-10-17) | BO section title over `.cab-status` (white, 1px `--color-border-base-default`, radius 24 / 16 ≤760, clip) › `.cab-status__now` (20 / 16 inset, gap 8: `.cab-status__tags` Tag · Small status + marks · `p.cab-status__title` 16/24 semibold = the status sentence / next step · `p.cab-status__text` 14/20 secondary · `.cab-status__actions[data-sm-dl-scope]` the action that exists: Continuă schița + Elimină, Suplinește informații, Achită (MPay badge), Vezi actul + Descarcă, Depune contestație) · hairline · `ol.e-permits-fo-finish-timeline.cab-status__timeline` (the FO timeline without its grey fill: done steps with full-month dates, the current one `.is-now` = default colour + semibold + `aria-current="step"`, next steps dashed without dates) | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `timelineEvents` / `timelineHtml`; demo sm-03 (Schiță), sm-04 (În derulare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c (Spre achitare), sm-05 / 05a / 05b (Finalizat aprobat / respins / decizie) | page-app |
 | Configured act fields — groups + tables (2026-10-19, Figma comment EVO-WEB-3.0 20607:34846) | each configured group = BO `section.e-permits-dosar-profil__section` + `__section-title` over `.e-permits-dosar-profil__card.e-permits-act-fields[data-act-fields]` (`.is-collapsed` when > 10 items: items ≥ 9 get `.e-permits-act-fields__more`, toggle `.e-permits-act-fields__toggle` > `btn btn-text-primary btn-sm btn-rounded[data-act-fields-more][aria-expanded][aria-controls]` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); simple field = BO `__row` (label on the first line for multi-line values; a list = `ul.e-permits-act-fields__list`); grid = `.e-permits-act-fields__table-field` > `p.__table-label` + `.__table-wrap[role=region]` (white, 1px border, r12, own sideways scroll) > `table.__table(.is-collapsed)` (th 38 · 12/16 medium on secondary; td ≥ 50 · 14/20 secondary · 8/12; `.is-number` right-aligned; first column sticky + divider; `__more-row` / `__edge-row` for first 5 + „Arată toate (N)” / „Arată mai puține”; every td = `__cell-label` (phones only) + `__cell-value`); ≤ 760 rows = white mini-cards r12 (first cell label over value, the others label · value lines). A4: `tr.e-permits-doc-page__keep.e-permits-doc-page__grid-label` + `__grid-head[data-doc-grid]` + `__grid-row[data-doc-grid-of]` each holding a one-row `table.e-permits-doc-page__grid` (colspan units 3·2·2…), header repeated on continuation pages (`.is-repeat`) | `GEAPActView.fieldsHtml(groups, { section, untitled })` / `normalizeFields` (js/act-view.js) + css/act-view.css + css/doc-preview.css › „Grid on the page”; used by the act data modal (RAP + Cabinet) and Cabinet „Solicitările mele” › Act; demo `rap-03i/03j/03q/03r/03s/03t`, `pp-01x/01y/01z`, `sm-05n`; parity `tools/ui-qa/specs/act-fields-rap-vs-cabinet.json` (rap-03q ↔ pp-01x = 0) | page-app |
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
+| Long name in a header — expand on click (2026-10-19) | host `[data-name-expand]` (the FO top-bar `h1`) › `span.e-permits-name-expand` > `__text` (one line, ellipsis) while the name fits; only when it is really cut (`scrollWidth > clientWidth`, measured without the affordance) › ONE `button.e-permits-name-expand[data-name-expand-toggle][aria-expanded][data-tooltip-text]` > `__text` + `__more` (`__more-label` „Mai mult” / „Mai puțin” 14/20 medium brand + 16 `icon-chevron-bottom`, rotated when open); hover = the label underlines, focus = the FO ring (2 white + 5 `--focus-ring`); open = the name wraps with the label after its last word, host `.is-name-expanded`, the header grows; plain tooltip with the full name while collapsed (icon-tooltip.js `data-tooltip-text`) | `js/name-expand.js` (`GEAPNameExpand.set(host, text)` / `scan` / `sync` / `collapseAll`) + `css/name-expand.css`; FO `setFoServiceTitle`; demo `pp-18` (collapsed) / `pp-18a` (expanded) / `pp-18b` (expanded + scrolled) / `pp-18c` (short name, no affordance) | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
 | Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"`; a product module plugs in with `product.extend({ views, registries, facets, load, init, showView, route, beforeNavigate })` and reads helpers from `product.shared` | `js/ekyc.js` + `js/ekyc-config.js`, see „eKYC back office” | app |
 | Product registry „+ Adaugă …” + muted rows | toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-add-product]` (label from `view.primaryAction = { id, label }`); `registries[kind].rowClass(row)` → `tr.is-inactive` (text tertiary, tags keep colour) | `js/ekyc-config.js` | app |
@@ -1737,6 +1738,9 @@ Markup: the library tooltip with `.tooltip.tooltip--small.tooltip--plain` (no ar
   the `aria-label` specific: edit icons `title="Editează"` + `aria-label="Editează <obiect>"`;
   ⋮ triggers `data-tooltip-label="Mai multe acțiuni"`.
 - **Opt out:** `data-no-tooltip`. Controls using the rich tooltip (`data-tooltip`) are skipped.
+- **Truncated text controls** (2026-10-19): `data-tooltip-text="<full text>"` opts in a control WITH visible but cut
+  text (the long-name toggle, „Long name in a header — expand on click”); never shown while `aria-expanded="true"`.
+  `window.GEAPIconTooltip.hide()` hides it when a control changes in place.
 - Loaded on `e-permits-acte-permisive.html` and `e-permits-shell.html`
   (`js/icon-tooltip.js?v=…`, defer). Delegated on `document`, so re-rendered lists need no wiring.
 
@@ -2943,6 +2947,50 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Avatar menu | `e-permits-fo-avatar-menu__*` (~25 classes) | `is-open` `is-closing` `has-scroll` `is-scrolled` `is-selected` `is-expanded` | `data-fo-avatar-*` |
 | Notices | `e-permits-fo-infobox`, `e-permits-fo-mnotify-info`, `e-permits-fo-notice--skeleton` | | |
 | Skeletons | `e-permits-fo-skeleton` + `--input/--label/--notice-*` | | |
+
+### Long name in a header — expand on click (2026-10-19)
+
+User (2026-10-19, FO request wizard on a post-process of an act with a 144-character service name): „for long
+names in header let on click reveal entire name”. One shared behaviour, `js/name-expand.js` + `css/name-expand.css`
+(FO page), the same vocabulary as the RAP act dialog subtitle („Mai mult” / „Mai puțin”, js/act-view.js).
+
+**Where it applies** (2026-10-19: the FO header probed on fo / pp states at 1440 + 375, and a sweep of all 736 BO /
+Ghișeu / eKYC demo states at 1440 for cut titles): only the FO top-bar service title
+`.e-permits-fo-auth__service-title-row h1` is ever cut (post-processes of acts whose service name is long, e.g.
+act-depozit-10, 144 characters). BO page headers (`.e-permits-page-header__title`),
+the Ghișeu sheet header (`.e-permits-gh-sheet__title .modal--header-title`, already has `title`) never truncate with
+the seed (longest BO service 52 characters); RAP / Cabinet profile headers wrap by design — left as they are. The FO
+step lead (`.e-permits-fo-pp-lead`, „Reperfectare · nr · act name”) wraps — never cut.
+
+**Contract**
+- Host = any element with `data-name-expand` (the `h1` keeps its heading role; the button lives inside it). Set the
+  text ONLY with `GEAPNameExpand.set(host, text)` — `textContent` would also read / wipe „Mai mult”. The same text
+  again is a no-op (a re-render never folds a name the user opened).
+- Collapsed: one line + ellipsis on desktop AND phones (the sticky phone header keeps its short-name height, 126).
+  The affordance appears only when the text is really cut — measured with `__more` hidden, re-measured by a
+  ResizeObserver on the host and after `document.fonts.ready`. Short names stay a plain `span` (no tab stop).
+- Toggle: the WHOLE name is the button (`aria-expanded`); its accessible name = the full name (the label is
+  `aria-hidden`). Click / Enter / Space toggle; Escape folds it when the focus is on it (or nowhere); the FO folds it
+  on every step change (`setFrontOfficeStep` → `GEAPNameExpand.collapseAll()`).
+- Look: label 14/20 medium `--color-text-brand-default` + 16 chevron (icon = label colour), 8 after the ellipsis;
+  hover = label underline (no new colour); focus-visible = the FO / library ring. Expanded: `display: block`, the text
+  wraps (`overflow-wrap: anywhere`), „Mai puțin ⌃” 8 after the last word.
+- Desktop tooltip: while collapsed the plain tooltip shows the full name on hover (600 ms) and on keyboard focus
+  (`data-tooltip-text`, js/icon-tooltip.js); it never shows while expanded and hides the moment the name expands
+  (`GEAPIconTooltip.hide()`). Touch has no tooltip — the toggle is the way.
+- FO header: the 72 bar grows while expanded (`:has(.is-name-expanded)` → height auto, 12 top / bottom; the logo
+  stays centred); the title row keeps its 26 floor. Phones: the header grows and pushes the page down; the sticky
+  phone progress now sits at `top: var(--fo-header-height)` (was a fixed 108, which also covered the draft line of
+  every 126-high header — fixed in the same change).
+
+**Measured** (pp-18 / 18a / 18c): 1440 — collapsed h1 859 wide (text 777 + 8 + label 74), bar 72; expanded h1 52 (2
+lines), bar 107, header 153 → 188. 375 — collapsed text 261 + label 74 on one line, header 126 (= short name);
+expanded 4 lines, header 196, progress right under it. Keyboard: 6th Tab stop after gov link, Ro / Ru / En, logo.
+
+**Research** (Mobbin MCP not available in this session): NN/g on truncation (cut text needs a visible way to the
+whole; an explicit word beats a bare ellipsis), Material 3 top app bar (one-line titles truncate), Material / app
+store „more” expandable text, GOV.UK Details (expand in place, content pushed down, no overlay). A chevron alone
+reads as a menu next to a page title — hence the word + chevron.
 
 ### Address by cadastral code — US-54 (2026-10-13, refined 2026-10-13)
 

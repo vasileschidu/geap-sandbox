@@ -606,6 +606,13 @@
       `;
     }
 
+    /* the header service name: one line + „Mai mult” when cut (js/name-expand.js) — never textContent */
+    function setFoServiceTitle(title, text) {
+      if (!text) return;
+      if (window.GEAPNameExpand && title.hasAttribute("data-name-expand")) window.GEAPNameExpand.set(title, text);
+      else title.textContent = text;
+    }
+
     function setServiceHeaderFromSchema(schema) {
       const service = schema?.service;
       if (!service) return;
@@ -615,7 +622,7 @@
       const serviceCardTitle = document.querySelector(".e-permits-fo-service-card h2");
       const serviceCardTerm = document.querySelector(".e-permits-fo-service-card dl div:nth-child(1) dd");
       const serviceCardCost = document.querySelector(".e-permits-fo-service-card dl div:nth-child(2) dd");
-      if (title) title.textContent = service.title || title.textContent;
+      if (title) setFoServiceTitle(title, service.title);
       if (type) type.textContent = service.type || service.category || type.textContent;
       if (serviceCardTag) serviceCardTag.textContent = service.tag || service.type || serviceCardTag.textContent;
       if (serviceCardTitle) serviceCardTitle.textContent = service.shortTitle || service.title || serviceCardTitle.textContent;
@@ -3976,6 +3983,8 @@
       frontOfficeStepPanels.forEach((panel) => {
         panel.hidden = panel.dataset.foStepPanel !== String(step);
       });
+      /* an expanded header name folds again on every step change */
+      window.GEAPNameExpand?.collapseAll();
 
       const activePanel = frontOfficeRequestScreen?.querySelector(`[data-fo-step-panel="${step}"]`);
       window.PageReveal?.showStep?.(activePanel);
@@ -5660,7 +5669,7 @@
       if (active && frontOfficePostprocess) {
         const { service, pp } = frontOfficePostprocess;
         document.title = `${service.code || ""} · ${pp.requestType || pp.label} — ${service.shortTitle || service.title || ""}`;
-        if (title) title.textContent = service.title || title.textContent;
+        if (title) setFoServiceTitle(title, service.title);
       } else if (frontOfficeSchema) {
         setServiceHeaderFromSchema(frontOfficeSchema);
       }

@@ -12,7 +12,8 @@
    The text is the control's data-tooltip-label, else aria-label, else title. A title
    is moved to data-tooltip-label (and copied to aria-label when that is missing) so
    the browser's own tooltip never doubles it. Opt out with data-no-tooltip; controls
-   using the rich library tooltip (data-tooltip) are left alone. Delegated once on the
+   using the rich library tooltip (data-tooltip) are left alone. A control with visible but
+   truncated text opts in with data-tooltip-text="<full text>" (2026-10-19). Delegated once on the
    document, so content rendered later is covered without wiring. */
 (() => {
   if (window.__iconTooltip) return;
@@ -39,6 +40,7 @@
 
   const labelOf = (el) => {
     if (el.dataset.tooltipReason) return el.dataset.tooltipReason.trim();
+    if (el.dataset.tooltipText) return el.dataset.tooltipText.trim();
     if (el.hasAttribute("title")) {
       const title = el.getAttribute("title").trim();
       if (title && !el.dataset.tooltipLabel) el.dataset.tooltipLabel = title;
@@ -53,9 +55,12 @@
   const candidate = (node) => {
     /* [data-tooltip-reason] also covers non-buttons, e.g. a checkbox container whose input is
        disabled (Documente › Obligatoriu while the document is hidden) */
-    const el = node instanceof Element ? node.closest("[data-tooltip-reason], button, a[href], [role='button']") : null;
+    const el = node instanceof Element ? node.closest("[data-tooltip-reason], [data-tooltip-text], button, a[href], [role='button']") : null;
     if (!el || el.hasAttribute("data-no-tooltip") || el.hasAttribute("data-tooltip")) return null;
     if (el.dataset.tooltipReason) return el;
+    /* data-tooltip-text: the full text of a control whose own text is cut (a long name in a
+       header, js/name-expand.js) — shown like the plain tooltip; hidden while aria-expanded */
+    if (el.dataset.tooltipText) return el;
     if (el.disabled || el.getAttribute("aria-disabled") === "true") return null;
     if (hasVisibleText(el)) return null;
     return labelOf(el) ? el : null;
@@ -138,4 +143,6 @@
   window.addEventListener("scroll", hide, true);
   window.addEventListener("resize", hide);
   window.addEventListener("blur", hide);
+  /* for controls that change in place (a name that expands with Enter keeps focus) */
+  window.GEAPIconTooltip = { hide };
 })();

@@ -2211,6 +2211,14 @@
     /* US-55 AC-09/10: Anulare (DEMO service) — Detalii solicitare (reason) and the finish screen */
     "pp-17": ppFo("anulare", "act-licenta-susp", 2),
     "pp-17a": ppFo("anulare", "act-licenta-demo", 7),
+    /* long name in the header — expand on click (2026-10-19, js/name-expand.js): the 144-character
+       service name of act-depozit-10 is one line + „Mai mult” (pp-18), expanded in place with
+       „Mai puțin” (pp-18a), expanded and scrolled — the sticky phone progress stays under the
+       grown header (pp-18b); a short name has no affordance (pp-18c) */
+    "pp-18": ppFo("reperfectare", "act-depozit-10", 2, async (h) => { await h.find(".e-permits-fo-auth__service-title-row [data-name-expand-toggle]"); }),
+    "pp-18a": ppFo("reperfectare", "act-depozit-10", 2, async (h) => { await h.find(".e-permits-fo-auth__service-title-row [data-name-expand-toggle]"); await h.wait(600); await h.click(".e-permits-fo-auth__service-title-row [data-name-expand-toggle]"); await h.find(".e-permits-fo-auth__service-title-row [data-name-expand-toggle][aria-expanded='true']"); }),
+    "pp-18b": ppFo("reperfectare", "act-depozit-10", 2, async (h) => { await h.find(".e-permits-fo-auth__service-title-row [data-name-expand-toggle]"); await h.wait(600); await h.click(".e-permits-fo-auth__service-title-row [data-name-expand-toggle]"); await h.scroll("[data-fo-step-panel='2'] .e-permits-fo-field", "Raionul"); }),
+    "pp-18c": ppFo("reperfectare", "act-izvoras", 2, async (h) => { await h.find(".e-permits-fo-auth__service-title-row h1 > span.e-permits-name-expand"); }),
 
     /* ---- eKYC back office (ek-, js/ekyc.js, 2026-10-13) ----
        login on bo-login.html?product=ekyc; the console = ?flow=ekyc; ?ek= gol | eroare |

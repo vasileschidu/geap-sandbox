@@ -79,7 +79,7 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
       // clipped text without a way to read it
       /* js/table-cells.js shows the full text of ANY clipped text inside a table cell (and data-cell-tooltip overrides it) */
       const cellTip = el.closest("[data-cell-tooltip]") || (el.closest("td, th, [role=cell], [role=gridcell]") && document.querySelector("script[src*='table-cells.js']"));
-      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[title]") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
+      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[data-tooltip-text],[title]") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
     }
     const bg = cs.backgroundColor; if (bg && bg !== "rgba(0, 0, 0, 0)" && tokens.size && !tokens.has(bg.replace(/\s/g, ""))) add("background-not-token", el, bg);
     if (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none" && !/rgba\([^)]*,\s*0\)$/.test(cs.borderTopColor) && tokens.size && !tokens.has(cs.borderTopColor.replace(/\s/g, ""))) add("border-not-token", el, cs.borderTopColor);
@@ -89,8 +89,10 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
     if (!vis(b)) continue;
     const lib = /\b(btn|chip|segment-item|tab-button|e-permits-fo-select__button|checkbox|modal-close|e-permits-user-create__close|e-permits-fo-subgen-select__button|e-permits-fo-intent-menu__item|btn-icon|e-permits-timeline__link|e-permits-stack__menu-trigger|e-permits-fo-subgen-chip__remove|e-permits-cfg-num-token)\b/.test(b.className) || b.closest(".e-permits-fo-select__list, .sidebar, header, nav, .tabs, .e-permits-fo-testcfg");
     if (!lib) add("button-not-library", b, b.className.slice(0, 80));
-    const icon = b.querySelector("svg"); const label = [...b.childNodes].find((n) => (n.nodeType === 3 && n.textContent.trim()) || (n.nodeType === 1 && n.tagName === "SPAN" && n.textContent.trim()));
-    if (icon && label) { const ic = getComputedStyle(icon).fill === "none" ? getComputedStyle(icon).color : getComputedStyle(icon).fill; const lc = getComputedStyle(label.nodeType === 1 ? label : b).color; if (ic && lc && ic.replace(/\s/g, "") !== lc.replace(/\s/g, "") && !/currentcolor/i.test(ic)) add("button-icon-colour-differs", b, `icon ${ic} vs label ${lc}`); }
+    // the label = the text next to the icon in its own group (a „Mai mult ⌄” part inside a bigger button), else the button's
+    const icon = b.querySelector("svg"); const group = icon && icon.parentElement !== b && [...icon.parentElement.childNodes].some((n) => n !== icon && n.textContent.trim()) ? icon.parentElement : b;
+    const label = [...group.childNodes].find((n) => (n.nodeType === 3 && n.textContent.trim()) || (n.nodeType === 1 && n.tagName === "SPAN" && n.textContent.trim()));
+    if (icon && label) { const ic = getComputedStyle(icon).fill === "none" ? getComputedStyle(icon).color : getComputedStyle(icon).fill; const lc = getComputedStyle(label.nodeType === 1 ? label : group).color; if (ic && lc && ic.replace(/\s/g, "") !== lc.replace(/\s/g, "") && !/currentcolor/i.test(ic)) add("button-icon-colour-differs", b, `icon ${ic} vs label ${lc}`); }
   }
   // overlapping interactive controls
   /* each control's rect clipped to its scroll containers: what is scrolled away does not count */

@@ -1295,3 +1295,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   spec's beneficiary padding (16 vs BO 20) come from today's other commits. No sub-agent tool → ran code-audit (before /
   after diff: only zoomed-A4 tight-gap FPs moved), component-audit (identical before / after), hover-audit at 700 with a
   mouse (temp copy with the width from an env var), compare-styles (0) myself. Mobbin MCP not available again.
+- 2026-10-19 · „Long name in a header — expand on click” (user, FO pp wizard with a 144-character service name). ONE small
+  shared module `js/name-expand.js` (`GEAPNameExpand.set / scan / sync / collapseAll`) + `css/name-expand.css`, the RAP
+  subtitle vocabulary („Mai mult ⌄” / „Mai puțin ⌃”), the whole name = the button only when really cut (measured with the
+  affordance hidden, ResizeObserver + fonts.ready), plain tooltip while collapsed through a new icon-tooltip hook
+  `data-tooltip-text` (+ `GEAPIconTooltip.hide()`: a tooltip opened on focus stayed up after Enter expanded the name).
+  Traps: (1) a JS-owned host must never be written with `textContent` (two FO setters did — route them through one
+  helper) and `set()` with the same text must be a no-op, or a late re-render folds what the user opened (the demo
+  click raced the FO's first title render); (2) the phone sticky progress sat at a fixed `top: 108px` while the header
+  is 126 (draft line) → it covered the draft line on EVERY FO phone state and a wrapped long name — use the page's own
+  `--fo-header-height` (ResizeObserver); (3) changing a fixed `flex: 0 0 26px` row to auto moved every phone header 2px
+  — keep the old size as `min-height`; (4) hover-audit only compares the element + its first 3 children: a hover
+  decoration on a grandchild reads „no-hover” — put it on the direct child (`__more`; text-decoration propagates to the
+  label, not the icon). Taught code-audit `data-tooltip-text` and „icon colour = the text next to it in its own group”.
+- 2026-10-19 · BUG in my scratch probe: `evaluate()` returned the raw CDP result object when the value was undefined,
+  so `!!demoState` was true at once and every measurement ran 1.2 s after load, BEFORE the demo — a 736-state sweep
+  had to be rerun. Ready checks read `dataset.demoState || ""`, and a probe prints the demoState it measured (blank =
+  not ready). Sweep result: no BO page header / Ghișeu sheet / eKYC title is cut at 1440 (longest BO service 52
+  chars) → pattern used only in the FO header; RAP / Cabinet headers wrap by design. No sub-agent tool → ran
+  code-audit, hover-audit, component-audit directly (only pre-existing FO header button findings left). Mobbin MCP
+  not available again → NN/g / Material / GOV.UK guidance.
