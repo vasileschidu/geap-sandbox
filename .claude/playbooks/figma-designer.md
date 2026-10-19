@@ -1650,3 +1650,32 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → ran the figma-audit rules myself on the set + 4 headers (0 findings) + a column-gap check on
     all 8 pages (0 overlaps / gaps < 40) + the anchor check (10/10 d = 0).
 
+
+- 2026-10-19 · „Temeiul reprezentării” on FO 09 „Date solicitant” (code e10e5394; user pointer 11858:24176 = the Ghișeu gh-03 card,
+  component `Authorization card (FO)` 11861:7142 — MPower 11861:7112 / RSUD 11861:7140). Changed: `Requestor` variants
+  PJ/None 2213:4912 (new group 12059:2575), PJ/MPower 2223:11874 and PF/MPower 4802:55033 (old „Împuternicire MPower aplicată”
+  title + raw card → „Temeiul reprezentării” + card instance) → FO 09 F2e / F2f / F2h / F2i desktop and FOD Pattern › Requestor
+  C2 / C3 / C4 follow; mobiles F2e / F2f (role area rebuilt 12060:1777 / 12060:1902), F2h (group 12059:353032), F2i (card
+  12059:353084). Lessons:
+  - **The pointer can live on another board**: the node the user named was the Ghișeu desk-filing card, the job was FO 09. Walk
+    the pointer's ancestry first, then find the target screens by the COMPONENT (the same card set), not by the board.
+  - **FO 09 desktop „Date solicitant” = instances of the FOD `Requestor` set** (page ↳ FOD Pattern -> Requestor 2210:20269;
+    variants Applicant type × Representation mode). A role-area change is a VARIANT edit (census `getInstancesAsync` per variant
+    first: here FO 09 + FOD C1–C5 + 17 MSupport PF/None uses). PJ / None = own company = RSUD basis; PF / None = no block.
+    Mobiles are raw frames per screen — edit each, and check them against the desktop: F2e / F2f mobiles showed one wrong
+    „Anastasia Cojocaru · IDNO” card and no Reprezentant, F2h mobile the wrong company; rebuilt from the F2h mobile role frame.
+  - **A component built for one width breaks at another**: the card was made for 768 (Ghișeu) with FIXED meta parts
+    (168 / 200 / 150) and a NO_WRAP meta row → a longer grantor overlapped the next part, and at 343 the row would run out.
+    Code = `flex-wrap`, row gap 6, part gap 4 → Meta WRAP + counterAxisSpacing 6 (spacings/6), parts HUG, texts
+    WIDTH_AND_HEIGHT. Heights then equal the code exactly (desktop 78, 375: RSUD 104, MPower 130). Screenshot the instance with
+    REAL data, not the main's defaults.
+  - The meta parts had gap 3 (off-scale, code 4) — `figma.teamLibrary` → Sizes collection → `spacings/spacing-4` import by key.
+    GEAP binds spacing from TWO Foundations collections (8ee1… and fd53…); both are accepted, prefer the one already bound on
+    the neighbours.
+  - PJ identity cards on phone screens: clone an existing PJ `Identity card · selected (FO)` (avatar Type=Icon + 20/business,
+    e.g. 11875:272490) instead of the initials avatar; MPower tone = copy the desktop variant avatar's fills (avatar + glyph).
+  - Column F2 pitch is 400 (not 240) — measure the existing gaps before a restack. No connectors touched the moved blocks.
+  - Block „Prototype ↗” links on F2e–F2i all pointed to the generic svc-07 → set to fo-02 / cat-04a / cat-04. F2 („Individual”)
+    still links fo-02, which is the PJ state — open.
+  - No Agent tool in this session → figma-audit rules run by hand on the card set, the 3 groups and the 4 mobiles: fixed
+    gap 3 → 4 + binds; left: `tight-gap` on the mobile screen roots (header + content, gap 0, pre-existing).
