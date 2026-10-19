@@ -266,7 +266,7 @@ but this doc previously described it wrongly, see the entry.
 | Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
-| Facet filter · phone sheets (2026-10-17) | `GEAPFacetFilter.create({ mobileSheets: true, preview })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = one scrolling chip row („Filtre” `[data-filter-all]` first, the toolbar button hidden) + „N de rezultate · Șterge filtrele”; sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`; section „Advanced filter › Phone mode” | app |
+| Facet filter · phone sheets (2026-10-17) | `GEAPFacetFilter.create({ mobileSheets: true, preview })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = one scrolling chip row („Filtre” `[data-filter-all]` first, the toolbar button hidden) + „N de rezultate · Șterge filtrele”; sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19); section „Advanced filter › Phone mode” | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
@@ -3195,6 +3195,18 @@ The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are remove
 `__flag`, `__person`, `__pagination-item` (`is-active`), `__pagination-action`, `__rows-select`.
 Contracts: `data-workplace-*` (`row`, `sort`, `page`, `page-size`, `select-row`, `select-all`, `rows`, `head`, `range`, `tabs`, `total`).
 
+**Status tabs — separators (measured 2026-10-19, same on every BO / eKYC registry):** the strip is 40
+high, full width, `border-bottom: 1px --color-border-base-default`; its TOP separator is the line of
+whatever sits above it — the toolbar's bottom line (inset shadow) or, with „Filtrare avansată” open,
+the filter bar's `border-bottom`. Tabs 40 · 0 12 · 14/20 secondary, active = 2px brand bottom + 500
+brand. Counter `.e-permits-workplace__status-count` = the Figma numbered-badge Large: **20 high**,
+min-width 20, padding 0 4, radius full, 12/16 medium, `base-tertiary` (crit / warn = yellow-300) —
+the library equivalent is `.tabs--sm .tab-button .badge` (20 · 12/16), not the 24px `.tabs .badge`.
+Group dividers `.e-permits-workplace__status-divider` (1 × 28) only where a view defines them (BO
+Dosare: after „Prioritate critică” and before „Toate”); eKYC views have no groups. Profile tabs
+(`.e-permits-page-header` `.tab-buttons`, dossier / eKYC session / review) have only the bottom
+track line (no top line in the BO either); counters `.e-permits-page-header__tab-count`, also 20.
+
 Note it styles bare `<th>` / `<td>` — there are no cell classes.
 
 ### `e-permits-builder__*` — Form Builder (rebuilt 2026-10-13, batches 0–3)
@@ -4363,6 +4375,22 @@ e-permits-shell.css). The page keeps its data: the shell gives `FILTER_FACETS`,
 panel (dossiers, sarcini, users, roles, services, authorities, tariffs, ntpl, modules); the
 public RAP list (`rap-evo/`) gives its records (Statut · Denumire act · Autoritate · Tip
 beneficiar, status values as its `.rap-status` tags), label „Filtru”. Demo states rap-01…01d.
+**eKYC back office (2026-10-19, user: „exact same filtrare as in GEAP”):** every eKYC list is a
+shell registry (`ekyc-*` kinds), so its „Filtrare avansată” IS this module with the BO Dosare
+markup / CSS — facets come from `product.facets` (`js/ekyc.js`: Sesiuni active Client · Caz de
+utilizare · Statut · Nivel asigurare · Pas curent · Furnizor; istorice Perioadă · Client · Decizie ·
+Scor final · Caz · Statut · Nivel · Revizie manuală; revizie, jurnal acces) and
+`GEAPShellRegistries[kind].facets` (`js/ekyc-config.js`: Utilizatori, Clienți, Cazuri de utilizare,
+Parametri, Scoring, Furnizori, Organizații, SDK, Certificate CA). Proof: compare-styles spec
+`tools/ui-qa/specs/ekyc-filter-vs-bo.json` (dos-05c ↔ ek-04j: button, bar, chips, Statut popover, tabs) = 0 and
+`ekyc-filter-applied-vs-bo.json` (dos-05d ↔ ek-04d: selected chip + badges, „N rezultate · Șterge filtrele”) = 0.
+BO reference states dos-05b (bar open) · 05c (Statut popover) · 05d (Statut applied). eKYC states:
+ek-04b bar · 04c Client popover · 04c1 popover search without match · 04d Client applied · 04j
+Statut popover (tags) · 04k Statut ×2 + Nivel applied · 04l draft „Filtre neaplicate” · 04m „Mai
+multe” (phone: all-filters sheet) · 04n applied + search → no results · 06g Decizie + Perioadă
+applied; 06b / 06c / 08b / 13a / 20b / 22b / 27a = popovers on other lists. Demo helpers `ekFacet` /
+`ekPick` / `ekCommit` branch desktop / phone. No date-range facet in the module: Sesiuni istorice
+keep the „Perioadă” period facet (PO question).
 The passport stacked lists (`SF_LISTS`, `data-sf-*`) still have their own copy — next to
 migrate. Never write a third one.
 
@@ -4435,8 +4463,15 @@ migrate. Never write a third one.
 #### Phone mode — chip row + bottom sheets (2026-10-17, RAP; opt-in)
 
 `GEAPFacetFilter.create({ …, mobileSheets: true, preview(selection) → rows })`. Active only
-≤760px (matchMedia; crossing the breakpoint closes any sheet / popover and re-renders). Pages
-that don't opt in (every BO registry) are byte-identical — proved on srv-01 / dos-05 and
+≤760px (matchMedia; crossing the breakpoint closes any sheet / popover and re-renders).
+**eKYC opts in (2026-10-19):** the shell passes `mobileSheets: !!product` + `preview:
+previewSelection` (rows of the base · tab · search matching a not-yet-applied selection), so a
+product back office (eKYC) gets the sheets and the GEAP BO registries do not. eKYC placement
+(e-permits-acte-permisive.css, „eKYC lists on phones”): the bar keeps the BO look (white, 12 / 16,
+bottom line = the status tabs' top separator), its chip row bleeds to the screen edges (−4 / −16,
+padding 4 / 16), and the search shares its row with the export button when the list has no
+„Adaugă …” (tools `min-width: 0`); the quick search is 48 · 16/24 on phones (the sheet search values). Pages
+that don't opt in (every GEAP BO registry) are byte-identical — proved on srv-01 / dos-05 and
 rap-01…01d at 1440 + 375 (bar / popover outerHTML + computed styles, HEAD vs tree).
 Research (Baymard mobile filtering, NN/g bottom sheets + mobile faceted search, Material 3
 bottom sheets / filter chips, Apple HIG sheets, Google Shopping / Zalando / Amazon / Airbnb /

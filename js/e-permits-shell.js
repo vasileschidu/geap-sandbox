@@ -6018,6 +6018,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const fromDb = Object.values(workplaceDb.statuses || {}).find((st) => st.label === value)?.tone;
     return fromDb || { Activ: "success", Activă: "success", Publicat: "success", Inactiv: "neutral", Schiță: "warning", Nepublicat: "warning" }[value] || "neutral";
   };
+  /* the phone sheets' live „Arată N rezultate”: rows matching a selection that is not applied yet */
+  const previewSelection = (selection) => {
+    const view = getView();
+    const tab = getActiveTab(view);
+    const entries = Object.entries(selection || {}).filter(([, values]) => values?.length);
+    return getBaseRows(view).filter((row) => filterByToken(row, tab?.filter)).filter(filterBySearch).filter((row) => entries.every(([key, values]) => {
+      const facet = facetsOf().find((f) => f.key === key);
+      if (!facet) return true;
+      const rowValues = asList(facet.get(row));
+      return values.some((v) => rowValues.includes(v));
+    })).length;
+  };
   const workplaceFilter = window.GEAPFacetFilter.create({
     bar: document.querySelector("[data-workplace-filters]"),
     toggle: document.querySelector("[data-workplace-filter-toggle]"),
@@ -6032,7 +6044,11 @@ document.addEventListener("DOMContentLoaded", () => {
     apply: () => { workplaceState.page = 1; renderWorkplace(); },
     pageKey: () => `${registryKindOf()}:${workplaceState.viewKey || ""}`,
     onPageChange: () => Object.values(filterStore).forEach((st) => { st.open = false; st.draft = null; }),
-    scrollers: [document.querySelector(".e-permits-workplace__table-wrap")]
+    scrollers: [document.querySelector(".e-permits-workplace__table-wrap")],
+    /* phones (≤760): a product back office (eKYC, 2026-10-19) opts in to the bottom sheets, as RAP /
+       Cabinet; the GEAP BO registries keep the bar as it was (PO question) */
+    mobileSheets: !!product,
+    preview: previewSelection
   });
   const renderFilterBar = () => workplaceFilter.render();
 

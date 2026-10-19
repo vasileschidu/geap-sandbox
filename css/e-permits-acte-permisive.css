@@ -25630,6 +25630,48 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
   }
 }
 
+/* ---- eKYC lists on phones: the shared facet filter's phone mode (2026-10-19) ----------------
+   js/e-permits-shell.js opts a product back office in (`mobileSheets: !!product`): the toolbar
+   button is hidden and „Filtre” + the facet chips are one row under the toolbar, each chip opening
+   a bottom sheet (RAP / Cabinet). The bar keeps the BO look (white, 12 / 16 inset, bottom line =
+   the tab strip's top separator); here only the placement: the search shares its row with the
+   export button when there is no „Adaugă …”, and the chip row runs to the screen edges (the last
+   chip cut = scroll hint, as RAP). */
+@media (max-width: 760px) {
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar:has(> .e-permits-workplace__advanced[hidden]):not(:has(> .e-permits-workplace__primary-action:not([hidden]))) {
+    flex-wrap: nowrap;
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar:has(> .e-permits-workplace__advanced[hidden]):not(:has(> .e-permits-workplace__primary-action:not([hidden]))) .e-permits-workplace__search {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* the tools hold only the export here (field count hidden on phones): hug it */
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar:has(> .e-permits-workplace__advanced[hidden]) .e-permits-workplace__table-tools {
+    min-width: 0;
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-chips {
+    margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-16, 16px) * -1);
+    padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
+    scroll-padding-inline: var(--spacing-16, 16px);
+  }
+
+  /* phones: the quick search is the bigger input (user rule 2026-10-18: desktop 40, phones 48 ·
+     16/24) — the same values as the filter sheet's search (css/facet-filter.css) */
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .search-input.medium {
+    --search-input-height: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .search-input.medium .input,
+  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .search-input.medium .input::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}
+
 /* ---- Hover audit, round 3 (2026-10-13, tools/ui-qa/hover-audit.mjs — real mouse) -----------
    One rule per component class, so every screen that uses it inherits the fix. Values: the
    library hover tokens (components.md › Hover). Selected / current items get a visible variant;

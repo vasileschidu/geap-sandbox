@@ -1,0 +1,143 @@
+{
+ "about": "eKYC lists vs BO Dosare — APPLIED filters (selected chip + count badge, „N rezultate · Șterge filtrele”, button badge, tabs counting inside the filters), 2026-10-19. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a dos-05d --b ek-04d --spec tools/ui-qa/specs/ekyc-filter-applied-vs-bo.json --viewports 1440",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--spacing-",
+  "--border-"
+ ],
+ "pairs": [
+  {
+   "name": "toolbar",
+   "a": ".e-permits-workplace__toolbar",
+   "b": ".e-permits-workplace__toolbar",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "filter button",
+   "a": "[data-workplace-filter-toggle]",
+   "b": "[data-workplace-filter-toggle]",
+   "rel": "toolbar",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "filter button badge",
+   "a": "[data-workplace-filter-count]",
+   "b": "[data-workplace-filter-count]",
+   "ignore": [
+    "rect.x"
+   ]
+  },
+  {
+   "name": "filter button label",
+   "a": "[data-workplace-filter-toggle] > span:not(.badge)",
+   "b": "[data-workplace-filter-toggle] > span:not(.badge)"
+  },
+  {
+   "name": "bar",
+   "a": "[data-workplace-filters]",
+   "b": "[data-workplace-filters]",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "chips",
+   "a": "[data-workplace-filters] .e-permits-workplace__filter-chips",
+   "b": "[data-workplace-filters] .e-permits-workplace__filter-chips",
+   "rel": "bar",
+   "ignore": [
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "chip",
+   "a": ".e-permits-workplace__filter-chip:not(.is-selected):not([aria-expanded=true])",
+   "b": ".e-permits-workplace__filter-chip:not(.is-selected):not([aria-expanded=true])",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "chip label",
+   "a": ".e-permits-workplace__filter-chip:not(.is-selected):not([aria-expanded=true]) .chip__label",
+   "b": ".e-permits-workplace__filter-chip:not(.is-selected):not([aria-expanded=true]) .chip__label",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "chip caret",
+   "a": ".e-permits-workplace__filter-chip .e-permits-workplace__filter-caret",
+   "b": ".e-permits-workplace__filter-chip .e-permits-workplace__filter-caret",
+   "ignore": [
+    "rect.x"
+   ]
+  },
+  {
+   "name": "selected chip",
+   "a": ".e-permits-workplace__filter-chip.is-selected",
+   "b": ".e-permits-workplace__filter-chip.is-selected",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "chip badge",
+   "a": ".e-permits-workplace__filter-chip.is-selected .badge",
+   "b": ".e-permits-workplace__filter-chip.is-selected .badge",
+   "ignore": [
+    "rect.x"
+   ]
+  },
+  {
+   "name": "meta",
+   "a": ".e-permits-workplace__filter-meta",
+   "b": ".e-permits-workplace__filter-meta",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "meta text",
+   "a": ":is(.e-permits-workplace__filter-hint, .e-permits-workplace__filter-result)",
+   "b": ":is(.e-permits-workplace__filter-hint, .e-permits-workplace__filter-result)",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "tabs",
+   "a": ".e-permits-workplace__status-tabs",
+   "b": ".e-permits-workplace__status-tabs"
+  },
+  {
+   "name": "tab",
+   "a": ".e-permits-workplace__status-tab:not(.is-active):not([class*='--'])",
+   "b": ".e-permits-workplace__status-tab:not(.is-active)",
+   "ignore": [
+    "rect.width",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "tab count",
+   "a": ".e-permits-workplace__status-tab:not(.is-active):not([class*='--']) .e-permits-workplace__status-count",
+   "b": ".e-permits-workplace__status-tab:not(.is-active) .e-permits-workplace__status-count",
+   "ignore": [
+    "rect.x",
+    "rect.width"
+   ]
+  }
+ ]
+}

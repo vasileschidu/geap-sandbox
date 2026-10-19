@@ -1251,3 +1251,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   code-audit (standing FPs: BO 11/7, subtitle toggle), hover-audit 0/0, compare-styles (rap-03 / pp-01m vs BO = 0;
   new spec act-fields-rap-vs-cabinet rap-03q ↔ pp-01x = 0). Coordinator correction: never reuse demo ids linked
   from Figma (rap-03n / 03o) — build on existing ones (03i / 03j) and take free ids.
+- 2026-10-19 · eKYC „exact same filtrare as in GEAP” + „tab separators top/bottom” (Figma 10385:5149 / 10405:2438): MEASURE
+  before building — every eKYC list was already a shell registry, so its „Filtrare avansată” WAS js/facet-filter.js with
+  the BO markup / CSS, and the status tabs already had the BO top line (toolbar inset shadow / filter-bar border) + bottom
+  border, counters 20 high (`__status-count` = numbered-badge Large). The gap was in Figma, not code. Proof the user can
+  read: compare-styles specs `ekyc-filter-vs-bo.json` (dos-05c ↔ ek-04j) and `ekyc-filter-applied-vs-bo.json` (dos-05d ↔
+  ek-04d) = 0 / 0, plus a tab-strip probe listing which element's border meets the strip's top / bottom edge. No BO Dosare
+  filter demo state existed → added dos-05b/c/d as the reference (also for the Figma agent). What code DID lack: the phone
+  mode — eKYC now opts in with `mobileSheets: !!product` + a `preview(selection)` from the shell's own row filters (GEAP BO
+  registries untouched; PO question), placement CSS per product (search + export on one row, chip row edge to edge,
+  phone search 48 · 16/24 — component-audit flagged the 40 / 12 search on phones). Demo helpers `ekFacet` / `ekPick` /
+  `ekCommit` branch desktop / phone — every old state that clicked the (now hidden on phones) toggle had to move to them.
+  Capture traps: (1) a popover state shot with `captureBeyondViewport: true` resizes the page → the popover closes on
+  resize (empty shot while the probe said „open”) — viewport shots for popovers; (2) a bottom sheet whose slide-in is
+  killed mid-way by the capture's `animation:none` style never paints in headless (CSS says visible) — shoot sheets
+  without the injected style. No sub-agent tool → ran code-audit (standing FPs only: violet tag, th sort, pagination,
+  sidebar toggle, library search ×), hover-audit 0 / 0, component-audit (fixed the phone search) myself.

@@ -275,6 +275,16 @@
   const ekQueue = (as, hash, run, extra = {}) => ek(hash, run, { as, ready: "tr[data-workplace-row]", ...extra });
   const ekRev = (as, id, tab = "revizie", run, extra = {}) => ek(`#revizie/${id}/${tab}`, run, { as, ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty", ...extra });
   const ekAud = (id, tab = "general", run) => ek(`#sesiune/${id}/${tab}`, run, { as: EK_AUD, ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty" });
+  /* „Filtrare avansată” = the shared facet filter of the BO Dosare (js/facet-filter.js): desktop = button →
+     bar → chip popover → Confirmă → „Aplică filtrele”; phones (≤760, eKYC opts in to the sheets,
+     2026-10-19) = chip → bottom sheet → „Arată N rezultate” (the Cabinet / RAP helpers). A value is
+     a string (exact option value) or a number (nth visible option). */
+  const ekPhone = () => window.matchMedia("(max-width: 760px)").matches;
+  const ekFilterOpen = async (h) => { if (!ekPhone() && document.querySelector("[data-workplace-filters]")?.hidden) await h.click("[data-workplace-filter-toggle]"); };
+  const ekFacet = (facet) => async (h) => { await ekFilterOpen(h); await h.click(`[data-filter-facet="${facet}"]`); if (ekPhone()) await h.wait(400); };
+  const ekTick = async (h, values) => { for (const v of values) { if (typeof v === "number") await h.nth("[data-filter-option]", v); else await h.click(`[data-filter-option][value="${v}"]`); } };
+  const ekPick = (facet, values) => async (h) => { await ekFacet(facet)(h); await ekTick(h, values); await h.click(ekPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]"); if (ekPhone()) await h.wait(400); };
+  const ekCommit = async (h) => { if (!ekPhone()) await h.click("[data-filter-commit]"); };
   const ekDecide = (decision, reason, text) => async (h) => {
     await h.click(`[data-ekyc-decide="${decision}"]`);
     if (reason) await h.choose('[data-ekyc-field="reason"]', reason);
@@ -868,6 +878,11 @@
     /* 05 liste pe rol */
     "dos-05": dosList(SPEC),
     "dos-05a": dosList(SUP),
+    /* BO Dosare „Filtrare avansată” — the reference the eKYC lists copy (2026-10-19): bar open, Statut
+       popover, Statut applied (js/facet-filter.js; the BO keeps the bar on phones, no sheets) */
+    "dos-05b": { ...dosList(SPEC), run: async (h) => { await h.click("[data-workplace-filter-toggle]"); } },
+    "dos-05c": { ...dosList(SPEC), run: async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="status"]'); } },
+    "dos-05d": { ...dosList(SPEC), run: async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="status"]'); await h.click('[data-filter-option][value="În examinare"]'); await h.click("[data-filter-confirm]"); await h.click("[data-filter-commit]"); } },
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },
@@ -2244,10 +2259,17 @@
     "ek-03s": ek("#ek-dashboard", async (h) => { await h.click("[data-ekyc-alerts-all]"); await h.click('#case-action-modal [data-ekyc-alert-go="al-7"] .e-permits-ekyc-alert__title'); await h.find('[data-ekcfg-tab="general"][aria-selected="true"]'); }),
     "ek-04": ekList("#ek-active"),
     "ek-04a": ekList("#ek-active", async (h) => { await h.click('[data-workplace-tab="În revizie manuală"]'); }),
-    "ek-04b": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
-    "ek-04c": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); }),
-    "ek-04c1": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); await h.fill("[data-filter-search]", "zzz", { leave: false }); }),
-    "ek-04d": ekList("#ek-active", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="client"]'); await h.nth("[data-filter-option]", 0); await h.click("[data-filter-confirm]"); await h.click("[data-filter-commit]"); }),
+    "ek-04b": ekList("#ek-active", ekFilterOpen),
+    "ek-04c": ekList("#ek-active", ekFacet("client")),
+    "ek-04c1": ekList("#ek-active", async (h) => { await ekFacet("client")(h); await h.fill("[data-filter-search]", "zzz", { leave: false }); }),
+    "ek-04d": ekList("#ek-active", async (h) => { await ekPick("client", [0])(h); await ekCommit(h); }),
+    /* 2026-10-19 — the BO Dosare filter on eKYC (desktop + phone sheets): Statut popover with tags
+       (multi-select), two facets applied, a draft not applied yet, all filters / „Mai multe”, no results */
+    "ek-04j": ekList("#ek-active", ekFacet("statut")),
+    "ek-04k": ekList("#ek-active", async (h) => { await ekPick("statut", ["În revizie manuală", "Așteaptă furnizorul"])(h); await ekPick("nivel", ["Substanțial"])(h); await ekCommit(h); }),
+    "ek-04l": ekList("#ek-active", async (h) => { await ekFacet("statut")(h); await ekTick(h, ["În revizie manuală"]); if (!ekPhone()) await h.click("[data-filter-confirm]"); }),
+    "ek-04m": ekList("#ek-active", async (h) => { if (ekPhone()) { await h.click("[data-filter-all]"); await h.wait(400); return; } await ekFilterOpen(h); await h.click("[data-filter-more]"); }),
+    "ek-04n": ek("#ek-active", async (h) => { await ekPick("client", ["Asito Online"])(h); await ekCommit(h); await h.fill("[data-workplace-search]", "zzzz", { leave: false }); await h.wait(500); }, { ready: "tr[data-workplace-row]" }),
     "ek-04e": ekList("#ek-active", async (h) => { await h.fill("[data-workplace-search]", "Orange", { leave: false }); }),
     "ek-04f": ekList("#ek-active", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
     "ek-04g": ek("#ek-active", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
@@ -2267,9 +2289,10 @@
     "ek-05k": ek("#sesiune/KYC-48192/general", null, { params: { ek: "incarcare" }, ready: ".e-permits-dosar-profil .e-permits-empty" }),
     "ek-06": ekList("#ek-history"),
     "ek-06a": ekList("#ek-history", async (h) => { await h.click('[data-workplace-tab="Respins"]'); }),
-    "ek-06b": ekList("#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="perioada"]'); }),
-    "ek-06c": ekList("#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="decizie"]'); }),
+    "ek-06b": ekList("#ek-history", ekFacet("perioada")),
+    "ek-06c": ekList("#ek-history", ekFacet("decizie")),
     "ek-06d": ekList("#ek-history", async (h) => { await h.click("[data-workplace-export]"); }),
+    "ek-06g": ekList("#ek-history", async (h) => { await ekPick("decizie", ["Respins"])(h); await ekPick("perioada", [0])(h); await ekCommit(h); }),
     "ek-06e": ek("#ek-history", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-06f": ek("#ek-history", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-07": ekSes("KYC-47325"),
@@ -2288,7 +2311,7 @@
     /* Operator (revizie): his queue, the review screen per tab, take, decide */
     "ek-08": ekQueue(EK_OP, "#ek-review"),
     "ek-08a": ekQueue(EK_OP, "#ek-review", async (h) => { await h.click('[data-workplace-tab="Alocată"]'); }),
-    "ek-08b": ekQueue(EK_OP, "#ek-review", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="statut"]'); }),
+    "ek-08b": ekQueue(EK_OP, "#ek-review", ekFacet("statut")),
     "ek-08c": ekAs(EK_OP, "#ek-review", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-08d": ekRev(EK_OP, "KYC-47073"),
     "ek-09": ekRev(EK_OP, "KYC-48220"),
@@ -2326,7 +2349,7 @@
 
     /* ---- eKYC batch 2: audit (EPIC-07) — Auditor ---- */
     "ek-13": ekQueue(EK_AUD, "#ek-history"),
-    "ek-13a": ekQueue(EK_AUD, "#ek-history", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="scorBand"]'); }),
+    "ek-13a": ekQueue(EK_AUD, "#ek-history", ekFacet("scorBand")),
     "ek-13b": ekQueue(EK_AUD, "#ek-history", async (h) => { await h.fill("[data-workplace-search]", "Rusu", { leave: false }); }),
     "ek-14": ekAud("KYC-47088"),
     "ek-14a": ekAud("KYC-47088", "dovezi"),
@@ -2353,7 +2376,7 @@
     /* Utilizatori (US-UI-13) */
     "ek-20": ekList("#ek-users"),
     "ek-20a": ekList("#ek-users", async (h) => { await h.click('[data-workplace-tab="Blocat"]'); }),
-    "ek-20b": ekList("#ek-users", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="roluri"]'); }),
+    "ek-20b": ekList("#ek-users", ekFacet("roluri")),
     "ek-20c": ekList("#ek-users", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
     "ek-20d": ek("#ek-users", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-20e": ek("#ek-users", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
@@ -2376,7 +2399,7 @@
     /* Clienți (US-UI-07) */
     "ek-22": ekList("#ek-clients"),
     "ek-22a": ekList("#ek-clients", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
-    "ek-22b": ekList("#ek-clients", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="organizatie"]'); }),
+    "ek-22b": ekList("#ek-clients", ekFacet("organizatie")),
     "ek-22c": ek("#ek-clients", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-22d": ek("#ek-clients", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-22e": ek("#ek-clients", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
@@ -2438,7 +2461,7 @@
     "ek-26o": ekDet("#ek-caz/PENSION_CONFIRM_SUBST/pasi", async (h) => { await h.click('.e-permits-dosar-profil__panel [data-ekcfg="step-new"]'); }),
     /* Parametri platformă (US-UI-11) */
     "ek-27": ekList("#ek-parameters"),
-    "ek-27a": ekList("#ek-parameters", async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="categorie"]'); }),
+    "ek-27a": ekList("#ek-parameters", ekFacet("categorie")),
     "ek-27b": ekList("#ek-parameters", async (h) => { await h.fill("[data-workplace-search]", "xyzq", { leave: false }); }),
     "ek-27c": ek("#ek-parameters", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-27d": ek("#ek-parameters", null, { params: { ek: "incarcare" }, ready: ".e-permits-empty-cell" }),
