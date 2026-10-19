@@ -82,6 +82,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | eKYC library-gap pieces (local, 2026-10-16) | eKYC `10775:1049` / `:1055` / `:1059` / `:1063` | Switch · label (code A.renderToggle) · Filter option · tag (status facets) · Media badge · duration (video thumbnails) · Field label (label + 12/asterisk + hint for non-field controls). Exposed nested switch / checkbox / tag. Builders: tools/figma/ekyc-qa/ |
 | Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
 | Act row family (local, 2026-10-16; sizes 2026-10-19) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 (State × **Size Desktop 40 / Touch 48**; Touch variants 12041:2547/2551/2555) · `New request card` 11848:340913 (holder 11844:198504) | GEAPActRow.html. Meta = Desktop/Body/Small 1f355410 + text/base/secondary 5d1a031c; pill = library button-filled-circular Neutral Small, paddingRight overridden to spacings/12 (code 0 12); menu p8 g4 r12, HUG width, minWidth = pill (191), items FILL, label Desktop/Body/Default 500 e069d3c3 text/base/default, 20 px icons. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile (Mobile menus use Size=Touch); TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544 (Touch 920:433/437/441), Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
+| eKYC „Filtrare avansată” + status tabs (local, 2026-10-19) | eKYC `10818:1084` / `10818:1369` / `10819:1399` / `10819:1688` / `10819:2467` / `10828:2157`·`2193`·`2230` | Advanced filter · button (Count × State Default/Open, 36, focus ring needs clip) · Status tabs (Tabs Count 2–8, tab-item-s 40 + Track line) · Facet filter · option (Content Text/Tag/Field × State × Size Desktop/Touch) · Facet filter · popover (Checklist / More, Show search) · Advanced filter · bar (Meta Hint/Pending/Applied, EVO DS filter-chip a2731000) · Filter sheet content · ek-04j / 04l / 04m (bottom-sheet slot). Builders tools/figma/ekyc-filter/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -1557,3 +1558,34 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     colours of every text you touch against the measured computed colour, not only sizes.
   - No Agent tool in this session → ran the figma-audit rules myself on the 3 components per file: 0 findings except the
     declared meta-dot gap 18.
+
+- 2026-10-19 · eKYC „Filtrare avansată” = the GEAP BO Dosare filter + list tab separators + tab counters 20 (file
+  SqMGpRKEppJLcvn7HMzOPR, code 136997d9; ids in the Library table, scripts + README in tools/figma/ekyc-filter/). Swapped on 8 BO
+  pages: 98 list toolbars (line), 98 filter buttons, 98 status strips → local „Status tabs”, 10 bars, 8 popovers, ~700 tab
+  counters → numbered-badge Large; 6 new blocks S01e1 / S01e2 / S01e3 / S01f1 / S01f2 / S02e1, each desktop 1920 + phone 375. Lessons:
+  - **The „missing line” was an invisible effect**: the captured toolbars had the code's `inset 0 -1px` as an INNER_SHADOW but no
+    fill — Figma paints inner shadows only on filled frames. Replace with a bottom stroke (border/base/default, INSIDE, not in
+    layout). Check a frame's fills before trusting an inner-shadow line.
+  - **Two „filter-chip” sets** exist: Components lk-03f6 (9901c458, Mode On/Off, NO trailing chevron) and EVO Design System
+    (a2731000, State Unselected/Selected, Icon Trailing, Counter Badge) — GEAP's bar uses the EVO DS one; it imports fine in eKYC.
+    Its counter is Medium 18 → set the nested numbered-badge Size=Large (20) per instance; label is 16/24 (code 14/20, library).
+  - **Replacing a child of an auto-layout GRID** grows the grid by a row (the insert auto-places into a new row, the old row stays
+    empty): after insert + remove + setGridChildPosition, set `gridRowCount` to the used rows — 17 Headers got a 48 px empty band
+    before the fix. Moving rows inside a GRID: first move every cell to free rows BELOW the max used row (occupied cells throw),
+    then place them; read `gridColumnAnchorIndex` BEFORE appending a clone (append auto-places it and the index changes).
+  - Variant values that contain „Popover” / „Menu” trip the audit's dropdown-effect rule on every option → name sizes
+    Desktop / Touch (as the act-row items).
+  - The open-button focus ring (Focus Ring/Medium spread) renders only with clip ON — set clipsContent on the button variants.
+  - Phone list screens with no mobile design in the file: build ONE phone base from library instances + clones of the desktop
+    list (gov bar, header, toolbar, chip row, tabs, table, footer as scroll wrappers that clip like the code's overflow) and clone
+    it per state; sheets = library bottom-sheet (Header off) with a local „Filter sheet content · <state>” in the Content Slot
+    (RAP recipe). Odd header heights (66) centre 32 / 40 px children at .5 → make the title row FILL height and keep the
+    header stroke out of layout.
+  - Block widths: desktop 1920 + 80 + phone 375 = 2375 → shift every column to the right (and the next section) by 455, widen the
+    band + section, then force-re-route connectors.
+  - Cloning a desktop block per state + editing rows from the code (rows.mjs) was faster and cleaner than a capture → swap →
+    table-fit pipeline: copy existing rows of the same sessions from sibling blocks, edit texts per cell from the code values,
+    swap single cells (progress meter) from a row with the same fraction.
+  - The eKYC file has no file-level index / cover contents — only per-page „How to read · Contents” (updated on all 8 pages).
+  - No Agent tool in this session → ran the figma-audit rules myself on the 8 components and 6 blocks; fixed spacing binds,
+    .5 header centring and a cut empty state; remaining = library deltas (chip label 16/24, tab gap 8 vs 6, option gap 10).
