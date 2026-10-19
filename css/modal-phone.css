@@ -1,0 +1,201 @@
+/* =====================================================================================
+   Modals on phones — maximum content space (2026-10-19, user: „all modals on mobile have the
+   minimum padding for the scrim and for the modal itself … for long modals we need maximum space”).
+   components.md › „Modals on phones — maximum content space” (research + before / after).
+
+   ONE rule for every dialog family at ≤760 (loaded LAST on every page that has dialogs, so equal
+   specificity wins over the older per-family phone rules):
+   - every dialog = a bottom sheet: full width, 0 at the sides and the bottom, at most the screen
+     minus a 16 top gap (the scrim strip that says „this is a layer”; never under the iOS notch),
+     top radius 16; short dialogs hug their content, long ones reach the top gap;
+   - inside: 16 on the sides everywhere (the page gutter, never less — touch + reading);
+     compact header (16 top, title + × 32), the body scrolls (overscroll contained), compact
+     footer (12 above the buttons, 16 / the home-indicator inset below);
+   - footer buttons side by side across the full width; a pair that cannot fit one line wraps to
+     one button per line with the primary on top (wrap-reverse) — library buttons stay 40,
+     FO buttons stay their 48 (touch);
+   - the A4 viewer gives the page the full width: no body padding, 8 of grey canvas around it
+     (GEAPDocPreview.fit zooms to the canvas width minus its computed padding).
+   Desktop (> 760) is untouched: every rule below sits inside the media query.
+   ===================================================================================== */
+:root {
+  --modal-phone-gap: max(var(--spacing-16, 16px), env(safe-area-inset-top, 0px));
+  --modal-phone-inset: var(--spacing-16, 16px);
+  --modal-phone-radius: var(--border-radius-16, 16px);
+  --modal-phone-max: calc(100dvh - var(--modal-phone-gap)); /* fixed surfaces without an overlay box (account switcher) */
+  --modal-phone-foot: max(var(--spacing-16, 16px), env(safe-area-inset-bottom, 0px));
+}
+
+@media (max-width: 760px) {
+  /* ---- 1. the scrim: the sheet sits on the bottom edge, the scrim shows only above it ---- */
+  .modal-overlay:not(:has(> .modal.e-permits-builder)),
+  .e-permits-fo-doc-modal-overlay,
+  .e-permits-fo-instance-switch-modal {
+    align-items: flex-end;
+    box-sizing: border-box;
+    height: auto; /* the library overlay is 100vh = taller than the visible screen under a mobile toolbar */
+    inset: var(--spacing-0, 0px);
+    justify-content: center;
+    padding: var(--modal-phone-gap) var(--spacing-0, 0px) var(--spacing-0, 0px);
+  }
+
+  /* ---- 2. the surface ---- */
+  .modal-overlay > .modal:not(.e-permits-builder),
+  .e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal,
+  .e-permits-fo-instance-switch-modal > .e-permits-fo-instance-switch-modal__card {
+    border-radius: var(--modal-phone-radius) var(--modal-phone-radius) var(--spacing-0, 0px) var(--spacing-0, 0px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    margin: var(--spacing-0, 0px);
+    max-height: 100%; /* of the overlay box under its top gap — follows the visible viewport */
+    max-width: none;
+    min-height: 0;
+    overflow: clip; /* hidden is still scrollable by script (scrollIntoView moved whole dialogs) */
+    width: 100%;
+  }
+
+  /* dialogs whose content is a page or a whole flow take the full height */
+  .modal-overlay > .modal:is(.e-permits-gh-sheet, .e-permits-detail-modal--doc),
+  .e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal.rap-act-modal__dialog {
+    height: 100%;
+  }
+
+  /* ---- 3. library modal (.modal: × · header · content · footer) ---- */
+  .modal-overlay > .modal > .modal-close {
+    right: var(--modal-phone-inset);
+    top: var(--modal-phone-inset);
+  }
+
+  /* 16 · title · 56 on the right = × 32 + 8 + 16 */
+  .modal-overlay > .modal > .modal--header {
+    flex: 0 0 auto;
+    padding: var(--modal-phone-inset) var(--spacing-56, 56px) var(--spacing-0, 0px) var(--modal-phone-inset);
+  }
+
+  .modal-overlay > .modal > .modal-content {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--modal-phone-inset);
+  }
+
+  .modal-overlay > .modal > .modal--footer {
+    flex: 0 0 auto;
+    padding: var(--spacing-12, 12px) var(--modal-phone-inset) var(--modal-phone-foot);
+  }
+
+  /* ---- 4. footers: buttons side by side over the full width; wrap → one per line, primary on top ---- */
+  .modal-overlay > .modal .modal-buttons,
+  .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__footer,
+  .e-permits-fo-instance-switch-modal__card > .e-permits-fo-instance-switch-modal__actions {
+    align-items: stretch;
+    flex-direction: row;
+    flex-wrap: wrap-reverse;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .modal-overlay > .modal .modal-buttons > :is(.btn, a, button),
+  .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__footer > :is(.btn, a, button),
+  .e-permits-fo-instance-switch-modal__card > .e-permits-fo-instance-switch-modal__actions > :is(a, button) {
+    flex: 1 1 calc((100% - var(--spacing-8, 8px)) / 2); /* two equal halves; a longer label wraps the pair */
+    justify-content: center;
+    min-width: fit-content; /* never shorter than the label (it wraps the pair instead), never wider than the line */
+    width: auto;
+  }
+
+  /* ---- 5. FO dialog shell (.e-permits-fo-doc-modal: header · tabs / body · footer) ---- */
+  .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__header {
+    padding: var(--modal-phone-inset);
+  }
+
+  /* the one-line subtitle wraps on phones: touch has no tooltip for an ellipsis (the act viewer's subtitle
+     has its own 2 lines + „Mai mult”) */
+  .e-permits-fo-doc-modal__subtitle:not(.rap-act-subtitle) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__tabs {
+    padding: var(--spacing-0, 0px) var(--modal-phone-inset);
+  }
+
+  .e-permits-fo-doc-modal .e-permits-fo-doc-modal__search-wrap {
+    padding: var(--spacing-12, 12px) var(--modal-phone-inset);
+  }
+
+  .e-permits-fo-doc-modal :is(.e-permits-fo-doc-modal__list, .e-permits-fo-doc-modal__upload-content, .e-permits-fo-doc-modal__no-results) {
+    overscroll-behavior: contain;
+    padding: var(--modal-phone-inset);
+  }
+
+  .e-permits-fo-doc-modal > .cab-filter__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overscroll-behavior: contain;
+    padding: var(--spacing-0, 0px) var(--modal-phone-inset) var(--modal-phone-inset);
+  }
+
+  .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__footer {
+    padding: var(--spacing-12, 12px) var(--modal-phone-inset) var(--modal-phone-foot);
+  }
+
+  /* ---- 6. confirm card (.e-permits-fo-instance-switch-modal: icon · title · text · actions) ---- */
+  .e-permits-fo-instance-switch-modal__card > .e-permits-fo-instance-switch-modal__body {
+    flex: 1 1 auto;
+    gap: var(--spacing-16, 16px);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--modal-phone-inset);
+  }
+
+  .e-permits-fo-instance-switch-modal__card > .e-permits-fo-instance-switch-modal__actions {
+    flex: 0 0 auto;
+    padding: var(--spacing-12, 12px) var(--modal-phone-inset) var(--modal-phone-foot);
+  }
+
+  /* ---- 7. the A4 viewer: the page takes the full width (8 of grey canvas around it) ---- */
+  .e-permits-fo-doc-modal > .rap-act-modal__body,
+  .modal-overlay > .modal.e-permits-detail-modal--doc > .modal-content {
+    padding: var(--spacing-0, 0px);
+  }
+
+  .rap-act-modal__body > .e-permits-doc-peek__canvas,
+  .e-permits-detail-modal--doc .e-permits-detail-modal__preview.e-permits-doc-peek__canvas {
+    border-radius: var(--spacing-0, 0px);
+    padding: var(--spacing-8, 8px);
+  }
+
+  /* the MSupport launcher (fixed bottom-right, z 1200) would sit on the footer buttons of a sheet that reaches
+     the bottom edge — hidden while any dialog is open (the account switcher already did this) */
+  body:has(.modal-overlay.is-active, .e-permits-fo-doc-modal-overlay:not([hidden]), .e-permits-fo-instance-switch-modal:not([hidden]), .bottom-sheet[aria-hidden="false"], .e-permits-ntpl-sheet:not([hidden])) .msup {
+    display: none;
+  }
+
+  /* ---- 8. sheets that already were sheets: the same top gap and radius ---- */
+  .bottom-sheet .bottom-sheet__panel,
+  .e-permits-filter-sheet .bottom-sheet__panel {
+    border-radius: var(--modal-phone-radius) var(--modal-phone-radius) var(--spacing-0, 0px) var(--spacing-0, 0px);
+    max-height: calc(100% - var(--modal-phone-gap)); /* the panel is absolute in the full-screen sheet */
+  }
+
+  .e-permits-filter-sheet.is-all .bottom-sheet__panel {
+    height: calc(100% - var(--modal-phone-gap));
+  }
+
+  .e-permits-ntpl-sheet,
+  .modal-overlay.e-permits-gh-sheet-overlay {
+    padding-top: var(--modal-phone-gap);
+  }
+}
+
+/* the account switcher (avatar menu) turns into a sheet at ≤720 (its own breakpoint) */
+@media (max-width: 720px) {
+  .e-permits-fo-avatar-menu {
+    max-height: var(--modal-phone-max);
+  }
+}

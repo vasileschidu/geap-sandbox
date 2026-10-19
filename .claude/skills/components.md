@@ -192,6 +192,7 @@ but this doc previously described it wrongly, see the entry.
 | Message / Banner | `.message` ≡ `.banner` ≡ `.inline-message` ≡ `.info-box` | `messages*.html` | app |
 | Tabs | `.tabs .tab-buttons .tab-button.active` | `tabs.html` | app (partial) |
 | Modal | `.modal-overlay.is-active > .modal` | `modals.html` | app (partial) |
+| Modals on phones (≤760, every dialog family, 2026-10-19) | bottom sheet: 16 top gap (scrim), 0 sides / bottom, top radius 16, hug up to `100dvh − 16`; 16 inner padding; compact header / scrolling body / footer with two equal-half buttons (wrap → primary on top) + safe-area bottom; A4 page full width | `css/modal-phone.css` (loaded last); section „Modals on phones — maximum content space” | app |
 | Badge | `.badge` + style + size | `badge.html` | app |
 | Chip | `.chip` + `.is-selected/.is-disabled` | `chip.html` | app |
 | Select — native | `.select` | `dropdown.html` | library |
@@ -244,7 +245,7 @@ but this doc previously described it wrongly, see the entry.
 | Profile tabs (EVO Cabinet request profile, US-161) | `.cab-profile-tabs` › BO page-header strip `.tabs.e-permits-page-header__tabs > .tab-buttons[role=tablist] > button.tab-button[role=tab][data-sm-tab]` + `.cab-profile-tabs__panel[role=tabpanel][data-sm-panel]`; ←/→/Home/End; hash `#dosar/<id>/<tab>` | `profileTabsHtml` / `selectTab`; demo sm-05 (Date generale), sm-05j / 05k / 05l / 05m | page-app |
 | Notification row (EVO Cabinet › Notificări, minimal) | the request stacked row `.e-permits-stack__item.sm-item.nt-item` + lead `.nt-item__icon--success/warning/danger/neutral` (32 circle, 20 icon) + `p.nt-item__text` + „Nou” Small info tag (≤ 3 days) + one labelled action | `cabinet-evo/notificari.js`; demo nt-01…01c | page-app |
 | Retry notice (EVO Cabinet) | `.cab-retry` = `.cab-message` error notice + `btn btn-strict btn-sm` „Reîncercați” (`icon-rotate-arrow`) on one row, wrapping ≤ 320 of notice (= Ghișeu `.e-permits-gh__retry`) | `solicitari.js redirectError` (US-24 AC-04); demo sm-04h, sm-04h1 | page-app |
-| Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
+| Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top) (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
 | Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (export icon) · `btn-primary` „Închide”); since 2026-10-19 the act's configured fields = one BO section per configured group (row „Configured act fields — groups + tables”; the old in-card heading rows `.rap-act-data__group/__more-row/__toggle` are gone); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
 | Public profile header (RAP act profile + every EVO Cabinet profile, 2026-10-17) | `header.e-permits-page-header.e-permits-page-header--public` › `__body` (16 top, 12 inset) › `__top` › `__heading` (gap 16): `nav.breadcrumbs.breadcrumbs--trailing` (desktop: the parent trail + trailing chevron, no current crumb / no number) + `nav.breadcrumbs.breadcrumbs--mobile` (≤760: `li.breadcrumbs__item--back` › `.e-permits-page-header__crumb-label`) + `h1.__title` (wraps, never truncated) · `__meta` items (label 12/16 tertiary, value 14/20 medium, dividers; ≤760 = 2 equal columns, no dividers, column gap 16) · the primary `btn btn-primary btn-md .e-permits-page-header__action` (hugging, 8 under the meta) or `.e-permits-page-header__action-row` (primary + neutral `btn-md`, gap 8). The status = a „Stare” meta item with the Tag · Small | `css/bo-profile-parts.css`; renderers `rap-evo.js renderProfile`, `CabEvo.pageHeader({ back, title, titleId, meta, actions })`; parity `tools/ui-qa/specs/rap-profile-vs-bo.json` (svc-01 ↔ rap-02 = 0), `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05 = 0) | page-app |
@@ -295,7 +296,7 @@ but this doc previously described it wrongly, see the entry.
 | Value group with a trailing unit | `.e-permits-doc-val` > `__control` (number) + `.e-permits-doc-val__mode.e-permits-doc-val__mode--end` (unit select, divider on its left, 80 wide) | Reguli de dată (± N zile / luni / ani) | app |
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
-| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680; the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
+| Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680 (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
 | Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision — in the act row 14/20 `--color-text-base-secondary`, long parts wrap inside (2026-10-18: no 12px text in the row; only the library Tag · Small stays 12), `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” = `btn btn-neutral btn-sm btn-pill` (library SMALL, 32 · 0 12 · 14/20 · gap 6; medium rejected 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the act-menu size (40 rows, 48 on `pointer: coarse`, 16/24, 20 icon — § „Act post-process menu — size”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
@@ -816,6 +817,85 @@ use.
 **Note** — Figma's header (68px) and footer (88px) are fixed heights; CSS derives both
 from padding (`.modal--header` `24px 48px 0 32px`; `.modal--footer` `12px 20px 24px`),
 so a 48px footer button yields ~84px against the designed 88px.
+
+### Modals on phones — maximum content space (2026-10-19)
+
+User (2026-10-19): „all modals on mobile have the minimum padding for the scrim and for the modal itself,
+the minimum admissible — for such long modals we need maximum space”. **One rule for every dialog
+family at ≤760**, in its own file `css/modal-phone.css`, loaded LAST on every page that has dialogs
+(e-permits-acte-permisive, e-permits-shell, cabinet-evo, rap-evo, clasificatoare), so equal specificity
+beats the older per-family phone rules. Desktop (> 760) is untouched — every rule sits in the media
+query (proved: 14 modal states at 1440, geometry identical with / without the file).
+
+| Part | Phones (≤760, also 375 and 320) | Token |
+|---|---|---|
+| Scrim gap (layer cue) | **16 on top** (or the notch inset when larger), **0 sides, 0 bottom** | `--modal-phone-gap` = `max(--spacing-16, env(safe-area-inset-top))` |
+| Surface | full width, top radius 16, bottom square; **hugs short content**, long content stops at `100dvh − 16`; page / flow dialogs (A4 viewer, Ghișeu request, `--doc` detail) take that full height | `--modal-phone-radius` (`--border-radius-16`), `--modal-phone-max` |
+| Inner side padding | **16 everywhere** (header, body, footer) = the page gutter; never below 16 (touch, reading) | `--modal-phone-inset` (`--spacing-16`) |
+| Header | 16 top, title (library 20/32, FO title as is) + × 32 at 16 / 16; right padding 56 = × + 8 + 16 | |
+| Body | the only scroller: `flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain`; 16 padding | |
+| Footer | 12 above the buttons, `max(16, env(safe-area-inset-bottom))` below; buttons side by side in two equal halves (`flex: 1 1 calc((100% − 8) / 2)`, `min-width: fit-content`); a label that does not fit its half wraps the pair → one button per line, **primary on top** (`flex-wrap: wrap-reverse`) | `--modal-phone-foot` |
+| Button size | library `.modal-buttons` = 40 pill (unchanged); FO dialogs keep their 48 FO buttons (touch) | |
+| A4 viewer | the page takes the full width: body padding 0, grey canvas edge to edge with 8 around the page (`GEAPDocPreview.fit` zooms to canvas width − computed padding) | |
+
+Families covered (selectors in the file): library `.modal-overlay > .modal` (all sizes, `--sm`/`--md`/`--lg`,
+the BO passport / case / detail modals, RAP + Cabinet „Vizualizare act”, Ghișeu picker, Ghișeu request
+sheet `--fullscreen`, the classifier page) — not the Form Builder / Process Designer editors
+(`.modal.e-permits-builder`, already a 16-from-top full sheet); the FO dialog shell
+`.e-permits-fo-doc-modal` (document picker + upload, A4 act viewer `rap-act-modal`, Cabinet document +
+„Perioadă” dialogs `.cab-filter__body`); the FO confirm card `.e-permits-fo-instance-switch-modal__card`;
+sheets that already were sheets get the same gap / radius: facet-filter `.bottom-sheet` (radius 24 → 16,
+`90dvh` → `100dvh − 16`), the template sheet `.e-permits-ntpl-sheet` (24 → 16), the account switcher
+`.e-permits-fo-avatar-menu` (≤720, 24 → 16). Drawers (`.e-permits-user-create__drawer`) are already full
+screen with 16 inside — unchanged.
+
+**Measured (probe = dialog rect, scroll body clientHeight, leftmost text inset; 375 × 812 · 320 × 568):**
+
+| Dialog (demo state) | gaps top/side/bottom before → after | usable body 375 before → after | 320 × 568 before → after |
+|---|---|---|---|
+| Act data modal, configured groups + tables (rap-03g / 03q / 03r, pp-01x / 01y) | 24/19/24 → 16/0/0 | 514 → 614 | **cut off** (dialog 608 > 568: header + footer off-screen) → 370 |
+| Act data modal, one-line subtitle (pp-01m) | 45/19/45 → 16/0/0 | 514 → 656 | cut off (−9) → 412 |
+| BO detail / document (dos-04s) | 35/19/35 → 16/0/0 | 514 → 636 | cut off (−19) → 392 |
+| A4 act viewer (rap-03s / 03t, pp-01z) | 24/0/0 → 16/0/0 | 535 → 587 · page width 311 → 359 | 259 → 311 · page 256 → 304 |
+| Ghișeu paper preview (gh-07a / 07a2) | 48/19/48 → 16/0/0 | 472 → 636 · page 250 → 359 | 228 → 392 · page 200 → 304 |
+| FO document picker (fo-04d / 04e) | 41/0/41 → 16/0/0 | 412 → 505 | 192 → 205 (buttons stack at 320) |
+| Cabinet document (sm-05f) | 81/0/0 → 16/0/0 | 534 → 627 | 314 → 383 |
+| BO passport modal (svc-01c) | 66/19/66 → 16/0/0 | 514 → 678 | 358 → 402 |
+| FO confirm (pp-01g, pp-02b) | sheet, inner 32 → 16 | card 528 → 412 (hugs) | top gap 40 → 92 |
+| BO confirm (usr-u03c) | centred 283/19/283 → bottom sheet | hugs (190 high) | hugs (210) |
+| Ghișeu request sheet (gh-07) | 24 → 16 | 563 → 583 | 295 → 315 |
+| Account switcher (fo-01s, sm-01s) | ≤ 24 → ≤ 16 | hugs | 273 → 281 |
+| Filter sheets (rap-04a, ek-04j) | hug (unchanged), radius 24 → 16 | 280 / 236 | same |
+
+Header / footer heights (375): library header 116 → 112 (2-line subtitle), 74 → 70; library footer with two
+buttons **132 → 68** (stacked → side by side); FO header 108 → 92, FO footer 89 → 77; A4 viewer header
+150 → 134, footer 87 → 75.
+
+**Research (why these numbers).** Mobbin MCP was not available in this session (no tools) — documented guidance:
+- **Material 3 — Dialogs**: on compact windows (< 600dp) long or multi-step content uses a *full-screen
+  dialog* (no outer margin, header with close + action); basic dialogs are for short decisions only.
+  **M3 bottom sheets**: full width on compact, scrim above, drag handle, content scrolls inside; the
+  expanded sheet keeps a top margin (72dp) so the layer reads as a layer — we keep that cue at the
+  minimum (16) because the user asked for maximum content.
+- **Apple HIG — Sheets**: on iPhone sheets are edge-to-edge; the *large detent* covers almost the whole
+  screen and leaves only a thin strip of the presenting view at the top (the „card” look); use it for long
+  content, put Cancel / Done in the sheet's header; respect the home-indicator safe area.
+- **NN/g** („Modal & Nonmodal Dialogs”, „Bottom Sheets: Definition and UX Guidelines”): modals for long
+  content on phones should become full-screen / full-height; keep a visible close, don't stack sheets, the
+  page behind must not scroll. **GOV.UK Design System** publishes no modal component and advises keeping
+  content in the page — when a dialog is unavoidable it must not waste the small screen on chrome.
+- **WCAG 2.2 SC 1.4.10 Reflow**: at 320 CSS px nothing may need two-dimensional scrolling (tables / A4
+  pages excepted) — before this rule the library modals were TALLER than a 320 × 568 screen (header and
+  footer unreachable); now header and footer are always on screen and only the body scrolls. SC 2.5.8 /
+  2.5.5: buttons 40 / 48 high, × 32 with spacing, ≥ 24 target.
+
+Demo: rap-03g, rap-03q, rap-03r, rap-03s, rap-03t, pp-01m, pp-01x, pp-01y, pp-01z, pp-01g, pp-02b,
+fo-04d, fo-04e, gh-07, gh-07a, gh-07a2, gh-07g, gh-01g, gh-02b, svc-01c, usr-u03c, dos-04s, sm-01g, sm-05f,
+fo-01s, sm-01s, rap-04a, ek-04j, svc-08g (open them at 375 / 320).
+
+Figma follows: phone dialog frames = the bottom sheet above (16 from the top of the 375 screen, full width,
+top radius 16, 16 inner padding, header 16 + 32 title row, footer 12 / 16 with two equal 40 buttons; FO
+dialogs 48 buttons); A4 viewer page 359 wide at 375.
 
 ---
 
@@ -2441,7 +2521,7 @@ the same gesture on the *header/indicator* dismisses or expands the sheet.
 
 **First product use (2026-10-17): the facet filter's phone sheets** (`.bottom-sheet.e-permits-filter-sheet`,
 see „Advanced filter › Phone mode”). Product overrides, scoped: hug the content (`min-height: 0`),
-`max-height: 90dvh`, top radius 24 on every width, × = library `.modal-close` (the bare
+`max-height: 90dvh`, top radius 24 on every width (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16), × = library `.modal-close` (the bare
 `__close` is a text „×”), sticky `__footer` with a top border. Swipe-to-dismiss is not built —
 scrim tap, ×, Esc and the sheet's own action close it (the handle is decorative).
 
@@ -4504,7 +4584,7 @@ button, sticky apply at the thumb, search in long facets.
   `aria-modal` `aria-labelledby`, decorative `__handle` `aria-hidden`, `__header`,
   `__content`, `__footer`), created once and appended to `<body>`. Overrides
   (`.e-permits-filter-sheet`): `min-height: 0` (hugs, the library 45vh left empty space),
-  `max-height: 90dvh`, top radius 24 on every width (the library squares it ≤768), `.is-all`
+  `max-height: 90dvh`, top radius 24 on every width (the library squares it ≤768) (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16), `.is-all`
   = `height: 90dvh` (sections open without the sheet moving). Header: title (flex 1) ·
   **„Resetează”** `btn btn-text-neutral btn-sm` (disabled when nothing is ticked) · × = library
   `.modal-close` (static). Content: search `.e-permits-filter-sheet__search` (4 / 16 / 8 — the 4
@@ -6435,7 +6515,7 @@ added for modules (all generic, reuse them for the next BO module):
   .e-permits-fo-form__roles-grid` (fo-02: Solicitant | Persoana care depune side by side; `is-single` = one card;
   one column where the FO grid collapses). Representation / basis and contact stay full width below.
 - **Request sheet** = library `modal--fullscreen` used as a sheet (`#gh-request-modal`): overlay padding-top
-  24, modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners, scrim behind. Window chrome only:
+  24 (16 on phones ≤760, „Modals on phones”), modal `calc(100dvh − 24)`, full width, `--border-radius-16` top corners, scrim behind. Window chrome only:
   header = title (service) · meta parts (nr · solicitant · process · Ghișeu) + status tags · the FO draft status
   (`GEAPFormRender.draftStatusHtml`: „Salvat ca schiță · <date, time>” + „eliminare automată la …”, wraps on
   phones) · „Salvează schița” (`btn btn-neutral btn-sm`, cloud icon; ≤680 icon-only 32 with the label as

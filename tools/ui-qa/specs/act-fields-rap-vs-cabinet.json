@@ -168,6 +168,12 @@
    "name": "body cell number",
    "prop": "(element)",
    "why": "phones: the header row is hidden and number cells are display: contents in the mini-cards (by design, on both pages)"
+  },
+  {
+   "viewport": 375,
+   "name": "list value",
+   "prop": "rect.right",
+   "why": "data: the list hugs its longest value; since the phone dialog is a full-width sheet (2026-10-19, „Modals on phones”) neither list fills the row any more, so each right edge follows its own text"
   }
  ]
 }

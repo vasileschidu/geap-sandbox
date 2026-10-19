@@ -1083,8 +1083,9 @@ a {
     row-gap: var(--spacing-4, 4px);
   }
 
+  /* the row minus the indent (100% + the 56 margin ran 56 past the card: the page was 399 wide at 375) */
   .rap-profile__beneficiary-card > .rap-profile__company-permits {
-    flex-basis: 100%;
+    flex-basis: calc(100% - var(--spacing-40, 40px) - var(--spacing-16, 16px));
     margin-left: calc(var(--spacing-40, 40px) + var(--spacing-16, 16px));
   }
 }

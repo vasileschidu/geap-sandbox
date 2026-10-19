@@ -1267,3 +1267,31 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   killed mid-way by the capture's `animation:none` style never paints in headless (CSS says visible) — shoot sheets
   without the injected style. No sub-agent tool → ran code-audit (standing FPs only: violet tag, th sort, pagination,
   sidebar toggle, library search ×), hover-audit 0 / 0, component-audit (fixed the phone search) myself.
+- 2026-10-19 · „Modals on phones — maximum content space” (user: minimum scrim gap + minimum modal padding, research). ONE
+  file `css/modal-phone.css` loaded LAST on every page with dialogs (equal specificity beats the older per-family phone
+  rules, nothing edited in five other CSS files), all rules inside `@media (max-width: 760px)`: every dialog = bottom
+  sheet, 16 top gap (max with the notch inset), 0 sides / bottom, radius 16, inner 16, compact header, the body the only
+  scroller, footer 12 / `max(16, safe-area)` with two equal-half buttons. Method that worked: a probe that finds the
+  topmost visible dialog (elementFromPoint on the candidates) and reports gaps, scroll-body clientHeight, leftmost text
+  inset, header / footer heights, A4 page width (scratch mm/probe.mjs + measure.js, `--sizes 375x812,320x568`); a sweep of
+  all 1 192 states at 375 gave the family inventory (563 states with a dialog, 19 families) — start it FIRST in the
+  background and test the new file meanwhile by INJECTING a `<link>` (`--inject`) so the running „before” stays honest;
+  link it only when the sweep is done. Desktop proof = the same probe at 1440 with / without the injected file (14 states
+  identical). Big find of the before table: at 320 × 568 the library modals were TALLER than the screen (gaps −20: header
+  and footer unreachable) — always measure 320 × 568, not only 375 × 812.
+- 2026-10-19 · Traps: (1) `min-width: min(100%, max-content)` is INVALID (intrinsic keywords are not allowed in math
+  functions) → the whole declaration drops silently; use `fit-content`. (2) Equal halves with different paddings (icon
+  button 12 / 16 vs 20 / 20): `flex: 1 1 0` gives unequal widths (padding is outside the 0 basis) → basis
+  `calc((100% − gap) / 2)` + `min-width: fit-content` + `flex-wrap: wrap-reverse` = equal halves that wrap to one per line
+  with the primary on top. (3) `height: 100dvh` on a fixed overlay disagreed with the fixed box when the page behind
+  overflowed sideways (layout viewport 399 wide → the sheet stopped 52 above the bottom): size from the overlay instead
+  (`inset: 0; height: auto` + `max-height / height: 100%` on the surface) — also correct under the iOS toolbar, where the
+  library's `100vh` overlay is taller than the visible screen. (4) A sheet that reaches the bottom edge meets the fixed
+  MSupport launcher (hover-audit „covered” on the FO picker's Anulează) → hide `.msup` while any dialog is open
+  (`body:has(…open dialog…) .msup`), as the account switcher already did. (5) A one-line ellipsis subtitle in a dialog
+  header has no tooltip on touch → wrap it on phones. Side finds fixed: RAP profile „Toate actele (N)” link =
+  `flex-basis: 100%` + a 56 margin-left → page 399 wide at 375 (basis `100% − 56`). Reported, not fixed: Ghișeu picker
+  PJ segment uses the suitcase icon (rule: business), the act-fields spec's 1440 `rect.y` drift and the RAP profile
+  spec's beneficiary padding (16 vs BO 20) come from today's other commits. No sub-agent tool → ran code-audit (before /
+  after diff: only zoomed-A4 tight-gap FPs moved), component-audit (identical before / after), hover-audit at 700 with a
+  mouse (temp copy with the width from an env var), compare-styles (0) myself. Mobbin MCP not available again.
