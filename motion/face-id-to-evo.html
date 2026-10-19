@@ -55,7 +55,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 <main class="page">
   <header>
     <h1>EVO Face ID → logo EVO</h1>
-    <p class="lead">Test de animație: pictograma de scanare facială se transformă în logo-ul EVO. Colțurile devin cele patru sferturi ale inelului, ochii și nasul devin punctele, zâmbetul devine bara.</p>
+    <p class="lead">Test de animație: fața e un pătrat, EVO e un cerc. După scanare, pătratul se rotunjește până devine cerc în timp ce se rotește, iar mișcarea frânează și se așază pe logo. Ochii, nasul și zâmbetul devin punctele și bara.</p>
   </header>
 
   <section class="stage" aria-label="Animație">
@@ -73,29 +73,29 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     <label class="toggle"><input id="slow" type="checkbox"> Încetinit 0,25×</label>
     <label class="toggle"><input id="loop" type="checkbox" checked> Repetă</label>
     <label class="toggle"><input id="reverse" type="checkbox"> Și înapoi</label>
-    <div class="scrub"><input id="scrub" type="range" min="0" max="2800" value="0" aria-label="Poziția în animație"><output id="time">0 ms</output></div>
+    <div class="scrub"><input id="scrub" type="range" min="0" max="2200" value="0" aria-label="Poziția în animație"><output id="time">0 ms</output></div>
   </div>
 
   <section class="notes">
     <div>
-      <h2>Coregrafia (2,8 s)</h2>
+      <h2>Coregrafia (2,2 s)</h2>
       <div class="timeline">
-        <b>0–400 ms</b><span>Repaus: colțurile „respiră” ușor (Face ID așteaptă).</span>
-        <b>400–1300 ms</b><span>Scanare: o bandă de lumină trece de sus în jos peste față.</span>
-        <b>1300–1500 ms</b><span>Anticipare: colțurile se strâng 6% spre centru (ease-in) — semnalul „recunoscut”.</span>
-        <b>1500–2400 ms</b><span>Transformare: colțurile se curbează în sferturile inelului (culorile trec în culorile logo-ului), ochii → punctul stâng și cel de sus, nasul → punctul central, zâmbetul se îndreaptă în bara magenta. Decalaj 40–80 ms între elemente.</span>
-        <b>2200–2650 ms</b><span>Punctul din dreapta și cel de jos apar cu un mic rebound (follow-through).</span>
-        <b>2550–2800 ms</b><span>Trecere pe logo-ul exact (fără diferențe de pixel la final).</span>
+        <b>0–300 ms</b><span>Repaus: colțurile „respiră” ușor.</span>
+        <b>300–950 ms</b><span>Scanare: o linie de lumină trece de sus în jos peste față.</span>
+        <b>950–1100 ms</b><span>Anticipare: pătratul se strânge puțin și se rotește −10° înapoi, ca o „încărcare” înainte de salt.</span>
+        <b>1100–1850 ms</b><span>Transformare: pătratul se rotunjește (raza colțurilor crește până la maxim = cerc), golurile dintre colțuri se închid, liniile se îngroașă în inel, iar totul se rotește o tură completă — repede la început, apoi frânează ca un arc (spring) și se așază exact pe logo. Ochii, nasul și zâmbetul curg în timpul rotației spre puncte și bară.</span>
+        <b>1650–2000 ms</b><span>Punctul din dreapta și cel de jos apar cu un mic rebound.</span>
+        <b>1950–2200 ms</b><span>Trecere pe logo-ul exact.</span>
       </div>
     </div>
     <div>
       <h2>Pe ce se bazează</h2>
       <ul>
-        <li><strong>Material 3 · Motion:</strong> easing „emphasized” cubic-bezier(0.2, 0, 0, 1) pentru tranziții-erou, durate lungi (500–1000 ms) când forma se schimbă; „emphasized accelerate” pentru ieșiri scurte.</li>
-        <li><strong>Apple · Face ID:</strong> colțurile ca formă-semnătură, scanare urmată de un moment clar de succes înainte de schimbare.</li>
-        <li><strong>Principiile animației (Disney / NN/g):</strong> anticipare, decalaj între elemente (stagger), follow-through la final; o singură mișcare-erou, nu efecte împrăștiate.</li>
-        <li><strong>Morfing corect:</strong> fiecare formă are aceeași structură de curbe la început și la sfârșit (3 segmente Bézier), deci se interpolează fără „sărituri”.</li>
-        <li><strong>Accesibilitate:</strong> cu „Reduce motion” activ în sistem, pictograma trece direct în logo printr-o estompare scurtă.</li>
+        <li><strong>Material 3 Expressive · shape morph:</strong> o formă trece în alta prin interpolarea razei colțurilor (pătrat → „squircle” → cerc), condusă de un spring, adesea împreună cu rotația (ca indicatorul lor de încărcare).</li>
+        <li><strong>Material 3 · motion springs:</strong> mișcările de formă folosesc spring-uri „spatiale” (amortizare ≈ 0,8, ușor rebound) în loc de curbe fixe — începutul e rapid, finalul se așază natural.</li>
+        <li><strong>Apple · Face ID:</strong> scanare scurtă, apoi un moment clar de „recunoscut” înainte de schimbare.</li>
+        <li><strong>Principiile animației:</strong> anticipare (rotirea înapoi), o singură mișcare-erou (rotunjire + rotație împreună), follow-through (punctele apar cu rebound).</li>
+        <li><strong>Accesibilitate:</strong> cu „Reduce motion” activ, pictograma trece direct în logo printr-o estompare scurtă.</li>
       </ul>
     </div>
   </section>
@@ -113,37 +113,33 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     <circle cx="20" cy="8.7457" r="2.648" fill="#8774FF"/><circle cx="20" cy="20.0006" r="2.648" fill="#E176FF"/>
     <circle cx="31.2545" cy="20.0006" r="2.648" fill="#B56BFF"/>`;
 
-  // ---------- geometry ----------
-  const C = 20, R_RING = 11.25, W_RING = 5.3, A = 7, B = 33, LEG = 7.5, RAD = 4;
-  const add = (p, q, s = 1) => [p[0] + q[0] * s, p[1] + q[1] * s];
+  // ---------- geometry: the 4 brackets are the corners of ONE rounded square ----------
+  // half-size h, corner radius r, leg = straight part kept on each side of a corner.
+  // Face: h 13, r 4, leg 3.5 (gaps between corners). Logo: h 11.25, r = h (a circle), leg 0 (the quarters touch).
+  const C = 20, W_RING = 5.3;
   const lerp = (a, b, t) => a + (b - a) * t;
   const lerpP = (p, q, t) => [lerp(p[0], q[0], t), lerp(p[1], q[1], t)];
-  const third = (p, q, f) => lerpP(p, q, f);
-  // a bracket = 3 cubics: leg, rounded corner, leg  → 10 points
-  function bracket(corner, u, v) {
-    const p0 = add(corner, u, LEG), p1 = add(corner, u, RAD), p2 = add(corner, v, RAD), p3 = add(corner, v, LEG);
-    const k = 0.5523 * RAD;
-    return [p0, third(p0, p1, 1 / 3), third(p0, p1, 2 / 3), p1, add(p1, u, -k), add(p2, v, -k), p2, third(p2, p3, 1 / 3), third(p2, p3, 2 / 3), p3];
+  // one corner as 3 cubics (leg · quarter arc · leg) → 10 points; sx, sy = which corner (±1)
+  function corner(h, r, leg, sx, sy) {
+    const k = 0.5523 * r;
+    const P = (x, y) => [C + sx * x, C + sy * y];
+    // order follows the ring direction: TL starts on the left side, TR on the top, BR on the right, BL on the left
+    const vert = [P(h, h - r - leg), P(h, h - r)], horz = [P(h - r, h), P(h - r - leg, h)];
+    const a = sx * sy < 0 ? horz : vert, b = sx * sy < 0 ? vert : horz;
+    const [p0, p1] = sx * sy < 0 ? [horz[1], horz[0]] : [vert[0], vert[1]];
+    const [p2, p3] = sx * sy < 0 ? [vert[1], vert[0]] : [horz[0], horz[1]];
+    const toCorner1 = sx * sy < 0 ? [sx * k, 0] : [0, sy * k];
+    const toCorner2 = sx * sy < 0 ? [0, sy * k] : [sx * k, 0];
+    const c1 = [p1[0] + toCorner1[0], p1[1] + toCorner1[1]], c2 = [p2[0] + toCorner2[0], p2[1] + toCorner2[1]];
+    return [p0, lerpP(p0, p1, 1 / 3), lerpP(p0, p1, 2 / 3), p1, c1, c2, p2, lerpP(p2, p3, 1 / 3), lerpP(p2, p3, 2 / 3), p3];
   }
-  // a quarter of the ring = 3 cubics of 30° → 10 points
-  function arc(a0, a1) {
-    const pts = []; const n = 3; const d = (a1 - a0) / n; const k = (4 / 3) * Math.tan(Math.abs(d) / 4) * R_RING * Math.sign(d);
-    const P = (a) => [C + R_RING * Math.cos(a), C + R_RING * Math.sin(a)], T = (a) => [-Math.sin(a), Math.cos(a)];
-    for (let i = 0; i < n; i++) {
-      const s = a0 + d * i, e = s + d, ps = P(s), pe = P(e);
-      if (i === 0) pts.push(ps);
-      pts.push(add(ps, T(s), k), add(pe, T(e), -k), pe);
-    }
-    return pts;
-  }
-  const deg = Math.PI / 180;
-  const BRACKETS = [
-    { from: bracket([A, A], [0, 1], [1, 0]), to: arc(180 * deg, 270 * deg), c0: "#0093B8", c1: "#561FE5" }, // TL
-    { from: bracket([B, A], [-1, 0], [0, 1]), to: arc(270 * deg, 360 * deg), c0: "#7E37F9", c1: "#7E37F9" }, // TR
-    { from: bracket([A, B], [0, -1], [1, 0]), to: arc(180 * deg, 90 * deg), c0: "#5690FF", c1: "#0058D2" }, // BL
-    { from: bracket([B, B], [0, -1], [-1, 0]), to: arc(0, 90 * deg), c0: "#8774FF", c1: "#006369" }  // BR
+  const CORNERS = [
+    { sx: -1, sy: -1, c0: "#0093B8", c1: "#561FE5" }, // TL → quarter TL
+    { sx: 1, sy: -1, c0: "#7E37F9", c1: "#7E37F9" },  // TR
+    { sx: 1, sy: 1, c0: "#8774FF", c1: "#006369" },   // BR
+    { sx: -1, sy: 1, c0: "#5690FF", c1: "#0058D2" }   // BL
   ];
-  const pathOf = (pts) => `M${pts[0][0].toFixed(3)} ${pts[0][1].toFixed(3)}` + [1, 4, 7].map((i) => ` C${pts[i].join(" ")} ${pts[i + 1].join(" ")} ${pts[i + 2].join(" ")}`).join("").replace(/(\d+\.\d{3})\d+/g, "$1");
+  const pathOf = (pts) => `M${pts[0].map((v) => v.toFixed(3)).join(" ")}` + [1, 4, 7].map((i) => ` C${[pts[i], pts[i + 1], pts[i + 2]].map((q) => q.map((v) => v.toFixed(3)).join(" ")).join(" ")}`).join("");
   // features as polylines of the same length start → end (a dot = all points on one spot, round cap)
   const FEATURES = [
     { name: "eyeL", from: [[14, 15.2], [14, 18.2]], to: [[8.7457, 20], [8.7457, 20]], w0: 2.2, c0: "#5690FF", c1: "#5690FF", delay: 60 },
@@ -159,6 +155,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x; for (let i = 0; i < 8; i++) { const e = sx(t) - x; if (Math.abs(e) < 1e-5) break; const d = dx(t); if (Math.abs(d) < 1e-6) break; t -= e / d; } return sy(Math.min(1, Math.max(0, t))); };
   }
   const EMPH = bezier(0.2, 0, 0, 1), IN = bezier(0.3, 0, 0.8, 0.15), STD = bezier(0.2, 0, 0, 1);
+  // damped spring (ζ ≈ 0.8): fast start, a small natural overshoot, settles at 1
+  const SPRING = (t) => { if (t <= 0) return 0; if (t >= 1) return 1; const z = 0.62, w = 10.5, wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * t) * (Math.cos(wd * t) + (z * w / wd) * Math.sin(wd * t)); };
   const BACK = (t) => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
   const seg = (t, a, b) => Math.min(1, Math.max(0, (t - a) / (b - a)));
   const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -182,7 +180,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     const common = { fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" };
     return {
       svg,
-      brackets: BRACKETS.map(() => mk("path", common)),
+      brackets: CORNERS.map(() => mk("path", common)),
       features: FEATURES.map(() => mk("path", common)),
       smile: mk("path", common),
       popR: mk("circle", { cx: 31.2545, cy: 20.0006, r: 0, fill: "#B56BFF" }),
@@ -191,31 +189,33 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     };
   });
 
-  const TOTAL = 2800;
+  const TOTAL = 2200;
   function frame(ms) {
-    const breathe = ms < 400 ? Math.sin((ms / 400) * Math.PI) * 0.02 : 0;
-    const squeeze = 0.06 * IN(seg(ms, 1300, 1500)) * (1 - EMPH(seg(ms, 1500, 1900)));
-    const scale = 1 + breathe - squeeze;
-    const scanT = seg(ms, 400, 1300);
-    const scanY = lerp(3, 33, STD(scanT));
+    const breathe = ms < 300 ? Math.sin((ms / 300) * Math.PI) * 0.02 : 0;
+    const antic = IN(seg(ms, 950, 1100)) * (1 - seg(ms, 1100, 1250));        // wind-up, released as the spin starts
+    const scale = 1 + breathe - 0.06 * antic;
+    const m = seg(ms, 1100, 1850);                                          // morph progress (time)
+    const round = EMPH(m);                                                  // rounding: square → circle
+    const spin = -10 * antic + 370 * SPRING(m) * (m > 0 ? 1 : 0) - (m > 0 ? 10 * (1 - SPRING(m)) * 0 : 0);
+    const rot = m > 0 ? -10 + 370 * SPRING(m) : -10 * antic;               // one full turn (+ the 10° wind-up), spring ease-out
+    const scanT = seg(ms, 300, 950);
+    const scanY = lerp(4, 33, STD(scanT));
     const scanO = scanT > 0 && scanT < 1 ? Math.sin(scanT * Math.PI) : 0;
-    const flash = Math.sin(seg(ms, 1250, 1500) * Math.PI) * 0.35; // brighten on success
-    const logoO = STD(seg(ms, 2550, 2800));
+    const logoO = STD(seg(ms, 1950, 2200));
+    const h = lerp(13, 11.25, round), r = lerp(4, h, round), leg = lerp(3.5, 0, round);
     for (const s of scenes) {
-      s.morphG.setAttribute("transform", `translate(20 20) scale(${scale}) translate(-20 -20)`);
+      s.morphG.setAttribute("transform", `translate(20 20) rotate(${rot.toFixed(2)}) scale(${scale.toFixed(4)}) translate(-20 -20)`);
       s.scan.setAttribute("y", scanY - 2.5); s.scanG.setAttribute("opacity", scanO.toFixed(3));
-      BRACKETS.forEach((b, i) => {
-        const t = EMPH(seg(ms, 1500 + i * 30, 2400 + i * 30));
-        const pts = b.from.map((p, k) => lerpP(p, b.to[k], t));
+      CORNERS.forEach((c, i) => {
         const el = s.brackets[i];
-        el.setAttribute("d", pathOf(pts));
-        el.setAttribute("stroke", mix(b.c0, b.c1, t));
-        el.setAttribute("stroke-width", lerp(2, W_RING, t).toFixed(3));
-        el.setAttribute("stroke-linecap", t > 0.98 ? "butt" : "round");
-        el.setAttribute("opacity", (1 - logoO + flash * 0).toFixed(3));
+        el.setAttribute("d", pathOf(corner(h, r, leg, c.sx, c.sy)));
+        el.setAttribute("stroke", mix(c.c0, c.c1, round));
+        el.setAttribute("stroke-width", lerp(2, W_RING, round).toFixed(3));
+        el.setAttribute("stroke-linecap", round > 0.985 ? "butt" : "round");
+        el.setAttribute("opacity", (1 - logoO).toFixed(3));
       });
       const poly = (f, el) => {
-        const t = EMPH(seg(ms, 1500 + f.delay, 2400 + f.delay));
+        const t = EMPH(seg(ms, 1150 + f.delay, 1800 + f.delay));
         const pts = f.from.map((p, k) => lerpP(p, f.to[k], t));
         const d = pts.length === 2 ? `M${pts[0].join(" ")} L${pts[1].join(" ")}` : `M${pts[0].join(" ")} Q${pts[1].join(" ")} ${pts[2].join(" ")}`;
         el.setAttribute("d", d);
@@ -225,8 +225,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       };
       FEATURES.forEach((f, i) => poly(f, s.features[i]));
       poly(SMILE, s.smile);
-      s.popR.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 2200, 2550)))).toFixed(3));
-      s.popB.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 2280, 2650)))).toFixed(3));
+      s.popR.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 1650, 1950)))).toFixed(3));
+      s.popB.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 1700, 2000)))).toFixed(3));
       s.popR.setAttribute("opacity", (1 - logoO).toFixed(3)); s.popB.setAttribute("opacity", (1 - logoO).toFixed(3));
       s.logo.setAttribute("opacity", logoO.toFixed(3));
     }
