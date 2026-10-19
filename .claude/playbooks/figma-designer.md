@@ -84,6 +84,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Act row family (local, 2026-10-16; sizes 2026-10-19) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 (State × **Size Desktop 40 / Touch 48**; Touch variants 12041:2547/2551/2555) · `New request card` 11848:340913 (holder 11844:198504) | GEAPActRow.html. Meta = Desktop/Body/Small 1f355410 + text/base/secondary 5d1a031c; pill = library button-filled-circular Neutral Small, paddingRight overridden to spacings/12 (code 0 12); menu p8 g4 r12, HUG width, minWidth = pill (191), items FILL, label Desktop/Body/Default 500 e069d3c3 text/base/default, 20 px icons. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile (Mobile menus use Size=Touch); TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544 (Touch 920:433/437/441), Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | eKYC „Filtrare avansată” + status tabs (local, 2026-10-19) | eKYC `10818:1084` / `10818:1369` / `10819:1399` / `10819:1688` / `10819:2467` / `10828:2157`·`2193`·`2230` | Advanced filter · button (Count × State Default/Open, 36, focus ring needs clip) · Status tabs (Tabs Count 2–8, tab-item-s 40 + Track line) · Facet filter · option (Content Text/Tag/Field × State × Size Desktop/Touch) · Facet filter · popover (Checklist / More, Show search) · Advanced filter · bar (Meta Hint/Pending/Applied, EVO DS filter-chip a2731000) · Filter sheet content · ek-04j / 04l / 04m (bottom-sheet slot). Builders tools/figma/ekyc-filter/ |
 | eKYC „Profile tabs” (local, 2026-10-19) | eKYC set `10835:1715` (Tabs Count 2 `10835:1389` · 3 `:1407` · 4 `:1430` · 5 `:1460` · 6 `:1497` · 7 `:1541` · 8 `:1592` · 9 `:1650`) | BO page-header tab strip (.e-permits-page-header__tabs): library tab-item-s 40 (exposed Tab 1…n: Label / Badge / Icon / Type), Track line absolute index 0, strip hugs its tabs; counters = numbered-badge Large 20 (Neutral / Accent). Replaced the library „tabs” (tab-item-md 48) on 111 strips. Tools tools/figma/ekyc-profile-tabs/ |
+| FO header long name (local, 2026-10-19) | GEAP `FO header · service title` set 12089:8112 (Title Short / Long collapsed / Long expanded × Screen Desktop / Mobile; props `Name#12089:0`, `Name · lines#12089:7`, `Name · last line#12089:14`, exposed `Toggle`) · `Name expand · toggle` set 12088:8094 (Expanded False/True × State Default/Hover) · holder 12088:7138 on 🧩 Local components | code js/name-expand.js + css/name-expand.css. Desktop H5 18/26 row 859, Mobile H5 16/24 row 343 (26 floor); toggle = Desktop/Body/Small 500 text/brand/default + 16/chevron-bottom (20/chevron-top at 16 when expanded), icon/brand/default, gap 2. Mobile FO `Header` 3521:12175 got `Show draft status#12094:0` (row „Draft status” 12094:352183, gap 12) — steps 2–6 = on + TitleContainer swapped to the Short title → header 126 = code |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -1749,3 +1750,45 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → gate rules run by hand (mini gate-audit) on every changed overlay + component: only the declared baseline
     left (rescaled A4 pages fractional, scrolled A4 viewport clip, page behind the sheet cut at the viewport, .5 spinner centring); fixed the
     certificate heading without a text style.
+
+- 2026-10-19 · FO header — long service name „Mai mult” / „Mai puțin” (code 25a6bb77, js/name-expand.js; demo pp-18 / 18a / 18b / 18c).
+  New: `FO header · service title` 12089:8112 + `Name expand · toggle` 12088:8094 (ids in the Library table); blocks on ↳ FO ->
+  Post-processes, column 04 (Band 04 · Service 10, after block 11): 11a 12107:12287 (pp-18, desktop with hover + library tooltip, phone),
+  11b 12107:12458 (pp-18a), 11c 12107:12629 (pp-18b, phone only — scrolled viewport), 11d 12107:12800 (pp-18c). Arrow „Mai mult”
+  12107:275034 from a Flow anchor over the phone toggle → 11b. Columns 05 / 06 shifted +488 (block 1935 = 1440 + 120 + 375), Band 04 → 1935.
+  Phone headers: FO 09 37 screens (steps 2–6), FOD Pattern › Address 25, Post-process Mobile 8440:119437 → `Show draft status` on +
+  Short title → header 110 → 126 like the code, progress row right under it (step 1 and Finalizare stay 110: code has no draft line there).
+  Lessons:
+  - **The code's bug was not in Figma**: no Figma phone had the progress bar over the header (census by „Pasul X din Y” text → its row →
+    any visible node crossing the row top: 0 on FO 09 52, FOD Address 25, Requestor 19, FOD file 19). The real drift was the MISSING
+    „Salvat ca schiță” line on every step 2–6 phone (desktop showed it — desktop = mobile content). Measure the code per step first
+    (probe: fo-02 108, fo-03…fo-07 126, fo-08 108) and apply by step, not blanket.
+  - **A component property on the shared mobile header instead of per-screen edits**: hidden-by-default row + BOOLEAN on the main
+    (no visual change anywhere), then per instance `setProperties({Show draft status: true})` + nested `TitleContainer.swapComponent()`
+    to the new title — read the old title text BEFORE the swap (overrides on the old nested main are lost) and set it via the TEXT prop.
+    Screens with a FIXED height grew by script only when their flow content overflowed (F4g 1269 → 1285); 812 viewports behind a
+    modal keep their cut on purpose. Column gaps stayed ≥ 100 (each block grew 16 at its own bottom — no cumulative shift).
+  - **Inline „after the last word” in Figma**: an instance can't flow inside a text → expanded variant = VERTICAL [„Name · lines” FILL
+    wrapping] + HORIZONTAL row [„Name · last line” HUG + toggle, gap 8]; the split is the code's real line break at that width
+    (measured 1440 / 375). Collapsed = text FILL + ENDING + maxLines 1 → text widths matched the code to the pixel (777 / 261).
+  - **Variant TEXT defaults are set-wide**: writing `characters` on a main's text bound to a property rewrites the property default for
+    every variant (my Short text leaked into Long collapsed) → set defaults with `editComponentProperty(…, {defaultValue})` and let
+    instances carry the per-state text.
+  - `swapComponent()` to another variant keeps nested overrides by layer name → the Hover state of the toggle survived into the
+    expanded clone („Mai puțin” underlined). Reset nested State after every swap.
+  - **html→Figma capture broke today** (selector captures landed as 0-wide frames; `--selector main` captured the demo index, not
+    the state) → don't fight it: the FO address has a spec pipeline (tools/figma/extract-fo-address.mjs → build-fo-address.js) that
+    builds „Address · fields” from library instances in one call; the rest = clones of the nearest blocks (block 11 / 10a desktops,
+    C04 phone) with raw captured fields replaced (label frame + select → select-input with its own Label + star; captured checkbox
+    row → checkbox-label Small). Lower sections of 11d are `FO / Context · skeleton` (11258:17226) — declared in the note.
+  - Builder gotchas: 3 equal FILL fields in 343 / 768 give .67 widths → first two FIXED ceil (104 / 235), last FILL; a „last child FILL”
+    rule also stretched a 2-field row (Apartamentul 501) — only FILL the last one when the row really has the leftover; the clone of a
+    captured desktop keeps hidden leftovers (Step indicator „Container” at y 431) that audits walk into → delete hidden captured nodes.
+  - Small PNG crop tool for comparing screenshots without PIL / ImageMagick: scratch crop.mjs (zlib inflate → unfilter → re-deflate);
+    `sips --cropOffset` is ignored (always centres).
+  - Declared deltas: library tooltip Small (14/20 + arrow, 124 high) vs the code's plain tooltip (12/16, no arrow, 72); expanded desktop
+    bar 106 + the header's 1 px stroke vs code 107; board conventions kept (1280 header container, Beta banner hidden, phone header
+    „Ro” chip + initials avatar, time 19:40). The new set is GEAP-local → FOD sees it only after the GEAP library is published.
+  - No Agent tool in this session → gate-audit („qsweep/audit”) + figma-audit („ghs/audit”) on the 4 blocks, 2 sets and the Header
+    main: 0 raw controls / unbound colours / unstyled texts / fractions after the fixes; left = 11c viewport clip (intended), phone screen
+    root gap 0 (board baseline), Header main avatar Type=Image (pre-existing).
