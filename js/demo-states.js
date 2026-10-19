@@ -2041,6 +2041,8 @@
           await open(h); await pick("status", ["Valabil"])(h); await pick("denumire", ["Notificare unitate comercială"])(h);
           await pick("beneficiar", ["Persoană juridică"])(h); await commit(h);
         }),
+        /* search results („alcool”) — Figma EVO-WEB block rap-01q */
+        "rap-01q": rap(async (h) => { await h.fill("[data-rap-search]", "alcool"); await h.wait(500); }),
         "rap-01g": rap(async (h) => { await h.click('[data-record-id="rap-0002"] a'); await h.wait(300); await h.click("[data-rap-company-permits]"); await h.wait(300); }),
         /* company view („Vezi toate (N)”): the company card + the act counts in a separate grey card */
         "rap-01d": rap(async (h) => {
