@@ -83,6 +83,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Section header + action (local, 2026-10-16) | set `11745:301869` | Breakpoint Desktop/Mobile; exposed `Heading` (svc/section-heading 9521:7915, now H5 18/26, minHeight 48) + `Action`; props Meta / Show meta. Normaliser for existing rows: tools/figma/section-heading-action.js |
 | Act row family (local, 2026-10-16; sizes 2026-10-19) | GEAP `Act row` 11846:340996 · `Post-process menu` 11844:340693 · `Post-process menu · item` 11844:198541 (State × **Size Desktop 40 / Touch 48**; Touch variants 12041:2547/2551/2555) · `New request card` 11848:340913 (holder 11844:198504) | GEAPActRow.html. Meta = Desktop/Body/Small 1f355410 + text/base/secondary 5d1a031c; pill = library button-filled-circular Neutral Small, paddingRight overridden to spacings/12 (code 0 12); menu p8 g4 r12, HUG width, minWidth = pill (191), items FILL, label Desktop/Body/Default 500 e069d3c3 text/base/default, 20 px icons. Act row: State Default/Hover/Menu open/Locked × Screen Desktop/Mobile (Mobile menus use Size=Touch); TEXT Title / Number / Validity / Authority, BOOLEAN Show validity / Show authority; exposed Status (tag), Action (button), Menu (7 item slots), Notice (Message · subtle Warning). FOD copies: Act row 892:11656, menu 890:11545, item 890:11544 (Touch 920:433/437/441), Message · subtle 890:11585, New request card 892:11709 (holder 890:11346). Tools: tools/figma/act-row/ |
 | eKYC „Filtrare avansată” + status tabs (local, 2026-10-19) | eKYC `10818:1084` / `10818:1369` / `10819:1399` / `10819:1688` / `10819:2467` / `10828:2157`·`2193`·`2230` | Advanced filter · button (Count × State Default/Open, 36, focus ring needs clip) · Status tabs (Tabs Count 2–8, tab-item-s 40 + Track line) · Facet filter · option (Content Text/Tag/Field × State × Size Desktop/Touch) · Facet filter · popover (Checklist / More, Show search) · Advanced filter · bar (Meta Hint/Pending/Applied, EVO DS filter-chip a2731000) · Filter sheet content · ek-04j / 04l / 04m (bottom-sheet slot). Builders tools/figma/ekyc-filter/ |
+| eKYC „Profile tabs” (local, 2026-10-19) | eKYC set `10835:1715` (Tabs Count 2 `10835:1389` · 3 `:1407` · 4 `:1430` · 5 `:1460` · 6 `:1497` · 7 `:1541` · 8 `:1592` · 9 `:1650`) | BO page-header tab strip (.e-permits-page-header__tabs): library tab-item-s 40 (exposed Tab 1…n: Label / Badge / Icon / Type), Track line absolute index 0, strip hugs its tabs; counters = numbered-badge Large 20 (Neutral / Accent). Replaced the library „tabs” (tab-item-md 48) on 111 strips. Tools tools/figma/ekyc-profile-tabs/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -1624,3 +1625,28 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     blocks + 20 components: only the board baseline (section-over-card / BO-row tight-gap, profile behind the modal cut at
     viewport height, rescaled A4 pages fractional, scrolled viewport clip); fixed the one real finding (A4 head texts at .5
     → FILL + centre). Screens compared with the code captures (persona-test/capture.mjs + a CDP DOM spec per state × width).
+
+- 2026-10-19 · eKYC profile tabs 48 → 40 (user-approved; code .e-permits-page-header__tabs). New local set „Profile tabs” 10835:1715
+  (Tabs Count 2–9, library tab-item-s, Track line) on 🧩 Local components (group title 10835:1388). Replaced 111 strips (library
+  „tabs” 102 + 9 raw „Tab List - Dossier sections” frames of .tab-item-md): Dashboard 2, Sessions 22, Review 26, Audit 9,
+  Clients & Organisations 6, Cases & Scoring 25, Providers 7, Administration 14 (Application Shell 0; no phone profile screens).
+  Selected tab, labels, counters (value + style), the first tab's icon (page-text / face-id glyph as it was) all carried over.
+  Tools + README: tools/figma/ekyc-profile-tabs/ (measure.mjs, component.js, swap.js). Lessons:
+  - **Only blocks whose screen HUGs shrink**: Body minHeight 992 keeps short screens at 1024 and „fit” captures have FIXED
+    Containers → 29 of 111 blocks got 8 px shorter. Column rule done generically: for each shrunk block, every direct section
+    child under it whose x-range overlaps moves up by the shrink (gaps stay identical); verify with a pairwise column-gap check.
+  - **Absolute Flow anchors**: the ones over FLOW content below the strip move with the content (−8), but anchors over a modal
+    / drawer button inside an absolute Overlay must NOT move — the overlay is stretched to the screen and the modal keeps its
+    place. I shifted 8 of them by mistake and restored them; verify anchors by matching their centre to the nearest instance of
+    the same size (d = 0), not by eye. swap.js now skips anchors whose centre is inside an absolute child > 300 high.
+  - Connectors that started on ONE tab of a raw strip (Audit R05c: 4 tab arrows + R05j 1) lose that precision when the strip
+    becomes one instance — add a Flow anchor (eKYC main 10527:118227) over the tab (absoluteTransform delta to the screen) and
+    re-attach connectorStart, magnet RIGHT.
+  - The library „tabs” has no size variant (tab-item-md only) — a 40 strip = a local set of tab-item-s, like „Status tabs”.
+  - Code vs Figma deltas left as declared library gaps: tab gap 8 (library) vs 6 (code). Pre-existing: Review „Revizie” tab shows
+    the page-text glyph while the code uses icon-face-id (only a 24/face-id exists in Foundations) — reported, not changed.
+  - „How to read” texts grew by two lines and touched „Page contents” (40 gap) → after appending a dated line, re-stack the
+    How-to-read section children (keep 40) and refit the section.
+  - No Agent tool in this session → ran the figma-audit rules myself on the set + 4 headers (0 findings) + a column-gap check on
+    all 8 pages (0 overlaps / gaps < 40) + the anchor check (10/10 d = 0).
+
