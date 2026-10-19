@@ -1719,3 +1719,33 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → ran the quality-sweep gate audit (gate-audit.js rules) on the 18 blocks: fixed
     „Chip row…” names (raw-control false positive) and two .5 pager positions; left = intentional clips (chip rows that
     scroll, phone viewport behind sheets / dialogs). Components check: 0 unbound colours, 0 unstyled texts after fix.
+
+- 2026-10-19 · Phone dialogs → „Modals on phones” (code 48c7f0cb, css/modal-phone.css) in 4 files. EVO-WEB RAP column 04: 10 library-modal
+  phones (rap-03, 03g, 03h, 03i, 03j, 03q, 03r, 03m, 03n, 03o) + their 10 „Data modal content · <id> · Mobile” mains (338 → 375, bottom 24 → 16),
+  „Document modal (MDocs act)” Mobile variant 22089:209130 (788 → 796, body 0, canvas 8 / r0, footer 12/16/16, halves 167/168) + 10 „Doc canvas ·
+  <id> · Mobile” (311 → 359 pages, gap 12; 03t scrolled viewport rebuilt at the code offsets), filter sheets rap-01b / 04a / 04b / 04c (radius
+  24 → 16 token; 04c = `.is-all` → 796 at 16). Cabinet: pp-01m / x / y (same routine), pp-01z (library modal holding the A4 canvas → 796 full
+  height, canvas edge to edge), Confirm modal Mobile variants 1066:1011 / :1026 (412 = code), pp-01s sheet (radius was 0 → 16). GEAP: F3r
+  (stacked, 404), F4a–F4d / F4g picker (Main Frame 374 → 375, hidden „Anulează” shown), F8d / F8e certificate (raw close → library
+  button, header subtitle with the dossier number hidden like the code), FOD Requestor G8 (372 = code). eKYC S01e1–S01e3. Lessons:
+  - **The library modal on phones is a remote set** (EVO-WEB 22087:27587, Cabinet 1071:8314) → fix per instance with ONE routine
+    (scratch libmodal.js, inlined per call): modal 375, bottom radii unbound → 0, header p16/16 + gap 8 + Heading Container FILL, content
+    instance FILL (+ its local main resized 375 and padded 16), footer Horizontal Stack, then H = max(812, 16 + modal) and modal.y = H − h.
+  - **Footer button size lives in the FOOTER variant, not the button**: setting the nested button `Size=Medium` kept 48 (the footer main
+    fixes the child height; HUG collapsed it to 20; `resize()` on nested instances is ignored). Footer `Size=Small` gives 40 buttons — but it
+    swaps them to ANOTHER button set (Primary / Strict / Destructive, no Neutral) → `swapComponent` each to the Medium variant of the set the
+    desktop footer uses (EVO-WEB 22069:184501 Neutral-Leading-Medium), then re-set label + icon props. Record labels / icons BEFORE any variant change.
+  - Equal halves inside a library footer instance stay 167.5 (= the code); `minWidth` / `resize` can't be overridden on nested instances →
+    declared. In local components / raw frames: first child FIXED 167, last FILL.
+  - `setBoundVariable(k, null)` before writing a raw radius / padding on a bound instance property, else the token wins.
+  - `findOne` by a layer name with diacritics failed („Subtitlu”) → pick by type among the frame's children.
+  - Library spacing / radius tokens import by key in every file (Foundations „3. Sizes”): spacing-0 09bbd360…, -8 69ac88e4…, -12 ee4801fe…,
+    -16 22028a11…, radius-0 a3519aab…, radius-16 5e0761c5…; H4 text style imports with `importStyleByKeyAsync("6437d483…")` (GEAP's local
+    id string failed).
+  - Measuring: a small CDP probe (selector → rect / padding / radius / gap / scrollHeight) per state answered every number; filter by the
+    ACTIVE overlay (`.modal-overlay.is-active > .modal`, `[data-…-modal] .card`) — the page keeps many closed modals with real rects.
+  - After height changes: restack the column from an ordered list (EVO-WEB 04 had drifted gaps 294–552 → 240), refit the section, check the
+    connectors' endpoints (all magnet RIGHT → they follow).
+  - No Agent tool in this session → gate rules run by hand (mini gate-audit) on every changed overlay + component: only the declared baseline
+    left (rescaled A4 pages fractional, scrolled A4 viewport clip, page behind the sheet cut at the viewport, .5 spinner centring); fixed the
+    certificate heading without a text style.
