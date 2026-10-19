@@ -55,7 +55,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 <main class="page">
   <header>
     <h1>EVO Face ID → logo EVO</h1>
-    <p class="lead">Test de animație: fața e un pătrat, EVO e un cerc. După scanare, pătratul se rotunjește până devine cerc în timp ce se rotește, iar mișcarea frânează și se așază pe logo. Ochii, nasul și zâmbetul devin punctele și bara.</p>
+    <p class="lead">Test de animație: fața este logo-ul. Cei doi ochi devin cele două puncte legate de linie, zâmbetul se ridică și se îndreaptă în linia care îi leagă, iar pătratul din jurul feței se rotunjește pe loc în inel — unde se închide, apar celelalte trei puncte.</p>
   </header>
 
   <section class="stage" aria-label="Animație">
@@ -73,28 +73,30 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     <label class="toggle"><input id="slow" type="checkbox"> Încetinit 0,25×</label>
     <label class="toggle"><input id="loop" type="checkbox" checked> Repetă</label>
     <label class="toggle"><input id="reverse" type="checkbox"> Și înapoi</label>
-    <div class="scrub"><input id="scrub" type="range" min="0" max="2200" value="0" aria-label="Poziția în animație"><output id="time">0 ms</output></div>
+    <div class="scrub"><input id="scrub" type="range" min="0" max="1950" value="0" aria-label="Poziția în animație"><output id="time">0 ms</output></div>
   </div>
 
   <section class="notes">
     <div>
-      <h2>Coregrafia (2,2 s)</h2>
+      <h2>Coregrafia (1,95 s)</h2>
       <div class="timeline">
-        <b>0–300 ms</b><span>Repaus: colțurile „respiră” ușor.</span>
-        <b>300–950 ms</b><span>Scanare: o linie de lumină trece de sus în jos peste față.</span>
-        <b>950–1100 ms</b><span>Anticipare: pătratul se strânge puțin și se rotește −10° înapoi, ca o „încărcare” înainte de salt.</span>
-        <b>1100–1850 ms</b><span>Transformare: pătratul se rotunjește (raza colțurilor crește până la maxim = cerc), golurile dintre colțuri se închid, liniile se îngroașă în inel, iar totul se rotește o tură completă — repede la început, apoi frânează ca un arc (spring) și se așază exact pe logo. Ochii, nasul și zâmbetul curg în timpul rotației spre puncte și bară.</span>
-        <b>1650–2000 ms</b><span>Punctul din dreapta și cel de jos apar cu un mic rebound.</span>
-        <b>1950–2200 ms</b><span>Trecere pe logo-ul exact.</span>
-      </div>
+        <b>0–300 ms</b><span>Repaus.</span>
+        <b>300–860 ms</b><span>Scanare: o linie de lumină trece peste față.</span>
+        <b>860–1000 ms</b><span>Anticipare: totul se strânge 5% — „recunoscut”.</span>
+        <b>960–1300 ms</b><span>Nasul se topește în centru.</span>
+        <b>1000–1450 ms</b><span>Ochii devin punctele: stângul alunecă în centru, dreptul la capătul liniei; cresc și se rotunjesc.</span>
+        <b>1080–1560 ms</b><span>Zâmbetul urcă și se îndreaptă în linia care leagă cei doi ochi (spring, cu un mic rebound).</span>
+        <b>1120–1640 ms</b><span>Pătratul se rotunjește pe loc în inel (fără rotație): raza colțurilor crește, golurile se închid, linia se îngroașă.</span>
+        <b>1480–1880 ms</b><span>Unde inelul se închide apar celelalte trei puncte: sus, stânga, jos.</span>
+        <b>1560–1950 ms</b><span>O singură așezare blândă (scale 1,03 → 1) și logo-ul exact.</span></div>
     </div>
     <div>
       <h2>Pe ce se bazează</h2>
       <ul>
-        <li><strong>Material 3 Expressive · shape morph:</strong> o formă trece în alta prin interpolarea razei colțurilor (pătrat → „squircle” → cerc), condusă de un spring, adesea împreună cu rotația (ca indicatorul lor de încărcare).</li>
+        <li><strong>Material 3 Expressive · shape morph:</strong> o formă trece în alta prin interpolarea razei colțurilor (pătrat → „squircle” → cerc), pe loc, condusă de un spring.</li>
         <li><strong>Material 3 · motion springs:</strong> mișcările de formă folosesc spring-uri „spatiale” (amortizare ≈ 0,8, ușor rebound) în loc de curbe fixe — începutul e rapid, finalul se așază natural.</li>
         <li><strong>Apple · Face ID:</strong> scanare scurtă, apoi un moment clar de „recunoscut” înainte de schimbare.</li>
-        <li><strong>Principiile animației:</strong> anticipare (rotirea înapoi), o singură mișcare-erou (rotunjire + rotație împreună), follow-through (punctele apar cu rebound).</li>
+        <li><strong>Principiile animației:</strong> anticipare (strângerea scurtă), elementele-cheie conduc și cadrul le urmează (follow-through), o singură așezare la final; fără rotație — mișcarea vine din semnificație: ochii = punctele, zâmbetul = linia care le leagă.</li>
         <li><strong>Accesibilitate:</strong> cu „Reduce motion” activ, pictograma trece direct în logo printr-o estompare scurtă.</li>
       </ul>
     </div>
@@ -141,12 +143,13 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   ];
   const pathOf = (pts) => `M${pts[0].map((v) => v.toFixed(3)).join(" ")}` + [1, 4, 7].map((i) => ` C${[pts[i], pts[i + 1], pts[i + 2]].map((q) => q.map((v) => v.toFixed(3)).join(" ")).join(" ")}`).join("");
   // features as polylines of the same length start → end (a dot = all points on one spot, round cap)
+  // the face IS the logo: eyes = the two dots the line connects (centre + right), mouth = the line between them
   const FEATURES = [
-    { name: "eyeL", from: [[14, 15.2], [14, 18.2]], to: [[8.7457, 20], [8.7457, 20]], w0: 2.2, c0: "#5690FF", c1: "#5690FF", delay: 60 },
-    { name: "eyeR", from: [[26, 15.2], [26, 18.2]], to: [[20, 8.7457], [20, 8.7457]], w0: 2.2, c0: "#E176FF", c1: "#8774FF", delay: 90 },
-    { name: "nose", from: [[20, 15.2], [20, 21.4], [18.8, 22.6]], to: [[20, 20], [20, 20], [20, 20]], w0: 1.8, c0: "#8774FF", c1: "#E176FF", delay: 80 },
+    { name: "eyeL", from: [[14, 15.2], [14, 18.2]], to: [[20, 20.0006], [20, 20.0006]], w0: 2.2, c0: "#5690FF", c1: "#E176FF", t: [1000, 1420] },
+    { name: "eyeR", from: [[26, 15.2], [26, 18.2]], to: [[31.2545, 20.0006], [31.2545, 20.0006]], w0: 2.2, c0: "#E176FF", c1: "#B56BFF", t: [1030, 1450] },
   ];
-  const SMILE = { from: [[14.6, 25.6], [20, 29.6], [25.4, 25.6]], to: [[20, 20], [25.63, 20], [31.25, 20]], w0: 2.2, c0: "#AA18CE", c1: "#AA18CE", delay: 40 };
+  const NOSE = { from: [[20, 15.2], [20, 21.4], [18.8, 22.6]], to: [[20, 20], [20, 20], [20, 20]], w0: 1.8, c0: "#8774FF", c1: "#E176FF", t: [960, 1300] };
+  const SMILE = { from: [[14.6, 25.6], [20, 29.6], [25.4, 25.6]], to: [[20, 20.0006], [25.63, 20.0006], [31.2545, 20.0006]], w0: 2.2, c0: "#AA18CE", c1: "#AA18CE", t: [1080, 1560] };
 
   // ---------- easing ----------
   function bezier(x1, y1, x2, y2) {
@@ -181,30 +184,30 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     return {
       svg,
       brackets: CORNERS.map(() => mk("path", common)),
-      features: FEATURES.map(() => mk("path", common)),
+      noseEl: mk("path", common),
       smile: mk("path", common),
-      popR: mk("circle", { cx: 31.2545, cy: 20.0006, r: 0, fill: "#B56BFF" }),
-      popB: mk("circle", { cx: 20, cy: 31.2545, r: 0, fill: "#0093B8" }),
+      features: FEATURES.map(() => mk("path", common)),
+      nose: null,
+      joints: [[20, 8.7457, "#8774FF"], [8.7457, 20.0006, "#5690FF"], [20, 31.2545, "#0093B8"]].map(([cx, cy, fill]) => mk("circle", { cx, cy, r: 0, fill })),
       morphG: g, scan: svg.querySelector(".scan rect"), scanG: svg.querySelector(".scan"), logo: svg.querySelector(".logo")
     };
   });
 
-  const TOTAL = 2200;
+  const TOTAL = 1950;
   function frame(ms) {
-    const breathe = ms < 300 ? Math.sin((ms / 300) * Math.PI) * 0.02 : 0;
-    const antic = IN(seg(ms, 950, 1100)) * (1 - seg(ms, 1100, 1250));        // wind-up, released as the spin starts
-    const scale = 1 + breathe - 0.06 * antic;
-    const m = seg(ms, 1100, 1850);                                          // morph progress (time)
-    const round = EMPH(m);                                                  // rounding: square → circle
-    const spin = -10 * antic + 370 * SPRING(m) * (m > 0 ? 1 : 0) - (m > 0 ? 10 * (1 - SPRING(m)) * 0 : 0);
-    const rot = m > 0 ? -10 + 370 * SPRING(m) : -10 * antic;               // one full turn (+ the 10° wind-up), spring ease-out
-    const scanT = seg(ms, 300, 950);
+    // no rotation: anticipation (a small squeeze), the features lead, the frame follows, one soft settle
+    const breathe = ms < 300 ? Math.sin((ms / 300) * Math.PI) * 0.015 : 0;
+    const antic = IN(seg(ms, 860, 1000)) * (1 - EMPH(seg(ms, 1000, 1200)));
+    const settle = Math.sin(Math.PI * EMPH(seg(ms, 1560, 1850))) * 0.03;
+    const scale = 1 + breathe - 0.05 * antic + settle;
+    const round = EMPH(seg(ms, 1120, 1640));                       // square → circle, in place
+    const h = lerp(13, 11.25, round), r = lerp(4, h, round), leg = lerp(3.5, 0, round);
+    const scanT = seg(ms, 300, 860);
     const scanY = lerp(4, 33, STD(scanT));
     const scanO = scanT > 0 && scanT < 1 ? Math.sin(scanT * Math.PI) : 0;
-    const logoO = STD(seg(ms, 1950, 2200));
-    const h = lerp(13, 11.25, round), r = lerp(4, h, round), leg = lerp(3.5, 0, round);
+    const logoO = STD(seg(ms, 1720, 1950));
     for (const s of scenes) {
-      s.morphG.setAttribute("transform", `translate(20 20) rotate(${rot.toFixed(2)}) scale(${scale.toFixed(4)}) translate(-20 -20)`);
+      s.morphG.setAttribute("transform", `translate(20 20) scale(${scale.toFixed(4)}) translate(-20 -20)`);
       s.scan.setAttribute("y", scanY - 2.5); s.scanG.setAttribute("opacity", scanO.toFixed(3));
       CORNERS.forEach((c, i) => {
         const el = s.brackets[i];
@@ -214,20 +217,25 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
         el.setAttribute("stroke-linecap", round > 0.985 ? "butt" : "round");
         el.setAttribute("opacity", (1 - logoO).toFixed(3));
       });
-      const poly = (f, el) => {
-        const t = EMPH(seg(ms, 1150 + f.delay, 1800 + f.delay));
+      // eyes and nose: emphasized ease; the mouth snaps straight with a spring (a tiny overshoot past the line)
+      const poly = (f, el, ease) => {
+        const t = ease(seg(ms, f.t[0], f.t[1]));
         const pts = f.from.map((p, k) => lerpP(p, f.to[k], t));
         const d = pts.length === 2 ? `M${pts[0].join(" ")} L${pts[1].join(" ")}` : `M${pts[0].join(" ")} Q${pts[1].join(" ")} ${pts[2].join(" ")}`;
         el.setAttribute("d", d);
-        el.setAttribute("stroke", mix(f.c0, f.c1, t));
-        el.setAttribute("stroke-width", lerp(f.w0, W_RING, t).toFixed(3));
+        el.setAttribute("stroke", mix(f.c0, f.c1, Math.min(1, t)));
+        el.setAttribute("stroke-width", lerp(f.w0, W_RING, Math.min(1, t)).toFixed(3));
         el.setAttribute("opacity", (1 - logoO).toFixed(3));
       };
-      FEATURES.forEach((f, i) => poly(f, s.features[i]));
-      poly(SMILE, s.smile);
-      s.popR.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 1650, 1950)))).toFixed(3));
-      s.popB.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 1700, 2000)))).toFixed(3));
-      s.popR.setAttribute("opacity", (1 - logoO).toFixed(3)); s.popB.setAttribute("opacity", (1 - logoO).toFixed(3));
+      poly(NOSE, s.noseEl, EMPH);
+      s.noseEl.setAttribute("opacity", ((1 - seg(ms, 1150, 1300)) * (1 - logoO)).toFixed(3));
+      poly(SMILE, s.smile, SPRING);
+      FEATURES.forEach((f, i) => poly(f, s.features[i], EMPH));
+      // the other three dots appear where the ring closes: top, left, bottom
+      s.joints.forEach((el, i) => {
+        el.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 1480 + i * 60, 1760 + i * 60)))).toFixed(3));
+        el.setAttribute("opacity", (1 - logoO).toFixed(3));
+      });
       s.logo.setAttribute("opacity", logoO.toFixed(3));
     }
   }
