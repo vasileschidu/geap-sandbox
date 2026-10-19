@@ -3587,6 +3587,21 @@
       `;
     }
 
+    /* „Temeiul reprezentării” under Solicitant + Reprezentant (user 2026-10-18, Figma GEAP 11858:24176): the
+       same small role-group title as „Solicitant”, then the authorization card — RSUD administrator (self-PJ)
+       or the MPower grant. `representationBasis` (RSUD) is separate from `authorization`, which means an
+       MPower proxy everywhere else (switcher groups, avatar tone). No card → no block. */
+    function representationBasisHtml(subject) {
+      const card = authorizationCardHtml(subject?.representationBasis ? { authorization: subject.representationBasis } : subject);
+      if (!card) return "";
+      return `
+        <div class="e-permits-fo-form__role-group e-permits-fo-form__basis">
+          ${roleGroupTitleHtml("Temeiul reprezentării")}
+          ${card}
+        </div>
+      `;
+    }
+
     function representativeForSubject(subject) {
       if (!subject) return null;
       if (subject.representative) return subject.representative;
@@ -3757,7 +3772,7 @@
           <div class="e-permits-fo-form__roles-grid">
             ${subjectRolesHtml(subject)}
           </div>
-          ${authorizationCardHtml(subject)}
+          ${representationBasisHtml(subject)}
         `;
       }
 

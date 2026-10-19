@@ -133,6 +133,15 @@
           "avatarTone": "brand",
           "avatarIcon": "icon-business",
           "roleLabel": "Persoană juridică",
+          "representationBasis": {
+            "title": "Administrator în RSUD",
+            "status": "Confirmat",
+            "icon": "icon-business",
+            "details": [
+              { "label": "Administrator al", "value": "SRL Global Trader" },
+              { "label": "Sursa", "value": "RSUD prin MConnect" }
+            ]
+          },
           "selectable": true,
           "requestData": {
             "sectionTitle": "Date companie",
