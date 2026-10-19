@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EVO Face ID Morph</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap">
+<style>
+/* Layout: one stage (the icon large), a row of real sizes under it, controls, then the motion notes */
+:root {
+  --bg: #f4f5f8;
+  --surface: #ffffff;
+  --fg: #121212;
+  --muted: #5d6573;
+  --line: #dde1e7;
+  --accent: #0058d2;
+  --font: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0e1015; --surface: #171a21; --fg: #eceef3; --muted: #9aa3b2; --line: #2a2f3a; --accent: #7fb0ff; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0e1015; --surface: #171a21; --fg: #eceef3; --muted: #9aa3b2; --line: #2a2f3a; --accent: #7fb0ff; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font: 400 15px/1.55 var(--font); margin: 0; }
+.page { margin: 0 auto; max-width: 960px; padding-block: 40px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px; }
+h1 { font-size: clamp(26px, 4vw, 36px); line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+h2 { font-size: 18px; font-weight: 600; margin: 0 0 8px; }
+.lead { color: var(--muted); margin: 8px 0 0; max-width: 62ch; }
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; display: grid; place-items: center; padding: 48px 16px; min-width: 0; }
+.stage > svg { width: min(320px, 70vw); height: auto; display: block; }
+.sizes svg { display: block; }
+.sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 24px; justify-content: center; margin-top: 32px; }
+.sizes figure { margin: 0; display: grid; justify-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button, .toggle { font: inherit; font-size: 14px; font-weight: 500; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); padding: 8px 16px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+button:hover, .toggle:hover { border-color: var(--accent); }
+button:focus-visible, .toggle:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.toggle input { accent-color: var(--accent); margin: 0; }
+.scrub { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; min-width: 0; }
+.scrub input { flex: 1; min-width: 0; accent-color: var(--accent); }
+.scrub output { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; width: 64px; text-align: right; }
+.notes { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 16px; }
+.notes p, .notes li { margin: 0; color: var(--muted); font-size: 14px; }
+.notes ol, .notes ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+.timeline { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 12px; font-size: 14px; }
+.timeline b { font-weight: 500; font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .timeline { grid-template-columns: minmax(0, 1fr); } .timeline b { margin-top: 6px; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <h1>EVO Face ID → logo EVO</h1>
+    <p class="lead">Test de animație: pictograma de scanare facială se transformă în logo-ul EVO. Colțurile devin cele patru sferturi ale inelului, ochii și nasul devin punctele, zâmbetul devine bara.</p>
+  </header>
+
+  <section class="stage" aria-label="Animație">
+    <svg id="big" viewBox="0 0 40 40" role="img" aria-label="Scanare facială care se transformă în logo-ul EVO"></svg>
+    <div class="sizes" aria-hidden="true">
+      <figure><svg class="mini" viewBox="0 0 40 40" width="24" height="24"></svg><figcaption>24</figcaption></figure>
+      <figure><svg class="mini" viewBox="0 0 40 40" width="36" height="36"></svg><figcaption>36</figcaption></figure>
+      <figure><svg class="mini" viewBox="0 0 40 40" width="64" height="64"></svg><figcaption>64</figcaption></figure>
+      <figure><svg class="mini" viewBox="0 0 40 40" width="120" height="120"></svg><figcaption>120</figcaption></figure>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button class="primary" id="replay" type="button">Redă din nou</button>
+    <label class="toggle"><input id="slow" type="checkbox"> Încetinit 0,25×</label>
+    <label class="toggle"><input id="loop" type="checkbox" checked> Repetă</label>
+    <label class="toggle"><input id="reverse" type="checkbox"> Și înapoi</label>
+    <div class="scrub"><input id="scrub" type="range" min="0" max="2800" value="0" aria-label="Poziția în animație"><output id="time">0 ms</output></div>
+  </div>
+
+  <section class="notes">
+    <div>
+      <h2>Coregrafia (2,8 s)</h2>
+      <div class="timeline">
+        <b>0–400 ms</b><span>Repaus: colțurile „respiră” ușor (Face ID așteaptă).</span>
+        <b>400–1300 ms</b><span>Scanare: o bandă de lumină trece de sus în jos peste față.</span>
+        <b>1300–1500 ms</b><span>Anticipare: colțurile se strâng 6% spre centru (ease-in) — semnalul „recunoscut”.</span>
+        <b>1500–2400 ms</b><span>Transformare: colțurile se curbează în sferturile inelului (culorile trec în culorile logo-ului), ochii → punctul stâng și cel de sus, nasul → punctul central, zâmbetul se îndreaptă în bara magenta. Decalaj 40–80 ms între elemente.</span>
+        <b>2200–2650 ms</b><span>Punctul din dreapta și cel de jos apar cu un mic rebound (follow-through).</span>
+        <b>2550–2800 ms</b><span>Trecere pe logo-ul exact (fără diferențe de pixel la final).</span>
+      </div>
+    </div>
+    <div>
+      <h2>Pe ce se bazează</h2>
+      <ul>
+        <li><strong>Material 3 · Motion:</strong> easing „emphasized” cubic-bezier(0.2, 0, 0, 1) pentru tranziții-erou, durate lungi (500–1000 ms) când forma se schimbă; „emphasized accelerate” pentru ieșiri scurte.</li>
+        <li><strong>Apple · Face ID:</strong> colțurile ca formă-semnătură, scanare urmată de un moment clar de succes înainte de schimbare.</li>
+        <li><strong>Principiile animației (Disney / NN/g):</strong> anticipare, decalaj între elemente (stagger), follow-through la final; o singură mișcare-erou, nu efecte împrăștiate.</li>
+        <li><strong>Morfing corect:</strong> fiecare formă are aceeași structură de curbe la început și la sfârșit (3 segmente Bézier), deci se interpolează fără „sărituri”.</li>
+        <li><strong>Accesibilitate:</strong> cu „Reduce motion” activ în sistem, pictograma trece direct în logo printr-o estompare scurtă.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const TILE = "M20.0111 40C28.7742 40 33.655 40 36.8274 36.8275C39.9999 33.655 39.9999 28.7743 39.9999 20.0111C39.9999 11.2479 39.9999 6.36717 36.8274 3.19468C33.6328 0 28.7742 0 20.0111 0C11.2479 0 6.36715 0 3.17248 3.17249C0 6.36717 0 11.2479 0 20.0111C0 28.7743 0 33.655 3.17248 36.8275C6.36715 40 11.2479 40 20.0111 40Z";
+  const LOGO = `
+    <mask id="M" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="6" y="6" width="28" height="28"><path d="M20 6.09766C27.678 6.09767 33.9023 12.322 33.9023 20C33.9023 27.6781 27.678 33.9023 20 33.9023C12.322 33.9023 6.09766 27.6781 6.09766 20C6.09767 12.3219 12.322 6.09766 20 6.09766ZM20 11.3936C15.2469 11.3936 11.3936 15.2469 11.3936 20C11.3936 24.7531 15.2469 28.6064 20 28.6064C24.753 28.6064 28.6064 24.753 28.6064 20C28.6064 15.2469 24.753 11.3936 20 11.3936Z" fill="#000"/></mask>
+    <g mask="url(#M)"><rect x="20" y="20" width="13.9023" height="13.9024" fill="#006369"/><rect x="20" y="6.09766" width="13.9023" height="13.9024" fill="#7E37F9"/><rect x="6.09766" y="20" width="13.9023" height="13.9024" fill="#0058D2"/><rect x="6.09766" y="6.09766" width="13.9023" height="13.9024" fill="#561FE5"/></g>
+    <path d="M31.2543 17.3525L20 17.3525L20 22.6487L31.2543 22.6487Z" fill="#AA18CE"/>
+    <circle cx="20" cy="31.2545" r="2.648" fill="#0093B8"/><circle cx="8.7457" cy="20.0006" r="2.648" fill="#5690FF"/>
+    <circle cx="20" cy="8.7457" r="2.648" fill="#8774FF"/><circle cx="20" cy="20.0006" r="2.648" fill="#E176FF"/>
+    <circle cx="31.2545" cy="20.0006" r="2.648" fill="#B56BFF"/>`;
+
+  // ---------- geometry ----------
+  const C = 20, R_RING = 11.25, W_RING = 5.3, A = 7, B = 33, LEG = 7.5, RAD = 4;
+  const add = (p, q, s = 1) => [p[0] + q[0] * s, p[1] + q[1] * s];
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const lerpP = (p, q, t) => [lerp(p[0], q[0], t), lerp(p[1], q[1], t)];
+  const third = (p, q, f) => lerpP(p, q, f);
+  // a bracket = 3 cubics: leg, rounded corner, leg  → 10 points
+  function bracket(corner, u, v) {
+    const p0 = add(corner, u, LEG), p1 = add(corner, u, RAD), p2 = add(corner, v, RAD), p3 = add(corner, v, LEG);
+    const k = 0.5523 * RAD;
+    return [p0, third(p0, p1, 1 / 3), third(p0, p1, 2 / 3), p1, add(p1, u, -k), add(p2, v, -k), p2, third(p2, p3, 1 / 3), third(p2, p3, 2 / 3), p3];
+  }
+  // a quarter of the ring = 3 cubics of 30° → 10 points
+  function arc(a0, a1) {
+    const pts = []; const n = 3; const d = (a1 - a0) / n; const k = (4 / 3) * Math.tan(Math.abs(d) / 4) * R_RING * Math.sign(d);
+    const P = (a) => [C + R_RING * Math.cos(a), C + R_RING * Math.sin(a)], T = (a) => [-Math.sin(a), Math.cos(a)];
+    for (let i = 0; i < n; i++) {
+      const s = a0 + d * i, e = s + d, ps = P(s), pe = P(e);
+      if (i === 0) pts.push(ps);
+      pts.push(add(ps, T(s), k), add(pe, T(e), -k), pe);
+    }
+    return pts;
+  }
+  const deg = Math.PI / 180;
+  const BRACKETS = [
+    { from: bracket([A, A], [0, 1], [1, 0]), to: arc(180 * deg, 270 * deg), c0: "#0093B8", c1: "#561FE5" }, // TL
+    { from: bracket([B, A], [-1, 0], [0, 1]), to: arc(270 * deg, 360 * deg), c0: "#7E37F9", c1: "#7E37F9" }, // TR
+    { from: bracket([A, B], [0, -1], [1, 0]), to: arc(180 * deg, 90 * deg), c0: "#5690FF", c1: "#0058D2" }, // BL
+    { from: bracket([B, B], [0, -1], [-1, 0]), to: arc(0, 90 * deg), c0: "#8774FF", c1: "#006369" }  // BR
+  ];
+  const pathOf = (pts) => `M${pts[0][0].toFixed(3)} ${pts[0][1].toFixed(3)}` + [1, 4, 7].map((i) => ` C${pts[i].join(" ")} ${pts[i + 1].join(" ")} ${pts[i + 2].join(" ")}`).join("").replace(/(\d+\.\d{3})\d+/g, "$1");
+  // features as polylines of the same length start → end (a dot = all points on one spot, round cap)
+  const FEATURES = [
+    { name: "eyeL", from: [[14, 15.2], [14, 18.2]], to: [[8.7457, 20], [8.7457, 20]], w0: 2.2, c0: "#5690FF", c1: "#5690FF", delay: 60 },
+    { name: "eyeR", from: [[26, 15.2], [26, 18.2]], to: [[20, 8.7457], [20, 8.7457]], w0: 2.2, c0: "#E176FF", c1: "#8774FF", delay: 90 },
+    { name: "nose", from: [[20, 15.2], [20, 21.4], [18.8, 22.6]], to: [[20, 20], [20, 20], [20, 20]], w0: 1.8, c0: "#8774FF", c1: "#E176FF", delay: 80 },
+  ];
+  const SMILE = { from: [[14.6, 25.6], [20, 29.6], [25.4, 25.6]], to: [[20, 20], [25.63, 20], [31.25, 20]], w0: 2.2, c0: "#AA18CE", c1: "#AA18CE", delay: 40 };
+
+  // ---------- easing ----------
+  function bezier(x1, y1, x2, y2) {
+    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx, cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+    const sx = (t) => ((ax * t + bx) * t + cx) * t, sy = (t) => ((ay * t + by) * t + cy) * t, dx = (t) => (3 * ax * t + 2 * bx) * t + cx;
+    return (x) => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x; for (let i = 0; i < 8; i++) { const e = sx(t) - x; if (Math.abs(e) < 1e-5) break; const d = dx(t); if (Math.abs(d) < 1e-6) break; t -= e / d; } return sy(Math.min(1, Math.max(0, t))); };
+  }
+  const EMPH = bezier(0.2, 0, 0, 1), IN = bezier(0.3, 0, 0.8, 0.15), STD = bezier(0.2, 0, 0, 1);
+  const BACK = (t) => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); };
+  const seg = (t, a, b) => Math.min(1, Math.max(0, (t - a) / (b - a)));
+  const hex = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, t) => { const p = hex(a), q = hex(b); return `rgb(${p.map((v, i) => Math.round(lerp(v, q[i], t))).join(",")})`; };
+
+  // ---------- build each svg ----------
+  const svgs = [document.getElementById("big"), ...document.querySelectorAll(".mini")];
+  const scenes = svgs.map((svg, idx) => {
+    const id = "s" + idx;
+    svg.innerHTML = `
+      <defs>
+        <linearGradient id="${id}g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".38"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <clipPath id="${id}c"><rect x="6" y="6" width="28" height="28" rx="4"/></clipPath>
+      </defs>
+      <path d="${TILE}" fill="#000"/>
+      <g class="morph"></g>
+      <g class="scan" clip-path="url(#${id}c)"><rect x="4" y="0" width="32" height="5" fill="url(#${id}g)"/></g>
+      <g class="logo" opacity="0">${LOGO.replaceAll('id="M"', `id="${id}m"`).replace('url(#M)', `url(#${id}m)`)}</g>`;
+    const g = svg.querySelector(".morph");
+    const mk = (tag, attrs) => { const el = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v); g.appendChild(el); return el; };
+    const common = { fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round" };
+    return {
+      svg,
+      brackets: BRACKETS.map(() => mk("path", common)),
+      features: FEATURES.map(() => mk("path", common)),
+      smile: mk("path", common),
+      popR: mk("circle", { cx: 31.2545, cy: 20.0006, r: 0, fill: "#B56BFF" }),
+      popB: mk("circle", { cx: 20, cy: 31.2545, r: 0, fill: "#0093B8" }),
+      morphG: g, scan: svg.querySelector(".scan rect"), scanG: svg.querySelector(".scan"), logo: svg.querySelector(".logo")
+    };
+  });
+
+  const TOTAL = 2800;
+  function frame(ms) {
+    const breathe = ms < 400 ? Math.sin((ms / 400) * Math.PI) * 0.02 : 0;
+    const squeeze = 0.06 * IN(seg(ms, 1300, 1500)) * (1 - EMPH(seg(ms, 1500, 1900)));
+    const scale = 1 + breathe - squeeze;
+    const scanT = seg(ms, 400, 1300);
+    const scanY = lerp(3, 33, STD(scanT));
+    const scanO = scanT > 0 && scanT < 1 ? Math.sin(scanT * Math.PI) : 0;
+    const flash = Math.sin(seg(ms, 1250, 1500) * Math.PI) * 0.35; // brighten on success
+    const logoO = STD(seg(ms, 2550, 2800));
+    for (const s of scenes) {
+      s.morphG.setAttribute("transform", `translate(20 20) scale(${scale}) translate(-20 -20)`);
+      s.scan.setAttribute("y", scanY - 2.5); s.scanG.setAttribute("opacity", scanO.toFixed(3));
+      BRACKETS.forEach((b, i) => {
+        const t = EMPH(seg(ms, 1500 + i * 30, 2400 + i * 30));
+        const pts = b.from.map((p, k) => lerpP(p, b.to[k], t));
+        const el = s.brackets[i];
+        el.setAttribute("d", pathOf(pts));
+        el.setAttribute("stroke", mix(b.c0, b.c1, t));
+        el.setAttribute("stroke-width", lerp(2, W_RING, t).toFixed(3));
+        el.setAttribute("stroke-linecap", t > 0.98 ? "butt" : "round");
+        el.setAttribute("opacity", (1 - logoO + flash * 0).toFixed(3));
+      });
+      const poly = (f, el) => {
+        const t = EMPH(seg(ms, 1500 + f.delay, 2400 + f.delay));
+        const pts = f.from.map((p, k) => lerpP(p, f.to[k], t));
+        const d = pts.length === 2 ? `M${pts[0].join(" ")} L${pts[1].join(" ")}` : `M${pts[0].join(" ")} Q${pts[1].join(" ")} ${pts[2].join(" ")}`;
+        el.setAttribute("d", d);
+        el.setAttribute("stroke", mix(f.c0, f.c1, t));
+        el.setAttribute("stroke-width", lerp(f.w0, W_RING, t).toFixed(3));
+        el.setAttribute("opacity", (1 - logoO).toFixed(3));
+      };
+      FEATURES.forEach((f, i) => poly(f, s.features[i]));
+      poly(SMILE, s.smile);
+      s.popR.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 2200, 2550)))).toFixed(3));
+      s.popB.setAttribute("r", (2.648 * Math.max(0, BACK(seg(ms, 2280, 2650)))).toFixed(3));
+      s.popR.setAttribute("opacity", (1 - logoO).toFixed(3)); s.popB.setAttribute("opacity", (1 - logoO).toFixed(3));
+      s.logo.setAttribute("opacity", logoO.toFixed(3));
+    }
+  }
+
+  // ---------- playback ----------
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const slow = document.getElementById("slow"), loop = document.getElementById("loop"), rev = document.getElementById("reverse");
+  const scrub = document.getElementById("scrub"), out = document.getElementById("time");
+  let start = 0, dir = 1, raf = 0, holding = false;
+  function tick(now) {
+    const speed = slow.checked ? 0.25 : 1;
+    let ms = (now - start) * speed;
+    if (reduce) { // a short cross-fade only
+      const t = Math.min(1, ms / 300);
+      frame(t < 1 ? 0 : TOTAL); scenes.forEach((s) => { s.morphG.setAttribute("opacity", 1 - t); s.logo.setAttribute("opacity", t); });
+      if (t < 1) raf = requestAnimationFrame(tick); return;
+    }
+    const pos = dir > 0 ? Math.min(ms, TOTAL) : Math.max(TOTAL - ms, 0);
+    frame(pos); scrub.value = pos; out.textContent = Math.round(pos) + " ms";
+    const done = ms >= TOTAL;
+    if (!done) { raf = requestAnimationFrame(tick); return; }
+    if (loop.checked) {
+      holding = true;
+      setTimeout(() => { holding = false; if (rev.checked) dir = -dir; else dir = 1; start = performance.now(); raf = requestAnimationFrame(tick); }, 1400 / speed);
+    }
+  }
+  function play() { cancelAnimationFrame(raf); dir = 1; start = performance.now(); raf = requestAnimationFrame(tick); }
+  document.getElementById("replay").addEventListener("click", play);
+  scrub.addEventListener("input", () => { cancelAnimationFrame(raf); loop.checked = false; frame(+scrub.value); out.textContent = scrub.value + " ms"; });
+  frame(0);
+  setTimeout(play, 500);
+})();
+</script>
+</body>
+</html>
