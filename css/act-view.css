@@ -435,6 +435,12 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
   white-space: nowrap;
 }
 
+/* a long number-column header wraps like the others (Figma rap-03g: „Potențial de distrugere a ozonului (ODP)”
+   on two lines) — only the values stay on one line */
+.e-permits-act-fields__table th.is-number {
+  white-space: normal;
+}
+
 .e-permits-act-fields__table th.is-number > span {
   margin-left: auto;
 }
