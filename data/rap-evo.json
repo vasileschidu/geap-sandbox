@@ -570,13 +570,224 @@
         "validFrom": "12 august 2026",
         "validUntil": "11 august 2027",
         "document": {
-          "address": "mun. Chișinău, str. Uzinelor 19/3",
-          "activity": "Comerț cu ridicata al echipamentelor frigorifice (CAEM 46.69)",
-          "fields": [
-            ["Operațiunea autorizată", "Import"],
-            ["Substanța / amestecul", "R-404A (HFC-125, HFC-143a, HFC-134a) — agent frigorific pentru echipamentele de refrigerare comerciale și industriale"],
-            ["Cantitatea autorizată", "1 200 kg"],
-            ["Țara de origine", "Republica Federală Germania"]
+          "_comment": "Configured act fields (2026-10-19, Figma comment EVO-WEB-3.0 20607:34846): ordered groups as the service passport configures them; an item = { label, value } (value = text, a date in full-month format, a number with unit or a list of values) or a grid { label, columns, rows }; a column = a label or { label, type: \"number\" }",
+          "sections": [
+            {
+              "title": "Date despre operațiune",
+              "fields": [
+                {
+                  "label": "Tipul operațiunii",
+                  "value": "Import"
+                },
+                {
+                  "label": "Regimul vamal",
+                  "value": "Punere în liberă circulație"
+                },
+                {
+                  "label": "Țara de origine",
+                  "value": "Republica Federală Germania"
+                },
+                {
+                  "label": "Țara de expediere",
+                  "value": "România"
+                },
+                {
+                  "label": "Punctele vamale de intrare",
+                  "value": [
+                    "Biroul vamal Leușeni (r-nul Hîncești)",
+                    "Biroul vamal Sculeni (r-nul Ungheni)",
+                    "Biroul vamal Chișinău, postul vamal Aeroport"
+                  ]
+                },
+                {
+                  "label": "Perioada operațiunii",
+                  "value": "12 august 2026 – 11 august 2027"
+                },
+                {
+                  "label": "Numărul maxim de transporturi",
+                  "value": "6 transporturi"
+                },
+                {
+                  "label": "Scopul utilizării",
+                  "value": "Deservirea tehnică și reîncărcarea echipamentelor frigorifice și de climatizare existente la beneficiarii din sectorul comercial și industrial; cantitățile de CFC, haloni și tetraclorură de carbon sunt admise numai pentru utilizări de laborator și analitice. Nu se admite utilizarea în echipamente noi."
+                }
+              ]
+            },
+            {
+              "title": "Destinatar / furnizor",
+              "fields": [
+                {
+                  "label": "Destinatarul",
+                  "value": "ECOFRIG TEHNOLOGII S.R.L."
+                },
+                {
+                  "label": "Adresa de livrare",
+                  "value": "mun. Chișinău, str. Uzinelor 19/3, depozitul nr. 2"
+                },
+                {
+                  "label": "Furnizorul",
+                  "value": "Kältetechnik Handel GmbH"
+                },
+                {
+                  "label": "Adresa furnizorului",
+                  "value": "Industriestraße 41, 76189 Karlsruhe, Republica Federală Germania"
+                },
+                {
+                  "label": "Data contractului de livrare",
+                  "value": "28 iulie 2026"
+                }
+              ]
+            },
+            {
+              "title": "Substanțe și echipamente",
+              "fields": [
+                {
+                  "label": "Cantitatea totală autorizată",
+                  "value": "1 131,2 kg (240,77 kg ODP)"
+                },
+                {
+                  "label": "Substanțe autorizate",
+                  "columns": [
+                    "Denumirea substanței",
+                    "Cod CAS",
+                    "Cod NC",
+                    {
+                      "label": "Cantitate (kg)",
+                      "type": "number"
+                    },
+                    {
+                      "label": "Potențial de distrugere a ozonului (ODP)",
+                      "type": "number"
+                    }
+                  ],
+                  "rows": [
+                    [
+                      "HCFC-22 (clorodifluorometan)",
+                      "75-45-6",
+                      "2903 71 00",
+                      "850,0",
+                      "0,055"
+                    ],
+                    [
+                      "HCFC-141b (1,1-dicloro-1-fluoroetan)",
+                      "1717-00-6",
+                      "2903 73 00",
+                      "120,0",
+                      "0,11"
+                    ],
+                    [
+                      "HCFC-142b (1-cloro-1,1-difluoroetan)",
+                      "75-68-3",
+                      "2903 74 00",
+                      "60,0",
+                      "0,065"
+                    ],
+                    [
+                      "HCFC-123 (2,2-dicloro-1,1,1-trifluoroetan)",
+                      "306-83-2",
+                      "2903 72 00",
+                      "45,0",
+                      "0,02"
+                    ],
+                    [
+                      "HCFC-225ca (3,3-dicloro-1,1,1,2,2-pentafluoropropan)",
+                      "422-56-0",
+                      "2903 75 00",
+                      "12,0",
+                      "0,025"
+                    ],
+                    [
+                      "CFC-11 (triclorofluorometan)",
+                      "75-69-4",
+                      "2903 77 10",
+                      "4,5",
+                      "1,0"
+                    ],
+                    [
+                      "CFC-12 (diclorodifluorometan)",
+                      "75-71-8",
+                      "2903 77 20",
+                      "6,0",
+                      "1,0"
+                    ],
+                    [
+                      "CFC-113 (1,1,2-tricloro-1,2,2-trifluoroetan)",
+                      "76-13-1",
+                      "2903 77 30",
+                      "2,5",
+                      "0,8"
+                    ],
+                    [
+                      "Halon 1211 (bromoclorodifluorometan)",
+                      "353-59-3",
+                      "2903 76 10",
+                      "18,0",
+                      "3,0"
+                    ],
+                    [
+                      "Halon 1301 (bromotrifluorometan)",
+                      "75-63-8",
+                      "2903 76 20",
+                      "9,0",
+                      "10,0"
+                    ],
+                    [
+                      "Halon 2402 (dibromotetrafluoroetan)",
+                      "124-73-2",
+                      "2903 76 90",
+                      "3,0",
+                      "6,0"
+                    ],
+                    [
+                      "Tetraclorură de carbon (CTC)",
+                      "56-23-5",
+                      "2903 14 00",
+                      "1,2",
+                      "1,1"
+                    ]
+                  ]
+                },
+                {
+                  "label": "Echipamente",
+                  "columns": [
+                    "Denumirea echipamentului",
+                    "Model",
+                    "Agent frigorific",
+                    {
+                      "label": "Încărcătura (kg)",
+                      "type": "number"
+                    },
+                    {
+                      "label": "Cantitate (buc.)",
+                      "type": "number"
+                    }
+                  ],
+                  "rows": [
+                    [
+                      "Agregat frigorific de condensare",
+                      "Bitzer LH114E/4FES-5Y",
+                      "HCFC-22",
+                      "6,8",
+                      "4"
+                    ],
+                    [
+                      "Chiller răcit cu aer",
+                      "Carrier 30RB-262",
+                      "HCFC-22",
+                      "42,0",
+                      "1"
+                    ],
+                    [
+                      "Stingător portabil cu halon",
+                      "Gloria P6H",
+                      "Halon 1211",
+                      "6,0",
+                      "3"
+                    ]
+                  ]
+                }
+              ]
+            }
           ]
         }
       }

@@ -9,6 +9,9 @@
              STARTS with a heading row needs `<colgroup><col class="e-permits-doc-page__label-col"><col></colgroup>` — a fixed
              layout takes its widths from the first row) …
            [parts that close the document — `tail`, moved to the last page]
+           (2026-10-19) rows with `.e-permits-doc-page__keep` stay with the next row; a grid = rows
+           `tr[data-doc-grid-of=id]` after its header `tr[data-doc-grid=id]`, repeated on top of a continuation
+           page (js/act-view.js docGridRows, css › „Grid on the page”)
            <p class="e-permits-doc-page__footer">… · <span data-doc-page-label>Pagina 1 din 1</span></p>
          </div>
        </div>
@@ -80,7 +83,12 @@
       while (!fits(page) && body.rows.length > 1) nextBody.prepend(body.lastElementChild);
       /* the closing parts never stand alone: the last page keeps at least two rows of the table */
       while (nextBody.rows.length < 2 && body.rows.length > 2) nextBody.prepend(body.lastElementChild);
-      if (body.lastElementChild?.classList.contains("e-permits-doc-page__group")) nextBody.prepend(body.lastElementChild);
+      /* a heading row, a grid's label / header row never end a page (keep-with-next) */
+      while (body.rows.length > 1 && body.lastElementChild?.matches(".e-permits-doc-page__group, .e-permits-doc-page__keep")) nextBody.prepend(body.lastElementChild);
+      /* a grid continued on the next page repeats its header row */
+      const firstRow = nextBody.firstElementChild;
+      const head = firstRow?.dataset.docGridOf ? canvas.querySelector(`[data-doc-grid="${firstRow.dataset.docGridOf}"]`) : null;
+      if (head) nextBody.prepend(Object.assign(head.cloneNode(true), { className: `${head.className} is-repeat` }));
       if (!nextBody.rows.length) nextBody.closest("table").remove();
       page = next;
     }

@@ -28,7 +28,38 @@
       "suspendedUntil": "2026-11-20"
     },
     "act-depozit-10": {
-      "printedDocumentNumber": "AMDM 0001182"
+      "printedDocumentNumber": "AMDM 0001182",
+      "_specificFields": "configured act fields (2026-10-19): ordered groups from the service passport; item = { label, value } or a grid { label, columns, rows } — the same shape as RAP document.sections (js/act-view.js normalizeFields)",
+      "specificFields": [
+        {
+          "title": "Obiectul activității",
+          "fields": [
+            { "label": "Denumirea obiectului", "value": "Depozit farmaceutic" },
+            { "label": "Adresa obiectului", "value": "mun. Chișinău, str. Albișoara 4" },
+            { "label": "Genul de activitate", "value": "Circulația substanțelor stupefiante, psihotrope și a precursorilor" },
+            { "label": "Activitățile autorizate", "value": ["Procurare", "Păstrare", "Distribuire angro către farmacii și instituții medicale"] },
+            { "label": "Tabelele de substanțe", "value": ["Tabelul II — substanțe stupefiante", "Tabelul III — substanțe psihotrope", "Tabelul IV — precursori"] }
+          ]
+        },
+        {
+          "title": "Substanțe controlate",
+          "fields": [
+            {
+              "label": "Cote anuale autorizate",
+              "columns": ["Denumirea substanței", "Tabelul", "Forma farmaceutică", { "label": "Cantitate anuală (g)", "type": "number" }],
+              "rows": [
+                ["Morfină clorhidrat", "II", "Soluție injectabilă 10 mg/ml", "1 200"],
+                ["Fentanil citrat", "II", "Soluție injectabilă 0,05 mg/ml", "15"],
+                ["Tramadol clorhidrat", "III", "Capsule 50 mg", "25 000"],
+                ["Diazepam", "III", "Comprimate 5 mg", "4 800"],
+                ["Fenobarbital", "III", "Comprimate 100 mg", "6 000"],
+                ["Efedrină clorhidrat", "IV", "Soluție injectabilă 50 mg/ml", "900"],
+                ["Pseudoefedrină clorhidrat", "IV", "Comprimate 60 mg", "3 500"]
+              ]
+            }
+          ]
+        }
+      ]
     }
   }
 }

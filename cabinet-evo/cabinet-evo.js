@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/cabinet-evo.json";
+  const DATA_URL = "../data/cabinet-evo.json?v=act-fields-v1";
   const SPRITE = "../assets/icons/sprite.svg";
   /* Figma marks only the suspended count with the accent badge */
   const ACCENT_STATES = ["suspendat"];
@@ -648,6 +648,9 @@
   const actAuthority = (act) => state.help[act.service?.authority] || {};
   /* the act's public, service-configured fields (the RAP „Câmpuri specifice actului”) from the act data */
   function actGroups(act) {
+    /* configured per service (2026-10-19): groups with simple fields + grids, the RAP document.sections shape */
+    const configured = actProfileOf(act).specificFields;
+    if (Array.isArray(configured) && configured.length) return configured;
     const object = act.object || {};
     const address = [[object.strada, object.house].filter(Boolean).join(" "), object.sector ? `sect. ${object.sector}` : "", object.localitate, object.raion].filter(Boolean).join(", ");
     const groups = [];

@@ -1141,6 +1141,11 @@
     /* the act rows = the FO intent rows (2026-10-17): „Descarcă actul (MDocs)” lives in the profile (Vezi act permisiv → Descarcă) */
     "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     /* US-55 AC-09 / AC-10: „Anulare” from Valabil and from Suspendat (DEMO service), same rules as Retragere */
+    /* configured act fields (2026-10-19): the depot's 2 groups, a list value, the „Cote anuale autorizate” table
+       (7 rows → first 5 + „Arată toate (7)”), expanded, and the A4 form */
+    "pp-01x": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .e-permits-act-fields__table"); await h.wait(250); await h.scroll(".rap-act-data.is-active .e-permits-act-fields__table-field"); }),
+    "pp-01y": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .e-permits-act-fields__table"); await h.wait(250); await h.click(".rap-act-data.is-active .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll(".rap-act-data.is-active .e-permits-act-fields__table-field"); }),
+    "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "pp-01p": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
     "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-detail] [data-cab-menu-trigger]"); }),
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
@@ -1985,6 +1990,8 @@
     "sm-05k": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="taxe"]'); }),
     "sm-05l": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05m": smDosar("d-nota", async (h) => { await h.click('[data-sm-tab="act"]'); }),
+    /* Act / Decizie with the act's configured fields (2026-10-19): the shared GEAPActView.fieldsHtml sections + table */
+    "sm-05n": smDosar("d-depozit-reperf", async (h) => { await h.click('[data-sm-tab="act"]'); await h.scroll(".e-permits-act-fields__table-field"); }),
     "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: "[data-cab-detail] h1", run: null },
     /* Actele mele: nothing matches the search → the shared empty state + „Resetează filtrele” */
     "sm-05i": { page: CAB, params: { view: "acte" }, ready: "[data-cab-list] > *", run: async (h) => { await h.fill("[data-cab-search]", "zzz", { leave: false }); } },
@@ -2113,11 +2120,12 @@
             page: RAP, params: { act }, ready: "[data-rap-profile-view]:not([hidden]) h1",
             run: async (h) => { await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active .e-permits-dosar-profil__card"); await h.wait(250); if (run) await run(h); }
           });
-          const view = (act, params = {}, wait = ".rap-act-doc") => ({
+          const view = (act, params = {}, wait = ".rap-act-doc", then = null) => ({
             page: RAP, params: { act, ...params }, ready: "[data-rap-profile-view]:not([hidden]) h1",
             run: async (h) => {
               await h.click("[data-rap-view-document]"); await h.find("[data-rap-act-data].is-active [data-rap-data-download]"); await h.wait(250);
               await h.click("[data-rap-act-data].is-active [data-rap-data-download]"); await h.find(`[data-rap-act-modal]:not([hidden]) ${wait}`); await h.wait(300);
+              if (then) await then(h);
             }
           });
           return {
@@ -2131,9 +2139,10 @@
             /* long act name: clamped + „Mai mult” (collapsed) / the whole name (expanded) */
             "rap-03g": data("rap-0015"),
             "rap-03h": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] [data-rap-clamp-toggle]"); }),
-            /* 30 service-configured fields in 3 form sections: first 8 + „Arată toate câmpurile (30)” / all */
-            "rap-03i": data("rap-0016", async (h) => { await h.scroll("[data-rap-act-data] [data-rap-data-more]"); }),
-            "rap-03j": data("rap-0016", async (h) => { await h.click("[data-rap-act-data] [data-rap-data-more]"); await h.scroll("[data-rap-act-data] .rap-act-data__group", "Genul de activitate"); }),
+            /* 30 service-configured fields in 3 form sections (2026-10-19: one BO section per group): the first
+               group has 12 → first 8 + „Arată toate câmpurile (12)” / all */
+            "rap-03i": data("rap-0016", async (h) => { await h.scroll("[data-rap-act-data] [data-act-fields-more]"); }),
+            "rap-03j": data("rap-0016", async (h) => { await h.click("[data-rap-act-data] [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-dosar-profil__section-title", "Genul de activitate"); }),
             /* their A4 form: 2 pages */
             "rap-03k": view("rap-0016"),
             "rap-03l": view("rap-0002"),
@@ -2141,7 +2150,15 @@
             "rap-03m": data("rap-0001"),
             /* US-162 AC-17 in the data modal: Suspendat (suspension dates) / Retras (withdrawal date) */
             "rap-03n": data("rap-0003"),
-            "rap-03o": data("rap-0005")
+            "rap-03o": data("rap-0005"),
+            /* configured act fields — groups + tables (2026-10-19, Figma comment 20607:34846), the ozone act:
+               3 groups (Date despre operațiune · Destinatar / furnizor · Substanțe și echipamente), a list value,
+               „Substanțe autorizate” 12 rows (first 5 + „Arată toate (12)”), „Echipamente” 3 rows */
+            "rap-03q": data("rap-0015", async (h) => { await h.scroll("[data-rap-act-data] .e-permits-act-fields__table-field"); }),
+            "rap-03r": data("rap-0015", async (h) => { await h.click("[data-rap-act-data] .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll("[data-rap-act-data] .e-permits-act-fields__table-field"); }),
+            /* its A4 form: the groups, both tables with every row, the header row repeated on the next page */
+            "rap-03s": view("rap-0015"),
+            "rap-03t": view("rap-0015", {}, ".rap-act-doc", async (h) => { await h.scroll("[data-rap-act-modal] .e-permits-doc-page__grid-head.is-repeat"); })
           };
         })()
       };

@@ -1232,3 +1232,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-18 · Non-library controls that have a near library equivalent but differ (FO „Înainte” 48 · 16/24 · 0 16 0
   20 vs `btn-lg` 18/24.75 · 12/24) are DESIGN decisions → reported as PO questions, not swapped. No sub-agent tool
   again → ran component-audit, code-audit, hover-audit directly; HEAD baseline from a worktree on :8946.
+- 2026-10-19 · Configured act fields — groups + tables (Figma comment 20607:34846). ONE renderer
+  `GEAPActView.fieldsHtml(groups, { section, untitled })` + `normalizeFields` (tuples, `{label, value}`, grids
+  `{label, columns, rows}`, `fields|items|rows`, flat list = one untitled group) exported from the shared module,
+  called by the act modal (RAP + Cabinet) AND the Cabinet „Solicitările mele” Act tab through a `section` callback
+  (each page keeps its own section wrapper / ids). Traps: (1) RAP's old mapper destructured `([, value])` → an object
+  item throws „not iterable”; route every reader through the normaliser. (2) `td.is-number { white-space: nowrap }`
+  (0,2,1) beat the phone reset `td` (0,1,1) → the column label ran out of the mini-card; list the modifier in the
+  reset. (3) Onest `tabular-nums` again drew „1 20,0” / „0,1 1” — right-align with proportional figures. (4) A 2-column
+  grid of label-over-value pairs squeezed labels to 3 lines at 375 → `display: contents` on the non-first cells =
+  `label | value` lines. (5) A4 continuation page whose first row is a `colspan=2` grid row: fixed layout took the
+  40 % of `td:first-child` for the whole table → the act page table needs `<colgroup>` (paginate clones it). Grid on
+  paper = one-row nested tables with equal colspan units per row, so `paginate` can split it; keep-with-next rows
+  (`.e-permits-doc-page__keep`) + a repeated header row (`data-doc-grid` / `-of`). Proof „old forms unchanged” =
+  scratch af/a4probe.mjs (pages, rows, first-column width, row text) on a HEAD worktree (:8951) vs tree → 7/7 same.
+  Pinned first column in a 590 dialog: cap its text at 200 or the scrolling columns get ~200px. No sub-agent tool →
+  ran component-audit (scoped to the dialog: my markup 0; the RAP copy button in Date generale is pre-existing),
+  code-audit (standing FPs: BO 11/7, subtitle toggle), hover-audit 0/0, compare-styles (rap-03 / pp-01m vs BO = 0;
+  new spec act-fields-rap-vs-cabinet rap-03q ↔ pp-01x = 0). Coordinator correction: never reuse demo ids linked
+  from Figma (rap-03n / 03o) — build on existing ones (03i / 03j) and take free ids.

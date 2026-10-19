@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/rap-evo.json?v=acts-v2";
+  const DATA_URL = "../data/rap-evo.json?v=act-fields-v1";
   /* „Filtru” = the BO advanced filter (js/facet-filter.js): one facet per column that
      makes sense to filter, values read from the records (no new data) */
   const beneficiaryType = (record) => (record.beneficiary.type === "person" ? "Persoană fizică" : "Persoană juridică");
@@ -373,15 +373,12 @@
      the EVO Cabinet owner's act profile opens the same dialogs). Here only the RAP record → view model. */
   const permanentUrl = (record) => `${window.location.origin}${window.location.pathname}?act=${encodeURIComponent(record.id)}`;
 
+  /* the configured groups as they are (simple fields + grids, GEAPActView.normalizeFields reads every shape);
+     the older flat address / activity / fields = one untitled group */
   const actSpecificGroups = (record) => {
     const doc = normalizeProfile(record).document || {};
-    if (doc.sections?.length) {
-      return doc.sections
-        .map((section) => ({ title: section.title, rows: (section.fields || []).filter(([, value]) => value) }))
-        .filter((group) => group.rows.length);
-    }
-    const rows = [["Adresa obiectului", doc.address], ["Genul de activitate", doc.activity], ...(doc.fields || [])].filter(([, value]) => value);
-    return rows.length ? [{ title: null, rows }] : [];
+    if (doc.sections?.length) return window.GEAPActView.normalizeFields(doc.sections);
+    return window.GEAPActView.normalizeFields([["Adresa obiectului", doc.address], ["Genul de activitate", doc.activity], ...(doc.fields || [])]);
   };
 
   const toActView = (record) => {

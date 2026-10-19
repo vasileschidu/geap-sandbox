@@ -5,7 +5,7 @@
 
    1. „Vizualizare act” (US-162 AC-12 / US-163) = the BO detail modal (#dosar-detail-modal markup:
       library .modal.modal--md + .e-permits-detail-modal, css/bo-profile-parts.css): „Date generale”
-      card, „Câmpuri specifice actului” by form section (first 8 + „Arată toate câmpurile (N)”), the
+      card, the act's configured fields = one BO section per configured group (fieldsHtml below), the
       read-only note; footer Descarcă · Închide.
    2. „Forma de tipar a actului” (US-143) = the FO / Cabinet document modal (grey canvas + A4 page,
       MDocs on demand: loading → page | AC-10/11/12 errors), paginated and fitted by GEAPDocPreview
@@ -20,8 +20,19 @@
      { id, name, number, status, tone, watermark, authority, office,
        beneficiary: { name, person, idType, id },
        tacitDate, tacitBadge, issuedDate, validFrom, statusDates: [[label, value]], validUntil,
-       paperNumber, printedNumber, groups: [{ title, rows: [[label, value]] }], url,
+       paperNumber, printedNumber, groups, url,
        source? (the A4 footer's „Generat prin MDocs · <source>”, default „Registrul actelor permisive”) }
+   groups = the act's configured fields (service passport, 2026-10-19 — Figma comment EVO-WEB-3.0
+     20607:34846): an ordered list [{ title, items | fields | rows }], an item = [label, value] |
+     { label, value } (text, date, number with unit, or an array = a list of values) | a grid
+     { label, columns: [label | { label, type: "number" }], rows: [[…]] }; a flat item list = one
+     untitled group (old data keeps working). normalizeFields() reads every shape.
+   Configured fields render through ONE renderer, also used outside the dialogs (Cabinet „Solicitările
+   mele” › Act / Decizie): GEAPActView.fieldsHtml(groups, { section, untitled }) — each group = a BO
+   section over a grey card; > 10 items → first 8 + „Arată toate câmpurile (N)”; a grid = a registry-look
+   table in its own horizontal scroll (first column pinned), > 5 rows → first 5 + „Arată toate (N)”;
+   ≤ 760 the rows become stacked mini-cards. On the A4 form a grid = a plain bordered table that
+   breaks across pages (the header row repeats), every row.
    Demo: ?mdocs=incarcare (stays loading) · indisponibil (AC-10) · date (AC-11) · sablon (AC-12).
    ========================================================================== */
 (() => {
@@ -42,6 +53,133 @@
     date: "Datele actului nu sunt disponibile momentan. Vă rugăm să încercați mai târziu."
   };
   const ACT_FIELDS_SHOWN = 8;
+  const ACT_FIELDS_LIMIT = 10;
+  const ACT_TABLE_ROWS_SHOWN = 5;
+
+  /* ---- configured act fields: data model + the one renderer (see the header) ---- */
+  const isFilled = (value) => value !== undefined && value !== null && String(value).trim() !== "";
+  const normItem = (item) => {
+    if (Array.isArray(item)) return { label: String(item[0] ?? ""), value: item[1] };
+    if (!item || typeof item !== "object") return null;
+    if (Array.isArray(item.columns)) {
+      return {
+        label: String(item.label ?? ""),
+        columns: item.columns.map((column) => (typeof column === "string"
+          ? { label: column, type: "text" }
+          : { label: String(column?.label ?? ""), type: column?.type === "number" ? "number" : "text" })),
+        rows: (item.rows || []).filter((row) => Array.isArray(row) && row.some(isFilled))
+      };
+    }
+    return { label: String(item.label ?? ""), value: item.value };
+  };
+  const hasContent = (item) => (item.columns
+    ? item.rows.length > 0
+    : Array.isArray(item.value) ? item.value.some(isFilled) : isFilled(item.value));
+  const isGroup = (entry) => Boolean(entry) && !Array.isArray(entry) && typeof entry === "object"
+    && !("label" in entry) && !Array.isArray(entry.columns)
+    && [entry.items, entry.fields, entry.rows].some(Array.isArray);
+
+  function normalizeFields(input) {
+    const list = Array.isArray(input) ? input : [];
+    const groups = list.length && list.every(isGroup)
+      ? list.map((group) => ({ title: group.title || null, items: group.items || group.fields || group.rows }))
+      : [{ title: null, items: list }];
+    return groups
+      .map((group) => ({ title: group.title, items: group.items.map(normItem).filter((item) => item && hasContent(item)) }))
+      .filter((group) => group.items.length);
+  }
+
+  let fieldsUid = 0;
+  const toggleHtml = (controls, total, more, less) => `
+    <div class="e-permits-act-fields__toggle"><button class="btn btn-text-primary btn-sm btn-rounded" type="button" aria-expanded="false" aria-controls="${controls}" data-act-fields-more data-more="${escapeHtml(more)}" data-less="${escapeHtml(less)}">${escapeHtml(more)}</button></div>`;
+
+  const fieldValueHtml = (value) => (Array.isArray(value)
+    ? `<ul class="e-permits-act-fields__list">${value.filter(isFilled).map((part) => `<li>${escapeHtml(part)}</li>`).join("")}</ul>`
+    : escapeHtml(value));
+
+  const fieldRowHtml = (item, extra) => `
+      <div class="e-permits-dosar-profil__row${extra}">
+        <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span>
+        <span class="e-permits-dosar-profil__row-value">${fieldValueHtml(item.value)}</span>
+      </div>`;
+
+  /* a grid: registry-look table (header row, numbers right-aligned, first column pinned,
+     its own horizontal scroll); every cell also carries its column label, shown only when ≤ 760 turns the
+     rows into stacked mini-cards */
+  const tableFieldHtml = (item, extra) => {
+    const id = `act-fields-${++fieldsUid}`;
+    const collapsible = item.rows.length > ACT_TABLE_ROWS_SHOWN;
+    const cell = (column, value) => `<td class="${column.type === "number" ? "is-number" : "is-text"}"><span class="e-permits-act-fields__cell-label">${escapeHtml(column.label)}</span><span class="e-permits-act-fields__cell-value">${isFilled(value) ? escapeHtml(value) : "—"}</span></td>`;
+    const rows = item.rows.map((row, index) => {
+      const classes = [
+        collapsible && index >= ACT_TABLE_ROWS_SHOWN ? "e-permits-act-fields__more-row" : "",
+        collapsible && index === ACT_TABLE_ROWS_SHOWN - 1 ? "e-permits-act-fields__edge-row" : ""
+      ].filter(Boolean).join(" ");
+      return `<tr${classes ? ` class="${classes}"` : ""}>${item.columns.map((column, col) => cell(column, row[col])).join("")}</tr>`;
+    }).join("");
+    return `
+      <div class="e-permits-act-fields__table-field${extra}">
+        <p class="e-permits-act-fields__table-label" id="${id}-label">${escapeHtml(item.label)}</p>
+        <div class="e-permits-act-fields__table-wrap" role="region" aria-labelledby="${id}-label">
+          <table class="e-permits-act-fields__table${collapsible ? " is-collapsed" : ""}" id="${id}" aria-labelledby="${id}-label">
+            <thead><tr>${item.columns.map((column) => `<th scope="col" class="${column.type === "number" ? "is-number" : "is-text"}"><span>${escapeHtml(column.label)}</span></th>`).join("")}</tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        ${collapsible ? toggleHtml(id, item.rows.length, `Arată toate (${item.rows.length})`, "Arată mai puține") : ""}
+      </div>`;
+  };
+
+  const defaultSection = (title, body) => `
+      <section class="e-permits-dosar-profil__section">
+        <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}</h2>
+        ${body}
+      </section>`;
+
+  /* groups → one BO section each, in the configured order; an untitled group takes `untitled` when it is the
+     only one, „Alte câmpuri ale actului” next to titled groups */
+  function fieldsHtml(input, { section = defaultSection, untitled = "Câmpuri specifice actului" } = {}) {
+    const groups = normalizeFields(input);
+    return groups.map((group, index) => {
+      const id = `act-fields-${++fieldsUid}`;
+      const collapsible = group.items.length > ACT_FIELDS_LIMIT;
+      const items = group.items.map((item, at) => {
+        const extra = collapsible && at >= ACT_FIELDS_SHOWN ? " e-permits-act-fields__more" : "";
+        return item.columns ? tableFieldHtml(item, extra) : fieldRowHtml(item, extra);
+      }).join("");
+      const body = `<div class="e-permits-dosar-profil__card e-permits-act-fields${collapsible ? " is-collapsed" : ""}" id="${id}" data-act-fields>${items}${collapsible ? toggleHtml(id, group.items.length, `Arată toate câmpurile (${group.items.length})`, "Arată mai puține câmpuri") : ""}</div>`;
+      const title = group.title || (groups.length > 1 ? "Alte câmpuri ale actului" : untitled);
+      return section(title, body, index);
+    }).join("");
+  }
+
+  /* „Arată toate” / „Arată mai puține” for groups and grids, wherever they are rendered */
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-act-fields-more]");
+    if (!button) return;
+    const target = document.getElementById(button.getAttribute("aria-controls"));
+    if (!target) return;
+    const collapsed = target.classList.toggle("is-collapsed");
+    button.setAttribute("aria-expanded", String(!collapsed));
+    button.textContent = collapsed ? button.dataset.more : button.dataset.less;
+    button.dispatchEvent(new CustomEvent("act-fields-toggle", { bubbles: true }));
+  });
+
+  /* the A4 form: a grid = rows of the page's flowing table (each row a one-row bordered table with the same
+     column units: first column 3, the others 2), so GEAPDocPreview can break it across pages and repeat its
+     header row; the label + header rows are kept with the next row */
+  let gridUid = 0;
+  const docGridRows = (item) => {
+    const id = `g${++gridUid}`;
+    const units = item.columns.map((column, index) => (index === 0 ? 3 : 2));
+    const cols = `<colgroup>${"<col>".repeat(units.reduce((sum, unit) => sum + unit, 0))}</colgroup>`;
+    const line = (cells, tag) => `<td colspan="2" class="e-permits-doc-page__grid-cell"><table class="e-permits-doc-page__grid">${cols}<tbody><tr>${cells.map((value, index) => `<${tag} colspan="${units[index]}"${item.columns[index].type === "number" ? ' class="is-number"' : ""}${tag === "th" ? ' scope="col"' : ""}>${isFilled(value) ? escapeHtml(value) : "—"}</${tag}>`).join("")}</tr></tbody></table></td>`;
+    return [
+      `<tr class="e-permits-doc-page__keep e-permits-doc-page__grid-label"><td colspan="2">${escapeHtml(item.label)}</td></tr>`,
+      `<tr class="e-permits-doc-page__keep e-permits-doc-page__grid-head" data-doc-grid="${id}">${line(item.columns.map((column) => column.label), "th")}</tr>`,
+      ...item.rows.map((row) => `<tr class="e-permits-doc-page__grid-row" data-doc-grid-of="${id}">${line(item.columns.map((column, index) => row[index]), "td")}</tr>`)
+    ].join("");
+  };
 
   const longStamp = (date) => `${new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(date)}, ${new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit" }).format(date)}`;
 
@@ -64,9 +202,12 @@
     const renderActPage = (act) => {
       const person = act.beneficiary.person;
       const row = ([label, value]) => `<tr><td>${escapeHtml(label)}</td><td>${escapeHtml(value)}</td></tr>`;
+      const itemRow = (item) => (item.columns
+        ? docGridRows(item)
+        : `<tr><td>${escapeHtml(item.label)}</td><td>${Array.isArray(item.value) ? item.value.filter(isFilled).map(escapeHtml).join("<br>") : escapeHtml(item.value)}</td></tr>`);
       const rowsHtml = [
         ...[["Beneficiar", act.beneficiary.name], ...(person ? [] : [[act.beneficiary.idType, act.beneficiary.id]])].map(row),
-        ...(act.groups || []).map((group) => `${group.title ? `<tr class="e-permits-doc-page__group"><th colspan="2" scope="colgroup">${escapeHtml(group.title)}</th></tr>` : ""}${group.rows.map(row).join("")}`),
+        ...normalizeFields(act.groups).map((group) => `${group.title ? `<tr class="e-permits-doc-page__group"><th colspan="2" scope="colgroup">${escapeHtml(group.title)}</th></tr>` : ""}${group.items.map(itemRow).join("")}`),
         ...[
           ...(act.tacitDate ? [["Data aprobării tacite", act.tacitDate]] : []),
           ["Valabil din data", act.validFrom],
@@ -92,7 +233,7 @@
           </header>
           <h1>${escapeHtml(act.name)}</h1>
           <p class="rap-act-doc__number">nr. ${escapeHtml(act.number)} din ${escapeHtml(act.issuedDate)}</p>
-          <table><tbody>${rowsHtml}</tbody></table>
+          <table><colgroup><col class="e-permits-doc-page__label-col"><col></colgroup><tbody>${rowsHtml}</tbody></table>
           <p class="rap-act-doc__closing">Actul permisiv se eliberează pentru desfășurarea activității indicate, în condițiile legii.</p>
           <div class="rap-act-doc__foot">
             <div class="rap-act-doc__sign">
@@ -314,32 +455,12 @@
         ...(act.statusDates || []).map(([label, value]) => [label, escapeHtml(value)]),
         ["Data expirării", act.validUntil ? escapeHtml(act.validUntil) : ""]
       ].filter(([, value]) => value);
-      const groups = act.groups || [];
-      const total = groups.reduce((sum, group) => sum + group.rows.length, 0);
-      const collapsible = total > ACT_FIELDS_SHOWN + 2;
-      let index = 0;
-      const more = " rap-act-data__more-row";
-      const fieldsHtml = groups.map((group) => {
-        const startsHidden = collapsible && index >= ACT_FIELDS_SHOWN;
-        const rows = group.rows.map(([label, value]) => {
-          index += 1;
-          return actDataRow(label, escapeHtml(value), collapsible && index > ACT_FIELDS_SHOWN ? more : "");
-        }).join("");
-        return `${group.title ? `<div class="rap-act-data__group${startsHidden ? more : ""}" role="heading" aria-level="3">${escapeHtml(group.title)}</div>` : ""}${rows}`;
-      }).join("");
       return `
       <section class="e-permits-dosar-profil__section">
         <h2 class="e-permits-dosar-profil__section-title">Date generale</h2>
         <div class="e-permits-dosar-profil__card">${general.map(([label, value]) => actDataRow(label, value)).join("")}</div>
       </section>
-      ${total ? `
-      <section class="e-permits-dosar-profil__section">
-        <h2 class="e-permits-dosar-profil__section-title">Câmpuri specifice actului</h2>
-        <div class="e-permits-dosar-profil__card${collapsible ? " is-collapsed" : ""}" id="rap-act-data-fields" data-rap-data-fields>
-          ${fieldsHtml}
-          ${collapsible ? `<div class="rap-act-data__toggle"><button class="btn btn-text-primary btn-sm btn-rounded" type="button" aria-controls="rap-act-data-fields" data-rap-data-more data-total="${total}">Arată toate câmpurile (${total})</button></div>` : ""}
-        </div>
-      </section>` : ""}
+      ${fieldsHtml(act.groups)}
       <div class="info-box info-box--neutral e-permits-info-note e-permits-readonly-note">
         <span class="info-box__icon">${icon("shield")}</span>
         <div class="info-box__content"><p>Datele personale sunt mascate conform legislației. Sunt afișate doar câmpurile publice ale actului.</p></div>
@@ -383,14 +504,6 @@
           syncActDataEdges();
           return;
         }
-        const moreButton = event.target.closest("[data-rap-data-more]");
-        if (moreButton) {
-          const card = overlay.querySelector("[data-rap-data-fields]");
-          const collapsed = card.classList.toggle("is-collapsed");
-          moreButton.textContent = collapsed ? `Arată toate câmpurile (${moreButton.dataset.total})` : "Arată mai puține câmpuri";
-          syncActDataEdges();
-          return;
-        }
         const download = event.target.closest("[data-rap-data-download]");
         if (download && actData.record && download.getAttribute("aria-disabled") !== "true") {
           closeActData({ restoreFocus: false });
@@ -408,6 +521,7 @@
         if (event.key === "Tab") trapTab(overlay, event);
       });
       overlay.querySelector(".modal-content").addEventListener("scroll", syncActDataEdges, { passive: true });
+      overlay.addEventListener("act-fields-toggle", syncActDataEdges);
       if ("ResizeObserver" in window) new ResizeObserver(() => { syncClamps(overlay); syncActDataEdges(); }).observe(overlay.querySelector(".modal"));
       actData.overlay = overlay;
       return overlay;
@@ -436,5 +550,5 @@
     };
   }
 
-  window.GEAPActView = { create };
+  window.GEAPActView = { create, normalizeFields, fieldsHtml };
 })();

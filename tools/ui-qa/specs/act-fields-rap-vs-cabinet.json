@@ -1,0 +1,173 @@
+{
+ "about": "Configured act fields (2026-10-19): the RAP „Vizualizare act” (rap-03q, ozone act) vs the EVO Cabinet act window (pp-01x, depot act) — the same GEAPActView renderer must look the same on both pages. Different data → sizes / positions that depend on content are ignored. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a rap-03q --b pp-01x --spec tools/ui-qa/specs/act-fields-rap-vs-cabinet.json Cell / toggle right edges depend on the data (column contents, „Arată toate (12)” vs „(7)”).",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--spacing-",
+  "--border-"
+ ],
+ "pairs": [
+  {
+   "name": "modal",
+   "a": "[data-rap-act-data].is-active .modal",
+   "b": "[data-rap-act-data].is-active .modal",
+   "ignore": [
+    "rect.height",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "grid field",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field",
+   "rel": "modal",
+   "ignore": [
+    "rect.y",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "grid label",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field .e-permits-act-fields__table-label",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field .e-permits-act-fields__table-label",
+   "rel": "grid field",
+   "ignore": [
+    "rect.width"
+   ]
+  },
+  {
+   "name": "grid wrap",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field .e-permits-act-fields__table-wrap",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field .e-permits-act-fields__table-wrap",
+   "rel": "grid field",
+   "ignore": [
+    "rect.height",
+    "scrollWidth"
+   ]
+  },
+  {
+   "name": "header cell 1",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field thead th:first-child",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field thead th:first-child",
+   "rel": "grid wrap",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "header cell number",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field thead th.is-number",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field thead th.is-number",
+   "rel": "grid wrap",
+   "ignore": [
+    "rect.x",
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "body cell 1",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field tbody tr:first-child td:first-child",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field tbody tr:first-child td:first-child",
+   "rel": "grid wrap",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "body cell number",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field tbody tr:first-child td.is-number",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field tbody tr:first-child td.is-number",
+   "rel": "grid wrap",
+   "ignore": [
+    "rect.x",
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "toggle",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__table-field [data-act-fields-more]",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__table-field [data-act-fields-more]",
+   "rel": "grid field",
+   "ignore": [
+    "rect.y",
+    "rect.width",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "list value",
+   "a": "[data-rap-act-data].is-active .e-permits-act-fields__list",
+   "b": "[data-rap-act-data].is-active .e-permits-act-fields__list",
+   "rel": "modal",
+   "ignore": [
+    "rect.y",
+    "rect.height",
+    "rect.width"
+   ]
+  }
+ ],
+ "expected": [
+  {
+   "viewport": 1440,
+   "name": "grid field",
+   "prop": "border-bottom-width",
+   "why": "data: the RAP „Substanțe autorizate” is followed by „Echipamente” (divider), the Cabinet table is the card's last item (no divider under the last row — rule)"
+  },
+  {
+   "viewport": 1440,
+   "name": "grid field",
+   "prop": "border-bottom-style",
+   "why": "data: the RAP „Substanțe autorizate” is followed by „Echipamente” (divider), the Cabinet table is the card's last item (no divider under the last row — rule)"
+  },
+  {
+   "viewport": 1440,
+   "name": "grid field",
+   "prop": "border-bottom-color",
+   "why": "data: the RAP „Substanțe autorizate” is followed by „Echipamente” (divider), the Cabinet table is the card's last item (no divider under the last row — rule)"
+  },
+  {
+   "viewport": 375,
+   "name": "grid field",
+   "prop": "border-bottom-width",
+   "why": "data: the RAP „Substanțe autorizate” is followed by „Echipamente” (divider), the Cabinet table is the card's last item (no divider under the last row — rule)"
+  },
+  {
+   "viewport": 375,
+   "name": "grid field",
+   "prop": "border-bottom-style",
+   "why": "data: the RAP „Substanțe autorizate” is followed by „Echipamente” (divider), the Cabinet table is the card's last item (no divider under the last row — rule)"
+  },
+  {
+   "viewport": 375,
+   "name": "grid field",
+   "prop": "border-bottom-color",
+   "why": "data: the RAP „Substanțe autorizate” is followed by „Echipamente” (divider), the Cabinet table is the card's last item (no divider under the last row — rule)"
+  },
+  {
+   "viewport": 375,
+   "name": "header cell 1",
+   "prop": "(element)",
+   "why": "phones: the header row is hidden and number cells are display: contents in the mini-cards (by design, on both pages)"
+  },
+  {
+   "viewport": 375,
+   "name": "header cell number",
+   "prop": "(element)",
+   "why": "phones: the header row is hidden and number cells are display: contents in the mini-cards (by design, on both pages)"
+  },
+  {
+   "viewport": 375,
+   "name": "body cell number",
+   "prop": "(element)",
+   "why": "phones: the header row is hidden and number cells are display: contents in the mini-cards (by design, on both pages)"
+  }
+ ]
+}

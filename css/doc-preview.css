@@ -57,6 +57,51 @@
   text-align: left;
 }
 
+/* ---- Grid on the page (2026-10-19, js/act-view.js docGridRows): a configured table = rows of the page
+   table, each a one-row bordered table with the same column units, so it breaks across pages; the
+   header row repeats on a continuation page (paginate) ---- */
+.e-permits-doc-page__surface td.e-permits-doc-page__grid-cell {
+  border: 0;
+  padding: 0;
+}
+
+.e-permits-doc-page__surface table.e-permits-doc-page__grid {
+  margin: 0;
+  width: 100%;
+}
+
+.e-permits-doc-page__surface .e-permits-doc-page__grid :is(td, th) {
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
+  text-align: left;
+  vertical-align: top;
+  width: auto;
+}
+
+.e-permits-doc-page__surface .e-permits-doc-page__grid th {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-16, 16px);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* rows under the header: no top line (the row above draws it) */
+.e-permits-doc-page__grid-row .e-permits-doc-page__grid :is(td, th) {
+  border-top: 0;
+}
+
+.e-permits-doc-page__surface .e-permits-doc-page__grid .is-number {
+  text-align: right;
+}
+
+/* the grid's label: a full-width cell over the header */
+.e-permits-doc-page__surface .e-permits-doc-page__grid-label td {
+  color: var(--color-text-base-secondary, #383838);
+}
+
 /* the line on top of a continuation page */
 .e-permits-doc-page__surface .e-permits-doc-page__cont {
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);

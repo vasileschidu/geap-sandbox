@@ -312,30 +312,249 @@ button.rap-act-subtitle__name[aria-expanded="true"] .rap-act-subtitle__more {
   text-overflow: clip;
 }
 
-/* ---- „Vizualizare act” data modal: specific fields grouped by form section, first 8 + toggle ---- */
-.rap-act-data__group {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-default, #121212);
-  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
-  padding: var(--spacing-16, 16px) 0 calc(var(--spacing-8, 8px) - var(--border-width-1, 1px));
+/* ==========================================================================
+   Configured act fields — groups + tables (2026-10-19, Figma comment EVO-WEB-3.0 20607:34846;
+   GEAPActView.fieldsHtml, components.md › „Configured act fields — groups + tables”).
+   Each configured group = a BO section over the grey card (.e-permits-dosar-profil__card.e-permits-act-fields);
+   simple fields = the BO detail rows (multi-line values keep the label on the first line, a list of
+   values = one value per line); > 10 items → first 8 + „Arată toate câmpurile (N)”. A grid = the label,
+   then a white bordered box with the BO registry table look (header 38 · 12/16 medium on secondary,
+   rows ≥ 50 · 14/20 secondary, padding 12, numbers right-aligned (proportional figures — Onest tabular-nums shows gaps), first column
+   pinned) scrolling sideways on its own; > 5 rows → first 5 + „Arată toate (N)”. ≤ 760: rows = stacked
+   mini-cards (the first cell = label over value, the others = label | value lines). No divider under the last row / item.
+   ========================================================================== */
+.e-permits-act-fields > .e-permits-dosar-profil__row {
+  align-items: flex-start;
 }
 
-.e-permits-dosar-profil__card > .rap-act-data__group:first-child {
-  padding-top: var(--spacing-8, 8px);
-}
-
-.e-permits-dosar-profil__card.is-collapsed > .rap-act-data__more-row {
+.e-permits-act-fields.is-collapsed > .e-permits-act-fields__more {
   display: none;
 }
 
-.rap-act-data__toggle {
+.e-permits-act-fields__list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  list-style: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.e-permits-act-fields__list > li {
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-act-fields__toggle {
   display: flex;
   padding: var(--spacing-8, 8px) 0;
 }
 
 /* the text button starts on the row text (its own 12 inline padding) */
-.rap-act-data__toggle > .btn {
+.e-permits-act-fields__toggle > .btn {
   margin-left: calc(var(--spacing-12, 12px) * -1);
+}
+
+/* ---- a grid field ---- */
+.e-permits-act-fields__table-field {
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8, 8px);
+  min-width: 0;
+  padding: var(--spacing-8, 8px) 0 calc(var(--spacing-8, 8px) - var(--border-width-1, 1px));
+}
+
+.e-permits-act-fields > .e-permits-act-fields__table-field:last-child {
+  border-bottom: 0;
+}
+
+.e-permits-act-fields__table-field > .e-permits-act-fields__toggle {
+  padding: 0;
+}
+
+.e-permits-act-fields__table-label {
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+}
+
+.e-permits-act-fields__table-wrap {
+  background: var(--color-background-base-default, #fff);
+  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-12, 12px);
+  box-sizing: border-box;
+  max-width: 100%;
+  overflow: auto;
+}
+
+.e-permits-act-fields__table {
+  border-collapse: separate;
+  border-spacing: 0;
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+  min-width: 100%;
+  width: max-content;
+}
+
+.e-permits-act-fields__table :is(th, td) {
+  background: var(--color-background-base-default, #fff);
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.e-permits-act-fields__table th {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: 38px;
+  line-height: var(--line-height-lh-16, 16px);
+}
+
+/* long headers wrap instead of widening the column */
+.e-permits-act-fields__table th > span {
+  display: block;
+  max-width: 160px;
+}
+
+.e-permits-act-fields__table td {
+  height: 50px;
+}
+
+/* right-aligned, proportional figures: Onest tabular-nums draws visible gaps („1 20,0”, playbook 2026-10-13) */
+.e-permits-act-fields__table :is(th, td).is-number {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.e-permits-act-fields__table th.is-number > span {
+  margin-left: auto;
+}
+
+.e-permits-act-fields__table td.is-text > .e-permits-act-fields__cell-value {
+  display: block;
+  max-width: 240px;
+  min-width: 96px;
+  overflow-wrap: break-word;
+}
+
+/* the pinned name column leaves room for the scrolling ones in a 590 dialog */
+.e-permits-act-fields__table td.is-text:first-child > .e-permits-act-fields__cell-value {
+  max-width: 200px;
+}
+
+/* the first column (the row's name) stays while the others scroll */
+.e-permits-act-fields__table :is(th, td):first-child {
+  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  left: 0;
+  position: sticky;
+  z-index: 1;
+}
+
+.e-permits-act-fields__table tbody tr:last-child td,
+.e-permits-act-fields__table.is-collapsed .e-permits-act-fields__edge-row td {
+  border-bottom: 0;
+}
+
+.e-permits-act-fields__table.is-collapsed .e-permits-act-fields__more-row {
+  display: none;
+}
+
+/* the column label of a cell: only in the phone mini-cards (the header row says it on wider screens) */
+.e-permits-act-fields__cell-label {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .e-permits-act-fields__table-wrap {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .e-permits-act-fields__table,
+  .e-permits-act-fields__table :is(tbody, tr, td) {
+    display: block;
+  }
+
+  .e-permits-act-fields__table {
+    min-width: 0;
+    width: auto;
+  }
+
+  .e-permits-act-fields__table thead {
+    display: none;
+  }
+
+  .e-permits-act-fields__table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-act-fields__table tr {
+    background: var(--color-background-base-default, #fff);
+    border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+    border-radius: var(--border-radius-12, 12px);
+    display: grid;
+    gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-act-fields__table td,
+  .e-permits-act-fields__table td.is-number,
+  .e-permits-act-fields__table :is(th, td):first-child {
+    background: none;
+    border: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4, 4px);
+    height: auto;
+    min-width: 0;
+    padding: 0;
+    position: static;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .e-permits-act-fields__table td:first-child {
+    grid-column: 1 / -1;
+  }
+
+  /* the other cells = one line each: column label | value (a 2-column grid of pairs squeezed the labels
+     to 2–3 lines at 375) */
+  .e-permits-act-fields__table td:not(:first-child) {
+    display: contents;
+  }
+
+  .e-permits-act-fields__table td.is-number {
+    text-align: left;
+  }
+
+  .e-permits-act-fields__cell-label {
+    color: var(--color-text-base-secondary, #383838);
+    display: block;
+  }
+
+  .e-permits-act-fields__cell-value,
+  .e-permits-act-fields__table td.is-text > .e-permits-act-fields__cell-value,
+  .e-permits-act-fields__table td.is-text:first-child > .e-permits-act-fields__cell-value {
+    color: var(--color-text-base-default, #121212);
+    font-weight: var(--font-weight-fw-medium, 500);
+    max-width: none;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
 }
 
 @media (max-width: 760px) {

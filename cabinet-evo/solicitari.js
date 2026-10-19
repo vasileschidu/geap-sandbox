@@ -950,7 +950,7 @@
         row("Subdiviziunea de examinare", escape(dosar.subdivision)),
       ])}
       ${downloadButton("act", "Descarcă actul (MDocs)")}`, { scope: true })
-      + specific.map((group, index) => section(`act-specific-${index}`, group.title || "Date specifice actului", rows(group.rows.map(([label, value]) => row(label, escape(value)))))).join("");
+      + window.GEAPActView.fieldsHtml(specific, { untitled: "Date specifice actului", section: (title, body, index) => section(`act-specific-${index}`, title, body) });
   }
 
   /* US-161 (AC-03, AC-04, AC-18, AC-22, AC-31, AC-36): the profile's sections as tabs under „Stadiul solicitării”
