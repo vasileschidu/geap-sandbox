@@ -2107,3 +2107,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     better, keep it in the builder; the gate audit catches it as „fractional”.
   - Jump markers are absolute in the section → after inserting blocks and re-placing a column, delete and redraw them with the
     arrows (one idempotent pass; names „SM · …”).
+- 2026-10-20 · Copy-only code change (219f1f9c, draft rows „Creată …” without „· se elimină pe …”): edit the TEXT property on
+  every Request row instance on the board (98 rows in 13 blocks, desktop + phone), the block note that quotes the old text, and
+  the stored canonical rows („cab”/„smrows” + out/smrows.json) so a later rebuild does not bring it back — no rebuild, so no
+  connector is lost. Shorter phone meta = shorter screens → restack every touched column to gap 240 / bottom 80 and move the
+  jump markers (absolute) with their block.
