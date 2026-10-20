@@ -1379,3 +1379,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   menus). Side effect to remember: `.e-permits-fo-intent-menu__item` is also used OUTSIDE menus (the document-template
   „Câmpuri disponibile” panel, `.e-permits-dtpl-fields__list`) — it took the compact size too (checked svc-08e). Pre-existing,
   reported: the notification field picker opens off-screen at 375 (ntpl-02c, x 211–531 on HEAD too).
+- 2026-10-20 · The git INDEX is shared between agents: while my hunks sat staged (HEAD + my edits via hash-object /
+  update-index, waiting for the QA audits), another agent ran `git commit` and its commit (fd11ad4a) carried my whole
+  change under its message. Stage only right before committing — run every audit first, then build the blobs, then
+  commit in the same command; if it happens, record the change with an `--allow-empty` commit (never rewrite pushed
+  history). A hung CDP tool (code-audit stuck 20 min on one state) = wrap each run in `perl -e "alarm N; exec @ARGV"`.
