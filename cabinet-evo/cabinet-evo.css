@@ -30,7 +30,11 @@
   --color-text-base-inverse-on-color: #ffffff;
 
   --cab-shell-width: 1248px;
-  /* = the RAP profile column (user 2026-10-17): 1024 fixed, fills below it */
+  /* list pages (2026-10-20, user: „full container width, edge to edge with the header, like RAP”) = the
+     header's content box (.e-permits-fo-auth__brandbar-inner: page width − 2 gutters = 1200; 24 / 16 page
+     padding below it = the header's) → EVO logo left edge … account menu right edge at every width */
+  --cab-list-width: calc(var(--fo-page-width, 1248px) - 2 * var(--fo-page-gutter, 24px));
+  /* profiles = the RAP profile column (user 2026-10-17): 1024 fixed, fills below it */
   --cab-content-width: 1024px;
 }
 
@@ -42,8 +46,13 @@
 
 .cab-main__container {
   margin: 0 auto;
-  max-width: var(--cab-content-width);
+  max-width: var(--cab-list-width);
   width: 100%;
+}
+
+/* a profile (request, act, catalog service: the BO page header) keeps the 1024 reading column */
+.cab-main__container:has([data-cab-profile-header]:not([hidden] *)) {
+  max-width: var(--cab-content-width);
 }
 
 /* list page titles = the RAP list title (32/40 semibold; 28/36 on phones), not the 44 h2 (user 2026-10-18:
@@ -1170,35 +1179,6 @@
   gap: var(--spacing-8, 8px);
 }
 
-.sm-item__deadline {
-  align-items: center;
-  color: var(--color-text-base-secondary, #383838);
-  display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-8, 8px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: var(--spacing-4, 4px) 0 0;
-}
-
-.sm-item__deadline strong {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-medium, 500);
-}
-
-.sm-item__deadline .icon {
-  flex: none;
-  height: 16px;
-  width: 16px;
-}
-
-.sm-item__deadline--warning .icon {
-  color: var(--color-icon-warning-default, #dc6803);
-}
-
-.sm-item__deadline--info .icon {
-  color: var(--color-icon-brand-default, #0058d2);
-}
-
 .sm-list .e-permits-stack__actions {
   align-self: center;
 }
@@ -1456,252 +1436,6 @@
   }
 }
 
-/* ===== Solicitările mele · the list as a TABLE on desktop (US-19 AC-02 / 03, US-158 AC-09, 2026-10-17) =====
-   The BO registry table values (e-permits-shell.css › .e-permits-workplace__table, restated: this page does not
-   load the shell CSS): a bordered r12 scroller (the RAP placement), header 38 · secondary fill · 12/16 medium
-   secondary, sortable headers = a button with the BO chevron (rotated when ascending, default colour when
-   sorted, secondary-hover fill on hover), rows 14/20 with a 1px divider (none under the last), hover
-   secondary-hover, focus ring inset; cells are one line + ellipsis with a title tooltip, two-line stacks
-   (primary 14/20 default · secondary 12/16 tertiary); the actions column is pinned to the right edge (BO
-   `pin: "end"`). Phones keep the stacked cards. */
-.sm-table-scroller {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-12, 12px);
-  box-sizing: border-box;
-  margin-top: var(--spacing-24, 24px);
-  overflow: auto;
-  /* a cell scrolled into view never stops under the pinned Nr / Acțiuni columns */
-  scroll-padding-inline: var(--sm-col-nr) var(--sm-col-actions);
-  --sm-col-nr: 216px;
-  --sm-col-service: 210px;
-  --sm-col-status: 184px;
-  --sm-col-end: 196px;
-  --sm-col-submitted: 152px;
-  --sm-col-authority: 176px;
-  --sm-col-actions: 216px;
-}
-
-.sm-table {
-  border-collapse: separate;
-  border-spacing: 0;
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 100%;
-  table-layout: fixed;
-  /* = the sum of the columns (a max-content table grew with its one-line cells) */
-  width: calc(var(--sm-col-nr) + var(--sm-col-service) + var(--sm-col-status) + var(--sm-col-end) + var(--sm-col-submitted) + var(--sm-col-authority) + var(--sm-col-actions));
-  /* nr + service + status + end + actions = the 1022 inside the 1024 column; the rest scrolls in */
-}
-
-/* the read-only history (US-159 AC-06): 4 columns fill the width */
-.sm-table.is-read-only {
-  width: 100%;
-}
-
-.sm-table__col--nr { width: var(--sm-col-nr); }
-.sm-table__col--service { width: var(--sm-col-service); }
-.sm-table__col--status { width: var(--sm-col-status); }
-.sm-table__col--end { width: var(--sm-col-end); }
-.sm-table__col--submitted { width: var(--sm-col-submitted); }
-.sm-table__col--authority { width: var(--sm-col-authority); }
-.sm-table__col--actions { width: var(--sm-col-actions); }
-.sm-table.is-read-only col { width: auto; }
-
-/* Numărul dosarului pinned on the left (the BO registry's first column), with its divider */
-.sm-table :is(th, td):first-child {
-  border-right: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  left: 0;
-  position: sticky;
-  z-index: 2;
-}
-
-.sm-table :is(th, td) {
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  box-sizing: border-box;
-  height: 56px;
-  overflow: hidden;
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
-  text-align: left;
-  text-overflow: ellipsis;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-/* the row paints the fill; cells inherit it (the pinned ones stay opaque over the scrolled cells) */
-.sm-table tbody tr {
-  background: var(--color-background-base-default, #fff);
-}
-
-.sm-table td {
-  background: inherit;
-}
-
-.sm-table th {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  color: var(--color-text-base-secondary, #383838);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: 38px;
-  line-height: var(--line-height-lh-16, 16px);
-  padding-block: 0;
-}
-
-.sm-table tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.sm-table__th-content {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  color: inherit;
-  display: inline-flex;
-  font: inherit;
-  gap: var(--spacing-6, 6px);
-  height: var(--spacing-24, 24px);
-  max-width: 100%;
-  min-width: 0;
-  padding: 0;
-  text-align: left;
-}
-
-.sm-table__th-content > span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-button.sm-table__th-content {
-  cursor: pointer;
-}
-
-button.sm-table__th-content:focus-visible {
-  border-radius: var(--border-radius-4, 4px);
-  box-shadow: 0 0 0 3px var(--blue-sky-200, #ccdef6);
-  outline: 0;
-}
-
-.sm-table th.is-sortable {
-  cursor: pointer;
-  transition: background-color 120ms ease;
-}
-
-.sm-table th.is-sortable:hover {
-  background: var(--color-background-base-secondary-hover, #e7e7e7);
-}
-
-/* the chevron = the label colour (button icon rule) */
-.sm-table__sort {
-  align-items: center;
-  color: currentColor;
-  display: inline-flex;
-  flex: 0 0 var(--spacing-16, 16px);
-  height: var(--spacing-16, 16px);
-  justify-content: center;
-  width: var(--spacing-16, 16px);
-}
-
-.sm-table__sort .icon {
-  height: var(--spacing-16, 16px);
-  transition: transform 120ms ease;
-  width: var(--spacing-16, 16px);
-}
-
-.sm-table th.is-sorted {
-  color: var(--color-text-base-default, #121212);
-}
-
-/* the sorted header is already in the default colour → its label underlines on hover (visible everywhere) */
-.sm-table button.sm-table__th-content:hover > span:first-child {
-  text-decoration: underline;
-}
-
-.sm-table__sort.is-asc .icon {
-  transform: rotate(180deg);
-}
-
-.sm-table tbody tr.is-clickable {
-  cursor: pointer;
-  outline: none;
-}
-
-.sm-table tbody tr.is-clickable:hover,
-.sm-table tbody tr.is-clickable:focus-visible {
-  background: var(--color-background-base-secondary-hover, #e7e7e7);
-}
-
-.sm-table tbody tr.is-clickable:focus-visible td {
-  box-shadow: inset 0 2px 0 var(--color-border-brand-default, #0058d2), inset 0 -2px 0 var(--color-border-brand-default, #0058d2);
-}
-
-.sm-table tbody tr.is-new {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-}
-
-.sm-table__stack {
-  display: flex;
-  flex-direction: column;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.sm-table__primary,
-.sm-table__secondary {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sm-table__primary {
-  color: var(--color-text-base-default, #121212);
-}
-
-.sm-table__secondary {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
-}
-
-.sm-table__nr .e-permits-fo-copy-value {
-  max-width: 100%;
-}
-
-.sm-table__status {
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
-  min-width: 0;
-}
-
-/* the pinned actions column (the BO `pin: "end"` cell): a divider on its left, it follows the row hover */
-.sm-table :is(th, td).sm-table__th--actions,
-.sm-table td.sm-table__actions {
-  border-left: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  overflow: visible;
-  position: sticky;
-  right: 0;
-  z-index: 2;
-}
-
-.sm-table td.sm-table__actions:has(.cab-menu:not([hidden])) {
-  z-index: 4;
-}
-
-.sm-table__actions-inner {
-  align-items: center;
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  justify-content: flex-end;
-}
-
-/* the white „Detalii”-style button on a hovered grey row (grey-on-grey rule) */
-.sm-table tbody tr:hover .sm-table__actions-inner > .btn-neutral:not(:hover):not(:active) {
-  background: var(--color-background-base-default, #fff);
-}
-
 /* US-19 AC-15: the tacit approval mark of the list = icon + „Disponibilă aprobarea tacită” (tooltip) */
 .sm-tacit {
   align-items: center;
@@ -1736,40 +1470,9 @@ button.sm-table__th-content:focus-visible {
   outline: none;
 }
 
-/* US-19 AC-05…08: the countdown under the status (warning = the applicant has to act, AC-09; info = examination) */
-.sm-countdown {
-  align-items: center;
-  color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
-  font-size: var(--font-size-fs-12, 12px);
-  gap: var(--spacing-4, 4px);
-  line-height: var(--line-height-lh-16, 16px);
-}
-
-.sm-countdown .icon {
-  flex: 0 0 var(--spacing-16, 16px);
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
-}
-
-.sm-countdown--warning .icon {
-  color: var(--color-icon-warning-default, #dc6803);
-}
-
-.sm-countdown--info .icon {
-  color: var(--color-icon-brand-default, #0058d2);
-}
-
 .sm-list-view[hidden],
 .sm-profile-view[hidden] {
   display: none;
-}
-
-/* the „Sortează” menu only on phones (the table headers sort on desktop) */
-@media (min-width: 761px) {
-  [data-sm-list-view] .cab-sort {
-    display: none;
-  }
 }
 
 /* Notificări (minimal stand-in of the EVO compartment): the Solicitările mele stacked rows with a lead icon in
@@ -1932,4 +1635,120 @@ button.sm-table__th-content:focus-visible {
   .cab-search.search-input.medium .input {
     padding-left: var(--spacing-48, 48px);
   }
+}
+
+/* ===== Solicitările mele = the act row (2026-10-20, user: „the same stacked list as Actele mele permisive”) =====
+   GEAPActRow.html with the request's content (solicitari.js cardHtml): the same card (border, r12, 12 padding,
+   tertiary hover, 24 icon · 14/20 medium title + Small tags · 14/20 secondary meta with the 2px dots), desktop
+   AND phones; .cab-act-list gives the pointer + focus ring. Only the request-specific parts are defined here. */
+
+/* 24 under the toolbar / filter bar (= .cab-list on Actele mele permisive) */
+.sm-results > .cab-request-list {
+  margin-top: var(--spacing-24, 24px);
+}
+
+/* no lead icon (user 2026-10-20): the act-row grid WITHOUT its icon column — [title + tags | actions] /
+   [meta | actions] / [notice across]; the actions stay centred on title + meta (their 1 / -1 ends at the two
+   explicit rows, the notice sits in the act row's row 3). Selectors carry the list + both row classes: the
+   shared document-card grid rules (e-permits-acte-permisive.css) are (0,3,0)–(0,4,0) and must lose. */
+.cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .e-permits-fo-lib-item__content) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+}
+
+.cab-request-list > .cab-request-row.e-permits-fo-lib-item > .e-permits-fo-lib-item__content > :is(.e-permits-fo-doc-title-row, .e-permits-fo-doc-meta) {
+  grid-column: 1;
+}
+
+.cab-request-list > .cab-request-row.e-permits-fo-lib-item > .cab-doc__actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.cab-request-list > .cab-request-row.e-permits-fo-lib-item.is-static:has(> .e-permits-fo-lib-item__content) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* a failed download / redirect = a notice across the full card width under the row (the act row's notice slot) */
+.cab-request-row > :is(.cab-request-row__notice, .cab-retry) {
+  grid-column: 1 / -1;
+  margin-top: var(--spacing-8, 8px);
+}
+
+/* the tacit-approval mark sits with the tags on the title line (12/16, as a Small tag) */
+.cab-request-row .e-permits-fo-doc-title-row > .sm-tacit {
+  align-self: center;
+}
+
+/* back from FOD2 / MPay: the new row is marked (brand tint + brand border), its hover one step darker */
+.cab-request-row.is-new {
+  background: var(--color-background-brand-secondary, #e8f0fb);
+  border-color: var(--color-border-brand-default, #0058d2);
+}
+
+.cab-request-row.is-new:hover {
+  background: var(--color-background-brand-secondary-hover, #d6e4f7);
+}
+
+/* US-159 read-only history: not clickable, no hover */
+.cab-act-list .cab-request-row.is-static {
+  cursor: default;
+}
+
+.cab-request-row.is-static:hover {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* phones: the ⋮ stays on the title line (no button row); meta and the alert run under it */
+@media (max-width: 720px) {
+  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .e-permits-fo-lib-item__content) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+  }
+
+  .cab-request-list > .cab-request-row.e-permits-fo-lib-item > .cab-doc__actions {
+    align-self: start;
+    grid-column: 2;
+    grid-row: 1;
+    margin-block: calc((var(--line-height-lh-20, 20px) - var(--spacing-32, 32px)) / 2) 0;
+  }
+
+  .cab-request-list > .cab-request-row.e-permits-fo-lib-item > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+    grid-column: 1 / -1;
+  }
+
+  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+    grid-row: 3;
+  }
+}
+
+/* the action link at the end of a row alert (library .link, primary, md) — as a <button> (MPay) it loses the
+   UA button box; it is its own tab stop and never opens the row */
+button.cab-alert-link {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+
+.cab-alert-link.link {
+  font-size: inherit;
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: inherit;
+  white-space: nowrap;
+}
+
+/* „Sortează” (desktop + phones): the key group, a divider, the direction group — radio items in nested groups */
+.cab-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cab-sort__trigger [data-sm-sort-label] {
+  white-space: nowrap;
 }

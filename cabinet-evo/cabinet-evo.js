@@ -237,8 +237,16 @@
       name: permit.title,
       status: permit.status,
       statusLabel: permit.statusLabel,
-      meta: [permit.number, validity, permit.service?.authority, permit.subdivision],
     }, {
+      /* the shared meta slots (js/act-row.js metaParts): number (plain — no copy in lists, user 2026-10-20) ·
+         act / service name · authority · subdivision · validity */
+      metaSlots: {
+        number: permit.number,
+        what: permit.serviceTitle,
+        authority: permit.service?.authority,
+        subdivision: permit.subdivision,
+        date: validity,
+      },
       menuId: `cab-menu-${permit.id}`,
       items: permit.postProcesses,
       assets: "../assets/",

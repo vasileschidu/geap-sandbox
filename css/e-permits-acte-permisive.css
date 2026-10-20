@@ -17532,11 +17532,11 @@
 }
 
 /* no 12px text in the act row (2026-10-18, user): the meta (number · valabil până la · authority ·
-   subdivision) = 14/20 secondary, the body-text size of the row (the 2px dots / 18 clip stay — they are
+   subdivision) = 14/20 tertiary (2026-10-20, was secondary), the body-text size of the row (the 2px dots / 18 clip stay — they are
    computed from the 20 line). Other document cards keep the shared 12/20 tertiary meta. The Tag · Small
    (12/16) is the library tag and stays as it is (rule „tags Small everywhere”). */
 .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-  color: var(--color-text-base-secondary, #383838);
+  color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
 }
@@ -17551,7 +17551,72 @@
 .e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
   grid-column: 1 / -1;
   grid-row: 3;
-  margin-top: var(--spacing-8, 8px);
+  /* 12 above the notice = row gap 8 + 4 */
+  margin-top: var(--spacing-4, 4px);
+}
+
+/* act row card (2026-10-20, user — FO #intent, Ghișeu, Cabinet acts AND requests, so they stay identical):
+   padding 16, radius 16, 1.5 stroke in the default border colour; title 14/20 medium (the shared lib-item
+   title), 8 between the title line and the meta; the Small tags (20) sit on the 20 title line; one line +
+   ellipsis + title tooltip on desktop, wrapping on phones (touch has no tooltip). The phone action row keeps
+   its 12 (gap 8 + 4). Notices run across the card inside the 16 padding. */
+.e-permits-fo-lib-item.e-permits-fo-intent-act {
+  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
+  border-radius: var(--border-radius-16, 16px);
+  padding: var(--spacing-16, 16px);
+}
+
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content) {
+  row-gap: var(--spacing-8, 8px);
+}
+
+@media (max-width: 720px) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.cab-doc__actions, .btn) {
+    margin-top: var(--spacing-4, 4px);
+  }
+}
+
+/* long names (2026-10-20, user) — desktop (>760): the title is ONE line (ellipsis; shrinks before the tags,
+   which never shrink) and the meta is ONE line (slots: number · what · authority · subdivision · date): slot 2
+   (`__part--what`, act / service name) gives way first, then the authority / subdivision (`__part--long`), with
+   an ellipsis; the number (+ copy) and the date never shrink. js/act-row.js names what is cut in the plain tooltip. Phones: title up to 2 lines (clamp),
+   meta wraps. */
+@media (min-width: 761px) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+    flex-wrap: nowrap;
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act .e-permits-fo-doc-meta__part {
+    flex: none;
+    white-space: nowrap;
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act :is(.e-permits-fo-doc-meta__part--long, .e-permits-fo-doc-meta__part--what) {
+    flex: 0 1 auto;
+    min-width: calc(var(--fo-doc-meta-sep) + var(--spacing-48, 48px));
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* slot 2 (what) gives way first: its shrink weight dwarfs the authority / subdivision parts' */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act .e-permits-fo-doc-meta__part--what {
+    flex-shrink: 1000;
+  }
+}
+
+@media (max-width: 760px) {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act .e-permits-fo-lib-item__title {
+    -webkit-box-orient: vertical;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+  }
+
+  /* a wrapped title: the tags stay on its FIRST 20 line */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+    align-items: flex-start;
+  }
 }
 
 /* phones: title · meta · action (row 3, 12 above) · notice (row 4, 12 above) */

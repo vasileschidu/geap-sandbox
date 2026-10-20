@@ -23,14 +23,15 @@
   const TODAY = "2026-10-12";
   const DELETED_KEY = "e-permits-cab-deleted-drafts";
   const PER_PAGE = [10, 25, 50, 100];
-  const SORTS = [
-    { id: "submitted-desc", label: "Data depunerii — cele mai recente" },
-    { id: "submitted-asc", label: "Data depunerii — cele mai vechi" },
-    { id: "end-asc", label: "Data estimată de finalizare" },
-    { id: "nr-asc", label: "Numărul dosarului" },
-    { id: "service-asc", label: "Serviciul solicitat (A–Z)" },
-    { id: "authority-asc", label: "Autoritatea emitentă (A–Z)" },
-    { id: "status-asc", label: "Statut" },
+  /* „Sortează” (2026-10-20, desktop + phones; replaces the US-19 AC-03 / US-158 AC-09 sortable table headers):
+     the same keys as the table columns, each in both directions — a key starts in its natural direction */
+  const SORT_KEYS = [
+    { key: "submitted", label: "Data depunerii", def: "desc", dirs: { desc: "Cele mai noi întâi", asc: "Cele mai vechi întâi" } },
+    { key: "end", label: "Data estimată de finalizare", def: "asc", dirs: { asc: "Cele mai apropiate întâi", desc: "Cele mai îndepărtate întâi" } },
+    { key: "nr", label: "Numărul dosarului", def: "asc", dirs: { asc: "Crescător", desc: "Descrescător" } },
+    { key: "service", label: "Serviciul solicitat", def: "asc", dirs: { asc: "A–Z", desc: "Z–A" } },
+    { key: "authority", label: "Autoritatea emitentă", def: "asc", dirs: { asc: "A–Z", desc: "Z–A" } },
+    { key: "status", label: "Statut", def: "asc", dirs: { asc: "Ordinea etapelor", desc: "Ordinea inversă" } },
   ];
   const STATUS_ORDER = ["schita", "info", "achitare", "derulare", "finalizat"];
   const DRAFT_STEPS = { 1: "Date solicitant", 2: "Detalii solicitare", 3: "Acte necesare", 4: "Verificare și semnare", 5: "Livrare", 6: "Plată" };
@@ -148,9 +149,9 @@
   /* request status → the BO / RAP Tag · Small tone (bordered; 2026-10-17 alignment): Schiță neutral,
      În derulare blue, Spre achitare / Informații suplimentare warning (they wait for the applicant),
      Finalizat green */
-  const STATUS_TONE = { schita: "neutral", derulare: "info", achitare: "warning", info: "warning", finalizat: "success" };
+  const statusTone = (id) => REQUEST_UI[id]?.tag || "neutral";
   function statusTag(dosar) {
-    return C.tagHtml(statusOf(dosar).label, STATUS_TONE[dosar.status] || "neutral");
+    return C.tagHtml(statusOf(dosar).label, statusTone(dosar.status));
   }
 
   /* Aprobat / Respins (US-19 AC-16) = green / red Small tags; the tacit approval (AC-15) = the blue
@@ -188,8 +189,6 @@
     const [y, m, d] = TODAY.split("-").map(Number);
     return new Date(y, m - 1, d, now.getHours(), now.getMinutes(), now.getSeconds());
   }
-  /* the table's short form: „28 de zile, 3 ore” (the words „Timp rămas:” stay for screen readers) */
-  const shortCountdown = (text) => text.replace(/^mai (sunt|este) /, "").replace(" și ", ", ");
   function countdownText(iso) {
     const [y, m, d] = isoDay(iso).split("-").map(Number);
     const left = new Date(y, m - 1, d, 23, 59, 59) - demoNow();
@@ -200,40 +199,13 @@
     if (!days) return `mai ${hours === 1 ? "este" : "sunt"} ${hours ? unit(hours, "oră", "ore") : "mai puțin de o oră"}`.replace("mai sunt mai puțin", "mai este mai puțin");
     return `mai ${days === 1 && !hours ? "este" : "sunt"} ${unit(days, "zi", "zile")}${hours ? ` și ${unit(hours, "oră", "ore")}` : ""}`;
   }
-  /* AC-09: Schiță / Spre achitare / Informații suplimentare wait for the applicant → warning tone, În derulare info */
-  function countdownHtml(dosar) {
-    const iso = deadlineOf(dosar);
-    if (!iso) return "";
-    const tone = dosar.status === "derulare" ? "info" : "warning";
-    return `<span class="sm-countdown sm-countdown--${tone}">${icon(tone === "info" ? "icon-time" : "icon-time-filled")}<span class="u-visually-hidden">Timp rămas: </span><span data-sm-countdown="${escape(isoDay(iso))}" data-sm-countdown-short>${escape(shortCountdown(countdownText(iso)))}</span></span>`;
-  }
   window.setInterval(() => {
     document.querySelectorAll("[data-sm-countdown]").forEach((node) => {
-      const text = countdownText(node.dataset.smCountdown);
-      node.textContent = node.hasAttribute("data-sm-countdown-short") ? shortCountdown(text) : text;
+      node.textContent = countdownText(node.dataset.smCountdown);
     });
   }, 60000);
 
   const tacitNote = (dosar) => `Autoritatea nu a emis o decizie până la termenul de examinare (${longDate(dosar.examTerm)}). Solicitarea se consideră aprobată tacit, iar dumneavoastră puteți desfășura activitatea conform legii.`;
-
-  /* the coloured deadline strip of a card (Figma 508:9600) */
-  function stripHtml(dosar) {
-    if (readOnly()) return "";
-    switch (dosar.status) {
-      case "schita":
-        return message("banner--warning", "icon-time", `Schița se elimină automat pe <strong>${escape(longDate(dosar.draft?.expires))}</strong>`);
-      case "info":
-        return message("banner--warning", "icon-warning-filled", `Trimiteți informațiile cerute până la <strong>${escape(longDate(dosar.info?.until))}</strong>`);
-      case "achitare":
-        if (paymentExpired(dosar)) return message("banner--error", "icon-circle-error-filled", escape(PAYMENT_EXPIRED_TEXT));
-        return message("banner--warning", "icon-credit-card", `Achitați taxa până la <strong>${escape(longDate(dosar.payment?.due))}</strong>`);
-      case "derulare":
-        if (dosar.tacit) return message("banner--info", "icon-time-filled", `Termenul de examinare a expirat pe <strong>${escape(longDate(dosar.examTerm))}</strong>`);
-        return message("banner--info", "icon-time-filled", `Răspuns până la <strong>${escape(longDate(dosar.examTerm))}</strong>`);
-      default:
-        return "";
-    }
-  }
 
   /* contextual actions per status (US-19, US-29, US-24, US-135, Feature 90817) */
   function menuItems(dosar) {
@@ -258,8 +230,8 @@
   function actionsHtml(dosar) {
     const menuId = `sm-menu-${dosar.id}`;
     /* the row's labelled primary is not repeated in ⋮ */
-    const primaryKind = { schita: "continue", info: "supplement", achitare: "pay" }[dosar.status] || (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId ? "act" : "");
-    const items = menuItems(dosar).filter((item) => item.separator || item.action !== primaryKind)
+    /* the row has no labelled button: every action is here; downloads only in the profile / document modal */
+    const items = menuItems(dosar).filter((item) => item.separator || item.action !== "download")
       .filter((item, i, list) => !(item.separator && (i === 0 || list[i - 1].separator || i === list.length - 1)));
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
@@ -276,71 +248,92 @@
 
   /* ---------- list ---------- */
 
-  /* one labelled primary per row (product rule: one labelled action + ⋮), named as in
-     US-19 AC-05/06/07: Continuă · Suplinire informații · Achitare; Vezi actul when approved */
-  function primaryAction(dosar) {
-    if (dosar.status === "schita") return `<a class="btn btn-neutral btn-sm" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue" data-sm-id="${escape(dosar.id)}">Continuă</a>`;
-    if (dosar.status === "info" && dosar.info?.until >= TODAY) return `<a class="btn btn-neutral btn-sm" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement" data-sm-id="${escape(dosar.id)}">Suplinire informații</a>`;
-    if (dosar.status === "achitare" && !paymentExpired(dosar)) return `<button class="btn btn-neutral btn-sm" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">Achitare</button>`;
-    if (dosar.status === "finalizat" && dosar.result === "aprobat" && dosar.actId) return `<a class="btn btn-neutral btn-sm" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act" data-sm-id="${escape(dosar.id)}">Vezi actul</a>`;
-    return "";
-  }
+  /* ---------- the request row, per status — ONE table (2026-10-20) ----------
+     status → the Small tag tone · the row's alert · the date slot of the meta. The row has NO labelled button
+     (user 2026-10-20: only ⋮ on the right, as in Figma; the row opens the profile — a draft continues the form).
+     Alerts = ACTION ONLY: they exist only when the applicant must act and end with the ONE inline action link
+     (the old row buttons' hooks / handlers): Informații suplimentare → „Trimite informațiile →”, Spre achitare →
+     „Achită acum →” (warning, with the live countdown + „Finalizare estimată”); a missed deadline / expired
+     payment = error, no link. No alert for drafts (the removal date is in the meta) nor for waiting states (în
+     examinare, termen, tacit → the profile's „Stadiul solicitării”). A new status = one entry here (+ its label in
+     data/cabinet-evo-solicitari.json › statuses). */
+  const countdown = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
+  const on = (date) => `<strong>${escape(longDate(date))}</strong>`;
+  /* US-19 AC-02 „Data estimată de finalizare” in the row = part of its action alert (requests in examination:
+     the profile's „Stadiul solicitării”) */
+  const endNote = (dosar) => (estimatedEnd(dosar) ? `. Finalizare estimată: ${on(estimatedEnd(dosar))}.` : ".");
+  /* the alert's inline action = the library link (primary; the alert's 14/20 text size); a link navigates (FOD2), a button runs here (MPay) */
+  const alertLink = (dosar, action, label, href = "") => (href
+    ? ` <a class="link link-primary link-sm cab-alert-link" href="${escape(href)}" data-sm-action="${action}" data-sm-id="${escape(dosar.id)}">${escape(label)}&nbsp;→</a>`
+    : ` <button class="link link-primary link-sm cab-alert-link" type="button" data-sm-action="${action}" data-sm-id="${escape(dosar.id)}">${escape(label)}&nbsp;→</button>`);
+  const REQUEST_UI = {
+    schita: {
+      tag: "neutral",
+      alert: () => null,
+      date: (d) => `Creată ${longDate(d.created)} · se elimină pe ${longDate(d.draft?.expires)}`,
+    },
+    info: {
+      tag: "warning",
+      alert: (d) => (d.info?.until >= TODAY
+        ? { tone: "warning", icon: "icon-warning-filled", html: `Trimiteți informațiile cerute până la ${on(d.info?.until)}${countdown(d)}${endNote(d)}${alertLink(d, "supplement", "Trimite informațiile", foUrl(d, "supplement"))}` }
+        : { tone: "danger", icon: "icon-circle-error-filled", html: `Termenul de suplinire a expirat pe ${on(d.info?.until)}.` }),
+    },
+    achitare: {
+      tag: "warning",
+      alert: (d) => (paymentExpired(d)
+        ? { tone: "danger", icon: "icon-circle-error-filled", html: `Taxa a expirat pe ${on(d.payment?.due)}. Achitarea nu mai este posibilă.` }
+        : { tone: "warning", icon: "icon-credit-card", html: `Achitați taxa de ${escape(money(d.payment?.amount))} până la ${on(d.payment?.due)}${countdown(d)}${endNote(d)}${alertLink(d, "pay", "Achită acum")}` }),
+    },
+    derulare: { tag: "info", alert: () => null },
+    finalizat: {
+      tag: "success",
+      alert: () => null,
+      date: (d) => (d.finalized ? `Finalizată ${longDate(d.finalized)}` : ""),
+    },
+  };
+  const uiOf = (dosar) => REQUEST_UI[dosar.status] || { tag: "neutral", alert: () => null };
+  const rowAlert = (dosar) => (readOnly() ? null : uiOf(dosar).alert(dosar));
+  /* slot 4 of the meta: the status's own date, else „Depusă …” */
+  const rowDate = (dosar) => uiOf(dosar).date?.(dosar) || `Depusă ${longDate(dosar.submitted)}`;
 
-  /* the deadline of the row: one 14/20 line, icon in the status tone, date in medium */
-  function deadlineHtml(dosar) {
-    if (readOnly()) return "";
-    const timer = deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "";
-    const line = (tone, iconId, html) => `<p class="sm-item__deadline sm-item__deadline--${tone}">${icon(iconId)}<span>${html}${timer}</span></p>`;
-    switch (dosar.status) {
-      case "schita": return line("warning", "icon-time", `Schița se elimină automat pe <strong>${escape(longDate(dosar.draft?.expires))}</strong>`);
-      case "info": return line("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la <strong>${escape(longDate(dosar.info?.until))}</strong>`);
-      case "achitare": return paymentExpired(dosar)
-        ? line("warning", "icon-circle-error-filled", `Taxa a expirat pe <strong>${escape(longDate(dosar.payment?.due))}</strong>. Achitarea nu mai este posibilă.`)
-        : line("warning", "icon-credit-card", `Achitați taxa până la <strong>${escape(longDate(dosar.payment?.due))}</strong>`);
-      case "derulare": return dosar.tacit
-        ? line("info", "icon-time-filled", `Termenul de examinare a expirat pe <strong>${escape(longDate(dosar.examTerm))}</strong>`)
-        : line("info", "icon-time-filled", `Răspuns până la <strong>${escape(longDate(dosar.examTerm))}</strong>`);
-      default: return "";
-    }
-  }
-
-  /* Solicitările mele row = the app's stacked-list item (.e-permits-stack__item), read at
-     14px: title 16/24 semibold · tags · service line · authority · date · nr · deadline;
-     actions right (labelled primary + ⋮). The whole row opens the profile. */
+  /* Solicitările mele row (2026-10-20, user: „the same stacked list as Actele mele permisive”) = the act row
+     (js/act-row.js, GEAPActRow.html — .e-permits-fo-lib-item.e-permits-fo-intent-act: bordered card, r12, 12
+     padding, tertiary hover) with the request's content, desktop AND phones (the US-19 table is gone):
+       no lead icon (user) · title = the object (as the act rows and the request profile) + Small status tag
+       (+ Aprobat / Respins, the tacit-approval mark) · meta 14/20 = Nr dosar (copy) · tip · serviciu ·
+       autoritate · subdiviziune · Depusă / Creată · Finalizare estimată · right: the labelled primary + ⋮ ·
+       under it, full card width, the status alert (the act row's notice slot: library subtle notice, tone per
+       REQUEST_UI, live countdown). The whole row opens the request profile. */
   function cardHtml(dosar) {
     const service = serviceOf(dosar);
-    const part = (html, cls = "") => `<span class="e-permits-stack__part${cls ? ` ${cls}` : ""}">${html}</span>`;
+    const base = { id: dosar.id, name: "", status: dosar.status, statusLabel: statusOf(dosar).label };
+    /* no lead icon (user 2026-10-20): the row starts with the title + status tag */
+    const common = { menuId: `sm-row-${dosar.id}`, assets: "../assets/", iconSrc: "", tagHtml: statusTag(dosar) };
     if (readOnly()) {
-      /* US-159 AC-06: only nr, serviciu, data depunerii and the status at expiry */
-      return `
-        <li class="e-permits-stack__item sm-item is-static" data-sm-card="${escape(dosar.id)}">
-          <div class="e-permits-stack__main">
-            <div class="e-permits-stack__title-row"><h2 class="e-permits-stack__title">${escape(service.title || "")}</h2>${statusTag(dosar)}</div>
-            <div class="e-permits-stack__meta">${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}${part(`Depusă ${escape(longDate(dosar.submitted))}`)}</div>
-          </div>
-        </li>`;
+      /* US-159 AC-06: only nr, serviciu, data depunerii and the status at expiry; no action, not clickable */
+      return window.GEAPActRow.html({ ...base, name: service.title || "" }, {
+        ...common,
+        attrs: `data-sm-card="${escape(dosar.id)}"`,
+        metaSlots: { number: dosar.nr, date: `Depusă ${longDate(dosar.submitted)}` },
+        actionHtml: "",
+        rowClass: "cab-request-row is-static",
+      });
     }
-    const dateText = dosar.status === "schita" ? `Creată ${longDate(dosar.created)}` : `Depusă ${longDate(dosar.submitted)}`;
-    /* US-19 AC-02 „Data estimată de finalizare” — finished requests too (derulare: the deadline line says it) */
-    const end = estimatedEnd(dosar);
-    const endText = !end || dosar.status === "derulare" ? "" : dosar.status === "finalizat" ? `Finalizată ${longDate(end)}` : `Finalizare estimată ${longDate(end)}`;
-    const primary = primaryAction(dosar);
-    return `
-      <li class="e-permits-stack__item sm-item is-clickable${dosar.justAdded ? " is-new" : ""}" tabindex="0" aria-label="${escape(`${dosar.object} — ${statusOf(dosar).label}`)}" data-sm-card="${escape(dosar.id)}">
-        <div class="e-permits-stack__main">
-          <div class="e-permits-stack__title-row">
-            <h2 class="e-permits-stack__title">${escape(dosar.object)}</h2>
-            <span class="sm-item__tags">${statusTag(dosar)}${resultMarks(dosar)}${tacitListMark(dosar)}</span>
-          </div>
-          <div class="e-permits-stack__meta">${part(escape(dosar.tip))}${part(escape(service.title || ""))}</div>
-          <div class="e-permits-stack__meta">${part(escape(authorityLabel(dosar)))}${part(escape(dateText))}${endText ? part(escape(endText)) : ""}${part(copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`))}</div>
-          ${deadlineHtml(dosar)}
-        </div>
-        <div class="e-permits-stack__actions cab-card__actions">
-          ${primary}
-          ${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}
-        </div>
-      </li>`;
+    const name = dosar.object || service.title || "";
+    const alert = rowAlert(dosar);
+    return window.GEAPActRow.html({ ...base, name }, {
+      ...common,
+      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}${dosar.status === "schita" ? " — continuă completarea" : ""}`)}"`,
+      extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}`,
+      /* the shared meta slots (js/act-row.js metaParts): number (plain — no copy in lists) · type · service ·
+         authority · subdivision · date */
+      metaSlots: { number: dosar.nr, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
+      ...(alert ? { noticeHtml: alert.html, noticeTone: alert.tone === "danger" ? "error" : alert.tone, noticeIcon: alert.icon, noticeLocks: false } : {}),
+      /* only the ⋮ (every action of the request, no downloads — no-row-download rule) */
+      actionHtml: `
+          <div class="cab-doc__actions cab-card__actions">${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}</div>`,
+      rowClass: `cab-request-row${dosar.justAdded ? " is-new" : ""}`,
+    });
   }
 
   function panelActive() {
@@ -405,7 +398,7 @@
       tag: (value, facet) => {
         if (facet.key !== "status") return null;
         const id = Object.keys(state.data.statuses).find((key) => state.data.statuses[key].label === value);
-        return C.tagHtml(value, STATUS_TONE[id] || "neutral");
+        return C.tagHtml(value, statusTone(id));
       },
       total: () => filtered().length,
       mobileSheets: true,
@@ -455,75 +448,25 @@
     }));
   }
 
-  /* US-19 AC-02 / AC-03, US-158 AC-09: desktop = a table with the AC columns; each sortable header toggles
-     ascending / descending (aria-sort + the BO sort chevron); the row opens the profile, the actions column is
-     pinned. Phones (≤760) = the stacked cards + the „Sortează” menu (no headers to click). */
-  const phoneQuery = window.matchMedia("(max-width: 760px)");
-  /* the AC-02 columns; order = what decides the next step first (Statut + Data estimată visible in the 1024
-     column, Data depunerii + Autoritatea after a sideways scroll; Nr and Acțiuni pinned — the BO registry) */
-  const COLUMNS = [
-    { key: "nr", label: "Numărul dosarului", sort: "nr" },
-    { key: "service", label: "Serviciul solicitat", sort: "service" },
-    { key: "status", label: "Statut", sort: "status" },
-    { key: "end", label: "Data estimată de finalizare", sort: "end" },
-    { key: "submitted", label: "Data depunerii", sort: "submitted" },
-    { key: "authority", label: "Autoritatea emitentă", sort: "authority" },
-    { key: "actions", label: "Acțiuni" },
-  ];
-  /* US-159 AC-06: the read-only history keeps nr, serviciul, data depunerii and the status */
-  const READ_ONLY_COLUMNS = ["nr", "service", "submitted", "status"];
-  const DEFAULT_DIR = { nr: "asc", service: "asc", authority: "asc", submitted: "desc", end: "asc", status: "asc" };
-
-  function sortHeaderHtml(column) {
-    const [key, dir] = state.sort.split("-");
-    if (!column.sort) return `<th scope="col" class="sm-table__th--${column.key}"><span class="sm-table__th-content"><span title="${escape(column.label)}">${escape(column.label)}</span></span></th>`;
-    const on = key === column.sort;
-    const ariaSort = on ? (dir === "asc" ? "ascending" : "descending") : "none";
-    return `
-      <th scope="col" class="sm-table__th--${column.key} is-sortable${on ? " is-sorted" : ""}" aria-sort="${ariaSort}">
-        <button class="sm-table__th-content" type="button" data-sm-sort-col="${column.sort}">
-          <span title="${escape(column.label)}">${escape(column.label)}</span>
-          <span class="sm-table__sort${on ? ` is-${dir}` : ""}" aria-hidden="true">${icon("icon-chevron-bottom")}</span>
-        </button>
-      </th>`;
-  }
-
-  function cellStack(primary, secondary = "", { primaryTitle = primary, strong = false } = {}) {
-    return `<span class="sm-table__stack"><span class="sm-table__primary${strong ? " is-strong" : ""}" title="${escape(primaryTitle)}">${escape(primary)}</span>${secondary ? `<span class="sm-table__secondary" title="${escape(secondary)}">${escape(secondary)}</span>` : ""}</span>`;
-  }
-
-  function rowHtml(dosar) {
-    const service = serviceOf(dosar);
-    const end = estimatedEnd(dosar);
-    const columns = readOnly() ? COLUMNS.filter((column) => READ_ONLY_COLUMNS.includes(column.key)) : COLUMNS;
-    const cell = {
-      nr: `<td class="sm-table__nr">${copyValue(dosar.nr, `Copiază numărul dosarului ${dosar.nr}`)}</td>`,
-      service: `<td>${cellStack(service.title || "", readOnly() ? "" : `${dosar.tip} · ${dosar.object}`)}</td>`,
-      authority: `<td>${cellStack(service.authority || "", dosar.subdivision || "", { primaryTitle: service.authorityName || service.authority || "" })}</td>`,
-      submitted: `<td>${dosar.submitted ? cellStack(longDate(dosar.submitted)) : cellStack("—", `Creată ${longDate(dosar.created)}`)}</td>`,
-      end: `<td>${end ? cellStack(longDate(end), dosar.status === "finalizat" ? "finalizat" : "") : cellStack("—")}</td>`,
-      status: `<td><span class="sm-table__status"><span class="sm-item__tags">${statusTag(dosar)}${resultMarks(dosar)}</span>${tacitListMark(dosar)}${countdownHtml(dosar)}${paymentExpired(dosar) ? `<span class="sm-countdown sm-countdown--warning">${icon("icon-circle-error-filled")}<span>Taxa a expirat</span></span>` : ""}</span></td>`,
-      actions: `<td class="sm-table__actions"><span class="sm-table__actions-inner cab-card__actions">${primaryAction(dosar)}${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}</span></td>`,
-    };
-    const clickable = !readOnly();
-    return `<tr class="sm-row${clickable ? " is-clickable" : " is-static"}${dosar.justAdded ? " is-new" : ""}"${clickable ? ` tabindex="0" aria-label="${escape(`${dosar.nr} — ${service.title || ""} — ${statusOf(dosar).label}`)}"` : ""} data-sm-card="${escape(dosar.id)}">${columns.map((column) => cell[column.key]).join("")}</tr>`;
-  }
-
-  function tableHtml(items) {
-    const columns = readOnly() ? COLUMNS.filter((column) => READ_ONLY_COLUMNS.includes(column.key)) : COLUMNS;
-    return `
-      <div class="sm-table-scroller" data-sm-table-scroller>
-        <table class="sm-table${readOnly() ? " is-read-only" : ""}">
-          <caption class="u-visually-hidden">Solicitările mele</caption>
-          <colgroup>${columns.map((column) => `<col class="sm-table__col--${column.key}">`).join("")}</colgroup>
-          <thead><tr>${columns.map(sortHeaderHtml).join("")}</tr></thead>
-          <tbody>${items.map(rowHtml).join("")}</tbody>
-        </table>
-      </div>`;
-  }
-
+  const sortNow = () => { const [key, dir] = state.sort.split("-"); const sort = SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0]; return { sort, dir, text: `${sort.label}, ${sort.dirs[dir].toLowerCase()}` }; };
+  /* two radio groups in one menu: the key, then the direction (labelled for the key: dates newest / oldest,
+     texts A–Z / Z–A); a pick applies at once, closes the menu and is announced */
   function sortMenuHtml() {
-    return SORTS.map((sort) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${sort.id === state.sort}" data-sm-sort="${sort.id}"><span>${escape(sort.label)}</span>${sort.id === state.sort ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("");
+    const { sort, dir } = sortNow();
+    const item = (attrs, label, on) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${on}" ${attrs}><span>${escape(label)}</span>${on ? icon("icon-checkmark-large", "medium") : ""}</button></li>`;
+    return `
+      <li role="presentation" class="cab-menu__label" id="sm-sort-by">Sortează după</li>
+      <li role="none"><ul class="cab-menu__group" role="group" aria-labelledby="sm-sort-by">${SORT_KEYS.map((item_) => item(`data-sm-sort-key="${item_.key}"`, item_.label, item_.key === sort.key)).join("")}</ul></li>
+      <li role="separator" class="cab-menu__separator"></li>
+      <li role="presentation" class="cab-menu__label" id="sm-sort-dir">Ordine</li>
+      <li role="none"><ul class="cab-menu__group" role="group" aria-labelledby="sm-sort-dir">${["asc", "desc"].sort((a) => (a === sort.def ? -1 : 1)).map((d) => item(`data-sm-sort-dir="${d}"`, sort.dirs[d], d === dir)).join("")}</ul></li>`;
+  }
+  function syncSortTrigger(view) {
+    const { sort, dir, text } = sortNow();
+    const trigger = view.querySelector(".cab-sort__trigger");
+    trigger.setAttribute("aria-label", `Sortează: ${text}`);
+    trigger.querySelector("[data-sm-sort-label]").textContent = sort.label;
+    trigger.querySelector("[data-sm-sort-icon] use").setAttribute("href", `${SPRITE}#${dir === "asc" ? "icon-arrow-up" : "icon-arrow-down"}`);
   }
 
   /* the list shell is built once (search, „Filtre”, „Perioadă”, the facet bar keep their DOM / focus); only the
@@ -559,13 +502,15 @@
           </button>
           <div class="e-permits-fo-intent-act__action cab-sort">
             <button type="button" class="btn btn-neutral btn-sm cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
-              <span>Sortează</span>
+              <svg class="icon small" aria-hidden="true" data-sm-sort-icon><use href="${SPRITE}#icon-arrow-down"></use></svg>
+              <span data-sm-sort-label>Data depunerii</span>
               <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
           </div>
         </div>
         <div class="e-permits-workplace__filters cab-filters" id="sm-filters" role="group" aria-label="Filtre" data-sm-filters hidden></div>
+        <p class="u-visually-hidden" aria-live="polite" data-sm-sort-status></p>
         <div class="sm-results" data-sm-results></div>
       </div>
       <div class="sm-profile-view" data-sm-profile-view hidden></div>`;
@@ -612,32 +557,15 @@
     badge.hidden = !periodCount;
     badge.textContent = String(periodCount);
     view.querySelector("[data-sm-sort-menu]").innerHTML = sortMenuHtml();
+    syncSortTrigger(view);
 
     results.innerHTML = state.searchFailed
       ? `<div class="cab-state" role="alert">${errorHtml("Lista solicitărilor nu a putut fi actualizată. Încercați din nou.", "data-sm-search-retry")}</div>`
       : pageItems.length
-        ? `${phoneQuery.matches
-          ? `<section class="e-permits-stack sm-list" aria-label="Lista solicitărilor"><ul class="e-permits-stack__list" role="list">${pageItems.map(cardHtml).join("")}</ul></section>`
-          : tableHtml(pageItems)}${pagerHtml(all.length)}`
+        ? `<ul class="e-permits-fo-intent__list cab-act-list cab-request-list" aria-label="Lista solicitărilor">${pageItems.map(cardHtml).join("")}</ul>${pagerHtml(all.length)}`
         : `<div class="cab-state">${fixAssets(window.GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile selectate.", { text: "Modificați căutarea sau filtrele aplicate." }))}</div>`;
     facetFilter?.render();
-    syncMetaRows();
   }
-  phoneQuery.addEventListener("change", () => { if (!root.querySelector("[data-sm-list-view]")?.hidden) renderList(); });
-
-  /* a meta line that wraps must not start with a dot (same rule as the app's
-     stacked lists): parts that begin a new line get .is-row-start */
-  function syncMetaRows() {
-    root.querySelectorAll(".sm-list .e-permits-stack__meta").forEach((line) => {
-      let previousTop = null;
-      line.querySelectorAll(":scope > .e-permits-stack__part").forEach((part) => {
-        const top = part.offsetTop;
-        part.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
-        previousTop = top;
-      });
-    });
-  }
-  window.addEventListener("resize", () => syncMetaRows());
 
   /* ---------- profile (US-161) ---------- */
 
@@ -1321,14 +1249,10 @@
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
     if (params.get("descarcare") !== "eroare") return;
-    if (button.closest("tr.sm-row")) {
-      root.querySelector("[data-sm-lead]")?.insertAdjacentHTML("beforeend", `<div class="cab-notice" data-sm-download-error>${message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert" })}</div>`);
-      root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
-      return;
-    }
-    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".sm-item") || root.querySelector(".cab-status__actions");
+    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".cab-request-row") || root.querySelector(".cab-status__actions");
     const html = message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert", attrs: "data-sm-download-error" });
-    if (scope?.classList.contains("sm-item")) scope.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
+    /* in a row: the full-width notice slot under the row (as the act row's locked notice) */
+    if (scope?.classList.contains("cab-request-row")) scope.insertAdjacentHTML("beforeend", html.replace('class="message', 'class="cab-request-row__notice message'));
     else if (scope?.matches(".cab-status__actions, .cab-detail__actions")) scope.insertAdjacentHTML("afterend", html);
     else scope?.insertAdjacentHTML("beforeend", html);
     root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
@@ -1343,9 +1267,8 @@
         ${message("banner--error", "icon-circle-error-filled", "Formularul de suplinire nu s-a deschis. Datele dosarului nu s-au pierdut.", { role: "alert" })}
         <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
       </div>`;
-    const item = action.closest(".sm-item");
-    if (action.closest("tr.sm-row")) root.querySelector("[data-sm-lead]")?.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-notice"'));
-    else if (item) item.querySelector(".e-permits-stack__main")?.insertAdjacentHTML("beforeend", html);
+    const item = action.closest(".cab-request-row");
+    if (item) item.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-request-row__notice"'));
     else (action.closest(".cab-status__actions") || action).insertAdjacentHTML("afterend", html);
     root.querySelector("[data-sm-redirect-retry]")?.focus();
   }
@@ -1377,6 +1300,13 @@
 
   /* ---------- events ---------- */
 
+  /* the row: a draft continues the form at its saved step (the old „Continuă”), the others open the profile */
+  function openRow(id) {
+    const dosar = state.dosare.find((item) => item.id === id);
+    if (dosar?.status === "schita") window.location.assign(foUrl(dosar, "draft"));
+    else window.location.hash = `#dosar/${id}`;
+  }
+
   function bind() {
     root.addEventListener("input", (event) => {
       if (!event.target.matches("[data-sm-search]")) return;
@@ -1400,19 +1330,20 @@
       const redirectRetry = target.closest("[data-sm-redirect-retry]");
       if (redirectRetry) { window.location.assign(redirectRetry.dataset.smRedirectRetry); return; }
       if (target.closest("[data-sm-search-retry]")) { state.searchFailed = false; renderList(); return; }
-      /* AC-03 / AC-09: a header toggles its direction; another column starts in its natural direction */
-      const sortCol = target.closest("[data-sm-sort-col]");
-      if (sortCol) {
+      /* „Sortează”: a key starts in its natural direction, the direction keeps the key (AC-12: back to page 1) */
+      const sortKey = target.closest("[data-sm-sort-key]");
+      const sortDir = target.closest("[data-sm-sort-dir]");
+      if (sortKey || sortDir) {
         const [key, dir] = state.sort.split("-");
-        const col = sortCol.dataset.smSortCol;
-        state.sort = `${col}-${key === col ? (dir === "asc" ? "desc" : "asc") : DEFAULT_DIR[col] || "asc"}`;
+        const next = sortKey ? SORT_KEYS.find((item) => item.key === sortKey.dataset.smSortKey) : null;
+        state.sort = next ? `${next.key}-${next.key === key ? dir : next.def}` : `${key}-${sortDir.dataset.smSortDir}`;
         state.page = 1;
+        C.closeMenus();
         renderList();
-        root.querySelector(`[data-sm-sort-col="${col}"]`)?.focus();
+        root.querySelector("[data-sm-sort-status]").textContent = `Lista este sortată după ${sortNow().text}.`;
+        root.querySelector(".cab-sort__trigger")?.focus();
         return;
       }
-      const sort = target.closest("[data-sm-sort]");
-      if (sort) { state.sort = sort.dataset.smSort; state.page = 1; C.closeMenus(); renderList(); root.querySelector(".cab-sort__trigger")?.focus(); return; }
       const size = target.closest("[data-sm-per-page]");
       if (size) { state.perPage = Number(size.dataset.smPerPage); state.page = 1; C.closeMenus(); renderList(); return; }
       const page = target.closest("[data-sm-page]");
@@ -1451,8 +1382,8 @@
       }
 
       const card = target.closest("[data-sm-card]");
-      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark, .sm-tacit")) {
-        window.location.hash = `#dosar/${card.dataset.smCard}`;
+      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark, .sm-tacit, a, button")) {
+        openRow(card.dataset.smCard);
       }
     });
 
@@ -1470,7 +1401,7 @@
       const card = event.target.matches?.("[data-sm-card]") ? event.target : null;
       if (card && (event.key === "Enter" || event.key === " ") && !card.classList.contains("is-static")) {
         event.preventDefault();
-        window.location.hash = `#dosar/${card.dataset.smCard}`;
+        openRow(card.dataset.smCard);
       }
     });
 

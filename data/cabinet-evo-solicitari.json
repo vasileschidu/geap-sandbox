@@ -62,7 +62,7 @@
         },
         {
           "id": "d-lab-prelungire", "nr": "GEAP-2026-010-00877", "service": "10", "tip": "Prelungire", "pp": "prelungire",
-          "object": "Laborator de analize, mun. Chișinău", "address": "mun. Chișinău, str. Calea Ieșilor 8",
+          "object": "Laboratorul de analize clinice, toxicologice și farmaceutice al Centrului de Diagnostic Medical, mun. Chișinău", "address": "mun. Chișinău, str. Calea Ieșilor 8",
           "subdivision": "Comitetul permanent de control asupra drogurilor", "status": "derulare", "submitted": "2026-09-28T09:40", "examTerm": "2026-10-13",
           "actId": "act-lab-10", "prevActNr": "AMDM-10-2025-0342"
         },

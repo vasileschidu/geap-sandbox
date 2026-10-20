@@ -1973,9 +1973,10 @@
     "sm-01c": sm(smPick("status", ["Finalizat"])),
     "sm-01d": sm(async (h) => { await h.fill("[data-sm-search]", "04466", { leave: false }); }),
     "sm-01e": sm(async (h) => { await h.fill("[data-sm-search]", "autorizatie stupefiante xyz", { leave: false }); }),
-    /* sort: desktop = the column header (AC-03 / AC-09: Data estimată, ascending); phones = the „Sortează” menu */
-    "sm-01f": sm(async (h) => { if (smPhone()) await h.click(".cab-sort__trigger"); else await h.click('[data-sm-sort-col="end"]'); }),
-    "sm-01m": sm(async (h) => { if (smPhone()) { await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort="service-asc"]'); } else { await h.click('[data-sm-sort-col="service"]'); await h.click('[data-sm-sort-col="service"]'); } }),
+    /* sort = the „Sortează” menu on desktop and phones (2026-10-20, the table headers are gone): 01f the menu open
+       (key group + direction group), 01m sorted by Serviciul solicitat Z–A (key, then direction; trigger + announcement) */
+    "sm-01f": sm(async (h) => { await h.click(".cab-sort__trigger"); }),
+    "sm-01m": sm(async (h) => { await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-key="service"]'); await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-dir="desc"]'); }),
     /* the facet bar open (desktop) / the Statut sheet (phones) */
     "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await h.click('[data-filter-facet="status"]'); if (smPhone()) await h.wait(400); }),
     "sm-01g": sm(smFilters),
@@ -1992,7 +1993,7 @@
     "sm-02e": sm(smMenu("d-nota")),
     "sm-03": smDosar("d-spicul"),
     "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); }),
-    "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await h.click('[data-sm-card="d-spicul"] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }),
+    "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await actMenuPick('[data-sm-card="d-spicul"] [data-sm-action="delete"]')(h); await h.click("[data-sm-confirm-ok]"); }),
     "sm-03c": smDosar("d-izvoras-reperf"),
     "sm-04": smDosar("d-fresh"),
     "sm-04a": smDosar("d-gara"),
@@ -2006,7 +2007,7 @@
     "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
     /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
     "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
-    "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .cab-card__actions > [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
+    "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-fo-intent-act__pending [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-05": smDosar("d-izvoras"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),

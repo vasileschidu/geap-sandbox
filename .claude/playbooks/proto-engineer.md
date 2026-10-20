@@ -1420,3 +1420,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   hamburger `.e-permits-fo-auth__menu` had no hover at all (pre-existing) → tertiary / tertiary-hover. No sub-agent
   tool → code-audit (standing FPs: library search submit overlap, FO buttons), component-audit (pre-existing FO
   header / footer buttons only), hover-audit 0 / 0 at 1440 and 700. Mobbin MCP not available again.
+- 2026-10-20 · Cabinet „Solicitările mele” table → the act row + full header width (7 user corrections in one job). What
+  stuck: ONE row component (`GEAPActRow.html`) grown by options with old defaults (`iconSrc ""`, `metaSlots`,
+  `noticeHtml`, `actionHtml`, `rowClass`) proved byte-identical for the old callers (node: HEAD function vs new, 66
+  cases), ONE status map in the page (`REQUEST_UI`: tag tone · alert · date slot) and ONE meta builder
+  (`metaParts`: number · what · authority · subdivision · date) — every later correction (no icon, 16/24 title then
+  back to 14/20, padding 16 / r16 / 1.5, tertiary meta, slots, no copy in lists, action-only alerts, ⋮-only rows,
+  draft = no alert) was a one-place edit. Expect the brief to move: keep each decision in one table / builder.
+- 2026-10-20 · BUG the user saw before I looked: removing the icon left the SHARED doc-card grid (`:is(…):has(…)
+  :has(…)` = 0,3,0–0,4,0) in charge — my 0,2,0 `grid-template-columns` lost, column 1 stayed 24px → titles cut to
+  one letter, tags stacked, meta 36px indented. Overrides of the shared card grid need list + both row classes
+  (`.cab-request-list > .cab-request-row.e-permits-fo-lib-item…`), and ALWAYS look at the capture after a layout
+  change, then measure (scratch row probe: title x / tag tops / meta x / actions centre) at 1440 and 375.
+- 2026-10-20 · Probes picked the hidden acts list (`.cab-act-list` is also the class of the request list) → scope probes
+  to the visible list. `min-width` on a shrinkable SHORT part (authority „ANSP”) widened it (66 for 40 of text) —
+  only genuinely long parts get the min-width; short keys stay `flex: none`.
+- 2026-10-20 · Full-width list pages: measure the header box first (brandbar-inner = page width − 2 gutters = 1200
+  at 1440, 24 / 16 below) and reuse that formula as `--cab-list-width`; profiles keep 1024 by a `:has(profile
+  header)` rule on the container. `git checkout` my accidental bumps in `msupport/` / `acte-permisive/` (a
+  `grep -rl` over all html touched forbidden dirs — exclude them in the loop).
+- 2026-10-20 · No sub-agent tool → ran code-audit (standing FPs: meta 18 padding, copy-value / sm-tacit buttons, open
+  menu overlap), hover-audit 0 / 0, component-audit 0, compare-styles (new spec cabinet-request-row-vs-act-row =
+  0) directly. Phone action sheet (act-row capture listener) also catches any ⋮ inside `.e-permits-fo-intent-act__action`
+  → demo states that pick a ⋮ item on phones must use `actMenuPick` (sm-03b failed at 375 until then).

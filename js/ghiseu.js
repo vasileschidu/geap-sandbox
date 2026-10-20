@@ -1256,7 +1256,8 @@
     return R().actRowHtml?.({
       id: act.id, name: act.name, number: act.nr, status: act.status, statusLabel: (ACT_TONE[act.status] || [act.status])[0],
       validUntil: act.valabilPana, subdivision: act.subdiviziune,
-      meta: act.kind === "decizie" ? [act.nr, `${act.decizie} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`, act.subdiviziune] : undefined
+      /* the shared meta slots order (js/act-row.js): number · subdivision · the key date */
+      meta: act.kind === "decizie" ? [act.nr, { text: act.subdiviziune, long: true }, `${act.decizie} · emisă acum ${plural(act.emisZileInUrma, "zi", "zile")}`] : undefined
     }, {
       menuId: `gh-act-menu-${act.id}`, items,
       pendingTitle: act.pending ? `${act.pending.type} în curs` : "",

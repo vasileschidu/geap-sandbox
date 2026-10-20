@@ -1,0 +1,108 @@
+{
+ "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Finalizat, green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375 Ignored (content, not style): the action column width (grid-template-columns: pill 195 vs „Vezi actul” + ⋮) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning).",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--spacing-",
+  "--border-"
+ ],
+ "pairs": [
+  {
+   "name": "row",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1)",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"]",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.y",
+    "cursor",
+    "grid-template-columns"
+   ]
+  },
+  {
+   "name": "title",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-lib-item__title",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-lib-item__title",
+   "rel": "row",
+   "ignore": [
+    "rect.width",
+    "rect.y",
+    "rect.right",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "status tag",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-doc-title-row > .e-permits-workplace__tag",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-doc-title-row > .e-permits-workplace__tag",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "meta",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-doc-meta",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-doc-meta",
+   "rel": "row",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.y",
+    "rect.right",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "meta part",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-doc-meta__part:nth-child(2)",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-doc-meta__part:nth-child(2)",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "notice",
+   "a": ".cab-act-list .e-permits-fo-intent-act.is-locked .e-permits-fo-intent-act__pending",
+   "b": ".cab-request-list > [data-sm-card=\"d-nistru\"] .e-permits-fo-intent-act__pending",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "notice text",
+   "a": ".cab-act-list .e-permits-fo-intent-act.is-locked .e-permits-fo-intent-act__pending .banner__text",
+   "b": ".cab-request-list > [data-sm-card=\"d-nistru\"] .e-permits-fo-intent-act__pending .banner__text",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "notice icon",
+   "a": ".cab-act-list .e-permits-fo-intent-act.is-locked .e-permits-fo-intent-act__pending .banner__icon",
+   "b": ".cab-request-list > [data-sm-card=\"d-nistru\"] .e-permits-fo-intent-act__pending .banner__icon",
+   "ignore": [
+    "rect.x",
+    "rect.y"
+   ]
+  }
+ ],
+ "expected": [
+  {
+   "viewport": 375,
+   "name": "title",
+   "prop": "rect.height",
+   "why": "phones: the request row's ⋮ sits on the title line (no button row), so „Cantina „Nord”, or. Soroca” wraps to 2 lines (≤ 2, line-clamp); the act row keeps its pill under the text"
+  }
+ ]
+}

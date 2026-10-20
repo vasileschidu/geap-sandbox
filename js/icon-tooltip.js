@@ -13,7 +13,8 @@
    is moved to data-tooltip-label (and copied to aria-label when that is missing) so
    the browser's own tooltip never doubles it. Opt out with data-no-tooltip; controls
    using the rich library tooltip (data-tooltip) are left alone. A control with visible but
-   truncated text opts in with data-tooltip-text="<full text>" (2026-10-19). Delegated once on the
+   truncated text opts in with data-tooltip-text="<full text>" (2026-10-19); a focusable row with
+   data-tooltip-focus shows its first such child's tooltip on keyboard focus (2026-10-20). Delegated once on the
    document, so content rendered later is covered without wiring. */
 (() => {
   if (window.__iconTooltip) return;
@@ -131,8 +132,11 @@
   });
 
   document.addEventListener("focusin", (event) => {
-    const el = candidate(event.target);
-    if (!el || !el.matches(":focus-visible")) return;
+    /* data-tooltip-focus (2026-10-20): a focusable container (a list row) shows the tooltip of its first
+       truncated child (data-tooltip-text) on keyboard focus — the act / request rows' cut names */
+    const inner = event.target.matches?.("[data-tooltip-focus]") ? event.target.querySelector("[data-tooltip-text]") : null;
+    const el = candidate(event.target) || inner;
+    if (!el || !(el === inner ? event.target : el).matches(":focus-visible")) return;
     hide();
     show(el);
   });
