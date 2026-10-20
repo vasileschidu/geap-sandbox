@@ -1946,3 +1946,28 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     „👁 Detalii” → nothing to remove; drift reported, not changed.
   - No Agent tool in this session → stored figma-audit (`ghs/audit`) on 04q, 10c1, the viewer component and both sets: only baseline
     (section-over-card gap 0, meta-dot gap 18, scrim, step-indicator halves inherited from the 10c clone).
+
+- 2026-10-20 · Leftovers on Dossiers 04 + Ghișeu 07 (no new components). Dossiers (`Modal content / Document · details` instances):
+  04r „Statutul” Tag 1 „Persoană fizică” → „Proiect” Subtle Neutral, 04s → „Aprobare” Subtle Success, and the same census found 04t
+  Statutul → „Respingere” Danger and 04e / 04h / 04o / 04p „Semnătură” Tag 1 „Persoană fizică” → „Semnat electronic” Brand + Leading
+  icon 9717:6938 (copied from 04s); duplicate last „Număr dosar” row hidden in 04o / 04r / 04t (code drops it when the document number
+  IS the dossier number) + new last row strokeBottomWeight 0 (also 04q); modal subtitle without the number in 04i / 04s / 04t (service
+  name only) + notes 04i / 04s. Ghișeu: 7 „Cererea pe hârtie” + 2 „Cererea semnată MSign” cards (07a, 07a2, 07a3, 07b, 07c, 07h, 07i)
+  `Document · card` Context Summary → **Previous permit** (= the Summary card + library „👁 Detalii” button-filled-rectangular Neutral
+  Small, right column, meta wraps in the text column); MSign card got its file part back (cerere-C-2026-004790.json); connector
+  „gh-07c → gh-07a3 · Detalii” 12005:361653 now starts on the card at the button (position x = card.width, y = 44). Lessons:
+  - **Census the whole page, not the blocks you were sent to**: the „Persoană fizică” leftover (tag default after a nested row variant
+    switch, lesson 2026-10-20 above) sat in 7 modals, not 2. Find visible TEXT „Persoană fizică” inside `Modal…` instances (walk parents
+    for `visible`), map each to its row label, compare with the code state's „Date generale” text from capture.mjs (`text` field,
+    slice from the last „Date generale\nTip document”).
+  - **Hiding the last row of a card leaves the divider on the new last row** — set its strokeBottomWeight 0 in the same call.
+  - Hiding a row changes the modal height → the overlay's auto-layout centres it at y .5 → ABSOLUTE + floor(y) (lesson 2026-10-20).
+  - **Code can be broken against its own intent — draw the intent, report the code**: Ghișeu `.e-permits-gh__doc-actions` is not in
+    the doc-card grid selectors (`:has(> :is(…, .cab-doc__actions, .btn))` → column 3), so in code the „Detalii” button falls into an
+    auto-placed third row under the icon (card 104 tall). Figma uses the right-column pattern (as every other doc card with an action);
+    reported to proto-engineer. Code also still shows „AUT-… · serviciu” / „D-… · serviciu” in the dossier document modal subtitle
+    (js/e-permits-shell.js `subtitle = d.act ? \`${d.act.nr} · …\` : kind === "acte" && nr ? \`${nr} · …\``) — Figma follows the rule.
+  - `Document · card` Context „Previous permit” is really „Summary + Details” — reused for the Ghișeu cards rather than adding 12
+    duplicate variants; rename the value only together with tools/figma/documents/card-v3.js and the naming glossary (open question).
+  - Stored audits: `ghs/audit` 0 findings on the 9 modals / 9 cards after the fix (4 fractional before); `qsweep/audit` on the blocks =
+    baseline only (section-over-card gap 0, the Ghișeu background page list's clipped cells / fractional sort headers).
