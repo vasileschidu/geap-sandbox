@@ -265,7 +265,7 @@
     const items = menuItems(dosar).filter((item) => item.separator || item.action !== "download")
       .filter((item, i, list) => !(item.separator && (i === 0 || list[i - 1].separator || i === list.length - 1)));
     /* row-kebab-v1 (2026-10-20, user: „Back to 3 dots, Acțiuni is too ambiguous”): the row's trigger = the
-       icon-only ⋮ (library Strict · Icon Only · Small: `btn btn-strict btn-sm btn-icon-only`, 32 square, radius 6 —
+       icon-only ⋮ (library Neutral · Icon Only · Small: `btn btn-neutral btn-sm btn-icon-only` (grey at rest, user 2026-10-20), 32 square, radius 6 —
        the height / radius family of the acts' „Postprocese ⌄”), tooltip „Mai multe acțiuni”, opening the same
        anchored menu (phones: touch item size, never the action sheet); open = tertiary-active + focus ring
        (aria-expanded). A row whose only action is „Detalii” gets the lone „👁 Detalii” button (row-actions rule),
@@ -279,7 +279,7 @@
     }
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(name)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
+        <button class="btn btn-neutral btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(name)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(name)}" hidden>
           ${items.map((item) => item.separator
             ? `<li role="separator" class="cab-menu__separator"></li>`
