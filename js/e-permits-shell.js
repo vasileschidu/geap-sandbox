@@ -6401,7 +6401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* Taxe = tariffs + their application rules in one place (revised 2026-10-02: a tax is
        a tariff plus the rule RSSP / eAPL do not carry). Count = taxes + tariffs to configure */
     { id: "fees", label: "Taxe și tarife", count: (service) => serviceTaxes(service).length + unconfiguredServiceTariffs(service).length },
-    { id: "classifiers", label: "Clasificatoare specifice", count: (service) => (service.geap.classifiers || []).length },
+    { id: "classifiers", label: "Clasificatoare", count: (service) => (service.geap.classifiers || []).length },
     { id: "templates", label: "Șabloane", count: (service) => service.geap.templates.length },
     { id: "notifications", label: "Notificări", count: (service) => (service.geap.notificationTemplates || []).length },
     { id: "events", label: "Jurnal de evenimente", count: (service) => serviceEventLog(service).length }
@@ -7389,7 +7389,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : /șablon de notificare|notificare/.test(t) ? "Notificări"
       : /șablon|mdocs|tipar/.test(t) ? "Șabloane"
       : /document/.test(t) ? "Documente"
-      : /clasificator/.test(t) ? "Clasificatoare specifice"
+      : /clasificator/.test(t) ? "Clasificatoare"
       : /interdependen|setăr|setare|suspendare/.test(t) ? "Setări"
       : "Date generale";
   };
@@ -8355,7 +8355,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : { preview: `data-svc-clas-open="${escapeHtml(r.id)}"`, label: r.name }) : ""
     });
     const groups = SVC_CLAS_GROUPS.map(([key, label]) => ({ label, items: rows.filter((r) => r.category === key).map(item) })).filter((g) => g.items.length);
-    return renderStackedList("Clasificatoare specifice", groups, {
+    return renderStackedList("Clasificatoare", groups, {
       /* AC-16 */
       empty: "Serviciul nu folosește clasificatoare.",
       meta: "Valorile se gestionează aici; structura, în Administrare → Clasificatoare"
@@ -10184,7 +10184,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (c && clasSettingsDirty(c) && !window.confirm("Ai modificări nesalvate în setări. Renunți la ele?")) return;
     hideClassifierProfile();
     clasState.id = null;
-    /* US-226: opened from a passport → back to its „Clasificatoare specifice” tab */
+    /* US-226: opened from a passport → back to its „Clasificatoare” tab */
     if (clasState.fromService) {
       const code = clasState.fromService;
       clasState.fromService = null;
@@ -14670,7 +14670,7 @@ document.addEventListener("DOMContentLoaded", () => {
         disabled: (value) => value === "conditional" && !classifiers.length,
         hint: classifiers.length
           ? "Ex.: la reperfectare, tariful depinde de motivul ales de solicitant la inițierea solicitării."
-          : "Serviciul nu are clasificatoare pentru condiții. Adaugă-le în Clasificatoare specifice."
+          : "Serviciul nu are clasificatoare pentru condiții. Adaugă-le în Clasificatoare."
       })}
       ${conditional ? `
         <div class="e-permits-tax-cond__list">${conditions.map(block).join("")}</div>
