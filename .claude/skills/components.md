@@ -6311,9 +6311,27 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   1 and 4 never. js/act-row.js `syncCut` puts the full text in `data-tooltip-text` (plain tooltip, hover) on the
   cut title / meta; the row (`data-tooltip-focus`) shows the title's on keyboard focus (js/icon-tooltip.js).
   Phones: title ≤ 2 lines (line-clamp), meta wraps.
+- **Phone row anatomy (≤ 760, 2026-10-20, user: „title 16 on mobile; the badge on top in the same row with the
+  dots”)** — acts AND requests, no markup change (CSS „PHONE ROW ANATOMY” in e-permits-acte-permisive.css + the
+  request block in cabinet-evo.css): **row 1** the Small tags (status · „Aprobare tacită” · „Semnat electronic”,
+  4 apart, wrapping) left, the ⋮ (`btn-strict btn-sm btn-icon-only`, 32) right, its centre = the 20 tag line's
+  centre; act rows: the tags alone · **8** · **row 2** the title **16/24 medium** (`--font-size-fs-16` /
+  `--line-height-lh-24` / medium), ≤ 2 lines + ellipsis, full content width (under the ⋮ too) · **8** · **row 3**
+  the meta 14/20 tertiary, wrapping · act rows: the „Inițiază un postproces” pill **12** under the meta · any
+  alert full width **12** under the last part (also a paper act without pill: 12, was 20). Card unchanged: padding
+  16, radius 16, stroke 1.5. Act rows keep the 24 document icon in column 1, centred on tags + title + meta.
+  How: the title row stays one flex box — title `order: 1; flex: 0 0 100%`, row gap 8; request rows with ⋮ span
+  the title row over both grid columns with `padding-right: 32 + 8` (keeps the ⋮ free on the tag line) and give
+  it back to the title (`flex-basis: calc(100% + 40px)`, `margin-right: −40px`). Desktop (> 760) unchanged
+  (geometry identical at 1440). Measured at 375 / 320 / 740: tags → title 8, title → meta 8, ⋮ centre = tag
+  centre. Parity spec `cabinet-request-row-vs-act-row.json`: 0 at 1440 + 375 (the two ⋮ props are `expected`).
+- **Phone list rhythm (≤ 760, 2026-10-20)** — Cabinet list pages (Solicitările mele, Actele mele permisive,
+  Catalog, Notificări): ONE 16 step page title (or its description) → search → „Filtre” / sort row (Catalog: the
+  category chips) → first card; the applied line „N rezultate · Șterge filtrele” = 8 under the pills, then 16 to
+  the cards; cards 12 apart. Desktop keeps 24 / 16 / 24. One block at the end of cabinet-evo.css.
 - **Request row actions**: NO labelled button — only the ⋮ on the right (every action of the request, no
   downloads); the row opens the profile, a DRAFT row continues the FO form at its saved step (⋮ keeps „Continuă
-  schița” / „Elimină schița”). Phones: the ⋮ sits on the title line.
+  schița” / „Elimină schița”). Phones: the ⋮ sits on the tag line (row 1, see „Phone row anatomy”).
 - **Row alerts = ACTION ONLY** (user 2026-10-20): warning when the applicant must act (Informații suplimentare,
   Spre achitare — live countdown + „Finalizare estimată”) ending with ONE inline action link
   (`a|button.link.link-primary.link-sm.cab-alert-link`: „Trimite informațiile →”, „Achită acum →”, the old row
@@ -6379,7 +6397,7 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   FO page (the inline-note rule is scoped to `:is([data-demo-flow="back-office"], .e-permits-fo-intent-act)`).
   Placement: grid `1 / -1`, its own row under icon + title + meta + action — full card width (13 from the card's
   outer edge = 1 border + 12 padding, both sides and the bottom), **12** above it (row gap 4 + margin 8); icon and
-  pill stay centred on title + meta. Phones (≤720): title · meta · pill (row 3) · notice (row 4, 12 above),
+  pill stay centred on title + meta. Phones (≤760): tags · title · meta · pill (row 3) · notice (row 4, 12 above),
   still full width. Demo: FO `pp-02d` (`?incurs=<act id>`), Ghișeu `gh-02t`.
 - The post-process menu (2026-10-16, user: „one menu”): the renderer always adds `.e-permits-stack__menu` →
   padding 4, item gap 2, items 32 high, 14/20 medium, 20 icon, icon–label 8, padding 6 12 6 8, radius 6, width

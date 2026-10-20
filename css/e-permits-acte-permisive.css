@@ -17318,24 +17318,61 @@
   }
 }
 
+/* PHONE ROW ANATOMY (≤760, 2026-10-20, user: „title 16 on mobile; the badge on top in the same row with the
+   dots”) — FO #intent, Ghișeu, Cabinet acts AND requests (one row component, js/act-row.js):
+     row 1  the Small tags (status, „Aprobare tacită”, „Semnat electronic”) left · the ⋮ right (request rows,
+            centred on the 20 tag line — cabinet-evo.css); act rows: the tags alone
+     row 2  the title 16/24 medium, ≤ 2 lines + ellipsis
+     row 3  the meta 14/20 tertiary, wrapping
+     then   act rows: the „Inițiază un postproces” pill (12 above) · any alert full width (12 above)
+   tags → title 8 (the title row's row gap), title → meta 8 (the card's row gap). The title row stays ONE flex
+   box: the title moves after the tags (`order`) onto its own line (basis 100%) — no markup change, desktop
+   (> 760) untouched. Card spec unchanged: padding 16, radius 16, 1.5 stroke. */
 @media (max-width: 760px) {
-  .e-permits-fo-lib-item.e-permits-fo-intent-act .e-permits-fo-lib-item__title {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+    align-items: center;
+    row-gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
     -webkit-box-orient: vertical;
     display: -webkit-box;
+    flex: 0 0 100%;
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
     -webkit-line-clamp: 2;
     line-clamp: 2;
+    max-width: none;
+    order: 1;
     white-space: normal;
   }
 
-  /* a wrapped title: the tags stay on its FIRST 20 line */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
-    align-items: flex-start;
+  /* act rows with the pill: icon | text, the pill under the meta (12 above = row gap 8 + 4) and the notice
+     under the pill — from 760 like the rest of the phone row (the shared document card switches at 720) */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content):has(> .e-permits-fo-intent-act__action) {
+    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
   }
-}
 
-/* phones: title · meta · action (row 3, 12 above) · notice (row 4, 12 above) */
-@media (max-width: 720px) {
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-intent-act__action) > .e-permits-fo-lib-item__icon {
+    grid-row: 1 / span 2;
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-intent-act__action) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+    grid-column: 2 / -1;
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-intent-act__action {
+    grid-column: 2 / -1;
+    grid-row: 3;
+    justify-self: start;
+    margin-left: 0;
+    margin-top: var(--spacing-4, 4px);
+  }
+
+  /* row 4 only under a pill — without one (paper act) the notice keeps row 3 (row 4 left an empty implicit
+     row: 20 above instead of 12) */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice):has(> .e-permits-fo-intent-act__action) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
     grid-row: 4;
   }
 }

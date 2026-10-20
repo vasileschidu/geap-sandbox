@@ -1589,8 +1589,22 @@
   background: var(--color-background-base-default, #fff);
 }
 
-/* phones: the ⋮ stays on the title line (no button row); meta and the alert run under it */
-@media (max-width: 720px) {
+/* phones (≤760, the act row's phone anatomy — e-permits-acte-permisive.css „PHONE ROW ANATOMY”, 2026-10-20 user):
+   row 1 = the Small tags left + the ⋮ right, centred on the 20 tag line; row 2 = the title (16/24, ≤ 2 lines) across
+   the FULL card width (under the ⋮ too); row 3 = the meta; the alert under them. The title row spans both columns
+   and keeps the ⋮'s place free on the tag line only: padding-right = ⋮ 32 + 8, which the title takes back
+   (basis 100% + 40, margin-right −40). The ⋮ (later in the DOM, positioned) paints over that free padding. */
+@media (max-width: 760px) {
+  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .cab-doc__actions) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+    grid-column: 1 / -1;
+    padding-right: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px));
+  }
+
+  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .cab-doc__actions) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+    flex-basis: calc(100% + var(--spacing-32, 32px) + var(--spacing-8, 8px));
+    margin-right: calc((var(--spacing-32, 32px) + var(--spacing-8, 8px)) * -1);
+  }
+
   .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .e-permits-fo-lib-item__content) {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto;
@@ -1659,4 +1673,31 @@ button.cab-alert-link {
   background: var(--color-background-base-tertiary, #ebebeb);
   border-color: var(--color-border-base-default, #d9d9d9);
   color: var(--color-text-base-default, #121212);
+}
+
+/* ===== Phone list rhythm (≤760, 2026-10-20, user: „even vertical rhythm”) =====
+   Solicitările mele, Actele mele permisive, Catalog, Notificări: ONE 16 step from the page title (or its
+   description) → search → „Filtre” / sort row (Catalog: the category chips) → first card. The applied-filters
+   line („N rezultate · Șterge filtrele”) belongs to the toolbar group: 8 under the pills, then 16 to the cards.
+   Cards keep 12 between each other (the act list too). Desktop (> 760) unchanged: 24 / 16 / 24. */
+@media (max-width: 760px) {
+  .cab-intro ~ .cab-toolbar {
+    margin-top: var(--spacing-16, 16px);
+  }
+
+  .cab-filters.e-permits-workplace__filters.is-sheets {
+    gap: var(--spacing-8, 8px);
+  }
+
+  .cab-chips {
+    padding-top: var(--spacing-16, 16px);
+  }
+
+  .cab-list,
+  .sm-list,
+  .sm-results > .cab-request-list,
+  .cab-view[data-cab-view="notificari"] > .cab-callout + .nt-lead:empty + .nt-list,
+  .cab-view[data-cab-view="notificari"] > .nt-lead:empty + .nt-list {
+    margin-top: var(--spacing-16, 16px);
+  }
 }

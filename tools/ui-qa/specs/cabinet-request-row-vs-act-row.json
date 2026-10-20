@@ -1,5 +1,5 @@
 {
- "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Finalizat, green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375 Ignored (content, not style): the action column width (grid-template-columns: pill 195 vs „Vezi actul” + ⋮) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning).",
+ "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Finalizat, green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Phones (2026-10-20): row 1 = tags (+ ⋮), row 2 = title 16/24, row 3 = meta. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375 Ignored (content, not style): the action column width (grid-template-columns: pill 195 vs „Vezi actul” + ⋮) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning).",
  "tokens": [
   "--color-",
   "--font-",
@@ -101,8 +101,14 @@
   {
    "viewport": 375,
    "name": "title",
-   "prop": "rect.height",
-   "why": "phones: the request row's ⋮ sits on the title line (no button row), so „Cantina „Nord”, or. Soroca” wraps to 2 lines (≤ 2, line-clamp); the act row keeps its pill under the text"
+   "prop": "flex-basis",
+   "why": "phones (≤760, 2026-10-20): the request row's ⋮ sits on the TAG line (row 1); its title row keeps 32 + 8 free there (padding-right) and the title takes it back (basis 100% + 40, margin-right −40), so the title runs the full card width under the ⋮ — act rows have no ⋮ (pill under the meta)"
+  },
+  {
+   "viewport": 375,
+   "name": "title",
+   "prop": "margin-right",
+   "why": "phones (≤760, 2026-10-20): the request row's ⋮ sits on the TAG line (row 1); its title row keeps 32 + 8 free there (padding-right) and the title takes it back (basis 100% + 40, margin-right −40), so the title runs the full card width under the ⋮ — act rows have no ⋮ (pill under the meta)"
   }
  ]
 }

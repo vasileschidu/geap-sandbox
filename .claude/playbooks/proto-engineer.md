@@ -1531,3 +1531,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   resolution), `--scope main` covered the row (0 / 0). No sub-agent tool → code-audit / component-audit / hover-audit
   (700) run directly: only standing FPs (Cabinet meta 18, alert link, RAP table cells, eKYC tags / th / pagination /
   header buttons, eKYC phone search icon 20 in a 48 field — pre-existing).
+- 2026-10-20 · Phone row anatomy (user: „title 16 on mobile; the badge on top in the same row with the dots”) for the ONE
+  act / request row: tags on row 1 (+ ⋮ right), title 16/24 on row 2, meta row 3 — CSS only, no markup change. The title
+  row stays one flex box: title `order: 1; flex: 0 0 100%` + row gap 8 puts the tags above it. To keep a corner control
+  (⋮) free on the FIRST flex line only while the next line runs full width: span the flex box over both grid columns,
+  `padding-right: control + gap`, and give it back to the full-width item (`flex-basis: calc(100% + N)`,
+  `margin-right: −N`); the control, later in the DOM and positioned, paints over the padding. Measured tags → title 8,
+  title → meta 8, ⋮ centre = tag-line centre at 375 / 320 / 740; desktop row geometry identical before / after (scratch
+  shot.mjs + probe.js: per-row rel rects + fonts). The parity spec showed exactly the two ⋮ props → `expected`.
+- 2026-10-20 · Breakpoint drift: the Cabinet request row's phone rules and the shared doc-card actions switched at 720 while
+  the brief (and the action sheet) say 760 — moving a „phone layout” means moving EVERY piece of it to the same query
+  (act pill under the meta restated for the act row at ≤760 with higher specificity; the shared doc card stays at 720).
+  Check 740 explicitly. Side find by measuring: a notice placed in `grid-row: 4` on a row WITHOUT a pill left an empty
+  implicit row 3 → 20 above instead of 12 (paper acts); give row 4 only `:has(> pill)`.
+- 2026-10-20 · Mid-job request „even phone rhythm on the list pages”: a stack probe (scratch rh/gaps.js: title / desc /
+  search / pills / applied / chips / first card, edge-to-edge distances) answered it in numbers before and after. Trap:
+  `.cab-intro + .cab-toolbar` never matched on the two list pages — hidden siblings (`.sm-list-view__lead`, restriction
+  slot) sit in between → `~`. A coordinator commit swept my `?v=` bumps into its own commit while I worked (shared
+  index) → the key went live pointing at old CSS; always bump to a NEW key at commit time. No sub-agent tool → ran
+  code-audit (standing FPs: meta 18, alert link, FO „Solicitare nouă”; the unscoped sm-01 `{}` was a scope miss —
+  re-run with `--scope .sm-list-view`), hover-audit 0 / 0 at 1440 + 700, component-audit (only the pre-existing header
+  avatar / hamburger), compare-styles 0.
