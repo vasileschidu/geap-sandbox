@@ -134,8 +134,8 @@
      down (empty-state.js resolves its own sprite path since 2026-10-14) */
   const fixAssets = (html) => html.replaceAll('href="assets/', 'href="../assets/').replaceAll('src="assets/', 'src="../assets/');
 
-  function copyValue(value, label) {
-    return C.copyValueHtml(value).replace(/aria-label="[^"]*"/, `aria-label="${escape(label || `Copiază ${value}`)}"`);
+  function copyValue(value, label, className = "") {
+    return C.copyValueHtml(value, label || `Copiază ${value}`, className);
   }
 
   function message(tone, iconId, html, { role = "", attrs = "" } = {}) {
@@ -765,7 +765,7 @@
         <span class="e-permits-fo-authorization-card__copy">
           <span class="e-permits-fo-authorization-card__title"><strong>${escape(auth.title || "Împuternicire MPower aplicată")}</strong>${auth.status ? `<span>${escape(auth.status)}</span>` : ""}</span>
           <span class="e-permits-fo-authorization-card__meta">
-            ${items.map(([label, value], index) => `${index ? '<span class="e-permits-fo-authorization-card__dot" aria-hidden="true"></span>' : ""}<span class="e-permits-fo-authorization-card__meta-item"><span>${escape(label)}</span><strong>${escape(value)}</strong></span>`).join("")}
+            ${items.map(([label, value], index) => `${index ? '<span class="e-permits-fo-authorization-card__dot" aria-hidden="true"></span>' : ""}<span class="e-permits-fo-authorization-card__meta-item"><span>${escape(label)}</span>${label === "Cod" ? copyValue(value, `Copiază codul ${value}`, "e-permits-fo-authorization-card__copy-code") : `<strong>${escape(value)}</strong>`}</span>`).join("")}
           </span>
         </span>
       </div>`;
@@ -1356,7 +1356,7 @@
       if (target.closest("[data-sm-tip]")) { event.stopPropagation(); showTip(target.closest("[data-sm-tip]")); return; }
 
       /* documents: „Detalii” or the card itself → the document modal (not from the ⋮ menu) */
-      const docOpen = target.closest("[data-cab-doc-open]") || (!target.closest("button, a, .cab-card__actions, [data-fo-copy-value]") && target.closest(".cab-doc[data-cab-doc]"));
+      const docOpen = target.closest("[data-cab-doc-open]") || (!target.closest("button, a, .cab-card__actions, [data-copy-value]") && target.closest(".cab-doc[data-cab-doc]"));
       if (docOpen) { C.closeMenus(); openDosarDoc(docOpen.dataset.cabDocOpen || docOpen.dataset.cabDoc); return; }
 
       const action = target.closest("[data-sm-action]");
@@ -1382,7 +1382,7 @@
       }
 
       const card = target.closest("[data-sm-card]");
-      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-fo-copy-value], .cab-mark, .sm-tacit, a, button")) {
+      if (card && !card.classList.contains("is-static") && !target.closest(".cab-card__actions, [data-copy-value], .cab-mark, .sm-tacit, a, button")) {
         openRow(card.dataset.smCard);
       }
     });

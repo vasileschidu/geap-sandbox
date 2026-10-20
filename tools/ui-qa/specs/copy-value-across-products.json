@@ -1,0 +1,9 @@
+{
+ "_about": "Copy value — ONE component (2026-10-20): the copy control must compute identically in the BO (dos-01 / svc-01), RAP (rap-02), EVO Cabinet (sm-05 / pp-01j) and eKYC (ek-05). Run: compare-styles.mjs --a dos-01 --b <rap-02|sm-05|ek-05> --spec tools/ui-qa/specs/copy-value-across-products.json. Detail-row pairs only (every product has them); the header-meta pairs live in rap-profile-vs-bo.json / cabinet-profile-vs-bo.json.",
+ "pairs": [
+  { "name": "row copy", "a": ".e-permits-dosar-profil__card .copy-value", "b": ".e-permits-dosar-profil__card .copy-value", "ignore": ["rect.width", "rect.x", "rect.y", "rect.right", "font-family", "font-size", "line-height", "font-weight", "letter-spacing", "color", "-webkit-font-smoothing", "text-rendering", "font-kerning", "font-synthesis"] },
+  { "name": "row copy button", "a": ".e-permits-dosar-profil__card .copy-value__button", "b": ".e-permits-dosar-profil__card .copy-value__button", "rel": "row copy", "ignore": ["rect.x", "rect.right", "font-family", "font-size", "letter-spacing", "-webkit-font-smoothing", "text-rendering", "font-kerning", "font-synthesis", "font-weight"] },
+  { "name": "row copy icon", "a": ".e-permits-dosar-profil__card .copy-value__button .icon", "b": ".e-permits-dosar-profil__card .copy-value__button .icon", "rel": "row copy button" },
+  { "name": "row copy text", "a": ".e-permits-dosar-profil__card .copy-value__text", "b": ".e-permits-dosar-profil__card .copy-value__text", "rel": "row copy", "ignore": ["rect.width", "rect.right"] }
+ ]
+}

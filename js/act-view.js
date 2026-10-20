@@ -183,7 +183,9 @@
 
   const longStamp = (date) => `${new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long", year: "numeric" }).format(date)}, ${new Intl.DateTimeFormat("ro-RO", { hour: "2-digit", minute: "2-digit" }).format(date)}`;
 
-  function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => escapeHtml(value), onCopy = () => {}, copySelector = "[data-rap-copy]", bodyOpenClass = "" } = {}) {
+  /* copy: the shared component (js/copy-value.js) handles its own clicks in the capture phase — onCopy /
+     copySelector stay for old callers and never fire for .copy-value buttons */
+  function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => window.GEAPCopyValue?.html(value, { label: `Copiază numărul actului ${value}` }) || escapeHtml(value), onCopy = () => {}, copySelector = "[data-copy-value]", bodyOpenClass = "" } = {}) {
     const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="${sprite}#icon-${name}"></use></svg>
   `;

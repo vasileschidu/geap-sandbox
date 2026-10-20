@@ -66,7 +66,6 @@
     ".e-permits-fo-radio",
     ".e-permits-check-option",
     ".e-permits-fo-delivery-option",
-    ".e-permits-fo-copy-value",
     ".e-permits-fo-doc-field",
     ".e-permits-fo-file-item",
     ".e-permits-fo-lib-item",
@@ -96,6 +95,15 @@
     ".e-permits-act-row"
   ],
   "ancestorDepth": 3,
+  "_copy": "Copy value — ONE component (2026-10-20, user: „the copy code is different, use the same everywhere as a component” + „remove the copy icon in table or stacked view”). copy-variant (major): any copy markup that is not .copy-value (legacy classes / data hooks, or an icon-only button labelled „Copiază…”). copy-in-list (major): a .copy-value inside a list view (table cell, stacked row, act / request row, card list); listExempt = documented exceptions.",
+  "copy": {
+    "component": ".copy-value",
+    "button": ".copy-value__button",
+    "legacy": [".e-permits-workplace__copy-code", ".e-permits-dosar-profil__copy-code", ".e-permits-fo-copy-value", ".rap-copy", ".rap-profile__copy", ".permits-table__id", ".permits-profile__copy-id", "[data-shell-copy-value]", "[data-fo-copy-value]", "[data-rap-copy]", "[data-copy-id]", "[data-cell-copy]"],
+    "labelPattern": "^\\s*Copiaz",
+    "listContexts": ["td", "[role=row]", ".e-permits-stack__item", ".e-permits-fo-lib-item", ".e-permits-fo-intent-act", ".cab-card", ".cab-request-row", ".e-permits-act-row"],
+    "listExempt": [".e-permits-fee-summary__value"]
+  },
   "_ignoreWithin": "prototype-only tools and third-party widgets — never audited",
   "ignoreWithin": [
     ".e-permits-fo-testcfg",
@@ -164,6 +172,8 @@
     "maxWidth": 640
   },
   "fixHints": {
+    "copy-variant": "Use GEAPCopyValue.html(value, { label }) (js/copy-value.js) — shell renderCopyCode / FO copyValueHtml / CabEvo.copyValueHtml already return it; delete the private markup and its CSS.",
+    "copy-in-list": "List views carry no copy icon: render the number as plain text (shell renderListCode, RAP plain cell, act-row meta). Copy belongs on the profile / header / detail row / dialog.",
     "non-library-control": "use the library component (components.md › Component Inventory): .btn + variant + size, .chip, .checkbox, .radio, .switch, .search-input, .input / .e-permits-fo-input; a genuinely new control is first documented in components.md (inventory row + section) — ask the PO before inventing one",
     "field-height-phone": "phones (≤760) use the library default field size = 48 (`.input` / `.search-input` default, FO fields via the ≤720 FO block that sets 48 + 16/24); never a fixed 40",
     "field-height-desktop": "desktop uses the library medium size = 40 (`.input--medium`, `.search-input.medium`, FO fields 40)",

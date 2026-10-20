@@ -433,12 +433,6 @@
   vertical-align: middle;
 }
 
-.permits-table__cell:has(.permits-table__id:hover),
-.permits-table__cell:has(.permits-table__id:focus-visible),
-.permits-table__cell:has(.permits-table__id.is-copied) {
-  z-index: 4;
-}
-
 .permits-table__cell--action {
   align-items: center;
   display: table-cell;
@@ -466,102 +460,6 @@
   background: var(--gray-200, #f1f1f1);
   border-color: var(--color-border-base-default, #d9d9d9);
   color: var(--gray-700, #383838);
-}
-
-.permits-table__id {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  font-style: normal;
-  font-weight: var(--font-weight-fw-medium, 500);
-  justify-content: center;
-  letter-spacing: -0.14px;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 76px;
-  padding: var(--spacing-2, 2px) var(--spacing-4, 4px);
-  position: relative;
-  text-align: center;
-  transition: background-color 0.16s ease, color 0.16s ease;
-  white-space: nowrap;
-}
-
-.permits-table__id:hover {
-  background: var(--gray-300, #d9d9d9);
-}
-
-.permits-table__id:focus-visible {
-  background: var(--color-background-base-secondary-active, #e5e5e5);
-  outline: var(--border-width-2, 2px) solid var(--blue-sky-600, #0058d2);
-  outline-offset: 2px;
-}
-
-.permits-table__id-label {
-  pointer-events: none;
-}
-
-.permits-table__copy-tooltip {
-  align-items: center;
-  background: var(--color-background-base-inverse, #1f1f1f);
-  border-radius: var(--border-radius-8, 8px);
-  box-shadow: 0 6px 16px rgba(18, 18, 18, 0.16);
-  color: var(--color-text-base-inverse, #fff);
-  display: inline-flex;
-  font-family: var(--font-family-base, "Onest", sans-serif);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  left: 50%;
-  line-height: var(--line-height-lh-16, 16px);
-  opacity: 0;
-  padding: var(--spacing-6, 6px) 10px;
-  pointer-events: none;
-  position: absolute;
-  bottom: calc(100% + 8px);
-  transform: translate(-50%, -4px) scale(0.98);
-  transition: opacity 0.16s ease, transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
-  white-space: nowrap;
-  z-index: 5;
-}
-
-.permits-table__id:hover .permits-table__copy-tooltip,
-.permits-table__id:focus-visible .permits-table__copy-tooltip,
-.permits-table__id.is-copied .permits-table__copy-tooltip {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
-}
-
-.permits-table__copy-icon {
-  align-items: center;
-  color: var(--color-text-success-default, #007a3d);
-  display: none;
-  flex: 0 0 auto;
-  height: 14px;
-  justify-content: center;
-  width: 14px;
-}
-
-.permits-table__copy-icon .icon {
-  display: block;
-  height: 14px;
-  width: 14px;
-}
-
-.permits-table__id.is-copied .permits-table__copy-tooltip {
-  background: var(--color-background-base-default, #fff);
-  box-shadow:
-    0 0 0 1px var(--color-border-success-default, #8fd8ae),
-    0 6px 16px rgba(18, 18, 18, 0.12);
-  color: var(--color-text-success-default, #007a3d);
-}
-
-.permits-table__id.is-copied .permits-table__copy-icon {
-  display: inline-flex;
 }
 
 .permits-table__stack {
@@ -1026,37 +924,6 @@
   min-width: 32px;
   padding: var(--spacing-0, 0) var(--spacing-8, 8px);
   width: fit-content;
-}
-
-.permits-profile__copy-id {
-  align-items: flex-start;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-4, 4px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-4, 4px);
-  justify-content: flex-start;
-  letter-spacing: -0.14px;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0;
-  text-align: left;
-  width: fit-content;
-}
-
-.permits-profile__copy-id .icon {
-  flex: 0 0 20px;
-  height: 20px;
-  width: 20px;
-}
-
-.permits-profile__copy-id:hover {
-  color: var(--blue-sky-600, #0058d2);
 }
 
 .permits-profile__version {
@@ -2549,7 +2416,6 @@
 
 .e-permits-fo-avatar-menu__identity-copy {
   flex: 0 1 auto;
-  padding: 0 var(--spacing-4, 4px);
 }
 
 .e-permits-fo-avatar-menu__actions {
@@ -4653,124 +4519,30 @@
   line-height: var(--line-height-lh-20, 20px);
 }
 
-.e-permits-fo-copy-value {
-  align-items: baseline;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 1 auto;
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  font-style: normal;
-  font-weight: var(--font-weight-fw-medium, 500);
-  justify-content: flex-start;
-  letter-spacing: -0.14px;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  padding: 0 var(--spacing-4, 4px);
-  position: relative;
-  text-align: center;
-}
-
-.e-permits-fo-copy-value > span:first-child {
-  color: var(--color-text-base-default, #121212);
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  font-style: normal;
-  font-weight: var(--font-weight-fw-medium, 500);
-  letter-spacing: -0.14px;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 0;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.e-permits-fo-copy-value:hover {
-  background: var(--color-background-base-secondary-active, #d9d9d9);
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-fo-copy-value--static,
-.e-permits-fo-copy-value--static:hover {
-  background: transparent;
-  cursor: default;
-}
-
-.e-permits-fo-copy-value__tooltip {
-  align-items: center;
-  background: var(--color-background-base-inverse, #121212);
-  border-radius: var(--border-radius-6, 6px);
-  bottom: calc(100% + var(--spacing-8, 8px));
-  color: var(--color-background-base-inverse-on-color, #fff);
-  display: inline-flex;
-  height: 28px;
-  font-family: var(--font-family-primary-font, Onest), system-ui, sans-serif;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-4, 4px);
-  justify-content: center;
-  left: 50%;
-  line-height: var(--line-height-lh-16, 16px);
-  min-width: 74px;
-  opacity: 0;
-  padding: 0 var(--spacing-8, 8px);
-  pointer-events: none;
-  position: absolute;
-  transform: translate(-50%, 4px);
-  transition: opacity 0.16s ease, transform 0.16s ease;
-  white-space: nowrap;
-  z-index: 20;
-}
-
-.e-permits-fo-copy-value__tooltip span {
-  color: var(--color-background-base-inverse-on-color, #fff);
-  font-family: var(--font-family-primary-font, Onest), system-ui, sans-serif;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  letter-spacing: 0;
-  line-height: var(--line-height-lh-16, 16px);
-  overflow: visible;
-  text-align: left;
-  text-overflow: clip;
-}
-
-.e-permits-fo-copy-value__tooltip-copied {
-  align-items: center;
-  display: none;
-  gap: var(--spacing-4, 4px);
-  justify-content: center;
-  min-width: 58px;
-}
-
-.e-permits-fo-copy-value__tooltip-copied .icon {
-  color: var(--green-400, #32d583);
-  flex: 0 0 18px;
-  height: 18px;
-  width: 18px;
-}
-
-.e-permits-fo-copy-value.is-copied .e-permits-fo-copy-value__tooltip-default {
-  display: none;
-}
-
-.e-permits-fo-copy-value.is-copied .e-permits-fo-copy-value__tooltip-copied {
-  display: inline-flex;
-}
-
-.e-permits-fo-copy-value:hover .e-permits-fo-copy-value__tooltip,
-.e-permits-fo-copy-value.is-copied .e-permits-fo-copy-value__tooltip {
-  opacity: 1;
-  transform: translate(-50%, 0);
-}
-
 .e-permits-fo-selected-role__copy-id {
   flex: 0 1 auto;
+}
+
+/* the label „IDNO” sits in a gap-0 row: 4 to the value (the old copy value's inset) */
+.copy-value.e-permits-fo-selected-role__copy-id {
+  margin-left: var(--spacing-4, 4px);
+}
+
+/* the shared copy value (css/copy-value.css) inside FO identity / authorization cards and the avatar menu:
+   the value keeps the card's value type (14/20 medium default) next to its 12/16 label */
+.copy-value:is(.e-permits-fo-selected-role__copy-id, .e-permits-fo-authorization-card__copy-code, .e-permits-fo-avatar-menu__identity-copy) {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+/* the cards' own `… span` text rules (avatar menu identity: tertiary regular) must not reach the value */
+.copy-value:is(.e-permits-fo-selected-role__copy-id, .e-permits-fo-authorization-card__copy-code, .e-permits-fo-avatar-menu__identity-copy) > .copy-value__text {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
 }
 
 .e-permits-fo-selected-role__change {
@@ -4905,11 +4677,6 @@
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-20, 20px);
   min-width: 0;
-}
-
-.e-permits-fo-authorization-card__copy-code {
-  flex: 0 1 auto;
-  padding: 0 var(--spacing-4, 4px);
 }
 
 .e-permits-fo-authorization-card__dot {
@@ -10299,46 +10066,6 @@
 
 .e-permits-fo-payment-summary .e-permits-fo-summary-row__label {
   color: var(--color-text-base-tertiary, #757575);
-}
-
-/* Figma's copy-block sets this value in Onest, not the mono the component
-   uses elsewhere; the behaviour and tooltip stay the component's */
-/* keeps the row at the 44px Figma height — a 20px glyph on a 20px baseline
-   would push it taller */
-.e-permits-fo-payment-summary .e-permits-fo-copy-value {
-  align-items: center;
-  font-family: inherit;
-  gap: var(--spacing-8, 8px);
-  letter-spacing: normal;
-  margin-left: calc(var(--spacing-4, 4px) * -1);
-}
-
-.e-permits-fo-payment-summary .e-permits-fo-copy-value > span:first-child {
-  font-family: inherit;
-  letter-spacing: normal;
-}
-
-/* Copy value inside a summary row (payment + Finalizare). Figma copy-block:
-   the id, a 4px gap, then the 20px copy glyph in #444 — and the hover
-   surface hugs just that pair. Without align-self the row's flex column
-   stretched the button across the whole value column, and the row's own
-   `span` colour rule turned the tooltip's white text dark. */
-.e-permits-fo-payment-summary .e-permits-fo-copy-value {
-  align-self: flex-start;
-  gap: var(--spacing-4, 4px);
-}
-
-.e-permits-fo-payment-summary .e-permits-fo-copy-value > .icon {
-  color: var(--color-icon-base-secondary, #444);
-  flex: 0 0 20px;
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-fo-payment-summary .e-permits-fo-copy-value__tooltip span {
-  color: var(--color-text-base-inverse-default, #fff);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
 }
 
 /* notă de plată — one card, closed off by the torn edge below it */
@@ -16899,19 +16626,6 @@
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__copy-code {
-  gap: var(--spacing-4, 4px);
-}
-
-.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__copy-code > .icon {
-  color: var(--color-icon-base-default, #121212);
-  display: block;
-  flex: 0 0 var(--spacing-20, 20px);
-  /* square: .icon alone sets the 24px default height */
-  height: var(--spacing-20, 20px);
-  width: var(--spacing-20, 20px);
-}
-
 @media (max-width: 760px) {
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel {
     width: calc(100% - 24px);
@@ -18088,12 +17802,6 @@
   white-space: nowrap;
 }
 
-/* Figma copy-block: the ID sits in the primary font here, not the table mono */
-.e-permits-page-header__meta .e-permits-workplace__copy-code {
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  gap: var(--spacing-4, 4px);
-}
-
 
 /* tabs: 40px items (tab-item-s), 14/20, no inter-tab gap, one full-width track line */
 .e-permits-page-header__tabs {
@@ -18842,14 +18550,6 @@
    zero-height full-width flex item on phones; the part after it is a row start (no dot) */
 .e-permits-stack__break {
   display: none;
-}
-
-.e-permits-stack__meta .e-permits-workplace__copy-code {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  letter-spacing: 0;
-  line-height: var(--line-height-lh-20, 20px);
 }
 
 .e-permits-stack__actions {
@@ -21141,20 +20841,6 @@ button.e-permits-steps-strip__cell:focus-visible {
   }
 }
 
-.e-permits-clas-source-link {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--spacing-8, 8px);
-  max-width: 100%;
-  min-width: 0;
-}
-
-.e-permits-clas-source-link > .link {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 /* success variant of the field message — Figma text-input Style=Success */
 .message--inline.e-permits-fo-field__success {
   color: var(--color-text-positive-default, #027948);
@@ -23239,26 +22925,6 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-16, 16px);
-}
-
-/* Configurări servicii › Serviciu: the RSSP code under the name stays copyable but takes the
-   meta line's type (Roluri „N permisiuni”: 12/16 regular tertiary) */
-.e-permits-workplace__role-meta .e-permits-workplace__copy-code {
-  border-radius: var(--border-radius-4, 4px);
-  color: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  letter-spacing: 0;
-  line-height: inherit;
-  /* room for the hover pill without moving the text off the name's left edge */
-  margin-left: calc(var(--spacing-4, 4px) * -1);
-  padding: 0 var(--spacing-4, 4px);
-}
-
-.e-permits-workplace__role-meta .e-permits-workplace__copy-code:hover,
-.e-permits-workplace__role-meta .e-permits-workplace__copy-code:focus-visible {
-  background: var(--color-background-base-tertiary-hover);
-  color: var(--color-text-base-secondary);
 }
 
 /* Jurnal de evenimente (US-228): an item opens its details. Layered signifiers (NN/g):

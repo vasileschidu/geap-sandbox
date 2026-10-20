@@ -1,0 +1,84 @@
+/* Copy value — ONE copy-to-clipboard component (2026-10-20, js/copy-value.js, components.md „Copy value —
+   one component”). The value is plain text in the context's own type; the copy action is the library
+   icon-only button Strict · Small (32 square, radius 6, 16 icon, tertiary-hover / -active, the library
+   focus ring from main.css). The button is restated here (same values as the back-office button block in
+   e-permits-acte-permisive.css) because RAP does not load that file — so the control is identical on every
+   page. Never in list views (tables, stacked rows): there the number is plain text. */
+
+.copy-value {
+  align-items: flex-start;
+  display: inline-flex;
+  gap: 0;
+  max-width: 100%;
+  min-width: 0;
+  vertical-align: top;
+}
+
+/* the value: selectable text in the surrounding type. It never shrinks below its own width (a number is not
+   broken while there is room); a value longer than its column (IBAN, hash on a phone) breaks instead of
+   pushing the button out */
+.copy-value__text {
+  overflow-wrap: break-word;
+}
+
+/* the 32 square sits centred on the first text line without making the line taller:
+   margin = (line height − 32) / 2 on both sides (−6 on a 20 line) */
+.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button {
+  background: transparent;
+  border-color: transparent;
+  border-radius: var(--border-radius-6, 6px);
+  color: var(--color-text-base-default, #121212);
+  flex: 0 0 var(--spacing-32, 32px);
+  gap: 0;
+  height: var(--spacing-32, 32px);
+  justify-content: center;
+  line-height: inherit;
+  margin-block: calc((1lh - var(--spacing-32, 32px)) / 2);
+  padding: 0;
+  width: var(--spacing-32, 32px);
+}
+
+.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button:hover:not(:disabled) {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+  border-color: transparent;
+}
+
+.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button:active:not(:disabled) {
+  background: var(--color-background-base-tertiary-active, #d9d9d9);
+  border-color: transparent;
+}
+
+.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button .icon {
+  color: currentColor;
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+/* „✓ Copiat” inside the library plain tooltip (the check = the library cell-copy success green) */
+.copy-value__copied {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-4, 4px);
+}
+
+.copy-value__copied .icon {
+  color: var(--green-400, #68c199);
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+/* the shared tooltip never takes the pointer; above dialogs */
+.copy-value__tooltip {
+  pointer-events: none;
+}
+
+/* clipboard fallback buffer (execCommand) — off screen, never visible */
+.copy-value__buffer {
+  left: 0;
+  opacity: 0;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+}

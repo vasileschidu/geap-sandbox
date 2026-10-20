@@ -2286,42 +2286,24 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   };
 
-  const handleCopyClick = async (copyButton) => {
-    const value = copyButton.dataset.shellCopyValue || "";
-
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch (error) {
-      console.warn(error);
-    }
-
-    copyButton.classList.add("is-copied");
-    const tooltip = copyButton.querySelector(".e-permits-workplace__copy-tooltip");
-
-    if (tooltip) {
-      tooltip.textContent = "Copiat";
-    }
-
-    window.setTimeout(() => {
-      copyButton.classList.remove("is-copied");
-
-      if (tooltip) {
-        tooltip.textContent = "Copiază";
-      }
-    }, 1300);
-  };
-
-  const renderCopyCode = (value, label = value) => {
+  /* Copy value — ONE component everywhere (js/copy-value.js, 2026-10-20): profiles, page-header meta,
+     detail rows, dialogs. Clicks, feedback and the clipboard fallback live in the component. */
+  const renderCopyCode = (value, label = "") => {
     if (!value || value === "—") {
       return '<span class="e-permits-workplace__dash">—</span>';
     }
 
-    return `
-      <button class="e-permits-workplace__copy-code" type="button" data-shell-copy-value="${escapeHtml(value)}" aria-label="${escapeHtml(label)}">
-        <span>${escapeHtml(value)}</span>
-        <span class="e-permits-workplace__copy-tooltip" aria-hidden="true">Copiază</span>
-      </button>
-    `;
+    return window.GEAPCopyValue ? window.GEAPCopyValue.html(value, { label }) : escapeHtml(value);
+  };
+
+  /* list views (tables, stacked rows) never carry a copy icon (user, 2026-10-20): the number is plain
+     text — the library identifying line in table cells, the meta's own type in stacked rows */
+  const renderListCode = (value, { meta = false } = {}) => {
+    if (!value || value === "—") {
+      return '<span class="e-permits-workplace__dash">—</span>';
+    }
+
+    return meta ? escapeHtml(value) : `<span class="cell__primary" data-cell-tooltip="${escapeHtml(value)}">${escapeHtml(value)}</span>`;
   };
 
   /* Library breadcrumbs (Figma Components 232:5282). A crumb with `attr` is a link that
@@ -2943,19 +2925,8 @@ document.addEventListener("DOMContentLoaded", () => {
     </section>
   `;
 
-  const renderProfileCopyCode = (value, label = value) => {
-    if (!value || value === "—") {
-      return '<span class="e-permits-workplace__dash">—</span>';
-    }
-
-    return `
-      <button class="e-permits-workplace__copy-code e-permits-dosar-profil__copy-code" type="button" data-shell-copy-value="${escapeHtml(value)}" aria-label="${escapeHtml(label)}">
-        <span>${escapeHtml(value)}</span>
-        ${renderProfileIcon("copy", 20)}
-        <span class="e-permits-workplace__copy-tooltip" aria-hidden="true">Copiază</span>
-      </button>
-    `;
-  };
+  /* the profile variant (with its 20 icon) is the same component now */
+  const renderProfileCopyCode = renderCopyCode;
 
 
 
@@ -3198,7 +3169,7 @@ document.addEventListener("DOMContentLoaded", () => {
         badges: [pending ? renderTag("Neachitat", "warning") : renderTag("Achitat", "success")],
         meta: [
           `<strong>${escapeHtml(String(taxa.suma))} MDL</strong>`,
-          renderCopyCode(taxa.id, `Copiază ${taxa.id}`),
+          renderListCode(taxa.id, { meta: true }),
           `Emisă ${escapeHtml(formatDate(taxa.emitere))}`,
           pending
             ? `Termen ${escapeHtml(formatDate(taxa.termen))}${renderDeadlineMeta(taxa.termen)}`
@@ -3231,7 +3202,7 @@ document.addEventListener("DOMContentLoaded", () => {
         title: escapeHtml(aviz.institutie),
         badges: [renderTag(label, tone)],
         meta: [
-          renderCopyCode(aviz.id, `Copiază ${aviz.id}`),
+          renderListCode(aviz.id, { meta: true }),
           `Solicitat ${escapeHtml(aviz.solicitatLa)}`,
           `Termen ${escapeHtml(aviz.termen)}`,
           `Rezultat: ${escapeHtml(aviz.rezultat)}`
@@ -3291,7 +3262,7 @@ document.addEventListener("DOMContentLoaded", () => {
       leadHtml: `<img class="e-permits-fo-lib-item__icon" src="assets/icons/${docSource(doc).icon}" width="24" height="24" alt="">`,
       badges: [renderTag(docSource(doc).tag, "neutral"), ...(doc.semnat ? [SIGNED_TAG_HTML] : []), ...(doc.tags || []).map(([label, tone]) => renderTag(label, tone))],
       meta: [
-        ...(nr ? [renderCopyCode(nr, `Copiază ${nr}`)] : []),
+        ...(nr ? [renderListCode(nr, { meta: true })] : []),
         /* the file name, unless it is just the number again (ellipsizes on phones, full name in the tooltip) */
         ...(file ? [`<span class="e-permits-stack__file" title="${escapeHtml(file)}">${escapeHtml(file)}</span>`] : []),
         fileSizeLabel(doc.kb),
@@ -5454,16 +5425,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   roleProfileBackShell?.addEventListener("click", closeRoleProfile);
-  /* the act-permisiv page is static markup; give its IDs the same copy behaviour */
-  permitsProfilePanel?.addEventListener("click", async (event) => {
-    const copyButton = event.target.closest("[data-shell-copy-value]");
-
-    if (copyButton) {
-      event.preventDefault();
-      await handleCopyClick(copyButton);
-    }
-  });
-
   roleProfileTitle?.addEventListener("click", (event) => {
     if (event.target.closest("[data-role-profile-crumb-back]")) {
       event.preventDefault();
@@ -5510,14 +5471,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const role = getRoleById(roleProfileState.roleId);
 
       if (!role) {
-        return;
-      }
-
-      const copyButton = event.target.closest("[data-shell-copy-value]");
-
-      if (copyButton) {
-        event.preventDefault();
-        await handleCopyClick(copyButton);
         return;
       }
 
@@ -5580,7 +5533,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderNrDosar = (row) => `
     <div class="e-permits-workplace__case-cell">
-      ${renderCopyCode(row.nrDosar, `Copiază ${row.nrDosar}`)}
+      ${renderListCode(row.nrDosar)}
       <span class="e-permits-workplace__source">
         <span>Sursă:</span>
         <span>${escapeHtml(row.sursa)}</span>
@@ -5689,7 +5642,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderSarcinaCell = (row, key) => {
     switch (key) {
       case "nrSarcina":
-        return renderCopyCode(row.nrSarcina, `Copiază ${row.nrSarcina}`);
+        return renderListCode(row.nrSarcina);
       case "tipSarcina": {
         const tip = workplaceDb.tipSarcina[row.tipSarcina];
         return `<span class="e-permits-workplace__tag e-permits-workplace__tag--${escapeHtml(tip?.tone || "neutral")} e-permits-workplace__tag--icon">
@@ -5700,7 +5653,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "dosar":
         return `
           <div class="e-permits-workplace__case-cell">
-            ${renderCopyCode(row.dosarNr, `Copiază ${row.dosarNr}`)}
+            ${renderListCode(row.dosarNr)}
             <span class="e-permits-workplace__source"><span>Sursă:</span><span>${escapeHtml(row.sursa)}</span></span>
           </div>
         `;
@@ -5801,7 +5754,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "actBaza":
         return `
           <span class="e-permits-workplace__act-base">
-            ${renderCopyCode(row.actBaza?.nr, `Copiază ${row.actBaza?.nr || ""}`)}
+            ${renderListCode(row.actBaza?.nr)}
             <span>${escapeHtml(row.actBaza?.denumire || "—")}</span>
           </span>
         `;
@@ -6700,13 +6653,13 @@ document.addEventListener("DOMContentLoaded", () => {
       /* the Dosare ID cell: copyable code over "Sursă: RSSP" */
       /* the source (RSSP / eAPL) and its state live in „Sursă externă” */
       case "cod":
-        return renderCopyCode(row.cod, `Copiază ${row.cod}`);
+        return renderListCode(row.cod);
       /* the service name over its RSSP code — the Roluri pattern (name over „N permisiuni”) */
       case "denumire":
         return `
           <div class="e-permits-workplace__role-identity">
             <span class="e-permits-workplace__role-name" data-cell-tooltip="${escapeHtml(row.denumire)}">${escapeHtml(row.denumire)}</span>
-            <span class="e-permits-workplace__role-meta">${renderCopyCode(row.cod, `Copiază ${row.cod}`)}</span>
+            <span class="e-permits-workplace__role-meta">${renderListCode(row.cod, { meta: true })}</span>
           </div>
         `;
       /* abbreviation over full institution name (as in RAP) */
@@ -6757,7 +6710,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "denumire":
         return `<span class="e-permits-passport__name">${escapeHtml(row.denumire)}</span>`;
       case "idno":
-        return renderCopyCode(row.idno, `Copiază IDNO ${row.idno}`);
+        return renderListCode(row.idno);
       case "sursa":
         return renderTag(row.sursa, "neutral");
       default:
@@ -8329,7 +8282,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title: escapeHtml(r.name),
       rowAttrs: r.id ? `data-svc-clas-open="${escapeHtml(r.id)}" tabindex="0"` : "",
       badges: [renderTag(r.active ? "Activ" : "Inactiv", r.active ? "success" : "neutral")],
-      meta: [renderCopyCode(r.code), escapeHtml(roCount(r.values, "valoare", "valori")), r.source === "MConnect" ? "Sincronizat din MConnect" : "",
+      meta: [renderListCode(r.code, { meta: true }), escapeHtml(roCount(r.values, "valoare", "valori")), r.source === "MConnect" ? "Sincronizat din MConnect" : "",
         `Editat ${escapeHtml(formatLongDate(r.editedAt))}${r.editedBy ? ` · ${escapeHtml(r.editedBy)}` : ""}`].filter(Boolean),
       actionsHtml: r.id ? renderRowActions(r.editable
         ? { primary: { label: "Editează", attrs: `data-svc-clas-open="${escapeHtml(r.id)}"` }, label: r.name }
@@ -10021,7 +9974,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const last = (c.jurnal || []).find((e) => /Sincronizare/.test(e.type));
     return `${renderPassportBlock("Sursă", [
       ["Mod", escapeHtml(c.mod === "mconnect" ? "Sincronizare MConnect" : "API extern")],
-      ["Link la sursă", c.endpoint ? `<span class="e-permits-clas-source-link"><a class="link link-primary link-sm" href="${escapeHtml(c.endpoint)}" target="_blank" rel="noopener">${escapeHtml(c.endpoint)} ↗</a>${clasIconAction("copy", "Copiază linkul", `data-shell-copy-value="${escapeHtml(c.endpoint)}"`)}</span>` : "—"],
+      ["Link la sursă", c.endpoint ? (window.GEAPCopyValue?.html(c.endpoint, { label: "Copiază linkul", text: `<a class="link link-primary link-sm" href="${escapeHtml(c.endpoint)}" target="_blank" rel="noopener">${escapeHtml(c.endpoint)} ↗</a>` }) || escapeHtml(c.endpoint)) : "—"],
       ["Ultima sincronizare", last ? `${escapeHtml(formatStamp(last.at))} · ${escapeHtml(last.user)}` : "—"],
       ["La lipsa unei valori", "Se dezactivează automat (rămâne în înregistrările existente)"]
     ], { actionHtml: clasCanEdit(c) ? '<button class="btn btn-secondary btn-sm" type="button" data-clas-sync>Sincronizează acum</button>' : "" })}
@@ -11030,7 +10983,7 @@ document.addEventListener("DOMContentLoaded", () => {
          the template's origin is the source */
       case "cod": return `
         <div class="e-permits-workplace__case-cell">
-          ${renderCopyCode(row.cod, `Copiază ${row.cod}`)}
+          ${renderListCode(row.cod)}
           <span class="e-permits-workplace__source"><span>Sursă:</span><span>${escapeHtml(row.sursa)}</span></span>
         </div>
       `;
@@ -16190,7 +16143,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.GEAPUi = {
     renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl,
     renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml,
-    renderBreadcrumbs, renderRowActions, renderCopyCode, renderDateTime
+    renderBreadcrumbs, renderRowActions, renderCopyCode, renderListCode, renderDateTime
   };
 
   /* tax lifecycle from the list: publish · activate · deactivate · delete, all confirmed */
@@ -16422,7 +16375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (svcEvent && !event.target.closest("a, input")) { openSvcEventDetail(svcEvent.dataset.svcEvent); return; }
     /* US-226: a classifier row (or its Editează / eye) opens its values; the copy-code chip copies */
     const svcClas = event.target.closest("[data-svc-clas-open]");
-    if (svcClas && !event.target.closest("[data-shell-copy-value], a, input")) { openClassifierProfile(svcClas.dataset.svcClasOpen, "valori", { fromService: serviceProfileState.code }); return; }
+    if (svcClas && !event.target.closest("[data-copy-value], a, input")) { openClassifierProfile(svcClas.dataset.svcClasOpen, "valori", { fromService: serviceProfileState.code }); return; }
     if (event.target.closest("[data-svc-events-more]")) {
       svcEventsState.shown += SVC_EVENTS_PAGE; refreshSvcEvents();
       /* focus stays on the list: the next „Arată încă” (or the last row) */
@@ -18814,14 +18767,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     workplacePanel.addEventListener("click", async (event) => {
-      const copyButton = event.target.closest("[data-shell-copy-value]");
-
-      if (copyButton) {
-        event.preventDefault();
-        await handleCopyClick(copyButton);
-        return;
-      }
-
       const registryTariffView = event.target.closest("[data-tariff-view]");
 
       if (registryTariffView) {
@@ -18997,14 +18942,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const copyButton = event.target.closest("[data-shell-copy-value]");
-
-      if (copyButton) {
-        event.preventDefault();
-        await handleCopyClick(copyButton);
-        return;
-      }
-
       const tabButton = event.target.closest("[data-user-profile-tab]");
 
       if (tabButton) {
@@ -19131,14 +19068,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (dosarProfilPanel) {
     dosarProfilPanel.addEventListener("click", async (event) => {
-      const copyButton = event.target.closest("[data-shell-copy-value]");
-
-      if (copyButton) {
-        event.preventDefault();
-        await handleCopyClick(copyButton);
-        return;
-      }
-
       if (event.target.closest("[data-dosar-profil-back]")) {
         closeDosarProfil();
         return;
@@ -19306,7 +19235,7 @@ document.addEventListener("DOMContentLoaded", () => {
       shell, escapeHtml, renderTag, renderDateTime, formatLongDate, formatStamp, formatTime,
       renderPageHeaderTop, renderPageHeaderMeta, renderPageHeaderTabCount, watchPageHeaderMeta,
       renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions,
-      renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode,
+      renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode, renderListCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,

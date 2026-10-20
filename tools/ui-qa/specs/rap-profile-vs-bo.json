@@ -80,16 +80,16 @@
   },
   {
    "name": "meta copy",
-   "a": ".e-permits-page-header__meta .e-permits-workplace__copy-code",
-   "b": ".e-permits-page-header__meta .rap-profile__copy",
+   "a": ".e-permits-page-header__meta .copy-value",
+   "b": ".e-permits-page-header__meta .copy-value",
    "ignore": [
     "rect.width"
    ]
   },
   {
    "name": "meta copy text",
-   "a": ".e-permits-page-header__meta .e-permits-workplace__copy-code > span:first-child",
-   "b": ".e-permits-page-header__meta .rap-profile__copy > span:first-child",
+   "a": ".e-permits-page-header__meta .copy-value__text",
+   "b": ".e-permits-page-header__meta .copy-value__text",
    "rel": "meta copy",
    "ignore": [
     "rect.width",
@@ -98,8 +98,8 @@
   },
   {
    "name": "meta copy icon",
-   "a": ".e-permits-page-header__meta .e-permits-workplace__copy-code > .icon",
-   "b": ".e-permits-page-header__meta .rap-profile__copy > .icon",
+   "a": ".e-permits-page-header__meta .copy-value__button .icon",
+   "b": ".e-permits-page-header__meta .copy-value__button .icon",
    "rel": "meta copy",
    "ignore": [
     "rect.x"
@@ -219,8 +219,8 @@
   },
   {
    "name": "copy",
-   "a": ".e-permits-dosar-profil__card .e-permits-dosar-profil__copy-code",
-   "b": ".e-permits-dosar-profil__card .rap-profile__copy",
+   "a": ".e-permits-dosar-profil__card .copy-value",
+   "b": ".e-permits-dosar-profil__card .copy-value",
    "rel": "copy row value",
    "ignore": [
     "rect.width",
@@ -229,8 +229,8 @@
   },
   {
    "name": "copy text",
-   "a": ".e-permits-dosar-profil__card .e-permits-dosar-profil__copy-code > span:first-child",
-   "b": ".e-permits-dosar-profil__card .rap-profile__copy > span:first-child",
+   "a": ".e-permits-dosar-profil__card .copy-value__text",
+   "b": ".e-permits-dosar-profil__card .copy-value__text",
    "rel": "copy",
    "ignore": [
     "rect.width",
@@ -239,8 +239,8 @@
   },
   {
    "name": "copy icon",
-   "a": ".e-permits-dosar-profil__card .e-permits-dosar-profil__copy-code > .icon",
-   "b": ".e-permits-dosar-profil__card .rap-profile__copy > .icon",
+   "a": ".e-permits-dosar-profil__card .copy-value__button .icon",
+   "b": ".e-permits-dosar-profil__card .copy-value__button .icon",
    "rel": "copy",
    "ignore": [
     "rect.x"

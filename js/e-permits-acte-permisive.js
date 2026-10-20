@@ -7,23 +7,6 @@
     window.location.hash = target;
   }
 
-  async function copyText(value) {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(value);
-      return;
-    }
-
-    const input = document.createElement("textarea");
-    input.value = value;
-    input.setAttribute("readonly", "");
-    input.style.position = "fixed";
-    input.style.opacity = "0";
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand("copy");
-    document.body.removeChild(input);
-  }
-
   document.addEventListener("DOMContentLoaded", () => {
     function normalizeDemoFlow(value) {
       const normalized = String(value || "").trim().toLowerCase();
@@ -3133,18 +3116,7 @@
     function paymentSummaryValueHtml(row) {
       const value = escapeFrontOfficeHtml(row.value || "");
       if (!row.copy) return `<span>${value}</span>`;
-      return `
-        <button class="e-permits-fo-copy-value" type="button" data-fo-copy-value="${value}" aria-label="Copiază numărul dosarului ${value}">
-          <span>${value}</span>
-          <svg class="icon medium" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-copy"></use></svg>
-          <span class="e-permits-fo-copy-value__tooltip" aria-hidden="true">
-            <span class="e-permits-fo-copy-value__tooltip-default">Copiază</span>
-            <span class="e-permits-fo-copy-value__tooltip-copied">
-              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg><span>Copiat</span>
-            </span>
-          </span>
-        </button>
-      `;
+      return copyValueButtonHtml(row.value || "", { ariaLabel: `Copiază numărul dosarului ${row.value || ""}` });
     }
 
     /* the FO „Plată” body (fo-07): request summary rows, the note-of-payment card (invoice table + totals, torn
@@ -3450,28 +3422,9 @@
       if (frontOfficeMobileProgressTotal) frontOfficeMobileProgressTotal.textContent = String(total);
     }
 
+    /* Copy value — the shared component (js/copy-value.js, 2026-10-20); className = a placement hook only */
     function copyValueButtonHtml(value, { ariaLabel = "", className = "" } = {}) {
-      const safeValue = escapeFrontOfficeHtml(value);
-      const label = ariaLabel || `Copiază ${safeValue}`;
-      return `
-        <button
-          class="e-permits-fo-copy-value${className ? ` ${escapeFrontOfficeHtml(className)}` : ""}"
-          type="button"
-          data-fo-copy-value="${safeValue}"
-          aria-label="${escapeFrontOfficeHtml(label)}"
-        >
-          <span>${safeValue}</span>
-          <span class="e-permits-fo-copy-value__tooltip" aria-hidden="true">
-            <span class="e-permits-fo-copy-value__tooltip-default">Copiază</span>
-            <span class="e-permits-fo-copy-value__tooltip-copied">
-              <svg class="icon" width="18" height="18">
-                <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
-              </svg>
-              <span>Copiat</span>
-            </span>
-          </span>
-        </button>
-      `;
+      return window.GEAPCopyValue?.html(value, { label: ariaLabel, className }) || escapeFrontOfficeHtml(value);
     }
 
     /* changeAttrs / extraHtml: other hosts of the card (Ghișeu: „Schimbă” reopens its modal, a tag in the meta) */
@@ -7219,27 +7172,6 @@
       }
     });
 
-    document.addEventListener("click", async (event) => {
-      const copyButton = event.target.closest("[data-fo-copy-value]");
-      if (!copyButton) return;
-      event.preventDefault();
-      event.stopPropagation();
-
-      window.clearTimeout(copyButton._foCopyTimer);
-      try {
-        await copyText(copyButton.dataset.foCopyValue || copyButton.textContent.trim());
-        copyButton.classList.add("is-copied");
-        copyButton.setAttribute("aria-label", "Copiat");
-        copyButton._foCopyTimer = window.setTimeout(() => {
-          copyButton.classList.remove("is-copied");
-          const text = copyButton.querySelector("span")?.textContent?.trim() || "";
-          copyButton.setAttribute("aria-label", text ? `Copiază ${text}` : "Copiază");
-        }, 1500);
-      } catch {
-        copyButton.classList.remove("is-copied");
-      }
-    });
-
     document.addEventListener("click", (event) => {
       if (!frontOfficeAvatarMenu?.classList.contains("is-open")) return;
       if (frontOfficeAvatarMenu.contains(event.target)) return;
@@ -8830,7 +8762,7 @@
 
     document.querySelectorAll(".permits-table__row[data-row-link]").forEach((row) => {
       row.addEventListener("click", (event) => {
-        if (event.target.closest(".permits-table__row-action, [data-copy-id]")) {
+        if (event.target.closest(".permits-table__row-action")) {
           return;
         }
         navigateRow(row);
@@ -8844,29 +8776,5 @@
       });
     });
 
-    document.querySelectorAll("[data-copy-id]").forEach((button) => {
-      const tooltipText = button.querySelector(".permits-table__copy-text");
-      const defaultTooltip = tooltipText?.textContent || "Copy to clipboard";
-      let copiedTimer;
-
-      button.addEventListener("click", async (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        window.clearTimeout(copiedTimer);
-
-        try {
-          await copyText(button.dataset.copyId || button.textContent.trim());
-          if (tooltipText) tooltipText.textContent = "Copied!";
-          button.classList.add("is-copied");
-          copiedTimer = window.setTimeout(() => {
-            button.classList.remove("is-copied");
-            if (tooltipText) tooltipText.textContent = defaultTooltip;
-          }, 1500);
-        } catch {
-          button.classList.remove("is-copied");
-          if (tooltipText) tooltipText.textContent = defaultTooltip;
-        }
-      });
-    });
   });
 })();

@@ -7,7 +7,10 @@
 //   2. field sizes — input / select / search / phone / date / textarea boxes: phones (≤760) 48 high with 16/24
 //      text, desktop 40; icons inside a field at the library icon size for that field (48 → 24, 40 → 20);
 //   3. look-alike — an element styled as a control (pointer cursor + paint, or border + radius + padding at a
-//      control height) without a control role and without a library / documented class.
+//      control height) without a control role and without a library / documented class;
+//   4. copy (2026-10-20) — copy-variant: copy markup that is not the ONE `.copy-value` component (legacy classes /
+//      data hooks, an icon-only control labelled „Copiază…”); copy-in-list: a `.copy-value` inside a list view
+//      (table cell, stacked row, act / request row) — lists show plain numbers (spec.copy).
 // Output: <out>/report.json + <out>/summary.md (selector, measured, expected, fix hint per finding).
 //
 // Usage: node --experimental-websocket --no-warnings tools/ui-qa/component-audit.mjs \
@@ -155,6 +158,31 @@ const AUDIT = (spec, documentedList, scope) => {
     if (!(pointer || boxy) || known(el)) continue;
     la++; counts.lookAlikes++;
     add("minor", "look-alike", el, pointer ? "cursor pointer + paint" : `border ${cs.borderTopWidth} · radius ${cs.borderTopLeftRadius} · padding ${cs.paddingLeft}`, "a library control, or no control look");
+  }
+  /* 4. copy — one component, never in list views */
+  const C = spec.copy;
+  if (C) {
+    counts.copies = 0;
+    const labelRe = new RegExp(C.labelPattern, "i");
+    const visibleText = (el) => [...el.childNodes].some((n) => (n.nodeType === 3 && n.textContent.trim()) || (n.nodeType === 1 && !n.matches("svg, [aria-hidden=true], .u-visually-hidden") && vis(n) && n.textContent.trim()));
+    const seen = new Set();
+    for (const s of C.legacy) for (const el of root.querySelectorAll(s)) {
+      if (!vis(el) || ignored(el) || seen.has(el) || el.closest(C.component)) continue;
+      seen.add(el); add("major", "copy-variant", el, `legacy copy markup ${s}`, `${C.component} (GEAPCopyValue.html)`);
+    }
+    for (const el of root.querySelectorAll("button, [role=button], a[href]")) {
+      if (!vis(el) || ignored(el) || seen.has(el) || el.closest(C.button)) continue;
+      const label = el.getAttribute("aria-label") || el.dataset.tooltipLabel || "";
+      if (!labelRe.test(label) || visibleText(el) || /menuitem/.test(el.getAttribute("role") || "")) continue;
+      seen.add(el); add("major", "copy-variant", el, `icon-only „${label.slice(0, 40)}” outside ${C.component}`, `${C.component} (GEAPCopyValue.html)`);
+    }
+    for (const el of root.querySelectorAll(C.component)) {
+      if (!vis(el) || ignored(el)) continue;
+      counts.copies++;
+      if (C.listExempt.some((s) => el.closest(s))) continue;
+      const ctx = C.listContexts.find((s) => el.closest(s));
+      if (ctx) add("major", "copy-in-list", el, `copy value inside ${ctx}`, "plain text in list views");
+    }
   }
   return { viewport: `${window.innerWidth}`, phone, counts, findings };
 };

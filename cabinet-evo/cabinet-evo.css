@@ -7,7 +7,7 @@
      .chip / .chip__label / .chip__badge  status filters + Filtre
      .status-tag                          Valabil / Expirat / Suspendat / Retras
      .message message--warning|--error    inline notice strip
-     .e-permits-fo-copy-value             mono dossier number + copy tooltip
+     .copy-value (../css/copy-value.css)   number + copy button (header meta / detail rows only)
    Only the page shell and the card frame are defined below.
    ========================================================================== */
 
@@ -383,19 +383,6 @@
   content: "";
   height: 3.75px;
   width: 3.75px;
-}
-
-/* Figma ".copy-block": gap 4, mono text + 20px copy icon */
-.cab-card__meta .e-permits-fo-copy-value {
-  gap: var(--spacing-4, 4px);
-  padding: 0;
-}
-
-.cab-card__meta .e-permits-fo-copy-value .icon {
-  color: var(--color-icon-base-secondary, #444);
-  flex: none;
-  height: 20px;
-  width: 20px;
 }
 
 /* inline notice strip sits inside the card.
@@ -1157,8 +1144,7 @@
   line-height: var(--line-height-lh-24, 24px);
 }
 
-.sm-list .e-permits-stack__meta,
-.sm-list .e-permits-stack__meta .e-permits-workplace__copy-code {
+.sm-list .e-permits-stack__meta {
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
 }
@@ -1218,40 +1204,9 @@
   margin-top: var(--spacing-24, 24px);
 }
 
-/* the dosar number reads as meta (tertiary, regular), copy icon on the text line */
-.sm-list .e-permits-stack__meta .e-permits-fo-copy-value {
-  align-items: center;
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.sm-list .e-permits-stack__meta .e-permits-fo-copy-value:hover {
-  color: var(--color-text-base-default, #121212);
-}
-
 .sm-list .e-permits-stack__meta .e-permits-stack__part {
   align-items: center;
   display: inline-flex;
-}
-
-.sm-list .e-permits-stack__meta .e-permits-fo-copy-value {
-  gap: var(--spacing-4, 4px);
-  padding: 0;
-}
-
-.sm-list .e-permits-stack__meta .e-permits-fo-copy-value > span:first-child {
-  color: inherit;
-  font-weight: var(--font-weight-fw-regular, 400);
-  letter-spacing: 0;
-}
-
-.sm-list .e-permits-stack__meta .e-permits-fo-copy-value .icon {
-  color: currentColor;
-  flex: none;
-  height: 16px;
-  width: 16px;
 }
 
 @media (max-width: 600px) {
@@ -1339,41 +1294,12 @@
 }
 
 
-/* a copy value in the header meta / a detail row = the BO copy code (e-permits-shell.css :3063,
-   = RAP .rap-profile__copy): 20 high, no inset, 4 to a 20 icon, tertiary fill on hover; the FO
-   copy keeps its own Copiază / Copiat tooltip (proof: compare-styles cabinet-profile-vs-bo.json) */
-:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value {
-  align-items: center;
-  border-radius: var(--border-radius-4, 4px);
-  gap: var(--spacing-4, 4px);
-  justify-content: normal;
-  max-width: 100%;
-  padding: 0;
-}
-
-:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value:is(:hover, :focus-visible) {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value > span:first-child {
-  letter-spacing: normal;
-  overflow: visible;
-  text-overflow: clip;
-  white-space: inherit;
-}
-
 /* phones: a GEAP number + its copy icon (≈ 170) does not fit half of 343 — the number item takes the
    whole first meta row instead of breaking the number at its hyphens; the rest stay 2 equal columns */
 @media (max-width: 760px) {
-  .cab-page-header .e-permits-page-header__meta-item:first-child:has(.e-permits-fo-copy-value) {
+  .cab-page-header .e-permits-page-header__meta-item:first-child:has(.copy-value) {
     grid-column: 1 / -1;
   }
-}
-
-:is(.e-permits-page-header__meta, .e-permits-dosar-profil__card) .e-permits-fo-copy-value > .icon {
-  flex: 0 0 var(--spacing-20, 20px);
-  height: var(--spacing-20, 20px);
-  width: var(--spacing-20, 20px);
 }
 
 /* 2026-10-16 · dropdown audit: on phones the act card's ⋮ sits next to the status tag (x ≈ 107), so the

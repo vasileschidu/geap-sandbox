@@ -651,7 +651,7 @@
   const clientCell = (r, key) => {
     switch (key) {
       case "denumire": return S.identity(r.denumire, r.client.redirectUris[0]?.replace(/^https?:\/\//, "").split("/")[0] || "");
-      case "clientId": return A.renderCopyCode(r.id, `Copiază ${r.id}`);
+      case "clientId": return A.renderListCode(r.id);
       case "organizatie": return desc(r.organizatie);
       case "cazuri": return ucChips(r.cazuri);
       case "scoring": return desc(r.scoring);
@@ -793,7 +793,7 @@
   const ucCell = (r, key) => {
     switch (key) {
       case "denumire": return S.identity(r.denumire, r.uc.description);
-      case "cod": return A.renderCopyCode(r.cod, `Copiază ${r.cod}`);
+      case "cod": return A.renderListCode(r.cod);
       case "nivel": return T(r.nivel);
       case "versiune": return `v${esc(r.versiune)}`;
       case "pasi": return r.pasi ? String(r.pasi) : `<span class="e-permits-workplace__tag e-permits-workplace__tag--warning e-permits-workplace__tag--icon">${icon("warning-filled", 16)}0 · flux incomplet</span>`;
@@ -1115,7 +1115,7 @@
   });
   const paramCell = (r, key) => {
     switch (key) {
-      case "cheie": return A.renderCopyCode(r.cheie, `Copiază ${r.cheie}`);
+      case "cheie": return A.renderListCode(r.cheie);
       case "denumire": return desc(r.denumire);
       case "descriere": return desc(r.descriere);
       case "valoare": return paramValue(r.p);
@@ -1635,7 +1635,7 @@
   const orgCell = (r, key) => {
     switch (key) {
       case "denumire": return S.identity(r.denumire, r.clienti ? plural(r.clienti, "client", "clienți") : "fără clienți");
-      case "idno": return A.renderCopyCode(r.idno, `Copiază ${r.idno}`);
+      case "idno": return A.renderListCode(r.idno);
       case "contact": return r.contact ? desc(r.contact) : dash;
       case "email": return r.email ? desc(r.email) : dash;
       case "telefon": return r.telefon ? esc(r.telefon) : dash;
@@ -1856,7 +1856,7 @@
     switch (key) {
       case "denumire": return S.identity(r.denumire, r.clienti ? `mTLS · ${plural(r.clienti, "client", "clienți")}` : r.c.keyAlgorithm);
       case "emitent": return desc(r.emitent);
-      case "amprenta": return A.renderCopyCode(shortThumb(r.amprenta), `Copiază amprenta ${r.amprenta}`).replace(`data-shell-copy-value="${esc(shortThumb(r.amprenta))}"`, `data-shell-copy-value="${esc(r.amprenta)}"`);
+      case "amprenta": return A.renderListCode(shortThumb(r.amprenta));
       case "valabilDeLa": return esc(longDate(r.valabilDeLa));
       case "valabilPana": { const d = daysTo(r.valabilPana); return `<span class="e-permits-workplace__date-stack"><span>${esc(longDate(r.valabilPana))}</span><span class="e-permits-workplace__date-meta">${d < 0 ? `expirat de ${-d} zile` : d <= 60 ? `expiră în ${d} zile` : `încă ${Math.round(d / 365)} ani`}</span></span>`; }
       case "stare": return T(r.stare, CA_TONES[r.stare]);

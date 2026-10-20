@@ -3041,41 +3041,31 @@ button.e-permits-workplace__th-content:focus-visible {
   justify-content: center;
 }
 
-.e-permits-workplace__copy-code {
-  max-width: 100%;
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  border-radius: var(--border-radius-4, 4px);
-  background: transparent;
-  color: var(--color-text-base-default, #121212);
-  font-family: var(--font-family-primary-font, Onest), sans-serif;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
-  letter-spacing: -0.14px;
-  text-align: left;
-  cursor: pointer;
-}
-
 /* one line per cell text (table rule 2026-10-15): names and sources ellipsize instead of
    being cut or broken mid-word; the full text is in the cell tooltip (js/table-cells.js).
    2026-10-16 (user: „Aviz sanitar-veterinar pentru unitățile de producție” ran under the next
    column): every two-line stack in a table cell — `__case-cell`, the name-over-meta
    `__role-identity` (Configurări servicii, Roluri, eKYC registries) and `__date-stack` (dates,
    Fluxuri „Folosit de”) — is capped at the cell width and each of its lines ellipsizes. A meta
-   line holding a copy-code stays unclipped (its hover pill / „Copiat” feedback) */
+   line holding a copy value stays unclipped (lists carry no copy since 2026-10-20; kept for safety) */
 td :is(.e-permits-workplace__case-cell, .e-permits-workplace__role-identity, .e-permits-workplace__date-stack) {
   max-width: 100%;
 }
 
 .e-permits-workplace__case-cell > span,
-td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > span:not(:has(.e-permits-workplace__copy-code)) {
+td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > span:not(:has(.copy-value)) {
   max-width: 100%;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* a plain number / code in a table cell (renderListCode — no copy in lists, 2026-10-20): one line,
+   ellipsis + the cell tooltip when the column is narrower than the code (Fluxuri identifiers at 1024) */
+td > .cell__primary {
+  display: block;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3085,70 +3075,6 @@ td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > 
    ellipsize → a plain block when it has no dot (same 16px line) */
 td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.e-permits-workplace__date-dot)) {
   display: block;
-}
-
-.e-permits-workplace__table td:has(.e-permits-workplace__copy-code) {
-  overflow: visible;
-}
-
-.e-permits-workplace__table td:not(:nth-child(2)):not(.e-permits-workplace__actions-cell):has(.e-permits-workplace__copy-code) {
-  position: relative;
-}
-
-.e-permits-workplace__table td:has(.e-permits-workplace__copy-code:hover),
-.e-permits-workplace__table td:has(.e-permits-workplace__copy-code:focus-visible),
-.e-permits-workplace__table td:has(.e-permits-workplace__copy-code.is-copied) {
-  overflow: visible !important;
-  z-index: 30 !important;
-}
-
-.e-permits-workplace__copy-code:hover,
-.e-permits-workplace__copy-code:focus-visible {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-workplace__copy-code:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-100, #e8f0fb);
-}
-
-.e-permits-workplace__copy-code > span:first-child {
-  min-width: 0;
-  overflow: visible;
-  text-overflow: clip;
-}
-
-.e-permits-workplace__copy-tooltip {
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 8px);
-  z-index: 1000;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 66px;
-  height: 28px;
-  padding: 0 var(--spacing-8, 8px);
-  border-radius: var(--border-radius-6, 6px);
-  background: var(--color-background-inverse, #1e1e1e);
-  color: var(--color-text-inverse, #fff);
-  font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-16, 16px);
-  letter-spacing: 0;
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 4px);
-  transition: opacity 120ms ease, transform 120ms ease;
-  white-space: nowrap;
-}
-
-.e-permits-workplace__copy-code:hover .e-permits-workplace__copy-tooltip,
-.e-permits-workplace__copy-code:focus-visible .e-permits-workplace__copy-tooltip,
-.e-permits-workplace__copy-code.is-copied .e-permits-workplace__copy-tooltip {
-  opacity: 1;
-  transform: translate(-50%, 0);
 }
 
 .e-permits-workplace__source {

@@ -141,25 +141,10 @@
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
     })[ch]);
 
-  /* the library copy-value component, with its Copiază / Copiat tooltip */
-  function copyValueHtml(value) {
-    const safe = escape(value);
-    return `
-      <button
-        class="e-permits-fo-copy-value"
-        type="button"
-        data-fo-copy-value="${safe}"
-        aria-label="Copiază numărul dosarului ${safe}"
-      >
-        <span>${safe}</span>
-        ${icon("icon-copy", "medium")}
-        <span class="e-permits-fo-copy-value__tooltip" aria-hidden="true">
-          <span class="e-permits-fo-copy-value__tooltip-default">Copiază</span>
-          <span class="e-permits-fo-copy-value__tooltip-copied">
-            ${icon("icon-checkmark-small")}<span>Copiat</span>
-          </span>
-        </span>
-      </button>`;
+  /* Copy value — the shared component (../js/copy-value.js, 2026-10-20): header meta, detail rows,
+     dialogs, identity cards; never in list rows (plain number there) */
+  function copyValueHtml(value, label = "", className = "") {
+    return window.GEAPCopyValue?.html(value, { label: label || `Copiază ${value}`, className }) || escape(value);
   }
 
   /* ---------- rendering ---------- */
@@ -497,24 +482,6 @@
 
     bindAvatarMenu();
 
-    /* same contract as the front-office copy handler */
-    document.addEventListener("click", async (event) => {
-      const button = event.target.closest("[data-fo-copy-value]");
-      if (!button) return;
-      event.preventDefault();
-      event.stopPropagation();
-
-      window.clearTimeout(button._foCopyTimer);
-      try {
-        await navigator.clipboard.writeText(button.dataset.foCopyValue || "");
-        button.classList.add("is-copied");
-        button._foCopyTimer = window.setTimeout(() => {
-          button.classList.remove("is-copied");
-        }, 1500);
-      } catch {
-        /* clipboard unavailable (insecure context) — number stays selectable */
-      }
-    });
   }
 
   /* ---------- GEAP acts (post-processes) ---------- */
@@ -695,7 +662,7 @@
   }
   let actViewInstance = null;
   const actView = () => {
-    actViewInstance ||= window.GEAPActView.create({ sprite: SPRITE, copyHtml: (value) => copyValueHtml(value).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(value)}"`), copySelector: "[data-fo-copy-value]", onCopy: () => {} });
+    actViewInstance ||= window.GEAPActView.create({ sprite: SPRITE, copyHtml: (value) => copyValueHtml(value, `Copiază numărul actului ${value}`), copySelector: "[data-copy-value]", onCopy: () => {} });
     return actViewInstance;
   };
 
@@ -739,8 +706,8 @@
     const details = [
       detailRow("Denumire act permisiv", escape(act.service.title || "")),
       detailRow("Stare", tagHtml(act.statusLabel, ACT_TONE[act.status])),
-      detailRow("Numărul actului permisiv", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)),
-      dosarNr ? detailRow("Numărul dosarului electronic", copyValueHtml(dosarNr)) : "",
+      detailRow("Numărul actului permisiv", copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)),
+      dosarNr ? detailRow("Numărul dosarului electronic", copyValueHtml(dosarNr, `Copiază numărul dosarului ${dosarNr}`)) : "",
       actProfileOf(act).printedDocumentNumber ? detailRow("Seria și nr. documentului tipărit", escape(actProfileOf(act).printedDocumentNumber)) : "",
       tacit ? detailRow("Data aprobării tacite", `<span>${escape(longDate(actProfileOf(act).tacitApprovalDate))}</span>${act.status === "valabil" ? tacitTagHtml() : ""}`) : "",
       detailRow("Data eliberării", escape(longDate(act.issued))),
@@ -756,7 +723,7 @@
         title: act.title,
         titleId: "cab-act-title",
         meta: [
-          ["Numărul actului", copyValueHtml(act.number).replace(/aria-label="[^"]*"/, `aria-label="Copiază numărul actului ${escape(act.number)}"`)],
+          ["Numărul actului", copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)],
           ["Stare", `${tagHtml(act.statusLabel, ACT_TONE[act.status])}${tacit && act.status === "valabil" ? tacitTagHtml() : ""}`],
           [dateLabel, escape(dateValue || "—")],
           ["Data expirării", escape(longDate(act.validUntil) || "—")],
@@ -794,7 +761,7 @@
             <span class="e-permits-fo-selected-role__meta">
               <span class="e-permits-fo-selected-role__id">
                 <span class="e-permits-fo-selected-role__id-label">${escape(person.idLabel)}</span>
-                <span class="e-permits-fo-copy-value e-permits-fo-copy-value--static e-permits-fo-selected-role__copy-id"><span>${escape(person.idValue)}</span></span>
+                ${copyValueHtml(person.idValue, `Copiază ${person.idLabel} ${person.idValue}`, "e-permits-fo-selected-role__copy-id")}
               </span>
             </span>
           </span>
@@ -854,7 +821,7 @@
         return;
       }
       if (openBtn) { closeMenus(); renderDetail(state.permits.find((p) => p.id === openBtn.dataset.cabOpen)); return; }
-      if (card && !event.target.closest(".cab-card__actions, .e-permits-fo-intent-act__action, [data-fo-copy-value]")) {
+      if (card && !event.target.closest(".cab-card__actions, .e-permits-fo-intent-act__action, [data-copy-value]")) {
         const act = state.permits.find((p) => p.id === card.dataset.cabCard);
         if (act?.geap) renderDetail(act);
         return;

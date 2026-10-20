@@ -4063,7 +4063,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span class="e-permits-passport__name" data-cell-tooltip="${esc(row.denumire)}">${esc(row.denumire)}</span>
             <span class="e-permits-workplace__source"><span>${row.sub ? "Sub-proces" : "Proces"}</span>${row.descriere ? `<span data-cell-tooltip="${esc(row.descriere)}">· ${esc(row.descriere)}</span>` : ""}</span>
           </div>`;
-        case "identificator": return (U().renderCopyCode?.(row.identificator, `Copiază ${row.identificator}`) || esc(row.identificator)).replace("<span>", `<span data-cell-tooltip="${esc(row.identificator)}">`);
+        case "identificator": return U().renderListCode?.(row.identificator) || esc(row.identificator);
         case "statut": return tag(row.statut, row.statut === "Publicat" ? "success" : "neutral");
         case "versiune": return `
           <span class="e-permits-workplace__date-stack">

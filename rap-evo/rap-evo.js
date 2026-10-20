@@ -130,49 +130,9 @@
 
   const isMaskedValue = (value) => /[•*]/u.test(String(value));
 
-  const copyValue = (value) => `
-    <button class="rap-profile__copy" type="button" data-rap-copy="${escapeHtml(value)}" aria-label="Copiază ${escapeHtml(value)}">
-      <span>${escapeHtml(value)}</span>
-      ${icon("copy")}
-      <span class="rap-profile__copy-tooltip" aria-hidden="true">
-        <span data-copy-default>Copiază</span>
-        <span data-copy-success>${icon("checkmark-small")} Copiat</span>
-      </span>
-    </button>
-  `;
-
-  // Compact copy element for table cells (IDNO under Beneficiar, Nr. act) — reuses the copy tooltip style.
-  const renderCopyCell = (value, variant) => `
-    <button class="rap-copy rap-copy--${variant}" type="button" data-rap-copy="${escapeHtml(value)}" aria-label="Copiază ${escapeHtml(value)}">
-      <span class="rap-copy__value">${escapeHtml(value)}</span>
-      ${icon("copy", "icon rap-copy__icon")}
-      <span class="rap-profile__copy-tooltip" aria-hidden="true">
-        <span data-copy-default>Copiază</span>
-        <span data-copy-success>${icon("checkmark-small")} Copiat</span>
-      </span>
-    </button>
-  `;
-
-  const renderIdentifierCell = (value) => isMaskedValue(value)
-    ? `<span class="rap-copy rap-copy--id rap-copy--masked"><span class="rap-copy__value">${escapeHtml(value)}</span></span>`
-    : renderCopyCell(value, "id");
-
-  const handleCopyButton = async (copyButton) => {
-    try {
-      positionCopyTooltip(copyButton);
-      await copyText(copyButton.dataset.rapCopy);
-      copyButton.classList.add("is-copied");
-      copyButton.setAttribute("aria-label", `Copiat ${copyButton.dataset.rapCopy}`);
-      window.clearTimeout(copyButton._copyTimer);
-      copyButton._copyTimer = window.setTimeout(() => {
-        copyButton.classList.remove("is-copied");
-        copyButton.setAttribute("aria-label", `Copiază ${copyButton.dataset.rapCopy}`);
-      }, 1600);
-    } catch (error) {
-      console.error(error);
-      showToast("Valoarea nu a putut fi copiată.", "error");
-    }
-  };
+  /* Copy value — the shared component (../js/copy-value.js, 2026-10-20): profile header, detail rows,
+     the act dialogs. The table (Nr. act, IDNO) shows plain numbers — no copy in list views. */
+  const copyValue = (value, label = "") => window.GEAPCopyValue?.html(value, { label: label || `Copiază ${value}` }) || escapeHtml(value);
 
   /* the profile writes the full month („4 ianuarie 2025”, the project date rule), the data has
      „4 ian. 2025” */
@@ -408,7 +368,7 @@
 
   let actViewInstance = null;
   const actView = () => {
-    actViewInstance ||= window.GEAPActView.create({ copyHtml: copyValue, onCopy: (button) => handleCopyButton(button), copySelector: "[data-rap-copy]", bodyOpenClass: "rap-page--act-open" });
+    actViewInstance ||= window.GEAPActView.create({ copyHtml: (value) => copyValue(value, `Copiază numărul actului ${value}`), onCopy: () => {}, copySelector: "[data-copy-value]", bodyOpenClass: "rap-page--act-open" });
     return actViewInstance;
   };
 
@@ -421,7 +381,7 @@
         </span>
         <span class="rap-beneficiary__copy">
           <span class="rap-beneficiary__name rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.name)}">${escapeHtml(record.beneficiary.name)}</span>
-          ${renderIdentifierCell(record.beneficiary.identifier)}
+          <span class="rap-beneficiary__identifier rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.identifier)}">${escapeHtml(record.beneficiary.identifier)}</span>
         </span>
       </div>
     `;
@@ -441,7 +401,7 @@
       </td>
       <td>
         <span class="rap-cell-stack">
-          ${renderCopyCell(record.permit.number, "act")}
+          <span class="rap-act-number rap-ellipsis" data-tooltip="${escapeHtml(record.permit.number)}">${escapeHtml(record.permit.number)}</span>
           <span class="rap-cell-stack__secondary rap-ellipsis" data-tooltip="${escapeHtml(record.permit.paperNumber)}">Dosar: ${escapeHtml(record.permit.paperNumber)}</span>
         </span>
       </td>
@@ -688,48 +648,6 @@
     elements.tooltip.classList.add("is-visible");
   };
 
-  const positionCopyTooltip = (copyButton) => {
-    const tooltip = copyButton.querySelector(".rap-profile__copy-tooltip");
-    if (!tooltip) {
-      return;
-    }
-    const rect = copyButton.getBoundingClientRect();
-    tooltip.style.bottom = "auto";
-    tooltip.style.left = `${rect.left + (rect.width / 2)}px`;
-    tooltip.style.position = "fixed";
-    tooltip.style.top = `${Math.max(8, rect.top - 34)}px`;
-    tooltip.style.zIndex = "100";
-  };
-
-  /* the product toast (../js/toast.js → library .toast) */
-  const showToast = (message, type = "info") => {
-    window.GEAPToast?.show({ type, message });
-  };
-
-  const copyText = async (value) => {
-    if (navigator.clipboard && window.isSecureContext) {
-      try {
-        await navigator.clipboard.writeText(value);
-        return;
-      } catch (error) {
-        console.warn("Clipboard API unavailable, using document fallback.", error);
-      }
-    }
-
-    const textarea = document.createElement("textarea");
-    textarea.value = value;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.append(textarea);
-    textarea.select();
-    const copied = document.execCommand("copy");
-    textarea.remove();
-    if (!copied) {
-      throw new Error("Copy command was rejected.");
-    }
-  };
-
   const findRecord = (recordId) => state.records.find((record) => record.id === recordId);
 
   const syncSearchState = () => {
@@ -885,13 +803,6 @@
     });
 
     elements.tableBody.addEventListener("click", (event) => {
-      const copyButton = event.target.closest("[data-rap-copy]");
-      if (copyButton) {
-        event.stopPropagation();
-        handleCopyButton(copyButton);
-        return;
-      }
-
       const link = event.target.closest(".rap-act-link");
       if (link && (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0)) {
         return;
@@ -920,12 +831,6 @@
         return;
       }
 
-      const copyButton = event.target.closest("[data-rap-copy]");
-      if (copyButton) {
-        await handleCopyButton(copyButton);
-        return;
-      }
-
       const companyPermitsButton = event.target.closest("[data-rap-company-permits]");
       if (companyPermitsButton && state.activeRecord?.beneficiary.type === "company") {
         showCompanyPermits(state.activeRecord);
@@ -941,10 +846,6 @@
     window.addEventListener("popstate", syncViewFromUrl);
 
     document.addEventListener("pointerover", (event) => {
-      const copyButton = event.target.closest("[data-rap-copy]");
-      if (copyButton) {
-        positionCopyTooltip(copyButton);
-      }
       const target = event.target.closest("[data-tooltip]");
       if (target) {
         showTooltip(target);

@@ -223,7 +223,7 @@ but this doc previously described it wrongly, see the entry.
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
 | Tag | `.tag-item` (a layout row, not a pill) | `tags.html` | library (partial) |
-| Copy value | `.e-permits-fo-copy-value` | — | app |
+| **Copy value — one component** (profiles, header meta, detail rows, dialogs; NEVER in tables / stacked rows) | `span.copy-value` > `__text` + `button.btn.btn-strict.btn-sm.btn-icon-only.copy-value__button[data-copy-value]` (16 icon, „Copiază …” aria-label, „Copiat” plain tooltip) | `GEAPCopyValue.html(value, { label })` — `js/copy-value.js` + `css/copy-value.css`; lists: shell `renderListCode` | app (every page) |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
@@ -1872,7 +1872,7 @@ the value, `aria-label` swaps Copiază→Copiat and reverts after 1600ms, zero c
 
 | Concern | Was | Now |
 |---|---|---|
-| Copy to clipboard | **4** implementations — `data-rap-copy` (1600ms), `.rap-profile__copy`, `data-fo-copy-value` (1500ms), `data-copy-id` (1500ms) | `.cell__copy` + `data-cell-copy` |
+| Copy to clipboard | **4** implementations — `data-rap-copy` (1600ms), `.rap-profile__copy`, `data-fo-copy-value` (1500ms), `data-copy-id` (1500ms) | `.cell__copy` + `data-cell-copy` (library preview) → in the product since 2026-10-20 the ONE `.copy-value` (`js/copy-value.js`, „Copy value — one component”) and no copy in tables |
 | Status pill | **3** — `.rap-status` (raw hex), `.status-tag` (tokens), `.permits-table__tag` | library `.status-tag` |
 | Truncation | **4** — `.rap-ellipsis` + 3 inlined copies | `.cell--truncate` |
 | Two-line stack | **2** disagreeing — gap 4/weights 400 vs gap 2/weights 500 | `.cell__body`, gap 4 |
@@ -2972,6 +2972,58 @@ visual pill. **There is no `.tag-group`.** For a visual pill use `.status-tag` o
 
 ---
 
+### Copy value — one component (2026-10-20)
+
+User (2026-10-20): „the copy code is different, let's use the same everywhere as a component” and „remove the
+copy icon in table or stacked view”. Before: 7 variants (BO `.e-permits-workplace__copy-code` table / profile with a
+20 icon, FO `.e-permits-fo-copy-value` whole-value button, FO payment 20 #444 icon, Cabinet FO class restyled to the
+BO look, RAP `.rap-profile__copy` with a fixed tooltip, RAP table `.rap-copy` 14 icon on hover, the classifier source
+link's neutral icon button) — 3 hover colours, 2 focus looks (or none), tooltips 1 300 / 1 500 / 1 600 ms, 3 clipboard
+paths. Now ONE component: `js/copy-value.js` (`window.GEAPCopyValue`) + `css/copy-value.css`, loaded on the BO / FO
+page, the shell page, EVO Cabinet and RAP.
+
+```html
+<span class="copy-value">
+  <span class="copy-value__text">D-2026-004575</span>
+  <button class="btn btn-strict btn-sm btn-icon-only copy-value__button" type="button"
+          data-copy-value="D-2026-004575" aria-label="Copiază numărul dosarului D-2026-004575" data-no-tooltip>
+    <svg class="icon small" width="16" height="16" aria-hidden="true"><use href="…/sprite.svg#icon-copy"></use></svg>
+  </button>
+</span>
+```
+
+| Part | Spec |
+|---|---|
+| Value `__text` | plain, selectable text in the context's own type (header meta / detail row 14/20 medium default); never shrinks below its width; a value longer than its column breaks (`overflow-wrap: break-word`) |
+| Button `__button` | library icon-only **Strict · Small**: 32 square, radius 6, icon 16 = text colour, gap 0 to the text (icon 8 from the text); `margin-block: (1lh − 32) / 2` → centred on the first line without making it taller; hover `tertiary-hover`, pressed `tertiary-active`, library focus ring (2 white + 5 focus) — restated in copy-value.css so RAP (no BO CSS) is identical |
+| Feedback | the library plain tooltip (`.tooltip.tooltip--small.tooltip--plain`, one node `#copy-value-tooltip`, 4 below, clamped 8 from the edges): „Copiază” on hover (600 ms, at once while warm / on keyboard focus) → „✓ Copiat” (16 check, `--green-400`) for 1 500 ms after a copy + a polite live region („Copiat”). No toast. `data-no-tooltip` keeps js/icon-tooltip.js away |
+| Keyboard | the native button: Tab, Enter / Space |
+| Clipboard | `navigator.clipboard.writeText` → `execCommand("copy")` on a hidden textarea → the value is selected and the tooltip says „Apasă Ctrl+C / ⌘C pentru a copia” |
+| Click | handled on the document in the CAPTURE phase and stopped — a row / card / dialog around it never reacts |
+
+API: `GEAPCopyValue.html(value, { label, text, className })` — `label` = the specific aria-label („Copiază numărul
+dosarului …”), `text` = display HTML when it differs from the copied value (the classifier „Link la sursă” shows the
+link), `className` = a placement hook only (FO cards set the value type on it). Wrappers that return it: shell
+`renderCopyCode` = `renderProfileCopyCode` (+ `GEAPShellApi` / `GEAPUi`), FO `copyValueHtml` (`GEAPFormRender`),
+`CabEvo.copyValueHtml(value, label, className)`, RAP `copyValue`, `GEAPActView` default `copyHtml`.
+
+**Where:** profiles (page-header meta, detail rows, info cards, identity / authorization cards, the FO avatar menu),
+dialogs (dossier document modal, act modals, notă de plată), side panels (Form Builder Avansat, Process Designer).
+**Never in list views** — tables, stacked rows, act / request rows, registries: the number is plain text (shell
+`renderListCode(value)` = `span.cell__primary` with the cell tooltip in tables, `{ meta: true }` = plain text in a
+stacked meta; RAP table `.rap-act-number` / `.rap-beneficiary__identifier`; act-row meta slot 1). Changed to plain:
+BO Dosare / Sarcini / Dosare finalizate „Nr. dosar” + act de bază, Configurări servicii „Cod” + the code under the name,
+Autorități IDNO, Șabloane de notificare Cod, Fluxuri Identificator, dossier Taxe și plăți (MPAY id), Avize (id),
+document rows (număr), passport Clasificatoare rows; eKYC Clienți ID, Cazuri cod, Chei cheie, Organizații IDNO,
+Certificate amprentă; RAP Nr. act + IDNO. **Documented exception:** the IBAN in the passport „Taxe › Conturi bancare”
+summary and its „Arată toate” modal (label → value summary rows, the only place an IBAN is shown) keeps the copy —
+`listExempt` in the auditor (PO to confirm).
+
+QA: `tools/ui-qa/component-audit.mjs` rule 4 (spec `copy`): **copy-variant** = any legacy copy class / data hook or an
+icon-only control labelled „Copiază…” outside `.copy-value`; **copy-in-list** = a `.copy-value` inside `td`,
+`[role=row]`, `.e-permits-stack__item`, `.e-permits-fo-lib-item`, `.e-permits-fo-intent-act`, `.cab-card`, act / request
+rows. compare-styles `tools/ui-qa/specs/copy-value-across-products.json` (dos-01 ↔ rap-02 / sm-05 / ek-05 = 0).
+
 ## 4. Application component families
 
 These are the vocabularies the screens are actually built from. Full class lists live in
@@ -3020,7 +3072,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Consent checkbox | `e-permits-fo-consent`, `__box` | | `data-fo-consent` |
 | Stepper | `e-permits-fo-stepper`, `__item`, `__connector`, `__number`, `__label` | `is-active` `is-completed` | `data-fo-step`, `data-fo-step-panel` |
 | Documents | `e-permits-fo-doc-field`, `e-permits-fo-doc-modal` + `__drop-zone/__list/__panel`, `e-permits-fo-file-item` | `is-uploaded` `is-uploading` `is-empty` | `data-fo-doc-*` |
-| Copy value | `e-permits-fo-copy-value` + `--static`, `__tooltip`, `__tooltip-default`, `__tooltip-copied` | `is-copied` (1500 ms) | `data-fo-copy-value` |
+| Copy value | removed 2026-10-20 → the shared `.copy-value` („Copy value — one component”); `copyValueHtml` returns it | `is-copied` (1500 ms) | `data-copy-value` |
 | Avatar menu | `e-permits-fo-avatar-menu__*` (~25 classes) | `is-open` `is-closing` `has-scroll` `is-scrolled` `is-selected` `is-expanded` | `data-fo-avatar-*` |
 | Notices | `e-permits-fo-infobox`, `e-permits-fo-mnotify-info`, `e-permits-fo-notice--skeleton` | | |
 | Skeletons | `e-permits-fo-skeleton` + `--input/--label/--notice-*` | | |
@@ -3440,7 +3492,7 @@ The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are remove
 ### `e-permits-workplace__*` — registry / data grid
 
 `__toolbar`, `__search`, `__status-tabs`, `__status-tab` (+ tone modifiers), `__table-wrap`,
-`__table`, `__sort` (`is-asc` / `is-desc`), `__copy-code` (`is-copied`), `__tag` + tone,
+`__table`, `__sort` (`is-asc` / `is-desc`), `__copy-code` (removed 2026-10-20 → `.copy-value`; tables show plain `.cell__primary`), `__tag` + tone,
 `__flag`, `__person`, `__pagination-item` (`is-active`), `__pagination-action`, `__rows-select`.
 Contracts: `data-workplace-*` (`row`, `sort`, `page`, `page-size`, `select-row`, `select-all`, `rows`, `head`, `range`, `tabs`, `total`).
 
@@ -3856,7 +3908,7 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 | Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--danger` (Valabil / Suspendat / Expirat·Retras·Anulat — Expirat red since 2026-10-17 per US-162 AC-07; the BO story US-196 says grey, PO to align) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | the same BO Tag · Small tones (2026-10-17: cards, header, rows; `CabEvo.tagHtml` + `ACT_TONE`) |
 | Status dates (2026-10-17, US-162 AC-17) | `statusDateRows(record, profile)`: Suspendat → „Data suspendării actului permisiv” + „Suspendat până la data de”, Retras → „Data retragerii actului permisiv”, never for other statuses; data `profile.suspensionDate / suspendedUntil / withdrawalDate`. Same rows in Detalii act, the modal Date generale and the A4 form, in date order: [Data aprobării tacite] → Data eliberării → Valabil din data → suspension / withdrawal → Suspendat până la → Data expirării (kept = original end). Header meta beside Stare (`headerDateItem`): „Suspendat până la” / „Retras la” instead of „Valabil din data”. Demo rap-02b, rap-02h, rap-03n, rap-03o | — |
 | Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | the same header + sections + dialogs (`?view=acte&act=<id>`, 2026-10-17), see „Entry 1” below |
-| Copy | `.rap-copy--id/--act/--masked`, `.rap-profile__copy` (`is-copied`, 1600 ms) | library `.e-permits-fo-copy-value` |
+| Copy | the shared `.copy-value` in the header / detail rows / act dialogs; the table shows plain `.rap-act-number` / `.rap-beneficiary__identifier` (2026-10-20; `.rap-copy*` / `.rap-profile__copy` removed) | the shared `.copy-value` (`CabEvo.copyValueHtml`) |
 | Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), chip row edge to edge („Filtre” first → all filters, then a chip per facet) + bottom sheets (rap-04…04d). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
 | Empty state | shared `GEAPEmptyState` in `.rap-state` (2026-10-14) | shared `GEAPEmptyState` in `.cab-state` (2026-10-14) |
@@ -4387,8 +4439,8 @@ The old `renderProfileTable` / `renderProfileDocList` helpers are removed.
 
 | Tab | Groups | Row |
 |---|---|---|
-| Taxe și plăți | În așteptare · Achitate | name, Neachitat/Achitat tag · **amount**, MPAY id (copy), issued, due date (+ days left) or paid date. Meta: "Total … · achitat …" |
-| Avize | Active · Termen depășit · Finalizate | institution, status tag · id (copy), requested, deadline, result |
+| Taxe și plăți | În așteptare · Achitate | name, Neachitat/Achitat tag · **amount**, MPAY id (plain — no copy in lists, 2026-10-20), issued, due date (+ days left) or paid date. Meta: "Total … · achitat …" |
+| Avize | Active · Termen depășit · Finalizate | institution, status tag · id (plain), requested, deadline, result |
 | Act/Decizie | — | the document row (see „Documents — one pattern everywhere”): blue icon, Act permisiv / Decizie de respingere, `Generat` + signed badge + Aprobare/Respingere (+ `Proiect` until signed) · act / dossier no. · file · size · Emis … · de specialist · semnat de <conducător> · „👁 Detalii” + ⋮ Descarcă |
 | Documente generate | by flow step (Inițierea procedurii · Depunerea cererii · Plata taxelor · Decizie și act) | the document row: blue icon, type, `Generat` + signed badge (+ `Proiect`) · number · file · size · Generat … · de SIA GEAP / MPower / MPay / specialist · semnat de … · „👁 Detalii” + ⋮ Descarcă; heading meta „N documente · M semnate electronic” |
 | Detalii solicitare › Documente însoțitoare | Obligatorii · Opționale | lead icon, type, source tag · file / act no., size, added at, by, signed · eye + ⋮ (see „Dosar › Documente însoțitoare”) |
@@ -4437,7 +4489,7 @@ The old `renderProfileTable` / `renderProfileDocList` helpers are removed.
     Columns: Cod tag, Denumire, Obiect, Sursa de date, Destinatari, Clonat în (number
     of services), Stare.
   - A row opens the **template profile** (see below).
-  - Revised columns: Cod (copy code plus "Sursă: Sistem | Personalizat", the template's
+  - Revised columns: Cod (plain code since 2026-10-20 plus "Sursă: Sistem | Personalizat", the template's
     origin), Denumire (fill), Obiect (Dosar · Notificare · Plată · Act permisiv ·
     Utilizator), Reguli (count), Versiune, Actualizat (date stack), Stare. Tabs: Toate ·
     Active. Only the Cod column is frozen, with no divider after Denumire.
@@ -6266,7 +6318,7 @@ with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp
 > **Rows, not cards (user, 2026-10-12):** the list is the app's stacked list read at 14px —
 > each dosar its OWN bordered box (radius 16, 12 between boxes — user: „separate, not integrated”), row padding 16/20, title 16/24 semibold +
 > status tag (24, 14 medium) + marks; meta lines 14/20 tertiary („Tip · Serviciu”, „Autoritate ·
-> Depusă … · nr (copy, regular)”), wrapped parts drop their dot (`.is-row-start`); deadline = one
+> Depusă … · nr (plain since 2026-10-20 — no copy in lists)”), wrapped parts drop their dot (`.is-row-start`); deadline = one
 > 14/20 line with a 16 icon in the tone (warning #dc6803 / brand) and the date in medium; actions
 > right = one labelled primary (US-19 names) + ⋮ without that action; hover = tertiary fill, focus
 > ring inset; new row = brand-secondary fill; phone: actions under the text, primary full width,
@@ -6300,7 +6352,7 @@ chip = label + chevron → `.cab-menu--wide` with `menuitemradio` + trailing che
 `.cab-pager`, empty = `GEAPEmptyState.noResults("Nu au fost găsite rezultate pentru criteriile
 selectate.")` (paths fixed with `../`), errors = `GEAPEmptyState.render` + „Încercați din nou”.
 Card: title = object, `.cab-card__service` = „Tip · Serviciu”, meta = authority · Depusă/Creată
-date · nr (copy). Deadline strip under the meta (`.cab-card__foot`) — warning tone = action pending
+date · nr (plain, no copy in lists). Deadline strip under the meta (`.cab-card__foot`) — warning tone = action pending
 (Schiță „se elimină automat pe”, Spre achitare „Achitați taxa până la”, Informații suplimentare
 „Trimiteți informațiile cerute până la”), info tone = În derulare „Răspuns până la” / tacit
 „Termenul de examinare a expirat pe”; Finalizat has no strip, the ⋮ moves into the tags row.
@@ -6398,9 +6450,8 @@ container), `.cab-login`, `.cab-message` (the static notice strip outside cards)
 `.sm-profile` / `.cat-service` are hooks only. Open buttons/chips keep the focus ring here too
 (`.cab-page .btn[aria-expanded="true"]`, the shell rule — this page does not load
 e-permits-shell.css). Container = 1024 fixed, fills below; gutters 24 / 16 ≤760 (= RAP). Copy values in
-the header meta / detail rows = the BO copy code look (`:is(.e-permits-page-header__meta,
-.e-permits-dosar-profil__card) .e-permits-fo-copy-value`); on phones the copy-number meta item spans
-both columns.
+the header meta / detail rows = the shared `.copy-value` (2026-10-20); on phones the copy-number meta item spans
+both columns (`:has(.copy-value)`).
 
 **Demo states**: `sm-01…01l` list (chips, search, empty, sort, filters, validation, applied,
 page 2, tooltip, per page), `sm-02…02e` ⋮ per status, `sm-03…03c` Schiță (profile, confirm,
@@ -6655,7 +6706,7 @@ reference skipped). Administrator platformă only (menu in `data/ekyc-roles.json
   `data-tooltip-reason`; revoked greyed `.e-permits-ekcfg-muted`; „Revocă” only on active, not on your own
   current session) · Jurnal.
 - **Clienți** (`#ek-clients`, `#ek-client/<id>/configuratie|jurnal`, `#ek-client-nou`, `#ek-client/<id>/editeaza`):
-  Client ID copy code, use cases = one line of tags + „+N” (`renderUserRoles`, measured fit), facets Organizație / Caz / Scoring; detail = info cards
+  Client ID (plain in the table since 2026-10-20), use cases = one line of tags + „+N” (`renderUserRoles`, measured fit), facets Organizație / Caz / Scoring; detail = info cards
   Date generale · Integrare · Restricții · Verificare · Audit; page form 4 sections; validation: OIDC redirect
   (HTTPS or app scheme), scope „openid” required, IPv4 / CIDR, UUID, 1–10 000 sessions, duplicate Client ID
   on the field; Organizație locked on edit.
@@ -7477,7 +7528,7 @@ modal, layout as the latest version, with date of upload and other details”). 
   the applicant / representative (FO) or an operator (BO ghișeu); times on the submission day.
 - **Row:** lead icon 24 — grey `document-uploaded.svg` (from the device) or blue
   `document-generated.svg` (MDocs, as the FO summary); title = document type; tag `MDocs` /
-  `Încărcat` (neutral Small); meta = file name (the act: its number as copy code) · size
+  `Încărcat` (neutral Small); meta = file name (the act: its number, plain text) · size
   (`fileSizeLabel`: „640 KB”, „2.4 MB”, as the FO) · „Încărcat / Atașat / Preluat automat 8 iulie 2026,
   08:32” (`formatStamp`) · „de Victor Grosu” · „Semnat electronic”. Actions = `renderRowActions`:
   „👁 Detalii” (`data-dosar-detail="insotitoare|fN"`, `aria-haspopup="dialog"`) only — no ⋮ (its only
@@ -7515,7 +7566,7 @@ do the same data architecture … change all documents in the whole system” (+
   TYPE (a fresh FO upload inside its own field is titled by its file name — the field label above
   already says the type); source tag neutral Small `Încărcat` / `MDocs` / `Generat` (+ status tags:
   `Proiect` until signed, `Aprobare` / `Respingere`, `Obligatoriu` / `Opțional` for types, FO validity
-  badge `Activă`); meta in this order: number (BO: copy code) · file name (dropped when it is just the
+  badge `Activă`); meta in this order: number (plain text, 2026-10-20) · file name (dropped when it is just the
   number) · size · „<Verb> <8 iulie 2026, 08:32>” (Încărcat / Atașat / Preluat automat / Emis / Generat)
   · „de <who>” · „semnat de <signer>” (only when someone other than the producer signed: the applicant,
   the head of the authority).
@@ -7996,7 +8047,7 @@ load `main.css`. Whether it should be brought into the design system is an open 
   „Ale autorității” · „Globale · doar vizualizare”. Data comes from the Clasificatoare module
   (`svcClassifiers(service)` reads `geap.classifiers[].clasId` → `getClassifier`): global → Global;
   specific used by 1 service → Specific; by ≥2 services of the authority → Autoritate.
-- Row: name + Activ/Inactiv tag; meta = copyable code · „N valori” (`roCount`) · „Sincronizat din
+- Row: name + Activ/Inactiv tag; meta = code (plain) · „N valori” (`roCount`) · „Sincronizat din
   MConnect” · „Editat <data> · <cine>”. Actions per the row rule: editable (Manual & CSV, AC-13) →
   „Editează” (pen); otherwise the strict eye. The whole row (Enter/Space too) opens the values.
 - Opening from the passport = `openClassifierProfile(id, "valori", { fromService })`: breadcrumb
@@ -8105,7 +8156,7 @@ keep the button's size class and colour (icon = label colour). Import / upload =
 
 **Azure:** US-230 „Vizualizarea, căutarea, filtrarea și exportul listei de servicii” 95244.
 
-- Columns: **Serviciu** (name over the copyable RSSP code) · Instituția · **Statut în registru** ·
+- Columns: **Serviciu** (name over the RSSP code, plain text) · Instituția · **Statut în registru** ·
   **Statut în GEAP** · **Modificat în GEAP** · Versiune · actions (sync, edit). 7 fields. GEAP's state
   sits next to GEAP's last change; the register's state comes first. One meaning per column (Carbon status
   pattern; user decision + persona check 2026-10-10):

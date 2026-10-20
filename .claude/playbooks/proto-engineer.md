@@ -1443,3 +1443,29 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   menu overlap), hover-audit 0 / 0, component-audit 0, compare-styles (new spec cabinet-request-row-vs-act-row =
   0) directly. Phone action sheet (act-row capture listener) also catches any ⋮ inside `.e-permits-fo-intent-act__action`
   → demo states that pick a ⋮ item on phones must use `actMenuPick` (sm-03b failed at 375 until then).
+- 2026-10-20 · „Copy value — one component, no copy in lists” (user). Inventory = grep `clipboard` + every copy class /
+  data hook (`copy-code|fo-copy-value|rap-copy|rap-profile__copy|data-*copy*|icon-copy`) over js / cabinet-evo / rap-evo /
+  html: 7 live variants + 2 dead ones (`permits-table__id`, `permits-profile__copy-id` had CSS + a JS handler but no markup).
+  A before/after probe per copy element (scratch cp/probe.mjs: context table / list-meta / header / detail / modal, box,
+  icon, gap, real-mouse hover bg, tooltip text before / after a click, `navigator.clipboard.readText()` after
+  `Browser.grantPermissions(["clipboardReadWrite"])`, focus ring, Enter) made the „before” table and proved the „after”.
+  ONE module `js/copy-value.js` + `css/copy-value.css`; every product wrapper (`renderCopyCode` / `renderProfileCopyCode`,
+  FO `copyValueHtml`, `CabEvo.copyValueHtml`, RAP `copyValue`, `GEAPActView` default) now returns it, lists call
+  `renderListCode` (plain). Handling the click on the document in the CAPTURE phase + stop removed ~10 per-panel copy
+  handlers and every row's „ignore clicks on the copy button” exclusion.
+- 2026-10-20 · Centring a library 32 button on a 20 text line without growing the line: `line-height: inherit` on the
+  button + `margin-block: calc((1lh − 32px) / 2)` — works for any context line height. Traps: (1) `overflow-wrap:
+  anywhere` lowers min-content to one character → a flex row shrank a 13-digit IDNO and broke it mid-number in a card
+  that had room (`break-word` keeps the word's min-content); (2) a placement hook that sets the value type must sit on
+  the WRAPPER (the button's `1lh` reads the wrapper's line height, not the text span's); (3) the page-insert script
+  checked `"copy-value.css" not in s` and my own new HTML comment contained that string → the Cabinet page silently
+  got no stylesheet / script — assert on the inserted tag, never on a substring.
+- 2026-10-20 · Deleting dead CSS by a brace-matching script (scratch cp/edits/cssdel.py: rule blocks whose EVERY selector
+  matches the dead pattern, mixed selector lists only reported and renamed by hand): the first run ate the newline
+  between the previous `}` and the next rule (`}.next {`) — always `git diff | grep '^+'` after a deletion script; it
+  should add nothing. Rename a class inside `:not(:has(...))` instead of deleting it, so the specificity stays.
+- 2026-10-20 · component-audit got rule 4 (spec `copy`): copy-variant (legacy class / data hook / icon-only „Copiază…”
+  outside `.copy-value`) + copy-in-list (`.copy-value` inside td / stacked row / act / request row, `listExempt` for the
+  documented IBAN summary). Proof = the same states on a HEAD worktree (:8961) flag every old variant (svc-04o 505,
+  rap-01 32, dos-05 16 …) and the tree 0, with no other new finding. Figma tools `tools/figma/rap/spec.mjs` /
+  `tools/figma/cabinet/spec.mjs` still read the old classes — flagged for the figma-designer, not edited.
