@@ -1792,3 +1792,42 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → gate-audit („qsweep/audit”) + figma-audit („ghs/audit”) on the 4 blocks, 2 sets and the Header
     main: 0 raw controls / unbound colours / unstyled texts / fractions after the fixes; left = 11c viewport clip (intended), phone screen
     root gap 0 (board baseline), Header main avatar Type=Image (pre-existing).
+
+- 2026-10-20 · Three PO fixes (code 26987135 / 019aa9b6). (1) Passport tabs: „Tipuri solicitări” → „Tipuri procese”, „Clasificatoare
+  specifice” → „Clasificatoare” — the passport page already had 0 left (235 „Tipuri procese” texts across sections 01–11); the
+  leftovers were OUTSIDE it: the `Main Navigation` main 9442:44686 on 🧩 Local components (its own Tab · Request types / Tab · Specific
+  classifiers), App Shell 03 / 03a / 03b (15 tab labels + field rows), Notification templates (17 „Clasificatoare specifice”), and
+  the hidden helper spec text 10648:1502. (2) Dialog detail rows: `svc/field-row` 9521:8731 became the set **12143:21330**
+  (Context = Page 256 · Drawer 200 · Modal 163 · Modal · narrow 147 — code `clamp(120px, 32%, 200px)` inside [role=dialog] / .modal,
+  measured: modal row 510 → 163.2, drawer row 720 → 200). 132 direct instances switched (Services modals 50 + drawers 23, Tariffs
+  drawers 47, `Modal content / Document · details` 11366:6892 12 rows, Statement certificate contents 8) → 116 nested modal rows
+  (Dossiers 04h–04l, FO 09) follow; raw captured `dosar-profil__row` rows in drawers / modals narrowed by hand (Services 09 ×4,
+  10 ×13, Classifiers 02f ×11), labels wrap. (3) „weird padding 165” on 10797:269374 = 15 `section-heading · with action` wrappers in
+  Services column 01: the svc/section-heading kept paddingRight 165 (= the 149 „Resincronizează” button + 16) from when the button
+  sat ABSOLUTE over the heading; once the button became a flow sibling the reserve stayed → the „Ultima sincronizare…” meta floated
+  165 px left of the button. Fix = heading pR 0 + wrapper gap 12 (spacings/12) → meta 12 px from the button = code
+  (.e-permits-passport__heading-tools gap 12). Lessons:
+  - **A component → variant set without losing instances**: clone the standalone component (clones keep property definitions +
+    references), resize the clone's parts, `figma.combineAsVariants([orig, ...clones], parent, index)`. All 1,147 instances stayed
+    linked to the original (now `Context=Page`), property values identical (10 sampled), keys renamed to the set's ids (#12143:x) —
+    look props up by name prefix, never by the old #id. Then switch only the instances that need it with `setProperties({Context})`.
+  - **Variant swap on a row INSIDE a component's main loses the overrides that instances of that component made on its nested
+    instances**: the 04l modal (instance of Document · details) had its own override on the row's Tag 1 („Semnat electronic”, Brand,
+    signature icon) → after the main's row switched variant, the instance showed the tag default „Persoană fizică”. Audit nested
+    tag labels against the variant defaults after any variant switch (1 hit here) and re-set them with setProperties.
+  - Prefer ONE component with a context variant over per-instance width hacks: instance sublayers can't be resized, but a variant
+    can carry a different FIXED label width.
+  - Renames: census by walk with `skipInvisibleInstanceChildren = false`, match the EXACT label (`^Tipuri solicitări$`) — the
+    loose regex also caught „Tipuri solicitanți” (15 applicant-type rows) and a sentence in a helper JSON; check the Local
+    components page (mains with their own text) and other boards that embed the same strip (App Shell tab-scroll demos).
+  - Page-wide finds on the Services passport page drop the transport even when read-only → one call per 3–6 sections; Notification
+    templates and Classifiers walks were fine in one call.
+  - How-to-read restack: some boards have extra `Rule · …` cards between „How to read” and „Page contents” → re-stack ALL section
+    children by y with 40 gaps after appending a line (the first naive „gap to next” check reported −8 on Services and Dossiers).
+  - Classifiers has no How-to-read section (only bands) → no dated line there; the file index got „Updated: 20 October 2026” and a
+    sentence on the Service configuration / Case profile cards.
+  - Board baseline seen, not changed: in modals the code row is 40 (8/0/7 + 1 px border) vs svc/field-row 48–49 (12/0/12); the
+    raw captured rows in drawers are frames, not svc/field-row instances.
+  - No Agent tool in this session → stored figma-audit (`ghs/audit`, `eval` then `fn(roots)`) on the set, Document · details, the
+    04l overlay, the Services heading wrappers / raw rows and the Classifiers rows: 0 findings except the A4 preview baseline
+    (scaled page fractional + clipped in its scroll viewport, row list gap 0).
