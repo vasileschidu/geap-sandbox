@@ -393,7 +393,7 @@
       { label: "Inițiere", state: "done", meta: `${short(s.startedAt)}, ${time(s.startedAt)}<br>${esc(client(s.clientId).name)}` },
       ...s.steps.map((step) => ({
         label: step.label,
-        state: step.status === "done" ? "done" : step.status === "failed" ? "rejected" : step.status === "current" ? (s.status === "Așteaptă utilizatorul" ? "paused" : "current") : "todo",
+        state: step.status === "done" ? "done" : step.status === "failed" ? "rejected" : step.status === "current" ? (s.status === "Așteaptă utilizatorul" ? "paused" : "current") : hist ? "skipped" : "todo",
         meta: step.completedAt ? `${short(step.completedAt)}, ${time(step.completedAt)}<br>${step.score != null ? `scor ${num(step.score)}` : "fără scor"}` : step.status === "current" ? `în curs<br>${esc(step.provider.split(" — ")[0])}` : step.optional ? "opțional" : ""
       })),
       { label: decisionLabel, state: decisionState, meta: hist && s.completedAt ? `${short(s.completedAt)}, ${time(s.completedAt)}<br>${s.finalScore != null ? `scor ${num(s.finalScore)}` : "fără scor"}` : reviewing ? "operator" : "" }
@@ -436,23 +436,14 @@
     return trajectory("Plan de verificare", steps, { tone, icon: calloutIcon, title, meta, extra, next });
   };
 
-  /* the dosar trajectory (Traiectoria dosarului) with N columns and the callout hanging under
-     it (.e-permits-trajectory + .e-permits-callout-wrap) — Plan de verificare, Traseul reviziei */
-  const TRAJ_ICONS = { done: "circle-checkmark-filled", current: "time-filled", paused: "pause", rejected: "circle-error-filled" };
-  const TRAJ_SR = { done: "finalizat", current: "în curs", paused: "în așteptare", rejected: "nereușit", todo: "urmează" };
+  /* the dosar trajectory (Traiectoria dosarului) — the shared component (js/trajectory.js) — with
+     the callout hanging under it (.e-permits-trajectory + .e-permits-callout-wrap) — Plan de
+     verificare, Traseul reviziei. Step meta here is already escaped HTML („date<br>scor …”). */
+  const TRAJ_SR = { paused: "în așteptare" };
   const trajectory = (heading, steps, c) => `
       <section class="e-permits-dosar-profil__section e-permits-trajectory-section">
         <h2 class="e-permits-dosar-profil__section-title">${esc(heading)}</h2>
-        <div class="e-permits-trajectory">
-          <ol class="e-permits-trajectory__steps e-permits-trajectory__steps--n${steps.length}">
-            ${steps.map((step) => `
-              <li class="e-permits-trajectory__step is-${step.state}"${["current", "paused"].includes(step.state) ? ' aria-current="step"' : ""}>
-                <span class="e-permits-trajectory__marker" aria-hidden="true">${step.state === "todo" ? '<span class="e-permits-trajectory__dot"></span>' : icon(TRAJ_ICONS[step.state], 24)}</span>
-                <span class="e-permits-trajectory__label">${esc(step.label)}<span class="sr-only"> — ${TRAJ_SR[step.state]}</span></span>
-                ${step.meta ? `<span class="e-permits-trajectory__meta">${step.meta}</span>` : ""}
-              </li>`).join("")}
-          </ol>
-        </div>
+        ${window.GEAPTrajectory?.html({ steps: steps.map((step) => ({ label: step.label, state: step.state, metaHtml: step.meta || "", sr: TRAJ_SR[step.state] })) }) || ""}
         <div class="e-permits-callout-wrap">
           <div class="e-permits-callout e-permits-callout--${c.tone || "info"}" role="status">
             <span class="e-permits-callout__icon" aria-hidden="true">${icon(c.icon, 24)}</span>

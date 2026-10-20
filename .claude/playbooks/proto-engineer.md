@@ -1315,3 +1315,28 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   chars) → pattern used only in the FO header; RAP / Cabinet headers wrap by design. No sub-agent tool → ran
   code-audit, hover-audit, component-audit directly (only pre-existing FO header button findings left). Mobbin MCP
   not available again → NN/g / Material / GOV.UK guidance.
+- 2026-10-20 · „One trajectory everywhere, as in the first one, super precise, see the subtle current-step background”
+  (ref GEAP 2.0 9709:1137). The brief said „copy the BO code, it already matches the reference” — MEASURED (Figma PNG
+  with the zlib reader + metadata of the step instances), it did not: Figma centres every step in a hugging box (first /
+  last too), connectors are equal flex fillers 8 from each step box, grey line + to-do ring 1.5 (code 2), the „Suspended”
+  pause is warning-default #DC6803 (code apricot-400). Measure the reference before trusting „the code matches”; the
+  component set (9696:556) holds the state colours. Result = ONE module `js/trajectory.js` (`GEAPTrajectory.html`) +
+  `css/trajectory.css`; BO / eKYC / FO tracker + „Statutul dosarului” / Cabinet only map their data to `steps[]`.
+  Proof: pixel rows of the new BO render vs the Figma PNG (line 87–193, pill rows 51–70, marker 231 — identical) and
+  compare-styles specs `trajectory-vs-bo.json` / `trajectory-vertical-vs-bo.json` = 0 property differences.
+- 2026-10-20 · Equal connectors between content-hugging steps without extra list items: steps 2…n are `flex: 1 1 auto`
+  and carry the line as a `::before` flex item (`flex: 1 1 0`, margins 8, min 16) — the free width is shared equally, so
+  every line has the same length (= Figma auto-layout with fixed connector frames). Vertical connectors need the NEXT
+  step's state → `li:is(reached):has(+ li:is(reached))::after`.
+- 2026-10-20 · A container query could not decide „horizontal or stacked”: the fit depends on the content (7 eKYC steps
+  need 955, 6 BO steps 572–800). Measured fit instead: add `.is-measuring` (steps `width: max-content`, vertical rules
+  excluded by `:not(.is-measuring)`), read the width, remove it and toggle `.is-stacked` in ONE synchronous pass (no
+  paint, no ResizeObserver loop because the final size is unchanged); a MutationObserver picks up cards rendered later.
+  Writing the vertical rules once as `.card:is(--vertical, .is-stacked):not(.is-measuring) …` also removed the
+  duplicated container-query block. Labels are never truncated; at 1024 the 736 BO card stacks dos-01h / ek-05g.
+- 2026-10-20 · Inventory traps: my state sweep regex `pp-0[0-9]` missed the post-process finish states (pp-10f, pp-12a,
+  pp-14b, pp-16a, pp-17a) and I nearly added a duplicate — grep the renderer's call sites (`renderPostprocessStep7`) and
+  the demo ids for every step number before declaring „no demo state”. `figma-a` get_metadata only lists the OPEN page;
+  a big section's metadata is saved to a tool-results JSON file → parse it with ElementTree (figscan pattern: matched
+  node → nearest 1440 / 375 ancestor → block) to list the screens per block. No sub-agent tool → ran code-audit
+  (only `.u-visually-hidden` FPs), hover-audit 0 / 0, component-audit 0 directly.

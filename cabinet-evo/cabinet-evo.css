@@ -1067,15 +1067,10 @@
   margin-top: var(--spacing-8, 8px);
 }
 
-.cab-status__timeline.e-permits-fo-finish-timeline {
-  background: transparent;
-  border-radius: 0;
+/* the shared trajectory (vertical, bare) under the hairline — css/trajectory.css */
+.cab-status__timeline.e-permits-trajectory {
   border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-}
-
-.cab-status__timeline .is-now .e-permits-fo-finish-timeline__title {
-  color: var(--color-text-base-default, #121212);
-  font-weight: var(--font-weight-fw-semibold, 600);
+  padding: var(--spacing-20, 20px);
 }
 
 @media (max-width: 760px) {
@@ -1084,7 +1079,7 @@
   }
 
   .cab-status__now,
-  .cab-status__timeline.e-permits-fo-finish-timeline {
+  .cab-status__timeline.e-permits-trajectory {
     padding: var(--spacing-16, 16px);
   }
 }

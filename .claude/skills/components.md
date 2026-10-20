@@ -234,7 +234,7 @@ but this doc previously described it wrongly, see the entry.
 | Dosar row (Solicitările mele) | `section.e-permits-stack.sm-list > ul.e-permits-stack__list > li.e-permits-stack__item.sm-item(.is-clickable/.is-new/.is-static)` — title 16 · meta/deadline 14 (`.sm-item__deadline--warning\|--info`) · `.sm-item__tags` · actions = labelled primary (Continuă / Suplinire informații / Achitare / Vezi actul) + ⋮ | `cabinet-evo/solicitari.js` `cardHtml` / `primaryAction` / `deadlineHtml` | page-app |
 | Key facts row | `dl.cab-facts > .cab-facts__item > dt + dd` (vertical dividers; stacks ≤600) | `factsHtml` (solicitari.js), catalog service page | page-app |
 | Callout tones | `.e-permits-callout--{info\|warning\|neutral\|success\|danger}` | `calloutHtml` (solicitari.js) | app |
-| Tracker step needing the applicant / refused | `.e-permits-fo-finish-tracker__item.is-{attention\|rejected}` + `.e-permits-fo-finish-marker--{attention\|rejected}`; 16px todo = `--todo.e-permits-fo-finish-marker--sm` | `trackerHtml` / `historyHtml` | app |
+| **Trajectory (traiectoria dosarului) — one component** (2026-10-20; every process path: BO dossier, eKYC Plan de verificare / Traseul reviziei, FO finish tracker + „Statutul dosarului” incl. post-process, Cabinet „Stadiul solicitării”) | `.e-permits-trajectory(--vertical\|--bare)(.is-stacked)` › `ol.e-permits-trajectory__steps` › `li.__step.is-{done\|current\|paused\|attention\|rejected\|skipped\|todo}` › `__body` (`__marker` 24 icon / `__dot` ring · `__title` > `__label` (+ Small tag) · `__meta`); current label on the soft pill | `GEAPTrajectory.html({ steps, layout, bare, label, className })` (`js/trajectory.js`, `css/trajectory.css`); section „Trajectory (traiectoria dosarului) — one component”; demo dos-01 / 01b / 01g / 01h, ek-05g, ek-05d, ek-07e, fo-08, pp-10f, sm-04b | app |
 | Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + `__primary--danger` | `openConfirm({ danger: true })` (solicitari.js) | app |
 | Warning confirm (FO, data loss) | `.e-permits-fo-instance-switch-modal__icon--warning` (amber `--color-icon-warning-default`, warning-filled icon); primary stays brand (the safe action) | G8 guest leave dialog | app |
 | List pager | `.cab-pager` > `.cab-pager__range` + library `.pagination` (buttons) + per-page menu `.cab-pager__size` → `.cab-menu--compact`; none up to 10 rows | `CabEvo.pagerHtml({ total, page, perPage, prefix, label, sizeLabel })` (hooks `data-<prefix>-page` / `-per-page`; Solicitările mele `sm`, Actele mele `cab`); demo sm-01*, pp-01t | page-app |
@@ -249,7 +249,7 @@ but this doc previously described it wrongly, see the entry.
 | Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (export icon) · `btn-primary` „Închide”); since 2026-10-19 the act's configured fields = one BO section per configured group (row „Configured act fields — groups + tables”; the old in-card heading rows `.rap-act-data__group/__more-row/__toggle` are gone); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
 | Public profile header (RAP act profile + every EVO Cabinet profile, 2026-10-17) | `header.e-permits-page-header.e-permits-page-header--public` › `__body` (16 top, 12 inset) › `__top` › `__heading` (gap 16): `nav.breadcrumbs.breadcrumbs--trailing` (desktop: the parent trail + trailing chevron, no current crumb / no number) + `nav.breadcrumbs.breadcrumbs--mobile` (≤760: `li.breadcrumbs__item--back` › `.e-permits-page-header__crumb-label`) + `h1.__title` (wraps, never truncated) · `__meta` items (label 12/16 tertiary, value 14/20 medium, dividers; ≤760 = 2 equal columns, no dividers, column gap 16) · the primary `btn btn-primary btn-md .e-permits-page-header__action` (hugging, 8 under the meta) or `.e-permits-page-header__action-row` (primary + neutral `btn-md`, gap 8). The status = a „Stare” meta item with the Tag · Small | `css/bo-profile-parts.css`; renderers `rap-evo.js renderProfile`, `CabEvo.pageHeader({ back, title, titleId, meta, actions })`; parity `tools/ui-qa/specs/rap-profile-vs-bo.json` (svc-01 ↔ rap-02 = 0), `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05 = 0) | page-app |
-| Request status card „Stadiul solicitării” (EVO Cabinet, 2026-10-17) | BO section title over `.cab-status` (white, 1px `--color-border-base-default`, radius 24 / 16 ≤760, clip) › `.cab-status__now` (20 / 16 inset, gap 8: `.cab-status__tags` Tag · Small status + marks · `p.cab-status__title` 16/24 semibold = the status sentence / next step · `p.cab-status__text` 14/20 secondary · `.cab-status__actions[data-sm-dl-scope]` the action that exists: Continuă schița + Elimină, Suplinește informații, Achită (MPay badge), Vezi actul + Descarcă, Depune contestație) · hairline · `ol.e-permits-fo-finish-timeline.cab-status__timeline` (the FO timeline without its grey fill: done steps with full-month dates, the current one `.is-now` = default colour + semibold + `aria-current="step"`, next steps dashed without dates) | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `timelineEvents` / `timelineHtml`; demo sm-03 (Schiță), sm-04 (În derulare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c (Spre achitare), sm-05 / 05a / 05b (Finalizat aprobat / respins / decizie) | page-app |
+| Request status card „Stadiul solicitării” (EVO Cabinet, 2026-10-17) | BO section title over `.cab-status` (white, 1px `--color-border-base-default`, radius 24 / 16 ≤760, clip) › `.cab-status__now` (20 / 16 inset, gap 8: `.cab-status__tags` Tag · Small status + marks · `p.cab-status__title` 16/24 semibold = the status sentence / next step · `p.cab-status__text` 14/20 secondary · `.cab-status__actions[data-sm-dl-scope]` the action that exists: Continuă schița + Elimină, Suplinește informații, Achită (MPay badge), Vezi actul + Descarcă, Depune contestație) · hairline · `.e-permits-trajectory.e-permits-trajectory--vertical.e-permits-trajectory--bare.cab-status__timeline` (the shared trajectory, vertical, no card of its own, padded 20 / 16 ≤760: done steps with full-month dates, the current / attention one on the soft pill + `aria-current="step"`, next steps as rings without dates — since 2026-10-20) | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `timelineEvents` / `timelineHtml`; demo sm-03 (Schiță), sm-04 (În derulare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c (Spre achitare), sm-05 / 05a / 05b (Finalizat aprobat / respins / decizie) | page-app |
 | Configured act fields — groups + tables (2026-10-19, Figma comment EVO-WEB-3.0 20607:34846) | each configured group = BO `section.e-permits-dosar-profil__section` + `__section-title` over `.e-permits-dosar-profil__card.e-permits-act-fields[data-act-fields]` (`.is-collapsed` when > 10 items: items ≥ 9 get `.e-permits-act-fields__more`, toggle `.e-permits-act-fields__toggle` > `btn btn-text-primary btn-sm btn-rounded[data-act-fields-more][aria-expanded][aria-controls]` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); simple field = BO `__row` (label on the first line for multi-line values; a list = `ul.e-permits-act-fields__list`); grid = `.e-permits-act-fields__table-field` > `p.__table-label` + `.__table-wrap[role=region]` (white, 1px border, r12, own sideways scroll) > `table.__table(.is-collapsed)` (th 38 · 12/16 medium on secondary; td ≥ 50 · 14/20 secondary · 8/12; `.is-number` right-aligned; first column sticky + divider; `__more-row` / `__edge-row` for first 5 + „Arată toate (N)” / „Arată mai puține”; every td = `__cell-label` (phones only) + `__cell-value`); ≤ 760 rows = white mini-cards r12 (first cell label over value, the others label · value lines). A4: `tr.e-permits-doc-page__keep.e-permits-doc-page__grid-label` + `__grid-head[data-doc-grid]` + `__grid-row[data-doc-grid-of]` each holding a one-row `table.e-permits-doc-page__grid` (colspan units 3·2·2…), header repeated on continuation pages (`.is-repeat`) | `GEAPActView.fieldsHtml(groups, { section, untitled })` / `normalizeFields` (js/act-view.js) + css/act-view.css + css/doc-preview.css › „Grid on the page”; used by the act data modal (RAP + Cabinet) and Cabinet „Solicitările mele” › Act; demo `rap-03i/03j/03q/03r/03s/03t`, `pp-01x/01y/01z`, `sm-05n`; parity `tools/ui-qa/specs/act-fields-rap-vs-cabinet.json` (rap-03q ↔ pp-01x = 0) | page-app |
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
 | Long name in a header — expand on click (2026-10-19) | host `[data-name-expand]` (the FO top-bar `h1`) › `span.e-permits-name-expand` > `__text` (one line, ellipsis) while the name fits; only when it is really cut (`scrollWidth > clientWidth`, measured without the affordance) › ONE `button.e-permits-name-expand[data-name-expand-toggle][aria-expanded][data-tooltip-text]` > `__text` + `__more` (`__more-label` „Mai mult” / „Mai puțin” 14/20 medium brand + 16 `icon-chevron-bottom`, rotated when open); hover = the label underlines, focus = the FO ring (2 white + 5 `--focus-ring`); open = the name wraps with the label after its last word, host `.is-name-expanded`, the header grows; plain tooltip with the full name while collapsed (icon-tooltip.js `data-tooltip-text`) | `js/name-expand.js` (`GEAPNameExpand.set(host, text)` / `scan` / `sync` / `collapseAll`) + `css/name-expand.css`; FO `setFoServiceTitle`; demo `pp-18` (collapsed) / `pp-18a` (expanded) / `pp-18b` (expanded + scrolled) / `pp-18c` (short name, no affordance) | page-app |
@@ -5035,7 +5035,73 @@ with button Style=Destructive.
 `#service-confirm-modal` carries `.e-permits-confirm-overlay` (z-index 1300 > drawer 1200 >
 modal 1000), so an `askConfirm` raised from inside a drawer is never hidden behind it.
 
-### Traiectoria dosarului — case path on Date generale (added 2026-10-02)
+### Trajectory (traiectoria dosarului) — one component (2026-10-20)
+
+User (2026-10-20): „we have different types of UI for traiectoria dosarului — do as in the first one
+everywhere, be super precise, see the subtle background of the current step”. Reference = Figma GEAP 2.0
+`aHgwVwiNCOSOqbMhMjjUOj` **9709:1137** (BO dossier „Traiectoria dosarului”), measured from its PNG. ONE
+renderer `GEAPTrajectory.html({ steps, layout, bare, label, className })` in `js/trajectory.js` + ONE stylesheet
+`css/trajectory.css` (loaded by e-permits-acte-permisive.html, e-permits-shell.html, cabinet-evo/index.html).
+Each caller keeps its data and texts and only maps them to `steps[] = { label, state, meta | metaHtml, tagHtml, sr }`.
+
+**Anatomy (horizontal, default)**
+- Card `.e-permits-trajectory`: `--color-background-base-default`, 1px `--color-border-base-default`, radius 24
+  (the dosar cards; no token), padding `--spacing-20`.
+- `ol.__steps` = flex row. Every step hugs its content (`__body`: marker · 6 · title · 6 · meta, all centred,
+  first / last step on the card's content edges). Steps 2…n carry the connector as `::before`, a flex filler
+  `flex: 1 1 0` with 8 (`--spacing-8`) margins on both sides and a 16 minimum → all connectors are the same
+  length (Figma: fixed-width connector frames between the step boxes, line inset 8).
+- Connector: grey `--color-border-base-default` 1.5 (`--border-width-1-5`), top 11.25; brand
+  `--color-border-brand-default` 2 (`--border-width-2`), top 11, between two **reached** steps
+  (done · current · paused · attention · rejected). Centred on the 24 marker.
+- Marker 24 (`--spacing-24`) box: done `circle-checkmark-filled` `--color-icon-positive-default` · current
+  `time-filled` `--color-icon-brand-default` · paused `pause` `--color-icon-warning-default` (Figma „Suspended”
+  #DC6803; the code had `--apricot-400` until 2026-10-20) · attention `warning-filled` `--color-icon-warning-default` · rejected `circle-error-filled` `--color-icon-danger-default` · todo
+  `__dot` = 20 ring, 1.5 `--color-border-base-secondary` · skipped = the same ring **dashed** (grey connectors).
+- Label 14/20 medium `--color-text-base-default`, one line; todo / skipped 14/20 regular `--color-text-base-secondary`.
+- **Current step (the subtle background):** the label sits on a pill — `--color-background-brand-secondary`
+  (#e8f0fb), `--border-radius-4`, padding `0 --spacing-4`, 20 high (= the line height); paused / attention:
+  `--color-background-warning-secondary`. The li gets `aria-current="step"`.
+- Meta 12/16 regular `--color-text-base-tertiary`, each line one line (date `<br>` who).
+- State word for screen readers after the label (`u-visually-hidden`, default finalizat / în curs / suspendat /
+  necesită acțiune / nereușit / omis / urmează; callers may pass their own `sr`).
+
+**Vertical** (`layout: "vertical"`, and any horizontal one whose steps do not fit: `.is-stacked`)
+- Each step = grid `24 | 1fr`, column gap 12, row gap 4: marker (rows 1–2) · title (padding-top 2 → centred on
+  the marker; label wraps; an optional Small tag after it, gap 8) · meta (wraps). Steps 24 apart
+  (`padding-bottom: --spacing-24`). The pill grows 4 to the left so the text stays on the meta's line.
+- Connector `::after` down the marker column, 8 from each marker, same colours / widths as horizontal
+  (brand when the step and the next one are reached).
+- `.is-stacked` is set by `GEAPTrajectory.fit()`: the steps are measured at max-content (`.is-measuring`, one
+  synchronous pass) against the card's content width, re-checked by a ResizeObserver; a MutationObserver picks
+  up every new card. Phones always stack; at 1024 the BO / eKYC cards (736) stack when their steps need more
+  (dos-01h needs 800, ek-05g 955). Labels are never truncated.
+
+**Variants:** `--vertical` (long step texts: FO „Statutul dosarului”, Cabinet „Stadiul solicitării”) · `--bare`
+(inside another card: no background / border / radius / padding — the Cabinet status card pads it 20 / 16 under
+its hairline). No hover (not interactive).
+
+**Where used** — BO dossier Date generale „Traiectoria dosarului” (`renderDosarTrajectory`, shell; dos-01 current,
+dos-01b paused, dos-01g all done, dos-01h rejected) · eKYC session „Plan de verificare” + review „Traseul
+reviziei” (`trajectory()` in js/ekyc.js; ek-05g current, ek-05d paused, ek-07e rejected + skipped, ek-14f) ·
+FO finish (`renderFrontOfficeStep7FromSchema`: tracker horizontal + „Statutul dosarului” vertical with the
+„Acum” / „Opțional” Small tags; fo-08, post-process pp-10f / pp-12a / pp-14b / pp-16a / pp-17a) · EVO Cabinet
+„Stadiul solicitării” (`timelineHtml` in solicitari.js, vertical + bare; sm-03, sm-04, sm-04b / 04c attention,
+sm-05 done, sm-05a rejected). Not trajectories (different components): the FO / Ghișeu wizard stepper
+(`.e-permits-fo-stepper`, navigation between form steps), the event log „Jurnal / Istoric”
+(`.e-permits-timeline`), the Process Designer case trace (canvas). Ghișeu confirmation and RAP show no
+trajectory (RAP's `renderTimeline` in rap-evo.js is dead code, never called).
+
+**Checks:** `tools/ui-qa/specs/trajectory-vs-bo.json` (horizontal, 1440; dos-01 vs ek-05g / fo-08 / pp-10f, dos-01b
+vs ek-05d, dos-01h vs ek-07e, dos-01g vs ek-14f) and `trajectory-vertical-vs-bo.json` (dos-01 at 375 vs fo-08 /
+sm-04b; fo-08 vs sm-04 at 1440) = 0 property differences (pairs „MISSING” = a state that screen does not have).
+
+**Replaced (2026-10-20):** the BO grid 1·2·2·2·2·1 with left / right aligned edge steps and 2px lines 4 from the
+markers; `.e-permits-trajectory__steps--n3…n7`; the FO `.e-permits-fo-finish-tracker` (1.5 lines, no card, labels
+only) and `.e-permits-fo-finish-timeline` (grey card, 16 markers, 14/20 texts); the Cabinet 16-marker timeline with
+the semibold `.is-now` title; `finishMarkerHtml` (it wrote an inline style).
+
+#### History — Traiectoria dosarului, case path on Date generale (added 2026-10-02; layout superseded 2026-10-20)
 
 Figma GEAP 2.0 `8929:7814`. First section of the dosar "Date generale" tab
 (`renderDosarTrajectory`). White card (`--color-background-base-default`, 1px
@@ -6273,8 +6339,8 @@ completedAt, durationSeconds, decision, finalScore (null without a decision), sc
   Monitorizare › Sesiuni … › ID, title = client, meta row). Tabs: active — Date generale · Pași de
   verificare · Dispozitiv · Jurnal; historical — + Scor și decizie. Date generale: „Plan de
   verificare” (historical: the decision is its hanging callout, tone by decision — see „Dashboard
-  polish”) = the dosar trajectory with N columns (`.e-permits-trajectory__steps--n3…n7`,
-  Inițiere · steps · Decizie) + the hanging „Acum / Urmează” callout · Sesiune · Identificatori ·
+  polish”) = the shared trajectory (`GEAPTrajectory.html`, any number of steps;
+  Inițiere · steps · Decizie; in a finished session the steps never run after a failure are `skipped`) + the hanging „Acum / Urmează” callout · Sesiune · Identificatori ·
   Job de verificare. Pași = stacked list grouped Finalizați / Nereușiți / Pas curent / În
   așteptare (code as neutral tag). Scor și decizie = registry table `.e-permits-ekyc-breakdown`
   (Tip pas · Scor · Pondere · Contribuție meter) + sum-list total „Scor final” + scoring config.
@@ -7541,8 +7607,8 @@ toast „Șablon creat”). Arrows: Continuă → next step, Creează șablonul 
 > **Dosare (2026-10-13):** `dos-01…05a` open the story dossier D-2026-004575 as the block's role
 > (`dos(role, stare, tab, extra)` in demo-states.js). A `#dosar/` deep link accepts the demo-only
 > params `stare=<status key>`, `suspendat=1`, `decizia=respingere` (`applyDemoCaseState` in the
-> shell: sets the status, rebuilds the case flow). Trajectory in Figma = code: white card, 1px
-> border, radius 24, padding 20; „Acum” callout inset 24 (= card radius), radius 0 0 24 24, padding 12/16, title 14/20.
+> shell: sets the status, rebuilds the case flow). Trajectory in Figma = code = 9709:1137 (section „Trajectory
+> (traiectoria dosarului) — one component”); „Acum” callout inset 24 (= card radius), radius 0 0 24 24, padding 12/16, title 14/20.
 
 Every Figma screen block links to the running prototype on GitHub Pages, on that exact
 screen: `https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=<id>`.

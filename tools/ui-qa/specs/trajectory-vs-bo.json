@@ -1,0 +1,232 @@
+{
+ "about": "Trajectory (traiectoria dosarului) — one component (js/trajectory.js + css/trajectory.css, 2026-10-20). Reference = BO dossier dos-01 (Figma GEAP 2.0 9709:1137). Horizontal places at 1440: ek-05g (Plan de verificare), ek-14f (Traseul reviziei), fo-08 / pp-10f (FO finish tracker: no meta → the meta pairs are missing there). Vertical places (fo-08 Statutul dosarului, sm-04b Stadiul solicitării) compare with dos-01 at 375 (the BO trajectory stacked) via trajectory-vertical-vs-bo.json. Pairs missing on one side = that state has no such step (N/A, not a difference): pick a reference with the same states — current: dos-01 · paused: dos-01b · rejected: dos-01h · all done: dos-01g. Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a dos-01 --b ek-05g --spec tools/ui-qa/specs/trajectory-vs-bo.json --viewports 1440",
+ "tokens": [
+  "--color-",
+  "--font-",
+  "--spacing-",
+  "--border-"
+ ],
+ "pairs": [
+  {
+   "name": "card",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical)",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical)",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.y"
+   ]
+  },
+  {
+   "name": "steps",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__steps",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__steps",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "first step",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:first-child",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:first-child",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "next step",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:nth-child(2)",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:nth-child(2)",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "step body",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:first-child .e-permits-trajectory__body",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step:first-child .e-permits-trajectory__body",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "done marker",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__marker",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__marker",
+   "rel": "card",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "done icon",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__marker .icon",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__marker .icon",
+   "rel": "card",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "done label",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__label",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__label",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "current marker",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-current .e-permits-trajectory__marker",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-current .e-permits-trajectory__marker",
+   "rel": "card",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "current label (pill)",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-current .e-permits-trajectory__label",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-current .e-permits-trajectory__label",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "todo ring",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-todo .e-permits-trajectory__dot",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-todo .e-permits-trajectory__dot",
+   "rel": "card",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "todo label",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-todo .e-permits-trajectory__label",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-todo .e-permits-trajectory__label",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "paused marker",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-paused .e-permits-trajectory__marker",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-paused .e-permits-trajectory__marker",
+   "rel": "card",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "paused label (pill)",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-paused .e-permits-trajectory__label",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-paused .e-permits-trajectory__label",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "rejected marker",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-rejected .e-permits-trajectory__marker",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-rejected .e-permits-trajectory__marker",
+   "rel": "card",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "rejected label",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-rejected .e-permits-trajectory__label",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-rejected .e-permits-trajectory__label",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "meta",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__meta",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done .e-permits-trajectory__meta",
+   "rel": "card",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "connector brand",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done + .e-permits-trajectory__step:is(.is-done, .is-current)",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-done + .e-permits-trajectory__step:is(.is-done, .is-current)",
+   "pseudo": "::before",
+   "props": [
+    "content",
+    "height",
+    "background-color",
+    "margin-top",
+    "margin-left",
+    "margin-right",
+    "min-width",
+    "flex-grow",
+    "flex-shrink",
+    "flex-basis",
+    "border-top-left-radius"
+   ]
+  },
+  {
+   "name": "connector grey",
+   "a": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-todo + .e-permits-trajectory__step.is-todo",
+   "b": ".e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__step.is-todo + .e-permits-trajectory__step.is-todo",
+   "pseudo": "::before",
+   "props": [
+    "content",
+    "height",
+    "background-color",
+    "margin-top",
+    "margin-left",
+    "margin-right",
+    "min-width",
+    "flex-grow",
+    "flex-shrink",
+    "flex-basis",
+    "border-top-left-radius"
+   ]
+  }
+ ]
+}

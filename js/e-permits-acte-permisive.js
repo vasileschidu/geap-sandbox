@@ -3304,20 +3304,9 @@
        form header h1, the payment step's summary card (.e-permits-fo-payment-
        summary + .e-permits-fo-summary-row + the copy-value button), the
        library .status-tag for "Acum"/"Opțional", the outlined and primary
-       .btn, and the form footer. New, because nothing local matches: the
-       horizontal case-status tracker, the proof-of-filing document banner and
-       the vertical "Statutul dosarului" timeline (.e-permits-fo-finish-*). */
-    function finishMarkerHtml(state, size) {
-      if (state === "done") {
-        return `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--done" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-checkmark-filled"></use></svg>`;
-      }
-      if (state === "current") {
-        return `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--current" width="${size}" height="${size}" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-time-filled"></use></svg>`;
-      }
-      return `<span class="e-permits-fo-finish-marker e-permits-fo-finish-marker--todo" style="--fo-finish-marker-size:${size}px" aria-hidden="true"></span>`;
-    }
-
-    const FINISH_STATE_LABEL = { done: "finalizat", current: "în curs", todo: "urmează" };
+       .btn, and the form footer. The case-status tracker and the "Statutul
+       dosarului" timeline are the shared trajectory (js/trajectory.js: horizontal /
+       vertical); the proof-of-filing document banner is .e-permits-fo-finish-doc. */
 
     /* US-18: the certificate retry state survives a re-render */
     let frontOfficeCertRetried = false;
@@ -3342,16 +3331,7 @@
         : "";
 
       const tracker = Array.isArray(step.tracker) && step.tracker.length
-        ? `
-          <ol class="e-permits-fo-finish-tracker" aria-label="Progresul dosarului">
-            ${step.tracker.map((item) => `
-              <li class="e-permits-fo-finish-tracker__item is-${esc(item.state || "todo")}">
-                <span class="e-permits-fo-finish-tracker__marker">${finishMarkerHtml(item.state, 24)}</span>
-                <span class="e-permits-fo-finish-tracker__label">${esc(item.label || "")}<span class="u-visually-hidden"> — ${FINISH_STATE_LABEL[item.state] || FINISH_STATE_LABEL.todo}</span></span>
-              </li>
-            `).join("")}
-          </ol>
-        `
+        ? window.GEAPTrajectory?.html({ label: "Progresul dosarului", steps: step.tracker.map((item) => ({ label: item.label || "", state: item.state || "todo" })) }) || ""
         : "";
 
       /* US-18 AC-06/07: the certificate is shown only when the service issues one (?cert=none hides it);
@@ -3383,23 +3363,15 @@
         ? `
           <section class="e-permits-fo-finish__section" aria-labelledby="fo-finish-timeline-title">
             <h2 class="e-permits-fo-finish__section-title" id="fo-finish-timeline-title">${esc(step.timeline.title || "Statutul dosarului")}</h2>
-            <ol class="e-permits-fo-finish-timeline">
-              ${timelineItems.map((item) => `
-                <li class="e-permits-fo-finish-timeline__item is-${esc(item.state || "todo")}">
-                  <span class="e-permits-fo-finish-timeline__rail" aria-hidden="true">
-                    <span class="e-permits-fo-finish-timeline__marker">${finishMarkerHtml(item.state, 16)}</span>
-                    <span class="e-permits-fo-finish-timeline__line"></span>
-                  </span>
-                  <div class="e-permits-fo-finish-timeline__copy">
-                    <p class="e-permits-fo-finish-timeline__title">
-                      <span>${esc(item.title || "")}</span>
-                      ${item.tag ? `<span class="status-tag status-tag--small ${tagClass(item)}">${esc(item.tag)}</span>` : ""}
-                    </p>
-                    <p class="e-permits-fo-finish-timeline__text">${esc(item.text || "")}</p>
-                  </div>
-                </li>
-              `).join("")}
-            </ol>
+            ${window.GEAPTrajectory?.html({
+              layout: "vertical",
+              steps: timelineItems.map((item) => ({
+                label: item.title || "",
+                state: item.state || "todo",
+                meta: item.text || "",
+                tagHtml: item.tag ? `<span class="status-tag status-tag--small ${tagClass(item)}">${esc(item.tag)}</span>` : ""
+              }))
+            }) || ""}
           </section>
         `
         : "";

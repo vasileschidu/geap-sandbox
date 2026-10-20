@@ -3030,7 +3030,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const payDue = row.status === "asteaptaPlata" ? (buildDosarProfile(row).taxe.filter((t) => t.status === "neachitat").map((t) => t.termen).sort()[0] || null) : null;
     const overdue = payDue ? parseIsoDate(payDue) < today : current >= 1 && current <= 3 && row.termenExaminare && parseIsoDate(row.termenExaminare) < today;
     const stateOf = (i) => (i < current || (current === 6 && i <= 5) ? "done" : i === current ? (suspended ? "paused" : "current") : "todo");
-    const icon = { done: "circle-checkmark-filled", current: "time-filled", paused: "pause" };
     const short = (date) => date.toLocaleDateString("ro-RO", { day: "numeric", month: "short", year: "numeric" });
     const stepNow = steps[Math.min(current, 5)];
     const daysIn = Math.max(0, Math.round((today - dates[Math.min(current, 5)]) / 86400000));
@@ -3056,21 +3055,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
       <section class="e-permits-dosar-profil__section e-permits-trajectory-section">
         <h2 class="e-permits-dosar-profil__section-title">Traiectoria dosarului</h2>
-        <div class="e-permits-trajectory">
-          <ol class="e-permits-trajectory__steps">
-            ${steps.map((step, i) => {
-              const state = stateOf(i);
-              const failed = state === "done" && step.key === "final" && rejected;
-              const showMeta = state !== "todo";
-              return `
-                <li class="e-permits-trajectory__step is-${failed ? "rejected" : state}"${state === "current" || state === "paused" ? ' aria-current="step"' : ""}>
-                  <span class="e-permits-trajectory__marker" aria-hidden="true">${state === "todo" ? '<span class="e-permits-trajectory__dot"></span>' : `<svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-${failed ? "circle-error-filled" : icon[state]}"></use></svg>`}</span>
-                  <span class="e-permits-trajectory__label">${escapeHtml(step.label)}<span class="sr-only"> — ${state === "done" ? "finalizat" : state === "todo" ? "urmează" : state === "paused" ? "suspendat" : "în curs"}</span></span>
-                  ${showMeta ? `<span class="e-permits-trajectory__meta">${escapeHtml(short(dates[i]))}<br>${escapeHtml(step.who)}</span>` : ""}
-                </li>`;
-            }).join("")}
-          </ol>
-        </div>
+        ${window.GEAPTrajectory?.html({
+          steps: steps.map((step, i) => {
+            const state = stateOf(i);
+            const failed = state === "done" && step.key === "final" && rejected;
+            return { label: step.label, state: failed ? "rejected" : state, sr: failed ? "finalizat" : undefined, meta: state === "todo" ? "" : [short(dates[i]), step.who] };
+          })
+        }) || ""}
         ${summary}
       </section>`;
   };

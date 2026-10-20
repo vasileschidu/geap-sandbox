@@ -648,8 +648,9 @@
 
   /* ---------- „Stadiul solicitării” (2026-10-17): ONE bordered card = the current status on top
      (Small tags + the status sentence / next step + the action that exists) · hairline · the timeline
-     of the request (the FO finish timeline: done steps with their dates, the current one highlighted,
-     the next ones dashed). Replaces the stepper + callout + loose action row + „Istoric complet”. */
+     of the request (the shared trajectory, vertical and bare — js/trajectory.js: done steps with their
+     dates, the current one on the soft pill, the next ones as rings). Replaces the stepper + callout +
+     loose action row + „Istoric complet”. */
   const STEP_STATE_TEXT = { done: "finalizat", current: "etapa curentă", attention: "necesită acțiunea dumneavoastră", rejected: "respins", todo: "urmează" };
 
   function statusNow(dosar) {
@@ -726,29 +727,18 @@
   }
 
   function timelineHtml(dosar) {
-    const icons = { done: "icon-circle-checkmark-filled", current: "icon-time-filled", attention: "icon-warning-filled", rejected: "icon-circle-error-filled" };
-    const marker = (stateName) => (stateName === "todo"
-      ? `<span class="e-permits-fo-finish-marker e-permits-fo-finish-marker--todo e-permits-fo-finish-marker--sm" aria-hidden="true"></span>`
-      : `<svg class="icon e-permits-fo-finish-marker e-permits-fo-finish-marker--${stateName}" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#${icons[stateName]}"></use></svg>`);
-    const events = timelineEvents(dosar);
-    return `
-      <ol class="e-permits-fo-finish-timeline cab-status__timeline" aria-label="Etapele solicitării">
-        ${events.map((event, index) => {
-          const now = event.state === "current" || event.state === "attention" || (event.state === "rejected" && index === events.length - 1);
-          const done = event.state === "done" || (event.state === "rejected");
-          return `
-          <li class="e-permits-fo-finish-timeline__item is-${done && !now ? "done" : now ? "current" : "todo"}${now ? " is-now" : ""}"${now ? ' aria-current="step"' : ""}>
-            <span class="e-permits-fo-finish-timeline__rail" aria-hidden="true">
-              <span class="e-permits-fo-finish-timeline__marker">${marker(event.state)}</span>
-              <span class="e-permits-fo-finish-timeline__line"></span>
-            </span>
-            <div class="e-permits-fo-finish-timeline__copy">
-              <p class="e-permits-fo-finish-timeline__title"><span>${escape(event.title)}</span><span class="u-visually-hidden"> — ${STEP_STATE_TEXT[event.state]}</span></p>
-              ${[event.when, event.text].filter(Boolean).length ? `<p class="e-permits-fo-finish-timeline__text">${escape([event.when, event.text].filter(Boolean).join(" · "))}</p>` : ""}
-            </div>
-          </li>`;
-        }).join("")}
-      </ol>`;
+    return window.GEAPTrajectory?.html({
+      layout: "vertical",
+      bare: true,
+      className: "cab-status__timeline",
+      label: "Etapele solicitării",
+      steps: timelineEvents(dosar).map((event) => ({
+        label: event.title,
+        state: event.state,
+        sr: STEP_STATE_TEXT[event.state],
+        meta: [event.when, event.text].filter(Boolean).join(" · ")
+      }))
+    }) || "";
   }
 
   function statusCardHtml(dosar) {
