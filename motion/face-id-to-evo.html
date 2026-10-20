@@ -60,7 +60,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 <main class="page">
   <header>
     <h1>EVO Face ID → logo EVO</h1>
-    <p class="lead">Iterația 6, pe geometria exactă din Figma (eKYC 10859:45761). La declanșare fața începe să se rotească — trei ture rapide, cu motion blur — iar abia când e în plină viteză ochii, nasul și zâmbetul pornesc spre punctele și bara logo-ului; colțurile cresc în sferturile inelului și liniile se îngroașă de la 2 la 5.</p>
+    <p class="lead">Iterația 7, pe geometria exactă din Figma (eKYC 10859:45761). La declanșare fața începe să se rotească — patru ture rapide, cu motion blur puternic — iar abia când e în plină viteză ochii, nasul și zâmbetul pornesc spre punctele și bara logo-ului; colțurile cresc în sferturile inelului și liniile se îngroașă de la 2 la 5.</p>
   </header>
 
   <section class="stage" id="stage" aria-label="Animație">
@@ -90,7 +90,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       <div class="timeline">
         <b>0–500 ms</b><span>Face ID în repaus (o „respirație” discretă).</span>
         <b>500 ms</b><span>Declanșare (apăsare sau automat).</span>
-        <b>500–1220 ms</b><span>Trei ture complete (1080°) în același timp — pornește lin, accelerează, frânează lung — cu motion blur: copii „fantomă” care rămân în urma rotației, mai lungi și mai vizibile cu cât viteza e mai mare. Colțurile cresc în sferturile inelului (raza 4 → 11), liniile 2 → 5.</span>
+        <b>500–1220 ms</b><span>Patru ture complete (1440°) în același timp — pornește lin, accelerează, frânează lung — cu motion blur: copii „fantomă” care rămân în urma rotației, mai lungi și mai vizibile cu cât viteza e mai mare. Colțurile cresc în sferturile inelului (raza 4 → 11), liniile 2 → 5.</span>
         <b>740–1220 ms</b><span>Abia după ce rotația a pornit: ochiul stâng → punctul de sus, ochiul drept → punctul din stânga, nasul → centrul, zâmbetul → bara.</span>
         <b>880–1140 ms</b><span>Punctul de jos și cel din dreapta apar încă în timpul rotației (nu la final), cu un rebound mic.</span>
         <b>1500 ms</b><span>Cadrul final = exact frame-ul logo din Figma.</span>
@@ -149,8 +149,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 
   const scenes = [...document.querySelectorAll("svg.scene")].map((svg) => {
     const gid = "m" + Math.random().toString(36).slice(2, 8);
-    // motion blur: 8 fading „ghost” copies trailing the rotation (behind the real shape), opacity ∝ angular speed
-    const ghosts = [1, 2, 3, 4, 5, 6, 7, 8].map(() => { const u = document.createElementNS(NS, "use"); u.setAttribute("href", "#" + gid); u.setAttribute("opacity", "0"); svg.appendChild(u); return u; });
+    // motion blur: 12 fading „ghost” copies trailing the rotation (behind the real shape), opacity ∝ angular speed
+    const ghosts = Array.from({ length: 12 }, (_, i) => i + 1).map(() => { const u = document.createElementNS(NS, "use"); u.setAttribute("href", "#" + gid); u.setAttribute("opacity", "0"); svg.appendChild(u); return u; });
     const g = document.createElementNS(NS, "g"); g.id = gid; svg.appendChild(g);
     const mk = (attrs) => { const p = document.createElementNS(NS, "path"); p.setAttribute("fill", "none"); p.setAttribute("stroke-linecap", "round"); p.setAttribute("stroke-linejoin", "round"); for (const [k, v] of Object.entries(attrs)) p.setAttribute(k, v); g.appendChild(p); return p; };
     // draw order as in the Figma logo frame: ring, then the bar (smile), then every dot on top
@@ -165,7 +165,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   function frame(ms) {
     const breathe = ms < START ? Math.sin((ms / START) * Math.PI) * 0.02 : 0;
     const m = seg(ms, START, START + 720);
-    const TURNS = 3;
+    const TURNS = 4;
     const spin = 360 * TURNS * SPIN(m);
     // angular speed (deg per ms) → length of the blur trail
     const prev = 360 * TURNS * SPIN(seg(ms - 16, START, START + 720));
@@ -175,10 +175,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
     for (const s of scenes) {
       s.g.setAttribute("transform", `rotate(${f3(spin)} 16 16) translate(16 16) scale(${f3(1 + breathe)}) translate(-16 -16)`);
       // each ghost sits a little behind in the turn; the faster the spin, the longer and stronger the trail
-      const trail = Math.min(26, speed * 9);
+      const trail = Math.min(48, speed * 12);
       s.ghosts.forEach((u, i) => {
-        u.setAttribute("transform", `rotate(${f3(-trail * (i + 1) / 8)} 16 16)`);
-        u.setAttribute("opacity", f3(speed > 0.05 ? Math.min(0.26, speed * 0.075) * (1 - i / 9) : 0));
+        u.setAttribute("transform", `rotate(${f3(-trail * (i + 1) / 12)} 16 16)`);
+        u.setAttribute("opacity", f3(speed > 0.05 ? Math.min(0.32, speed * 0.08) * (1 - i / 13) : 0));
       });
       s.corners.forEach((p) => { p.setAttribute("d", cornerTL(e, S, r)); p.setAttribute("stroke-width", f3(w)); });
       FEATURES.forEach((f, i) => {
