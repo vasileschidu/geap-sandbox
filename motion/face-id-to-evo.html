@@ -60,7 +60,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 <main class="page">
   <header>
     <h1>EVO Face ID → logo EVO</h1>
-    <p class="lead">Iterația 5, pe geometria exactă din Figma (eKYC 10859:45761). La declanșare fața începe să se rotească — trei ture rapide, cu motion blur — iar abia când e în plină viteză ochii, nasul și zâmbetul pornesc spre punctele și bara logo-ului; colțurile cresc în sferturile inelului și liniile se îngroașă de la 2 la 5.</p>
+    <p class="lead">Iterația 6, pe geometria exactă din Figma (eKYC 10859:45761). La declanșare fața începe să se rotească — trei ture rapide, cu motion blur — iar abia când e în plină viteză ochii, nasul și zâmbetul pornesc spre punctele și bara logo-ului; colțurile cresc în sferturile inelului și liniile se îngroașă de la 2 la 5.</p>
   </header>
 
   <section class="stage" id="stage" aria-label="Animație">
@@ -92,7 +92,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
         <b>500 ms</b><span>Declanșare (apăsare sau automat).</span>
         <b>500–1220 ms</b><span>Trei ture complete (1080°) în același timp — pornește lin, accelerează, frânează lung — cu motion blur: copii „fantomă” care rămân în urma rotației, mai lungi și mai vizibile cu cât viteza e mai mare. Colțurile cresc în sferturile inelului (raza 4 → 11), liniile 2 → 5.</span>
         <b>740–1220 ms</b><span>Abia după ce rotația a pornit: ochiul stâng → punctul de sus, ochiul drept → punctul din stânga, nasul → centrul, zâmbetul → bara.</span>
-        <b>1080–1380 ms</b><span>Punctul de jos și cel din dreapta apar, cu un rebound mic.</span>
+        <b>880–1140 ms</b><span>Punctul de jos și cel din dreapta apar încă în timpul rotației (nu la final), cu un rebound mic.</span>
         <b>1500 ms</b><span>Cadrul final = exact frame-ul logo din Figma.</span>
       </div>
     </div>
@@ -142,10 +142,10 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   const FEATURES = [
     { from: [[10.667, 12], [10.667, 13.333]], to: [[16, 5], [16, 5]], c0: "#8774ff", c1: "#8774ff", t: [760, 1200] },            // left eye → top dot
     { from: [[21.333, 12], [21.333, 13.333]], to: [[5, 16], [5, 16]], c0: "#5690ff", c1: "#5690ff", t: [780, 1210] },            // right eye → left dot
-    { from: [[16.667, 11.667], [16.667, 14.667], [14.667, 17.25]], to: [[16, 16], [16, 16], [16, 16]], c0: "#e176ff", c1: "#b56bff", t: [740, 1160] }, // nose → centre
+    { nose: true, from: [[16.667, 11.667], [16.667, 14.667], [16.667, 15.910], [15.818, 16.954], [14.667, 17.250]], to: [[16, 16], [16, 16], [16, 16], [16, 16], [16, 16]], c0: "#e176ff", c1: "#b56bff", t: [740, 1160] }, // nose → centre (Figma path: line, then the hook)
     { from: [[12, 20.93], [16, 22.07], [20, 20.93]], to: [[16, 16], [21.5, 16], [27, 16]], c0: "#aa18ce", c1: "#aa18ce", t: [800, 1220] }        // smile → bar
   ];
-  const POPS = [{ at: [16, 27], color: "#0093b8", t: [1080, 1340] }, { at: [27, 16], color: "#b56bff", t: [1120, 1380] }];
+  const POPS = [{ at: [16, 27], color: "#0093b8", t: [880, 1100] }, { at: [27, 16], color: "#b56bff", t: [920, 1140] }]; // appear while still spinning
 
   const scenes = [...document.querySelectorAll("svg.scene")].map((svg) => {
     const gid = "m" + Math.random().toString(36).slice(2, 8);
@@ -185,7 +185,9 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
         const t = EMPH(seg(ms, f.t[0], f.t[1]));
         const pts = f.from.map((p, k) => lerpP(p, f.to[k], t));
         const el = s.features[i];
-        el.setAttribute("d", pts.length === 2 ? `M${f3(pts[0][0])} ${f3(pts[0][1])} L${f3(pts[1][0] + 0.01)} ${f3(pts[1][1])}` : `M${f3(pts[0][0])} ${f3(pts[0][1])} Q${f3(pts[1][0])} ${f3(pts[1][1])} ${f3(pts[2][0] + 0.01)} ${f3(pts[2][1])}`);
+        const P = (q, dx = 0) => `${f3(q[0] + dx)} ${f3(q[1])}`;
+        el.setAttribute("d", f.nose ? `M${P(pts[0])} L${P(pts[1])} C${P(pts[2])} ${P(pts[3])} ${P(pts[4], 0.01)}`
+          : pts.length === 2 ? `M${P(pts[0])} L${P(pts[1], 0.01)}` : `M${P(pts[0])} Q${P(pts[1])} ${P(pts[2], 0.01)}`);
         el.setAttribute("stroke", mix(f.c0, f.c1, t));
         el.setAttribute("stroke-width", f3(lerp(2, 5, t)));
       });
