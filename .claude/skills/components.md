@@ -193,7 +193,7 @@ but this doc previously described it wrongly, see the entry.
 | Message / Banner | `.message` ≡ `.banner` ≡ `.inline-message` ≡ `.info-box` | `messages*.html` | app |
 | Tabs | `.tabs .tab-buttons .tab-button.active` | `tabs.html` | app (partial) |
 | Modal | `.modal-overlay.is-active > .modal` | `modals.html` | app (partial) |
-| Modals on phones (≤760, every dialog family, 2026-10-19) | bottom sheet: 16 top gap (scrim), 0 sides / bottom, top radius 16, hug up to `100dvh − 16`; 16 inner padding; compact header / scrolling body / footer with two equal-half buttons (wrap → primary on top) + safe-area bottom; A4 page full width | `css/modal-phone.css` (loaded last); section „Modals on phones — maximum content space” | app |
+| Modals on phones (≤760, every dialog family, 2026-10-19) | bottom sheet: 16 top gap (scrim), 0 sides / bottom, top radius 16, hug up to `100dvh − 16`; 16 inner padding; compact header / scrolling body / footer with two equal-half buttons (wrap → primary on top) + safe-area bottom; A4 page full width; header (2026-10-20): no drag handle, title 16 from the top, title + × on the first line, × 40 · icon 24, 8 under the sheet header | `css/modal-phone.css` (loaded last); section „Modals on phones — maximum content space” | app |
 | Badge | `.badge` + style + size | `badge.html` | app |
 | Chip | `.chip` + `.is-selected/.is-disabled` | `chip.html` | app |
 | Select — native | `.select` | `dropdown.html` | library |
@@ -839,7 +839,8 @@ query (proved: 14 modal states at 1440, geometry identical with / without the fi
 | Scrim gap (layer cue) | **16 on top** (or the notch inset when larger), **0 sides, 0 bottom** | `--modal-phone-gap` = `max(--spacing-16, env(safe-area-inset-top))` |
 | Surface | full width, top radius 16, bottom square; **hugs short content**, long content stops at `100dvh − 16`; page / flow dialogs (A4 viewer, Ghișeu request, `--doc` detail) take that full height | `--modal-phone-radius` (`--border-radius-16`), `--modal-phone-max` |
 | Inner side padding | **16 everywhere** (header, body, footer) = the page gutter; never below 16 (touch, reading) | `--modal-phone-inset` (`--spacing-16`) |
-| Header | 16 top, title (library 20/32, FO title as is) + × 32 at 16 / 16; right padding 56 = × + 8 + 16 | |
+| Header (2026-10-20, „no top line, title near the edge, bigger ×”) | **no drag handle** (none of our sheets is draggable — `GEAPSheet` no longer renders `.bottom-sheet__handle`, the library phone calendar's `::before` line is off); title **16 from the top edge** (= the 16 sides; library 20/32, FO / sheet titles 24/32 semibold, unchanged); title (fills, wraps) + × in **one row aligned to the title's first line** — the × is centred on the 32 line box, so its 40 box sits 12 from the top and 16 from the right; 8 between title and × (library header right padding 64 = 8 + 40 + 16); sheets: header padding **16 16 8**, content keeps its own top inset (title → first content: sort sheet 16, Filtre 8 + the 56 section row); library modals keep 0 under the header + body 16; FO dialogs keep header 16 all round | `--modal-phone-close` (`--spacing-40`), `--modal-phone-title-line` (`--line-height-lh-32`) |
+| × (close) on phones | the library `.modal-close` (sheets, library modals) / the FO dialog close `.e-permits-fo-doc-modal__close` (same look): **40 × 40, icon 24** (`--icon-size-default`; the markup's `icon small` 16 is resized in CSS), tertiary → hover `tertiary-hover` → pressed `tertiary-active`, focus-visible = the canonical ring 2 white + 3 `blue-sky-500`. Desktop (> 760) unchanged: library `.modal-close` 32 / icon 16 at 20 / 20, FO dialog close 32 / 16 at 24 / 24 | section 9 of `css/modal-phone.css` |
 | Body | the only scroller: `flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain`; 16 padding | |
 | Footer | 12 above the buttons, `max(16, env(safe-area-inset-bottom))` below; buttons side by side in two equal halves (`flex: 1 1 calc((100% − 8) / 2)`, `min-width: fit-content`); a label that does not fit its half wraps the pair → one button per line, **primary on top** (`flex-wrap: wrap-reverse`) | `--modal-phone-foot` |
 | Button size | library `.modal-buttons` = 40 pill (unchanged); FO dialogs keep their 48 FO buttons (touch) | |
@@ -902,7 +903,9 @@ fo-01s, sm-01s, rap-04a, ek-04j, svc-08g (open them at 375 / 320).
 
 Figma follows: phone dialog frames = the bottom sheet above (16 from the top of the 375 screen, full width,
 top radius 16, 16 inner padding, header 16 + 32 title row, footer 12 / 16 with two equal 40 buttons; FO
-dialogs 48 buttons); A4 viewer page 359 wide at 375.
+dialogs 48 buttons); A4 viewer page 359 wide at 375. Header spec (2026-10-20): **no handle**; auto-layout row, padding
+16 16 8 (sheets; library modals 16 16 0 + body 16), gap 8, top-aligned: title 24/32 semibold (fill, wraps) + × = Close button
+40 × 40 / icon 24 with −4 vertical offset (centred on the title's first 32 line, 12 from the top, 16 from the right).
 
 ---
 
@@ -2138,7 +2141,7 @@ the page's delegated dropdown never opens; the trigger says `aria-haspopup="dial
 
 | Part | Value |
 |---|---|
-| Container | shared `GEAPSheet` (`.bottom-sheet.e-permits-filter-sheet.e-permits-sort-sheet`): scrim, handle, header, „Modals on phones” gap 16 / radius 16; hugs its content (375 × 812: panel 672 high in v2, no scroll), scrolls the body between header and footer when taller (320 × 568) |
+| Container | shared `GEAPSheet` (`.bottom-sheet.e-permits-filter-sheet.e-permits-sort-sheet`): scrim, header (no handle since 2026-10-20; title 16 from the top, × 40 / icon 24 — „Modals on phones › Header”), „Modals on phones” gap 16 / radius 16; hugs its content (375 × 812: panel 672 high in v2, no scroll), scrolls the body between header and footer when taller (320 × 568) |
 | Header | title „Sortează” 24/32 semibold + library `.modal-close` |
 | Body | padding 8 16 24, groups 24 apart |
 | Section label | `h3.e-permits-sort-sheet__label` 14/20 medium `--color-text-base-secondary`, 8 above its control |
@@ -2627,7 +2630,7 @@ the same gesture on the *header/indicator* dismisses or expands the sheet.
 see „Advanced filter › Phone mode”). Product overrides, scoped: hug the content (`min-height: 0`),
 `max-height: 90dvh`, top radius 24 on every width (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16), × = library `.modal-close` (the bare
 `__close` is a text „×”), sticky `__footer` with a top border. Swipe-to-dismiss is not built —
-scrim tap, ×, Esc and the sheet's own action close it (the handle is decorative).
+scrim tap, ×, Esc and the sheet's own action close it. **No handle in the product (2026-10-20, user: „all down modals should not have the top line like iOS native — it's not functional here”)**: `GEAPSheet` renders no `__handle`; the title sits 16 from the top edge and the × is 40 / icon 24 — „Modals on phones — maximum content space › Header”.
 
 ---
 
@@ -4911,7 +4914,7 @@ button, sticky apply at the thumb, search in long facets.
   facet filter sets has-value / is-typing / is-ready itself (opt-in pages only). Before
   (2026-10-17) the RAP popover search had the text at 48, a 16px placeholder and no ×.
 - **Sheet** = the library `.bottom-sheet` (scrim `__overlay`, `__panel` `role=dialog`
-  `aria-modal` `aria-labelledby`, decorative `__handle` `aria-hidden`, `__header`,
+  `aria-modal` `aria-labelledby`, no `__handle` (removed 2026-10-20 — not draggable), `__header`,
   `__content`, `__footer`), created once and appended to `<body>`. Overrides
   (`.e-permits-filter-sheet`): `min-height: 0` (hugs, the library 45vh left empty space),
   `max-height: 90dvh`, top radius 24 on every width (the library squares it ≤768) (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16), `.is-all`

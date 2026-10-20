@@ -24,6 +24,8 @@
   --modal-phone-radius: var(--border-radius-16, 16px);
   --modal-phone-max: calc(100dvh - var(--modal-phone-gap)); /* fixed surfaces without an overlay box (account switcher) */
   --modal-phone-foot: max(var(--spacing-16, 16px), env(safe-area-inset-bottom, 0px));
+  --modal-phone-close: var(--spacing-40, 40px); /* the × tap target (2026-10-20) */
+  --modal-phone-title-line: var(--line-height-lh-32, 32px); /* the dialog title's line box: the × centres on it */
 }
 
 @media (max-width: 760px) {
@@ -191,6 +193,77 @@
   .modal-overlay.e-permits-gh-sheet-overlay {
     padding-top: var(--modal-phone-gap);
   }
+
+  /* ---- 9. the header of every phone dialog / sheet (2026-10-20, user: „no top line like iOS native — it's not
+     functional here; title near the edge; bigger ×”): no drag handle (the sheets are not draggable — GEAPSheet no
+     longer renders `.bottom-sheet__handle`), title 16 from the top edge (= the 16 sides), title + × in one row
+     aligned to the title's FIRST line (the × is centred on the 32 line box, so its 40 box sits 12 from the top),
+     8 between title and ×, 8 under the header row; × = the library `.modal-close` (FO dialogs: their own close)
+     at 40 with a 24 icon, tertiary → hover → pressed + the canonical focus ring. */
+  .bottom-sheet > .bottom-sheet__panel > .bottom-sheet__header {
+    align-items: flex-start;
+    gap: var(--spacing-8, 8px);
+    padding: var(--modal-phone-inset) var(--modal-phone-inset) var(--spacing-8, 8px);
+  }
+
+  .e-permits-fo-doc-modal > .e-permits-fo-doc-modal__header {
+    gap: var(--spacing-8, 8px);
+  }
+
+  .bottom-sheet__header > :is(.modal-close, .btn),
+  .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close {
+    flex: 0 0 auto;
+    margin-block: calc((var(--modal-phone-title-line) - var(--modal-phone-close)) / 2);
+  }
+
+  .bottom-sheet__header > .btn {
+    margin-block: calc((var(--modal-phone-title-line) - var(--spacing-32, 32px)) / 2); /* „Resetează” (btn-sm 32) */
+  }
+
+  .modal-overlay > .modal:not(.e-permits-builder) > .modal-close {
+    top: calc(var(--modal-phone-inset) + (var(--modal-phone-title-line) - var(--modal-phone-close)) / 2);
+  }
+
+  /* 16 · title · 64 on the right = 8 + × 40 + 16 */
+  .modal-overlay > .modal:not(.e-permits-builder) > :is(.modal--header, .e-permits-gh-sheet__header) {
+    padding-right: calc(var(--spacing-8, 8px) + var(--modal-phone-close) + var(--modal-phone-inset));
+  }
+
+  :is(.bottom-sheet__header > .modal-close, .modal-overlay > .modal:not(.e-permits-builder) > .modal-close, .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close) {
+    background-color: var(--color-background-base-tertiary, #f1f1f1);
+    color: var(--color-icon-base-default, #121212);
+    height: var(--modal-phone-close);
+    padding: var(--spacing-0, 0px);
+    width: var(--modal-phone-close);
+  }
+
+  :is(.bottom-sheet__header > .modal-close, .modal-overlay > .modal:not(.e-permits-builder) > .modal-close, .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close) .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  :is(.bottom-sheet__header > .modal-close, .modal-overlay > .modal:not(.e-permits-builder) > .modal-close, .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close):hover {
+    background-color: var(--color-background-base-tertiary-hover, #d9d9d9);
+  }
+
+  :is(.bottom-sheet__header > .modal-close, .modal-overlay > .modal:not(.e-permits-builder) > .modal-close, .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close):active {
+    background-color: var(--color-background-base-tertiary-active, #b2b2b2);
+  }
+
+  :is(.bottom-sheet__header > .modal-close, .modal-overlay > .modal:not(.e-permits-builder) > .modal-close, .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close):focus-visible {
+    box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--blue-sky-500, #3379db);
+    outline: none;
+  }
+}
+
+/* the library phone calendar (js/input-date-picker.js, ≤768 `.is-mobile`) is a bottom sheet too: no drag line
+   (it is not draggable) — the month row starts 16 from the top edge (2026-10-20) */
+.date-picker__field.is-mobile .date-picker::before {
+  content: none;
+}
+
+.date-picker__field.is-mobile .date-picker__header {
+  padding-top: var(--spacing-0, 0px);
 }
 
 /* the account switcher (avatar menu) turns into a sheet at ≤720 (its own breakpoint) */

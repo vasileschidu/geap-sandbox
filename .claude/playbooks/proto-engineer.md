@@ -1611,3 +1611,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   it the documented phone exception (r16 for row action menus ≤760) instead of living with a „major”. Mobbin MCP not
   available again → NN/g / GOV.UK / M3 / HIG. No sub-agent tool → ran component-audit (0), hover-audit 0 / 0 at 700 +
   1440, code-audit (standing FPs only: meta 18, alert link, sm-tacit, open menu over content), compare-styles 0.
+- 2026-10-20 · Phone dialog header (user: „all down modals should not have the top line like iOS native — not functional; title
+  near the edge; bigger ×”). Inventory by a header probe over every dialog family at 375 / 320 (scratch sh2/probe.js: topmost
+  open surface → handle element or `::before` ≤ 8 high, title rect + font, × rect + icon, × centre vs the title's first line
+  box, title → first content): the only handles were `GEAPSheet`'s `.bottom-sheet__handle` (title at 48) and the library phone
+  calendar's `.date-picker::before` 48×4 — every other family already had the title at 16. ONE section 9 in
+  `css/modal-phone.css` (≤760) for sheets, library modals and FO dialogs: header 16 16 8, title + × top-aligned, × 40 / icon 24
+  centred on the 32 title line with `margin-block: calc((line − 40) / 2)` (flex headers) or `top: 16 + (line − 40) / 2`
+  (the absolute library ×), library header right padding 8 + 40 + 16, tertiary → hover → pressed + canonical ring; the
+  calendar fix is unscoped (its `.is-mobile` is ≤768). Desktop × stays 32 / 16 (probe at 1440 identical). Tokens as two
+  custom props (`--modal-phone-close`, `--modal-phone-title-line`) so the Figma spec reads off one place. Behaviour probe
+  (Esc / × / scrim after the state): all close; „still open” after closing the A4 viewer = the parked „Vizualizare act”
+  coming back (by design) — check WHICH dialog is open after a close. Pre-existing, reported: fo-04d focus on body + Esc
+  does not close the FO picker from there, hover-audit „covered” Anulează (same on a HEAD worktree :8971). Shared index again:
+  another agent's commit (ead3b858) swept my uncommitted js/facet-filter.js hunk in — bump the cache key anyway. No
+  sub-agent tool → code-audit (standing FPs: radio-texts 3, section triggers, FO close `button-not-library`), component-audit
+  0, hover-audit 0 / 0 at 700.
