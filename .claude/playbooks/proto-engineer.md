@@ -1645,3 +1645,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   profile (already), FO pp-02 / Ghișeu act rows have no row click at all. No sub-agent tool → component-audit 0,
   hover-audit 0 / 0 (1440 + 700 temp copy), code-audit standing FPs only (open menu over the next ⋮, alert link,
   sm-tacit, trajectory `.u-visually-hidden`), sm-* regression 82 × 2 clean.
+- 2026-10-20 · Fixed row trigger for ALL rows + menu icon footprint (act-trigger-fixed-v1 / act-icons-v1; user: „Postprocese
+  with the same fixed placement on mobile as the 3 dots”, then mid-job „the straight Detalii, do the same” and „nice central
+  icons, same size footprint, like Telegram”). (1) Move a Cabinet-only rule into the SHARED anatomy instead of copying it per
+  trigger: ONE `:has(> :is(__action, .cab-doc__actions) .btn)` rule (descendant `.btn` — the request rows nest
+  `.cab-doc__actions > .e-permits-fo-intent-act__action > .btn`, my first `> .btn` silently matched only acts; the probe
+  showed the ⋮ back in the flow) + ONE reservation `--row-trigger-w` written by JS from the button's own width (read all,
+  then write if changed, in the existing syncCut pass) — label widths (32 / 87 / 132) never become CSS literals. The
+  `is-action-below` fallback went with it. (2) A 24 icon in a 20 tag line: `margin-top: (20 − 24) / 2` + `align-self:
+  flex-start` keeps the tags at 16 and every centre at 26 without cramping the title (icon → title 8). (3) Icon footprint
+  = measure, don't eyeball: render each sprite symbol to a canvas (data-URL SVG, alpha > 40) → ink box + ink area per
+  glyph; the outliers were pause 10×14, cross-small 9.6, judge-gavel 23.3. Normalise in CSS by `use[href$="#icon-…"]`
+  (`--menu-icon-optical` → `scale`), never in the sprite; pick icons by ONE map in the shared renderer (`GEAPActRow.ppIcon`
+  by id OR label) so FO / Cabinet data ids and Ghișeu labels cannot drift. A contact sheet (dashed 24 box + 20 guide)
+  made the choice reviewable. (4) Shot helper with `--menu 1` (clip = open menu ∪ trigger) gave the before / after crops
+  in one run; HEAD worktree on :8977 for before shots and a desktop-geometry diff (identical). Known limit reported:
+  Ghișeu at 320 (desktop-only page) — 256 card, the tag wraps under the icon; its up-flipped menu tucks 20 under the
+  window's sticky header (fitMenu measures the viewport, not the scroll box). No sub-agent tool → component-audit (only
+  pre-existing header / shell majors), hover-audit 0 / 0 at 1440 + 700 (FO / Ghișeu need `--scope body`: `main` = 0
+  interactive), code-audit (meta 18 FP only), compare-styles 0 with the „(Detalii)” pairs added.

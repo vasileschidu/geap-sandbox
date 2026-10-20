@@ -1,5 +1,5 @@
 {
- "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Finalizat, green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Phones (action-menu-v1, 2026-10-20): ONE anatomy for both — row 1 = [icon ·] tags · the action button right (acts „Postprocese ⌄”, library btn-neutral btn-sm, in the flow — under the meta when it does not fit), title 16/24 at every width, row 2 = title 16/24, row 3 = meta; the action button is a compared pair for height / radius / font / border only. row-kebab-v1 (2026-10-20, user „back to 3 dots, Acțiuni is too ambiguous” + „the 3 dots absolutely positioned on mobile”): the request trigger is ON PURPOSE a different library button — the icon-only ⋮ `btn btn-neutral btn-sm btn-icon-only` (32 square, r6, grey gray-100 fill at rest — kebab-neutral-v1, no padding) — so its fill / padding / gap / flex props are ignored; on phones it sits in the card's top-right corner (top = right = 10 inside the border, centre = the 20 tag line), the row reserves 40 on the right for row 1 and gives it back to title / meta / notice (`expected` at 375 / 320). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375,320 Ignored (content, not style): the action column width (grid-template-columns) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning).",
+ "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Finalizat, green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Phones: ONE anatomy for both — row 1 = [icon ·] tags, title 16/24, meta, notice; the action button is a compared pair for height / radius / font / border only. row-kebab-v1 (2026-10-20, user „back to 3 dots, Acțiuni is too ambiguous” + „the 3 dots absolutely positioned on mobile”): the request trigger is ON PURPOSE a different library button — the icon-only ⋮ `btn btn-neutral btn-sm btn-icon-only` (32 square, r6, grey gray-100 fill at rest — kebab-neutral-v1, no padding) — so its fill / padding / gap / flex props are ignored; on phones it sits in the card's top-right corner (top = right = 10 inside the border, centre = the 20 tag line), the row reserves 40 on the right for row 1 and gives it back to title / meta / notice (`expected` at 375 / 320). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375,320 Ignored (content, not style): the action column width (grid-template-columns) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning). act-trigger-fixed-v1 (2026-10-20, user: „Postprocese with the same fixed placement on mobile as the 3 dots” + „the straight Detalii, do the same”): ONE shared rule (e-permits-acte-permisive.css „PHONE ROW ANATOMY”) puts every row trigger — ⋮, lone „👁 Detalii”, „Postprocese ⌄” — absolute at top = right = 10 inside the border; row 1 reserves `--row-trigger-w` (the button's width, js/act-row.js) + 8 and the title / meta / notice take it back. So the act and request rows now differ ONLY by that width (Postprocese 132 → 140 reserved, ⋮ 32 → 40, Detalii 87 → 95): padding-right / flex-basis / margin-right are `expected` at 375 / 320; the trigger's rect (top / right inset) is compared and equal. The „(Detalii)” pairs compare the act row with the request row d-fresh (În derulare, lone Detalii). The Detalii button's padding-left 8 (vs 12) = the library btn-sm with a LEADING icon — ignored.",
  "tokens": [
   "--color-",
   "--font-",
@@ -114,134 +114,208 @@
     "rect.y",
     "row-gap"
    ]
+  },
+  {
+   "name": "row (Detalii)",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1)",
+   "b": ".cab-request-list > [data-sm-card=\"d-fresh\"]",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.x",
+    "rect.y",
+    "cursor",
+    "grid-template-columns"
+   ]
+  },
+  {
+   "name": "title (Detalii)",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-lib-item__title",
+   "b": ".cab-request-list > [data-sm-card=\"d-fresh\"] .e-permits-fo-lib-item__title",
+   "rel": "row (Detalii)",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.y",
+    "rect.right",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "meta (Detalii)",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-doc-meta",
+   "b": ".cab-request-list > [data-sm-card=\"d-fresh\"] .e-permits-fo-doc-meta",
+   "rel": "row (Detalii)",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "rect.y",
+    "rect.right",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "action button (Detalii)",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-intent-act__action > .btn",
+   "b": ".cab-request-list > [data-sm-card=\"d-fresh\"] .e-permits-fo-intent-act__action > .btn",
+   "rel": "row (Detalii)",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "padding-left"
+   ]
   }
  ],
  "expected": [
+  {
+   "viewport": 375,
+   "name": "row",
+   "prop": "padding-right",
+   "why": "act-trigger-fixed-v1: every row trigger is absolute in the card's top-right corner; row 1 reserves the trigger's width + 8 (`--row-trigger-w`, padding-right 16 + R) — Postprocese 132 + 8 vs ⋮ 32 + 8 / Detalii 87 + 8: width only"
+  },
+  {
+   "viewport": 375,
+   "name": "row (Detalii)",
+   "prop": "padding-right",
+   "why": "act-trigger-fixed-v1: every row trigger is absolute in the card's top-right corner; row 1 reserves the trigger's width + 8 (`--row-trigger-w`, padding-right 16 + R) — Postprocese 132 + 8 vs ⋮ 32 + 8 / Detalii 87 + 8: width only"
+  },
+  {
+   "viewport": 375,
+   "name": "title",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "title",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "meta",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "meta",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "notice",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "notice",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "title (Detalii)",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "title (Detalii)",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "meta (Detalii)",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "meta (Detalii)",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "row",
+   "prop": "padding-right",
+   "why": "act-trigger-fixed-v1: every row trigger is absolute in the card's top-right corner; row 1 reserves the trigger's width + 8 (`--row-trigger-w`, padding-right 16 + R) — Postprocese 132 + 8 vs ⋮ 32 + 8 / Detalii 87 + 8: width only"
+  },
+  {
+   "viewport": 320,
+   "name": "row (Detalii)",
+   "prop": "padding-right",
+   "why": "act-trigger-fixed-v1: every row trigger is absolute in the card's top-right corner; row 1 reserves the trigger's width + 8 (`--row-trigger-w`, padding-right 16 + R) — Postprocese 132 + 8 vs ⋮ 32 + 8 / Detalii 87 + 8: width only"
+  },
+  {
+   "viewport": 320,
+   "name": "title",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "title",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "meta",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "meta",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "notice",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "notice",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "title (Detalii)",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "title (Detalii)",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "meta (Detalii)",
+   "prop": "flex-basis",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "meta (Detalii)",
+   "prop": "margin-right",
+   "why": "act-trigger-fixed-v1: the full-width lines under row 1 take the reservation back (flex-basis 100% + R, margin-right −R) → same full card width, R differs by the trigger width only"
+  },
   {
    "viewport": 320,
    "name": "meta part",
    "prop": "rect.height",
    "why": "content: the request's 2nd meta part (process · service name) is longer than the act's and wraps to 2 lines in the 254 text width at 320"
-  },
-  {
-   "viewport": 375,
-   "name": "row",
-   "prop": "gap",
-   "why": "row-kebab-v1: the request row's ⋮ is absolute on phones → row 1 reserves 32 + 8 on the right (padding-right 16 + 40) and tags sit 4 apart by column-gap (no −4 margin, so a wrapped tag starts at the padding)"
-  },
-  {
-   "viewport": 375,
-   "name": "row",
-   "prop": "column-gap",
-   "why": "row-kebab-v1: the request row's ⋮ is absolute on phones → row 1 reserves 32 + 8 on the right (padding-right 16 + 40) and tags sit 4 apart by column-gap (no −4 margin, so a wrapped tag starts at the padding)"
-  },
-  {
-   "viewport": 375,
-   "name": "row",
-   "prop": "padding-right",
-   "why": "row-kebab-v1: the request row's ⋮ is absolute on phones → row 1 reserves 32 + 8 on the right (padding-right 16 + 40) and tags sit 4 apart by column-gap (no −4 margin, so a wrapped tag starts at the padding)"
-  },
-  {
-   "viewport": 375,
-   "name": "title",
-   "prop": "flex-basis",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 375,
-   "name": "title",
-   "prop": "margin-right",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 375,
-   "name": "meta",
-   "prop": "flex-basis",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 375,
-   "name": "meta",
-   "prop": "margin-right",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 375,
-   "name": "notice",
-   "prop": "flex-basis",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 375,
-   "name": "notice",
-   "prop": "margin-right",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 375,
-   "name": "action button",
-   "prop": "rect.right",
-   "why": "row-kebab-v1: the request ⋮ is absolute in the card's top-right corner (10 inside the border); the act's „Postprocese ⌄” stays in the flow (row 1 right at 375, under the meta at 320 — js/act-row.js syncActionFit)"
-  },
-  {
-   "viewport": 320,
-   "name": "row",
-   "prop": "gap",
-   "why": "row-kebab-v1: the request row's ⋮ is absolute on phones → row 1 reserves 32 + 8 on the right (padding-right 16 + 40) and tags sit 4 apart by column-gap (no −4 margin, so a wrapped tag starts at the padding)"
-  },
-  {
-   "viewport": 320,
-   "name": "row",
-   "prop": "column-gap",
-   "why": "row-kebab-v1: the request row's ⋮ is absolute on phones → row 1 reserves 32 + 8 on the right (padding-right 16 + 40) and tags sit 4 apart by column-gap (no −4 margin, so a wrapped tag starts at the padding)"
-  },
-  {
-   "viewport": 320,
-   "name": "row",
-   "prop": "padding-right",
-   "why": "row-kebab-v1: the request row's ⋮ is absolute on phones → row 1 reserves 32 + 8 on the right (padding-right 16 + 40) and tags sit 4 apart by column-gap (no −4 margin, so a wrapped tag starts at the padding)"
-  },
-  {
-   "viewport": 320,
-   "name": "title",
-   "prop": "flex-basis",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 320,
-   "name": "title",
-   "prop": "margin-right",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 320,
-   "name": "meta",
-   "prop": "flex-basis",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 320,
-   "name": "meta",
-   "prop": "margin-right",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 320,
-   "name": "notice",
-   "prop": "flex-basis",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 320,
-   "name": "notice",
-   "prop": "margin-right",
-   "why": "row-kebab-v1: the full-width lines under row 1 take the 40-px reservation back (flex-basis 100% + 40, margin-right −40) → title / meta / notice keep the whole card width"
-  },
-  {
-   "viewport": 320,
-   "name": "action button",
-   "prop": "rect.right",
-   "why": "row-kebab-v1: the request ⋮ is absolute in the card's top-right corner (10 inside the border); the act's „Postprocese ⌄” stays in the flow (row 1 right at 375, under the meta at 320 — js/act-row.js syncActionFit)"
   }
  ]
 }

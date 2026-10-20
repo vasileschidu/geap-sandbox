@@ -1595,50 +1595,10 @@
   background: var(--color-background-base-default, #fff);
 }
 
-/* phones (≤760): the shared act-row anatomy (e-permits-acte-permisive.css „PHONE ROW ANATOMY”, action-menu-v1) —
-   tags on row 1, title, meta, alert.
-   row-kebab-v1 (2026-10-20, user: „the 3 dots as it was, absolutely positioned on mobile, so the badge sits nicely
-   with even top and left padding … we economise the space”): a request row with the ⋮ puts it in the card's top-right
-   corner, OUT of the flow — top = right = 16 − (32 − 20) / 2 = 10 inside the border, so the button's centre is the
-   centre of the 20 tag line (16 + 10 = 26 from the top) and the icon centre sits 26 from the right edge. Row 1 (the
-   tags, wrapping) reserves 32 + 8 on the right through the row's padding-right; every full-width item under it
-   (title, meta, alert, retry notice) takes those 40 back (`flex-basis: 100% + 40` + `margin-right: −40`), so the
-   title and meta use the whole width. Every request row has a status tag, so row 1 always exists. The lone
-   „👁 Detalii” (wider) and the acts' „Postprocese ⌄” stay in the flow (row 1 right / under the meta). Desktop
-   unchanged (the ⋮ in the right column, centred on title + meta). */
-@media (max-width: 760px) {
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) {
-    --sm-kebab-reserve: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px));
-    column-gap: var(--spacing-4, 4px);
-    padding-right: calc(var(--spacing-16, 16px) + var(--sm-kebab-reserve));
-    position: relative;
-  }
-
-  /* row 1 holds only tags now → 4 apart through the column gap, not the shared −4 margin (a tag that wraps to a
-     second line would start 4 left of the card padding) */
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > :not(.e-permits-fo-lib-item__title) {
-    margin-left: 0;
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) > .cab-doc__actions {
-    margin: 0;
-    position: absolute;
-    right: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
-    top: calc(var(--spacing-16, 16px) - (var(--spacing-32, 32px) - var(--spacing-20, 20px)) / 2);
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title,
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) > :is(.cab-request-row__notice, .cab-retry) {
-    flex-basis: calc(100% + var(--sm-kebab-reserve));
-    margin-right: calc(var(--sm-kebab-reserve) * -1);
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .cab-doc__actions .cab-card__more) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-    flex-basis: calc(100% + var(--fo-doc-meta-sep) + var(--sm-kebab-reserve));
-    margin-right: calc(var(--sm-kebab-reserve) * -1);
-  }
-}
+/* phones (≤760): the shared act-row anatomy (e-permits-acte-permisive.css „PHONE ROW ANATOMY”) — tags on row 1,
+   title, meta, alert; the row's trigger (⋮ / lone „👁 Detalii”, the acts' „Postprocese ⌄”) in the card's top-right
+   corner through ONE shared rule there (row-kebab-v1 → act-trigger-fixed-v1, 2026-10-20). Nothing Cabinet-specific
+   is left here. */
 
 /* the action link at the end of a row alert (library .link, primary, md) — as a <button> (MPay) it loses the
    UA button box; it is its own tab stop and never opens the row */

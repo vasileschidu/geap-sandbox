@@ -79,6 +79,18 @@
     ].filter(Boolean);
   }
 
+  /* ONE icon per post-process (act-icons-v1, 2026-10-20, user: „nice central icons, all the same size footprint, like
+     Telegram”): one outline family, each glyph optically ~17–20 of the 24 box (measured ink boxes: edit / copy /
+     rotate 17.2, cross-large 14.4 → ×1.2 in CSS, lock 15.8×19.8, calendar-add 18.1×19, circle-error 19.8, judge-gavel
+     23.3 → ×0.85 in CSS). Picked by id OR label, so the FO / Cabinet data ids and the Ghișeu labels map the same;
+     the item's own icon is the fallback. Replaced: pause (10×14, light), cross-small (9.6), flag. components.md
+     „Row action menu — icon map”. */
+  const PP_ICONS = [
+    [/prelung/i, "icon-calendar-add"], [/reperf/i, "icon-edit"], [/duplicat/i, "icon-copy"], [/suspend/i, "icon-lock"],
+    [/relu/i, "icon-rotate-arrow"], [/retrag/i, "icon-cross-large"], [/anul/i, "icon-circle-error"], [/contest/i, "icon-judge-gavel"],
+  ];
+  const ppIcon = (pp) => (PP_ICONS.find(([re]) => re.test(`${pp.id || ""} ${pp.label || ""}`)) || [])[1] || pp.icon || "icon-edit";
+
   /* consequential post-processes = the danger tone, last, under a separator (action-menu-v1) */
   const isDanger = (pp) => pp.danger ?? /^(retrag|anul)/i.test(String(pp.label || pp.id || ""));
   function menuItemsHtml(items, itemHook, assets) {
@@ -87,7 +99,7 @@
     const item = (pp) => `
                 <li role="none">
                   <button class="e-permits-fo-intent-menu__item${isDanger(pp) ? " is-danger" : ""}" type="button" role="menuitem" ${itemHook(pp)}${pp.disabled ? ` aria-disabled="true" data-tooltip-reason="${esc(pp.reason || "")}" aria-description="${esc(pp.reason || "")}"` : ""}>
-                    <svg class="icon" width="20" height="20" aria-hidden="true"><use href="${assets}icons/sprite.svg#${esc(pp.icon || "icon-edit")}"></use></svg>
+                    <svg class="icon" width="20" height="20" aria-hidden="true"><use href="${assets}icons/sprite.svg#${esc(ppIcon(pp))}"></use></svg>
                     <span>${esc(pp.label)}</span>${pp.disabled && pp.reason ? `
                     <span class="e-permits-fo-intent-menu__reason" aria-hidden="true">${esc(pp.reason)}</span>` : ""}
                   </button>
@@ -170,23 +182,25 @@
      Phones: title up to 2 lines, meta wraps — nothing to name. Re-measured on resize / new rows / fonts. ---- */
   const DESKTOP = window.matchMedia("(min-width: 761px)");
   const textOf = (el) => el.textContent.replace(/\s+/g, " ").trim();
-  /* phones (action-menu-v1): the action button sits on row 1 next to the tags (CSS „PHONE ROW ANATOMY”); when it
-     does not fit there (320, two tags, a long label) the flex row would wrap it alone
-     between the tags and the title → `is-action-below` moves it under the meta, left. Measured with the class
-     off, in one synchronous pass (no paint between). */
-  function syncActionFit(row) {
-    const action = row.querySelector(":scope > :is(.e-permits-fo-intent-act__action, .cab-doc__actions)");
-    const lead = row.querySelector(".e-permits-fo-doc-title-row > :not(.e-permits-fo-lib-item__title)");
-    const was = row.classList.contains("is-action-below");
-    row.classList.remove("is-action-below");
-    if (DESKTOP.matches || !action || !lead || !row.getClientRects().length) return;
-    const below = action.getBoundingClientRect().top >= lead.getBoundingClientRect().bottom;
-    row.classList.toggle("is-action-below", below);
-    if (was !== below) row.dispatchEvent(new CustomEvent("geap:act-row-layout", { bubbles: true }));
+  /* phones (act-trigger-fixed-v1, 2026-10-20): the row's trigger (⋮ / „👁 Detalii” / „Postprocese ⌄”) sits in the
+     card's top-right corner (CSS „PHONE ROW ANATOMY”) and row 1 reserves its width + 8 through `--row-trigger-w`
+     — a geometry custom property (like `--act-menu-max`), written only when it changes. All widths are READ
+     first, then written, in one pass (no read / write interleaving). Hidden rows (width 0) keep their value.
+     (Replaces the action-menu-v1 `is-action-below` fallback: the button no longer wraps under the meta.) */
+  const TRIGGER_BTN = ":scope > :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn";
+  function syncTriggerWidth(rows) {
+    if (DESKTOP.matches) return;
+    const widths = rows.map((row) => Math.ceil(row.querySelector(TRIGGER_BTN)?.getBoundingClientRect().width || 0));
+    rows.forEach((row, i) => {
+      const value = widths[i] ? `${widths[i]}px` : "";
+      if (!value || row.style.getPropertyValue("--row-trigger-w") === value) return;
+      row.style.setProperty("--row-trigger-w", value);
+    });
   }
   function syncCut() {
-    document.querySelectorAll(".e-permits-fo-intent-act").forEach((row) => {
-      syncActionFit(row);
+    const rows = [...document.querySelectorAll(".e-permits-fo-intent-act")];
+    syncTriggerWidth(rows);
+    rows.forEach((row) => {
       const title = row.querySelector(".e-permits-fo-lib-item__title");
       const meta = row.querySelector(".e-permits-fo-doc-meta");
       if (title) {
@@ -214,5 +228,5 @@
   document.addEventListener("pointerover", (event) => { if (event.target.closest?.(".e-permits-fo-intent-act")) queueCut(); }, true);
   document.addEventListener("focusin", (event) => { if (event.target.closest?.(".e-permits-fo-intent-act")) syncCut(); }, true);
 
-  window.GEAPActRow = { html, validText, TONE: ACT_ROW_TONE, syncCut, metaParts, isDanger, menuItemsHtml };
+  window.GEAPActRow = { html, validText, TONE: ACT_ROW_TONE, syncCut, metaParts, isDanger, menuItemsHtml, ppIcon };
 })();
