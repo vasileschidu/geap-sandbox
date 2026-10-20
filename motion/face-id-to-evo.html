@@ -60,7 +60,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
 <main class="page">
   <header>
     <h1>EVO Face ID → logo EVO</h1>
-    <p class="lead">Iterația 8, pe geometria exactă din Figma (eKYC 10859:45761). La declanșare fața începe să se rotească — trei ture în 0,5 s, cu înclinare 3D și motion blur puternic — iar abia când e în plină viteză ochii, nasul și zâmbetul pornesc spre punctele și bara logo-ului; colțurile cresc în sferturile inelului și liniile se îngroașă de la 2 la 5.</p>
+    <p class="lead">Iterația 9, pe geometria exactă din Figma (eKYC 10859:45761). La declanșare fața începe să se rotească — două ture în plan și, simultan, două ture complete pe axa Y (ca o monedă), în 0,5 s, cu motion blur puternic — iar abia când e în plină viteză ochii, nasul și zâmbetul pornesc spre punctele și bara logo-ului; colțurile cresc în sferturile inelului și liniile se îngroașă de la 2 la 5.</p>
   </header>
 
   <section class="stage" id="stage" aria-label="Animație">
@@ -90,7 +90,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       <div class="timeline">
         <b>0–500 ms</b><span>Face ID în repaus (o „respirație” discretă).</span>
         <b>500 ms</b><span>Declanșare (apăsare sau automat).</span>
-        <b>500–1220 ms</b><span>Trei ture complete (1080°) în 0,5 s, cu o înclinare 3D (până la 48° pe Y și 16° pe X la mijlocul rotației, apoi revine plat) — pornește lin, accelerează, frânează lung — cu motion blur: copii „fantomă” care rămân în urma rotației, mai lungi și mai vizibile cu cât viteza e mai mare. Colțurile cresc în sferturile inelului (raza 4 → 11), liniile 2 → 5.</span>
+        <b>500–1220 ms</b><span>Două ture în plan (720°) și, pe aceeași curbă, două ture complete pe axa Y (720°, ca o monedă), cu o ușoară înclinare pe X; în 0,5 s, plat la final — pornește lin, accelerează, frânează lung — cu motion blur: copii „fantomă” care rămân în urma rotației, mai lungi și mai vizibile cu cât viteza e mai mare. Colțurile cresc în sferturile inelului (raza 4 → 11), liniile 2 → 5.</span>
         <b>740–1220 ms</b><span>Abia după ce rotația a pornit: ochiul stâng → punctul de sus, ochiul drept → punctul din stânga, nasul → centrul, zâmbetul → bara.</span>
         <b>880–1140 ms</b><span>Punctul de jos și cel din dreapta apar încă în timpul rotației (nu la final), cu un rebound mic.</span>
         <b>1500 ms</b><span>Cadrul final = exact frame-ul logo din Figma.</span>
@@ -172,7 +172,7 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
   function frame(ms) {
     const breathe = ms < START ? Math.sin((ms / START) * Math.PI) * 0.02 : 0;
     const m = seg(ms, START, START + SPIN_MS);
-    const TURNS = 3;
+    const TURNS = 2;
     const spin = 360 * TURNS * SPIN(m);
     // angular speed (deg per ms) → length of the blur trail
     const prev = 360 * TURNS * SPIN(seg(ms - 16, START, START + SPIN_MS));
@@ -185,7 +185,8 @@ button.primary { background: var(--accent); border-color: var(--accent); color: 
       const trail = Math.min(80, speed * 11);
       // 3D: the whole icon tilts away on Y (and a little on X) while spinning, back flat at the end
       const tilt = Math.sin(Math.PI * m);
-      s.svg.style.transform = m > 0 && m < 1 ? `perspective(320px) rotateY(${f3(48 * tilt)}deg) rotateX(${f3(-16 * tilt)}deg)` : "";
+      // + 2 full flips on Y (720°, a spinning coin) on the same curve, a slight X tilt; flat again at the end
+      s.svg.style.transform = m > 0 && m < 1 ? `perspective(320px) rotateY(${f3(720 * SPIN(m))}deg) rotateX(${f3(-14 * tilt)}deg)` : "";
       s.blurMain.setAttribute("stdDeviation", f3(Math.min(0.55, speed * 0.06)));
       s.blurTrail.setAttribute("stdDeviation", f3(Math.min(1.1, speed * 0.12)));
       s.ghosts.forEach((u, i) => {
