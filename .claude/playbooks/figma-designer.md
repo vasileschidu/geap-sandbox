@@ -2075,3 +2075,19 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → stored gate audit (`qsweep`/`audit`, now also in the Cabinet file) on all 44 blocks + the new
     components: left = section-over-card gap 0 (role groups), meta-dot gap 18 (pattern), intentional clips (chip scroll rows,
     page behind phone sheets at 812).
+- 2026-10-20 · Same job, follow-up (coordinator: phone list toolbar a71a4a2b, then a phone card change announced):
+  - **Rebuild a component IN PLACE from a detached library variant** to follow a code change: per variant clear the children,
+    copy layout / padding / radius (+ their variable bindings) / fills / effects from `libVariant.createInstance().detachInstance()`,
+    move its children in, re-add the extra parts (count badge). Every instance on every board updated (Filter button: 23
+    instances on Permits + Requests) with no swap and no lost connector. After the refill set `primaryAxisSizingMode = "AUTO"`
+    again (the detached frame brought FIXED widths) and text WIDTH_AND_HEIGHT.
+  - Adding a Screen axis to an existing set: rename the variants („State=Default” → „State=Default, Screen=Desktop”), clone them
+    into the set as Mobile and refill those from the phone library variant — instances keep pointing at the renamed variants.
+    Update every builder lookup that matched the old variant name (`"State=" + …` → `+ ", Screen=Desktop"`).
+  - HUG menu + FILL items stays at the width of the non-FILL children (the group labels) → measure the widest item with items HUG,
+    fix the menu width (+ padding), then set the items FILL (sort menu 204 = code 206).
+  - Coordination: when the coordinator announces a second phone change, park the phone redraw and make every piece that does not
+    depend on it (components, builder branches, desktop) — then one re-capture + one rebuild pass. Rebuilding a block deletes the
+    connectors attached to it → re-run the idempotent arrow pass (names „SM · …”) after any rebuild.
+  - Exporting a stored builder (> 20 KB) to the repo: return ≤ 19 500-char slices tagged {k}, then read them from the SUBAGENT
+    transcript (…/<session>/subagents/agent-*.jsonl — the parent session file does not contain them).
