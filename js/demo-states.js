@@ -2038,9 +2038,6 @@
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
     "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-sm-tip]"); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
-    /* sm-01z „Comparație alerte” (DEMO ONLY, user 2026-10-20): one payable request; under its real alert the same
-       text + „Achită acum →” in each library alert (banner, banner with ×, message banner, inline) */
-    "sm-01z": sm(undefined, { alerte: "comparatie" }),
     "sm-02": sm(smMenu("d-spicul")),
     "sm-02a": sm(smMenu("d-fresh")),
     "sm-02b": sm(smMenu("d-sud")),

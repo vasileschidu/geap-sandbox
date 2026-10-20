@@ -1643,32 +1643,6 @@ button.cab-alert-link {
   white-space: nowrap;
 }
 
-/* DEMO ONLY — sm-01z „Comparație alerte” (solicitari.js withAlertCompare): the library alerts under the row's real
-   alert, full card width (row 4 of the row grid), each under a 14/20 tertiary caption. Only the scaffold is styled
-   here — the samples keep their library classes as they are. */
-.cab-request-list > .cab-request-row.e-permits-fo-lib-item > .e-permits-fo-lib-item__content > .cab-alert-compare {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-16, 16px);
-  grid-column: 1 / -1;
-  grid-row: 4;
-  margin-top: var(--spacing-16, 16px);
-  min-width: 0;
-}
-
-.cab-alert-compare__item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-}
-
-.cab-alert-compare__caption {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-}
-
 /* „Sortează” (desktop + phones): the key group, a divider, the direction group — radio items in nested groups */
 .cab-menu__group {
   display: flex;
