@@ -6393,7 +6393,7 @@ document.addEventListener("DOMContentLoaded", () => {
     /* Setări = every section on one page, edited inline, one draft (user 2026-10-09: the
        one-page version replaced the read view + per-section drawer) */
     { id: "settings", label: "Setări", visible: () => isCentralAdmin() },
-    { id: "request-types", label: "Tipuri solicitări", count: (service) => service.geap.requestTypes.length },
+    { id: "request-types", label: "Tipuri procese", count: (service) => service.geap.requestTypes.length },
     { id: "forms", label: "Formulare", count: (service) => service.geap.forms.length },
     /* Documente însoțitoare left Date generale for their own tab (feedback 2026-10-07):
        document settings will grow there */
@@ -7109,7 +7109,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </button>` : ""
       })}
       ${renderPassportSection("Obiecte configurate în GEAP", [
-        ["Tipuri solicitări", withLink(`${configuredTypes} din ${geap.requestTypes.length} configurate`, "request-types", "Vezi tipurile")],
+        ["Tipuri procese", withLink(`${configuredTypes} din ${geap.requestTypes.length} configurate`, "request-types", "Vezi tipurile")],
         ["Formulare electronice", withLink(`${plural(publishedForms, "publicat", "publicate")} · ${geap.forms.length - publishedForms} în schiță`, "forms", "Vezi formularele")],
         ["Șabloane de tipar", withLink(plural(geap.templates.length, "șablon", "șabloane"), "templates", "Vezi șabloanele")],
         ["Taxe", withLink(`${plural(serviceTaxes(service).length, "taxă", "taxe")} · ${plural(tariffs.length, "tarif", "tarife")}${unconfiguredServiceTariffs(service).length ? ` · ${unconfiguredServiceTariffs(service).length} de configurat` : ""}`, "fees", "Vezi taxele")],
@@ -7153,7 +7153,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ---- stacked lists ----------------------------------------------------
-     The passport's lists (Tipuri solicitări, Formulare, Plăți, …) are
+     The passport's lists (Tipuri procese, Formulare, Plăți, …) are
      stacked lists (Tailwind UI "stacked list" rhythm, our tokens/components):
      a group heading, then rows of title + status tags, a dot-separated meta
      line, and on the right our neutral Small button + an overflow menu. */
@@ -7383,7 +7383,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : "Modificare";
   const svcEventTab = (type = "") => {
     const t = type.toLocaleLowerCase("ro");
-    return /tip(ul)? (de )?solicitare/.test(t) ? "Tipuri solicitări"
+    return /tip(ul)? (de )?solicitare/.test(t) ? "Tipuri procese"
       : /formular/.test(t) ? "Formulare"
       : /tax|tarif/.test(t) ? "Taxe și tarife"
       : /șablon de notificare|notificare/.test(t) ? "Notificări"
@@ -7629,7 +7629,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </ul>
       </div>` : "";
 
-    return renderStackedList("Tipuri solicitări", groupBy(items, (item) => (item.source === "RSSP" ? "Subservicii RSSP" : "Postprocese adăugate în GEAP"), ["Subservicii RSSP", "Postprocese adăugate în GEAP"]), {
+    return renderStackedList("Tipuri procese", groupBy(items, (item) => (item.source === "RSSP" ? "Subservicii RSSP" : "Postprocese adăugate în GEAP"), ["Subservicii RSSP", "Postprocese adăugate în GEAP"]), {
       meta: `${configured} din ${types.length} configurate`,
       actionHtml: addHtml,
       empty: "Serviciul nu are tipuri de solicitare. Ele se preiau din subserviciile RSSP la sincronizare."
@@ -17313,7 +17313,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${r.mpower === null ? cfgSwitch("mpower", "Verificare împuternicire prin MPower", "RSSP nu transmite valoarea — se poate seta aici.") : cfgReadonly("Verificare împuternicire prin MPower", yesNo(r.mpower))}
         ${cfgSelect("authMode", "Modalitatea de verificare a împuternicirii", CFG_AUTH_MODES, { required: true, hint: "Cum se verifică împuternicirea solicitantului care acționează în numele altei persoane." })}
         ${cfgReadonly("Durata valabilității actului", `${escapeHtml(r.validity)}${r.validityUnit !== "—" ? ` ${escapeHtml(r.validityUnit.toLocaleLowerCase("ro"))}` : ""}`)}
-        ${r.tacit === null ? cfgSwitch("tacit", "Aprobare tacită activată", "Implicit Nu. Pe fiecare tip de solicitare se setează în „Tipuri solicitări”.") : cfgReadonly("Aprobare tacită activată", yesNo(r.tacit))}`);
+        ${r.tacit === null ? cfgSwitch("tacit", "Aprobare tacită activată", "Implicit Nu. Pe fiecare tip de solicitare se setează în „Tipuri procese”.") : cfgReadonly("Aprobare tacită activată", yesNo(r.tacit))}`);
       case "exam": return cfgGrid(`
         ${cfgSubdivisionCatalog(service).length > CFG_SUBDIV_INLINE
           ? cfgSubdivPicks(service, "subdivisions", "Subdiviziuni de examinare", { required: true, hint: "Examinează toate tipurile de solicitare ale serviciului." })

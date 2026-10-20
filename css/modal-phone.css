@@ -199,3 +199,18 @@
     max-height: var(--modal-phone-max);
   }
 }
+
+/* Detail rows inside dialogs (desktop): a narrower label column so long values (document names, act names)
+   get the room — at most a third of the row, 120–200; long labels wrap instead of being cut. Pages keep their
+   256 column; phones keep label-over-value. (Alexandr Pascalov, GEAP comment 1970657169, 2026-10-20) */
+@media (min-width: 761px) {
+  :is([role="dialog"], .modal) .e-permits-dosar-profil__row-label,
+  .e-permits-front-office-page :is([role="dialog"], .modal) .e-permits-dosar-profil__row-label,
+  .e-permits-front-office-page[data-demo-flow="back-office"] :is([role="dialog"], .modal) .e-permits-dosar-profil__row-label {
+    flex: 0 0 clamp(120px, 32%, 200px);
+    max-width: 200px;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
