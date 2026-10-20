@@ -271,9 +271,9 @@ but this doc previously described it wrongly, see the entry.
 | Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
-| Facet filter · phone sheets (2026-10-17) | `GEAPFacetFilter.create({ mobileSheets: true, preview })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = one scrolling chip row („Filtre” `[data-filter-all]` first, the toolbar button hidden) + „N de rezultate · Șterge filtrele”; sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19); section „Advanced filter › Phone mode” | app |
+| Facet filter · phone toolbar + sheets (2026-10-17; one pill row 2026-10-20) | `GEAPFacetFilter.create({ mobileSheets: true, preview, sort })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = ONE row `.e-permits-workplace__filter-tools[data-filter-phone-row]` that never scrolls: the round „Filtre” pill `[data-filter-all]` (library chip, 48 · 16/24 medium · icon 24, black + count badge when applied; the toolbar button hidden) + the page's sort control moved into `.e-permits-workplace__filter-sort` (`btn btn-neutral btn-md btn-pill` at 48, label ellipsis) — NO facet chips; applied → „N de rezultate · Șterge filtrele” `[data-filter-phone-meta]` under it; desktop list toolbars (Cabinet, RAP, eKYC): search 40 · „Filtre” `btn-md` 40 · sort `btn-md` 40 (one height); sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19), Cabinet `sm-01 / 01f (sort sheet) / 01m / 01n / 01o / 01p`, `pp-01h / 01s`; section „Advanced filter › Phone mode” | app |
 | Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + library `.radio.radio--medium` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
-| Act post-process menu on phones — action sheet (2026-10-20) | ≤760 the act row / Cabinet act profile trigger („Inițiază un postproces ⌄”, any `.e-permits-fo-intent-act__action > button[aria-haspopup]`) opens the facet-filter phone sheet as an action sheet: `GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions")` (library `.bottom-sheet` + scrim + handle + header) with `.e-permits-filter-sheet__heading` (title + `.e-permits-filter-sheet__subtitle` = act name), `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` of `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` (24 icon · `__action-text` > label + `__action-reason`; `is-danger`, `aria-disabled`); a tap clicks the original menu item | `js/act-row.js` (sheet) + `js/facet-filter.js` (`window.GEAPSheet`: create / show / hide / trapTab), `css/facet-filter.css`; demo pp-02a, pp-01a, pp-01q, gh-02j (reasons) at 375; section „Act post-process menu on phones — action sheet” | app |
+| Act post-process menu on phones — action sheet (2026-10-20) | ≤760 the act row / Cabinet act profile trigger („Inițiază un postproces ⌄”, any `.e-permits-fo-intent-act__action > button[aria-haspopup]`) opens the facet-filter phone sheet as an action sheet: `GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions")` (library `.bottom-sheet` + scrim + handle + header) with `.e-permits-filter-sheet__heading` (title + `.e-permits-filter-sheet__subtitle` = act name), `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` of `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` (24 icon · `__action-text` > label + `__action-reason`; `is-danger`, `aria-disabled`); a tap clicks the original menu item; radio menus (2026-10-20, Cabinet „Sortează”): `menuitemradio` → `__action--radio` rows (no lead icon, trailing 24 check + `aria-current` on the current), menu labels → `li.e-permits-filter-sheet__group-label` (14/20 medium tertiary, 16 above / 8 under, 8 for the first), title from the trigger's `data-act-sheet-title` | `js/act-row.js` (sheet) + `js/facet-filter.js` (`window.GEAPSheet`: create / show / hide / trapTab), `css/facet-filter.css`; demo pp-02a, pp-01a, pp-01q, gh-02j (reasons) at 375; section „Act post-process menu on phones — action sheet” | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
@@ -1045,6 +1045,8 @@ Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/
 
 **One back-office button**: `.btn` + variant + `.btn-sm` = 32px, radius 6, transparent
 border — page header, list rows, toolbars. No `btn-md` / `btn-lg`, no hand-rolled buttons.
+Exception (user, 2026-10-20): the list toolbars of Cabinet / RAP / eKYC put „Filtre” and the sort at the search height
+= `btn-md` 40 (phones: 48 pills) — § „Advanced filter › Phone mode”.
 The act row's „Inițiază un postproces ⌄” pill follows it too: `btn btn-neutral btn-sm btn-pill` (FO, Ghișeu,
 Cabinet). Medium was tried on 2026-10-18 and rejected the same day (user: „use small buttons better”); its menu has the
 one dropdown item size (§ „Dropdown item — one size everywhere”; the larger 40 / 48 act-menu rows were rejected
@@ -2034,7 +2036,7 @@ A new menu reuses `.e-permits-fo-intent-menu` + `__item` (or adds its classes to
 
 Where it applies: every ⋮ row menu (BO registries / passport / users / notifications, Ghișeu, eKYC, Cabinet), the act
 post-process menu („Inițiază un postproces ⌄”: FO #intent, Ghișeu, Cabinet list + act profile header), the dossier
-case-actions menu, „Sincronizare ▾”, export menus (eKYC Rapoarte), Cabinet „N pe pagină” / „Sortează” (phones),
+case-actions menu, „Sincronizare ▾”, export menus (eKYC Rapoarte), Cabinet „N pe pagină”, „Sortează” (desktop; phones = action sheet),
 Form Builder add / issues menus, Process Designer zoom / versions / „Continuă cu”, the notification field picker, the
 header help menu, the BO account menu links (Profilul meu …), FO selects, CAEM + subgenre combos, the address search,
 the phone code list, the MDocs picker list, the facet-filter popover options (BO, eKYC, Cabinet, RAP — checkbox kept).
@@ -2056,6 +2058,12 @@ fo-03e / gh-02q (CAEM), fo-03s (subgenre), adr-02a (address), dos-05c / ek-22b /
 ---
 
 ### Act post-process menu on phones — action sheet (2026-10-20)
+
+**Radio menus (2026-10-20):** the same sheet serves a `menuitemradio` menu (the Cabinet „Sortează” in the phone filter
+row): group labels (`li[role=presentation]` without items) become `.e-permits-filter-sheet__group-label` headings, radio
+items become `.e-permits-filter-sheet__action--radio` rows (label only, the current one gets the trailing 24 check and
+`aria-current="true"`), the title comes from the trigger's `data-act-sheet-title` („Sortează”). A tap clicks the
+original item (the page sorts, closes and announces as on desktop). Demo sm-01f (open), sm-01m (key, then direction).
 
 User (Vasile, 2026-10-20): „Inițiere postprocese menu on mobile is too small for fat fingers, let's do best practice …”,
 then „maybe on mobile the post-process menu shows as we do for filters?”. On phones (≤760) the act post-process trigger
@@ -3911,7 +3919,7 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 | Status dates (2026-10-17, US-162 AC-17) | `statusDateRows(record, profile)`: Suspendat → „Data suspendării actului permisiv” + „Suspendat până la data de”, Retras → „Data retragerii actului permisiv”, never for other statuses; data `profile.suspensionDate / suspendedUntil / withdrawalDate`. Same rows in Detalii act, the modal Date generale and the A4 form, in date order: [Data aprobării tacite] → Data eliberării → Valabil din data → suspension / withdrawal → Suspendat până la → Data expirării (kept = original end). Header meta beside Stare (`headerDateItem`): „Suspendat până la” / „Retras la” instead of „Valabil din data”. Demo rap-02b, rap-02h, rap-03n, rap-03o | — |
 | Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | the same header + sections + dialogs (`?view=acte&act=<id>`, 2026-10-17), see „Entry 1” below |
 | Copy | the shared `.copy-value` in the header / detail rows / act dialogs; the table shows plain `.rap-act-number` / `.rap-beneficiary__identifier` (2026-10-20; `.rap-copy*` / `.rap-profile__copy` removed) | the shared `.copy-value` (`CabEvo.copyValueHtml`) |
-| Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), chip row edge to edge („Filtre” first → all filters, then a chip per facet) + bottom sheets (rap-04…04d). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
+| Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), one round „Filtre” pill (2026-10-20, no facet chips) → the all-filters bottom sheet (rap-04…04d). Desktop button = `btn-md` 40 (the search height, 2026-10-20). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
 | Empty state | shared `GEAPEmptyState` in `.rap-state` (2026-10-14) | shared `GEAPEmptyState` in `.cab-state` (2026-10-14) |
 | Pagination | `.rap-pagination`, `.rap-page-button` (`is-active`) | — |
@@ -4814,7 +4822,43 @@ User (2026-10-20): „why is Perioadă not also in Filtre on Solicitările mele?
   (popover) · ek-06g (Decizie + „Ultimele 30 de zile”). Demo helper `ffDate(toggle, facet, { preset | from, to,
   stay, commit })` (js/demo-states.js) for any page.
 
-#### Phone mode — chip row + bottom sheets (2026-10-17, RAP; opt-in)
+#### Phone mode — one „Filtre” pill row + bottom sheets (2026-10-17, RAP; opt-in; pill row 2026-10-20)
+
+**Phone toolbar (2026-10-20, user: „on mobile only the Filter button without the other chips, the sort in the same
+row, round”; then „sort, Filtre and the search — one height”).** Under the search, ONE row
+(`.e-permits-workplace__filter-tools[data-filter-phone-row]`, nowrap, never scrolls, gap 8):
+1. **„Filtre”** `button.chip.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--all[data-filter-all]` —
+   library chip (round), 48 high (= the phone search), 16/24 medium, `icon-filter-lines` 24, padding 0 16 0 12 (12
+   right with the badge), black + `badge--lg` count when filters are applied; `flex: none`. Opens the all-filters
+   sheet (every facet as a section incl. date facets; sections with a value open, else the first).
+2. **Sort** (pages that pass `sort: <wrapper element>`; today Cabinet „Solicitările mele” `.cab-sort`): the module
+   MOVES the page's own control into `.e-permits-workplace__filter-sort` on phones (and back home on desktop), adding
+   the library `btn-pill`; it renders 48 · 16/24 medium · padding 0 12 0 16 · chevron 24, shrinks first with an
+   ellipsis on its label (the full key + direction are in its `aria-label`). Its menu opens as the act-row ACTION
+   SHEET (radio menus supported: group labels as headings, check on the current item — § „Act post-process menu on
+   phones — action sheet”).
+3. No facet chips, no sideways scroll. **Applied state** = the count on „Filtre” + ONE plain line under the row
+   (`[data-filter-phone-meta]`): „N de rezultate · Șterge filtrele” (the BO bar wording). Why the line: the count alone
+   says how many values but not what they did; the line gives the result count and a one-tap undo without opening the
+   sheet (Baymard: applied filters stay visible and removable). „Șterge filtrele” moves focus to „Filtre”.
+4. The row and the sort node are built once and updated in place, so focus survives the list re-renders.
+
+**Desktop list toolbars (same day):** search 40 · „Filtre” · sort share ONE height — the buttons are the library
+Medium `btn btn-neutral btn-md` (40, 8/16, 16/22, radius 8, icons 20 `icon medium`) on Cabinet (acts + requests), RAP
+and eKYC (the shell swaps btn-sm → btn-md when a product is set); the sort button shows the key + a trailing chevron
+only (no ↓/↑ — the direction lives in the menu's „Ordine” group and the `aria-label`). The GEAP BO registries keep
+the btn-sm 36 „Filtrare avansată” (exception to „One back-office button” below = these four list pages only).
+Before (2026-10-17 → 10-20): „Filtre” + one chip per facet on a sideways-scrolling row (each chip its own facet
+sheet), sort on its own row (sm-01 at 375: chip row 836 wide in 375). The facet-sheet kind is still in the code, with
+no phone entry point. Demo helper `ffFacet(h, facet)` (js/demo-states.js): desktop = the chip; phones = „Filtre” →
+the all-filters sheet with that section open and the others folded.
+
+**Figma spec (phone toolbar, 375):** auto-layout row, gap 8, under the 48 search with 16 between; „Filtre” = Chip
+instance (Icon leading, 48, radius full, tertiary fill, 16/24 medium, icon 24, padding 0 16 0 12; Selected = black +
+numbered badge); sort = Button Neutral (radius full, 48, label 16/24 medium + trailing chevron 24, padding 0 12 0 16,
+hug, max = remaining width, label truncates); applied line under the row, 4 gap: „587 de rezultate” 14/20 tertiary ·
+„Șterge filtrele” Button text-neutral Small. Desktop: search 40 · Button Neutral Medium „Filtre” (icon 20) · Button
+Neutral Medium „Data depunerii ⌄”, gap 16.
 
 `GEAPFacetFilter.create({ …, mobileSheets: true, preview(selection) → rows })`. Active only
 ≤760px (matchMedia; crossing the breakpoint closes any sheet / popover and re-renders).
@@ -4822,7 +4866,7 @@ User (2026-10-20): „why is Perioadă not also in Filtre on Solicitările mele?
 previewSelection` (rows of the base · tab · search matching a not-yet-applied selection), so a
 product back office (eKYC) gets the sheets and the GEAP BO registries do not. eKYC placement
 (e-permits-acte-permisive.css, „eKYC lists on phones”): the bar keeps the BO look (white, 12 / 16,
-bottom line = the status tabs' top separator), its chip row bleeds to the screen edges (−4 / −16,
+bottom line = the status tabs' top separator), its chip row bled to the screen edges until 2026-10-20 (−4 / −16,
 padding 4 / 16), and the search shares its row with the export button when the list has no
 „Adaugă …” (tools `min-width: 0`); the quick search is 48 · 16/24 on phones (the sheet search values). Pages
 that don't opt in (every GEAP BO registry) are byte-identical — proved on srv-01 / dos-05 and
@@ -4832,13 +4876,13 @@ bottom sheets / filter chips, Apple HIG sheets, Google Shopping / Zalando / Amaz
 GOV.UK): hybrid = promoted facet chips + one „all filters” sheet, live count on the apply
 button, sticky apply at the thumb, search in long facets.
 
-- **One entry point (user, 2026-10-17):** the toolbar button is hidden on phones (`toggle.hidden`,
+- *(History — replaced by the pill row above on 2026-10-20.)* **One entry point (user, 2026-10-17):** the toolbar button is hidden on phones (`toggle.hidden`,
   `.e-permits-workplace__advanced[hidden]`), the search takes the whole row; the FIRST chip is
   **„Filtre”** (`[data-filter-all]`, `.e-permits-workplace__filter-chip--all`: library `.chip__icon`
   with `icon-filter-lines` 20, padding 0 16 0 12 (12 right with the badge), no chevron, black +
   total count badge when filters are applied) → the all-filters sheet (Google Shopping / Airbnb /
   Zalando).
-- **Bar** (`.is-sheets`): always visible while there are facets (no toggle), ONE line —
+- *(History, 2026-10-17 → 10-20.)* **Bar** (`.is-sheets`): always visible while there are facets (no toggle), ONE line —
   „Filtre” then the facet chips (same `chipHtml` as desktop: count badge, selected = black) that scrolls
   sideways (`flex-wrap: nowrap; overflow-x: auto`, scrollbar hidden); the page bleeds it to
   the screen edges so the last chip is cut (scroll hint) — RAP: `margin: -4 -16 0`, padding
@@ -6244,7 +6288,7 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
 - List (2026-10-17): search „Caută după nr. act sau denumire” (matches the act number, the object name and
   the act type, diacritic-insensitive) + „Filtre” = the shared facet filter (`GEAPFacetFilter`, as RAP:
   `.e-permits-workplace__advanced.cab-filter` button + `.e-permits-workplace__filters.cab-filters` bordered bar
-  16 under the toolbar; phones = `mobileSheets` chip row + bottom sheets) with facets Statut (values as Small
+  16 under the toolbar; phones = `mobileSheets` „Filtre” pill row + bottom sheets; button `btn-md` 40 = the search) with facets Statut (values as Small
   tags), Denumire act, Autoritate, Subdiviziune (offered when ≥ 2 values). The old status chips are gone (one
   status filter). > 10 acts → `CabEvo.pagerHtml` (prefix `cab`). Only the subject's own acts: an unknown subject
   / one without acts gets the shared empty state (the legacy `permits` demo list was removed); an MPower that
@@ -6282,13 +6326,15 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
 - **List width**: the Cabinet list pages (acts, requests, catalog, notifications) use `--cab-list-width` = the
   header content box (`--fo-page-width − 2 × gutter` = 1200) → edge to edge with the EVO logo / account menu
   at 1440 / 1024 / 375 (as RAP); profiles keep the 1024 reading column (`--cab-content-width`).
-- **Sortează** (requests, desktop + phones): `btn btn-neutral btn-sm cab-sort__trigger` (direction arrow + key
-  label + chevron, `aria-label` „Sortează: <key>, <direction>”) › `.cab-menu` with two radio groups
+- **Sortează** (requests, desktop + phones): `btn btn-neutral btn-md cab-sort__trigger` (40 = the search; key
+  label + trailing chevron only since 2026-10-20 — no direction arrow; `aria-label` „Sortează: <key>, <direction>”,
+  `data-act-sheet-title="Sortează"`; on phones a 48 pill in the „Filtre” row, its menu = the action sheet) › `.cab-menu` with two radio groups
   (`.cab-menu__label` + `ul.cab-menu__group[role=group]`): „Sortează după” (Data depunerii · Data estimată de
   finalizare · Numărul dosarului · Serviciul solicitat · Autoritatea emitentă · Statut) and „Ordine” (labelled for
   the key: newest / oldest, A–Z / Z–A…); a pick applies, resets to page 1 and is announced (`[data-sm-sort-status]`
   live region). **PO note:** US-19 AC-03 / US-158 AC-09 ask for sortable column headers; with rows instead of a
-  table the same keys and directions live in this menu and the trigger shows the active key + direction.
+  table the same keys and directions live in this menu and the trigger shows the active key (direction in the menu
+  + the accessible name).
 - Parity: `tools/ui-qa/specs/cabinet-request-row-vs-act-row.json` (pp-01 ↔ sm-01, 0 differences).
 
 - Act rows (user 2026-10-17: „compact, as on the «Ce vrei să soliciți» screen”, no institution icon) = the FO
@@ -6409,8 +6455,8 @@ withdrawal (Q7), suspension details in the profile (Q8), table vs rows (Q9), „
 > 14/20 line with a 16 icon in the tone (warning #dc6803 / brand) and the date in medium; actions
 > right = one labelled primary (US-19 names) + ⋮ without that action; hover = tertiary fill, focus
 > ring inset; new row = brand-secondary fill; phone: actions under the text, primary full width,
-> ⋮ right. Toolbar Filtre / Sortează / „N pe pagină” = BO buttons (`btn btn-neutral btn-sm` + 16 icon,
-> chevron for menus); every cabinet menu also carries `.e-permits-stack__menu` (32px items); ⋮ =
+> ⋮ right. Toolbar Filtre / Sortează = `btn btn-neutral btn-md` + 20 icon (the search height, 2026-10-20), „N pe pagină”
+> = `btn-text-neutral btn-sm`, chevron for menus; every cabinet menu also carries `.e-permits-stack__menu` (32px items); ⋮ =
 > `btn btn-strict btn-sm btn-icon-only` (32, radius 6) — same height as the labelled action.
 > **Profiles (dosar / act / catalog service) open with the BO detail header** — `CabEvo.pageHeader({crumbs, title,
 > titleId, aside, meta})` → `.e-permits-page-header.cab-page-header` (no inset, page column width): breadcrumbs

@@ -413,6 +413,8 @@
       bar: root.querySelector("[data-sm-filters]"),
       toggle: root.querySelector("[data-sm-filter-toggle]"),
       count: root.querySelector("[data-sm-filter-count]"),
+      /* phones: „Sortează” joins the „Filtre” pill in one row (js/facet-filter.js) */
+      sort: root.querySelector(".cab-sort"),
       sprite: SPRITE,
       state: () => state.filter,
       facets: availableFacets,
@@ -485,11 +487,11 @@
       <li role="none"><ul class="cab-menu__group" role="group" aria-labelledby="sm-sort-dir">${["asc", "desc"].sort((a) => (a === sort.def ? -1 : 1)).map((d) => item(`data-sm-sort-dir="${d}"`, sort.dirs[d], d === dir)).join("")}</ul></li>`;
   }
   function syncSortTrigger(view) {
-    const { sort, dir, text } = sortNow();
+    const { sort, text } = sortNow();
     const trigger = view.querySelector(".cab-sort__trigger");
     trigger.setAttribute("aria-label", `Sortează: ${text}`);
+    /* the button shows the key only (user 2026-10-20); the direction lives in the menu's „Ordine” group and the name */
     trigger.querySelector("[data-sm-sort-label]").textContent = sort.label;
-    trigger.querySelector("[data-sm-sort-icon] use").setAttribute("href", `${SPRITE}#${dir === "asc" ? "icon-arrow-up" : "icon-arrow-down"}`);
   }
 
   /* the list shell is built once (search, „Filtre”, „Sortează”, the facet bar keep their DOM / focus); only the
@@ -513,16 +515,15 @@
               </button>
             </div>
           </div>
-          <button class="btn btn-neutral btn-sm e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="sm-filters" data-sm-filter-toggle>
-            <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
+          <button class="btn btn-neutral btn-md e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="sm-filters" data-sm-filter-toggle>
+            <svg class="icon medium" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
             <span>Filtre</span>
             <span class="badge badge--lg badge--solid-light" data-sm-filter-count hidden></span>
           </button>
           <div class="e-permits-fo-intent-act__action cab-sort">
-            <button type="button" class="btn btn-neutral btn-sm cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
-              <svg class="icon small" aria-hidden="true" data-sm-sort-icon><use href="${SPRITE}#icon-arrow-down"></use></svg>
+            <button type="button" class="btn btn-neutral btn-md cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger data-act-sheet-title="Sortează">
               <span data-sm-sort-label>Data depunerii</span>
-              <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
+              <svg class="icon medium" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
           </div>

@@ -5968,6 +5968,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return facetMatch(facet, row, values);
     })).length;
   };
+  /* product lists (eKYC): „Filtrare avansată” at the search height — library btn-md 40 (user 2026-10-20: search,
+     Filtre and sort share one height); the GEAP BO registries keep their btn-sm toolbar */
+  if (product) document.querySelector("[data-workplace-filter-toggle]")?.classList.replace("btn-sm", "btn-md");
   const workplaceFilter = window.GEAPFacetFilter.create({
     bar: document.querySelector("[data-workplace-filters]"),
     toggle: document.querySelector("[data-workplace-filter-toggle]"),

@@ -1563,10 +1563,9 @@ tr:hover .rap-act-link {
 
 /* „Autoritatea emitentă” contact links: css/bo-profile-parts.css (shared with the EVO Cabinet) */
 
-/* „Filtru” on phones = the facet filter's phone mode (mobileSheets, 2026-10-17): the search takes
-   the whole toolbar row (the button is hidden; „Filtre” is the first chip); the chip row is not a
-   bordered block; it starts 12 under the toolbar and runs to the screen edges (first
-   chip on the 16 page edge, the last one cut = scroll hint); 4 above / below keep the focus ring */
+/* „Filtru” on phones = the facet filter's phone mode (mobileSheets, 2026-10-17; one „Filtre” pill row since
+   2026-10-20, css/facet-filter.css): the search takes the whole toolbar row (the button is hidden); the pill
+   row is not a bordered block and starts 16 under the toolbar */
 @media (max-width: 760px) {
   .rap-filters.e-permits-workplace__filters.is-sheets {
     background: transparent;
@@ -1575,12 +1574,6 @@ tr:hover .rap-act-link {
     flex-wrap: nowrap;
     margin-top: var(--spacing-16, 16px); /* search 16 chips, as on the Cabinet lists (2026-10-18) */
     padding: var(--spacing-0, 0px);
-  }
-
-  .rap-filters.is-sheets .e-permits-workplace__filter-chips {
-    margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-16, 16px) * -1);
-    padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
-    scroll-padding-inline: var(--spacing-16, 16px);
   }
 }
 

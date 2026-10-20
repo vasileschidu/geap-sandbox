@@ -179,13 +179,26 @@
   /* post-process helpers: the EVO Cabinet page, the intent screen and the
      FOD2 wizard opened straight on a step (?pp=<type>&act=<id>) */
   const PP_FO = "e-permits-acte-permisive.html";
+  /* one facet of the shared facet filter (js/facet-filter.js): desktop = its chip (→ popover); phones (≤760) = the
+     „Filtre” pill (one pill row since 2026-10-20, no facet chips) → the all-filters sheet with THAT facet's section
+     open and the others folded (so a value click can only hit this facet) */
+  const ffFacet = async (h, facet) => {
+    if (!window.matchMedia("(max-width: 760px)").matches) { await h.click(`[data-filter-facet="${facet}"]`); return; }
+    const SHEET = '.e-permits-filter-sheet.is-all[aria-hidden="false"]';
+    if (!document.querySelector(SHEET)) { await h.click("[data-filter-all]"); await h.find(`${SHEET} .bottom-sheet__panel`); await h.wait(400); }
+    document.querySelectorAll(`${SHEET} [data-sheet-toggle][aria-expanded="true"]`).forEach((t) => { if (t.dataset.sheetToggle !== facet) t.click(); });
+    const toggle = document.querySelector(`${SHEET} [data-sheet-toggle="${facet}"]`);
+    if (toggle?.getAttribute("aria-expanded") !== "true") await h.click(`${SHEET} [data-sheet-toggle="${facet}"]`);
+    toggle?.scrollIntoView({ block: "start" });
+    await h.wait(150);
+  };
   const ppCab = (run) => ({ page: "cabinet-evo/index.html", ready: "[data-cab-card]", run });
   /* the act post-process menu (js/act-row.js): desktop = the dropdown item; phones (≤760, 2026-10-20) = the same
      item's row in the action sheet (the trigger opened the sheet instead of the dropdown) */
   const actMenuPick = (itemSel) => async (h) => {
     if (!window.GEAPActRow?.isSheetOpen?.()) { await h.click(itemSel); return; }
     const item = document.querySelector(itemSel);
-    const items = [...(item?.closest("[role='menu']")?.querySelectorAll("[role='menuitem']") || [])];
+    const items = [...(item?.closest("[role='menu']")?.querySelectorAll("[role='menuitem'], [role='menuitemradio']") || [])];
     await h.click(`.e-permits-filter-sheet--actions [data-act-sheet-index="${items.indexOf(item)}"]`);
   };
   /* the acts list „Filtre” (js/facet-filter.js): desktop = button → bar → popover → Confirmă → Aplică;
@@ -194,8 +207,7 @@
   const cabOpen = async (h) => { if (!cabPhone()) await h.click("[data-cab-filter-toggle]"); };
   const cabPick = (facet, values) => async (h) => {
     await cabOpen(h);
-    await h.click(`[data-filter-facet="${facet}"]`);
-    if (cabPhone()) await h.wait(400);
+    await ffFacet(h, facet);
     for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
     await h.click(cabPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
     if (cabPhone()) await h.wait(400);
@@ -255,8 +267,7 @@
   const smPhone = () => window.matchMedia("(max-width: 760px)").matches;
   const smPick = (facet, values) => async (h) => {
     if (!smPhone() && document.querySelector("[data-sm-filters]")?.hidden) await h.click("[data-sm-filter-toggle]");
-    await h.click(`[data-filter-facet="${facet}"]`);
-    if (smPhone()) await h.wait(400);
+    await ffFacet(h, facet);
     for (const value of values) await h.click(`[data-filter-option]${value.endsWith("*") ? `[value^="${value.slice(0, -1)}"]` : `[value="${value}"]`}`);
     await h.click(smPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
     if (smPhone()) await h.wait(400); else await h.click("[data-filter-commit]");
@@ -278,8 +289,7 @@
     const phone = ffPhone();
     const shown = () => [...document.querySelectorAll(`[data-filter-facet="${facet}"]`)].some((el) => el.getClientRects().length);
     if (!phone && !shown()) await h.click(toggle);
-    await h.click(`[data-filter-facet="${facet}"]`);
-    if (phone) await h.wait(400);
+    await ffFacet(h, facet);
     if (preset || from || to) await h.click(`[data-filter-date-preset="${facet}"][value="${preset || "interval"}"]`);
     if (from) await ffDay(h, facet, "from", from);
     if (to) await ffDay(h, facet, "to", to);
@@ -316,7 +326,7 @@
      a string (exact option value) or a number (nth visible option). */
   const ekPhone = () => window.matchMedia("(max-width: 760px)").matches;
   const ekFilterOpen = async (h) => { if (!ekPhone() && document.querySelector("[data-workplace-filters]")?.hidden) await h.click("[data-workplace-filter-toggle]"); };
-  const ekFacet = (facet) => async (h) => { await ekFilterOpen(h); await h.click(`[data-filter-facet="${facet}"]`); if (ekPhone()) await h.wait(400); };
+  const ekFacet = (facet) => async (h) => { await ekFilterOpen(h); await ffFacet(h, facet); };
   const ekTick = async (h, values) => { for (const v of values) { if (typeof v === "number") await h.nth("[data-filter-option]", v); else await h.click(`[data-filter-option][value="${v}"]`); } };
   const ekPick = (facet, values) => async (h) => { await ekFacet(facet)(h); await ekTick(h, values); await h.click(ekPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]"); if (ekPhone()) await h.wait(400); };
   const ekCommit = async (h) => { if (!ekPhone()) await h.click("[data-filter-commit]"); };
@@ -1210,7 +1220,7 @@
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
-    "pp-01s": ppCab(async (h) => { await cabOpen(h); await h.click('[data-filter-facet="status"]'); if (cabPhone()) await h.wait(400); }),
+    "pp-01s": ppCab(async (h) => { await cabOpen(h); await ffFacet(h, "status"); }),
     /* search by act number + more than 10 acts → the Cabinet pager (demo ?acte=multe) */
     "pp-01t": { ...ppCab(null), params: { acte: "multe" } },
     "pp-01u": ppCab(async (h) => { await h.fill("[data-cab-search]", "ASF-2025", { leave: false }); }),
@@ -2002,9 +2012,9 @@
     /* sort = the „Sortează” menu on desktop and phones (2026-10-20, the table headers are gone): 01f the menu open
        (key group + direction group), 01m sorted by Serviciul solicitat Z–A (key, then direction; trigger + announcement) */
     "sm-01f": sm(async (h) => { await h.click(".cab-sort__trigger"); }),
-    "sm-01m": sm(async (h) => { await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-key="service"]'); await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-dir="desc"]'); }),
+    "sm-01m": sm(async (h) => { await h.click(".cab-sort__trigger"); await actMenuPick('[data-sm-sort-key="service"]')(h); await h.wait(300); await h.click(".cab-sort__trigger"); await actMenuPick('[data-sm-sort-dir="desc"]')(h); await h.wait(300); }),
     /* the facet bar open (desktop) / the Statut sheet (phones) */
-    "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await h.click('[data-filter-facet="status"]'); if (smPhone()) await h.wait(400); }),
+    "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await ffFacet(h, "status"); }),
     /* US-158 AC-06 / 07 / 11 — the dates are date range facets of „Filtre” (2026-10-20; the „Perioadă” dialog is gone):
        01g the Data depunerii popover (phones: its sheet) · 01h „Până la” before „De la” → error · 01o a custom range
        applied (chip „Data depunerii: 1–10 oct. 2026” + ×) · 01p the custom range being picked (phones: the sheet)
@@ -2131,7 +2141,7 @@
          „Arată N rezultate” applies it — no „Confirmă” / „Aplică filtrele” */
       const phone = () => window.matchMedia("(max-width: 760px)").matches;
       const pick = (facet, values) => async (h) => {
-        await h.click(`[data-filter-facet="${facet}"]`);
+        await ffFacet(h, facet);
         for (const value of values) await h.click(`[data-filter-option][value="${value}"]`);
         await h.click(phone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
         if (phone()) await h.wait(400);
@@ -2141,7 +2151,7 @@
       return {
         "rap-01": rap(null),
         "rap-01a": rap(open),
-        "rap-01b": rap(async (h) => { await open(h); await h.click('[data-filter-facet="status"]'); await h.click('[data-filter-option][value="Valabil"]'); }),
+        "rap-01b": rap(async (h) => { await open(h); await ffFacet(h, "status"); await h.click('[data-filter-option][value="Valabil"]'); }),
         "rap-01c": rap(async (h) => {
           await open(h); await pick("status", ["Valabil"])(h); await pick("denumire", ["Notificare unitate comercială"])(h);
           await pick("beneficiar", ["Persoană juridică"])(h); await commit(h);
@@ -2156,16 +2166,15 @@
           if (phone()) { await pick("beneficiar", ["Persoană fizică"])(h); await h.fill("[data-rap-search]", "zzzz", { leave: false }); await h.wait(600); return; }
           await open(h); await pick("status", ["Suspendat"])(h); await pick("beneficiar", ["Persoană fizică"])(h); await commit(h);
         }),
-        /* phones (≤760): the facet filter's phone mode — ONE scrolling chip row („Filtre” first = all
-           filters, then a chip per facet), a bottom sheet per facet (search when > 7 values), the
-           all-filters sheet, applied chips with counts. On desktop the same ids run the BO bar /
+        /* phones (≤760): the facet filter's phone mode — ONE „Filtre” pill (2026-10-20, no facet chips) →
+           the all-filters sheet; 04a / 04b open it on Statut / Autoritate (search when > 7 values), 04c
+           the sheet as it opens, 04d applied (count on the pill + „N rezultate · Șterge filtrele”). On desktop the same ids run the BO bar /
            popover path (desktop unchanged) */
         ...(() => {
           const sheetReady = async (h) => { await h.find('.e-permits-filter-sheet[aria-hidden="false"] .bottom-sheet__panel'); await h.wait(400); };
           const chipSheet = (facet, run) => async (h) => {
             if (!phone()) await open(h);
-            await h.click(`[data-filter-facet="${facet}"]`);
-            if (phone()) await sheetReady(h);
+            await ffFacet(h, facet);
             if (run) await run(h);
           };
           return {
@@ -2189,8 +2198,8 @@
         /* US-141: „Aprobat tacit” as a value of the Statut facet (acts with Aprobare tacită = true) */
         "rap-01h": rap(async (h) => {
           if (window.matchMedia("(max-width: 760px)").matches) {
-            /* phones: the facet's bottom sheet (facet filter phone mode) */
-            await h.click('[data-filter-facet="status"]'); await h.find('.e-permits-filter-sheet[aria-hidden="false"] .bottom-sheet__panel'); await h.wait(400);
+            /* phones: „Filtre” → the all-filters sheet, Statut open (facet filter phone mode) */
+            await ffFacet(h, "status");
             await h.click('[data-filter-option][value="Aprobat tacit"]'); await h.click("[data-sheet-apply]"); await h.wait(400);
             return;
           }

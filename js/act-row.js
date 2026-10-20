@@ -46,7 +46,11 @@
    handler (confirm modal for consequential post-processes, otherwise go on). Works for every trigger in an
    .e-permits-fo-intent-act__action wrapper (FO #intent, Ghișeu, Cabinet list + act profile header) without
    any change in the pages. Desktop: unchanged (the compact dropdown). components.md „Act post-process menu on
-   phones — action sheet”. */
+   phones — action sheet”.
+   Radio menus (2026-10-20, the Cabinet „Sortează” on the phone filter row): `menuitemradio` items become rows
+   without a leading icon and with the check on the current one (`aria-current`), the menu's group labels
+   (`li[role=presentation]` without items) become group headings; title = the trigger's `data-act-sheet-title`
+   (else its label). */
 (() => {
   "use strict";
 
@@ -139,8 +143,19 @@
     || trigger.closest(".e-permits-page-header")?.querySelector("h1")?.textContent
     || "").replace(/\s+/g, " ").trim();
 
+  const ITEMS = "[role='menuitem'], [role='menuitemradio']";
   function rowHtml(item, index, sprite) {
     const label = (item.querySelector("span")?.textContent || item.textContent).replace(/\s+/g, " ").trim();
+    if (item.getAttribute("role") === "menuitemradio") {
+      const on = item.getAttribute("aria-checked") === "true";
+      return `
+          <li>
+            <button class="e-permits-workplace__filter-option e-permits-filter-sheet__action e-permits-filter-sheet__action--radio" type="button" data-act-sheet-index="${index}"${on ? ' aria-current="true"' : ""}>
+              <span class="e-permits-filter-sheet__action-text"><span class="e-permits-workplace__filter-option-label">${esc(label)}</span></span>${on ? `
+              <svg class="icon" aria-hidden="true"><use href="${esc(sprite)}#icon-checkmark-large"></use></svg>` : ""}
+            </button>
+          </li>`;
+    }
     const icon = item.querySelector("use")?.getAttribute("href")?.split("#")[1] || "icon-edit";
     const disabled = item.disabled || item.getAttribute("aria-disabled") === "true";
     const reason = disabled ? item.dataset.tooltipReason || item.getAttribute("aria-description") || "" : "";
@@ -193,19 +208,25 @@
 
   function openSheet(trigger) {
     const menu = document.getElementById(trigger.getAttribute("aria-controls") || "");
-    const items = menu ? [...menu.querySelectorAll("[role='menuitem']")] : [];
+    const items = menu ? [...menu.querySelectorAll(ITEMS)] : [];
     if (!items.length || !window.GEAPSheet) return false;
-    const sprite = items[0].querySelector("use")?.getAttribute("href")?.split("#")[0] || "assets/icons/sprite.svg";
+    const sprite = (menu.querySelector("use")?.getAttribute("href") || "").split("#")[0] || "assets/icons/sprite.svg";
+    /* the rows in menu order, with the menu's group labels as headings */
+    const rows = [...menu.querySelectorAll(`${ITEMS}, li[role='presentation']`)].map((node) => (node.matches(ITEMS)
+      ? rowHtml(node, items.indexOf(node), sprite)
+      : node.querySelector(ITEMS) || !node.textContent.trim() ? ""
+        : `
+          <li class="e-permits-filter-sheet__group-label" role="presentation">${esc(node.textContent.replace(/\s+/g, " ").trim())}</li>`)).join("");
     ensureSheet(sprite);
     const subtitle = subtitleOf(trigger);
-    sheetEl.querySelector("[data-sheet-title]").textContent = (trigger.querySelector("span")?.textContent || trigger.textContent).replace(/\s+/g, " ").trim();
+    sheetEl.querySelector("[data-sheet-title]").textContent = (trigger.dataset.actSheetTitle || trigger.querySelector("span")?.textContent || trigger.textContent).replace(/\s+/g, " ").trim();
     const sub = sheetEl.querySelector("[data-sheet-subtitle]");
     sub.textContent = subtitle;
     sub.hidden = !subtitle;
     const panel = sheetEl.querySelector(".bottom-sheet__panel");
     if (subtitle) panel.setAttribute("aria-describedby", "geap-act-sheet-subtitle"); else panel.removeAttribute("aria-describedby");
     sheetEl.querySelector("[data-sheet-body]").innerHTML = `
-        <ul class="e-permits-workplace__filter-list e-permits-filter-sheet__list" role="list">${items.map((item, i) => rowHtml(item, i, sprite)).join("")}
+        <ul class="e-permits-workplace__filter-list e-permits-filter-sheet__list" role="list">${rows}
         </ul>`;
     if (!menu.hidden) menu.hidden = true; /* a dropdown left open from a wider window */
     cur = { trigger, items };

@@ -23,6 +23,15 @@
   flex: 0 0 16px;
 }
 
+/* list pages (Cabinet, RAP, eKYC — 2026-10-20, user: „the sort and Filtre at the search's height”): the button is
+   the library Medium (btn-md = 40, the search box height) with the Medium icon (20); the GEAP BO registries keep
+   btn-sm above */
+.btn.btn-md.e-permits-workplace__advanced .icon {
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
 
 /* ---- Advanced filter (faceted): bar of facet chips under the toolbar, a checklist
    popover per chip with live counts, staged until "Aplică" ---- */
@@ -214,11 +223,13 @@
 }
 
 /* ==========================================================================
-   Phone mode (`mobileSheets: true`, ≤760px; RAP opts in, the BO does not) — 2026-10-17.
-   Research (Baymard mobile filtering, NN/g bottom sheets + mobile faceted search, Material 3
-   bottom sheets / filter chips, Apple HIG sheets): promoted facet chips on ONE scrolling line,
-   each opening a bottom sheet; „all filters” = the same sheet with every facet as a section;
-   sticky „Resetează” · „Arată N rezultate” (live count) at the thumb.
+   Phone mode (`mobileSheets: true`, ≤760px; RAP / Cabinet / eKYC opt in, the GEAP BO does not).
+   Phone toolbar (2026-10-20, user: „only the Filter button without the other chips, the sort in the
+   same row, round”): ONE row that never scrolls — the „Filtre” pill (→ the all-filters sheet) and the
+   page's sort control as a second pill; both 48 high (the phone search height, user: „same height as
+   the search”), 16/24 medium, icons 24 (the 48 size of the component audit), radius full, 8 apart. The
+   sort label shrinks with an ellipsis, „Filtre” never shrinks. Applied → „N rezultate · Șterge filtrele”
+   on one plain line under the row. (2026-10-17 → 10-20: „Filtre” + one scrolling chip per facet.)
    ========================================================================== */
 @media (max-width: 760px) {
   .e-permits-workplace__filters.is-sheets {
@@ -227,24 +238,83 @@
     gap: var(--spacing-4, 4px);
   }
 
-  /* one line that scrolls sideways (no wrap); the page cuts the last chip = scroll hint */
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-chips {
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-tools {
     flex-wrap: nowrap;
-    overflow-x: auto;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
+    min-width: 0;
   }
 
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-chips::-webkit-scrollbar {
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all {
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-medium, 500);
+    gap: var(--spacing-8, 8px);
+    height: var(--spacing-48, 48px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all .chip__label {
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all .icon {
+    flex: 0 0 var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all[hidden] {
     display: none;
   }
 
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip {
-    flex: 0 0 auto;
+  /* the sort pill: label · chevron, 16 on the label side / 12 on the chevron side (the chip rhythm); it
+     shrinks first, its label ellipsizes (the full key + direction stay in its aria-label) */
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort {
+    display: flex;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort > * {
+    margin: 0;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn {
+    max-width: 100%;
+    min-width: 0;
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-medium, 500);
+    gap: var(--spacing-8, 8px);
+    height: var(--spacing-48, 48px);
+    line-height: var(--line-height-lh-24, 24px);
+    padding: var(--spacing-0, 0px) var(--spacing-12, 12px) var(--spacing-0, 0px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn .icon {
+    flex: 0 0 var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-meta {
     min-height: var(--spacing-32, 32px);
+  }
+
+  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-meta[hidden] {
+    display: none;
   }
 }
 
@@ -455,6 +525,24 @@ html.is-filter-sheet-open {
   color: var(--color-text-base-secondary, #383838);
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
+}
+
+/* radio menus (the Cabinet „Sortează”, 2026-10-20): a group label on the rows' 16 text inset, 16 above (8 for
+   the first) / 8 under, 14/20 medium tertiary (the menu label); the current row = the trailing 24 check */
+.e-permits-filter-sheet__list > .e-permits-filter-sheet__group-label {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: var(--spacing-16, 16px) var(--spacing-8, 8px) var(--spacing-8, 8px);
+}
+
+.e-permits-filter-sheet__list > .e-permits-filter-sheet__group-label:first-child {
+  padding-top: var(--spacing-8, 8px);
+}
+
+.e-permits-filter-sheet__list .e-permits-filter-sheet__action--radio {
+  align-items: center;
 }
 
 .e-permits-filter-sheet__action:active:not([aria-disabled="true"]) {

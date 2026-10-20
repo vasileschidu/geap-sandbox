@@ -1506,3 +1506,28 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   tone modifier. (5) Romanian: „în decursul <Timp setat>” needs „a” before a numeral („a 30 de zile”, „unei zile”) —
   reported as a wording fix of the US-21 text. No sub-agent tool → hover-audit 0 / 0, code-audit / component-audit
   only standing FPs (BO 11/7/18 rhythm, FO confirm buttons, header avatar / menu, alert link, `sm-tacit`).
+- 2026-10-20 · Phone list toolbar = ONE row „Filtre” pill + sort pill (user: „only the Filter button, the sort in the same
+  row, round”), then mid-job (coordinator, user): „sort, Filtre and the search — one height, no ↓ on the sort”. Done in the
+  shared module, not per page: `renderPhone` builds the row ONCE (`[data-filter-phone-row]`) and updates the pill / meta in
+  place, and a new `sort: <wrapper>` option MOVES the page's own sort control into the row on phones and back home on
+  desktop (+ library `btn-pill`) — the page keeps its handlers, its menu and `syncSortTrigger`. Rewriting `bar.innerHTML`
+  on every render would have destroyed the moved node and the focus (Cabinet calls `facetFilter.render()` on every list
+  render). Heights: desktop = library `btn-md` (40 = the search) on Cabinet / RAP / eKYC (the shell swaps btn-sm → btn-md
+  only when a product is set, so the GEAP BO stays 36); phones = 48 · 16/24 · icons 24 (the component-audit scale
+  48 → 24, 40 → 20). The new rule overrides „One back-office button = btn-sm” for these four lists — record such a user
+  exception next to the old rule in components.md, or the next job „fixes” it back.
+- 2026-10-20 · A sort menu (menuitemradio + group labels) fell through the act-row phone action sheet (it only took
+  `menuitem`) and opened as a cramped dropdown on phones → the sheet now renders radio items (trailing check,
+  `aria-current`), group labels and a `data-act-sheet-title`; `actMenuPick` in the demo states counts both roles.
+  Demo states that clicked facet chips on phones (cabPick, smPick, ffDate, ekFacet, rap pick / chipSheet, pp-01s, sm-01n,
+  rap-01b / 01h) now go through ONE helper `ffFacet(h, facet)` (desktop chip | phone „Filtre” → section open, others
+  folded so a value click cannot hit another facet) — when an entry point disappears, route every demo through one
+  branching helper instead of patching ids one by one (capture's DEMO-ERROR caught sm-01m).
+- 2026-10-20 · Traps: (1) a zsh `for spec in "a b"; set -- $spec` does NOT word-split → my probe wrote its PNG over
+  the eval script (tb.js); use `${=spec}` or a bash script. (2) `.chip` / the filter meta have author `display` — an
+  in-place `hidden` needs its `[hidden] { display: none }` rule. (3) Page-level „bleed to the screen edges” rules for a
+  scrolling row (−16 margins + 16 padding + scroll-padding) became dead once the row stopped scrolling → removed on all
+  three pages in the same change. hover-audit with `--scope ".cab-filters"` reported „0 interactive” twice (scope
+  resolution), `--scope main` covered the row (0 / 0). No sub-agent tool → code-audit / component-audit / hover-audit
+  (700) run directly: only standing FPs (Cabinet meta 18, alert link, RAP table cells, eKYC tags / th / pagination /
+  header buttons, eKYC phone search icon 20 in a 48 field — pre-existing).

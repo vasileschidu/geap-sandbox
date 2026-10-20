@@ -24911,11 +24911,10 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
 
 /* ---- eKYC lists on phones: the shared facet filter's phone mode (2026-10-19) ----------------
    js/e-permits-shell.js opts a product back office in (`mobileSheets: !!product`): the toolbar
-   button is hidden and „Filtre” + the facet chips are one row under the toolbar, each chip opening
-   a bottom sheet (RAP / Cabinet). The bar keeps the BO look (white, 12 / 16 inset, bottom line =
-   the tab strip's top separator); here only the placement: the search shares its row with the
-   export button when there is no „Adaugă …”, and the chip row runs to the screen edges (the last
-   chip cut = scroll hint, as RAP). */
+   button is hidden and the round „Filtre” pill (2026-10-20, no facet chips) is the bar under the
+   toolbar, opening the all-filters bottom sheet (RAP / Cabinet). The bar keeps the BO look (white,
+   12 / 16 inset, bottom line = the tab strip's top separator); here only the placement: the search
+   shares its row with the export button when there is no „Adaugă …”. */
 @media (max-width: 760px) {
   [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar:has(> .e-permits-workplace__advanced[hidden]):not(:has(> .e-permits-workplace__primary-action:not([hidden]))) {
     flex-wrap: nowrap;
@@ -24929,12 +24928,6 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
   /* the tools hold only the export here (field count hidden on phones): hug it */
   [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar:has(> .e-permits-workplace__advanced[hidden]) .e-permits-workplace__table-tools {
     min-width: 0;
-  }
-
-  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-chips {
-    margin: calc(var(--spacing-4, 4px) * -1) calc(var(--spacing-16, 16px) * -1);
-    padding: var(--spacing-4, 4px) var(--spacing-16, 16px);
-    scroll-padding-inline: var(--spacing-16, 16px);
   }
 
   /* phones: the quick search is the bigger input (user rule 2026-10-18: desktop 40, phones 48 ·

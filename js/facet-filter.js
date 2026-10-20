@@ -26,12 +26,18 @@
      mobileSheets                   phone mode (≤760, opt-in, RAP — 2026-10-17): see below
      preview(selection)             rows matching a selection that is not applied yet (the
                                     sheets' live „Arată N rezultate”; falls back to total())
+     sort                           phones only: the page's sort control (its wrapper element) — moved
+                                    next to „Filtre” in the phone row and back home on desktop
    }) → { render, close, clearAll }
 
-   Phone mode (`mobileSheets: true`, ≤760px only; the BO does not opt in): the bar is always
-   visible as ONE horizontally scrolling row: „Filtre” (filter icon + total badge → the all-filters
-   sheet; the toolbar button is hidden — one entry point), then the facet chips (count badge per chip) + „N
-   rezultate · Șterge filtrele”; a chip opens a BOTTOM SHEET for its facet (library .bottom-sheet:
+   Phone toolbar (2026-10-20, user: „on mobile only the Filter button without the other chips, the sort
+   in the same row, round”): the bar is ONE row that never scrolls — the „Filtre” pill (filter icon +
+   total badge → the all-filters sheet; the toolbar button is hidden — one entry point) and, when the
+   page passes `sort`, its sort control as a second pill (the label shrinks with an ellipsis); no facet
+   chips. Applied → one plain line under it „N rezultate · Șterge filtrele”. The row and the sort node
+   are kept between renders (focus stays on them). Before (2026-10-17): „Filtre” + a scrolling chip per
+   facet, each opening its own facet sheet (that sheet kind is still in the code, no phone entry point).
+   Phone mode (`mobileSheets: true`, ≤760px only; the BO does not opt in): a facet sheet = a BOTTOM SHEET (library .bottom-sheet:
    handle, title + „Resetează” + ×, search when > 7 values (as the popover), 44px checklist rows,
    sticky footer „Arată N rezultate” with the live count — full width: with „Resetează” beside it a
    4-digit count wrapped at 375); the button opens the same sheet with every facet as an
@@ -213,6 +219,14 @@
     let edit = null; /* { key, values:Set, query, anchor } while a facet popover is open */
     let moreOpen = false;
     let barPage = null;
+    /* phones: the page's sort control joins the „Filtre” row; on desktop it goes back where it was */
+    const sortEl = cfg.sort || null;
+    const sortHome = sortEl ? { parent: sortEl.parentNode, next: sortEl.nextSibling } : null;
+    const restoreSort = () => {
+      if (!sortEl || sortEl.parentNode === sortHome.parent) return;
+      sortHome.parent.insertBefore(sortEl, sortHome.next?.parentNode === sortHome.parent ? sortHome.next : null);
+      sortEl.querySelectorAll(":scope > .btn").forEach((btn) => btn.classList.remove("btn-pill"));
+    };
 
     const appliedEntries = () => Object.entries(cfg.state().applied).filter(([, values]) => values?.length);
     const draftOf = () => { const st = cfg.state(); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
@@ -347,6 +361,7 @@
         barPage = page;
       }
       if (isPhone()) { renderPhone(); return; }
+      restoreSort();
       if (cfg.mobileSheets) { bar.classList.remove("is-sheets"); if (toggle) { toggle.hidden = false; toggle.removeAttribute("aria-haspopup"); } }
       const draft = draftOf();
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
@@ -406,41 +421,58 @@
     const copySel = (sel) => Object.fromEntries(Object.entries(sel || {}).filter(([, v]) => v?.length).map(([k, v]) => [k, [...v]]));
     const selCount = (sel) => Object.values(sel).reduce((sum, v) => sum + (v?.length || 0), 0);
 
+    /* „Filtre” pill: the library chip with a leading icon (40, round), black + count badge when applied */
+    const filtersPillInner = (n) => `
+          <span class="chip__icon"><svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtre</span>
+          ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}`;
     const renderPhone = () => {
       const state = cfg.state();
       state.draft = null;
-      const applied = state.applied;
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
       const facets = cfg.facets();
       bar.classList.add("is-sheets");
-      bar.hidden = !facets.length;
+      bar.hidden = !facets.length && !sortEl;
       if (toggle) {
-        /* one entry point on phones: the „Filtre” chip replaces the toolbar button */
+        /* one entry point on phones: the „Filtre” pill replaces the toolbar button */
         toggle.hidden = true;
         toggle.setAttribute("aria-haspopup", "dialog");
         toggle.setAttribute("aria-expanded", String(sheet?.kind === "all"));
         if (!facets.length) { toggle.setAttribute("aria-disabled", "true"); toggle.dataset.tooltipReason = "Lista nu are încă valori după care să filtrezi."; }
         else { toggle.removeAttribute("aria-disabled"); delete toggle.dataset.tooltipReason; }
       }
-      if (!facets.length) { bar.innerHTML = ""; return; }
-      const total = cfg.total();
-      bar.innerHTML = `
-      <div class="e-permits-workplace__filter-chips">
-        <button class="chip${appliedCount ? " is-selected" : ""} e-permits-workplace__filter-chip e-permits-workplace__filter-chip--all" type="button" aria-haspopup="dialog" aria-expanded="${sheet?.kind === "all"}" data-filter-all${appliedCount ? ` aria-label="Filtre: ${appliedCount} ${appliedCount === 1 ? "valoare aplicată" : "valori aplicate"}"` : ""}>
-          <span class="chip__icon"><svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-filter-lines"></use></svg></span>
-          <span class="chip__label">Filtre</span>
-          ${appliedCount ? `<span class="badge badge--lg badge--solid-light">${appliedCount}</span>` : ""}
-        </button>
-        ${facets.map((f) => (isDate(f)
-          ? dateChipHtml(f, applied[f.key]?.[0], sheet?.kind === "facet" && sheet.key === f.key)
-          : chipHtml(f, applied[f.key]?.length || 0, sheet?.kind === "facet" && sheet.key === f.key))).join("")}
+      if (bar.hidden) { restoreSort(); bar.innerHTML = ""; return; }
+      /* ONE row, built once and updated in place (the sort node and the focus stay) */
+      let row = bar.querySelector(":scope > [data-filter-phone-row]");
+      if (!row) {
+        restoreSort();
+        bar.innerHTML = `
+      <div class="e-permits-workplace__filter-chips e-permits-workplace__filter-tools" data-filter-phone-row>
+        <button class="chip e-permits-workplace__filter-chip e-permits-workplace__filter-chip--all" type="button" aria-haspopup="dialog" aria-expanded="false" data-filter-all></button>
+        ${sortEl ? '<div class="e-permits-workplace__filter-sort" data-filter-phone-sort></div>' : ""}
       </div>
-      ${appliedCount ? `<div class="e-permits-workplace__filter-meta" aria-live="polite">
-        <span class="e-permits-workplace__filter-result">${resultsLabel(total)}</span>
-        <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>
-      </div>` : ""}
-    `;
+      <div class="e-permits-workplace__filter-meta" aria-live="polite" data-filter-phone-meta hidden></div>`;
+        row = bar.querySelector("[data-filter-phone-row]");
+      }
+      const slot = row.querySelector("[data-filter-phone-sort]");
+      if (slot && sortEl.parentNode !== slot) {
+        slot.appendChild(sortEl);
+        sortEl.querySelectorAll(":scope > .btn").forEach((btn) => btn.classList.add("btn-pill"));
+      }
+      const pill = row.querySelector("[data-filter-all]");
+      pill.hidden = !facets.length;
+      pill.classList.toggle("is-selected", appliedCount > 0);
+      pill.setAttribute("aria-expanded", String(sheet?.kind === "all"));
+      if (appliedCount) pill.setAttribute("aria-label", `Filtre: ${appliedCount} ${appliedCount === 1 ? "valoare aplicată" : "valori aplicate"}`);
+      else pill.removeAttribute("aria-label");
+      if (pill.dataset.count !== String(appliedCount)) { pill.innerHTML = filtersPillInner(appliedCount); pill.dataset.count = String(appliedCount); }
+      /* applied → one plain line under the row: the result count + the one-tap „Șterge filtrele” */
+      const meta = bar.querySelector("[data-filter-phone-meta]");
+      meta.hidden = !appliedCount;
+      meta.innerHTML = appliedCount ? `
+        <span class="e-permits-workplace__filter-result">${resultsLabel(cfg.total())}</span>
+        <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>` : "";
     };
 
     const sheetOptionsHtml = (facet) => {
@@ -915,7 +947,12 @@
     bar?.addEventListener("click", (event) => {
       const dateClear = event.target.closest("[data-filter-date-clear]");
       if (dateClear) { clearFacet(dateClear.dataset.filterDateClear); return; }
-      if (event.target.closest("[data-filter-clear-all]")) { clearAll(); return; }
+      if (event.target.closest("[data-filter-clear-all]")) {
+        clearAll();
+        /* phones: the line with the button goes away — focus the „Filtre” pill */
+        if (isPhone()) bar.querySelector("[data-filter-all]")?.focus();
+        return;
+      }
       if (event.target.closest("[data-filter-commit]")) { commit(); return; }
       if (event.target.closest("[data-filter-discard]")) { discard(); return; }
       const more = event.target.closest("[data-filter-more]");
