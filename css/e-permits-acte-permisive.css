@@ -5454,7 +5454,6 @@
   margin: var(--spacing-4, 4px) 0 0;
   max-height: 280px;
   overflow: auto;
-  padding: var(--spacing-8, 8px);
   position: absolute;
   top: 100%;
   width: 100%;
@@ -5470,15 +5469,11 @@
   display: none;
 }
 
+/* size = „Dropdown item” (css/dropdown.css) */
 .e-permits-fo-select__option {
-  border-radius: var(--border-radius-8, 8px);
   color: var(--color-text-base-secondary, #383838);
   cursor: pointer;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
   overflow: hidden;
-  padding: var(--spacing-12, 12px);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5641,30 +5636,22 @@
 }
 
 .e-permits-fo-caem__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   list-style: none;
   margin: 0;
   max-height: 432px;
   overflow: auto;
-  padding: var(--spacing-8, 8px);
 }
 
 .e-permits-fo-caem__option[hidden] {
   display: none;
 }
 
+/* size = „Dropdown item” (css/dropdown.css) */
 .e-permits-fo-caem__option {
   align-items: center;
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
-  gap: var(--spacing-24, 24px);
-  min-height: 48px;
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
 .e-permits-fo-caem__option:hover,
@@ -5691,11 +5678,11 @@
 .e-permits-fo-caem__option.is-selected::after {
   background: currentColor;
   content: "";
-  flex: 0 0 24px;
-  height: 24px;
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
   margin-left: auto;
-  mask: url("../assets/icons/checkmark-small.svg") center / 24px 24px no-repeat;
-  width: 24px;
+  mask: url("../assets/icons/checkmark-small.svg") center / var(--icon-size-medium, 20px) var(--icon-size-medium, 20px) no-repeat;
+  width: var(--icon-size-medium, 20px);
 }
 
 .e-permits-fo-caem__code {
@@ -5870,32 +5857,22 @@
 }
 
 .e-permits-fo-subgen-select__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   list-style: none;
   margin: 0;
   max-height: 244px;
   overflow: auto;
-  padding: var(--spacing-8, 8px);
 }
 
 .e-permits-fo-subgen-select__option[hidden] {
   display: none;
 }
 
+/* size = „Dropdown item” (css/dropdown.css) */
 .e-permits-fo-subgen-select__option {
   align-items: center;
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
   color: var(--color-text-base-secondary, #383838);
   cursor: pointer;
   display: flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-12, 12px);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
 .e-permits-fo-subgen-select__option:hover,
@@ -6043,15 +6020,11 @@
 
 .e-permits-fo-address-search__list {
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   left: 0;
   list-style: none;
   margin: var(--spacing-4, 4px) 0 0;
   max-height: 260px;
   overflow: auto;
-  padding: var(--spacing-8, 8px);
   position: absolute;
   top: 100%;
   width: 100%;
@@ -6066,18 +6039,14 @@
   display: none;
 }
 
+/* size = „Dropdown item” (css/dropdown.css); two lines (title + meta) grow the row */
 .e-permits-fo-address-search__option {
   align-items: center;
   background: transparent;
   border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
   color: var(--color-text-base-secondary, #383838);
   cursor: pointer;
   display: flex;
-  gap: var(--spacing-12, 12px);
-  min-height: 64px;
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) var(--spacing-12, 12px) var(--spacing-16, 16px);
   text-align: left;
   width: 100%;
 }
@@ -6089,16 +6058,13 @@
 
 .e-permits-fo-address-search__option > .icon {
   color: var(--color-text-base-default, #121212);
-  flex: 0 0 20px;
-  height: 20px;
-  width: 20px;
 }
 
 .e-permits-fo-address-search__copy {
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: var(--spacing-6, 6px);
+  gap: var(--spacing-2, 2px); /* title + meta stay one compact row (dropdown item size, 2026-10-20) */
   justify-content: center;
   min-width: 0;
 }
@@ -6324,14 +6290,10 @@
 
 .e-permits-fo-phone__code-list {
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   left: 0;
   list-style: none;
   margin: var(--spacing-4, 4px) 0 0;
   min-width: 128px;
-  padding: var(--spacing-8, 8px);
   position: absolute;
   top: 100%;
   z-index: 25;
@@ -6341,14 +6303,10 @@
   display: none;
 }
 
+/* size = „Dropdown item” (css/dropdown.css) */
 .e-permits-fo-phone__code-option {
-  border-radius: var(--border-radius-8, 8px);
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   white-space: nowrap;
 }
 
@@ -8221,28 +8179,21 @@
 }
 
 .e-permits-fo-mdocs__list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   list-style: none;
   margin: 0;
   max-height: 240px;
   overflow: auto;
-  padding: var(--spacing-8, 8px);
 }
 
+/* size = „Dropdown item” (css/dropdown.css); the title + meta lines grow the row */
 .e-permits-fo-mdocs__option {
   align-items: flex-start;
   appearance: none;
   background: transparent;
   border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
-  gap: var(--spacing-12, 12px);
-  padding: var(--spacing-12, 12px);
   text-align: left;
   width: 100%;
 }
@@ -8258,10 +8209,6 @@
 
 .e-permits-fo-mdocs__option > .icon {
   color: var(--color-text-brand-default, #0058d2);
-  flex: 0 0 20px;
-  height: 20px;
-  margin-top: var(--spacing-2, 2px);
-  width: 20px;
 }
 
 .e-permits-fo-mdocs__option-content {
@@ -17646,10 +17593,8 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4, 4px);
   list-style: none;
   margin: 0;
-  padding: var(--spacing-8, 8px);
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
@@ -17666,24 +17611,17 @@
   appearance: none;
   background: transparent;
   border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
   font: inherit;
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-12, 12px);
-  line-height: var(--line-height-lh-24, 24px);
-  padding: var(--spacing-12, 12px);
   text-align: left;
   width: 100%;
 }
 
+/* size (32 · 6 12 6 8 · 14/20 medium · icon 20 · gap 8 · radius 6) = „Dropdown item” in css/dropdown.css */
 .e-permits-fo-intent-menu__item .icon {
   color: var(--color-icon-base-default, #121212);
-  flex: 0 0 20px;
 }
 
 .e-permits-fo-intent-menu__item:hover,
@@ -18853,29 +18791,16 @@
 
 /* the menu itself is .e-permits-fo-intent-menu (post-process menu); only
    the danger item tone is added here */
-/* back-office size of the post-process menu: each item has the footprint of
-   a small button (32px, 14/20 medium, 16px icon, radius 6) */
+/* every menu: surface 4 / gap 2, items 32 · 6 12 6 8 · 14/20 medium · icon 20 · radius 6 =
+   „Dropdown item — one size everywhere” (css/dropdown.css, 2026-10-20, ref GEAP 2.0 9716:10905);
+   here only the width (hugs the longest label, at least 180) and the one-line labels */
 .e-permits-stack__menu {
-  gap: var(--spacing-2, 2px);
-  padding: var(--spacing-4, 4px);
   width: max-content;
   min-width: 180px;
 }
 
 .e-permits-stack__menu .e-permits-fo-intent-menu__item {
-  border-radius: var(--border-radius-6, 6px);
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-8, 8px);
-  height: var(--spacing-32, 32px);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
   white-space: nowrap;
-}
-
-.e-permits-stack__menu .e-permits-fo-intent-menu__item .icon {
-  flex: 0 0 16px;
-  height: 16px;
-  width: 16px;
 }
 
 .e-permits-stack__menu .e-permits-fo-intent-menu__item.is-danger,
@@ -18894,46 +18819,18 @@
   background: transparent;
 }
 
-/* ---- the post-process menu of an act (act row pill + the Cabinet act profile header), 2026-10-18 ----
-   User: „the dropdown items kinda small, do best practice”. Research (components.md „Act row” › menu
-   size): Material 3 menu items 48dp on touch / 40 dense on desktop (Carbon md 40), Apple HIG 44pt and
-   WCAG 2.5.5 44 for touch, WCAG 2.5.8 ≥ 24; label = the trigger's 16 (GOV.UK / USWDS body ≥ 16), icon 20
-   with a 12 gap; menu at least as wide as its button; long labels wrap, never cut. The library Figma
-   Menu (159:1025) gives the surface rhythm: padding 8, gap 4, item radius 8, gap 12.
-   Scoped to `.e-permits-fo-intent-act__action > menu` (0,2,0 / 0,3,0 / 0,4,0) so it beats the BO
-   `.e-permits-stack__menu` size (32 rows) only here — every other ⋮ / BO menu keeps 32. Colours (danger,
-   aria-disabled grey, no hover on disabled) still come from the stack-menu rules above. */
+/* ---- the post-process menu of an act (act row pill + the Cabinet act profile header) ----
+   Items = the one dropdown size (css/dropdown.css; the 2026-10-18 40 / 48-on-touch rows were rejected
+   by the user on 2026-10-20). Only the width is its own: at least the pill, never wider than the
+   screen, long labels wrap instead of being cut. */
 .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu {
-  gap: var(--spacing-4, 4px);
   max-width: calc(100vw - var(--spacing-32, 32px));
   min-width: 100%;
-  padding: var(--spacing-8, 8px);
   width: max-content;
 }
 
 .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
-  border-radius: var(--border-radius-8, 8px);
-  font-size: var(--font-size-fs-16, 16px);
-  gap: var(--spacing-12, 12px);
-  height: auto;
-  line-height: var(--line-height-lh-24, 24px);
-  min-height: var(--spacing-40, 40px);
-  padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-8, 8px) var(--spacing-12, 12px);
   white-space: normal;
-}
-
-.e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item .icon {
-  flex: 0 0 var(--icon-size-medium, 20px);
-  height: var(--icon-size-medium, 20px);
-  width: var(--icon-size-medium, 20px);
-}
-
-/* touch (phones, tablets): 48 rows (Material 48dp, ≥ HIG 44pt / WCAG 2.5.5) */
-@media (pointer: coarse) {
-  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
-    min-height: var(--spacing-48, 48px);
-    padding-block: var(--spacing-12, 12px);
-  }
 }
 
 @media (max-width: 760px) {
@@ -19886,13 +19783,7 @@
 
 .e-permits-stack__menu .e-permits-case-actions__item {
   align-items: flex-start;
-  height: auto;
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px) var(--spacing-8, 8px) var(--spacing-8, 8px);
   white-space: normal;
-}
-
-.e-permits-stack__menu .e-permits-case-actions__item .icon {
-  margin-top: var(--spacing-2, 2px);
 }
 
 .e-permits-case-actions__copy {
@@ -20338,8 +20229,6 @@
   align-items: flex-start;
   flex-direction: column;
   gap: 0;
-  height: auto;
-  padding: var(--spacing-6, 6px) var(--spacing-8, 8px);
   white-space: normal;
 }
 
@@ -25473,6 +25362,12 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
 
 /* CAEM subgenre menu (fo-03s): the keyboard-active / selected row and „Confirmă” had no hover */
 .e-permits-fo-subgen-select__option:is(.is-active, .is-selected):hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+/* the keyboard-active option of a list (= the hover look at rest) still answers the pointer: one step darker
+   (hover-audit fo-03u / fo-02p / gh-02q, 2026-10-20 — dropdown item size job) */
+:is(.e-permits-fo-select__option, .e-permits-fo-caem__option, .e-permits-fo-phone__code-option, .e-permits-fo-address-search__option, .e-permits-fo-mdocs__option).is-active:not(.is-disabled):hover {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 

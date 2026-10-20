@@ -1356,3 +1356,26 @@ lesson into the sections above when it has proved itself twice. Never delete a l
 - 2026-10-20 · A `run_in_background` Bash call is killed at its 10-minute timeout together with the Chromes it spawned,
   but `&`-started node workers survive and hang forever on a CDP reply (logs frozen, processes alive). Long sweeps:
   `nohup` the workers, give `send()` a per-call `Promise.race` timeout, and resume from the ids already logged.
+- 2026-10-20 · „Dropdown item — one size everywhere” (user, ref GEAP 2.0 9716:10905: 32 · 6 12 6 8 · 14/20 medium · icon 20 ·
+  gap 8 · r6, surface 4 / 2, same on touch). The 2026-10-18 act-menu research (40 / 48 rows, 16/24) was REJECTED — for menus the
+  user wants dense desktop rows everywhere, touch included; don't upsize menus „for best practice” without asking. Done as ONE
+  file `css/dropdown.css` (lists + items at (0,1,0), loaded after the product CSS on the BO page, shell, Cabinet, RAP) and the
+  size declarations DELETED from every menu's own rule (13 rules in 5 files) — a per-menu override list would have grown again.
+  Phone sheets / identity cards / date grid stay out; a sheet that shares the item class (`.e-permits-filter-sheet__list
+  .e-permits-workplace__filter-option`) must restate what it keeps (gap 10, regular, r8, list gap 0).
+- 2026-10-20 · Measure before trusting the brief's map: the HEAD sweep showed EVERY Cabinet menu (⋮, „N pe pagină”, sort) at the
+  40 / 16-24 act-menu size, not only „Inițiază un postproces”; and the old BO stack icon was 16 (reference 20). Probe = scratch
+  dd/probe.js (every visible floating surface + item signature: class · height · padding · font · icon · gap · radius) over all
+  menu-ish demo states on a HEAD worktree (:8960) vs the tree, 1440 + 375.
+- 2026-10-20 · Traps: (1) `pkill -f "dd/run.mjs"` matched NOTHING (the command line had the relative `run.mjs`) → stale runners
+  against the LIVE tree kept writing the same JSON files with the same CDP ports; kill by PID after `ps aux | grep run.mjs`,
+  and give every sweep its own port range + output prefix. (2) Making a list `display: flex` (gap 2) shrinks `overflow: hidden`
+  options to 0 → items `flex: 0 0 auto` in the shared rule. (3) A zero-specificity `:where()` item rule would lose to the
+  library `label { margin-bottom: 6px }` / element resets — size rules for real items need (0,1,0) + `margin: 0`. (4) The demo
+  `fo-02p` (phone codes) never opened: `h.click` took the first, hidden, guest phone button → pick the visible one in the step.
+- 2026-10-20 · QA of the dropdown job: no sub-agent tool → ran code-audit (menus: only the standing „open menu overlaps
+  content” FP, dropdown-surface 0), hover-audit on every open menu / list (fixed: the keyboard-active option `.is-active` = the
+  hover look had no hover → one `:is(…options).is-active:hover` tertiary-hover rule), component-audit (0 findings inside
+  menus). Side effect to remember: `.e-permits-fo-intent-menu__item` is also used OUTSIDE menus (the document-template
+  „Câmpuri disponibile” panel, `.e-permits-dtpl-fields__list`) — it took the compact size too (checked svc-08e). Pre-existing,
+  reported: the notification field picker opens off-screen at 375 (ntpl-02c, x 211–531 on HEAD too).

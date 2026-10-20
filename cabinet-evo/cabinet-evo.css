@@ -1339,8 +1339,8 @@
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
-/* cabinet menus = the back-office menu size (.e-permits-stack__menu: 32px items, 14/20,
-   16 icons, radius 6); width hugs the longest item */
+/* cabinet menus = the one dropdown size (css/dropdown.css: 32px items, 14/20 medium, 20 icons,
+   radius 6, surface 4 / 2); width hugs the longest item */
 .cab-menu.e-permits-stack__menu,
 .cab-menu--wide.e-permits-stack__menu {
   min-width: 180px;

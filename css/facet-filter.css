@@ -131,15 +131,13 @@
   padding: var(--spacing-8, 8px) var(--spacing-8, 8px) 0;
 }
 
+/* list 4 / 2 and rows 32 · 6 12 6 8 · 14/20 medium · gap 8 · radius 6 = „Dropdown item”
+   (css/dropdown.css, 2026-10-20); the checkbox stays the row's lead */
 .e-permits-workplace__filter-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
   list-style: none;
   margin: 0;
   min-height: 0;
   overflow-y: auto;
-  padding: var(--spacing-8, 8px);
 }
 
 .e-permits-workplace__filter-option,
@@ -147,16 +145,10 @@
   align-items: center;
   background: var(--color-background-base-default, #fff);
   border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  box-sizing: border-box;
   color: var(--color-text-base-default, #121212);
   cursor: pointer;
   display: flex;
   font: inherit;
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-10, 10px);
-  line-height: var(--line-height-lh-20, 20px);
-  padding: var(--spacing-8, 8px) var(--spacing-12, 12px);
   text-align: left;
   width: 100%;
 }
@@ -301,12 +293,17 @@ html.is-filter-sheet-open {
 }
 
 .e-permits-workplace__filter-list.e-permits-filter-sheet__list {
+  gap: 0;
   overflow: visible;
   padding: var(--spacing-0, 0px) var(--spacing-8, 8px);
 }
 
-/* 44px rows (touch), the value on the sheet's 16 inset */
+/* 44px rows (touch), the value on the sheet's 16 inset — a sheet, not a dropdown: it keeps its own rows
+   (gap 10, regular 14/20, radius 8), the dropdown item size does not apply */
 .e-permits-filter-sheet__list .e-permits-workplace__filter-option {
+  border-radius: var(--border-radius-8, 8px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  gap: var(--spacing-10, 10px);
   margin: var(--spacing-0, 0px); /* the library label's 6px bottom margin */
   min-height: calc(var(--spacing-40, 40px) + var(--spacing-4, 4px));
   padding: var(--spacing-12, 12px) var(--spacing-8, 8px);

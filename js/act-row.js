@@ -7,8 +7,8 @@
    The row = the shared document card (.e-permits-fo-lib-item: padding 12, radius 12, hover) with the blue
    „System Generated” document icon, the title + a Small status tag, the 14/20 secondary meta with the 2px dots
    (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” pill = the library small
-   button (btn-sm, 2026-10-18) with its menu (.e-permits-stack__menu + the act-menu size: 40px items, 48 on
-   touch, 16/24, 20 icon — components.md „Act row”). A locked act = the subtle notice, full card width under the row.
+   button (btn-sm, 2026-10-18) with its menu (.e-permits-stack__menu at the one dropdown item size: 32px items,
+   14/20 medium, 20 icon, same on touch — components.md „Dropdown item — one size everywhere”, 2026-10-20). A locked act = the subtle notice, full card width under the row.
 
    GEAPActRow.html(act, opts)
      act  = { id, name, number, status, statusLabel, validUntil (dd.mm.yyyy | ISO | long), subdivision,

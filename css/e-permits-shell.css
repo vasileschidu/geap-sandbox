@@ -209,7 +209,6 @@ body {
   right: 0;
   top: calc(100% + 8px);
   min-width: 140px;
-  padding: var(--spacing-8, 8px);
   /* the library .select-dropdown (border, radius 8, --select-shadow) beats the zero-specificity
      „Dropdown surface” rule, and e-permits-shell.html loads no e-permits-acte-permisive.css:
      the same surface is restated here (white, no border, radius 12, Figma „dropdown-effect”, clip) */
@@ -220,24 +219,17 @@ body {
   overflow: clip;
 }
 
+/* list 4 / 2, rows 32 · 6 12 6 8 · 14/20 medium = „Dropdown item” (css/dropdown.css, 2026-10-20) */
 .e-permits-shell__help-list {
   margin: 0;
-  padding: 0;
   max-height: none;
 }
 
 .e-permits-shell__help-link {
   width: 100%;
-  min-height: 44px;
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) var(--spacing-12, 12px) var(--spacing-16, 16px);
-  border-radius: var(--border-radius-8, 8px);
   color: var(--color-text-base-secondary);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-12, 12px);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
   text-decoration: none;
 }
 
@@ -775,25 +767,17 @@ body {
   background: var(--color-background-base-secondary-active);
 }
 
+/* the account menu's links (Profilul meu …): list 4 / 2, rows 32 · 6 12 6 8 · 14/20 medium · icon 20 =
+   „Dropdown item” (css/dropdown.css, 2026-10-20); the identity cards and „Ieșire” keep their size */
 .e-permits-shell__profile-links {
-  padding: var(--spacing-8, 8px);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
   border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default);
 }
 
 .e-permits-shell__profile-link {
   width: 100%;
-  padding: var(--spacing-12, 12px) var(--spacing-24, 24px) var(--spacing-12, 12px) var(--spacing-16, 16px);
-  border-radius: var(--border-radius-8, 8px);
   color: var(--color-text-base-secondary);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-12, 12px);
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-20, 20px);
   text-decoration: none;
 }
 
@@ -811,9 +795,6 @@ body {
 }
 
 .e-permits-shell__profile-link-icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

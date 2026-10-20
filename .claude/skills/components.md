@@ -183,6 +183,7 @@ but this doc previously described it wrongly, see the entry.
 | Stacked-list row hover (full width) | `.e-permits-stack__item.is-clickable` — side inset 20 on the ROW (list padding 0), inset divider = `::before`, fill `--color-background-base-tertiary` edge to edge, outer rows take `calc(var(--stack-radius) − 1px)`, dividers around the hovered row hide, kept while its ⋮ is open / a control has focus-visible, 140ms standard easing (off for reduced motion); the grey „Detalii” turns white on the band | section „Stacked-list row hover — full width” | app |
 | Hover rules (all components) | one rule per class — table in „Hover — shared rules per component class” (§ after „Opening animations”); check with `tools/ui-qa/hover-audit.mjs` | — | app |
 | Field sizes (all products, user rule 2026-10-18) | desktop = library Medium (40, `.input--medium` / `.search-input.medium`, FO fields 40); phones ≤760 = library default (48, text 16/24 `--font-size-fs-16` / `--line-height-lh-24`), icons inside a field at the library size of that field (48 → `--icon-size-default` 24 at 16 from the edge, text from 48; 40 → `--icon-size-medium` 20). FO: the field-size rules live in a `@media (max-width: 760px)` block (was 720); read-only phone, CAEM / subgenre list search rows, document-picker search, FO / Cabinet / RAP phone searches follow it. Check with `tools/ui-qa/component-audit.mjs` (agent `component-auditor`) | `Components/input-preview.html` | app |
+| Dropdown item — one size everywhere (every action menu + option list, user rule 2026-10-20) | `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, Cabinet, RAP — before `modal-phone.css`): lists / menus padding `--spacing-4`, gap `--spacing-2`; items 32 (`min-height`) · padding 6 12 6 8 · gap 8 · radius 6 · 14/20 medium · icon 20 (`--icon-size-medium`); same on touch. Item classes listed there: `.e-permits-fo-intent-menu__item` (every ⋮ / stack / Cabinet / Ghișeu / eKYC / builder / designer menu + the act post-process menu), `.e-permits-fo-select__option`, `__caem__option`, `__subgen-select__option`, `__address-search__option`, `__phone__code-option`, `__mdocs__option`, `.e-permits-workplace__filter-option` / `__filter-more-item`, `.e-permits-shell__help-link`, `__profile-link`; a menu's own rule declares no size | section „Dropdown item — one size everywhere”; ref GEAP 2.0 `9716:10905` | app |
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` | `buttons.html` | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
@@ -298,7 +299,7 @@ but this doc previously described it wrongly, see the entry.
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680 (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
-| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision — in the act row 14/20 `--color-text-base-secondary`, long parts wrap inside (2026-10-18: no 12px text in the row; only the library Tag · Small stays 12), `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” = `btn btn-neutral btn-sm btn-pill` (library SMALL, 32 · 0 12 · 14/20 · gap 6; medium rejected 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the act-menu size (40 rows, 48 on `pointer: coarse`, 16/24, 20 icon — § „Act post-process menu — size”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
+| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` number · „valabil până la <long date>” · subdivision — in the act row 14/20 `--color-text-base-secondary`, long parts wrap inside (2026-10-18: no 12px text in the row; only the library Tag · Small stays 12), `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” = `btn btn-neutral btn-sm btn-pill` (library SMALL, 32 · 0 12 · 14/20 · gap 6; medium rejected 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the one dropdown item size (32 · 6 12 6 8 · 14/20 medium · 20 icon, same on touch — § „Dropdown item — one size everywhere”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -1041,8 +1042,9 @@ Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/
 **One back-office button**: `.btn` + variant + `.btn-sm` = 32px, radius 6, transparent
 border — page header, list rows, toolbars. No `btn-md` / `btn-lg`, no hand-rolled buttons.
 The act row's „Inițiază un postproces ⌄” pill follows it too: `btn btn-neutral btn-sm btn-pill` (FO, Ghișeu,
-Cabinet). Medium was tried on 2026-10-18 and rejected the same day (user: „use small buttons better”); only its
-menu keeps the larger act-menu items (§ „Act post-process menu — size”).
+Cabinet). Medium was tried on 2026-10-18 and rejected the same day (user: „use small buttons better”); its menu has the
+one dropdown item size (§ „Dropdown item — one size everywhere”; the larger 40 / 48 act-menu rows were rejected
+on 2026-10-20).
 
 **Modal AND drawer footers** (Figma EVO WEB 3.0 `20612:37263`): buttons sit in the
 library `.modal-buttons` group → **40px pill**, 14/20 medium, 20px sides (12/16 with a
@@ -1323,8 +1325,8 @@ segments at ≤720px. Reduced motion → no slide.
   (Figma 9442:44730: 20px, 4px sides, 12/16 medium). The library ramp now matches Figma:
   `--lg` 20px (12/16), new `--xl` 24px (14/20, the sidebar nav badges). Group headers of
   stacked lists: 16/24 medium secondary, 8/20 padding, 10px gap.
-- **⋮ menu** (`.e-permits-stack__menu`): items 32px, 14/20, 16px icon, radius 6 — the
-  footprint of a small button.
+- **⋮ menu** (`.e-permits-stack__menu`): items 32px (6 12 6 8), 14/20 medium, 20px icon, gap 8, radius 6;
+  surface 4 / gap 2 — § „Dropdown item — one size everywhere” (2026-10-20; the icon was 16 before).
 - **Row actions**: edit / export are icon buttons (`.e-permits-workplace__icon-action`,
   32px) — "Editează" and "Exportă" are icon-only with aria-label + title.
 - **Sync sources**: services declare `syncSources` (`RSSP`, `eAPL`). With both, the passport
@@ -1966,7 +1968,7 @@ design-system.md are not defined in main.css at all. The value is written ONCE, 
 | radius | `--border-radius-12` (reference + library date picker + BO stack menus; the Figma library `selection-menu` / `contextual-menu`, `.profile-dropdown` and the Figma FO intent menu / instance switcher say 16 — one token in the rule if the PO picks 16) |
 | shadow | „dropdown-effect”: `0 0 0 1px rgba(0,0,0,.08), 0 4px 6px -2px rgba(0,0,0,.05), 0 10px 15px -3px rgba(0,0,0,.1)` (no token) |
 | clip | `overflow: clip` (hover / selected row fills and the scrollbar stay inside the corners; not a scroll box, so `scrollIntoView` never shifts the menu) |
-| rows | keep their own inset + radius: BO size 4 inset / radius 6 (32px rows), FO size 8 inset / radius 8 |
+| rows | one size for every menu / list: 4 inset, gap 2, 32px rows, radius 6 — § „Dropdown item — one size everywhere” (`css/dropdown.css`, 2026-10-20) |
 | cursor | `default` on the surface (a menu inside a clickable card / row no longer inherits `pointer`; items keep theirs) |
 
 **One rule, zero specificity** — `:where(…)` at the end of `css/e-permits-acte-permisive.css`
@@ -2000,37 +2002,52 @@ Rules:
   `role=listbox` whose floating surface lacks the „dropdown-effect” shadow, radius 12, border 0, a background or a
   non-visible overflow.
 
-### Act post-process menu — size (2026-10-18)
+### Dropdown item — one size everywhere (rule, 2026-10-20)
 
-User (Cabinet pp-01): „the dropdown items kinda small, do best practice, research”. Applies to the menu
-of „Inițiază un postproces ⌄” only — act rows (FO #intent, Ghișeu, Cabinet list) and the Cabinet act
-profile header (both sit in `.e-permits-fo-intent-act__action`). Every other ⋮ / BO menu keeps the BO
-32px rows of `.e-permits-stack__menu`.
+User (Vasile): „when we have a dropdown menu let's use such item size / padding style as here [GEAP 2.0
+`aHgwVwiNCOSOqbMhMjjUOj` `9716:10905` „Dossier / Step menu · action”] everywhere, so it's not big and chunky like we
+have in some places.” Measured in Figma (icon frame at x 8 / y 6, label at x 36):
 
-Research (Mobbin MCP was not available in that session — documented guidance only):
-- Material 3 menus: list item 48dp; dense desktop lists 40 (Carbon menu md = 40, lg = 48; Fluent 32 is
-  for dense app chrome). Label 14–16, leading icon 20–24 with a 12 gap.
-- Apple HIG: 44 × 44 pt minimum hit target on touch. WCAG 2.2: 2.5.8 (AA) ≥ 24 × 24 CSS px, 2.5.5 (AAA)
-  44 × 44. NN/g: touch targets ≥ 1 cm (≈ 44–48 px); Fitts — larger, closer targets are faster.
-- GOV.UK / USWDS: body text ≥ 16 (19 GOV.UK), 44 px targets; disabled options stay visible and say
-  why (NN/g „disabled controls”: explain, don't hide).
-- Menu width: at least the trigger (Material: the menu opens from its anchor, min 112, max 280);
-  labels never truncated — wrap instead.
+| Part | Value |
+|---|---|
+| surface / list | padding `--spacing-4`, gap `--spacing-2` between items; radius 12 + „dropdown-effect” + clip = § „Dropdown surface” |
+| item | `min-height` 32 = padding 6 top · 12 right · 6 bottom · 8 left around a 20 line; radius `--border-radius-6` |
+| label | 14/20 medium (`--font-size-fs-14` / `--line-height-lh-20` / `--font-weight-fw-medium`), colour per menu |
+| icon | 20 (`--icon-size-medium`), gap 8 → label; icon colour = label colour |
+| states | as the BO stack menu: hover / focus-visible `--color-background-base-tertiary`, danger `--color-text-error-default`, `aria-disabled` grey + not-allowed + no hover (+ `data-tooltip-reason`), selected per list (brand text / trailing 20 check) |
+| touch | the same size (no `pointer: coarse` rows); items stay full-width tap rows |
+| two-line rows | same padding, the row grows (dossier case actions, notification field picker, builder issues, designer versions, address search 2 lines with gap 2, MDocs) |
 
-| | Before | After |
-|---|---|---|
-| trigger | 36 high, 0 8 0 12, 14/20, gap 6 | library `btn-md`: 40, 8/16, 16/22 medium, gap 4, 16 chevron |
-| menu | padding 4, gap 2, min-width 180 | padding 8, gap 4 (library Figma Menu 159:1025), `min-width: 100%` (≥ the pill), `max-width: 100vw − 32`, `width: max-content` |
-| item (pointer) | 32 high, 0 12 0 8, 14/20 medium, radius 6, nowrap | min-height 40, 8 16 8 12, 16/24 medium, radius 8, gap 12, wraps |
-| item (`pointer: coarse`) | 32 | min-height 48, 12 16 12 12 |
-| icon | 16 | 20 (`--icon-size-medium`) |
-| disabled | grey + `aria-disabled` + `data-tooltip-reason` | unchanged (only the Ghișeu — desktop-only — has disabled items; a touch surface would need the reason as a visible second line, not a tooltip) |
+**One rule** — `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, EVO Cabinet and RAP, after the product
+CSS and before `modal-phone.css`). It lists every list class (`.e-permits-fo-intent-menu`, `.e-permits-fo-select__list`,
+`__caem__list`, `__subgen-select__list`, `__address-search__list`, `__phone__code-list`, `__mdocs__list`,
+`.e-permits-workplace__filter-list`, `.e-permits-shell__help-list`, `__profile-links`) and every item class
+(`.e-permits-fo-intent-menu__item`, `.e-permits-fo-select__option`, `__caem__option`, `__subgen-select__option`,
+`__address-search__option`, `__phone__code-option`, `__mdocs__option`, `.e-permits-workplace__filter-option` /
+`__filter-more-item`, `.e-permits-shell__help-link`, `__profile-link`) once, at (0,1,0). The menus' own rules declare
+NO item size any more — only colours, layout of their parts (`white-space`, two-line `flex-direction`) and width.
+A new menu reuses `.e-permits-fo-intent-menu` + `__item` (or adds its classes to the two lists in that file).
 
-CSS: block „the post-process menu of an act” after the stack-menu rules in
-`css/e-permits-acte-permisive.css`, scoped `.e-permits-fo-intent-act__action > .e-permits-fo-intent-menu`
-(beats the stack size only there; danger / disabled colours still come from the stack rules). Surface,
-flip (`is-open-up`, `CabEvo.fitMenu` `.is-end` / `.is-start`) and the dropdown effect unchanged.
-Demo: pp-01a / pp-02a (list menu open), pp-01q (profile header menu), gh-02j (Ghișeu, disabled items).
+Where it applies: every ⋮ row menu (BO registries / passport / users / notifications, Ghișeu, eKYC, Cabinet), the act
+post-process menu („Inițiază un postproces ⌄”: FO #intent, Ghișeu, Cabinet list + act profile header), the dossier
+case-actions menu, „Sincronizare ▾”, export menus (eKYC Rapoarte), Cabinet „N pe pagină” / „Sortează” (phones),
+Form Builder add / issues menus, Process Designer zoom / versions / „Continuă cu”, the notification field picker, the
+header help menu, the BO account menu links (Profilul meu …), FO selects, CAEM + subgenre combos, the address search,
+the phone code list, the MDocs picker list, the facet-filter popover options (BO, eKYC, Cabinet, RAP — checkbox kept).
+
+Not dropdown items (they keep their own rows): the phone bottom sheets (facet-filter sheet rows 44 · 12 8 · gap 10 ·
+regular; the FO / Cabinet instance-switcher sheet), the identity cards of the account menus (FO avatar menu role
+cards 64–68, BO role cards 58, „Ieșire” 40 button), the date-picker day grid (40 cells), header navigation
+(`.rap-header__menu-item`).
+
+History: 2026-10-18 the act post-process menu was enlarged after research (40 rows · 8 16 8 12 · 16/24 · gap 12 ·
+radius 8, surface 8 / 4, 48 rows on `pointer: coarse`) — rejected by the user on 2026-10-20 („big and chunky”).
+
+Demo states (open menus): pp-02a / pp-01a / pp-01q / gh-02j (act menu), dos-01m (case actions), usr-u03b, svc-04k,
+srv-03m (⋮ / Sincronizare), sm-02 / sm-01l / sm-01f phone (Cabinet), ek-15a (export), fb-01b / fb-13 (builder), pd-04e
+(designer), ntpl-02c (field picker), svc-00h (help), auth-05 (account), fo-03u (FO select), fo-02p (phone code),
+fo-03e / gh-02q (CAEM), fo-03s (subgenre), adr-02a (address), dos-05c / ek-22b / rap-04b / pp-01s / sm-01n
+(filter popovers).
 
 ---
 
@@ -4553,8 +4570,9 @@ migrate. Never write a third one.
   - **"Mai multe":** the first 4 facets are chips; the rest sit in "Mai multe" (a menu)
     until they hold a value.
 - **Popover** (Figma contextual-menu: 270 wide; surface = the „Dropdown surface” rule: „dropdown-effect”, radius 12, 2026-10-16):
-  - **Options:** compact: padding 8 / 12, gap 10, no gap between rows (~36–40px
-    tall; user 2026-10-01), a library checkbox, then the value.
+  - **Options:** the dropdown item size (2026-10-20): 32 · padding 6 12 6 8 · gap 8 · 14/20 medium · radius 6,
+    list padding 4 / gap 2 (§ „Dropdown item — one size everywhere”), a library checkbox, then the value. The
+    phone sheet rows keep 44 · 12 8 · gap 10 · regular (a sheet, not a dropdown).
     **Status values render as their tag** (`renderTag` with the registry tone); other
     values are plain 14/20.
   - **Search:** shown when there are more than 7 values.
@@ -6070,7 +6088,7 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
   pill stay centred on title + meta. Phones (≤720): title · meta · pill (row 3) · notice (row 4, 12 above),
   still full width. Demo: FO `pp-02d` (`?incurs=<act id>`), Ghișeu `gh-02t`.
 - The post-process menu (2026-10-16, user: „one menu”): the renderer always adds `.e-permits-stack__menu` →
-  padding 4, item gap 2, items 32 high, 14/20 medium, 16 icon, icon–label 8, padding 0 12 0 8, radius 6, width
+  padding 4, item gap 2, items 32 high, 14/20 medium, 20 icon, icon–label 8, padding 6 12 6 8, radius 6, width
   = longest item (min 180), 6 under the trigger, right-aligned (left-aligned ≤720), dropdown-effect surface;
   disabled-with-reason items greyed (`--color-text-disabled-default`, not-allowed). The FO-only 270-wide /
   48-high / 16-24 size is gone.

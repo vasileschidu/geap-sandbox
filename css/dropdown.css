@@ -1,0 +1,78 @@
+/* ==========================================================================
+   Dropdown item — one size everywhere (2026-10-20)
+   User (Vasile): „when we have a dropdown menu let's use such item size / padding style as here
+   [GEAP 2.0 9716:10905 „Dossier / Step menu · action”] everywhere, so it's not big and chunky”.
+
+   Reference (measured in Figma):
+   - list / menu surface: padding 4, gap 2 between items (radius 12 + „dropdown-effect” = the
+     „Dropdown surface” rule in e-permits-acte-permisive.css, restated where that file is not loaded);
+   - item: 32 high = padding 6 top / 12 right / 6 bottom / 8 left around a 20 line, gap 8 icon → label,
+     radius 6, label 14/20 medium, icon 20.
+
+   ONE rule for every action menu and option list (⋮ row menus, the act post-process menu, Sortează,
+   Exportă, header help / BO account links, FO selects, CAEM / subgenre combos, address search, phone
+   codes, MDocs picker, facet-filter popover options). Each class is listed once here (0,1,0) and its
+   own rule no longer declares a size — only colours / layout of its parts. Loaded after the product
+   CSS (before modal-phone.css), so on equal specificity this file wins.
+   Same size on touch (user: no 48 rows for menus); the rows stay full-width tap targets.
+   Not here on purpose: the phone bottom sheets (facet-filter sheet rows 44, the instance-switcher
+   sheet) — they are sheets, not dropdowns; the identity cards of the account menus; the date picker
+   day grid. Rows with two lines (title + meta / description) keep the padding and grow in height.
+   ========================================================================== */
+
+/* the lists inside a surface (and the surfaces that hold their items directly) */
+.e-permits-fo-intent-menu,
+.e-permits-fo-select__list,
+.e-permits-fo-caem__list,
+.e-permits-fo-subgen-select__list,
+.e-permits-fo-address-search__list,
+.e-permits-fo-phone__code-list,
+.e-permits-fo-mdocs__list,
+.e-permits-workplace__filter-list,
+.e-permits-shell__help-list,
+.e-permits-shell__profile-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  padding: var(--spacing-4, 4px);
+}
+
+.e-permits-shell__help-menu {
+  padding: 0;
+}
+
+.e-permits-fo-intent-menu__item,
+.e-permits-fo-select__option,
+.e-permits-fo-caem__option,
+.e-permits-fo-subgen-select__option,
+.e-permits-fo-address-search__option,
+.e-permits-fo-phone__code-option,
+.e-permits-fo-mdocs__option,
+.e-permits-workplace__filter-option,
+.e-permits-workplace__filter-more-item,
+.e-permits-shell__help-link,
+.e-permits-shell__profile-link {
+  border-radius: var(--border-radius-6, 6px);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  gap: var(--spacing-8, 8px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-height: var(--spacing-32, 32px);
+  padding: var(--spacing-6, 6px) var(--spacing-12, 12px) var(--spacing-6, 6px) var(--spacing-8, 8px);
+}
+
+/* the leading / trailing icon of an item = 20 (Figma 20/… glyphs) */
+:is(
+  .e-permits-fo-intent-menu__item,
+  .e-permits-fo-address-search__option,
+  .e-permits-fo-mdocs__option,
+  .e-permits-shell__help-link,
+  .e-permits-shell__profile-link
+) > :is(.icon, .e-permits-shell__profile-link-icon) {
+  flex: 0 0 var(--icon-size-medium, 20px);
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}

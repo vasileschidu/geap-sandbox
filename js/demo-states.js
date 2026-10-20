@@ -825,6 +825,8 @@
     "dos-01k": dosOf("D-2026-004498", SPEC, "taxe"),
     /* Respins → Taxe: „Nicio taxă · Pentru acest dosar nu s-au generat taxe.” (Figma 01l) */
     "dos-01l": dos(SPEC, "respins", "taxe", { decizia: "respingere" }),
+    /* 2026-10-20 · dropdown item size: the dossier case-actions menu open (two-line items: title + description) */
+    "dos-01m": dos(SPEC, "inExaminare", "general", {}, async (h) => { await h.click(".e-permits-case-actions__trigger"); await h.find("#case-actions-menu:not([hidden])"); }),
     /* 02 acțiuni pe rol */
     "dos-02": dos(SUP, "depus"),
     "dos-02a": dos(SPEC, "inExaminare"),
@@ -1014,7 +1016,11 @@
     /* CAEM search with no match = the shared empty state inside the list (bare + compact) */
     "fo-03e": foReq(2, {}, async (h) => { await h.click("#fo-caem-code"); await h.fill("[data-fo-caem-search]", "zzz", { leave: false }); document.querySelector("[data-fo-caem-menu]")?.scrollIntoView({ block: "center" }); await h.wait(200); }),
     /* 2026-10-16 · dropdown audit: the phone country-code list and the CAEM subgenre menu open (dropdown surface) */
-    "fo-02p": foReq(1, {}, async (h) => { await h.click("[data-fo-phone-code-button]"); await h.wait(200); }),
+    /* (2026-10-20: the first [data-fo-phone-code-button] in the DOM is the hidden guest one — the list never opened;
+       now the visible step-2 phone, fo-02p kept as id) */
+    "fo-02p": foReq(2, {}, async (h) => { const b = [...document.querySelectorAll("[data-fo-step-panel='2'] [data-fo-phone-code-button]")].find((x) => x.getBoundingClientRect().height > 0); b.scrollIntoView({ block: "center" }); b.click(); await h.find("[data-fo-step-panel='2'] [data-fo-phone-code-list]:not([hidden])"); }),
+    /* 2026-10-20 · dropdown item size: an FO select list open (32 rows · 6 12 6 8 · list 4 / 2) */
+    "fo-03u": foReq(2, {}, async (h) => { const b = [...document.querySelectorAll("[data-fo-step-panel='2'] .e-permits-fo-select__button")].find((x) => x.getBoundingClientRect().height > 0 && !x.disabled); b.scrollIntoView({ block: "center" }); b.click(); await h.find("[data-fo-step-panel='2'] .e-permits-fo-select__list:not([hidden])"); }),
     "fo-03s": foReq(2, {}, async (h) => {
       const code = await h.find("#fo-caem-code"); code.click(); code.dispatchEvent(new FocusEvent("focus")); await h.wait(300);
       const opt = await h.find("[data-fo-caem-menu] [role=option]"); opt.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); opt.click(); await h.wait(300);
@@ -2192,15 +2198,15 @@
     "pp-10a": ppFo("reperfectare", "act-izvoras", 2),
     "pp-10b": ppFo("reperfectare", "act-izvoras", 2, async (h) => { await ppReason("Alte")(h); await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
     "pp-10c": ppFo("reperfectare", "act-izvoras", 3),
+    /* 2026-10-20: the previous act card has „👁 Detalii” (no download on the card) → the FO document viewer
+       (#fo-certificate-modal) with „Descarcă” */
+    "pp-10c1": ppFo("reperfectare", "act-izvoras", 3, async (h) => { await h.click("[data-fo-pp-prev-act-open]"); await h.wait(400); }),
     "pp-10d": ppFo("reperfectare", "act-izvoras", 4),
     "pp-10e": ppFo("reperfectare", "act-izvoras", 5),
     "pp-10f": ppFo("reperfectare", "act-izvoras", 7),
     "pp-10g": ppFo("reperfectare", "act-salon-pf", 1),
     "pp-11": ppFo("reperfectare", "act-depozit-10", 2),
     "pp-12": ppFo("prelungire", "act-depozit-10", 2),
-    /* 2026-10-20: the previous act card has „👁 Detalii” (no download on the card) → the FO document viewer
-       (#fo-certificate-modal) with „Descarcă” */
-    "pp-10c1": ppFo("reperfectare", "act-izvoras", 3, async (h) => { await h.click("[data-fo-pp-prev-act-open]"); await h.wait(400); }),
     "pp-12a": ppFo("prelungire", "act-depozit-10", 7),
     "pp-13": ppFo("duplicat", "act-depozit-10", 2, ppReason("Pierdere")),
     "pp-13a": ppFo("duplicat", "act-depozit-10", 2, async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),
