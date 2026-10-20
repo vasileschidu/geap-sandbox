@@ -2091,3 +2091,19 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     connectors attached to it → re-run the idempotent arrow pass (names „SM · …”) after any rebuild.
   - Exporting a stored builder (> 20 KB) to the repo: return ≤ 19 500-char slices tagged {k}, then read them from the SUBAGENT
     transcript (…/<session>/subagents/agent-*.jsonl — the parent session file does not contain them).
+- 2026-10-20 · Same job, phone pass (66edd6a8) + sort picker (5de836ba): 14 phone list frames + Permits phones redrawn,
+  sm-01f / sm-01t / sm-01m added (column 01 = 10 blocks, board = 47):
+  - **Removing a node deletes every connector attached to it** — not only block rebuilds: replacing the Permits phone chip row
+    deleted the arrow that started on a chip (1076:15955). Before removing any child, list connectors whose endpointNodeId is
+    inside it, and recreate them from the replacement control (clone a surviving connector as template; never rely on one id).
+  - **Restructuring a component variant (reparenting children) drops componentPropertyReferences** — snapshot
+    `{nodeName: refs}` for the whole variant first, move / wrap the nodes, then write the refs back (the Mobile request / act
+    row: tags + ⋮ on row 1, title 16/24 on row 2, meta on row 3). After any layoutMode change re-set every child's sizing.
+  - **Radio menus / sheets** (sort picker): desktop = local Sort menu with library radio-label rows (32 · r6) + 12/16 medium
+    secondary group labels; phone = Sort sheet content component swapped into the library bottom-sheet Content Slot (radio rows
+    48 · 12 8 · r8 with the label text style switched to 16/24, selected = medium; „Ordine” = library segmented-control
+    Mobile, 2 segments; the sheet's own action = „Aplică”). Code 345 vs Figma 333 is the line-height of the group labels — declared.
+  - New blocks get new pagers → re-run the whole-pixel fix (desktop range text FIXED 70, phone 1 px right padding + range 70) or,
+    better, keep it in the builder; the gate audit catches it as „fractional”.
+  - Jump markers are absolute in the section → after inserting blocks and re-placing a column, delete and redraw them with the
+    arrows (one idempotent pass; names „SM · …”).
