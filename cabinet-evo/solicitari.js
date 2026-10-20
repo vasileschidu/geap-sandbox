@@ -844,7 +844,7 @@
   }
 
   /* Documente însoțitoare = the shared document cards (C.docRowHtml): the system certificate (generated)
-     + what the applicant attached, each with „Detalii” → the document modal and ⋮ Descarcă */
+     + what the applicant attached, each with „Detalii” → the document modal (its footer has „Descarcă”) */
   const DOC_TYPE_GUESS = [[/locat|contract/i, "Contract de locațiune"], [/plan/i, "Planul încăperilor"], [/proprietate/i, "Actul de proprietate"], [/identitate|buletin/i, "Copia actului de identitate"], [/extras/i, "Extras din registru"]];
   function dosarDocs(dosar) {
     const files = dosar.documents || (dosar.status === "schita" ? [] : [
@@ -868,10 +868,7 @@
     if (!docs.length) {
       return fixAssets(window.GEAPEmptyState.render({ title: "Nu au fost încărcate documente", text: "Le puteți adăuga după ce continuați schița.", icon: "document", compact: true }));
     }
-    return `<div class="cab-docs">${docs.map((doc) => C.docRowHtml(doc, {
-      key: `${dosar.id}|${doc.id}`,
-      downloadAttrs: `data-sm-action="download" data-sm-kind="${doc.kind}" data-sm-id="${escape(dosar.id)}"`,
-    })).join("")}</div>`;
+    return `<div class="cab-docs">${docs.map((doc) => C.docRowHtml(doc, { key: `${dosar.id}|${doc.id}` })).join("")}</div>`;
   }
   /* the document modal: a demo A4 page + the details */
   function openDosarDoc(key) {

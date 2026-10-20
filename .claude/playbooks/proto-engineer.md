@@ -1340,3 +1340,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   a big section's metadata is saved to a tool-results JSON file → parse it with ElementTree (figscan pattern: matched
   node → nearest 1440 / 375 ancestor → block) to list the screens per block. No sub-agent tool → ran code-audit
   (only `.u-visually-hidden` FPs), hover-audit 0 / 0, component-audit 0 directly.
+- 2026-10-20 · „No download in document rows — only in the document modal; a ⋮ with only „Descarcă” goes” (user, GEAP
+  11333:20746). Inventory by grep `Descarc|download|icon-export|"export"` over js / cabinet-evo / rap-evo + the data
+  hooks (`data-*download*`): only 4 document rows offered it (BO `renderDosarDocItem` ⋮, Cabinet `docRowHtml` ⋮, Ghișeu
+  signed-request card ⋮, FO post-process previous act `<a download>`). `renderRowActions` already drops ⋮ when `menu` is
+  empty — pass no menu, no CSS needed. Trap found by a probe, not by looking: the Cabinet modal's „Descarcă” had NO
+  handler at all (its hook `data-cab-doc-download` was only rendered) — „check the modal download still works” must
+  click it with `HTMLAnchorElement.prototype.click` patched to record `download` (scratch nrd/probe.mjs), and the
+  button must be picked inside the OPEN dialog (`.modal-overlay.is-active`) — closed library overlays still have a
+  visible-sized „Descarcă” and gave false „null” downloads. The FO had no document viewer for the previous act →
+  `#fo-certificate-modal` became the FO viewer with a `certView` object (null = the certificate, so fo-08d/e stay as
+  they were) instead of new markup. Not document rows, left + reported: payment-note card, Cabinet request actions
+  (US-19 / US-161), eKYC SDK link. Demo states that opened the removed ⋮ (dos-04j, dos-04q, sm-05g) now open the modal
+  by the row / card click (same ids, `docKebab` → `docRow`); new `pp-10c1`.
+- 2026-10-20 · A `run_in_background` Bash call is killed at its 10-minute timeout together with the Chromes it spawned,
+  but `&`-started node workers survive and hang forever on a CDP reply (logs frozen, processes alive). Long sweeps:
+  `nohup` the workers, give `send()` a per-call `Promise.race` timeout, and resume from the ids already logged.

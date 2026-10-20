@@ -712,8 +712,8 @@
   gap: var(--spacing-8, 8px);
 }
 
-/* document card (C.docRowHtml, 2026-10-14): the FO summary row + „Detalii” + ⋮; the whole card opens
-   the document modal. Grey card on white → hover one step darker (hover rule) */
+/* document card (C.docRowHtml, 2026-10-14): the FO summary row + „Detalii” (no ⋮ / download on the card since
+   2026-10-20 — „Descarcă” lives in the modal); the whole card opens the document modal. Grey card on white → hover one step darker (hover rule) */
 .cab-doc .e-permits-fo-lib-item__content {
   flex: 1 1 auto;
 }
@@ -739,10 +739,6 @@
 /* a grey button on the grey card would not read as a button → white until hovered */
 .cab-doc__actions > .btn-neutral:not(.e-permits-fo-intent-act__trigger):not(:hover, :active) {
   background: var(--color-background-base-default, #fff);
-}
-
-.cab-doc .cab-menu {
-  cursor: default;
 }
 
 .cab-doc-modal .e-permits-fo-doc-modal {

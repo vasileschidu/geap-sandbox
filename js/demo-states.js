@@ -17,14 +17,15 @@
   /* another dossier, in its own seeded status (no ?stare=) */
   const dosOf = (id, as, tab = "general") => ({ flow: "back-office", as, hash: `#dosar/${id}/${tab}`, ready: ".e-permits-trajectory, .e-permits-dosar-profil__section" });
   /* any dossier document list (insotitoare | documente | acte): „👁 Detalii” of the row whose title
-     contains `text`; docKebab opens its ⋮ */
+     contains `text`; docRow clicks the row itself (→ the same modal) */
   const docEye = (text, kind = "insotitoare") => async (h) => {
     const row = await h.scroll(`.e-permits-stack__item[data-dosar-detail-row^="${kind}"]`, text);
     row.querySelector(`[data-dosar-detail^="${kind}"]`).click(); await h.wait(500);
   };
-  const docKebab = (text, kind) => async (h) => {
+  /* docRow: the whole row opens the document modal (no ⋮ on document rows since 2026-10-20) */
+  const docRow = (text, kind) => async (h) => {
     const row = await h.scroll(`.e-permits-stack__item[data-dosar-detail-row^="${kind}"]`, text);
-    row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300);
+    row.click(); await h.wait(500);
   };
   const dosList = (as) => ({ flow: "back-office", as, ready: "tr[data-workplace-row], .e-permits-workplace" });
   /* Setări: jump to a section from the section list */
@@ -854,24 +855,23 @@
     "dos-04f": dos(SPEC, "inExaminare", "jurnal"),
     /* 04g–04m Detalii solicitare › Documente însoțitoare (2026-10-14): the story dossier is a Duplicat
        (post-process) → the previous act from MDocs first; eye → the document modal (page preview +
-       details); ⋮ Descarcă; a first issue (Eliberare) dossier; the empty state (&documente=0) */
+       details; „Descarcă” only in its footer — no ⋮ on document rows since 2026-10-20); the row click → the same
+       modal; a first issue (Eliberare) dossier; the empty state (&documente=0) */
     "dos-04g": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await h.scroll(".e-permits-stack-section"); }),
     "dos-04h": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Declarație")(h); }),
     "dos-04i": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docEye("Actul permisiv emis anterior")(h); }),
-    "dos-04j": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => {
-      const row = await h.scroll('.e-permits-stack__item[data-dosar-detail-row^="insotitoare"]', "Declarație");
-      row.querySelector("[data-stack-menu-trigger]").click(); await h.wait(300);
-    }),
+    "dos-04j": dos(SPEC, "inExaminare", "solicitare", {}, async (h) => { await docRow("Declarație", "insotitoare")(h); }),
     "dos-04k": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await h.scroll(".e-permits-stack-section"); } },
     "dos-04l": { ...dosOf("D-2026-004559", SPEC, "solicitare"), run: async (h) => { await docEye("Extras din Registrul")(h); } },
     "dos-04m": dos(SPEC, "inExaminare", "solicitare", { documente: "0" }, async (h) => { await h.scroll(".e-permits-dosar-profil__section", "Documente însoțitoare"); }),
     /* 04n–04t Documente generate + Act/Decizie = the însoțitoare pattern (2026-10-14): grouped by flow step,
        blue icon + „Generat”, number · file · size · Generat … · de … · Semnat electronic de …; „👁 Detalii” →
-       the same document modal with the page preview; ⋮ Descarcă; a signed act; a draft („Proiect”) */
+       the same document modal with the page preview (its footer has „Descarcă”); the row click → the modal; a
+       signed act; a draft („Proiect”) */
     "dos-04n": dos(SPEC, "eliberat", "documente"),
     "dos-04o": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Cererea depusă", "documente")(h); }),
     "dos-04p": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docEye("Confirmarea achitării", "documente")(h); }),
-    "dos-04q": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docKebab("Proiectul actului", "documente")(h); }),
+    "dos-04q": dos(SPEC, "eliberat", "documente", {}, async (h) => { await docRow("Proiectul actului", "documente")(h); }),
     "dos-04r": dos(SPEC, "spreSemnare", "documente", {}, async (h) => { await docEye("Proiectul actului", "documente")(h); }),
     "dos-04s": dos(SPEC, "eliberat", "decizie", {}, async (h) => { await docEye("Act permisiv", "acte")(h); }),
     "dos-04t": dos(SPEC, "respins", "decizie", { decizia: "respingere" }, async (h) => { await docEye("Decizie de respingere", "acte")(h); }),
@@ -1993,11 +1993,12 @@
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
     "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
-    /* 2026-10-14 · Documente însoțitoare = the shared document cards: „Detalii” → document modal, ⋮ Descarcă */
+    /* 2026-10-14 · Documente însoțitoare = the shared document cards: „Detalii” / the card → document modal (its
+       footer has „Descarcă”; no ⋮ on the card since 2026-10-20 — sm-05g = the card click) */
     /* US-161 tabs (2026-10-17): documents live in „Date solicitare” */
     "sm-05e": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); }),
     "sm-05f": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc [data-cab-doc-open]"); }),
-    "sm-05g": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-menu-trigger]"); }),
+    "sm-05g": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2)"); }),
     "sm-05h": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll(".cab-docs"); await h.click(".cab-doc:nth-child(2) [data-cab-doc-open]"); }),
     /* US-161 tabs: Date solicitare (applicant, request data, documents, delivery, the initial fee — AC-15),
        Taxe (AC-18…20), Act (+ the service-specific fields, AC-29), Decizie (AC-31…34) */
@@ -2197,6 +2198,9 @@
     "pp-10g": ppFo("reperfectare", "act-salon-pf", 1),
     "pp-11": ppFo("reperfectare", "act-depozit-10", 2),
     "pp-12": ppFo("prelungire", "act-depozit-10", 2),
+    /* 2026-10-20: the previous act card has „👁 Detalii” (no download on the card) → the FO document viewer
+       (#fo-certificate-modal) with „Descarcă” */
+    "pp-10c1": ppFo("reperfectare", "act-izvoras", 3, async (h) => { await h.click("[data-fo-pp-prev-act-open]"); await h.wait(400); }),
     "pp-12a": ppFo("prelungire", "act-depozit-10", 7),
     "pp-13": ppFo("duplicat", "act-depozit-10", 2, ppReason("Pierdere")),
     "pp-13a": ppFo("duplicat", "act-depozit-10", 2, async (h) => { await h.click("[data-fo-step-panel='2'] [data-fo-next]"); }),

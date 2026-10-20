@@ -226,7 +226,7 @@ but this doc previously described it wrongly, see the entry.
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
-| **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” + ⋮ Descarcă → document modal with the A4 page preview · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
+| **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” (no download and no ⋮ on the row, 2026-10-20) → document modal with the A4 page preview + footer „Descarcă” · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
 | Dosar › Documente însoțitoare (applicant's documents) + document modal with page preview | `renderStackedList` groups Obligatorii / Opționale · `li.e-permits-stack__item.has-lead.is-clickable[data-dosar-detail-row="insotitoare\|fN"]` (lead `img.e-permits-fo-lib-item__icon` grey uploaded / blue MDocs · title · `MDocs`/`Încărcat` tag · meta) · `renderRowActions` eye + ⋮ Descarcă; modal `#dosar-detail-modal` + `.e-permits-doc-peek__canvas.e-permits-detail-modal__preview > .e-permits-dtpl__page.e-permits-doc-peek__page` | `renderDosarInsotitoare`, `openDosarDetail("insotitoare", id)`, `renderDosarDocPreview`, `fitDosarDocPreview`; section „Dosar › Documente însoțitoare” | app |
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
@@ -6084,7 +6084,7 @@ calls `stopFrontOfficePostprocess`). It reuses the primary FO wizard; only conte
 |---|---|
 | 1 Date solicitant | `[data-fo-pp-request]` `.e-permits-fo-pp-request` card: Serviciul · Tip solicitare · Numărul actului permisiv (read-only); role „Schimbă” hidden |
 | 2 Detalii solicitare | `.e-permits-fo-pp-lead` (type · act no. · object), then per type: reperfectare 09 = motiv + primary form prefilled; reperfectare 10 = address cascade, activity type (+ hemp fields), responsible person, scope; prelungire = act data read-only; duplicat = motiv (Deteriorare / Pierdere); retragere = subdiviziune (09, read-only) + motiv; suspendare = motiv, data, termen + note; reluare = motiv + note |
-| 3 Acte necesare | previous act as an MDocs attachment (Descarcă) + reason-specific doc fields |
+| 3 Acte necesare | previous act as an MDocs attachment („👁 Detalii” → `#fo-certificate-modal` viewer with „Descarcă”, 2026-10-20) + reason-specific doc fields |
 | 4 Verificare și semnare | review rows built from step 2 (empty optional fields skipped) + Persoana de contact |
 | 5 Livrare | read-only (EVO Cabinet + pe hârtie) |
 | 6 Plată | hidden when the service has no fee (09/10); 7 is renumbered 6 |
@@ -7319,8 +7319,8 @@ modal, layout as the latest version, with date of upload and other details”). 
   `Încărcat` (neutral Small); meta = file name (the act: its number as copy code) · size
   (`fileSizeLabel`: „640 KB”, „2.4 MB”, as the FO) · „Încărcat / Atașat / Preluat automat 8 iulie 2026,
   08:32” (`formatStamp`) · „de Victor Grosu” · „Semnat electronic”. Actions = `renderRowActions`:
-  „👁 Detalii” (`data-dosar-detail="insotitoare|fN"`, `aria-haspopup="dialog"`) + ⋮
-  „Descarcă” (`data-dosar-file-download="insotitoare|fN"`); the whole row opens the modal too.
+  „👁 Detalii” (`data-dosar-detail="insotitoare|fN"`, `aria-haspopup="dialog"`) only — no ⋮ (its only
+  item, „Descarcă”, went 2026-10-20: download lives in the modal footer); the whole row opens the modal too.
   Since 2026-10-14 the row is `renderDosarDocItem`, shared with Documente generate and Act/Decizie. No Obligatoriu tag —
   the groups say it. Wrapped meta lines drop their leading dot (`syncStackMetaRows` now observes the
   dossier panel too).
@@ -7336,7 +7336,7 @@ modal, layout as the latest version, with date of upload and other details”). 
   însoțitor” (act: „Act permisiv emis anterior”, subtitle number · service), then the „Date
   generale” card, „Doar citire”, footer Descarcă · Închide.
 - Demo: `dos-04` / `dos-04g` list (story dossier = Duplicat → previous act), `dos-04h` modal on an
-  upload, `dos-04i` modal on the previous act, `dos-04j` ⋮ open, `dos-04k` / `dos-04l` a first-issue
+  upload, `dos-04i` modal on the previous act, `dos-04j` modal opened by the row click, `dos-04k` / `dos-04l` a first-issue
   dossier (D-2026-004559, MDocs extract), `dos-04m` empty (`&documente=0`, demo only).
 
 ### Documents — one pattern everywhere (2026-10-14)
@@ -7394,7 +7394,7 @@ do the same data architecture … change all documents in the whole system” (+
   title truncates first, and the tags wrap under it only when not even 64 of it would stay (an MDocs value
   with MDocs + Semnat electronic + Activă at 375). Meta `grid-column: 2 / -1` (under the title, may run under
   the ×). × (32) on the title line (`margin-block: (20 − 32) / 2`), picker check (20) column 3 row 1. Labelled
-  actions (Cabinet „Detalii” + ⋮, post-process „Descarcă”): desktop column 3 across both rows, centred; ≤720
+  actions (Cabinet / post-process „Detalii”): desktop column 3 across both rows, centred; ≤720
   row 3 in the text column (`margin-top: 8` → 12 under the meta), the icon stays centred on rows 1–2.
   BO document rows (`.e-permits-stack__item.has-lead:has(> .e-permits-fo-lib-item__icon)`, ≤760): icon
   `align-self: center`, title the same `flex: 1 1 64; max-width: max-content` one-line ellipsis (tooltip =
@@ -7430,7 +7430,8 @@ do the same data architecture … change all documents in the whole system” (+
   `span.status-tag.status-tag--neutral.is-subtle.status-tag--small.e-permits-fo-doc-tag.e-permits-fo-optional-tag`
   (the last class is only a hook: `vertical-align: middle`, stripped from label copies); the old grey pill
   is gone.
-- **Actions:** „👁 Detalii” (`btn-neutral btn-sm` + eye, the row-actions rule 4) + ⋮ „Descarcă”; the whole
+- **Actions:** „👁 Detalii” (`btn-neutral btn-sm` + eye, the row-actions rule 4), no ⋮ / download (see „No download
+  in document rows” below); the whole
   row / card opens the document modal. Read-only review lists (FO Verificare) and type lists have no
   actions; form field values keep their × remove.
 - **Modal:** the A4 page preview (grey `.e-permits-doc-peek__canvas` + `.e-permits-dtpl__page`, zoomed
@@ -7442,9 +7443,28 @@ do the same data architecture … change all documents in the whole system” (+
 |---|---|---|
 | BO shell | `renderDosarDocItem(doc, kind)` → stacked-list item; `dosarDocsOf(profile, kind)`; modal `openDosarDetail(kind, id)` (one branch for `insotitoare` / `documente` / `acte`) + `renderDosarDocPreview`; data `buildDosarActe`, `buildDosarGenerate` from `e-permits-workplace.json › documenteGenerate` (`tipuri` by `pas`, `acte`, `conducator`) | Dosar › Detalii solicitare › Documente însoțitoare (groups Obligatorii / Opționale), **Documente generate** (groups = flow step), **Act/Decizie** |
 | BO shell (types) | `renderServiceDocuments` stacked list (grey icon, type, RSSP / SIA GEAP tag, meta type · applicants · Obligatoriu · rules), whole row opens the document drawer (`data-doc-row`) | Serviciu › Documente (admin „Editează” + ⋮; others „👁 Detalii”) |
-| FO | `foDocIconHtml(doc)`, `foDocContentHtml(doc)` (lib-item content: title row + `.e-permits-fo-doc-tag` + meta with dots), `foDocFromLibrary`, `foSummaryDocsHtml(panel)`; every attached value carries its shape in `data-fo-doc` | picker modal „Adaugă fișier” (`.e-permits-fo-lib-item` card per document — layout kept), field values (`foDocAttachFileItem` / `foDocAttachMdocsItem`, step 3, guest procură, Form Builder Fișier preview), „Document din MDocs” combobox value, post-process previous act (`postprocessPrevActDoc`, + Descarcă), Verificare și semnare › Documente însoțitoare (`.e-permits-fo-confirm-file--doc`, titled by the field's type) for the request and the post-processes |
-| EVO Cabinet | `CabEvo.docRowHtml(doc, { key, downloadAttrs })` (FO summary card + „Detalii” + ⋮), `CabEvo.openDocModal({ title, subtitle, doc, pageHtml, rowsHtml })` (FO doc-modal shell, `.cab-doc-modal`) | Solicitările mele › dosar › Documente însoțitoare (certificat constatator generated + uploads), Catalog › serviciu › Documente necesare (types) |
+| FO | `foDocIconHtml(doc)`, `foDocContentHtml(doc)` (lib-item content: title row + `.e-permits-fo-doc-tag` + meta with dots), `foDocFromLibrary`, `foSummaryDocsHtml(panel)`; every attached value carries its shape in `data-fo-doc` | picker modal „Adaugă fișier” (`.e-permits-fo-lib-item` card per document — layout kept), field values (`foDocAttachFileItem` / `foDocAttachMdocsItem`, step 3, guest procură, Form Builder Fișier preview), „Document din MDocs” combobox value, post-process previous act (`postprocessPrevActDoc`, + „👁 Detalii” `data-fo-pp-prev-act-open` → `#fo-certificate-modal` as the FO document viewer, `certView`), Verificare și semnare › Documente însoțitoare (`.e-permits-fo-confirm-file--doc`, titled by the field's type) for the request and the post-processes |
+| EVO Cabinet | `CabEvo.docRowHtml(doc, { key })` (FO summary card + „Detalii”; no ⋮ since 2026-10-20), `CabEvo.openDocModal({ title, subtitle, doc, pageHtml, rowsHtml })` (FO doc-modal shell, `.cab-doc-modal`) | Solicitările mele › dosar › Documente însoțitoare (certificat constatator generated + uploads), Catalog › serviciu › Documente necesare (types) |
 | RAP (EVO public) | `GEAPActView.openDocument(act)` (js/act-view.js, 2026-10-17: also the Cabinet act profile and its ⋮ „Descarcă actul (MDocs)”) — the same FO doc-modal shell + canvas + A4 page as Cabinet, page only (no „Date generale”: the act page shows them), footer Imprimă · Închide; CSS from `css/act-view.css` + `css/doc-modal-parts.css` (values of the FO originals, never loaded where e-permits-acte-permisive.css is) | Act profile › „Vizualizare actul” (US-143, US-162 AC-12) |
+
+### No download in document rows (2026-10-20, user — product-wide rule)
+
+„Everywhere for documents we don't download the document in the list row; only in the modal. A ⋮ that has only
+„Descarcă” — delete it.” (Figma GEAP 11333:20746 was such a ⋮.)
+- **Row:** opens the document modal — „👁 Detalii” (`btn-neutral btn-sm` + eye) and/or the row / card click. No
+  „Descarcă” menu item, no direct download icon button, no `<a download>` on a document row / card.
+- **⋮:** only when other row actions remain (Înlocuiește, Elimină, Semnează…). A ⋮ left empty is removed with
+  its slot (`renderRowActions` drops it when `menu` is empty; Cabinet `docRowHtml` has none) — no reserved space.
+- **Modal:** keeps „Descarcă” (`icon-export`) in its footer: BO `#dosar-detail-modal` (`data-dosar-detail-download`),
+  Cabinet `CabEvo.openDocModal` (`data-cab-doc-download` → saves the document's details), FO `#fo-certificate-modal`
+  (certificate + post-process previous act), Ghișeu previews (`data-gh-download`), RAP / Cabinet act viewer
+  (`GEAPActView`). Generated acts / certificates follow the same rule: download inside their viewer.
+- **Not document rows (left as they are):** the payment-note card „Descarcă nota de plată” (the payment step's own
+  action, FO + Ghișeu), the Cabinet request row ⋮ / status card / Act tab „Descarcă actul / decizia /
+  certificatul” (US-19 AC-12/14, US-161 — request actions, not a document list), the eKYC SDK versions „Descărcare”
+  link (a package URL, no document), CSV templates / exports.
+- Demo: `dos-04g` / `dos-04n` (rows: „Detalii” only), `dos-04j` / `dos-04q` (row click → modal), `sm-05e` / `sm-05g`
+  (Cabinet cards), `pp-10c` / `pp-10c1` (FO previous act → viewer), `gh-07a3` (Ghișeu signed request → preview).
 
 **Kept on purpose (different pattern, reason):** FO upload rows while uploading (`.e-permits-fo-file-item`
 with progress — a form input; only the icon became the grey document), the MDocs combobox *options*
@@ -7454,10 +7474,10 @@ eKYC Dovezi (image / video evidence thumbnails with a viewer), Cabinet act secti
 FO intent act list (act records with their own actions, not files), the FO finish card „Certificatul
 constatator · Vezi documentul” (one card, navigation to the certificate).
 Demo: `dos-04g…04m` (însoțitoare), `dos-04n` (Documente generate), `dos-04o` / `dos-04p` (modal: cerere,
-plată), `dos-04q` (⋮), `dos-04r` (draft act, `Proiect`), `dos-04s` / `dos-04t` (Act/Decizie modal),
+plată), `dos-04q` (row click → modal), `dos-04r` (draft act, `Proiect`), `dos-04s` / `dos-04t` (Act/Decizie modal),
 `svc-06a` (passport types), `fo-04d` / `fo-04e` / `fo-04f` (picker, selected, attached), `fo-g5` / `fo-g7a`
 (uploaded field value), `fo-08` / `fo-g7d` (Finalizare certificate), `fo-05d` / `fo-g7b`
-(Verificare), `pp-10c` / `pp-10d` (previous act, summary), `sm-05e…05h` (Cabinet list, modal, ⋮),
+(Verificare), `pp-10c` / `pp-10c1` / `pp-10d` (previous act, its viewer, summary), `sm-05e…05h` (Cabinet list, modal, card click → modal),
 `cat-02` (Documente necesare).
 
 ### Document preview — one A4 viewer (2026-10-17)

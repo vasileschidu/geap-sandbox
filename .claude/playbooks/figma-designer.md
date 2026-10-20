@@ -1868,3 +1868,31 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool / MCP resource reader in this session → stored figma-audit (`ghs/audit`) on GEAP set + 11 cards (0 after snap, except the
     declared marker half pixel inside the set mains) and an inline mini-audit (fractional / unbound colours) on every card in eKYC, FOD, Cabinet: 0.
 
+
+- 2026-10-20 · Detail rows 16 → 14/20 in all five files (user: „do back 14px … entire Figmas and code”). The svc/field-row set
+  (12143:21330) was already fixed (1,263 instances follow); this pass found what the component did not reach. Census per file
+  (stored in root shared plugin data „kv16”: census = horizontal rows whose first two children carry text, one of them 16;
+  census3 = 16 px texts filled text/base/secondary / tertiary; gaps = column gap histogram; restack; fixRow). Result: GEAP 2 field-row
+  instances with a local 16 px Value override (Services „Card · Changes imported from RSSP” 10791:1736 / 10792:268001) + 8 raw
+  detached „svc/field-row” frames on the FO 09 F8d / F8e phone certificates (10842:278633…278724); eKYC, FOD, EVO Cabinet,
+  EVO-WEB RAP: 0 (Cabinet / RAP rows are the local „Profile / Details row” 14/40, eKYC session rows 14/40). Lessons:
+  - **Census instances by main, not by page**: `getInstancesAsync()` on each variant + „any visible TEXT with fontSize ≠ 14”
+    found the overrides in one call (1,263 instances) — page walks would have needed 15 calls on Services alone.
+  - **Measure which code pattern a Figma row copies before fixing it**: the F8d certificate looks like a BO detail row but the code
+    is `.e-permits-fo-summary-row` (12 / 12, phone gap 2, value 14 **regular**, 45 / 67 high), not `.e-permits-dosar-profil__row`
+    (8 / 7, 40, value 500). I first applied the BO numbers and had to redo it. CDP probe: per state × width, group the rendered rows
+    by label / value computed font + padding + height (scratch probe-rows.mjs on tools/figma/cabinet/cdp.mjs).
+  - The probe also caught an unrelated drift on the same screen: phone certificate box padding 16 vs code 24 (desktop already 24) →
+    the value column was 16 px too wide. Fixed (bound spacing-24).
+  - Font-metric edge case, declared not hacked: „Autorizația sanitară pentru funcționare” is exactly 253 px in Figma and wraps in Chrome
+    at 253 (code row 87, Figma 67).
+  - Whole-column after the earlier shrink: only blocks whose screens HUG shrank (Services 01k / 01l −20 → gaps 180, 01d → 01e 140);
+    restacked column 01 at its 160 pitch from an ordered list. Dossiers 04k → 04l was 302 in a 324 column → 04l +22. Other odd gaps
+    (Services 02 220 / 200 / 632, 07 478, 08 242, Ghișeu 07 242, Tariffs row grid) contain no field rows → pre-existing, left.
+  - 16 on purpose (code checked): FO payment totals „Subtotal / Total de plată” (.e-permits-fo-payment-totals 16/24 500 / 600 —
+    Figma value „750 MDL” is 14 regular, the opposite drift, reported), FO instance-switch modal description, eKYC BO login MPass
+    identity value (.bo-login__identity-value), form field labels, stack group labels / toggles, FO step headers.
+  - Not in code any more (legacy, left): „Depui ca” FO header context (Requestor, MSupport, FO 09 Individual), BO page-header
+    „Serviciu: …” meta (App Shell, Workplace).
+  - No Agent tool in this session → stored figma-audit (`ghs/audit`, call with id strings — node objects give „missing-root”) on the
+    two certificate frames, the RSSP cards and the new FO 09 rule card: 0 findings.

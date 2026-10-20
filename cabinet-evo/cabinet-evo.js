@@ -935,8 +935,9 @@
      doc = { sursa: upload | mdocs | generat (none = a document TYPE), tip, nr?, fisier?, size?, verb?, at?,
      de?, semnat?, tags?: [[label, tone]], note? }. Card = the FO summary row (.e-permits-fo-confirm-file--doc)
      with the shared content (icon by source, type + source tag, meta number · file · size · „<Verb> <date>” ·
-     „de …” · „Semnat electronic”); with a key: „Detalii” (eye) + ⋮ Descarcă, the whole card opens the
-     document modal (page preview + details). */
+     „de …” · „Semnat electronic”); with a key: „Detalii” (eye), the whole card opens the document modal
+     (page preview + details) whose footer has „Descarcă”. No download from the card and no ⋮ (user
+     2026-10-20: documents are downloaded only from the document modal). */
   const DOC_SOURCES = {
     upload: { tag: "Încărcat", icon: "document-uploaded.svg" },
     mdocs: { tag: "MDocs", icon: "document-generated.svg" },
@@ -973,10 +974,9 @@
         ${lines.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta">${lines.map((line) => `<span class="e-permits-fo-doc-meta__line">${line.join("")}</span>`).join("")}</div>` : ""}
       </div>`;
   }
-  /* key: opens / downloads it (data-cab-doc…); downloadAttrs: the page's own download hook */
-  function docRowHtml(doc, { key = "", downloadAttrs = "" } = {}) {
+  /* key: opens it (data-cab-doc…) */
+  function docRowHtml(doc, { key = "" } = {}) {
     const source = DOC_SOURCES[doc.sursa] || DOC_SOURCES.upload;
-    const menuId = key ? `cab-doc-menu-${key.replace(/[^\w-]/g, "-")}` : "";
     return `
       <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc cab-doc${key ? " is-clickable" : ""}"${key ? ` data-cab-doc="${escape(key)}"` : ""}>
         <img class="e-permits-fo-confirm-file__icon" width="24" height="24" src="../assets/icons/${source.icon}" alt="">
@@ -984,18 +984,14 @@
         ${key ? `
         <div class="cab-doc__actions">
           <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-label="Detalii: ${escape(doc.tip)}" data-cab-doc-open="${escape(key)}">${icon("icon-eye-open")}<span>Detalii</span></button>
-          <div class="e-permits-fo-intent-act__action cab-card__actions">
-            <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(doc.tip)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
-            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(doc.tip)}" hidden>
-              <li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" ${downloadAttrs}>${icon("icon-export", "medium")}<span>Descarcă</span></button></li>
-            </ul>
-          </div>
         </div>` : ""}
       </div>`;
   }
   /* the document modal: FO doc-modal shell, the A4 page preview (grey canvas, zoomed to the width),
      „Date generale” rows, footer Descarcă · Închide */
   let docModalOpener = null;
+  /* the file „Descarcă” saves (demo: the modal's text, named after the document's file) */
+  const docModalFile = { name: "", text: "" };
   /* the shared A4 viewer (js/doc-preview.js): the page zoomed to the canvas width minus its COMPUTED
      padding (was a private copy with a hard 48) */
   function fitDocPreview() {
@@ -1013,7 +1009,12 @@
       overlay.setAttribute("aria-labelledby", "cab-doc-title");
       document.body.appendChild(overlay);
       overlay.addEventListener("click", (event) => {
-        if (event.target === overlay || event.target.closest("[data-cab-doc-close]")) closeDocModal();
+        if (event.target === overlay || event.target.closest("[data-cab-doc-close]")) { closeDocModal(); return; }
+        if (event.target.closest("[data-cab-doc-download]")) {
+          const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([docModalFile.text], { type: "text/plain;charset=utf-8" })), download: docModalFile.name });
+          document.body.appendChild(a); a.click(); a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
       });
       if ("ResizeObserver" in window) new ResizeObserver(fitDocPreview).observe(overlay);
     }
@@ -1039,6 +1040,8 @@
           <button class="e-permits-fo-doc-modal__submit" type="button" data-cab-doc-close>Închide</button>
         </div>
       </div>`;
+    docModalFile.name = `${String(doc.fisier || doc.tip || "document").replace(/\.[a-z0-9]+$/i, "")}.txt`;
+    docModalFile.text = [title, subtitle, "", ...[...overlay.querySelectorAll(".cab-doc-modal__body .e-permits-dosar-profil__row")].map((r) => `${r.querySelector(".e-permits-dosar-profil__row-label")?.textContent.trim() || ""}: ${(r.querySelector(".e-permits-dosar-profil__row-value")?.textContent || "").replace(/\s+/g, " ").trim()}`)].join("\n");
     overlay.hidden = false;
     fitDocPreview();
     overlay.querySelector("[data-cab-doc-close]")?.focus();

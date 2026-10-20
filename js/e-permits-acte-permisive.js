@@ -4948,18 +4948,28 @@
     }
 
     /* US-18 AC-07: „Vezi documentul” → the certificate, with „Descarcă”; ?cert=unavailable = the file
-       cannot be downloaded (error + „Reîncercați”) */
+       cannot be downloaded (error + „Reîncercați”).
+       2026-10-20 (user: no download in document rows, only in the document modal): the same modal is the FO
+       document viewer — the post-process previous act („Detalii” on its card) sets `certView`
+       ({ modalTitle, kicker, title, lead, rows, file }); null = the certificate. */
     const certModal = document.querySelector("#fo-certificate-modal");
+    let certView = null;
     const renderCertificateModal = (downloadError = false) => {
       const step = frontOfficeLastFinishSchema?.steps?.find((item) => item.id === "finish") || {};
-      const rows = Array.isArray(step.summary?.rows) ? step.summary.rows : [];
+      const view = certView || {
+        modalTitle: "Certificatul Constatator", kicker: "Republica Moldova · SIA GEAP", title: "Certificat constatator",
+        lead: "Confirmă depunerea cererii în sistemul informațional automatizat GEAP.",
+        rows: Array.isArray(step.summary?.rows) ? step.summary.rows : [], file: "Certificat-constatator"
+      };
+      const rows = view.rows;
       const esc = escapeFrontOfficeHtml;
+      certModal.querySelector("#fo-certificate-title").textContent = view.modalTitle;
       certModal.querySelector("[data-fo-cert-body]").innerHTML = `
         ${downloadError ? `<div class="message message--subtle banner--error" role="alert"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-circle-error-filled"></use></svg></span><div class="banner__content"><p class="banner__text">Fișierul nu este disponibil momentan. Încercați din nou.</p></div></div>` : ""}
         <div class="e-permits-fo-cert">
-          <p class="e-permits-fo-cert__kicker">Republica Moldova · SIA GEAP</p>
-          <h3 class="e-permits-fo-cert__title">Certificat constatator</h3>
-          <p class="e-permits-fo-cert__lead">Confirmă depunerea cererii în sistemul informațional automatizat GEAP.</p>
+          <p class="e-permits-fo-cert__kicker">${esc(view.kicker)}</p>
+          <h3 class="e-permits-fo-cert__title">${esc(view.title)}</h3>
+          <p class="e-permits-fo-cert__lead">${esc(view.lead)}</p>
           <div class="e-permits-fo-payment-summary">
             ${rows.map((row) => `<div class="e-permits-fo-summary-row"><span class="e-permits-fo-summary-row__label">${esc(row.label || "")}</span><div class="e-permits-fo-summary-row__value">${esc(row.value || "")}</div></div>`).join("")}
           </div>
@@ -4973,17 +4983,41 @@
         document.querySelector("[data-fo-finish-document]")?.focus();
         return;
       }
+      /* the post-process previous act: „Detalii” → the viewer with its „Descarcă” */
+      const prevActOpen = event.target.closest("[data-fo-pp-prev-act-open]");
+      if (prevActOpen && certModal && frontOfficePostprocess) {
+        const { act, service } = frontOfficePostprocess;
+        const doc = postprocessPrevActDoc(frontOfficePostprocess);
+        certView = {
+          modalTitle: "Actul permisiv emis anterior", kicker: "Republica Moldova · MDocs", title: act.name || doc.tip,
+          lead: "Actul permisiv de la care pornește solicitarea, preluat automat din MDocs.",
+          rows: [
+            { label: "Numărul actului", value: act.number || "—" },
+            { label: "Emis la", value: doc.at || "—" },
+            ...(act.validUntil ? [{ label: "Valabil până la", value: foDocLongDate(act.validUntil) }] : []),
+            ...(service.authority ? [{ label: "Emis de", value: service.authority }] : []),
+            ...(act.subdivision ? [{ label: "Subdiviziunea", value: act.subdivision }] : []),
+            { label: "Semnătură", value: "Semnat electronic (MSign)" }
+          ],
+          file: act.number || "act-permisiv"
+        };
+        renderCertificateModal(false);
+        window.__modal?.open?.("#fo-certificate-modal");
+        return;
+      }
       if (event.target.closest("[data-fo-finish-document]") && certModal) {
+        certView = null;
         renderCertificateModal(false);
         window.__modal?.open?.("#fo-certificate-modal");
         return;
       }
       const dl = event.target.closest("[data-fo-cert-download]");
       if (dl && certModal) {
-        const unavailable = new URLSearchParams(location.search).get("cert") === "unavailable" && !dl.dataset.retried;
+        const unavailable = !certView && new URLSearchParams(location.search).get("cert") === "unavailable" && !dl.dataset.retried;
         if (unavailable) { dl.dataset.retried = "1"; renderCertificateModal(true); return; }
-        const html = `<!doctype html><meta charset="utf-8"><title>Certificat constatator</title>${certModal.querySelector(".e-permits-fo-cert").outerHTML}`;
-        const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([html], { type: "text/html" })), download: "Certificat-constatator.html" });
+        const docTitle = certModal.querySelector(".e-permits-fo-cert__title")?.textContent || "Document";
+        const html = `<!doctype html><meta charset="utf-8"><title>${escapeFrontOfficeHtml(docTitle)}</title>${certModal.querySelector(".e-permits-fo-cert").outerHTML}`;
+        const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([html], { type: "text/html" })), download: `${certView?.file || "Certificat-constatator"}.html` });
         a.click(); URL.revokeObjectURL(a.href);
         renderCertificateModal(false);
       }
@@ -5465,13 +5499,14 @@
       if (!panel || !ctx) return;
       const { act, pp, service } = ctx;
       const esc = escapeFrontOfficeHtml;
-      /* the previous act = the shared FO document card (MDocs, blue icon) + Descarcă */
+      /* the previous act = the shared FO document card (MDocs, blue icon) + „👁 Detalii” → the document viewer
+         (#fo-certificate-modal) with „Descarcă”; no download on the card (user 2026-10-20) */
       const prevActDoc = postprocessPrevActDoc(ctx);
       const prevAct = `
         <div class="e-permits-fo-mdocs__attachment" data-fo-pp-prev-act data-fo-doc="${esc(JSON.stringify(prevActDoc))}">
           ${foDocIconHtml(prevActDoc)}
           ${foDocContentHtml(prevActDoc)}
-          <a class="btn btn-neutral btn-sm" href="#" download data-fo-pp-download><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-export"></use></svg><span>Descarcă</span></a>
+          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="dialog" aria-label="Detalii: ${esc(prevActDoc.tip)}" data-fo-pp-prev-act-open><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg><span>Detalii</span></button>
         </div>`;
       const extra = {
         reperfectare: { id: "pp-change-docs", label: "Documentele care confirmă modificările intervenite", description: "Documentele sau copiile acestora, cu prezentarea ulterioară a originalelor pentru verificare.", required: true },
