@@ -1627,3 +1627,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   another agent's commit (ead3b858) swept my uncommitted js/facet-filter.js hunk in — bump the cache key anyway. No
   sub-agent tool → code-audit (standing FPs: radio-texts 3, section triggers, FO close `button-not-library`), component-audit
   0, hover-audit 0 / 0 at 700.
+- 2026-10-20 · Request rows back to the ⋮ (row-kebab-v1; user: „Acțiuni is too ambiguous” — a generic verb label says
+  no more than ⋮ and costs row-1 space; the action-menu-v1 research conclusion „labelled beats icon” held for the acts'
+  SPECIFIC „Postprocese ⌄”, not for a catch-all). Two course additions mid-job, both cheap because the trigger lived in
+  ONE function (`actionsHtml`) and the phone layout in ONE CSS block: (1) „clicking the card always shows the details,
+  never the full flow” → `openRow` = hash only (the draft redirect + its row-level redirect error went; the error stays
+  on the explicit ⋮ / profile actions), row `aria-label` lost „— continuă completarea”; (2) „the 3 dots absolutely
+  positioned on mobile” → corner control without markup change: `position: absolute` at
+  `16 − (32 − 20) / 2` (= centre of the 20 tag line), row `padding-right: 16 + 40` reserves row 1 only, and every
+  full-width line under it takes the 40 back (`flex-basis: 100% + 40`, `margin-right: −40`, meta `100% + 18 + 40`).
+  Trap found by a stress probe (cloning a third tag into a real row — no real ⋮ row has 3 tags): the shared tag rule
+  spaces tags with `margin-left: −4` against the row gap 8, so a tag that WRAPS starts 4 left of the padding (13 vs 17;
+  pre-existing on the lone-„Detalii” tacit row d-gara) → in the ⋮ rows row 1 holds only tags, so `column-gap: 4` +
+  `margin-left: 0`. Probe columns that made it checkable: button / first tag / last tag / title / meta insets from the
+  card + tag line count, at 375 and 320. Parity spec: the trigger differs ON PURPOSE → ignore its component props in
+  the pair, phone reservation props as `expected` per viewport (43 → 0). Act rows checked: Cabinet pp-01 row → act
+  profile (already), FO pp-02 / Ghișeu act rows have no row click at all. No sub-agent tool → component-audit 0,
+  hover-audit 0 / 0 (1440 + 700 temp copy), code-audit standing FPs only (open menu over the next ⋮, alert link,
+  sm-tacit, trajectory `.u-visually-hidden`), sm-* regression 82 × 2 clean.

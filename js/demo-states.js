@@ -2034,12 +2034,11 @@
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
     "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-sm-tip]"); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
-    /* the Izvoraș request's „Acțiuni ⌄” open (user 2026-10-20, ref Telegram iOS): the anchored dropdown on every
-       width — phones with the touch item size (components.md „Row action menu on phones”); sm-01v = the SAME with
-       the previous icon-only ⋮ (`?actiuni=kebab`, for comparison); sm-01w = the trigger at the bottom of the
-       screen → the menu opens upwards */
+    /* the Izvoraș request's ⋮ open (user 2026-10-20, ref Telegram iOS; row-kebab-v1 „back to 3 dots”): the
+       anchored dropdown on every width — phones with the touch item size (components.md „Row action menu on
+       phones”); sm-01w = the trigger at the bottom of the screen → the menu opens upwards. (sm-01v, the ⋮ vs
+       „Acțiuni ⌄” comparison, was removed with the labelled trigger.) */
     "sm-01u": sm(smMenu("d-izvoras")),
-    "sm-01v": sm(smMenu("d-izvoras"), { actiuni: "kebab" }),
     "sm-01w": sm(async (h) => { await smFind(h, "d-izvoras"); const t = document.querySelector('[data-sm-card="d-izvoras"] [data-cab-menu-trigger]'); t.scrollIntoView({ block: "end" }); window.scrollBy(0, 16); await h.wait(150); t.click(); await h.wait(150); }),
     "sm-02": sm(smMenu("d-spicul")),
     "sm-02a": sm(smMenu("d-fresh")),
@@ -2048,6 +2047,9 @@
     "sm-02d": sm(async (h) => { await smPick("status", ["Finalizat"])(h); await smMenu("d-izvoras")(h); }),
     "sm-02e": sm(smMenu("d-nota")),
     "sm-03": smDosar("d-spicul"),
+    /* a click on the DRAFT row opens its details (never the FO form — user 2026-10-20); „Continuă schița” stays in ⋮
+       and on the details page */
+    "sm-03i": sm(async (h) => { await smFind(h, "d-spicul"); await h.click('[data-sm-card="d-spicul"] .e-permits-fo-lib-item__title'); await h.wait(300); }),
     "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); }),
     "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await actMenuPick('[data-sm-card="d-spicul"] [data-sm-action="delete"]')(h); await h.click("[data-sm-confirm-ok]"); }),
     "sm-03c": smDosar("d-izvoras-reperf"),

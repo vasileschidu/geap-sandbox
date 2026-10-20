@@ -264,24 +264,23 @@
     /* the row has no labelled button: every action is here; downloads only in the profile / document modal */
     const items = menuItems(dosar).filter((item) => item.separator || item.action !== "download")
       .filter((item, i, list) => !(item.separator && (i === 0 || list[i - 1].separator || i === list.length - 1)));
-    /* action-menu-v1 (2026-10-20, user: „3 dots as action with drop down … there is space”): the row's trigger =
-       the act row's labelled button („Acțiuni ⌄”, library btn-neutral btn-sm — square, not a pill — + chevron) opening the same anchored menu (phones: touch item size, never the action sheet —
-       data-act-menu-anchored); a row whose only action is „Detalii” gets the lone „👁 Detalii” button (row-actions
-       rule), not a one-item menu. Demo `?actiuni=kebab` = the previous icon-only ⋮, for comparison (sm-01v). */
-    const kebab = params.get("actiuni") === "kebab";
-    if (!kebab && items.length === 1 && items[0].action === "open") {
+    /* row-kebab-v1 (2026-10-20, user: „Back to 3 dots, Acțiuni is too ambiguous”): the row's trigger = the
+       icon-only ⋮ (library Strict · Icon Only · Small: `btn btn-strict btn-sm btn-icon-only`, 32 square, radius 6 —
+       the height / radius family of the acts' „Postprocese ⌄”), tooltip „Mai multe acțiuni”, opening the same
+       anchored menu (phones: touch item size, never the action sheet); open = tertiary-active + focus ring
+       (aria-expanded). A row whose only action is „Detalii” gets the lone „👁 Detalii” button (row-actions rule),
+       not a one-item menu. (The labelled „Acțiuni ⌄” of action-menu-v1 is gone, with its ?actiuni=kebab demo.) */
+    const name = dosar.object || serviceOf(dosar).title || dosar.nr;
+    if (items.length === 1 && items[0].action === "open") {
       return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="Detalii despre dosarul ${escape(dosar.nr)}" data-sm-action="open" data-sm-id="${escape(dosar.id)}">${icon(items[0].icon)}<span>${escape(items[0].label)}</span></button>
+        <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="Detalii despre ${escape(name)}" data-sm-action="open" data-sm-id="${escape(dosar.id)}">${icon(items[0].icon)}<span>${escape(items[0].label)}</span></button>
       </div>`;
     }
-    const trigger = kebab
-      ? `<button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>`
-      : `<button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger data-act-menu-anchored><span>Acțiuni</span>${icon("icon-chevron-bottom")}</button>`;
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
-        ${trigger}
-        <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" hidden>
+        <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru ${escape(name)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
+        <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru ${escape(name)}" hidden>
           ${items.map((item) => item.separator
             ? `<li role="separator" class="cab-menu__separator"></li>`
             : item.href
@@ -295,7 +294,7 @@
 
   /* ---------- the request row, per status — ONE table (2026-10-20) ----------
      status → the Small tag tone · the row's alert · the date slot of the meta. The row has NO labelled button
-     (user 2026-10-20: only ⋮ on the right, as in Figma; the row opens the profile — a draft continues the form).
+     (user 2026-10-20: only ⋮ on the right, as in Figma; the row opens the profile for every status, drafts included — 2026-10-20).
      Alerts = ACTION ONLY: they exist only when the applicant must act and end with the ONE inline action link
      (the old row buttons' hooks / handlers): Informații suplimentare → „Trimite informațiile →”, Spre achitare →
      „Achită acum →” (warning, with the live countdown + „Finalizare estimată”); an expired payment = error, no
@@ -370,7 +369,7 @@
     const alert = rowAlert(dosar);
     return window.GEAPActRow.html({ ...base, name }, {
       ...common,
-      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}${dosar.status === "schita" ? " — continuă completarea" : ""}`)}"`,
+      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}`)}"`,
       extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
       /* the shared meta slots (js/act-row.js metaParts): number (plain — no copy in lists) · type · service ·
          authority · subdivision · date */
@@ -1283,7 +1282,7 @@
 
   /* US-24 AC-04: the error notice with „Reîncercați” (btn-strict) under the action that failed — in the
      status card on the profile, in the row on the list */
-  /* US-29 AC-01 the same for „Continuă schița” (the profile button, the ⋮ item, a draft row) */
+  /* US-29 AC-01 the same for „Continuă schița” (the profile button, the ⋮ item) */
   const REDIRECT_ERRORS = {
     supplement: "Formularul de suplinire nu s-a deschis. Datele dosarului nu s-au pierdut.",
     draft: "Schița nu s-a deschis. Datele salvate nu s-au pierdut.",
@@ -1328,12 +1327,12 @@
 
   /* ---------- events ---------- */
 
-  /* the row: a draft continues the form at its saved step (the old „Continuă”), the others open the profile */
+  /* the row (click / Enter / Space) ALWAYS opens the request's details — every status, drafts included (user
+     2026-10-20: „clicking on the entire card should always show the details, not redirect to the full flow”).
+     The flow actions (Continuă schița, Trimite informațiile, Achită, Depune contestație) stay explicit: ⋮ menu,
+     the alert's inline link, the details page. */
   function openRow(id) {
-    const dosar = state.dosare.find((item) => item.id === id);
-    if (dosar?.status === "schita" && params.get("redirectionare") === "eroare") { redirectError(root.querySelector(`[data-sm-card="${CSS.escape(id)}"]`), { kind: "draft", href: foUrl(dosar, "draft") }); return; }
-    if (dosar?.status === "schita") window.location.assign(foUrl(dosar, "draft"));
-    else window.location.hash = `#dosar/${id}`;
+    window.location.hash = `#dosar/${id}`;
   }
 
   function bind() {

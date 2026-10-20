@@ -157,6 +157,11 @@ row alert warning = applicant must act, info = waiting, danger = expired. „—
   (draft removed) · nt-01e (suplinire sent) · nt-01f (suplinire expired) · nt-01g (suspension with „Motivul suspendării” +
   „Neconformități depistate”, US-126 AC-16). The draft profile carries the US-21 message „Schița salvată dar nefinisată va
   fi ștearsă automat în decursul a 30 de zile.” (sm-03…03h; „a” added for Romanian grammar).
+- **Row actions + row click (2026-10-20, row-kebab-v1, user):** every row's actions sit in ONE icon-only ⋮ („Acțiuni ⌄”
+  was „too ambiguous”; phones: absolute in the card's top-right corner); a row with only „Detalii” keeps the lone
+  „👁 Detalii”. A click / Enter on ANY row — drafts included — opens the request's details (draft = sm-03i), never the
+  FO flow: „Continuă schița”, „Suplinire informații”, „Achită”, „Depune contestație” stay explicit (⋮, the alert's
+  inline link, the details page). S1 above: the draft row's „Continuă” is the ⋮ item / profile button, not the row.
 - Prototype additions **not in any story** (fine, but undocumented for the PO): the „Stadiul solicitării” card with the
   vertical trajectory (US-161 has no such section), the „Necesită atenție” chip, „Ai nevoie de ajutor?” section,
   „Descarcă certificatul constatator” in ⋮ of open requests.
