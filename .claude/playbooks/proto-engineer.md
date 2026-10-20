@@ -1552,3 +1552,18 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   code-audit (standing FPs: meta 18, alert link, FO „Solicitare nouă”; the unscoped sm-01 `{}` was a scope miss —
   re-run with `--scope .sm-list-view`), hover-audit 0 / 0 at 1440 + 700, component-audit (only the pre-existing header
   avatar / hamburger), compare-styles 0.
+- 2026-10-20 · Sort sheet („looks awful, do components, nice text hierarchy”, Cabinet sm-01f at 375). A menu turned into an
+  action sheet by a generic converter (act-row: menuitemradio → plain text rows + trailing check) is fine for actions,
+  wrong for a CHOICE with two parts: a sort = library radio group (key, 48 rows, 16/24, checked medium) + library
+  segmented control (order, labels follow the key) + sticky „Aplică” (draft, as the filter sheet) — `js/sort-sheet.js`
+  (`GEAPSortSheet.menuHtml` desktop / `.bind` phones) on the shared GEAPSheet. To take a trigger away from another
+  module's window-capture listener WITHOUT editing that file (act-row.js was another agent's): drop the class its
+  selector matches (`.e-permits-fo-intent-act__action`) and restate what that class gave (anchor `position: relative`,
+  `fitMenu` is-end / is-start) in the new CSS; then the trigger's own target-phase listener (`stopPropagation`) beats the
+  page's delegated dropdown toggle. Native radios inside a `role=radiogroup` div give arrows + one tab stop for free; the
+  segmented control needs roving tabindex + arrows by hand. Library radio quirks: `:focus` (not focus-visible) outline
+  shows after a tap → suppress `:focus:not(:focus-visible)` scoped; `.radio-texts` gap 3 is flagged off-scale by
+  code-audit (inert with one child — library FP). Demo clicks on a label focus the input → blur at the end of the demo
+  helper so a state shot shows the tap look. A long segment pair („Cele mai apropiate / îndepărtate”) wraps to 2 lines
+  at 320 (64 high) — measured, acceptable, documented; never truncate. No sub-agent tool → component-audit (scoped sheet /
+  menu 0), hover-audit 0 / 0 (700 temp copy + 1440 menu), code-audit (only standing FPs) run directly.

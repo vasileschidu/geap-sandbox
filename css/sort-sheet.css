@@ -1,0 +1,149 @@
+/* „Sortează” — one sort control, two presentations (2026-10-20, js/sort-sheet.js; components.md „Sort sheet on phones”).
+   Loaded after css/dropdown.css (the menu items keep the one dropdown size) and before css/modal-phone.css. */
+
+/* ---- desktop: the compact dropdown — „Sortează după” / „Ordine”, the library radio as the leading affordance ---- */
+.e-permits-sort-menu__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  line-height: var(--line-height-lh-16, 16px);
+  padding: var(--spacing-8, 8px) var(--spacing-8, 8px) var(--spacing-4, 4px);
+}
+
+.e-permits-sort-menu__label:first-child {
+  padding-top: var(--spacing-4, 4px);
+}
+
+.e-permits-sort-menu__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-sort-menu__separator {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  margin: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+/* radio first, then the label (the trailing-check layout of other radio menus does not apply) */
+.e-permits-sort-menu .e-permits-sort-menu__item[role="menuitemradio"] {
+  justify-content: flex-start;
+}
+
+.e-permits-sort-menu__item > .radio {
+  cursor: inherit;
+  flex: none;
+}
+
+/* the library radio's checked look, driven by the item's aria-checked (the radio is decorative here) */
+.e-permits-sort-menu__item[aria-checked="true"] > .radio > .radio-custom {
+  border-color: var(--blue-sky-600, #0058d2);
+}
+
+.e-permits-sort-menu__item[aria-checked="true"] > .radio > .radio-custom::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Cabinet: the sort wrapper anchors its menu (it is not an act action, so the act-row phone sheet never takes it) */
+.cab-sort {
+  position: relative;
+}
+
+.cab-sort .cab-menu.e-permits-fo-intent-menu.is-end {
+  left: auto;
+  right: 0;
+}
+
+.cab-sort .cab-menu.e-permits-fo-intent-menu.is-start {
+  left: 0;
+  right: auto;
+}
+
+/* ---- phones: the sort sheet (shared GEAPSheet + the filter sheet's footer) ---- */
+.e-permits-sort-sheet .bottom-sheet__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24, 24px);
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px) var(--spacing-24, 24px);
+}
+
+.e-permits-sort-sheet__group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* section label: 14/20 medium secondary, 8 above its control */
+.e-permits-sort-sheet__label {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  letter-spacing: normal;
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0 0 var(--spacing-8, 8px);
+}
+
+/* the key: library radio group, one full-width 48 tap row per key; the hover / pressed layer bleeds 8 into
+   the side padding so the radio and the text stay on the sheet's 16 inset */
+.radio-group.e-permits-sort-sheet__keys {
+  gap: 0;
+  margin: 0 calc(-1 * var(--spacing-8, 8px));
+}
+
+.radio.e-permits-sort-sheet__key {
+  border-radius: var(--border-radius-8, 8px);
+  gap: var(--spacing-12, 12px);
+  margin: 0; /* the library label's 6px bottom margin */
+  min-height: var(--spacing-48, 48px);
+  padding: var(--spacing-12, 12px) var(--spacing-8, 8px);
+  transition: background-color 0.15s ease;
+  width: auto;
+}
+
+.radio.e-permits-sort-sheet__key:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.radio.e-permits-sort-sheet__key:active {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-sort-sheet__key .radio-custom {
+  flex: none;
+}
+
+.e-permits-sort-sheet__key .radio-label {
+  color: var(--color-text-base-default, #121212);
+  font-size: var(--font-size-fs-16, 16px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
+.e-permits-sort-sheet__key:has(.radio-input:checked) .radio-label {
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* the library focus ring stays for the keyboard; a tap does not leave it on */
+.e-permits-sort-sheet__key .radio-input:focus:not(:focus-visible) + .radio-custom {
+  outline: none;
+}
+
+/* the order: the library segmented control, full width, two equal segments (Figma mobile variant 343) */
+.segmented-control.e-permits-sort-sheet__order {
+  display: flex;
+  width: 100%;
+}
+
+.e-permits-sort-sheet__order .segment-item {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radio.e-permits-sort-sheet__key {
+    transition: none;
+  }
+}

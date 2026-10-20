@@ -274,6 +274,7 @@ but this doc previously described it wrongly, see the entry.
 | Facet filter · phone toolbar + sheets (2026-10-17; one pill row 2026-10-20) | `GEAPFacetFilter.create({ mobileSheets: true, preview, sort })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = ONE row `.e-permits-workplace__filter-tools[data-filter-phone-row]` that never scrolls: the round „Filtre” pill `[data-filter-all]` (library chip, 48 · 16/24 medium · icon 24, black + count badge when applied; the toolbar button hidden) + the page's sort control moved into `.e-permits-workplace__filter-sort` (`btn btn-neutral btn-md btn-pill` at 48, label ellipsis) — NO facet chips; applied → „N de rezultate · Șterge filtrele” `[data-filter-phone-meta]` under it; desktop list toolbars (Cabinet, RAP, eKYC): search 40 · „Filtre” `btn-md` 40 · sort `btn-md` 40 (one height); sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19), Cabinet `sm-01 / 01f (sort sheet) / 01m / 01n / 01o / 01p`, `pp-01h / 01s`; section „Advanced filter › Phone mode” | app |
 | Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + library `.radio.radio--medium` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
 | Act post-process menu on phones — action sheet (2026-10-20) | ≤760 the act row / Cabinet act profile trigger („Inițiază un postproces ⌄”, any `.e-permits-fo-intent-act__action > button[aria-haspopup]`) opens the facet-filter phone sheet as an action sheet: `GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions")` (library `.bottom-sheet` + scrim + handle + header) with `.e-permits-filter-sheet__heading` (title + `.e-permits-filter-sheet__subtitle` = act name), `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` of `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` (24 icon · `__action-text` > label + `__action-reason`; `is-danger`, `aria-disabled`); a tap clicks the original menu item; radio menus (2026-10-20, Cabinet „Sortează”): `menuitemradio` → `__action--radio` rows (no lead icon, trailing 24 check + `aria-current` on the current), menu labels → `li.e-permits-filter-sheet__group-label` (14/20 medium tertiary, 16 above / 8 under, 8 for the first), title from the trigger's `data-act-sheet-title` | `js/act-row.js` (sheet) + `js/facet-filter.js` (`window.GEAPSheet`: create / show / hide / trapTab), `css/facet-filter.css`; demo pp-02a, pp-01a, pp-01q, gh-02j (reasons) at 375; section „Act post-process menu on phones — action sheet” | app |
+| Sort control — desktop menu + phone sort sheet (2026-10-20) | `js/sort-sheet.js` (`GEAPSortSheet.menuHtml({ id, keys, orders, current, keyAttr, orderAttr })` / `.bind(trigger, { title, sprite, keys, orders(key), current(), apply })`) + `css/sort-sheet.css`. Desktop: the page's `ul.e-permits-fo-intent-menu.e-permits-stack__menu.e-permits-sort-menu` — `li.e-permits-sort-menu__label` (12/16 medium secondary) · `ul.e-permits-sort-menu__group` of `button.e-permits-fo-intent-menu__item.e-permits-sort-menu__item[role=menuitemradio][aria-checked]` (library `span.radio.radio--medium > span.radio-custom` leading, checked look from `aria-checked`) · `li.e-permits-sort-menu__separator`. Phones (≤760): `GEAPSheet` `.e-permits-filter-sheet.e-permits-sort-sheet` — `h3.e-permits-sort-sheet__label` (14/20 medium secondary) + library `.radio-group.e-permits-sort-sheet__keys[role=radiogroup]` of `label.radio.radio--medium.e-permits-sort-sheet__key` (48 rows, 16/24, checked medium) · label + library `.segmented-control.e-permits-sort-sheet__order[role=radiogroup]` of `button.segment-item[role=radio]` (full width, 2 equal) · footer `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică” | section „Sort sheet on phones”; Cabinet „Solicitările mele” (sm-01f, sm-01t, sm-01m) | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
@@ -2059,8 +2060,9 @@ fo-03e / gh-02q (CAEM), fo-03s (subgenre), adr-02a (address), dos-05c / ek-22b /
 
 ### Act post-process menu on phones — action sheet (2026-10-20)
 
-**Radio menus (2026-10-20):** the same sheet serves a `menuitemradio` menu (the Cabinet „Sortează” in the phone filter
-row): group labels (`li[role=presentation]` without items) become `.e-permits-filter-sheet__group-label` headings, radio
+**Radio menus (2026-10-20):** the same sheet still serves a `menuitemradio` menu inside an act action wrapper (no page
+uses it for sorting any more — the Cabinet „Sortează” moved to its own sort sheet the same day, § „Sort sheet on phones”):
+group labels (`li[role=presentation]` without items) become `.e-permits-filter-sheet__group-label` headings, radio
 items become `.e-permits-filter-sheet__action--radio` rows (label only, the current one gets the trailing 24 check and
 `aria-current="true"`), the title comes from the trigger's `data-act-sheet-title` („Sortează”). A tap clicks the
 original item (the page sorts, closes and announces as on desktop). Demo sm-01f (open), sm-01m (key, then direction).
@@ -2153,6 +2155,48 @@ is also entirely unimplemented.
 undefined**, so it renders `#da1e28` where the design says `#d92d20`.
 
 ---
+
+### Sort sheet on phones (+ the desktop sort menu) — 2026-10-20
+
+User (Vasile, 2026-10-20, phone screenshot of the Cabinet „Sortează” sheet): „Looks awful, do components, nice text
+hierarchy.” Before: the act-row action sheet used for a radio menu — grey 16 group labels, eight plain 16/24 text rows
+with a trailing check, no components. After: ONE sort contract (`js/sort-sheet.js`, `css/sort-sheet.css`), two
+presentations of the same two groups „Sortează după” / „Ordine”.
+
+**Phones (≤760) — the sort sheet** (`GEAPSortSheet.bind(trigger, cfg)`; the trigger's own click in the target phase, so
+the page's delegated dropdown never opens; the trigger says `aria-haspopup="dialog"` on phones, `menu` on desktop):
+
+| Part | Value |
+|---|---|
+| Container | shared `GEAPSheet` (`.bottom-sheet.e-permits-filter-sheet.e-permits-sort-sheet`): scrim, handle, header, „Modals on phones” gap 16 / radius 16; hugs its content (375 × 812: panel 628 high, no scroll), scrolls the body between header and footer when taller (320 × 568) |
+| Header | title „Sortează” 24/32 semibold + library `.modal-close` |
+| Body | padding 8 16 24, groups 24 apart |
+| Section label | `h3.e-permits-sort-sheet__label` 14/20 medium `--color-text-base-secondary`, 8 above its control |
+| Key | library `.radio-group` (`role=radiogroup`, `aria-labelledby` the label, gap 0) of library `label.radio.radio--medium` rows: 48 high · padding 12 8 · gap 12 (Figma radio-label gap) · radius 8 · full width (the layer bleeds 8 into the side padding, radio + text stay on the 16 inset); radio 20; label 16/24 regular default, the checked one medium; hover `--color-background-base-tertiary`, pressed `--color-background-base-tertiary-hover`; native radios = arrows move the choice, one tab stop; library focus ring on the radio for the keyboard only (a tap leaves none) |
+| Order | library `.segmented-control` (`role=radiogroup` > `button.segment-item[role=radio][aria-checked]`, roving tabindex, arrows / Home / End) full width with two equal segments (Figma mobile variant, 343 at 375); labels follow the key, natural order first: dates „Cele mai noi” / „Cele mai vechi”, estimated date „Cele mai apropiate” / „Cele mai îndepărtate”, number „Crescător” / „Descrescător”, texts „A → Z” / „Z → A” (`aria-label` „De la A la Z”), status „Ordinea etapelor” / „Ordinea inversă”. At 320 a long pair wraps to two centred lines (both segments 64) — never cut |
+| Footer | the filter sheet's sticky footer: `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică”, full width |
+| Behaviour | the choice is a DRAFT until „Aplică” (as the filter sheet's „Arată N rezultate”; a sort has two parts — applying on the key tap would close before the order is chosen). A new key starts in its natural order unless the order was reversed in this sheet (then it stays reversed). „Aplică” → the page applies (page 1, announced in the live region „Lista este sortată după …”), focus back on the trigger; ×, scrim, Escape (window capture, the sheet only) cancel and return focus; Tab trapped; crossing 760 closes it |
+
+**Desktop (> 760) — the compact dropdown** (`GEAPSortSheet.menuHtml`): the one dropdown size (§ „Dropdown item”: 32 rows,
+14/20 medium, 6 12 6 8, gap 8), the same two groups — `li.e-permits-sort-menu__label` 12/16 medium secondary (padding 4/8
+8 8 4, on the radios' x), a separator 4 8, every item `menuitemradio` with the library radio 20 LEADING (checked look
+from `aria-checked`, no trailing check), the same order labels. A pick applies at once and closes (unchanged behaviour).
+
+**Cabinet wiring:** `.cab-sort` is no longer an `.e-permits-fo-intent-act__action` (that class made the act-row action sheet
+take the trigger on phones) — it anchors its own menu (`position: relative`, `fitMenu` `.is-end` / `.is-start`). One
+`applySort()` in cabinet-evo/solicitari.js serves the menu and the sheet. Demo: sm-01f (open: phones = sheet, desktop =
+menu), sm-01t (key „Serviciul solicitat” picked: phones = draft with A → Z / Z → A, desktop = menu reopened), sm-01m
+(applied: Serviciul solicitat, Z → A). Other phone sort sheets: none — RAP / eKYC / BO sort by table headers, the
+Cabinet acts list has no sort; „N pe pagină” stays a radio menu (act-row sheet not involved: it is no act action).
+
+**Figma spec (phone 375, Sort sheet):** Bottom sheet instance (radius 16 top, 16 from the top or hug), auto-layout
+vertical: header (title 24/32 semibold + Modal close) · body padding 8 16 24, gap 24: [group: label 14/20 medium
+text/secondary, gap 8, Radio-label instances ×6 (Size Small = 20, label 16/24 regular, selected medium, row 48, padding
+12 8, radius 8, fill none / hover tertiary)] · [group: label „Ordine”, gap 8, segmented-control Mobile 2 segments,
+Fill container] · footer (border-top 1 default, padding 16, Button Primary Large „Aplică” fill). States to draw: default
+(Data depunerii · Cele mai noi), text key (Serviciul solicitat · A → Z), 320 scrolled body. **Desktop (1440):** dropdown
+(dropdown-effect, radius 12, padding 4, gap 2): label 12/16 medium secondary · 6 items (Radio Small leading + label 14/20
+medium, 32) · divider · label „Ordine” · 2 items.
 
 ### Segmented Controls
 
@@ -4834,9 +4878,8 @@ row, round”; then „sort, Filtre and the search — one height”).** Under t
 2. **Sort** (pages that pass `sort: <wrapper element>`; today Cabinet „Solicitările mele” `.cab-sort`): the module
    MOVES the page's own control into `.e-permits-workplace__filter-sort` on phones (and back home on desktop), adding
    the library `btn-pill`; it renders 48 · 16/24 medium · padding 0 12 0 16 · chevron 24, shrinks first with an
-   ellipsis on its label (the full key + direction are in its `aria-label`). Its menu opens as the act-row ACTION
-   SHEET (radio menus supported: group labels as headings, check on the current item — § „Act post-process menu on
-   phones — action sheet”).
+   ellipsis on its label (the full key + direction are in its `aria-label`). On phones it opens the SORT SHEET
+   (since 2026-10-20 — § „Sort sheet on phones”: radio keys, segmented order, „Aplică”; before: the act-row action sheet).
 3. No facet chips, no sideways scroll. **Applied state** = the count on „Filtre” + ONE plain line under the row
    (`[data-filter-phone-meta]`): „N de rezultate · Șterge filtrele” (the BO bar wording). Why the line: the count alone
    says how many values but not what they did; the line gives the result count and a one-tap undo without opening the

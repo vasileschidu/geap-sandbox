@@ -260,6 +260,13 @@
     for (let page = 2; !document.querySelector(`[data-sm-card="${id}"]`) && document.querySelector(`[data-sm-page="${page}"]`) && page < 6; page += 1) await h.click(`[data-sm-page="${page}"]`);
     await h.scroll(`[data-sm-card="${id}"]`);
   };
+  /* phones: open the sort sheet, pick a key (its radio row) and optionally an order (segment) — no „Aplică” */
+  const smSortSheet = (key, order) => async (h) => {
+    await h.click(".cab-sort__trigger"); await h.wait(350);
+    await h.click(`.e-permits-sort-sheet__key:has(input[value="${key}"])`);
+    if (order) await h.click(`[data-sort-sheet-order="${order}"]`);
+    document.activeElement?.blur?.(); /* a tap leaves no focus ring (the demo's programmatic click would) */
+  };
   const smMenu = (id) => async (h) => { await smFind(h, id); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
   const ntAt = (kind) => ({ page: CAB, params: { view: "notificari" }, ready: ".nt-item, .cab-state", run: async (h) => { await h.scroll(`[data-nt-kind="${kind}"]`); } });
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
@@ -2012,7 +2019,10 @@
     /* sort = the „Sortează” menu on desktop and phones (2026-10-20, the table headers are gone): 01f the menu open
        (key group + direction group), 01m sorted by Serviciul solicitat Z–A (key, then direction; trigger + announcement) */
     "sm-01f": sm(async (h) => { await h.click(".cab-sort__trigger"); }),
-    "sm-01m": sm(async (h) => { await h.click(".cab-sort__trigger"); await actMenuPick('[data-sm-sort-key="service"]')(h); await h.wait(300); await h.click(".cab-sort__trigger"); await actMenuPick('[data-sm-sort-dir="desc"]')(h); await h.wait(300); }),
+    /* „Sortează” → Serviciul solicitat, Z → A (desktop: two menu picks; phones: the sort sheet → „Aplică”) */
+    "sm-01m": sm(async (h) => { if (cabPhone()) { await smSortSheet("service", "desc")(h); await h.click("[data-sort-sheet-apply]"); await h.wait(400); return; } await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-key="service"]'); await h.wait(300); await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-dir="desc"]'); await h.wait(300); }),
+    /* the open sort with a text key: the order reads A → Z / Z → A (phones: the sheet's draft before „Aplică”; desktop: the menu after the key pick) */
+    "sm-01t": sm(async (h) => { if (cabPhone()) { await smSortSheet("service")(h); return; } await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-key="service"]'); await h.wait(300); await h.click(".cab-sort__trigger"); }),
     /* the facet bar open (desktop) / the Statut sheet (phones) */
     "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await ffFacet(h, "status"); }),
     /* US-158 AC-06 / 07 / 11 — the dates are date range facets of „Filtre” (2026-10-20; the „Perioadă” dialog is gone):

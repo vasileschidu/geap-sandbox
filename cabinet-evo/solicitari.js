@@ -31,12 +31,14 @@
   /* „Sortează” (2026-10-20, desktop + phones; replaces the US-19 AC-03 / US-158 AC-09 sortable table headers):
      the same keys as the table columns, each in both directions — a key starts in its natural direction */
   const SORT_KEYS = [
-    { key: "submitted", label: "Data depunerii", def: "desc", dirs: { desc: "Cele mai noi întâi", asc: "Cele mai vechi întâi" } },
-    { key: "end", label: "Data estimată de finalizare", def: "asc", dirs: { asc: "Cele mai apropiate întâi", desc: "Cele mai îndepărtate întâi" } },
-    { key: "nr", label: "Numărul dosarului", def: "asc", dirs: { asc: "Crescător", desc: "Descrescător" } },
-    { key: "service", label: "Serviciul solicitat", def: "asc", dirs: { asc: "A–Z", desc: "Z–A" } },
-    { key: "authority", label: "Autoritatea emitentă", def: "asc", dirs: { asc: "A–Z", desc: "Z–A" } },
-    { key: "status", label: "Statut", def: "asc", dirs: { asc: "Ordinea etapelor", desc: "Ordinea inversă" } },
+    /* order labels (2026-10-20, sort sheet): short, the same on the phone segmented control and the desktop menu;
+       `name` = what a screen reader says / the announcement uses when the label is symbols */
+    { key: "submitted", label: "Data depunerii", def: "desc", dirs: { desc: { label: "Cele mai noi" }, asc: { label: "Cele mai vechi" } } },
+    { key: "end", label: "Data estimată de finalizare", def: "asc", dirs: { asc: { label: "Cele mai apropiate" }, desc: { label: "Cele mai îndepărtate" } } },
+    { key: "nr", label: "Numărul dosarului", def: "asc", dirs: { asc: { label: "Crescător" }, desc: { label: "Descrescător" } } },
+    { key: "service", label: "Serviciul solicitat", def: "asc", dirs: { asc: { label: "A → Z", name: "De la A la Z" }, desc: { label: "Z → A", name: "De la Z la A" } } },
+    { key: "authority", label: "Autoritatea emitentă", def: "asc", dirs: { asc: { label: "A → Z", name: "De la A la Z" }, desc: { label: "Z → A", name: "De la Z la A" } } },
+    { key: "status", label: "Statut", def: "asc", dirs: { asc: { label: "Ordinea etapelor" }, desc: { label: "Ordinea inversă" } } },
   ];
   const STATUS_ORDER = ["schita", "info", "achitare", "derulare", "finalizat"];
   const DRAFT_STEPS = { 1: "Date solicitant", 2: "Detalii solicitare", 3: "Acte necesare", 4: "Verificare și semnare", 5: "Livrare", 6: "Plată" };
@@ -473,18 +475,34 @@
     }));
   }
 
-  const sortNow = () => { const [key, dir] = state.sort.split("-"); const sort = SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0]; return { sort, dir, text: `${sort.label}, ${sort.dirs[dir].toLowerCase()}` }; };
-  /* two radio groups in one menu: the key, then the direction (labelled for the key: dates newest / oldest,
-     texts A–Z / Z–A); a pick applies at once, closes the menu and is announced */
+  const dirName = (d) => (d.name || d.label).toLowerCase();
+  const sortNow = () => { const [key, dir] = state.sort.split("-"); const sort = SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0]; return { sort, dir, text: `${sort.label}, ${dirName(sort.dirs[dir])}` }; };
+  /* the orders of a key, its natural one first (labels for the key: dates newest / oldest, texts A → Z / Z → A) */
+  const sortOrders = (key) => {
+    const sort = SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0];
+    return ["asc", "desc"].sort((a) => (a === sort.def ? -1 : 1)).map((d) => ({ value: d, label: sort.dirs[d].label, name: sort.dirs[d].name }));
+  };
+  /* desktop: two radio groups in one menu (js/sort-sheet.js); a pick applies at once, closes the menu and is
+     announced. Phones: the same trigger opens the sort sheet (GEAPSortSheet.bind in ensureListShell) */
   function sortMenuHtml() {
     const { sort, dir } = sortNow();
-    const item = (attrs, label, on) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${on}" ${attrs}><span>${escape(label)}</span>${on ? icon("icon-checkmark-large", "medium") : ""}</button></li>`;
-    return `
-      <li role="presentation" class="cab-menu__label" id="sm-sort-by">Sortează după</li>
-      <li role="none"><ul class="cab-menu__group" role="group" aria-labelledby="sm-sort-by">${SORT_KEYS.map((item_) => item(`data-sm-sort-key="${item_.key}"`, item_.label, item_.key === sort.key)).join("")}</ul></li>
-      <li role="separator" class="cab-menu__separator"></li>
-      <li role="presentation" class="cab-menu__label" id="sm-sort-dir">Ordine</li>
-      <li role="none"><ul class="cab-menu__group" role="group" aria-labelledby="sm-sort-dir">${["asc", "desc"].sort((a) => (a === sort.def ? -1 : 1)).map((d) => item(`data-sm-sort-dir="${d}"`, sort.dirs[d], d === dir)).join("")}</ul></li>`;
+    return window.GEAPSortSheet.menuHtml({
+      id: "sm-sort",
+      keys: SORT_KEYS.map((item) => ({ value: item.key, label: item.label })),
+      orders: sortOrders,
+      current: { key: sort.key, order: dir },
+      keyAttr: "data-sm-sort-key",
+      orderAttr: "data-sm-sort-dir",
+    });
+  }
+  /* one place that applies a sort (menu pick or the sheet's „Aplică”): AC-12 back to page 1, announced */
+  function applySort(next) {
+    state.sort = next;
+    state.page = 1;
+    C.closeMenus();
+    renderList();
+    root.querySelector("[data-sm-sort-status]").textContent = `Lista este sortată după ${sortNow().text}.`;
+    root.querySelector(".cab-sort__trigger")?.focus();
   }
   function syncSortTrigger(view) {
     const { sort, text } = sortNow();
@@ -520,12 +538,12 @@
             <span>Filtre</span>
             <span class="badge badge--lg badge--solid-light" data-sm-filter-count hidden></span>
           </button>
-          <div class="e-permits-fo-intent-act__action cab-sort">
-            <button type="button" class="btn btn-neutral btn-md cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger data-act-sheet-title="Sortează">
+          <div class="cab-sort">
+            <button type="button" class="btn btn-neutral btn-md cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
               <span data-sm-sort-label>Data depunerii</span>
               <svg class="icon medium" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
             </button>
-            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
           </div>
         </div>
         <div class="e-permits-workplace__filters cab-filters" id="sm-filters" role="group" aria-label="Filtre" data-sm-filters hidden></div>
@@ -534,6 +552,15 @@
       </div>
       <div class="sm-profile-view" data-sm-profile-view hidden></div>`;
     initFacetFilter();
+    /* phones: „Sortează” = the sort sheet (radio keys, segmented order, „Aplică”) */
+    window.GEAPSortSheet.bind(root.querySelector(".cab-sort__trigger"), {
+      title: "Sortează",
+      sprite: SPRITE,
+      keys: SORT_KEYS.map((item) => ({ value: item.key, label: item.label })),
+      orders: sortOrders,
+      current: () => { const { sort, dir } = sortNow(); return { key: sort.key, order: dir }; },
+      apply: ({ key, order }) => applySort(`${key}-${order}`),
+    });
     return root.querySelector("[data-sm-list-view]");
   }
 
@@ -1324,12 +1351,7 @@
       if (sortKey || sortDir) {
         const [key, dir] = state.sort.split("-");
         const next = sortKey ? SORT_KEYS.find((item) => item.key === sortKey.dataset.smSortKey) : null;
-        state.sort = next ? `${next.key}-${next.key === key ? dir : next.def}` : `${key}-${sortDir.dataset.smSortDir}`;
-        state.page = 1;
-        C.closeMenus();
-        renderList();
-        root.querySelector("[data-sm-sort-status]").textContent = `Lista este sortată după ${sortNow().text}.`;
-        root.querySelector(".cab-sort__trigger")?.focus();
+        applySort(next ? `${next.key}-${next.key === key ? dir : next.def}` : `${key}-${sortDir.dataset.smSortDir}`);
         return;
       }
       const size = target.closest("[data-sm-per-page]");
