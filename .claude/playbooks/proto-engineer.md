@@ -1490,3 +1490,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `:error`, 0 overflow (scratch tools/sweep.mjs, one Chrome, sequential). No sub-agent tool → code-audit / hover-audit /
   component-audit run directly (only standing FPs: Cabinet meta 18 padding, `sm-tacit`, alert link, FO date toggle, eKYC
   header / nav / rows select).
+- 2026-10-20 · „Solicitările mele” status-matrix gaps (spec STATUS-MATRIX.md; only the gaps the stories agree on, 12 PO
+  questions left as they were). What kept it cheap: a RULE in code instead of a special record — `normalize()` turns an
+  „info” past its term into „În derulare” (+ `resumed`), `autoRemoved()` hides drafts past their removal day, both
+  applied once at load, so any future data follows the stories; every visible change went through the existing
+  `REQUEST_UI` / `statusNow` / `timelineEvents` / `eventsOf`, zero new components (one `span.is-expired` tone + one
+  `.nt-item__details` paragraph). `openConfirm`'s onConfirm returning `false` keeps the FO confirm open for an inline
+  error + „Reîncercați” (it used to close BEFORE calling onConfirm — check callers' order assumptions when you flip it).
+- 2026-10-20 · Traps: (1) 7 new dossiers moved rows to page 2 → every demo state that scrolled to a row by id
+  (`smMenu`, sm-01k hover) needed a pager-aware `smFind(h, id)`; add new records with dates / sort keys in mind and grep
+  the states that address rows. (2) `CabEvo` maps act → „first approved dossier” in DATA ORDER — new dossiers for an
+  existing act (a duplicate) go at the END of the array or the acts page links the wrong request. (3) A timeline step for
+  a missed deadline with a green check read as success → word the step as what ended („Suspendare încheiată”), keep the
+  miss in the text. (4) The FO authorization card's status span is hard green („valid”) — an expired MPower needs a
+  tone modifier. (5) Romanian: „în decursul <Timp setat>” needs „a” before a numeral („a 30 de zile”, „unei zile”) —
+  reported as a wording fix of the US-21 text. No sub-agent tool → hover-audit 0 / 0, code-audit / component-audit
+  only standing FPs (BO 11/7/18 rhythm, FO confirm buttons, header avatar / menu, alert link, `sm-tacit`).

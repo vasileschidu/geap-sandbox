@@ -9,7 +9,12 @@
    (cab-card, cab-chips, cab-menu, cab-detail) and the FO pieces (summary card,
    finish tracker / timeline, callout, roles, confirm-file rows, confirm modal).
    Demo URL params: depus / schita / achitat / plata=anulata (returns from FOD2 and
-   MPay), eroare=lista|cautare|mpower, descarcare=eroare. */
+   MPay), eroare=lista|cautare|mpower, descarcare=eroare, redirectionare=eroare (Suplinire / Continuă schița
+   do not open, US-24 AC-04 / US-29 AC-01), eliminare=eroare (the first „Elimină schița” fails, US-29 AC-01).
+   Status-matrix gaps (2026-10-20, tools/persona-test/specs/cabinet-requests/STATUS-MATRIX.md): an expired
+   suplinire → „În derulare” (normalize), the appeal countdown on refused requests, drafts removed automatically
+   (not listed; the deep link shows why), the US-21 draft message, paper delivery, request filed by a
+   representative, drafts with a pending / paid fee note. */
 (() => {
   "use strict";
 
@@ -57,6 +62,8 @@
     tab: "general",
     /* the issued acts (data/acte-permisive.json › intent.acts) — the act's service-specific fields (AC-29) */
     acts: [],
+    /* drafts removed automatically (US-29 AC-02): not listed; #dosar/<id> explains it */
+    removed: [],
   };
 
   /* ---------- helpers ---------- */
@@ -102,6 +109,25 @@
      is — the expired-note status mapping is a pending PO decision, MCabinet 95895) */
   const paymentExpired = (dosar) => dosar.status === "achitare" && Boolean(dosar.payment?.due) && dosar.payment.due < TODAY;
   const PAYMENT_EXPIRED_TEXT = "Taxa a expirat. Achitarea nu mai este posibilă.";
+
+  /* US-29 AC-02 / US-21 AC-04: a draft is kept until the end of its removal day (counted from the FIRST save);
+     after that it is removed automatically — not listed, the applicant is notified (notificari.js) */
+  const autoRemoved = (dosar) => dosar.status === "schita" && Boolean(dosar.draft?.expires) && dosar.draft.expires < TODAY;
+  /* US-21 AC-03: „<Timp setat>” = the retention configured in the BO (first save → removal day) */
+  const retentionText = (dosar) => {
+    const days = daysBetween(dosar.created, dosar.draft?.expires);
+    return days === 1 ? "unei zile" : `a ${days}${days >= 20 ? " de" : ""} zile`;
+  };
+  const draftKeptText = (dosar) => `Schița salvată dar nefinisată va fi ștearsă automat în decursul ${retentionText(dosar)}.`;
+  /* US-19 AC-06 / US-24 AC-03: a suspension whose suplinire term passed is reactivated by the BO → „În derulare”
+     (the suplinire action goes, Data suspendării stays) — an „Informații suplimentare” row never shows an expired term */
+  function normalize(dosar) {
+    if (dosar.status === "info" && dosar.info?.until && dosar.info.until < TODAY) {
+      return { ...dosar, status: "derulare", resumed: dosar.resumed || { kind: "expirat", at: `${addDays(dosar.info.until, 1)}T00:00` } };
+    }
+    return dosar;
+  }
+  const pendingFee = (dosar) => dosar.status === "schita" && dosar.payment?.status === "În așteptare";
 
   const appealUntil = (dosar) => (dosar.status === "finalizat" && dosar.finalized ? addDays(dosar.finalized, state.data.appealDays || 30) : "");
   const canAppeal = (dosar) => Boolean(appealUntil(dosar)) && appealUntil(dosar) >= TODAY;
@@ -182,6 +208,9 @@
     if (dosar.status === "info") return dosar.info?.until || "";
     if (dosar.status === "achitare") return paymentExpired(dosar) ? "" : dosar.payment?.due || "";
     if (dosar.status === "derulare" && !dosar.tacit) return dosar.examTerm || "";
+    /* the official matrix: Finalizat counts down only while a contestație is possible (refused requests here — for
+       approved ones where the appeal starts is PO question 3) */
+    if (dosar.status === "finalizat" && dosar.result === "respins" && canAppeal(dosar)) return appealUntil(dosar);
     return "";
   }
   function demoNow() {
@@ -253,10 +282,12 @@
      (user 2026-10-20: only ⋮ on the right, as in Figma; the row opens the profile — a draft continues the form).
      Alerts = ACTION ONLY: they exist only when the applicant must act and end with the ONE inline action link
      (the old row buttons' hooks / handlers): Informații suplimentare → „Trimite informațiile →”, Spre achitare →
-     „Achită acum →” (warning, with the live countdown + „Finalizare estimată”); a missed deadline / expired
-     payment = error, no link. No alert for drafts (the removal date is in the meta) nor for waiting states (în
-     examinare, termen, tacit → the profile's „Stadiul solicitării”). A new status = one entry here (+ its label in
-     data/cabinet-evo-solicitari.json › statuses). */
+     „Achită acum →” (warning, with the live countdown + „Finalizare estimată”); an expired payment = error, no
+     link; a refused request inside its appeal window → info „Puteți depune contestație până la … · countdown ·
+     Depune contestație →” (a right with a deadline, the official matrix; 2026-10-20). An expired suplinire is not
+     an alert: the request is back „În derulare” (normalize). No alert for drafts (the removal date is in the
+     meta) nor for waiting states (în examinare, termen, tacit → the profile's „Stadiul solicitării”). A new status
+     = one entry here (+ its label in data/cabinet-evo-solicitari.json › statuses). */
   const countdown = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
   const on = (date) => `<strong>${escape(longDate(date))}</strong>`;
   /* US-19 AC-02 „Data estimată de finalizare” in the row = part of its action alert (requests in examination:
@@ -274,9 +305,7 @@
     },
     info: {
       tag: "warning",
-      alert: (d) => (d.info?.until >= TODAY
-        ? { tone: "warning", icon: "icon-warning-filled", html: `Trimiteți informațiile cerute până la ${on(d.info?.until)}${countdown(d)}${endNote(d)}${alertLink(d, "supplement", "Trimite informațiile", foUrl(d, "supplement"))}` }
-        : { tone: "danger", icon: "icon-circle-error-filled", html: `Termenul de suplinire a expirat pe ${on(d.info?.until)}.` }),
+      alert: (d) => ({ tone: "warning", icon: "icon-warning-filled", html: `Trimiteți informațiile cerute până la ${on(d.info?.until)}${countdown(d)}${endNote(d)}${alertLink(d, "supplement", "Trimite informațiile", foUrl(d, "supplement"))}` }),
     },
     achitare: {
       tag: "warning",
@@ -287,7 +316,9 @@
     derulare: { tag: "info", alert: () => null },
     finalizat: {
       tag: "success",
-      alert: () => null,
+      alert: (d) => (d.result === "respins" && canAppeal(d)
+        ? { tone: "info", icon: "icon-judge-gavel", html: `Puteți depune contestație până la ${on(appealUntil(d))}${countdown(d)}.${alertLink(d, "appeal", "Depune contestație", foUrl(d, "appeal"))}` }
+        : null),
       date: (d) => (d.finalized ? `Finalizată ${longDate(d.finalized)}` : ""),
     },
   };
@@ -324,7 +355,7 @@
     return window.GEAPActRow.html({ ...base, name }, {
       ...common,
       attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}${dosar.status === "schita" ? " — continuă completarea" : ""}`)}"`,
-      extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}`,
+      extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
       /* the shared meta slots (js/act-row.js metaParts): number (plain — no copy in lists) · type · service ·
          authority · subdivision · date */
       metaSlots: { number: dosar.nr, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
@@ -533,7 +564,7 @@
     state.page = Math.min(state.page, pages);
     const pageItems = all.slice((state.page - 1) * state.perPage, state.page * state.perPage);
 
-    lead.innerHTML = `${readOnly() ? readOnlyBanner() : ""}${state.notice ? `<div class="cab-notice">${message(state.notice.tone, state.notice.icon, state.notice.html, { role: "status" })}</div>` : ""}`;
+    lead.innerHTML = `${readOnly() ? readOnlyBanner() : ""}${state.notice ? `<div class="cab-notice">${message(state.notice.tone, state.notice.icon, state.notice.html, { role: "status", attrs: state.notice.attrs || "" })}</div>` : ""}`;
     const search = view.querySelector("[data-sm-search]");
     if (search.value !== state.query) search.value = state.query;
     search.closest(".search-input").classList.toggle("has-value", Boolean(state.query));
@@ -569,9 +600,19 @@
     const where = [service.authority, dosar.subdivision].filter(Boolean).join(" — ");
     switch (dosar.status) {
       case "schita":
+        /* US-18 AC-09: signed + paid but „Confirmă depunerea” not pressed → the BO submits it after the grace period
+           (the removal date stays in the title: whether such a draft shows it is PO question 5) */
+        if (dosar.signed) {
+          return {
+            title: `Schiță nedepusă · se elimină automat pe ${longDate(dosar.draft?.expires)}`,
+            text: `Cererea este semnată electronic (${longDateTime(dosar.signed)})${dosar.payment?.status === "Achitat" ? ` și taxa de ${money(dosar.payment.amount)} este achitată` : ""}. Dacă nu confirmați depunerea, ea se transmite automat autorității după intervalul de grație; dacă transmiterea nu reușește, o depuneți din „Continuă schița”.`,
+          };
+        }
         return {
           title: `Schiță nedepusă · se elimină automat pe ${longDate(dosar.draft?.expires)}`,
-          text: `Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}”; datele completate sunt salvate. Continuați completarea ca să depuneți solicitarea.`,
+          text: pendingFee(dosar)
+            ? `Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step]}”; datele completate sunt salvate. Nota de plată ${dosar.payment.nr} de ${money(dosar.payment.amount)} este emisă și așteaptă achitarea — o achitați prin MPay după ce continuați schița.`
+            : `Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}”; datele completate sunt salvate. Continuați completarea ca să depuneți solicitarea.`,
         };
       case "info":
         return {
@@ -592,7 +633,13 @@
       case "derulare":
         return dosar.tacit
           ? { title: `În examinare · termenul a expirat pe ${longDate(dosar.examTerm)}`, text: `Autoritatea (${where}) nu s-a pronunțat în termen, așa că solicitarea se consideră aprobată tacit; vă anunțăm imediat ce decizia este emisă.` }
-          : { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Dosarul este la ${where}. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` };
+          : dosar.resumed?.kind === "expirat"
+            /* US-24 AC-03: the suplinire term passed, the BO reactivated the examination */
+            ? { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Termenul de suplinire a expirat pe ${longDate(dosar.info?.until)} fără informațiile cerute, iar autoritatea a reluat examinarea cu documentele depuse. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` }
+            : dosar.supplemented
+              /* US-24 AC-20 / US-28 AC-04: suplinire sent → back in examination, new term */
+              ? { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Informațiile suplimentare au fost transmise pe ${longDate(dosar.supplemented)}, iar autoritatea a reluat examinarea. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` }
+              : { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Dosarul este la ${where}. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` };
       case "finalizat":
         if (dosar.result === "respins") {
           return {
@@ -610,21 +657,53 @@
   }
 
   /* the request's steps: what happened (dates, who) + what comes next (dashed, no date) */
+  /* US-161 AC-16 / US-16: the delivery chosen at filing — EVO Cabinet always, paper on top when chosen */
+  const PAPER = { mdelivery: "Pe hârtie prin MDelivery", ghiseu: "Pe hârtie la instituția emitentă" };
+  function deliveryNote(dosar) {
+    const paper = dosar.delivery?.paper;
+    if (paper === "mdelivery") return "În EVO Cabinet și pe hârtie, prin MDelivery.";
+    if (paper === "ghiseu") return `În EVO Cabinet și pe hârtie, la ${dosar.subdivision}.`;
+    return "Livrat în EVO Cabinet.";
+  }
+  function addressText(address = {}) {
+    const street = [address.strada, address.numar].filter(Boolean).join(" ");
+    return [street, address.bloc ? `bl. ${address.bloc}` : "", address.apartament, address.localitate, address.raion, address.codPostal].filter(Boolean).join(", ");
+  }
+
   function timelineEvents(dosar) {
-    const by = state.perspective?.mpower ? `${state.user?.name} în baza împuternicirii MPower` : state.user?.name || "solicitant";
+    /* US-161 AC-11: filed by a representative → his name (and the MPower basis), not the viewer's */
+    const by = dosar.filedBy
+      ? `${dosar.filedBy.name} în baza împuternicirii MPower`
+      : state.perspective?.mpower ? `${state.user?.name} în baza împuternicirii MPower` : state.user?.name || "solicitant";
     const where = `${serviceOf(dosar).authority} — ${dosar.subdivision}`;
     const events = [];
     if (dosar.status === "schita") {
       events.push({ state: "done", title: "Schiță creată", when: longDateTime(dosar.created), text: "Salvată automat." });
-      events.push({ state: "current", title: "Completarea cererii", when: "", text: `Pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}” · până la ${longDate(dosar.draft?.expires)}` });
-      events.push({ state: "todo", title: "Depunere și semnare", when: "", text: "" });
+      if (dosar.signed) {
+        events.push({ state: "done", title: "Cerere semnată", when: longDateTime(dosar.signed), text: `Semnată prin MSign de ${by}.` });
+        if (dosar.payment?.status === "Achitat") events.push({ state: "done", title: "Taxă achitată", when: longDateTime(dosar.payment.paid), text: `${money(dosar.payment.amount)} prin MPay.` });
+        events.push({ state: "current", title: "Confirmarea depunerii", when: "", text: "Se transmite automat după intervalul de grație." });
+      } else {
+        events.push({ state: "current", title: "Completarea cererii", when: "", text: pendingFee(dosar)
+          ? `Pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step]}” · nota de plată de ${money(dosar.payment.amount)} așteaptă achitarea · până la ${longDate(dosar.draft?.expires)}`
+          : `Pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}” · până la ${longDate(dosar.draft?.expires)}` });
+        events.push({ state: "todo", title: "Depunere și semnare", when: "", text: "" });
+      }
       events.push({ state: "todo", title: "Examinare și decizie", when: "", text: "" });
       return events;
     }
     const paidAtFiling = dosar.payment?.paid && !dosar.feeDuringExam ? ` Taxa de ${money(dosar.payment.amount)} a fost achitată prin MPay.` : "";
     events.push({ state: "done", title: "Solicitare depusă", when: longDateTime(dosar.submitted), text: `Semnată prin MSign de ${by}.${paidAtFiling}` });
     const examining = dosar.status === "derulare";
-    events.push({ state: examining ? "current" : "done", title: "În examinare la autoritate", when: `din ${longDate(addDays(dosar.submitted, 1))}`, text: examining && dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
+    /* a suspension that is over (suplinire sent, or its term passed): its steps, then the resumed examination */
+    const resumed = Boolean(dosar.suspended) && dosar.status !== "info";
+    events.push({ state: examining && !resumed ? "current" : "done", title: "În examinare la autoritate", when: `din ${longDate(addDays(dosar.submitted, 1))}`, text: examining && !resumed && dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
+    if (resumed) {
+      events.push({ state: "done", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: dosar.info?.until ? `Examinarea a fost suspendată până la ${longDate(dosar.info.until)}.` : "Examinarea a fost suspendată." });
+      if (dosar.supplemented) events.push({ state: "done", title: "Informații transmise", when: longDateTime(dosar.supplemented), text: "Prin formularul de suplinire." });
+      else if (dosar.resumed?.kind === "expirat") events.push({ state: "done", title: "Suspendare încheiată", when: longDate(dosar.info?.until), text: "Termenul de suplinire a expirat; informațiile cerute nu au fost transmise." });
+      if (examining) events.push({ state: "current", title: "Examinare reluată", when: `din ${longDate(dosar.supplemented || dosar.resumed?.at)}`, text: dosar.examTerm ? `${where} · termen ${longDate(dosar.examTerm)}` : where });
+    }
     if (dosar.status === "info") events.push({ state: "attention", title: "Informații suplimentare solicitate", when: longDate(dosar.suspended), text: `Examinarea este suspendată · trimiteți-le până la ${longDate(dosar.info?.until)}.` });
     if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: paymentExpired(dosar) ? `${money(dosar.payment?.amount)} · termenul de achitare a expirat pe ${longDate(dosar.payment?.due)}.` : `${money(dosar.payment?.amount)} · de achitat până la ${longDate(dosar.payment?.due)}.` });
     if (dosar.status === "finalizat") {
@@ -632,7 +711,7 @@
       events.push({ state: rejected ? "rejected" : "done", title: rejected ? "Solicitare respinsă" : "Solicitare aprobată", when: longDate(dosar.finalized), text: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis." });
     } else {
       events.push({ state: "todo", title: "Decizia autorității", when: "", text: dosar.examTerm && dosar.status !== "info" ? `Termen: ${longDate(dosar.examTerm)}` : "" });
-      events.push({ state: "todo", title: "Act emis", when: "", text: "Livrat în EVO Cabinet." });
+      events.push({ state: "todo", title: "Act emis", when: "", text: deliveryNote(dosar) });
     }
     return events;
   }
@@ -658,9 +737,10 @@
     return section("stadiu", "Stadiul solicitării", `
       <div class="cab-status" data-sm-status>
         <div class="cab-status__now">
-          <div class="cab-status__tags">${statusTag(dosar)}${marksHtml(dosar)}</div>
+          <div class="cab-status__tags">${statusTag(dosar)}${marksHtml(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}</div>
           <p class="cab-status__title">${escape(now.title)}</p>
           ${now.text ? `<p class="cab-status__text">${escape(now.text)}</p>` : ""}
+          ${dosar.status === "schita" ? message("banner--info", "icon-circle-info-filled", escape(draftKeptText(dosar)), { attrs: "data-sm-draft-kept" }) : ""}
           ${actions}
         </div>
         ${timelineHtml(dosar)}
@@ -746,7 +826,7 @@
       <div class="e-permits-fo-authorization-card">
         <span class="e-permits-fo-authorization-card__icon" aria-hidden="true">${icon("icon-identity", "medium")}</span>
         <span class="e-permits-fo-authorization-card__copy">
-          <span class="e-permits-fo-authorization-card__title"><strong>${escape(auth.title || "Împuternicire MPower aplicată")}</strong>${auth.status ? `<span>${escape(auth.status)}</span>` : ""}</span>
+          <span class="e-permits-fo-authorization-card__title"><strong>${escape(auth.title || "Împuternicire MPower aplicată")}</strong>${auth.status ? `<span${/^(Expirat|Revocat)/.test(auth.status) ? ' class="is-expired"' : ""}>${escape(auth.status)}</span>` : ""}</span>
           <span class="e-permits-fo-authorization-card__meta">
             ${items.map(([label, value], index) => `${index ? '<span class="e-permits-fo-authorization-card__dot" aria-hidden="true"></span>' : ""}<span class="e-permits-fo-authorization-card__meta-item"><span>${escape(label)}</span>${label === "Cod" ? copyValue(value, `Copiază codul ${value}`, "e-permits-fo-authorization-card__copy-code") : `<strong>${escape(value)}</strong>`}</span>`).join("")}
           </span>
@@ -831,7 +911,9 @@
         ])}
         ${downloadButton("decizie", "Descarcă decizia (MDocs)")}`, { scope: true });
     }
-    const until = service.validityYears ? addDays(dosar.finalized, Math.round(service.validityYears * 365.25)) : "";
+    /* a duplicate keeps the original act's validity (validFrom) */
+    const validFrom = dosar.validFrom || dosar.finalized;
+    const until = service.validityYears ? addDays(validFrom, Math.round(service.validityYears * 365.25)) : "";
     /* AC-29: the act's service-specific fields (as configured per service — the same groups the act profile shows) */
     const act = state.acts.find((item) => item.id === dosar.actId);
     const specific = act ? C.actGroups({ ...act, title: act.name }) : [];
@@ -839,9 +921,10 @@
       ${rows([
         row("Titlul actului", escape(service.actTitle || service.title || "")),
         row("Numărul actului", copyValue(dosar.actNr, `Copiază numărul actului ${dosar.actNr}`)),
+        dosar.pp === "duplicat" && dosar.prevActNr ? row("Exemplar", escape(`Duplicat al actului ${dosar.prevActNr}`)) : "",
         row("Nr. dosar", escape(dosar.nr)),
         beneficiary ? row("Beneficiar", escape(beneficiary)) : "",
-        row("Valabil din", escape(longDate(dosar.finalized))),
+        row("Valabil din", escape(longDate(validFrom))),
         until ? row("Valabil până la", escape(longDate(until))) : "",
         row("Data emiterii", escape(longDate(dosar.finalized))),
         dosar.issuedBy ? row("Emisă de", escape(dosar.issuedBy)) : "",
@@ -923,7 +1006,17 @@
       dosar.prevActNr ? row("Nr. actului anterior", escape(dosar.prevActNr)) : "",
     ]));
 
-    const roles = beneficiary && applicant ? `
+    /* US-161 AC-11 / US-19 AC-17: a request filed by a representative shows him apart from the holder (with the
+       MPower basis, even expired since) — the holder keeps the live status and every action */
+    const roles = dosar.filedBy && beneficiary ? `
+      <section class="e-permits-dosar-profil__section cab-section" aria-label="Beneficiar și reprezentant" data-sm-filed-by>
+        <div class="e-permits-fo-form__roles cab-roles">
+          <div class="e-permits-fo-form__roles-grid">
+            ${roleGroup("Beneficiar", beneficiary)}${roleGroup("Depusă de reprezentant", dosar.filedBy)}
+          </div>
+          ${authorizationHtml(dosar.filedBy)}
+        </div>
+      </section>` : beneficiary && applicant ? `
       <section class="e-permits-dosar-profil__section cab-section" aria-label="Beneficiar și solicitant">
         <div class="e-permits-fo-form__roles cab-roles${sameperson ? " is-single" : ""}">
           <div class="e-permits-fo-form__roles-grid">
@@ -947,7 +1040,13 @@
     ]));
 
     const documents = section("documente", "Documente însoțitoare", documentsHtml(dosar), { scope: true });
-    const delivery = section("livrare", "Livrare", rows([row("Metoda de livrare", "Livrare electronică (EVO Cabinet)")]));
+    /* US-161 AC-16: the method(s) chosen at filing (EVO Cabinet always; paper on top when chosen, US-16) */
+    const paper = PAPER[dosar.delivery?.paper];
+    const delivery = section("livrare", "Livrare", rows([
+      row("Metoda de livrare", paper ? `Livrare electronică (EVO Cabinet)<br>${escape(paper)}` : "Livrare electronică (EVO Cabinet)"),
+      dosar.delivery?.paper === "mdelivery" ? row("Adresa de livrare", escape(addressText(dosar.delivery.address))) : "",
+      dosar.delivery?.paper === "ghiseu" ? row("Locul ridicării", escape(`${dosar.subdivision} (${serviceOf(dosar).authority})`)) : "",
+    ]), { scope: false });
 
     /* US-161 AC-18…20: only when a payment note exists; Data achitării only when paid */
     const taxes = payment ? section("taxe", "Taxe", rows([
@@ -1008,6 +1107,12 @@
   function route() {
     hideTip();
     const match = /^#dosar\/([\w-]+)(?:\/(\w+))?$/.exec(window.location.hash);
+    /* US-29 AC-02: a draft removed automatically has no profile any more — the list says why (link from the notification) */
+    const removed = match && state.removed.find((item) => item.id === match[1]);
+    if (!removed && state.notice?.attrs === "data-sm-removed-notice") state.notice = null;
+    if (removed) {
+      state.notice = { tone: "banner--info", icon: "icon-circle-info-filled", html: `Schița <strong>${escape(removed.object)}</strong> (${escape(removed.nr)}) a fost eliminată automat pe ${escape(longDate(removed.draft?.expires))}, la expirarea termenului de păstrare. Datele nu mai pot fi recuperate; puteți începe o solicitare nouă din <a class="link link-primary link-sm" href="${escape(cabUrl("catalog"))}">Catalogul serviciilor</a>.`, attrs: "data-sm-removed-notice" };
+    }
     const dosar = match && !readOnly() && state.dosare.find((item) => item.id === match[1]);
     state.tab = match?.[2] || "general";
     if (dosar) renderProfile(dosar);
@@ -1047,7 +1152,8 @@
       </div>`;
     modal.hidden = false;
     modal.onclick = (event) => {
-      if (event.target.closest("[data-sm-confirm-ok]")) { closeConfirm(); onConfirm?.(); }
+      /* onConfirm returning false keeps the dialog open (an error shown in it, US-29 AC-01) */
+      if (event.target.closest("[data-sm-confirm-ok]")) { if (onConfirm?.(modal) === false) return; closeConfirm(); }
       else if (event.target.closest("[data-sm-confirm-cancel]") || event.target === modal) { closeConfirm(); onCancel?.(); }
     };
     modal.querySelector("[data-sm-confirm-cancel]")?.focus();
@@ -1060,6 +1166,16 @@
     if (modalOpener?.isConnected) modalOpener.focus();
   }
 
+  /* US-29 AC-01 demo (?eliminare=eroare): the first removal fails — the message + „Reîncercați” in the dialog */
+  const deleteFailed = new Set();
+  function confirmError(modal, text, retryLabel) {
+    modal.querySelector("[data-sm-confirm-error]")?.remove();
+    modal.querySelector(".e-permits-fo-instance-switch-modal__content").insertAdjacentHTML("beforeend", message("banner--error", "icon-circle-error-filled", escape(text), { role: "alert", attrs: "data-sm-confirm-error" }));
+    const ok = modal.querySelector("[data-sm-confirm-ok]");
+    ok.textContent = retryLabel;
+    ok.focus();
+  }
+
   function confirmDelete(dosar) {
     openConfirm({
       iconId: "icon-delete",
@@ -1067,10 +1183,17 @@
       title: "Eliminați schița?",
       paragraphs: [
         `Schița <strong>${escape(dosar.object)}</strong> (${escape(dosar.nr)}) va fi eliminată definitiv din Solicitările mele.`,
+        /* US-17 AC-04: removing an unpaid draft cancels its payment note */
+        pendingFee(dosar) ? `Nota de plată ${escape(dosar.payment.nr)} (${escape(money(dosar.payment.amount))}) se anulează.` : "",
         "Datele completate nu mai pot fi recuperate. Pentru același serviciu puteți începe oricând o solicitare nouă.",
-      ],
+      ].filter(Boolean),
       confirmLabel: "Elimină schița",
-      onConfirm: () => {
+      onConfirm: (modal) => {
+        if (params.get("eliminare") === "eroare" && !deleteFailed.has(dosar.id)) {
+          deleteFailed.add(dosar.id);
+          confirmError(modal, "A apărut o eroare. Schița nu a fost eliminată. Încercați din nou.", "Reîncercați");
+          return false;
+        }
         state.dosare = state.dosare.filter((item) => item.id !== dosar.id);
         try {
           const deleted = JSON.parse(sessionStorage.getItem(DELETED_KEY) || "[]");
@@ -1118,12 +1241,17 @@
 
   /* US-24 AC-04: the error notice with „Reîncercați” (btn-strict) under the action that failed — in the
      status card on the profile, in the row on the list */
-  function redirectError(action) {
+  /* US-29 AC-01 the same for „Continuă schița” (the profile button, the ⋮ item, a draft row) */
+  const REDIRECT_ERRORS = {
+    supplement: "Formularul de suplinire nu s-a deschis. Datele dosarului nu s-au pierdut.",
+    draft: "Schița nu s-a deschis. Datele salvate nu s-au pierdut.",
+  };
+  function redirectError(action, { kind = "supplement", href = "" } = {}) {
     root.querySelectorAll("[data-sm-redirect-error]").forEach((node) => node.remove());
     const html = `
       <div class="cab-retry" data-sm-redirect-error>
-        ${message("banner--error", "icon-circle-error-filled", "Formularul de suplinire nu s-a deschis. Datele dosarului nu s-au pierdut.", { role: "alert" })}
-        <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
+        ${message("banner--error", "icon-circle-error-filled", REDIRECT_ERRORS[kind], { role: "alert" })}
+        <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(href || action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
       </div>`;
     const item = action.closest(".cab-request-row");
     if (item) item.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-request-row__notice"'));
@@ -1161,6 +1289,7 @@
   /* the row: a draft continues the form at its saved step (the old „Continuă”), the others open the profile */
   function openRow(id) {
     const dosar = state.dosare.find((item) => item.id === id);
+    if (dosar?.status === "schita" && params.get("redirectionare") === "eroare") { redirectError(root.querySelector(`[data-sm-card="${CSS.escape(id)}"]`), { kind: "draft", href: foUrl(dosar, "draft") }); return; }
     if (dosar?.status === "schita") window.location.assign(foUrl(dosar, "draft"));
     else window.location.hash = `#dosar/${id}`;
   }
@@ -1220,10 +1349,10 @@
         const dosar = state.dosare.find((item) => item.id === (action.dataset.smId || root.querySelector("[data-sm-profile]")?.dataset.smProfile));
         /* US-24 AC-04 (demo ?redirectionare=eroare): the redirect to the suplinire form fails → the error
            notice + „Reîncercați” in place, nothing navigates */
-        if (action.dataset.smAction === "supplement" && params.get("redirectionare") === "eroare") {
+        if ((action.dataset.smAction === "supplement" || action.dataset.smAction === "continue") && params.get("redirectionare") === "eroare") {
           event.preventDefault();
           C.closeMenus();
-          redirectError(action);
+          redirectError(action, { kind: action.dataset.smAction === "continue" ? "draft" : "supplement" });
           return;
         }
         if (action.tagName === "A") { C.closeMenus(); return; } /* links navigate (FOD2, act profile) */
@@ -1303,7 +1432,8 @@
         object: params.get("obiect") || "Solicitare fără denumire", subdivision: "CSP Chișinău", status: "schita", created: `${TODAY}T13:40`, justAdded: true,
         draft: { step, stepLabel: DRAFT_STEPS[step], expires: addDays(TODAY, 30) }, documents: [],
       });
-      state.notice = { tone: "banner--info", icon: "icon-cloud-upload-success", html: "Schița a fost salvată. O puteți continua oricând până la eliminarea automată." };
+      /* US-21 AC-03: the message on every save (<Timp setat> = the BO retention) */
+      state.notice = { tone: "banner--info", icon: "icon-cloud-upload-success", html: escape(draftKeptText(state.dosare[0])) };
     }
     const paid = state.dosare.find((dosar) => dosar.id === params.get("achitat"));
     if (paid?.status === "achitare") {
@@ -1338,7 +1468,9 @@
       state.perspective = data.perspectives[C.SUBJECT] || { dosare: [] };
       let deleted = [];
       try { deleted = JSON.parse(sessionStorage.getItem(DELETED_KEY) || "[]"); } catch { deleted = []; }
-      state.dosare = (state.perspective.dosare || []).filter((dosar) => !deleted.includes(dosar.id)).map((dosar) => ({ ...dosar }));
+      const all = (state.perspective.dosare || []).filter((dosar) => !deleted.includes(dosar.id)).map((dosar) => normalize({ ...dosar }));
+      state.removed = all.filter(autoRemoved);
+      state.dosare = all.filter((dosar) => !autoRemoved(dosar));
       applyReturns();
       bind();
       route();

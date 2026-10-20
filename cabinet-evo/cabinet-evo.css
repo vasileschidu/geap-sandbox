@@ -1647,3 +1647,21 @@ button.cab-alert-link {
 .cab-sort__trigger [data-sm-sort-label] {
   white-space: nowrap;
 }
+
+/* US-126 AC-16 (2026-10-20): the suspension notice's „Motivul suspendării” / „Neconformități depistate” lines under its text */
+.nt-item__text.nt-item__details {
+  margin-top: var(--spacing-8, 8px);
+}
+
+.nt-item__details strong {
+  color: var(--color-text-base-default, #121212);
+  font-weight: var(--font-weight-fw-medium, 500);
+}
+
+/* an MPower basis that is no longer valid (US-161 AC-11 / US-19 AC-17: the request filed by a representative whose
+   MPower has expired since) = the neutral Small tag look instead of the FO card's green „valid” outline */
+.e-permits-fo-authorization-card__title > span.is-expired {
+  background: var(--color-background-base-tertiary, #ebebeb);
+  border-color: var(--color-border-base-default, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+}

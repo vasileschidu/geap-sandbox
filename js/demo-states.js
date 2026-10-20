@@ -243,7 +243,13 @@
   const SM_READY = "[data-sm-card], [data-sm-profile], .cab-state";
   const sm = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "solicitari", ...params }, hash, ready: SM_READY, run });
   const smDosar = (id, run, params = {}) => sm(run, params, `#dosar/${id}`);
-  const smMenu = (id) => async (h) => { await h.scroll(`[data-sm-card="${id}"]`); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
+  /* a request row may sit on page 2+ (19 requests since 2026-10-20): page on until it is there, then scroll to it */
+  const smFind = async (h, id) => {
+    for (let page = 2; !document.querySelector(`[data-sm-card="${id}"]`) && document.querySelector(`[data-sm-page="${page}"]`) && page < 6; page += 1) await h.click(`[data-sm-page="${page}"]`);
+    await h.scroll(`[data-sm-card="${id}"]`);
+  };
+  const smMenu = (id) => async (h) => { await smFind(h, id); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
+  const ntAt = (kind) => ({ page: CAB, params: { view: "notificari" }, ready: ".nt-item, .cab-state", run: async (h) => { await h.scroll(`[data-nt-kind="${kind}"]`); } });
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
      phones chip → sheet → „Arată N rezultate” */
   const smPhone = () => window.matchMedia("(max-width: 760px)").matches;
@@ -2010,7 +2016,7 @@
     "sm-01q": sm(smDateFacet("finalizare", { preset: "u30z" })),
     "sm-01i": sm(smPick("autoritate", ["AMDM*"])),
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
-    "sm-01k": sm(async (h) => { await h.hover("[data-sm-tip]"); }),
+    "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-sm-tip]"); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
     "sm-02": sm(smMenu("d-spicul")),
     "sm-02a": sm(smMenu("d-fresh")),
@@ -2022,6 +2028,16 @@
     "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); }),
     "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await actMenuPick('[data-sm-card="d-spicul"] [data-sm-action="delete"]')(h); await h.click("[data-sm-confirm-ok]"); }),
     "sm-03c": smDosar("d-izvoras-reperf"),
+    /* status-matrix gaps (2026-10-20, tools/persona-test/specs/cabinet-requests/STATUS-MATRIX.md):
+       03d a draft removed automatically (the deep link from its notification → the list says why) · 03e „Continuă
+       schița” does not open → message + „Reîncercați” (US-29 AC-01) · 03f the first „Elimină schița” fails → the
+       message + „Reîncercați” in the dialog · 03g a draft with its payment note „În așteptare” (US-17, Taxe) · 03h a
+       signed + paid draft waiting for the automatic submission (US-18 AC-09) */
+    "sm-03d": sm(null, {}, "#dosar/d-cuptor"),
+    "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
+    "sm-03f": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }, { eliminare: "eroare" }),
+    "sm-03g": smDosar("d-aroma", async (h) => { await h.click('[data-sm-tab="taxe"]'); }),
+    "sm-03h": smDosar("d-gustul"),
     "sm-04": smDosar("d-fresh"),
     "sm-04a": smDosar("d-gara"),
     "sm-04b": smDosar("d-nistru"),
@@ -2035,6 +2051,12 @@
     /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
     "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-fo-intent-act__pending [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
+    /* 04i the suplinire term passed → back „În derulare” (US-24 AC-03) · 04j suplinire sent → examination resumed
+       (US-24 AC-20) · 04k a Prelungire in examination · 04l paper delivery by MDelivery (US-161 AC-16, Livrare) */
+    "sm-04i": smDosar("d-prut-exp"),
+    "sm-04j": smDosar("d-livada"),
+    "sm-04k": smDosar("d-lab-prelungire"),
+    "sm-04l": smDosar("d-fresh", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll("#sm-sec-livrare"); }),
     "sm-05": smDosar("d-izvoras"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
@@ -2054,6 +2076,14 @@
     "sm-05m": smDosar("d-nota", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     /* Act / Decizie with the act's configured fields (2026-10-19): the shared GEAPActView.fieldsHtml sections + table */
     "sm-05n": smDosar("d-depozit-reperf", async (h) => { await h.click('[data-sm-tab="act"]'); await h.scroll(".e-permits-act-fields__table-field"); }),
+    /* 05o a refused request inside its appeal window: the row's countdown + „Depune contestație →” (the official
+       matrix) · 05p Emitere duplicat (Act) · 05q Suspendarea valabilității (Decizie) · 05r Reluarea valabilității
+       (Decizie) · 05s filed by a representative whose MPower has expired since (US-161 AC-11, US-19 AC-17) */
+    "sm-05o": sm(async (h) => { await smFind(h, "d-nota"); }),
+    "sm-05p": smDosar("d-izvoras-dup", async (h) => { await h.click('[data-sm-tab="act"]'); }),
+    "sm-05q": smDosar("d-piata-susp", async (h) => { await h.click('[data-sm-tab="act"]'); }),
+    "sm-05r": smDosar("d-dulce-reluare", async (h) => { await h.click('[data-sm-tab="act"]'); }),
+    "sm-05s": smDosar("d-depozit-reperf", async (h) => { await h.click('[data-sm-tab="solicitare"]'); }),
     "sm-05d": { page: CAB, params: { view: "acte", act: "act-izvoras" }, ready: "[data-cab-detail] h1", run: null },
     /* Actele mele: nothing matches the search → the shared empty state + „Resetează filtrele” */
     "sm-05i": { page: CAB, params: { view: "acte" }, ready: "[data-cab-list] > *", run: async (h) => { await h.fill("[data-cab-search]", "zzz", { leave: false }); } },
@@ -2065,6 +2095,12 @@
     "nt-01a": { page: CAB, params: { view: "notificari", nota: "expirata" }, ready: ".nt-item", run: async (h) => { await h.click("[data-nt-pay]"); } },
     "nt-01b": { page: CAB, params: { view: "notificari", as: "mpower-pj-lumina" }, ready: ".nt-item, .cab-state", run: null },
     "nt-01c": sm(null, { achita: "d-sud" }),
+    /* 01d draft removed automatically (US-29 AC-02) · 01e suplinire sent (US-24 AC-19) · 01f suplinire term expired
+       (US-24 AC-03, Feature 95770) · 01g the suspension notice with the reason + „Neconformități depistate” (US-126 AC-16) */
+    "nt-01d": ntAt("draft-removed"),
+    "nt-01e": ntAt("supplement-done"),
+    "nt-01f": ntAt("supplement-expired"),
+    "nt-01g": ntAt("info-requested"),
     "sm-07": sm(null, { as: "pj-vita-plant" }),
     "sm-07a": smDosar("d-vita-reperf", null, { as: "pj-vita-plant" }),
     "sm-07b": sm(null, { as: "mpower-pj-lumina" }),

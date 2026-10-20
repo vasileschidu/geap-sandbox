@@ -232,6 +232,7 @@ but this doc previously described it wrongly, see the entry.
 | Sum list (list + total tray) | `.e-permits-sum-list` > list + `.e-permits-sum-list__total`; JS `renderSumList(listHtml, total)` | Figma 9721:9920 | app |
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
+| Request statuses (Solicitările mele, status matrix 2026-10-20) | one table per status / variant: row tag · alert · meta date, profile status card + timeline, notification kind — drafts (pending note, signed + paid, removed automatically, Continuă / Elimină errors), În derulare after suplinire / after an expired suplinire, refused + appeal countdown, duplicate / suspendare / reluare, paper delivery, filed by a representative | `REQUEST_UI` / `normalize` / `autoRemoved` / `statusNow` / `timelineEvents` (solicitari.js), `eventsOf` (notificari.js); section „Request statuses — Solicitările mele”; demo sm-03d…03h, sm-04i…04l, sm-05o…05s, nt-01d…01g | page-app |
 | Request row (Solicitările mele, 2026-10-20) | the shared act row: `ul.e-permits-fo-intent__list.cab-act-list.cab-request-list > li.e-permits-fo-lib-item.e-permits-fo-intent-act.cab-request-row[data-sm-card](.is-new/.is-static)` — NO lead icon (grid `1fr | auto`), title = object + Small status tag (+ Aprobat / Respins, `.sm-tacit`), meta = the shared slots (§ „List rows — act + request”), right `.cab-doc__actions.cab-card__actions` = ⋮ only (no labelled button; draft row → FO form), ACTION-ONLY alert in the act row notice slot (`noticeHtml`, warning / error) with one `.cab-alert-link` | `cabinet-evo/solicitari.js` `cardHtml` + ONE status map `REQUEST_UI` (tag tone · alert · date slot); demo sm-01*, sm-04h1 (alert link) | page-app |
 | Key facts row | `dl.cab-facts > .cab-facts__item > dt + dd` (vertical dividers; stacks ≤600) | `factsHtml` (solicitari.js), catalog service page | page-app |
 | Callout tones | `.e-permits-callout--{info\|warning\|neutral\|success\|danger}` | `calloutHtml` (solicitari.js) | app |
@@ -6272,9 +6273,11 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
 - **Row alerts = ACTION ONLY** (user 2026-10-20): warning when the applicant must act (Informații suplimentare,
   Spre achitare — live countdown + „Finalizare estimată”) ending with ONE inline action link
   (`a|button.link.link-primary.link-sm.cab-alert-link`: „Trimite informațiile →”, „Achită acum →”, the old row
-  buttons' handlers, own tab stop); error for a missed deadline / expired payment (no link); no alert for drafts
-  (removal date in the meta) nor for waiting states (în examinare, termen, tacit → the profile's „Stadiul
-  solicitării”). Data-driven: `REQUEST_UI` in solicitari.js (status → tag tone · alert · date slot). Acts: the amber locked notice (it blocks the pill); the blue paper-act notice stays
+  buttons' handlers, own tab stop); error for an expired payment (no link); INFO for a refused request inside its
+  appeal window („Puteți depune contestație până la … · countdown · Depune contestație →”, 2026-10-20 — a right
+  with a deadline, the official matrix); no alert for drafts (removal date in the meta) nor for waiting states (în
+  examinare, termen, tacit → the profile's „Stadiul solicitării”); never an expired „Informații suplimentare” (it
+  is „În derulare” again — § „Request statuses”). Data-driven: `REQUEST_UI` in solicitari.js (status → tag tone · alert · date slot). Acts: the amber locked notice (it blocks the pill); the blue paper-act notice stays
   (explains why there is no pill) — PO to decide.
 - **List width**: the Cabinet list pages (acts, requests, catalog, notifications) use `--cab-list-width` = the
   header content box (`--fo-page-width − 2 × gutter` = 1200) → edge to edge with the EVO logo / account menu
@@ -6363,6 +6366,39 @@ calls `stopFrontOfficePostprocess`). It reuses the primary FO wizard; only conte
 with no acts), `pp-10…10g` reperfectare 09 (steps 1/2/errors/3/4/5/7, PF), `pp-11` reperfectare 10,
 `pp-12/12a` prelungire, `pp-13…13b` duplicat, `pp-14…14b` retragere, `pp-15/15a` suspendare,
 `pp-16/16a` reluare, `pp-17/17a` anulare.
+
+### Request statuses — Solicitările mele (status matrix, 2026-10-20)
+
+Spec: `tools/persona-test/specs/cabinet-requests/STATUS-MATRIX.md` (Azure stories + the official „Matrice acțiuni
+contextuale”). Everything is data + the ONE status map `REQUEST_UI` (tag tone · row alert · date slot) + the
+profile's `statusNow` / `timelineEvents` in `cabinet-evo/solicitari.js`; no new component.
+
+| Status / variant | Row (tag · alert · meta date) | Profile („Stadiul solicitării” + tabs) | Notification (notificari.js `kind`) | Demo |
+|---|---|---|---|---|
+| Schiță | neutral · none · „Creată … · se elimină pe …”; signed draft + blue „Semnat electronic” | Continuă schița / Elimină schița + the US-21 info notice „Schița salvată dar nefinisată va fi ștearsă automat în decursul a N de zile.” (`[data-sm-draft-kept]`, N = first save → removal) | „Schița a fost salvată” (`draft-saved`) | sm-03 |
+| Schiță cu notă de plată „În așteptare” (US-17) | as Schiță | text names the note; Taxe tab; „Elimină” says the note is cancelled | — | sm-03g |
+| Schiță semnată + achitată (US-18 AC-09) | as Schiță + „Semnat electronic” | text: transmitted automatically after the grace period; timeline signed → paid → „Confirmarea depunerii” (removal date kept: PO Q5) | — | sm-03h |
+| Schiță eliminată automat (US-29 AC-02) | not listed (`autoRemoved`: `draft.expires < today`) | no profile — `#dosar/<id>` shows the list with an info notice + link to the catalog (`[data-sm-removed-notice]`) | „Schița a fost eliminată automat” (`draft-removed`, „Vezi detalii”) | sm-03d, nt-01d |
+| Continuă / Elimină — error (US-29 AC-01) | `?redirectionare=eroare`: row / ⋮ / profile → `.cab-retry` „Schița nu s-a deschis. Datele salvate nu s-au pierdut.” + „Reîncercați”; `?eliminare=eroare`: the first removal fails → error notice in the FO confirm dialog, primary becomes „Reîncercați” (`openConfirm` onConfirm returning `false` keeps it open) | | | sm-03e, sm-03f |
+| În derulare | info · none · „Depusă …” | „În examinare · termen …” | „Solicitarea a fost depusă” | sm-04 |
+| În derulare — după suplinire (US-24 AC-20) | as În derulare | text „Informațiile … au fost transmise pe …”; timeline „Informații suplimentare solicitate” → „Informații transmise” → „Examinare reluată” | „Informațiile au fost transmise” (`supplement-done`) | sm-04j, nt-01e |
+| În derulare — suplinire expirată (US-24 AC-03) | as În derulare (`normalize()`: an `info` past `info.until` becomes `derulare` + `resumed.kind = "expirat"`) | text „Termenul de suplinire a expirat pe …”; Data suspendării kept; timeline „Suspendare încheiată” → „Examinare reluată” | „Termenul de suplinire a expirat” (`supplement-expired`) | sm-04i, nt-01f |
+| Informații suplimentare | warning · „Trimiteți informațiile … · countdown · Trimite informațiile →” | Suplinește informații | „Autoritatea a cerut informații suplimentare” + `details` „Motivul suspendării” / „Neconformități depistate” (`info-requested`, `.nt-item__details`, US-126 AC-16) | sm-04b, nt-01g |
+| Spre achitare | warning · „Achitați taxa … · Achită acum →”; expired note = error (PO Q1) | MPay badge | „Aveți o notă de plată de achitat” | sm-04c, sm-04g |
+| Finalizat · Aprobat | success + „Aprobat” · none · „Finalizată …” | Vezi actul · Descarcă; duplicate: Act „Exemplar — Duplicat al actului …”, validity from `validFrom` | „Actul permisiv a fost emis” | sm-05, sm-05p |
+| Finalizat · Aprobat (decizie: retragere / suspendare / reluare) | as Aprobat | tab „Decizie” | „Decizia a fost emisă” | sm-05b, sm-05q, sm-05r |
+| Finalizat · Respins | success + „Respins” · INFO while `canAppeal` (30 days = `appealDays`, PO Q3) | Descarcă decizia · Depune contestație | „Solicitarea a fost respinsă” | sm-05a, sm-05o |
+
+Profile variants: **Livrare** (US-161 AC-16) from `delivery.paper` = `mdelivery` (row „Metoda de livrare” EVO Cabinet +
+„Pe hârtie prin MDelivery”, „Adresa de livrare” composed from raion / localitate / stradă / număr / bloc / apartament
+/ cod poștal) or `ghiseu` („Locul ridicării” = subdiviziunea); the timeline's „Act emis” says where (sm-04l, d-livada).
+**Depusă de un reprezentant** (US-161 AC-11 / US-19 AC-17): `filedBy` → „Beneficiar” + „Depusă de reprezentant” role
+groups + the MPower card with its status (`span.is-expired` = neutral Small tag look when Expirată / Revocată; the FO card
+is green „valid”); the timeline names him; every action stays (sm-05s).
+Not built (PO questions in STATUS-MATRIX.md §4): expired note mapping (Q1), „Aprobat tacit” as a status (Q2), the appeal
+start point / period (Q3), paper-issuance states (Q4), the draft timer on signed + paid drafts (Q5), fee vocabulary (Q6),
+withdrawal (Q7), suspension details in the profile (Q8), table vs rows (Q9), „Sesizările mele” (Q10), the status card
+(Q11), notification wording (Q12).
 
 ### EVO Cabinet › Solicitările mele + Catalog (added 2026-10-12)
 
