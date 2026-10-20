@@ -398,6 +398,96 @@ html.is-filter-sheet-open {
   padding-bottom: var(--spacing-8, 8px);
 }
 
+/* ---- the same sheet as an ACTION sheet (2026-10-20): the act post-process menu on phones (js/act-row.js,
+   GEAPSheet). Everything above applies (scrim, handle, header, radius / gap, option rows); here only:
+   title + the act name under it, the option row with a 24 icon instead of the checkbox (12 + 24 + 12 = 48),
+   a second line for the reason of an unavailable item, the danger tone, no footer (a tap acts at once). ---- */
+.e-permits-filter-sheet--actions .bottom-sheet__header {
+  align-items: flex-start;
+}
+
+.e-permits-filter-sheet__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  min-width: 0;
+}
+
+/* the act name wraps (touch has no tooltip for an ellipsis — „Modals on phones”) */
+.e-permits-filter-sheet__subtitle {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.e-permits-filter-sheet__subtitle[hidden] {
+  display: none;
+}
+
+.e-permits-filter-sheet--actions .bottom-sheet__content {
+  padding-bottom: max(var(--spacing-16, 16px), env(safe-area-inset-bottom, 0px));
+}
+
+.e-permits-filter-sheet__list .e-permits-filter-sheet__action {
+  align-items: flex-start;
+}
+
+.e-permits-filter-sheet__action > .icon {
+  color: var(--color-icon-base-default, #121212);
+  flex: 0 0 var(--icon-size-default, 24px);
+  height: var(--icon-size-default, 24px);
+  width: var(--icon-size-default, 24px);
+}
+
+/* 2 + 20 + 2 = the icon's 24: one line sits on the icon's centre, a reason line goes under it */
+.e-permits-filter-sheet__action-text {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  padding: var(--spacing-2, 2px) var(--spacing-0, 0px);
+}
+
+.e-permits-filter-sheet__action-reason {
+  color: var(--color-text-base-secondary, #383838);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+}
+
+.e-permits-filter-sheet__action:active:not([aria-disabled="true"]) {
+  background: var(--color-background-base-tertiary-hover, #e5e5e5);
+}
+
+.e-permits-filter-sheet__action:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
+  outline-offset: calc(var(--border-width-2, 2px) * -1);
+}
+
+.e-permits-filter-sheet__action.is-danger,
+.e-permits-filter-sheet__action.is-danger > .icon {
+  color: var(--color-text-danger-default, #d92d20);
+}
+
+/* unavailable: greyed label + icon (as the desktop menu), the reason stays readable; no press look */
+.e-permits-filter-sheet__action[aria-disabled="true"],
+.e-permits-filter-sheet__action[aria-disabled="true"] > .icon {
+  color: var(--color-text-disabled-default, #bfbfbf);
+  cursor: not-allowed;
+}
+
+.e-permits-filter-sheet__action[aria-disabled="true"]:hover {
+  background: var(--color-background-base-default, #fff);
+}
+
+/* the FO tester launcher („Configurare flux”, fixed, z 1100) sat on the sheet's last row — hidden while a sheet is
+   open, as the MSupport launcher („Modals on phones”) */
+html.is-filter-sheet-open .e-permits-fo-testcfg {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .e-permits-filter-sheet .bottom-sheet__overlay,
   .e-permits-filter-sheet .bottom-sheet__panel {

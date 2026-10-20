@@ -180,6 +180,14 @@
      FOD2 wizard opened straight on a step (?pp=<type>&act=<id>) */
   const PP_FO = "e-permits-acte-permisive.html";
   const ppCab = (run) => ({ page: "cabinet-evo/index.html", ready: "[data-cab-card]", run });
+  /* the act post-process menu (js/act-row.js): desktop = the dropdown item; phones (≤760, 2026-10-20) = the same
+     item's row in the action sheet (the trigger opened the sheet instead of the dropdown) */
+  const actMenuPick = (itemSel) => async (h) => {
+    if (!window.GEAPActRow?.isSheetOpen?.()) { await h.click(itemSel); return; }
+    const item = document.querySelector(itemSel);
+    const items = [...(item?.closest("[role='menu']")?.querySelectorAll("[role='menuitem']") || [])];
+    await h.click(`.e-permits-filter-sheet--actions [data-act-sheet-index="${items.indexOf(item)}"]`);
+  };
   /* the acts list „Filtre” (js/facet-filter.js): desktop = button → bar → popover → Confirmă → Aplică;
      phones (≤760) = chip → bottom sheet → „Arată N rezultate” (the RAP helpers) */
   const cabPhone = () => window.matchMedia("(max-width: 760px)").matches;
@@ -1149,7 +1157,7 @@
     "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); }),
     "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .e-permits-fo-lib-item__title"); }),
     "pp-01f": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cofetaria']"); }),
-    "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await h.click("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']"); }),
+    "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await actMenuPick("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']")(h); }),
     /* „Filtre” = the shared facet filter (2026-10-17): Statut = Expirat applied (desktop bar / phone sheet) */
     "pp-01h": ppCab(async (h) => { await cabPick("status", ["Expirat"])(h); await cabCommit(h); }),
     "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .e-permits-fo-lib-item__title"); }),
@@ -1182,7 +1190,7 @@
     "pp-01w": { page: "cabinet-evo/index.html", params: { as: "mpower-pf-vrabie" }, ready: "[data-cab-empty]:not([hidden]) .e-permits-empty", run: null },
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
-    "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']"); }),
+    "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']")(h); }),
     /* a locked act row (post-process in progress): the full-width subtle warning notice under the row */
     "pp-02d": { ...ppIntent(), params: { incurs: "act-izvoras" } },
     "pp-02c": ppIntent(async (h) => {
@@ -2581,7 +2589,7 @@
     const pf = (idnp) => code("applicant", idnp);
     /* the modal filled (service + applicant) → Continuă → intent: „Solicitare nouă” (or a post-process) → the request */
     const start = (who, svc = "003000118", choice = primar) => seq(service(svc), who, cont, choice);
-    const chooseAct = (id, type) => async (h) => { await openActMenu(id)(h); await h.click(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`); await atStep1(h); };
+    const chooseAct = (id, type) => async (h) => { await openActMenu(id)(h); await actMenuPick(`[data-fo-intent-act="${id}"] [data-fo-intent-postprocess="${type}"]`)(h); await atStep1(h); };
     const menu = (sel) => async (h) => { (await h.find(sel)).closest(".e-permits-stack__item, tr").querySelector("[data-stack-menu-trigger]").click(); await h.wait(300); };
     /* a real file into a document field: the FO document modal, „Încarcă” tab */
     const ghUpload = (fieldSel, name, size = 1200000) => async (h) => {
@@ -2632,7 +2640,7 @@
          row „în curs”), a menu open with a disabled reason, no acts (code starting with 0), a generated identity,
          the holder changed after a choice (notice), a draft saved before the process (resumed on this screen) */
       "gh-02i": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont)),
-      "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
+      "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { if (window.GEAPActRow?.isSheetOpen?.()) return; /* phones: the sheet shows the reason as a line */ await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
       "gh-02t": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="act-depozit"]'); await h.hover('[data-fo-intent-act="act-depozit"] [data-fo-intent-trigger]'); await h.wait(600); })),
       "gh-02l": gh("#ghiseu/nou", seq(service("003000118"), pf("0990001234567"), cont)),
       "gh-02u": gh("#ghiseu/nou", seq(service("003000118"), pf("2123456789018"), cont)),

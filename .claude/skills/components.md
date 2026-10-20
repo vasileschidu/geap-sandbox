@@ -270,6 +270,7 @@ but this doc previously described it wrongly, see the entry.
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Facet filter · phone sheets (2026-10-17) | `GEAPFacetFilter.create({ mobileSheets: true, preview })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = one scrolling chip row („Filtre” `[data-filter-all]` first, the toolbar button hidden) + „N de rezultate · Șterge filtrele”; sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19); section „Advanced filter › Phone mode” | app |
+| Act post-process menu on phones — action sheet (2026-10-20) | ≤760 the act row / Cabinet act profile trigger („Inițiază un postproces ⌄”, any `.e-permits-fo-intent-act__action > button[aria-haspopup]`) opens the facet-filter phone sheet as an action sheet: `GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions")` (library `.bottom-sheet` + scrim + handle + header) with `.e-permits-filter-sheet__heading` (title + `.e-permits-filter-sheet__subtitle` = act name), `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` of `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` (24 icon · `__action-text` > label + `__action-reason`; `is-danger`, `aria-disabled`); a tap clicks the original menu item | `js/act-row.js` (sheet) + `js/facet-filter.js` (`window.GEAPSheet`: create / show / hide / trapTab), `css/facet-filter.css`; demo pp-02a, pp-01a, pp-01q, gh-02j (reasons) at 375; section „Act post-process menu on phones — action sheet” | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
 | Address by cadastral code (FO „Caută adresa sau cod cadastral” + editable „Cod cadastral” + SRRE fill, read-only parts) | cascade address: product search input (`.search-input` + `.e-permits-fo-cascade-address__search`, × clear) + „Cod cadastral” = library search input with submit (`.search-input.e-permits-fo-cadastral-search` + `.btn-group`: spinner / `.btn-icon.clear` / `.btn.btn-primary.btn-search`; `.loading` while SRRE answers) + the search list's action row „Caută codul cadastral «…»” + one message slot per field `[data-fo-cadastral-search-hint]` / `[data-fo-cadastral-code-hint]` (hint → `message--inline e-permits-fo-field__error` + `__success` / `__warning` / `__loading`) + SRRE skeleton (`.is-srre-loading` + `.e-permits-fo-skeleton--input`) + fill highlight `.is-srre-new` | `cascadeAddressHtml` / `initCadastralLookup` / `foAddressDemo` (e-permits-acte-permisive.js), demo `adr-*` | app |
@@ -2015,7 +2016,7 @@ have in some places.” Measured in Figma (icon frame at x 8 / y 6, label at x 3
 | label | 14/20 medium (`--font-size-fs-14` / `--line-height-lh-20` / `--font-weight-fw-medium`), colour per menu |
 | icon | 20 (`--icon-size-medium`), gap 8 → label; icon colour = label colour |
 | states | as the BO stack menu: hover / focus-visible `--color-background-base-tertiary`, danger `--color-text-error-default`, `aria-disabled` grey + not-allowed + no hover (+ `data-tooltip-reason`), selected per list (brand text / trailing 20 check) |
-| touch | the same size (no `pointer: coarse` rows); items stay full-width tap rows |
+| touch | the same size (no `pointer: coarse` rows); items stay full-width tap rows. Exception (2026-10-20, user): the act post-process menu becomes an action sheet on phones ≤760 — § „Act post-process menu on phones — action sheet” |
 | two-line rows | same padding, the row grows (dossier case actions, notification field picker, builder issues, designer versions, address search 2 lines with gap 2, MDocs) |
 
 **One rule** — `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, EVO Cabinet and RAP, after the product
@@ -2048,6 +2049,64 @@ srv-03m (⋮ / Sincronizare), sm-02 / sm-01l / sm-01f phone (Cabinet), ek-15a (e
 (designer), ntpl-02c (field picker), svc-00h (help), auth-05 (account), fo-03u (FO select), fo-02p (phone code),
 fo-03e / gh-02q (CAEM), fo-03s (subgenre), adr-02a (address), dos-05c / ek-22b / rap-04b / pp-01s / sm-01n
 (filter popovers).
+
+---
+
+### Act post-process menu on phones — action sheet (2026-10-20)
+
+User (Vasile, 2026-10-20): „Inițiere postprocese menu on mobile is too small for fat fingers, let's do best practice …”,
+then „maybe on mobile the post-process menu shows as we do for filters?”. On phones (≤760) the act post-process trigger
+(„Inițiază un postproces ⌄” — FO „Ce vrei să soliciți?” pp-02a, Ghișeu window gh-02j, Cabinet list pp-01a, Cabinet act
+profile header pp-01q) opens the **facet-filter phone sheet** used as an action sheet. Desktop (> 760) keeps the compact
+dropdown (§ „Dropdown item — one size everywhere”, unchanged: same DOM, same handlers).
+
+**One sheet, shared.** `js/facet-filter.js` exports `window.GEAPSheet` = the shell the facet sheets already used
+(`create(className, { sprite, titleId, titleHtml, headerHtml, footerHtml })` → library `.bottom-sheet` with
+`__overlay [data-sheet-close]`, `__panel role=dialog aria-modal`, `__handle`, `__header` (title + library `.modal-close`),
+`__content [data-sheet-body]`; `show` / `hide` = the same slide (library transitions, reduced motion = none) and the
+`html.is-filter-sheet-open` scroll lock; `trapTab`). The facet sheets were moved onto it with byte-identical markup
+(template compared in node). `js/act-row.js` builds the action sheet from the trigger's own menu — no page code changed.
+
+| Part | Value |
+|---|---|
+| Container | `.bottom-sheet.e-permits-filter-sheet.e-permits-filter-sheet--actions`; phones = „Modals on phones”: 16 top gap, full width, top radius 16, hugs up to `100% − 16`, MSupport hidden while open |
+| Header | handle (library) · `.e-permits-filter-sheet__heading` = title `.bottom-sheet__header--title` (the trigger's label, „Inițiază un postproces”) + `.e-permits-filter-sheet__subtitle` 14/20 secondary = the act name (row title / profile h1; wraps — no tooltip on touch; **no act number**: rule „no code in a modal header”) · × `.modal-close` (top-aligned) |
+| Rows | the sheet's option row `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` in `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` (list inset 0 8, gap 0): padding 12 8, gap 10, radius 8, 14/20 regular, hover tertiary, pressed tertiary-hover, focus-visible 2px brand inset; the checkbox is replaced by the 24 icon → **48 high**, full width (343 at 375) |
+| Two-line row | an unavailable item (`aria-disabled`, the menu item's `data-tooltip-reason`) shows its reason as `.e-permits-filter-sheet__action-reason` 14/20 secondary under the label (`aria-describedby`); label + icon `--color-text-disabled-default`, not-allowed, no press look; the text block has 2 / 2 padding so line 1 sits on the icon's centre |
+| Danger | a menu item with `.is-danger` → label + icon `--color-text-danger-default` (today no post-process item is marked danger on desktop, so none is in the sheet either — PO question) |
+| Footer | none — a tap acts at once; content bottom padding `max(16, safe-area-inset-bottom)` |
+| Behaviour | the window-capture click on the trigger opens the sheet (the page's dropdown toggle never runs); trigger `aria-haspopup="dialog"` on phones + `aria-expanded="true"` while open (open-button ring); focus → the panel; ×, scrim, Esc (window capture — never closes a dialog behind it, e.g. the Ghișeu window) close it and return focus to the trigger; Tab trapped; a row closes the sheet, focuses the trigger and **clicks the original menu item** → the page's own handler (FO / Cabinet confirm modal for Suspendare / Retragere / Anulare, otherwise the request starts; Ghișeu `choosePostprocess`). No swipe-down (the shared sheet has none; the handle is decorative) |
+| Not on | > 760 (desktop, tablets: M3 medium / expanded widths and iPad keep menus / popovers); the 32px dropdown rows stay the desktop size |
+
+**Research (2026-10-20).** Mobbin MCP was not available in this session (no `mcp__mobbin__*` tools) — documented guidance
+and well-known product behaviour:
+- **Material 3 — Bottom sheets**: modal bottom sheets are „an alternative to inline menus or simple dialogs on mobile”,
+  full width on compact windows, scrim, optional drag handle, dismissed by scrim tap / back / close; **M3 Menus**: menu
+  items 48dp high, and on compact width a long list of actions belongs in a sheet. **M3 Lists**: one-line rows with a
+  leading icon 56dp.
+- **Apple HIG — Action sheets / Menus**: an action sheet slides up from the bottom on iPhone and lists choices for an
+  action the person started; destructive choices in red; on iPad the same content shows as a popover (→ desktop / tablet
+  keep the dropdown). Hit targets ≥ 44 × 44 pt.
+- **NN/g** — „Bottom Sheets: Definition and UX Guidelines”: good for short lists of contextual actions on phones, keep a
+  visible close, support back / Esc, don't stack sheets; „Touch Targets on Touchscreens”: ≥ 1 cm × 1 cm (≈ 44–48 CSS px)
+  with spacing; tooltips need hover and fail on touch → show the reason inline.
+- **WCAG 2.2** — 2.5.8 Target Size (Minimum, AA): 24 × 24 or enough spacing (the 32px desktop rows pass); 2.5.5 (Enhanced,
+  AAA): 44 × 44 — the sheet rows are 48 × 343.
+- **Products**: Google Drive / Gmail / Photos (Android) — „⋮” on an item opens a modal bottom sheet of icon + label rows;
+  iOS Files / Mail — action sheets; Revolut and Monzo — card / transaction actions in bottom sheets with icon rows and
+  unavailable actions explained in place; Airbnb — share / save / trip actions in sheets. Common pattern: full-width rows,
+  leading icon, title of the object on top, immediate action on tap, confirmation only for destructive choices.
+
+Deviations from the brief (reported): subtitle without the act number (user rule) and wrapping instead of one-line
+ellipsis (phone rule); rows 48 with the filter sheet's 14/20 regular label (user: „as we do for filters”) instead of
+56 / 16-24 medium; ≤760 only (not `pointer: coarse` at tablet widths); no swipe-down.
+
+Demo: pp-02a (FO), pp-01a (Cabinet list), pp-01q (Cabinet act profile), gh-02j (Ghișeu, unavailable items with reasons)
+— open at 375 / 320; pp-02b, pp-01g (choice → confirm modal) and gh-02n (choice → request) pick the row in the sheet on
+phones (demo helper `actMenuPick`). At 1440 the same ids show the dropdown.
+
+Figma follows: phone frames of these states = Bottom Sheet (library) with the filter-sheet header + 48px action rows
+(icon 24 · gap 10 · 14/20 · padding 12 8 · radius 8 · list inset 8), reason line 14/20 secondary, no footer.
 
 ---
 

@@ -1384,3 +1384,22 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   change under its message. Stage only right before committing — run every audit first, then build the blobs, then
   commit in the same command; if it happens, record the change with an `--allow-empty` commit (never rewrite pushed
   history). A hung CDP tool (code-audit stuck 20 min on one state) = wrap each run in `perl -e "alarm N; exec @ARGV"`.
+- 2026-10-20 · Act post-process menu on phones → action sheet (user: „too small for fat fingers”, then mid-job „maybe it
+  shows as we do for filters?”). Cheapest robust shape: ONE capture-phase click listener in `js/act-row.js` for every
+  `.e-permits-fo-intent-act__action > button[aria-haspopup]` (≤760) that builds the sheet FROM the trigger's own menu
+  and, on a tap, closes it, focuses the trigger and `.click()`s the ORIGINAL (hidden) menu item — FO / Ghișeu / Cabinet
+  handlers ran unchanged (confirm modals included), zero page edits. „Don't create a second sheet style” = extract the
+  facet sheet's shell into `window.GEAPSheet` (create / show / hide / trapTab) in js/facet-filter.js and prove the facet
+  markup byte-identical by eval-ing the HEAD template vs the new helper in node (1058 = 1058 chars, equal).
+- 2026-10-20 · Bugs found by probing, not by looking: (1) the shared Tab trap listed `[href]` → every svg `<use href>`
+  was a „focusable”, so Tab on the last row did nothing (facet sheet too: Shift+Tab from × went to a `use`) → `a[href]`;
+  (2) the FO tester launcher (fixed, z 1100) covered the sheet's last row (hover-audit „covered” at width 700) → hidden
+  while `html.is-filter-sheet-open`; (3) code-audit „icon colour ≠ label” on disabled rows: the grey sat on the label
+  span, the button kept #121212 → put the disabled colour on the button itself. Esc for a sheet over a dialog (Ghișeu
+  window): a WINDOW capture listener registered at load runs before js/modal.js and Ghișeu's own capture handler.
+- 2026-10-20 · Demo states that pick a menu item by a row-scoped selector break when the item moves into a body-level
+  sheet → one helper `actMenuPick(itemSel)` (index of the original item → `[data-act-sheet-index]`); hover-only steps
+  (gh-02j tooltip) are skipped when the sheet is open. Brief vs rules: „subtitle = name + number” lost to the user rule
+  „no code in a modal header”, „one-line ellipsis” to the phone rule „wrap, no tooltip on touch” — report deviations.
+  No sub-agent tool → ran code-audit (only `button-not-library` on the option-row buttons, as the facet sheet),
+  component-audit 0 (375 + 320), hover-audit 0 / 0 (temp copy at width 700). Mobbin MCP not available again.

@@ -49,6 +49,55 @@
 
   const INLINE_MAX = 4;
 
+  /* ---- the phone bottom sheet — ONE shell for every sheet built on it (2026-10-20): the facet sheets
+     below and the act post-process action sheet (js/act-row.js, GEAPActRow.sheet). Library .bottom-sheet
+     (scrim, handle, header title + ×, content, optional footer) + .e-permits-filter-sheet (css/facet-filter.css,
+     phones: css/modal-phone.css „Modals on phones”). Same markup, same open / close animation, Esc and Tab trap. */
+  const sheetShellHtml = ({ sprite, titleId, titleHtml = null, headerHtml = "", footerHtml = "" }) => `
+      <div class="bottom-sheet__overlay" data-sheet-close></div>
+      <div class="bottom-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="${titleId}" tabindex="-1">
+        <div class="bottom-sheet__handle" aria-hidden="true"></div>
+        <div class="bottom-sheet__header">
+          ${titleHtml ?? `<h2 class="bottom-sheet__header--title" id="${titleId}" data-sheet-title></h2>`}${headerHtml}
+          <button type="button" class="modal-close" aria-label="Închide" data-sheet-close>
+            <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg></span>
+          </button>
+        </div>
+        <div class="bottom-sheet__content" data-sheet-body></div>${footerHtml}
+      </div>`;
+  const sheetCreate = (className, opts) => {
+    const el = document.createElement("div");
+    el.className = `bottom-sheet ${className}`;
+    el.setAttribute("aria-hidden", "true");
+    el.hidden = true;
+    el.innerHTML = sheetShellHtml(opts);
+    document.body.appendChild(el);
+    return el;
+  };
+  const sheetShow = (el) => {
+    el.hidden = false;
+    void el.offsetHeight; /* the slide-in starts from the closed position */
+    el.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("is-filter-sheet-open");
+  };
+  /* → the timer that sets `hidden` after the slide-out (isOpen() true again = reopened meanwhile) */
+  const sheetHide = (el, isOpen) => {
+    el.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("is-filter-sheet-open");
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    return window.setTimeout(() => { if (!isOpen()) el.hidden = true; }, reduce ? 0 : 300);
+  };
+  /* Tab stays inside the sheet (aria-modal); `a[href]`, not `[href]` — an svg <use href> is not a stop (2026-10-20) */
+  const sheetTrapTab = (el, event) => {
+    const items = [...el.querySelectorAll(".bottom-sheet__panel :is(button, input, a[href], [tabindex]:not([tabindex='-1'])):not(:disabled)")].filter((x) => x.offsetParent || x.getClientRects().length);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !el.contains(active) || active.classList.contains("bottom-sheet__panel"))) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+  };
+
   /* The facet search is the library .search-input: its × / typing spinner follow the library
      states (has-value → is-typing → is-ready) that js/search.js sets. Opted-in pages without that
      file (RAP) get the same states from here — wired once, only for the filter's own fields. */
@@ -282,27 +331,16 @@
 
     const ensureSheet = () => {
       if (sheetEl) return;
-      sheetEl = document.createElement("div");
-      sheetEl.className = "bottom-sheet e-permits-filter-sheet";
-      sheetEl.setAttribute("aria-hidden", "true");
-      sheetEl.hidden = true;
-      sheetEl.innerHTML = `
-      <div class="bottom-sheet__overlay" data-sheet-close></div>
-      <div class="bottom-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="geap-filter-sheet-title" tabindex="-1">
-        <div class="bottom-sheet__handle" aria-hidden="true"></div>
-        <div class="bottom-sheet__header">
-          <h2 class="bottom-sheet__header--title" id="geap-filter-sheet-title" data-sheet-title></h2>
-          <button class="btn btn-text-neutral btn-sm" type="button" data-sheet-reset>Resetează</button>
-          <button type="button" class="modal-close" aria-label="Închide" data-sheet-close>
-            <span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg></span>
-          </button>
-        </div>
-        <div class="bottom-sheet__content" data-sheet-body></div>
+      sheetEl = sheetCreate("e-permits-filter-sheet", {
+        sprite,
+        titleId: "geap-filter-sheet-title",
+        headerHtml: `
+          <button class="btn btn-text-neutral btn-sm" type="button" data-sheet-reset>Resetează</button>`,
+        footerHtml: `
         <div class="bottom-sheet__footer e-permits-filter-sheet__footer">
           <button class="btn btn-primary btn-lg e-permits-filter-sheet__apply" type="button" data-sheet-apply></button>
-        </div>
-      </div>`;
-      document.body.appendChild(sheetEl);
+        </div>`
+      });
       wireSheet();
     };
 
@@ -322,10 +360,7 @@
       sheetEl.classList.toggle("is-all", kind === "all");
       renderSheetBody();
       window.clearTimeout(sheetTimer);
-      sheetEl.hidden = false;
-      void sheetEl.offsetHeight; /* the slide-in starts from the closed position */
-      sheetEl.setAttribute("aria-hidden", "false");
-      document.documentElement.classList.add("is-filter-sheet-open");
+      sheetShow(sheetEl);
       render();
       requestAnimationFrame(() => sheetEl.querySelector(".bottom-sheet__panel").focus());
     };
@@ -334,10 +369,7 @@
       if (!sheet) return;
       const { kind, key, opener } = sheet;
       sheet = null;
-      sheetEl.setAttribute("aria-hidden", "true");
-      document.documentElement.classList.remove("is-filter-sheet-open");
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      sheetTimer = window.setTimeout(() => { if (!sheet) sheetEl.hidden = true; }, reduce ? 0 : 300);
+      sheetTimer = sheetHide(sheetEl, () => !!sheet);
       render();
       if (!restoreFocus) return;
       const back = kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : bar?.querySelector("[data-filter-all]");
@@ -352,10 +384,7 @@
       save();
       const { kind, key } = sheet;
       sheet = null;
-      sheetEl.setAttribute("aria-hidden", "true");
-      document.documentElement.classList.remove("is-filter-sheet-open");
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      sheetTimer = window.setTimeout(() => { if (!sheet) sheetEl.hidden = true; }, reduce ? 0 : 300);
+      sheetTimer = sheetHide(sheetEl, () => !!sheet);
       cfg.apply();
       bar?.querySelector(kind === "facet" ? `[data-filter-facet="${CSS.escape(key)}"]` : "[data-filter-all]")?.focus();
     };
@@ -409,14 +438,7 @@
       sheetEl.addEventListener("keydown", (event) => {
         if (!sheet) return;
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSheet(); return; }
-        if (event.key !== "Tab") return;
-        const items = [...sheetEl.querySelectorAll(".bottom-sheet__panel :is(button, input, [href], [tabindex]:not([tabindex='-1'])):not(:disabled)")].filter((el) => el.offsetParent || el.getClientRects().length);
-        if (!items.length) return;
-        const first = items[0];
-        const last = items[items.length - 1];
-        const active = document.activeElement;
-        if (event.shiftKey && (active === first || !sheetEl.contains(active) || active.classList.contains("bottom-sheet__panel"))) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+        if (event.key === "Tab") sheetTrapTab(sheetEl, event);
       });
     }
 
@@ -625,4 +647,6 @@
   }
 
   window.GEAPFacetFilter = { create };
+  /* the shared phone sheet (used by js/act-row.js) */
+  window.GEAPSheet = { create: sheetCreate, show: sheetShow, hide: sheetHide, trapTab: sheetTrapTab };
 })();

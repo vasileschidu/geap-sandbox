@@ -23,7 +23,19 @@
               triggerAttrs = "data-fo-intent-trigger"   the pill's hook
               itemAttrs = null              (pp) → the menu item's hook (null = data-fo-intent-postprocess)
               noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true   the notice under the row
-              hideEmptyAction = false       no pill when there is nothing to start (Cabinet: expired / paper acts) } */
+              hideEmptyAction = false       no pill when there is nothing to start (Cabinet: expired / paper acts) }
+
+   Phones (≤760, 2026-10-20 — user: „the menu is too small for fat fingers … maybe it shows as we do for filters”):
+   the same trigger opens an ACTION SHEET instead of the dropdown — the facet-filter phone sheet itself
+   (GEAPSheet from js/facet-filter.js: library .bottom-sheet + .e-permits-filter-sheet, header title + ×, scrim,
+   16 top gap / radius 16 from css/modal-phone.css, same slide, Esc, Tab trap), modifier --actions: title = the
+   trigger's label, subtitle = the act name (no number — rule „no code in a modal header”), the menu's items as
+   its 44px option rows with a 24 icon (= 48), a disabled item shows its reason as a second line (touch has no
+   tooltip), no footer: a tap acts at once by clicking the ORIGINAL menu item, so every page keeps its own
+   handler (confirm modal for consequential post-processes, otherwise go on). Works for every trigger in an
+   .e-permits-fo-intent-act__action wrapper (FO #intent, Ghișeu, Cabinet list + act profile header) without
+   any change in the pages. Desktop: unchanged (the compact dropdown). components.md „Act post-process menu on
+   phones — action sheet”. */
 (() => {
   "use strict";
 
@@ -88,5 +100,117 @@
         </li>`;
   }
 
-  window.GEAPActRow = { html, validText, TONE: ACT_ROW_TONE };
+  /* ---- phones: the post-process menu as an action sheet (see the header) ---- */
+  const PHONE = window.matchMedia("(max-width: 760px)");
+  const TRIGGER = ".e-permits-fo-intent-act__action > button[aria-haspopup]";
+  let sheetEl = null;
+  let cur = null; /* { trigger, items } while the sheet is open */
+  let timer = 0;
+
+  const subtitleOf = (trigger) => (trigger.dataset.actSheetSubtitle
+    || trigger.closest(".e-permits-fo-intent-act")?.querySelector(".e-permits-fo-lib-item__title")?.textContent
+    || trigger.closest(".e-permits-page-header")?.querySelector("h1")?.textContent
+    || "").replace(/\s+/g, " ").trim();
+
+  function rowHtml(item, index, sprite) {
+    const label = (item.querySelector("span")?.textContent || item.textContent).replace(/\s+/g, " ").trim();
+    const icon = item.querySelector("use")?.getAttribute("href")?.split("#")[1] || "icon-edit";
+    const disabled = item.disabled || item.getAttribute("aria-disabled") === "true";
+    const reason = disabled ? item.dataset.tooltipReason || item.getAttribute("aria-description") || "" : "";
+    const reasonId = `geap-act-sheet-reason-${index}`;
+    return `
+          <li>
+            <button class="e-permits-workplace__filter-option e-permits-filter-sheet__action${item.classList.contains("is-danger") ? " is-danger" : ""}" type="button" data-act-sheet-index="${index}"${disabled ? ` aria-disabled="true"${reason ? ` aria-describedby="${reasonId}"` : ""}` : ""}>
+              <svg class="icon" aria-hidden="true"><use href="${esc(sprite)}#${esc(icon)}"></use></svg>
+              <span class="e-permits-filter-sheet__action-text">
+                <span class="e-permits-workplace__filter-option-label">${esc(label)}</span>${reason ? `
+                <span class="e-permits-filter-sheet__action-reason" id="${reasonId}">${esc(reason)}</span>` : ""}
+              </span>
+            </button>
+          </li>`;
+  }
+
+  function closeSheet(restoreFocus = true) {
+    if (!cur) return;
+    const { trigger } = cur;
+    cur = null;
+    timer = window.GEAPSheet.hide(sheetEl, () => !!cur);
+    trigger.setAttribute("aria-expanded", "false");
+    if (restoreFocus && trigger.isConnected) trigger.focus({ preventScroll: true });
+  }
+
+  function ensureSheet(sprite) {
+    if (sheetEl) return;
+    sheetEl = window.GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions", {
+      sprite,
+      titleId: "geap-act-sheet-title",
+      titleHtml: `<div class="e-permits-filter-sheet__heading">
+            <h2 class="bottom-sheet__header--title" id="geap-act-sheet-title" data-sheet-title></h2>
+            <p class="e-permits-filter-sheet__subtitle" id="geap-act-sheet-subtitle" data-sheet-subtitle></p>
+          </div>`
+    });
+    sheetEl.addEventListener("click", (event) => {
+      if (!cur) return;
+      if (event.target.closest("[data-sheet-close]")) { closeSheet(); return; }
+      const row = event.target.closest("[data-act-sheet-index]");
+      if (!row || row.getAttribute("aria-disabled") === "true") return;
+      const item = cur.items[Number(row.dataset.actSheetIndex)];
+      /* the page's own handler runs on its own menu item: confirm modal or go on, exactly as on desktop */
+      closeSheet();
+      item?.click();
+    });
+    sheetEl.addEventListener("keydown", (event) => {
+      if (cur && event.key === "Tab") window.GEAPSheet.trapTab(sheetEl, event);
+    });
+  }
+
+  function openSheet(trigger) {
+    const menu = document.getElementById(trigger.getAttribute("aria-controls") || "");
+    const items = menu ? [...menu.querySelectorAll("[role='menuitem']")] : [];
+    if (!items.length || !window.GEAPSheet) return false;
+    const sprite = items[0].querySelector("use")?.getAttribute("href")?.split("#")[0] || "assets/icons/sprite.svg";
+    ensureSheet(sprite);
+    const subtitle = subtitleOf(trigger);
+    sheetEl.querySelector("[data-sheet-title]").textContent = (trigger.querySelector("span")?.textContent || trigger.textContent).replace(/\s+/g, " ").trim();
+    const sub = sheetEl.querySelector("[data-sheet-subtitle]");
+    sub.textContent = subtitle;
+    sub.hidden = !subtitle;
+    const panel = sheetEl.querySelector(".bottom-sheet__panel");
+    if (subtitle) panel.setAttribute("aria-describedby", "geap-act-sheet-subtitle"); else panel.removeAttribute("aria-describedby");
+    sheetEl.querySelector("[data-sheet-body]").innerHTML = `
+        <ul class="e-permits-workplace__filter-list e-permits-filter-sheet__list" role="list">${items.map((item, i) => rowHtml(item, i, sprite)).join("")}
+        </ul>`;
+    if (!menu.hidden) menu.hidden = true; /* a dropdown left open from a wider window */
+    cur = { trigger, items };
+    window.clearTimeout(timer);
+    window.GEAPSheet.show(sheetEl);
+    trigger.setAttribute("aria-haspopup", "dialog");
+    trigger.setAttribute("aria-expanded", "true");
+    requestAnimationFrame(() => panel.focus());
+    return true;
+  }
+
+  /* capture: on phones the pages' own dropdown toggles never see the trigger's click */
+  window.addEventListener("click", (event) => {
+    if (!PHONE.matches) return;
+    const trigger = event.target.closest?.(TRIGGER);
+    if (!trigger || trigger.disabled || !openSheet(trigger)) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+  /* the trigger announces what it opens in the current mode */
+  window.addEventListener("focusin", (event) => {
+    const trigger = event.target.closest?.(TRIGGER);
+    if (trigger) trigger.setAttribute("aria-haspopup", PHONE.matches ? "dialog" : "menu");
+  }, true);
+  /* Esc closes the sheet only (js/modal.js would close a dialog behind it — Ghișeu window) */
+  window.addEventListener("keydown", (event) => {
+    if (!cur || event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeSheet();
+  }, true);
+  PHONE.addEventListener("change", () => closeSheet(false));
+
+  window.GEAPActRow = { html, validText, TONE: ACT_ROW_TONE, closeSheet, isSheetOpen: () => !!cur };
 })();
