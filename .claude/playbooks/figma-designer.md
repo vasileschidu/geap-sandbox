@@ -2112,3 +2112,9 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   the stored canonical rows („cab”/„smrows” + out/smrows.json) so a later rebuild does not bring it back — no rebuild, so no
   connector is lost. Shorter phone meta = shorter screens → restack every touched column to gap 240 / bottom 80 and move the
   jump markers (absolute) with their block.
+- 2026-10-20 · Sort sheet v2 (e9d596eb, „Ordine” = radio rows like „Sortează după”): the phone sheet content is a LOCAL
+  component per block („Sort sheet content · sm-01f / sm-01t”) swapped into the library bottom-sheet slot → edit the component
+  in place (clone the key group, keep 2 rows, re-label, re-select, switch the 16/24 text style to medium on the selected row) and
+  every block updates with no rebuild and no lost arrow. Patch the stored builder + repo copy + the DOM extractor selectors in
+  the same pass (keys / orders split by input name). Measure the code once with CDP (`node --experimental-websocket` on Node 20
+  for cdp.mjs) before declaring a height delta: 676 vs 672 = library sheet action 88 vs code footer 84.
