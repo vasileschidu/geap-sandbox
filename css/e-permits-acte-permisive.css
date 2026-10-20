@@ -18712,11 +18712,11 @@
    the same size footprint, similar to Telegram”) =====
    The icon box is fixed (24 phones / 20 desktop, flex 0 0, the glyph centred by its viewBox); the glyphs come from
    js/act-row.js ppIcon (one outline family, ~17–20 of 24). The two sprite glyphs whose drawing is off-size are
-   normalised here — never in the sprite: icon-cross-large draws 14.4 → ×1.2 (= edit / copy 17.2), icon-judge-gavel
+   normalised here — never in the sprite: icon-cross-large draws 14.4 → ×0.9 (≈13; a bare × reads bigger than its box — user „X too big compared to pen”), icon-judge-gavel
    draws 23.3 wide → ×0.85 (= 19.8, the circle-error width). Every menu built with `.e-permits-fo-intent-menu__item`
    (act rows, act profile, Ghișeu, the Cabinet request ⋮) — components.md „Row action menu — icon map”. */
 .e-permits-fo-intent-menu__item > .icon:has(> use[href$="#icon-cross-large"]) {
-  --menu-icon-optical: 1.2;
+  --menu-icon-optical: 0.9;
 }
 
 .e-permits-fo-intent-menu__item > .icon:has(> use[href$="#icon-judge-gavel"]) {

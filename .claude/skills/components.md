@@ -2100,7 +2100,7 @@ normalised in CSS (`--menu-icon-optical` → `scale`, matched by `use[href$="#�
 | Suspendare valabilitate | `icon-lock` | 15.8 × 19.8 | was icon-pause (10 × 14, two light bars) |
 | Reluarea valabilității | `icon-rotate-arrow` | 17.2 | — |
 | Contestație / Depune contestație | `icon-judge-gavel` × 0.85 | 23.3 → 19.8 | Ghișeu was icon-flag |
-| Retragere (act permisiv) — danger | `icon-cross-large` × 1.2 | 14.4 → 17.3 | was icon-cross-small (9.6) |
+| Retragere (act permisiv) — danger | `icon-cross-large` × 0.9 | 14.4 → 13 (a bare × reads bigger — user „X too big compared to pen”) | was icon-cross-small (9.6) |
 | Anulare — danger | `icon-circle-error` | 19.8 | circles read smaller → the full 20 |
 | Detalii | `icon-eye-open` | 20.5 × 15.2 | request ⋮ |
 | Continuă schița | `icon-edit` | 17.2 | request ⋮ |

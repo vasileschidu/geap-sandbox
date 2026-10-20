@@ -81,7 +81,7 @@
 
   /* ONE icon per post-process (act-icons-v1, 2026-10-20, user: „nice central icons, all the same size footprint, like
      Telegram”): one outline family, each glyph optically ~17–20 of the 24 box (measured ink boxes: edit / copy /
-     rotate 17.2, cross-large 14.4 → ×1.2 in CSS, lock 15.8×19.8, calendar-add 18.1×19, circle-error 19.8, judge-gavel
+     rotate 17.2, cross-large 14.4 → ×0.9 in CSS, lock 15.8×19.8, calendar-add 18.1×19, circle-error 19.8, judge-gavel
      23.3 → ×0.85 in CSS). Picked by id OR label, so the FO / Cabinet data ids and the Ghișeu labels map the same;
      the item's own icon is the fallback. Replaced: pause (10×14, light), cross-small (9.6), flag. components.md
      „Row action menu — icon map”. */
