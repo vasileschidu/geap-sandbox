@@ -1781,7 +1781,7 @@
     <div class="e-permits-fo-confirm-file e-permits-fo-confirm-file--doc e-permits-fo-confirm-file--${doc.sursa === "upload" ? "uploaded" : "system"}${actions ? " e-permits-gh__doc" : ""}">
       ${R().docIconHtml?.(doc, "e-permits-fo-confirm-file__icon") || ""}
       ${R().docContentHtml?.(doc) || esc(doc.tip)}
-      ${actions ? `<div class="e-permits-gh__doc-actions">${actions}</div>` : ""}
+      ${actions ? `<div class="e-permits-gh__doc-actions cab-doc__actions">${actions}</div>` : ""}
     </div>`;
   const detailsBtn = (attrs, label) => `<button class="btn btn-neutral btn-sm" type="button" aria-label="Detalii: ${esc(label)}" ${attrs}>${icon("eye-open", 20, "icon small")}<span>Detalii</span></button>`;
   function reviewSummaryHtml(d) {

@@ -3508,7 +3508,7 @@ document.addEventListener("DOMContentLoaded", () => {
       title = kind === "acte" ? (/decizie/i.test(d.tip) ? "Decizie" : "Act permisiv")
         : kind === "documente" ? "Document generat"
         : d.act ? "Act permisiv emis anterior" : "Document însoțitor";
-      subtitle = d.act ? `${d.act.nr} · ${row.serviciu}` : kind === "acte" && nr ? `${nr} · ${row.serviciu}` : d.tip;
+      subtitle = d.act || (kind === "acte" && nr) ? row.serviciu : d.tip; /* no act / dossier number in a modal header (rule) */
       rows = [
         ["Tip document", escapeHtml(d.tip)],
         ...((d.tags || []).length ? [["Statutul", d.tags.map(([label, tone]) => renderTag(label, tone)).join(" ")]] : []),
