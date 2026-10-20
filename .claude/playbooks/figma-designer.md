@@ -85,6 +85,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | eKYC „Filtrare avansată” + status tabs (local, 2026-10-19) | eKYC `10818:1084` / `10818:1369` / `10819:1399` / `10819:1688` / `10819:2467` / `10828:2157`·`2193`·`2230` | Advanced filter · button (Count × State Default/Open, 36, focus ring needs clip) · Status tabs (Tabs Count 2–8, tab-item-s 40 + Track line) · Facet filter · option (Content Text/Tag/Field × State × Size Desktop/Touch) · Facet filter · popover (Checklist / More, Show search) · Advanced filter · bar (Meta Hint/Pending/Applied, EVO DS filter-chip a2731000) · Filter sheet content · ek-04j / 04l / 04m (bottom-sheet slot). Builders tools/figma/ekyc-filter/ |
 | eKYC „Profile tabs” (local, 2026-10-19) | eKYC set `10835:1715` (Tabs Count 2 `10835:1389` · 3 `:1407` · 4 `:1430` · 5 `:1460` · 6 `:1497` · 7 `:1541` · 8 `:1592` · 9 `:1650`) | BO page-header tab strip (.e-permits-page-header__tabs): library tab-item-s 40 (exposed Tab 1…n: Label / Badge / Icon / Type), Track line absolute index 0, strip hugs its tabs; counters = numbered-badge Large 20 (Neutral / Accent). Replaced the library „tabs” (tab-item-md 48) on 111 strips. Tools tools/figma/ekyc-profile-tabs/ |
 | FO header long name (local, 2026-10-19) | GEAP `FO header · service title` set 12089:8112 (Title Short / Long collapsed / Long expanded × Screen Desktop / Mobile; props `Name#12089:0`, `Name · lines#12089:7`, `Name · last line#12089:14`, exposed `Toggle`) · `Name expand · toggle` set 12088:8094 (Expanded False/True × State Default/Hover) · holder 12088:7138 on 🧩 Local components | code js/name-expand.js + css/name-expand.css. Desktop H5 18/26 row 859, Mobile H5 16/24 row 343 (26 floor); toggle = Desktop/Body/Small 500 text/brand/default + 16/chevron-bottom (20/chevron-top at 16 when expanded), icon/brand/default, gap 2. Mobile FO `Header` 3521:12175 got `Show draft status#12094:0` (row „Draft status” 12094:352183, gap 12) — steps 2–6 = on + TitleContainer swapped to the Short title → header 126 = code |
+| Trajectory — ONE component (2026-10-20) | GEAP `Trajectory · step` **9696:556** (State Completed / Current / Suspended / Attention / Rejected / Next / Skipped × Layout Horizontal / Vertical) + `Trajectory · connector` 12155:272677 (Layout × Reached) on ↳ BO -> Dossiers (🧩 Dossiers · components). 1:1 copies: eKYC 10864:1659 / 10864:1644 · FOD 1026:777 / 1026:762 · Cabinet 1087:2497 / 1087:2482 | code js/trajectory.js + css/trajectory.css. Props `Label` (was „Tag”), `Date and person`, `Show details`, `Show line` (vertical connector + 24 tail), `Show tag` (vertical, exposed tag-filled Small: „Acum” Strong Brand 2b352fa2…, „Opțional” Subtle Neutral e4da1f91…); vertical connector = exposed instance (set Reached per step). Card = frame (white, border 1, radius-24, p20, strokesIncludedInLayout) › `steps` row. Builder + snap: tools/figma/trajectory/trajectory-set.js (stored per file in shared plugin data „traj/lib”) |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -1831,3 +1832,39 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → stored figma-audit (`ghs/audit`, `eval` then `fn(roots)`) on the set, Document · details, the
     04l overlay, the Services heading wrappers / raw rows and the Classifiers rows: 0 findings except the A4 preview baseline
     (scaled page fractional + clipped in its scroll viewport, row list gap 0).
+
+- 2026-10-20 · Trajectory („Traiectoria dosarului”) = ONE component in all four files (code bc6e5eff). GEAP step set 9696:556 upgraded IN
+  PLACE (renamed „Trajectory · step”, Tag → Label, Layout property, Attention / Skipped, 7 vertical variants) + new „Trajectory · connector”
+  12155:272677; 24 dossier cards: 120 raw connector frames → connector instances; FO 09 F8 / F8b / F8c / F8d / F8e (desktop horizontal,
+  phone vertical tracker + „Statutul dosarului”) and Post-processes 10f / 12a / 14b / 16a rebuilt from the component; eKYC 29 cards (Sessions
+  9, Review 18, Audit 2 — the remaining „Numbered List” frames are event logs, not trajectories), FOD G7d (4 cards), Cabinet ↳ My requests
+  (5 profiles × desktop + phone + Completion → Online Payment). Heights equal the code (130 / 92 / 282 / 216 / phone 318 / 330 / 218). Lessons:
+  - **Upgrade a set in place, never rebuild-and-swap**: clear each variant's children and refill them with layers bound to the SAME property
+    ids → every instance keeps its values (snapshot of 144 instances in shared plugin data, compared after: 0 diffs). Renaming a TEXT property
+    with `editComponentProperty(key, {name})` keeps the values too. New variants = `createComponent()` + `set.appendChild()` + name „A=x, B=y”.
+  - `componentPropertyReferences` throws „Can only set component property references on symbol sublayer” on a node that is not yet inside
+    the component → append first, bind after (bindTexts pass at the end of each variant build).
+  - The component holder frame (🧩 Dossiers · components) is auto-layout: x / y are ignored → place new sets with `insertChild(index)`.
+  - Dashed ring from a library icon: `dashPattern` on the vector looked SOLID because the vector's caps are SQUARE (each dash grows by the
+    stroke width) → `strokeCap = "NONE"` + [2, 2].
+  - Vertical pill that grows 4 to the left (code margin-left −4): a `label-holder` HUG frame with an ABSOLUTE rect at x −4, w + 8, constraints
+    STRETCH / STRETCH, behind the label — it follows label overrides in instances; no negative padding needed.
+  - The code's vertical step without meta is 26 + 24 (empty grid row + row gap), not 22 + 24 → content minHeight 26 makes the Figma pitch 50 = code.
+  - A connector that must sit beside the text column (vertical) lives INSIDE the step (rail = marker + exposed connector instance FILL, 8 / 8
+    padding) with a 24 tail bound to `Show line`; the last step turns both off. Horizontal connectors stay separate instances between steps.
+  - Equal FILL connectors give fractional widths (122.2) → audit `fractional`. snapRow: all but the last FIXED base / base+1, last FILL (still
+    responsive, whole pixels). Marker x 26.5 inside odd-width steps remains (centring over the label, same half pixel in the code) — declared.
+  - One builder, four files: store `(() => { …; return TRAJ; }).toString()` in `figma.root` shared plugin data and `eval` it per call; patch the
+    stored source with string replaces instead of re-pasting 17 KB. Imports by key (Foundations e9e8 variables / styles / icons, tag-filled
+    a97109f9…) worked in eKYC, FOD and Cabinet.
+  - **Check the screen's hug chain after content grows**: FOD G7d's phone Main Content was FIXED → the new vertical tracker overflowed 202 px
+    under a clipping screen; desktop Container FILL in a FIXED Section hid 26 px. Walk up from the card and set HUG where content > frame.
+  - Column rules: F8 column restacked at 240 (blocks +252 for the phone tracker), Post-processes column 12a → 13… moved +16 (gap 200 kept),
+    eKYC blocks that shrank 16 (146 → 130 cards) moved their column up 16; gap check 0 overlaps.
+  - Code deltas reported, not changed: Foundations `pause` (two wide bars) vs the code sprite `icon-pause` (2 px bars) — proto-engineer should
+    pick one; demo dates differ (dos-01 code „8 / 9 iul.” vs Figma „5 / 8 iul.”); Cabinet ↳ My requests is still the old design (desktop
+    horizontal stepper in a card, no „Stadiul solicitării” status card; Draft profile has no stepper; hidden legacy „Frame 1261156234”
+    steppers left hidden); pp-17a has no Figma block; eKYC and FOD have no file-level index (Cover only).
+  - No Agent tool / MCP resource reader in this session → stored figma-audit (`ghs/audit`) on GEAP set + 11 cards (0 after snap, except the
+    declared marker half pixel inside the set mains) and an inline mini-audit (fractional / unbound colours) on every card in eKYC, FOD, Cabinet: 0.
+
