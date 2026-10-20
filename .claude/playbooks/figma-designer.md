@@ -87,6 +87,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | eKYC „Profile tabs” (local, 2026-10-19) | eKYC set `10835:1715` (Tabs Count 2 `10835:1389` · 3 `:1407` · 4 `:1430` · 5 `:1460` · 6 `:1497` · 7 `:1541` · 8 `:1592` · 9 `:1650`) | BO page-header tab strip (.e-permits-page-header__tabs): library tab-item-s 40 (exposed Tab 1…n: Label / Badge / Icon / Type), Track line absolute index 0, strip hugs its tabs; counters = numbered-badge Large 20 (Neutral / Accent). Replaced the library „tabs” (tab-item-md 48) on 111 strips. Tools tools/figma/ekyc-profile-tabs/ |
 | FO header long name (local, 2026-10-19) | GEAP `FO header · service title` set 12089:8112 (Title Short / Long collapsed / Long expanded × Screen Desktop / Mobile; props `Name#12089:0`, `Name · lines#12089:7`, `Name · last line#12089:14`, exposed `Toggle`) · `Name expand · toggle` set 12088:8094 (Expanded False/True × State Default/Hover) · holder 12088:7138 on 🧩 Local components | code js/name-expand.js + css/name-expand.css. Desktop H5 18/26 row 859, Mobile H5 16/24 row 343 (26 floor); toggle = Desktop/Body/Small 500 text/brand/default + 16/chevron-bottom (20/chevron-top at 16 when expanded), icon/brand/default, gap 2. Mobile FO `Header` 3521:12175 got `Show draft status#12094:0` (row „Draft status” 12094:352183, gap 12) — steps 2–6 = on + TitleContainer swapped to the Short title → header 126 = code |
 | Trajectory — ONE component (2026-10-20) | GEAP `Trajectory · step` **9696:556** (State Completed / Current / Suspended / Attention / Rejected / Next / Skipped × Layout Horizontal / Vertical) + `Trajectory · connector` 12155:272677 (Layout × Reached) on ↳ BO -> Dossiers (🧩 Dossiers · components). 1:1 copies: eKYC 10864:1659 / 10864:1644 · FOD 1026:777 / 1026:762 · Cabinet 1087:2497 / 1087:2482 | code js/trajectory.js + css/trajectory.css. Props `Label` (was „Tag”), `Date and person`, `Show details`, `Show line` (vertical connector + 24 tail), `Show tag` (vertical, exposed tag-filled Small: „Acum” Strong Brand 2b352fa2…, „Opțional” Subtle Neutral e4da1f91…); vertical connector = exposed instance (set Reached per step). Card = frame (white, border 1, radius-24, p20, strokesIncludedInLayout) › `steps` row. Builder + snap: tools/figma/trajectory/trajectory-set.js (stored per file in shared plugin data „traj/lib”) |
+| EVO Cabinet requests pieces (local, 2026-10-20) | Cabinet section „Cabinet · requests components (2026-10-20)” on 🧱 Local components (id in root `cab`/`ids` smSection) | Request row 1117:3222 (State Default/Hover/Menu open × Screen; props Title/Number/What/Authority/Subdivision/Date + Show what/authority/subdivision/tag 2/tag 3/alert/retry; exposed Status, Tag 2/3, Alert, Retry message, More) · Copy value 1117:3000 (value + button-text-rectangular Strict Small Icon Only, 16 copy; frame FIXED 20, button overflows ±6 = code margin-block) · Sort trigger 1119:3048 (detached button-filled-rectangular Neutral Small + leading direction icon prop) · Facet filter · date chip 1119:3061 · date option 1119:3224 (Desktop 32 / Touch 44) · date popover 1119:3428 (Show range / Show error) · Profile tabs 1120:3097 · Notification row 1135:3238 (Screen) · Authorization card (MPower) 1120:3152 · Message · subtle gained Tone=Error 1117:3009 + Tone=Success · Confirm modal gained „Show error”. Builders tools/figma/cabinet/ (README-sm.md) |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -2043,3 +2044,34 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → figma-audit rules run by hand on the 3 component sets per file, the Act row mobile variants and every
     changed phone (GEAP / Cabinet / FOD): fixed unbound overlay padding (→ spacings/16), gap 3 → 4, .5 / .67 widths in cloned input rows
     and the „sau” divider, two „Button Container” / „Select list” names (raw-control false positives).
+
+- 2026-10-20 · EVO Cabinet „Solicitările mele” board rebuilt from the code (file iitScYOwMYjDayuyrm3750, page ↳ My requests 10:19047;
+  44 blocks × desktop 1440 + phone 375 in 7 column sections + `00 · Start here` 1122:6536; old page moved unchanged into `Archive ·
+  before 2026-10` 1114:5910; the two live component holders that sat on that page (Documents 983:2519, Instance switcher 1014:4587)
+  moved to 🧱 Local components instead of the archive). Tools: tools/figma/cabinet/spec-sm.mjs, payload-sm.py, blocks-sm.json,
+  screens-sm.js, components-sm.js, README-sm.md. Lessons:
+  - **Spec → stored builder → tiny payloads scales**: the per-block call is only B/D/M JSON + a stored runner (`cab`/`smrun`);
+    canonical list rows live in root plugin data (`cab`/`smrows`, rows referenced as „@id”), shared profiles are reused inside one
+    call. Two to three profile blocks per call were safe (~40–60 s); never had a transport drop.
+  - **The spec extractor must keep inline order**: rich text = segments [text, 0 plain | 1 bold | 2 link] with the link IN place
+    (the first version lifted links out and lost „din Catalogul serviciilor.”); `<br>` → „\n”; values must exclude their tags'
+    text (a Tag row read „22 septembrie 2026Aprobare tacită”) — fixed in payload-sm.py `fixtags`; doc meta lines are
+    `display: contents` → read them without a visibility filter.
+  - **Bold inside a 16 px text**: richText applied the 14 px medium style to bold ranges of 16 px dialog texts (mixed sizes) → pick
+    the medium style by the node's fontSize (body500 / small500). Keep blank lines: collapse only spaces around „\n”.
+  - **Phone confirm = bottom sheet flush**: X.overlay adds +32 under docked dialogs → phone screens grew to 844; dock at 812 − h.
+  - **Variant from a finished component**: clone the standalone component, restyle the clone (VERTICAL phone layout), then
+    combineAsVariants — but after switching layoutMode re-set every child's sizing (Main stayed FILL-vertical at 1 px, the action
+    button went HUG = 20 high). Library buttons in a variant: keep them FIXED 32.
+  - **Avatar initials**: `setProperties({"🎚️ Type": "Initials"})` failed silently inside try → swap to the Initials variant of the
+    avatar's own set and write the initials text.
+  - Message · subtle needed Error + Success tones (clone a tone variant, recolour fill + swap icon + re-bind the text property ref).
+  - Track line of a hugging tab strip: make the instance FILL so the absolute STRETCH line runs the column width (code draws the
+    line on the `.tabs` wrapper, the strip hugs).
+  - Whole pixels: centred pagers in odd free space (+1 on the range text / 1 px right padding on phone pagers), equal-half fields
+    (first FIXED 167, last FILL) — the gate audit found nothing else (0 unbound colours, 0 unstyled texts, 0 raw controls).
+  - The coordinator announced mid-job that the PHONE list toolbar changes in code (one row: „Filtre” + sort pill, no chip row) →
+    finished desktop + profiles + phones of profiles, left the phone list toolbars for a follow-up with the final commit.
+  - No Agent tool in this session → stored gate audit (`qsweep`/`audit`, now also in the Cabinet file) on all 44 blocks + the new
+    components: left = section-over-card gap 0 (role groups), meta-dot gap 18 (pattern), intentional clips (chip scroll rows,
+    page behind phone sheets at 812).
