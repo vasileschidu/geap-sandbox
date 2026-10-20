@@ -329,6 +329,28 @@
   /* slot 4 of the meta: the status's own date, else „Depusă …” */
   const rowDate = (dosar) => uiOf(dosar).date?.(dosar) || `Depusă ${longDate(dosar.submitted)}`;
 
+  /* DEMO ONLY — ?alerte=comparatie (state sm-01z, user 2026-10-20: „put our alert from components near the actual
+     alert and see the difference”): under the row's real alert, the SAME text + link in each library alert, markup
+     copied from Components/message-alerts.html, messages.html, messages-inline.html (sprite icons; the library's
+     `modal--fade` is left out — main.css gives it opacity 0 outside an open modal). The real rows never get this. */
+  function withAlertCompare(dosar, alert, html) {
+    if (!alert || state.alertCompare !== dosar.id) return html;
+    const sprite = "../assets/icons/sprite.svg";
+    const glyph = `<svg class="icon large" aria-hidden="true"><use href="${sprite}#${alert.icon}"></use></svg>`;
+    const close = `<button class="banner__close" type="button" aria-label="Închide"><span class="d-inline-flex"><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-cross-large"></use></svg></span></button>`;
+    const banner = (withClose) => `<div class="banner banner--warning"><span class="banner__icon">${glyph}</span><div class="banner__content"><p>${alert.html}</p></div>${withClose ? close : ""}</div>`;
+    const samples = [
+      ["1 · Actual — mesaj subtil · .message.message--subtle.banner--warning", `<div class="message message--subtle banner--warning e-permits-fo-intent-act__pending"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="${sprite}#${alert.icon}"></use></svg></span><div class="banner__content"><p class="banner__text">${alert.html}</p></div></div>`],
+      ["2 · Alertă banner (message-alerts.html), fără „×” · .banner.banner--warning", banner(false)],
+      ["2b · Alertă banner cu „×”, ca în bibliotecă · .banner.banner--warning + .banner__close", banner(true)],
+      ["3 · Message banner (messages.html) · .message.message--banner.message--warning", `<div class="message message--banner message--warning"><span class="message__icon">${glyph}</span><div class="message__content"><p class="message__title">Taxă de achitat</p><p class="message__text">${alert.html}</p></div></div>`],
+      ["4 · Mesaj inline (messages-inline.html) · .message.message--inline.message--warning", `<div class="message message--inline message--warning"><span class="message__icon">${glyph}</span><span class="message__text">${alert.html}</span></div>`],
+    ];
+    const block = `<div class="cab-alert-compare" data-sm-alert-compare>${samples.map(([caption, sample]) => `<div class="cab-alert-compare__item"><p class="cab-alert-compare__caption">${escape(caption)}</p>${sample}</div>`).join("")}</div>`;
+    const contentEnd = html.lastIndexOf("</div>", html.indexOf('<div class="cab-doc__actions cab-card__actions">'));
+    return `${html.slice(0, contentEnd)}${block}${html.slice(contentEnd)}`;
+  }
+
   /* Solicitările mele row (2026-10-20, user: „the same stacked list as Actele mele permisive”) = the act row
      (js/act-row.js, GEAPActRow.html — .e-permits-fo-lib-item.e-permits-fo-intent-act: bordered card, r12, 12
      padding, tertiary hover) with the request's content, desktop AND phones (the US-19 table is gone):
@@ -354,7 +376,7 @@
     }
     const name = dosar.object || service.title || "";
     const alert = rowAlert(dosar);
-    return window.GEAPActRow.html({ ...base, name }, {
+    return withAlertCompare(dosar, alert, window.GEAPActRow.html({ ...base, name }, {
       ...common,
       attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}${dosar.status === "schita" ? " — continuă completarea" : ""}`)}"`,
       extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
@@ -366,7 +388,7 @@
       actionHtml: `
           <div class="cab-doc__actions cab-card__actions">${actionsHtml(dosar).replace("e-permits-fo-intent-act__action cab-card__actions", "e-permits-fo-intent-act__action")}</div>`,
       rowClass: `cab-request-row${dosar.justAdded ? " is-new" : ""}`,
-    });
+    }));
   }
 
   /* US-158 AC-04 / 05: Statut and Autoritatea emitentă = multi-select facets of the shared facet filter
@@ -1470,6 +1492,11 @@
       state.dosare.filter((dosar) => dosar.status === "achitare" && dosar.payment).forEach((dosar) => {
         dosar.payment = { ...dosar.payment, status: "Expirat", due: addDays(TODAY, -2) };
       });
+    }
+    /* DEMO ONLY (sm-01z): one payable request, with the library alerts under its alert (withAlertCompare) */
+    if (params.get("alerte") === "comparatie") {
+      const pick = state.dosare.find((dosar) => dosar.status === "achitare" && !paymentExpired(dosar));
+      if (pick) { state.dosare = [pick]; state.alertCompare = pick.id; }
     }
     if (params.get("plata") === "anulata") {
       state.notice = { tone: "banner--warning", icon: "icon-warning-filled", html: "Plata nu a fost finalizată. Statutul dosarului nu s-a modificat — puteți reîncerca din „Achitare” până la expirarea notei de plată." };

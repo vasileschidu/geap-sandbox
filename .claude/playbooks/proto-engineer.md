@@ -1572,3 +1572,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   When a sheet holds two single-choice groups, build both from one row helper. Trap avoided: redrawing a radio group on
   its own `change` replaces the focused input and breaks arrow-key navigation — redraw only the group whose LABELS change
   (the order after a key change), never the one being chosen in. hover-audit crashed on its first (cold) run again — rerun.
+- 2026-10-20 · Comparison demo (sm-01z „Comparație alerte”, user: „put our alert from components near the actual one”).
+  Cheapest isolation: a URL param (`?alerte=comparatie`) filters the data to ONE record and a wrapper around the row
+  builder's RETURN string inserts the samples before the row content's closing `</div>` (found from the action
+  markup) — the shared `GEAPActRow.html` and the real rows stay untouched. Library traps found by measuring, not
+  reading: (1) the library alert markup carries `modal--fade` = `opacity: 0` in main.css outside an open modal →
+  copying it „exactly” renders an invisible alert; drop it and say so. (2) `messages.html` has emoji icons and no
+  warning sample; `.message--warning` colours only `.banner__icon`, so `.message__icon` stays black. (3) Library
+  `.banner` / `.message--banner` are page-top strips: radius 0, centred content, padding-right 40 reserved for the ×,
+  16 / 22.4 text on desktop (line-height 1.4 → fractional px), slide-in animation; `.message--inline` is 14 / 19.6
+  with the WHOLE text in apricot-700. hover-audit with the card as scope lists the clickable row's children as
+  „no-hover” (same on sm-01a = tool artefact) → audit with `--scope .sm-list-view` (0 / 0).
