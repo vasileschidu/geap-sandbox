@@ -1896,3 +1896,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     „Serviciu: …” meta (App Shell, Workplace).
   - No Agent tool in this session → stored figma-audit (`ghs/audit`, call with id strings — node objects give „missing-root”) on the
     two certificate frames, the RSSP cards and the new FO 09 rule card: 0 findings.
+
+- 2026-10-20 · „Doar citire” lock with stroke AND fill (user: „in some modals the lock has a stroke and also a fill”). Census of every lock
+  in the five files (by layer name AND by main-component name for renamed „Icon” instances): GEAP ~520 locks, eKYC 52, FOD 2, EVO Cabinet 3,
+  EVO-WEB ~139; broken (stroke + fill) = 9, all in GEAP: the svc/info-note inside `Modal content / Document · details` 11366:6892
+  (I11366:7098;9624:13363) + its 8 instances in Dossiers 04e–04l modals. Code = `icon-lock` (fill-only, 20, icon/base/tertiary,
+  js/e-permits-shell.js renderReadOnlyNote). Fix in the MAIN: swapComponent → Foundations **24/lock** (key fbeb6d2d…) resized 20, fill =
+  icon/base/tertiary (VariableID …/1296:255), strokes [] → every instance followed (they had no own override). The 3 raw captured
+  „info-box” notes with an 18 px central stroke lock (Dossiers 03c 9721:11834, 04b 9727:13604, `Modal content · Event details` 10784:263866)
+  → clones of the fixed 11366:7098 (an instance inside a main clones as a normal instance with its overrides), FILL. Lessons:
+  - **Root cause pattern**: svc/info-note's slot holds 20/circle-info-filled with a FILL override (tertiary). Swapping the nested icon to a
+    central STROKE icon (lock, private filled=off) keeps that fill override on the new vector → filled closed shapes under the stroke =
+    bold blob. The reverse (stroke → fill icon) gives `fills: []` (invisible, lesson 2026-10-15). After any icon swap across families,
+    check the vector's fills AND strokes; read `instance.overrides` (`…;5706:58629:fills` was the giveaway).
+  - Census by name misses renamed icons („Icon” → 24/lock in the Cabinet MPower restriction callout, lock filled=on 36 in auth screens):
+    second pass = small instances (≤ 40) with non-icon names → getMainComponentAsync → match /lock/. Huge pages: per section; pages with
+    ~6,000 small instances (Services 02) still pass in one call; four pages in one call timed out → one page per call when unsure.
+  - `figma.variables.getVariableByIdAsync` returned null for a library variable used only through paints → copy the bound paint from a
+    node that already has it (JSON clone of `fills`) instead of binding by id.
+  - Not changed, reported: eKYC Read Only text-inputs show the EVO DS library default trailing icon „lock, private” stroke=2 (stroke-only,
+    not broken) while the code uses icon-lock (fill) — a library-level difference for the PO / DS owner; Classifiers „Doar consultare”
+    banners = raw captured banner frames with 24/lock 20 (fill-only, fine glyph). Census builders stored in figma.root shared plugin data
+    „lockfix” (census / c2 / c3 / c4 / txt) in each file.
