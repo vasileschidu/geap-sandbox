@@ -1918,3 +1918,31 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     not broken) while the code uses icon-lock (fill) — a library-level difference for the PO / DS owner; Classifiers „Doar consultare”
     banners = raw captured banner frames with 24/lock 20 (fill-only, fine glyph). Census builders stored in figma.root shared plugin data
     „lockfix” (census / c2 / c3 / c4 / txt) in each file.
+
+- 2026-10-20 · No download in document rows (user rule; GEAP 11333:20746 = a ⋮ whose only item was „Descarcă”). GEAP: `Document · row`
+  11362:7113 — the six „Action=Details + ⋮” variants renamed IN PLACE to „Action=Details” with the ⋮ child removed (77 rows in Dossiers
+  04, 04c–04t follow, 0 swaps), 12 unused variants deleted („⋮” ×9, „Menu open · Details + ⋮” ×3 after moving their 2 instances to
+  Default), set re-gridded 4288 → 3226; `Document · card` 11364:7441 — Cabinet ×12 lost the ⋮, Previous permit ×6 „Descarcă” →
+  „👁 Detalii” (label + 16 eye 464:24533 on the same button; 10c / 13b follow). Dossiers: 04j deleted (duplicated 04h — same modal,
+  only the trigger differed) + its connector + TOC line, column 04+ restacked (−2150); 04q rebuilt as „row click → modal” (overlay
+  cloned from 04s, 8 rows from the dos-04q DOM text, signed page dates), column 04++ restacked. Post-processes: new block 10c1
+  12176:360806 (pp-10c1) + local `Modal content · Previous permit viewer` 12176:360692 (clone of the certificate content, 6 rows),
+  connector „Detalii” → 10c1 and 10c → 10d moved to the LEFT lane. EVO Cabinet `Document · card` 983:2727: ⋮ removed from 6 variants
+  (30 cards on ↳ My requests). FOD: no document row / previous-act card / „Descarcă” anywhere → nothing to change. Lessons:
+  - **Dropping an action from a variant set = rename the variant + remove the child in the MAIN**, not a new variant + swap: instances
+    keep every override and connector (they attach to the row instance with a position, never to the ⋮ sublayer). Move instances off
+    the variants you will delete first (`setProperties({State:"Default"})`), then delete only variants with 0 instances.
+  - **„Menu open” blocks of a removed action**: check the code state first — dos-04j became the same modal as dos-04h (delete the
+    block, mention the row click in 04h's note), dos-04q showed a modal not drawn anywhere (rebuild the block in place: same id, same
+    connector re-labelled „Clic pe rând”). Block deletion also deletes the TOC NODE-link line → remove it and the list mention in the
+    rule card.
+  - **Notes: never type „⋮”** (Onest renders „:”) — I wrote it into 7 notes first; replaced with „Mai multe acțiuni”. Grep your own
+    inserted copy for ⋮ before finishing.
+  - A modal centred by the overlay's auto-layout in an odd-width screen (1447) lands at x .5 → make the modal ABSOLUTE in the overlay
+    at a whole x (setting x on an auto-layout child is silently ignored).
+  - Cloned certificate content had an unstyled 20/28 600 title (source too) → Desktop/Heading/H4 on both; the scrim copied from F8d is
+    the board's unbound 40 % scrim (baseline).
+  - Ghișeu gh-07c / gh-07a3 MSign card was never drawn with actions (Document · card Summary, no „Detalii”, no ⋮) while the code shows
+    „👁 Detalii” → nothing to remove; drift reported, not changed.
+  - No Agent tool in this session → stored figma-audit (`ghs/audit`) on 04q, 10c1, the viewer component and both sets: only baseline
+    (section-over-card gap 0, meta-dot gap 18, scrim, step-indicator halves inherited from the 10c clone).
