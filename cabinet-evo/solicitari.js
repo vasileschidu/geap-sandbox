@@ -303,7 +303,7 @@
     schita: {
       tag: "neutral",
       alert: () => null,
-      date: (d) => `Creată ${longDate(d.created)} · se elimină pe ${longDate(d.draft?.expires)}`,
+      date: (d) => `Creată ${longDate(d.created)}`,
     },
     info: {
       tag: "warning",

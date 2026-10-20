@@ -6349,7 +6349,7 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
 - **Meta slots** (`GEAPActRow.metaParts` / option `metaSlots`), same order for both: 1 number (plain text — no
   copy icon in any list) · 2 what (act: service name; request: „Eliberare · <serviciu>”, `__part--what`) ·
   3 authority code · subdivision (`__part--long`) · 4 the key date (act: valabil până la / expirat la; request:
-  „Creată … · se elimină pe …” (draft) / Depusă / Finalizată). FO / Ghișeu defaults = slots 1 · 3 · 4.
+  „Creată …” (draft; the removal date only on the profile) / Depusă / Finalizată). FO / Ghișeu defaults = slots 1 · 3 · 4.
 - **Long names**: desktop (> 760) title ONE line + ellipsis, meta ONE line — slot 2 shrinks first, then slot 3;
   1 and 4 never. js/act-row.js `syncCut` puts the full text in `data-tooltip-text` (plain tooltip, hover) on the
   cut title / meta; the row (`data-tooltip-focus`) shows the title's on keyboard focus (js/icon-tooltip.js).
@@ -6482,7 +6482,7 @@ profile's `statusNow` / `timelineEvents` in `cabinet-evo/solicitari.js`; no new 
 
 | Status / variant | Row (tag · alert · meta date) | Profile („Stadiul solicitării” + tabs) | Notification (notificari.js `kind`) | Demo |
 |---|---|---|---|---|
-| Schiță | neutral · none · „Creată … · se elimină pe …”; signed draft + blue „Semnat electronic” | Continuă schița / Elimină schița + the US-21 info notice „Schița salvată dar nefinisată va fi ștearsă automat în decursul a N de zile.” (`[data-sm-draft-kept]`, N = first save → removal) | „Schița a fost salvată” (`draft-saved`) | sm-03 |
+| Schiță | neutral · none · „Creată …” (removal date only on the profile); signed draft + blue „Semnat electronic” | Continuă schița / Elimină schița + the US-21 info notice „Schița salvată dar nefinisată va fi ștearsă automat în decursul a N de zile.” (`[data-sm-draft-kept]`, N = first save → removal) | „Schița a fost salvată” (`draft-saved`) | sm-03 |
 | Schiță cu notă de plată „În așteptare” (US-17) | as Schiță | text names the note; Taxe tab; „Elimină” says the note is cancelled | — | sm-03g |
 | Schiță semnată + achitată (US-18 AC-09) | as Schiță + „Semnat electronic” | text: transmitted automatically after the grace period; timeline signed → paid → „Confirmarea depunerii” (removal date kept: PO Q5) | — | sm-03h |
 | Schiță eliminată automat (US-29 AC-02) | not listed (`autoRemoved`: `draft.expires < today`) | no profile — `#dosar/<id>` shows the list with an info notice + link to the catalog (`[data-sm-removed-notice]`) | „Schița a fost eliminată automat” (`draft-removed`, „Vezi detalii”) | sm-03d, nt-01d |
