@@ -3046,6 +3046,15 @@
   width: 24px;
 }
 
+/* hover-audit 2026-10-20: the phone menu button had no hover — tertiary on white, pressed = tertiary-hover */
+.e-permits-fo-auth__menu:hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-fo-auth__menu:active {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+}
+
 .e-permits-fo-auth__menu:focus-visible {
   box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
   outline: none;
@@ -15567,13 +15576,26 @@
     flex-direction: column;
     max-width: 100vw;
     position: sticky;
-    /* right under the sticky header, whatever its height (draft line, an expanded long name) —
-       the fixed 108 covered the draft line (126) and a wrapped long name (2026-10-19) */
-    top: var(--fo-header-height, 108px);
+    /* the ONLY sticky part of the wizard chrome here (2026-10-20, user): the EVO bar, the service name
+       and the draft line scroll away (rule below), the step bar stays at the top of the screen */
+    top: env(safe-area-inset-top, var(--spacing-0, 0px));
     --fo-mobile-progress-current: 1;
     --fo-mobile-progress-total: 6;
     width: 100vw;
     z-index: 20;
+  }
+
+  /* wizard screens with the step bar (request, guest): the header is no longer sticky — the EVO bar,
+     the service name (+ its long-name expand) and „Salvat ca schiță” scroll with the page (≈170 → 44 px
+     of fixed chrome at 375). Intent / choice screens have no step bar and keep their sticky header. */
+  body.is-fo-request-mode:has(.e-permits-fo-request:not([hidden]) > .e-permits-fo-mobile-progress) .e-permits-fo-auth__header {
+    position: relative;
+  }
+
+  /* focus moves, anchor jumps and scrollIntoView stop below the sticky step bar, never under it
+     (--fo-step-bar-height = the visible bar's height, set by the FO script) */
+  html:has(body.is-fo-request-mode .e-permits-fo-request:not([hidden]) > .e-permits-fo-mobile-progress) {
+    scroll-padding-top: calc(env(safe-area-inset-top, var(--spacing-0, 0px)) + var(--fo-step-bar-height, var(--spacing-48, 48px)) + var(--spacing-8, 8px));
   }
 
   .e-permits-fo-mobile-progress__row {
@@ -25220,6 +25242,23 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
 .msup :is(.msup-launcher__done, .msup-bubble, .msup-panel:not(.is-closing), .msup-state, .msup-context, .msup-context__edit, .msup-diag__panel, .msup-file),
 .msup .msup-state[data-msup-state] .msup-done > *:nth-child(n) {
   animation-fill-mode: backwards;
+}
+
+/* MSupport steps aside for the form (2026-10-20, user: „resolve the dropdown conflict on mobile”).
+   Chat launchers on mobile forms (Intercom, Zendesk, Drift) hide while the keyboard is up or a picker is
+   open. (1) Any widths: while a dropdown / list / popover is open — every FO / BO picker trigger carries
+   aria-haspopup or role=combobox + aria-expanded — the launcher and its greeting bubble are hidden, so an
+   open list is never under the widget (z 1200). (2) Phones: also while a text field has focus (keyboard
+   up), so the bubble can never sit on the field being filled. The FO script also dismisses the greeting
+   for good on the first form interaction on phones. Dialogs: css/modal-phone.css. */
+body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .js-date-picker-toggle)[aria-expanded="true"]:not(.msup *)) .msup {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  body:has(:is(input:not([type="checkbox"], [type="radio"], [type="file"], [type="button"], [type="submit"], [type="reset"], [type="range"], [type="color"], [type="hidden"]), textarea, select, [contenteditable="true"]):focus:not(.msup *)) .msup {
+    display: none;
+  }
 }
 
 /* sortable table headers: the cell fills (shell rule) and the label darkens; the old selector

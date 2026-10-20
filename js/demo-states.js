@@ -1029,6 +1029,10 @@
     "fo-02p": foReq(2, {}, async (h) => { const b = [...document.querySelectorAll("[data-fo-step-panel='2'] [data-fo-phone-code-button]")].find((x) => x.getBoundingClientRect().height > 0); b.scrollIntoView({ block: "center" }); b.click(); await h.find("[data-fo-step-panel='2'] [data-fo-phone-code-list]:not([hidden])"); }),
     /* 2026-10-20 · dropdown item size: an FO select list open (32 rows · 6 12 6 8 · list 4 / 2) */
     "fo-03u": foReq(2, {}, async (h) => { const b = [...document.querySelectorAll("[data-fo-step-panel='2'] .e-permits-fo-select__button")].find((x) => x.getBoundingClientRect().height > 0 && !x.disabled); b.scrollIntoView({ block: "center" }); b.click(); await h.find("[data-fo-step-panel='2'] .e-permits-fo-select__list:not([hidden])"); }),
+    /* 2026-10-20 · phones: only the step bar is sticky — scrolled mid-form, the EVO bar / service name / draft line are gone */
+    "fo-03v": foReq(2, {}, async (h) => { await h.wait(300); window.scrollTo(0, 700); await h.wait(200); }),
+    /* 2026-10-20 · a select opened low on the screen (where the MSupport greeting sat): launcher + bubble step aside */
+    "fo-03w": foReq(2, {}, async (h) => { const b = [...document.querySelectorAll("[data-fo-step-panel='2'] .e-permits-fo-select__button")].find((x) => x.getBoundingClientRect().height > 0 && !x.disabled); b.scrollIntoView({ block: "end" }); window.scrollBy(0, 120); await h.wait(200); b.click(); await h.find("[data-fo-step-panel='2'] .e-permits-fo-select__list:not([hidden])"); }),
     "fo-03s": foReq(2, {}, async (h) => {
       const code = await h.find("#fo-caem-code"); code.click(); code.dispatchEvent(new FocusEvent("focus")); await h.wait(300);
       const opt = await h.find("[data-fo-caem-menu] [role=option]"); opt.dispatchEvent(new MouseEvent("mousedown", { bubbles: true })); opt.click(); await h.wait(300);

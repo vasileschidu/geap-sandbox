@@ -254,6 +254,7 @@ but this doc previously described it wrongly, see the entry.
 | Configured act fields — groups + tables (2026-10-19, Figma comment EVO-WEB-3.0 20607:34846) | each configured group = BO `section.e-permits-dosar-profil__section` + `__section-title` over `.e-permits-dosar-profil__card.e-permits-act-fields[data-act-fields]` (`.is-collapsed` when > 10 items: items ≥ 9 get `.e-permits-act-fields__more`, toggle `.e-permits-act-fields__toggle` > `btn btn-text-primary btn-sm btn-rounded[data-act-fields-more][aria-expanded][aria-controls]` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); simple field = BO `__row` (label on the first line for multi-line values; a list = `ul.e-permits-act-fields__list`); grid = `.e-permits-act-fields__table-field` > `p.__table-label` + `.__table-wrap[role=region]` (white, 1px border, r12, own sideways scroll) > `table.__table(.is-collapsed)` (th 38 · 12/16 medium on secondary; td ≥ 50 · 14/20 secondary · 8/12; `.is-number` right-aligned; first column sticky + divider; `__more-row` / `__edge-row` for first 5 + „Arată toate (N)” / „Arată mai puține”; every td = `__cell-label` (phones only) + `__cell-value`); ≤ 760 rows = white mini-cards r12 (first cell label over value, the others label · value lines). A4: `tr.e-permits-doc-page__keep.e-permits-doc-page__grid-label` + `__grid-head[data-doc-grid]` + `__grid-row[data-doc-grid-of]` each holding a one-row `table.e-permits-doc-page__grid` (colspan units 3·2·2…), header repeated on continuation pages (`.is-repeat`) | `GEAPActView.fieldsHtml(groups, { section, untitled })` / `normalizeFields` (js/act-view.js) + css/act-view.css + css/doc-preview.css › „Grid on the page”; used by the act data modal (RAP + Cabinet) and Cabinet „Solicitările mele” › Act; demo `rap-03i/03j/03q/03r/03s/03t`, `pp-01x/01y/01z`, `sm-05n`; parity `tools/ui-qa/specs/act-fields-rap-vs-cabinet.json` (rap-03q ↔ pp-01x = 0) | page-app |
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
 | Long name in a header — expand on click (2026-10-19) | host `[data-name-expand]` (the FO top-bar `h1`) › `span.e-permits-name-expand` > `__text` (one line, ellipsis) while the name fits; only when it is really cut (`scrollWidth > clientWidth`, measured without the affordance) › ONE `button.e-permits-name-expand[data-name-expand-toggle][aria-expanded][data-tooltip-text]` > `__text` + `__more` (`__more-label` „Mai mult” / „Mai puțin” 14/20 medium brand + 16 `icon-chevron-bottom`, rotated when open); hover = the label underlines, focus = the FO ring (2 white + 5 `--focus-ring`); open = the name wraps with the label after its last word, host `.is-name-expanded`, the header grows; plain tooltip with the full name while collapsed (icon-tooltip.js `data-tooltip-text`) | `js/name-expand.js` (`GEAPNameExpand.set(host, text)` / `scan` / `sync` / `collapseAll`) + `css/name-expand.css`; FO `setFoServiceTitle`; demo `pp-18` (collapsed) / `pp-18a` (expanded) / `pp-18b` (expanded + scrolled) / `pp-18c` (short name, no affordance) | page-app |
+| FO phone chrome — only the step bar is sticky + MSupport steps aside (2026-10-20) | ≤860 on wizard screens with the step bar (`body.is-fo-request-mode:has(.e-permits-fo-request:not([hidden]) > .e-permits-fo-mobile-progress)`): `.e-permits-fo-auth__header` `position: relative` (EVO bar, service name + long-name expand, „Salvat ca schiță” scroll away); `.e-permits-fo-mobile-progress` sticky at `top: env(safe-area-inset-top)` (44 = row 40 + bar 4, its bar = the bottom line); `html` `scroll-padding-top` = safe area + `--fo-step-bar-height` + 8. MSupport `.msup` hidden at any width while a picker trigger is open (`[aria-haspopup]` / `[role=combobox]` / `.js-date-picker-toggle` + `aria-expanded="true"`), on phones (≤760) also while a text field has focus; the greeting bubble is dismissed for good on the first form interaction on phones | `css/e-permits-acte-permisive.css` (≤860 progress block, MSupport block after the hover round 3), `js/e-permits-acte-permisive.js` (`updateFoStepBarHeight`, `dismissSupportGreeting`); section „FO phone chrome”; demo `fo-03v` (scrolled) / `fo-03w` (select open, widget hidden) / `fo-03u`, `adr-02a`, `pp-18a` | page-app |
 | Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
 | Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"`; a product module plugs in with `product.extend({ views, registries, facets, load, init, showView, route, beforeNavigate })` and reads helpers from `product.shared` | `js/ekyc.js` + `js/ekyc-config.js`, see „eKYC back office” | app |
 | Product registry „+ Adaugă …” + muted rows | toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-add-product]` (label from `view.primaryAction = { id, label }`); `registries[kind].rowClass(row)` → `tr.is-inactive` (text tertiary, tags keep colour) | `js/ekyc-config.js` | app |
@@ -3058,6 +3059,8 @@ step lead (`.e-permits-fo-pp-lead`, „Reperfectare · nr · act name”) wraps 
   stays centred); the title row keeps its 26 floor. Phones: the header grows and pushes the page down; the sticky
   phone progress now sits at `top: var(--fo-header-height)` (was a fixed 108, which also covered the draft line of
   every 126-high header — fixed in the same change).
+  **2026-10-20:** on wizard screens the header is no longer sticky on phones (≤860) — the expanded name scrolls away
+  with it; the step bar sticks at the top of the screen (section „FO phone chrome”).
 
 **Measured** (pp-18 / 18a / 18c): 1440 — collapsed h1 859 wide (text 777 + 8 + label 74), bar 72; expanded h1 52 (2
 lines), bar 107, header 153 → 188. 375 — collapsed text 261 + label 74 on one line, header 126 (= short name);
@@ -3067,6 +3070,48 @@ expanded 4 lines, header 196, progress right under it. Keyboard: 6th Tab stop af
 whole; an explicit word beats a bare ellipsis), Material 3 top app bar (one-line titles truncate), Material / app
 store „more” expandable text, GOV.UK Details (expand in place, content pushed down, no overlay). A chevron alone
 reads as a menu next to a page title — hence the word + chevron.
+
+### FO phone chrome — only the step bar is sticky; MSupport steps aside (2026-10-20)
+
+User (2026-10-20, phone screenshot of fo-03 „Detalii solicitare”): „Resolve the dropdown conflict on mobile; also on
+scroll let's scroll also the name of the service and leave sticky in top only the steps.”
+
+**Sticky chrome (≤860, the range where the step bar replaces the sidebar stepper)**
+- Wizard screens with the step bar (request, guest — `body.is-fo-request-mode:has(.e-permits-fo-request:not([hidden]) >
+  .e-permits-fo-mobile-progress)`): `.e-permits-fo-auth__header` is `position: relative` (z 10 kept, so the account sheet
+  and its scrim still stack the same). The EVO top bar, the service name (+ the long-name expand) and the „Salvat ca
+  schiță” line scroll away with the page.
+- `.e-permits-fo-mobile-progress` is the only sticky part: `top: env(safe-area-inset-top, 0)`, full width, z 20; its 4px
+  progress bar is the bottom line content scrolls under.
+- `html` gets `scroll-padding-top: safe area + --fo-step-bar-height + 8` (the FO script sets `--fo-step-bar-height` from
+  the visible bar, ResizeObserver) → focus moves, anchor jumps and `scrollIntoView` stop below the bar. Step changes
+  scroll to 0 (header visible again).
+- Intent / choice / access screens have no step bar and keep their sticky header. Desktop (> 860) unchanged: the header
+  stays sticky. Ghișeu is desktop-only (its own `--fo-header-height: 0`).
+- Measured at 375: before = header 126 (196 with an expanded long name, pp-18a) + bar 44 = 170 / 240 px fixed; after = 44.
+
+**MSupport vs pickers / the keyboard**
+- Any width: while a picker trigger is open — `:is([aria-haspopup], [role="combobox"], .js-date-picker-toggle)
+  [aria-expanded="true"]` outside `.msup` (FO selects, cascade address, CAEM, subgenre, address search, phone code, date
+  picker, act-row post-process menu / sheet, account menu; MSupport mounts only on the FO full flow) — `.msup` (launcher + greeting bubble) is
+  `display: none`, so an open list is never under the widget (z 1200). Dialogs: css/modal-phone.css (same idea).
+- Phones (≤760): also hidden while a text field / textarea / select / contenteditable has focus (keyboard up) — the
+  bubble can never cover the field being filled; it comes back on blur.
+- Phones: the first form interaction (focusin or click on a field / picker trigger; click because iOS does not focus a
+  tapped button) dismisses the greeting bubble for good through the widget's own × (`[data-msup-bubble-close]`);
+  `msupport/` is untouched.
+- Any new picker must carry `aria-haspopup` (or `role="combobox"`) + `aria-expanded` on its trigger — that is what hides
+  the widget.
+
+**Research:** Intercom (`hide_default_launcher`, the Messenger hides the launcher while the keyboard is up on mobile web),
+Zendesk Web Widget (launcher hidden on mobile while an input is focused), Drift — all keep chat launchers out of the way
+of form pickers on phones; Material 3 / Apple HIG: one sticky app chrome element on scroll (the progress), the large title
+scrolls away. Mobbin MCP not available in this session.
+
+**Follow-up (recommended, not built):** on phones, FO select lists with > 5 options or opened in the lower third of the
+screen should open as a bottom sheet (iOS / Android native pickers, Material „exposed dropdown” on compact widths, the
+post-process action sheet). `renderFoSelectControl`, the cascade address and the CAEM combobox share the list code
+(`positionFloatingSelectList`, keyboard handling, `data-fo-float`) — a sheet mode is a separate change.
 
 ### Address by cadastral code — US-54 (2026-10-13, refined 2026-10-13)
 

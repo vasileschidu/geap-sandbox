@@ -5996,6 +5996,23 @@
             });
           },
         });
+
+        /* phones: the greeting bubble covers the lower part of the form — the first time the user works in
+           the form (focuses a field or opens a picker) it is dismissed through the widget's own ×, so it never
+           comes back over a field (2026-10-20, user). Click as well as focus: iOS does not focus a tapped
+           button. The launcher stays; CSS hides it while a picker is open or the keyboard is up. */
+        const supportPhone = window.matchMedia("(max-width: 760px)");
+        const formTarget = "input, textarea, select, [contenteditable='true'], [aria-haspopup], [role='combobox'], .js-date-picker-toggle";
+        const dismissSupportGreeting = (event) => {
+          const target = event.target instanceof Element ? event.target : null;
+          if (!supportPhone.matches || !target || target.closest(".msup") || !target.closest(formTarget)) return;
+          document.removeEventListener("focusin", dismissSupportGreeting, true);
+          document.removeEventListener("click", dismissSupportGreeting, true);
+          const close = document.querySelector(".msup [data-msup-bubble-close]");
+          if (close && !close.closest("[hidden]")) close.click();
+        };
+        document.addEventListener("focusin", dismissSupportGreeting, true);
+        document.addEventListener("click", dismissSupportGreeting, true);
       });
     }
 
@@ -6489,6 +6506,18 @@
     }
     updateFoHeaderHeight();
     new ResizeObserver(updateFoHeaderHeight).observe(foHeader || document.body);
+
+    /* the phone step bar is the only sticky chrome of the wizard (≤860): its height feeds the page's
+       scroll-padding-top so focus moves / anchor jumps stop below it (2026-10-20) */
+    const foStepBars = [...document.querySelectorAll(".e-permits-fo-mobile-progress")];
+    function updateFoStepBarHeight() {
+      const bar = foStepBars.find((node) => node.offsetHeight > 0);
+      if (bar) document.documentElement.style.setProperty("--fo-step-bar-height", bar.offsetHeight + "px");
+    }
+    if (foStepBars.length) {
+      const stepBarObserver = new ResizeObserver(updateFoStepBarHeight);
+      foStepBars.forEach((node) => stepBarObserver.observe(node));
+    }
 
     frontOfficeAuthButton?.addEventListener("click", () => {
       openMpassTestPage();

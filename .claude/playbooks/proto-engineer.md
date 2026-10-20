@@ -1403,3 +1403,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   „no code in a modal header”, „one-line ellipsis” to the phone rule „wrap, no tooltip on touch” — report deviations.
   No sub-agent tool → ran code-audit (only `button-not-library` on the option-row buttons, as the facet sheet),
   component-audit 0 (375 + 320), hover-audit 0 / 0 (temp copy at width 700). Mobbin MCP not available again.
+- 2026-10-20 · FO phone chrome („scroll the service name away, only the steps sticky” + „dropdown vs MSupport bubble”).
+  Measured first: sticky = header 126 (196 with an expanded long name, pp-18a = the user's „~240”) + step bar 44. Fix =
+  2 CSS rules in the ≤860 step-bar block (header `position: relative` scoped with `body.is-fo-request-mode:has(
+  .e-permits-fo-request:not([hidden]) > .e-permits-fo-mobile-progress)`, bar `top: env(safe-area-inset-top)`) + `html`
+  `scroll-padding-top` from a JS-measured `--fo-step-bar-height` — keep `position: relative` (not static) so the header's
+  z-index / stacking for the account sheet stays. Scope to the component's breakpoint (the bar shows ≤860, not ≤760)
+  and to screens that HAVE the bar (intent / choice keep their sticky header).
+- 2026-10-20 · Hiding a floating widget while ANY picker is open: one `body:has(:is([aria-haspopup], [role=combobox],
+  .js-date-picker-toggle)[aria-expanded="true"]:not(.msup *)) .msup` rule beats listing list classes — every FO picker
+  trigger already carries aria-haspopup / combobox + aria-expanded (disclosures like „Mai mult” don't, so they don't
+  hide it). Keyboard-up hiding = `:has(input…:focus)` at ≤760. Dismissing a third-party widget's greeting without
+  editing it = click its own × from a capture-phase focusin + click listener (click because iOS doesn't focus tapped
+  buttons). Headless focus tests need CDP `Emulation.setFocusEmulationEnabled` — without it `:focus` never matches
+  and `focusin` never fires (my first probe said „not hidden”). hover-audit at 700 (temp copy) found the phone
+  hamburger `.e-permits-fo-auth__menu` had no hover at all (pre-existing) → tertiary / tertiary-hover. No sub-agent
+  tool → code-audit (standing FPs: library search submit overlap, FO buttons), component-audit (pre-existing FO
+  header / footer buttons only), hover-audit 0 / 0 at 1440 and 700. Mobbin MCP not available again.
