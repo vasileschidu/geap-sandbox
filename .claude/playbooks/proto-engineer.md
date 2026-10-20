@@ -1583,3 +1583,31 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   16 / 22.4 text on desktop (line-height 1.4 → fractional px), slide-in animation; `.message--inline` is 14 / 19.6
   with the WHOLE text in apricot-700. hover-audit with the card as scope lists the clickable row's children as
   „no-hover” (same on sm-01a = tool artefact) → audit with `--scope .sm-list-view` (0 / 0).
+- 2026-10-20 · Row action menus (action-menu-v1; started as „the 3 dots modal is ugly”, 6 course changes in one job): the
+  user REJECTED the phone action sheet for act / request menus („as Telegram — a dropdown menu, not a down modal”) →
+  every row / act-profile action menu is the anchored dropdown at every width, phones with a touch item size (48 ·
+  16/24 · icon 24 · surface r16 / 8), unavailable reasons as a 2nd line, danger last after a separator. Request rows got
+  a labelled square „Acțiuni ⌄” (⋮ kept as `?actiuni=kebab`), act rows „Postprocese ⌄” (label shortened by the user
+  after two rounds: never rename a Figma/PO label on your own — „Acțiuni” for acts was reverted within minutes), title
+  16/24 at all widths. Lesson: when a brief is redirected repeatedly, keep each decision in ONE place (shared CSS block,
+  one `menuItemsHtml`, one label default) and discard superseded work with `git checkout` of your own files before
+  rebuilding — my morning sheet redesign cost nothing to drop because it was uncommitted.
+- 2026-10-20 · Phone row with „tags · button” on line 1 and a full-width title under it, no markup change and no width
+  reservation: make the row `display: flex; flex-wrap: wrap`, the content + title row `display: contents`, place items
+  with `order` (button `margin-left: auto` on line 1). The meta's dot-clip box needs `flex-basis: calc(100% + sep)`.
+  When the button does not fit beside the tags, flex wraps it alone ABOVE the title → measure in JS (class off → read
+  button top vs first tag bottom → toggle `.is-action-below`, one synchronous pass, in the existing syncCut scheduler)
+  and move it under the meta. compare-styles found a hidden difference: a button inside a non-flex wrapper stays
+  `inline-flex` / `min-height: 0`, the act row's (wrapper = flex) computes `flex` / `auto`.
+- 2026-10-20 · Traps: (1) a window BUBBLE click listener never ran for Cabinet triggers (their handler calls
+  `stopPropagation`) → capture + `requestAnimationFrame` (after the page's own toggle opened the menu, before paint);
+  (2) the FO ≤720 rule anchors menus `left: 0` → for a button on the right the menu's first frame overflowed and the
+  Ghișeu window scrolled SIDEWAYS (tags at x −66) before the fit ran — make the phone default the expected side
+  (`right: 0`) so no first frame overflows; (3) `100vw − 32` is not the room a menu has inside an inset window → cap
+  with the measured side room (`--act-menu-max`, geometry custom property, like the FO floating lists); (4) Cabinet
+  menus had NO arrow keys and Esc did not return focus — added (Enter/Space/↓ first, ↑ last, Home/End, Esc → trigger,
+  Tab closes); detect keyboard opening by a preceding Enter/Space keydown, not `event.detail === 0` (demo `.click()` has
+  detail 0 too and would move focus in every demo shot); (5) code-audit `dropdown-surface` hard-coded radius 12 → taught
+  it the documented phone exception (r16 for row action menus ≤760) instead of living with a „major”. Mobbin MCP not
+  available again → NN/g / GOV.UK / M3 / HIG. No sub-agent tool → ran component-audit (0), hover-audit 0 / 0 at 700 +
+  1440, code-audit (standing FPs only: meta 18, alert link, sm-tacit, open menu over content), compare-styles 0.

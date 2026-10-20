@@ -177,7 +177,10 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
       seen.add(surface);
       const c = getComputedStyle(surface), bad = [];
       if (c.boxShadow !== WANT) bad.push(`shadow ${c.boxShadow.slice(0, 60)}`);
-      if (Math.abs(parseFloat(c.borderTopLeftRadius) - 12) > 0.5) bad.push(`radius ${c.borderTopLeftRadius}`);
+      /* phones (≤760): a row action menu (act / request rows, act profile) is the touch popover with radius 16
+         (action-menu-v1, 2026-10-20, user ref Telegram — components.md „Row action menu on phones”) */
+      const wantRadius = innerWidth <= 760 && surface.matches(".e-permits-fo-intent-act__action > .e-permits-fo-intent-menu") ? 16 : 12;
+      if (Math.abs(parseFloat(c.borderTopLeftRadius) - wantRadius) > 0.5) bad.push(`radius ${c.borderTopLeftRadius}`);
       if (parseFloat(c.borderTopWidth) > 0) bad.push(`border ${c.borderTopWidth}`);
       if (c.overflowX === "visible" || c.overflowY === "visible") bad.push(`overflow ${c.overflowX}/${c.overflowY}`);
       if (c.backgroundColor === "rgba(0, 0, 0, 0)") bad.push("no background");

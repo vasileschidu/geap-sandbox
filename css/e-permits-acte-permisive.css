@@ -17318,62 +17318,79 @@
   }
 }
 
+/* the stacked act / request row title = 16/24 medium at EVERY width (2026-10-20, user: „make the card title 16 px on
+   desktop too, not only on mobile”) — one line + ellipsis + tooltip on desktop (js/act-row.js syncCut), ≤ 2 lines
+   on phones (below); FO #intent, Ghișeu, Cabinet acts + requests. Other document cards keep 14/20. */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+}
+
 /* PHONE ROW ANATOMY (≤760, 2026-10-20, user: „title 16 on mobile; the badge on top in the same row with the
-   dots”) — FO #intent, Ghișeu, Cabinet acts AND requests (one row component, js/act-row.js):
-     row 1  the Small tags (status, „Aprobare tacită”, „Semnat electronic”) left · the ⋮ right (request rows,
-            centred on the 20 tag line — cabinet-evo.css); act rows: the tags alone
-     row 2  the title 16/24 medium, ≤ 2 lines + ellipsis
-     row 3  the meta 14/20 tertiary, wrapping
-     then   act rows: the „Inițiază un postproces” pill (12 above) · any alert full width (12 above)
-   tags → title 8 (the title row's row gap), title → meta 8 (the card's row gap). The title row stays ONE flex
-   box: the title moves after the tags (`order`) onto its own line (basis 100%) — no markup change, desktop
-   (> 760) untouched. Card spec unchanged: padding 16, radius 16, 1.5 stroke. */
+   dots”; action-menu-v1 same day: „Actele mele permisive … badge up, in the same row as the action button,
+   buttons square, similar to Solicitările mele”) — FO #intent, Ghișeu, Cabinet acts AND requests (one row
+   component, js/act-row.js), ONE anatomy:
+     row 1  [the 24 document icon (act rows)] · the Small tags (status, „Aprobare tacită”, „Semnat electronic”)
+            left · the row's action button right („Acțiuni ⌄” / „👁 Detalii”, library btn-neutral btn-sm, or
+            the ⋮ variant; act rows „Postprocese ⌄”), all centred on the line
+     row 2  the title 16/24 medium, ≤ 2 lines + ellipsis, full card width
+     row 3  the meta 14/20 tertiary, wrapping, full width
+     then   the button when it does NOT fit next to the tags (320, two tags, the long act label — measured by
+            js/act-row.js → `.is-action-below`): left, 12 above · any alert full width (12 above)
+   How: the row is a flex-wrap box (gap 8) and the content block + the title row are `display: contents`, so
+   tags, title, meta, notice and action are its items, placed by `order` — no markup change, no width
+   reservation, desktop (> 760) untouched. Card spec unchanged: padding 16, radius 16, 1.5 stroke. */
 @media (max-width: 760px) {
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content) {
     align-items: center;
-    row-gap: var(--spacing-8, 8px);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
+    display: contents;
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__icon {
+    align-self: center;
+    flex: 0 0 var(--spacing-24, 24px);
+  }
+
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.e-permits-fo-intent-act__action, .cab-doc__actions) {
+    margin-left: auto;
+    order: 1;
   }
 
   .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
     -webkit-box-orient: vertical;
     display: -webkit-box;
     flex: 0 0 100%;
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
     -webkit-line-clamp: 2;
     line-clamp: 2;
     max-width: none;
-    order: 1;
+    order: 2;
     white-space: normal;
   }
 
-  /* act rows with the pill: icon | text, the pill under the meta (12 above = row gap 8 + 4) and the notice
-     under the pill — from 760 like the rest of the phone row (the shared document card switches at 720) */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-lib-item__content):has(> .e-permits-fo-intent-act__action) {
-    grid-template-columns: var(--spacing-24, 24px) minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
+  /* the meta box starts 18 left of its text (the dot-clip strip, see „document meta”) → 100% + 18 wide */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+    flex: 0 0 calc(100% + var(--fo-doc-meta-sep));
+    order: 3;
   }
 
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-intent-act__action) > .e-permits-fo-lib-item__icon {
-    grid-row: 1 / span 2;
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
+  .e-permits-fo-lib-item.e-permits-fo-intent-act > :is(.cab-request-row__notice, .cab-retry) {
+    flex: 0 0 100%;
+    margin-top: var(--spacing-4, 4px);
+    order: 5;
   }
 
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> .e-permits-fo-intent-act__action) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-    grid-column: 2 / -1;
-  }
-
-  .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-intent-act__action {
-    grid-column: 2 / -1;
-    grid-row: 3;
-    justify-self: start;
+  /* the button did not fit next to the tags (js/act-row.js syncActionFit) → under the meta, left, 12 above */
+  .e-permits-fo-lib-item.e-permits-fo-intent-act.is-action-below > :is(.e-permits-fo-intent-act__action, .cab-doc__actions) {
     margin-left: 0;
     margin-top: var(--spacing-4, 4px);
-  }
-
-  /* row 4 only under a pill — without one (paper act) the notice keeps row 3 (row 4 left an empty implicit
-     row: 20 above instead of 12) */
-  .e-permits-fo-lib-item.e-permits-fo-intent-act:is(.is-locked, .has-notice):has(> .e-permits-fo-intent-act__action) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
-    grid-row: 4;
+    order: 4;
   }
 }
 
@@ -18655,6 +18672,85 @@
 
 .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
   white-space: normal;
+}
+
+/* ===== Row action menu on phones = anchored popover, touch item size (action-menu-v1, 2026-10-20) =====
+   User (Vasile, ref Telegram iOS „more” menu): „the action does a dropdown menu, as I said with Telegram, not a
+   down modal”. Every menu of an action wrapper — act rows (FO #intent, Ghișeu, Cabinet) „Postprocese ⌄”,
+   the Cabinet act profile header, the request rows' „Acțiuni ⌄” / ⋮ — is the SAME anchored dropdown at every width
+   (no bottom sheet). Desktop: the compact dropdown item (css/dropdown.css) + the reason as a tooltip. Phones
+   (≤760): right-aligned to its button, upwards when there is no room below, 16 from the screen edges
+   (js/act-row.js fitMenu → .is-fit-end / .is-fit-start / .is-open-up; Cabinet request menus: CabEvo fitMenu);
+   surface padding 8 · radius 16 (dropdown-effect from the „Dropdown surface” rule), items 48 · 12 16 · gap 12 ·
+   icon 24 in the label colour · 16/24 regular · radius 8, no gaps; an unavailable item shows its reason as a
+   14/20 tertiary second line; danger items (Retragere, Anulare, Elimină) red, last, after a separator on the icon
+   inset. components.md „Row action menu on phones”. */
+.e-permits-fo-intent-menu__reason {
+  display: none; /* desktop: the tooltip (data-tooltip-reason) says it */
+}
+
+.e-permits-fo-intent-menu__separator {
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  margin: var(--spacing-4, 4px) var(--spacing-8, 8px);
+}
+
+@media (max-width: 760px) {
+  /* default = right-aligned to the button (row 1 puts it on the right): no first-frame overflow to the right that a
+     scrolling window (Ghișeu) could scroll to before js/act-row.js fitMenu runs; .is-fit-start flips it */
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu,
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu.is-fit-end {
+    left: auto;
+    right: 0;
+  }
+
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu.is-fit-start {
+    left: 0;
+    right: auto;
+  }
+
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu {
+    border-radius: var(--border-radius-16, 16px);
+    gap: var(--spacing-0, 0px);
+    max-width: var(--act-menu-max, calc(100vw - var(--spacing-32, 32px)));
+    padding: var(--spacing-8, 8px);
+  }
+
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item {
+    border-radius: var(--border-radius-8, 8px);
+    column-gap: var(--spacing-12, 12px);
+    font-size: var(--font-size-fs-16, 16px);
+    font-weight: var(--font-weight-fw-regular, 400);
+    gap: var(--spacing-12, 12px);
+    line-height: var(--line-height-lh-24, 24px);
+    min-height: var(--spacing-48, 48px);
+    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+  }
+
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item > .icon {
+    flex: 0 0 var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  /* icon | label / reason (the reason under the label, the icon on the label line) */
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__item:has(> .e-permits-fo-intent-menu__reason) {
+    align-items: start;
+    display: grid;
+    grid-template-columns: var(--icon-size-default, 24px) minmax(0, 1fr);
+    row-gap: var(--spacing-0, 0px);
+  }
+
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu .e-permits-fo-intent-menu__reason {
+    color: var(--color-text-base-tertiary, #757575);
+    display: block;
+    font-size: var(--font-size-fs-14, 14px);
+    grid-column: 2;
+    line-height: var(--line-height-lh-20, 20px);
+  }
+
+  .e-permits-fo-intent-act__action > .e-permits-fo-intent-menu > :is(.e-permits-fo-intent-menu__separator, .cab-menu__separator) {
+    margin: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  }
 }
 
 @media (max-width: 760px) {

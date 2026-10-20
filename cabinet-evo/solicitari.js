@@ -264,9 +264,23 @@
     /* the row has no labelled button: every action is here; downloads only in the profile / document modal */
     const items = menuItems(dosar).filter((item) => item.separator || item.action !== "download")
       .filter((item, i, list) => !(item.separator && (i === 0 || list[i - 1].separator || i === list.length - 1)));
+    /* action-menu-v1 (2026-10-20, user: „3 dots as action with drop down … there is space”): the row's trigger =
+       the act row's labelled button („Acțiuni ⌄”, library btn-neutral btn-sm — square, not a pill — + chevron) opening the same anchored menu (phones: touch item size, never the action sheet —
+       data-act-menu-anchored); a row whose only action is „Detalii” gets the lone „👁 Detalii” button (row-actions
+       rule), not a one-item menu. Demo `?actiuni=kebab` = the previous icon-only ⋮, for comparison (sm-01v). */
+    const kebab = params.get("actiuni") === "kebab";
+    if (!kebab && items.length === 1 && items[0].action === "open") {
+      return `
+      <div class="e-permits-fo-intent-act__action cab-card__actions">
+        <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="Detalii despre dosarul ${escape(dosar.nr)}" data-sm-action="open" data-sm-id="${escape(dosar.id)}">${icon(items[0].icon)}<span>${escape(items[0].label)}</span></button>
+      </div>`;
+    }
+    const trigger = kebab
+      ? `<button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>`
+      : `<button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger data-act-menu-anchored><span>Acțiuni</span>${icon("icon-chevron-bottom")}</button>`;
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
-        <button class="btn btn-strict btn-sm btn-icon-only cab-card__more" type="button" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" data-tooltip-label="Mai multe acțiuni" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" data-cab-menu-trigger>${icon("icon-more-vertical")}</button>
+        ${trigger}
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="${menuId}" role="menu" aria-label="Acțiuni pentru dosarul ${escape(dosar.nr)}" hidden>
           ${items.map((item) => item.separator
             ? `<li role="separator" class="cab-menu__separator"></li>`

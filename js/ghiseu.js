@@ -950,7 +950,7 @@
     persist();
     render();
   }
-  /* the act rows' „Inițiază un postproces ⌄” menus (FO markup; the open trigger keeps its ring) */
+  /* the act rows' „Postprocese ⌄” menus (FO markup; the open trigger keeps its ring) */
   function closeIntentMenus(except = null) {
     S.page?.querySelectorAll("[data-fo-intent-trigger][aria-expanded='true']").forEach((trigger) => {
       const menu = document.getElementById(trigger.getAttribute("aria-controls"));

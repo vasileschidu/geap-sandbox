@@ -5072,7 +5072,7 @@
        „Ce vrei să soliciți?” (#intent) and the Ghișeu picker („Dosar nou”, js/ghiseu.js). The row is
        the shared document card (.e-permits-fo-lib-item: padding 12, radius 12, hover) with the blue
        „System Generated” document icon, the title + a Small status tag, the 14/20 meta with the 2px dots
-       (number · valabil până la <date> · subdivision) and the „Inițiază un postproces ⌄” medium pill menu
+       (number · valabil până la <date> · subdivision) and the „Postprocese ⌄” medium pill menu
        (since 2026-10-17 the renderer lives in js/act-row.js; this is its delegate).
        act = { id, name, number, status, statusLabel, validUntil (dd.mm.yyyy | ISO | long), subdivision,
        meta (parts, replaces the default) }; opts = { menuId, actionLabel, items [{ id, label, icon,
@@ -5134,7 +5134,7 @@
       const pendingLabel = pending ? (config?.postProcesses?.[pending.type]?.label || pending.type) : "";
       return foActRowHtml(act, {
         menuId: `fo-intent-menu-${index}`,
-        actionLabel: config?.actionLabel || "Inițiază un postproces",
+        actionLabel: config?.actionLabel || "Postprocese",
         items: act.postProcesses,
         pendingTitle: pending ? `${pendingLabel} în curs` : "",
         pendingText: pending ? `· dosar ${pending.dossier}. Poți iniția un alt postproces după finalizarea acestuia.` : ""

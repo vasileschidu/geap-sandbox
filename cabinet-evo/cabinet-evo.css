@@ -1559,6 +1559,12 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+/* the action wrapper inside .cab-doc__actions lays its button out like the act row's (flex item → same box,
+   action-menu-v1 parity: tools/ui-qa/specs/cabinet-request-row-vs-act-row.json) */
+.cab-request-row .cab-doc__actions > .e-permits-fo-intent-act__action {
+  display: flex;
+}
+
 /* a failed download / redirect = a notice across the full card width under the row (the act row's notice slot) */
 .cab-request-row > :is(.cab-request-row__notice, .cab-retry) {
   grid-column: 1 / -1;
@@ -1589,42 +1595,8 @@
   background: var(--color-background-base-default, #fff);
 }
 
-/* phones (≤760, the act row's phone anatomy — e-permits-acte-permisive.css „PHONE ROW ANATOMY”, 2026-10-20 user):
-   row 1 = the Small tags left + the ⋮ right, centred on the 20 tag line; row 2 = the title (16/24, ≤ 2 lines) across
-   the FULL card width (under the ⋮ too); row 3 = the meta; the alert under them. The title row spans both columns
-   and keeps the ⋮'s place free on the tag line only: padding-right = ⋮ 32 + 8, which the title takes back
-   (basis 100% + 40, margin-right −40). The ⋮ (later in the DOM, positioned) paints over that free padding. */
-@media (max-width: 760px) {
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .cab-doc__actions) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row {
-    grid-column: 1 / -1;
-    padding-right: calc(var(--spacing-32, 32px) + var(--spacing-8, 8px));
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .cab-doc__actions) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title {
-    flex-basis: calc(100% + var(--spacing-32, 32px) + var(--spacing-8, 8px));
-    margin-right: calc((var(--spacing-32, 32px) + var(--spacing-8, 8px)) * -1);
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:has(> .e-permits-fo-lib-item__content) {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item > .cab-doc__actions {
-    align-self: start;
-    grid-column: 2;
-    grid-row: 1;
-    margin-block: calc((var(--line-height-lh-20, 20px) - var(--spacing-32, 32px)) / 2) 0;
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-    grid-column: 1 / -1;
-  }
-
-  .cab-request-list > .cab-request-row.e-permits-fo-lib-item:is(.is-locked, .has-notice) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending {
-    grid-row: 3;
-  }
-}
+/* phones (≤760): the shared act-row anatomy (e-permits-acte-permisive.css „PHONE ROW ANATOMY”, action-menu-v1) —
+   tags + the action button on row 1, title, meta, alert; nothing request-specific left here */
 
 /* the action link at the end of a row alert (library .link, primary, md) — as a <button> (MPay) it loses the
    UA button box; it is its own tab stop and never opens the row */

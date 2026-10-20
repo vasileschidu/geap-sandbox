@@ -193,14 +193,9 @@
     await h.wait(150);
   };
   const ppCab = (run) => ({ page: "cabinet-evo/index.html", ready: "[data-cab-card]", run });
-  /* the act post-process menu (js/act-row.js): desktop = the dropdown item; phones (≤760, 2026-10-20) = the same
-     item's row in the action sheet (the trigger opened the sheet instead of the dropdown) */
-  const actMenuPick = (itemSel) => async (h) => {
-    if (!window.GEAPActRow?.isSheetOpen?.()) { await h.click(itemSel); return; }
-    const item = document.querySelector(itemSel);
-    const items = [...(item?.closest("[role='menu']")?.querySelectorAll("[role='menuitem'], [role='menuitemradio']") || [])];
-    await h.click(`.e-permits-filter-sheet--actions [data-act-sheet-index="${items.indexOf(item)}"]`);
-  };
+  /* the act post-process menu (js/act-row.js): the anchored dropdown item at every width (action-menu-v1 — the phone
+     action sheet is gone); kept as a helper so the states read the same */
+  const actMenuPick = (itemSel) => async (h) => { await h.click(itemSel); };
   /* the acts list „Filtre” (js/facet-filter.js): desktop = button → bar → popover → Confirmă → Aplică;
      phones (≤760) = chip → bottom sheet → „Arată N rezultate” (the RAP helpers) */
   const cabPhone = () => window.matchMedia("(max-width: 760px)").matches;
@@ -267,7 +262,8 @@
     if (order) await h.click(`.e-permits-sort-sheet__key:has(input[name="geap-sort-sheet-order"][value="${order}"])`);
     document.activeElement?.blur?.(); /* a tap leaves no focus ring (the demo's programmatic click would) */
   };
-  const smMenu = (id) => async (h) => { await smFind(h, id); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
+  /* a row whose only action is „Detalii” has no menu (action-menu-v1) → the state shows that button */
+  const smMenu = (id) => async (h) => { await smFind(h, id); const sel = `[data-sm-card="${id}"] [data-cab-menu-trigger]`; if (document.querySelector(sel)) await h.click(sel); };
   const ntAt = (kind) => ({ page: CAB, params: { view: "notificari" }, ready: ".nt-item, .cab-state", run: async (h) => { await h.scroll(`[data-nt-kind="${kind}"]`); } });
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
      phones chip → sheet → „Arată N rezultate” */
@@ -2038,6 +2034,13 @@
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
     "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-sm-tip]"); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
+    /* the Izvoraș request's „Acțiuni ⌄” open (user 2026-10-20, ref Telegram iOS): the anchored dropdown on every
+       width — phones with the touch item size (components.md „Row action menu on phones”); sm-01v = the SAME with
+       the previous icon-only ⋮ (`?actiuni=kebab`, for comparison); sm-01w = the trigger at the bottom of the
+       screen → the menu opens upwards */
+    "sm-01u": sm(smMenu("d-izvoras")),
+    "sm-01v": sm(smMenu("d-izvoras"), { actiuni: "kebab" }),
+    "sm-01w": sm(async (h) => { await smFind(h, "d-izvoras"); const t = document.querySelector('[data-sm-card="d-izvoras"] [data-cab-menu-trigger]'); t.scrollIntoView({ block: "end" }); window.scrollBy(0, 16); await h.wait(150); t.click(); await h.wait(150); }),
     "sm-02": sm(smMenu("d-spicul")),
     "sm-02a": sm(smMenu("d-fresh")),
     "sm-02b": sm(smMenu("d-sud")),
@@ -2729,7 +2732,7 @@
          row „în curs”), a menu open with a disabled reason, no acts (code starting with 0), a generated identity,
          the holder changed after a choice (notice), a draft saved before the process (resumed on this screen) */
       "gh-02i": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont)),
-      "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { if (window.GEAPActRow?.isSheetOpen?.()) return; /* phones: the sheet shows the reason as a line */ await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
+      "gh-02j": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, openActMenu("act-piata-mare"), async (h) => { if (window.matchMedia("(max-width: 760px)").matches) return; /* phones: the reason is a line in the item */ await h.hover('[data-fo-intent-act="act-piata-mare"] [data-fo-intent-postprocess="Prelungire"]'); await h.wait(600); })),
       "gh-02t": gh("#ghiseu/nou", seq(service("003000118"), pjAdmin, cont, async (h) => { await h.scroll('[data-fo-intent-act="act-depozit"]'); await h.hover('[data-fo-intent-act="act-depozit"] [data-fo-intent-trigger]'); await h.wait(600); })),
       "gh-02l": gh("#ghiseu/nou", seq(service("003000118"), pf("0990001234567"), cont)),
       "gh-02u": gh("#ghiseu/nou", seq(service("003000118"), pf("2123456789018"), cont)),

@@ -127,13 +127,13 @@
   };
 
   /* ---- the phone bottom sheet — ONE shell for every sheet built on it (2026-10-20): the facet sheets
-     below and the act post-process action sheet (js/act-row.js, GEAPActRow.sheet). Library .bottom-sheet
-     (scrim, handle, header title + ×, content, optional footer) + .e-permits-filter-sheet (css/facet-filter.css,
+     below and the sort sheet (js/sort-sheet.js); the act post-process action sheet used it until action-menu-v1
+     (2026-10-20, now an anchored dropdown). Library .bottom-sheet
+     (scrim, header title + ×, content, optional footer — no drag handle: the sheet is not draggable, 2026-10-20) + .e-permits-filter-sheet (css/facet-filter.css,
      phones: css/modal-phone.css „Modals on phones”). Same markup, same open / close animation, Esc and Tab trap. */
   const sheetShellHtml = ({ sprite, titleId, titleHtml = null, headerHtml = "", footerHtml = "" }) => `
       <div class="bottom-sheet__overlay" data-sheet-close></div>
       <div class="bottom-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="${titleId}" tabindex="-1">
-        <div class="bottom-sheet__handle" aria-hidden="true"></div>
         <div class="bottom-sheet__header">
           ${titleHtml ?? `<h2 class="bottom-sheet__header--title" id="${titleId}" data-sheet-title></h2>`}${headerHtml}
           <button type="button" class="modal-close" aria-label="Închide" data-sheet-close>

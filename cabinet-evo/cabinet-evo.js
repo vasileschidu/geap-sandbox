@@ -208,7 +208,7 @@
   /* the acts list = the FO „Ce vrei să soliciți?” act rows (user 2026-10-17: „as we show for the cum vrei să
      soliciți flow screen”) — the SAME renderer as FO #intent and the Ghișeu (js/act-row.js, GEAPActRow.html):
      blue document icon · title + the Cabinet Small tag (+ „Aprobare tacită”) · meta number · validity ·
-     authority · subdivision (text, no institution icon) · the „Inițiază un postproces ⌄” pill when a
+     authority · subdivision (text, no institution icon) · the „Postprocese ⌄” pill when a
      post-process is available. Cabinet extras: the whole row opens the act profile (row hook + keyboard); a
      locked act = the FO locked notice (pill disabled); a paper act = the same notice slot in the info tone; no
      pill when nothing can be started (expired / withdrawn / paper). The old ⋮ („Detalii” = the row click,
@@ -531,13 +531,54 @@
   }
 
   /* a menu that would run past the screen edge opens towards the other side (phones: a ⋮ after
-     two tags sits far right, the left-anchored menu ran 40px off-screen) */
+     two tags sits far right, the left-anchored menu ran 40px off-screen); 16 from every screen edge.
+     action-menu-v1 (2026-10-20): it also opens UPWARDS (FO `.is-open-up`) when the screen has no room
+     below and there is room above (the ⋮ of the last rows on a phone) */
+  const MENU_EDGE = 16;
   function fitMenu(menu) {
-    menu.classList.remove("is-end", "is-start");
+    menu.classList.remove("is-end", "is-start", "is-open-up");
     const rect = menu.getBoundingClientRect();
     const edge = document.documentElement.clientWidth;
-    if (rect.right > edge) menu.classList.add("is-end");
-    else if (rect.left < 0) menu.classList.add("is-start");
+    if (rect.right > edge - MENU_EDGE) menu.classList.add("is-end");
+    else if (rect.left < MENU_EDGE) menu.classList.add("is-start");
+    const trigger = document.querySelector(`[aria-controls="${menu.id}"]`);
+    const top = trigger ? trigger.getBoundingClientRect().top : rect.top;
+    if (rect.bottom > window.innerHeight - MENU_EDGE && top - (rect.bottom - rect.top) - MENU_EDGE >= MENU_EDGE) menu.classList.add("is-open-up");
+  }
+
+  /* menu keyboard (WAI-ARIA menu button): Enter / Space / ↓ on the trigger open it on the first item, ↑ on the
+     last; ↑ ↓ Home End move inside; Esc closes and returns focus to the trigger; Tab closes */
+  let keyOpened = null; /* the trigger an Enter / Space keydown is about to click (demo clicks don't move focus) */
+  const menuItemsOf = (menu) => [...menu.querySelectorAll("[role^='menuitem']")].filter((item) => !item.disabled && item.getClientRects().length);
+  function onMenuKey(event) {
+    const trigger = event.target.closest?.("[data-cab-menu-trigger]");
+    const menuEl = event.target.closest?.("[role='menu']");
+    const inMenu = menuEl && document.querySelector(`[data-cab-menu-trigger][aria-controls="${menuEl.id}"]`) ? menuEl : null; /* request + act rows, profile */
+    keyOpened = trigger && (event.key === "Enter" || event.key === " ") ? trigger : null;
+    if (trigger && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      const menu = document.getElementById(trigger.getAttribute("aria-controls"));
+      if (!menu || trigger.disabled) return;
+      event.preventDefault();
+      if (menu.hidden) trigger.click();
+      if (menu.hidden) return; /* phones: a labelled trigger opened its sheet instead */
+      const items = menuItemsOf(menu);
+      items[event.key === "ArrowDown" ? 0 : items.length - 1]?.focus();
+      return;
+    }
+    if (!inMenu) return;
+    const items = menuItemsOf(inMenu);
+    const at = items.indexOf(document.activeElement);
+    const go = { ArrowDown: at + 1, ArrowUp: at - 1, Home: 0, End: items.length - 1 }[event.key];
+    if (go !== undefined && items.length) {
+      event.preventDefault();
+      items[(go + items.length) % items.length].focus();
+      return;
+    }
+    if (event.key === "Escape" || event.key === "Tab") {
+      const owner = document.querySelector(`[aria-controls="${inMenu.id}"]`);
+      closeMenus();
+      if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); owner?.focus(); }
+    }
   }
 
   function closeMenus(except = null) {
@@ -597,7 +638,7 @@
 
   /* ---------- act profile = the RAP act profile seen by the owner (2026-10-17 alignment) ----------
      The public BO header (Numărul actului · Stare · the status date · Data expirării; „Vezi act
-     permisiv” = the primary, then „Inițiază un postproces ▾” and „Vezi solicitarea”), the paper /
+     permisiv” = the primary, then „Postprocese ▾” and „Vezi solicitarea”), the paper /
      pending notice, then BO sections: Beneficiar (the FO identity card), Detalii act (US-162 AC-17:
      „Data suspendării actului permisiv” + „Suspendat până la data de” only for Suspendat, „Data
      retragerii actului permisiv” only for Retras, „Data aprobării tacite” + the blue badge for a tacit
@@ -696,9 +737,9 @@
       `<button class="btn btn-primary btn-md e-permits-page-header__action" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
       act.postProcesses.length ? `
         <div class="e-permits-fo-intent-act__action">
-          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Inițiază un postproces</span>${icon("icon-chevron-bottom")}</button>
+          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.title || "")}" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
-            ${act.postProcesses.map((pp) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitem" data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}">${icon(pp.icon || "icon-edit", "medium")}<span>${escape(pp.label)}</span></button></li>`).join("")}
+            ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
       state.dosarByAct[act.id] ? `<a class="btn btn-neutral btn-md" href="${escape(cabUrl("solicitari", {}, `#dosar/${state.dosarByAct[act.id]}`))}" data-cab-see-dosar>${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
@@ -786,7 +827,11 @@
         closeMenus(menu);
         if (menu) menu.hidden = !open;
         trigger.setAttribute("aria-expanded", String(open));
-        if (menu && open) fitMenu(menu);
+        if (menu && open) {
+          fitMenu(menu);
+          if (keyOpened === trigger) menuItemsOf(menu)[0]?.focus(); /* opened with Enter / Space */
+        }
+        keyOpened = null;
         return;
       }
       const openBtn = event.target.closest("[data-cab-open]");
@@ -836,7 +881,10 @@
         if (act?.geap) renderDetail(act);
         return;
       }
+      onMenuKey(event);
+      if (event.defaultPrevented && event.key === "Escape") return;
       if (event.key !== "Escape") return;
+      /* Esc on an open trigger: close and keep the focus there */
       closeMenus();
       const modal = document.querySelector("[data-cab-pp-modal]");
       if (modal) modal.hidden = true;

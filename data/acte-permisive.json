@@ -885,7 +885,7 @@
         },
         "separator": "sau",
         "actsTitle": "Acte emise pentru acest serviciu",
-        "actionLabel": "Inițiază un postproces",
+        "actionLabel": "Postprocese",
         "emptyText": "Dumneavoastră nu aveți acte emise pentru serviciul dat.",
         "proposalNote": "Propunere UX — confirmarea nu este în specificație; de confirmat cu PO.",
         "postProcesses": {

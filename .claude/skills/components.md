@@ -273,7 +273,7 @@ but this doc previously described it wrongly, see the entry.
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Facet filter · phone toolbar + sheets (2026-10-17; one pill row 2026-10-20) | `GEAPFacetFilter.create({ mobileSheets: true, preview, sort })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = ONE row `.e-permits-workplace__filter-tools[data-filter-phone-row]` that never scrolls: the round „Filtre” pill `[data-filter-all]` (library chip, 48 · 16/24 medium · icon 24, black + count badge when applied; the toolbar button hidden) + the page's sort control moved into `.e-permits-workplace__filter-sort` (`btn btn-neutral btn-md btn-pill` at 48, label ellipsis) — NO facet chips; applied → „N de rezultate · Șterge filtrele” `[data-filter-phone-meta]` under it; desktop list toolbars (Cabinet, RAP, eKYC): search 40 · „Filtre” `btn-md` 40 · sort `btn-md` 40 (one height); sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19), Cabinet `sm-01 / 01f (sort sheet) / 01m / 01n / 01o / 01p`, `pp-01h / 01s`; section „Advanced filter › Phone mode” | app |
 | Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + library `.radio.radio--medium` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
-| Act post-process menu on phones — action sheet (2026-10-20) | ≤760 the act row / Cabinet act profile trigger („Inițiază un postproces ⌄”, any `.e-permits-fo-intent-act__action > button[aria-haspopup]`) opens the facet-filter phone sheet as an action sheet: `GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions")` (library `.bottom-sheet` + scrim + handle + header) with `.e-permits-filter-sheet__heading` (title + `.e-permits-filter-sheet__subtitle` = act name), `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` of `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` (24 icon · `__action-text` > label + `__action-reason`; `is-danger`, `aria-disabled`); a tap clicks the original menu item; radio menus (2026-10-20, Cabinet „Sortează”): `menuitemradio` → `__action--radio` rows (no lead icon, trailing 24 check + `aria-current` on the current), menu labels → `li.e-permits-filter-sheet__group-label` (14/20 medium tertiary, 16 above / 8 under, 8 for the first), title from the trigger's `data-act-sheet-title` | `js/act-row.js` (sheet) + `js/facet-filter.js` (`window.GEAPSheet`: create / show / hide / trapTab), `css/facet-filter.css`; demo pp-02a, pp-01a, pp-01q, gh-02j (reasons) at 375; section „Act post-process menu on phones — action sheet” | app |
+| Row action menu on phones — anchored popover, touch item size (2026-10-20, action-menu-v1; replaced the act action sheet) | Every menu of an action wrapper `.e-permits-fo-intent-act__action` — act rows „Postprocese ⌄” (FO #intent, Ghișeu, Cabinet), the Cabinet act profile header, the Cabinet request rows „Acțiuni ⌄” (or the ⋮ variant) — is the SAME anchored dropdown at every width (no bottom sheet; user ref Telegram iOS). Phones ≤760: right-aligned to its button, upwards when no room below, 16 from the screen edges (`js/act-row.js` fitMenu → `.is-fit-end` / `.is-fit-start` / `.is-open-up` + `--act-menu-max`; Cabinet request menus `CabEvo.fitMenu`); surface padding 8 · radius 16 · dropdown-effect; items 48 · 12 16 · gap 12 · icon 24 · 16/24 regular · r8; unavailable item = grey + `__reason` 14/20 tertiary second line (desktop: tooltip); danger (Retragere, Anulare, Elimină) red, last, after `__separator`. Keyboard (Cabinet): Enter / Space / ↓ open on the first item, ↑ on the last, ↑ ↓ Home End, Esc → trigger, Tab closes | `js/act-row.js` (`menuItemsHtml`, `isDanger`, fitMenu), `css/e-permits-acte-permisive.css` „Row action menu on phones”, `cabinet-evo/cabinet-evo.js` (fitMenu flip-up, menu keys); demo pp-01a, pp-01q, pp-02a, gh-02j (reasons), sm-01u, sm-01v (⋮), sm-01w (opens up), sm-02 (danger) at 375 / 320; section „Row action menu on phones” | app |
 | Sort control — desktop menu + phone sort sheet (2026-10-20) | `js/sort-sheet.js` (`GEAPSortSheet.menuHtml({ id, keys, orders, current, keyAttr, orderAttr })` / `.bind(trigger, { title, sprite, keys, orders(key), current(), apply })`) + `css/sort-sheet.css`. Desktop: the page's `ul.e-permits-fo-intent-menu.e-permits-stack__menu.e-permits-sort-menu` — `li.e-permits-sort-menu__label` (12/16 medium secondary) · `ul.e-permits-sort-menu__group` of `button.e-permits-fo-intent-menu__item.e-permits-sort-menu__item[role=menuitemradio][aria-checked]` (library `span.radio.radio--medium > span.radio-custom` leading, checked look from `aria-checked`) · `li.e-permits-sort-menu__separator`. Phones (≤760): `GEAPSheet` `.e-permits-filter-sheet.e-permits-sort-sheet` — `h3.e-permits-sort-sheet__label` (14/20 medium secondary) + library `.radio-group.e-permits-sort-sheet__keys[role=radiogroup]` of `label.radio.radio--medium.e-permits-sort-sheet__key` (48 rows, 16/24, checked medium) · label + a second library `.radio-group.e-permits-sort-sheet__keys.e-permits-sort-sheet__order[role=radiogroup]` of the same rows (order, labels follow the key; v2 — the segmented control of v1 was removed, user 2026-10-20) · footer `btn btn-primary btn-lg e-permits-filter-sheet__apply` „Aplică” | section „Sort sheet on phones”; Cabinet „Solicitările mele” (sm-01f, sm-01t, sm-01m) | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
@@ -304,7 +304,7 @@ but this doc previously described it wrongly, see the entry.
 | Back-office helpers for other scripts | `window.GEAPUi` = renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl, renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml | `js/e-permits-shell.js` | app |
 | Undo toast | `GEAPToast.show({ …, action: { label: "Anulează", onClick } })` → `button.toast__link.toast__action` in the link slot | `js/toast.js` | library + app |
 | Ghișeu — depunere la ghișeu (Dosare noi + picker + request sheet) | small modal `#gh-start-modal.modal-overlay > .modal.modal--lg.e-permits-passport__modal.e-permits-gh` = one screen (service + applicant with the search-input lookups), hugs its content up to 24 from the viewport edges, bottom sheet ≤680 (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); the request window opens on the FO intent screen „Ce se solicită?” (`GEAPFormRender.intentHtml`, step `intent`, no stepper) — a choice starts the request; request = **full-screen sheet** `#gh-request-modal.modal-overlay.e-permits-gh-sheet-overlay > .modal.modal--fullscreen.e-permits-gh-sheet` (24 from the top, radius 16 top corners, header · scrolling body · sticky footer; z 990 under library dialogs) with the FO request layout `.e-permits-fo-request__inner.e-permits-gh__inner` (FO stepper `[data-gh-step]` + `.e-permits-fo-form` panel `[data-gh-panel]`); registry kind `ghiseu` via `window.GEAPShellRegistries`; routes via `window.GEAPShellRoutes`; helpers via `window.GEAPShellApi` | `js/ghiseu.js`, `css/ghiseu.css`, `data/ghiseu.json`, demo `gh-*`; section „Ghișeu — depunere la ghișeu” | app |
-| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` = the shared slots number · what · authority · subdivision · date (2026-10-20; 14/20 `--color-text-base-tertiary`, one line on desktop; card padding 16 · r16 · 1.5 stroke, title → meta 8 — § „List rows — act + request”), `.cab-doc__actions` with the pill `__trigger` „Inițiază un postproces ⌄” = `btn btn-neutral btn-sm btn-pill` (library SMALL, 32 · 0 12 · 14/20 · gap 6; medium rejected 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the one dropdown item size (32 · 6 12 6 8 · 14/20 medium · 20 icon, same on touch — § „Dropdown item — one size everywhere”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
+| Act row + „Solicitare nouă” card (FO #intent + Ghișeu picker + EVO Cabinet „Actele mele permisive” list, one renderer — `js/act-row.js` `GEAPActRow.html` since 2026-10-17; Cabinet options: `assets`, `attrs` (row hook), `tagHtml` / `extraTagsHtml` (Cabinet tones + „Aprobare tacită”), `triggerAttrs` / `itemAttrs`, `noticeTone` / `noticeIcon` / `noticeLocks` (paper act = info notice, `.has-notice`), `hideEmptyAction`) | `li.e-permits-fo-lib-item.e-permits-fo-intent-act` (the document card: blue `document-generated.svg`, title + Small status tag [+ brand tag of the chosen post-process], `.e-permits-fo-doc-meta` = the shared slots number · what · authority · subdivision · date (2026-10-20; 14/20 `--color-text-base-tertiary`, one line on desktop; card padding 16 · r16 · 1.5 stroke, title → meta 8 — § „List rows — act + request”), `.cab-doc__actions` with the `__trigger` „Postprocese ⌄” = `btn btn-neutral btn-sm` (library SMALL, 32 · 0 12 · 14/20 · gap 6, radius 6 — square since 2026-10-20; `aria-label` „Postprocese pentru <act>”; medium rejected 2026-10-18) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` at the one dropdown item size (32 · 6 12 6 8 · 14/20 medium · 20 icon, phones: § „Row action menu on phones”), FO = Ghișeu = Cabinet); states `is-locked` (+ `__pending` = full-width subtle warning notice, trigger disabled), menu items `aria-disabled` + `data-tooltip-reason`, menu `is-open-up`; pill on a hovered / selected row = white (default surface) until hovered / pressed / open — open = pressed `secondary-active` + focus ring (grey-on-grey rule, 2026-10-16); card `button.e-permits-fo-intent-new` (arrow; a click goes on); the whole screen body = `intentHtml(opts)` (header + subject „Schimbă”, notice slot, card, „sau”, acts or the shared empty state) | `GEAPActRow.html(act, opts)` (`js/act-row.js`, = `GEAPFormRender.actRowHtml`) / `intentNewHtml(opts)` / `intentHtml(opts)` in `js/e-permits-acte-permisive.js`; demo `pp-02*`, `gh-02i…x`, Cabinet `pp-01…01w` | app |
 | Date input · File input · Menu · Phone input · Segmented controls | — | see `Components/` | **library, no contract documented** |
 
 The last row is honest about a real gap: those previews exist, but no class contract was
@@ -1048,8 +1048,8 @@ Deleted forks — never bring back: `e-permits-user-create__input/-shell/select/
 border — page header, list rows, toolbars. No `btn-md` / `btn-lg`, no hand-rolled buttons.
 Exception (user, 2026-10-20): the list toolbars of Cabinet / RAP / eKYC put „Filtre” and the sort at the search height
 = `btn-md` 40 (phones: 48 pills) — § „Advanced filter › Phone mode”.
-The act row's „Inițiază un postproces ⌄” pill follows it too: `btn btn-neutral btn-sm btn-pill` (FO, Ghișeu,
-Cabinet). Medium was tried on 2026-10-18 and rejected the same day (user: „use small buttons better”); its menu has the
+The act row's „Postprocese ⌄” button follows it too: `btn btn-neutral btn-sm` (FO, Ghișeu, Cabinet; square since
+2026-10-20 — the pill and the „Inițiază un postproces” label were dropped, user: „only do a square button”, „Postprocese”). Medium was tried on 2026-10-18 and rejected the same day (user: „use small buttons better”); its menu has the
 one dropdown item size (§ „Dropdown item — one size everywhere”; the larger 40 / 48 act-menu rows were rejected
 on 2026-10-20).
 
@@ -2022,7 +2022,7 @@ have in some places.” Measured in Figma (icon frame at x 8 / y 6, label at x 3
 | label | 14/20 medium (`--font-size-fs-14` / `--line-height-lh-20` / `--font-weight-fw-medium`), colour per menu |
 | icon | 20 (`--icon-size-medium`), gap 8 → label; icon colour = label colour |
 | states | as the BO stack menu: hover / focus-visible `--color-background-base-tertiary`, danger `--color-text-error-default`, `aria-disabled` grey + not-allowed + no hover (+ `data-tooltip-reason`), selected per list (brand text / trailing 20 check) |
-| touch | the same size (no `pointer: coarse` rows); items stay full-width tap rows. Exception (2026-10-20, user): the act post-process menu becomes an action sheet on phones ≤760 — § „Act post-process menu on phones — action sheet” |
+| touch | the same size (no `pointer: coarse` rows); items stay full-width tap rows. Exception (2026-10-20, user, ref Telegram iOS): on phones ≤760 every ROW action menu (act rows, act profile, request rows) keeps the anchored dropdown with the touch item size (48 · 16/24 · icon 24, surface r16 / 8) — § „Row action menu on phones”. (The act action sheet of the same morning was rejected: „a dropdown menu, not a down modal”.) |
 | two-line rows | same padding, the row grows (dossier case actions, notification field picker, builder issues, designer versions, address search 2 lines with gap 2, MDocs) |
 
 **One rule** — `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, EVO Cabinet and RAP, after the product
@@ -2036,8 +2036,8 @@ NO item size any more — only colours, layout of their parts (`white-space`, tw
 A new menu reuses `.e-permits-fo-intent-menu` + `__item` (or adds its classes to the two lists in that file).
 
 Where it applies: every ⋮ row menu (BO registries / passport / users / notifications, Ghișeu, eKYC, Cabinet), the act
-post-process menu („Inițiază un postproces ⌄”: FO #intent, Ghișeu, Cabinet list + act profile header), the dossier
-case-actions menu, „Sincronizare ▾”, export menus (eKYC Rapoarte), Cabinet „N pe pagină”, „Sortează” (desktop; phones = action sheet),
+post-process menu („Postprocese ⌄”: FO #intent, Ghișeu, Cabinet list + act profile header; phones = § „Row action menu on phones”), the dossier
+case-actions menu, „Sincronizare ▾”, export menus (eKYC Rapoarte), Cabinet „N pe pagină”, „Sortează” (desktop; phones = the sort sheet),
 Form Builder add / issues menus, Process Designer zoom / versions / „Continuă cu”, the notification field picker, the
 header help menu, the BO account menu links (Profilul meu …), FO selects, CAEM + subgenre combos, the address search,
 the phone code list, the MDocs picker list, the facet-filter popover options (BO, eKYC, Cabinet, RAP — checkbox kept).
@@ -2058,68 +2058,35 @@ fo-03e / gh-02q (CAEM), fo-03s (subgenre), adr-02a (address), dos-05c / ek-22b /
 
 ---
 
-### Act post-process menu on phones — action sheet (2026-10-20)
+### Row action menu on phones — anchored popover, touch item size (2026-10-20, action-menu-v1)
 
-**Radio menus (2026-10-20):** the same sheet still serves a `menuitemradio` menu inside an act action wrapper (no page
-uses it for sorting any more — the Cabinet „Sortează” moved to its own sort sheet the same day, § „Sort sheet on phones”):
-group labels (`li[role=presentation]` without items) become `.e-permits-filter-sheet__group-label` headings, radio
-items become `.e-permits-filter-sheet__action--radio` rows (label only, the current one gets the trailing 24 check and
-`aria-current="true"`), the title comes from the trigger's `data-act-sheet-title` („Sortează”). A tap clicks the
-original item (the page sorts, closes and announces as on desktop). Demo sm-01f (open), sm-01m (key, then direction).
+User (Vasile, 2026-10-20), in order: „in the 3 dots modal do nicer, it is ugly” (the act action sheet) → a Telegram iOS
+screenshot: „let's do 3 dots like here … as it was” → „the action does a dropdown menu, as I said with Telegram, not a
+down modal”. Result: the phone **action sheet for act / request menus is gone** (GEAPSheet keeps serving „Filtre” and
+„Sortează”); every action menu of a list row or the act profile is the anchored dropdown, at every width.
 
-User (Vasile, 2026-10-20): „Inițiere postprocese menu on mobile is too small for fat fingers, let's do best practice …”,
-then „maybe on mobile the post-process menu shows as we do for filters?”. On phones (≤760) the act post-process trigger
-(„Inițiază un postproces ⌄” — FO „Ce vrei să soliciți?” pp-02a, Ghișeu window gh-02j, Cabinet list pp-01a, Cabinet act
-profile header pp-01q) opens the **facet-filter phone sheet** used as an action sheet. Desktop (> 760) keeps the compact
-dropdown (§ „Dropdown item — one size everywhere”, unchanged: same DOM, same handlers).
+| Part | Desktop (> 760) | Phones (≤ 760) |
+|---|---|---|
+| Trigger | requests „Acțiuni ⌄” / acts „Postprocese ⌄” = `btn btn-neutral btn-sm` (32, radius 6 — square, not a pill) + 16 chevron (rotates when open); lone view action = „👁 Detalii” (no one-item menu); open = pressed + focus ring (`aria-expanded`) | same button, on row 1 right (§ „List rows — act + request” › Phone row anatomy) |
+| Position | under the button, right-aligned (`right: 0`) | right-aligned to the button; upwards (`.is-open-up`) when the screen has no room below and there is room above; never wider than the room on its side (`--act-menu-max`, 16 from the edges); left-aligned (`.is-fit-start`) when the button is on the left (under the meta) |
+| Surface | the „Dropdown surface”: padding 4 · gap 2 · radius 12 · dropdown-effect · clip | padding 8 · gap 0 · **radius 16** · dropdown-effect · clip |
+| Item | the one dropdown item: 32 · 6 12 6 8 · 14/20 medium · icon 20 · gap 8 · r6 | **48** · padding 12 16 · gap 12 · **16/24 regular** · **icon 24** (label colour) · r8 |
+| Unavailable item | grey + not-allowed, reason = tooltip (`data-tooltip-reason`, `aria-description`) | grey label + icon, the reason as a second line `.e-permits-fo-intent-menu__reason` 14/20 tertiary (aria-hidden: `aria-description` already says it) — icon on the label line |
+| Danger | Retragere, Anulare (`pp.danger`, else by label), Elimină schița: `.is-danger` red label + icon, placed LAST after `li[role=separator].e-permits-fo-intent-menu__separator` (Cabinet requests: `.cab-menu__separator`) | same; separator margin 8 16 (on the icon inset) |
+| Behaviour | page handlers unchanged (FO / Ghișeu / Cabinet confirm modals); tap outside / Esc close; Cabinet menus: Enter / Space / ↓ open on the first item, ↑ on the last, ↑ ↓ Home End, Esc returns focus to the trigger, Tab closes | same |
 
-**One sheet, shared.** `js/facet-filter.js` exports `window.GEAPSheet` = the shell the facet sheets already used
-(`create(className, { sprite, titleId, titleHtml, headerHtml, footerHtml })` → library `.bottom-sheet` with
-`__overlay [data-sheet-close]`, `__panel role=dialog aria-modal`, `__handle`, `__header` (title + library `.modal-close`),
-`__content [data-sheet-body]`; `show` / `hide` = the same slide (library transitions, reduced motion = none) and the
-`html.is-filter-sheet-open` scroll lock; `trapTab`). The facet sheets were moved onto it with byte-identical markup
-(template compared in node). `js/act-row.js` builds the action sheet from the trigger's own menu — no page code changed.
+Markup: the items come from ONE helper `GEAPActRow.menuItemsHtml(items, itemHook, assets)` (act rows + the Cabinet act
+profile header); request rows build theirs in `cabinet-evo/solicitari.js actionsHtml` (`data-act-menu-anchored` on the
+labelled trigger; `?actiuni=kebab` = the icon-only ⋮ variant kept for comparison, sm-01v). code-audit's
+`dropdown-surface` accepts radius 16 for these menus on phones (rule updated 2026-10-20).
 
-| Part | Value |
-|---|---|
-| Container | `.bottom-sheet.e-permits-filter-sheet.e-permits-filter-sheet--actions`; phones = „Modals on phones”: 16 top gap, full width, top radius 16, hugs up to `100% − 16`, MSupport hidden while open |
-| Header | handle (library) · `.e-permits-filter-sheet__heading` = title `.bottom-sheet__header--title` (the trigger's label, „Inițiază un postproces”) + `.e-permits-filter-sheet__subtitle` 14/20 secondary = the act name (row title / profile h1; wraps — no tooltip on touch; **no act number**: rule „no code in a modal header”) · × `.modal-close` (top-aligned) |
-| Rows | the sheet's option row `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` in `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` (list inset 0 8, gap 0): padding 12 8, gap 10, radius 8, 14/20 regular, hover tertiary, pressed tertiary-hover, focus-visible 2px brand inset; the checkbox is replaced by the 24 icon → **48 high**, full width (343 at 375) |
-| Two-line row | an unavailable item (`aria-disabled`, the menu item's `data-tooltip-reason`) shows its reason as `.e-permits-filter-sheet__action-reason` 14/20 secondary under the label (`aria-describedby`); label + icon `--color-text-disabled-default`, not-allowed, no press look; the text block has 2 / 2 padding so line 1 sits on the icon's centre |
-| Danger | a menu item with `.is-danger` → label + icon `--color-text-danger-default` (today no post-process item is marked danger on desktop, so none is in the sheet either — PO question) |
-| Footer | none — a tap acts at once; content bottom padding `max(16, safe-area-inset-bottom)` |
-| Behaviour | the window-capture click on the trigger opens the sheet (the page's dropdown toggle never runs); trigger `aria-haspopup="dialog"` on phones + `aria-expanded="true"` while open (open-button ring); focus → the panel; ×, scrim, Esc (window capture — never closes a dialog behind it, e.g. the Ghișeu window) close it and return focus to the trigger; Tab trapped; a row closes the sheet, focuses the trigger and **clicks the original menu item** → the page's own handler (FO / Cabinet confirm modal for Suspendare / Retragere / Anulare, otherwise the request starts; Ghișeu `choosePostprocess`). No swipe-down (the shared sheet has none; the handle is decorative) |
-| Not on | > 760 (desktop, tablets: M3 medium / expanded widths and iPad keep menus / popovers); the 32px dropdown rows stay the desktop size |
-
-**Research (2026-10-20).** Mobbin MCP was not available in this session (no `mcp__mobbin__*` tools) — documented guidance
-and well-known product behaviour:
-- **Material 3 — Bottom sheets**: modal bottom sheets are „an alternative to inline menus or simple dialogs on mobile”,
-  full width on compact windows, scrim, optional drag handle, dismissed by scrim tap / back / close; **M3 Menus**: menu
-  items 48dp high, and on compact width a long list of actions belongs in a sheet. **M3 Lists**: one-line rows with a
-  leading icon 56dp.
-- **Apple HIG — Action sheets / Menus**: an action sheet slides up from the bottom on iPhone and lists choices for an
-  action the person started; destructive choices in red; on iPad the same content shows as a popover (→ desktop / tablet
-  keep the dropdown). Hit targets ≥ 44 × 44 pt.
-- **NN/g** — „Bottom Sheets: Definition and UX Guidelines”: good for short lists of contextual actions on phones, keep a
-  visible close, support back / Esc, don't stack sheets; „Touch Targets on Touchscreens”: ≥ 1 cm × 1 cm (≈ 44–48 CSS px)
-  with spacing; tooltips need hover and fail on touch → show the reason inline.
-- **WCAG 2.2** — 2.5.8 Target Size (Minimum, AA): 24 × 24 or enough spacing (the 32px desktop rows pass); 2.5.5 (Enhanced,
-  AAA): 44 × 44 — the sheet rows are 48 × 343.
-- **Products**: Google Drive / Gmail / Photos (Android) — „⋮” on an item opens a modal bottom sheet of icon + label rows;
-  iOS Files / Mail — action sheets; Revolut and Monzo — card / transaction actions in bottom sheets with icon rows and
-  unavailable actions explained in place; Airbnb — share / save / trip actions in sheets. Common pattern: full-width rows,
-  leading icon, title of the object on top, immediate action on tap, confirmation only for destructive choices.
-
-Deviations from the brief (reported): subtitle without the act number (user rule) and wrapping instead of one-line
-ellipsis (phone rule); rows 48 with the filter sheet's 14/20 regular label (user: „as we do for filters”) instead of
-56 / 16-24 medium; ≤760 only (not `pointer: coarse` at tablet widths); no swipe-down.
-
-Demo: pp-02a (FO), pp-01a (Cabinet list), pp-01q (Cabinet act profile), gh-02j (Ghișeu, unavailable items with reasons)
-— open at 375 / 320; pp-02b, pp-01g (choice → confirm modal) and gh-02n (choice → request) pick the row in the sheet on
-phones (demo helper `actMenuPick`). At 1440 the same ids show the dropdown.
-
-Figma follows: phone frames of these states = Bottom Sheet (library) with the filter-sheet header + 48px action rows
-(icon 24 · gap 10 · 14/20 · padding 12 8 · radius 8 · list inset 8), reason line 14/20 secondary, no footer.
+**Research (2026-10-20).** Mobbin MCP was not available in this session — documented guidance + well-known products:
+NN/g „Kebab / hamburger icons” and „Icon usability” (unlabelled icons are missed, a text label beats an icon for
+discoverability, especially for infrequent / low-literacy users); GOV.UK Design System (no hidden „more” menus — visible
+text actions like „Change”); Material 3 Menus (anchored to the trigger, 48dp items on touch, flips to stay on screen) and
+Apple HIG Menus / pull-down buttons (iOS 14+ anchored pull-down menus from a labelled button, destructive item red and
+last, separated); Telegram iOS / Google Drive / GitHub mobile (anchored menu rows with a 24 icon and a 16–17 label). →
+labelled trigger with a chevron + anchored menu; the ⋮ stays only as the compared variant.
 
 ---
 
@@ -6356,27 +6323,30 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   1 and 4 never. js/act-row.js `syncCut` puts the full text in `data-tooltip-text` (plain tooltip, hover) on the
   cut title / meta; the row (`data-tooltip-focus`) shows the title's on keyboard focus (js/icon-tooltip.js).
   Phones: title ≤ 2 lines (line-clamp), meta wraps.
-- **Phone row anatomy (≤ 760, 2026-10-20, user: „title 16 on mobile; the badge on top in the same row with the
-  dots”)** — acts AND requests, no markup change (CSS „PHONE ROW ANATOMY” in e-permits-acte-permisive.css + the
-  request block in cabinet-evo.css): **row 1** the Small tags (status · „Aprobare tacită” · „Semnat electronic”,
-  4 apart, wrapping) left, the ⋮ (`btn-strict btn-sm btn-icon-only`, 32) right, its centre = the 20 tag line's
-  centre; act rows: the tags alone · **8** · **row 2** the title **16/24 medium** (`--font-size-fs-16` /
-  `--line-height-lh-24` / medium), ≤ 2 lines + ellipsis, full content width (under the ⋮ too) · **8** · **row 3**
-  the meta 14/20 tertiary, wrapping · act rows: the „Inițiază un postproces” pill **12** under the meta · any
-  alert full width **12** under the last part (also a paper act without pill: 12, was 20). Card unchanged: padding
-  16, radius 16, stroke 1.5. Act rows keep the 24 document icon in column 1, centred on tags + title + meta.
-  How: the title row stays one flex box — title `order: 1; flex: 0 0 100%`, row gap 8; request rows with ⋮ span
-  the title row over both grid columns with `padding-right: 32 + 8` (keeps the ⋮ free on the tag line) and give
-  it back to the title (`flex-basis: calc(100% + 40px)`, `margin-right: −40px`). Desktop (> 760) unchanged
-  (geometry identical at 1440). Measured at 375 / 320 / 740: tags → title 8, title → meta 8, ⋮ centre = tag
-  centre. Parity spec `cabinet-request-row-vs-act-row.json`: 0 at 1440 + 375 (the two ⋮ props are `expected`).
+- **Title 16/24 medium at EVERY width** (2026-10-20, user: „make the card title 16 px on desktop too”): one line +
+  ellipsis + tooltip on desktop, ≤ 2 lines on phones; act + request rows only (other document cards keep 14/20).
+- **Phone row anatomy (≤ 760, 2026-10-20; action-menu-v1 same day: „badge up, in the same row as the action button,
+  buttons square, similar to Solicitările mele”)** — acts AND requests, one CSS block („PHONE ROW ANATOMY” in
+  e-permits-acte-permisive.css), no markup change: the row is a **flex-wrap box (gap 8)** and the content block + the
+  title row are `display: contents`, so icon, tags, title, meta, notice and the action wrapper are its items, placed by
+  `order`: **row 1** [the 24 document icon (acts)] · the Small tags (4 apart) left · the action button right
+  („Postprocese ⌄” / „Acțiuni ⌄” / „👁 Detalii” / ⋮ variant), all centred on the line · **8** · **row 2** the title
+  16/24, ≤ 2 lines, full width · **8** · **row 3** the meta 14/20 tertiary, wrapping (box `100% + 18` for the dot
+  clip) · then the button when it does NOT fit beside the tags (js/act-row.js `syncActionFit` → `.is-action-below`:
+  under the meta, left, 12 above — measured with the class off, one synchronous pass) · any alert full width 12
+  below. Measured: „Postprocese ⌄” (131) fits row 1 at 375 and 320 with one tag; two long tags at 320 (e.g. „În
+  derulare” + „Disponibilă aprobarea tacită”, „Schiță” + „Semnat electronic”) move the request button under the
+  meta. Card unchanged: padding 16, radius 16, stroke 1.5. Parity `cabinet-request-row-vs-act-row.json` = 0 at 1440 /
+  375 / 320 (label width ignored; at 320 the act button placement is `expected`).
 - **Phone list rhythm (≤ 760, 2026-10-20)** — Cabinet list pages (Solicitările mele, Actele mele permisive,
   Catalog, Notificări): ONE 16 step page title (or its description) → search → „Filtre” / sort row (Catalog: the
   category chips) → first card; the applied line „N rezultate · Șterge filtrele” = 8 under the pills, then 16 to
   the cards; cards 12 apart. Desktop keeps 24 / 16 / 24. One block at the end of cabinet-evo.css.
-- **Request row actions**: NO labelled button — only the ⋮ on the right (every action of the request, no
-  downloads); the row opens the profile, a DRAFT row continues the FO form at its saved step (⋮ keeps „Continuă
-  schița” / „Elimină schița”). Phones: the ⋮ sits on the tag line (row 1, see „Phone row anatomy”).
+- **Request row actions** (action-menu-v1, 2026-10-20, user: „3 dots as action with drop down … there is space”):
+  ONE labelled trigger „Acțiuni ⌄” (`btn btn-neutral btn-sm e-permits-fo-intent-act__trigger`, `data-act-menu-anchored`,
+  `aria-label` „Acțiuni pentru dosarul <nr>”) opening the anchored menu (every action of the request, no downloads,
+  danger last); a row whose only action is „Detalii” gets the lone „👁 Detalii” button. The row opens the profile, a
+  DRAFT row continues the FO form. The previous icon-only ⋮ = `?actiuni=kebab` (sm-01v). § „Row action menu on phones”.
 - **Row alerts = ACTION ONLY** (user 2026-10-20): warning when the applicant must act (Informații suplimentare,
   Spre achitare — live countdown + „Finalizare estimată”) ending with ONE inline action link
   (`a|button.link.link-primary.link-sm.cab-alert-link`: „Trimite informațiile →”, „Achită acum →”, the old row
@@ -6404,7 +6374,7 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   intent act row itself, `ul.e-permits-fo-intent__list.cab-act-list > li.e-permits-fo-lib-item.e-permits-fo-intent-act[data-cab-card]`
   via `GEAPActRow.html` (js/act-row.js): blue document icon · title + the Cabinet Small tag (CabEvo.tagHtml tones)
   + „Aprobare tacită” · meta number · „valabil până la / expirat la <date>” · authority code · subdivision (text) ·
-  the pill „Inițiază un postproces ⌄” only when a post-process is available (menu items `data-cab-pp`). The whole
+  the „Postprocese ⌄” button only when a post-process is available (menu items `data-cab-pp`). The whole
   row (click / Enter / Space) opens the act profile; locked act = the FO locked notice (pill disabled); paper act =
   the same notice slot in the info tone, no pill. The old card ⋮ is gone: „Detalii” = the row, „Descarcă actul
   (MDocs)” = profile › „Vezi act permisiv” › Descarcă (pp-01o). A menu that would leave the screen flips side
@@ -6416,7 +6386,7 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
 - Act profile (2026-10-17 = the RAP act profile seen by the owner): `article.cab-profile.cab-act-profile`
   › public BO header (‹ Actele mele permisive; meta Numărul actului · Stare (+ „Aprobare tacită”) · Valabil
   din data | Suspendat până la | Retras la · Data expirării; actions „Vezi act permisiv” (primary → the shared
-  „Vizualizare act” data modal, its Descarcă → „Forma de tipar a actului”) · „Inițiază un postproces ▾”
+  „Vizualizare act” data modal, its Descarcă → „Forma de tipar a actului”) · „Postprocese ▾”
   (neutral btn-md, the same menu) · „Vezi solicitarea”) › notice (paper / pending) › BO sections Beneficiar
   (identity card), Detalii act (US-162 AC-17 status dates, tacit row + badge, „N zile rămase”), Autoritatea
   emitentă. Extras per act in `data/cabinet-evo.json › actProfiles` (suspension / withdrawal / tacit dates,
@@ -7940,7 +7910,7 @@ followed the card corners. Rule, for every `.e-permits-stack` (all stacked lists
 - On the band the grey `btn-neutral` „Detalii” turns white until it is hovered itself (grey on grey
   does not read as a button). Same on the Cabinet grey document card (`.cab-doc__actions > .btn-neutral`),
   whose own hover is `--color-background-base-tertiary-hover`.
-  Same on the act row (`.e-permits-fo-intent-act:is(:hover, .is-selected)` → the „Inițiază un postproces” pill
+  Same on the act row (`.e-permits-fo-intent-act:is(:hover, .is-selected)` → the „Postprocese” button
   white, incl. disabled on a locked row; open keeps `secondary-active` + ring). The „Solicitare nouă” card has no
   inner control (the whole card is the button) — nothing to lift.
 - Rows with their own band follow the same shape: `.e-permits-rt__action.is-previewing` (brand-secondary,
