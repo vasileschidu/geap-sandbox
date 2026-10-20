@@ -37,7 +37,18 @@
    4-digit count wrapped at 375); the button opens the same sheet with every facet as an
    accordion section. A sheet commits on „Arată” (one query); ×, the scrim and Esc drop the changes.
    No draft layer on phones. Research: scratchpad rap-mobile-filter-research.md (Baymard, NN/g,
-   Material 3, Apple HIG). */
+   Material 3, Apple HIG).
+
+   Date range facet (2026-10-20, user: „why is Perioadă not also in Filtre?”): a facet with
+   `type: "date"` (+ `get(row)` → ISO day, optional `presets: [ids]` from DATE_PRESETS, optional
+   `today()` → ISO day of the page's „now”) filters by a period instead of a checklist. Its value is
+   ONE token in the usual array: a preset id („azi”, „7z”, „30z”, „an”, „u7z”, „u30z” — resolved
+   against today at match time) or „interval:<from>:<to>” (either end may be empty). The chip shows
+   „<label>: <compact range>” („1–20 oct. 2026”) and gets the library chip × (`.chip[role=group]` >
+   `button.chip__label` + `button.chip__close`) that clears it at once; the popover / sheet body = the
+   presets as radio rows (dropdown item size) + „Interval personalizat” → De la / Până la with the
+   library date picker (js/input-date-picker.js), end ≥ start. Pages match a row with
+   `GEAPFacetFilter.dateMatch(token, iso, today)`. */
 (function () {
   const escapeHtml = (value) =>
     String(value ?? "")
@@ -48,6 +59,66 @@
       .replace(/'/g, "&#039;");
 
   const INLINE_MAX = 4;
+
+  /* ---- date range facet: presets, tokens, the compact range text ---- */
+  const pad2 = (n) => String(n).padStart(2, "0");
+  const localToday = () => { const n = new Date(); return `${n.getFullYear()}-${pad2(n.getMonth() + 1)}-${pad2(n.getDate())}`; };
+  const isoShift = (iso, days) => {
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
+  };
+  const DATE_PRESETS = {
+    azi: { label: "Azi", range: (t) => [t, t] },
+    "7z": { label: "Ultimele 7 zile", range: (t) => [isoShift(t, -6), t] },
+    "30z": { label: "Ultimele 30 de zile", range: (t) => [isoShift(t, -29), t] },
+    an: { label: "Anul acesta", range: (t) => [`${t.slice(0, 4)}-01-01`, `${t.slice(0, 4)}-12-31`] },
+    /* for dates that lie ahead (an estimated end date) */
+    u7z: { label: "Următoarele 7 zile", range: (t) => [t, isoShift(t, 6)] },
+    u30z: { label: "Următoarele 30 de zile", range: (t) => [t, isoShift(t, 29)] }
+  };
+  const DEFAULT_PRESETS = ["azi", "7z", "30z", "an"];
+  const CUSTOM = "interval";
+  const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+  const MONTHS_SHORT = ["ian.", "feb.", "mar.", "apr.", "mai", "iun.", "iul.", "aug.", "sept.", "oct.", "nov.", "dec."];
+  const dateToken = (from, to) => (from || to ? `${CUSTOM}:${from || ""}:${to || ""}` : null);
+  /* token → { preset, from, to } (null when it holds no period) */
+  const parseDateToken = (token, today) => {
+    if (!token) return null;
+    if (DATE_PRESETS[token]) { const [from, to] = DATE_PRESETS[token].range(today || localToday()); return { preset: token, from, to }; }
+    const m = /^interval:(\d{4}-\d{2}-\d{2})?:(\d{4}-\d{2}-\d{2})?$/.exec(String(token));
+    return m && (m[1] || m[2]) ? { preset: CUSTOM, from: m[1] || "", to: m[2] || "" } : null;
+  };
+  /* a row's date (ISO day or date-time) inside the period of the token; no period = no condition */
+  const dateMatch = (token, value, today) => {
+    const range = parseDateToken(token, today);
+    if (!range) return true;
+    const day = String(value || "").slice(0, 10);
+    if (!ISO_DAY.test(day)) return false;
+    return (!range.from || day >= range.from) && (!range.to || day <= range.to);
+  };
+  const dayText = (iso, year = true) => { const [y, m, d] = iso.split("-").map(Number); return `${d} ${MONTHS_SHORT[m - 1]}${year ? ` ${y}` : ""}`; };
+  /* „12 oct. 2026” · „1–20 oct. 2026” · „28 sept. – 5 oct. 2026” · „28 dec. 2025 – 5 ian. 2026” · „din …” · „până la …” */
+  const rangeText = (from, to) => {
+    if (from && to) {
+      if (from === to) return dayText(from);
+      if (from.slice(0, 7) === to.slice(0, 7)) return `${Number(from.slice(8))}–${dayText(to)}`;
+      if (from.slice(0, 4) === to.slice(0, 4)) return `${dayText(from, false)} – ${dayText(to)}`;
+      return `${dayText(from)} – ${dayText(to)}`;
+    }
+    if (from) return `din ${dayText(from)}`;
+    return to ? `până la ${dayText(to)}` : "";
+  };
+  const dateText = (token, today) => { const range = parseDateToken(token, today); return range ? rangeText(range.from, range.to) : ""; };
+  /* DD/MM/YYYY (also . or -) → ISO; "" when empty; null when not a real date */
+  const typedDay = (text) => {
+    const value = String(text || "").trim();
+    if (!value) return "";
+    const m = /^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/.exec(value);
+    if (!m) return null;
+    const iso = `${m[3]}-${pad2(m[2])}-${pad2(m[1])}`;
+    const check = new Date(`${iso}T00:00:00Z`);
+    return Number.isNaN(check.getTime()) || check.toISOString().slice(0, 10) !== iso ? null : iso;
+  };
 
   /* ---- the phone bottom sheet — ONE shell for every sheet built on it (2026-10-20): the facet sheets
      below and the act post-process action sheet (js/act-row.js, GEAPActRow.sheet). Library .bottom-sheet
@@ -153,6 +224,113 @@
     /* library .search-input actions: spinner while typing + clear (×) — js/search.js */
     const searchActions = () => `<div class="btn-group"><span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span><button type="button" class="btn-icon clear" aria-label="Șterge căutarea"><svg class="icon small" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button></div>`;
 
+    /* ---- date facets ---- */
+    const isDate = (facet) => facet?.type === "date";
+    const todayOf = (facet) => (facet?.today ? facet.today() : cfg.today ? cfg.today() : localToday());
+    const facetByKey = (key) => cfg.allFacets().find((f) => f.key === key);
+    const presetsOf = (facet) => (facet.presets || DEFAULT_PRESETS).filter((id) => DATE_PRESETS[id]);
+    /* the chip with a period: library chip „with close” (group of the chip button + ×) */
+    const dateChipHtml = (facet, token, open) => {
+      const text = dateText(token, todayOf(facet));
+      if (!text) return chipHtml(facet, 0, open);
+      const label = `${facet.label}: ${text}`;
+      return `<div class="chip is-selected e-permits-workplace__filter-chip e-permits-workplace__filter-chip--date" role="group" aria-label="${escapeHtml(facet.label)}">
+        <button class="chip__label" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}" title="${escapeHtml(label)}">
+          <span class="e-permits-workplace__filter-chip-text">${escapeHtml(label)}</span>
+          <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
+        </button>
+        <button class="chip__close" type="button" aria-label="Șterge filtrul ${escapeHtml(facet.label)}" data-filter-date-clear="${escapeHtml(facet.key)}"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button>
+      </div>`;
+    };
+    /* De la / Până la = the library date picker in the FO field shell (as the BO drawers) */
+    const dateFieldHtml = (id, label, iso, today, key, part) => {
+      const [y, m, d] = iso ? iso.split("-") : [];
+      const view = (iso || today).split("-");
+      return `
+        <div class="e-permits-fo-field e-permits-workplace__filter-date-field">
+          <label for="${id}">${label}</label>
+          <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${escapeHtml(iso || "")}" data-today="${today}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}">
+            <div class="e-permits-fo-input e-permits-fo-input--with-action">
+              <input id="${id}" type="text" class="js-date-picker-input" value="${iso ? `${d}/${m}/${y}` : ""}" placeholder="ZZ/LL/AAAA" autocomplete="off" data-filter-date-input="${escapeHtml(key)}" data-filter-date-part="${part}">
+              <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data: ${label}" aria-controls="${id}-panel" aria-expanded="false"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="${sprite}#icon-calendar"></use></svg></button>
+            </div>
+            <div id="${id}-panel" class="date-picker-panel" aria-hidden="true" hidden>
+              <div class="date-picker" role="dialog" aria-label="Alege data: ${label}">
+                <div class="date-picker__header">
+                  <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară"><svg class="icon medium" aria-hidden="true"><use href="${sprite}#icon-chevron-left"></use></svg></button>
+                  <div class="date-picker__month js-date-picker-label"></div>
+                  <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare"><svg class="icon medium" aria-hidden="true"><use href="${sprite}#icon-chevron-right"></use></svg></button>
+                </div>
+                <div class="date-picker__grid date-picker__grid--days" data-view="day">
+                  <div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div>
+                  <div class="date-picker__days js-date-picker-days"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    };
+    /* presets as radio rows (the checklist row: dropdown item size in the popover, 44 in the sheet)
+       + „Interval personalizat” → the two pickers */
+    const dateBodyHtml = (facet, d, where) => {
+      const key = facet.key;
+      const today = todayOf(facet);
+      const name = `geap-filter-date-${where}-${key.replace(/[^a-z0-9_-]/gi, "")}`;
+      const row = (id, label) => `
+          <label class="e-permits-workplace__filter-option">
+            <span class="radio radio--medium"><input class="radio-input" type="radio" name="${name}" value="${id}"${d.preset === id ? " checked" : ""} data-filter-date-preset="${escapeHtml(key)}"><span class="radio-custom" aria-hidden="true"></span></span>
+            <span class="e-permits-workplace__filter-option-label">${escapeHtml(label)}</span>
+          </label>`;
+      return `
+        <div class="e-permits-workplace__filter-list e-permits-workplace__filter-dates${where === "sheet" ? " e-permits-filter-sheet__list" : ""}" role="radiogroup" aria-label="${escapeHtml(facet.label)}">
+          ${presetsOf(facet).map((id) => row(id, DATE_PRESETS[id].label)).join("")}
+          ${row(CUSTOM, "Interval personalizat")}
+        </div>
+        <div class="e-permits-workplace__filter-range" role="group" aria-label="Interval personalizat · ${escapeHtml(facet.label)}" data-filter-range="${escapeHtml(key)}"${d.preset === CUSTOM ? "" : " hidden"}>
+          ${dateFieldHtml(`${name}-from`, "De la", d.from, today, key, "from")}
+          ${dateFieldHtml(`${name}-to`, "Până la", d.to, today, key, "to")}
+          <div class="e-permits-workplace__filter-range-errors" data-filter-range-errors></div>
+        </div>`;
+    };
+    const dateEditOf = (facet, token) => {
+      const range = parseDateToken(token, todayOf(facet));
+      return { preset: range?.preset || "", from: range?.preset === CUSTOM ? range.from : "", to: range?.preset === CUSTOM ? range.to : "" };
+    };
+    /* the message goes under BOTH fields (one line at the range's width, not 4 lines under one column) */
+    const fieldError = (input, text) => {
+      const field = input.closest(".e-permits-fo-field");
+      field.querySelector(".e-permits-fo-input")?.classList.add("is-error");
+      input.setAttribute("aria-invalid", "true");
+      input.setAttribute("aria-describedby", `${input.id}-error`);
+      (input.closest("[data-filter-range]")?.querySelector("[data-filter-range-errors]") || field).insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" id="${input.id}-error" role="alert"><svg class="icon medium" aria-hidden="true"><use href="${sprite}#icon-circle-error-filled"></use></svg><span>${escapeHtml(text)}</span></p>`);
+    };
+    const clearFieldErrors = (scope) => {
+      scope.querySelectorAll(".e-permits-fo-field__error").forEach((node) => node.remove());
+      scope.querySelectorAll(".e-permits-fo-input.is-error").forEach((node) => node.classList.remove("is-error"));
+      scope.querySelectorAll("[data-filter-date-input][aria-invalid]").forEach((node) => { node.removeAttribute("aria-invalid"); node.removeAttribute("aria-describedby"); });
+    };
+    /* the period chosen in a popover / sheet section → { ok, token }; `show` writes the field errors
+       (AC: end ≥ start; a typed date must be a real ZZ/LL/AAAA date; custom needs at least one end) */
+    const readDate = (scope, key, d, show) => {
+      const range = scope.querySelector(`[data-filter-range="${CSS.escape(key)}"]`);
+      if (range && show) clearFieldErrors(range);
+      if (!d.preset) return { ok: true, token: null };
+      if (d.preset !== CUSTOM) return { ok: true, token: d.preset };
+      const fromInput = range?.querySelector('[data-filter-date-part="from"]');
+      const toInput = range?.querySelector('[data-filter-date-part="to"]');
+      const from = typedDay(fromInput?.value);
+      const to = typedDay(toInput?.value);
+      let ok = true;
+      const fail = (input, text) => { ok = false; if (show && input) fieldError(input, text); };
+      if (from === null) fail(fromInput, "Introduceți data în formatul ZZ/LL/AAAA.");
+      if (to === null) fail(toInput, "Introduceți data în formatul ZZ/LL/AAAA.");
+      if (ok && !from && !to) fail(fromInput, "Alegeți cel puțin o dată.");
+      if (ok && from && to && to < from) fail(toInput, "Data „Până la” nu poate fi anterioară datei „De la”.");
+      return ok ? { ok, token: dateToken(from, to) } : { ok, token: null };
+    };
+    const initPickers = (scope) => window.GEAPDatePicker?.init(scope);
+    const pickerOpen = (scope) => !!scope?.querySelector("[data-date-picker].is-open");
+
     const chipHtml = (facet, n, open) => `<button class="chip${n ? " is-selected" : ""} e-permits-workplace__filter-chip" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}"${n ? ` aria-label="${escapeHtml(facet.label)}: ${n} ${n === 1 ? "valoare selectată" : "valori selectate"}"` : ""}>
         <span class="chip__label">${escapeHtml(facet.label)}</span>
         ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}
@@ -188,7 +366,9 @@
       /* the first few facets are chips; the rest wait in "Mai multe" until they hold a value */
       const inline = facets.filter((f, i) => i < INLINE_MAX || draft[f.key]?.length);
       const more = facets.filter((f) => !inline.includes(f));
-      const chip = (facet) => chipHtml(facet, draft[facet.key]?.length || 0, edit?.key === facet.key);
+      const chip = (facet) => (isDate(facet)
+        ? dateChipHtml(facet, draft[facet.key]?.[0], edit?.key === facet.key)
+        : chipHtml(facet, draft[facet.key]?.length || 0, edit?.key === facet.key));
       const isPending = pending();
       const total = cfg.total();
       bar.innerHTML = `
@@ -252,7 +432,9 @@
           <span class="chip__label">Filtre</span>
           ${appliedCount ? `<span class="badge badge--lg badge--solid-light">${appliedCount}</span>` : ""}
         </button>
-        ${facets.map((f) => chipHtml(f, applied[f.key]?.length || 0, sheet?.kind === "facet" && sheet.key === f.key)).join("")}
+        ${facets.map((f) => (isDate(f)
+          ? dateChipHtml(f, applied[f.key]?.[0], sheet?.kind === "facet" && sheet.key === f.key)
+          : chipHtml(f, applied[f.key]?.length || 0, sheet?.kind === "facet" && sheet.key === f.key))).join("")}
       </div>
       ${appliedCount ? `<div class="e-permits-workplace__filter-meta" aria-live="polite">
         <span class="e-permits-workplace__filter-result">${resultsLabel(total)}</span>
@@ -281,6 +463,7 @@
     };
 
     const sheetFacetHtml = (facet) => {
+      if (isDate(facet)) return dateBodyHtml(facet, sheet.dates[facet.key] || dateEditOf(facet, sheet.sel[facet.key]?.[0]), "sheet");
       const many = cfg.options(facet, sheet.sel).length >= SHEET_SEARCH_MIN;
       return `
       ${many ? `
@@ -294,7 +477,21 @@
       <ul class="e-permits-workplace__filter-list e-permits-filter-sheet__list" role="list" data-sheet-list="${escapeHtml(facet.key)}">${sheetOptionsHtml(facet)}</ul>`;
     };
 
-    const sectionSummary = (facet) => (sheet.sel[facet.key] || []).join(", ");
+    const sectionSummary = (facet) => (isDate(facetByKey(facet.key))
+      ? dateText(sheet.sel[facet.key]?.[0], todayOf(facetByKey(facet.key)))
+      : (sheet.sel[facet.key] || []).join(", "));
+    const syncSectionSummary = (key) => {
+      const summary = sheetEl.querySelector(`[data-sheet-section="${CSS.escape(key)}"] [data-sheet-summary]`);
+      if (summary) { summary.textContent = sectionSummary({ key }); summary.title = summary.textContent; summary.hidden = !summary.textContent; }
+    };
+    /* a date section edited in the sheet: the valid period becomes its selection (live count); the
+       errors only show on „Arată” */
+    const syncSheetDate = (key) => {
+      const res = readDate(sheetEl, key, sheet.dates[key], false);
+      if (res.ok && res.token) sheet.sel[key] = [res.token]; else delete sheet.sel[key];
+      syncSectionSummary(key);
+      syncSheetFooter();
+    };
     const sectionHtml = (facet) => {
       const open = sheet.expanded.has(facet.key);
       const id = `geap-filter-sheet-${facet.key.replace(/[^a-z0-9_-]/gi, "")}`;
@@ -318,7 +515,9 @@
       if (!sheetEl || !sheet) return;
       const n = cfg.preview ? cfg.preview(copySel(sheet.sel)) : cfg.total();
       sheetEl.querySelector("[data-sheet-apply]").textContent = `Arată ${resultsLabel(n)}`;
-      const empty = sheet.kind === "facet" ? !(sheet.sel[sheet.key] || []).length : !selCount(sheet.sel);
+      /* a date facet with a period being typed (not valid yet) still has something to reset */
+      const datesSet = (key) => (key ? [key] : Object.keys(sheet.dates)).some((k) => sheet.dates[k]?.preset);
+      const empty = sheet.kind === "facet" ? !(sheet.sel[sheet.key] || []).length && !datesSet(sheet.key) : !selCount(sheet.sel) && !datesSet();
       sheetEl.querySelector("[data-sheet-reset]").disabled = empty;
     };
 
@@ -326,6 +525,7 @@
       const body = sheetEl.querySelector("[data-sheet-body]");
       if (sheet.kind === "facet") body.innerHTML = sheetFacetHtml(cfg.allFacets().find((f) => f.key === sheet.key));
       else body.innerHTML = `<div class="e-permits-filter-sheet__sections">${cfg.facets().map(sectionHtml).join("")}</div>`;
+      initPickers(body);
       syncSheetFooter();
     };
 
@@ -351,6 +551,8 @@
       const facets = cfg.facets();
       sheet = {
         kind, key, opener, sel: copySel(applied), query: {},
+        /* date facets: what the period controls show ({ preset, from, to }) */
+        dates: Object.fromEntries(cfg.allFacets().filter(isDate).map((f) => [f.key, dateEditOf(f, applied[f.key]?.[0])])),
         /* all filters: the sections that hold a value start open; none → the first one */
         expanded: new Set(kind === "all" ? facets.filter((f) => applied[f.key]?.length).map((f) => f.key) : [])
       };
@@ -378,6 +580,9 @@
 
     /* „Arată N rezultate”: the sheet's selection becomes the applied filter (one query) */
     const applySheet = () => {
+      /* a custom period that is not valid blocks „Arată” and shows why */
+      const invalid = Object.keys(sheet.dates).filter((key) => sheetEl.querySelector(`[data-filter-range="${CSS.escape(key)}"]`) && !readDate(sheetEl, key, sheet.dates[key], true).ok);
+      if (invalid.length) { sheetEl.querySelector(".e-permits-fo-input.is-error input")?.focus(); return; }
       const state = cfg.state();
       state.applied = copySel(sheet.sel);
       state.draft = null;
@@ -396,7 +601,9 @@
         if (event.target.closest("[data-sheet-apply]")) { applySheet(); return; }
         if (event.target.closest("[data-sheet-reset]")) {
           if (sheet.kind === "facet") delete sheet.sel[sheet.key]; else sheet.sel = {};
-          sheetEl.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
+          Object.keys(sheet.dates).forEach((key) => { if (sheet.kind !== "facet" || key === sheet.key) sheet.dates[key] = { preset: "", from: "", to: "" }; });
+          sheetEl.querySelectorAll("[data-filter-option], [data-filter-date-preset]").forEach((box) => { box.checked = false; });
+          sheetEl.querySelectorAll("[data-filter-range]").forEach((range) => { clearFieldErrors(range); range.hidden = true; range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; }); });
           sheetEl.querySelectorAll("[data-sheet-summary]").forEach((el) => { el.textContent = ""; el.hidden = true; });
           syncSheetFooter();
           sheetEl.querySelector("[data-sheet-apply]").focus();
@@ -413,17 +620,35 @@
           toggleBtn.querySelector(".e-permits-workplace__filter-caret use").setAttribute("href", `${sprite}#icon-chevron-${open ? "top" : "bottom"}`);
           panel.innerHTML = open ? sheetFacetHtml(facet) : "";
           panel.hidden = !open;
+          if (open) initPickers(panel);
         }
       });
       sheetEl.addEventListener("change", (event) => {
+        if (!sheet) return;
+        const preset = event.target.closest("[data-filter-date-preset]");
+        const dayInput = event.target.closest("[data-filter-date-input]");
+        if (preset || dayInput) {
+          const key = (preset || dayInput).dataset.filterDatePreset || dayInput.dataset.filterDateInput;
+          const d = sheet.dates[key];
+          if (preset) {
+            d.preset = preset.value;
+            const range = sheetEl.querySelector(`[data-filter-range="${CSS.escape(key)}"]`);
+            if (range) { range.hidden = d.preset !== CUSTOM; if (range.hidden) clearFieldErrors(range); }
+          } else {
+            const iso = typedDay(dayInput.value);
+            if (iso !== null) d[dayInput.dataset.filterDatePart] = iso;
+            clearFieldErrors(dayInput.closest("[data-filter-range]"));
+          }
+          syncSheetDate(key);
+          return;
+        }
         const box = event.target.closest("[data-filter-option]");
-        if (!box || !sheet) return;
+        if (!box) return;
         const key = box.dataset.sheetFacet;
         const values = new Set(sheet.sel[key] || []);
         if (box.checked) values.add(box.value); else values.delete(box.value);
         if (values.size) sheet.sel[key] = [...values]; else delete sheet.sel[key];
-        const summary = sheetEl.querySelector(`[data-sheet-section="${CSS.escape(key)}"] [data-sheet-summary]`);
-        if (summary) { summary.textContent = sectionSummary({ key }); summary.title = summary.textContent; summary.hidden = !summary.textContent; }
+        syncSectionSummary(key);
         syncSheetFooter();
       });
       sheetEl.addEventListener("input", (event) => {
@@ -437,6 +662,8 @@
       /* Esc closes without applying; Tab stays inside the sheet (aria-modal) */
       sheetEl.addEventListener("keydown", (event) => {
         if (!sheet) return;
+        /* Esc in an open calendar closes only the calendar (js/input-date-picker.js, on the document) */
+        if (event.key === "Escape" && pickerOpen(sheetEl)) return;
         if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); closeSheet(); return; }
         if (event.key === "Tab") sheetTrapTab(sheetEl, event);
       });
@@ -495,11 +722,37 @@
       }).join("") : `<li>${window.GEAPEmptyState.noResults("Nicio valoare nu corespunde", { text: "Încearcă alți termeni.", bare: true, compact: true })}</li>`;
     };
 
+    /* the date popover: presets + „Interval personalizat” (wider: two pickers side by side); its calendar
+       opens out of the popover, so this popover does not clip */
+    const openDateFacet = (facet, anchor) => {
+      edit = { key: facet.key, values: new Set(), query: "", anchor, date: dateEditOf(facet, draftOf()[facet.key]?.[0]) };
+      popover.classList.add("e-permits-workplace__filter-pop--date");
+      popover.setAttribute("role", "dialog");
+      popover.setAttribute("aria-label", `Filtru: ${facet.label}`);
+      popover.innerHTML = `
+      ${dateBodyHtml(facet, edit.date, "pop")}
+      <div class="e-permits-workplace__filter-footer">
+        <button class="btn btn-primary btn-sm" type="button" data-filter-confirm>Confirmă</button>
+        <button class="btn btn-neutral btn-sm" type="button" data-filter-reset>
+          <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg>
+          <span>Șterge</span>
+        </button>
+      </div>
+    `;
+      popover.hidden = false;
+      initPickers(popover);
+      render();
+      place(bar.querySelector(`[data-filter-facet="${CSS.escape(facet.key)}"]`) || anchor);
+      requestAnimationFrame(() => (popover.querySelector("[data-filter-date-preset]:checked") || popover.querySelector("[data-filter-date-preset]"))?.focus());
+    };
+
     const openFacet = (key, anchor) => {
       const facet = cfg.allFacets().find((f) => f.key === key);
       if (!facet) return;
       ensurePopover();
       moreOpen = false;
+      if (isDate(facet)) { openDateFacet(facet, anchor); return; }
+      popover.classList.remove("e-permits-workplace__filter-pop--date");
       edit = { key, values: new Set(draftOf()[key] || []), query: "", anchor };
       const many = cfg.options(facet).length > 7;
       popover.setAttribute("role", "dialog");
@@ -532,6 +785,7 @@
       ensurePopover();
       edit = null;
       moreOpen = true;
+      popover.classList.remove("e-permits-workplace__filter-pop--date");
       const facets = cfg.facets();
       const draft = draftOf();
       const inline = facets.filter((f, i) => i < INLINE_MAX || draft[f.key]?.length);
@@ -548,6 +802,13 @@
     /* popover "Confirmă": the facet goes into the draft; nothing is queried yet */
     const confirmFacet = () => {
       const draft = draftOf();
+      if (edit.date) {
+        const res = readDate(popover, edit.key, edit.date, true);
+        if (!res.ok) { popover.querySelector(".e-permits-fo-input.is-error input")?.focus(); return; }
+        if (res.token) draft[edit.key] = [res.token]; else delete draft[edit.key];
+        close();
+        return;
+      }
       const values = [...edit.values];
       if (values.length) draft[edit.key] = values; else delete draft[edit.key];
       close();
@@ -576,6 +837,22 @@
 
     function wirePopover() {
       popover.addEventListener("change", (event) => {
+        if (edit?.date) {
+          const preset = event.target.closest("[data-filter-date-preset]");
+          const dayInput = event.target.closest("[data-filter-date-input]");
+          if (preset) {
+            edit.date.preset = preset.value;
+            const range = popover.querySelector("[data-filter-range]");
+            range.hidden = edit.date.preset !== CUSTOM;
+            if (range.hidden) clearFieldErrors(range);
+          }
+          if (dayInput) {
+            const iso = typedDay(dayInput.value);
+            if (iso !== null) edit.date[dayInput.dataset.filterDatePart] = iso;
+            clearFieldErrors(dayInput.closest("[data-filter-range]"));
+          }
+          return;
+        }
         const box = event.target.closest("[data-filter-option]");
         if (!box || !edit) return;
         if (box.checked) edit.values.add(box.value); else edit.values.delete(box.value);
@@ -590,12 +867,23 @@
         if (moreFacet) { openFacet(moreFacet.dataset.filterMoreFacet, bar.querySelector("[data-filter-more]")); return; }
         if (!edit) return;
         if (event.target.closest("[data-filter-confirm]")) { confirmFacet(); return; }
+        if (event.target.closest("[data-filter-reset]") && edit.date) {
+          edit.date = { preset: "", from: "", to: "" };
+          popover.querySelectorAll("[data-filter-date-preset]").forEach((radio) => { radio.checked = false; });
+          const range = popover.querySelector("[data-filter-range]");
+          clearFieldErrors(range);
+          range.hidden = true;
+          range.querySelectorAll("[data-filter-date-input]").forEach((input) => { input.value = ""; input.closest("[data-date-picker]").dataset.selected = ""; });
+          return;
+        }
         if (event.target.closest("[data-filter-reset]")) {
           edit.values.clear();
           popover.querySelectorAll("[data-filter-option]").forEach((box) => { box.checked = false; });
         }
       });
       popover.addEventListener("keydown", (event) => {
+        /* Esc in an open calendar closes only the calendar (js/input-date-picker.js, on the document) */
+        if (event.key === "Escape" && pickerOpen(popover)) return;
         if (event.key === "Escape") { event.preventDefault(); close(); return; }
         if (event.key === "Enter" && edit && !event.target.closest("button")) { event.preventDefault(); confirmFacet(); }
       });
@@ -613,7 +901,20 @@
       if (state.open) bar.querySelector("[data-filter-facet]")?.focus();
     });
 
+    /* the date chip × : that period goes at once (applied + draft), as „Șterge filtrele” does for all */
+    const clearFacet = (key) => {
+      const state = cfg.state();
+      delete state.applied[key];
+      if (state.draft) delete state.draft[key];
+      if (edit?.key === key) close(false);
+      save();
+      cfg.apply();
+      bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`)?.focus();
+    };
+
     bar?.addEventListener("click", (event) => {
+      const dateClear = event.target.closest("[data-filter-date-clear]");
+      if (dateClear) { clearFacet(dateClear.dataset.filterDateClear); return; }
       if (event.target.closest("[data-filter-clear-all]")) { clearAll(); return; }
       if (event.target.closest("[data-filter-commit]")) { commit(); return; }
       if (event.target.closest("[data-filter-discard]")) { discard(); return; }
@@ -646,7 +947,7 @@
     return { render, close, clearAll };
   }
 
-  window.GEAPFacetFilter = { create };
+  window.GEAPFacetFilter = { create, dateMatch, dateText, DATE_PRESETS };
   /* the shared phone sheet (used by js/act-row.js) */
   window.GEAPSheet = { create: sheetCreate, show: sheetShow, hide: sheetHide, trapTab: sheetTrapTab };
 })();

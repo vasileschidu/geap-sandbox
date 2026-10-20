@@ -255,7 +255,7 @@ but this doc previously described it wrongly, see the entry.
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
 | Long name in a header — expand on click (2026-10-19) | host `[data-name-expand]` (the FO top-bar `h1`) › `span.e-permits-name-expand` > `__text` (one line, ellipsis) while the name fits; only when it is really cut (`scrollWidth > clientWidth`, measured without the affordance) › ONE `button.e-permits-name-expand[data-name-expand-toggle][aria-expanded][data-tooltip-text]` > `__text` + `__more` (`__more-label` „Mai mult” / „Mai puțin” 14/20 medium brand + 16 `icon-chevron-bottom`, rotated when open); hover = the label underlines, focus = the FO ring (2 white + 5 `--focus-ring`); open = the name wraps with the label after its last word, host `.is-name-expanded`, the header grows; plain tooltip with the full name while collapsed (icon-tooltip.js `data-tooltip-text`) | `js/name-expand.js` (`GEAPNameExpand.set(host, text)` / `scan` / `sync` / `collapseAll`) + `css/name-expand.css`; FO `setFoServiceTitle`; demo `pp-18` (collapsed) / `pp-18a` (expanded) / `pp-18b` (expanded + scrolled) / `pp-18c` (short name, no affordance) | page-app |
 | FO phone chrome — only the step bar is sticky + MSupport steps aside (2026-10-20) | ≤860 on wizard screens with the step bar (`body.is-fo-request-mode:has(.e-permits-fo-request:not([hidden]) > .e-permits-fo-mobile-progress)`): `.e-permits-fo-auth__header` `position: relative` (EVO bar, service name + long-name expand, „Salvat ca schiță” scroll away); `.e-permits-fo-mobile-progress` sticky at `top: env(safe-area-inset-top)` (44 = row 40 + bar 4, its bar = the bottom line); `html` `scroll-padding-top` = safe area + `--fo-step-bar-height` + 8. MSupport `.msup` hidden at any width while a picker trigger is open (`[aria-haspopup]` / `[role=combobox]` / `.js-date-picker-toggle` + `aria-expanded="true"`), on phones (≤760) also while a text field has focus; the greeting bubble is dismissed for good on the first form interaction on phones | `css/e-permits-acte-permisive.css` (≤860 progress block, MSupport block after the hover round 3), `js/e-permits-acte-permisive.js` (`updateFoStepBarHeight`, `dismissSupportGreeting`); section „FO phone chrome”; demo `fo-03v` (scrolled) / `fo-03w` (select open, widget hidden) / `fo-03u`, `adr-02a`, `pp-18a` | page-app |
-| Filters dialog (FO) | `.e-permits-fo-doc-modal-overlay.cab-filter-modal` > doc modal header / `.cab-filter__body` (`fieldset.cab-filter__group` + `legend.cab-filter__legend`, `.cab-filter__options`, `.cab-filter__range` of two date pickers) / doc modal footer | `openFilters` | page-app |
+| ~~Filters dialog (FO)~~ (removed 2026-10-20) | the Cabinet „Perioadă” dialog (`cab-filter__group / __legend / __options / __range`) went: its two date ranges are date range facets of „Filtre” (row „Facet filter · date range facet”). `.cab-filter-modal` + `.cab-filter__body` stay — they are the Cabinet document modal (`CabEvo.openDocModal`) | — | — |
 | Product mode (another back office on the shell) | `window.GEAPShellProduct` set by a product script before `js/e-permits-shell.js`; body stays `data-demo-flow="back-office"`; a product module plugs in with `product.extend({ views, registries, facets, load, init, showView, route, beforeNavigate })` and reads helpers from `product.shared` | `js/ekyc.js` + `js/ekyc-config.js`, see „eKYC back office” | app |
 | Product registry „+ Adaugă …” + muted rows | toolbar `button.btn.btn-primary.btn-sm.e-permits-workplace__primary-action[data-workplace-add-product]` (label from `view.primaryAction = { id, label }`); `registries[kind].rowClass(row)` → `tr.is-inactive` (text tertiary, tags keep colour) | `js/ekyc-config.js` | app |
 | Editable value list in a form (URIs, IP-uri, scope chips, secret row) | `.e-permits-ekcfg-list` > `.e-permits-ekcfg-list__item` > `.e-permits-ekcfg-list__row` (`.e-permits-fo-input` grows + `btn btn-text-destructive btn-sm` „Elimină”) + inline error; „Adaugă …” = `btn btn-neutral btn-sm` + plus in `.e-permits-tax-cond__add`; chips = full-flow `.e-permits-fo-subgen-chip` | `rowsField` / `chipsField` in `js/ekyc-config.js` | app |
@@ -271,6 +271,7 @@ but this doc previously described it wrongly, see the entry.
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
 | Facet filter · phone sheets (2026-10-17) | `GEAPFacetFilter.create({ mobileSheets: true, preview })` ≤760: bar `.e-permits-workplace__filters.is-sheets` = one scrolling chip row („Filtre” `[data-filter-all]` first, the toolbar button hidden) + „N de rezultate · Șterge filtrele”; sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19); section „Advanced filter › Phone mode” | app |
+| Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + library `.radio.radio--medium` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
 | Act post-process menu on phones — action sheet (2026-10-20) | ≤760 the act row / Cabinet act profile trigger („Inițiază un postproces ⌄”, any `.e-permits-fo-intent-act__action > button[aria-haspopup]`) opens the facet-filter phone sheet as an action sheet: `GEAPSheet.create("e-permits-filter-sheet e-permits-filter-sheet--actions")` (library `.bottom-sheet` + scrim + handle + header) with `.e-permits-filter-sheet__heading` (title + `.e-permits-filter-sheet__subtitle` = act name), `ul.e-permits-workplace__filter-list.e-permits-filter-sheet__list` of `button.e-permits-workplace__filter-option.e-permits-filter-sheet__action` (24 icon · `__action-text` > label + `__action-reason`; `is-danger`, `aria-disabled`); a tap clicks the original menu item | `js/act-row.js` (sheet) + `js/facet-filter.js` (`window.GEAPSheet`: create / show / hide / trapTab), `css/facet-filter.css`; demo pp-02a, pp-01a, pp-01q, gh-02j (reasons) at 375; section „Act post-process menu on phones — action sheet” | app |
 | Cookie Banner | `.cookie-banner` (**shell only**) | `cookie-banner.html` | library (partial) |
 | Date Picker | `.date-picker`, `.date-picker-panel`, `__weekday/__day` | `input-date-picker.html` | library |
@@ -846,8 +847,8 @@ Families covered (selectors in the file): library `.modal-overlay > .modal` (all
 the BO passport / case / detail modals, RAP + Cabinet „Vizualizare act”, Ghișeu picker, Ghișeu request
 sheet `--fullscreen`, the classifier page) — not the Form Builder / Process Designer editors
 (`.modal.e-permits-builder`, already a 16-from-top full sheet); the FO dialog shell
-`.e-permits-fo-doc-modal` (document picker + upload, A4 act viewer `rap-act-modal`, Cabinet document +
-„Perioadă” dialogs `.cab-filter__body`); the FO confirm card `.e-permits-fo-instance-switch-modal__card`;
+`.e-permits-fo-doc-modal` (document picker + upload, A4 act viewer `rap-act-modal`, Cabinet document
+dialog `.cab-filter__body` — the „Perioadă” dialog that shared it went on 2026-10-20); the FO confirm card `.e-permits-fo-instance-switch-modal__card`;
 sheets that already were sheets get the same gap / radius: facet-filter `.bottom-sheet` (radius 24 → 16,
 `90dvh` → `100dvh − 16`), the template sheet `.e-permits-ntpl-sheet` (24 → 16), the account switcher
 `.e-permits-fo-avatar-menu` (≤720, 24 → 16). Drawers (`.e-permits-user-create__drawer`) are already full
@@ -4690,8 +4691,8 @@ ek-04b bar · 04c Client popover · 04c1 popover search without match · 04d Cli
 Statut popover (tags) · 04k Statut ×2 + Nivel applied · 04l draft „Filtre neaplicate” · 04m „Mai
 multe” (phone: all-filters sheet) · 04n applied + search → no results · 06g Decizie + Perioadă
 applied; 06b / 06c / 08b / 13a / 20b / 22b / 27a = popovers on other lists. Demo helpers `ekFacet` /
-`ekPick` / `ekCommit` branch desktop / phone. No date-range facet in the module: Sesiuni istorice
-keep the „Perioadă” period facet (PO question).
+`ekPick` / `ekCommit` branch desktop / phone. Sesiuni istorice „Perioadă” = the date range facet (2026-10-20,
+„Date range facet” below) on „Finalizat la” — the fixed list (Ultimele 24 de ore / 7 / 30 de zile / Mai vechi) went.
 The passport stacked lists (`SF_LISTS`, `data-sf-*`) still have their own copy — next to
 migrate. Never write a third one.
 
@@ -4761,6 +4762,56 @@ migrate. Never write a third one.
   and closes whenever you arrive on another page (registry kind + view); an unapplied
   draft is dropped. Applied filters persist per registry and show as the count badge on
   "Filtrare avansată" while the bar is closed.
+
+#### Date range facet (2026-10-20)
+
+User (2026-10-20): „why is Perioadă not also in Filtre on Solicitările mele?” — the Cabinet had a separate
+„Perioadă” dialog and eKYC Sesiuni istorice a fixed period list. Now a facet can be a DATE RANGE:
+`{ key, label, type: "date", get(row) → ISO day (or date-time), presets: ["azi", "7z", "30z", "an"] (default) |
+["azi", "u7z", "u30z", "an"] (dates ahead), today() → ISO day of the page's „now” }`.
+
+- **Value** = ONE token in the usual applied array (so the badge counts 1, „N rezultate”, „Șterge filtrele”, the
+  draft / commit and the sessionStorage keep working unchanged): a preset id — resolved against `today()` when
+  matching, so „Ultimele 7 zile” stays relative — or `interval:<from>:<to>` (either end may be empty: „din …” /
+  „până la …”). Pages match with `GEAPFacetFilter.dateMatch(token, rowIso, today)` (Cabinet `matchesFacets`, the
+  shell's `facetMatch` for every registry). Presets: `azi` Azi · `7z` Ultimele 7 zile · `30z` Ultimele 30 de zile
+  · `an` Anul acesta (1 ian. – 31 dec.) · `u7z` Următoarele 7 zile · `u30z` Următoarele 30 de zile.
+- **Chip**: no period → the normal facet chip. With a period → black, „<label>: <compact range>”
+  (`GEAPFacetFilter.dateText`: „12 oct. 2026” · „1–20 oct. 2026” · „28 sept. – 5 oct. 2026” · „28 dec. 2025 – 5 ian.
+  2026”; presets show their resolved range too), as the library chip „with close” group: `div.chip[role=group]`
+  > `button.chip__label` (the 16 left padding, `title` = full text, ellipsis) + `button.chip__close` (16 icon in the
+  library 20 circle, `aria-label` „Șterge filtrul <label>”) — the × removes the period from applied AND draft and
+  applies at once (as „Șterge filtrele”), focus back to the chip. Hover: the whole chip `inverse-default-hover`, ×
+  `inverse-default-active`. `max-width: 100%` (the 320 cap of value chips would cut the range).
+- **Popover** (desktop, `role=dialog` „Filtru: <label>”): 320 wide (the library calendar), presets + „Interval
+  personalizat” as radio rows (`label.e-permits-workplace__filter-option` + library `.radio.radio--medium`, the
+  dropdown item size: 32 · 6 12 6 8 · 14/20 medium · gap 8), arrows move inside the radiogroup (native). „Interval
+  personalizat” reveals `.e-permits-workplace__filter-range`: De la · Până la side by side (8 apart, 4 / 12 / 12
+  inset), each the library date picker in the FO field shell (40 high on desktop; typed ZZ/LL/AAAA accepted);
+  „Până la” opens its calendar leftwards; the calendar flips up when there is no room below (library). Footer =
+  Confirmă / Șterge as every facet. **Surface exception**: this popover is `overflow: visible` (the calendar opens
+  out of it; nothing inside reaches the radius) — code-audit `dropdown-surface` „overflow visible” on it is expected.
+- **Validation** (Confirmă / „Arată”): a typed date that is not a real ZZ/LL/AAAA date → „Introduceți data în
+  formatul ZZ/LL/AAAA.”; custom with both empty → „Alegeți cel puțin o dată.”; end < start → „Data „Până la” nu poate
+  fi anterioară datei „De la”.” (US-158 AC-11). Field `is-error` + `aria-invalid` + `aria-describedby`, the
+  message in ONE slot under both fields (`.e-permits-workplace__filter-range-errors`, full width — under one 144
+  column it wrapped to 4 lines); nothing is applied, focus to the first wrong field. An edit clears the messages.
+- **Keyboard**: Tab order radios → fields → calendar buttons → Confirmă / Șterge; Enter (outside a button)
+  confirms; Esc in an open calendar closes only the calendar, a second Esc the popover / sheet.
+- **Phones** (`mobileSheets`): the chip (with its ×) opens the facet sheet with the same body (radio rows 44,
+  fields 48 / 16-24, range padding 8 / 16); in „Filtre” (all) it is a section whose summary is the range text.
+  The live „Arată N rezultate” counts only a VALID period; an invalid custom period blocks „Arată” with the
+  messages; „Resetează” is enabled as soon as a preset / custom is ticked. The library phone calendar is a fixed
+  bottom sheet — the facet sheet panel drops its resting `transform` while it holds a date picker, so the
+  calendar covers the screen above the sheet instead of being trapped in the panel.
+- **Where**: Cabinet „Solicitările mele” Data depunerii + Data estimată de finalizare (presets ahead) — the
+  „Perioadă” dialog was removed; eKYC Sesiuni istorice „Perioadă” on „Finalizat la” (the alert landing
+  „Vezi sesiunile” applies `perioada: ["7z"]`). BO Dosare: not used (reported — the registry has Data depunerii /
+  Termen columns that would benefit; the passport lists `SF_LISTS` keep their own „Perioadă” period facet).
+- Demo: sm-01g (popover / sheet open) · sm-01h (end < start error) · sm-01o (custom 1–10 oct. 2026 applied) ·
+  sm-01p (custom range being picked; at 375 the sheet) · sm-01q (Data estimată „Următoarele 30 de zile”) · ek-06b
+  (popover) · ek-06g (Decizie + „Ultimele 30 de zile”). Demo helper `ffDate(toggle, facet, { preset | from, to,
+  stay, commit })` (js/demo-states.js) for any page.
 
 #### Phone mode — chip row + bottom sheets (2026-10-17, RAP; opt-in)
 
@@ -6405,7 +6456,8 @@ the deciding columns fit the 1024 column — Nr and Acțiuni pinned, the last tw
 order, reported) with header sorting (AC-03, US-158 AC-09: `aria-sort` + chevron; another column starts in its
 natural direction, dates newest first); phones keep the cards + „Sortează”. „Filtre” = the shared facet filter
 (Statut + Autoritatea emitentă, multi-select — US-158 AC-04 / 05; the single-select status chips are gone);
-„Perioadă” = the FO dialog with the two date ranges (AC-06 / 07 / 11). The list shell (intro, toolbar, facet
+„Perioadă” was the FO dialog with the two date ranges (AC-06 / 07 / 11) — since 2026-10-20 they are the date range
+facets Data depunerii / Data estimată de finalizare of „Filtre” („Advanced filter › Date range facet”). The list shell (intro, toolbar, facet
 bar) is built once, the results redraw (`ensureListShell`; profile in `[data-sm-profile-view]`). Row buttons
 „Continuă” · „Suplinire informații” · „Achitare” · „Vezi actul” (AC-05…07). Profile = „Stadiul solicitării” +
 tabs Date generale (default) · Date solicitare (solicitant, date, contacte, documente, livrare, Taxe at filing

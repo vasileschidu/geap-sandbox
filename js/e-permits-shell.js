@@ -1940,12 +1940,17 @@ document.addEventListener("DOMContentLoaded", () => {
   /* a registry a module plugs in (window.GEAPShellRegistries[kind].facets) brings its own facets */
   const facetsOf = () => FILTER_FACETS[registryKindOf()] || productRegistry(registryKindOf())?.facets || [];
   const appliedEntries = () => Object.entries(getFilterState().applied).filter(([, values]) => values?.length);
+  /* a date range facet (`type: "date"`, js/facet-filter.js) holds one period token, not values */
+  const facetMatch = (facet, row, values) => {
+    if (facet.type === "date") return window.GEAPFacetFilter.dateMatch(values[0], asList(facet.get(row))[0], facet.today?.());
+    const rowValues = asList(facet.get(row));
+    return values.some((v) => rowValues.includes(v));
+  };
   const matchesFacets = (row, except = null) => appliedEntries().every(([key, values]) => {
     if (key === except) return true;
     const facet = facetsOf().find((f) => f.key === key);
     if (!facet) return true;
-    const rowValues = asList(facet.get(row));
-    return values.some((v) => rowValues.includes(v));
+    return facetMatch(facet, row, values);
   });
   /* rows the facet's options are counted on: everything else applied, this facet not */
   const facetPool = (exceptKey) => {
@@ -5960,8 +5965,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return getBaseRows(view).filter((row) => filterByToken(row, tab?.filter)).filter(filterBySearch).filter((row) => entries.every(([key, values]) => {
       const facet = facetsOf().find((f) => f.key === key);
       if (!facet) return true;
-      const rowValues = asList(facet.get(row));
-      return values.some((v) => rowValues.includes(v));
+      return facetMatch(facet, row, values);
     })).length;
   };
   const workplaceFilter = window.GEAPFacetFilter.create({

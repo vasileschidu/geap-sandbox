@@ -805,7 +805,8 @@
   gap: var(--spacing-6, 6px);
 }
 
-/* ---------- filters dialog (FO doc modal shell) ---------- */
+/* ---------- the Cabinet document modal (FO doc modal shell; the old „Perioadă” filters dialog that also used it
+   went on 2026-10-20 — the dates are facets of the shared filter now) ---------- */
 
 .cab-filter-modal .e-permits-fo-doc-modal {
   max-width: calc(100% - var(--spacing-32, 32px));
@@ -820,34 +821,6 @@
   padding: 0 var(--spacing-24, 24px) var(--spacing-24, 24px);
 }
 
-.cab-filter__group {
-  border: 0;
-  margin: 0;
-  min-width: 0;
-  padding: 0;
-}
-
-.cab-filter__legend {
-  color: var(--color-text-base-default, #121212);
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-24, 24px);
-  margin-bottom: var(--spacing-12, 12px);
-  padding: 0;
-}
-
-.cab-filter__options {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-12, 12px);
-}
-
-.cab-filter__range {
-  display: grid;
-  gap: var(--spacing-16, 16px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 /* ---------- responsive ---------- */
 
 @media (max-width: 900px) {
@@ -859,7 +832,7 @@
 @media (max-width: 600px) {
 
 
-  /* 16 = the phone control rhythm (search · Perioadă / Sortează · chips), 2026-10-18 */
+  /* 16 = the phone control rhythm (search · Sortează · chips), 2026-10-18 */
   .cab-toolbar {
     gap: var(--spacing-16, 16px);
   }
@@ -885,10 +858,6 @@
     border-radius: var(--border-radius-16, 16px) var(--border-radius-16, 16px) 0 0;
     max-width: none;
     width: 100%;
-  }
-
-  .cab-filter__range {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .cab-roles .e-permits-fo-form__roles-grid {

@@ -1469,3 +1469,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   documented IBAN summary). Proof = the same states on a HEAD worktree (:8961) flag every old variant (svc-04o 505,
   rap-01 32, dos-05 16 …) and the tree 0, with no other new finding. Figma tools `tools/figma/rap/spec.mjs` /
   `tools/figma/cabinet/spec.mjs` still read the old classes — flagged for the figma-designer, not edited.
+- 2026-10-20 · Date range facet in the shared filter (user: „why is Perioadă not also in Filtre?”). Cheapest robust model: a
+  date facet's value is ONE token in the usual applied ARRAY (preset id resolved against `today()` at match time, or
+  `interval:<from>:<to>`) — badge count, draft / commit, „N rezultate”, „Șterge filtrele”, sessionStorage and `pending()`
+  needed no change; only the chip, the popover / sheet body and the pages' matchers (`GEAPFacetFilter.dateMatch`) branch on
+  `type: "date"`. Chip × = the library chip „with close” GROUP (`div.chip[role=group]` > `button.chip__label` +
+  `button.chip__close`) — a × inside the chip button is invalid HTML.
+- 2026-10-20 · Traps: (1) the library date picker panel is `position: absolute` → inside the `overflow: clip` dropdown surface
+  it is cut; the date popover is `overflow: visible` (documented exception; code-audit `dropdown-surface` flags it). (2) The
+  library PHONE calendar is a `position: fixed` sheet — inside the facet bottom sheet, whose panel rests at `transform:
+  translateY(0)`, fixed = relative to the panel (trapped + clipped) → `transform: none` at rest while the sheet holds a
+  picker (`:has([data-date-picker])`, transitions still run). (3) Field errors under one 144px column wrapped to 4 lines →
+  one error slot spanning both fields. (4) hover-audit „no-hover” on the chip button whose hover paints the PARENT chip →
+  give the button the same hover colour itself. (5) code-audit's library-button regex had `\bchip\b`, which never matches
+  `chip__label` / `chip__close` (`_` is a word char) → added the parts to the tool. (6) Full-page captures close popovers
+  (resize) — viewport shots (scratch tools/shot.mjs: state → optional EVAL → PNG) for popovers / sheets / an opened
+  calendar. (7) Removing the Cabinet „Perioadă” dialog: its `.cab-filter-modal` / `.cab-filter__body` are ALSO the Cabinet
+  document modal (`CabEvo.openDocModal`) — grep every class of a removed block before deleting CSS; only `__group /
+  __legend / __options / __range` were dead. Sweep 118 sm / nt / pp-01 / ek-06 / rap-01 / dos-05 states × 2 widths: 0
+  `:error`, 0 overflow (scratch tools/sweep.mjs, one Chrome, sequential). No sub-agent tool → code-audit / hover-audit /
+  component-audit run directly (only standing FPs: Cabinet meta 18 padding, `sm-tacit`, alert link, FO date toggle, eKYC
+  header / nav / rows select).

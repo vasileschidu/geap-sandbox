@@ -48,8 +48,8 @@
     sort: "submitted-desc",
     page: 1,
     perPage: 10,
-    /* US-158 AC-06 / 07: the date ranges („Perioadă” dialog); Statut + Autoritatea emitentă = the facet filter */
-    panel: { subFrom: "", subTo: "", endFrom: "", endTo: "" },
+    /* US-158 AC-04…07: Statut, Autoritatea emitentă, Data depunerii, Data estimată de finalizare = the facet
+       filter (the dates = its date range facet, 2026-10-20 — the separate „Perioadă” dialog is gone) */
     filter: { open: false, applied: {}, draft: null },
     notice: null,
     searchFailed: false,
@@ -336,13 +336,10 @@
     });
   }
 
-  function panelActive() {
-    const panel = state.panel;
-    return [panel.subFrom, panel.subTo, panel.endFrom, panel.endTo].filter(Boolean).length;
-  }
-
   /* US-158 AC-04 / 05: Statut and Autoritatea emitentă = multi-select facets of the shared facet filter
-     (js/facet-filter.js — the BO bar + popovers, the RAP phone sheets); OR inside a facet, AND across (AC-08) */
+     (js/facet-filter.js — the BO bar + popovers, the RAP phone sheets); OR inside a facet, AND across (AC-08).
+     AC-06 / 07: Data depunerii and Data estimată de finalizare = its date range facets (presets + „Interval
+     personalizat” De la / Până la, end ≥ start = AC-11); the estimated end looks ahead (Următoarele 7 / 30 de zile). */
   const authorityValue = (dosar) => {
     const code = serviceOf(dosar).authority;
     return code ? `${code} · ${state.data.help[code]?.name || serviceOf(dosar).authorityName || ""}`.replace(/ · $/, "") : "";
@@ -350,27 +347,22 @@
   const FACETS = [
     { key: "status", label: "Statut", get: (dosar) => statusOf(dosar).label },
     { key: "autoritate", label: "Autoritatea emitentă", get: authorityValue },
+    { key: "depunere", label: "Data depunerii", type: "date", get: (dosar) => isoDay(dosar.submitted), today: () => TODAY },
+    { key: "finalizare", label: "Data estimată de finalizare", type: "date", presets: ["azi", "u7z", "u30z", "an"], get: (dosar) => isoDay(estimatedEnd(dosar)), today: () => TODAY },
   ];
   const facetValues = (facet, dosar) => [].concat(facet.get(dosar) ?? []).filter(Boolean);
   function matchesFacets(dosar, except = null, selection = state.filter.applied) {
     return Object.entries(selection).every(([key, values]) => {
       if (key === except || !values?.length) return true;
       const facet = FACETS.find((f) => f.key === key);
+      if (facet?.type === "date") return window.GEAPFacetFilter.dateMatch(values[0], facet.get(dosar), TODAY);
       return !facet || facetValues(facet, dosar).some((value) => values.includes(value));
     });
   }
-  /* search (AC-02) + the date ranges (AC-06 / 07) — everything but the facets */
+  /* search (AC-02) — everything but the facets */
   function matchesBase(dosar) {
     const query = fold(state.query.trim());
-    const panel = state.panel;
-    if (query && !fold([dosar.nr, serviceOf(dosar).title, dosar.object].join(" ")).includes(query)) return false;
-    const submitted = isoDay(dosar.submitted);
-    if (panel.subFrom && (!submitted || submitted < panel.subFrom)) return false;
-    if (panel.subTo && (!submitted || submitted > panel.subTo)) return false;
-    const end = isoDay(estimatedEnd(dosar));
-    if (panel.endFrom && (!end || end < panel.endFrom)) return false;
-    if (panel.endTo && (!end || end > panel.endTo)) return false;
-    return true;
+    return !query || fold([dosar.nr, serviceOf(dosar).title, dosar.object].join(" ")).includes(query);
   }
   function facetOptions(facet, selection = state.filter.applied) {
     const counts = new Map();
@@ -469,7 +461,7 @@
     trigger.querySelector("[data-sm-sort-icon] use").setAttribute("href", `${SPRITE}#${dir === "asc" ? "icon-arrow-up" : "icon-arrow-down"}`);
   }
 
-  /* the list shell is built once (search, „Filtre”, „Perioadă”, the facet bar keep their DOM / focus); only the
+  /* the list shell is built once (search, „Filtre”, „Sortează”, the facet bar keep their DOM / focus); only the
      lead (read-only notice, return notices) and the results are redrawn */
   function ensureListShell() {
     let view = root.querySelector("[data-sm-list-view]");
@@ -494,11 +486,6 @@
             <svg class="icon" width="16" height="16" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
             <span>Filtre</span>
             <span class="badge badge--lg badge--solid-light" data-sm-filter-count hidden></span>
-          </button>
-          <button type="button" class="btn btn-neutral btn-sm cab-filter cab-period" aria-haspopup="dialog" aria-expanded="false" data-sm-filter-open>
-            <svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-calendar"></use></svg>
-            <span>Perioadă</span>
-            <span class="badge badge--lg badge--solid-light" data-sm-period-count hidden></span>
           </button>
           <div class="e-permits-fo-intent-act__action cab-sort">
             <button type="button" class="btn btn-neutral btn-sm cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
@@ -552,10 +539,6 @@
     search.closest(".search-input").classList.toggle("has-value", Boolean(state.query));
     search.closest(".search-input").classList.toggle("is-ready", Boolean(state.query));
     view.querySelector("[data-sm-search-clear]").disabled = !state.query;
-    const periodCount = panelActive();
-    const badge = view.querySelector("[data-sm-period-count]");
-    badge.hidden = !periodCount;
-    badge.textContent = String(periodCount);
     view.querySelector("[data-sm-sort-menu]").innerHTML = sortMenuHtml();
     syncSortTrigger(view);
 
@@ -1119,131 +1102,6 @@
     });
   }
 
-  /* ---------- filters panel (US-158 AC-04/06/07/11) ---------- */
-
-  function datePickerHtml(id, label, iso) {
-    const [y, m, d] = iso ? iso.split("-") : [];
-    const view = (iso || TODAY).split("-");
-    return `
-      <div class="e-permits-fo-field">
-        <label for="${id}">${escape(label)}</label>
-        <div class="date-picker__field" data-date-picker data-type="default" data-locale="ro" data-selected="${escape(iso || "")}" data-today="${TODAY}" data-year="${Number(view[0])}" data-month="${Number(view[1]) - 1}">
-          <div class="e-permits-fo-input e-permits-fo-input--with-action">
-            <input id="${id}" type="text" class="js-date-picker-input" value="${iso ? `${d}/${m}/${y}` : ""}" placeholder="ZZ/LL/AAAA" autocomplete="off" data-sm-date="${id}">
-            <button type="button" class="e-permits-fo-input__icon-button js-date-picker-toggle" aria-label="Alege data" aria-controls="${id}-panel" aria-expanded="false">${icon("icon-calendar", "medium")}</button>
-          </div>
-          <div id="${id}-panel" class="date-picker-panel" aria-hidden="true" hidden>
-            <div class="date-picker" role="dialog" aria-label="Alege data">
-              <div class="date-picker__header">
-                <button class="date-picker__nav js-date-picker-prev" type="button" aria-label="Luna anterioară">${icon("icon-chevron-left", "medium")}</button>
-                <div class="date-picker__month js-date-picker-label"></div>
-                <button class="date-picker__nav js-date-picker-next" type="button" aria-label="Luna următoare">${icon("icon-chevron-right", "medium")}</button>
-              </div>
-              <div class="date-picker__grid date-picker__grid--days" data-view="day">
-                <div class="date-picker__weekdays">${["L", "M", "M", "J", "V", "S", "D"].map((w) => `<div class="date-picker__weekday">${w}</div>`).join("")}</div>
-                <div class="date-picker__days js-date-picker-days"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  function openFilters(opener) {
-    let overlay = document.querySelector("[data-sm-filter-modal]");
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.className = "e-permits-fo-doc-modal-overlay cab-filter-modal";
-      overlay.dataset.smFilterModal = "";
-      overlay.setAttribute("role", "dialog");
-      overlay.setAttribute("aria-modal", "true");
-      overlay.setAttribute("aria-labelledby", "sm-filter-title");
-      document.body.appendChild(overlay);
-    }
-    modalOpener = opener;
-    opener?.setAttribute("aria-expanded", "true");
-    const panel = state.panel;
-    overlay.innerHTML = `
-      <div class="e-permits-fo-doc-modal">
-        <div class="e-permits-fo-doc-modal__header">
-          <div class="e-permits-fo-doc-modal__header-text">
-            <h2 id="sm-filter-title" class="e-permits-fo-doc-modal__title">Perioadă</h2>
-            <p class="e-permits-fo-doc-modal__subtitle">Intervalele se aplică împreună cu căutarea și filtrele alese.</p>
-          </div>
-          <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-sm-filter-close>${icon("icon-cross-large")}</button>
-        </div>
-        <div class="cab-filter__body">
-          <fieldset class="cab-filter__group">
-            <legend class="cab-filter__legend">Data depunerii</legend>
-            <div class="cab-filter__range" data-sm-range="sub">
-              ${datePickerHtml("sm-sub-from", "De la", panel.subFrom)}
-              ${datePickerHtml("sm-sub-to", "Până la", panel.subTo)}
-            </div>
-          </fieldset>
-          <fieldset class="cab-filter__group">
-            <legend class="cab-filter__legend">Data estimată de finalizare</legend>
-            <div class="cab-filter__range" data-sm-range="end">
-              ${datePickerHtml("sm-end-from", "De la", panel.endFrom)}
-              ${datePickerHtml("sm-end-to", "Până la", panel.endTo)}
-            </div>
-          </fieldset>
-        </div>
-        <div class="e-permits-fo-doc-modal__footer">
-          <button class="e-permits-fo-doc-modal__cancel" type="button" data-sm-filter-reset>Resetează</button>
-          <button class="e-permits-fo-doc-modal__submit" type="button" data-sm-filter-apply>Aplică filtrele</button>
-        </div>
-      </div>`;
-    overlay.hidden = false;
-    window.GEAPDatePicker?.init(overlay);
-    overlay.querySelector("[data-sm-filter-close]")?.focus();
-  }
-
-  function closeFilters() {
-    const overlay = document.querySelector("[data-sm-filter-modal]");
-    if (!overlay || overlay.hidden) return;
-    overlay.hidden = true;
-    document.querySelector("[data-sm-filter-open]")?.setAttribute("aria-expanded", "false");
-    document.querySelector("[data-sm-filter-open]")?.focus();
-  }
-
-  const pickerValue = (overlay, id) => overlay.querySelector(`#${id}`)?.closest("[data-date-picker]")?.dataset.selected || "";
-
-  /* AC-11: „Până la” before „De la” → inline error, nothing applied */
-  function validateRanges(overlay) {
-    let valid = true;
-    [["sm-sub-from", "sm-sub-to"], ["sm-end-from", "sm-end-to"]].forEach(([fromId, toId]) => {
-      const from = pickerValue(overlay, fromId);
-      const to = pickerValue(overlay, toId);
-      const field = overlay.querySelector(`#${toId}`)?.closest(".e-permits-fo-field");
-      field?.querySelector(".e-permits-fo-field__error")?.remove();
-      field?.querySelector(".e-permits-fo-input")?.classList.remove("is-error");
-      if (from && to && to < from) {
-        valid = false;
-        field?.querySelector(".e-permits-fo-input")?.classList.add("is-error");
-        field?.insertAdjacentHTML("beforeend", `<p class="message message--inline e-permits-fo-field__error" role="alert">${icon("icon-circle-error-filled", "medium")}<span>Data „Până la” nu poate fi anterioară datei „De la”.</span></p>`);
-      }
-
-    });
-    return valid;
-  }
-
-  function applyFilters(overlay) {
-    if (!validateRanges(overlay)) {
-      overlay.querySelector(".e-permits-fo-input.is-error input")?.focus();
-      return;
-    }
-    state.panel = {
-      subFrom: pickerValue(overlay, "sm-sub-from"),
-      subTo: pickerValue(overlay, "sm-sub-to"),
-      endFrom: pickerValue(overlay, "sm-end-from"),
-      endTo: pickerValue(overlay, "sm-end-to"),
-    };
-    state.page = 1;
-    closeFilters();
-    renderList();
-    document.querySelector("[data-sm-filter-open]")?.focus();
-  }
-
   /* ---------- downloads (US-19 AC-12 / AC-14) ---------- */
 
   function download(button) {
@@ -1350,8 +1208,6 @@
       if (page && !page.disabled) { state.page = Number(page.dataset.smPage); renderList(); root.querySelector("#sm-title")?.scrollIntoView({ block: "start" }); return; }
       const tab = target.closest("[data-sm-tab]");
       if (tab) { selectTab(tab.dataset.smTab); return; }
-      const filterOpen = target.closest("[data-sm-filter-open]");
-      if (filterOpen) { openFilters(filterOpen); return; }
       if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
       if (target.closest("[data-sm-tip]")) { event.stopPropagation(); showTip(target.closest("[data-sm-tip]")); return; }
 
@@ -1411,25 +1267,10 @@
     root.addEventListener("focusin", (event) => { const el = event.target.closest?.("[data-sm-tip]"); if (el) showTip(el); });
     root.addEventListener("focusout", (event) => { if (event.target.closest?.("[data-sm-tip]")) hideTip(); });
 
-    document.addEventListener("click", (event) => {
-      const overlay = event.target.closest("[data-sm-filter-modal]");
-      if (!overlay) return;
-      if (event.target === overlay || event.target.closest("[data-sm-filter-close]")) { closeFilters(); return; }
-      if (event.target.closest("[data-sm-filter-reset]")) {
-        state.panel = { subFrom: "", subTo: "", endFrom: "", endTo: "" };
-        state.page = 1;
-        closeFilters();
-        renderList();
-        return;
-      }
-      if (event.target.closest("[data-sm-filter-apply]")) applyFilters(overlay);
-    });
-
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       hideTip();
       closeConfirm();
-      closeFilters();
     });
 
     window.addEventListener("hashchange", route);

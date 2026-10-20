@@ -244,7 +244,6 @@
   const sm = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "solicitari", ...params }, hash, ready: SM_READY, run });
   const smDosar = (id, run, params = {}) => sm(run, params, `#dosar/${id}`);
   const smMenu = (id) => async (h) => { await h.scroll(`[data-sm-card="${id}"]`); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
-  const smFilters = async (h) => { await h.click("[data-sm-filter-open]"); };
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
      phones chip → sheet → „Arată N rezultate” */
   const smPhone = () => window.matchMedia("(max-width: 760px)").matches;
@@ -256,14 +255,35 @@
     await h.click(smPhone() ? "[data-sheet-apply]" : "[data-filter-confirm]");
     if (smPhone()) await h.wait(400); else await h.click("[data-filter-commit]");
   };
-  const smDate = async (h, id, iso) => {
-    const input = await h.find(`#${id}`);
+  /* the facet filter's date range facet (js/facet-filter.js, 2026-10-20) on any page: open the facet (desktop: the
+     toolbar toggle if the bar is closed → chip → popover; phones: chip → sheet), tick a preset or „Interval
+     personalizat” + De la / Până la, then Confirmă → „Aplică filtrele” (desktop, unless commit: false) / „Arată”
+     (phones). `stay` leaves the popover / sheet open. */
+  const ffPhone = () => window.matchMedia("(max-width: 760px)").matches;
+  const ffDay = async (h, facet, part, iso) => {
+    const input = await h.find(`[data-filter-date-input="${facet}"][data-filter-date-part="${part}"]`);
     const [y, m, d] = iso.split("-");
     input.closest("[data-date-picker]").dataset.selected = iso;
     input.value = `${d}/${m}/${y}`;
     input.dispatchEvent(new Event("change", { bubbles: true }));
     await h.wait(200);
   };
+  const ffDate = (toggle, facet, { preset = "", from = "", to = "", stay = false, commit = true } = {}) => async (h) => {
+    const phone = ffPhone();
+    const shown = () => [...document.querySelectorAll(`[data-filter-facet="${facet}"]`)].some((el) => el.getClientRects().length);
+    if (!phone && !shown()) await h.click(toggle);
+    await h.click(`[data-filter-facet="${facet}"]`);
+    if (phone) await h.wait(400);
+    if (preset || from || to) await h.click(`[data-filter-date-preset="${facet}"][value="${preset || "interval"}"]`);
+    if (from) await ffDay(h, facet, "from", from);
+    if (to) await ffDay(h, facet, "to", to);
+    if (stay) return;
+    await h.click(phone ? "[data-sheet-apply]" : "[data-filter-confirm]");
+    if (phone) { await h.wait(400); return; }
+    const apply = [...document.querySelectorAll("[data-filter-commit]")].find((el) => el.getClientRects().length);
+    if (commit && apply) await h.click("[data-filter-commit]");
+  };
+  const smDateFacet = (facet, opts) => ffDate("[data-sm-filter-toggle]", facet, opts);
   const cat = (run, params = {}, hash = "") => ({ page: CAB, params: { view: "catalog", ...params }, hash, ready: "[data-cat-card], [data-cat-service], .cab-state", run });
 
   const ppReason = (value) => async (h) => {
@@ -1979,8 +1999,15 @@
     "sm-01m": sm(async (h) => { await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-key="service"]'); await h.click(".cab-sort__trigger"); await h.click('[data-sm-sort-dir="desc"]'); }),
     /* the facet bar open (desktop) / the Statut sheet (phones) */
     "sm-01n": sm(async (h) => { if (!smPhone()) await h.click("[data-sm-filter-toggle]"); await h.click('[data-filter-facet="status"]'); if (smPhone()) await h.wait(400); }),
-    "sm-01g": sm(smFilters),
-    "sm-01h": sm(async (h) => { await smFilters(h); await smDate(h, "sm-sub-from", "2026-10-01"); await smDate(h, "sm-sub-to", "2026-09-01"); await h.click("[data-sm-filter-apply]"); }),
+    /* US-158 AC-06 / 07 / 11 — the dates are date range facets of „Filtre” (2026-10-20; the „Perioadă” dialog is gone):
+       01g the Data depunerii popover (phones: its sheet) · 01h „Până la” before „De la” → error · 01o a custom range
+       applied (chip „Data depunerii: 1–10 oct. 2026” + ×) · 01p the custom range being picked (phones: the sheet)
+       · 01q a preset on Data estimată de finalizare („Următoarele 30 de zile”) */
+    "sm-01g": sm(smDateFacet("depunere", { stay: true })),
+    "sm-01h": sm(smDateFacet("depunere", { from: "2026-10-01", to: "2026-09-01" })),
+    "sm-01o": sm(smDateFacet("depunere", { from: "2026-10-01", to: "2026-10-10" })),
+    "sm-01p": sm(smDateFacet("depunere", { from: "2026-10-01", to: "2026-10-10", stay: true })),
+    "sm-01q": sm(smDateFacet("finalizare", { preset: "u30z" })),
     "sm-01i": sm(smPick("autoritate", ["AMDM*"])),
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
     "sm-01k": sm(async (h) => { await h.hover("[data-sm-tip]"); }),
@@ -2323,7 +2350,9 @@
     "ek-06b": ekList("#ek-history", ekFacet("perioada")),
     "ek-06c": ekList("#ek-history", ekFacet("decizie")),
     "ek-06d": ekList("#ek-history", async (h) => { await h.click("[data-workplace-export]"); }),
-    "ek-06g": ekList("#ek-history", async (h) => { await ekPick("decizie", ["Respins"])(h); await ekPick("perioada", [0])(h); await ekCommit(h); }),
+    /* 06b = the Perioadă date range popover (presets + Interval personalizat, 2026-10-20) · 06g = Decizie + Perioadă
+       „Ultimele 30 de zile” applied */
+    "ek-06g": ekList("#ek-history", async (h) => { await ekPick("decizie", ["Respins"])(h); await ffDate("[data-workplace-filter-toggle]", "perioada", { preset: "30z", commit: false })(h); await ekCommit(h); }),
     "ek-06e": ek("#ek-history", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
     "ek-06f": ek("#ek-history", null, { params: { ek: "eroare" }, ready: ".e-permits-empty-cell" }),
     "ek-07": ekSes("KYC-47325"),

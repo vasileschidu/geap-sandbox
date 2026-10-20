@@ -310,12 +310,12 @@
   };
 
   /* Filtrare avansată facets — the column names (US-UI-04: Client, Cod caz, Status;
-     US-UI-05: interval, Client, Caz, Status, Decizie). The date range is a period facet
-     until a date-range facet exists in the engine (open question for the PO). */
-  const PERIOD_FACET = (row) => {
-    const age = (now() - new Date(row.finalizat)) / 86400000;
-    return [age <= 1 && "Ultimele 24 de ore", age <= 7 && "Ultimele 7 zile", age <= 30 && "Ultimele 30 de zile", age > 30 && "Mai vechi de 30 de zile"].filter(Boolean);
-  };
+     US-UI-05: interval, Client, Caz, Status, Decizie). The interval = the shared date range facet
+     (2026-10-20, js/facet-filter.js `type: "date"`: Azi · Ultimele 7 / 30 de zile · Anul acesta ·
+     Interval personalizat) on „Finalizat la”, against the console's „now” (it replaced the fixed
+     period list Ultimele 24 de ore / 7 / 30 de zile / Mai vechi). */
+  const localDay = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const PERIOD_FACET = { key: "perioada", label: "Perioadă", type: "date", get: (row) => (row.finalizat ? localDay(new Date(row.finalizat)) : ""), today: () => localDay(now()) };
   const facets = {
     "ekyc-active": [
       { key: "client", label: "Client", get: (r) => r.client },
@@ -326,7 +326,7 @@
       { key: "furnizor", label: "Furnizor", get: (r) => r.furnizor }
     ],
     "ekyc-history": [
-      { key: "perioada", label: "Perioadă", get: PERIOD_FACET },
+      PERIOD_FACET,
       { key: "client", label: "Client", get: (r) => r.client },
       { key: "decizie", label: "Decizie", get: (r) => r.decizie, tone: (v) => DECISION_TONES[v] || "neutral" },
       /* US-07-04: score band + manual review, for the Auditor's search */
@@ -1774,7 +1774,7 @@
      then a detail hash, a list tab, applied filters or a row to point at */
   const ALERT_TARGETS = {
     provider: () => ({ label: "Deschide furnizorul", nav: "ek-providers", row: (a) => a.ref, focus: '[data-ekcfg="provider-test"]' }),
-    rejection: () => ({ label: "Vezi sesiunile", nav: "ek-history", kind: "ekyc-history", filters: (a) => ({ client: [client(a.ref).name], decizie: ["Respins"], perioada: ["Ultimele 7 zile"] }) }),
+    rejection: () => ({ label: "Vezi sesiunile", nav: "ek-history", kind: "ekyc-history", filters: (a) => ({ client: [client(a.ref).name], decizie: ["Respins"], perioada: ["7z"] }) }),
     "use-case": () => ({ label: "Vezi cazul", nav: "ek-use-cases", hash: (a) => `#ek-caz/${encodeURIComponent(a.ref)}/pasi` }),
     sdk: () => ({ label: "Vezi versiunile", nav: "ek-sdk", tab: "off" }),
     "review-overdue": () => (role() === "supervisor" ? { label: "Vezi coada", nav: "ek-review-all", tab: "În lucru", row: (a) => a.ref, focus: "button" }

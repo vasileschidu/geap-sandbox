@@ -617,3 +617,140 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
     line-height: var(--line-height-lh-24, 24px);
   }
 }
+
+/* ==========================================================================
+   Date range facet (2026-10-20, `type: "date"` in js/facet-filter.js) — Cabinet „Solicitările mele”
+   (Data depunerii, Data estimată de finalizare), eKYC „Sesiuni istorice” (Perioadă).
+   - chip with a period = the library chip „with close” as a group (`div.chip[role=group]` >
+     `button.chip__label` + `button.chip__close`), black (selected), „<label>: <compact range>”;
+   - popover = presets as radio rows (the dropdown item size of css/dropdown.css) + „Interval
+     personalizat” → De la / Până la (library date picker in the FO field shell), 320 wide (the library
+     calendar's width) and NOT clipped: the calendar opens out of it;
+   - phones: the same rows (44) + fields in the facet sheet; the sheet panel drops its resting
+     transform so the library phone calendar (a fixed bottom sheet) covers the screen.
+   ========================================================================== */
+.e-permits-fo-intent-menu.e-permits-workplace__filter-pop--date {
+  overflow: visible;
+  width: 320px; /* = the library .date-picker width (main.css) */
+}
+
+.chip.e-permits-workplace__filter-chip--date {
+  gap: var(--spacing-4, 4px);
+  max-width: 100%;
+  padding: 0 var(--spacing-8, 8px) 0 0;
+}
+
+/* the chip's own button carries the chip's left padding, so the whole chip but the × opens the popover */
+.e-permits-workplace__filter-chip--date .chip__label {
+  align-items: center;
+  align-self: stretch;
+  background: transparent;
+  border: 0;
+  border-radius: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--spacing-6, 6px);
+  min-width: 0;
+  overflow: visible;
+  padding: 0 0 0 var(--spacing-16, 16px);
+  text-overflow: clip;
+}
+
+.e-permits-workplace__filter-chip--date .chip__label:focus-visible {
+  outline: none; /* the chip draws the ring (library `.chip:has(:focus-visible)`) */
+}
+
+.e-permits-workplace__filter-chip-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.e-permits-workplace__filter-chip--date .chip__close {
+  color: inherit;
+  cursor: pointer;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.e-permits-workplace__filter-chip--date .chip__close .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+/* on the black chip: one step lighter than the chip's own hover (the library blue-sky-200 was white on pale blue) */
+.chip.is-selected.e-permits-workplace__filter-chip--date .chip__close:hover {
+  background-color: var(--color-background-base-inverse-default-active, #444);
+}
+
+/* the × has its own ring; the chip's ring stays for the chip button only */
+.chip.e-permits-workplace__filter-chip--date:has(.chip__close:focus-visible) {
+  outline: none;
+}
+
+.e-permits-workplace__filter-chip--date .chip__close:focus-visible {
+  outline: var(--border-width-2, 2px) solid var(--blue-sky-500, #3379db);
+  outline-offset: var(--border-width-2, 2px);
+}
+
+/* keep the hidden radio inside its row (the library positions it absolutely) */
+.e-permits-workplace__filter-option .radio {
+  flex: 0 0 auto;
+  position: relative;
+}
+
+/* „Interval personalizat”: De la · Până la side by side, 8 between, 12 to the popover edges */
+.e-permits-workplace__filter-range {
+  display: grid;
+  gap: var(--spacing-8, 8px);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: var(--spacing-4, 4px) var(--spacing-12, 12px) var(--spacing-12, 12px);
+}
+
+.e-permits-workplace__filter-range[hidden] {
+  display: none;
+}
+
+.e-permits-workplace__filter-date-field {
+  min-width: 0;
+}
+
+/* „Până la”: its calendar opens leftwards, inside the popover's right edge */
+.e-permits-workplace__filter-date-field:last-child .date-picker__field:not(.is-mobile) .date-picker-panel {
+  left: auto;
+  right: 0;
+}
+
+.e-permits-filter-sheet .e-permits-workplace__filter-range {
+  padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
+}
+
+/* a sheet with a date facet: no transform at rest, so the library phone calendar (position: fixed) is
+   placed on the screen, above the sheet, not inside the panel */
+.e-permits-filter-sheet[aria-hidden="false"]:has([data-date-picker]) .bottom-sheet__panel {
+  transform: none;
+}
+
+/* the range's messages: one slot under both fields */
+.e-permits-workplace__filter-range-errors {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  grid-column: 1 / -1;
+}
+
+.e-permits-workplace__filter-range-errors:empty {
+  display: none;
+}
+
+.e-permits-workplace__filter-range-errors .e-permits-fo-field__error {
+  margin: 0;
+}
+
+/* the chip button itself takes the chip's hover colour (the whole chip lightens; the button is the hovered element) */
+.chip.is-selected.e-permits-workplace__filter-chip--date .chip__label:hover {
+  background-color: var(--color-background-base-inverse-default-hover, #383838);
+}
