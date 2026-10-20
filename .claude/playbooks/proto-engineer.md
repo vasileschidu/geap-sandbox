@@ -1567,3 +1567,8 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   helper so a state shot shows the tap look. A long segment pair („Cele mai apropiate / îndepărtate”) wraps to 2 lines
   at 320 (64 high) — measured, acceptable, documented; never truncate. No sub-agent tool → component-audit (scoped sheet /
   menu 0), hover-audit 0 / 0 (700 temp copy + 1440 menu), code-audit (only standing FPs) run directly.
+- 2026-10-20 · Sort sheet v2 (user via coordinator): „Ordine” = the SAME library radio rows as „Sortează după”, no segmented
+  control — one choice type per sheet; my v1 mixed radio + segmented (and the segmented wrapped to 2 lines at 320).
+  When a sheet holds two single-choice groups, build both from one row helper. Trap avoided: redrawing a radio group on
+  its own `change` replaces the focused input and breaks arrow-key navigation — redraw only the group whose LABELS change
+  (the order after a key change), never the one being chosen in. hover-audit crashed on its first (cold) run again — rerun.

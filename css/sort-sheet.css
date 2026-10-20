@@ -85,7 +85,8 @@
   margin: 0 0 var(--spacing-8, 8px);
 }
 
-/* the key: library radio group, one full-width 48 tap row per key; the hover / pressed layer bleeds 8 into
+/* the key AND the order (v2, 2026-10-20: „Ordine” = the same radio rows, no segmented control): library radio
+   group, one full-width 48 tap row per option; the hover / pressed layer bleeds 8 into
    the side padding so the radio and the text stay on the sheet's 16 inset */
 .radio-group.e-permits-sort-sheet__keys {
   gap: 0;
@@ -128,18 +129,6 @@
 /* the library focus ring stays for the keyboard; a tap does not leave it on */
 .e-permits-sort-sheet__key .radio-input:focus:not(:focus-visible) + .radio-custom {
   outline: none;
-}
-
-/* the order: the library segmented control, full width, two equal segments (Figma mobile variant 343) */
-.segmented-control.e-permits-sort-sheet__order {
-  display: flex;
-  width: 100%;
-}
-
-.e-permits-sort-sheet__order .segment-item {
-  flex: 1 1 0;
-  min-width: 0;
-  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {

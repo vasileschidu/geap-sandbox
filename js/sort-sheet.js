@@ -4,8 +4,8 @@
      „Sortează după” / „Ordine”, every item a `menuitemradio` with the library radio as its leading affordance;
      the page keeps its own click handler on the items (a key starts in its natural order).
    - phones (≤ 760): `bind(trigger, cfg)` turns the same trigger into a bottom sheet on the shared GEAPSheet
-     (js/facet-filter.js): section label + library RADIO group for the key, section label + library SEGMENTED
-     control for the order (its labels follow the key), sticky primary „Aplică”. The choice is a draft until
+     (js/facet-filter.js): section label + library RADIO group for the key, section label + a second library RADIO
+     group for the order (its labels follow the key; v2 — the segmented control of v1 is gone), sticky primary „Aplică”. The choice is a draft until
      „Aplică” (as the filter sheet's „Arată N rezultate”); ×, scrim and Escape cancel; focus returns to the trigger.
    cfg: { title, sprite, keys: [{ value, label }], orders(key) → [{ value, label, name? }] (natural order first),
           current() → { key, order }, apply({ key, order }) } */
@@ -31,17 +31,15 @@
 
   function bodyHtml() {
     const { cfg, key, order } = cur;
-    const radios = cfg.keys.map((k) => `
+    /* both groups = the same library radio rows (user 2026-10-20: „Ordine” like „Sortează după”, no segmented control) */
+    const row = (name, value, label, on, spoken) => `
             <label class="radio radio--medium e-permits-sort-sheet__key">
-              <input class="radio-input" type="radio" name="geap-sort-sheet-key" value="${esc(k.value)}"${k.value === key ? " checked" : ""}>
+              <input class="radio-input" type="radio" name="${name}" value="${esc(value)}"${on ? " checked" : ""}${spoken ? ` aria-label="${esc(spoken)}"` : ""}>
               <span class="radio-custom"></span>
-              <span class="radio-texts"><span class="radio-label">${esc(k.label)}</span></span>
-            </label>`).join("");
-    const segments = cfg.orders(key).map((o) => {
-      const on = o.value === order;
-      return `
-            <button class="segment-item${on ? " is-selected" : ""}" type="button" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-sort-sheet-order="${esc(o.value)}"${o.name ? ` aria-label="${esc(o.name)}"` : ""}>${esc(o.label)}</button>`;
-    }).join("");
+              <span class="radio-texts"><span class="radio-label">${esc(label)}</span></span>
+            </label>`;
+    const radios = cfg.keys.map((k) => row("geap-sort-sheet-key", k.value, k.label, k.value === key)).join("");
+    const orders = cfg.orders(key).map((o) => row("geap-sort-sheet-order", o.value, o.label, o.value === order, o.name)).join("");
     return `
         <div class="e-permits-sort-sheet__group">
           <h3 class="e-permits-sort-sheet__label" id="geap-sort-sheet-by">Sortează după</h3>
@@ -50,7 +48,7 @@
         </div>
         <div class="e-permits-sort-sheet__group">
           <h3 class="e-permits-sort-sheet__label" id="geap-sort-sheet-order">Ordine</h3>
-          <div class="segmented-control e-permits-sort-sheet__order" role="radiogroup" aria-labelledby="geap-sort-sheet-order">${segments}
+          <div class="radio-group e-permits-sort-sheet__keys e-permits-sort-sheet__order" role="radiogroup" aria-labelledby="geap-sort-sheet-order">${orders}
           </div>
         </div>`;
   }
@@ -62,19 +60,18 @@
     cur.order = list[cur.touched && cur.reversed ? 1 : 0]?.value || list[0]?.value;
     renderOrder();
   }
-  function setOrder(value, focus = false) {
+  /* the native radio already shows the choice — no redraw, so arrow keys keep their focus */
+  function setOrder(value) {
     const list = cur.cfg.orders(cur.key);
     cur.order = value;
     cur.touched = true;
     cur.reversed = list.findIndex((o) => o.value === value) > 0;
-    renderOrder(focus);
   }
-  function renderOrder(focus = false) {
+  function renderOrder() {
     const host = sheetEl.querySelector(".e-permits-sort-sheet__order");
     const tmp = document.createElement("div");
     tmp.innerHTML = bodyHtml();
     host.innerHTML = tmp.querySelector(".e-permits-sort-sheet__order").innerHTML;
-    if (focus) host.querySelector('[aria-checked="true"]')?.focus();
   }
 
   function close(restoreFocus = true) {
@@ -99,8 +96,6 @@
     sheetEl.addEventListener("click", (event) => {
       if (!cur) return;
       if (event.target.closest("[data-sheet-close]")) { close(); return; }
-      const seg = event.target.closest("[data-sort-sheet-order]");
-      if (seg) { setOrder(seg.dataset.sortSheetOrder, true); return; }
       if (event.target.closest("[data-sort-sheet-apply]")) {
         const { cfg, key, order, trigger } = cur;
         close(false);
@@ -109,20 +104,13 @@
       }
     });
     sheetEl.addEventListener("change", (event) => {
-      if (cur && event.target.name === "geap-sort-sheet-key") setKey(event.target.value);
+      if (!cur) return;
+      if (event.target.name === "geap-sort-sheet-key") setKey(event.target.value);
+      if (event.target.name === "geap-sort-sheet-order") setOrder(event.target.value);
     });
     sheetEl.addEventListener("keydown", (event) => {
       if (!cur) return;
-      if (event.key === "Tab") { window.GEAPSheet.trapTab(sheetEl, event); return; }
-      /* the segmented control is one radio group: arrows move the choice, one tab stop */
-      const seg = event.target.closest?.("[data-sort-sheet-order]");
-      if (!seg || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
-      event.preventDefault();
-      const all = [...sheetEl.querySelectorAll("[data-sort-sheet-order]")];
-      const i = all.indexOf(seg);
-      const next = event.key === "Home" ? 0 : event.key === "End" ? all.length - 1
-        : (i + (/Left|Up/.test(event.key) ? -1 : 1) + all.length) % all.length;
-      setOrder(all[next].dataset.sortSheetOrder, true);
+      if (event.key === "Tab") window.GEAPSheet.trapTab(sheetEl, event);
     });
   }
 

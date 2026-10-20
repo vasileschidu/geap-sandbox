@@ -260,11 +260,11 @@
     for (let page = 2; !document.querySelector(`[data-sm-card="${id}"]`) && document.querySelector(`[data-sm-page="${page}"]`) && page < 6; page += 1) await h.click(`[data-sm-page="${page}"]`);
     await h.scroll(`[data-sm-card="${id}"]`);
   };
-  /* phones: open the sort sheet, pick a key (its radio row) and optionally an order (segment) — no „Aplică” */
+  /* phones: open the sort sheet, pick a key and optionally an order (radio rows) — no „Aplică” */
   const smSortSheet = (key, order) => async (h) => {
     await h.click(".cab-sort__trigger"); await h.wait(350);
-    await h.click(`.e-permits-sort-sheet__key:has(input[value="${key}"])`);
-    if (order) await h.click(`[data-sort-sheet-order="${order}"]`);
+    await h.click(`.e-permits-sort-sheet__key:has(input[name="geap-sort-sheet-key"][value="${key}"])`);
+    if (order) await h.click(`.e-permits-sort-sheet__key:has(input[name="geap-sort-sheet-order"][value="${order}"])`);
     document.activeElement?.blur?.(); /* a tap leaves no focus ring (the demo's programmatic click would) */
   };
   const smMenu = (id) => async (h) => { await smFind(h, id); await h.click(`[data-sm-card="${id}"] [data-cab-menu-trigger]`); };
