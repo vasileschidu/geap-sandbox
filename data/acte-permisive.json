@@ -925,7 +925,7 @@
           },
           "retragere": {
             "label": "Retragere act permisiv",
-            "icon": "icon-cross-large",
+            "icon": "icon-circle-x",
             "kind": "consequential",
             "requestType": "Retragere",
             "consequence": "Actul permisiv va fi retras definitiv și nu mai poate fi reactivat. Pentru a relua activitatea va trebui să depui o cerere nouă."

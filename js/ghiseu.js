@@ -1248,7 +1248,7 @@
     if (d.process === "post" && (!d.act || !actById(d, d.act))) { d.process = ""; d.requestType = ""; d.act = null; }
   }
   /* = GEAPActRow.ppIcon (js/act-row.js, act-icons-v1), which wins in the menu */
-  const PP_ICON = { Prelungire: "icon-calendar-add", Reperfectare: "icon-edit", "Emitere duplicat": "icon-copy", "Suspendare valabilitate": "icon-lock", "Reluarea valabilității": "icon-rotate-arrow", Retragere: "icon-cross-large", "Contestație": "icon-judge-gavel" };
+  const PP_ICON = { Prelungire: "icon-calendar-add", Reperfectare: "icon-edit", "Emitere duplicat": "icon-copy", "Suspendare valabilitate": "icon-lock", "Reluarea valabilității": "icon-rotate-arrow", Retragere: "icon-circle-x", "Contestație": "icon-judge-gavel" };
   /* one act / decision = the shared FO act row (GEAPFormRender.actRowHtml): every post-process of the
      service in its menu, the ones the status / term does not allow disabled with the reason (AC-28/31/32) */
   function actRowHtml(d, act) {
