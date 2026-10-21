@@ -2386,3 +2386,12 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   markup: added ONLY a radius rule in its own block (harmless on HEAD, no match). Parity spec request ↔ act = 0 (both cards
   moved together); code-audit's radius scale already had 24. No sub-agent tool → code-audit (static 0, no radius finding),
   component-audit (standing header / missing-copy / doc-modal × only), hover-audit 0 / 0 run directly.
+- 2026-10-21 · Card radius back to 16 (radius-16-v1; user on 350c4351: „Do 16, as it was better” — 24 too round, no 20 in
+  Foundations). Reverted BY HAND, not `git revert`: another agent had uncommitted cabinet-evo/* changes, so only the radius
+  declarations + their comments moved (deterministic asserted edit script run twice: on a HEAD export → hash-object /
+  update-index, and on the working tree). The two override blocks radius-24-v1 had ADDED (Cabinet doc card, status notice) were
+  deleted rather than set to 12 / 16: without them the components fall back to their own shared rules (doc-card surface r12,
+  callout 16) — fewer rules, and the „one document card surface” stays one. Proof = the SAME runtime radius probe as for v1,
+  diffed against v1's saved „before” table: identical except one row from the other agent's header job (cab-act-header__facts),
+  trajectory card kept at 24. Lesson: when a visual change is risky (taste), keep the pre-change probe table — the revert is
+  then proven by one diff. Parity request ↔ act = 0. Token `--border-radius-24` kept (BO profile / trajectory / sheets use it).

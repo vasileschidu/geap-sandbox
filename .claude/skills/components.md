@@ -280,8 +280,8 @@ but this doc previously described it wrongly, see the entry.
 | Notification row (EVO Cabinet › Notificări, minimal) | the request stacked row `.e-permits-stack__item.sm-item.nt-item` + lead `.nt-item__icon--success/warning/danger/neutral` (32 circle, 20 icon) + `p.nt-item__text` + „Nou” Small info tag (≤ 3 days) + one labelled action | `cabinet-evo/notificari.js`; demo nt-01…01c | page-app |
 | Retry notice (EVO Cabinet) | `.cab-retry` = `.cab-message` error notice + `btn btn-strict btn-sm` „Reîncercați” (`icon-rotate-arrow`) on one row, wrapping ≤ 320 of notice (= Ghișeu `.e-permits-gh__retry`) | `solicitari.js redirectError` (US-24 AC-04); demo sm-04h, sm-04h1 | page-app |
 | Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top) (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
-| Card radius 24 — list cards + document viewer (radius-24-v1, 2026-10-21) | `--border-radius-24` (css/token-fix.css) on act / request rows, Cabinet document cards, notifications, catalog cards, the request status notice, the viewer canvas + signature card — every width; inner alerts stay 12 | css/token-fix.css + the card's own rule — § „Card radius 24” |
-| Document viewer — preview + signature card (doc-viewer-v2, 2026-10-21, GEAP 2.0 11366:6892) | every document (generated + uploaded) = header · A4 canvas filling the dialog (r24 since radius-24-v1 + inset 1px border-default ring) · 12 · `div.e-permits-doc-signature` (Small brand tag `icon-signature` „Semnat electronic” ABOVE `p.e-permits-doc-signature__meta` „MSign · signer · date, time” 14/20 tertiary; grey card r24 (radius-24-v1), pad 12 16, gap 2, as wide as the canvas) · footer; no „Date generale”, no „Doar citire”, no badge by the title; unsigned = no card | `GEAPDocPreview.signatureHtml` (js/doc-preview.js, css/doc-preview.css › „Signature block”); BO `openDosarDetail`, `CabEvo.openDocModal({ generated, signature })`, `GEAPActView` document dialog, Ghișeu `previewSignature`; section „Generated document viewer”; demo `dos-04s`, `sm-05f`, `pp-01m`, `rap-03l`, `gh-10d` | app + page-app |
+| Card radius 16 — list cards + document viewer (radius-16-v1, 2026-10-21; 24 tried and rejected, Foundations has no 20) | `--border-radius-16` on act / request rows, notifications, catalog cards, the request status notice (callout default), the viewer canvas + signature card — every width; Cabinet document cards = the one FO document-card surface 12; inner alerts 12; trajectory / status tracker card stays 24 (dos-01) | the card's own rule — § „Card radius” |
+| Document viewer — preview + signature card (doc-viewer-v2, 2026-10-21, GEAP 2.0 11366:6892) | every document (generated + uploaded) = header · A4 canvas filling the dialog (r16 + inset 1px border-default ring) · 12 · `div.e-permits-doc-signature` (Small brand tag `icon-signature` „Semnat electronic” ABOVE `p.e-permits-doc-signature__meta` „MSign · signer · date, time” 14/20 tertiary; grey card r16, pad 12 16, gap 2, as wide as the canvas) · footer; no „Date generale”, no „Doar citire”, no badge by the title; unsigned = no card | `GEAPDocPreview.signatureHtml` (js/doc-preview.js, css/doc-preview.css › „Signature block”); BO `openDosarDetail`, `CabEvo.openDocModal({ generated, signature })`, `GEAPActView` document dialog, Ghișeu `previewSignature`; section „Generated document viewer”; demo `dos-04s`, `sm-05f`, `pp-01m`, `rap-03l`, `gh-10d` | app + page-app |
 | Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
 | Full-height document viewer (doc-fullheight-v1, 2026-10-21, ≥ 761) | every A4 viewer + the RAP data dialog „Vizualizare act”: dialog `height: auto; max-height: calc(100dvh − 2 × --spacing-24)` (24 above and below, own width: act 720 · BO md 590 / lg 720 · Cabinet 560; a short document keeps its natural height, centred; loading / error hold the full frame); header + footer fixed, the BODY = the only scroller (`overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable both-edges`; canvas `flex: none`, no window of its own; the signature card scrolls with it); hairlines = 1px transparent top / bottom borders on the body → `--color-border-base-default` with `has-scroll-above / -below` on the dialog (the FO footer's own line removed); page behind locked (`html:has(… :not([hidden])) { overflow: hidden }`). Phones (≤ 760) unchanged: the bottom sheet of css/modal-phone.css | css/doc-preview.css › „Full-height document viewer”; `GEAPDocPreview.fit` syncs the FO-shell hairlines (scroll listener in js/doc-preview.js), library `.modal`s by the shell's `syncModalScrollEdges` / act-view `syncActDataEdges`; section „Full-height document viewer”; demo `pp-01m`, `pp-01z`, `rap-03l`, `rap-03k`, `rap-03a` (loading), `rap-03`, `rap-03g`, `dos-04s`, `dos-04h`, `sm-05f`, `sm-05h` (short = natural height at 1440 × 1024), `gh-10d`, `gh-07a`, `gh-07a1` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (export icon) · `btn-primary` „Închide”); since 2026-10-19 the act's configured fields = one BO section per configured group (row „Configured act fields — groups + tables”; the old in-card heading rows `.rap-act-data__group/__more-row/__toggle` are gone); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
@@ -2310,24 +2310,25 @@ diverges on nearly every value:
 **Gaps** — no contextual menu, no Leading Element axis (checkbox / radio / icon), no
 Hover/Active/Focus/Disabled item states, no mobile bottom-sheet.
 
-### Card radius 24 — list cards + document viewer (radius-24-v1, 2026-10-21, user decision)
+### Card radius — list cards + document viewer = 16 (radius-16-v1, 2026-10-21, user decision)
 
-Token `--border-radius-24` (24px) is defined in `css/token-fix.css` (loaded after main.css on every page; main.css has no
-24) from the Foundations Figma variable `border-radius/radius-24` (collection „3. Sizes”). Every **list card** — a card
-that is one item of a list of separate cards — has radius 24 at EVERY width (phones too):
+Every **list card** — a card that is one item of a list of separate cards — has radius **16** (`--border-radius-16`) at
+EVERY width (phones too). History: radius-24-v1 (350c4351) moved them to 24 the same day; the user found it too round
+(„Do 16, as it was better”), and Foundations › 3. Sizes has no 20 (scale 0 4 6 8 12 16 24 32 full) → back to 16. The
+`--border-radius-24` token stays in css/token-fix.css for the cards that were 24 before (below).
 
-| Card | Selector (rule) | File |
-|---|---|---|
-| Act + request rows (FO #intent, Ghișeu picker, Cabinet „Actele mele permisive” / „Solicitările mele”) | `.e-permits-fo-lib-item.e-permits-fo-intent-act` (+ `.cab-request-row`) | css/e-permits-acte-permisive.css |
-| Cabinet document cards (dossier „Documente”) | `.cab-doc.e-permits-fo-confirm-file--doc:has(> .e-permits-fo-lib-item__content)` (beats the shared doc-card surface r12) | cabinet-evo/cabinet-evo.css |
-| Cabinet notifications | `.sm-list .e-permits-stack__item` (`li.nt-item`) | cabinet-evo/cabinet-evo.css |
-| Cabinet catalog cards | `.cab-card` | cabinet-evo/cabinet-evo.css |
-| Request status notice (under the trajectory card, which is already 24) | `.cab-status__notice.e-permits-callout` | cabinet-evo/cabinet-evo.css |
-| Document viewer canvas + signature card | `.e-permits-doc-peek__canvas:is(…)`, `.e-permits-doc-signature` (phones: canvas edge to edge, r0; card r24) | css/doc-preview.css |
+| Card | Radius | Selector (rule) | File |
+|---|---|---|---|
+| Act + request rows (FO #intent, Ghișeu picker, Cabinet „Actele mele permisive” / „Solicitările mele”) | 16 | `.e-permits-fo-lib-item.e-permits-fo-intent-act` (+ `.cab-request-row`) | css/e-permits-acte-permisive.css |
+| Cabinet notifications | 16 | `.sm-list .e-permits-stack__item` (`li.nt-item`) | cabinet-evo/cabinet-evo.css |
+| Cabinet catalog cards | 16 | `.cab-card` | cabinet-evo/cabinet-evo.css |
+| Request status notice (under the status tracker card) | 16 | the product callout `.e-permits-callout` default — no override | css/e-permits-acte-permisive.css |
+| Document viewer canvas + signature card | 16 | `.e-permits-doc-peek__canvas:is(…)`, `.e-permits-doc-signature` (phones: canvas edge to edge, r0; card r16) | css/doc-preview.css |
+| Cabinet document cards (dossier „Documente”) | 12 | the ONE document-card surface (secondary grey r12, „Document row — one pattern everywhere”) — no override | css/e-permits-acte-permisive.css |
+| Status tracker / trajectory card (Cabinet sm-05, BO dos-01) | 24 | `.e-permits-trajectory` (same as the BO trajectory card) | css/trajectory.css |
 
-Stay as they are: alerts / notices INSIDE a card (12), the shared FO document-card surface in forms / Verificare (12),
-BO stacked lists (one card with rows, 12), the FO „Solicitare nouă” option card (12), modals, drawers, dropdowns, inputs,
-buttons. BO profile cards were already 24 (16 on phones — profile, not list cards).
+Stay as they are: alerts / notices INSIDE a card (12), BO stacked lists (one card with rows, 12), the FO „Solicitare nouă”
+option card (12), modals, drawers, dropdowns, inputs, buttons. BO profile cards 24 (16 on phones — profile, not list cards).
 
 ### Dropdown surface — one look for every menu (rule, 2026-10-16)
 
@@ -7111,7 +7112,7 @@ acts (`act.paper`) have none and show the offline-flow notice. One active post-p
 
 ONE row component (`GEAPActRow.html`, js/act-row.js) for the act rows (FO „Ce vrei să soliciți?”, Ghișeu picker,
 Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicitările mele”):
-- **Card**: padding 16 · radius **24** (`--border-radius-24`, radius-24-v1 2026-10-21; was 16) · stroke `--border-width-1-5` `--color-border-base-default` · tertiary hover;
+- **Card**: padding 16 · radius **16** (radius-16-v1 2026-10-21; 24 tried and rejected) · stroke `--border-width-1-5` `--color-border-base-default` · tertiary hover;
   title 14/20 medium + Small tags on the title line · **8** · meta 14/20 `--color-text-base-tertiary` · actions
   right, centred on title + meta · alert full width under them (12 above). Neither acts nor requests have a lead
   icon (requests 2026-10-20; acts permission-icon-v1, 2026-10-21 — user: „In Actele mele permisive they're all permits,
@@ -7154,7 +7155,7 @@ Cabinet „Actele mele permisive”) and the Cabinet request rows („Solicităr
   761 / 375 / 320 on sm-01, sm-01u, sm-01f, sm-02, pp-01, pp-01a, pp-01r (hover), pp-01t, pp-02, pp-02a, gh-02j, plus
   2 / 3 / 4 cloned tags and long titles. Parity `cabinet-request-row-vs-act-row.json` = 0 at 1440 / 1024 / 375 / 320 — act
   vs request differ only by R. Known limit: Ghișeu (desktop-only) forced to 320 has a 256 card → the status tag wraps
-  under the icon. Card: padding 16, radius 24 (radius-24-v1; was 16), stroke 1.5.
+  under the icon. Card: padding 16, radius 16, stroke 1.5.
 - **Phone list rhythm (≤ 760, 2026-10-20)** — Cabinet list pages (Solicitările mele, Actele mele permisive,
   Catalog, Notificări): ONE 16 step page title (or its description) → search → „Filtre” / sort row (Catalog: the
   category chips) → first card; the applied line „N rezultate · Șterge filtrele” = 8 under the pills, then 16 to
@@ -8819,8 +8820,8 @@ next to the title”. Reference: GEAP 2.0 11366:6892 „Modal content / Document
   component is „Document · details”, the însoțitor modal) = header · canvas · signature CARD · footer. Card = 12 under the
   canvas, as wide as the canvas (inset 0; phones 8 from the screen edges + 8 above the footer), radius 16 on every corner,
   padding 12 16, gap 2. Canvas = radius 16 + an inset 1px `--color-border-base-default` ring (Figma draws 24; no 24 token in
-  main.css → 16, the card's radius, so canvas + card read as one unit; **radius-24-v1, 2026-10-21: canvas AND card = 24**,
-  `--border-radius-24` from css/token-fix.css); phones keep the edge-to-edge canvas (radius 0, no
+  main.css → 16, the card's radius, so canvas + card read as one unit; radius-24-v1 tried 24 the same day — rejected, back to 16
+  in radius-16-v1); phones keep the edge-to-edge canvas (radius 0, no
   ring). Unsigned document (Proiect, Cabinet uploads without signature) = the preview only. Payment notes / approvals keep
   their details card + „Doar citire”.
 - Where: BO `openDosarDetail` (toggles `e-permits-detail-modal--doc` on `#dosar-detail-modal`, md width); Cabinet

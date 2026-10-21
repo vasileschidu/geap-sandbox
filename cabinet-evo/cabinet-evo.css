@@ -234,7 +234,7 @@
   align-items: center;
   background: var(--color-background-base-default, #fff);
   border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-24, 24px); /* list card = 24 (radius-24-v1) */
+  border-radius: var(--border-radius-16, 16px); /* list card = 16 (radius-16-v1: 24 tried and rejected 2026-10-21) */
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -641,18 +641,6 @@
   flex: none;
   gap: var(--spacing-8, 8px);
   margin-left: auto;
-}
-
-/* list card = 24 (radius-24-v1, 2026-10-21) — beats the shared FO document-card surface (r12, 0,2,0); the FO
-   field-value / summary document cards keep 12 */
-.cab-doc.e-permits-fo-confirm-file--doc:has(> .e-permits-fo-lib-item__content) {
-  border-radius: var(--border-radius-24, 24px);
-}
-
-/* the request status notice under the trajectory card = a card of the same family: 24 (radius-24-v1). Only the radius;
-   the notice itself is the product callout (.e-permits-callout, 16 elsewhere) */
-.cab-status__notice.e-permits-callout {
-  border-radius: var(--border-radius-24, 24px);
 }
 
 .cab-doc.is-clickable {
@@ -1156,12 +1144,12 @@
   border-color: var(--color-border-brand-default, #0058d2);
 }
 
-/* rounder boxes (user, 2026-10-12: „more round”; radius-24-v1 2026-10-21: list cards = 24) */
+/* rounder boxes (user, 2026-10-12: „more round”; radius-16-v1 2026-10-21: 24 tried and rejected, list cards = 16) */
 .sm-list .e-permits-stack__item,
 .sm-list .e-permits-stack__item:first-child,
 .sm-list .e-permits-stack__item:last-child,
 .sm-list .e-permits-stack__item:only-child {
-  border-radius: var(--border-radius-24, 24px);
+  border-radius: var(--border-radius-16, 16px);
 }
 
 /* cabinet menus = the one dropdown size (css/dropdown.css: 32px items, 14/20 medium, 20 icons,
