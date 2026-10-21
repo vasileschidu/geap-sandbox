@@ -2685,3 +2685,21 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     Act row main orders Validity before Authority (code puts the date last). Phone menu icons: code 24, Cabinet Touch mains 20.
   - Before a long multi-call rebuild, write the plan + snapshot into the file (shared plugin data) and this playbook early: an
     MCP auth drop can end the session between calls.
+
+- 2026-10-21 · QA of GEAP 11251:14282 („Lane · Back office”, US-54 board 11224:39519 on ↳ FOD Pattern -> Address) — stopped
+  early: the Figma MCP plan limit was hit, then the server disconnected after the first audit. Baseline measured (gate-audit.js,
+  per block, not descending into instances) on C01 / C01a / C01b (Form Designer, adr-01 / 01a / 01b) and C12 / C12a (Preview,
+  adr-12 / 12a): fractional 282, raw-control 216 (62 per builder block: captured „Button”, „Tab”, „Button - Close the builder”),
+  image-fill-icon 176 (55 per builder block, h2d-svg), clipped-content 27, not-auto-layout 17, sibling-overlap 5, tight-gap 3.
+  So the builder chrome was never passed through swap-builder-address.js (or the pass was lost). Lessons:
+  - **The lane frame is only a grey backdrop**: `Lane · Back office` (3280 × 4120) holds just its title. The 5 blocks, the
+    connectors and two local component sets (`FO / Field · skeleton` 11229:290552, `FO / Context · skeleton` 11258:17226 at y 5400,
+    below the lane) are SECTION children placed on top of it. Moving the lane leaves the blocks behind. When you restack, move
+    the lane and every child inside its bounds together. Move component sets to 🧩 Local components, never onto a board.
+  - The C01 → C01a / C01b arrows loop out on the LEFT of the section (x 128) and „C01 · Publish → Start” runs 1984 px through
+    the C12 screen. A desktop-only lane with 2 columns needs its exit arrow to leave from the lane's right edge.
+    Gaps measured: C01 → C01a and C12 → C12a 260, C01a → C01b 240.
+  - `setSharedPluginData` namespaces must be alphanumeric, `_` or `.` (a „figqa-cad” key threw an error and rolled back the call).
+    Use keys like „figqacad”.
+  - With a rate limit already hit that day, store the audit in a separate first call and run each block in its own small
+    call. A dropped transport then loses one block's work, not the whole lane.
