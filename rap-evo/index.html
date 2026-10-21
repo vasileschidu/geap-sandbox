@@ -13,10 +13,11 @@
   <link rel="stylesheet" href="../css/doc-modal-parts.css?v=act-doc-v1">
   <link rel="stylesheet" href="../css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="../css/act-view.css?v=button-icons-v1">
-  <link rel="stylesheet" href="rap-evo.css?v=tooltip-one-v1">
+  <link rel="stylesheet" href="rap-evo.css?v=audit-fix-v3">
   <link rel="stylesheet" href="../css/dropdown.css?v=dd-item-v1">
   <link rel="stylesheet" href="../css/copy-value.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="../css/breadcrumbs.css?v=breadcrumb-v1">
+  <link rel="stylesheet" href="../css/pager.css?v=audit-fix-v3">
   <link rel="stylesheet" href="../css/field-sizes.css?v=audit-fix-v1">
   <link rel="stylesheet" href="../css/modal-phone.css?v=sheet-header-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
@@ -24,6 +25,7 @@
   <script src="../js/demo-states.js?v=tacit-tag-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=toast-v2" defer></script>
+  <script src="../js/pager.js?v=audit-fix-v3"></script>
   <script src="../js/copy-value.js?v=copy-wrap-v1"></script>
   <script src="../js/icon-tooltip.js?v=tooltip-one-v1" defer></script>
   <script src="../js/breadcrumbs.js?v=tooltip-one-v1"></script>
@@ -31,7 +33,7 @@
   <script src="../js/facet-filter.js?v=tooltip-one-v1" defer></script>
   <script src="../js/doc-preview.js?v=doc-viewer-v1" defer></script>
   <script src="../js/act-view.js?v=tacit-tag-v1" defer></script>
-  <script src="rap-evo.js?v=tacit-tag-v1" defer></script>
+  <script src="rap-evo.js?v=audit-fix-v3" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
 <body class="rap-page">
@@ -158,19 +160,7 @@
           </table>
         </div>
 
-        <div class="rap-pagination">
-          <div class="rap-pagination__summary">
-            <span data-rap-results-summary>Se încarcă...</span>
-            <label class="rap-pagination__size">
-              <span>Rows per page:</span>
-              <span class="rap-select rap-select--compact">
-                <select data-rap-page-size aria-label="Rânduri per pagină"></select>
-                <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
-              </span>
-            </label>
-          </div>
-          <nav class="rap-pagination__pages" aria-label="Paginare" data-rap-pagination></nav>
-        </div>
+        <div class="rap-pagination" data-rap-pagination></div>
       </section>
 
       <div class="rap-state" data-rap-empty hidden></div>

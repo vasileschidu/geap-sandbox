@@ -40,8 +40,6 @@
     searchClear: document.querySelector("[data-rap-search-clear]"),
     tableBody: document.querySelector("[data-rap-table-body]"),
     tableScroller: document.querySelector("[data-rap-table-scroller]"),
-    resultsSummary: document.querySelector("[data-rap-results-summary]"),
-    pageSize: document.querySelector("[data-rap-page-size]"),
     pagination: document.querySelector("[data-rap-pagination]"),
     empty: document.querySelector("[data-rap-empty]"),
     filterToggle: document.querySelector("[data-rap-filter-toggle]"),
@@ -504,7 +502,6 @@
     document.querySelector(".rap-register").hidden = rows.length === 0;
 
     if (rows.length === 0) {
-      elements.resultsSummary.textContent = "Nu există rezultate";
       /* the shared empty state (js/empty-state.js); filters applied → the bar's „Șterge filtrele” */
       const filters = totalActiveFilters();
       elements.empty.innerHTML = window.GEAPEmptyState.noResults("Ne pare rău, nu am găsit niciun rezultat", {
@@ -512,52 +509,20 @@
         actionHtml: filters ? '<button class="btn btn-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>' : ""
       });
     }
-
-    if (rows.length > 0) {
-      const first = start + 1;
-      const last = Math.min(start + state.pageSize, state.filteredRecords.length);
-      elements.resultsSummary.innerHTML = `Showing <strong>${first}</strong> to <strong>${last}</strong> of <strong>${state.filteredRecords.length}</strong> results`;
-    }
   };
 
-  const getPaginationWindowSize = () => {
-    if (window.matchMedia("(max-width: 760px)").matches) {
-      return 0;
-    }
-    if (window.matchMedia("(max-width: 1100px)").matches) {
-      return 3;
-    }
-    return 5;
-  };
-
-  const getVisiblePages = (current, total, windowSize) => {
-    if (windowSize === 0) {
-      return [];
-    }
-    if (total <= windowSize) {
-      return Array.from({ length: total }, (_, index) => index + 1);
-    }
-    const offset = Math.floor(windowSize / 2);
-    const start = Math.min(Math.max(current - offset, 1), total - windowSize + 1);
-    return Array.from({ length: windowSize }, (_, index) => start + index);
-  };
-
+  /* the list pager = the shared GEAPPager (js/pager.js, audit-fix-v3) */
   const renderPagination = () => {
-    const totalPages = Math.max(1, Math.ceil(state.filteredRecords.length / state.pageSize));
-    const pages = getVisiblePages(state.page, totalPages, getPaginationWindowSize());
-    elements.pagination.innerHTML = `
-      <button class="rap-page-button rap-page-button--direction" type="button" data-page="${state.page - 1}" ${state.page === 1 ? "disabled" : ""}>
-        <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-left"></use></svg>
-        <span>Previous</span>
-      </button>
-      ${pages.map((page) => `
-        <button class="rap-page-button${page === state.page ? " is-active" : ""}" type="button" data-page="${page}" ${page === state.page ? 'aria-current="page"' : ""}>${page}</button>
-      `).join("")}
-      <button class="rap-page-button rap-page-button--direction" type="button" data-page="${state.page + 1}" ${state.page === totalPages ? "disabled" : ""}>
-        <span>Next</span>
-        <svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-right"></use></svg>
-      </button>
-    `;
+    elements.pagination.innerHTML = window.GEAPPager.html({
+      total: state.filteredRecords.length,
+      page: state.page,
+      perPage: state.pageSize,
+      sizes: state.config.pagination.pageSizes,
+      prefix: "rap",
+      label: "Paginarea actelor permisive",
+      sizeLabel: "Acte pe pagină",
+      sprite: "../assets/icons/sprite.svg"
+    }).trim();
   };
 
   const render = () => {
@@ -606,12 +571,6 @@
       apply: () => { state.page = 1; applyFilters(); },
       scrollers: [elements.tableScroller]
     });
-  };
-
-  const renderPageSizeOptions = () => {
-    elements.pageSize.innerHTML = state.config.pagination.pageSizes.map((size) => `
-      <option value="${size}" ${size === state.pageSize ? "selected" : ""}>${size}</option>
-    `).join("");
   };
 
   /* cut names in the table: data-cell-tooltip on the ONE tooltip runtime (js/icon-tooltip.js) */
@@ -754,18 +713,19 @@
 
     elements.searchClear.addEventListener("click", clearSearch);
 
-    elements.pageSize.addEventListener("change", () => {
-      state.pageSize = Number(elements.pageSize.value);
-      state.page = 1;
-      render();
-    });
-
     elements.pagination.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-page]");
+      const size = event.target.closest("[data-rap-per-page]");
+      if (size) {
+        state.pageSize = Number(size.dataset.rapPerPage);
+        state.page = 1;
+        render();
+        return;
+      }
+      const button = event.target.closest("[data-rap-page]");
       if (!button || button.disabled) {
         return;
       }
-      state.page = Number(button.dataset.page);
+      state.page = Number(button.dataset.rapPage);
       render();
       elements.tableScroller.scrollTo({ left: 0, behavior: "smooth" });
       document.querySelector(".rap-register").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -842,7 +802,6 @@
       elements.title.textContent = state.config.page.title;
       elements.search.placeholder = state.config.page.searchPlaceholder;
       initFacetFilter();
-      renderPageSizeOptions();
       bindEvents();
       applyFilters();
       syncViewFromUrl();

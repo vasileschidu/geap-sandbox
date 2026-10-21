@@ -5903,49 +5903,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }).join("");
   };
 
-  const renderPagination = (totalRows, firstRow, lastRow) => {
+  /* the list pager = the shared GEAPPager (js/pager.js, audit-fix-v3) — „1–16 din 33” · pages · „16 pe pagină ⌄”;
+     none (and no footer) when every row fits on the smallest page */
+  const renderPagination = (totalRows) => {
     if (!workplacePagination) {
       return;
     }
 
     const pages = Math.max(1, Math.ceil(totalRows / workplaceState.pageSize));
     workplaceState.page = Math.min(workplaceState.page, pages);
-    const pageButtons = Array.from({ length: Math.min(pages, 5) }, (_, index) => index + 1);
-    const rowOptions = workplacePageSizeOptions.map((option) => (
-      `<option value="${option}"${option === workplaceState.pageSize ? " selected" : ""}>${option}</option>`
-    )).join("");
-
-    workplacePagination.innerHTML = `
-      <div class="e-permits-workplace__pagination-summary">
-        <span data-workplace-range>Showing ${firstRow} to ${lastRow} of ${totalRows} results</span>
-        <label class="e-permits-workplace__rows-control">
-          <span>Rows per page:</span>
-          <span class="e-permits-workplace__rows-select">
-            <select data-workplace-page-size aria-label="Rows per page">${rowOptions}</select>
-            <svg class="icon" width="20" height="20" aria-hidden="true">
-              <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
-            </svg>
-          </span>
-        </label>
-      </div>
-      <div class="e-permits-workplace__pagination-pages" aria-label="Pagination">
-        <button class="e-permits-workplace__pagination-action" type="button" data-workplace-page="prev" ${workplaceState.page <= 1 ? "disabled" : ""}>
-          <svg class="icon" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-chevron-left-small"></use>
-          </svg>
-          <span>Previous</span>
-        </button>
-        <span class="e-permits-workplace__pagination-list">
-          ${pageButtons.map((page) => `<button class="e-permits-workplace__pagination-item${page === workplaceState.page ? " is-active" : ""}" type="button" data-workplace-page="${page}" aria-current="${page === workplaceState.page ? "page" : "false"}">${page}</button>`).join("")}
-        </span>
-        <button class="e-permits-workplace__pagination-action" type="button" data-workplace-page="next" ${workplaceState.page >= pages ? "disabled" : ""}>
-          <span>Next</span>
-          <svg class="icon" width="20" height="20" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-chevron-right-small"></use>
-          </svg>
-        </button>
-      </div>
-    `;
+    workplacePagination.innerHTML = window.GEAPPager
+      ? window.GEAPPager.html({
+        total: totalRows,
+        page: workplaceState.page,
+        perPage: workplaceState.pageSize,
+        sizes: workplacePageSizeOptions,
+        prefix: "workplace",
+        label: "Paginarea listei",
+        sizeLabel: "Rânduri pe pagină"
+      }).trim()
+      : "";
   };
 
   const syncSelectAll = (rows) => {
@@ -6111,7 +6088,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderTableRows(visibleRows, view.columns, view, columnWidths);
     fitTagRows(workplaceTable);
     syncPinnedScrollPadding();
-    renderPagination(filteredRows.length, first, last);
+    renderPagination(filteredRows.length);
     syncSelectAll(visibleRows);
 
     const activeLabel = activeTab ? `, ${activeTab.label}` : "";
@@ -18819,42 +18796,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (workplacePagination) {
     workplacePagination.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-workplace-page]");
+      const size = event.target.closest("[data-workplace-per-page]");
+      if (size) {
+        const nextSize = Number(size.dataset.workplacePerPage);
+        if (workplacePageSizeOptions.includes(nextSize)) {
+          workplaceState.pageSize = nextSize;
+          workplaceState.page = 1;
+          renderWorkplace();
+        }
+        return;
+      }
 
+      const button = event.target.closest("[data-workplace-page]");
       if (!button || button.disabled) {
         return;
       }
 
-      const filteredRows = getVisibleRows();
-      const pages = Math.max(1, Math.ceil(filteredRows.length / workplaceState.pageSize));
-      const value = button.dataset.workplacePage;
-
-      if (value === "prev") {
-        workplaceState.page = Math.max(1, workplaceState.page - 1);
-      } else if (value === "next") {
-        workplaceState.page = Math.min(pages, workplaceState.page + 1);
-      } else {
-        workplaceState.page = Number(value);
-      }
-
-      renderWorkplace();
-    });
-
-    workplacePagination.addEventListener("change", (event) => {
-      const select = event.target.closest("[data-workplace-page-size]");
-
-      if (!select) {
-        return;
-      }
-
-      const nextSize = Number(select.value);
-
-      if (!workplacePageSizeOptions.includes(nextSize)) {
-        return;
-      }
-
-      workplaceState.pageSize = nextSize;
-      workplaceState.page = 1;
+      const pages = Math.max(1, Math.ceil(getVisibleRows().length / workplaceState.pageSize));
+      workplaceState.page = Math.min(pages, Math.max(1, Number(button.dataset.workplacePage)));
       renderWorkplace();
     });
   }

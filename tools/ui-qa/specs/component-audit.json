@@ -427,16 +427,22 @@
     "pager": {
       "classPattern": "(^|[-_])(pagination|pager)($|[-_])",
       "canonical": [
-        ".cab-pager",
+        ".e-permits-pager",
         ".pagination"
       ],
-      "allow": [],
-      "fix": "List pager: CabEvo.pagerHtml → `.cab-pager` + library `.pagination` (+ per-page `.cab-pager__size` menu)",
+      "allow": [
+        ".e-permits-workplace__pagination",
+        ".rap-pagination"
+      ],
+      "_allow": "hosts of the shared pager (BO registry footer, RAP register footer) — they only place `.e-permits-pager` (audit-fix-v3)",
+      "fix": "List pager: GEAPPager.html (js/pager.js + css/pager.css) → `.e-permits-pager` + library `.pagination` + per-page `btn btn-text-neutral btn-sm` menu; CabEvo.pagerHtml delegates to it",
       "static": {
         "pattern": "(^|[-_])(pagination|pager)",
         "canonical": [
-          "cab-pager",
-          "pagination"
+          "e-permits-pager",
+          "pagination",
+          "e-permits-workplace__pagination",
+          "rap-pagination"
         ]
       },
       "excludePattern": "(tag|badge|pill|notice|alert|callout|banner|pagination|pager|steps?)s?-(list|row|group|wrap|tools|layer|peek|more)$"

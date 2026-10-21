@@ -651,42 +651,9 @@
   text-decoration: none;
 }
 
-.cab-pager {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-16, 16px);
-  justify-content: space-between;
+/* the list pager = the shared component (css/pager.css, audit-fix-v3); only its place here: 24 under the list */
+.cab-page .e-permits-pager {
   margin-top: var(--spacing-24, 24px);
-}
-
-.cab-pager__range {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-14, 14px);
-  line-height: var(--line-height-lh-20, 20px);
-  margin: 0;
-}
-
-.cab-pager .pagination {
-  display: flex;
-  gap: var(--spacing-4, 4px);
-  margin: 0;
-  padding: 0;
-}
-
-.cab-pager .pagination__link {
-  appearance: none;
-  border: 0;
-  cursor: pointer;
-  font-family: inherit;
-}
-
-.cab-pager .pagination__link:not(.pagination__link--active):not(:disabled):hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.btn.cab-pager__size {
-  gap: var(--spacing-6, 6px);
 }
 
 /* ---------- profile (dosar + catalog service) ---------- */
@@ -867,10 +834,6 @@
 
   .cab-card__foot {
     align-items: flex-start;
-  }
-
-  .cab-pager {
-    justify-content: center;
   }
 
   .cab-filter-modal {
@@ -1261,8 +1224,7 @@
    „too big, do as in BO”): btn-neutral btn-sm (32) · 16 icon · label · chevron for menus.
    An open one stays pressed (focus ring: the .cab-page open-button rule above). */
 .btn.cab-filter[aria-expanded="true"],
-.btn.cab-sort__trigger[aria-expanded="true"],
-.btn.cab-pager__size[aria-expanded="true"] {
+.btn.cab-sort__trigger[aria-expanded="true"] {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 

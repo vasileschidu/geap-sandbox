@@ -540,44 +540,6 @@ a {
   margin-top: var(--spacing-12, 12px);
 }
 
-.rap-select {
-  display: block;
-  margin-top: var(--spacing-12, 12px);
-  position: relative;
-}
-
-.rap-select select {
-  appearance: none;
-  background: #fff;
-  border: var(--border-width-1, 1px) solid var(--rap-border);
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--rap-text);
-  cursor: pointer;
-  font-size: var(--font-size-fs-14, 14px);
-  height: 40px;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-40, 40px) 0 var(--spacing-12, 12px);
-  width: 100%;
-}
-
-.rap-select select:hover {
-  border-color: #b2b2b2;
-}
-
-.rap-select select:focus {
-  border: var(--border-width-2, 2px) solid var(--rap-brand);
-  box-shadow: 0 0 0 4px #ccdef6;
-  outline: 0;
-}
-
-.rap-select .icon {
-  height: 20px;
-  pointer-events: none;
-  position: absolute;
-  right: 12px;
-  top: 10px;
-  width: 20px;
-}
 
 .rap-filter__footer {
   align-items: center;
@@ -799,98 +761,13 @@ a {
   transform: translateX(2px);
 }
 
+/* the list pager = the shared component (css/pager.css, audit-fix-v3); the register's footer inset only */
 .rap-pagination {
-  align-items: center;
-  display: flex;
-  height: 64px;
-  justify-content: space-between;
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
-.rap-pagination__summary,
-.rap-pagination__size,
-.rap-pagination__pages {
-  align-items: center;
-  display: flex;
-}
-
-.rap-pagination__summary {
-  color: var(--rap-text-secondary);
-  font-size: var(--font-size-fs-14, 14px);
-  gap: var(--spacing-24, 24px);
-  line-height: var(--line-height-lh-20, 20px);
-}
-
-.rap-pagination__summary strong {
-  color: var(--rap-text);
-  font-weight: 500;
-}
-
-.rap-pagination__size {
-  gap: 10px;
-}
-
-.rap-select--compact {
-  display: inline-flex;
-  margin: 0;
-  width: 69px;
-}
-
-.rap-select--compact select {
-  padding-left: var(--spacing-12, 12px);
-}
-
-.rap-pagination__pages {
-  flex: 0 0 auto;
-  gap: var(--spacing-8, 8px);
-  justify-content: flex-end;
-  width: auto;
-}
-
-.rap-page-button {
-  align-items: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-4, 4px);
-  color: var(--rap-text);
-  cursor: pointer;
-  display: inline-flex;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: 500;
-  height: 40px;
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 40px;
-  padding: 0 10px;
-}
-
-.rap-page-button:hover:not(:disabled) {
-  background: var(--rap-hover);
-}
-
-.rap-page-button.is-active {
-  background: var(--rap-brand);
-  color: #fff;
-}
-
-.rap-page-button:focus-visible {
-  outline: var(--border-width-2, 2px) solid #fff;
-  box-shadow: 0 0 0 4px #3379db;
-}
-
-.rap-page-button:disabled {
-  color: #b2b2b2;
-  cursor: not-allowed;
-}
-
-.rap-page-button--direction {
-  gap: var(--spacing-8, 8px);
-  min-width: auto;
-}
-
-.rap-page-button--direction .icon {
-  height: 20px;
-  width: 20px;
+.rap-pagination:empty {
+  display: none;
 }
 
 /* holds the shared empty state (css/empty-state.css) */
@@ -1377,18 +1254,7 @@ a {
   }
 
   .rap-pagination {
-    align-items: center;
-    height: auto;
     padding: var(--spacing-16, 16px);
-  }
-
-  .rap-pagination__summary {
-    display: none;
-  }
-
-  .rap-pagination__pages {
-    justify-content: space-between;
-    width: 100%;
   }
 }
 

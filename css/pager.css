@@ -1,0 +1,124 @@
+/* ==========================================================================================================
+   List pager — ONE component (audit-fix-v3, 2026-10-21; js/pager.js `GEAPPager.html`, promoted from the
+   EVO Cabinet `.cab-pager`). Loaded after the product CSS on the BO page, e-permits-shell.html, Cabinet and RAP.
+   „1–16 din 33” (14/20 tertiary) · library `.pagination` (40 links, 4 radius; ≤768 the library 32 links) ·
+   „N pe pagină ⌄” = library `btn btn-text-neutral btn-sm` + the dropdown item menu (css/dropdown.css sizes)
+   opening ABOVE the trigger (the pager sits at the end of a list / in a sticky footer).
+   Placement (margins, the BO sticky footer) belongs to the host, never to this file.
+   ========================================================================================================== */
+
+.e-permits-pager {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-16, 16px);
+  justify-content: space-between;
+  width: 100%;
+}
+
+.e-permits-pager__range {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+}
+
+.e-permits-pager .pagination {
+  display: flex;
+  gap: var(--spacing-4, 4px);
+  margin: 0;
+  padding: 0;
+}
+
+.e-permits-pager .pagination__link {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.e-permits-pager .pagination__link .icon {
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+/* hover: tertiary on white; the current page one brand step deeper (hover rules per component class) */
+.e-permits-pager .pagination__link:not(.pagination__link--active):not(:disabled):not(.e-permits-pager__gap):hover {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+}
+
+.e-permits-pager .pagination__link.pagination__link--active:hover {
+  background-color: var(--color-background-brand-default-hover, #0046a8);
+}
+
+/* „…” between page ranges: not a control */
+.e-permits-pager .e-permits-pager__gap {
+  cursor: default;
+  opacity: 1;
+}
+
+/* ---- „N pe pagină ⌄” + its menu ---- */
+.e-permits-pager__size {
+  position: relative;
+}
+
+.btn.e-permits-pager__trigger[aria-expanded="true"] {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.e-permits-pager .e-permits-pager__menu {
+  bottom: calc(100% + var(--spacing-6, 6px));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  left: auto;
+  list-style: none;
+  margin: 0;
+  position: absolute;
+  right: 0;
+  top: auto;
+  width: 200px;
+  z-index: 30;
+}
+
+.e-permits-pager .e-permits-pager__menu[hidden] {
+  display: none;
+}
+
+/* the dropdown surface + item base, restated for pages that do not load e-permits-acte-permisive.css (RAP);
+   same values as the „Dropdown surface” rule and `.e-permits-fo-intent-menu__item` */
+:where(.e-permits-pager__menu) {
+  background-color: var(--color-background-base-default, #fff);
+  border: 0;
+  border-radius: var(--border-radius-12, 12px);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  cursor: default;
+  overflow: clip;
+}
+
+.e-permits-pager__menu .e-permits-fo-intent-menu__item {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: var(--color-text-base-default, #121212);
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  justify-content: space-between;
+  text-align: left;
+  width: 100%;
+}
+
+.e-permits-pager__menu .e-permits-fo-intent-menu__item:hover,
+.e-permits-pager__menu .e-permits-fo-intent-menu__item:focus-visible {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  outline: none;
+}
+
+/* phones: range on its own line, the pages + size under it, centred */
+@media (max-width: 600px) {
+  .e-permits-pager {
+    justify-content: center;
+  }
+}

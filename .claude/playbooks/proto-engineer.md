@@ -1945,3 +1945,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   audit's `[class*='drawer']` matched the BODY's state class `is-drawer-open` (exclude `is-` / `has-` tokens); the
   library `.modal-close` is absolutely positioned (needs `position: static` in the header row) and js/modal.js binds it
   only inside `.modal-overlay` (no side effect); the dialog family of the auditor needed `.drawer` as canonical.
+- 2026-10-21 · Audit fix batch 3 — ONE list pager (audit-fix-v3). Promoted `CabEvo.pagerHtml` to `js/pager.js`
+  (`GEAPPager.html`) + `css/pager.css`; Cabinet delegates, BO `renderPagination` and RAP render it, every page keeps
+  its own state + click handler through `data-<prefix>-page / -per-page` (so demo states like `[data-sm-page="2"]`
+  kept working). The size menu's open / close / keyboard went into the module (ONE capture-phase document listener),
+  not into each page's menu system — the Cabinet `data-cab-menu-trigger` machinery must not own a shared control.
+  Traps: (1) a `span(start, end, '')` helper skipped empty replacements because `'' in s` is always true — check
+  „already applied” on the START marker when the replacement is empty; (2) HEAD differed from the tree in the same
+  function (another agent's tooltip work) → exact `rep()` on the HEAD text, never a marker that only exists in the
+  tree; (3) zsh `set -- $a` does not split (again) — loops with several args go through `bash -c`; (4) the auditor's
+  family spec named the OLD canonical (`.cab-pager`), so the new component showed as „converge” — when you replace
+  a canonical, update `families.<name>.canonical` (+ host containers in `allow`) in the same commit. Removing the
+  „always show 1 of 1” pager also removed the empty BO footer (`:has(> …:empty)`). Pager findings 80 → 0, all majors
+  263 → 177 on 15 states × 2; interactions probed (page, size, ↓, Esc → focus back, outside click) on 3 pages × 2.

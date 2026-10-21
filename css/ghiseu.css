@@ -204,12 +204,6 @@
     row-gap: var(--spacing-8, 8px);
   }
 
-  .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__pagination-summary {
-    flex: 1 1 100%;
-    flex-wrap: wrap;
-    gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
-    min-width: 0;
-  }
 
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind="ghiseu"] .e-permits-workplace__header {
     grid-template-rows: auto auto;

@@ -311,32 +311,10 @@
     els.restriction.innerHTML = restrictionHtml(state.restriction, `Actele permisive ale ${name} nu mai sunt disponibile pentru dumneavoastră: vizualizarea, descărcarea formularului și postprocesele rămân doar la beneficiar. Pentru acces, cereți beneficiarului o împuternicire nouă în MPower.`);
   }
 
-  /* the Cabinet pager (Solicitările mele, Actele mele permisive): „1–10 din 23” · pages · „10 pe pagină ▾”;
+  /* the list pager = the shared GEAPPager (js/pager.js, audit-fix-v3): „1–10 din 23” · pages · „10 pe pagină ⌄”;
      none up to the smallest page size. prefix names the data hooks (data-<prefix>-page / -per-page) */
   function pagerHtml({ total, page, perPage, prefix, label, sizeLabel, sizes = PER_PAGE }) {
-    if (total <= sizes[0]) return "";
-    const pages = Math.max(1, Math.ceil(total / perPage));
-    const first = (page - 1) * perPage + 1;
-    const last = Math.min(total, page * perPage);
-    const link = (target, text, { disabled = false, active = false, aria = "" } = {}) => `
-      <span class="pagination__item">
-        <button class="pagination__link${active ? " pagination__link--active" : ""}${disabled ? " pagination__link--disabled" : ""}" type="button" data-${prefix}-page="${target}"${disabled ? " disabled" : ""}${active ? ' aria-current="page"' : ""}${aria ? ` aria-label="${aria}"` : ""}>${text}</button>
-      </span>`;
-    return `
-      <div class="cab-pager">
-        <p class="cab-pager__range">${first}–${last} din ${total}</p>
-        <nav class="pagination" aria-label="${escape(label)}">
-          ${link(page - 1, icon("icon-chevron-left-small", "medium"), { disabled: page === 1, aria: "Pagina anterioară" })}
-          ${Array.from({ length: pages }, (_, index) => link(index + 1, String(index + 1), { active: index + 1 === page, aria: `Pagina ${index + 1}` })).join("")}
-          ${link(page + 1, icon("icon-chevron-right-small", "medium"), { disabled: page === pages, aria: "Pagina următoare" })}
-        </nav>
-        <div class="e-permits-fo-intent-act__action">
-          <button class="btn btn-text-neutral btn-sm cab-pager__size" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${prefix}-per-page" data-cab-menu-trigger><span>${perPage} pe pagină</span><svg class="icon small" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg></button>
-          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--compact" id="${prefix}-per-page" role="menu" aria-label="${escape(sizeLabel)}" hidden>
-            ${sizes.map((size) => `<li role="none"><button class="e-permits-fo-intent-menu__item" type="button" role="menuitemradio" aria-checked="${size === perPage}" data-${prefix}-per-page="${size}"><span>${size} pe pagină</span>${size === perPage ? icon("icon-checkmark-large", "medium") : ""}</button></li>`).join("")}
-          </ul>
-        </div>
-      </div>`;
+    return window.GEAPPager.html({ total, page, perPage, prefix, label, sizeLabel, sizes, sprite: SPRITE });
   }
 
   /* ---------- header role switcher ----------

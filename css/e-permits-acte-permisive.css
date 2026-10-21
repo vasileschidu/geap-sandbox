@@ -23009,11 +23009,6 @@ button.e-permits-steps-strip__cell:hover,
   box-shadow: 0 0 0 4px var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
-/* „Rows per page” select */
-.e-permits-workplace__rows-select select:hover {
-  border-color: var(--color-border-base-secondary, #b2b2b2);
-}
-
 /* An open button (its menu / bar / panel is shown) keeps its pressed fill while hovered —
    the generic :hover is more specific than [aria-expanded] and made it turn lighter */
 .btn.btn-sm.btn-neutral[aria-expanded="true"]:hover:not(:disabled),
@@ -24789,12 +24784,6 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
     row-gap: var(--spacing-8, 8px);
   }
 
-  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__pagination-summary {
-    flex: 1 1 100%;
-    min-width: 0;
-    flex-wrap: wrap;
-    gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
-  }
 
   [data-product="ekyc"] .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__header {
     grid-template-rows: auto auto;
@@ -24963,7 +24952,6 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
 }
 
 /* current page in a pagination (BO registry + library pagination): the primary hover blue */
-.e-permits-workplace__pagination-item.is-active:hover,
 .pagination__link.pagination__link--active:hover {
   background-color: var(--color-background-brand-default-hover, #0046a8);
 }
