@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steppers — side-by-side comparison (GEAP prototype)</title>
+<link rel="stylesheet" href="../css/main.css">
+<style>
+  /* comparison page only — tokens from css/main.css, no product CSS touched */
+  body { margin: 0; background: var(--color-background-base-secondary); color: var(--color-text-base-default); font-family: var(--font-family-base), "Onest", sans-serif; font-size: var(--font-size-fs-16); line-height: 1.5; }
+  .cmp { max-width: 1000px; margin: 0 auto; padding: var(--spacing-40) var(--spacing-24) var(--spacing-64); }
+  .cmp h1 { font-size: var(--font-size-fs-24); line-height: 1.33; margin: 0 0 var(--spacing-8); }
+  .cmp h2 { font-size: var(--font-size-fs-20); line-height: 1.4; margin: 0; }
+  .cmp h3 { font-size: var(--font-size-fs-14); line-height: 1.43; margin: var(--spacing-24) 0 var(--spacing-8); color: var(--color-text-base-secondary); font-weight: 500; }
+  .cmp p, .cmp ul { margin: 0 0 var(--spacing-12); }
+  .cmp ul { padding-left: var(--spacing-20); }
+  .cmp li { margin-bottom: var(--spacing-4); }
+  .cmp code { font-family: inherit; font-size: 0.875em; font-weight: 500; background: var(--color-background-base-tertiary); border-radius: var(--border-radius-4); padding: 0 var(--spacing-4); overflow-wrap: anywhere; }
+  .cmp__lead { color: var(--color-text-base-secondary); margin-bottom: var(--spacing-24); }
+  .cmp__box { background: var(--color-background-base-default); border: 1px solid var(--color-border-base-default); border-radius: var(--border-radius-16); padding: var(--spacing-24); margin-bottom: var(--spacing-24); }
+  .cmp__box--rec { border-color: var(--color-border-brand-default); }
+  .cmp__box--ask { background: var(--color-background-brand-secondary); border-color: var(--color-border-brand-secondary); }
+  .cmp__box--ask h2 { margin-bottom: var(--spacing-12); }
+  .cmp__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--spacing-8) var(--spacing-16); margin-bottom: var(--spacing-8); }
+  .cmp__code { color: var(--color-text-base-secondary); font-size: var(--font-size-fs-14); margin: 0 0 var(--spacing-16); }
+  .cmp__tag { display: inline-block; font-size: var(--font-size-fs-12); line-height: 1.33; font-weight: 500; padding: var(--spacing-2) var(--spacing-8); border-radius: var(--border-radius-6); background: var(--color-background-base-tertiary); color: var(--color-text-base-default); }
+  .cmp__tag--keep { background: var(--color-background-brand-secondary); color: var(--color-text-brand-on-secondary); }
+  .cmp__shots { display: grid; grid-template-columns: 1fr; gap: var(--spacing-16); margin-bottom: var(--spacing-8); }
+  .cmp__shots--split { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); align-items: start; }
+  .cmp figure { margin: 0; }
+  .cmp figure > div { background: var(--color-background-base-tertiary); border-radius: var(--border-radius-12); padding: var(--spacing-16); overflow-x: auto; }
+  .cmp img { display: block; max-width: 100%; height: auto; background: var(--color-background-base-default); border-radius: var(--border-radius-4); }
+  .cmp figcaption { font-size: var(--font-size-fs-12); color: var(--color-text-base-tertiary); margin-top: var(--spacing-4); }
+  .cmp a { color: var(--color-text-brand-default); }
+  .cmp a:hover { color: var(--color-text-brand-default-hover); }
+  .cmp__diff { border-top: 1px solid var(--color-border-base-default); padding-top: var(--spacing-4); }
+  .cmp__toc { display: flex; flex-wrap: wrap; gap: var(--spacing-8); padding: 0; list-style: none; margin: 0 0 var(--spacing-24); }
+  .cmp__toc a { display: inline-block; padding: var(--spacing-6) var(--spacing-12); border-radius: var(--border-radius-full); background: var(--color-background-base-default); border: 1px solid var(--color-border-base-default); text-decoration: none; color: var(--color-text-base-default); font-size: var(--font-size-fs-14); }
+  .cmp__toc a:hover { background: var(--color-background-base-default-hover); }
+  @media (max-width: 760px) {
+    .cmp { padding: var(--spacing-24) var(--spacing-16) var(--spacing-48); }
+    .cmp__box { padding: var(--spacing-16); border-radius: var(--border-radius-12); }
+    .cmp__shots--split { grid-template-columns: 1fr; }
+    .cmp figure > div { padding: var(--spacing-8); }
+  }
+</style>
+</head>
+<body>
+<main class="cmp">
+  <h1>Steppers — the six implementations side by side</h1>
+  <p class="cmp__lead">Captured from the prototype on 21 Oct 2026 (1440 desktop, 375 phone). No product UI was changed for this page. Source: component audit 2026-10-21 § 4 „Stepper / steps”.</p>
+
+  <ul class="cmp__toc">
+    <li><a href="#fo">1 · FO stepper</a></li>
+    <li><a href="#strip">2 · BO steps strip</a></li>
+    <li><a href="#builder">3 · Builder step chips</a></li>
+    <li><a href="#sync">4 · Sync steps</a></li>
+    <li><a href="#tracker">5 · Library progress tracker</a></li>
+    <li><a href="#trajectory">6 · Trajectory (context)</a></li>
+  </ul>
+
+  <section class="cmp__box cmp__box--rec" aria-labelledby="rec">
+    <h2 id="rec">Recommendation</h2>
+    <p>Use the <strong>FO stepper</strong> for every wizard. Move the <strong>BO steps strip</strong> to it as its horizontal layout (it is already the same Figma step: same 24 px circle, same done / current / upcoming look). Move the <strong>sync steps</strong> to it too (see the note on card 4: they show a running job, not navigation). The <strong>Form Builder step chips are tabs, not steps.</strong> They let you pick which step to edit, in any order, with no „done” state, and they can add steps. They are not part of this decision; line them up with the library tabs / chips instead. The <strong>process path stays the trajectory</strong>. The library <code>.progress-tracker</code> is used nowhere in the product, so it is only a reference.</p>
+  </section>
+
+  <section class="cmp__box cmp__box--ask" aria-labelledby="ask">
+    <h2 id="ask">Which one should be the single stepper?</h2>
+    <ul>
+      <li><strong>A.</strong> The FO stepper (vertical in the sidebar, the step bar on phones), plus a horizontal layout of it for drawers. <em>Recommended.</em></li>
+      <li><strong>B.</strong> The BO steps strip everywhere (horizontal only; the FO wizard would lose its sidebar list).</li>
+      <li><strong>C.</strong> The library <code>.progress-tracker</code> as is (labels under the circles, no phone labels, not clickable).</li>
+    </ul>
+    <p>And: are the Form Builder chips tabs (my reading) or steps?</p>
+  </section>
+
+  <!-- 1 -->
+  <article class="cmp__box" id="fo" aria-labelledby="fo-h">
+    <div class="cmp__head"><h2 id="fo-h">1 · FO stepper</h2><span class="cmp__tag cmp__tag--keep">Recommended: the one stepper</span></div>
+    <p class="cmp__code"><code>.e-permits-fo-stepper</code> · phones: <code>.e-permits-fo-mobile-progress</code></p>
+    <div class="cmp__shots cmp__shots--split">
+      <figure><div><img src="steppers/fo-desktop.png" width="312" height="392" alt="FO stepper, vertical: two completed steps with checks, step 3 Acte necesare current on a light blue row, steps 4 to 7 upcoming"></div><figcaption>1440 · fo-04, left column of the request wizard</figcaption></figure>
+      <figure><div><img src="steppers/fo-mobile.png" width="375" height="44" alt="Phone step bar: Acte necesare, Pasul 3 din 7, a blue progress bar"></div><figcaption>375 · the step bar replaces the list (≤ 860)</figcaption></figure>
+    </div>
+    <p>Live: <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=fo-04">fo-04</a> · <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=gh-03">gh-03 (Ghișeu)</a></p>
+    <h3>Used in</h3>
+    <ul>
+      <li>FO request wizard (7 steps: Date solicitant … Finalizare), post-process wizards (pp-*), Ghișeu request sheet (BO, desktop only), Form Builder „Previzualizare”.</li>
+    </ul>
+    <h3>Key facts</h3>
+    <ul>
+      <li>Vertical list, 280 wide in the sidebar. Row = 24 px circle + label 14/20 medium, vertical connector between rows.</li>
+      <li>States: <strong>done</strong> = brand-filled circle + check, label underlined · <strong>current</strong> = brand ring, brand label, light-blue row · <strong>upcoming</strong> = grey ring · <strong>unavailable</strong> = <code>aria-disabled</code>. No error state.</li>
+      <li>Clickable: done / available rows, with hover. In the FO + Ghișeu the row is a <code>span role="button"</code> (audit S093: should be a real <code>&lt;button&gt;</code>); the builder preview already uses a button.</li>
+      <li>Phones (≤ 860): a sticky 44 px bar: step name 16/24 medium, „Pasul n din 7”, 4 px progress line. Not clickable.</li>
+    </ul>
+    <h3>Vs the FO stepper</h3>
+    <p class="cmp__diff">This is the reference.</p>
+  </article>
+
+  <!-- 2 -->
+  <article class="cmp__box" id="strip" aria-labelledby="strip-h">
+    <div class="cmp__head"><h2 id="strip-h">2 · BO steps strip</h2><span class="cmp__tag">Move to the FO stepper (horizontal)</span></div>
+    <p class="cmp__code"><code>nav.e-permits-steps-strip</code> · <code>renderStepStrip()</code> · Figma „Stepper · drawer” (10421:197819)</p>
+    <div class="cmp__shots">
+      <figure><div><img src="steppers/strip-desktop.png" width="800" height="57" alt="Horizontal steps strip: Setări and Destinatari done with checks and underlined, Conținut current on a light blue pill, Revizuire upcoming"></div><figcaption>1440 · svc-09h3, under the drawer header</figcaption></figure>
+      <figure><div><img src="steppers/strip-mobile.png" width="375" height="57" alt="The same strip at 375: the current step is cut off at the right edge"></div><figcaption>375 · scrolls sideways; the current step is cut off at the edge</figcaption></figure>
+    </div>
+    <p>Live: <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=svc-09h3">svc-09h3</a> · <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=clf-02a">clf-02a</a> · <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=svc-02e">svc-02e</a></p>
+    <h3>Used in</h3>
+    <ul>
+      <li>BO create drawers: Clasificator nou (4 steps), Șablon de notificare nou (Setări · Destinatari · Conținut · Revizuire), Tip de solicitare nou, Tarif nou (2 steps).</li>
+    </ul>
+    <h3>Key facts</h3>
+    <ul>
+      <li>Horizontal, 57 high (padding 16/20 + bottom border). 24 px circle + label 14/20 side by side, 36 × 1.5 px line between steps.</li>
+      <li>States: done (brand fill + check, underlined label) · current (brand ring, brand 500 label, light-blue pill) · upcoming (grey ring). No error state; errors live in the footer and the fields.</li>
+      <li>Clickable: done steps are real <code>&lt;button&gt;</code>s (go back).</li>
+    </ul>
+    <h3>Vs the FO stepper</h3>
+    <ul class="cmp__diff">
+      <li>Same marker, colours and states, so it is the same design step (library <code>.step-desktop</code>), just horizontal.</li>
+      <li>Labels 400 (current 500) in the default colour; the FO uses 500 in the secondary colour.</li>
+      <li>No phone layout: it scrolls and hides the current step. The FO switches to the step bar.</li>
+      <li>Correct button markup (the FO still has the span).</li>
+      <li>Note: components.md maps the Figma „Stepper · drawer” to this strip, not to the FO stepper.</li>
+    </ul>
+  </article>
+
+  <!-- 3 -->
+  <article class="cmp__box" id="builder" aria-labelledby="builder-h">
+    <div class="cmp__head"><h2 id="builder-h">3 · Form Builder step chips</h2><span class="cmp__tag">These are tabs, not a stepper</span></div>
+    <p class="cmp__code"><code>.e-permits-builder__steps-group</code> · <code>.e-permits-builder__step-chip</code> (<code>role="tab"</code>)</p>
+    <div class="cmp__shots">
+      <figure><div><img src="steppers/builder-desktop.png" width="752" height="73" alt="Row of grey pill chips numbered 1 to 5; step 3 Pas nou is a black selected pill; Date solicitant and Documente have a lock; Detalii cerere has a red error dot"></div><figcaption>1440 · fb-01, above the canvas (the row scrolls sideways)</figcaption></figure>
+      <figure><div><img src="steppers/builder-mobile.png" width="375" height="73" alt="The same chips at 375, scrolled to the selected chip"></div><figcaption>375 · scrolls sideways</figcaption></figure>
+    </div>
+    <p>Live: <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=fb-01">fb-01</a></p>
+    <h3>Used in</h3>
+    <ul><li>Form Builder (Serviciu › Formular): pick the step of the form you are editing, then „+” to add one.</li></ul>
+    <h3>Key facts</h3>
+    <ul>
+      <li>32 px pill chips, 20 px white number badge (12 px), label 14/20 medium, 8 gap; „+” add button at the end.</li>
+      <li>States: selected (black inverse pill) · default (grey pill) · locked (lock icon: generated by the platform) · error (red dot + „are erori” in the name). No done / upcoming.</li>
+      <li>Clickable: every chip, in any order; <code>role="tablist"</code> with arrow-key focus.</li>
+    </ul>
+    <h3>Vs the FO stepper</h3>
+    <ul class="cmp__diff">
+      <li>No progress: nothing is „done” or „upcoming”, and you can jump anywhere. That is tab behaviour, and the markup already says <code>tab</code>.</li>
+      <li>Different look entirely: pills, 20 badge, black selection, no connector.</li>
+      <li>It is the only one with an error state and a lock state.</li>
+    </ul>
+  </article>
+
+  <!-- 4 -->
+  <article class="cmp__box" id="sync" aria-labelledby="sync-h">
+    <div class="cmp__head"><h2 id="sync-h">4 · Sync steps</h2><span class="cmp__tag">Move to the FO stepper (see note)</span></div>
+    <p class="cmp__code"><code>ul.e-permits-sync__steps</code> (<code>aria-live="polite"</code>)</p>
+    <div class="cmp__shots cmp__shots--split">
+      <figure><div><img src="steppers/sync-desktop.png" width="590" height="562" alt="Sincronizare serviciu modal while loading: RSSP + eAPL selected, Date preluate din RSSP with a green check, Se preiau datele din eAPL with a spinner, skeleton summary below"></div><figcaption>1440 · Sincronizare serviciu, RSSP + eAPL, while it runs</figcaption></figure>
+      <figure><div><img src="steppers/sync-mobile.png" width="367" height="72" alt="The two progress lines at 375"></div><figcaption>375 · the two lines alone</figcaption></figure>
+    </div>
+    <p>Live: <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=svc-01a">svc-01a</a>, then choose „RSSP + eAPL” and „Sincronizează”. The loading lasts about 2 s; <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=svc-01c">svc-01c</a> = RSSP only.</p>
+    <h3>Used in</h3>
+    <ul><li>„Sincronizare serviciu” modal (Configurări servicii › Sincronizare, and Profil serviciu › Resincronizează): one line per source while the data is fetched.</li></ul>
+    <h3>Key facts</h3>
+    <ul>
+      <li>Plain list, no numbers, no connector. Icon 16 (green check / red error), 20 spinner while loading, grey dot while waiting. Text 14/20 regular, secondary colour.</li>
+      <li>States: pending · loading · done · <strong>error</strong> (the only stepper-like part with an error state besides the builder).</li>
+      <li>Not clickable. It disappears when the sync ends (the result replaces it).</li>
+    </ul>
+    <h3>Vs the FO stepper</h3>
+    <ul class="cmp__diff">
+      <li>It shows a running job, not a wizard. The user cannot go to a step. The text changes with the status („Se preiau datele…” → „Date preluate”).</li>
+      <li>No circles, numbers or line; it has a spinner and an error icon.</li>
+      <li><strong>Note:</strong> if it becomes the FO stepper, it needs a loading state and an error state that the stepper does not have today. Keeping it as a status list is also reasonable; your call.</li>
+    </ul>
+  </article>
+
+  <!-- 5 -->
+  <article class="cmp__box" id="tracker" aria-labelledby="tracker-h">
+    <div class="cmp__head"><h2 id="tracker-h">5 · Library progress tracker</h2><span class="cmp__tag">Reference only, not used</span></div>
+    <p class="cmp__code"><code>.progress-tracker .progress-step--*</code> · <code>Components/progress-tracker.html</code> · Figma Components „Progress Tracker” 267:6905</p>
+    <div class="cmp__shots cmp__shots--split">
+      <figure><div><img src="steppers/tracker-desktop.png" width="856" height="117" alt="Library tracker: 8 circles in a row with Step labels underneath; first done and underlined in blue, second current"></div><figcaption>1440 · library preview, desktop</figcaption></figure>
+      <figure><div><img src="steppers/tracker-mobile.png" width="192" height="80" alt="Library mobile tracker: three circles, no labels"></div><figcaption>375 · mobile variant: circles only</figcaption></figure>
+    </div>
+    <p>Live: <a href="https://vasileschidu.github.io/geap-sandbox/Components/progress-tracker.html">Components/progress-tracker.html</a></p>
+    <h3>Used in</h3>
+    <ul><li>Nowhere in the product, only in the library preview.</li></ul>
+    <h3>Key facts</h3>
+    <ul>
+      <li>Horizontal, max 996 wide. Circle 24 (desktop) / 20 (mobile), label 14/22.4 regular <em>under</em> the circle; mobile has no labels.</li>
+      <li>States: completed (brand fill + ✔ character, blue underlined label) · current · incomplete · blocked (uses an undefined token). The Figma „Available” state is missing.</li>
+      <li>Not clickable (plain <code>div</code>s).</li>
+    </ul>
+    <h3>Vs the FO stepper</h3>
+    <ul class="cmp__diff">
+      <li>Labels under the circles rather than beside them; no current-row pill; the done label is blue instead of grey.</li>
+      <li>No phone label or „Pasul n din N”; no navigation.</li>
+      <li>It is the Figma origin of both the FO stepper and the steps strip (<code>.step-desktop</code> vertical / horizontal).</li>
+    </ul>
+  </article>
+
+  <!-- 6 -->
+  <article class="cmp__box" id="trajectory" aria-labelledby="trajectory-h">
+    <div class="cmp__head"><h2 id="trajectory-h">6 · Trajectory: process path (context)</h2><span class="cmp__tag cmp__tag--keep">Stays as it is</span></div>
+    <p class="cmp__code"><code>.e-permits-trajectory</code> · <code>GEAPTrajectory.html()</code></p>
+    <div class="cmp__shots cmp__shots--split">
+      <figure><div><img src="steppers/trajectory-desktop.png" width="1024" height="130" alt="Horizontal trajectory card: Depusă done with date and who, Examinare current with a clock icon on a light pill, then Coordonare, Semnare, Semnat, Eliberat as empty rings"></div><figcaption>1440 · dos-01, BO dossier</figcaption></figure>
+      <figure><div><img src="steppers/trajectory-mobile.png" width="351" height="382" alt="The same trajectory, vertical, on a phone"></div><figcaption>375 · vertical</figcaption></figure>
+    </div>
+    <p>Live: <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=dos-01">dos-01</a> · <a href="https://vasileschidu.github.io/geap-sandbox/e-permits-acte-permisive.html?state=fo-08">fo-08</a></p>
+    <h3>Used in</h3>
+    <ul><li>Every process path: BO dossier, eKYC plan / review path, FO finish + „Statutul dosarului”, Cabinet „Stadiul solicitării”.</li></ul>
+    <h3>Key facts</h3>
+    <ul>
+      <li>24 px status icons (green check, blue clock, rings), label 14/20 medium + date / who below; horizontal in a card, vertical on phones.</li>
+      <li>States: done · current · paused · attention · rejected · skipped · todo.</li>
+      <li>Not clickable; it reports where the case is.</li>
+    </ul>
+    <h3>Vs the FO stepper</h3>
+    <ul class="cmp__diff">
+      <li>Status of a case, not form navigation, so it has more states, dates and actors, and no numbers.</li>
+    </ul>
+  </article>
+</main>
+</body>
+</html>
