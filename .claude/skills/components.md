@@ -217,7 +217,7 @@ but this doc previously described it wrongly, see the entry.
 | Accordion | `.accordion__trigger[aria-expanded]` | `accordion.html` | library (partial) |
 | Avatar — every product avatar (library-adopt-v2, 2026-10-21) | library `span.avatar.avatar--{xs 24 · sm 32 · md 40}.avatar--{initials · icon}` + the product hook class that keeps ONLY tone (brand / apricot / grey / person colour from data), stack border (`__stack-avatar`, `__role-collapse-avatar`), overlay (`__avatar-badge-overlay`, `__photo-overlay`) and placement: FO identity cards / selected role / account menu (`subjectInitialsAvatarHtml` · `subjectAvatarHtml` · `subjectCompositeAvatarHtml` via `libAvatarClass`, `FO_AVATAR_SIZE`), FO header badge (md; 32 on phones), „Solicitare nouă” (sm, icon 20), BO Utilizatori / eKYC user cells + dossier persons (xs), RAP beneficiary (xs) / profile + company summary (md), Cabinet header + account menu. 48 = Figma Avatar's 4th size but the library `--lg` is 56 → the FO account photo and the BO profile menu avatar keep `avatar avatar--initials` + their own 48 (library mismatch, see § Avatar). Kept on purpose: the BO user trigger's initials circle (`.e-permits-shell__user-avatar`) and the FO header trigger button (user decision). Enforced: component-audit family `avatar` | `avatar.html` | library + app |
 | Empty state — **the only one** (every product; „no other empty states”) | `.e-permits-empty` (normal = page section · `--compact` = drawer / modal / side panel · `--bare` = table row / bordered list / modal list · bare + compact = menu / popover / combobox) via `GEAPEmptyState.render / .noResults / .tableRow` (`td.e-permits-empty-cell`) | `js/empty-state.js`, `css/empty-state.css`; section „Empty state — one component everywhere” | product |
-| Breadcrumb | `.breadcrumbs .breadcrumbs__list .breadcrumbs__item` + `--trailing/--truncate/--mobile`; ONE renderer `GEAPBreadcrumbs.html(crumbs, opts)` (`js/breadcrumbs.js` + `css/breadcrumbs.css`; shell `renderBreadcrumbs()` / `renderPageHeaderTop`, `CabEvo.pageHeader({ back })`, RAP `crumbsHtml`) — desktop trail + phone back pair, „…” overflow > 4 levels, 30-char truncation + tooltip. **Every sub-page's way back; never a custom back link** (component-audit rule 5). **Never repeats the page title: above an H1 = parents only + trailing chevron (`parentsOnly`, breadcrumb-v3)** | `breadcrumbs.html` | app (every page) |
+| Breadcrumb | `.breadcrumbs .breadcrumbs__list .breadcrumbs__item` + `--trailing/--truncate/--mobile`; ONE renderer `GEAPBreadcrumbs.html(crumbs, opts)` (`js/breadcrumbs.js` + `css/breadcrumbs.css`; shell `renderBreadcrumbs()` / `renderPageHeaderTop`, `CabEvo.pageHeader({ back })`, RAP `crumbsHtml`) — desktop trail + phone back pair, „…” overflow > 4 levels, 30-char truncation + tooltip. **Every sub-page's way back; never a custom back link** (component-audit rule 5). **Never repeats the page title: above an H1 = parents only + trailing chevron (`parentsOnly`, breadcrumb-v3)**. Item states = Figma 81:713 (hover = secondary text + underline, focus 1 + 3 square ring, disabled gray 300; breadcrumb-v4) | `breadcrumbs.html` | app (every page) |
 | Progress tracker | `.progress-tracker .progress-step--*` | `progress-tracker.html` | library (partial) |
 | Sidebar | `.sidebar .sidebar__link--active` | `sidebar.html` | library (partial) |
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
@@ -2942,9 +2942,25 @@ It returns two library navs, siblings:
 - Levels: 14/20 regular, `--color-text-base-tertiary`. Each item draws a 16px
   chevron-right-small `::after`, gap 4 (list and item).
 - Current: 14/20 **medium**, `--color-text-base-default`, no chevron.
-- Hover (a / button link): brand text + underline. Focus: 2px white + 4px focus-ring
-  shadow, radius 4. Visited = enabled (no magenta). A `<span class="breadcrumbs__link">`
-  is plain text and has no hover.
+- **Item states = Figma Components `81:713` „.breadcrumb-item”** (breadcrumb-v4, 2026-10-21, user: „the hover is wrong in
+  the implementation. Do it as in Components”). The library main.css hover (brand blue) and focus (2 + 2, radius 4) are
+  overridden in `css/breadcrumbs.css` (selectors from `.breadcrumbs`, 0,3,1+); a `<span class="breadcrumbs__link">` is plain
+  text and has no hover. Measured over REST (fills / effects / Underline layer) and in Chrome (svc-01, dos-01, rap-02d,
+  sm-05, sm-05d at 1440 + the phone back at 375):
+
+  | State | Text | Leading icon | Chevron | Decoration / ring |
+  |---|---|---|---|---|
+  | Enabled | `--color-text-base-tertiary` 14/20 regular | `--color-icon-base-tertiary` | tertiary | none |
+  | Hover (and pressed — the atom has no pressed state) | `--color-text-base-secondary` | `--color-icon-base-secondary` | stays tertiary | underline 1 (`--border-width-1`), same colour, at 18–19 of the 20 line (`text-underline-offset` 2 + 1); no background, padding or radius |
+  | Focus-visible (+ the open „…”, `aria-expanded`) | tertiary, no underline | tertiary | tertiary | `0 0 0 1 white, 0 0 0 3 --blue-sky-500` (border-width tokens), square corners, around the label |
+  | Disabled (`.is-disabled` / `aria-disabled`) | `--color-text-disabled-default` (gray 300), opacity 1 | `--color-icon-disabled-default` | tertiary | none, no hover, not clickable |
+  | Active = current level (`.breadcrumbs__current`) | `--color-text-base-default` 14/20 medium | `--color-icon-base-default` | none | none |
+  | Visited | **not applied** — the atom's purple would colour the whole trail (every parent is a page the user came from); kept tertiary like the library (PO question) | | | |
+
+  Phone back (`--mobile`, Figma `232:5283` = chevron-left-small + the item atom): same text states on the label; the
+  chevron-left stays tertiary and is OUTSIDE the ring — the focus ring sits on `.e-permits-page-header__crumb-label`. The
+  „…” overflow trigger is a `button.breadcrumbs__link` with the same states; its menu items are the standard dropdown
+  items (grey hover, `css/dropdown.css`).
 - Modifiers:
   - `.breadcrumbs--trailing`: the last item keeps its chevron (Figma „Active Level” off). Every page header above an H1
     (via `parentsOnly`, breadcrumb-v3), the form builder lines and the notification-template back line.
@@ -2975,7 +2991,8 @@ It returns two library navs, siblings:
 - **Figma ↔ code differences (report, library untouched):** (1) phone back variant: Figma 232:5283 = 20 chevron + 0 gap +
   label; the library link keeps `gap: 4` → the label starts 4px later; (2) Figma „Breadcrumbs must remain on a single
   line and never wrap”; the library list is `flex-wrap: wrap` (narrow panels — the builder properties panel — wrap to 2
-  lines); (3) Figma Disabled = grey-400 text at full opacity, the library `is-disabled` adds `opacity: .6`; (4) resolved 2026-10-21 (breadcrumb-v2, user: „breadcrumbs as we discussed”): the public headers (RAP list + act
+  lines); (3) resolved 2026-10-21 (breadcrumb-v4): Disabled = gray 300 text / icon at full opacity (atom 81:713), the library
+  `opacity: .6` is reset in css/breadcrumbs.css; (4) resolved 2026-10-21 (breadcrumb-v2, user: „breadcrumbs as we discussed”): the public headers (RAP list + act
   profile, every Cabinet profile) show the current level like the Figma component (its „👁️ Active Level” boolean is
   on by default) and the BO; the 2026-10-17 trailing-chevron exception is gone. **Superseded the same day by
   breadcrumb-v3** (user: the trail must not repeat the title under it): every page header — BO included — shows the

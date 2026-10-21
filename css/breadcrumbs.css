@@ -35,8 +35,74 @@
   top: calc(100% + var(--spacing-8, 8px));
 }
 
-/* an open „…” keeps the library focus ring while its menu is open (rule „open button keeps focus”) */
-.breadcrumbs__link[aria-expanded="true"] {
-  border-radius: var(--border-radius-4, 4px);
-  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--white, #fff), 0 0 0 var(--spacing-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+/* Item states = Figma Components 81:713 „.breadcrumb-item” (breadcrumb-v4, user 2026-10-21: „the hover is wrong in the
+   implementation. Do it as in Components”). The library main.css paints hover brand-blue and a 2 + 2 rounded focus ring;
+   the atom says:
+     Enabled   text tertiary 14/20 regular, icon tertiary, chevron tertiary
+     Hover     text SECONDARY + a 1-line underline in the same colour at the bottom of the label (18 under the line top),
+               icon secondary, chevron stays tertiary — no background, no padding, no radius
+     Pressed   no own state in the atom → the hover look while pressed
+     Focus     text tertiary, no underline, ring = white 1 + blue-sky-500 to 3 around the label, square corners
+     Disabled  text / icon disabled (gray 300), no opacity, chevron stays tertiary, not interactive
+     Active    = the current level (.breadcrumbs__current): text default 14/20 medium, no chevron — library already
+     Visited   purple in the atom — NOT applied: every parent level is a page the user came from, so the whole trail
+               would turn purple; kept tertiary as the library does (PO question)
+   Selectors start with .breadcrumbs (0,3,1) so they beat the library (0,2,1) and the global a:hover / a:focus. */
+.breadcrumbs .breadcrumbs__link .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+}
+
+.breadcrumbs a.breadcrumbs__link:focus,
+.breadcrumbs button.breadcrumbs__link:focus {
+  text-decoration: none;
+}
+
+.breadcrumbs .breadcrumbs__link:focus-visible,
+.breadcrumbs .breadcrumbs__link.is-focus,
+.breadcrumbs .breadcrumbs__link[aria-expanded="true"] {
+  border-radius: 0;
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--white, #fff), 0 0 0 var(--border-width-3, 3px) var(--blue-sky-500, #3379db);
+  outline: none;
+}
+
+/* phone back (Figma „📏 Breakpoint=Mobile” = chevron-left-small + the item atom): the chevron sits outside the item,
+   so the focus ring wraps the label only (the whole link stays the click target) */
+.breadcrumbs .breadcrumbs__item--back .breadcrumbs__link:focus-visible {
+  box-shadow: none;
+}
+
+.breadcrumbs .breadcrumbs__item--back .breadcrumbs__link:focus-visible .e-permits-page-header__crumb-label {
+  box-shadow: 0 0 0 var(--border-width-1, 1px) var(--white, #fff), 0 0 0 var(--border-width-3, 3px) var(--blue-sky-500, #3379db);
+}
+
+.breadcrumbs a.breadcrumbs__link:hover:not(.is-disabled, [aria-disabled="true"]),
+.breadcrumbs button.breadcrumbs__link:hover:not(.is-disabled, [aria-disabled="true"]),
+.breadcrumbs .breadcrumbs__link.is-hover {
+  color: var(--color-text-base-secondary, #383838);
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: var(--border-width-1, 1px);
+  text-underline-offset: calc(var(--spacing-2, 2px) + var(--border-width-1, 1px)); /* line at 18–19 of the 20 line, as the atom's Underline layer */
+}
+
+.breadcrumbs a.breadcrumbs__link:hover:not(.is-disabled, [aria-disabled="true"]) .icon,
+.breadcrumbs button.breadcrumbs__link:hover:not(.is-disabled, [aria-disabled="true"]) .icon,
+.breadcrumbs .breadcrumbs__link.is-hover .icon {
+  color: var(--color-icon-base-secondary, #444444);
+}
+
+.breadcrumbs .breadcrumbs__link:is(.is-disabled, [aria-disabled="true"]) {
+  color: var(--color-text-disabled-default, #b2b2b2);
+  cursor: default;
+  opacity: 1;
+  pointer-events: none;
+  text-decoration: none;
+}
+
+.breadcrumbs .breadcrumbs__link:is(.is-disabled, [aria-disabled="true"]) .icon {
+  color: var(--color-icon-disabled-default, #b2b2b2);
+}
+
+.breadcrumbs .breadcrumbs__current .icon {
+  color: var(--color-icon-base-default, #121212);
 }

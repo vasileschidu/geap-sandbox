@@ -2246,3 +2246,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   variant fixed that for free; delete the dead product paint in the same change. Confirm dialogs were already right
   (askConfirm `destructive`, openConfirm `danger`; a script listing confirm labels without the flag found 0). Decisions
   (eKYC „Respinge”), cancels („Renunță”), „Detașează” and clears stay neutral — listed in components.md.
+- 2026-10-21 · Breadcrumb item states (breadcrumb-v4; user: „the hover is wrong in the implementation. Do it as in Components”,
+  Figma Components 81:713 `.breadcrumb-item`). The library main.css hover was brand blue + underline and the focus ring
+  2 + 2 radius 4; the atom says hover = `--color-text-base-secondary` + a 1 underline in the same colour at 18–19 of the 20
+  line (icon → icon-secondary, chevron stays tertiary, no background / padding / radius), focus = white 1 + blue-sky-500 to
+  3, SQUARE, no underline (the global `a:focus { underline }` had to be cancelled), disabled = gray 300 at opacity 1, „Active”
+  = the current level (not „pressed” — the atom has no pressed state), Visited = purple (NOT applied: every parent level is
+  a visited page, the whole trail would turn purple → PO question). Method that worked without get_design_context: REST
+  `/v1/files/<key>/nodes?ids=` walk (fills + boundVariables + effects + the hidden `Underline` layer's y) → hex → token by
+  design-system.md; `/v1/images?ids=…&scale=4` for the side-by-side; `/variables/local` is 403 with our token. Chrome proof
+  = `CSS.forcePseudoState` per state (hover / active / focus-visible / visited) on the first visible link + a REAL mouse
+  hover, DPR 4 crops, and a PNG row scan for the underline row (auto offset = 16, `under` = 19, `2 + 1` = 18 → no 3 token,
+  so `calc(--spacing-2 + --border-width-1)`). Overflow „…”, disabled and current have no demo state → injected a 6-level
+  `GEAPBreadcrumbs.html` trail + a disabled link into a live page. Traps: (1) a forced :hover beat the disabled rule
+  (pointer-events alone is not a style guard) → hover rules `:not(.is-disabled, [aria-disabled="true"])`; (2) the phone
+  back = chevron OUTSIDE the atom in Figma 232:5283 → the ring moved from the link to the label span; (3) pp-01q went
+  `:error` mid-job from another agent's uncommitted cabinet-evo edits → used sm-05d (same act profile header). hover-audit
+  with `--scope "nav.breadcrumbs"` gave „0 interactive” on RAP (first match = a hidden nav) → scope the visible profile nav.
