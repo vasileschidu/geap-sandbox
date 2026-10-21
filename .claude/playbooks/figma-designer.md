@@ -92,6 +92,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | breadcrumbs (library, 2026-10-21) | Components lk-03f6 set key `cafee05e…` (file doJ7tDY0PlQ0PqMgbpFVIC 232:5282); Desktop `ab98b2dd…`, Mobile `f2770086…` | Desktop = exposed Level 1–5 + Active Level (`👁️ Level n`, `👁️ Active Level`; each item `⌨️ Label#570:0`); Mobile = 20/chevron-left-small + one exposed `.breadcrumb-item` (its `⌨️ Label` works). BO header (`--truncate`) = Active Level on, labels cut at 30ch (280 px Onest 14) + „…” written into the label; public / Cabinet / RAP (`--trailing`) = Active Level off. The older lk-708e copy (0437358b…) is NOT the library to use. Tool tools/figma/breadcrumbs/ (census.js, replace.js) |
 | Close button · phone (local, 2026-10-21) | Cabinet set 1175:45951 · GEAP 12241:8129 · eKYC 10900:131821 · RAP 22242:231111 · FOD 1079:18767 (section „Sheet header · phone”); RAP also `Modal header · phone` 22243:11543 | phone dialog / sheet × (css/modal-phone.css section 9): 40 circle, Foundations 24/cross-small (8535961…), background/base/tertiary → hover → active, Focus ring; built from detached library button-filled-circular Neutral Icon Only Medium (the library locks the icon at 20). Placed ABSOLUTE in the header, constraints MAX/MIN, x = w − 56, y = title top + lh/2 − 20 (12 for 24/32, 8 for 16/24); header padding 16 / 64 / 8 / 16 (sheets) — tools/figma/sheet-header/ |
 | Copy value — ONE component (2026-10-21) | GEAP `Copy value` **1053:10780** (= the old published `copy-block` d7a4071b…, upgraded in place; tooltip `Copy value · tooltip` 12240:381892) · Cabinet 1180:3849 / 1180:3804 · FOD 1080:1038 / 1080:991 · eKYC 10904:1786 / 10904:1739 · EVO-WEB RAP 22247:14117 / 22247:14070 | code js/copy-value.js. Type Default (value + 16/copy 19019692…) / Compact (no icon: tables, stacked rows, act / request meta) × State Rest / Hover / Pressed / Focus / Copied; TEXT `Value`. Rest padding 0; the wrap is an ABSOLUTE `Wrap` rect at −8 / −4 (STRETCH, radius-6, tertiary-hover 1ad66fae… / -active e2feca67…, Focus Ring/Medium) so the text never moves; tooltip instance ABSOLUTE y −32, constraint CENTER. Act row / Request row: meta `Number` = exposed Compact instance (the Number TEXT property was removed). Tools tools/figma/copy-value/ |
+| Unsaved changes review (local, 2026-10-21) | GEAP holder 12241:493487 on 🧩 Local components: `Header status` 12241:493506 · `Change row` 12241:528864 · `Change group` 12241:528943 · `Unsaved changes review` 12241:529090 (Desktop 12241:528944 / Phone 12241:529017) · eKYC copy 10904:162304 (status 10904:162323, row :162346, group :162425, review :162572) | code #profile-changes-modal (9ed3a52d). Header status = dot 8 icon/warning + Caption 500 12/16 (or Inline 14/20 for the dtpl sheet head), hover dotted underline, focus 2 px brand ring; now inside `Main Navigation` 9442:44686 (exposed `Status`, visible = „Unpublished changes”), `Settings · Save bar` 10638:1534 (its Text prop removed — set the exposed Status) and `Profile / Header` 10133:184694. Review: exposed Group 1–3 (Show group 2/3) › exposed Row 1–3 (Show row 2/3) › exposed Tag + Undo; fill with tools/figma/unsaved-review/blocks.js `fillReview`. Phone = bottom sheet 375 (no handle, × Medium 40 + 24/cross-large b6145b5f…) |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -2406,3 +2407,36 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     Figma MCP plan limit stopped the session before that fix.
   - No Agent tool in this session → mini gate audit (fractional / unbound fills / unbound padding-gap / text styles / auto-layout)
     on the 10 sets in five files: 0 findings; screenshots of every replaced context matched the code.
+
+- 2026-10-21 · „N modificări nesalvate” → review in Figma (user: „make sure we also populate it accordingly in Figma”; code 9ed3a52d).
+  New local set family (ids in the Library table) + blocks: Services 02x 12241:530709 / 02x1 12242:117390 / 02x2 12242:119732 /
+  02x3 12242:121775, 09n 12243:368415 / 09n1 12243:369378; Classifiers 04e 12243:280397 (+ status on 04d); NT 04d 12243:363278 /
+  04e 12243:364135 (+ status on 02d); eKYC C02s 10904:163208 (+ save-bar status on C02i / C02k / C02q); Users U03f / U05f / U05h /
+  U05i / R01b now use the same review instance. Tools tools/figma/unsaved-review/ (README, blocks.js, probe-content.mjs,
+  probe-modal.mjs); swap-to-instances.js maps dot + „N modificări ne…” text → Header status. Lessons:
+  - **Check the „existing” component before reusing it**: the user/role review was a generic local Modal with a raw close frame,
+    footer buttons Large 48 (code 40) and per-state raw „Modal content / Uxx” stacks → a proper family (status / row / group /
+    review) built once, then the old blocks swapped to it (connectors re-pointed by endpoint id before `remove()`).
+  - **Probe the code for content, don't type it**: probe-content.mjs returns subtitle, groups, rows, tag tone and header status per
+    state in one run; the heights then matched the code (row 72 / phone 116, group 115 / 159, modal 551 vs 553 = the code body's
+    two transparent 1 px borders).
+  - **Swapping a raw frame inside a main used by many instances**: snapshot the instances' text overrides (root plugin data), swap
+    in the main, expose the new instance, re-apply by id suffix (`n.id.endsWith(newId)`) — Main Navigation 10/10, Profile / Header
+    10/10. A TEXT component property that drove the old raw text can't drive a nested instance → delete it when every instance used
+    the default, set the default on the nested instance.
+  - **Phone frames must be 375 before an instance FILLs them**: `createFrame()` is 100 wide; a FILL sheet measured there wrapped
+    every text and the screens came out 1795 high. Resize first, then fill, then measure.
+  - **Turning an ABSOLUTE frame into auto-layout moves it**: setting `layoutMode` on the scrim overlay (absolute in the screen, with
+    an absolute modal child) shifted the overlay down by the modal's y (236–665 px) — the scrim stopped half-way. After any
+    layoutMode change on a positioned frame, re-set x / y / size and re-check the screenshot.
+  - Find screens by exact prefix: `startsWith("Screen")` matched „Screen label · …” first (eKYC call threw).
+  - Columns that receive desktop + phone blocks need +455: Classifiers (05+), NT (03+) and eKYC C02 (7280 / 9440) shifted, sections
+    widened, every connector force-re-routed (magnet flip).
+  - Code vs brief: the brief said phone title 24/32; the code is 20/32 (css/modal-phone.css title line 32, H4 20) → Figma follows the
+    code (H4 on a 32 line); reported. Code title 14/24 600 has no text style → Small 500 (declared). Group label gap 10 = code,
+    off-scale, unbound (declared). Scrims stay the board's raw 40 % black (baseline).
+  - Fixed on the way: Classifiers 04d / 04e „Arhivează” cut by its „↕ 4” wrapper (FIXED 49 + MAX align → HUG + MIN).
+  - No Agent tool in this session → stored `ghs/audit` on the components (0 after binds) and blocks: left = cloned-shell baseline
+    (gov bar, Body clip, dtpl internals, raw scrims); fixed: unbound gap 80 / sheet padding 16, overlay auto-layout, fractional
+    centred modals on Users.
+
