@@ -2870,3 +2870,27 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     `removed` + try / catch and retry.
   - Stored `ghs/audit` is an `async (ROOTS) => {…}` source — run it with `eval(src)(ids)`, not the AsyncFunction constructor
     (that returns undefined). 0 findings on 5 changed headers.
+
+- 2026-10-21 · Ghișeu delivery + payment note = the FO full flow (user on GEAP 11754:25366 gh-08 „off spacing … should be exactly as in
+  the full flow” and 11757:25375 gh-09; Alexandr's comments on gh-08a / gh-09 „use the FO component?”). Reference = ↳ FO -> Full Flows
+  - 09: F6 4832:59286 (section 4832:59329), F6b 4887:22780 (section 4887:22824), F7 3607:15468. Both products render the same code
+  (renderDeliveryStep / the payment renderer in js/ghiseu.js), so the Ghișeu blocks must be the full-flow pieces with Ghișeu texts.
+  Done: gh-08 / gh-08a captured `Section` (raw „Label” cards, hand-made 20 px radio circles, Small checkbox glued to the card) →
+  clone of the F6 / F6b section (`Section · Delivery` 12289:463686 / 12289:465275): library `system-files-item-selectable`
+  (Selected / radio, built-in Strong Success „100% digital”), checkbox-label MEDIUM in a 12/8 frame 32 under the card, radio list
+  8 apart, courier group card; F6b's courier chooser removed (Ghișeu = MDelivery, address only); icons 24/store, 24/car; heading
+  inset 8 (= code). Column 09 (gh-09…09d): invoice tag → tag-filled Strong Medium in the code tone (Emisă Accent, Achitată Success,
+  Expirată Danger = F7's „Neachitat”), the missing zigzag edge cloned from F7 into the empty 6 px edge frame, row dashes [2,1] → [4,4],
+  98 raw texts → Foundations styles. Lessons:
+  - **„Exactly as the full flow” = clone the full-flow SECTION, not nudge paddings**: the captured Ghișeu step had no instances to fix;
+    a clone of the reference section carries the bound spacing tokens, the library item / checkbox variants and the 32 rhythm, and
+    only the texts change (TEXT props on checkbox-label; nested texts on the items by current value).
+  - **Re-point connectors before removing a captured section** (gh-08 → gh-08a started on the old checkbox → new checkbox id).
+  - **A swapped tag keeps the old FIXED height** (Small 20 → Medium stayed 20): after `swapComponent` resize to the variant height,
+    then HUG horizontally (same as the library button lesson).
+  - Where the full flow is stale against the shared code, the code wins and the report says so: F7 details card r24 / 360+8 columns vs
+    code r16 / 352+24; F7 tag beside the amount vs code on the caption line; F6 title / heading at x 0 vs code 8; Ghișeu footer 32
+    under the delivery section + the section's own 32 (= F6 64, FO code `.e-permits-fo-delivery__footer` 64, Ghișeu code 32 → code delta).
+  - No 16/24 600 text style in Foundations → „Total de plată” texts stay unstyled (declared). No Agent tool → stored `ghs/audit` on the
+    2 sections + 5 forms: fixed edge itemSpacing −1 and the address card half pixels (row minHeight 48); left = gh-09c heading row
+    „tight-gap 0” (padded heading, baseline).
