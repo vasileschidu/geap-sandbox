@@ -2793,3 +2793,34 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Code bug seen, reported: pd-35 at 375 the wrapped „Creează proces” sits at y 160 under the tab strip (toolbar box 56 high
     does not grow) — Figma draws the intent (own line, 8 below the row).
 
+
+- 2026-10-21 · Full-height document viewer (code e1058fbc doc-fullheight-v1 + a7f89560 hairlines; user on GEAP 11375:313221 „a lot of
+  screens are the same … show how it behaves on larger screens”). No Figma comment about full height exists in GEAP / Cabinet / EVO-WEB
+  (closest: EVO-WEB 1968940910 „many fields”). GEAP Dossiers: duplicates deleted — 04o, 04p, 04q, 04t (column 04++), 04i, 04l (04+),
+  04e (04) — they rendered the same 590 viewer to the pixel (probe); arrows re-pointed (04n ×3 + 9729:72174 → 04s, 04g / 04k → 04h).
+  Kept: **04s 11375:313455 = the size row** (`Screens · screen sizes` 12277:364492: 1280×720 12280:362568, 1440×900 12280:362658,
+  1440×1024 12277:364495, 1920×1080 natural 12280:362748, 1440×1024 scrolled to end 12280:362838) + one dev note; **04r 11375:313396 =
+  short document** (unsigned, 928 centred at y 48), placed right of the row; **04h 11332:17129 = uploaded**, fixed 1440×1024. New Modal
+  variant **`Type=Document viewer` 12280:362247** (footer 80 = Medium 40 buttons, body padding 16 20 0) — the Content variant keeps Large
+  48 (23 instances, other pages, untouched). `Modal content / Document · details` canvas 554 / 632 window → **758 = the full A4 page**
+  (both variants; 4 instances, all mine). Cabinet ↳ My Permits: pp-01z 1074:13295 deleted (same viewer), pp-01m 1071:8963 = size row
+  (1211:44763 / 44951 / 45139 / 45327 / 45515 end + phone), section 05 widened to 8655; `Doc canvas content · pp-01m · Desktop` 1178:42122
+  restructured (Subtitle 8·20·24 = the lower code header, `Body` FILL clipped p 0 24 24 + hairline, canvas 930); new `A4 document page ·
+  sm-05h` 1211:46935 + `Doc canvas content · sm-05h · Desktop` 1211:47008 (560, no tray, natural 780). Lessons:
+  - **Measure every size in code before drawing** (scratch probe.mjs: dialog / header / body / footer rects, scrollHeight, has-scroll
+    classes, `--end` scrolls the body): it showed the GEAP 590 viewer is NOT full height at 1920×1080 (content 852 fits → 1008 centred),
+    the Cabinet 720 act viewer still is (content 1032), and 04r is the natural-height case at 1440×1024. Draw what it measures, not the brief.
+  - **Fixed screen at a size** = clone the screen, `minHeight = null` on the screen AND on `Body` (both carried 1024 / 1391 minimums —
+    `resize()` silently kept them), resize, clip; modal in `Overlay` is ABSOLUTE → place by x / y (overlay auto-layout alignment is ignored).
+  - **Scroll 0 vs scrolled to end without detaching**: modal FIXED height = H − 48, its body FILL (clip on); at rest the body stroke =
+    bottom 1 only; „end” = top 1 only + `primaryAxisAlignItems = "MAX"` on the body (content overflows upward and is clipped = scrollTop max).
+  - **Nested instance sizes can't be overridden** (canvas resize, button heights on instance sublayers are ignored; HUG collapses buttons
+    to 20). If the main's numbers are wrong for the code, fix the main when only your blocks use it (count with getInstancesAsync), else
+    add a variant (Modal `Type=Document viewer`) and switch your instances to it — Title / Subtitle / Content props survive the switch.
+  - A cloned row that is wider than the block's fixed width spills onto the dark section: set the block HUG and the note FIXED (1920 /
+    1935) so notes stay readable; rightmost sections can grow, inner columns can't — put a wide row below the neighbour column's bottom.
+  - The Figma Professional seat has a daily MCP call cap: the job stopped at the cap. Batch more per call (one call per block), skip
+    exploratory reads you can derive from earlier ones.
+  - Left (cap reached): sm-05h block in Cabinet column 06 (components ready; Descarcă = outlined variant in code, Neutral filled in pp-01m),
+    RAP rap-03l, both Start here / index lines, QA gate run, the pp-01z content mains 1074:12334 / 12931 + A4 pages 1073:2222 / 2324 are
+    now unused.
