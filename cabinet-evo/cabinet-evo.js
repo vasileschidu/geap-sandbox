@@ -1083,22 +1083,23 @@
         ${profileSection("cab-act-history", "Istoric", actHistory(act))}
       </div>`;
     syncHeaderMeta();
-    fitActActions();
-    document.fonts?.ready.then(fitActActions);
-    actActionsObserver?.observe(panel.querySelector(".e-permits-page-header__top"));
+    watchHeaderActions();
     window.scrollTo(0, 0);
   }
 
   /* the action row never wraps: measure every action at its natural width (all reads first), keep the primary,
      then the secondaries in priority order while they fit beside the „⋯”; the rest are `hidden` (out of the tab
-     order) and listed in the „⋯” menu — Vezi solicitarea, then „Postprocese” as a labelled group (danger last).
-     Room (cabinet-header-v1, the BO header): the whole row when the header stacks (phones), else half of the title
-     row — the title keeps the other half and wraps. */
+     order) and listed in the „⋯” menu — act: Vezi solicitarea, then „Postprocese” as a labelled group (danger last);
+     request (profile-phone-v1, 2026-10-21: „the action buttons are too small” → 48 on phones, priority+ instead of a
+     wrap): each hidden button as a menu item with the SAME data hooks / href (the page's delegated handlers run
+     unchanged), danger last after a separator. Room (cabinet-header-v1, the BO header): the whole row when the header
+     stacks (phones), else half of the title row — the title keeps the other half and wraps. */
   function fitActActions() {
-    const box = document.querySelector("[data-cab-detail]:not([hidden]) .e-permits-page-header__actions");
-    const act = box && state.permits.find((permit) => permit.id === state.detail);
-    if (!box || !act) return;
-    const items = [...box.querySelectorAll(":scope > [data-cab-act-action]")];
+    const box = [...document.querySelectorAll("[data-cab-profile-header] .e-permits-page-header__actions")].find((el) => el.getClientRects().length);
+    if (!box) return;
+    const act = box.closest("[data-cab-detail]") ? state.permits.find((permit) => permit.id === state.detail) : null;
+    if (box.closest("[data-cab-detail]") && !act) return;
+    const items = [...box.querySelectorAll(":scope > :is([data-cab-act-action], [data-cab-header-item])")];
     const more = box.querySelector(":scope > .cab-act-header__overflow");
     const primary = box.querySelector(":scope > .btn-primary");
     /* read */
@@ -1110,7 +1111,7 @@
     const room = stacked ? top.clientWidth : Math.floor(top.clientWidth / 2);
     const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
     const width = (el) => el.getBoundingClientRect().width;
-    const primaryW = width(primary);
+    const primaryW = primary ? width(primary) : -gap;
     const widths = items.map(width);
     const moreW = more ? width(more) : 0;
     box.classList.remove("is-measuring");
@@ -1130,11 +1131,25 @@
     if (!more) return;
     const overflow = items.slice(keep);
     more.hidden = !overflow.length;
-    const kinds = overflow.map((el) => el.dataset.cabActAction);
+    const kinds = overflow.map((el) => el.dataset.cabActAction || el.textContent.trim());
     if (more.dataset.items !== kinds.join(" ")) { /* rebuilt only when the overflow set changes (an open menu keeps its focus) */
       more.dataset.items = kinds.join(" ");
       closeMenus();
       const menu = more.querySelector("ul");
+      if (!act) {
+        const danger = (el) => el.matches(".btn-outline-destructive, .btn-destructive");
+        const itemHtml = (el) => {
+          const tag = el.tagName === "A" ? "a" : "button";
+          const attrs = [...el.attributes].filter((a) => (a.name.startsWith("data-") && a.name !== "data-cab-header-item") || a.name === "href")
+            .map((a) => ` ${a.name}="${escape(a.value)}"`).join("");
+          const glyph = el.querySelector("svg use")?.getAttribute("href")?.split("#")[1];
+          return `<li role="none"><${tag} class="e-permits-fo-intent-menu__item${danger(el) ? " is-danger" : ""}"${tag === "button" ? ' type="button"' : ""} role="menuitem"${attrs}>${glyph ? icon(glyph, "medium") : ""}<span>${escape(el.textContent.trim())}</span></${tag}></li>`;
+        };
+        const safe = overflow.filter((el) => !danger(el));
+        const risky = overflow.filter(danger);
+        menu.innerHTML = `${safe.map(itemHtml).join("")}${safe.length && risky.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : ""}${risky.map(itemHtml).join("")}`;
+        return;
+      }
       const request = kinds.includes("request") ? box.querySelector("[data-cab-act-action='request']") : null;
       const pps = kinds.includes("postprocese")
         ? act.postProcesses.map((pp) => (act.pending ? { ...pp, disabled: true, reason: `Postprocesul „${act.pendingLabel}” este în curs` } : pp))
@@ -1147,6 +1162,13 @@
     }
   }
   const actActionsObserver = "ResizeObserver" in window ? new ResizeObserver(() => fitActActions()) : null;
+  /* after a profile render (act + request): fit now, after the web fonts, and whenever the title row resizes */
+  function watchHeaderActions() {
+    fitActActions();
+    document.fonts?.ready.then(fitActActions);
+    /* every profile title row, also one rendered while its view is still hidden (it fits once it gets a size) */
+    document.querySelectorAll("[data-cab-profile-header] :is(.e-permits-page-header__top, .e-permits-page-header__actions)").forEach((el) => actActionsObserver?.observe(el));
+  }
 
   /* the FO identity card (e-permits-fo-selected-role, read-only): PF = initials, PJ = icon-business */
   function identityCardHtml(person) {
@@ -1490,7 +1512,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    actGroups, pageHeader, profileHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    actGroups, pageHeader, profileHeader, syncHeaderMeta, watchHeaderActions, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 

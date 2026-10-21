@@ -405,6 +405,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  /* no separators between the details on phones (profile-phone-v1, 2026-10-21 — same as the BO phone rule) */
+  .e-permits-page-header__meta-item::before {
+    content: none;
+  }
+
   .e-permits-page-header__meta-value {
     white-space: normal;
   }

@@ -930,11 +930,15 @@
 
 /* „Stadiul solicitării” (request-trajectory-v1 → cabinet-header-v1, 2026-10-21): no visible title (aria-label on the
    section) · the BO dossier's element itself = GEAPTrajectory.html({ steps, callout }) — the trajectory card with its
-   integrated callout (css/trajectory.css + the „Callout” rules of e-permits-acte-permisive.css); no Cabinet rule. The
-   request's actions are in the BO header (headerActions); on phones they wrap. */
+   integrated callout (css/trajectory.css + the „Callout” rules of e-permits-acte-permisive.css). The request's actions
+   are in the BO header (headerActions; priority+ „⋯” as the act). Phones (profile-phone-v1, 2026-10-21, user: „do it
+   edge to edge”): the card runs to the screen edges (−16 = the page gutter, no side border, square corners) so the
+   steps keep their horizontal line down to 320 (css/trajectory.css phone mode); the callout keeps hanging from it. */
 @media (max-width: 760px) {
-  .sm-profile .cab-profile-header .e-permits-page-header__actions {
-    flex-wrap: wrap;
+  .cab-status > .e-permits-trajectory:not(.e-permits-trajectory--vertical) {
+    border-inline: 0;
+    border-radius: 0;
+    margin-inline: calc(var(--spacing-16, 16px) * -1);
   }
 }
 
@@ -1581,6 +1585,23 @@ button.cab-alert-link {
   .cab-profile-header .e-permits-page-header__meta-value:has(> .cab-detail__muted) {
     display: block;
   }
+
+  /* profile-phone-v1 (2026-10-21, user: „remove the left / right padding for the header, too narrow”): on phones the
+     header uses ONLY the page gutter (16) — breadcrumb, title, location, actions and details start on the cards' edge
+     (the BO header's own 16 inset is for its full-bleed white bar; the Cabinet header sits in the gutter already) */
+  .cab-page-header .e-permits-page-header__body {
+    padding-inline: 0;
+  }
+
+  /* the act / request action row: ONE line across the header (priority+), the primary takes the free room beside the
+     rest (the desktop top-alignment would keep the row at its content width) */
+  .cab-profile-header .e-permits-page-header__top {
+    align-items: stretch;
+  }
+
+  .cab-profile-header .e-permits-page-header__actions:not(.is-measuring) > .btn-primary {
+    flex: 1 1 auto;
+  }
 }
 
 /* full container (user 2026-10-21: „the profile of Solicitări and Actele mele: full container, no reason to cut
@@ -1601,11 +1622,11 @@ button.cab-alert-link {
 }
 
 /* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left
-   screen edge (16) — the trigger's right edge is 28 from the screen (page 16 + header inset 12) */
+   screen edge (16) — on phones the trigger's right edge is the page gutter (16; profile-phone-v1) */
 .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,
 .cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu:is(.is-start, .is-end) {
   left: auto;
-  max-width: calc(100vw - var(--spacing-16, 16px) * 2 - var(--spacing-12, 12px));
+  max-width: calc(100vw - var(--spacing-16, 16px) * 2);
   right: 0;
 }
 

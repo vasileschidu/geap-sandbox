@@ -238,6 +238,17 @@
   /* the act post-process menu (js/act-row.js): the anchored dropdown item at every width (action-menu-v1 — the phone
      action sheet is gone); kept as a helper so the states read the same */
   const actMenuPick = (itemSel) => async (h) => { await h.click(itemSel); };
+  /* a request header action (profile-phone-v1): the button itself, or — when the phone row moved it into the „⋯”
+     (priority+) — the same action from that menu */
+  const smHeadAct = async (h, action) => {
+    await h.find("[data-sm-profile] [data-cab-profile-header] .e-permits-page-header__actions");
+    await h.wait(300);
+    const sel = `[data-sm-profile] [data-cab-profile-header] .e-permits-page-header__actions > [data-sm-action="${action}"]`;
+    const own = [...document.querySelectorAll(sel)].find((el) => el.getClientRects().length);
+    if (own) { await h.click(sel); return; }
+    await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]");
+    await h.click(`#sm-header-more [data-sm-action="${action}"]`);
+  };
   /* the acts list „Filtre” (js/facet-filter.js): desktop = button → bar → popover → Confirmă → Aplică;
      phones (≤760) = chip → bottom sheet → „Arată N rezultate” (the RAP helpers) */
   const cabPhone = () => window.matchMedia("(max-width: 760px)").matches;
@@ -2186,7 +2197,13 @@
     /* a click on the DRAFT row opens its details (never the FO form — user 2026-10-20); „Continuă schița” stays in ⋮
        and on the details page */
     "sm-03i": sm(async (h) => { await smFind(h, "d-spicul"); await h.click('[data-sm-card="d-spicul"] .e-permits-fo-lib-item__title'); await h.wait(300); }),
-    "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="delete"]'); }),
+    "sm-03a": smDosar("d-spicul", async (h) => { await smHeadAct(h, "delete"); }),
+    /* profile-phone-v1: the draft's header on phones — „Continuă schița” (48, fills the row) + „⋯” open with „Elimină
+       schița” (red, priority+); desktop shows both buttons, nothing to open */
+    "sm-03p": smDosar("d-spicul", async (h) => {
+      await h.wait(400);
+      if ([...document.querySelectorAll("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]")].some((el) => el.getClientRects().length)) await h.click("[data-sm-profile] .cab-act-header__overflow [data-cab-menu-trigger]");
+    }),
     "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await actMenuPick('[data-sm-card="d-spicul"] [data-sm-action="delete"]')(h); await h.click("[data-sm-confirm-ok]"); }),
     "sm-03c": smDosar("d-izvoras-reperf"),
     /* status-matrix gaps (2026-10-20, tools/persona-test/specs/cabinet-requests/STATUS-MATRIX.md):
@@ -2196,7 +2213,7 @@
        signed + paid draft waiting for the automatic submission (US-18 AC-09) */
     "sm-03d": sm(null, {}, "#dosar/d-cuptor"),
     "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
-    "sm-03f": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }, { eliminare: "eroare" }),
+    "sm-03f": smDosar("d-spicul", async (h) => { await smHeadAct(h, "delete"); await h.click("[data-sm-confirm-ok]"); }, { eliminare: "eroare" }),
     "sm-03g": smDosar("d-aroma", async (h) => { await h.click('[data-sm-tab="taxe"]'); }),
     "sm-03h": smDosar("d-gustul"),
     "sm-04": smDosar("d-fresh"),
@@ -2223,7 +2240,7 @@
     "sm-05v": smDosar("d-transport"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
-    "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
+    "sm-05c": smDosar("d-izvoras", async (h) => { await smHeadAct(h, "download"); }, { descarcare: "eroare" }),
     /* 2026-10-14 · Documente însoțitoare = the shared document cards: the card → document modal (its footer has
        „Descarcă”; no ⋮ since 2026-10-20, no „Detalii” since no-lone-detalii-v1 — sm-05g = the card click, sm-05f /
        sm-05h = the keyboard: the focused card + Enter / Space) */

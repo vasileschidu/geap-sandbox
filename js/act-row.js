@@ -135,9 +135,9 @@
     noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true, hideEmptyAction = false,
     iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = "", place = ""
   } = {}) {
-    const tone = ACT_ROW_TONE[act.status] || "neutral";
     /* accessible names of the trigger / menu: the type alone repeats on every row → „<type> — <place>” */
     const label = place ? `${act.name} — ${place}` : act.name;
+    const tone = ACT_ROW_TONE[act.status] || "neutral";
     /* long names (authority / subdivision / service) are the parts that give way on desktop (`long`) */
     const parts = metaSlots ? metaParts(metaSlots)
       : act.meta ? act.meta.map((part) => (part && typeof part === "object" ? part : { text: part })).filter((part) => part.text).map((part) => ({ html: esc(part.text), kind: part.long ? "long" : "" }))
@@ -252,12 +252,12 @@
     rows.forEach((row) => {
       const title = row.querySelector(".e-permits-fo-lib-item__title");
       const meta = row.querySelector(".e-permits-fo-doc-meta");
-      if (title) {
       const place = row.querySelector(".e-permits-fo-intent-act__place-text");
       if (place) {
         const cut = DESKTOP.matches && place.scrollWidth > place.clientWidth + 1;
         if (cut) place.dataset.tooltipText = place.dataset.fullName || textOf(place); else delete place.dataset.tooltipText;
       }
+      if (title) {
         if (title.hasAttribute("title")) { title.dataset.fullName = title.getAttribute("title"); title.removeAttribute("title"); }
         const cut = DESKTOP.matches && title.scrollWidth > title.clientWidth + 1;
         if (cut) title.dataset.tooltipText = title.dataset.fullName || textOf(title); else delete title.dataset.tooltipText;

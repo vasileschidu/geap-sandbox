@@ -2426,3 +2426,25 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   demos (pp-03g 144 chars, sm-05w 221 chars via `?titlu-lung=`) checked at 1440 / 1024 / 375 / 320: title wraps beside
   top-aligned actions, list rows 1 line + tooltip / 2 lines on phones. No sub-agent tool → compare-styles (0),
   hover-audit (0 / 0), code-audit (standing FPs), component-audit (header clean; act viewer modal close = pre-existing).
+- 2026-10-21 · Profile header + trajectory on phones (profile-phone-v1; user: „remove the left / right padding for the header”,
+  „the timeline doesn't fit horizontally? … reduce the padding, or edge to edge”, „action buttons too small”, then via the
+  coordinator „no details separators on mobile” and „the location pin: no gap, too dark, next to the badge”). (1) The pin
+  bug was NOT a phone rule: type-first-v1 had COMMITTED a half-staged hunk — the location block sat inside the unclosed
+  meta rule (native CSS nesting turned it into `.meta .place` → no match: no flex, no gap, order 0 = beside the tags, pin
+  #121212) and act-row.js had the place tooltip inside `if (title)`; the TREE held the correct text all along. A HEAD
+  worktree probe (:8957) vs the tree found it in one run (gap 0 / 4, colour 121212 / 757575, order 0 / 2). After any
+  hunk-staged commit, diff `git show HEAD:<file>` against the tree for the hunks you meant — a leftover diff in a file you
+  „finished” is a red flag, and an unbalanced `{` in CSS fails silently. (2) Fit a horizontal stepper on phones by
+  measuring at `min-content` instead of shrinking labels: in `.is-measuring` give the bodies `width: min-content`, let
+  labels / meta wrap by word, and keep `min-width: auto` on step + body so the real layout can never go below what was
+  measured (the first try overflowed by 2–5 px: body `min-width: 40` beat the automatic minimum). The compact rules must
+  also apply WHILE measuring a stacked card (`:is(.is-measuring, :not(.is-stacked))`), or the measure uses the stacked
+  values. (3) Priority+ for a second header: generalise the act fitter instead of a new one — the overflow menu clones
+  each hidden button's `data-*` + href so the page's own delegated handlers run; observe the actions box too (a font swap
+  that wraps the row changes only its height) and every title row, also ones rendered while the view is hidden (the
+  first sm-03 shot wrapped because the only observed row had no size yet). The Cabinet `__top { align-items: flex-start }`
+  (desktop) kept the action row at content width on phones — stretch it there, or `flex: 1` on the primary does nothing.
+  (4) Demo states that click a header button must branch into the „⋯” (`smHeadAct`). No sub-agent tool → component-audit
+  (HEAD vs tree: 226 = 226 majors, all header avatar / menu standing), code-audit (only the documented 11 Large padding,
+  open-menu overlap, `.u-visually-hidden`, BO tab arrows; static 0), hover-audit 0 / 0 at 1440 + a 375 copy, capture 19 × 2
+  clean; desktop proven by the same probe before / after (18 state × width pairs identical).

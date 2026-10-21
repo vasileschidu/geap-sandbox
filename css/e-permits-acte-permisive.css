@@ -16743,13 +16743,6 @@
   order: 2;
 }
 
-/* the meta box starts 18 left of its text (the dot-clip strip, see „document meta”) → 100% + 18 wide; min-width 0
-   so the desktop ONE-line meta (nowrap parts) shrinks its slots instead of growing to its min-content (the old grid
-   column capped it) */
-.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-  flex: 0 0 calc(100% + var(--fo-doc-meta-sep));
-  min-width: 0;
-  order: 3;
 /* LINE 2 — the object / location (type-first-v1, 2026-10-21, user: „first the name of the act, and in second place
    the location, if any”): Cabinet acts + requests only (option `place`, js/act-row.js; the FO intent step keeps the
    object as the title). 14/20 regular in the DEFAULT text colour (stronger than the tertiary meta), full card width
@@ -16794,6 +16787,13 @@
   }
 }
 
+/* the meta box starts 18 left of its text (the dot-clip strip, see „document meta”) → 100% + 18 wide; min-width 0
+   so the desktop ONE-line meta (nowrap parts) shrinks its slots instead of growing to its min-content (the old grid
+   column capped it) */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+  flex: 0 0 calc(100% + var(--fo-doc-meta-sep));
+  min-width: 0;
+  order: 3;
 }
 
 .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
@@ -16805,6 +16805,7 @@
 
 /* with a trigger: the full-width lines under row 1 take the reservation back */
 .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-title-row > .e-permits-fo-lib-item__title,
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__place,
 .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
 .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > :is(.cab-request-row__notice, .cab-retry) {
   flex-basis: calc(100% + var(--row-trigger-reserve));
@@ -16812,7 +16813,6 @@
 }
 
 .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
-.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__place,
   flex-basis: calc(100% + var(--fo-doc-meta-sep) + var(--row-trigger-reserve));
   margin-right: calc(var(--row-trigger-reserve) * -1);
 }
@@ -17489,15 +17489,73 @@
 }
 
 @media (max-width: 760px) {
-  /* two-column list; the row-start logic still keeps separators off line edges */
+  /* two-column list, 16 between the columns */
   .e-permits-page-header__meta {
     --e-permits-page-header-meta-gap: var(--spacing-8, 8px);
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  /* no separators between the details on phones (profile-phone-v1, 2026-10-21, user: „remove the details-line
+     separators, not needed on mobile”) — every page header, BO included; desktop keeps them */
+  .e-permits-page-header__meta-item::before {
+    content: none;
+  }
+
   .e-permits-page-header__meta-value {
     white-space: normal;
+  }
+
+  /* header actions on phones = the touch size (profile-phone-v1, 2026-10-21, user: „the action buttons are too
+     small”): the library Large 48 (Figma 39:177 — sides 20, 16 on the icon side, icon 20, gap 6, label 16/24, radius 8;
+     icon-only 48 square) instead of the BO Small 32; the row spans the header and its buttons share the width. Pages with a priority+ „⋯” (EVO Cabinet act + request, fitActActions) keep ONE row; elsewhere (BO) the
+     row wraps instead of running off the screen (svc-01 „Publică” sat at x 386 on a 375 screen). */
+  .e-permits-page-header__aside {
+    align-items: stretch;
+  }
+
+  .e-permits-page-header__actions {
+    flex-wrap: wrap;
+  }
+
+  /* wrapped rows fill the width (the Cabinet's priority+ row keeps its secondaries hugging, cabinet-evo.css) */
+  .e-permits-page-header__actions:not(.is-measuring) > .btn {
+    flex: 1 1 auto;
+  }
+
+  /* the „Publicat … · sincronizat …” caption wraps instead of running past the screen edge */
+  .e-permits-page-header__caption {
+    white-space: normal;
+  }
+
+  .e-permits-page-header__actions .btn:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill) {
+    --btn-icon-size: var(--icon-size-medium, 20px);
+    border-radius: var(--border-radius-8, 8px);
+    font-size: var(--font-size-fs-16, 16px);
+    height: auto;
+    line-height: var(--line-height-lh-24, 24px);
+    max-width: 100%;
+    min-height: var(--spacing-48, 48px);
+    padding: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) var(--spacing-20, 20px);
+    /* a label longer than the row (BO „Distribuirea dosarului (manuală)” at 320) wraps inside the button, never past
+       the gutter */
+    white-space: normal;
+  }
+
+  .e-permits-page-header__actions .btn:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill, .btn-icon-only):has(> svg.icon:first-child) {
+    padding-left: var(--spacing-16, 16px);
+  }
+
+  .e-permits-page-header__actions .btn:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill, .btn-icon-only):has(> * + svg.icon:last-child) {
+    padding-right: var(--spacing-16, 16px);
+  }
+
+  .e-permits-page-header__actions .btn.btn-icon-only:is(.btn-sm, .btn-md):not(.btn-rounded):not(.btn-pill) {
+    flex: 0 0 var(--spacing-48, 48px);
+    height: var(--spacing-48, 48px);
+    min-width: 0;
+    padding: 0;
+    width: var(--spacing-48, 48px);
   }
 }
 

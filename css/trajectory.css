@@ -308,3 +308,40 @@
 .e-permits-trajectory.is-measuring .e-permits-trajectory__body {
   flex: none;
 }
+
+/* ---- phones (≤760, profile-phone-v1, 2026-10-21; user: „the timeline doesn't fit horizontally? We did kind of fit it
+   previously: reduce the padding of the container, or do it edge to edge”): the horizontal trajectory stays
+   horizontal while its steps fit with their words wrapped — padding 12 (20 on desktop), labels (1–2 words) and the
+   date / who lines wrap at word boundaries (balanced), never below their longest word: each step body is at least
+   its min-content (the marker's 8 + 24 + 8 keeps the 40 for the line inset). The fit measure (js/trajectory.js) reads
+   the bodies at min-content on phones, so only a trajectory whose words cannot fit stacks (BO dos-01's 6 steps, a
+   „Informații suplimentare” step at 320). Desktop unchanged. ---- */
+@media (max-width: 760px) {
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical, .e-permits-trajectory--bare) {
+    padding: var(--spacing-12, 12px);
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__label {
+    overflow: visible;
+    text-wrap: balance;
+    white-space: normal;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical) .e-permits-trajectory__meta {
+    text-wrap: balance;
+    white-space: normal;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):is(.is-measuring, :not(.is-stacked)) .e-permits-trajectory__step,
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):is(.is-measuring, :not(.is-stacked)) .e-permits-trajectory__body {
+    min-width: auto;
+  }
+
+  .e-permits-trajectory:not(.e-permits-trajectory--vertical):is(.is-measuring, :not(.is-stacked)) .e-permits-trajectory__marker {
+    margin-inline: var(--spacing-8, 8px);
+  }
+
+  .e-permits-trajectory.is-measuring .e-permits-trajectory__body {
+    width: min-content;
+  }
+}

@@ -241,7 +241,7 @@ but this doc previously described it wrongly, see the entry.
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
 | Tag | `.tag-item` (a layout row, not a pill) | `tags.html` | library (partial) |
 | **Copy value — one component** (default: profiles, header meta, detail rows, dialogs; `--compact`: tables, stacked rows, act / request meta) | `span.copy-value` > `button.copy-value__button[data-copy-value]` > `.copy-value__text` + `.copy-value__icon` (16) — whole element = one grey wrap on hover / focus / press; `.copy-value--compact` (no icon), `.copy-value--link` (link outside, icon button); „Copiază” → „✓ Copiat” plain tooltip `.copy-value__tooltip` | `GEAPCopyValue.html(value, { label, compact })` — `js/copy-value.js` + `css/copy-value.css`; lists: shell `renderListCode`, `GEAPActRow.metaParts` | app (every page) |
-| Page header (back office) — ONE renderer (cabinet-header-v1, 2026-10-21) | `.e-permits-page-header` + `__top/__meta/__tabs`; `__top` = `GEAPPageHeader.top({ crumbs, title, titleId?, subtitleHtml?, wrap?, actions?, caption?, status? })` (`js/page-header.js`: breadcrumb parents only · H1 (one line + tooltip, or `wrap`) · optional subtitle line · right-aligned `__aside > __actions` (BO Small buttons: one primary, neutral secondaries, ⋮; red destructive) + `__caption`), `__meta` = `GEAPPageHeader.meta([[label, html]])`. Used by every BO profile (shell `renderPageHeaderTop` / `renderPageHeaderMeta` delegate to it, output byte-identical) AND the EVO Cabinet act / request profiles (`CabEvo.profileHeader`) | `e-permits-acte-permisive.html?flow=back-office`; section „Page header — one renderer” | app |
+| Page header (back office) — ONE renderer (cabinet-header-v1, 2026-10-21) | `.e-permits-page-header` + `__top/__meta/__tabs`; `__top` = `GEAPPageHeader.top({ crumbs, title, titleId?, subtitleHtml?, wrap?, actions?, caption?, status? })` (`js/page-header.js`: breadcrumb parents only · H1 (one line + tooltip, or `wrap`) · optional subtitle line · right-aligned `__aside > __actions` (BO Small buttons: one primary, neutral secondaries, ⋮; red destructive) + `__caption`), `__meta` = `GEAPPageHeader.meta([[label, html]])`. Used by every BO profile (shell `renderPageHeaderTop` / `renderPageHeaderMeta` delegate to it, output byte-identical) AND the EVO Cabinet act / request profiles (`CabEvo.profileHeader`) | `e-permits-acte-permisive.html?flow=back-office`; section „Page header — one renderer”; phones (gutter only in the Cabinet, details without separators, actions Large 48 + Cabinet priority+ „⋯”): section „Profile header + trajectory on phones” (profile-phone-v1) | app |
 | **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
 | **Document row — one pattern everywhere** (BO dossier: însoțitoare, Documente generate, Act/Decizie; FO picker / field values / Verificare / post-process act; Cabinet dossier + catalog) | one data shape `{ sursa: upload\|mdocs\|generat, tip, nr, fisier, size/kb, verb, at, de, semnat, tags }` · icon by source (grey `document-uploaded.svg` / blue `document-generated.svg`) · title = type + source tag + blue „✍ Semnat electronic” badge (`icon-signature`) · meta number · file · size · „<Verb> <date, time>” · „de …” · „semnat de …” · „👁 Detalii” (no download and no ⋮ on the row, 2026-10-20) → document modal with the A4 page preview + footer „Descarcă” · card = icon centred · title (1 line) + tags right after it / meta 12 stack-meta (2px dots) under the title · one surface secondary grey r12 pad 12 | BO `renderDosarDocItem` / `openDosarDetail(kind, id)`; FO `foDocIconHtml` / `foDocContentHtml` / `foSummaryDocsHtml`; Cabinet `CabEvo.docRowHtml` / `openDocModal`; section „Documents — one pattern everywhere” | app |
@@ -6011,6 +6011,8 @@ Each caller keeps its data and texts and only maps them to `steps[] = { label, s
   up every new card. Phones always stack; at 1024 the BO / eKYC cards (736) stack when their steps need more
   (dos-01h needs 800, ek-05g 955). Labels are never truncated.
 
+**Phones (profile-phone-v1, 2026-10-21):** padding 12, labels / meta wrap by word, the fit measures the bodies at min-content → horizontal while the words fit, stacked otherwise — section „Profile header + trajectory on phones”.
+
 **Variants:** `--vertical` (long step texts: FO „Statutul dosarului”, the Cabinet request / act „Istoric”) · `--bare`
 (inside another card: no background / border / radius / padding; no caller since request-trajectory-v1). No hover
 (not interactive).
@@ -7267,6 +7269,38 @@ decizia · Depune contestație (in the window); Respinsă = Depune contestație 
 The catalog service and RAP keep the public header (`CabEvo.pageHeader`, `.e-permits-page-header--public`). Parity:
 `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05) = 0 at 1440 / 375 (header body / top / heading /
 aside / actions / action button pairs added; documented: full-container widths, the action's flex: none).
+
+### Profile header + trajectory on phones (profile-phone-v1, 2026-10-21)
+
+User (on cabinet-header-v1 at 375 / 320): „On mobile remove the left / right padding for the header, too narrow. Also the
+timeline doesn't fit horizontally? We did kind of fit it previously: reduce the padding of the container, or do it edge to
+edge. Also the action buttons are too small”, then „remove the details-line separators, not needed on mobile”. All ≤760;
+761 / 1440 measured identical before / after (sm-05, sm-04c, sm-04, sm-03, pp-01d, pp-03a, sm-05w, dos-01, svc-01).
+
+- **Gutter only (EVO Cabinet):** `.cab-page-header .e-permits-page-header__body { padding-inline: 0 }` — breadcrumb, H1,
+  location line, actions and details start on the page gutter = the cards' edge (title x 16 = card x 16 at 375 / 320; it
+  was 32). The BO keeps its 16 inset: its header is a full-bleed white bar (x 0–375), so the text is already at 16 (the BO
+  panel cards sit at 12 — unchanged). RAP / catalog (`--public`) follow the same Cabinet rule only in the Cabinet.
+- **Details row (every page header, BO included):** 2 equal columns, 16 apart, **no separators** (`::before` none in
+  e-permits-acte-permisive.css and bo-profile-parts.css phone blocks). Desktop keeps them.
+- **Header actions (every page header):** the library **Large 48** on phones — 16/24 label, icon 20, sides 20 (16 on the
+  icon side), gap 6, radius 8, icon-only 48 square (Figma 39:177; the 11 vertical padding = 12 − border, as
+  css/button-icons.css). The row spans the header. EVO Cabinet act + request = ONE row, priority+: the primary fills, the
+  secondaries that do not fit go into the trailing „⋯” (`cab-act-header__overflow`, `fitActActions` /
+  `CabEvo.watchHeaderActions`; request items keep their `data-sm-action` / href, so the page handlers run unchanged; red
+  destructive last after a separator). 375: sm-05 „Vezi actul” + „Descarcă actul”; sm-03 „Continuă schița” + „⋯” (Elimină
+  schița); 320: primary + „⋯”. BO = the row wraps and its buttons share the width (no „⋯” machinery in the BO header);
+  a too-long label wraps inside the button (dos-01 „Distribuirea dosarului (manuală)” at 320), the caption wraps.
+- **Trajectory (`css/trajectory.css` phone mode, every caller):** padding 12; labels and the date / who lines wrap at word
+  boundaries (`text-wrap: balance`), never below their longest word (step + body `min-width: auto`, marker 8 + 24 + 8 keeps
+  the 40); the fit measure reads the bodies at `min-content` (`.is-measuring`), so the line stays HORIZONTAL whenever the
+  words fit and stacks only when they cannot (BO dos-01 6 steps and eKYC ek-05g 7 steps stay stacked at 375; Cabinet
+  „Informații suplimentare” stacks at 320). Cabinet „Stadiul solicitării” card = **edge to edge** on phones (−16 margins,
+  no side border, radius 0): sm-03 / 04 / 04c / 05 / 05w horizontal at 375 AND 320 (sm-04c „Spre achitare” on 2 lines);
+  the integrated callout keeps hanging from it. The FO post-process tracker (pp-10f, pp-12a, 4 steps) is horizontal on
+  phones too (it stacked before); fo-08 (6 steps) stays stacked.
+- Demo: **sm-03p** (phones: the request „⋯” open with „Elimină schița”); sm-03a / sm-03f / sm-05c click the header action
+  or, when it moved into the „⋯”, its menu item (`smHeadAct`).
 
 ### Act profile — EVO Cabinet (act-profile-v1, 2026-10-21)
 

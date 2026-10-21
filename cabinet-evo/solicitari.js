@@ -909,7 +909,15 @@
       default:
         break;
     }
-    return buttons.join("");
+    /* profile-phone-v1 (2026-10-21): the secondaries give way first — what does not fit beside the primary goes into
+       the trailing „⋯” (C.watchHeaderActions, the act header's priority+); never wraps to a second row */
+    const secondaries = buttons.filter((html) => !html.includes("btn-primary"));
+    if (!secondaries.length) return buttons.join("");
+    return `${buttons.map((html) => (html.includes("btn-primary") ? html : html.replace(/^<(a|button) /, "<$1 data-cab-header-item "))).join("")}
+        <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
+          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-header-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="sm-header-more" role="menu" aria-label="Mai multe acțiuni" hidden></ul>
+        </div>`;
   }
 
 
@@ -1236,6 +1244,7 @@
         </div>
       </article>`;
     C.syncHeaderMeta();
+    C.watchHeaderActions();
     root.querySelector("#sm-profile-title")?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
 
