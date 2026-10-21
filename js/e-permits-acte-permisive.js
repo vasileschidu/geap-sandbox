@@ -8568,7 +8568,7 @@
       button.dataset.foRemoveActivity = "";
       button.innerHTML = `
         <svg class="icon" width="20" height="20" aria-hidden="true">
-          <use href="assets/icons/sprite.svg#icon-cross-small"></use>
+          <use href="assets/icons/sprite.svg#icon-delete"></use>
         </svg>
       `;
       button.addEventListener("click", () => {
@@ -8621,7 +8621,7 @@
               <span class="e-permits-fo-doc-card__name">Document</span>
             </div>
             <button class="e-permits-fo-doc-card__remove" type="button" aria-label="Elimină documentul" data-fo-remove-other-doc>
-              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+              <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>
             </button>
           </div>
           <div class="e-permits-fo-doc-card__body">

@@ -183,7 +183,30 @@
     "crumb-trail": "Render the trail with the ONE library breadcrumb: GEAPBreadcrumbs.html(crumbs, { trailing }) (js/breadcrumbs.js) — shell renderBreadcrumbs / renderPageHeaderTop, CabEvo.pageHeader({ back }); delete the private markup and its CSS (components.md › Breadcrumb).",
     "back-link": "The way back is the page header breadcrumb (desktop trail; phones the library .breadcrumbs--mobile „‹ parent”), never a custom „← Înapoi la …” link / button: give the parent crumb the existing back handler as `attr` (GEAPBreadcrumbs.html / renderBreadcrumbs) and delete the button and its CSS.",
     "copy-variant": "Use GEAPCopyValue.html(value, { label }) (js/copy-value.js) — shell renderCopyCode / FO copyValueHtml / CabEvo.copyValueHtml already return it; delete the private markup and its CSS.",
+  "_actionIcons": "Action icons (rule 6, 2026-10-21, user: „didn't we discuss that every Editează has an edit icon, and Elimină a trash icon?”). action-icon (major): a visible action — or an item of a closed menu whose trigger is visible — labelled „Editează…” without icon-edit, or „Elimină… / Șterge…” without icon-delete (another icon counts as missing). action-icon-colour (major): that icon in another colour than the label. Exceptions: confirmation-dialog footers (library modal / FO confirm dialog have no footer icons), clear / dismiss controls that delete nothing (search ×, chip ×, file-item × = detach an attachment, the filter popover „Șterge” = clear the selection, „Șterge filtrele / căutarea / formatarea”).",
+  "actionIcons": {
+    "controls": "button, a[href], [role=button], [role=menuitem]",
+    "menus": "[role=menu], menu, [data-stack-menu], [data-cab-menu], .e-permits-fo-intent-menu",
+    "rules": [
+      { "label": "^Editează", "icon": "icon-edit" },
+      { "label": "^(Elimină|Șterge)", "icon": "icon-delete" }
+    ],
+    "clearLabels": "^Șterge (filtrele|filtrul|căutarea|adresa căutată|codul cadastral|formatarea)",
+    "exempt": [
+      ".modal--footer",
+      ".modal-buttons",
+      ".e-permits-fo-instance-switch-modal__actions",
+      ".btn-icon.clear",
+      ".chip__close",
+      ".e-permits-fo-subgen-chip__remove",
+      ".e-permits-fo-document-remove",
+      "[data-filter-reset]",
+      "[data-sf-reset]"
+    ]
+  },
     "copy-in-list": "List views carry no copy icon: render the number as plain text (shell renderListCode, RAP plain cell, act-row meta). Copy belongs on the profile / header / detail row / dialog.",
+    "action-icon": "„Editează…” carries the pen (icon-edit), every removal „Elimină… / Șterge…” the trash (icon-delete), before the label, in the button's colour: shell actionLabelHtml(label) / renderRowActions / renderStackMenu (they pick the icon from the label — actionIconFor), GEAPActRow / Cabinet menu items { icon: \"icon-delete\" }; hand-written buttons add <svg class=\"icon small\"><use href=\"…#icon-delete\"></use></svg><span>Elimină</span> (components.md › Action icons).",
+    "action-icon-colour": "the icon of a button / menu item is the label colour (fill: currentColor); never give the svg its own colour (components.md › Button).",
     "non-library-control": "use the library component (components.md › Component Inventory): .btn + variant + size, .chip, .checkbox, .radio, .switch, .search-input, .input / .e-permits-fo-input; a genuinely new control is first documented in components.md (inventory row + section) — ask the PO before inventing one",
     "field-height-phone": "phones (≤760) use the library default field size = 48 (`.input` / `.search-input` default, FO fields via the ≤720 FO block that sets 48 + 16/24); never a fixed 40",
     "field-height-desktop": "desktop uses the library medium size = 40 (`.input--medium`, `.search-input.medium`, FO fields 40)",

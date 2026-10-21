@@ -1745,3 +1745,18 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   → hover-audit got the state „dos-01 main” and printed „undefined interactive” — loop over plain ids; (3) the sprite's
   24-grid glyphs at 16 are ~15 % lighter than Figma's own 16-grid set — that is a sprite gap, not CSS; reported. No
   sub-agent tool → code-audit (static 0; only standing FPs), component-audit (no `.btn` finding), hover-audit run directly.
+- 2026-10-21 · Action icons (action-icons-v1; user: „didn't we discuss that every Editează has an edit icon, and Elimină a
+  trash icon?”). The rule lived only in `ACTION_ICONS` as EXACT labels („Editează”), so every hand-written „Elimină” /
+  „Șterge” button (rule builders, tariff drawer, eKYC lists, Process Designer terms) and every longer label („Editează
+  acțiunile”) slipped through, and `renderStackMenu` defaulted a missing item icon to the PEN — a „Șterge” item without
+  `icon` would have shown ✎. Fix at the source: `actionIconFor(label)` (exact map, then the Editează / Elimină / Șterge
+  prefixes, minus clear labels) feeds `actionLabelHtml` AND overrides the menu item icon, so new code gets it by default;
+  module copies (`icon("delete", 16)` + `<span>`) where the shell helper isn't reachable. Decisions: condition × in rule
+  builders, FO repeat / activity / „Alt document” cards → trash (they delete data); file-item ×, chip ×, search ×, filter
+  popover „Șterge”, „Șterge filtrele / formatarea” and confirm-dialog footers stay (clear / detach / the dialog already
+  says it). Enforced by component-audit rule 6 (`action-icon`, `action-icon-colour`; closed menus counted when their
+  trigger is visible). Inventory method: a probe listing every button / menuitem whose label starts with the verbs + its
+  `use` hrefs — use `checkVisibility({ checkOpacity: true })`: the closed Form Builder overlay sits at opacity 0 with real
+  rects and leaked its menus into every state. Session restart wiped the scratch edit scripts mid-job → staged by
+  selecting my `git diff -U0` hunks by signature (`git apply --cached --unidiff-zero`) and, where a hunk merged with
+  another agent's lines (audit tool header, agent file, `?v=` lines), HEAD + my inserted blocks via hash-object.

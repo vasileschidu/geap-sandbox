@@ -1573,7 +1573,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${bareSelect(`fb-co-${ri}-${ci}`, `data-fb-cond-op="${k}"`, "Operator", ops.map((op) => [op, OPS[op]]), c.op, { error: errors.some((issue) => issue.prop === `rules.${k}.op`), disabled: !source, label: "Operator" })}</div>
         <div class="e-permits-doc-cond__cell">${value}</div>
         ${rule.conditions.length > 1
-          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-fb-cond-remove="${k}">${icon("icon-cross-large", 16)}</button>`
+          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-fb-cond-remove="${k}">${icon("icon-delete", 16)}</button>`
           : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
       </li>`;
   }
@@ -1584,7 +1584,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-rule__head">
           <div class="e-permits-doc-rule__type">${bareSelect(`fb-ra-${ri}`, `data-fb-rule-action="${ri}"`, "Tipul regulii", actions, rule.action, { label: `Tipul regulii ${ri + 1}` })}</div>
           <span class="e-permits-doc-rule__target">${kw(what)}</span>
-          <button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula ${ri + 1}" data-fb-rule-remove="${ri}">Elimină</button>
+          <button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula ${ri + 1}" data-fb-rule-remove="${ri}">${icon("icon-delete", 16)}<span>Elimină</span></button>
         </div>
         ${rule.action === "hide" ? `<span class="message message--inline message--warning">${icon("icon-warning-filled")}<span>Câmpul ascuns se golește; valoarea nu se restaurează la reafișare.</span></span>` : ""}
         ${rule.action === "set" ? grid(inputField({ prop: `rules.${ri}.setValue`, label: "Valoarea setată", value: rule.setValue || "", required: true, error: errors.find((issue) => issue.prop === `rules.${ri}.setValue`)?.message || "", placeholder: "Ex.: risc-sporit", attrs: `data-fb-rule-setvalue="${ri}"` })) : ""}
@@ -2053,7 +2053,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-rule" data-fb-date-rule="${ri}">
           <div class="e-permits-doc-rule__head">
             <span class="e-permits-doc-rule__target">${kw("Această dată")}</span>
-            <button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula de dată ${ri + 1}" data-fb-date-rule-remove="${ri}">Elimină</button>
+            <button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula de dată ${ri + 1}" data-fb-date-rule-remove="${ri}">${icon("icon-delete", 16)}<span>Elimină</span></button>
           </div>
           <ol class="e-permits-doc-rule__conds" role="list">
             <li class="e-permits-doc-cond">

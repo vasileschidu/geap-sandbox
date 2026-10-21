@@ -14,6 +14,12 @@
 //   5. back navigation (2026-10-21) — crumb-trail: a hand-made trail (a `*crumb*` class / breadcrumb nav that is not the
 //      library `.breadcrumbs`); back-link: a custom back link / button („Înapoi la …”, „‹ …”, a `*-back` / `*__back` /
 //      `*back-shell` class or data hook) outside `.breadcrumbs` — wizard / dialog step buttons are spec.backNav.exempt.
+//   6. action icons (2026-10-21, user: „every Editează has the edit icon, Elimină the trash”) — action-icon: a visible
+//      action (button / link / menu item, also an item of a CLOSED menu whose trigger is visible) labelled „Editează…”
+//      without `icon-edit`, or „Elimină… / Șterge…” without `icon-delete` (a different icon counts too); action-icon-colour:
+//      the icon of such an action painted in another colour than its label. Labels = visible text, else aria-label /
+//      data-tooltip-label. Exceptions (spec.actionIcons): confirmation-dialog footers, clear / dismiss controls (search ×,
+//      chip ×, file-item ×, „Șterge filtrele”, the filter popover „Șterge”).
 // Output: <out>/report.json + <out>/summary.md (selector, measured, expected, fix hint per finding).
 //
 // Usage: node --experimental-websocket --no-warnings tools/ui-qa/component-audit.mjs \
@@ -210,6 +216,39 @@ const AUDIT = (spec, documentedList, scope) => {
       const hooks = [...el.classList, ...[...el.attributes].map((a) => a.name)].filter((n) => hookRe.test(n));
       if (!(textRe.test(text) || textRe.test(label) || hooks.length)) continue;
       add("major", "back-link", el, hooks.length ? `back hook ${hooks.join(" ")}` : `„${(text || label).slice(0, 40)}”`, `${B.component} (the page header breadcrumb; phones = .breadcrumbs--mobile)`);
+    }
+  }
+  /* 6. action icons (2026-10-21): „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */
+  const AI = spec.actionIcons;
+  if (AI) {
+    counts.actions = 0;
+    const clearRe = new RegExp(AI.clearLabels, "i");
+    const rules = AI.rules.map((r) => ({ re: new RegExp(r.label), icon: r.icon }));
+    const shown = (el) => vis(el) && el.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+    const exempt = (el) => AI.exempt.some((s) => { try { return el.closest(s); } catch (e) { return false; } });
+    for (const el of root.querySelectorAll(AI.controls)) {
+      if (ignored(el) || exempt(el)) continue;
+      const text = (el.textContent || "").trim().replace(/\s+/g, " ");
+      const label = text || el.getAttribute("aria-label") || el.dataset.tooltipLabel || "";
+      const rule = rules.find((r) => r.re.test(label));
+      if (!rule || clearRe.test(label)) continue;
+      let closed = false;
+      if (!shown(el)) {
+        /* an item of a closed menu counts when the menu's trigger is on screen */
+        const menu = el.closest(AI.menus);
+        const trigger = menu && ((menu.id && document.querySelector(`[aria-controls="${CSS.escape(menu.id)}"]`)) || [...(menu.parentElement?.querySelectorAll("[aria-haspopup]") || [])].find((b) => !menu.contains(b)));
+        if (!trigger || !shown(trigger)) continue;
+        closed = true;
+      }
+      counts.actions++;
+      const uses = [...el.querySelectorAll("use")];
+      const icons = uses.map((u) => (u.getAttribute("href") || "").split("#")[1]).filter(Boolean);
+      const short = label.slice(0, 40);
+      if (!icons.includes(rule.icon)) { add("major", "action-icon", el, `„${short}”${closed ? " (closed menu)" : ""} ${icons.length ? `with ${icons.join(", ")}` : "without an icon"}`, `${rule.icon} before the label`); continue; }
+      if (closed) continue;
+      const svg = uses[icons.indexOf(rule.icon)].closest("svg");
+      const ic = getComputedStyle(svg).fill, tc = getComputedStyle(el).color;
+      if (ic !== "none" && ic !== tc) add("major", "action-icon-colour", el, `„${short}” icon ${ic} · label ${tc}`, "the label colour (fill: currentColor)");
     }
   }
   return { viewport: `${window.innerWidth}`, phone, counts, findings };

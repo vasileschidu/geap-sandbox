@@ -186,6 +186,7 @@ but this doc previously described it wrongly, see the entry.
 | Dropdown item — one size everywhere (every action menu + option list, user rule 2026-10-20) | `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, Cabinet, RAP — before `modal-phone.css`): lists / menus padding `--spacing-4`, gap `--spacing-2`; items 32 (`min-height`) · padding 6 12 6 8 · gap 8 · radius 6 · 14/20 medium · icon 20 (`--icon-size-medium`); same on touch. Item classes listed there: `.e-permits-fo-intent-menu__item` (every ⋮ / stack / Cabinet / Ghișeu / eKYC / builder / designer menu + the act post-process menu), `.e-permits-fo-select__option`, `__caem__option`, `__subgen-select__option`, `__address-search__option`, `__phone__code-option`, `__mdocs__option`, `.e-permits-workplace__filter-option` / `__filter-more-item`, `.e-permits-shell__help-link`, `__profile-link`; a menu's own rule declares no size | section „Dropdown item — one size everywhere”; ref GEAP 2.0 `9716:10905` | app |
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon size from the button size: Small 16, Medium / Large 20 — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
+| Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
 | Icon button | `.btn-icon`, `.btn-icon.clear` | — | app |
 | Search input | `.search-input` + `.medium/.small/.large` + `.rectangular/.circular` | `search-input-preview.html` | app |
@@ -5982,6 +5983,39 @@ in e-permits-shell.css until main.css is re-synced); inside, so sizes do not cha
   danger = errors; sticks under the pinned tab row via `--cfg2-stick`, active section follows the
   scroll), sections right (title 18/26 flush + 14/20 secondary description, then a white
   `.e-permits-ntpl-card` with the drawer's fields; radius 16 + padding 20 — 32 was tried and read
+### Action icons — „Editează” = pen, „Elimină / Șterge” = trash (rule, 2026-10-21, action-icons-v1)
+
+User (2026-10-21): „Didn't we discuss that every „Editează” has an edit icon, and „Elimină” has a trash icon? It looks
+kind of weird here.” One rule for every product (BO, eKYC, FO, Cabinet, Ghișeu, RAP, builders):
+
+| Action | Icon | Where |
+|---|---|---|
+| „Editează”, „Editează …” (button, row primary, ⋮ item, section / header / drawer-footer action, icon-only ✎) | `icon-edit` | everywhere |
+| every removal: „Elimină”, „Elimină schița / condiția / regula …”, „Șterge”, „Șterge pasul / regula / rândul / secțiunea / câmpul / ciorna / banda / conexiunea …” | `icon-delete` | everywhere |
+
+- Icon before the label, **label colour** (`fill: currentColor`; destructive variants → red), library markup only:
+  `.btn` + variant + size with `<svg class="icon small">` + `<span>` label; menu items `.e-permits-fo-intent-menu__item`
+  with the 20 icon (24 in the phone row menus).
+- **Built in, so new code gets it by default:** shell `actionIconFor(label)` (exact `ACTION_ICONS` first, then the
+  „Editează” / „Elimină” / „Șterge” prefixes) feeds `actionLabelHtml` (row primaries, `renderRowActions`,
+  `EDIT_LABEL_HTML`, hand-written text buttons: `${actionLabelHtml("Elimină")}`) and `renderStackMenu` (the label wins
+  over the item's `icon`, so a „Șterge …” item can never show the default pen). Modules outside the shell (Form Builder,
+  Process Designer, eKYC config, fo-grid) use their own `icon("delete", 16)` + `<span>`; Cabinet / Ghișeu / act-row
+  menu items pass `icon: "icon-delete"`; `core/classifiers.js` `discardMeta` names `delete` (the sprite has no `trash`).
+- **Icon-only removes that delete data get the trash too:** the rule-builder condition × (`e-permits-doc-cond__remove`:
+  BO documents, Form Builder, Process Designer — it deletes the condition from the rule), the FO repeatable item /
+  activity card / „Alt document” card (deletes the card with its answers), the user drawer role combination.
+- **Exceptions — no trash (they delete nothing, or the dialog already says it):**
+  1. confirmation-dialog footers — the library modal footer (`modal--footer` / `modal-buttons`: `askConfirm`, Ghișeu,
+     eKYC dialogs) and the FO confirm dialog (`e-permits-fo-instance-switch-modal__actions`) carry no icons (§ Modal);
+     the dialog's own icon / title names the removal;
+  2. clear / dismiss controls: the search clear × (`btn-icon clear`, „Șterge căutarea / adresa căutată / codul
+     cadastral”), chip × (`chip__close`, `e-permits-fo-subgen-chip__remove` — takes a value out of a multi-select),
+     file-item × (`e-permits-fo-document-remove` — detaches an uploaded / MDocs file from the request; the library File
+     Input close action), „Șterge filtrele”, the filter popover „Șterge” (`data-filter-reset` / `data-sf-reset` — clears
+     the selection), the editor tool „Șterge formatarea” (eraser).
+- Enforced by `tools/ui-qa/component-audit.mjs` rule 6 (`action-icon` / `action-icon-colour`, spec `actionIcons`).
+
   too round; grey boxes inside 8; the section title / description get 20 side padding to line
   up with the card content). **Inside the card: grey filled boxes are fine,
   no bordered box** (user 2026-10-09) — read-only RSSP grey box, grey notes, grey rule /

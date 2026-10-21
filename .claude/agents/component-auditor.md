@@ -47,6 +47,15 @@ evidenced findings so the main session can fix them. Never edit product files.
      a `*-back` / `*__back` / `*back-shell` class or data hook). Wizard / dialog step buttons, empty-state actions and the
      RAP logo are `backNav.exempt`. Fix = `GEAPBreadcrumbs.html` (shell `renderBreadcrumbs`, `CabEvo.pageHeader({ back })`)
      with the parent crumb carrying the existing back handler (components.md „Breadcrumb”).
+   - action icons (rule 6, 2026-10-21 — user: „didn't we discuss that every Editează has an edit icon, and Elimină a
+     trash icon?”): `action-icon` (**major**) — a visible action (button, link, menu item; also an item of a CLOSED menu
+     whose trigger is visible) labelled „Editează…” without `icon-edit`, or „Elimină… / Șterge…” without `icon-delete`
+     (a × / minus / other icon counts as missing); `action-icon-colour` (**major**) — that icon in another colour than the
+     label. Label = visible text, else aria-label / data-tooltip-label. Exceptions (`actionIcons.exempt` / `clearLabels`):
+     confirmation-dialog footers, search clear ×, chip ×, file-item × (detach), „Șterge filtrele / căutarea / formatarea”,
+     the filter popover „Șterge” (clears the selection). Fix = shell `actionLabelHtml(label)` / `renderRowActions` /
+     `renderStackMenu` (icon picked from the label by `actionIconFor`), or the module's `icon("delete", 16)` + `<span>`
+     label (components.md „Action icons”). The summary counts the checked actions (`counts.actions`).
    It also records `demoError` (a demo state that failed) and console errors — say so for every state.
 4. Judge every finding: open `report.json`, look at the element in the capture or with a probe, and drop
    false positives (say why). Typical ones: a documented product control whose class is only described

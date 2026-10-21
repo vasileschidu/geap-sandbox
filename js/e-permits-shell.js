@@ -723,7 +723,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <strong>${escapeHtml(combination.roleLabel)}</strong>
         <button class="e-permits-user-create__combo-remove" type="button" aria-label="Șterge combinația ${escapeHtml(combination.roleLabel)}" data-user-combination-remove="${index}">
           <svg class="icon" width="16" height="16" aria-hidden="true">
-            <use href="assets/icons/sprite.svg#icon-cross-large"></use>
+            <use href="assets/icons/sprite.svg#icon-delete"></use>
           </svg>
         </button>
       </div>
@@ -7050,7 +7050,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${items.map((item) => `
             <li role="none">
               <button class="e-permits-fo-intent-menu__item${item.danger ? " is-danger" : ""}" type="button" role="menuitem" ${item.attrs}>
-                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(item.icon || "edit")}"></use></svg>
+                <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(actionIconFor(item.label) || item.icon || "edit")}"></use></svg>
                 <span>${escapeHtml(item.label)}</span>
               </button>
             </li>
@@ -7097,8 +7097,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* labelled row actions always carry their icon (user 2026-10-14): Editează = pen,
      Configurează = settings, Previzualizează = eye */
   const ACTION_ICONS = { "Editează": "edit", "Configurează": "settings", "Previzualizează": "eye-open", "Detalii": "eye-open", "Continuă": "edit" };
-  const actionLabelHtml = (label) => ACTION_ICONS[label]
-    ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${ACTION_ICONS[label]}"></use></svg><span>${escapeHtml(label)}</span>`
+  /* every „Editează…” = pen, every removal „Elimină… / Șterge…” = trash (user 2026-10-21: „didn't we discuss that
+     every Editează has an edit icon, and Elimină a trash icon?”) — buttons, row primaries and ⋮ items alike. Clearing a
+     filter / search („Șterge filtrele”, „Șterge căutarea”) removes nothing: no trash (components.md › Action icons). */
+  const actionIconFor = (label = "") => ACTION_ICONS[label]
+    || (/^Editează/.test(label) ? "edit"
+      : /^(Elimină|Șterge)/.test(label) && !/^Șterge (filtrele|filtrul|căutarea|formatarea)/.test(label) ? "delete" : "");
+  const actionLabelHtml = (label) => actionIconFor(label)
+    ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${actionIconFor(label)}"></use></svg><span>${escapeHtml(label)}</span>`
     : escapeHtml(label);
   const EDIT_LABEL_HTML = actionLabelHtml("Editează");
 
@@ -9637,7 +9643,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const actions = editable ? clasCore.statusActions(c).filter(passportActions).map((a) => {
       if (a.action === "renuntaClas") {
         const meta = clasCore.discardMeta(c);
-        return `<button class="btn ${meta.destructive ? "btn-outline-destructive" : "btn-neutral"} btn-sm" type="button" data-clas-action="${meta.destructive ? "stergeCiorna" : "renuntaClas"}">${escapeHtml(meta.label)}</button>`;
+        return `<button class="btn ${meta.destructive ? "btn-outline-destructive" : "btn-neutral"} btn-sm" type="button" data-clas-action="${meta.destructive ? "stergeCiorna" : "renuntaClas"}">${actionLabelHtml(meta.label)}</button>`;
       }
       const primary = a.action === "publicaClas" || a.action === "republicaClas";
       return `<button class="btn ${primary ? "btn-primary" : "btn-neutral"} btn-sm" type="button" data-clas-action="${a.action}">${escapeHtml(a.label)}</button>`;
@@ -9899,7 +9905,7 @@ document.addEventListener("DOMContentLoaded", () => {
       badges: [renderTag(f.tip, "neutral"), f.obligatoriu ? renderTag("Obligatoriu", "brand") : "", f.derivat ? renderTag("Din ierarhie", "info") : ""].filter(Boolean),
       meta: [f.cfg ? escapeHtml(f.cfg) : f.implicit ? "Coloană standard — nu se poate elimina" : f.derivat ? "Valoarea-părinte din clasificatorul-părinte" : "Coloană suplimentară", `Cheie: ${escapeHtml(f.id)}`],
       plainTitle: f.label,
-      actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">${EDIT_LABEL_HTML}</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">Elimină</button>` : ""
+      actionsHtml: structure && !f.implicit && !f.derivat ? `<button class="btn btn-neutral btn-sm" type="button" data-clas-field-edit="${escapeHtml(f.id)}">${EDIT_LABEL_HTML}</button><button class="btn btn-text-destructive btn-sm" type="button" data-clas-field-remove="${escapeHtml(f.id)}">${actionLabelHtml("Elimină")}</button>` : ""
     }));
     const lock = clasState.fromService ? clasPassportLock() : !structure && !clasReadOnlyReason(c) ? clasLockNotice("<strong>Structura nu se editează aici.</strong> Doar administratorul central adaugă sau modifică coloane.") : "";
     return `${lock}${renderStackedList("Coloane", [{ label: "Standard", items: items.filter((_, i) => fields[i].implicit) }, { label: "Suplimentare", items: items.filter((_, i) => !fields[i].implicit) }].filter((g) => g.items.length), { meta: `Format ID: ${escapeHtml(c.idFormat || classifiersStore.fieldTypes.defaults.idFormat)} · denumiri max. ${c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri} caractere` })}
@@ -13787,7 +13793,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-tax-cond e-permits-tax-cond--outline" data-rt-aviz-block="${i}">
           <div class="e-permits-tax-cond__head">
             <label for="rt-aviz-auth-${i}">Aviz ${i + 1}</label>
-            <button class="btn btn-text-destructive btn-sm" type="button" data-rt-aviz-remove="${i}" aria-label="Elimină avizul ${i + 1}">Elimină</button>
+            <button class="btn btn-text-destructive btn-sm" type="button" data-rt-aviz-remove="${i}" aria-label="Elimină avizul ${i + 1}">${actionLabelHtml("Elimină")}</button>
           </div>
           <div class="e-permits-user-create__grid">
             <div class="e-permits-fo-field e-permits-user-create__field e-permits-user-create__field--6">
@@ -14487,7 +14493,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-tax-cond" data-pay-condition="${index}">
           <div class="e-permits-tax-cond__head">
             <label for="pay-condition-classifier-${index}">Clasificator${conditions.length > 1 ? ` ${index + 1}` : ""}${requiredMark()}</label>
-            ${conditions.length > 1 ? `<button class="btn btn-text-destructive btn-sm" type="button" data-pay-condition-remove="${index}">Elimină</button>` : ""}
+            ${conditions.length > 1 ? `<button class="btn btn-text-destructive btn-sm" type="button" data-pay-condition-remove="${index}">${actionLabelHtml("Elimină")}</button>` : ""}
           </div>
           <div class="e-permits-fo-field">
             ${renderFoSelectControl({ id: `pay-condition-classifier-${index}`, attrs: `data-pay-condition-classifier="${index}"`, error: Boolean(payDraft.errors[classifierKey]), optionsHtml: `
@@ -15517,7 +15523,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="e-permits-tariff__status-actions">
           ${existing.state === "Publicat" ? `<button class="btn ${existing.active ? "btn-neutral" : "btn-secondary"} btn-sm" type="button" data-tariff-toggle-active>${existing.active ? "Dezactivează" : "Activează"}</button>` : ""}
-          <button class="btn btn-outline-destructive btn-sm" type="button" data-tariff-delete${deleteReason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(deleteReason)}"` : ""}>Șterge</button>
+          <button class="btn btn-outline-destructive btn-sm" type="button" data-tariff-delete${deleteReason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(deleteReason)}"` : ""}>${actionLabelHtml("Șterge")}</button>
         </div>
       </div>
     ` : "";
@@ -16565,7 +16571,7 @@ document.addEventListener("DOMContentLoaded", () => {
      value”, attached to the input it changes */
   /* a keyword of the rule sentence as a code token (monospace, grey, no border) */
   const docKw = (text) => `<code class="e-permits-doc-kw">${escapeHtml(text)}</code>`;
-  const DOC_ICON_X = '<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>';
+  const DOC_ICON_REMOVE = '<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>';
   const renderDocCondition = (rule, ri, c, ci, fields) => {
     const field = fields.find((f) => f.id === c.field);
     const k = `${ri}.${ci}`, ro = docDraft.readonly;
@@ -16600,7 +16606,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${docSelect(`doc-op-${ri}-${ci}`, `data-doc-cond="op" ${at} aria-label="Operator"`, "Operator", ops.map((o) => [o, DOC_OPS[o]]), c.op, { error: Boolean(docDraft.errors[`o${k}`]), disabled: ro || !field })}${docErr(`o${k}`)}</div>
         <div class="e-permits-doc-cond__cell">${value}${docErr(`v${k}`)}</div>
         ${ro ? "" : rule.conditions.length > 1
-          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-doc-cond-remove="${k}">${DOC_ICON_X}</button>`
+          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-doc-cond-remove="${k}">${DOC_ICON_REMOVE}</button>`
           : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
       </li>`;
   };
@@ -16611,7 +16617,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-rule__head">
           <div class="e-permits-doc-rule__type">${docSelect(`doc-rtype-${ri}`, `data-doc-rtype="${ri}" aria-label="Tipul regulii ${ri + 1}"`, "Tipul regulii", DOC_RULE_TYPES, rule.type, { disabled: ro })}</div>
           <span class="e-permits-doc-rule__target">${docKw("acest document")}</span>
-          ${ro ? "" : `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula ${ri + 1}" data-doc-rule-remove="${ri}">Elimină</button>`}
+          ${ro ? "" : `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină regula ${ri + 1}" data-doc-rule-remove="${ri}">${actionLabelHtml("Elimină")}</button>`}
         </div>
         ${rule.type === "require" && d.source === "RSSP" && d.required ? `<span class="message message--inline message--warning"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-warning-filled"></use></svg><span>Documentul este deja obligatoriu conform RSSP.</span></span>` : ""}
         <div class="e-permits-doc-rule__when">${docKw("Când")}</div>
@@ -17213,7 +17219,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const inp = (f, label, span, req, numeric, ph) => cfgField(k(f), label, `<div class="e-permits-fo-input${cfgDraft.errors[k(f)] ? " is-error" : ""}"><input id="cfg-${k(f)}" type="text"${numeric ? ' inputmode="numeric" maxlength="5" data-cfg-numeric' : ' maxlength="12"'} value="${escapeHtml(rule[f] ?? "")}" placeholder="${escapeHtml(ph || "")}" autocomplete="off" data-cfg-rule="${i}" data-cfg-rule-field="${f}"></div>`, { required: req, span });
             return `
               <div class="e-permits-tax-cond" data-cfg-rule-block="${i}">
-                <div class="e-permits-tax-cond__head"><label>Regula ${i + 1}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg-rule-remove="${i}">Elimină</button></div>
+                <div class="e-permits-tax-cond__head"><label>Regula ${i + 1}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg-rule-remove="${i}">${actionLabelHtml("Elimină")}</button></div>
                 ${cfgGrid(`
                   ${sel("doc", "Tip document", CFG_DOC_TYPES.filter((d) => d === rule.doc || !used.includes(d)), 6)}
                   ${sel("reset", "Resetare contor", CFG_RESET, 6)}
@@ -17368,7 +17374,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return `
         ${deps.length ? `<div class="e-permits-tax-cond__list">${deps.map((dep, i) => `
           <div class="e-permits-tax-cond" data-cfg2-dep="${escapeHtml(dep.id)}">
-            <div class="e-permits-tax-cond__head"><label>Interdependența ${i + 1}${isNew(dep) ? ` ${renderTag("Nouă", "brand")}` : ""}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg2-dep-remove="${escapeHtml(dep.id)}">Elimină</button></div>
+            <div class="e-permits-tax-cond__head"><label>Interdependența ${i + 1}${isNew(dep) ? ` ${renderTag("Nouă", "brand")}` : ""}</label><button class="btn btn-text-destructive btn-sm" type="button" data-cfg2-dep-remove="${escapeHtml(dep.id)}">${actionLabelHtml("Elimină")}</button></div>
             <div data-cfg2-dep-body>${cfgWith(cfg2DepCtx(dep, null), () => renderCfgForm(service))}</div>
           </div>`).join("")}</div>
         <div class="e-permits-tax-cond__add">${addDep}</div>` : renderEmptyState({ title: "Nicio interdependență", text: "Serviciul nu depinde de alte servicii sau de surse externe. Adaugă una dacă cererea are nevoie de un act sau de date din altă parte.", icon: "link", compact: true, actionHtml: addDep })}`;

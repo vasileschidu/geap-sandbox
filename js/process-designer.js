@@ -1610,7 +1610,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </li>`;
         }).join("")}
       </ol>
-      ${editTab !== "general" && editTab !== "processor" && !S.viewOnly ? `<div><button class="btn btn-neutral btn-sm" type="button" data-pd-tab-go="${editTab}">${editTab === "exits" ? "Editează ieșirile" : "Editează acțiunile"}</button></div>` : ""}`;
+      ${editTab !== "general" && editTab !== "processor" && !S.viewOnly ? `<div><button class="btn btn-neutral btn-sm" type="button" data-pd-tab-go="${editTab}">${icon("edit", 16)}<span>${editTab === "exits" ? "Editează ieșirile" : "Editează acțiunile"}</span></button></div>` : ""}`;
   }
 
   /* ---- Acțiuni (activity): one card per outgoing connection = what US-222 lists per step */
@@ -1662,7 +1662,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${S.viewOnly ? `<span class="e-permits-pd__ro">${esc((PM.OPERATORS.find(([o]) => o === cnd.operator) || [, "—"])[1])}</span>` : bareSelect({ id: pid(`${k}.op`), prop: `${k}.op`, placeholder: "Operator", options: ops, value: cnd.operator, error: Boolean(issueAt(id, `${k}.op`)), disabled: !kind, label: "Operator" })}</div>
         <div class="e-permits-doc-cond__cell">${value}</div>
         ${count > 1 && !S.viewOnly
-          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția" data-tooltip-label="Elimină condiția" data-pd-act="cond-remove" data-k="${i}.${gi}.${ci}">${icon("cross-large", 16)}</button>`
+          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția" data-tooltip-label="Elimină condiția" data-pd-act="cond-remove" data-k="${i}.${gi}.${ci}">${icon("delete", 16)}</button>`
           : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
       </li>`;
   }
@@ -1734,7 +1734,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-rule e-permits-pd__card-block" data-pd-term-card="${i}">
           <div class="e-permits-doc-rule__head">
             <span class="e-permits-doc-rule__target"><strong class="e-permits-pd-card-title">Termenul ${i + 1}</strong></span>
-            ${S.viewOnly ? "" : `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină termenul ${i + 1}" data-pd-act="term-remove" data-i="${i}">Elimină</button>`}
+            ${S.viewOnly ? "" : `<button class="btn btn-text-destructive btn-sm" type="button" aria-label="Elimină termenul ${i + 1}" data-pd-act="term-remove" data-i="${i}">${icon("delete", 16)}<span>Elimină</span></button>`}
           </div>
           ${gridHtml(`
             ${selectField({ prop: `term.${i}.term`, label: "Termen", value: term.term || "", options: TERMS, placeholder: "Alege termenul", required: true, error: err && !term.term ? err : "" })}

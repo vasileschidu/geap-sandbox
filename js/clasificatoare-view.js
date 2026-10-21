@@ -270,8 +270,12 @@
          published version exists to revert to. core supplies the real one. */
       var meta = a.action === "renuntaClas" ? d.discardMeta : a;
       var variant = (meta.destructive ? "btn-destructive" : "btn-outline-neutral");
+      /* a removal carries the trash (user 2026-10-21, components.md › Action icons) */
+      var label = /^(Elimină|Șterge)/.test(meta.label)
+        ? '<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg><span>' + esc(meta.label) + "</span>"
+        : esc(meta.label);
       return '<button type="button" class="btn ' + variant + ' btn-sm"' +
-        (d.canEdit ? "" : " disabled") + ">" + esc(meta.label) + "</button>";
+        (d.canEdit ? "" : " disabled") + ">" + label + "</button>";
     }).join("");
 
     return '<div class="modal--header"><h2 class="modal--header-title" id="clas-detail-title">' +

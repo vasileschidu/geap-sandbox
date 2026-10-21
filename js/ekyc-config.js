@@ -263,7 +263,7 @@
           <div class="e-permits-ekcfg-list__item">
             <div class="e-permits-ekcfg-list__row">
               <div class="e-permits-fo-input${errOf(`${key}.${i}`) ? " is-error" : ""}"><input id="${fid(`${key}-${i}`)}" type="text" value="${esc(item)}" placeholder="${esc(o.placeholder || "")}" autocomplete="off" aria-label="${esc(`${label} ${i + 1}`)}" data-ekcfg-item="${esc(key)}" data-index="${i}"${errOf(`${key}.${i}`) ? ' aria-invalid="true"' : ""}></div>
-              <button class="btn btn-text-destructive btn-sm" type="button" data-ekcfg-item-remove="${esc(key)}" data-index="${i}" aria-label="${esc(`Elimină ${label.toLocaleLowerCase("ro")} ${i + 1}`)}">Elimină</button>
+              <button class="btn btn-text-destructive btn-sm" type="button" data-ekcfg-item-remove="${esc(key)}" data-index="${i}" aria-label="${esc(`Elimină ${label.toLocaleLowerCase("ro")} ${i + 1}`)}">${icon("delete", 16)}<span>Elimină</span></button>
             </div>
             ${S.fieldError(errOf(`${key}.${i}`))}
           </div>`).join("")}
@@ -933,7 +933,7 @@
             <div class="e-permits-stack__actions">
               <button class="btn btn-strict btn-sm btn-icon-only" type="button" data-ekcfg-fb-move="up" data-index="${i}" aria-label="Mută ${esc(providerName(id))} mai sus" data-tooltip-label="Mai sus"${i === 0 ? " disabled" : ""}>${icon("arrow-up", 16)}</button>
               <button class="btn btn-strict btn-sm btn-icon-only" type="button" data-ekcfg-fb-move="down" data-index="${i}" aria-label="Mută ${esc(providerName(id))} mai jos" data-tooltip-label="Mai jos"${i === items.length - 1 ? " disabled" : ""}>${icon("arrow-down", 16)}</button>
-              <button class="btn btn-text-destructive btn-sm" type="button" data-ekcfg-fb-remove="${i}">Elimină</button>
+              <button class="btn btn-text-destructive btn-sm" type="button" data-ekcfg-fb-remove="${i}">${icon("delete", 16)}<span>Elimină</span></button>
             </div>
           </li>`).join("")}</ul></div>` : ""}
         ${options.length ? `<div class="e-permits-ekcfg-list__add">${A.renderFoSelectControl({ id: fid("fallback-add"), attrs: 'data-ekcfg-fb-add aria-label="Adaugă furnizor de rezervă"', optionsHtml: `<option value="" selected disabled>Adaugă furnizor de rezervă</option>${options.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}${p.active ? "" : " (inactiv)"}</option>`).join("")}` })}</div>` : ""}

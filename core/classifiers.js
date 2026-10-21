@@ -55,7 +55,7 @@
   function discardMeta(c) {
     return c.publishedSnapshot
       ? { label: "Renunță la ciornă", icon: "undo", destructive: false }
-      : { label: "Șterge ciorna", icon: "trash", destructive: true };
+      : { label: "Șterge ciorna", icon: "delete", destructive: true };
   }
 
   /* ---- fields ------------------------------------------------------
