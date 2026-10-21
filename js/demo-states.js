@@ -898,6 +898,8 @@
     "svc-10x": svc("settings", cfg2ThreeChanges),
     "svc-10x1": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click(CHANGES_HEAD("service-settings")); }),
     "svc-10x2": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click(CHANGES_HEAD("service-settings")); await h.click("#profile-changes-modal [data-change-undo]"); }),
+    /* every row undone → the review's empty state (02x4) */
+    "svc-10x4": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click(CHANGES_HEAD("service-settings")); for (let i = 0; i < 3; i++) await h.click("#profile-changes-modal [data-change-undo]"); }),
     "svc-10x3": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click('.e-permits-cfg2__bar [data-profile-changes="service-settings"]'); }),
     "svc-11": svc("events"),
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
