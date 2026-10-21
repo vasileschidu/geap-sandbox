@@ -47,6 +47,10 @@
     empty: document.querySelector("[data-cab-empty]"),
     search: document.querySelector("[data-cab-search]"),
     searchClear: document.querySelector("[data-cab-search-clear]"),
+    sort: document.querySelector("[data-cab-sort]"),
+    sortTrigger: document.querySelector("[data-cab-sort] .cab-sort__trigger"),
+    sortMenu: document.querySelector("[data-cab-sort-menu]"),
+    sortStatus: document.querySelector("[data-cab-sort-status]"),
     title: document.querySelector("[data-cab-title]"),
     headerTitle: document.querySelector("[data-cab-header-title]"),
     name: document.querySelector("[data-cab-name]"),
@@ -65,6 +69,8 @@
     filter: { open: false, applied: {}, draft: null },
     page: 1,
     perPage: 10,
+    /* „Sortează” (acts-sort-v1): key-direction, Data emiterii newest first by default */
+    sort: "issued-desc",
     /* Feature 90818 / US-159: a representative whose MPower expired or was revoked sees no act */
     restriction: null,
   };
@@ -196,6 +202,8 @@
       bar: els.filterBar,
       toggle: els.filterToggle,
       count: els.filterCount,
+      /* phones: „Sortează” joins the search row as the icon-only square (as Solicitările mele) */
+      sort: els.sort,
       sprite: SPRITE,
       state: () => state.filter,
       facets: availableFacets,
@@ -256,7 +264,77 @@
   }
 
   function visiblePermits() {
-    return state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit));
+    return sortedPermits(state.permits.filter((permit) => matchesSearch(permit) && matchesFacets(permit)));
+  }
+
+  /* „Sortează” (acts-sort-v1, 2026-10-21; user: „the same Data depunerii sort for Actele permisive too”) = the
+     Solicitările mele control (js/sort-sheet.js: the desktop menu „Sortează după” / „Ordine”, the phone sort sheet
+     with „Aplică”) with the act's keys. A key starts in its natural order, a new order keeps the key; every sort
+     goes back to page 1 and is announced. Ties keep the newest act first. */
+  const ACT_STATUS_ORDER = ["valabil", "suspendat", "expirat", "retras", "anulat"];
+  const AZ = { asc: { label: "A → Z", name: "De la A la Z" }, desc: { label: "Z → A", name: "De la Z la A" } };
+  const SORT_KEYS = [
+    { key: "issued", label: "Data emiterii", def: "desc", dirs: { desc: { label: "Cele mai noi" }, asc: { label: "Cele mai vechi" } } },
+    /* the soonest end of validity first; acts that no longer run (expired, withdrawn, annulled) go after the
+       running ones (valid / suspended), an act without an end date („nelimitată”) is the farthest */
+    { key: "valid", label: "Valabil până la", def: "asc", dirs: { asc: { label: "Cele mai apropiate" }, desc: { label: "Cele mai îndepărtate" } } },
+    { key: "name", label: "Denumirea actului", def: "asc", dirs: AZ },
+    { key: "authority", label: "Autoritatea emitentă", def: "asc", dirs: AZ },
+    { key: "status", label: "Stare", def: "asc", dirs: { asc: { label: "Valabile întâi" }, desc: { label: "Nevalabile întâi" } } },
+  ];
+  const sortKeyOf = (key) => SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0];
+  const authorityNameOfPermit = (permit) => state.help[permit.service?.authority]?.name || permit.service?.authority || "";
+  function sortedPermits(list) {
+    const [key, dir] = state.sort.split("-");
+    const sign = dir === "desc" ? -1 : 1;
+    const cmp = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+    const issued = (permit) => isoOf(permit.issued);
+    const value = (permit) => ({
+      issued: issued(permit),
+      valid: permit.validUntil ? isoOf(permit.validUntil) : "9999-12-31",
+      name: fold(`${permit.title} ${permit.place || ""}`),
+      authority: fold(authorityNameOfPermit(permit)),
+      status: ACT_STATUS_ORDER.indexOf(permit.status),
+    })[key];
+    /* „Cele mai apropiate”: running acts first (an act that no longer runs is not „the next to expire”) */
+    const ended = (permit) => (key === "valid" && dir === "asc" && (!["valabil", "suspendat"].includes(permit.status) || value(permit) < state.today) ? 1 : 0);
+    return [...list].sort((a, b) => cmp(ended(a), ended(b)) || sign * cmp(value(a), value(b)) || -cmp(issued(a), issued(b)));
+  }
+  const sortNow = () => {
+    const [key, dir] = state.sort.split("-");
+    const sort = sortKeyOf(key);
+    const order = sort.dirs[dir];
+    const name = order.name || order.label; /* „de la A la Z”: only the first letter goes lower case */
+    return { sort, dir, text: `${sort.label}, ${name.charAt(0).toLowerCase()}${name.slice(1)}` };
+  };
+  /* the orders of a key, its natural one first */
+  const sortOrders = (key) => {
+    const sort = sortKeyOf(key);
+    return ["asc", "desc"].sort((a) => (a === sort.def ? -1 : 1)).map((d) => ({ value: d, label: sort.dirs[d].label, name: sort.dirs[d].name }));
+  };
+  function syncSort() {
+    if (!els.sortMenu || !window.GEAPSortSheet) return;
+    const { sort, dir, text } = sortNow();
+    els.sortMenu.innerHTML = window.GEAPSortSheet.menuHtml({
+      id: "cab-sort",
+      keys: SORT_KEYS.map((item) => ({ value: item.key, label: item.label })),
+      orders: sortOrders,
+      current: { key: sort.key, order: dir },
+      keyAttr: "data-cab-sort-key",
+      orderAttr: "data-cab-sort-dir",
+    });
+    /* the trigger shows the key only (as Solicitările mele); the order is in the menu and in the name */
+    els.sortTrigger.setAttribute("aria-label", `Sortează: ${text}`);
+    els.sortTrigger.querySelector("[data-cab-sort-label]").textContent = sort.label;
+  }
+  /* one place that applies a sort (menu pick or the sheet's „Aplică”): back to page 1, announced */
+  function applySort(next) {
+    state.sort = next;
+    state.page = 1;
+    closeMenus();
+    render();
+    if (els.sortStatus) els.sortStatus.textContent = `Lista este sortată după ${sortNow().text}.`;
+    els.sortTrigger?.focus();
   }
 
   /* same contract as rap-evo: main.css reveals .btn-icon.clear on is-ready */
@@ -290,6 +368,7 @@
     /* no acts at all: nothing to search or filter */
     if (els.toolbar) els.toolbar.hidden = !state.permits.length;
     syncSearchState();
+    syncSort();
     facetFilter?.render();
   }
 
@@ -455,6 +534,25 @@
       els.search.value = "";
       render();
       els.search.focus();
+    });
+
+    /* „Sortează” desktop menu: a key starts in its natural order, an order keeps the key */
+    els.sort?.addEventListener("click", (event) => {
+      const sortKey = event.target.closest("[data-cab-sort-key]");
+      const sortDir = event.target.closest("[data-cab-sort-dir]");
+      if (!sortKey && !sortDir) return;
+      const [key, dir] = state.sort.split("-");
+      const next = sortKey ? sortKeyOf(sortKey.dataset.cabSortKey) : null;
+      applySort(next ? `${next.key}-${next.key === key ? dir : next.def}` : `${key}-${sortDir.dataset.cabSortDir}`);
+    });
+    /* phones: the same trigger opens the sort sheet (draft until „Aplică”) */
+    window.GEAPSortSheet?.bind(els.sortTrigger, {
+      title: "Sortează",
+      sprite: SPRITE,
+      keys: SORT_KEYS.map((item) => ({ value: item.key, label: item.label })),
+      orders: sortOrders,
+      current: () => { const { sort, dir } = sortNow(); return { key: sort.key, order: dir }; },
+      apply: ({ key, order }) => applySort(`${key}-${order}`),
     });
 
     els.pager.addEventListener("click", (event) => {

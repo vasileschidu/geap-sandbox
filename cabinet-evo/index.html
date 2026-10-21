@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../css/modal-phone.css?v=phone-title-20-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=skeleton-v1">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=type-first-v1"></script>
+  <script src="../js/demo-states.js?v=acts-sort-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=sm-v1" defer></script>
   <script src="../js/tag.js?v=audit-fix-v5"></script>
@@ -51,7 +51,7 @@
   <script src="../js/act-row.js?v=permission-icon-v1" defer></script>
   <!-- the process path (Stadiul solicitării) — the shared trajectory -->
   <script src="../js/trajectory.js?v=traj-v1" defer></script>
-  <script src="cabinet-evo.js?v=permission-icon-v1" defer></script>
+  <script src="cabinet-evo.js?v=acts-sort-v1" defer></script>
   <script src="solicitari.js?v=type-first-v1" defer></script>
   <script src="notificari.js?v=permission-icon-v1" defer></script>
   <script src="catalog.js?v=permission-icon-v1" defer></script>
@@ -303,9 +303,20 @@
           <span class="chip__label">Filtre</span>
           <span class="chip__badge" aria-hidden="true" data-cab-filter-count hidden></span>
         </button>
+
+        <!-- „Sortează” (acts-sort-v1) = the Solicitările mele control: the toolbar chip (as „Filtre”) → the desktop
+             menu „Sortează după” / „Ordine” (js/sort-sheet.js); phones: icon-only square → the sort sheet -->
+        <div class="cab-sort" data-cab-sort>
+          <button type="button" class="chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-sort-menu" data-cab-menu-trigger>
+            <span class="chip__label" data-cab-sort-label>Data emiterii</span>
+            <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
+          </button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="cab-sort-menu" role="menu" aria-label="Sortează actele permisive" hidden data-cab-sort-menu></ul>
+        </div>
       </div>
 
       <div class="e-permits-workplace__filters cab-filters" id="cab-filters" role="group" aria-label="Filtre" data-cab-filters hidden></div>
+      <p class="u-visually-hidden" aria-live="polite" data-cab-sort-status></p>
 
       <section class="cab-list" aria-label="Lista actelor permisive" data-cab-list></section>
 

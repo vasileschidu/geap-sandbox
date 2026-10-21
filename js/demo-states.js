@@ -1282,11 +1282,11 @@
     "pp-01c": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] [data-cab-menu-trigger]"); }),
     "pp-01d": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); }),
     "pp-01e": ppCab(async (h) => { await h.click("[data-cab-card='act-lab-10'] .e-permits-fo-lib-item__title"); }),
-    "pp-01f": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cofetaria']"); }),
+    "pp-01f": ppCab(async (h) => { await cabFind(h, "act-cofetaria"); }),
     "pp-01g": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] [data-cab-menu-trigger]"); await actMenuPick("[data-cab-card='act-izvoras'] [data-cab-pp='retragere']")(h); }),
     /* „Filtre” = the shared facet filter (2026-10-17): Statut = Expirat applied (desktop bar / phone sheet) */
     "pp-01h": ppCab(async (h) => { await cabPick("status", ["Expirat"])(h); await cabCommit(h); }),
-    "pp-01i": ppCab(async (h) => { await h.click("[data-cab-card='act-bistro'] .e-permits-fo-lib-item__title"); }),
+    "pp-01i": ppCab(async (h) => { await cabFind(h, "act-bistro"); await h.click("[data-cab-card='act-bistro'] .e-permits-fo-lib-item__title"); }),
     /* act profile = the RAP act profile (2026-10-17): AC-17 dates, tacit badge, the shared act dialogs */
     "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); }),
     "pp-01k": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cantina']"); await h.click("[data-cab-card='act-cantina'] .e-permits-fo-lib-item__title"); }),
@@ -1311,6 +1311,10 @@
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
     "pp-01s": ppCab(async (h) => { await cabOpen(h); await ffFacet(h, "status"); }),
+    /* „Sortează” (acts-sort-v1, the Solicitările mele control): s1 the menu open (phones: the sort sheet) · s2 sorted by
+       „Valabil până la”, cele mai apropiate (desktop: the key pick; phones: the sheet → „Aplică”) — trigger + announcement */
+    "pp-01s1": ppCab(async (h) => { await h.click(".cab-sort__trigger"); if (cabPhone()) await h.wait(350); }),
+    "pp-01s2": ppCab(async (h) => { if (cabPhone()) { await smSortSheet("valid")(h); await h.click("[data-sort-sheet-apply]"); await h.wait(400); return; } await h.click(".cab-sort__trigger"); await h.click('[data-cab-sort-key="valid"]'); }),
     /* search by act number + more than 10 acts → the Cabinet pager (demo ?acte=multe) */
     "pp-01t": { ...ppCab(null), params: { acte: "multe" } },
     "pp-01u": ppCab(async (h) => { await h.fill("[data-cab-search]", "ASF-2025", { leave: false }); }),
