@@ -229,6 +229,93 @@
   }
 }
 
+/* ---- Full-height document viewer (doc-fullheight-v1, 2026-10-21; user: „when it's too long, make it full height: a modal
+   with only 24 padding top and bottom”) — desktop + tablet (≥ 761; phones keep the bottom sheet, css/modal-phone.css).
+   Every A4 viewer: the BO / Ghișeu `#dosar-detail-modal.e-permits-detail-modal--doc`, the act dialog `.rap-act-modal__dialog`
+   („Vizualizare act” Cabinet · „Forma de tipar a actului” RAP) and the Cabinet document dialog (`.cab-doc-modal__body--doc`);
+   also the RAP act DATA dialog „Vizualizare act” (`.rap-act-data`, BO sections — long with the configured groups), which
+   had the library 64vh content window.
+   - the dialog hugs its content up to the viewport minus 24 above and 24 below, at its own width; a short document keeps
+     its natural height, centred; loading / error hold the full frame (no jump when the page arrives);
+   - header (title + ×) and footer (Descarcă / Imprimă · Închide) stay; the BODY (canvas + signature card) is the only
+     scroller — the canvas grows to its page(s) and the card follows it;
+   - scroll hairlines (the library modal rule): a 1px border-default line under the header while content is scrolled
+     up out of view, above the footer while there is more below (`has-scroll-above / -below` on the dialog: the shell's
+     syncModalScrollEdges for `.modal`, GEAPDocPreview for the FO-shell dialogs); the FO footer's own line gives way to it;
+   - the page behind does not scroll while a viewer is open. ---- */
+@media (min-width: 761px) {
+  .modal-overlay.rap-act-data > .modal.e-permits-detail-modal {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-overlay.rap-act-data > .modal.e-permits-detail-modal > .modal-content {
+    flex: 1 1 auto;
+    max-height: none;
+    min-height: 0;
+    overscroll-behavior: contain;
+  }
+
+  .modal-overlay.rap-act-data > .modal.e-permits-detail-modal,
+  .modal-overlay > .modal.e-permits-detail-modal--doc,
+  .e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal.rap-act-modal__dialog,
+  .e-permits-fo-doc-modal-overlay.cab-doc-modal > .e-permits-fo-doc-modal:has(> .cab-doc-modal__body--doc) {
+    height: auto;
+    max-height: calc(100dvh - var(--spacing-24, 24px) * 2);
+  }
+
+  .modal-overlay > .modal.e-permits-detail-modal--doc:has(.e-permits-doc-peek__canvas--state),
+  .e-permits-fo-doc-modal-overlay > .e-permits-fo-doc-modal.rap-act-modal__dialog:has(.e-permits-doc-peek__canvas--state) {
+    height: calc(100dvh - var(--spacing-24, 24px) * 2);
+  }
+
+  .modal.e-permits-detail-modal--doc > .modal-content,
+  .e-permits-fo-doc-modal.rap-act-modal__dialog > .rap-act-modal__body,
+  .e-permits-fo-doc-modal > .cab-doc-modal__body--doc {
+    border-bottom: var(--border-width-1, 1px) solid transparent;
+    border-top: var(--border-width-1, 1px) solid transparent;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable both-edges;
+    transition: border-color 120ms ease;
+  }
+
+  .e-permits-fo-doc-modal.has-scroll-above > :is(.rap-act-modal__body, .cab-doc-modal__body--doc) {
+    border-top-color: var(--color-border-base-default, #d9d9d9);
+  }
+
+  .e-permits-fo-doc-modal.has-scroll-below > :is(.rap-act-modal__body, .cab-doc-modal__body--doc) {
+    border-bottom-color: var(--color-border-base-default, #d9d9d9);
+  }
+
+  .e-permits-fo-doc-modal:is(.rap-act-modal__dialog, :has(> .cab-doc-modal__body--doc)) > .e-permits-fo-doc-modal__footer {
+    border-top: 0;
+  }
+
+  /* the canvas = its page(s): no window of its own */
+  .modal.e-permits-detail-modal--doc > .modal-content > .e-permits-detail-modal__preview:not(.e-permits-doc-peek__canvas--state),
+  .rap-act-modal__dialog > .rap-act-modal__body > .rap-act-modal__canvas:not(.e-permits-doc-peek__canvas--state),
+  .e-permits-fo-doc-modal > .cab-doc-modal__body--doc > .cab-doc-modal__preview {
+    flex: none;
+    max-height: none;
+    overflow: visible;
+  }
+
+  html:has(body > :is(.rap-act-modal, .cab-doc-modal):not([hidden])) {
+    overflow: hidden;
+    scrollbar-gutter: stable;
+  }
+}
+
+@media (min-width: 761px) and (prefers-reduced-motion: reduce) {
+  .modal.e-permits-detail-modal--doc > .modal-content,
+  .e-permits-fo-doc-modal > :is(.rap-act-modal__body, .cab-doc-modal__body--doc) {
+    transition: none;
+  }
+}
+
 /* „Printează” / „Imprimă”: only the page(s) of the canvas, at their real size
    (GEAPDocPreview.print marks the canvas and its top-level ancestor) */
 @media print {

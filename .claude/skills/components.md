@@ -269,6 +269,7 @@ but this doc previously described it wrongly, see the entry.
 | Act viewer — MDocs act in the document modal (RAP public page, US-143) | FO doc-modal shell `.e-permits-fo-doc-modal-overlay.rap-act-modal > .e-permits-fo-doc-modal.rap-act-modal__dialog` (header title „Forma de tipar a actului” since 2026-10-17 + the expandable subtitle, `.rap-act-modal__body` > grey `.e-permits-doc-peek__canvas.rap-act-modal__canvas` > A4 `.e-permits-dtpl__page.e-permits-doc-peek__page.rap-act-doc` zoomed to the canvas, footer „Imprimă” (`__cancel` + printer stroke icon) · „Închide” (`__submit`)); loading / errors = `GEAPEmptyState` bare (spinner / `circle-error`, AC texts) in the canvas; page content `.rap-act-doc__head/__arms/__country/__authority/__office/__number/__foot/__sign/__signed/__qr/__qr-code/__footer`; status ≠ Valabil → `.rap-act-doc__watermark--warning/--danger/--neutral` (tag tone); ≤600 full-height sheet (24 from the top, r16 top) (phones ≤760 since 2026-10-19: the shared rule „Modals on phones — maximum content space”, 16 from the top, radius 16); `@media print` prints the page only. Shared CSS for pages without the FO stylesheet: `css/doc-modal-parts.css` | `openActDocument(record, opener)` / `renderActPage` / `fitActPage` in `rap-evo/rap-evo.js`; demo `rap-03…03f`, `?mdocs=incarcare\|indisponibil\|date\|sablon` | page-app |
 | Document viewer — preview + signature card (doc-viewer-v2, 2026-10-21, GEAP 2.0 11366:6892) | every document (generated + uploaded) = header · A4 canvas filling the dialog (r16 + inset 1px border-default ring) · 12 · `div.e-permits-doc-signature` (Small brand tag `icon-signature` „Semnat electronic” ABOVE `p.e-permits-doc-signature__meta` „MSign · signer · date, time” 14/20 tertiary; grey card r16, pad 12 16, gap 2, as wide as the canvas) · footer; no „Date generale”, no „Doar citire”, no badge by the title; unsigned = no card | `GEAPDocPreview.signatureHtml` (js/doc-preview.js, css/doc-preview.css › „Signature block”); BO `openDosarDetail`, `CabEvo.openDocModal({ generated, signature })`, `GEAPActView` document dialog, Ghișeu `previewSignature`; section „Generated document viewer”; demo `dos-04s`, `sm-05f`, `pp-01m`, `rap-03l`, `gh-10d` | app + page-app |
 | Document preview — A4 page(s) in a grey canvas (ONE pattern: Ghișeu previews, BO dossier document modal, RAP „Forma de tipar a actului”, 2026-10-17) | canvas `.e-permits-doc-peek__canvas` (`role="document"`) > `.e-permits-dtpl__page.e-permits-doc-peek__page.e-permits-doc-page[data-doc-cont]` > `.e-permits-dtpl__surface.e-permits-doc-page__surface` (title · ONE 2-column table, heading rows `tr.e-permits-doc-page__group > th[colspan=2]`, `<colgroup><col class="e-permits-doc-page__label-col"><col>` when it starts with a heading row · `.e-permits-doc-page__tail` · `p.e-permits-doc-page__footer` „… · <span data-doc-page-label>Pagina k din n</span>”); loading / error = `GEAPEmptyState` bare in `.e-permits-doc-peek__canvas--state`; BO dialog = `#dosar-detail-modal` + `modal--lg e-permits-detail-modal--doc`; footer „Printează” `btn-neutral` + `GEAPDocPreview.printIcon()` · „Descarcă” `btn-primary` + `icon-export` | `GEAPDocPreview.paginate / fit / print / printIcon` (`js/doc-preview.js`, `css/doc-preview.css`); section „Document preview — one A4 viewer”; demo `gh-07a…07a3`, `gh-07g`, `gh-07g1`, `gh-10d`, `dos-04h`, `rap-03b`, `rap-03k` | app + page-app |
+| Full-height document viewer (doc-fullheight-v1, 2026-10-21, ≥ 761) | every A4 viewer + the RAP data dialog „Vizualizare act”: dialog `height: auto; max-height: calc(100dvh − 2 × --spacing-24)` (24 above and below, own width: act 720 · BO md 590 / lg 720 · Cabinet 560; a short document keeps its natural height, centred; loading / error hold the full frame); header + footer fixed, the BODY = the only scroller (`overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable both-edges`; canvas `flex: none`, no window of its own; the signature card scrolls with it); hairlines = 1px transparent top / bottom borders on the body → `--color-border-base-default` with `has-scroll-above / -below` on the dialog (the FO footer's own line removed); page behind locked (`html:has(… :not([hidden])) { overflow: hidden }`). Phones (≤ 760) unchanged: the bottom sheet of css/modal-phone.css | css/doc-preview.css › „Full-height document viewer”; `GEAPDocPreview.fit` syncs the FO-shell hairlines (scroll listener in js/doc-preview.js), library `.modal`s by the shell's `syncModalScrollEdges` / act-view `syncActDataEdges`; section „Full-height document viewer”; demo `pp-01m`, `pp-01z`, `rap-03l`, `rap-03k`, `rap-03a` (loading), `rap-03`, `rap-03g`, `dos-04s`, `dos-04h`, `sm-05f`, `sm-05h` (short = natural height at 1440 × 1024), `gh-10d`, `gh-07a`, `gh-07a1` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (export icon) · `btn-primary` „Închide”); since 2026-10-19 the act's configured fields = one BO section per configured group (row „Configured act fields — groups + tables”; the old in-card heading rows `.rap-act-data__group/__more-row/__toggle` are gone); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
 | Public profile header (RAP act profile + every EVO Cabinet profile, 2026-10-17) | `header.e-permits-page-header.e-permits-page-header--public` › `__body` (16 top, 12 inset) › `__top` › `__heading` (gap 16): `nav.breadcrumbs` (desktop: the parent trail ending in the current page = the title — medium, not a link, `aria-current`, cut at 30 + tooltip; breadcrumb-v2, 2026-10-21, as Figma 232:5282 and the BO) + `nav.breadcrumbs.breadcrumbs--mobile` (≤760: `li.breadcrumbs__item--back` › `.e-permits-page-header__crumb-label`) + `h1.__title` (wraps, never truncated) · `__meta` items (label 12/16 tertiary, value 14/20 medium, dividers; ≤760 = 2 equal columns, no dividers, column gap 16) · the primary `btn btn-primary btn-md .e-permits-page-header__action` (hugging, 8 under the meta) or `.e-permits-page-header__action-row` (primary + neutral `btn-md`, gap 8). The status = a „Stare” meta item with the Tag · Small. Width (full container, 2026-10-21): the RAP act profile = the list / table width (`--rap-content-width`: header box + section cards on the table edges at 1440 / 1024 / 761, text keeps the 12 inset; detail label column `clamp(120, 30%, 200)`, wrapping, value fills the rest; text in cards ≤ 75ch), the Cabinet act profile = `--cab-list-width`; phones 16 gutters | `css/bo-profile-parts.css`; renderers `rap-evo.js renderProfile`, `CabEvo.pageHeader({ back, title, titleId, meta, actions, subtitle?, bodyHtml? })` (subtitle / bodyHtml: the act profile, act-profile-v1); parity `tools/ui-qa/specs/rap-profile-vs-bo.json` (svc-01 ↔ rap-02 = 0), `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05 = 0) | page-app |
 | Request status card „Stadiul solicitării” (EVO Cabinet, 2026-10-17) | BO section title over `.cab-status` (white, 1px `--color-border-base-default`, radius 24 / 16 ≤760, clip) › `.cab-status__now` (20 / 16 inset, gap 8: `.cab-status__tags` Tag · Small status + marks · `p.cab-status__title` 16/24 semibold = the status sentence / next step · `p.cab-status__text` 14/20 secondary · `.cab-status__actions[data-sm-dl-scope]` the action that exists: Continuă schița + Elimină, Suplinește informații, Achită (MPay badge), Vezi actul + Descarcă, Depune contestație) · hairline · `.e-permits-trajectory.e-permits-trajectory--vertical.e-permits-trajectory--bare.cab-status__timeline` (the shared trajectory, vertical, no card of its own, padded 20 / 16 ≤760: done steps with full-month dates, the current / attention one on the soft pill + `aria-current="step"`, next steps as rings without dates — since 2026-10-20) | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `timelineEvents` / `timelineHtml`; demo sm-03 (Schiță), sm-04 (În derulare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c (Spre achitare), sm-05 / 05a / 05b (Finalizat aprobat / respins / decizie) | page-app |
@@ -8424,7 +8425,7 @@ icon”. The paper-request preview had a 40vh window, an unfitted page and no pr
   footer (pushed to the page bottom; RAP pins its own under the signature block), page gap 24, measuring pass,
   state canvas, print. The base page / canvas / surface rules stay in the „A4 page” + doc-peek canvas CSS.
 - **BO dialog for a document-only preview** (Ghișeu): `#dosar-detail-modal` with `modal--lg
-  e-permits-detail-modal--doc` (height = screen − 2 × 48, the canvas fills the body; back to `modal--md` on
+  e-permits-detail-modal--doc` (since doc-fullheight-v1: up to the screen − 2 × 24, the body scrolls — § Full-height document viewer; back to `modal--md` on
   close). Header = title + subtitle „<what produced it> · <date>” — **no request number in the subtitle**
   (user 2026-10-17: the number is on the page). Footer: „Printează” `btn btn-neutral btn-rounded` + print icon
   (paper request only) · „Descarcă” `btn btn-primary btn-rounded` + `icon-export`. While MDocs works:
@@ -8473,6 +8474,61 @@ next to the title”. Reference: GEAP 2.0 11366:6892 „Modal content / Document
 - Demo: `dos-04e/04o/04p/04s/04t/04i/04l` (signed), `dos-04q/04r` (Proiect, no tray), `dos-04h` (upload, unchanged),
   `sm-05f` (certificate) vs `sm-05h` (upload), `pp-01m/01n/01z` + `rap-03l` (act), `gh-10d` / `gh-07a3` (tray), `gh-07a`
   (paper, none).
+
+### Full-height document viewer (doc-fullheight-v1, 2026-10-21)
+
+User: „For «Vizualizare act», when it's too long, make it full height: a modal with only 24 padding top and bottom” (also a
+Figma comment). Before: each viewer had its own height — FO-shell dialogs `min(800px, 90vh)` (gaps 50 at 900, 112 at 1024,
+36 at 720), the BO / Ghișeu document modal `100dvh − 2 × 48`, the RAP data dialog the library 64vh content window (87 / 55);
+the CANVAS scrolled inside a fixed body and the signature card stayed pinned under it; the Cabinet / RAP page behind scrolled.
+
+**Rule (desktop + tablet ≥ 761, one block in css/doc-preview.css):**
+- Dialog: `height: auto; max-height: calc(100dvh − var(--spacing-24) × 2)` at its own width (act dialog 720, BO `modal--md`
+  590 / Ghișeu `modal--lg` 720, Cabinet 560). Content taller than that → the dialog is exactly viewport − 48, 24 above and
+  below; shorter content → natural height, centred (sm-05h at 1440 × 1024: 926, gaps 49). Loading / MDocs error (`.e-permits-
+  doc-peek__canvas--state`) hold the full frame, so the dialog doesn't jump when the page arrives.
+- Header (title + ×) and footer (Descarcă / Imprimă · Închide) never scroll. The BODY is the only scroller (`overflow-y:
+  auto`, `overscroll-behavior: contain`, `scrollbar-gutter: stable both-edges` so a classic scrollbar never changes the fitted
+  page width); the canvas is `flex: none` (its page(s) at their fitted height, no inner window) and the signature card follows
+  it — the card is reached by scrolling to the end.
+- Hairlines = the library modal rule: the body has 1px transparent top / bottom borders, coloured
+  `--color-border-base-default` while `has-scroll-above` (content scrolled under the header) / `has-scroll-below` (more below)
+  sits on the dialog. Library `.modal`s: the shell's `syncModalScrollEdges` (BO, Ghișeu) / act-view `syncActDataEdges` (RAP
+  data dialog); FO-shell dialogs (`.rap-act-modal__dialog`, Cabinet doc): `js/doc-preview.js` (capture scroll listener +
+  `fit()`). The FO footer's permanent top line is removed there (the hairline replaces it).
+- The page behind does not scroll: `html:has(body > :is(.rap-act-modal, .cab-doc-modal):not([hidden])) { overflow: hidden;
+  scrollbar-gutter: stable }` (the BO page never scrolled at document level). Real-wheel test: body to its end, page scrollY
+  unchanged, wheel over the backdrop → page unchanged.
+- Phones (≤ 760) unchanged: the bottom sheet (css/modal-phone.css § 2 / § 7: 16 from the top, canvas edge to edge, title 20/32).
+- Keyboard: the body is a keyboard-focusable scroller (arrows / PgDn scroll it); Tab stays in the dialog (the Cabinet document
+  dialog had no trap — added in cabinet-evo.js), Escape closes and focus returns to the opener.
+
+**Measured** (dialog top / bottom gap, height; body viewport / content):
+
+| Viewer (demo) | 1440 × 900 | 1440 × 1024 | 1280 × 720 | 1024 × 768 |
+|---|---|---|---|---|
+| Act „Vizualizare act” / „Forma de tipar” (pp-01m, rap-03l) — before | 50 / 50, 800 (canvas window 501) | 112 / 112, 800 | 36 / 36, 648 | 38.4 / 38.4, 691 |
+| — after | 24 / 24, 852 · body 654 / 1032 | 24 / 24, 976 · 778 / 1032 | 24 / 24, 672 · 474 / 1032 | 24 / 24, 720 · 522 / 1032 |
+| BO / Ghișeu document (dos-04s, gh-10d) — before | 48 / 48, 804 | 48 / 48, 928 | 48 / 48, 624 | 48 / 48, 672 |
+| — after | 24 / 24, 852 | 24 / 24, 976 | 24 / 24, 672 | 24 / 24, 720 |
+| Cabinet document (sm-05f) — before | 50 / 50, 800 | 112 / 112, 800 | 36 / 36, 648 | 38.4 / 38.4, 691 |
+| — after | 24 / 24, 852 · 654 / 806 | 24 / 24, 976 · 778 / 806 | 24 / 24, 672 | 24 / 24, 720 |
+| RAP data dialog (rap-03, rap-03g) — before | 87 / 87, 726 | — | 54.6 / 54.6, 611 | — |
+| — after | 24 / 24, 852 | 24 / 24, 976 | 24 / 24, 672 | 24 / 24, 720 |
+
+**Figma spec — act dialog at 1440 × 1024 (pp-01m):** overlay 1440 × 1024 black 40 %; dialog x 360 · y 24 · 720 × 976, radius 12;
+header y 24–132 (108 = 24 · title 24/32 · 8 · subtitle 14/20 · 24; × 32 at 24 / 24); body y 132–912 (780 = 1 hairline + 778
+viewport + 1 hairline; padding 0 24 24); footer y 912–1000 (88 = 16 · 48 buttons · 24; padding sides 20); gap 24 below.
+Body content 1032 high: canvas 672 × 930 at content y 0 (r16, inset ring, padding 24; A4 page 624 × 882 = zoom 0.786), 12,
+signature card 672 × 66 at content y 942, 24 → 1032. Scroll range 0 → 254. Above the fold: the page from its top to 754 of 882
+(≈ 85 %: arms + authority, title, the whole data table and the closing line; the foot — issuing authority, signature line, QR —
+starts right at the fold, „Pagina 1 din 1” below it);
+the signature card starts 163 below the fold (y 1075). At the end of the scroll: page foot visible, card at y 821–887, 24 to
+the footer. Lines: at rest only the one above the footer (y 911); scrolled = both; at the end only the one under the header
+(y 132). Library-modal variant (BO / Ghișeu / RAP data): header 74, footer 80, body 822 at 1440 × 1024.
+
+Demo: pp-01m, pp-01z, pp-01n, rap-03l, rap-03k (3 pages), rap-03a (loading), rap-03c / 03d (errors), rap-03, rap-03g, rap-03q,
+dos-04s, dos-04h, dos-04e, dos-04q, sm-05f, sm-05h (short), gh-10d, gh-07a, gh-07a1 (loading), gh-07g (error), gh-07a3.
 
 ### Stacked-list row hover — full width (2026-10-14)
 

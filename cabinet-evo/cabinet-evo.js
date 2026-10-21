@@ -1338,7 +1338,20 @@
     overlay.hidden = true;
     if (docModalOpener?.isConnected) docModalOpener.focus();
   }
-  document.addEventListener("keydown", (event) => { if (event.key === "Escape") closeDocModal(); });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeDocModal();
+    /* doc-fullheight-v1 (2026-10-21): Tab / Shift+Tab stay in the open document dialog (they went on to the page behind) */
+    const overlay = event.key === "Tab" && document.querySelector("[data-cab-doc-modal]:not([hidden])");
+    if (!overlay) return;
+    const items = [...overlay.querySelectorAll("button:not([disabled]), a[href], [tabindex]:not([tabindex='-1'])")].filter((el) => el.getClientRects().length);
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    if (!overlay.contains(active)) { event.preventDefault(); (event.shiftKey ? last : first).focus(); }
+    else if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+  });
 
   /* ---------- shared with solicitari.js and catalog.js ---------- */
   window.CabEvo = {

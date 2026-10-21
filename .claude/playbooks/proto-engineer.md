@@ -2143,3 +2143,23 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   0 / 0 (`--scope .e-permits-workplace` on the BO page — `main` gave „0 interactive”) + a 700 px real-mouse probe of the
   two squares, code-audit only standing FPs. Catalog category chips (cat-01, 7 chips on 4 rows at 375) are NOT the facet
   filter → left, reported as a PO question.
+- 2026-10-21 · Full-height document viewer (doc-fullheight-v1; user: „when «Vizualizare act» is too long, make it full height:
+  only 24 top and bottom”). Inventory by probing, not by reading CSS: a probe (dialog = `elementFromPoint` at the centre →
+  closest dialog; gaps, direct-children heights, every visible scroller, page scrollability, signature card in view after
+  scrolling the scroller to the end) over 7 states × 4 viewports found 4 different height rules (FO shell `min(800px, 90vh)`,
+  BO `100dvh − 96`, the act dialog `height: 100%`, the library 64vh content window on the RAP DATA dialog — also titled
+  „Vizualizare act”, so the user's words covered it although the brief listed only the A4 viewers; added + reported). ONE
+  `@media (min-width: 761px)` block in css/doc-preview.css (loaded on all 3 pages that show viewers): dialog `height: auto;
+  max-height: 100dvh − 2 × 24` (short content hugs, centred — sm-05h proves it at 1440 × 1024), loading / error hold the full
+  frame, body = the only scroller, canvas `flex: none`. Specificity: doc-preview.css loads BEFORE cabinet-evo.css, so a
+  0,3,0 override lost to the page's 0,3,0 → write 0,4,0 (`.e-permits-fo-doc-modal-overlay.cab-doc-modal > …`), never rely on
+  order across files. Phone rules untouched by keeping every line inside the media query (probe 375 / 760 / 761 to prove the
+  edge). Hairlines for the FO-shell dialogs = one capture scroll listener + a sync inside `GEAPDocPreview.fit()` (fit runs on
+  open and on every resize, so no extra observers); `scrollbar-gutter: stable both-edges` on the body so a classic scrollbar
+  never changes the width `fit` measured. Page-behind lock = `html:has(body > :is(…):not([hidden])) { overflow: hidden }`
+  — proved with REAL `Input.dispatchMouseEvent` mouseWheel over the body and over the backdrop (page scrollY unchanged).
+  Keyboard probe (CDP Tab × 8, Shift+Tab × 4, Escape) found a pre-existing hole: the Cabinet document dialog had no focus
+  trap (Tab walked into the page) → a Tab handler in cabinet-evo.js. My first Escape check read `overlay.hidden` for library
+  overlays (they use `is-active`) and said „not closed” — check the family's own open flag. Proof that audit findings were
+  not mine: component-audit on a tree COPY with my 3 files reset to HEAD (python http.server :8983) = identical per-state
+  counts; code-audit only the standing A4 mm padding / zoomed page text / FO doc-modal buttons / BO 11·7 rows; hover 0 / 0.

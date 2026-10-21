@@ -24,6 +24,7 @@
      print(canvas) — prints only the page(s) of this canvas at A4 (css/doc-preview.css @media print);
      printIcon(cls) — the printer of the product nav (assets/icons/sidebar-printer-print.svg), stroke =
        label colour (the sprite has no printer).
+     (fit also syncs the scroll hairlines of the viewer body it sits in — doc-fullheight-v1)
      signatureHtml({ by, at, provider, sprite }) — the signature block under the canvas of a GENERATED document
        viewer (doc-viewer-v1): badge above „MSign · by · at”; css/doc-preview.css › „Signature block”.
    Used by: Ghișeu previews (js/ghiseu.js), the BO dossier document modal (js/e-permits-shell.js),
@@ -35,12 +36,29 @@
   const PAGE_WIDTH = 794; /* 210mm at 96 dpi */
   const pagesOf = (canvas) => canvas.querySelectorAll(".e-permits-doc-peek__page");
 
+  /* doc-fullheight-v1 (2026-10-21): on desktop the viewer BODY (canvas + signature card) is the only scroller
+     (css/doc-preview.css › Full-height document viewer) → the library modal's scroll hairlines on the FO-shell
+     dialogs (`has-scroll-above / -below` on `.e-permits-fo-doc-modal`; library `.modal`s are synced by the shell) */
+  const SCROLL_BODY = ".e-permits-fo-doc-modal > :is(.rap-act-modal__body, .cab-doc-modal__body--doc)";
+  function syncScrollEdges(body) {
+    const dialog = body?.parentElement;
+    if (!dialog) return;
+    const scrollable = body.scrollHeight - body.clientHeight > 1;
+    dialog.classList.toggle("has-scroll-above", scrollable && body.scrollTop > 0);
+    dialog.classList.toggle("has-scroll-below", scrollable && body.scrollTop + body.clientHeight < body.scrollHeight - 1);
+  }
+  document.addEventListener("scroll", (event) => {
+    if (event.target instanceof Element && event.target.matches(SCROLL_BODY)) syncScrollEdges(event.target);
+  }, true);
+
   function fit(canvas) {
     const pages = canvas ? pagesOf(canvas) : [];
     if (!pages.length || !canvas.clientWidth) return;
     const style = window.getComputedStyle(canvas);
     const room = canvas.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     pages.forEach((page) => { page.style.zoom = String(Math.min(1, room / PAGE_WIDTH)); });
+    const body = canvas.closest(SCROLL_BODY);
+    if (body) syncScrollEdges(body);
   }
 
   function paginate(canvas, { repeat = "", tail = ".e-permits-doc-page__tail" } = {}) {
