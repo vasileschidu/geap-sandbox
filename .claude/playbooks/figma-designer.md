@@ -2358,4 +2358,9 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → stored audits (GEAP „ghs/audit”, Cabinet „qsweep/audit”) on the changed mains / screens: 0 findings
     in the changed nodes (background FO page: pre-existing step-mobile fractions, captured gap 6); every new × verified 40 / 24, whole px,
     16 from the right, y 12 (24/32) or 8 (16/24).
+- 2026-10-21 · Same job, follow-up after the doc-viewer agent (0fa8626d): Cabinet pp-01m phone modal 1178:46162 and pp-01z 1074:12908 →
+  nested `.modal-header` swapped to the local `Modal header · phone` 1183:4330 (Cabinet section 1175:45911; title 24/32 = code FO shell,
+  × 40 / 24 at 319 / 12, header 48 + content pt 8 = the code's subtitle at 56). pp-01x / pp-01y skipped on purpose (old act-data dialog,
+  to be redrawn as act pages). Stored „qsweep/audit”: 0 findings. Lesson: when a coordinator parks nodes for another agent, keep the
+  fix as a re-runnable script (modal-header.js) so the hand-back is one call on the new ids.
 
