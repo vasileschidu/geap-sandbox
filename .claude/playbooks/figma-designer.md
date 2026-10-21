@@ -2981,3 +2981,37 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     texts, cloned markers dropped). Text replace also hits the background list behind a full sheet — harmless, but check.
   - No Agent tool in this session → stored `ghs/audit` on the 3 new blocks + changed menus / footers: only the cloned-shell
     baseline (background registry clips, rows-per-page label, raw scrim, padded sections gap 0); FOD mini gate: 0.
+
+- 2026-10-21 · **Destructive buttons = red in Figma** (code f877023c destructive-red-v1; memory feedback_destructive_red: page / row /
+  card = outlined destructive, confirm dialog = filled destructive, inline remove = text destructive). Variant changes only, no fill
+  overrides. The library has NO unified „Button” set with Style „Outline Destructive / Text Destructive” — the destructive styles live
+  in the separate Components sets: button-outlined-rectangular 4ca8aa00… (BO Small), button-outlined-circular d7a0779b… (pill: Cabinet
+  Medium, dialog-footer secondary), button-text-rectangular 4ad2518c… / -circular a9752669… (Style Destructive × Icon=Only exists),
+  button-filled-circular fcf938f6… (confirm). Counts: **GEAP** outlined 229 (Tariffs drawer „Dezactivează” 4 + „Șterge” 8 — Șterge was
+  FILLED red, code = outlined + trash; Services 07a 3, 06t 1, 10h2 „Elimină destinatarul” icon-only 3; Classifiers „Arhivează” 21 + value
+  grid ⏸ / 🗑 icon-only 188; Ghișeu gh-02o „Închide fără salvare” pill 1), text destructive 144 (trash icon-only Strict → Destructive:
+  Process Designer 4, Form Builder 91, Editable Grid 42 + 7 FO activity × Neutral cross → text destructive + 20/delete), menu items →
+  Danger 2 (Services 06k „Șterge”, NT 03b „Dezactivează” + pause), Post-processes 01g / 02b withdrawal icon brand → icon/danger/default.
+  **eKYC** outlined 66 (A02 / A03 „Revocă toate sesiunile” 12, „Suspendă contul” 11, „Revocă celelalte sesiuni” 2, session „Revocă” 8;
+  „Dezactivează” C02 5 · C03 21 · C08 6 · D01t 1) + C06g „Dezactivează în schimb” Primary → outlined-circular Destructive (Large = its
+  footer); C01e already filled Destructive. **EVO Cabinet** „Elimină schița” 10 (sm-02 / sm-03 desktop + phone) → outlined-circular
+  Destructive Medium Leading; confirm modal already Tone=Danger + filled Destructive. **FOD**: nothing drawn (only file / upload ×,
+  which is detach, not destructive). Helpers in figma.root „figdes”: redcensus (label census by host set / variant), rediconcensus
+  (icon-only census by glyph), btnswitch (toVariant: swap to another set's variant keeping label + icon props, re-fix FIXED height,
+  copy a fresh instance's icon fills when the swap left the old colour), redpass (eKYC page pass); swap-to-instances.js maps captured
+  destructive buttons now. Lessons:
+  - **Cross-set swaps leave the old icon colour** (187 / 188 Classifiers icon-only, all 91 Form Builder trash): after swapComponent +
+    setProperties compare the icon vector's bound variable with a FRESH instance of the same variant + props and copy the fresh fills
+    (Figma's own variant colour, not a hand override); Style changes inside the same set kept it in some files (eKYC 0 fixes) — always check.
+  - **Census by host set + variant, then judge by meaning**: „Șterge” inside the eKYC / Incidents facet popovers and Cabinet filter
+    sheets = clear the selection (left neutral), „Șterge filtrele” likewise; file-row × = detach; old pre-switch Users screens
+    („Retrage” / „Revocă”) left as legacy. Icon-only buttons have no text → census them by glyph (delete / pause / cross).
+  - The library modal footer holds max 2 actions → eKYC C06g can't show the code's third button „Șterge parametrul” (drift reported);
+    eKYC / Cabinet confirm footers are Large 48 vs code 40 (footer variant, pre-existing).
+  - Not changed (reported): Form Builder „Reguli de comportament” rule × (old hand-built screens, 24 px filled-circular Neutral cross —
+    code is now a labelled „Elimină”); Post-process menu mains still carry a non-danger default „Retragere act permisiv” item (instances
+    use the Danger slots); no Figma block for pd-27, the FO grid „Șterge rândul”, „Alt document” card, user-create combination card,
+    PD „Elimină atribuirea”; no „Retrage din suport” item drawn anywhere.
+  - No Agent tool in this session → stored audits on samples (GEAP `ghs/audit`: only the classifier table's pre-existing .5 cell
+    centring; eKYC `qsweep/audit-lite` 0; Cabinet `qsweep/audit` 0) + screenshots vs the code captures (trf-03, clf-03, sm-03, ek-21a,
+    ek-27k, gh-02o, pp-02b): match.
