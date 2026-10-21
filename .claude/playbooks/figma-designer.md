@@ -2135,3 +2135,24 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Left (reported, not changed): Text gap 2 between label and description vs code 0; library switch 48×28 vs code toggle 44×24.
   - No Agent tool in this session → stored `ghs/audit` on main + instance + 03c section + Tariff / Recipient-rule samples, and
     `qsweep/audit` on the 03c drawer: 0 findings.
+- 2026-10-21 · **Padded children → parent gap 0** (user on Classifiers 04c 10192:11618: „if the wrapper itself already has padding,
+  do not use a gap between, because it's too much space”). Pattern: `user-profile__panel` / `clas-create` (VERTICAL, gap 24 bound
+  spacing-24) stacking transparent `dosar-profil__section` wrappers that carry paddingBottom 16 → 16 + 24 = 40 between a card and
+  the next section heading (ink ≈ 58). Fix = parent itemSpacing bound to **spacings/spacing-0** (Foundations „3. Sizes”, import by
+  key via teamLibrary) → box 16 / ink ≈ 34, still ≥ 8 and on the 8/16/24 rhythm. Changed on the Classifiers board (10177:1912):
+  04 10189:11577 (12 → 0; add-row 28 → 16), 04a 10190:11605, 04c 10192:11618, 04d 10213:13868, 06a 10196:11809, 02f 10205:13243
+  (24 → 0). Raw captured frames, no component to fix. Lessons:
+  - **Detect it with a scanner, not by eye**: VERTICAL frame, itemSpacing > 0, ≥ 2 visible flow children, and a TRANSPARENT child
+    (no visible fills / strokes / effects) with padding facing its neighbour → report `childEnd + gap + nextStart`. Cards with a
+    border / fill don't count (their padding is inside the box). Horizontal hits (pagination actions, title-row button wrappers)
+    are not this rule — leave them.
+  - The code has the same doubling (clas-profile panel gap 24 + section padding-bottom 16; clas-create gap 24) — the user's rule
+    overrides the code here; report it for proto-engineer, don't change code. Parent padding stacking on the last child's padding
+    (panel pb 48 + section pb 16) is also in the code → kept.
+  - Shrinking panels shrink HUG screens → restack the column by the shrink (keep the board's existing 240 / 242 gaps, move only
+    the blocks below; connectors follow).
+  - The gate audit's `tight-gap` then flags every section „gap 0” — false positive; verify with absoluteRenderBounds
+    (card bottom → next heading box 16 / glyph 34). Its clipped-content found a real old bug in 04c / 04d: the Family / Category
+    row was 483 + 16 + 483 = 982 in a 980 row (panel 1022 vs code 1024) and clipped the Category field's right edge → both FILL
+    (482), clip off. Read every clipped-content finding on the node the user pointed at.
+  - The other agent's node (10547:213285) sat in block 03c → skipped the whole block 03c (its scan had no hit anyway).
