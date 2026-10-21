@@ -8,9 +8,9 @@
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/button-icons.css?v=button-icons-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=audit-fix-v3">
-  <link rel="stylesheet" href="css/facet-filter.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="css/facet-filter.css?v=filter-chip-v1">
   <link rel="stylesheet" href="css/drawer.css?v=drawer-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=audit-fix-v3">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=filter-chip-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v8">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -32,7 +32,7 @@
   <script src="js/breadcrumbs.js?v=tooltip-one-v1"></script>
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=traj-v1"></script>
-  <script src="js/demo-states.js?v=tacit-tag-v1"></script>
+  <script src="js/demo-states.js?v=filter-chip-v1"></script>
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=tooltip-one-v1"></script>
@@ -2645,12 +2645,10 @@
                 </button>
               </div>
                     </div>
-                    <button class="btn btn-neutral btn-sm e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="workplace-filters" data-workplace-filter-toggle>
-                      <svg class="icon" width="16" height="16" aria-hidden="true">
-                        <use href="assets/icons/sprite.svg#icon-filter-lines"></use>
-                      </svg>
-                      <span>Filtrare avansată</span>
-                      <span class="badge badge--lg badge--solid-light" data-workplace-filter-count hidden></span>
+                    <button class="chip e-permits-filter-trigger e-permits-filter-trigger--sm e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="workplace-filters" data-workplace-filter-toggle>
+                      <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+                      <span class="chip__label">Filtrare avansată</span>
+                      <span class="chip__badge" aria-hidden="true" data-workplace-filter-count hidden></span>
                     </button>
                     <div class="e-permits-workplace__table-tools" aria-label="Acțiuni tabel">
                       <span class="e-permits-workplace__field-count">48 câmpuri</span>
@@ -3523,8 +3521,8 @@
   <script src="core/classifiers.js?v=action-icons-v1"></script>
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
-  <script src="js/facet-filter.js?v=tooltip-one-v1"></script>
-  <script src="js/e-permits-shell.js?v=audit-fix-v3"></script>
+  <script src="js/facet-filter.js?v=filter-chip-v1"></script>
+  <script src="js/e-permits-shell.js?v=filter-chip-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

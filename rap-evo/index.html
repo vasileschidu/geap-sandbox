@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../css/main.css?v=crumbs-v2">
   <link rel="stylesheet" href="../css/button-icons.css?v=button-icons-v1">
   <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
-  <link rel="stylesheet" href="../css/facet-filter.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="../css/facet-filter.css?v=filter-chip-v1">
   <link rel="stylesheet" href="../css/bo-profile-parts.css?v=breadcrumb-v1">
   <link rel="stylesheet" href="../css/doc-modal-parts.css?v=act-doc-v1">
   <link rel="stylesheet" href="../css/doc-preview.css?v=doc-viewer-v2">
@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="../css/modal-phone.css?v=sheet-header-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=tacit-tag-v1"></script>
+  <script src="../js/demo-states.js?v=filter-chip-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=toast-v2" defer></script>
   <script src="../js/pager.js?v=audit-fix-v3"></script>
@@ -30,7 +30,7 @@
   <script src="../js/icon-tooltip.js?v=tooltip-one-v1" defer></script>
   <script src="../js/breadcrumbs.js?v=tooltip-one-v1"></script>
   <script src="../js/empty-state.js?v=empty-v3" defer></script>
-  <script src="../js/facet-filter.js?v=tooltip-one-v1" defer></script>
+  <script src="../js/facet-filter.js?v=filter-chip-v1" defer></script>
   <script src="../js/doc-preview.js?v=doc-viewer-v1" defer></script>
   <script src="../js/act-view.js?v=tacit-tag-v1" defer></script>
   <script src="rap-evo.js?v=audit-fix-v3" defer></script>
@@ -122,10 +122,10 @@
         </div>
 
         <!-- the BO advanced filter (js/facet-filter.js): button → bar of facet chips → checklist popover -->
-        <button class="btn btn-neutral btn-md e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="rap-filters" data-rap-filter-toggle>
-          <svg class="icon medium" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg>
-          <span>Filtru</span>
-          <span class="badge badge--lg badge--solid-light" data-rap-filter-count hidden></span>
+        <button class="chip e-permits-filter-trigger e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="rap-filters" data-rap-filter-toggle>
+          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtru</span>
+          <span class="chip__badge" aria-hidden="true" data-rap-filter-count hidden></span>
         </button>
       </div>
 

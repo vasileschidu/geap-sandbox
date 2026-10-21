@@ -189,7 +189,7 @@
   padding: var(--spacing-20, 20px) 0 0;
 }
 
-.cab-toolbar .chip,
+.cab-toolbar .chip:not(.e-permits-filter-trigger),
 .cab-chips .chip {
   gap: var(--spacing-6, 6px);
   height: 40px;
@@ -198,19 +198,9 @@
   padding: 0 var(--spacing-16, 16px);
 }
 
-/* the Filtre chip carries a leading icon, so it is padded 12 left / 16 right */
-.chip.cab-filter {
-  flex: none;
-  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
-}
+/* the „Filtre” chip: css/facet-filter.css „Filter trigger” (filter-chip-v1) */
 
-.chip.cab-filter .chip__icon .icon {
-  color: currentColor;
-  height: 20px;
-  width: 20px;
-}
-
-.cab-toolbar .chip__label,
+.cab-toolbar .chip:not(.e-permits-filter-trigger) .chip__label,
 .cab-chips .chip__label {
   flex-grow: 1;
   font-size: var(--font-size-fs-16, 16px);
@@ -623,10 +613,6 @@
 .chip.cab-sort__trigger .chip__icon .icon {
   height: 20px;
   width: 20px;
-}
-
-.chip.cab-filter[aria-expanded="true"] {
-  background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }
 
 .cab-menu--wide {
@@ -1223,7 +1209,6 @@
 /* Filtre / Sortează / „N pe pagină” = the back-office small buttons (user, 2026-10-12:
    „too big, do as in BO”): btn-neutral btn-sm (32) · 16 icon · label · chevron for menus.
    An open one stays pressed (focus ring: the .cab-page open-button rule above). */
-.btn.cab-filter[aria-expanded="true"],
 .btn.cab-sort__trigger[aria-expanded="true"] {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }

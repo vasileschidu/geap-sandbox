@@ -5,21 +5,114 @@
    e-permits-acte-permisive.css, so the cascade order of every rule is unchanged.
    ========================================================================== */
 
-/* "Filtrare avansată" is the library button (btn-neutral btn-sm, always grey, no local
-   colours / hover / focus) at the search field's VISIBLE height: the search is a 40px
-   box whose 1px line is drawn inside a 2px transparent border, so it reads as 36px */
+/* "Filtrare avansată" / „Filtre” = the filter trigger chip (filter-chip-v1, rule below); this class is only its
+   toolbar placement hook. GEAP BO registries: 36 = the search field's VISIBLE height (a 40px box whose 1px line
+   is drawn inside a 2px transparent border) */
 .e-permits-workplace__advanced {
   flex: 0 0 auto;
   width: auto;
 }
 
-.btn.btn-sm.e-permits-workplace__advanced {
-  height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
+
+/* ==========================================================================
+   Filter trigger = the library CHIP with the button radius (filter-chip-v1, 2026-10-21; user: „use the filter
+   chip component: it has all we need, but override the rounding to match the buttons”; „when active, still
+   use the icon”; Figma EVO Cabinet 1175:45818). ONE rule for every „Filtre” / „Filtru” / „Filtrare avansată”
+   trigger (desktop toolbar button and the phone „Filtre” pill): library `.chip` + `.chip__icon` (filter icon,
+   in rest AND active) + `.chip__label` + `.chip__badge` (the chip's numbered badge, 16, white on black);
+   rest = the library chip grey, active (≥ 1 applied value) = `.is-selected` (black), hover / focus = the library
+   chip states, open (`aria-expanded="true"`) keeps the chip focus ring. Only overrides of the library chip:
+   - height: 40 desktop (the search / „Sortează” btn-md) · 36 GEAP BO registries (`--sm`, their btn-sm toolbar)
+     · 48 phones (≤760, the phone search);
+   - radius: the library Button of the same size — 8 (btn-md) · 6 (btn-sm); on phones the neighbour sort is a
+     `btn-pill`, so the pill stays round there (radius follows the „Sortează” next to it);
+   - the filter-chip type (14/20 medium, 16/24 on phones) and 16 on the badge side (Figma), as the facet chips.
+   ========================================================================== */
+.chip.e-permits-filter-trigger {
+  --filter-trigger-height: var(--spacing-40, 40px);
+  --filter-trigger-radius: var(--border-radius-8, 8px);
+  border-radius: var(--filter-trigger-radius);
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  font-family: inherit;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--filter-trigger-height);
+  line-height: var(--line-height-lh-20, 20px);
+  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
 }
 
-/* list pages (Cabinet, RAP, eKYC — 2026-10-20, user: „the sort and Filtre at the search's height”): the button is
-   the library Medium (btn-md = 40, the search box height); the GEAP BO registries keep btn-sm above. Icon size
-   (16 Small / 20 Medium) comes from css/button-icons.css (button-icons-v1) */
+.chip.e-permits-filter-trigger--sm {
+  --filter-trigger-height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
+  --filter-trigger-radius: var(--border-radius-6, 6px);
+}
+
+.e-permits-filter-trigger .chip__icon .icon {
+  height: var(--icon-size-medium, 20px);
+  width: var(--icon-size-medium, 20px);
+}
+
+.e-permits-filter-trigger--sm .chip__icon .icon {
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+.e-permits-filter-trigger .chip__label {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* the badge is in the DOM while 0 (the page's count element) — the library display beats [hidden] */
+.e-permits-filter-trigger .chip__badge[hidden] {
+  display: none;
+}
+
+/* active = the selected chip in the facet bar's black (inverse-default) + its one-step-lighter hover */
+.chip.e-permits-filter-trigger.is-selected {
+  background-color: var(--color-background-base-inverse-default, #1e1e1e);
+  border-color: var(--color-background-base-inverse-default, #1e1e1e);
+  color: var(--color-text-base-inverse-default, #fff);
+}
+
+.chip.e-permits-filter-trigger.is-selected:hover {
+  background-color: var(--color-background-base-inverse-default-hover, #383838);
+  border-color: var(--color-background-base-inverse-default-hover, #383838);
+}
+
+/* open (bar / sheet showing): stays pressed — the hover fill — and keeps the product's open-button ring (the
+   aria-expanded rule: 2 white + 5 focus blue, as `.btn[aria-expanded="true"]` / `.cab-page .chip[aria-expanded]`) */
+.chip.e-permits-filter-trigger[aria-expanded="true"] {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  outline: none;
+}
+
+.chip.e-permits-filter-trigger[aria-expanded="true"]:not(.is-selected) {
+  background-color: var(--gray-250, #d9d9d9);
+}
+
+/* nothing to filter: aria-disabled (focusable, so the reason tooltip shows) = the library chip disabled look */
+.chip.e-permits-filter-trigger[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.chip.e-permits-filter-trigger[aria-disabled="true"]:hover {
+  background-color: var(--gray-100, #f5f5f5);
+}
+
+@media (max-width: 760px) {
+  .chip.e-permits-filter-trigger {
+    --filter-trigger-height: var(--spacing-48, 48px);
+    --filter-trigger-radius: var(--border-radius-full, 9999px);
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  .e-permits-filter-trigger .chip__icon .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+}
 
 
 /* ---- Advanced filter (faceted): bar of facet chips under the toolbar, a checklist
@@ -100,10 +193,6 @@
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
   white-space: nowrap;
-}
-
-.e-permits-workplace__advanced .badge {
-  margin-left: var(--spacing-4, 4px);
 }
 
 /* popover: Figma contextual-menu (GEAP 244:15994) — 270 wide, options
@@ -198,11 +287,7 @@
   overflow: clip;
 }
 
-/* the open button keeps the focus ring (the shell rule `.btn[aria-expanded="true"]`, same values) */
-:where(.e-permits-workplace__advanced).btn[aria-expanded="true"]:not(:disabled) {
-  box-shadow: 0 0 0 2px var(--color-background-base-default, #fff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
-  outline: none;
-}
+/* the open trigger keeps the focus ring: the „Filter trigger” rule at the top (filter-chip-v1) */
 
 /* a selected (black) chip is one step lighter on hover — the BO generic rule in
    e-permits-acte-permisive.css (`.chip.is-selected:hover…`, higher specificity, same values) */
@@ -232,30 +317,7 @@
     min-width: 0;
   }
 
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all {
-    font-size: var(--font-size-fs-16, 16px);
-    font-weight: var(--font-weight-fw-medium, 500);
-    gap: var(--spacing-8, 8px);
-    height: var(--spacing-48, 48px);
-    line-height: var(--line-height-lh-24, 24px);
-  }
-
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all {
-    flex: 0 0 auto;
-    max-width: none;
-  }
-
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all .chip__label {
-    font-size: inherit;
-    line-height: inherit;
-  }
-
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all .icon {
-    flex: 0 0 var(--icon-size-default, 24px);
-    height: var(--icon-size-default, 24px);
-    width: var(--icon-size-default, 24px);
-  }
-
+  /* the „Filtre” pill = the filter trigger (48 · 16/24 · icon 24 — the „Filter trigger” rule at the top) */
   .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all[hidden] {
     display: none;
   }
@@ -572,16 +634,7 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   display: none;
 }
 
-@media (max-width: 760px) {
-  /* „Filtre” chip: library chip with a leading icon (12 on the icon side), no chevron */
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all {
-    padding: var(--spacing-0, 0px) var(--spacing-16, 16px) var(--spacing-0, 0px) var(--spacing-12, 12px);
-  }
-
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all:has(.badge) {
-    padding-right: var(--spacing-12, 12px);
-  }
-}
+/* „Filtre” pill padding / radius / size / badge: the „Filter trigger” rule at the top (filter-chip-v1) */
 
 /* × hover one step darker — the BO rule (e-permits-acte-permisive.css „.search-input .btn-icon.clear:hover”),
    restated for pages without that file; same value */

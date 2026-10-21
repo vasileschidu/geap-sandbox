@@ -34,8 +34,8 @@
   },
   {
    "name": "filter button label",
-   "a": "[data-workplace-filter-toggle] > span:not(.badge)",
-   "b": "[data-workplace-filter-toggle] > span:not(.badge)"
+   "a": "[data-workplace-filter-toggle] > .chip__label",
+   "b": "[data-workplace-filter-toggle] > .chip__label"
   },
   {
    "name": "bar",

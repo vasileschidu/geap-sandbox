@@ -1958,3 +1958,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   a canonical, update `families.<name>.canonical` (+ host containers in `allow`) in the same commit. Removing the
   „always show 1 of 1” pager also removed the empty BO footer (`:has(> …:empty)`). Pager findings 80 → 0, all majors
   263 → 177 on 15 states × 2; interactions probed (page, size, ↓, Esc → focus back, outside click) on 3 pages × 2.
+- 2026-10-21 · „Filtre” = the library CHIP with the button radius (filter-chip-v1; user: „use the filter chip component, override
+  the rounding to match the buttons”, „when active, still use the icon”, Figma EVO Cabinet 1175:45818). ONE class
+  `.chip.e-permits-filter-trigger` (+ `--sm` 36 / r6 for the GEAP BO toolbars) for all five triggers (Cabinet acts + requests,
+  RAP, shell registries incl. eKYC, passport `renderSfToggle`) and the phone pill; the module marks it (`markTrigger`:
+  `is-selected` + „Filtre, N aplicate”). Traps: (1) a page rule that sizes EVERY toolbar `.chip` (`.cab-toolbar .chip` gap 6 /
+  padding 0 16, `.cab-toolbar .chip__label` flex-grow + 0 12 0 16 padding; the BO list-toolbar `.chip` height 36) silently
+  re-skins a new chip — the trigger was 124 wide whatever the badge; a CDP `CSS.getMatchedStylesForNode` trace (scratch
+  fc/trace.mjs) named both rules in one run → `:not(.e-permits-filter-trigger)` in those rules. (2) Dead rules wake up when a
+  class changes element type: `.chip.cab-filter[aria-expanded]` (from the pre-button era) would have painted the active chip
+  grey — grep `.chip.<hook>` / `.btn.<hook>` for every hook class you move between components and delete the dead ones.
+  (3) The Cabinet requests have only 7 checklist values in total (5 statuses + 2 authorities; date facets don't count) — a
+  „12 filters” demo had to go to eKYC (8 clients + 4 statuses): count the options per facet before promising a demo
+  number. (4) Phones keep the chip's full radius because the neighbour sort is `btn-pill` there — „match the buttons” read
+  as „match the button next to it”; flagged as a PO question. No sub-agent tool → component-audit (0 findings on the
+  trigger; leftovers pre-existing: sheet section triggers, „Arată” 50.8, header menus), hover-audit 0 / 0, code-audit (only
+  the library search × overlap FP); rap-04 / 04a phone overflow 15 is the same on a HEAD worktree (:8937).

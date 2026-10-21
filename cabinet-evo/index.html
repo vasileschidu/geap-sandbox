@@ -9,15 +9,15 @@
   <link rel="stylesheet" href="../css/button-icons.css?v=button-icons-v1">
   <!-- the FO / BO product stylesheet (the shared copy value: ../css/copy-value.css below) -->
   <!-- the shared facet filter (BO bar + RAP phone sheets), before the FO stylesheet as on the BO pages -->
-  <link rel="stylesheet" href="../css/facet-filter.css?v=audit-fix-v1">
-  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css?v=audit-fix-v3">
+  <link rel="stylesheet" href="../css/facet-filter.css?v=filter-chip-v1">
+  <link rel="stylesheet" href="../css/e-permits-acte-permisive.css?v=filter-chip-v1">
   <link rel="stylesheet" href="../css/empty-state.css?v=empty-v3">
   <!-- the BO page header / sections / Small tags with their BO values (the BO scope is not on this page) -->
   <link rel="stylesheet" href="../css/bo-profile-parts.css?v=breadcrumb-v1">
   <!-- the act's „Vizualizare act” / „Forma de tipar” dialogs, shared with RAP (js/act-view.js) -->
   <link rel="stylesheet" href="../css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="../css/act-view.css?v=button-icons-v1">
-  <link rel="stylesheet" href="cabinet-evo.css?v=audit-fix-v3">
+  <link rel="stylesheet" href="cabinet-evo.css?v=filter-chip-v1">
   <link rel="stylesheet" href="../css/trajectory.css?v=trajectory-gap-v1">
   <link rel="stylesheet" href="../css/dropdown.css?v=dd-item-v1">
   <!-- „Sortează”: desktop menu + phone sort sheet (js/sort-sheet.js) -->
@@ -29,7 +29,7 @@
   <link rel="stylesheet" href="../css/modal-phone.css?v=sheet-header-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=tacit-tag-v1"></script>
+  <script src="../js/demo-states.js?v=filter-chip-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=sm-v1" defer></script>
   <script src="../js/pager.js?v=audit-fix-v3"></script>
@@ -40,14 +40,14 @@
   <script src="../js/input-date-picker.js?v=sm-v1" defer></script>
   <script src="../js/doc-preview.js?v=doc-viewer-v1" defer></script>
   <script src="../js/act-view.js?v=tacit-tag-v1" defer></script>
-  <script src="../js/facet-filter.js?v=tooltip-one-v1" defer></script>
+  <script src="../js/facet-filter.js?v=filter-chip-v1" defer></script>
   <script src="../js/sort-sheet.js?v=alerts-as-was-v1" defer></script>
   <!-- the act row of the FO „Ce vrei să soliciți?” / Ghișeu — one renderer (Actele mele permisive list) -->
   <script src="../js/act-row.js?v=tacit-tag-v1" defer></script>
   <!-- the process path (Stadiul solicitării) — the shared trajectory -->
   <script src="../js/trajectory.js?v=traj-v1" defer></script>
   <script src="cabinet-evo.js?v=audit-fix-v3" defer></script>
-  <script src="solicitari.js?v=tooltip-one-v1" defer></script>
+  <script src="solicitari.js?v=filter-chip-v1" defer></script>
   <script src="notificari.js?v=sm-matrix-v1" defer></script>
   <script src="catalog.js?v=1018a" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
@@ -293,10 +293,10 @@
 
         <!-- the shared facet filter (js/facet-filter.js, as RAP): button (the search height, btn-md 40) → bar of
              facet chips → popover; phones: the round „Filtre” pill (48) → the all-filters sheet -->
-        <button class="btn btn-neutral btn-md e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="cab-filters" data-cab-filter-toggle>
-          <svg class="icon medium" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg>
-          <span>Filtre</span>
-          <span class="badge badge--lg badge--solid-light" data-cab-filter-count hidden></span>
+        <button class="chip e-permits-filter-trigger e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="cab-filters" data-cab-filter-toggle>
+          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+          <span class="chip__label">Filtre</span>
+          <span class="chip__badge" aria-hidden="true" data-cab-filter-count hidden></span>
         </button>
       </div>
 

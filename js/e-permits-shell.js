@@ -5964,9 +5964,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return facetMatch(facet, row, values);
     })).length;
   };
-  /* product lists (eKYC): „Filtrare avansată” at the search height — library btn-md 40 (user 2026-10-20: search,
-     Filtre and sort share one height); the GEAP BO registries keep their btn-sm toolbar */
-  if (product) document.querySelector("[data-workplace-filter-toggle]")?.classList.replace("btn-sm", "btn-md");
+  /* product lists (eKYC): „Filtrare avansată” at the search height — the filter trigger chip at 40 (user 2026-10-20:
+     search, Filtre and sort share one height); the GEAP BO registries keep the 36 `--sm` size (filter-chip-v1) */
+  if (product) document.querySelector("[data-workplace-filter-toggle]")?.classList.remove("e-permits-filter-trigger--sm");
   const workplaceFilter = window.GEAPFacetFilter.create({
     bar: document.querySelector("[data-workplace-filters]"),
     toggle: document.querySelector("[data-workplace-filter-toggle]"),
@@ -7946,10 +7946,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderSfToggle = (id, service) => {
     const n = sfAppliedCount(id), st = sfState(id);
     const none = !sfFacets(id, service).length;
-    return `<button class="btn btn-neutral btn-sm e-permits-workplace__advanced" type="button" aria-expanded="${st.open || sfPending(id)}" data-sf-toggle="${id}"${none ? ' aria-disabled="true" data-tooltip-reason="Lista nu are încă valori după care să filtrezi."' : ""}>
-      <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter-lines"></use></svg>
-      <span>Filtrare avansată</span>
-      <span class="badge badge--lg badge--solid-light" data-sf-count${n ? "" : " hidden"}>${n}</span>
+    /* the filter trigger chip (filter-chip-v1): black + numbered badge when values are applied */
+    return `<button class="chip e-permits-filter-trigger e-permits-filter-trigger--sm e-permits-workplace__advanced${n ? " is-selected" : ""}" type="button" aria-expanded="${st.open || sfPending(id)}" data-sf-toggle="${id}"${n ? ` aria-label="Filtrare avansată, ${n} ${n === 1 ? "aplicat" : "aplicate"}"` : ""}${none ? ' aria-disabled="true" data-tooltip-reason="Lista nu are încă valori după care să filtrezi."' : ""}>
+      <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter-lines"></use></svg></span>
+      <span class="chip__label">Filtrare avansată</span>
+      <span class="chip__badge" aria-hidden="true" data-sf-count${n ? "" : " hidden"}>${n}</span>
     </button>`;
   };
   const renderSfBar = (id, service, visibleCount) => {

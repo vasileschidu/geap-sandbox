@@ -228,6 +228,14 @@
       sortEl.querySelectorAll(":scope > .btn").forEach((btn) => btn.classList.remove("btn-pill"));
     };
 
+    /* the toolbar trigger (filter-chip-v1): active = the selected chip (black) + „<label>, N aplicate” as its name */
+    const triggerName = (label, n) => `${label}, ${n} ${n === 1 ? "aplicat" : "aplicate"}`;
+    const markTrigger = (n) => {
+      if (!toggle) return;
+      toggle.classList.toggle("is-selected", n > 0);
+      const label = toggle.querySelector(".chip__label")?.textContent.trim() || "Filtre";
+      if (n) toggle.setAttribute("aria-label", triggerName(label, n)); else toggle.removeAttribute("aria-label");
+    };
     const appliedEntries = () => Object.entries(cfg.state().applied).filter(([, values]) => values?.length);
     const draftOf = () => { const st = cfg.state(); if (!st.draft) st.draft = JSON.parse(JSON.stringify(st.applied)); return st.draft; };
     const sameSelection = (a = {}, b = {}) => {
@@ -366,6 +374,7 @@
       const draft = draftOf();
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
+      markTrigger(appliedCount);
       const facets = cfg.facets();
       /* the chips show only after the button is clicked; the button's badge keeps telling
          how many values are applied while the bar is closed */
@@ -421,16 +430,18 @@
     const copySel = (sel) => Object.fromEntries(Object.entries(sel || {}).filter(([, v]) => v?.length).map(([k, v]) => [k, [...v]]));
     const selCount = (sel) => Object.values(sel).reduce((sum, v) => sum + (v?.length || 0), 0);
 
-    /* „Filtre” pill: the library chip with a leading icon (40, round), black + count badge when applied */
+    /* „Filtre” pill = the filter trigger (filter-chip-v1): library chip, leading filter icon in rest AND active,
+       black + the chip's numbered badge when applied (css/facet-filter.css „Filter trigger”) */
     const filtersPillInner = (n) => `
-          <span class="chip__icon"><svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-filter-lines"></use></svg></span>
+          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-filter-lines"></use></svg></span>
           <span class="chip__label">Filtre</span>
-          ${n ? `<span class="badge badge--lg badge--solid-light">${n}</span>` : ""}`;
+          ${n ? `<span class="chip__badge" aria-hidden="true">${n}</span>` : ""}`;
     const renderPhone = () => {
       const state = cfg.state();
       state.draft = null;
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
+      markTrigger(appliedCount);
       const facets = cfg.facets();
       bar.classList.add("is-sheets");
       bar.hidden = !facets.length && !sortEl;
@@ -449,7 +460,7 @@
         restoreSort();
         bar.innerHTML = `
       <div class="e-permits-workplace__filter-chips e-permits-workplace__filter-tools" data-filter-phone-row>
-        <button class="chip e-permits-workplace__filter-chip e-permits-workplace__filter-chip--all" type="button" aria-haspopup="dialog" aria-expanded="false" data-filter-all></button>
+        <button class="chip e-permits-filter-trigger e-permits-workplace__filter-chip--all" type="button" aria-haspopup="dialog" aria-expanded="false" data-filter-all></button>
         ${sortEl ? '<div class="e-permits-workplace__filter-sort" data-filter-phone-sort></div>' : ""}
       </div>
       <div class="e-permits-workplace__filter-meta" aria-live="polite" data-filter-phone-meta hidden></div>`;
@@ -464,8 +475,9 @@
       pill.hidden = !facets.length;
       pill.classList.toggle("is-selected", appliedCount > 0);
       pill.setAttribute("aria-expanded", String(sheet?.kind === "all"));
-      if (appliedCount) pill.setAttribute("aria-label", `Filtre: ${appliedCount} ${appliedCount === 1 ? "valoare aplicată" : "valori aplicate"}`);
+      if (appliedCount) pill.setAttribute("aria-label", triggerName("Filtre", appliedCount));
       else pill.removeAttribute("aria-label");
+      if (sheetEl) pill.setAttribute("aria-controls", sheetEl.id); else pill.removeAttribute("aria-controls");
       if (pill.dataset.count !== String(appliedCount)) { pill.innerHTML = filtersPillInner(appliedCount); pill.dataset.count = String(appliedCount); }
       /* applied → one plain line under the row: the result count + the one-tap „Șterge filtrele” */
       const meta = bar.querySelector("[data-filter-phone-meta]");
@@ -573,6 +585,7 @@
           <button class="btn btn-primary btn-lg e-permits-filter-sheet__apply" type="button" data-sheet-apply></button>
         </div>`
       });
+      if (!sheetEl.id) sheetEl.id = "geap-filter-sheet"; /* the „Filtre” pill's aria-controls */
       wireSheet();
     };
 

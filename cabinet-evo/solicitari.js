@@ -546,10 +546,10 @@
               </button>
             </div>
           </div>
-          <button class="btn btn-neutral btn-md e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="sm-filters" data-sm-filter-toggle>
-            <svg class="icon medium" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg>
-            <span>Filtre</span>
-            <span class="badge badge--lg badge--solid-light" data-sm-filter-count hidden></span>
+          <button class="chip e-permits-filter-trigger e-permits-workplace__advanced cab-filter" type="button" aria-expanded="false" aria-controls="sm-filters" data-sm-filter-toggle>
+            <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="${SPRITE}#icon-filter-lines"></use></svg></span>
+            <span class="chip__label">Filtre</span>
+            <span class="chip__badge" aria-hidden="true" data-sm-filter-count hidden></span>
           </button>
           <div class="cab-sort">
             <button type="button" class="btn btn-neutral btn-md cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>

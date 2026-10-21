@@ -21007,7 +21007,8 @@ button.e-permits-steps-strip__cell:focus-visible {
   margin: 0;
 }
 
-.e-permits-front-office-page[data-demo-flow="back-office"] :is([data-workplace-toolbar], .e-permits-clas-grid__toolbar, .e-permits-pay__toolbar, .e-permits-rt__toolbar) .chip {
+/* the filter trigger chip sizes itself (css/facet-filter.css „Filter trigger”: 36 here via `--sm`, 40 in eKYC) */
+.e-permits-front-office-page[data-demo-flow="back-office"] :is([data-workplace-toolbar], .e-permits-clas-grid__toolbar, .e-permits-pay__toolbar, .e-permits-rt__toolbar) .chip:not(.e-permits-filter-trigger) {
   box-sizing: border-box;
   height: var(--list-toolbar-control);
   padding-block: 0;

@@ -303,6 +303,33 @@
   /* „Filtre” (US-158 AC-04 / 05) = the shared facet filter: desktop toggle → chip → option → Confirmă → Aplică;
      phones chip → sheet → „Arată N rezultate” */
   const smPhone = () => window.matchMedia("(max-width: 760px)").matches;
+  /* apply the first N checklist values across the facets (date facets skipped), then close the bar (desktop) — so the
+     „Filtre” trigger shows its active look on its own (filter-chip-v1) */
+  const smPickMany = (n) => async (h) => {
+    let left = n;
+    const tick = async (sel) => { for (const box of [...document.querySelectorAll(sel)]) { if (left <= 0) break; if (box.type === "checkbox" && !box.checked) { box.click(); left -= 1; await h.wait(40); } } };
+    if (smPhone()) {
+      const SHEET = '.e-permits-filter-sheet.is-all[aria-hidden="false"]';
+      await h.click("[data-filter-all]"); await h.find(`${SHEET} .bottom-sheet__panel`); await h.wait(400);
+      for (const t of [...document.querySelectorAll(`${SHEET} [data-sheet-toggle]`)]) {
+        if (left <= 0) break;
+        if (t.getAttribute("aria-expanded") !== "true") { t.click(); await h.wait(250); }
+        await tick(`${SHEET} [data-filter-option][data-sheet-facet="${t.dataset.sheetToggle}"]`);
+      }
+      await h.click("[data-sheet-apply]"); await h.wait(400); return;
+    }
+    if (document.querySelector("[data-sm-filters]")?.hidden) await h.click("[data-sm-filter-toggle]");
+    for (const key of [...document.querySelectorAll("[data-sm-filters] [data-filter-facet]")].map((c) => c.dataset.filterFacet)) {
+      if (left <= 0) break;
+      await h.click(`[data-sm-filters] [data-filter-facet="${key}"]`); await h.wait(250);
+      if (document.querySelector(".e-permits-workplace__filter-pop [data-filter-date-preset]")) { document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true })); await h.wait(200); continue; }
+      await tick(".e-permits-workplace__filter-pop [data-filter-option]");
+      await h.click("[data-filter-confirm]"); await h.wait(200);
+    }
+    await h.click("[data-filter-commit]"); await h.wait(300);
+    await h.click("[data-sm-filter-toggle]"); await h.wait(200);
+    document.activeElement?.blur();
+  };
   const smPick = (facet, values) => async (h) => {
     if (!smPhone() && document.querySelector("[data-sm-filters]")?.hidden) await h.click("[data-sm-filter-toggle]");
     await ffFacet(h, facet);
@@ -2068,6 +2095,11 @@
 
     /* ---- EVO Cabinet › Solicitările mele (US-19, US-158, US-161, US-29, US-24, US-135, US-159) ---- */
     "sm-01": sm(),
+    /* the „Filtre” trigger = the library chip (filter-chip-v1): N values applied, bar closed → black chip + numbered
+       badge (1 / 3 / 12, the badge width); phones: the pill after „Arată” */
+    "sm-01v": sm(smPickMany(1)),
+    "sm-01x": sm(smPickMany(3)),
+    "sm-01y": sm(smPickMany(12)),
     "sm-01s": sm(async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "sm-01a": sm(smPick("status", ["Spre achitare", "Informații suplimentare"])),
     "sm-01b": sm(smPick("status", ["Schiță"])),
@@ -2443,6 +2475,8 @@
     "ek-04c": ekList("#ek-active", ekFacet("client")),
     "ek-04c1": ekList("#ek-active", async (h) => { await ekFacet("client")(h); await h.fill("[data-filter-search]", "zzz", { leave: false }); }),
     "ek-04d": ekList("#ek-active", async (h) => { await ekPick("client", [0])(h); await ekCommit(h); }),
+    /* the filter trigger chip with a two-digit badge (filter-chip-v1): 12 values (8 clients + 4 statuses), bar closed (desktop) */
+    "ek-04o": ekList("#ek-active", async (h) => { await ekPick("client", [0, 1, 2, 3, 4, 5, 6, 7])(h); await ekPick("statut", [0, 1, 2, 3])(h); await ekCommit(h); if (!ekPhone()) { await h.click("[data-workplace-filter-toggle]"); document.activeElement?.blur(); } }),
     /* 2026-10-19 — the BO Dosare filter on eKYC (desktop + phone sheets): Statut popover with tags
        (multi-select), two facets applied, a draft not applied yet, all filters / „Mai multe”, no results */
     "ek-04j": ekList("#ek-active", ekFacet("statut")),
