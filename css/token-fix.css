@@ -1,0 +1,15 @@
+/* ==========================================================================================================
+   Token repair — ONE shared file, loaded right after css/main.css on every page (library-adopt-v4, 2026-10-21)
+
+   main.css (= Components/css/main.css, never edited) maps 11 base tokens onto the `--black-1000` / `--white-1000`
+   primitives. Those two ARE defined since the Sept 2026 repair (main.css :8–9), so 10 of the 11 resolve on every
+   page (measured in the browser on all 9 pages). The one still missing in the light theme is
+   `--color-background-base-inverse-on-color`: main.css defines it only inside `[data-theme=dark]`. It is defined
+   here with the value it has there (the white primitive). Every product use already carries a white fallback, so
+   nothing paints differently — the token simply stops being invalid (library components without a fallback get it).
+   This replaces EVO Cabinet's page-scoped copy of all 11 tokens (`.cab-page`, removed).
+   ========================================================================================================== */
+
+:root {
+  --color-background-base-inverse-on-color: var(--white-1000, #ffffff);
+}

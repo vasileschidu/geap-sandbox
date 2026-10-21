@@ -2055,3 +2055,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   owns it. Inventory rows carry MEASURED numbers (one probe over the states that show each: box, padding, type,
   colours, radius, border) instead of numbers copied from old prose; the measurements also surfaced a PO item (the BO
   role card padding 9 13 is off-scale).
+- 2026-10-21 · Shared token repair (library-adopt-v4). The brief said main.css maps 11 base tokens onto never-defined
+  `--black-1000 / --white-1000`; MEASURED in the browser (a span coloured `var(token, rgb(1,2,3))` per token, on all 9
+  pages), the primitives were already defined (Sept repair) and only ONE token was still invalid in the light theme
+  (`--color-background-base-inverse-on-color`, defined only under `[data-theme=dark]`). So `css/token-fix.css` defines that
+  one, Cabinet's 11-token copy goes, and the auditor's `static.tokenAllow` lists the one name. Proof of „nothing changes”
+  without pixel noise: a computed colour / background / border / fill signature of every visible element (≈27 000) on
+  BO, FO, eKYC, Ghișeu, Cabinet, RAP and the standalone pages, before / after = identical. Check the premise before
+  building the „fix” a brief describes — old docs (and briefs written from them) lag the code.

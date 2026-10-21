@@ -12,23 +12,7 @@
    ========================================================================== */
 
 .cab-page {
-  /* main.css maps these 11 base tokens onto --black-1000 / --white-1000, which
-     are never defined anywhere, so each one computes to guaranteed-invalid on
-     :root and inherits down as such — text falls back to the browser's black and
-     base backgrounds to transparent. Redefining them here (the values those two
-     primitives were meant to hold) repairs them, scoped to this page. */
-  --color-background-base-default: #ffffff;
-  --color-background-base-inverse-default: #121212;
-  --color-background-base-inverse-on-color: #ffffff;
-  --color-icon-base-default: #121212;
-  --color-icon-base-default-on-color: #121212;
-  --color-icon-base-inverse-default: #ffffff;
-  --color-icon-base-inverse-on-color: #ffffff;
-  --color-text-base-default: #121212;
-  --color-text-base-default-on-color: #121212;
-  --color-text-base-inverse-default: #ffffff;
-  --color-text-base-inverse-on-color: #ffffff;
-
+  /* the base colour tokens come from main.css + css/token-fix.css (the page-scoped copy was removed, library-adopt-v4) */
   --cab-shell-width: 1248px;
   /* list pages (2026-10-20, user: „full container width, edge to edge with the header, like RAP”) = the
      header's content box (.e-permits-fo-auth__brandbar-inner: page width − 2 gutters = 1200; 24 / 16 page

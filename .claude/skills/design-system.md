@@ -323,8 +323,9 @@ Semantic tokens express intent, not raw values. Always use these in code.
 
 > ᶠ = confirmed directly from Figma variables on 2026-08-17 (Components file,
 > Button node `39:177`). ⚠ = the CSS in `main.css` maps this token onto the
-> undefined `--black-1000` / `--white-1000` primitives, so it computes to invalid
-> — always pass a fallback. See the `components` skill §8.
+> `--black-1000` / `--white-1000` primitives — HISTORY: they were undefined until Sept 2026; now defined in main.css,
+> and the last light-theme gap (`--color-background-base-inverse-on-color`) is defined by `css/token-fix.css`
+> (2026-10-21). Every base token resolves on every page; keep the fallbacks anyway. See the `components` skill §8.
 
 **✅ Resolved — `--color-background-transparent-brand` is legacy; do not use it.**
 Its value is `purple/600` at 20% (`#7e37f933`), but the brand colour is

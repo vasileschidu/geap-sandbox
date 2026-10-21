@@ -8633,6 +8633,8 @@ from scratch as a direct result.
 implementations): copy-to-clipboard, status pills, filter chips, empty states, avatars
 (5 independent implementations), and focus rings (**four different idioms in `rap-evo` alone**).
 
+**✅ Status 2026-10-21 (library-adopt-v4, measured in the browser on all 9 pages):** `--black-1000` / `--white-1000` ARE defined in main.css since the Sept 2026 repair (`:root`, lines 8–9), so 10 of the 11 tokens below resolve everywhere. The one still invalid in the light theme was `--color-background-base-inverse-on-color` (main.css defines it only in `[data-theme=dark]`) → `css/token-fix.css` (loaded right after main.css on every page) defines it as `var(--white-1000)`; EVO Cabinet's page-scoped copy of all 11 (`.cab-page`) was removed. Computed colours of ~27 000 elements on 29 page × width samples: identical before / after. The table below is the HISTORY of the Sept audit.
+
 **12 core semantic tokens are broken.** `--black-1000` and `--white-1000` are used 12 times
 in `main.css` and **defined zero times**, so every token below computes to invalid and only
 the inline fallback renders:

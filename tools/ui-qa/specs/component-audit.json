@@ -771,7 +771,7 @@
       }
     ],
     "monoAllow": "e-permits-doc-kw|e-permits-cfg-num-token|e-permits-doc-kwselect",
-    "tokenAllow": []
+    "tokenAllow": ["--color-background-base-inverse-on-color"], "_tokenAllow": "css/token-fix.css defines the one base token main.css leaves undefined in the light theme (library-adopt-v4)"
   },
   "fixHints": {
     "action-icon": "„Editează…” carries the pen (icon-edit), every removal „Elimină… / Șterge…” the trash (icon-delete), before the label, in the button's colour: shell actionLabelHtml(label) / renderRowActions / renderStackMenu (they pick the icon from the label — actionIconFor), GEAPActRow / Cabinet menu items { icon: \"icon-delete\" }; hand-written buttons add <svg class=\"icon small\"><use href=\"…#icon-delete\"></use></svg><span>Elimină</span> (components.md › Action icons).",
