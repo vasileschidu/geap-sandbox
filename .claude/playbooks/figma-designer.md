@@ -2261,3 +2261,37 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No Agent tool in this session → stored gate audit (`qsweep`/`audit`) on both mains + the label / note of sm-01, nt-01d, pp-01,
     sm-04c: 0 findings; census 132 / 132 label + note instances correct; links curl 200, all 66 states in the live demo-states.js.
 
+
+- 2026-10-21 · EVO Cabinet toolbar + card triggers + local components page (user via coordinator; file iitScYOwMYjDayuyrm3750).
+  (1) List toolbars on ↳ My requests + ↳ Permits: 86 local look-alikes replaced → „Filtre” = library **filter-chip** (9901c458…;
+  user changed the plan mid-job from Button to chip): 52 instances (My requests 37, Permits 15), height overridden 40 desktop / 48
+  phones (chip is 36 only), desktop radius bound to border-radius/radius-6 (= the Medium button), phones keep the pill; icon =
+  Foundations „filter-2, sort” 7b235483… (= code icon-filter-lines; the library 20/filter is the SLIDERS glyph); open = State Focus;
+  active = black + icon + count (6 instances). „Sortează” = library button-filled-rectangular Neutral Trailing Medium (desktop) /
+  button-filled-circular Neutral Trailing Large (phones), open = State Active + effect style Focus Ring/Medium (97cdddcd…): 34.
+  Local Filter button 1056:275 · Filter pill (phone) 1141:39475 · Sort trigger 1119:3048 deleted at 0 instances. Repo:
+  tools/figma/cabinet/swap-toolbar-buttons.js (the Button pass; the chip pass is in this lesson). (2) Card triggers in the MAINS:
+  Request row 1117:3222 ⋮ = button-filled-rectangular Neutral Icon=Only Small (20/more-vertical in the 16 slot), Act row 1055:1380
+  „Postprocese ⌄” = rectangular Neutral Trailing Small (was circular „Inițiază un postproces”), both ABSOLUTE in the card corner,
+  constraints RIGHT/TOP, 12/12 desktop, 10/10 phones; line 1 reserves trigger + 8 (paddingRight 40 bound spacing-40 / 133). Act row
+  rebuilt to the code anatomy (desktop p16 r16 stroke 1.5, icon inside the title line, meta full width under the icon; phone:
+  „Line 1” = tags with the 24 icon ABSOLUTE at y −2 + paddingBottom 2 = the code's icon overhang → title at 46 like the code).
+  97 request rows whose only action is „Detalii” got a per-instance nested swap to Neutral Leading Small „Detalii” + 24/eye-open.
+  (3) Tacit acts: 16 „Valabil” tags next to „Aprobare tacită” hidden (act rows + pp-01l profile meta). (4) 🧱 Local components:
+  67 components, 34 overlaps (whole sections had components stacked at 4680,0) → 9 Sections „Components · <group>” (title H4, 80
+  padding / gap, wrap 5600), 0 overlaps / 0 fractions / 0 loose; empty holders removed; unused = Date sheet content sm-01g / sm-01h /
+  sm-01p. Lessons:
+  - **Library button / chip instances collapse when set to HUG vertically** (the variant's FIXED height is lost → 20 px high). After
+    `createInstance()` in an auto-layout row: `layoutSizingVertical = "FIXED"; resize(w, variant.height)`, then HUG horizontally.
+  - **Absolute nested children can't be moved on an instance** (`x` = „relative-transform cannot be overridden”). Put the corner
+    trigger in the MAIN with constraints RIGHT/TOP: a per-instance swap to a wider button keeps the right offset automatically.
+  - Library filter-chip gaps (report): one height (36), On+Leading has no Counter Badge and On+None has no icon → active chip =
+    Off+Leading instance with the On variant's paints copied (surface / label / icon tokens) + the On variant's numbered-badge.
+    Ask the library owners for a counter on Mode=On, Icon=Leading.
+  - `strokesIncludedInLayout` differed inside one family (Act desktop true / stroke 1 vs Request false / 1.5) → offsets measured
+    from the frame edge only line up when the family shares one convention; check it before placing absolute children.
+  - Row height changes shift every block → restack from an ordered list; the boards had drifted gaps (114 – 632) that the pass
+    normalised to 240 (jump markers moved with their block). Builders that reference the deleted locals (screens-sm.js /
+    screens.js `filterBtn` / `sortTrigger`, stored `cab`/`ids` smSection 1117:2999) need the library pieces before the next rebuild.
+  - No Agent tool in this session → figma-audit rules run read-only on the 4 toolbars + both row sets: only declared values (meta gap
+    18, reserve 133, icon overhang 2); 0 icon ≠ label, 0 unbound colours, 0 fractions.
