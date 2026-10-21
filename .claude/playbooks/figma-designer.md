@@ -2156,3 +2156,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     row was 483 + 16 + 483 = 982 in a 980 row (panel 1022 vs code 1024) and clipped the Category field's right edge → both FILL
     (482), clip off. Read every clipped-content finding on the node the user pointed at.
   - The other agent's node (10547:213285) sat in block 03c → skipped the whole block 03c (its scan had no hit anyway).
+
+- 2026-10-21 · Classifiers side menu (user: „something is wrong with the side menu”, GEAP 10177:9652 = clf-07). The local-admin
+  sidebars (blocks 01b / 07 / 07a, instances 10177:2430 / 10177:9666 / 10177:9906 of the local `sidebar-public-services`
+  8993:35379) showed TWO defects against the code (data/e-permits-roles.json `local-admin` = one group „Administrare” with only
+  „Clasificatoare”; CDP probe of clf-07: Administrare at aside y 66, one 36 px link): (1) „Fluxuri de lucru” visible — the item was
+  added to the MAIN on 2026-10-15 visible by default, so every instance that had hidden the other admin items still showed it;
+  (2) an empty 50 px gap above „Administrare” — the „Locul de muncă” group frame (8816:120892) stayed visible with all its items and
+  its title hidden. Fix = instance overrides (group frame + Fluxuri item hidden). Plus a MAIN defect: the „Fluxuri de lucru” item
+  11526:59236 was FIXED 40 high (icon at y 10) while every item is HUG 36 (code `.e-permits-shell__nav-link` 36) → HUG, all 345
+  instances follow (sidebars are FILL, no block moved). Lessons:
+  - **Adding an item to a shared nav main = census the role variants**: instances that hide items per role (local admin, specialist)
+    get the new item VISIBLE. After adding, walk every instance and hide it where that role's code menu has no such item.
+  - **Hidden children ≠ hidden group**: a group frame whose title and items are all hidden still takes its padding + container
+    height (50 here). Hide the group frame itself. Census rule: visible group with 0 visible items = bug.
+  - A new item cloned into a main can arrive with FIXED height from the source; check its sizing against its siblings.
+  - Census tool stored in figma.root shared plugin data „sbfix”/„census” (run with PAGES = page ids; flags empty groups, item height
+    ≠ 36, local-admin Fluxuri, sidebar ≠ parent height). Whole file = 345 sidebars on 8 BO pages, 2–8 pages per call were safe.
+  - Drift found, not changed: code `specialist`/super-admin menus now start with „Dosare noi” (badge 8, commit 70fc5204, ghișeu) — no
+    Figma sidebar has it (main has Dosarele în lucru / Dosare cu alerte / Dosare finalizate). Needs a PO call before adding it to
+    the main (it would show on all 345 instances). Stored gate audit on 07 / 01b / 07a: 0 findings in the sidebars; the Main content
+    keeps the captured baseline (fractional y, gov-bar text #000, truncated th „Termen de examinare (zile)” / „Frecvența controalelor”,
+    breadcrumb separators cut by their item).
