@@ -6580,8 +6580,7 @@
   line-height: var(--line-height-lh-24, 24px);
 }
 
-.e-permits-fo-icon-button,
-.e-permits-fo-back-button {
+.e-permits-fo-icon-button {
   align-items: center;
   appearance: none;
   border: 0;
@@ -6600,9 +6599,7 @@
 }
 
 .e-permits-fo-icon-button:hover,
-.e-permits-fo-icon-button:focus-visible,
-.e-permits-fo-back-button:hover,
-.e-permits-fo-back-button:focus-visible {
+.e-permits-fo-icon-button:focus-visible {
   background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
@@ -6765,34 +6762,12 @@
   display: none;
 }
 
-.e-permits-fo-doc-field__add {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  border: none;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-brand-default, #0058d2);
-  cursor: pointer;
-  display: flex;
+/* „Adaugă fișier” / „Adaugă document” / „Încarcă fișier” = ONE library button (audit-fix-v2): `btn btn-secondary btn-md`
+   + a 20 leading icon (css/button-icons.css); only the placement is ours */
+.e-permits-fo-doc-field__add,
+.e-permits-fo-add-doc-button {
   flex-shrink: 0;
-  font-family: inherit;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  height: 40px;
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
   white-space: nowrap;
-}
-
-.e-permits-fo-doc-field__add:hover {
-  background: #d4e4f7;
-}
-
-.e-permits-fo-doc-field__add .icon {
-  height: 20px;
-  width: 20px;
 }
 
 /* Boxed doc field (2026-10-13): a required attachment inside a form section (guest „Procură
@@ -6917,12 +6892,6 @@
   padding: var(--spacing-32, 32px);
 }
 
-.e-permits-fo-instance-switch-modal__secondary:focus-visible,
-.e-permits-fo-instance-switch-modal__primary:focus-visible {
-  outline: var(--border-width-3, 3px) solid var(--blue-sky-100, #cfe1fa);
-  outline-offset: 2px;
-}
-
 .e-permits-fo-instance-switch-modal__icon {
   align-items: center;
   background: var(--color-background-base-secondary, #f5f5f5);
@@ -6973,55 +6942,10 @@
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
+/* footer = the library modal footer (audit-fix-v2): `.modal-buttons` (gap 12, 40 pills 14/20) with library
+   `btn btn-neutral` (cancel) + `btn btn-primary` / `btn btn-destructive` (confirm); only the card inset is ours */
 .e-permits-fo-instance-switch-modal__actions {
-  display: flex;
-  gap: var(--spacing-8, 8px);
-  justify-content: flex-end;
   padding: var(--spacing-12, 12px) var(--spacing-20, 20px) var(--spacing-24, 24px);
-}
-
-.e-permits-fo-instance-switch-modal__secondary,
-.e-permits-fo-instance-switch-modal__primary {
-  align-items: center;
-  appearance: none;
-  border: none;
-  border-radius: var(--border-radius-full, 999px);
-  cursor: pointer;
-  display: flex;
-  font-family: inherit;
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: 48px;
-  justify-content: center;
-  line-height: var(--line-height-lh-24, 24px);
-  min-width: 88px;
-  padding: 0 var(--spacing-20, 20px);
-  transition: background-color 100ms ease, border-color 100ms ease, color 100ms ease, transform 100ms ease;
-  white-space: nowrap;
-}
-
-.e-permits-fo-instance-switch-modal__secondary {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1-5, 1.5px) solid var(--color-border-base-inverse, #121212);
-  color: var(--color-text-base-default, #121212);
-}
-
-.e-permits-fo-instance-switch-modal__secondary:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-fo-instance-switch-modal__primary {
-  background: var(--color-background-brand-default, #0058d2);
-  color: #fff;
-}
-
-.e-permits-fo-instance-switch-modal__primary:hover {
-  background: #004ab3;
-}
-
-.e-permits-fo-instance-switch-modal__secondary:active,
-.e-permits-fo-instance-switch-modal__primary:active {
-  transform: scale(0.985);
 }
 
 @keyframes e-permits-fo-modal-fade-in {
@@ -7677,28 +7601,6 @@
   width: 100%;
 }
 
-.e-permits-fo-add-doc-button {
-  align-items: center;
-  appearance: none;
-  background: transparent;
-  border: var(--border-width-1-5, 1.5px) solid var(--color-border-brand-default, #0058d2);
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-brand-default, #0058d2);
-  cursor: pointer;
-  display: inline-flex;
-  flex-shrink: 0;
-  font-family: inherit;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  height: 32px;
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 52px;
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
-  white-space: nowrap;
-}
-
 /* ── Other-doc card ── */
 
 .e-permits-fo-doc-card {
@@ -8123,29 +8025,9 @@
   width: 100%;
 }
 
-.e-permits-fo-upload-button {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-base-inverse-default, #1e1e1e);
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: #fff;
-  cursor: pointer;
+/* the drop zone's own button shows on phones only (≤720 below) */
+.e-permits-fo-upload-button.btn {
   display: none;
-  font-family: inherit;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  height: 40px;
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-12, 12px);
-}
-
-.e-permits-fo-upload-button .icon {
-  flex: 0 0 20px;
-  height: 20px;
-  width: 20px;
 }
 
 .e-permits-fo-file-drop:hover,
@@ -9464,76 +9346,15 @@
   padding-top: var(--spacing-24, 24px);
 }
 
-.e-permits-fo-draft-button {
-  align-items: center;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  font-family: inherit;
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  height: 48px;
-  justify-content: center;
-  line-height: var(--line-height-lh-24, 24px);
-  min-width: 72px;
-  padding: 0 var(--spacing-20, 20px) 0 var(--spacing-16, 16px);
+/* FO step footer (audit-fix-v2, 2026-10-21): library buttons — „Înainte” `btn btn-primary`, „Salvează ca schiță”
+   `btn btn-text-neutral`, back `btn btn-neutral btn-icon-only` = Figma Button Large (48 · 16/24 · icon 20, sides 20 / 16
+   on the icon side, css/button-icons.css). The old classes stay as layout / JS hooks only. The library `.btn` text reads
+   the responsive --text-body-md-500-font-size (14 at ≤720) — the footer keeps Large at every width. */
+.e-permits-fo-form__footer {
+  --text-body-md-500-font-size: var(--font-size-fs-16, 16px);
 }
 
-.e-permits-fo-draft-button:hover,
-.e-permits-fo-draft-button:focus-visible {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  outline: none;
-}
-
-.e-permits-fo-draft-button__icon {
-  display: block;
-  flex-shrink: 0;
-  height: 20px;
-  width: 20px;
-}
-
-.e-permits-fo-back-button {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  height: 48px;
-  width: 48px;
-}
-
-.e-permits-fo-next {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-disabled-default, #f1f1f1);
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-disabled-on-disabled, #b2b2b2);
-  display: inline-flex;
-  font: inherit;
-  font-size: var(--font-size-fs-16, 16px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  gap: var(--spacing-6, 6px);
-  height: 48px;
-  justify-content: center;
-  line-height: var(--line-height-lh-24, 24px);
-  min-width: 72px;
-  padding: 0 var(--spacing-16, 16px) 0 var(--spacing-20, 20px);
-  transition: background-color 160ms ease, color 160ms ease;
-}
-
-.e-permits-fo-next:not(:disabled) {
-  background: var(--color-background-brand-default, #0058d2);
-  color: var(--color-text-brand-on-default, #fff);
-  cursor: pointer;
-}
-
-.e-permits-fo-next:not(:disabled):hover,
-.e-permits-fo-next:not(:disabled):focus-visible {
-  background: var(--color-background-brand-hover, #0046a8);
-}
-
+/* the sprite has one arrow glyph: „Înainte” mirrors it (library preview: icon-arrow-left turned) */
 .e-permits-fo-next .icon {
   transform: scaleX(-1);
 }
@@ -15362,7 +15183,7 @@
     line-height: var(--line-height-lh-16, 16px);
   }
 
-  .e-permits-fo-upload-button {
+  .e-permits-fo-upload-button.btn {
     display: inline-flex;
   }
 }
@@ -15711,8 +15532,20 @@
     width: 100%;
   }
 
-  .e-permits-fo-next {
-    height: 48px;
+  /* audit-fix-v2: „Salvează ca schiță” (library text button) keeps one line; when it and the step navigation do
+     not fit on one line, the navigation moves to its own row on the right (row gap 12) */
+  .e-permits-fo-form__actions:is(.e-permits-fo-form__actions--with-draft, .e-permits-fo-form__actions--confirmation) {
+    flex-wrap: wrap;
+    row-gap: var(--spacing-12, 12px);
+  }
+
+  .e-permits-fo-draft-button.btn {
+    white-space: nowrap;
+  }
+
+  .e-permits-fo-form__actions--with-draft > .e-permits-fo-form__actions-primary,
+  .e-permits-fo-form__actions--confirmation > .e-permits-fo-form__actions-primary {
+    margin-left: auto;
   }
 
   .e-permits-fo-mnotify-info {
@@ -23249,7 +23082,6 @@ button.e-permits-steps-strip__cell:hover,
 
 /* icon buttons that rest on tertiary: hover one step darker (was the same #f1f1f1) */
 .e-permits-fo-icon-button:hover,
-.e-permits-fo-back-button:hover,
 .e-permits-builder__close:hover,
 .cab-card__actions .btn.cab-card__more:hover:not(:disabled) {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
@@ -23692,18 +23524,6 @@ button.e-permits-steps-strip__cell:hover,
 /* warning confirm (data will be lost, e.g. G8 „Părăsești cererea?”): amber icon, same tile */
 .e-permits-fo-instance-switch-modal__icon--warning {
   color: var(--color-icon-warning-default, #dc6803);
-}
-
-.e-permits-fo-instance-switch-modal__primary--danger {
-  background: var(--color-background-danger-default, #d92d20);
-}
-
-.e-permits-fo-instance-switch-modal__primary--danger:hover {
-  background: var(--color-background-danger-default-hover, #b32318);
-}
-
-.e-permits-fo-instance-switch-modal__primary--danger:active {
-  background: var(--color-background-danger-default-active, #912018);
 }
 
 /* „Solicitările mele” inside the instance-switch text opens EVO Cabinet */
@@ -25180,11 +25000,6 @@ body:has(:is([aria-haspopup]:not([aria-haspopup="false"]), [role="combobox"], .j
 
 .e-permits-fo-stepper__item:not(.is-active) .e-permits-fo-stepper__row:not([aria-disabled="true"]):hover .e-permits-fo-stepper__label {
   color: var(--color-text-brand-default, #0058d2);
-}
-
-/* FO „Adaugă document” (brand outline): the secondary button hover fill */
-.e-permits-fo-add-doc-button:hover {
-  background: var(--color-background-brand-secondary, #e8f0fb);
 }
 
 /* checkbox in error: the FO error-field hover (red 2px look) */

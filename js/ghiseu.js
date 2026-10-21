@@ -1687,7 +1687,7 @@
             ${doc.description ? `<p class="e-permits-fo-doc-field__desc">${esc(doc.description)}</p>` : ""}
             ${errSlot(`doc-${doc.id}`)}
           </div>
-          <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(doc.label)}">${icon("plus-large")}Adaugă fișier</button>
+          <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${esc(doc.label)}">${icon("plus-large")}Adaugă fișier</button>
         </div>
         ${doc.id === "procura" && !(S.cur?.docs?.procura || []).length ? U().renderNotice?.("info", "<strong>Procura pe hârtie a fost verificată la inițiere.</strong> Atașați copia ei scanată.") || "" : ""}
         <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
@@ -1709,7 +1709,7 @@
           </div>
           <div class="e-permits-fo-other-docs__body">
             <div data-fo-other-doc-list></div>
-            <button class="e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>${icon("plus-small")}<span>Adaugă document</span></button>
+            <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>${icon("plus-small")}<span>Adaugă document</span></button>
           </div>
         </div>
       </section>
@@ -1845,7 +1845,7 @@
               <p class="e-permits-fo-doc-field__desc">Se generează prin MDocs după șablonul serviciului, cu datele de mai sus și textul consimțământului. Tipăriți-l și dați-l solicitantului spre semnare.</p>
               ${errSlot("paper")}
             </div>
-            <button class="e-permits-fo-doc-field__add" type="button" data-gh-paper>${icon("page-text")}Generează cererea pe hârtie</button>
+            <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-gh-paper>${icon("page-text")}Generează cererea pe hârtie</button>
           </div>
         </div>`;
     const olograf = st.olograf ? `

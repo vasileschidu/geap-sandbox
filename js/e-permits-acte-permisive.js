@@ -225,15 +225,15 @@
       return `
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions${draftAttrs ? " e-permits-fo-form__actions--with-draft" : ""}">
-            ${draftAttrs ? `<button class="e-permits-fo-draft-button" type="button" ${draftAttrs}>
+            ${draftAttrs ? `<button class="btn btn-text-neutral e-permits-fo-draft-button" type="button" ${draftAttrs}>
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg>
               <span>Salvează ca schiță</span>
             </button>` : ""}
             <div class="e-permits-fo-form__actions-primary">
-              ${backAttrs ? `<button class="e-permits-fo-back-button" type="button" aria-label="${esc(backLabel)}" ${backAttrs}>
+              ${backAttrs ? `<button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="${esc(backLabel)}" ${backAttrs}>
                 <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>` : ""}
-              ${nextLabel ? `<button class="e-permits-fo-next" type="button" ${nextAttrs}${nextDisabled ? " disabled" : ""}>
+              ${nextLabel ? `<button class="btn btn-primary e-permits-fo-next" type="button" ${nextAttrs}${nextDisabled ? " disabled" : ""}>
                 <span>${esc(nextLabel)}</span>
                 ${nextArrow ? '<svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>' : ""}
               </button>` : ""}
@@ -2626,14 +2626,14 @@
         `;}).join("")}
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-            <button class="e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
-              <button class="e-permits-fo-next" type="button" data-fo-next="step-2"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+              <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-next="step-2"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
             </div>
           </div>
         </footer>
@@ -2659,7 +2659,7 @@
               <span><span>Drag and drop or</span> <strong>choose files</strong></span>
               <small>Un singur fișier ${escapeFrontOfficeHtml(doc.accept || "JPG, PNG, PDF, XLS, ZIP, DOCX")} <span aria-hidden="true">•</span> max ${escapeFrontOfficeHtml(doc.maxSize || "60 MB")}</small>
             </span>
-            <button class="e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
+            <button class="btn btn-secondary btn-md e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
               Încarcă fișier
             </button>
@@ -2722,7 +2722,7 @@
                 </span>
                 ${doc.description ? `<p class="e-permits-fo-doc-field__desc">${escapeFrontOfficeHtml(doc.description)}</p>` : ""}
               </div>
-              <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${escapeFrontOfficeHtml(doc.label)}">
+              <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${escapeFrontOfficeHtml(doc.label)}">
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                 Adaugă fișier
               </button>
@@ -2749,7 +2749,7 @@
             </div>
             <div class="e-permits-fo-other-docs__body">
               <div data-fo-other-doc-list></div>
-              <button class="e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>
+              <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>
                 <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
                 Adaugă document
               </button>
@@ -2758,17 +2758,17 @@
         </section>
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-            <button class="e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
-              <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Detalii serviciu" data-fo-prev="step-3">
+              <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Detalii serviciu" data-fo-prev="step-3">
                 <svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
-              <button class="e-permits-fo-next e-permits-fo-next--step-3" type="button" data-fo-next="step-3">
+              <button class="btn btn-primary e-permits-fo-next e-permits-fo-next--step-3" type="button" data-fo-next="step-3">
                 <span>Înainte</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
@@ -5273,13 +5273,13 @@
       return `
         <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-            <button class="e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use></svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary">
-              ${step > 2 ? `<button class="e-permits-fo-back-button" type="button" aria-label="Înapoi" data-fo-prev="step-${step}"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>` : ""}
-              <button class="e-permits-fo-next" type="button" data-fo-next="step-${step}"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
+              ${step > 2 ? `<button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi" data-fo-prev="step-${step}"><svg class="icon" width="24" height="24" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>` : ""}
+              <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-next="step-${step}"><span>Înainte</span><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg></button>
             </div>
           </div>
         </footer>`;
@@ -5432,7 +5432,7 @@
               <span class="e-permits-fo-doc-field__label">${escapeFrontOfficeHtml(label)} ${req}</span>
               ${description ? `<p class="e-permits-fo-doc-field__desc">${escapeFrontOfficeHtml(description)}</p>` : ""}
             </div>
-            ${addable ? `<button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${escapeFrontOfficeHtml(label)}"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>Adaugă fișier</button>` : ""}
+            ${addable ? `<button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="${escapeFrontOfficeHtml(label)}"><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>Adaugă fișier</button>` : ""}
           </div>
           <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files>${filesHtml}</div>
         </div>`;
@@ -5765,7 +5765,9 @@
         const ppIcon = q(".e-permits-fo-instance-switch-modal__icon");
         ppIcon?.classList.toggle("e-permits-fo-instance-switch-modal__icon--warning", ppTone === "warning");
         ppIcon?.classList.toggle("e-permits-fo-instance-switch-modal__icon--danger", ppTone === "danger");
-        q("[data-fo-postprocess-confirm]")?.classList.add("e-permits-fo-instance-switch-modal__primary--danger");
+        const ppConfirm = q("[data-fo-postprocess-confirm]");
+        ppConfirm?.classList.remove("btn-primary");
+        ppConfirm?.classList.add("btn-destructive", "e-permits-fo-instance-switch-modal__primary--danger");
         setFrontOfficePostprocessModalOpen(true);
         return;
       }
@@ -7102,14 +7104,14 @@
       if (footer) {
         footer.innerHTML = `
           <div class="e-permits-fo-form__actions e-permits-fo-form__actions--confirmation">
-            <button class="e-permits-fo-draft-button" type="button">
+            <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
               <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
               <span>Salvează ca schiță</span>
             </button>
             <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
-              <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
+              <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
               </button>
               <button class="btn btn-badge btn-badge--primary btn-badge--msign e-permits-fo-sign-button" type="button" data-fo-next="step-4">
@@ -8650,7 +8652,7 @@
                 <span><span>Drag and drop or</span> <strong>choose files</strong></span>
                 <small>Un singur fișier JPG, PNG, PDF, XLS, ZIP, DOCX <span aria-hidden="true">•</span> max 60 MB</small>
               </span>
-              <button class="e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
+              <button class="btn btn-secondary btn-md e-permits-fo-upload-button" type="button" aria-label="Încarcă fișier" data-fo-upload-trigger>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg>
                 Încarcă fișier
               </button>

@@ -1193,9 +1193,9 @@
             <div class="e-permits-fo-instance-switch-modal__description">${paragraphs.map((text) => `<p>${text}</p>`).join("")}</div>
           </div>
         </div>
-        <div class="e-permits-fo-instance-switch-modal__actions">
-          <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-sm-confirm-cancel>${escape(cancelLabel)}</button>
-          <button class="e-permits-fo-instance-switch-modal__primary${danger ? " e-permits-fo-instance-switch-modal__primary--danger" : ""}" type="button" data-sm-confirm-ok>${escape(confirmLabel)}</button>
+        <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
+          <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-sm-confirm-cancel>${escape(cancelLabel)}</button>
+          <button class="btn ${danger ? "btn-destructive" : "btn-primary"} e-permits-fo-instance-switch-modal__primary${danger ? " e-permits-fo-instance-switch-modal__primary--danger" : ""}" type="button" data-sm-confirm-ok>${escape(confirmLabel)}</button>
         </div>
       </div>`;
     modal.hidden = false;

@@ -630,9 +630,9 @@
             </div>
           </div>
         </div>
-        <div class="e-permits-fo-instance-switch-modal__actions">
-          <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-cab-pp-cancel>Anulează</button>
-          <a class="e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" href="${escape(foUrl(act, pp))}" data-cab-pp-confirm>Confirm și continui</a>
+        <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
+          <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-cab-pp-cancel>Anulează</button>
+          <a class="btn btn-destructive e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" href="${escape(foUrl(act, pp))}" data-cab-pp-confirm>Confirm și continui</a>
         </div>
       </div>`;
     modal.hidden = false;

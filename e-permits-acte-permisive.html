@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="css/button-icons.css?v=button-icons-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=audit-fix-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=audit-fix-v2">
   <link rel="stylesheet" href="css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v8">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -47,12 +47,12 @@
   <script src="js/fo-grid.js?v=action-icons-v1" defer></script>
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=copy-wrap-v1" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=action-icons-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=audit-fix-v2" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=action-icons-v1" defer></script>
   <script src="core/process-model.js?v=pd-v3" defer></script>
   <script src="js/process-designer.js?v=action-icons-v1" defer></script>
-  <script src="js/ghiseu.js?v=doc-viewer-v1" defer></script>
+  <script src="js/ghiseu.js?v=audit-fix-v2" defer></script>
   <script src="js/doc-preview.js?v=doc-viewer-v1" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
@@ -960,7 +960,7 @@
 
             <!-- G6: never disabled — every check runs on click (US-12 AC-07/08) -->
             <div class="e-permits-fo-form__actions">
-              <button class="e-permits-fo-next" type="button" data-fo-guest-next>
+              <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-guest-next>
                 <span>Înainte</span>
                 <svg class="icon" width="20" height="20" aria-hidden="true">
                   <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
@@ -1246,7 +1246,7 @@
                 </div>
 
                 <div class="e-permits-fo-form__actions">
-                  <button class="e-permits-fo-next" type="button" disabled data-fo-next="step-1">
+                  <button class="btn btn-primary e-permits-fo-next" type="button" disabled data-fo-next="step-1">
                     <span>Înainte</span>
                     <svg class="icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
@@ -1617,14 +1617,14 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-                  <button class="e-permits-fo-draft-button" type="button">
+                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
                     <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
                     <span>Salvează ca schiță</span>
                   </button>
                   <div class="e-permits-fo-form__actions-primary">
-                    <button class="e-permits-fo-next" type="button" data-fo-next="step-2">
+                    <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-next="step-2">
                       <span>Înainte</span>
                       <svg class="icon" width="20" height="20" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
@@ -1652,7 +1652,7 @@
                     <p class="e-permits-fo-doc-field__desc">Actul ce confirmă dreptul asupra imobilului unde se desfășoară activitatea.</p>
                   </div>
                   <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
-                  <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Copia actului de proprietate / contractului de locațiune">
+                  <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Copia actului de proprietate / contractului de locațiune">
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                     Adaugă fișier
                   </button>
@@ -1667,7 +1667,7 @@
                     <p class="e-permits-fo-doc-field__desc">Plan cu amplasarea încăperilor și destinația lor.</p>
                   </div>
                   <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
-                  <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Schița spațiului / planul încăperilor">
+                  <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Schița spațiului / planul încăperilor">
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                     Adaugă fișier
                   </button>
@@ -1682,7 +1682,7 @@
                     <p class="e-permits-fo-doc-field__desc">Confirmă înregistrarea companiei. Se caută automat în MDocs după IDNO.</p>
                   </div>
                   <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
-                  <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Extras din Registrul de Stat al persoanelor juridice">
+                  <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Extras din Registrul de Stat al persoanelor juridice">
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                     Adaugă fișier
                   </button>
@@ -1697,7 +1697,7 @@
                     <p class="e-permits-fo-doc-field__desc">Confirmă înregistrarea companiei. Se caută automat în MDocs după IDNO.</p>
                   </div>
                   <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
-                  <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Avizul sanitar precedent">
+                  <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Avizul sanitar precedent">
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                     Adaugă fișier
                   </button>
@@ -1712,7 +1712,7 @@
                     <p class="e-permits-fo-doc-field__desc">Opțional la depunere — poate fi solicitat ulterior.</p>
                   </div>
                   <div class="e-permits-fo-doc-field__files" data-fo-doc-field-files></div>
-                  <button class="e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Certificate de instruire igienică ale personalului">
+                  <button class="btn btn-secondary btn-md e-permits-fo-doc-field__add" type="button" data-fo-open-doc-modal data-fo-doc-label="Certificate de instruire igienică ale personalului">
                     <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg>
                     Adaugă fișier
                   </button>
@@ -1730,7 +1730,7 @@
                   </div>
                   <div class="e-permits-fo-other-docs__body">
                     <div data-fo-other-doc-list></div>
-                    <button class="e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>
+                    <button class="btn btn-secondary btn-md e-permits-fo-add-doc-button" type="button" data-fo-add-other-doc>
                       <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
                       Adaugă document
                     </button>
@@ -1741,20 +1741,20 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-                  <button class="e-permits-fo-draft-button" type="button">
+                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
                     <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
                     <span>Salvează ca schiță</span>
                   </button>
                   <div class="e-permits-fo-form__actions-primary">
-                    <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Detalii serviciu" data-fo-prev="step-3">
+                    <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Detalii serviciu" data-fo-prev="step-3">
                       <svg class="icon" width="24" height="24" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
                       </svg>
                     </button>
 
-                    <button class="e-permits-fo-next" type="button" data-fo-next="step-3">
+                    <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-next="step-3">
                       <span>Înainte</span>
                       <svg class="icon" width="20" height="20" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
@@ -1786,7 +1786,7 @@
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only">
                 <div class="e-permits-fo-form__actions">
                   <div class="e-permits-fo-form__actions-primary e-permits-fo-form__actions-primary--sign">
-                    <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
+                    <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Documente însoțitoare" data-fo-prev="step-4">
                       <svg class="icon" width="20" height="20" aria-hidden="true">
                         <use href="assets/icons/sprite.svg#icon-arrow-left"></use>
                       </svg>
@@ -1815,17 +1815,17 @@
 
               <footer class="e-permits-fo-form__footer e-permits-fo-form__footer--actions-only e-permits-fo-delivery__footer">
                 <div class="e-permits-fo-form__actions e-permits-fo-form__actions--with-draft">
-                  <button class="e-permits-fo-draft-button" type="button">
+                  <button class="btn btn-text-neutral e-permits-fo-draft-button" type="button">
                     <svg class="icon e-permits-fo-draft-button__icon" width="20" height="20" aria-hidden="true">
                       <use href="assets/icons/sprite.svg?v=draft-icons-v1#icon-cloud-upload-draft"></use>
                     </svg>
                     <span>Salvează schiță</span>
                   </button>
                   <div class="e-permits-fo-form__actions-primary">
-                    <button class="e-permits-fo-back-button" type="button" aria-label="Înapoi la Verificare și semnare" data-fo-prev="step-5">
+                    <button class="btn btn-neutral btn-icon-only e-permits-fo-back-button" type="button" aria-label="Înapoi la Verificare și semnare" data-fo-prev="step-5">
                       <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
                     </button>
-                    <button class="e-permits-fo-next" type="button" data-fo-next="step-5">
+                    <button class="btn btn-primary e-permits-fo-next" type="button" data-fo-next="step-5">
                       <span>Înainte</span>
                       <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
                     </button>
@@ -3578,9 +3578,9 @@
           </div>
         </div>
       </div>
-      <div class="e-permits-fo-instance-switch-modal__actions">
-        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-instance-switch-cancel>Anulează</button>
-        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-instance-switch-confirm>Salvează și schimbă</button>
+      <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
+        <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-instance-switch-cancel>Anulează</button>
+        <button class="btn btn-primary e-permits-fo-instance-switch-modal__primary" type="button" data-fo-instance-switch-confirm>Salvează și schimbă</button>
       </div>
     </div>
   </div>
@@ -3601,9 +3601,9 @@
           </div>
         </div>
       </div>
-      <div class="e-permits-fo-instance-switch-modal__actions">
-        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-postprocess-cancel>Anulează</button>
-        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-postprocess-confirm>Confirm și continui</button>
+      <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
+        <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-postprocess-cancel>Anulează</button>
+        <button class="btn btn-primary e-permits-fo-instance-switch-modal__primary" type="button" data-fo-postprocess-confirm>Confirm și continui</button>
       </div>
     </div>
   </div>
@@ -3623,9 +3623,9 @@
           </div>
         </div>
       </div>
-      <div class="e-permits-fo-instance-switch-modal__actions">
-        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-grid-confirm-cancel>Anulează</button>
-        <button class="e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" type="button" data-fo-grid-confirm-ok>Șterge rândul</button>
+      <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
+        <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-grid-confirm-cancel>Anulează</button>
+        <button class="btn btn-destructive e-permits-fo-instance-switch-modal__primary e-permits-fo-instance-switch-modal__primary--danger" type="button" data-fo-grid-confirm-ok>Șterge rândul</button>
       </div>
     </div>
   </div>
@@ -3645,9 +3645,9 @@
           </div>
         </div>
       </div>
-      <div class="e-permits-fo-instance-switch-modal__actions">
-        <button class="e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-guest-leave-confirm>Părăsește cererea</button>
-        <button class="e-permits-fo-instance-switch-modal__primary" type="button" data-fo-guest-leave-cancel>Rămân în cerere</button>
+      <div class="modal-buttons e-permits-fo-instance-switch-modal__actions">
+        <button class="btn btn-neutral e-permits-fo-instance-switch-modal__secondary" type="button" data-fo-guest-leave-confirm>Părăsește cererea</button>
+        <button class="btn btn-primary e-permits-fo-instance-switch-modal__primary" type="button" data-fo-guest-leave-cancel>Rămân în cerere</button>
       </div>
     </div>
   </div>

@@ -1892,3 +1892,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   only the modal, focus back to the status). component-audit flagged the save-bar status as non-library until the
   inventory row existed. Session restarted mid-job: the asserted edit files in the scratchpad (`ur/edits/p*.py`) were
   intact and already matched the tree.
+- 2026-10-21 · Audit fix batch 2 — FO hand-built buttons → library `.btn` (audit-fix-v2). Cheapest safe swap: ADD the
+  library classes in front of the old class (`btn btn-primary e-permits-fo-next`) and DELETE only the old paint (size,
+  colour, hover, focus) — the old class stays as the layout / JS hook, so delegated handlers, demo states and data hooks
+  need no change. The product „Large” is the bare `.btn` (48 · 12/20 · 1.375 line), not `.btn-lg` (50.75, 18px) — and
+  the library `.btn` text reads `--text-body-md-500-font-size`, which main.css drops to 14 at ≤720 (45 high on phones):
+  re-declare the token on the footer scope. A label that used to overflow a FIXED 48 box (the phone draft button) wraps
+  to 2–3 lines once the box hugs it → `white-space: nowrap` + let the footer wrap (navigation on its own right-aligned
+  row). FO confirm dialogs became the library modal footer (`.modal-buttons` + btn-neutral / -primary / -destructive);
+  a JS that added a `--danger` class must now also swap `btn-primary` → `btn-destructive`. Hover / code audits on a
+  dialog need a scope that resolves to the OPEN one (`.x:not([hidden]) .card`) — a bare card selector hit a hidden
+  copy („0 interactive”). component-audit on 15 states × 2: targeted findings 91 → 0, all majors 403 → 292.
