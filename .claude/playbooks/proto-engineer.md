@@ -2117,3 +2117,29 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   regex bump REPLACED my `cabinet-evo.js?v=breadcrumb-v2` with its own key — my hunk filter then found nothing to stage on
   that line. After committing, `git show HEAD -- <html>` and check every key the brief asked for is in the commit; re-bump
   in a follow-up commit if not (b7839140).
+- 2026-10-21 · Phone toolbar v2 (phone-toolbar-v2; user: „On mobile, Filtre should also be the same, and we discussed not
+  having chips, right?”, then mid-job via the coordinator: „make the filter icon-only and put it in the same row as the
+  search”). Two things were wrong on phones: the trigger was still round (my own 2026-10-21 „radius follows the btn-pill
+  neighbour” reading — a PO question I parked instead of applying the plain rule „radius = the Button radius” at every
+  width) and the GEAP BO registries were NOT in phone mode (`mobileSheets: !!product`), so dos-05d at 375 showed 5 facet
+  chips stacked under a 210-wide „Filtrare avansată” running off the screen. When a rule says „everywhere”, grep every
+  `create(` caller for opt-in flags — an opt-in default is exactly where „everywhere” silently stops. Fix in the shared
+  module only: phone mode ON by default (`mobileSheets !== false`), and instead of building a separate phone pill row the
+  module re-skins the page's OWN toolbar trigger (`--icon` class, `data-filter-all`, `aria-label` „Filtre…”, aria-controls
+  → the sheet, restored on desktop) and the page's sort button (`.e-permits-filter-icon-only` + an inserted `icon-sort`
+  svg, REMOVED on desktop — a hidden leading svg would still match button-icons.css `:has(> svg:first-child)` padding), and
+  tags the toolbar `.e-permits-filter-row`. No DOM is moved any more → no focus / handler risks. Traps: (1) dead rules
+  woke up — RAP had a 2026-10-17 icon-only rule for the same trigger (`.rap-toolbar .e-permits-workplace__advanced` 40
+  min, label clipped) that was dead while the trigger was hidden: delete such rules when you un-hide an element; (2) the
+  eKYC placement rules were keyed on `:has(> .e-permits-workplace__advanced[hidden])` at (0,6,0) — re-key them on the new
+  row class, don't fight them from the shared file; (3) a corner badge (−6) is cut by `overflow: hidden` toolbars with a
+  fixed 56 height (BO) — `height: auto` + 8 padding; (4) a toolbar with a primary „Adaugă …” and a `flex: 1 1 0` search
+  never wraps (basis 0 fits) → the search shrank to 10 px; `flex-basis: 60%` makes the primary wrap; (5) demo states that
+  used the desktop click path on the BO (dos-05c / 05d) broke on phones → the existing eKYC helpers (`ekFacet / ekPick /
+  ekCommit`) already branch; `data-filter-all` on the trigger kept every `ffFacet` / `[data-filter-all]` demo working
+  unchanged. Widths at 320: search 176 with Filtre + Sortează (≥ 160 → Sortează stays icon-only). Desktop proven
+  identical (trigger / sort / badge / chips / meta boxes at 1440 on 7 states, before vs after). No sub-agent tool →
+  component-audit (0 findings on the trigger / sort; standing sheet-section / „Arată” 50.8 / header menus), hover-audit
+  0 / 0 (`--scope .e-permits-workplace` on the BO page — `main` gave „0 interactive”) + a 700 px real-mouse probe of the
+  two squares, code-audit only standing FPs. Catalog category chips (cat-01, 7 chips on 4 rows at 375) are NOT the facet
+  filter → left, reported as a PO question.

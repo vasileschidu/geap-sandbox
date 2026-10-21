@@ -23,21 +23,24 @@
      onPageChange()                 reset hook for pages that keep several states
      scrollers: [el]                scrolling an element closes the popover
      sprite                         icon sprite URL (sub-pages: "../assets/icons/sprite.svg")
-     mobileSheets                   phone mode (≤760, opt-in, RAP — 2026-10-17): see below
+     mobileSheets                   phone mode (≤760) — ON for every list since 2026-10-21 (phone-toolbar-v2);
+                                    `false` opts out (no caller does)
      preview(selection)             rows matching a selection that is not applied yet (the
                                     sheets' live „Arată N rezultate”; falls back to total())
-     sort                           phones only: the page's sort control (its wrapper element) — moved
-                                    next to „Filtre” in the phone row and back home on desktop
+     sort                           the page's sort control (its wrapper element, in the toolbar row next to
+                                    the trigger) — phones only: shown as an icon-only square (icon-sort)
    }) → { render, close, clearAll }
 
-   Phone toolbar (2026-10-20, user: „on mobile only the Filter button without the other chips, the sort
-   in the same row, round”): the bar is ONE row that never scrolls — the „Filtre” pill (filter icon +
-   total badge → the all-filters sheet; the toolbar button is hidden — one entry point) and, when the
-   page passes `sort`, its sort control as a second pill (the label shrinks with an ellipsis); no facet
-   chips. Applied → one plain line under it „N rezultate · Șterge filtrele”. The row and the sort node
-   are kept between renders (focus stays on them). Before (2026-10-17): „Filtre” + a scrolling chip per
-   facet, each opening its own facet sheet (that sheet kind is still in the code, no phone entry point).
-   Phone mode (`mobileSheets: true`, ≤760px only; the BO does not opt in): a facet sheet = a BOTTOM SHEET (library .bottom-sheet:
+   Phone toolbar (phone-toolbar-v2, 2026-10-21, user: „make the filter icon-only and put it in the same row as
+   the search, so we economise space”; „we discussed not having chips, right?”): ONE row = the page's search
+   (fills the width) + the toolbar trigger itself as an ICON-ONLY square 48 (`e-permits-filter-trigger--icon`:
+   the filter icon, the button radius, the count badge on its top-right corner, name „Filtre” / „Filtre, N
+   aplicate”; it opens the all-filters sheet) + the page's sort control as an icon-only square 48 (icon-sort,
+   its own aria-label). The toolbar gets `e-permits-filter-row` (placement in css/facet-filter.css). NO facet
+   chips on phones; the bar holds only the applied line „N rezultate · Șterge filtrele”. Every list is in
+   phone mode now (the GEAP BO registries too). History: 2026-10-17 „Filtre” + a scrolling chip per facet;
+   2026-10-20 a round „Filtre” pill + sort pill in a row under the search.
+   Phone mode (≤760px only): a facet sheet = a BOTTOM SHEET (library .bottom-sheet:
    handle, title + „Resetează” + ×, search when > 7 values (as the popover), 44px checklist rows,
    sticky footer „Arată N rezultate” with the live count — full width: with „Resetează” beside it a
    4-digit count wrapped at 375); the button opens the same sheet with every facet as an
@@ -208,7 +211,8 @@
   };
 
   function create(cfg) {
-    if (cfg.mobileSheets) wireSearchStates(); /* opt-in pages only: the others stay as they were */
+    const phoneMode = cfg.mobileSheets !== false; /* every list since phone-toolbar-v2 */
+    if (phoneMode) wireSearchStates(); /* no-op where js/search.js already runs (the BO) */
     const bar = cfg.bar;
     const toggle = cfg.toggle;
     const count = cfg.count;
@@ -219,13 +223,29 @@
     let edit = null; /* { key, values:Set, query, anchor } while a facet popover is open */
     let moreOpen = false;
     let barPage = null;
-    /* phones: the page's sort control joins the „Filtre” row; on desktop it goes back where it was */
+    /* phones (phone-toolbar-v2): the toolbar row = search + the trigger as an icon-only square (+ the page's sort as
+       an icon-only square); desktop = the page's labelled controls, untouched */
     const sortEl = cfg.sort || null;
-    const sortHome = sortEl ? { parent: sortEl.parentNode, next: sortEl.nextSibling } : null;
-    const restoreSort = () => {
-      if (!sortEl || sortEl.parentNode === sortHome.parent) return;
-      sortHome.parent.insertBefore(sortEl, sortHome.next?.parentNode === sortHome.parent ? sortHome.next : null);
-      sortEl.querySelectorAll(":scope > .btn").forEach((btn) => btn.classList.remove("btn-pill"));
+    const toolbarRow = toggle?.parentElement || null;
+    const toggleControls = toggle?.getAttribute("aria-controls") || null;
+    const setPhoneToolbar = (on) => {
+      toolbarRow?.classList.toggle("e-permits-filter-row", on);
+      if (toggle) {
+        toggle.classList.toggle("e-permits-filter-trigger--icon", on);
+        /* `data-filter-all` = „opens the all-filters sheet” (the demo states' phone entry point) */
+        if (on) toggle.dataset.filterAll = ""; else delete toggle.dataset.filterAll;
+        if (!on) {
+          toggle.removeAttribute("aria-haspopup");
+          if (toggleControls) toggle.setAttribute("aria-controls", toggleControls);
+        }
+      }
+      sortEl?.querySelectorAll(":scope > .btn").forEach((btn) => {
+        btn.classList.toggle("e-permits-filter-icon-only", on);
+        const icon = btn.querySelector(":scope > [data-filter-sort-icon]");
+        /* the leading icon exists only on phones (on desktop it would change the button's icon-side padding) */
+        if (on && !icon) btn.insertAdjacentHTML("afterbegin", `<svg class="icon" aria-hidden="true" data-filter-sort-icon><use href="${sprite}#icon-sort"></use></svg>`);
+        if (!on) icon?.remove();
+      });
     };
 
     /* the toolbar trigger (filter-chip-v1): active = the selected chip (black) + „<label>, N aplicate” as its name */
@@ -233,6 +253,8 @@
     const markTrigger = (n) => {
       if (!toggle) return;
       toggle.classList.toggle("is-selected", n > 0);
+      /* phones: the label is hidden (icon-only) → the name is always set, and it is „Filtre” on every list */
+      if (isPhone()) { toggle.setAttribute("aria-label", n ? triggerName("Filtre", n) : "Filtre"); return; }
       const label = toggle.querySelector(".chip__label")?.textContent.trim() || "Filtre";
       if (n) toggle.setAttribute("aria-label", triggerName(label, n)); else toggle.removeAttribute("aria-label");
     };
@@ -369,8 +391,11 @@
         barPage = page;
       }
       if (isPhone()) { renderPhone(); return; }
-      restoreSort();
-      if (cfg.mobileSheets) { bar.classList.remove("is-sheets"); if (toggle) { toggle.hidden = false; toggle.removeAttribute("aria-haspopup"); } }
+      if (phoneMode) {
+        setPhoneToolbar(false);
+        bar.classList.remove("is-sheets");
+        if (toggle) toggle.hidden = false;
+      }
       const draft = draftOf();
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
@@ -416,8 +441,8 @@
     `;
     };
 
-    /* ---- phone mode (mobileSheets): chip row + bottom sheets ---- */
-    const phoneQuery = cfg.mobileSheets ? window.matchMedia("(max-width: 760px)") : null;
+    /* ---- phone mode: icon-only trigger in the search row + bottom sheets ---- */
+    const phoneQuery = phoneMode ? window.matchMedia("(max-width: 760px)") : null;
     const isPhone = () => !!phoneQuery?.matches;
     const SHEET_SEARCH_MIN = 8; /* search inside a facet with 8+ values (the popover's rule: > 7) */
     let sheetEl = null;
@@ -430,61 +455,36 @@
     const copySel = (sel) => Object.fromEntries(Object.entries(sel || {}).filter(([, v]) => v?.length).map(([k, v]) => [k, [...v]]));
     const selCount = (sel) => Object.values(sel).reduce((sum, v) => sum + (v?.length || 0), 0);
 
-    /* „Filtre” pill = the filter trigger (filter-chip-v1): library chip, leading filter icon in rest AND active,
-       black + the chip's numbered badge when applied (css/facet-filter.css „Filter trigger”) */
-    const filtersPillInner = (n) => `
-          <span class="chip__icon"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-filter-lines"></use></svg></span>
-          <span class="chip__label">Filtre</span>
-          ${n ? `<span class="chip__badge" aria-hidden="true">${n}</span>` : ""}`;
     const renderPhone = () => {
       const state = cfg.state();
       state.draft = null;
       const appliedCount = appliedEntries().reduce((sum, [, values]) => sum + values.length, 0);
       if (count) { count.hidden = !appliedCount; count.textContent = String(appliedCount); }
+      setPhoneToolbar(true);
       markTrigger(appliedCount);
       const facets = cfg.facets();
       bar.classList.add("is-sheets");
-      bar.hidden = !facets.length && !sortEl;
       if (toggle) {
-        /* one entry point on phones: the „Filtre” pill replaces the toolbar button */
-        toggle.hidden = true;
+        /* nothing to filter yet: the square goes (the search keeps the room), as the pill did */
+        toggle.hidden = !facets.length;
         toggle.setAttribute("aria-haspopup", "dialog");
         toggle.setAttribute("aria-expanded", String(sheet?.kind === "all"));
-        if (!facets.length) { toggle.setAttribute("aria-disabled", "true"); toggle.dataset.tooltipReason = "Lista nu are încă valori după care să filtrezi."; }
-        else { toggle.removeAttribute("aria-disabled"); delete toggle.dataset.tooltipReason; }
+        if (sheetEl) toggle.setAttribute("aria-controls", sheetEl.id); else toggle.removeAttribute("aria-controls");
+        toggle.removeAttribute("aria-disabled");
+        delete toggle.dataset.tooltipReason;
       }
-      if (bar.hidden) { restoreSort(); bar.innerHTML = ""; return; }
-      /* ONE row, built once and updated in place (the sort node and the focus stay) */
-      let row = bar.querySelector(":scope > [data-filter-phone-row]");
-      if (!row) {
-        restoreSort();
-        bar.innerHTML = `
-      <div class="e-permits-workplace__filter-chips e-permits-workplace__filter-tools" data-filter-phone-row>
-        <button class="chip e-permits-filter-trigger e-permits-workplace__filter-chip--all" type="button" aria-haspopup="dialog" aria-expanded="false" data-filter-all></button>
-        ${sortEl ? '<div class="e-permits-workplace__filter-sort" data-filter-phone-sort></div>' : ""}
-      </div>
-      <div class="e-permits-workplace__filter-meta" aria-live="polite" data-filter-phone-meta hidden></div>`;
-        row = bar.querySelector("[data-filter-phone-row]");
+      /* NO facet chips on phones: the bar is only the applied line under the toolbar row —
+         the result count + the one-tap „Șterge filtrele” (built once, updated in place) */
+      bar.hidden = !appliedCount;
+      let meta = bar.querySelector(":scope > [data-filter-phone-meta]");
+      if (!meta) {
+        bar.innerHTML = '<div class="e-permits-workplace__filter-meta" aria-live="polite" data-filter-phone-meta></div>';
+        meta = bar.querySelector("[data-filter-phone-meta]");
       }
-      const slot = row.querySelector("[data-filter-phone-sort]");
-      if (slot && sortEl.parentNode !== slot) {
-        slot.appendChild(sortEl);
-        sortEl.querySelectorAll(":scope > .btn").forEach((btn) => btn.classList.add("btn-pill"));
-      }
-      const pill = row.querySelector("[data-filter-all]");
-      pill.hidden = !facets.length;
-      pill.classList.toggle("is-selected", appliedCount > 0);
-      pill.setAttribute("aria-expanded", String(sheet?.kind === "all"));
-      if (appliedCount) pill.setAttribute("aria-label", triggerName("Filtre", appliedCount));
-      else pill.removeAttribute("aria-label");
-      if (sheetEl) pill.setAttribute("aria-controls", sheetEl.id); else pill.removeAttribute("aria-controls");
-      if (pill.dataset.count !== String(appliedCount)) { pill.innerHTML = filtersPillInner(appliedCount); pill.dataset.count = String(appliedCount); }
-      /* applied → one plain line under the row: the result count + the one-tap „Șterge filtrele” */
-      const meta = bar.querySelector("[data-filter-phone-meta]");
-      meta.hidden = !appliedCount;
-      meta.innerHTML = appliedCount ? `
+      const html = appliedCount ? `
         <span class="e-permits-workplace__filter-result">${resultsLabel(cfg.total())}</span>
         <button class="btn btn-text-neutral btn-sm" type="button" data-filter-clear-all>Șterge filtrele</button>` : "";
+      if (meta.dataset.html !== html) { meta.innerHTML = html; meta.dataset.html = html; }
     };
 
     const sheetOptionsHtml = (facet) => {
@@ -585,7 +585,7 @@
           <button class="btn btn-primary btn-lg e-permits-filter-sheet__apply" type="button" data-sheet-apply></button>
         </div>`
       });
-      if (!sheetEl.id) sheetEl.id = "geap-filter-sheet"; /* the „Filtre” pill's aria-controls */
+      if (!sheetEl.id) sheetEl.id = "geap-filter-sheet"; /* the phone trigger's aria-controls */
       wireSheet();
     };
 
@@ -619,8 +619,8 @@
       sheetTimer = sheetHide(sheetEl, () => !!sheet);
       render();
       if (!restoreFocus) return;
-      const back = kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : bar?.querySelector("[data-filter-all]");
-      (back || opener)?.focus();
+      const back = kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : toggle;
+      (back && !back.hidden ? back : opener)?.focus();
     };
 
     /* „Arată N rezultate”: the sheet's selection becomes the applied filter (one query) */
@@ -636,7 +636,7 @@
       sheet = null;
       sheetTimer = sheetHide(sheetEl, () => !!sheet);
       cfg.apply();
-      bar?.querySelector(kind === "facet" ? `[data-filter-facet="${CSS.escape(key)}"]` : "[data-filter-all]")?.focus();
+      (kind === "facet" ? bar?.querySelector(`[data-filter-facet="${CSS.escape(key)}"]`) : toggle)?.focus();
     };
 
     function wireSheet() {
@@ -962,16 +962,14 @@
       if (dateClear) { clearFacet(dateClear.dataset.filterDateClear); return; }
       if (event.target.closest("[data-filter-clear-all]")) {
         clearAll();
-        /* phones: the line with the button goes away — focus the „Filtre” pill */
-        if (isPhone()) bar.querySelector("[data-filter-all]")?.focus();
+        /* phones: the line with the button goes away — focus the icon-only „Filtre” */
+        if (isPhone()) toggle?.focus();
         return;
       }
       if (event.target.closest("[data-filter-commit]")) { commit(); return; }
       if (event.target.closest("[data-filter-discard]")) { discard(); return; }
       const more = event.target.closest("[data-filter-more]");
       if (more) { if (moreOpen) close(); else openMore(more); return; }
-      const all = event.target.closest("[data-filter-all]");
-      if (all) { openSheet("all", null, all); return; }
       const chip = event.target.closest("[data-filter-facet]");
       if (!chip) return;
       if (isPhone()) { openSheet("facet", chip.dataset.filterFacet, chip); return; }

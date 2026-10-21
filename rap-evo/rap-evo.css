@@ -1266,11 +1266,6 @@ a {
 }
 
 @media (max-width: 760px) {
-  /* the button hugs its label as in the BO toolbar (the RAP toolbar stretches its items) */
-  .rap-toolbar .e-permits-workplace__advanced {
-    align-self: flex-start;
-  }
-
   /* „N rezultate · Șterge filtrele” go under the chips when the row is too narrow for both
      (the BO bar keeps them side by side and can overlap a long first chip at 375) */
   .rap-filters.e-permits-workplace__filters {
@@ -1318,8 +1313,8 @@ tr:hover .rap-act-link {
   }
 }
 
-/* phones (user 2026-10-17): search + „Filtru” on one row — the search fills the row, the filter
-   is an icon-only button (label kept for screen readers) with its count badge */
+/* phones: search + the icon-only „Filtre” square on one row — the shared phone toolbar
+   (css/facet-filter.css › Phone toolbar, phone-toolbar-v2); here only the row direction */
 @media (max-width: 760px) {
   .rap-toolbar {
     align-items: center;
@@ -1332,40 +1327,20 @@ tr:hover .rap-act-link {
     min-width: 0;
     width: auto;
   }
-
-  .rap-toolbar .e-permits-workplace__advanced {
-    align-self: center;
-    flex: 0 0 auto;
-    gap: var(--spacing-4, 4px);
-    min-height: var(--spacing-40, 40px);
-    min-width: var(--spacing-40, 40px);
-    padding-inline: var(--spacing-8, 8px);
-    justify-content: center;
-  }
-
-  .rap-toolbar .e-permits-workplace__advanced > span:not(.badge) {
-    clip: rect(0 0 0 0);
-    clip-path: inset(50%);
-    height: 1px;
-    overflow: hidden;
-    position: absolute;
-    white-space: nowrap;
-    width: 1px;
-  }
 }
 
 /* „Autoritatea emitentă” contact links: css/bo-profile-parts.css (shared with the EVO Cabinet) */
 
-/* „Filtru” on phones = the facet filter's phone mode (mobileSheets, 2026-10-17; one „Filtre” pill row since
-   2026-10-20, css/facet-filter.css): the search takes the whole toolbar row (the button is hidden); the pill
-   row is not a bordered block and starts 16 under the toolbar */
+/* „Filtru” on phones = the facet filter's phone mode (css/facet-filter.css › Phone toolbar, phone-toolbar-v2):
+   the icon-only trigger sits in the search row; the bar is only the applied line „N rezultate · Șterge
+   filtrele” — not a bordered block, 8 under the toolbar (the toolbar group), no facet chips */
 @media (max-width: 760px) {
   .rap-filters.e-permits-workplace__filters.is-sheets {
     background: transparent;
     border: 0;
     border-radius: 0;
     flex-wrap: nowrap;
-    margin-top: var(--spacing-16, 16px); /* search 16 chips, as on the Cabinet lists (2026-10-18) */
+    margin-top: var(--spacing-8, 8px); /* the applied line belongs to the toolbar group, as on the Cabinet lists */
     padding: var(--spacing-0, 0px);
   }
 }

@@ -5984,9 +5984,8 @@ document.addEventListener("DOMContentLoaded", () => {
     pageKey: () => `${registryKindOf()}:${workplaceState.viewKey || ""}`,
     onPageChange: () => Object.values(filterStore).forEach((st) => { st.open = false; st.draft = null; }),
     scrollers: [document.querySelector(".e-permits-workplace__table-wrap")],
-    /* phones (≤760): a product back office (eKYC, 2026-10-19) opts in to the bottom sheets, as RAP /
-       Cabinet; the GEAP BO registries keep the bar as it was (PO question) */
-    mobileSheets: !!product,
+    /* phones (≤760): the shared phone mode, as RAP / Cabinet / eKYC — the GEAP BO registries too since
+       phone-toolbar-v2 (2026-10-21, user: no facet chips on phones; icon-only „Filtre” in the search row) */
     preview: previewSelection
   });
   const renderFilterBar = () => workplaceFilter.render();

@@ -370,7 +370,7 @@
     "_allowReasons": {},
     "allowWithin": []
   },
-  "_buttons": "v2 rule button-size / button-icon-size (major): every visible `.btn` is 32 (Small), 40 (Medium) or 48 (Large) high; its own leading / trailing icon follows css/button-icons.css: 32 → 16, 40 / 48 → 20. `exempt` = library buttons with their own size; `iconExempt` = documented larger icons (phone pills / sheet ×). iconExempt: the phone facet-filter sort pill (48, icon 24 — css/facet-filter.css › phone toolbar, components.md „Facet filter · phone toolbar + sheets”).",
+  "_buttons": "v2 rule button-size / button-icon-size (major): every visible `.btn` is 32 (Small), 40 (Medium) or 48 (Large) high; its own leading / trailing icon follows css/button-icons.css: 32 → 16, 40 / 48 → 20. `exempt` = library buttons with their own size; `iconExempt` = documented larger icons (phone pills / sheet ×). iconExempt: the phone facet-filter icon-only sort square (48, icon 24 = the icon-only „Filtre” chip next to it — css/facet-filter.css › Phone toolbar, phone-toolbar-v2; components.md „Facet filter · phone toolbar + sheets”).",
   "buttons": {
     "selector": ".btn",
     "exempt": [
@@ -389,7 +389,7 @@
       "48": 20
     },
     "iconExempt": [
-      ".e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn"
+      ".e-permits-filter-row .btn.e-permits-filter-icon-only"
     ]
   },
   "_tags": "v2 rule tag-size (major): tags are Small everywhere (user 2026-10-09 / 2026-10-15: 20 high, 12/16) — the library `.status-tag` and the BO Tag · Small `.e-permits-workplace__tag` (renderTag). exempt: `.e-permits-pd__world *` = the Process Designer canvas, drawn at the canvas zoom (one transform).",

@@ -24,8 +24,10 @@
    chip states, open (`aria-expanded="true"`) keeps the chip focus ring. Only overrides of the library chip:
    - height: 40 desktop (the search / „Sortează” btn-md) · 36 GEAP BO registries (`--sm`, their btn-sm toolbar)
      · 48 phones (≤760, the phone search);
-   - radius: the library Button of the same size — 8 (btn-md) · 6 (btn-sm); on phones the neighbour sort is a
-     `btn-pill`, so the pill stays round there (radius follows the „Sortează” next to it);
+   - radius: the library Button of the same size at EVERY width — 8 (btn-md 40, and the 48 Large on phones) ·
+     6 (btn-sm 36); never round (phone-toolbar-v2, 2026-10-21, user: „on mobile Filtre should also be the same”);
+   - phones: ICON-ONLY square 48 in the search row (`--icon`, js/facet-filter.js sets it ≤760) — the count badge
+     sits on the square's top-right corner (rule „Phone toolbar” below);
    - the filter-chip type (14/20 medium, 16/24 on phones) and 16 on the badge side (Figma), as the facet chips.
    ========================================================================== */
 .chip.e-permits-filter-trigger {
@@ -103,7 +105,7 @@
 @media (max-width: 760px) {
   .chip.e-permits-filter-trigger {
     --filter-trigger-height: var(--spacing-48, 48px);
-    --filter-trigger-radius: var(--border-radius-full, 9999px);
+    --filter-trigger-radius: var(--border-radius-8, 8px); /* the library Button radius (Large 48 = 8), the BO --sm too */
     font-size: var(--font-size-fs-16, 16px);
     line-height: var(--line-height-lh-24, 24px);
   }
@@ -297,75 +299,89 @@
 }
 
 /* ==========================================================================
-   Phone mode (`mobileSheets: true`, ≤760px; RAP / Cabinet / eKYC opt in, the GEAP BO does not).
-   Phone toolbar (2026-10-20, user: „only the Filter button without the other chips, the sort in the
-   same row, round”): ONE row that never scrolls — the „Filtre” pill (→ the all-filters sheet) and the
-   page's sort control as a second pill; both 48 high (the phone search height, user: „same height as
-   the search”), 16/24 medium, icons 24 (the 48 size of the component audit), radius full, 8 apart. The
-   sort label shrinks with an ellipsis, „Filtre” never shrinks. Applied → „N rezultate · Șterge filtrele”
-   on one plain line under the row. (2026-10-17 → 10-20: „Filtre” + one scrolling chip per facet.)
+   Phone toolbar (phone-toolbar-v2, 2026-10-21, ≤760, every list: Cabinet, RAP, eKYC, the GEAP BO registries;
+   user: „make the filter icon-only and put it in the same row as the search, so we economise space”, „we
+   discussed not having chips, right?”). js/facet-filter.js marks the page's toolbar `.e-permits-filter-row`:
+   ONE row = the search (fills the width, min 0) · the trigger as an ICON-ONLY square 48 (`--icon`: filter icon
+   24, radius 8 = the library Button, name in aria-label „Filtre” / „Filtre, N aplicate” → the shared tooltip)
+   · the page's sort as an icon-only square 48 (`.e-permits-filter-icon-only`: icon-sort 24, its aria-label
+   „Sortează: …”) · any page tools (export) — 8 apart. Active = the black chip + the library chip badge on the
+   square's top-right corner (6 out, a 2px ring in the chip black so it reads on the page white too). NO facet
+   chips: the bar under the row is only „N rezultate · Șterge filtrele” when filters are applied.
+   History: 2026-10-17 „Filtre” + one scrolling chip per facet; 2026-10-20 round „Filtre” + sort pills under
+   the search.
    ========================================================================== */
 @media (max-width: 760px) {
+  .e-permits-filter-row:has(> .e-permits-filter-trigger) {
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: var(--spacing-8, 8px);
+  }
+
+  .e-permits-filter-row:has(> .e-permits-filter-trigger) > .search-input {
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
+    width: auto;
+  }
+
+  .e-permits-filter-row:has(> .e-permits-filter-trigger) > :not(.search-input) {
+    flex: 0 0 auto;
+    margin-left: 0;
+  }
+
+  .chip.e-permits-filter-trigger.e-permits-filter-trigger--icon {
+    gap: 0;
+    justify-content: center;
+    min-width: var(--filter-trigger-height);
+    padding: 0;
+    position: relative;
+    width: var(--filter-trigger-height);
+  }
+
+  .e-permits-filter-trigger--icon .chip__label {
+    display: none;
+  }
+
+  .chip.e-permits-filter-trigger--icon .chip__badge {
+    border: var(--border-width-2, 2px) solid var(--color-background-base-inverse-default, #1e1e1e);
+    height: var(--spacing-20, 20px);
+    margin: 0;
+    min-width: var(--spacing-20, 20px);
+    position: absolute;
+    right: calc(var(--spacing-6, 6px) * -1);
+    top: calc(var(--spacing-6, 6px) * -1);
+  }
+
+  .e-permits-filter-row .btn.e-permits-filter-icon-only {
+    border-radius: var(--border-radius-8, 8px);
+    gap: 0;
+    height: var(--spacing-48, 48px);
+    justify-content: center;
+    min-width: var(--spacing-48, 48px);
+    padding: 0;
+    width: var(--spacing-48, 48px);
+  }
+
+  .e-permits-filter-row .btn.e-permits-filter-icon-only > :not([data-filter-sort-icon]) {
+    display: none;
+  }
+
+  .e-permits-filter-row .btn.e-permits-filter-icon-only > [data-filter-sort-icon] {
+    flex: 0 0 var(--icon-size-default, 24px);
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  /* the bar = only the applied line under the toolbar row */
   .e-permits-workplace__filters.is-sheets {
     align-items: stretch;
     flex-direction: column;
     gap: var(--spacing-4, 4px);
   }
 
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-tools {
-    flex-wrap: nowrap;
-    min-width: 0;
-  }
-
-  /* the „Filtre” pill = the filter trigger (48 · 16/24 · icon 24 — the „Filter trigger” rule at the top) */
-  .e-permits-workplace__filters.is-sheets .chip.e-permits-workplace__filter-chip--all[hidden] {
-    display: none;
-  }
-
-  /* the sort pill: label · chevron, 16 on the label side / 12 on the chevron side (the chip rhythm); it
-     shrinks first, its label ellipsizes (the full key + direction stay in its aria-label) */
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort {
-    display: flex;
-    flex: 0 1 auto;
-    min-width: 0;
-  }
-
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort > * {
-    margin: 0;
-    max-width: 100%;
-    min-width: 0;
-  }
-
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn {
-    max-width: 100%;
-    min-width: 0;
-    font-size: var(--font-size-fs-16, 16px);
-    font-weight: var(--font-weight-fw-medium, 500);
-    gap: var(--spacing-8, 8px);
-    height: var(--spacing-48, 48px);
-    line-height: var(--line-height-lh-24, 24px);
-    padding: var(--spacing-0, 0px) var(--spacing-12, 12px) var(--spacing-0, 0px) var(--spacing-16, 16px);
-  }
-
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn .icon {
-    flex: 0 0 var(--icon-size-default, 24px);
-    height: var(--icon-size-default, 24px);
-    width: var(--icon-size-default, 24px);
-  }
-
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-sort .btn > span {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
   .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-meta {
     min-height: var(--spacing-32, 32px);
-  }
-
-  .e-permits-workplace__filters.is-sheets .e-permits-workplace__filter-meta[hidden] {
-    display: none;
   }
 }
 
@@ -622,13 +638,10 @@ html.is-filter-sheet-open .e-permits-fo-testcfg {
   display: none;
 }
 
-/* phone mode: the toolbar button is hidden (the „Filtre” chip is the one entry point) — the
-   library .btn display would beat the [hidden] attribute */
+/* phones: the trigger is hidden while the list has nothing to filter — the chip's display would beat [hidden] */
 .e-permits-workplace__advanced[hidden] {
   display: none;
 }
-
-/* „Filtre” pill padding / radius / size / badge: the „Filter trigger” rule at the top (filter-chip-v1) */
 
 /* × hover one step darker — the BO rule (e-permits-acte-permisive.css „.search-input .btn-icon.clear:hover”),
    restated for pages without that file; same value */

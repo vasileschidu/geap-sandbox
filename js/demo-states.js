@@ -217,7 +217,7 @@
      FOD2 wizard opened straight on a step (?pp=<type>&act=<id>) */
   const PP_FO = "e-permits-acte-permisive.html";
   /* one facet of the shared facet filter (js/facet-filter.js): desktop = its chip (→ popover); phones (≤760) = the
-     „Filtre” pill (one pill row since 2026-10-20, no facet chips) → the all-filters sheet with THAT facet's section
+     icon-only „Filtre” in the search row (phone-toolbar-v2, `data-filter-all`; no facet chips) → the all-filters sheet with THAT facet's section
      open and the others folded (so a value click can only hit this facet) */
   const ffFacet = async (h, facet) => {
     if (!window.matchMedia("(max-width: 760px)").matches) { await h.click(`[data-filter-facet="${facet}"]`); return; }
@@ -388,8 +388,8 @@
   const ekRev = (as, id, tab = "revizie", run, extra = {}) => ek(`#revizie/${id}/${tab}`, run, { as, ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty", ...extra });
   const ekAud = (id, tab = "general", run) => ek(`#sesiune/${id}/${tab}`, run, { as: EK_AUD, ready: "[data-ekyc-tab], .e-permits-dosar-profil .e-permits-empty" });
   /* „Filtrare avansată” = the shared facet filter of the BO Dosare (js/facet-filter.js): desktop = button →
-     bar → chip popover → Confirmă → „Aplică filtrele”; phones (≤760, eKYC opts in to the sheets,
-     2026-10-19) = chip → bottom sheet → „Arată N rezultate” (the Cabinet / RAP helpers). A value is
+     bar → chip popover → Confirmă → „Aplică filtrele”; phones (≤760, every list since phone-toolbar-v2)
+     = the icon-only „Filtre” in the search row → bottom sheet → „Arată N rezultate” (the Cabinet / RAP helpers). A value is
      a string (exact option value) or a number (nth visible option). */
   const ekPhone = () => window.matchMedia("(max-width: 760px)").matches;
   const ekFilterOpen = async (h) => { if (!ekPhone() && document.querySelector("[data-workplace-filters]")?.hidden) await h.click("[data-workplace-filter-toggle]"); };
@@ -1003,8 +1003,10 @@
     /* BO Dosare „Filtrare avansată” — the reference the eKYC lists copy (2026-10-19): bar open, Statut
        popover, Statut applied (js/facet-filter.js; the BO keeps the bar on phones, no sheets) */
     "dos-05b": { ...dosList(SPEC), run: async (h) => { await h.click("[data-workplace-filter-toggle]"); } },
-    "dos-05c": { ...dosList(SPEC), run: async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="status"]'); } },
-    "dos-05d": { ...dosList(SPEC), run: async (h) => { await h.click("[data-workplace-filter-toggle]"); await h.click('[data-filter-facet="status"]'); await h.click('[data-filter-option][value="În examinare"]'); await h.click("[data-filter-confirm]"); await h.click("[data-filter-commit]"); } },
+    /* desktop = button → chip → popover (→ Confirmă → Aplică); phones (phone-toolbar-v2: the BO registries are in the shared
+       phone mode too) = the icon-only „Filtre” → the all-filters sheet (→ „Arată N rezultate”) — the eKYC helpers */
+    "dos-05c": { ...dosList(SPEC), run: ekFacet("status") },
+    "dos-05d": { ...dosList(SPEC), run: async (h) => { await ekPick("status", ["În examinare"])(h); await ekCommit(h); } },
     "auth-05": { flow: "back-office", as: ADMIN, run: async (h) => { await h.click("[data-user-menu] .e-permits-shell__user-trigger"); } },
     "auth-05a": { page: "bo-login.html", params: { ended: "logout" }, ready: "[data-bo-login] h1" },
     "auth-05b": { page: "bo-login.html", params: { ended: "logout", portal: "admin" }, ready: "[data-bo-login] h1" },
