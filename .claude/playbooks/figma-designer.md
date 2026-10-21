@@ -2824,3 +2824,23 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - Left (cap reached): sm-05h block in Cabinet column 06 (components ready; Descarcă = outlined variant in code, Neutral filled in pp-01m),
     RAP rap-03l, both Start here / index lines, QA gate run, the pp-01z content mains 1074:12334 / 12931 + A4 pages 1073:2222 / 2324 are
     now unused.
+
+- 2026-10-21 · RAP act profile = full container width (user on EVO-WEB 22083:25645 „let's also do the full-width container”; code
+  477699f3: `.rap-profile__container` max-width = --rap-content-width, label column clamp(120, 30%, 200)). Probe at 1440: container
+  80–1360 (= rap-01 table), header text 12 inset, card p20, label 200 + gap 24, value 1016; only „Seria și nr. documentului tipărit”
+  wraps (row 56). Done: the 27 desktop `Profile › Container` frames (column 03 rap-02 / 02a / 02b / 02c / 02d / 02g / 02h + the
+  profile behind every column 04 modal) 1024 → FIXED 1280 (Profile padding 24 + centre does the rest); `Profile / Details row`
+  22066:5558 — the 8 Desktop variants' Label 256 → 200 (FIXED, HEIGHT) → 337 profile rows + 190 modal rows follow. Container
+  heights then equal the code to the pixel (rap-02 1058, 02a 1178, 02b 1154). Column 03 block heights did NOT change (the
+  375 phone drives the block height) → no restack; column 04 desktop screens refit to modal + 32 (8 screens), gaps stayed 240.
+  Phones untouched. Lessons:
+  - **A row component shared by the page and a modal**: changing the main's label column also moved the modal rows (256 → 200;
+    the code modal is 163 = 30 % of its row). `resize()` of a text sublayer inside an instance in another component's main does
+    NOT stick (stayed 200) → a per-context label width needs a variant / a `Context` property, not overrides. Count
+    `getInstancesAsync` per variant by host (profile container vs `Data modal content · …`) BEFORE editing a shared main.
+  - Check what drives a block's height before planning a restack: with desktop + phone side by side, a desktop that shrinks
+    changes nothing on the board.
+  - The stored `rap`/`audit` takes id strings (nodes → „missing-root”) — same as `ghs/audit`. Findings = baseline only
+    (section-over-card gap 0, profile behind a modal cut at the viewport).
+  - Left: the RAP desktop breadcrumb still ends with a trailing „›” (code breadcrumb-v2 in the same commit ends on the act name,
+    Active Level on, 30-char cut) — not asked here; modal rows 200 vs code 163.
