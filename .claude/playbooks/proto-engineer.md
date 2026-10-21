@@ -2063,3 +2063,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   without pixel noise: a computed colour / background / border / fill signature of every visible element (≈27 000) on
   BO, FO, eKYC, Ghișeu, Cabinet, RAP and the standalone pages, before / after = identical. Check the premise before
   building the „fix” a brief describes — old docs (and briefs written from them) lag the code.
+- 2026-10-21 · Finalized request = ONE outcome tag (outcome-tag-v1; user on Cabinet 1148:47839: „the Finalizat badge doesn't
+  make sense here, show only the actual status”). One helper did it: `statusTag()` returns the outcome (`OUTCOMES` /
+  `outcomeOf` / `statusLabel` in cabinet-evo/solicitari.js) and `marksHtml` / `resultMarks` lost their Aprobat / Respins
+  branches, so the row, the header „Stare”, the Stadiu card and Date generale changed together. The facet „Statut” reads
+  the SAME `statusLabel` (values = what the tags say; „Finalizat” no longer a value) + its own rank and tone for outcome
+  values; demo states that ticked the old value (sm-01c, sm-02d) had to move to the new labels — grep the demo file for
+  every label you rename. The seed has no finalized tacit request → a demo param (`?tacit-dosar=<id>`, sm-05t / sm-05u)
+  instead of a new dossier (counts / pages of other sm-* states stay). Another agent was editing the same row line
+  (aria-label) → my patch matched only the stable PREFIX of that line, so it applies on HEAD and on the tree alike.
+  Audits: hover 0 / 0, code-audit only standing FPs (the hidden „ (finalizată)” span = clipped-text FP), component-audit
+  only the standing header / sheet-trigger / „Arată” findings, compare-styles pp-01 ↔ sm-01: tag pair 0, the one diff =
+  „Detalii” MISSING from the parallel no-lone-detalii change.

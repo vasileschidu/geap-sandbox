@@ -178,16 +178,28 @@
      În derulare blue, Spre achitare / Informații suplimentare warning (they wait for the applicant),
      Finalizat green */
   const statusTone = (id) => REQUEST_UI[id]?.tag || "neutral";
+  /* a FINALIZED request shows ONE tag = its outcome, never „Finalizat” + outcome (outcome-tag-v1, user 2026-10-21:
+     „the Finalizat badge doesn't make sense here, show only the actual status”): Aprobat success · Aprobat tacit blue
+     (US-157 „Aprobat Tacit”, the RAP marking; demo `?tacit-dosar=<id>`) · Respins danger · any other result in the data
+     as it is; screen readers keep the stage („Aprobat (finalizată)”). No known outcome → „Finalizat”. */
+  const OUTCOMES = { aprobat: { label: "Aprobat", tone: "success" }, tacit: { label: "Aprobat tacit", tone: "brand" }, respins: { label: "Respins", tone: "danger" } };
+  function outcomeOf(dosar) {
+    if (dosar.status !== "finalizat" || !dosar.result) return null;
+    const key = dosar.result === "aprobat" && dosar.tacit ? "tacit" : dosar.result;
+    return OUTCOMES[key] || { label: key.charAt(0).toUpperCase() + key.slice(1), tone: "neutral" };
+  }
+  const statusLabel = (dosar) => outcomeOf(dosar)?.label || statusOf(dosar).label;
+  const outcomeTone = (label) => Object.values(OUTCOMES).find((outcome) => outcome.label === label)?.tone;
   function statusTag(dosar) {
+    const outcome = outcomeOf(dosar);
+    if (outcome) return window.GEAPTag.html(`${escape(outcome.label)}<span class="u-visually-hidden"> (finalizată)</span>`, outcome.tone, { raw: true });
     return C.tagHtml(statusOf(dosar).label, statusTone(dosar.status));
   }
 
-  /* Aprobat / Respins (US-19 AC-16) = green / red Small tags; the tacit approval (AC-15) = the blue
-     „Aprobare tacită” tag of RAP — a button here, because it carries the explanation (tooltip) */
+  /* the tacit approval still pending (AC-15) = the blue „Aprobare tacită” tag of RAP — a button here, because it
+     carries the explanation (tooltip). Aprobat / Respins (AC-16) are the status tag itself now (outcome-tag-v1). */
   function marksHtml(dosar) {
     if (readOnly()) return "";
-    if (dosar.status === "finalizat" && dosar.result === "aprobat") return C.tagHtml("Aprobat", "success");
-    if (dosar.status === "finalizat" && dosar.result === "respins") return C.tagHtml("Respins", "danger");
     if (dosar.tacit && dosar.status === "derulare") {
       return `<button class="status-tag status-tag--brand is-subtle status-tag--small cab-mark" type="button" data-tooltip-hint="${escape(tacitNote(dosar))}" aria-label="Aprobare tacită disponibilă. ${escape(tacitNote(dosar))}">Aprobare tacită</button>`;
     }
@@ -199,8 +211,6 @@
     if (readOnly() || !(dosar.tacit && dosar.status === "derulare")) return "";
     return `<button class="sm-tacit" type="button" data-tooltip-hint="${escape(tacitNote(dosar))}" aria-label="Disponibilă aprobarea tacită. ${escape(tacitNote(dosar))}">${icon("icon-circle-checkmark-filled")}<span>Disponibilă aprobarea tacită</span></button>`;
   }
-  /* the result marks of the list (AC-16) — the tacit one has its own list form */
-  const resultMarks = (dosar) => (dosar.status === "finalizat" ? marksHtml(dosar) : "");
 
   /* US-19 AC-05…08: the live countdown to the deadline of the status (the end of the deadline day, demo „now” =
      today's date of the data at the current time of day); refreshed every minute */
@@ -352,7 +362,7 @@
        REQUEST_UI, live countdown). The whole row opens the request profile. */
   function cardHtml(dosar) {
     const service = serviceOf(dosar);
-    const base = { id: dosar.id, name: "", status: dosar.status, statusLabel: statusOf(dosar).label };
+    const base = { id: dosar.id, name: "", status: dosar.status, statusLabel: statusLabel(dosar) };
     /* no lead icon (user 2026-10-20): the row starts with the title + status tag */
     const common = { menuId: `sm-row-${dosar.id}`, assets: "../assets/", iconSrc: "", tagHtml: statusTag(dosar) };
     if (readOnly()) {
@@ -369,8 +379,8 @@
     const alert = rowAlert(dosar);
     return window.GEAPActRow.html({ ...base, name }, {
       ...common,
-      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}`)}"`,
-      extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
+      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusLabel(dosar)}${outcomeOf(dosar) ? " (finalizată)" : ""}`)}"`,
+      extraTagsHtml: `${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
       /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · type · service ·
          authority · subdivision · date */
       metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
@@ -391,7 +401,8 @@
     return code ? `${code} · ${state.data.help[code]?.name || serviceOf(dosar).authorityName || ""}`.replace(/ · $/, "") : "";
   };
   const FACETS = [
-    { key: "status", label: "Statut", get: (dosar) => statusOf(dosar).label },
+    /* Statut = the labels of the tags (outcome-tag-v1): a finalized request is filtered by its outcome */
+    { key: "status", label: "Statut", get: statusLabel },
     { key: "autoritate", label: "Autoritatea emitentă", get: authorityValue },
     { key: "depunere", label: "Data depunerii", type: "date", get: (dosar) => isoDay(dosar.submitted), today: () => TODAY },
     { key: "finalizare", label: "Data estimată de finalizare", type: "date", presets: ["azi", "u7z", "u30z", "an"], get: (dosar) => isoDay(estimatedEnd(dosar)), today: () => TODAY },
@@ -417,7 +428,8 @@
       new Set(facetValues(facet, dosar)).forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
     });
     (selection[facet.key] || []).forEach((value) => { if (!counts.has(value)) counts.set(value, 0); });
-    const order = facet.key === "status" ? (value) => STATUS_ORDER.findIndex((id) => state.data.statuses[id]?.label === value) : null;
+    const statusRank = (value) => { const outcome = Object.values(OUTCOMES).findIndex((o) => o.label === value); return outcome >= 0 ? STATUS_ORDER.length + outcome : STATUS_ORDER.findIndex((id) => state.data.statuses[id]?.label === value); };
+    const order = facet.key === "status" ? statusRank : null;
     return [...counts.entries()].map(([value, count]) => ({ value, count }))
       .sort((a, b) => (order ? order(a.value) - order(b.value) : a.value.localeCompare(b.value, "ro", { numeric: true })));
   }
@@ -437,6 +449,7 @@
       options: facetOptions,
       tag: (value, facet) => {
         if (facet.key !== "status") return null;
+        if (outcomeTone(value)) return C.tagHtml(value, outcomeTone(value));
         const id = Object.keys(state.data.statuses).find((key) => state.data.statuses[key].label === value);
         return C.tagHtml(value, statusTone(id));
       },
@@ -691,7 +704,7 @@
           };
         }
         if (dosar.decisionOnly) return { title: `Aprobată pe ${longDate(dosar.finalized)}`, text: dosar.decision?.text || "" };
-        return { title: `Aprobată pe ${longDate(dosar.finalized)} · actul este disponibil`, text: "Actul permisiv emis este și în „Actele mele permisive”, de unde îl puteți vizualiza și descărca oricând." };
+        return { title: `Aprobată${dosar.tacit ? " tacit" : ""} pe ${longDate(dosar.finalized)} · actul este disponibil`, text: "Actul permisiv emis este și în „Actele mele permisive”, de unde îl puteți vizualiza și descărca oricând." };
       default:
         return { title: statusOf(dosar).label, text: "" };
     }
@@ -1429,6 +1442,11 @@
     const ppLabel = { reperfectare: "Reperfectare", prelungire: "Prelungire", duplicat: "Emitere duplicat", retragere: "Retragere", suspendare: "Suspendarea valabilității", reluare: "Reluarea valabilității", anulare: "Anulare" }[pp];
     const object = params.get("obiect") || "Solicitare nouă";
     const filed = params.get("depus");
+    /* demo: a finalized request approved tacitly (US-157; the seed has none) → its one tag reads „Aprobat tacit” */
+    (params.get("tacit-dosar") || "").split(",").forEach((id) => {
+      const dosar = state.dosare.find((item) => item.id === id && item.status === "finalizat" && item.result === "aprobat");
+      if (dosar) dosar.tacit = true;
+    });
     if (filed && !state.dosare.some((dosar) => dosar.nr === filed)) {
       const submitted = `${TODAY}T13:50`;
       state.dosare.unshift({

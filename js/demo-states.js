@@ -2105,7 +2105,8 @@
     "sm-01s": sm(async (h) => { await h.click("[data-fo-avatar-trigger]"); await h.find("[data-fo-avatar-dropdown]:not([hidden])"); }),
     "sm-01a": sm(smPick("status", ["Spre achitare", "Informații suplimentare"])),
     "sm-01b": sm(smPick("status", ["Schiță"])),
-    "sm-01c": sm(smPick("status", ["Finalizat"])),
+    /* outcome-tag-v1: the Statut facet lists the outcomes a finalized request shows (Aprobat / Respins), not „Finalizat” */
+    "sm-01c": sm(smPick("status", ["Aprobat", "Respins"])),
     "sm-01d": sm(async (h) => { await h.fill("[data-sm-search]", "04466", { leave: false }); }),
     "sm-01e": sm(async (h) => { await h.fill("[data-sm-search]", "autorizatie stupefiante xyz", { leave: false }); }),
     /* sort = the „Sortează” menu on desktop and phones (2026-10-20, the table headers are gone): 01f the menu open
@@ -2140,7 +2141,7 @@
     "sm-02a": sm(smMenu("d-fresh")),
     "sm-02b": sm(smMenu("d-sud")),
     "sm-02c": sm(smMenu("d-nistru")),
-    "sm-02d": sm(async (h) => { await smPick("status", ["Finalizat"])(h); await smMenu("d-izvoras")(h); }),
+    "sm-02d": sm(async (h) => { await smPick("status", ["Aprobat"])(h); await smMenu("d-izvoras")(h); }),
     "sm-02e": sm(smMenu("d-nota")),
     "sm-03": smDosar("d-spicul"),
     /* a click on the DRAFT row opens its details (never the FO form — user 2026-10-20); „Continuă schița” stays in ⋮
@@ -2201,6 +2202,9 @@
        matrix) · 05p Emitere duplicat (Act) · 05q Suspendarea valabilității (Decizie) · 05r Reluarea valabilității
        (Decizie) · 05s filed by a representative whose MPower has expired since (US-161 AC-11, US-19 AC-17) */
     "sm-05o": sm(async (h) => { await smFind(h, "d-nota"); }),
+    /* outcome-tag-v1: a finalized request approved tacitly (US-157) = ONE blue „Aprobat tacit” tag (demo ?tacit-dosar=) */
+    "sm-05t": sm(async (h) => { await smFind(h, "d-bistro"); }, { "tacit-dosar": "d-bistro" }),
+    "sm-05u": smDosar("d-bistro", null, { "tacit-dosar": "d-bistro" }),
     "sm-05p": smDosar("d-izvoras-dup", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05q": smDosar("d-piata-susp", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05r": smDosar("d-dulce-reluare", async (h) => { await h.click('[data-sm-tab="act"]'); }),

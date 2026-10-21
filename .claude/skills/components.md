@@ -237,7 +237,7 @@ but this doc previously described it wrongly, see the entry.
 | Next step | `.e-permits-next-step` > `__label` + `__box` (icon + target); JS `renderNextStep(target, { label, icon })` | Figma 9721:9920 | app |
 | Toast | `.toast-container > .toast.toast--{info\|success\|warning\|error}` via `GEAPToast.show()` (`js/toast.js`) | `messaget-toast.html` | library |
 | Request statuses (Solicitările mele, status matrix 2026-10-20) | one table per status / variant: row tag · alert · meta date, profile status card + timeline, notification kind — drafts (pending note, signed + paid, removed automatically, Continuă / Elimină errors), În derulare after suplinire / after an expired suplinire, refused + appeal countdown, duplicate / suspendare / reluare, paper delivery, filed by a representative | `REQUEST_UI` / `normalize` / `autoRemoved` / `statusNow` / `timelineEvents` (solicitari.js), `eventsOf` (notificari.js); section „Request statuses — Solicitările mele”; demo sm-03d…03h, sm-04i…04l, sm-05o…05s, nt-01d…01g | page-app |
-| Request row (Solicitările mele, 2026-10-20) | the shared act row: `ul.e-permits-fo-intent__list.cab-act-list.cab-request-list > li.e-permits-fo-lib-item.e-permits-fo-intent-act.cab-request-row[data-sm-card](.is-new/.is-static)` — NO lead icon (the ONE row anatomy, no grid / action column since trigger-corner-v1), title = object + Small status tag (+ Aprobat / Respins, `.sm-tacit`), meta = the shared slots (§ „List rows — act + request”), right `.cab-doc__actions.cab-card__actions` = ⋮ only (`btn btn-neutral btn-sm btn-icon-only cab-card__more` (grey at rest), row-kebab-v1) or the lone „👁 Detalii” — either one absolute in the card's top-right corner at EVERY width (shared rule, act-trigger-fixed-v1 phones → trigger-corner-v1 all widths); the row (click / Enter) ALWAYS opens the details — every status, drafts included, never the FO form (2026-10-20), ACTION-ONLY alert in the act row notice slot (`noticeHtml`, warning / error) with one `.cab-alert-link` | `cabinet-evo/solicitari.js` `cardHtml` + ONE status map `REQUEST_UI` (tag tone · alert · date slot); demo sm-01*, sm-04h1 (alert link), sm-03i (draft row → details) | page-app |
+| Request row (Solicitările mele, 2026-10-20) | the shared act row: `ul.e-permits-fo-intent__list.cab-act-list.cab-request-list > li.e-permits-fo-lib-item.e-permits-fo-intent-act.cab-request-row[data-sm-card](.is-new/.is-static)` — NO lead icon (the ONE row anatomy, no grid / action column since trigger-corner-v1), title = object + ONE Small status tag (a finalized request = its OUTCOME tag only — Aprobat / Aprobat tacit / Respins, never „Finalizat” + outcome, outcome-tag-v1) + `.sm-tacit` while the tacit approval is pending, meta = the shared slots (§ „List rows — act + request”), right `.cab-doc__actions.cab-card__actions` = ⋮ only (`btn btn-neutral btn-sm btn-icon-only cab-card__more` (grey at rest), row-kebab-v1) or the lone „👁 Detalii” — either one absolute in the card's top-right corner at EVERY width (shared rule, act-trigger-fixed-v1 phones → trigger-corner-v1 all widths); the row (click / Enter) ALWAYS opens the details — every status, drafts included, never the FO form (2026-10-20), ACTION-ONLY alert in the act row notice slot (`noticeHtml`, warning / error) with one `.cab-alert-link` | `cabinet-evo/solicitari.js` `cardHtml` + ONE status map `REQUEST_UI` (tag tone · alert · date slot); demo sm-01*, sm-04h1 (alert link), sm-03i (draft row → details) | page-app |
 | Act profile (EVO Cabinet „Actele mele permisive” › ?act=, act-profile-v1 2026-10-21) | BO header + subtitle (act type) · ONE left-aligned action row with the „⋯” overflow (`.cab-act-header__bar/__actions/__overflow`) · key-facts card `.cab-act-header__facts > p.cab-act-header__key` + status notice + „Vezi toate detaliile” · BO sections Ce permite actul · Detalii act · Autoritatea emitentă · Beneficiar · Istoric (trajectory) · full container | `cabinet-evo.js renderDetail`; section „Act profile — EVO Cabinet (act-profile-v1)”; demo pp-01d…pp-01z, pp-03…pp-03d | page-app |
 | Key facts row | `dl.cab-facts > .cab-facts__item > dt + dd` (vertical dividers; stacks ≤600) | `factsHtml` (solicitari.js), catalog service page | page-app |
 | Callout tones | `.e-permits-callout--{info\|warning\|neutral\|success\|danger}` | `calloutHtml` (solicitari.js) | app |
@@ -6950,9 +6950,10 @@ profile's `statusNow` / `timelineEvents` in `cabinet-evo/solicitari.js`; no new 
 | În derulare — suplinire expirată (US-24 AC-03) | as În derulare (`normalize()`: an `info` past `info.until` becomes `derulare` + `resumed.kind = "expirat"`) | text „Termenul de suplinire a expirat pe …”; Data suspendării kept; timeline „Suspendare încheiată” → „Examinare reluată” | „Termenul de suplinire a expirat” (`supplement-expired`) | sm-04i, nt-01f |
 | Informații suplimentare | warning · „Trimiteți informațiile … · countdown · Trimite informațiile →” | Suplinește informații | „Autoritatea a cerut informații suplimentare” + `details` „Motivul suspendării” / „Neconformități depistate” (`info-requested`, `.nt-item__details`, US-126 AC-16) | sm-04b, nt-01g |
 | Spre achitare | warning · „Achitați taxa … · Achită acum →”; expired note = error (PO Q1) | MPay badge | „Aveți o notă de plată de achitat” | sm-04c, sm-04g |
-| Finalizat · Aprobat | success + „Aprobat” · none · „Finalizată …” | Vezi actul · Descarcă; duplicate: Act „Exemplar — Duplicat al actului …”, validity from `validFrom` | „Actul permisiv a fost emis” | sm-05, sm-05p |
+| Finalizat · Aprobat | ONE success tag „Aprobat” (SR „Aprobat (finalizată)”; no „Finalizat” tag, outcome-tag-v1) · none · „Finalizată …” | Vezi actul · Descarcă; duplicate: Act „Exemplar — Duplicat al actului …”, validity from `validFrom` | „Actul permisiv a fost emis” | sm-05, sm-05p |
 | Finalizat · Aprobat (decizie: retragere / suspendare / reluare) | as Aprobat | tab „Decizie” | „Decizia a fost emisă” | sm-05b, sm-05q, sm-05r |
-| Finalizat · Respins | success + „Respins” · INFO while `canAppeal` (30 days = `appealDays`, PO Q3) | Descarcă decizia · Depune contestație | „Solicitarea a fost respinsă” | sm-05a, sm-05o |
+| Finalizat · Aprobat tacit (US-157; demo `?tacit-dosar=<id>`, the seed has none) | ONE blue tag „Aprobat tacit” (SR „… (finalizată)”) · none · „Finalizată …” | „Aprobată tacit pe …” · Vezi actul · Descarcă | — | sm-05t, sm-05u |
+| Finalizat · Respins | ONE danger tag „Respins” (SR „Respins (finalizată)”) · INFO while `canAppeal` (30 days = `appealDays`, PO Q3) | Descarcă decizia · Depune contestație | „Solicitarea a fost respinsă” | sm-05a, sm-05o |
 
 Profile variants: **Livrare** (US-161 AC-16) from `delivery.paper` = `mdelivery` (row „Metoda de livrare” EVO Cabinet +
 „Pe hârtie prin MDelivery”, „Adresa de livrare” composed from raion / localitate / stradă / număr / bloc / apartament
@@ -7029,8 +7030,9 @@ section titles, MPower card when representative), Date solicitare, Contacte, Doc
 (`.cab-docs` of the shared Document · card `CabEvo.docRowHtml`), Livrare, Taxe (only with a payment
 note; Data achitării only when Achitat), Act permisiv / Decizie (only Finalizat), Ai nevoie de
 ajutor? (contacts = `a.e-permits-dosar-profil__link`). Tags: Schiță neutral, În derulare info,
-Spre achitare / Informații suplimentare warning, Finalizat success; marks Aprobat success, Respins
-danger, „Aprobare tacită” = the blue tag as a `button.cab-mark` (tooltip with the explanation; the
+Spre achitare / Informații suplimentare warning; a finalized request shows ONLY its outcome (outcome-tag-v1,
+2026-10-21): Aprobat success, Aprobat tacit blue, Respins danger („Finalizat” only when the outcome is unknown),
+hidden „ (finalizată)” for screen readers; mark „Aprobare tacită” (pending, În derulare) = the blue tag as a `button.cab-mark` (tooltip with the explanation; the
 code-audit `button-not-library` on it is intended).
 Download error (US-19 AC-14) = `message banner--error` after the clicked scope (`[data-sm-dl-scope]`).
 Expired payment note (US-135 AC-14, 2026-10-17; demo `?nota=expirata`, sm-04g / sm-04g1): status unchanged
@@ -8980,3 +8982,17 @@ tarif” 94772 (parents: Feature 93591 Taxe, Feature 94153 Clasificatorul de tar
   Tarife; svc-04a (Taxe filtrare avansată), 04t (popover Stare), 04t1 (Activă applied), 04t2 (search
   without match), 04u (Tarife table), 04u1 (sync toast), 04u2 (tariff card from the service),
   04u3 (Tarife filtrare avansată).
+
+### Request status tag — a finalized request shows its outcome (outcome-tag-v1, 2026-10-21)
+User (EVO Cabinet 1148:47839): „The Finalizat badge doesn't make sense here. Show only the actual status.” A request in
+status `finalizat` shows ONE Small tag = its outcome, everywhere its status shows (list row, profile header „Stare”,
+„Stadiul solicitării” card, Date generale „Statutul dosarului”): **Aprobat** success · **Aprobat tacit** brand (US-157
+„Aprobat Tacit” = the RAP marking label; `result: "aprobat"` + `tacit`) · **Respins** danger · any other `result` in the
+data as it is (neutral) · no result → „Finalizat”. Markup = `GEAPTag.html("Aprobat<span class=\"u-visually-hidden\">
+(finalizată)</span>", tone, { raw: true })` (screen readers keep the stage; the row's aria-label says it too). The
+other statuses keep their own tag; the pending tacit approval (În derulare) keeps its `.sm-tacit` / `cab-mark`.
+**Filter „Statut”** lists the labels of the tags (Schiță · Informații suplimentare · Spre achitare · În derulare ·
+Aprobat · Aprobat tacit · Respins): a value the user never sees on a tag would filter blind; „Finalizat” is no facet value
+(it is a lifecycle group, not something on screen; the old quick-chip group „Finalizate” in the JSON `filters` is unused). Code: `cabinet-evo/solicitari.js` `OUTCOMES` /
+`outcomeOf` / `statusLabel` / `statusTag`. Demo sm-01c (Aprobat + Respins), sm-05 / sm-05a / sm-05o, sm-05t / sm-05u
+(`?tacit-dosar=d-bistro`). Same idea as the tacit act rule (tacit-tag-v1).
