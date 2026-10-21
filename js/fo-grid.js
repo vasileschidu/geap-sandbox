@@ -213,7 +213,7 @@
       ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Salvează rândul ${n}" data-tooltip-label="Salvează (Enter)" data-fo-grid-act="save">${icon("icon-checkmark-small", 16)}</button>
          <button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Anulează modificările din rândul ${n}" data-tooltip-label="Anulează (Esc)" data-fo-grid-act="cancel">${icon("icon-cross-small", 16)}</button>`
       : `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Editează rândul ${n}" data-tooltip-label="Editează" data-fo-grid-act="edit">${icon("icon-edit", 16)}</button>
-         ${canRemove ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Șterge rândul ${n}" data-tooltip-label="Șterge" data-fo-grid-act="delete">${icon("icon-delete", 16)}</button>` : ""}`;
+         ${canRemove ? `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge rândul ${n}" data-tooltip-label="Șterge" data-fo-grid-act="delete">${icon("icon-delete", 16)}</button>` : ""}`;
     const full = editing
       ? `<button class="btn btn-secondary btn-md" type="button" data-fo-grid-act="save">${icon("icon-checkmark-small")}<span>Salvează rândul</span></button>
          <button class="btn btn-neutral btn-md" type="button" data-fo-grid-act="cancel">Anulează</button>`
@@ -915,7 +915,7 @@
       <div class="e-permits-fo-activity-card e-permits-fo-repeat__item" role="group" aria-labelledby="${esc(itemId)}-title" data-fo-repeat-item="${item.id}">
         <div class="e-permits-fo-activity-card__header">
           <div class="e-permits-fo-activity-card__title" id="${esc(itemId)}-title"><span data-fo-repeat-index>#${n}</span><strong>${esc(title)}</strong></div>
-          ${canRemove ? `<button class="e-permits-fo-icon-button" type="button" aria-label="Șterge ${esc(title.toLowerCase())} #${n}" data-tooltip-label="Șterge" data-fo-repeat-remove><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg></button>` : ""}
+          ${canRemove ? `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Șterge ${esc(title.toLowerCase())} #${n}" data-tooltip-label="Șterge" data-fo-repeat-remove><svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg></button>` : ""}
         </div>
         ${parts.join("")}
       </div>`;

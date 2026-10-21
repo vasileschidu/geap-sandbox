@@ -211,7 +211,8 @@
     return '<div class="clas-page__actionbar">' +
       '<span class="badge badge--solid-neutral badge--md">' + s.selected.length + " selectate</span>" +
       s.actions.map(function (a) {
-        return '<button type="button" class="btn btn-outline-neutral btn-sm" data-clas-action="' + esc(a) + '">' +
+        /* destructive-red-v1: Arhivează = the library outlined destructive */
+        return '<button type="button" class="btn ' + (a === "arhiveazaClas" ? "btn-outline-destructive" : "btn-outline-neutral") + ' btn-sm" data-clas-action="' + esc(a) + '">' +
           esc(labels[a] || a) + "</button>";
       }).join("") +
       (!s.actions.length && s.blockedReasons.length

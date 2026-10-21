@@ -6460,35 +6460,6 @@
   line-height: var(--line-height-lh-24, 24px);
 }
 
-.e-permits-fo-icon-button {
-  align-items: center;
-  appearance: none;
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 auto;
-  justify-content: center;
-}
-
-.e-permits-fo-icon-button {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  height: 32px;
-  width: 32px;
-}
-
-.e-permits-fo-icon-button:hover,
-.e-permits-fo-icon-button:focus-visible {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-/* the icon button already rests on tertiary: its hover goes one step darker (hover visible everywhere) */
-.e-permits-fo-icon-button:hover,
-.e-permits-fo-icon-button:focus-visible {
-  background: var(--color-background-base-tertiary-hover, #e7e7e7);
-}
-
 /* the selected segment had no hover (the library hover is overridden by is-selected): the inverse
    hover token, as a selected chip (hover visible everywhere, 2026-10-13) */
 .segment-item.is-selected:hover {
@@ -7528,19 +7499,9 @@
   line-height: var(--line-height-lh-24, 24px);
 }
 
+/* the × of an „Alt document” card = library `btn btn-text-destructive btn-sm btn-icon-only` (destructive-red-v1) */
 .e-permits-fo-doc-card__remove {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: flex;
   flex-shrink: 0;
-  height: 32px;
-  justify-content: center;
-  width: 32px;
 }
 
 .e-permits-fo-doc-card__body {
@@ -22780,9 +22741,17 @@ button.e-permits-steps-strip__cell:hover,
 }
 
 /* icon buttons that rest on tertiary: hover one step darker (was the same #f1f1f1) */
-.e-permits-fo-icon-button:hover,
 .cab-card__actions .btn.cab-card__more:hover:not(:disabled) {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+/* destructive-red-v1 (2026-10-21): the library dialog footer is fill-only (`.modal-buttons .btn { border-color: transparent }`),
+   which turns the library OUTLINED destructive into bare red text. A secondary destructive action in a dialog footer
+   („Închide fără salvare”, „Dezactivează în schimb”) keeps the variant's own red border (library value). */
+.modal-buttons .btn-outline-destructive,
+.modal-buttons .btn-outline-destructive:hover:not(:disabled),
+.modal-buttons .btn-outline-destructive:active:not(:disabled) {
+  border-color: var(--red-600, #d92d20);
 }
 
 /* sortable table headers: the whole header cell fills */

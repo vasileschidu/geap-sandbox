@@ -1573,7 +1573,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${bareSelect(`fb-co-${ri}-${ci}`, `data-fb-cond-op="${k}"`, "Operator", ops.map((op) => [op, OPS[op]]), c.op, { error: errors.some((issue) => issue.prop === `rules.${k}.op`), disabled: !source, label: "Operator" })}</div>
         <div class="e-permits-doc-cond__cell">${value}</div>
         ${rule.conditions.length > 1
-          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-fb-cond-remove="${k}">${icon("icon-delete", 16)}</button>`
+          ? `<button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-fb-cond-remove="${k}">${icon("icon-delete", 16)}</button>`
           : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
       </li>`;
   }
@@ -2126,7 +2126,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <div class="e-permits-fo-input${error && !String(option.label || "").trim() ? " is-error" : ""}"><input id="fb-opt-${index}" type="text" value="${esc(option.label || "")}" aria-label="Opțiunea ${index + 1}" autocomplete="off" data-fb-option="${index}"></div>
             ${deactivate
               ? ui().renderCheckOption?.({ label: "Activă", checked: option.isValid !== false, attrs: `data-fb-option-active="${index}"` }) || ""
-              : `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Elimină opțiunea ${index + 1}" data-fb-option-remove="${index}"${options.length <= 1 ? ' aria-disabled="true" data-tooltip-reason="Rămâne cel puțin o opțiune."' : ""}>${icon("icon-delete", 16)}</button>`}
+              : `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină opțiunea ${index + 1}" data-fb-option-remove="${index}"${options.length <= 1 ? ' aria-disabled="true" data-tooltip-reason="Rămâne cel puțin o opțiune."' : ""}>${icon("icon-delete", 16)}</button>`}
           </li>`).join("")}
       </ol>
       ${error ? errorHtml(error) : ""}

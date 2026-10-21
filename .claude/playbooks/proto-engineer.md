@@ -2230,3 +2230,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   hover-audit scope `.e-permits-fo-stepper` hit a hidden copy („0 interactive”) → `[data-fo-screen='request'] …` /
   `.form-builder-modal-overlay …`. No sub-agent tool → component-audit (no errors / stepper finding), hover 0 / 0,
   code-audit 0 on the top bar, captures 18 × 2 clean.
+- 2026-10-21 · Destructive = red buttons (destructive-red-v1; user: „ALL destructive actions should be red”, Figma QA found grey /
+  blue ones). The menus were already red only where callers passed `danger: true` — a label-driven rule in ONE predicate
+  (`isDestructiveLabel`, next to `actionIconFor`) applied INSIDE the shared renderers (`renderStackMenu`, `renderRowActions`
+  primary, `renderStackItem` action, `clasIconAction`, eKYC `btn()`) fixed every list / header / grid at once and holds for
+  new code; hand-written buttons (Cabinet header, eKYC dialogs, Ghișeu / Process Designer leave dialogs, rule-builder ×)
+  were swapped one by one. Mapping that kept the look calm: filled grey → outlined destructive, transparent / strict →
+  text destructive, confirm → filled destructive. Traps: (1) the library dialog footer is FILL-ONLY
+  (`.modal-buttons .btn { border-color: transparent }`) → an outlined destructive in a footer renders as bare red text; the
+  probe's border colour column caught it (rgba 0) — restate the variant border scoped to `.modal-buttons`; (2) my first grep
+  only matched label text, the classifier grid's icon-only buttons carry the verb in `aria-label` through a helper
+  (`icon-${icon}`) — grep `aria-label="Verb` / `data-tooltip-label` too, and probe EVERY visible button whose label OR
+  aria-label starts with a destructive verb (scratch dr/probe.mjs: class · colour · bg · border · svg colour); (3) two
+  private buttons (FO activity / „Alt document” card ×, user combination ×) had no hover at all — swapping to the library
+  variant fixed that for free; delete the dead product paint in the same change. Confirm dialogs were already right
+  (askConfirm `destructive`, openConfirm `danger`; a script listing confirm labels without the flag found 0). Decisions
+  (eKYC „Respinge”), cancels („Renunță”), „Detașează” and clears stay neutral — listed in components.md.

@@ -3422,29 +3422,6 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   line-height: var(--line-height-lh-20, 20px);
 }
 
-.e-permits-user-create__combo-remove {
-  width: 28px;
-  height: 28px;
-  padding: var(--spacing-6, 6px);
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  color: var(--color-icon-base-secondary, #383838);
-  cursor: pointer;
-}
-
-.e-permits-user-create__combo-remove:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-user-create__combo-remove .icon {
-  width: 16px;
-  height: 16px;
-}
-
 /* drawer footer = the modal footer: 20 on every side, library .modal-buttons
    (40px pill buttons, 12px gap) */
 /* back office: controls read at 14/20, never 16 — the library checkbox defaults to

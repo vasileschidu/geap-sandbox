@@ -8569,9 +8569,10 @@
       const header = card.querySelector(".e-permits-fo-activity-card__header");
       if (!header || header.querySelector("[data-fo-remove-activity]")) return;
       const button = document.createElement("button");
-      button.className = "e-permits-fo-icon-button";
+      button.className = "btn btn-text-destructive btn-sm btn-icon-only";
       button.type = "button";
       button.setAttribute("aria-label", "Șterge activitatea");
+      button.dataset.tooltipLabel = "Șterge";
       button.dataset.foRemoveActivity = "";
       button.innerHTML = `
         <svg class="icon" width="20" height="20" aria-hidden="true">
@@ -8627,7 +8628,7 @@
               <span class="e-permits-fo-doc-card__index" data-fo-other-doc-index>#${count}</span>
               <span class="e-permits-fo-doc-card__name">Document</span>
             </div>
-            <button class="e-permits-fo-doc-card__remove" type="button" aria-label="Elimină documentul" data-fo-remove-other-doc>
+            <button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-fo-doc-card__remove" type="button" aria-label="Elimină documentul" data-tooltip-label="Elimină" data-fo-remove-other-doc>
               <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-delete"></use></svg>
             </button>
           </div>

@@ -710,7 +710,7 @@
         title: "Salvați schița înainte de a închide?",
         subtitle: S.cur.nr || "Dosar nou",
         body: '<p class="e-permits-passport__lead">Modificările făcute după ultima salvare se pierd dacă închideți cererea fără să o salvați.</p>',
-        footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Rămâi în cerere</button><button class="btn btn-neutral btn-rounded" type="button" data-gh-leave-discard>Închide fără salvare</button><button class="btn btn-primary btn-rounded" type="button" data-gh-leave-save>Salvează și închide</button></div>'
+        footer: '<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Rămâi în cerere</button><button class="btn btn-outline-destructive btn-rounded" type="button" data-gh-leave-discard>Închide fără salvare</button><button class="btn btn-primary btn-rounded" type="button" data-gh-leave-save>Salvează și închide</button></div>'
       });
       return;
     }

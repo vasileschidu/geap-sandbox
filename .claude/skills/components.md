@@ -254,6 +254,7 @@ but this doc previously described it wrongly, see the entry.
 | **RAP public header** (gov.md style) — product component, kept | `.rap-header` › `nav.rap-header__menu > button.rap-header__menu-item` (72 high · padding 0 16 · 16/24 · gap 6, current underline) · `nav.rap-header__languages > button` (Ro / Ru, 14/20 medium, current underlined) · `.rap-header__actions > button.rap-icon-button` (40 round, search / help icons 20) · the government mark in the top bar = `assets/logos/egov.svg` (vector from EVO-WEB `government-logo`, 18 × 21; also the FO / Cabinet / BO login / shell top bars — never the old `government-logo.png` raster) | `rap-evo/index.html`, `rap-evo/rap-evo.js` | page-app |
 | **Setări section nav** — product component, kept | `.e-permits-cfg2__nav` (sticky, 220 wide, `--cfg2-stick`) > `a.e-permits-cfg2__nav-link(.is-active[aria-current])` — 36 high, padding 8 12, gap 8, radius 8, 14/20 medium secondary; hover tertiary; current = brand-secondary fill + brand text; trailing dot warning (changed) / danger (errors); follows the scroll (scroll spy) | `renderServiceSettingsV2` (Servicii › Setări), eKYC config pages | app |
 | **Editor toolbar** (notification template rich text) — product component, kept | `.e-permits-ntpl-editor__toolbar.e-permits-dtpl__toolbar[role=toolbar]` > `button.e-permits-ntpl-editor__tool[aria-pressed]` — 32 high, padding 0 6, radius 6, transparent → tertiary hover, pressed = tertiary-active; icons 20 (Aldin, Italic, liste, link, „Șterge formatarea”) + `.separator--vertical` groups | `js/e-permits-shell.js` (ntpl editor) | app |
+| **Destructive actions — red** (destructive-red-v1, 2026-10-21, user: „ALL destructive actions should be red”) | page / header / row / card button = library `btn btn-outline-destructive` (size of its context: `btn-sm` BO, `btn-md btn-rounded` Cabinet); icon-only next to grey icon buttons = `btn btn-outline-destructive btn-sm btn-icon-only`; inline / transparent remove (rule builders, grid rows, FO cards) = `btn btn-text-destructive btn-sm` (+ `btn-icon-only`); confirm button of a confirmation dialog = `btn btn-destructive` (cancel `btn-neutral`); a secondary destructive in a dialog footer = `btn-outline-destructive btn-rounded` (border restated, the library footer is fill-only); ⋮ item = `.is-danger`; icon = label colour (trash for Elimină / Șterge) | `isDestructiveLabel(label)` in `js/e-permits-shell.js` (exported on `GEAPUi` / `GEAPShellApi`) drives `renderRowActions` primary, `renderStackItem` action, `renderStackMenu` items, `clasIconAction`, eKYC `btn()`; `askConfirm({ destructive })`, `openConfirm({ danger })`; section „Destructive actions — red” | app |
 | Destructive confirm (FO) | `.e-permits-fo-instance-switch-modal__icon--danger` + confirm `btn btn-destructive` (`__primary--danger` = hook only) | `openConfirm({ danger: true })` (solicitari.js) | app |
 | FO confirm dialog footer (G8 leave, instance switch, post-process, grid row delete, Cabinet confirms; audit-fix-v2, 2026-10-21) | `div.modal-buttons.e-permits-fo-instance-switch-modal__actions` > `button.btn.btn-neutral.__secondary` (cancel) + `button.btn.btn-primary.__primary` / `btn btn-destructive` (danger; JS swaps `btn-primary` → `btn-destructive`) = the library modal footer (40 pills, 14/20, gap 12); the card keeps only its 12 20 24 inset. ~~Private pill buttons (48, black 1.5 outline, hover `#004ab3`)~~ removed | `e-permits-acte-permisive.html` dialogs, `CabEvo` pp confirm, `openConfirm` | app |
 | Warning confirm (FO, data loss) | `.e-permits-fo-instance-switch-modal__icon--warning` (amber `--color-icon-warning-default`, warning-filled icon); primary stays brand (the safe action) | G8 guest leave dialog | app |
@@ -5719,6 +5720,31 @@ Detașează, Renunță (la ciornă / la modificări), Închide fără salvare, �
 activă, Suprascrie / Publică oricum over someone else's MDocs change. Neutral confirmations
 (Publică, Activează, Republică, Sincronizează) stay `btn-primary`. Figma: the same modal
 with button Style=Destructive.
+
+### Destructive actions — red (rule, destructive-red-v1, 2026-10-21)
+
+User (2026-10-21): „ALL destructive actions should be red”. A destructive action removes, stops, withdraws or
+archives something: Elimină, Șterge, Dezactivează, Inactivează, Suspendă, Revocă, Retrage, Anulează programarea,
+Arhivează, Închide fără salvare. Library variants only (Components/buttons.html), never a product colour:
+
+| Where | Variant | Examples |
+|---|---|---|
+| Page header / row / card / drawer button | `btn btn-outline-destructive` + the context size (`btn-sm` BO, `btn-md btn-rounded` Cabinet) — white, red border + label + icon, so it never competes with the primary | Cabinet „Elimină schița” (sm-03), eKYC „Dezactivează” / „Suspendă contul” / „Revocă toate sesiunile” / session „Revocă”, Tarife „Dezactivează” + „Șterge”, classifier „Arhivează” |
+| Icon-only among grey icon buttons | `btn btn-outline-destructive btn-sm btn-icon-only` | classifier value grid „Dezactivează” / „Șterge”, notification recipient „Elimină destinatarul” (`clasIconAction`) |
+| Inline remove (transparent) | `btn btn-text-destructive btn-sm` (+ `btn-icon-only`) | rule builders „Elimină” / condition ×, FO grid „Șterge rândul”, FO repeat / activity / „Alt document” cards, Process Designer „Elimină atribuirea”, user combination card |
+| Confirm button of a confirmation dialog | `btn btn-destructive` (filled), cancel = `btn-neutral` | every `askConfirm({ destructive: true })`, `openConfirm({ danger: true })`, eKYC C01e „Dezactivează organizația” |
+| Secondary destructive in a dialog footer (next to a filled primary / destructive) | `btn btn-outline-destructive btn-rounded` — the library footer is fill-only (`.modal-buttons .btn { border-color: transparent }`), so `css/e-permits-acte-permisive.css` restates the variant's own `--red-600` border inside `.modal-buttons` | „Închide fără salvare” (Ghișeu gh-02o, Process Designer pd-27), eKYC „Dezactivează în schimb” (ek-27k) |
+| ⋮ menu item | `.e-permits-fo-intent-menu__item.is-danger` (red label + icon), last | every `renderStackMenu` item whose label is destructive, even without `danger: true` |
+
+- ONE predicate: `isDestructiveLabel(label)` (shell; `GEAPUi` / `GEAPShellApi`) — the shared renderers apply it by default,
+  so a new „Dezactivează” needs no flag. Clearing a filter / search („Șterge filtrele / căutarea / formatarea”) is not
+  destructive. Icon = label colour (library variant), trash for Elimină / Șterge (Action icons rule).
+- Kept on purpose: decisions („Respinge” in eKYC review — a decision, not a deletion; its CONFIRM is already
+  `btn-destructive`), „Renunță” / „Renunță la toate” next to Salvează (cancel of unsaved edits; the follow-up confirm is
+  red), „Detașează” (form builder: unlinks a saved component, the field stays), RAP config bulk „Retrage toate” (a
+  publish toggle), file / chip / search × (detach / clear, cross icon).
+- Withdrawal confirm (Retragere / Anulare): the dialog icon is red (`__icon--danger`), Suspendare amber; the confirm
+  button is `btn-destructive` for all three (FO pp-02b, Cabinet pp-01g).
 
 ### Confirmation above drawers (added 2026-10-02)
 

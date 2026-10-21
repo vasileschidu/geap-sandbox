@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="modal--footer">
         <div class="modal-buttons e-permits-pd__close-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-close>Rămâi</button>
-          <button class="btn btn-secondary btn-rounded" type="button" data-pd-close-discard>Închide fără salvare</button>
+          <button class="btn btn-outline-destructive btn-rounded" type="button" data-pd-close-discard>Închide fără salvare</button>
           <button class="btn btn-primary btn-rounded" type="button" data-pd-close-save>Salvează și închide</button>
         </div>
       </div>
@@ -1663,7 +1663,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${S.viewOnly ? `<span class="e-permits-pd__ro">${esc((PM.OPERATORS.find(([o]) => o === cnd.operator) || [, "—"])[1])}</span>` : bareSelect({ id: pid(`${k}.op`), prop: `${k}.op`, placeholder: "Operator", options: ops, value: cnd.operator, error: Boolean(issueAt(id, `${k}.op`)), disabled: !kind, label: "Operator" })}</div>
         <div class="e-permits-doc-cond__cell">${value}</div>
         ${count > 1 && !S.viewOnly
-          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția" data-tooltip-label="Elimină condiția" data-pd-act="cond-remove" data-k="${i}.${gi}.${ci}">${icon("delete", 16)}</button>`
+          ? `<button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția" data-tooltip-label="Elimină condiția" data-pd-act="cond-remove" data-k="${i}.${gi}.${ci}">${icon("delete", 16)}</button>`
           : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
       </li>`;
   }
@@ -1808,7 +1808,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${S.viewOnly ? `<span class="e-permits-pd__ro">${esc(f.name)}</span>` : bareSelect({ id: pid(`assign.${i}.name`), prop: `assign.${i}.name`, options: [...ASSIGN_NAMES, ...(ASSIGN_NAMES.some(([v]) => v === f.name) ? [] : [[f.name, f.name]])], value: f.name, label: `Nume ${n + 1}` })}
           <div class="e-permits-fo-input${S.viewOnly ? " is-filled is-readonly" : ""}"><input id="${pid(`assign.${i}.value`)}" type="text" value="${esc(f.value ?? "")}" placeholder="Valoare" aria-label="Valoare ${n + 1}" autocomplete="off"${S.viewOnly ? " readonly" : ""} data-pd-prop="assign.${i}.value"></div>
         </div>
-        ${S.viewOnly ? "" : `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Elimină atribuirea ${n + 1}" data-tooltip-label="Elimină" data-pd-act="assign-remove" data-i="${i}">${icon("delete", 16)}</button>`}
+        ${S.viewOnly ? "" : `<button class="btn btn-text-destructive btn-sm btn-icon-only" type="button" aria-label="Elimină atribuirea ${n + 1}" data-tooltip-label="Elimină" data-pd-act="assign-remove" data-i="${i}">${icon("delete", 16)}</button>`}
       </li>`).join("");
     const json = PM.serialize({ s }).replace(/^\{\n {2}"s": /, "").replace(/\n\}\n$/, "");
     return group("Atribuiri de câmpuri", `

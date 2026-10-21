@@ -713,7 +713,7 @@ document.addEventListener("DOMContentLoaded", () => {
     <article class="e-permits-user-create__combo-card">
       <div class="e-permits-user-create__combo-card-head">
         <strong>${escapeHtml(combination.roleLabel)}</strong>
-        <button class="e-permits-user-create__combo-remove" type="button" aria-label="Șterge combinația ${escapeHtml(combination.roleLabel)}" data-user-combination-remove="${index}">
+        <button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-user-create__combo-remove" type="button" aria-label="Șterge combinația ${escapeHtml(combination.roleLabel)}" data-user-combination-remove="${index}">
           <svg class="icon" width="16" height="16" aria-hidden="true">
             <use href="assets/icons/sprite.svg#icon-delete"></use>
           </svg>
@@ -7097,7 +7097,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${menuId}" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
           ${items.map((item) => `
             <li role="none">
-              <button class="e-permits-fo-intent-menu__item${item.danger ? " is-danger" : ""}" type="button" role="menuitem" ${item.attrs}>
+              <button class="e-permits-fo-intent-menu__item${item.danger || isDestructiveLabel(item.label) ? " is-danger" : ""}" type="button" role="menuitem" ${item.attrs}>
                 <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(actionIconFor(item.label) || item.icon || "edit")}"></use></svg>
                 <span>${escapeHtml(item.label)}</span>
               </button>
@@ -7135,7 +7135,7 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       ${item.actionsHtml ? `<div class="e-permits-stack__actions">${item.actionsHtml}</div>` : item.action || item.menu?.length ? `
         <div class="e-permits-stack__actions">
-          ${item.action ? `<button class="btn ${item.action.tone === "secondary" ? "btn-secondary" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${item.action.attrs}>${actionLabelHtml(item.action.label)}</button>` : ""}
+          ${item.action ? `<button class="btn ${isDestructiveLabel(item.action.label) ? "btn-outline-destructive" : item.action.tone === "secondary" ? "btn-secondary" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${item.action.attrs}>${actionLabelHtml(item.action.label)}</button>` : ""}
           ${renderStackMenu(item.menu || [], item.plainTitle || "")}
         </div>
       ` : ""}
@@ -7166,6 +7166,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ? `<svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${actionIconFor(label)}"></use></svg><span>${escapeHtml(label)}</span>`
     : escapeHtml(label);
   const EDIT_LABEL_HTML = actionLabelHtml("Editează");
+  /* destructive-red-v1 (2026-10-21, user: „ALL destructive actions should be red”): a label that removes, stops,
+     withdraws or archives → the library destructive variants by default — page / header / row / card button =
+     `btn-outline-destructive`, ⋮ item = `is-danger`, confirm dialog = `btn-destructive` (askConfirm `destructive`).
+     Clearing a filter / search removes nothing (components.md › „Destructive actions — red”). */
+  const isDestructiveLabel = (label = "") => /^(Elimină|Șterge|Dezactivează|Inactivează|Suspendă|Revocă|Retrage|Anulează programarea|Arhivează|Închide fără salvare)/.test(label)
+    && !/^Șterge (filtrele|filtrul|căutarea|formatarea)/.test(label);
 
   /* Row actions — one rule for every list in the service profile (2026-10-09; NN/g: labelled
      actions beat icons; Carbon: secondary actions in the overflow, destructive last):
@@ -7186,7 +7192,7 @@ document.addEventListener("DOMContentLoaded", () => {
     <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Detalii: ${escapeHtml(label)}" ${preview}>${actionLabelHtml("Detalii")}</button>
     ${menu.length ? renderStackMenu(menu, label) : ""}` : `
     ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
-    ${primary ? `<button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" ${primary.attrs}>${actionLabelHtml(primary.label)}</button>` : ""}
+    ${primary ? `<button class="btn ${isDestructiveLabel(primary.label) ? "btn-outline-destructive" : "btn-neutral"} btn-sm e-permits-stack__action" type="button" ${primary.attrs}>${actionLabelHtml(primary.label)}</button>` : ""}
     ${menu.length ? renderStackMenu(menu, label) : ""}`;
 
   const renderStackedList = (title, groups, options = {}) => {
@@ -9760,7 +9766,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return `<button class="btn ${meta.destructive ? "btn-outline-destructive" : "btn-neutral"} btn-sm" type="button" data-clas-action="${meta.destructive ? "stergeCiorna" : "renuntaClas"}">${actionLabelHtml(meta.label)}</button>`;
       }
       const primary = a.action === "publicaClas" || a.action === "republicaClas";
-      return `<button class="btn ${primary ? "btn-primary" : "btn-neutral"} btn-sm" type="button" data-clas-action="${a.action}">${escapeHtml(a.label)}</button>`;
+      return `<button class="btn ${primary ? "btn-primary" : isDestructiveLabel(a.label) ? "btn-outline-destructive" : "btn-neutral"} btn-sm" type="button" data-clas-action="${a.action}">${escapeHtml(a.label)}</button>`;
     }).reverse().join("") : "";
     const sync = c.sursa !== "intern" && clasCanEdit(c) ? `<button class="btn btn-secondary btn-sm" type="button" data-clas-sync><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg><span>Sincronizează</span></button>` : "";
     const caption = c.status === "published" ? `Publicat v${c.versiune} · ${formatLongDate(c.editatLa)} · ${c.editatDe}`
@@ -9859,7 +9865,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return clasGridText(v[col.key]);
   };
-  const clasIconAction = (icon, label, attrs, reason = "") => `<button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-label="${escapeHtml(label)}" data-tooltip-label="${escapeHtml(label)}"${reason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(reason)}"` : ""} ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg></button>`;
+  /* destructive-red-v1: Dezactivează / Șterge / Elimină … = the library outlined destructive (same box as the grey neighbours) */
+  const clasIconAction = (icon, label, attrs, reason = "") => `<button class="btn ${isDestructiveLabel(label) ? "btn-outline-destructive" : "btn-neutral"} btn-sm btn-icon-only" type="button" aria-label="${escapeHtml(label)}" data-tooltip-label="${escapeHtml(label)}"${reason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(reason)}"` : ""} ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg></button>`;
 
   const renderClassifierValues = (c) => {
     const editable = clasCanEdit(c) && c.sursa === "intern";
@@ -15694,7 +15701,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="e-permits-tariff__status-text">${STATUS_COPY[status]}</span>
         </div>
         <div class="e-permits-tariff__status-actions">
-          ${existing.state === "Publicat" ? `<button class="btn ${existing.active ? "btn-neutral" : "btn-secondary"} btn-sm" type="button" data-tariff-toggle-active>${existing.active ? "Dezactivează" : "Activează"}</button>` : ""}
+          ${existing.state === "Publicat" ? `<button class="btn ${existing.active ? "btn-outline-destructive" : "btn-secondary"} btn-sm" type="button" data-tariff-toggle-active>${existing.active ? "Dezactivează" : "Activează"}</button>` : ""}
           <button class="btn btn-outline-destructive btn-sm" type="button" data-tariff-delete${deleteReason ? ` aria-disabled="true" data-tooltip-reason="${escapeHtml(deleteReason)}"` : ""}>${actionLabelHtml("Șterge")}</button>
         </div>
       </div>
@@ -16244,7 +16251,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.GEAPUi = {
     renderCheckOption, renderToggle, renderNotice, renderInfoNote, renderFoSelectControl,
     renderTag, renderStackMenu, requiredMark, askConfirm, showShellToast, escapeHtml,
-    renderBreadcrumbs, renderRowActions, renderCopyCode, renderListCode, renderDateTime
+    renderBreadcrumbs, renderRowActions, renderCopyCode, renderListCode, renderDateTime, isDestructiveLabel
   };
 
   /* tax lifecycle from the list: publish · activate · deactivate · delete, all confirmed */
@@ -16778,7 +16785,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="e-permits-doc-cond__cell e-permits-doc-cond__cell--op">${docSelect(`doc-op-${ri}-${ci}`, `data-doc-cond="op" ${at} aria-label="Operator"`, "Operator", ops.map((o) => [o, DOC_OPS[o]]), c.op, { error: Boolean(docDraft.errors[`o${k}`]), disabled: ro || !field })}${docErr(`o${k}`)}</div>
         <div class="e-permits-doc-cond__cell">${value}${docErr(`v${k}`)}</div>
         ${ro ? "" : rule.conditions.length > 1
-          ? `<button class="btn btn-strict btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-doc-cond-remove="${k}">${DOC_ICON_REMOVE}</button>`
+          ? `<button class="btn btn-text-destructive btn-sm btn-icon-only e-permits-doc-cond__remove" type="button" aria-label="Elimină condiția ${ci + 1}" data-tooltip-label="Elimină condiția" data-doc-cond-remove="${k}">${DOC_ICON_REMOVE}</button>`
           : `<span class="e-permits-doc-cond__remove" aria-hidden="true"></span>`}
       </li>`;
   };
@@ -19357,7 +19364,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const shellApi = {
       shell, escapeHtml, renderTag, renderDateTime, formatLongDate, formatStamp, formatTime,
       renderPageHeaderTop, renderPageHeaderMeta, renderPageHeaderTabCount, watchPageHeaderMeta,
-      renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions,
+      renderInfoCard, renderEventTimeline, renderStackedList, renderStackItem, renderStackMenu, renderRowActions, isDestructiveLabel,
       renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode, renderListCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,

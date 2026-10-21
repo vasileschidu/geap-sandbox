@@ -75,7 +75,8 @@
     ? `<span class="status-tag status-tag--success is-subtle status-tag--small">${icon("checkmark-small", 16)}Da</span>`
     : T("Nu", "neutral"));
   const desc = (text) => (text ? `<span class="e-permits-workplace__role-desc">${esc(text)}</span>` : dash);
-  const btn = (label, attrs, { variant = "neutral", ic = "" } = {}) => `<button class="btn btn-${variant} btn-sm" type="button" ${attrs}>${ic ? icon(ic, 16) : ""}<span>${esc(label)}</span></button>`;
+  /* destructive-red-v1: a destructive label (Dezactivează, Suspendă contul, Revocă …) = the library outlined destructive */
+  const btn = (label, attrs, { variant = "neutral", ic = "", danger = A?.isDestructiveLabel?.(label) } = {}) => `<button class="btn btn-${danger && variant === "neutral" ? "outline-destructive" : variant} btn-sm" type="button" ${attrs}>${ic ? icon(ic, 16) : ""}<span>${esc(label)}</span></button>`;
   const addBtn = (label, attrs) => `<button class="btn btn-secondary btn-sm" type="button" ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>${esc(label)}</span></button>`;
   const rowActions = (primary, menu, label) => `<span class="e-permits-workplace__row-actions">${A.renderRowActions({ primary, menu, label })}</span>`;
   const act = (name, id) => `data-ekcfg="${name}" data-id="${esc(id)}"`;
@@ -1228,7 +1229,7 @@
       S.openModal({
         title: `Ștergi parametrul ${p.key}?`, subtitle: p.name, kind: "ekcfg-delete",
         body: `<div class="e-permits-case-form">${A.renderNotice("warning", `<strong>Parametrul poate fi referit din cod.</strong> Dacă îl ștergi, platforma folosește valoarea implicită sau poate eșua la citirea lui — de exemplu ${esc(p.category === "Sesiuni" ? "la expirarea sesiunilor" : "în funcționalitatea care îl citește")}.`)}<p class="e-permits-ekcfg-text">${p.active ? "Recomandat: <strong>dezactivează-l</strong> — efectul e același, dar valoarea rămâne salvată și îl poți reactiva oricând." : "Parametrul este deja inactiv. Ștergerea nu poate fi anulată."}</p></div>`,
-        footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>${p.active ? `<button class="btn btn-secondary btn-rounded" type="button" ${act("param-deactivate", key)}>Dezactivează în schimb</button>` : ""}<button class="btn btn-destructive btn-rounded" type="button" ${act("param-delete-confirm", key)}>Șterge parametrul</button></div>`
+        footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Anulează</button>${p.active ? `<button class="btn btn-outline-destructive btn-rounded" type="button" ${act("param-deactivate", key)}>Dezactivează în schimb</button>` : ""}<button class="btn btn-destructive btn-rounded" type="button" ${act("param-delete-confirm", key)}>Șterge parametrul</button></div>`
       });
     },
     "param-deactivate": (key) => { const p = findParam(key); p.active = false; p.updatedAt = nowIso(); p.updatedBy = me(); S.closeModal(); refreshList(); flashRow(key); toast(`${p.key} este inactiv; valoarea a rămas salvată.`, "Parametru dezactivat"); },
@@ -1731,7 +1732,7 @@
           S.openModal({
             title: "Organizația nu poate fi ștearsă", subtitle: o.name, kind: "ekcfg-conflict",
             body: `<div class="e-permits-case-form">${A.renderNotice("warning", "<strong>Organizația are clienți asociați și nu poate fi ștearsă.</strong> Mută sau șterge mai întâi clienții de mai jos, ori dezactivează organizația.")}${A.renderStackedList(`Clienți asociați (${clients.length})`, [{ label: "", items: clients.map((c) => ({ title: esc(c.name), plainTitle: c.name, badges: [statusTag(c.active)], meta: [esc(c.id), plural(c.useCases.length, "caz de utilizare", "cazuri de utilizare")] })) }])}</div>`,
-            footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>${o.active ? `<button class="btn btn-primary btn-rounded" type="button" data-case-close ${act("org-toggle", id)}>Dezactivează organizația</button>` : ""}</div>`
+            footer: `<div class="modal-buttons"><button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>${o.active ? `<button class="btn btn-destructive btn-rounded" type="button" data-case-close ${act("org-toggle", id)}>Dezactivează organizația</button>` : ""}</div>`
           });
           return;
         }
