@@ -430,7 +430,7 @@
     return Object.keys(F.v).filter((k) => JSON.stringify(F.v[k]) !== JSON.stringify(F.original[k])).map((key) => {
       const control = root.querySelector(`[data-ekcfg-wrap="${CSS.escape(key)}"], [data-ekcfg-field="${CSS.escape(key)}"]`);
       const wrap = control?.closest("[data-ekcfg-wrap], .e-permits-user-create__field");
-      const label = text(wrap?.querySelector("label, .e-permits-toggle__label")) || key;
+      const label = text(wrap?.querySelector(".switch-label") || wrap?.querySelector("label")) || key;
       const group = text(control?.closest("[data-ekcfg-section]")?.querySelector("h2")) || "Alte câmpuri";
       return { undo: key, group, title: label, tag: ["Modificat", "brand"], detail: `${A.changeValue(shown(key, F.original[key], wrap))} → ${A.changeValue(shown(key, F.v[key], wrap))}` };
     });
@@ -896,7 +896,7 @@
         <td>${esc(r.name)}</td>
         <td><span class="e-permits-workplace__role-desc">${esc(r.condition)}</span></td>
         <td>${T(r.severity, SEVERITY_TONES[r.severity])}</td>
-        <td><div class="e-permits-toggle"><span class="e-permits-toggle__control"><input class="e-permits-toggle__input" type="checkbox" role="switch" aria-label="${esc(`Regula „${r.name}” activată`)}"${r.enabled ? " checked" : ""} ${act("veto-switch", `${u.code}|${r.id}`)}><span class="e-permits-toggle__knob" aria-hidden="true"></span></span></div></td>
+        <td>${A.renderToggle({ ariaLabel: `Regula „${r.name}” activată`, checked: r.enabled, attrs: act("veto-switch", `${u.code}|${r.id}`) })}</td>
         <td><span class="e-permits-workplace__row-actions">${A.renderRowActions({ primary: { label: "Editează", attrs: act("veto-edit", `${u.code}|${r.id}`) }, menu: [{ label: "Șterge regula", icon: "delete", attrs: act("veto-delete", `${u.code}|${r.id}`), danger: true }], label: r.name })}</span></td>
       </tr>`);
     return `
@@ -2168,7 +2168,7 @@
       if (F.type === "scoring" && ["reject", "accept", "minConfidence"].includes(k)) { liveThresholds(); return; }
       clearError(k, el);
       if (event.type === "change" && F.type === "param" && k === "type") { F.v.value = F.v.type === "boolean" ? false : ""; delete F.errors.value; redrawForm(`#${fid("type")}`); }
-      if (event.type === "change" && F.type === "param" && k === "value" && F.v.type === "boolean") { const label = el.closest(".e-permits-toggle")?.querySelector(".e-permits-toggle__label"); if (label) label.textContent = el.checked ? "Da" : "Nu"; }
+      if (event.type === "change" && F.type === "param" && k === "value" && F.v.type === "boolean") { const label = el.closest(".switch")?.querySelector(".switch-label"); if (label) label.textContent = el.checked ? "Da" : "Nu"; }
       if (event.type === "change" && F.type === "step" && k === "provider") {
         if (F.v.fallbacks.includes(F.v.provider)) F.errors.fallbacks = `Furnizorul principal nu poate fi și de rezervă. Elimină „${providerName(F.v.provider)}” din rezervă sau alege alt furnizor principal.`;
         else delete F.errors.fallbacks;

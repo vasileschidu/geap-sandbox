@@ -3436,7 +3436,7 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 /* drawer footer = the modal footer: 20 on every side, library .modal-buttons
    (40px pill buttons, 12px gap) */
 /* back office: controls read at 14/20, never 16 — the library checkbox defaults to
-   16px labels (switches are the .e-permits-toggle component below) */
+   16px labels (switches: the library .switch, product placement below) */
 .drawer-overlay .checkbox .checkbox-label {
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
@@ -3472,103 +3472,46 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 
 
 /* ==========================================================================
-   Toggle — the one switch of the back office (renderToggle in e-permits-shell.js)
-   Tailwind "toggle with label on the right" geometry, our tokens and type:
-   44×24 track (2px inset, inset hairline), 20px white knob that slides 20px,
-   12px gap, label 14/20 medium over a 14/20 tertiary description; the track
-   sits on the label's first line. The checkbox covers the track (role="switch").
+   Switch = the library `.switch` (Components/switch.html, Figma Switch 48×28 · thumb 24; library-adopt-v1,
+   2026-10-21; user: „for the switch use the components as in the library”). renderToggle emits the library
+   markup; the library draws the track / thumb / hover / focus / disabled. Product placement only (14/20 type of
+   the back office): 12 between the track and the text, label 14/20 medium default over the description 14/20
+   regular tertiary (no gap), the track centred on the whole text block (the shipped 2026-10-01 layout, which
+   the checkbox-with-description rows below share). An ON switch also answers the pointer (brand hover).
    ========================================================================== */
-.e-permits-toggle {
-  align-items: center;
-  display: flex;
+/* the wrapper is a <label>: the library `label { margin-bottom: 6px }` would add 6 under every switch */
+:is(.e-permits-front-office-page, .e-permits-shell-page) .switch-wrapper {
   gap: var(--spacing-12, 12px);
-}
-
-.e-permits-toggle__control {
-  background: var(--gray-250, #d9d9d9);
-  border-radius: var(--border-radius-full, 999px);
-  box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.05);
-  box-sizing: border-box;
-  display: inline-flex;
-  flex: 0 0 auto;
-  padding: var(--spacing-2, 2px);
-  position: relative;
-  transition: background-color 200ms ease-in-out;
-  width: calc(var(--spacing-20, 20px) * 2 + var(--spacing-4, 4px));
-}
-
-.e-permits-toggle__knob {
-  background: var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-full, 999px);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(17, 24, 39, 0.05);
-  height: var(--spacing-20, 20px);
-  /* clicks on the knob reach the switch input under it */
-  pointer-events: none;
-  transition: transform 200ms ease-in-out;
-  width: var(--spacing-20, 20px);
-}
-
-.e-permits-toggle__input {
-  appearance: none;
-  cursor: pointer;
-  height: 100%;
-  inset: 0;
   margin: 0;
-  position: absolute;
-  width: 100%;
 }
 
-.e-permits-toggle__input:focus {
-  outline: none;
-}
-
-.e-permits-toggle__control:has(:checked) {
-  background: var(--color-background-brand-default, #0058d2);
-}
-
-.e-permits-toggle__control:has(:checked) .e-permits-toggle__knob {
-  transform: translateX(var(--spacing-20, 20px));
-}
-
-.e-permits-toggle__control:has(:focus-visible) {
-  outline: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
-  outline-offset: 2px;
-}
-
-.e-permits-toggle__control:has(:disabled) {
-  opacity: 0.5;
-}
-
-.e-permits-toggle__input:disabled {
-  cursor: not-allowed;
-}
-
-.e-permits-toggle__text {
-  display: flex;
-  flex-direction: column;
+:is(.e-permits-front-office-page, .e-permits-shell-page) .switch-text {
+  gap: 0;
   min-width: 0;
 }
 
-.e-permits-toggle__label {
+:is(.e-permits-front-office-page, .e-permits-shell-page) .switch-label {
   color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  margin: 0;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-20, 20px);
 }
 
-.e-permits-toggle__description {
+:is(.e-permits-front-office-page, .e-permits-shell-page) .switch-description {
   color: var(--color-text-base-tertiary, #757575);
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-regular, 400);
   line-height: var(--line-height-lh-20, 20px);
 }
 
+:is(.e-permits-front-office-page, .e-permits-shell-page) .switch:not(.switch--disabled) .switch-wrapper:hover .switch-input:checked + .switch-track {
+  background-color: var(--color-background-brand-default-hover, #0046a8);
+}
+
 /* Checkbox with a title + description = the switch's layout with a checkbox
    (.checkbox.e-permits-check, 2026-10-08): 12px between control and text, centred,
    title 14/20 medium default, description 14/20 regular tertiary — exactly
-   .e-permits-toggle__label / __description. main.css stays the library copy. */
+   .switch-label / .switch-description (product placement above). main.css stays the library copy. */
 .checkbox.e-permits-check {
   align-items: center;
   gap: var(--spacing-12, 12px);
@@ -3596,9 +3539,8 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .e-permits-toggle__control,
-  .e-permits-toggle__knob {
-    transition: none;
+  :is(.e-permits-front-office-page, .e-permits-shell-page) .switch {
+    --transition: 0s;
   }
 }
 

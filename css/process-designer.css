@@ -86,7 +86,7 @@
   flex: 0 0 auto;
 }
 
-.e-permits-pd__viewonly .e-permits-toggle__label {
+.e-permits-pd__viewonly .switch-label {
   white-space: nowrap;
 }
 
@@ -2046,7 +2046,7 @@
 
 /* ===== Responsive (spec E.7) ===== */
 @media (max-width: 1279px) {
-  .e-permits-pd__viewonly .e-permits-toggle__label {
+  .e-permits-pd__viewonly .switch-label {
     clip-path: inset(50%);
     height: 1px;
     overflow: hidden;

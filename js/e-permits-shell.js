@@ -256,10 +256,11 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#039;");
 
   /* the full-flow required marker (.e-permits-fo-required) */
-  /* Toggle — the one switch of the back office (Tailwind "toggle with label on the
-     right" geometry, our type): 44×24 track, 20px knob, 2px inset, 12px gap, then the
-     label (14/20 medium) over an optional description (14/20 tertiary).
-     attrs carry the data-* hooks; the input is a real checkbox with role="switch". */
+  /* Switch = the library `.switch` (Components/switch.html, Figma Switch 48×28; library-adopt-v1, 2026-10-21):
+     `.switch > label.switch-wrapper > input.switch-input[role=switch] + .switch-track > .switch-thumb` + `.switch-text`
+     (label 14/20 medium over an optional 14/20 tertiary description, gap 12 — product placement in
+     e-permits-shell.css). attrs carry the data-* hooks; name = the label (aria-labelledby), description =
+     aria-describedby; no label → pass ariaLabel. */
   let toggleSeq = 0;
   /* Checkbox option — Figma GEAP 2.0 „Opțiune document · checkbox” (10507:125565): library
      checkbox Size=Small (20px box, radius 6, 16/checkmark-small) in a grey container
@@ -277,18 +278,21 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="checkbox-label">${icon ? `<svg class="icon e-permits-check-option__icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(icon)}"></use></svg>` : ""}${escapeHtml(label)}${required ? requiredMark() : ""}</span>
     </label>`;
 
-  const renderToggle = ({ label, description = "", checked = false, attrs = "", disabled = false }) => {
+  const renderToggle = ({ label = "", description = "", checked = false, attrs = "", disabled = false, ariaLabel = "" }) => {
     const id = `e-permits-toggle-${toggleSeq += 1}`;
+    const named = label ? ` aria-labelledby="${id}-label"` : ariaLabel ? ` aria-label="${escapeHtml(ariaLabel)}"` : "";
     return `
-      <div class="e-permits-toggle">
-        <span class="e-permits-toggle__control">
-          <input class="e-permits-toggle__input" type="checkbox" role="switch" id="${id}"${description ? ` aria-describedby="${id}-desc"` : ""}${checked ? " checked" : ""}${disabled ? " disabled" : ""} ${attrs}>
-          <span class="e-permits-toggle__knob" aria-hidden="true"></span>
-        </span>
-        <span class="e-permits-toggle__text">
-          <label class="e-permits-toggle__label" for="${id}">${escapeHtml(label)}</label>
-          ${description ? `<span class="e-permits-toggle__description" id="${id}-desc">${escapeHtml(description)}</span>` : ""}
-        </span>
+      <div class="switch${disabled ? " switch--disabled" : ""}">
+        <label class="switch-wrapper">
+          <input type="checkbox" class="switch-input" role="switch" id="${id}"${named}${description ? ` aria-describedby="${id}-desc"` : ""}${checked ? " checked" : ""}${disabled ? " disabled" : ""} ${attrs}>
+          <div class="switch-track">
+            <div class="switch-thumb"></div>
+          </div>
+          ${label ? `<div class="switch-text">
+            <span class="switch-label" id="${id}-label">${escapeHtml(label)}</span>
+            ${description ? `<span class="switch-description" id="${id}-desc">${escapeHtml(description)}</span>` : ""}
+          </div>` : ""}
+        </label>
       </div>
     `;
   };
@@ -4774,16 +4778,13 @@ document.addEventListener("DOMContentLoaded", () => {
       <li class="e-permits-stack__item e-permits-perms__row${change ? " is-changed" : ""}">
         <div class="e-permits-stack__main">
           <div class="e-permits-stack__title-row">
-            <label class="e-permits-stack__title e-permits-perms__label" for="${id}">${escapeHtml(permission.label)}</label>
+            <label class="e-permits-stack__title e-permits-perms__label" id="${id}-name" for="${id}">${escapeHtml(permission.label)}</label>
             ${change ? renderTag(change[0], change[1]) : ""}
           </div>
           ${source ? `<div class="e-permits-stack__meta"><span class="e-permits-stack__part">${escapeHtml(source)}</span></div>` : ""}
         </div>
         <div class="e-permits-stack__actions">
-          <span class="e-permits-toggle__control">
-            <input class="e-permits-toggle__input" type="checkbox" role="switch" id="${id}"${on ? " checked" : ""}${editable ? "" : " disabled"} data-perm-switch="${escapeHtml(permission.id)}">
-            <span class="e-permits-toggle__knob" aria-hidden="true"></span>
-          </span>
+          ${renderToggle({ checked: on, disabled: !editable, attrs: `data-perm-switch="${escapeHtml(permission.id)}" aria-labelledby="${id}-name"` }).replace(/ id="e-permits-toggle-\d+"/, ` id="${id}"`)}
         </div>
       </li>
     `;
@@ -6790,8 +6791,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ["distribuireAutomata", "Distribuire automată", "Dosarele noi se repartizează specialiștilor fără supervizor."],
     ["mdelivery", "Livrare prin MDelivery", "Actul pe hârtie se livrează la adresa solicitantului."]
   ];
-  /* the toggle's knob transition (css/e-permits-shell.css .e-permits-toggle__knob) */
-  const SERVICE_SETTING_SLIDE_MS = 220;
+  /* the switch thumb transition (library .switch --transition 0.25s) */
+  const SERVICE_SETTING_SLIDE_MS = 260;
   const SERVICE_SETTING_LABELS = Object.fromEntries(SERVICE_SETTINGS.map(([key, label]) => [key, label]));
 
   /* the switches start from the configured settings (avize, suspension, distribution, taxes) */

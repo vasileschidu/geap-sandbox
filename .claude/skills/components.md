@@ -202,7 +202,7 @@ but this doc previously described it wrongly, see the entry.
 | Select — custom | `.custom-select[data-select]` | `dropdown.html` | app (menu primitive only) |
 | Checkbox | `.checkbox .checkbox-input .checkbox-custom` | `checkbox.html` | library |
 | Radio | `.radio-group .radio .radio-custom` | `radio-buttons.html` | library |
-| Switch | `.switch > .switch-wrapper` | `switch.html` | library |
+| Switch — THE switch in every product (library-adopt-v1, 2026-10-21, user: „for the switch use the components as in the library”) | library `div.switch(.switch--disabled) > label.switch-wrapper > input.switch-input[type=checkbox][role=switch] + .switch-track > .switch-thumb` + `.switch-text > .switch-label + .switch-description` (default size 48×28, thumb 24 = Figma Switch) — emitted ONLY by `renderToggle({ label, description, checked, attrs, disabled, ariaLabel })` (`GEAPUi.renderToggle`); name = `aria-labelledby` → the label, description = `aria-describedby`; bare switches (permission rows: `aria-labelledby` the row title; eKYC veto table: `ariaLabel`). Product placement (`:is(.e-permits-front-office-page, .e-permits-shell-page)` in css/e-permits-shell.css): gap 12, label 14/20 medium default, description 14/20 tertiary, no gap, wrapper `margin: 0` (the library global `label` margin), ON + hover = brand hover; track centred on the whole text block (shipped 2026-10-01 layout). ~~`.e-permits-toggle*` (44×24 track, 20 knob)~~, ~~`.e-permits-builder__switch`~~ (dead) removed | `switch.html` | library + app |
 | Checkbox option (grey container) | `renderCheckOption()` → `label.checkbox.checkbox--medium.e-permits-check-option` in `.e-permits-check-options` | Figma `10507:125565` | app |
 | Long multi-select (100+ options) | summary `.e-permits-cfg-picks` + picker modal `#cfg-subdiv-modal` (`.e-permits-subdiv*`) | `cfgSubdivPicks` / `openCfgSubdiv` | app |
 | Conditional rules (Afișează / Setează ca obligatoriu, câmp · operator · valoare, Și/Sau) | `.e-permits-doc-rule` card + `.e-permits-doc-cond` sentence rows + `.e-permits-doc-val` value group | `renderDocRule` / `renderDocCondition` | app |
@@ -1353,7 +1353,7 @@ two different things.
 #### Checkbox with title + description = the switch layout (2026-10-08)
 
 Every checkbox that has a **title and a description** uses exactly the switch row's layout
-(`.e-permits-toggle`), only with a checkbox:
+(the library `.switch` with the product placement, library-adopt-v1), only with a checkbox:
 
 ```html
 <label class="checkbox checkbox--medium e-permits-check">
@@ -1368,7 +1368,7 @@ Every checkbox that has a **title and a description** uses exactly the switch ro
 
 - 12px between box and text, vertically centred (as the switch).
 - Title 14/20 **medium**, `--color-text-base-default`; description 14/20 regular,
-  `--color-text-base-tertiary` — identical to `.e-permits-toggle__label` / `__description`.
+  `--color-text-base-tertiary` — identical to `.switch-label` / `.switch-description` (product placement).
 - CSS lives in `css/e-permits-shell.css` (`.checkbox.e-permits-check`); `main.css` stays the
   library copy. Used by: tariff „Specialistul completează
   variabilele…”, classifier value checklist.
@@ -4978,7 +4978,8 @@ default.
 ### Toggle — the back-office switch (added 2026-10-01)
 
 `renderToggle({ label, description, checked, attrs, disabled })` in
-`e-permits-shell.js`, CSS `.e-permits-toggle` in `e-permits-shell.css`. It replaces every
+`e-permits-shell.js` — **since library-adopt-v1 (2026-10-21) it emits the library `.switch`** (48×28 track, 24 thumb;
+inventory row „Switch”); the geometry below is HISTORY (the old `.e-permits-toggle`, removed). It replaces every
 library `.switch` in the back office: template "Șablon activ", the rule modal switches,
 "Plată recurentă" and "Calcul prin formulă".
 

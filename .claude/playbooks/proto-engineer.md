@@ -2003,3 +2003,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (2) compensating the library 1px border with `padding: calc(6 − 1)` made code-audit report an off-scale 5 on every tag
   (48 findings on dos-05) → plain 6, text 1px further in, as every library tag / button already is. Moving a class also
   moves the compare-styles specs that select it and the auditor family `allow` for tag containers.
+- 2026-10-21 · Library adoption batch 6 — the switch (library-adopt-v1; user: „for the switch use the components as in the
+  library”). ONE renderer kept (`renderToggle`) now emits the library `.switch` markup exactly as Components/switch.html,
+  so 20 call sites (BO, eKYC, Form Builder, Process Designer) needed no change; the two hand-written switches
+  (permission rows, eKYC veto table) went through it too. Traps: (1) `label.switch-wrapper` gets the library GLOBAL
+  `label { margin-bottom: 6px }` → every row 6 taller (measured 46 instead of 40) — zero it in the product placement;
+  (2) a wrapping `<label>` names the input with ALL its text (label + description) → `aria-labelledby` the label span
+  and `aria-describedby` the description; (3) the brief said „centred on the first text line”, but the shipped screen
+  AND the 2026-10-01 doc centre the track on the whole text block (and the checkbox-with-description rows copy that)
+  → kept the shipped layout and flagged it; (4) the library hover (0,3,0) loses to `:checked + .switch-track` by order
+  → an ON switch had no hover; restated as a brand hover. Demo clicks keep working on the 0×0 library input
+  (`getClientRects()` still returns a rect; `el.click()` toggles). Switch findings 33 → 0 on 7 states × 2.
