@@ -2615,3 +2615,23 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     Requestor, GEAP Services „Permits Table” grid) are NOT restacked — shorter notes only leave space, never overlaps.
   - Ghișeu „How to read · Contents” keeps its 12 per-line links → left as is (rewriting `characters` would drop them).
   - Note titles were left as they are (many GEAP titles are Romanian and mirror the block label) — a separate pass if the PO wants them.
+
+- 2026-10-21 · Phone list toolbar v2 in Figma (code bbe4f206 phone-toolbar-v2: one row = search FILL · icon-only „Filtre” 48 ·
+  icon-only „Sortează” 48, gap 8, r8; count badge on the corner; „N rezultate · Șterge filtrele” 8 under the row; no phone chips).
+  Routine tools/figma/phone-toolbar-v2/toolbar.js (stored per file in figma.root „ptv2”/„run”). Done: EVO Cabinet 29 phone rows
+  (My requests 20 incl. sm-01o / sm-01q active, Permits 9 incl. pp-01h active; archive untouched), both boards restacked to 240,
+  jump markers moved with their block, 31 connectors re-routed, 2 notes + Start-here sentence rewritten; RAP 15 phone toolbars
+  (rap-01c 3, 01h 1, 01d 1, 04d 3 active), columns 01 / 02 restacked, 13 connectors re-routed. Not done (Figma MCP sign-in
+  expired mid-job): RAP note check, eKYC list phones, GEAP BO registry phones. Lessons:
+  - **The library filter-chip has no icon-only variant** → keep the chip instance and override only: Counter Badge off, `Label` +
+    `Badge` layers hidden, padding L/R 0 + primaryAxisAlign CENTER, **`minWidth = null` (the main carries 60 — resize(48) silently
+    stayed 60)**, FIXED 48 × 48. Node id unchanged → connectors stay attached.
+  - **Corner count badge** = library numbered-badge Large Light (68a3732b…) ABSOLUTE in the toolbar row (constraints MAX / MIN),
+    2 px INSIDE ring with the chip's own black paint; position from the MEASURED code (x = chip right + 5 − 20, y −5), not the
+    CSS (`-6`). Turn clip off on the row and its parent.
+  - Sort = `swapComponent` to the same Style / State with Icon=Only, Size=Large + Leading Icon 20 = central „arrow-bottom-top,
+    sort 2” filled=on 1.5 r2 (= code icon-sort); icon stays 20 (library lock; code 24 — declared), chip icon 20 likewise.
+  - Moving the search INTO the old filter row (and deleting the empty search wrapper) keeps every id; the screens lose 64
+    (68 on RAP, where the old row sat in its own padded frame) → restack whole columns; RAP „Filter chips (phone)” keeps only
+    the meta with paddingTop = the toolbar's bound gap 8 (or is removed when there is no meta → table 16 under the row = code).
+  - Take „before” screenshots before the first write of each file (Cabinet's had to come from a second, untouched block).
