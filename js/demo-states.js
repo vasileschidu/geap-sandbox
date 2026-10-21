@@ -97,6 +97,41 @@
   /* the constructor opens from the preview's footer („Deschide constructorul”) */
   const dtplOpenNth = (index) => async (h) => { await h.nth("[data-dtpl-preview]", index); await h.click("[data-tpl-preview-builder]"); };
   const dtplBuilder = dtplOpenNth(0);
+  /* unsaved-review-v1: the status in a page header (not the copy in a save bar) */
+  const CHANGES_HEAD = (key) => `.e-permits-page-header [data-profile-changes="${key}"]`;
+  const TOP = () => { let el = [...document.querySelectorAll(".e-permits-page-header__title")].find((x) => x.getClientRects().length); while ((el = el?.parentElement)) if (el.scrollTop) el.scrollTop = 0; window.scrollTo(0, 0); };
+  const cfg2ThreeChanges = async (h) => {
+    /* the section list is hidden on phones: jump only when it shows */
+    const nav = async (key) => { const el = document.querySelector(`[data-cfg2-nav="${key}"]`); if (el?.getClientRects().length) { el.click(); await h.wait(500); } };
+    await nav("suspension");
+    await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300);
+    await h.fill("#cfg-payTerm", "15"); await h.wait(200);
+    await nav("deps");
+    await h.click("[data-cfg2-dep-remove]"); await h.wait(300);
+    TOP(); await h.wait(200);
+  };
+  const ntplTwoEdits = async (h) => {
+    const subject = await h.find('[data-ntplp-text="subject"]');
+    await h.fill('[data-ntplp-text="subject"]', `${subject.value} — actualizat`, { leave: false });
+    await h.fill('[data-ntplp-text="plain"]', "Cererea a fost aprobată. Detalii în cabinet.", { leave: false });
+    document.activeElement?.blur(); TOP(); await h.wait(200);
+  };
+  const dtplTwoEdits = async (h) => {
+    await dtplOpenNth(1)(h);
+    const surface = await h.find("[data-dtpl-surface]");
+    surface.focus();
+    const range = document.createRange();
+    range.selectNodeContents(surface.querySelector("h1") || surface);
+    range.collapse(false);
+    getSelection().removeAllRanges();
+    getSelection().addRange(range);
+    document.execCommand("insertText", false, " MOTIVATĂ");
+    await h.click('[data-dtpl-token="{{CaseNumber}}"]');
+    await h.click('[data-dtpl-view="test"]');
+    const json = await h.find("[data-dtpl-json]");
+    await h.fill("[data-dtpl-json]", json.value.replace(/: "[^"]*"/, ': "Valoare de test 2026"'), { leave: false });
+    await h.click('[data-dtpl-view="template"]');
+  };
 
   /* Utilizatori › profil click paths */
   const usr = (tab, run) => ({ flow: "back-office", as: ADMIN, hash: `#utilizator/user-1/${tab}`, run });
@@ -726,6 +761,8 @@
     /* empty states with the actions inside (service without own templates) */
     "svc-09m": svc("notifications", null, "003000118"),
     "svc-08m": svc("templates", null, "003000118"),
+    "svc-08n": svc("templates", dtplTwoEdits),
+    "svc-08n1": svc("templates", async (h) => { await dtplTwoEdits(h); await h.click('[data-profile-changes="dtpl-draft"]'); }),
     "svc-09a": svc("notifications", rowMenu("[data-ntpl-svc-list]")),
     "svc-09b": svc("notifications", async (h) => { await ntplClone(h); await h.click("#ntpl-clone-source"); }),
     "svc-09c": svc("notifications", async (h) => { await ntplClone(h); await h.click("[data-ntpl-clone-save]"); }),
@@ -830,6 +867,11 @@
     "svc-10v2": svc("settings", async (h) => { await h.fill("#cfg-payTerm", ""); await h.wait(200); await h.click("[data-cfg2-save]"); await h.wait(600); }),
     "svc-10v3": svc("settings", async (h) => { await cfgNav("deps")(h); await h.click("[data-cfg2-dep-add]"); await h.wait(300); }),
     "svc-10v4": svc("settings", async (h) => { await h.click('[data-cfg-switch="suspEditable"]'); await h.wait(300); await h.click('[data-passport-tab="forms"]'); }),
+    /* „● N modificări nesalvate” (header + save bar) → „Modificări nesalvate” review */
+    "svc-10x": svc("settings", cfg2ThreeChanges),
+    "svc-10x1": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click(CHANGES_HEAD("service-settings")); }),
+    "svc-10x2": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click(CHANGES_HEAD("service-settings")); await h.click("#profile-changes-modal [data-change-undo]"); }),
+    "svc-10x3": svc("settings", async (h) => { await cfg2ThreeChanges(h); await h.click('.e-permits-cfg2__bar [data-profile-changes="service-settings"]'); }),
     "svc-11": svc("events"),
     "svc-11a": svc("events", async (h) => { await h.fill("[data-svc-events-search]", "taxă", { leave: false }); }),
     /* US-228: Rezultat = Eșuat through „Filtrare avansată”; the bar open; an event's details
@@ -1003,6 +1045,8 @@
       await clearToasts(h);
       await h.click('[data-ntpl-profile-tab="history"]');
     }),
+    "ntpl-04d": ntpl("content", async (h) => { await ntplTwoEdits(h); await h.click(CHANGES_HEAD("ntpl-draft")); }),
+    "ntpl-04e": ntpl("content", async (h) => { await ntplTwoEdits(h); await h.click(CHANGES_HEAD("ntpl-draft")); await h.click("#profile-changes-modal [data-change-undo]"); }),
     "ntpl-05": ntpl("content", ntplPublishOpen),
     "ntpl-05a": ntpl("content", ntplScheduled),
     "ntpl-05b": ntpl("content", async (h) => { await ntplPublishOpen(h); await h.click("[data-ntpl-publish-confirm]"); }),
@@ -1041,6 +1085,7 @@
     "clf-04b": clfProfile("cl-statut", "jurnal"),
     "clf-04c": clfProfile("cl-statut", "setari"),
     "clf-04d": clfProfile("cl-statut", "setari", async (h) => { await h.fill('[data-clas-setting="descriere"]', "Statusurile unui dosar în GEAP, de la depunere la eliberare."); }),
+    "clf-04e": clfProfile("cl-statut", "setari", async (h) => { await h.fill('[data-clas-setting="descriere"]', "Statusurile unui dosar în GEAP, de la depunere la eliberare."); await h.fill('[data-clas-setting="limitaDenumiri"]', "80"); await h.click(CHANGES_HEAD("classifier-settings")); }),
     "clf-05": clfProfile("cl-statut", "valori", async (h) => { await clfDraft(h); await h.click('[data-clas-action="publicaClas"]'); }),
     "clf-05a": clfProfile("cl-statut", "valori", async (h) => { await h.click('[data-clas-action="arhiveazaClas"]'); }),
     "clf-05b": clfProfile("cl-statut", "valori", async (h) => { await h.click('[data-clas-action="arhiveazaClas"]'); await h.click("[data-service-confirm-ok]"); await h.wait(600); await clearToasts(h); }),
@@ -2570,6 +2615,7 @@
     "ek-24e": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.click('[data-ekcfg-item-add="ipWhitelist"]'); await h.fill("#ekcfg-ipWhitelist-1", "185.181.228.300"); await h.click('[data-ekcfg-chip-remove="scopes"][data-value="openid"]'); await h.click("[data-ekcfg-submit]"); }),
     "ek-24f": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.fill("#ekcfg-maxSessions", "250"); await h.click("[data-ekcfg-submit]"); }),
     "ek-24g": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.fill("#ekcfg-maxSessions", "250"); await h.click("[data-ekcfg-page-cancel]"); }),
+    "ek-24h": ekPage("#ek-client/maib-app/editeaza", async (h) => { await h.fill("#ekcfg-maxSessions", "250"); await h.click('[data-profile-changes="ekyc-form"]'); }),
     /* Cazuri de utilizare (US-UI-08) */
     "ek-25": ekList("#ek-use-cases"),
     "ek-25a": ekList("#ek-use-cases", async (h) => { await h.click('[data-workplace-tab="off"]'); }),

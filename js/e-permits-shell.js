@@ -5154,13 +5154,32 @@ document.addEventListener("DOMContentLoaded", () => {
      new) and permissions (Se acordă / Se retrage). Each row can be undone; the footer
      saves or drops everything. Same stacked-list rows as the tabs. */
   const USER_GEAP_LABELS = { autoritateId: "Autoritatea", functie: "Funcția", comentarii: "Comentarii", informatiiAditionale: "Informații adiționale" };
+  /* every other draft page (service Setări, classifier Setări, notification / document
+     template, eKYC forms) feeds the SAME review through a source: its status button names it
+     (`data-profile-changes="<key>"`) and the source returns { name, applies, groups, emptyText,
+     entries(), undo(key), discard(), save() } — entries = { undo, group, title, tag, detail } */
+  const changeSources = {};
+  const registerChangeSource = (key, build) => { changeSources[key] = build; };
+  const changesStatusAttrs = (key) => `data-profile-changes="${key}" aria-haspopup="dialog" title="Vezi modificările"`;
+  const changesCountLabel = (n) => (n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`);
+  /* a short, one-line value for „vechi → nou” */
+  const changeValue = (value, max = 48) => {
+    const text = Array.isArray(value) ? value.join(", ") : typeof value === "boolean" ? (value ? "Da" : "Nu") : String(value ?? "").replace(/\s+/g, " ").trim();
+    return !text ? "—" : text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  };
+  let changeSourceKey = "", changeOpenerInBar = false;
   const profileChangesTarget = () => {
+    if (changeSourceKey) {
+      const source = changeSources[changeSourceKey]?.();
+      return source ? { kind: "source", ...source } : null;
+    }
     const role = !roleProfilePanel?.hidden && getRoleById(roleProfileState.roleId);
     if (role) return { kind: "role", subject: role, state: roleProfileState, name: role.denumire };
     const user = getUserById(userProfileState.rowId);
     return user ? { kind: "user", subject: user, state: userProfileState, name: user.numeComplet } : null;
   };
   const profileChangeEntries = (target) => {
+    if (target.kind === "source") return target.entries();
     const entries = [];
     if (target.kind === "user") {
       const authorities = usersDb?.profile?.authorities || [];
@@ -5182,8 +5201,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const renderProfileChangesBody = (target) => {
     const entries = profileChangeEntries(target);
-    if (!entries.length) return renderEmptyState({ title: "Nu mai sunt modificări nesalvate", text: "Profilul este la zi.", icon: "checkmark-large", compact: true });
-    return groupBy(entries, (entry) => entry.group, ["Date administrate în GEAP", "Permisiuni"]).map((group) => `
+    if (!entries.length) return renderEmptyState({ title: "Nu mai sunt modificări nesalvate", text: target.emptyText || "Profilul este la zi.", icon: "checkmark-large", compact: true });
+    return groupBy(entries, (entry) => entry.group, target.groups || ["Date administrate în GEAP", "Permisiuni"]).map((group) => `
       <div class="e-permits-stack">
         <div class="e-permits-stack__group">
           <h3 class="e-permits-stack__group-label">${escapeHtml(group.label)}<span class="badge badge--lg badge--solid-light e-permits-stack__group-count">${group.items.length}</span></h3>
@@ -5202,9 +5221,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const target = profileChangesTarget();
     if (!target || !profileChangesModal) return;
     const count = profileChangeEntries(target).length;
-    profileChangesModal.querySelector("[data-profile-changes-subtitle]").textContent = `${target.name} · ${count ? `${count === 1 ? "1 modificare" : `${count} modificări`} · se aplică după Salvează` : "nicio modificare"}`;
+    profileChangesModal.querySelector("[data-profile-changes-subtitle]").textContent = `${target.name} · ${count ? `${count === 1 ? "1 modificare" : `${count} modificări`} · ${target.applies || "se aplică după Salvează"}` : "nicio modificare"}`;
     profileChangesModal.querySelector("[data-profile-changes-body]").innerHTML = renderProfileChangesBody(target);
     profileChangesModal.querySelector("[data-profile-changes-save]").disabled = !count;
+  };
+  /* the status button is redrawn by every undo / save / discard: focus goes back to the new
+     one, else to the page title (the status is gone once nothing is left) */
+  const changesReturnTarget = () => {
+    const visible = (el) => el && el.getClientRects().length && !el.closest("[hidden], [aria-hidden='true']");
+    /* the topmost layer first: an open template sheet covers the page behind it */
+    const scope = [...document.querySelectorAll(".e-permits-ntpl-sheet")].find(visible) || document;
+    const statuses = [...scope.querySelectorAll(".e-permits-page-header__status--button")].filter(visible);
+    const status = statuses.find((el) => el.matches("[data-profile-changes]") && Boolean(el.closest(".e-permits-cfg2__bar")) === changeOpenerInBar) || statuses[0];
+    if (status) return status;
+    const title = [...scope.querySelectorAll(".e-permits-dtpl__title, .e-permits-page-header__title")].find(visible);
+    title?.setAttribute("tabindex", "-1");
+    return title || null;
+  };
+  const restoreChangesFocus = () => {
+    const active = document.activeElement;
+    if (active && active !== document.body && active.isConnected && !active.closest(".modal-overlay:not(.is-active)")) return;
+    changesReturnTarget()?.focus({ preventScroll: true });
   };
   /* the profile behind follows every undo */
   const rerenderProfileBehind = (target) => {
@@ -5212,7 +5249,10 @@ document.addEventListener("DOMContentLoaded", () => {
     else renderRoleProfile(target.subject);
   };
   document.addEventListener("click", (event) => {
-    if (event.target.closest("[data-profile-changes]")) {
+    const opener = event.target.closest("[data-profile-changes]");
+    if (opener) {
+      changeSourceKey = opener.dataset.profileChanges || "";
+      changeOpenerInBar = Boolean(opener.closest(".e-permits-cfg2__bar"));
       refreshProfileChanges();
       window.__modal?.open?.("#profile-changes-modal");
       return;
@@ -5221,12 +5261,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const target = profileChangesTarget();
     if (!target) return;
     const undo = event.target.closest("[data-change-undo]");
+    if (undo && target.kind === "source") {
+      target.undo(undo.dataset.changeUndo);
+      if (profileChangesModal.__lastFocused && !profileChangesModal.__lastFocused.isConnected) profileChangesModal.__lastFocused = changesReturnTarget();
+      refreshProfileChanges();
+      profileChangesModal.querySelector("[data-change-undo], [data-profile-changes-discard]")?.focus();
+      return;
+    }
     if (undo) {
       const [kind, key] = undo.dataset.changeUndo.split(":");
       if (kind === "perm") { target.state.permAdd.delete(key); target.state.permRemove.delete(key); }
       else if (kind === "geap") target.state.draft[key] = userGeapDraftOf(target.subject)[key];
       rerenderProfileBehind(target);
+      if (profileChangesModal.__lastFocused && !profileChangesModal.__lastFocused.isConnected) profileChangesModal.__lastFocused = changesReturnTarget();
       refreshProfileChanges();
+      profileChangesModal.querySelector("[data-change-undo], [data-profile-changes-discard]")?.focus();
+      return;
+    }
+    if (target.kind === "source" && event.target.closest("[data-profile-changes-discard], [data-profile-changes-save]")) {
+      const save = Boolean(event.target.closest("[data-profile-changes-save]"));
+      window.__modal?.close?.("#profile-changes-modal");
+      if (save) target.save(); else { target.discard(); showShellToast("Modificările au fost anulate.", "info"); }
+      restoreChangesFocus();
       return;
     }
     if (event.target.closest("[data-profile-changes-discard]")) {
@@ -5235,13 +5291,15 @@ document.addEventListener("DOMContentLoaded", () => {
       window.__modal?.close?.("#profile-changes-modal");
       rerenderProfileBehind(target);
       showShellToast("Modificările au fost anulate.", "info");
+      restoreChangesFocus();
       return;
     }
     if (event.target.closest("[data-profile-changes-save]")) {
       window.__modal?.close?.("#profile-changes-modal");
-      if (target.kind === "role") { commitRolePermissions(target.subject); return; }
+      if (target.kind === "role") { commitRolePermissions(target.subject); restoreChangesFocus(); return; }
       if (permDirtyCount(target.state)) commitPermissions(target.subject);
       if (userGeapDirty(target.subject)) saveUserGeapDraft(target.subject);
+      restoreChangesFocus();
     }
   });
 
@@ -9076,7 +9134,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${[["template", "Șablon"], ["test", "Date de test"], ["preview", "Previzualizare"]].map(([v, l]) => `<button class="segment-item${view === v ? " is-selected" : ""}" type="button" role="tab" aria-selected="${view === v}" data-dtpl-view="${v}">${l}</button>`).join("")}
         </div>
         <div class="e-permits-dtpl__actions">
-          ${pending ? (dtplState.dirty ? renderHeaderStatus("Modificări nesalvate") : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" title="Vezi modificările"')) : ""}
+          ${pending ? (dtplState.dirty ? renderHeaderStatus(dtplChangesLabel(), "warning", changesStatusAttrs("dtpl-draft")) : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" title="Vezi modificările"')) : ""}
           <button class="btn btn-neutral btn-sm" type="button" data-dtpl-history><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-history"></use></svg><span>Istoric versiuni</span></button>
           ${pending
             ? '<button class="btn btn-primary btn-sm" type="button" data-dtpl-publish>Publică în MDocs</button>'
@@ -9108,6 +9166,42 @@ document.addEventListener("DOMContentLoaded", () => {
     void d;
   };
 
+  /* the builder's draft vs the saved template: content, background, test data */
+  const dtplSavedDraft = (tpl) => ({ html: tpl.html || "", testData: { ...(tpl.testData || {}) }, testJson: tpl.testJson || dtplSampleJson(tpl.html, tpl.testData || {}), background: tpl.background || "" });
+  const dtplChanges = () => {
+    const tpl = dtplTpl(), d = dtplState.draft;
+    if (!tpl || !d) return [];
+    const base = dtplSavedDraft(tpl), out = [];
+    if (base.html !== d.html) {
+      const was = new Set(dtplTokens(base.html).used), now = new Set(dtplTokens(d.html).used);
+      const added = [...now].filter((t) => !was.has(t)), removed = [...was].filter((t) => !now.has(t));
+      out.push({ undo: "html", group: "Șablon", title: "Conținutul șablonului", tag: ["Modificat", "brand"], detail: [added.length ? `câmpuri adăugate: ${changeValue(added)}` : "", removed.length ? `câmpuri eliminate: ${changeValue(removed)}` : ""].filter(Boolean).join("; ") || "Text sau formatare" });
+    }
+    if (base.background !== d.background) out.push({ undo: "background", group: "Șablon", title: "Fundal pagină", tag: d.background ? [base.background ? "Modificat" : "Se adaugă", base.background ? "brand" : "success"] : ["Se elimină", "danger"], detail: d.background ? (base.background ? "Imagine înlocuită" : "Imagine nouă") : "Pagina rămâne albă" });
+    /* the test values come from ONE JSON → one entry, undone together */
+    const was = dtplParseJson(base.testJson).data || base.testData, now = dtplParseJson(d.testJson).data || d.testData || {};
+    const keys = [...new Set([...Object.keys(was), ...Object.keys(now)])].filter((key) => String(was[key] ?? "") !== String(now[key] ?? ""));
+    if (keys.length || base.testJson !== d.testJson) out.push({ undo: "test", group: "Date de test", title: "Valori de test", tag: ["Modificat", "brand"], detail: !keys.length ? "Text JSON" : keys.length > 3 ? `${keys.length} câmpuri: ${changeValue(keys)}` : keys.map((key) => `${key}: ${changeValue(was[key], 24)} → ${changeValue(now[key], 24)}`).join("; ") });
+    return out;
+  };
+  const dtplChangesLabel = () => { const n = dtplChanges().length; return n ? changesCountLabel(n) : "Modificări nesalvate"; };
+  registerChangeSource("dtpl-draft", () => {
+    const tpl = dtplTpl();
+    if (!tpl || !dtplState.draft) return null;
+    syncDtpl();
+    return {
+      name: tpl.name, applies: "se aplică după Salvează și publicare în MDocs", emptyText: "Șablonul este salvat.", groups: ["Șablon", "Date de test"],
+      entries: dtplChanges,
+      undo: (ref) => {
+        const base = dtplSavedDraft(tpl), d = dtplState.draft;
+        if (ref === "test") { d.testJson = base.testJson; d.testData = { ...base.testData }; } else d[ref] = base[ref];
+        dtplState.dirty = dtplChanges().length > 0;
+        renderDtpl();
+      },
+      discard: () => { Object.assign(dtplState.draft, dtplSavedDraft(tpl)); dtplState.dirty = false; renderDtpl(); },
+      save: () => saveDtpl()
+    };
+  });
   const syncDtpl = () => {
     const surface = dtplPanel.querySelector("[data-dtpl-surface]");
     const html = dtplPanel.querySelector("[data-dtpl-html]");
@@ -9118,6 +9212,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dtplState.dirty) {
       const tag = dtplPanel.querySelector("[data-dtpl-unknown]");
       if (tag) { syncDtpl(); const n = dtplTokens(dtplState.draft.html).unknown.length; tag.className = `e-permits-workplace__tag e-permits-workplace__tag--${n ? "danger" : "success"}`; tag.textContent = n ? plural(n, "câmp inexistent", "câmpuri inexistente") : "Toate câmpurile există"; }
+      const status = dtplPanel.querySelector('[data-profile-changes="dtpl-draft"]');
+      if (status) { if (!tag) syncDtpl(); const label = dtplChangesLabel(); if (status.textContent !== label) status.textContent = label; }
       return;
     }
     syncDtpl();
@@ -9675,7 +9771,8 @@ document.addEventListener("DOMContentLoaded", () => {
         : [{ label: "Clasificatoare", attr: "data-clas-crumb-back" }, { label: c.denumire }],
       title: c.denumire,
       actions: `${sync}${actions}`,
-      caption
+      caption,
+      status: (() => { const n = clasState.tabKey === "setari" ? clasSettingsChanges(c).length : 0; return n ? renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("classifier-settings")) : ""; })()
     });
     const scope = CLAS_SCOPE[clasScope(c)];
     clasProfileSummary.innerHTML = renderPageHeaderMeta([
@@ -10030,6 +10127,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const clasSettingsDraft = (c) => ({ denumire: c.denumire, descriere: c.descriere || "", familie: c.familie, parintId: c.parintId || "", criticProces: Boolean(c.criticProces), localAdminManageable: Boolean(c.localAdminManageable), idFormat: c.idFormat || classifiersStore.fieldTypes.defaults.idFormat, limitaDenumiri: String(c.limitaDenumiri || classifiersStore.fieldTypes.defaults.limitaDenumiri), errors: {} });
   const clasSettingsDirty = (c) => { const a = clasSettingsDraft(c), b = clasState.draft; return b && ["denumire", "descriere", "familie", "parintId", "criticProces", "localAdminManageable", "idFormat", "limitaDenumiri"].some((k) => String(a[k]) !== String(b[k])); };
+
+  /* one entry per changed setting (the header counts them, the review lists them) */
+  const CLAS_SETTING_FIELDS = [["denumire", "Denumire", "Identificare"], ["descriere", "Descriere", "Identificare"], ["familie", "Familie", "Identificare"], ["parintId", "Clasificator-părinte", "Ierarhie"], ["criticProces", "Critic pentru proces", "Acces și utilizare"], ["localAdminManageable", "Administratorul local poate modifica valorile", "Acces și utilizare"], ["idFormat", "Format ID", "Format valori"], ["limitaDenumiri", "Lungime maximă a denumirii", "Format valori"]];
+  const clasSettingsChanges = (c) => {
+    const a = clasSettingsDraft(c), b = clasState.draft;
+    return b ? CLAS_SETTING_FIELDS.filter(([k]) => String(a[k]) !== String(b[k])) : [];
+  };
+  const clasSettingShown = (key, value) => key === "familie" ? CLAS_FAMILY[value] || value
+    : key === "parintId" ? (value ? getClassifier(value)?.denumire || value : "Fără părinte")
+    : key === "idFormat" ? ({ INT: "Număr (INT)", UID: "Cod unic (UID)" }[value] || value) : value;
+  registerChangeSource("classifier-settings", () => {
+    const c = getClassifier(clasState.id);
+    if (!c || !clasState.draft) return null;
+    const base = clasSettingsDraft(c);
+    return {
+      name: c.denumire, emptyText: "Setările clasificatorului sunt la zi.",
+      groups: ["Identificare", "Ierarhie", "Acces și utilizare", "Format valori"],
+      entries: () => clasSettingsChanges(c).map(([key, label, group]) => ({ undo: key, group, title: label, tag: ["Modificat", "brand"], detail: `${changeValue(clasSettingShown(key, base[key]))} → ${changeValue(clasSettingShown(key, clasState.draft[key]))}` })),
+      undo: (key) => { clasState.draft[key] = base[key]; delete clasState.draft.errors?.[key]; renderClassifierProfile(); },
+      discard: () => { clasState.draft = null; renderClassifierProfile(); },
+      save: () => saveClassifierSettings()
+    };
+  });
 
   function renderClassifierProfile() {
     const c = getClassifier(clasState.id);
@@ -10794,7 +10914,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const sr = event.target.closest("[data-clas-value-search]");
     if (sr) { clasState.query = sr.value; const pos = sr.selectionStart; renderClassifierProfile(); const ni = clasProfileBody.querySelector("[data-clas-value-search]"); ni?.focus(); ni?.setSelectionRange(pos, pos); return; }
     const st = event.target.closest("[data-clas-setting]");
-    if (st && st.tagName !== "SELECT") { const wasDirty = clasSettingsDirty(getClassifier(clasState.id)); clasState.draft[st.dataset.clasSetting] = st.value; if (wasDirty !== clasSettingsDirty(getClassifier(clasState.id))) renderClassifierHeaderOnly(); }
+    if (st && st.tagName !== "SELECT") { const was = clasSettingsChanges(getClassifier(clasState.id)).length; clasState.draft[st.dataset.clasSetting] = st.value; if (was !== clasSettingsChanges(getClassifier(clasState.id)).length) renderClassifierHeaderOnly(); }
   });
   clasProfileBody?.addEventListener("change", (event) => {
     const st = event.target.closest("select[data-clas-setting]"); if (st) { clasState.draft[st.dataset.clasSetting] = st.value; renderClassifierProfile(); return; }
@@ -11006,6 +11126,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const ntplLangComplete = (texts, lang) => Boolean((texts?.[lang]?.subject || "").trim() && plainText(texts?.[lang]?.body));
 
+  /* the unsaved draft vs the saved template: one entry per setting and per text part */
+  const NTPL_DRAFT_SETTINGS = [["code", "Cod"], ["name", "Denumire"], ["dataSource", "Sursa de date"], ["priority", "Prioritate"], ["description", "Descriere"]];
+  const NTPL_DRAFT_PARTS = [["subject", "Subiect"], ["body", "Corp"], ["plain", "Mesaj scurt"]];
+  const ntplDraftChanges = () => {
+    const tpl = ntplCurrent(), d = ntplProfileState.draft;
+    if (!tpl || !d) return [];
+    const base = ntplDraftFrom(tpl), out = [];
+    NTPL_DRAFT_SETTINGS.forEach(([key, label]) => { if (String(base[key] ?? "").trim() !== String(d[key] ?? "").trim()) out.push({ undo: `set:${key}`, group: "Setări", title: label, tag: ["Modificat", "brand"], detail: `${changeValue(base[key])} → ${changeValue(d[key])}` }); });
+    NTPL_LANGS.forEach(([lang, langLabel]) => NTPL_DRAFT_PARTS.forEach(([part, label]) => {
+      const show = (texts) => (part === "body" ? plainText(texts?.[lang]?.body) : String(texts?.[lang]?.[part] || ""));
+      if (show(base.texts).trim() !== show(d.texts).trim()) out.push({ undo: `text:${lang}:${part}`, group: "Conținut", title: `${label} · ${langLabel}`, tag: ["Modificat", "brand"], detail: `${changeValue(show(base.texts))} → ${changeValue(show(d.texts))}` });
+    }));
+    return out;
+  };
+  registerChangeSource("ntpl-draft", () => {
+    const tpl = ntplCurrent(), d = ntplProfileState.draft;
+    if (!tpl || !d) return null;
+    syncNtplBody();
+    return {
+      name: tpl.name, applies: "se aplică după Salvează și publicare", emptyText: "Șablonul este salvat.", groups: ["Setări", "Conținut"],
+      entries: ntplDraftChanges,
+      undo: (ref) => {
+        const base = ntplDraftFrom(tpl), [kind, a, b] = ref.split(":");
+        if (kind === "set") { d[a] = base[a]; delete d.errors[a]; } else { d.texts[a] ||= {}; d.texts[a][b] = base.texts?.[a]?.[b] ?? ""; delete d.errors[`${b}-${a}`]; }
+        if (!ntplDraftChanges().length) d.dirty = false;
+        renderNtplProfile();
+      },
+      discard: discardNtplTexts,
+      save: () => saveNtplTexts()
+    };
+  });
+
   /* the standard header; actions follow the state */
   const renderNtplProfileHeader = (tpl) => {
     const inactive = tpl.active === false;
@@ -11033,6 +11185,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
           </button>` : ""}
       `,
+      status: (() => { const n = dirty ? ntplDraftChanges().length : 0; ntplProfileState.changeCount = n; return n ? renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("ntpl-draft")) : ""; })(),
       caption: !lastPublished ? "Nepublicat încă"
         : ntplIsPending(lastPublished) ? `${lastPublished.version} intră în vigoare pe ${formatLongDate(lastPublished.effectiveFrom)} · ${lastPublished.by}`
         : `Publicat ${formatStamp(lastPublished.at)} · ${lastPublished.by}`
@@ -11783,7 +11936,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = ntplProfileState.draft;
     if (!d) return;
     refreshNtplPreview();
-    if (d.dirty) return;
+    /* the header status counts the changes: redraw it only when the count moves */
+    if (d.dirty && ntplDraftChanges().length === ntplProfileState.changeCount) return;
     d.dirty = true;
     renderNtplProfileHeader(ntplCurrent());
   };
@@ -12977,7 +13131,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* pending changes lead the caption as a warning status (dot + text), not a tag;
          a Setări v2 draft shows „● N modificări nesalvate” (its Renunță · Salvează sit in the
          page's sticky save bar — the header scrolls away on a long page) */
-      status: (() => { const d = cfg2Changes(service).length; if (serviceProfileState.tabKey === "settings" && d) return renderHeaderStatus(d === 1 ? "1 modificare nesalvată" : `${d} modificări nesalvate`, "warning"); const n = servicePendingChanges(service).length; return canSync && n ? renderHeaderStatus(n === 1 ? "1 modificare nepublicată" : `${n} modificări nepublicate`, "warning", 'data-service-pending aria-haspopup="dialog" title="Vezi modificările"') : ""; })(),
+      status: (() => { const d = cfg2Changes(service).length; if (serviceProfileState.tabKey === "settings" && d) return renderHeaderStatus(changesCountLabel(d), "warning", changesStatusAttrs("service-settings")); const n = servicePendingChanges(service).length; return canSync && n ? renderHeaderStatus(n === 1 ? "1 modificare nepublicată" : `${n} modificări nepublicate`, "warning", 'data-service-pending aria-haspopup="dialog" title="Vezi modificările"') : ""; })(),
       caption: (() => { const n = servicePendingChanges(service).length; const g = servicePublication(service); const next = (g.publications || [])[0]; return `${n ? `față de ${g.version}` : servicePublicationPending(next) ? `${next.version} intră în vigoare pe ${formatLongDate(next.effectiveFrom)}` : `Publicat ${formatStamp(g.publishedAt)}`} · sincronizat ${formatStamp(service.lastSync)}`; })()
     });
     meta.innerHTML = renderPageHeaderMeta([
@@ -17432,7 +17586,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const n = cfg2Changes(service).length;
     const e = Object.keys(cfg2?.errors || {}).length + Object.values(cfg2?.depErrors || {}).reduce((s, x) => s + Object.keys(x).length, 0);
     return `
-      <p class="e-permits-cfg2__bar-text" aria-live="polite">${renderHeaderStatus(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning")}${e ? ` · <span class="e-permits-cfg2__bar-error">${e === 1 ? "1 câmp de corectat" : `${e} câmpuri de corectat`}</span>` : ""}</p>
+      <p class="e-permits-cfg2__bar-text" aria-live="polite">${renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("service-settings"))}${e ? ` · <span class="e-permits-cfg2__bar-error">${e === 1 ? "1 câmp de corectat" : `${e} câmpuri de corectat`}</span>` : ""}</p>
       <div class="e-permits-cfg2__bar-actions">
         <button class="btn btn-neutral btn-sm" type="button" data-cfg2-discard>Renunță</button>
         <button class="btn btn-primary btn-sm" type="button" data-cfg2-save>Salvează</button>
@@ -17504,6 +17658,48 @@ document.addEventListener("DOMContentLoaded", () => {
     showShellToast(`${plural(list.length, "setare modificată", "setări modificate")}. Intră în vigoare după publicarea pașaportului.`, "success", "Setări salvate");
   };
   const cfg2Discard = () => { cfg2 = null; cfg2LastCount = 0; renderServiceProfile(); };
+  /* „● N modificări nesalvate” (header + save bar) → the shared review: one row per changed
+     field (section = group, „vechi → nou”) and per interdependence; „Anulează” undoes one */
+  const cfg2ChangeDetail = (key, before, after) => {
+    if (key === "subdivisions") return cfgListDiff(before, after);
+    if (key === "rap") {
+      const anon = after.filter((x) => { const was = before.find((y) => y.field === x.field); return was && Boolean(was.anon) !== Boolean(x.anon); }).map((x) => `${x.field}: ${x.anon ? "anonimizat" : "fără anonimizare"}`);
+      return [cfgListDiff(before.map((x) => x.field), after.map((x) => x.field)), ...anon].filter(Boolean).join("; ");
+    }
+    if (key === "numbering") return `${changeValue(before.map(cfgNumTemplate))} → ${changeValue(after.map(cfgNumTemplate))}`;
+    return `${changeValue(cfgFmt(before))} → ${changeValue(cfgFmt(after))}`;
+  };
+  registerChangeSource("service-settings", () => {
+    const service = getServiceByCode(serviceProfileState.code);
+    if (!service || !cfg2 || cfg2.code !== service.code) return null;
+    const { c } = cfg2Base(service);
+    const title = (sec) => (CFG2_SECTIONS.find(([k]) => k === sec) || [])[1];
+    const redraw = (sec) => { cfg2RenderSection(sec); cfg2Refresh(); };
+    return {
+      name: service.title, applies: "se aplică după Salvează și publicare", emptyText: "Setările serviciului sunt la zi.",
+      groups: CFG2_SECTIONS.map(([, t]) => t),
+      entries: () => cfg2Changes(service).map((x) => x.key
+        ? { undo: `key:${x.key}`, group: title(x.sec), title: x.label, tag: ["Modificat", "brand"], detail: cfg2ChangeDetail(x.key, c[x.key], cfg2.v[x.key]) }
+        : { undo: `dep:${x.dep.id}`, group: title("deps"), title: String(x.dep.name || "").trim() || "Interdependență fără denumire", tag: x.kind === "add" ? ["Se adaugă", "success"] : x.kind === "remove" ? ["Se elimină", "danger"] : ["Modificat", "brand"], detail: [x.dep.type, (x.dep.requestTypes || []).join(", ")].filter(Boolean).join(" · ") || "Necompletată" }),
+      undo: (ref) => {
+        const cut = ref.indexOf(":"), kind = ref.slice(0, cut), key = ref.slice(cut + 1);
+        if (kind === "key") {
+          cfg2.v[key] = cfgClone(c[key]);
+          Object.keys(cfg2.errors).filter((e) => e === key || (key === "numbering" && /^n\d+-/.test(e))).forEach((e) => delete cfg2.errors[e]);
+          redraw(Object.entries(CFG_FIELDS).find(([, fields]) => fields.some(([k]) => k === key))?.[0]);
+          return;
+        }
+        const was = c.deps.find((d) => d.id === key);
+        if (!was) cfg2.v.deps = cfg2.v.deps.filter((d) => d.id !== key);
+        else if (cfg2.v.deps.some((d) => d.id === key)) cfg2.v.deps = cfg2.v.deps.map((d) => (d.id === key ? cfgClone(was) : d));
+        else cfg2.v.deps.splice(Math.min(c.deps.indexOf(was), cfg2.v.deps.length), 0, cfgClone(was));
+        delete cfg2.depErrors[key];
+        redraw("deps");
+      },
+      discard: cfg2Discard,
+      save: cfg2Save
+    };
+  });
   /* leaving Setări v2 with a draft asks first (as every profile draft) */
   const cfg2Guard = (proceed) => {
     const service = getServiceByCode(serviceProfileState.code);
@@ -19182,6 +19378,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderEmptyState, renderNoResults, renderPassportEmpty, renderCopyCode, renderProfileCopyCode, renderListCode,
       renderInfoNote, renderNotice, renderFoSelectControl, showShellToast, askConfirm, exportCsv,
       renderToggle, renderCheckOption, requiredMark, renderPassportBlock, renderSumList, renderUserRoles, renderHeaderStatus,
+      registerChangeSource, changesStatusAttrs, changeValue,
       setActiveNav, writeHash, restorePageHash, renderWorkplace, getVisibleRows, workplaceState,
       showRegistry: showProductRegistry, hideShellPages, openProfilePanel, closeProfile: closeDosarProfil,
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */

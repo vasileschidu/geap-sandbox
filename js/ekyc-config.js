@@ -408,7 +408,7 @@
     const e = Object.keys(F.errors).length;
     const text = F.mode === "create"
       ? `<span>${esc(def.barCreate)}</span>`
-      : n ? A.renderHeaderStatus(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning") : "<span>Nicio modificare</span>";
+      : n ? A.renderHeaderStatus(n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`, "warning", A.changesStatusAttrs?.("ekyc-form") || "") : "<span>Nicio modificare</span>";
     return `
       <p class="e-permits-cfg2__bar-text" aria-live="polite">${text}${e ? ` · <span class="e-permits-cfg2__bar-error">${e === 1 ? "1 câmp de corectat" : `${e} câmpuri de corectat`}</span>` : ""}</p>
       <div class="e-permits-cfg2__bar-actions">
@@ -416,6 +416,37 @@
         <button class="btn btn-primary btn-sm" type="button" data-ekcfg-submit>${esc(def.submit(F))}</button>
       </div>`;
   };
+  /* „● N modificări nesalvate” in the save bar → the shell's review („Modificări nesalvate”):
+     label and section read from the rendered form, values as the form shows them */
+  const changeRows = () => {
+    const root = document.querySelector("[data-ekcfg-page]");
+    if (!F || !root) return [];
+    const text = (el) => { if (!el) return ""; const c = el.cloneNode(true); c.querySelectorAll("svg, [aria-hidden='true'], .e-permits-required, button").forEach((x) => x.remove()); return c.textContent.replace(/\s+/g, " ").replace(/\s*\*$/, "").trim(); };
+    const shown = (key, value, wrap) => {
+      if (Array.isArray(value)) return value.map((x) => (typeof x === "object" ? JSON.stringify(x) : x));
+      const option = wrap?.querySelector(`option[value="${CSS.escape(String(value ?? ""))}"]`);
+      return option && value !== "" ? option.textContent : value;
+    };
+    return Object.keys(F.v).filter((k) => JSON.stringify(F.v[k]) !== JSON.stringify(F.original[k])).map((key) => {
+      const control = root.querySelector(`[data-ekcfg-wrap="${CSS.escape(key)}"], [data-ekcfg-field="${CSS.escape(key)}"]`);
+      const wrap = control?.closest("[data-ekcfg-wrap], .e-permits-user-create__field");
+      const label = text(wrap?.querySelector("label, .e-permits-toggle__label")) || key;
+      const group = text(control?.closest("[data-ekcfg-section]")?.querySelector("h2")) || "Alte câmpuri";
+      return { undo: key, group, title: label, tag: ["Modificat", "brand"], detail: `${A.changeValue(shown(key, F.original[key], wrap))} → ${A.changeValue(shown(key, F.v[key], wrap))}` };
+    });
+  };
+  const registerReview = () => A.registerChangeSource?.("ekyc-form", () => {
+    if (!F || F.where !== "page") return null;
+    const def = FORMS[F.type];
+    return {
+      name: (F.mode === "edit" && (def.entity?.(F)?.denumire || def.entity?.(F)?.name)) || def.title(F), emptyText: "Formularul este salvat.",
+      groups: [...document.querySelectorAll("[data-ekcfg-section] h2")].map((h) => h.textContent.trim()),
+      entries: changeRows,
+      undo: (key) => { F.v[key] = clone(F.original[key]); Object.keys(F.errors).filter((e) => e === key || e.startsWith(`${key}.`)).forEach((e) => delete F.errors[e]); renderPageForm(true); },
+      discard: () => { F.v = clone(F.original); F.errors = {}; renderPageForm(true); },
+      save: submitForm
+    };
+  });
   /* after every edit on the page: bar + section dots + red cards — never the form itself */
   const refreshPage = () => {
     const root = document.querySelector("[data-ekcfg-page]");
@@ -2195,6 +2226,7 @@
     },
     init: () => {
       A = S.api;
+      registerReview();
       ensureDrawer();
       document.addEventListener("click", onClick);
       document.addEventListener("input", onInput);

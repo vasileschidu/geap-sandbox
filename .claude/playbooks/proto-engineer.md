@@ -1874,3 +1874,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   (`color` → text token, `background` → background token) or `#fff` reads „--color-background-base-default” in a color
   declaration; component API variables (`--search-input-height`) are not Foundations tokens — private-token = redefined
   COLOUR tokens only. No sub-agent tool → validated directly (fixtures + report states + a 1/8 sample sweep).
+- 2026-10-21 · „N modificări nesalvate” → review everywhere (unsaved-review-v1; user: „didn't we discuss that clicking
+  „1 modificare nesalvată” shows a modal with the changes?”). The pattern was documented and built for the user / role
+  profiles only; service Setări, its save bar, classifier Setări (no status at all), notification templates (no status),
+  the dtpl builder (boolean span) and the eKYC page forms each drew their own plain status. Fix = turn the ONE modal into a
+  host for SOURCES (`registerChangeSource(key, build)` → `{ name, applies, groups, entries(), undo(ref), discard(), save() }`,
+  exported on `GEAPShellApi`), the status = `changesStatusAttrs(key)` — each page cost ~20–30 lines, zero markup / CSS.
+  Grep `renderHeaderStatus(` for every count status before calling a pattern „done everywhere”. Traps: (1) a status drawn
+  once on the first edit (ntpl / dtpl headers) goes stale when it shows a count → redraw only when the count moves (ntpl) or
+  patch the text in place (dtpl, keeps the caret); (2) test data derived from ONE JSON must be ONE row compared against the
+  JSON the builder started from (14 false „changed” keys vs `tpl.testData`); (3) every undo / save re-renders the opener →
+  modal.js restores focus to a DETACHED node: retarget `overlay.__lastFocused` after an undo and focus the redrawn status
+  (same zone: header vs save bar; the template sheet before the page behind) after save / discard — also fixed the old
+  user / role path; (4) BO pages scroll `.e-permits-shell__canvas-surface`, not the window — a demo „back to the top”
+  must reset scrolled ancestors; (5) the Setări section list is hidden ≤760, so `cfgNav` demos fail on phones (svc-10a
+  too, pre-existing) — click it only when visible. Keyboard proved with CDP key events (Enter / Space open, Esc closes
+  only the modal, focus back to the status). component-audit flagged the save-bar status as non-library until the
+  inventory row existed. Session restarted mid-job: the asserted edit files in the scratchpad (`ur/edits/p*.py`) were
+  intact and already matched the tree.

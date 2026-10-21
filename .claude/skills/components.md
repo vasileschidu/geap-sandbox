@@ -187,6 +187,7 @@ but this doc previously described it wrongly, see the entry.
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon size from the button size: Small 16, Medium / Large 20 — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
 | Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
+| Unsaved-changes status → review (every draft page, user rule 2026-10-21) | `renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("<source>"))` → `button.e-permits-page-header__status.e-permits-page-header__status--button[data-profile-changes][aria-haspopup=dialog]` (page header caption, Setări save bar `.e-permits-cfg2__bar`, dtpl sheet head) → ONE modal `#profile-changes-modal` fed by `registerChangeSource(key, build)`; never a plain `<span>` status for a count of unsaved edits | — (§ Profile tabs › „The status is a button”); demo svc-10x…10x3, clf-04d/e, ntpl-04d/e, svc-08n/n1, ek-24h, usr-u05f, rol-01b | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
 | Icon button | `.btn-icon`, `.btn-icon.clear` | — | app |
 | Search input | `.search-input` + `.medium/.small/.large` + `.rectangular/.circular` | `search-input-preview.html` | app |
@@ -5824,6 +5825,32 @@ One rule for every profile (service, user, role, classifier, template):
   „Anulează” undoes just that change (the profile behind updates); footer „Renunță la toate”
   (neutral) · „Salvează” (primary). Nothing left → the empty state. Works for user and role
   profiles (`profileChangesTarget`). Hover: dotted underline; focus ring.
+- **Rule — every draft page (2026-10-21, user: „clicking „1 modificare nesalvată” shows a modal
+  with the changes”):** wherever „● N modificări nesalvate” shows, it is that button and it opens
+  the SAME `#profile-changes-modal` with exactly those changes (count = rows). Pages plug in with
+  `registerChangeSource(key, () => ({ name, applies, groups, emptyText, entries(), undo(ref),
+  discard(), save() }))` (exported on `GEAPShellApi` for product modules); the status carries
+  `changesStatusAttrs(key)` = `data-profile-changes="<key>"`. Entries = `{ undo, group, title,
+  tag, detail }` → the same stacked rows: group = the page's section, title = the field label,
+  tag Modificat (brand) / Se adaugă (success) / Se elimină (danger), meta „vechi → nou”
+  (`changeValue`, one line ≤ 48 chars), „Anulează” per row; footer Renunță la toate · Salvează (the
+  page's own save, validation included). Subtitle „{nume} · N modificări · {când se aplică}” —
+  never a code. Focus returns to the redrawn status (same zone: header vs save bar), else to the
+  page title; Esc closes only the modal (the template sheet stays). Where:
+  | Page | Source | Status | Demo |
+  |---|---|---|---|
+  | Utilizator / Rol profile | built-in (`user` / `role`) | header | usr-u05f, rol-01b |
+  | Serviciu › Setări (cfg2) | `service-settings` (field + interdependence rows, grouped by section) | header + sticky save bar | svc-10x, 10x1, 10x2 (one undone), 10x3 (from the bar) |
+  | Clasificator › Setări | `classifier-settings` (8 settings, 4 groups) | header (was: none) | clf-04d, clf-04e |
+  | Șablon de notificare | `ntpl-draft` (Setări + subject / body / SMS per language) | header (was: none) | ntpl-04d, ntpl-04e |
+  | Șablon de tipar (constructor) | `dtpl-draft` (content with fields added / removed, background, test values as ONE row) | sheet head, counted (was: boolean span) | svc-08n, svc-08n1 |
+  | eKYC Clienți / Furnizori (page form) | `ekyc-form` (label + section read from the form) | save bar | ek-24h |
+  „N modificări nepublicate” keeps its own review (`#pending-changes-modal`, Publică) — service
+  header (`data-service-pending`, count = `servicePendingChanges`) and template builder
+  (`data-dtpl-pending`). Not statuses (left as they are): the Configurări servicii table cell „N
+  modificări nepublicate” (the row opens the passport), drawer footer summaries („Modificări
+  nesalvate” in the dtpl footer, rt „N acțiuni · N modificate”), tariffs / taxes (no draft status),
+  the notification template „Modificări nepublicate” notice, Process Designer / Form Builder notes.
 - **Lists → the stacked list** under a section title. A list with only an add action puts it
   **on the title row** (`.e-permits-dosar-profil__section-heading`: title left, `btn-secondary
   btn-sm` + plus right); a toolbar row (`.e-permits-pay__toolbar` › `__tools`) only when there
