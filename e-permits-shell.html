@@ -8,19 +8,21 @@
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/button-icons.css?v=button-icons-v1">
   <link rel="stylesheet" href="css/e-permits-shell.css?v=copy-wrap-v1">
-  <link rel="stylesheet" href="css/facet-filter.css?v=button-icons-v1">
+  <link rel="stylesheet" href="css/facet-filter.css?v=audit-fix-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v8">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v3">
   <link rel="stylesheet" href="css/trajectory.css?v=trajectory-gap-v1">
   <link rel="stylesheet" href="css/dropdown.css?v=dd-item-v1">
   <link rel="stylesheet" href="css/copy-value.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="css/breadcrumbs.css?v=breadcrumb-v1">
+  <link rel="stylesheet" href="css/field-sizes.css?v=audit-fix-v1">
   <link rel="stylesheet" href="css/modal-phone.css?v=sheet-header-v1">
   <script src="js/copy-value.js?v=copy-wrap-v1"></script>
   <script src="js/breadcrumbs.js?v=breadcrumb-v1"></script>
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=traj-v1"></script>
   <script src="js/modal.js" defer></script>
+  <script src="js/search.js?v=delegated-v2" defer></script>
   <script src="js/icon-tooltip.js?v=cab-rows-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v7" defer></script>
@@ -545,10 +547,20 @@
                     </button>
                   </div>
                   <div class="e-permits-workplace__toolbar" aria-label="Filtrare dosare">
-                    <label class="e-permits-workplace__search">
-                      <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-search"></use></svg>
-                      <input type="search" data-workplace-search placeholder="Căutare rapidă după denumire, cod sau instituție">
-                    </label>
+                    <div class="search-input medium rectangular e-permits-workplace__search">
+                      <span class="icon-search" aria-hidden="true">
+                        <svg class="icon" width="20" height="20">
+                          <use href="assets/icons/sprite.svg#icon-search"></use>
+                        </svg>
+                      </span>
+                      <input class="input" type="search" data-workplace-search placeholder="Căutare rapidă după denumire, cod sau instituție" aria-label="Căutare rapidă">
+                      <div class="btn-group">
+                        <span class="spinner spinner--extra-small spinner--brand" aria-hidden="true"></span>
+                        <button type="button" class="btn-icon clear" aria-label="Șterge căutarea">
+                          <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-small"></use></svg>
+                        </button>
+                      </div>
+                    </div>
                     <button class="btn btn-secondary btn-sm e-permits-workplace__advanced" type="button">
                       <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-filter"></use></svg>
                       <span>Filtrare avansată</span>

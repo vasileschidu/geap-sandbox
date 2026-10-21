@@ -1549,37 +1549,4 @@ tr:hover .rap-act-link {
 
 /* breadcrumb → title 16: css/bo-profile-parts.css (.e-permits-page-header--public) */
 
-/* phones: inputs are the bigger size (user 2026-10-18: „desktop small, mobile medium always”) — the search is
-   48 high and types at 16/24 (also what iOS needs to not zoom into the field); desktop stays 40 */
-@media (max-width: 760px) {
-  .rap-search.search-input.medium {
-    height: var(--spacing-48, 48px);
-    min-height: var(--spacing-48, 48px);
-  }
-
-  .rap-search.search-input.medium .input {
-    height: var(--spacing-48, 48px);
-  }
-
-  .rap-search.search-input.medium .input,
-  .rap-search.search-input.medium .input::placeholder {
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
-  }
-
-  /* 2026-10-18 (component audit): a 48 field takes the library Large search icon — 24 at 16, text from 48 */
-  .rap-search.search-input.medium .icon-search {
-    height: var(--icon-size-default, 24px);
-    left: var(--spacing-16, 16px);
-    width: var(--icon-size-default, 24px);
-  }
-
-  .rap-search.search-input.medium .icon-search .icon {
-    height: var(--icon-size-default, 24px);
-    width: var(--icon-size-default, 24px);
-  }
-
-  .rap-search.search-input.medium .input {
-    padding-left: var(--spacing-48, 48px);
-  }
-}
+/* phones: every search is 48 · 16/24 · icon 24 — the shared rule in css/field-sizes.css (audit-fix-v1) */

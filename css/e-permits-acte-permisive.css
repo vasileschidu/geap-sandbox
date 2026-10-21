@@ -25081,18 +25081,7 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
     min-width: 0;
   }
 
-  /* phones: the quick search is the bigger input (user rule 2026-10-18: desktop 40, phones 48 ·
-     16/24) — the same values as the filter sheet's search (css/facet-filter.css) */
-  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .search-input.medium {
-    --search-input-height: var(--spacing-48, 48px);
-    min-height: var(--spacing-48, 48px);
-  }
-
-  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .search-input.medium .input,
-  [data-product="ekyc"] .e-permits-workplace[data-registry-kind^="ekyc-"] .e-permits-workplace__toolbar .search-input.medium .input::placeholder {
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
-  }
+  /* phones: the quick search is 48 · 16/24 · icon 24 — the shared rule in css/field-sizes.css (audit-fix-v1) */
 }
 
 /* ---- Hover audit, round 3 (2026-10-13, tools/ui-qa/hover-audit.mjs — real mouse) -----------

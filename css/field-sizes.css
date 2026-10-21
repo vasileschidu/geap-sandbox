@@ -1,0 +1,56 @@
+/* ==========================================================================
+   Field sizes on phones — ONE shared rule per control (audit-fix-v1, 2026-10-21)
+
+   User rule (2026-10-18, memory „Input size: desktop 40, phone 48”): fields are the library
+   Medium on desktop (40, 14/20 text, icon 20 at 12) and ALWAYS the library default on phones
+   ≤760 (48, 16/24 text — also what iOS needs to not zoom — icon 24 at 16, text from 48).
+
+   Loaded after every product stylesheet (right before css/modal-phone.css) on the BO page,
+   e-permits-shell.html, clasificatoare.html, Cabinet and RAP, so a page never needs its own
+   phone copy. `:root` lifts each selector by one class so the rule also beats the scoped
+   desktop sizes of the toolbars (BO `[data-demo-flow] .e-permits-workplace__search` 0,3,0,
+   `.e-permits-workplace__search.search-input:has(.icon-search) .input` 0,4,0, Cabinet / RAP
+   `.cab-search` / `.rap-search` 0,4,0). Desktop is untouched (everything sits in the query).
+   ========================================================================== */
+
+@media (max-width: 760px) {
+  /* Search input (library `.search-input.medium`): BO toolbars / lists, eKYC, Clasificatoare,
+     Cabinet, RAP, facet sheets — the box, the text, the leading icon */
+  :root .search-input.medium {
+    --search-input-height: var(--spacing-48, 48px);
+    height: var(--spacing-48, 48px);
+    min-height: var(--spacing-48, 48px);
+  }
+
+  :root .search-input.medium .input {
+    height: 100%;
+  }
+
+  :root .search-input.medium .input,
+  :root .search-input.medium .input::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+
+  :root .search-input.medium .icon-search {
+    height: var(--icon-size-default, 24px);
+    left: var(--spacing-16, 16px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  :root .search-input.medium .icon-search .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  :root .search-input.medium:has(.icon-search) .input {
+    padding-left: var(--spacing-48, 48px);
+  }
+
+  /* Text area (`.e-permits-fo-textarea`): FO, BO / eKYC drawers and forms, Form Builder */
+  :root .e-permits-fo-textarea textarea,
+  :root .e-permits-fo-textarea textarea::placeholder {
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
+  }
+}

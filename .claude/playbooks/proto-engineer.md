@@ -1798,3 +1798,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   scan of the marker-centre row (canvas in the page, DPR 2: gap to the first non-background pixel + intensity dips
   along the line for seams) — scratch measure.mjs pattern; vertical unchanged proved by byte-identical crops vs a
   HEAD `git worktree` served on another port.
+- 2026-10-21 · Audit fix batch 1 — phone field sizes (audit-fix-v1). „One shared phone rule per control” = a new file
+  `css/field-sizes.css` loaded LAST (before modal-phone.css) on every page with fields, selectors prefixed with `:root`
+  (+1 class) so they beat the scoped DESKTOP sizes of the toolbars (BO `[data-demo-flow] .e-permits-workplace__search`
+  0,3,0 `height: 40px`, `…:has(.icon-search) .input` 0,4,0, `.cab-search.search-input.medium .input` 0,4,0) without
+  `!important`; then DELETE the per-page phone copies (Cabinet, RAP, eKYC, facet sheet). The 12px search text was not a
+  product rule at all: the library `.search-input.medium .input` (0,3,0) reads `--text-body-sm-font-size`, which main.css
+  drops to 12 at ≤720, and beat the shell's 14 (0,2,0). Proof: component-audit 35 → 10 field findings on 13 states × 2
+  (the 10 left = the rows-per-page select, replaced by the shared pager in batch 3) + a field probe (box / text /
+  placeholder / icon size@inset) on every page at 1440 / 375. Parity specs: eKYC filter (51) and RAP profile (4)
+  differences are byte-identical on a HEAD worktree (:8936) — pre-existing spec drift, not mine; check HEAD before
+  „fixing” a parity spec. Staging with other agents' hunks in the same files: build HEAD + my asserted edit scripts in a
+  temp root (`EDIT_ROOT`), hash-object + update-index, commit in the same command (scratch af/stage.sh).
