@@ -2027,3 +2027,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   avatar the regex missed collapsed (40×20, flat) — a probe that prints NON-SQUARE avatars found the Cabinet page's
   static copy. Figma Avatar's 4th size is 48 but the library `--lg` is 56: the 48 avatars keep their own size (reported).
   The auditor had no avatar family → added one (canonical `.avatar`, kept trigger / launcher / third-party mocks allowed).
+- 2026-10-21 · Phone dialog title 20/32 everywhere (phone-title-20-v1; user: „On phone, let's do 20 px”, replacing the 24/32
+  of 2026-10-20). ONE `:is(.bottom-sheet__header--title, .modal-overlay > .modal:not(.e-permits-builder) .modal--header-title,
+  .e-permits-fo-doc-modal__title, .drawer__title, .e-permits-fo-instance-switch-modal__content > h2)` rule in
+  `css/modal-phone.css` § 9 (loaded last; `:is()` takes its most specific argument, 0,4,0, so it beats the page rules
+  without `!important`); the per-family sizes in facet-filter.css (24, all GEAPSheets — phone-only) and drawer.css (20)
+  were deleted, desktop rules untouched. Inventory first: grep every `fs-24` title rule, then a title probe per state at
+  375 / 320 (scratch pt/probe.mjs: topmost surface via `elementFromPoint` near the TOP of the screen, not the bottom —
+  hidden library modals in inactive overlays still have client rects and fooled the first run; title font / line, top vs
+  the surface, × centre vs the first line) — found one family nobody listed: the FO confirm card h2 (32/40 on desktop,
+  24 on phones). The account switcher's centred profile name (20/28) is an identity, not a dialog title — left alone.
+  Proof that no audit finding was mine: the same code-audit / component-audit on a COPY of the tree with only my three
+  CSS files reset to HEAD (python http.server :8982) — identical per-state counts. hover-audit is hard-wired to 1440:
+  a sed copy at 375 for phone-only changes (delete it before staging).

@@ -210,6 +210,16 @@
     gap: var(--spacing-8, 8px);
   }
 
+  /* the title — ONE phone rule for every sheet / dialog / drawer (2026-10-21, user: „On phone, let's do 20 px”):
+     20/32 semibold (replaces the 24 of the filter / sort sheets and the FO dialogs); the 32 line box is the one
+     the × centres on. Desktop keeps each family's own size. */
+  :is(.bottom-sheet__header--title, .modal-overlay > .modal:not(.e-permits-builder) .modal--header-title, .e-permits-fo-doc-modal__title, .drawer__title, .e-permits-fo-instance-switch-modal__content > h2) {
+    font-size: var(--font-size-fs-20, 20px);
+    font-weight: var(--font-weight-fw-semibold, 600);
+    letter-spacing: 0;
+    line-height: var(--modal-phone-title-line);
+  }
+
   .bottom-sheet__header > :is(.modal-close, .btn),
   .e-permits-fo-doc-modal__header > .e-permits-fo-doc-modal__close {
     flex: 0 0 auto;

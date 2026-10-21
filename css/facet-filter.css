@@ -435,13 +435,7 @@ html.is-filter-sheet-open {
 .e-permits-filter-sheet .bottom-sheet__header--title {
   flex: 1 1 auto;
   min-width: 0;
-  /* the phone dialog title (user 2026-10-20: „Filtre title … do bigger”): 24/32 semibold like every phone
-     dialog header (.e-permits-fo-doc-modal__title) — was the library 18 — for all shared sheets (filters, sort,
-     post-process) */
-  font-size: var(--font-size-fs-24, 24px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  letter-spacing: -0.24px;
-  line-height: var(--line-height-lh-32, 32px);
+  /* size: the one phone dialog title rule (css/modal-phone.css § 9, 20/32 semibold — user 2026-10-21) */
 }
 
 .bottom-sheet__footer.e-permits-filter-sheet__footer {
