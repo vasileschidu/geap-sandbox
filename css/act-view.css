@@ -34,15 +34,7 @@
   border-radius: var(--border-radius-8, 8px);
 }
 
-.rap-act-modal__print {
-  gap: var(--spacing-8, 8px);
-}
-
-/* the shared printer icon (GEAPDocPreview.printIcon, fill: none in css/doc-preview.css) at 20 */
-.rap-act-modal__print .icon {
-  height: var(--icon-size-medium, 20px);
-  width: var(--icon-size-medium, 20px);
-}
+/* „Imprimă”: gap 6 + the 20 icon of a 48 button come from css/button-icons.css (button-icons-v1) */
 
 /* ---- the act page (MDocs output); the paginated page itself = .e-permits-doc-page (css/doc-preview.css) ---- */
 .rap-act-doc__head {

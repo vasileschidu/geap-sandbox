@@ -1730,3 +1730,18 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   component-audit rule 5 (`crumb-trail` / `back-link`) proved on HEAD (26 findings on 23 states × 2 widths) vs tree (0,
   no other new finding). No sub-agent tool → component-audit, hover-audit (0 / 0), code-audit (standing FPs only) run
   directly.
+- 2026-10-21 · Button icons (button-icons-v1; user: „our buttons in code are wrong: the icons seem too small and off”, Figma
+  Components 39:177). Measured Figma per variant with get_metadata (symbol → icon instance → vector bounds): Small 32 · icon
+  16 at 8 · gap 6; Medium 40 · icon 20 at 12 · gap 6 · 14/20; Large 48 · icon 20 at 16 · 16/24; icon-only 32/16, 40/20, 48/20.
+  A probe over 368 demo states (every visible `.btn`: box, padding, gap, font, icon box, `getBBox`×CTM glyph ink, icon
+  centre vs button / label centre) showed the real causes: Medium / Large buttons with `icon small` (16), bare `icon` +
+  `width="16"` rendering 24 in Small buttons (the attribute loses to `.icon { width: 24 }`), md gap 4, non-square md / lg
+  icon-only. Vertical centring was already 0 everywhere — „off” was size + gap, not alignment. Fix = ONE file
+  `css/button-icons.css` right after main.css on every page: `--btn-icon-size` per size on `.btn`, `.btn > svg.icon`
+  (0,2,1) beats `icon small` without touching markup; paddings through `:where(:has())` so product placements still win;
+  per-component icon sizes / gaps deleted (6 rules). Deliberate phone exceptions (48 pills / sheet × = 24) survive by
+  higher specificity — check them at 375. Traps: (1) the library `.btn.btn-sm:has(> .icon:first-child)` is (0,4,0) —
+  an icon-only padding reset must repeat the `:has()` (a `:where` version lost); (2) zsh `set -- $s` does not word-split
+  → hover-audit got the state „dos-01 main” and printed „undefined interactive” — loop over plain ids; (3) the sprite's
+  24-grid glyphs at 16 are ~15 % lighter than Figma's own 16-grid set — that is a sprite gap, not CSS; reported. No
+  sub-agent tool → code-audit (static 0; only standing FPs), component-audit (no `.btn` finding), hover-audit run directly.

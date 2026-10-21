@@ -17,20 +17,9 @@
   height: calc(var(--spacing-40, 40px) - 2 * var(--border-width-2, 2px));
 }
 
-.e-permits-workplace__advanced .icon {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 16px;
-}
-
 /* list pages (Cabinet, RAP, eKYC — 2026-10-20, user: „the sort and Filtre at the search's height”): the button is
-   the library Medium (btn-md = 40, the search box height) with the Medium icon (20); the GEAP BO registries keep
-   btn-sm above */
-.btn.btn-md.e-permits-workplace__advanced .icon {
-  flex: 0 0 var(--icon-size-medium, 20px);
-  height: var(--icon-size-medium, 20px);
-  width: var(--icon-size-medium, 20px);
-}
+   the library Medium (btn-md = 40, the search box height); the GEAP BO registries keep btn-sm above. Icon size
+   (16 Small / 20 Medium) comes from css/button-icons.css (button-icons-v1) */
 
 
 /* ---- Advanced filter (faceted): bar of facet chips under the toolbar, a checklist

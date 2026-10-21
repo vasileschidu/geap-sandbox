@@ -1,0 +1,94 @@
+/* ==========================================================================================================
+   Button icons — ONE block for every page (button-icons-v1, 2026-10-21)
+   Source of truth: Figma Components „button-filled-rectangular” 39:177 (Icon = Leading / Trailing / Only):
+
+     Size     height  sides (icon side)  gap  icon  label        icon-only
+     Small    32      12 (8)             6    16    14/20 500    32 square, icon 16 at 8
+     Medium   40      16 (12)            6    20    14/20 500    40 square, icon 20 at 10
+     Large    48      20 (16)            6    20    16/24 500    48 square, icon 20 at 14
+
+   Code: `.btn-sm` = Small · `.btn-md` (and the 40 modal-footer pill) = Medium · `.btn` without a size class (48)
+   and `.btn-lg` = Large. The icon size comes from the BUTTON size, never from the svg's own `small` / `medium`
+   class or width / height attributes (an `icon small` in a Medium button was 16 instead of 20; a bare `icon`
+   with width="16" rendered 24 inside a Small one). The icon is a block flex item (no inline baseline offset,
+   never shrinks), centred by the button's `align-items: center`; its colour stays the label's (currentColor).
+   Loaded right after main.css: deliberate, more specific exceptions in product CSS still win (phone 48 pills
+   and sheet × = icon 24). Library search submit (`.btn-search`) keeps its own icon size.
+   ========================================================================================================== */
+
+.btn {
+  --btn-icon-size: var(--icon-size-medium, 20px);
+}
+
+.btn.btn-sm {
+  --btn-icon-size: var(--icon-size-small, 16px);
+}
+
+.btn:where(:not(.btn-search)) > svg.icon {
+  display: block;
+  flex: 0 0 var(--btn-icon-size);
+  height: var(--btn-icon-size);
+  width: var(--btn-icon-size);
+}
+
+/* gap icon ↔ label = 6 at every size (the library base has 4) */
+.btn:where(:not(.btn-search)) {
+  gap: var(--spacing-6, 6px);
+}
+
+/* 4 less on the icon side (Figma: Small 8, Medium 12, Large 16). :where keeps the specificity of the size rule, so
+   product placements (modal footers, toolbars) that set their own padding still win */
+.btn.btn-md:where(:has(> svg.icon:first-child)) {
+  padding-left: var(--spacing-12, 12px);
+}
+
+.btn.btn-md:where(:has(> * + svg.icon:last-child)) {
+  padding-right: var(--spacing-12, 12px);
+}
+
+.btn.btn-sm:where(:has(> * + svg.icon:last-child)) {
+  padding-right: var(--spacing-8, 8px);
+}
+
+.btn:where(:not(.btn-sm, .btn-md, .btn-lg, .btn-search, .btn-badge)):where(:has(> svg.icon:first-child)) {
+  padding-left: var(--spacing-16, 16px);
+}
+
+.btn:where(:not(.btn-sm, .btn-md, .btn-lg, .btn-search, .btn-badge)):where(:has(> * + svg.icon:last-child)) {
+  padding-right: var(--spacing-16, 16px);
+}
+
+.btn.btn-lg:where(:has(> svg.icon:first-child)) {
+  padding-left: var(--spacing-20, 20px);
+}
+
+.btn.btn-lg:where(:has(> * + svg.icon:last-child)) {
+  padding-right: var(--spacing-20, 20px);
+}
+
+/* Icon = Only: a square of the button height, the icon in the middle (32 / 16 · 40 / 20 · 48 / 20) */
+/* the :has() twin ties the library „.btn.btn-sm:has(> .icon:first-child)” (8 on the icon side) and wins by order */
+.btn.btn-icon-only,
+.btn.btn-icon-only:has(> .icon:first-child) {
+  gap: 0;
+  justify-content: center;
+  padding: 0;
+}
+
+.btn.btn-sm.btn-icon-only {
+  flex: 0 0 var(--spacing-32, 32px);
+  height: var(--spacing-32, 32px);
+  width: var(--spacing-32, 32px);
+}
+
+.btn.btn-md.btn-icon-only {
+  flex: 0 0 var(--spacing-40, 40px);
+  height: var(--spacing-40, 40px);
+  width: var(--spacing-40, 40px);
+}
+
+.btn.btn-icon-only:not(.btn-sm, .btn-md) {
+  flex: 0 0 var(--spacing-48, 48px);
+  height: var(--spacing-48, 48px);
+  width: var(--spacing-48, 48px);
+}

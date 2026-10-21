@@ -185,7 +185,7 @@ but this doc previously described it wrongly, see the entry.
 | Field sizes (all products, user rule 2026-10-18) | desktop = library Medium (40, `.input--medium` / `.search-input.medium`, FO fields 40); phones ≤760 = library default (48, text 16/24 `--font-size-fs-16` / `--line-height-lh-24`), icons inside a field at the library size of that field (48 → `--icon-size-default` 24 at 16 from the edge, text from 48; 40 → `--icon-size-medium` 20). FO: the field-size rules live in a `@media (max-width: 760px)` block (was 720); read-only phone, CAEM / subgenre list search rows, document-picker search, FO / Cabinet / RAP phone searches follow it. Check with `tools/ui-qa/component-audit.mjs` (agent `component-auditor`) | `Components/input-preview.html` | app |
 | Dropdown item — one size everywhere (every action menu + option list, user rule 2026-10-20) | `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, Cabinet, RAP — before `modal-phone.css`): lists / menus padding `--spacing-4`, gap `--spacing-2`; items 32 (`min-height`) · padding 6 12 6 8 · gap 8 · radius 6 · 14/20 medium · icon 20 (`--icon-size-medium`); same on touch. Item classes listed there: `.e-permits-fo-intent-menu__item` (every ⋮ / stack / Cabinet / Ghișeu / eKYC / builder / designer menu + the act post-process menu), `.e-permits-fo-select__option`, `__caem__option`, `__subgen-select__option`, `__address-search__option`, `__phone__code-option`, `__mdocs__option`, `.e-permits-workplace__filter-option` / `__filter-more-item`, `.e-permits-shell__help-link`, `__profile-link`; a menu's own rule declares no size | section „Dropdown item — one size everywhere”; ref GEAP 2.0 `9716:10905` | app |
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
-| Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` | `buttons.html` | app |
+| Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon size from the button size: Small 16, Medium / Large 20 — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
 | Icon button | `.btn-icon`, `.btn-icon.clear` | — | app |
 | Search input | `.search-input` + `.medium/.small/.large` + `.rectangular/.circular` | `search-input-preview.html` | app |
@@ -348,6 +348,37 @@ Shape: `.btn-rounded` ≡ `.btn-pill`.
 - **Icon and label are one colour — the button's.** Code: the icon `<svg>` uses `fill: currentColor` and never gets its own `color`/`fill` (no `.btn svg { color: … }`). Figma: use the button **component** and change its variant (Style / State) — never override the fill of the icon or of the label on an instance (a blue icon on a Disabled grey label, a grey icon on a Primary label). Changing the icon = swap the icon (instance swap); its colour comes from the button. Audit 2026-10-12: 547 instances had an icon colour ≠ label colour (Form Builder 348, Editable Grid 128, Address Patterns 21, Incidente 16, Pașaport 17, Process Designer 13, Tarife 4) — reset to the component colour.
 - **`.icon-leading` / `.icon-trailing` do not exist in CSS.** Put the `<svg class="icon">` directly in the button. Figma *does* define `Icon = None / Leading / Trailing / Only` as design variants — the concept exists, the CSS expresses it structurally rather than with those classes.
 
+#### Button icons — size per button size (button-icons-v1, 2026-10-21; Figma Components 39:177)
+
+User: „the icons seem too small and off”. Measured: Medium / Large buttons drew 16 icons (`icon small` in the
+markup) where Figma has 20; a bare `icon` with `width="16"` rendered 24 inside Small buttons (`Adaugă secțiune`,
+`Șterge`, form-builder); the md gap was 4 (Figma 6); md/lg icon-only were not square. Vertical centring was
+already exact (flex). ONE block fixes it for every page: `css/button-icons.css`, loaded right after main.css on
+every page (BO, shell, Cabinet, RAP, clasificatoare, login, index, mpass-test, sandbox, table-cells).
+
+| Figma size | Code | Height | Sides (icon side) | Gap | Icon box | Label | Icon only |
+|---|---|---|---|---|---|---|---|
+| Small | `.btn-sm` | 32 | 12 (8) | 6 | **16** | 14/20 500 | 32 square, icon at 8 |
+| Medium | `.btn-md`, the 40 modal-footer pill | 40 | 16 (12) | 6 | **20** | Figma 14/20 · code 16/22 (open) | 40 square, icon at 10 |
+| Large | `.btn` with no size class (48), `.btn-lg` | 48 | 20 (16) | 6 | **20** | 16/24 500 | 48 square, icon at 14 |
+
+- The icon size comes from the BUTTON size (`--btn-icon-size` on `.btn`; rule `.btn > svg.icon`, (0,2,1) — it beats
+  `icon small` / `medium` and width / height attributes). Markup may keep `class="icon small"`; it no longer matters.
+- Centring: the icon is a block flex item (`display: block; flex: 0 0 size`) — no inline baseline offset, never shrinks;
+  icon centre = button centre (measured dy 0 on 368 states).
+- Icon side padding = side − 4 at every size (library did it for Small leading only; now also Small trailing and
+  Medium / Large both sides), via `:where(:has(…))` so product placements that set their own padding still win.
+- Icon-only = `.btn-icon-only` square of the button height at every size (it existed for Small only).
+- Deliberate exceptions stay in product CSS with a more specific selector: phone 48 pills / sort (icon 24,
+  `facet-filter.css`), phone sheet × (icon 24, `modal-phone.css`). Library search submit (`.btn-search`) is excluded.
+- Never size a button icon per component again (removed: `.e-permits-workplace__advanced .icon` 16 / 20,
+  `.btn.btn-sm.btn-icon-only .icon`, `.rap-act-modal__print .icon`, gap 8 on `.e-permits-case-actions__trigger`,
+  `.e-permits-fo-payment-actions__download`, `.e-permits-fo-finish__cta`, `.rap-act-modal__print`).
+- Known, not fixed (reported): (1) labels sit 1px further in than Figma — the library variants keep a 1px transparent
+  border inside the box; (2) Medium label 16/22 in code vs Figma 14/20 (a global type change, PO decision); (3) Small
+  glyphs: Figma has a separate 16-grid icon set (plus 13.5 ink, 1.5 stroke) — our sprite scales the 24-grid glyph to 16
+  (plus 11.6 ink, thinner); fixing it means adding the 16 set to the sprite, not CSS.
+
 #### Verified against Figma — 2026-09-03
 
 Source: Components file, node `39:177` (`button-filled-rectangular`). Figma defines a
@@ -366,7 +397,7 @@ matches `design-system.md`; and `.btn-md` renders at **exactly 40px**, Figma's M
 |---|---|---|---|
 | 1 | Large = **48px** | `.btn.btn-lg` renders **50.75px** | +2.75 |
 | 2 | Small = **32px** | `.btn.btn-sm` renders **29.25px** | −2.75 |
-| 3 | `Icon=Only` square **48/40/32** | no icon-only size support; `.btn-lg` with a lone icon renders **70×46** | broken |
+| 3 | `Icon=Only` square **48/40/32** | fixed 2026-10-21: `.btn-icon-only` square per size (css/button-icons.css) | ok |
 | 4 | Focus ring **5px** total | renders **4px** (2px white outline + 4px spread) | −1px |
 | 5 | `Loading` is a designed state | `.btn-loading` bare forces `height:48px; width:92px` | breaks non-lg |
 
