@@ -429,6 +429,28 @@
   },
   "_families": "v2 rule converge (minor): ONE canonical implementation per pattern family. Runtime: every visible element of the family (`selector` and / or own class matching `classPattern`, restricted to `tags`) that is not inside a `canonical` (or an `allow` with its reason) is reported once per distinct class signature. Static (--static): every class defined in product CSS matching `static.pattern` that does not start with a canonical class. `menu-item` canonical also takes the item list of css/dropdown.css (the ONE dropdown item).",
   "families": {
+    "avatar": {
+      "classPattern": "(^|[-_])avatar$",
+      "canonical": [
+        ".avatar"
+      ],
+      "allow": [
+        ".e-permits-shell__user-avatar",
+        ".e-permits-fo-auth__avatar",
+        ".e-permits-flow-home__demo-avatar",
+        ".msup-bubble__avatar",
+        ".mpass-test__avatar",
+        ".e-permits-ntpl-preview__avatar"
+      ],
+      "_allow": "the kept BO user trigger's initials circle and the FO header trigger button (user decision 2026-10-21), the prototype launcher, third-party mocks (MSupport, MPass), the e-mail client mock inside the notification preview",
+      "fix": "library `.avatar.avatar--{xs|sm|md}.avatar--{initials|icon}` (24 / 32 / 40; 48 has no library size — the FO account photo and the BO profile menu keep their own) + the product tone class (brand / apricot / person colour)",
+      "static": {
+        "pattern": "(^|[-_])avatar($|[-_])",
+        "canonical": [
+          "avatar"
+        ]
+      }
+    },
     "pager": {
       "classPattern": "(^|[-_])(pagination|pager)($|[-_])",
       "canonical": [

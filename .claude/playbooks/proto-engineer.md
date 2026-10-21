@@ -2014,3 +2014,16 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   → kept the shipped layout and flagged it; (4) the library hover (0,3,0) loses to `:checked + .switch-track` by order
   → an ON switch had no hover; restated as a brand hover. Demo clicks keep working on the 0×0 library input
   (`getClientRects()` still returns a rect; `el.click()` toggles). Switch findings 33 → 0 on 7 states × 2.
+- 2026-10-21 · Library adoption batch 7 — avatars (library-adopt-v2). 15 private avatar classes in FO / BO / eKYC / Cabinet /
+  RAP → the library `.avatar.avatar--{xs|sm|md}.avatar--{initials|icon}` for shape + size + icon size, the private class
+  kept only for tone / stack border / overlay / placement (the library has grey only). Three FO helpers render most of
+  them (one `libAvatarClass(className, kind)`); literal markup (JS templates + both pages' static HTML, incl. the
+  Cabinet page's own copy of the FO account menu) went through one regex. Proof = an avatar signature probe (class ·
+  size · radius · fill · colour · font · content) before / after on 15 states × 2 widths: identical sizes and colours,
+  only `9999px` → `50%` radius. Traps: (1) a class regex `class="(X(?:[ "][^"]*)?)"` swallowed `" aria-hidden=` for a
+  bare class → use `(?: [^"]*)?`; (2) re-running an INSERTION (new text = header + old anchor) on the tree inserts it
+  twice → a `const` redeclared and every FO state died with a SyntaxError (the probe's `errors` column caught it, not
+  the screenshots) — guard insertions by the inserted text, not the anchor; (3) the stripped private sizes left any
+  avatar the regex missed collapsed (40×20, flat) — a probe that prints NON-SQUARE avatars found the Cabinet page's
+  static copy. Figma Avatar's 4th size is 48 but the library `--lg` is 56: the 48 avatars keep their own size (reported).
+  The auditor had no avatar family → added one (canonical `.avatar`, kept trigger / launcher / third-party mocks allowed).

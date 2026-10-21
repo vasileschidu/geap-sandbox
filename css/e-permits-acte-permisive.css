@@ -1276,17 +1276,11 @@
 }
 
 .e-permits-dosar-profil__avatar {
-  align-items: center;
-  border-radius: var(--border-radius-full, 999px);
   color: #fff;
-  display: flex;
   flex: 0 0 auto;
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 24px;
-  justify-content: center;
   line-height: var(--line-height-lh-16, 16px);
-  width: 24px;
 }
 
 .e-permits-dosar-profil__not-applicable {
@@ -2069,21 +2063,15 @@
 }
 
 .e-permits-fo-auth__avatar-badge {
-  align-items: center;
   background: var(--color-background-brand-default, #0058d2);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--color-background-base-inverse-on-color, #fff);
-  display: inline-flex;
   flex: 0 0 40px;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 40px;
-  justify-content: center;
   line-height: var(--line-height-lh-20, 20px);
   overflow: visible;
   position: relative;
   text-align: center;
-  width: 40px;
   z-index: 2;
 }
 
@@ -2097,11 +2085,6 @@
 
 .e-permits-fo-auth__avatar-badge--lavender {
   background: var(--color-background-brand-default, #0058d2);
-}
-
-.e-permits-fo-auth__avatar-badge--icon .icon {
-  height: 20px;
-  width: 20px;
 }
 
 .e-permits-fo-auth__avatar-badge-overlay {
@@ -2511,16 +2494,10 @@
 }
 
 .e-permits-fo-avatar-menu__role-avatar {
-  align-items: center;
   background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
   flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
   overflow: hidden;
-  width: 32px;
 }
 
 .e-permits-fo-auth__role-avatar--initials,
@@ -2663,20 +2640,14 @@
 }
 
 .e-permits-fo-avatar-menu__stack-avatar {
-  align-items: center;
   background: var(--color-background-brand-default, #0058d2);
   border: var(--border-width-2, 2px) solid var(--color-border-base-subtle, #fff);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--color-background-base-inverse-on-color, #fff);
-  display: inline-flex;
   flex: 0 0 32px;
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 32px;
-  justify-content: center;
   line-height: var(--line-height-lh-20, 20px);
   margin-left: calc(var(--spacing-12, 12px) * -1);
-  width: 32px;
 }
 
 .e-permits-fo-avatar-menu__stack-avatar--counter {
@@ -3356,23 +3327,16 @@
 }
 
 .e-permits-fo-auth__role-collapse-avatar {
-  align-items: center;
   background: var(--color-background-base-secondary, #f1f1f1);
   border: var(--border-width-2, 2px) solid var(--color-background-base-default, #fff);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--color-text-base-secondary, #383838);
-  display: inline-flex;
   flex: 0 0 32px;
   font-family: var(--font-family-primary-font, Onest);
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 32px;
-  justify-content: center;
   line-height: var(--line-height-lh-20, 20px);
   margin-left: calc(var(--spacing-12, 12px) * -1);
-  min-width: 32px;
   text-align: center;
-  width: 32px;
 }
 
 .e-permits-fo-auth__role-collapse-avatar:first-child {
@@ -3510,16 +3474,10 @@
 }
 
 .e-permits-fo-auth__role-avatar {
-  align-items: center;
   background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--color-text-base-default, #121212);
-  display: inline-flex;
   flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
   overflow: hidden;
-  width: 32px;
 }
 
 .e-permits-fo-auth__role-avatar--image {
@@ -4357,17 +4315,11 @@
 }
 
 .e-permits-fo-selected-role__avatar {
-  align-items: center;
   background: var(--color-background-base-tertiary, #f1f1f1);
   border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--color-text-base-default, #121212);
-  display: inline-flex;
   flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
   overflow: hidden;
-  width: 32px;
 }
 
 .e-permits-fo-selected-role__avatar--initials {
@@ -15802,18 +15754,12 @@
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__avatar {
-  align-items: center;
   background: var(--color-background-brand-primary, #0058d2);
-  border-radius: var(--border-radius-full, 999px);
   color: #fff;
-  display: inline-flex;
   flex: 0 0 24px;
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 24px;
-  justify-content: center;
   line-height: var(--line-height-lh-16, 16px);
-  width: 24px;
 }
 
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil__panel {
@@ -16709,15 +16655,9 @@
 }
 
 .e-permits-fo-intent-new__avatar {
-  align-items: center;
   background: var(--color-background-brand-default, #0058d2);
-  border-radius: var(--border-radius-full, 999px);
   color: var(--white, #fff);
-  display: inline-flex;
   flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  width: 32px;
 }
 
 .e-permits-fo-intent-new__copy {

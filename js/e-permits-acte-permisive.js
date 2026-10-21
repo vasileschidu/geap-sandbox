@@ -474,13 +474,18 @@
       return subject?.authorization || subject?.badge ? "apricot" : "brand";
     }
 
+    /* avatars = the library `.avatar` (library-adopt-v2): size from the private hook class (FO_AVATAR_SIZE), type
+       initials / icon; the hook class keeps the product tone (brand / apricot), stack border and placement */
+    const FO_AVATAR_SIZE = { "e-permits-fo-auth__role-avatar": "sm", "e-permits-fo-auth__role-collapse-avatar": "sm", "e-permits-fo-avatar-menu__role-avatar": "sm", "e-permits-fo-avatar-menu__stack-avatar": "sm", "e-permits-fo-selected-role__avatar": "sm", "e-permits-fo-auth__avatar-badge": "md", "e-permits-fo-avatar-menu__photo": "" };
+    const libAvatarClass = (className, kind) => `avatar${FO_AVATAR_SIZE[className] ? ` avatar--${FO_AVATAR_SIZE[className]}` : ""} avatar--${kind}`;
+
     function subjectInitialsAvatarHtml(subject, className = "e-permits-fo-auth__role-avatar") {
       const tone = ` ${className}--${escapeFrontOfficeHtml(subjectAvatarTone(subject))}`;
       const meta = frontOfficeSubjectTypeMeta(subject?.type);
       if (subject?.type === "PJ") {
         const icon = subject.avatarIcon || meta.icon || "icon-business";
         return `
-          <span class="${className} ${className}--icon${tone}" aria-hidden="true">
+          <span class="${libAvatarClass(className, "icon")} ${className} ${className}--icon${tone}" aria-hidden="true">
             <svg class="icon" width="20" height="20">
               <use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(icon)}"></use>
             </svg>
@@ -489,7 +494,7 @@
       }
       const initials = (subjectInitials(subject) || "PF").slice(0, 2);
       return `
-        <span class="${className} ${className}--initials${tone}" aria-hidden="true">
+        <span class="${libAvatarClass(className, "initials")} ${className} ${className}--initials${tone}" aria-hidden="true">
           ${escapeFrontOfficeHtml(initials)}
         </span>
         `;
@@ -514,7 +519,7 @@
       const overlayKind = overlaySubject?.type === "PJ" ? "icon" : "initials";
       const overlayTone = overlaySubject ? subjectAvatarTone(overlaySubject) : "";
       return `
-        <span class="${className} ${className}--${kind} ${className}--${escapeFrontOfficeHtml(tone)}${overlaySubject ? ` ${className}--with-overlay` : ""}" aria-hidden="true">
+        <span class="${libAvatarClass(className, kind)} ${className} ${className}--${kind} ${className}--${escapeFrontOfficeHtml(tone)}${overlaySubject ? ` ${className}--with-overlay` : ""}" aria-hidden="true">
           ${subjectAvatarGlyphHtml(subject)}
           ${overlaySubject ? `
             <span class="${className}-overlay ${className}-overlay--${overlayKind} ${className}-overlay--${escapeFrontOfficeHtml(overlayTone)}">
@@ -530,7 +535,7 @@
       if (forceInitials) return subjectInitialsAvatarHtml(subject, className);
       if (subject?.initials || subject?.type === "PJ") return subjectInitialsAvatarHtml(subject, className);
       return `
-        <span class="${className}" aria-hidden="true">
+        <span class="${libAvatarClass(className, "icon")} ${className}" aria-hidden="true">
           <svg class="icon" width="20" height="20">
             <use href="assets/icons/sprite.svg#${escapeFrontOfficeHtml(meta.icon)}"></use>
           </svg>
@@ -724,7 +729,7 @@
           <span class="e-permits-fo-auth__role-collapse-stack">
             ${previewSubjects.map((subject, index) => {
               if (index === 3 && subjects.length > 4) {
-                return `<span class="e-permits-fo-auth__role-collapse-avatar e-permits-fo-auth__role-collapse-avatar--counter">+${escapeFrontOfficeHtml(subjects.length - 3)}</span>`;
+                return `<span class="avatar avatar--sm avatar--initials e-permits-fo-auth__role-collapse-avatar e-permits-fo-auth__role-collapse-avatar--counter">+${escapeFrontOfficeHtml(subjects.length - 3)}</span>`;
               }
               return subjectInitialsAvatarHtml(subject, "e-permits-fo-auth__role-collapse-avatar");
             }).join("")}
@@ -931,7 +936,7 @@
         proxyStack.innerHTML = proxySubjects.slice(0, 4).map((subject, index) => {
           const extra = index === 3 && proxySubjects.length > 4 ? `+${proxySubjects.length - 3}` : subjectInitials(subject);
           if (index === 3 && proxySubjects.length > 4) {
-            return `<span class="e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--counter">${escapeFrontOfficeHtml(extra)}</span>`;
+            return `<span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--counter">${escapeFrontOfficeHtml(extra)}</span>`;
           }
           return subjectInitialsAvatarHtml(subject, "e-permits-fo-avatar-menu__stack-avatar");
         }).join("") + `
@@ -5087,7 +5092,7 @@
       const esc = escapeFrontOfficeHtml;
       return `
         <button class="e-permits-fo-intent-new" type="button" ${attrs}>
-          <span class="e-permits-fo-intent-new__avatar" aria-hidden="true">
+          <span class="avatar avatar--sm avatar--icon e-permits-fo-intent-new__avatar" aria-hidden="true">
             <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-plus-small"></use></svg>
           </span>
           <span class="e-permits-fo-intent-new__copy">

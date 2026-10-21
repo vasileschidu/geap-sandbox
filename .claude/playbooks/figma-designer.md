@@ -2466,3 +2466,8 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No demo state exists for the Services empty review (proto-engineer: svc-10x4 = svc-10x2 + undo the remaining rows) — the
     block links svc-10x2 and the note says how to reach it.
 
+- 2026-10-21 · Notes are ENGLISH (user rule, via coordinator): block notes in plain English, Romanian UI labels quoted („Anulează”).
+  Translated today's 11 notes (Services 02x–02x4, 09n / 09n1, Classifiers 04e, NT 04d / 04e, eKYC C02s) + the appended lines on
+  Classifiers 04d / NT 02d / Print 09i. Gotcha: `note.findAll(TEXT)[1]` is NOT the body when the note's tag is an instance whose
+  label is a TEXT child — the 09i sentence landed in the note TITLE. Pick note texts by name („Note title” / „Note text”) or skip
+  instance sublayers (`!id.startsWith("I")`). 02x4 now links svc-10x4 (79b05bf6).

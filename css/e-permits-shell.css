@@ -2868,17 +2868,11 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 }
 
 .e-permits-workplace__person-avatar {
-  align-items: center;
-  border-radius: var(--border-radius-full, 999px);
   color: #fff;
-  display: inline-flex;
   flex: 0 0 24px;
   font-size: var(--font-size-fs-12, 12px);
   font-weight: var(--font-weight-fw-medium, 500);
-  height: 24px;
-  justify-content: center;
   line-height: var(--line-height-lh-16, 16px);
-  width: 24px;
 }
 
 .e-permits-workplace__person-copy {
@@ -2988,13 +2982,7 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 }
 
 .e-permits-workplace__user-avatar {
-  width: 24px;
-  height: 24px;
   flex: 0 0 24px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--border-radius-full, 999px);
   background: var(--color-background-brand-default, #0058d2);
   color: var(--color-text-inverse, #fff);
   font-size: var(--font-size-fs-12, 12px);

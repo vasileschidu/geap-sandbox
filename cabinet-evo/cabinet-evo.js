@@ -1042,8 +1042,8 @@
   function identityCardHtml(person) {
     const isCompany = person.type === "PJ";
     const avatar = isCompany
-      ? `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon" aria-hidden="true">${icon("icon-business", "medium")}</span>`
-      : `<span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials" aria-hidden="true">${escape(person.initials || "")}</span>`;
+      ? `<span class="avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--icon" aria-hidden="true">${icon("icon-business", "medium")}</span>`
+      : `<span class="avatar avatar--sm avatar--initials e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials" aria-hidden="true">${escape(person.initials || "")}</span>`;
     return `
       <div class="e-permits-fo-selected-role">
         <span class="e-permits-fo-selected-role__inner">

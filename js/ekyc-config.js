@@ -522,7 +522,7 @@
     switch (key) {
       case "nume": return `
         <div class="e-permits-workplace__user-identity">
-          <span class="e-permits-workplace__user-avatar" aria-hidden="true">${esc(initials(r.nume))}</span>
+          <span class="avatar avatar--xs avatar--initials e-permits-workplace__user-avatar" aria-hidden="true">${esc(initials(r.nume))}</span>
           <span class="e-permits-workplace__user-name-stack"><span>${esc(r.nume)}</span><span>${r.self ? "Contul tău" : esc(r.roluri[0])}</span></span>
         </div>`;
       case "email": return desc(r.email);

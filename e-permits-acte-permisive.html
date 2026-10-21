@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/button-icons.css?v=button-icons-v1">
   <link rel="stylesheet" href="css/skeleton.css?v=skeleton-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=library-adopt-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=library-adopt-v2">
   <link rel="stylesheet" href="css/facet-filter.css?v=filter-chip-v1">
   <link rel="stylesheet" href="css/drawer.css?v=drawer-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=library-adopt-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=library-adopt-v2">
   <link rel="stylesheet" href="css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -39,7 +39,7 @@
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=audit-fix-v5"></script>
-  <script src="js/ekyc-config.js?v=library-adopt-v1"></script>
+  <script src="js/ekyc-config.js?v=library-adopt-v2"></script>
   <script src="js/search.js?v=delegated-v2" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v3" defer></script>
@@ -54,7 +54,7 @@
   <script src="js/fo-grid.js?v=skeleton-v1" defer></script>
   <!-- the act row (FO #intent, Ghișeu, EVO Cabinet) — one renderer, before the FO script that uses it -->
   <script src="js/act-row.js?v=tacit-tag-v1" defer></script>
-  <script src="js/e-permits-acte-permisive.js?v=skeleton-v1" defer></script>
+  <script src="js/e-permits-acte-permisive.js?v=library-adopt-v2" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=tooltip-one-v1" defer></script>
   <script src="core/process-model.js?v=pd-v3" defer></script>
@@ -236,7 +236,7 @@
               data-fo-avatar-trigger
             >
               <span class="e-permits-fo-auth__avatar-inner">
-                <span class="e-permits-fo-auth__avatar-badge e-permits-fo-auth__avatar-badge--lavender e-permits-fo-auth__avatar-badge--initials" aria-hidden="true">AC</span>
+                <span class="avatar avatar--md avatar--initials e-permits-fo-auth__avatar-badge e-permits-fo-auth__avatar-badge--lavender e-permits-fo-auth__avatar-badge--initials" aria-hidden="true">AC</span>
                 <span class="e-permits-fo-auth__avatar-copy">
                   <span class="e-permits-fo-auth__avatar-name">Anastasia Cojocaru</span>
                   <span class="e-permits-fo-auth__avatar-meta">Persoană fizică</span>
@@ -248,7 +248,7 @@
             </button>
             <div class="e-permits-fo-avatar-menu" id="fo-avatar-menu" role="menu" aria-label="Profil și roluri" data-fo-avatar-dropdown hidden>
               <div class="e-permits-fo-avatar-menu__profile">
-                <span class="e-permits-fo-avatar-menu__photo e-permits-fo-avatar-menu__photo--brand" aria-hidden="true">AC</span>
+                <span class="avatar avatar--initials e-permits-fo-avatar-menu__photo e-permits-fo-avatar-menu__photo--brand" aria-hidden="true">AC</span>
                 <div class="e-permits-fo-avatar-menu__identity">
                   <strong>Anastasia Cojocaru</strong>
                   <span>Persoană fizică</span>
@@ -267,7 +267,7 @@
                   <h2 id="fo-avatar-menu-roles">Alege alt rol</h2>
                   <div class="e-permits-fo-avatar-menu__role-list">
                     <button class="e-permits-fo-avatar-menu__role is-selected" type="button" role="menuitemradio" aria-checked="true" data-fo-avatar-role>
-                      <span class="e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__role-avatar--initials e-permits-fo-avatar-menu__role-avatar--brand" aria-hidden="true">AC</span>
+                      <span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__role-avatar--initials e-permits-fo-avatar-menu__role-avatar--brand" aria-hidden="true">AC</span>
                       <span class="e-permits-fo-avatar-menu__role-copy">
                         <strong>Anastasia Cojocaru</strong>
                         <span>IDNP 2990000000002</span>
@@ -277,7 +277,7 @@
                       </svg>
                     </button>
                     <button class="e-permits-fo-avatar-menu__role" type="button" role="menuitemradio" aria-checked="false" data-fo-avatar-role>
-                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
                         <svg class="icon" width="20" height="20">
                           <use href="assets/icons/sprite.svg#icon-business"></use>
                         </svg>
@@ -297,14 +297,14 @@
                   <button class="e-permits-fo-avatar-menu__proxy" type="button" role="menuitem" aria-expanded="false" data-fo-avatar-proxy-toggle>
                     <span data-fo-avatar-proxy-label>Arată mai multe</span>
                     <span class="e-permits-fo-avatar-menu__proxy-stack" aria-hidden="true">
-                      <span class="e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--accent">GV</span>
-                      <span class="e-permits-fo-avatar-menu__stack-avatar">
+                      <span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__stack-avatar e-permits-fo-avatar-menu__stack-avatar--accent">GV</span>
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__stack-avatar">
                         <svg class="icon" width="20" height="20">
                           <use href="assets/icons/sprite.svg#icon-business"></use>
                         </svg>
                       </span>
-                      <span class="e-permits-fo-avatar-menu__stack-avatar">OF</span>
-                      <span class="e-permits-fo-avatar-menu__stack-avatar">+5</span>
+                      <span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__stack-avatar">OF</span>
+                      <span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__stack-avatar">+5</span>
                       <span class="e-permits-fo-avatar-menu__proxy-arrow">
                         <svg class="icon" width="20" height="20">
                           <use href="assets/icons/sprite.svg#icon-chevron-bottom"></use>
@@ -314,7 +314,7 @@
                   </button>
                   <div class="e-permits-fo-avatar-menu__proxy-details" data-fo-avatar-proxy-details>
                     <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
-                      <span class="e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__stack-avatar--accent" aria-hidden="true">GV</span>
+                      <span class="avatar avatar--sm avatar--initials e-permits-fo-avatar-menu__role-avatar e-permits-fo-avatar-menu__stack-avatar--accent" aria-hidden="true">GV</span>
                       <span class="e-permits-fo-avatar-menu__proxy-role-copy">
                         <span class="e-permits-fo-avatar-menu__proxy-role-heading">
                           <strong>Grigore Vasilescu</strong>
@@ -324,7 +324,7 @@
                       </span>
                     </button>
                     <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
-                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
                         <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-business"></use></svg>
                       </span>
                       <span class="e-permits-fo-avatar-menu__proxy-role-copy">
@@ -336,7 +336,7 @@
                       </span>
                     </button>
                     <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
-                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
                         <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-business"></use></svg>
                       </span>
                       <span class="e-permits-fo-avatar-menu__proxy-role-copy">
@@ -348,7 +348,7 @@
                       </span>
                     </button>
                     <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
-                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
                         <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-business"></use></svg>
                       </span>
                       <span class="e-permits-fo-avatar-menu__proxy-role-copy">
@@ -360,7 +360,7 @@
                       </span>
                     </button>
                     <button class="e-permits-fo-avatar-menu__proxy-role" type="button" role="menuitem">
-                      <span class="e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-avatar-menu__role-avatar" aria-hidden="true">
                         <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-business"></use></svg>
                       </span>
                       <span class="e-permits-fo-avatar-menu__proxy-role-copy">
@@ -488,7 +488,7 @@
             <div class="e-permits-fo-auth__role-group-list">
               <button class="e-permits-fo-auth__role-item" type="button" data-fo-open-request data-fo-subject-id="user-anastasia">
                 <span class="e-permits-fo-auth__role-row">
-                  <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--brand" aria-hidden="true">AC</span>
+                  <span class="avatar avatar--sm avatar--initials e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--brand" aria-hidden="true">AC</span>
                   <span class="e-permits-fo-auth__role-text">
                     <span class="e-permits-fo-auth__role-name">Anastasia Cojocaru</span>
                     <span class="e-permits-fo-auth__role-meta e-permits-fo-subject-meta">
@@ -504,7 +504,7 @@
 
               <button class="e-permits-fo-auth__role-item" type="button" data-fo-open-request data-fo-subject-id="pj-global-trader">
                 <span class="e-permits-fo-auth__role-row">
-                  <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
+                  <span class="avatar avatar--sm avatar--icon e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--brand" aria-hidden="true">
                     <svg class="icon" width="20" height="20">
                       <use href="assets/icons/sprite.svg#icon-business"></use>
                     </svg>
@@ -528,7 +528,7 @@
               <div class="e-permits-fo-auth__role-group-list">
                 <button class="e-permits-fo-auth__role-item is-authorization" type="button" data-fo-open-request data-fo-subject-id="pj-vita-plant">
                   <span class="e-permits-fo-auth__role-row">
-                    <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">
+                    <span class="avatar avatar--sm avatar--icon e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--icon e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-business"></use>
                       </svg>
@@ -556,7 +556,7 @@
 
                 <button class="e-permits-fo-auth__role-item is-authorization" type="button" data-fo-open-request data-fo-subject-id="mpower-pf-vrabie">
                   <span class="e-permits-fo-auth__role-row">
-                    <span class="e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">GV</span>
+                    <span class="avatar avatar--sm avatar--initials e-permits-fo-auth__role-avatar e-permits-fo-auth__role-avatar--initials e-permits-fo-auth__role-avatar--apricot" aria-hidden="true">GV</span>
                     <span class="e-permits-fo-auth__role-text">
                       <span class="e-permits-fo-auth__role-heading">
                         <span class="e-permits-fo-auth__role-name">Vrabie Gheorghe</span>
@@ -589,7 +589,7 @@
 
           <button class="e-permits-fo-auth__role-item e-permits-fo-auth__role-item--dashed" type="button" data-fo-open-request data-fo-subject-id="notarial-proxy">
             <span class="e-permits-fo-auth__role-row">
-              <span class="e-permits-fo-auth__role-avatar" aria-hidden="true">
+              <span class="avatar avatar--sm avatar--icon e-permits-fo-auth__role-avatar" aria-hidden="true">
                 <svg class="icon" width="20" height="20">
                   <use href="assets/icons/sprite.svg#icon-identity"></use>
                 </svg>
@@ -1108,7 +1108,7 @@
                   </div>
                   <div class="e-permits-fo-selected-role e-permits-fo-selected-role--changeable">
                     <span class="e-permits-fo-selected-role__inner">
-                      <span class="e-permits-fo-selected-role__avatar" aria-hidden="true">
+                      <span class="avatar avatar--sm avatar--icon e-permits-fo-selected-role__avatar" aria-hidden="true">
                         <svg class="icon" width="20" height="20">
                           <use href="assets/icons/sprite.svg#icon-business"></use>
                         </svg>
@@ -1143,7 +1143,7 @@
                   </div>
                   <div class="e-permits-fo-selected-role">
                     <span class="e-permits-fo-selected-role__inner">
-                      <span class="e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials e-permits-fo-selected-role__avatar--brand" aria-hidden="true">AC</span>
+                      <span class="avatar avatar--sm avatar--initials e-permits-fo-selected-role__avatar e-permits-fo-selected-role__avatar--initials e-permits-fo-selected-role__avatar--brand" aria-hidden="true">AC</span>
                       <span class="e-permits-fo-selected-role__copy">
                         <strong>Anastasia Cojocaru</strong>
                         <span class="e-permits-fo-selected-role__meta">
@@ -1982,7 +1982,7 @@
               data-user-panel
             >
               <div class="e-permits-shell__switch-profile">
-                <span class="e-permits-shell__profile-avatar" aria-hidden="true" data-initials="AC"></span>
+                <span class="avatar avatar--initials e-permits-shell__profile-avatar" aria-hidden="true" data-initials="AC"></span>
                 <div class="e-permits-shell__switch-profile-copy">
                   <p class="e-permits-shell__profile-name">Anastasia Cojocaru</p>
                   <p class="e-permits-shell__profile-email">anastasia.cojocaru@egov.md</p>
@@ -3523,7 +3523,7 @@
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
   <script src="js/facet-filter.js?v=filter-chip-v1"></script>
-  <script src="js/e-permits-shell.js?v=library-adopt-v1"></script>
+  <script src="js/e-permits-shell.js?v=library-adopt-v2"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

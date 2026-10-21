@@ -263,7 +263,7 @@
         <section class="e-permits-dosar-profil__section" aria-labelledby="rap-beneficiary-title">
           <h2 class="e-permits-dosar-profil__section-title" id="rap-beneficiary-title">Beneficiar</h2>
           <div class="rap-profile__beneficiary-card">
-            <span class="rap-profile__beneficiary-avatar" aria-hidden="true">${icon(beneficiaryIcon)}</span>
+            <span class="avatar avatar--md avatar--icon rap-profile__beneficiary-avatar" aria-hidden="true">${icon(beneficiaryIcon)}</span>
             <span class="rap-profile__beneficiary-copy">
               <strong>${escapeHtml(record.beneficiary.name)}</strong>
               <span class="rap-profile__beneficiary-meta">
@@ -370,7 +370,7 @@
     const icon = record.beneficiary.type === "person" ? "person-filled" : "business-filled";
     return `
       <div class="rap-beneficiary">
-        <span class="rap-beneficiary__avatar" aria-hidden="true">
+        <span class="avatar avatar--xs avatar--icon rap-beneficiary__avatar" aria-hidden="true">
           <svg class="icon"><use href="../assets/icons/sprite.svg#icon-${icon}"></use></svg>
         </span>
         <span class="rap-beneficiary__copy">
@@ -440,7 +440,7 @@
     const inactiveCount = companyRecords.length - activeCount;
     elements.companySummary.innerHTML = `
       <div class="rap-company-summary__inner">
-        <span class="rap-company-summary__avatar" aria-hidden="true">${icon("business-filled")}</span>
+        <span class="avatar avatar--md avatar--icon rap-company-summary__avatar" aria-hidden="true">${icon("business-filled")}</span>
         <span class="rap-company-summary__identity">
           <strong>${escapeHtml(company.name)}</strong>
           <span class="rap-company-summary__id">

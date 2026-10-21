@@ -1085,9 +1085,9 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="e-permits-fo-auth__role-collapse-stack">
         ${assignments.slice(0, 4).map((assignment, index) => {
           if (index === 3 && assignments.length > 4) {
-            return `<span class="e-permits-fo-auth__role-collapse-avatar e-permits-fo-auth__role-collapse-avatar--counter">+${assignments.length - 3}</span>`;
+            return `<span class="avatar avatar--sm avatar--initials e-permits-fo-auth__role-collapse-avatar e-permits-fo-auth__role-collapse-avatar--counter">+${assignments.length - 3}</span>`;
           }
-          return `<span class="e-permits-fo-auth__role-collapse-avatar e-permits-shell__role-card-icon">${renderConfiguredIcon(assignment)}</span>`;
+          return `<span class="avatar avatar--sm avatar--icon e-permits-fo-auth__role-collapse-avatar e-permits-shell__role-card-icon">${renderConfiguredIcon(assignment)}</span>`;
         }).join("")}
       </span>
       <span class="e-permits-fo-auth__role-collapse-arrow">
@@ -2830,7 +2830,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <span class="e-permits-dosar-profil__person">
-        <span class="e-permits-dosar-profil__avatar" style="background:${escapeHtml(person.color || "#0058D2")}">${escapeHtml(person.initiale || "")}</span>
+        <span class="avatar avatar--xs avatar--initials e-permits-dosar-profil__avatar" style="background:${escapeHtml(person.color || "#0058D2")}">${escapeHtml(person.initiale || "")}</span>
         <span>${escapeHtml(person.nume)}</span>
       </span>
     `;
@@ -5623,7 +5623,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "numeComplet":
         return `
           <div class="e-permits-workplace__user-identity">
-            <span class="e-permits-workplace__user-avatar" aria-hidden="true">${escapeHtml(row.initiale)}</span>
+            <span class="avatar avatar--xs avatar--initials e-permits-workplace__user-avatar" aria-hidden="true">${escapeHtml(row.initiale)}</span>
             <span class="e-permits-workplace__user-name-stack">
               <span>${escapeHtml(row.numeComplet)}</span>
               <span>${escapeHtml(row.functie || row.roluri?.[0] || "Specialist")}</span>
@@ -5655,7 +5655,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return `
       <span class="e-permits-workplace__person">
-        <span class="e-permits-workplace__person-avatar" style="background:${escapeHtml(person.color || "#0058d2")}">${escapeHtml(person.initiale || "")}</span>
+        <span class="avatar avatar--xs avatar--initials e-permits-workplace__person-avatar" style="background:${escapeHtml(person.color || "#0058d2")}">${escapeHtml(person.initiale || "")}</span>
         <span class="e-permits-workplace__person-copy">
           <span class="e-permits-workplace__person-name">${escapeHtml(person.nume)}</span>
           ${subtitle ? `<span class="e-permits-workplace__person-role">${escapeHtml(subtitle)}</span>` : ""}
