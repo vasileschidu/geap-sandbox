@@ -944,9 +944,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const fieldsCount = allFields().filter(({ field }) => !NO_VALUE.includes(field.type)).length;
     el.header.innerHTML = `
       <div class="e-permits-builder__service-main">
-        <nav class="breadcrumbs breadcrumbs--trailing" aria-label="Serviciul">
-          <ol class="breadcrumbs__list"><li class="breadcrumbs__item"><span class="breadcrumbs__link">${esc(form.service?.name || "Serviciu")}</span></li></ol>
-        </nav>
+        ${ui().renderBreadcrumbs?.([{ label: form.service?.name || "Serviciu" }], { trailing: true, label: "Serviciul" }) || ""}
         <div class="e-permits-builder__service-title-row">
           <h2><button class="e-permits-builder__title-button" type="button" data-fb-select-form aria-label="Date generale formular: ${esc(tr(form.title))}">${esc(tr(form.title) || "Formular fără titlu")}</button></h2>
           ${ui().renderTag?.(published ? "Publicat" : "Schiță", published ? "success" : "neutral") || ""}
@@ -1288,11 +1286,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const langNote = () => (state.lang === "ro" ? "" : `<p class="e-permits-fo-field__hint">Fără traducere, solicitantul vede textul în română.</p>`);
   const langLabel = (label) => `${label} (${state.lang.toUpperCase()})`;
 
+  /* where the element lives = the library breadcrumb (one renderer, js/breadcrumbs.js — 2026-10-21 breadcrumb-v1), running
+     into the panel title; for a column / block field the last level is its grid / block and links back to it (it
+     replaced the „← Grila „…”” button), phones show it as the library back variant */
   function panelHead({ crumbs = [], title, chip = "", menu = "", subtitle = "", back = null }) {
+    const trail = crumbs.map((label, index) => (back && index === crumbs.length - 1
+      ? { label, button: true, attr: `data-fb-goto="${back.kind}:${back.id}:${T_DATA}" aria-label="${esc(back.label)}"` }
+      : { label }));
     return `
       <div class="e-permits-builder__panel-head e-permits-builder__panel-head--selected">
-        ${crumbs.length ? `<p class="e-permits-builder__crumbs">${crumbs.map(esc).join('<span aria-hidden="true"> › </span>')}</p>` : ""}
-        ${back ? `<div><button class="btn btn-text-primary btn-sm e-permits-builder__back" type="button" data-fb-goto="${back.kind}:${back.id}:${T_DATA}">${icon("icon-arrow-left", 16)}<span>${esc(back.label)}</span></button></div>` : ""}
+        ${trail.length ? ui().renderBreadcrumbs?.(trail, { trailing: true, label: "Locul elementului" }) || "" : ""}
         <div class="e-permits-builder__panel-title-row">
           <h2 id="fb-panel-title">${esc(title)}</h2>
           ${menu}

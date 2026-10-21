@@ -1709,3 +1709,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   rewrite of css/copy-value.css — check `git status` of the component before „fixing” a shared one. No sub-agent tool →
   code-audit (standing FPs only: BO 11/7, `.u-visually-hidden`), hover-audit (1440 / 700 / 375 incl. both menus 0 / 0
   apart from the copy button), component-audit 0 (desktop / mobile / edge), RAP dialogs proved unchanged by a probe.
+- 2026-10-21 · Breadcrumb = the library component everywhere (breadcrumb-v1; user: „why invent it?”, Figma Components
+  232:5282). Inventory = a probe over ALL demo states at 1440 + 375 (visible `.breadcrumbs` + any a / button with
+  „Înapoi la” / „‹” text, a `*back*` class / data hook, or a `*crumb*` class outside `.breadcrumbs`) — it found the real
+  forks in minutes: the BO top-bar „← Înapoi la …” buttons (6 profiles + eKYC, duplicating the breadcrumb right below), the
+  builder's hand-made `›` panel trail + „← Grila” button, the passport template detail button, and BO phones showing the
+  wrapped desktop trail instead of `--mobile`. Most other „back” candidates were NOT breadcrumbs (wizard step „Înapoi”,
+  drawer footers, „Schimbă”, empty-state actions) → spec exemptions, not fixes. ONE module `js/breadcrumbs.js`
+  (`GEAPBreadcrumbs.html` = desktop trail + phone back pair, „…” overflow, cut-only tooltips) + `css/breadcrumbs.css`; the
+  shell `renderBreadcrumbs`, `CabEvo.pageHeader`, RAP and the builder only map crumbs. Traps: (1) removing the top-bar
+  back left the header tools on the LEFT (the hidden title row had been the spacer) → `margin-left: auto` on the tools —
+  look at the 1440 capture after removing any flex child; (2) I applied edits while the „before” sweep was still running
+  → finish (or move to a HEAD worktree) the before sweep FIRST; (3) the session restarted TWICE and wiped the scratchpad
+  (edit scripts, sweeps) and once a tree file (my playbook lesson) — commit as soon as the part verifies; when other
+  agents' hunks interleave with mine (tool / doc files), insert my blocks into the HEAD blob textually; for code files
+  `git diff -U0` + a keyword hunk filter + `git apply --cached --unidiff-zero` is faster than rewriting scripts; (4)
+  `--truncate` + `--mobile` breaks the library chevron (link becomes a block) → the phone label keeps its ellipsis span;
+  (5) the passport template detail renderer is dead code (`templateCode` is never set) — fixed anyway, reported; (6) on a
+  machine at load 20+ a 1 700-state sweep crawls — sample (every 9th state per family + every state using a changed hook).
+  component-audit rule 5 (`crumb-trail` / `back-link`) proved on HEAD (26 findings on 23 states × 2 widths) vs tree (0,
+  no other new finding). No sub-agent tool → component-audit, hover-audit (0 / 0), code-audit (standing FPs only) run
+  directly.

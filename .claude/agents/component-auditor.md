@@ -41,6 +41,12 @@ evidenced findings so the main session can fix them. Never edit product files.
      clear ×, submit — are not counted);
    - `look-alike` (minor) — an element with a pointer cursor + paint, or border + radius + padding at a
      control height, that has no control role and no library / documented class.
+   - back navigation (rule 5, 2026-10-21 — user: „let's use the breadcrumb as a component … why invent it?”):
+     `crumb-trail` (**major**) — a hand-made trail (a `*crumb*` class or a breadcrumb nav that is not the library
+     `.breadcrumbs`); `back-link` (**major**) — a custom way back outside `.breadcrumbs` („Înapoi la …”, „‹ …”, „← …”,
+     a `*-back` / `*__back` / `*back-shell` class or data hook). Wizard / dialog step buttons, empty-state actions and the
+     RAP logo are `backNav.exempt`. Fix = `GEAPBreadcrumbs.html` (shell `renderBreadcrumbs`, `CabEvo.pageHeader({ back })`)
+     with the parent crumb carrying the existing back handler (components.md „Breadcrumb”).
    It also records `demoError` (a demo state that failed) and console errors — say so for every state.
 4. Judge every finding: open `report.json`, look at the element in the capture or with a probe, and drop
    false positives (say why). Typical ones: a documented product control whose class is only described

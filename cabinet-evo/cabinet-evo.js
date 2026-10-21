@@ -1177,15 +1177,12 @@
      btn-primary btn-md (hugging) + optional neutral btn-md, under the meta. No current-page crumb and
      no number in the trail: the title is the page. back = { label, href, attr } (the list). */
   function pageHeader({ back = null, title = "", titleId = "", subtitle = "", meta = [], actions = "", bodyHtml = "" }) {
-    const link = (crumb, inner) => `<a class="breadcrumbs__link" href="${escape(crumb.href || "#")}" ${crumb.attr || ""}>${inner}</a>`;
     return `
       <header class="e-permits-page-header e-permits-page-header--public cab-page-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
           <div class="e-permits-page-header__top">
             <div class="e-permits-page-header__heading">
-              ${back ? `
-              <nav class="breadcrumbs breadcrumbs--trailing" aria-label="Breadcrumb"><ol class="breadcrumbs__list"><li class="breadcrumbs__item">${link(back, escape(back.label))}</li></ol></nav>
-              <nav class="breadcrumbs breadcrumbs--mobile" aria-label="Breadcrumb"><ol class="breadcrumbs__list"><li class="breadcrumbs__item breadcrumbs__item--back">${link(back, `<span class="e-permits-page-header__crumb-label">${escape(back.label)}</span>`)}</li></ol></nav>` : ""}
+              ${back ? window.GEAPBreadcrumbs?.html([back], { trailing: true }) || "" : ""}
               ${subtitle ? '<div class="cab-page-header__titles">' : ""}
               <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""}>${escape(title)}</h1>
               ${subtitle ? `<p class="cab-page-header__subtitle">${escape(subtitle)}</p></div>` : ""}

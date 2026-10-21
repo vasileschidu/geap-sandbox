@@ -11,6 +11,9 @@
 //   4. copy (2026-10-20) — copy-variant: copy markup that is not the ONE `.copy-value` component (legacy classes /
 //      data hooks, an icon-only control labelled „Copiază…”); copy-in-list: a `.copy-value` inside a list view
 //      (table cell, stacked row, act / request row) — lists show plain numbers (spec.copy).
+//   5. back navigation (2026-10-21) — crumb-trail: a hand-made trail (a `*crumb*` class / breadcrumb nav that is not the
+//      library `.breadcrumbs`); back-link: a custom back link / button („Înapoi la …”, „‹ …”, a `*-back` / `*__back` /
+//      `*back-shell` class or data hook) outside `.breadcrumbs` — wizard / dialog step buttons are spec.backNav.exempt.
 // Output: <out>/report.json + <out>/summary.md (selector, measured, expected, fix hint per finding).
 //
 // Usage: node --experimental-websocket --no-warnings tools/ui-qa/component-audit.mjs \
@@ -182,6 +185,31 @@ const AUDIT = (spec, documentedList, scope) => {
       if (C.listExempt.some((s) => el.closest(s))) continue;
       const ctx = C.listContexts.find((s) => el.closest(s));
       if (ctx) add("major", "copy-in-list", el, `copy value inside ${ctx}`, "plain text in list views");
+    }
+  }
+  /* 5. back navigation (2026-10-21, user: „use the breadcrumb as a component … why invent it?”): a page's way back and
+     its trail = ONLY the library breadcrumb (.breadcrumbs through js/breadcrumbs.js); a hand-made trail (crumb-trail) or
+     a custom back link (back-link) is major. Wizard / dialog step buttons and empty-state actions are spec.backNav.exempt. */
+  const B = spec.backNav;
+  if (B) {
+    counts.breadcrumbs = 0;
+    const textRe = new RegExp(B.backText, "i");
+    const hookRe = new RegExp(B.backHook, "i");
+    const exempt = (el) => B.exempt.some((s) => el.closest(s));
+    for (const el of root.querySelectorAll(B.component)) if (vis(el)) counts.breadcrumbs++;
+    const seen = new Set();
+    for (const el of root.querySelectorAll(B.trail)) {
+      if (!vis(el) || ignored(el) || el.closest(B.component) || el.querySelector(B.component) || exempt(el)) continue;
+      seen.add(el);
+      add("major", "crumb-trail", el, `hand-made trail ${[...el.classList].slice(0, 2).join(".") || el.tagName.toLowerCase()}`, `${B.component} (GEAPBreadcrumbs.html / shell renderBreadcrumbs / CabEvo.pageHeader({ back }))`);
+    }
+    for (const el of root.querySelectorAll("a[href], button, [role=button], [role=link]")) {
+      if (!vis(el) || ignored(el) || seen.has(el) || el.closest(B.component) || [...seen].some((t) => t.contains(el)) || exempt(el)) continue;
+      const text = (el.textContent || "").trim().replace(/\s+/g, " ");
+      const label = el.getAttribute("aria-label") || "";
+      const hooks = [...el.classList, ...[...el.attributes].map((a) => a.name)].filter((n) => hookRe.test(n));
+      if (!(textRe.test(text) || textRe.test(label) || hooks.length)) continue;
+      add("major", "back-link", el, hooks.length ? `back hook ${hooks.join(" ")}` : `„${(text || label).slice(0, 40)}”`, `${B.component} (the page header breadcrumb; phones = .breadcrumbs--mobile)`);
     }
   }
   return { viewport: `${window.innerWidth}`, phone, counts, findings };

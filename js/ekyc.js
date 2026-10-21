@@ -661,11 +661,6 @@
     history.replaceState(null, "", `${location.pathname}${location.search}#${ui.mode === "review" ? "revizie" : "sesiune"}/${s.id}/${ui.tab}`);
   };
 
-  const setBackLabel = (label) => {
-    const span = api.els.dosarProfilBackShell?.querySelector("span");
-    if (span) span.textContent = label;
-  };
-
   /* AC US-UI-04: „sesiunea s-a încheiat între timp” — the stale active row leads to the result */
   const endedMeanwhile = (id) => DEMO === "incheiata" && db.endedIds?.includes(id);
 
@@ -685,7 +680,6 @@
     if (fromActive) api.showShellToast(`Sesiunea ${id} s-a încheiat între timp. Vezi rezultatul în Sesiuni istorice.`, "info", "Sesiune încheiată");
     hideDash();
     api.openProfilePanel();
-    setBackLabel(hist ? "Înapoi la sesiuni istorice" : "Înapoi la sesiuni active");
     if (!s) {
       api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({ crumbs: [{ label: "Sesiuni active", attr: "data-dosar-profil-crumb-back" }, { label: id }], title: id });
       api.els.dosarProfilSummary.innerHTML = "";
@@ -1595,7 +1589,6 @@
     ui.session = id;
     hideDash();
     api.openProfilePanel();
-    setBackLabel(role() === "supervisor" ? "Înapoi la coada de revizie" : "Înapoi la sesiunile mele");
     const denied = !s || !s.review || (role() === "operator" && !myPart(s));
     if (denied) {
       api.els.dosarProfilTitleRow.innerHTML = api.renderPageHeaderTop({ crumbs: [{ label: role() === "supervisor" ? "Coada de revizie" : "Sesiunile mele de revizie", attr: "data-dosar-profil-crumb-back" }, { label: id }], title: id });
@@ -2266,7 +2259,7 @@
     role: () => role(), me: () => me(), now: () => now(), nowIso: () => nowIso(), ago: (iso) => ago(iso), shortStamp: (iso) => shortStamp(iso),
     client: (id) => client(id), useCase: (code) => useCase(code), trajectory: (...a) => trajectory(...a),
     openModal: (o) => openModal(o), closeModal: () => closeModal(), modalBody: () => modalBody(), modalEl: () => modalEl(), closeFooter,
-    fieldError: (m) => fieldError(m), requiredMark, showPage: (t, h) => showPage(t, h), hideDash: () => hideDash(), setBackLabel: (l) => setBackLabel(l),
+    fieldError: (m) => fieldError(m), requiredMark, showPage: (t, h) => showPage(t, h), hideDash: () => hideDash(),
     showView: (v, item) => showView(v, item), logAccess: (e) => logAccess(e), emptyRows: () => emptyRows()
   };
 

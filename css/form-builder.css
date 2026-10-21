@@ -1071,11 +1071,6 @@
   margin-top: var(--spacing-4, 4px);
 }
 
-/* the back link from a column / block field to its grid / block */
-.e-permits-builder__back {
-  margin-left: calc(var(--spacing-8, 8px) * -1);
-}
-
 /* ===== Hover — every element of the editor shows one (memory „Hover everywhere”, 2026-10-13).
    The older rules used `filter: brightness(.97)` (invisible) and a LIGHTER white veil on the mode
    switch; tokens now: on grey (base tertiary) → tertiary-hover, on black (selected) → inverse-default-hover,
@@ -1313,13 +1308,6 @@
   flex-direction: column;
   gap: var(--spacing-4, 4px);
   padding: var(--spacing-16, 16px) var(--spacing-20, 20px) var(--spacing-12, 12px);
-}
-
-.e-permits-builder__crumbs {
-  color: var(--color-text-base-tertiary, #757575);
-  font-size: var(--font-size-fs-12, 12px);
-  line-height: var(--line-height-lh-16, 16px);
-  margin: 0;
 }
 
 .e-permits-builder__panel-title-row {

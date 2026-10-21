@@ -601,8 +601,6 @@ document.addEventListener("DOMContentLoaded", () => {
     el.title.hidden = S.stack.length > 0;
     if (S.stack.length) {
       el.crumbs.innerHTML = ui().renderBreadcrumbs?.([...S.stack.map((f, i) => ({ label: f.title, attr: `data-pd-crumb="${i}"` })), { label: title }], { label: "Procese deschise", truncate: true }) || "";
-      /* truncated crumbs show their full text (js/table-cells.js) */
-      el.crumbs.querySelectorAll(".breadcrumbs__link, .breadcrumbs__current").forEach((c) => { c.dataset.cellTooltip = c.textContent.trim(); });
     }
     el.restore.hidden = !S.openedVersion;
     const published = rec.status === "Publicat" && !S.dirty && !S.openedVersion;

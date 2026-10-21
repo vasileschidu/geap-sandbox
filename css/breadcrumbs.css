@@ -1,0 +1,42 @@
+/* Breadcrumbs — placement for the ONE renderer js/breadcrumbs.js (2026-10-21, breadcrumb-v1).
+   The look is the library's (css/main.css .breadcrumbs*, Figma Components 232:5282): nothing here restyles a
+   library class. Loaded after main.css on every page with a breadcrumb (BO / FO / eKYC / Ghișeu / builder,
+   EVO Cabinet, RAP). */
+
+/* Figma „📏 Breakpoint”: Desktop = the trail, Mobile (≤760) = the library .breadcrumbs--mobile — chevron-left-small
+   + the parent level only. The renderer writes both navs as siblings; one shows per breakpoint. */
+.breadcrumbs--mobile {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .breadcrumbs:has(+ .breadcrumbs--mobile) {
+    display: none;
+  }
+
+  .breadcrumbs--mobile {
+    display: flex;
+  }
+}
+
+/* phone back: one line; a long parent name ends in an ellipsis (tooltip from js/breadcrumbs.js) */
+.e-permits-page-header__crumb-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Figma „w/ overflow”: the „…” level opens the hidden levels in the standard dropdown (css/dropdown.css sizes,
+   the dropdown surface), anchored under the item's left edge */
+.breadcrumbs__item > .e-permits-stack__menu {
+  left: 0;
+  right: auto;
+  top: calc(100% + var(--spacing-8, 8px));
+}
+
+/* an open „…” keeps the library focus ring while its menu is open (rule „open button keeps focus”) */
+.breadcrumbs__link[aria-expanded="true"] {
+  border-radius: var(--border-radius-4, 4px);
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--white, #fff), 0 0 0 var(--spacing-4, 4px) var(--focus-ring, var(--blue-sky-500, #3379db));
+}

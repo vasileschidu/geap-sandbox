@@ -161,11 +161,10 @@
       S.showView(view);
     }
   };
-  const openPanel = ({ view, crumb, title, actions = "", caption = "", status = "", meta = [], tabs = [], tab = "", body, hash, back }) => {
+  const openPanel = ({ view, crumb, title, actions = "", caption = "", status = "", meta = [], tabs = [], tab = "", body, hash }) => {
     S.ui.session = null;
     S.hideDash();
     A.openProfilePanel();
-    S.setBackLabel(back || `Înapoi la ${VIEWS[view].title.toLocaleLowerCase("ro")}`);
     const els = A.els;
     els.dosarProfilTitleRow.innerHTML = A.renderPageHeaderTop({ crumbs: [{ label: VIEWS[view].title, attr: "data-dosar-profil-crumb-back" }, ...[].concat(crumb)], title, actions, caption, status });
     els.dosarProfilSummary.innerHTML = meta.length ? A.renderPageHeaderMeta(meta) : "";
@@ -352,7 +351,7 @@
     const errSec = new Set(sections.filter(([key]) => def.fieldsOf(key).some((k) => Object.keys(F.errors).some((e) => e === k || e.startsWith(`${k}.`)))).map(([key]) => key));
     const scrollY = window.scrollY;
     openPanel({
-      view: def.view, crumb: def.crumbs(F), title: def.title(F), hash: def.hash(F), back: def.back,
+      view: def.view, crumb: def.crumbs(F), title: def.title(F), hash: def.hash(F),
       caption: F.mode === "edit" ? `Ultima editare: ${stamp(def.entity(F).updatedAt)} · ${def.entity(F).updatedBy}` : "",
       body: `
         <div class="e-permits-cfg2 e-permits-ekcfg-page" data-ekcfg-page>
@@ -527,7 +526,7 @@
     openPanel({
       view: "ekyc-users", crumb: { label: u.name }, title: u.name, actions, caption: self ? "Contul tău" : "",
       meta: [["Email", esc(u.email)], ["MPass ID", A.renderCopyCode(u.mpassId, `Copiază ${u.mpassId}`)], ["Roluri", `<span class="e-permits-passport__tag-list">${u.roles.map((r) => T(r)).join("")}</span>`], ["Status cont", T(u.status, ACCOUNT_TONES[u.status])]],
-      tabs: USER_TABS(u), tab, hash: `ek-utilizator/${u.id}/${tab}`, back: "Înapoi la utilizatori",
+      tabs: USER_TABS(u), tab, hash: `ek-utilizator/${u.id}/${tab}`,
       body: tab === "sesiuni" ? userSessions(u) : tab === "jurnal" ? A.renderEventTimeline("Jurnal", u.events, { meta: "Jurnalizat prin MLog" }) : userGeneral(u)
     });
   };
@@ -682,11 +681,11 @@
       view: "ekyc-clients", crumb: { label: c.name }, title: c.name,
       actions: `${btn(c.active ? "Dezactivează" : "Activează", act("client-toggle", c.id), { ic: c.active ? "pause" : "rotate-arrow" })}${btn("Editează", act("client-edit", c.id), { ic: "edit" })}`,
       meta: [["Status", statusTag(c.active)], ["Organizație", esc(orgName(c.orgId))], ["Client ID", A.renderCopyCode(c.id, `Copiază ${c.id}`)], ["Cazuri de utilizare", String(c.useCases.length)]],
-      tabs: [["configuratie", "Configurație"], ["jurnal", "Jurnal", c.events.length]], tab, hash: `ek-client/${c.id}/${tab}`, back: "Înapoi la clienți", body
+      tabs: [["configuratie", "Configurație"], ["jurnal", "Jurnal", c.events.length]], tab, hash: `ek-client/${c.id}/${tab}`, body
     });
   };
   FORMS.client = {
-    page: true, view: "ekyc-clients", back: "Înapoi la clienți",
+    page: true, view: "ekyc-clients",
     barCreate: "Client nou · câmpurile marcate sunt obligatorii",
     entity: (f) => findClient(f.id),
     title: (f) => (f.mode === "create" ? "Client nou" : `Editează ${findClient(f.id).name}`),
@@ -828,7 +827,7 @@
       actions: `${btn(u.active ? "Dezactivează" : "Activează", act("uc-toggle", u.code), { ic: u.active ? "pause" : "rotate-arrow" })}${btn("Editează", act("uc-edit", u.code), { ic: "edit" })}`,
       meta: [["Cod", A.renderCopyCode(u.code, `Copiază ${u.code}`)], ["Nivel asigurare", T(u.ial)], ["Status", statusTag(u.active)], ["Versiune", `v${esc(u.version)}`], ["Clienți", String(clientsOfUc(u.code).length)]],
       tabs: [["pasi", "Pași de verificare", u.steps.length || 0, u.steps.length ? "" : "danger"], ["veto", "Reguli veto", u.veto.length], ["versiuni", "Versiuni", u.versions.length]], tab,
-      hash: `ek-caz/${u.code}/${tab}`, back: "Înapoi la cazuri de utilizare", body
+      hash: `ek-caz/${u.code}/${tab}`, body
     });
   };
   const ucSteps = (u) => {
@@ -1291,7 +1290,7 @@
       view: "ekyc-scoring", crumb: { label: s.name }, title: s.name,
       actions: `${btn(s.active ? "Dezactivează" : "Activează", act("scoring-toggle", id), { ic: s.active ? "pause" : "rotate-arrow" })}${btn("Editează", act("scoring-edit", id), { ic: "edit" })}`,
       meta: [["Metodă agregare", esc(s.aggregation)], ["Scor minim încredere", `<span class="e-permits-ekyc-score">${num(s.minConfidence)}</span>`], ["Status", statusTag(s.active)], ["Clienți", clients.length ? esc(clients.map((c) => c.name).join(", ")) : "neatribuită"]],
-      tabs: [["reguli", "Configurație și reguli", s.rules.length], ["jurnal", "Jurnal", s.events.length]], tab, hash: `ek-scoring/${id}/${tab}`, back: "Înapoi la configurări scoring",
+      tabs: [["reguli", "Configurație și reguli", s.rules.length], ["jurnal", "Jurnal", s.events.length]], tab, hash: `ek-scoring/${id}/${tab}`,
       body: tab === "jurnal" ? A.renderEventTimeline("Jurnal", s.events, { meta: "Jurnalizat prin MLog" }) : `${band(s.reject, s.accept, s.minConfidence, { meta: s.description ? esc(s.description) : "" })}${rulesSection()}`
     });
   };
@@ -1469,7 +1468,7 @@
   const findProvider = (id) => cfg.providers.find((p) => p.id === id);
   const stepsUsing = (id) => cfg.useCases.flatMap((u) => u.steps.filter((s) => s.provider === id).map((s) => ({ u, s })));
   FORMS.provider = {
-    page: true, view: "ekyc-providers", back: "Înapoi la furnizori",
+    page: true, view: "ekyc-providers",
     barCreate: "Furnizor nou · câmpurile marcate sunt obligatorii",
     entity: (f) => findProvider(f.id),
     title: (f) => (f.mode === "create" ? "Furnizor nou" : `Editează ${findProvider(f.id).name}`),
@@ -1896,7 +1895,7 @@
     openPanel({
       view: "ekyc-trusted-cas", crumb: { label: c.name }, title: c.name, actions,
       meta: [["Status", T(state, CA_TONES[state])], ["Emitent", esc(c.issuer.replace(/^CN=([^,]+).*/, "$1"))], ["Valabil până la", esc(longDate(c.validTo))], ["Clienți mTLS", String(c.usedBy.length)]],
-      tabs: [["general", "Date generale"], ["jurnal", "Jurnal", c.events.length]], tab, hash: `ek-certificat/${c.id}/${tab}`, back: "Înapoi la certificate",
+      tabs: [["general", "Date generale"], ["jurnal", "Jurnal", c.events.length]], tab, hash: `ek-certificat/${c.id}/${tab}`,
       body: tab === "jurnal" ? A.renderEventTimeline("Jurnal", c.events, { meta: "Jurnalizat prin MLog" }) : `
         ${rotation}
         ${A.renderInfoCard("Certificat", [["Subiect", esc(c.subject)], ["Emitent", esc(c.issuer)], ["Număr de serie", A.renderProfileCopyCode(c.serial, `Copiază ${c.serial}`)], ["Amprentă SHA-256", A.renderProfileCopyCode(c.thumbprint, "Copiază amprenta")], ["Algoritm cheie", esc(c.keyAlgorithm)], ["Valabil de la", esc(longDate(c.validFrom))], ["Valabil până la", `${esc(longDate(c.validTo))} <span class="e-permits-dosar-profil__termen-meta">${daysTo(c.validTo) < 0 ? "expirat" : `${daysTo(c.validTo)} zile rămase`}</span>`]])}
@@ -2226,7 +2225,7 @@
       /* a back / crumb out of a page form with a draft asks first */
       document.addEventListener("click", (event) => {
         if (!F || F.where !== "page" || !changedCount()) return;
-        const out = event.target.closest("[data-dosar-profil-crumb-back], [data-dosar-profil-back-shell], .e-permits-shell__nav-item, [data-nav-id]");
+        const out = event.target.closest("[data-dosar-profil-crumb-back], .e-permits-shell__nav-item, [data-nav-id]");
         if (!out || out.closest("[data-ekcfg-page]")) return;
         event.preventDefault(); event.stopImmediatePropagation();
         leavePage(() => out.click());

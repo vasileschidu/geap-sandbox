@@ -290,34 +290,10 @@ a {
   width: 100%;
 }
 
-/* breadcrumbs: the library .breadcrumbs (Figma Components 232:5282); this class
-   is only a layout / reveal hook */
+/* breadcrumbs: the library .breadcrumbs through the ONE renderer (../js/breadcrumbs.js; desktop / phone pair in
+   ../css/breadcrumbs.css); this class is only a layout / reveal hook */
 .rap-breadcrumbs {
-  min-height: 20px;
-}
-
-/* Figma breadcrumbs 📏 Breakpoint: Desktop = the full trail; Mobile (≤760) = the
-   library .breadcrumbs--mobile — chevron-left-small + the previous level only, one
-   line, a long label cut with an ellipsis */
-.rap-breadcrumbs.breadcrumbs--mobile {
-  display: none;
-}
-
-.rap-breadcrumbs__label {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (max-width: 760px) {
-  .rap-breadcrumbs:not(.breadcrumbs--mobile) {
-    display: none;
-  }
-
-  .rap-breadcrumbs.breadcrumbs--mobile {
-    display: flex;
-  }
+  min-height: var(--spacing-20, 20px);
 }
 
 .rap-intro {
@@ -1384,12 +1360,6 @@ a {
 
   .rap-profile {
     padding: 0 var(--spacing-16, 16px) var(--spacing-48, 48px);
-  }
-
-  .rap-profile__breadcrumbs {
-    overflow-x: auto;
-    scrollbar-width: none;
-    white-space: nowrap;
   }
 
   .rap-profile__title-row {

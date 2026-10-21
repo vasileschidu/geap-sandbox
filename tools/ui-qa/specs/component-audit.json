@@ -171,7 +171,17 @@
     "maxHeight": 64,
     "maxWidth": 640
   },
+  "_backNav": "Back navigation — ONE component (2026-10-21, user: „let's use the breadcrumb as a component … why invent it?”, Figma Components 232:5282). crumb-trail (major): an element with a `crumb` class (or a breadcrumb nav) that is not, and does not hold, the library .breadcrumbs. back-link (major): a link / button outside .breadcrumbs whose text or aria-label starts with „Înapoi la” / „‹” / „←”, or that carries a `-back` / `__back` / `back-shell` / `back-link` class or data hook. exempt = step navigation inside wizards / dialogs (FO step footer, drawer and modal footers, „Schimbă”), empty-state actions, the RAP logo link and the MPass test page.",
+  "backNav": {
+    "component": ".breadcrumbs",
+    "trail": "[class*='crumb'], nav[aria-label*='readcrumb' i]",
+    "backText": "^\\s*(‹|←|Înapoi la\\b)",
+    "backHook": "(^|[-_])back(-shell|-link)?$|shell-back",
+    "exempt": [".e-permits-fo-back-button", "[data-fo-back-choice]", ".modal-buttons", "[class*='__footer']", "[class*='__buttons']", "[class*='-buttons']", "[data-tariff-buttons]", ".e-permits-fo-form__actions", ".e-permits-empty", ".rap-header", ".mpass-test", "[data-gh-close-sheet]"]
+  },
   "fixHints": {
+    "crumb-trail": "Render the trail with the ONE library breadcrumb: GEAPBreadcrumbs.html(crumbs, { trailing }) (js/breadcrumbs.js) — shell renderBreadcrumbs / renderPageHeaderTop, CabEvo.pageHeader({ back }); delete the private markup and its CSS (components.md › Breadcrumb).",
+    "back-link": "The way back is the page header breadcrumb (desktop trail; phones the library .breadcrumbs--mobile „‹ parent”), never a custom „← Înapoi la …” link / button: give the parent crumb the existing back handler as `attr` (GEAPBreadcrumbs.html / renderBreadcrumbs) and delete the button and its CSS.",
     "copy-variant": "Use GEAPCopyValue.html(value, { label }) (js/copy-value.js) — shell renderCopyCode / FO copyValueHtml / CabEvo.copyValueHtml already return it; delete the private markup and its CSS.",
     "copy-in-list": "List views carry no copy icon: render the number as plain text (shell renderListCode, RAP plain cell, act-row meta). Copy belongs on the profile / header / detail row / dialog.",
     "non-library-control": "use the library component (components.md › Component Inventory): .btn + variant + size, .chip, .checkbox, .radio, .switch, .search-input, .input / .e-permits-fo-input; a genuinely new control is first documented in components.md (inventory row + section) — ask the PO before inventing one",

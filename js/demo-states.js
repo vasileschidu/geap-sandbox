@@ -681,7 +681,7 @@
     "svc-07a2": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); await h.click('[data-clas-profile-tab="setari"]'); }),
     "svc-07c": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); await h.click("[data-clas-grid-add]"); }),
     "svc-07d": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-caem2"].e-permits-stack__item'); }),
-    "svc-07e": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); await h.click("[data-clas-profile-back-shell]"); }),
+    "svc-07e": svc("classifiers", async (h) => { await h.click('[data-svc-clas-open="cl-com-activ"].e-permits-stack__item'); await h.click("[data-clas-crumb-back]"); }),
     "svc-08": svc("templates"),
     /* Șabloane › eye = view-only preview drawer (the builder opens from its footer) */
     "svc-08l": svc("templates", async (h) => { await h.click("[data-dtpl-preview]"); }),
@@ -1906,7 +1906,7 @@
             await h.click(band("repeat"));
             await h.click("[data-builder-field][data-type='repeat'] [data-fb-add-child='text']");
             await h.fill("[data-fb-prop='label']", "Nr. de înmatriculare", { leave: false });
-            await h.click(".e-permits-builder__back");
+            await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
             await h.click("[data-builder-prop-tab='validation']");
             await h.fill("[data-fb-prop='rowRules.maxRows']", "2", { leave: false });
           };
@@ -1947,7 +1947,7 @@
               const level3 = window.GEAPFormBuilder.state.sel.id;
               await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
               await h.click(`[data-fb-add-child='text'][data-container='${level3}']`);
-              await h.click(".e-permits-builder__back");
+              await h.click(".e-permits-builder__panel-head .breadcrumbs__link[data-fb-goto]");
               await h.click(`[aria-controls='fb-addchild-${level3}-panel']`);
             }, F09),
             /* 55 the FO grid filled (Preview desktop) · 55a a row in edit mode (click on a cell) · 55b a

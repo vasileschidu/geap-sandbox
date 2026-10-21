@@ -25,6 +25,15 @@
     companyFilter: null
   };
 
+  /* the trail above the list title and the act profile title (Figma Components 232:5282): the ONE breadcrumb renderer
+     (../js/breadcrumbs.js — desktop trail with a trailing chevron, phones = „‹ parent”); .rap-breadcrumbs = reveal hook */
+  const RAP_CRUMBS = [{ label: "Acasă", href: "../index.html" }, { label: "Resurse utile", href: "#" }];
+  const crumbsHtml = (profile = false) => window.GEAPBreadcrumbs?.html(profile
+    ? [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }]
+    : RAP_CRUMBS, { trailing: true, className: "rap-breadcrumbs" }) || "";
+  const listCrumbs = document.querySelector("[data-rap-list-crumbs]");
+  if (listCrumbs) listCrumbs.outerHTML = crumbsHtml();
+
   const elements = {
     title: document.querySelector("[data-rap-title]"),
     search: document.querySelector("[data-rap-search]"),
@@ -235,18 +244,7 @@
           <div class="e-permits-page-header__body">
             <div class="e-permits-page-header__top">
               <div class="e-permits-page-header__heading">
-                <nav class="breadcrumbs breadcrumbs--trailing rap-breadcrumbs rap-profile__breadcrumbs" aria-label="Breadcrumb">
-                  <ol class="breadcrumbs__list">
-                    <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="../index.html">Acasă</a></li>
-                    <li class="breadcrumbs__item"><a class="breadcrumbs__link" href="#">Resurse utile</a></li>
-                    <li class="breadcrumbs__item"><button class="breadcrumbs__link" type="button" data-rap-profile-back>Registrul actelor permisive</button></li>
-                  </ol>
-                </nav>
-                <nav class="breadcrumbs breadcrumbs--mobile rap-breadcrumbs" aria-label="Breadcrumb">
-                  <ol class="breadcrumbs__list">
-                    <li class="breadcrumbs__item breadcrumbs__item--back"><button class="breadcrumbs__link" type="button" data-rap-profile-back><span class="rap-breadcrumbs__label">Registrul actelor permisive</span></button></li>
-                  </ol>
-                </nav>
+                ${crumbsHtml(true)}
                 <div class="rap-profile__title-row">
                   <h1 class="e-permits-page-header__title" id="rap-profile-title" title="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</h1>
                 </div>

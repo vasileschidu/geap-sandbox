@@ -1448,35 +1448,6 @@
   display: none;
 }
 
-.e-permits-user-profile__shell-back {
-  align-items: center;
-  align-self: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: none;
-  flex: 0 0 auto;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: var(--spacing-6, 6px);
-  height: 32px;
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
-}
-
-.e-permits-user-profile__shell-back:not([hidden]) {
-  display: inline-flex;
-}
-
-.e-permits-user-profile__shell-back:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-user-profile__shell-back:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-user-profile {
   box-sizing: border-box;
   display: flex;
@@ -16163,35 +16134,6 @@
   display: none;
 }
 
-.e-permits-dosar-profil__shell-back {
-  align-items: center;
-  align-self: center;
-  background: transparent;
-  border: 0;
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: none;
-  flex: 0 0 auto;
-  font: 500 14px/20px var(--font-family-primary-font, Onest), sans-serif;
-  gap: var(--spacing-6, 6px);
-  height: 32px;
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-8, 8px);
-}
-
-.e-permits-dosar-profil__shell-back:not([hidden]) {
-  display: inline-flex;
-}
-
-.e-permits-dosar-profil__shell-back:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-}
-
-.e-permits-dosar-profil__shell-back:focus-visible {
-  outline: var(--border-width-2, 2px) solid var(--color-border-brand-default, #0058d2);
-  outline-offset: 2px;
-}
-
 .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-dosar-profil {
   box-sizing: border-box;
   display: flex;
@@ -18097,10 +18039,10 @@
   display: none;
 }
 
-/* top-bar back: Figma button-text-circular (pill, 16px icon, 8/12 padding) */
-.e-permits-dosar-profil__shell-back,
-.e-permits-user-profile__shell-back {
-  border-radius: var(--border-radius-full, 999px);
+/* the top bar keeps its tools on the right when no title row shows (profiles: the page header breadcrumb is the
+   only way back since breadcrumb-v1 — the top-bar „← Înapoi la …” buttons are gone) */
+.e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-shell__header-actions {
+  margin-left: auto;
 }
 
 /* ≤960px the shell stacks: the top bar leaves the workspace grid, so the

@@ -213,7 +213,7 @@ but this doc previously described it wrongly, see the entry.
 | Accordion | `.accordion__trigger[aria-expanded]` | `accordion.html` | library (partial) |
 | Avatar | `.avatar` + type + size | `avatar.html` | library |
 | Empty state — **the only one** (every product; „no other empty states”) | `.e-permits-empty` (normal = page section · `--compact` = drawer / modal / side panel · `--bare` = table row / bordered list / modal list · bare + compact = menu / popover / combobox) via `GEAPEmptyState.render / .noResults / .tableRow` (`td.e-permits-empty-cell`) | `js/empty-state.js`, `css/empty-state.css`; section „Empty state — one component everywhere” | product |
-| Breadcrumb | `.breadcrumbs .breadcrumbs__list .breadcrumbs__item` + `--trailing/--truncate/--mobile`; JS `renderBreadcrumbs()` | `breadcrumbs.html` | app (every page) |
+| Breadcrumb | `.breadcrumbs .breadcrumbs__list .breadcrumbs__item` + `--trailing/--truncate/--mobile`; ONE renderer `GEAPBreadcrumbs.html(crumbs, opts)` (`js/breadcrumbs.js` + `css/breadcrumbs.css`; shell `renderBreadcrumbs()` / `renderPageHeaderTop`, `CabEvo.pageHeader({ back })`, RAP `crumbsHtml`) — desktop trail + phone back pair, „…” overflow > 4 levels, 30-char truncation + tooltip. **Every sub-page's way back; never a custom back link** (component-audit rule 5) | `breadcrumbs.html` | app (every page) |
 | Progress tracker | `.progress-tracker .progress-step--*` | `progress-tracker.html` | library (partial) |
 | Sidebar | `.sidebar .sidebar__link--active` | `sidebar.html` | library (partial) |
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
@@ -2672,6 +2672,33 @@ scrim tap, ×, Esc and the sheet's own action close it. **No handle in the produ
 **Updated 2026-10-01 to Figma Components `232:5282`** (items `81:714` Enabled / `81:763`
 Active). It is used on every page, and nothing else draws a trail.
 
+**Usage rule (2026-10-21, user: „let's use the breadcrumb as a component … and adjust it in code EVERYWHERE — this is
+the component, why invent it?”):** every sub-page (profile, detail, nested panel) shows its way back with this
+component and nothing else — never a custom „← Înapoi la …” link / button, a top-bar back button, a `*__back` button
+or a hand-made `›` trail. The parent level is a link that carries the page's existing back handler (`attr`).
+Not breadcrumbs (stay as they are): wizard step „Înapoi” in step footers / drawer footers (`.e-permits-fo-back-button`,
+`[data-*-back]` in `.modal-buttons`), „Schimbă” on the FO chosen card, empty-state actions, dialog footer „Înapoi la …”
+buttons that close the dialog. `tools/ui-qa/component-audit.mjs` rule 5 (`crumb-trail` / `back-link`, spec `backNav`)
+reports any other as a major.
+
+**ONE renderer — `GEAPBreadcrumbs.html(crumbs, { trailing, truncate = true, label = "Navigare", mobile = true, max = 4,
+className })`** (`js/breadcrumbs.js`, layout in `css/breadcrumbs.css`; both loaded on the BO / FO page, the shell page,
+EVO Cabinet and RAP). Callers: shell `renderBreadcrumbs` / `renderPageHeaderTop` (every BO, eKYC, classifier, template,
+passport profile; process designer; the passport template detail), `CabEvo.pageHeader({ back })`, RAP `crumbsHtml()`
+(list + act profile), the form builder (service line + properties panel). Crumb = `{ label, attr?, href?, button? }`.
+It returns two library navs, siblings:
+- **Desktop** (> 760): the trail; the last crumb is the current page (medium, `aria-current`) unless `trailing`
+  (public headers / builder lines that run into the title). More than 4 levels → first · „…” · the last 3 (Figma
+  „w/ overflow”): `li.breadcrumbs__item > button.breadcrumbs__link[data-breadcrumbs-more]` (aria-haspopup / expanded,
+  keeps the library focus ring while open) + the standard dropdown `ul.e-permits-fo-intent-menu.e-permits-stack__menu`
+  with the hidden levels as menu items (same handlers), anchored left under the item, ↑ ↓ Home End / Esc / Tab.
+  Every level `--truncate` (30ch); a level that is really cut gets its full text as `data-tooltip-text`
+  (js/icon-tooltip.js; `title` on pages without it) — measured after render, on resize and on hover / focus.
+- **Phones** (≤ 760): `nav.breadcrumbs.breadcrumbs--mobile` › `li.breadcrumbs__item--back` › the parent level (the
+  nearest link before the current one) with its label in `.e-permits-page-header__crumb-label` (one line, ellipsis +
+  tooltip — the library `--truncate` turns the link into a block and drops the 20px chevron). No link in the trail →
+  no phone nav, the trail shows at every width (builder service line).
+
 ```html
 <nav class="breadcrumbs" aria-label="Navigare">
   <ol class="breadcrumbs__list">
@@ -2697,8 +2724,8 @@ Active). It is used on every page, and nothing else draws a trail.
 - Leading icon: an `<svg class="icon">` inside the first link (16px).
 - `button.breadcrumbs__link` is reset, for back handlers such as
   `data-rap-profile-back`.
-- JS: `renderBreadcrumbs(crumbs, { trailing, truncate, label })` in `e-permits-shell.js`;
-  `renderPageHeaderTop` uses it with `truncate`. A crumb with `attr` is a link.
+- JS: `renderBreadcrumbs(crumbs, { trailing, truncate, label })` in `e-permits-shell.js` = `GEAPBreadcrumbs.html`
+  (above); `renderPageHeaderTop` uses it with `truncate`. A crumb with `attr` is a link.
 - **Profile trail = menu section › registry › record.** `renderPageHeaderTop`
   prepends the side-menu group (`navSectionOf()`: the group of the menu item named by
   the first crumb, else of the active item) as plain text. For example: Administrare ›
@@ -2706,8 +2733,19 @@ Active). It is used on every page, and nothing else draws a trail.
 - Deleted forks — never bring back: `.e-permits-page-header__breadcrumbs` overrides,
   `.e-permits-builder__breadcrumbs`, and the `.rap-breadcrumbs` visuals (that class is
   now only a layout/reveal hook).
-- Still open from Figma `602:1933`: collapsing past 4 levels into an overflow menu, and
-  the full-label tooltip on truncated levels.
+- Done 2026-10-21 (breadcrumb-v1): the overflow menu past 4 levels and the full-label tooltip on truncated levels
+  (Figma `602:1933`).
+- Deleted forks (2026-10-21) — never bring back: the BO top-bar `.e-permits-dosar-profil__shell-back` /
+  `.e-permits-user-profile__shell-back` („← Înapoi la dosare / utilizatori / servicii / roluri / clasificatoare /
+  șabloane”, eKYC `setBackLabel`), the form builder `p.e-permits-builder__crumbs` + `.e-permits-builder__back`, the
+  passport template detail „← Șabloane de notificare” button, `.rap-breadcrumbs__label` and the per-page desktop /
+  phone switch rules (bo-profile-parts.css, rap-evo.css).
+- **Figma ↔ code differences (report, library untouched):** (1) phone back variant: Figma 232:5283 = 20 chevron + 0 gap +
+  label; the library link keeps `gap: 4` → the label starts 4px later; (2) Figma „Breadcrumbs must remain on a single
+  line and never wrap”; the library list is `flex-wrap: wrap` (narrow panels — the builder properties panel — wrap to 2
+  lines); (3) Figma Disabled = grey-400 text at full opacity, the library `is-disabled` adds `opacity: .6`; (4) the
+  public headers (RAP / Cabinet) use `--trailing` without a current level (user 2026-10-17), the Figma component always
+  shows an Active level.
 
 > Third instance of the same class of bug: `--black-1000`/`--white-1000` (12 tokens,
 > §8), the `--color-text-brand-default-hover` collapse on `.link`, and now

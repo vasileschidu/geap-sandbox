@@ -39,19 +39,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const dosarProfilSummary = document.querySelector("[data-dosar-profil-summary]");
   const dosarProfilTabs = document.querySelector("[data-dosar-profil-tabs]");
   const dosarProfilPanelBody = document.querySelector("[data-dosar-profil-panel]");
-  const dosarProfilBackShell = document.querySelector("[data-dosar-profil-back-shell]");
   const userProfilePanel = document.querySelector("[data-user-profile]");
   const userProfileTitle = document.querySelector("[data-user-profile-title]");
   const userProfileSummary = document.querySelector("[data-user-profile-summary]");
   const userProfileTabs = document.querySelector("[data-user-profile-tabs]");
   const userProfilePanelBody = document.querySelector("[data-user-profile-panel]");
-  const userProfileBackShell = document.querySelector("[data-user-profile-back-shell]");
   const roleProfilePanel = document.querySelector("[data-role-profile]");
   const roleProfileTitle = document.querySelector("[data-role-profile-title]");
   const roleProfileSummary = document.querySelector("[data-role-profile-summary]");
   const roleProfileTabs = document.querySelector("[data-role-profile-tabs]");
   const roleProfilePanelBody = document.querySelector("[data-role-profile-panel]");
-  const roleProfileBackShell = document.querySelector("[data-role-profile-back-shell]");
 
   let morphFrame = null;
   let workplaceDb = null;
@@ -1193,10 +1190,6 @@ document.addEventListener("DOMContentLoaded", () => {
       userProfilePanel.hidden = true;
     }
 
-    if (userProfileBackShell) {
-      userProfileBackShell.hidden = true;
-    }
-
     if (workplaceTitle) {
       workplaceTitle.textContent = title;
     }
@@ -2311,21 +2304,11 @@ document.addEventListener("DOMContentLoaded", () => {
     return meta ? escapeHtml(value) : `<span class="cell__primary" data-cell-tooltip="${escapeHtml(value)}">${escapeHtml(value)}</span>`;
   };
 
-  /* Library breadcrumbs (Figma Components 232:5282). A crumb with `attr` is a link that
-     reuses an existing back handler; without it, it is plain text. The last crumb is the
-     current level unless `trailing` (the trail runs into a title shown below it). */
-  const renderBreadcrumbs = (crumbs, { trailing = false, truncate = false, label = "Navigare" } = {}) => `
-    <nav class="breadcrumbs${trailing ? " breadcrumbs--trailing" : ""}${truncate ? " breadcrumbs--truncate" : ""}" aria-label="${escapeHtml(label)}">
-      <ol class="breadcrumbs__list">
-        ${crumbs.map((crumb, index) => index < crumbs.length - 1 || trailing
-          ? `<li class="breadcrumbs__item">${crumb.attr
-            ? `<a class="breadcrumbs__link" href="#" ${crumb.attr}>${escapeHtml(crumb.label)}</a>`
-            : `<span class="breadcrumbs__link">${escapeHtml(crumb.label)}</span>`}</li>`
-          : `<li class="breadcrumbs__item is-selected"><span class="breadcrumbs__current" aria-current="page">${escapeHtml(crumb.label)}</span></li>`
-        ).join("")}
-      </ol>
-    </nav>
-  `;
+  /* Library breadcrumbs (Figma Components 232:5282) — ONE renderer for every page: js/breadcrumbs.js
+     (GEAPBreadcrumbs.html: the trail · „…” overflow past 4 levels · 30-character truncation + tooltip · the phone back
+     variant ≤760). A crumb with `attr` is a link that reuses an existing back handler; without it, plain text. The last
+     crumb is the current level unless `trailing` (the trail runs into a title shown below it). */
+  const renderBreadcrumbs = (crumbs, options = {}) => window.GEAPBreadcrumbs?.html(crumbs, options) || "";
 
   /* Shared back-office page header (Figma 8993:37914): breadcrumbs + title,
      optional actions with a caption on the right, a meta row of label/value
@@ -4395,16 +4378,8 @@ document.addEventListener("DOMContentLoaded", () => {
       userProfilePanel.hidden = true;
     }
 
-    if (userProfileBackShell) {
-      userProfileBackShell.hidden = true;
-    }
-
     shell.classList.remove("is-user-profile-open");
     shell.classList.add("is-dosar-profile-open");
-    if (dosarProfilBackShell) {
-      dosarProfilBackShell.hidden = false;
-    }
-
     renderDosarProfil(row);
     history.replaceState(null, "", `#dosar/${row.id}/${activeTab}`);
     dosarProfilPanel?.scrollIntoView?.({ block: "start" });
@@ -4416,10 +4391,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     shell.classList.remove("is-dosar-profile-open");
-    if (dosarProfilBackShell) {
-      dosarProfilBackShell.hidden = true;
-    }
-
     restorePageHash();
 
     if (dosarProfilState.returnTo === "sarcini") {
@@ -4435,7 +4406,6 @@ document.addEventListener("DOMContentLoaded", () => {
     renderWorkplace();
   };
 
-  dosarProfilBackShell?.addEventListener("click", closeDosarProfil);
   dosarProfilTitleRow?.addEventListener("click", (event) => {
     if (event.target.closest("[data-dosar-profil-crumb-back]")) {
       event.preventDefault();
@@ -4980,12 +4950,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dosarProfilPanel.hidden = true;
     }
 
-    if (dosarProfilBackShell) {
-      dosarProfilBackShell.hidden = true;
-    }
-
     userProfilePanel.hidden = false;
-    userProfileBackShell.hidden = false;
     shell.classList.remove("is-dosar-profile-open");
     shell.classList.add("is-user-profile-open");
     renderUserProfile(user);
@@ -4999,7 +4964,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     userProfilePanel.hidden = true;
-    userProfileBackShell.hidden = true;
     workplacePanel.hidden = false;
     shell.classList.remove("is-user-profile-open");
     userProfileState.rowId = null;
@@ -5264,7 +5228,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  userProfileBackShell?.addEventListener("click", closeUserProfile);
   userProfileTitle?.addEventListener("click", (event) => {
     if (event.target.closest("[data-user-profile-crumb-back]")) {
       event.preventDefault();
@@ -5386,7 +5349,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const openRoleProfile = (role) => {
     shell.classList.remove("is-service-profile-open");
-    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (!role || !roleProfilePanel) {
       return;
     }
@@ -5395,14 +5357,13 @@ document.addEventListener("DOMContentLoaded", () => {
     roleProfileState.tabKey = "general";
     resetRolePermState();
 
-    [workplacePanel, permitsProfilePanel, userProfilePanel, userProfileBackShell, dosarProfilPanel, dosarProfilBackShell].forEach((panel) => {
+    [workplacePanel, permitsProfilePanel, userProfilePanel, dosarProfilPanel].forEach((panel) => {
       if (panel) {
         panel.hidden = true;
       }
     });
 
     roleProfilePanel.hidden = false;
-    roleProfileBackShell.hidden = false;
     shell.classList.remove("is-user-profile-open");
     shell.classList.remove("is-dosar-profile-open");
     shell.classList.add("is-role-profile-open");
@@ -5419,17 +5380,12 @@ document.addEventListener("DOMContentLoaded", () => {
       roleProfilePanel.hidden = true;
     }
 
-    if (roleProfileBackShell) {
-      roleProfileBackShell.hidden = true;
-    }
-
     shell.classList.remove("is-role-profile-open");
     roleProfileState.roleId = null;
     showRolesRegistry();
     restorePageHash();
   };
 
-  roleProfileBackShell?.addEventListener("click", closeRoleProfile);
   roleProfileTitle?.addEventListener("click", (event) => {
     if (event.target.closest("[data-role-profile-crumb-back]")) {
       event.preventDefault();
@@ -6101,7 +6057,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const setWorkplaceView = (viewKey) => {
     shell.classList.remove("is-service-profile-open");
-    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (dossierDb) {
       activeRegistry = "dossiers";
       workplaceDb = dossierDb;
@@ -6135,10 +6090,6 @@ document.addEventListener("DOMContentLoaded", () => {
       userProfilePanel.hidden = true;
     }
 
-    if (userProfileBackShell) {
-      userProfileBackShell.hidden = true;
-    }
-
     shell.classList.remove("is-user-profile-open");
 
     if (workplaceRefresh) {
@@ -6161,7 +6112,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const showUsersRegistry = () => {
     shell.classList.remove("is-service-profile-open");
-    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (!usersDb) {
       showRolePlaceholder("Utilizatori");
       return;
@@ -6189,10 +6139,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (userProfilePanel) {
       userProfilePanel.hidden = true;
-    }
-
-    if (userProfileBackShell) {
-      userProfileBackShell.hidden = true;
     }
 
     shell.classList.remove("is-user-profile-open");
@@ -6234,16 +6180,8 @@ document.addEventListener("DOMContentLoaded", () => {
       userProfilePanel.hidden = true;
     }
 
-    if (userProfileBackShell) {
-      userProfileBackShell.hidden = true;
-    }
-
     if (dosarProfilPanel) {
       dosarProfilPanel.hidden = true;
-    }
-
-    if (dosarProfilBackShell) {
-      dosarProfilBackShell.hidden = true;
     }
 
     shell.classList.remove("is-user-profile-open");
@@ -6258,7 +6196,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const showRolesRegistry = () => {
     shell.classList.remove("is-service-profile-open");
-    document.querySelector("[data-service-profile-back-shell]")?.setAttribute("hidden", "");
     if (!roleAdminDb) {
       showRolePlaceholder("Roluri");
       return;
@@ -6280,7 +6217,7 @@ document.addEventListener("DOMContentLoaded", () => {
       workplacePanel.hidden = false;
     }
 
-    [permitsProfilePanel, userProfilePanel, userProfileBackShell, dosarProfilPanel, dosarProfilBackShell, roleProfilePanel, roleProfileBackShell].forEach((panel) => {
+    [permitsProfilePanel, userProfilePanel, dosarProfilPanel, roleProfilePanel].forEach((panel) => {
       if (panel) {
         panel.hidden = true;
       }
@@ -6305,7 +6242,6 @@ document.addEventListener("DOMContentLoaded", () => {
      into the .permits-profile panel.
      ========================================================================== */
   const passport = window.GEAP?.servicePassport || null;
-  const serviceProfileBackShell = document.querySelector("[data-service-profile-back-shell]");
   let servicesStore = null;
   let servicesDb = null;
   let authoritiesDb = null;
@@ -6726,21 +6662,18 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const hideProfilePanels = () => {
-    [userProfilePanel, userProfileBackShell, dosarProfilPanel, dosarProfilBackShell, roleProfilePanel, roleProfileBackShell].forEach((panel) => {
+    [userProfilePanel, dosarProfilPanel, roleProfilePanel].forEach((panel) => {
       if (panel) {
         panel.hidden = true;
       }
     });
     shell.classList.remove("is-user-profile-open", "is-dosar-profile-open", "is-role-profile-open", "is-users-registry", "is-service-profile-open", "is-ntpl-profile-open");
-    document.querySelectorAll("[data-ntpl-profile], [data-ntpl-profile-back-shell], [data-clas-profile], [data-clas-profile-back-shell]").forEach((panel) => { panel.hidden = true; });
+    document.querySelectorAll("[data-ntpl-profile], [data-clas-profile]").forEach((panel) => { panel.hidden = true; });
     shell.classList.remove("is-clas-profile-open");
     /* pages a module draws into the workspace (js/ghiseu.js) */
     document.querySelectorAll("[data-shell-module-page]").forEach((page) => { page.hidden = true; });
     shell.classList.remove("is-module-page-open");
 
-    if (serviceProfileBackShell) {
-      serviceProfileBackShell.hidden = true;
-    }
   };
 
   const showServiceRegistry = (kind, label) => {
@@ -9436,10 +9369,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* detail inside the passport: back to this tab, title + state, then the sections */
   const renderTemplateDetail = (service, tpl) => `
     <section class="e-permits-dosar-profil__section e-permits-ntpl">
-      <button class="btn btn-neutral btn-sm e-permits-ntpl__back" type="button" data-ntpl-back>
-        <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-arrow-left"></use></svg>
-        <span>Șabloane de notificare</span>
-      </button>
+      ${renderBreadcrumbs([{ label: "Șabloane de notificare", button: true, attr: "data-ntpl-back" }], { trailing: true, className: "e-permits-ntpl__back" })}
       <div class="e-permits-dosar-profil__section-heading">
         <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(tpl.name)}${renderTag(tpl.active ? "Activ" : "Inactiv", tpl.active ? "success" : "neutral")}</h2>
         <span class="e-permits-dosar-profil__section-meta">${escapeHtml(tpl.code)}</span>
@@ -9692,7 +9622,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const clasProfileSummary = document.querySelector("[data-clas-profile-summary]");
   const clasProfileTabs = document.querySelector("[data-clas-profile-tabs]");
   const clasProfileBody = document.querySelector("[data-clas-profile-panel]");
-  const clasProfileBackShell = document.querySelector("[data-clas-profile-back-shell]");
 
   /* US-226 AC-07: from a passport only the values (and their log) are shown; structure stays in Clasificatoare */
   /* one editor, whatever the entry (Alexandr, 2026-10-12; US-226 AC-06/07): from a passport the
@@ -10100,13 +10029,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const c = getClassifier(id);
     if (!c || !clasProfilePanel) return;
     Object.assign(clasState, { id, tabKey: tab, query: "", activity: "all", draft: null, selected: new Set(), fromService });
-    const backLabel = clasProfileBackShell?.querySelector("span");
-    if (backLabel) backLabel.textContent = fromService ? "Înapoi la pașaportul serviciului" : "Înapoi la clasificatoare";
     if (workplacePanel) workplacePanel.hidden = true;
     hideProfilePanels();
     if (permitsProfilePanel) permitsProfilePanel.hidden = true;
     clasProfilePanel.hidden = false;
-    if (clasProfileBackShell) clasProfileBackShell.hidden = false;
     shell.classList.add("is-clas-profile-open");
     setActiveNav(fromService ? "service-config" : "classifiers");
     renderClassifierProfile();
@@ -10116,7 +10042,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const hideClassifierProfile = () => {
     if (clasProfilePanel) clasProfilePanel.hidden = true;
-    if (clasProfileBackShell) clasProfileBackShell.hidden = true;
     shell.classList.remove("is-clas-profile-open");
   };
 
@@ -10788,7 +10713,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const errors = root === clasDrawer ? clasDrawerState?.errors : root === clasModal ? clasModalState?.errors : clasState.draft?.errors;
     clearClasFieldError(event.target, errors);
   }, true));
-  clasProfileBackShell?.addEventListener("click", closeClassifierProfile);
   document.querySelector("[data-workplace-add-classifier]")?.addEventListener("click", openCreateWizard);
 
   clasProfileTitle?.addEventListener("click", (event) => {
@@ -11017,7 +10941,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const ntplProfileSummary = document.querySelector("[data-ntpl-profile-summary]");
   const ntplProfileTabs = document.querySelector("[data-ntpl-profile-tabs]");
   const ntplProfileBody = document.querySelector("[data-ntpl-profile-panel]");
-  const ntplProfileBackShell = document.querySelector("[data-ntpl-profile-back-shell]");
   const NTPL_TABS = [["content", "Conținut"], ["recipients", "Destinatari"], ["settings", "Setări"], ["history", "Istoric"]];
   const NTPL_DATA_SOURCES = ["Dosar", "Plată", "Act permisiv", "Notificare", "Utilizator"];
   const NTPL_PRIORITY_OPTIONS = ["Scăzută", "Normală", "Înaltă"];
@@ -11414,7 +11337,6 @@ document.addEventListener("DOMContentLoaded", () => {
     hideProfilePanels();
     if (permitsProfilePanel) permitsProfilePanel.hidden = true;
     ntplProfilePanel.hidden = false;
-    if (ntplProfileBackShell) ntplProfileBackShell.hidden = false;
     shell.classList.add("is-ntpl-profile-open");
     setActiveNav("notification-templates");
     renderNtplProfile();
@@ -11424,7 +11346,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const hideNtplProfile = () => {
     if (ntplProfilePanel) ntplProfilePanel.hidden = true;
-    if (ntplProfileBackShell) ntplProfileBackShell.hidden = true;
     shell.classList.remove("is-ntpl-profile-open");
   };
 
@@ -12227,7 +12148,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toggle) ntplRuleDraft[toggle.dataset.ntplRuleSwitch] = toggle.checked;
   });
 
-  ntplProfileBackShell?.addEventListener("click", closeNtplProfile);
 
   ntplProfileTitle?.addEventListener("click", (event) => {
     if (event.target.closest("[data-ntpl-crumb-back]")) { event.preventDefault(); closeNtplProfile(); return; }
@@ -13087,10 +13007,6 @@ document.addEventListener("DOMContentLoaded", () => {
     hideProfilePanels();
     permitsProfilePanel.hidden = false;
     shell.classList.add("is-service-profile-open");
-
-    if (serviceProfileBackShell) {
-      serviceProfileBackShell.hidden = false;
-    }
 
     setActiveNav("service-config");
     renderServiceProfile();
@@ -18105,7 +18021,6 @@ document.addEventListener("DOMContentLoaded", () => {
       showShellToast("Exportul acestei liste urmează.", "info");
     }
   });
-  serviceProfileBackShell?.addEventListener("click", closeServiceProfile);
 
   /* 10 tabs outgrow the page: keep the active one in view and fade the edge
      that hides more (Figma's tab .arrow buttons are not in the library yet) */
@@ -19235,7 +19150,6 @@ document.addEventListener("DOMContentLoaded", () => {
       hideShellPages();
       dosarProfilState.returnTo = "dossiers";
       if (dosarProfilPanel) dosarProfilPanel.hidden = false;
-      if (dosarProfilBackShell) dosarProfilBackShell.hidden = false;
       shell.classList.add("is-dosar-profile-open");
     };
     const shellApi = {
@@ -19250,7 +19164,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* a link that lands on a registry with filters already applied (eKYC alert → Sesiuni istorice) */
       setRegistryFilters: (kind, applied) => { getFilterState(kind).applied = { ...applied }; saveFilterState(kind); },
       currentAssignment: () => getRoleAssignments().find((item) => item.id === activeAssignmentId) || null,
-      els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody, dosarProfilBackShell },
+      els: { workplacePanel, workplaceTitle, workplaceRefresh, dosarProfilPanel, dosarProfilTitleRow, dosarProfilSummary, dosarProfilTabs, dosarProfilPanelBody },
       /* for modules: the service passport and its settings (US-221), the signed-in user */
       getServiceByCode, serviceConfig, getAuthorityById, servicesStore: () => servicesStore, currentUserName, localIsoNow, renderBreadcrumbs
     };
