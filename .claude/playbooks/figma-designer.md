@@ -2505,3 +2505,41 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     intended range right after (cover entries, contents lines).
   - No Agent tool in this session → stored `qsweep/audit` on the band main, 2 + 2 bands, sm-01 / nt-01 blocks and both Start here frames:
     1 finding (sm-01 pager paddingRight 1 = declared whole-pixel fix); connectors 20 + 9, unattached 0; overlaps 0; all column gaps 240.
+
+- 2026-10-21 · EVO Cabinet row-action menus + lone „Detalii” + outcome tag + phone toolbar (user on ↳ My requests 1147:4552; code
+  no-lone-detalii-v1 e3cf812b, outcome-tag-v1 61465c45; brief for phone-toolbar-v2). (1) Lone „Detalii”: census of the whole file
+  (visible „Detalii” texts grouped by host) = only ↳ My requests: Request row got a variant axis **Action = More / None** (4 None
+  variants 1194:43160 / :43191 / :43222 / :43252, no More, Title line paddingRight → spacing-0) → 97 rows switched; `Document · card`
+  983:2727 lost its Actions frame in all 6 Cabinet variants (12 live + 30 archive instances follow, 983:2914 incl.; phones 132 → 88).
+  Code vs Figma trigger per row diffed for 17 list states: 0 differences. (2) Outcome tag: Request row BOOLEAN `Show status`
+  (1194:49) → 62 finalized rows hide „Finalizat” (55 Aprobat, 7 Respins); `Profile / Meta item` BOOLEAN `Show tag` (1194:60) → 18
+  „Stare” metas; 18 title-line „Finalizat” tags hidden; 6 „Statutul dosarului” tags swapped to the block's outcome tag. (3) Menus:
+  `Post-process menu · item` + State=Danger (Desktop 1195:3711) + Size=Touch Default / Hover / Disabled / Danger (1195:3715 / 3720 /
+  3725 / 3730: 48 · 12 16 · gap 12 · r8 · 24 icon · Desktop/Body/Default 16/24); new `Menu separator` set 1195:42463 (Desktop 4/8 = 9,
+  Touch 8/16 = 17, border/base/default = #D9D9D9); `Post-process menu` + Size=Touch 1195:42476 (p8 · gap 0 · r16) and slots Group label
+  / Separator / Danger 1 / Danger 2 bound to BOOLEANs `Show label` / `Show separator` / `Show danger 1` / `Show danger 2`; local
+  `20/circle-x` 1196:53473 and `20/lock` 1198:3727 (Foundations ships them at 24 only). Blocks: new sm-01u 1197:42456, sm-01w
+  1197:43340 (menu up), sm-02b 1197:44196 in 01 · Request list; sm-02 1148:43085, pp-01a 1067:4940, pp-01p 1067:5809, pp-01q 1069:12767
+  updated (sheets removed, anchored Touch menus, separator + red danger, „Postprocese” label); Request row `Menu open` surface → white
+  (code). (4) Phone toolbars, both boards: 29 Filtre chips radius-8, 20 sort buttons circular → rectangular Large (state + focus ring
+  kept); no facet chips were left. Stored helpers in figma.root: `figdes`/`rowmenu` (fillMenu / addMenu: spec → menu instance, icons
+  20/24 by key, danger recolour, width, anchor right-aligned 6 below / above), `figdes`/`cloneblock`, `figdes`/`detalii-census`. Lessons:
+  - **Cloning a variant into its set drops `componentPropertyReferences`** (the clone's texts stopped following Title / Date…; 97
+    rows showed the main's default „Terasa „Nistru”” right after the switch). Re-bind refs by layer path from the source variant
+    (skip nodes inside nested instances — „Cannot set component property references on instance sublayer”), then verify every
+    instance: text = its property value. Exposed-instance flags survived; check them too.
+  - **Hidden layers of an instance are not reachable from the plugin API**: a fresh instance lists only its visible children and
+    `getNodeByIdAsync` returns null for a hidden nested node (I…;…). New optional slots need a BOOLEAN property; then
+    `setProperties` shows them and they can be edited. Hidden children of a main also report layoutSizingHorizontal FIXED even when
+    layoutAlign is STRETCH — test with an instance before „fixing” them.
+  - Old menu mains carry `minWidth` (191 = the old pill) → `minWidth = null` on the instance before `resize` to the code width; older
+    instances may still show Item 3 → hide Items 3–7 explicitly when filling.
+  - A connector that starts on a sheet row (pp-01a „Retragere act permisiv” → pp-01g) must be moved to the new menu instance with a
+    position at the item (x = menu width, y = item centre) BEFORE the sheet is removed.
+  - Coordinator added four scopes mid-job (lone Detalii whole file, outcome tag, phone toolbar, then the code commits): finish the
+    current component edit, verify, then switch; diff code vs Figma per state (spec-sm.mjs `more`) instead of trusting the brief.
+  - Not changed (drift, reported): pp-01q profile layout predates the code redesign (subtitle, suspension notice, „Ce permite actul”,
+    phones: icon-only „more” beside „Vezi act permisiv”); the stored builders (`cab`/`smscreens`, screens.js) still draw circular
+    phone sort buttons, the old Detalii swap and the act sheet — patch before any rebuild.
+  - No Agent tool in this session → stored `qsweep`/`audit` on the 7 menu blocks + 8 component sets: only declared baseline (meta dot
+    gap 18, pager 1 px, intentional 812 phone viewports, section-over-card gap 0).
