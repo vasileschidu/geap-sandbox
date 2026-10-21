@@ -1841,3 +1841,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   differences are byte-identical on a HEAD worktree (:8936) — pre-existing spec drift, not mine; check HEAD before
   „fixing” a parity spec. Staging with other agents' hunks in the same files: build HEAD + my asserted edit scripts in a
   temp root (`EDIT_ROOT`), hash-object + update-index, commit in the same command (scratch af/stage.sh).
+- 2026-10-21 · doc-viewer-v2 (user updated Figma 11366:6892 after my v1 commit, + „the document window should be the same
+  round as the wrap”). Re-measured the new PNG with the zlib reader instead of trusting the v1 notes: the tray became a
+  separate card 12 under the canvas, full canvas width, r16 on all corners; the example is an UPLOADED declaration and the
+  node is the însoțitor „Document · details” component → the layout applies to every document, not only generated ones
+  (v1 had read the same example too narrowly — when a Figma component is the generic modal content, its scope is every
+  caller of that modal). Canvas radius: Figma 24, no 24 token in main.css (`var(--border-radius-24, 24px)` exists only as
+  an undefined-token fallback in product CSS) → 16 = the card's radius, so canvas + card read as one unit; reported. The
+  Figma line around the canvas became an inset ring (a real border would shift the fitted page by 1px). Session restarted
+  mid-job: my v2 edits survived in the tree mixed with two agents' hunks in the shell / solicitari / components.md →
+  kept every edit as asserted (old → new) pairs in scratch scripts and staged HEAD + those pairs. code-audit flagged a hex
+  inside a CSS COMMENT (`hex-outside-token`) — write colour names / tokens in comments too.

@@ -933,8 +933,8 @@
         row("Semnătură", doc.semnat ? `${C.signedTagHtml()} ${escape(`MSign · ${doc.de} · ${doc.at}`)}` : "Fără semnătură electronică"),
       ]),
       downloadAttrs: `data-cab-doc-download="${escape(key)}"`,
-      /* doc-viewer-v1: the system certificate = preview + signature block only */
-      generated: doc.sursa === "generat" || doc.sursa === "mdocs",
+      /* doc-viewer-v2 (GEAP 2.0 11366:6892): every document = preview + signature card only (uploads too) */
+      generated: true,
       signature: doc.semnat ? window.GEAPDocPreview?.signatureHtml({ by: doc.de, at: doc.at, sprite: C.SPRITE }) || "" : "",
     });
   }

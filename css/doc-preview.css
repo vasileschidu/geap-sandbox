@@ -160,20 +160,20 @@
   max-height: none;
 }
 
-/* ---- Signature block (doc-viewer-v1, 2026-10-21; GEAP 2.0 11366:6892 „Modal content / Document · details”):
-   the generated document viewer = the canvas + this grey tray hanging under it, as wide as the page (inset = the
-   canvas padding), square top / r16 bottom, 12 16 padding; the Small „Semnat electronic” badge ABOVE one meta line
-   14/20 tertiary („MSign · <signer> · <date, time>”), 2 apart. No gap between canvas and tray. ---- */
+/* ---- Signature card (doc-viewer-v2, 2026-10-21; GEAP 2.0 11366:6892 „Modal content / Document · details”, updated):
+   the document viewer = the canvas + this grey card 12 under it, as wide as the canvas, radius 16 on every corner,
+   12 16 padding; the Small „Semnat electronic” badge ABOVE one meta line 14/20 tertiary („MSign · <signer> ·
+   <date, time>”), 2 apart. (v1 was a tray hanging flush under the canvas, inset to the page.) ---- */
 .e-permits-doc-signature {
-  --doc-signature-inset: var(--spacing-24, 24px);
+  --doc-signature-inset: var(--spacing-0, 0px);
   align-items: flex-start;
   background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: 0 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px);
+  border-radius: var(--border-radius-16, 16px);
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
   gap: var(--spacing-2, 2px);
-  margin: 0 var(--doc-signature-inset);
+  margin: var(--spacing-12, 12px) var(--doc-signature-inset) 0;
   padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
 }
 
@@ -202,13 +202,27 @@
   width: var(--spacing-16, 16px);
 }
 
-/* the tray touches the canvas: the viewer bodies drop their gap when they hold one */
+/* the document window = one rounded unit with the card (user 2026-10-21: „the document window should be the same round
+   as the wrap”; Figma 11366:6892 draws the canvas at 24 + a 1px border-default line — 24 has no token in main.css, so the
+   canvas takes the card's --border-radius-16; the line is an inset ring, so the fitted page keeps its geometry).
+   Phones keep the edge-to-edge canvas (css/modal-phone.css § 7, radius 0). */
+.e-permits-doc-peek__canvas:is(.e-permits-detail-modal__preview, .cab-doc-modal__preview, .rap-act-modal__canvas) {
+  border-radius: var(--border-radius-16, 16px);
+  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
+}
+
+/* the card keeps 12 from the canvas whatever the viewer body's own gap (16 BO / 24 Cabinet / 0 act dialog) */
 :is(.e-permits-detail-modal .modal-content, .cab-doc-modal__body, .rap-act-modal__body):has(> .e-permits-doc-signature) {
   gap: var(--spacing-0, 0px);
 }
 
-/* phones: the A4 viewers draw the page with 8 of canvas around it (css/modal-phone.css § 7) */
+/* phones: the A4 viewers draw the canvas edge to edge (css/modal-phone.css § 7) → the card keeps 8 from the screen
+   edges and 8 above the footer */
 @media (max-width: 760px) {
+  .e-permits-doc-peek__canvas:is(.e-permits-detail-modal__preview, .cab-doc-modal__preview, .rap-act-modal__canvas) {
+    box-shadow: none;
+  }
+
   :is(.e-permits-detail-modal--doc .modal-content, .rap-act-modal__body, .cab-doc-modal__body) > .e-permits-doc-signature {
     --doc-signature-inset: var(--spacing-8, 8px);
     margin-bottom: var(--doc-signature-inset);

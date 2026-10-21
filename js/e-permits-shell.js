@@ -3493,10 +3493,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       file = d.fisier.replace(/\.[a-z0-9]+$/i, "");
       preview = renderDosarDocPreview(d, row, profile);
-      /* doc-viewer-v1 (user 2026-10-21, GEAP 2.0 11366:6892): a GENERATED document (MDocs / SIA GEAP — the blue
-         document icon) = the preview + ONE signature block under it; no „Date generale”, no „Doar citire”, the
-         canvas takes the dialog height. Uploaded documents keep preview + details + note. Unsigned = no block. */
-      generated = d.sursa === "mdocs" || d.sursa === "generat";
+      /* doc-viewer-v2 (user 2026-10-21, GEAP 2.0 11366:6892 „Document · details”, updated): EVERY document (generated
+         or uploaded) = the preview, taking the dialog height, + ONE signature card under it; no „Date generale”, no
+         „Doar citire”. Unsigned = the preview only. (`generated` = the document viewer mode; payment / approval keep
+         their details card.) */
+      generated = true;
       signature = generated && d.semnat
         ? window.GEAPDocPreview?.signatureHtml({ by: d.semnat.nume || d.de?.nume || row.numeSolicitant, at: formatStamp(d.at) }) || ""
         : "";
