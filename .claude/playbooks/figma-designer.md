@@ -2723,3 +2723,33 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     the source width (357, the section inside sits at −12), clip off, card paddingBottom 24 for the −12 overflow.
   - Stored `qsweep/audit` on C01c: 0 findings in the new pieces; 22 raw „Button” + 22 image-fill icons inside the cloned rows = the same
     captured debt as C01 / C01a / C01b (whole-column fix, not done here). No Agent tool → no ui-qa-figma run.
+
+- 2026-10-21 · FOD „Temeiul reprezentării” mess (user on FOD 756:24929, C2 „Date solicitant · Own PJ”). The card is the GEAP
+  `Authorization card (FO)` set 11861:7142 (published key 9c45cfd3…; RSUD e7d4d2e6…, MPower 663e22a9…), nested in the GEAP
+  `Requestor` set 2210:20269 that FOD uses as a REMOTE instance. Cause of the overlap / floating tag: **a stale stored layout**
+  — the plugin API already read a clean layout (Meta WRAP, parts HUG, tag 8 after the title) while get_screenshot (and the
+  user) still saw the old FIXED-part geometry; the first plugin read of the instance's boxes re-laid it out and the next
+  screenshot was clean. Fixed for good with real writes: GEAP mains → text styles (Title / values Desktop/Body/Small 500
+  057521fd…, labels Desktop/Body/Small 1f355410…; they had none), meta parts renamed `Meta item N` / `Dot`, MPower glyph
+  24/identity → Foundations **20/identity 370dd6e0…** (code icon-identity 20); FOD C2 / C3 / C4 → the same text styles as
+  instance overrides (no-ops after the next GEAP publish) and the „Soliciți în numele” title override reset to the main's
+  „Solicitant” (= code). Lessons:
+  - **„Overlaps” in a remote / nested instance whose plugin geometry is clean = stale layout**, not a broken component. Read
+    the instance's absolute boxes, re-screenshot; then make a real write on it (text style / property) so the relayout is saved.
+  - **Remote instances: an icon swap override can't be resized** (`resize` on the nested icon is silently ignored — it stayed
+    24). Don't swap glyph sizes per instance in a consumer file; fix the main in the source file, `resetOverrides()` on the
+    nested icon in the consumer, and let the publish carry it.
+  - **Matching instance texts to main texts by parent NAME is unsafe** (two „Container” parents) — I reset the wrong heading
+    on C5 and had to restore it. Match by child-index path or by the exact current text + parent path.
+  - The code's icon here IS the grey 32 tile (tertiary + 1 px border, icon secondary 20: icon-business RSUD / icon-identity
+    MPower) and the card radius is 12 (the role cards above are r16 in Figma but 12 in code) — Figma follows the code; the
+    „make it like the cards above” wish goes to the PO, not a silent restyle.
+  - Library delta, declared: the title info button is button-text-rectangular Small Icon Only (32) vs code 24 → each role group
+    is 8 px taller than the code (118 vs 110). GEAP has `Info trigger (tooltip)` 11931:41990 (24) but it is not published, so FOD
+    can't use it.
+  - Left, reported: C5 (authenticated notarial power of attorney) has no demo state in code → untouched; 10 hidden
+    `Frame 1261156030` leftovers with MPower cards in FO 09 F2–F2i mobiles; PF / None still says „Depui ca” (legacy).
+  - Probe: a 40-line CDP script (state × width → role-group / card / tag / meta rects + clipped PNG of
+    `.e-permits-fo-form__roles`) answered every number; poll for the roles element instead of a fixed sleep.
+  - No Agent tool in this session → stored `ghs/audit` on the set + 4 GEAP instances: 0 findings; inline mini gate audit on the
+    FOD C2 / C3 / C4 role areas (unstyled text, unbound fills, fractions, sibling overlap, image fills, non-auto-layout): 0.
