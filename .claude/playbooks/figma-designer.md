@@ -2570,3 +2570,23 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     code 16/24 + icon 24 (the rule allows only height + radius overrides).
   - No Agent tool in this session → stored `rap`/`audit` (figma-audit) on the 12 changed toolbars / filter rows: 0 findings; census: 25
     triggers = 9901c458 (10 × 40, 15 × 48, r6), 16 phone searches Large, 14 connectors 0 unattached, all column gaps 240.
+
+- 2026-10-21 · No lone „Detalii” on clickable BO rows (user: „remove from code and also from Figma!!!”; code e3cf812b
+  no-lone-detalii-v1). Census of visible „Detalii” texts by host on Dossiers, Services, Tariffs, Classifiers + a CDP probe of
+  the code rows (dos-03a/b/e, 04a/b, 04g, 04n, svc-06j, svc-07: buttons per `.e-permits-stack__item`). Changed: `Document · row`
+  11362:7113 — the six „Action=Details” variants renamed IN PLACE to **Action=None** with the Actions frame removed (5542 /
+  5722 / 6045 / 6237 / 6579 / 6771; 73 rows on Dossiers 04, 04c–04t follow, 0 swaps); `svc/stack-item` 9521:8751 got BOOLEAN
+  **Show actions#12261:0** (default true, bound to the Actions frame) → off on Dossiers 03b ×2, 03e ×2, 04a, 04b and Services
+  08 (svc-07) CUATM / CAEM-2 (+ 03d ×3, which had no visible action but kept a phantom 112 px Actions frame). 8 connectors that
+  started on the button re-labelled „Clic pe rând” (names „· Row click”), position starts moved to x = row width. Heights
+  unchanged → no restack. Kept: Services 05 / 07 (admin „Editează”), Fees rows with ⋮, Tariffs registry tables, Ghișeu /
+  FO cards; svc-06j (read-only documents) has no Figma block. Lessons:
+  - **An auto-layout frame whose children are all hidden keeps its last size** (the 03d rows had all action booleans off and
+    still reserved 112 px) → the „no action” switch must hide the CONTAINER: a BOOLEAN bound to the Actions frame, not only
+    the per-button booleans.
+  - When the code removes an action from EVERY use of a variant, rename that variant in place (Details → None) instead of
+    adding a new one and swapping: overrides and connectors stay, and no unused variant is left behind.
+  - Connectors starting at a removed button: move a `position` start to the row's right edge and rename the label/name to the
+    new trigger („Clic pe rând”) in the same call; notes that still quote „Detalii” are left to the notes agent (reported).
+  - No Agent tool in this session → stored `qsweep/audit` on 7 Dossiers blocks, Services 08 and both components: only the
+    baseline (section-over-card gap 0, meta-dot gap 18, gov-bar logo / #000 text).
