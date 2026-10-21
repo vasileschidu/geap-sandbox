@@ -2947,3 +2947,37 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     so turn it off on bars.
   - Library gaps (kept library-first): outlined Destructive button is white (code „1 eroare” is pink); FO stepper step is 48 high
     (code 56).
+
+- 2026-10-21 · **Destructive = red everywhere** (user: „ALL destructive actions should be red”; code `.is-danger` / `danger: true` /
+  `btn-destructive` / `btn-text-destructive`) + missing Ghișeu blocks. GEAP: every enabled destructive dropdown item → the local
+  `Post-process menu · item` **State=Danger, Size=Desktop 12268:364506** (swapComponent on the library `.menu-item-action`, label +
+  old glyph through the Label / Icon props, FILL kept; stored `danger`/`swap` + `danger`/`recolour` in figma.root): Ghișeu gh-01d /
+  gh-11d „Elimină schița” (gh-11c stays Disabled grey = code `aria-disabled` wins over `.is-danger`), Services fee / rule menus
+  (Șterge ×3, Dezactivează ×3, Elimină, Anulează programarea), Users (Elimină combinația, Șterge utilizatorul, Inactivează
+  utilizatorul), NT Șterge (+ trash icon), Post-processes 2 library + 1 raw captured „Retragere act permisiv” (raw → instance
+  12314:362040). Buttons: Post-processes 01g / 02b raw blue „Confirm și continui” → library button-filled-circular Neutral +
+  Destructive Medium (code: red confirm for every consequential post-process), Classifiers 04 „Elimină” Neutral → button-text-
+  rectangular Destructive Small (code btn-text-destructive), eKYC C01e „Dezactivează organizația” Primary → Destructive. FOD: item set
+  890:11544 + State=Danger 1139:812, local `20/circle-x` 1139:809, `Menu separator` 1139:816, `Post-process menu` 890:11545 + slots
+  Separator / Danger 1 (BOOLEANs Show separator / Show danger 1) → Requestor P2 menu = Reperfectare · separator · Retragere red
+  (206 × 85 = code). eKYC / EVO-WEB RAP: no destructive menu item drawn (only facet „Șterge” = clear selection) → no component added.
+  Cabinet: already Danger everywhere. New Ghișeu blocks: gh-02y 12316:31206 (col 03, tacit act: Extra tag on + Status hidden),
+  gh-13a 12316:29473 + gh-13b 12316:30439 (col 11 after gh-13, column restacked at 240), markers in gh-01 („→ GH-13a · Clic pe rând”,
+  gh-13 relabelled „Enter pe rând”, gh-02x „Clic pe rând”) and gh-01f („→ GH-13b · Spațiu pe rând”). Lessons:
+  - **The local item's Danger icon was black**: GEAP's Desktop Danger variant had icon/base on the vector (only Touch was red), and
+    the set-wide INSTANCE_SWAP default had become 20/edit. **Any icon swap through the Icon property drops the variant's vector fill
+    override** (layer names differ between glyphs) → after setting Icon, bind every icon vector fill / stroke to icon/danger/default
+    on the instance (stored `danger`/`recolour` walks `getInstancesAsync()` of both Danger variants). Always set the Icon prop
+    explicitly (circle-x for Retragere, delete for Elimină / Șterge, pause for Dezactivează / Inactivează).
+  - **Census by label first, then judge each hit by context**: „Șterge” in filter popovers = clear the selection, „Anulare” /
+    „Retragere” in tables, selection lists and checkbox options = request types, „Retrage rezultatele” = publish toggle — none are
+    destructive. `\b` after „ă” never matches in JS regex (non-ASCII) → use `(?=\s|$)`.
+  - BO stack menus have NO separator in code (`renderStackMenu`); act / request menus do (danger last after a separator).
+  - Code still shows these destructive buttons neutral / blue (left as the code, listed for proto-engineer + PO): Cabinet draft
+    profile „Elimină schița” (btn-neutral, 10×), eKYC profile „Dezactivează” (32) / „Suspendă contul” (11) / „Revocă …” (22),
+    eKYC „Dezactivează în schimb” (btn-secondary), GEAP Tariffs „Dezactivează” (btn-neutral); GEAP Users „Retrage” / „Revocă” are
+    pre-switch legacy screens.
+  - `clone()` + text replace builds a state block fast (stored `danger`/`cloneblock`: label / ID / title / link / note / screen
+    texts, cloned markers dropped). Text replace also hits the background list behind a full sheet — harmless, but check.
+  - No Agent tool in this session → stored `ghs/audit` on the 3 new blocks + changed menus / footers: only the cloned-shell
+    baseline (background registry clips, rows-per-page label, raw scrim, padded sections gap 0); FOD mini gate: 0.
