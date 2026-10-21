@@ -2590,3 +2590,28 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     new trigger („Clic pe rând”) in the same call; notes that still quote „Detalii” are left to the notes agent (reported).
   - No Agent tool in this session → stored `qsweep/audit` on 7 Dossiers blocks, Services 08 and both components: only the
     baseline (section-over-card gap 0, meta-dot gap 18, gov-bar logo / #000 text).
+
+- 2026-10-21 · **Notes: max 45 words, plain English, no specs** (user on RAP note 22080:131432: „what is this long text? It looks like
+  random words … keep it short, just explain what is happening”). Every note / column description / Start here card = 1–3 sentences
+  (≤ 45 words) on what the user sees and what happens, Romanian UI labels quoted „…”, one optional last line for a reference
+  („US-162 AC-08”). Never: pixel sizes, tokens, component / class names, file paths, commit ids, colours, „Gol bibliotecă” lines,
+  „Mobil (≤ 860 px)” lines, lists of changes. „Declared deltas” / „Library gaps” / „Code findings” / „Rules used” cards are not for PMs →
+  deleted; „Components used” → two plain bullets. „How to read” → 3 bullets (columns in flow order · block anatomy · arrows from the click).
+  Done: RAP 42 notes + 5 column lines + Start here (2 cards removed); GEAP 413 notes on 15 pages + 30 band / How-to-read texts; eKYC 87
+  notes + 14 texts (library-gaps card removed); FOD 13 notes + 5 texts; Cabinet 11 notes + 2 „Components used” shortened, 2 „Declared
+  deltas” cards removed. Same job: RAP blocks got the GEAP anatomy in the MAINS (`Board / Block label` set 22060:5083: blue chip
+  background/brand/default + text/base-inverse/default, gap 12, `Link · prototype` text added to all 3 variants, hyperlink set per
+  instance; `Board / Note` 22060:5084: library tag-filled Strong Neutral Medium, H4 title „<id> · title”, gap 12, link + `Link` prop
+  removed; note instances FILL), screens gap 120 (dw 40 → markers right of the desktop moved +40), columns restacked at 240; 42 / 42
+  states curl 200 and present in the live demo-states.js. Lessons:
+  - **Tooling**: stored helpers in each file's root shared plugin data („notes”/„lib”, „notes”/„app”; copies in the session scratchpad):
+    census (`need` = > 45 words OR spec regex OR ≥ 3 Romanian function words outside „…”), `apply(page, {noteId: text})` snapshots
+    every column chain (same rounded x, original gaps, overlapping items ride along) BEFORE writing, then a separate `restack` call
+    restores those gaps. `setBody` keeps the longest segment's text style / fill, clears hyperlinks, and if the old text had a sandbox
+    URL appends a linked „Prototype ↗” to the reference line (GEAP sync notes 04–04f had no label link).
+  - **Never restack a block grid by rows unless the rows are really aligned**: eKYC columns start together but drift; a row-by-y pass
+    treated 17 near-equal tops as 17 rows and spread D01 to 27 000 px. Fixed by replaying the stored per-column chains (all chain heads
+    were on the top row) and refitting sections > bottom + 400. Flow diagrams with decisions / markers in other columns (FOD Address,
+    Requestor, GEAP Services „Permits Table” grid) are NOT restacked — shorter notes only leave space, never overlaps.
+  - Ghișeu „How to read · Contents” keeps its 12 per-line links → left as is (rewriting `characters` would drop them).
+  - Note titles were left as they are (many GEAP titles are Romanian and mirror the block label) — a separate pass if the PO wants them.
