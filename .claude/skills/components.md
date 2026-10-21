@@ -5469,9 +5469,17 @@ Each caller keeps its data and texts and only maps them to `steps[] = { label, s
 - Card `.e-permits-trajectory`: `--color-background-base-default`, 1px `--color-border-base-default`, radius 24
   (the dosar cards; no token), padding `--spacing-20`.
 - `ol.__steps` = flex row. Every step hugs its content (`__body`: marker · 6 · title · 6 · meta, all centred,
-  first / last step on the card's content edges). Steps 2…n carry the connector as `::before`, a flex filler
-  `flex: 1 1 0` with 8 (`--spacing-8`) margins on both sides and a 16 minimum → all connectors are the same
-  length (Figma: fixed-width connector frames between the step boxes, line inset 8).
+  first / last step on the card's content edges; **body min-width 40** = 24 + 2 × `--spacing-8`). Steps 2…n
+  carry a flex filler `::before` (`flex: 1 1 0`, 16 minimum, no margins) between the two bodies → the free width
+  is shared equally.
+- **Connector rule (trajectory-gap-v1, 2026-10-21; user: „line closer to the check icons, everywhere”):** the line
+  stops **8 (`--spacing-8`) from the 24 marker box on both sides, whatever the label width**, and runs unbroken
+  from step to step. It is three pieces meeting edge to edge: the previous body's right half `__body::after`
+  (left = 50% + 12 + 8 → body edge) · the step filler `::before` · this body's left half `__body::before` (body
+  edge → right = 50% + 12 + 8). The first step has no left half, the last no right half; only the outer ends are
+  rounded (no notch at the joins); each half takes the colour of the connection on its side. Measured 8 ± 0.5 at
+  1920 / 1440 / 1024 (ek-05, ek-05g, ek-07e, dos-01 / 01b / 01g / 01h, fo-08, pp-10f, short labels „Emis”, „Semnat”);
+  before it was (label − 24) / 2 + 8 = 11…63. The vertical layout hides the halves (its `::after` is already 8 / 8).
 - Connector: grey `--color-border-base-default` 1.5 (`--border-width-1-5`), top 11.25; brand
   `--color-border-brand-default` 2 (`--border-width-2`), top 11, between two **reached** steps
   (done · current · paused · attention · rejected). Centred on the 24 marker.

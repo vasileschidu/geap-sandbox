@@ -1790,3 +1790,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   strings so the HEAD-based blobs could be rebuilt for shared files. Second restart (wiped again, other agents had committed in
   between and one commit reset two of my HTML keys): staged by HUNK instead — `git diff -U0 HEAD` split into hunks, pick mine by
   index, `git apply --unidiff-zero` onto a HEAD copy; mixed hunks (another agent's lines inside mine) by line replacement.
+- 2026-10-21 · Trajectory gap (user: „line closer to the check icons, everywhere”, trajectory-gap-v1): a connector drawn
+  BETWEEN content-sized boxes with a fixed margin puts the line (box − icon) / 2 + margin from the icon (11…63 px).
+  Fix = measure from the icon, not the box: the step filler joins the two bodies with no margin, each body draws
+  two absolute half-lines (`left: 0; right: calc(50% + 12 + 8)` / mirrored; first / last hidden; brand on the side
+  of a reached connection via `:has(+ …)`), body min-width 24 + 2 × 8, only outer ends rounded. Proof = a pixel
+  scan of the marker-centre row (canvas in the page, DPR 2: gap to the first non-background pixel + intensity dips
+  along the line for seams) — scratch measure.mjs pattern; vertical unchanged proved by byte-identical crops vs a
+  HEAD `git worktree` served on another port.

@@ -3,7 +3,8 @@
    Reference: Figma GEAP 2.0 aHgwVwiNCOSOqbMhMjjUOj 9709:1137, measured from its PNG:
    white card, 1px border-base-default, radius 24, padding 20; steps hug their content
    (marker 24 · 6 · label 14/20 · 6 · meta 12/16), everything centred, first / last step on the
-   card edges; equal connectors between the step boxes, 8 from each box, centred on the marker:
+   card edges; the line runs unbroken from step to step and stops 8 from each 24 marker box,
+   whatever the label width (trajectory-gap-v1, 2026-10-21), centred on the marker:
    brand 2px between reached steps, grey 1.5px otherwise; to-do ring 20 / 1.5 border-base-secondary;
    the current step's label on a soft pill (brand-secondary, radius 4, 0 4 padding, 20 high).
    Vertical layout = the same parts in a marker column (FO „Statutul dosarului”, Cabinet
@@ -46,25 +47,72 @@
 }
 
 /* every step after the first carries the connector before it; the free width is shared
-   equally, so all connectors have the same length (Figma: fixed-width connector frames) */
+   equally, so all connectors have the same length (Figma: fixed-width connector frames).
+   The connector is drawn in three pieces that meet edge to edge (trajectory-gap-v1, 2026-10-21):
+   the previous body's right half-line (__body::after) · this filler between the two bodies
+   (step::before) · this body's left half-line (__body::before). Each half-line runs from the body
+   edge to 8 (--spacing-8) from the 24 marker box, so the line stops 8 from every icon whatever
+   the label width; the body is at least 40 (24 + 2 × 8). Only the outer ends are rounded, so the
+   joins show no notch. */
 .e-permits-trajectory__step + .e-permits-trajectory__step {
   flex: 1 1 auto;
 }
 
-.e-permits-trajectory__step + .e-permits-trajectory__step::before {
+.e-permits-trajectory__step + .e-permits-trajectory__step::before,
+.e-permits-trajectory__body::before,
+.e-permits-trajectory__body::after {
   background: var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-full, 9999px);
   content: "";
-  flex: 1 1 0;
   height: var(--border-width-1-5, 1.5px);
-  margin: calc(var(--spacing-12, 12px) - var(--border-width-1-5, 1.5px) / 2) var(--spacing-8, 8px) 0;
+}
+
+.e-permits-trajectory__step + .e-permits-trajectory__step::before {
+  flex: 1 1 0;
+  margin-top: calc(var(--spacing-12, 12px) - var(--border-width-1-5, 1.5px) / 2);
   min-width: var(--spacing-16, 16px);
 }
 
-.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) + .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected)::before {
+.e-permits-trajectory__body::before,
+.e-permits-trajectory__body::after {
+  position: absolute;
+  top: calc(var(--spacing-12, 12px) - var(--border-width-1-5, 1.5px) / 2);
+}
+
+/* left half: body edge → 8 before the marker (the marker is centred in the body) */
+.e-permits-trajectory__body::before {
+  border-radius: 0 var(--border-radius-full, 9999px) var(--border-radius-full, 9999px) 0;
+  left: 0;
+  right: calc(50% + var(--spacing-12, 12px) + var(--spacing-8, 8px));
+}
+
+/* right half: 8 after the marker → body edge */
+.e-permits-trajectory__body::after {
+  border-radius: var(--border-radius-full, 9999px) 0 0 var(--border-radius-full, 9999px);
+  left: calc(50% + var(--spacing-12, 12px) + var(--spacing-8, 8px));
+  right: 0;
+}
+
+/* no line before the first step / after the last one */
+.e-permits-trajectory__step:first-child .e-permits-trajectory__body::before,
+.e-permits-trajectory__step:last-child .e-permits-trajectory__body::after {
+  content: none;
+}
+
+/* brand 2px between two reached steps: the filler + this body's left half, the previous body's right half */
+.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) + .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected)::before,
+.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) + .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) > .e-permits-trajectory__body::before,
+.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected):has(+ .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected)) > .e-permits-trajectory__body::after {
   background: var(--color-border-brand-default, #0058d2);
   height: var(--border-width-2, 2px);
+}
+
+.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) + .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected)::before {
   margin-top: calc(var(--spacing-12, 12px) - var(--border-width-2, 2px) / 2);
+}
+
+.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) + .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected) > .e-permits-trajectory__body::before,
+.e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected):has(+ .e-permits-trajectory__step:is(.is-done, .is-current, .is-paused, .is-attention, .is-rejected)) > .e-permits-trajectory__body::after {
+  top: calc(var(--spacing-12, 12px) - var(--border-width-2, 2px) / 2);
 }
 
 .e-permits-trajectory__body {
@@ -73,7 +121,9 @@
   flex: 0 1 auto;
   flex-direction: column;
   gap: var(--spacing-6, 6px);
-  min-width: 0;
+  /* 24 marker + 8 line inset on both sides */
+  min-width: calc(var(--spacing-24, 24px) + var(--spacing-8, 8px) * 2);
+  position: relative;
   text-align: center;
 }
 
@@ -190,7 +240,9 @@
   padding-bottom: 0;
 }
 
-.e-permits-trajectory:is(.e-permits-trajectory--vertical, .is-stacked):not(.is-measuring) .e-permits-trajectory__step + .e-permits-trajectory__step::before {
+.e-permits-trajectory:is(.e-permits-trajectory--vertical, .is-stacked):not(.is-measuring) .e-permits-trajectory__step + .e-permits-trajectory__step::before,
+.e-permits-trajectory:is(.e-permits-trajectory--vertical, .is-stacked):not(.is-measuring) .e-permits-trajectory__body::before,
+.e-permits-trajectory:is(.e-permits-trajectory--vertical, .is-stacked):not(.is-measuring) .e-permits-trajectory__body::after {
   content: none;
 }
 
