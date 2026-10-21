@@ -112,7 +112,6 @@
   /* US-135 AC-14: a payment note past its term can no longer be paid (the request status stays as it
      is — the expired-note status mapping is a pending PO decision, MCabinet 95895) */
   const paymentExpired = (dosar) => dosar.status === "achitare" && Boolean(dosar.payment?.due) && dosar.payment.due < TODAY;
-  const PAYMENT_EXPIRED_TEXT = "Taxa a expirat. Achitarea nu mai este posibilă.";
 
   /* US-29 AC-02 / US-21 AC-04: a draft is kept until the end of its removal day (counted from the FIRST save);
      after that it is removed automatically — not listed, the applicant is notified (notificari.js) */
@@ -311,7 +310,8 @@
      Depune contestație →” (a right with a deadline, the official matrix; 2026-10-20). An expired suplinire is not
      an alert: the request is back „În derulare” (normalize). No alert for drafts (the removal date is in the
      meta) nor for waiting states (în examinare, termen, tacit → the profile's „Stadiul solicitării”). A new status
-     = one entry here (+ its label in data/cabinet-evo-solicitari.json › statuses). */
+     = one entry here (+ its label in data/cabinet-evo-solicitari.json › statuses). `{ link: false }` = the same alert
+     without its inline action, for the profile's „Stadiul solicitării” card (its button is right under it). */
   const countdown = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
   const on = (date) => `<strong>${escape(longDate(date))}</strong>`;
   /* US-19 AC-02 „Data estimată de finalizare” in the row = part of its action alert (requests in examination:
@@ -329,19 +329,19 @@
     },
     info: {
       tag: "warning",
-      alert: (d) => ({ tone: "warning", icon: "icon-warning-filled", html: `Trimiteți informațiile cerute până la ${on(d.info?.until)}${countdown(d)}${endNote(d)}${alertLink(d, "supplement", "Trimite informațiile", foUrl(d, "supplement"))}` }),
+      alert: (d, { link = true } = {}) => ({ tone: "warning", icon: "icon-warning-filled", html: `Trimiteți informațiile cerute până la ${on(d.info?.until)}${countdown(d)}${endNote(d)}${link ? alertLink(d, "supplement", "Trimite informațiile", foUrl(d, "supplement")) : ""}` }),
     },
     achitare: {
       tag: "warning",
-      alert: (d) => (paymentExpired(d)
+      alert: (d, { link = true } = {}) => (paymentExpired(d)
         ? { tone: "danger", icon: "icon-circle-error-filled", html: `Taxa a expirat pe ${on(d.payment?.due)}. Achitarea nu mai este posibilă.` }
-        : { tone: "warning", icon: "icon-credit-card", html: `Achitați taxa de ${escape(money(d.payment?.amount))} până la ${on(d.payment?.due)}${countdown(d)}${endNote(d)}${alertLink(d, "pay", "Achită acum")}` }),
+        : { tone: "warning", icon: "icon-credit-card", html: `Achitați taxa de ${escape(money(d.payment?.amount))} până la ${on(d.payment?.due)}${countdown(d)}${endNote(d)}${link ? alertLink(d, "pay", "Achită acum") : ""}` }),
     },
     derulare: { tag: "info", alert: () => null },
     finalizat: {
       tag: "success",
-      alert: (d) => (d.result === "respins" && canAppeal(d)
-        ? { tone: "info", icon: "icon-judge-gavel", html: `Puteți depune contestație până la ${on(appealUntil(d))}${countdown(d)}.${alertLink(d, "appeal", "Depune contestație", foUrl(d, "appeal"))}` }
+      alert: (d, { link = true } = {}) => (d.result === "respins" && canAppeal(d)
+        ? { tone: "info", icon: "icon-judge-gavel", html: `Puteți depune contestație până la ${on(appealUntil(d))}${countdown(d)}.${link ? alertLink(d, "appeal", "Depune contestație", foUrl(d, "appeal")) : ""}` }
         : null),
       date: (d) => (d.finalized ? `Finalizată ${longDate(d.finalized)}` : ""),
     },
@@ -506,7 +506,8 @@
     }));
   }
 
-  const dirName = (d) => (d.name || d.label).toLowerCase();
+  /* „de la A la Z”: only the first letter goes lower case (as the acts list, acts-sort-v1) */
+  const dirName = (d) => { const name = d.name || d.label; return `${name.charAt(0).toLowerCase()}${name.slice(1)}`; };
   const sortNow = () => { const [key, dir] = state.sort.split("-"); const sort = SORT_KEYS.find((item) => item.key === key) || SORT_KEYS[0]; return { sort, dir, text: `${sort.label}, ${dirName(sort.dirs[dir])}` }; };
   /* the orders of a key, its natural one first (labels for the key: dates newest / oldest, texts A → Z / Z → A) */
   const sortOrders = (key) => {
@@ -647,73 +648,131 @@
   const rows = (list) => C.detailCard(list);
   const section = (id, title, body, { scope = false } = {}) => C.profileSection(`sm-sec-${id}`, title, body, { attrs: scope ? "data-sm-dl-scope" : "" });
 
-  /* ---------- „Stadiul solicitării” (2026-10-17): ONE bordered card = the current status on top
-     (Small tags + the status sentence / next step + the action that exists) · hairline · the timeline
-     of the request (the shared trajectory, vertical and bare — js/trajectory.js: done steps with their
-     dates, the current one on the soft pill, the next ones as rings). Replaces the stepper + callout +
-     loose action row + „Istoric complet”. */
-  const STEP_STATE_TEXT = { done: "finalizat", current: "etapa curentă", attention: "necesită acțiunea dumneavoastră", rejected: "respins", todo: "urmează" };
+  /* ---------- „Stadiul solicitării” (request-trajectory-v1, 2026-10-21; user: „as we did for the other platforms, the
+     horizontal one with short statuses”; was the vertical timeline in a bordered card, 2026-10-17) = the BO block:
+       1. WHERE — the shared HORIZONTAL trajectory card (js/trajectory.js, the BO dossier's component;
+          it draws itself vertically when the steps do not fit, i.e. on phones): short labels, the story-backed
+          date · who under each step (trackerSteps);
+       2. NOW / NEXT — a separate notice card 12 under it (statusNow: a short medium line + one sentence, every
+          status) with the action that exists inside, under the text.
+     The status word itself is in the header (Stare) and the tracker — never a third time here (one fact once).
+     The full story (who signed, MPower, MSign / MPay, the subdivision, the notes) = the „Istoric” section of
+     Date generale (historyHtml, the vertical trajectory as on the act profile). */
+  const STEP_STATE_TEXT = { done: "finalizat", current: "etapa curentă", attention: "necesită acțiunea dumneavoastră", rejected: "respins", skipped: "omis", todo: "urmează" };
+  /* the BO trajectory's date („5 oct. 2026”) — narrow steps, the long dates stay in Istoric */
+  const shortDate = (iso) => (isoDay(iso) ? new Date(`${isoDay(iso)}T12:00:00`).toLocaleDateString("ro-RO", { day: "numeric", month: "short", year: "numeric" }) : "");
 
+  /* the status notice (request-trajectory-v1, user: „some kind of notification that explains the status”, then „short
+     notifications, as in Figma” — EVO Cabinet 518:11121 / 26:5220; then „exactly as in Dosarele mele, with the integrated
+     alert”, then „make it separate”, look = EVO Cabinet Figma 332:1416): EVERY status gets ONE notice card under the
+     trajectory card = a medium lead (the key fact + its date) + at most ONE short sentence; formal „dumneavoastră” as the rest
+     of the Cabinet; the live countdown of the row alert where there is a deadline. Tone (the ICON only, the card stays
+     neutral grey as Figma 332:1416): amber / red when the applicant must act or can no longer act, green for an
+     issued act / decision, blue for the rest. The long texts moved: the suspension reason → Date generale „Motivul suspendării”, the full
+     story → „Istoric”. */
+  const notice = (tone, iconId, lead, text = "") => ({ tone, icon: iconId, lead, text });
+  const live = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
   function statusNow(dosar) {
     const service = serviceOf(dosar);
-    const where = [service.authority, dosar.subdivision].filter(Boolean).join(" — ");
+    const where = escape([service.authority, dosar.subdivision].filter(Boolean).join(" — "));
+    const date = (value) => escape(longDate(value));
     switch (dosar.status) {
       case "schita":
-        /* US-18 AC-09: signed + paid but „Confirmă depunerea” not pressed → the BO submits it after the grace period
-           (the removal date stays in the title: whether such a draft shows it is PO question 5) */
-        if (dosar.signed) {
-          return {
-            title: `Schiță nedepusă · se elimină automat pe ${longDate(dosar.draft?.expires)}`,
-            text: `Cererea este semnată electronic (${longDateTime(dosar.signed)})${dosar.payment?.status === "Achitat" ? ` și taxa de ${money(dosar.payment.amount)} este achitată` : ""}. Dacă nu confirmați depunerea, ea se transmite automat autorității după intervalul de grație; dacă transmiterea nu reușește, o depuneți din „Continuă schița”.`,
-          };
-        }
-        return {
-          title: `Schiță nedepusă · se elimină automat pe ${longDate(dosar.draft?.expires)}`,
-          text: pendingFee(dosar)
-            ? `Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step]}”; datele completate sunt salvate. Nota de plată ${dosar.payment.nr} de ${money(dosar.payment.amount)} este emisă și așteaptă achitarea — o achitați prin MPay după ce continuați schița.`
-            : `Ați rămas la pasul „${dosar.draft?.stepLabel || DRAFT_STEPS[dosar.draft?.step] || "Date solicitant"}”; datele completate sunt salvate. Continuați completarea ca să depuneți solicitarea.`,
-        };
+        /* US-18 AC-09: signed + paid but „Confirmă depunerea” not pressed → the BO submits it after the grace period */
+        if (dosar.signed) return notice("info", "icon-circle-info-filled", "Cererea este semnată, dar nu a fost depusă", "Dacă nu confirmați depunerea, se transmite automat autorității după intervalul de grație.");
+        /* US-21 AC-03: the retention sentence */
+        return notice("info", "icon-circle-info-filled", "Solicitarea nu a fost depusă", escape(draftKeptText(dosar)));
       case "info":
-        return {
-          title: `Necesită informații suplimentare · până la ${longDate(dosar.info?.until)}`,
-          text: `${dosar.info?.reason ? `${dosar.info.reason} ` : ""}Examinarea este suspendată până transmiteți informațiile; apoi continuă.`,
-        };
+        return notice("warning", "icon-warning-filled", `Trimiteți informațiile cerute până la ${date(dosar.info?.until)}`, `Examinarea este suspendată până atunci${live(dosar)}.`);
       case "achitare":
-        if (paymentExpired(dosar)) {
-          return {
-            title: `Spre achitare · termenul notei de plată a expirat pe ${longDate(dosar.payment?.due)}`,
-            text: `Nota de plată de ${money(dosar.payment?.amount)} nu a fost achitată în termen.`,
-          };
-        }
-        return {
-          title: `Spre achitare · ${money(dosar.payment?.amount)} până la ${longDate(dosar.payment?.due)}`,
-          text: "Nota de plată se achită prin MPay pentru ca dosarul să continue examinarea. După achitare, starea se actualizează automat.",
-        };
-      case "derulare":
-        return dosar.tacit
-          ? { title: `În examinare · termenul a expirat pe ${longDate(dosar.examTerm)}`, text: `Autoritatea (${where}) nu s-a pronunțat în termen, așa că solicitarea se consideră aprobată tacit; vă anunțăm imediat ce decizia este emisă.` }
-          : dosar.resumed?.kind === "expirat"
-            /* US-24 AC-03: the suplinire term passed, the BO reactivated the examination */
-            ? { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Termenul de suplinire a expirat pe ${longDate(dosar.info?.until)} fără informațiile cerute, iar autoritatea a reluat examinarea cu documentele depuse. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` }
-            : dosar.supplemented
-              /* US-24 AC-20 / US-28 AC-04: suplinire sent → back in examination, new term */
-              ? { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Informațiile suplimentare au fost transmise pe ${longDate(dosar.supplemented)}, iar autoritatea a reluat examinarea. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` }
-              : { title: `În examinare · termen ${longDate(dosar.examTerm)}`, text: `Dosarul este la ${where}. Nu trebuie să faceți nimic acum — vă anunțăm la orice schimbare.` };
-      case "finalizat":
+        return paymentExpired(dosar)
+          ? notice("danger", "icon-circle-error-filled", `Taxa a expirat pe ${date(dosar.payment?.due)}`, "Achitarea nu mai este posibilă.")
+          : notice("warning", "icon-credit-card", `Achitați ${escape(money(dosar.payment?.amount))} până la ${date(dosar.payment?.due)}`, `După achitare, examinarea continuă automat${live(dosar)}.`);
+      case "derulare": {
+        if (dosar.tacit) return notice("info", "icon-circle-info-filled", `Termenul de examinare a expirat pe ${date(dosar.examTerm)}`, "Solicitarea se consideră aprobată tacit; puteți desfășura activitatea conform legii.");
+        const lead = dosar.examTerm ? `Răspuns până la ${date(dosar.examTerm)}` : "Solicitarea este în examinare";
+        /* US-24 AC-03: the suplinire term passed, the BO reactivated the examination · US-24 AC-20 / US-28 AC-04: sent */
+        if (dosar.resumed?.kind === "expirat") return notice("info", "icon-time-filled", lead, "Termenul de suplinire a expirat; autoritatea examinează dosarul cu documentele depuse.");
+        if (dosar.supplemented) return notice("info", "icon-time-filled", lead, `Informațiile transmise pe ${date(dosar.supplemented)} sunt în examinare; nu trebuie să faceți nimic acum.`);
+        return notice("info", "icon-time-filled", lead, `Dosarul este la ${where}; nu trebuie să faceți nimic acum.`);
+      }
+      case "finalizat": {
         if (dosar.result === "respins") {
-          return {
-            title: `Respinsă pe ${longDate(dosar.finalized)}`,
-            text: canAppeal(dosar)
-              ? `Motivul și recomandările autorității sunt în secțiunea Decizie. Puteți depune o contestație până la ${longDate(appealUntil(dosar))}.`
-              : "Motivul și recomandările autorității sunt în secțiunea Decizie.",
-          };
+          const why = dosar.decision?.reason ? `Motivul refuzului: ${escape(dosar.decision.reason)}` : "Motivul refuzului este în fila Decizie.";
+          return canAppeal(dosar)
+            ? notice("danger", "icon-circle-error-filled", `Puteți depune contestație până la ${date(appealUntil(dosar))}`, `${why}${live(dosar)}`)
+            : notice("danger", "icon-circle-error-filled", "Solicitarea a fost respinsă", why);
         }
-        if (dosar.decisionOnly) return { title: `Aprobată pe ${longDate(dosar.finalized)}`, text: dosar.decision?.text || "" };
-        return { title: `Aprobată${dosar.tacit ? " tacit" : ""} pe ${longDate(dosar.finalized)} · actul este disponibil`, text: "Actul permisiv emis este și în „Actele mele permisive”, de unde îl puteți vizualiza și descărca oricând." };
+        if (dosar.decisionOnly) return notice("success", "icon-circle-checkmark-filled", `Decizia a fost emisă pe ${date(dosar.finalized)}`, escape(dosar.decision?.text || "Starea actului a fost actualizată."));
+        if (dosar.tacit) return notice("success", "icon-circle-checkmark-filled", `Aprobată tacit pe ${date(dosar.finalized)}`, "Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.");
+        return notice("success", "icon-circle-checkmark-filled", `Actul permisiv a fost emis pe ${date(dosar.finalized)}`, "Îl găsiți și în „Actele mele permisive”.");
+      }
       default:
-        return { title: statusOf(dosar).label, text: "" };
+        return notice("info", "icon-circle-info-filled", escape(statusOf(dosar).label));
     }
   }
+
+  /* the tracker (request-trajectory-v1): short labels, the steps adapt to the request —
+       Schiță (drafts only, current) · Depusă / Inițiată (by the authority) · Plată (only for a fee issued during the
+       examination: „Spre achitare” while it waits, warning) · Informații suplimentare (only when the authority asked:
+       warning while it waits, done once sent, skipped when its term passed unanswered) · Examinare · Decizie →
+       the outcome once decided (Aprobată / Aprobată tacit / Respinsă — the outcome tag, outcome-tag-v1) · Livrare
+       (only for paper delivery, US-16). Plată / Informații sit before Examinare, in the order they happened: the
+       examination continues after them. Sub-lines = the dos-01 two lines (date · who), ONLY what the stories give the
+       citizen: Depusă = Data depunerii (US-161) + the applicant / representative · Plată = Achitată / Până la (the payment
+       note, Feature 93592 / 94407) + MPay · Informații suplimentare = Suspendat (US-161) + Până la / Trimise / Expirat
+       (Feature 90817, US-24) · Examinare = Termen (US-161, only when populated) or the decision date + the subdivision ·
+       outcome = the decision / tacit date (US-161, US-157) + „Emisă de” (US-161 AC-27) · Schiță = Până la (removal,
+       Feature 90817) · never an invented date under an upcoming step, never a specialist's name. */
+  function trackerSteps(dosar) {
+    const steps = [];
+    const draft = dosar.status === "schita";
+    const finished = dosar.status === "finalizat";
+    const examining = dosar.status === "derulare";
+    /* WHO at the level the citizen is entitled to: the subdivision that holds the file (never the specialist's name —
+       only „Emisă de” is specified, US-161 AC-27; PO question 13), the applicant / representative on Depusă (the
+       citizen's own data, US-161 AC-11) */
+    const holder = dosar.subdivision || serviceOf(dosar).authority || "";
+    const filer = dosar.filedBy ? `${dosar.filedBy.name} (reprezentant)` : state.perspective?.mpower ? `${state.user?.name} (reprezentant)` : state.user?.name || "";
+    /* Feature 90817: the draft's removal deadline */
+    if (draft) steps.push({ label: "Schiță", state: "current", meta: dosar.draft?.expires ? `Până la ${shortDate(dosar.draft.expires)}` : "" });
+    /* US-161 Data depunerii · who filed it (or the authority, ex officio) */
+    const byAuthority = dosar.initiatedBy === "autoritate";
+    steps.push({ label: byAuthority ? "Inițiată" : "Depusă", state: draft ? "todo" : "done", meta: draft ? "" : [shortDate(dosar.submitted), byAuthority ? holder : filer] });
+    const branches = [];
+    const fee = dosar.payment && (dosar.feeDuringExam || dosar.status === "achitare");
+    if (fee && !draft) {
+      /* Feature 93592 / 94407: the payment note's due / paid date, paid through MPay */
+      branches.push(dosar.status === "achitare"
+        ? { at: dosar.payment.created, label: "Spre achitare", state: "attention", meta: [paymentExpired(dosar) ? `Expirată ${shortDate(dosar.payment.due)}` : dosar.payment.due ? `Până la ${shortDate(dosar.payment.due)}` : "", "MPay"] }
+        : { at: dosar.payment.created, label: "Plată", state: "done", meta: [dosar.payment.paid ? `Achitată ${shortDate(dosar.payment.paid)}` : "", "MPay"] });
+    }
+    if (dosar.suspended && !draft) {
+      /* US-161 Data suspendării + the suplinire period (Feature 90817) / the sent date (US-24) */
+      const waiting = dosar.status === "info";
+      const lapsed = !waiting && !dosar.supplemented && dosar.resumed?.kind === "expirat";
+      branches.push({
+        at: dosar.suspended,
+        label: "Informații suplimentare",
+        state: waiting ? "attention" : lapsed ? "skipped" : "done",
+        sr: lapsed ? "netransmise, termenul a expirat" : undefined,
+        meta: [`Suspendat ${shortDate(dosar.suspended)}`, waiting ? (dosar.info?.until ? `Până la ${shortDate(dosar.info.until)}` : "") : lapsed ? `Expirat ${shortDate(dosar.info?.until)}` : dosar.supplemented ? `Trimise ${shortDate(dosar.supplemented)}` : ""],
+      });
+    }
+    branches.sort((a, b) => (isoDay(a.at) < isoDay(b.at) ? -1 : 1)).forEach(({ at, ...step }) => steps.push(step));
+    /* US-161 Termenul de examinare (only when populated) while open, done = the decision date · the subdivision */
+    const examDate = finished ? shortDate(dosar.finalized) : dosar.examTerm ? `${dosar.tacit ? "Termen expirat" : "Termen"} ${shortDate(dosar.examTerm)}` : "";
+    steps.push({ label: "Examinare", state: finished ? "done" : examining ? "current" : "todo", meta: examDate || examining || finished ? [examDate, holder] : "" });
+    /* the outcome: the decision / issue date (US-161, US-157 tacit) · „Emisă de” (US-161 AC-27) */
+    const outcome = !finished ? "Decizie" : { respins: "Respinsă", tacit: "Aprobată tacit", aprobat: dosar.tacit ? "Aprobată tacit" : "Aprobată" }[dosar.result] || "Finalizată";
+    const signer = dosar.issuedBy || dosar.decision?.signedBy || "";
+    steps.push({ label: outcome, state: finished ? (dosar.result === "respins" ? "rejected" : "done") : "todo", sr: finished && dosar.result === "respins" ? "finalizat" : undefined, meta: finished ? [shortDate(dosar.finalized), signer ? `Emisă de ${signer}` : ""] : "" });
+    /* US-16: paper delivery — no delivery date in the data, so no sub-line */
+    const paper = dosar.delivery?.paper;
+    if (paper && dosar.result !== "respins") steps.push({ label: "Livrare", state: finished ? "current" : "todo" });
+    return steps;
+  }
+
 
   /* the request's steps: what happened (dates, who) + what comes next (dashed, no date) */
   /* US-161 AC-16 / US-16: the delivery chosen at filing — EVO Cabinet always, paper on top when chosen */
@@ -779,35 +838,50 @@
     return events;
   }
 
-  function timelineHtml(dosar) {
-    return window.GEAPTrajectory?.html({
+  /* „Istoric” (request-trajectory-v1): what the vertical „Stadiul solicitării” used to say, step by step — every event
+     that happened (date + time, who signed and on which basis, MSign / MPay, where it is examined, the notes) and the
+     one in progress; the future stays in the tracker. Same component and look as the act profile's Istoric
+     (vertical GEAPTrajectory card). */
+  function historyHtml(dosar) {
+    const events = timelineEvents(dosar).filter((event) => event.state !== "todo");
+    return section("istoric", "Istoric", window.GEAPTrajectory?.html({
       layout: "vertical",
-      bare: true,
-      className: "cab-status__timeline",
-      label: "Etapele solicitării",
-      steps: timelineEvents(dosar).map((event) => ({
+      className: "cab-request-history",
+      label: "Istoricul solicitării",
+      steps: events.map((event) => ({
         label: event.title,
         state: event.state,
         sr: STEP_STATE_TEXT[event.state],
-        meta: [event.when, event.text].filter(Boolean).join(" · ")
-      }))
-    }) || "";
+        meta: [event.when, event.text].filter(Boolean).join(" · "),
+      })),
+    }) || "");
   }
 
+  /* No visible title (user, twice: „remove the Stadiul solicitării title”) — the region keeps the name for screen
+     readers. The BO dossier's trajectory CARD (user: „exactly as in Dosarele mele”: date · who under the steps, as
+     dos-01), then — separate, 12 under it (user: „make it separate”) — the status notice = the product callout
+     (.e-permits-callout, Figma GEAP 8440:119598) on the neutral grey card, as EVO Cabinet Figma 332:1416: padding 20,
+     icon 24 in the status colour, 16 to the text, title 16/24 medium, 8, text 14/20 secondary; the action(s) in a row
+     under the text, left-aligned with it. */
+  const NOTICE_ICON_TONE = { info: "", warning: "warning", danger: "danger", success: "success" };
   function statusCardHtml(dosar) {
     const now = statusNow(dosar);
-    const actions = profileActions(dosar);
-    return section("stadiu", "Stadiul solicitării", `
-      <div class="cab-status" data-sm-status>
-        <div class="cab-status__now">
-          <div class="cab-status__tags">${statusTag(dosar)}${marksHtml(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}</div>
-          <p class="cab-status__title">${escape(now.title)}</p>
-          ${now.text ? `<p class="cab-status__text">${escape(now.text)}</p>` : ""}
-          ${dosar.status === "schita" ? message("banner--info", "icon-circle-info-filled", escape(draftKeptText(dosar)), { attrs: "data-sm-draft-kept" }) : ""}
-          ${actions}
+    const iconTone = NOTICE_ICON_TONE[now.tone] ? ` e-permits-callout__icon--${NOTICE_ICON_TONE[now.tone]}` : "";
+    return `
+      <section class="e-permits-dosar-profil__section cab-section cab-status" aria-label="Stadiul solicitării" data-sm-status>
+        ${window.GEAPTrajectory?.html({
+          label: "Etapele solicitării",
+          steps: trackerSteps(dosar).map((step) => ({ ...step, sr: step.sr || STEP_STATE_TEXT[step.state] })),
+        }) || ""}
+        <div class="e-permits-callout e-permits-callout--neutral cab-status__notice" role="status" data-sm-status-notice="${escape(now.tone)}">
+          <span class="e-permits-callout__icon${iconTone}" aria-hidden="true">${icon(now.icon)}</span>
+          <div class="e-permits-callout__content">
+            <p class="e-permits-callout__title">${now.lead}</p>
+            ${now.text ? `<p class="e-permits-callout__text">${now.text}</p>` : ""}
+            ${profileActions(dosar)}
+          </div>
         </div>
-        ${timelineHtml(dosar)}
-      </div>`);
+      </section>`;
   }
 
   function profileActions(dosar) {
@@ -823,8 +897,9 @@
         if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
         break;
       case "achitare":
-        /* US-135 AC-14: no redirect to MPay for an expired note — the message instead of the button */
-        if (paymentExpired(dosar)) return message("banner--error", "icon-circle-error-filled", escape(PAYMENT_EXPIRED_TEXT), { role: "status", attrs: "data-sm-payment-expired" });
+        /* US-135 AC-14: no redirect to MPay for an expired note — no button; the card's alert (the row's
+           „Taxa a expirat pe … Achitarea nu mai este posibilă.”) says why (request-trajectory-v1) */
+        if (paymentExpired(dosar)) return "";
         buttons.push(`
           <button class="btn btn-badge btn-badge--primary" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">
             <span class="btn-badge__logo" aria-hidden="true"><img src="../assets/logos/m-platforms/m-pay.svg" alt=""></span>
@@ -838,8 +913,9 @@
           if (canAppeal(dosar)) buttons.push(appeal("btn-neutral"));
         }
         if (dosar.result === "respins") {
-          buttons.push(download("decizie", "Descarcă decizia"));
+          /* the primary first, next to the notice that announces it (request-trajectory-v1) */
           if (canAppeal(dosar)) buttons.push(appeal("btn-primary"));
+          buttons.push(download("decizie", "Descarcă decizia"));
         }
         break;
       default:
@@ -1064,6 +1140,9 @@
       row("Denumirea serviciului", escape(service.title || "")),
       dosar.submitted ? row("Data depunerii", escape(longDateTime(dosar.submitted))) : "",
       dosar.suspended ? row("Data suspendării", escape(longDate(dosar.suspended))) : "",
+      /* request-trajectory-v1: the reason moved out of the status notice (one short notice) — here while it applies
+         (US-126 category + the authority's text; PO question 8) */
+      dosar.status === "info" && dosar.info?.reason ? row("Motivul suspendării", escape([dosar.info.category, dosar.info.reason].filter(Boolean).join(" — "))) : "",
       dosar.examTerm ? row("Termenul de examinare", `<span>${escape(longDate(dosar.examTerm))}</span>${dosar.tacit ? marksHtml(dosar) : ""}`) : "",
       row("Statutul dosarului", `${statusTag(dosar)}${dosar.result ? marksHtml(dosar) : ""}`),
       row("Autoritatea", escape(service.authorityName || service.authority || "")),
@@ -1157,7 +1236,7 @@
         <div class="e-permits-dosar-profil__panel">
           ${statusCardHtml(dosar)}
           ${profileTabsHtml(dosar, {
-            general,
+            general: `${general}${historyHtml(dosar)}`,
             solicitare: `${roles}${details}${contacts}${documents}${delivery}${initialFee}`,
             taxe: taxes,
             act: actSection(dosar),

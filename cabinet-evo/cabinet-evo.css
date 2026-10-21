@@ -928,71 +928,40 @@
   margin: 0;
 }
 
-/* „Stadiul solicitării” (2026-10-17): ONE bordered card (1px border token, the BO card radius 24 /
-   16 on phones, white) = the status block (Small tags · 16/24 status sentence · 14/20 explanation ·
-   the actions) over a hairline, then the request timeline (the FO finish timeline without its grey
-   fill); the current step reads in the default colour + semibold. */
-.cab-status {
-  background: var(--color-background-base-default, #fff);
-  border: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  border-radius: var(--border-radius-24, 24px);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  overflow: clip;
+/* „Stadiul solicitării” (request-trajectory-v1, 2026-10-21): no visible title (aria-label on the section) · the BO
+   „Traiectoria dosarului” card (css/trajectory.css, as dos-01) · 12 · the status notice = the product callout
+   (.e-permits-callout--neutral: grey card, radius 16, padding 20, icon 24, 16 to the text, title 16/24 medium, 8,
+   text 14/20 secondary — EVO Cabinet Figma 332:1416) whose ICON takes the status colour; the action row inside it,
+   under the text (8 more = 16 from the text), library buttons 8 apart, left-aligned with the text. */
+.cab-status > .e-permits-trajectory + .cab-status__notice {
+  margin-top: var(--spacing-12, 12px);
 }
 
-.cab-status__now {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8, 8px);
-  padding: var(--spacing-20, 20px);
+.e-permits-callout--neutral .e-permits-callout__icon--warning {
+  color: var(--color-icon-warning-default, #dc6803);
 }
 
-.cab-status__tags {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
+.e-permits-callout--neutral .e-permits-callout__icon--success {
+  color: var(--color-icon-positive-default, #039855);
 }
 
-.cab-status__title {
-  color: var(--color-text-base-default, #121212);
-  font: var(--font-weight-fw-semibold, 600) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
-}
-
-.cab-status__text {
-  color: var(--color-text-base-secondary, #383838);
-  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
+.e-permits-callout--neutral .e-permits-callout__icon--danger {
+  color: var(--color-icon-danger-default, #d92d20);
 }
 
 .cab-status__actions {
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-12, 12px);
-  margin-top: var(--spacing-8, 8px);
+  gap: var(--spacing-8, 8px);
 }
 
-.cab-status__now > .cab-message {
+.e-permits-callout__content > .cab-status__actions {
   margin-top: var(--spacing-8, 8px);
-}
-
-/* the shared trajectory (vertical, bare) under the hairline — css/trajectory.css */
-.cab-status__timeline.e-permits-trajectory {
-  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-  padding: var(--spacing-20, 20px);
 }
 
 @media (max-width: 760px) {
-  .cab-status {
-    border-radius: var(--border-radius-16, 16px);
-  }
-
-  .cab-status__now,
-  .cab-status__timeline.e-permits-trajectory {
+  .cab-status__notice.e-permits-callout {
     padding: var(--spacing-16, 16px);
   }
 }
@@ -1388,7 +1357,7 @@
   flex: 1 1 320px;
 }
 
-.cab-status__now > .cab-retry,
+[data-sm-status] > .cab-retry,
 .e-permits-stack__main > .cab-retry {
   margin-top: var(--spacing-8, 8px);
 }
@@ -1737,7 +1706,8 @@ button.cab-alert-link {
     padding: var(--spacing-16, 16px);
   }
 
-  .cab-act-profile .cab-act-history.e-permits-trajectory {
+  .cab-act-profile .cab-act-history.e-permits-trajectory,
+  .sm-profile .cab-request-history.e-permits-trajectory {
     border-radius: var(--border-radius-16, 16px);
     padding: var(--spacing-16, 16px);
   }
@@ -1750,6 +1720,6 @@ button.cab-alert-link {
   max-width: var(--cab-list-width);
 }
 
-.sm-profile :is(.cab-status__text, .cab-message .banner__content > p) {
+.sm-profile .cab-message .banner__content > p {
   max-width: 75ch;
 }

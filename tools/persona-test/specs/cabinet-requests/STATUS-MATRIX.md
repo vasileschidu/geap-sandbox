@@ -257,10 +257,20 @@ Ids follow the existing numbering; new data rows go in `data/cabinet-evo-solicit
 9. **Table vs stacked rows.** US-19 AC-02/03 require a table with sortable column headers; the prototype (user
    decision 2026-10-20) uses stacked act-style rows + a sort menu. Confirm the deviation with the PO.
 10. **„Sesizările mele” tab (MCabinet 95895 A/B).** Is it in scope for the GEAP prototype?
-11. **„Stadiul solicitării” + trajectory.** Prototype-only (no story). Accept as design addition, or remove?
+11. **„Stadiul solicitării” + trajectory.** Prototype-only (no story). Accept as design addition, or remove? (Since
+    2026-10-21: the BO dossier's horizontal trajectory card + one status notice per status, no visible title.)
 12. **Notification texts.** No story fixes the applicant notification wording (Feature 91426 has no child stories);
     the prototype texts are invented — need PO/BA sign-off, plus the missing events: draft auto-removed, suplinire
     succeeded / expired, note reminder / expired, tacit act, courier handover.
+13. **Per-step dates for the citizen (request-trajectory-v1, 2026-10-21).** The profile's tracker shows under each step only
+    the dates the stories give the applicant: Data depunerii, Data suspendării, Termenul de examinare (US-161), the
+    payment note's due / paid date (Feature 93592 / 94407), the period deadlines (Feature 90817), the decision / tacit
+    approval date (US-161, US-157). No Cabinet story lists a timestamp for every BO step (the BO has them in the event
+    log). Should per-step dates (e.g. when the examination started, when the file moved to signing) be specified for the
+    citizen?
+14. **Who handles each step.** Should the citizen see the name of the specialist handling each step? Today only „Emisă
+    de” is specified (US-161 AC-27); the tracker shows the subdivision that holds the file, never a specialist's name —
+    showing names raises data-minimisation questions. If yes, it is a data change only (the step's second line).
 
 **Row / profile title (type-first-v1, 2026-10-21, user decision):** every request row and the request profile name the
 SERVICE first (title / h1 = `service.title`), then the object / location on line 2 / the subtitle (filled tertiary pin), only

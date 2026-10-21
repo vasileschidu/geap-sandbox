@@ -2356,3 +2356,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   [aria-expanded]` rules. Measured: Filtre / Sortează 40 · r8 · 14/20 500 · label centre y equal (221) at 1440, both 48
   squares r8 at 375; open = gray-250 + ring. No sub-agent tool → code-audit / component-audit (no finding on buttons or
   the triggers) / hover-audit (0 / 0) run directly.
+- 2026-10-21 · Request status = the BO trajectory card + ONE status notice (request-trajectory-v1). The user steered it
+  through SIX mid-job turns (horizontal + short labels → a notice for every status → „exactly as Dosarele mele with the
+  integrated alert” → „make it separate, I don't like the alignment of the buttons” → notice look = EVO Cabinet Figma
+  332:1416 → „remove the title”, twice → date AND who under each step). Lessons: (1) keep every presentation decision
+  in ONE small render function (`statusCardHtml`) fed by pure data functions (`trackerSteps`, `statusNow`) — each turn
+  cost one function, the data never moved; (2) do NOT widen a shared API for a turn that may be reversed: I added a
+  `callout` option to GEAPTrajectory + moved the BO onto it, the next message reversed it, and I had to restore
+  trajectory.js / shell.js from HEAD — wait for a design to settle before touching shared modules; (3) one fact once:
+  a deadline under the current step + in the notice + in the header = 3×; the status tag left the card; (4) data the
+  citizen sees must be story-backed: each sub-line maps to a US / Feature field (US-161 dates + AC-27 „Emisă de”,
+  Feature 90817 periods, payment note dates), WHO = the subdivision, never a specialist (data minimisation, PO Q14);
+  (5) the vertical details went to an „Istoric” section (the act profile's vertical card) and the long suspension
+  reason to a Date generale row, so the notice stays one line + one sentence; (6) „neutral card with a coloured icon”
+  already existed as `.e-permits-callout--neutral` (Figma GEAP 8440:119598 = padding 20 · icon 24 · 16 · 16/24 medium ·
+  8 · 14/20) — only 3 icon-tone modifiers were new. Probes: half-line gap via `getComputedStyle(body, "::after").left`
+  (8.0 everywhere); crops of a profile section need sticky / fixed set to static + scrollTo(0); profile section ids sit on
+  the h2 (`section[aria-labelledby=sm-sec-<id>]`); `addDays(undefined)` threw inside render for drafts and the profile
+  silently failed (crop „NO ELEMENT”, no console error captured across the redirect) — guard date helpers for drafts.

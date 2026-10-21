@@ -285,7 +285,7 @@ but this doc previously described it wrongly, see the entry.
 | Full-height document viewer (doc-fullheight-v1, 2026-10-21, ≥ 761) | every A4 viewer + the RAP data dialog „Vizualizare act”: dialog `height: auto; max-height: calc(100dvh − 2 × --spacing-24)` (24 above and below, own width: act 720 · BO md 590 / lg 720 · Cabinet 560; a short document keeps its natural height, centred; loading / error hold the full frame); header + footer fixed, the BODY = the only scroller (`overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable both-edges`; canvas `flex: none`, no window of its own; the signature card scrolls with it); hairlines = 1px transparent top / bottom borders on the body → `--color-border-base-default` with `has-scroll-above / -below` on the dialog (the FO footer's own line removed); page behind locked (`html:has(… :not([hidden])) { overflow: hidden }`). Phones (≤ 760) unchanged: the bottom sheet of css/modal-phone.css | css/doc-preview.css › „Full-height document viewer”; `GEAPDocPreview.fit` syncs the FO-shell hairlines (scroll listener in js/doc-preview.js), library `.modal`s by the shell's `syncModalScrollEdges` / act-view `syncActDataEdges`; section „Full-height document viewer”; demo `pp-01m`, `pp-01z`, `rap-03l`, `rap-03k`, `rap-03a` (loading), `rap-03`, `rap-03g`, `dos-04s`, `dos-04h`, `sm-05f`, `sm-05h` (short = natural height at 1440 × 1024), `gh-10d`, `gh-07a`, `gh-07a1` | app + page-app |
 | Act data modal „Vizualizare act” (RAP, US-162 AC-12 / US-163, Figma EVO-WEB-3.0 20607:34846, 2026-10-17) | the BO detail modal markup (`#dosar-detail-modal`): `.modal-overlay.rap-act-data > .modal.modal--md.e-permits-passport__modal.e-permits-case-modal.e-permits-detail-modal` (× `.modal-close`, `.modal--header` title „Vizualizare act” + subtitle `.e-permits-passport__modal-subtitle.rap-act-subtitle`, `.modal-content` = „Date generale” + „Câmpuri specifice actului” BO sections (`.e-permits-dosar-profil__section/__card/__row`) + grey note `info-box.e-permits-info-note.e-permits-readonly-note` (shield), footer `.modal-buttons` `btn-neutral` „Descarcă” (export icon) · `btn-primary` „Închide”); since 2026-10-19 the act's configured fields = one BO section per configured group (row „Configured act fields — groups + tables”; the old in-card heading rows `.rap-act-data__group/__more-row/__toggle` are gone); scroll hairlines `has-scroll-above/-below`. „Descarcă” parks it and opens the act viewer above (forma de tipar); closing the viewer comes back. CSS: `css/bo-profile-parts.css` „Detail modal” block (BO computed values) + `css/act-view.css` | shared `js/act-view.js` (`GEAPActView.create(…).openData(act)` / `.openDocument(act)`, view model in the file header) + `css/act-view.css`; RAP maps its record in `toActView` (`rap-evo/rap-evo.js`), Cabinet in `toActView` (`cabinet-evo/cabinet-evo.js`); demo `rap-03`, `rap-03g…03m`; parity `tools/ui-qa/specs/rap-act-modal-vs-bo.json` (dos-04s ↔ rap-03 = 0) | page-app |
 | Public profile header (RAP act profile + every EVO Cabinet profile, 2026-10-17) | `header.e-permits-page-header.e-permits-page-header--public` › `__body` (16 top, 12 inset) › `__top` › `__heading` (gap 16): `nav.breadcrumbs` (desktop: the PARENT levels only, ending in the library trailing chevron — never the title shown right under it; `parentsOnly`, breadcrumb-v3, 2026-10-21, Figma 232:5282 „Active Level” off, same as the BO) + `nav.breadcrumbs.breadcrumbs--mobile` (≤760: `li.breadcrumbs__item--back` › `.e-permits-page-header__crumb-label`) + `h1.__title` (wraps, never truncated) · `__meta` items (label 12/16 tertiary, value 14/20 medium, dividers; ≤760 = 2 equal columns, no dividers, column gap 16) · the primary `btn btn-primary btn-md .e-permits-page-header__action` (hugging, 8 under the meta) or `.e-permits-page-header__action-row` (primary + neutral `btn-md`, gap 8). The status = a „Stare” meta item with the Tag · Small. Width (full container, 2026-10-21): the RAP act profile = the list / table width (`--rap-content-width`: header box + section cards on the table edges at 1440 / 1024 / 761, text keeps the 12 inset; detail label column `clamp(120, 30%, 200)`, wrapping, value fills the rest; text in cards ≤ 75ch), the Cabinet act profile = `--cab-list-width`; phones 16 gutters | `css/bo-profile-parts.css`; renderers `rap-evo.js renderProfile`, `CabEvo.pageHeader({ back, title, titleId, meta, actions, subtitle?, bodyHtml? })` (subtitle / bodyHtml: the act profile, act-profile-v1); parity `tools/ui-qa/specs/rap-profile-vs-bo.json` (svc-01 ↔ rap-02 = 0), `tools/ui-qa/specs/cabinet-profile-vs-bo.json` (svc-01 ↔ sm-05 = 0) | page-app |
-| Request status card „Stadiul solicitării” (EVO Cabinet, 2026-10-17) | BO section title over `.cab-status` (white, 1px `--color-border-base-default`, radius 24 / 16 ≤760, clip) › `.cab-status__now` (20 / 16 inset, gap 8: `.cab-status__tags` Tag · Small status + marks · `p.cab-status__title` 16/24 semibold = the status sentence / next step · `p.cab-status__text` 14/20 secondary · `.cab-status__actions[data-sm-dl-scope]` the action that exists: Continuă schița + Elimină, Suplinește informații, Achită (MPay badge), Vezi actul + Descarcă, Depune contestație) · hairline · `.e-permits-trajectory.e-permits-trajectory--vertical.e-permits-trajectory--bare.cab-status__timeline` (the shared trajectory, vertical, no card of its own, padded 20 / 16 ≤760: done steps with full-month dates, the current / attention one on the soft pill + `aria-current="step"`, next steps as rings without dates — since 2026-10-20) | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `timelineEvents` / `timelineHtml`; demo sm-03 (Schiță), sm-04 (În derulare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c (Spre achitare), sm-05 / 05a / 05b (Finalizat aprobat / respins / decizie) | page-app |
+| Request status „Stadiul solicitării” (EVO Cabinet; request-trajectory-v1 2026-10-21 — replaces the bordered `.cab-status` card of 2026-10-17) | NO visible title: `section.e-permits-dosar-profil__section.cab-section.cab-status[aria-label="Stadiul solicitării"][data-sm-status]` › the BO dossier's trajectory card (`.e-permits-trajectory`, horizontal, as dos-01 — date · who under the steps; `.is-stacked` by itself on phones) · 12 · the status notice = the product callout on the neutral card `.e-permits-callout.e-permits-callout--neutral.cab-status__notice[role=status][data-sm-status-notice=<tone>]` (EVO Cabinet Figma 332:1416: radius 16, padding 20 / 16 ≤760, icon 24 coloured by tone via `.e-permits-callout__icon--{warning\|success\|danger}` (info = brand), 16 to the text, `__title` 16/24 medium, 8, `__text` 14/20 secondary) with `.cab-status__actions` (library buttons, 8 apart) INSIDE `__content`, under the text. Section „Request status — horizontal tracker + status notice” | `cabinet-evo/solicitari.js` `statusCardHtml` / `statusNow` / `trackerSteps`; history = `historyHtml` (Istoric, vertical trajectory card `.cab-request-history`, in Date generale); demo sm-03 / 03h (Schiță), sm-04 (În derulare + Livrare), sm-04a (tacit), sm-04b (Informații suplimentare), sm-04c / 04g (Spre achitare / expirată), sm-04i (suplinire expirată = skipped), sm-04j (suplinire transmisă), sm-05 / 05a / 05b / 05s / 05u (Aprobată / Respinsă / decizie / reprezentant / Aprobată tacit) | page-app |
 | Configured act fields — groups + tables (2026-10-19, Figma comment EVO-WEB-3.0 20607:34846) | each configured group = BO `section.e-permits-dosar-profil__section` + `__section-title` over `.e-permits-dosar-profil__card.e-permits-act-fields[data-act-fields]` (`.is-collapsed` when > 10 items: items ≥ 9 get `.e-permits-act-fields__more`, toggle `.e-permits-act-fields__toggle` > `btn btn-text-primary btn-sm btn-rounded[data-act-fields-more][aria-expanded][aria-controls]` „Arată toate câmpurile (N)” / „Arată mai puține câmpuri”); simple field = BO `__row` (label on the first line for multi-line values; a list = `ul.e-permits-act-fields__list`); grid = `.e-permits-act-fields__table-field` > `p.__table-label` + `.__table-wrap[role=region]` (white, 1px border, r12, own sideways scroll) > `table.__table(.is-collapsed)` (th 38 · 12/16 medium on secondary; td ≥ 50 · 14/20 secondary · 8/12; `.is-number` right-aligned; first column sticky + divider; `__more-row` / `__edge-row` for first 5 + „Arată toate (N)” / „Arată mai puține”; every td = `__cell-label` (phones only) + `__cell-value`); ≤ 760 rows = white mini-cards r12 (first cell label over value, the others label · value lines). A4: `tr.e-permits-doc-page__keep.e-permits-doc-page__grid-label` + `__grid-head[data-doc-grid]` + `__grid-row[data-doc-grid-of]` each holding a one-row `table.e-permits-doc-page__grid` (colspan units 3·2·2…), header repeated on continuation pages (`.is-repeat`) | `GEAPActView.fieldsHtml(groups, { section, untitled })` / `normalizeFields` (js/act-view.js) + css/act-view.css + css/doc-preview.css › „Grid on the page”; used by the act data modal (RAP + Cabinet) and Cabinet „Solicitările mele” › Act; demo `rap-03i/03j/03q/03r/03s/03t`, `pp-01x/01y/01z`, `sm-05n`; parity `tools/ui-qa/specs/act-fields-rap-vs-cabinet.json` (rap-03q ↔ pp-01x = 0) | page-app |
 | Expandable long name in a dialog subtitle (2026-10-17) | `p.rap-act-subtitle` > `__number` (copy, never cut) + `__name` (`__text` clamped: 1 line nowrap + ellipsis on desktop, line-clamp 2 ≤760); only when it overflows the name becomes ONE `button.rap-act-subtitle__name[data-rap-clamp-toggle][aria-expanded]` with `__more` „Mai mult” / „Mai puțin” (brand, underline on hover, RAP focus outline); no hover tooltip | `actSubtitleHtml` / `syncClamps` / `toggleClamp` (`rap-evo.js`); demo `rap-03g` / `rap-03h` | page-app |
 | Long name in a header — expand on click (2026-10-19) | host `[data-name-expand]` (the FO top-bar `h1`) › `span.e-permits-name-expand` > `__text` (one line, ellipsis) while the name fits; only when it is really cut (`scrollWidth > clientWidth`, measured without the affordance) › ONE `button.e-permits-name-expand[data-name-expand-toggle][aria-expanded][data-tooltip-text]` > `__text` + `__more` (`__more-label` „Mai mult” / „Mai puțin” 14/20 medium brand + 16 `icon-chevron-bottom`, rotated when open); hover = the label underlines, focus = the FO ring (2 white + 5 `--focus-ring`); open = the name wraps with the label after its last word, host `.is-name-expanded`, the header grows; plain tooltip with the full name while collapsed (icon-tooltip.js `data-tooltip-text`) | `js/name-expand.js` (`GEAPNameExpand.set(host, text)` / `scan` / `sync` / `collapseAll`) + `css/name-expand.css`; FO `setFoServiceTitle`; demo `pp-18` (collapsed) / `pp-18a` (expanded) / `pp-18b` (expanded + scrolled) / `pp-18c` (short name, no affordance) | page-app |
@@ -5990,17 +5990,18 @@ Each caller keeps its data and texts and only maps them to `steps[] = { label, s
   up every new card. Phones always stack; at 1024 the BO / eKYC cards (736) stack when their steps need more
   (dos-01h needs 800, ek-05g 955). Labels are never truncated.
 
-**Variants:** `--vertical` (long step texts: FO „Statutul dosarului”, Cabinet „Stadiul solicitării”) · `--bare`
-(inside another card: no background / border / radius / padding — the Cabinet status card pads it 20 / 16 under
-its hairline). No hover (not interactive).
+**Variants:** `--vertical` (long step texts: FO „Statutul dosarului”, the Cabinet request / act „Istoric”) · `--bare`
+(inside another card: no background / border / radius / padding; no caller since request-trajectory-v1). No hover
+(not interactive).
 
 **Where used** — BO dossier Date generale „Traiectoria dosarului” (`renderDosarTrajectory`, shell; dos-01 current,
 dos-01b paused, dos-01g all done, dos-01h rejected) · eKYC session „Plan de verificare” + review „Traseul
 reviziei” (`trajectory()` in js/ekyc.js; ek-05g current, ek-05d paused, ek-07e rejected + skipped, ek-14f) ·
 FO finish (`renderFrontOfficeStep7FromSchema`: tracker horizontal + „Statutul dosarului” vertical with the
 „Acum” / „Opțional” Small tags; fo-08, post-process pp-10f / pp-12a / pp-14b / pp-16a / pp-17a) · EVO Cabinet
-„Stadiul solicitării” (`timelineHtml` in solicitari.js, vertical + bare; sm-03, sm-04, sm-04b / 04c attention,
-sm-05 done, sm-05a rejected). Not trajectories (different components): the FO / Ghișeu wizard stepper
+„Stadiul solicitării” (`statusCardHtml` in solicitari.js, HORIZONTAL card as dos-01 since request-trajectory-v1
+2026-10-21; sm-03 draft, sm-04, sm-04b / 04c attention, sm-04i skipped, sm-05 done, sm-05a rejected) + its „Istoric”
+(`historyHtml`, vertical card). Not trajectories (different components): the FO / Ghișeu wizard stepper
 (`.e-permits-fo-stepper`, navigation between form steps), the event log „Jurnal / Istoric”
 (`.e-permits-timeline`), the Process Designer case trace (canvas). Ghișeu confirmation and RAP show no
 trajectory (RAP's `renderTimeline` in rap-evo.js is dead code, never called).
@@ -6008,6 +6009,64 @@ trajectory (RAP's `renderTimeline` in rap-evo.js is dead code, never called).
 **Checks:** `tools/ui-qa/specs/trajectory-vs-bo.json` (horizontal, 1440; dos-01 vs ek-05g / fo-08 / pp-10f, dos-01b
 vs ek-05d, dos-01h vs ek-07e, dos-01g vs ek-14f) and `trajectory-vertical-vs-bo.json` (dos-01 at 375 vs fo-08 /
 sm-04b; fo-08 vs sm-04 at 1440) = 0 property differences (pairs „MISSING” = a state that screen does not have).
+
+#### Request status — horizontal tracker + status notice (EVO Cabinet, request-trajectory-v1, 2026-10-21)
+
+User, in order: „as we did for the other platforms, the horizontal one with short statuses” → „some kind of
+notification that explains the status” → „exactly as in Dosarele mele «Traiectoria dosarului»” → „make it separate,
+I don't like the alignment of the buttons” → notice look = EVO Cabinet Figma 332:1416 → „remove the Stadiul solicitării
+title” (twice) → „details under each step, like the date … the name of who handles it”. Final:
+
+`section.cab-status[aria-label="Stadiul solicitării"]` (no h2; first block of the profile panel, 20 under the header =
+the BO `.e-permits-page-header ~ panel` rule) › the BO trajectory CARD (`GEAPTrajectory.html({ label, steps })`, no
+Cabinet variant) · 12 · the status notice (`.e-permits-callout--neutral.cab-status__notice`, below) · 16 · the tabs.
+
+**Steps (`trackerSteps`) — short labels, adapted to the request:** Schiță (drafts, current) · Depusă (Inițiată when the
+authority started it) · Plată (only for a fee issued during the examination: „Spre achitare” attention while it waits,
+also once expired; „Plată” done) · Informații suplimentare (only when asked: attention while it waits, done once sent,
+**skipped** — dashed ring, SR „netransmise, termenul a expirat” — when its term lapsed) · Examinare · Decizie → once
+decided the outcome (Aprobată / Aprobată tacit / Respinsă = rejected marker; Finalizată when unknown) · Livrare (only
+for paper delivery, US-16). Plată / Informații sit BEFORE Examinare, in the order they happened.
+
+**Sub-lines = the dos-01 two lines (date · who), only what the stories give the citizen:**
+
+| step | line 1 (date) | line 2 (who) | source |
+|---|---|---|---|
+| Schiță | „Până la {removal}” | — | Feature 90817 (draft timer) |
+| Depusă / Inițiată | Data depunerii | the applicant, or „{name} (reprezentant)”; ex officio = the subdivision | US-161 (Data depunerii, AC-11) |
+| Plată / Spre achitare | „Achitată {d}” / „Până la {due}” / „Expirată {due}” | MPay | Feature 93592 / 94407, US-135 |
+| Informații suplimentare | „Suspendat {d}” | „Până la {d}” / „Trimise {d}” / „Expirat {d}” | US-161 Data suspendării, Feature 90817, US-24 |
+| Examinare | „Termen {d}” (only when populated; „Termen expirat” for tacit) / done = the decision date | the subdivision (never the specialist) | US-161 Termenul de examinare |
+| Aprobată / Respinsă / Aprobată tacit | the decision / issue date | „Emisă de {Nume Prenume}” | US-161 Data finalizării + AC-27, US-157 |
+| Decizie (todo), Livrare | — (no date in the data / stories) | — | — |
+
+**Status notice (`statusNow`):** every status, ONE neutral grey callout — `__title` = the key fact + its date, `__text` =
+at most one short sentence (+ the row alert's live countdown where there is a deadline), formal „dumneavoastră”; only
+the ICON takes the tone (info clock / warning / success / danger); the action(s) under the text inside the card.
+
+| status | icon | title · text | action |
+|---|---|---|---|
+| Schiță | info | „Solicitarea nu a fost depusă” · US-21 „Schița salvată dar nefinisată va fi ștearsă automat în decursul {timp}.” | Continuă schița · Elimină schița |
+| Schiță semnată | info | „Cererea este semnată, dar nu a fost depusă” · „Dacă nu confirmați depunerea, se transmite automat autorității după intervalul de grație.” | same |
+| În derulare | time (brand) | „Răspuns până la {termen}” · „Dosarul este la {autoritate — subdiviziune}; nu trebuie să faceți nimic acum.” (after suplinire: „Informațiile transmise pe {d} sunt în examinare; …”; suplinire lapsed: „Termenul de suplinire a expirat; autoritatea examinează dosarul cu documentele depuse.”) | — |
+| Aprobare tacită disponibilă | info | „Termenul de examinare a expirat pe {d}” · „Solicitarea se consideră aprobată tacit; puteți desfășura activitatea conform legii.” | — |
+| Informații suplimentare | warning | „Trimiteți informațiile cerute până la {d}” · „Examinarea este suspendată până atunci · {countdown}.” (the reason = Date generale row „Motivul suspendării”) | Suplinește informații |
+| Spre achitare | credit-card (warning) | „Achitați {sumă} până la {d}” · „După achitare, examinarea continuă automat · {countdown}.” | Achită … cu mpay |
+| Notă expirată | error | „Taxa a expirat pe {d}” · „Achitarea nu mai este posibilă.” | — |
+| Aprobată | success | „Actul permisiv a fost emis pe {d}” · „Îl găsiți și în „Actele mele permisive”.” | Vezi actul · Descarcă actul (· Depune contestație) |
+| Aprobată tacit | success | „Aprobată tacit pe {d}” · „Autoritatea nu s-a pronunțat în termen; actul îl găsiți în „Actele mele permisive”.” | same |
+| Decizie fără act nou | success | „Decizia a fost emisă pe {d}” · `decision.text` | Vezi actul · Descarcă decizia |
+| Respinsă, în termen | error | „Puteți depune contestație până la {d}” · „Motivul refuzului: {motiv} · {countdown}” | Depune contestație · Descarcă decizia |
+| Respinsă | error | „Solicitarea a fost respinsă” · „Motivul refuzului: {motiv}” | Descarcă decizia |
+
+The header keeps its „Stare” tag (the list row / act profile tag, readable while scrolling the tabs).
+
+**Istoric (`historyHtml`, section in Date generale):** the former vertical timeline, reached events only — full date +
+time · who signed and on which basis (MPower) · MSign / MPay · the subdivision · notes; vertical `GEAPTrajectory` card
+`.cab-request-history` (r16 / p16 ≤760, as `.cab-act-history`).
+
+**Checks:** connector 8.0 from every marker on both sides (1440 / 1024); phones stack (`.is-stacked`); tracker → notice
+12, notice → tabs 16, header → tracker 20 (the BO panel rule).
 
 **Replaced (2026-10-20):** the BO grid 1·2·2·2·2·1 with left / right aligned edge steps and 2px lines 4 from the
 markers; `.e-permits-trajectory__steps--n3…n7`; the FO `.e-permits-fo-finish-tracker` (1.5 lines, no card, labels
