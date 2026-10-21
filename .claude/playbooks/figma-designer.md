@@ -2848,7 +2848,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-10-21 · Breadcrumb never repeats the page title (code 9dcee919 breadcrumb-v3; user: „the breadcrumb should not repeat the
   page title, it's already there”). Every library breadcrumb (232:5282, set cafee05e…) above an H1 → `👁️ Active Level#5159:7` =
   false; the trail ends on the last parent with its own chevron (each Level item carries it — no other change needed). Counts
-  (desktop instances with Active Level ON, before → after): GEAP 319 → 1 (Services 185, Classifiers 23, Dossiers 50, User Management
+  (desktop instances with Active Level ON, before → after): GEAP 322 → 1 (Local components 2 mains, Services 185, Classifiers 23, Dossiers 50, User Management
   39, Notification templates 19, Application Shell 3; done through the mains `Main Navigation` 9442:44686, Dossiers 9706:6955, the
   4 `Profile / Header` variants 10133:184435 / 184551 / 184617 / 184693, notification header 10008:1624 + 61 own instances; 0
   nested overrides needed); kept ON = Process Designer sub-process trail 5740:27424 (replaces the title). EVO Cabinet 26 → 0 (My
