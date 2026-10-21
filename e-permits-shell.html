@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/button-icons.css?v=button-icons-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=copy-wrap-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=tooltip-one-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=audit-fix-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v8">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v3">
@@ -18,12 +18,12 @@
   <link rel="stylesheet" href="css/field-sizes.css?v=audit-fix-v1">
   <link rel="stylesheet" href="css/modal-phone.css?v=sheet-header-v1">
   <script src="js/copy-value.js?v=copy-wrap-v1"></script>
-  <script src="js/breadcrumbs.js?v=breadcrumb-v1"></script>
+  <script src="js/breadcrumbs.js?v=tooltip-one-v1"></script>
   <script src="js/empty-state.js?v=empty-v3"></script>
   <script src="js/trajectory.js?v=traj-v1"></script>
   <script src="js/modal.js" defer></script>
   <script src="js/search.js?v=delegated-v2" defer></script>
-  <script src="js/icon-tooltip.js?v=cab-rows-v1" defer></script>
+  <script src="js/icon-tooltip.js?v=tooltip-one-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
@@ -277,13 +277,11 @@
               data-shell-toggle
               aria-pressed="false"
               aria-label="Colapsează meniul"
-              data-tooltip-expanded="Collapse menu"
-              data-tooltip-collapsed="Expand menu"
+              data-tooltip-placement="right"
             >
               <svg class="icon" width="20" height="20" aria-hidden="true">
                 <use href="assets/icons/sprite.svg#icon-sidebar"></use>
               </svg>
-              <span class="e-permits-shell__collapse-tooltip" aria-hidden="true">Collapse menu</span>
             </button>
           </div>
 
@@ -292,7 +290,7 @@
               <p class="e-permits-shell__group-label">Locul de muncă</p>
               <ul class="e-permits-shell__nav-list">
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link is-active" data-nav-item data-workplace-view="mine" title="Dosarele mele" aria-current="page">
+                  <a href="#" class="e-permits-shell__nav-link is-active" data-nav-item data-workplace-view="mine" aria-current="page">
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-document"></use></svg>
                     </span>
@@ -301,7 +299,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="unassigned" title="Dosare nedistribuite">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="unassigned">
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-page-text"></use></svg>
                     </span>
@@ -310,7 +308,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="office" title="Dosare inițiate în oficiu">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="office">
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-mark-all"></use></svg>
                     </span>
@@ -319,7 +317,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="print" title="Dosare spre printare">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item data-workplace-view="print">
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-download"></use></svg>
                     </span>
@@ -333,7 +331,7 @@
               <p class="e-permits-shell__group-label">Configurare</p>
               <ul class="e-permits-shell__nav-list">
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Acte permisive">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20"><use href="assets/icons/sprite.svg#icon-stamp"></use></svg>
                     </span>
@@ -350,7 +348,7 @@
               <p class="e-permits-shell__group-label">Operațional</p>
               <ul class="e-permits-shell__nav-list">
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link is-active" aria-current="page" data-nav-item title="Acasă">
+                  <a href="#" class="e-permits-shell__nav-link is-active" aria-current="page" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-home-line"></use>
@@ -360,7 +358,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Cereri">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-document"></use>
@@ -371,7 +369,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Incidente">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-bubble-alert"></use>
@@ -382,7 +380,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Calendar">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-calendar"></use>
@@ -392,7 +390,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Rapoarte">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-chart"></use>
@@ -408,7 +406,7 @@
               <p class="e-permits-shell__group-label">Registre &amp; date</p>
               <ul class="e-permits-shell__nav-list">
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Solicitanți">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-group"></use>
@@ -419,7 +417,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Solicitanți străini">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-globe"></use>
@@ -430,7 +428,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Autorități">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-business"></use>
@@ -441,7 +439,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Registre">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-attachment"></use>
@@ -457,7 +455,7 @@
               <p class="e-permits-shell__group-label">Configurare</p>
               <ul class="e-permits-shell__nav-list">
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Acte permisive">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-stamp"></use>
@@ -468,7 +466,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Taxe">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-coins"></use>
@@ -479,7 +477,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Documente">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-document"></use>
@@ -490,7 +488,7 @@
                   </a>
                 </li>
                 <li>
-                  <a href="#" class="e-permits-shell__nav-link" data-nav-item title="Legislație">
+                  <a href="#" class="e-permits-shell__nav-link" data-nav-item>
                     <span class="e-permits-shell__nav-icon" aria-hidden="true">
                       <svg class="icon" width="20" height="20">
                         <use href="assets/icons/sprite.svg#icon-judge-gavel"></use>
@@ -512,8 +510,7 @@
             data-shell-toggle
             aria-pressed="false"
             aria-label="Colapsează meniul"
-            data-tooltip-expanded="Collapse menu"
-            data-tooltip-collapsed="Expand menu"
+            data-tooltip-placement="right"
           >
             <span class="e-permits-shell__collapse-glyph" aria-hidden="true">
               <svg class="e-permits-shell__collapse-shape" xmlns="http://www.w3.org/2000/svg" width="7" height="18" viewBox="0 0 7 18" fill="none">
@@ -530,7 +527,6 @@
                 />
               </svg>
             </span>
-            <span class="e-permits-shell__collapse-tooltip" aria-hidden="true">Collapse menu</span>
           </button>
           <div class="e-permits-shell__canvas">
             <div class="e-permits-shell__canvas-surface">
@@ -618,8 +614,8 @@
     </main>
   </div>
 
-  <script src="js/table-cells.js?v=rule-v1" defer></script>
-  <script src="js/facet-filter.js?v=sheet-header-v1"></script>
-  <script src="js/e-permits-shell.js?v=unsaved-review-v1"></script>
+  <script src="js/table-cells.js?v=tooltip-one-v1" defer></script>
+  <script src="js/facet-filter.js?v=tooltip-one-v1"></script>
+  <script src="js/e-permits-shell.js?v=tooltip-one-v1"></script>
 </body>
 </html>

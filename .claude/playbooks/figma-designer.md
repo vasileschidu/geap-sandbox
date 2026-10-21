@@ -143,8 +143,9 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - Grid: columns = block width + 240 gap (1440 desktop-only, 1895 desktop+mobile, 1942 US-54 mobiles); every item of a
   row shares the row top; blocks never float off-grid. Column boards: stacked blocks 240 (US-54) / 396 (Requestor)
   apart; row lanes: next row top = tallest item of the row + 396.
-- Block = `Screen label` → `Screens · desktop + mobile` (gap 80) → `Note · <id>` at the bottom, all inside the block
-  (VERTICAL, gap 16). Notes never float beside blocks.
+- Block = `Screen label` → `Screens · desktop + mobile` (gap 120 = GEAP FO 09 / Post-processes / Address / EVO Cabinet;
+  the FOD Requestor board is 80) → `Note · <id>` at the bottom, all inside the block (VERTICAL, gap 16). Notes never float
+  beside blocks. Label = blue ID chip · H4 title · Status · „Prototype ↗” link; note = GREY (see lesson 2026-10-21).
 - Stage headers: column boards = the `Stage NN · …` bar (ID chip + title + one line) at the column top, width = the
   columns it covers, blocks 244 below. Row lanes = a narrow `Row header · …` (clone of a stage header, 560 wide, HUG)
   at the top of a 720 GUTTER left of the grid; the row's decision / doc cards sit under it (240 gap), right-aligned to
@@ -2231,4 +2232,32 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     steps) — same declared half pixel as the code's centring.
   - Code value for proto-engineer: horizontal line must stop **8 px (spacing-8) from the 24 marker box** on both sides
     (visible glyph gap 10, as vertical), step body min-width 40; today it is 20–61.
+
+- 2026-10-21 · **EVO Cabinet boards = the GEAP block anatomy: grey note, „Prototype ↗” link in the label** (user on ↳ My requests
+  1122:6538: „the structure … is different from GEAP: the note under the screens is yellow …; the link to the prototype on the top
+  of the screens is missing”). Measured GEAP first (F1 10815:25438, Tariffs 01 9622:1681; census of 9 pages = 538 notes, ALL
+  background/base/secondary #F5F5F5 — no GEAP note is yellow; the yellow one was Cabinet's own `Board / Note`). GEAP anatomy:
+  block VERTICAL gap 16 (spacing-16) › `Screen label` HORIZONTAL gap 12 CENTER = `ID` chip frame (background/brand/default, p 4/12
+  spacing-4/-12, r8 radius token, text Desktop/Body/Small 500 text/base-inverse/default) · title H4 text/base/default · Status ·
+  `Link · prototype` „Prototype ↗” (Desktop/Body/Small, text/base/tertiary 9d5ad1d8…, UNDERLINE, URL hyperlink ?state=<id>) ›
+  `Screens · desktop + mobile` gap 120 (spacing-120 3a33dc48…) › `Note · <id>` frame FILL/HUG, background/base/secondary 2099ba93…,
+  p24, gap 12, r16 = tag-filled Strong Neutral MEDIUM „NOTE DEV / PM” (key 207b66da…) · „<id> · title” H4 text/base/default
+  (e56e58fc…) · text Desktop/Body/Small text/base/secondary. Cabinet differed in: amber note (fc1ea032…), Accent Small tag, gap 8,
+  Small-500 title without the id, link „Prototype ↗ · <id>” at the BOTTOM of the note, black tag-filled Small ID chip (20 high),
+  no link in the label, screens 80 apart. Fix = the two Cabinet mains (`Board / Block label` 1052:210 → ID chip frame bound to
+  the `ID` prop + `Link · prototype` text; `Board / Note` 1052:232 → restyled, link removed) → all 66 blocks (47 My requests +
+  18 Permits + 1) follow; per instance: `ID` prop = block id, link hyperlink override (works on instance text:
+  `text.hyperlink = {type:"URL", value}`), note Title prop prefixed „<id> · ”. Then screens gap 120 per block, columns restacked
+  at 240 (notes 8 px shorter), Jump markers +40 x and moved with their source block, sections refit, 3 fractional y rounded.
+  Lessons:
+  - **Read the user's „X in GEAP” against the file, not the sentence**: census the property across GEAP pages before copying a
+    value; the evidence (grey everywhere) decided, and the report says so.
+  - **Fix the board pieces in the MAIN**: one main change + three per-instance props updated 66 blocks with no rebuild and no
+    lost connector (0 unattached after). Replacing a child in a main drops instance overrides on it → snapshot the values first
+    (IDs lived as overrides on the old tag instance; the unused `ID` prop said „pp-01” everywhere).
+  - Widening a block (gap 80 → 120) moves the phone 40 right: move every absolute neighbour on that side (Jump markers) and check
+    section width + overlaps; RIGHT-magnet connectors follow by themselves.
+  - Builder updated (tools/figma/cabinet/screens.js + stored „cab”/„screens”, compile-checked) so a rebuild keeps the anatomy.
+  - No Agent tool in this session → stored gate audit (`qsweep`/`audit`) on both mains + the label / note of sm-01, nt-01d, pp-01,
+    sm-04c: 0 findings; census 132 / 132 label + note instances correct; links curl 200, all 66 states in the live demo-states.js.
 

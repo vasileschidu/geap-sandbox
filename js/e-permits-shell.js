@@ -218,15 +218,7 @@ document.addEventListener("DOMContentLoaded", () => {
     toggle.setAttribute("aria-pressed", String(isCollapsed));
     toggle.setAttribute("aria-label", isCollapsed ? "Extinde meniul" : "Colapsează meniul");
 
-    const tooltipLabel = isCollapsed
-      ? toggle.dataset.tooltipCollapsed
-      : toggle.dataset.tooltipExpanded;
-    const tooltip = toggle.querySelector(".e-permits-shell__collapse-tooltip");
-
-    if (tooltipLabel && tooltip) {
-      tooltip.textContent = tooltipLabel;
-    }
-
+    /* its tooltip = the aria-label, shown to the right by the ONE tooltip runtime (js/icon-tooltip.js) */
     syncCollapseGlyph(toggle.matches(":hover") || toggle.matches(":focus-visible"));
   };
 
@@ -244,14 +236,10 @@ document.addEventListener("DOMContentLoaded", () => {
       item.dataset.navLabel = label;
       item.setAttribute("aria-label", label);
       item.removeAttribute("title");
-
-      if (!item.querySelector(".e-permits-shell__nav-tooltip")) {
-        const tooltip = document.createElement("span");
-        tooltip.className = "e-permits-shell__nav-tooltip";
-        tooltip.setAttribute("aria-hidden", "true");
-        tooltip.textContent = label;
-        item.appendChild(tooltip);
-      }
+      /* collapsed rail: the text is hidden, so the ONE tooltip runtime (js/icon-tooltip.js) names the link —
+         to the right of the rail; expanded, the visible text means no tooltip */
+      item.dataset.tooltipLabel = label;
+      item.dataset.tooltipPlacement = "right";
     });
   };
 
@@ -386,7 +374,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-fo-select${disabled ? " is-disabled" : ""}${error ? " is-error" : ""}" data-fo-native-select>
         <select ${attrs} hidden tabindex="-1"${disabled ? " disabled" : ""}>${optionsHtml}</select>
         <button class="e-permits-fo-select__button" type="button" id="${escapeHtml(id)}" aria-haspopup="listbox" aria-expanded="false"${label ? ` aria-label="${escapeHtml(label)}"` : ""}${disabled ? " disabled" : ""}>
-          <span class="e-permits-fo-select__value${isPlaceholder ? " e-permits-fo-select__value--placeholder" : ""}" title="${escapeHtml(chosen?.textContent.trim() || "")}">${escapeHtml(chosen?.textContent.trim() || "")}</span>
+          <span class="e-permits-fo-select__value${isPlaceholder ? " e-permits-fo-select__value--placeholder" : ""}" data-cell-tooltip>${escapeHtml(chosen?.textContent.trim() || "")}</span>
           <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
         </button>
       </div>
@@ -506,7 +494,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const value = root.querySelector(".e-permits-fo-select__value");
     value.textContent = item.textContent;
     /* a long option is truncated in the box: the full text as a tooltip (PO rule) */
-    value.title = item.textContent.trim();
+    value.setAttribute("data-cell-tooltip", "");
     value.classList.remove("e-permits-fo-select__value--placeholder");
     root.classList.remove("is-error");
     closeFoSelect({ focus: true });
@@ -2252,7 +2240,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-workplace__alert-list">
         ${alerts.map((alertKey) => {
           const alert = workplaceDb.alerts[alertKey];
-          return `<span class="e-permits-workplace__flag e-permits-workplace__flag--${escapeHtml(alert?.tone || "neutral")}" title="${escapeHtml(alert?.label || alertKey)}">${escapeHtml(alert?.short || alertKey)}</span>`;
+          return `<span class="e-permits-workplace__flag e-permits-workplace__flag--${escapeHtml(alert?.tone || "neutral")}" data-tooltip-text="${escapeHtml(alert?.label || alertKey)}">${escapeHtml(alert?.short || alertKey)}</span>`;
         }).join("")}
       </div>
     `;
@@ -2323,7 +2311,7 @@ document.addEventListener("DOMContentLoaded", () => {
      menu item named by the first crumb, else of the active item */
   const navSectionOf = (label) => {
     const links = [...document.querySelectorAll("[data-nav-item]")];
-    const link = links.find((item) => (item.getAttribute("title") || item.textContent).trim() === label)
+    const link = links.find((item) => (item.dataset.navLabel || item.textContent).trim() === label)
       || links.find((item) => item.classList.contains("is-active"));
     return link?.closest(".e-permits-shell__nav-group")?.querySelector(".e-permits-shell__group-label")?.textContent.trim() || "";
   };
@@ -2341,7 +2329,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return `
     <div class="e-permits-page-header__heading">
       ${renderBreadcrumbs(trail, { truncate: true })}
-      <h1 class="e-permits-page-header__title" title="${escapeHtml(title)}">${escapeHtml(title)}</h1>
+      <h1 class="e-permits-page-header__title" data-cell-tooltip>${escapeHtml(title)}</h1>
     </div>
     ${actions || caption || status ? `
       <div class="e-permits-page-header__aside">
@@ -2909,7 +2897,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-dosar-profil__card">
         ${rows.map(([label, valueHtml]) => `
           <div class="e-permits-dosar-profil__row">
-            <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+            <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeHtml(label)}</span>
             <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
           </div>
         `).join("")}
@@ -3256,7 +3244,7 @@ document.addEventListener("DOMContentLoaded", () => {
       meta: [
         ...(nr ? [renderListCode(nr, { meta: true })] : []),
         /* the file name, unless it is just the number again (ellipsizes on phones, full name in the tooltip) */
-        ...(file ? [`<span class="e-permits-stack__file" title="${escapeHtml(file)}">${escapeHtml(file)}</span>`] : []),
+        ...(file ? [`<span class="e-permits-stack__file" data-cell-tooltip>${escapeHtml(file)}</span>`] : []),
         fileSizeLabel(doc.kb),
         escapeHtml(insotitorAddedLabel(doc)),
         ...(doc.de ? [`de ${escapeHtml(doc.de.nume)}`] : []),
@@ -4496,7 +4484,7 @@ document.addEventListener("DOMContentLoaded", () => {
             : "data-user-profile-delete" }
         ], user.numeComplet)}
       `,
-      status: dirty ? renderHeaderStatus(changes === 1 ? "1 modificare nesalvată" : `${changes} modificări nesalvate`, "warning", 'data-profile-changes aria-haspopup="dialog" title="Vezi modificările"') : "",
+      status: dirty ? renderHeaderStatus(changes === 1 ? "1 modificare nesalvată" : `${changes} modificări nesalvate`, "warning", 'data-profile-changes aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') : "",
       caption: `Ultima conectare ${user.ultimaConectareRelativ || formatLongDate(user.ultimaConectare)} · actualizat ${formatLongDate(user.ultimaActualizare)}`
     });
   };
@@ -5160,7 +5148,7 @@ document.addEventListener("DOMContentLoaded", () => {
      entries(), undo(key), discard(), save() } — entries = { undo, group, title, tag, detail } */
   const changeSources = {};
   const registerChangeSource = (key, build) => { changeSources[key] = build; };
-  const changesStatusAttrs = (key) => `data-profile-changes="${key}" aria-haspopup="dialog" title="Vezi modificările"`;
+  const changesStatusAttrs = (key) => `data-profile-changes="${key}" aria-haspopup="dialog" data-tooltip-text="Vezi modificările"`;
   const changesCountLabel = (n) => (n === 1 ? "1 modificare nesalvată" : `${n} modificări nesalvate`);
   /* a short, one-line value for „vechi → nou” */
   const changeValue = (value, max = 48) => {
@@ -5352,7 +5340,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="btn btn-neutral btn-sm" type="button" data-role-profile-discard>Renunță</button>
         <button class="btn btn-primary btn-sm" type="button" data-role-profile-save>Salvează</button>
       ` : "",
-      status: changes ? renderHeaderStatus(changes === 1 ? "1 modificare nesalvată" : `${changes} modificări nesalvate`, "warning", 'data-profile-changes aria-haspopup="dialog" title="Vezi modificările"') : ""
+      status: changes ? renderHeaderStatus(changes === 1 ? "1 modificare nesalvată" : `${changes} modificări nesalvate`, "warning", 'data-profile-changes aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') : ""
     });
   };
 
@@ -6410,7 +6398,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const renderDateTime = (value, author = "", { short = false } = {}) => (toDate(value) ? `
     <span class="e-permits-workplace__date-stack">
       <span>${escapeHtml(formatLongDate(value))}</span>
-      <span class="e-permits-workplace__date-meta"${author ? ` title="${escapeHtml(author)}"` : ""}>${escapeHtml([formatTime(value), short ? shortName(author) : author].filter(Boolean).join(" · "))}</span>
+      <span class="e-permits-workplace__date-meta"${author ? ` data-tooltip-text="${escapeHtml(author)}"` : ""}>${escapeHtml([formatTime(value), short ? shortName(author) : author].filter(Boolean).join(" · "))}</span>
     </span>
   ` : '<span class="e-permits-workplace__dash">—</span>');
 
@@ -6699,7 +6687,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "sursaExterna":
         return `<div class="e-permits-workplace__case-cell">
           <span class="e-permits-workplace__source-head">${row.syncEsuat ? renderTag("Eșuat", "danger") : renderTag(row.statutRssp, row.statutRssp === "Activ" ? "success" : "neutral")}<span class="e-permits-workplace__source-name">${escapeHtml(row.sursa)}</span></span>
-          <span class="e-permits-workplace__source"><span title="${row.syncEsuat ? "Ultima sincronizare reușită" : "Sincronizat din sursa externă"}">${row.syncEsuat ? "ultima reușită " : ""}${escapeHtml(formatStamp(row.sincronizat))}</span></span>
+          <span class="e-permits-workplace__source"><span data-tooltip-text="${row.syncEsuat ? "Ultima sincronizare reușită" : "Sincronizat din sursa externă"}">${row.syncEsuat ? "ultima reușită " : ""}${escapeHtml(formatStamp(row.sincronizat))}</span></span>
         </div>`;
       case "sincronizat":
         return renderDateTime(row.sincronizat, row.sincronizatDe);
@@ -6709,11 +6697,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return `
           <span class="e-permits-workplace__row-actions">
             ${isCentralAdmin() ? `
-              <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-service-row-sync="${escapeHtml(row.cod)}" aria-label="Sincronizare din RSSP: ${escapeHtml(row.denumire)}" title="Sincronizare din RSSP">
+              <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-service-row-sync="${escapeHtml(row.cod)}" aria-label="Sincronizare din RSSP: ${escapeHtml(row.denumire)}" data-tooltip-label="Sincronizare din RSSP">
                 <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-rotate-arrow"></use></svg>
               </button>
             ` : ""}
-            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-service-row-open="${escapeHtml(row.cod)}" aria-label="Actualizare configurație: ${escapeHtml(row.denumire)}" title="Actualizare configurație">
+            <button class="btn btn-neutral btn-sm btn-icon-only" type="button" data-service-row-open="${escapeHtml(row.cod)}" aria-label="Actualizare configurație: ${escapeHtml(row.denumire)}" data-tooltip-label="Actualizare configurație">
               <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-edit"></use></svg>
             </button>
           </span>
@@ -6804,7 +6792,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-dosar-profil__card">
         ${rows.map(([label, valueHtml]) => `
           <div class="e-permits-dosar-profil__row">
-            <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+            <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeHtml(label)}</span>
             <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
           </div>
         `).join("")}
@@ -6998,7 +6986,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="e-permits-dosar-profil__card">
         ${rows.map(([label, valueHtml]) => `
           <div class="e-permits-dosar-profil__row">
-            <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+            <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeHtml(label)}</span>
             <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
           </div>
         `).join("")}
@@ -7140,7 +7128,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ${item.leadHtml || ""}
       <div class="e-permits-stack__main">
         <div class="e-permits-stack__title-row">
-          <p class="e-permits-stack__title"${item.leadHtml && item.plainTitle ? ` title="${escapeHtml(item.plainTitle)}"` : ""}>${item.title}</p>
+          <p class="e-permits-stack__title"${item.leadHtml && item.plainTitle ? ` data-cell-tooltip="${escapeHtml(item.plainTitle)}"` : ""}>${item.title}</p>
           ${(item.badges || []).join("")}
         </div>
         ${[item.meta, item.meta2].filter((line) => line && line.length).map((line, lineIndex) => `
@@ -8347,7 +8335,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <ul class="e-permits-stack__list" role="list">
             ${rows.map(([name, valueHtml]) => `
               <li class="e-permits-stack__item e-permits-fee-summary__row">
-                <span class="e-permits-fee-summary__name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
+                <span class="e-permits-fee-summary__name" data-cell-tooltip>${escapeHtml(name)}</span>
                 <span class="e-permits-fee-summary__value">${valueHtml}</span>
               </li>
             `).join("")}
@@ -8661,7 +8649,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dtplMarkTokens = (html) => String(html || "").replace(DTPL_TOKEN_RE, (m, sign, name, arg) => {
     const token = sign ? arg : name;
     const kind = sign || name === "if" || name === "each" ? "is-logic" : DTPL_FIELD_MAP.has(token) ? "" : "is-unknown";
-    return `<span class="e-permits-dtpl-token${kind ? ` ${kind}` : ""}" contenteditable="false"${kind === "is-unknown" ? ' title="Câmp inexistent în sursele de date"' : ""}>${escapeHtml(m)}</span>`;
+    return `<span class="e-permits-dtpl-token${kind ? ` ${kind}` : ""}" contenteditable="false"${kind === "is-unknown" ? ' data-tooltip-text="Câmp inexistent în sursele de date"' : ""}>${escapeHtml(m)}</span>`;
   });
   const dtplReadSurface = (surface) => {
     const copy = surface.cloneNode(true);
@@ -8673,7 +8661,7 @@ document.addEventListener("DOMContentLoaded", () => {
     .replace(/\{\{\s*#if\s+([A-Za-z0-9._]+)\s*\}\}([\s\S]*?)\{\{\s*\/if\s*\}\}/g, (m, flag, inner) => (/^(da|true|1)$/i.test(String(data[flag] ?? DTPL_FIELD_MAP.get(flag)?.sample ?? "")) ? inner : ""))
     .replace(/\{\{\s*([A-Za-z][A-Za-z0-9._]*)\s*\}\}/g, (m, token) => {
       const value = data[token] ?? DTPL_FIELD_MAP.get(token)?.sample;
-      return value ? `<mark class="e-permits-ntpl-preview__token" title="{{${token}}}">${escapeHtml(value)}</mark>` : `<mark class="e-permits-dtpl-token is-unknown" title="Câmp inexistent">${escapeHtml(m)}</mark>`;
+      return value ? `<mark class="e-permits-ntpl-preview__token" data-tooltip-text="{{${token}}}">${escapeHtml(value)}</mark>` : `<mark class="e-permits-dtpl-token is-unknown" data-tooltip-text="Câmp inexistent">${escapeHtml(m)}</mark>`;
     });
 
   /* ---- list ---- */
@@ -9060,7 +9048,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>` : ""}
           <div class="e-permits-dtpl__status">
             <p class="e-permits-fo-field__hint">${dtplState.mode === "visual" ? "Câmpurile apar ca etichete și nu se pot rupe la editare. Ciclurile ({{#each}}) și marcajele speciale se editează în modul HTML." : "HTML-ul documentului, așa cum se salvează în MDocs."}</p>
-            ${unknown.length ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--danger" title="${escapeHtml(unknown.join(", "))}" data-dtpl-unknown>${escapeHtml(plural(unknown.length, "câmp inexistent", "câmpuri inexistente"))}</span>` : `<span class="e-permits-workplace__tag e-permits-workplace__tag--success" data-dtpl-unknown>Toate câmpurile există</span>`}
+            ${unknown.length ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--danger" data-tooltip-text="${escapeHtml(unknown.join(", "))}" data-dtpl-unknown>${escapeHtml(plural(unknown.length, "câmp inexistent", "câmpuri inexistente"))}</span>` : `<span class="e-permits-workplace__tag e-permits-workplace__tag--success" data-dtpl-unknown>Toate câmpurile există</span>`}
           </div>
           <div class="e-permits-dtpl__canvas">
             ${dtplState.mode === "visual"
@@ -9127,14 +9115,14 @@ document.addEventListener("DOMContentLoaded", () => {
       <header class="e-permits-dtpl__head">
         <div class="e-permits-dtpl__identity">
           ${renderTag(tpl.version, "neutral")}
-          <h2 class="e-permits-dtpl__title" id="dtpl-title" title="${escapeHtml(tpl.name)}">${escapeHtml(tpl.name)}</h2>
+          <h2 class="e-permits-dtpl__title" id="dtpl-title" data-cell-tooltip>${escapeHtml(tpl.name)}</h2>
           ${renderProfileCopyCode(tpl.code, `Copiază ${tpl.code}`)}
         </div>
         <div class="segmented-control e-permits-dtpl__views" role="tablist" aria-label="Constructor">
           ${[["template", "Șablon"], ["test", "Date de test"], ["preview", "Previzualizare"]].map(([v, l]) => `<button class="segment-item${view === v ? " is-selected" : ""}" type="button" role="tab" aria-selected="${view === v}" data-dtpl-view="${v}">${l}</button>`).join("")}
         </div>
         <div class="e-permits-dtpl__actions">
-          ${pending ? (dtplState.dirty ? renderHeaderStatus(dtplChangesLabel(), "warning", changesStatusAttrs("dtpl-draft")) : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" title="Vezi modificările"')) : ""}
+          ${pending ? (dtplState.dirty ? renderHeaderStatus(dtplChangesLabel(), "warning", changesStatusAttrs("dtpl-draft")) : tpl.status === "draft" ? renderHeaderStatus("Schiță · nepublicat în MDocs", "warning") : renderHeaderStatus("Modificări nepublicate", "warning", 'data-dtpl-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"')) : ""}
           <button class="btn btn-neutral btn-sm" type="button" data-dtpl-history><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-history"></use></svg><span>Istoric versiuni</span></button>
           ${pending
             ? '<button class="btn btn-primary btn-sm" type="button" data-dtpl-publish>Publică în MDocs</button>'
@@ -11291,7 +11279,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* the preview: tokens filled with sample data and marked */
   const fillNtplSample = (text, { html = false } = {}) => {
     const safe = html ? String(text || "").replace(/<\/?(script|style|iframe)[^>]*>/gi, "") : escapeHtml(text || "");
-    return safe.replace(/\{\{\s*([A-Za-z]+)\s*\}\}/g, (match, token) => `<mark class="e-permits-ntpl-preview__token" title="{{${token}}}">${escapeHtml(NTPL_SAMPLE[token] || match)}</mark>`);
+    return safe.replace(/\{\{\s*([A-Za-z]+)\s*\}\}/g, (match, token) => `<mark class="e-permits-ntpl-preview__token" data-tooltip-text="{{${token}}}">${escapeHtml(NTPL_SAMPLE[token] || match)}</mark>`);
   };
 
   const renderNtplPreviewBody = () => renderNtplPreviewOf(ntplProfileState.draft.texts[ntplProfileState.lang] || {}, ntplProfileState.preview);
@@ -13131,7 +13119,7 @@ document.addEventListener("DOMContentLoaded", () => {
       /* pending changes lead the caption as a warning status (dot + text), not a tag;
          a Setări v2 draft shows „● N modificări nesalvate” (its Renunță · Salvează sit in the
          page's sticky save bar — the header scrolls away on a long page) */
-      status: (() => { const d = cfg2Changes(service).length; if (serviceProfileState.tabKey === "settings" && d) return renderHeaderStatus(changesCountLabel(d), "warning", changesStatusAttrs("service-settings")); const n = servicePendingChanges(service).length; return canSync && n ? renderHeaderStatus(n === 1 ? "1 modificare nepublicată" : `${n} modificări nepublicate`, "warning", 'data-service-pending aria-haspopup="dialog" title="Vezi modificările"') : ""; })(),
+      status: (() => { const d = cfg2Changes(service).length; if (serviceProfileState.tabKey === "settings" && d) return renderHeaderStatus(changesCountLabel(d), "warning", changesStatusAttrs("service-settings")); const n = servicePendingChanges(service).length; return canSync && n ? renderHeaderStatus(n === 1 ? "1 modificare nepublicată" : `${n} modificări nepublicate`, "warning", 'data-service-pending aria-haspopup="dialog" data-tooltip-text="Vezi modificările"') : ""; })(),
       caption: (() => { const n = servicePendingChanges(service).length; const g = servicePublication(service); const next = (g.publications || [])[0]; return `${n ? `față de ${g.version}` : servicePublicationPending(next) ? `${next.version} intră în vigoare pe ${formatLongDate(next.effectiveFrom)}` : `Publicat ${formatStamp(g.publishedAt)}`} · sincronizat ${formatStamp(service.lastSync)}`; })()
     });
     meta.innerHTML = renderPageHeaderMeta([
@@ -13840,7 +13828,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ${lead || ""}
         <div class="e-permits-stack__main">
           <div class="e-permits-stack__title-row">
-            <p class="e-permits-stack__title"${lead ? ` title="${escapeHtml(title)}"` : ""}>${escapeHtml(title)}</p>
+            <p class="e-permits-stack__title"${lead ? " data-cell-tooltip" : ""}>${escapeHtml(title)}</p>
             ${overridden ? renderTag("Personalizat", "brand") : renderTag(defaultTag, "neutral")}
           </div>
           <div class="e-permits-stack__meta">
@@ -15557,8 +15545,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (token.startsWith("{")) {
       const v = formulaVar(formulaTokenKey(token));
       return v
-        ? `<mark class="e-permits-ntpl-preview__token" title="${escapeHtml(token)}">${escapeHtml(formulaVarCaption(v.key))}</mark>`
-        : `<mark class="e-permits-ntpl-preview__token e-permits-tariff-formula__unknown" title="Variabilă necunoscută">${escapeHtml(token)}</mark>`;
+        ? `<mark class="e-permits-ntpl-preview__token" data-tooltip-text="${escapeHtml(token)}">${escapeHtml(formulaVarCaption(v.key))}</mark>`
+        : `<mark class="e-permits-ntpl-preview__token e-permits-tariff-formula__unknown" data-tooltip-text="Variabilă necunoscută">${escapeHtml(token)}</mark>`;
     }
     if (/^\d/.test(token)) return escapeHtml(token.replace(".", ","));
     return (TARIFF_FORMULA_OPS.find(([op]) => op === token) || [token, token])[1];

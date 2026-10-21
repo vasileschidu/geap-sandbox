@@ -1150,7 +1150,7 @@
         <div class="e-permits-dosar-profil__card">
           ${rows.map((r) => `
             <div class="e-permits-dosar-profil__row">
-              <span class="e-permits-dosar-profil__row-label" title="${esc(r.label)}">${esc(r.label)}</span>
+              <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${esc(r.label)}</span>
               <span class="e-permits-dosar-profil__row-value e-permits-ekyc-match"><span>${esc(r.rsp)}${r.ok ? "" : `<span class="e-permits-dosar-profil__termen-meta">în document: ${esc(r.doc || "—")}</span>`}</span>${matchTag(r.ok)}</span>
             </div>`).join("")}
         </div>

@@ -1903,3 +1903,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   a JS that added a `--danger` class must now also swap `btn-primary` → `btn-destructive`. Hover / code audits on a
   dialog need a scope that resolves to the OPEN one (`.x:not([hidden]) .card`) — a bare card selector hit a hidden
   copy („0 interactive”). component-audit on 15 states × 2: targeted findings 91 → 0, all majors 403 → 292.
+- 2026-10-21 · ONE tooltip runtime (tooltip-one-v1; audit § 3 „Tooltip”, user: „do as you recommend”). Five private
+  runtimes (BO cell `.cell-tooltip` in js/table-cells.js, RAP `.rap-tooltip`, Cabinet `.cab-tooltip`, BO sidebar
+  nav / collapse spans, native `title=`) → js/icon-tooltip.js grown into `GEAPTooltip` (plain + hint look, both
+  library classes; placement + flip, per-kind delay, tap for hints, follow on scroll). Cheapest migration = keep the
+  documented attribute (`data-cell-tooltip`, the library `.cell` contract) and move only its RUNTIME — 40+ renderers
+  needed no change. Traps: (1) a clipped-text check on an inline `<span data-cell-tooltip>` is always false
+  (clientWidth 0) — measure its clipping parent, or a part inside it (an option whose meta is cut); (2) hiding on
+  scroll killed tooltips opened by demo `h.hover` (scrollIntoView fires scroll a frame later) → follow the target and
+  hide only when it leaves the viewport; (3) the collapsed-rail collapse button showed TWO tooltips (its CSS span in
+  English + the runtime's from the Romanian aria-label) — a private tooltip next to the runtime doubles silently;
+  (4) a hint whose `aria-label` already holds the sentence must not also get `aria-describedby` (read twice). title=
+  triage rule that held: own text that can be cut → `data-cell-tooltip`; information not on screen →
+  `data-tooltip-text`; repeats the text / aria-label → remove; iframe title stays (accessible name). Another agent
+  committed a line I had converted (its HEAD blob kept `title=`) → build staging edits against the NEW HEAD every time.
+  component-audit rule 8 (`tooltip-private` / `tooltip-title`) proved on a HEAD worktree (:8981, rap-01 „Filtru”) vs
+  the tree (0 on 18 states × 2). RAP header Ro / Ru / En have no hover — pre-existing (same on HEAD), reported.

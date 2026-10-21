@@ -102,7 +102,7 @@
 
   const fieldRowHtml = (item, extra) => `
       <div class="e-permits-dosar-profil__row${extra}">
-        <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(item.label)}">${escapeHtml(item.label)}</span>
+        <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeHtml(item.label)}</span>
         <span class="e-permits-dosar-profil__row-value">${fieldValueHtml(item.value)}</span>
       </div>`;
 
@@ -451,7 +451,7 @@
 
     const actDataRow = (label, valueHtml, extra = "") => `
       <div class="e-permits-dosar-profil__row${extra}">
-        <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+        <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeHtml(label)}</span>
         <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
       </div>`;
 

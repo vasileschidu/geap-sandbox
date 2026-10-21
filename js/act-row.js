@@ -141,7 +141,7 @@
           ${iconSrc === "" ? "" : `<img class="e-permits-fo-lib-item__icon" src="${iconSrc || `${assets}icons/document-generated.svg`}" width="24" height="24" alt="">`}
           <div class="e-permits-fo-lib-item__content">
             <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
-              <span class="e-permits-fo-lib-item__title" title="${esc(act.name)}">${esc(act.name)}</span>
+              <span class="e-permits-fo-lib-item__title" data-full-name="${esc(act.name)}">${esc(act.name)}</span>
               ${tag}${extraTagsHtml}
             </div>
             ${parts.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${parts.map((part) => `<span class="e-permits-fo-doc-meta__part${part.kind ? ` e-permits-fo-doc-meta__part--${part.kind}` : part.long ? " e-permits-fo-doc-meta__part--long" : ""}">${part.html}</span>`).join("")}</span></div>` : ""}

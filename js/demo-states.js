@@ -2091,7 +2091,7 @@
     "sm-01q": sm(smDateFacet("finalizare", { preset: "u30z" })),
     "sm-01i": sm(smPick("autoritate", ["AMDM*"])),
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
-    "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-sm-tip]"); }),
+    "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-tooltip-hint]"); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
     /* the Izvoraș request's ⋮ open (user 2026-10-20, ref Telegram iOS; row-kebab-v1 „back to 3 dots”): the
        anchored dropdown on every width — phones with the touch item size (components.md „Row action menu on

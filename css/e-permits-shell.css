@@ -1056,28 +1056,6 @@ body {
   white-space: nowrap;
 }
 
-.e-permits-shell__nav-tooltip {
-  position: absolute;
-  left: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-  opacity: 0;
-  pointer-events: none;
-  background: var(--gray-900);
-  color: var(--white);
-  border-radius: var(--border-radius-6, 6px);
-  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
-  white-space: nowrap;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-  z-index: 5;
-  transition:
-    opacity 180ms ease,
-    transform 220ms ease,
-    left 220ms ease;
-}
-
 .e-permits-shell__content {
   flex: 1 1 auto;
   min-width: 0;
@@ -1147,27 +1125,6 @@ body {
   stroke: #8c8c8c;
 }
 
-.e-permits-shell__collapse-tooltip {
-  position: absolute;
-  left: 24px;
-  top: 50%;
-  transform: translateY(-50%) translateX(-4px);
-  opacity: 0;
-  pointer-events: none;
-  background: var(--gray-900);
-  color: var(--white);
-  border-radius: var(--border-radius-6, 6px);
-  padding: var(--spacing-4, 4px) var(--spacing-8, 8px);
-  white-space: nowrap;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-regular, 400);
-  line-height: var(--line-height-lh-20, 20px);
-  transition:
-    opacity 180ms ease,
-    transform 220ms ease,
-    left 220ms ease;
-}
-
 .e-permits-shell__collapse-button::before {
   content: "";
   width: 32px;
@@ -1188,13 +1145,6 @@ body {
 .e-permits-shell__collapse-button:focus-visible::before {
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.84);
-}
-
-.e-permits-shell__collapse-button:hover .e-permits-shell__collapse-tooltip,
-.e-permits-shell__collapse-button:focus-visible .e-permits-shell__collapse-tooltip {
-  left: 28px;
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
 }
 
 .e-permits-shell.is-collapsed {
@@ -1228,17 +1178,6 @@ body {
 
 .e-permits-shell.is-collapsed .e-permits-shell__nav-link.is-active {
   border-left-color: var(--blue-sky-600);
-}
-
-.e-permits-shell.is-collapsed .e-permits-shell__nav-link:hover .e-permits-shell__nav-tooltip,
-.e-permits-shell.is-collapsed .e-permits-shell__nav-link:focus-visible .e-permits-shell__nav-tooltip {
-  left: calc(100% + 16px);
-  opacity: 1;
-  transform: translateY(-50%) translateX(0);
-}
-
-.e-permits-shell.is-collapsed .e-permits-shell__collapse-tooltip {
-  transform: translateY(-50%) translateX(-4px);
 }
 
 @media (max-width: 960px) {

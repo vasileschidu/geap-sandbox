@@ -1,7 +1,7 @@
 /* table-cells.js — behaviour for the `.cell` component.
    Two delegated concerns, both opt-in via data attributes:
      [data-cell-copy="<value>"]     copy-to-clipboard on a .cell__copy button
-     [data-cell-tooltip="<text>"]   full text for a truncated .cell__truncate
+     [data-cell-tooltip="<text>"]   full text for a truncated .cell__truncate — shown by js/icon-tooltip.js
      [data-cell-tooltip-always]     with it, shown even when nothing is clipped —
                                     e.g. a "+3" overflow badge listing the hidden items
    RULE (2026-10-10): any text clipped inside a table cell (ellipsis or line clamp) shows its
@@ -73,95 +73,6 @@
     }, COPIED_MS);
   }, true);
 
-  /* ---------- truncation tooltip ---------- */
-
-  let tip = null;
-  let hideTimer = 0;
-  let showTimer = 0;
-  let lastHiddenAt = 0;
-
-  function ensureTip() {
-    if (tip) return tip;
-    tip = document.createElement("div");
-    tip.className = "cell-tooltip";
-    tip.setAttribute("role", "tooltip");
-    tip.hidden = true;
-    document.body.appendChild(tip);
-    return tip;
-  }
-
-  const isClipped = (el) => el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1;
-
-  /* the clipped element under the pointer inside a table cell: the hovered node or one of its
-     ancestors up to the cell, whichever cuts its own text */
-  function clippedIn(node) {
-    const el = node && node.nodeType === 1 ? node : node?.parentElement;
-    const cell = el?.closest("td, th, [role='cell'], [role='gridcell']");
-    if (!cell) return null;
-    for (let n = el; n && cell.contains(n); n = n.parentElement) {
-      const style = getComputedStyle(n);
-      if (style.overflow !== "visible" || style.textOverflow === "ellipsis" || style.webkitLineClamp !== "none") {
-        if (n.textContent.trim() && isClipped(n)) return n;
-      }
-      if (n === cell) break;
-    }
-    return null;
-  }
-  const tooltipTarget = (node) => node?.closest?.("[data-cell-tooltip]") || clippedIn(node);
-
-  function show(target) {
-    // only when the text is genuinely clipped
-    if (!target.hasAttribute("data-cell-tooltip-always") && !isClipped(target)) return;
-    const text = target.dataset.cellTooltip || target.textContent.trim();
-    if (!text) return;
-
-    const el = ensureTip();
-    window.clearTimeout(hideTimer);
-    el.textContent = text;
-    el.hidden = false;
-
-    const rect = target.getBoundingClientRect();
-    const box = el.getBoundingClientRect();
-    const left = Math.min(Math.max(rect.left, 8), window.innerWidth - box.width - 8);
-    const above = rect.top - box.height - 6;
-    const top = above >= 8 ? above : Math.min(window.innerHeight - box.height - 8, rect.bottom + 6);
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
-
-    void el.offsetWidth; // force reflow so the transition runs
-    el.classList.add("is-visible");
-  }
-
-  function hide() {
-    window.clearTimeout(showTimer);
-    if (!tip) return;
-    if (tip.classList.contains("is-visible")) lastHiddenAt = Date.now();
-    tip.classList.remove("is-visible");
-    hideTimer = window.setTimeout(() => { tip.hidden = true; }, HIDE_MS);
-  }
-
-  document.addEventListener("pointerover", (e) => {
-    const t = tooltipTarget(e.target);
-    if (!t) return;
-    window.clearTimeout(showTimer);
-    const warm = (tip && tip.classList.contains("is-visible")) || Date.now() - lastHiddenAt < WARM_MS;
-    if (warm) show(t);
-    else showTimer = window.setTimeout(() => show(t), SHOW_DELAY_MS);
-  });
-  // a click (row open, badge focus) never leaves a pending tooltip behind
-  document.addEventListener("pointerdown", hide, true);
-  document.addEventListener("pointerout", (e) => {
-    if (tooltipTarget(e.target)) hide();
-  });
-  // keyboard parity — the gap in the implementation this replaces
-  document.addEventListener("focusin", (e) => {
-    const t = tooltipTarget(e.target);
-    if (t) show(t);
-  });
-  document.addEventListener("focusout", (e) => {
-    if (tooltipTarget(e.target)) hide();
-  });
-  document.addEventListener("keydown", (e) => { if (e.key === "Escape") hide(); });
-  window.addEventListener("scroll", hide, true);
-  window.addEventListener("resize", hide);
+  /* the truncation tooltip (data-cell-tooltip, clipped text in a cell) lives in the ONE tooltip runtime,
+     js/icon-tooltip.js (GEAPTooltip, tooltip-one-v1) — load it next to this file */
 })();

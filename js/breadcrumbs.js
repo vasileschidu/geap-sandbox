@@ -86,7 +86,7 @@
       const host = el.closest(".breadcrumbs__link, .breadcrumbs__current") || el;
       const cut = el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 0.5;
       const text = el.textContent.trim();
-      const attr = window.__iconTooltip ? "data-tooltip-text" : "title";
+      const attr = "data-tooltip-text"; /* the ONE tooltip runtime (js/icon-tooltip.js) is on every page with crumbs */
       if (cut) {
         if (host.getAttribute(attr) !== text) host.setAttribute(attr, text);
       } else if (host.hasAttribute(attr)) {

@@ -609,12 +609,6 @@
   outline: none;
 }
 
-.cab-tooltip {
-  max-width: 320px;
-  position: absolute;
-  z-index: 1300;
-}
-
 /* ---------- toolbar menus + pagination ---------- */
 
 .cab-sort {

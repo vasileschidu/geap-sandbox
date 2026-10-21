@@ -243,7 +243,7 @@
           return `
             <td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)} data-col="${esc(col.key)}" data-type="${esc(col.type)}">
               ${cellLabel(col)}
-              <button class="e-permits-fo-grid__value${text ? "" : " is-empty"}" type="button" tabindex="-1" title="${esc(text)}" aria-label="${esc(`${col.label}: ${text || "necompletat"} — editează rândul ${n}`)}" data-fo-grid-cell="${esc(col.key)}">${text ? esc(text) : "—"}</button>
+              <button class="e-permits-fo-grid__value${text ? "" : " is-empty"}" type="button" tabindex="-1" data-cell-tooltip aria-label="${esc(`${col.label}: ${text || "necompletat"} — editează rândul ${n}`)}" data-fo-grid-cell="${esc(col.key)}">${text ? esc(text) : "—"}</button>
             </td>`;
         }).join("")}
         ${actionsHtml(def, n, false)}
@@ -517,7 +517,7 @@
         const off = Boolean(group) && groupOf(col, option.dataset.value) !== group;
         option.classList.toggle("is-disabled", off);
         option.setAttribute("aria-disabled", String(off));
-        if (off) option.title = `Din altă grupă decât ${groupName(def, group)}`; else option.removeAttribute("title");
+        if (off) option.dataset.tooltipReason = `Din altă grupă decât ${groupName(def, group)}`; else delete option.dataset.tooltipReason;
       });
     }
     function syncGroupNote() {

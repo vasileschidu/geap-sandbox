@@ -189,7 +189,7 @@
     if (dosar.status === "finalizat" && dosar.result === "aprobat") return C.tagHtml("Aprobat", "success");
     if (dosar.status === "finalizat" && dosar.result === "respins") return C.tagHtml("Respins", "danger");
     if (dosar.tacit && dosar.status === "derulare") {
-      return `<button class="e-permits-workplace__tag e-permits-workplace__tag--info cab-mark" type="button" data-sm-tip="${escape(tacitNote(dosar))}" aria-label="Aprobare tacită disponibilă. ${escape(tacitNote(dosar))}">Aprobare tacită</button>`;
+      return `<button class="e-permits-workplace__tag e-permits-workplace__tag--info cab-mark" type="button" data-tooltip-hint="${escape(tacitNote(dosar))}" aria-label="Aprobare tacită disponibilă. ${escape(tacitNote(dosar))}">Aprobare tacită</button>`;
     }
     return "";
   }
@@ -197,7 +197,7 @@
   /* US-19 AC-15 in the list: the icon + „Disponibilă aprobarea tacită” (a button: it carries the explanation tooltip) */
   function tacitListMark(dosar) {
     if (readOnly() || !(dosar.tacit && dosar.status === "derulare")) return "";
-    return `<button class="sm-tacit" type="button" data-sm-tip="${escape(tacitNote(dosar))}" aria-label="Disponibilă aprobarea tacită. ${escape(tacitNote(dosar))}">${icon("icon-circle-checkmark-filled")}<span>Disponibilă aprobarea tacită</span></button>`;
+    return `<button class="sm-tacit" type="button" data-tooltip-hint="${escape(tacitNote(dosar))}" aria-label="Disponibilă aprobarea tacită. ${escape(tacitNote(dosar))}">${icon("icon-circle-checkmark-filled")}<span>Disponibilă aprobarea tacită</span></button>`;
   }
   /* the result marks of the list (AC-16) — the tacit one has its own list form */
   const resultMarks = (dosar) => (dosar.status === "finalizat" ? marksHtml(dosar) : "");
@@ -1153,7 +1153,7 @@
   /* ---------- routing ---------- */
 
   function route() {
-    hideTip();
+    window.GEAPTooltip?.hide();
     const match = /^#dosar\/([\w-]+)(?:\/(\w+))?$/.exec(window.location.hash);
     /* US-29 AC-02: a draft removed automatically has no profile any more — the list says why (link from the notification) */
     const removed = match && state.removed.find((item) => item.id === match[1]);
@@ -1307,30 +1307,8 @@
     root.querySelector("[data-sm-redirect-retry]")?.focus();
   }
 
-  /* ---------- tooltip for „Disponibilă aprobarea tacită” (library .tooltip) ---------- */
-
-  let tip = null;
-  function showTip(target) {
-    hideTip();
-    tip = document.createElement("div");
-    tip.className = "tooltip tooltip--top-center cab-tooltip";
-    tip.setAttribute("role", "tooltip");
-    tip.id = "sm-tip";
-    tip.innerHTML = `<div class="tooltip-inner">${escape(target.dataset.smTip)}</div><div class="tooltip-arrow"></div>`;
-    document.body.appendChild(tip);
-    const rect = target.getBoundingClientRect();
-    const box = tip.getBoundingClientRect();
-    const left = Math.min(Math.max(8, rect.left + rect.width / 2 - box.width / 2), window.innerWidth - box.width - 8);
-    tip.style.left = `${left + window.scrollX}px`;
-    tip.style.top = `${rect.top + window.scrollY - box.height - 8}px`;
-    target.setAttribute("aria-describedby", "sm-tip");
-    requestAnimationFrame(() => tip?.classList.add("show"));
-  }
-  function hideTip() {
-    document.querySelectorAll("[aria-describedby='sm-tip']").forEach((el) => el.removeAttribute("aria-describedby"));
-    tip?.remove();
-    tip = null;
-  }
+  /* „Disponibilă aprobarea tacită” explains itself with `data-tooltip-hint` — the ONE tooltip runtime
+     (js/icon-tooltip.js): hover, keyboard focus, tap on touch, Escape */
 
   /* ---------- events ---------- */
 
@@ -1381,7 +1359,7 @@
       const tab = target.closest("[data-sm-tab]");
       if (tab) { selectTab(tab.dataset.smTab); return; }
       if (target.closest("[data-sm-back]")) { event.preventDefault(); history.pushState(null, "", window.location.pathname + window.location.search); route(); return; }
-      if (target.closest("[data-sm-tip]")) { event.stopPropagation(); showTip(target.closest("[data-sm-tip]")); return; }
+      if (target.closest("[data-tooltip-hint]")) { event.stopPropagation(); window.GEAPTooltip?.show(target.closest("[data-tooltip-hint]")); return; }
 
       /* documents: „Detalii” or the card itself → the document modal (not from the ⋮ menu) */
       const docOpen = target.closest("[data-cab-doc-open]") || (!target.closest("button, a, .cab-card__actions, [data-copy-value]") && target.closest(".cab-doc[data-cab-doc]"));
@@ -1433,15 +1411,8 @@
       }
     });
 
-    /* tooltip on hover / keyboard focus */
-    root.addEventListener("pointerover", (event) => { const el = event.target.closest?.("[data-sm-tip]"); if (el) showTip(el); });
-    root.addEventListener("pointerout", (event) => { if (event.target.closest?.("[data-sm-tip]") && !event.relatedTarget?.closest?.("[data-sm-tip]")) hideTip(); });
-    root.addEventListener("focusin", (event) => { const el = event.target.closest?.("[data-sm-tip]"); if (el) showTip(el); });
-    root.addEventListener("focusout", (event) => { if (event.target.closest?.("[data-sm-tip]")) hideTip(); });
-
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      hideTip();
       closeConfirm();
     });
 

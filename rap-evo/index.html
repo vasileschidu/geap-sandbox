@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="../css/doc-modal-parts.css?v=act-doc-v1">
   <link rel="stylesheet" href="../css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="../css/act-view.css?v=button-icons-v1">
-  <link rel="stylesheet" href="rap-evo.css?v=audit-fix-v1">
+  <link rel="stylesheet" href="rap-evo.css?v=tooltip-one-v1">
   <link rel="stylesheet" href="../css/dropdown.css?v=dd-item-v1">
   <link rel="stylesheet" href="../css/copy-value.css?v=copy-wrap-v1">
   <link rel="stylesheet" href="../css/breadcrumbs.css?v=breadcrumb-v1">
@@ -21,16 +21,17 @@
   <link rel="stylesheet" href="../css/modal-phone.css?v=sheet-header-v1">
   <link rel="stylesheet" href="../css/page-reveal.css?v=soft-reveal-v8">
   <!-- ?state=<id> opens the screen a Figma frame shows (js/demo-states.js) -->
-  <script src="../js/demo-states.js?v=unsaved-review-v1"></script>
+  <script src="../js/demo-states.js?v=tooltip-one-v1"></script>
   <script src="../js/demo-links.js?v=links-v4"></script>
   <script src="../js/toast.js?v=toast-v2" defer></script>
   <script src="../js/copy-value.js?v=copy-wrap-v1"></script>
-  <script src="../js/breadcrumbs.js?v=breadcrumb-v1"></script>
+  <script src="../js/icon-tooltip.js?v=tooltip-one-v1" defer></script>
+  <script src="../js/breadcrumbs.js?v=tooltip-one-v1"></script>
   <script src="../js/empty-state.js?v=empty-v3" defer></script>
-  <script src="../js/facet-filter.js?v=sheet-header-v1" defer></script>
+  <script src="../js/facet-filter.js?v=tooltip-one-v1" defer></script>
   <script src="../js/doc-preview.js?v=doc-viewer-v1" defer></script>
-  <script src="../js/act-view.js?v=doc-viewer-v1" defer></script>
-  <script src="rap-evo.js?v=copy-wrap-v1" defer></script>
+  <script src="../js/act-view.js?v=tooltip-one-v1" defer></script>
+  <script src="rap-evo.js?v=tooltip-one-v1" defer></script>
   <script src="../js/page-reveal.js?v=soft-reveal-v7" defer></script>
 </head>
 <body class="rap-page">
@@ -119,7 +120,7 @@
         </div>
 
         <!-- the BO advanced filter (js/facet-filter.js): button → bar of facet chips → checklist popover -->
-        <button class="btn btn-neutral btn-md e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="rap-filters" title="Filtru" data-rap-filter-toggle>
+        <button class="btn btn-neutral btn-md e-permits-workplace__advanced" type="button" aria-expanded="false" aria-controls="rap-filters" data-rap-filter-toggle>
           <svg class="icon medium" aria-hidden="true"><use href="../assets/icons/sprite.svg#icon-filter-lines"></use></svg>
           <span>Filtru</span>
           <span class="badge badge--lg badge--solid-light" data-rap-filter-count hidden></span>
@@ -178,6 +179,5 @@
 
   <main class="rap-profile" data-rap-profile-view hidden></main>
 
-  <div class="rap-tooltip" role="tooltip" data-rap-tooltip hidden></div>
 </body>
 </html>

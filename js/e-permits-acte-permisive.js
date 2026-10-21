@@ -1030,7 +1030,7 @@
           <div class="e-permits-fo-select${addressPart ? " e-permits-fo-select--address" : ""}${field.disabled ? " is-disabled" : ""}" data-fo-select>
             <button class="e-permits-fo-select__button" id="${escapeFrontOfficeHtml(id)}" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="${escapeFrontOfficeHtml(listId)}" ${field.disabled ? "disabled" : ""}>
               ${field.flag ? `<span class="e-permits-fo-country-flag" aria-hidden="true">${escapeFrontOfficeHtml(field.flag)}</span>` : ""}
-              <span class="e-permits-fo-select__value${value ? "" : " e-permits-fo-select__value--placeholder"}" title="${escapeFrontOfficeHtml(value || placeholder)}" data-fo-select-value ${addressPart ? `data-fo-address-part="${escapeFrontOfficeHtml(field.id)}" data-placeholder="${escapeFrontOfficeHtml(placeholder)}"` : ""}>${escapeFrontOfficeHtml(value || placeholder)}</span>
+              <span class="e-permits-fo-select__value${value ? "" : " e-permits-fo-select__value--placeholder"}" data-cell-tooltip data-fo-select-value ${addressPart ? `data-fo-address-part="${escapeFrontOfficeHtml(field.id)}" data-placeholder="${escapeFrontOfficeHtml(placeholder)}"` : ""}>${escapeFrontOfficeHtml(value || placeholder)}</span>
               <svg class="icon" width="20" height="20" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-select__list" id="${escapeFrontOfficeHtml(listId)}" role="listbox" aria-labelledby="${escapeFrontOfficeHtml(id)}" hidden>
@@ -2125,7 +2125,7 @@
     }
 
     function caemOptionHtml(option) {
-      return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" title="${escapeFrontOfficeHtml(option.label)}" data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span></li>`;
+      return `<li class="e-permits-fo-caem__option" role="option" aria-selected="false" data-cell-tooltip data-code="${escapeFrontOfficeHtml(option.code)}" data-label="${escapeFrontOfficeHtml(option.label)}" data-subgenres="${escapeFrontOfficeHtml(JSON.stringify(option.subgenres || []))}" tabindex="-1"><span class="e-permits-fo-caem__code">${escapeFrontOfficeHtml(option.code)}</span><span class="e-permits-fo-caem__name">${escapeFrontOfficeHtml(option.label)}</span></li>`;
     }
 
     /* the CAEM pair of the FO activities — „Codul CAEM” combobox + „Subgen de activitate” under its
@@ -3618,7 +3618,7 @@
         <div class="e-permits-fo-field e-permits-fo-field--span-${span}">
           <label${id ? ` id="${id}-label"` : ""}>${escapeFrontOfficeHtml(field.label)}${field.required ? ` ${requiredMarkerHtml()}` : ""}</label>
           <div class="e-permits-fo-input is-filled is-readonly">
-            <span class="e-permits-fo-input__value"${id ? ` id="${id}" role="textbox" aria-readonly="true" aria-labelledby="${id}-label" title="${escapeFrontOfficeHtml(field.value)}"${field.hint ? ` aria-describedby="${id}-hint"` : ""}` : ""}>${escapeFrontOfficeHtml(field.value)}</span>
+            <span class="e-permits-fo-input__value"${id ? ` id="${id}" role="textbox" aria-readonly="true" aria-labelledby="${id}-label" data-cell-tooltip${field.hint ? ` aria-describedby="${id}-hint"` : ""}` : ""}>${escapeFrontOfficeHtml(field.value)}</span>
             <svg class="icon" width="20" height="20" aria-hidden="true">
               <use href="assets/icons/sprite.svg#icon-checkmark-small"></use>
             </svg>
@@ -6604,7 +6604,7 @@
        part's ::before, so a wrapped line never starts or ends with a dot (see CSS „document meta”). */
     function foDocMetaLines(doc) {
       const esc = escapeFrontOfficeHtml;
-      const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? ` title="${esc(text)}"` : ""}>${esc(text)}</span>`;
+      const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? " data-cell-tooltip" : ""}>${esc(text)}</span>`;
       const file = doc.fisier && doc.fisier !== doc.tip && doc.fisier !== `${doc.nr}.pdf` ? doc.fisier : "";
       const head = [file ? part(file, "file") : "", doc.size ? part(doc.size) : ""].filter(Boolean);
       const stamp = [doc.at ? part(`${doc.verb || (doc.sursa === "mdocs" ? "Emis" : doc.sursa === "generat" ? "Generat" : "Încărcat")} ${doc.at}`) : "", doc.de ? part(`de ${doc.de}`) : ""].filter(Boolean);
@@ -6621,7 +6621,7 @@
       return `
         <div class="e-permits-fo-lib-item__content">
           <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
-            <span class="e-permits-fo-lib-item__title${titleClass ? ` ${titleClass}` : ""}" title="${esc(doc.tip)}">${esc(doc.tip)}</span>
+            <span class="e-permits-fo-lib-item__title${titleClass ? ` ${titleClass}` : ""}" data-cell-tooltip>${esc(doc.tip)}</span>
             <span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${esc(foDocSource(doc).tag)}</span>
             ${doc.semnat ? FO_DOC_SIGNED_TAG : ""}
             ${doc.badge ? `<span class="e-permits-fo-lib-item__badge">${esc(doc.badge)}</span>` : ""}
@@ -7589,7 +7589,7 @@
           option.querySelector(".e-permits-fo-address-search__title").textContent = item.title;
           option.querySelector(".e-permits-fo-address-search__meta").textContent = item.meta;
           /* a long meta is cut with an ellipsis (narrow screens): the full text on hover */
-          option.title = item.meta ? `${item.title} — ${item.meta}` : item.title;
+          option.dataset.cellTooltip = item.meta ? `${item.title} — ${item.meta}` : item.title;
           option.addEventListener("mouseenter", () => setActive(index));
           option.addEventListener("mousedown", (event) => {
             event.preventDefault();
@@ -7763,7 +7763,7 @@
           item.setAttribute("aria-selected", String(isSelected));
         });
         value.textContent = option.textContent.trim();
-        value.title = value.textContent;
+        value.setAttribute("data-cell-tooltip", "");
         value.classList.remove("e-permits-fo-select__value--placeholder");
         activeIndex = options.indexOf(option);
         setOpen(false);
@@ -7964,7 +7964,7 @@
           item.setAttribute("aria-selected", String(isSelected));
         });
         value.textContent = `${option.dataset.code} • ${option.dataset.label}`;
-        value.title = value.textContent;
+        value.setAttribute("data-cell-tooltip", "");
         value.classList.remove("e-permits-fo-caem__value--placeholder");
         activeIndex = Math.max(0, visibleOptions.indexOf(option));
         setOpen(false);

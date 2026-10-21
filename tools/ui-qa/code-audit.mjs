@@ -77,9 +77,11 @@ const AUDIT = (scope, SPACING, RADIUS, FONT) => {
       if (!fam.includes("onest") && !el.closest("code.e-permits-doc-kw, .e-permits-doc-kwselect")) add("font-not-onest", el, cs.fontFamily.slice(0, 60));
       if (tokens.size && !tokens.has(cs.color.replace(/\s/g, ""))) add("text-colour-not-token", el, cs.color);
       // clipped text without a way to read it
-      /* js/table-cells.js shows the full text of ANY clipped text inside a table cell (and data-cell-tooltip overrides it) */
-      const cellTip = el.closest("[data-cell-tooltip]") || (el.closest("td, th, [role=cell], [role=gridcell]") && document.querySelector("script[src*='table-cells.js']"));
-      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[data-tooltip-text],[title]") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
+      /* the ONE tooltip runtime (js/icon-tooltip.js, tooltip-one-v1) shows the full text of ANY clipped text inside a table
+         cell, and of every [data-cell-tooltip] that is cut (on it, its clipping parent or a part inside it) */
+      const tipRuntime = document.querySelector("script[src*='icon-tooltip.js']");
+      const cellTip = (tipRuntime && (el.closest("[data-cell-tooltip]") || el.querySelector("[data-cell-tooltip]") || el.closest("td, th, [role=cell], [role=gridcell]")));
+      if (el.scrollWidth > el.clientWidth + 1 && cs.overflow !== "visible" && !el.title && !el.closest("[data-tooltip-label],[data-tooltip-text],[data-tooltip-hint],[title]") && !cellTip) add("clipped-text-no-tooltip", el, `${el.scrollWidth} > ${el.clientWidth}`);
     }
     const bg = cs.backgroundColor; if (bg && bg !== "rgba(0, 0, 0, 0)" && tokens.size && !tokens.has(bg.replace(/\s/g, ""))) add("background-not-token", el, bg);
     if (parseFloat(cs.borderTopWidth) > 0 && cs.borderTopStyle !== "none" && !/rgba\([^)]*,\s*0\)$/.test(cs.borderTopColor) && tokens.size && !tokens.has(cs.borderTopColor.replace(/\s/g, ""))) add("border-not-token", el, cs.borderTopColor);

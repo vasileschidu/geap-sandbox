@@ -247,6 +247,12 @@
       "[data-gh-close-sheet]"
     ]
   },
+  "_tooltip": "Tooltips (rule 8, tooltip-one-v1, 2026-10-21, user: „do as you recommend” on the audit's ONE tooltip runtime). tooltip-private (major): a visible element whose class names a tooltip and is not the library .tooltip (js/icon-tooltip.js, #icon-tooltip) or the copy-value tooltip. tooltip-title (major): a native title= on an interactive element — the plain tooltip reads aria-label / data-tooltip-label, cut text = data-cell-tooltip, extra information = data-tooltip-text / -hint. titleExempt: iframes (title = the accessible name, not a tooltip).",
+  "tooltip": {
+    "allow": [".tooltip", ".tooltip-inner", ".tooltip-arrow", ".tooltip-close", "#icon-tooltip", ".copy-value__tooltip", ".copy-value__tooltip *", ".cell__copy-tooltip"],
+    "interactive": "button, a[href], [role=button], [role=link], [role=tab], [role=menuitem], [role=option], [role=switch], [role=checkbox], [role=radio], input, select, textarea, summary, [tabindex]:not([tabindex='-1'])",
+    "titleExempt": ["iframe"]
+  },
   "_actionIcons": "Action icons (rule 6, 2026-10-21, user: „didn't we discuss that every Editează has an edit icon, and Elimină a trash icon?”). action-icon (major): a visible action — or an item of a closed menu whose trigger is visible — labelled „Editează…” without icon-edit, or „Elimină… / Șterge…” without icon-delete (another icon counts as missing). action-icon-colour (major): that icon in another colour than the label. Exceptions: confirmation-dialog footers (library modal / FO confirm dialog have no footer icons), clear / dismiss controls that delete nothing (search ×, chip ×, file-item × = detach an attachment, the filter popover „Șterge” = clear the selection, „Șterge filtrele / căutarea / formatarea”).",
   "actionIcons": {
     "controls": "button, a[href], [role=button], [role=menuitem]",

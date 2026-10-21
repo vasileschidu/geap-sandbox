@@ -1206,7 +1206,7 @@
   function detailRow(label, valueHtml) {
     return `
       <div class="e-permits-dosar-profil__row">
-        <span class="e-permits-dosar-profil__row-label" title="${escape(label)}">${escape(label)}</span>
+        <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escape(label)}</span>
         <span class="e-permits-dosar-profil__row-value">${valueHtml}</span>
       </div>`;
   }
@@ -1250,7 +1250,7 @@
   /* meta in logical lines (the FO foDocMetaLines, 2026-10-14): [number] · [file · size] · [date · by whom · note];
      one row on desktop, one line each on phones; dots are CSS ::before (never orphaned at a wrap) */
   function docMetaLines(doc) {
-    const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? ` title="${escape(text)}"` : ""}>${escape(text)}</span>`;
+    const part = (text, mod = "") => `<span class="e-permits-fo-doc-meta__part${mod ? ` e-permits-fo-doc-meta__part--${mod}` : ""}"${mod === "file" ? " data-cell-tooltip" : ""}>${escape(text)}</span>`;
     const file = doc.fisier && doc.fisier !== doc.tip ? doc.fisier : "";
     const head = [file ? part(file, "file") : "", doc.size ? part(doc.size) : ""].filter(Boolean);
     const stamp = [
@@ -1267,7 +1267,7 @@
     return `
       <div class="e-permits-fo-lib-item__content">
         <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
-          <span class="e-permits-fo-lib-item__title" title="${escape(doc.tip)}">${escape(doc.tip)}</span>
+          <span class="e-permits-fo-lib-item__title" data-cell-tooltip>${escape(doc.tip)}</span>
           ${source ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small e-permits-fo-doc-tag">${escape(source.tag)}</span>` : ""}
           ${doc.semnat ? signedTagHtml() : ""}
           ${(doc.tags || []).map(([label, tone]) => `<span class="status-tag ${TAG_TONES[tone] || TAG_TONES.neutral} status-tag--small e-permits-fo-doc-tag">${escape(label)}</span>`).join("")}

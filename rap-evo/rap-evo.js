@@ -47,7 +47,6 @@
     filterToggle: document.querySelector("[data-rap-filter-toggle]"),
     filterBar: document.querySelector("[data-rap-filters]"),
     filterCount: document.querySelector("[data-rap-filter-count]"),
-    tooltip: document.querySelector("[data-rap-tooltip]"),
     listView: document.querySelector("[data-rap-list-view]"),
     profileView: document.querySelector("[data-rap-profile-view]"),
     companySummary: document.querySelector("[data-rap-company-summary]")
@@ -179,7 +178,7 @@
   /* BO Date generale row (.e-permits-dosar-profil__row); html = a value already rendered */
   const renderProfileDetailRow = (label, value, { copy = false, html = false } = {}) => `
     <div class="e-permits-dosar-profil__row">
-      <span class="e-permits-dosar-profil__row-label" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+      <span class="e-permits-dosar-profil__row-label" data-cell-tooltip>${escapeHtml(label)}</span>
       <span class="e-permits-dosar-profil__row-value">${html ? value : copy ? copyValue(value) : escapeHtml(value)}</span>
     </div>
   `;
@@ -247,7 +246,7 @@
               <div class="e-permits-page-header__heading">
                 ${crumbsHtml(true)}
                 <div class="rap-profile__title-row">
-                  <h1 class="e-permits-page-header__title" id="rap-profile-title" title="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</h1>
+                  <h1 class="e-permits-page-header__title" id="rap-profile-title" data-cell-tooltip>${escapeHtml(record.permit.name)}</h1>
                 </div>
               </div>
             </div>
@@ -379,9 +378,9 @@
           <svg class="icon"><use href="../assets/icons/sprite.svg#icon-${icon}"></use></svg>
         </span>
         <span class="rap-beneficiary__copy">
-          <span class="rap-beneficiary__name rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.name)}">${escapeHtml(record.beneficiary.name)}</span>
+          <span class="rap-beneficiary__name rap-ellipsis" data-cell-tooltip="${escapeHtml(record.beneficiary.name)}">${escapeHtml(record.beneficiary.name)}</span>
           ${isMaskedValue(record.beneficiary.identifier)
-            ? `<span class="rap-beneficiary__identifier rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.identifier)}">${escapeHtml(record.beneficiary.identifier)}</span>`
+            ? `<span class="rap-beneficiary__identifier rap-ellipsis" data-cell-tooltip="${escapeHtml(record.beneficiary.identifier)}">${escapeHtml(record.beneficiary.identifier)}</span>`
             : copyValue(record.beneficiary.identifier, `Copiază ${record.beneficiary.identifierType || "IDNO"} ${record.beneficiary.identifier}`, { compact: true, className: "rap-beneficiary__identifier" })}
         </span>
       </div>
@@ -392,18 +391,18 @@
     <tr tabindex="0" data-record-id="${escapeHtml(record.id)}" aria-label="Deschide ${escapeHtml(record.permit.name)} pentru ${escapeHtml(record.beneficiary.name)}">
       <td>${renderBeneficiary(record)}</td>
       <td>
-        <a class="rap-ellipsis rap-act-link" href="?act=${encodeURIComponent(record.id)}" tabindex="-1" data-tooltip="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</a>
+        <a class="rap-ellipsis rap-act-link" href="?act=${encodeURIComponent(record.id)}" tabindex="-1" data-cell-tooltip="${escapeHtml(record.permit.name)}">${escapeHtml(record.permit.name)}</a>
       </td>
       <td>
         <span class="rap-cell-stack">
-          <span class="rap-cell-stack__primary rap-ellipsis" data-tooltip="${escapeHtml(record.authority.code)}">${escapeHtml(record.authority.code)}</span>
-          <span class="rap-cell-stack__secondary rap-ellipsis" data-tooltip="${escapeHtml(record.authority.name)}">${escapeHtml(record.authority.name)}</span>
+          <span class="rap-cell-stack__primary rap-ellipsis" data-cell-tooltip="${escapeHtml(record.authority.code)}">${escapeHtml(record.authority.code)}</span>
+          <span class="rap-cell-stack__secondary rap-ellipsis" data-cell-tooltip="${escapeHtml(record.authority.name)}">${escapeHtml(record.authority.name)}</span>
         </span>
       </td>
       <td>
         <span class="rap-cell-stack">
           ${copyValue(record.permit.number, `Copiază numărul actului ${record.permit.number}`, { compact: true, className: "rap-act-number" })}
-          <span class="rap-cell-stack__secondary rap-ellipsis" data-tooltip="${escapeHtml(record.permit.paperNumber)}">Dosar: ${escapeHtml(record.permit.paperNumber)}</span>
+          <span class="rap-cell-stack__secondary rap-ellipsis" data-cell-tooltip="${escapeHtml(record.permit.paperNumber)}">Dosar: ${escapeHtml(record.permit.paperNumber)}</span>
         </span>
       </td>
       <td>
@@ -617,37 +616,8 @@
     `).join("");
   };
 
-  const hideTooltip = () => {
-    window.clearTimeout(elements.tooltip._hideTimer);
-    elements.tooltip.classList.remove("is-visible");
-    elements.tooltip._hideTimer = window.setTimeout(() => {
-      elements.tooltip.hidden = true;
-    }, 150);
-  };
-
-  const showTooltip = (target) => {
-    if (target.scrollWidth <= target.clientWidth) {
-      return;
-    }
-
-    window.clearTimeout(elements.tooltip._hideTimer);
-    elements.tooltip.textContent = target.dataset.tooltip;
-    elements.tooltip.hidden = false;
-    elements.tooltip.classList.remove("is-visible");
-    const rect = target.getBoundingClientRect();
-    const tooltipRect = elements.tooltip.getBoundingClientRect();
-    const left = Math.min(
-      Math.max(8, rect.left),
-      window.innerWidth - tooltipRect.width - 8
-    );
-    elements.tooltip.style.left = `${left}px`;
-    const above = rect.top - tooltipRect.height - 6;
-    elements.tooltip.style.top = `${above >= 8
-      ? above
-      : Math.min(window.innerHeight - tooltipRect.height - 8, rect.bottom + 6)}px`;
-    void elements.tooltip.offsetWidth;
-    elements.tooltip.classList.add("is-visible");
-  };
+  /* cut names in the table: data-cell-tooltip on the ONE tooltip runtime (js/icon-tooltip.js) */
+  const hideTooltip = () => window.GEAPTooltip?.hide();
 
   const findRecord = (recordId) => state.records.find((record) => record.id === recordId);
 
@@ -846,21 +816,8 @@
 
     window.addEventListener("popstate", syncViewFromUrl);
 
-    document.addEventListener("pointerover", (event) => {
-      const target = event.target.closest("[data-tooltip]");
-      if (target) {
-        showTooltip(target);
-      }
-    });
-    document.addEventListener("pointerout", (event) => {
-      if (event.target.closest("[data-tooltip]")) {
-        hideTooltip();
-      }
-    });
-    window.addEventListener("scroll", hideTooltip, true);
     let paginationResizeTimer;
     window.addEventListener("resize", () => {
-      hideTooltip();
       window.clearTimeout(paginationResizeTimer);
       paginationResizeTimer = window.setTimeout(renderPagination, 100);
     });

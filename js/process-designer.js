@@ -595,7 +595,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const rec = S.rec;
     const title = S.def.title || rec.title || "Proces";
     el.title.textContent = title;
-    el.title.title = title;
+    el.title.setAttribute("data-cell-tooltip", "");
     /* drill-in (Figma 5740:26639): the library breadcrumb replaces the title */
     el.crumbs.hidden = !S.stack.length;
     el.title.hidden = S.stack.length > 0;

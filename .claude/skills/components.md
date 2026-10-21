@@ -221,7 +221,7 @@ but this doc previously described it wrongly, see the entry.
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
-| Tooltip | `.tooltip .tooltip-inner .tooltip-arrow` + `.show` | `tooltip.html` | library (partial) |
+| **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
 | Tag | `.tag-item` (a layout row, not a pill) | `tags.html` | library (partial) |
@@ -1772,6 +1772,62 @@ Figma counterpart.
 
 ---
 
+### Tooltip — ONE runtime (tooltip-one-v1, 2026-10-21)
+
+User (2026-10-21, on the component audit): „Do as you recommend” → every tooltip in the product is the library
+`.tooltip` placed by **`js/icon-tooltip.js` (`window.GEAPTooltip`)**. It replaced five private runtimes: the BO
+table-cell tooltip (`.cell-tooltip` from js/table-cells.js), RAP `.rap-tooltip`, Cabinet `.cab-tooltip`, the BO
+sidebar `e-permits-shell__nav-tooltip` / `__collapse-tooltip` spans, and native `title=` tooltips. Only the copy
+value keeps its own node (`.copy-value__tooltip`, the „Copiază → ✓ Copiat” transition — same library look).
+
+**Anatomy** — one node `div#icon-tooltip.tooltip[role=tooltip]` on `<body>` > `.tooltip-inner` + `.tooltip-arrow`.
+
+| Look | Classes | Use |
+|---|---|---|
+| plain | `.tooltip.tooltip--small.tooltip--plain` — no arrow, 12/16, padding 4 8, radius 4, `--gray-900`, max 240, 4 from the target | a control's name, a cut / abbreviated text, a disabled reason |
+| hint | `.tooltip.tooltip--small.tooltip--{top\|bottom}-center` + arrow — 14/20 (12 ≤720, library body-sm), padding 8 12, radius 6, max 240; the arrow points at the target's centre even when the bubble is clamped | an explanation (a sentence) on a mark / info button |
+
+**What opts in** (the innermost match wins):
+
+| Attribute | Shows | Notes |
+|---|---|---|
+| (icon-only `button` / `a[href]` / `[role=button]`) | `data-tooltip-label`, else `aria-label`, else `title` (moved to `data-tooltip-label`) | automatic |
+| `data-tooltip-reason="…"` | why it is unavailable | any element, text buttons too |
+| `data-tooltip-text="…"` | the full text of a cut control, or information the visible text does not carry (full author, a token name) | always shown |
+| `data-cell-tooltip[="…"]` | the element's own text (or the value) **only when it is really clipped** — on it, its clipping parent, or a part inside it | 1 s hover delay; `data-cell-tooltip-always` = show anyway („+N”); the library `.cell` contract, valid on any element |
+| (text clipped inside `td` / `th` / `[role=cell]`) | its full text | automatic (rule 2026-10-10) |
+| `data-tooltip-hint="…"` | an explanation, hint look | also opens on a **tap** on touch; the target's `aria-describedby` while shown (skipped when its `aria-label` already says it) |
+
+Options: `data-tooltip-placement="bottom|top|right|left"` (plain default bottom, hint default top; flips when there
+is no room, clamped 8 from the edges) · `data-tooltip-delay="<ms>"` · `data-no-tooltip` · `data-tooltip-focus` on a
+focusable row (its first `[data-tooltip-text]` child on keyboard focus). The collapsed BO rail: nav links get
+`data-tooltip-label` + `data-tooltip-placement="right"` from `setupNavTooltips()`; the collapse buttons carry
+`data-tooltip-placement="right"` and are named by their Romanian `aria-label` („Colapsează / Extinde meniul”; the
+old span said „Collapse menu” in English).
+
+**States** — hidden · pending (600 ms mouse, 1 s clipped text) · shown (library `.show` fade / 4 px slide, none for
+reduced motion) · warm (while one shows or ≤ 400 ms after, the next shows at once) · keyboard: on `:focus-visible`
+at once (clipped text on any focus) · touch: hints only, on tap · hides on mouse-out, blur, pointer-down, Escape,
+window blur, resize; follows its target on scroll and hides when the target leaves the viewport · never while the
+target's menu is open (`aria-expanded="true"`). API: `GEAPTooltip.show(el) / hide() / refresh()`
+(`GEAPIconTooltip` = alias).
+
+**Do** — let the runtime name icon-only controls from `aria-label`; put `data-cell-tooltip` on any text that can be
+cut (ellipsis / clamp); give extra information with `data-tooltip-text`, explanations with `data-tooltip-hint`.
+**Don't** — no `title=` (component-audit rule 8 `tooltip-title`, major), no private tooltip element / class
+(`tooltip-private`, major), no tooltip that repeats the visible text or the `aria-label`, no tooltip on touch
+except hints. Pages: every page with tooltips loads `js/icon-tooltip.js` (BO page, e-permits-shell.html, Cabinet,
+RAP, table-cells.html).
+
+**`title=` decisions (2026-10-21, 89 → 1)** — converted to `data-cell-tooltip` (cut text: page / dialog titles,
+fo-select values, detail row labels, stacked-row titles, file names, doc titles, chips, sheet summaries, builder
+tags / keys, grid cells, CAEM options, address options) · `data-tooltip-text` (adds information: alert flag full
+label, author behind a short name, sync source, template tokens, unknown fields, preset origin, error message,
+„Vezi modificările” on the unsaved-changes status) · `data-tooltip-label` (2 icon-only sync buttons) ·
+`data-tooltip-reason` (fo-grid option from another group) · REMOVED (repeat the visible text / aria-label): every BO
+nav link, the table „Exportă” button, the RAP „Filtru” button, the act-row title (its cut tooltip comes from
+`syncCut`). Kept: the Form Builder phone-preview `<iframe title>` (the accessible name, not a tooltip).
+
 ### Tooltip — plain label for icon-only controls (added 2026-10-01)
 
 Every icon-only control (button / `a[href]` / `[role=button]` with no visible text) gets a
@@ -1880,9 +1936,9 @@ leaving the cell cancel a pending one. Applies to truncation tooltips (full name
 text) and `+N` overflow badges (`data-cell-tooltip-always`). Clickable rows keep
 `cursor: pointer` on every cell — never the text I-beam.
 
-**Back office (2026-10-01):** `js/table-cells.js` is loaded on
-`e-permits-acte-permisive.html`, and table cells use the **dark `.cell-tooltip`**, never a
-native `title`:
+**Back office (2026-10-01; runtime moved 2026-10-21):** the cell tooltip is the ONE tooltip runtime
+(`js/icon-tooltip.js`, plain library tooltip — „Tooltip — ONE runtime”; the library `.cell-tooltip` in main.css is no
+longer used by any page), never a native `title`:
 - **Long text:** registry names and authority stacks carry `data-cell-tooltip`. The
   tooltip shows only when the text is clipped.
 - **"+N" overflow badges** (e.g. user roles beyond the first 2): the
@@ -2948,9 +3004,8 @@ assume this page covers it.
 - **Tooltip** — **no `data-tooltip` selector exists in CSS.** The component is
   `.tooltip` + `.tooltip-inner` + `.tooltip-arrow`, revealed with `.show`, positioned by
   `js/tooltip.js`, with 12 placement modifiers (`--top-left` … `--right-bottom`) and
-  `--small` / `--large`. App screens instead use their own (`data-tooltip` read by
-  `rap-evo.js`, `.e-permits-shell__collapse-tooltip` with
-  `data-tooltip-expanded` / `data-tooltip-collapsed`).
+  `--small` / `--large`. App screens use it through ONE runtime, `js/icon-tooltip.js` (2026-10-21,
+  „Tooltip — ONE runtime”); the private RAP / Cabinet / sidebar tooltips are gone.
 - **Header** — static markup in `Components/header.html`, **not injected**.
   `.header__profile` is fictional; `.header__search` is used in HTML but has no CSS rule.
 - **Footer** — `js/include-footer.js` genuinely injects `elements/footer.html` into

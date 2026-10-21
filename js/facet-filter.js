@@ -249,8 +249,8 @@
       if (!text) return chipHtml(facet, 0, open);
       const label = `${facet.label}: ${text}`;
       return `<div class="chip is-selected e-permits-workplace__filter-chip e-permits-workplace__filter-chip--date" role="group" aria-label="${escapeHtml(facet.label)}">
-        <button class="chip__label" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}" title="${escapeHtml(label)}">
-          <span class="e-permits-workplace__filter-chip-text">${escapeHtml(label)}</span>
+        <button class="chip__label" type="button" aria-haspopup="dialog" aria-expanded="${open}" data-filter-facet="${escapeHtml(facet.key)}">
+          <span class="e-permits-workplace__filter-chip-text" data-cell-tooltip>${escapeHtml(label)}</span>
           <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
         </button>
         <button class="chip__close" type="button" aria-label="Șterge filtrul ${escapeHtml(facet.label)}" data-filter-date-clear="${escapeHtml(facet.key)}"><svg class="icon" aria-hidden="true"><use href="${sprite}#icon-cross-small"></use></svg></button>
@@ -514,7 +514,7 @@
       : (sheet.sel[facet.key] || []).join(", "));
     const syncSectionSummary = (key) => {
       const summary = sheetEl.querySelector(`[data-sheet-section="${CSS.escape(key)}"] [data-sheet-summary]`);
-      if (summary) { summary.textContent = sectionSummary({ key }); summary.title = summary.textContent; summary.hidden = !summary.textContent; }
+      if (summary) { summary.textContent = sectionSummary({ key }); summary.hidden = !summary.textContent; }
     };
     /* a date section edited in the sheet: the valid period becomes its selection (live count); the
        errors only show on „Arată” */
@@ -534,7 +534,7 @@
           <button class="e-permits-filter-sheet__section-trigger" type="button" aria-expanded="${open}" aria-controls="${id}" data-sheet-toggle="${escapeHtml(facet.key)}">
             <span class="e-permits-filter-sheet__section-text">
               <span class="e-permits-filter-sheet__section-label">${escapeHtml(facet.label)}</span>
-              <span class="e-permits-filter-sheet__section-summary" title="${escapeHtml(summary)}" data-sheet-summary${summary ? "" : " hidden"}>${escapeHtml(summary)}</span>
+              <span class="e-permits-filter-sheet__section-summary" data-cell-tooltip data-sheet-summary${summary ? "" : " hidden"}>${escapeHtml(summary)}</span>
             </span>
             <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${sprite}#icon-chevron-${open ? "top" : "bottom"}"></use></svg>
           </button>

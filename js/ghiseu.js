@@ -819,7 +819,7 @@
       : "Nesalvat";
     return `
       <div class="e-permits-gh-sheet__title">
-        <h2 class="modal--header-title" id="gh-sheet-title" title="${esc(svc?.title || "")}">${esc(svc?.title || "Dosar nou")}</h2>
+        <h2 class="modal--header-title" id="gh-sheet-title" data-cell-tooltip>${esc(svc?.title || "Dosar nou")}</h2>
         <div class="e-permits-gh-sheet__meta">${meta}<span class="e-permits-gh__tags">${statusTags}</span></div>
         <p class="e-permits-fo-draft-status e-permits-gh-sheet__saved" aria-live="polite">${savedHtml}</p>
       </div>
@@ -1338,7 +1338,7 @@
       const value = root.querySelector("[data-fo-caem-value]");
       if (opt && value) {
         opt.classList.add("is-selected"); opt.setAttribute("aria-selected", "true");
-        value.textContent = `${opt.dataset.code} • ${opt.dataset.label}`; value.title = value.textContent;
+        value.textContent = `${opt.dataset.code} • ${opt.dataset.label}`; value.setAttribute("data-cell-tooltip", "");
         value.classList.remove("e-permits-fo-caem__value--placeholder");
       }
     }

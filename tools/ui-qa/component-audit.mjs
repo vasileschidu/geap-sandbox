@@ -19,6 +19,7 @@
 //   4. copy — copy-variant / copy-in-list / missing-copy (spec.copy).
 //   5. back navigation — crumb-trail / back-link (spec.backNav).
 //   6. action icons — action-icon / action-icon-colour (spec.actionIcons).
+//   8. tooltips — tooltip-private / tooltip-title (spec.tooltip): ONE runtime, js/icon-tooltip.js (tooltip-one-v1).
 //   7. converge (v2, minor) — a non-canonical implementation of a pattern family (spec.families: pager, stepper,
 //      close ×, notice, tag, switch, back, menu item, dialog shell, key-value list).
 //   + interactions (v2): per state, opens up to N visible menu / drawer / disclosure triggers (aria-haspopup,
@@ -513,6 +514,22 @@ const PAGE_LIB = (spec, documentedList) => {
         const hooks = [...el.classList, ...[...el.attributes].map((a) => a.name)].filter((n) => hookRe.test(n));
         if (!(textRe.test(text) || textRe.test(label) || hooks.length)) continue;
         add("major", "back-link", el, hooks.length ? `back hook ${hooks.join(" ")}` : `„${(text || label).slice(0, 40)}”`, `${B.component} (the page header breadcrumb; phones = .breadcrumbs--mobile)`);
+      }
+    }
+    /* 8. tooltips (tooltip-one-v1): ONE runtime — the library .tooltip from js/icon-tooltip.js (+ the copy-value
+       tooltip). tooltip-private (major): a painted element whose class names a tooltip outside spec.tooltip.allow;
+       tooltip-title (major): a native title= on an interactive element (use data-tooltip-label / -text / -hint /
+       data-cell-tooltip, or nothing when it repeats the visible text / aria-label) */
+    const TT = spec.tooltip;
+    if (TT) {
+      const allowTip = TT.allow.join(", ");
+      for (const el of qsa("[class*='tooltip']")) {
+        if (!vis(el) || ignored(el) || el.matches(allowTip) || el.closest(allowTip)) continue;
+        add("major", "tooltip-private", el, [...el.classList].filter((c) => /tooltip/.test(c)).join("."), "the library .tooltip via js/icon-tooltip.js (data-tooltip-label / -text / -hint / -reason, data-cell-tooltip)");
+      }
+      for (const el of qsa(TT.interactive)) {
+        if (!el.hasAttribute("title") || !el.getAttribute("title").trim() || ignored(el) || !vis(el) || TT.titleExempt.some((s) => el.matches(s))) continue;
+        add("major", "tooltip-title", el, `title="${el.getAttribute("title").slice(0, 40)}"`, "data-tooltip-label / data-tooltip-text / data-cell-tooltip (js/icon-tooltip.js) — or no title when it repeats the visible text / aria-label");
       }
     }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */
