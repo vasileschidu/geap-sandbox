@@ -2303,7 +2303,8 @@ document.addEventListener("DOMContentLoaded", () => {
   /* Library breadcrumbs (Figma Components 232:5282) — ONE renderer for every page: js/breadcrumbs.js
      (GEAPBreadcrumbs.html: the trail · „…” overflow past 4 levels · 30-character truncation + tooltip · the phone back
      variant ≤760). A crumb with `attr` is a link that reuses an existing back handler; without it, plain text. The last
-     crumb is the current level unless `trailing` (the trail runs into a title shown below it). */
+     crumb is the current level unless `trailing` / `parentsOnly` (breadcrumb-v3: a page header with its H1 right
+     below shows only the parents, ending in the trailing chevron — the trail never repeats the page title). */
   const renderBreadcrumbs = (crumbs, options = {}) => window.GEAPBreadcrumbs?.html(crumbs, options) || "";
 
   /* Shared back-office page header (Figma 8993:37914): breadcrumbs + title,
@@ -2332,7 +2333,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const trail = section && section !== crumbs[0].label ? [{ label: section }, ...crumbs] : crumbs;
     return `
     <div class="e-permits-page-header__heading">
-      ${renderBreadcrumbs(trail, { truncate: true })}
+      ${renderBreadcrumbs(trail, { truncate: true, parentsOnly: true })}
       <h1 class="e-permits-page-header__title" data-cell-tooltip>${escapeHtml(title)}</h1>
     </div>
     ${actions || caption || status ? `

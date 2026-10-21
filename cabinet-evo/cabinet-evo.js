@@ -1151,9 +1151,9 @@
 
   /* every Cabinet profile (request, act, catalog service) opens with the RAP / BO public page header
      (.e-permits-page-header--public, css/bo-profile-parts.css — 2026-10-17 alignment): desktop = the
-     library breadcrumb as Figma Components 232:5282 — the parent, then the CURRENT page = the title (medium, not a
-     link, aria-current, cut at 30 characters with a tooltip; breadcrumb-v2, 2026-10-21 — the trailing-chevron
-     variant is gone), phones = „‹ parent” (library breadcrumbs Breakpoint=Mobile);
+     library breadcrumb as Figma Components 232:5282 — the parent level only, ending in the trailing chevron
+     (`parentsOnly`, breadcrumb-v3, user 2026-10-21: the trail never repeats the title shown right under it; Figma
+     „Active Level” off), phones = „‹ parent” (library breadcrumbs Breakpoint=Mobile);
      16 to the title, which wraps (never truncated); the meta row (label 12/16 · value 14/20 medium,
      dividers; 2 equal columns without dividers on phones); `actions` = the primary library
      btn-primary btn-md (hugging) + optional neutral btn-md, under the meta. back = { label, href, attr }
@@ -1164,7 +1164,7 @@
         <div class="e-permits-page-header__body">
           <div class="e-permits-page-header__top">
             <div class="e-permits-page-header__heading">
-              ${back ? window.GEAPBreadcrumbs?.html([back, { label: title }]) || "" : ""}
+              ${back ? window.GEAPBreadcrumbs?.html([back, { label: title }], { parentsOnly: true }) || "" : ""}
               ${subtitle ? '<div class="cab-page-header__titles">' : ""}
               <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""}>${escape(title)}</h1>
               ${subtitle ? `<p class="cab-page-header__subtitle">${escape(subtitle)}</p></div>` : ""}

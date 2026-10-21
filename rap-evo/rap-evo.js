@@ -26,14 +26,15 @@
   };
 
   /* the trail above the list title and the act profile title = the library breadcrumb as Figma Components 232:5282
-     (breadcrumb-v2, user 2026-10-21: „as we discussed” — the component everywhere): the ONE renderer
-     (../js/breadcrumbs.js) — desktop trail ending in the CURRENT page (medium, not a link, aria-current="page"; the
-     list = „Registrul actelor permisive”, the profile = the act's name, cut at 30 characters with a tooltip),
-     phones = „‹ parent”. No trailing-chevron variant any more. .rap-breadcrumbs = reveal hook */
+     (the component everywhere): the ONE renderer (../js/breadcrumbs.js). Desktop = the PARENT levels only, ending in
+     the trailing chevron (`parentsOnly`, breadcrumb-v3, user 2026-10-21: „The breadcrumbs should not display
+     «Autorizația pentru importul, exportul sau reex…» — it's already there”): the H1 right below is the current page
+     (list „Registrul actelor permisive”, profile = the act's name), so the trail never repeats it. Phones = „‹ parent”.
+     .rap-breadcrumbs = reveal hook */
   const RAP_CRUMBS = [{ label: "Acasă", href: "../index.html" }, { label: "Resurse utile", href: "#" }];
   const crumbsHtml = (current = null) => window.GEAPBreadcrumbs?.html(current
     ? [...RAP_CRUMBS, { label: "Registrul actelor permisive", button: true, attr: "data-rap-profile-back" }, { label: current }]
-    : [...RAP_CRUMBS, { label: "Registrul actelor permisive" }], { className: "rap-breadcrumbs" }) || "";
+    : [...RAP_CRUMBS, { label: "Registrul actelor permisive" }], { parentsOnly: true, className: "rap-breadcrumbs" }) || "";
   const listCrumbs = document.querySelector("[data-rap-list-crumbs]");
   if (listCrumbs) listCrumbs.outerHTML = crumbsHtml();
 

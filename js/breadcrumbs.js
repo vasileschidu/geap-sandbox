@@ -7,11 +7,16 @@
    li.breadcrumbs__item (+ .is-selected › span.breadcrumbs__current) with the library modifiers --trailing /
    --truncate / --mobile + li.breadcrumbs__item--back. Nothing here restyles a library class.
 
-   GEAPBreadcrumbs.html(crumbs, { trailing, truncate = true, label = "Navigare", mobile = true, max = 4, className })
+   GEAPBreadcrumbs.html(crumbs, { parentsOnly, trailing, truncate = true, label = "Navigare", mobile = true, max = 4, className })
      crumbs = [{ label, attr?, href?, button? }] — a crumb with `attr` / `href` is a link (`<a class="breadcrumbs__link">`,
      `button: true` → `<button class="breadcrumbs__link">` for back handlers), without = plain text.
      The last crumb is the current page (medium, aria-current) unless `trailing` (the trail runs into the page title
-     right under it — public profile headers, the builder service line).
+     right under it — the builder service line, the notification-template back line).
+     parentsOnly (breadcrumb-v3, user 2026-10-21: „The breadcrumbs should not display «Autorizația pentru importul,
+     exportul sau reex…» — it's already there”): the trail sits above the page's H1 → the last crumb (the current page)
+     is left out and the parents end in the library `--trailing` chevron (Figma 232:5282 „👁️ Active Level” = off).
+     Every page header uses it (shell renderPageHeaderTop, CabEvo.pageHeader, RAP crumbsHtml); callers still pass the
+     whole trail. Only a trail that REPLACES the title (process designer drill-in) keeps the current level.
    Output = two library navs, siblings (css/breadcrumbs.css shows one per breakpoint, Figma „📏 Breakpoint”):
      desktop  the trail; > `max` levels → first · „…” (overflow menu with the hidden levels) · the last 3 (Figma
               „w/ overflow”: at most 4 visible levels); every level `--truncate` (30 characters) with its full text in a
@@ -53,8 +58,9 @@
       </li>`;
   };
 
-  const html = (crumbs = [], { trailing = false, truncate = true, label = "Navigare", mobile = true, max = 4, className = "" } = {}) => {
-    const list = crumbs.filter((crumb) => crumb && String(crumb.label ?? "").trim() !== "");
+  const html = (crumbs = [], { parentsOnly = false, trailing = false, truncate = true, label = "Navigare", mobile = true, max = 4, className = "" } = {}) => {
+    let list = crumbs.filter((crumb) => crumb && String(crumb.label ?? "").trim() !== "");
+    if (parentsOnly) { list = list.slice(0, -1); trailing = true; }
     if (!list.length) return "";
     const last = list.length - 1;
     const extra = className ? ` ${className}` : "";

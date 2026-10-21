@@ -2200,3 +2200,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   761 / 1440, on pd-35, ek-04o, ek-30, dos-05c / 05d and services / tariffs / users reached by a JS `[data-nav-id]`
   click (their demo states click the hidden sidebar and fail on phones). code-audit flags a literal „56px” even inside a
   CSS comment (px-outside-token) — write „56” in comments.
+- 2026-10-21 · Breadcrumb never repeats the title (breadcrumb-v3; user: „The breadcrumbs should not display «Autorizația
+  pentru importul, exportul sau reex…» — it's already there”, seen on rap-02d = RAP act rap-0015). breadcrumb-v2 had made
+  every page header end on the bold current page because the Figma component's „Active Level” defaults to ON — a
+  component DEFAULT is not a usage rule: above an H1 the current level is a duplicate. Fix in the ONE renderer: option
+  `parentsOnly` (drops the last crumb, forces `--trailing`) passed by the 3 page-header callers (shell
+  `renderPageHeaderTop`, `CabEvo.pageHeader`, RAP `crumbsHtml`); callers keep passing the whole trail, so the phone
+  „‹ parent”, the „…” overflow (> 4 parents) and the 30-char tooltip needed no change (proved by an injected 6-level
+  trail). It also removes the BO record code (003000023, D-2026-…, IDNP, KYC-…) from the trail — every one of those
+  pages shows it in the meta row / caption (checked svc-01). Only the process designer drill-in keeps the current
+  level (its trail REPLACES the hidden H1). Before / after = a scratch probe (visible `nav.breadcrumbs` items, `[current]`
+  marks, `::after` content of the last li = trailing chevron, the h1 next to it) over 16 states × 1440 / 375 —
+  cheaper and more exact than screenshots for a text-only change. When the user reverses a decision taken the same
+  day, mark the old doc paragraph „superseded” instead of deleting it. No sub-agent tool → component-audit (0 crumb /
+  back-link findings, standing header / avatar / sheet ones only), hover-audit 0 / 0 on the headers, code-audit 0.
