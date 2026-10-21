@@ -2543,3 +2543,30 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     phone sort buttons, the old Detalii swap and the act sheet — patch before any rebuild.
   - No Agent tool in this session → stored `qsweep`/`audit` on the 7 menu blocks + 8 component sets: only declared baseline (meta dot
     gap 18, pager 1 px, intentional 812 phone viewports, section-over-card gap 0).
+
+- 2026-10-21 · RAP „Filtru” / „Filtre” = the library filter chip (user on EVO-WEB 22069:11259: „do the same change for Filtru”; then
+  coordinator: phones use the SAME button radius at 48, no facet chips on phones; and „phone fields = Large”, 22082:18120). EVO-WEB
+  RAP page 20304:64765: 10 desktop triggers (local `Filter button (advanced filter)` 22068:187089 → deleted at 0 instances) and 15 phone
+  „Chip · Filtre” (EVO DS filter-chip a2731000) → Components lk-03f6 filter-chip 9901c458 `Mode=Off, Icon=Leading`, icon „filter-2,
+  sort” 7b235483, height 40 / 48, radius bound to border-radius/radius-6 (= the Medium button 6 in this file; the code still says 8 for
+  btn-md and a pill on phones — the user's Figma rule wins, code follows in phone-toolbar-v2). Open = State=Focus (desktop rap-01a / 01b,
+  phones rap-01b / 04a / 04b / 04c); active = Mode=On paints copied (surface, label, icon) + Counter Badge with the code count (desktop
+  01c 3 · 01h 1 · 01d 2, all open → Focus + black; phones 01c 3 · 01h 1 · 01d 1 · 04d 3, closed). 60 phone facet chips removed (code: one
+  pill since 2026-10-20), phone filter row top 12 → 16 (spacing-16, code 16), 17 phone searches → Size=Large (48, 16/24, icon 24) incl.
+  the `Filter sheet content · rap-04b` main. Columns 01 / 02 / 05 restacked to 240. Builder tools/figma/rap/screens.js got `filterChip()`
+  (desktop + the single phone chip). Lessons:
+  - **`swapComponent` on the trigger keeps its node id → connectors stay attached** (rap-01 → rap-01a, rap-04 → rap-04c). Only arrows
+    that start on nodes you REMOVE need re-pointing first (rap-04 → rap-04a started on the phone „Statut” chip → moved to the Filtre chip
+    with a `position` start, relabelled). Routine stored in figma.root shared plugin data „rapf”/„swap”: swap → resetOverrides →
+    setProperties (Label / Counter Badge / Indicator) → nested icon swap with the old vector paint kept → active paints → resize(h) →
+    vertical FIXED, horizontal HUG → bind 4 radii.
+  - **Two „filter-chip” sets live in EVO-WEB too** (EVO DS a2731000 State Selected/Unselected vs Components 9901c458 Mode On/Off) —
+    check `mainComponent.parent.key` before saying „already the library chip”; the phones were the EVO DS one.
+  - **Probe the code per state × width for the trigger** (label, is-selected, aria-expanded, badge, height, radius, siblings): desktop
+    label „Filtru”, phone „Filtre”; desktop active states are ALSO open (bar shown) → Focus + black, phone active states are closed.
+  - **Read „before” heights BEFORE the first write** — I snapshotted them after the swap call. And another agent rewrote the RAP notes
+    while I worked (block heights dropped 20–40 px between my calls): re-read the notes before editing them and restack again at the end.
+  - Library gaps (report): filter-chip has one height (36) and no Mode=On + icon + counter variant; label 14/20 + icon 20 on phones vs the
+    code 16/24 + icon 24 (the rule allows only height + radius overrides).
+  - No Agent tool in this session → stored `rap`/`audit` (figma-audit) on the 12 changed toolbars / filter rows: 0 findings; census: 25
+    triggers = 9901c458 (10 × 40, 15 × 48, r6), 16 phone searches Large, 14 connectors 0 unattached, all column gaps 240.
