@@ -2894,3 +2894,25 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   - No 16/24 600 text style in Foundations → „Total de plată” texts stay unstyled (declared). No Agent tool → stored `ghs/audit` on the
     2 sections + 5 forms: fixed edge itemSpacing −1 and the address card half pixels (row minHeight 48); left = gh-09c heading row
     „tight-gap 0” (padded heading, baseline).
+
+- 2026-10-21 · No button that repeats the row click + grey ⋮ (code 30b9dd0c no-continue-btn-v1; user on GEAP 11862:24338 „remove
+  Continuă … leave only the dots” and 11914:29753 „Detalii does the same as the click? make the dots button a grey one”). GEAP Ghișeu:
+  all 92 `Table - Dosare noi, …` tables (stored `figdes`/`fixTable`): 704 „btn · Continuă” + 1 „btn · Detalii” (gh-01f) removed; actions
+  column → 56 (grid track, pinned cells min/max 168 cleared, x 1016 → 1128, sticky placeholders, table 1648 → 1536 / background 1780 →
+  1684). ⋮ = library **button-filled-rectangular Neutral Icon=Only Small 5611:63307** (open = State Active 5611:63538 + Focus Ring/Medium
+  + clip, = the code's pressed + ring) everywhere in BO (stored `figdes`/`swapDots`, census `figdes`/`dotsCensus2`): Ghișeu 771,
+  Local components mains 20 (svc/stack-item 9521:8751, Fees / Tariffs list contents, Document · row Edit + ⋮), UM `Profile / Header`
+  mains 2 + 18, Form Builder mains 8 + 53, Process Designer 33, Dossiers 32, Workplace 151, App Shell 209, NT 1, Services 171 — 0
+  Strict ⋮ left; the Previzualizează eye untouched. FOD: `Act row` 892:11656 rebuilt in place to the GEAP v2 anatomy (key bbef3540
+  kept, 4 instances 0 value diffs; props Authority → Subdivision renamed so overrides held; new Authority / Show authority / Show extra
+  tag / Show action / Break before subdivision; Paper 1131:21263 / 1131:21304; `Message · subtle` gained Tone=Info 1130:377). Lessons:
+  - **`swapComponent` + `setProperties` on the same node keeps id, connectors and the icon colour** (checked against a fresh instance's
+    resolved variable) — no recreate needed for a Strict → Neutral icon-only swap; text-rect / text-circular → filled-rect worked alike.
+  - **`resetOverrides()` after a swap also resets the layer NAME** (an exposed „Action” came back as „button-filled-rectangular”, and the
+    next `findChild(name)` returned null) → rename right after the reset.
+  - **Captured table cells carry minWidth / maxWidth = their captured width**: `resize()` silently keeps 168 — clear both first.
+  - Census once with a glyph test (small instance whose child glyph is „more-vertical”), then swap mains first (`onlyOwn`), then every
+    page: nested overrides that pointed at the old Strict Focus variant show up as leftovers and get swapped too.
+  - Whole-page walks with `getMainComponentAsync` on ~800 hits dropped the transport twice → verify per section.
+  - swap-to-instances.js: ⋮ proto now Neutral; × uses its own Strict component (it used to clone the ⋮ proto). Left: menu item
+    „Elimină schița” is red (danger) in code but black in Figma (library menu item has no danger tone) — report; no gh-13a / gh-13b blocks.
