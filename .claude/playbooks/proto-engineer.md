@@ -2214,3 +2214,19 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   cheaper and more exact than screenshots for a text-only change. When the user reverses a decision taken the same
   day, mark the old doc paragraph „superseded” instead of deleting it. No sub-agent tool → component-audit (0 crumb /
   back-link findings, standing header / avatar / sheet ones only), hover-audit 0 / 0 on the headers, code-audit 0.
+- 2026-10-21 · Library alignment from the Figma QA (lib-align-v1; user: „as in library” for the pink „1 eroare”, „Figma, I
+  guess” for the 56 vs 48 stepper step). (1) Errors button: put the library classes in front of the old hook
+  (`btn btn-sm btn-outline-destructive e-permits-builder__errors`, HTML + process-designer.js), DELETE the old paint
+  (tint, 1.5 border, pink hover, own focus) and let JS toggle the variant (`btn-outline-destructive` ↔ `is-clean`) —
+  a state that is not the library variant must DROP the library class, or the library `:hover:not(:disabled)` (0,3,0)
+  paints red over the green state. A Figma icon missing from the sprite („record”) = a CSS glyph in currentColor
+  (12 ring, 4 border in a 16 box) so it follows the label on the library hover; read its shape from the Figma PNG
+  with the zlib reader (scratch png.py, row/column dumps) — `get_metadata` gives sizes, the PNG gives the pixels.
+  (2) Stepper: measure the Figma INSTANCES in a real screen, not only the component — the component said 48, the screen
+  frame said how they stack (gap 0, first step 24, 6 steps = 264), the PNG column scan said the connector touches the
+  previous circle and the pill is the row only. Code had connector 16 + 8 + row 24 = 48 per item PLUS an `ol` gap 8 =
+  56: one token change (`gap: 0`, item min-height 48) → adr-12 = 264 = Figma. Kept the code's 8 brand-secondary pill
+  spread (Figma's pill is the 24 row; reported as an open question). Same CSS covers FO, Form Designer preview and Ghișeu.
+  hover-audit scope `.e-permits-fo-stepper` hit a hidden copy („0 interactive”) → `[data-fo-screen='request'] …` /
+  `.form-builder-modal-overlay …`. No sub-agent tool → component-audit (no errors / stepper finding), hover 0 / 0,
+  code-audit 0 on the top bar, captures 18 × 2 clean.

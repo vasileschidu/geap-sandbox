@@ -3793,10 +3793,12 @@
   width: 100%;
 }
 
+/* step = 48 as Figma „FO stepper · step (vertical)” 11849:7107 (lib-align-v1, user 2026-10-21): connector 16 right
+   under the previous circle, 8, row 24 — steps stack with no gap (first step = the row only, 24) */
 .e-permits-fo-stepper ol {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-8, 8px);
+  gap: var(--spacing-0, 0);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -3807,7 +3809,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-8, 8px);
-  min-height: 46.5px;
+  min-height: var(--spacing-48, 48px);
   width: 100%;
 }
 
@@ -10037,7 +10039,6 @@
 .e-permits-builder__locale button,
 .e-permits-builder__mode,
 .e-permits-builder__mode button,
-.e-permits-builder__errors,
 .e-permits-builder__service-scope,
 .e-permits-builder__publish,
 .e-permits-builder__tool-button,
@@ -10096,7 +10097,6 @@
 
 .e-permits-builder__version:focus-visible,
 .e-permits-builder__locale button:focus-visible,
-.e-permits-builder__errors:focus-visible,
 .e-permits-builder__service-scope:focus-visible,
 .e-permits-builder__publish:focus-visible,
 .e-permits-builder__sandbox-db select:focus-visible,
@@ -10278,7 +10278,6 @@
   margin-left: var(--spacing-4, 4px);
 }
 
-.e-permits-builder__errors,
 .e-permits-builder__service-scope,
 .e-permits-builder__publish {
   appearance: none;
@@ -10292,33 +10291,30 @@
   white-space: nowrap;
 }
 
-.e-permits-builder__errors {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  border: var(--border-width-1-5, 1.5px) solid var(--color-border-danger-default, #d92d20);
-  border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-danger-default, #d92d20);
-  gap: var(--spacing-6, 6px);
-  height: 32px;
-  padding: 0 var(--spacing-12, 12px);
+/* Errors button = the library Small outlined Destructive button (`btn btn-sm btn-outline-destructive`: white,
+   red outline, red-700 fill on hover, library focus ring; lib-align-v1, user 2026-10-21 „as in library”). The
+   leading glyph = the Figma „record” icon (16 box, ring in the label colour), so it follows the label on hover.
+   With no errors the JS drops `btn-outline-destructive` and adds `is-clean` (green, css/form-builder.css). */
+.btn.btn-sm.e-permits-builder__errors {
+  padding-left: var(--spacing-8, 8px);
 }
 
 .e-permits-builder__errors > span {
   align-items: center;
-  background: var(--color-background-danger-tertiary, #fda19b);
-  border-radius: var(--border-radius-full, 999px);
-  display: inline-flex;
-  flex: 0 0 16px;
-  height: 16px;
+  display: flex;
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
   justify-content: center;
-  width: 16px;
+  width: var(--spacing-16, 16px);
 }
 
 .e-permits-builder__errors > span > i {
-  background: var(--color-background-danger-default, #d92d20);
+  border: var(--border-width-4, 4px) solid currentColor;
   border-radius: var(--border-radius-full, 999px);
+  box-sizing: border-box;
   display: block;
-  height: 8px;
-  width: 8px;
+  height: var(--spacing-12, 12px);
+  width: var(--spacing-12, 12px);
 }
 
 .e-permits-builder__service-scope {

@@ -12,12 +12,12 @@
   <link rel="stylesheet" href="css/e-permits-shell.css?v=no-continue-btn-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=phone-toolbar-v2">
   <link rel="stylesheet" href="css/drawer.css?v=phone-title-20-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=phone-toolbar-v3">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=lib-align-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=doc-hairline-v1">
   <link rel="stylesheet" href="css/page-reveal.css?v=skeleton-v1">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
   <link rel="stylesheet" href="css/empty-state.css?v=empty-v3">
-  <link rel="stylesheet" href="css/form-builder.css?v=skeleton-v1">
+  <link rel="stylesheet" href="css/form-builder.css?v=lib-align-v1">
   <link rel="stylesheet" href="css/process-designer.css?v=library-adopt-v1">
   <link rel="stylesheet" href="css/ghiseu.css?v=audit-fix-v3">
   <link rel="stylesheet" href="css/name-expand.css?v=name-expand-v1">
@@ -57,9 +57,9 @@
   <script src="js/act-row.js?v=tacit-tag-v1" defer></script>
   <script src="js/e-permits-acte-permisive.js?v=library-adopt-v2" defer></script>
   <!-- Form Builder (after the FO renderer it shares) -->
-  <script src="js/form-builder.js?v=tooltip-one-v1" defer></script>
+  <script src="js/form-builder.js?v=lib-align-v1" defer></script>
   <script src="core/process-model.js?v=pd-v3" defer></script>
-  <script src="js/process-designer.js?v=audit-fix-v4" defer></script>
+  <script src="js/process-designer.js?v=lib-align-v1" defer></script>
   <script src="js/ghiseu.js?v=no-continue-btn-v1" defer></script>
   <script src="js/doc-preview.js?v=doc-fullheight-v1" defer></script>
   <script src="js/page-reveal.js?v=skeleton-v1" defer></script>
@@ -2160,7 +2160,7 @@
             <!-- live validation summary (spec § E/F.8): count + the list of problems; a row selects the
                  object and opens its tab -->
             <div class="e-permits-stack__menu-wrap e-permits-builder__issues">
-              <button class="e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-issues-menu" data-stack-menu-trigger data-fb-errors>
+              <button class="btn btn-sm btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="fb-issues-menu" data-stack-menu-trigger data-fb-errors>
                 <span aria-hidden="true"><i></i></span>
                 <strong data-fb-errors-label>Fără erori</strong>
               </button>

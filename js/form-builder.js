@@ -2401,6 +2401,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const warnings = state.issues.filter((issue) => issue.level === "warning");
     const n = errors.length;
     el.errors.classList.toggle("is-clean", n === 0);
+    el.errors.classList.toggle("btn-outline-destructive", n > 0);
     el.errorsLabel.textContent = n ? `${n} ${n === 1 ? "eroare" : "erori"}` : "Fără erori";
     el.errors.setAttribute("aria-label", n ? `${n} ${n === 1 ? "eroare" : "erori"} în formular — vezi lista` : `Fără erori${warnings.length ? `, ${warnings.length} avertismente` : ""} — vezi lista`);
     const row = (issue) => `

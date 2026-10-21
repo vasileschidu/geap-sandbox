@@ -1175,32 +1175,16 @@
   position: relative;
 }
 
-.e-permits-builder__errors {
-  align-items: center;
-  display: inline-flex;
-}
-
-.e-permits-builder__errors:hover {
-  background: var(--color-background-danger-secondary-hover, #fecdca);
-}
-
+/* errors = library `btn btn-sm btn-outline-destructive` (paint, hover, pressed, focus from main.css; lib-align-v1).
+   No errors → the JS swaps the variant for `is-clean` (no library positive outline exists, product green kept) */
 .e-permits-builder__errors.is-clean {
   background: var(--color-background-positive-secondary, #e6f5ee);
-  border-color: var(--color-icon-positive-default, #039855);
+  border: var(--border-width-1, 1px) solid var(--color-icon-positive-default, #039855);
   color: var(--color-text-positive-on-secondary, #027948);
 }
 
 .e-permits-builder__errors.is-clean:hover {
   background: var(--color-background-positive-secondary-active, #d1fadf);
-}
-
-.e-permits-builder__errors.is-clean > span {
-  background: var(--color-border-positive-secondary, #a6f4c5);
-}
-
-/* positive = the product green (--color-icon-positive-default), not the green-900 background token */
-.e-permits-builder__errors.is-clean > span > i {
-  background: var(--color-icon-positive-default, #039855);
 }
 
 .e-permits-builder__errors[aria-expanded="true"],

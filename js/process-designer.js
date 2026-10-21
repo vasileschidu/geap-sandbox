@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
         <div class="e-permits-builder__nav-actions">
           <div class="e-permits-stack__menu-wrap e-permits-builder__issues" data-pd-edit-only>
-            <button class="e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
+            <button class="btn btn-sm btn-outline-destructive e-permits-builder__errors" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="pd-issues-menu" data-stack-menu-trigger data-pd-errors>
               <span aria-hidden="true"><i></i></span>
               <strong data-pd-errors-label>Fără erori</strong>
             </button>
@@ -709,6 +709,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const saveBlocking = errors.filter(PM.blocksSave);
     const n = errors.length;
     el.errors.classList.toggle("is-clean", n === 0);
+    el.errors.classList.toggle("btn-outline-destructive", n > 0);
     el.errorsLabel.textContent = n ? `${n} ${n === 1 ? "eroare" : "erori"}` : "Fără erori";
     el.errors.setAttribute("aria-label", n ? `${n} ${n === 1 ? "eroare" : "erori"} în proces — vezi lista` : `Fără erori${warnings.length ? `, ${warnings.length} ${warnings.length === 1 ? "avertisment" : "avertismente"}` : ""} — vezi lista`);
     const row = (issue) => `

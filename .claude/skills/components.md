@@ -3432,7 +3432,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Phone | `e-permits-fo-phone` + `--editable/--readonly`, `__prefix`, `__code-list` | `is-filled` `is-selected` | `data-fo-phone-*`, `data-code`, `data-flag` |
 | Radio | `e-permits-fo-radio-group` + `--contact`, `e-permits-fo-radio`, `__control` | | `data-fo-contact-person` |
 | Consent checkbox | `e-permits-fo-consent`, `__box` | | `data-fo-consent` |
-| Stepper | `e-permits-fo-stepper`, `__item`, `__connector`, `__number`, `__label` | `is-active` `is-completed` | `data-fo-step`, `data-fo-step-panel` |
+| Stepper | `e-permits-fo-stepper`, `__item`, `__connector`, `__number`, `__label` — step 48 = Figma „FO stepper · step (vertical)” 11849:7107: connector 16 under the previous circle · 8 · row 24 (circle 24, gap 12, label 14/20), steps stack with gap 0, first step 24 (6 steps = 264); active pill = row + 8 brand-secondary spread, r4 (lib-align-v1, 2026-10-21) | `is-active` `is-completed` | `data-fo-step`, `data-fo-step-panel` |
 | Documents | `e-permits-fo-doc-field`, `e-permits-fo-doc-modal` + `__drop-zone/__list/__panel`, `e-permits-fo-file-item` | `is-uploaded` `is-uploading` `is-empty` | `data-fo-doc-*` |
 | Copy value | removed 2026-10-20 → the shared `.copy-value` („Copy value — one component”); `copyValueHtml` returns it | `is-copied` (1500 ms) | `data-copy-value` |
 | Avatar menu | `e-permits-fo-avatar-menu__*` (~25 classes) | `is-open` `is-closing` `has-scroll` `is-scrolled` `is-selected` `is-expanded` | `data-fo-avatar-*` |
@@ -3959,8 +3959,14 @@ restores focus + caret + scroll.
 **Validation summary.** `validate()` → issues `{ level, kind, id, tab, prop, message, short }`: missing RO
 label / text, key empty / invalid / duplicate, unconfigured list source (card tag „Sursă neconfigurată”),
 static list without active values, < 2 options, invalid regex, min > max, empty date interval, step /
-section without title; warnings = one per language with missing translations. Topbar `__errors`
-(red „N erori” / green `is-clean` „Fără erori”, focus ring while open) opens `__issues-menu` (stack menu;
+section without title; warnings = one per language with missing translations. Topbar `__errors` = the
+library Small outlined Destructive button `btn btn-sm btn-outline-destructive e-permits-builder__errors` (white,
+1px red-600 outline + label, hover red-700 fill / white label, pressed red-800, library focus ring; NO tint fill —
+user 2026-10-21 „as in library”, Figma Top bar 12289:456645 „Errors”), leading glyph = Figma „record” icon
+(`<span><i></i></span>`: 16 box, 12 ring of 4 in currentColor, so it follows the label on hover), 8 on the icon
+side, gap 6. With no errors the JS swaps `btn-outline-destructive` for `is-clean` (green „Fără erori”, product
+positive tint — the library has no positive outline). Same button in the Process designer (`data-pd-errors`).
+Focus ring stays while the menu is open (`aria-expanded`). It opens `__issues-menu` (stack menu;
 groups „N erori blochează publicarea” · „Avertismente”; a row selects the object, opens its tab and
 focuses the property). „Publică” is `aria-disabled` + reason while errors > 0.
 
