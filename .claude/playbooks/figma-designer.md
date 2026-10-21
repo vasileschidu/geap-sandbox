@@ -91,6 +91,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | Document viewer (local, 2026-10-21, doc-viewer-v2) | GEAP `Document viewer / Signature tray` 12234:357237 · `Modal content / Document · details` set 12234:357447 (`Signature=On` 11366:6892 = canvas 554 + tray, `Signature=Off` 12234:357438 = canvas 632) · Cabinet tray 1176:56463 (section „Components · Document viewer”) · EVO-WEB tray 22242:11397 | tray = background/base/secondary, r16 all corners, p12/16, gap 2 (spacings), tag-filled Small Subtle Brand „Semnat electronic” (24/signature 4ec9fd80… at 16) above Meta 14/20 text/base/tertiary (TEXT prop `Meta`); document window = canvas r16 (radius-16) + 1 px INSIDE border/base/default, not in layout; 12 between window and tray. Phones: window edge to edge (r0, no outline), tray in a `Signature · inset` frame 0/8/8/8. RAP `Document modal (MDocs act)` 22089:209155 got BOOLEAN `Show signature` + exposed `Signature`. Builder tools/figma/documents/signature-tray.js |
 | breadcrumbs (library, 2026-10-21) | Components lk-03f6 set key `cafee05e…` (file doJ7tDY0PlQ0PqMgbpFVIC 232:5282); Desktop `ab98b2dd…`, Mobile `f2770086…` | Desktop = exposed Level 1–5 + Active Level (`👁️ Level n`, `👁️ Active Level`; each item `⌨️ Label#570:0`); Mobile = 20/chevron-left-small + one exposed `.breadcrumb-item` (its `⌨️ Label` works). BO header (`--truncate`) = Active Level on, labels cut at 30ch (280 px Onest 14) + „…” written into the label; public / Cabinet / RAP (`--trailing`) = Active Level off. The older lk-708e copy (0437358b…) is NOT the library to use. Tool tools/figma/breadcrumbs/ (census.js, replace.js) |
 | Close button · phone (local, 2026-10-21) | Cabinet set 1175:45951 · GEAP 12241:8129 · eKYC 10900:131821 · RAP 22242:231111 · FOD 1079:18767 (section „Sheet header · phone”); RAP also `Modal header · phone` 22243:11543 | phone dialog / sheet × (css/modal-phone.css section 9): 40 circle, Foundations 24/cross-small (8535961…), background/base/tertiary → hover → active, Focus ring; built from detached library button-filled-circular Neutral Icon Only Medium (the library locks the icon at 20). Placed ABSOLUTE in the header, constraints MAX/MIN, x = w − 56, y = title top + lh/2 − 20 (12 for 24/32, 8 for 16/24); header padding 16 / 64 / 8 / 16 (sheets) — tools/figma/sheet-header/ |
+| Copy value — ONE component (2026-10-21) | GEAP `Copy value` **1053:10780** (= the old published `copy-block` d7a4071b…, upgraded in place; tooltip `Copy value · tooltip` 12240:381892) · Cabinet 1180:3849 / 1180:3804 · FOD 1080:1038 / 1080:991 · eKYC 10904:1786 / 10904:1739 · EVO-WEB RAP 22247:14117 / 22247:14070 | code js/copy-value.js. Type Default (value + 16/copy 19019692…) / Compact (no icon: tables, stacked rows, act / request meta) × State Rest / Hover / Pressed / Focus / Copied; TEXT `Value`. Rest padding 0; the wrap is an ABSOLUTE `Wrap` rect at −8 / −4 (STRETCH, radius-6, tertiary-hover 1ad66fae… / -active e2feca67…, Focus Ring/Medium) so the text never moves; tooltip instance ABSOLUTE y −32, constraint CENTER. Act row / Request row: meta `Number` = exposed Compact instance (the Number TEXT property was removed). Tools tools/figma/copy-value/ |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
 | Download / export / print glyphs (2026-10-17) | — | export = central „arrow-inbox, download” filled=on 1.5 r2 e41040ca… (all „Descarcă …” / „Exportă …”, follows the button colour) · upload 20/upload e72e41aa… (Importă / Descarcă din MDocs) · print = „printer, print” filled=off 1.5 r2 f519c646… · A4 preview pages 12001:7122 |
@@ -2364,3 +2365,44 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   to be redrawn as act pages). Stored „qsweep/audit”: 0 findings. Lesson: when a coordinator parks nodes for another agent, keep the
   fix as a re-runnable script (modal-header.js) so the hand-back is one call on the new ids.
 
+- 2026-10-21 · Copy value = ONE component in all five files (user: „the copy component, also do it accurately in Figma … we need
+  a component; use it everywhere”; code 77957dc1). Ids in the Library table. Replaced / converted: GEAP 1,047 `copy-block`
+  instances upgraded in place (692+ icon-hidden → Compact, 320 → Default with a 16 icon, 0 text diffs), Form Builder's duplicate
+  local `copy-block` 8715:79003 (53 instances → Copy value, set deleted; header meta „Information Row” ×72 → Default), raw frames →
+  instances: Services IBAN 82, User Management IDNP 10, Post-processes `fo-copy-value` 9, FOD Pattern Requestor 8 (G7d + P1/P2),
+  FO 09 F8d / F8e phone certificate 2; GEAP Act row Number (37 rows). Cabinet: own `Copy value` 1117:3000 upgraded in place
+  (≈180 nested uses in profile headers / detail rows / identity cards), Request row (308) + Act row (132) Number → Compact.
+  FOD: new set, G7d 2 frames, Act row (4). eKYC: new set, 145 captured „Copy (copy)” frames → Default (code renders header meta
+  and detail rows with renderCopyCode / renderProfileCopyCode). RAP: `RAP / Copy value` (Kind × Show icon, 27) → Copy value
+  (Identifier / Act number → Compact, Profile → Default), old set deleted. Example states: Cabinet sm-03 header Hover, sm-01 first
+  row Copied, GEAP User Management U03 IDNP Hover. Lessons:
+  - **A „deleted” main can still be the file's busiest component**: `copy-block` had parent null (removed from the canvas) yet 1,012
+    live instances and a published key. `holder.insertChild(0, set)` restores it; then upgrade IN PLACE (rename variants
+    „State=Default” → „Type=Default, State=Rest”, clone new variants, add the TEXT property last and bind every variant's text) —
+    instance text overrides survived the new property (snapshot of 1,047 values: 0 diffs). Census main components with
+    `getInstancesAsync` before building a new one.
+  - **Hover wrap without moving the text** = the code's negative margin: the variant stays HUG with padding 0 and the grey wrap is
+    an ABSOLUTE rectangle at x −8 / y −4, w + 16 / h + 8, constraints STRETCH (follows every value length); the tooltip is an
+    ABSOLUTE instance at y −32 with constraint CENTER. Rest / Hover / Copied have the same box → swapping State never shifts layout.
+  - **Library tooltip has no plain / icon variant** (Small = 14/20, arrow, FIXED 220) → `Copy value · tooltip` built from the
+    DETACHED library Small variant (`createComponentFromNode(Bubble)`, arrow dropped, 12/16 Caption/Medium, p 4 8, r4 → 61 × 24;
+    Copied = 20/checkmark-small green-400, padding 2 8 2 4, gap 2 → 71 × 24 = the code to the pixel). Declared as a library gap.
+  - **Hidden icon = Compact**: designers had hidden the icon on table / list uses → that boolean was the reliable signal; switch the
+    non-nested instances (`!id.startsWith("I")`) only — nested ones follow their mains (852 → 237 left to check by hand).
+  - **A text property can't drive a nested instance's text** → list rows get an EXPOSED nested Copy value („Number”), the row's
+    Number property is deleted, and each row instance's old value is written into the nested instance from a snapshot (mains /
+    top level first, then „I…” ids; verify after). Value + visibility refs survive; screens did not move (Rest = plain text).
+  - **Clipping hosts hide the wrap and the tooltip**: act / request row `Meta` (leading-dot clip) and captured
+    `dosar-profil__row-value` clip. Rest is unaffected; for a drawn Hover / Copied example turn the clip off on THAT instance only
+    (the code opens its clip-path the same way). Also set the example's text to text/base/default (the per-instance tertiary fill
+    override beats the variant colour).
+  - **Don't draw a hover in a block that already shows another interaction** (Dossiers 02a / 02k had the action menu open) — pick a
+    calm profile block.
+  - Check the CODE per list before „make every list number copyable”: the Ghișeu registry renders `row.nr` as plain text
+    (js/ghiseu.js:519) → its 729 numbers stay plain; FO summaries copy only „Numărul dosarului” / authorization „Cod”.
+  - Left, reported: BO lists whose numbers live inside library `table-cell` instances (Dosare / Sarcini / Cod / IDNO; eKYC Clienți /
+    Cazuri) can't host a nested instance — visually identical at Rest; old `copy-block` instances in Cabinet „Archive · before 2026-10”
+    untouched; GEAP index line „Index · Copy value” landed inside the horizontal Meta row of 📍 Start here (move it under Meta) — the
+    Figma MCP plan limit stopped the session before that fix.
+  - No Agent tool in this session → mini gate audit (fractional / unbound fills / unbound padding-gap / text styles / auto-layout)
+    on the 10 sets in five files: 0 findings; screenshots of every replaced context matched the code.
