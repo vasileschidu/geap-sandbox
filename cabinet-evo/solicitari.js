@@ -653,8 +653,8 @@
        1. WHERE — the shared HORIZONTAL trajectory card (js/trajectory.js, the BO dossier's component;
           it draws itself vertically when the steps do not fit, i.e. on phones): short labels, the story-backed
           date · who under each step (trackerSteps);
-       2. NOW / NEXT — a separate notice card 12 under it (statusNow: a short medium line + one sentence, every
-          status) with the action that exists inside, under the text.
+       2. NOW / NEXT — the callout integrated in the card, as dos-01 (statusNow: a short medium line + one sentence,
+          every status); the actions are in the header (headerActions).
      The status word itself is in the header (Stare) and the tracker — never a third time here (one fact once).
      The full story (who signed, MPower, MSign / MPay, the subdivision, the notes) = the „Istoric” section of
      Date generale (historyHtml, the vertical trajectory as on the act profile). */
@@ -664,11 +664,12 @@
 
   /* the status notice (request-trajectory-v1, user: „some kind of notification that explains the status”, then „short
      notifications, as in Figma” — EVO Cabinet 518:11121 / 26:5220; then „exactly as in Dosarele mele, with the integrated
-     alert”, then „make it separate”, look = EVO Cabinet Figma 332:1416): EVERY status gets ONE notice card under the
-     trajectory card = a medium lead (the key fact + its date) + at most ONE short sentence; formal „dumneavoastră” as the rest
-     of the Cabinet; the live countdown of the row alert where there is a deadline. Tone (the ICON only, the card stays
-     neutral grey as Figma 332:1416): amber / red when the applicant must act or can no longer act, green for an
-     issued act / decision, blue for the rest. The long texts moved: the suspension reason → Date generale „Motivul suspendării”, the full
+     alert”; cabinet-header-v1: „bring back the integrated notification exactly as in BO”): EVERY status gets ONE callout
+     integrated in the trajectory card (the BO „Acum / Urmează” element) = a medium lead (the key fact + its date) +
+     at most ONE short sentence, no button (the actions are in the header); formal „dumneavoastră” as the rest
+     of the Cabinet; the live countdown of the row alert where there is a deadline. Tone (the callout tones of the
+     component): amber / red when the applicant must act or can no longer act, green for an issued act / decision,
+     blue for the rest. The long texts moved: the suspension reason → Date generale „Motivul suspendării”, the full
      story → „Istoric”. */
   const notice = (tone, iconId, lead, text = "") => ({ tone, icon: iconId, lead, text });
   const live = (dosar) => (deadlineOf(dosar) ? ` · <span data-sm-countdown="${escape(isoDay(deadlineOf(dosar)))}">${escape(countdownText(deadlineOf(dosar)))}</span>` : "");
@@ -857,72 +858,61 @@
     }) || "");
   }
 
-  /* No visible title (user, twice: „remove the Stadiul solicitării title”) — the region keeps the name for screen
-     readers. The BO dossier's trajectory CARD (user: „exactly as in Dosarele mele”: date · who under the steps, as
-     dos-01), then — separate, 12 under it (user: „make it separate”) — the status notice = the product callout
-     (.e-permits-callout, Figma GEAP 8440:119598) on the neutral grey card, as EVO Cabinet Figma 332:1416: padding 20,
-     icon 24 in the status colour, 16 to the text, title 16/24 medium, 8, text 14/20 secondary; the action(s) in a row
-     under the text, left-aligned with it. */
-  const NOTICE_ICON_TONE = { info: "", warning: "warning", danger: "danger", success: "success" };
+  /* The BO dossier's element itself (cabinet-header-v1; user: „bring back the integrated notification exactly as in
+     BO … the timeline + the notification integrated, and the buttons on top”): GEAPTrajectory.html({ steps, callout })
+     — the trajectory card with its callout hanging from it, the renderer and markup of dos-01. No visible title
+     (user, twice: „remove the Stadiul solicitării title”): the BO section title is not part of the element, the
+     region keeps the name for screen readers. No button in it: every action is in the header (headerActions). */
   function statusCardHtml(dosar) {
     const now = statusNow(dosar);
-    const iconTone = NOTICE_ICON_TONE[now.tone] ? ` e-permits-callout__icon--${NOTICE_ICON_TONE[now.tone]}` : "";
     return `
       <section class="e-permits-dosar-profil__section cab-section cab-status" aria-label="Stadiul solicitării" data-sm-status>
         ${window.GEAPTrajectory?.html({
           label: "Etapele solicitării",
           steps: trackerSteps(dosar).map((step) => ({ ...step, sr: step.sr || STEP_STATE_TEXT[step.state] })),
+          callout: { tone: now.tone, icon: now.icon.replace(/^icon-/, ""), titleHtml: now.lead, textHtml: now.text },
         }) || ""}
-        <div class="e-permits-callout e-permits-callout--neutral cab-status__notice" role="status" data-sm-status-notice="${escape(now.tone)}">
-          <span class="e-permits-callout__icon${iconTone}" aria-hidden="true">${icon(now.icon)}</span>
-          <div class="e-permits-callout__content">
-            <p class="e-permits-callout__title">${now.lead}</p>
-            ${now.text ? `<p class="e-permits-callout__text">${now.text}</p>` : ""}
-            ${profileActions(dosar)}
-          </div>
-        </div>
       </section>`;
   }
 
-  function profileActions(dosar) {
+  /* cabinet-header-v1 (user: „the header as in Configurări servicii and Dosarele, with the actions on top”, then „all
+     actions should be in the header, as in BO”): EVERY action of the request is the BO header's right-aligned action
+     row (BO Small buttons). The immediate one — continue the draft, send the information, pay, appeal a refusal — is
+     THE primary; see the act is the primary of an approved request; the rest are neutral; removing a draft is red.
+     The status notice in the trajectory card only explains. Never the same action twice. */
+  function headerActions(dosar) {
     const buttons = [];
-    const download = (kind, label, variant = "btn-neutral") => `<button class="btn ${variant} btn-md btn-rounded" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
-    const appeal = (variant) => `<a class="btn ${variant} btn-md btn-rounded" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
+    const download = (kind, label) => `<button class="btn btn-neutral btn-sm" type="button" data-sm-action="download" data-sm-kind="${kind}" data-sm-id="${escape(dosar.id)}">${icon("icon-export")}<span>${escape(label)}</span></button>`;
+    const appeal = (variant) => `<a class="btn ${variant} btn-sm" href="${escape(foUrl(dosar, "appeal"))}" data-sm-action="appeal">${icon("icon-judge-gavel")}<span>Depune contestație</span></a>`;
     switch (dosar.status) {
       case "schita":
-        buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
-        buttons.push(`<button class="btn btn-outline-destructive btn-md btn-rounded" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
+        buttons.push(`<a class="btn btn-primary btn-sm" href="${escape(foUrl(dosar, "draft"))}" data-sm-action="continue">${icon("icon-edit")}<span>Continuă schița</span></a>`);
+        buttons.push(`<button class="btn btn-outline-destructive btn-sm" type="button" data-sm-action="delete" data-sm-id="${escape(dosar.id)}">${icon("icon-delete")}<span>Elimină schița</span></button>`);
         break;
       case "info":
-        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
+        if (dosar.info?.until >= TODAY) buttons.push(`<a class="btn btn-primary btn-sm" href="${escape(foUrl(dosar, "supplement"))}" data-sm-action="supplement">${icon("icon-page-upload")}<span>Suplinește informații</span></a>`);
         break;
       case "achitare":
-        /* US-135 AC-14: no redirect to MPay for an expired note — no button; the card's alert (the row's
-           „Taxa a expirat pe … Achitarea nu mai este posibilă.”) says why (request-trajectory-v1) */
-        if (paymentExpired(dosar)) return "";
-        buttons.push(`
-          <button class="btn btn-badge btn-badge--primary" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">
-            <span class="btn-badge__logo" aria-hidden="true"><img src="../assets/logos/m-platforms/m-pay.svg" alt=""></span>
-            <span class="btn-badge__label">Achită ${escape(money(dosar.payment?.amount))} cu mpay</span>
-          </button>`);
+        /* US-135 AC-14: no redirect to MPay for an expired note — no button; the notice says why */
+        if (!paymentExpired(dosar)) buttons.push(`<button class="btn btn-primary btn-sm" type="button" data-sm-action="pay" data-sm-id="${escape(dosar.id)}">${icon("icon-credit-card")}<span>Achită ${escape(money(dosar.payment?.amount))}</span></button>`);
         break;
       case "finalizat":
-        if (dosar.result === "aprobat" && dosar.actId) {
-          buttons.push(`<a class="btn btn-primary btn-md btn-rounded" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text")}<span>Vezi actul</span></a>`);
-          buttons.push(download(dosar.decisionOnly ? "decizie" : "act", dosar.decisionOnly ? "Descarcă decizia" : "Descarcă actul"));
-          if (canAppeal(dosar)) buttons.push(appeal("btn-neutral"));
-        }
         if (dosar.result === "respins") {
-          /* the primary first, next to the notice that announces it (request-trajectory-v1) */
           if (canAppeal(dosar)) buttons.push(appeal("btn-primary"));
           buttons.push(download("decizie", "Descarcă decizia"));
+        } else if (dosar.actId) {
+          buttons.push(`<a class="btn btn-primary btn-sm" href="${escape(cabUrl("acte", { act: dosar.actId }))}" data-sm-action="act">${icon("icon-page-text")}<span>Vezi actul</span></a>`);
+          buttons.push(download(dosar.decisionOnly ? "decizie" : "act", dosar.decisionOnly ? "Descarcă decizia" : "Descarcă actul"));
+          if (canAppeal(dosar)) buttons.push(appeal("btn-neutral"));
         }
         break;
       default:
         break;
     }
-    return buttons.length ? `<div class="cab-status__actions" data-sm-dl-scope>${buttons.join("")}</div>` : "";
+    return buttons.join("");
   }
+
+
 
   /* BO page-header meta: nr (copy) · tip · statut (+ marks) · the dates of the status */
   function headerMeta(dosar) {
@@ -1224,7 +1214,7 @@
     profileView.hidden = false;
     profileView.innerHTML = `
       <article class="cab-profile sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
-        ${C.pageHeader({
+        ${C.profileHeader({
           back: { label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" },
           /* type-first-v1: H1 = the service / act name, subtitle = the object / location (only when present) */
           title: service.title || dosar.object || dosar.nr,
@@ -1232,6 +1222,7 @@
           subtitle: service.title ? dosar.object || "" : "",
           subtitleIcon: service.title && dosar.object ? "icon-map-pin-filled" : "",
           meta: headerMeta(dosar),
+          actions: headerActions(dosar),
         })}
         <div class="e-permits-dosar-profil__panel">
           ${statusCardHtml(dosar)}
@@ -1378,11 +1369,13 @@
   function download(button) {
     root.querySelectorAll("[data-sm-download-error]").forEach((node) => node.remove());
     if (params.get("descarcare") !== "eroare") return;
-    const scope = button.closest("[data-sm-dl-scope]") || button.closest(".cab-request-row") || root.querySelector(".cab-status__actions");
+    const scope = button.closest("[data-sm-dl-scope], .e-permits-page-header__actions") || button.closest(".cab-request-row");
     const html = message("banner--error", "icon-circle-error-filled", "A apărut o eroare. Descărcarea nu a fost efectuată. Încercați din nou.", { role: "alert", attrs: "data-sm-download-error" });
     /* in a row: the full-width notice slot under the row (as the act row's locked notice) */
     if (scope?.classList.contains("cab-request-row")) scope.insertAdjacentHTML("beforeend", html.replace('class="message', 'class="cab-request-row__notice message'));
     else if (scope?.matches(".cab-status__actions, .cab-detail__actions")) scope.insertAdjacentHTML("afterend", html);
+    /* the header's action row (cabinet-header-v1): the message opens the panel under the header */
+    else if (scope?.matches(".e-permits-page-header__actions")) scope.closest("[data-sm-profile]")?.querySelector(".e-permits-dosar-profil__panel")?.insertAdjacentHTML("afterbegin", html.replace('class="message', 'class="cab-profile-notice message'));
     else scope?.insertAdjacentHTML("beforeend", html);
     root.querySelector("[data-sm-download-error]")?.scrollIntoView({ block: "nearest" });
   }
@@ -1402,7 +1395,10 @@
         <button class="btn btn-strict btn-sm" type="button" data-sm-redirect-retry="${escape(href || action.getAttribute("href") || "")}">${icon("icon-rotate-arrow")}<span>Reîncercați</span></button>
       </div>`;
     const item = action.closest(".cab-request-row");
+    const panel = action.closest(".e-permits-page-header__actions") ? action.closest("[data-sm-profile]")?.querySelector(".e-permits-dosar-profil__panel") : null;
     if (item) item.insertAdjacentHTML("beforeend", html.replace('class="cab-retry"', 'class="cab-retry cab-request-row__notice"'));
+    /* the header's action row (cabinet-header-v1): the message opens the panel under the header */
+    else if (panel) panel.insertAdjacentHTML("afterbegin", html.replace('class="cab-retry"', 'class="cab-retry cab-profile-notice"'));
     else (action.closest(".cab-status__actions") || action).insertAdjacentHTML("afterend", html);
     root.querySelector("[data-sm-redirect-retry]")?.focus();
   }
@@ -1538,6 +1534,15 @@
     const object = params.get("obiect") || "Solicitare nouă";
     const filed = params.get("depus");
     /* demo: a finalized request approved tacitly (US-157; the seed has none) → its one tag reads „Aprobat tacit” */
+    /* demo: a VERY long service name on one request (cabinet-header-v1, sm-05w / sm-01r) — the real 221-character
+       title of the alcohol licence, to show how the header and the row handle it */
+    (params.get("titlu-lung") || "").split(",").filter(Boolean).forEach((id) => {
+      const dosar = state.dosare.find((item) => item.id === id);
+      if (!dosar) return;
+      const key = `${dosar.service}-titlu-lung`;
+      state.data.services[key] = { ...serviceOf(dosar), title: "Licență pentru fabricarea alcoolului etilic, a berii și a producției alcoolice, cu excepția vinului, produselor obținute pe bază de must și a produselor a căror fabricare este autorizată în conformitate cu Legea viei și vinului nr. 57/2006" };
+      dosar.service = key;
+    });
     (params.get("tacit-dosar") || "").split(",").forEach((id) => {
       const dosar = state.dosare.find((item) => item.id === id && item.status === "finalizat" && item.result === "aprobat");
       if (dosar) dosar.tacit = true;

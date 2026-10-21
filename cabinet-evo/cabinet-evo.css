@@ -928,41 +928,13 @@
   margin: 0;
 }
 
-/* „Stadiul solicitării” (request-trajectory-v1, 2026-10-21): no visible title (aria-label on the section) · the BO
-   „Traiectoria dosarului” card (css/trajectory.css, as dos-01) · 12 · the status notice = the product callout
-   (.e-permits-callout--neutral: grey card, radius 16, padding 20, icon 24, 16 to the text, title 16/24 medium, 8,
-   text 14/20 secondary — EVO Cabinet Figma 332:1416) whose ICON takes the status colour; the action row inside it,
-   under the text (8 more = 16 from the text), library buttons 8 apart, left-aligned with the text. */
-.cab-status > .e-permits-trajectory + .cab-status__notice {
-  margin-top: var(--spacing-12, 12px);
-}
-
-.e-permits-callout--neutral .e-permits-callout__icon--warning {
-  color: var(--color-icon-warning-default, #dc6803);
-}
-
-.e-permits-callout--neutral .e-permits-callout__icon--success {
-  color: var(--color-icon-positive-default, #039855);
-}
-
-.e-permits-callout--neutral .e-permits-callout__icon--danger {
-  color: var(--color-icon-danger-default, #d92d20);
-}
-
-.cab-status__actions {
-  align-items: center;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-8, 8px);
-}
-
-.e-permits-callout__content > .cab-status__actions {
-  margin-top: var(--spacing-8, 8px);
-}
-
+/* „Stadiul solicitării” (request-trajectory-v1 → cabinet-header-v1, 2026-10-21): no visible title (aria-label on the
+   section) · the BO dossier's element itself = GEAPTrajectory.html({ steps, callout }) — the trajectory card with its
+   integrated callout (css/trajectory.css + the „Callout” rules of e-permits-acte-permisive.css); no Cabinet rule. The
+   request's actions are in the BO header (headerActions); on phones they wrap. */
 @media (max-width: 760px) {
-  .cab-status__notice.e-permits-callout {
-    padding: var(--spacing-16, 16px);
+  .sm-profile .cab-profile-header .e-permits-page-header__actions {
+    flex-wrap: wrap;
   }
 }
 
@@ -1357,7 +1329,6 @@
   flex: 1 1 320px;
 }
 
-[data-sm-status] > .cab-retry,
 .e-permits-stack__main > .cab-retry {
   margin-top: var(--spacing-8, 8px);
 }
@@ -1541,6 +1512,23 @@ button.cab-alert-link {
 /* ===== Act profile (act-profile-v1, 2026-10-21) — components.md › „Act profile” =====
    „Actele mele permisive” › ?act=<id> (cabinet-evo.js renderDetail): the public BO header + a subtitle (the act
    type), ONE status date in the meta, one status notice, then BO sections (Ce permite actul · Detalii act ·
+   Autoritatea emitentă · Beneficiar · Istoric). Only what the shared parts do not already give lives here. */
+
+/* title + subtitle (the act type = the service) as one block: 4 between them, the heading's 16 above */
+.cab-page-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.cab-page-header__subtitle {
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
 /* the location subtitle of the act / request profiles (type-first-v1, 2026-10-21): the 16 FILLED map pin in the
    TERTIARY icon colour (user: „a filled one, in the tertiary colour” — exception to icon = label colour; the text
    keeps the subtitle colour), 4 to the text, centred on the first 24 line; a wrapped line starts under the text */
@@ -1560,55 +1548,39 @@ button.cab-alert-link {
   min-width: 0;
 }
 
-   Autoritatea emitentă · Beneficiar · Istoric). Only what the shared parts do not already give lives here. */
-
-/* title + subtitle (the act type = the service) as one block: 4 between them, the heading's 16 above */
-.cab-page-header__titles {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4, 4px);
-  min-width: 0;
-}
-
-.cab-page-header__subtitle {
-  color: var(--color-text-base-secondary, #383838);
-  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
-  margin: 0;
+/* ===== Act / request profile header = the BO page header (cabinet-header-v1, 2026-10-21; user: „the header as in
+   Administrare › Configurări servicii › 003000023 and Dosarele, with the actions on top, for uniformisation”) =====
+   js/page-header.js (GEAPPageHeader, the BO renderer) + the BO header CSS (e-permits-acte-permisive.css „Back-office
+   page header”, css/bo-profile-parts.css). Only what the Cabinet adds: the H1 wraps (the full name is never cut on
+   its own page — the BO registries keep one line + tooltip) and the act's priority+ action row (fitActActions: what
+   does not fit beside the primary goes into „⋯”). */
+.cab-profile-header .e-permits-page-header__title {
+  overflow: visible;
   overflow-wrap: break-word;
+  text-overflow: clip;
+  white-space: normal;
 }
 
-/* the action row (look and feel of the user's YouTube reference — grouped grey buttons — not its structure):
-   LEFT-aligned under the title, ONE line; what does not fit goes into „⋯” (cabinet-evo.js fitActActions) */
-.cab-act-header__bar {
-  display: flex;
-  margin-top: var(--spacing-16, 16px);
-  min-width: 0;
-}
-
-.cab-act-header__actions {
-  align-items: center;
-  display: flex;
-  flex: 0 1 auto;
-  flex-wrap: nowrap;
-  gap: var(--spacing-8, 8px);
-  max-width: 100%;
-  min-width: 0;
-}
-
-.cab-act-header__actions > [hidden] {
+.cab-profile-header .e-permits-page-header__actions > [hidden] {
   display: none;
 }
 
-.cab-act-header__actions .btn {
+.cab-profile-header .e-permits-page-header__actions > :is(.btn, .e-permits-fo-intent-act__action) {
   flex: none;
   white-space: nowrap;
 }
 
-/* the library btn-md is 40; the icon-only „⋯” is square at the row height */
-.cab-act-header__overflow .btn.btn-icon-only {
-  height: var(--spacing-40, 40px);
-  padding: 0;
-  width: var(--spacing-40, 40px);
+/* a long title never pushes the actions off their first line: they stay on the title row, top-aligned */
+.cab-profile-header .e-permits-page-header__top {
+  align-items: flex-start;
+}
+
+/* phones: a value with a muted remark („15 septembrie 2028 (704 zile rămase)”) flows as text in its half column —
+   the date never breaks word by word beside the remark */
+@media (max-width: 760px) {
+  .cab-profile-header .e-permits-page-header__meta-value:has(> .cab-detail__muted) {
+    display: block;
+  }
 }
 
 /* full container (user 2026-10-21: „the profile of Solicitări and Actele mele: full container, no reason to cut
@@ -1618,51 +1590,14 @@ button.cab-alert-link {
   max-width: var(--cab-list-width);
 }
 
-.cab-act-header__facts .cab-message .banner__content > p {
+/* the act's status notice opens the panel under the header (was in the key-facts card); 12 + the section title's
+   11 above the next section; ~75ch lines */
+.e-permits-dosar-profil__panel > .cab-profile-notice:first-child {
+  margin-bottom: var(--spacing-12, 12px);
+}
+
+.cab-profile-notice .banner__content > p {
   max-width: 75ch;
-}
-
-/* the key-facts card (YouTube's description box): the grey BO card surface, its edges on the section cards below
-   (−12 = the header's inset), text at their 20; number · status · status date on one line (whole parts wrap) */
-.cab-act-header__facts {
-  background: var(--color-background-base-secondary, #f5f5f5);
-  border-radius: var(--border-radius-16, 16px);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-12, 12px);
-  margin: var(--spacing-16, 16px) calc(var(--spacing-12, 12px) * -1) 0;
-  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
-}
-
-.cab-act-header__key {
-  align-items: center;
-  color: var(--color-text-base-default, #121212);
-  display: flex;
-  flex-wrap: wrap;
-  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
-  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
-  margin: 0;
-}
-
-.cab-act-header__fact {
-  align-items: center;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0 var(--spacing-4, 4px);
-  min-width: 0;
-}
-
-.cab-act-header__fact--tags {
-  gap: var(--spacing-6, 6px);
-}
-
-.cab-act-header__fact .cab-detail__muted {
-  font-weight: var(--font-weight-fw-regular, 400);
-  /* a 48 button = the Large label 16/24 (button-label-v1: the Medium label is 14/20 now) */
-  margin: 0;
-    font-size: var(--font-size-fs-16, 16px);
-    line-height: var(--line-height-lh-24, 24px);
 }
 
 /* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left
@@ -1674,38 +1609,8 @@ button.cab-alert-link {
   right: 0;
 }
 
-.cab-act-header__facts > .cab-message {
-  margin: 0;
-}
-
-.cab-act-header__more.cab-alert-link {
-  align-self: flex-start;
-}
-
 /* „Istoric” = the shared trajectory card (vertical); on phones its corners follow the BO cards (16) */
 @media (max-width: 760px) {
-  /* phones: the action row fills the width (one line, the primary takes the free room; touch height 48) */
-  .cab-act-header__actions {
-    width: 100%;
-  }
-
-  .cab-act-header__actions:not(.is-measuring) > .btn-primary {
-    flex: 1 1 auto;
-  }
-
-  .cab-act-header__actions .btn {
-    min-height: var(--spacing-48, 48px);
-  }
-
-  .cab-act-header__overflow .btn.btn-icon-only {
-    height: var(--spacing-48, 48px);
-    width: var(--spacing-48, 48px);
-  }
-
-  .cab-act-header__facts {
-    padding: var(--spacing-16, 16px);
-  }
-
   .cab-act-profile .cab-act-history.e-permits-trajectory,
   .sm-profile .cab-request-history.e-permits-trajectory {
     border-radius: var(--border-radius-16, 16px);

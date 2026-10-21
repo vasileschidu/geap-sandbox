@@ -5,7 +5,7 @@
    Traseul reviziei), FO finish (tracker + Statutul dosarului, also post-process), EVO Cabinet
    (Stadiul solicitării).
 
-   GEAPTrajectory.html({ steps, layout, bare, label, className }) → HTML
+   GEAPTrajectory.html({ steps, layout, bare, label, className, callout }) → HTML
      steps[]: { label, state, meta, metaHtml, tagHtml, sr }
        state = done | current | paused | attention | rejected | skipped | todo
          done      green check            current   brand clock + soft brand pill on the label
@@ -18,8 +18,14 @@
      layout = "horizontal" (default; steps side by side, equal connectors; drawn vertically when the
               steps do not fit the card — .is-stacked, see fit()) | "vertical" (marker column + text,
               connectors down the markers)
-     bare   = no card chrome (inside another card, e.g. the Cabinet status card)
+     bare   = no card chrome (inside another card)
      label  = aria-label of the <ol>
+     callout = the alert INTEGRATED in the card — it hangs from the card's bottom edge (cabinet-header-v1, 2026-10-21;
+              was BO-only markup in renderDosarTrajectory): { tone: info | warning | success | danger, icon (sprite id
+              without „icon-”), titleHtml, metaHtml, textHtml } → .e-permits-callout-wrap > .e-permits-callout--<tone>
+              [role=status] right after the card (css: e-permits-acte-permisive.css „Callout”, the hanging variant
+              `.e-permits-trajectory + .e-permits-callout-wrap`). Used by the BO dossier („Acum / Urmează”) and the
+              EVO Cabinet request („Stadiul solicitării”) — the same element.
    GEAPTrajectory.REACHED = the states whose connector to the next reached step is brand. */
 (function () {
   const esc = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -61,14 +67,26 @@
       </li>`;
   };
 
-  const html = ({ steps = [], layout = "horizontal", bare = false, label = "", className = "" } = {}) => {
+  const calloutHtml = (callout) => (callout ? `
+      <div class="e-permits-callout-wrap">
+        <div class="e-permits-callout e-permits-callout--${esc(callout.tone || "info")}" role="status">
+          <span class="e-permits-callout__icon" aria-hidden="true"><svg class="icon" width="24" height="24"><use href="${SPRITE}#icon-${esc(callout.icon || "time-filled")}"></use></svg></span>
+          <div class="e-permits-callout__content">
+            <p class="e-permits-callout__title">${callout.titleHtml || ""}</p>
+            ${callout.metaHtml ? `<p class="e-permits-callout__meta">${callout.metaHtml}</p>` : ""}
+            ${callout.textHtml ? `<p class="e-permits-callout__text">${callout.textHtml}</p>` : ""}
+          </div>
+        </div>
+      </div>` : "");
+
+  const html = ({ steps = [], layout = "horizontal", bare = false, label = "", className = "", callout = null } = {}) => {
     const cls = ["e-permits-trajectory", layout === "vertical" ? "e-permits-trajectory--vertical" : "", bare ? "e-permits-trajectory--bare" : "", className].filter(Boolean).join(" ");
     return `
       <div class="${cls}">
         <ol class="e-permits-trajectory__steps"${label ? ` aria-label="${esc(label)}"` : ""}>
           ${steps.map(stepHtml).join("")}
         </ol>
-      </div>`;
+      </div>${calloutHtml(callout)}`;
   };
 
   /* A horizontal trajectory whose steps do not fit its card (phones, narrow columns, 7 steps in a

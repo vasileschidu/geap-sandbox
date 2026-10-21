@@ -1002,21 +1002,21 @@
     const issuing = issuingDossierOf(act);
     const notice = actNotice(act);
     const statusDate = actHeaderDate(act);
-    /* one line in priority order (primary · Postprocese · Vezi solicitarea); what does not fit goes into a trailing
-       „⋯” (fitActActions) — the YouTube mobile action row (user 2026-10-21) */
+    /* the BO header's action row (cabinet-header-v1): right-aligned on the title row, BO Small buttons, in priority
+       order (primary · Postprocese · Vezi solicitarea); what does not fit goes into a trailing „⋯” (fitActActions) */
     const actions = [
-      `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
+      `<button class="btn btn-primary btn-sm" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
       act.postProcesses.length ? `
         <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
-          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
+          <button class="btn btn-neutral btn-sm" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
-      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request">${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
+      issuing ? `<a class="btn btn-neutral btn-sm" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request">${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
       act.postProcesses.length || issuing ? `
         <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
-          <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
+          <button class="btn btn-neutral btn-sm btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-more" role="menu" aria-label="Mai multe acțiuni" hidden></ul>
         </div>` : "",
     ].filter(Boolean).join("");
@@ -1047,30 +1047,29 @@
        already named in the header avatar → the card follows the authority (kept: the IDNx is copied from here) */
     const beneficiary = subject ? profileSection("cab-act-beneficiary", "Beneficiar", identityCardHtml({ ...subject, initials: subject.initials || subject.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2) })) : "";
     const representative = Boolean(state.perspective?.mpower);
-    /* the key facts on one line (wraps by whole parts, no separators to orphan): number · status · status date */
-    const facts = [
-      `<span class="cab-act-header__fact"><span>Nr.</span>${copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)}</span>`,
-      `<span class="cab-act-header__fact cab-act-header__fact--tags">${actStatusTagHtml(act, tacit)}</span>`,
-      statusDate ? `<span class="cab-act-header__fact">${escape(statusDate[0])} ${statusDate[1]}</span>` : "",
-    ].filter(Boolean).join("");
-    const factsHtml = `
-      <div class="cab-act-header__facts">
-        <p class="cab-act-header__key">${facts}</p>
-        ${notice ? `<div class="message message--subtle ${NOTICE_CLASS[notice.tone] || "banner--info"} message--small cab-message" id="cab-act-notice"><span class="banner__icon">${icon(notice.icon, "medium")}</span><div class="banner__content"><p>${notice.html}</p></div></div>` : ""}
-        <button class="link link-primary link-sm cab-alert-link cab-act-header__more" type="button" data-cab-jump="cab-act-details">Vezi toate detaliile</button>
-      </div>`;
+    /* the BO header meta (cabinet-header-v1, was the key-facts card): number (copy) · status · the status date ·
+       the issuing authority; the status notice opens the panel under the header */
+    const meta = [
+      ["Numărul actului", copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)],
+      ["Stare", actStatusTagHtml(act, tacit)],
+      statusDate ? [statusDate[0], statusDate[1]] : null,
+      ["Autoritatea emitentă", escape(act.service?.authority || authorityNameOf(act))],
+    ];
+    const noticeHtml = notice ? `<div class="message message--subtle ${NOTICE_CLASS[notice.tone] || "banner--info"} message--small cab-message cab-profile-notice" id="cab-act-notice"><span class="banner__icon">${icon(notice.icon, "medium")}</span><div class="banner__content"><p>${notice.html}</p></div></div>` : "";
     panel.hidden = false;
     panel.innerHTML = `
-      ${pageHeader({
+      ${profileHeader({
         back: { label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" },
         /* type-first-v1: H1 = the act type (the full service title), subtitle = the object / location, if any */
         title: act.service.title || act.title,
         titleId: "cab-act-title",
         subtitle: act.place || "",
         subtitleIcon: act.place ? "icon-map-pin-filled" : "",
-        bodyHtml: `<div class="cab-act-header__bar"><div class="cab-act-header__actions">${actions}</div></div>${factsHtml}`,
+        meta,
+        actions,
       })}
       <div class="e-permits-dosar-profil__panel">
+        ${noticeHtml}
         ${representative ? beneficiary : ""}
         ${allows}
         ${profileSection("cab-act-details", "Detalii act", detailCard(details))}
@@ -1086,15 +1085,17 @@
     syncHeaderMeta();
     fitActActions();
     document.fonts?.ready.then(fitActActions);
-    actActionsObserver?.observe(panel.querySelector(".cab-act-header__bar"));
+    actActionsObserver?.observe(panel.querySelector(".e-permits-page-header__top"));
     window.scrollTo(0, 0);
   }
 
   /* the action row never wraps: measure every action at its natural width (all reads first), keep the primary,
      then the secondaries in priority order while they fit beside the „⋯”; the rest are `hidden` (out of the tab
-     order) and listed in the „⋯” menu — Vezi solicitarea, then „Postprocese” as a labelled group (danger last). */
+     order) and listed in the „⋯” menu — Vezi solicitarea, then „Postprocese” as a labelled group (danger last).
+     Room (cabinet-header-v1, the BO header): the whole row when the header stacks (phones), else half of the title
+     row — the title keeps the other half and wraps. */
   function fitActActions() {
-    const box = document.querySelector("[data-cab-detail]:not([hidden]) .cab-act-header__actions");
+    const box = document.querySelector("[data-cab-detail]:not([hidden]) .e-permits-page-header__actions");
     const act = box && state.permits.find((permit) => permit.id === state.detail);
     if (!box || !act) return;
     const items = [...box.querySelectorAll(":scope > [data-cab-act-action]")];
@@ -1104,7 +1105,9 @@
     box.classList.add("is-measuring");
     items.forEach((el) => { el.hidden = false; });
     if (more) more.hidden = false;
-    const room = box.parentElement.clientWidth;
+    const top = box.closest(".e-permits-page-header__top");
+    const stacked = getComputedStyle(top).flexDirection === "column";
+    const room = stacked ? top.clientWidth : Math.floor(top.clientWidth / 2);
     const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
     const width = (el) => el.getBoundingClientRect().width;
     const primaryW = width(primary);
@@ -1290,6 +1293,26 @@
       </header>`;
   }
 
+  /* the act / request profile header = the BO page header itself (cabinet-header-v1, 2026-10-21; user: „the header
+     as in Administrare › Configurări servicii › 003000023 and Dosarele, with the actions on top, for
+     uniformisation”): js/page-header.js (GEAPPageHeader — the renderer the BO uses) — breadcrumb (parents only) ·
+     H1 (wraps: never truncated on its own page) + the location line with the filled tertiary pin (type-first-v1) ·
+     the action row right-aligned on the title row (BO Small buttons: one primary, neutral secondaries, ⋯) · the
+     meta row. Immediate actions (pay, send information, appeal, continue a draft) stay in the request's status
+     notice. The catalog service keeps pageHeader (the public header, as RAP). */
+  function profileHeader({ back, title = "", titleId = "", subtitle = "", subtitleIcon = "", meta = [], actions = "" }) {
+    const subtitleHtml = subtitle
+      ? `<p class="cab-page-header__subtitle${subtitleIcon ? " cab-page-header__subtitle--icon" : ""}">${subtitleIcon ? icon(subtitleIcon, "small") : ""}<span>${escape(subtitle)}</span></p>`
+      : "";
+    return `
+      <header class="e-permits-page-header cab-page-header cab-profile-header" data-cab-profile-header>
+        <div class="e-permits-page-header__body">
+          <div class="e-permits-page-header__top">${window.GEAPPageHeader.top({ crumbs: [back, { label: title }], title, titleId, subtitleHtml, wrap: true, actions })}</div>
+          ${meta.filter(Boolean).length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${window.GEAPPageHeader.meta(meta)}</div>` : ""}
+        </div>
+      </header>`;
+  }
+
   /* BO profile sections (css/bo-profile-parts.css, = RAP / BO dos-01 · svc-01): the 18/26 title in a
      48 row over the grey card (no gap, 8/12 inset), rows 40 · label 14/20 secondary · value 14/20
      medium · dividers, none under the last row. The panel follows the header (20 to the first one). */
@@ -1467,7 +1490,7 @@
     VIEW, AUTH, SUBJECT, SPRITE, params,
     icon, escape, copyValueHtml, closeMenus, cabUrl, longDate, longDateTime, setHeaderTitle, restrictionHtml, pagerHtml,
     docRowHtml, docContentHtml, openDocModal, closeDocModal, signedTagHtml,
-    actGroups, pageHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
+    actGroups, pageHeader, profileHeader, syncHeaderMeta, identityCardHtml, tagHtml, tacitTagHtml, ACT_TONE, detailRow, detailCard, profileSection,
     els,
   };
 

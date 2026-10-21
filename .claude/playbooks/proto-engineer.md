@@ -2409,3 +2409,20 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   table, so a demo state must scroll the trigger into view (`inline: "end"`) before clicking — the SDK table is wider than
   1440 (actions column 14 px past the edge, pre-existing). Audits compared tree vs a HEAD worktree with the new
   demo-states.js copied in: component / code counts identical, hover 0 / 0.
+- 2026-10-21 · Cabinet profiles = the BO page header + the BO trajectory element (cabinet-header-v1; user: „the header as in
+  Configurări servicii › 003000023 and Dosarele, with the actions on top”, then „all actions in the header, as in BO” and
+  „bring back the integrated notification exactly as in BO”). One component instead of a copy: the shell's
+  `renderPageHeaderTop` body moved to `js/page-header.js` (GEAPPageHeader) with two opt-in options (`wrap`,
+  `subtitleHtml`, `titleId`) and the BO dossier's hanging callout became `GEAPTrajectory.html({ callout })`; proof that
+  the BO did not move = a HEAD `git worktree` served on :8994 and the header / trajectory-section innerHTML of svc-01 +
+  dos-01 / 01b / 01g / 01h compared byte for byte (sprite path normalised: the module resolves it from its script
+  src). Lesson from the previous job applied: the shared API was widened only once the user had settled the design
+  („exactly as BO”). Traps: (1) moving actions out of a block breaks every demo state that clicked them inside it
+  (`[data-sm-status] [data-sm-action=…]` ×5, `.cab-act-header__actions` ×1) — grep demo-states for the old container
+  before deleting it; (2) error messages inserted `afterend` of the clicked button land INSIDE a header action row →
+  route them to the panel top (`.cab-profile-notice`); (3) priority+ fitting needs a new „room” when the row moves
+  beside a wrapping title (half the title row; the full row when the header stacks); (4) a phone meta value with a
+  muted remark broke the date word by word in a half column → `display: block` for that value only. Long-name
+  demos (pp-03g 144 chars, sm-05w 221 chars via `?titlu-lung=`) checked at 1440 / 1024 / 375 / 320: title wraps beside
+  top-aligned actions, list rows 1 line + tooltip / 2 lines on phones. No sub-agent tool → compare-styles (0),
+  hover-audit (0 / 0), code-audit (standing FPs), component-audit (header clean; act viewer modal close = pre-existing).

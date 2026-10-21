@@ -2328,44 +2328,22 @@ document.addEventListener("DOMContentLoaded", () => {
     ? `<button class="e-permits-page-header__status e-permits-page-header__status--${tone} e-permits-page-header__status--button" type="button" ${attrs}>${escapeHtml(text)}</button>`
     : `<span class="e-permits-page-header__status e-permits-page-header__status--${tone}">${escapeHtml(text)}</span>`;
 
+  /* the header itself = js/page-header.js (GEAPPageHeader, cabinet-header-v1: one renderer with EVO Cabinet); the
+     shell only prefixes the trail with the menu section the page lives in */
   const renderPageHeaderTop = ({ crumbs = [], title = "", actions = "", caption = "", status = "" }) => {
     const section = crumbs.length ? navSectionOf(crumbs[0].label) : "";
     const trail = section && section !== crumbs[0].label ? [{ label: section }, ...crumbs] : crumbs;
-    return `
-    <div class="e-permits-page-header__heading">
-      ${renderBreadcrumbs(trail, { truncate: true, parentsOnly: true })}
-      <h1 class="e-permits-page-header__title" data-cell-tooltip>${escapeHtml(title)}</h1>
-    </div>
-    ${actions || caption || status ? `
-      <div class="e-permits-page-header__aside">
-        ${actions ? `<div class="e-permits-page-header__actions">${actions}</div>` : ""}
-        ${caption || status ? `<p class="e-permits-page-header__caption">${status}${status && caption ? " · " : ""}${escapeHtml(caption)}</p>` : ""}
-      </div>
-    ` : ""}
-  `;
+    return window.GEAPPageHeader.top({ crumbs: trail, title, actions, caption, status });
   };
 
   /* Separators are drawn by each item's ::before (see the CSS), not as flex
      children, so hiding one never changes the layout it depends on. */
-  const renderPageHeaderMeta = (items) => items.map(([label, valueHtml]) => `
-    <div class="e-permits-page-header__meta-item">
-      <span class="e-permits-page-header__meta-label">${escapeHtml(label)}</span>
-      <span class="e-permits-page-header__meta-value">${valueHtml}</span>
-    </div>
-  `).join("");
+  const renderPageHeaderMeta = (items) => window.GEAPPageHeader.meta(items);
 
   /* When the meta row wraps, an item that starts a new line gets
      .is-row-start, which drops its separator — so no line ever ends or begins
      with one. Re-measured whenever a meta row resizes or is re-rendered. */
-  const syncPageHeaderMetaRows = (meta) => {
-    let previousTop = null;
-
-    meta.querySelectorAll(":scope > .e-permits-page-header__meta-item").forEach((item) => {
-      const top = item.offsetTop;
-      item.classList.toggle("is-row-start", previousTop === null || top > previousTop + 1);
-      previousTop = top;
-    });
-  };
+  const syncPageHeaderMetaRows = (meta) => window.GEAPPageHeader.syncMetaRows(meta);
 
   const pageHeaderMetaObserver = "ResizeObserver" in window
     ? new ResizeObserver((entries) => entries.forEach((entry) => syncPageHeaderMetaRows(entry.target)))
@@ -2997,17 +2975,15 @@ document.addEventListener("DOMContentLoaded", () => {
       ? (rejected ? "Decizia de respingere a fost comunicată solicitantului." : `Actul a fost eliberat${row.modLivrare ? ` (${row.modLivrare})` : ""}.`)
       : [daysIn ? `de ${plural(daysIn, "zi", "zile")}` : "de azi", suspended ? "suspendat" : "", payDue ? `plată până la ${formatLongDate(payDue)}` : row.termenExaminare && current <= 3 ? `termen ${formatLongDate(row.termenExaminare)}` : ""].filter(Boolean).join(" · ");
     const nextText = current >= 6 ? "" : TRAJECTORY_NEXT[["depus", "asteaptaPlata", "semnat"].includes(row.status) ? row.status : stepNow.key] || "";
-    const summary = `
-      <div class="e-permits-callout-wrap">
-        <div class="e-permits-callout e-permits-callout--info" role="status">
-          <span class="e-permits-callout__icon" aria-hidden="true"><svg class="icon" width="24" height="24"><use href="assets/icons/sprite.svg#icon-${current >= 6 ? (rejected ? "circle-error-filled" : "circle-checkmark-filled") : suspended ? "pause" : "time-filled"}"></use></svg></span>
-          <div class="e-permits-callout__content">
-            <p class="e-permits-callout__title">${escapeHtml(nowTitle)}${overdue ? renderTag("Termen depășit", "danger") : ""}</p>
-            ${nowMeta ? `<p class="e-permits-callout__meta">${escapeHtml(nowMeta)}</p>` : ""}
-            ${nextText ? `<p class="e-permits-callout__text"><strong>Urmează:</strong> ${escapeHtml(nextText)}</p>` : ""}
-          </div>
-        </div>
-      </div>`;
+    /* the integrated callout = GEAPTrajectory's `callout` option — the same element as the EVO Cabinet request
+       (cabinet-header-v1, 2026-10-21) */
+    const callout = {
+      tone: "info",
+      icon: current >= 6 ? (rejected ? "circle-error-filled" : "circle-checkmark-filled") : suspended ? "pause" : "time-filled",
+      titleHtml: `${escapeHtml(nowTitle)}${overdue ? renderTag("Termen depășit", "danger") : ""}`,
+      metaHtml: nowMeta ? escapeHtml(nowMeta) : "",
+      textHtml: nextText ? `<strong>Urmează:</strong> ${escapeHtml(nextText)}` : ""
+    };
     return `
       <section class="e-permits-dosar-profil__section e-permits-trajectory-section">
         <h2 class="e-permits-dosar-profil__section-title">Traiectoria dosarului</h2>
@@ -3016,9 +2992,9 @@ document.addEventListener("DOMContentLoaded", () => {
             const state = stateOf(i);
             const failed = state === "done" && step.key === "final" && rejected;
             return { label: step.label, state: failed ? "rejected" : state, sr: failed ? "finalizat" : undefined, meta: state === "todo" ? "" : [short(dates[i]), step.who] };
-          })
+          }),
+          callout
         }) || ""}
-        ${summary}
       </section>`;
   };
 

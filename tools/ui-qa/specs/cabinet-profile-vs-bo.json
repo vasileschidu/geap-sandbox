@@ -1,5 +1,5 @@
 {
- "about": "EVO Cabinet request profile (sm-05 · Finalizat) vs the BO originals — svc-01 (header meta, passport card / rows) and dos-01 (sections, card). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b sm-05 --spec tools/ui-qa/specs/cabinet-profile-vs-bo.json. 2026-10-17 alignment with RAP.",
+ "about": "EVO Cabinet request profile (sm-05 · Finalizat) vs the BO originals — svc-01 (header meta, passport card / rows) and dos-01 (sections, card). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a svc-01 --b sm-05 --spec tools/ui-qa/specs/cabinet-profile-vs-bo.json. 2026-10-17 alignment with RAP. cabinet-header-v1 (2026-10-21): the Cabinet act / request header IS the BO page header (js/page-header.js) — pairs header body / top / heading / breadcrumb / aside / actions / action button added; the act profile has its own run (--b pp-01d).",
  "tokens": [
   "--color-",
   "--font-",
@@ -264,6 +264,66 @@
    "ignore": [
     "rect.x"
    ]
+  },
+  {
+   "name": "header body",
+   "a": ".e-permits-page-header__body",
+   "b": ".e-permits-page-header__body",
+   "ignore": [
+    "rect.width",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "header top",
+   "a": ".e-permits-page-header__top",
+   "b": ".e-permits-page-header__top",
+   "ignore": [
+    "rect.width",
+    "rect.height",
+    "align-items"
+   ]
+  },
+  {
+   "name": "header heading",
+   "a": ".e-permits-page-header__heading",
+   "b": ".e-permits-page-header__heading",
+   "ignore": [
+    "rect.width",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "header aside",
+   "a": ".e-permits-page-header__aside",
+   "b": ".e-permits-page-header__aside",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right",
+    "rect.height"
+   ]
+  },
+  {
+   "name": "header actions",
+   "a": ".e-permits-page-header__actions",
+   "b": ".e-permits-page-header__actions",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "header action (neutral)",
+   "a": ".e-permits-page-header__actions .btn.btn-neutral.btn-sm",
+   "b": ".e-permits-page-header__actions .btn.btn-neutral.btn-sm",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right"
+   ],
+   "nthA": 1
   }
  ],
  "expected": [
@@ -326,6 +386,78 @@
    "name": "meta item",
    "prop": "rect.y",
    "why": "Cabinet: the GEAP request number + copy icon (≈170) does not fit a half column at 375, so the number item takes the whole first meta row (svc-01's 2-column first row is 12 lower than its grid top; here the second row starts lower)"
+  },
+  {
+   "viewport": 1440,
+   "name": "section",
+   "prop": "rect.width",
+   "why": "full container (act-profile-v1, user 2026-10-21: „the profile of Solicitări and Actele mele: full container”): the Cabinet profiles take the list width 1200, the BO dossier its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "card",
+   "prop": "rect.width",
+   "why": "full container (act-profile-v1, user 2026-10-21: „the profile of Solicitări and Actele mele: full container”): the Cabinet profiles take the list width 1200, the BO dossier its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "card (passport)",
+   "prop": "rect.width",
+   "why": "full container (act-profile-v1, user 2026-10-21: „the profile of Solicitări and Actele mele: full container”): the Cabinet profiles take the list width 1200, the BO dossier its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "row",
+   "prop": "rect.width",
+   "why": "full container (act-profile-v1, user 2026-10-21: „the profile of Solicitări and Actele mele: full container”): the Cabinet profiles take the list width 1200, the BO dossier its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "row (last)",
+   "prop": "rect.width",
+   "why": "full container (act-profile-v1, user 2026-10-21: „the profile of Solicitări and Actele mele: full container”): the Cabinet profiles take the list width 1200, the BO dossier its 1024 column"
+  },
+  {
+   "viewport": 1440,
+   "name": "header top",
+   "prop": "align-items",
+   "why": "cabinet-header-v1: the Cabinet H1 wraps (never cut on its own page), so the actions are top-aligned on the first title line; the BO title is one line + tooltip (centre = top)"
+  },
+  {
+   "viewport": 1440,
+   "name": "header action (neutral)",
+   "prop": "flex-shrink",
+   "why": "cabinet-header-v1: the act's priority+ row never squeezes a button (flex: none) — what does not fit goes into „⋯” (fitActActions)"
+  },
+  {
+   "viewport": 1440,
+   "name": "header action (neutral)",
+   "prop": "display",
+   "why": "the Cabinet page's base .btn is flex (block-level in a flex row = the same box); the BO shell's is inline-flex"
+  },
+  {
+   "viewport": 1440,
+   "name": "header action (neutral)",
+   "prop": "min-height",
+   "why": "the Cabinet page's base .btn min-height (auto) vs the BO shell reset (0); both buttons render 32 (btn-sm)"
+  },
+  {
+   "viewport": 375,
+   "name": "header action (neutral)",
+   "prop": "flex-shrink",
+   "why": "cabinet-header-v1: the act's priority+ row never squeezes a button (flex: none) — what does not fit goes into „⋯” (fitActActions)"
+  },
+  {
+   "viewport": 375,
+   "name": "header action (neutral)",
+   "prop": "display",
+   "why": "the Cabinet page's base .btn is flex (block-level in a flex row = the same box); the BO shell's is inline-flex"
+  },
+  {
+   "viewport": 375,
+   "name": "header action (neutral)",
+   "prop": "min-height",
+   "why": "the Cabinet page's base .btn min-height (auto) vs the BO shell reset (0); both buttons render 32 (btn-sm)"
   }
  ]
 }

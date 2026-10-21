@@ -1322,7 +1322,7 @@
     "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "pp-01p": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
     /* the profile's visible menu trigger: „Postprocese ⌄” on desktop, the overflow „⋯” on phones (act-profile-v1) */
-    "pp-01q": ppCab(async (h) => { await cabFind(h, "act-licenta-susp"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.wait(150); await h.click("[data-cab-detail] .cab-act-header__actions > :not([hidden]) > [data-cab-menu-trigger]"); }),
+    "pp-01q": ppCab(async (h) => { await cabFind(h, "act-licenta-susp"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.wait(150); await h.click("[data-cab-detail] .e-permits-page-header__actions > :not([hidden]) > [data-cab-menu-trigger]"); }),
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
@@ -1353,6 +1353,8 @@
        alcohol licence: H1 = the type, subtitle = the place) · 04 the list searched by the place — 3 act types, one place */
     "pp-03e": { page: "cabinet-evo/index.html", params: { act: "act-transport" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03f": { page: "cabinet-evo/index.html", params: { act: "act-izvoras-alcool" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    /* cabinet-header-v1: the 144-character act type (service 10) in the BO header with its three actions */
+    "pp-03g": { page: "cabinet-evo/index.html", params: { act: "act-depozit-10" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-04": ppCab(async (h) => { await h.fill("[data-cab-search]", "Izvoraș", { leave: false }); }),
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
@@ -2184,7 +2186,7 @@
     /* a click on the DRAFT row opens its details (never the FO form — user 2026-10-20); „Continuă schița” stays in ⋮
        and on the details page */
     "sm-03i": sm(async (h) => { await smFind(h, "d-spicul"); await h.click('[data-sm-card="d-spicul"] .e-permits-fo-lib-item__title'); await h.wait(300); }),
-    "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); }),
+    "sm-03a": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="delete"]'); }),
     "sm-03b": sm(async (h) => { await h.click('[data-sm-card="d-spicul"] [data-cab-menu-trigger]'); await actMenuPick('[data-sm-card="d-spicul"] [data-sm-action="delete"]')(h); await h.click("[data-sm-confirm-ok]"); }),
     "sm-03c": smDosar("d-izvoras-reperf"),
     /* status-matrix gaps (2026-10-20, tools/persona-test/specs/cabinet-requests/STATUS-MATRIX.md):
@@ -2193,8 +2195,8 @@
        message + „Reîncercați” in the dialog · 03g a draft with its payment note „În așteptare” (US-17, Taxe) · 03h a
        signed + paid draft waiting for the automatic submission (US-18 AC-09) */
     "sm-03d": sm(null, {}, "#dosar/d-cuptor"),
-    "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
-    "sm-03f": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }, { eliminare: "eroare" }),
+    "sm-03e": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="continue"]'); }, { redirectionare: "eroare" }),
+    "sm-03f": smDosar("d-spicul", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="delete"]'); await h.click("[data-sm-confirm-ok]"); }, { eliminare: "eroare" }),
     "sm-03g": smDosar("d-aroma", async (h) => { await h.click('[data-sm-tab="taxe"]'); }),
     "sm-03h": smDosar("d-gustul"),
     "sm-04": smDosar("d-fresh"),
@@ -2208,7 +2210,7 @@
     "sm-04g": smDosar("d-sud", null, { nota: "expirata" }),
     "sm-04g1": sm(async (h) => { await h.scroll('[data-sm-card="d-sud"]'); }, { nota: "expirata" }),
     /* US-24 AC-04: the redirect to the suplinire form fails (demo ?redirectionare=eroare) → error + „Reîncercați” */
-    "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
+    "sm-04h": smDosar("d-nistru", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     "sm-04h1": sm(async (h) => { await h.scroll('[data-sm-card="d-nistru"]'); await h.click('[data-sm-card="d-nistru"] .e-permits-fo-intent-act__pending [data-sm-action="supplement"]'); }, { redirectionare: "eroare" }),
     /* 04i the suplinire term passed → back „În derulare” (US-24 AC-03) · 04j suplinire sent → examination resumed
        (US-24 AC-20) · 04k a Prelungire in examination · 04l paper delivery by MDelivery (US-161 AC-16, Livrare) */
@@ -2221,7 +2223,7 @@
     "sm-05v": smDosar("d-transport"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
-    "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
+    "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-cab-profile-header] [data-sm-action="download"]'); }, { descarcare: "eroare" }),
     /* 2026-10-14 · Documente însoțitoare = the shared document cards: the card → document modal (its footer has
        „Descarcă”; no ⋮ since 2026-10-20, no „Detalii” since no-lone-detalii-v1 — sm-05g = the card click, sm-05f /
        sm-05h = the keyboard: the focused card + Enter / Space) */
@@ -2245,6 +2247,9 @@
     /* outcome-tag-v1: a finalized request approved tacitly (US-157) = ONE blue „Aprobat tacit” tag (demo ?tacit-dosar=) */
     "sm-05t": sm(async (h) => { await smFind(h, "d-bistro"); }, { "tacit-dosar": "d-bistro" }),
     "sm-05u": smDosar("d-bistro", null, { "tacit-dosar": "d-bistro" }),
+    /* cabinet-header-v1: a VERY long service name (221 characters) in the BO header and in the list row */
+    "sm-05w": smDosar("d-izvoras", null, { "titlu-lung": "d-izvoras" }),
+    "sm-01r": sm(async (h) => { await smFind(h, "d-izvoras"); }, { "titlu-lung": "d-izvoras" }),
     "sm-05p": smDosar("d-izvoras-dup", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05q": smDosar("d-piata-susp", async (h) => { await h.click('[data-sm-tab="act"]'); }),
     "sm-05r": smDosar("d-dulce-reluare", async (h) => { await h.click('[data-sm-tab="act"]'); }),
