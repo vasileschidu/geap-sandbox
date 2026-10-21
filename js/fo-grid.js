@@ -294,9 +294,9 @@
   }
   function skeletonRowsHtml(def) {
     return [1, 2].map(() => `
-      <tr class="table__row e-permits-fo-grid__row e-permits-fo-grid__skeleton" role="row" aria-hidden="true">
-        <td class="table__body-cell e-permits-fo-grid__index" role="cell"><span class="e-permits-fo-skeleton e-permits-fo-skeleton--label"></span></td>
-        ${def.columns.map((col) => `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)}><span class="e-permits-fo-skeleton e-permits-fo-skeleton--input"></span></td>`).join("")}
+      <tr class="table__row e-permits-fo-grid__row is-loading" role="row" aria-hidden="true">
+        <td class="table__body-cell e-permits-fo-grid__index" role="cell"><span class="skeleton skeleton--text"></span></td>
+        ${def.columns.map((col) => `<td class="table__body-cell e-permits-fo-grid__cell" role="cell"${span(col)}><span class="skeleton skeleton--input"></span></td>`).join("")}
         <td class="table__body-cell e-permits-fo-grid__actions" role="cell"></td>
       </tr>`).join("");
   }
@@ -1135,7 +1135,7 @@
       if (event.target.closest("[data-fo-grid-retry]")) {
         root.querySelector(":scope > [data-fo-grid-source]")?.remove();
         root.dataset.source = "loading";
-        list.innerHTML = `<div class="e-permits-fo-activity-card" aria-hidden="true"><span class="e-permits-fo-skeleton e-permits-fo-skeleton--label"></span><span class="e-permits-fo-skeleton e-permits-fo-skeleton--input"></span></div>`;
+        list.innerHTML = `<div class="e-permits-fo-activity-card" aria-hidden="true"><span class="skeleton skeleton--text"></span><span class="skeleton skeleton--input"></span></div>`;
         live(root, "Se încarcă lista…");
         window.setTimeout(() => { root.removeAttribute("data-source"); addButton?.removeAttribute("aria-disabled"); list.innerHTML = ""; addItem({ silent: true }); live(root, "Lista s-a încărcat."); }, 700);
         return;

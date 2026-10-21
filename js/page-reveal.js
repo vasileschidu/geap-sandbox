@@ -134,37 +134,37 @@
   };
 
   const authSkeletonMarkup = () => `
-    <span class="page-auth-skeleton__lock page-skeleton-shape"></span>
+    <span class="page-auth-skeleton__lock skeleton skeleton--block"></span>
     <span class="page-auth-skeleton__title">
-      <span class="page-skeleton-shape"></span>
-      <span class="page-skeleton-shape"></span>
+      <span class="skeleton skeleton--text"></span>
+      <span class="skeleton skeleton--text"></span>
     </span>
     <span class="page-auth-skeleton__availability">
-      <span class="page-skeleton-shape"></span>
+      <span class="skeleton skeleton--text"></span>
       <span class="page-auth-skeleton__tags">
-        <span class="page-skeleton-shape"></span>
-        <span class="page-skeleton-shape"></span>
+        <span class="skeleton skeleton--text"></span>
+        <span class="skeleton skeleton--text"></span>
       </span>
     </span>
     <span class="page-auth-skeleton__separator"></span>
-    <span class="page-auth-skeleton__description page-skeleton-shape"></span>
-    <span class="page-auth-skeleton__button page-skeleton-shape"></span>
+    <span class="page-auth-skeleton__description skeleton skeleton--text"></span>
+    <span class="page-auth-skeleton__button skeleton skeleton--block"></span>
   `;
 
   const choiceSkeletonMarkup = () => `
     <span class="page-choice-skeleton__copy">
-      <span class="page-skeleton-shape page-choice-skeleton__title"></span>
-      <span class="page-skeleton-shape page-choice-skeleton__subtitle"></span>
+      <span class="skeleton skeleton--text page-choice-skeleton__title"></span>
+      <span class="skeleton skeleton--text page-choice-skeleton__subtitle"></span>
     </span>
     <span class="page-choice-skeleton__cluster">
-      <span class="page-choice-skeleton__row page-skeleton-shape"></span>
-      <span class="page-choice-skeleton__row page-skeleton-shape"></span>
+      <span class="page-choice-skeleton__row skeleton skeleton--block"></span>
+      <span class="page-choice-skeleton__row skeleton skeleton--block"></span>
     </span>
     <span class="page-choice-skeleton__group">
-      <span class="page-skeleton-shape page-choice-skeleton__label"></span>
-      <span class="page-choice-skeleton__row page-skeleton-shape"></span>
-      <span class="page-choice-skeleton__row page-skeleton-shape"></span>
-      <span class="page-choice-skeleton__row page-skeleton-shape"></span>
+      <span class="skeleton skeleton--text page-choice-skeleton__label"></span>
+      <span class="page-choice-skeleton__row skeleton skeleton--block"></span>
+      <span class="page-choice-skeleton__row skeleton skeleton--block"></span>
+      <span class="page-choice-skeleton__row skeleton skeleton--block"></span>
     </span>
   `;
 
@@ -263,13 +263,13 @@
     const sections = Array.from({ length: sectionCount }, (_, sectionIndex) => {
       const fields = Array.from({ length: fieldsPerSection }, (_, fieldIndex) => `
         <span class="page-step-skeleton__field">
-          <span class="page-step-skeleton__line page-step-skeleton__line--label" style="width:${38 + ((sectionIndex + fieldIndex) % 3) * 8}%"></span>
-          <span class="page-step-skeleton__line page-step-skeleton__line--input"></span>
+          <span class="skeleton skeleton--text page-step-skeleton__line--label" style="width:${38 + ((sectionIndex + fieldIndex) % 3) * 8}%"></span>
+          <span class="skeleton skeleton--input"></span>
         </span>
       `).join("");
       return `
         <span class="page-step-skeleton__section">
-          <span class="page-step-skeleton__line page-step-skeleton__line--section" style="width:${30 + (sectionIndex % 3) * 6}%"></span>
+          <span class="skeleton skeleton--text page-step-skeleton__line--section" style="width:${30 + (sectionIndex % 3) * 6}%"></span>
           <span class="page-step-skeleton__grid">${fields}</span>
         </span>
       `;
@@ -277,8 +277,8 @@
 
     return `
       <span class="page-step-skeleton__heading">
-        <span class="page-step-skeleton__line page-step-skeleton__line--eyebrow"></span>
-        <span class="page-step-skeleton__line page-step-skeleton__line--title"></span>
+        <span class="skeleton skeleton--text page-step-skeleton__line--eyebrow"></span>
+        <span class="skeleton skeleton--text page-step-skeleton__line--title"></span>
       </span>
       ${sections}
     `;

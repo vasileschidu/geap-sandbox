@@ -221,6 +221,7 @@ but this doc previously described it wrongly, see the entry.
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
+| **Skeleton — ONE loading placeholder** (skeleton-v1; FO lookups, registry / SRRE fills, grid source, subject switch, page reveal auth / choice / step, BO sync summary) | `span.skeleton` + `--text` (1lh, r4, short line) / `--input` (40, phones 48, r8) / `--block` (r12, height from the slot) / `--circle` (24, round); `css/skeleton.css` loaded right after the library CSS; size = placement rules of the owner; containers `aria-hidden` + `aria-busy` region | section „Skeleton — ONE loading placeholder” | app |
 | **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
 | **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
@@ -878,6 +879,39 @@ use.
 from padding (`.modal--header` `24px 48px 0 32px`; `.modal--footer` `12px 20px 24px`),
 so a 48px footer button yields ~84px against the designed 88px.
 
+### Skeleton — ONE loading placeholder (skeleton-v1, 2026-10-21)
+
+The library has no skeleton; the product had three (FO `.e-permits-fo-skeleton(--input / --label / --notice-*)` on a
+`--color-background-base-secondary` base, page-reveal `.page-skeleton-shape` and `.page-step-skeleton__line` with their
+own shimmer keyframes, the grid's `__skeleton` row, the notice `--skeleton` modifier). Now ONE component
+(component audit § 3, user: „Do as you recommend”), `css/skeleton.css`:
+
+| Modifier | Shape | Size | Use |
+|---|---|---|---|
+| `.skeleton--text` | r4 | `1lh` of the slot (the text it stands for), width `min(132, 48 %)` by default | labels, titles (placement sets 38 / 40 / 24 high), meta lines, table index |
+| `.skeleton--input` | r8 | 40, **48 on phones (≤ 760)** = the field rule, full width | every field being filled (SRRE, registry lookup, subject switch, grid cells, step skeleton) |
+| `.skeleton--block` | r12 (placement may keep the slot's radius: 8 for buttons / lock) | height from the slot, full width | cards, option rows (72), buttons |
+| `.skeleton--circle` | round | 24 (icon size) | notice / avatar icons |
+
+**Look** — base `--color-background-base-tertiary`, shimmer to `--color-background-base-secondary-active` (1.15 s,
+`skeleton-shimmer`); `prefers-reduced-motion`: no shimmer, flat tertiary. **States** — only „loading”: the owner swaps
+the skeleton for the content (min 400 ms for lookups, `SRRE_SKELETON_MIN_MS`); there is no hover / focus (not
+interactive). **A11y** — skeletons are decorative: their container is `aria-hidden="true"`, the region that loads is
+`aria-busy="true"` and a live line says what is loading („Se caută adresa…”, „Se încarcă lista…”).
+**Placement, not new classes** — sizes live in the owner: `.page-auth-skeleton__title > span` (38), `.page-choice-
+skeleton__row` (72, r12), `.page-step-skeleton__line--title / --section / --label / --eyebrow`, `.e-permits-fo-notice.
+is-loading` (lines 360 / 168, gap 4), `.e-permits-fo-grid__row.is-loading .skeleton--text` (24). Loading containers use
+the state class `is-loading` (`.e-permits-fo-field.is-loading`, `.e-permits-fo-notice.is-loading`, grid row) — never a
+`--skeleton` modifier.
+
+**Do** — one skeleton per slot, same size as what arrives (no layout shift); keep the label when only the value loads
+(SRRE). **Don't** — no own gradient / shimmer (component-audit rule 10 `skeleton-private`, major), no skeleton for
+< 300 ms waits (show nothing), no spinner AND skeleton for the same slot (the search's inline spinner is the request
+indicator, the skeletons are its targets).
+Changes against the old look (measured, 16 states × 2 widths, scratch sk/sk.mjs): sizes identical; text-line radius
+6 → 4; FO skeleton base secondary → tertiary (one step darker); phone input skeletons in the step skeleton and the FO
+grid 40 → 48 (they now match the 48 phone fields).
+
 ### Drawer — ONE right-hand panel (drawer-v1, 2026-10-21)
 
 The library has no drawer; the product had ONE de-facto drawer (`.e-permits-user-create*`, 13 copies of the markup)
@@ -1457,7 +1491,7 @@ segments at ≤720px. Reduced motion → no slide.
   "Sincronizează" is a menu (RSSP / eAPL / RSSP și eAPL) and the modal shows a
   **Sursa sincronizării** segmented control. A new service is created only from RSSP;
   eAPL enriches (Date locale). While syncing: one progress line per source + a
-  `.e-permits-fo-skeleton` summary. Rules: `GEAP.servicePassport.syncFromEapl`.
+  `.skeleton` summary. Rules: `GEAP.servicePassport.syncFromEapl`.
 - **Tarife** (Feature «Gestionarea clasificatorului de tarife») = the **price list**: **global**
   tariffs in Administrare → Tarife (registry, `kind: "tariffs"`, toolbar „Adaugă tarif” +
   export); a **service's** tariffs (mostly from RSSP / eAPL) have no tab of their own any
@@ -3377,7 +3411,7 @@ small `padding: 2px 6px` exact; `neutral.is-subtle` `#f1f1f1`/`#121212` and
 | Copy value | removed 2026-10-20 → the shared `.copy-value` („Copy value — one component”); `copyValueHtml` returns it | `is-copied` (1500 ms) | `data-copy-value` |
 | Avatar menu | `e-permits-fo-avatar-menu__*` (~25 classes) | `is-open` `is-closing` `has-scroll` `is-scrolled` `is-selected` `is-expanded` | `data-fo-avatar-*` |
 | Notices | `e-permits-fo-infobox`, `e-permits-fo-mnotify-info`, `e-permits-fo-notice--skeleton` | | |
-| Skeletons | `e-permits-fo-skeleton` + `--input/--label/--notice-*` | | |
+| Skeletons | the ONE `.skeleton` (+ `--text / --input / --circle`), section „Skeleton — ONE loading placeholder” (was `e-permits-fo-skeleton`) | | |
 
 ### Long name in a header — expand on click (2026-10-19)
 
@@ -3556,10 +3590,10 @@ then read „sub câmpul în care a fost introdus codul”, not only „sub «Ca
 - **No AC-14 note** (removed on user request 2026-10-13 — the grey/green read-only fields + the
   success message already say it; **deviates from AC-14 wording, PO to confirm**).
 - **Skeleton while SRRE answers**: every part SRRE will fill and the user can see (Țară, Raion, Oraș, Sector when shown, Stradă, Cod poștal, Casă, Bloc, Apartament) gets
-  `.is-srre-loading` + an appended `span.e-permits-fo-skeleton.e-permits-fo-skeleton--input[data-fo-srre-skeleton]`;
+  `.is-srre-loading` + an appended `span.skeleton.skeleton--input[data-fo-srre-skeleton]` (the ONE skeleton, 2026-10-21);
   CSS hides the field's other children (label stays). Height = the input (40, 48 at ≤720) → no layout
   shift; grid `aria-busy`. Min 400 ms (`SRRE_SKELETON_MIN_MS`). Reduced motion = no shimmer, a static
-  `--color-background-base-secondary-active` bar (all FO skeletons). Scară, Etaj, Telefon, Email untouched.
+  `--color-background-base-tertiary` bar (all skeletons, css/skeleton.css). Scară, Etaj, Telefon, Email untouched.
 - **SRRE-filled parts = the FO Read Only field**, never a lock: `.e-permits-fo-input.is-filled.is-readonly`
   + green `icon-checkmark-small`. Selects (Țară, Raion, Oraș, Sector, Stradă) are hidden and a
   `[data-fo-srre-value]` read-only input box is inserted (Țară = 🇲🇩 „Republica Moldova”); text parts

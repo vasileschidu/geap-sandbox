@@ -13274,8 +13274,8 @@ document.addEventListener("DOMContentLoaded", () => {
     <div class="e-permits-dosar-profil__card e-permits-passport__sync-summary" aria-hidden="true">
       ${[132, 220, 180, 150, 96, 200].map((width) => `
         <div class="e-permits-dosar-profil__row">
-          <span class="e-permits-dosar-profil__row-label"><span class="e-permits-fo-skeleton e-permits-fo-skeleton--label"></span></span>
-          <span class="e-permits-dosar-profil__row-value"><span class="e-permits-fo-skeleton e-permits-fo-skeleton--label" style="width:${width}px"></span></span>
+          <span class="e-permits-dosar-profil__row-label"><span class="skeleton skeleton--text"></span></span>
+          <span class="e-permits-dosar-profil__row-value"><span class="skeleton skeleton--text" style="width:${width}px"></span></span>
         </div>
       `).join("")}
     </div>

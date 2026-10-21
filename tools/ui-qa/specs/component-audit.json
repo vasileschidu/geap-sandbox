@@ -259,6 +259,11 @@
     "candidates": "aside, [role=dialog], [class*='drawer']",
     "allow": [".modal-overlay", ".bottom-sheet", ".e-permits-ntpl-sheet", ".e-permits-gh-sheet", ".e-permits-builder", ".form-builder-modal-overlay", ".e-permits-filter-sheet", ".e-permits-fo-doc-modal-overlay", ".e-permits-shell__sidebar", ".drawer", ".drawer-overlay", ".msup", ".e-permits-fo-testcfg"]
   },
+  "_skeleton": "Skeleton (rule 10, skeleton-v1, 2026-10-21): ONE loading placeholder = .skeleton + --text / --input / --block / --circle (css/skeleton.css; size from the slot, base tertiary + shimmer, none for reduced motion). skeleton-private (major): a visible element whose class names a skeleton / shimmer / placeholder shape and paints one (gradient background or a running animation) without .skeleton. Containers (page-step-skeleton, page-auth-skeleton…) paint nothing and pass.",
+  "skeleton": {
+    "canonical": ".skeleton",
+    "namePattern": "skeleton|shimmer|placeholder-shape"
+  },
   "_actionIcons": "Action icons (rule 6, 2026-10-21, user: „didn't we discuss that every Editează has an edit icon, and Elimină a trash icon?”). action-icon (major): a visible action — or an item of a closed menu whose trigger is visible — labelled „Editează…” without icon-edit, or „Elimină… / Șterge…” without icon-delete (another icon counts as missing). action-icon-colour (major): that icon in another colour than the label. Exceptions: confirmation-dialog footers (library modal / FO confirm dialog have no footer icons), clear / dismiss controls that delete nothing (search ×, chip ×, file-item × = detach an attachment, the filter popover „Șterge” = clear the selection, „Șterge filtrele / căutarea / formatarea”).",
   "actionIcons": {
     "controls": "button, a[href], [role=button], [role=menuitem]",

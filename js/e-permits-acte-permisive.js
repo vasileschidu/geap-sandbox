@@ -1699,7 +1699,7 @@
         if (!on) return;
         skeletonFields().forEach((fieldEl) => {
           fieldEl.classList.add("is-srre-loading");
-          fieldEl.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-skeleton e-permits-fo-skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
+          fieldEl.insertAdjacentHTML("beforeend", '<span class="skeleton skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
         });
       }
 
@@ -3631,20 +3631,20 @@
     function subjectDataSkeletonFieldHtml(span = 4) {
       const safeSpan = [4, 6, 8, 12].includes(Number(span)) ? Number(span) : 4;
       return `
-        <div class="e-permits-fo-field e-permits-fo-field--span-${safeSpan} e-permits-fo-field--skeleton" aria-hidden="true">
-          <span class="e-permits-fo-skeleton e-permits-fo-skeleton--label"></span>
-          <span class="e-permits-fo-skeleton e-permits-fo-skeleton--input"></span>
+        <div class="e-permits-fo-field e-permits-fo-field--span-${safeSpan} is-loading" aria-hidden="true">
+          <span class="skeleton skeleton--text"></span>
+          <span class="skeleton skeleton--input"></span>
         </div>
       `;
     }
 
     function mnotifySkeletonHtml() {
       return `
-        <div class="e-permits-fo-notice e-permits-fo-notice--skeleton" aria-hidden="true">
-          <span class="e-permits-fo-skeleton e-permits-fo-skeleton--notice-icon"></span>
+        <div class="e-permits-fo-notice is-loading" aria-hidden="true">
+          <span class="skeleton skeleton--circle"></span>
           <span class="e-permits-fo-notice__content">
-            <span class="e-permits-fo-skeleton e-permits-fo-skeleton--notice-line"></span>
-            <span class="e-permits-fo-skeleton e-permits-fo-skeleton--notice-link"></span>
+            <span class="skeleton skeleton--text"></span>
+            <span class="skeleton skeleton--text"></span>
           </span>
         </div>
       `;
@@ -4060,7 +4060,7 @@
           const field = target?.closest(".e-permits-fo-field");
           field?.querySelector("[data-fo-srre-skeleton]")?.remove();
           field?.classList.toggle("is-srre-loading", on);
-          if (on) field?.insertAdjacentHTML("beforeend", '<span class="e-permits-fo-skeleton e-permits-fo-skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
+          if (on) field?.insertAdjacentHTML("beforeend", '<span class="skeleton skeleton--input" aria-hidden="true" data-fo-srre-skeleton></span>');
         });
         if (!hint) return;
         if (on) {

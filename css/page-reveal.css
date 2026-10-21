@@ -44,20 +44,6 @@
   opacity: 1;
 }
 
-.page-skeleton-shape {
-  animation: page-step-skeleton-shimmer 1.15s ease-in-out infinite;
-  background:
-    linear-gradient(
-      90deg,
-      var(--color-background-base-tertiary, #f1f1f1) 0%,
-      var(--color-background-base-secondary-active, #e5e5e5) 48%,
-      var(--color-background-base-tertiary, #f1f1f1) 100%
-    );
-  background-size: 220% 100%;
-  border-radius: var(--border-radius-6, 6px);
-  display: block;
-}
-
 .page-auth-skeleton {
   gap: var(--spacing-24, 24px);
 }
@@ -93,7 +79,7 @@
   gap: var(--spacing-8, 8px);
 }
 
-.page-auth-skeleton__availability > .page-skeleton-shape {
+.page-auth-skeleton__availability > .skeleton {
   height: 16px;
   width: 104px;
 }
@@ -228,20 +214,6 @@
   min-width: 0;
 }
 
-.page-step-skeleton__line {
-  animation: page-step-skeleton-shimmer 1.15s ease-in-out infinite;
-  background:
-    linear-gradient(
-      90deg,
-      var(--color-background-base-tertiary, #f1f1f1) 0%,
-      var(--color-background-base-secondary-active, #e5e5e5) 48%,
-      var(--color-background-base-tertiary, #f1f1f1) 100%
-    );
-  background-size: 220% 100%;
-  border-radius: var(--border-radius-6, 6px);
-  display: block;
-}
-
 .page-step-skeleton__line--eyebrow {
   height: 16px;
   width: 72px;
@@ -260,12 +232,6 @@
 .page-step-skeleton__line--label {
   height: 16px;
   width: min(128px, 46%);
-}
-
-.page-step-skeleton__line--input {
-  border-radius: var(--border-radius-8, 8px);
-  height: 40px;
-  width: 100%;
 }
 
 .e-permits-fo-stepper__item.is-step-activating .e-permits-fo-stepper__row {
@@ -301,15 +267,6 @@
   }
 }
 
-@keyframes page-step-skeleton-shimmer {
-  from {
-    background-position: 160% 0;
-  }
-
-  to {
-    background-position: -60% 0;
-  }
-}
 
 @keyframes page-stepper-active-in {
   0% {
@@ -361,8 +318,6 @@
 @media (prefers-reduced-motion: reduce) {
   [data-page-reveal-item],
   [data-choice-reveal-item],
-  .page-skeleton-shape,
-  .page-step-skeleton__line,
   .e-permits-fo-stepper__item.is-step-activating .e-permits-fo-stepper__row,
   .e-permits-fo-stepper__item.is-step-activating .e-permits-fo-stepper__number {
     animation: none;

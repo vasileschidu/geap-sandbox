@@ -21,6 +21,7 @@
 //   6. action icons — action-icon / action-icon-colour (spec.actionIcons).
 //   8. tooltips — tooltip-private / tooltip-title (spec.tooltip): ONE runtime, js/icon-tooltip.js (tooltip-one-v1).
 //   9. drawers — drawer-private (spec.drawer): ONE drawer, .drawer-overlay > aside.drawer (drawer-v1).
+//   10. skeletons — skeleton-private (spec.skeleton): ONE .skeleton + --text / --input / --block / --circle (skeleton-v1).
 //   7. converge (v2, minor) — a non-canonical implementation of a pattern family (spec.families: pager, stepper,
 //      close ×, notice, tag, switch, back, menu item, dialog shell, key-value list).
 //   + interactions (v2): per state, opens up to N visible menu / drawer / disclosure triggers (aria-haspopup,
@@ -546,6 +547,21 @@ const PAGE_LIB = (spec, documentedList) => {
         const panel = r.right >= vw - 1 && r.top <= 1 && r.height >= vh * 0.9 && r.width < vw - 40;
         const named = el !== document.body && [...el.classList].some((c) => /drawer/i.test(c) && !/^(is|has)-/.test(c));
         if (panel || named) add("major", "drawer-private", el, `${[...el.classList].slice(0, 2).join(".") || el.tagName.toLowerCase()} ${Math.round(r.width)}×${Math.round(r.height)}`, `${DR.canonical} (components.md › Drawer)`);
+      }
+    }
+    /* 10. skeletons (skeleton-v1): ONE loading placeholder — .skeleton + --text / --input / --block / --circle
+       (css/skeleton.css). skeleton-private (major): a visible element whose class names a skeleton / shimmer /
+       placeholder shape and that PAINTS one (a gradient background or a running animation) without .skeleton */
+    const SK = spec.skeleton;
+    if (SK) {
+      const nameRe = new RegExp(SK.namePattern, "i");
+      for (const el of qsa("[class]")) {
+        if (el.matches(SK.canonical) || !ownClasses(el).some((c) => nameRe.test(c)) || ignored(el)) continue;
+        /* skeletons are aria-hidden by design: visible = painted, not „exposed” */
+        if (!el.getClientRects().length || getComputedStyle(el).visibility === "hidden" || el.closest("[hidden]")) continue;
+        const cs = getComputedStyle(el);
+        if (!/gradient/.test(cs.backgroundImage) && cs.animationName === "none") continue;
+        add("major", "skeleton-private", el, ownClasses(el).filter((c) => nameRe.test(c)).join("."), `${SK.canonical} + --text / --input / --block / --circle (components.md › Skeleton)`);
       }
     }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */

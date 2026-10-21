@@ -1,0 +1,77 @@
+/* =====================================================================================
+   Skeleton — ONE loading placeholder (skeleton-v1, 2026-10-21; components.md › „Skeleton”).
+   `.skeleton` + one shape modifier; the SIZE comes from the slot it stands in for (the field, the line, the card)
+   — placement rules in the owning component set width / height, never a new skeleton class.
+     --text    one text line: the slot's line box high (1lh), r4; a short line by default (min(132, 48 %))
+     --input   a form field: 40 high, r8, full width; phones (≤ 760) 48 — the field-size rule
+     --block   a card / row / button: full width, r12 (height from the slot)
+     --circle  an icon / avatar: 24 by default (size from the slot), round
+   Look: `--color-background-base-tertiary` with a soft shimmer to `…-secondary-active`; no shimmer and a flat
+   tertiary under prefers-reduced-motion. Skeletons are decorative: their container carries aria-hidden="true"
+   (and the region aria-busy / a live message says what is loading).
+   Loaded right after the library CSS on every page with skeletons, so a component's placement rules win.
+   ===================================================================================== */
+
+.skeleton {
+  animation: skeleton-shimmer 1.15s ease-in-out infinite;
+  background:
+    linear-gradient(
+      90deg,
+      var(--color-background-base-tertiary, #f1f1f1) 0%,
+      var(--color-background-base-secondary-active, #e5e5e5) 48%,
+      var(--color-background-base-tertiary, #f1f1f1) 100%
+    );
+  background-size: 220% 100%;
+  border-radius: var(--border-radius-6, 6px);
+  display: block;
+  flex: none;
+  overflow: hidden;
+  position: relative;
+}
+
+.skeleton--text {
+  border-radius: var(--border-radius-4, 4px);
+  height: 1lh;
+  max-width: 100%;
+  width: min(132px, 48%);
+}
+
+.skeleton--input {
+  border-radius: var(--border-radius-8, 8px);
+  height: var(--spacing-40, 40px);
+  width: 100%;
+}
+
+.skeleton--block {
+  border-radius: var(--border-radius-12, 12px);
+  width: 100%;
+}
+
+.skeleton--circle {
+  border-radius: var(--border-radius-full, 9999px);
+  height: var(--icon-size-default, 24px);
+  width: var(--icon-size-default, 24px);
+}
+
+@media (max-width: 760px) {
+  .skeleton--input {
+    height: var(--spacing-48, 48px);
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 160% 0;
+  }
+
+  to {
+    background-position: -60% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+    background: var(--color-background-base-tertiary, #f1f1f1);
+  }
+}

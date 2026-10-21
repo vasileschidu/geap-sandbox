@@ -1982,3 +1982,13 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   `.drawer__header > .modal-close`); the library `.banner__close` uses `transform: scale(.92)` on :active, so centring it
   with `translateY(-50%)` would jump on press → `top: calc(50% − 16)`. Hover-audit on the Process Designer needs
   `--scope body` (the overlay is appended to body: `main` = 0 interactive). Close findings 16 → 0.
+- 2026-10-21 · ONE skeleton (skeleton-v1; audit § 3). Three private skeleton systems (FO `.e-permits-fo-skeleton*`,
+  page-reveal `.page-skeleton-shape` + `.page-step-skeleton__line`, grid / notice modifiers) → `css/skeleton.css`
+  (`.skeleton` + `--text / --input / --block / --circle`) loaded right AFTER the library CSS, so every owner keeps its
+  SIZE as a placement rule that wins by order (title 38, option row 72…) and only the paint is shared. Capturing
+  transient loading states: `Page.addScriptToEvaluateOnNewDocument` that drops the `setTimeout` whose callback source
+  matches the reveal (`skeleton.classList.remove`) — per job, removed after the shot (scratch sk/sk.mjs); a global
+  block stalled every later FO demo. The subject-switch skeleton has no demo path → verified by injecting the
+  renderer's markup. component-audit rule 10 `skeleton-private`: skeletons are `aria-hidden` by design, so the
+  auditor's usual `vis()` (which skips aria-hidden) never saw them — measure „painted” (client rects + visibility),
+  then prove on a HEAD worktree (:8981: 21 findings on adr-03 / fb-61a / fo-g1c) vs the tree (0).

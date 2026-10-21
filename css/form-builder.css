@@ -351,7 +351,7 @@
   flex-direction: column;
 }
 
-.e-permits-fo-grid__skeleton .e-permits-fo-skeleton--label {
+.e-permits-fo-grid__row.is-loading .skeleton--text {
   display: block;
   width: var(--spacing-24, 24px);
 }
