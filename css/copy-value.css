@@ -1,77 +1,268 @@
-/* Copy value — ONE copy-to-clipboard component (2026-10-20, js/copy-value.js, components.md „Copy value —
-   one component”). The value is plain text in the context's own type; the copy action is the library
-   icon-only button Strict · Small (32 square, radius 6, 16 icon, tertiary-hover / -active, the library
-   focus ring from main.css). The button is restated here (same values as the back-office button block in
-   e-permits-acte-permisive.css) because RAP does not load that file — so the control is identical on every
-   page. Never in list views (tables, stacked rows): there the number is plain text. */
+/* Copy value — ONE copy-to-clipboard component (2026-10-20; copy-wrap-v1 2026-10-21, js/copy-value.js, components.md
+   „Copy value — one component”).
+
+   ONE button holds the value + the 16 copy icon; at rest it is just the text in the context's own type (no background,
+   no shift). Hover / focus-visible / pressed = ONE even grey wrap around value + icon (user 2026-10-21: „the hover
+   should be on the entire element, a nice even grey wrap, as we used in the first places”):
+     padding 4 8 (phones: the same + an invisible hit area → ≥ 32 tap target), radius 6,
+     hover tertiary-hover, pressed tertiary-active, the canonical focus ring (2 white + 5 focus).
+   The SAME negative margins as the padding keep the text where plain text would be (aligned with the label and the
+   other rows) and the row height unchanged. Text 4 ↔ icon (a 4 gap; the icon optically adds its own 2 of air).
+   Compact (`--compact`, tables / stacked rows / act + request meta): no icon, the same wrap, tooltip and „Copiat”.
+   Link (`--link`): the value is a link → the button wraps the icon only, same tokens. */
 
 .copy-value {
   align-items: flex-start;
   display: inline-flex;
-  gap: 0;
   max-width: 100%;
   min-width: 0;
   vertical-align: top;
 }
 
-/* the value: selectable text in the surrounding type. It never shrinks below its own width (a number is not
-   broken while there is room); a value longer than its column (IBAN, hash on a phone) breaks instead of
-   pushing the button out */
-.copy-value__text {
-  overflow-wrap: break-word;
-}
-
-/* the 32 square sits centred on the first text line without making the line taller:
-   margin = (line height − 32) / 2 on both sides (−6 on a 20 line) */
-.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button {
+.copy-value__button {
+  --copy-pad-block: var(--spacing-4, 4px);
+  --copy-pad-inline: var(--spacing-8, 8px);
+  align-items: flex-start;
+  appearance: none;
   background: transparent;
-  border-color: transparent;
+  border: 0;
   border-radius: var(--border-radius-6, 6px);
-  color: var(--color-text-base-default, #121212);
-  flex: 0 0 var(--spacing-32, 32px);
-  gap: 0;
-  height: var(--spacing-32, 32px);
-  justify-content: center;
-  line-height: inherit;
-  margin-block: calc((1lh - var(--spacing-32, 32px)) / 2);
-  padding: 0;
-  width: var(--spacing-32, 32px);
+  box-sizing: content-box;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  gap: var(--spacing-4, 4px);
+  letter-spacing: inherit;
+  margin: calc(var(--copy-pad-block) * -1) calc(var(--copy-pad-inline) * -1);
+  max-width: 100%;
+  min-width: 0;
+  padding: var(--copy-pad-block) var(--copy-pad-inline);
+  /* above the following siblings: the wrap reaches 8 into the next meta part / cell padding, and that area must stay
+     the copy target (hover + click), never the row under it */
+  position: relative;
+  text-align: start;
+  text-transform: inherit;
+  transition: background-color var(--motion-dropdown-duration, 100ms) var(--motion-easing-standard, ease);
+  -webkit-tap-highlight-color: transparent;
+  z-index: 1;
 }
 
-.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button:hover:not(:disabled) {
-  background: var(--color-background-base-tertiary-hover, #e0e0e0);
-  border-color: transparent;
+/* the value: the surrounding type; selectable (the clipboard fallback selects it). A value longer than its column
+   (IBAN, hash on a phone) breaks instead of pushing the icon out; a number is never broken while there is room */
+.copy-value__text {
+  min-width: 0;
+  overflow-wrap: break-word;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
-.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button:active:not(:disabled) {
-  background: var(--color-background-base-tertiary-active, #d9d9d9);
-  border-color: transparent;
+/* a host's own `… span` / `… button` text rules (card labels, avatar-menu identity, summary rows) never reach the
+   value: it always shows the host's value type set on (or around) the wrapper */
+.copy-value .copy-value__text {
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
 }
 
-.copy-value > .btn.btn-sm.btn-icon-only.copy-value__button .icon {
+.copy-value--compact {
+  white-space: nowrap;
+}
+
+/* compact (lists): one line; a column narrower than the number cuts it with an ellipsis and the hint then names the
+   whole value („Copiază <value>”, the rule „truncated text always has a tooltip”) */
+.copy-value--compact .copy-value__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the 16 icon centred on the FIRST text line without making it taller: margin = (line height − 16) / 2 */
+.copy-value__icon {
   color: currentColor;
   flex: 0 0 var(--spacing-16, 16px);
   height: var(--spacing-16, 16px);
+  margin-block: calc((1lh - var(--spacing-16, 16px)) / 2);
   width: var(--spacing-16, 16px);
 }
 
-/* „✓ Copiat” inside the library plain tooltip (the check = the library cell-copy success green) */
-.copy-value__copied {
-  align-items: center;
-  display: inline-flex;
+/* hover only where a pointer can hover (touch keeps no sticky grey after a tap); the value takes the default text
+   colour while it is the target (a tertiary list number reads as a control) */
+@media (hover: hover) {
+  .copy-value__button:hover {
+    background: var(--color-background-base-tertiary-hover, #e0e0e0);
+    color: var(--color-text-base-default, #121212);
+  }
+}
+
+.copy-value__button:active {
+  background: var(--color-background-base-tertiary-active, #d9d9d9);
+  color: var(--color-text-base-default, #121212);
+}
+
+.copy-value__button:focus {
+  outline: none;
+}
+
+.copy-value__button:focus-visible {
+  background: var(--color-background-base-tertiary-hover, #e0e0e0);
+  box-shadow: 0 0 0 2px var(--white, #ffffff), 0 0 0 5px var(--focus-ring, var(--blue-sky-500, #3379db));
+  color: var(--color-text-base-default, #121212);
+  outline: none;
+}
+
+/* phones: the SAME visible wrap (a taller one painted over the next text line) + an invisible hit area that makes the
+   tap target ≥ 32 on any line (20 line → 2 above / below, 16 line → 4) */
+@media (max-width: 760px) {
+  .copy-value__button::after {
+    --copy-hit: max(0px, calc((var(--spacing-32, 32px) - 1lh - var(--copy-pad-block) * 2) / 2));
+    bottom: calc(var(--copy-hit) * -1);
+    content: "";
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: calc(var(--copy-hit) * -1);
+  }
+}
+
+/* link variant: the value is a link (classifier „Link la sursă”) — the button wraps the icon only; a square wrap
+   (padding 4 all round = 24) 4 after the link, centred on its first line */
+.copy-value--link {
   gap: var(--spacing-4, 4px);
 }
 
-.copy-value__copied .icon {
-  color: var(--green-400, #68c199);
-  flex: 0 0 var(--spacing-16, 16px);
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
+.copy-value--link > .copy-value__button--icon {
+  --copy-pad-inline: var(--spacing-4, 4px);
+  flex: none;
+  margin-inline: 0;
 }
 
-/* the shared tooltip never takes the pointer; above dialogs */
+.copy-value--link > .copy-value__button--icon > .copy-value__icon {
+  margin-block: calc((1lh - var(--spacing-16, 16px)) / 2);
+}
+
+/* ---- contexts: let the wrap breathe where a parent clips its box ---------------------------------------------- */
+
+/* act / request row meta (js/act-row.js): the meta clips its left 18 (the leading dot strip, `--fo-doc-meta-sep`) with
+   clip-path: inset(0 0 0 18). The wrap reaches 8 outside the number on every side → the clip opens by the wrap on
+   top / right / bottom and moves 8 left on the left; the first part's dot (8–10 inside its 18 padding) stays clipped */
+.e-permits-fo-doc-meta:has(.copy-value) {
+  clip-path: inset(calc(var(--spacing-8, 8px) * -1) calc(var(--spacing-8, 8px) * -1) calc(var(--spacing-8, 8px) * -1) calc(var(--fo-doc-meta-sep, 18px) - var(--spacing-8, 8px)));
+}
+
+/* keyboard focus: the 5 ring reaches 5 further left — the clip opens for it (its white band covers the dot) */
+.e-permits-fo-doc-meta:has(.copy-value__button:focus-visible) {
+  clip-path: inset(calc(var(--spacing-8, 8px) * -1) calc(var(--spacing-8, 8px) * -1) calc(var(--spacing-8, 8px) * -1) calc(var(--fo-doc-meta-sep, 18px) - var(--spacing-8, 8px) - var(--spacing-6, 6px)));
+}
+
+/* a label + 4 + copy value on one line (RAP beneficiary „IDNO …”, Cabinet act header „Nr. …”): 4 more, so the 8 wrap ends
+   at the label instead of covering it */
+:is(.rap-profile__beneficiary-meta, .cab-act-header__fact) > * + .copy-value {
+  margin-inline-start: var(--spacing-4, 4px);
+}
+
+/* ---- the tooltip (one shared node: the library plain tooltip, 12/16, padding 4 8, radius 4) -------------------- */
+
+/* centred on the element: JS writes the centre x, the tooltip pulls itself back by half its width — so it keeps its
+   centre while its width animates between „Copiază” and „✓ Copiat” */
 .copy-value__tooltip {
   pointer-events: none;
+  translate: -50% 0;
+}
+
+/* placed below (no room above): enter from above instead of from below */
+.copy-value__tooltip.is-below:not(.show) {
+  transform: translateY(calc(var(--spacing-4, 4px) * -1));
+}
+
+/* unsafe centre: while the width animates the active label stays centred and is revealed from both sides */
+.copy-value__tip {
+  display: grid;
+  justify-items: unsafe center;
+  overflow: hidden;
+  position: relative;
+  white-space: nowrap;
+}
+
+/* the box width grows / shrinks to the new label (JS sets the measured from → to widths), ≈ 225 ms decelerate */
+.copy-value__tip.is-resizing {
+  transition: width calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+}
+
+/* the labels share the cell; only the active one is in flow (it sets the width), the others sit centred on it */
+/* user 2026-10-21: „Copiază” slides a little to the LEFT while fading out, „Copiat” (check + text) fades in in place */
+.copy-value__tip-label {
+  left: 50%;
+  opacity: 0;
+  position: absolute;
+  top: var(--spacing-4, 4px);
+  transition:
+    opacity calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)),
+    transform calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  translate: -50% 0;
+  visibility: hidden;
+}
+
+.copy-value__tip-label.is-active {
+  left: auto;
+  opacity: 1;
+  position: relative;
+  top: auto;
+  transform: none;
+  translate: none;
+  visibility: visible;
+}
+
+/* staggered so the two words never sit on top of each other: „Copiază” is gone in the first half (it keeps sliding),
+   „✓ Copiat” starts fading in after 60 ms, while the box finishes growing */
+.copy-value__tip-label.is-leaving {
+  opacity: 0;
+  transform: translateX(calc(var(--spacing-8, 8px) * -1));
+  transition:
+    opacity calc(var(--motion-duration-md, 0.3s) * 0.375) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)),
+    transform calc(var(--motion-duration-md, 0.3s) * 0.75) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1));
+  visibility: visible;
+}
+
+.copy-value__copied.is-active {
+  transition: opacity calc(var(--motion-duration-md, 0.3s) * 0.5) var(--motion-easing-decelerate, cubic-bezier(0, 0, 0.2, 1)) calc(var(--motion-duration-md, 0.3s) * 0.2);
+}
+
+/* „✓ Copiat”: the 20 check (the library cell-copy success green) + the 12/16 text. The 20 icon sits on the 16 line with
+   −2 above / below (the box keeps its 24 height). Optical evenness: the glyph's ink is 11 × 9 inside the 20 box with
+   ≈ 4.5 of air on each side → −4 on its left (left air = the 8 padding, as on the right) and a 2 gap (≈ 6 ink → text) */
+.copy-value__copied {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--spacing-2, 2px);
+}
+
+.copy-value__copied .copy-value__copied-icon {
+  color: var(--green-400, #68c199);
+  flex: 0 0 var(--spacing-20, 20px);
+  height: var(--spacing-20, 20px);
+  margin: calc(var(--spacing-2, 2px) * -1) 0 calc(var(--spacing-2, 2px) * -1) calc(var(--spacing-4, 4px) * -1);
+  width: var(--spacing-20, 20px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-value__button,
+  .copy-value__tip.is-resizing,
+  .copy-value__tip-label,
+  .copy-value__tip-label.is-leaving,
+  .copy-value__copied.is-active {
+    transition: none;
+  }
+
+  .copy-value__tip-label,
+  .copy-value__tip-label.is-leaving,
+  .copy-value__tooltip.is-below:not(.show) {
+    transform: none;
+  }
+
+  .copy-value__tip-label.is-leaving {
+    visibility: hidden;
+  }
 }
 
 /* clipboard fallback buffer (execCommand) — off screen, never visible */

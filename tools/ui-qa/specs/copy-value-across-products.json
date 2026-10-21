@@ -1,9 +1,333 @@
 {
- "_about": "Copy value — ONE component (2026-10-20): the copy control must compute identically in the BO (dos-01 / svc-01), RAP (rap-02), EVO Cabinet (sm-05 / pp-01j) and eKYC (ek-05). Run: compare-styles.mjs --a dos-01 --b <rap-02|sm-05|ek-05> --spec tools/ui-qa/specs/copy-value-across-products.json. Detail-row pairs only (every product has them); the header-meta pairs live in rap-profile-vs-bo.json / cabinet-profile-vs-bo.json.",
+ "_about": "Copy value — ONE component (2026-10-20; copy-wrap-v1 2026-10-21: whole-element wrap + compact list variant). The control must compute identically in the BO, RAP, EVO Cabinet and eKYC. Run: compare-styles.mjs --a dos-01 --b <rap-02|sm-05|ek-05> --spec tools/ui-qa/specs/copy-value-across-products.json. Default pairs = detail rows (dos-01 ↔ the run's b). Compact pairs read their own states: BO table dos-05 ↔ RAP table rap-01, Cabinet request rows sm-01, act rows pp-01, eKYC Clienți ek-22 (the type is the host's own → font / colour / width ignored; the wrap geometry, fills, radius, gap must match). Header-meta pairs live in rap-profile-vs-bo.json / cabinet-profile-vs-bo.json. Compact ignores: border colours (= currentColor of a 0-width border, i.e. the host text colour) and, on the wrapper, display / min-height (a wrapper that is a flex item in a table cell is blockified: inline-flex → flex).",
  "pairs": [
-  { "name": "row copy", "a": ".e-permits-dosar-profil__card .copy-value", "b": ".e-permits-dosar-profil__card .copy-value", "ignore": ["rect.width", "rect.x", "rect.y", "rect.right", "font-family", "font-size", "line-height", "font-weight", "letter-spacing", "color", "-webkit-font-smoothing", "text-rendering", "font-kerning", "font-synthesis"] },
-  { "name": "row copy button", "a": ".e-permits-dosar-profil__card .copy-value__button", "b": ".e-permits-dosar-profil__card .copy-value__button", "rel": "row copy", "ignore": ["rect.x", "rect.right", "font-family", "font-size", "letter-spacing", "-webkit-font-smoothing", "text-rendering", "font-kerning", "font-synthesis", "font-weight"] },
-  { "name": "row copy icon", "a": ".e-permits-dosar-profil__card .copy-value__button .icon", "b": ".e-permits-dosar-profil__card .copy-value__button .icon", "rel": "row copy button" },
-  { "name": "row copy text", "a": ".e-permits-dosar-profil__card .copy-value__text", "b": ".e-permits-dosar-profil__card .copy-value__text", "rel": "row copy", "ignore": ["rect.width", "rect.right"] }
+  {
+   "name": "row copy",
+   "a": ".e-permits-dosar-profil__card .copy-value",
+   "b": ".e-permits-dosar-profil__card .copy-value",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y",
+    "rect.right",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ]
+  },
+  {
+   "name": "row copy button",
+   "a": ".e-permits-dosar-profil__card .copy-value__button",
+   "b": ".e-permits-dosar-profil__card .copy-value__button",
+   "rel": "row copy",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ]
+  },
+  {
+   "name": "row copy icon",
+   "a": ".e-permits-dosar-profil__card .copy-value__icon",
+   "b": ".e-permits-dosar-profil__card .copy-value__icon",
+   "rel": "row copy button",
+   "ignore": [
+    "rect.x",
+    "rect.right"
+   ]
+  },
+  {
+   "name": "row copy text",
+   "a": ".e-permits-dosar-profil__card .copy-value__text",
+   "b": ".e-permits-dosar-profil__card .copy-value__text",
+   "rel": "row copy",
+   "ignore": [
+    "rect.width",
+    "rect.right",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis"
+   ]
+  },
+  {
+   "name": "compact rap table",
+   "states": {
+    "a": "dos-05",
+    "b": "rap-01"
+   },
+   "a": "td .copy-value--compact",
+   "b": "td .copy-value--compact.rap-act-number",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y",
+    "rect.right",
+    "rect.height",
+    "max-width",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color",
+    "display",
+    "min-height"
+   ]
+  },
+  {
+   "name": "compact rap table button",
+   "states": {
+    "a": "dos-05",
+    "b": "rap-01"
+   },
+   "a": "td .copy-value--compact .copy-value__button",
+   "b": "td .copy-value--compact.rap-act-number .copy-value__button",
+   "rel": "compact rap table",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right",
+    "rect.height",
+    "rect.y",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color"
+   ]
+  },
+  {
+   "name": "compact cabinet request row",
+   "states": {
+    "a": "dos-05",
+    "b": "sm-01"
+   },
+   "a": "td .copy-value--compact",
+   "b": ".cab-request-row .copy-value--compact",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y",
+    "rect.right",
+    "rect.height",
+    "max-width",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color",
+    "display",
+    "min-height"
+   ]
+  },
+  {
+   "name": "compact cabinet request row button",
+   "states": {
+    "a": "dos-05",
+    "b": "sm-01"
+   },
+   "a": "td .copy-value--compact .copy-value__button",
+   "b": ".cab-request-row .copy-value--compact .copy-value__button",
+   "rel": "compact cabinet request row",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right",
+    "rect.height",
+    "rect.y",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color"
+   ]
+  },
+  {
+   "name": "compact act row",
+   "states": {
+    "a": "dos-05",
+    "b": "pp-01"
+   },
+   "a": "td .copy-value--compact",
+   "b": ".e-permits-fo-intent-act .copy-value--compact",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y",
+    "rect.right",
+    "rect.height",
+    "max-width",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color",
+    "display",
+    "min-height"
+   ]
+  },
+  {
+   "name": "compact act row button",
+   "states": {
+    "a": "dos-05",
+    "b": "pp-01"
+   },
+   "a": "td .copy-value--compact .copy-value__button",
+   "b": ".e-permits-fo-intent-act .copy-value--compact .copy-value__button",
+   "rel": "compact act row",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right",
+    "rect.height",
+    "rect.y",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color"
+   ]
+  },
+  {
+   "name": "compact ekyc table",
+   "states": {
+    "a": "dos-05",
+    "b": "ek-22"
+   },
+   "a": "td .copy-value--compact",
+   "b": "td .copy-value--compact",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.y",
+    "rect.right",
+    "rect.height",
+    "max-width",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color",
+    "display",
+    "min-height"
+   ]
+  },
+  {
+   "name": "compact ekyc table button",
+   "states": {
+    "a": "dos-05",
+    "b": "ek-22"
+   },
+   "a": "td .copy-value--compact .copy-value__button",
+   "b": "td .copy-value--compact .copy-value__button",
+   "rel": "compact ekyc table",
+   "ignore": [
+    "rect.width",
+    "rect.x",
+    "rect.right",
+    "rect.height",
+    "rect.y",
+    "font-family",
+    "font-size",
+    "line-height",
+    "font-weight",
+    "letter-spacing",
+    "color",
+    "-webkit-font-smoothing",
+    "text-rendering",
+    "font-kerning",
+    "font-synthesis",
+    "border-top-color",
+    "border-bottom-color",
+    "border-left-color",
+    "border-right-color"
+   ]
+  }
  ]
 }

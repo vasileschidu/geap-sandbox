@@ -1760,3 +1760,33 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   rects and leaked its menus into every state. Session restart wiped the scratch edit scripts mid-job → staged by
   selecting my `git diff -U0` hunks by signature (`git apply --cached --unidiff-zero`) and, where a hunk merged with
   another agent's lines (audit tool header, agent file, `?v=` lines), HEAD + my inserted blocks via hash-object.
+- 2026-10-21 · Copy value = ONE button with the whole element as the target (copy-wrap-v1; user: „hover on the entire element, a
+  nice even grey wrap, as we used in the first places”, then mid-job „even Copiază tooltip → smooth ✓ Copiat … tables / stacked
+  lists: no icon, but the behaviour is the same”). (1) Even wrap without moving anything: padding 4 8 + the SAME negative margin
+  (text stays on the label line, row height unchanged). Phones: a taller padded wrap (6) painted over the next text line
+  in wrapped meta → keep the visible 4 8 and add an invisible `::after` hit area `max(0, (32 − 1lh − 8) / 2)` (≥ 32 on a
+  12/16 RAP IDNO too). A label + 4 + value row („IDNO”, „Nr.”) had its label covered by the 8 bleed → +4 on the value.
+  The gate's text-overlap check (Range.getClientRects of host text vs the wrap) found both — pixels I had looked at twice. (2) The wrap bleeds 8 into neighbours: hosts that clip must be opened ON PURPOSE —
+  act / request meta `clip-path: inset(0 0 0 18)` (dot strip) cut the wrap's left 8 + the top / bottom → `inset(-8 -8 -8 10)`
+  (the dot at 8–10 stays hidden) and −6 more on focus-visible; `.__case-cell > span` / `td > .cell__primary` ellipsis rules
+  (`overflow: hidden`) clipped the wrapper → `:not(.copy-value)`. And the NEXT meta part (position: relative, later in DOM)
+  painted over the wrap's right 8 → a click there opened the row: `position: relative; z-index: 1` on the button. Found by a
+  geometry gate (scratch gate.js: hit-test the wrap's 4 corners + centre with elementFromPoint, first clipping ancestor,
+  text-vs-wrapper shift, height ≥ 32 on phones) over 19 states × 2 widths — run it whenever a control bleeds outside its box.
+  (3) Tooltip that keeps its centre while the label changes: left = centre x + `translate: -50%` (separate from the library
+  `transform` show animation), labels in one cell (active in flow, others absolute + centred), JS animates the width from →
+  to and `justify-items: unsafe center` so the growing label is revealed from both sides (plain `center` left-aligned it
+  while the box was narrower); clamp the centre with the widest label. User then: „the Copiat transition is awful” — a
+  symmetric cross-fade with a vertical slide put „CopCopiat” on screen at 60 ms. Fix = slide the old word LEFT 8 and fade it
+  in the first half (112 ms), fade „✓ Copiat” in place from 60 ms, width 225 ms decelerate. Proof = scrub, don't guess:
+  `document.getAnimations()` → pause → `currentTime = 0 / 40 / 80 / 120 / 160 / 230` → crop each frame (stub the 1 500 ms
+  hold timer, or it hides the tooltip while the slow screenshots run); reduced-motion state needs its own `transition:
+  none` for every more specific transition selector (`.is-leaving`, `.copy-value__copied.is-active`). (4) Enter on a button inside a row that opens on Enter
+  (RAP tbody keydown) opened the row AND `preventDefault` killed the native click → a capture-phase keydown stop for
+  Enter / Space on the copy button (no preventDefault). (5) Touch: hover rules inside `@media (hover: hover)` — no sticky grey
+  after a tap. (6) CDP: a keyDown Enter needs `text: "\r"` to activate a button; `elementFromPoint` corner probes need a 3 px
+  inset on a radius-6 box. component-audit rule 4 now: copy-in-list = DEFAULT variant in a list, new missing-copy = a plain
+  dossier / act / IDNO candidate in a list. Session restarted mid-job (scratchpad wiped): kept every edit as old → new
+  strings so the HEAD-based blobs could be rebuilt for shared files. Second restart (wiped again, other agents had committed in
+  between and one commit reset two of my HTML keys): staged by HUNK instead — `git diff -U0 HEAD` split into hunks, pick mine by
+  index, `git apply --unidiff-zero` onto a HEAD copy; mixed hunks (another agent's lines inside mine) by line replacement.

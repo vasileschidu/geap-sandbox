@@ -3047,13 +3047,14 @@ button.e-permits-workplace__th-content:focus-visible {
    column): every two-line stack in a table cell — `__case-cell`, the name-over-meta
    `__role-identity` (Configurări servicii, Roluri, eKYC registries) and `__date-stack` (dates,
    Fluxuri „Folosit de”) — is capped at the cell width and each of its lines ellipsizes. A meta
-   line holding a copy value stays unclipped (lists carry no copy since 2026-10-20; kept for safety) */
+   line holding a copy value stays unclipped, and the compact copy value itself (renderListCode, 2026-10-21) is never
+   one of the clipped lines — it cuts its own text and its hover wrap must not be clipped */
 td :is(.e-permits-workplace__case-cell, .e-permits-workplace__role-identity, .e-permits-workplace__date-stack) {
   max-width: 100%;
 }
 
-.e-permits-workplace__case-cell > span,
-td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > span:not(:has(.copy-value)) {
+.e-permits-workplace__case-cell > span:not(.copy-value),
+td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > span:not(.copy-value, :has(.copy-value)) {
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
@@ -3061,9 +3062,10 @@ td :is(.e-permits-workplace__role-identity, .e-permits-workplace__date-stack) > 
   white-space: nowrap;
 }
 
-/* a plain number / code in a table cell (renderListCode — no copy in lists, 2026-10-20): one line,
-   ellipsis + the cell tooltip when the column is narrower than the code (Fluxuri identifiers at 1024) */
-td > .cell__primary {
+/* a plain identifying line in a table cell: one line, ellipsis + the cell tooltip when the column is narrower than
+   the text. Numbers / codes (renderListCode) are the compact copy value since 2026-10-21 — it cuts its own text
+   (css/copy-value.css) and must not clip its hover wrap, so it is left out here */
+td > .cell__primary:not(.copy-value) {
   display: block;
   max-width: 100%;
   overflow: hidden;

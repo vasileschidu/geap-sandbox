@@ -16,7 +16,7 @@
               meta (parts, replaces the default; a part = text or { text, long }) }
      The meta line = ONE slot structure for every act / request row (2026-10-20, user: „why do the act and
      request cards have different details?”), built by metaParts():
-       1 number (plain text — no copy icon in lists, user 2026-10-20)  ·  2 what (act / service name; request: type · service)  ·  3 authority · subdivision
+       1 number (the COMPACT copy value — no icon in lists, the number itself copies; user 2026-10-21)  ·  2 what (act / service name; request: type · service)  ·  3 authority · subdivision
        ·  4 the key date (act: valabil până la / expirat la; request: Depusă / Creată / Finalizată)
      Desktop (>760) keeps it on ONE line: slot 2 shrinks first (ellipsis), then slot 3; 1 and 4 never shrink.
      opts = { menuId, actionLabel, items [{ id, label, icon, disabled, reason }], pendingTitle + pendingText,
@@ -69,9 +69,12 @@
 
   /* the shared meta slots (see the header): kind "what" shrinks first, the subdivision ("long") next; the number,
      the authority code and the date never (a short part with a min-width would be widened, not protected) */
-  function metaParts({ number = "", what = "", authority = "", subdivision = "", date = "" } = {}) {
+  /* slot 1: the compact copy value (js/copy-value.js, copy-wrap-v1) — plain text only where the component is not loaded */
+  const numberHtml = (number, label) => window.GEAPCopyValue?.html(number, { compact: true, label: label || `Copiază numărul ${number}` }) || esc(number);
+
+  function metaParts({ number = "", numberLabel = "", what = "", authority = "", subdivision = "", date = "" } = {}) {
     return [
-      number ? { html: esc(number) } : null,
+      number ? { html: numberHtml(number, numberLabel) } : null,
       what ? { html: esc(what), kind: "what" } : null,
       authority ? { html: esc(authority) } : null,
       subdivision ? { html: esc(subdivision), kind: "long" } : null,
@@ -118,7 +121,7 @@
     /* long names (authority / subdivision / service) are the parts that give way on desktop (`long`) */
     const parts = metaSlots ? metaParts(metaSlots)
       : act.meta ? act.meta.map((part) => (part && typeof part === "object" ? part : { text: part })).filter((part) => part.text).map((part) => ({ html: esc(part.text), kind: part.long ? "long" : "" }))
-          : metaParts({ number: act.number, subdivision: act.subdivision, date: validText(act.validUntil) });
+          : metaParts({ number: act.number, numberLabel: act.number ? `Copiază numărul actului ${act.number}` : "", subdivision: act.subdivision, date: validText(act.validUntil) });
     const hasNotice = Boolean(pendingTitle || pendingText || noticeHtml);
     const locked = hasNotice && noticeLocks;
     const tag = tagHtml ?? `<span class="status-tag status-tag--${tone} is-subtle status-tag--small e-permits-fo-doc-tag">${esc(act.statusLabel || act.status)}</span>`;

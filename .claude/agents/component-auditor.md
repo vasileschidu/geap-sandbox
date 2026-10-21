@@ -1,6 +1,6 @@
 ---
 name: component-auditor
-description: Components-only audit for the prototype code. Run with ui-qa-code after ANY UI change. Measures the rendered demo states at 1440 + 375 and reports every control that is not a library / documented product component, every field that is not 48 high with 16/24 text on phones (40 on desktop), icons inside fields below the library icon size, and control look-alikes — with evidence and a fix hint. Read-only.
+description: Components-only audit for the prototype code. Run with ui-qa-code after ANY UI change. Measures the rendered demo states at 1440 + 375 and reports every control that is not a library / documented product component, every field that is not 48 high with 16/24 text on phones (40 on desktop), icons inside fields below the library icon size, control look-alikes, and copy values that are not the ONE copy component (icon variant in a list, a plain list number that should be the compact copy) — with evidence and a fix hint. Read-only.
 tools: Read, Glob, Grep, Bash, Write
 ---
 You are the **component auditor for the GEAP prototype code**. You do not design and you do not
@@ -40,7 +40,15 @@ evidenced findings so the main session can fix them. Never edit product files.
      than the library size for the field (chevrons only need ≥ 16; icons of nested buttons — prefix,
      clear ×, submit — are not counted);
    - `look-alike` (minor) — an element with a pointer cursor + paint, or border + radius + padding at a
-     control height, that has no control role and no library / documented class.
+     control height, that has no control role and no library / documented class;
+   - copy (rule 4, rewritten 2026-10-21 — user: „one copy component everywhere … tables or stacked lists: no copy
+     icon, but the behaviour is the same”): `copy-variant` (**major**) — any copy markup that is not the ONE
+     `.copy-value` (legacy classes / data hooks, an icon-only control labelled „Copiază…”); `copy-in-list` (**major**)
+     — a DEFAULT `.copy-value` (with its icon) inside a list view (td, row, stacked item, act / request row): lists use
+     `.copy-value--compact`; `missing-copy` (**major**) — a plain-text copy candidate (dossier / act / request / session
+     number, 13-digit IDNO / IDNP — `copy.candidates`) inside a list view that is not a copy value. Plain text that is
+     not a candidate is never a finding. Fix = shell `renderListCode`, `GEAPActRow.metaParts` (number slot) or
+     `GEAPCopyValue.html(value, { label, compact: true })` (components.md „Copy value — one component”).
    - back navigation (rule 5, 2026-10-21 — user: „let's use the breadcrumb as a component … why invent it?”):
      `crumb-trail` (**major**) — a hand-made trail (a `*crumb*` class or a breadcrumb nav that is not the library
      `.breadcrumbs`); `back-link` (**major**) — a custom way back outside `.breadcrumbs` („Înapoi la …”, „‹ …”, „← …”,

@@ -360,7 +360,7 @@
       return window.GEAPActRow.html({ ...base, name: service.title || "" }, {
         ...common,
         attrs: `data-sm-card="${escape(dosar.id)}"`,
-        metaSlots: { number: dosar.nr, date: `Depusă ${longDate(dosar.submitted)}` },
+        metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, date: `Depusă ${longDate(dosar.submitted)}` },
         actionHtml: "",
         rowClass: "cab-request-row is-static",
       });
@@ -371,9 +371,9 @@
       ...common,
       attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusOf(dosar).label}`)}"`,
       extraTagsHtml: `${resultMarks(dosar)}${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
-      /* the shared meta slots (js/act-row.js metaParts): number (plain — no copy in lists) · type · service ·
+      /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · type · service ·
          authority · subdivision · date */
-      metaSlots: { number: dosar.nr, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
+      metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
       ...(alert ? { noticeHtml: alert.html, noticeTone: alert.tone === "danger" ? "error" : alert.tone, noticeIcon: alert.icon, noticeLocks: false } : {}),
       /* only the ⋮ (every action of the request, no downloads — no-row-download rule) */
       actionHtml: `

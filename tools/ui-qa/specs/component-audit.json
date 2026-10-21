@@ -95,14 +95,18 @@
     ".e-permits-act-row"
   ],
   "ancestorDepth": 3,
-  "_copy": "Copy value — ONE component (2026-10-20, user: „the copy code is different, use the same everywhere as a component” + „remove the copy icon in table or stacked view”). copy-variant (major): any copy markup that is not .copy-value (legacy classes / data hooks, or an icon-only button labelled „Copiază…”). copy-in-list (major): a .copy-value inside a list view (table cell, stacked row, act / request row, card list); listExempt = documented exceptions.",
+  "_copy": "Copy value — ONE component (2026-10-20, user: „the copy code is different, use the same everywhere as a component”; 2026-10-21: „tables or stacked lists: no copy icon, but the behaviour is the same”). copy-variant (major): any copy markup that is not .copy-value (legacy classes / data hooks, or an icon-only button labelled „Copiază…”). copy-in-list (major): a DEFAULT .copy-value (with its icon) inside a list view — lists use .copy-value--compact; listExempt = documented exceptions. missing-copy (major): a plain-text copy candidate (candidates) inside a list view.",
   "copy": {
     "component": ".copy-value",
     "button": ".copy-value__button",
     "legacy": [".e-permits-workplace__copy-code", ".e-permits-dosar-profil__copy-code", ".e-permits-fo-copy-value", ".rap-copy", ".rap-profile__copy", ".permits-table__id", ".permits-profile__copy-id", "[data-shell-copy-value]", "[data-fo-copy-value]", "[data-rap-copy]", "[data-copy-id]", "[data-cell-copy]"],
     "labelPattern": "^\\s*Copiaz",
     "listContexts": ["td", "[role=row]", ".e-permits-stack__item", ".e-permits-fo-lib-item", ".e-permits-fo-intent-act", ".cab-card", ".cab-request-row", ".e-permits-act-row"],
-    "listExempt": [".e-permits-fee-summary__value"]
+    "listExempt": [".e-permits-fee-summary__value"],
+    "compact": ".copy-value--compact",
+    "_candidates": "plain-text numbers that must be the compact copy value in a list view (whole text node): dossier / act / request / session numbers (D-2026-004575, GEAP-2026-009-04588, LIC-2024-1876, P-8991/2026, KYC-48192) and 13-digit IDNO / IDNP. Masked values (•) never match.",
+    "candidates": ["^(?:[A-Z]{1,6}-)+\\d{2,6}(?:[-/]\\d{2,6})+$", "^\\d{13}$"],
+    "candidateExempt": ["th", "h1", "h2", "h3", "[role=dialog] h2", ".tooltip", "option", "[role=option]", "label"]
   },
   "_ignoreWithin": "prototype-only tools and third-party widgets — never audited",
   "ignoreWithin": [
@@ -204,7 +208,8 @@
       "[data-sf-reset]"
     ]
   },
-    "copy-in-list": "List views carry no copy icon: render the number as plain text (shell renderListCode, RAP plain cell, act-row meta). Copy belongs on the profile / header / detail row / dialog.",
+    "copy-in-list": "List views use the COMPACT copy value (no icon, the number itself copies, same wrap / tooltip / „Copiat”): shell renderListCode, act-row metaParts, GEAPCopyValue.html(value, { compact: true }). The icon variant belongs on profiles / headers / detail rows / dialogs.",
+    "missing-copy": "A number / code / IDNO in a list view is a compact copy value (user 2026-10-21: „in tables or stacked lists, no copy icon, but the behaviour is the same”): render it with shell renderListCode, act-row metaParts (number slot) or GEAPCopyValue.html(value, { compact: true, label }).",
     "action-icon": "„Editează…” carries the pen (icon-edit), every removal „Elimină… / Șterge…” the trash (icon-delete), before the label, in the button's colour: shell actionLabelHtml(label) / renderRowActions / renderStackMenu (they pick the icon from the label — actionIconFor), GEAPActRow / Cabinet menu items { icon: \"icon-delete\" }; hand-written buttons add <svg class=\"icon small\"><use href=\"…#icon-delete\"></use></svg><span>Elimină</span> (components.md › Action icons).",
     "action-icon-colour": "the icon of a button / menu item is the label colour (fill: currentColor); never give the svg its own colour (components.md › Button).",
     "non-library-control": "use the library component (components.md › Component Inventory): .btn + variant + size, .chip, .checkbox, .radio, .switch, .search-input, .input / .e-permits-fo-input; a genuinely new control is first documented in components.md (inventory row + section) — ask the PO before inventing one",

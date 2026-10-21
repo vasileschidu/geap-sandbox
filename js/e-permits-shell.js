@@ -2294,14 +2294,18 @@ document.addEventListener("DOMContentLoaded", () => {
     return window.GEAPCopyValue ? window.GEAPCopyValue.html(value, { label }) : escapeHtml(value);
   };
 
-  /* list views (tables, stacked rows) never carry a copy icon (user, 2026-10-20): the number is plain
-     text — the library identifying line in table cells, the meta's own type in stacked rows */
-  const renderListCode = (value, { meta = false } = {}) => {
+  /* list views (tables, stacked rows) = the COMPACT copy value (user, 2026-10-21: „tables or stacked lists where space
+     is restricted: no copy icon, but the behaviour is the same”): the number itself copies, same grey wrap, tooltip and
+     „Copiat”. Table cells keep the library identifying line type (cell__primary); stacked meta keeps its own type.
+     display = shorter plain text shown instead of the value (a hash) — the full value is copied. */
+  const renderListCode = (value, { meta = false, label = "", display = "" } = {}) => {
     if (!value || value === "—") {
       return '<span class="e-permits-workplace__dash">—</span>';
     }
 
-    return meta ? escapeHtml(value) : `<span class="cell__primary" data-cell-tooltip="${escapeHtml(value)}">${escapeHtml(value)}</span>`;
+    const text = display ? escapeHtml(display) : null;
+    if (window.GEAPCopyValue) return window.GEAPCopyValue.html(value, { compact: true, label, text, className: meta ? "" : "cell__primary" });
+    return meta ? escapeHtml(display || value) : `<span class="cell__primary" data-cell-tooltip="${escapeHtml(value)}">${escapeHtml(display || value)}</span>`;
   };
 
   /* Library breadcrumbs (Figma Components 232:5282) — ONE renderer for every page: js/breadcrumbs.js
@@ -6653,7 +6657,7 @@ document.addEventListener("DOMContentLoaded", () => {
       case "denumire":
         return `<span class="e-permits-passport__name">${escapeHtml(row.denumire)}</span>`;
       case "idno":
-        return renderListCode(row.idno);
+        return renderListCode(row.idno, { label: `Copiază IDNO ${row.idno}` });
       case "sursa":
         return renderTag(row.sursa, "neutral");
       default:

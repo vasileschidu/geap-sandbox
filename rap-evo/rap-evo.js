@@ -139,9 +139,10 @@
 
   const isMaskedValue = (value) => /[•*]/u.test(String(value));
 
-  /* Copy value — the shared component (../js/copy-value.js, 2026-10-20): profile header, detail rows,
-     the act dialogs. The table (Nr. act, IDNO) shows plain numbers — no copy in list views. */
-  const copyValue = (value, label = "") => window.GEAPCopyValue?.html(value, { label: label || `Copiază ${value}` }) || escapeHtml(value);
+  /* Copy value — the shared component (../js/copy-value.js): profile header, detail rows, the act dialogs; the table
+     (Nr. act, IDNO) = the COMPACT variant (no icon, the number itself copies — copy-wrap-v1, 2026-10-21). A masked
+     identifier is never copyable. */
+  const copyValue = (value, label = "", options = {}) => window.GEAPCopyValue?.html(value, { label: label || `Copiază ${value}`, ...options }) || escapeHtml(value);
 
   /* the profile writes the full month („4 ianuarie 2025”, the project date rule), the data has
      „4 ian. 2025” */
@@ -379,7 +380,9 @@
         </span>
         <span class="rap-beneficiary__copy">
           <span class="rap-beneficiary__name rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.name)}">${escapeHtml(record.beneficiary.name)}</span>
-          <span class="rap-beneficiary__identifier rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.identifier)}">${escapeHtml(record.beneficiary.identifier)}</span>
+          ${isMaskedValue(record.beneficiary.identifier)
+            ? `<span class="rap-beneficiary__identifier rap-ellipsis" data-tooltip="${escapeHtml(record.beneficiary.identifier)}">${escapeHtml(record.beneficiary.identifier)}</span>`
+            : copyValue(record.beneficiary.identifier, `Copiază ${record.beneficiary.identifierType || "IDNO"} ${record.beneficiary.identifier}`, { compact: true, className: "rap-beneficiary__identifier" })}
         </span>
       </div>
     `;
@@ -399,7 +402,7 @@
       </td>
       <td>
         <span class="rap-cell-stack">
-          <span class="rap-act-number rap-ellipsis" data-tooltip="${escapeHtml(record.permit.number)}">${escapeHtml(record.permit.number)}</span>
+          ${copyValue(record.permit.number, `Copiază numărul actului ${record.permit.number}`, { compact: true, className: "rap-act-number" })}
           <span class="rap-cell-stack__secondary rap-ellipsis" data-tooltip="${escapeHtml(record.permit.paperNumber)}">Dosar: ${escapeHtml(record.permit.paperNumber)}</span>
         </span>
       </td>

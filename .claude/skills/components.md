@@ -224,7 +224,7 @@ but this doc previously described it wrongly, see the entry.
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
 | Tag | `.tag-item` (a layout row, not a pill) | `tags.html` | library (partial) |
-| **Copy value — one component** (profiles, header meta, detail rows, dialogs; NEVER in tables / stacked rows) | `span.copy-value` > `__text` + `button.btn.btn-strict.btn-sm.btn-icon-only.copy-value__button[data-copy-value]` (16 icon, „Copiază …” aria-label, „Copiat” plain tooltip) | `GEAPCopyValue.html(value, { label })` — `js/copy-value.js` + `css/copy-value.css`; lists: shell `renderListCode` | app (every page) |
+| **Copy value — one component** (default: profiles, header meta, detail rows, dialogs; `--compact`: tables, stacked rows, act / request meta) | `span.copy-value` > `button.copy-value__button[data-copy-value]` > `.copy-value__text` + `.copy-value__icon` (16) — whole element = one grey wrap on hover / focus / press; `.copy-value--compact` (no icon), `.copy-value--link` (link outside, icon button); „Copiază” → „✓ Copiat” plain tooltip `.copy-value__tooltip` | `GEAPCopyValue.html(value, { label, compact })` — `js/copy-value.js` + `css/copy-value.css`; lists: shell `renderListCode`, `GEAPActRow.metaParts` | app (every page) |
 | Page header (back office) | `.e-permits-page-header` + `__top/__meta/__tabs` | `e-permits-acte-permisive.html?flow=back-office` | app |
 | **Section header with an action — one pattern** (BO) | `.e-permits-dosar-profil__section-heading` > `h2.e-permits-dosar-profil__section-title` + `.e-permits-passport__heading-tools` (meta? + `btn-secondary btn-sm` / stack-menu button / `segmented-control`) — never a bare button in the heading | `renderStackedList(title, groups, { meta, actionHtml })` (svc-02 „Tipuri solicitări”); section „Section header with an action — one pattern” | app |
 | Service passport | registry `kind: services` + `.permits-profile` passport | `?flow=back-office#serviciu/003000023/general` | app |
@@ -1913,7 +1913,7 @@ the value, `aria-label` swaps Copiază→Copiat and reverts after 1600ms, zero c
 
 | Concern | Was | Now |
 |---|---|---|
-| Copy to clipboard | **4** implementations — `data-rap-copy` (1600ms), `.rap-profile__copy`, `data-fo-copy-value` (1500ms), `data-copy-id` (1500ms) | `.cell__copy` + `data-cell-copy` (library preview) → in the product since 2026-10-20 the ONE `.copy-value` (`js/copy-value.js`, „Copy value — one component”) and no copy in tables |
+| Copy to clipboard | **4** implementations — `data-rap-copy` (1600ms), `.rap-profile__copy`, `data-fo-copy-value` (1500ms), `data-copy-id` (1500ms) | `.cell__copy` + `data-cell-copy` (library preview) → in the product since 2026-10-20 the ONE `.copy-value` (`js/copy-value.js`, „Copy value — one component”); tables use its `--compact` variant |
 | Status pill | **3** — `.rap-status` (raw hex), `.status-tag` (tokens), `.permits-table__tag` | library `.status-tag` |
 | Truncation | **4** — `.rap-ellipsis` + 3 inlined copies | `.cell--truncate` |
 | Two-line stack | **2** disagreeing — gap 4/weights 400 vs gap 2/weights 500 | `.cell__body`, gap 4 |
@@ -3101,57 +3101,90 @@ visual pill. **There is no `.tag-group`.** For a visual pill use `.status-tag` o
 
 ---
 
-### Copy value — one component (2026-10-20)
+### Copy value — one component (2026-10-20; whole-element wrap + compact variant 2026-10-21, copy-wrap-v1)
 
-User (2026-10-20): „the copy code is different, let's use the same everywhere as a component” and „remove the
-copy icon in table or stacked view”. Before: 7 variants (BO `.e-permits-workplace__copy-code` table / profile with a
-20 icon, FO `.e-permits-fo-copy-value` whole-value button, FO payment 20 #444 icon, Cabinet FO class restyled to the
-BO look, RAP `.rap-profile__copy` with a fixed tooltip, RAP table `.rap-copy` 14 icon on hover, the classifier source
-link's neutral icon button) — 3 hover colours, 2 focus looks (or none), tooltips 1 300 / 1 500 / 1 600 ms, 3 clipboard
-paths. Now ONE component: `js/copy-value.js` (`window.GEAPCopyValue`) + `css/copy-value.css`, loaded on the BO / FO
-page, the shell page, EVO Cabinet and RAP.
+User (2026-10-20): „the copy code is different, let's use the same everywhere as a component”. User (2026-10-21): „The
+hover should be on the entire element, and do a nice even grey wrap on hover, as we used in the first places” + „all
+should have on hover a nice even „Copiază” tooltip, and on click a smooth transition to „Copiat” with a green check …
+The only exceptions are tables or stacked lists where space is restricted: there, let's not use the copy icon, but
+the behaviour is the same.” (Replaces the 2026-10-20 rule „lists show plain numbers”.)
+
+ONE module: `js/copy-value.js` (`window.GEAPCopyValue`) + `css/copy-value.css`, loaded on the BO / FO page, the shell
+page, EVO Cabinet and RAP. Before 2026-10-21 the value was plain text next to an icon-only Strict Small 32 button (the
+hover covered the icon square only); now ONE native `<button>` holds value + icon, so the whole element is the hover /
+click / focus target (the FO „first places” look: `.e-permits-fo-copy-value`, removed 2026-10-20).
 
 ```html
+<!-- default: profiles, header meta, detail rows, identity cards, dialogs, side panels -->
 <span class="copy-value">
-  <span class="copy-value__text">D-2026-004575</span>
-  <button class="btn btn-strict btn-sm btn-icon-only copy-value__button" type="button"
-          data-copy-value="D-2026-004575" aria-label="Copiază numărul dosarului D-2026-004575" data-no-tooltip>
-    <svg class="icon small" width="16" height="16" aria-hidden="true"><use href="…/sprite.svg#icon-copy"></use></svg>
+  <button class="copy-value__button" type="button" data-copy-value="D-2026-004575"
+          aria-label="Copiază numărul dosarului D-2026-004575" data-no-tooltip>
+    <span class="copy-value__text">D-2026-004575</span>
+    <svg class="icon small copy-value__icon" width="16" height="16" aria-hidden="true"><use href="…/sprite.svg#icon-copy"></use></svg>
+  </button>
+</span>
+
+<!-- compact: tables, stacked rows, act / request row meta — no icon, same behaviour -->
+<span class="copy-value copy-value--compact">
+  <button class="copy-value__button" type="button" data-copy-value="GEAP-2026-009-04588"
+          aria-label="Copiază numărul dosarului GEAP-2026-009-04588" data-no-tooltip>
+    <span class="copy-value__text">GEAP-2026-009-04588</span>
   </button>
 </span>
 ```
 
-| Part | Spec |
+| Part / state | Spec |
 |---|---|
-| Value `__text` | plain, selectable text in the context's own type (header meta / detail row 14/20 medium default); never shrinks below its width; a value longer than its column breaks (`overflow-wrap: break-word`) |
-| Button `__button` | library icon-only **Strict · Small**: 32 square, radius 6, icon 16 = text colour, gap 0 to the text (icon 8 from the text); `margin-block: (1lh − 32) / 2` → centred on the first line without making it taller; hover `tertiary-hover`, pressed `tertiary-active`, library focus ring (2 white + 5 focus) — restated in copy-value.css so RAP (no BO CSS) is identical |
-| Feedback | the library plain tooltip (`.tooltip.tooltip--small.tooltip--plain`, one node `#copy-value-tooltip`, 4 below, clamped 8 from the edges): „Copiază” on hover (600 ms, at once while warm / on keyboard focus) → „✓ Copiat” (16 check, `--green-400`) for 1 500 ms after a copy + a polite live region („Copiat”). No toast. `data-no-tooltip` keeps js/icon-tooltip.js away |
-| Keyboard | the native button: Tab, Enter / Space |
+| Wrapper `.copy-value` | `inline-flex`, `max-width: 100%`; carries the placement hook (`className`) that sets the host's value type |
+| Button `__button` | native button, `font` / `color` / `letter-spacing` inherited (the value keeps the context's own type), gap 4 text → icon, radius 6 (`--border-radius-6`), padding 4 8 (`--spacing-4` / `--spacing-8`), **the same negative margin** → at rest the text sits exactly where plain text would (aligned with labels / other rows) and the row height does not grow; `position: relative; z-index: 1` so the wrap's 8 bleed stays the copy target over the next meta part |
+| Phones (≤ 760) | the SAME visible wrap (4 8 — a taller one painted over the next text line) + an invisible `::after` hit area `max(0, (32 − line − 8) / 2)` above / below → a ≥ 32 tap target on any line (2 on a 20 line, 4 on a 16 line) |
+| Text `__text` | selectable (`user-select: text`, the clipboard fallback selects it), inherits the host type (a host's `… span` rule never reaches it); breaks only when longer than its column (`overflow-wrap: break-word`) |
+| Icon `__icon` | 16 (`icon small`), `currentColor`, centred on the first line: `margin-block: (1lh − 16) / 2` |
+| Rest | no background; default = host colour; compact = host meta colour (e.g. 14/20 tertiary in act / request meta, 12/16 tertiary RAP IDNO) |
+| Hover (`@media (hover: hover)`) | one even wrap `--color-background-base-tertiary-hover` around value (+ icon); text → `--color-text-base-default` (both variants, so a tertiary list number reads as a control). Background transition 100 ms standard |
+| Pressed (`:active`) | `--color-background-base-tertiary-active`, text default — also the only wrap a touch user sees (no sticky hover) |
+| Focus-visible | tertiary-hover wrap + the canonical ring `0 0 0 2px white, 0 0 0 5px --focus-ring`; the tooltip shows at once |
+| Compact `--compact` | no icon; one line (`nowrap`, ellipsis when the column is narrower); a cut value names itself in the hint („Copiază <value>”, the truncated-text-tooltip rule) |
+| Link `--link` | a value that is itself a link (classifier „Link la sursă”) cannot sit in a button: the link stays outside, the button wraps the icon only (padding 4 → a 24 square, same fills / ring), 4 after the link |
+| Tooltip | ONE shared library plain tooltip (`.tooltip.tooltip--small.tooltip--plain` + `.copy-value__tooltip`, 12/16, padding 4 8, radius 4, `--gray-900`): **above** the element, centred on it (`translate: −50%`), 4 from the wrap, below when there is no room, clamped 8 from the screen edges by the widest label. „Copiază” after 600 ms of hover (at once while warm / on keyboard focus) |
+| Copied | on click / Enter / Space (user 2026-10-21: „the transition is awful” → spec): „Copiază” slides 8 to the LEFT while fading out (opacity 112 ms, slide 225 ms); „✓ Copiat” fades in in place from 60 ms (150 ms); the box width animates from the measured „Copiază” width to the measured „✓ Copiat” width (61 → 71) around the same centre — all `--motion-easing-decelerate`, 225 ms (`--motion-duration-md` × 0.75); `overflow: hidden` on the content. „✓ Copiat” = 20 `icon-checkmark-small` in `--green-400` on the 12/16 line (−2 above / below, so the box stays 24), −4 on its left + gap 2 → even optical padding (ink 8.7 left / 8 right). Stays 1 500 ms, then fades out (library opacity transition). Polite live region „Copiat”. No toast |
+| Reduced motion | `prefers-reduced-motion: reduce` → no slide, no width animation, no fade: an instant swap |
 | Clipboard | `navigator.clipboard.writeText` → `execCommand("copy")` on a hidden textarea → the value is selected and the tooltip says „Apasă Ctrl+C / ⌘C pentru a copia” |
-| Click | handled on the document in the CAPTURE phase and stopped — a row / card / dialog around it never reacts |
+| Events | click handled on the document in the CAPTURE phase and stopped; Enter / Space keydown stopped in the capture phase too (the native click still copies) → a row / card / dialog that opens on click or Enter never reacts to the copy |
 
-API: `GEAPCopyValue.html(value, { label, text, className })` — `label` = the specific aria-label („Copiază numărul
-dosarului …”), `text` = display HTML when it differs from the copied value (the classifier „Link la sursă” shows the
-link), `className` = a placement hook only (FO cards set the value type on it). Wrappers that return it: shell
-`renderCopyCode` = `renderProfileCopyCode` (+ `GEAPShellApi` / `GEAPUi`), FO `copyValueHtml` (`GEAPFormRender`),
-`CabEvo.copyValueHtml(value, label, className)`, RAP `copyValue`, `GEAPActView` default `copyHtml`.
+API: `GEAPCopyValue.html(value, { label, text, className, compact })` — `label` = the specific aria-label („Copiază
+numărul dosarului …”, default „Copiază <value>”), `text` = display HTML when it differs from the copied value (a short
+hash; a link → the link variant), `className` = a placement hook only, `compact` = the list variant. Wrappers that return
+it: shell `renderCopyCode` = `renderProfileCopyCode` (+ `GEAPShellApi` / `GEAPUi`), FO `copyValueHtml` (`GEAPFormRender`),
+`CabEvo.copyValueHtml(value, label, className)`, RAP `copyValue(value, label, options)`, `GEAPActView` default `copyHtml`.
+Compact: shell `renderListCode(value, { meta, label, display })` (tables: `cell__primary` type; `meta: true` = the stacked
+meta's type; `display` = shorter shown text, full value copied), `GEAPActRow.metaParts` slot 1 (`number` + `numberLabel`)
+for every act / request row (FO intent, Ghișeu, Cabinet acts + requests), RAP table Nr. act / IDNO (masked IDNO stays plain).
 
-**Where:** profiles (page-header meta, detail rows, info cards, identity / authorization cards, the FO avatar menu),
-dialogs (dossier document modal, act modals, notă de plată), side panels (Form Builder Avansat, Process Designer).
-**Never in list views** — tables, stacked rows, act / request rows, registries: the number is plain text (shell
-`renderListCode(value)` = `span.cell__primary` with the cell tooltip in tables, `{ meta: true }` = plain text in a
-stacked meta; RAP table `.rap-act-number` / `.rap-beneficiary__identifier`; act-row meta slot 1). Changed to plain:
-BO Dosare / Sarcini / Dosare finalizate „Nr. dosar” + act de bază, Configurări servicii „Cod” + the code under the name,
-Autorități IDNO, Șabloane de notificare Cod, Fluxuri Identificator, dossier Taxe și plăți (MPAY id), Avize (id),
-document rows (număr), passport Clasificatoare rows; eKYC Clienți ID, Cazuri cod, Chei cheie, Organizații IDNO,
-Certificate amprentă; RAP Nr. act + IDNO. **Documented exception:** the IBAN in the passport „Taxe › Conturi bancare”
-summary and its „Arată toate” modal (label → value summary rows, the only place an IBAN is shown) keeps the copy —
-`listExempt` in the auditor (PO to confirm).
+**Where:** default — profiles (page-header meta, detail rows, info cards, identity / authorization cards, the FO avatar
+menu), dialogs (dossier document modal, act modals, notă de plată), side panels (Form Builder Avansat, Process Designer).
+Compact — BO Dosare / Sarcini / Dosare finalizate „Nr. dosar” + act de bază, Configurări servicii „Cod” (+ the code under
+the name), Autorități IDNO, Șabloane de notificare Cod, Fluxuri Identificator, dossier Taxe și plăți / Avize / document
+rows, passport Clasificatoare rows; eKYC Clienți ID, Cazuri cod, Chei cheie, Organizații IDNO, Certificate amprentă;
+RAP Nr. act + IDNO; act / request row meta number. **Documented exception:** the IBAN in the passport „Taxe › Conturi
+bancare” summary keeps the default variant (`listExempt`).
+
+Hosts: a label + 4 + copy value on one line (RAP beneficiary „IDNO”, Cabinet act header „Nr.”, FO identity card „IDNO” = 8)
+gets 4 more so the 8 wrap ends at the label instead of covering it. Hosts that clip: the act / request meta clips its leading 18 (`clip-path`) → `css/copy-value.css` opens that clip by
+the wrap (8) when it holds a copy value (and by the ring on focus); table cells `td > .cell__primary` / `__case-cell >
+span` ellipsis rules skip `.copy-value` (it cuts its own text). Known limit: in a table cell the 5 focus ring can lose
+1–3 px at the cell's top edge (td `overflow: hidden`); the wrap itself is never cut.
+
+**Do:** one call to the helper per value; give a specific `label`; compact in every list. **Don't:** a private copy
+button / tooltip / toast; restyle the wrap per context (type comes from the host, never padding / fill); put a copy in a
+heading or a modal header (numbers stay in the content); a copy icon in a list row.
 
 QA: `tools/ui-qa/component-audit.mjs` rule 4 (spec `copy`): **copy-variant** = any legacy copy class / data hook or an
-icon-only control labelled „Copiază…” outside `.copy-value`; **copy-in-list** = a `.copy-value` inside `td`,
-`[role=row]`, `.e-permits-stack__item`, `.e-permits-fo-lib-item`, `.e-permits-fo-intent-act`, `.cab-card`, act / request
-rows. compare-styles `tools/ui-qa/specs/copy-value-across-products.json` (dos-01 ↔ rap-02 / sm-05 / ek-05 = 0).
+icon-only control labelled „Copiază…” outside `.copy-value`; **copy-in-list** = a DEFAULT `.copy-value` (with its icon)
+inside `td`, `[role=row]`, `.e-permits-stack__item`, `.e-permits-fo-lib-item`, `.e-permits-fo-intent-act`, `.cab-card`,
+act / request rows; **missing-copy** = a plain-text copy candidate (dossier / act / request / session numbers, 13-digit
+IDNO / IDNP — `copy.candidates`) in a list view. compare-styles `tools/ui-qa/specs/copy-value-across-products.json`
+(default: dos-01 ↔ rap-02 / sm-05 / ek-05; compact: dos-05 ↔ rap-01 / sm-01 / pp-01 = 0).
 
 ## 4. Application component families
 
@@ -3621,7 +3654,7 @@ The old `.e-permits-shell-toast`, `.e-permits-fo-toast`, `.rap-toast` are remove
 ### `e-permits-workplace__*` — registry / data grid
 
 `__toolbar`, `__search`, `__status-tabs`, `__status-tab` (+ tone modifiers), `__table-wrap`,
-`__table`, `__sort` (`is-asc` / `is-desc`), `__copy-code` (removed 2026-10-20 → `.copy-value`; tables show plain `.cell__primary`), `__tag` + tone,
+`__table`, `__sort` (`is-asc` / `is-desc`), `__copy-code` (removed 2026-10-20 → `.copy-value`; tables: the compact `.copy-value--compact.cell__primary`, 2026-10-21), `__tag` + tone,
 `__flag`, `__person`, `__pagination-item` (`is-active`), `__pagination-action`, `__rows-select`.
 Contracts: `data-workplace-*` (`row`, `sort`, `page`, `page-size`, `select-row`, `select-all`, `rows`, `head`, `range`, `tabs`, `total`).
 
@@ -4037,7 +4070,7 @@ pd-21a, pd-21b, pd-22, pd-23, pd-23a, pd-24, pd-26, pd-29, pd-29a, pd-30…pd-34
 | Status | BO Tag · Small `renderTag` markup `.e-permits-workplace__tag--success/--warning/--danger` (Valabil / Suspendat / Expirat·Retras·Anulat — Expirat red since 2026-10-17 per US-162 AC-07; the BO story US-196 says grey, PO to align) in the list, the filter popover, the profile header and the „Stare” row (2026-10-16; `.rap-status` removed) | the same BO Tag · Small tones (2026-10-17: cards, header, rows; `CabEvo.tagHtml` + `ACT_TONE`) |
 | Status dates (2026-10-17, US-162 AC-17) | `statusDateRows(record, profile)`: Suspendat → „Data suspendării actului permisiv” + „Suspendat până la data de”, Retras → „Data retragerii actului permisiv”, never for other statuses; data `profile.suspensionDate / suspendedUntil / withdrawalDate`. Same rows in Detalii act, the modal Date generale and the A4 form, in date order: [Data aprobării tacite] → Data eliberării → Valabil din data → suspension / withdrawal → Suspendat până la → Data expirării (kept = original end). Header meta beside Stare (`headerDateItem`): „Suspendat până la” / „Retras la” instead of „Valabil din data”. Demo rap-02b, rap-02h, rap-03n, rap-03o | — |
 | Act profile (`?act=`) | BO page header (`.e-permits-page-header` › `__body/__top/__heading/__title` + `__meta` items, separators, `is-row-start`) and BO sections (`.e-permits-dosar-profil__panel` › `__section` › `__section-title` over `__card` › `__row` / `__row-label` / `__row-value`) — CSS for this page in `css/bo-profile-parts.css` (BO computed values, tokens; never load it on BO pages). Act name in the list = real link `a.rap-act-link[href="?act=<id>"]` (plain click stays in page, modifiers → browser). Unknown act → `GEAPEmptyState` „Actul nu a fost găsit” + „Înapoi la registru”. Demo rap-02…02c | the same header + sections + dialogs (`?view=acte&act=<id>`, 2026-10-17), see „Entry 1” below |
-| Copy | the shared `.copy-value` in the header / detail rows / act dialogs; the table shows plain `.rap-act-number` / `.rap-beneficiary__identifier` (2026-10-20; `.rap-copy*` / `.rap-profile__copy` removed) | the shared `.copy-value` (`CabEvo.copyValueHtml`) |
+| Copy | the shared `.copy-value` in the header / detail rows / act dialogs; the table shows the compact `.copy-value--compact.rap-act-number` / `.rap-beneficiary__identifier` (2026-10-21; `.rap-copy*` / `.rap-profile__copy` removed 2026-10-20) | the shared `.copy-value` (`CabEvo.copyValueHtml`) |
 | Filter | the BO advanced filter (2026-10-16): button „Filtru” `[data-rap-filter-toggle]` + bar `.e-permits-workplace__filters.rap-filters` (bordered block) via `GEAPFacetFilter` — see „Advanced filter”. Phones (≤760, 2026-10-17): `mobileSheets` — the search takes the row (button hidden), one round „Filtre” pill (2026-10-20, no facet chips) → the all-filters bottom sheet (rap-04…04d). Desktop button = `btn-md` 40 (the search height, 2026-10-20). The old `.rap-filter-chip` / `.rap-filter-panel` drawer was removed | library `.chip` + `.chip__badge--accent` |
 | Table | `.rap-table` + `.rap-table__col--*` | `.cab-card` list |
 | Empty state | shared `GEAPEmptyState` in `.rap-state` (2026-10-14) | shared `GEAPEmptyState` in `.cab-state` (2026-10-14) |

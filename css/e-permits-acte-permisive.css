@@ -4494,9 +4494,10 @@
   flex: 0 1 auto;
 }
 
-/* the label „IDNO” sits in a gap-0 row: 4 to the value (the old copy value's inset) */
+/* the label „IDNO” sits in a gap-0 row: 8 to the value — the copy value's hover wrap reaches 8 left of its text, so it
+   ends at the label instead of covering it (copy-wrap-v1) */
 .copy-value.e-permits-fo-selected-role__copy-id {
-  margin-left: var(--spacing-4, 4px);
+  margin-left: var(--spacing-8, 8px);
 }
 
 /* the shared copy value (css/copy-value.css) inside FO identity / authorization cards and the avatar menu:
@@ -4506,14 +4507,6 @@
   font-size: var(--font-size-fs-14, 14px);
   font-weight: var(--font-weight-fw-medium, 500);
   line-height: var(--line-height-lh-20, 20px);
-}
-
-/* the cards' own `… span` text rules (avatar menu identity: tertiary regular) must not reach the value */
-.copy-value:is(.e-permits-fo-selected-role__copy-id, .e-permits-fo-authorization-card__copy-code, .e-permits-fo-avatar-menu__identity-copy) > .copy-value__text {
-  color: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  line-height: inherit;
 }
 
 .e-permits-fo-selected-role__change {

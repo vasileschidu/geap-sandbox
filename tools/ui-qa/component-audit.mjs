@@ -8,9 +8,11 @@
 //      text, desktop 40; icons inside a field at the library icon size for that field (48 → 24, 40 → 20);
 //   3. look-alike — an element styled as a control (pointer cursor + paint, or border + radius + padding at a
 //      control height) without a control role and without a library / documented class;
-//   4. copy (2026-10-20) — copy-variant: copy markup that is not the ONE `.copy-value` component (legacy classes /
-//      data hooks, an icon-only control labelled „Copiază…”); copy-in-list: a `.copy-value` inside a list view
-//      (table cell, stacked row, act / request row) — lists show plain numbers (spec.copy).
+//   4. copy (2026-10-20, rewritten 2026-10-21) — copy-variant: copy markup that is not the ONE `.copy-value` component
+//      (legacy classes / data hooks, an icon-only control labelled „Copiază…”); copy-in-list: a DEFAULT `.copy-value`
+//      (with its icon) inside a list view (table cell, stacked row, act / request row) — lists use `.copy-value--compact`;
+//      missing-copy: a plain-text copy candidate (spec.copy.candidates: dossier / act / request numbers, IDNO / IDNP)
+//      inside a list view that is not a copy value (spec.copy).
 //   5. back navigation (2026-10-21) — crumb-trail: a hand-made trail (a `*crumb*` class / breadcrumb nav that is not the
 //      library `.breadcrumbs`); back-link: a custom back link / button („Înapoi la …”, „‹ …”, a `*-back` / `*__back` /
 //      `*back-shell` class or data hook) outside `.breadcrumbs` — wizard / dialog step buttons are spec.backNav.exempt.
@@ -185,12 +187,31 @@ const AUDIT = (spec, documentedList, scope) => {
       if (!labelRe.test(label) || visibleText(el) || /menuitem/.test(el.getAttribute("role") || "")) continue;
       seen.add(el); add("major", "copy-variant", el, `icon-only „${label.slice(0, 40)}” outside ${C.component}`, `${C.component} (GEAPCopyValue.html)`);
     }
+    /* lists use the COMPACT variant (no icon, the number itself copies — 2026-10-21) */
     for (const el of root.querySelectorAll(C.component)) {
       if (!vis(el) || ignored(el)) continue;
       counts.copies++;
-      if (C.listExempt.some((s) => el.closest(s))) continue;
+      if (C.listExempt.some((s) => el.closest(s)) || el.matches(C.compact)) continue;
       const ctx = C.listContexts.find((s) => el.closest(s));
-      if (ctx) add("major", "copy-in-list", el, `copy value inside ${ctx}`, "plain text in list views");
+      if (ctx) add("major", "copy-in-list", el, `copy value with its icon inside ${ctx}`, `${C.compact} (GEAPCopyValue.html(value, { compact: true }) / shell renderListCode)`);
+    }
+    /* missing-copy: a plain-text copy candidate (dossier / act / request number, IDNO / IDNP, code) in a list view */
+    if (C.candidates) {
+      counts.copyCandidates = 0;
+      const res = C.candidates.map((p) => new RegExp(p));
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      const flagged = new Set();
+      for (let n; (n = walker.nextNode());) {
+        const t = n.nodeValue.trim();
+        const el = n.parentElement;
+        if (!t || !el || flagged.has(el) || !res.some((re) => re.test(t))) continue;
+        if (!vis(el) || ignored(el) || el.closest(C.component) || (C.candidateExempt || []).some((s) => el.closest(s))) continue;
+        const ctx = C.listContexts.find((s) => el.closest(s));
+        if (!ctx) continue;
+        counts.copyCandidates++;
+        flagged.add(el);
+        add("major", "missing-copy", el, `plain „${t.slice(0, 30)}” inside ${ctx}`, `${C.compact} (shell renderListCode / act-row metaParts / GEAPCopyValue.html(value, { compact: true }))`);
+      }
     }
   }
   /* 5. back navigation (2026-10-21, user: „use the breadcrumb as a component … why invent it?”): a page's way back and

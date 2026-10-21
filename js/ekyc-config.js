@@ -1855,7 +1855,7 @@
     switch (key) {
       case "denumire": return S.identity(r.denumire, r.clienti ? `mTLS · ${plural(r.clienti, "client", "clienți")}` : r.c.keyAlgorithm);
       case "emitent": return desc(r.emitent);
-      case "amprenta": return A.renderListCode(shortThumb(r.amprenta));
+      case "amprenta": return A.renderListCode(r.amprenta, { display: shortThumb(r.amprenta), label: "Copiază amprenta" });
       case "valabilDeLa": return esc(longDate(r.valabilDeLa));
       case "valabilPana": { const d = daysTo(r.valabilPana); return `<span class="e-permits-workplace__date-stack"><span>${esc(longDate(r.valabilPana))}</span><span class="e-permits-workplace__date-meta">${d < 0 ? `expirat de ${-d} zile` : d <= 60 ? `expiră în ${d} zile` : `încă ${Math.round(d / 365)} ani`}</span></span>`; }
       case "stare": return T(r.stare, CA_TONES[r.stare]);
