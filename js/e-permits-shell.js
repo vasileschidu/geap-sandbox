@@ -5808,8 +5808,14 @@ document.addEventListener("DOMContentLoaded", () => {
     </tr>
   `;
 
+  /* no-continue-btn-v1: a product registry whose row click is the row's action (no „Continuă” / „Detalii” button) names
+     the row through `rowLabel(row)` → the tr is the control: tabindex 0, that name, Enter / Space = click */
+  const workplaceRowOpenAttrs = (row) => {
+    const label = productRegistry(workplaceDb?.kind)?.rowLabel?.(row);
+    return label ? ` tabindex="0" data-workplace-row-open aria-label="${escapeHtml(label)}"` : "";
+  };
   const renderDataRow = (row, columns, columnWidths, view = getView()) => `
-    <tr data-workplace-row="${escapeHtml(row.id)}"${productRegistry(workplaceDb?.kind)?.rowClass?.(row) ? ` class="${escapeHtml(productRegistry(workplaceDb.kind).rowClass(row))}"` : ""}>
+    <tr data-workplace-row="${escapeHtml(row.id)}"${productRegistry(workplaceDb?.kind)?.rowClass?.(row) ? ` class="${escapeHtml(productRegistry(workplaceDb.kind).rowClass(row))}"` : ""}${workplaceRowOpenAttrs(row)}>
       ${view?.selectable === false ? "" : `<td class="e-permits-workplace__select-cell">
         <label class="checkbox checkbox--medium">
           <input class="checkbox-input" type="checkbox" aria-label="Selectează rândul" data-workplace-select-row="${escapeHtml(row.id)}" ${workplaceState.selected.has(row.id) ? "checked" : ""}>
@@ -7084,7 +7090,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const menuId = `passport-stack-menu-${stackMenuSeq += 1}`;
     return `
       <div class="e-permits-stack__menu-wrap">
-        <button class="btn btn-strict btn-sm btn-icon-only e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-tooltip-label="Mai multe acțiuni" data-stack-menu-trigger>
+        <button class="btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="${menuId}" aria-label="Mai multe acțiuni: ${escapeHtml(label)}" data-tooltip-label="Mai multe acțiuni" data-stack-menu-trigger>
           <svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-more-vertical"></use></svg>
         </button>
         <ul class="e-permits-fo-intent-menu e-permits-stack__menu" id="${menuId}" role="menu" aria-label="Acțiuni: ${escapeHtml(label)}" hidden data-stack-menu>
@@ -7103,7 +7109,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* a clickable row with no visible action (no-lone-detalii-v1) is itself the control: tabindex 0, an accessible
      name „<title> — <tags>, deschide detaliile”, Enter / Space = click (stackRowKeydown below) */
-  const stackRowHasActions = (item) => Boolean(String(item.actionsHtml || "").trim() || item.action || item.menu?.length);
+  /* no-continue-btn-v1 (2026-10-21): the ⋮ is not a duplicate of the row click — a row whose only control is the ⋮
+     is still itself the control (focusable, named) */
+  const stackRowHasActions = (item) => Boolean(item.action || /<(button|a)\b(?![^>]*(data-stack-menu-trigger|role="menuitem"))/.test(String(item.actionsHtml || "")));
   const stackRowOpenAttrs = (item) => {
     if (!item.rowAttrs || stackRowHasActions(item)) return "";
     const tags = (item.badges || []).map((badge) => String(badge).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()).filter(Boolean).join(", ");
@@ -7171,7 +7179,9 @@ document.addEventListener("DOMContentLoaded", () => {
   /* no-lone-detalii-v1 (2026-10-21, user: „if it does the same as clicking the entire card, remove Detalii”): when the
      ROW itself opens the same details (`rowOpens`, a stacked row with rowAttrs) and „Detalii” would be its only
      action, there is no button at all — the whole row is the action (renderStackItem makes it focusable) */
-  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "", rowOpens = false }) => rowOpens && !primary && preview && !menu.length ? "" : !primary && preview ? `
+  /* no-continue-btn-v1 (2026-10-21, user: „Detalii as well does the same as click?”): a row that opens the same details
+     never shows „Detalii” — not even next to a ⋮; only the ⋮ (grey Neutral icon-only Small) stays */
+  const renderRowActions = ({ preview = null, primary = null, menu = [], label = "", rowOpens = false }) => rowOpens && !primary && preview ? (menu.length ? renderStackMenu(menu, label) : "") : !primary && preview ? `
     <button class="btn btn-neutral btn-sm e-permits-stack__action" type="button" aria-label="Detalii: ${escapeHtml(label)}" ${preview}>${actionLabelHtml("Detalii")}</button>
     ${menu.length ? renderStackMenu(menu, label) : ""}` : `
     ${preview ? `<button class="btn btn-strict btn-sm btn-icon-only" type="button" aria-label="Previzualizează: ${escapeHtml(label)}" data-tooltip-label="Previzualizează" ${preview}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-eye-open"></use></svg></button>` : ""}
@@ -8113,7 +8123,7 @@ document.addEventListener("DOMContentLoaded", () => {
      with Enter / Space like a button — the row's own click handler runs (after the specific handlers above) */
   document.addEventListener("keydown", (event) => {
     if (event.defaultPrevented || (event.key !== "Enter" && event.key !== " ")) return;
-    const row = event.target.matches?.("[data-stack-row-open]") ? event.target : null;
+    const row = event.target.matches?.("[data-stack-row-open], [data-workplace-row-open]") ? event.target : null;
     if (!row) return;
     event.preventDefault();
     row.click();

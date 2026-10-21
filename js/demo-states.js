@@ -2819,7 +2819,7 @@
       "gh-01a": ghList(async (h) => { await h.fill("[data-workplace-search]", "zzz"); await h.wait(500); }),
       "gh-01b": ghList(null, { gol: "1" }),
       "gh-01c": ghList(async (h) => { await h.click("[data-workplace-filter-toggle]"); }),
-      "gh-01d": ghList(menu("tr[data-workplace-row='gh-4771'] [data-gh-open]")),
+      "gh-01d": ghList(menu("tr[data-workplace-row='gh-4771']")),
       "gh-01e": ghList(async (h) => { await h.click("[data-workplace-export]"); await h.find("#case-action-modal.is-active [data-gh-export-confirm]"); }),
       "gh-01f": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); }),
       "gh-01g": { flow: "back-office", as: "ansp-specialist-chisinau", hash: "#ghiseu/nou", ready: "#gh-start-modal.is-active .e-permits-empty" },
@@ -2932,13 +2932,17 @@
       "gh-10d": gh("#ghiseu/gh-4771/plata", seq(async (h) => { await h.click("[data-gh-mpay]"); }, next, async (h) => { await h.click("[data-gh-submit]"); }, async (h) => { await h.click('[data-gh-preview="cert"]'); })),
       "gh-10e": gh("#ghiseu/gh-4805"),
       /* US-240 Eliminare + US-239 reluare / eliminare automată */
-      "gh-11": ghList(seq(menu("tr[data-workplace-row='gh-4812'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); })),
-      "gh-11a": ghList(seq(menu("tr[data-workplace-row='gh-4771'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4771"]'); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
-      "gh-11b": ghList(seq(menu("tr[data-workplace-row='gh-4812'] [data-gh-open]"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); }, async (h) => { await h.fill("#fo-gh-remove-reason", "Solicitantul a renunțat la cerere."); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
-      "gh-11c": ghList(menu("tr[data-workplace-row='gh-4765'] [data-gh-open]")),
-      "gh-11d": ghList(menu("tr[data-workplace-row='gh-4702'] [data-gh-open]")),
+      "gh-11": ghList(seq(menu("tr[data-workplace-row='gh-4812']"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); })),
+      "gh-11a": ghList(seq(menu("tr[data-workplace-row='gh-4771']"), async (h) => { await h.click('[data-gh-remove="gh-4771"]'); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
+      "gh-11b": ghList(seq(menu("tr[data-workplace-row='gh-4812']"), async (h) => { await h.click('[data-gh-remove="gh-4812"]'); }, async (h) => { await h.fill("#fo-gh-remove-reason", "Solicitantul a renunțat la cerere."); }, async (h) => { await h.click("[data-gh-remove-confirm]"); })),
+      "gh-11c": ghList(menu("tr[data-workplace-row='gh-4765']")),
+      "gh-11d": ghList(menu("tr[data-workplace-row='gh-4702']")),
       "gh-12": gh("#ghiseu/gh-4650"),
-      "gh-13": ghList(async (h) => { await h.click("tr[data-workplace-row='gh-4790'] [data-gh-open]"); await h.find("[data-gh-panel='verificare']"); })
+      /* no-continue-btn-v1: the draft ROW continues the request (no „Continuă” button) — gh-13 = Enter on the focused row,
+         gh-13a = a click on the row, gh-13b = Space on a submitted row („Dosare nedistribuite”, no „Detalii”) */
+      "gh-13": ghList(async (h) => { const row = await h.find("tr[data-workplace-row='gh-4790'][data-workplace-row-open]"); row.focus(); row.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true })); await h.find("[data-gh-panel='verificare']"); }),
+      "gh-13a": ghList(async (h) => { await h.click("tr[data-workplace-row='gh-4790'] td[data-column='serviciu']"); await h.find("[data-gh-panel='verificare']"); }),
+      "gh-13b": ghList(async (h) => { await h.click('[data-workplace-tab="submitted"]'); await h.wait(300); const row = await h.find("[data-registry-kind='ghiseu'] tr[data-workplace-row-open]"); row.focus(); row.dispatchEvent(new KeyboardEvent("keydown", { key: " ", bubbles: true, cancelable: true })); await h.find("#gh-request-modal.is-active, [data-gh-panel]"); })
     };
   }
 })();

@@ -20626,7 +20626,8 @@ button.e-permits-steps-strip__cell:focus-visible {
 }
 
 /* on the grey band the grey „Detalii” would melt into it → white until the pointer is on it */
-.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) .btn-neutral.e-permits-stack__action:not(:hover, :active) {
+.e-permits-stack__item.is-clickable:is(:hover, :has([aria-expanded="true"]), :has(:focus-visible)) .btn-neutral.e-permits-stack__action:not(:hover, :active),
+.e-permits-stack__item.is-clickable:is(:hover, :focus-visible, :has([aria-expanded="true"]), :has(:focus-visible)) .btn-neutral.e-permits-stack__menu-trigger:not(:hover, :active, [aria-expanded="true"]) {
   background: var(--color-background-base-default, #fff);
 }
 

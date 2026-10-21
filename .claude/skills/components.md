@@ -187,6 +187,7 @@ but this doc previously described it wrongly, see the entry.
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
 | Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon size from the button size: Small 16, Medium / Large 20 — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
 | Clickable card / row = the action, no lone „Detalii” (user rule 2026-10-21, no-lone-detalii-v1) | a card / row that already opens its details on click has NO „👁 Detalii” button when that would be its only action: Cabinet request row (`actionsHtml` → "" → no `.cab-doc__actions`, no `--row-trigger-w` reservation), Cabinet document card (`CabEvo.docRowHtml(doc, { key })`: `.cab-doc.is-clickable[tabindex=0][aria-label="<tip>, deschide detaliile"]`), BO stacked rows (`renderRowActions({ …, rowOpens: true })` → "" when only the preview is left; `renderStackItem` gives a row with `rowAttrs` and no action `tabindex="0"` + `data-stack-row-open` + `aria-label` „<title> — <tags>, deschide detaliile”, Enter / Space = click through one shell keydown). Focus = the row ring (2 px `--focus-ring` outline, offset −2) + the hover band. Kept: rows / cards that are NOT clickable (FO previous act card, Ghișeu document cards, passport forms) and data tables (`tr` is not focusable — the column button is the keyboard path). With other actions the ⋮ stays | § „Row actions” rule 5; demo sm-01 (d-fresh, d-lab, d-prut), sm-05e…h, dos-03a, dos-04g…o, svc-06j, svc-07 | app |
+| Registry row = the action (no-continue-btn-v1, user 2026-10-21 GEAP 11862:24338 / 11914:29753) | product registry hook `rowLabel(row)` → `tr[data-workplace-row][tabindex="0"][data-workplace-row-open][aria-label="<name> — <what the click does>"]` (shell `workplaceRowOpenAttrs`); Enter / Space = click (shared keydown with `[data-stack-row-open]`); `:focus-visible` = hover band + inset `--focus-ring` box-shadows on the cells (`css/e-permits-shell.css`); the action cell keeps only the grey ⋮ (`btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger`, white on the band) — no „Continuă” / „Detalii” that repeats the click | § „Row actions” rules 6–7; Ghișeu demo gh-01, gh-01d, gh-01f, gh-13 (Enter), gh-13a (click), gh-13b (Space, submitted) | app |
 | Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
 | Unsaved-changes status → review (every draft page, user rule 2026-10-21) | `renderHeaderStatus(changesCountLabel(n), "warning", changesStatusAttrs("<source>"))` → `button.e-permits-page-header__status.e-permits-page-header__status--button[data-profile-changes][aria-haspopup=dialog]` (page header caption, Setări save bar `.e-permits-cfg2__bar`, dtpl sheet head) → ONE modal `#profile-changes-modal` fed by `registerChangeSource(key, build)`; never a plain `<span>` status for a count of unsaved edits | — (§ Profile tabs › „The status is a button”); demo svc-10x…10x3, clf-04d/e, ntpl-04d/e, svc-08n/n1, ek-24h, usr-u05f, rol-01b | app |
 | Button — badge/CTA | `.btn-badge` + `--mpass/--msign/--mpay/--mpower/--mdelivery/--primary/--neutral` | — | app |
@@ -6258,6 +6259,25 @@ deciziei” under Suspendare (Figma comments, Olesea Luchian, 2026-10-09).
    Documente, Tarife, Clasificatoare (read-only roles); Cabinet request rows and document cards. Kept (row not
    clickable or not focusable): data tables (registries, eKYC — `tr` is not a focusable control, the column button is
    the keyboard / screen-reader path), the FO previous-act card, Ghișeu document cards, passport forms.
+6. **No labelled button that repeats the row click — not next to a ⋮ either (user 2026-10-21, no-continue-btn-v1, GEAP
+   11862:24338 „remove Continuă … it's the same as clicking. Leave only the dots” + 11914:29753 „Detalii as well does the
+   same as click?”).** Rule 5 generalised: when the row / card click already does what a labelled button does („Continuă”,
+   „Detalii”), the button goes; only the ⋮ with the OTHER actions stays. The repeated action is NOT copied into the ⋮
+   (the row is the action; the ⋮ holds what the click can't do — a menu item that repeats the click is a second
+   duplicate). `renderRowActions({ preview, rowOpens: true, menu })` now returns the ⋮ alone. Tables can do it too:
+   a product registry with `rowLabel(row)` gets `tr[tabindex=0][data-workplace-row-open][aria-label]` (the name says
+   what the click does: „<nr>, <serviciu>, <solicitant> — schiță, continuă completarea” / „— dosar depus, deschide
+   detaliile”), Enter / Space = click through the same shell keydown, focus = the hover band + a 2 px `--focus-ring`
+   ring drawn INSIDE the cells as inset box-shadows (pinned sticky cells would paint over an outline on the `tr`).
+   Applied: Ghișeu „Dosare noi” (drafts: ⋮ „Elimină schița” only; „Dosare nedistribuite”: no button; actions column
+   168 → 56). Not changed: Cabinet requests (the row opens the DETAILS — „Continuă schița” is a different action and
+   stays in the ⋮ only); eKYC tables still show „Detalii” (+ ⋮) beside a row that opens the same — follow-up.
+7. **The ⋮ is grey (user 2026-10-21, no-continue-btn-v1: „make the dots button a grey one instead”):** every row / card /
+   section ⋮ = library Neutral icon-only Small `btn btn-neutral btn-sm btn-icon-only` (32, r6, gray fill), like the
+   Cabinet request rows — `renderStackMenu` emits it, so every BO / eKYC / Ghișeu / Process Designer stacked list,
+   registry row and section ⋮ follows. On a grey row band (hover / focus / open) the ⋮ is white until its own hover
+   (same rule as „Detalii” on the band); open = pressed + focus ring. The strict icon-only eye „Previzualizează” is not
+   a ⋮ and stays strict.
 Why: NN/g — labelled actions are understood, icons alone rarely are; Carbon — secondary actions
 in the overflow, destructive separated and last. Tables (registries) keep their icon-only ✎.
 **Figma (2026-10-09, GEAP 2.0 › Servicii, all blocks):** svc/stack-item `9521:8751` — „Edit” is
@@ -8135,7 +8155,7 @@ an open button (keeps its pressed fill), a drawer scrim, disabled items.
   `.e-permits-workplace__table-wrap` from the sticky cells; the pinned header cell is z-index 9 (td
   and th were both 7, so rows painted over it on vertical scroll).
 - Registry row actions off-screen (Ghișeu „Dosare noi”, 2026-10-16): the table is wider than its view at
-  1440, so „Continuă” / ⋮ need `pin: "end"` (above). An empty state in such a table is sticky inside
+  1440, so the ⋮ needs `pin: "end"` (above; „Continuă” went in no-continue-btn-v1 — the row is the action). An empty state in such a table is sticky inside
   the visible width (`--workplace-view-width`, set on the table wrap by a ResizeObserver in the shell).
 - Page-header tab strip: `scroll-padding-inline: 48px` keeps a focused tab out from under the ‹ ›
   arrows and the fade.

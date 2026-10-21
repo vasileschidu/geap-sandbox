@@ -102,7 +102,12 @@ for (const state of STATES) {
       /* by design without hover: read-only fields (library Read Only state) and an open button,
          which keeps its pressed fill (memory „Open button focus”) */
       const byDesign = el.readOnly ? 'read-only' : el.getAttribute('aria-expanded') === 'true' ? 'open, keeps pressed' : /scrim/.test(String(el.className)) ? 'backdrop (closes the drawer)' : '';
-      const x = r.left + Math.min(r.width / 2, 24), y = r.top + r.height / 2;
+      /* aim inside the VISIBLE part: a table row wider than its horizontally scrolled table starts off-screen
+         (left < the scroller's left) — clip to the nearest x-scroller and the viewport (no-continue-btn-v1) */
+      let cl = 0, cr = innerWidth;
+      for (let p = el.parentElement; p && p !== document.body; p = p.parentElement) { const ox = getComputedStyle(p).overflowX; if (/(auto|scroll|hidden|clip)/.test(ox) && p.scrollWidth > p.clientWidth) { const b = p.getBoundingClientRect(); cl = Math.max(cl, b.left); cr = Math.min(cr, b.right); break; } }
+      const vl = Math.max(r.left, cl), vr = Math.min(r.right, cr);
+      const x = vl + Math.min(Math.max(vr - vl, 0) / 2, 24), y = r.top + r.height / 2;
       const top = document.elementFromPoint(x, y);
       const name = (el.getAttribute('aria-label') || el.textContent || el.getAttribute('placeholder') || '').trim().replace(/\\s+/g, ' ').slice(0, 40);
       const id = el.tagName.toLowerCase() + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\\s+/).slice(0, 2).join('.') : '');

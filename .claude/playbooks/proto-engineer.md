@@ -2163,3 +2163,21 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   overlays (they use `is-active`) and said „not closed” — check the family's own open flag. Proof that audit findings were
   not mine: component-audit on a tree COPY with my 3 files reset to HEAD (python http.server :8983) = identical per-state
   counts; code-audit only the standing A4 mm padding / zoomed page text / FO doc-modal buttons / BO 11·7 rows; hover 0 / 0.
+- 2026-10-21 · No button that repeats the row click + grey ⋮ (no-continue-btn-v1; user on GEAP 11862:24338 „remove Continuă …
+  it's the same as clicking. Leave only the dots”, then 11914:29753 „Detalii as well does the same as click? Also make the
+  dots button a grey one”). Inventory by grep of every „Continuă” / „Detalii” producer + its row's click target: only the
+  Ghișeu „Dosare noi” table had a labelled button that repeated the row (drafts „Continuă”, submitted lone „Detalii”);
+  Cabinet drafts open the DETAILS (Continuă schița stays a ⋮ item — different action); eKYC tables still repeat
+  „Detalii” (follow-up, other Figma file). Removing a table's button removes its only keyboard path — the 2026-10-21
+  „tables keep Detalii because tr isn't focusable” exemption is now solved generically: a registry `rowLabel(row)` hook
+  makes the `tr` the control (tabindex, name „<nr>, … — schiță, continuă completarea”, Enter / Space through the same
+  keydown as stacked rows). Focus ring on a table row = inset box-shadows on the cells (an outline on the `tr` is painted
+  UNDER the pinned sticky cells). Grey ⋮ = ONE class swap in `renderStackMenu`; a grey button on the grey hover band
+  needs the „white until own hover” rule (as „Detalii”). The row now navigates through the SAME hash route the old
+  button used (`openDraftFromList`, Back returns to the list) — the old `openRow` skipped the hash. Decision: the
+  repeated action is NOT added to the ⋮ (a menu item that repeats the click is just the duplicate moved). Tool fix:
+  hover-audit aimed at `left + 24` of a row wider than its horizontally scrolled table (x −57, off-screen → 9 false
+  „no-hover”); it now aims inside the nearest x-scroller's visible part. Keyboard proved with real CDP Tab / Enter /
+  Space (row named, opens the draft; Enter on the ⋮ opens only its menu). component-audit flags the focusable `tr` as
+  a minor „without a control role” (same as the stacked rows; a `tr` must stay `role=row`). No sub-agent tool →
+  hover-audit 0 / 0, code-audit (th sort FPs only, static 0), component-audit (no ⋮ / row finding) run directly.

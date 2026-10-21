@@ -2601,6 +2601,44 @@ body {
   background: var(--color-background-base-secondary-hover, #e7e7e7);
 }
 
+/* no-continue-btn-v1 (2026-10-21): a registry row that IS the action (product `rowLabel`, no „Continuă” / „Detalii”
+   button) — pointer, the hover band on keyboard focus too, and the focus ring drawn inside the cells (the pinned
+   sticky cells would paint over an outline on the tr) */
+.e-permits-workplace__table tbody tr[data-workplace-row-open] {
+  cursor: pointer;
+}
+
+.e-permits-workplace__table tbody tr[data-workplace-row-open]:focus-visible {
+  outline: none;
+}
+
+.e-permits-workplace__table tbody tr[data-workplace-row-open]:focus-visible > td {
+  background: var(--color-background-base-secondary-hover, #e7e7e7);
+  box-shadow:
+    inset 0 var(--border-width-2, 2px) 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-workplace__table tbody tr[data-workplace-row-open]:focus-visible > td:first-child {
+  box-shadow:
+    inset var(--border-width-2, 2px) 0 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 var(--border-width-2, 2px) 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+.e-permits-workplace__table tbody tr[data-workplace-row-open]:focus-visible > td:last-child {
+  box-shadow:
+    inset calc(var(--border-width-2, 2px) * -1) 0 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 var(--border-width-2, 2px) 0 var(--focus-ring, var(--blue-sky-500, #3379db)),
+    inset 0 calc(var(--border-width-2, 2px) * -1) 0 var(--focus-ring, var(--blue-sky-500, #3379db));
+}
+
+/* the grey ⋮ (Neutral) would melt into the grey row band → white until the pointer is on it (as „Detalii” on the
+   stacked-list band) */
+.e-permits-workplace__table tbody tr:is(:hover, :focus-visible) .btn-neutral.e-permits-stack__menu-trigger:not(:hover, :active, [aria-expanded="true"]) {
+  background: var(--color-background-base-default, #fff);
+}
+
 .e-permits-workplace__group-header {
   width: 378px;
   height: 24px;

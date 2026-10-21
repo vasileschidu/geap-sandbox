@@ -463,7 +463,9 @@
       defaultSort: "modificat",
       columns: {
         /* widths = the one-line header (label + sort icon) or the longest date; names ellipsize with a
-           tooltip; the actions („Continuă” + ⋮) stay pinned right while the dates scroll */
+           tooltip; the ⋮ stays pinned right while the dates scroll. The ROW is the action (no-continue-btn-v1, user on
+           GEAP 11862:24338 / 11914:29753): a draft row continues the request, a submitted row opens it — no „Continuă” /
+           „Detalii” button that would repeat the click */
         nr: { label: "Număr cerere", width: 144, sortable: true },
         serviciu: { label: "Denumirea serviciului", width: 184, fill: true, sortable: true },
         solicitant: { label: "Nume solicitant", width: 152, sortable: true },
@@ -473,7 +475,7 @@
         modificat: { label: "Data ultimei modificări", width: 180, sortable: true },
         expirareNota: { label: "Data expirării notei de plată", width: 212, sortable: true },
         eliminare: { label: "Data eliminării automate", width: 192, sortable: true },
-        actiuni: { label: "", width: 168, pin: "end" }
+        actiuni: { label: "", width: 56, pin: "end" }
       },
       views: {
         ghiseu: {
@@ -541,14 +543,11 @@
           return dateCell(row.eliminare, row.notificat ? `${inDays(n)} · notificare trimisă` : inDays(n), n <= NOTIFY_BEFORE_DAYS ? "warning" : "");
         }
         case "actiuni": {
-          if (row.submitted) {
-            return `<span class="e-permits-workplace__row-actions">${U().renderRowActions?.({ preview: `data-gh-open="${esc(row.id)}"`, label: row.nr }) || ""}</span>`;
-          }
+          if (row.submitted) return "";
           const menu = [
             { label: "Elimină schița", icon: "delete", danger: true, attrs: `data-gh-remove="${esc(row.id)}"${row.paid ? ' aria-disabled="true" data-tooltip-reason="Nota de plată este achitată: schița nu se mai poate elimina."' : ""}` }
           ];
           return `<span class="e-permits-workplace__row-actions">${(U().renderRowActions?.({
-            primary: { label: "Continuă", attrs: `data-gh-open="${esc(row.id)}" aria-label="Continuă ${esc(row.nr)}"` },
             menu,
             label: row.nr
           }) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>`;
@@ -556,7 +555,9 @@
         default: return esc(String(row[key] ?? "—"));
       }
     },
-    openRow: (id) => openDraft(id),
+    /* the row = the old „Continuă” / „Detalii”: same hash route (Back returns to the list) */
+    openRow: (id) => openDraftFromList(id),
+    rowLabel: (row) => `${row.nr}, ${row.serviciu}${row.solicitant ? `, ${row.solicitant}` : ""} — ${row.submitted ? "dosar depus, deschide detaliile" : "schiță, continuă completarea"}`,
     rowClass: () => "",
     emptyHtml: ({ query, filtered }) => {
       const E = window.GEAPEmptyState;
