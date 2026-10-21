@@ -2597,7 +2597,7 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   („US-162 AC-08”). Never: pixel sizes, tokens, component / class names, file paths, commit ids, colours, „Gol bibliotecă” lines,
   „Mobil (≤ 860 px)” lines, lists of changes. „Declared deltas” / „Library gaps” / „Code findings” / „Rules used” cards are not for PMs →
   deleted; „Components used” → two plain bullets. „How to read” → 3 bullets (columns in flow order · block anatomy · arrows from the click).
-  Done: RAP 42 notes + 5 column lines + Start here (2 cards removed); GEAP 413 notes on 15 pages + 30 band / How-to-read texts; eKYC 87
+  Done: RAP 42 notes + 5 column lines + Start here (2 cards removed); GEAP 355 notes on 15 pages + 30 band / How-to-read texts; eKYC 87
   notes + 14 texts (library-gaps card removed); FOD 13 notes + 5 texts; Cabinet 11 notes + 2 „Components used” shortened, 2 „Declared
   deltas” cards removed. Same job: RAP blocks got the GEAP anatomy in the MAINS (`Board / Block label` set 22060:5083: blue chip
   background/brand/default + text/base-inverse/default, gap 12, `Link · prototype` text added to all 3 variants, hyperlink set per
