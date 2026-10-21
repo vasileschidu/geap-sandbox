@@ -192,6 +192,25 @@
           "subdivision": "CSP Chișinău", "status": "finalizat", "result": "aprobat", "submitted": "2025-07-14T15:20", "examTerm": "2025-08-04", "finalized": "2025-08-08",
           "actId": "act-salon-pf", "actNr": "ASF-2025-09931", "issuedBy": "Ion Ceban",
           "payment": { "nr": "NP-20250714-2654", "amount": 500, "status": "Achitat", "created": "2025-07-14T15:18", "paid": "2025-07-14T15:19" }
+        },
+        {
+          "_note": "act-profile-v1 (2026-10-21): an annulment started by the AUTHORITY (initiatedBy) — the holder sees the procedure and its decision here and can contest it within appealDays (Feature 90818: the contestație belongs to the dossier)",
+          "id": "d-ana-anulare", "nr": "GEAP-2026-009-04388", "service": "09", "tip": "Anulare", "pp": "anulare", "initiatedBy": "autoritate",
+          "object": "Patiseria „Ana”, or. Ialoveni", "address": "or. Ialoveni, str. Alexandru cel Bun 14",
+          "subdivision": "CSP Ialoveni", "status": "finalizat", "result": "aprobat", "submitted": "2026-09-24T09:00", "examTerm": "2026-10-08", "finalized": "2026-10-01",
+          "actId": "act-ana-anulat", "prevActNr": "ASF-2024-06618", "decisionOnly": true,
+          "decision": {
+            "nr": "D-ANSP-2026-1198",
+            "signedBy": "Elena Rotaru",
+            "text": "Actul permisiv ASF-2024-06618 a fost anulat din oficiu: a fost emis în baza unui contract de locațiune care expirase la data depunerii cererii."
+          }
+        },
+        {
+          "id": "d-ana-patiserie", "nr": "GEAP-2024-009-01275", "service": "09", "tip": "Eliberare",
+          "object": "Patiseria „Ana”, or. Ialoveni", "address": "or. Ialoveni, str. Alexandru cel Bun 14", "caem": "C 10.71 Fabricarea pâinii și a produselor de patiserie",
+          "subdivision": "CSP Ialoveni", "status": "finalizat", "result": "aprobat", "submitted": "2024-03-28T11:40", "examTerm": "2024-04-18", "finalized": "2024-04-18",
+          "actId": "act-ana-anulat", "actNr": "ASF-2024-06618", "issuedBy": "Ion Ceban",
+          "payment": { "nr": "NP-20240328-1275", "amount": 500, "status": "Achitat", "created": "2024-03-28T11:38", "paid": "2024-03-28T11:39" }
         }
       ]
     },

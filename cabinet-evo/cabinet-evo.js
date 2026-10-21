@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/cabinet-evo.json?v=act-fields-v1";
+  const DATA_URL = "../data/cabinet-evo.json?v=act-profile-v1";
   const SPRITE = "../assets/icons/sprite.svg";
   /* Figma marks only the suspended count with the accent badge */
   const ACCENT_STATES = ["suspendat"];
@@ -25,7 +25,7 @@
      office uses (acte-permisive.json → intent): status × post-process
      matrix, the service passport (allows), paper acts and acts with a
      post-process already in progress. The perspective is ?as=<subject>. */
-  const GEAP_URL = "../data/acte-permisive.json";
+  const GEAP_URL = "../data/acte-permisive.json?v=act-profile-v1";
   const FO_URL = "../e-permits-acte-permisive.html";
 
   /* notice tone → library banner variant (subtle tint, per Figma) */
@@ -56,6 +56,9 @@
 
   const state = {
     permits: [], query: "", geap: null, detail: null, dosarByAct: {}, dosarNrByAct: {}, actProfiles: {}, help: {},
+    /* act profile (act-profile-v1): every request of the perspective by act id / by number, the demo „today” and
+       the appeal term of „Solicitările mele”, the perspective (mpower = a representative) */
+    dossiersByAct: {}, dosarIdByNr: {}, today: "2026-10-12", appealDays: 30, perspective: null,
     /* the shared facet filter (js/facet-filter.js) — applied values per facet, the bar's draft */
     filter: { open: false, applied: {}, draft: null },
     page: 1,
@@ -636,32 +639,65 @@
     modal.querySelector("[data-cab-pp-cancel]")?.focus();
   }
 
-  /* ---------- act profile = the RAP act profile seen by the owner (2026-10-17 alignment) ----------
-     The public BO header (Numărul actului · Stare · the status date · Data expirării; „Vezi act
-     permisiv” = the primary, then „Postprocese ▾” and „Vezi solicitarea”), the paper /
-     pending notice, then BO sections: Beneficiar (the FO identity card), Detalii act (US-162 AC-17:
-     „Data suspendării actului permisiv” + „Suspendat până la data de” only for Suspendat, „Data
-     retragerii actului permisiv” only for Retras, „Data aprobării tacite” + the blue badge for a tacit
-     act), Autoritatea emitentă. „Vezi act permisiv” → the RAP „Vizualizare act” data modal, its
-     „Descarcă” → „Forma de tipar a actului” (MDocs A4) = the shared GEAPActView (js/act-view.js). */
+  /* ---------- act profile (act-profile-v1, 2026-10-21 — user: „the profile as best practice; optimise, but don't
+     miss anything; what the Azure stories ask must be covered”) ----------
+     Each fact ONCE, key facts first (GOV.UK summary list · NN/g „key facts first” · the UK driving-licence page:
+     what you may do before admin metadata · GoBusiness: action-driven). Sources: Feature 90818, US-55 AC-07…14,
+     US-162 AC-04/05/07/08/12/14/17, US-161 AC-23…29, US-159, US-143. components.md › „Act profile”.
+       header    back · title = the object · subtitle = the act type (the service) · the action row, LEFT-aligned under
+                 the title, one line: „Vezi act permisiv” (the one primary, every status) · „Postprocese ⌄” (only when
+                 eligible; disabled + the notice while one is in progress) · „Vezi solicitarea” (the issuing request);
+                 what does not fit goes into a trailing „⋯” (fitActActions) · the key-facts card (grey, r16): Nr.
+                 (copy) · Stare (+ „Aprobare tacită”) · ONE status date (actHeaderDate) on one line, the status notice
+                 (actNotice, only when useful), „Vezi toate detaliile”. Look and feel from the user's YouTube reference
+                 (grouped grey buttons, a compact facts card), NOT its structure — no „channel” identity row (user
+                 2026-10-21: „screenshots are look and feel; research before copying a layout”).
+       sections  [Beneficiar — first for a representative (MPower)] · Ce permite actul (the configured fields,
+                 AC-29, the request Act tab's renderer) · Detalii act · Autoritatea emitentă · [Beneficiar — for the
+                 owner, who is already named in the header avatar] · Istoric (actHistory, the shared trajectory)
+     „Vezi act permisiv” opens the act document itself (MDocs A4, US-143) — every metadata of the old „Vizualizare
+     act” data dialog is on the page now; „Descarcă” lives in that dialog (no-row-download rule). */
   const actProfileOf = (act) => state.actProfiles[act.id] || {};
   const isTacitAct = (act) => Boolean(actProfileOf(act).tacitApprovalDate);
+  /* the date of the current status (US-162 AC-17 + Anulat): when it was suspended / withdrawn / annulled */
+  const STATUS_DATE = { suspendat: "suspensionDate", retras: "withdrawalDate", anulat: "cancellationDate" };
+  const statusDateOf = (act) => actProfileOf(act)[STATUS_DATE[act.status]] || "";
+  /* DD.MM.YYYY | ISO → ISO (sorting and day maths) */
+  const isoOf = (value) => {
+    const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(String(value || ""));
+    return match ? `${match[3]}-${match[2]}-${match[1]}` : String(value || "");
+  };
+  const dayCount = (fromIso, toIso) => Math.round((Date.parse(toIso.slice(0, 10)) - Date.parse(fromIso.slice(0, 10))) / 86400000);
+  const addDaysIso = (iso, days) => new Date(Date.parse(iso.slice(0, 10)) + days * 86400000).toISOString().slice(0, 10);
+  /* Romanian numerals: „de” after 20+ (120 de zile, 704 zile) */
+  const deOf = (n) => (n % 100 >= 20 || (n >= 100 && n % 100 === 0) ? " de" : "");
+  const daysText = (n) => (n === 1 ? "o zi" : `${n}${deOf(n)} zile`);
+  const daysLeftOf = (act) => (act.validUntil ? Math.max(0, dayCount(state.today, isoOf(act.validUntil))) : null);
+  const EXPIRY_PROMPT_DAYS = 60;
+
   function actStatusDates(act) {
     const profile = actProfileOf(act);
     return [
       ...(act.status === "suspendat" ? [["Data suspendării actului permisiv", longDate(profile.suspensionDate)], ["Suspendat până la data de", longDate(profile.suspendedUntil)]] : []),
       ...(act.status === "retras" ? [["Data retragerii actului permisiv", longDate(profile.withdrawalDate)]] : []),
+      ...(act.status === "anulat" ? [["Data anulării actului permisiv", longDate(profile.cancellationDate)]] : []),
     ].filter(([, value]) => value);
   }
-  /* the header item beside Stare: a suspended act shows when the suspension ends, a withdrawn one when it
-     was withdrawn, otherwise „Valabil din data” (the RAP headerDateItem) */
+  /* the ONE status date in the header (the rest of the dates are in „Detalii act”, never twice) */
   function actHeaderDate(act) {
     const profile = actProfileOf(act);
-    if (act.status === "suspendat" && profile.suspendedUntil) return ["Suspendat până la", longDate(profile.suspendedUntil)];
-    if (act.status === "retras" && profile.withdrawalDate) return ["Retras la", longDate(profile.withdrawalDate)];
-    return ["Valabil din data", longDate(act.validFrom || act.issued)];
+    const date = (value) => escape(longDate(value));
+    if (act.status === "suspendat") return profile.suspendedUntil ? ["Suspendat până la", date(profile.suspendedUntil)] : null;
+    if (act.status === "retras") return profile.withdrawalDate ? ["Retras la", date(profile.withdrawalDate)] : null;
+    if (act.status === "anulat") return profile.cancellationDate ? ["Anulat la", date(profile.cancellationDate)] : null;
+    if (act.status === "expirat") return act.validUntil ? ["A expirat la", date(act.validUntil)] : null;
+    /* Valabil — US-161 AC-24: an act without an end date has no „Valabil până la” */
+    if (!act.validUntil) return ["Valabilitate", "nelimitată"];
+    const left = daysLeftOf(act);
+    return ["Valabil până la", `${date(act.validUntil)} <span class="cab-detail__muted">(${left === 0 ? "expiră azi" : `${daysText(left)} ${left === 1 ? "rămasă" : "rămase"}`})</span>`]; /* brackets, not „·” — a wrapped line never starts with a dot */
   }
   const actAuthority = (act) => state.help[act.service?.authority] || {};
+  const authorityNameOf = (act) => actAuthority(act).name || act.service?.authority || "autoritatea emitentă";
   /* the act's public, service-configured fields (the RAP „Câmpuri specifice actului”) from the act data */
   function actGroups(act) {
     /* configured per service (2026-10-19): groups with simple fields + grids, the RAP document.sections shape */
@@ -694,18 +730,165 @@
       validFrom: longDate(act.validFrom || act.issued),
       statusDates: actStatusDates(act),
       validUntil: longDate(act.validUntil),
-      paperNumber: state.dosarNrByAct[act.id] || "",
+      paperNumber: issuingDossierOf(act)?.nr || profile.dossierNr || "",
       printedNumber: profile.printedDocumentNumber || "",
       groups: actGroups(act),
       url: `${window.location.origin}${window.location.pathname}?view=acte&act=${encodeURIComponent(act.id)}`,
       source: "EVO Cabinet",
     };
   }
+  /* „Descarcă” in the act document dialog: the MDocs PDF in the real system — the demo saves the act's data as text
+     (the Cabinet document dialog does the same) */
+  function downloadAct(view) {
+    const lines = [view.name, `nr. ${view.number} din ${view.issuedDate}`, `Stare: ${view.status}`, `Autoritatea emitentă: ${[view.authority, view.office].filter(Boolean).join(" · ")}`, `Beneficiar: ${view.beneficiary.name}`, `Valabil până la: ${view.validUntil || "—"}`];
+    const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" })), download: `Act-permisiv-${view.number}.txt` });
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
   let actViewInstance = null;
   const actView = () => {
-    actViewInstance ||= window.GEAPActView.create({ sprite: SPRITE, copyHtml: (value) => copyValueHtml(value, `Copiază numărul actului ${value}`), copySelector: "[data-copy-value]", onCopy: () => {} });
+    actViewInstance ||= window.GEAPActView.create({
+      sprite: SPRITE,
+      copyHtml: (value) => copyValueHtml(value, `Copiază numărul actului ${value}`),
+      copySelector: "[data-copy-value]",
+      onCopy: () => {},
+      documentTitle: "Vizualizare act",
+      onDocumentDownload: downloadAct,
+    });
     return actViewInstance;
   };
+
+  /* the requests in „Solicitările mele” about this act: the one that issued it (its number = the act's) and the
+     post-processes (status changes, duplicates, one in progress) */
+  const dossiersOf = (act) => state.dossiersByAct[act.id] || [];
+  function issuingDossierOf(act) {
+    const done = dossiersOf(act).filter((dosar) => dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly);
+    return done.find((dosar) => dosar.actNr === act.number) || done.find((dosar) => dosar.id === state.dosarByAct[act.id]) || null;
+  }
+  const requestHref = (id) => cabUrl("solicitari", {}, `#dosar/${id}`);
+  const alertLinkHtml = (href, label) => ` <a class="link link-primary link-sm cab-alert-link" href="${escape(href)}">${escape(label)}&nbsp;→</a>`;
+  const alertPpHtml = (act, ppId, label) => (act.postProcesses.some((pp) => pp.id === ppId)
+    ? ` <button class="link link-primary link-sm cab-alert-link" type="button" data-cab-pp="${escape(ppId)}" data-cab-act="${escape(act.id)}">${escape(label)}&nbsp;→</button>`
+    : "");
+
+  /* the status notice — only when it says something the header does not: what happens next, who decided and
+     why, the deadline of a right (contestație), the action that solves it. One link at most. */
+  function actNotice(act) {
+    const profile = actProfileOf(act);
+    const change = profile.statusChange || {};
+    const byAuthority = change.initiator === "autoritate";
+    const authority = authorityNameOf(act);
+    const decided = byAuthority ? `de ${authority}` : "la cererea titularului";
+    const decision = change.decision ? ` Decizia ${escape(change.decision)}.` : "";
+    const reason = change.reason ? ` Motivul: ${escape(change.reason)}.` : "";
+    const statusDate = statusDateOf(act);
+    /* Feature 90818: a status changed by the AUTHORITY can be contested — on its request (the dossier), within
+       the appeal term of „Solicitările mele” (appealDays from the decision) */
+    const appealUntil = byAuthority && statusDate ? addDaysIso(isoOf(statusDate), state.appealDays) : "";
+    const appealOpen = Boolean(appealUntil) && appealUntil >= state.today;
+    const appeal = appealOpen ? ` Poți depune o contestație până la ${escape(longDate(appealUntil))}, din solicitarea care conține decizia.` : "";
+    const requestLink = change.dosarId ? alertLinkHtml(requestHref(change.dosarId), "Vezi solicitarea") : "";
+    const info = (html) => ({ tone: "info", icon: "icon-circle-info-filled", html });
+    const warning = (html, iconId = "icon-warning-filled") => ({ tone: "warning", icon: iconId, html });
+    if (act.pending) {
+      const id = state.dosarIdByNr[act.pending.dossier];
+      return warning(`<strong>${escape(act.pendingLabel)} în curs.</strong> Poți iniția un alt postproces după finalizarea solicitării ${escape(act.pending.dossier)}.${id ? alertLinkHtml(requestHref(id), "Vezi solicitarea") : ""}`, "icon-time");
+    }
+    if (act.paper) return info(escape(PAPER_TEXT));
+    if (act.status === "suspendat") {
+      const resume = alertPpHtml(act, "reluare", "Cere reluarea valabilității");
+      const next = appealOpen ? appeal + requestLink
+        : resume ? ` Poți cere reluarea valabilității înainte de această dată.${resume}`
+          : ` Valabilitatea se reia automat la această dată.${requestLink}`;
+      return warning(`<strong>Activitatea autorizată nu poate fi desfășurată pe durata suspendării.</strong> Suspendarea a fost decisă ${decided}.${decision}${reason}${next}`);
+    }
+    if (act.status === "retras" || act.status === "anulat") {
+      const verb = act.status === "retras" ? "retras" : "anulat";
+      const next = appealOpen ? appeal : " Pentru a desfășura din nou activitatea, depune o solicitare nouă.";
+      return (appealOpen ? warning : info)(`<strong>Actul nu mai este valabil.</strong> A fost ${verb} ${decided}.${decision}${reason}${next}${requestLink}`);
+    }
+    if (act.status === "expirat") {
+      return info(`<strong>Actul nu mai este valabil.</strong> Pentru a desfășura din nou activitatea, depune o solicitare nouă.${alertLinkHtml(cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Depune o solicitare nouă")}`);
+    }
+    const left = daysLeftOf(act);
+    if (act.status === "valabil" && left !== null && left <= EXPIRY_PROMPT_DAYS) {
+      const extend = alertPpHtml(act, "prelungire", "Inițiază prelungirea");
+      return warning(`<strong>Termenul de valabilitate se apropie de sfârșit.</strong> ${extend ? "Depune cererea de prelungire din timp, ca activitatea să nu fie întreruptă." : "Pentru a continua activitatea după această dată, depune o solicitare nouă."}${extend || alertLinkHtml(cabUrl("catalog", {}, `#serviciu/${act.serviceCode}`), "Depune o solicitare nouă")}`);
+    }
+    return null;
+  }
+
+  /* „Istoric” (US-162 AC-14): the act's key moments in date order on the shared trajectory (vertical) — the request
+     (when known), the tacit approval, the issue, every post-process of the act (status changes with who decided,
+     duplicates, one in progress) — then what comes next, dashed (end of validity / of the suspension). A moment
+     without a date is not shown. Paper acts: only what the registry knows (no GEAP post-processes). */
+  const PP_EVENT = {
+    duplicat: ["Duplicat emis", "done"],
+    reperfectare: ["Act reperfectat", "done"],
+    prelungire: ["Valabilitate prelungită", "done"],
+    suspendare: ["Valabilitate suspendată", "done"],
+    reluare: ["Valabilitate reluată", "done"],
+    retragere: ["Act retras", "rejected"],
+    anulare: ["Act anulat", "rejected"],
+  };
+  const STATUS_EVENT = { suspendat: "suspendare", retras: "retragere", anulat: "anulare" };
+  function actHistory(act) {
+    const profile = actProfileOf(act);
+    const issuing = issuingDossierOf(act);
+    const code = act.service?.authority || "";
+    const where = [code, act.subdivision].filter(Boolean).join(" · ");
+    const ref = (dosar) => (dosar?.id
+      ? `<a class="e-permits-dosar-profil__link" href="${escape(requestHref(dosar.id))}">${escape(dosar.nr)}</a>`
+      : dosar?.nr ? escape(dosar.nr) : "");
+    const meta = (...parts) => parts.filter(Boolean).join(" · ");
+    const whoOf = (initiator) => (initiator === "autoritate" ? `din inițiativa ${escape(code || "autorității")}` : "la cererea titularului");
+    const events = [];
+    const submitted = issuing?.submitted || profile.requestSubmitted;
+    if (submitted) {
+      events.push({ at: submitted, label: "Cerere depusă", state: "done", html: meta(escape(longDateTime(submitted)), issuing?.pp ? escape(issuing.tip) : "", ref(issuing || { nr: profile.dossierNr })) });
+    }
+    if (profile.tacitApprovalDate) {
+      events.push({ at: isoOf(profile.tacitApprovalDate), label: "Aprobare tacită", state: "done", html: meta(escape(longDate(profile.tacitApprovalDate)), "autoritatea nu a emis o decizie în termen") });
+    }
+    events.push({ at: isoOf(act.issued), label: act.paper ? "Act emis pe hârtie" : "Act emis", state: "done", html: meta(escape(longDate(act.issued)), escape(where)) });
+    const covered = new Set();
+    if (!act.paper) {
+      dossiersOf(act).filter((dosar) => dosar !== issuing && dosar.pp).forEach((dosar) => {
+        if (dosar.status === "finalizat" && dosar.result === "aprobat" && PP_EVENT[dosar.pp]) {
+          const [label, state] = PP_EVENT[dosar.pp];
+          covered.add(dosar.pp);
+          events.push({ at: dosar.finalized, label, state, pp: dosar.pp, html: meta(escape(longDate(dosar.finalized)), whoOf(dosar.initiatedBy), ref(dosar)) });
+        } else if (["derulare", "info", "achitare"].includes(dosar.status)) {
+          events.push({ at: dosar.submitted, label: `${dosar.tip} în examinare`, state: "current", html: meta(`depusă la ${escape(longDate(dosar.submitted))}`, ref(dosar)) });
+        }
+      });
+      /* a status change the holder's requests do not show (decided by the authority on its own file) */
+      const pp = STATUS_EVENT[act.status];
+      const change = profile.statusChange;
+      if (pp && change && !covered.has(pp) && statusDateOf(act)) {
+        events.push({ at: isoOf(statusDateOf(act)), label: PP_EVENT[pp][0], state: PP_EVENT[pp][1], pp, html: meta(escape(longDate(statusDateOf(act))), whoOf(change.initiator), change.decision ? `decizia ${escape(change.decision)}` : "") });
+      }
+    }
+    if (act.status === "expirat" && act.validUntil) {
+      events.push({ at: isoOf(act.validUntil), label: "Valabilitate încheiată", state: "rejected", html: meta(escape(longDate(act.validUntil)), "termenul de valabilitate a expirat") });
+    }
+    events.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+    /* the suspension in force is the current moment (amber pause), an earlier one is history */
+    if (act.status === "suspendat") {
+      const last = events.filter((event) => event.pp === "suspendare").pop();
+      if (last) last.state = "paused";
+    }
+    if (act.status === "valabil" && act.validUntil) events.push({ label: "Sfârșitul valabilității", state: "todo", html: escape(longDate(act.validUntil)) });
+    if (act.status === "suspendat" && profile.suspendedUntil) events.push({ label: "Reluarea valabilității", state: "todo", html: escape(longDate(profile.suspendedUntil)) });
+    return window.GEAPTrajectory?.html({
+      layout: "vertical",
+      className: "cab-act-history",
+      label: "Istoricul actului",
+      steps: events.map((event) => ({ label: event.label, state: event.state, metaHtml: event.html })),
+    }) || "";
+  }
 
   function renderDetail(act) {
     let panel = document.querySelector("[data-cab-detail]");
@@ -727,65 +910,153 @@
     }
     state.detail = act.id;
     listParts.forEach((el) => { if (el) el.hidden = true; });
-    const remaining = act.status === "valabil" ? daysUntil(act.validUntil) : null;
+    const profile = actProfileOf(act);
     const tacit = isTacitAct(act);
-    const [dateLabel, dateValue] = actHeaderDate(act);
     const authority = actAuthority(act);
     const subject = state.geap.subject;
-    const dosarNr = state.dosarNrByAct[act.id];
+    const issuing = issuingDossierOf(act);
+    const notice = actNotice(act);
+    const statusDate = actHeaderDate(act);
+    /* one line in priority order (primary · Postprocese · Vezi solicitarea); what does not fit goes into a trailing
+       „⋯” (fitActActions) — the YouTube mobile action row (user 2026-10-21) */
     const actions = [
-      `<button class="btn btn-primary btn-md e-permits-page-header__action" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
+      `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
       act.postProcesses.length ? `
-        <div class="e-permits-fo-intent-act__action">
-          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.title || "")}" data-cab-menu-trigger ${act.pending ? "disabled" : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
+        <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
+          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.title || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
         </div>` : "",
-      state.dosarByAct[act.id] ? `<a class="btn btn-neutral btn-md" href="${escape(cabUrl("solicitari", {}, `#dosar/${state.dosarByAct[act.id]}`))}" data-cab-see-dosar>${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
+      issuing ? `<a class="btn btn-neutral btn-md" href="${escape(requestHref(issuing.id))}" data-cab-see-dosar data-cab-act-action="request">${icon("icon-page-text")}<span>Vezi solicitarea</span></a>` : "",
+      act.postProcesses.length || issuing ? `
+        <div class="e-permits-fo-intent-act__action cab-act-header__overflow" hidden>
+          <button class="btn btn-neutral btn-md btn-icon-only" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-more" aria-label="Mai multe acțiuni" data-cab-menu-trigger>${icon("icon-more-horizontal")}</button>
+          <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-more" role="menu" aria-label="Mai multe acțiuni" hidden></ul>
+        </div>` : "",
     ].filter(Boolean).join("");
+    /* Detalii act — what the header does not say. „Valabil până la” lives in the header for Valabil / Expirat
+       (as the status date) and here for the other statuses; the status date of Retras / Anulat is the header's. */
+    const dossierNr = issuing?.nr || profile.dossierNr || "";
+    const validFrom = act.validFrom && isoOf(act.validFrom) !== isoOf(act.issued) ? act.validFrom : "";
     const details = [
-      detailRow("Denumire act permisiv", escape(act.service.title || "")),
-      detailRow("Stare", tagHtml(act.statusLabel, ACT_TONE[act.status])),
-      detailRow("Numărul actului permisiv", copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)),
-      dosarNr ? detailRow("Numărul dosarului electronic", copyValueHtml(dosarNr, `Copiază numărul dosarului ${dosarNr}`)) : "",
-      actProfileOf(act).printedDocumentNumber ? detailRow("Seria și nr. documentului tipărit", escape(actProfileOf(act).printedDocumentNumber)) : "",
-      tacit ? detailRow("Data aprobării tacite", `<span>${escape(longDate(actProfileOf(act).tacitApprovalDate))}</span>${act.status === "valabil" ? tacitTagHtml() : ""}`) : "",
-      detailRow("Data eliberării", escape(longDate(act.issued))),
-      detailRow("Valabil din data", escape(longDate(act.validFrom || act.issued))),
-      ...actStatusDates(act).map(([label, value]) => detailRow(label, escape(value))),
-      detailRow("Data expirării", `<span>${escape(longDate(act.validUntil))}</span>${remaining !== null ? `<span class="cab-detail__muted">· ${remaining} zile rămase</span>` : ""}`),
+      dossierNr ? detailRow("Numărul dosarului electronic", copyValueHtml(dossierNr, `Copiază numărul dosarului ${dossierNr}`)) : "",
+      profile.printedDocumentNumber ? detailRow("Seria și nr. documentului tipărit", escape(profile.printedDocumentNumber)) : "",
+      tacit ? detailRow("Data aprobării tacite", escape(longDate(profile.tacitApprovalDate))) : "",
+      detailRow("Data emiterii", escape(longDate(act.issued))),
+      validFrom ? detailRow("Valabil din", escape(longDate(validFrom))) : "",
+      !["valabil", "expirat"].includes(act.status) && act.validUntil ? detailRow("Valabil până la", escape(longDate(act.validUntil))) : "",
+      act.status === "suspendat" && profile.suspensionDate ? detailRow("Data suspendării", escape(longDate(profile.suspensionDate))) : "",
     ];
     const link = (href, text) => `<a class="e-permits-dosar-profil__link" href="${escape(href)}">${escape(text)}</a>`;
+    /* „Ce permite actul”: the configured groups (AC-29, empty fields hidden); a value equal to the page title (the
+       object's name) is not repeated; the first group carries the section name, the next ones keep theirs */
+    const groups = (window.GEAPActView?.normalizeFields(actGroups(act)) || [])
+      .map((group) => ({ ...group, items: group.items.filter((item) => item.columns || String(item.value ?? "").trim() !== String(act.title).trim()) }))
+      .filter((group) => group.items.length);
+    const allows = window.GEAPActView?.fieldsHtml(groups, {
+      untitled: "Ce permite actul",
+      section: (title, body, index) => profileSection(`cab-act-fields-${index}`, index === 0 ? "Ce permite actul" : title, body),
+    }) || "";
+    /* Beneficiar: a representative (MPower) acts in someone else's name → that name comes first; the owner is
+       already named in the header avatar → the card follows the authority (kept: the IDNx is copied from here) */
+    const beneficiary = subject ? profileSection("cab-act-beneficiary", "Beneficiar", identityCardHtml({ ...subject, initials: subject.initials || subject.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2) })) : "";
+    const representative = Boolean(state.perspective?.mpower);
+    /* the key facts on one line (wraps by whole parts, no separators to orphan): number · status · status date */
+    const facts = [
+      `<span class="cab-act-header__fact"><span>Nr.</span>${copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)}</span>`,
+      `<span class="cab-act-header__fact cab-act-header__fact--tags">${tagHtml(act.statusLabel, ACT_TONE[act.status])}${tacit && act.status === "valabil" ? tacitTagHtml() : ""}</span>`,
+      statusDate ? `<span class="cab-act-header__fact">${escape(statusDate[0])} ${statusDate[1]}</span>` : "",
+    ].filter(Boolean).join("");
+    const factsHtml = `
+      <div class="cab-act-header__facts">
+        <p class="cab-act-header__key">${facts}</p>
+        ${notice ? `<div class="message message--subtle ${NOTICE_CLASS[notice.tone] || "banner--info"} message--small cab-message" id="cab-act-notice"><span class="banner__icon">${icon(notice.icon, "medium")}</span><div class="banner__content"><p>${notice.html}</p></div></div>` : ""}
+        <button class="link link-primary link-sm cab-alert-link cab-act-header__more" type="button" data-cab-jump="cab-act-details">Vezi toate detaliile</button>
+      </div>`;
     panel.hidden = false;
     panel.innerHTML = `
       ${pageHeader({
         back: { label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" },
         title: act.title,
         titleId: "cab-act-title",
-        meta: [
-          ["Numărul actului", copyValueHtml(act.number, `Copiază numărul actului ${act.number}`)],
-          ["Stare", `${tagHtml(act.statusLabel, ACT_TONE[act.status])}${tacit && act.status === "valabil" ? tacitTagHtml() : ""}`],
-          [dateLabel, escape(dateValue || "—")],
-          ["Data expirării", escape(longDate(act.validUntil) || "—")],
-        ],
-        actions,
+        subtitle: act.service.title || "",
+        bodyHtml: `<div class="cab-act-header__bar"><div class="cab-act-header__actions">${actions}</div></div>${factsHtml}`,
       })}
       <div class="e-permits-dosar-profil__panel">
-        ${act.notice ? `<div class="cab-profile__lead"><div class="message message--subtle ${NOTICE_CLASS[act.notice.tone] || "banner--info"} message--small cab-message"><span class="banner__icon">${icon(act.notice.icon, "medium")}</span><div class="banner__content"><p>${escape(act.notice.text)}</p></div></div></div>` : ""}
-        ${subject ? profileSection("cab-act-beneficiary", "Beneficiar", identityCardHtml({ ...subject, initials: subject.initials || subject.name.split(/\s+/).map((w) => w[0]).join("").slice(0, 2) })) : ""}
+        ${representative ? beneficiary : ""}
+        ${allows}
         ${profileSection("cab-act-details", "Detalii act", detailCard(details))}
         ${profileSection("cab-act-authority", "Autoritatea emitentă", detailCard([
-          detailRow("Denumire", escape(authority.name || act.service.authority || "")),
-          act.service.authority ? detailRow("Cod", escape(act.service.authority)) : "",
-          act.subdivision ? detailRow("Subdiviziunea", escape(act.subdivision)) : "",
+          detailRow("Denumire", escape(authorityNameOf(act))),
+          act.subdivision ? detailRow("Subdiviziunea emitentă", escape(act.subdivision)) : "",
           authority.phone ? detailRow("Telefon", link(`tel:${authority.phone.replace(/\s/g, "")}`, authority.phone)) : "",
           authority.email ? detailRow("E-mail", link(`mailto:${authority.email}`, authority.email)) : "",
         ]))}
+        ${representative ? "" : beneficiary}
+        ${profileSection("cab-act-history", "Istoric", actHistory(act))}
       </div>`;
     syncHeaderMeta();
+    fitActActions();
+    document.fonts?.ready.then(fitActActions);
+    actActionsObserver?.observe(panel.querySelector(".cab-act-header__bar"));
     window.scrollTo(0, 0);
   }
+
+  /* the action row never wraps: measure every action at its natural width (all reads first), keep the primary,
+     then the secondaries in priority order while they fit beside the „⋯”; the rest are `hidden` (out of the tab
+     order) and listed in the „⋯” menu — Vezi solicitarea, then „Postprocese” as a labelled group (danger last). */
+  function fitActActions() {
+    const box = document.querySelector("[data-cab-detail]:not([hidden]) .cab-act-header__actions");
+    const act = box && state.permits.find((permit) => permit.id === state.detail);
+    if (!box || !act) return;
+    const items = [...box.querySelectorAll(":scope > [data-cab-act-action]")];
+    const more = box.querySelector(":scope > .cab-act-header__overflow");
+    const primary = box.querySelector(":scope > .btn-primary");
+    /* read */
+    box.classList.add("is-measuring");
+    items.forEach((el) => { el.hidden = false; });
+    if (more) more.hidden = false;
+    const room = box.parentElement.clientWidth;
+    const gap = parseFloat(getComputedStyle(box).columnGap) || 0;
+    const width = (el) => el.getBoundingClientRect().width;
+    const primaryW = width(primary);
+    const widths = items.map(width);
+    const moreW = more ? width(more) : 0;
+    box.classList.remove("is-measuring");
+    /* decide */
+    let keep = items.length;
+    if (primaryW + widths.reduce((sum, w) => sum + gap + w, 0) > room + 0.5) {
+      let used = primaryW + gap + moreW;
+      keep = 0;
+      for (const w of widths) {
+        if (used + gap + w > room + 0.5) break;
+        used += gap + w;
+        keep += 1;
+      }
+    }
+    /* write */
+    items.forEach((el, index) => { el.hidden = index >= keep; });
+    if (!more) return;
+    const overflow = items.slice(keep);
+    more.hidden = !overflow.length;
+    const kinds = overflow.map((el) => el.dataset.cabActAction);
+    if (more.dataset.items !== kinds.join(" ")) { /* rebuilt only when the overflow set changes (an open menu keeps its focus) */
+      more.dataset.items = kinds.join(" ");
+      closeMenus();
+      const menu = more.querySelector("ul");
+      const request = kinds.includes("request") ? box.querySelector("[data-cab-act-action='request']") : null;
+      const pps = kinds.includes("postprocese")
+        ? act.postProcesses.map((pp) => (act.pending ? { ...pp, disabled: true, reason: `Postprocesul „${act.pendingLabel}” este în curs` } : pp))
+        : [];
+      menu.innerHTML = [
+        request ? `<li role="none"><a class="e-permits-fo-intent-menu__item" role="menuitem" href="${escape(request.getAttribute("href"))}">${icon("icon-page-text", "medium")}<span>Vezi solicitarea</span></a></li>` : "",
+        request && pps.length ? '<li role="separator" class="e-permits-fo-intent-menu__separator"></li>' : "",
+        pps.length ? `<li class="cab-menu__label" role="presentation">Postprocese</li>${window.GEAPActRow.menuItemsHtml(pps, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/")}` : "",
+      ].join("");
+    }
+  }
+  const actActionsObserver = "ResizeObserver" in window ? new ResizeObserver(() => fitActActions()) : null;
 
   /* the FO identity card (e-permits-fo-selected-role, read-only): PF = initials, PJ = icon-business */
   function identityCardHtml(person) {
@@ -850,10 +1121,16 @@
         if (act?.geap) actView().openDocument(toActView(act), download.closest(".cab-card")?.querySelector("[data-cab-menu-trigger]") || download);
         return;
       }
+      const jump = event.target.closest("[data-cab-jump]");
+      if (jump) {
+        const target = document.getElementById(jump.dataset.cabJump);
+        if (target) { target.setAttribute("tabindex", "-1"); target.scrollIntoView({ block: "start", behavior: "smooth" }); target.focus({ preventScroll: true }); }
+        return;
+      }
       const viewAct = event.target.closest("[data-cab-view-act]");
       if (viewAct) {
         const act = state.permits.find((p) => p.id === viewAct.dataset.cabViewAct);
-        if (act) actView().openData(toActView(act), viewAct);
+        if (act) actView().openDocument(toActView(act), viewAct); /* the act itself — the page carries its data (act-profile-v1) */
         return;
       }
       if (ppBtn && ppBtn.getAttribute("aria-disabled") === "true") { event.stopPropagation(); return; }
@@ -899,7 +1176,7 @@
      dividers; 2 equal columns without dividers on phones); `actions` = the primary library
      btn-primary btn-md (hugging) + optional neutral btn-md, under the meta. No current-page crumb and
      no number in the trail: the title is the page. back = { label, href, attr } (the list). */
-  function pageHeader({ back = null, title = "", titleId = "", meta = [], actions = "" }) {
+  function pageHeader({ back = null, title = "", titleId = "", subtitle = "", meta = [], actions = "", bodyHtml = "" }) {
     const link = (crumb, inner) => `<a class="breadcrumbs__link" href="${escape(crumb.href || "#")}" ${crumb.attr || ""}>${inner}</a>`;
     return `
       <header class="e-permits-page-header e-permits-page-header--public cab-page-header" data-cab-profile-header>
@@ -909,7 +1186,9 @@
               ${back ? `
               <nav class="breadcrumbs breadcrumbs--trailing" aria-label="Breadcrumb"><ol class="breadcrumbs__list"><li class="breadcrumbs__item">${link(back, escape(back.label))}</li></ol></nav>
               <nav class="breadcrumbs breadcrumbs--mobile" aria-label="Breadcrumb"><ol class="breadcrumbs__list"><li class="breadcrumbs__item breadcrumbs__item--back">${link(back, `<span class="e-permits-page-header__crumb-label">${escape(back.label)}</span>`)}</li></ol></nav>` : ""}
+              ${subtitle ? '<div class="cab-page-header__titles">' : ""}
               <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""}>${escape(title)}</h1>
+              ${subtitle ? `<p class="cab-page-header__subtitle">${escape(subtitle)}</p></div>` : ""}
             </div>
           </div>
           ${meta.length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${meta.filter(Boolean).map(([label, html]) => `
@@ -918,6 +1197,7 @@
               <span class="e-permits-page-header__meta-value">${html}</span>
             </div>`).join("")}</div>` : ""}
           ${actions ? `<div class="e-permits-page-header__action-row">${actions}</div>` : ""}
+          ${bodyHtml}
         </div>
       </header>`;
   }
@@ -1104,12 +1384,19 @@
     applyView();
     /* Finalizat-Aprobat dosare ↔ their act („Vezi solicitarea” / „Vezi actul”) */
     try {
-      const sm = await (await fetch("../data/cabinet-evo-solicitari.json")).json();
+      const sm = await (await fetch("../data/cabinet-evo-solicitari.json?v=act-profile-v1")).json();
       (sm.perspectives?.[SUBJECT]?.dosare || [])
         .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
         .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) { state.dosarByAct[dosar.actId] = dosar.id; state.dosarNrByAct[dosar.actId] = dosar.nr; } });
       state.help = sm.help || {};
       state.restriction = sm.perspectives?.[SUBJECT]?.readOnly || null;
+      state.perspective = sm.perspectives?.[SUBJECT] || null;
+      state.today = sm.today || state.today;
+      state.appealDays = sm.appealDays || state.appealDays;
+      (state.perspective?.dosare || []).forEach((dosar) => {
+        state.dosarIdByNr[dosar.nr] = dosar.id;
+        if (dosar.actId) (state.dossiersByAct[dosar.actId] ||= []).push(dosar);
+      });
     } catch { /* the act profile simply has no link */ }
     if (state.restriction) state.permits = [];
 

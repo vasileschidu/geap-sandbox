@@ -1682,3 +1682,30 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   staging, rebuild the playbook blob from the NEW HEAD. Dead grid rules (Cabinet request grid, action column) removed in
   the same change. No sub-agent tool → component-audit (rows 0), hover-audit 0 / 0 (1440 + 700), code-audit (meta 18
   FP), compare-styles 0 at 1440 / 1024 / 375 / 320.
+- 2026-10-21 · Act profile best practice (act-profile-v1; Feature 90818, US-55 / 162 / 161 / 159 / 143). „Each fact once”
+  decided in ONE place per fact: number + status + ONE status date (`actHeaderDate`) in the header facts card, the rest in
+  Detalii; a notice never repeats a date of the facts line (my first notices said „suspendată până la …” right under
+  „Suspendat până la …” — caught by looking at the 1440 crop). Who decided + why + the right with a deadline
+  (contestație = appealDays from the decision, only for authority-initiated changes) + ONE action link = the notice;
+  `statusChange` data next to the existing status dates (`cabinet-evo.json › actProfiles`, Cabinet-only) instead of the
+  shared acte-permisive.json. The Istoric is derived from the perspective's requests (issue = the request whose actNr
+  is the act's number; finalized post-processes; one in progress) — no per-act history literal to drift.
+- 2026-10-21 · REJECTED the same day (user): the YouTube „channel” row (authority avatar + name + subdivision beside the
+  actions) — „screenshots are look and feel, not structure; research before copying a layout”. Kept from it only the
+  grouped grey buttons and the compact facts card; actions LEFT-aligned under the title (GOV.UK / the request
+  profile). Before transplanting a reference layout, check what each slot means in OUR domain (a channel = the
+  publisher the viewer follows; an issuing authority is not that) and ask/flag instead of building the analogy.
+- 2026-10-21 · One-line action row with a „⋯” overflow (user: „hide the actions that don't fit under the dots”):
+  `fitActActions()` = add `.is-measuring` (natural widths, no flex-grow), unhide all, READ every width + the bar width,
+  remove the class, then WRITE `hidden` on what does not fit (out of the tab order) + rebuild the „⋯” menu only when the
+  overflow set changes (keyed in `data-items`, an open menu keeps focus); ResizeObserver on the bar + fonts.ready. The
+  overflowed „Postprocese ⌄” becomes a labelled group in the same menu (`cab-menu__label`), not a submenu. Traps: the
+  shared `fitMenu` flipped the right-edge „⋯” menu to `.is-start` (it ran 240px off-screen at 320) — a trigger that is
+  always at the row's right edge gets `right: 0` for every flip class + `max-width` from the known inset; and demo states
+  that clicked „the first [data-cab-menu-trigger]” hit the hidden one on phones → click the visible one.
+- 2026-10-21 · Demo ids the brief asked for (pp-01y / pp-01z) already existed (act-fields states) → new family pp-03…;
+  `grep -c` before naming, say so in the report. Deep-link states (`params: { as, act }`, ready on the profile h1) are
+  cheaper and steadier than list clicks. The no-hover on `.copy-value__button` came from another agent's uncommitted
+  rewrite of css/copy-value.css — check `git status` of the component before „fixing” a shared one. No sub-agent tool →
+  code-audit (standing FPs only: BO 11/7, `.u-visually-hidden`), hover-audit (1440 / 700 / 375 incl. both menus 0 / 0
+  apart from the copy button), component-audit 0 (desktop / mobile / edge), RAP dialogs proved unchanged by a probe.

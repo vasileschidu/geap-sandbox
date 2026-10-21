@@ -1208,18 +1208,22 @@
     "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); }),
     "pp-01k": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cantina']"); await h.click("[data-cab-card='act-cantina'] .e-permits-fo-lib-item__title"); }),
     "pp-01l": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] .e-permits-fo-lib-item__title"); }),
-    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .modal-content"); }),
-    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    /* act-profile-v1 (2026-10-21): „Vezi act permisiv” opens the act document (MDocs A4, „Vizualizare act” · Descarcă) —
+       the old data dialog is gone (its data is on the page); m / o = the Valabil act, n = the Suspendat one (watermark) */
+    "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01n": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     /* the act rows = the FO intent rows (2026-10-17): „Descarcă actul (MDocs)” lives in the profile (Vezi act permisiv → Descarcă) */
-    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+    "pp-01o": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     /* US-55 AC-09 / AC-10: „Anulare” from Valabil and from Suspendat (DEMO service), same rules as Retragere */
     /* configured act fields (2026-10-19): the depot's 2 groups, a list value, the „Cote anuale autorizate” table
-       (7 rows → first 5 + „Arată toate (7)”), expanded, and the A4 form */
-    "pp-01x": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .e-permits-act-fields__table"); await h.wait(250); await h.scroll(".rap-act-data.is-active .e-permits-act-fields__table-field"); }),
-    "pp-01y": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find(".rap-act-data.is-active .e-permits-act-fields__table"); await h.wait(250); await h.click(".rap-act-data.is-active .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll(".rap-act-data.is-active .e-permits-act-fields__table-field"); }),
-    "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.click(".rap-act-data.is-active [data-rap-data-download]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
+       (7 rows → first 5 + „Arată toate (7)”), expanded, and the A4 form — on the profile itself since act-profile-v1
+       („Ce permite actul” + „Substanțe controlate”), the A4 in „Vizualizare act” */
+    "pp-01x": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__table"); await h.wait(250); await h.scroll("[data-cab-detail] .e-permits-act-fields__table-field"); }),
+    "pp-01y": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__table"); await h.wait(250); await h.click("[data-cab-detail] .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll("[data-cab-detail] .e-permits-act-fields__table-field"); }),
+    "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
     "pp-01p": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
-    "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-detail] [data-cab-menu-trigger]"); }),
+    /* the profile's visible menu trigger: „Postprocese ⌄” on desktop, the overflow „⋯” on phones (act-profile-v1) */
+    "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.wait(150); await h.click("[data-cab-detail] .cab-act-header__actions > :not([hidden]) > [data-cab-menu-trigger]"); }),
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
@@ -1231,6 +1235,16 @@
     "pp-01v": { page: "cabinet-evo/index.html", params: { as: "mpower-pj-lumina" }, ready: "[data-cab-restriction]:not([hidden]) .cab-callout", run: null },
     /* a subject without acts → the shared empty state (no legacy demo permits) */
     "pp-01w": { page: "cabinet-evo/index.html", params: { as: "mpower-pf-vrabie" }, ready: "[data-cab-empty]:not([hidden]) .e-permits-empty", run: null },
+    /* act profile (act-profile-v1, 2026-10-21; components.md › „Act profile”) — deep links ?act=<id> (+ ?as=):
+       03 Anulat by the authority (reason, decision, contestație term → its request) · 03a paper act (offline notice,
+       no Postprocese, issued on paper in Istoric) · 03b Suspendat by the authority (reason, decision, „Cere reluarea
+       valabilității →”) · 03c Valabil expiring in 45 days, seen by a representative (MPower: Beneficiar first,
+       „Inițiază prelungirea →”) · 03d the Istoric of a Valabil act (request, issue, duplicate, end of validity) */
+    "pp-03": { page: "cabinet-evo/index.html", params: { as: "pf-anastasia", act: "act-ana-anulat" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-03a": { page: "cabinet-evo/index.html", params: { act: "act-cofetaria" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-03b": { page: "cabinet-evo/index.html", params: { act: "act-licenta-susp" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-03c": { page: "cabinet-evo/index.html", params: { as: "pj-vita-plant", act: "act-vita-farm" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-03d": { page: "cabinet-evo/index.html", params: { act: "act-izvoras" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => { await h.scroll("#cab-act-history"); } },
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']")(h); }),

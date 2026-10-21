@@ -14,7 +14,9 @@
    Markup and class names are the RAP ones (rap-act-*, data-rap-*: moved here unchanged from
    rap-evo.js, so the RAP dialogs stay byte-identical); the CSS is css/act-view.css.
 
-   Usage: const view = GEAPActView.create({ copyHtml, onCopy, copySelector, bodyOpenClass });
+   Usage: const view = GEAPActView.create({ copyHtml, onCopy, copySelector, bodyOpenClass, documentTitle?, onDocumentDownload? });
+          documentTitle / onDocumentDownload (act-profile-v1, EVO Cabinet): the document dialog's title and a
+          „Descarcă” (icon-export) in its footer instead of „Imprimă” — defaults = the RAP dialog, unchanged.
           view.openData(act, opener) · view.openDocument(act, opener) · view.closeData() · view.closeDocument()
    act (view model, the page maps its own data):
      { id, name, number, status, tone, watermark, authority, office,
@@ -185,7 +187,7 @@
 
   /* copy: the shared component (js/copy-value.js) handles its own clicks in the capture phase — onCopy /
      copySelector stay for old callers and never fire for .copy-value buttons */
-  function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => window.GEAPCopyValue?.html(value, { label: `Copiază numărul actului ${value}` }) || escapeHtml(value), onCopy = () => {}, copySelector = "[data-copy-value]", bodyOpenClass = "" } = {}) {
+  function create({ sprite = "../assets/icons/sprite.svg", copyHtml = (value) => window.GEAPCopyValue?.html(value, { label: `Copiază numărul actului ${value}` }) || escapeHtml(value), onCopy = () => {}, copySelector = "[data-copy-value]", bodyOpenClass = "", documentTitle = "Forma de tipar a actului", onDocumentDownload = null } = {}) {
     const icon = (name, className = "icon") => `
     <svg class="${className}" aria-hidden="true"><use href="${sprite}#icon-${name}"></use></svg>
   `;
@@ -195,7 +197,7 @@
       ? [["Data aprobării tacite", `<span>${escapeHtml(act.tacitDate)}</span>${act.tacitBadge ? tacitTag() : ""}`]]
       : []);
 
-    const actModal = { overlay: null, opener: null, run: 0 };
+    const actModal = { overlay: null, opener: null, run: 0, record: null };
     const actData = { overlay: null, record: null, opener: null, parked: false };
 
     /* the MDocs page: arms + authority, title, number, the public fields + the act's dynamic fields
@@ -271,8 +273,11 @@
         : `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas e-permits-doc-peek__canvas--state">${view === "loading"
           ? window.GEAPEmptyState.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs pregătește actul. Poate dura câteva secunde." })
           : window.GEAPEmptyState.render({ bare: true, icon: "circle-error", text: MDOCS_ERRORS[view] || MDOCS_UNAVAILABLE })}</div>`;
+      const secondary = onDocumentDownload
+        ? `<button class="btn btn-neutral btn-rounded" type="button" data-rap-act-download>${icon("export", "icon small")}<span>Descarcă</span></button>`
+        : `<button class="btn btn-neutral btn-rounded rap-act-modal__print" type="button" data-rap-act-print>${window.GEAPDocPreview?.printIcon("icon") || ""}<span>Imprimă</span></button>`;
       footer.innerHTML = `
-      ${ready ? `<button class="btn btn-neutral btn-rounded rap-act-modal__print" type="button" data-rap-act-print>${window.GEAPDocPreview?.printIcon("icon") || ""}<span>Imprimă</span></button>` : ""}
+      ${ready ? secondary : ""}
       <button class="btn btn-primary btn-rounded" type="button" data-rap-act-close>Închide</button>`;
       if (ready) {
         paginateActDoc(body.querySelector("[data-rap-act-canvas]"));
@@ -387,6 +392,7 @@
           return;
         }
         if (event.target.closest("[data-rap-act-print]")) window.GEAPDocPreview?.print(overlay.querySelector("[data-rap-act-canvas]"));
+        if (event.target.closest("[data-rap-act-download]") && actModal.record) onDocumentDownload?.(actModal.record);
         const copyButton = event.target.closest(copySelector);
         if (copyButton) onCopy(copyButton, event);
         const clamp = event.target.closest("[data-rap-clamp-toggle]");
@@ -409,12 +415,13 @@
     const openActDocument = (act, opener) => {
       const overlay = ensureActModal();
       actModal.opener = opener || document.activeElement;
+      actModal.record = act;
       const run = ++actModal.run;
       overlay.innerHTML = `
       <div class="e-permits-fo-doc-modal rap-act-modal__dialog">
         <div class="e-permits-fo-doc-modal__header">
           <div class="e-permits-fo-doc-modal__header-text">
-            <h2 class="e-permits-fo-doc-modal__title" id="rap-act-modal-title">Forma de tipar a actului</h2>
+            <h2 class="e-permits-fo-doc-modal__title" id="rap-act-modal-title">${escapeHtml(documentTitle)}</h2>
             ${actSubtitleHtml(act, "e-permits-fo-doc-modal__subtitle")}
           </div>
           <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-rap-act-close>${icon("cross-large")}</button>

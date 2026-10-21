@@ -1000,7 +1000,7 @@
           "DEMO": {
             "code": "DEMO",
             "title": "Licență de activitate (exemplu pentru suspendare și reluare)",
-            "authority": "Autoritate emitentă",
+            "authority": "ANSP",
             "demo": true,
             "allows": [
               "suspendare",
@@ -1204,6 +1204,17 @@
                 "email": "anastasia.cojocaru@mnotify.gov.md",
                 "caem": "56.30"
               }
+            },
+            {
+              "id": "act-ana-anulat",
+              "service": "09",
+              "name": "Patiseria „Ana”, or. Ialoveni",
+              "number": "ASF-2024-06618",
+              "status": "anulat",
+              "statusLabel": "Anulat",
+              "issued": "18.04.2024",
+              "validUntil": "18.04.2027",
+              "subdivision": "CSP Ialoveni"
             }
           ],
           "pj-vita-plant": [
@@ -1217,6 +1228,19 @@
               "issued": "30.06.2025",
               "validUntil": "30.06.2030",
               "subdivision": "CSP Chișinău"
+            },
+            {
+              "id": "act-vita-farm",
+              "service": "10",
+              "name": "Depozitul farmaceutic „Vita-Plant”, or. Ialoveni",
+              "number": "AMDM-10-2021-0207",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "26.11.2021",
+              "validFrom": "26.11.2021",
+              "validUntil": "26.11.2026",
+              "subdivision": "Comitetul permanent de control asupra drogurilor",
+              "activityType": "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
             }
           ]
         }

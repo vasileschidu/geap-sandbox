@@ -734,7 +734,11 @@
       return events;
     }
     const paidAtFiling = dosar.payment?.paid && !dosar.feeDuringExam ? ` Taxa de ${money(dosar.payment.amount)} a fost achitată prin MPay.` : "";
-    events.push({ state: "done", title: "Solicitare depusă", when: longDateTime(dosar.submitted), text: `Semnată prin MSign de ${by}.${paidAtFiling}` });
+    /* act-profile-v1: a post-process started by the AUTHORITY (initiatedBy) — no applicant signed anything */
+    const byAuthority = dosar.initiatedBy === "autoritate";
+    events.push(byAuthority
+      ? { state: "done", title: "Procedură inițiată de autoritate", when: longDateTime(dosar.submitted), text: `${where}, din oficiu.` }
+      : { state: "done", title: "Solicitare depusă", when: longDateTime(dosar.submitted), text: `Semnată prin MSign de ${by}.${paidAtFiling}` });
     const examining = dosar.status === "derulare";
     /* a suspension that is over (suplinire sent, or its term passed): its steps, then the resumed examination */
     const resumed = Boolean(dosar.suspended) && dosar.status !== "info";
@@ -749,7 +753,7 @@
     if (dosar.status === "achitare") events.push({ state: "attention", title: "Notă de plată emisă", when: longDateTime(dosar.payment?.created), text: paymentExpired(dosar) ? `${money(dosar.payment?.amount)} · termenul de achitare a expirat pe ${longDate(dosar.payment?.due)}.` : `${money(dosar.payment?.amount)} · de achitat până la ${longDate(dosar.payment?.due)}.` });
     if (dosar.status === "finalizat") {
       const rejected = dosar.result === "respins";
-      events.push({ state: rejected ? "rejected" : "done", title: rejected ? "Solicitare respinsă" : "Solicitare aprobată", when: longDate(dosar.finalized), text: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis." });
+      events.push({ state: rejected ? "rejected" : "done", title: rejected ? "Solicitare respinsă" : byAuthority ? "Decizie semnată" : "Solicitare aprobată", when: longDate(dosar.finalized), text: rejected ? "Decizia de refuz a fost semnată și comunicată." : dosar.decisionOnly ? "Decizia a fost semnată; starea actului a fost actualizată." : "Actul permisiv a fost semnat și emis." });
     } else {
       events.push({ state: "todo", title: "Decizia autorității", when: "", text: dosar.examTerm && dosar.status !== "info" ? `Termen: ${longDate(dosar.examTerm)}` : "" });
       events.push({ state: "todo", title: "Act emis", when: "", text: deliveryNote(dosar) });
@@ -1492,7 +1496,7 @@
   async function init() {
     try {
       const [data, fo] = await Promise.all([
-        fetch("../data/cabinet-evo-solicitari.json").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
+        fetch("../data/cabinet-evo-solicitari.json?v=act-profile-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
         fetch("../data/acte-permisive.json").then((response) => response.json()).catch(() => null),
       ]);
       state.data = data;

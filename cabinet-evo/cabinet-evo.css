@@ -1657,3 +1657,166 @@ button.cab-alert-link {
     margin-top: var(--spacing-16, 16px);
   }
 }
+
+/* ===== Act profile (act-profile-v1, 2026-10-21) — components.md › „Act profile” =====
+   „Actele mele permisive” › ?act=<id> (cabinet-evo.js renderDetail): the public BO header + a subtitle (the act
+   type), ONE status date in the meta, one status notice, then BO sections (Ce permite actul · Detalii act ·
+   Autoritatea emitentă · Beneficiar · Istoric). Only what the shared parts do not already give lives here. */
+
+/* title + subtitle (the act type = the service) as one block: 4 between them, the heading's 16 above */
+.cab-page-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.cab-page-header__subtitle {
+  color: var(--color-text-base-secondary, #383838);
+  font: var(--font-weight-fw-regular, 400) var(--font-size-fs-16, 16px) / var(--line-height-lh-24, 24px) var(--font-family-primary-font, Onest), sans-serif;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+/* the action row (look and feel of the user's YouTube reference — grouped grey buttons — not its structure):
+   LEFT-aligned under the title, ONE line; what does not fit goes into „⋯” (cabinet-evo.js fitActActions) */
+.cab-act-header__bar {
+  display: flex;
+  margin-top: var(--spacing-16, 16px);
+  min-width: 0;
+}
+
+.cab-act-header__actions {
+  align-items: center;
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  gap: var(--spacing-8, 8px);
+  max-width: 100%;
+  min-width: 0;
+}
+
+.cab-act-header__actions > [hidden] {
+  display: none;
+}
+
+.cab-act-header__actions .btn {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* the library btn-md is 40; the icon-only „⋯” is square at the row height */
+.cab-act-header__overflow .btn.btn-icon-only {
+  height: var(--spacing-40, 40px);
+  padding: 0;
+  width: var(--spacing-40, 40px);
+}
+
+/* full container (user 2026-10-21: „the profile of Solicitări and Actele mele: full container, no reason to cut
+   it”): the act profile takes the list width (--cab-list-width) instead of the 1024 reading column; long text in it
+   keeps ~75ch lines (the notice in the facts card) */
+.cab-main__container:has(.cab-act-profile [data-cab-profile-header]:not([hidden] *)) {
+  max-width: var(--cab-list-width);
+}
+
+.cab-act-header__facts .cab-message .banner__content > p {
+  max-width: 75ch;
+}
+
+/* the key-facts card (YouTube's description box): the grey BO card surface, its edges on the section cards below
+   (−12 = the header's inset), text at their 20; number · status · status date on one line (whole parts wrap) */
+.cab-act-header__facts {
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: var(--border-radius-16, 16px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12, 12px);
+  margin: var(--spacing-16, 16px) calc(var(--spacing-12, 12px) * -1) 0;
+  padding: var(--spacing-16, 16px) var(--spacing-20, 20px);
+}
+
+.cab-act-header__key {
+  align-items: center;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex-wrap: wrap;
+  font: var(--font-weight-fw-medium, 500) var(--font-size-fs-14, 14px) / var(--line-height-lh-20, 20px) var(--font-family-primary-font, Onest), sans-serif;
+  gap: var(--spacing-8, 8px) var(--spacing-16, 16px);
+  margin: 0;
+}
+
+.cab-act-header__fact {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0 var(--spacing-4, 4px);
+  min-width: 0;
+}
+
+.cab-act-header__fact--tags {
+  gap: var(--spacing-6, 6px);
+}
+
+.cab-act-header__fact .cab-detail__muted {
+  font-weight: var(--font-weight-fw-regular, 400);
+  margin: 0;
+}
+
+/* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left
+   screen edge (16) — the trigger's right edge is 28 from the screen (page 16 + header inset 12) */
+.cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu,
+.cab-act-header__overflow .cab-menu.e-permits-fo-intent-menu:is(.is-start, .is-end) {
+  left: auto;
+  max-width: calc(100vw - var(--spacing-16, 16px) * 2 - var(--spacing-12, 12px));
+  right: 0;
+}
+
+.cab-act-header__facts > .cab-message {
+  margin: 0;
+}
+
+.cab-act-header__more.cab-alert-link {
+  align-self: flex-start;
+}
+
+/* „Istoric” = the shared trajectory card (vertical); on phones its corners follow the BO cards (16) */
+@media (max-width: 760px) {
+  /* phones: the action row fills the width (one line, the primary takes the free room; touch height 48) */
+  .cab-act-header__actions {
+    width: 100%;
+  }
+
+  .cab-act-header__actions:not(.is-measuring) > .btn-primary {
+    flex: 1 1 auto;
+  }
+
+  .cab-act-header__actions .btn {
+    min-height: var(--spacing-48, 48px);
+  }
+
+  .cab-act-header__overflow .btn.btn-icon-only {
+    height: var(--spacing-48, 48px);
+    width: var(--spacing-48, 48px);
+  }
+
+  .cab-act-header__facts {
+    padding: var(--spacing-16, 16px);
+  }
+
+  .cab-act-profile .cab-act-history.e-permits-trajectory {
+    border-radius: var(--border-radius-16, 16px);
+    padding: var(--spacing-16, 16px);
+  }
+}
+
+/* ===== Request profile — full container (act-profile-v1, 2026-10-21) =====
+   „Solicitările mele” › #dosar/<id> takes the list width like the act profile (user: „full container, no reason to
+   cut it”); long text keeps ~75ch lines (the status sentence / explanation, notices). Rows keep the BO label column. */
+.cab-main__container:has(.sm-profile [data-cab-profile-header]:not([hidden] *)) {
+  max-width: var(--cab-list-width);
+}
+
+.sm-profile :is(.cab-status__text, .cab-message .banner__content > p) {
+  max-width: 75ch;
+}
