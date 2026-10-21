@@ -5230,7 +5230,10 @@ discussed not having chips, right?”).** js/facet-filter.js marks the page's to
    depunerii, cele mai noi”). On phones it opens the SORT SHEET (§ „Sort sheet on phones”). Kept icon-only at 320 too
    (search 176 ≥ 160).
 4. Page tools stay in the row (eKYC / BO export); the GEAP BO hides „48 câmpuri” + its divider on phones (as eKYC) and
-   a primary „Adaugă …” wraps to its own line (search `flex-basis: 60%`, e-permits-acte-permisive.css).
+   a primary („Adaugă …”, „Creează proces”) wraps to its own line 8 under the search row (search `flex-basis: 60%`,
+   e-permits-acte-permisive.css). The toolbar box GROWS to fit (8 · 48 · 8 · 32 · 8 = 104): the BO header grid's
+   rows are all `auto` on phones (phone-toolbar-v3) — a fixed desktop 56 first track squeezed the toolbar back to 56
+   and the wrapped primary painted under the status tabs.
 5. **No facet chips, ever, on phones** (no chip row, no sideways scroll). **Applied state** = the badge on „Filtre” +
    ONE plain line under the toolbar (`.e-permits-workplace__filters.is-sheets` > `[data-filter-phone-meta]`, 8 under
    the row): „N de rezultate · Șterge filtrele” (the BO bar wording); the bar is hidden when nothing is applied.

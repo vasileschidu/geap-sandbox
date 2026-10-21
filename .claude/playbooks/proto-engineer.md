@@ -2188,3 +2188,15 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Rule: when a block re-declares a border / colour that a state class later recolours, it must re-declare the state rules
   for EVERY markup it resets, in the same block. Proof = computed `borderTopColor / borderBottomColor` of the scroller at
   scrollTop 0 / half / max (CDP probe), not the class on the dialog — the class was right all along.
+- 2026-10-21 · Phone toolbar overlap (phone-toolbar-v3; found by figma-designer on pd-35 at 375): my v2 BO rule set the
+  toolbar `height: auto` + wrap, but the toolbar is a GRID ITEM of `.e-permits-workplace__header` whose first track is
+  the desktop `56px` (`56px auto auto`, users `56px auto`) — `height: auto` stretches to the track, so the box stayed 56
+  (overflow hidden) and the wrapped „Creează proces” / „Adaugă utilizator” painted at y 160 under the status tabs; the
+  BO lists without a primary (dos-05c / 05d) also lost their 8 bottom inset (48 controls in a 56 box). eKYC was fine
+  only because it already re-declared the header rows. Rule: when you free an element's height, check its PARENT's
+  layout (grid track / flex basis) — the computed height of the element, not the declared `auto`, is the proof. Fix =
+  one header rule `:has(> .e-permits-workplace__toolbar.e-permits-filter-row) { grid-template-rows: auto auto auto }` in
+  the BO phone block. Probe (scratch probe.mjs): toolbar rect vs lowest child bottom vs next sibling top, at 375 / 320 /
+  761 / 1440, on pd-35, ek-04o, ek-30, dos-05c / 05d and services / tariffs / users reached by a JS `[data-nav-id]`
+  click (their demo states click the hidden sidebar and fail on phones). code-audit flags a literal „56px” even inside a
+  CSS comment (px-outside-token) — write „56” in comments.

@@ -24606,8 +24606,16 @@ a.e-permits-ekyc-alert__title:is(:hover, :visited, :focus) {
    „Filtrare avansată” chip + „48 câmpuri” + export) ran off the screen and the facet chips stacked under it.
    Now: search (fills) · icon-only „Filtre” · export, 8 apart, 8 / 16 inset, height from the 48 controls
    (so the count badge on the square's corner is not cut by the toolbar's overflow); the field count and
-   its divider hide, as on eKYC. */
+   its divider hide, as on eKYC.
+   phone-toolbar-v3: the header grid's FIRST track was the desktop 56 (rows „56 · auto · auto”, users „56 · auto”), so
+   the toolbar's `height: auto` was stretched back to 56 — a wrapped primary („Creează proces”, „Adaugă …”)
+   painted under the status tabs and the 8 bottom inset was lost. Every track is auto here: the toolbar grows to
+   its rows (search row 48 · 8 · primary), the filters bar / tabs follow under it (eKYC already did this). */
 @media (max-width: 760px) {
+  .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__header:has(> .e-permits-workplace__toolbar.e-permits-filter-row) {
+    grid-template-rows: auto auto auto;
+  }
+
   .e-permits-front-office-page[data-demo-flow="back-office"] .e-permits-workplace__toolbar.e-permits-filter-row {
     column-gap: var(--spacing-8, 8px);
     flex-wrap: wrap;
