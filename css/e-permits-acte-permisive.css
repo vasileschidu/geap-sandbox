@@ -2957,33 +2957,22 @@
   text-underline-position: from-font;
 }
 
-.e-permits-fo-auth__beta-close {
-  align-items: center;
-  appearance: none;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  height: 16px;
-  justify-content: center;
-  padding: 0;
-  position: absolute;
-  right: var(--spacing-16, 16px);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
+/* × = the library banner close (`.banner__close`, padding 8 around a 16 icon, rgba hover, press scale; audit-fix-v4):
+   only its place is ours — vertically centred, 8 from the right edge (the icon stays at 16) */
+.e-permits-fo-auth__beta-banner > .banner__close {
+  color: var(--color-icon-base-default, #121212);
+  right: var(--spacing-8, 8px);
+  top: calc(50% - var(--spacing-16, 16px));
 }
 
-.e-permits-fo-auth__beta-close .icon {
+.e-permits-fo-auth__beta-banner > .banner__close .icon {
   display: block;
-  height: 16px;
-  width: 16px;
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
 }
 
-.e-permits-fo-auth__beta-close:focus-visible {
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
+.e-permits-fo-auth__beta-banner > .banner__close:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--blue-sky-500, #3379db);
   outline: none;
 }
 
@@ -10461,25 +10450,21 @@
   padding: 0 var(--spacing-20, 20px);
 }
 
-.e-permits-builder__close {
-  align-items: center;
-  appearance: none;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border: 0;
-  border-radius: var(--border-radius-full, 999px);
-  color: var(--color-text-base-default, #121212);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 32px;
-  height: 32px;
-  justify-content: center;
-  padding: 0;
-  width: 32px;
+/* × = the library `.modal-close` (32, round, gray-200 → gray-250; audit-fix-v4) placed static in the top bar /
+   registry head (as the drawer header does); icon 16, the canonical focus ring */
+.modal-close:is(.e-permits-builder__close, .e-permits-fo-testcfg__close) {
+  flex: 0 0 var(--spacing-32, 32px);
+  padding: var(--spacing-8, 8px);
+  position: static;
 }
 
-.e-permits-builder__close:hover,
-.e-permits-builder__close:focus-visible {
-  background: var(--color-background-base-hover, #e7e7e7);
+.modal-close:is(.e-permits-builder__close, .e-permits-fo-testcfg__close) .icon {
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
+.modal-close:is(.e-permits-builder__close, .e-permits-fo-testcfg__close):focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--blue-sky-500, #3379db);
   outline: none;
 }
 
@@ -14082,20 +14067,6 @@
   margin: var(--spacing-8, 8px) 0 0;
 }
 
-.e-permits-builder-registry__head .e-permits-builder__close {
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  border-radius: var(--border-radius-full, 999px);
-  height: 32px;
-  min-height: 32px;
-  padding: var(--spacing-8, 8px);
-  width: 32px;
-}
-
-.e-permits-builder-registry__head .e-permits-builder__close .icon {
-  height: 16px;
-  width: 16px;
-}
-
 .e-permits-builder-registry__toolbar {
   align-items: flex-start;
   background: var(--color-background-base-default, #fff);
@@ -14867,13 +14838,9 @@
     line-height: var(--line-height-lh-20, 20px);
   }
 
-  .e-permits-fo-auth__beta-close {
-    flex: 0 0 24px;
-    height: 24px;
-    padding: var(--spacing-4, 4px);
+  .e-permits-fo-auth__beta-banner > .banner__close {
+    flex: 0 0 auto;
     position: static;
-    transform: none;
-    width: 24px;
   }
 
   .e-permits-fo-auth__main {
@@ -16549,21 +16516,6 @@
   font-size: var(--font-size-fs-12, 12px);
   line-height: var(--line-height-lh-16, 16px);
   margin: var(--spacing-2, 2px) 0 0;
-}
-
-.e-permits-fo-testcfg__close {
-  background: none;
-  border: 0;
-  border-radius: var(--border-radius-8, 8px);
-  color: var(--color-text-base-secondary, #383838);
-  cursor: pointer;
-  display: inline-flex;
-  flex: 0 0 auto;
-  padding: var(--spacing-4, 4px);
-}
-
-.e-permits-fo-testcfg__close:hover {
-  background: var(--color-background-base-tertiary, #f1f1f1);
 }
 
 .e-permits-fo-testcfg__body {
@@ -23000,16 +22952,6 @@ button.e-permits-steps-strip__cell:hover,
   color: var(--color-text-brand-default, #0058d2);
 }
 
-/* tiny 16px icon button on the beta banner: a soft ring around the icon */
-.e-permits-fo-auth__beta-close {
-  border-radius: var(--border-radius-full, 999px);
-}
-
-.e-permits-fo-auth__beta-close:hover {
-  background: var(--color-background-base-tertiary-hover, #d9d9d9);
-  box-shadow: 0 0 0 4px var(--color-background-base-tertiary-hover, #d9d9d9);
-}
-
 /* An open button (its menu / bar / panel is shown) keeps its pressed fill while hovered —
    the generic :hover is more specific than [aria-expanded] and made it turn lighter */
 .btn.btn-sm.btn-neutral[aria-expanded="true"]:hover:not(:disabled),
@@ -23060,7 +23002,6 @@ button.e-permits-steps-strip__cell:hover,
 
 /* icon buttons that rest on tertiary: hover one step darker (was the same #f1f1f1) */
 .e-permits-fo-icon-button:hover,
-.e-permits-builder__close:hover,
 .cab-card__actions .btn.cab-card__more:hover:not(:disabled) {
   background: var(--color-background-base-tertiary-hover, #d9d9d9);
 }

@@ -1974,3 +1974,11 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   as „match the button next to it”; flagged as a PO question. No sub-agent tool → component-audit (0 findings on the
   trigger; leftovers pre-existing: sheet section triggers, „Arată” 50.8, header menus), hover-audit 0 / 0, code-audit (only
   the library search × overlap FP); rap-04 / 04a phone overflow 15 is the same on a HEAD worktree (:8937).
+- 2026-10-21 · Audit fix batch 4 — close × (audit-fix-v4). The drawer agent had just moved 13 drawers to `.modal-close`
+  (d7316d12) — re-inventory after a pull, never trust the report's list (`e-permits-user-create__close` no longer
+  existed). Inventory = every `<button|a>` with `__close` or aria-label „Închide…” grouped by class signature: 4
+  private closes left (builder ×2, Process Designer, FO beta banner, FO test panel) + the document modal × (off-limits,
+  listed). Library `.modal-close` is `position: absolute` (top / right 20) — in a header ROW make it `static` (as
+  `.drawer__header > .modal-close`); the library `.banner__close` uses `transform: scale(.92)` on :active, so centring it
+  with `translateY(-50%)` would jump on press → `top: calc(50% − 16)`. Hover-audit on the Process Designer needs
+  `--scope body` (the overlay is appended to body: `main` = 0 interactive). Close findings 16 → 0.

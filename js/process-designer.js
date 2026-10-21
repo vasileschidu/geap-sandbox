@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
           <button class="btn btn-primary btn-sm btn-rounded e-permits-pd__restore" type="button" hidden data-pd-restore>Restaurează ca schiță</button>
           <button class="e-permits-builder__publish" type="button" data-pd-publish data-pd-edit-only>Publică</button>
-          <button class="e-permits-builder__close" type="button" aria-label="Închide designerul" data-tooltip-label="Închide" data-pd-close>${icon("cross-large", 16)}</button>
+          <button class="modal-close e-permits-builder__close" type="button" aria-label="Închide designerul" data-tooltip-label="Închide" data-pd-close>${icon("cross-large", 16)}</button>
         </div>
       </header>
 
