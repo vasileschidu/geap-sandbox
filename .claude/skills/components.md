@@ -6596,6 +6596,10 @@ deciziei” under Suspendare (Figma comments, Olesea Luchian, 2026-10-09).
    registry row and section ⋮ follows. On a grey row band (hover / focus / open) the ⋮ is white until its own hover
    (same rule as „Detalii” on the band); open = pressed + focus ring. The strict icon-only eye „Previzualizează” is not
    a ⋮ and stays strict.
+8. **A ⋮ inside a registry TABLE opens fixed (pd-tags-v1, 2026-10-21):** the table scroller clips an absolute menu at the
+   row and focusing its first item scrolls the table sideways — table row ⋮ menus carry `data-stack-menu-fixed` (the shell
+   places them under the trigger, right-aligned; `position: fixed; z-index: 50`): Ghișeu, Process Designer registry and
+   every eKYC configuration list (`rowActions` in js/ekyc-config.js). Demo ek-31m (Versiuni SDK, „Retrage din suport”).
 Why: NN/g — labelled actions are understood, icons alone rarely are; Carbon — secondary actions
 in the overflow, destructive separated and last. Tables (registries) keep their icon-only ✎.
 **Figma (2026-10-09, GEAP 2.0 › Servicii, all blocks):** svc/stack-item `9521:8751` — „Edit” is

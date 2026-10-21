@@ -462,6 +462,20 @@
     "usr-u03e": usr("general", async (h) => { await deactivate(h); await headerMenu(h); await h.click("[data-user-profile-delete]"); }),
     "usr-u03f": usr("general", async (h) => { await editFunction(h); await h.click("[data-user-profile] [data-profile-changes]"); }),
     "usr-u03g": usr("general", async (h) => { await editFunction(h); await h.click("[data-user-profile-save]"); }),
+    /* 2026-10-21 (pd-tags-v1) · Utilizatori › „Adaugă utilizator” → IDNP found in RSSP → one role combination added
+       (the combination card with its red ×), scrolled to it — Figma block */
+    "usr-u03x": { flow: "back-office", as: ADMIN, hash: "#users", ready: "[data-workplace-add-user]:not([hidden])", run: async (h) => {
+      await h.click("[data-workplace-add-user]");
+      await h.fill("[data-user-create] #user-create-idnp", "2005003318852", { leave: false });
+      await h.click("[data-user-create] [data-user-lookup]");
+      await h.click("[data-user-create] [data-user-combination-open]");
+      await h.choose('[data-user-create] select[name="roleId"]', "specialist");
+      await h.choose('[data-user-create] select[name="authorityId"]', "ansp");
+      await h.choose('[data-user-create] select[name="subdivisionId"]', "ansp-central");
+      await h.click("[data-user-create] [data-user-combination-confirm]");
+      await h.scroll("[data-user-create] .e-permits-user-create__combo-card");
+      document.activeElement?.blur?.();
+    } },
     "usr-u04c": usr("roles", comboFilled),
     "usr-u04e": usr("roles", async (h) => { await rowMenu0(h); await h.click("[data-combo-remove]"); }),
     "usr-u04f": usr("roles", async (h) => { await comboFilled(h); await h.click("[data-user-combo-save]"); }),
@@ -1186,6 +1200,8 @@
        as a guest — the upload stays, MDocs goes (account-bound) · -a back to Autentificat: both documents ·
        -gate MPass required: the gate, step 3 kept for the way back · -1 the guest's step 1 (demo identity)
        · -5 Livrare switched (guest = e-mail only) · capture with --hide .msup-bubble */
+    /* 2026-10-21 (pd-tags-v1) · Acte necesare › „Adaugă document”: one „Alte documente” card (#1 Document) with its red trash */
+    "fo-04x": foReq(3, {}, async (h) => { await h.click("[data-fo-step-panel='3'] [data-fo-add-other-doc]"); await h.wait(400); await h.scroll("[data-fo-step-panel='3'] [data-fo-other-doc-card]"); document.activeElement?.blur?.(); }),
     "fo-cfg-auth": foReq(3, {}, async (h) => { await cfgDocs(h); await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no"); }),
     "fo-cfg-auth-a": foReq(3, {}, async (h) => { await cfgDocs(h); await cfgPick(h, "requiresAuth", "no"); await cfgPick(h, "authenticated", "no"); await cfgPick(h, "authenticated", "yes"); }),
     "fo-cfg-auth-gate": foReq(3, {}, async (h) => { await cfgDocs(h); await cfgPick(h, "authenticated", "no"); }),
@@ -2759,6 +2775,12 @@
     "ek-31d": ekList("#ek-sdk", ekRow("sdk-delete", "sdk-android-385")),
     "ek-31e": ekList("#ek-sdk", async (h) => { await h.click('[data-workplace-tab="off"]'); }),
     "ek-31f": ek("#ek-sdk", null, { params: { ek: "gol" }, ready: ".e-permits-empty-cell" }),
+    /* 2026-10-21 (pd-tags-v1) · a supported version's row ⋮ open: „Retrage din suport” + the red „Șterge” */
+    "ek-31m": ekList("#ek-sdk", async (h) => {
+      /* the table is wider than the screen: scroll it sideways to the ⋮ first, as a person does */
+      const t = await h.find('tr[data-workplace-row="sdk-ios-420"] [data-stack-menu-trigger]'); t.scrollIntoView({ block: "center", inline: "end" }); await h.wait(200);
+      await h.click('tr[data-workplace-row="sdk-ios-420"] [data-stack-menu-trigger]'); await h.find('[data-ekcfg="sdk-support"][data-id="sdk-ios-420"]');
+    }),
     /* Certificate root CA (US-05-09-B) */
     "ek-32": ekList("#ek-trusted-cas"),
     "ek-32a": ekDet("#ek-certificat/ca-age-mtls-g2/general"),

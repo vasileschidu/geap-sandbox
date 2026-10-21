@@ -2395,3 +2395,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   diffed against v1's saved „before” table: identical except one row from the other agent's header job (cab-act-header__facts),
   trajectory card kept at 24. Lesson: when a visual change is risky (taste), keep the pre-change probe table — the revert is
   then proven by one diff. Parity request ↔ act = 0. Token `--border-radius-24` kept (BO profile / trajectory / sheets use it).
+- 2026-10-21 · PD tags + 3 Figma demo states (pd-tags-v1; found by figma-designer). (1) „Eroare” on 15 cards and „Pas curent”
+  on all 50 nodes in every pd-* state = a LOAD-ORDER regression of the one-tag job: css/tag.css (linked AFTER the product
+  CSS) gives every `.status-tag.status-tag--small` `display: inline-flex` at (0,2,0), which beat the PD hide rules
+  (`.e-permits-pd__error-tag.status-tag` 0,2,0 earlier in order, `.e-permits-pd__current-tag` 0,1,0). Fix = hide / show
+  rules at (0,3,0) scoped by the node (`.e-permits-pd__node .x.status-tag--small`). Lesson: when a shared component file
+  gets a `display` and loads late, grep every product rule that HIDES that component by `display: none` (not only
+  `[hidden]`) and re-probe. Probe that proved it: count painted tags vs `.has-error` / `.is-current` owners
+  (`checkVisibility({ checkOpacity: true })`), HEAD worktree 15 / 50 → tree 0 / 0, pd-16 = 1 real error, pd-24 = 1 current.
+  (2) ek-31m exposed a pre-existing clip: eKYC config row ⋮ menus inside the registry table scroller were cut at the row
+  and focusing the first item scrolled the table sideways (HEAD identical) → the shared `rowActions` in ekyc-config.js
+  adds `data-stack-menu-fixed` (ghiseu / PD pattern; components.md Row actions rule 8). A fixed menu does not scroll the
+  table, so a demo state must scroll the trigger into view (`inline: "end"`) before clicking — the SDK table is wider than
+  1440 (actions column 14 px past the edge, pre-existing). Audits compared tree vs a HEAD worktree with the new
+  demo-states.js copied in: component / code counts identical, hover 0 / 0.

@@ -419,11 +419,16 @@
 }
 
 .e-permits-pd__error-tag.status-tag {
-  display: none;
   text-transform: none;
 }
 
-.e-permits-pd__node.has-error .e-permits-pd__error-tag {
+/* hidden unless the node has a validation error. (0,3,0) on purpose: css/tag.css (loaded later) gives every
+   `.status-tag.status-tag--small` `display: inline-flex` at (0,2,0) — pd-tags-v1 */
+.e-permits-pd__node .e-permits-pd__error-tag.status-tag--small {
+  display: none;
+}
+
+.e-permits-pd__node.has-error .e-permits-pd__error-tag.status-tag--small {
   display: inline-flex;
 }
 
@@ -1579,11 +1584,12 @@
 }
 
 /* ---- case trace (spec F.16): visited = positive, current = brand ring + „Pas curent”, the rest faded */
-.e-permits-pd__current-tag {
+/* only in the case trace (a node with `.is-current`); (0,3,0) beats the tag.css Small display — pd-tags-v1 */
+.e-permits-pd__node .e-permits-pd__current-tag.status-tag--small {
   display: none;
 }
 
-.e-permits-pd__node.is-current .e-permits-pd__current-tag {
+.e-permits-pd__node.is-current .e-permits-pd__current-tag.status-tag--small {
   bottom: calc(100% + var(--spacing-6, 6px));
   display: inline-flex;
   left: 50%;

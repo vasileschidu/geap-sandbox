@@ -78,7 +78,9 @@
   /* destructive-red-v1: a destructive label (Dezactivează, Suspendă contul, Revocă …) = the library outlined destructive */
   const btn = (label, attrs, { variant = "neutral", ic = "", danger = A?.isDestructiveLabel?.(label) } = {}) => `<button class="btn btn-${danger && variant === "neutral" ? "outline-destructive" : variant} btn-sm" type="button" ${attrs}>${ic ? icon(ic, 16) : ""}<span>${esc(label)}</span></button>`;
   const addBtn = (label, attrs) => `<button class="btn btn-secondary btn-sm" type="button" ${attrs}><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-plus-large"></use></svg><span>${esc(label)}</span></button>`;
-  const rowActions = (primary, menu, label) => `<span class="e-permits-workplace__row-actions">${A.renderRowActions({ primary, menu, label })}</span>`;
+  /* the ⋮ menu opens fixed under its trigger: inside the registry table scroller it was clipped by the row and focusing its
+     first item scrolled the table sideways (pd-tags-v1, 2026-10-21; the ghiseu / process-designer pattern) */
+  const rowActions = (primary, menu, label) => `<span class="e-permits-workplace__row-actions">${(A.renderRowActions({ primary, menu, label }) || "").replace("hidden data-stack-menu>", "hidden data-stack-menu data-stack-menu-fixed>")}</span>`;
   const act = (name, id) => `data-ekcfg="${name}" data-id="${esc(id)}"`;
   const me = () => S.me();
   const nowIso = () => S.nowIso();
