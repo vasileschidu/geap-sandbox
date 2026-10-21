@@ -17,11 +17,15 @@
   ],
   "services": {
     "09": { "title": "Autorizația sanitară de funcționare", "authority": "ANSP", "authorityName": "Agenția Națională pentru Sănătate Publică", "termDays": 15, "fee": 500, "actTitle": "Autorizație sanitară de funcționare", "validityYears": 3 },
-    "10": { "title": "Autorizația pentru substanțe stupefiante și psihotrope", "authority": "AMDM", "authorityName": "Agenția Medicamentului și Dispozitivelor Medicale", "termDays": 10, "fee": 0, "actTitle": "Autorizație de activitate cu substanțe stupefiante, psihotrope și precursori", "validityYears": 5 }
+    "10": { "title": "Autorizația pentru substanțe stupefiante și psihotrope", "authority": "AMDM", "authorityName": "Agenția Medicamentului și Dispozitivelor Medicale", "termDays": 10, "fee": 0, "actTitle": "Autorizație de activitate cu substanțe stupefiante, psihotrope și precursori", "validityYears": 5 },
+    "618": { "_note": "type-first-v1 (2026-10-21): a service WITHOUT an object / location (licence for an activity) — the request row has no line 2", "title": "Licența pentru transportul rutier de mărfuri", "authority": "ANTA", "authorityName": "Agenția Națională Transport Auto", "termDays": 15, "fee": 300, "actTitle": "Licență pentru transportul rutier de mărfuri", "validityYears": 5 }
   },
   "help": {
     "ANSP": { "name": "Agenția Națională pentru Sănătate Publică", "phone": "022 574 501", "email": "office@ansp.gov.md" },
-    "AMDM": { "name": "Agenția Medicamentului și Dispozitivelor Medicale", "phone": "022 884 301", "email": "office@amdm.gov.md" }
+    "AMDM": { "name": "Agenția Medicamentului și Dispozitivelor Medicale", "phone": "022 884 301", "email": "office@amdm.gov.md" },
+    "MEC": { "name": "Ministerul Economiei", "phone": "022 250 107", "email": "secretariat@mec.gov.md" },
+    "IGSU": { "name": "Inspectoratul General pentru Situații de Urgență", "phone": "022 734 701", "email": "office@dse.md" },
+    "ANTA": { "name": "Agenția Națională Transport Auto", "phone": "022 498 812", "email": "office@anta.gov.md" }
   },
   "appealDays": 30,
   "perspectives": {
@@ -181,6 +185,14 @@
           "subdivision": "CSP Chișinău", "status": "finalizat", "result": "aprobat", "submitted": "2026-03-16T10:15", "examTerm": "2026-03-23", "finalized": "2026-03-19",
           "actId": "act-cofetaria", "prevActNr": "AS-2019-0412", "decisionOnly": true,
           "decision": { "nr": "D-ANSP-2026-0322", "signedBy": "Ion Ceban", "text": "Valabilitatea actului permisiv AS-2019-0412 a fost reluată din 19 martie 2026, după încetarea motivului suspendării." }
+        },
+        {
+          "_note": "type-first-v1 (2026-10-21): a request WITHOUT an object / location (a licence for an activity) — row + profile show the service only, no line 2 / subtitle",
+          "id": "d-transport", "nr": "GEAP-2024-618-00214", "service": "618", "tip": "Eliberare",
+          "caem": "H 49.41 Transporturi rutiere de mărfuri",
+          "subdivision": "Direcția licențiere", "status": "finalizat", "result": "aprobat", "submitted": "2024-02-20T10:30", "examTerm": "2024-03-12", "finalized": "2024-03-12",
+          "actId": "act-transport", "actNr": "ANTA-2024-00563", "issuedBy": "Victor Lungu",
+          "payment": { "nr": "NP-20240220-0214", "amount": 300, "status": "Achitat", "created": "2024-02-20T10:28", "paid": "2024-02-20T10:29" }
         }
       ]
     },

@@ -16865,6 +16865,50 @@
   flex: 0 0 calc(100% + var(--fo-doc-meta-sep));
   min-width: 0;
   order: 3;
+/* LINE 2 — the object / location (type-first-v1, 2026-10-21, user: „first the name of the act, and in second place
+   the location, if any”): Cabinet acts + requests only (option `place`, js/act-row.js; the FO intent step keeps the
+   object as the title). 14/20 regular in the DEFAULT text colour (stronger than the tertiary meta), full card width
+   under the title (8 = the row gap), desktop ONE line + ellipsis + tooltip (syncCut), phones wrapping (no tooltip on
+   touch, nothing hidden). Same order slot as the phone title → DOM order keeps it right under it.
+   Led by the 16 FILLED map pin (sprite icon-map-pin-filled; user 2026-10-21: „a small location / pin icon in front of
+   the location”, then „I don't like the pin icon … a filled one, in the tertiary colour”) in `--color-icon-base-tertiary`
+   — a DELIBERATE exception to icon = label colour: the text stays default, only the pin is tertiary — 4 to the text,
+   centred on the 20 line (2 above, 2 below);
+   a wrapped second line (phones) starts under the text, not under the pin. */
+.e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__place {
+  align-items: flex-start;
+  color: var(--color-text-base-default, #121212);
+  column-gap: var(--spacing-4, 4px);
+  display: flex;
+  flex: 0 0 100%;
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-fw-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  min-width: 0;
+  order: 2;
+  overflow-wrap: anywhere;
+}
+
+
+.e-permits-fo-intent-act__place-icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: none;
+  margin-top: calc((var(--line-height-lh-20, 20px) - var(--icon-size-small, 16px)) / 2);
+}
+
+.e-permits-fo-intent-act__place-text {
+  min-width: 0;
+}
+
+@media (min-width: 761px) {
+  .e-permits-fo-intent-act__place-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 }
 
 .e-permits-fo-lib-item.e-permits-fo-intent-act > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__pending,
@@ -16883,6 +16927,7 @@
 }
 
 .e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-doc-meta {
+.e-permits-fo-lib-item.e-permits-fo-intent-act:has(> :is(.e-permits-fo-intent-act__action, .cab-doc__actions) .btn) > .e-permits-fo-lib-item__content > .e-permits-fo-intent-act__place,
   flex-basis: calc(100% + var(--fo-doc-meta-sep) + var(--row-trigger-reserve));
   margin-right: calc(var(--row-trigger-reserve) * -1);
 }

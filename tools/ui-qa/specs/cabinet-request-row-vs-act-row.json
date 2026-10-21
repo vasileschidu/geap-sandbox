@@ -1,5 +1,5 @@
 {
- "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Aprobat (finalized; outcome-tag-v1), green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Phones: ONE anatomy for both — row 1 = [icon ·] tags, title 16/24, meta, notice; the action button is a compared pair for height / radius / font / border only. row-kebab-v1 (2026-10-20, user „back to 3 dots, Acțiuni is too ambiguous” + „the 3 dots absolutely positioned on mobile”): the request trigger is ON PURPOSE a different library button — the icon-only ⋮ `btn btn-neutral btn-sm btn-icon-only` (32 square, r6, grey gray-100 fill at rest — kebab-neutral-v1, no padding) — so its fill / padding / gap / flex props are ignored; on phones it sits in the card's top-right corner (top = right = 10 inside the border, centre = the 20 tag line), the row reserves 40 on the right for row 1 and gives it back to title / meta / notice (`expected` at 375 / 320). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375,320 Ignored (content, not style): the action column width (grid-template-columns) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning). act-trigger-fixed-v1 (2026-10-20, user: „Postprocese with the same fixed placement on mobile as the 3 dots” + „the straight Detalii, do the same”): ONE shared rule (e-permits-acte-permisive.css „PHONE ROW ANATOMY”) puts every row trigger — ⋮, lone „👁 Detalii”, „Postprocese ⌄” — absolute at top = right = 10 inside the border; row 1 reserves `--row-trigger-w` (the button's width, js/act-row.js) + 8 and the title / meta / notice take it back. So the act and request rows now differ ONLY by that width (Postprocese 132 → 140 reserved, ⋮ 32 → 40, Detalii 87 → 95): padding-right / flex-basis / margin-right are `expected` at 375 / 320; the trigger's rect (top / right inset) is compared and equal. The „(Detalii)” pairs compare the act row with the request row d-fresh (În derulare, lone Detalii). The Detalii button's padding-left 8 (vs 12) = the library btn-sm with a LEADING icon — ignored. trigger-corner-v1 (2026-10-21, user: „on desktop also put the action fixed in the corner” + „keep the status badge next to the title if there is space”): the corner trigger + reservation at EVERY width (desktop: top = right = 12, centred on the 24 title line; phones 10 / 10 on the 20 tag line); desktop line 1 = [icon ·] title · tags inline. Run with --viewports 1440,1024,375,320. no-lone-detalii-v1 (2026-10-21, user: „if it does the same as clicking the entire card, remove Detalii”): a request whose only action was „Detalii” has NO trigger and reserves nothing → the „(no trigger)” pairs compare d-fresh (În derulare) with the act row that has no trigger either (act-bistro, Expirat — hideEmptyAction): padding-right 16 on both, 0 differences; the „action button (Detalii)” pair is gone.",
+ "about": "Cabinet „Solicitările mele” row (2026-10-20: the act row of js/act-row.js with the request's content) vs the „Actele mele permisive” act row. a = pp-01 (act „Cafeneaua „Izvoraș”” — Valabil, green Small tag), b = sm-01 (request „Cantina „Nord”” — Aprobat (finalized; outcome-tag-v1), green Small tag; same tone so tag colours compare). Card box, title, tag, meta and a meta part must have 0 differences. Phones: ONE anatomy for both — row 1 = [icon ·] tags, title 16/24, meta, notice; the action button is a compared pair for height / radius / font / border only. row-kebab-v1 (2026-10-20, user „back to 3 dots, Acțiuni is too ambiguous” + „the 3 dots absolutely positioned on mobile”): the request trigger is ON PURPOSE a different library button — the icon-only ⋮ `btn btn-neutral btn-sm btn-icon-only` (32 square, r6, grey gray-100 fill at rest — kebab-neutral-v1, no padding) — so its fill / padding / gap / flex props are ignored; on phones it sits in the card's top-right corner (top = right = 10 inside the border, centre = the 20 tag line), the row reserves 40 on the right for row 1 and gives it back to title / meta / notice (`expected` at 375 / 320). Run: node --experimental-websocket --no-warnings tools/ui-qa/compare-styles.mjs --a pp-01 --b sm-01 --spec tools/ui-qa/specs/cabinet-request-row-vs-act-row.json --viewports 1440,375,320 Ignored (content, not style): the action column width (grid-template-columns) and the right edges of title / meta (text length). Request rows have NO lead icon (user 2026-10-20), so the text starts at the card padding: title / meta rect.x are ignored (12 vs 48) and the icon pair is gone. Notice = the act row's locked notice (Laborator, warning) vs the request „Informații suplimentare” alert (warning). act-trigger-fixed-v1 (2026-10-20, user: „Postprocese with the same fixed placement on mobile as the 3 dots” + „the straight Detalii, do the same”): ONE shared rule (e-permits-acte-permisive.css „PHONE ROW ANATOMY”) puts every row trigger — ⋮, lone „👁 Detalii”, „Postprocese ⌄” — absolute at top = right = 10 inside the border; row 1 reserves `--row-trigger-w` (the button's width, js/act-row.js) + 8 and the title / meta / notice take it back. So the act and request rows now differ ONLY by that width (Postprocese 132 → 140 reserved, ⋮ 32 → 40, Detalii 87 → 95): padding-right / flex-basis / margin-right are `expected` at 375 / 320; the trigger's rect (top / right inset) is compared and equal. The „(Detalii)” pairs compare the act row with the request row d-fresh (În derulare, lone Detalii). The Detalii button's padding-left 8 (vs 12) = the library btn-sm with a LEADING icon — ignored. trigger-corner-v1 (2026-10-21, user: „on desktop also put the action fixed in the corner” + „keep the status badge next to the title if there is space”): the corner trigger + reservation at EVERY width (desktop: top = right = 12, centred on the 24 title line; phones 10 / 10 on the 20 tag line); desktop line 1 = [icon ·] title · tags inline. Run with --viewports 1440,1024,375,320. no-lone-detalii-v1 (2026-10-21, user: „if it does the same as clicking the entire card, remove Detalii”): a request whose only action was „Detalii” has NO trigger and reserves nothing → the „(no trigger)” pairs compare d-fresh (În derulare) with the act row that has no trigger either (act-bistro, Expirat — hideEmptyAction): padding-right 16 on both, 0 differences; the „action button (Detalii)” pair is gone. type-first-v1 (2026-10-21, user: „In Solicitări and Acte, we swap: first the name of the act, and in second place the location, if any” + a filled tertiary pin): BOTH rows = title (act type / service) + line 2 `.e-permits-fo-intent-act__place` (the 16 filled map pin in --color-icon-base-tertiary, gap 4, + the object 14/20 default) + meta (no name any more). New pairs „location line”, „location pin”: 0 differences expected (only the text width differs).",
  "tokens": [
   "--color-",
   "--font-",
@@ -40,6 +40,28 @@
     "rect.width",
     "rect.x",
     "rect.y"
+   ]
+  },
+  {
+   "name": "location line",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-intent-act__place",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-intent-act__place",
+   "rel": "row",
+   "ignore": [
+    "rect.width",
+    "rect.y",
+    "rect.right",
+    "rect.x"
+   ]
+  },
+  {
+   "name": "location pin",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-intent-act__place-icon",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-intent-act__place-icon",
+   "rel": "row",
+   "ignore": [
+    "rect.y",
+    "rect.x"
    ]
   },
   {
@@ -401,6 +423,90 @@
    "name": "meta (Detalii)",
    "prop": "margin-right",
    "why": "trigger-corner-v1: meta / notice take the reservation back (flex-basis 100% + R, margin-right −R) → full card width; R differs by the trigger width only (desktop titles sit inline on line 1, so their flex-basis / margin are equal)"
+  },
+  {
+   "viewport": 1440,
+   "name": "location line",
+   "prop": "flex-basis",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 1440,
+   "name": "location line",
+   "prop": "margin-right",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 1024,
+   "name": "location line",
+   "prop": "flex-basis",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 1024,
+   "name": "location line",
+   "prop": "margin-right",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "location line",
+   "prop": "flex-basis",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 375,
+   "name": "location line",
+   "prop": "margin-right",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "location line",
+   "prop": "flex-basis",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 320,
+   "name": "location line",
+   "prop": "margin-right",
+   "why": "type-first-v1: the location line is a full-width line under row 1 like the title — it takes the reservation back (flex-basis 100% + R, margin-right −R); R differs by the trigger width only"
+  },
+  {
+   "viewport": 1440,
+   "name": "meta part",
+   "prop": "flex-shrink",
+   "why": "type-first-v1: the act meta has no „what” slot any more (the type is the title) → part 2 = the authority code (never shrinks) vs the request's type of request (`__part--what`, desktop shrinks first)"
+  },
+  {
+   "viewport": 1440,
+   "name": "meta part",
+   "prop": "overflow-x",
+   "why": "type-first-v1: the act meta has no „what” slot any more (the type is the title) → part 2 = the authority code (never shrinks) vs the request's type of request (`__part--what`, desktop shrinks first)"
+  },
+  {
+   "viewport": 1440,
+   "name": "meta part",
+   "prop": "text-overflow",
+   "why": "type-first-v1: the act meta has no „what” slot any more (the type is the title) → part 2 = the authority code (never shrinks) vs the request's type of request (`__part--what`, desktop shrinks first)"
+  },
+  {
+   "viewport": 1024,
+   "name": "meta part",
+   "prop": "flex-shrink",
+   "why": "type-first-v1: the act meta has no „what” slot any more (the type is the title) → part 2 = the authority code (never shrinks) vs the request's type of request (`__part--what`, desktop shrinks first)"
+  },
+  {
+   "viewport": 1024,
+   "name": "meta part",
+   "prop": "overflow-x",
+   "why": "type-first-v1: the act meta has no „what” slot any more (the type is the title) → part 2 = the authority code (never shrinks) vs the request's type of request (`__part--what`, desktop shrinks first)"
+  },
+  {
+   "viewport": 1024,
+   "name": "meta part",
+   "prop": "text-overflow",
+   "why": "type-first-v1: the act meta has no „what” slot any more (the type is the title) → part 2 = the authority code (never shrinks) vs the request's type of request (`__part--what`, desktop shrinks first)"
   }
  ]
 }

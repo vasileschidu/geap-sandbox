@@ -206,7 +206,7 @@
     try {
       const [data, fo] = await Promise.all([
         fetch("../data/cabinet-evo-catalog.json").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
-        fetch("../data/acte-permisive.json").then((response) => response.json()).catch(() => null),
+        fetch("../data/acte-permisive.json?v=type-first-v1").then((response) => response.json()).catch(() => null),
       ]);
       state.data = data;
       const flow = fo?.frontOfficeFlows?.[0] || {};

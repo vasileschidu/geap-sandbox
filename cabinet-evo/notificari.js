@@ -33,7 +33,8 @@
   /* the events of one request → notifications { at, icon, tone, title, text, action: { label, href | pay } } */
   function eventsOf(dosar, services) {
     const service = services[dosar.service] || {};
-    const what = `${dosar.object} · ${service.title || ""}`;
+    /* type-first-v1 (2026-10-21): the service / act name first, then the object when the request has one */
+    const what = [service.title, dosar.object].filter(Boolean).join(" · ") || dosar.nr;
     const list = [];
     const open = { label: "Vezi dosarul", href: dosarUrl(dosar) };
     if (dosar.status === "schita") {
@@ -90,7 +91,7 @@
   }
 
   async function init() {
-    const data = await (await fetch("../data/cabinet-evo-solicitari.json")).json();
+    const data = await (await fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1")).json();
     const perspective = data.perspectives?.[C.SUBJECT] || { dosare: [] };
     const ro = perspective.readOnly || null;
     const notes = (perspective.dosare || [])

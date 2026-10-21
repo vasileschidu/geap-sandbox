@@ -2263,3 +2263,18 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   back = chevron OUTSIDE the atom in Figma 232:5283 → the ring moved from the link to the label span; (3) pp-01q went
   `:error` mid-job from another agent's uncommitted cabinet-evo edits → used sm-05d (same act profile header). hover-audit
   with `--scope "nav.breadcrumbs"` gave „0 interactive” on RAP (first match = a hidden nav) → scope the visible profile nav.
+- 2026-10-21 · Type first, location second (type-first-v1; user: „In Solicitări and Acte, we swap: first the name of the act,
+  and in second place the location, if any”, + mid-job „a small pin in front of the location” → „I don't like the pin … a
+  filled one, in the tertiary colour”). What kept it cheap: ONE option `place` on `GEAPActRow.html` (default "" → FO / Ghișeu
+  byte-identical, proved with a vm harness: HEAD renderer + the other agent's uncommitted icon hunk vs the new one, 96 cases,
+  0 differences — the first run said 80 differences because another agent's permission-icon hunk sat in the same file; build
+  the baseline from HEAD + foreign hunks), one `subtitleIcon` option on `CabEvo.pageHeader`, the acts mapped once in
+  `loadGeapActs` (`title` = type, `place`, `label` = both for accessible names / dialogs). The new line is a flex item of the
+  ROW ANATOMY box: same `order` as the phone title (DOM order keeps it under it), and it must be listed with the title in
+  the „take the trigger reservation back” selector or it is 136 narrower than the card. Data variety: 3 acts on the main
+  perspective pushed 2 rows to page 2 → a pager-aware `cabFind` (as `smFind`) for the states that address those rows;
+  new services got NON-colliding codes for the FO intent filter (`act.service === code`) and a `shortTitle` where the full
+  title reads as a demo note. A request without an object broke the notifications text („undefined · …”) — grep every
+  `.object` reader when data may lack it. Parity spec: the act meta lost its „what” slot, so part 2 compares authority vs
+  type of request — documented as `expected`, new pairs „location line / pin” = 0. My probe hung twice with no output
+  (CDP call never answered) → every `send` now has a 20 s timeout + a global exit, and prints progress.

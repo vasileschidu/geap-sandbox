@@ -72,6 +72,8 @@
 
   const statusOf = (dosar) => state.data.statuses[dosar.status] || { label: dosar.status, tag: "status-tag--neutral is-subtle" };
   const serviceOf = (dosar) => state.data.services[dosar.service] || {};
+  /* type-first-v1: „<service> — <object>” (object only when the request has one) — accessible names, menus */
+  const requestLabel = (dosar) => [serviceOf(dosar).title, dosar.object].filter(Boolean).join(" — ") || dosar.nr;
   const money = (amount) => `${Number(amount || 0).toLocaleString("ro-RO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} MDL`;
   const sortDate = (dosar) => dosar.submitted || dosar.created || "";
   const fold = (text) => String(text || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -282,7 +284,7 @@
        no-lone-detalii-v1 (2026-10-21, user: „if it does the same as clicking the entire card, remove Detalii”): a row
        whose only action is „Detalii” has NO trigger — the whole card is the action (click / Enter / Space), no
        right-hand space is reserved; returns "" (cardHtml then emits no action block). */
-    const name = dosar.object || serviceOf(dosar).title || dosar.nr;
+    const name = requestLabel(dosar);
     if (items.length === 1 && items[0].action === "open") return "";
     return `
       <div class="e-permits-fo-intent-act__action cab-card__actions">
@@ -352,13 +354,15 @@
   /* Solicitările mele row (2026-10-20, user: „the same stacked list as Actele mele permisive”) = the act row
      (js/act-row.js, GEAPActRow.html — .e-permits-fo-lib-item.e-permits-fo-intent-act: bordered card, r12, 12
      padding, tertiary hover) with the request's content, desktop AND phones (the US-19 table is gone):
-       no lead icon (user) · title = the object (as the act rows and the request profile) + Small status tag
-       (+ Aprobat / Respins, the tacit-approval mark) · meta 14/20 = Nr dosar (copy) · tip · serviciu ·
-       autoritate · subdiviziune · Depusă / Creată · Finalizare estimată · right: the labelled primary + ⋮ ·
+       no lead icon (user) · title = the service / act name + Small status tag (+ the tacit-approval mark) ·
+       line 2 = the object / location, only when the request has one (type-first-v1, 2026-10-21, user: „first the
+       name of the act, and in second place the location, if any”; was: title = the object) · meta 14/20 = Nr dosar
+       (copy) · tip · autoritate · subdiviziune · Depusă / Creată · Finalizare estimată · right: the ⋮ ·
        under it, full card width, the status alert (the act row's notice slot: library subtle notice, tone per
        REQUEST_UI, live countdown). The whole row opens the request profile. */
   function cardHtml(dosar) {
     const service = serviceOf(dosar);
+    const place = dosar.object || "";
     const base = { id: dosar.id, name: "", status: dosar.status, statusLabel: statusLabel(dosar) };
     /* no lead icon (user 2026-10-20): the row starts with the title + status tag */
     const common = { menuId: `sm-row-${dosar.id}`, assets: "../assets/", iconSrc: "", tagHtml: statusTag(dosar) };
@@ -366,22 +370,24 @@
       /* US-159 AC-06: only nr, serviciu, data depunerii and the status at expiry; no action, not clickable */
       return window.GEAPActRow.html({ ...base, name: service.title || "" }, {
         ...common,
+        place,
         attrs: `data-sm-card="${escape(dosar.id)}"`,
         metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, date: `Depusă ${longDate(dosar.submitted)}` },
         actionHtml: "",
         rowClass: "cab-request-row is-static",
       });
     }
-    const name = dosar.object || service.title || "";
+    const name = service.title || dosar.object || "";
     const alert = rowAlert(dosar);
     const actions = actionsHtml(dosar);
     return window.GEAPActRow.html({ ...base, name }, {
       ...common,
-      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${name} — ${statusLabel(dosar)}${outcomeOf(dosar) ? " (finalizată)" : ""}, deschide detaliile`)}"`,
+      place: service.title ? place : "",
+      attrs: `tabindex="0" data-sm-card="${escape(dosar.id)}" aria-label="${escape(`${requestLabel(dosar)} — ${statusLabel(dosar)}${outcomeOf(dosar) ? " (finalizată)" : ""}, deschide detaliile`)}"`,
       extraTagsHtml: `${tacitListMark(dosar)}${dosar.status === "schita" && dosar.signed ? C.signedTagHtml() : ""}`,
-      /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · type · service ·
-         authority · subdivision · date */
-      metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, what: [dosar.tip, service.title].filter(Boolean).join(" · "), authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
+      /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · type of request ·
+         authority · subdivision · date — the service name is the title (type-first-v1), never repeated here */
+      metaSlots: { number: dosar.nr, numberLabel: `Copiază numărul dosarului ${dosar.nr}`, what: dosar.tip || "", authority: service.authority, subdivision: dosar.subdivision, date: rowDate(dosar) },
       ...(alert ? { noticeHtml: alert.html, noticeTone: alert.tone === "danger" ? "error" : alert.tone, noticeIcon: alert.icon, noticeLocks: false } : {}),
       /* only the ⋮ (every action of the request, no downloads — no-row-download rule); nothing when the only
          action was „Detalii” (no-lone-detalii-v1: the card itself opens the details) */
@@ -1087,7 +1093,7 @@
       </section>` : "";
 
     const details = section("detalii", "Date solicitare", rows([
-      row("Denumirea obiectului", escape(dosar.object)),
+      dosar.object ? row("Denumirea obiectului", escape(dosar.object)) : "",
       dosar.address ? row("Adresa unității", escape(dosar.address)) : "",
       dosar.caem ? row("Activitatea (CAEM)", escape(dosar.caem)) : "",
       dosar.pp && dosar.prevActNr ? row("Actul permisiv vizat", escape(dosar.prevActNr)) : "",
@@ -1141,8 +1147,11 @@
       <article class="cab-profile sm-profile" aria-labelledby="sm-profile-title" data-sm-profile="${escape(dosar.id)}">
         ${C.pageHeader({
           back: { label: "Solicitările mele", href: cabUrl("solicitari"), attr: "data-sm-back" },
-          title: dosar.object,
+          /* type-first-v1: H1 = the service / act name, subtitle = the object / location (only when present) */
+          title: service.title || dosar.object || dosar.nr,
           titleId: "sm-profile-title",
+          subtitle: service.title ? dosar.object || "" : "",
+          subtitleIcon: service.title && dosar.object ? "icon-map-pin-filled" : "",
           meta: headerMeta(dosar),
         })}
         <div class="e-permits-dosar-profil__panel">
@@ -1495,8 +1504,8 @@
   async function init() {
     try {
       const [data, fo] = await Promise.all([
-        fetch("../data/cabinet-evo-solicitari.json?v=act-profile-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
-        fetch("../data/acte-permisive.json").then((response) => response.json()).catch(() => null),
+        fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1").then((response) => { if (!response.ok) throw new Error(String(response.status)); return response.json(); }),
+        fetch("../data/acte-permisive.json?v=type-first-v1").then((response) => response.json()).catch(() => null),
       ]);
       state.data = data;
       const flow = fo?.frontOfficeFlows?.[0] || {};

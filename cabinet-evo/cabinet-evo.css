@@ -1589,6 +1589,25 @@ button.cab-alert-link {
 /* ===== Act profile (act-profile-v1, 2026-10-21) — components.md › „Act profile” =====
    „Actele mele permisive” › ?act=<id> (cabinet-evo.js renderDetail): the public BO header + a subtitle (the act
    type), ONE status date in the meta, one status notice, then BO sections (Ce permite actul · Detalii act ·
+/* the location subtitle of the act / request profiles (type-first-v1, 2026-10-21): the 16 FILLED map pin in the
+   TERTIARY icon colour (user: „a filled one, in the tertiary colour” — exception to icon = label colour; the text
+   keeps the subtitle colour), 4 to the text, centred on the first 24 line; a wrapped line starts under the text */
+.cab-page-header__subtitle--icon {
+  align-items: flex-start;
+  column-gap: var(--spacing-4, 4px);
+  display: flex;
+}
+
+.cab-page-header__subtitle--icon > .icon {
+  color: var(--color-icon-base-tertiary, #757575);
+  flex: none;
+  margin-top: calc((var(--line-height-lh-24, 24px) - var(--icon-size-small, 16px)) / 2);
+}
+
+.cab-page-header__subtitle--icon > span {
+  min-width: 0;
+}
+
    Autoritatea emitentă · Beneficiar · Istoric). Only what the shared parts do not already give lives here. */
 
 /* title + subtitle (the act type = the service) as one block: 4 between them, the heading's 16 above */

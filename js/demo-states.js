@@ -230,6 +230,11 @@
     await h.wait(150);
   };
   const ppCab = (run) => ({ page: "cabinet-evo/index.html", ready: "[data-cab-card]", run });
+  /* an act row may sit on page 2 (12 acts since type-first-v1, 2026-10-21): page on until it is there, then scroll to it */
+  const cabFind = async (h, id) => {
+    for (let page = 2; !document.querySelector(`[data-cab-card="${id}"]`) && document.querySelector(`[data-cab-page="${page}"]`) && page < 6; page += 1) await h.click(`[data-cab-page="${page}"]`);
+    await h.scroll(`[data-cab-card="${id}"]`);
+  };
   /* the act post-process menu (js/act-row.js): the anchored dropdown item at every width (action-menu-v1 — the phone
      action sheet is gone); kept as a helper so the states read the same */
   const actMenuPick = (itemSel) => async (h) => { await h.click(itemSel); };
@@ -1285,7 +1290,7 @@
     /* act profile = the RAP act profile (2026-10-17): AC-17 dates, tacit badge, the shared act dialogs */
     "pp-01j": ppCab(async (h) => { await h.click("[data-cab-card='act-piata-mare'] .e-permits-fo-lib-item__title"); }),
     "pp-01k": ppCab(async (h) => { await h.scroll("[data-cab-card='act-cantina']"); await h.click("[data-cab-card='act-cantina'] .e-permits-fo-lib-item__title"); }),
-    "pp-01l": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] .e-permits-fo-lib-item__title"); }),
+    "pp-01l": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] .e-permits-fo-lib-item__title"); }),
     /* act-profile-v1 (2026-10-21): „Vezi act permisiv” opens the act document (MDocs A4, „Vizualizare act” · Descarcă) —
        the old data dialog is gone (its data is on the page); m / o = the Valabil act, n = the Suspendat one (watermark) */
     "pp-01m": ppCab(async (h) => { await h.click("[data-cab-card='act-izvoras'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
@@ -1299,9 +1304,9 @@
     "pp-01x": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__table"); await h.wait(250); await h.scroll("[data-cab-detail] .e-permits-act-fields__table-field"); }),
     "pp-01y": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.find("[data-cab-detail] .e-permits-act-fields__table"); await h.wait(250); await h.click("[data-cab-detail] .e-permits-act-fields__table-field [data-act-fields-more]"); await h.scroll("[data-cab-detail] .e-permits-act-fields__table-field"); }),
     "pp-01z": ppCab(async (h) => { await h.scroll("[data-cab-card='act-depozit-10']"); await h.click("[data-cab-card='act-depozit-10'] .e-permits-fo-lib-item__title"); await h.click("[data-cab-view-act]"); await h.find("[data-rap-act-modal]:not([hidden]) [data-rap-act-canvas]"); }),
-    "pp-01p": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-demo']"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
+    "pp-01p": ppCab(async (h) => { await cabFind(h, "act-licenta-demo"); await h.click("[data-cab-card='act-licenta-demo'] [data-cab-menu-trigger]"); }),
     /* the profile's visible menu trigger: „Postprocese ⌄” on desktop, the overflow „⋯” on phones (act-profile-v1) */
-    "pp-01q": ppCab(async (h) => { await h.scroll("[data-cab-card='act-licenta-susp']"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.wait(150); await h.click("[data-cab-detail] .cab-act-header__actions > :not([hidden]) > [data-cab-menu-trigger]"); }),
+    "pp-01q": ppCab(async (h) => { await cabFind(h, "act-licenta-susp"); await h.click("[data-cab-card='act-licenta-susp'] .e-permits-fo-lib-item__title"); await h.wait(150); await h.click("[data-cab-detail] .cab-act-header__actions > :not([hidden]) > [data-cab-menu-trigger]"); }),
     /* the act with a post-process in progress: every item disabled with its reason (US-55 AC-14) */
     "pp-01r": ppCab(async (h) => { await h.scroll("[data-cab-card='act-lab-10']"); await h.hover("[data-cab-card='act-lab-10']"); }),
     /* „Filtre”: the bar / popover (desktop) — the chip row + Statut sheet (phones) */
@@ -1323,6 +1328,12 @@
     "pp-03b": { page: "cabinet-evo/index.html", params: { act: "act-licenta-susp" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03c": { page: "cabinet-evo/index.html", params: { as: "pj-vita-plant", act: "act-vita-farm" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
     "pp-03d": { page: "cabinet-evo/index.html", params: { act: "act-izvoras" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: async (h) => { await h.scroll("#cab-act-history"); } },
+    /* type-first-v1 (2026-10-21, user: „first the name of the act, then the location, if any”): 03e an act WITHOUT a
+       location (transport licence: H1 = the type, no subtitle) · 03f another act type for the same place (Izvoraș
+       alcohol licence: H1 = the type, subtitle = the place) · 04 the list searched by the place — 3 act types, one place */
+    "pp-03e": { page: "cabinet-evo/index.html", params: { act: "act-transport" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-03f": { page: "cabinet-evo/index.html", params: { act: "act-izvoras-alcool" }, ready: "[data-cab-detail]:not([hidden]) #cab-act-title", run: null },
+    "pp-04": ppCab(async (h) => { await h.fill("[data-cab-search]", "Izvoraș", { leave: false }); }),
     "pp-02": ppIntent(),
     "pp-02a": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); }),
     "pp-02b": ppIntent(async (h) => { await h.click("[data-fo-intent-act='act-izvoras'] [data-fo-intent-trigger]"); await actMenuPick("[data-fo-intent-act='act-izvoras'] [data-fo-intent-postprocess='retragere']")(h); }),
@@ -2134,6 +2145,8 @@
     "sm-01i": sm(smPick("autoritate", ["AMDM*"])),
     "sm-01j": sm(async (h) => { await h.click('[data-sm-page="2"]'); }),
     "sm-01k": sm(async (h) => { await smFind(h, "d-gara"); await h.hover("[data-tooltip-hint]"); }),
+    /* type-first-v1: a request WITHOUT an object (transport licence) — title only, no line 2 */
+    "sm-01z": sm(async (h) => { await h.fill("[data-sm-search]", "transport", { leave: false }); }),
     "sm-01l": sm(async (h) => { await h.scroll(".cab-pager"); await h.click(".cab-pager__size"); }),
     /* the Izvoraș request's ⋮ open (user 2026-10-20, ref Telegram iOS; row-kebab-v1 „back to 3 dots”): the
        anchored dropdown on every width — phones with the touch item size (components.md „Row action menu on
@@ -2184,6 +2197,8 @@
     "sm-04k": smDosar("d-lab-prelungire"),
     "sm-04l": smDosar("d-fresh", async (h) => { await h.click('[data-sm-tab="solicitare"]'); await h.scroll("#sm-sec-livrare"); }),
     "sm-05": smDosar("d-izvoras"),
+    /* type-first-v1: the profile of a request WITHOUT an object — H1 = the service, no subtitle */
+    "sm-05v": smDosar("d-transport"),
     "sm-05a": smDosar("d-nota"),
     "sm-05b": smDosar("d-cantina-retragere"),
     "sm-05c": smDosar("d-izvoras", async (h) => { await h.click('[data-sm-profile] [data-sm-status] [data-sm-action="download"]'); }, { descarcare: "eroare" }),

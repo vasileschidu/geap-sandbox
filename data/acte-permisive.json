@@ -1000,6 +1000,7 @@
           "DEMO": {
             "code": "DEMO",
             "title": "Licență de activitate (exemplu pentru suspendare și reluare)",
+            "shortTitle": "Licență de activitate",
             "authority": "ANSP",
             "demo": true,
             "allows": [
@@ -1013,6 +1014,63 @@
               "reluare": 5,
               "retragere": 1,
               "anulare": 1
+            },
+            "delivery": [
+              "Livrare electronică (EVO Cabinet)"
+            ]
+          },
+          "207": {
+            "code": "207",
+            "_note": "type-first-v1 (2026-10-21): other act types for the same place (Cafeneaua „Izvoraș”) — Cabinet demo variety; not an FO flow",
+            "title": "Autorizația de comercializare a băuturilor alcoolice",
+            "authority": "MEC",
+            "allows": [
+              "reperfectare",
+              "prelungire",
+              "retragere"
+            ],
+            "terms": {
+              "reperfectare": 5,
+              "prelungire": 10,
+              "retragere": 1
+            },
+            "delivery": [
+              "Livrare electronică (EVO Cabinet)"
+            ]
+          },
+          "331": {
+            "code": "331",
+            "_note": "type-first-v1 (2026-10-21): a premises-bound act of another authority for Cafeneaua „Izvoraș” — Cabinet demo variety",
+            "title": "Autorizația de securitate la incendiu",
+            "authority": "IGSU",
+            "allows": [
+              "reperfectare",
+              "retragere"
+            ],
+            "terms": {
+              "reperfectare": 5,
+              "retragere": 1
+            },
+            "delivery": [
+              "Livrare electronică (EVO Cabinet)"
+            ]
+          },
+          "618": {
+            "code": "618",
+            "_note": "type-first-v1 (2026-10-21): an act WITHOUT a location (licence for an activity) — the row has no line 2",
+            "title": "Licența pentru transportul rutier de mărfuri",
+            "authority": "ANTA",
+            "allows": [
+              "reperfectare",
+              "prelungire",
+              "duplicat",
+              "retragere"
+            ],
+            "terms": {
+              "reperfectare": 5,
+              "prelungire": 10,
+              "duplicat": 3,
+              "retragere": 1
             },
             "delivery": [
               "Livrare electronică (EVO Cabinet)"
@@ -1085,6 +1143,43 @@
               }
             },
             {
+              "id": "act-izvoras-alcool",
+              "service": "207",
+              "name": "Cafeneaua „Izvoraș”, mun. Bălți",
+              "number": "MEC-ALC-2025-0877",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "01.10.2025",
+              "validUntil": "01.10.2030",
+              "subdivision": "Direcția autorizări și licențe",
+              "object": {
+                "name": "Cafenea",
+                "raion": "Municipiul Bălți",
+                "localitate": "Bălți",
+                "strada": "str. Independenței",
+                "house": "12",
+                "caem": "56.30"
+              }
+            },
+            {
+              "id": "act-izvoras-incendiu",
+              "service": "331",
+              "name": "Cafeneaua „Izvoraș”, mun. Bălți",
+              "number": "IGSU-2025-01342",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "20.08.2025",
+              "validUntil": "20.08.2027",
+              "subdivision": "DSE Bălți",
+              "object": {
+                "name": "Cafenea",
+                "raion": "Municipiul Bălți",
+                "localitate": "Bălți",
+                "strada": "str. Independenței",
+                "house": "12"
+              }
+            },
+            {
               "id": "act-piata-mare",
               "service": "09",
               "name": "Restaurantul „Piața Mare”, mun. Chișinău",
@@ -1141,6 +1236,18 @@
               "validUntil": "20.01.2031",
               "subdivision": "Comitetul permanent de control asupra drogurilor",
               "activityType": "Circulația substanțelor stupefiante, psihotrope și a precursorilor"
+            },
+            {
+              "id": "act-transport",
+              "service": "618",
+              "_note": "type-first-v1: no object / location — the licence covers the activity, not a place (name empty → no line 2)",
+              "name": "",
+              "number": "ANTA-2024-00563",
+              "status": "valabil",
+              "statusLabel": "Valabil",
+              "issued": "12.03.2024",
+              "validUntil": "12.03.2029",
+              "subdivision": "Direcția licențiere"
             },
             {
               "id": "act-lab-10",

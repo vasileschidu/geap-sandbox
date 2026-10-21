@@ -16,7 +16,7 @@
               meta (parts, replaces the default; a part = text or { text, long }) }
      The meta line = ONE slot structure for every act / request row (2026-10-20, user: „why do the act and
      request cards have different details?”), built by metaParts():
-       1 number (the COMPACT copy value — no icon in lists, the number itself copies; user 2026-10-21)  ·  2 what (act / service name; request: type · service)  ·  3 authority · subdivision
+       1 number (the COMPACT copy value — no icon in lists, the number itself copies; user 2026-10-21)  ·  2 what (request: the type — Eliberare…; the Cabinet acts: none — since type-first-v1 the act / service name is the title)  ·  3 authority · subdivision
        ·  4 the key date (act: valabil până la / expirat la; request: Depusă / Creată / Finalizată)
      Desktop (>760) keeps it on ONE line: slot 2 shrinks first (ellipsis), then slot 3; 1 and 4 never shrink.
      opts = { menuId, actionLabel, items [{ id, label, icon, disabled, reason }], pendingTitle + pendingText,
@@ -39,7 +39,14 @@
               metaSlots = null              { number, what, authority, subdivision, date } → metaParts()
               noticeHtml = ""               the notice text as ready HTML (live parts, <strong>), instead of pendingTitle / -Text
               actionHtml = null             the right-hand actions, replaces the post-process pill block
-              rowClass = ""                 extra classes on the <li> }
+              rowClass = ""                 extra classes on the <li>
+              // type-first-v1 (2026-10-21, user: „first the name of the act, then the location, if any”):
+              place = ""                    line 2 = the object / location, 14/20 DEFAULT text colour, only when
+                                            present, led by the 16 FILLED map pin (icon-map-pin-filled, TERTIARY icon
+                                            colour, gap 4; user 2026-10-21) (desktop one line + ellipsis + tooltip, phones wrap). The Cabinet
+                                            acts / requests pass title = the act type / service + place = the object;
+                                            the FO intent step (and the Ghișeu picker — one service) keep the object as
+                                            the title and pass no place (all acts there are the same type). }
 
    Menu (action-menu-v1, 2026-10-20 — user: „the action does a dropdown menu, as Telegram, not a down modal”):
    ONE anchored dropdown at every width (the phone action sheet of the morning is gone): unavailable items keep
@@ -125,9 +132,11 @@
     menuId = `fo-act-menu-${act.id}`, actionLabel = "Postprocese", items = [], pendingTitle = "", pendingText = "", menuClass = "",
     assets = "assets/", attrs = "", tagHtml = null, extraTagsHtml = "", triggerAttrs = "data-fo-intent-trigger", itemAttrs = null,
     noticeTone = "warning", noticeIcon = "icon-time", noticeLocks = true, hideEmptyAction = false,
-    iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = ""
+    iconSrc = null, metaSlots = null, actionHtml = null, rowClass = "", noticeHtml = "", place = ""
   } = {}) {
     const tone = ACT_ROW_TONE[act.status] || "neutral";
+    /* accessible names of the trigger / menu: the type alone repeats on every row → „<type> — <place>” */
+    const label = place ? `${act.name} — ${place}` : act.name;
     /* long names (authority / subdivision / service) are the parts that give way on desktop (`long`) */
     const parts = metaSlots ? metaParts(metaSlots)
       : act.meta ? act.meta.map((part) => (part && typeof part === "object" ? part : { text: part })).filter((part) => part.text).map((part) => ({ html: esc(part.text), kind: part.long ? "long" : "" }))
@@ -140,22 +149,23 @@
     const itemHook = itemAttrs || ((pp) => `data-fo-intent-postprocess="${esc(pp.id)}"`);
     const action = actionHtml !== null ? actionHtml : hideEmptyAction && !items.length ? "" : `
           <div class="cab-doc__actions e-permits-fo-intent-act__action">
-            <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="${esc(actionLabel)} pentru ${esc(act.name)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" ${triggerAttrs}${locked ? " disabled" : ""}>
+            <button class="btn btn-neutral btn-sm e-permits-fo-intent-act__trigger" type="button" aria-label="${esc(actionLabel)} pentru ${esc(label)}" aria-haspopup="menu" aria-expanded="false" aria-controls="${esc(menuId)}" ${triggerAttrs}${locked ? " disabled" : ""}>
               <span>${esc(actionLabel)}</span>
               <svg class="icon small" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-chevron-bottom"></use></svg>
             </button>
-            <ul class="e-permits-fo-intent-menu e-permits-stack__menu${menuClass && menuClass !== "e-permits-stack__menu" ? ` ${menuClass}` : ""}" id="${esc(menuId)}" role="menu" aria-label="Postprocese pentru ${esc(act.name)}" hidden>
+            <ul class="e-permits-fo-intent-menu e-permits-stack__menu${menuClass && menuClass !== "e-permits-stack__menu" ? ` ${menuClass}` : ""}" id="${esc(menuId)}" role="menu" aria-label="Postprocese pentru ${esc(label)}" hidden>
               ${menuItemsHtml(items, itemHook, assets)}
             </ul>
           </div>`;
     return `
         <li data-tooltip-focus class="e-permits-fo-lib-item e-permits-fo-intent-act${rowClass ? ` ${rowClass}` : ""}${locked ? " is-locked" : ""}${hasNotice && !locked ? " has-notice" : ""}" data-fo-intent-act="${esc(act.id)}"${attrs ? ` ${attrs}` : ""}>
-          ${iconSrc === "" ? "" : `<img class="e-permits-fo-lib-item__icon" src="${iconSrc || `${assets}icons/document-generated.svg`}" width="24" height="24" alt="">`}
+          ${iconSrc ? `<img class="e-permits-fo-lib-item__icon" src="${iconSrc}" width="24" height="24" alt="">` : ""}
           <div class="e-permits-fo-lib-item__content">
             <div class="e-permits-fo-lib-item__title-row e-permits-fo-doc-title-row">
               <span class="e-permits-fo-lib-item__title" data-full-name="${esc(act.name)}">${esc(act.name)}</span>
               ${tag}${extraTagsHtml}
-            </div>
+            </div>${place ? `
+            <p class="e-permits-fo-intent-act__place"><svg class="icon small e-permits-fo-intent-act__place-icon" aria-hidden="true"><use href="${assets}icons/sprite.svg#icon-map-pin-filled"></use></svg><span class="e-permits-fo-intent-act__place-text" data-full-name="${esc(place)}">${esc(place)}</span></p>` : ""}
             ${parts.length ? `<div class="e-permits-fo-lib-item__meta e-permits-fo-doc-meta"><span class="e-permits-fo-doc-meta__line">${parts.map((part) => `<span class="e-permits-fo-doc-meta__part${part.kind ? ` e-permits-fo-doc-meta__part--${part.kind}` : part.long ? " e-permits-fo-doc-meta__part--long" : ""}">${part.html}</span>`).join("")}</span></div>` : ""}
             ${hasNotice ? `<div class="message message--subtle banner--${noticeTone} e-permits-fo-intent-act__pending"><span class="banner__icon"><svg class="icon" aria-hidden="true"><use href="${assets}icons/sprite.svg#${noticeIcon}"></use></svg></span><div class="banner__content"><p class="banner__text">${noticeHtml || `${pendingTitle ? `<strong>${esc(pendingTitle)}</strong> ` : ""}${esc(pendingText)}`}</p></div></div>` : ""}
           </div>${action}
@@ -242,6 +252,11 @@
       const title = row.querySelector(".e-permits-fo-lib-item__title");
       const meta = row.querySelector(".e-permits-fo-doc-meta");
       if (title) {
+      const place = row.querySelector(".e-permits-fo-intent-act__place-text");
+      if (place) {
+        const cut = DESKTOP.matches && place.scrollWidth > place.clientWidth + 1;
+        if (cut) place.dataset.tooltipText = place.dataset.fullName || textOf(place); else delete place.dataset.tooltipText;
+      }
         if (title.hasAttribute("title")) { title.dataset.fullName = title.getAttribute("title"); title.removeAttribute("title"); }
         const cut = DESKTOP.matches && title.scrollWidth > title.clientWidth + 1;
         if (cut) title.dataset.tooltipText = title.dataset.fullName || textOf(title); else delete title.dataset.tooltipText;

@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const DATA_URL = "../data/cabinet-evo.json?v=act-profile-v1";
+  const DATA_URL = "../data/cabinet-evo.json?v=type-first-v1";
   const SPRITE = "../assets/icons/sprite.svg";
   /* Figma marks only the suspended count with the accent badge */
   const ACCENT_STATES = ["suspendat"];
@@ -27,7 +27,7 @@
      office uses (acte-permisive.json → intent): status × post-process
      matrix, the service passport (allows), paper acts and acts with a
      post-process already in progress. The perspective is ?as=<subject>. */
-  const GEAP_URL = "../data/acte-permisive.json?v=act-profile-v1";
+  const GEAP_URL = "../data/acte-permisive.json?v=type-first-v1";
   const FO_URL = "../e-permits-acte-permisive.html";
 
   /* notice tone → library banner variant (subtle tint, per Figma) */
@@ -169,10 +169,10 @@
     const facet = FACETS.find((f) => f.key === key);
     return !facet || facetValues(facet, permit).some((value) => values.includes(value));
   });
-  /* US-55 AC-06 / the placeholder: the act number and the act name (object + act type) */
+  /* US-55 AC-06 / the placeholder: the act number and the act name (act type + object / location) */
   const matchesSearch = (permit) => {
     const query = fold(state.query.trim());
-    return !query || fold([permit.number || permit.dossier, permit.title, permit.serviceTitle].join(" ")).includes(query);
+    return !query || fold([permit.number || permit.dossier, permit.title, permit.place].join(" ")).includes(query);
   };
   const facetOptions = (facet, selection = state.filter.applied) => {
     const counts = new Map();
@@ -228,11 +228,13 @@
       status: permit.status,
       statusLabel: permit.statusLabel,
     }, {
-      /* the shared meta slots (js/act-row.js metaParts): number (plain — no copy in lists, user 2026-10-20) ·
-         act / service name · authority · subdivision · validity */
+      /* type-first-v1 (2026-10-21, user: „first the name of the act, and in second place the location, if any”):
+         title = the act type, line 2 = the object / location (none for acts without one) */
+      place: permit.place,
+      /* the shared meta slots (js/act-row.js metaParts): number (the compact copy value) · authority · subdivision ·
+         validity — the act name is the title now, never repeated here */
       metaSlots: {
         number: permit.number,
-        what: permit.serviceTitle,
         authority: permit.service?.authority,
         subdivision: permit.subdivision,
         date: validity,
@@ -240,7 +242,7 @@
       menuId: `cab-menu-${permit.id}`,
       items: permit.postProcesses,
       assets: "../assets/",
-      attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.title} — ${tacit ? "Aprobare tacită (valabil)" : permit.statusLabel}`)}"`,
+      attrs: `tabindex="0" data-cab-card="${escape(permit.id)}" aria-label="${escape(`${permit.label} — ${tacit ? "Aprobare tacită (valabil)" : permit.statusLabel}`)}"`,
       tagHtml: actStatusTagHtml(permit, tacit),
       triggerAttrs: "data-cab-menu-trigger",
       itemAttrs: (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(permit.id)}"`,
@@ -495,7 +497,11 @@
       return {
         ...act,
         geap: true,
-        title: act.name,
+        /* type-first-v1: title = the act type (the list's short name), place = the object / location ("" when the
+           act has none — licences for activities, transport…), label = both, for accessible names / dialogs */
+        title: service.shortTitle || service.title || act.name,
+        place: act.name && (service.shortTitle || service.title) ? act.name : "",
+        label: [service.shortTitle || service.title || act.name, service.shortTitle || service.title ? act.name : ""].filter(Boolean).join(" — "),
         serviceTitle: service.shortTitle || service.title,
         service: service,
         serviceCode: act.service,
@@ -605,7 +611,7 @@
             <h2 id="cab-pp-title">${escape(pp.label)}</h2>
             <div class="e-permits-fo-instance-switch-modal__description">
               <p>${escape(pp.consequence || "")}</p>
-              <p>Act: <strong>${escape(act.title)} · ${escape(act.number)}</strong></p>
+              <p>Act: <strong>${escape(act.label)} · ${escape(act.number)}</strong></p>
             </div>
           </div>
         </div>
@@ -623,7 +629,8 @@
      Each fact ONCE, key facts first (GOV.UK summary list · NN/g „key facts first” · the UK driving-licence page:
      what you may do before admin metadata · GoBusiness: action-driven). Sources: Feature 90818, US-55 AC-07…14,
      US-162 AC-04/05/07/08/12/14/17, US-161 AC-23…29, US-159, US-143. components.md › „Act profile”.
-       header    back · title = the object · subtitle = the act type (the service) · the action row, LEFT-aligned under
+       header    back · title = the act type (the service; type-first-v1 2026-10-21, was the object) · subtitle = the
+                 object / location (only when the act has one) · the action row, LEFT-aligned under
                  the title, one line: „Vezi act permisiv” (the one primary, every status) · „Postprocese ⌄” (only when
                  eligible; disabled + the notice while one is in progress) · „Vezi solicitarea” (the issuing request);
                  what does not fit goes into a trailing „⋯” (fitActActions) · the key-facts card (grey, r16): Nr.
@@ -685,7 +692,7 @@
     const object = act.object || {};
     const address = [[object.strada, object.house].filter(Boolean).join(" "), object.sector ? `sect. ${object.sector}` : "", object.localitate, object.raion].filter(Boolean).join(", ");
     const groups = [];
-    const place = [["Denumirea obiectului", act.title], ["Tipul obiectului", object.name], ["Adresa obiectului", address], ["Activitatea (CAEM)", object.caem]].filter(([, value]) => value);
+    const place = [["Denumirea obiectului", act.place], ["Tipul obiectului", object.name], ["Adresa obiectului", address], ["Activitatea (CAEM)", object.caem]].filter(([, value]) => value);
     if (object.name || address) groups.push({ title: "Obiectul activității", rows: place });
     if (act.activityType) groups.push({ title: null, rows: [["Genul de activitate", act.activityType]] });
     return groups;
@@ -903,7 +910,7 @@
       `<button class="btn btn-primary btn-md" type="button" aria-haspopup="dialog" data-cab-view-act="${escape(act.id)}">${icon("icon-eye-open")}<span>Vezi act permisiv</span></button>`,
       act.postProcesses.length ? `
         <div class="e-permits-fo-intent-act__action" data-cab-act-action="postprocese">
-          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.title || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
+          <button class="btn btn-neutral btn-md" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="cab-detail-menu" aria-label="Postprocese pentru ${escape(act.label || "")}" data-cab-menu-trigger ${act.pending ? 'disabled aria-describedby="cab-act-notice"' : ""}><span>Postprocese</span>${icon("icon-chevron-bottom")}</button>
           <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu" id="cab-detail-menu" role="menu" aria-label="Postprocese" hidden>
             ${window.GEAPActRow.menuItemsHtml(act.postProcesses, (pp) => `data-cab-pp="${escape(pp.id)}" data-cab-act="${escape(act.id)}"`, "../assets/") /* the act rows' items: danger last + separator (action-menu-v1) */}
           </ul>
@@ -930,9 +937,9 @@
     ];
     const link = (href, text) => `<a class="e-permits-dosar-profil__link" href="${escape(href)}">${escape(text)}</a>`;
     /* „Ce permite actul”: the configured groups (AC-29, empty fields hidden); a value equal to the page title (the
-       object's name) is not repeated; the first group carries the section name, the next ones keep theirs */
+       object's name, now the subtitle) is not repeated; the first group carries the section name, the next ones keep theirs */
     const groups = (window.GEAPActView?.normalizeFields(actGroups(act)) || [])
-      .map((group) => ({ ...group, items: group.items.filter((item) => item.columns || String(item.value ?? "").trim() !== String(act.title).trim()) }))
+      .map((group) => ({ ...group, items: group.items.filter((item) => item.columns || !act.place || String(item.value ?? "").trim() !== String(act.place).trim()) }))
       .filter((group) => group.items.length);
     const allows = window.GEAPActView?.fieldsHtml(groups, {
       untitled: "Ce permite actul",
@@ -958,9 +965,11 @@
     panel.innerHTML = `
       ${pageHeader({
         back: { label: "Actele mele permisive", href: cabUrl("acte"), attr: "data-cab-back" },
-        title: act.title,
+        /* type-first-v1: H1 = the act type (the full service title), subtitle = the object / location, if any */
+        title: act.service.title || act.title,
         titleId: "cab-act-title",
-        subtitle: act.service.title || "",
+        subtitle: act.place || "",
+        subtitleIcon: act.place ? "icon-map-pin-filled" : "",
         bodyHtml: `<div class="cab-act-header__bar"><div class="cab-act-header__actions">${actions}</div></div>${factsHtml}`,
       })}
       <div class="e-permits-dosar-profil__panel">
@@ -1158,7 +1167,9 @@
      dividers; 2 equal columns without dividers on phones); `actions` = the primary library
      btn-primary btn-md (hugging) + optional neutral btn-md, under the meta. back = { label, href, attr }
      (the list). */
-  function pageHeader({ back = null, title = "", titleId = "", subtitle = "", meta = [], actions = "", bodyHtml = "" }) {
+  /* subtitleIcon (type-first-v1): a 16 outline glyph in front of the subtitle (the location pin on the act / request
+     profiles: icon-map-pin-filled in the TERTIARY icon colour — exception to icon = label colour), gap 4 */
+  function pageHeader({ back = null, title = "", titleId = "", subtitle = "", subtitleIcon = "", meta = [], actions = "", bodyHtml = "" }) {
     return `
       <header class="e-permits-page-header e-permits-page-header--public cab-page-header" data-cab-profile-header>
         <div class="e-permits-page-header__body">
@@ -1167,7 +1178,7 @@
               ${back ? window.GEAPBreadcrumbs?.html([back, { label: title }], { parentsOnly: true }) || "" : ""}
               ${subtitle ? '<div class="cab-page-header__titles">' : ""}
               <h1 class="e-permits-page-header__title"${titleId ? ` id="${titleId}" tabindex="-1"` : ""}>${escape(title)}</h1>
-              ${subtitle ? `<p class="cab-page-header__subtitle">${escape(subtitle)}</p></div>` : ""}
+              ${subtitle ? `<p class="cab-page-header__subtitle${subtitleIcon ? " cab-page-header__subtitle--icon" : ""}">${subtitleIcon ? icon(subtitleIcon, "small") : ""}${subtitleIcon ? `<span>${escape(subtitle)}</span>` : escape(subtitle)}</p></div>` : ""}
             </div>
           </div>
           ${meta.length ? `<div class="e-permits-page-header__meta" data-cab-header-meta>${meta.filter(Boolean).map(([label, html]) => `
@@ -1380,7 +1391,7 @@
     applyView();
     /* Finalizat-Aprobat dosare ↔ their act („Vezi solicitarea” / „Vezi actul”) */
     try {
-      const sm = await (await fetch("../data/cabinet-evo-solicitari.json?v=act-profile-v1")).json();
+      const sm = await (await fetch("../data/cabinet-evo-solicitari.json?v=type-first-v1")).json();
       (sm.perspectives?.[SUBJECT]?.dosare || [])
         .filter((dosar) => dosar.actId && dosar.status === "finalizat" && dosar.result === "aprobat" && !dosar.decisionOnly)
         .forEach((dosar) => { if (!state.dosarByAct[dosar.actId]) { state.dosarByAct[dosar.actId] = dosar.id; state.dosarNrByAct[dosar.actId] = dosar.nr; } });

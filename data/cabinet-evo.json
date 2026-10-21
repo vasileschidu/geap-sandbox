@@ -13,6 +13,20 @@
     "act-izvoras": {
       "printedDocumentNumber": "ASF 0045213"
     },
+    "_noteTypeFirst": "type-first-v1 (2026-10-21): more act types for the same place (Cafeneaua „Izvoraș” — alcohol, fire safety) and one act without a location (the transport licence) — data/acte-permisive.json › intent.acts",
+    "act-izvoras-alcool": {
+      "dossierNr": "GEAP-2025-207-01944",
+      "requestSubmitted": "2025-09-12T11:40",
+      "specificFields": [{"label": "Tipul obiectului", "value": "Cafenea"}, {"label": "Adresa obiectului", "value": "mun. Bălți, str. Independenței 12"}, {"label": "Activitatea (CAEM)", "value": "I 56.30 Baruri și alte activități de servire a băuturilor"}, {"label": "Tipul băuturilor", "value": ["Vin și produse vinicole", "Bere", "Băuturi alcoolice tari"]}]
+    },
+    "act-izvoras-incendiu": {
+      "dossierNr": "GEAP-2025-331-00718",
+      "requestSubmitted": "2025-07-28T09:20",
+      "specificFields": [{"label": "Tipul obiectului", "value": "Cafenea"}, {"label": "Adresa obiectului", "value": "mun. Bălți, str. Independenței 12"}, {"label": "Suprafața", "value": "86 m²"}, {"label": "Capacitatea", "value": "40 de locuri"}]
+    },
+    "act-transport": {
+      "specificFields": [{"label": "Genul de activitate", "value": "Transport rutier de mărfuri în trafic intern și internațional"}, {"label": "Numărul de autovehicule", "value": "6"}, {"label": "Masa maximă autorizată", "value": "peste 3,5 tone"}]
+    },
     "act-piata-mare": {
       "suspensionDate": "2026-06-05",
       "suspendedUntil": "2026-12-15",

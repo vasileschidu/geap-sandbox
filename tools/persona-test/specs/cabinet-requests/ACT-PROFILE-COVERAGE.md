@@ -34,7 +34,7 @@ pp-01y / pp-01z were already taken (act-fields states, 2026-10-19), so the new s
 
 | Source | Requirement | Where | State(s) |
 |---|---|---|---|
-| F 90818 | act number, act name, dossier no. (link to the request) | facts card Nr. (copy) · h1 + subtitle · Detalii › Numărul dosarului electronic + „Vezi solicitarea” | pp-01d |
+| F 90818 | act number, act name, dossier no. (link to the request) | facts card Nr. (copy) · h1 = the act type + subtitle = the object / location with the filled tertiary pin, none without a location (type-first-v1, 2026-10-21; pp-03e / pp-03f) · Detalii › Numărul dosarului electronic + „Vezi solicitarea” | pp-01d |
 | F 90818 | Autoritatea emitentă + Subdiviziunea emitentă | section „Autoritatea emitentă” | pp-01d |
 | F 90818 | Data emiterii, expiry + days left | Detalii › Data emiterii · facts „Valabil până la … (N zile rămase)” | pp-01d, pp-03c |
 | F 90818 / US-162 AC-07 | status Valabil / Expirat / Suspendat / Retras / Anulat, colour | Small tag in the facts card (green / amber / red) | pp-01d, pp-01i, pp-01j, pp-01k, pp-03 |

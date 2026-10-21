@@ -261,3 +261,8 @@ Ids follow the existing numbering; new data rows go in `data/cabinet-evo-solicit
 12. **Notification texts.** No story fixes the applicant notification wording (Feature 91426 has no child stories);
     the prototype texts are invented — need PO/BA sign-off, plus the missing events: draft auto-removed, suplinire
     succeeded / expired, note reminder / expired, tacit act, courier handover.
+
+**Row / profile title (type-first-v1, 2026-10-21, user decision):** every request row and the request profile name the
+SERVICE first (title / h1 = `service.title`), then the object / location on line 2 / the subtitle (filled tertiary pin), only
+when the request has one; the meta keeps number · type of request · authority · subdivision · date (no service name).
+Demo: sm-01, sm-03, sm-05; without an object: sm-01z, sm-05v.
