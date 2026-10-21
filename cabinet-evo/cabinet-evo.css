@@ -589,16 +589,6 @@
   flex: none;
 }
 
-/* chip label + trailing chevron (a labelled menu button) */
-.chip.cab-sort__trigger {
-  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-16, 16px);
-}
-
-.chip.cab-sort__trigger .chip__icon .icon {
-  height: 20px;
-  width: 20px;
-}
-
 .cab-menu--wide {
   left: 0;
   right: auto;
@@ -1193,13 +1183,6 @@
   border-radius: var(--border-radius-16, 16px);
 }
 
-/* Filtre / Sortează / „N pe pagină” = the back-office small buttons (user, 2026-10-12:
-   „too big, do as in BO”): btn-neutral btn-sm (32) · 16 icon · label · chevron for menus.
-   An open one stays pressed (focus ring: the .cab-page open-button rule above). */
-.btn.cab-sort__trigger[aria-expanded="true"] {
-  background: var(--color-background-base-tertiary-hover, #d9d9d9);
-}
-
 /* cabinet menus = the one dropdown size (css/dropdown.css: 32px items, 14/20 medium, 20 icons,
    radius 6, surface 4 / 2); width hugs the longest item */
 .cab-menu.e-permits-stack__menu,
@@ -1707,7 +1690,10 @@ button.cab-alert-link {
 
 .cab-act-header__fact .cab-detail__muted {
   font-weight: var(--font-weight-fw-regular, 400);
+  /* a 48 button = the Large label 16/24 (button-label-v1: the Medium label is 14/20 now) */
   margin: 0;
+    font-size: var(--font-size-fs-16, 16px);
+    line-height: var(--line-height-lh-24, 24px);
 }
 
 /* the „⋯” sits at the row's right edge: its menu always opens leftwards from it and never runs past the left

@@ -239,11 +239,16 @@
           if (toggleControls) toggle.setAttribute("aria-controls", toggleControls);
         }
       }
-      sortEl?.querySelectorAll(":scope > .btn").forEach((btn) => {
-        btn.classList.toggle("e-permits-filter-icon-only", on);
+      /* the sort trigger = the same toolbar chip as „Filtre” (sort-chip-v1): on phones its icon-only square
+         (`--icon`, label + caret hidden, icon-sort 24 in a `.chip__icon`); a page that still passes a `.btn` gets
+         the button's icon-only square */
+      sortEl?.querySelectorAll(":scope > :is(.btn, .chip)").forEach((btn) => {
+        const chip = btn.classList.contains("chip");
+        btn.classList.toggle(chip ? "e-permits-filter-trigger--icon" : "e-permits-filter-icon-only", on);
         const icon = btn.querySelector(":scope > [data-filter-sort-icon]");
-        /* the leading icon exists only on phones (on desktop it would change the button's icon-side padding) */
-        if (on && !icon) btn.insertAdjacentHTML("afterbegin", `<svg class="icon" aria-hidden="true" data-filter-sort-icon><use href="${sprite}#icon-sort"></use></svg>`);
+        /* the leading icon exists only on phones (on desktop it would change the trigger's icon-side padding) */
+        const svg = `<svg class="icon" aria-hidden="true"><use href="${sprite}#icon-sort"></use></svg>`;
+        if (on && !icon) btn.insertAdjacentHTML("afterbegin", chip ? `<span class="chip__icon" data-filter-sort-icon>${svg}</span>` : svg.replace("<svg ", "<svg data-filter-sort-icon "));
         if (!on) icon?.remove();
       });
     };

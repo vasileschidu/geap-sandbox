@@ -2335,3 +2335,24 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   circles. zsh `for f in $LIST` / `set -- $s` did not word-split AGAIN (twice in this job) — every multi-arg loop goes in
   a bash script file. No sub-agent tool → component-audit, hover-audit (1440 + a 700 temp copy), code-audit (HEAD vs
   tree: identical), compare-styles 0 run directly.
+- 2026-10-21 · Button labels + sort chip (button-label-v1 / sort-chip-v1; user: „Filtre and Data depunerii: why are they
+  different font sizes?”, then „make Data depunerii also a filter chip”). (1) Label per size in css/button-icons.css,
+  from Figma 39:177: Small 14/20 (as is), Medium 16/22 → 14/20, Large (bare `.btn`, `.btn-lg`) 16/22 (and 14/19.25 at
+  46 high on phones via the responsive body-md token; `.btn-lg` 18 at 51) → 16/24 at 48. Method: a scratch probe of
+  every visible `.btn` (size class, box, font, label font, text lines, clipped, parent overflow) over 235 sampled states
+  × 1440 / 375 BEFORE touching CSS, then the same after and a keyed diff (class + label) — that is what caught both
+  traps: (a) `min-height: 48` on the bare `.btn` beats a placement's own smaller `height` regardless of specificity
+  (the RAP header's 40 `.rap-header__button` pills grew to 48) → Large keeps its height by padding `12 − border 1`
+  (no min-height; code-audit lists the 11 as off-scale — expected, documented); Medium kept min-height 40 (no product
+  sizes a btn-md under 40). (b) A concurrent job (dialog-footer-v1) changed the modal footers to 48 mid-run: diff
+  rows that you did not cause → check `git log` before chasing them. Put the label rules BEFORE the icon-side padding
+  rules in the file (a later `.btn.btn-lg { padding }` erased the 16 icon side). A Medium grown to 48 on phones by a
+  product rule takes 16/24 in that rule (Cabinet act header). (2) Sortează = `chip e-permits-filter-trigger
+  e-permits-sort-trigger` + `.chip__label` + the facet chips' caret — reusing the Filtre class gave height / radius /
+  type / hover / open ring for free; only the side paddings (16 label · 12 caret) are new. Never `.is-selected` (a sort
+  always has a value; black = filters applied). Phones: facet-filter.js toggles `--icon` on a chip sort (and still
+  `e-permits-filter-icon-only` on a `.btn` one) and inserts the sort icon inside a `.chip__icon`; deleted the dead
+  `.chip.cab-sort__trigger` (20px literal, it would now have won over the phone 24 icon) and `.btn.cab-sort__trigger
+  [aria-expanded]` rules. Measured: Filtre / Sortează 40 · r8 · 14/20 500 · label centre y equal (221) at 1440, both 48
+  squares r8 at 375; open = gray-250 + ring. No sub-agent tool → code-audit / component-audit (no finding on buttons or
+  the triggers) / hover-audit (0 / 0) run directly.

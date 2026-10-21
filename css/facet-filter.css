@@ -64,6 +64,25 @@
   line-height: inherit;
 }
 
+/* „Sortează” = the SAME toolbar chip (sort-chip-v1, 2026-10-21; user: „make Data depunerii also a filter chip”):
+   `chip e-permits-filter-trigger e-permits-sort-trigger` > `.chip__label` (the key) + the facet chips' caret
+   (`e-permits-workplace__filter-caret`, chevron 20) — so height, radius, type, hover, the open look (pressed + ring)
+   are Filtre's. Label side 16, caret side 12 (as the facet chips with a caret). Never `.is-selected`: a sort always
+   has a value, it does not narrow the list — black stays the „filters applied” signal. Phones: the icon-only
+   square (`--icon` + icon-sort 24, js/facet-filter.js), the caret hidden. */
+.chip.e-permits-sort-trigger {
+  gap: var(--spacing-6, 6px);
+  padding: 0 var(--spacing-12, 12px) 0 var(--spacing-16, 16px);
+}
+
+.e-permits-sort-trigger .chip__label {
+  white-space: nowrap;
+}
+
+.e-permits-filter-trigger--icon .e-permits-workplace__filter-caret {
+  display: none;
+}
+
 /* the badge is in the DOM while 0 (the page's count element) — the library display beats [hidden] */
 .e-permits-filter-trigger .chip__badge[hidden] {
   display: none;

@@ -7,7 +7,15 @@
      Medium   40      16 (12)            6    20    14/20 500    40 square, icon 20 at 10
      Large    48      20 (16)            6    20    16/24 500    48 square, icon 20 at 14
 
-   Code: `.btn-sm` = Small · `.btn-md` (and the 40 modal-footer pill) = Medium · `.btn` without a size class (48)
+   Labels (button-label-v1, 2026-10-21; user: „Filtre and Data depunerii: why are they different font sizes?”): the
+   label size comes from the button size too, at EVERY width — Small 14/20 (already), Medium 14/20 (the library had
+   16/22), Large 16/24 (the library had 16/22, and 14/19.25 on phones through the responsive body-md token; `.btn-lg`
+   18/24.75 at 51 high). Heights stay 32 / 40 / 48: border-box + min-height, so a 1px variant border and the smaller
+   line never shrink the box (a two-line label still grows it): Medium padding 8 + min-height 40, Large padding
+   12 − 1 (no min-height, see the rule). Label rules right before the icon-side paddings
+   (they set the Large / `.btn-lg` sides, so the icon-side rules must come after).
+
+   Code: `.btn-sm` = Small · `.btn-md` = Medium (the dialog-footer pill is Large 48 since dialog-footer-v1) · `.btn` without a size class (48)
    and `.btn-lg` = Large. The icon size comes from the BUTTON size, never from the svg's own `small` / `medium`
    class or width / height attributes (an `icon small` in a Medium button was 16 instead of 20; a bare `icon`
    with width="16" rendered 24 inside a Small one). The icon is a block flex item (no inline baseline offset,
@@ -34,6 +42,37 @@
 /* gap icon ↔ label = 6 at every size (the library base has 4) */
 .btn:where(:not(.btn-search)) {
   gap: var(--spacing-6, 6px);
+}
+
+/* ---- Labels per size (button-label-v1, Figma 39:177) ----
+   Medium 40 = 14/20 (library padding 8 / 16 + min-height 40). (0,2,0) = the library `.btn.btn-md`, wins by order;
+   product placements with a more specific selector (modal-footer pill, phone 48 buttons) keep their own. */
+.btn.btn-md {
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  min-height: var(--spacing-40, 40px);
+}
+
+/* Large 48 = 16/24 at every width: `.btn` without a size class and `.btn-lg`. Vertical padding = 12 minus the variant's
+   1px border (11 + 24 + 11 + 2 = 48; Figma draws the stroke inside, so the visible inset is its 12). NO min-height:
+   it beats a placement's own smaller `height` (tried: the RAP header's 40 pills `.rap-header__button` grew to 48).
+   code-audit lists the 11 as „spacing-off-scale” — expected, it is token arithmetic (as the BO filter trigger's
+   `40 − 2 × 2`). (0,1,0) for the bare `.btn` — only the library base loses; library search submit and the MPass /
+   MSign badge buttons are their own components and keep their type. */
+.btn:where(:not(.btn-sm, .btn-md, .btn-lg, .btn-search, .btn-badge)) {
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  padding-bottom: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px));
+  padding-top: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px));
+}
+
+.btn.btn-lg {
+  box-sizing: border-box;
+  font-size: var(--font-size-fs-16, 16px);
+  line-height: var(--line-height-lh-24, 24px);
+  padding: calc(var(--spacing-12, 12px) - var(--border-width-1, 1px)) var(--spacing-20, 20px);
 }
 
 /* 4 less on the icon side (Figma: Small 8, Medium 12, Large 16). :where keeps the specificity of the size rule, so

@@ -570,9 +570,9 @@
             <span class="chip__badge" aria-hidden="true" data-sm-filter-count hidden></span>
           </button>
           <div class="cab-sort">
-            <button type="button" class="btn btn-neutral btn-md cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
-              <span data-sm-sort-label>Data depunerii</span>
-              <svg class="icon medium" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
+            <button type="button" class="chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger" aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" data-cab-menu-trigger>
+              <span class="chip__label" data-sm-sort-label>Data depunerii</span>
+              <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="${SPRITE}#icon-chevron-bottom"></use></svg>
             </button>
             <ul class="e-permits-fo-intent-menu e-permits-stack__menu cab-menu cab-menu--wide e-permits-sort-menu" id="sm-sort-menu" role="menu" aria-label="Sortează solicitările" hidden data-sm-sort-menu></ul>
           </div>

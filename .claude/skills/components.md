@@ -195,7 +195,7 @@ but this doc previously described it wrongly, see the entry.
 | Field sizes (all products, user rule 2026-10-18) | desktop = library Medium (40, `.input--medium` / `.search-input.medium`, FO fields 40); phones ≤760 = library default (48, text 16/24 `--font-size-fs-16` / `--line-height-lh-24`), icons inside a field at the library size of that field (48 → `--icon-size-default` 24 at 16 from the edge, text from 48; 40 → `--icon-size-medium` 20). FO: the field-size rules live in a `@media (max-width: 760px)` block (was 720); read-only phone, CAEM / subgenre list search rows, document-picker search follow it. **Search input + text area on phones = ONE shared rule (audit-fix-v1, 2026-10-21): `css/field-sizes.css`** (loaded right before `modal-phone.css` on the BO page, `e-permits-shell.html`, `clasificatoare.html`, Cabinet, RAP): every `.search-input.medium` (BO toolbars / lists incl. `e-permits-pay__tools`, eKYC, Clasificatoare, Cabinet `.cab-search`, RAP `.rap-search`, facet sheets) = 48 · 16/24 · icon 24 at 16 · text from 48, and `.e-permits-fo-textarea textarea` 16/24 in every product — the per-page copies (Cabinet, RAP, eKYC, facet sheet) were deleted; never add a page copy again. Check with `tools/ui-qa/component-audit.mjs` (agent `component-auditor`) | `Components/input-preview.html` | app |
 | Dropdown item — one size everywhere (every action menu + option list, user rule 2026-10-20) | `css/dropdown.css` (loaded on the BO page, `e-permits-shell.html`, Cabinet, RAP — before `modal-phone.css`): lists / menus padding `--spacing-4`, gap `--spacing-2`; items 32 (`min-height`) · padding 6 12 6 8 · gap 8 · radius 6 · 14/20 medium · icon 20 (`--icon-size-medium`); same on touch. Item classes listed there: `.e-permits-fo-intent-menu__item` (every ⋮ / stack / Cabinet / Ghișeu / eKYC / builder / designer menu + the act post-process menu), `.e-permits-fo-select__option`, `__caem__option`, `__subgen-select__option`, `__address-search__option`, `__phone__code-option`, `__mdocs__option`, `.e-permits-workplace__filter-option` / `__filter-more-item`, `.e-permits-shell__help-link`, `__profile-link`; a menu's own rule declares no size | section „Dropdown item — one size everywhere”; ref GEAP 2.0 `9716:10905` | app |
 | Dropdown surface (every menu / list / picker that floats) | ONE zero-specificity rule `:where(.e-permits-dropdown, .e-permits-fo-intent-menu, .e-permits-fo-select__list, …)` at the end of `css/e-permits-acte-permisive.css`: white, no border, `--border-radius-12`, Figma effect „dropdown-effect” (literal box-shadow — no CSS token), `overflow: clip`; scrolling surfaces keep their own `overflow(-y): auto`; new menus add `e-permits-dropdown` | section „Dropdown surface — one look for every menu” (§ after Menu); check: code-audit `dropdown-surface` | app |
-| Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon size from the button size: Small 16, Medium / Large 20 — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
+| Button | `.btn` + variant + `.btn-sm/.btn-md/.btn-lg` (icon AND label from the button size: Small 32 · 14/20 · icon 16, Medium 40 · 14/20 · icon 20, Large 48 · 16/24 · icon 20 at every width — `css/button-icons.css`, § Button › „Button icons”) | `buttons.html` | app |
 | Clickable card / row = the action, no lone „Detalii” (user rule 2026-10-21, no-lone-detalii-v1) | a card / row that already opens its details on click has NO „👁 Detalii” button when that would be its only action: Cabinet request row (`actionsHtml` → "" → no `.cab-doc__actions`, no `--row-trigger-w` reservation), Cabinet document card (`CabEvo.docRowHtml(doc, { key })`: `.cab-doc.is-clickable[tabindex=0][aria-label="<tip>, deschide detaliile"]`), BO stacked rows (`renderRowActions({ …, rowOpens: true })` → "" when only the preview is left; `renderStackItem` gives a row with `rowAttrs` and no action `tabindex="0"` + `data-stack-row-open` + `aria-label` „<title> — <tags>, deschide detaliile”, Enter / Space = click through one shell keydown). Focus = the row ring (2 px `--focus-ring` outline, offset −2) + the hover band. Kept: rows / cards that are NOT clickable (FO previous act card, Ghișeu document cards, passport forms) and data tables (`tr` is not focusable — the column button is the keyboard path). With other actions the ⋮ stays | § „Row actions” rule 5; demo sm-01 (d-fresh, d-lab, d-prut), sm-05e…h, dos-03a, dos-04g…o, svc-06j, svc-07 | app |
 | Registry row = the action (no-continue-btn-v1, user 2026-10-21 GEAP 11862:24338 / 11914:29753) | product registry hook `rowLabel(row)` → `tr[data-workplace-row][tabindex="0"][data-workplace-row-open][aria-label="<name> — <what the click does>"]` (shell `workplaceRowOpenAttrs`); Enter / Space = click (shared keydown with `[data-stack-row-open]`); `:focus-visible` = hover band + inset `--focus-ring` box-shadows on the cells (`css/e-permits-shell.css`); the action cell keeps only the grey ⋮ (`btn btn-neutral btn-sm btn-icon-only e-permits-stack__menu-trigger`, white on the band) — no „Continuă” / „Detalii” that repeats the click | § „Row actions” rules 6–7; Ghișeu demo gh-01, gh-01d, gh-01f, gh-13 (Enter), gh-13a (click), gh-13b (Space, submitted) | app |
 | Action icons — „Editează” = pen, „Elimină / Șterge” = trash (user rule 2026-10-21) | shell `actionIconFor(label)` → `actionLabelHtml` / `renderRowActions` / `renderStackMenu` (the label picks the icon); `icon-edit` / `icon-delete` before the label in the label colour; exceptions + audit rule 6 in „Action icons” (§ after „Row actions”) | — | app |
@@ -305,7 +305,7 @@ but this doc previously described it wrongly, see the entry.
 | Export format menu (labelled) | `.e-permits-stack__menu-wrap` > `btn btn-neutral btn-sm` (export icon · label · chevron, `data-stack-menu-trigger`) + `ul.e-permits-fo-intent-menu.e-permits-stack__menu` | `exportMenu()` in `js/ekyc.js` | app |
 | Loading state | `GEAPEmptyState.render({ loading: true })` → brand spinner in the empty-state icon circle | `js/empty-state.js` | product |
 | Bottom Sheet | `.bottom-sheet` + `__overlay/__panel/__handle/__header/__content` | `bottom-sheet.html` | library |
-| Filter trigger = library chip with button radius (2026-10-21, filter-chip-v1) | `button.chip.e-permits-filter-trigger` (+ `--sm` = 36 / r6 in the GEAP BO registries) > `.chip__icon` (filter icon, rest AND active) + `.chip__label` + `.chip__badge` (the chip's numbered badge, 16); `.is-selected` = black when ≥ 1 value is applied; `aria-expanded` + `aria-controls`, name „Filtre, 3 aplicate”. Radius = the library Button of that size at EVERY width (8 · 6 `--sm`; 8 on phones = Large 48 — never round, phone-toolbar-v2). Phones (≤760): the same element as an ICON-ONLY square 48 `.e-permits-filter-trigger--icon` (label hidden, name „Filtre” / „Filtre, N aplicate”, badge on the top-right corner). Every „Filtre” / „Filtru” / „Filtrare avansată” trigger: Cabinet acts + requests, RAP, eKYC, BO registries, passport lists | `css/facet-filter.css` („Filter trigger”), `js/facet-filter.js` (`markTrigger`); demo sm-01 (rest) · sm-01v / 01x / 01y (1 / 3 / 7 applied, bar closed) · ek-04o (12) · sm-01a / dos-05d / rap-01d (active + open); section „Advanced filter › Filter trigger” | app |
+| Filter trigger = library chip with button radius (2026-10-21, filter-chip-v1) | `button.chip.e-permits-filter-trigger` (+ `--sm` = 36 / r6 in the GEAP BO registries) > `.chip__icon` (filter icon, rest AND active) + `.chip__label` + `.chip__badge` (the chip's numbered badge, 16); `.is-selected` = black when ≥ 1 value is applied; `aria-expanded` + `aria-controls`, name „Filtre, 3 aplicate”. Radius = the library Button of that size at EVERY width (8 · 6 `--sm`; 8 on phones = Large 48 — never round, phone-toolbar-v2). Phones (≤760): the same element as an ICON-ONLY square 48 `.e-permits-filter-trigger--icon` (label hidden, name „Filtre” / „Filtre, N aplicate”, badge on the top-right corner). Every „Filtre” / „Filtru” / „Filtrare avansată” trigger: Cabinet acts + requests, RAP, eKYC, BO registries, passport lists. The toolbar „Sortează” is the same chip (`+ e-permits-sort-trigger`, label + caret, never selected; phones icon-only, sort-chip-v1) | `css/facet-filter.css` („Filter trigger”), `js/facet-filter.js` (`markTrigger`); demo sm-01 (rest) · sm-01v / 01x / 01y (1 / 3 / 7 applied, bar closed) · ek-04o (12) · sm-01a / dos-05d / rap-01d (active + open); section „Advanced filter › Filter trigger” | app |
 | Facet filter · phone toolbar + sheets (2026-10-17; icon-only in the search row 2026-10-21, phone-toolbar-v2) | `GEAPFacetFilter.create({ preview, sort })` ≤760 on EVERY list (phone mode on by default; the GEAP BO registries too): the page's toolbar gets `.e-permits-filter-row` = ONE row: search (fills, min 0) · the toolbar trigger as an icon-only square 48 `.chip.e-permits-filter-trigger.e-permits-filter-trigger--icon[data-filter-all]` (filter icon 24, radius 8, black + `.chip__badge` on the top-right corner when applied, 20 with a 2px black ring) · the page's sort as an icon-only square 48 `.btn.e-permits-filter-icon-only` (`icon-sort` 24 inserted by the module, label + chevron hidden, its `aria-label` „Sortează: …”) · page tools (export), gap 8 — NO facet chips; the bar `.e-permits-workplace__filters.is-sheets` = only „N de rezultate · Șterge filtrele” `[data-filter-phone-meta]` when applied; desktop list toolbars (Cabinet, RAP, eKYC): search 40 · „Filtre” 40 · sort `btn-md` 40 (one height); sheet `.bottom-sheet.e-permits-filter-sheet` (`is-all` = all filters, accordion `.e-permits-filter-sheet__section/__section-trigger/__section-label/__section-summary/__section-panel`), `__search`, `__list`, `__footer` + `__apply` | `js/facet-filter.js`, `css/facet-filter.css`; demo `rap-04…04d`, eKYC `ek-04c / 04c1 / 04j / 04l / 04m` at 375 (2026-10-19), Cabinet `sm-01 / 01f (sort sheet) / 01m / 01n / 01o / 01p`, `pp-01h / 01s`; section „Advanced filter › Phone mode” | app |
 | Facet filter · date range facet (2026-10-20) | a facet `{ key, label, type: "date", get(row) → ISO day, presets?, today? }` of `GEAPFacetFilter`: chip with a period = library chip „with close” as a group `div.chip.is-selected.e-permits-workplace__filter-chip.e-permits-workplace__filter-chip--date[role=group]` > `button.chip__label[data-filter-facet]` (`__filter-chip-text` „Data depunerii: 1–10 oct. 2026” + caret) + `button.chip__close[data-filter-date-clear]` (clears at once); no period = the normal facet chip. Popover `.e-permits-workplace__filter-pop--date` (320, not clipped): `.e-permits-workplace__filter-list.e-permits-workplace__filter-dates[role=radiogroup]` of `label.e-permits-workplace__filter-option` + the ONE radio control-only `.radio.radio--small` (`[data-filter-date-preset]`) · `.e-permits-workplace__filter-range[data-filter-range]` (De la / Până la = library date picker in the FO field `.e-permits-fo-field.e-permits-workplace__filter-date-field`, inputs `[data-filter-date-input][data-filter-date-part]`) + `.e-permits-workplace__filter-range-errors` · the popover footer Confirmă / Șterge. Phones: the same body in the facet sheet (44 rows, 48 fields; the sheet drops its resting transform so the library phone calendar covers the screen) | `js/facet-filter.js` (`DATE_PRESETS`, `GEAPFacetFilter.dateMatch / dateText`), `css/facet-filter.css` „Date range facet”; Cabinet `FACETS` depunere / finalizare, eKYC `PERIOD_FACET`; demo sm-01g / 01h / 01o / 01p / 01q, ek-06b / 06g; section „Advanced filter › Date range facet” | app |
 | Row action menu on phones — anchored popover, touch item size (2026-10-20, action-menu-v1; replaced the act action sheet) | Every menu of an action wrapper `.e-permits-fo-intent-act__action` — act rows „Postprocese ⌄” (FO #intent, Ghișeu, Cabinet), the Cabinet act profile header, the Cabinet request rows' ⋮ (row-kebab-v1) — is the SAME anchored dropdown at every width (no bottom sheet; user ref Telegram iOS). Phones ≤760: right-aligned to its button, upwards when no room below, 16 from the screen edges (`js/act-row.js` fitMenu → `.is-fit-end` / `.is-fit-start` / `.is-open-up` + `--act-menu-max`; Cabinet request menus `CabEvo.fitMenu`); surface padding 8 · radius 16 · dropdown-effect; items 48 · 12 16 · gap 12 · icon 24 · 16/24 regular · r8; unavailable item = grey + `__reason` 14/20 tertiary second line (desktop: tooltip); danger (Retragere, Anulare, Elimină) red, last, after `__separator`; icons from ONE map (`GEAPActRow.ppIcon`, one optical footprint, § „Row action menu — icon map”, act-icons-v1). Keyboard (Cabinet): Enter / Space / ↓ open on the first item, ↑ on the last, ↑ ↓ Home End, Esc → trigger, Tab closes | `js/act-row.js` (`menuItemsHtml`, `isDanger`, fitMenu), `css/e-permits-acte-permisive.css` „Row action menu on phones”, `cabinet-evo/cabinet-evo.js` (fitMenu flip-up, menu keys); demo pp-01a, pp-01q, pp-02a, gh-02j (reasons), sm-01u, sm-01w (opens up), sm-02 (danger) at 375 / 320; section „Row action menu on phones” | app |
@@ -374,8 +374,10 @@ Base `main.css:13384` — `border-radius: var(--border-radius-8)`, `padding: var
 | `.btn-outline-primary` / `-secondary` / `-neutral` / `-destructive` / `-strict` | transparent + 1px border | | |
 | `.btn-text-primary` / `-secondary` / `-neutral` / `-strict` / `-destructive` | transparent | tint | |
 
-Sizes require the **compound** selector — `.btn.btn-sm` (`4/12`, 14px) ·
-`.btn.btn-md` (`8/16`, 16px) · `.btn.btn-lg` (`12/24`, 18px).
+Sizes require the **compound** selector — `.btn.btn-sm` (32, 0/12, 14/20) ·
+`.btn.btn-md` (40, 8/16, **14/20**) · `.btn` with no size class and `.btn.btn-lg` (48, 11/20, **16/24**) — the label
+sizes are Figma's (39:177), set in `css/button-icons.css` (button-label-v1, 2026-10-21); the library main.css still
+says md 16/22, base 16/22 (14/19.25 on phones) and lg 18px / 12 24 (51 high) — overridden, never edit main.css.
 Shape: `.btn-rounded` ≡ `.btn-pill`.
 
 - Focus is on `:focus`, not `:focus-visible`: `.btn:focus:not(:disabled)` (`main.css:12467`, duplicated at `11812`) declares `outline: 2px solid var(--white); box-shadow: 0 0 0 4px var(--focus-ring, var(--blue-sky-500, #3379DB))`. **Verified rendering correctly** (white gap + blue ring). Note `getComputedStyle` reports this as `rgba(0,0,0,0) 0 0 0 0` — an artifact of `var()`-based shadows, not a defect. Trust a screenshot, not the computed value, when auditing this.
@@ -394,8 +396,8 @@ every page (BO, shell, Cabinet, RAP, clasificatoare, login, index, mpass-test, s
 | Figma size | Code | Height | Sides (icon side) | Gap | Icon box | Label | Icon only |
 |---|---|---|---|---|---|---|---|
 | Small | `.btn-sm` | 32 | 12 (8) | 6 | **16** | 14/20 500 | 32 square, icon at 8 |
-| Medium | `.btn-md` (the modal-footer pill was 40 until dialog-footer-v1 → Large) | 40 | 16 (12) | 6 | **20** | Figma 14/20 · code 16/22 (open) | 40 square, icon at 10 |
-| Large | `.btn` with no size class (48), `.btn-lg` | 48 | 20 (16) | 6 | **20** | 16/24 500 | 48 square, icon at 14 |
+| Medium | `.btn-md` (the modal-footer pill was 40 until dialog-footer-v1 → Large) | 40 | 16 (12) | 6 | **20** | 14/20 500 (button-label-v1; was 16/22) | 40 square, icon at 10 |
+| Large | `.btn` with no size class (48), `.btn-lg` | 48 | 20 (16) | 6 | **20** | 16/24 500 at every width (button-label-v1; was 16/22, 14/19.25 on phones, `.btn-lg` 18) | 48 square, icon at 14 |
 
 - The icon size comes from the BUTTON size (`--btn-icon-size` on `.btn`; rule `.btn > svg.icon`, (0,2,1) — it beats
   `icon small` / `medium` and width / height attributes). Markup may keep `class="icon small"`; it no longer matters.
@@ -410,9 +412,29 @@ every page (BO, shell, Cabinet, RAP, clasificatoare, login, index, mpass-test, s
   `.btn.btn-sm.btn-icon-only .icon`, `.rap-act-modal__print .icon`, gap 8 on `.e-permits-case-actions__trigger`,
   `.e-permits-fo-payment-actions__download`, `.e-permits-fo-finish__cta`, `.rap-act-modal__print`).
 - Known, not fixed (reported): (1) labels sit 1px further in than Figma — the library variants keep a 1px transparent
-  border inside the box; (2) Medium label 16/22 in code vs Figma 14/20 (a global type change, PO decision); (3) Small
+  border inside the box; (2) ~~Medium label 16/22 in code vs Figma 14/20~~ — decided and fixed 2026-10-21 (below); (3) Small
   glyphs: Figma has a separate 16-grid icon set (plus 13.5 ink, 1.5 stroke) — our sprite scales the 24-grid glyph to 16
   (plus 11.6 ink, thinner); fixing it means adding the 16 set to the sprite, not CSS.
+
+#### Button labels — size per button size (button-label-v1, 2026-10-21; Figma Components 39:177)
+
+User: „„Filtre” and „Data depunerii”: why are they different font sizes?” — the filter chip was 14/20, the Medium
+button 16/22. Decision (library first): the label follows the button size like the icon, at EVERY width, in
+`css/button-icons.css` (never main.css):
+
+| Size | Selector | Label (before → after) | Height | How the height holds |
+|---|---|---|---|---|
+| Small | `.btn.btn-sm` | 14/20 → 14/20 (unchanged) | 32 | fixed height (product re-skin) |
+| Medium | `.btn.btn-md` | **16/22 → 14/20** | 40 | `box-sizing: border-box` + `min-height: 40`, library padding 8 / 16 |
+| Large | `.btn` (no size class) | **16/22 desktop, 14/19.25 phones (46 high) → 16/24** | 48 | padding-block `calc(--spacing-12 − --border-width-1)` = 11 (11 + 24 + 11 + 2 border = 48; Figma's stroke is inside, visible inset 12). No min-height: it beat a placement's own smaller height (RAP header 40 pills grew to 48). code-audit lists the 11 as „spacing-off-scale” — expected |
+| Large | `.btn.btn-lg` | **18/24.75, 51 high → 16/24, 48** | 48 | padding 11 / 20 (Figma sides 20; library 12 / 24) |
+
+- Not touched: the modal-footer pill (`.modal-buttons .btn` — since dialog-footer-v1 the library Large 48 · 16/24, `css/dialog-footer.css`), library search submit
+  (`.btn-search`), MPass / MSign `.btn-badge`, and every product rule with a more specific selector. A Medium button
+  that a product grows to 48 on phones takes the Large label 16/24 in that rule (Cabinet act header actions,
+  `.cab-act-header__actions .btn`). A two-line label still grows the button (min-height / padding, never height).
+- Effect: Medium buttons are ~2px narrower per 10 characters; Large phone buttons grow from 46 to 48 and from 14 to
+  16 text (Figma Large; the old size came from the responsive body-md token, not from a decision).
 
 #### Verified against Figma — 2026-09-03
 
@@ -5322,6 +5344,28 @@ buttons” + „when active, still use the icon”. Figma EVO Cabinet `1175:4581
 - Demo: sm-01 (rest) · sm-01v / sm-01x / sm-01y (1 / 3 / 7 applied — 7 = every checklist value the Cabinet requests
   have — bar closed) · ek-04o (12, two-digit badge) · sm-01a / pp-01h / rap-01d / dos-05d / ek-04k (active + open).
 
+**„Sortează” = the same chip (sort-chip-v1, 2026-10-21; user: „Then let's make „Data depunerii” also a filter chip
+component”).** The list-toolbar sort trigger is the filter trigger chip too, so the two share height (40 / 48 phones),
+radius (8), type (14/20 · 16/24 phones), hover, focus and the open look:
+
+```html
+<button class="chip e-permits-filter-trigger e-permits-sort-trigger cab-sort__trigger" type="button"
+        aria-haspopup="menu" aria-expanded="false" aria-controls="sm-sort-menu" aria-label="Sortează: Data depunerii, cele mai noi">
+  <span class="chip__label">Data depunerii</span>
+  <svg class="icon e-permits-workplace__filter-caret" aria-hidden="true"><use href="…#icon-chevron-bottom"></use></svg>
+</button>
+```
+
+- Label side 16, caret side 12, gap 6 — the facet chips' caret (`e-permits-workplace__filter-caret`, 20); no leading icon
+  on desktop (as before). Open (menu / sheet showing) = Filtre's pressed `--gray-250` + the open-button ring.
+- **Never `.is-selected`**, also for a non-default order: a sort always has a value and never narrows the list, so a
+  black sort would read as „filters applied” and has nothing to clear; black stays the Filtre signal (the current order
+  is in the label + the `aria-label`).
+- Phones: the icon-only square 48 like Filtre (`--icon`, `span.chip__icon[data-filter-sort-icon]` icon-sort 24, label +
+  caret hidden) — the menu / sort sheet it opens is unchanged.
+- Where: Cabinet „Solicitările mele” `.cab-sort` (cabinet-evo/solicitari.js) and „Actele mele permisive” (Data
+  emiterii, acts-sort-v1, cabinet-evo/index.html); RAP / eKYC / BO sort by column headers or not at all. Demo: sm-01 (rest) · sm-01f (menu open) · sm-01t (non-default key) · sm-01m (phone sheet).
+
 #### Date range facet (2026-10-20)
 
 User (2026-10-20): „why is Perioadă not also in Filtre on Solicitările mele?” — the Cabinet had a separate
@@ -5386,9 +5430,11 @@ discussed not having chips, right?”).** js/facet-filter.js marks the page's to
    „Filtre” / „Filtre, N aplicate”. Opens the all-filters sheet (every facet as a section incl. date facets; sections
    with a value open, else the first).
 3. **Sort** (pages that pass `sort: <wrapper element>`; today Cabinet „Solicitările mele” `.cab-sort`): the page's own
-   button stays where it is (in the toolbar row) and becomes an icon-only square 48 `.e-permits-filter-icon-only`: the
-   module inserts `svg[data-filter-sort-icon]` (`icon-sort` 24) and removes it on desktop (a hidden leading icon would
-   change the desktop icon-side padding), label + chevron hidden, radius 8, name = its `aria-label` („Sortează: Data
+   trigger stays where it is (in the toolbar row) and becomes an icon-only square 48 — since sort-chip-v1 the sort is
+   the toolbar CHIP (§ „Filter trigger” › „Sortează”), so it takes Filtre's `.e-permits-filter-trigger--icon` and the
+   module inserts `span.chip__icon[data-filter-sort-icon]` (`icon-sort` 24); a page that still passes a `.btn` gets
+   `.e-permits-filter-icon-only` + `svg[data-filter-sort-icon]`. The icon is removed on desktop (a hidden leading icon
+   would change the desktop icon-side padding), label + caret hidden, radius 8, name = its `aria-label` („Sortează: Data
    depunerii, cele mai noi”). On phones it opens the SORT SHEET (§ „Sort sheet on phones”). Kept icon-only at 320 too
    (search 176 ≥ 160).
 4. Page tools stay in the row (eKYC / BO export); the GEAP BO hides „48 câmpuri” + its divider on phones (as eKYC) and
@@ -5407,9 +5453,9 @@ History: 2026-10-17 „Filtre” + one chip per facet on a sideways-scrolling ro
 node, `btn-pill`) — both replaced.
 
 **Desktop list toolbars (same day):** search 40 · „Filtre” · sort share ONE height — „Filtre” is the filter trigger
-CHIP at 40 / radius 8 since 2026-10-21 (§ „Filter trigger”; before: `btn btn-neutral btn-md`), the sort the library
-Medium `btn btn-neutral btn-md` (40, 8/16, 16/22, radius 8, icons 20 `icon medium`) on Cabinet (acts + requests), RAP
-and eKYC (the shell drops the trigger's `--sm` when a product is set); the sort button shows the key + a trailing chevron
+CHIP at 40 / radius 8 since 2026-10-21 (§ „Filter trigger”; before: `btn btn-neutral btn-md`), the sort the SAME chip
+since sort-chip-v1 (§ „Filter trigger” › „Sortează”; before: the library Medium `btn btn-neutral btn-md`, 16/22 next to
+the chip's 14/20) on Cabinet (acts + requests), RAP and eKYC (the shell drops the trigger's `--sm` when a product is set); the sort button shows the key + a trailing chevron
 only (no ↓/↑ — the direction lives in the menu's „Ordine” group and the `aria-label`). The GEAP BO registries keep
 the btn-sm 36 „Filtrare avansată” (exception to „One back-office button” below = these four list pages only).
 Before (2026-10-17 → 10-20): „Filtre” + one chip per facet on a sideways-scrolling row (each chip its own facet
@@ -5419,10 +5465,11 @@ the all-filters sheet with that section open and the others folded.
 
 **Figma spec (phone toolbar, 375, phone-toolbar-v2):** auto-layout row, gap 8: search (fill, 48) · Chip „Filtre”
 icon-only (48 × 48, radius 8, tertiary fill, icon 24; Selected = black + numbered badge 20 on the top-right corner,
-−6 / −6, 2px black ring) · Button Neutral icon-only „Sortează” (48 × 48, radius 8, `sort` icon 24); applied line
+−6 / −6, 2px black ring) · Chip icon-only „Sortează” (48 × 48, radius 8, `sort` icon 24, never Selected); applied line
 under the row, 8 gap: „587 de rezultate” 14/20 tertiary · „Șterge filtrele” Button text-neutral Small. Desktop:
 search 40 · Chip „Filtre” (filter trigger 2026-10-21: icon 20 leading, radius 8, 40; Selected = black + numbered
-badge 16, Figma EVO Cabinet 1175:45818) · Button Neutral Medium „Data depunerii ⌄”, gap 16.
+badge 16, Figma EVO Cabinet 1175:45818) · Chip „Data depunerii ⌄” (40, radius 8, 14/20, label 16 · caret 20 at 12,
+never Selected — sort-chip-v1), gap 16.
 
 `GEAPFacetFilter.create({ …, preview(selection) → rows })` — phone mode is ON by default since phone-toolbar-v2
 (`mobileSheets: false` would opt out; no caller does). Active only ≤760px (matchMedia; crossing the breakpoint closes
