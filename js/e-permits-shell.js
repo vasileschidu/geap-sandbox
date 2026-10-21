@@ -2228,7 +2228,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return '<span class="e-permits-workplace__dash">—</span>';
     }
 
-    return `<span class="e-permits-workplace__tag e-permits-workplace__tag--${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
+    return `<span class="${window.GEAPTag.cls(escapeHtml(tone))}">${escapeHtml(label)}</span>`;
   };
 
   const renderAlerts = (alerts) => {
@@ -3224,7 +3224,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const docVerb = (doc) => doc.verb || (doc.automat ? "Preluat automat" : doc.sursa === "mdocs" ? "Atașat" : doc.sursa === "generat" ? "Generat" : "Încărcat");
   /* signed = a blue badge with the signature icon next to the title (user 2026-10-14); the signer goes in
      the meta only when it is not the producer (a system seal needs no name) */
-  const SIGNED_TAG_HTML = '<span class="e-permits-workplace__tag e-permits-workplace__tag--brand e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-signature"></use></svg>Semnat electronic</span>';
+  const SIGNED_TAG_HTML = '<span class="status-tag status-tag--brand is-subtle status-tag--small"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-signature"></use></svg>Semnat electronic</span>';
   const docOtherSigner = (doc) => (doc.semnat?.nume && doc.semnat.nume !== doc.de?.nume ? doc.semnat.nume : "");
   const insotitorAddedLabel = (doc) => `${docVerb(doc)} ${formatStamp(doc.at)}`;
   const renderDosarDocItem = (doc, kind) => {
@@ -5669,7 +5669,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return renderListCode(row.nrSarcina);
       case "tipSarcina": {
         const tip = workplaceDb.tipSarcina[row.tipSarcina];
-        return `<span class="e-permits-workplace__tag e-permits-workplace__tag--${escapeHtml(tip?.tone || "neutral")} e-permits-workplace__tag--icon">
+        return `<span class="${window.GEAPTag.cls(escapeHtml(tip?.tone || "neutral"))}">
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${escapeHtml(tip?.icon || "checkmark-small")}"></use></svg>
           <span>${escapeHtml(tip?.label || row.tipSarcina)}</span>
         </span>`;
@@ -6765,7 +6765,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderPassportSection = (title, rows, tag) => `
     <section class="e-permits-dosar-profil__section">
-      <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}${tag ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral">${escapeHtml(tag)}</span>` : ""}</h2>
+      <h2 class="e-permits-dosar-profil__section-title">${escapeHtml(title)}${tag ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small">${escapeHtml(tag)}</span>` : ""}</h2>
       <div class="e-permits-dosar-profil__card">
         ${rows.map(([label, valueHtml]) => `
           <div class="e-permits-dosar-profil__row">
@@ -6823,7 +6823,7 @@ document.addEventListener("DOMContentLoaded", () => {
   `;
 
   const yesNo = (value) => (value
-    ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--success e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Da</span>`
+    ? `<span class="status-tag status-tag--success is-subtle status-tag--small"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-checkmark-small"></use></svg>Da</span>`
     : renderTag("Nu", "neutral"));
 
   /* applicant types get a filled icon so PF / PJ read at a glance (user, 2026-10-09):
@@ -6831,7 +6831,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const applicantIcon = (label) => /fizic|^PF/i.test(label) ? "person-filled" : /juridic|^PJ/i.test(label) ? "business-filled" : "";
   const applicantTags = (items) => (items?.length
     ? `<span class="e-permits-passport__tag-list">${items.map((item) => { const icon = applicantIcon(item); return icon
-      ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral e-permits-workplace__tag--icon"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg>${escapeHtml(item)}</span>`
+      ? `<span class="status-tag status-tag--neutral is-subtle status-tag--small"><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-${icon}"></use></svg>${escapeHtml(item)}</span>`
       : renderTag(item, "neutral"); }).join("")}</span>`
     : '<span class="e-permits-workplace__dash">—</span>');
 
@@ -9026,7 +9026,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>` : ""}
           <div class="e-permits-dtpl__status">
             <p class="e-permits-fo-field__hint">${dtplState.mode === "visual" ? "Câmpurile apar ca etichete și nu se pot rupe la editare. Ciclurile ({{#each}}) și marcajele speciale se editează în modul HTML." : "HTML-ul documentului, așa cum se salvează în MDocs."}</p>
-            ${unknown.length ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--danger" data-tooltip-text="${escapeHtml(unknown.join(", "))}" data-dtpl-unknown>${escapeHtml(plural(unknown.length, "câmp inexistent", "câmpuri inexistente"))}</span>` : `<span class="e-permits-workplace__tag e-permits-workplace__tag--success" data-dtpl-unknown>Toate câmpurile există</span>`}
+            ${unknown.length ? `<span class="status-tag status-tag--danger is-subtle status-tag--small" data-tooltip-text="${escapeHtml(unknown.join(", "))}" data-dtpl-unknown>${escapeHtml(plural(unknown.length, "câmp inexistent", "câmpuri inexistente"))}</span>` : `<span class="status-tag status-tag--success is-subtle status-tag--small" data-dtpl-unknown>Toate câmpurile există</span>`}
           </div>
           <div class="e-permits-dtpl__canvas">
             ${dtplState.mode === "visual"
@@ -9177,7 +9177,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const markDtplDirty = () => {
     if (dtplState.dirty) {
       const tag = dtplPanel.querySelector("[data-dtpl-unknown]");
-      if (tag) { syncDtpl(); const n = dtplTokens(dtplState.draft.html).unknown.length; tag.className = `e-permits-workplace__tag e-permits-workplace__tag--${n ? "danger" : "success"}`; tag.textContent = n ? plural(n, "câmp inexistent", "câmpuri inexistente") : "Toate câmpurile există"; }
+      if (tag) { syncDtpl(); const n = dtplTokens(dtplState.draft.html).unknown.length; tag.className = `${window.GEAPTag.cls(n ? "danger" : "success")}`; tag.textContent = n ? plural(n, "câmp inexistent", "câmpuri inexistente") : "Toate câmpurile există"; }
       const status = dtplPanel.querySelector('[data-profile-changes="dtpl-draft"]');
       if (status) { if (!tag) syncDtpl(); const label = dtplChangesLabel(); if (status.textContent !== label) status.textContent = label; }
       return;
@@ -10736,7 +10736,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const known = clasCore.fieldsOf(c, classifiersStore.fieldTypes).map((f) => f.id);
     openClasModal("Importă valori din CSV", c.denumire, `<div class="e-permits-case-form">
       <p class="e-permits-case-form__lead">Prima linie conține cheile coloanelor. Codurile existente se actualizează, cele noi se adaugă; nimic nu se șterge.</p>
-      <div class="e-permits-clas-import__keys"><span>Coloane acceptate:</span> ${known.map((k) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral">${escapeHtml(k)}</span>`).join(" ")}</div>
+      <div class="e-permits-clas-import__keys"><span>Coloane acceptate:</span> ${known.map((k) => `<span class="status-tag status-tag--neutral is-subtle status-tag--small">${escapeHtml(k)}</span>`).join(" ")}</div>
       <div class="e-permits-clas-import__file">
         <label class="btn btn-secondary btn-sm" for="clas-import-file"><svg class="icon small" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-upload"></use></svg><span>Alege fișierul CSV</span></label>
         <input id="clas-import-file" class="sr-only" type="file" accept=".csv,text/csv" data-clas-import-file>

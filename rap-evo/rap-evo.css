@@ -783,7 +783,7 @@ a {
 /* BO page header + sections (css/bo-profile-parts.css, the public header modifier
    .e-permits-page-header--public: 12 inset, 16 breadcrumb → title, wrapping title, the action
    under the meta, the phone meta grid) */
-.rap-profile__title-row > .e-permits-workplace__tag {
+.rap-profile__title-row > .status-tag {
   flex: 0 0 auto;
 }
 

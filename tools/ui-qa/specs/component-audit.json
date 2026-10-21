@@ -532,8 +532,11 @@
         ".chip",
         ".btn"
       ],
-      "allow": [],
-      "fix": "Tag · Small = library `status-tag status-tag--{tone} is-subtle status-tag--small` (renderTag should emit it)",
+      "allow": [
+        ".cab-status__tags"
+      ],
+      "_allow": "containers of Small tags (the Cabinet status card tag row) — they only place `.status-tag` (audit-fix-v5)",
+      "fix": "Tag · Small = library `status-tag status-tag--{tone} is-subtle status-tag--small` via GEAPTag.html / .cls (js/tag.js) or renderTag; size from css/tag.css (20 · 12/16 at every width)",
       "static": {
         "pattern": "(^|[-_])(tag|badge|pill)($|[-_])",
         "canonical": [

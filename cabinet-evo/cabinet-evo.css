@@ -1019,21 +1019,18 @@
 
 /* „Aprobare tacită” on a request is a button (it carries the explanation tooltip): the blue Small tag
    with the tag box restored over the old text-mark reset, one step darker on hover */
-.e-permits-workplace__tag--info.cab-mark {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  border: 0;
+.status-tag--brand.cab-mark {
   cursor: help;
   font-family: inherit;
-  padding: 0 var(--spacing-6, 6px);
   text-decoration: none;
 }
 
-.e-permits-workplace__tag--info.cab-mark:hover {
+.status-tag--brand.cab-mark:hover {
   background: var(--color-background-brand-secondary-hover, #d6e4f7);
 }
 
 /* tags in the list rows never shrink below their text */
-:is(.sm-item__tags, .cab-card__tags) > .e-permits-workplace__tag {
+:is(.sm-item__tags, .cab-card__tags) > .status-tag {
   flex: none;
 }
 

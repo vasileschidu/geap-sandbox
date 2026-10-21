@@ -1992,3 +1992,14 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   renderer's markup. component-audit rule 10 `skeleton-private`: skeletons are `aria-hidden` by design, so the
   auditor's usual `vis()` (which skips aria-hidden) never saw them — measure „painted” (client rects + visibility),
   then prove on a HEAD worktree (:8981: 21 findings on adr-03 / fb-61a / fo-g1c) vs the tree (0).
+- 2026-10-21 · Audit fix batch 5 — ONE tag (audit-fix-v5). The BO `.e-permits-workplace__tag` (25 emitters in 7 files,
+  CSS in 3 files) → the library Small `status-tag` through `js/tag.js` (`GEAPTag.cls / html`, the product → library tone
+  map lives there once) + `css/tag.css` (20 · 12/16 at every width — the library Small reads a responsive caption token
+  that is 10 on phones). Emitters swapped by two regexes (template `${expr}` tones → `GEAPTag.cls(expr)`, literal tones
+  → the mapped class) and proved by a „no `workplace__tag` left” grep + node --check on a HEAD dry run. Traps found by a
+  tag-signature probe (height · font · bg · colour · border · radius · transform, counted per viewport, before / after):
+  (1) host rules written for MEDIUM value tags (`.e-permits-passport__panel .status-tag--neutral.is-subtle { border: 0 }`,
+  dosar row values 24 high) now reached the Small tags in the same panels → scope them `:not(.status-tag--small)`;
+  (2) compensating the library 1px border with `padding: calc(6 − 1)` made code-audit report an off-scale 5 on every tag
+  (48 findings on dos-05) → plain 6, text 1px further in, as every library tag / button already is. Moving a class also
+  moves the compare-styles specs that select it and the auditor family `allow` for tag containers.

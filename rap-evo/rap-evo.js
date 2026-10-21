@@ -92,7 +92,7 @@
     "Anulat": "danger"
   }[status] || "neutral");
   /* the BO renderTag markup (Tag · Small, css/bo-profile-parts.css) */
-  const statusTag = (status) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${statusTone(status)}">${escapeHtml(status)}</span>`;
+  const statusTag = (status) => `<span class="${window.GEAPTag.cls(statusTone(status))}">${escapeHtml(status)}</span>`;
   /* tacit approval (Figma comment G. 1868591457; US-139 AC-02, US-142 / US-162 AC-08): an act with
      Aprobare tacită = true (the RAP marking „Aprobat tacit”) that is Valabil shows ONE blue Small tag
      „Aprobare tacită” INSTEAD of „Valabil” (tacit-tag-v1, user 2026-10-21: it implies valid; screen
@@ -102,7 +102,7 @@
   const TACIT_MARK = "Aprobat tacit";
   const isTacit = (record) => (record.markings || []).includes(TACIT_MARK);
   const showTacitBadge = (record) => isTacit(record) && record.status === "Valabil";
-  const tacitTag = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
+  const tacitTag = () => '<span class="status-tag status-tag--brand is-subtle status-tag--small">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
   /* deviation from US-139 AC-02 („alături de Status”), user decision — to confirm with the PO */
   const statusTags = (record) => (showTacitBadge(record) ? tacitTag() : statusTag(record.status));
   /* details (user 2026-10-17): ONE row, in date order before „Data eliberării” — the date only */
@@ -563,7 +563,7 @@
       options: facetOptions,
       /* status values read as the table's status tags */
       tag: (value, facet) => (facet.key !== "status" ? null : value === TACIT_MARK
-        ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--info">${TACIT_MARK}</span>` : statusTag(value)),
+        ? `<span class="status-tag status-tag--brand is-subtle status-tag--small">${TACIT_MARK}</span>` : statusTag(value)),
       total: () => state.filteredRecords.length,
       /* phones: one scrolling chip row + bottom sheets with a live „Arată N rezultate” */
       mobileSheets: true,

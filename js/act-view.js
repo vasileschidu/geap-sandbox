@@ -195,8 +195,8 @@
     /* a Valabil act approved tacitly (`tacitBadge`) shows ONE tag, „Aprobare tacită” (it implies valid; screen readers
        hear „(valabil)”) — tacit-tag-v1; the date row keeps only the date */
     const statusTag = (act) => (act.tacitBadge
-      ? '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>'
-      : `<span class="e-permits-workplace__tag e-permits-workplace__tag--${act.tone}">${escapeHtml(act.status)}</span>`);
+      ? '<span class="status-tag status-tag--brand is-subtle status-tag--small">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>'
+      : `<span class="${window.GEAPTag.cls(act.tone)}">${escapeHtml(act.status)}</span>`);
     const tacitDateRow = (act) => (act.tacitDate ? [["Data aprobării tacite", escapeHtml(act.tacitDate)]] : []);
 
     const actModal = { overlay: null, opener: null, run: 0, record: null };

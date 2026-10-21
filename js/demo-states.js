@@ -2303,7 +2303,7 @@
         /* a very long act name (Figma comment A. 1968942771): one line + ellipsis, the full name in the
            shared tooltip on hover · a tacitly approved act: only the blue „Aprobare tacită” badge in Statut */
         "rap-01e": rap(async (h) => { await h.scroll('tr[data-record-id="rap-0015"]'); await h.hover('tr[data-record-id="rap-0015"] .rap-act-link'); await h.wait(300); }),
-        "rap-01f": rap(async (h) => { await h.hover('tr[data-record-id="rap-0001"] .e-permits-workplace__tag--info'); }),
+        "rap-01f": rap(async (h) => { await h.hover('tr[data-record-id="rap-0001"] .status-tag--brand'); }),
         /* US-141: „Aprobat tacit” as a value of the Statut facet (acts with Aprobare tacită = true) */
         "rap-01h": rap(async (h) => {
           if (window.matchMedia("(max-width: 760px)").matches) {

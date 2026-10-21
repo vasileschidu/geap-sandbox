@@ -1758,37 +1758,6 @@ body {
   line-height: 18px;
 }
 
-.e-permits-workplace__tag {
-  min-height: 24px;
-  padding: var(--spacing-2, 2px) var(--spacing-8, 8px);
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--border-radius-6, 6px);
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-16, 16px);
-}
-
-.e-permits-workplace__tag--success {
-  background: var(--green-100, #e7f6ed);
-  color: var(--green-700, #027948);
-}
-
-.e-permits-workplace__tag--brand {
-  background: var(--blue-sky-100, #e8f0fb);
-  color: var(--blue-sky-700, #0049b0);
-}
-
-.e-permits-workplace__tag--warning {
-  background: var(--yellow-100, #fff4d6);
-  color: var(--yellow-800, #8a4b00);
-}
-
-.e-permits-workplace__tag--danger {
-  background: var(--red-100, #feeceb);
-  color: var(--red-700, #b42318);
-}
-
 .e-permits-workplace__alert {
   color: var(--red-600, #d92d20);
   font-weight: var(--font-weight-fw-semibold, 600);
@@ -2935,69 +2904,7 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   line-height: var(--line-height-lh-16, 16px);
 }
 
-/* Tags = Figma tag-filled **Small** everywhere, tables included (20px, 12/16 medium,
-   px 6, radius 4) (user, 2026-10-09: Small for all, not Medium) */
-.e-permits-workplace__tag {
-  min-width: 32px;
-  height: var(--spacing-20, 20px);
-  min-height: var(--spacing-20, 20px);
-  padding: 0 var(--spacing-6, 6px);
-  justify-content: center;
-  border-radius: var(--border-radius-4, 4px);
-  box-sizing: border-box;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  line-height: var(--line-height-lh-16, 16px);
-  white-space: nowrap;
-}
-
-.e-permits-workplace__tag--ok,
-.e-permits-workplace__tag--success {
-  background: var(--color-background-positive-secondary, #e6f5ee);
-  color: var(--color-text-positive-on-secondary, #027948);
-}
-
-.e-permits-workplace__tag--info,
-.e-permits-workplace__tag--brand {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  color: var(--color-text-brand-on-secondary, #0058d2);
-}
-
-.e-permits-workplace__tag--teal {
-  background: var(--green-100, #e6f5ee);
-  color: var(--green-700, #027948);
-}
-
-.e-permits-workplace__tag--violet {
-  background: #f0e9ff;
-  color: #6941c6;
-}
-
-.e-permits-workplace__tag--high,
-.e-permits-workplace__tag--warning {
-  background: var(--color-background-warning-secondary, #feefc6);
-  color: var(--color-text-warning-on-secondary, #b54708);
-}
-
-.e-permits-workplace__tag--crit,
-.e-permits-workplace__tag--danger {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  color: var(--color-text-danger-on-secondary, #b32318);
-}
-
-/* Small · Icon=Leading: pl 4, pr 6, gap 4, 16px icon */
-.e-permits-workplace__tag--icon {
-  align-items: center;
-  display: inline-flex;
-  gap: var(--spacing-4, 4px);
-  padding: 0 var(--spacing-6, 6px) 0 var(--spacing-4, 4px);
-}
-
-.e-permits-workplace__tag--icon .icon {
-  flex: 0 0 var(--spacing-16, 16px);
-  height: var(--spacing-16, 16px);
-  width: var(--spacing-16, 16px);
-}
+/* Tags = Tag · Small (the library status tag, css/tag.css + GEAPTag, audit-fix-v5) — no BO tag of its own */
 
 .e-permits-workplace__role-identity {
   display: inline-flex;
@@ -3142,7 +3049,7 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   overflow: hidden;
 }
 
-.e-permits-workplace__user-roles .e-permits-workplace__tag {
+.e-permits-workplace__user-roles .status-tag {
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -3187,13 +3094,6 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   left: auto;
   z-index: auto;
   border-right: 0;
-}
-
-/* = library .status-tag--neutral.is-subtle (gray-200 / default text): visible on white
-   and on the grey cards (base/secondary) alike */
-.e-permits-workplace__tag--neutral {
-  background: var(--color-background-base-tertiary, #ebebeb);
-  color: var(--color-text-base-default, #121212);
 }
 
 .e-permits-workplace__alert-list {
@@ -3728,14 +3628,3 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
   outline: none;
 }
 
-/* Subtle tags carry a 1px subtle border (library tag-filled Subtle, 2026-10-09): neutral =
-   border/base/default, colours = border/<tone>/secondary — inset, so heights stay 24 / 20 */
-.e-permits-workplace__tag--neutral { box-shadow: inset 0 0 0 var(--border-width-1) var(--color-border-base-default, #d9d9d9); }
-.e-permits-workplace__tag--ok,
-.e-permits-workplace__tag--success { box-shadow: inset 0 0 0 var(--border-width-1) var(--color-border-positive-secondary); }
-.e-permits-workplace__tag--info,
-.e-permits-workplace__tag--brand { box-shadow: inset 0 0 0 var(--border-width-1) var(--color-border-brand-secondary); }
-.e-permits-workplace__tag--high,
-.e-permits-workplace__tag--warning { box-shadow: inset 0 0 0 var(--border-width-1) var(--color-border-warning-secondary); }
-.e-permits-workplace__tag--crit,
-.e-permits-workplace__tag--danger { box-shadow: inset 0 0 0 var(--border-width-1) var(--color-border-danger-secondary); }

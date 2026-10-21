@@ -1127,7 +1127,7 @@
       { label: "Domiciliu", rsp: rec.address, doc: d.address }
     ].map((r) => ({ ...r, ok: r.rsp === r.doc }));
   };
-  const matchTag = (ok) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${ok ? "success" : "danger"} e-permits-workplace__tag--icon">${icon(ok ? "checkmark-small" : "cross-small")}${ok ? "Concordă" : "Diferă"}</span>`;
+  const matchTag = (ok) => `<span class="${window.GEAPTag.cls(ok ? "success" : "danger")}">${icon(ok ? "checkmark-small" : "cross-small")}${ok ? "Concordă" : "Diferă"}</span>`;
   const renderExternal = (s) => {
     if (!s.external) return api.renderPassportEmpty("Surse externe", "Sesiunea nu a interogat surse externe: cazul de utilizare nu citește un act de identitate.", "", "data-access");
     const heading = `<div class="e-permits-dosar-profil__section-heading"><h2 class="e-permits-dosar-profil__section-title e-permits-ekyc-source-title">Registrul de stat al populației ${api.renderTag(s.external.source, "neutral")}</h2></div>`;

@@ -2922,20 +2922,9 @@
   min-width: 0;
 }
 
+/* „Beta” = Tag · Small, strong neutral (css/tag.css; audit-fix-v5) */
 .e-permits-fo-auth__beta-tag {
-  align-items: center;
-  background: var(--color-background-base-inverse-default, #1e1e1e);
-  border-radius: var(--border-radius-4, 4px);
-  color: var(--color-background-base-inverse-on-color, #fff);
-  display: inline-flex;
   flex: 0 0 auto;
-  font-size: var(--font-size-fs-14, 14px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: 24px;
-  justify-content: center;
-  line-height: var(--line-height-lh-20, 20px);
-  min-width: 32px;
-  padding: 0 var(--spacing-8, 8px);
 }
 
 .e-permits-fo-auth__beta-content p {
@@ -17801,8 +17790,8 @@
 }
 
 
-/* row values: Figma tag-filled Medium (24px, 14/20) via the library .status-tag */
-.e-permits-dosar-profil__row-value .status-tag {
+/* row values: Figma tag-filled Medium (24px, 14/20) via the library .status-tag (Small tags keep css/tag.css) */
+.e-permits-dosar-profil__row-value .status-tag:not(.status-tag--small) {
   box-sizing: border-box;
   flex: 0 0 auto;
   height: var(--spacing-24, 24px);
@@ -17811,7 +17800,7 @@
   text-transform: none;
 }
 
-.e-permits-dosar-profil__row-value .status-tag--neutral.is-subtle {
+.e-permits-dosar-profil__row-value .status-tag--neutral.is-subtle:not(.status-tag--small) {
   border: 0;
 }
 
@@ -17932,9 +17921,7 @@
   row-gap: var(--spacing-6, 6px);
 }
 
-.e-permits-passport__panel .e-permits-workplace__tag,
 .e-permits-passport__panel .status-tag,
-.e-permits-passport__sync-summary .e-permits-workplace__tag,
 .e-permits-passport__sync-summary .status-tag {
   white-space: nowrap;
 }
@@ -18038,8 +18025,8 @@
 }
 
 /* the library .status-tag capitalises every word; passport values are prose */
-.e-permits-passport__panel .status-tag,
-.e-permits-passport__sync-summary .status-tag {
+.e-permits-passport__panel .status-tag:not(.status-tag--small),
+.e-permits-passport__sync-summary .status-tag:not(.status-tag--small) {
   box-sizing: border-box;
   height: var(--spacing-24, 24px);
   line-height: var(--line-height-lh-20, 20px);
@@ -18047,7 +18034,7 @@
   text-transform: none;
 }
 
-.e-permits-passport__panel .status-tag--neutral.is-subtle {
+.e-permits-passport__panel .status-tag--neutral.is-subtle:not(.status-tag--small) {
   border: 0;
 }
 
@@ -18287,11 +18274,11 @@
 }
 
 /* Medium tags (24) share the title's 24px line — no offset */
-.e-permits-stack__title-row .e-permits-workplace__tag {
+.e-permits-stack__title-row .status-tag--small {
   margin-top: 0;
 }
 
-.e-permits-stack__title-row .e-permits-workplace__tag + .e-permits-workplace__tag {
+.e-permits-stack__title-row .status-tag--small + .status-tag--small {
   margin-left: calc(var(--spacing-4, 4px) - var(--spacing-12, 12px));
 }
 
@@ -23553,7 +23540,7 @@ a.btn:focus-visible {
   font-weight: var(--font-weight-fw-medium, 500);
 }
 
-.e-permits-page-header__meta-value .e-permits-ekyc-timer + .e-permits-workplace__tag {
+.e-permits-page-header__meta-value .e-permits-ekyc-timer + .status-tag {
   margin-left: var(--spacing-8, 8px);
 }
 

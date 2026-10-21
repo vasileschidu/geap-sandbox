@@ -189,7 +189,7 @@
     if (dosar.status === "finalizat" && dosar.result === "aprobat") return C.tagHtml("Aprobat", "success");
     if (dosar.status === "finalizat" && dosar.result === "respins") return C.tagHtml("Respins", "danger");
     if (dosar.tacit && dosar.status === "derulare") {
-      return `<button class="e-permits-workplace__tag e-permits-workplace__tag--info cab-mark" type="button" data-tooltip-hint="${escape(tacitNote(dosar))}" aria-label="Aprobare tacită disponibilă. ${escape(tacitNote(dosar))}">Aprobare tacită</button>`;
+      return `<button class="status-tag status-tag--brand is-subtle status-tag--small cab-mark" type="button" data-tooltip-hint="${escape(tacitNote(dosar))}" aria-label="Aprobare tacită disponibilă. ${escape(tacitNote(dosar))}">Aprobare tacită</button>`;
     }
     return "";
   }

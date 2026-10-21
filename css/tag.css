@@ -1,0 +1,50 @@
+/* ==========================================================================================================
+   Tag · Small — ONE tag everywhere (audit-fix-v5, 2026-10-21)
+   = the library `.status-tag … is-subtle .status-tag--small` (Figma tag-filled Small, Components 22:80): 20 high
+   at EVERY width, 12/16 medium, side 6 (+ the library 1px tone border: text 7 from the edge, as every library tag
+   and button — an off-scale 5 to compensate was flagged by code-audit), radius 4,
+   min width 32, one line, sentence case (Romanian labels; the library capitalises every word).
+   With a leading icon: 16 icon, gap 4, icon side 4.
+   main.css sizes `--small` from the responsive `--text-caption-md-font-size` (10 at ≤720 → 17.7 high on phones,
+   component-audit tag-size); the token is pinned on the tag, so phones stay 12/16 · 20.
+   Loaded after the product CSS (before field-sizes / modal-phone) on every page with tags. Placement (gaps, flex,
+   ellipsis in a cell) belongs to the host. The old BO `.e-permits-workplace__tag(--tone)` is removed — tags come from
+   `GEAPTag` (js/tag.js) / `renderTag`.
+   ========================================================================================================== */
+
+.status-tag.status-tag--small {
+  --text-caption-md-font-size: var(--font-size-fs-12, 12px);
+  align-items: center;
+  border-radius: var(--border-radius-4, 4px);
+  box-sizing: border-box;
+  display: inline-flex;
+  font-size: var(--font-size-fs-12, 12px);
+  font-weight: var(--font-weight-fw-medium, 500);
+  height: var(--spacing-20, 20px);
+  justify-content: center;
+  line-height: var(--line-height-lh-16, 16px);
+  min-height: var(--spacing-20, 20px);
+  min-width: var(--spacing-32, 32px);
+  padding: 0 var(--spacing-6, 6px);
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.status-tag.status-tag--small:has(> svg) {
+  gap: var(--spacing-4, 4px);
+  padding: 0 var(--spacing-6, 6px) 0 var(--spacing-4, 4px);
+}
+
+.status-tag.status-tag--small > svg.icon {
+  flex: 0 0 var(--icon-size-small, 16px);
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
+/* violet (eKYC „Așteaptă furnizorul” / „Alocată”, the BO Spre coordonare): a product tone — Foundations has no violet
+   token (PO question, component audit S101); the values are the ones the BO tag used */
+.status-tag--violet.is-subtle {
+  background-color: #f0e9ff;
+  border: var(--border-width-1, 1px) solid transparent;
+  color: #6941c6;
+}

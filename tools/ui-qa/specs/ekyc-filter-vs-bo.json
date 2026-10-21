@@ -111,8 +111,8 @@
   },
   {
    "name": "option tag",
-   "a": ".e-permits-workplace__filter-pop .e-permits-workplace__filter-option .e-permits-workplace__tag",
-   "b": ".e-permits-workplace__filter-pop .e-permits-workplace__filter-option .e-permits-workplace__tag",
+   "a": ".e-permits-workplace__filter-pop .e-permits-workplace__filter-option .status-tag--small",
+   "b": ".e-permits-workplace__filter-pop .e-permits-workplace__filter-option .status-tag--small",
    "ignore": [
     "rect.width",
     "rect.x",

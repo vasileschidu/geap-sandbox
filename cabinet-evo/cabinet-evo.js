@@ -17,10 +17,10 @@
   };
   /* the BO renderTag markup (Tag · Small) — every status / result tag in the Cabinet */
   const tagHtml = (label, tone = "neutral", extra = "") =>
-    `<span class="e-permits-workplace__tag e-permits-workplace__tag--${tone}"${extra}>${String(label).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch])}</span>`;
+    `<span class="${window.GEAPTag.cls(tone)}"${extra}>${String(label).replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch])}</span>`;
   /* „Aprobare tacită” (RAP / US-139) = the status tag of a VALABIL act approved tacitly — ONE tag, it replaces
      „Valabil” (tacit-tag-v1, user 2026-10-21); other statuses show their own tag only, the tacit date stays in Detalii */
-  const tacitTagHtml = () => '<span class="e-permits-workplace__tag e-permits-workplace__tag--info">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
+  const tacitTagHtml = () => '<span class="status-tag status-tag--brand is-subtle status-tag--small">Aprobare tacită<span class="u-visually-hidden"> (valabil)</span></span>';
   const actStatusTagHtml = (act, tacit) => (tacit && act.status === "valabil" ? tacitTagHtml() : tagHtml(act.statusLabel, ACT_TONE[act.status]));
 
   /* Feature 90818 / 89533 — GEAP acts come from the same data the front

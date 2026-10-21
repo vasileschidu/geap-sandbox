@@ -72,7 +72,7 @@
   const clone = (v) => JSON.parse(JSON.stringify(v));
   const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   const yesNo = (on) => (on
-    ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--success e-permits-workplace__tag--icon">${icon("checkmark-small", 16)}Da</span>`
+    ? `<span class="status-tag status-tag--success is-subtle status-tag--small">${icon("checkmark-small", 16)}Da</span>`
     : T("Nu", "neutral"));
   const desc = (text) => (text ? `<span class="e-permits-workplace__role-desc">${esc(text)}</span>` : dash);
   const btn = (label, attrs, { variant = "neutral", ic = "" } = {}) => `<button class="btn btn-${variant} btn-sm" type="button" ${attrs}>${ic ? icon(ic, 16) : ""}<span>${esc(label)}</span></button>`;
@@ -826,7 +826,7 @@
       case "cod": return A.renderListCode(r.cod);
       case "nivel": return T(r.nivel);
       case "versiune": return `v${esc(r.versiune)}`;
-      case "pasi": return r.pasi ? String(r.pasi) : `<span class="e-permits-workplace__tag e-permits-workplace__tag--warning e-permits-workplace__tag--icon">${icon("warning-filled", 16)}0 · flux incomplet</span>`;
+      case "pasi": return r.pasi ? String(r.pasi) : `<span class="status-tag status-tag--accent is-subtle status-tag--small">${icon("warning-filled", 16)}0 · flux incomplet</span>`;
       case "activ": return statusTag(r.activ);
       case "updatedAt": return updatedCell(r);
       case "actiuni": return rowActions({ label: "Editează", attrs: act("uc-edit", r.id) }, [
@@ -1476,7 +1476,7 @@
     primary: { id: "provider-new", label: "Adaugă furnizor" }, sortKey: "prioritate"
   });
   /* Sănătate ≠ Status (US-UI-09 AC): health = icon tag (signal) in its own column, status = plain tag at the end */
-  const healthTag = (h) => `<span class="e-permits-workplace__tag e-permits-workplace__tag--${HEALTH_TONES[h] || "neutral"} e-permits-workplace__tag--icon">${icon("signal", 16)}${esc(h)}</span>`;
+  const healthTag = (h) => `<span class="${window.GEAPTag.cls(HEALTH_TONES[h] || "neutral")}">${icon("signal", 16)}${esc(h)}</span>`;
   const providerCell = (r, key) => {
     switch (key) {
       case "denumire": return S.identity(r.denumire, r.p.auth);
@@ -1767,12 +1767,12 @@
   const sdkCell = (r, key) => {
     switch (key) {
       case "versiune": return `<span class="e-permits-passport__name">${esc(r.versiune)}</span>`;
-      case "platforma": return `<span class="e-permits-workplace__tag e-permits-workplace__tag--neutral e-permits-workplace__tag--icon">${icon(PLATFORM_ICON[r.platforma], 16)}${esc(r.platforma)}</span>`;
+      case "platforma": return `<span class="status-tag status-tag--neutral is-subtle status-tag--small">${icon(PLATFORM_ICON[r.platforma], 16)}${esc(r.platforma)}</span>`;
       case "descriere": return desc(r.descriere);
       case "lansare": return esc(longDate(r.lansare));
       /* Recomandată = brand tag with the award icon; Suportată = success / neutral tag — two
          different looks so the two columns scan apart (US-UI-12 AC) */
-      case "recomandata": return r.recomandata ? `<span class="e-permits-workplace__tag e-permits-workplace__tag--brand e-permits-workplace__tag--icon">${icon("award", 16)}Recomandată</span>` : dash;
+      case "recomandata": return r.recomandata ? `<span class="status-tag status-tag--brand is-subtle status-tag--small">${icon("award", 16)}Recomandată</span>` : dash;
       case "suportata": return r.suportata ? T("Suportată", "success") : T("Nesuportată", "neutral");
       case "descarcare": return `<a class="btn btn-strict btn-sm btn-icon-only" href="${esc(r.descarcare)}" target="_blank" rel="noopener" aria-label="Descarcă ${esc(r.platforma)} ${esc(r.versiune)} (se deschide în altă filă)" data-tooltip-label="Descarcă">${icon("export", 16)}</a>`;
       case "actiuni": return rowActions({ label: "Editează", attrs: act("sdk-edit", r.id) }, [

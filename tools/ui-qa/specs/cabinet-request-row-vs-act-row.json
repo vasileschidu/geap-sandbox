@@ -34,8 +34,8 @@
   },
   {
    "name": "status tag",
-   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-doc-title-row > .e-permits-workplace__tag",
-   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-doc-title-row > .e-permits-workplace__tag",
+   "a": ".cab-act-list > .e-permits-fo-intent-act:nth-child(1) .e-permits-fo-doc-title-row > .status-tag--small",
+   "b": ".cab-request-list > [data-sm-card=\"d-cantina-retragere\"] .e-permits-fo-doc-title-row > .status-tag--small",
    "ignore": [
     "rect.width",
     "rect.x",

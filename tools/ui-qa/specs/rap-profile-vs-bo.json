@@ -107,8 +107,8 @@
   },
   {
    "name": "meta tag",
-   "a": ".e-permits-page-header__meta .e-permits-workplace__tag",
-   "b": ".e-permits-page-header__meta .e-permits-workplace__tag",
+   "a": ".e-permits-page-header__meta .status-tag--small",
+   "b": ".e-permits-page-header__meta .status-tag--small",
    "ignore": [
     "rect.width"
    ]
@@ -248,8 +248,8 @@
   },
   {
    "name": "row tag",
-   "a": ".e-permits-dosar-profil__card .e-permits-workplace__tag",
-   "b": ".e-permits-dosar-profil__card .e-permits-workplace__tag",
+   "a": ".e-permits-dosar-profil__card .status-tag--small",
+   "b": ".e-permits-dosar-profil__card .status-tag--small",
    "ignore": [
     "rect.width"
    ]

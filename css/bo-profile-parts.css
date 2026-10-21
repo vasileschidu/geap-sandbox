@@ -248,55 +248,7 @@
   outline: 0;
 }
 
-/* ---- Tag · Small (renderTag): 20 high, 12/16 medium, subtle fill + 1px tone border
-   (e-permits-shell.css :3228 + tone borders :4200) ---- */
-.e-permits-workplace__tag {
-  align-items: center;
-  border-radius: var(--border-radius-4, 4px);
-  box-sizing: border-box;
-  display: inline-flex;
-  font-size: var(--font-size-fs-12, 12px);
-  font-weight: var(--font-weight-fw-medium, 500);
-  height: var(--spacing-20, 20px);
-  justify-content: center;
-  line-height: var(--line-height-lh-16, 16px);
-  min-height: var(--spacing-20, 20px);
-  min-width: 32px;
-  padding: 0 var(--spacing-6, 6px);
-  white-space: nowrap;
-}
-
-.e-permits-workplace__tag--success {
-  background: var(--color-background-positive-secondary, #e6f5ee);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-positive-secondary);
-  color: var(--color-text-positive-on-secondary, #027948);
-}
-
-.e-permits-workplace__tag--warning {
-  background: var(--color-background-warning-secondary, #feefc6);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-warning-secondary);
-  color: var(--color-text-warning-on-secondary, #b54708);
-}
-
-.e-permits-workplace__tag--danger {
-  background: var(--color-background-danger-secondary, #fee4e2);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-danger-secondary);
-  color: var(--color-text-danger-on-secondary, #b32318);
-}
-
-/* info / brand (e-permits-shell.css :3248 + :4203) — RAP „Aprobat tacit” */
-.e-permits-workplace__tag--info,
-.e-permits-workplace__tag--brand {
-  background: var(--color-background-brand-secondary, #e8f0fb);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-brand-secondary);
-  color: var(--color-text-brand-on-secondary, #0058d2);
-}
-
-.e-permits-workplace__tag--neutral {
-  background: var(--color-background-base-tertiary, #ebebeb);
-  box-shadow: inset 0 0 0 var(--border-width-1, 1px) var(--color-border-base-default, #d9d9d9);
-  color: var(--color-text-base-default, #121212);
-}
+/* ---- Tag · Small: the library status tag (css/tag.css, loaded on this page too; audit-fix-v5) ---- */
 
 /* ---- Detail modal (#dosar-detail-modal, „Detail modal” in components.md — RAP „Vizualizare act”):
    library modal--md + the BO additions. Sources: e-permits-acte-permisive.css :18505 / :18511
