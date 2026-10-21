@@ -2649,3 +2649,39 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     (data/srre-cadastral.json) = Chișinău · sec. Buiucani · str. Calea Ieșilor 10 · bl. 2 · ap. 47 · MD-2001.
   - Placement to check first: the C01 → C12 gap (x 1600–1840) already carries 4 connectors; the free space is under C01b (lane bottom
     5120 → grow the lane and move „FO / Field · skeleton” / „FO / Context · skeleton” at y 5400) or left of the lane.
+
+- 2026-10-21 · GEAP act row → the EVO Cabinet anatomy (user on GEAP 11606:1123, gh-02i list; code js/act-row.js shared, 49f2be2d /
+  75740ae5 / a55708c6 / acc1ed66 / e3cf812b). **Stopped half-way: the figma-a MCP lost its sign-in** (rate limit, then re-auth needed).
+  Done in GEAP: local `20/lock` 12268:364500 + `20/circle-x` 12268:364503 (Foundations 24 glyph rescaled 20/24, as Cabinet
+  1198:3727 / 1196:53473), `Post-process menu · item` 11844:198541 gained State=Danger Desktop 12268:364506 (text/danger eb442fe6…,
+  icon/danger d3dd654e…, 20/circle-x) + Size=Touch Default / Hover / Disabled / Danger 12268:364512 / :364518 / :364523 / :364528
+  (48 · 12 16 · gap 12 · radius-8 dc82cc9d… · Desktop/Body/Default 392200dc… · **24 icon = code**, Cabinet's Touch mains keep 20).
+  Verify they exist before continuing (the session dropped right after that call returned). Snapshot of all 38 Act row instances
+  (overrides, block, size) stored in root shared plugin data „figdes”/„actrow-snap-before”. Still TO DO, in order:
+  (1) `Menu separator` set (Desktop 4/8 = 9, Touch 8/16 = 17, border/base/default 9fa253aa…); `Post-process menu` 11844:340693 →
+  combineAsVariants (Size Desktop / Touch, p8 g0 radius-16 for Touch) + slots Separator / Danger 1 / Danger 2 + BOOLEANs; no group
+  label (the code has none). (2) Restructure `Act row` 11846:340996 IN PLACE (keep key 8b8ef217…, move existing nodes — don't
+  replace them — so Title / Number / Status / Notice overrides survive): card p16 r16 stroke 1.5 INSIDE (not in layout) gap 12;
+  desktop Row › Content (V g8) › `Title and tag` (H g8, paddingRight = trigger + 8 = 133 → 135 for 127) = 24 icon · Title 16/24
+  Desktop/Body/Default 500 · Status · Extra tag; Meta full width; phones `Line 1` (pL32 pR133 pB2, tags, icon ABSOLUTE 0/−2) ›
+  Title FILL ENDING maxLines 2 › Meta; Action = swap button-filled-circular → button-filled-rectangular Neutral Trailing Small
+  (7f9ca2b5…), label „Postprocese”, ABSOLUTE MAX/MIN at 12/12 (phones 10/10); Locked = State Disabled + Notice FILL; Menu open =
+  State Active + Focus Ring/Medium + `Menu layer` ABSOLUTE STRETCH at y 50, align MAX; add Paper variants + props Subdivision /
+  Show subdivision (default FALSE in GEAP — every instance's Authority already holds „CSP …”) / Show extra tag / Show action /
+  Break before subdivision. **Meta order = the code: Number · Authority · Validity** (GEAP had Validity second). (3) Instances:
+  gh-02j menu (7 items) → code order + icon map (Prelungire 20/calender-add 1b5ae084…, Suspendare 20/lock, Contestație
+  20/judge-gavel 9fd06923…, Retragere → separator + Danger 1 20/circle-x), 02a desktop Retragere act permisiv → Danger; 02a phone:
+  replace the `Overlay · bottom sheet` 12183:406548 with an anchored Touch menu (right edge = trigger right, 6 below; re-point
+  connectors first). (4) Rows grow 70 → 84 / 126 → 140, phones 154 → ~136–160: check dialog / list clipping on Ghișeu gh-02i/j/t/
+  u/n/x (5 rows each) and restack FO 09 F1c, Post-processes 02/02a/02b, Ghișeu column 03 at 240.
+  Census: 38 instances — Ghișeu 25 (20 Default, 4 Locked, 1 Menu open), Post-processes 8 (5 Default, 1 Menu open desktop, 1 Default
+  + 1 Menu open phone), FO 09 F1c 4 (2 desktop, 2 phone). No tacit block (gh-02y / pp-02t have no Figma block); FOD Requestor page
+  in GEAP has 0 act rows (the FOD file has its own copy 892:11656). Lessons:
+  - **Measure all three products at once** (measure-act-rows.mjs with `--page cabinet-evo/index.html` for pp-01; the Ghișeu states
+    load from e-permits-acte-permisive.html, not e-permits-shell.html — the shell page returned 0 rows). Copy the tool to the
+    scratchpad with a private port range (13400+).
+  - Code vs Cabinet (report, no change): FO / Ghișeu meta = number · subdivision · date (slot 3 prints only „CSP Bălți”, no
+    „ANSP”, while components.md says „authority code · subdivision”); Cabinet = number · what · ANSP · CSP · date. The Cabinet Figma
+    Act row main orders Validity before Authority (code puts the date last). Phone menu icons: code 24, Cabinet Touch mains 20.
+  - Before a long multi-call rebuild, write the plan + snapshot into the file (shared plugin data) and this playbook early: an
+    MCP auth drop can end the session between calls.
