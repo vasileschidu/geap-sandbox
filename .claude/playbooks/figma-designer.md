@@ -2471,3 +2471,37 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
   Classifiers 04d / NT 02d / Print 09i. Gotcha: `note.findAll(TEXT)[1]` is NOT the body when the note's tag is an instance whose
   label is a TEXT child — the 09i sentence landed in the note TITLE. Pick note texts by name („Note title” / „Note text”) or skip
   instance sublayers (`!id.startsWith("I")`). 02x4 now links svc-10x4 (79b05bf6).
+
+- 2026-10-21 · **A board column header = GEAP's „Band NN · Title”** (user on EVO Cabinet ↳ My requests 1122:6538: „not like in GEAP in colour
+  and structure”; then via coordinator: notes / descriptions „what is this text? write a normal, short explanation”, „only English”).
+  GEAP census (7 pages, 51 bands: Tariffs 9618:13402, Services 9568:18926, Users 10077:11647, FO 09 10815:25432, Classifiers, Dossiers,
+  Post-processes — one signature everywhere): a plain FRAME `Band NN · Title`, background/base/default (white) + 1 px border/base/default
+  INSIDE (included in layout → 122 high), radius-16, padding 24/32 + gap 8 (spacing tokens), FIXED width = the column's block width
+  (1920 / 1935 / 1447), HUG height › `Title` HORIZONTAL gap 12 CENTER = `ID` chip (background/brand/default, 4/12, radius-8, Desktop/Body/Small
+  500 text/base-inverse/default) + Desktop/Heading/H2 32/40 text/base/default › ONE Desktop/Body/Default line text/base/secondary (what the
+  column shows, ≤ 1 sentence). Gap to the first block 238–400 (Ghișeu 244, Services/Tariffs 258). Only Ghișeu differs (grey, no border,
+  14 px line) — the majority wins. Start here (Ghișeu 11933:28964) = grey `Board title` bar (chip + H2 + Body/Small secondary
+  description) + white bordered cards (24/32, H4 + Body/Default secondary). Arrows = connectors border/brand/default 3 ELBOWED
+  ARROW_LINES (Cabinet already matched). Cabinet had: black #1E1E1E bar, black tag-filled ID chip that read „01” on all 7 My requests
+  columns, H3 24 title, white 16 line, 2215 wide (wider than the 1935 column), titles / descriptions in Romanian jargon. Fix = the
+  Cabinet main `Board / Stage header` 1052:241 rebuilt IN PLACE → `Board / Band header` (fills / stroke / chip frame cloned from
+  `Board / Block label`'s chip + new TEXT prop `ID#1194:0`, H2, secondary line) → 12 instances (7 My requests + 5 Permits) got ID / English
+  title / one plain line, width 1935, name `Band NN · Title`; sections renamed to the same titles; both Start here frames got the grey
+  board-title bar + white bordered cards; 66 notes + 66 label titles rewritten in plain English (2–4 sentences: what the user sees and
+  what happens; Romanian UI labels quoted in „…”; one optional US / AC line; no class names, sizes, commit ids, component names);
+  Contents lines re-linked (half the sm-* lines still pointed at pre-rebuild block ids) and counts fixed (Permits 18 → 19); cover entries
+  rewritten. Lessons:
+  - **„Like GEAP” = census the property across GEAP pages first**, then copy the majority signature (51 / 52 bands identical); report the
+    outlier you did NOT copy.
+  - **Note / description copy for PMs**: write what the user does and sees, not how it is built; the GEAP Tariffs notes are the tone.
+    Keep a spec file (scratchpad spec.py) so the 66 texts are reviewed in one place before pushing; apply through the instance TEXT
+    props (Title `id · title`, Text) with one stored applier — no rebuild, no lost connector.
+  - **Heights settle late after many TEXT-prop edits**: the first restack in the same session read stale block heights (84 px short on
+    a few blocks → gaps 156 after the layout settled). After bulk text edits: restack, then re-read gaps in a SEPARATE call and restack again
+    until every gap = 240; refit sections from max(child bottom) + 80, never from the last block alone.
+  - Restack with jump markers: assign each marker to the block whose [y, next block y) contains it BEFORE moving, then shift it by that
+    block's dy; verify every „SM · Jump · <src> → …” still sits inside its source block. Force re-route connectors (magnet flip) afterwards.
+  - Text with a NODE hyperlink: setting `characters` keeps the first segment's link on the whole text → re-apply `setRangeHyperlink` to the
+    intended range right after (cover entries, contents lines).
+  - No Agent tool in this session → stored `qsweep/audit` on the band main, 2 + 2 bands, sm-01 / nt-01 blocks and both Start here frames:
+    1 finding (sm-01 pager paddingRight 1 = declared whole-pixel fix); connectors 20 + 9, unattached 0; overlaps 0; all column gaps 240.
