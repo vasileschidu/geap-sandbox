@@ -2183,9 +2183,9 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
 - 2026-10-21 · Breadcrumbs = the library component everywhere (user: „let's use the breadcrumb as a component — this is the component,
   why invent it?”, Components 232:5282). Census of the five files (tools/figma/breadcrumbs/census.js: walk without descending into
   instances; lib / older-copy / local / loose `.breadcrumb-item` / raw by name + by „texts + chevron” shape). Non-library found → replaced:
-  GEAP 34 → 29 (Classifiers 22 → 21 raw captured `breadcrumbs` frames, Services 08a/08a1/08a2/08b 4 → 4, User Management `Profile / Header`
-  set 10133:184694 4 variant mains → 4, the 35 instances follow; left: Classifiers 07 10199:11797 inside 10177:9652 — another agent's node —
-  and FOD Address C01/C01a/C01b „Navigation - Breadcrumb” = context skeleton by rule); EVO Cabinet 0 (66 live instances correct, archive
+  GEAP 34 → 30 (Classifiers 22 → 22 raw captured `breadcrumbs` frames, Services 08a/08a1/08a2/08b 4 → 4, User Management `Profile / Header`
+  set 10133:184694 4 variant mains → 4, the 35 instances follow; Classifiers 07 10199:11797 → 12216:1374 after the side-menu agent released 10177:9652 (b1e6873a) —
+  wait for a busy node, then finish it with the same recipe; left: FOD Address C01/C01a/C01b „Navigation - Breadcrumb” = context skeleton by rule); EVO Cabinet 0 (66 live instances correct, archive
   sections untouched); FOD 0; eKYC 0 (124 instances, gap 8); EVO-WEB RAP 0 (101). Lessons:
   - **Check before rebuilding**: most boards already used the library (builders place it); the raw ones were old html→Figma captures of
     `nav.breadcrumbs` (list › item › link / current › text, `breadcrumb-sep` = a rotated 20/chevron-bottom). Frames named „Breadcrumbs” with
