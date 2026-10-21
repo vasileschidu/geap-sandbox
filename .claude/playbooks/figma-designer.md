@@ -88,6 +88,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 | FO header long name (local, 2026-10-19) | GEAP `FO header · service title` set 12089:8112 (Title Short / Long collapsed / Long expanded × Screen Desktop / Mobile; props `Name#12089:0`, `Name · lines#12089:7`, `Name · last line#12089:14`, exposed `Toggle`) · `Name expand · toggle` set 12088:8094 (Expanded False/True × State Default/Hover) · holder 12088:7138 on 🧩 Local components | code js/name-expand.js + css/name-expand.css. Desktop H5 18/26 row 859, Mobile H5 16/24 row 343 (26 floor); toggle = Desktop/Body/Small 500 text/brand/default + 16/chevron-bottom (20/chevron-top at 16 when expanded), icon/brand/default, gap 2. Mobile FO `Header` 3521:12175 got `Show draft status#12094:0` (row „Draft status” 12094:352183, gap 12) — steps 2–6 = on + TitleContainer swapped to the Short title → header 126 = code |
 | Trajectory — ONE component (2026-10-20) | GEAP `Trajectory · step` **9696:556** (State Completed / Current / Suspended / Attention / Rejected / Next / Skipped × Layout Horizontal / Vertical) + `Trajectory · connector` 12155:272677 (Layout × Reached) on ↳ BO -> Dossiers (🧩 Dossiers · components). 1:1 copies: eKYC 10864:1659 / 10864:1644 · FOD 1026:777 / 1026:762 · Cabinet 1087:2497 / 1087:2482 | code js/trajectory.js + css/trajectory.css. Props `Label` (was „Tag”), `Date and person`, `Show details`, `Show line` (vertical connector + 24 tail), `Show tag` (vertical, exposed tag-filled Small: „Acum” Strong Brand 2b352fa2…, „Opțional” Subtle Neutral e4da1f91…); vertical connector = exposed instance (set Reached per step). Horizontal (2026-10-21): marker in a `rail` (line-before · 8 · marker · 8 · line-after, exposed `Line before` / `Line after` connector instances, BOOLEAN props of the same names), separate connectors padding 0, step min width 40 → the line stops 8 from every marker. Tool tools/figma/trajectory/connector-gap.js (UPGRADE + ROWS). Card = frame (white, border 1, radius-24, p20, strokesIncludedInLayout) › `steps` row. Builder + snap: tools/figma/trajectory/trajectory-set.js (stored per file in shared plugin data „traj/lib”) |
 | EVO Cabinet requests pieces (local, 2026-10-20) | Cabinet section „Cabinet · requests components (2026-10-20)” on 🧱 Local components (id in root `cab`/`ids` smSection) | Request row 1117:3222 (State Default/Hover/Menu open × Screen; props Title/Number/What/Authority/Subdivision/Date + Show what/authority/subdivision/tag 2/tag 3/alert/retry; exposed Status, Tag 2/3, Alert, Retry message, More) · Copy value 1117:3000 (value + button-text-rectangular Strict Small Icon Only, 16 copy; frame FIXED 20, button overflows ±6 = code margin-block) · Sort trigger 1119:3048 (detached button-filled-rectangular Neutral Small + leading direction icon prop) · Facet filter · date chip 1119:3061 · date option 1119:3224 (Desktop 32 / Touch 44) · date popover 1119:3428 (Show range / Show error) · Profile tabs 1120:3097 · Notification row 1135:3238 (Screen) · Authorization card (MPower) 1120:3152 · Message · subtle gained Tone=Error 1117:3009 + Tone=Success · Confirm modal gained „Show error”. Builders tools/figma/cabinet/ (README-sm.md) |
+| Document viewer (local, 2026-10-21, doc-viewer-v2) | GEAP `Document viewer / Signature tray` 12234:357237 · `Modal content / Document · details` set 12234:357447 (`Signature=On` 11366:6892 = canvas 554 + tray, `Signature=Off` 12234:357438 = canvas 632) · Cabinet tray 1176:56463 (section „Components · Document viewer”) · EVO-WEB tray 22242:11397 | tray = background/base/secondary, r16 all corners, p12/16, gap 2 (spacings), tag-filled Small Subtle Brand „Semnat electronic” (24/signature 4ec9fd80… at 16) above Meta 14/20 text/base/tertiary (TEXT prop `Meta`); document window = canvas r16 (radius-16) + 1 px INSIDE border/base/default, not in layout; 12 between window and tray. Phones: window edge to edge (r0, no outline), tray in a `Signature · inset` frame 0/8/8/8. RAP `Document modal (MDocs act)` 22089:209155 got BOOLEAN `Show signature` + exposed `Signature`. Builder tools/figma/documents/signature-tray.js |
 | breadcrumbs (library, 2026-10-21) | Components lk-03f6 set key `cafee05e…` (file doJ7tDY0PlQ0PqMgbpFVIC 232:5282); Desktop `ab98b2dd…`, Mobile `f2770086…` | Desktop = exposed Level 1–5 + Active Level (`👁️ Level n`, `👁️ Active Level`; each item `⌨️ Label#570:0`); Mobile = 20/chevron-left-small + one exposed `.breadcrumb-item` (its `⌨️ Label` works). BO header (`--truncate`) = Active Level on, labels cut at 30ch (280 px Onest 14) + „…” written into the label; public / Cabinet / RAP (`--trailing`) = Active Level off. The older lk-708e copy (0437358b…) is NOT the library to use. Tool tools/figma/breadcrumbs/ (census.js, replace.js) |
 | Text styles (Foundations lk-e9e8) | — | Desktop/Heading/H5 75e7dfdc… (18/26 600 = BO section title) · Desktop/Caption/Medium 8d8e3878… (12/16 400 = section meta) · H4 6437d483… (20/28) |
 | PJ / PF icons (user, 2026-10-17) | — | PJ = „business” only: 20/business 13c704752d… (avatars 32 / 40, switcher rows), 24/business b135d6dc… (48 profile avatar), 16/business 931f741c…, filled 24/business-filled c477fc69… (GEAP 11972:38938; tags / segmented / checkbox glyph, scaled 16 / 20). PF = 20/person 4559c555… / filled 6502:74649. Never suitcase-2 / luggage / suitcase-work / 24/suitcase-filled. Code icon-business / icon-business-filled |
@@ -108,7 +109,7 @@ gets better; never delete a lesson, rewrite it if it was wrong.
 - Figma = source of truth for design; prototype code = source for behaviour; they must match.
 - No IMAGE fills for icons (captured `<img>` SVGs) — library icon instances only; sweep `iconImageFills` = 0 (2026-10-14).
 - Documents = one pattern: BO `Document · row` (was „Document · rând”) 11362:7113, FO / Cabinet `Document · card` 11364:7441,
-  modal content `Modal content / Document · details` 11366:6892 (GEAP local); lone view action = „👁 Detalii”, Configurează =
+  modal content `Modal content / Document · details` set 12234:357447 (GEAP local; doc-viewer-v2 2026-10-21: document window + `Document viewer / Signature tray`, no „Date generale” / „Doar citire”, uploads too); lone view action = „👁 Detalii”, Configurează =
   settings icon, Editează = pen.
 - Dropdown surfaces (user, 2026-10-16): every menu / ⋮ menu / dropdown / popover / listbox / picker / switcher menu = effect
   style „dropdown-effect” + clip content ON + radius bound to its token (12 BO stack menus, 16 FO intent / profile menus — as
@@ -2295,3 +2296,36 @@ For any „research how other products do it” step, search Mobbin (mcp__mobbin
     screens.js `filterBtn` / `sortTrigger`, stored `cab`/`ids` smSection 1117:2999) need the library pieces before the next rebuild.
   - No Agent tool in this session → figma-audit rules run read-only on the 4 toolbars + both row sets: only declared values (meta gap
     18, reserve 133, icon overhang 2); 0 icon ≠ label, 0 unbound colours, 0 fractions.
+
+- 2026-10-21 · Document viewer v2 (user reference GEAP 11366:6892, code 8c9507bc doc-viewer-v2) in 4 files. GEAP: set
+  `Modal content / Document · details` 12234:357447 (Signature On / Off) + `Document viewer / Signature tray` 12234:357237 →
+  Dossiers 04e/04h/04i/04l/04o/04p/04q/04s/04t (tray, code signer + time per state) and 04r (Off, unsigned proiect); Ghișeu
+  gh-07a3 / gh-10d (raw dialogs: canvas 554 + tray, Container gap 12, subtitles without signer / date) and gh-07a / 07a2 (canvas
+  r16 + outline only). Cabinet: tray 1176:56463, pp-01z converted („Vizualizare act”, Descarcă + export icon, canvas 501 + tray),
+  pp-01m rebuilt as the same viewer (new `A4 act page · pp-01m` 1178:3516, `Doc canvas content · pp-01m · Desktop / Mobile`
+  1178:42122 / 1178:42380, phone screen 1164 → 812). EVO-WEB: tray 22242:11397 + RAP `Document modal (MDocs act)` set edited in
+  place → 20 screens (rap-03a…03f, 03k, 03l, 03s, 03t). FOD / eKYC: no document viewer. Lessons:
+  - **A FIXED-height main does not reach a slot instance**: the doc-details instances inside the local Modal's content slot are
+    FIXED at the slot's own height (243 after my change) — a fixed main + FILL canvas collapsed every modal to 425. Use a VARIANT
+    for the size difference (Signature On = canvas 554 + tray, Off = canvas 632), main HUG, then `layoutSizingVertical = "HUG"` on
+    the nested instances. `combineAsVariants` keeps every instance (incl. the INSTANCE_SWAP „Content” references); it needs
+    `setCurrentPageAsync(<the components page>)` first („Grouped nodes must be in the same page as the parent”) and renames
+    property keys (Page#11366:0 → Page#12234:2) — read keys by prefix.
+  - In a main that is NOT behind a slot (RAP set, fixed Body), FILL canvas + a tray bound to a BOOLEAN works: hiding the tray gives
+    the unsigned full-height window with no variant.
+  - Instances can carry an itemSpacing override (04q / 04s had gap 0) — after changing a main's stack, read every instance's gap.
+  - **Scratchpad is shared with other agents of the session**: my `dv/probe.mjs` was overwritten mid-job by another agent (same
+    folder name) → use a unique folder (`figdes-<job>`). The shared CDP helper's port range (9100–9500) collides with other agents'
+    headless Chromes → the probe exited silently (exit 0, no output: the WebSocket never opened). Private copy with ports 13000+.
+  - Probe the CODE per state before drawing (dialog / canvas / card rects + card text): it showed the signer per state (MPower, MPay,
+    Ana Damian…), that uploads use the same viewer in v2, that 04r is unsigned, and that the Cabinet „Vizualizare act” data modal
+    no longer exists — „Vezi act permisiv” opens the A4 viewer (pp-01m / 01n / 01z) and pp-01x / 01y are now profile page states.
+  - Removing an old modal deletes its connector („pp-01m → pp-01z”); here the flow no longer exists in code, so it was dropped and
+    the Start here says so. Check connector endpoints inside a node before removing it, always.
+  - Section-grown components page: growing one section pushed it into the next → restack sections by y (80 apart) after any
+    component placement.
+  - Declared baseline (audit): rescaled A4 pages fractional + clipped by the scrolling window, A4 print paddings 68 / 60. Left for
+    other jobs: GEAP local Modal footer = Large 48 buttons vs code 40 (dossier modal 814 vs 804); Cabinet library modal header 56 +
+    subtitle row vs code 108 to the canvas (dialog 755 vs 800); phone × 32 vs the sheet-header rule 40 / 24 (Cabinet „Close button ·
+    phone” 1175:45951 exists from a concurrent job, not yet applied to these screens; RAP / Cabinet library modal headers).
+  - No Agent tool in this session → figma-audit rules run by hand per file on every changed node: only the declared A4 baseline.
