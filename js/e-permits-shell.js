@@ -3426,7 +3426,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = buildDosarProfile(row);
     const dash = '<span class="e-permits-workplace__dash">—</span>';
     const today = workplaceDb.today;
-    let title = "", subtitle = "", rows = [], file = "", preview = "";
+    let title = "", subtitle = "", rows = [], file = "", preview = "", signature = "", generated = false;
     if (kind === "taxe") {
       const t = profile.taxe.find((x) => x.id === key); if (!t) return;
       const paid = t.status !== "neachitat";
@@ -3493,10 +3493,20 @@ document.addEventListener("DOMContentLoaded", () => {
       ];
       file = d.fisier.replace(/\.[a-z0-9]+$/i, "");
       preview = renderDosarDocPreview(d, row, profile);
+      /* doc-viewer-v1 (user 2026-10-21, GEAP 2.0 11366:6892): a GENERATED document (MDocs / SIA GEAP — the blue
+         document icon) = the preview + ONE signature block under it; no „Date generale”, no „Doar citire”, the
+         canvas takes the dialog height. Uploaded documents keep preview + details + note. Unsigned = no block. */
+      generated = d.sursa === "mdocs" || d.sursa === "generat";
+      signature = generated && d.semnat
+        ? window.GEAPDocPreview?.signatureHtml({ by: d.semnat.nume || d.de?.nume || row.numeSolicitant, at: formatStamp(d.at) }) || ""
+        : "";
     } else return;
     dosarDetailModal.querySelector("[data-dosar-detail-title]").textContent = title;
     dosarDetailModal.querySelector("[data-dosar-detail-subtitle]").textContent = subtitle;
-    dosarDetailModal.querySelector("[data-dosar-detail-body]").innerHTML = `
+    dosarDetailModal.querySelector(".modal")?.classList.toggle("e-permits-detail-modal--doc", generated);
+    dosarDetailModal.querySelector("[data-dosar-detail-body]").innerHTML = generated
+      ? `${preview}${signature}`
+      : `
       ${preview}
       ${renderInfoCard("Date generale", rows)}
       ${renderReadOnlyNote()}`;
@@ -3512,6 +3522,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let dosarDetailAfterClose = null;
   if (dosarDetailModal) {
     new MutationObserver(() => {
+      /* the generated-document viewer mode (doc-viewer-v1) never outlives its document */
+      if (dosarDetailModal.getAttribute("aria-hidden") === "true" && !dosarDetailModal.querySelector(".modal.modal--lg")) dosarDetailModal.querySelector(".modal")?.classList.remove("e-permits-detail-modal--doc");
       if (dosarDetailModal.getAttribute("aria-hidden") === "true" && dosarDetailAfterClose) { const run = dosarDetailAfterClose; dosarDetailAfterClose = null; run(); }
     }).observe(dosarDetailModal, { attributes: true, attributeFilter: ["aria-hidden"] });
   }

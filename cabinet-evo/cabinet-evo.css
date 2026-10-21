@@ -757,6 +757,35 @@
   max-height: 40vh;
 }
 
+/* doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): a generated document = the preview takes the dialog height
+   (the base max-height) + the signature tray under it (css/doc-preview.css), no „Date generale” */
+.cab-doc-modal .e-permits-fo-doc-modal:has(> .cab-doc-modal__body--doc) {
+  height: 100%;
+}
+
+.cab-doc-modal__body--doc {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.cab-doc-modal__body--doc > .cab-doc-modal__preview {
+  flex: 1 1 auto;
+  max-height: none;
+}
+
+/* phones: the A4 viewers' layout (css/modal-phone.css § 7) — the canvas edge to edge, 8 around the page */
+@media (max-width: 760px) {
+  .cab-doc-modal .e-permits-fo-doc-modal > .cab-doc-modal__body--doc {
+    padding: var(--spacing-0, 0px);
+  }
+
+  .cab-doc-modal .cab-doc-modal__body--doc > .cab-doc-modal__preview.e-permits-doc-peek__canvas {
+    border-radius: var(--spacing-0, 0px);
+    padding: var(--spacing-8, 8px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cab-doc.is-clickable {
     transition: none;

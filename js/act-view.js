@@ -23,6 +23,7 @@
        beneficiary: { name, person, idType, id },
        tacitDate, tacitBadge, issuedDate, validFrom, statusDates: [[label, value]], validUntil,
        paperNumber, printedNumber, groups, url,
+       signed? (doc-viewer-v1: false = a paper act → no signature tray under the page; default signed),
        source? (the A4 footer's „Generat prin MDocs · <source>”, default „Registrul actelor permisive”) }
    groups = the act's configured fields (service passport, 2026-10-19 — Figma comment EVO-WEB-3.0
      20607:34846): an ordered list [{ title, items | fields | rows }], an item = [label, value] |
@@ -268,8 +269,11 @@
       const footer = actModal.overlay.querySelector("[data-rap-act-footer]");
       const ready = view === "ready";
       body.setAttribute("aria-busy", String(view === "loading"));
+      /* doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): the act is a generated document → under the page ONE signature
+         tray (badge above „MSign · <issuing authority> · <issue date>”); a paper act (`signed: false`) has none */
+      const signature = act.signed === false ? "" : window.GEAPDocPreview?.signatureHtml({ by: act.authority, at: act.issuedDate, sprite }) || "";
       body.innerHTML = ready
-        ? `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas" data-rap-act-canvas role="document" aria-label="${escapeHtml(act.name)}, nr. ${escapeHtml(act.number)}">${renderActPage(act)}</div>`
+        ? `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas" data-rap-act-canvas role="document" aria-label="${escapeHtml(act.name)}, nr. ${escapeHtml(act.number)}">${renderActPage(act)}</div>${signature}`
         : `<div class="e-permits-doc-peek__canvas rap-act-modal__canvas e-permits-doc-peek__canvas--state">${view === "loading"
           ? window.GEAPEmptyState.render({ loading: true, bare: true, title: "Se generează documentul", text: "MDocs pregătește actul. Poate dura câteva secunde." })
           : window.GEAPEmptyState.render({ bare: true, icon: "circle-error", text: MDOCS_ERRORS[view] || MDOCS_UNAVAILABLE })}</div>`;

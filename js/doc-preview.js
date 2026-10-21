@@ -24,6 +24,8 @@
      print(canvas) — prints only the page(s) of this canvas at A4 (css/doc-preview.css @media print);
      printIcon(cls) — the printer of the product nav (assets/icons/sidebar-printer-print.svg), stroke =
        label colour (the sprite has no printer).
+     signatureHtml({ by, at, provider, sprite }) — the signature block under the canvas of a GENERATED document
+       viewer (doc-viewer-v1): badge above „MSign · by · at”; css/doc-preview.css › „Signature block”.
    Used by: Ghișeu previews (js/ghiseu.js), the BO dossier document modal (js/e-permits-shell.js),
    RAP „Forma de tipar a actului” (rap-evo/rap-evo.js).
    ===================================================================================== */
@@ -119,5 +121,15 @@
 
   const printIcon = (cls = "icon small") => `<svg class="${cls} e-permits-doc-print-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.70833 8.95833H5.625M14.375 11.4583V14.375H16.0417C16.9621 14.375 17.7083 13.6288 17.7083 12.7083V7.29167C17.7083 6.37119 16.9621 5.625 16.0417 5.625H3.95833C3.03786 5.625 2.29167 6.37119 2.29167 7.29167V12.7083C2.29167 13.6288 3.03786 14.375 3.95833 14.375H5.625V11.4583H14.375V16.0417C14.375 16.9621 13.6288 17.7083 12.7083 17.7083H7.29167C6.37119 17.7083 5.625 16.9621 5.625 16.0417V11.4583M7.29167 2.29167H12.7083C13.6288 2.29167 14.375 3.03786 14.375 3.95833V5.625H5.625V3.95833C5.625 3.03786 6.37119 2.29167 7.29167 2.29167Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-  window.GEAPDocPreview = { fit, paginate, print, printIcon };
+  /* the generated document viewer's ONE signature block (doc-viewer-v1, 2026-10-21; GEAP 2.0 11366:6892): a grey tray
+     that hangs under the canvas — the Small „Semnat electronic” badge ABOVE one meta line „MSign · <signer> · <date, time>”.
+     A generated document shows only the preview + this block (no „Date generale”, no „Doar citire”); unsigned = no block. */
+  const escapeText = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
+  const signatureHtml = ({ by = "", at = "", provider = "MSign", sprite = "assets/icons/sprite.svg" } = {}) => `
+      <div class="e-permits-doc-signature" role="group" aria-label="Semnătura documentului">
+        <span class="status-tag status-tag--brand is-subtle status-tag--small e-permits-fo-doc-tag"><svg class="icon" aria-hidden="true"><use href="${escapeText(sprite)}#icon-signature"></use></svg>Semnat electronic</span>
+        <p class="e-permits-doc-signature__meta">${[provider, by, at].filter(Boolean).map(escapeText).join(" · ")}</p>
+      </div>`;
+
+  window.GEAPDocPreview = { fit, paginate, print, printIcon, signatureHtml };
 })();

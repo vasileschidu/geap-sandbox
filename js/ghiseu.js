@@ -2712,10 +2712,19 @@
   }
   const previewTitles = (d) => ({
     paper: ["Cererea pe hârtie", `Generată prin MDocs · ${stamp(d.review.paper?.at)}`],
-    signed: ["Cererea semnată MSign", `Semnată prin MSign · ${stamp(d.review.signed?.at)}`],
-    cert: ["Certificatul constatator", `Generat la depunere · ${stamp(d.submittedAt)}`]
+    /* doc-viewer-v1: who signed + when live in the signature tray under the page, not in the subtitle */
+    signed: ["Cererea semnată MSign", "Documentul cererii în format JSON"],
+    cert: ["Certificatul constatator", "Generat de SIA GEAP la depunere"]
   });
   const previewModal = () => document.querySelector("#dosar-detail-modal");
+  /* doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): generated documents = the page + ONE signature tray under it
+     (badge above „MSign · <signer> · <date, time>”); the paper request is signed by hand → no tray */
+  const previewSignature = (kind) => {
+    const d = S.cur;
+    const sig = kind === "cert" ? { by: "SIA GEAP", at: stamp(d.submittedAt) }
+      : kind === "signed" && d.review.signed ? { by: d.review.signed.by, at: stamp(d.review.signed.at) } : null;
+    return sig ? window.GEAPDocPreview?.signatureHtml(sig) || "" : "";
+  };
   /* view = loading | error | ready */
   function renderPreview(kind, view = "ready") {
     const d = S.cur;
@@ -2727,7 +2736,7 @@
     const body = m.querySelector("[data-dosar-detail-body]");
     body.setAttribute("aria-busy", String(view === "loading"));
     body.innerHTML = view === "ready"
-      ? `<div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas role="document" aria-label="${esc(title)}">${previewPage(kind)}</div>`
+      ? `<div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview" data-dosar-doc-canvas role="document" aria-label="${esc(title)}">${previewPage(kind)}</div>${previewSignature(kind)}`
       : `<div class="e-permits-doc-peek__canvas e-permits-detail-modal__preview e-permits-doc-peek__canvas--state">${view === "loading"
         ? window.GEAPEmptyState?.render({ loading: true, bare: true, title: "Se generează cererea", text: "MDocs completează formularul de tipar cu datele cererii. Poate dura câteva secunde." }) || ""
         : window.GEAPEmptyState?.render({ bare: true, icon: "circle-error", title: "Nu s-a putut genera cererea", text: "MDocs nu a răspuns. Datele cererii nu s-au pierdut.", actionHtml: `<button class="btn btn-strict btn-sm" type="button" data-gh-paper-retry>${icon("rotate-arrow", 20, "icon small")}<span>Reîncercați</span></button>` }) || ""}</div>`;

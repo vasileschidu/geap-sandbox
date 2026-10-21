@@ -735,6 +735,7 @@
       groups: actGroups(act),
       url: `${window.location.origin}${window.location.pathname}?view=acte&act=${encodeURIComponent(act.id)}`,
       source: "EVO Cabinet",
+      signed: !act.paper,
     };
   }
   /* „Descarcă” in the act document dialog: the MDocs PDF in the real system — the demo saves the act's data as text
@@ -1288,7 +1289,9 @@
       </div>`;
   }
   /* the document modal: FO doc-modal shell, the A4 page preview (grey canvas, zoomed to the width),
-     „Date generale” rows, footer Descarcă · Închide */
+     „Date generale” rows, footer Descarcă · Închide.
+     doc-viewer-v1 (2026-10-21, GEAP 2.0 11366:6892): a GENERATED document (`generated: true`) = the preview, taking
+     the dialog height, + `signature` (GEAPDocPreview.signatureHtml) under it — no „Date generale” rows */
   let docModalOpener = null;
   /* the file „Descarcă” saves (demo: the modal's text, named after the document's file) */
   const docModalFile = { name: "", text: "" };
@@ -1298,7 +1301,7 @@
     const canvas = document.querySelector("[data-cab-doc-modal]:not([hidden]) [data-cab-doc-canvas]");
     if (canvas) window.GEAPDocPreview?.fit(canvas);
   }
-  function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "" }) {
+  function openDocModal({ title, subtitle, doc, pageHtml, rowsHtml, downloadAttrs = "", generated = false, signature = "" }) {
     let overlay = document.querySelector("[data-cab-doc-modal]");
     if (!overlay) {
       overlay = document.createElement("div");
@@ -1328,12 +1331,12 @@
           </div>
           <button class="e-permits-fo-doc-modal__close" type="button" aria-label="Închide" data-cab-doc-close>${icon("icon-cross-large")}</button>
         </div>
-        <div class="cab-filter__body cab-doc-modal__body">
+        <div class="cab-filter__body cab-doc-modal__body${generated ? " cab-doc-modal__body--doc" : ""}">
           <div class="e-permits-doc-peek__canvas cab-doc-modal__preview" data-cab-doc-canvas role="img" aria-label="Previzualizare: ${escape(doc.tip)}${doc.fisier ? `, ${escape(doc.fisier)}` : ""}">
             <div class="e-permits-dtpl__page e-permits-doc-peek__page"><div class="e-permits-dtpl__surface">${pageHtml}</div></div>
           </div>
-          <h3 class="e-permits-fo-finish__section-title">Date generale</h3>
-          ${rowsHtml}
+          ${generated ? signature : `<h3 class="e-permits-fo-finish__section-title">Date generale</h3>
+          ${rowsHtml}`}
         </div>
         <div class="e-permits-fo-doc-modal__footer">
           <button class="e-permits-fo-doc-modal__cancel" type="button" ${downloadAttrs}>${icon("icon-export")}<span>Descarcă</span></button>
@@ -1341,7 +1344,10 @@
         </div>
       </div>`;
     docModalFile.name = `${String(doc.fisier || doc.tip || "document").replace(/\.[a-z0-9]+$/i, "")}.txt`;
-    docModalFile.text = [title, subtitle, "", ...[...overlay.querySelectorAll(".cab-doc-modal__body .e-permits-dosar-profil__row")].map((r) => `${r.querySelector(".e-permits-dosar-profil__row-label")?.textContent.trim() || ""}: ${(r.querySelector(".e-permits-dosar-profil__row-value")?.textContent || "").replace(/\s+/g, " ").trim()}`)].join("\n");
+    /* the demo file = the details rows (from `rowsHtml`, also for a generated document whose rows are not shown) */
+    const rowsBox = document.createElement("div");
+    rowsBox.innerHTML = rowsHtml || "";
+    docModalFile.text = [title, subtitle, "", ...[...rowsBox.querySelectorAll(".e-permits-dosar-profil__row")].map((r) => `${r.querySelector(".e-permits-dosar-profil__row-label")?.textContent.trim() || ""}: ${(r.querySelector(".e-permits-dosar-profil__row-value")?.textContent || "").replace(/\s+/g, " ").trim()}`)].join("\n");
     overlay.hidden = false;
     fitDocPreview();
     overlay.querySelector("[data-cab-doc-close]")?.focus();

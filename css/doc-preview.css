@@ -160,6 +160,61 @@
   max-height: none;
 }
 
+/* ---- Signature block (doc-viewer-v1, 2026-10-21; GEAP 2.0 11366:6892 „Modal content / Document · details”):
+   the generated document viewer = the canvas + this grey tray hanging under it, as wide as the page (inset = the
+   canvas padding), square top / r16 bottom, 12 16 padding; the Small „Semnat electronic” badge ABOVE one meta line
+   14/20 tertiary („MSign · <signer> · <date, time>”), 2 apart. No gap between canvas and tray. ---- */
+.e-permits-doc-signature {
+  --doc-signature-inset: var(--spacing-24, 24px);
+  align-items: flex-start;
+  background: var(--color-background-base-secondary, #f5f5f5);
+  border-radius: 0 0 var(--border-radius-16, 16px) var(--border-radius-16, 16px);
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: var(--spacing-2, 2px);
+  margin: 0 var(--doc-signature-inset);
+  padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
+}
+
+.e-permits-doc-signature__meta {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  font-weight: var(--font-weight-regular, 400);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+/* the badge = the FO / Cabinet signed tag (.e-permits-fo-doc-tag, e-permits-acte-permisive.css), restated for the
+   pages that do not load that file (RAP): 12 at every width, 20 high with the 16 icon, sentence case */
+.e-permits-doc-signature > .status-tag {
+  --text-caption-md-font-size: var(--font-size-fs-12, 12px);
+  flex-shrink: 0;
+  padding: var(--border-width-1, 1px) var(--spacing-6, 6px) var(--border-width-1, 1px) var(--spacing-4, 4px);
+  text-transform: none;
+}
+
+.e-permits-doc-signature > .status-tag .icon {
+  color: currentColor;
+  flex: 0 0 var(--spacing-16, 16px);
+  height: var(--spacing-16, 16px);
+  width: var(--spacing-16, 16px);
+}
+
+/* the tray touches the canvas: the viewer bodies drop their gap when they hold one */
+:is(.e-permits-detail-modal .modal-content, .cab-doc-modal__body, .rap-act-modal__body):has(> .e-permits-doc-signature) {
+  gap: var(--spacing-0, 0px);
+}
+
+/* phones: the A4 viewers draw the page with 8 of canvas around it (css/modal-phone.css § 7) */
+@media (max-width: 760px) {
+  :is(.e-permits-detail-modal--doc .modal-content, .rap-act-modal__body, .cab-doc-modal__body) > .e-permits-doc-signature {
+    --doc-signature-inset: var(--spacing-8, 8px);
+    margin-bottom: var(--doc-signature-inset);
+  }
+}
+
 /* „Printează” / „Imprimă”: only the page(s) of the canvas, at their real size
    (GEAPDocPreview.print marks the canvas and its top-level ancestor) */
 @media print {

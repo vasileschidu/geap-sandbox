@@ -1810,3 +1810,34 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   differences are byte-identical on a HEAD worktree (:8936) — pre-existing spec drift, not mine; check HEAD before
   „fixing” a parity spec. Staging with other agents' hunks in the same files: build HEAD + my asserted edit scripts in a
   temp root (`EDIT_ROOT`), hash-object + update-index, commit in the same command (scratch af/stage.sh).
+- 2026-10-21 · Generated document viewer = preview + signature tray (doc-viewer-v1; user: „remove Doar citire and Date generale
+  for generated documents, keep a nicely integrated signature part, badge ABOVE «MSign · SIA GEAP · date», not next to the
+  title”; mid-job the coordinator gave the reference GEAP 2.0 11366:6892). Inventory by grepping the viewer strings („Doar
+  citire”, „Date generale”, „MSign”, `openDocModal`, `openDocument`, `previewPage`): 5 viewers (BO dossier modal, Cabinet doc
+  modal, shared act dialog = Cabinet „Vizualizare act” + RAP „Forma de tipar”, Ghișeu previews, FO certificate modal — the
+  last has no A4 preview, left + reported). ONE helper `GEAPDocPreview.signatureHtml` in the shared preview module (loaded
+  wherever an A4 viewer is) + one CSS block; each viewer only decides „generated?” (`sursa` mdocs / generat = the blue icon)
+  and passes signer / stamp from its data. Figma without get_design_context (not exposed in this session): measured the
+  reference PNG with a tiny zlib reader (canvas bg 245 + border 217, tray from y 554 flush under the canvas, r16 bottom,
+  tag at +12, meta #757575 = tertiary, not the brief's „secondary” → followed Figma). Traps: (1) the viewer bodies have a
+  flex gap (16 / 24) → the tray touching the canvas needs `:has(> tray) { gap: 0 }` on each body, not a negative margin;
+  (2) the Cabinet phone canvas kept 24 padding while the other A4 viewers use 8 edge-to-edge (modal-phone § 7) → the
+  tray's inset looked wrong at 375 only — align the viewer first, then the tray; (3) the BO dialog is shared with Ghișeu's
+  own `modal--lg` doc mode → toggle `e-permits-detail-modal--doc` per open and strip it on close only when not lg; (4)
+  the Cabinet download text used to read the RENDERED rows — once rows are hidden, build it from `rowsHtml` in a detached
+  box (download probe with `HTMLAnchorElement.prototype.click` patched proved all 7 viewers). Repeated facts removed from
+  Ghișeu subtitles (signer / date now in the tray). No sub-agent tool → component-audit (only the standing „missing-copy”
+  on values INSIDE the A4 page table), hover-audit 0 / 0, code-audit (standing A4 mm padding / zoomed text gaps / FO
+  doc-modal buttons) run directly.
+- 2026-10-21 · Audit fix batch 1 — phone field sizes (audit-fix-v1). „One shared phone rule per control” = a new file
+  `css/field-sizes.css` loaded LAST (before modal-phone.css) on every page with fields, selectors prefixed with `:root`
+  (+1 class) so they beat the scoped DESKTOP sizes of the toolbars (BO `[data-demo-flow] .e-permits-workplace__search`
+  0,3,0 `height: 40px`, `…:has(.icon-search) .input` 0,4,0, `.cab-search.search-input.medium .input` 0,4,0) without
+  `!important`; then DELETE the per-page phone copies (Cabinet, RAP, eKYC, facet sheet). The 12px search text was not a
+  product rule at all: the library `.search-input.medium .input` (0,3,0) reads `--text-body-sm-font-size`, which main.css
+  drops to 12 at ≤720, and beat the shell's 14 (0,2,0). Proof: component-audit 35 → 10 field findings on 13 states × 2
+  (the 10 left = the rows-per-page select, replaced by the shared pager in batch 3) + a field probe (box / text /
+  placeholder / icon size@inset) on every page at 1440 / 375. Parity specs: eKYC filter (51) and RAP profile (4)
+  differences are byte-identical on a HEAD worktree (:8936) — pre-existing spec drift, not mine; check HEAD before
+  „fixing” a parity spec. Staging with other agents' hunks in the same files: build HEAD + my asserted edit scripts in a
+  temp root (`EDIT_ROOT`), hash-object + update-index, commit in the same command (scratch af/stage.sh).
