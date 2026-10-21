@@ -2181,3 +2181,10 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   Space (row named, opens the draft; Enter on the ⋮ opens only its menu). component-audit flags the focusable `tr` as
   a minor „without a control role” (same as the stacked rows; a `tr` must stay `role=row`). No sub-agent tool →
   hover-audit 0 / 0, code-audit (th sort FPs only, static 0), component-audit (no ⋮ / row finding) run directly.
+- 2026-10-21 · Doc viewer hairlines (doc-hairline-v1): the BO dossier viewer (dos-04s, gh-10d) got `has-scroll-above / -below`
+  but its body borders stayed transparent. Cause = specificity TIE + source order: the full-height reset
+  `.modal.e-permits-detail-modal--doc > .modal-content { border-*: transparent }` (0,3,0, css/doc-preview.css) loads after
+  the shell's `.modal.has-scroll-above .modal-content` (0,3,0) and silently won; only the FO pair had its own colour rule.
+  Rule: when a block re-declares a border / colour that a state class later recolours, it must re-declare the state rules
+  for EVERY markup it resets, in the same block. Proof = computed `borderTopColor / borderBottomColor` of the scroller at
+  scrollTop 0 / half / max (CDP probe), not the class on the dialog — the class was right all along.

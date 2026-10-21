@@ -8516,6 +8516,9 @@ the CANVAS scrolled inside a fixed body and the signature card stayed pinned und
   sits on the dialog. Library `.modal`s: the shell's `syncModalScrollEdges` (BO, Ghișeu) / act-view `syncActDataEdges` (RAP
   data dialog); FO-shell dialogs (`.rap-act-modal__dialog`, Cabinet doc): `js/doc-preview.js` (capture scroll listener +
   `fit()`). The FO footer's permanent top line is removed there (the hairline replaces it).
+  The colour rules are the viewer's OWN, for both markups (doc-hairline-v1): `.modal.e-permits-detail-modal--doc.has-scroll-above
+  > .modal-content` (+ `-below`) next to the FO pair — the viewer's transparent reset ties the shell's
+  `.modal.has-scroll-above .modal-content` (0,3,0) and comes later, so without them the BO / Ghișeu viewer never painted.
 - The page behind does not scroll: `html:has(body > :is(.rap-act-modal, .cab-doc-modal):not([hidden])) { overflow: hidden;
   scrollbar-gutter: stable }` (the BO page never scrolled at document level). Real-wheel test: body to its end, page scrollY
   unchanged, wheel over the backdrop → page unchanged.

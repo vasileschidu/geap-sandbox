@@ -282,10 +282,14 @@
     transition: border-color 120ms ease;
   }
 
+  /* doc-hairline-v1: the BO / Ghișeu `.modal` needs its own pair — the reset above (0,3,0, later in the cascade)
+     ties with the shell's `.modal.has-scroll-above .modal-content` and won, so the dossier viewer never painted them */
+  .modal.e-permits-detail-modal--doc.has-scroll-above > .modal-content,
   .e-permits-fo-doc-modal.has-scroll-above > :is(.rap-act-modal__body, .cab-doc-modal__body--doc) {
     border-top-color: var(--color-border-base-default, #d9d9d9);
   }
 
+  .modal.e-permits-detail-modal--doc.has-scroll-below > .modal-content,
   .e-permits-fo-doc-modal.has-scroll-below > :is(.rap-act-modal__body, .cab-doc-modal__body--doc) {
     border-bottom-color: var(--color-border-base-default, #d9d9d9);
   }
