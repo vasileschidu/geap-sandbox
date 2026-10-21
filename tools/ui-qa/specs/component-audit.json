@@ -253,6 +253,12 @@
     "interactive": "button, a[href], [role=button], [role=link], [role=tab], [role=menuitem], [role=option], [role=switch], [role=checkbox], [role=radio], input, select, textarea, summary, [tabindex]:not([tabindex='-1'])",
     "titleExempt": ["iframe"]
   },
+  "_drawer": "Drawer (rule 9, drawer-v1, 2026-10-21): ONE right-hand panel = .drawer-overlay > aside.drawer (css/drawer.css + js/drawer.js; sizes default 800 / --lg 960; phones = the shared sheet). drawer-private (major): a visible dialog / aside that is a full-height panel on the right edge, or whose class names a drawer, and is not .drawer. allow = intentionally different surfaces: the library modal and bottom sheet, the Ghișeu full-screen request sheet, the template / notification editor sheets (.e-permits-ntpl-sheet), the Form Builder / Process Designer full-screen editors.",
+  "drawer": {
+    "canonical": ".drawer",
+    "candidates": "aside, [role=dialog], [class*='drawer']",
+    "allow": [".modal-overlay", ".bottom-sheet", ".e-permits-ntpl-sheet", ".e-permits-gh-sheet", ".e-permits-builder", ".form-builder-modal-overlay", ".e-permits-filter-sheet", ".e-permits-fo-doc-modal-overlay", ".e-permits-shell__sidebar", ".drawer", ".drawer-overlay", ".msup", ".e-permits-fo-testcfg"]
+  },
   "_actionIcons": "Action icons (rule 6, 2026-10-21, user: „didn't we discuss that every Editează has an edit icon, and Elimină a trash icon?”). action-icon (major): a visible action — or an item of a closed menu whose trigger is visible — labelled „Editează…” without icon-edit, or „Elimină… / Șterge…” without icon-delete (another icon counts as missing). action-icon-colour (major): that icon in another colour than the label. Exceptions: confirmation-dialog footers (library modal / FO confirm dialog have no footer icons), clear / dismiss controls that delete nothing (search ×, chip ×, file-item × = detach an attachment, the filter popover „Șterge” = clear the selection, „Șterge filtrele / căutarea / formatarea”).",
   "actionIcons": {
     "controls": "button, a[href], [role=button], [role=menuitem]",
@@ -584,16 +590,20 @@
         ".modal",
         ".modal-overlay",
         ".bottom-sheet",
-        ".date-picker-panel"
+        ".date-picker-panel",
+        ".drawer",
+        ".drawer-overlay"
       ],
       "allow": [],
-      "fix": "library `.modal-overlay > .modal` (+ the phone sheet rule, css/modal-phone.css); phone pickers = `.bottom-sheet` / GEAPSheet",
+      "fix": "library `.modal-overlay > .modal` (+ the phone sheet rule, css/modal-phone.css); right-hand panels = the ONE `.drawer` (css/drawer.css, drawer-v1); phone pickers = `.bottom-sheet` / GEAPSheet",
       "static": {
         "pattern": "(^|[-_])(modal|drawer|sheet|dialog)($|-overlay)",
         "canonical": [
           "modal",
           "modal-overlay",
-          "bottom-sheet"
+          "bottom-sheet",
+          "drawer",
+          "drawer-overlay"
         ]
       }
     },

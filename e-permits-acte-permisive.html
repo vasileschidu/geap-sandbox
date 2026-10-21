@@ -7,9 +7,10 @@
   <link rel="stylesheet" href="assets/fonts/Onest.css">
   <link rel="stylesheet" href="css/main.css?v=border200-v1">
   <link rel="stylesheet" href="css/button-icons.css?v=button-icons-v1">
-  <link rel="stylesheet" href="css/e-permits-shell.css?v=tooltip-one-v1">
+  <link rel="stylesheet" href="css/e-permits-shell.css?v=drawer-v1">
   <link rel="stylesheet" href="css/facet-filter.css?v=audit-fix-v1">
-  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=audit-fix-v2">
+  <link rel="stylesheet" href="css/drawer.css?v=drawer-v1">
+  <link rel="stylesheet" href="css/e-permits-acte-permisive.css?v=drawer-v1">
   <link rel="stylesheet" href="css/doc-preview.css?v=doc-viewer-v2">
   <link rel="stylesheet" href="css/page-reveal.css?v=soft-reveal-v8">
   <link rel="stylesheet" href="msupport/msupport.css?v=20260925-anon">
@@ -33,12 +34,13 @@
   <script src="js/demo-links.js?v=links-v4"></script>
   <!-- ?flow=ekyc: the eKYC back office on this shell (js/ekyc.js → window.GEAPShellProduct) -->
   <script src="js/ekyc.js?v=tooltip-one-v1"></script>
-  <script src="js/ekyc-config.js?v=unsaved-review-v1"></script>
+  <script src="js/ekyc-config.js?v=drawer-v1"></script>
   <script src="js/search.js?v=delegated-v2" defer></script>
   <script src="js/modal.js" defer></script>
   <script src="js/toast.js?v=toast-v3" defer></script>
   <script src="js/dropdown-select.js" defer></script>
   <script src="js/icon-tooltip.js?v=tooltip-one-v1" defer></script>
+  <script src="js/drawer.js?v=drawer-v1" defer></script>
   <script src="js/name-expand.js?v=name-expand-v1" defer></script>
   <script src="js/table-cells.js?v=tooltip-one-v1" defer></script>
   <script src="js/input-date-picker.js?v=dp-v3" defer></script>
@@ -51,7 +53,7 @@
   <!-- Form Builder (after the FO renderer it shares) -->
   <script src="js/form-builder.js?v=tooltip-one-v1" defer></script>
   <script src="core/process-model.js?v=pd-v3" defer></script>
-  <script src="js/process-designer.js?v=tooltip-one-v1" defer></script>
+  <script src="js/process-designer.js?v=drawer-v1" defer></script>
   <script src="js/ghiseu.js?v=tacit-tag-v1" defer></script>
   <script src="js/doc-preview.js?v=doc-viewer-v1" defer></script>
   <script src="js/page-reveal.js?v=soft-reveal-v7" defer></script>
@@ -2876,25 +2878,25 @@
     </main>
   </div>
 
-  <div class="e-permits-user-create" data-user-create hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide formularul" data-user-create-close></button>
+  <div class="drawer-overlay" data-user-create hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide formularul" data-user-create-close></button>
     <aside
-      class="e-permits-user-create__drawer"
+      class="drawer"
       role="dialog"
       aria-modal="true"
       aria-labelledby="user-create-title"
       tabindex="-1"
     >
-      <header class="e-permits-user-create__header">
-        <h2 id="user-create-title">Adaugă utilizator nou</h2>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-user-create-close>
+      <header class="drawer__header">
+        <h2 class="drawer__title" id="user-create-title">Adaugă utilizator nou</h2>
+        <button class="modal-close" type="button" aria-label="Închide" data-user-create-close>
           <svg class="icon" width="16" height="16" aria-hidden="true">
             <use href="assets/icons/sprite.svg#icon-cross-large"></use>
           </svg>
         </button>
       </header>
-      <div class="e-permits-user-create__body" data-user-create-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-user-create-body></div>
+      <footer class="drawer__footer">
         <div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-user-create-close>Anulează</button>
           <button class="btn btn-primary btn-rounded" type="button" data-user-create-submit disabled>Crează utilizator nou</button>
@@ -2952,35 +2954,35 @@
   </div>
 
   <!-- Configurează tipul de solicitare: the wide drawer (user-create drawer component) -->
-  <div class="e-permits-user-create e-permits-user-create--wide" data-rt-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide configurarea" data-rt-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="rt-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="rt-drawer-title" data-rt-title>Configurează tipul de solicitare</h2>
-          <p class="e-permits-passport__modal-subtitle" data-rt-subtitle></p>
+  <div class="drawer-overlay" data-rt-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide configurarea" data-rt-close></button>
+    <aside class="drawer drawer--lg" role="dialog" aria-modal="true" aria-labelledby="rt-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="rt-drawer-title" data-rt-title>Configurează tipul de solicitare</h2>
+          <p class="drawer__subtitle" data-rt-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-rt-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-rt-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
       <nav class="e-permits-steps-strip" aria-label="Pașii adăugării" data-rt-steps hidden></nav>
-      <div class="e-permits-user-create__body" data-rt-body></div>
+      <div class="drawer__body" data-rt-body></div>
       <!-- Documente generate › Previzualizează: view-only document, docked left of the drawer -->
       <section class="e-permits-doc-peek" id="rt-peek" aria-labelledby="rt-peek-title" data-rt-peek hidden>
-        <header class="e-permits-user-create__header">
-          <div class="e-permits-rt__heading">
-            <h2 id="rt-peek-title" data-rt-peek-title>Previzualizare</h2>
-            <p class="e-permits-passport__modal-subtitle" data-rt-peek-subtitle></p>
+        <header class="drawer__header">
+          <div class="drawer__heading">
+            <h2 class="drawer__title" id="rt-peek-title" data-rt-peek-title>Previzualizare</h2>
+            <p class="drawer__subtitle" data-rt-peek-subtitle></p>
           </div>
-          <button class="e-permits-user-create__close" type="button" aria-label="Închide previzualizarea" data-rt-peek-close>
+          <button class="modal-close" type="button" aria-label="Închide previzualizarea" data-rt-peek-close>
             <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
           </button>
         </header>
         <div class="e-permits-doc-peek__canvas" data-rt-peek-canvas></div>
         <p class="e-permits-doc-peek__note" data-rt-peek-note>Doar vizualizare · câmpurile marcate sunt completate cu date de exemplu. Documentul final se generează în MDocs, ca PDF.</p>
       </section>
-      <footer class="e-permits-user-create__footer">
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-rt-summary aria-live="polite"></span>
         <div class="modal-buttons" data-rt-buttons>
           <button class="btn btn-neutral btn-rounded" type="button" data-rt-close>Anulează</button>
@@ -2992,20 +2994,20 @@
 
   <!-- Șabloane › Previzualizează: a print template, view-only (the same page as the
        request-type preview); the builder opens only from „Deschide constructorul” -->
-  <div class="e-permits-user-create" data-tpl-preview hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide previzualizarea" data-tpl-preview-close></button>
-    <aside class="e-permits-user-create__drawer e-permits-doc-preview" id="tpl-preview" role="dialog" aria-modal="true" aria-labelledby="tpl-preview-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="tpl-preview-title" data-tpl-preview-title>Previzualizare</h2>
-          <p class="e-permits-passport__modal-subtitle" data-tpl-preview-subtitle></p>
+  <div class="drawer-overlay" data-tpl-preview hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide previzualizarea" data-tpl-preview-close></button>
+    <aside class="drawer e-permits-doc-preview" id="tpl-preview" role="dialog" aria-modal="true" aria-labelledby="tpl-preview-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="tpl-preview-title" data-tpl-preview-title>Previzualizare</h2>
+          <p class="drawer__subtitle" data-tpl-preview-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-tpl-preview-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-tpl-preview-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
       <div class="e-permits-doc-peek__canvas" data-tpl-preview-canvas></div>
-      <footer class="e-permits-user-create__footer">
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary">Doar vizualizare · date de exemplu · PDF generat în MDocs</span>
         <div class="modal-buttons" data-tpl-preview-buttons></div>
       </footer>
@@ -3013,20 +3015,20 @@
   </div>
 
   <!-- Plată: add / edit (Feature «Plăți și tarife»), the wide drawer component -->
-  <div class="e-permits-user-create" data-pay-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide editorul plății" data-pay-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="pay-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="pay-drawer-title" data-pay-title>Plată nouă</h2>
-          <p class="e-permits-passport__modal-subtitle" data-pay-subtitle></p>
+  <div class="drawer-overlay" data-pay-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide editorul plății" data-pay-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="pay-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="pay-drawer-title" data-pay-title>Plată nouă</h2>
+          <p class="drawer__subtitle" data-pay-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-pay-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-pay-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
-      <div class="e-permits-user-create__body" data-pay-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-pay-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-pay-summary aria-live="polite"></span>
         <div class="modal-buttons" data-pay-buttons></div>
       </footer>
@@ -3034,21 +3036,21 @@
   </div>
 
   <!-- Tarif: add / edit (Feature «Gestionarea clasificatorului de tarife») -->
-  <div class="e-permits-user-create" data-tariff-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide editorul tarifului" data-tariff-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="tariff-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="tariff-drawer-title" data-tariff-title>Tarif nou</h2>
-          <p class="e-permits-passport__modal-subtitle" data-tariff-subtitle></p>
+  <div class="drawer-overlay" data-tariff-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide editorul tarifului" data-tariff-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="tariff-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="tariff-drawer-title" data-tariff-title>Tarif nou</h2>
+          <p class="drawer__subtitle" data-tariff-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-tariff-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-tariff-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
       <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-tariff-steps hidden></nav>
-      <div class="e-permits-user-create__body" data-tariff-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-tariff-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-tariff-summary aria-live="polite"></span>
         <div class="modal-buttons" data-tariff-buttons></div>
       </footer>
@@ -3056,20 +3058,20 @@
   </div>
 
   <!-- Servicii › Documente (US-225): one document — data (read-only for RSSP) + „Reguli de solicitare” -->
-  <div class="e-permits-user-create e-permits-user-create--wide" data-doc-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide documentul" data-doc-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="doc-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="doc-drawer-title" data-doc-title>Document</h2>
-          <p class="e-permits-passport__modal-subtitle" data-doc-subtitle></p>
+  <div class="drawer-overlay" data-doc-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide documentul" data-doc-close></button>
+    <aside class="drawer drawer--lg" role="dialog" aria-modal="true" aria-labelledby="doc-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="doc-drawer-title" data-doc-title>Document</h2>
+          <p class="drawer__subtitle" data-doc-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-doc-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-doc-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
-      <div class="e-permits-user-create__body" data-doc-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-doc-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-doc-summary aria-live="polite"></span>
         <div class="modal-buttons" data-doc-buttons></div>
       </footer>
@@ -3077,21 +3079,21 @@
   </div>
 
   <!-- Șabloane de notificare: "Șablon nou" — the standard right drawer with the step strip -->
-  <div class="e-permits-user-create" data-ntpl-create hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-ntpl-c-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="ntpl-create-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="ntpl-create-title">Șablon nou</h2>
-          <p class="e-permits-passport__modal-subtitle" data-ntpl-create-subtitle></p>
+  <div class="drawer-overlay" data-ntpl-create hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-ntpl-c-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ntpl-create-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="ntpl-create-title">Șablon nou</h2>
+          <p class="drawer__subtitle" data-ntpl-create-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-ntpl-c-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-ntpl-c-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
       <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-ntpl-create-steps></nav>
-      <div class="e-permits-user-create__body" data-ntpl-create-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-ntpl-create-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-ntpl-create-summary aria-live="polite"></span>
         <div class="modal-buttons" data-ntpl-create-buttons></div>
       </footer>
@@ -3100,21 +3102,21 @@
 
   <!-- Clasificatoare: one right drawer for a value's editor and for the 2-step
        "Clasificator nou" wizard -->
-  <div class="e-permits-user-create" data-clas-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-clas-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="clas-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="clas-drawer-title" data-clas-drawer-title></h2>
-          <p class="e-permits-passport__modal-subtitle" data-clas-drawer-subtitle></p>
+  <div class="drawer-overlay" data-clas-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-clas-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="clas-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="clas-drawer-title" data-clas-drawer-title></h2>
+          <p class="drawer__subtitle" data-clas-drawer-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-clas-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-clas-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
       <nav class="e-permits-steps-strip" aria-label="Pașii creării" data-clas-drawer-steps hidden></nav>
-      <div class="e-permits-user-create__body" data-clas-drawer-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-clas-drawer-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-clas-drawer-summary aria-live="polite"></span>
         <div class="modal-buttons" data-clas-drawer-buttons></div>
       </footer>
@@ -3168,20 +3170,20 @@
   </div>
 
   <!-- Dosar: "Vezi fluxul" (core/case-flow.js), right drawer -->
-  <div class="e-permits-user-create" data-case-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-case-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="case-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="case-drawer-title" data-case-title></h2>
-          <p class="e-permits-passport__modal-subtitle" data-case-subtitle></p>
+  <div class="drawer-overlay" data-case-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-case-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="case-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="case-drawer-title" data-case-title></h2>
+          <p class="drawer__subtitle" data-case-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-case-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-case-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
-      <div class="e-permits-user-create__body" data-case-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-case-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary" data-case-summary aria-live="polite"></span>
         <div class="modal-buttons" data-case-buttons></div>
       </footer>
@@ -3314,20 +3316,20 @@
   </div>
 
   <!-- Servicii › Șabloane (document templates, MDocs): edit details — drawer -->
-  <div class="e-permits-user-create" data-dtpl-edit-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-dtpl-drawer-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="dtpl-edit-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="dtpl-edit-title">Editează șablonul</h2>
-          <p class="e-permits-passport__modal-subtitle" data-dtpl-subtitle></p>
+  <div class="drawer-overlay" data-dtpl-edit-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-dtpl-drawer-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dtpl-edit-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="dtpl-edit-title">Editează șablonul</h2>
+          <p class="drawer__subtitle" data-dtpl-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-dtpl-drawer-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-dtpl-drawer-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
-      <div class="e-permits-user-create__body" data-dtpl-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-dtpl-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary">Textul documentului se schimbă în constructor.</span>
         <div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-dtpl-drawer-close>Anulează</button>
@@ -3514,20 +3516,20 @@
 
   <!-- US-187: a new notification template (Cod, Denumire, Sursa de date, Prioritate,
        Descriere, content per language) — right drawer -->
-  <div class="e-permits-user-create" data-ntpl-drawer hidden>
-    <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-ntpl-close></button>
-    <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="ntpl-drawer-title" tabindex="-1">
-      <header class="e-permits-user-create__header">
-        <div class="e-permits-rt__heading">
-          <h2 id="ntpl-drawer-title">Șablon nou de notificare</h2>
-          <p class="e-permits-passport__modal-subtitle" data-ntpl-subtitle></p>
+  <div class="drawer-overlay" data-ntpl-drawer hidden>
+    <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-ntpl-close></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ntpl-drawer-title" tabindex="-1">
+      <header class="drawer__header">
+        <div class="drawer__heading">
+          <h2 class="drawer__title" id="ntpl-drawer-title">Șablon nou de notificare</h2>
+          <p class="drawer__subtitle" data-ntpl-subtitle></p>
         </div>
-        <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-ntpl-close>
+        <button class="modal-close" type="button" aria-label="Închide" data-ntpl-close>
           <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
         </button>
       </header>
-      <div class="e-permits-user-create__body" data-ntpl-body></div>
-      <footer class="e-permits-user-create__footer">
+      <div class="drawer__body" data-ntpl-body></div>
+      <footer class="drawer__footer">
         <span class="e-permits-rt__summary">Se creează inactiv, fără reguli de destinatari.</span>
         <div class="modal-buttons">
           <button class="btn btn-neutral btn-rounded" type="button" data-ntpl-close>Anulează</button>
@@ -3557,7 +3559,7 @@
   <script src="core/permissions.js?v=clas-v1"></script>
   <script src="core/case-flow.js?v=fees-v4"></script>
   <script src="js/facet-filter.js?v=tooltip-one-v1"></script>
-  <script src="js/e-permits-shell.js?v=tooltip-one-v1"></script>
+  <script src="js/e-permits-shell.js?v=drawer-v1"></script>
 
   <!-- Instance switch warning modal -->
   <div class="e-permits-fo-instance-switch-modal" data-fo-instance-switch-modal hidden aria-modal="true" role="dialog" aria-labelledby="fo-instance-switch-title" aria-describedby="fo-instance-switch-description">

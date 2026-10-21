@@ -4153,18 +4153,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (pdDrawer) return pdDrawer;
     const wrap = document.createElement("div");
     wrap.innerHTML = `
-      <div class="e-permits-user-create" data-pd-drawer hidden>
-        <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-pd-drawer-close></button>
-        <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="pd-drawer-title" tabindex="-1">
-          <header class="e-permits-user-create__header">
-            <div class="e-permits-rt__heading">
-              <h2 id="pd-drawer-title" data-pd-drawer-title></h2>
-              <p class="e-permits-passport__modal-subtitle" data-pd-drawer-subtitle></p>
+      <div class="drawer-overlay" data-pd-drawer hidden>
+        <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-pd-drawer-close></button>
+        <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="pd-drawer-title" tabindex="-1">
+          <header class="drawer__header">
+            <div class="drawer__heading">
+              <h2 class="drawer__title" id="pd-drawer-title" data-pd-drawer-title></h2>
+              <p class="drawer__subtitle" data-pd-drawer-subtitle></p>
             </div>
-            <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-pd-drawer-close>${icon("cross-large", 16)}</button>
+            <button class="modal-close" type="button" aria-label="Închide" data-pd-drawer-close>${icon("cross-large", 16)}</button>
           </header>
-          <div class="e-permits-user-create__body" data-pd-drawer-body></div>
-          <footer class="e-permits-user-create__footer">
+          <div class="drawer__body" data-pd-drawer-body></div>
+          <footer class="drawer__footer">
             <span class="e-permits-rt__summary" aria-live="polite"></span>
             <div class="modal-buttons">
               <button class="btn btn-neutral btn-rounded" type="button" data-pd-drawer-close>Anulează</button>
@@ -4220,13 +4220,13 @@ document.addEventListener("DOMContentLoaded", () => {
     drawerForm = { mode, from, v: { name: "", title: src ? `${src.title} (copie)` : "", description: "" }, errors: {}, back: document.activeElement };
     renderProcessDrawer();
     pdDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => pdDrawer.querySelector("[data-pd-df='name']")?.focus());
   }
   function closeProcessDrawer() {
     if (!pdDrawer || pdDrawer.hidden) return;
     pdDrawer.hidden = true;
-    document.body.classList.remove("is-user-create-open");
+    document.body.classList.remove("is-drawer-open");
     drawerForm?.back?.focus?.();
     drawerForm = null;
   }

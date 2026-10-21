@@ -221,6 +221,7 @@ but this doc previously described it wrongly, see the entry.
 | Spinner | `.spinner` + size + colour | `spinner.html` | library |
 | Separator | `.separator` + orientation + thickness + style | — | library |
 | Link | `.link` + `.link-primary/-strict/-white` + `.link-xs/-sm/-md/-lg` | `link.html` | library |
+| **Drawer — ONE right-hand panel** (drawer-v1; every BO / eKYC / Process Designer side panel) | `.drawer-overlay[hidden]` > `button.drawer-overlay__scrim` + `aside.drawer(.drawer--lg)[role=dialog][aria-modal][tabindex=-1]` > `header.drawer__header` (`.drawer__heading` > `h2.drawer__title` + `p.drawer__subtitle`, library `.modal-close`) · [strips] · `.drawer__body` (the only scroller) · `footer.drawer__footer` > `.modal-buttons`; `css/drawer.css` + `js/drawer.js` (`GEAPDrawer`: focus trap, Escape → the drawer's own ×, focus return); inner form vocabulary stays `.e-permits-user-create__section / __grid / __field` | section „Drawer — ONE right-hand panel” | app |
 | **Tooltip — ONE runtime** (plain + hint; every tooltip in the product, tooltip-one-v1) | library `.tooltip.tooltip--small.tooltip--plain` / `.tooltip--{top\|bottom}-center` + arrow, ONE node `#icon-tooltip` placed by `js/icon-tooltip.js` (`GEAPTooltip`); opt-in `data-tooltip-label / -text / -reason / -hint`, `data-cell-tooltip` (cut text), `data-tooltip-placement`; never `title=` | section „Tooltip — ONE runtime” · `tooltip.html` | app |
 | Header | `.header .header__wrapper` | `header.html` | library (partial) |
 | Footer | `.footer__top/__middle/__bottom` | `footer.html` | library |
@@ -874,6 +875,67 @@ use.
 **Note** — Figma's header (68px) and footer (88px) are fixed heights; CSS derives both
 from padding (`.modal--header` `24px 48px 0 32px`; `.modal--footer` `12px 20px 24px`),
 so a 48px footer button yields ~84px against the designed 88px.
+
+### Drawer — ONE right-hand panel (drawer-v1, 2026-10-21)
+
+The library has no drawer; the product had ONE de-facto drawer (`.e-permits-user-create*`, 13 copies of the markup)
+with 13 private open / close scripts, no focus trap and a full-screen phone layout. It is now a documented component
+(component audit § 3, user: „Do as you recommend”). Built from `.e-permits-user-create__drawer` — **desktop geometry is
+byte-for-byte the old one** (probe of all 12 drawers at 1440: aside / header / title / × / body / footer rects identical).
+Older sections of this file still say `.e-permits-user-create`, `__drawer`, `--wide`: read them as `.drawer-overlay`,
+`.drawer`, `.drawer--lg`. The FORM vocabulary inside drawers (`.e-permits-user-create__section`, `__section-title`,
+`__grid`, `__field--N`, `__lookup-row`…) is unchanged.
+
+**Anatomy**
+
+```html
+<div class="drawer-overlay" data-x-drawer hidden>
+  <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-x-close></button>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="x-title" tabindex="-1">  <!-- + drawer--lg -->
+    <header class="drawer__header">
+      <div class="drawer__heading">
+        <h2 class="drawer__title" id="x-title">Titlu</h2>
+        <p class="drawer__subtitle" data-x-subtitle>Context · stare</p>
+      </div>
+      <button class="modal-close" type="button" aria-label="Închide" data-x-close><svg class="icon" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg></button>
+    </header>
+    <!-- optional strips: tabs / steps / status -->
+    <div class="drawer__body">…</div>
+    <footer class="drawer__footer"><div class="modal-buttons">…</div></footer>
+  </aside>
+</div>
+```
+
+| Part | Desktop | Phones ≤ 760 (the shared sheet, css/modal-phone.css tokens) |
+|---|---|---|
+| overlay / scrim | fixed, z 1200, scrim `rgb(18 18 18 / 36%)` 120 ms fade | 16 top gap (`--modal-phone-gap`, notch-safe) |
+| panel `.drawer` | right edge, 100dvh, `min(800, 100vw)`; `--lg` `min(960, 100vw − 64)` (+ `.has-peek` on the overlay: `clamp(640, 100vw − 592, 960)` ≥ 1232); slide-in 160 ms `backwards`, out 120 ms | full width, top radius 16, `overflow: clip` |
+| header | 12 / 20, bottom border; title 18/26 semibold; subtitle 14/20 tertiary, 2 above | 16 16 12; title 20/32 |
+| × | library `.modal-close` static in the row: 32, icon 16, tertiary → tertiary-hover → tertiary-active, canonical focus ring | 40, icon 24, centred on the 32 title line |
+| body | the only scroller, 8 / 20, `overscroll-behavior: contain`, stable gutter | 8 / 16 |
+| footer | 12 / 20, top border, `.modal-buttons` right | 12 16 `max(16, safe-area)` |
+
+**Behaviour (js/drawer.js, `window.GEAPDrawer`, delegated — every overlay, static or rendered later):** Tab / Shift+Tab
+cycle inside the topmost open drawer (not while a library dialog, confirm, date picker or floating list is above it) —
+before, Tab left the drawer 49 times out of 60; Escape: the drawer's own keydown code runs first (unsaved-changes
+confirms stay where they were); if nothing handled it and no menu / list inside is open, the header × is clicked (its
+close path, never a bypass); focus return: the element focused before opening gets the focus back unless the drawer's
+code moved it. `GEAPDrawer.open(overlay, { focus })` / `close(overlay, after)` = the shared show / hide (+ `is-closing`,
+body `is-drawer-open`) for new code. Reduced motion: no slide / fade.
+
+**Where:** Utilizatori › Adaugă utilizator, Configurează tipul de solicitare (`--lg`, + its document peek), Șabloane ›
+Previzualizează, Plată, Tarif, Document (`--lg`), Șablon nou de notificare (wizard + notification drawer), Clasificator
+(valoare / coloană), Dosar › Vezi fluxul, Șablon de tipar › Editează, eKYC config drawers, Process Designer „Proces nou”.
+**Not drawers (intentionally different, allowed in the audit):** the Ghișeu full-screen request sheet
+(`.e-permits-gh-sheet`, a library `modal--fullscreen`), the template / notification editor sheets
+(`.e-permits-ntpl-sheet`, full-screen editors from the bottom), the Form Builder / Process Designer full-screen editors,
+phone pickers (`.bottom-sheet`, GEAPSheet).
+
+**Do** — one drawer per task; the title says the object, the subtitle its context; footer = the decision buttons.
+**Don't** — no new right-hand panel markup (component-audit rule 9 `drawer-private`, major), no own ×, no second
+scroller inside the body, no stacked drawers (park the first: „Action from inside a drawer that needs another drawer”).
+Open size question for the PO: the audit proposed md 480 / lg 720; the shipped drawers are 800 / 960 (user decisions
+2026-10-08) — kept, no geometry change.
 
 ### Modals on phones — maximum content space (2026-10-19)
 

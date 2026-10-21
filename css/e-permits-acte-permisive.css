@@ -18783,25 +18783,12 @@
   border-radius: var(--border-radius-12, 12px) var(--border-radius-12, 12px) 0 0;
 }
 
-/* ---- Configurează tipul de solicitare: the user-create drawer, wide ------
-   enough for the step list with one form dropdown per action */
-.e-permits-user-create--wide .e-permits-user-create__drawer {
-  transition: width 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  /* 960 (was 1120): the rows had room to spare (user, 2026-10-08) */
-  width: min(960px, calc(100vw - var(--spacing-64, 64px)));
-}
-
-/* the document preview is open: the drawer makes room so both sit side by side
+/* ---- Configurează tipul de solicitare / Document: the wide drawer (.drawer--lg, css/drawer.css).
+   The document preview is open: the drawer makes room so both sit side by side
    (preview ≥ 560px incl. its 16px gaps; the drawer never below 640px) */
 @media (min-width: 1232px) {
-  .e-permits-user-create--wide.has-peek .e-permits-user-create__drawer {
+  .drawer-overlay.has-peek > .drawer--lg {
     width: clamp(640px, calc(100vw - 592px), 960px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .e-permits-user-create--wide .e-permits-user-create__drawer {
-    transition: none;
   }
 }
 
@@ -18867,10 +18854,6 @@
 }
 
 @media (max-width: 760px) {
-  .e-permits-user-create--wide .e-permits-user-create__drawer {
-    width: 100vw;
-  }
-
   .e-permits-rt__action {
     align-items: stretch;
     flex-direction: column;
@@ -21249,7 +21232,7 @@ body.is-ntpl-sheet-open {
 }
 
 .e-permits-ntpl-sheet__scrim {
-  animation: e-permits-user-create-scrim-in 120ms ease-out backwards;
+  animation: drawer-scrim-in 120ms ease-out backwards;
   background: rgba(0, 0, 0, 0.4); /* library .modal-overlay backdrop */
   inset: 0;
   position: absolute;
@@ -21269,7 +21252,7 @@ body.is-ntpl-sheet-open {
 }
 
 .e-permits-ntpl-sheet.is-closing .e-permits-ntpl-sheet__scrim {
-  animation: e-permits-user-create-scrim-out 100ms ease-in both;
+  animation: drawer-scrim-out 100ms ease-in both;
 }
 
 .e-permits-ntpl-sheet.is-closing .e-permits-ntpl-sheet__panel {
@@ -21805,7 +21788,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 }
 
 /* drawer tabs stay pinned under the header while the panel scrolls */
-.e-permits-user-create__body > .e-permits-tariff__tabs {
+.drawer__body > .e-permits-tariff__tabs {
   background-color: var(--color-background-base-default, #ffffff);
   position: sticky;
   top: calc(-1 * var(--spacing-8, 8px));
@@ -21832,7 +21815,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 
 /* tabs straight under the drawer header: the header's bottom border is the row's top
    line — no second border (it only belongs under a status strip) */
-.e-permits-user-create__body > .e-permits-tariff__tabs:first-child .tab-buttons {
+.drawer__body > .e-permits-tariff__tabs:first-child .tab-buttons {
   border-top: 0;
 }
 
@@ -21982,7 +21965,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
 }
 
-.e-permits-doc-peek .e-permits-passport__modal-subtitle .tag {
+.e-permits-doc-peek .drawer__subtitle .tag {
   margin-left: var(--spacing-4, 4px);
 }
 
@@ -22034,9 +22017,9 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 
 /* the preview open full screen (< 1232px): the drawer behind it dims with the page's
    backdrop colour, so the preview reads as the front layer */
-.e-permits-user-create--wide.has-peek-overlay .e-permits-user-create__drawer::after {
-  animation: e-permits-user-create-scrim-in 120ms ease-out backwards;
-  background: rgb(18 18 18 / 36%); /* = .e-permits-user-create__scrim */
+.drawer-overlay.has-peek-overlay > .drawer--lg::after {
+  animation: drawer-scrim-in 120ms ease-out backwards;
+  background: rgb(18 18 18 / 36%); /* = .drawer-overlay__scrim */
   content: "";
   inset: 0;
   pointer-events: none;
@@ -22044,7 +22027,7 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
   z-index: 3;
 }
 
-.e-permits-user-create--wide.has-peek-overlay .e-permits-doc-peek {
+.drawer-overlay.has-peek-overlay .e-permits-doc-peek {
   z-index: 4;
 }
 
@@ -22990,7 +22973,6 @@ body[data-fo-postprocess] .e-permits-fo-form__roles .e-permits-fo-selected-role_
 }
 
 /* close / clear buttons whose rest is already tertiary: hover one step darker */
-.e-permits-user-create__close:hover,
 .search-input .btn-icon.clear:hover,
 .e-permits-fo-input .btn-icon.clear:hover,
 .date-picker__nav:hover:not(:disabled) {

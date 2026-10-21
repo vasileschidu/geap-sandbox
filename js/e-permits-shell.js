@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const workplaceAddUser = document.querySelector("[data-workplace-add-user]");
   const workplaceSyncService = document.querySelector("[data-workplace-sync-service]");
   const userCreate = document.querySelector("[data-user-create]");
-  const userCreateDrawer = userCreate?.querySelector(".e-permits-user-create__drawer");
+  const userCreateDrawer = userCreate?.querySelector(".drawer");
   const userCreateBody = userCreate?.querySelector("[data-user-create-body]");
   const userCreateSubmit = userCreate?.querySelector("[data-user-create-submit]");
   const permitsProfilePanel = document.querySelector(".permits-profile");
@@ -898,7 +898,7 @@ document.addEventListener("DOMContentLoaded", () => {
     resetUserCreateState();
     renderUserCreate();
     userCreate.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => {
       userCreateDrawer?.focus();
       userCreateBody?.querySelector('[name="idnp"]')?.focus();
@@ -914,7 +914,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       userCreate.hidden = true;
       userCreate.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       userCreateReturnFocus?.focus?.();
     }, 120);
   };
@@ -4056,7 +4056,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       caseDrawer.hidden = true;
       caseDrawer.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       caseReturnFocus?.focus?.();
     }, 120);
   };
@@ -4272,7 +4272,7 @@ document.addEventListener("DOMContentLoaded", () => {
     caseDrawer.querySelector("[data-case-summary]").textContent = "";
     caseDrawer.querySelector("[data-case-buttons]").innerHTML = `${window.GEAPProcessDesigner ? `<button class="btn btn-secondary btn-rounded" type="button" data-case-flow-schema="${escapeHtml(row.id)}">Vezi schema fluxului</button>` : ""}<button class="btn btn-neutral btn-rounded" type="button" data-case-close>Închide</button>`;
     caseDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => caseDrawer.querySelector("[data-case-close]")?.focus());
   };
 
@@ -8755,16 +8755,16 @@ document.addEventListener("DOMContentLoaded", () => {
     tplPreviewTrigger = trigger || null;
     tplPreviewTrigger?.setAttribute("aria-expanded", "true");
     tplPreview.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     fitTplPreview();
-    requestAnimationFrame(() => tplPreview.querySelector(".e-permits-user-create__close")?.focus());
+    requestAnimationFrame(() => tplPreview.querySelector(".drawer__header > .modal-close")?.focus());
   };
   const closeTplPreview = (after) => {
     if (!tplPreview || tplPreview.hidden || tplPreview.classList.contains("is-closing")) return;
     tplPreview.classList.add("is-closing");
     window.setTimeout(() => {
       tplPreview.hidden = true; tplPreview.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       tplPreviewTrigger?.setAttribute("aria-expanded", "false");
       if (after) after(); else tplPreviewTrigger?.focus?.();
     }, 120);
@@ -8782,14 +8782,14 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ---- drawers (Editează · Atașează) share the open / close ---- */
   const dtplDrawerOpen = (drawer, focusSel) => {
     drawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => drawer.querySelector(focusSel)?.focus());
   };
   const dtplDrawerClose = (drawer, after) => {
     if (!drawer || drawer.hidden || drawer.classList.contains("is-closing")) return;
     closeFoSelect();
     drawer.classList.add("is-closing");
-    window.setTimeout(() => { drawer.hidden = true; drawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); after?.(); }, 120);
+    window.setTimeout(() => { drawer.hidden = true; drawer.classList.remove("is-closing"); document.body.classList.remove("is-drawer-open"); after?.(); }, 120);
   };
 
   const dtplEditDrawer = document.querySelector("[data-dtpl-edit-drawer]");
@@ -10369,14 +10369,14 @@ document.addEventListener("DOMContentLoaded", () => {
     clasDrawer.querySelector("[data-clas-drawer-steps]").hidden = state.mode !== "create";
     (state.mode === "value" ? renderValueDrawer : renderCreateDrawer)();
     clasDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => clasDrawerBody.querySelector("input:not([readonly])")?.focus());
   };
   const closeClasDrawer = () => {
     if (!clasDrawer || clasDrawer.hidden || clasDrawer.classList.contains("is-closing")) return;
     closeFoSelect();
     clasDrawer.classList.add("is-closing");
-    window.setTimeout(() => { clasDrawer.hidden = true; clasDrawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); clasDrawerState = null; clasDrawerReturn?.focus?.(); }, 120);
+    window.setTimeout(() => { clasDrawer.hidden = true; clasDrawer.classList.remove("is-closing"); document.body.classList.remove("is-drawer-open"); clasDrawerState = null; clasDrawerReturn?.focus?.(); }, 120);
   };
 
   /* ---- create wizard: wide right drawer, 4 steps (full-flow stepper on the left) ----
@@ -11735,14 +11735,14 @@ document.addEventListener("DOMContentLoaded", () => {
     ntplCreateReturn = document.activeElement;
     renderNtplCreate();
     ntplCreateDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => ntplCreateBody.querySelector("#ntpl-c-name")?.focus());
   };
   const closeNtplCreate = () => {
     if (!ntplCreateDrawer || ntplCreateDrawer.hidden || ntplCreateDrawer.classList.contains("is-closing")) return;
     closeFoSelect();
     ntplCreateDrawer.classList.add("is-closing");
-    window.setTimeout(() => { ntplCreateDrawer.hidden = true; ntplCreateDrawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); ntplCreate = null; ntplCreateReturn?.focus?.(); }, 120);
+    window.setTimeout(() => { ntplCreateDrawer.hidden = true; ntplCreateDrawer.classList.remove("is-closing"); document.body.classList.remove("is-drawer-open"); ntplCreate = null; ntplCreateReturn?.focus?.(); }, 120);
   };
   const requestCloseNtplCreate = () => {
     if (ntplCreate?.dirty) { askConfirm({ title: "Renunți la șablonul nou?", text: "Datele introduse în acest formular se pierd.", confirmLabel: "Renunță", destructive: true }, () => { ntplCreate.dirty = false; closeNtplCreate(); }); return; }
@@ -12786,7 +12786,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ntplReturnFocus = document.activeElement;
     renderNtplDrawer();
     ntplDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => ntplDrawerBody.querySelector("#ntpl-new-code")?.focus());
   };
 
@@ -12797,7 +12797,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       ntplDrawer.hidden = true;
       ntplDrawer.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       ntplDraft = null;
       ntplReturnFocus?.focus?.();
     }, 120);
@@ -14269,7 +14269,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rtReturnFocus = document.activeElement;
     renderRtDrawer();
     rtDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => rtDrawer.querySelector("#rt-flow")?.focus());
   };
 
@@ -14283,7 +14283,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       rtDrawer.hidden = true;
       rtDrawer.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       if (rtPeek) rtPeek.hidden = true;
       rtDrawer.classList.remove("has-peek", "has-peek-overlay");
       rtDraft = null;
@@ -14950,7 +14950,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const showPayDrawer = (focusSelector) => {
     renderPayDrawer();
     payDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => focusFormControl(payDrawerBody.querySelector(focusSelector)));
   };
 
@@ -15003,7 +15003,7 @@ document.addEventListener("DOMContentLoaded", () => {
       payDrawer.hidden = true;
       payDrawer.classList.remove("is-closing");
       if (!keepDraft) {
-        document.body.classList.remove("is-user-create-open");
+        document.body.classList.remove("is-drawer-open");
         payDraft = null;
         payReturnFocus?.focus?.();
         /* opened from „Configurează tipul de solicitare › Taxe”: back to that drawer, on Taxe */
@@ -15012,7 +15012,7 @@ document.addEventListener("DOMContentLoaded", () => {
           rtDraft.tab = "taxes";
           renderRtDrawer();
           rtDrawer.hidden = false;
-          document.body.classList.add("is-user-create-open");
+          document.body.classList.add("is-drawer-open");
           requestAnimationFrame(() => rtDrawerBody.querySelector('[data-rt-tab="taxes"]')?.focus());
         }
       }
@@ -15930,7 +15930,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tariffDrawer.hidden) tariffReturnFocus = document.activeElement;
     renderTariffView();
     tariffDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => tariffDrawer.querySelector("[data-tariff-buttons] [data-tariff-close]")?.focus());
   };
 
@@ -15948,7 +15948,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tariffViewId = null;
     renderTariffDrawer();
     tariffDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => tariffDrawerBody.querySelector("#tariff-name:not([readonly]), #tariff-name-ru")?.focus());
   };
 
@@ -15959,7 +15959,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       tariffDrawer.hidden = true;
       tariffDrawer.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       tariffDraft = null;
       tariffViewId = null;
       /* opened from a tax ("Creează un tarif nou"): go back to that tax */
@@ -16844,8 +16844,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderDocDrawer();
     docDrawerBody.scrollTop = 0;
     docDrawer.hidden = false;
-    document.body.classList.add("is-user-create-open");
-    requestAnimationFrame(() => (docDrawerBody.querySelector("#doc-title") || docDrawer.querySelector(".e-permits-user-create__close"))?.focus());
+    document.body.classList.add("is-drawer-open");
+    requestAnimationFrame(() => (docDrawerBody.querySelector("#doc-title") || docDrawer.querySelector(".drawer__header > .modal-close"))?.focus());
   };
   const closeDocDrawer = () => {
     if (!docDrawer || docDrawer.hidden || docDrawer.classList.contains("is-closing")) return;
@@ -16854,7 +16854,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.setTimeout(() => {
       docDrawer.hidden = true;
       docDrawer.classList.remove("is-closing");
-      document.body.classList.remove("is-user-create-open");
+      document.body.classList.remove("is-drawer-open");
       docDraft = null;
       docReturnFocus?.focus?.();
     }, 200);

@@ -3482,148 +3482,7 @@ td .e-permits-workplace__date-stack > .e-permits-workplace__date-meta:not(:has(.
 }
 
 /* Create user drawer: shared registry inputs, states, and role combinations. */
-body.is-user-create-open {
-  overflow: hidden;
-}
-
-.e-permits-user-create {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.e-permits-user-create[hidden] {
-  display: none;
-}
-
-.e-permits-user-create__scrim {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  border: 0;
-  background: rgb(18 18 18 / 36%);
-  cursor: default;
-  animation: e-permits-user-create-scrim-in 120ms ease-out backwards;
-}
-
-.e-permits-user-create__drawer {
-  position: relative;
-  z-index: 1;
-  box-sizing: border-box;
-  width: min(800px, 100vw);
-  height: 100dvh;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--color-background-base-default, #fff);
-  color: var(--color-text-base-default, #121212);
-  box-shadow:
-    0 0 0 0.5px rgb(0 0 0 / 12%),
-    0 10px 24px rgb(0 0 0 / 8%),
-    0 2px 8px rgb(0 0 0 / 8%);
-  outline: 0;
-  /* backwards, not both: once the slide ends the drawer keeps no transform, so it is not left a
-     composited layer — with a scrolling body inside, GPU Chrome then repainted hover only on
-     the next click (same fix as the picker modal, 2026-10-12) */
-  animation: e-permits-user-create-drawer-in 160ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
-.e-permits-user-create.is-closing .e-permits-user-create__scrim {
-  animation: e-permits-user-create-scrim-out 100ms ease-in both;
-}
-
-.e-permits-user-create.is-closing .e-permits-user-create__drawer {
-  animation: e-permits-user-create-drawer-out 120ms ease-in both;
-}
-
-@keyframes e-permits-user-create-scrim-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes e-permits-user-create-scrim-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes e-permits-user-create-drawer-in {
-  from { transform: translateX(24px); opacity: 0.8; }
-  to { transform: translateX(0); opacity: 1; }
-}
-
-@keyframes e-permits-user-create-drawer-out {
-  from { transform: translateX(0); opacity: 1; }
-  to { transform: translateX(24px); opacity: 0.8; }
-}
-
-.e-permits-user-create__header {
-  box-sizing: border-box;
-  /* never squeezed by the scrolling body */
-  flex: 0 0 auto;
-  width: 100%;
-  /* compact: 12 top/bottom, 20 sides — the close button lines up with the title */
-  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
-  display: flex;
-  align-items: flex-start;
-  gap: var(--spacing-12, 12px);
-  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
-}
-
-.e-permits-user-create__header h2 {
-  min-width: 0;
-  margin: 0;
-  flex: 1 1 auto;
-  font-family: var(--font-family-primary-font, Onest);
-  font-size: var(--font-size-fs-18, 18px);
-  font-weight: var(--font-weight-fw-semibold, 600);
-  line-height: var(--line-height-lh-26, 26px);
-}
-
-.e-permits-user-create__close {
-  /* centre the 32px button on the 26px title line */
-  margin-top: calc((var(--line-height-lh-26, 26px) - var(--spacing-32, 32px)) / 2);
-  width: 32px;
-  height: 32px;
-  padding: var(--spacing-8, 8px);
-  border: 0;
-  border-radius: var(--border-radius-full, 999px);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 32px;
-  background: var(--color-background-base-tertiary, #f1f1f1);
-  color: var(--color-icon-base-default, #121212);
-  cursor: pointer;
-  transition: background-color 100ms ease, box-shadow 100ms ease;
-}
-
-.e-permits-user-create__close:hover {
-  background: var(--color-background-base-secondary-hover, #e7e7e7);
-}
-
-.e-permits-user-create__close:focus-visible {
-  outline: 0;
-  box-shadow: 0 0 0 4px var(--blue-sky-200, #ccdef6);
-}
-
-.e-permits-user-create__close .icon {
-  width: 16px;
-  height: 16px;
-}
-
-.e-permits-user-create__body {
-  box-sizing: border-box;
-  min-height: 0;
-  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
-  flex: 1 1 auto;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-}
+/* the drawer shell (overlay, scrim, panel, header, ×, body, footer) = the ONE drawer, css/drawer.css (drawer-v1) */
 
 .e-permits-user-create__section {
   width: 100%;
@@ -3814,39 +3673,12 @@ body.is-user-create-open {
    (40px pill buttons, 12px gap) */
 /* back office: controls read at 14/20, never 16 — the library checkbox defaults to
    16px labels (switches are the .e-permits-toggle component below) */
-.e-permits-user-create .checkbox .checkbox-label {
+.drawer-overlay .checkbox .checkbox-label {
   font-size: var(--font-size-fs-14, 14px);
   line-height: var(--line-height-lh-20, 20px);
 }
 
-/* compact like the header (12 / 20); a 1px top border, not a hairline shadow — the
-   shadow vanished where a white field scrolled under it, and positioned controls in
-   the body painted over it. z-index keeps the footer above anything that scrolls. */
-.e-permits-user-create__footer {
-  box-sizing: border-box;
-  flex: 0 0 auto;
-  width: 100%;
-  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--spacing-12, 12px);
-  background: var(--color-background-base-default, #fff);
-  border-top: var(--border-width-1) solid var(--color-border-base-default, #d9d9d9);
-  position: relative;
-  z-index: 2;
-}
-
 @media (max-width: 760px) {
-  .e-permits-user-create__header {
-    padding: var(--spacing-16, 16px);
-  }
-
-  .e-permits-user-create__body {
-    padding: var(--spacing-8, 8px) var(--spacing-16, 16px);
-    scrollbar-gutter: auto;
-  }
-
   .e-permits-user-create__grid,
   .e-permits-user-create__lookup-row {
     gap: var(--spacing-16, 16px);
@@ -3862,17 +3694,6 @@ body.is-user-create-open {
   .e-permits-user-create__lookup-action {
     grid-column: span 12;
     min-height: auto;
-  }
-
-  .e-permits-user-create__footer {
-    padding: var(--spacing-12, 12px) var(--spacing-16, 16px);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .e-permits-user-create__scrim,
-.e-permits-user-create__drawer {
-    animation: none;
   }
 }
 

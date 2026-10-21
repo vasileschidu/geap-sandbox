@@ -8,7 +8,7 @@
    Nothing new as UI: lists = the shell's registry engine (status tabs, quick search, Filtrare
    avansată, sort, pagination, export); details = the dosar profile panel (page header, tabs,
    info cards, stacked lists, timeline, the eKYC table-in-a-card); short forms = the BO right
-   drawer (.e-permits-user-create, the classifier value drawer's markup); long forms (Clienți,
+   drawer (the ONE .drawer, css/drawer.css); long forms (Clienți,
    Furnizori: „pagină separată, pe secțiuni”) = the Setări one-page form (.e-permits-cfg2:
    section list · white section cards · sticky save bar · red card on errors); confirmations =
    askConfirm; results / impact dialogs = the page modal (#case-action-modal).
@@ -192,20 +192,20 @@
     const wrap = document.createElement("div");
     /* the BO right drawer, the classifier value drawer's markup */
     wrap.innerHTML = `
-      <div class="e-permits-user-create" data-ekcfg-drawer hidden>
-        <button class="e-permits-user-create__scrim" type="button" aria-label="Închide" data-ekcfg-close></button>
-        <aside class="e-permits-user-create__drawer" role="dialog" aria-modal="true" aria-labelledby="ekcfg-drawer-title" tabindex="-1">
-          <header class="e-permits-user-create__header">
-            <div class="e-permits-rt__heading">
-              <h2 id="ekcfg-drawer-title" data-ekcfg-title></h2>
-              <p class="e-permits-passport__modal-subtitle" data-ekcfg-subtitle></p>
+      <div class="drawer-overlay" data-ekcfg-drawer hidden>
+        <button class="drawer-overlay__scrim" type="button" aria-label="Închide" data-ekcfg-close></button>
+        <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="ekcfg-drawer-title" tabindex="-1">
+          <header class="drawer__header">
+            <div class="drawer__heading">
+              <h2 class="drawer__title" id="ekcfg-drawer-title" data-ekcfg-title></h2>
+              <p class="drawer__subtitle" data-ekcfg-subtitle></p>
             </div>
-            <button class="e-permits-user-create__close" type="button" aria-label="Închide" data-ekcfg-close>
+            <button class="modal-close" type="button" aria-label="Închide" data-ekcfg-close>
               <svg class="icon" width="16" height="16" aria-hidden="true"><use href="assets/icons/sprite.svg#icon-cross-large"></use></svg>
             </button>
           </header>
-          <div class="e-permits-user-create__body" data-ekcfg-body></div>
-          <footer class="e-permits-user-create__footer">
+          <div class="drawer__body" data-ekcfg-body></div>
+          <footer class="drawer__footer">
             <span class="e-permits-rt__summary" data-ekcfg-summary aria-live="polite"></span>
             <div class="modal-buttons" data-ekcfg-buttons></div>
           </footer>
@@ -314,14 +314,14 @@
     drawerReturn = document.activeElement;
     renderDrawer();
     ensureDrawer().hidden = false;
-    document.body.classList.add("is-user-create-open");
+    document.body.classList.add("is-drawer-open");
     requestAnimationFrame(() => dq("[data-ekcfg-body]").querySelector("input:not([readonly]), textarea, .e-permits-fo-select__button")?.focus());
   };
   const closeDrawer = (force = false) => {
     if (!drawer || drawer.hidden || drawer.classList.contains("is-closing")) return;
     const done = () => {
       drawer.classList.add("is-closing");
-      window.setTimeout(() => { drawer.hidden = true; drawer.classList.remove("is-closing"); document.body.classList.remove("is-user-create-open"); F = null; drawerReturn?.focus?.(); }, 120);
+      window.setTimeout(() => { drawer.hidden = true; drawer.classList.remove("is-closing"); document.body.classList.remove("is-drawer-open"); F = null; drawerReturn?.focus?.(); }, 120);
     };
     if (!force && F && changedCount()) { A.askConfirm({ title: "Renunți la modificări?", text: "Datele introduse în formular se pierd.", confirmLabel: "Renunță", destructive: true }, done); return; }
     done();

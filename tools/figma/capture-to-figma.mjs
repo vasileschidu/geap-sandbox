@@ -33,7 +33,7 @@ const CSS = arg("css", "");
 const EVAL = arg("eval", "");                                         // --eval "<js>" runs after the demo state (scroll a table, reopen a menu) — Ghișeu row menus 2026-10-16                                           // extra CSS, e.g. unclip a scrolling panel
 let H = Number(arg("height", 1024));
 const FIT = Boolean(arg("fit", false));
-const FIT_SEL = arg("fit-sel", ".e-permits-shell__canvas-surface,.e-permits-workplace__table-wrap,.modal-content,.e-permits-user-create__body,.e-permits-shell__nav");
+const FIT_SEL = arg("fit-sel", ".e-permits-shell__canvas-surface,.e-permits-workplace__table-wrap,.modal-content,.drawer__body,.e-permits-shell__nav");
 const W = Number(arg("width", 1920));   // 1440 for FO / EVO Cabinet pages, 375 for mobile
 const MOBILE = W < 600;
 const CHROME = arg("chrome", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome");
@@ -61,7 +61,7 @@ const st = await evaluate("document.documentElement.dataset.demoState");
 if (String(st).endsWith(":error")) console.error(`demo state ${STATE} stopped with an error — check js/demo-states.js`);
 await sleep(Number(arg("settle", 900)));   // --settle <ms>: wait longer for demo runs that open a modal / menu (dos-04h)
 if (EVAL) { await evaluate(EVAL); await sleep(500); }
-await evaluate(`(() => { const s = document.head.appendChild(document.createElement("style")); s.textContent = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important} ${HIDE}{display:none!important} ${CSS.replace(/"/g, '\\"')}${FULL ? " .e-permits-user-create__drawer{height:auto!important;max-height:none!important} .e-permits-user-create__body{overflow:visible!important;flex:none!important;max-height:none!important}" : ""}"; ${KEEP_FOCUS ? "" : "document.activeElement?.blur?.();"} })()`);
+await evaluate(`(() => { const s = document.head.appendChild(document.createElement("style")); s.textContent = "*,*::before,*::after{transition:none!important;animation:none!important;caret-color:transparent!important} ${HIDE}{display:none!important} ${CSS.replace(/"/g, '\\"')}${FULL ? " .drawer{height:auto!important;max-height:none!important} .drawer__body{overflow:visible!important;flex:none!important;max-height:none!important}" : ""}"; ${KEEP_FOCUS ? "" : "document.activeElement?.blur?.();"} })()`);
 await sleep(300);
 if (FIT) for (let k = 0; k < 4; k++) {
   const d = await evaluate(`Math.max(0, ...[...document.querySelectorAll(${JSON.stringify(FIT_SEL)})].filter((e) => e.getClientRects().length && !e.closest("[hidden],.e-permits-builder")).map((e) => e.scrollHeight - e.clientHeight))`);

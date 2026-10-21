@@ -20,6 +20,7 @@
 //   5. back navigation — crumb-trail / back-link (spec.backNav).
 //   6. action icons — action-icon / action-icon-colour (spec.actionIcons).
 //   8. tooltips — tooltip-private / tooltip-title (spec.tooltip): ONE runtime, js/icon-tooltip.js (tooltip-one-v1).
+//   9. drawers — drawer-private (spec.drawer): ONE drawer, .drawer-overlay > aside.drawer (drawer-v1).
 //   7. converge (v2, minor) — a non-canonical implementation of a pattern family (spec.families: pager, stepper,
 //      close ×, notice, tag, switch, back, menu item, dialog shell, key-value list).
 //   + interactions (v2): per state, opens up to N visible menu / drawer / disclosure triggers (aria-haspopup,
@@ -530,6 +531,21 @@ const PAGE_LIB = (spec, documentedList) => {
       for (const el of qsa(TT.interactive)) {
         if (!el.hasAttribute("title") || !el.getAttribute("title").trim() || ignored(el) || !vis(el) || TT.titleExempt.some((s) => el.matches(s))) continue;
         add("major", "tooltip-title", el, `title="${el.getAttribute("title").slice(0, 40)}"`, "data-tooltip-label / data-tooltip-text / data-cell-tooltip (js/icon-tooltip.js) — or no title when it repeats the visible text / aria-label");
+      }
+    }
+    /* 9. drawers (drawer-v1): ONE right-hand panel — .drawer-overlay > aside.drawer (css/drawer.css, js/drawer.js).
+       drawer-private (major): a visible dialog / aside that is a right-hand full-height panel (touches the right and top
+       edges, ≥ 90 % of the viewport high, narrower than the viewport) or whose class names a drawer, and is not .drawer */
+    const DR = spec.drawer;
+    if (DR) {
+      const allowDr = DR.allow.join(", ");
+      const vw = window.innerWidth, vh = window.innerHeight;
+      for (const el of qsa(DR.candidates)) {
+        if (!vis(el) || ignored(el) || el.matches(DR.canonical) || el.closest(allowDr)) continue;
+        const r = el.getBoundingClientRect();
+        const panel = r.right >= vw - 1 && r.top <= 1 && r.height >= vh * 0.9 && r.width < vw - 40;
+        const named = el !== document.body && [...el.classList].some((c) => /drawer/i.test(c) && !/^(is|has)-/.test(c));
+        if (panel || named) add("major", "drawer-private", el, `${[...el.classList].slice(0, 2).join(".") || el.tagName.toLowerCase()} ${Math.round(r.width)}×${Math.round(r.height)}`, `${DR.canonical} (components.md › Drawer)`);
       }
     }
     /* 6. action icons: „Editează…” = icon-edit, „Elimină… / Șterge…” = icon-delete, icon = label colour */

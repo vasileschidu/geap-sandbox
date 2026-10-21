@@ -1,0 +1,262 @@
+/* =====================================================================================
+   Drawer — ONE right-hand panel over the page (drawer-v1, 2026-10-21; components.md › „Drawer”).
+   Built from the most-used product drawer (`.e-permits-user-create__drawer`, geometry kept as it was):
+     .drawer-overlay[hidden]                 fixed layer (z 1200, above library modals' 1000 page layer)
+       > button.drawer-overlay__scrim        the dimmed page (click = close, through the drawer's own close)
+       > aside.drawer(.drawer--lg)[role=dialog][aria-modal=true][aria-labelledby][tabindex=-1]
+           > header.drawer__header           title block + the library × (.modal-close)
+               > .drawer__heading > h2.drawer__title + p.drawer__subtitle
+               > button.modal-close
+           > [optional strips: tabs, status…]
+           > .drawer__body                   the only scroller (scroll hairlines from the header / footer borders)
+           > footer.drawer__footer           > .modal-buttons (library footer buttons)
+   Sizes: default 800 (min with the screen), `.drawer--lg` 960 (wide forms: request type, documents).
+   Behaviour (js/drawer.js, GEAPDrawer): focus trap, Escape → the drawer's own close (its unsaved-changes
+   confirm included), focus back to the opener. `.is-closing` on the overlay plays the exit.
+   Phones (≤ 760): the shared phone sheet (css/modal-phone.css): 16 top gap, top radius 16, no drag handle,
+   title 20/32, × 40 with a 24 icon on the title line, 16 sides.
+   ===================================================================================== */
+
+body.is-drawer-open {
+  overflow: hidden;
+}
+
+.drawer-overlay {
+  display: flex;
+  inset: 0;
+  justify-content: flex-end;
+  position: fixed;
+  z-index: 1200;
+}
+
+.drawer-overlay[hidden] {
+  display: none;
+}
+
+.drawer-overlay__scrim {
+  animation: drawer-scrim-in 120ms ease-out backwards;
+  background: rgb(18 18 18 / 36%);
+  border: 0;
+  cursor: default;
+  height: 100%;
+  inset: 0;
+  padding: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.drawer {
+  /* backwards, not both: once the slide ends the drawer keeps no transform, so it is not left a
+     composited layer — with a scrolling body inside, GPU Chrome then repainted hover only on
+     the next click (same fix as the picker modal, 2026-10-12) */
+  animation: drawer-in 160ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  background: var(--color-background-base-default, #fff);
+  box-shadow:
+    0 0 0 0.5px rgb(0 0 0 / 12%),
+    0 10px 24px rgb(0 0 0 / 8%),
+    0 2px 8px rgb(0 0 0 / 8%);
+  box-sizing: border-box;
+  color: var(--color-text-base-default, #121212);
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  outline: 0;
+  position: relative;
+  width: min(800px, 100vw);
+  z-index: 1;
+}
+
+.drawer--lg {
+  /* 960 (was 1120): the rows had room to spare (user, 2026-10-08) */
+  transition: width 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  width: min(960px, calc(100vw - var(--spacing-64, 64px)));
+}
+
+.drawer-overlay.is-closing .drawer-overlay__scrim {
+  animation: drawer-scrim-out 100ms ease-in both;
+}
+
+.drawer-overlay.is-closing .drawer {
+  animation: drawer-out 120ms ease-in both;
+}
+
+@keyframes drawer-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes drawer-scrim-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes drawer-in {
+  from { opacity: 0.8; transform: translateX(var(--spacing-24, 24px)); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes drawer-out {
+  from { opacity: 1; transform: translateX(0); }
+  to { opacity: 0.8; transform: translateX(var(--spacing-24, 24px)); }
+}
+
+/* ---- header: compact, 12 top / bottom, 20 sides — the × lines up with the title ---- */
+.drawer__header {
+  align-items: flex-start;
+  border-bottom: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto; /* never squeezed by the scrolling body */
+  gap: var(--spacing-12, 12px);
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
+  width: 100%;
+}
+
+.drawer__heading {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.drawer__title {
+  flex: 1 1 auto;
+  font-family: var(--font-family-primary-font, Onest);
+  font-size: var(--font-size-fs-18, 18px);
+  font-weight: var(--font-weight-fw-semibold, 600);
+  line-height: var(--line-height-lh-26, 26px);
+  margin: 0;
+  min-width: 0;
+}
+
+.drawer__subtitle {
+  color: var(--color-text-base-tertiary, #757575);
+  font-size: var(--font-size-fs-14, 14px);
+  line-height: var(--line-height-lh-20, 20px);
+  margin: var(--spacing-2, 2px) 0 0;
+}
+
+.drawer__subtitle:empty {
+  display: none;
+}
+
+/* the library × (.modal-close) in the header row: static (not the modal's absolute corner), 32 on the 26 title line */
+.drawer__header > .modal-close {
+  background: var(--color-background-base-tertiary, #f1f1f1);
+  color: var(--color-icon-base-default, #121212);
+  flex: 0 0 var(--spacing-32, 32px);
+  margin-top: calc((var(--line-height-lh-26, 26px) - var(--spacing-32, 32px)) / 2);
+  padding: var(--spacing-8, 8px);
+  position: static;
+  transition: background-color 100ms ease, box-shadow 100ms ease;
+}
+
+.drawer__header > .modal-close:hover {
+  background: var(--color-background-base-tertiary-hover, #d9d9d9);
+}
+
+.drawer__header > .modal-close:active {
+  background: var(--color-background-base-tertiary-active, #b2b2b2);
+}
+
+.drawer__header > .modal-close:focus-visible {
+  box-shadow: 0 0 0 var(--border-width-2, 2px) var(--color-background-base-default, #fff), 0 0 0 calc(var(--border-width-2, 2px) + var(--border-width-3, 3px)) var(--blue-sky-500, #3379db);
+  outline: none;
+}
+
+.drawer__header > .modal-close .icon {
+  height: var(--icon-size-small, 16px);
+  width: var(--icon-size-small, 16px);
+}
+
+/* ---- body: the only scroller ---- */
+.drawer__body {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--spacing-8, 8px) var(--spacing-20, 20px);
+  scrollbar-gutter: stable;
+}
+
+/* ---- footer = the modal footer: library .modal-buttons; a 1px top border, not a hairline shadow — the shadow
+   vanished where a white field scrolled under it; z-index keeps the footer above anything that scrolls ---- */
+.drawer__footer {
+  align-items: center;
+  background: var(--color-background-base-default, #fff);
+  border-top: var(--border-width-1, 1px) solid var(--color-border-base-default, #d9d9d9);
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 auto;
+  gap: var(--spacing-12, 12px);
+  justify-content: flex-end;
+  padding: var(--spacing-12, 12px) var(--spacing-20, 20px);
+  position: relative;
+  width: 100%;
+  z-index: 2;
+}
+
+/* ---- phones: the shared phone sheet (css/modal-phone.css values) ---- */
+@media (max-width: 760px) {
+  .drawer-overlay {
+    align-items: flex-end;
+    box-sizing: border-box;
+    padding-top: var(--modal-phone-gap, 16px);
+  }
+
+  .drawer,
+  .drawer--lg {
+    border-radius: var(--modal-phone-radius, 16px) var(--modal-phone-radius, 16px) 0 0;
+    height: 100%;
+    overflow: clip;
+    width: 100%;
+  }
+
+  .drawer__header {
+    gap: var(--spacing-8, 8px);
+    padding: var(--modal-phone-inset, 16px) var(--modal-phone-inset, 16px) var(--spacing-12, 12px);
+  }
+
+  .drawer__title {
+    font-size: var(--font-size-fs-20, 20px);
+    line-height: var(--modal-phone-title-line, 32px);
+  }
+
+  .drawer__header > .modal-close {
+    flex-basis: var(--modal-phone-close, 40px);
+    height: var(--modal-phone-close, 40px);
+    margin-top: calc((var(--modal-phone-title-line, 32px) - var(--modal-phone-close, 40px)) / 2);
+    padding: 0;
+    width: var(--modal-phone-close, 40px);
+  }
+
+  .drawer__header > .modal-close .icon {
+    height: var(--icon-size-default, 24px);
+    width: var(--icon-size-default, 24px);
+  }
+
+  .drawer__body {
+    padding: var(--spacing-8, 8px) var(--modal-phone-inset, 16px);
+    scrollbar-gutter: auto;
+  }
+
+  .drawer__footer {
+    padding: var(--spacing-12, 12px) var(--modal-phone-inset, 16px) var(--modal-phone-foot, 16px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-overlay__scrim,
+  .drawer,
+  .drawer-overlay.is-closing .drawer-overlay__scrim,
+  .drawer-overlay.is-closing .drawer {
+    animation: none;
+  }
+
+  .drawer--lg {
+    transition: none;
+  }
+}

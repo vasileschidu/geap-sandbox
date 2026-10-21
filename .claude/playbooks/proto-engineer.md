@@ -1931,3 +1931,17 @@ lesson into the sections above when it has proved itself twice. Never delete a l
   FO / Ghișeu data has no tacit act → a demo param read in the shared row (`?tacit=<id>[,…]`, pp-02t / gh-02y) instead
   of seed data that Cabinet also reads. compare-styles pp-01 ↔ sm-01 = 1 / viewport, byte-identical on a HEAD worktree
   (:8990, „Detalii” padding-right from another commit) — not mine; always run the HEAD baseline before reporting „0”.
+- 2026-10-21 · ONE drawer (drawer-v1; audit § 3). The product already had ONE de-facto drawer (13 copies of
+  `.e-permits-user-create*` markup + 13 private open / close scripts): converging = rename the SHELL classes only
+  (overlay, scrim, panel, header, ×, body, footer → `.drawer-overlay` / `.drawer` / `__header`…), keep the inner form
+  vocabulary, move the shell CSS verbatim into css/drawer.css (loaded BEFORE the product CSS so `.e-permits-doc-preview`
+  880 still beats `.drawer` 800 at equal specificity) and add behaviour by DELEGATION (js/drawer.js: Tab trap on the
+  topmost open overlay, focus return via a MutationObserver on `hidden`, an Escape fallback that clicks the drawer's own
+  × only when nothing else handled the key) — the 13 open / close functions and their unsaved-changes confirms stayed
+  untouched. The markup edits were GENERATED from HEAD lines (line map + counts), so staging on a moving HEAD is one
+  re-run. Proof: geometry probe of 12 drawers × 2 widths (scratch dr/dr.mjs) — 1440 identical, 375 = the intended sheet;
+  behaviour probe (dr/beh.mjs: Enter on the opener, 60 Tabs, Escape) — Tab escapes 49 / 54 of 60 on HEAD → 0, focus back
+  on the opener; rule 9 `drawer-private` flags the old markup on a HEAD worktree (:8981) and 0 on the tree. Traps: the
+  audit's `[class*='drawer']` matched the BODY's state class `is-drawer-open` (exclude `is-` / `has-` tokens); the
+  library `.modal-close` is absolutely positioned (needs `position: static` in the header row) and js/modal.js binds it
+  only inside `.modal-overlay` (no side effect); the dialog family of the auditor needed `.drawer` as canonical.
